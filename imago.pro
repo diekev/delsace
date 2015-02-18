@@ -19,10 +19,12 @@ QMAKE_LFLAGS += -fsanitize=address
 
 SOURCES += main.cpp\
 		src/mainwindow.cpp \
-	src/glwindow.cpp
+	src/glwindow.cpp \
+    src/linux_utils.cpp
 
 HEADERS  += src/mainwindow.h \
-	src/glwindow.h
+	src/glwindow.h \
+    src/linux_utils.h
 
 FORMS    += ui/mainwindow.ui \
 	ui/pref_window.ui

@@ -8,6 +8,7 @@
 #include <QSettings>
 #include <QTimer>
 
+#include "linux_utils.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -96,32 +97,12 @@ void MainWindow::loadImage(const std::string &name)
 	ui->m_label->show();
 }
 
-static auto execBuildImageList(const char *cmd) -> std::vector<std::string>
-{
-	FILE *pipe = popen(cmd, "r");
-
-	char buffer[128];
-	auto result = std::vector<std::string>{};
-
-	while (!feof(pipe)) {
-		if (fgets(buffer, 128, pipe) != nullptr) {
-			auto str = std::string{buffer};
-			str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-			result.push_back(str);
-		}
-	}
-
-	pclose(pipe);
-
-	return result;
-}
-
 void MainWindow::openImageFromDir(const std::string &name, QString dir)
 {
 	auto cmd = QString{"find \"" + dir + "\" -type f \\("+ supported_file_formats +"\\) | sort"};
 	std::cout << cmd.toStdString() << std::endl;
 
-	m_images = execBuildImageList(cmd.toLatin1().data());
+	m_images = Linux::execBuildImageList(cmd.toLatin1().data());
 
 	loadImage(name);
 	addRecentFile(name);
@@ -175,19 +156,13 @@ auto MainWindow::currentImage() const -> QImage*
 	return m_current_image;
 }
 
-static auto execRemoveImage(const char *cmd) -> void
-{
-	FILE *pipe = popen(cmd, "r");
-	pclose(pipe);
-}
-
 /*! Move an image to the OS trash. */
 void MainWindow::deleteImage()
 {
 	auto name = m_images[m_image_id];
 	auto cmd = QString{"gvfs-trash \"" + QString(name.c_str()) + "\""};
 
-	execRemoveImage(cmd.toLatin1().data());
+	Linux::execRemoveImage(cmd.toLatin1().data());
 
 	m_images.erase(std::remove(m_images.begin(), m_images.end(), name), m_images.end());
 
