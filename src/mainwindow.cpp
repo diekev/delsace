@@ -80,7 +80,6 @@ void MainWindow::loadImage(const std::string &name)
 	ui->m_label->clear();
 
 	if (m_current_image->load(filename)) {
-		m_orig_image_size = m_current_image->size();
 		setWindowTitle(QFileInfo(filename).fileName());
 		ui->m_scroll_area->setWidgetResizable(true);
 		ui->m_label->setPixmap(QPixmap::fromImage(*m_current_image));
@@ -108,9 +107,12 @@ void MainWindow::openImageFromDir(const std::string &name, QString dir)
 	addRecentFile(name);
 	updateRecentFilesMenu();
 
-	if (m_images.size() > 1) {
-		m_image_id = std::find(m_images.begin(), m_images.end(), name) - m_images.begin();
+	m_image_id = std::find(m_images.begin(), m_images.end(), name) - m_images.begin();
+
+	if (m_image_id == m_images.size()) {
+		m_image_id -= 1;
 	}
+	std::cout << __func__ << " m_image_id: " << m_image_id << std::endl;
 
 	for (const auto &name : m_images) {
 		std::cout << name << std::endl;
@@ -173,6 +175,8 @@ void MainWindow::deleteImage()
 
 void MainWindow::nextImage()
 {
+	std::cout << __func__ << " m_image_id: " << m_image_id << std::endl;
+	std::cout << __func__ << " size: " << m_images.size() << std::endl;
 	bool randomize = false;
 	auto index = 0;
 
@@ -185,6 +189,7 @@ void MainWindow::nextImage()
 		index = m_image_id;
 	}
 
+	std::cout << __func__ << " index: " << index << std::endl;
 	auto name = m_images[index];
 //	std::cout << "Next image: " << name << std::endl;
 
@@ -337,19 +342,14 @@ void MainWindow::updateRecentFilesMenu()
 {
 	if (m_recent_files.size() > 0) {
 		ui->m_no_recent_act->setVisible(false);
-	}
 
-	for (size_t i = 0;  i < MAX_RECENT_FILES;  ++i) {
-		if (i < m_recent_files.size()) {
+		for (auto i = 0u;  i < m_recent_files.size();  ++i) {
 			auto filename = QString::fromStdString(m_recent_files[i]);
 			auto name = QFileInfo(filename).fileName();
 
 			m_recent_act[i]->setText(name);
-			m_recent_act[i]->setData(m_recent_files[i].c_str());
+			m_recent_act[i]->setData(filename);
 			m_recent_act[i]->setVisible(true);
-		}
-		else {
-			m_recent_act[i]->setVisible(false);
 		}
 	}
 }

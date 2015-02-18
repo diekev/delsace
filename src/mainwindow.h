@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-//#include <random>
 
 #include "glwindow.h"
 
@@ -13,13 +12,6 @@ class MainWindow;
 }
 
 #define MAX_RECENT_FILES 10
-
-enum {
-	IMG_SCALE_FITSCREEN	 = 0,
-	IMG_SCALE_UP		 = 1,
-	IMG_SCALE_DOWN		 = 2,
-	IMG_SCALE_NORMAL	 = 3,
-};
 
 class MainWindow : public QMainWindow {
 	Q_OBJECT
@@ -34,7 +26,6 @@ class MainWindow : public QMainWindow {
 
 	QImage *m_current_image;
 	QAction *m_recent_act[MAX_RECENT_FILES];
-	QSize m_orig_image_size;
 
 	std::mt19937 m_rng;
 
