@@ -49,6 +49,7 @@ MainWindow::~MainWindow()
 {
 	delete ui;
 }
+
 void MainWindow::closeEvent(QCloseEvent*)
 {
 	writeSettings();
@@ -163,13 +164,9 @@ void MainWindow::openRecentFile()
 			return;
 		}
 
-		// It's not an image we already have loaded
-//		add_image (filename);
-//		if (m_images.size() > 1) {
-//			// Otherwise, add_image already did this for us.
-//			current_image (m_images.size() - 1);
-//			fitWindowToImage (true, true);
-//		}
+		auto dir = QFileInfo(action->data().toString()).absoluteDir();
+
+		openImageFromDir(filename, dir.path());
 	}
 }
 
@@ -323,12 +320,13 @@ void MainWindow::readSettings()
 {
 	QSettings settings("Giraffe en feu", "imago");
 
-	auto recent_files = settings.value("Rencent Files").toStringList();
+	auto recent_files = settings.value("Recent Files").toStringList();
 
 	for (const auto &file : recent_files) {
 		addRecentFile(file.toStdString());
-		updateRecentFilesMenu();
 	}
+
+	updateRecentFilesMenu();
 }
 
 void MainWindow::writeSettings()
@@ -340,7 +338,7 @@ void MainWindow::writeSettings()
 		recent.push_front(QString(s.c_str()));
 	}
 
-	settings.setValue ("Recent Files", recent);
+	settings.setValue("Recent Files", recent);
 }
 
 void MainWindow::addRecentFile(const std::string &name)
@@ -356,16 +354,16 @@ void MainWindow::addRecentFile(const std::string &name)
 
 void MainWindow::removeRecentFile(const std::string &name)
 {
-	for (size_t i = 0;  i < m_recent_files.size();  ++i) {
-		if (m_recent_files[i] == name) {
-			m_recent_files.erase(m_recent_files.begin()+i);
-			--i;
-		}
-	}
+	auto begin = std::remove(m_recent_files.begin(), m_recent_files.end(), name);
+	m_recent_files.erase(begin, m_recent_files.end());
 }
 
 void MainWindow::updateRecentFilesMenu()
 {
+	if (m_recent_files.size() > 0) {
+		ui->m_no_recent_act->setVisible(false);
+	}
+
 	for (size_t i = 0;  i < MAX_RECENT_FILES;  ++i) {
 		if (i < m_recent_files.size()) {
 			auto filename = QString::fromStdString(m_recent_files[i]);

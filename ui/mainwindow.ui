@@ -146,7 +146,7 @@
      <property name="title">
       <string>Ouvert Récemment</string>
      </property>
-     <addaction name="separator"/>
+     <addaction name="m_no_recent_act"/>
     </widget>
     <addaction name="m_open_action"/>
     <addaction name="m_recent_menu"/>
@@ -269,6 +269,14 @@
    </property>
    <property name="shortcut">
     <string>Home</string>
+   </property>
+  </action>
+  <action name="m_no_recent_act">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Aucun fichier récent</string>
    </property>
   </action>
  </widget>
