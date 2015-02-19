@@ -29,5 +29,7 @@ HEADERS  += src/mainwindow.h \
 FORMS    += ui/mainwindow.ui \
 	ui/pref_window.ui
 
+INCLUDEPATH += src/
+
 RESOURCES += \
     resources.qrc
