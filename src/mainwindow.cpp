@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
 	m_image_id = 0;
 	m_rng.seed(19937);
 	m_scale_factor = 1.0f;
+	m_recent_files.reserve(MAX_RECENT_FILES);
 
 	//m_gl_win = new GLWindow(this, *this);
 
