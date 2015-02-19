@@ -12,6 +12,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#define WITH_GL 1
+
 /* For use in openImageFromDir(). */
 static const char supported_file_formats[] = {
 	" -name \\*.bmp -o -name \\*.gif -o -name \\*.jpg -o -name \\*.jpeg "
@@ -32,7 +34,11 @@ MainWindow::MainWindow(QWidget *parent)
 	m_scale_factor = 1.0f;
 	m_recent_files.reserve(MAX_RECENT_FILES);
 
-	//m_gl_win = new GLWindow(this, *this);
+#ifdef WITH_GL
+	m_gl_win = new GLWindow(this, *this);
+
+	ui->m_scroll_area->setWidget(m_gl_win);
+#endif
 
 	for (int i = 0; i < MAX_RECENT_FILES; ++i) {
 		m_recent_act[i] = new QAction(this);
@@ -77,24 +83,28 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 void MainWindow::loadImage(const std::string &name)
 {
 	auto filename = QString::fromStdString(name);
-
+#ifndef WITH_GL
 	ui->m_label->clear();
-
+#endif
 	if (m_current_image->load(filename)) {
 		setWindowTitle(QFileInfo(filename).fileName());
 		ui->m_scroll_area->setWidgetResizable(true);
+#ifndef WITH_GL
 		ui->m_label->setPixmap(QPixmap::fromImage(*m_current_image));
 
 		m_scale_factor = 1.0f;
 
 		//fitScreen();
 		ui->m_label->adjustSize();
+#endif
+		m_gl_win->update();
 	}
 	else {
 		std::cerr << "Unable to load image: " << name << std::endl;
 	}
-
+#ifndef WITH_GL
 	ui->m_label->show();
+#endif
 }
 
 void MainWindow::openImageFromDir(const std::string &name, QString dir)
@@ -225,6 +235,7 @@ void MainWindow::adjustScrollBar(QScrollBar *scrollBar, float factor)
 auto MainWindow::scaleImage(float factor) -> void
 {
 	m_scale_factor *= factor;
+#ifndef WITH_GL
 	//ui->m_label->resize(ui->m_label->size() * m_scale_factor);
 
 	auto w = ui->m_label->pixmap()->width() * m_scale_factor;
@@ -239,6 +250,7 @@ auto MainWindow::scaleImage(float factor) -> void
 
 	ui->m_scale_up->setEnabled(m_scale_factor < 3.0f);
 	ui->m_scale_down->setEnabled(m_scale_factor > 0.333f);
+#endif
 }
 
 void MainWindow::scaleUp()
@@ -253,6 +265,7 @@ void MainWindow::scaleDown()
 
 void MainWindow::setNormalSize()
 {
+#ifndef WITH_GL
 	auto width = ui->m_label->pixmap()->width();
 	auto height = ui->m_label->pixmap()->width();
 	auto x = 0;
@@ -263,6 +276,7 @@ void MainWindow::setNormalSize()
 
 	ui->m_label->setGeometry(x, y, width, height);
 	m_scale_factor = 1.0f;
+#endif
 }
 
 void MainWindow::normalSize()
@@ -272,7 +286,7 @@ void MainWindow::normalSize()
 
 void MainWindow::fitScreen()
 {
-
+#ifndef WITH_GL
 	if (ui->m_label->height() > ui->m_scroll_area->height()) {
 		auto ratio = ui->m_scroll_area->height() / float(ui->m_label->height());
 		auto width = ui->m_label->width() * ratio;
@@ -292,6 +306,7 @@ void MainWindow::fitScreen()
 	else {
 		setNormalSize();
 	}
+#endif
 }
 
 void MainWindow::readSettings()
