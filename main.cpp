@@ -9,6 +9,9 @@
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
+	QCoreApplication::setOrganizationName("Giraffe en feu");
+	QCoreApplication::setApplicationName("imago");
+
 	MainWindow w;
 
 	w.show();

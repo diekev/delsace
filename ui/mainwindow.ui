@@ -168,6 +168,8 @@
      <string>Édition</string>
     </property>
     <addaction name="m_delete_image"/>
+    <addaction name="separator"/>
+    <addaction name="m_user_pref_act"/>
    </widget>
    <widget class="QMenu" name="menuAfficher">
     <property name="title">
@@ -277,6 +279,11 @@
    </property>
    <property name="text">
     <string>Aucun fichier récent</string>
+   </property>
+  </action>
+  <action name="m_user_pref_act">
+   <property name="text">
+    <string>Préférences</string>
    </property>
   </action>
  </widget>
@@ -459,6 +466,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>m_user_pref_act</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editPreferences()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>296</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openImage()</slot>
@@ -472,5 +495,6 @@
   <slot>fitScreen()</slot>
   <slot>openRecentFile()</slot>
   <slot>deleteImage()</slot>
+  <slot>editPreferences()</slot>
  </slots>
 </ui>

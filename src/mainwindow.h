@@ -30,6 +30,8 @@ class MainWindow : public QMainWindow {
 	std::mt19937 m_rng;
 
 	float m_scale_factor;
+	QDialog *m_user_pref;
+	bool m_randomize;
 
 public slots:
 	void deleteImage();
@@ -43,6 +45,9 @@ public slots:
 	void scaleDown();
 	void fitScreen();
 	void normalSize();
+	void editPreferences();
+	void setRandomize(const bool b);
+	void setDiapTime(const int t);
 
 public:
 	explicit MainWindow(QWidget *parent = 0);

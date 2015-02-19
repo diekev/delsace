@@ -11,6 +11,7 @@
 #include "linux_utils.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "user_preferences.h"
 
 //#define WITH_GL
 
@@ -33,6 +34,8 @@ MainWindow::MainWindow(QWidget *parent)
 	m_rng.seed(19937);
 	m_scale_factor = 1.0f;
 	m_recent_files.reserve(MAX_RECENT_FILES);
+	m_user_pref = new UserPreferences(*this);
+	m_randomize = false;
 
 #ifdef WITH_GL
 	m_gl_win = new GLWindow(this, *this);
@@ -181,10 +184,9 @@ void MainWindow::deleteImage()
 
 void MainWindow::nextImage()
 {
-	bool randomize = false;
 	auto index = 0;
 
-	if (randomize) {
+	if (m_randomize) {
 		std::uniform_int_distribution<int> dist(0, m_images.size() - 1);
 		index = dist(m_rng);
 	}
@@ -211,7 +213,7 @@ void MainWindow::prevImage()
 
 void MainWindow::startDiap()
 {
-	m_timer->start(2000);
+	m_timer->start(5000);
 }
 
 void MainWindow::stopDiap()
@@ -277,6 +279,21 @@ void MainWindow::normalSize()
 	setNormalSize();
 }
 
+void MainWindow::editPreferences()
+{
+	m_user_pref->show();
+}
+
+void MainWindow::setRandomize(const bool b)
+{
+	m_randomize = b;
+}
+
+void MainWindow::setDiapTime(const int t)
+{
+	m_timer->setInterval(t * 1000);
+}
+
 void MainWindow::fitScreen()
 {
 #ifndef WITH_GL
@@ -304,7 +321,7 @@ void MainWindow::fitScreen()
 
 void MainWindow::readSettings()
 {
-	QSettings settings("Giraffe en feu", "imago");
+	QSettings settings;
 
 	auto recent_files = settings.value("Recent Files").toStringList();
 
@@ -317,7 +334,7 @@ void MainWindow::readSettings()
 
 void MainWindow::writeSettings()
 {
-	QSettings settings("Giraffe en feu", "imago");
+	QSettings settings;
 
 	QStringList recent;
 	for (const auto &s : m_recent_files) {
