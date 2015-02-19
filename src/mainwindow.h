@@ -60,7 +60,6 @@ public:
 	void readSettings();
 	void writeSettings();
 	void addRecentFile(const std::string &name);
-	void removeRecentFile(const std::string &name);
 	void updateRecentFilesMenu();
 	void closeEvent(QCloseEvent *);
 };

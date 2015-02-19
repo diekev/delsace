@@ -12,7 +12,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#define WITH_GL 1
+//#define WITH_GL
 
 /* For use in openImageFromDir(). */
 static const char supported_file_formats[] = {
@@ -96,8 +96,9 @@ void MainWindow::loadImage(const std::string &name)
 
 		//fitScreen();
 		ui->m_label->adjustSize();
-#endif
+#else
 		m_gl_win->update();
+#endif
 	}
 	else {
 		std::cerr << "Unable to load image: " << name << std::endl;
@@ -336,19 +337,18 @@ void MainWindow::writeSettings()
 
 void MainWindow::addRecentFile(const std::string &name)
 {
-	std::cout << __func__ << " name: " << name << std::endl;
-	removeRecentFile(name);
-	m_recent_files.insert(m_recent_files.begin(), name);
+	auto index = std::find(m_recent_files.begin(), m_recent_files.end(), name);
+
+	if (index != m_recent_files.end()) {
+		std::rotate(m_recent_files.begin(), index, index + 1);
+	}
+	else {
+		m_recent_files.insert(m_recent_files.begin(), name);
+	}
 
 	if (m_recent_files.size() > MAX_RECENT_FILES) {
 		m_recent_files.resize(MAX_RECENT_FILES);
 	}
-}
-
-void MainWindow::removeRecentFile(const std::string &name)
-{
-	auto begin = std::remove(m_recent_files.begin(), m_recent_files.end(), name);
-	m_recent_files.erase(begin, m_recent_files.end());
 }
 
 void MainWindow::updateRecentFilesMenu()
