@@ -111,7 +111,6 @@ void MainWindow::loadImage(const std::string &name)
 void MainWindow::openImageFromDir(const std::string &name, QString dir)
 {
 	auto cmd = QString{"find \"" + dir + "\" -type f \\("+ supported_file_formats +"\\) | sort"};
-	std::cout << cmd.toStdString() << std::endl;
 
 	m_images = Linux::execBuildImageList(cmd.toLatin1().data());
 
@@ -121,11 +120,9 @@ void MainWindow::openImageFromDir(const std::string &name, QString dir)
 
 	m_image_id = std::find(m_images.begin(), m_images.end(), name) - m_images.begin();
 
-	std::cout << __func__ << " m_image_id: " << m_image_id << std::endl;
-
-	for (const auto &name : m_images) {
-		std::cout << name << std::endl;
-	}
+//	for (const auto &name : m_images) {
+//		std::cout << name << std::endl;
+//	}
 }
 
 void MainWindow::openImage()
@@ -184,8 +181,6 @@ void MainWindow::deleteImage()
 
 void MainWindow::nextImage()
 {
-	std::cout << __func__ << " m_image_id: " << m_image_id << std::endl;
-	std::cout << __func__ << " size: " << m_images.size() << std::endl;
 	bool randomize = false;
 	auto index = 0;
 
@@ -198,9 +193,7 @@ void MainWindow::nextImage()
 		index = m_image_id;
 	}
 
-	std::cout << __func__ << " index: " << index << std::endl;
 	auto name = m_images[index];
-//	std::cout << "Next image: " << name << std::endl;
 
 	loadImage(name);
 }
@@ -212,7 +205,6 @@ void MainWindow::prevImage()
 	auto index = m_image_id;
 
 	auto name = m_images[index];
-//	std::cout << "Prev image: " << name << std::endl;
 
 	loadImage(name);
 }
