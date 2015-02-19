@@ -109,9 +109,6 @@ void MainWindow::openImageFromDir(const std::string &name, QString dir)
 
 	m_image_id = std::find(m_images.begin(), m_images.end(), name) - m_images.begin();
 
-	if (m_image_id == m_images.size()) {
-		m_image_id -= 1;
-	}
 	std::cout << __func__ << " m_image_id: " << m_image_id << std::endl;
 
 	for (const auto &name : m_images) {

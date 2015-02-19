@@ -15,8 +15,8 @@ int main(int argc, char *argv[])
 
 	/* load image passed as argument */
 	if (argc > 1) {
-		QString file = argv[1];
-		auto dir = QFileInfo(file).absoluteDir().path();
+		auto dir = QFileInfo(argv[1]).absoluteDir().path();
+		auto file = QDir::cleanPath(dir + QDir::separator() + argv[1]);
 
 		w.openImageFromDir(file.toStdString(), dir);
 	}
