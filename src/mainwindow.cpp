@@ -353,10 +353,10 @@ void MainWindow::addRecentFile(const std::string &name)
 	}
 	else {
 		m_recent_files.insert(m_recent_files.begin(), name);
-	}
 
-	if (m_recent_files.size() > MAX_RECENT_FILES) {
-		m_recent_files.resize(MAX_RECENT_FILES);
+		if (m_recent_files.size() > MAX_RECENT_FILES) {
+			m_recent_files.resize(MAX_RECENT_FILES);
+		}
 	}
 }
 
