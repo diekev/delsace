@@ -143,6 +143,7 @@ void MainWindow::openImage()
 	openImageFromDir(filename.toStdString(), dir.path());
 }
 
+/* TODO (kevin): this function isn't that nice */
 void MainWindow::openRecentFile()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
@@ -153,12 +154,14 @@ void MainWindow::openRecentFile()
 		/* If the image is already in the current session, just load it. */
 		if (std::binary_search(m_images.begin(), m_images.end(), filename)) {
 			loadImage(filename);
-			return;
+			addRecentFile(filename);
+			updateRecentFilesMenu();
 		}
+		else {
+			auto dir = QFileInfo(action->data().toString()).absoluteDir();
 
-		auto dir = QFileInfo(action->data().toString()).absoluteDir();
-
-		openImageFromDir(filename, dir.path());
+			openImageFromDir(filename, dir.path());
+		}
 	}
 }
 
