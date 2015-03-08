@@ -17,6 +17,11 @@ class UserPreferences : public QDialog {
 
 public:
 	explicit UserPreferences(class MainWindow &main_win);
+
+	auto getRandomMode() const -> bool;
+	auto setRandomMode(const bool b) -> void;
+	auto getDiaporamatime() const -> int;
+	auto setDiaporamatime(const int time) -> void;
 };
 
 #endif // USER_PREFERENCES_H

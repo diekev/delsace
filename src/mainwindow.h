@@ -6,6 +6,7 @@
 #include "glwindow.h"
 
 class QScrollBar;
+class UserPreferences;
 
 namespace Ui {
 class MainWindow;
@@ -30,7 +31,7 @@ class MainWindow : public QMainWindow {
 	std::mt19937 m_rng;
 
 	float m_scale_factor;
-	QDialog *m_user_pref;
+	UserPreferences *m_user_pref;
 	bool m_randomize;
 
 public slots:

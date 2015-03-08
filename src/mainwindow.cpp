@@ -285,6 +285,11 @@ void MainWindow::normalSize()
 void MainWindow::editPreferences()
 {
 	m_user_pref->show();
+
+	if (m_user_pref->exec()) {
+		setRandomize(m_user_pref->getRandomMode());
+		setDiapTime(m_user_pref->getDiaporamatime());
+	}
 }
 
 void MainWindow::setRandomize(const bool b)
@@ -332,7 +337,15 @@ void MainWindow::readSettings()
 		addRecentFile(file.toStdString());
 	}
 
-	updateRecentFilesMenu();
+	updateRecentFilesMenu();	
+
+	auto randomise = settings.value("Random Mode").toBool();
+	setRandomize(randomise);
+	m_user_pref->setRandomMode(randomise);
+
+	auto time = settings.value("Diaporama Length").toInt();
+	setDiapTime(time);
+	m_user_pref->setDiaporamatime(time);
 }
 
 void MainWindow::writeSettings()
@@ -345,6 +358,9 @@ void MainWindow::writeSettings()
 	}
 
 	settings.setValue("Recent Files", recent);
+
+	settings.setValue("Random Mode", m_user_pref->getRandomMode());
+	settings.setValue("Diaporama Length", m_user_pref->getDiaporamatime());
 }
 
 void MainWindow::addRecentFile(const std::string &name)
