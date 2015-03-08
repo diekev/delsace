@@ -185,33 +185,32 @@ void MainWindow::deleteImage()
 	loadImage(name);
 }
 
-void MainWindow::nextImage()
+void MainWindow::getNextImage(const bool forward)
 {
-	auto index = 0;
-
 	if (m_randomize) {
 		std::uniform_int_distribution<int> dist(0, m_images.size() - 1);
-		index = dist(m_rng);
+		m_image_id = dist(m_rng);
 	}
 	else {
-		m_image_id = (m_image_id == m_images.size() - 1) ? 0 : m_image_id + 1;
-		index = m_image_id;
+		if (forward) {
+			m_image_id = (m_image_id == m_images.size() - 1) ? 0 : m_image_id + 1;
+		}
+		else {
+			m_image_id = (m_image_id == 0) ? m_images.size() - 1 : m_image_id - 1;
+		}
 	}
 
-	auto name = m_images[index];
+	loadImage(m_images[m_image_id]);
+}
 
-	loadImage(name);
+void MainWindow::nextImage()
+{
+	getNextImage(true);
 }
 
 void MainWindow::prevImage()
 {
-	m_image_id = (m_image_id == 0) ? m_images.size() - 1 : m_image_id - 1;
-
-	auto index = m_image_id;
-
-	auto name = m_images[index];
-
-	loadImage(name);
+	getNextImage(false);
 }
 
 void MainWindow::startDiap()

@@ -68,6 +68,7 @@ public:
 	void addRecentFile(const std::string &name);
 	void updateRecentFilesMenu();
 	void closeEvent(QCloseEvent *);
+	void getNextImage(const bool forward);
 };
 
 #endif // MAINWINDOW_H
