@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
 	m_rng.seed(19937);
 	m_scale_factor = 1.0f;
 	m_recent_files.reserve(MAX_RECENT_FILES);
-	m_user_pref = new UserPreferences(*this);
+	m_user_pref = new UserPreferences(this);
 	m_randomize = false;
 
 #ifdef WITH_GL
