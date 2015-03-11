@@ -72,8 +72,8 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 		case Qt::Key_F11:
 			setWindowState(this->windowState() ^ Qt::WindowFullScreen);
 
-			auto hide = (ui->menubar->isHidden()) ? false : true;
-			ui->menubar->setHidden(hide);
+			auto hide = (ui->m_menu_bar->isHidden()) ? false : true;
+			ui->m_menu_bar->setHidden(hide);
 
 			break;
 	}
