@@ -179,7 +179,6 @@ void MainWindow::openRecentFile()
 		}
 		else {
 			auto dir = QFileInfo(action->data().toString()).absoluteDir();
-
 			openImageFromDir(filename, dir.path());
 		}
 	}
@@ -372,14 +371,13 @@ void MainWindow::readSettings()
 void MainWindow::writeSettings()
 {
 	QSettings settings;
-
 	QStringList recent;
+
 	for (const auto &s : m_recent_files) {
 		recent.push_front(QString(s.c_str()));
 	}
 
 	settings.setValue("Recent Files", recent);
-
 	settings.setValue("Random Mode", m_user_pref->getRandomMode());
 	settings.setValue("Diaporama Length", m_user_pref->getDiaporamatime());
 }
@@ -405,7 +403,7 @@ void MainWindow::updateRecentFilesMenu()
 	if (m_recent_files.size() > 0) {
 		ui->m_no_recent_act->setVisible(false);
 
-		for (auto i = 0u;  i < m_recent_files.size();  ++i) {
+		for (auto i = 0u; i < m_recent_files.size();  ++i) {
 			auto filename = QString::fromStdString(m_recent_files[i]);
 			auto name = QFileInfo(filename).fileName();
 
