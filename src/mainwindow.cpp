@@ -329,7 +329,9 @@ void MainWindow::readSettings()
 	auto recent_files = settings.value("Recent Files").toStringList();
 
 	for (const auto &file : recent_files) {
-		addRecentFile(file.toStdString());
+		if (QFile(file).exists()) {
+			addRecentFile(file.toStdString());
+		}
 	}
 
 	updateRecentFilesMenu();	
