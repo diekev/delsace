@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui opengl
+QT += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,7 +13,19 @@ TEMPLATE = app
 
 CONFIG += c++11
 
-QMAKE_CXXFLAGS_DEBUG += -fsanitize=address -fno-omit-frame-pointer
+QMAKE_CXXFLAGS_DEBUG += -g -Wall -Og -Wno-error=unused-function \
+	-Wextra -Wno-missing-field-initializers -Wno-sign-compare -Wno-type-limits  \
+	-Wno-unknown-pragmas -Wno-unused-parameter -Wno-ignored-qualifiers          \
+	-Wmissing-format-attribute -Wno-delete-non-virtual-dtor                     \
+	-Wsizeof-pointer-memaccess -Wformat=2 -Wno-format-nonliteral -Wno-format-y2k\
+	-fstrict-overflow -Wstrict-overflow=2 -Wno-div-by-zero -Wwrite-strings      \
+	-Wlogical-op -Wundef -DDEBUG_THREADS -Wnonnull -Wstrict-aliasing=2          \
+	-fno-omit-frame-pointer -Wno-error=unused-result -Wno-error=clobbered       \
+	-fstack-protector-all --param=ssp-buffer-size=4 -Wno-maybe-uninitialized    \
+	-Wunused-macros -Wmissing-include-dirs -Wuninitialized -Winit-self          \
+	-Wtype-limits -fno-common -fno-nonansi-builtins -Wformat-extra-args         \
+	-Wno-error=unused-local-typedefs -DWARN_PEDANTIC -Winit-self -Wdate-time    \
+	-Warray-bounds -Werror -fdiagnostics-color=always -fsanitize=address
 
 QMAKE_LFLAGS += -fsanitize=address
 
@@ -25,16 +37,15 @@ SOURCES += \
     src/user_preferences.cc
 
 HEADERS += \
-	src/mainwindow.h   \
-	src/glwindow.h     \
-    src/linux_utils.h  \
-    user_preferences.h
+	src/mainwindow.h      \
+	src/glwindow.h        \
+    src/linux_utils.h     \
+    src/user_preferences.h
 
-FORMS    += ui/mainwindow.ui \
+FORMS += \
+	ui/mainwindow.ui \
 	ui/pref_window.ui
 
-INCLUDEPATH += src/ \
-	opt/lib/openexr/include/
+INCLUDEPATH += src/
 
-RESOURCES += \
-    resources.qrc
+RESOURCES += resources.qrc
