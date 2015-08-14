@@ -1,5 +1,4 @@
-#ifndef GLWINDOW_H
-#define GLWINDOW_H
+#pragma once
 
 #include <QGLShaderProgram>
 #include <QGLWidget>
@@ -27,5 +26,3 @@ public:
 	void resizeGL(int w, int h);
 	void loadImage();
 };
-
-#endif // GLWINDOW_H

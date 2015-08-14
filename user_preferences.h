@@ -1,5 +1,4 @@
-#ifndef USER_PREFERENCES_H
-#define USER_PREFERENCES_H
+#pragma once
 
 #include <QDialog>
 
@@ -20,5 +19,3 @@ public:
 	auto getDiaporamatime() const -> int;
 	auto setDiaporamatime(const int time) -> void;
 };
-
-#endif // USER_PREFERENCES_H

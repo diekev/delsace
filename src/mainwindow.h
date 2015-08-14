@@ -1,5 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 
@@ -70,5 +69,3 @@ public:
 	void closeEvent(QCloseEvent *);
 	void getNextImage(const bool forward);
 };
-
-#endif // MAINWINDOW_H
