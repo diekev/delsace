@@ -31,7 +31,8 @@ HEADERS  += src/mainwindow.h \
 FORMS    += ui/mainwindow.ui \
 	ui/pref_window.ui
 
-INCLUDEPATH += src/
+INCLUDEPATH += src/ \
+	opt/lib/openexr/include/
 
 RESOURCES += \
     resources.qrc
