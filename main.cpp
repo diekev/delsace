@@ -22,13 +22,9 @@
  *
  */
 
-#include <iostream>
-
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
-
-#include </opt/lib/openexr/include/OpenEXR/ImathQuat.h>
 
 #include "mainwindow.h"
 

@@ -23,6 +23,8 @@
  */
 
 #include <algorithm>
+#include <string>
+#include <vector>
 
 #include "linux_utils.h"
 
