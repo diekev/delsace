@@ -17,15 +17,17 @@ QMAKE_CXXFLAGS_DEBUG += -fsanitize=address -fno-omit-frame-pointer
 
 QMAKE_LFLAGS += -fsanitize=address
 
-SOURCES += main.cpp\
-		src/mainwindow.cpp \
-	src/glwindow.cpp \
-    src/linux_utils.cpp \
-    user_preferences.cpp
+SOURCES += \
+	main.cc             \
+	src/mainwindow.cc   \
+	src/glwindow.cc     \
+    src/linux_utils.cc  \
+    src/user_preferences.cc
 
-HEADERS  += src/mainwindow.h \
-	src/glwindow.h \
-    src/linux_utils.h \
+HEADERS += \
+	src/mainwindow.h   \
+	src/glwindow.h     \
+    src/linux_utils.h  \
     user_preferences.h
 
 FORMS    += ui/mainwindow.ui \
