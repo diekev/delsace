@@ -4,12 +4,14 @@
 #include <QDir>
 #include <QFileInfo>
 
+#include </opt/lib/openexr/include/OpenEXR/ImathQuat.h>
+
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	QCoreApplication::setOrganizationName("Giraffe en feu");
+	QCoreApplication::setOrganizationName("giraffeenfeu");
 	QCoreApplication::setApplicationName("imago");
 
 	MainWindow w;
