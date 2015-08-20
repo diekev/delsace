@@ -75,7 +75,7 @@ public slots:
 	void setDiapTime(const int t);
 
 public:
-	explicit MainWindow(QWidget *parent = 0);
+	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
 	auto currentImage() const -> QImage*;
 	auto scaleImage(float scale) -> void;

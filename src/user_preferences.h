@@ -36,7 +36,7 @@ class UserPreferences : public QDialog {
 	Ui::UserPreferences *ui;
 
 public:
-	explicit UserPreferences(QWidget *parent = 0);
+	explicit UserPreferences(QWidget *parent = nullptr);
 
 	auto getRandomMode() const -> bool;
 	auto setRandomMode(const bool b) -> void;
