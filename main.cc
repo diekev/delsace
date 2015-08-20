@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 		auto dir = QFileInfo(argv[1]).absoluteDir().path();
 		auto file = QDir::cleanPath(dir + QDir::separator() + argv[1]);
 
-		w.openImageFromDir(file.toStdString(), dir);
+		w.openImageFromDir(file, dir);
 	}
 
 	return a.exec();

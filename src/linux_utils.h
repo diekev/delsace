@@ -24,9 +24,12 @@
 
 #pragma once
 
+#include <QString>
+#include <QVector>
+
 namespace Linux {
 
-auto execBuildImageList(const char *cmd) -> std::vector<std::string>;
+auto execBuildImageList(const char *cmd) -> QVector<QString>;
 auto execRemoveImage(const char *cmd) -> void;
 
 }

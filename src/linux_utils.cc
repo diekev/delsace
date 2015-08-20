@@ -22,25 +22,21 @@
  *
  */
 
-#include <algorithm>
-#include <string>
-#include <vector>
-
 #include "linux_utils.h"
 
 namespace Linux {
 
-auto execBuildImageList(const char *cmd) -> std::vector<std::string>
+auto execBuildImageList(const char *cmd) -> QVector<QString>
 {
 	FILE *pipe = popen(cmd, "r");
 
 	char buffer[128];
-	auto result = std::vector<std::string>{};
+	auto result = QVector<QString>{};
 
 	while (!feof(pipe)) {
 		if (fgets(buffer, 128, pipe) != nullptr) {
-			auto str = std::string{buffer};
-			str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+			auto str = QString{buffer};
+			str.remove('\n');
 			result.push_back(str);
 		}
 	}

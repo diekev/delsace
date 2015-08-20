@@ -103,9 +103,8 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 	}
 }
 
-void MainWindow::loadImage(const std::string &name)
+void MainWindow::loadImage(const QString &filename)
 {
-	auto filename = QString::fromStdString(name);
 #ifndef WITH_GL
 	ui->m_label->clear();
 #endif
@@ -124,14 +123,14 @@ void MainWindow::loadImage(const std::string &name)
 #endif
 	}
 	else {
-		std::cerr << "Unable to load image: " << name << std::endl;
+		std::cerr << "Unable to load image: " << filename.toStdString() << "\n";
 	}
 #ifndef WITH_GL
 	ui->m_label->show();
 #endif
 }
 
-void MainWindow::openImageFromDir(const std::string &name, QString dir)
+void MainWindow::openImageFromDir(const QString &name, const QString &dir)
 {
 	auto cmd = QString{"find \"" + dir + "\" -type f \\("+ supported_file_formats +"\\) | sort"};
 
@@ -160,7 +159,7 @@ void MainWindow::openImage()
 
 	auto dir = QFileInfo(filename).absoluteDir();
 
-	openImageFromDir(filename.toStdString(), dir.path());
+	openImageFromDir(filename, dir.path());
 }
 
 /* TODO (kevin): this function isn't that nice */
@@ -169,7 +168,7 @@ void MainWindow::openRecentFile()
 	QAction *action = qobject_cast<QAction *>(sender());
 
 	if (action) {
-		auto filename = action->data().toString().toStdString();
+		auto filename = action->data().toString();
 
 		/* If the image is already in the current session, just load it. */
 		if (std::binary_search(m_images.begin(), m_images.end(), filename)) {
@@ -193,7 +192,7 @@ auto MainWindow::currentImage() const -> QImage*
 void MainWindow::deleteImage()
 {
 	auto name = m_images[m_image_id];
-	auto cmd = QString{"gvfs-trash \"" + QString(name.c_str()) + "\""};
+	auto cmd = QString{"gvfs-trash \"" + name + "\""};
 
 	Linux::execRemoveImage(cmd.toLatin1().data());
 
@@ -353,7 +352,7 @@ void MainWindow::readSettings()
 
 	for (const auto &file : recent_files) {
 		if (QFile(file).exists()) {
-			addRecentFile(file.toStdString());
+			addRecentFile(file);
 		}
 	}
 
@@ -373,8 +372,8 @@ void MainWindow::writeSettings()
 	QSettings settings;
 	QStringList recent;
 
-	for (const auto &s : m_recent_files) {
-		recent.push_front(QString(s.c_str()));
+	for (const auto &recent_file : m_recent_files) {
+		recent.push_front(recent_file);
 	}
 
 	settings.setValue("Recent Files", recent);
@@ -382,7 +381,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Diaporama Length", m_user_pref->getDiaporamatime());
 }
 
-void MainWindow::addRecentFile(const std::string &name)
+void MainWindow::addRecentFile(const QString &name)
 {
 	auto index = std::find(m_recent_files.begin(), m_recent_files.end(), name);
 
@@ -404,7 +403,7 @@ void MainWindow::updateRecentFilesMenu()
 		ui->m_no_recent_act->setVisible(false);
 
 		for (auto i = 0u; i < m_recent_files.size();  ++i) {
-			auto filename = QString::fromStdString(m_recent_files[i]);
+			auto filename = m_recent_files[i];
 			auto name = QFileInfo(filename).fileName();
 
 			m_recent_act[i]->setText(name);

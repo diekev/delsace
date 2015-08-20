@@ -44,8 +44,8 @@ class MainWindow : public QMainWindow {
 	class GLWindow *m_gl_win;
 	QTimer *m_timer;
 
-	std::vector<std::string> m_images;
-	std::vector<std::string> m_recent_files;
+	QVector<QString> m_images;
+	QVector<QString> m_recent_files;
 	unsigned m_image_id;
 
 	QImage *m_current_image;
@@ -80,15 +80,15 @@ public:
 	auto scaleImage(float scale) -> void;
 
 	void keyPressEvent(QKeyEvent *e);
-	void loadImage(const std::string &name);
-	void openImageFromDir(const std::string &name, QString dir);
+	void loadImage(const QString &filename);
+	void openImageFromDir(const QString &name, const QString &dir);
 	void adjustScrollBar(QScrollBar *scrollBar, float factor);
 	void updateActions();
 	void setNormalSize();
 
 	void readSettings();
 	void writeSettings();
-	void addRecentFile(const std::string &name);
+	void addRecentFile(const QString &name);
 	void updateRecentFilesMenu();
 	void closeEvent(QCloseEvent *);
 	void getNextImage(const bool forward);
