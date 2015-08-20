@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <QDir>
 #include <QMainWindow>
 
 #include "glwindow.h"
@@ -81,7 +82,7 @@ public:
 
 	void keyPressEvent(QKeyEvent *e);
 	void loadImage(const QString &filename);
-	void openImageFromDir(const QString &name, const QString &dir);
+	void openImageFromDir(const QString &name, const QDir &dir);
 	void adjustScrollBar(QScrollBar *scrollBar, float factor);
 	void updateActions();
 	void setNormalSize();

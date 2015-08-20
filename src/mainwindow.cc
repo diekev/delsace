@@ -39,13 +39,6 @@
 
 //#define WITH_GL
 
-/* For use in openImageFromDir(). */
-static const char supported_file_formats[] = {
-	" -name \\*.bmp -o -name \\*.gif -o -name \\*.jpg -o -name \\*.jpeg "
-	" -o -name \\*.png -o -name \\*.pbm -o -name \\*.pgm -o -name \\*.ppm "
-	" -o -name \\*.tiff -o -name \\*.xbm -o -name \\*.xpm "
-};
-
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui(new Ui::MainWindow)
@@ -130,21 +123,25 @@ void MainWindow::loadImage(const QString &filename)
 #endif
 }
 
-void MainWindow::openImageFromDir(const QString &name, const QString &dir)
+void MainWindow::openImageFromDir(const QString &name, const QDir &dir)
 {
-	auto cmd = QString{"find \"" + dir + "\" -type f \\("+ supported_file_formats +"\\) | sort"};
+	const auto &name_filters = QStringList({"*.bmp", "*.gif", "*.jpg", "*.jpeg",
+	                                        "*.png", "*.pbm", "*.png", "*.pgm",
+	                                        "*.ppm", "*.tiff", "*.xbm", "*.xpm"});
 
-	m_images = Linux::execBuildImageList(cmd.toLatin1().data());
+	// TODO: handle subdirectories.
+	const auto &filenames = dir.entryList(name_filters, QDir::Files, QDir::Name);
+
+	m_images.clear();
+	for (const auto fname : filenames) {
+		m_images.push_back(dir.absoluteFilePath(fname));
+	}
 
 	loadImage(name);
 	addRecentFile(name);
 	updateRecentFilesMenu();
 
 	m_image_id = std::find(m_images.begin(), m_images.end(), name) - m_images.begin();
-
-//	for (const auto &name : m_images) {
-//		std::cout << name << std::endl;
-//	}
 }
 
 void MainWindow::openImage()
@@ -159,7 +156,7 @@ void MainWindow::openImage()
 
 	auto dir = QFileInfo(filename).absoluteDir();
 
-	openImageFromDir(filename, dir.path());
+	openImageFromDir(filename, dir);
 }
 
 /* TODO (kevin): this function isn't that nice */
@@ -178,7 +175,7 @@ void MainWindow::openRecentFile()
 		}
 		else {
 			auto dir = QFileInfo(action->data().toString()).absoluteDir();
-			openImageFromDir(filename, dir.path());
+			openImageFromDir(filename, dir);
 		}
 	}
 }
