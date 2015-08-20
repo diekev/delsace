@@ -138,8 +138,7 @@ void MainWindow::openImageFromDir(const QString &name, const QDir &dir)
 	}
 
 	loadImage(name);
-	addRecentFile(name);
-	updateRecentFilesMenu();
+	addRecentFile(name, true);
 
 	m_image_id = std::find(m_images.begin(), m_images.end(), name) - m_images.begin();
 }
@@ -170,8 +169,7 @@ void MainWindow::openRecentFile()
 		/* If the image is already in the current session, just load it. */
 		if (std::binary_search(m_images.begin(), m_images.end(), filename)) {
 			loadImage(filename);
-			addRecentFile(filename);
-			updateRecentFilesMenu();
+			addRecentFile(filename, true);
 		}
 		else {
 			auto dir = QFileInfo(action->data().toString()).absoluteDir();
@@ -349,7 +347,7 @@ void MainWindow::readSettings()
 
 	for (const auto &file : recent_files) {
 		if (QFile(file).exists()) {
-			addRecentFile(file);
+			addRecentFile(file, false);
 		}
 	}
 
@@ -378,7 +376,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Diaporama Length", m_user_pref->getDiaporamatime());
 }
 
-void MainWindow::addRecentFile(const QString &name)
+void MainWindow::addRecentFile(const QString &name, const bool update_menu)
 {
 	auto index = std::find(m_recent_files.begin(), m_recent_files.end(), name);
 
@@ -391,6 +389,10 @@ void MainWindow::addRecentFile(const QString &name)
 		if (m_recent_files.size() > MAX_RECENT_FILES) {
 			m_recent_files.resize(MAX_RECENT_FILES);
 		}
+	}
+
+	if (update_menu) {
+		updateRecentFilesMenu();
 	}
 }
 

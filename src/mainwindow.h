@@ -89,7 +89,7 @@ public:
 
 	void readSettings();
 	void writeSettings();
-	void addRecentFile(const QString &name);
+	void addRecentFile(const QString &name, const bool update_menu);
 	void updateRecentFilesMenu();
 	void closeEvent(QCloseEvent *);
 	void getNextImage(const bool forward);
