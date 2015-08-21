@@ -133,6 +133,7 @@ void MainWindow::openImageFromDir(const QString &name, const QDir &dir)
 	const auto &filenames = dir.entryList(name_filters, QDir::Files, QDir::Name);
 
 	m_images.clear();
+	m_images.reserve(filenames.size());
 	for (const auto fname : filenames) {
 		m_images.push_back(dir.absoluteFilePath(fname));
 	}
