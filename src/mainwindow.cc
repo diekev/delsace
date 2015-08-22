@@ -123,11 +123,12 @@ void MainWindow::loadImage(const QString &filename)
 #endif
 }
 
+static QString supported_file_types =
+        "*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.png *.pgm *.ppm *.tiff *.xbm *.xpm";
+
 void MainWindow::openImageFromDir(const QString &name, const QDir &dir)
 {
-	const auto &name_filters = QStringList({"*.bmp", "*.gif", "*.jpg", "*.jpeg",
-	                                        "*.png", "*.pbm", "*.png", "*.pgm",
-	                                        "*.ppm", "*.tiff", "*.xbm", "*.xpm"});
+	const auto &name_filters = QStringList(supported_file_types.split(' '));
 
 	// TODO: handle subdirectories.
 	const auto &filenames = dir.entryList(name_filters, QDir::Files, QDir::Name);
@@ -146,11 +147,12 @@ void MainWindow::openImageFromDir(const QString &name, const QDir &dir)
 
 void MainWindow::openImage()
 {
+	auto filters = "Image Files (" + supported_file_types + ")";
+
 	auto filename = QFileDialog::getOpenFileName(
 	                    this, tr("Ouvrir fichier image"),
 	                    QDir::homePath(),
-	                    tr("Image Files (*.bmp *.gif *.jpg *.jpeg *.png *.pbm"
-	                       " *.png *.pgm *.ppm *.tiff *.xbm *.xpm)"));
+	                    tr(filters.toLatin1().data()));
 
 	if (filename.isEmpty()) {
 		return;
