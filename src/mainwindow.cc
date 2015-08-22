@@ -146,9 +146,11 @@ void MainWindow::openImageFromDir(const QString &name, const QDir &dir)
 
 void MainWindow::openImage()
 {
-	auto filename = QFileDialog::getOpenFileName(this, tr("Ouvrir fichier image"),
-												 QDir::homePath(),
-												 tr("Image Files (*.png *.jpg *.bmp *.avi *.gif)"));
+	auto filename = QFileDialog::getOpenFileName(
+	                    this, tr("Ouvrir fichier image"),
+	                    QDir::homePath(),
+	                    tr("Image Files (*.bmp *.gif *.jpg *.jpeg *.png *.pbm"
+	                       " *.png *.pgm *.ppm *.tiff *.xbm *.xpm)"));
 
 	if (filename.isEmpty()) {
 		return;
