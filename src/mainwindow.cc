@@ -32,7 +32,6 @@
 #include <QSettings>
 #include <QTimer>
 
-#include "linux_utils.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "user_preferences.h"

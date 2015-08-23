@@ -33,13 +33,11 @@ SOURCES += \
 	main.cc             \
 	src/mainwindow.cc   \
 	src/glwindow.cc     \
-    src/linux_utils.cc  \
     src/user_preferences.cc
 
 HEADERS += \
 	src/mainwindow.h      \
 	src/glwindow.h        \
-    src/linux_utils.h     \
     src/user_preferences.h
 
 FORMS += \
