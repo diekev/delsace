@@ -39,10 +39,8 @@ int main(int argc, char *argv[])
 
 	/* load image passed as argument */
 	if (argc > 1) {
-		auto dir = QFileInfo(argv[1]).absoluteDir();
-		auto file = dir.cleanPath(argv[1]);
-
-		w.openImageFromDir(file, dir);
+		auto file = QFileInfo(argv[1]).filePath();
+		w.openImage(file);
 	}
 
 	return a.exec();

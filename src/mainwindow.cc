@@ -126,8 +126,9 @@ void MainWindow::loadImage(const QString &filename)
 static QString supported_file_types =
         "*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.png *.pgm *.ppm *.tiff *.xbm *.xpm";
 
-void MainWindow::openImageFromDir(const QString &name, const QDir &dir)
+void MainWindow::openImage(const QString &filename)
 {
+	const auto &dir = QFileInfo(filename).absoluteDir();
 	const auto &name_filters = QStringList(supported_file_types.split(' '));
 
 	// TODO: handle subdirectories.
@@ -139,10 +140,10 @@ void MainWindow::openImageFromDir(const QString &name, const QDir &dir)
 		m_images.push_back(dir.absoluteFilePath(fname));
 	}
 
-	loadImage(name);
-	addRecentFile(name, true);
+	loadImage(filename);
+	addRecentFile(filename, true);
 
-	m_image_id = std::find(m_images.begin(), m_images.end(), name) - m_images.begin();
+	m_image_id = std::find(m_images.begin(), m_images.end(), filename) - m_images.begin();
 }
 
 void MainWindow::openImage()
@@ -158,9 +159,7 @@ void MainWindow::openImage()
 		return;
 	}
 
-	auto dir = QFileInfo(filename).absoluteDir();
-
-	openImageFromDir(filename, dir);
+	openImage(filename);
 }
 
 /* TODO (kevin): this function isn't that nice */
@@ -177,8 +176,7 @@ void MainWindow::openRecentFile()
 			addRecentFile(filename, true);
 		}
 		else {
-			auto dir = QFileInfo(action->data().toString()).absoluteDir();
-			openImageFromDir(filename, dir);
+			openImage(filename);
 		}
 	}
 }

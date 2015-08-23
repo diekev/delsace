@@ -82,7 +82,7 @@ public:
 
 	void keyPressEvent(QKeyEvent *e);
 	void loadImage(const QString &filename);
-	void openImageFromDir(const QString &name, const QDir &dir);
+	void openImage(const QString &filename);
 	void adjustScrollBar(QScrollBar *scrollBar, float factor);
 	void updateActions();
 	void setNormalSize();
