@@ -22,6 +22,8 @@
  *
  */
 
+#include <QFileDialog>
+
 #include "ui_pref_window.h"
 #include "user_preferences.h"
 
@@ -50,4 +52,33 @@ auto UserPreferences::getDiaporamatime() const -> int
 auto UserPreferences::setDiaporamatime(const int time) -> void
 {
 	ui->m_diap_dur->setValue(time);
+}
+
+auto UserPreferences::deletePermanently() const -> bool
+{
+	return ui->m_delete_file->isChecked();
+}
+
+auto UserPreferences::deletePermanently(const bool b) -> void
+{
+	ui->m_delete_file->setChecked(b);
+}
+
+auto UserPreferences::deleteFolderPath() const -> QString
+{
+	return ui->m_folder_path->text();
+}
+
+auto UserPreferences::deleteFolderPath(const QString &path) -> void
+{
+	ui->m_folder_path->setText(path);
+}
+
+auto UserPreferences::chooseFolder() -> void
+{
+	const auto &dir = QFileDialog::getExistingDirectory(this,
+	                                                    tr("Choisir Dossier"),
+	                                                    QDir::homePath(),
+	                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	ui->m_folder_path->setText(dir);
 }

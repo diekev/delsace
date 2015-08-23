@@ -35,6 +35,9 @@ class UserPreferences : public QDialog {
 
 	Ui::UserPreferences *ui;
 
+private slots:
+	void chooseFolder();
+
 public:
 	explicit UserPreferences(QWidget *parent = nullptr);
 
@@ -42,4 +45,8 @@ public:
 	auto setRandomMode(const bool b) -> void;
 	auto getDiaporamatime() const -> int;
 	auto setDiaporamatime(const int time) -> void;
+	auto deletePermanently() const -> bool;
+	auto deletePermanently(const bool b) -> void;
+	auto deleteFolderPath(const QString &path) -> void;
+	auto deleteFolderPath() const -> QString;
 };

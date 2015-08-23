@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>136</height>
+    <width>540</width>
+    <height>195</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,13 +16,10 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="1">
-      <widget class="QCheckBox" name="m_random_mode">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
+     <item row="1" column="1">
+      <widget class="QSpinBox" name="m_diap_dur">
+       <property name="value">
+        <number>5</number>
        </property>
       </widget>
      </item>
@@ -39,6 +36,16 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="1">
+      <widget class="QCheckBox" name="m_random_mode">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
@@ -46,14 +53,51 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QSpinBox" name="m_diap_dur">
-       <property name="value">
-        <number>5</number>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Supprimer définitivement</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QCheckBox" name="m_delete_file">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="m_delete_file_label">
+       <property name="text">
+        <string>Dossier images supprimées</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="m_folder_path"/>
+     </item>
+     <item row="3" column="2">
+      <widget class="QPushButton" name="m_choose_folder_but">
+       <property name="text">
+        <string>Choisir</string>
        </property>
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -101,5 +145,73 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>m_choose_folder_but</sender>
+   <signal>clicked()</signal>
+   <receiver>UserPreferences</receiver>
+   <slot>chooseFolder()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>489</x>
+     <y>100</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>97</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_delete_file</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>m_choose_folder_but</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>73</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>489</x>
+     <y>100</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_delete_file</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>m_delete_file_label</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>73</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>99</x>
+     <y>100</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_delete_file</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>m_folder_path</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>73</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>100</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>chooseFolder()</slot>
+  <slot>updatePreferencesUI()</slot>
+ </slots>
 </ui>

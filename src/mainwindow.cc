@@ -186,23 +186,44 @@ auto MainWindow::currentImage() const -> QImage*
 	return m_current_image;
 }
 
-/*! Move an image to the OS trash. */
 void MainWindow::deleteImage()
 {
+	if (m_images.size() == 0) {
+		return;
+	}
+
 	auto name = m_images[m_image_id];
-	auto cmd = QString{"gvfs-trash \"" + name + "\""};
+	auto removed = false;
 
-	Linux::execRemoveImage(cmd.toLatin1().data());
+	if (m_user_pref->deletePermanently()) {
+		removed = QFile::remove(name);
+	}
+	else {
+		auto old_name = QFileInfo(name).fileName();
+		auto new_name = m_user_pref->deleteFolderPath().append("/").append(old_name);
 
-	m_images.erase(std::remove(m_images.begin(), m_images.end(), name), m_images.end());
+		removed = QFile::rename(name, new_name);
+	}
 
-	name = m_images[m_image_id];
+	if (removed) {
+		auto iter = std::remove(m_images.begin(), m_images.end(), name);
+		m_images.erase(iter, m_images.end());
 
-	loadImage(name);
+		if (m_images.size() >= 1) {
+			loadImage(m_images[m_image_id]);
+		}
+		else {
+			ui->m_label->clear();
+		}
+	}
 }
 
 void MainWindow::getNextImage(const bool forward)
 {
+	if (m_images.size() == 0) {
+		return;
+	}
+
 	if (m_randomize) {
 		std::uniform_int_distribution<int> dist(0, m_images.size() - 1);
 		m_image_id = dist(m_rng);
@@ -363,6 +384,12 @@ void MainWindow::readSettings()
 	auto time = settings.value("Diaporama Length").toInt();
 	setDiapTime(time);
 	m_user_pref->setDiaporamatime(time);
+
+	auto delete_permanently = settings.value("Delete File Permanently").toBool();
+	m_user_pref->deletePermanently(delete_permanently);
+
+	auto delete_folder = settings.value("Delete File Folder").toString();
+	m_user_pref->deleteFolderPath(delete_folder);
 }
 
 void MainWindow::writeSettings()
@@ -377,6 +404,8 @@ void MainWindow::writeSettings()
 	settings.setValue("Recent Files", recent);
 	settings.setValue("Random Mode", m_user_pref->getRandomMode());
 	settings.setValue("Diaporama Length", m_user_pref->getDiaporamatime());
+	settings.setValue("Delete File Permanently", m_user_pref->deletePermanently());
+	settings.setValue("Delete File Folder", m_user_pref->deleteFolderPath());
 }
 
 void MainWindow::addRecentFile(const QString &name, const bool update_menu)
