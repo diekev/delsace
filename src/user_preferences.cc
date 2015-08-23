@@ -52,6 +52,7 @@ auto UserPreferences::getDiaporamatime() const -> int
 auto UserPreferences::setDiaporamatime(const int time) -> void
 {
 	ui->m_diap_dur->setValue(time);
+	ui->m_diap_dur_label->setText(QString::number(time));
 }
 
 auto UserPreferences::deletePermanently() const -> bool
