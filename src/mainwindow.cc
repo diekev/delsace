@@ -69,12 +69,15 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(nextImage()));
 
 	resize(1920, 1080);
+	setWindowTitle("imago");
 	readSettings();
 }
 
 MainWindow::~MainWindow()
 {
 	delete ui;
+	delete m_current_image;
+	delete m_timer;
 }
 
 void MainWindow::closeEvent(QCloseEvent*)
@@ -208,11 +211,12 @@ void MainWindow::deleteImage()
 		auto iter = std::remove(m_images.begin(), m_images.end(), name);
 		m_images.erase(iter, m_images.end());
 
-		if (m_images.size() >= 1) {
-			loadImage(m_images[m_image_id]);
+		if (m_images.size() == 0) {
+			ui->m_label->clear();
+			setWindowTitle("imago");
 		}
 		else {
-			ui->m_label->clear();
+			loadImage(m_images[m_image_id]);
 		}
 	}
 }
@@ -321,7 +325,7 @@ void MainWindow::editPreferences()
 {
 	m_user_pref->show();
 
-	if (m_user_pref->exec()) {
+	if (m_user_pref->exec() == QDialog::Accepted) {
 		setRandomize(m_user_pref->getRandomMode());
 		setDiapTime(m_user_pref->getDiaporamatime());
 	}
