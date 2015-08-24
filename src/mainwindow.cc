@@ -32,6 +32,7 @@
 #include <QSettings>
 #include <QTimer>
 
+#include "glwindow.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "user_preferences.h"
@@ -221,7 +222,7 @@ void MainWindow::deleteImage()
 	}
 }
 
-void MainWindow::getNextImage(const bool forward)
+void MainWindow::nextImage(const bool forward)
 {
 	if (m_images.size() == 0) {
 		return;
@@ -245,12 +246,12 @@ void MainWindow::getNextImage(const bool forward)
 
 void MainWindow::nextImage()
 {
-	getNextImage(true);
+	nextImage(true);
 }
 
 void MainWindow::prevImage()
 {
-	getNextImage(false);
+	nextImage(false);
 }
 
 void MainWindow::startDiap()

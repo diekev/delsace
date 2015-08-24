@@ -24,11 +24,9 @@
 
 #pragma once
 
-#include <QDir>
 #include <QMainWindow>
 
-#include "glwindow.h"
-
+class GLWindow;
 class QScrollBar;
 class UserPreferences;
 
@@ -42,7 +40,7 @@ class MainWindow : public QMainWindow {
 	Q_OBJECT
 
 	Ui::MainWindow *ui;
-	class GLWindow *m_gl_win;
+	GLWindow *m_gl_win;
 	QTimer *m_timer;
 
 	QVector<QString> m_images;
@@ -58,7 +56,12 @@ class MainWindow : public QMainWindow {
 	UserPreferences *m_user_pref;
 	bool m_randomize;
 
-public slots:
+	/* Event handling */
+	void closeEvent(QCloseEvent *);
+	void keyPressEvent(QKeyEvent *e);
+
+private slots:
+	/* Image operations */
 	void deleteImage();
 	void nextImage();
 	void openImage();
@@ -71,26 +74,28 @@ public slots:
 	void fitScreen();
 	void normalSize();
 	void editPreferences();
+
+	/* Settings, configuration file */
 	void setRandomize(const bool b);
 	void setDiapTime(const int t);
 
 public:
 	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
+
+	/* Image operations */
 	auto currentImage() const -> QImage*;
+	auto loadImage(const QString &filename) -> void;
+	auto openImage(const QString &filename) -> void;
+	auto nextImage(const bool forward) -> void;
 	auto scaleImage(float scale) -> void;
 
-	void keyPressEvent(QKeyEvent *e);
-	void loadImage(const QString &filename);
-	void openImage(const QString &filename);
-	void adjustScrollBar(QScrollBar *scrollBar, float factor);
-	void updateActions();
-	void setNormalSize();
+	/* Settings, configuration file */
+	auto readSettings() -> void;
+	auto writeSettings() -> void;
 
-	void readSettings();
-	void writeSettings();
-	void addRecentFile(const QString &name, const bool update_menu);
-	void updateRecentFilesMenu();
-	void closeEvent(QCloseEvent *);
-	void getNextImage(const bool forward);
+	auto addRecentFile(const QString &name, const bool update_menu) -> void;
+	auto updateRecentFilesMenu() -> void;
+	auto adjustScrollBar(QScrollBar *scrollBar, float factor) -> void;
+	auto setNormalSize() -> void;
 };
