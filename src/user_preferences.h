@@ -43,7 +43,7 @@ public:
 
 	auto getRandomMode() const -> bool;
 	auto setRandomMode(const bool b) -> void;
-	auto getDiaporamatime() const -> int;
+	auto diaporamaTime() const -> int;
 	auto setDiaporamatime(const int time) -> void;
 	auto deletePermanently() const -> bool;
 	auto deletePermanently(const bool b) -> void;

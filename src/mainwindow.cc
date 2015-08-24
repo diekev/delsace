@@ -255,7 +255,7 @@ void MainWindow::prevImage()
 
 void MainWindow::startDiap()
 {
-	m_timer->start(5000);
+	m_timer->start(m_user_pref->diaporamaTime() * 1000);
 }
 
 void MainWindow::stopDiap()
@@ -327,7 +327,7 @@ void MainWindow::editPreferences()
 
 	if (m_user_pref->exec() == QDialog::Accepted) {
 		setRandomize(m_user_pref->getRandomMode());
-		setDiapTime(m_user_pref->getDiaporamatime());
+		setDiapTime(m_user_pref->diaporamaTime());
 	}
 }
 
@@ -406,7 +406,7 @@ void MainWindow::writeSettings()
 
 	settings.setValue("Recent Files", recent);
 	settings.setValue("Random Mode", m_user_pref->getRandomMode());
-	settings.setValue("Diaporama Length", m_user_pref->getDiaporamatime());
+	settings.setValue("Diaporama Length", m_user_pref->diaporamaTime());
 	settings.setValue("Delete File Permanently", m_user_pref->deletePermanently());
 	settings.setValue("Delete File Folder", m_user_pref->deleteFolderPath());
 }

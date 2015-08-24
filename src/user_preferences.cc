@@ -44,7 +44,7 @@ auto UserPreferences::setRandomMode(const bool b) -> void
 	ui->m_random_mode->setChecked(b);
 }
 
-auto UserPreferences::getDiaporamatime() const -> int
+auto UserPreferences::diaporamaTime() const -> int
 {
 	return ui->m_diap_dur->value();
 }
