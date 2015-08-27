@@ -392,24 +392,26 @@ void MainWindow::setDiapTime(const int t)
 void MainWindow::fitScreen()
 {
 #ifndef WITH_GL
-	if (ui->m_label->height() > ui->m_scroll_area->height()) {
-		auto ratio = ui->m_scroll_area->height() / float(ui->m_label->height());
-		auto width = ui->m_label->width() * ratio;
-		auto height = ui->m_scroll_area->height();
+	const auto label_height = ui->m_label->height();
+	const auto label_width = ui->m_label->width();
+	const auto scroll_area_height = ui->m_scroll_area->height();
+	const auto scroll_area_width = ui->m_scroll_area->width();
+
+	if (label_height > scroll_area_height) {
+		auto ratio = scroll_area_height / float(label_height);
+		auto width = label_width * ratio;
+		auto height = scroll_area_height;
 		auto x = (ui->centralWidget->width() - width) / 2;
 
 		ui->m_label->setGeometry(x, 0, width, height);
 	}
-	else if (ui->m_label->width() > ui->m_scroll_area->width()) {
-		auto ratio = ui->m_scroll_area->width() / float(ui->m_label->width());
-		auto width = ui->m_scroll_area->width();
-		auto height = ui->m_label->height() * ratio;
+	else if (label_width > scroll_area_width) {
+		auto ratio = scroll_area_width / float(label_width);
+		auto width = scroll_area_width;
+		auto height = label_height * ratio;
 		auto y = (ui->centralWidget->height() - height) / 2;
 
 		ui->m_label->setGeometry(0, y, width, height);
-	}
-	else {
-		setNormalSize();
 	}
 #endif
 }
