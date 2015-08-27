@@ -62,6 +62,7 @@ class MainWindow : public QMainWindow {
 	void keyPressEvent(QKeyEvent *e);
 
 	void getDirectoryContent(const QDir &dir);
+	void getDirectoryFiles(const QDir &dir, const QStringList &filters);
 	void reset();
 
 private slots:

@@ -195,31 +195,27 @@ void MainWindow::openDirectory()
 void MainWindow::getDirectoryContent(const QDir &dir)
 {
 	const auto &name_filters = QStringList(supported_file_types.split(' '));
-
-	const auto &subdirs = dir.entryList(QDir::Dirs, QDir::Name);
-
 	m_images.clear();
 
 	if (m_user_pref->openSubdirs()) {
-		auto path = dir.path();
+		const auto &subdirs = dir.entryList(QDir::Dirs, QDir::Name);
+		const auto &path = dir.path();
 
 		for (const auto &subdir : subdirs) {
 			if (subdir == "." || subdir == "..") {
 				continue;
 			}
 
-			auto sdir = QDir(path + '/' + subdir);
-			const auto &files = sdir.entryList(name_filters, QDir::Files, QDir::Name);
-
-			m_images.reserve(m_images.size() + files.size());
-			for (const auto file : files) {
-				m_images.push_back(sdir.absoluteFilePath(file));
-			}
+			getDirectoryFiles(QDir(path + '/' + subdir), name_filters);
 		}
 	}
 
-	const auto &filenames = dir.entryList(name_filters, QDir::Files, QDir::Name);
+	getDirectoryFiles(dir, name_filters);
+}
 
+void MainWindow::getDirectoryFiles(const QDir &dir, const QStringList &filters)
+{
+	const auto &filenames = dir.entryList(filters, QDir::Files, QDir::Name);
 	m_images.reserve(m_images.size() + filenames.size());
 
 	for (const auto filename : filenames) {
