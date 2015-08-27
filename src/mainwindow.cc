@@ -70,8 +70,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(nextImage()));
 
-	resize(1920, 1080);
-	setWindowTitle("imago");
 	readSettings();
 }
 
@@ -80,6 +78,12 @@ MainWindow::~MainWindow()
 	delete ui;
 	delete m_current_image;
 	delete m_timer;
+}
+
+void MainWindow::reset()
+{
+	setWindowTitle(QCoreApplication::applicationName());
+	ui->m_label->clear();
 }
 
 void MainWindow::closeEvent(QCloseEvent*)
@@ -181,8 +185,7 @@ void MainWindow::openDirectory()
 	getDirectoryContent(directory);
 
 	if (m_images.size() == 0) {
-		ui->m_label->clear();
-		setWindowTitle("imago");
+		reset();
 		return;
 	}
 
@@ -274,8 +277,7 @@ void MainWindow::deleteImage()
 		m_images.erase(iter, m_images.end());
 
 		if (m_images.size() == 0) {
-			ui->m_label->clear();
-			setWindowTitle("imago");
+			reset();
 		}
 		else {
 			loadImage(m_images[m_image_id]);

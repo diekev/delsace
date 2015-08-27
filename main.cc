@@ -34,7 +34,8 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("imago");
 
 	MainWindow w;
-
+	w.setWindowTitle(QCoreApplication::applicationName());
+	w.resize(1920, 1080);
 	w.show();
 
 	/* load image passed as argument */
