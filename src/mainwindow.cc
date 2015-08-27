@@ -42,24 +42,24 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui(new Ui::MainWindow)
+    , m_timer(new QTimer)
+    , m_image_id(0)
+    , m_current_image(new QImage())
+    , m_rng(19937)
+    , m_scale_factor(1.0f)
+    , m_user_pref(new UserPreferences(this))
+    , m_randomize(false)
+    , m_diaporama_started(false)
 {
 	ui->setupUi(this);
-
-	m_timer = new QTimer;
-	m_current_image = new QImage();
-	m_image_id = 0;
-	m_rng.seed(19937);
-	m_scale_factor = 1.0f;
-	m_recent_files.reserve(MAX_RECENT_FILES);
-	m_user_pref = new UserPreferences(this);
-	m_randomize = false;
-	m_diaporama_started = false;
 
 #ifdef WITH_GL
 	m_gl_win = new GLWindow(this, *this);
 
 	ui->m_scroll_area->setWidget(m_gl_win);
 #endif
+
+	m_recent_files.reserve(MAX_RECENT_FILES);
 
 	for (int i = 0; i < MAX_RECENT_FILES; ++i) {
 		m_recent_act[i] = new QAction(this);
