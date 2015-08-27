@@ -53,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
 	m_recent_files.reserve(MAX_RECENT_FILES);
 	m_user_pref = new UserPreferences(this);
 	m_randomize = false;
+	m_diaporama_started = false;
 
 #ifdef WITH_GL
 	m_gl_win = new GLWindow(this, *this);
@@ -90,11 +91,19 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 {
 	switch (e->key()) {
 		case Qt::Key_F11:
+		{
 			setWindowState(this->windowState() ^ Qt::WindowFullScreen);
-
 			auto hide = (ui->m_menu_bar->isHidden()) ? false : true;
 			ui->m_menu_bar->setHidden(hide);
-
+			break;
+		}
+		case Qt::Key_Space:
+			if (!m_diaporama_started) {
+				startDiap();
+			}
+			else {
+				stopDiap();
+			}
 			break;
 	}
 }
@@ -309,11 +318,13 @@ void MainWindow::prevImage()
 void MainWindow::startDiap()
 {
 	m_timer->start(m_user_pref->diaporamaTime() * 1000);
+	m_diaporama_started = true;
 }
 
 void MainWindow::stopDiap()
 {
 	m_timer->stop();
+	m_diaporama_started = false;
 }
 
 void MainWindow::adjustScrollBar(QScrollBar *scrollBar, float factor)

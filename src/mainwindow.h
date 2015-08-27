@@ -55,7 +55,7 @@ class MainWindow : public QMainWindow {
 
 	float m_scale_factor;
 	UserPreferences *m_user_pref;
-	bool m_randomize;
+	bool m_randomize, m_diaporama_started;
 
 	/* Event handling */
 	void closeEvent(QCloseEvent *);
