@@ -99,32 +99,34 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 	}
 }
 
+#ifndef WITH_GL
 void MainWindow::loadImage(const QString &filename)
 {
-#ifndef WITH_GL
-	ui->m_label->clear();
-#endif
 	if (m_current_image->load(filename)) {
 		setWindowTitle(QFileInfo(filename).fileName());
 		ui->m_scroll_area->setWidgetResizable(true);
-#ifndef WITH_GL
 		ui->m_label->setPixmap(QPixmap::fromImage(*m_current_image));
-
-		m_scale_factor = 1.0f;
-
-		//fitScreen();
 		ui->m_label->adjustSize();
-#else
-		m_gl_win->update();
-#endif
+		m_scale_factor = 1.0f;
 	}
 	else {
 		std::cerr << "Unable to load image: " << filename.toStdString() << "\n";
 	}
-#ifndef WITH_GL
-	ui->m_label->show();
-#endif
+	setNormalSize();
 }
+#else
+void MainWindow::loadImage(const QString &filename)
+{
+	if (m_current_image->load(filename)) {
+		setWindowTitle(QFileInfo(filename).fileName());
+		ui->m_scroll_area->setWidgetResizable(true);
+		m_gl_win->update();
+	}
+	else {
+		std::cerr << "Unable to load image: " << filename.toStdString() << "\n";
+	}
+}
+#endif
 
 static QString supported_file_types =
         "*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.png *.pgm *.ppm *.tiff *.xbm *.xpm";
