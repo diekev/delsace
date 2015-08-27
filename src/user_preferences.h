@@ -49,4 +49,6 @@ public:
 	auto deletePermanently(const bool b) -> void;
 	auto deleteFolderPath(const QString &path) -> void;
 	auto deleteFolderPath() const -> QString;
+	auto openSubdirs() const -> bool;
+	auto openSubdirs(const bool b) -> void;
 };

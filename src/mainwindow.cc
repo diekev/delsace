@@ -167,24 +167,51 @@ void MainWindow::openDirectory()
 		return;
 	}
 
-//	const auto &dir = QDir(directory);
-
 	getDirectoryContent(directory);
+
+	if (m_images.size() == 0) {
+		ui->m_label->clear();
+		setWindowTitle("imago");
+		return;
+	}
+
 	loadImage(m_images[0]);
 	addRecentFile(m_images[0], true);
 	m_image_id = 0;
 }
 
-// TODO: handle subdirectories.
 void MainWindow::getDirectoryContent(const QDir &dir)
 {
 	const auto &name_filters = QStringList(supported_file_types.split(' '));
-	const auto &filenames = dir.entryList(name_filters, QDir::Files, QDir::Name);
+
+	const auto &subdirs = dir.entryList(QDir::Dirs, QDir::Name);
 
 	m_images.clear();
-	m_images.reserve(filenames.size());
-	for (const auto fname : filenames) {
-		m_images.push_back(dir.absoluteFilePath(fname));
+
+	if (m_user_pref->openSubdirs()) {
+		auto path = dir.path();
+
+		for (const auto &subdir : subdirs) {
+			if (subdir == "." || subdir == "..") {
+				continue;
+			}
+
+			auto sdir = QDir(path + '/' + subdir);
+			const auto &files = sdir.entryList(name_filters, QDir::Files, QDir::Name);
+
+			m_images.reserve(m_images.size() + files.size());
+			for (const auto file : files) {
+				m_images.push_back(sdir.absoluteFilePath(file));
+			}
+		}
+	}
+
+	const auto &filenames = dir.entryList(name_filters, QDir::Files, QDir::Name);
+
+	m_images.reserve(m_images.size() + filenames.size());
+
+	for (const auto filename : filenames) {
+		m_images.push_back(dir.absoluteFilePath(filename));
 	}
 }
 
@@ -417,6 +444,9 @@ void MainWindow::readSettings()
 
 	auto delete_folder = settings.value("Delete File Folder").toString();
 	m_user_pref->deleteFolderPath(delete_folder);
+
+	auto open_subdirs = settings.value("Open Subdirs").toBool();
+	m_user_pref->openSubdirs(open_subdirs);
 }
 
 void MainWindow::writeSettings()
@@ -433,6 +463,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Diaporama Length", m_user_pref->diaporamaTime());
 	settings.setValue("Delete File Permanently", m_user_pref->deletePermanently());
 	settings.setValue("Delete File Folder", m_user_pref->deleteFolderPath());
+	settings.setValue("Open Subdirs", m_user_pref->openSubdirs());
 }
 
 void MainWindow::addRecentFile(const QString &name, const bool update_menu)

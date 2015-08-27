@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -89,20 +89,6 @@
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="2" column="2">
-          <widget class="QLabel" name="m_delete_file_label">
-           <property name="text">
-            <string>Dossier images supprimées</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="3">
-          <widget class="QPushButton" name="m_choose_folder_but">
-           <property name="text">
-            <string>Choisir</string>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="2">
           <widget class="QLineEdit" name="m_folder_path"/>
          </item>
@@ -113,6 +99,30 @@
            </property>
            <property name="text">
             <string>Supprimer définitivement</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QPushButton" name="m_choose_folder_but">
+           <property name="text">
+            <string>Choisir</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="m_delete_file_label">
+           <property name="text">
+            <string>Dossier images supprimées</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QCheckBox" name="m_open_subdirs">
+           <property name="text">
+            <string>Ouvrir sous-dossiers</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>

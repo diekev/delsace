@@ -75,6 +75,16 @@ auto UserPreferences::deleteFolderPath(const QString &path) -> void
 	ui->m_folder_path->setText(path);
 }
 
+auto UserPreferences::openSubdirs() const -> bool
+{
+	return ui->m_open_subdirs->isChecked();
+}
+
+auto UserPreferences::openSubdirs(const bool b) -> void
+{
+	return ui->m_open_subdirs->setChecked(b);
+}
+
 auto UserPreferences::chooseFolder() -> void
 {
 	const auto &dir = QFileDialog::getExistingDirectory(this,
