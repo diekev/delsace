@@ -355,12 +355,9 @@ void MainWindow::setNormalSize()
 {
 #ifndef WITH_GL
 	auto width = ui->m_label->pixmap()->width();
-	auto height = ui->m_label->pixmap()->width();
-	auto x = 0;
-	auto y = 0;
-
-	x = (ui->centralWidget->width() - width) / 2;
-	y = (ui->centralWidget->height() - height) / 2;
+	auto height = ui->m_label->pixmap()->height();
+	auto x = (ui->centralWidget->width() - width) / 2;
+	auto y = (ui->centralWidget->height() - height) / 2;
 
 	ui->m_label->setGeometry(x, y, width, height);
 	m_scale_factor = 1.0f;
