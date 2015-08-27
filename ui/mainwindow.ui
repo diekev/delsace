@@ -149,6 +149,7 @@
      <addaction name="m_no_recent_act"/>
     </widget>
     <addaction name="m_open_action"/>
+    <addaction name="m_open_dir_action"/>
     <addaction name="m_recent_menu"/>
     <addaction name="separator"/>
     <addaction name="m_quit_action"/>
@@ -284,6 +285,11 @@
   <action name="m_user_pref_act">
    <property name="text">
     <string>Préférences</string>
+   </property>
+  </action>
+  <action name="m_open_dir_action">
+   <property name="text">
+    <string>Ouvrir Dossier</string>
    </property>
   </action>
  </widget>
@@ -482,6 +488,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>m_open_dir_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openDirectory()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>296</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openImage()</slot>
@@ -496,5 +518,6 @@
   <slot>openRecentFile()</slot>
   <slot>deleteImage()</slot>
   <slot>editPreferences()</slot>
+  <slot>openDirectory()</slot>
  </slots>
 </ui>

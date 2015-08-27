@@ -132,17 +132,8 @@ static QString supported_file_types =
 void MainWindow::openImage(const QString &filename)
 {
 	const auto &dir = QFileInfo(filename).absoluteDir();
-	const auto &name_filters = QStringList(supported_file_types.split(' '));
 
-	// TODO: handle subdirectories.
-	const auto &filenames = dir.entryList(name_filters, QDir::Files, QDir::Name);
-
-	m_images.clear();
-	m_images.reserve(filenames.size());
-	for (const auto fname : filenames) {
-		m_images.push_back(dir.absoluteFilePath(fname));
-	}
-
+	getDirectoryContent(dir);
 	loadImage(filename);
 	addRecentFile(filename, true);
 
@@ -163,6 +154,38 @@ void MainWindow::openImage()
 	}
 
 	openImage(filename);
+}
+
+void MainWindow::openDirectory()
+{
+	auto directory = QFileDialog::getExistingDirectory(this,
+	                                                   tr("Choisir Dossier"),
+                                                       QDir::homePath(),
+                                                       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+	if (directory.isEmpty()) {
+		return;
+	}
+
+//	const auto &dir = QDir(directory);
+
+	getDirectoryContent(directory);
+	loadImage(m_images[0]);
+	addRecentFile(m_images[0], true);
+	m_image_id = 0;
+}
+
+// TODO: handle subdirectories.
+void MainWindow::getDirectoryContent(const QDir &dir)
+{
+	const auto &name_filters = QStringList(supported_file_types.split(' '));
+	const auto &filenames = dir.entryList(name_filters, QDir::Files, QDir::Name);
+
+	m_images.clear();
+	m_images.reserve(filenames.size());
+	for (const auto fname : filenames) {
+		m_images.push_back(dir.absoluteFilePath(fname));
+	}
 }
 
 /* TODO (kevin): this function isn't that nice */

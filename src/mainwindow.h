@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <QDir>
 #include <QMainWindow>
 
 class GLWindow;
@@ -60,6 +61,8 @@ class MainWindow : public QMainWindow {
 	void closeEvent(QCloseEvent *);
 	void keyPressEvent(QKeyEvent *e);
 
+	void getDirectoryContent(const QDir &dir);
+
 private slots:
 	/* Image operations */
 	void deleteImage();
@@ -78,6 +81,8 @@ private slots:
 	/* Settings, configuration file */
 	void setRandomize(const bool b);
 	void setDiapTime(const int t);
+
+	void openDirectory();
 
 public:
 	explicit MainWindow(QWidget *parent = nullptr);
