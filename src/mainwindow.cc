@@ -164,34 +164,32 @@ void MainWindow::openImage()
 	                    QDir::homePath(),
 	                    tr(filters.toLatin1().data()));
 
-	if (filename.isEmpty()) {
-		return;
+	if (!filename.isEmpty()) {
+		openImage(filename);
 	}
-
-	openImage(filename);
 }
 
 void MainWindow::openDirectory()
 {
-	auto directory = QFileDialog::getExistingDirectory(this,
-	                                                   tr("Choisir Dossier"),
-                                                       QDir::homePath(),
-                                                       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	auto dir_path = QFileDialog::getExistingDirectory(
+	                    this, tr("Choisir Dossier"),
+	                    QDir::homePath(),
+	                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-	if (directory.isEmpty()) {
+	if (dir_path.isEmpty()) {
 		return;
 	}
 
-	getDirectoryContent(directory);
+	getDirectoryContent(dir_path);
 
-	if (m_images.size() == 0) {
+	if (m_images.size() > 0) {
+		loadImage(m_images[0]);
+		addRecentFile(m_images[0], true);
+		m_image_id = 0;
+	}
+	else {
 		reset();
-		return;
 	}
-
-	loadImage(m_images[0]);
-	addRecentFile(m_images[0], true);
-	m_image_id = 0;
 }
 
 void MainWindow::getDirectoryContent(const QDir &dir)
