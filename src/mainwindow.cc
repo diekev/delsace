@@ -328,8 +328,8 @@ auto MainWindow::scaleImage(float factor) -> void
 #ifndef WITH_GL
 	//ui->m_label->resize(ui->m_label->size() * m_scale_factor);
 
-	auto w = ui->m_label->pixmap()->width() * m_scale_factor;
-	auto h = ui->m_label->pixmap()->height() * m_scale_factor;
+	auto w = m_current_image->width() * m_scale_factor;
+	auto h = m_current_image->height() * m_scale_factor;
 	auto x = (ui->centralWidget->width() - w) / 2;
 	auto y = (ui->centralWidget->height() - h) / 2;
 
@@ -356,8 +356,8 @@ void MainWindow::scaleDown()
 void MainWindow::setNormalSize()
 {
 #ifndef WITH_GL
-	auto width = ui->m_label->pixmap()->width();
-	auto height = ui->m_label->pixmap()->height();
+	auto width = m_current_image->width();
+	auto height = m_current_image->height();
 	auto x = (ui->centralWidget->width() - width) / 2;
 	auto y = (ui->centralWidget->height() - height) / 2;
 
@@ -394,8 +394,8 @@ void MainWindow::setDiapTime(const int t)
 void MainWindow::fitScreen()
 {
 #ifndef WITH_GL
-	const auto label_height = ui->m_label->height();
-	const auto label_width = ui->m_label->width();
+	const auto label_height = m_current_image->height();
+	const auto label_width = m_current_image->width();
 	const auto scroll_area_height = ui->m_scroll_area->height();
 	const auto scroll_area_width = ui->m_scroll_area->width();
 
