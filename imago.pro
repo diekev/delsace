@@ -13,6 +13,8 @@ TEMPLATE = app
 
 CONFIG += c++11
 
+QMAKE_CXXFLAGS += -O3 -msse -msse2 -msse3
+
 QMAKE_CXXFLAGS_DEBUG += -g -Wall -Og -Wno-error=unused-function \
 	-Wextra -Wno-missing-field-initializers -Wno-sign-compare -Wno-type-limits  \
 	-Wno-unknown-pragmas -Wno-unused-parameter -Wno-ignored-qualifiers          \
@@ -55,7 +57,6 @@ FORMS += \
 OTHER_FILES += \
 	src/gpu/shaders/frag.glsl \
 	src/gpu/shaders/vert.glsl
-
 
 unix {
 	copy_files.commands = cp -r ../src/gpu/shaders/ .
