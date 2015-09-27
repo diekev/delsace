@@ -57,8 +57,8 @@ void GLWindow::initializeGL()
 
 	m_texture = new GPUTexture(GL_TEXTURE_2D, 0);
 
-	m_shader.loadFromFile(GL_VERTEX_SHADER, "gpu_shaders/vertex_shader.glsl");
-	m_shader.loadFromFile(GL_FRAGMENT_SHADER, "gpu_shaders/fragment_shader.glsl");
+	m_shader.loadFromFile(GL_VERTEX_SHADER, "shaders/vert.glsl");
+	m_shader.loadFromFile(GL_FRAGMENT_SHADER, "shaders/frag.glsl");
 
 	m_shader.createAndLinkProgram();
 

@@ -52,6 +52,11 @@ FORMS += \
 	ui/mainwindow.ui \
 	ui/pref_window.ui
 
+OTHER_FILES += \
+	src/gpu/shaders/frag.glsl \
+	src/gpu/shaders/vert.glsl
+
+
 unix {
 	copy_files.commands = cp -r ../src/gpu/shaders/ .
 }
