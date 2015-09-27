@@ -104,16 +104,16 @@ void GLWindow::resizeGL(int w, int h)
 
 void GLWindow::loadImage(QImage *image)
 {
-	m_gl_data = QGLWidget::convertToGLFormat(*image);
+	QImage data = QGLWidget::convertToGLFormat(*image);
 
 	if (glIsTexture(m_texture)) {
 		glDeleteTextures(1, &m_texture);
 	}
 
-	assert((m_gl_data.width() > 0) && (m_gl_data.height() > 0));
+	assert((data.width() > 0) && (data.height() > 0));
 
-	int size[] = { m_gl_data.width(), m_gl_data.height() };
-	create_texture_2D(m_texture, size, m_gl_data.bits());
+	int size[] = { data.width(), data.height() };
+	create_texture_2D(m_texture, size, data.bits());
 
 	gl_check_errors();
 }

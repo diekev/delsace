@@ -44,9 +44,6 @@ class GLWindow : public QGLWidget {
 
 	const GLuint m_indices[6] = { 0, 1, 2, 0, 2, 3 };
 
-protected:
-	QImage m_gl_data;
-
 public:
 	GLWindow(QWidget *parent);
 	~GLWindow();
