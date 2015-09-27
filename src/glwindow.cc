@@ -26,7 +26,7 @@
 #include <iostream>
 
 #include "glwindow.h"
-
+#include "GPUBuffer.h"
 #include "util_opengl.h"
 
 #define GL_CHECK_ERROR assert(glGetError() == GL_NO_ERROR);
@@ -71,8 +71,8 @@ void GLWindow::initializeGL()
 
 	m_buffer->bind();
 	m_buffer->create_vertex_buffer(m_vertices, sizeof(float) * 8);
-	m_buffer->create_index_buffer(&m_indices[0], sizeof(GLuint) * 6);
-	m_buffer->attrib_pointer(m_shader["vertex"]);
+	m_buffer->create_index_buffer(&m_indices[0], sizeof(GLushort) * 6);
+	m_buffer->attrib_pointer(m_shader["vertex"], 2);
 	m_buffer->unbind();
 }
 
@@ -85,7 +85,7 @@ void GLWindow::paintGL()
 		m_buffer->bind();
 		texture_bind(GL_TEXTURE_2D, m_texture, 0);
 
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
 		texture_unbind(GL_TEXTURE_2D, 0);
 		m_buffer->unbind();

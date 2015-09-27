@@ -35,14 +35,16 @@ SOURCES += \
 	src/glwindow.cc     \
 	src/GPUShader.cc   \
 	src/util_opengl.cc  \
-    src/user_preferences.cc
+    src/user_preferences.cc \
+    src/GPUBuffer.cc
 
 HEADERS += \
 	src/mainwindow.h      \
 	src/glwindow.h        \
 	src/GPUShader.h      \
 	src/util_opengl.h     \
-    src/user_preferences.h
+    src/user_preferences.h \
+    src/GPUBuffer.h
 
 FORMS += \
 	ui/mainwindow.ui \

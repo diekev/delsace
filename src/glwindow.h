@@ -42,7 +42,7 @@ class GLWindow : public QGLWidget {
 	    0.0f, 1.0f
 	};
 
-	const GLuint m_indices[6] = { 0, 1, 2, 0, 2, 3 };
+	const GLushort m_indices[6] = { 0, 1, 2, 0, 2, 3 };
 
 public:
 	GLWindow(QWidget *parent);
