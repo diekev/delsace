@@ -34,18 +34,23 @@ void gl_check_errors()
 		return;
 	}
 
+	std::cerr << "GL Error: " << int(error) << " - ";
+
 	switch (error) {
 		case GL_INVALID_ENUM:
-			std::cerr << "GL Invalid Enum Error\n";
+			std::cerr << "invalid enum.\n";
 			break;
 		case GL_INVALID_VALUE:
-			std::cerr << "GL Invalid Value Error\n";
+			std::cerr << "invalid value.\n";
 			break;
 		case GL_INVALID_OPERATION:
-			std::cerr << "GL Invalid Operation Error\n";
+			std::cerr << "invalid operation.\n";
 			break;
 		case GL_OUT_OF_MEMORY:
-			std::cerr << "GL Invalid Out of Memory Error\n";
+			std::cerr << "out of memory.\n";
+			break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			std::cerr << "invalid framebuffer operation\n";
 			break;
 	}
 }
