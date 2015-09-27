@@ -2,7 +2,7 @@
 #include <map>
 #include <string>
 
-class GLSLShader {
+class GPUShader {
 	enum ShadeType {
 		VERTEX_SHADER,
 		FRAGMENT_SHADER,
@@ -16,8 +16,8 @@ class GLSLShader {
 	std::map<std::string, GLuint> m_uniform_loc_list;
 
 public:
-	GLSLShader();
-	~GLSLShader();
+	GPUShader();
+	~GPUShader();
 
 	void loadFromString(GLenum whichShader, const std::string &source);
 	void loadFromFile(GLenum whichShader, const std::string &source);

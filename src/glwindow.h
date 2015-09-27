@@ -24,15 +24,15 @@
 
 #pragma once
 
-#include "GLSLShader.h"
+#include "GPUShader.h"
 
 #include <QGLWidget>
 
-class VBOData;
+class GPUBuffer;
 
 class GLWindow : public QGLWidget {
-	GLSLShader m_shader;
-	VBOData *m_buffer_data;
+	GPUShader m_shader;
+	GPUBuffer *m_buffer;
 	GLuint m_texture;
 
 	const float m_vertices[8] = {

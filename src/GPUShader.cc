@@ -2,9 +2,9 @@
 #include <iostream>
 #include <sstream>
 
-#include "GLSLShader.h"
+#include "GPUShader.h"
 
-GLSLShader::GLSLShader()
+GPUShader::GPUShader()
 {
 	m_total_shaders = 0;
 	m_shaders[VERTEX_SHADER] = 0;
@@ -14,7 +14,7 @@ GLSLShader::GLSLShader()
 	m_uniform_loc_list.clear();
 }
 
-GLSLShader::~GLSLShader()
+GPUShader::~GPUShader()
 {
 	glDeleteProgram(m_program);
 
@@ -22,7 +22,7 @@ GLSLShader::~GLSLShader()
 	m_uniform_loc_list.clear();
 }
 
-void GLSLShader::loadFromString(GLenum whichShader, const std::string &source)
+void GPUShader::loadFromString(GLenum whichShader, const std::string &source)
 {
 	GLuint shader = glCreateShader(whichShader);
 	const char *ptmp = source.c_str();
@@ -46,7 +46,7 @@ void GLSLShader::loadFromString(GLenum whichShader, const std::string &source)
 	m_shaders[m_total_shaders++] = shader;
 }
 
-void GLSLShader::loadFromFile(GLenum whichShader, const std::string &source)
+void GPUShader::loadFromFile(GLenum whichShader, const std::string &source)
 {
 	std::ifstream fp(source.c_str());
 
@@ -64,7 +64,7 @@ void GLSLShader::loadFromFile(GLenum whichShader, const std::string &source)
 	}
 }
 
-void GLSLShader::createAndLinkProgram()
+void GPUShader::createAndLinkProgram()
 {
 	m_program = glCreateProgram();
 
@@ -98,32 +98,32 @@ void GLSLShader::createAndLinkProgram()
 	glDeleteShader(m_shaders[GEOMETRY_SHADER]);
 }
 
-void GLSLShader::use()
+void GPUShader::use()
 {
 	glUseProgram(m_program);
 }
 
-void GLSLShader::unUse()
+void GPUShader::unUse()
 {
 	glUseProgram(0);
 }
 
-void GLSLShader::addAttribute(const std::string &attribute)
+void GPUShader::addAttribute(const std::string &attribute)
 {
 	m_attrib_list[attribute] = glGetAttribLocation(m_program, attribute.c_str());
 }
 
-void GLSLShader::addUniform(const std::string &uniform)
+void GPUShader::addUniform(const std::string &uniform)
 {
 	m_uniform_loc_list[uniform] = glGetUniformLocation(m_program, uniform.c_str());
 }
 
-GLuint GLSLShader::operator[](const std::string &attribute)
+GLuint GPUShader::operator[](const std::string &attribute)
 {
 	return m_attrib_list[attribute];
 }
 
-GLuint GLSLShader::operator()(const std::string &uniform)
+GLuint GPUShader::operator()(const std::string &uniform)
 {
 	return m_uniform_loc_list[uniform];
 }

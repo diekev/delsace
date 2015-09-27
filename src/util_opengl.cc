@@ -118,12 +118,12 @@ void create_texture_3D(GLuint &texture_id, const int size[3], const int channels
 	glGenerateMipmap(GL_TEXTURE_3D);
 }
 
-VBOData::VBOData()
+GPUBuffer::GPUBuffer()
 {
 	glGenVertexArrays(1, &vao);
 }
 
-VBOData::~VBOData()
+GPUBuffer::~GPUBuffer()
 {
 	glDeleteVertexArrays(1, &vao);
 
@@ -140,12 +140,12 @@ VBOData::~VBOData()
 	}
 }
 
-void VBOData::bind()
+void GPUBuffer::bind()
 {
 	glBindVertexArray(vao);
 }
 
-void VBOData::unbind()
+void GPUBuffer::unbind()
 {
 	glBindVertexArray(0);
 }
@@ -153,7 +153,7 @@ void VBOData::unbind()
 #include <cassert>
 #define GL_CHECK_ERROR assert(glGetError() == GL_NO_ERROR);
 
-void VBOData::attrib_pointer(GLuint loc)
+void GPUBuffer::attrib_pointer(GLuint loc)
 {
 	glEnableVertexAttribArray(loc);
 	GL_CHECK_ERROR;
@@ -161,7 +161,7 @@ void VBOData::attrib_pointer(GLuint loc)
 	GL_CHECK_ERROR;
 }
 
-void VBOData::create_vertex_buffer(const GLfloat *vertices, const size_t size)
+void GPUBuffer::create_vertex_buffer(const GLfloat *vertices, const size_t size)
 {
 	GLenum draw_type = GL_STATIC_DRAW;
 
@@ -176,13 +176,13 @@ void VBOData::create_vertex_buffer(const GLfloat *vertices, const size_t size)
 	glBufferData(GL_ARRAY_BUFFER, size, vertices, draw_type);
 }
 
-void VBOData::update_vertex_buffer(const GLfloat *vertices, const size_t size)
+void GPUBuffer::update_vertex_buffer(const GLfloat *vertices, const size_t size)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices);
 }
 
-void VBOData::create_index_buffer(const GLuint *indices, const size_t size)
+void GPUBuffer::create_index_buffer(const GLuint *indices, const size_t size)
 {
 	GLenum draw_type = GL_STATIC_DRAW;
 
@@ -197,13 +197,13 @@ void VBOData::create_index_buffer(const GLuint *indices, const size_t size)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, draw_type);
 }
 
-void VBOData::update_index_buffer(const GLuint *indices, const size_t size)
+void GPUBuffer::update_index_buffer(const GLuint *indices, const size_t size)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_vbo);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, indices);
 }
 
-void VBOData::create_color_buffer(const GLfloat *colors, const size_t size)
+void GPUBuffer::create_color_buffer(const GLfloat *colors, const size_t size)
 {
 	glGenBuffers(1, &color_vbo);
 

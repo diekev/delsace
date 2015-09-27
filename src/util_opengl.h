@@ -23,15 +23,15 @@
 
 #pragma once
 
-class VBOData {
+class GPUBuffer {
 	GLuint vao;
 	GLuint vbo;
 	GLuint index_vbo;
 	GLuint color_vbo;
 
 public:
-	VBOData();
-	~VBOData();
+	GPUBuffer();
+	~GPUBuffer();
 
 	void bind();
 	void unbind();

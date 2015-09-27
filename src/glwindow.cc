@@ -33,13 +33,13 @@
 
 GLWindow::GLWindow(QWidget *parent)
     : QGLWidget(parent)
-    , m_buffer_data(nullptr)
+    , m_buffer(nullptr)
 {}
 
 GLWindow::~GLWindow()
 {
 	glDeleteTextures(1, &m_texture);
-	delete m_buffer_data;
+	delete m_buffer;
 }
 
 void GLWindow::initializeGL()
@@ -67,13 +67,13 @@ void GLWindow::initializeGL()
 	}
 	m_shader.unUse();
 
-	m_buffer_data = new VBOData();
+	m_buffer = new GPUBuffer();
 
-	m_buffer_data->bind();
-	m_buffer_data->create_vertex_buffer(m_vertices, sizeof(float) * 8);
-	m_buffer_data->create_index_buffer(&m_indices[0], sizeof(GLuint) * 6);
-	m_buffer_data->attrib_pointer(m_shader["vertex"]);
-	m_buffer_data->unbind();
+	m_buffer->bind();
+	m_buffer->create_vertex_buffer(m_vertices, sizeof(float) * 8);
+	m_buffer->create_index_buffer(&m_indices[0], sizeof(GLuint) * 6);
+	m_buffer->attrib_pointer(m_shader["vertex"]);
+	m_buffer->unbind();
 }
 
 void GLWindow::paintGL()
@@ -82,13 +82,13 @@ void GLWindow::paintGL()
 
 	m_shader.use();
 	{
-		m_buffer_data->bind();
+		m_buffer->bind();
 		texture_bind(GL_TEXTURE_2D, m_texture, 0);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 		texture_unbind(GL_TEXTURE_2D, 0);
-		m_buffer_data->unbind();
+		m_buffer->unbind();
 	}
 	m_shader.unUse();
 }
