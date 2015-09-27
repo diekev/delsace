@@ -108,14 +108,14 @@ void GLWindow::loadImage(QImage *image)
 
 	assert((data.width() > 0) && (data.height() > 0));
 
-	int size[] = { data.width(), data.height() };
+	GLint size[] = { data.width(), data.height() };
 
 	m_texture->free(true);
 	m_texture->bind();
 	m_texture->setType(GL_UNSIGNED_BYTE, GL_RGBA, GL_RGB);
 	m_texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
 	m_texture->setWrapping(GL_CLAMP);
-	m_texture->create2D(data.bits(), size);
+	m_texture->create(data.bits(), size);
 	m_texture->unbind();
 
 	gl_check_errors();
