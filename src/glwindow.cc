@@ -83,15 +83,11 @@ void GLWindow::paintGL()
 	m_shader.use();
 	{
 		m_buffer_data->bind();
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_texture);
+		texture_bind(GL_TEXTURE_2D, m_texture, 0);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
+		texture_unbind(GL_TEXTURE_2D, 0);
 		m_buffer_data->unbind();
 	}
 	m_shader.unUse();
