@@ -93,6 +93,13 @@ void GPUTexture::setWrapping(GLint wrap)
 	}
 }
 
+void GPUTexture::generateMipMap(GLint base, GLint max)
+{
+	glTexParameteri(m_target, GL_TEXTURE_BASE_LEVEL, base);
+	glTexParameteri(m_target, GL_TEXTURE_MAX_LEVEL, max);
+	glGenerateMipmap(GL_TEXTURE_3D);
+}
+
 void GPUTexture::create(const GLvoid *data, const int size)
 {
 	glTexImage1D(m_target, 0, m_internal_format, size, 0, m_format, m_type, data);
@@ -106,13 +113,8 @@ void GPUTexture::create2D(const GLvoid *data, const int size[2])
 
 void GPUTexture::create3D(const GLvoid *data, const int size[3])
 {
-	glTexParameteri(m_target, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(m_target, GL_TEXTURE_MAX_LEVEL, 4);
-
 	glTexImage3D(m_target, 0, m_internal_format,
 	             size[0], size[1], size[2], 0, m_format, m_type, data);
-
-	glGenerateMipmap(GL_TEXTURE_3D);
 }
 
 GLint GPUTexture::unit() const
