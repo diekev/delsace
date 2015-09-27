@@ -44,6 +44,8 @@ class MainWindow : public QMainWindow {
 	GLWindow *m_gl_win;
 	QTimer *m_timer;
 
+	int m_current_width, m_current_height;
+
 	QVector<QString> m_images;
 	QVector<QString> m_recent_files;
 	unsigned m_image_id;
@@ -91,7 +93,6 @@ public:
 	~MainWindow();
 
 	/* Image operations */
-	auto currentImage() const -> QImage*;
 	auto loadImage(const QString &filename) -> void;
 	auto openImage(const QString &filename) -> void;
 	auto nextImage(const bool forward) -> void;

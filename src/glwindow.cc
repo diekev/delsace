@@ -22,74 +22,98 @@
  *
  */
 
+#include <cassert>
+#include <iostream>
+
 #include "glwindow.h"
 
-GLWindow::GLWindow(QWidget *parent, MainWindow &window)
+#include "util_opengl.h"
+
+#define GL_CHECK_ERROR assert(glGetError() == GL_NO_ERROR);
+
+GLWindow::GLWindow(QWidget *parent)
 	: QGLWidget(parent)
-	, m_main_win(window)
+    , m_buffer_data(nullptr)
 {}
+
+GLWindow::~GLWindow()
+{
+	glDeleteTextures(1, &m_texture);
+	delete m_buffer_data;
+}
 
 void GLWindow::initializeGL()
 {
-	glEnable(GL_TEXTURE_2D);
-	m_program.addShaderFromSourceFile(QGLShader::Vertex, ":/gpu_shaders/vertex_shader.glsl");
-	m_program.addShaderFromSourceFile(QGLShader::Fragment, ":/gpu_shaders/fragment_shader.glsl");
+	glewExperimental = GL_TRUE;
+	GLenum err = glewInit();
 
-	m_vertices[0] = QVector2D(0.0f, 0.0f);
-	m_vertices[1] = QVector2D(1.0f, 0.0f);
-	m_vertices[2] = QVector2D(1.0f, 1.0f);
-	m_vertices[3] = QVector2D(0.0f, 1.0f);
+	if (err != GLEW_OK) {
+		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
+	}
 
-	GLushort *id = &m_indices[0];
-	*id++ = 0;
-	*id++ = 1;
-	*id++ = 2;
-	*id++ = 0;
-	*id++ = 2;
-	*id++ = 3;
+	GL_CHECK_ERROR;
+
+	m_shader.loadFromFile(GL_VERTEX_SHADER, "gpu_shaders/vertex_shader.glsl");
+	m_shader.loadFromFile(GL_FRAGMENT_SHADER, "gpu_shaders/fragment_shader.glsl");
+
+	m_shader.createAndLinkProgram();
+
+	m_shader.use();
+	{
+		m_shader.addAttribute("vertex");
+		m_shader.addUniform("image");
+
+		glUniform1i(m_shader("image"), 0);
+	}
+	m_shader.unUse();
+
+	m_buffer_data = new VBOData();
+
+	m_buffer_data->bind();
+	m_buffer_data->create_vertex_buffer(m_vertices, sizeof(float) * 8);
+	m_buffer_data->create_index_buffer(&m_indices[0], sizeof(GLuint) * 6);
+	m_buffer_data->attrib_pointer(m_shader["vertex"]);
+	m_buffer_data->unbind();
 }
 
 void GLWindow::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	loadImage();
+	m_shader.use();
+	{
+		m_buffer_data->bind();
 
-	if (m_data != nullptr) {
-		resize(m_data->size());
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_texture);
 
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(2, GL_FLOAT, 0, m_vertices);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-		glDisableClientState(GL_VERTEX_ARRAY);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		m_buffer_data->unbind();
 	}
-
-//	glDrawPixels(m_data->width(), m_data->height(), GL_RGBA, GL_UNSIGNED_BYTE, m_gl_data.bits());
-//	m_program.bind();
-//	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-//	m_program.release();
+	m_shader.unUse();
 }
 
 void GLWindow::resizeGL(int w, int h)
 {
 	glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, w, 0, h, -1, 1);
-	glMatrixMode(GL_MODELVIEW);
 }
 
-void GLWindow::loadImage()
+void GLWindow::loadImage(QImage *image)
 {
-	m_data = m_main_win.currentImage();
-	m_gl_data = QGLWidget::convertToGLFormat(*m_data);
+	m_gl_data = QGLWidget::convertToGLFormat(*image);
 
-	glGenTextures(1, &m_textures[0]);
-	glBindTexture(GL_TEXTURE_2D, m_textures[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_gl_data.width(), m_gl_data.height(),
-				 0, GL_RGB, GL_UNSIGNED_BYTE, m_gl_data.bits());
+	if (glIsTexture(m_texture)) {
+		glDeleteTextures(1, &m_texture);
+	}
+
+	assert((m_gl_data.width() > 0) && (m_gl_data.height() > 0));
+
+	int size[] = { m_gl_data.width(), m_gl_data.height() };
+	create_texture_2D(m_texture, size, m_gl_data.bits());
+
+	gl_check_errors();
 }

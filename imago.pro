@@ -33,11 +33,15 @@ SOURCES += \
 	main.cc             \
 	src/mainwindow.cc   \
 	src/glwindow.cc     \
+	src/GLSLShader.cc   \
+	src/util_opengl.cc  \
     src/user_preferences.cc
 
 HEADERS += \
 	src/mainwindow.h      \
 	src/glwindow.h        \
+	src/GLSLShader.h      \
+	src/util_opengl.h     \
     src/user_preferences.h
 
 FORMS += \
@@ -45,5 +49,7 @@ FORMS += \
 	ui/pref_window.ui
 
 INCLUDEPATH += src/
+
+LIBS += -lGLEW
 
 RESOURCES += resources.qrc
