@@ -28,29 +28,29 @@
 
 GPUBuffer::GPUBuffer()
 {
-	glGenVertexArrays(1, &vao);
+	glGenVertexArrays(1, &m_vao);
 }
 
 GPUBuffer::~GPUBuffer()
 {
-	glDeleteVertexArrays(1, &vao);
+	glDeleteVertexArrays(1, &m_vao);
 
-	if (glIsBuffer(vbo)) {
-		glDeleteBuffers(1, &vbo);
+	if (glIsBuffer(m_vertex_buffer)) {
+		glDeleteBuffers(1, &m_vertex_buffer);
 	}
 
-	if (glIsBuffer(index_vbo)) {
-		glDeleteBuffers(1, &index_vbo);
+	if (glIsBuffer(m_index_buffer)) {
+		glDeleteBuffers(1, &m_index_buffer);
 	}
 
-	if (glIsBuffer(color_vbo)) {
-		glDeleteBuffers(1, &color_vbo);
+	if (glIsBuffer(m_color_buffer)) {
+		glDeleteBuffers(1, &m_color_buffer);
 	}
 }
 
 void GPUBuffer::bind()
 {
-	glBindVertexArray(vao);
+	glBindVertexArray(m_vao);
 }
 
 void GPUBuffer::unbind()
@@ -66,29 +66,29 @@ void GPUBuffer::attrib_pointer(GLuint index, GLint size)
 
 void GPUBuffer::create_vertex_buffer(const GLvoid *vertices, const size_t size)
 {
-	create_buffer(vbo, vertices, size, GL_ARRAY_BUFFER);
+	create_buffer(m_vertex_buffer, vertices, size, GL_ARRAY_BUFFER);
 }
 
 void GPUBuffer::update_vertex_buffer(const GLvoid *vertices, const size_t size)
 {
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices);
 }
 
 void GPUBuffer::create_index_buffer(const GLvoid *indices, const size_t size)
 {
-	create_buffer(index_vbo, indices, size, GL_ELEMENT_ARRAY_BUFFER);
+	create_buffer(m_index_buffer, indices, size, GL_ELEMENT_ARRAY_BUFFER);
 }
 
 void GPUBuffer::update_index_buffer(const GLvoid *indices, const size_t size)
 {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, indices);
 }
 
 void GPUBuffer::create_color_buffer(const GLvoid *colors, const size_t size)
 {
-	create_buffer(color_vbo, colors, size, GL_ARRAY_BUFFER);
+	create_buffer(m_color_buffer, colors, size, GL_ARRAY_BUFFER);
 }
 
 void GPUBuffer::create_buffer(GLuint &id, const GLvoid *data, const size_t size, GLenum target)

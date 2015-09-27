@@ -25,10 +25,10 @@
 #pragma once
 
 class GPUBuffer {
-	GLuint vao;
-	GLuint vbo;
-	GLuint index_vbo;
-	GLuint color_vbo;
+	GLuint m_vao;
+	GLuint m_vertex_buffer;
+	GLuint m_index_buffer;
+	GLuint m_color_buffer;
 
 	void create_buffer(GLuint &id, const GLvoid *data, const size_t size, GLenum target);
 
