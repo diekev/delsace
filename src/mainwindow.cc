@@ -289,7 +289,7 @@ void MainWindow::updateRecentFilesMenu()
 	if (m_recent_files.size() > 0) {
 		ui->m_no_recent_act->setVisible(false);
 
-		for (auto i = 0u; i < m_recent_files.size();  ++i) {
+		for (int i(0); i < m_recent_files.size();  ++i) {
 			auto filename = m_recent_files[i];
 			auto name = QFileInfo(filename).fileName();
 

@@ -48,7 +48,7 @@ class MainWindow : public QMainWindow {
 
 	QVector<QString> m_images;
 	QVector<QString> m_recent_files;
-	unsigned m_image_id;
+	int m_image_id;
 
 	QImage *m_current_image;
 	QAction *m_recent_act[MAX_RECENT_FILES];
