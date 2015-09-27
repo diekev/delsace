@@ -27,6 +27,7 @@
 
 #include "glwindow.h"
 #include "GPUBuffer.h"
+#include "GPUTexture.h"
 #include "util_opengl.h"
 
 #define GL_CHECK_ERROR assert(glGetError() == GL_NO_ERROR);
@@ -34,12 +35,13 @@
 GLWindow::GLWindow(QWidget *parent)
     : QGLWidget(parent)
     , m_buffer(nullptr)
+    , m_texture(nullptr)
 {}
 
 GLWindow::~GLWindow()
 {
-	glDeleteTextures(1, &m_texture);
 	delete m_buffer;
+	delete m_texture;
 }
 
 void GLWindow::initializeGL()
@@ -53,6 +55,8 @@ void GLWindow::initializeGL()
 
 	GL_CHECK_ERROR;
 
+	m_texture = new GPUTexture(GL_TEXTURE_2D, 0);
+
 	m_shader.loadFromFile(GL_VERTEX_SHADER, "gpu_shaders/vertex_shader.glsl");
 	m_shader.loadFromFile(GL_FRAGMENT_SHADER, "gpu_shaders/fragment_shader.glsl");
 
@@ -63,7 +67,7 @@ void GLWindow::initializeGL()
 		m_shader.addAttribute("vertex");
 		m_shader.addUniform("image");
 
-		glUniform1i(m_shader("image"), 0);
+		glUniform1i(m_shader("image"), m_texture->unit());
 	}
 	m_shader.unUse();
 
@@ -83,11 +87,11 @@ void GLWindow::paintGL()
 	m_shader.use();
 	{
 		m_buffer->bind();
-		texture_bind(GL_TEXTURE_2D, m_texture, 0);
+		m_texture->bind();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		texture_unbind(GL_TEXTURE_2D, 0);
+		m_texture->unbind();
 		m_buffer->unbind();
 	}
 	m_shader.unUse();
@@ -102,14 +106,17 @@ void GLWindow::loadImage(QImage *image)
 {
 	QImage data = QGLWidget::convertToGLFormat(*image);
 
-	if (glIsTexture(m_texture)) {
-		glDeleteTextures(1, &m_texture);
-	}
-
 	assert((data.width() > 0) && (data.height() > 0));
 
 	int size[] = { data.width(), data.height() };
-	create_texture_2D(m_texture, size, data.bits());
+
+	m_texture->free(true);
+	m_texture->bind();
+	m_texture->setType(GL_UNSIGNED_BYTE, GL_RGBA, GL_RGB);
+	m_texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
+	m_texture->setWrapping(GL_CLAMP);
+	m_texture->create2D(data.bits(), size);
+	m_texture->unbind();
 
 	gl_check_errors();
 }

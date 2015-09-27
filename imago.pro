@@ -36,7 +36,8 @@ SOURCES += \
 	src/GPUShader.cc   \
 	src/util_opengl.cc  \
     src/user_preferences.cc \
-    src/GPUBuffer.cc
+    src/GPUBuffer.cc \
+    src/GPUTexture.cc
 
 HEADERS += \
 	src/mainwindow.h      \
@@ -44,7 +45,8 @@ HEADERS += \
 	src/GPUShader.h      \
 	src/util_opengl.h     \
     src/user_preferences.h \
-    src/GPUBuffer.h
+    src/GPUBuffer.h \
+    src/GPUTexture.h
 
 FORMS += \
 	ui/mainwindow.ui \

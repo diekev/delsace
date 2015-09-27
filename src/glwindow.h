@@ -29,11 +29,12 @@
 #include <QGLWidget>
 
 class GPUBuffer;
+class GPUTexture;
 
 class GLWindow : public QGLWidget {
 	GPUShader m_shader;
 	GPUBuffer *m_buffer;
-	GLuint m_texture;
+	GPUTexture *m_texture;
 
 	const float m_vertices[8] = {
 	    0.0f, 0.0f,

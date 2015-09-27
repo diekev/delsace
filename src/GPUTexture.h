@@ -12,18 +12,42 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
+ * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2015 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
+ *
  */
 
 #pragma once
 
-void gl_check_errors();
+class GPUTexture {
+	GLuint m_index;
+	GLint m_internal_format;
+	GLint m_border;
+	GLint m_texture;
+	GLenum m_format;
+	GLenum m_target;
+	GLenum m_type;
 
-void texture_bind(const GLenum target, const GLuint texture_id, const GLint num);
-void texture_unbind(const GLenum target, const GLint num);
+public:
+	GPUTexture(GLenum target, GLint texture);
+	~GPUTexture();
+
+	void free(bool renew);
+	void bind();
+	void unbind();
+
+	void setType(GLenum type, GLenum format, GLint internal_format);
+	void setMinMagFilter(GLint min, GLint mag);
+	void setWrapping(GLint wrap);
+
+	void create(const GLvoid *data, const int size);
+	void create2D(const GLvoid *data, const int size[2]);
+	void create3D(const GLvoid *data, const int size[3]);
+
+	GLint unit() const;
+};
