@@ -32,7 +32,7 @@
 #define GL_CHECK_ERROR assert(glGetError() == GL_NO_ERROR);
 
 GLWindow::GLWindow(QWidget *parent)
-	: QGLWidget(parent)
+    : QGLWidget(parent)
     , m_buffer_data(nullptr)
 {}
 

@@ -38,8 +38,8 @@
 #include "user_preferences.h"
 
 MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent)
-	, ui(new Ui::MainWindow)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
     , m_gl_win(nullptr)
     , m_timer(new QTimer)
     , m_image_id(0)
@@ -358,7 +358,7 @@ void MainWindow::scaleDown()
 	scaleImage(0.8f);
 }
 
-auto MainWindow::scaleImage(float factor) -> void
+auto MainWindow::scaleImage(const float factor) -> void
 {
 	m_scale_factor *= factor;
 
@@ -437,7 +437,7 @@ void MainWindow::readSettings()
 		}
 	}
 
-	updateRecentFilesMenu();	
+	updateRecentFilesMenu();
 
 	auto randomise = settings.value("Random Mode").toBool();
 	setRandomize(randomise);
@@ -457,7 +457,7 @@ void MainWindow::readSettings()
 	m_user_pref->openSubdirs(open_subdirs);
 }
 
-void MainWindow::writeSettings()
+void MainWindow::writeSettings() const
 {
 	QSettings settings;
 	QStringList recent;

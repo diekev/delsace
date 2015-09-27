@@ -96,14 +96,13 @@ public:
 	auto loadImage(const QString &filename) -> void;
 	auto openImage(const QString &filename) -> void;
 	auto nextImage(const bool forward) -> void;
-	auto scaleImage(float scale) -> void;
+	auto scaleImage(const float scale) -> void;
 
 	/* Settings, configuration file */
 	auto readSettings() -> void;
-	auto writeSettings() -> void;
+	auto writeSettings() const -> void;
 
 	auto addRecentFile(const QString &name, const bool update_menu) -> void;
 	auto updateRecentFilesMenu() -> void;
-	auto adjustScrollBar(QScrollBar *scrollBar, float factor) -> void;
 	auto setNormalSize() -> void;
 };
