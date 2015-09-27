@@ -108,6 +108,14 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 
 void MainWindow::loadImage(const QString &filename)
 {
+	if (m_gl_win == nullptr) {
+		m_gl_win = new GLWindow(this);
+		m_gl_win->show();
+		ui->m_scroll_area->setWidget(m_gl_win);
+		ui->m_scroll_area->setAlignment(Qt::AlignCenter);
+		ui->m_scroll_area->setWidgetResizable(false);
+	}
+
 	if (m_current_image->load(filename)) {
 		setWindowTitle(QFileInfo(filename).fileName());
 
@@ -127,14 +135,6 @@ static QString supported_file_types =
 
 void MainWindow::openImage(const QString &filename)
 {
-	if (m_gl_win == nullptr) {
-		m_gl_win = new GLWindow(this);
-		m_gl_win->show();
-		ui->m_scroll_area->setWidget(m_gl_win);
-		ui->m_scroll_area->setAlignment(Qt::AlignCenter);
-		ui->m_scroll_area->setWidgetResizable(false);
-	}
-
 	const auto &dir = QFileInfo(filename).absoluteDir();
 
 	getDirectoryContent(dir);
