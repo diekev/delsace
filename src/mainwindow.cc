@@ -399,6 +399,10 @@ void MainWindow::fitScreen()
 		m_current_width = screen_width;
 		m_current_height = image_height * ratio;
 	}
+	else {
+		m_current_height = image_height;
+		m_current_width = image_width;
+	}
 
 	m_gl_win->resize(m_current_width, m_current_height);
 }
