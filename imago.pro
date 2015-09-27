@@ -30,37 +30,35 @@ QMAKE_CXXFLAGS_DEBUG += -g -Wall -Og -Wno-error=unused-function \
 QMAKE_LFLAGS += -fsanitize=address
 
 SOURCES += \
-	main.cc             \
-	src/mainwindow.cc   \
-	src/glwindow.cc     \
-	src/GPUShader.cc   \
-	src/util_opengl.cc  \
+	main.cc                 \
+	src/mainwindow.cc       \
+	src/glwindow.cc         \
     src/user_preferences.cc \
-    src/GPUBuffer.cc \
-    src/GPUTexture.cc
+    src/gpu/GPUBuffer.cc    \
+	src/gpu/GPUShader.cc    \
+    src/gpu/GPUTexture.cc   \
+	src/gpu/util_opengl.cc
 
 HEADERS += \
-	src/mainwindow.h      \
-	src/glwindow.h        \
-	src/GPUShader.h      \
-	src/util_opengl.h     \
+	src/mainwindow.h       \
+	src/glwindow.h         \
     src/user_preferences.h \
-    src/GPUBuffer.h \
-    src/GPUTexture.h
+    src/gpu/GPUBuffer.h    \
+	src/gpu/GPUShader.h    \
+    src/gpu/GPUTexture.h   \
+	src/gpu/util_opengl.h
 
 FORMS += \
 	ui/mainwindow.ui \
 	ui/pref_window.ui
 
 unix {
-	copy_files.commands = cp -r ../gpu_shaders/ .
+	copy_files.commands = cp -r ../src/gpu/shaders/ .
 }
 
 QMAKE_EXTRA_TARGETS += copy_files
 POST_TARGETDEPS += copy_files
 
-INCLUDEPATH += src/
+INCLUDEPATH += src/ src/gpu/
 
 LIBS += -lGLEW
-
-RESOURCES += resources.qrc
