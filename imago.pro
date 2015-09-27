@@ -48,6 +48,13 @@ FORMS += \
 	ui/mainwindow.ui \
 	ui/pref_window.ui
 
+unix {
+	copy_files.commands = cp -r ../gpu_shaders/ .
+}
+
+QMAKE_EXTRA_TARGETS += copy_files
+POST_TARGETDEPS += copy_files
+
 INCLUDEPATH += src/
 
 LIBS += -lGLEW
