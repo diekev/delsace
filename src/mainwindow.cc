@@ -461,8 +461,8 @@ void MainWindow::fitScreen()
 {
 	const auto image_height = m_current_image->height();
 	const auto image_width = m_current_image->width();
-	const auto screen_height = ui->centralWidget->height();
-	const auto screen_width = ui->centralWidget->width();
+	const auto screen_height = ui->centralWidget->height() - 2;
+	const auto screen_width = ui->centralWidget->width() - 2;
 
 	if (image_height > screen_height) {
 		auto ratio = screen_height / float(image_height);
