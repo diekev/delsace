@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "GPUShader.h"
+#include "GPUProgram.h"
 
 #include <QGLWidget>
 
@@ -32,7 +32,7 @@ class GPUBuffer;
 class GPUTexture;
 
 class GLCanvas : public QGLWidget {
-	GPUShader m_shader;
+	GPUProgram m_program;
 	GPUBuffer *m_buffer;
 	GPUTexture *m_texture;
 

@@ -57,26 +57,26 @@ void GLCanvas::initializeGL()
 
 	m_texture = new GPUTexture(GL_TEXTURE_2D, 0);
 
-	m_shader.loadFromFile(GL_VERTEX_SHADER, "shaders/vert.glsl");
-	m_shader.loadFromFile(GL_FRAGMENT_SHADER, "shaders/frag.glsl");
+	m_program.loadFromFile(GL_VERTEX_SHADER, "shaders/vert.glsl");
+	m_program.loadFromFile(GL_FRAGMENT_SHADER, "shaders/frag.glsl");
 
-	m_shader.createAndLinkProgram();
+	m_program.createAndLinkProgram();
 
-	m_shader.use();
+	m_program.enable();
 	{
-		m_shader.addAttribute("vertex");
-		m_shader.addUniform("image");
+		m_program.addAttribute("vertex");
+		m_program.addUniform("image");
 
-		glUniform1i(m_shader("image"), m_texture->unit());
+		glUniform1i(m_program("image"), m_texture->unit());
 	}
-	m_shader.unUse();
+	m_program.disable();
 
 	m_buffer = new GPUBuffer();
 
 	m_buffer->bind();
 	m_buffer->create_vertex_buffer(m_vertices, sizeof(float) * 8);
 	m_buffer->create_index_buffer(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->attrib_pointer(m_shader["vertex"], 2);
+	m_buffer->attrib_pointer(m_program["vertex"], 2);
 	m_buffer->unbind();
 }
 
@@ -84,8 +84,8 @@ void GLCanvas::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	m_shader.use();
-	{
+	if (m_program.isValid()) {
+		m_program.enable();
 		m_buffer->bind();
 		m_texture->bind();
 
@@ -93,8 +93,8 @@ void GLCanvas::paintGL()
 
 		m_texture->unbind();
 		m_buffer->unbind();
+		m_program.disable();
 	}
-	m_shader.unUse();
 }
 
 void GLCanvas::resizeGL(int w, int h)

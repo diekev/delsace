@@ -36,19 +36,19 @@ SOURCES += \
 	src/mainwindow.cc       \
     src/user_preferences.cc \
     src/gpu/GPUBuffer.cc    \
-	src/gpu/GPUShader.cc    \
     src/gpu/GPUTexture.cc   \
 	src/gpu/util_opengl.cc \
-    src/glcanvas.cc
+    src/glcanvas.cc \
+    src/gpu/GPUProgram.cc
 
 HEADERS += \
 	src/mainwindow.h       \
     src/user_preferences.h \
     src/gpu/GPUBuffer.h    \
-	src/gpu/GPUShader.h    \
     src/gpu/GPUTexture.h   \
 	src/gpu/util_opengl.h \
-    src/glcanvas.h
+    src/glcanvas.h \
+    src/gpu/GPUProgram.h
 
 FORMS += \
 	ui/mainwindow.ui \
