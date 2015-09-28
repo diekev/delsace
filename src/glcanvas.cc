@@ -74,9 +74,9 @@ void GLCanvas::initializeGL()
 	m_buffer = new GPUBuffer();
 
 	m_buffer->bind();
-	m_buffer->create_vertex_buffer(m_vertices, sizeof(float) * 8);
-	m_buffer->create_index_buffer(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->attrib_pointer(m_program["vertex"], 2);
+	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
+	m_buffer->generateIndexBuffer(&m_indices[0], sizeof(GLushort) * 6);
+	m_buffer->attribPointer(m_program["vertex"], 2);
 	m_buffer->unbind();
 }
 

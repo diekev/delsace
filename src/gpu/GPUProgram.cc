@@ -115,12 +115,12 @@ void GPUProgram::createAndLinkProgram()
 	}
 }
 
-void GPUProgram::enable()
+void GPUProgram::enable() const
 {
 	glUseProgram(m_program);
 }
 
-void GPUProgram::disable()
+void GPUProgram::disable() const
 {
 	glUseProgram(0);
 }

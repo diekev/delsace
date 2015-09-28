@@ -44,8 +44,8 @@ public:
 	void loadFromString(GLenum whichShader, const std::string &source);
 	void loadFromFile(GLenum whichShader, const std::string &source);
 	void createAndLinkProgram();
-	void enable();
-	void disable();
+	void enable() const;
+	void disable() const;
 	void addAttribute(const std::string &attribute);
 	void addUniform(const std::string &uniform);
 	bool isValid() const;
