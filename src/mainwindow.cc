@@ -433,8 +433,17 @@ auto MainWindow::scaleImage(const float factor) -> void
 
 	m_canvas->resize(w, h);
 
+	adjustScrollBar(ui->m_scroll_area->horizontalScrollBar(), factor);
+	adjustScrollBar(ui->m_scroll_area->verticalScrollBar(), factor);
+
 	ui->m_scale_up->setEnabled(m_scale_factor < 3.0f);
 	ui->m_scale_down->setEnabled(m_scale_factor > 0.333f);
+}
+
+void MainWindow::adjustScrollBar(QScrollBar *scrollBar, const float factor)
+{
+    scrollBar->setValue(int(factor * scrollBar->value()
+                            + ((factor - 1) * scrollBar->pageStep()/2)));
 }
 
 void MainWindow::normalSize()

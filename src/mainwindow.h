@@ -69,6 +69,8 @@ class MainWindow : public QMainWindow {
 	void getDirectoryFiles(const QDir &dir, const QStringList &filters);
 	QString getTrashPath();
 
+	void adjustScrollBar(QScrollBar *scrollBar, const float factor);
+
 private slots:
 	/* Image operations */
 	void deleteImage();
