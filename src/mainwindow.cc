@@ -110,7 +110,6 @@ void MainWindow::loadImage(const QString &filename)
 {
 	if (m_canvas == nullptr) {
 		m_canvas = new GLCanvas(this);
-		m_canvas->show();
 		ui->m_scroll_area->setWidget(m_canvas);
 		ui->m_scroll_area->setAlignment(Qt::AlignCenter);
 		ui->m_scroll_area->setWidgetResizable(false);
@@ -119,9 +118,11 @@ void MainWindow::loadImage(const QString &filename)
 	if (m_current_image->load(filename)) {
 		setWindowTitle(QFileInfo(filename).fileName());
 
+		m_canvas->hide();
 		m_canvas->loadImage(m_current_image);
 		m_canvas->update();
 		fitScreen();
+		m_canvas->show();
 
 		m_scale_factor = 1.0f;
 	}
