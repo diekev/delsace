@@ -30,6 +30,12 @@ namespace Ui {
 class UserPreferences;
 }
 
+enum {
+	DELETE_PERMANENTLY = 0,
+	MOVE_TO_TRASH      = 1,
+	MOVE_TO_FOLDER     = 2,
+};
+
 class UserPreferences : public QDialog {
 	Q_OBJECT
 
@@ -37,6 +43,7 @@ class UserPreferences : public QDialog {
 
 private slots:
 	void chooseFolder();
+	void updateUI();
 
 public:
 	explicit UserPreferences(QWidget *parent = nullptr);
@@ -45,10 +52,10 @@ public:
 	auto setRandomMode(const bool b) -> void;
 	auto diaporamaTime() const -> int;
 	auto setDiaporamatime(const int time) -> void;
-	auto deletePermanently() const -> bool;
-	auto deletePermanently(const bool b) -> void;
-	auto deleteFolderPath(const QString &path) -> void;
-	auto deleteFolderPath() const -> QString;
+	auto fileRemovingMethod() const -> int;
+	auto fileRemovingMethod(const int index) -> void;
+	auto changeFolderPath(const QString &path) -> void;
+	auto changeFolderPath() const -> QString;
 	auto openSubdirs() const -> bool;
 	auto openSubdirs(const bool b) -> void;
 };

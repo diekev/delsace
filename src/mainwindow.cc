@@ -24,6 +24,7 @@
 
 #include <iostream>
 
+#include <QDateTime>
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QLabel>
@@ -49,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_user_pref(new UserPreferences(this))
     , m_randomize(false)
     , m_diaporama_started(false)
+    , m_trash_initialized(false)
 {
 	ui->setupUi(this);
 
@@ -221,13 +223,49 @@ void MainWindow::deleteImage()
 
 	auto name = m_images[m_image_id];
 	auto removed = false;
+	auto remove_method = m_user_pref->fileRemovingMethod();
 
-	if (m_user_pref->deletePermanently()) {
+	if (remove_method == DELETE_PERMANENTLY) {
 		removed = QFile::remove(name);
+	}
+	else if (remove_method == MOVE_TO_TRASH) {
+		auto trash_path = getTrashPath();
+
+		QFileInfo file(name);
+
+		QString file_name(file.fileName());
+		auto file_trash_info = trash_path + "/info/" + file_name + ".trashinfo";
+		auto file_trash_files = trash_path + "/files/" + file_name;
+		int nr = 0;
+
+		while (QFileInfo(file_trash_info).exists() || QFileInfo(file_trash_files).exists()) {
+			file_name = file.baseName() + "." + QString::number(++nr);
+
+			if (!file.suffix().isEmpty()) {
+				file_name += QString(".") + file.completeSuffix();
+			}
+
+			file_trash_info = trash_path + "/info/" + file_name + ".trashinfo";
+			file_trash_files = trash_path + "/files/" + file_name;
+		}
+
+		removed = QFile::rename(name, file_trash_files);
+
+		/* write info file to be able to restore the image */
+		QString file_info;
+		file_info += "[Trash Info]\nPath=";
+		file_info += file.absoluteFilePath();
+		file_info += "\nDeletionDate=";
+		file_info += QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ss.zzzZ");
+		file_info += "\n";
+
+		QFile infofile(file_trash_info);
+		infofile.open(QIODevice::WriteOnly);
+		infofile.write(file_info.toStdString().c_str());
 	}
 	else {
 		auto old_name = QFileInfo(name).fileName();
-		auto new_name = m_user_pref->deleteFolderPath().append("/").append(old_name);
+		auto new_name = m_user_pref->changeFolderPath().append("/").append(old_name);
 
 		removed = QFile::rename(name, new_name);
 	}
@@ -243,6 +281,37 @@ void MainWindow::deleteImage()
 			loadImage(m_images[m_image_id]);
 		}
 	}
+}
+
+QString MainWindow::getTrashPath()
+{
+	if (!m_trash_initialized) {
+		QStringList paths;
+        const char *xdg_data_home = getenv("XDG_DATA_HOME");
+
+        if (xdg_data_home) {
+            QString xdgTrash(xdg_data_home);
+            paths.append(xdgTrash + "/Trash");
+        }
+
+        QString home = QDir::home().absolutePath();
+        paths.append(home + "/.local/share/Trash");
+        paths.append(home + "/.trash");
+
+		for (const auto &path : paths) {
+			if (m_trash_path.isEmpty()) {
+                QDir dir(path);
+
+                if (dir.exists()) {
+                    m_trash_path = path;
+                }
+            }
+		}
+
+		m_trash_initialized = true;
+    }
+
+	return m_trash_path;
 }
 
 /* ****************************** recent files ******************************* */
@@ -452,11 +521,11 @@ void MainWindow::readSettings()
 	setDiapTime(time);
 	m_user_pref->setDiaporamatime(time);
 
-	auto delete_permanently = settings.value("Delete File Permanently").toBool();
-	m_user_pref->deletePermanently(delete_permanently);
+	auto remove_method = settings.value("File Removing Mode").toBool();
+	m_user_pref->fileRemovingMethod(remove_method);
 
-	auto delete_folder = settings.value("Delete File Folder").toString();
-	m_user_pref->deleteFolderPath(delete_folder);
+	auto change_folder = settings.value("Change File Folder").toString();
+	m_user_pref->changeFolderPath(change_folder);
 
 	auto open_subdirs = settings.value("Open Subdirs").toBool();
 	m_user_pref->openSubdirs(open_subdirs);
@@ -474,7 +543,7 @@ void MainWindow::writeSettings() const
 	settings.setValue("Recent Files", recent);
 	settings.setValue("Random Mode", m_user_pref->getRandomMode());
 	settings.setValue("Diaporama Length", m_user_pref->diaporamaTime());
-	settings.setValue("Delete File Permanently", m_user_pref->deletePermanently());
-	settings.setValue("Delete File Folder", m_user_pref->deleteFolderPath());
+	settings.setValue("File Removing Mode", m_user_pref->fileRemovingMethod());
+	settings.setValue("Change File Folder", m_user_pref->changeFolderPath());
 	settings.setValue("Open Subdirs", m_user_pref->openSubdirs());
 }

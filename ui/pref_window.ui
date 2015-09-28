@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>540</width>
-    <height>198</height>
+    <height>208</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -93,13 +93,22 @@
           <widget class="QLineEdit" name="m_folder_path"/>
          </item>
          <item row="1" column="2">
-          <widget class="QCheckBox" name="m_delete_file">
-           <property name="layoutDirection">
-            <enum>Qt::LeftToRight</enum>
-           </property>
-           <property name="text">
-            <string>Supprimer définitivement</string>
-           </property>
+          <widget class="QComboBox" name="m_delete_file_bbox">
+           <item>
+            <property name="text">
+             <string>Supprimer définitevement</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Envoyer vers la corbeille</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Envoyer vers un autre dossier</string>
+            </property>
+           </item>
           </widget>
          </item>
          <item row="3" column="3">
@@ -112,7 +121,7 @@
          <item row="2" column="2">
           <widget class="QLabel" name="m_delete_file_label">
            <property name="text">
-            <string>Dossier images supprimées</string>
+            <string>Nouveau Dossier</string>
            </property>
           </widget>
          </item>
@@ -195,54 +204,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>m_delete_file</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>m_choose_folder_but</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>319</x>
-     <y>73</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>489</x>
-     <y>100</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>m_delete_file</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>m_delete_file_label</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>319</x>
-     <y>73</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>99</x>
-     <y>100</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>m_delete_file</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>m_folder_path</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>319</x>
-     <y>73</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>319</x>
-     <y>100</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>m_diap_dur</sender>
    <signal>sliderMoved(int)</signal>
    <receiver>m_diap_dur_label</receiver>
@@ -258,9 +219,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>m_delete_file_bbox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>UserPreferences</receiver>
+   <slot>updateUI()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>226</x>
+     <y>89</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>103</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>chooseFolder()</slot>
   <slot>updateDiaporamaLabel()</slot>
+  <slot>updateUI()</slot>
  </slots>
 </ui>

@@ -32,6 +32,7 @@ UserPreferences::UserPreferences(QWidget *parent)
 	, ui(new Ui::UserPreferences)
 {
 	ui->setupUi(this);
+	updateUI();
 }
 
 auto UserPreferences::getRandomMode() const -> bool
@@ -55,22 +56,22 @@ auto UserPreferences::setDiaporamatime(const int time) -> void
 	ui->m_diap_dur_label->setText(QString::number(time));
 }
 
-auto UserPreferences::deletePermanently() const -> bool
+auto UserPreferences::fileRemovingMethod() const -> int
 {
-	return ui->m_delete_file->isChecked();
+	return ui->m_delete_file_bbox->currentIndex();
 }
 
-auto UserPreferences::deletePermanently(const bool b) -> void
+auto UserPreferences::fileRemovingMethod(const int index) -> void
 {
-	ui->m_delete_file->setChecked(b);
+	ui->m_delete_file_bbox->setCurrentIndex(index);
 }
 
-auto UserPreferences::deleteFolderPath() const -> QString
+auto UserPreferences::changeFolderPath() const -> QString
 {
 	return ui->m_folder_path->text();
 }
 
-auto UserPreferences::deleteFolderPath(const QString &path) -> void
+auto UserPreferences::changeFolderPath(const QString &path) -> void
 {
 	ui->m_folder_path->setText(path);
 }
@@ -87,9 +88,16 @@ auto UserPreferences::openSubdirs(const bool b) -> void
 
 auto UserPreferences::chooseFolder() -> void
 {
-	const auto &dir = QFileDialog::getExistingDirectory(this,
-	                                                    tr("Choisir Dossier"),
-	                                                    QDir::homePath(),
-	                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	const auto &dir = QFileDialog::getExistingDirectory(
+	                      this, tr("Choisir Dossier"), QDir::homePath(),
+	                      QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 	ui->m_folder_path->setText(dir);
+}
+
+auto UserPreferences::updateUI() -> void
+{
+	auto to_enable = (ui->m_delete_file_bbox->currentIndex() == MOVE_TO_FOLDER);
+	ui->m_choose_folder_but->setEnabled(to_enable);
+	ui->m_delete_file_label->setEnabled(to_enable);
+	ui->m_folder_path->setEnabled(to_enable);
 }

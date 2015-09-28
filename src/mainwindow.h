@@ -57,7 +57,9 @@ class MainWindow : public QMainWindow {
 
 	float m_scale_factor;
 	UserPreferences *m_user_pref;
-	bool m_randomize, m_diaporama_started;
+	bool m_randomize, m_diaporama_started, m_trash_initialized;
+
+	QString m_trash_path;
 
 	/* Event handling */
 	void closeEvent(QCloseEvent *);
@@ -65,6 +67,7 @@ class MainWindow : public QMainWindow {
 
 	void getDirectoryContent(const QDir &dir);
 	void getDirectoryFiles(const QDir &dir, const QStringList &filters);
+	QString getTrashPath();
 	void reset();
 
 private slots:
