@@ -27,14 +27,15 @@
 #include "GPUProgram.h"
 
 #include <QGLWidget>
+#include <memory>
 
 class GPUBuffer;
 class GPUTexture;
 
 class GLCanvas : public QGLWidget {
 	GPUProgram m_program;
-	GPUBuffer *m_buffer;
-	GPUTexture *m_texture;
+	std::unique_ptr<GPUBuffer> m_buffer;
+	std::unique_ptr<GPUTexture> m_texture;
 
 	const float m_vertices[8] = {
 	    0.0f, 0.0f,
@@ -47,7 +48,7 @@ class GLCanvas : public QGLWidget {
 
 public:
 	GLCanvas(QWidget *parent);
-	~GLCanvas();
+	~GLCanvas() = default;
 
 	void initializeGL();
 	void paintGL();

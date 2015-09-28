@@ -38,12 +38,6 @@ GLCanvas::GLCanvas(QWidget *parent)
     , m_texture(nullptr)
 {}
 
-GLCanvas::~GLCanvas()
-{
-	delete m_buffer;
-	delete m_texture;
-}
-
 void GLCanvas::initializeGL()
 {
 	glewExperimental = GL_TRUE;
@@ -55,7 +49,7 @@ void GLCanvas::initializeGL()
 
 	GL_CHECK_ERROR;
 
-	m_texture = new GPUTexture(GL_TEXTURE_2D, 0);
+	m_texture = std::unique_ptr<GPUTexture>(new GPUTexture(GL_TEXTURE_2D, 0));
 
 	m_program.loadFromFile(GL_VERTEX_SHADER, "shaders/vert.glsl");
 	m_program.loadFromFile(GL_FRAGMENT_SHADER, "shaders/frag.glsl");
@@ -71,7 +65,7 @@ void GLCanvas::initializeGL()
 	}
 	m_program.disable();
 
-	m_buffer = new GPUBuffer();
+	m_buffer = std::unique_ptr<GPUBuffer>(new GPUBuffer());
 
 	m_buffer->bind();
 	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
