@@ -35,8 +35,7 @@ int main(int argc, char *argv[])
 
 	MainWindow w;
 	w.setWindowTitle(QCoreApplication::applicationName());
-	w.resize(1920, 1080);
-	w.show();
+	w.showMaximized();
 
 	/* load image passed as argument */
 	if (argc > 1) {
