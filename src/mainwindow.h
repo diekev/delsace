@@ -68,7 +68,6 @@ class MainWindow : public QMainWindow {
 	void getDirectoryContent(const QDir &dir);
 	void getDirectoryFiles(const QDir &dir, const QStringList &filters);
 	QString getTrashPath();
-	void reset();
 
 private slots:
 	/* Image operations */
@@ -108,4 +107,5 @@ public:
 	auto addRecentFile(const QString &name, const bool update_menu) -> void;
 	auto updateRecentFilesMenu() -> void;
 	auto setNormalSize() -> void;
+	void reset();
 };

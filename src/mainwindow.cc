@@ -41,7 +41,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , m_canvas(nullptr)
+    , m_canvas(new GLCanvas(this))
     , m_timer(new QTimer)
     , m_image_id(0)
     , m_current_image(new QImage())
@@ -53,6 +53,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_trash_initialized(false)
 {
 	ui->setupUi(this);
+	ui->m_scroll_area->setWidget(m_canvas);
+	ui->m_scroll_area->setAlignment(Qt::AlignCenter);
+	ui->m_scroll_area->setWidgetResizable(false);
 
 	m_recent_files.reserve(MAX_RECENT_FILES);
 
@@ -110,13 +113,6 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 
 void MainWindow::loadImage(const QString &filename)
 {
-	if (m_canvas == nullptr) {
-		m_canvas = new GLCanvas(this);
-		ui->m_scroll_area->setWidget(m_canvas);
-		ui->m_scroll_area->setAlignment(Qt::AlignCenter);
-		ui->m_scroll_area->setWidgetResizable(false);
-	}
-
 	if (m_current_image->load(filename)) {
 		setWindowTitle(QFileInfo(filename).fileName());
 

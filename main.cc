@@ -34,8 +34,8 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("imago");
 
 	MainWindow w;
-	w.setWindowTitle(QCoreApplication::applicationName());
 	w.showMaximized();
+	w.reset();
 
 	/* load image passed as argument */
 	if (argc > 1) {
