@@ -34,21 +34,21 @@ QMAKE_LFLAGS += -fsanitize=address
 SOURCES += \
 	main.cc                 \
 	src/mainwindow.cc       \
-	src/glwindow.cc         \
     src/user_preferences.cc \
     src/gpu/GPUBuffer.cc    \
 	src/gpu/GPUShader.cc    \
     src/gpu/GPUTexture.cc   \
-	src/gpu/util_opengl.cc
+	src/gpu/util_opengl.cc \
+    src/glcanvas.cc
 
 HEADERS += \
 	src/mainwindow.h       \
-	src/glwindow.h         \
     src/user_preferences.h \
     src/gpu/GPUBuffer.h    \
 	src/gpu/GPUShader.h    \
     src/gpu/GPUTexture.h   \
-	src/gpu/util_opengl.h
+	src/gpu/util_opengl.h \
+    src/glcanvas.h
 
 FORMS += \
 	ui/mainwindow.ui \

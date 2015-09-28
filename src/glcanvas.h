@@ -31,7 +31,7 @@
 class GPUBuffer;
 class GPUTexture;
 
-class GLWindow : public QGLWidget {
+class GLCanvas : public QGLWidget {
 	GPUShader m_shader;
 	GPUBuffer *m_buffer;
 	GPUTexture *m_texture;
@@ -46,8 +46,8 @@ class GLWindow : public QGLWidget {
 	const GLushort m_indices[6] = { 0, 1, 2, 0, 2, 3 };
 
 public:
-	GLWindow(QWidget *parent);
-	~GLWindow();
+	GLCanvas(QWidget *parent);
+	~GLCanvas();
 
 	void initializeGL();
 	void paintGL();

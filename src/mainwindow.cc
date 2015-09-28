@@ -32,7 +32,7 @@
 #include <QSettings>
 #include <QTimer>
 
-#include "glwindow.h"
+#include "glcanvas.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "user_preferences.h"
@@ -40,7 +40,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , m_gl_win(nullptr)
+    , m_canvas(nullptr)
     , m_timer(new QTimer)
     , m_image_id(0)
     , m_current_image(new QImage())
@@ -78,7 +78,7 @@ MainWindow::~MainWindow()
 void MainWindow::reset()
 {
 	setWindowTitle(QCoreApplication::applicationName());
-	m_gl_win->hide();
+	m_canvas->hide();
 }
 
 void MainWindow::closeEvent(QCloseEvent*)
@@ -108,10 +108,10 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 
 void MainWindow::loadImage(const QString &filename)
 {
-	if (m_gl_win == nullptr) {
-		m_gl_win = new GLWindow(this);
-		m_gl_win->show();
-		ui->m_scroll_area->setWidget(m_gl_win);
+	if (m_canvas == nullptr) {
+		m_canvas = new GLCanvas(this);
+		m_canvas->show();
+		ui->m_scroll_area->setWidget(m_canvas);
 		ui->m_scroll_area->setAlignment(Qt::AlignCenter);
 		ui->m_scroll_area->setWidgetResizable(false);
 	}
@@ -119,8 +119,8 @@ void MainWindow::loadImage(const QString &filename)
 	if (m_current_image->load(filename)) {
 		setWindowTitle(QFileInfo(filename).fileName());
 
-		m_gl_win->loadImage(m_current_image);
-		m_gl_win->update();
+		m_canvas->loadImage(m_current_image);
+		m_canvas->update();
 		fitScreen();
 
 		m_scale_factor = 1.0f;
@@ -365,7 +365,7 @@ auto MainWindow::scaleImage(const float factor) -> void
 	auto w = m_current_width * m_scale_factor;
 	auto h = m_current_height * m_scale_factor;
 
-	m_gl_win->resize(w, h);
+	m_canvas->resize(w, h);
 
 	ui->m_scale_up->setEnabled(m_scale_factor < 3.0f);
 	ui->m_scale_down->setEnabled(m_scale_factor > 0.333f);
@@ -378,7 +378,7 @@ void MainWindow::normalSize()
 
 void MainWindow::setNormalSize()
 {
-	m_gl_win->resize(m_current_image->width(), m_current_image->height());
+	m_canvas->resize(m_current_image->width(), m_current_image->height());
 	m_scale_factor = 1.0f;
 }
 
@@ -404,7 +404,7 @@ void MainWindow::fitScreen()
 		m_current_width = image_width;
 	}
 
-	m_gl_win->resize(m_current_width, m_current_height);
+	m_canvas->resize(m_current_width, m_current_height);
 }
 
 /* ******************************* preferences ******************************* */

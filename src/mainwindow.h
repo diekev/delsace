@@ -27,7 +27,7 @@
 #include <QDir>
 #include <QMainWindow>
 
-class GLWindow;
+class GLCanvas;
 class QScrollBar;
 class UserPreferences;
 
@@ -41,7 +41,7 @@ class MainWindow : public QMainWindow {
 	Q_OBJECT
 
 	Ui::MainWindow *ui;
-	GLWindow *m_gl_win;
+	GLCanvas *m_canvas;
 	QTimer *m_timer;
 
 	int m_current_width, m_current_height;

@@ -25,26 +25,26 @@
 #include <cassert>
 #include <iostream>
 
-#include "glwindow.h"
+#include "glcanvas.h"
 #include "GPUBuffer.h"
 #include "GPUTexture.h"
 #include "util_opengl.h"
 
 #define GL_CHECK_ERROR assert(glGetError() == GL_NO_ERROR);
 
-GLWindow::GLWindow(QWidget *parent)
+GLCanvas::GLCanvas(QWidget *parent)
     : QGLWidget(parent)
     , m_buffer(nullptr)
     , m_texture(nullptr)
 {}
 
-GLWindow::~GLWindow()
+GLCanvas::~GLCanvas()
 {
 	delete m_buffer;
 	delete m_texture;
 }
 
-void GLWindow::initializeGL()
+void GLCanvas::initializeGL()
 {
 	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();
@@ -80,7 +80,7 @@ void GLWindow::initializeGL()
 	m_buffer->unbind();
 }
 
-void GLWindow::paintGL()
+void GLCanvas::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -97,12 +97,12 @@ void GLWindow::paintGL()
 	m_shader.unUse();
 }
 
-void GLWindow::resizeGL(int w, int h)
+void GLCanvas::resizeGL(int w, int h)
 {
 	glViewport(0, 0, w, h);
 }
 
-void GLWindow::loadImage(QImage *image)
+void GLCanvas::loadImage(QImage *image)
 {
 	QImage data = QGLWidget::convertToGLFormat(*image);
 
