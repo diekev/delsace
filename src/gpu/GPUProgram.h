@@ -28,6 +28,9 @@
 #include <map>
 #include <string>
 
+typedef void(* get_ivfunc)(GLuint index, GLenum pname, GLint *param);
+typedef void(* get_logfunc)(GLuint index, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+
 class GPUProgram {
 	GLuint m_program;
 	int m_total_shaders;
@@ -35,7 +38,7 @@ class GPUProgram {
 	std::map<std::string, GLuint> m_attrib_list;
 	std::map<std::string, GLuint> m_uniform_loc_list;
 
-	void logProgramError(const std::string &prefix) const;
+	void logError(GLuint index, const std::string &prefix, get_ivfunc ivfunc, get_logfunc log_func) const;
 
 public:
 	GPUProgram();

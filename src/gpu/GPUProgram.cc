@@ -49,22 +49,15 @@ void GPUProgram::loadFromString(GLenum whichShader, const std::string &source)
 {
 	GLuint shader = glCreateShader(whichShader);
 	const char *ptmp = source.c_str();
-	glShaderSource(shader, 1, &ptmp, nullptr);
 
-	/* Check whether the shader loads fine or not. */
+	glShaderSource(shader, 1, &ptmp, nullptr);
 	glCompileShader(shader);
 
 	GLint status;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
 	if (status == GL_FALSE) {
-		GLint log_length;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
-
-		auto log = std::unique_ptr<char>(new char[log_length]);
-		glGetShaderInfoLog(shader, log_length, &log_length, log.get());
-
-		std::cerr << "Link log: " << log.get() << '\n';
+		logError(shader, "Compile log", glGetShaderiv, glGetShaderInfoLog);
 	}
 
 	m_shaders[m_total_shaders++] = shader;
@@ -104,7 +97,7 @@ void GPUProgram::createAndLinkProgram()
 	glGetProgramiv(m_program, GL_LINK_STATUS, &status);
 
 	if (status == GL_FALSE) {
-		logProgramError("Linking log");
+		logError(m_program, "Linking log", glGetProgramiv, glGetProgramInfoLog);
 	}
 
 	for (int i = 0; i < 3; ++i) {
@@ -134,7 +127,7 @@ bool GPUProgram::isValid() const
 		glGetProgramiv(m_program, GL_VALIDATE_STATUS, &status);
 
 		if (status == GL_FALSE) {
-			logProgramError("Validation log");
+			logError(m_program, "Validation log", glGetProgramiv, glGetProgramInfoLog);
 			return false;
 		}
 
@@ -164,13 +157,14 @@ GLuint GPUProgram::operator()(const std::string &uniform)
 	return m_uniform_loc_list[uniform];
 }
 
-void GPUProgram::logProgramError(const std::string &prefix) const
+void GPUProgram::logError(GLuint index, const std::string &prefix,
+                          get_ivfunc ivfunc, get_logfunc log_func) const
 {
 	GLint log_length;
-	glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &log_length);
+	ivfunc(index, GL_INFO_LOG_LENGTH, &log_length);
 
-	auto log = std::unique_ptr<char>(new char[log_length]);
-	glGetProgramInfoLog(m_program, log_length, &log_length, log.get());
+	auto log = std::unique_ptr<char[]>(new char[log_length]);
+	log_func(index, log_length, &log_length, log.get());
 
 	std::cerr << prefix << ": " << log.get() << '\n';
 }
