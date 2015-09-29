@@ -22,15 +22,12 @@
  *
  */
 
-#include <cassert>
 #include <iostream>
 
 #include "glcanvas.h"
 #include "GPUBuffer.h"
 #include "GPUTexture.h"
 #include "util_opengl.h"
-
-#define GL_CHECK_ERROR assert(glGetError() == GL_NO_ERROR);
 
 GLCanvas::GLCanvas(QWidget *parent)
     : QGLWidget(parent)
@@ -46,8 +43,6 @@ void GLCanvas::initializeGL()
 	if (err != GLEW_OK) {
 		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
 	}
-
-	GL_CHECK_ERROR;
 
 	m_texture = std::unique_ptr<GPUTexture>(new GPUTexture(GL_TEXTURE_2D, 0));
 

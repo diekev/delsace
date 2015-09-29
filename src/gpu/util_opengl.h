@@ -23,7 +23,8 @@
 
 #pragma once
 
-void gl_check_errors();
+#include <cassert>
 
-void texture_bind(const GLenum target, const GLuint texture_id, const GLint num);
-void texture_unbind(const GLenum target, const GLint num);
+#define GL_CHECK_ERROR assert(glGetError() == GL_NO_ERROR);
+
+void gl_check_errors();
