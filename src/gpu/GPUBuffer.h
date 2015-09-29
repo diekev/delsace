@@ -28,7 +28,7 @@ class GPUBuffer {
 	GLuint m_vao;
 	GLuint m_vertex_buffer;
 	GLuint m_index_buffer;
-	GLuint m_color_buffer;
+	GLuint m_normal_buffer;
 
 	void generateBuffer(GLuint &id, const GLvoid *data, const size_t size, GLenum target) const;
 

@@ -43,8 +43,8 @@ GPUBuffer::~GPUBuffer()
 		glDeleteBuffers(1, &m_index_buffer);
 	}
 
-	if (glIsBuffer(m_color_buffer)) {
-		glDeleteBuffers(1, &m_color_buffer);
+	if (glIsBuffer(m_normal_buffer)) {
+		glDeleteBuffers(1, &m_normal_buffer);
 	}
 }
 
@@ -76,7 +76,7 @@ void GPUBuffer::generateIndexBuffer(const GLvoid *indices, const size_t size)
 
 void GPUBuffer::generateNormalBuffer(const GLvoid *colors, const size_t size)
 {
-	generateBuffer(m_color_buffer, colors, size, GL_ARRAY_BUFFER);
+	generateBuffer(m_normal_buffer, colors, size, GL_ARRAY_BUFFER);
 }
 
 void GPUBuffer::generateBuffer(GLuint &id, const GLvoid *data, const size_t size, GLenum target) const
