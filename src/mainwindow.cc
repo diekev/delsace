@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_image_id(0)
     , m_current_image(new QImage())
     , m_rng(19937)
+    , m_dist(0, 0)
     , m_scale_factor(1.0f)
     , m_user_pref(new UserPreferences(this))
     , m_randomize(false)
@@ -139,6 +140,7 @@ void MainWindow::openImage(const QString &filename)
 	getDirectoryContent(dir);
 	loadImage(filename);
 	addRecentFile(filename, true);
+	resetRNG();
 
 	m_image_id = std::find(m_images.begin(), m_images.end(), filename) - m_images.begin();
 }
@@ -174,10 +176,17 @@ void MainWindow::openDirectory()
 		loadImage(m_images[0]);
 		addRecentFile(m_images[0], true);
 		m_image_id = 0;
+		resetRNG();
 	}
 	else {
 		reset();
 	}
+}
+
+void MainWindow::resetRNG()
+{
+	std::uniform_int_distribution<int>::param_type p(0, m_images.size() - 1);
+	m_dist.param(p);
 }
 
 void MainWindow::getDirectoryContent(const QDir &dir)
@@ -385,8 +394,7 @@ void MainWindow::nextImage(const bool forward)
 	}
 
 	if (m_randomize) {
-		std::uniform_int_distribution<int> dist(0, m_images.size() - 1);
-		m_image_id = dist(m_rng);
+		m_image_id = m_dist(m_rng);
 	}
 	else {
 		if (forward) {

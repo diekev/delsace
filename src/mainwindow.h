@@ -54,6 +54,7 @@ class MainWindow : public QMainWindow {
 	QAction *m_recent_act[MAX_RECENT_FILES];
 
 	std::mt19937 m_rng;
+	std::uniform_int_distribution<int> m_dist;
 
 	float m_scale_factor;
 	UserPreferences *m_user_pref;
@@ -110,4 +111,5 @@ public:
 	auto updateRecentFilesMenu() -> void;
 	auto setNormalSize() -> void;
 	void reset();
+	void resetRNG();
 };
