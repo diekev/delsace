@@ -170,6 +170,11 @@ void MainWindow::openDirectory()
 		return;
 	}
 
+	openDirectory(dir_path);
+}
+
+void MainWindow::openDirectory(const QString &dir_path)
+{
 	getDirectoryContent(dir_path);
 
 	if (m_images.size() > 0) {

@@ -27,6 +27,8 @@
 
 #include "mainwindow.h"
 
+#include <iostream>
+
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
@@ -37,10 +39,16 @@ int main(int argc, char *argv[])
 	w.showMaximized();
 	w.reset();
 
-	/* load image passed as argument */
+	/* load image or directory passed as argument */
 	if (argc > 1) {
-		auto file = QFileInfo(argv[1]).filePath();
-		w.openImage(file);
+		auto file_info = QFileInfo(argv[1]);
+
+		if (file_info.isDir()) {
+			w.openDirectory(file_info.filePath());
+		}
+		else {
+			w.openImage(file_info.filePath());
+		}
 	}
 
 	return a.exec();

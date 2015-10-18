@@ -100,6 +100,7 @@ public:
 	/* Image operations */
 	auto loadImage(const QString &filename) -> void;
 	auto openImage(const QString &filename) -> void;
+	void openDirectory(const QString &dir_path);
 	auto nextImage(const bool forward) -> void;
 	auto scaleImage(const float scale) -> void;
 
