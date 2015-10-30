@@ -118,7 +118,7 @@ void MainWindow::loadImage(const QString &filename)
 		setWindowTitle(QFileInfo(filename).fileName());
 
 		m_canvas->hide();
-		m_canvas->loadImage(m_current_image);
+		m_canvas->loadImage(*m_current_image);
 		m_canvas->update();
 		fitScreen();
 		m_canvas->show();

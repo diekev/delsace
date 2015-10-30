@@ -51,5 +51,5 @@ public:
 	void initializeGL();
 	void paintGL();
 	void resizeGL(int w, int h);
-	void loadImage(QImage *image);
+	void loadImage(const QImage &image) const;
 };

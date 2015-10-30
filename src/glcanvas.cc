@@ -90,9 +90,9 @@ void GLCanvas::resizeGL(int w, int h)
 	glViewport(0, 0, w, h);
 }
 
-void GLCanvas::loadImage(QImage *image)
+void GLCanvas::loadImage(const QImage &image) const
 {
-	QImage data = QGLWidget::convertToGLFormat(*image);
+	QImage data = QGLWidget::convertToGLFormat(image);
 
 	assert((data.width() > 0) && (data.height() > 0));
 
