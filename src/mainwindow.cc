@@ -87,7 +87,7 @@ void MainWindow::reset()
 	m_canvas->hide();
 }
 
-void MainWindow::closeEvent(QCloseEvent*)
+void MainWindow::closeEvent(QCloseEvent *) const
 {
 	writeSettings();
 }
@@ -456,7 +456,7 @@ auto MainWindow::scaleImage(const float factor) -> void
 void MainWindow::adjustScrollBar(QScrollBar *scrollBar, const float factor)
 {
     scrollBar->setValue(int(factor * scrollBar->value()
-                            + ((factor - 1) * scrollBar->pageStep()/2)));
+	                        + ((factor - 1) * scrollBar->pageStep() / 2)));
 }
 
 void MainWindow::normalSize()
@@ -521,7 +521,7 @@ void MainWindow::readSettings()
 {
 	QSettings settings;
 
-	auto recent_files = settings.value("Recent Files").toStringList();
+	const auto &recent_files = settings.value("Recent Files").toStringList();
 
 	for (const auto &file : recent_files) {
 		if (QFile(file).exists()) {

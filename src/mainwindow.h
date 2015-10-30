@@ -63,7 +63,7 @@ class MainWindow : public QMainWindow {
 	QString m_trash_path;
 
 	/* Event handling */
-	void closeEvent(QCloseEvent *);
+	void closeEvent(QCloseEvent *) const;
 	void keyPressEvent(QKeyEvent *e);
 
 	void getDirectoryContent(const QDir &dir);
