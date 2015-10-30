@@ -22,12 +22,11 @@
  *
  */
 
-#include <iostream>
-
 #include "glcanvas.h"
-#include "GPUBuffer.h"
-#include "GPUTexture.h"
-#include "util_opengl.h"
+
+#include <cassert>
+#include <ego/utils.h>
+#include <iostream>
 
 GLCanvas::GLCanvas(QWidget *parent)
     : QGLWidget(parent)
@@ -44,10 +43,10 @@ void GLCanvas::initializeGL()
 		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
 	}
 
-	m_texture = std::unique_ptr<GPUTexture>(new GPUTexture(GL_TEXTURE_2D, 0));
+	m_texture = gpu::Texture::create(GL_TEXTURE_2D, 0);
 
-	m_program.loadFromFile(GL_VERTEX_SHADER, "shaders/vert.glsl");
-	m_program.loadFromFile(GL_FRAGMENT_SHADER, "shaders/frag.glsl");
+	m_program.loadFromFile(gpu::VERTEX_SHADER, "gpu_shaders/vert.glsl");
+	m_program.loadFromFile(gpu::FRAGMENT_SHADER, "gpu_shaders/frag.glsl");
 
 	m_program.createAndLinkProgram();
 
@@ -60,7 +59,7 @@ void GLCanvas::initializeGL()
 	}
 	m_program.disable();
 
-	m_buffer = std::unique_ptr<GPUBuffer>(new GPUBuffer());
+	m_buffer = gpu::BufferObject::create();
 
 	m_buffer->bind();
 	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
@@ -104,8 +103,8 @@ void GLCanvas::loadImage(QImage *image)
 	m_texture->setType(GL_UNSIGNED_BYTE, GL_RGBA, GL_RGB);
 	m_texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
 	m_texture->setWrapping(GL_CLAMP);
-	m_texture->create(data.bits(), size);
+	m_texture->createTexture(data.bits(), size);
 	m_texture->unbind();
 
-	gl_check_errors();
+	GPU_check_errors("Unable to create image texture");
 }

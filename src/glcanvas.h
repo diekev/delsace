@@ -24,18 +24,16 @@
 
 #pragma once
 
-#include "GPUProgram.h"
+#include <ego/program.h>
+#include <ego/bufferobject.h>
+#include <ego/texture.h>
 
 #include <QGLWidget>
-#include <memory>
-
-class GPUBuffer;
-class GPUTexture;
 
 class GLCanvas : public QGLWidget {
-	GPUProgram m_program;
-	std::unique_ptr<GPUBuffer> m_buffer;
-	std::unique_ptr<GPUTexture> m_texture;
+	gpu::Program m_program;
+	gpu::BufferObject::Ptr m_buffer;
+	gpu::Texture::Ptr m_texture;
 
 	const float m_vertices[8] = {
 	    0.0f, 0.0f,

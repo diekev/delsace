@@ -35,36 +35,31 @@ SOURCES += \
 	main.cc                 \
 	src/mainwindow.cc       \
     src/user_preferences.cc \
-    src/gpu/GPUBuffer.cc    \
-    src/gpu/GPUTexture.cc   \
-	src/gpu/util_opengl.cc \
-    src/glcanvas.cc \
-    src/gpu/GPUProgram.cc
+    src/glcanvas.cc
 
 HEADERS += \
 	src/mainwindow.h       \
     src/user_preferences.h \
-    src/gpu/GPUBuffer.h    \
-    src/gpu/GPUTexture.h   \
-	src/gpu/util_opengl.h \
-    src/glcanvas.h \
-    src/gpu/GPUProgram.h
+    src/glcanvas.h
 
 FORMS += \
 	ui/mainwindow.ui \
 	ui/pref_window.ui
 
 OTHER_FILES += \
-	src/gpu/shaders/frag.glsl \
-	src/gpu/shaders/vert.glsl
+	src/gpu_shaders/frag.glsl \
+	src/gpu_shaders/vert.glsl
 
 unix {
-	copy_files.commands = cp -r ../src/gpu/shaders/ .
+	copy_files.commands = cp -r ../src/gpu_shaders/ .
 }
 
 QMAKE_EXTRA_TARGETS += copy_files
 POST_TARGETDEPS += copy_files
 
 INCLUDEPATH += src/ src/gpu/
+INCLUDEPATH += /opt/lib/ego/include
+
 
 LIBS += -lGLEW
+LIBS += -L/opt/lib/ego/lib -lego
