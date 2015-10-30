@@ -31,9 +31,9 @@
 #include <QGLWidget>
 
 class GLCanvas : public QGLWidget {
-	gpu::Program m_program;
-	gpu::BufferObject::Ptr m_buffer;
-	gpu::Texture::Ptr m_texture;
+	ego::Program m_program;
+	ego::BufferObject::Ptr m_buffer;
+	ego::Texture::Ptr m_texture;
 
 	const float m_vertices[8] = {
 	    0.0f, 0.0f,

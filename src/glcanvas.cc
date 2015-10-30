@@ -43,10 +43,10 @@ void GLCanvas::initializeGL()
 		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
 	}
 
-	m_texture = gpu::Texture::create(GL_TEXTURE_2D, 0);
+	m_texture = ego::Texture::create(GL_TEXTURE_2D, 0);
 
-	m_program.loadFromFile(gpu::VERTEX_SHADER, "gpu_shaders/vert.glsl");
-	m_program.loadFromFile(gpu::FRAGMENT_SHADER, "gpu_shaders/frag.glsl");
+	m_program.load(ego::VERTEX_SHADER, str_from_file("gpu_shaders/vert.glsl"));
+	m_program.load(ego::FRAGMENT_SHADER, str_from_file("gpu_shaders/frag.glsl"));
 
 	m_program.createAndLinkProgram();
 
@@ -59,7 +59,7 @@ void GLCanvas::initializeGL()
 	}
 	m_program.disable();
 
-	m_buffer = gpu::BufferObject::create();
+	m_buffer = ego::BufferObject::create();
 
 	m_buffer->bind();
 	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
