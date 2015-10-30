@@ -100,7 +100,7 @@ void GLCanvas::loadImage(const QImage &image) const
 
 	m_texture->free(true);
 	m_texture->bind();
-	m_texture->setType(GL_UNSIGNED_BYTE, GL_RGBA, GL_RGB);
+	m_texture->setType(GL_UNSIGNED_BYTE, GL_RGBA, GL_RGBA);
 	m_texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
 	m_texture->setWrapping(GL_CLAMP);
 	m_texture->createTexture(data.bits(), size);
