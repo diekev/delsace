@@ -22,10 +22,11 @@
  *
  */
 
+#include "user_preferences.h"
+
 #include <QFileDialog>
 
 #include "ui_pref_window.h"
-#include "user_preferences.h"
 
 UserPreferences::UserPreferences(QWidget *parent)
 	: QDialog(parent)
@@ -33,6 +34,11 @@ UserPreferences::UserPreferences(QWidget *parent)
 {
 	ui->setupUi(this);
 	updateUI();
+}
+
+UserPreferences::~UserPreferences()
+{
+	delete ui;
 }
 
 auto UserPreferences::getRandomMode() const -> bool

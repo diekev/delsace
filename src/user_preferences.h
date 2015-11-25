@@ -36,7 +36,7 @@ enum {
 	MOVE_TO_FOLDER     = 2,
 };
 
-class UserPreferences : public QDialog {
+class UserPreferences final : public QDialog {
 	Q_OBJECT
 
 	Ui::UserPreferences *ui;
@@ -47,6 +47,7 @@ private slots:
 
 public:
 	explicit UserPreferences(QWidget *parent = nullptr);
+	~UserPreferences();
 
 	auto getRandomMode() const -> bool;
 	auto setRandomMode(const bool b) -> void;
