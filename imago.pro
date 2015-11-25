@@ -57,9 +57,8 @@ unix {
 QMAKE_EXTRA_TARGETS += copy_files
 POST_TARGETDEPS += copy_files
 
-INCLUDEPATH += src/ src/gpu/
+INCLUDEPATH += src/
 INCLUDEPATH += /opt/lib/ego/include
-
 
 LIBS += -lGLEW
 LIBS += -L/opt/lib/ego/lib -lego
