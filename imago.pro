@@ -29,7 +29,9 @@ QMAKE_CXXFLAGS_DEBUG += -g -Wall -Og -Wno-error=unused-function \
 	-Wno-error=unused-local-typedefs -DWARN_PEDANTIC -Winit-self -Wdate-time    \
 	-Warray-bounds -Werror -fdiagnostics-color=always -fsanitize=address
 
-QMAKE_LFLAGS += -fsanitize=address
+CONFIG(debug, release|debug) {
+	QMAKE_LFLAGS += -fsanitize=address
+}
 
 SOURCES += \
 	main.cc                 \
