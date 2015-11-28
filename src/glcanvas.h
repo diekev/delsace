@@ -33,7 +33,7 @@
 class GLCanvas : public QGLWidget {
 	ego::Program m_program;
 	ego::BufferObject::Ptr m_buffer;
-	ego::Texture::Ptr m_texture;
+	ego::Texture2D::Ptr m_texture;
 
 	const float m_vertices[8] = {
 	    0.0f, 0.0f,

@@ -43,7 +43,7 @@ void GLCanvas::initializeGL()
 		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
 	}
 
-	m_texture = ego::Texture::create(GL_TEXTURE_2D, 0);
+	m_texture = ego::Texture2D::create(0);
 
 	m_program.load(ego::VERTEX_SHADER, str_from_file("gpu_shaders/vert.glsl"));
 	m_program.load(ego::FRAGMENT_SHADER, str_from_file("gpu_shaders/frag.glsl"));
@@ -103,7 +103,7 @@ void GLCanvas::loadImage(const QImage &image) const
 	m_texture->setType(GL_UNSIGNED_BYTE, GL_RGBA, GL_RGBA);
 	m_texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
 	m_texture->setWrapping(GL_CLAMP);
-	m_texture->createTexture(data.bits(), size);
+	m_texture->fill(data.bits(), size);
 	m_texture->unbind();
 
 	GPU_check_errors("Unable to create image texture");
