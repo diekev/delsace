@@ -27,6 +27,8 @@ TEMPLATE = app
 
 include(../../repos/seppuku/rcfiles/build_flags.pri)
 
+QMAKE_CXXFLAGS -= -Weffc++
+
 SOURCES += \
 	main.cc                 \
 	src/mainwindow.cc       \
