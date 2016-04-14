@@ -59,4 +59,4 @@ INCLUDEPATH += src/
 INCLUDEPATH += /opt/lib/ego/include
 
 LIBS += -lGLEW
-LIBS += -L/opt/lib/ego/lib -lego
+LIBS += /opt/lib/ego/lib/libego.a

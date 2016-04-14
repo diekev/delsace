@@ -45,8 +45,8 @@ void GLCanvas::initializeGL()
 
 	m_texture = ego::Texture2D::create(0);
 
-	m_program.load(ego::VERTEX_SHADER, str_from_file("gpu_shaders/vert.glsl"));
-	m_program.load(ego::FRAGMENT_SHADER, str_from_file("gpu_shaders/frag.glsl"));
+	m_program.load(ego::VERTEX_SHADER, ego::util::str_from_file("gpu_shaders/vert.glsl"));
+	m_program.load(ego::FRAGMENT_SHADER, ego::util::str_from_file("gpu_shaders/frag.glsl"));
 
 	m_program.createAndLinkProgram();
 
@@ -55,7 +55,7 @@ void GLCanvas::initializeGL()
 		m_program.addAttribute("vertex");
 		m_program.addUniform("image");
 
-		glUniform1i(m_program("image"), m_texture->unit());
+		glUniform1i(m_program("image"), m_texture->number());
 	}
 	m_program.disable();
 
@@ -106,5 +106,5 @@ void GLCanvas::loadImage(const QImage &image) const
 	m_texture->fill(data.bits(), size);
 	m_texture->unbind();
 
-	GPU_check_errors("Unable to create image texture");
+	ego::util::GPU_check_errors("Unable to create image texture");
 }
