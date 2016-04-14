@@ -57,6 +57,8 @@ POST_TARGETDEPS += copy_files
 
 INCLUDEPATH += src/
 INCLUDEPATH += /opt/lib/ego/include
+INCLUDEPATH += /opt/lib/utils/include
 
 LIBS += -lGLEW
 LIBS += /opt/lib/ego/lib/libego.a
+LIBS += /opt/lib/utils/lib/libfilesystem.a -ldl

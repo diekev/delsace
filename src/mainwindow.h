@@ -67,8 +67,6 @@ class MainWindow : public QMainWindow {
 	void keyPressEvent(QKeyEvent *e);
 
 	void getDirectoryContent(const QDir &dir);
-	void getDirectoryFiles(const QDir &dir, const QStringList &filters);
-	QString getTrashPath();
 
 	void adjustScrollBar(QScrollBar *scrollBar, const float factor);
 

@@ -33,6 +33,8 @@
 #include <QSettings>
 #include <QTimer>
 
+#include <utils/filesystem.h>
+
 #include "glcanvas.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -130,8 +132,14 @@ void MainWindow::loadImage(const QString &filename)
 	}
 }
 
-static QString supported_file_types =
+static QString qsupported_file_types =
         "*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.png *.pgm *.ppm *.tiff *.xbm *.xpm";
+
+static std::string supported_file_types[] = {
+    ".bmp", ".gif", ".jpg", ".jpeg", ".png", ".pbm", ".png", ".pgm", ".ppm",
+    ".tiff", ".xbm", ".xpm"
+};
+
 
 void MainWindow::openImage(const QString &filename)
 {
@@ -147,7 +155,7 @@ void MainWindow::openImage(const QString &filename)
 
 void MainWindow::openImage()
 {
-	auto filters = "Image Files (" + supported_file_types + ")";
+	auto filters = "Image Files (" + qsupported_file_types + ")";
 
 	auto filename = QFileDialog::getOpenFileName(
 	                    this, tr("Ouvrir fichier image"),
@@ -194,34 +202,42 @@ void MainWindow::resetRNG()
 	m_dist.param(p);
 }
 
+static bool is_supported_file(const filesystem::path &path)
+{
+	if (!filesystem::is_regular_file(path)) {
+		return false;
+	}
+
+	auto iter = std::find(std::begin(supported_file_types),
+	                      std::end(supported_file_types),
+	                      path.extension());
+
+	return iter != std::end(supported_file_types);
+}
+
+template <typename DirIterator>
+void get_directory_content(DirIterator iter, QVector<QString> &images)
+{
+	for (const auto &entry : iter) {
+		if (!is_supported_file(entry)) {
+			continue;
+		}
+
+		images.push_back(entry.path_().c_str());
+	}
+}
+
 void MainWindow::getDirectoryContent(const QDir &dir)
 {
-	const auto &name_filters = QStringList(supported_file_types.split(' '));
 	m_images.clear();
 
 	if (m_user_pref->openSubdirs()) {
-		const auto &subdirs = dir.entryList(QDir::Dirs, QDir::Name);
-		const auto &path = dir.path();
-
-		for (const auto &subdir : subdirs) {
-			if (subdir == "." || subdir == "..") {
-				continue;
-			}
-
-			getDirectoryFiles(QDir(path + '/' + subdir), name_filters);
-		}
+		filesystem::recursive_directory_iterator dir_iter(dir.path().toStdString());
+		get_directory_content(dir_iter, m_images);
 	}
-
-	getDirectoryFiles(dir, name_filters);
-}
-
-void MainWindow::getDirectoryFiles(const QDir &dir, const QStringList &filters)
-{
-	const auto &filenames = dir.entryList(filters, QDir::Files, QDir::Name);
-	m_images.reserve(m_images.size() + filenames.size());
-
-	for (const auto filename : filenames) {
-		m_images.push_back(dir.absoluteFilePath(filename));
+	else {
+		filesystem::directory_iterator dir_iter(dir.path().toStdString());
+		get_directory_content(dir_iter, m_images);
 	}
 }
 
@@ -236,48 +252,18 @@ void MainWindow::deleteImage()
 	auto remove_method = m_user_pref->fileRemovingMethod();
 
 	if (remove_method == DELETE_PERMANENTLY) {
-		removed = QFile::remove(name);
+		removed = filesystem::remove(name.toStdString());
 	}
 	else if (remove_method == MOVE_TO_TRASH) {
-		auto trash_path = getTrashPath();
-
-		QFileInfo file(name);
-
-		QString file_name(file.fileName());
-		auto file_trash_info = trash_path + "/info/" + file_name + ".trashinfo";
-		auto file_trash_files = trash_path + "/files/" + file_name;
-		int nr = 0;
-
-		while (QFileInfo(file_trash_info).exists() || QFileInfo(file_trash_files).exists()) {
-			file_name = file.baseName() + "." + QString::number(++nr);
-
-			if (!file.suffix().isEmpty()) {
-				file_name += QString(".") + file.completeSuffix();
-			}
-
-			file_trash_info = trash_path + "/info/" + file_name + ".trashinfo";
-			file_trash_files = trash_path + "/files/" + file_name;
-		}
-
-		removed = QFile::rename(name, file_trash_files);
-
-		/* write info file to be able to restore the image */
-		QString file_info;
-		file_info += "[Trash Info]\nPath=";
-		file_info += file.absoluteFilePath();
-		file_info += "\nDeletionDate=";
-		file_info += QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ss.zzzZ");
-		file_info += "\n";
-
-		QFile infofile(file_trash_info);
-		infofile.open(QIODevice::WriteOnly);
-		infofile.write(file_info.toStdString().c_str());
+		filesystem::move_to_trash(name.toStdString());
+		removed = !filesystem::exists(name.toStdString());
 	}
 	else {
 		auto old_name = QFileInfo(name).fileName();
 		auto new_name = m_user_pref->changeFolderPath().append("/").append(old_name);
 
-		removed = QFile::rename(name, new_name);
+		filesystem::rename(name.toStdString(), new_name.toStdString());
+		removed = !filesystem::exists(name.toStdString());
 	}
 
 	if (removed) {
@@ -291,37 +277,6 @@ void MainWindow::deleteImage()
 			loadImage(m_images[m_image_id]);
 		}
 	}
-}
-
-QString MainWindow::getTrashPath()
-{
-	if (!m_trash_initialized) {
-		QStringList paths;
-        const char *xdg_data_home = getenv("XDG_DATA_HOME");
-
-        if (xdg_data_home) {
-            QString xdgTrash(xdg_data_home);
-            paths.append(xdgTrash + "/Trash");
-        }
-
-        QString home = QDir::home().absolutePath();
-        paths.append(home + "/.local/share/Trash");
-        paths.append(home + "/.trash");
-
-		for (const auto &path : paths) {
-			if (m_trash_path.isEmpty()) {
-                QDir dir(path);
-
-                if (dir.exists()) {
-                    m_trash_path = path;
-                }
-            }
-		}
-
-		m_trash_initialized = true;
-    }
-
-	return m_trash_path;
 }
 
 /* ****************************** recent files ******************************* */
