@@ -151,20 +151,20 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 
 void MainWindow::loadImage(const QString &filename)
 {
-	if (m_current_image->load(filename)) {
-		setWindowTitle(QFileInfo(filename).fileName());
-
-		m_canvas->hide();
-		m_canvas->loadImage(*m_current_image);
-		m_canvas->update();
-		fitScreen();
-		m_canvas->show();
-
-		m_scale_factor = 1.0f;
-	}
-	else {
+	if (!m_current_image->load(filename)) {
 		std::cerr << "Unable to load image: " << filename.toStdString() << "\n";
+		return;
 	}
+
+	setWindowTitle(QFileInfo(filename).fileName());
+
+	m_canvas->hide();
+	m_canvas->loadImage(*m_current_image);
+	m_canvas->update();
+	fitScreen();
+	m_canvas->show();
+
+	m_scale_factor = 1.0f;
 }
 
 void MainWindow::openImage(const QString &filename)
@@ -209,15 +209,15 @@ void MainWindow::openDirectory(const QString &dir_path)
 {
 	getDirectoryContent(dir_path);
 
-	if (m_images.size() > 0) {
-		loadImage(m_images[0]);
-		addRecentFile(m_images[0], true);
-		m_image_id = 0;
-		resetRNG();
-	}
-	else {
+	if (m_images.empty()) {
 		reset();
+		return;
 	}
+
+	loadImage(m_images[0]);
+	addRecentFile(m_images[0], true);
+	m_image_id = 0;
+	resetRNG();
 }
 
 void MainWindow::resetRNG()
@@ -313,19 +313,21 @@ void MainWindow::deleteImage()
 
 void MainWindow::openRecentFile()
 {
-	QAction *action = qobject_cast<QAction *>(sender());
+	auto action = qobject_cast<QAction *>(sender());
 
-	if (action) {
-		auto filename = action->data().toString();
+	if (action == nullptr) {
+		return;
+	}
 
-		/* If the image is already in the current session, just load it. */
-		if (std::binary_search(m_images.begin(), m_images.end(), filename)) {
-			loadImage(filename);
-			addRecentFile(filename, true);
-		}
-		else {
-			openImage(filename);
-		}
+	auto filename = action->data().toString();
+
+	/* If the image is already in the current session, just load it. */
+	if (std::binary_search(m_images.begin(), m_images.end(), filename)) {
+		loadImage(filename);
+		addRecentFile(filename, true);
+	}
+	else {
+		openImage(filename);
 	}
 }
 
