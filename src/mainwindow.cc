@@ -40,7 +40,7 @@
 #include "ui_mainwindow.h"
 #include "user_preferences.h"
 
-static QString qsupported_file_types;
+static constexpr auto MAX_RECENT_FILES = 10;
 
 struct FileTypeInfo {
 	const char *name;
@@ -67,15 +67,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , m_canvas(new GLCanvas(this))
     , m_timer(new QTimer)
-    , m_image_id(0)
     , m_current_image(new QImage())
-    , m_rng(19937)
-    , m_dist(0, 0)
-    , m_scale_factor(1.0f)
     , m_user_pref(new UserPreferences(this))
-    , m_randomize(false)
-    , m_diaporama_started(false)
-    , m_trash_initialized(false)
 {
 	ui->setupUi(this);
 	ui->m_scroll_area->setWidget(m_canvas);
@@ -83,12 +76,13 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->m_scroll_area->setWidgetResizable(false);
 
 	m_recent_files.reserve(MAX_RECENT_FILES);
+	m_recent_act.resize(MAX_RECENT_FILES);
 
-	for (int i = 0; i < MAX_RECENT_FILES; ++i) {
-		m_recent_act[i] = new QAction(this);
-		m_recent_act[i]->setVisible(false);
-		ui->m_recent_menu->addAction(m_recent_act[i]);
-		connect(m_recent_act[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
+	for (QAction *&recent_act : m_recent_act) {
+		recent_act = new QAction(this);
+		recent_act->setVisible(false);
+		ui->m_recent_menu->addAction(recent_act);
+		connect(recent_act, SIGNAL(triggered()), this, SLOT(openRecentFile()));
 	}
 
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(nextImage()));
@@ -96,22 +90,22 @@ MainWindow::MainWindow(QWidget *parent)
 	readSettings();
 
 	/* Setup filters. */
-	qsupported_file_types = "Image Files (";
+	m_supported_file_types = "Image Files (";
 
 	for (const FileTypeInfo &file_type : supported_file_types) {
-		qsupported_file_types += "*";
-		qsupported_file_types += file_type.ext;
-		qsupported_file_types += " ";
+		m_supported_file_types += "*";
+		m_supported_file_types += file_type.ext;
+		m_supported_file_types += " ";
 	}
 
-	qsupported_file_types[qsupported_file_types.size() - 1] = ')';
+	m_supported_file_types[m_supported_file_types.size() - 1] = ')';
 
 	for (const FileTypeInfo &file_type : supported_file_types) {
-		qsupported_file_types += ";;";
-		qsupported_file_types += file_type.name;
-		qsupported_file_types += " (*";
-		qsupported_file_types += file_type.ext;
-		qsupported_file_types += ")";
+		m_supported_file_types += ";;";
+		m_supported_file_types += file_type.name;
+		m_supported_file_types += " (*";
+		m_supported_file_types += file_type.ext;
+		m_supported_file_types += ")";
 	}
 }
 
@@ -190,7 +184,7 @@ void MainWindow::openImage()
 	auto filename = QFileDialog::getOpenFileName(
 	                    this, tr("Ouvrir fichier image"),
 	                    QDir::homePath(),
-	                    tr(qsupported_file_types.toLatin1().data()));
+	                    tr(m_supported_file_types.toLatin1().data()));
 
 	if (!filename.isEmpty()) {
 		openImage(filename);
@@ -357,17 +351,19 @@ void MainWindow::addRecentFile(const QString &name, const bool update_menu)
 
 void MainWindow::updateRecentFilesMenu()
 {
-	if (m_recent_files.size() > 0) {
-		ui->m_no_recent_act->setVisible(false);
+	if (m_recent_files.empty()) {
+		return;
+	}
 
-		for (int i(0); i < m_recent_files.size();  ++i) {
-			auto filename = m_recent_files[i];
-			auto name = QFileInfo(filename).fileName();
+	ui->m_no_recent_act->setVisible(false);
 
-			m_recent_act[i]->setText(name);
-			m_recent_act[i]->setData(filename);
-			m_recent_act[i]->setVisible(true);
-		}
+	for (int i(0); i < m_recent_files.size();  ++i) {
+		auto filename = m_recent_files[i];
+		auto name = QFileInfo(filename).fileName();
+
+		m_recent_act[i]->setText(name);
+		m_recent_act[i]->setData(filename);
+		m_recent_act[i]->setVisible(true);
 	}
 }
 

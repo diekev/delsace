@@ -35,32 +35,33 @@ namespace Ui {
 class MainWindow;
 }
 
-#define MAX_RECENT_FILES 10
-
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
-	Ui::MainWindow *ui;
-	GLCanvas *m_canvas;
-	QTimer *m_timer;
+	Ui::MainWindow *ui = nullptr;
+	GLCanvas *m_canvas = nullptr;
+	QTimer *m_timer = nullptr;
 
-	int m_current_width, m_current_height;
+	int m_current_width = 0;
+	int m_current_height = 0;
 
-	QVector<QString> m_images;
-	QVector<QString> m_recent_files;
-	int m_image_id;
+	QVector<QString> m_images = {};
+	QVector<QString> m_recent_files = {};
+	int m_image_id = 0;
 
-	QImage *m_current_image;
-	QAction *m_recent_act[MAX_RECENT_FILES];
+	QImage *m_current_image = nullptr;
+	QVector<QAction *> m_recent_act = {};
 
-	std::mt19937 m_rng;
-	std::uniform_int_distribution<int> m_dist;
+	std::mt19937 m_rng = std::mt19937(19337);
+	std::uniform_int_distribution<int> m_dist = std::uniform_int_distribution<int>(0, 0);
 
-	float m_scale_factor;
-	UserPreferences *m_user_pref;
-	bool m_randomize, m_diaporama_started, m_trash_initialized;
+	float m_scale_factor = 1.0f;
+	UserPreferences *m_user_pref = nullptr;
+	bool m_randomize = false;
+	bool m_diaporama_started = false;
+	bool m_trash_initialized = false;
 
-	QString m_trash_path;
+	QString m_supported_file_types;
 
 	/* Event handling */
 	void closeEvent(QCloseEvent *) const;
