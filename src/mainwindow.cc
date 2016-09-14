@@ -40,6 +40,28 @@
 #include "ui_mainwindow.h"
 #include "user_preferences.h"
 
+static QString qsupported_file_types;
+
+struct FileTypeInfo {
+	const char *name;
+	const char *ext;
+};
+
+static FileTypeInfo supported_file_types[] = {
+    { "BitMap", ".bmp" },
+    { "GIF", ".gif"},
+    { "JPG", ".jpg"},
+    { "JPG", ".jpeg"},
+    { "PNG", ".png"},
+    { "PBM", ".pbm"},
+    { "PNG", ".png"},
+    { "PGM", ".pgm"},
+    { "PPM", ".ppm"},
+    { "TIFF", ".tiff"},
+    { "XBM", ".xbm"},
+    { "XPM", ".xpm"},
+};
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -72,6 +94,25 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(nextImage()));
 
 	readSettings();
+
+	/* Setup filters. */
+	qsupported_file_types = "Image Files (";
+
+	for (const FileTypeInfo &file_type : supported_file_types) {
+		qsupported_file_types += "*";
+		qsupported_file_types += file_type.ext;
+		qsupported_file_types += " ";
+	}
+
+	qsupported_file_types[qsupported_file_types.size() - 1] = ')';
+
+	for (const FileTypeInfo &file_type : supported_file_types) {
+		qsupported_file_types += ";;";
+		qsupported_file_types += file_type.name;
+		qsupported_file_types += " (*";
+		qsupported_file_types += file_type.ext;
+		qsupported_file_types += ")";
+	}
 }
 
 MainWindow::~MainWindow()
@@ -132,15 +173,6 @@ void MainWindow::loadImage(const QString &filename)
 	}
 }
 
-static QString qsupported_file_types =
-        "*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.png *.pgm *.ppm *.tiff *.xbm *.xpm";
-
-static std::string supported_file_types[] = {
-    ".bmp", ".gif", ".jpg", ".jpeg", ".png", ".pbm", ".png", ".pgm", ".ppm",
-    ".tiff", ".xbm", ".xpm"
-};
-
-
 void MainWindow::openImage(const QString &filename)
 {
 	const auto &dir = QFileInfo(filename).absoluteDir();
@@ -155,12 +187,10 @@ void MainWindow::openImage(const QString &filename)
 
 void MainWindow::openImage()
 {
-	auto filters = "Image Files (" + qsupported_file_types + ")";
-
 	auto filename = QFileDialog::getOpenFileName(
 	                    this, tr("Ouvrir fichier image"),
 	                    QDir::homePath(),
-	                    tr(filters.toLatin1().data()));
+	                    tr(qsupported_file_types.toLatin1().data()));
 
 	if (!filename.isEmpty()) {
 		openImage(filename);
@@ -208,9 +238,15 @@ static bool is_supported_file(const filesystem::path &path)
 		return false;
 	}
 
-	auto iter = std::find(std::begin(supported_file_types),
-	                      std::end(supported_file_types),
-	                      path.extension());
+	const auto &ext = path.extension();
+	auto predicate = [&](const FileTypeInfo &info)
+	{
+		return info.ext == ext;
+	};
+
+	auto iter = std::find_if(std::begin(supported_file_types),
+	                         std::end(supported_file_types),
+	                         predicate);
 
 	return iter != std::end(supported_file_types);
 }
