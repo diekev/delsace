@@ -1,0 +1,485 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#include "analyseur.h"
+
+#include <iostream>
+
+#include "assembleur_disposition.h"
+#include "erreur.h"
+
+//#define DEBOGUE_ANALYSEUR
+
+/* ************************************************************************** */
+
+static bool est_identifiant_controle(int identifiant)
+{
+	switch (identifiant) {
+		case IDENTIFIANT_CONTROLE_CURSEUR:
+		case IDENTIFIANT_CONTROLE_CURSEUR_DECIMAL:
+		case IDENTIFIANT_CONTROLE_ETIQUETTE:
+		case IDENTIFIANT_CONTROLE_LISTE:
+		case IDENTIFIANT_CONTROLE_CASE_COCHER:
+		case IDENTIFIANT_CONTROLE_CHAINE:
+		case IDENTIFIANT_CONTROLE_FICHIER_ENTREE:
+		case IDENTIFIANT_CONTROLE_FICHIER_SORTIE:
+		case IDENTIFIANT_CONTROLE_COULEUR:
+		case IDENTIFIANT_CONTROLE_VECTEUR:
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool est_identifiant_propriete(int identifiant)
+{
+	switch (identifiant) {
+		case IDENTIFIANT_PROPRIETE_INFOBULLE:
+		case IDENTIFIANT_PROPRIETE_MIN:
+		case IDENTIFIANT_PROPRIETE_MAX:
+		case IDENTIFIANT_PROPRIETE_VALEUR:
+		case IDENTIFIANT_PROPRIETE_ATTACHE:
+		case IDENTIFIANT_PROPRIETE_PRECISION:
+		case IDENTIFIANT_PROPRIETE_PAS:
+		case IDENTIFIANT_PROPRIETE_ITEM:
+			return true;
+		default:
+			return false;
+	}
+}
+
+/* ************************************************************************** */
+
+void Analyseur::installe_assembleur(AssembleurDisposition *assembleur)
+{
+	m_assembleur = assembleur;
+}
+
+void Analyseur::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
+{
+	m_identifiants = identifiants;
+	m_position = 0;
+
+	if (m_assembleur == nullptr) {
+		throw "Un assembleur doit être installé avant de générer l'interface !";
+	}
+
+	if (est_identifiant(IDENTIFIANT_DISPOSITION)) {
+		analyse_script_disposition();
+	}
+	else if (est_identifiant(IDENTIFIANT_MENU)) {
+		analyse_script_menu();
+	}
+}
+
+void Analyseur::analyse_script_disposition()
+{
+#ifdef DEBOGUE_ANALYSEUR
+	std::cout << __func__ << " début\n";
+#endif
+
+	if (!requiers_identifiant(IDENTIFIANT_DISPOSITION)) {
+		lance_erreur("Le script doit commencer par 'disposition' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		lance_erreur("Attendu le nom de la disposition après 'disposition' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+		lance_erreur("Attendu une accolade ouvrante après le nom de la disposition !");
+	}
+
+	/* Ajout d'une disposition par défaut. */
+	m_assembleur->ajoute_disposition(IDENTIFIANT_COLONNE);
+
+	analyse_disposition();
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+		lance_erreur("Attendu une accolade fermante à la fin du script !");
+	}
+
+#ifdef DEBOGUE_ANALYSEUR
+	std::cout << __func__ << " fin\n";
+#endif
+}
+
+void Analyseur::analyse_script_menu()
+{
+	if (!requiers_identifiant(IDENTIFIANT_MENU)) {
+		lance_erreur("Attendu la déclaration menu !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		lance_erreur("Attendu le nom du menu après 'menu' !");
+	}
+
+	const auto nom = m_identifiants[position()].contenu;
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+		lance_erreur("Attendu une accolade ouvrante après le nom du menu !");
+	}
+
+	m_assembleur->ajoute_menu(nom);
+
+	analyse_menu();
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+		lance_erreur("Attendu une accolade fermante à la fin du script !");
+	}
+
+	m_assembleur->sort_menu();
+}
+
+void Analyseur::analyse_menu()
+{
+	if (est_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
+		analyse_action();
+	}
+	else if (est_identifiant(IDENTIFIANT_MENU)) {
+		analyse_script_menu();
+	}
+	else if (est_identifiant(IDENTIFIANT_CONTROLE_SEPARATEUR)) {
+		m_assembleur->ajoute_separateur();
+		avance();
+	}
+	else {
+		return;
+	}
+
+	analyse_menu();
+}
+
+void Analyseur::analyse_action()
+{
+	if (!requiers_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
+		lance_erreur("Attendu la déclaration d'une action !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+		lance_erreur("Attendu l'ouverture d'une paranthèse après 'action' !");
+	}
+
+	m_assembleur->ajoute_action();
+
+	analyse_propriete(IDENTIFIANT_CONTROLE_ACTION);
+
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+		lance_erreur("Attendu la fermeture d'une paranthèse !");
+	}
+}
+
+void Analyseur::analyse_disposition()
+{
+	if (est_identifiant(IDENTIFIANT_LIGNE)) {
+		analyse_ligne();
+	}
+	else if (est_identifiant(IDENTIFIANT_COLONNE)) {
+		analyse_colonne();
+	}
+	else if (est_identifiant(IDENTIFIANT_CONTROLE_BOUTON)) {
+		analyse_bouton();
+	}
+	else if (est_identifiant_controle(identifiant_courant())) {
+		analyse_controle();
+	}
+	else {
+		return;
+	}
+
+	analyse_disposition();
+}
+
+void Analyseur::analyse_ligne()
+{
+#ifdef DEBOGUE_ANALYSEUR
+	std::cout << __func__ << '\n';
+#endif
+
+	if (!requiers_identifiant(IDENTIFIANT_LIGNE)) {
+		lance_erreur("Attendu la déclaration 'ligne' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+		lance_erreur("Attendu une accolade ouvrante après la déclaration 'ligne' !");
+	}
+
+	m_assembleur->ajoute_disposition(IDENTIFIANT_LIGNE);
+
+	analyse_disposition();
+
+	m_assembleur->sort_disposition();
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de la 'ligne' !");
+	}
+
+	analyse_disposition();
+}
+
+void Analyseur::analyse_colonne()
+{
+#ifdef DEBOGUE_ANALYSEUR
+	std::cout << __func__ << '\n';
+#endif
+
+	if (!requiers_identifiant(IDENTIFIANT_COLONNE)) {
+		lance_erreur("Attendu la déclaration 'colonne' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+		lance_erreur("Attendu une accolade ouvrante après la déclaration 'colonne' !");
+	}
+
+	m_assembleur->ajoute_disposition(IDENTIFIANT_COLONNE);
+
+	analyse_disposition();
+
+	m_assembleur->sort_disposition();
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de la 'colonne' !");
+	}
+
+	analyse_disposition();
+}
+
+void Analyseur::analyse_controle()
+{
+#ifdef DEBOGUE_ANALYSEUR
+	std::cout << __func__ << '\n';
+#endif
+
+	if (!est_identifiant_controle(identifiant_courant())) {
+		lance_erreur("Attendu la déclaration d'un contrôle !");
+	}
+
+	const auto identifiant_controle = identifiant_courant();
+
+	avance();
+
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+		lance_erreur("Attendu une parenthèse ouvrante après la déclaration du contrôle !");
+	}
+
+	m_assembleur->ajoute_controle(identifiant_controle);
+
+	analyse_propriete(identifiant_controle);
+
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+		lance_erreur("Attendu une parenthèse fermante après la déclaration du contenu du contrôle !");
+	}
+
+	m_assembleur->finalise_controle();
+}
+
+void Analyseur::analyse_bouton()
+{
+	if (!requiers_identifiant(IDENTIFIANT_CONTROLE_BOUTON)) {
+		lance_erreur("Attendu la déclaration d'un bouton !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+		lance_erreur("Attendu une parenthèse ouvrante après la déclaration 'bouton' !");
+	}
+
+	m_assembleur->ajoute_bouton();
+
+	analyse_propriete(IDENTIFIANT_CONTROLE_BOUTON);
+
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+		lance_erreur("Attendu une parenthèse fermante après la déclaration du contenu du 'bouton' !");
+	}
+}
+
+void Analyseur::analyse_propriete(int type_controle)
+{
+#ifdef DEBOGUE_ANALYSEUR
+	std::cout << __func__ << '\n';
+#endif
+
+	if (!est_identifiant_propriete(identifiant_courant())) {
+		lance_erreur("Attendu la déclaration d'un identifiant !");
+	}
+
+	const auto identifiant_propriete = identifiant_courant();
+
+	avance();
+
+	if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+		lance_erreur("Attendu la déclaration '=' !");
+	}
+
+	if (identifiant_propriete == IDENTIFIANT_PROPRIETE_ITEM) {
+		analyse_liste_item();
+	}
+	else {
+		if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+			lance_erreur("Attendu une chaine de caractère !");
+		}
+
+		if (type_controle == IDENTIFIANT_CONTROLE_BOUTON) {
+			m_assembleur->propriete_bouton(
+						identifiant_propriete,
+						m_identifiants[position()].contenu);
+		}
+		else if (type_controle == IDENTIFIANT_CONTROLE_ACTION) {
+			m_assembleur->propriete_action(
+						identifiant_propriete,
+						m_identifiants[position()].contenu);
+		}
+		else {
+			m_assembleur->propriete_controle(
+						identifiant_propriete,
+						m_identifiants[position()].contenu);
+		}
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_POINT_VIRGULE)) {
+		/* Fin des identifiants propriétés. */
+		recule();
+		return;
+	}
+
+	analyse_propriete(type_controle);
+}
+
+void Analyseur::analyse_liste_item()
+{
+	if (!requiers_identifiant(IDENTIFIANT_CROCHET_OUVERT)) {
+		lance_erreur("Attendu un crochet ouvert !");
+	}
+
+	analyse_item();
+
+	if (!requiers_identifiant(IDENTIFIANT_CROCHET_FERME)) {
+		lance_erreur("Attendu un crochet fermé !");
+	}
+}
+
+/* { nom="", valeur=""}, */
+void Analyseur::analyse_item()
+{
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+		lance_erreur("Attendu une accolade ouverte !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_PROPRIETE_NOM)) {
+		lance_erreur("Attendu la déclaration 'nom' après l'accolade ouverte !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+		lance_erreur("Attendu la déclaration '=' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		lance_erreur("Attendu une chaîne de caractère après '=' !");
+	}
+
+	const auto nom = m_identifiants[position()].contenu;
+
+	if (!requiers_identifiant(IDENTIFIANT_VIRGULE)) {
+		lance_erreur("Attendu une virgule !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_PROPRIETE_VALEUR)) {
+		lance_erreur("Attendu la déclaration 'nom' après l'accolade ouverte !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+		lance_erreur("Attendu la déclaration '=' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		lance_erreur("Attendu une chaîne de caractère après '=' !");
+	}
+
+	const auto valeur = m_identifiants[position()].contenu;
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+		lance_erreur("Attendu une accolade fermée !");
+	}
+
+	m_assembleur->ajoute_item_liste(nom, valeur);
+
+	if (!requiers_identifiant(IDENTIFIANT_VIRGULE)) {
+		/* Fin des identifiants item. */
+		recule();
+		return;
+	}
+
+	analyse_item();
+}
+
+bool Analyseur::requiers_identifiant(int identifiant)
+{
+	if (m_position >= m_identifiants.size()) {
+		return false;
+	}
+
+	const auto est_bon = this->est_identifiant(identifiant);
+
+	avance();
+
+	return est_bon;
+}
+
+void Analyseur::avance()
+{
+	++m_position;
+}
+
+void Analyseur::recule()
+{
+	m_position -= 1;
+}
+
+int Analyseur::position()
+{
+	return m_position - 1;
+}
+
+bool Analyseur::est_identifiant(int identifiant)
+{
+	return identifiant == this->identifiant_courant();
+}
+
+int Analyseur::identifiant_courant() const
+{
+	if (m_position >= m_identifiants.size()) {
+		return IDENTIFIANT_NUL;
+	}
+
+	return m_identifiants[m_position].identifiant;
+}
+
+void Analyseur::lance_erreur(const std::string &quoi)
+{
+	const auto numero_ligne = m_identifiants[position()].numero_ligne;
+	const auto ligne = m_identifiants[position()].ligne;
+	const auto position_ligne = m_identifiants[position()].position_ligne;
+	const auto contenu = m_identifiants[position()].contenu;
+
+	throw ErreurSyntactique(ligne, numero_ligne, position_ligne, quoi, contenu);
+}
