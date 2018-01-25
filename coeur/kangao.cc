@@ -33,6 +33,8 @@
 
 #include "erreur.h"
 
+namespace kangao {
+
 QBoxLayout *compile_interface(DonneesInterface &donnnes, const char *texte_entree)
 {
 	if (donnnes.manipulable == nullptr) {
@@ -113,3 +115,5 @@ QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
 
 	return assembleur.menu();
 }
+
+}  /* namespace kangao */

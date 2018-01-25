@@ -26,6 +26,8 @@
 
 #include <string>
 
+namespace kangao {
+
 enum {
 	/* disposition */
 	IDENTIFIANT_DISPOSITION,
@@ -86,3 +88,5 @@ struct DonneesMorceaux {
 
 	DonneesMorceaux() = default;
 };
+
+}  /* namespace kangao */

@@ -38,6 +38,8 @@
 
 #include <sstream>
 
+namespace kangao {
+
 enum {
 	AXIS_X = 0,
 	AXIS_Y = 1,
@@ -477,3 +479,5 @@ void SelecteurCouleur::paintEvent(QPaintEvent *)
 
 	painter.fillRect(0, 0, w, h, color);
 }
+
+}  /* namespace kangao */

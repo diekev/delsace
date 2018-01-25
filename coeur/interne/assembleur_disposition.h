@@ -28,16 +28,19 @@
 #include <string>
 #include <vector>
 
+class QBoxLayout;
+class QLabel;
+class QMenu;
+class QTabWidget;
+
+namespace kangao {
+
 class Action;
 class Bouton;
 class ConteneurControles;
 class Controle;
 class Manipulable;
 class RepondantBouton;
-class QBoxLayout;
-class QLabel;
-class QMenu;
-class QTabWidget;
 
 /**
  * La classe AssembleurDisposition s'occupe de créer l'interface en fonction de
@@ -165,3 +168,5 @@ public:
 	 */
 	void finalise_onglet();
 };
+
+}  /* namespace kangao */

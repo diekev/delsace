@@ -38,6 +38,8 @@ class QVBoxLayout;
 
 /* ************************************************************************** */
 
+namespace kangao {
+
 /**
  * La classe Controle donne l'interface nécessaire pour les contrôles à afficher
  * dans l'interface utilisateur. Dès que le contrôle est changé le signal
@@ -309,3 +311,5 @@ Q_SIGNALS:
 	void clicked();
 	void valeur_changee(double value, int axis);
 };
+
+}  /* namespace kangao */

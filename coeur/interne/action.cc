@@ -26,6 +26,8 @@
 
 #include "repondant_bouton.h"
 
+namespace kangao {
+
 Action::Action(QWidget *parent)
 	: QAction(parent)
 {
@@ -63,3 +65,5 @@ void Action::action_presse()
 		m_repondant->repond_clique(m_attache, m_metadonnee);
 	}
 }
+
+}  /* namespace kangao */

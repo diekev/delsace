@@ -26,6 +26,8 @@
 
 #include <string>
 
+namespace kangao {
+
 /**
  * La classe ErreurFrappe représente une exception qui est lancée quand une
  * erreur de frappe est repérée.
@@ -73,3 +75,4 @@ public:
 	const char *quoi() const;
 };
 
+}  /* namespace kangao */

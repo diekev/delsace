@@ -26,6 +26,8 @@
 
 #include <QWidget>
 
+namespace kangao {
+
 /**
  * La classe ConteneurControles sert de classe de base pour faire le pont entre
  * l'interface et le programme.
@@ -48,3 +50,5 @@ public Q_SLOTS:
 	 */
 	virtual void ajourne_manipulable() = 0;
 };
+
+}  /* namespace kangao */

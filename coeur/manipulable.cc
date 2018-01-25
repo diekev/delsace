@@ -24,6 +24,7 @@
 
 #include "manipulable.h"
 
+namespace kangao {
 
 void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 {
@@ -134,3 +135,5 @@ void *Manipulable::operator[](const std::string &nom)
 
 	return pointeur;
 }
+
+}  /* namespace kangao */

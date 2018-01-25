@@ -32,6 +32,8 @@
 
 //#define DEBOGUE_DECOUPEUR
 
+namespace kangao {
+
 /* étiquette : afficher une phrase dans l'interface
  *     étiquette(texte="Texte étiquette")
  *
@@ -316,3 +318,5 @@ const std::vector<DonneesMorceaux> &Decoupeur::morceaux() const
 {
 	return m_identifiants;
 }
+
+}  /* namespace kangao */

@@ -24,3 +24,6 @@
 
 #include "repondant_bouton.h"
 
+namespace kangao {
+
+}  /* namespace kangao */

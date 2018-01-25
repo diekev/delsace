@@ -24,6 +24,10 @@
 
 #include "conteneur_controles.h"
 
+namespace kangao {
+
 ConteneurControles::ConteneurControles(QWidget *parent)
 	: QWidget(parent)
 {}
+
+}  /* namespace kangao */

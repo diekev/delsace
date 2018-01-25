@@ -26,6 +26,8 @@
 
 #include <string>
 
+namespace kangao {
+
 /**
  * La classe RepondantBouton définie l'interface nécessaire pour attacher un
  * objet à plusieurs bouton dans une interface utilisateur. À chaque fois qu'un
@@ -43,3 +45,5 @@ public:
 	 */
 	virtual void repond_clique(const std::string &identifiant, const std::string &metadonnee) = 0;
 };
+
+}  /* namespace kangao */

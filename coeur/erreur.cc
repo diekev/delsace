@@ -26,6 +26,8 @@
 
 #include <sstream>
 
+namespace kangao {
+
 ErreurFrappe::ErreurFrappe(
 		const std::string_view &ligne,
 		int numero_ligne,
@@ -71,3 +73,5 @@ const char *ErreurSyntactique::quoi() const
 {
 	return m_quoi.c_str();
 }
+
+}  /* namespace kangao */

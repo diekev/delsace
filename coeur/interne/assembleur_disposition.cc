@@ -37,6 +37,8 @@
 #include "morceaux.h"
 #include "repondant_bouton.h"
 
+namespace kangao {
+
 AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, RepondantBouton *repondant_bouton, ConteneurControles *conteneur)
 	: m_manipulable(manipulable)
 	, m_repondant(repondant_bouton)
@@ -275,3 +277,5 @@ void AssembleurDisposition::finalise_onglet()
 {
 	m_pile_dispositions.pop();
 }
+
+}  /* namespace kangao */

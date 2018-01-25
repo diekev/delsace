@@ -23,3 +23,7 @@
  */
 
 #include "morceaux.h"
+
+namespace kangao {
+
+}  /* namespace kangao */

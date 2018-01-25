@@ -34,6 +34,8 @@
 
 class QGridLayout;
 
+namespace kangao {
+
 /* Les contrôles sont des sousclasses de leur QWidgets ou contrôle personnalisé
  * correspondants. Pour éviter des APIs étranges, ils stockent un pointeur vers
  * la valeur externe à laquelle ils sont 'connectés'.
@@ -212,3 +214,5 @@ public:
 private Q_SLOTS:
 	void ajourne_valeur_pointee(const QString &valeur);
 };
+
+}  /* namespace kangao */

@@ -26,6 +26,8 @@
 
 #include <QHBoxLayout>
 
+namespace kangao {
+
 /* ************************************************************************** */
 
 ControleFloat::ControleFloat(QWidget *parent)
@@ -265,3 +267,5 @@ void ControleListe::ajourne_valeur_pointee(const QString &valeur)
 	*m_pointeur = valeur.toStdString();
 	Q_EMIT(controle_change());
 }
+
+}  /* namespace kangao */

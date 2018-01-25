@@ -39,10 +39,10 @@ struct DonneesSorties {
 	QMenu *menu;
 };
 
-class WidgetTest : public ConteneurControles {
+class WidgetTest : public kangao::ConteneurControles {
 public:
 	explicit WidgetTest(QWidget *parent = nullptr)
-		: ConteneurControles(parent)
+		: kangao::ConteneurControles(parent)
 	{}
 
 private Q_SLOTS:
@@ -51,7 +51,7 @@ private Q_SLOTS:
 	}
 };
 
-class RepondantBoutonTest : public RepondantBouton {
+class RepondantBoutonTest : public kangao::RepondantBouton {
 public:
 	void repond_clique(const std::string &valeur, const std::string &metadonnee) override
 	{
@@ -61,7 +61,7 @@ public:
 };
 
 class FenetreTest : public QMainWindow {
-	Manipulable m_manipulable;
+	kangao::Manipulable m_manipulable;
 	RepondantBoutonTest m_repondant;
 
 public:
@@ -105,24 +105,24 @@ public:
 							"    }\n"
 							"}";
 
-		m_manipulable.ajoute_propriete("taille_x", TypePropriete::ENTIER);
-		m_manipulable.ajoute_propriete("taille_y", TypePropriete::DECIMAL);
-		m_manipulable.ajoute_propriete("liste", TypePropriete::ENUM);
-		m_manipulable.ajoute_propriete("chaine", TypePropriete::CHAINE_CARACTERE);
-		m_manipulable.ajoute_propriete("fichier_in", TypePropriete::FICHIER_ENTREE);
-		m_manipulable.ajoute_propriete("fichier_ex", TypePropriete::FICHIER_SORTIE);
-		m_manipulable.ajoute_propriete("couleur", TypePropriete::COULEUR);
-		m_manipulable.ajoute_propriete("vecteur", TypePropriete::VECTEUR);
-		m_manipulable.ajoute_propriete("case", TypePropriete::BOOL);
+		m_manipulable.ajoute_propriete("taille_x", kangao::TypePropriete::ENTIER);
+		m_manipulable.ajoute_propriete("taille_y", kangao::TypePropriete::DECIMAL);
+		m_manipulable.ajoute_propriete("liste", kangao::TypePropriete::ENUM);
+		m_manipulable.ajoute_propriete("chaine", kangao::TypePropriete::CHAINE_CARACTERE);
+		m_manipulable.ajoute_propriete("fichier_in", kangao::TypePropriete::FICHIER_ENTREE);
+		m_manipulable.ajoute_propriete("fichier_ex", kangao::TypePropriete::FICHIER_SORTIE);
+		m_manipulable.ajoute_propriete("couleur", kangao::TypePropriete::COULEUR);
+		m_manipulable.ajoute_propriete("vecteur", kangao::TypePropriete::VECTEUR);
+		m_manipulable.ajoute_propriete("case", kangao::TypePropriete::BOOL);
 
 		auto widget_test = new WidgetTest;
 
-		auto donnees = DonneesInterface();
+		auto donnees = kangao::DonneesInterface();
 		donnees.manipulable = &m_manipulable;
 		donnees.repondant_bouton = &m_repondant;
 		donnees.conteneur = widget_test;
 
-		auto disposition = compile_interface(donnees, texte_entree);
+		auto disposition = kangao::compile_interface(donnees, texte_entree);
 
 		widget_test->setLayout(disposition);
 
@@ -140,7 +140,7 @@ public:
 						   "	action(valeur=\"Quitter...\"; attache=\"quitter\")\n"
 						   "}";
 
-		auto menu = compile_menu(donnees, script_menu);
+		auto menu = kangao::compile_menu(donnees, script_menu);
 
 		menuBar()->addMenu(menu);
 
@@ -165,7 +165,7 @@ public:
 					  "	action(valeur=\"Sélectionner encodage...\"; attache=\"encodage\")\n"
 					  "}";
 
-		menu = compile_menu(donnees, script_menu);
+		menu = kangao::compile_menu(donnees, script_menu);
 
 		menuBar()->addMenu(menu);
 	}

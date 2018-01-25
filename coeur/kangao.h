@@ -26,11 +26,14 @@
 
 #include <experimental/filesystem>
 
+class QBoxLayout;
+class QMenu;
+
+namespace kangao {
+
 class ConteneurControles;
 class Manipulable;
 class RepondantBouton;
-class QBoxLayout;
-class QMenu;
 
 struct DonneesInterface {
 	Manipulable *manipulable;
@@ -55,3 +58,5 @@ QBoxLayout *compile_interface(
 QBoxLayout *compile_interface(
 		DonneesInterface &donnnes,
 		const std::experimental::filesystem::path &chemin_texte);
+
+}  /* namespace kangao */

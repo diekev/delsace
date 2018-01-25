@@ -28,6 +28,8 @@
 
 #include "morceaux.h"
 
+namespace kangao {
+
 class Analyseur;
 
 /**
@@ -109,3 +111,5 @@ private:
 	 */
 	std::string decoupe_chaine_litterale();
 };
+
+}  /* namespace kangao */

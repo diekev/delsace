@@ -26,6 +26,8 @@
 
 #include <QPushButton>
 
+namespace kangao {
+
 class RepondantBouton;
 
 /**
@@ -78,3 +80,5 @@ public Q_SLOTS:
 	 */
 	void bouton_presse();
 };
+
+}  /* namespace kangao */

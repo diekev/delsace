@@ -27,6 +27,8 @@
 #include <unordered_map>
 #include <experimental/any>
 
+namespace kangao {
+
 enum TypePropriete {
 	ENTIER,
 	DECIMAL,
@@ -113,3 +115,5 @@ public:
 	 */
 	void *operator[](const std::string &nom);
 };
+
+}  /* namespace kangao */

@@ -31,6 +31,8 @@
 
 //#define DEBOGUE_ANALYSEUR
 
+namespace kangao {
+
 /* ************************************************************************** */
 
 static bool est_identifiant_controle(int identifiant)
@@ -544,3 +546,5 @@ void Analyseur::lance_erreur(const std::string &quoi)
 
 	throw ErreurSyntactique(ligne, numero_ligne, position_ligne, quoi, contenu);
 }
+
+}  /* namespace kangao */

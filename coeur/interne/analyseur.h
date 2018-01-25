@@ -28,6 +28,8 @@
 
 #include "morceaux.h"
 
+namespace kangao {
+
 class AssembleurDisposition;
 
 /**
@@ -200,3 +202,5 @@ private:
 	 */
 	void analyse_onglet();
 };
+
+}  /* namespace kangao */
