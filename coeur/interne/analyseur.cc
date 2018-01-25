@@ -198,6 +198,9 @@ void Analyseur::analyse_disposition()
 	else if (est_identifiant(IDENTIFIANT_COLONNE)) {
 		analyse_colonne();
 	}
+	else if (est_identifiant(IDENTIFIANT_DOSSIER)) {
+		analyse_dossier();
+	}
 	else if (est_identifiant(IDENTIFIANT_CONTROLE_BOUTON)) {
 		analyse_bouton();
 	}
@@ -263,6 +266,63 @@ void Analyseur::analyse_colonne()
 	}
 
 	analyse_disposition();
+}
+
+void Analyseur::analyse_dossier()
+{
+	if (!requiers_identifiant(IDENTIFIANT_DOSSIER)) {
+		lance_erreur("Attendu la déclaration 'dossier' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+		lance_erreur("Attendu une accolade ouvrante après la déclaration 'dossier' !");
+	}
+
+	m_assembleur->ajoute_dossier();
+
+	analyse_onglet();
+
+	m_assembleur->finalise_dossier();
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de 'dossier' !");
+	}
+
+	analyse_disposition();
+}
+
+void Analyseur::analyse_onglet()
+{
+	/* Soit le dossier est vide, soit il n'y a plus d'onglets. */
+	if (!est_identifiant(IDENTIFIANT_ONGLET)) {
+		return;
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_ONGLET)) {
+		lance_erreur("Attendu la déclaration 'onglet' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		lance_erreur("Attendu une chaîne de caractère après 'onglet' !");
+	}
+
+	const auto &nom = m_identifiants[position()].contenu;
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+		lance_erreur("Attendu une accolade ouvrante après le nom de 'onglet' !");
+	}
+
+	m_assembleur->ajoute_onglet(nom);
+
+	analyse_disposition();
+
+	m_assembleur->finalise_onglet();
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de 'onglet' !");
+	}
+
+	analyse_onglet();
 }
 
 void Analyseur::analyse_controle()

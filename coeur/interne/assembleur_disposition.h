@@ -37,6 +37,7 @@ class RepondantBouton;
 class QBoxLayout;
 class QLabel;
 class QMenu;
+class QTabWidget;
 
 /**
  * La classe AssembleurDisposition s'occupe de créer l'interface en fonction de
@@ -57,6 +58,8 @@ class AssembleurDisposition {
 	Manipulable *m_manipulable = nullptr;
 	RepondantBouton *m_repondant = nullptr;
 	ConteneurControles *m_conteneur = nullptr;
+
+	QTabWidget *m_dernier_dossier = nullptr;
 
 public:
 	/**
@@ -139,4 +142,26 @@ public:
 	void propriete_action(int identifiant, const std::string &valeur);
 
 	void ajoute_separateur();
+
+	/**
+	 * Ajoute un dossier à la disposition se trouvant au sommet de la pile.
+	 */
+	void ajoute_dossier();
+
+	/**
+	 * Achève la création du dernier dossier ajouté.
+	 */
+	void finalise_dossier();
+
+	/**
+	 * Ajoute un onglet au dernier dossier ajouté. La disposition de l'onglet
+	 * est mise sur la pile de dispositions.
+	 */
+	void ajoute_onglet(const std::string &nom);
+
+	/**
+	 * Achève la création du dernier onglet ajouté. La disposition de l'onglet
+	 * est enlevé de la pile de dispositions.
+	 */
+	void finalise_onglet();
 };

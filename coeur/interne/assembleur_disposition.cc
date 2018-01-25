@@ -237,3 +237,35 @@ void AssembleurDisposition::ajoute_separateur()
 {
 	m_pile_menus.top()->addSeparator();
 }
+
+void AssembleurDisposition::ajoute_dossier()
+{
+	QTabWidget *dossier = new QTabWidget;
+
+	m_pile_dispositions.top()->addWidget(dossier);
+
+	m_dernier_dossier = dossier;
+}
+
+void AssembleurDisposition::finalise_dossier()
+{
+	m_dernier_dossier = nullptr;
+}
+
+void AssembleurDisposition::ajoute_onglet(const std::string &nom)
+{
+	/* À FAIRE : expose contrôle de la direction. */
+	auto disp_onglet = new QVBoxLayout;
+
+	auto onglet = new QWidget;
+	onglet->setLayout(disp_onglet);
+
+	m_pile_dispositions.push(disp_onglet);
+
+	m_dernier_dossier->addTab(onglet, nom.c_str());
+}
+
+void AssembleurDisposition::finalise_onglet()
+{
+	m_pile_dispositions.pop();
+}

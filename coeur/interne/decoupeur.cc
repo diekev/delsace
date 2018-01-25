@@ -78,6 +78,8 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_MENU, "menu" },
 	{ IDENTIFIANT_COLONNE, "colonne" },
 	{ IDENTIFIANT_LIGNE, "ligne" },
+	{ IDENTIFIANT_DOSSIER, "dossier" },
+	{ IDENTIFIANT_ONGLET, "onglet" },
 	{ IDENTIFIANT_CONTROLE_ETIQUETTE, "étiquette" },
 	{ IDENTIFIANT_ACCOLADE_OUVERTE, "{" },
 	{ IDENTIFIANT_ACCOLADE_FERMEE, "}" },

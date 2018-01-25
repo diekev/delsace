@@ -183,4 +183,20 @@ private:
 	void analyse_action();
 	void analyse_menu();
 	void analyse_script_menu();
+
+	/**
+	 * Analyse la déclaration d'un dossier en vérifiant que les identifiants
+	 * correspondent à la grammaire suivante :
+	 *
+	 * dossier { onglet... }
+	 */
+	void analyse_dossier();
+
+	/**
+	 * Analyse la déclaration d'un onglet en vérifiant que les identifiants
+	 * correspondent à la grammaire suivante :
+	 *
+	 * onglet "chaîne de caractères" { disposition... }
+	 */
+	void analyse_onglet();
 };
