@@ -111,6 +111,7 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_PROPRIETE_PAS, "pas" },
 	{ IDENTIFIANT_PROPRIETE_ITEM, "items" },
 	{ IDENTIFIANT_PROPRIETE_NOM, "nom" },
+	{ IDENTIFIANT_PROPRIETE_METADONNEE, "métadonnée" },
 };
 
 static bool comparaison_paires_identifiant(

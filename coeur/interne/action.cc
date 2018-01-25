@@ -42,6 +42,11 @@ void Action::etablie_attache(const std::string &attache)
 	m_attache = attache;
 }
 
+void Action::etablie_metadonnee(const std::string &metadonnee)
+{
+	m_metadonnee = metadonnee;
+}
+
 void Action::etablie_valeur(const std::string &valeur)
 {
 	this->setText(valeur.c_str());
@@ -55,6 +60,6 @@ void Action::etablie_infobulle(const std::string &valeur)
 void Action::action_presse()
 {
 	if (m_repondant) {
-		m_repondant->repond_clique(m_attache);
+		m_repondant->repond_clique(m_attache, m_metadonnee);
 	}
 }

@@ -53,9 +53,10 @@ private Q_SLOTS:
 
 class RepondantBoutonTest : public RepondantBouton {
 public:
-	void repond_clique(const std::string &valeur) override
+	void repond_clique(const std::string &valeur, const std::string &metadonnee) override
 	{
-		std::cerr << "Répondant au clique pour " << valeur << '\n';
+		std::cerr << "Répondant au clique pour " << valeur
+				  << ", avec métadonnée " << metadonnee << '\n';
 	}
 };
 
@@ -99,8 +100,8 @@ public:
 							"   }\n"
 							"    ligne {\n"
 							"        étiquette(valeur=\"Ligne 2\")\n"
-							"        bouton(valeur=\"Bouton test\"; attache=\"attache_test\")\n"
-							"        bouton(valeur=\"Bouton test 2\"; attache=\"attache_test2\")\n"
+							"        bouton(valeur=\"Cube\"; attache=\"ajoute_objet\"; métadonnée=\"cube\")\n"
+							"        bouton(valeur=\"Sphère\"; attache=\"ajoute_objet\"; métadonnée=\"sphere\")\n"
 							"    }\n"
 							"}";
 

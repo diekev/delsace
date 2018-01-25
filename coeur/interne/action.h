@@ -38,6 +38,7 @@ class Action : public QAction {
 
 	RepondantBouton *m_repondant = nullptr;
 	std::string m_attache = "";
+	std::string m_metadonnee = "";
 
 public:
 	explicit Action(QWidget *parent = nullptr);
@@ -64,6 +65,12 @@ public:
 	 * Établie le contenu de l'infobulle du bouton.
 	 */
 	void etablie_infobulle(const std::string &valeur);
+
+	/**
+	 * Établie la métadonnée de l'action, c'est-à-dire la chaîne de caractère
+	 * qui sera passée au RepondantBouton lors d'un clique sur ce bouton.
+	 */
+	void etablie_metadonnee(const std::string &metadonnee);
 
 public Q_SLOTS:
 	/**

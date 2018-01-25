@@ -39,7 +39,7 @@ public:
 	 * Fonction appelée quand un bouton attaché à ce répondant est cliqué.
 	 *
 	 * L'identifiant passé en paramètre est l'attache du bouton défini dans le
-	 * script (bouton(attache"...")).
+	 * script (bouton(attache="..."; métadonnée="...")).
 	 */
-	virtual void repond_clique(const std::string &identifiant) = 0;
+	virtual void repond_clique(const std::string &identifiant, const std::string &metadonnee) = 0;
 };
