@@ -35,6 +35,14 @@ qt5_wrap_cpp(
 	conteneur_controles.h
 )
 
+set(ENTETES
+	conteneur_controles.h
+	erreur.h
+	kangao.h
+	manipulable.h
+	repondant_bouton.h
+)
+
 add_library(kangao STATIC
 	interne/action.cc
 	interne/analyseur.cc
@@ -60,11 +68,7 @@ add_library(kangao STATIC
 	interne/decoupeur.h
 	interne/morceaux.h
 
-	conteneur_controles.h
-	erreur.h
-	kangao.h
-	manipulable.h
-	repondant_bouton.h
+	${ENTETES}
 
 	${moc_headers}
 )
@@ -72,3 +76,10 @@ add_library(kangao STATIC
 target_include_directories(kangao PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(kangao "${BIBLIOTHEQUES}")
+
+install(TARGETS kangao ARCHIVE DESTINATION lib)
+
+install(
+	FILES ${ENTETES}
+	DESTINATION include/kangao
+)
