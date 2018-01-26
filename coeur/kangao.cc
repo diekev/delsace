@@ -38,6 +38,25 @@
 
 namespace kangao {
 
+std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
+{
+	if (!std::experimental::filesystem::exists(chemin)) {
+		return "";
+	}
+
+	std::ifstream entree;
+	entree.open(chemin.c_str());
+
+	std::string contenu;
+	std::string temp;
+
+	while (std::getline(entree, temp)) {
+		contenu += temp;
+	}
+
+	return contenu;
+}
+
 QBoxLayout *compile_interface(DonneesInterface &donnnes, const char *texte_entree)
 {
 	if (donnnes.manipulable == nullptr) {
@@ -78,16 +97,7 @@ QBoxLayout *compile_interface(
 		return nullptr;
 	}
 
-	std::ifstream entree;
-	entree.open(chemin_texte.c_str());
-
-	std::string texte_entree;
-	std::string temp;
-
-	while (std::getline(entree, temp)) {
-		texte_entree += temp;
-	}
-
+	const auto texte_entree = contenu_fichier(chemin_texte.c_str());
 	return compile_interface(donnnes, texte_entree.c_str());
 }
 

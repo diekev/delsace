@@ -74,6 +74,13 @@ public:
 	QToolBar *compile_barre_outils(DonneesInterface &donnnes, const char *texte_entree);
 };
 
+/**
+ * Retourne une chaîne de caractère ayant le contenu du fichier pointé par le
+ * chemin spécifié. Si le chemin pointe vers un fichier non-existant, la chaîne
+ * retournée sera vide.
+ */
+std::string contenu_fichier(const std::experimental::filesystem::path &chemin);
+
 QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);
 
 /**
