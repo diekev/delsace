@@ -201,6 +201,8 @@ private:
 	 * onglet "chaîne de caractères" { disposition... }
 	 */
 	void analyse_onglet();
+	void analyse_script_barre_outils();
+	void analyse_barre_outils();
 };
 
 }  /* namespace kangao */

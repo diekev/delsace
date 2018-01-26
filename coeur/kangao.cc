@@ -241,4 +241,32 @@ QMenu *GestionnaireInterface::pointeur_menu(const std::string &nom)
 	return (*iter).second;
 }
 
+QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes, const char *texte_entree)
+{
+	AssembleurDisposition assembleur(
+				donnnes.manipulable,
+				donnnes.repondant_bouton,
+				donnnes.conteneur);
+
+	Analyseur analyseur;
+	analyseur.installe_assembleur(&assembleur);
+
+	Decoupeur decoupeur(texte_entree);
+
+	try {
+		decoupeur.decoupe();
+		analyseur.lance_analyse(decoupeur.morceaux());
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+	catch (const ErreurSyntactique &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+
+	return assembleur.barre_outils();
+}
+
 }  /* namespace kangao */

@@ -32,6 +32,7 @@ class QBoxLayout;
 class QLabel;
 class QMenu;
 class QTabWidget;
+class QToolBar;
 
 namespace kangao {
 
@@ -65,6 +66,8 @@ class AssembleurDisposition {
 	ConteneurControles *m_conteneur = nullptr;
 
 	QTabWidget *m_dernier_dossier = nullptr;
+
+	QToolBar *m_barre_outils = nullptr;
 
 	std::string m_nom = "";
 
@@ -187,6 +190,17 @@ public:
 	 * de ceux-ci.
 	 */
 	const std::vector<std::pair<std::string, QMenu *> > &donnees_menus() const;
+
+	/**
+	 * Créé une nouvelle barre à outils qui remplace toute barre à outils
+	 * précédemment créée.
+	 */
+	void ajoute_barre_outils();
+
+	/**
+	 * Retourne un pointeur vers la barre à outils créée.
+	 */
+	QToolBar *barre_outils() const;
 };
 
 }  /* namespace kangao */

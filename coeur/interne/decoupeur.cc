@@ -78,6 +78,7 @@ struct PaireIndentifiantChaine {
 static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_DISPOSITION, "disposition" },
 	{ IDENTIFIANT_MENU, "menu" },
+	{ IDENTIFIANT_BARRE_OUTILS, "barre_outils" },
 	{ IDENTIFIANT_COLONNE, "colonne" },
 	{ IDENTIFIANT_LIGNE, "ligne" },
 	{ IDENTIFIANT_DOSSIER, "dossier" },

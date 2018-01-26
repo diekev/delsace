@@ -95,6 +95,9 @@ void Analyseur::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
 	else if (est_identifiant(IDENTIFIANT_MENU)) {
 		analyse_script_menu();
 	}
+	else if (est_identifiant(IDENTIFIANT_BARRE_OUTILS)) {
+		analyse_script_barre_outils();
+	}
 }
 
 void Analyseur::analyse_script_disposition()
@@ -156,6 +159,37 @@ void Analyseur::analyse_script_menu()
 	}
 
 	m_assembleur->sort_menu();
+}
+
+void Analyseur::analyse_script_barre_outils()
+{
+	if (!requiers_identifiant(IDENTIFIANT_BARRE_OUTILS)) {
+		lance_erreur("Attendu la déclaration 'barre_outils' !");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+		lance_erreur("Attendu une accolade ouvrante après 'barre_outils' !");
+	}
+
+	m_assembleur->ajoute_barre_outils();
+
+	analyse_barre_outils();
+
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+		lance_erreur("Attendu une accolade fermante à la fin du script !");
+	}
+}
+
+void Analyseur::analyse_barre_outils()
+{
+	if (est_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
+		analyse_action();
+	}
+	else {
+		return;
+	}
+
+	analyse_barre_outils();
 }
 
 void Analyseur::analyse_menu()

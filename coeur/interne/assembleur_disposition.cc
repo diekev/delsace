@@ -27,6 +27,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
+#include <QToolBar>
 #include <QVBoxLayout>
 
 #include "action.h"
@@ -244,7 +245,13 @@ void AssembleurDisposition::ajoute_action()
 	auto action = new Action;
 	action->installe_repondant(m_repondant);
 
-	m_pile_menus.top()->addAction(action);
+	/* À FAIRE : trouve une meilleure manière de procéder. */
+	if (m_barre_outils) {
+		m_barre_outils->addAction(action);
+	}
+	else {
+		m_pile_menus.top()->addAction(action);
+	}
 
 	m_derniere_action = action;
 }
@@ -299,6 +306,20 @@ std::string AssembleurDisposition::nom_disposition() const
 const std::vector<std::pair<std::string, QMenu *>> &AssembleurDisposition::donnees_menus() const
 {
 	return m_donnees_menus;
+}
+
+void AssembleurDisposition::ajoute_barre_outils()
+{
+	if (m_barre_outils) {
+		delete m_barre_outils;
+	}
+
+	m_barre_outils = new QToolBar;
+}
+
+QToolBar *AssembleurDisposition::barre_outils() const
+{
+	return m_barre_outils;
 }
 
 }  /* namespace kangao */

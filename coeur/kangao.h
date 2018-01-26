@@ -29,6 +29,7 @@
 
 class QBoxLayout;
 class QMenu;
+class QToolBar;
 
 namespace kangao {
 
@@ -69,6 +70,8 @@ public:
 			const char *texte_entree);
 
 	QMenu *pointeur_menu(const std::string &nom);
+
+	QToolBar *compile_barre_outils(DonneesInterface &donnnes, const char *texte_entree);
 };
 
 QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);
