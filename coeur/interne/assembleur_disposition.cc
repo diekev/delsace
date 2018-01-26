@@ -229,6 +229,8 @@ void AssembleurDisposition::ajoute_menu(const std::string &nom)
 		m_menu_racine = menu;
 	}
 
+	m_donnees_menus.push_back({nom, menu});
+
 	m_pile_menus.push(menu);
 }
 
@@ -284,14 +286,19 @@ void AssembleurDisposition::finalise_onglet()
 	m_pile_dispositions.pop();
 }
 
-void AssembleurDisposition::nom(const std::string &chaine)
+void AssembleurDisposition::nom_disposition(const std::string &chaine)
 {
 	m_nom = chaine;
 }
 
-std::string AssembleurDisposition::nom() const
+std::string AssembleurDisposition::nom_disposition() const
 {
 	return m_nom;
+}
+
+const std::vector<std::pair<std::string, QMenu *>> &AssembleurDisposition::donnees_menus() const
+{
+	return m_donnees_menus;
 }
 
 }  /* namespace kangao */

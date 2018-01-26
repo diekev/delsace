@@ -53,6 +53,8 @@ class AssembleurDisposition {
 	std::stack<QBoxLayout *, std::vector<QBoxLayout *>> m_pile_dispositions;
 	std::stack<QMenu *, std::vector<QMenu *>> m_pile_menus;
 
+	std::vector<std::pair<std::string, QMenu *>> m_donnees_menus;
+
 	Action *m_derniere_action = nullptr;
 	Controle *m_dernier_controle = nullptr;
 	Bouton *m_dernier_bouton = nullptr;
@@ -170,9 +172,21 @@ public:
 	 */
 	void finalise_onglet();
 
-	void nom(const std::string &chaine);
+	/**
+	 * Établie le nom de la disposition étant créée.
+	 */
+	void nom_disposition(const std::string &chaine);
 
-	std::string nom() const;
+	/**
+	 * Retourne le nom de la disposition créée.
+	 */
+	std::string nom_disposition() const;
+
+	/**
+	 * Retourne un vecteur contenant des paires composées de noms des menus et
+	 * de ceux-ci.
+	 */
+	const std::vector<std::pair<std::string, QMenu *> > &donnees_menus() const;
 };
 
 }  /* namespace kangao */

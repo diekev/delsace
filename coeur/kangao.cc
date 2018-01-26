@@ -121,14 +121,11 @@ QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
 
 void GestionnaireInterface::ajourne_menu(const std::string &nom)
 {
-	auto iter = m_menus.find(nom);
+	auto menu = pointeur_menu(nom);
 
-	if (iter == m_menus.end()) {
-		std::cerr << "Le menu '" << nom << "' est introuvable !\n";
+	if (menu == nullptr) {
 		return;
 	}
-
-	QMenu *menu = (*iter).second;
 
 	for (auto &pointeur : menu->actions()) {
 		Action *action = dynamic_cast<Action *>(pointeur);
@@ -136,6 +133,30 @@ void GestionnaireInterface::ajourne_menu(const std::string &nom)
 		if (action) {
 			action->evalue_predicat();
 		}
+	}
+}
+
+/* À FAIRE : passe un script. */
+void GestionnaireInterface::recree_menu(
+		const std::string &nom,
+		const std::vector<DonneesAction> &donnees_actions)
+{
+	auto menu = pointeur_menu(nom);
+
+	if (menu == nullptr) {
+		return;
+	}
+
+	menu->clear();
+
+	for (const auto &donnees : donnees_actions) {
+		Action *action = new Action;
+		action->etablie_valeur(donnees.nom);
+		action->etablie_attache(donnees.attache);
+		action->etablie_metadonnee(donnees.metadonnee);
+		action->installe_repondant(donnees.repondant_bouton);
+
+		menu->addAction(action);
 	}
 }
 
@@ -164,13 +185,11 @@ QMenu *GestionnaireInterface::compile_menu(DonneesInterface &donnnes, const char
 		return nullptr;
 	}
 
-	auto menu = assembleur.menu();
-	auto nom = assembleur.nom();
+	for (const auto &pair : assembleur.donnees_menus()) {
+		m_menus.insert(pair);
+	}
 
-	std::cerr << "Insertion menu '" << nom << "'.\n";
-	m_menus.insert({nom, menu});
-
-	return menu;
+	return assembleur.menu();
 }
 
 QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, const char *texte_entree)
@@ -203,11 +222,23 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, 
 	}
 
 	auto dispostion = assembleur.disposition();
-	auto nom = assembleur.nom();
+	auto nom = assembleur.nom_disposition();
 
 	m_dispositions.insert({nom, dispostion});
 
 	return dispostion;
+}
+
+QMenu *GestionnaireInterface::pointeur_menu(const std::string &nom)
+{
+	auto iter = m_menus.find(nom);
+
+	if (iter == m_menus.end()) {
+		std::cerr << "Le menu '" << nom << "' est introuvable !\n";
+		return nullptr;
+	}
+
+	return (*iter).second;
 }
 
 }  /* namespace kangao */

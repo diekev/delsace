@@ -42,12 +42,23 @@ struct DonneesInterface {
 	ConteneurControles *conteneur;
 };
 
+struct DonneesAction {
+	std::string nom;
+	std::string attache;
+	std::string metadonnee;
+	RepondantBouton *repondant_bouton;
+};
+
 class GestionnaireInterface {
 	std::unordered_map<std::string, QMenu *> m_menus;
 	std::unordered_map<std::string, QBoxLayout *> m_dispositions;
 
 public:
 	void ajourne_menu(const std::string &nom);
+
+	void recree_menu(
+			const std::string &nom,
+			const std::vector<DonneesAction> &donnees_actions);
 
 	void ajourne_disposition(const std::string &nom);
 
@@ -56,6 +67,8 @@ public:
 	QBoxLayout *compile_interface(
 			DonneesInterface &donnnes,
 			const char *texte_entree);
+
+	QMenu *pointeur_menu(const std::string &nom);
 };
 
 QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);
