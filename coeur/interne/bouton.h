@@ -74,6 +74,11 @@ public:
 	 */
 	void etablie_metadonnee(const std::string &metadonnee);
 
+	/**
+	 * Établie l'icône de ce bouton.
+	 */
+	void etablie_icone(const std::string &valeur);
+
 public Q_SLOTS:
 	/**
 	 * Notifie le RepondantBouton que le bouton a été pressé.

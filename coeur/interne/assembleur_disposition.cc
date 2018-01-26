@@ -177,6 +177,9 @@ void AssembleurDisposition::propriete_bouton(int identifiant, const std::string 
 		case IDENTIFIANT_PROPRIETE_METADONNEE:
 			m_dernier_bouton->etablie_metadonnee(valeur);
 			break;
+		case IDENTIFIANT_PROPRIETE_ICONE:
+			m_dernier_bouton->etablie_icone(valeur);
+			break;
 	}
 }
 
@@ -194,6 +197,9 @@ void AssembleurDisposition::propriete_action(int identifiant, const std::string 
 			break;
 		case IDENTIFIANT_PROPRIETE_METADONNEE:
 			m_derniere_action->etablie_metadonnee(valeur);
+			break;
+		case IDENTIFIANT_PROPRIETE_ICONE:
+			m_derniere_action->etablie_icone(valeur);
 			break;
 	}
 }

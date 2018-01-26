@@ -66,6 +66,7 @@ static bool est_identifiant_propriete(int identifiant)
 		case IDENTIFIANT_PROPRIETE_PAS:
 		case IDENTIFIANT_PROPRIETE_ITEM:
 		case IDENTIFIANT_PROPRIETE_METADONNEE:
+		case IDENTIFIANT_PROPRIETE_ICONE:
 			return true;
 		default:
 			return false;

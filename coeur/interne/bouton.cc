@@ -49,6 +49,11 @@ void Bouton::etablie_metadonnee(const std::string &metadonnee)
 	m_metadonnee = metadonnee;
 }
 
+void Bouton::etablie_icone(const std::string &valeur)
+{
+	this->setIcon(QIcon(valeur.c_str()));
+}
+
 void Bouton::etablie_valeur(const std::string &valeur)
 {
 	this->setText(valeur.c_str());
