@@ -58,6 +58,13 @@ public:
 		std::cerr << "Répondant au clique pour " << valeur
 				  << ", avec métadonnée " << metadonnee << '\n';
 	}
+	bool evalue_predicat(const std::string &valeur, const std::string &metadonnee) override
+	{
+		std::cerr << "Évalue prédicat pour " << valeur
+				  << ", avec métadonnée " << metadonnee << '\n';
+
+		return true;
+	}
 };
 
 class FenetreTest : public QMainWindow {

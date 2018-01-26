@@ -54,6 +54,16 @@ void Action::etablie_icone(const std::string &valeur)
 	this->setIcon(QIcon(valeur.c_str()));
 }
 
+void Action::evalue_predicat()
+{
+	if (m_repondant == nullptr) {
+		return;
+	}
+
+	auto ok = m_repondant->evalue_predicat(m_attache, m_metadonnee);
+	this->setEnabled(ok);
+}
+
 void Action::etablie_valeur(const std::string &valeur)
 {
 	this->setText(valeur.c_str());

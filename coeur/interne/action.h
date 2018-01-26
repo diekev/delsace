@@ -79,6 +79,12 @@ public:
 	 */
 	void etablie_icone(const std::string &valeur);
 
+	/**
+	 * Évalue le prédicat de l'attache de cette action, pour soit activer, soit
+	 * désactiver l'action.
+	 */
+	void evalue_predicat();
+
 public Q_SLOTS:
 	/**
 	 * Notifie le RepondantBouton que le bouton a été pressé.

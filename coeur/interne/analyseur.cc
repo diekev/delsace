@@ -94,6 +94,9 @@ void Analyseur::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
 	}
 	else if (est_identifiant(IDENTIFIANT_MENU)) {
 		analyse_script_menu();
+
+		auto nom = m_identifiants[1].contenu;
+		m_assembleur->nom(nom);
 	}
 }
 
@@ -110,6 +113,8 @@ void Analyseur::analyse_script_disposition()
 	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu le nom de la disposition après 'disposition' !");
 	}
+
+	m_assembleur->nom(m_identifiants[position()].contenu);
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom de la disposition !");

@@ -284,4 +284,14 @@ void AssembleurDisposition::finalise_onglet()
 	m_pile_dispositions.pop();
 }
 
+void AssembleurDisposition::nom(const std::string &chaine)
+{
+	m_nom = chaine;
+}
+
+std::string AssembleurDisposition::nom() const
+{
+	return m_nom;
+}
+
 }  /* namespace kangao */

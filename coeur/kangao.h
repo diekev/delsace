@@ -25,6 +25,7 @@
 #pragma once
 
 #include <experimental/filesystem>
+#include <unordered_map>
 
 class QBoxLayout;
 class QMenu;
@@ -39,6 +40,22 @@ struct DonneesInterface {
 	Manipulable *manipulable;
 	RepondantBouton *repondant_bouton;
 	ConteneurControles *conteneur;
+};
+
+class GestionnaireInterface {
+	std::unordered_map<std::string, QMenu *> m_menus;
+	std::unordered_map<std::string, QBoxLayout *> m_dispositions;
+
+public:
+	void ajourne_menu(const std::string &nom);
+
+	void ajourne_disposition(const std::string &nom);
+
+	QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);
+
+	QBoxLayout *compile_interface(
+			DonneesInterface &donnnes,
+			const char *texte_entree);
 };
 
 QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);

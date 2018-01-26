@@ -44,6 +44,11 @@ public:
 	 * script (bouton(attache="..."; métadonnée="...")).
 	 */
 	virtual void repond_clique(const std::string &identifiant, const std::string &metadonnee) = 0;
+
+	/**
+	 * Fonction appelée pour vérifié si un bouton doit ou non être désactivé.
+	 */
+	virtual bool evalue_predicat(const std::string &identifiant, const std::string &metadonnee) = 0;
 };
 
 }  /* namespace kangao */

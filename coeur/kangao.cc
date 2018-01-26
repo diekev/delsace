@@ -27,6 +27,9 @@
 #include <fstream>
 #include <iostream>
 
+#include <QMenu>
+
+#include "interne/action.h"
 #include "interne/assembleur_disposition.h"
 #include "interne/analyseur.h"
 #include "interne/decoupeur.h"
@@ -114,6 +117,97 @@ QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
 	}
 
 	return assembleur.menu();
+}
+
+void GestionnaireInterface::ajourne_menu(const std::string &nom)
+{
+	auto iter = m_menus.find(nom);
+
+	if (iter == m_menus.end()) {
+		std::cerr << "Le menu '" << nom << "' est introuvable !\n";
+		return;
+	}
+
+	QMenu *menu = (*iter).second;
+
+	for (auto &pointeur : menu->actions()) {
+		Action *action = dynamic_cast<Action *>(pointeur);
+
+		if (action) {
+			action->evalue_predicat();
+		}
+	}
+}
+
+QMenu *GestionnaireInterface::compile_menu(DonneesInterface &donnnes, const char *texte_entree)
+{
+	AssembleurDisposition assembleur(
+				donnnes.manipulable,
+				donnnes.repondant_bouton,
+				donnnes.conteneur);
+
+	Analyseur analyseur;
+	analyseur.installe_assembleur(&assembleur);
+
+	Decoupeur decoupeur(texte_entree);
+
+	try {
+		decoupeur.decoupe();
+		analyseur.lance_analyse(decoupeur.morceaux());
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+	catch (const ErreurSyntactique &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+
+	auto menu = assembleur.menu();
+	auto nom = assembleur.nom();
+
+	std::cerr << "Insertion menu '" << nom << "'.\n";
+	m_menus.insert({nom, menu});
+
+	return menu;
+}
+
+QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, const char *texte_entree)
+{
+	if (donnnes.manipulable == nullptr) {
+		return nullptr;
+	}
+
+	AssembleurDisposition assembleur(
+				donnnes.manipulable,
+				donnnes.repondant_bouton,
+				donnnes.conteneur);
+
+	Analyseur analyseur;
+	analyseur.installe_assembleur(&assembleur);
+
+	Decoupeur decoupeur(texte_entree);
+
+	try {
+		decoupeur.decoupe();
+		analyseur.lance_analyse(decoupeur.morceaux());
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+	catch (const ErreurSyntactique &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+
+	auto dispostion = assembleur.disposition();
+	auto nom = assembleur.nom();
+
+	m_dispositions.insert({nom, dispostion});
+
+	return dispostion;
 }
 
 }  /* namespace kangao */

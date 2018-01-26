@@ -64,6 +64,8 @@ class AssembleurDisposition {
 
 	QTabWidget *m_dernier_dossier = nullptr;
 
+	std::string m_nom = "";
+
 public:
 	/**
 	 * Construit une instance d'un assembleur avec les paramètres spécifiés.
@@ -167,6 +169,10 @@ public:
 	 * est enlevé de la pile de dispositions.
 	 */
 	void finalise_onglet();
+
+	void nom(const std::string &chaine);
+
+	std::string nom() const;
 };
 
 }  /* namespace kangao */
