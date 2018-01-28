@@ -26,6 +26,16 @@
 
 namespace kangao {
 
+Manipulable::iterateur Manipulable::debut()
+{
+	return m_proprietes.begin();
+}
+
+Manipulable::iterateur Manipulable::fin()
+{
+	return m_proprietes.end();
+}
+
 void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 {
 	std::experimental::any valeur;
@@ -39,10 +49,10 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 			valeur = std::experimental::any(0.0f);
 			break;
 		case TypePropriete::VECTEUR:
-			valeur = std::experimental::any(0);
+			valeur = std::experimental::any(glm::vec3(0));
 			break;
 		case TypePropriete::COULEUR:
-			valeur = std::experimental::any(0);
+			valeur = std::experimental::any(glm::vec3(0));
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::FICHIER_ENTREE:
@@ -68,14 +78,14 @@ float Manipulable::evalue_decimal(const std::string &nom)
 	return std::experimental::any_cast<float>(m_proprietes[nom].valeur);
 }
 
-int Manipulable::evalue_vecteur(const std::string &nom)
+glm::vec3 Manipulable::evalue_vecteur(const std::string &nom)
 {
-	return std::experimental::any_cast<int>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<glm::vec3>(m_proprietes[nom].valeur);
 }
 
-int Manipulable::evalue_couleur(const std::string &nom)
+glm::vec3 Manipulable::evalue_couleur(const std::string &nom)
 {
-	return std::experimental::any_cast<int>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<glm::vec3>(m_proprietes[nom].valeur);
 }
 
 std::string Manipulable::evalue_fichier_entree(const std::string &nom)
@@ -98,9 +108,49 @@ bool Manipulable::evalue_bool(const std::string &nom)
 	return std::experimental::any_cast<bool>(m_proprietes[nom].valeur);
 }
 
-int Manipulable::evalue_liste(const std::string &nom)
+std::string Manipulable::evalue_liste(const std::string &nom)
 {
-	return std::experimental::any_cast<int>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);
+}
+
+void Manipulable::rend_propriete_visible(const std::string &nom, bool ouinon)
+{
+	m_proprietes[nom].visible = ouinon;
+}
+
+bool Manipulable::ajourne_proprietes()
+{
+	return true;
+}
+
+void Manipulable::valeur_bool(const std::string &nom, bool valeur)
+{
+	m_proprietes[nom].valeur = valeur;
+}
+
+void Manipulable::valeur_entier(const std::string &nom, int valeur)
+{
+	m_proprietes[nom].valeur = valeur;
+}
+
+void Manipulable::valeur_decimal(const std::string &nom, float valeur)
+{
+	m_proprietes[nom].valeur = valeur;
+}
+
+void Manipulable::valeur_vecteur(const std::string &nom, const glm::vec3 &valeur)
+{
+	m_proprietes[nom].valeur = valeur;
+}
+
+void Manipulable::valeur_couleur(const std::string &nom, const glm::vec3 &valeur)
+{
+	m_proprietes[nom].valeur = valeur;
+}
+
+void Manipulable::valeur_chaine(const std::string &nom, const std::string &valeur)
+{
+	m_proprietes[nom].valeur = valeur;
 }
 
 void *Manipulable::operator[](const std::string &nom)
@@ -117,10 +167,10 @@ void *Manipulable::operator[](const std::string &nom)
 			pointeur = std::experimental::any_cast<float>(&propriete.valeur);
 			break;
 		case TypePropriete::VECTEUR:
-			pointeur = std::experimental::any_cast<int>(&propriete.valeur);
+			pointeur = std::experimental::any_cast<glm::vec3>(&propriete.valeur);
 			break;
 		case TypePropriete::COULEUR:
-			pointeur = std::experimental::any_cast<int>(&propriete.valeur);
+			pointeur = std::experimental::any_cast<glm::vec3>(&propriete.valeur);
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::FICHIER_ENTREE:

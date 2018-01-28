@@ -24,8 +24,9 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <experimental/any>
+#include <glm/glm.hpp>
+#include <unordered_map>
 
 namespace kangao {
 
@@ -41,6 +42,13 @@ enum TypePropriete {
 	ENUM,
 };
 
+struct Propriete {
+	std::experimental::any valeur;
+	TypePropriete type;
+
+	bool visible;
+};
+
 /**
  * La classe Manipulable représente un objet qui peut être manipulé dans
  * l'interface. Les propriétés du manipulable sont celles qui seront attachées
@@ -48,17 +56,24 @@ enum TypePropriete {
  * toutes les propriétés utilisées dans le script de définition de l'interface.
  */
 class Manipulable {
-	struct Propriete {
-		std::experimental::any valeur;
-		TypePropriete type;
-	};
-
 	std::unordered_map<std::string, Propriete> m_proprietes{};
 
 public:
 	Manipulable() = default;
 
 	virtual	~Manipulable() = default;
+
+	using iterateur = std::unordered_map<std::string, Propriete>::iterator;
+
+	/**
+	 * Retourne un itérateur pointant vers le début de la liste de propriétés.
+	 */
+	iterateur debut();
+
+	/**
+	 * Retourne un itérateur pointant vers la fin de la liste de propriétés.
+	 */
+	iterateur fin();
 
 	/**
 	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.
@@ -78,12 +93,12 @@ public:
 	/**
 	 * Évalue la valeur d'une propriété de type 'vecteur' du nom spécifié.
 	 */
-	int evalue_vecteur(const std::string &nom);
+	glm::vec3 evalue_vecteur(const std::string &nom);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'couleur' du nom spécifié.
 	 */
-	int evalue_couleur(const std::string &nom);
+	glm::vec3 evalue_couleur(const std::string &nom);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_entrée' du nom spécifié.
@@ -108,7 +123,49 @@ public:
 	/**
 	 * Évalue la valeur d'une propriété de type 'liste' du nom spécifié.
 	 */
-	int evalue_liste(const std::string &nom);
+	std::string evalue_liste(const std::string &nom);
+
+	/**
+	 * Rends la propriété spécifiée visible dans l'interface.
+	 */
+	void rend_propriete_visible(const std::string &nom, bool ouinon);
+
+	/**
+	 * Ajourne les propriétés de ce manipulable. Par exemple pour décider si
+	 * une ou l'autre propriété doit être visible ou non.
+	 */
+	virtual bool ajourne_proprietes();
+
+	/**
+	 * Établie la valeur de la propriété de type bool spécifiée.
+	 */
+	void valeur_bool(const std::string &nom, bool valeur);
+
+	/**
+	 * Établie la valeur de la propriété de type entier spécifiée.
+	 */
+	void valeur_entier(const std::string &nom, int valeur);
+
+	/**
+	 * Établie la valeur de la propriété de type décimal spécifiée.
+	 */
+	void valeur_decimal(const std::string &nom, float valeur);
+
+	/**
+	 * Établie la valeur de la propriété de type vecteur spécifiée.
+	 */
+	void valeur_vecteur(const std::string &nom, const glm::vec3 &valeur);
+
+	/**
+	 * Établie la valeur de la propriété de type couleur spécifiée.
+	 */
+	void valeur_couleur(const std::string &nom, const glm::vec3 &valeur);
+
+	/**
+	 * Établie la valeur de la propriété de type chaine, fichier, ou liste
+	 * spécifiée.
+	 */
+	void valeur_chaine(const std::string &nom, const std::string &valeur);
 
 	/**
 	 * Retourne un pointeur vers la valeur de la propriété au nom spécifié.
