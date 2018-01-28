@@ -28,6 +28,7 @@
 #include <iostream>
 
 #include <QMenu>
+#include <QToolBar>
 
 #include "interne/action.h"
 #include "interne/assembleur_disposition.h"
@@ -127,6 +128,27 @@ QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
 	}
 
 	return assembleur.menu();
+}
+
+GestionnaireInterface::~GestionnaireInterface()
+{
+	for (const auto &donnees : m_menus) {
+		auto menu = donnees.second;
+
+		for (auto &action : menu->actions()) {
+			delete action;
+		}
+
+		delete menu;
+	}
+
+	for (auto &barre_outils : m_barres_outils) {
+		for (auto &action : barre_outils->actions()) {
+			delete action;
+		}
+
+		delete barre_outils;
+	}
 }
 
 void GestionnaireInterface::ajourne_menu(const std::string &nom)
@@ -275,6 +297,8 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes,
 		std::cerr << e.quoi();
 		return nullptr;
 	}
+
+	m_barres_outils.push_back(assembleur.barre_outils());
 
 	return assembleur.barre_outils();
 }

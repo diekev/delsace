@@ -53,8 +53,11 @@ struct DonneesAction {
 class GestionnaireInterface {
 	std::unordered_map<std::string, QMenu *> m_menus;
 	std::unordered_map<std::string, QBoxLayout *> m_dispositions;
+	std::vector<QToolBar *> m_barres_outils;
 
 public:
+	~GestionnaireInterface();
+
 	void ajourne_menu(const std::string &nom);
 
 	void recree_menu(
