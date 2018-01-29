@@ -36,6 +36,16 @@ Manipulable::iterateur Manipulable::fin()
 	return m_proprietes.end();
 }
 
+bool Manipulable::est_initialise() const
+{
+	return m_initialise;
+}
+
+void Manipulable::initialise()
+{
+	m_initialise = true;
+}
+
 void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 {
 	std::experimental::any valeur;

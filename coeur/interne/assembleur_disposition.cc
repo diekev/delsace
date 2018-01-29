@@ -104,15 +104,16 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 			break;
 	}
 
+	m_donnees_controle = DonneesControle();
+	m_donnees_controle.initialisation = !m_manipulable->est_initialise();
+
 	m_dernier_controle = controle;
 	m_pile_dispositions.top()->addWidget(controle);
 }
 
 void AssembleurDisposition::ajoute_item_liste(const std::string &nom, const std::string &valeur)
 {
-	auto controle = dynamic_cast<ControleEnum *>(m_dernier_controle);
-
-	controle->ajoute_item(nom, valeur);
+	m_donnees_controle.valeur_enum.push_back({nom, valeur});
 }
 
 void AssembleurDisposition::ajoute_bouton()
@@ -126,7 +127,8 @@ void AssembleurDisposition::ajoute_bouton()
 
 void AssembleurDisposition::finalise_controle()
 {
-	m_dernier_controle->finalise();
+	m_dernier_controle->finalise(m_donnees_controle);
+
 	QObject::connect(m_dernier_controle, &Controle::controle_change,
 					 m_conteneur, &ConteneurControles::ajourne_manipulable);
 }
@@ -138,27 +140,28 @@ void AssembleurDisposition::sort_disposition()
 
 void AssembleurDisposition::propriete_controle(int identifiant, const std::string &valeur)
 {
+
 	switch (identifiant) {
 		case IDENTIFIANT_PROPRIETE_INFOBULLE:
-			m_dernier_controle->etablie_infobulle(valeur);
+			m_donnees_controle.infobulle = valeur;
 			break;
 		case IDENTIFIANT_PROPRIETE_MIN:
-			m_dernier_controle->etablie_valeur_min(valeur);
+			m_donnees_controle.valeur_min = valeur;
 			break;
 		case IDENTIFIANT_PROPRIETE_MAX:
-			m_dernier_controle->etablie_valeur_max(valeur);
+			m_donnees_controle.valeur_max = valeur;
 			break;
 		case IDENTIFIANT_PROPRIETE_VALEUR:
-			m_dernier_controle->etablie_valeur(valeur);
+			m_donnees_controle.valeur_defaut = valeur;
 			break;
 		case IDENTIFIANT_PROPRIETE_ATTACHE:
-			m_dernier_controle->etablie_attache((*m_manipulable)[valeur]);
+			m_donnees_controle.pointeur = (*m_manipulable)[valeur];
 			break;
 		case IDENTIFIANT_PROPRIETE_PRECISION:
-			m_dernier_controle->etablie_precision(valeur);
+			m_donnees_controle.precision = valeur;
 			break;
 		case IDENTIFIANT_PROPRIETE_PAS:
-			m_dernier_controle->etablie_pas(valeur);
+			m_donnees_controle.pas = valeur;
 			break;
 	}
 }

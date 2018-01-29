@@ -25,6 +25,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace kangao {
 
@@ -90,5 +91,7 @@ struct DonneesMorceaux {
 
 	DonneesMorceaux() = default;
 };
+
+std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur = ' ');
 
 }  /* namespace kangao */

@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include "donnees_controle.h"
+
 class QBoxLayout;
 class QLabel;
 class QMenu;
@@ -70,6 +72,8 @@ class AssembleurDisposition {
 	QToolBar *m_barre_outils = nullptr;
 
 	std::string m_nom = "";
+
+	DonneesControle m_donnees_controle;
 
 public:
 	/**

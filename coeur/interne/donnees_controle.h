@@ -22,23 +22,27 @@
  *
  */
 
-#include "morceaux.h"
+#pragma once
 
-#include <sstream>
+#include <string>
+#include <vector>
 
 namespace kangao {
 
-std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur)
-{
-	std::vector<std::string> resultat;
-	std::stringstream ss(chaine);
-	std::string temp;
+struct DonneesControle {
+	void *pointeur = nullptr;
+	std::string valeur_min = "";
+	std::string valeur_max = "";
+	std::string valeur_defaut = "";
+	std::string precision = "";
+	std::string pas = "";
+	std::string infobulle = "";
+	std::vector<std::pair<std::string, std::string>> valeur_enum{};
 
-	while (std::getline(ss, temp, delimiteur)) {
-		resultat.push_back(temp);
-	}
+	bool initialisation = false;
 
-	return resultat;
-}
+	DonneesControle() = default;
+	~DonneesControle() = default;
+};
 
 }  /* namespace kangao */

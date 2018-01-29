@@ -52,7 +52,7 @@ public:
 	explicit ControleFloat(QWidget *parent = nullptr);
 	~ControleFloat() = default;
 
-	void etablie_attache(void *pointeur) override;
+	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(double valeur);
@@ -69,7 +69,7 @@ public:
 	explicit ControleInt(QWidget *parent = nullptr);
 	~ControleInt() = default;
 
-	void etablie_attache(void *pointeur) override;
+	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(int valeur);
@@ -89,9 +89,7 @@ public:
 	explicit ControleBool(QWidget *parent = nullptr);
 	~ControleBool() = default;
 
-	void etablie_valeur(const std::string &valeur) override;
-
-	void etablie_attache(void *pointeur) override;
+	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(bool valeur);
@@ -114,13 +112,7 @@ public:
 	explicit ControleEnum(QWidget *parent = nullptr);
 	~ControleEnum() = default;
 
-	void etablie_valeur(const std::string &valeur) override;
-
-	void etablie_attache(void *pointeur) override;
-
-	void ajoute_item(const std::string &nom, const std::string &valeur);
-
-	void finalise() override;
+	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(int valeur);
@@ -140,9 +132,7 @@ public:
 	explicit ControleChaineCaractere(QWidget *parent = nullptr);
 	~ControleChaineCaractere() = default;
 
-	void etablie_valeur(const std::string &valeur) override;
-
-	void etablie_attache(void *pointeur) override;
+	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee();
@@ -159,7 +149,7 @@ public:
 	explicit ControleVec3(QWidget *parent = nullptr);
 	~ControleVec3() = default;
 
-	void etablie_attache(void *pointeur) override;
+	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(double valeur, int axis);
@@ -191,7 +181,7 @@ public:
 	explicit ControleFichier(bool input, QWidget *parent = nullptr);
 	~ControleFichier() = default;
 
-	void etablie_attache(void *pointeur) override;
+	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(const QString &valeur);
@@ -209,7 +199,7 @@ public:
 
 	~ControleListe() = default;
 
-	void etablie_attache(void *pointeur) override;
+	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(const QString &valeur);

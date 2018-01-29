@@ -51,6 +51,7 @@ add_library(kangao STATIC
 	interne/bouton.cc
 	interne/controles.cc
 	interne/decoupeur.cc
+	interne/donnees_controle.cc
 	interne/morceaux.cc
 
 	conteneur_controles.cc
@@ -66,6 +67,7 @@ add_library(kangao STATIC
 	interne/bouton.h
 	interne/controles.h
 	interne/decoupeur.h
+	interne/donnees_controle.h
 	interne/morceaux.h
 
 	${ENTETES}

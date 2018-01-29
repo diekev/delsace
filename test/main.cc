@@ -91,7 +91,7 @@ public:
 							"        chaine(valeur=\"\"; attache=\"chaine\")\n"
 							"        fichier_entrée(valeur=\"\"; attache=\"fichier_in\")\n"
 							"        fichier_sortie(valeur=\"\"; attache=\"fichier_ex\")\n"
-							"        vecteur(valeur=\"\"; attache=\"vecteur\")\n"
+							"        vecteur(valeur=\"0, 1, 0\"; attache=\"vecteur\")\n"
 							"    }\n"
 							"	dossier {\n"
 							"       onglet \"Onglet Test\" {"

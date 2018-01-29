@@ -57,6 +57,7 @@ struct Propriete {
  */
 class Manipulable {
 	std::unordered_map<std::string, Propriete> m_proprietes{};
+	bool m_initialise = false;
 
 public:
 	Manipulable() = default;
@@ -74,6 +75,19 @@ public:
 	 * Retourne un itérateur pointant vers la fin de la liste de propriétés.
 	 */
 	iterateur fin();
+
+	/**
+	 * Retourne si oui ou non le manipulable a été initialisé. Cette propriété
+	 * est utilisée pour définir si oui ou non les contrôles créés dans
+	 * l'interface doivent prendre leurs valeurs par défaut, ou celles du
+	 * manipulable.
+	 */
+	bool est_initialise() const;
+
+	/**
+	 * Marque le manipulable comme étant initialisé.
+	 */
+	void initialise();
 
 	/**
 	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.

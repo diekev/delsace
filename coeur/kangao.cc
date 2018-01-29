@@ -31,11 +31,12 @@
 #include <QToolBar>
 
 #include "interne/action.h"
-#include "interne/assembleur_disposition.h"
 #include "interne/analyseur.h"
+#include "interne/assembleur_disposition.h"
 #include "interne/decoupeur.h"
 
 #include "erreur.h"
+#include "manipulable.h"
 
 namespace kangao {
 
@@ -86,6 +87,8 @@ QBoxLayout *compile_interface(DonneesInterface &donnnes, const char *texte_entre
 		std::cerr << e.quoi();
 		return nullptr;
 	}
+
+	donnnes.manipulable->initialise();
 
 	return assembleur.disposition();
 }
@@ -257,6 +260,8 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, 
 	auto nom = assembleur.nom_disposition();
 
 	m_dispositions.insert({nom, dispostion});
+
+	donnnes.manipulable->initialise();
 
 	return dispostion;
 }

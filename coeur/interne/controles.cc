@@ -24,9 +24,26 @@
 
 #include "controles.h"
 
+#include <sstream>
+
 #include <QHBoxLayout>
 
+#include "donnees_controle.h"
+#include "morceaux.h"
+
 namespace kangao {
+
+/* Il s'emblerait que std::atof a du mal à convertir les string en float. */
+template <typename T>
+T convertie(const std::string &valeur)
+{
+	std::istringstream ss(valeur);
+	T result;
+
+	ss >> result;
+
+	return result;
+}
 
 /* ************************************************************************** */
 
@@ -38,16 +55,30 @@ ControleFloat::ControleFloat(QWidget *parent)
 	connect(this, &SelecteurFloat::valeur_changee, this, &ControleFloat::ajourne_valeur_pointee);
 }
 
-void ControleFloat::etablie_attache(void *pointeur)
-{
-	m_pointeur = static_cast<float *>(pointeur);
-	valeur(*m_pointeur);
-}
-
 void ControleFloat::ajourne_valeur_pointee(double valeur)
 {
 	*m_pointeur = static_cast<float>(valeur);
 	Q_EMIT(controle_change());
+}
+
+void ControleFloat::finalise(const DonneesControle &donnees)
+{
+	m_min = convertie<float>(donnees.valeur_min);
+	m_max = convertie<float>(donnees.valeur_max);
+
+	setRange(m_min, m_max);
+
+	m_pointeur = static_cast<float *>(donnees.pointeur);
+
+	const auto valeur_defaut = convertie<float>(donnees.valeur_defaut);
+
+	if (donnees.initialisation) {
+		*m_pointeur = valeur_defaut;
+	}
+
+	valeur(*m_pointeur);
+
+	setToolTip(donnees.infobulle.c_str());
 }
 
 /* ************************************************************************** */
@@ -56,14 +87,27 @@ ControleInt::ControleInt(QWidget *parent)
 	: SelecteurInt(parent)
 	, m_pointeur(nullptr)
 {
-	setValue(0);
 	connect(this, &SelecteurInt::valeur_changee, this, &ControleInt::ajourne_valeur_pointee);
 }
 
-void ControleInt::etablie_attache(void *pointeur)
+void ControleInt::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<int *>(pointeur);
+	m_min = std::atoi(donnees.valeur_min.c_str());
+	m_max = std::atoi(donnees.valeur_max.c_str());
+
+	setRange(m_min, m_max);
+
+	m_pointeur = static_cast<int *>(donnees.pointeur);
+
+	const auto valeur_defaut = std::atoi(donnees.valeur_defaut.c_str());
+
+	if (donnees.initialisation) {
+		*m_pointeur = valeur_defaut;
+	}
+
 	setValue(*m_pointeur);
+
+	setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleInt::ajourne_valeur_pointee(int valeur)
@@ -88,17 +132,23 @@ ControleBool::ControleBool(QWidget *parent)
 	connect(m_case_a_cocher, &QAbstractButton::toggled, this, &ControleBool::ajourne_valeur_pointee);
 }
 
-void ControleBool::etablie_valeur(const std::string &valeur)
+void ControleBool::finalise(const DonneesControle &donnees)
 {
 	const auto vieil_etat = m_case_a_cocher->blockSignals(true);
-	m_case_a_cocher->setChecked(valeur == "vrai");
-	m_case_a_cocher->blockSignals(vieil_etat);
-}
 
-void ControleBool::etablie_attache(void *pointeur)
-{
-	m_pointeur = static_cast<bool *>(pointeur);
+	m_pointeur = static_cast<bool *>(donnees.pointeur);
+
+	const auto valeur_defaut = (donnees.valeur_defaut == "vrai");
+
+	if (donnees.initialisation) {
+		*m_pointeur = valeur_defaut;
+	}
+
 	m_case_a_cocher->setChecked(*m_pointeur);
+
+	setToolTip(donnees.infobulle.c_str());
+
+	m_case_a_cocher->blockSignals(vieil_etat);
 }
 
 void ControleBool::ajourne_valeur_pointee(bool valeur)
@@ -129,38 +179,42 @@ ControleEnum::ControleEnum(QWidget *parent)
 			this, SLOT(ajourne_valeur_pointee(int)));
 }
 
-void ControleEnum::etablie_valeur(const std::string &valeur)
-{
-	m_valeur_defaut = valeur;
-}
-
-void ControleEnum::etablie_attache(void *pointeur)
-{
-	m_pointeur = static_cast<std::string *>(pointeur);
-}
-
-void ControleEnum::ajoute_item(const std::string &nom, const std::string &valeur)
-{
-	const auto vieil_etat = m_liste_deroulante->blockSignals(true);
-	m_liste_deroulante->addItem(nom.c_str(), QVariant(valeur.c_str()));
-	m_liste_deroulante->blockSignals(vieil_etat);
-
-	if (valeur == m_valeur_defaut) {
-		m_index_valeur_defaut = m_index_courant;
-	}
-
-	++m_index_courant;
-}
-
 void ControleEnum::ajourne_valeur_pointee(int /*valeur*/)
 {
 	*m_pointeur = m_liste_deroulante->currentData().toString().toStdString();
 	Q_EMIT(controle_change());
 }
 
-void ControleEnum::finalise()
+void ControleEnum::finalise(const DonneesControle &donnees)
 {
+	m_pointeur = static_cast<std::string *>(donnees.pointeur);
+
+	const auto valeur_defaut = donnees.valeur_defaut;
+
+	if (donnees.initialisation) {
+		*m_pointeur = valeur_defaut;
+	}
+
+	const auto vieil_etat = m_liste_deroulante->blockSignals(true);
+
+	auto index_courant = 0;
+
+	for (const auto &pair : donnees.valeur_enum) {
+		m_liste_deroulante->addItem(pair.first.c_str(),
+									QVariant(pair.second.c_str()));
+
+		if (pair.second == valeur_defaut) {
+			m_index_valeur_defaut = index_courant;
+		}
+
+		index_courant++;
+	}
+
 	m_liste_deroulante->setCurrentIndex(m_index_valeur_defaut);
+
+	m_liste_deroulante->blockSignals(vieil_etat);
+
+	setToolTip(donnees.infobulle.c_str());
 }
 
 /* ************************************************************************** */
@@ -178,14 +232,17 @@ ControleChaineCaractere::ControleChaineCaractere(QWidget *parent)
 			this, &ControleChaineCaractere::ajourne_valeur_pointee);
 }
 
-void ControleChaineCaractere::etablie_valeur(const std::string &valeur)
+void ControleChaineCaractere::finalise(const DonneesControle &donnees)
 {
-	m_editeur_ligne->setText(valeur.c_str());
-}
+	m_pointeur = static_cast<std::string *>(donnees.pointeur);
 
-void ControleChaineCaractere::etablie_attache(void *pointeur)
-{
-	m_pointeur = static_cast<std::string *>(pointeur);
+	if (donnees.initialisation) {
+		*m_pointeur = donnees.valeur_defaut;
+	}
+
+	m_editeur_ligne->setText(m_pointeur->c_str());
+
+	setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleChaineCaractere::ajourne_valeur_pointee()
@@ -203,10 +260,28 @@ ControleVec3::ControleVec3(QWidget *parent)
 	connect(this, &SelecteurVec3::valeur_changee, this, &ControleVec3::ajourne_valeur_pointee);
 }
 
-void ControleVec3::etablie_attache(void *pointeur)
+void ControleVec3::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<float *>(pointeur);
+	m_pointeur = static_cast<float *>(donnees.pointeur);
+
+	auto valeurs = decoupe(donnees.valeur_defaut, ',');
+	auto index = 0;
+
+	float valeur_defaut[3];
+
+	for (auto v : valeurs) {
+		valeur_defaut[index++] = std::atof(v.c_str());
+	}
+
+	if (donnees.initialisation) {
+		m_pointeur[0] = valeur_defaut[0];
+		m_pointeur[1] = valeur_defaut[1];
+		m_pointeur[2] = valeur_defaut[2];
+	}
+
 	setValue(m_pointeur);
+
+	setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleVec3::ajourne_valeur_pointee(double valeur, int axis)
@@ -238,9 +313,17 @@ ControleFichier::ControleFichier(bool input, QWidget *parent)
 	connect(this, &SelecteurFichier::valeur_changee, this, &ControleFichier::ajourne_valeur_pointee);
 }
 
-void ControleFichier::etablie_attache(void *pointeur)
+void ControleFichier::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<std::string *>(pointeur);
+	m_pointeur = static_cast<std::string *>(donnees.pointeur);
+
+	if (donnees.initialisation) {
+		*m_pointeur = donnees.valeur_defaut;
+	}
+
+	setValue(m_pointeur->c_str());
+
+	setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleFichier::ajourne_valeur_pointee(const QString &valeur)
@@ -257,9 +340,17 @@ ControleListe::ControleListe(QWidget *parent)
 	connect(this, &SelecteurListe::valeur_changee, this, &ControleListe::ajourne_valeur_pointee);
 }
 
-void ControleListe::etablie_attache(void *pointeur)
+void ControleListe::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<std::string *>(pointeur);
+	m_pointeur = static_cast<std::string *>(donnees.pointeur);
+
+	if (donnees.initialisation) {
+		*m_pointeur = donnees.valeur_defaut;
+	}
+
+	setValue(m_pointeur->c_str());
+
+	setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleListe::ajourne_valeur_pointee(const QString &valeur)

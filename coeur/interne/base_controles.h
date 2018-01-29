@@ -40,6 +40,8 @@ class QVBoxLayout;
 
 namespace kangao {
 
+struct DonneesControle;
+
 /**
  * La classe Controle donne l'interface nécessaire pour les contrôles à afficher
  * dans l'interface utilisateur. Dès que le contrôle est changé le signal
@@ -52,52 +54,10 @@ public:
 	explicit Controle(QWidget *parent = nullptr);
 
 	/**
-	 * Établie le contenu de l'infobulle de ce contrôle.
-	 */
-	void etablie_infobulle(const std::string &valeur);
-
-	/* Interface pure. */
-
-	/**
-	 * Établie l'attache de ce contrôle, c'est-à-dire le pointeur vers la valeur
-	 * que le contrôle modifie (int, float, etc.).
-	 */
-	virtual void etablie_attache(void *pointeur) = 0;
-
-	/**
-	 * Établie la valeur par défaut du contôle.
-	 */
-	virtual void etablie_valeur(const std::string &valeur) = 0;
-
-	/* Interface. */
-
-	/**
-	 * Établie la valeur minimum que le contrôle peut avoir.
-	 */
-	virtual void etablie_valeur_min(const std::string &valeur) {}
-
-	/**
-	 * Établie la valeur maximum que le contrôle peut avoir.
-	 */
-	virtual void etablie_valeur_max(const std::string &valeur) {}
-
-	/**
-	 * Établie la précision du contrôle, c'est-à-dire le nombre de chiffres
-	 * significatifs pour les nombres décimaux.
-	 */
-	virtual void etablie_precision(const std::string &valeur) {}
-
-	/**
-	 * Établie le pas du contrôle, c'est-à-dire l'interval entre deux valeurs
-	 * possibles.
-	 */
-	virtual void etablie_pas(const std::string &valeur) {}
-
-	/**
 	 * Finalise le contrôle. Cette fonction est appelée à la fin de la création
 	 * du contrôle par l'assembleur de contrôle.
 	 */
-	virtual void finalise() {}
+	virtual void finalise(const DonneesControle &donnees) = 0;
 
 Q_SIGNALS:
 	/**
@@ -115,9 +75,7 @@ class Etiquette final : public Controle {
 public:
 	explicit Etiquette(QWidget *parent = nullptr);
 
-	void etablie_attache(void *pointeur) override;
-
-	void etablie_valeur(const std::string &valeur) override;
+	void finalise(const DonneesControle &donnees) override;
 };
 
 /* ************************************************************************** */
@@ -129,6 +87,7 @@ class SelecteurFloat : public Controle {
 	QDoubleSpinBox *m_spin_box;
 	QSlider *m_slider;
 
+protected:
 	float m_scale;
 	float m_min;
 	float m_max;
@@ -137,14 +96,7 @@ public:
 	explicit SelecteurFloat(QWidget *parent = nullptr);
 	~SelecteurFloat() = default;
 
-	void etablie_attache(void *pointeur) override {}
-
-	void etablie_valeur(const std::string &valeur) override;
-
-	void etablie_valeur_min(const std::string &valeur) override;
-	void etablie_valeur_max(const std::string &valeur) override;
-
-	void finalise() override;
+	void finalise(const DonneesControle &) override;
 
 	void valeur(float value);
 	float valeur() const;
@@ -168,18 +120,14 @@ class SelecteurInt : public Controle {
 	QSpinBox *m_spin_box;
 	QSlider *m_slider;
 
+protected:
 	int m_min, m_max;
 
 public:
 	explicit SelecteurInt(QWidget *parent = nullptr);
 	~SelecteurInt() = default;
 
-	void etablie_valeur(const std::string &valeur) override;
-
-	void etablie_valeur_min(const std::string &valeur) override;
-	void etablie_valeur_max(const std::string &valeur) override;
-
-	void finalise() override;
+	void finalise(const DonneesControle &) override;
 
 	void setValue(int value);
 	int value() const;
@@ -213,8 +161,6 @@ public:
 	explicit SelecteurVec3(QWidget *parent = nullptr);
 	~SelecteurVec3() = default;
 
-	void etablie_valeur(const std::string &valeur) override;
-
 	void setValue(float *value);
 	void getValue(float *value) const;
 	void setMinMax(float min, float max) const;
@@ -235,8 +181,6 @@ public:
 	explicit SelecteurFichier(bool input, QWidget *parent = nullptr);
 
 	~SelecteurFichier() = default;
-
-	void etablie_valeur(const std::string &valeur) override;
 
 	void setValue(const QString &text);
 
@@ -264,8 +208,6 @@ public:
 
 	~SelecteurListe();
 
-	void etablie_valeur(const std::string &valeur) override;
-
 	void setValue(const QString &text);
 
 	void addField(const QString &text);
@@ -288,6 +230,7 @@ class SelecteurCouleur : public Controle {
 	float m_max = 0.0f;
 
 protected:
+	float m_valeur_defaut[3];
 	float *m_couleur = nullptr;
 
 public:
@@ -295,15 +238,9 @@ public:
 
 	~SelecteurCouleur() = default;
 
-	void etablie_attache(void *pointeur) override;
-
-	void etablie_valeur(const std::string &valeur) override;
-
-	void etablie_valeur_min(const std::string &valeur) override;
-
-	void etablie_valeur_max(const std::string &valeur) override;
-
 	void mouseReleaseEvent(QMouseEvent *e) override;
+
+	void finalise(const DonneesControle &donnees) override;
 
 	void paintEvent(QPaintEvent *) override;
 

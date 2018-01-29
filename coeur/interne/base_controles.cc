@@ -36,7 +36,8 @@
 #include <QSlider>
 #include <QVBoxLayout>
 
-#include <sstream>
+#include "donnees_controle.h"
+#include "morceaux.h"
 
 namespace kangao {
 
@@ -46,29 +47,11 @@ enum {
 	AXIS_Z = 2,
 };
 
-std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur = ' ')
-{
-	std::vector<std::string> resultat;
-	std::stringstream ss(chaine);
-	std::string temp;
-
-	while (std::getline(ss, temp, delimiteur)) {
-		resultat.push_back(temp);
-	}
-
-	return resultat;
-}
-
 /* ************************************************************************** */
 
 Controle::Controle(QWidget *parent)
 	: QWidget(parent)
 {}
-
-void Controle::etablie_infobulle(const std::string &valeur)
-{
-	this->setToolTip(valeur.c_str());
-}
 
 /* ************************************************************************** */
 
@@ -81,12 +64,9 @@ Etiquette::Etiquette(QWidget *parent)
 	setLayout(m_agencement);
 }
 
-void Etiquette::etablie_attache(void */*pointeur*/)
-{}
-
-void Etiquette::etablie_valeur(const std::string &valeur)
+void Etiquette::finalise(const DonneesControle &donnees)
 {
-	m_etiquette->setText(valeur.c_str());
+	m_etiquette->setText(donnees.valeur_defaut.c_str());
 }
 
 /* ************************************************************************** */
@@ -113,22 +93,7 @@ SelecteurFloat::SelecteurFloat(QWidget *parent)
 	connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(updateLabel(int)));
 }
 
-void SelecteurFloat::etablie_valeur(const std::string &valeur)
-{
-	this->valeur(std::atof(valeur.c_str()));
-}
-
-void SelecteurFloat::etablie_valeur_min(const std::string &valeur)
-{
-	m_min = std::atof(valeur.c_str());
-}
-
-void SelecteurFloat::etablie_valeur_max(const std::string &valeur)
-{
-	m_max = std::atof(valeur.c_str());
-}
-
-void SelecteurFloat::finalise()
+void SelecteurFloat::finalise(const DonneesControle &)
 {
 	setRange(m_min, m_max);
 }
@@ -193,24 +158,9 @@ SelecteurInt::SelecteurInt(QWidget *parent)
 	connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(updateLabel(int)));
 }
 
-void SelecteurInt::etablie_valeur(const std::string &valeur)
+void SelecteurInt::finalise(const DonneesControle &)
 {
-	this->setValue(std::atoi(valeur.c_str()));
-}
 
-void SelecteurInt::etablie_valeur_min(const std::string &valeur)
-{
-	m_min = std::atoi(valeur.c_str());
-}
-
-void SelecteurInt::etablie_valeur_max(const std::string &valeur)
-{
-	m_max = std::atoi(valeur.c_str());
-}
-
-void SelecteurInt::finalise()
-{
-	setRange(m_min, m_max);
 }
 
 void SelecteurInt::ValueChanged()
@@ -262,11 +212,6 @@ SelecteurVec3::SelecteurVec3(QWidget *parent)
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
 	m_agencement->setSpacing(0);
-}
-
-void SelecteurVec3::etablie_valeur(const std::string &valeur)
-{
-
 }
 
 void SelecteurVec3::xValueChanged(double value)
@@ -322,11 +267,6 @@ SelecteurFichier::SelecteurFichier(bool input, QWidget *parent)
 	connect(m_push_button, SIGNAL(clicked()), this, SLOT(setChoosenFile()));
 }
 
-void SelecteurFichier::etablie_valeur(const std::string &valeur)
-{
-	this->setValue(valeur.c_str());
-}
-
 void SelecteurFichier::setValue(const QString &text)
 {
 	m_line_edit->setText(text);
@@ -363,11 +303,6 @@ SelecteurListe::SelecteurListe(QWidget *parent)
 SelecteurListe::~SelecteurListe()
 {
 	delete m_list_widget;
-}
-
-void SelecteurListe::etablie_valeur(const std::string &valeur)
-{
-	this->setValue(valeur.c_str());
 }
 
 void SelecteurListe::addField(const QString &text)
@@ -422,29 +357,26 @@ SelecteurCouleur::SelecteurCouleur(QWidget *parent)
 	, m_couleur(nullptr)
 {}
 
-void SelecteurCouleur::etablie_attache(void *pointeur)
+void SelecteurCouleur::finalise(const DonneesControle &donnees)
 {
-	m_couleur = static_cast<float *>(pointeur);
-}
+	m_min = std::atof(donnees.valeur_min.c_str());
+	m_max = std::atof(donnees.valeur_max.c_str());
+	m_couleur = static_cast<float *>(donnees.pointeur);
 
-void SelecteurCouleur::etablie_valeur(const std::string &valeur)
-{
-	auto valeurs = decoupe(valeur, ',');
+	auto valeurs = decoupe(donnees.valeur_defaut, ',');
 	auto index = 0;
 
 	for (auto v : valeurs) {
-		m_couleur[index++] = std::atof(v.c_str());
+		m_valeur_defaut[index++] = std::atof(v.c_str());
 	}
-}
 
-void SelecteurCouleur::etablie_valeur_min(const std::string &valeur)
-{
-	m_min = std::atof(valeur.c_str());
-}
+	if (donnees.initialisation) {
+		for (int i = 0; i < 3; ++i) {
+			m_couleur[i] = m_valeur_defaut[i];
+		}
+	}
 
-void SelecteurCouleur::etablie_valeur_max(const std::string &valeur)
-{
-	m_max = std::atof(valeur.c_str());
+	setToolTip(donnees.infobulle.c_str());
 }
 
 void SelecteurCouleur::mouseReleaseEvent(QMouseEvent *e)
