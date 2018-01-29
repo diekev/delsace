@@ -91,8 +91,10 @@ public:
 
 	/**
 	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.
+	 *
+	 * La valeur spécifiée est la valeur par défaut du manipulable.
 	 */
-	void ajoute_propriete(const std::string &nom, TypePropriete type);
+	void ajoute_propriete(const std::string &nom, TypePropriete type, const std::experimental::any &valeur);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'entier' du nom spécifié.

@@ -46,8 +46,9 @@ void Manipulable::initialise()
 	m_initialise = true;
 }
 
-void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
+void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type, const std::experimental::any &valeur)
 {
+#if 0
 	std::experimental::any valeur;
 
 	switch (type) {
@@ -74,6 +75,7 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 			valeur = std::experimental::any(false);
 			break;
 	}
+#endif
 
 	m_proprietes.insert({nom, {valeur, type}});
 }
