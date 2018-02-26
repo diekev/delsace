@@ -116,6 +116,27 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_PROPRIETE_NOM, "nom" },
 	{ IDENTIFIANT_PROPRIETE_METADONNEE, "métadonnée" },
 	{ IDENTIFIANT_PROPRIETE_ICONE, "icône" },
+	/* */
+	{ IDENTIFIANT_ADDITION, "+" },
+	{ IDENTIFIANT_SOUSTRACTION, "-" },
+	{ IDENTIFIANT_DIVISION, "/" },
+	{ IDENTIFIANT_MULTIPLICATION, "*" },
+	{ IDENTIFIANT_EGALITE, "==" },
+	{ IDENTIFIANT_DIFFERENCE, "!=" },
+	{ IDENTIFIANT_INFERIEUR, "<" },
+	{ IDENTIFIANT_INFERIEUR_EGAL, "<=" },
+	{ IDENTIFIANT_SUPERIEUR, ">" },
+	{ IDENTIFIANT_SUPERIEUR_EGAL, ">=" },
+	{ IDENTIFIANT_VRAI, "vrai" },
+	{ IDENTIFIANT_FAUX, "faux" },
+	{ IDENTIFIANT_LOGIQUE, "logique" },
+	{ IDENTIFIANT_FEUILLE, "feuille" },
+	{ IDENTIFIANT_ENTREE, "entrée" },
+	{ IDENTIFIANT_INTERFACE, "interface" },
+	{ IDENTIFIANT_RELATION, "relation" },
+	{ IDENTIFIANT_QUAND, "quand" },
+	{ IDENTIFIANT_SORTIE, "sortie" },
+	{ IDENTIFIANT_RESULTAT, "résultat" },
 };
 
 static bool comparaison_paires_identifiant(

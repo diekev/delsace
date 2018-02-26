@@ -46,6 +46,7 @@ set(ENTETES
 add_library(kangao STATIC
 	interne/action.cc
 	interne/analyseur.cc
+	interne/analyseuse_logique.cc
 	interne/assembleur_disposition.cc
 	interne/base_analyseuse.cc
 	interne/base_controles.cc
@@ -63,6 +64,7 @@ add_library(kangao STATIC
 
 	interne/action.h
 	interne/analyseur.h
+	interne/analyseuse_logique.h
 	interne/assembleur_disposition.h
 	interne/base_analyseuse.h
 	interne/base_controles.h

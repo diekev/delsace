@@ -102,4 +102,6 @@ QBoxLayout *compile_interface(
 		DonneesInterface &donnnes,
 		const std::experimental::filesystem::path &chemin_texte);
 
+void compile_feuille_logique(const char *texte_entree);
+
 }  /* namespace kangao */

@@ -178,12 +178,31 @@ public:
 	}
 };
 
+const char *texte_logique = "feuille \"test\" {"
+							"	entrée {"
+							"	}"
+							"	interface {"
+							"	}"
+							"	logique {"
+							"		relation {"
+							"		}"
+							"		quand (\"preserve_ratio\") relation {"
+							"		}"
+							"	}"
+							"	sortie {"
+							"	}"
+							"}";
+
 int main(int argc, char *argv[])
 {
+#if 0
 	QApplication app(argc, argv);
 
 	FenetreTest fenetre;
 	fenetre.show();
 
 	return app.exec();
+#else
+	kangao::compile_feuille_logique(texte_logique);
+#endif
 }

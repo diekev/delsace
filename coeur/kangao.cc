@@ -32,6 +32,7 @@
 
 #include "interne/action.h"
 #include "interne/analyseur.h"
+#include "interne/analyseuse_logique.h"
 #include "interne/assembleur_disposition.h"
 #include "interne/decoupeur.h"
 
@@ -306,6 +307,23 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes,
 	m_barres_outils.push_back(assembleur.barre_outils());
 
 	return assembleur.barre_outils();
+}
+
+void compile_feuille_logique(const char *texte_entree)
+{
+	AnalyseuseLogique analyseuse;
+	Decoupeur decoupeur(texte_entree);
+
+	try {
+		decoupeur.decoupe();
+		analyseuse.lance_analyse(decoupeur.morceaux());
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi();
+	}
+	catch (const ErreurSyntactique &e) {
+		std::cerr << e.quoi();
+	}
 }
 
 }  /* namespace kangao */
