@@ -70,7 +70,7 @@ QBoxLayout *compile_interface(DonneesInterface &donnnes, const char *texte_entre
 				donnnes.repondant_bouton,
 				donnnes.conteneur);
 
-	Analyseur analyseur;
+	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
 	Decoupeur decoupeur(texte_entree);
@@ -112,7 +112,7 @@ QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
 				donnnes.repondant_bouton,
 				donnnes.conteneur);
 
-	Analyseur analyseur;
+	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
 	Decoupeur decoupeur(texte_entree);
@@ -202,7 +202,7 @@ QMenu *GestionnaireInterface::compile_menu(DonneesInterface &donnnes, const char
 				donnnes.repondant_bouton,
 				donnnes.conteneur);
 
-	Analyseur analyseur;
+	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
 	Decoupeur decoupeur(texte_entree);
@@ -238,7 +238,7 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, 
 				donnnes.repondant_bouton,
 				donnnes.conteneur);
 
-	Analyseur analyseur;
+	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
 	Decoupeur decoupeur(texte_entree);
@@ -285,7 +285,7 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes,
 				donnnes.repondant_bouton,
 				donnnes.conteneur);
 
-	Analyseur analyseur;
+	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
 	Decoupeur decoupeur(texte_entree);

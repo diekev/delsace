@@ -24,30 +24,26 @@
 
 #pragma once
 
-#include <vector>
-
-#include "morceaux.h"
+#include "base_analyseuse.h"
 
 namespace kangao {
 
 class AssembleurDisposition;
 
 /**
- * La classe Analyseur s'occupe de vérifié que la grammaire du langage est
- * respectée. Dès que possible, l'analyseur notifie son assembleur pour le faire
- * créer les éléments rencontrés.
+ * La classe AnalyseuseDisposition s'occupe de vérifié que la grammaire du
+ * langage de définition des dispositions respectée. Dès que possible,
+ * l'analyseuse notifie son assembleur pour le faire créer les éléments
+ * rencontrés.
  *
  * Si une erreur de syntaxe est repérée, une exception de type ErreurSyntactique
  * est lancée.
  */
-class Analyseur {
-	std::vector<DonneesMorceaux> m_identifiants{};
-	int m_position = 0;
-
+class AnalyseuseDisposition : public Analyseuse {
 	AssembleurDisposition *m_assembleur = nullptr;
 
 public:
-	Analyseur() = default;
+	AnalyseuseDisposition() = default;
 
 	/**
 	 * Installe l'assembleur à utiliser pour générer l'interface.
@@ -60,49 +56,9 @@ public:
 	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
 	 * une exception est lancée.
 	 */
-	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants);
+	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
 
 private:
-	/**
-	 * Vérifie que l'identifiant courant est égal à celui spécifié puis avance
-	 * la position de l'analyseur sur le vecteur d'identifiant.
-	 */
-	bool requiers_identifiant(int identifiant);
-
-	/**
-	 * Retourne vrai si l'identifiant courant est égal à celui spécifié.
-	 */
-	bool est_identifiant(int identifiant);
-
-	/**
-	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
-	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
-	 * contenues dans l'instance DonneesMorceaux lui correspondant.
-	 */
-	void lance_erreur(const std::string &quoi);
-
-	/**
-	 * Avance l'analyseur d'un cran sur le vecteur d'identifiants.
-	 */
-	void avance();
-
-	/**
-	 * Recule l'analyseur d'un cran sur le vecteur d'identifiants.
-	 */
-	void recule();
-
-	/**
-	 * Retourne la position courante sur le vecteur d'identifiants.
-	 */
-	int position();
-
-	/**
-	 * Retourne l'identifiant courant.
-	 */
-	int identifiant_courant() const;
-
-	/* Analyse  */
-
 	/**
 	 * Débute l'analyse du script, en vérifiant que les identifiants
 	 * correspondent à la grammaire suivante :

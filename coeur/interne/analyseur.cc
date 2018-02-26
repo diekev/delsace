@@ -27,7 +27,6 @@
 #include <iostream>
 
 #include "assembleur_disposition.h"
-#include "erreur.h"
 
 //#define DEBOGUE_ANALYSEUR
 
@@ -75,12 +74,12 @@ static bool est_identifiant_propriete(int identifiant)
 
 /* ************************************************************************** */
 
-void Analyseur::installe_assembleur(AssembleurDisposition *assembleur)
+void AnalyseuseDisposition::installe_assembleur(AssembleurDisposition *assembleur)
 {
 	m_assembleur = assembleur;
 }
 
-void Analyseur::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
+void AnalyseuseDisposition::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
 {
 	m_identifiants = identifiants;
 	m_position = 0;
@@ -100,7 +99,7 @@ void Analyseur::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
 	}
 }
 
-void Analyseur::analyse_script_disposition()
+void AnalyseuseDisposition::analyse_script_disposition()
 {
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << " début\n";
@@ -134,7 +133,7 @@ void Analyseur::analyse_script_disposition()
 #endif
 }
 
-void Analyseur::analyse_script_menu()
+void AnalyseuseDisposition::analyse_script_menu()
 {
 	if (!requiers_identifiant(IDENTIFIANT_MENU)) {
 		lance_erreur("Attendu la déclaration menu !");
@@ -161,7 +160,7 @@ void Analyseur::analyse_script_menu()
 	m_assembleur->sort_menu();
 }
 
-void Analyseur::analyse_script_barre_outils()
+void AnalyseuseDisposition::analyse_script_barre_outils()
 {
 	if (!requiers_identifiant(IDENTIFIANT_BARRE_OUTILS)) {
 		lance_erreur("Attendu la déclaration 'barre_outils' !");
@@ -180,7 +179,7 @@ void Analyseur::analyse_script_barre_outils()
 	}
 }
 
-void Analyseur::analyse_barre_outils()
+void AnalyseuseDisposition::analyse_barre_outils()
 {
 	if (est_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
 		analyse_action();
@@ -192,7 +191,7 @@ void Analyseur::analyse_barre_outils()
 	analyse_barre_outils();
 }
 
-void Analyseur::analyse_menu()
+void AnalyseuseDisposition::analyse_menu()
 {
 	if (est_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
 		analyse_action();
@@ -211,7 +210,7 @@ void Analyseur::analyse_menu()
 	analyse_menu();
 }
 
-void Analyseur::analyse_action()
+void AnalyseuseDisposition::analyse_action()
 {
 	if (!requiers_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
 		lance_erreur("Attendu la déclaration d'une action !");
@@ -230,7 +229,7 @@ void Analyseur::analyse_action()
 	}
 }
 
-void Analyseur::analyse_disposition()
+void AnalyseuseDisposition::analyse_disposition()
 {
 	if (est_identifiant(IDENTIFIANT_LIGNE)) {
 		analyse_ligne();
@@ -254,7 +253,7 @@ void Analyseur::analyse_disposition()
 	analyse_disposition();
 }
 
-void Analyseur::analyse_ligne()
+void AnalyseuseDisposition::analyse_ligne()
 {
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << '\n';
@@ -281,7 +280,7 @@ void Analyseur::analyse_ligne()
 	analyse_disposition();
 }
 
-void Analyseur::analyse_colonne()
+void AnalyseuseDisposition::analyse_colonne()
 {
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << '\n';
@@ -308,7 +307,7 @@ void Analyseur::analyse_colonne()
 	analyse_disposition();
 }
 
-void Analyseur::analyse_dossier()
+void AnalyseuseDisposition::analyse_dossier()
 {
 	if (!requiers_identifiant(IDENTIFIANT_DOSSIER)) {
 		lance_erreur("Attendu la déclaration 'dossier' !");
@@ -331,7 +330,7 @@ void Analyseur::analyse_dossier()
 	analyse_disposition();
 }
 
-void Analyseur::analyse_onglet()
+void AnalyseuseDisposition::analyse_onglet()
 {
 	/* Soit le dossier est vide, soit il n'y a plus d'onglets. */
 	if (!est_identifiant(IDENTIFIANT_ONGLET)) {
@@ -365,7 +364,7 @@ void Analyseur::analyse_onglet()
 	analyse_onglet();
 }
 
-void Analyseur::analyse_controle()
+void AnalyseuseDisposition::analyse_controle()
 {
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << '\n';
@@ -394,7 +393,7 @@ void Analyseur::analyse_controle()
 	m_assembleur->finalise_controle();
 }
 
-void Analyseur::analyse_bouton()
+void AnalyseuseDisposition::analyse_bouton()
 {
 	if (!requiers_identifiant(IDENTIFIANT_CONTROLE_BOUTON)) {
 		lance_erreur("Attendu la déclaration d'un bouton !");
@@ -413,7 +412,7 @@ void Analyseur::analyse_bouton()
 	}
 }
 
-void Analyseur::analyse_propriete(int type_controle)
+void AnalyseuseDisposition::analyse_propriete(int type_controle)
 {
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << '\n';
@@ -465,7 +464,7 @@ void Analyseur::analyse_propriete(int type_controle)
 	analyse_propriete(type_controle);
 }
 
-void Analyseur::analyse_liste_item()
+void AnalyseuseDisposition::analyse_liste_item()
 {
 	if (!requiers_identifiant(IDENTIFIANT_CROCHET_OUVERT)) {
 		lance_erreur("Attendu un crochet ouvert !");
@@ -479,7 +478,7 @@ void Analyseur::analyse_liste_item()
 }
 
 /* { nom="", valeur=""}, */
-void Analyseur::analyse_item()
+void AnalyseuseDisposition::analyse_item()
 {
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
 		lance_erreur("Attendu une accolade ouverte !");
@@ -530,58 +529,6 @@ void Analyseur::analyse_item()
 	}
 
 	analyse_item();
-}
-
-bool Analyseur::requiers_identifiant(int identifiant)
-{
-	if (m_position >= m_identifiants.size()) {
-		return false;
-	}
-
-	const auto est_bon = this->est_identifiant(identifiant);
-
-	avance();
-
-	return est_bon;
-}
-
-void Analyseur::avance()
-{
-	++m_position;
-}
-
-void Analyseur::recule()
-{
-	m_position -= 1;
-}
-
-int Analyseur::position()
-{
-	return m_position - 1;
-}
-
-bool Analyseur::est_identifiant(int identifiant)
-{
-	return identifiant == this->identifiant_courant();
-}
-
-int Analyseur::identifiant_courant() const
-{
-	if (m_position >= m_identifiants.size()) {
-		return IDENTIFIANT_NUL;
-	}
-
-	return m_identifiants[m_position].identifiant;
-}
-
-void Analyseur::lance_erreur(const std::string &quoi)
-{
-	const auto numero_ligne = m_identifiants[position()].numero_ligne;
-	const auto ligne = m_identifiants[position()].ligne;
-	const auto position_ligne = m_identifiants[position()].position_ligne;
-	const auto contenu = m_identifiants[position()].contenu;
-
-	throw ErreurSyntactique(ligne, numero_ligne, position_ligne, quoi, contenu);
 }
 
 }  /* namespace kangao */

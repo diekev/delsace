@@ -47,6 +47,7 @@ add_library(kangao STATIC
 	interne/action.cc
 	interne/analyseur.cc
 	interne/assembleur_disposition.cc
+	interne/base_analyseuse.cc
 	interne/base_controles.cc
 	interne/bouton.cc
 	interne/controles.cc
@@ -63,6 +64,7 @@ add_library(kangao STATIC
 	interne/action.h
 	interne/analyseur.h
 	interne/assembleur_disposition.h
+	interne/base_analyseuse.h
 	interne/base_controles.h
 	interne/bouton.h
 	interne/controles.h

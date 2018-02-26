@@ -30,8 +30,6 @@
 
 namespace kangao {
 
-class Analyseur;
-
 /**
  * La classe Decoupeur découpe une chaîne de caractère en morceaux selon les
  * mots-clés du langage.
