@@ -55,6 +55,7 @@ add_library(kangao STATIC
 	interne/decoupeur.cc
 	interne/donnees_controle.cc
 	interne/morceaux.cc
+	interne/postfix.cc
 
 	conteneur_controles.cc
 	erreur.cc
@@ -73,6 +74,7 @@ add_library(kangao STATIC
 	interne/decoupeur.h
 	interne/donnees_controle.h
 	interne/morceaux.h
+	interne/postfix.h
 
 	${ENTETES}
 
