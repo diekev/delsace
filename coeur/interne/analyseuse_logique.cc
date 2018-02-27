@@ -25,8 +25,12 @@
 #include "analyseuse_logique.h"
 
 #include <iostream>
+#include <stack>
+
+#include "postfix.h"
 
 #define DEBOGUE_ANALYSEUSE
+#define DEBOGUE_EXPRESSION
 
 namespace kangao {
 
@@ -136,17 +140,80 @@ void AnalyseuseLogique::analyse_declaration()
 #endif
 }
 
+struct Variable {
+	int identifiant;
+	std::string valeur;
+};
+
 void AnalyseuseLogique::analyse_expression()
 {
 #ifdef DEBOGUE_ANALYSEUSE
 	std::cout << __func__ << '\n';
 #endif
 
-	/* À FAIRE */
+	/* Algorithme de Dijkstra pour générer une notation polonaire inversée. */
+
+	std::vector<Variable> output;
+	std::stack<Variable> stack;
+
+	Variable variable;
+
 	while (!est_identifiant(IDENTIFIANT_POINT_VIRGULE)) {
-		std::cerr << "Identifiant courant : " << identifiant_courant() << '\n';
+		variable.identifiant = identifiant_courant();
+		variable.valeur = m_identifiants[position() + 1].contenu;
+
+		if (est_identifiant(IDENTIFIANT_NOMBRE) || est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+			output.push_back(variable);
+		}
+		else if (est_operateur(variable.identifiant)) {
+			while (!stack.empty()
+				   && est_operateur(stack.top().identifiant)
+				   && (precedence_faible(variable.identifiant, stack.top().identifiant)))
+			{
+				output.push_back(stack.top());
+				stack.pop();
+			}
+
+			stack.push(variable);
+		}
+		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+			stack.push(variable);
+		}
+		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+			if (stack.empty()) {
+				lance_erreur("Il manque une paranthèse dans l'expression !");
+			}
+
+			while (stack.top().identifiant != IDENTIFIANT_PARENTHESE_OUVERTE) {
+				output.push_back(stack.top());
+				stack.pop();
+			}
+
+			/* Enlève la parenthèse restante de la pile. */
+			if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVERTE) {
+				stack.pop();
+			}
+		}
+
 		avance();
 	}
+
+	while (!stack.empty()) {
+		if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVERTE) {
+			lance_erreur("Il manque une paranthèse dans l'expression !");
+		}
+
+		output.push_back(stack.top());
+		stack.pop();
+	}
+
+#ifdef DEBOGUE_EXPRESSION
+	std::cerr << "Expression : ";
+	for (const Variable &variable : output) {
+		std::cerr << variable.valeur << ' ';
+	}
+	std::cerr << '\n';
+#endif
 
 #ifdef DEBOGUE_ANALYSEUSE
 	std::cout << __func__ << " fin\n";

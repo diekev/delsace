@@ -27,5 +27,9 @@
 #include <string>
 #include <queue>
 
-auto postfix(const std::string &expression) -> std::queue<std::string>;
-auto evaluate_postfix(std::queue<std::string> &expression) -> double;
+namespace kangao {
+
+bool est_operateur(int identifiant);
+bool precedence_faible(int identifiant1, int identifiant2);
+
+}  /* namespace kangao */

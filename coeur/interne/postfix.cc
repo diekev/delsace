@@ -44,7 +44,7 @@ struct DonneesExpression {
 	std::vector<DonneesVariables> donnees;
 };
 
-auto est_operateur(int identifiant)
+bool est_operateur(int identifiant)
 {
 	switch (identifiant) {
 		case IDENTIFIANT_ADDITION:
@@ -157,126 +157,37 @@ auto evalue_expression(const std::vector<DonneesVariables> &expression) -> doubl
 	return stack.top();
 }
 
-class Operator {
-	int associativity;
-	int precedence;
-
-	enum {
-		LEFT = 0,
-		RIGHT = 1,
-	};
-
-public:
-	explicit Operator(const char *op)
-	    : associativity(LEFT)
-	    , precedence(0)
-	{
-		switch (*op) {
-			case '+':
-			case '-':
-				precedence = 0;
-				associativity = LEFT;
-				break;
-			case 'x':
-			case '*':
-			case '/':
-			case '%':
-				precedence = 1;
-				associativity = LEFT;
-				break;
-			case '^':
-				precedence = 2;
-				associativity = RIGHT;
-				break;
-		}
-	}
-
-	bool has_lower_precedence(const Operator &other) const
-	{
-		return (associativity == LEFT && precedence <= other.precedence)
-		        || ((other.associativity == RIGHT) && (precedence < other.precedence));
-	}
+enum {
+	GAUCHE,
+	DROITE,
 };
 
-auto has_lower_precedence(const std::string &o1, const std::string &o2)
+static std::pair<int, int> associativite(int identifiant)
 {
-	const auto &op1 = Operator(o1.c_str());
-	const auto &op2 = Operator(o2.c_str());
+	switch (identifiant) {
+		case IDENTIFIANT_ADDITION:
+		case IDENTIFIANT_SOUSTRACTION:
+			return { GAUCHE, 0};
+		case IDENTIFIANT_MULTIPLICATION:
+		case IDENTIFIANT_DIVISION:
+		/* À FAIRE : modulo */
+			return { GAUCHE, 1};
+#if 0
+		case IDENTIFIANT_PUISSANCE:
+			return { DROITE, 2};
+#endif
+	}
 
-	return op1.has_lower_precedence(op2);
+	return { GAUCHE, 0 };
 }
 
-auto postfix(const std::string &expression) -> std::queue<std::string>
+bool precedence_faible(int identifiant1, int identifiant2)
 {
-#if 0
-	std::queue<std::string> output;
-	std::stack<std::string> stack;
+	auto p1 = associativite(identifiant1);
+	auto p2 = associativite(identifiant2);
 
-	const auto &tokens = split(expression);
-
-	for (const auto &token : tokens) {
-		if (isdigit(token[0]) || token[0] == '.') {
-			output.push(token);
-			continue;
-		}
-
-		if (est_fonction(token)) {
-			stack.push(token);
-			continue;
-		}
-
-		if (est_operateur(token)) {
-			while (   !stack.empty()
-				   && est_operateur(stack.top())
-			       && (has_lower_precedence(token, stack.top())))
-			{
-				output.push(stack.top());
-				stack.pop();
-			}
-
-			stack.push(token);
-			continue;
-		}
-
-		if (token == "(") {
-			stack.push(token);
-			continue;
-		}
-
-		if (token == ")") {
-			if (stack.empty()) {
-				std::cerr << "Parenthesis mismatch!\n";
-				break;
-			}
-
-			while (stack.top() != "(") {
-				output.push(stack.top());
-				stack.pop();
-			}
-
-			// pop the left parenthesis from the stack
-			if (stack.top() == "(") {
-				stack.pop();
-			}
-
-			continue;
-		}
-	}
-
-	while (!stack.empty()) {
-		if (stack.top() == "(") {
-			std::cerr << "Parenthesis mismatch!\n";
-			break;
-		}
-
-		output.push(stack.top());
-		stack.pop();
-	}
-
-	return output;
-#else
-	return std::queue<std::string>();
-#endif
+	return (p1.first == GAUCHE && p1.second <= p2.second)
+			|| ((p2.first == DROITE) && (p1.second < p2.second));
 }
 
 }  /* namespace kangao */
