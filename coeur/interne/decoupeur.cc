@@ -75,6 +75,13 @@ struct PaireIndentifiantChaine {
 	std::string chaine;
 };
 
+static bool comparaison_paires_identifiant(
+		const PaireIndentifiantChaine &a,
+		const PaireIndentifiantChaine &b)
+{
+	return a.chaine < b.chaine;
+}
+
 static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_DISPOSITION, "disposition" },
 	{ IDENTIFIANT_MENU, "menu" },
@@ -84,15 +91,6 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_DOSSIER, "dossier" },
 	{ IDENTIFIANT_ONGLET, "onglet" },
 	{ IDENTIFIANT_CONTROLE_ETIQUETTE, "étiquette" },
-	{ IDENTIFIANT_ACCOLADE_OUVERTE, "{" },
-	{ IDENTIFIANT_ACCOLADE_FERMEE, "}" },
-	{ IDENTIFIANT_PARENTHESE_OUVERTE, "(" },
-	{ IDENTIFIANT_PARENTHESE_FERMEE, ")" },
-	{ IDENTIFIANT_CROCHET_OUVERT, "[" },
-	{ IDENTIFIANT_CROCHET_FERME, "]" },
-	{ IDENTIFIANT_EGAL, "=" },
-	{ IDENTIFIANT_POINT_VIRGULE, ";" },
-	{ IDENTIFIANT_VIRGULE, "," },
 	{ IDENTIFIANT_CONTROLE_CURSEUR, "entier" },
 	{ IDENTIFIANT_CONTROLE_CURSEUR_DECIMAL, "décimal" },
 	{ IDENTIFIANT_CONTROLE_LISTE, "liste" },
@@ -117,19 +115,9 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_PROPRIETE_METADONNEE, "métadonnée" },
 	{ IDENTIFIANT_PROPRIETE_ICONE, "icône" },
 	/* */
-	{ IDENTIFIANT_ADDITION, "+" },
-	{ IDENTIFIANT_SOUSTRACTION, "-" },
-	{ IDENTIFIANT_DIVISION, "/" },
-	{ IDENTIFIANT_MULTIPLICATION, "*" },
-	{ IDENTIFIANT_NON, "~" },
-	{ IDENTIFIANT_ET, "&" },
-	{ IDENTIFIANT_OU, "|" },
-	{ IDENTIFIANT_OUX, "^" },
 	{ IDENTIFIANT_EGALITE, "==" },
 	{ IDENTIFIANT_INEGALITE, "!=" },
-	{ IDENTIFIANT_INFERIEUR, "<" },
 	{ IDENTIFIANT_INFERIEUR_EGAL, "<=" },
-	{ IDENTIFIANT_SUPERIEUR, ">" },
 	{ IDENTIFIANT_SUPERIEUR_EGAL, ">=" },
 	{ IDENTIFIANT_VRAI, "vrai" },
 	{ IDENTIFIANT_FAUX, "faux" },
@@ -143,12 +131,40 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_RESULTAT, "résultat" },
 };
 
-static bool comparaison_paires_identifiant(
-		const PaireIndentifiantChaine &a,
-		const PaireIndentifiantChaine &b)
+struct PaireIndentifiantCaractere {
+	int identifiant;
+	char caractere;
+};
+
+static bool comparaison_paires_identifiant_caractere(
+		const PaireIndentifiantCaractere &a,
+		const PaireIndentifiantCaractere &b)
 {
-	return a.chaine < b.chaine;
+	return a.caractere < b.caractere;
 }
+
+static PaireIndentifiantCaractere paires_identifiant_caractere[] = {
+	{ IDENTIFIANT_ACCOLADE_OUVERTE, '{' },
+	{ IDENTIFIANT_ACCOLADE_FERMEE, '}' },
+	{ IDENTIFIANT_PARENTHESE_OUVERTE, '(' },
+	{ IDENTIFIANT_PARENTHESE_FERMEE, ')' },
+	{ IDENTIFIANT_CROCHET_OUVERT, '[' },
+	{ IDENTIFIANT_CROCHET_FERME, ']' },
+	{ IDENTIFIANT_EGAL, '=' },
+	{ IDENTIFIANT_POINT_VIRGULE, ';' },
+	{ IDENTIFIANT_VIRGULE, ',' },
+	{ IDENTIFIANT_ADDITION, '+' },
+	{ IDENTIFIANT_SOUSTRACTION, '-' },
+	{ IDENTIFIANT_DIVISION, '/' },
+	{ IDENTIFIANT_MULTIPLICATION, '*' },
+	{ IDENTIFIANT_NON, '~' },
+	{ IDENTIFIANT_ET, '&' },
+	{ IDENTIFIANT_OU, '|' },
+	{ IDENTIFIANT_OUX, '^' },
+	{ IDENTIFIANT_INFERIEUR, '<' },
+	{ IDENTIFIANT_SUPERIEUR, '>' },
+	{ IDENTIFIANT_GUILLEMET, '"' },
+};
 
 template <typename Iterateur, typename T, typename TypeComparaison>
 Iterateur recherche_binaire(
@@ -183,6 +199,28 @@ static int trouve_identifiant(const std::string &chaine)
 	return IDENTIFIANT_NUL;
 }
 
+static int trouve_identifiant_caractere(const char caractere)
+{
+	auto iterateur = std::lower_bound(
+				std::begin(paires_identifiant_caractere),
+				std::end(paires_identifiant_caractere),
+				PaireIndentifiantCaractere{IDENTIFIANT_NUL, caractere},
+				comparaison_paires_identifiant_caractere);
+
+	if (iterateur != std::end(paires_identifiant_caractere)) {
+		if ((*iterateur).caractere == caractere) {
+			return (*iterateur).identifiant;
+		}
+	}
+
+	return IDENTIFIANT_NUL;
+}
+
+static bool est_nombre(const char caractere)
+{
+	return (caractere >= '0' && caractere <= '9') || caractere == '.';
+}
+
 /* ************************************************************************** */
 
 size_t trouve_taille_ligne(const std::string_view &chaine, size_t pos)
@@ -207,6 +245,10 @@ Decoupeur::Decoupeur(const std::string_view &chaine)
 	std::sort(std::begin(paires_identifiant),
 			  std::end(paires_identifiant),
 			  comparaison_paires_identifiant);
+
+	std::sort(std::begin(paires_identifiant_caractere),
+			  std::end(paires_identifiant_caractere),
+			  comparaison_paires_identifiant_caractere);
 
 	m_lignes.push_back({&m_chaine[m_position],
 						trouve_taille_ligne(m_chaine, m_position)});
@@ -244,6 +286,15 @@ void Decoupeur::saute_espaces_blancs()
 	}
 }
 
+char Decoupeur::regarde_caractere_suivant()
+{
+	if (m_position >= m_chaine.size()) {
+		return '\0';
+	}
+
+	return m_chaine[m_position];
+}
+
 char Decoupeur::caractere_suivant()
 {
 	m_caractere_courant = m_chaine[m_position++];
@@ -272,6 +323,23 @@ std::string Decoupeur::decoupe_chaine_litterale()
 	return mot_courant;
 }
 
+std::string Decoupeur::decoupe_nombre()
+{
+	std::string mot_courant;
+
+	while (est_nombre(caractere_courant())) {
+		mot_courant.push_back(caractere_courant());
+
+		if (!est_nombre(regarde_caractere_suivant())) {
+			break;
+		}
+
+		caractere_suivant();
+	}
+
+	return mot_courant;
+}
+
 void Decoupeur::decoupe()
 {
 #ifdef DEBOGUE_DECOUPEUR
@@ -289,7 +357,9 @@ void Decoupeur::decoupe()
 		saute_espaces_blancs();
 		const auto caractere = caractere_suivant();
 
-		if (caractere == '"') {
+		identifiant = trouve_identifiant_caractere(caractere);
+
+		if (identifiant != IDENTIFIANT_NUL) {
 			if (!mot_courant.empty()) {
 				throw ErreurFrappe(
 							m_lignes[m_ligne],
@@ -298,8 +368,25 @@ void Decoupeur::decoupe()
 							"Identifiant inconnu !");
 			}
 
-			mot_courant = decoupe_chaine_litterale();
-			identifiant = IDENTIFIANT_CHAINE_CARACTERE;
+			if (identifiant == IDENTIFIANT_GUILLEMET) {
+				mot_courant = decoupe_chaine_litterale();
+				identifiant = IDENTIFIANT_CHAINE_CARACTERE;
+			}
+			else {
+				mot_courant.push_back(caractere);
+			}
+		}
+		else if (caractere >= '0' && caractere <= '9') {
+			if (!mot_courant.empty()) {
+				throw ErreurFrappe(
+							m_lignes[m_ligne],
+							m_ligne,
+							m_position_ligne,
+							"Identifiant inconnu !");
+			}
+
+			mot_courant = decoupe_nombre();
+			identifiant = IDENTIFIANT_NOMBRE;
 		}
 		else {
 			mot_courant.push_back(caractere);

@@ -144,6 +144,7 @@ void AnalyseuseLogique::analyse_expression()
 
 	/* À FAIRE */
 	while (!est_identifiant(IDENTIFIANT_POINT_VIRGULE)) {
+		std::cerr << "Identifiant courant : " << identifiant_courant() << '\n';
 		avance();
 	}
 

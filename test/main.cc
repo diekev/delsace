@@ -180,6 +180,7 @@ public:
 
 const char *texte_logique = "feuille \"test\" {"
 							"	entrée {"
+							"		\"hauteur_initial\" = (5 * 45.5) + 2;"
 							"	}"
 							"	interface {"
 							"	}"

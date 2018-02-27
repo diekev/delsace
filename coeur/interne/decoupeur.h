@@ -104,10 +104,20 @@ private:
 	char caractere_courant();
 
 	/**
+	 * Retourne le caractère suivant sans modifier l'état du découpeur.
+	 */
+	char regarde_caractere_suivant();
+
+	/**
 	 * Isole le contenu se trouvant entre deux guillemets (") et retourne-le
 	 * sous forme de std::string.
 	 */
 	std::string decoupe_chaine_litterale();
+
+	/**
+	 * Retourne une chaîne contenant un nombre découpé du texte d'entrée.
+	 */
+	std::string decoupe_nombre();
 };
 
 }  /* namespace kangao */
