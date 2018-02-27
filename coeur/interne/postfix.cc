@@ -180,7 +180,13 @@ double evalue_expression(const std::vector<Variable> &expression)
 			stack.push(result);
 		}
 		else {
-			stack.push(std::stod(variable.valeur));
+			if (variable.identifiant == IDENTIFIANT_NOMBRE) {
+				stack.push(std::stod(variable.valeur));
+			}
+			else if (variable.identifiant == IDENTIFIANT_CHAINE_CARACTERE) {
+				/* À FAIRE : évalue la propriété. */
+				stack.push(1.0);
+			}
 		}
 	}
 
