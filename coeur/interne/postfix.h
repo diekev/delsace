@@ -29,7 +29,15 @@
 
 namespace kangao {
 
+struct Variable {
+	int identifiant;
+	std::string valeur;
+};
+
 bool est_operateur(int identifiant);
+
 bool precedence_faible(int identifiant1, int identifiant2);
+
+double evalue_expression(const std::vector<Variable> &expression);
 
 }  /* namespace kangao */

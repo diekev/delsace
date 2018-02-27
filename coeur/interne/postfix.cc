@@ -120,43 +120,6 @@ auto evalue_operation_logique(const double op1, int identifiant)
 	return 0.0;
 }
 
-auto evalue_expression(const std::vector<DonneesVariables> &expression) -> double
-{
-	std::stack<double> stack;
-
-	/* Push a zero on the stack in case the expression starts with a negative
-	 * number, or is empty. */
-	stack.push(0);
-
-	for (const DonneesVariables &donnees : expression) {
-		if (est_operateur(donnees.identifiant)) {
-			auto op1 = stack.top();
-			stack.pop();
-
-			auto op2 = stack.top();
-			stack.pop();
-
-			auto result = evalue_operation(op2, op1, donnees.identifiant);
-			stack.push(result);
-
-			continue;
-		}
-		else if (est_operateur_logique(donnees.identifiant)) {
-			auto op1 = stack.top();
-			stack.pop();
-
-			auto result = evalue_operation_logique(op1, donnees.identifiant);
-			stack.push(result);
-
-			continue;
-		}
-
-	//	stack.push(std::stod(donnees));
-	}
-
-	return stack.top();
-}
-
 enum {
 	GAUCHE,
 	DROITE,
@@ -188,6 +151,40 @@ bool precedence_faible(int identifiant1, int identifiant2)
 
 	return (p1.first == GAUCHE && p1.second <= p2.second)
 			|| ((p2.first == DROITE) && (p1.second < p2.second));
+}
+
+double evalue_expression(const std::vector<Variable> &expression)
+{
+	std::stack<double> stack;
+
+	/* Push a zero on the stack in case the expression starts with a negative
+	 * number, or is empty. */
+	stack.push(0);
+
+	for (const Variable &variable : expression) {
+		if (est_operateur(variable.identifiant)) {
+			auto op1 = stack.top();
+			stack.pop();
+
+			auto op2 = stack.top();
+			stack.pop();
+
+			auto result = evalue_operation(op2, op1, variable.identifiant);
+			stack.push(result);
+		}
+		else if (est_operateur_logique(variable.identifiant)) {
+			auto op1 = stack.top();
+			stack.pop();
+
+			auto result = evalue_operation_logique(op1, variable.identifiant);
+			stack.push(result);
+		}
+		else {
+			stack.push(std::stod(variable.valeur));
+		}
+	}
+
+	return stack.top();
 }
 
 }  /* namespace kangao */

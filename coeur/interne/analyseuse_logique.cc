@@ -140,11 +140,6 @@ void AnalyseuseLogique::analyse_declaration()
 #endif
 }
 
-struct Variable {
-	int identifiant;
-	std::string valeur;
-};
-
 void AnalyseuseLogique::analyse_expression()
 {
 #ifdef DEBOGUE_ANALYSEUSE
@@ -213,6 +208,10 @@ void AnalyseuseLogique::analyse_expression()
 		std::cerr << variable.valeur << ' ';
 	}
 	std::cerr << '\n';
+
+	auto resultat = evalue_expression(output);
+
+	std::cerr << "Résultat : " << resultat << '\n';
 #endif
 
 #ifdef DEBOGUE_ANALYSEUSE
