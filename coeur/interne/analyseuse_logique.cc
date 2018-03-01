@@ -34,6 +34,37 @@
 
 namespace kangao {
 
+#if 0
+struct NoeudPropriete {
+	std::vector<NoeudExpression *> noeuds_expressions;
+};
+
+struct NoeudExpression {
+	std::vector<NoeudPropriete *> noeuds_proprietes;
+	Expression *expression;
+};
+
+struct LiensNoeud;
+
+class GrapheDependence {
+	std::vector<NoeudPropriete *> m_noeuds_proprietes;
+	std::vector<NoeudExpression *> m_noeuds_expressions;
+
+public:
+	void ajoute(NoeudExpression *noeud)
+	{
+		m_noeuds_expressions.push_back(noeud);
+	}
+
+	void ajoute(NoeudPropriete *noeud)
+	{
+		m_noeuds_proprietes.push_back(noeud);
+	}
+};
+#endif
+
+/* ************************************************************************** */
+
 void AnalyseuseLogique::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
 {
 	m_identifiants = identifiants;
