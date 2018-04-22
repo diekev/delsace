@@ -25,6 +25,7 @@
 #include "analyseuse_logique.h"
 
 #include <iostream>
+#include <unordered_map>
 #include <stack>
 
 #include "postfix.h"
@@ -62,6 +63,47 @@ public:
 	}
 };
 #endif
+
+enum {
+	EXPRESSION_ENTREE,
+	EXPRESSION_INTERFACE,
+	EXPRESSION_RELATION,
+};
+
+class AssembleuseLogique {
+	std::unordered_map<std::string, std::vector<Variable>> m_expressions_entree;
+	std::unordered_map<std::string, std::vector<Variable>> m_expressions_interface;
+	std::unordered_map<std::string, std::vector<Variable>> m_expressions_relation;
+	std::unordered_map<std::string, Variable> m_variables;
+
+public:
+	void ajoute_expression(const std::string &nom, const int type, const std::vector<Variable> &expression)
+	{
+		switch (type) {
+			case EXPRESSION_ENTREE:
+				m_expressions_entree.insert({nom, expression});
+				break;
+			case EXPRESSION_INTERFACE:
+				m_expressions_interface.insert({nom, expression});
+				break;
+			case EXPRESSION_RELATION:
+				m_expressions_relation.insert({nom, expression});
+				break;
+		}
+	}
+
+	void ajoute_variable(const std::string &nom)
+	{
+		m_variables.insert({nom, Variable()});
+	}
+
+	bool variable_connue(const std::string &nom)
+	{
+		return m_variables.find(nom) != m_variables.end();
+	}
+};
+
+AssembleuseLogique m_assembleuse;
 
 /* ************************************************************************** */
 
@@ -132,7 +174,7 @@ void AnalyseuseLogique::analyse_entree()
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
-	analyse_declaration();
+	analyse_declaration(EXPRESSION_ENTREE);
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de l'entrée !");
@@ -143,7 +185,7 @@ void AnalyseuseLogique::analyse_entree()
 #endif
 }
 
-void AnalyseuseLogique::analyse_declaration()
+void AnalyseuseLogique::analyse_declaration(const int type)
 {
 #ifdef DEBOGUE_ANALYSEUSE
 	std::cout << __func__ << '\n';
@@ -154,24 +196,28 @@ void AnalyseuseLogique::analyse_declaration()
 		return;
 	}
 
+	const auto nom = m_identifiants[position()].contenu;
+
+	m_assembleuse.ajoute_variable(nom);
+
 	if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
 		lance_erreur("Attendu '=' !");
 	}
 
-	analyse_expression();
+	analyse_expression(nom, type);
 
 	if (!requiers_identifiant(IDENTIFIANT_POINT_VIRGULE)) {
 		lance_erreur("Attendu un point virgule !");
 	}
 
-	analyse_declaration();
+	analyse_declaration(type);
 
 #ifdef DEBOGUE_ANALYSEUSE
 	std::cout << __func__ << " fin\n";
 #endif
 }
 
-void AnalyseuseLogique::analyse_expression()
+void AnalyseuseLogique::analyse_expression(const std::string &nom, const int type)
 {
 #ifdef DEBOGUE_ANALYSEUSE
 	std::cout << __func__ << '\n';
@@ -188,7 +234,14 @@ void AnalyseuseLogique::analyse_expression()
 		variable.identifiant = identifiant_courant();
 		variable.valeur = m_identifiants[position() + 1].contenu;
 
-		if (est_identifiant(IDENTIFIANT_NOMBRE) || est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		if (est_identifiant(IDENTIFIANT_NOMBRE)) {
+			output.push_back(variable);
+		}
+		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+			if (!m_assembleuse.variable_connue(variable.valeur)) {
+				lance_erreur("Variable inconnue : " + variable.valeur);
+			}
+
 			output.push_back(variable);
 		}
 		else if (est_operateur(variable.identifiant)) {
@@ -234,7 +287,7 @@ void AnalyseuseLogique::analyse_expression()
 	}
 
 #ifdef DEBOGUE_EXPRESSION
-	std::cerr << "Expression : ";
+	std::cerr << "Expression (" << nom << ") : " ;
 	for (const Variable &variable : output) {
 		std::cerr << variable.valeur << ' ';
 	}
@@ -244,6 +297,8 @@ void AnalyseuseLogique::analyse_expression()
 
 	std::cerr << "Résultat : " << resultat << '\n';
 #endif
+
+	m_assembleuse.ajoute_expression(nom, type, output);
 
 #ifdef DEBOGUE_ANALYSEUSE
 	std::cout << __func__ << " fin\n";
@@ -264,7 +319,7 @@ void AnalyseuseLogique::analyse_interface()
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
-	analyse_declaration();
+	analyse_declaration(EXPRESSION_INTERFACE);
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de l'interface !");
@@ -334,7 +389,7 @@ void AnalyseuseLogique::analyse_relation()
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
-	analyse_declaration();
+	analyse_declaration(EXPRESSION_RELATION);
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la relation !");

@@ -37,8 +37,8 @@ public:
 private:
 	void analyse_corps();
 	void analyse_entree();
-	void analyse_declaration();
-	void analyse_expression();
+	void analyse_declaration(const int type);
+	void analyse_expression(const std::string &nom, const int type);
 	void analyse_interface();
 	void analyse_logique();
 	void analyse_sortie();
