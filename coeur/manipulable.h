@@ -121,7 +121,7 @@ public:
 	/**
 	 * Évalue la valeur d'une propriété de type 'couleur' du nom spécifié.
 	 */
-	glm::vec3 evalue_couleur(const std::string &nom);
+	glm::vec4 evalue_couleur(const std::string &nom);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_entrée' du nom spécifié.
@@ -182,7 +182,7 @@ public:
 	/**
 	 * Établie la valeur de la propriété de type couleur spécifiée.
 	 */
-	void valeur_couleur(const std::string &nom, const glm::vec3 &valeur);
+	void valeur_couleur(const std::string &nom, const glm::vec4 &valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type chaine, fichier, ou liste

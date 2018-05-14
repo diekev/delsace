@@ -98,9 +98,9 @@ glm::vec3 Manipulable::evalue_vecteur(const std::string &nom)
 	return std::experimental::any_cast<glm::vec3>(m_proprietes[nom].valeur);
 }
 
-glm::vec3 Manipulable::evalue_couleur(const std::string &nom)
+glm::vec4 Manipulable::evalue_couleur(const std::string &nom)
 {
-	return std::experimental::any_cast<glm::vec3>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<glm::vec4>(m_proprietes[nom].valeur);
 }
 
 std::string Manipulable::evalue_fichier_entree(const std::string &nom)
@@ -158,7 +158,7 @@ void Manipulable::valeur_vecteur(const std::string &nom, const glm::vec3 &valeur
 	m_proprietes[nom].valeur = valeur;
 }
 
-void Manipulable::valeur_couleur(const std::string &nom, const glm::vec3 &valeur)
+void Manipulable::valeur_couleur(const std::string &nom, const glm::vec4 &valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
