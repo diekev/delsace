@@ -71,40 +71,50 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 {
 	Controle *controle = nullptr;
 
+	m_donnees_controle = DonneesControle();
+
 	switch (identifiant) {
 		case IDENTIFIANT_CONTROLE_CURSEUR:
 			controle = new ControleInt;
+			m_donnees_controle.type = TypePropriete::ENTIER;
 			break;
 		case IDENTIFIANT_CONTROLE_CURSEUR_DECIMAL:
 			controle = new ControleFloat;
+			m_donnees_controle.type = TypePropriete::DECIMAL;
 			break;
 		case IDENTIFIANT_CONTROLE_ETIQUETTE:
 			controle = new Etiquette;
 			break;
 		case IDENTIFIANT_CONTROLE_LISTE:
 			controle = new ControleEnum;
+			m_donnees_controle.type = TypePropriete::ENUM;
 			break;
 		case IDENTIFIANT_CONTROLE_CASE_COCHER:
 			controle = new ControleBool;
+			m_donnees_controle.type = TypePropriete::BOOL;
 			break;
 		case IDENTIFIANT_CONTROLE_CHAINE:
 			controle = new ControleChaineCaractere;
+			m_donnees_controle.type = TypePropriete::CHAINE_CARACTERE;
 			break;
 		case IDENTIFIANT_CONTROLE_FICHIER_ENTREE:
 			controle = new ControleFichier(true);
+			m_donnees_controle.type = TypePropriete::FICHIER_ENTREE;
 			break;
 		case IDENTIFIANT_CONTROLE_FICHIER_SORTIE:
 			controle = new ControleFichier(false);
+			m_donnees_controle.type = TypePropriete::FICHIER_SORTIE;
 			break;
 		case IDENTIFIANT_CONTROLE_COULEUR:
 			controle = new ControleCouleur;
+			m_donnees_controle.type = TypePropriete::COULEUR;
 			break;
 		case IDENTIFIANT_CONTROLE_VECTEUR:
 			controle = new ControleVec3;
+			m_donnees_controle.type = TypePropriete::VECTEUR;
 			break;
 	}
 
-	m_donnees_controle = DonneesControle();
 	m_donnees_controle.initialisation = !m_manipulable->est_initialise();
 
 	m_dernier_controle = controle;
@@ -127,6 +137,19 @@ void AssembleurDisposition::ajoute_bouton()
 
 void AssembleurDisposition::finalise_controle()
 {
+	if (m_donnees_controle.pointeur == nullptr && m_donnees_controle.nom != "") {
+		/* Ajoute la propriété au manipulable. */
+		m_manipulable->ajoute_propriete(
+					m_donnees_controle.nom, m_donnees_controle.type);
+
+		m_donnees_controle.pointeur = (*m_manipulable)[m_donnees_controle.nom];
+		assert(m_donnees_controle.pointeur != nullptr);
+		m_donnees_controle.initialisation = true;
+	}
+	else {
+		m_donnees_controle.initialisation = false;
+	}
+
 	m_dernier_controle->finalise(m_donnees_controle);
 
 	QObject::connect(m_dernier_controle, &Controle::controle_change,
@@ -140,7 +163,6 @@ void AssembleurDisposition::sort_disposition()
 
 void AssembleurDisposition::propriete_controle(int identifiant, const std::string &valeur)
 {
-
 	switch (identifiant) {
 		case IDENTIFIANT_PROPRIETE_INFOBULLE:
 			m_donnees_controle.infobulle = valeur;
@@ -154,7 +176,8 @@ void AssembleurDisposition::propriete_controle(int identifiant, const std::strin
 		case IDENTIFIANT_PROPRIETE_VALEUR:
 			m_donnees_controle.valeur_defaut = valeur;
 			break;
-		case IDENTIFIANT_PROPRIETE_ATTACHE:
+		case IDENTIFIANT_PROPRIETE_ATTACHE:		
+			m_donnees_controle.nom = valeur;
 			m_donnees_controle.pointeur = (*m_manipulable)[valeur];
 			break;
 		case IDENTIFIANT_PROPRIETE_PRECISION:

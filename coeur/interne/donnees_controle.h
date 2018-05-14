@@ -27,10 +27,13 @@
 #include <string>
 #include <vector>
 
+#include "manipulable.h"
+
 namespace kangao {
 
 struct DonneesControle {
 	void *pointeur = nullptr;
+	std::string nom = "";
 	std::string valeur_min = "";
 	std::string valeur_max = "";
 	std::string valeur_defaut = "";
@@ -38,6 +41,7 @@ struct DonneesControle {
 	std::string pas = "";
 	std::string infobulle = "";
 	std::vector<std::pair<std::string, std::string>> valeur_enum{};
+	TypePropriete type = {};
 
 	bool initialisation = false;
 

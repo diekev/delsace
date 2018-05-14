@@ -48,7 +48,11 @@ void Manipulable::initialise()
 
 void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type, const std::experimental::any &valeur)
 {
-#if 0
+	m_proprietes.insert({nom, {valeur, type}});
+}
+
+void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
+{
 	std::experimental::any valeur;
 
 	switch (type) {
@@ -63,7 +67,7 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type, c
 			valeur = std::experimental::any(glm::vec3(0));
 			break;
 		case TypePropriete::COULEUR:
-			valeur = std::experimental::any(glm::vec3(0));
+			valeur = std::experimental::any(glm::vec4(0));
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::FICHIER_ENTREE:
@@ -75,9 +79,8 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type, c
 			valeur = std::experimental::any(false);
 			break;
 	}
-#endif
 
-	m_proprietes.insert({nom, {valeur, type}});
+	m_proprietes[nom] = Propriete{valeur, type};
 }
 
 int Manipulable::evalue_entier(const std::string &nom)
@@ -171,7 +174,6 @@ void *Manipulable::operator[](const std::string &nom)
 	void *pointeur = nullptr;
 
 	switch (propriete.type) {
-		default:
 		case TypePropriete::ENTIER:
 			pointeur = std::experimental::any_cast<int>(&propriete.valeur);
 			break;
@@ -182,7 +184,7 @@ void *Manipulable::operator[](const std::string &nom)
 			pointeur = std::experimental::any_cast<glm::vec3>(&propriete.valeur);
 			break;
 		case TypePropriete::COULEUR:
-			pointeur = std::experimental::any_cast<glm::vec3>(&propriete.valeur);
+			pointeur = std::experimental::any_cast<glm::vec4>(&propriete.valeur);
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::FICHIER_ENTREE:

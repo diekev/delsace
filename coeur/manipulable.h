@@ -97,6 +97,13 @@ public:
 	void ajoute_propriete(const std::string &nom, TypePropriete type, const std::experimental::any &valeur);
 
 	/**
+	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.
+	 *
+	 * La valeur spécifiée est la valeur par défaut du manipulable.
+	 */
+	void ajoute_propriete(const std::string &nom, TypePropriete type);
+
+	/**
 	 * Évalue la valeur d'une propriété de type 'entier' du nom spécifié.
 	 */
 	int evalue_entier(const std::string &nom);

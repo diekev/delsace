@@ -112,16 +112,6 @@ public:
 							"    }\n"
 							"}";
 
-		m_manipulable.ajoute_propriete("taille_x", kangao::TypePropriete::ENTIER, 6);
-		m_manipulable.ajoute_propriete("taille_y", kangao::TypePropriete::DECIMAL, 5.0f);
-		m_manipulable.ajoute_propriete("liste", kangao::TypePropriete::ENUM, std::string("exr"));
-		m_manipulable.ajoute_propriete("chaine", kangao::TypePropriete::CHAINE_CARACTERE, std::string(""));
-		m_manipulable.ajoute_propriete("fichier_in", kangao::TypePropriete::FICHIER_ENTREE, std::string(""));
-		m_manipulable.ajoute_propriete("fichier_ex", kangao::TypePropriete::FICHIER_SORTIE, std::string(""));
-		m_manipulable.ajoute_propriete("couleur", kangao::TypePropriete::COULEUR, glm::vec3(0., 0., 0.));
-		m_manipulable.ajoute_propriete("vecteur", kangao::TypePropriete::VECTEUR, glm::vec3(0., 1., 0.));
-		m_manipulable.ajoute_propriete("case", kangao::TypePropriete::BOOL, true);
-
 		auto widget_test = new WidgetTest;
 
 		auto donnees = kangao::DonneesInterface();
@@ -198,7 +188,7 @@ const char *texte_logique = "feuille \"test\" {"
 
 int main(int argc, char *argv[])
 {
-#if 0
+#if 1
 	QApplication app(argc, argv);
 
 	FenetreTest fenetre;
