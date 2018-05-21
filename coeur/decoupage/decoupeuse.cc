@@ -24,6 +24,7 @@
 
 #include "decoupeuse.h"
 
+#include <algorithm>
 #include <iostream>
 #include <cstring>
 
@@ -35,6 +36,13 @@ struct paire_identifiant_chaine {
 	int identifiant;
 	std::string chaine;
 };
+
+static bool comparaison_paires_identifiant(
+		const paire_identifiant_chaine &a,
+		const paire_identifiant_chaine &b)
+{
+	return a.chaine < b.chaine;
+}
 
 const paire_identifiant_chaine paires_mots_cles[] = {
 	{ IDENTIFIANT_ARRETE, "arrête" },
@@ -103,6 +111,13 @@ struct paire_identifiant_caractere {
 	char caractere;
 };
 
+static bool comparaison_paires_caractere(
+		const paire_identifiant_caractere &a,
+		const paire_identifiant_caractere &b)
+{
+	return a.caractere < b.caractere;
+}
+
 const paire_identifiant_caractere paires_caracteres_speciaux[] = {
 	{ IDENTIFIANT_EXCLAMATION, '!' },
 	{ IDENTIFIANT_GUILLEMENT, '"' },
@@ -142,9 +157,15 @@ bool est_nombre(char c)
 
 bool est_caractere_special(char c, int &i)
 {
-	for (auto &pair : paires_caracteres_speciaux) {
-		if (c == pair.caractere) {
-			i = pair.identifiant;
+	auto iterateur = std::lower_bound(
+				std::begin(paires_caracteres_speciaux),
+				std::end(paires_caracteres_speciaux),
+				paire_identifiant_caractere{IDENTIFIANT_NUL, c},
+				comparaison_paires_caractere);
+
+	if (iterateur != std::end(paires_caracteres_speciaux)) {
+		if ((*iterateur).caractere == c) {
+			i = (*iterateur).identifiant;
 			return true;
 		}
 	}
@@ -152,11 +173,17 @@ bool est_caractere_special(char c, int &i)
 	return false;
 }
 
-int id_caractere_double(const std::string &cd)
+int id_caractere_double(const std::string &chaine)
 {
-	for (auto &pair : paires_caracteres_double) {
-		if (cd == pair.chaine) {
-			return pair.identifiant;
+	auto iterateur = std::lower_bound(
+				std::begin(paires_caracteres_double),
+				std::end(paires_caracteres_double),
+				paire_identifiant_chaine{IDENTIFIANT_NUL, chaine},
+				comparaison_paires_identifiant);
+
+	if (iterateur != std::end(paires_caracteres_double)) {
+		if ((*iterateur).chaine == chaine) {
+			return (*iterateur).identifiant;
 		}
 	}
 
@@ -165,9 +192,15 @@ int id_caractere_double(const std::string &cd)
 
 int id_chaine(const std::string &chaine)
 {
-	for (auto &pair : paires_mots_cles) {
-		if (chaine == pair.chaine) {
-			return pair.identifiant;
+	auto iterateur = std::lower_bound(
+				std::begin(paires_mots_cles),
+				std::end(paires_mots_cles),
+				paire_identifiant_chaine{IDENTIFIANT_NUL, chaine},
+				comparaison_paires_identifiant);
+
+	if (iterateur != std::end(paires_mots_cles)) {
+		if ((*iterateur).chaine == chaine) {
+			return (*iterateur).identifiant;
 		}
 	}
 
