@@ -50,12 +50,8 @@ std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
 	std::ifstream entree;
 	entree.open(chemin.c_str());
 
-	std::string contenu;
-	std::string temp;
-
-	while (std::getline(entree, temp)) {
-		contenu += temp;
-	}
+	std::string contenu((std::istreambuf_iterator<char>(entree)),
+						(std::istreambuf_iterator<char>()));
 
 	return contenu;
 }
