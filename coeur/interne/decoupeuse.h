@@ -34,7 +34,7 @@ namespace danjo {
  * La classe Decoupeur découpe une chaîne de caractère en morceaux selon les
  * mots-clés du langage.
  */
-class Decoupeur {
+class Decoupeuse {
 	std::string_view m_chaine;
 	int m_position;
 	int m_position_ligne;
@@ -51,7 +51,7 @@ public:
 	/**
 	 * Construit une instance de Decoupeur pour la chaîne spécifiée.
 	 */
-	explicit Decoupeur(const std::string_view &chaine);
+	explicit Decoupeuse(const std::string_view &chaine);
 
 	/**
 	 * Lance la découpe de la chaîne de caractère spécifiée en paramètre du

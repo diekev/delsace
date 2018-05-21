@@ -52,7 +52,7 @@ add_library(danjo STATIC
 	interne/base_controles.cc
 	interne/bouton.cc
 	interne/controles.cc
-	interne/decoupeur.cc
+	interne/decoupeuse.cc
 	interne/donnees_controle.cc
 	interne/morceaux.cc
 	interne/postfix.cc
@@ -71,7 +71,7 @@ add_library(danjo STATIC
 	interne/base_controles.h
 	interne/bouton.h
 	interne/controles.h
-	interne/decoupeur.h
+	interne/decoupeuse.h
 	interne/donnees_controle.h
 	interne/morceaux.h
 	interne/postfix.h

@@ -22,7 +22,7 @@
  *
  */
 
-#include "decoupeur.h"
+#include "decoupeuse.h"
 
 #include <algorithm>
 #include <iostream>
@@ -281,7 +281,7 @@ size_t trouve_taille_ligne(const std::string_view &chaine, size_t pos)
 	return pos - debut;
 }
 
-Decoupeur::Decoupeur(const std::string_view &chaine)
+Decoupeuse::Decoupeuse(const std::string_view &chaine)
 	: m_chaine(chaine)
 	, m_position(0)
 	, m_position_ligne(0)
@@ -293,14 +293,14 @@ Decoupeur::Decoupeur(const std::string_view &chaine)
 						trouve_taille_ligne(m_chaine, m_position)});
 }
 
-void Decoupeur::impression_debogage(const std::string &quoi)
+void Decoupeuse::impression_debogage(const std::string &quoi)
 {
 	std::cout << "Trouvé symbole " << quoi
 			  << ", ligne : " << m_ligne
 			  << ", position : " << m_position_ligne << ".\n";
 }
 
-void Decoupeur::avance(int compte)
+void Decoupeuse::avance(int compte)
 {
 	m_position += compte;
 	m_debut += compte;
@@ -328,7 +328,7 @@ void Decoupeur::avance(int compte)
 //    decoupe nombre
 // sinon:
 //    ajoute caractere mot courant
-void Decoupeur::decoupe()
+void Decoupeuse::decoupe()
 {
 	LOG << "Démarrage de l'analyse d'une chaîne de "
 		<< m_chaine.size() << " caractères.\n";
@@ -494,12 +494,12 @@ void Decoupeur::decoupe()
 	}
 }
 
-void Decoupeur::ajoute_identifiant(int identifiant, const std::string &contenu)
+void Decoupeuse::ajoute_identifiant(int identifiant, const std::string &contenu)
 {
 	m_identifiants.push_back({identifiant, m_ligne, m_position_ligne, contenu, m_lignes[m_ligne - 1]});
 }
 
-const std::vector<DonneesMorceaux> &Decoupeur::morceaux() const
+const std::vector<DonneesMorceaux> &Decoupeuse::morceaux() const
 {
 	return m_identifiants;
 }

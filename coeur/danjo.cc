@@ -34,7 +34,7 @@
 #include "interne/analyseuse_disposition.h"
 #include "interne/analyseuse_logique.h"
 #include "interne/assembleuse_disposition.h"
-#include "interne/decoupeur.h"
+#include "interne/decoupeuse.h"
 
 #include "erreur.h"
 #include "manipulable.h"
@@ -70,11 +70,11 @@ QBoxLayout *compile_interface(DonneesInterface &donnnes, const char *texte_entre
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
-	Decoupeur decoupeur(texte_entree);
+	Decoupeuse decoupeuse(texte_entree);
 
 	try {
-		decoupeur.decoupe();
-		analyseur.lance_analyse(decoupeur.morceaux());
+		decoupeuse.decoupe();
+		analyseur.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -112,11 +112,11 @@ QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
-	Decoupeur decoupeur(texte_entree);
+	Decoupeuse decoupeuse(texte_entree);
 
 	try {
-		decoupeur.decoupe();
-		analyseur.lance_analyse(decoupeur.morceaux());
+		decoupeuse.decoupe();
+		analyseur.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -202,11 +202,11 @@ QMenu *GestionnaireInterface::compile_menu(DonneesInterface &donnnes, const char
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
-	Decoupeur decoupeur(texte_entree);
+	Decoupeuse decoupeuse(texte_entree);
 
 	try {
-		decoupeur.decoupe();
-		analyseur.lance_analyse(decoupeur.morceaux());
+		decoupeuse.decoupe();
+		analyseur.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -238,11 +238,11 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, 
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
-	Decoupeur decoupeur(texte_entree);
+	Decoupeuse decoupeuse(texte_entree);
 
 	try {
-		decoupeur.decoupe();
-		analyseur.lance_analyse(decoupeur.morceaux());
+		decoupeuse.decoupe();
+		analyseur.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -285,11 +285,11 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes,
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
 
-	Decoupeur decoupeur(texte_entree);
+	Decoupeuse decoupeuse(texte_entree);
 
 	try {
-		decoupeur.decoupe();
-		analyseur.lance_analyse(decoupeur.morceaux());
+		decoupeuse.decoupe();
+		analyseur.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -308,11 +308,11 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes,
 void compile_feuille_logique(const char *texte_entree)
 {
 	AnalyseuseLogique analyseuse;
-	Decoupeur decoupeur(texte_entree);
+	Decoupeuse decoupeuse(texte_entree);
 
 	try {
-		decoupeur.decoupe();
-		analyseuse.lance_analyse(decoupeur.morceaux());
+		decoupeuse.decoupe();
+		analyseuse.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
