@@ -82,7 +82,7 @@ caracteres_speciaux = [
 	[")","PARENTHESE_FERMANTE"],
 	["{","ACCOLADE_OUVRANTE"],
 	["}","ACCOLADE_FERMANTE"],
-	["\"","GUILLEMENT"],
+	["\"","GUILLEMET"],
 	["'","APOSTROPHE"],
 	[";","POINT_VIRGULE"],
 	[":","DOUBLE_POINT"],

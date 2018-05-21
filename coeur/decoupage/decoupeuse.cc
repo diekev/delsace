@@ -120,7 +120,7 @@ static bool comparaison_paires_caractere(
 
 const paire_identifiant_caractere paires_caracteres_speciaux[] = {
 	{ IDENTIFIANT_EXCLAMATION, '!' },
-	{ IDENTIFIANT_GUILLEMENT, '"' },
+	{ IDENTIFIANT_GUILLEMET, '"' },
 	{ IDENTIFIANT_DIESE, '#' },
 	{ IDENTIFIANT_POURCENT, '%' },
 	{ IDENTIFIANT_ESPERLUETTE, '&' },
