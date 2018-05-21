@@ -340,21 +340,21 @@ void decoupeuse_texte::genere_morceaux()
 				}
 
 				// Saute le dernier guillemet.
-				if (*debut != '\'') {
-					throw erreur::frappe("Erreur : plusieurs caractère détectés !\n");
-				}
 				++debut;
 
 				m_morceaux.push_back({ mot_courant, IDENTIFIANT_CHAINE_LITTERALE });
 				mot_courant = "";
 			}
 			else if (*debut == '\'') {
-				// Saute le premier guillemet.
+				// Saute la première apostrophe.
 				++debut;
 
 				mot_courant.push_back(*debut++);
 
-				// Saute le dernier guillemet.
+				// Saute la dernière apostrophe.
+				if (*debut != '\'') {
+					throw erreur::frappe("Erreur : plusieurs caractère détectés !\n");
+				}
 				++debut;
 
 				m_morceaux.push_back({ mot_courant, IDENTIFIANT_CARACTERE });
