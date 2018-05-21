@@ -19,14 +19,19 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_executable(test_danjo
-	main.cc
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_include_directories(test_danjo PUBLIC "${INCLUSIONS_SYSTEMES}")
+set(FICHIERS
+	test.dan
 
-target_link_libraries(test_danjo "${BIBLIOTHEQUES}" danjo)
+	disposition_test.jo
+	menu_edition.jo
+	menu_fichier.jo
+)
 
 install(
-	TARGETS test_danjo RUNTIME DESTINATION bin
+    FILES ${FICHIERS}
+	DESTINATION bin/exemples
 )

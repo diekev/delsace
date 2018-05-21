@@ -75,43 +75,6 @@ public:
 	FenetreTest()
 		: QMainWindow()
 	{
-
-		auto texte_entree = "disposition \"1disposition_début\" {\n"
-							"    étiquette(valeur=\"Disposition\")\n"
-							"    colonne {\n"
-							"        ligne {\n"
-							"            étiquette(valeur=\"Taille image\")\n"
-							"            entier(valeur=\"6\"; min=\"0\"; max=\"200\"; infobulle=\"La taille de l'image sur l'axe des X.\"; attache=\"taille_x\")\n"
-							"        }\n"
-							"        ligne {\n"
-							"            étiquette(valeur=\"Taille image Y\")\n"
-							"            décimal(valeur=\"6\"; min=\"0\"; max=\"200\"; infobulle=\"La taille de l'image sur l'axe des X.\"; attache=\"taille_y\")\n"
-							"        }\n"
-							"        liste(valeur=\"exr\"; items=[{ nom=\"JPEG\", valeur=\"jpeg\"}, { nom=\"EXR\", valeur=\"exr\"}, { nom=\"PNG\", valeur=\"png\"}]; attache=\"liste\")\n"
-							"        chaine(valeur=\"\"; attache=\"chaine\")\n"
-							"        fichier_entrée(valeur=\"\"; attache=\"fichier_in\")\n"
-							"        fichier_sortie(valeur=\"\"; attache=\"fichier_ex\")\n"
-							"        vecteur(valeur=\"0, 1, 0\"; attache=\"vecteur\")\n"
-							"    }\n"
-							"	dossier {\n"
-							"       onglet \"Onglet Test\" {"
-							"           étiquette(valeur=\"Youpi !\")\n"
-							"       }\n"
-							"       onglet \"Onglet Test 2\" {"
-							"           étiquette(valeur=\"Youpi 2 !\")\n"
-							"    ligne {\n"
-							"        couleur(valeur=\"\"; attache=\"couleur\")\n"
-							"        case(valeur=\"vrai\"; attache=\"case\")\n"
-							"    }\n"
-							"       }\n"
-							"   }\n"
-							"    ligne {\n"
-							"        étiquette(valeur=\"Ligne 2\")\n"
-							"        bouton(valeur=\"Cube\"; attache=\"ajoute_objet\"; métadonnée=\"cube\")\n"
-							"        bouton(valeur=\"Sphère\"; attache=\"ajoute_objet\"; métadonnée=\"sphere\")\n"
-							"    }\n"
-							"}";
-
 		auto widget_test = new WidgetTest;
 
 		auto donnees = danjo::DonneesInterface();
@@ -119,72 +82,24 @@ public:
 		donnees.repondant_bouton = &m_repondant;
 		donnees.conteneur = widget_test;
 
-		auto disposition = danjo::compile_interface(donnees, texte_entree);
+		auto texte_entree = danjo::contenu_fichier("exemples/disposition_test.jo");
+		auto disposition = danjo::compile_interface(donnees, texte_entree.c_str());
 
 		widget_test->setLayout(disposition);
 
 		setCentralWidget(widget_test);
 
-		auto script_menu = "menu \"Fichier\" {\n"
-						   "	action(valeur=\"Nouveau fichier ou projet...\"; attache=\"nouveau_fichier\")\n"
-						   "	action(valeur=\"Ouvrir un fichier ou projet...\"; attache=\"ouvrir_fichier\")\n"
-						   "	menu \"Fichiers récents\" {\n"
-						   "	}\n"
-						   "	séparateur\n"
-						   "	action(valeur=\"Sauvegarder...\"; attache=\"sauvegarder\")\n"
-						   "	action(valeur=\"Sauvegarder sous...\"; attache=\"sauvegarder_sous\")\n"
-						   "	séparateur\n"
-						   "	action(valeur=\"Quitter...\"; attache=\"quitter\")\n"
-						   "}";
-
-		auto menu = danjo::compile_menu(donnees, script_menu);
+		auto script_menu = danjo::contenu_fichier("exemples/menu_fichier.jo");
+		auto menu = danjo::compile_menu(donnees, script_menu.c_str());
 
 		menuBar()->addMenu(menu);
 
-		script_menu = "menu \"Édition\" {\n"
-					  "	action(valeur=\"Annuler\"; attache=\"annuler\")\n"
-					  "	action(valeur=\"Refaire\"; attache=\"refaire\")\n"
-					  "	séparateur\n"
-					  "	action(valeur=\"Coller depuis l'historique\"; attache=\"sauvegarder\")\n"
-					  "	action(valeur=\"Couper\"; attache=\"couper\")\n"
-					  "	action(valeur=\"Copier\"; attache=\"copier\")\n"
-					  "	action(valeur=\"Coller\"; attache=\"coller\")\n"
-					  "	séparateur\n"
-					  "	action(valeur=\"Tout sélectionner\"; attache=\"tout_sélectionner\")\n"
-					  "	séparateur\n"
-					  "	menu \"Avancé\" {\n"
-					  "   action(valeur=\"Autoindente la sélection\"; attache=\"auto_indente\")\n"
-					  "   action(valeur=\"Autoindente la sélection\"; attache=\"auto_indente\")\n"
-					  "}\n"
-					  "	séparateur\n"
-					  "	menu \"Trouver/Remplacer\" {}\n"
-					  "	action(valeur=\"Aller à la ligne...\"; attache=\"aller_ligne\")\n"
-					  "	action(valeur=\"Sélectionner encodage...\"; attache=\"encodage\")\n"
-					  "}";
-
-		menu = danjo::compile_menu(donnees, script_menu);
+		script_menu = danjo::contenu_fichier("exemples/menu_edition.jo");
+		menu = danjo::compile_menu(donnees, script_menu.c_str());
 
 		menuBar()->addMenu(menu);
 	}
 };
-
-const char *texte_logique = "feuille \"test\" {"
-							"	entrée {"
-							"		\"hauteur_initial\" = (5 * 45.5) + 2;"
-							"		\"largeur_initial\" = ((5 * 35.5) + 2) * 7;"
-							"		\"résolution\" = \"hauteur_initial\" * \"largeur_initial\";"
-							"	}"
-							"	interface {"
-							"	}"
-							"	logique {"
-							"		relation {"
-							"		}"
-							"		quand (\"preserve_ratio\") relation {"
-							"		}"
-							"	}"
-							"	sortie {"
-							"	}"
-							"}";
 
 int main(int argc, char *argv[])
 {
@@ -196,6 +111,7 @@ int main(int argc, char *argv[])
 
 	return app.exec();
 #else
-	danjo::compile_feuille_logique(texte_logique);
+	auto texte_logique = danjo::contenu_fichier("exemples/test.dan");
+	danjo::compile_feuille_logique(texte_logique.c_str());
 #endif
 }

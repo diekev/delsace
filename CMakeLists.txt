@@ -71,4 +71,5 @@ set(BIBLIOTHEQUES
 # ------------------------------------------------------------------------------
 
 add_subdirectory(coeur)
+add_subdirectory(exemples)
 add_subdirectory(test)

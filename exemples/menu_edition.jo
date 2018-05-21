@@ -1,0 +1,21 @@
+menu "Édition" {
+	action(valeur="Annuler"; attache="annuler")
+	action(valeur="Refaire"; attache="refaire")
+	séparateur
+	action(valeur="Coller depuis l'historique"; attache="sauvegarder")
+	action(valeur="Couper"; attache="couper")
+	action(valeur="Copier"; attache="copier")
+	action(valeur="Coller"; attache="coller")
+	séparateur
+	action(valeur="Tout sélectionner"; attache="tout_sélectionner")
+	séparateur
+	menu "Avancé" {
+		action(valeur="Autoindente la sélection"; attache="auto_indente")
+		action(valeur="Autoindente la sélection"; attache="auto_indente")
+	}
+	séparateur
+	menu "Trouver/Remplacer" {
+	}
+	action(valeur="Aller à la ligne..."; attache="aller_ligne")
+	action(valeur="Sélectionner encodage..."; attache="encodage")
+}

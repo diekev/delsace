@@ -1,0 +1,36 @@
+disposition "1disposition_début" {
+	étiquette(valeur="Disposition")
+	colonne {
+		ligne {
+			étiquette(valeur="Taille image")
+			entier(valeur="6"; min="0"; max="200"; infobulle="La taille de l'image sur l'axe des X."; attache="taille_x")
+		}
+		ligne {
+			étiquette(valeur="Taille image Y")
+			décimal(valeur="6"; min="0"; max="200"; infobulle="La taille de l'image sur l'axe des X."; attache="taille_y")
+		}
+
+		liste(valeur="exr"; items=[{ nom="JPEG", valeur="jpeg"}, { nom="EXR", valeur="exr"}, { nom="PNG", valeur="png"}]; attache="liste")
+		chaine(valeur=""; attache="chaine")
+		fichier_entrée(valeur=""; attache="fichier_in")
+		fichier_sortie(valeur=""; attache="fichier_ex")
+		vecteur(valeur="0, 1, 0"; attache="vecteur")
+	}
+	dossier {
+		onglet "Onglet Test" {
+			étiquette(valeur="Youpi !")
+		}
+		onglet "Onglet Test 2" {
+			étiquette(valeur="Youpi 2 !")
+			ligne {
+				couleur(valeur=""; attache="couleur")
+				case(valeur="vrai"; attache="case")
+			}
+		}
+	}
+	ligne {
+		étiquette(valeur="Ligne 2")
+		bouton(valeur="Cube"; attache="ajoute_objet"; métadonnée="cube")
+		bouton(valeur="Sphère"; attache="ajoute_objet"; métadonnée="sphere")
+	}
+}
