@@ -22,7 +22,7 @@
  *
  */
 
-#include "assembleur_disposition.h"
+#include "assembleuse_disposition.h"
 
 #include <QHBoxLayout>
 #include <QLabel>

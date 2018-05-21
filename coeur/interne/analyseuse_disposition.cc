@@ -22,11 +22,11 @@
  *
  */
 
-#include "analyseur.h"
+#include "analyseuse_disposition.h"
 
 #include <iostream>
 
-#include "assembleur_disposition.h"
+#include "assembleuse_disposition.h"
 
 //#define DEBOGUE_ANALYSEUR
 

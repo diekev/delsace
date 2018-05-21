@@ -31,9 +31,9 @@
 #include <QToolBar>
 
 #include "interne/action.h"
-#include "interne/analyseur.h"
+#include "interne/analyseuse_disposition.h"
 #include "interne/analyseuse_logique.h"
-#include "interne/assembleur_disposition.h"
+#include "interne/assembleuse_disposition.h"
 #include "interne/decoupeur.h"
 
 #include "erreur.h"
