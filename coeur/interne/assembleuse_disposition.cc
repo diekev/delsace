@@ -38,7 +38,7 @@
 #include "morceaux.h"
 #include "repondant_bouton.h"
 
-namespace kangao {
+namespace danjo {
 
 AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, RepondantBouton *repondant_bouton, ConteneurControles *conteneur)
 	: m_manipulable(manipulable)
@@ -348,4 +348,4 @@ QToolBar *AssembleurDisposition::barre_outils() const
 	return m_barre_outils;
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

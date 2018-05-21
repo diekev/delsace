@@ -24,10 +24,10 @@
 
 #include "conteneur_controles.h"
 
-namespace kangao {
+namespace danjo {
 
 ConteneurControles::ConteneurControles(QWidget *parent)
 	: QWidget(parent)
 {}
 
-}  /* namespace kangao */
+}  /* namespace danjo */

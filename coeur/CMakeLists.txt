@@ -38,12 +38,12 @@ qt5_wrap_cpp(
 set(ENTETES
 	conteneur_controles.h
 	erreur.h
-	kangao.h
+	danjo.h
 	manipulable.h
 	repondant_bouton.h
 )
 
-add_library(kangao STATIC
+add_library(danjo STATIC
 	interne/action.cc
 	interne/analyseuse_disposition.cc
 	interne/analyseuse_logique.cc
@@ -59,7 +59,7 @@ add_library(kangao STATIC
 
 	conteneur_controles.cc
 	erreur.cc
-	kangao.cc
+	danjo.cc
 	manipulable.cc
 	repondant_bouton.cc
 
@@ -81,13 +81,13 @@ add_library(kangao STATIC
 	${moc_headers}
 )
 
-target_include_directories(kangao PUBLIC "${INCLUSIONS}")
+target_include_directories(danjo PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(kangao "${BIBLIOTHEQUES}")
+target_link_libraries(danjo "${BIBLIOTHEQUES}")
 
-install(TARGETS kangao ARCHIVE DESTINATION lib)
+install(TARGETS danjo ARCHIVE DESTINATION lib)
 
 install(
 	FILES ${ENTETES}
-	DESTINATION include/kangao
+	DESTINATION include/danjo
 )

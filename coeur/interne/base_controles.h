@@ -38,7 +38,7 @@ class QVBoxLayout;
 
 /* ************************************************************************** */
 
-namespace kangao {
+namespace danjo {
 
 struct DonneesControle;
 
@@ -249,4 +249,4 @@ Q_SIGNALS:
 	void valeur_changee(double value, int axis);
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

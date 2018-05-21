@@ -28,7 +28,7 @@
 #include <glm/glm.hpp>
 #include <unordered_map>
 
-namespace kangao {
+namespace danjo {
 
 enum TypePropriete {
 	ENTIER,
@@ -196,4 +196,4 @@ public:
 	void *operator[](const std::string &nom);
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

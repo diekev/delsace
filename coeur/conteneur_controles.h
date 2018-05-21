@@ -26,7 +26,7 @@
 
 #include <QWidget>
 
-namespace kangao {
+namespace danjo {
 
 /**
  * La classe ConteneurControles sert de classe de base pour faire le pont entre
@@ -51,4 +51,4 @@ public Q_SLOTS:
 	virtual void ajourne_manipulable() = 0;
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

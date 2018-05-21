@@ -26,7 +26,7 @@
 
 #include "base_analyseuse.h"
 
-namespace kangao {
+namespace danjo {
 
 class AssembleurDisposition;
 
@@ -161,4 +161,4 @@ private:
 	void analyse_barre_outils();
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

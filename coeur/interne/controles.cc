@@ -31,7 +31,7 @@
 #include "donnees_controle.h"
 #include "morceaux.h"
 
-namespace kangao {
+namespace danjo {
 
 /* Il s'emblerait que std::atof a du mal à convertir les string en float. */
 template <typename T>
@@ -359,4 +359,4 @@ void ControleListe::ajourne_valeur_pointee(const QString &valeur)
 	Q_EMIT(controle_change());
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

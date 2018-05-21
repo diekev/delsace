@@ -36,7 +36,7 @@ class QMenu;
 class QTabWidget;
 class QToolBar;
 
-namespace kangao {
+namespace danjo {
 
 class Action;
 class Bouton;
@@ -207,4 +207,4 @@ public:
 	QToolBar *barre_outils() const;
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

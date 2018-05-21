@@ -31,7 +31,7 @@ class QBoxLayout;
 class QMenu;
 class QToolBar;
 
-namespace kangao {
+namespace danjo {
 
 class ConteneurControles;
 class Manipulable;
@@ -104,4 +104,4 @@ QBoxLayout *compile_interface(
 
 void compile_feuille_logique(const char *texte_entree);
 
-}  /* namespace kangao */
+}  /* namespace danjo */

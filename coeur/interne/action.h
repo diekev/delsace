@@ -26,7 +26,7 @@
 
 #include <QAction>
 
-namespace kangao {
+namespace danjo {
 
 class RepondantBouton;
 
@@ -92,4 +92,4 @@ public Q_SLOTS:
 	void action_presse();
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

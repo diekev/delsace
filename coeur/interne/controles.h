@@ -34,7 +34,7 @@
 
 class QGridLayout;
 
-namespace kangao {
+namespace danjo {
 
 /* Les contrôles sont des sousclasses de leur QWidgets ou contrôle personnalisé
  * correspondants. Pour éviter des APIs étranges, ils stockent un pointeur vers
@@ -205,4 +205,4 @@ private Q_SLOTS:
 	void ajourne_valeur_pointee(const QString &valeur);
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

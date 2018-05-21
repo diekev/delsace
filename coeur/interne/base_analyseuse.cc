@@ -26,7 +26,7 @@
 
 #include "erreur.h"
 
-namespace kangao {
+namespace danjo {
 
 bool Analyseuse::requiers_identifiant(int identifiant)
 {
@@ -80,4 +80,4 @@ void Analyseuse::lance_erreur(const std::string &quoi)
 	throw ErreurSyntactique(ligne, numero_ligne, position_ligne, quoi, contenu);
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

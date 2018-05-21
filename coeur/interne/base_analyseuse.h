@@ -28,7 +28,7 @@
 
 #include "morceaux.h"
 
-namespace kangao {
+namespace danjo {
 
 /**
  * Classe de base pour définir des analyseurs syntactique.
@@ -90,4 +90,4 @@ protected:
 	int identifiant_courant() const;
 };
 
-} /* namespace kangao */
+} /* namespace danjo */

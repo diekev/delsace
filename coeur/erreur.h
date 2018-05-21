@@ -26,7 +26,7 @@
 
 #include <string>
 
-namespace kangao {
+namespace danjo {
 
 /**
  * La classe ErreurFrappe représente une exception qui est lancée quand une
@@ -75,4 +75,4 @@ public:
 	const char *quoi() const;
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

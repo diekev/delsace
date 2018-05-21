@@ -26,7 +26,7 @@
 
 #include <sstream>
 
-namespace kangao {
+namespace danjo {
 
 ErreurFrappe::ErreurFrappe(
 		const std::string_view &ligne,
@@ -74,4 +74,4 @@ const char *ErreurSyntactique::quoi() const
 	return m_quoi.c_str();
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

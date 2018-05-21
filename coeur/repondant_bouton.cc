@@ -24,6 +24,6 @@
 
 #include "repondant_bouton.h"
 
-namespace kangao {
+namespace danjo {
 
-}  /* namespace kangao */
+}  /* namespace danjo */

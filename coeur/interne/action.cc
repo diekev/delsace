@@ -26,7 +26,7 @@
 
 #include "repondant_bouton.h"
 
-namespace kangao {
+namespace danjo {
 
 Action::Action(QWidget *parent)
 	: QAction(parent)
@@ -81,4 +81,4 @@ void Action::action_presse()
 	}
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

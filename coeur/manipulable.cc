@@ -24,7 +24,7 @@
 
 #include "manipulable.h"
 
-namespace kangao {
+namespace danjo {
 
 Manipulable::iterateur Manipulable::debut()
 {
@@ -200,4 +200,4 @@ void *Manipulable::operator[](const std::string &nom)
 	return pointeur;
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

@@ -30,7 +30,7 @@
 
 //#define DEBOGUE_ANALYSEUR
 
-namespace kangao {
+namespace danjo {
 
 /* ************************************************************************** */
 
@@ -531,4 +531,4 @@ void AnalyseuseDisposition::analyse_item()
 	analyse_item();
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

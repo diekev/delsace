@@ -26,7 +26,7 @@
 
 #include <string>
 
-namespace kangao {
+namespace danjo {
 
 /**
  * La classe RepondantBouton définie l'interface nécessaire pour attacher un
@@ -51,4 +51,4 @@ public:
 	virtual bool evalue_predicat(const std::string &identifiant, const std::string &metadonnee) = 0;
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

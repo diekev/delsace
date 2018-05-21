@@ -26,7 +26,7 @@
 
 #include <QPushButton>
 
-namespace kangao {
+namespace danjo {
 
 class RepondantBouton;
 
@@ -86,4 +86,4 @@ public Q_SLOTS:
 	void bouton_presse();
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

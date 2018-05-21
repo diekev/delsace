@@ -26,7 +26,7 @@
 
 #include <sstream>
 
-namespace kangao {
+namespace danjo {
 
 std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur)
 {
@@ -41,4 +41,4 @@ std::vector<std::string> decoupe(const std::string &chaine, const char delimiteu
 	return resultat;
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

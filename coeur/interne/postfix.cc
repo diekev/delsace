@@ -31,7 +31,7 @@
 
 #include "morceaux.h"
 
-namespace kangao {
+namespace danjo {
 
 struct DonneesVariables {
 	int identifiant;
@@ -193,4 +193,4 @@ double evalue_expression(const std::vector<Variable> &expression)
 	return stack.top();
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

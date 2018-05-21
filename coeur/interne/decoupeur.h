@@ -28,7 +28,7 @@
 
 #include "morceaux.h"
 
-namespace kangao {
+namespace danjo {
 
 /**
  * La classe Decoupeur découpe une chaîne de caractère en morceaux selon les
@@ -86,4 +86,4 @@ private:
 	void impression_debogage(const std::string &quoi);
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

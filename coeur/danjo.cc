@@ -22,7 +22,7 @@
  *
  */
 
-#include "kangao.h"
+#include "danjo.h"
 
 #include <fstream>
 #include <iostream>
@@ -39,7 +39,7 @@
 #include "erreur.h"
 #include "manipulable.h"
 
-namespace kangao {
+namespace danjo {
 
 std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
 {
@@ -326,4 +326,4 @@ void compile_feuille_logique(const char *texte_entree)
 	}
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

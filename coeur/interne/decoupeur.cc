@@ -45,7 +45,7 @@ Loggeur loggeur_principal;
 # define LOG loggeur_principal
 #endif
 
-namespace kangao {
+namespace danjo {
 
 /* ************************************************************************** */
 
@@ -504,4 +504,4 @@ const std::vector<DonneesMorceaux> &Decoupeur::morceaux() const
 	return m_identifiants;
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

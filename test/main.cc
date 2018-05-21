@@ -23,7 +23,7 @@
  */
 
 #include "conteneur_controles.h"
-#include "kangao.h"
+#include "danjo.h"
 #include "manipulable.h"
 #include "repondant_bouton.h"
 
@@ -39,10 +39,10 @@ struct DonneesSorties {
 	QMenu *menu;
 };
 
-class WidgetTest : public kangao::ConteneurControles {
+class WidgetTest : public danjo::ConteneurControles {
 public:
 	explicit WidgetTest(QWidget *parent = nullptr)
-		: kangao::ConteneurControles(parent)
+		: danjo::ConteneurControles(parent)
 	{}
 
 private Q_SLOTS:
@@ -51,7 +51,7 @@ private Q_SLOTS:
 	}
 };
 
-class RepondantBoutonTest : public kangao::RepondantBouton {
+class RepondantBoutonTest : public danjo::RepondantBouton {
 public:
 	void repond_clique(const std::string &valeur, const std::string &metadonnee) override
 	{
@@ -68,7 +68,7 @@ public:
 };
 
 class FenetreTest : public QMainWindow {
-	kangao::Manipulable m_manipulable;
+	danjo::Manipulable m_manipulable;
 	RepondantBoutonTest m_repondant;
 
 public:
@@ -114,12 +114,12 @@ public:
 
 		auto widget_test = new WidgetTest;
 
-		auto donnees = kangao::DonneesInterface();
+		auto donnees = danjo::DonneesInterface();
 		donnees.manipulable = &m_manipulable;
 		donnees.repondant_bouton = &m_repondant;
 		donnees.conteneur = widget_test;
 
-		auto disposition = kangao::compile_interface(donnees, texte_entree);
+		auto disposition = danjo::compile_interface(donnees, texte_entree);
 
 		widget_test->setLayout(disposition);
 
@@ -137,7 +137,7 @@ public:
 						   "	action(valeur=\"Quitter...\"; attache=\"quitter\")\n"
 						   "}";
 
-		auto menu = kangao::compile_menu(donnees, script_menu);
+		auto menu = danjo::compile_menu(donnees, script_menu);
 
 		menuBar()->addMenu(menu);
 
@@ -162,7 +162,7 @@ public:
 					  "	action(valeur=\"Sélectionner encodage...\"; attache=\"encodage\")\n"
 					  "}";
 
-		menu = kangao::compile_menu(donnees, script_menu);
+		menu = danjo::compile_menu(donnees, script_menu);
 
 		menuBar()->addMenu(menu);
 	}
@@ -196,6 +196,6 @@ int main(int argc, char *argv[])
 
 	return app.exec();
 #else
-	kangao::compile_feuille_logique(texte_logique);
+	danjo::compile_feuille_logique(texte_logique);
 #endif
 }

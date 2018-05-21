@@ -19,10 +19,10 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_executable(test_kangao
+add_executable(test_danjo
 	main.cc
 )
 
-target_include_directories(test_kangao PUBLIC "${INCLUSIONS_SYSTEMES}")
+target_include_directories(test_danjo PUBLIC "${INCLUSIONS_SYSTEMES}")
 
-target_link_libraries(test_kangao "${BIBLIOTHEQUES}" kangao)
+target_link_libraries(test_danjo "${BIBLIOTHEQUES}" danjo)

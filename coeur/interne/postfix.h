@@ -27,7 +27,7 @@
 #include <string>
 #include <queue>
 
-namespace kangao {
+namespace danjo {
 
 struct Variable {
 	int identifiant;
@@ -40,4 +40,4 @@ bool precedence_faible(int identifiant1, int identifiant2);
 
 double evalue_expression(const std::vector<Variable> &expression);
 
-}  /* namespace kangao */
+}  /* namespace danjo */

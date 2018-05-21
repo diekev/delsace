@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace kangao {
+namespace danjo {
 
 /* Liste générée par genere_donnees_mot_cle.py */
 enum {
@@ -136,4 +136,4 @@ struct DonneesMorceaux {
 
 std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur = ' ');
 
-}  /* namespace kangao */
+}  /* namespace danjo */

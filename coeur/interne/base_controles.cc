@@ -39,7 +39,7 @@
 #include "donnees_controle.h"
 #include "morceaux.h"
 
-namespace kangao {
+namespace danjo {
 
 enum {
 	AXIS_X = 0,
@@ -412,4 +412,4 @@ void SelecteurCouleur::paintEvent(QPaintEvent *)
 	painter.fillRect(0, 0, w, h, color);
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

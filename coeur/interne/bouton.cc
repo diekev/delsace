@@ -26,7 +26,7 @@
 
 #include "repondant_bouton.h"
 
-namespace kangao {
+namespace danjo {
 
 Bouton::Bouton(QWidget *parent)
 	: QPushButton(parent)
@@ -71,4 +71,4 @@ void Bouton::bouton_presse()
 	}
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

@@ -26,7 +26,7 @@
 
 #include "base_analyseuse.h"
 
-namespace kangao {
+namespace danjo {
 
 class AnalyseuseLogique : public Analyseuse {
 public:
@@ -45,4 +45,4 @@ private:
 	void analyse_relation();
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */

@@ -33,7 +33,7 @@
 #define DEBOGUE_ANALYSEUSE
 #define DEBOGUE_EXPRESSION
 
-namespace kangao {
+namespace danjo {
 
 #if 0
 struct NoeudPropriete {
@@ -426,4 +426,4 @@ void AnalyseuseLogique::analyse_sortie()
 #endif
 }
 
-}  /* namespace kangao */
+}  /* namespace danjo */

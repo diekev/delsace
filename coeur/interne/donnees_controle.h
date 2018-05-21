@@ -29,7 +29,7 @@
 
 #include "manipulable.h"
 
-namespace kangao {
+namespace danjo {
 
 struct DonneesControle {
 	void *pointeur = nullptr;
@@ -49,4 +49,4 @@ struct DonneesControle {
 	~DonneesControle() = default;
 };
 
-}  /* namespace kangao */
+}  /* namespace danjo */
