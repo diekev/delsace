@@ -41,6 +41,8 @@ class Decoupeur {
 	int m_ligne;
 	bool m_fini;
 	char m_caractere_courant;
+	const char *m_debut = nullptr;
+	const char *m_fin = nullptr;
 
 	std::vector<std::string_view> m_lignes;
 	std::vector<DonneesMorceaux> m_identifiants{};
@@ -67,13 +69,14 @@ public:
 	 * Ajoute un identifiant au vecteur d'identifiants avec les données passées
 	 * en paramètres.
 	 */
-	void ajoute_identifiant(int identifiant, const std::string_view &ligne, int numero_ligne, int position_ligne, const std::string &contenu);
+	void ajoute_identifiant(int identifiant, const std::string &contenu);
 
 	/**
 	 * Retourne la liste de morceaux découpés.
 	 */
 	const std::vector<DonneesMorceaux> &morceaux() const;
 
+	void avance(int compte = 1);
 private:
 	/**
 	 * Imprime un simple message de débogage contenant la ligne, la position, et
@@ -81,43 +84,6 @@ private:
 	 */
 	/* cppcheck-suppress unusedPrivateFunction */
 	void impression_debogage(const std::string &quoi);
-
-	/**
-	 * Avance la position du découpeur sur la chaîne de caractère tant que le
-	 * caractère courant est un espace blanc ('\\n', '\\t', ' ').
-	 *
-	 * Si un caractère de nouvelle ligne apparaît, ajoute la ligne courante à la
-	 * liste de lignes de la chaîne de caractère pour pouvoir l'imprimer en cas
-	 * d'erreur.
-	 */
-	void saute_espaces_blancs();
-
-	/**
-	 * Retourne le caratère courant et avance la position du découpeur sur la
-	 * chaîne de caractère.
-	 */
-	char caractere_suivant();
-
-	/**
-	 * Retourne le caractère courant sans modifier l'état du découpeur.
-	 */
-	char caractere_courant();
-
-	/**
-	 * Retourne le caractère suivant sans modifier l'état du découpeur.
-	 */
-	char regarde_caractere_suivant();
-
-	/**
-	 * Isole le contenu se trouvant entre deux guillemets (") et retourne-le
-	 * sous forme de std::string.
-	 */
-	std::string decoupe_chaine_litterale();
-
-	/**
-	 * Retourne une chaîne contenant un nombre découpé du texte d'entrée.
-	 */
-	std::string decoupe_nombre();
 };
 
 }  /* namespace kangao */

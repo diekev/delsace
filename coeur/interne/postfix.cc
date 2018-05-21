@@ -47,19 +47,19 @@ struct DonneesExpression {
 bool est_operateur(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_ADDITION:
-		case IDENTIFIANT_DIVISION:
-		case IDENTIFIANT_MULTIPLICATION:
-		case IDENTIFIANT_SOUSTRACTION:
+		case IDENTIFIANT_PLUS:
+		case IDENTIFIANT_DIVISE:
+		case IDENTIFIANT_FOIS:
+		case IDENTIFIANT_MOINS:
 		case IDENTIFIANT_EGALITE:
-		case IDENTIFIANT_INEGALITE:
+		case IDENTIFIANT_DIFFERENCE:
 		case IDENTIFIANT_INFERIEUR:
 		case IDENTIFIANT_SUPERIEUR:
 		case IDENTIFIANT_INFERIEUR_EGAL:
 		case IDENTIFIANT_SUPERIEUR_EGAL:
-		case IDENTIFIANT_ET:
-		case IDENTIFIANT_OU:
-		case IDENTIFIANT_OUX:
+		case IDENTIFIANT_ESPERLUETTE:
+		case IDENTIFIANT_BARRE:
+		case IDENTIFIANT_CHAPEAU:
 			return true;
 		default:
 			return false;
@@ -69,7 +69,7 @@ bool est_operateur(int identifiant)
 auto est_operateur_logique(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_NON:
+		case IDENTIFIANT_TILDE:
 			return true;
 		default:
 			return false;
@@ -79,17 +79,17 @@ auto est_operateur_logique(int identifiant)
 auto evalue_operation(const double op1, const double op2, int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_ADDITION:
+		case IDENTIFIANT_PLUS:
 			return op1 + op2;
-		case IDENTIFIANT_SOUSTRACTION:
+		case IDENTIFIANT_MOINS:
 			return op1 - op2;
-		case IDENTIFIANT_MULTIPLICATION:
+		case IDENTIFIANT_FOIS:
 			return op1 * op2;
-		case IDENTIFIANT_DIVISION:
+		case IDENTIFIANT_DIVISE:
 			return op1 / op2;
 		case IDENTIFIANT_EGALITE:
 			return static_cast<double>(op1 == op2);
-		case IDENTIFIANT_INEGALITE:
+		case IDENTIFIANT_DIFFERENCE:
 			return static_cast<double>(op1 != op2);
 		case IDENTIFIANT_INFERIEUR:
 			return static_cast<double>(op1 < op2);
@@ -99,11 +99,11 @@ auto evalue_operation(const double op1, const double op2, int identifiant)
 			return static_cast<double>(op1 <= op2);
 		case IDENTIFIANT_SUPERIEUR_EGAL:
 			return static_cast<double>(op1 >= op2);
-		case IDENTIFIANT_ET:
+		case IDENTIFIANT_ESPERLUETTE:
 			return static_cast<double>(static_cast<long int>(op1) & static_cast<long int>(op2));
-		case IDENTIFIANT_OU:
+		case IDENTIFIANT_BARRE:
 			return static_cast<double>(static_cast<long int>(op1) | static_cast<long int>(op2));
-		case IDENTIFIANT_OUX:
+		case IDENTIFIANT_CHAPEAU:
 			return static_cast<double>(static_cast<long int>(op1) ^ static_cast<long int>(op2));
 	}
 
@@ -113,7 +113,7 @@ auto evalue_operation(const double op1, const double op2, int identifiant)
 auto evalue_operation_logique(const double op1, int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_NON:
+		case IDENTIFIANT_TILDE:
 			return static_cast<double>(~static_cast<long int>(op1));
 	}
 
@@ -128,11 +128,11 @@ enum {
 static std::pair<int, int> associativite(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_ADDITION:
-		case IDENTIFIANT_SOUSTRACTION:
+		case IDENTIFIANT_PLUS:
+		case IDENTIFIANT_MOINS:
 			return { GAUCHE, 0};
-		case IDENTIFIANT_MULTIPLICATION:
-		case IDENTIFIANT_DIVISION:
+		case IDENTIFIANT_FOIS:
+		case IDENTIFIANT_DIVISE:
 		/* À FAIRE : modulo */
 			return { GAUCHE, 1};
 #if 0

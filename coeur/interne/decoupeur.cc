@@ -32,41 +32,20 @@
 
 //#define DEBOGUE_DECOUPEUR
 
-namespace kangao {
+#ifdef DEBOGUE_DECOUPEUR
+# define LOG std::cerr
+#else
+struct Loggeur {};
 
-/* étiquette : afficher une phrase dans l'interface
- *     étiquette(texte="Texte étiquette")
- *
- * curseur : afficher une barre de selection
- *     curseur(min="0"; max="100"; pas="1"; valeur="5"; attache=""; infobulle="")
- *
- * curseur_décimal : afficher une barre de selection
- *     curseur_décimal(min="0.0"; max="1.0"; pas="0.01"; precision="5"; valeur="5"; attache=""; infobulle="")
- *
- * liste : afficher une liste déroulante
- *     liste(valeur="jpeg"; items=[ { nom="", valeur=""}, ]; attache=""; infobulle="")
- *
- * case : afficher une case à cocher
- *     case(valeur="true"; attache=""; infobulle="")
- *
- * chaine :
- *     chaine(valeur=""; attache=""; infobulle="")
- *
- * selection fichier entrée :
- *     fichier_entree(valeur=""; attache=""; infobulle="")
- *
- * sélection fichier sortie :
- *     fichier_sortie(valeur=""; attache=""; infobulle="")
- *
- * sélection couleur :
- *     couleur(valeur="0,0,0"; attache=""; infobulle="")
- *
- * sélection vecteur :
- *     vecteur(valeur="0,0,0"; attache=""; infobulle="")
- *
- * bouton :
- *    bouton(valeur=""; attache=""; infobulle="")
- */
+template <typename T>
+Loggeur &operator<<(Loggeur &, const T &) {}
+
+Loggeur loggeur_principal;
+
+# define LOG loggeur_principal
+#endif
+
+namespace kangao {
 
 /* ************************************************************************** */
 
@@ -82,53 +61,72 @@ static bool comparaison_paires_identifiant(
 	return a.chaine < b.chaine;
 }
 
+/* Liste générée par genere_donnees_mot_cle.py */
 static PaireIndentifiantChaine paires_identifiant[] = {
-	{ IDENTIFIANT_DISPOSITION, "disposition" },
-	{ IDENTIFIANT_MENU, "menu" },
+	{ IDENTIFIANT_ACTION, "action" },
+	{ IDENTIFIANT_ATTACHE, "attache" },
 	{ IDENTIFIANT_BARRE_OUTILS, "barre_outils" },
+	{ IDENTIFIANT_BOUTON, "bouton" },
+	{ IDENTIFIANT_CASE, "case" },
+	{ IDENTIFIANT_CHAINE, "chaine" },
 	{ IDENTIFIANT_COLONNE, "colonne" },
-	{ IDENTIFIANT_LIGNE, "ligne" },
+	{ IDENTIFIANT_COULEUR, "couleur" },
+	{ IDENTIFIANT_DISPOSITION, "disposition" },
 	{ IDENTIFIANT_DOSSIER, "dossier" },
-	{ IDENTIFIANT_ONGLET, "onglet" },
-	{ IDENTIFIANT_CONTROLE_ETIQUETTE, "étiquette" },
-	{ IDENTIFIANT_CONTROLE_CURSEUR, "entier" },
-	{ IDENTIFIANT_CONTROLE_CURSEUR_DECIMAL, "décimal" },
-	{ IDENTIFIANT_CONTROLE_LISTE, "liste" },
-	{ IDENTIFIANT_CONTROLE_CASE_COCHER, "case" },
-	{ IDENTIFIANT_CONTROLE_CHAINE, "chaine" },
-	{ IDENTIFIANT_CONTROLE_FICHIER_ENTREE, "fichier_entrée" },
-	{ IDENTIFIANT_CONTROLE_FICHIER_SORTIE, "fichier_sortie" },
-	{ IDENTIFIANT_CONTROLE_COULEUR, "couleur" },
-	{ IDENTIFIANT_CONTROLE_VECTEUR, "vecteur" },
-	{ IDENTIFIANT_CONTROLE_BOUTON, "bouton" },
-	{ IDENTIFIANT_CONTROLE_ACTION, "action" },
-	{ IDENTIFIANT_CONTROLE_SEPARATEUR, "séparateur" },
-	{ IDENTIFIANT_PROPRIETE_INFOBULLE, "infobulle" },
-	{ IDENTIFIANT_PROPRIETE_MIN, "min" },
-	{ IDENTIFIANT_PROPRIETE_MAX, "max" },
-	{ IDENTIFIANT_PROPRIETE_VALEUR, "valeur" },
-	{ IDENTIFIANT_PROPRIETE_ATTACHE, "attache" },
-	{ IDENTIFIANT_PROPRIETE_PRECISION, "précision" },
-	{ IDENTIFIANT_PROPRIETE_PAS, "pas" },
-	{ IDENTIFIANT_PROPRIETE_ITEM, "items" },
-	{ IDENTIFIANT_PROPRIETE_NOM, "nom" },
-	{ IDENTIFIANT_PROPRIETE_METADONNEE, "métadonnée" },
-	{ IDENTIFIANT_PROPRIETE_ICONE, "icône" },
-	/* */
-	{ IDENTIFIANT_EGALITE, "==" },
-	{ IDENTIFIANT_INEGALITE, "!=" },
-	{ IDENTIFIANT_INFERIEUR_EGAL, "<=" },
-	{ IDENTIFIANT_SUPERIEUR_EGAL, ">=" },
-	{ IDENTIFIANT_VRAI, "vrai" },
-	{ IDENTIFIANT_FAUX, "faux" },
-	{ IDENTIFIANT_LOGIQUE, "logique" },
-	{ IDENTIFIANT_FEUILLE, "feuille" },
+	{ IDENTIFIANT_DECIMAL, "décimal" },
+	{ IDENTIFIANT_ENTIER, "entier" },
 	{ IDENTIFIANT_ENTREE, "entrée" },
+	{ IDENTIFIANT_FAUX, "faux" },
+	{ IDENTIFIANT_FEUILLE, "feuille" },
+	{ IDENTIFIANT_FICHIER_ENTREE, "fichier_entrée" },
+	{ IDENTIFIANT_FICHIER_SORTIE, "fichier_sortie" },
+	{ IDENTIFIANT_ICONE, "icône" },
+	{ IDENTIFIANT_INFOBULLE, "infobulle" },
 	{ IDENTIFIANT_INTERFACE, "interface" },
-	{ IDENTIFIANT_RELATION, "relation" },
+	{ IDENTIFIANT_ITEMS, "items" },
+	{ IDENTIFIANT_LIGNE, "ligne" },
+	{ IDENTIFIANT_LISTE, "liste" },
+	{ IDENTIFIANT_LOGIQUE, "logique" },
+	{ IDENTIFIANT_MAX, "max" },
+	{ IDENTIFIANT_MENU, "menu" },
+	{ IDENTIFIANT_MIN, "min" },
+	{ IDENTIFIANT_METADONNEE, "métadonnée" },
+	{ IDENTIFIANT_NOM, "nom" },
+	{ IDENTIFIANT_ONGLET, "onglet" },
+	{ IDENTIFIANT_PAS, "pas" },
+	{ IDENTIFIANT_PRECISION, "précision" },
 	{ IDENTIFIANT_QUAND, "quand" },
-	{ IDENTIFIANT_SORTIE, "sortie" },
+	{ IDENTIFIANT_RELATION, "relation" },
 	{ IDENTIFIANT_RESULTAT, "résultat" },
+	{ IDENTIFIANT_SORTIE, "sortie" },
+	{ IDENTIFIANT_SEPARATEUR, "séparateur" },
+	{ IDENTIFIANT_VALEUR, "valeur" },
+	{ IDENTIFIANT_VECTEUR, "vecteur" },
+	{ IDENTIFIANT_VRAI, "vrai" },
+	{ IDENTIFIANT_ETIQUETTE, "étiquette" },
+};
+
+/* Liste générée par genere_donnees_mot_cle.py */
+static PaireIndentifiantChaine paires_caracteres_double[] = {
+	{ IDENTIFIANT_DIFFERENCE, "!=" },
+	{ IDENTIFIANT_ESP_ESP, "&&" },
+	{ IDENTIFIANT_ET_EGAL, "&=" },
+	{ IDENTIFIANT_FOIS_EGAL, "*=" },
+	{ IDENTIFIANT_PLUS_PLUS, "++" },
+	{ IDENTIFIANT_PLUS_EGAL, "+=" },
+	{ IDENTIFIANT_MOINS_MOINS, "--" },
+	{ IDENTIFIANT_MOINS_EGAL, "-=" },
+	{ IDENTIFIANT_FLECHE, "->" },
+	{ IDENTIFIANT_TROIS_POINT, "..." },
+	{ IDENTIFIANT_DIVISE_EGAL, "/=" },
+	{ IDENTIFIANT_DECALAGE_GAUCHE, "<<" },
+	{ IDENTIFIANT_INFERIEUR_EGAL, "<=" },
+	{ IDENTIFIANT_EGALITE, "==" },
+	{ IDENTIFIANT_SUPERIEUR_EGAL, ">=" },
+	{ IDENTIFIANT_DECALAGE_DROITE, ">>" },
+	{ IDENTIFIANT_OUX_EGAL, "^=" },
+	{ IDENTIFIANT_OU_EGAL, "|=" },
+	{ IDENTIFIANT_BARE_BARRE, "||" },
 };
 
 struct PaireIndentifiantCaractere {
@@ -143,46 +141,82 @@ static bool comparaison_paires_identifiant_caractere(
 	return a.caractere < b.caractere;
 }
 
+/* Liste générée par genere_donnees_mot_cle.py */
 static PaireIndentifiantCaractere paires_identifiant_caractere[] = {
-	{ IDENTIFIANT_ACCOLADE_OUVERTE, '{' },
-	{ IDENTIFIANT_ACCOLADE_FERMEE, '}' },
-	{ IDENTIFIANT_PARENTHESE_OUVERTE, '(' },
-	{ IDENTIFIANT_PARENTHESE_FERMEE, ')' },
-	{ IDENTIFIANT_CROCHET_OUVERT, '[' },
-	{ IDENTIFIANT_CROCHET_FERME, ']' },
-	{ IDENTIFIANT_EGAL, '=' },
-	{ IDENTIFIANT_POINT_VIRGULE, ';' },
-	{ IDENTIFIANT_VIRGULE, ',' },
-	{ IDENTIFIANT_ADDITION, '+' },
-	{ IDENTIFIANT_SOUSTRACTION, '-' },
-	{ IDENTIFIANT_DIVISION, '/' },
-	{ IDENTIFIANT_MULTIPLICATION, '*' },
-	{ IDENTIFIANT_NON, '~' },
-	{ IDENTIFIANT_ET, '&' },
-	{ IDENTIFIANT_OU, '|' },
-	{ IDENTIFIANT_OUX, '^' },
-	{ IDENTIFIANT_INFERIEUR, '<' },
-	{ IDENTIFIANT_SUPERIEUR, '>' },
+	{ IDENTIFIANT_EXCLAMATION, '!' },
 	{ IDENTIFIANT_GUILLEMET, '"' },
+	{ IDENTIFIANT_DIESE, '#' },
+	{ IDENTIFIANT_POURCENT, '%' },
+	{ IDENTIFIANT_ESPERLUETTE, '&' },
+	{ IDENTIFIANT_APOSTROPHE, '\'' },
+	{ IDENTIFIANT_PARENTHESE_OUVRANTE, '(' },
+	{ IDENTIFIANT_PARENTHESE_FERMANTE, ')' },
+	{ IDENTIFIANT_FOIS, '*' },
+	{ IDENTIFIANT_PLUS, '+' },
+	{ IDENTIFIANT_VIRGULE, ',' },
+	{ IDENTIFIANT_MOINS, '-' },
+	{ IDENTIFIANT_POINT, '.' },
+	{ IDENTIFIANT_DIVISE, '/' },
+	{ IDENTIFIANT_DOUBLE_POINT, ':' },
+	{ IDENTIFIANT_POINT_VIRGULE, ';' },
+	{ IDENTIFIANT_INFERIEUR, '<' },
+	{ IDENTIFIANT_EGAL, '=' },
+	{ IDENTIFIANT_SUPERIEUR, '>' },
+	{ IDENTIFIANT_CROCHET_OUVRANT, '[' },
+	{ IDENTIFIANT_CROCHET_FERMANT, ']' },
+	{ IDENTIFIANT_CHAPEAU, '^' },
+	{ IDENTIFIANT_ACCOLADE_OUVRANTE, '{' },
+	{ IDENTIFIANT_BARRE, '|' },
+	{ IDENTIFIANT_ACCOLADE_FERMANTE, '}' },
+	{ IDENTIFIANT_TILDE, '~' },
 };
 
-template <typename Iterateur, typename T, typename TypeComparaison>
-Iterateur recherche_binaire(
-		Iterateur debut,
-		Iterateur fin,
-		const T &valeur,
-		const TypeComparaison &comparaison)
+static bool est_nombre(const char caractere)
 {
-	auto iterateur = std::lower_bound(debut, fin, valeur, comparaison);
-
-	if (iterateur != fin && !(*iterateur < valeur)) {
-		return iterateur;
-	}
-
-	return fin;
+	return (caractere >= '0' && caractere <= '9');
 }
 
-static int trouve_identifiant(const std::string &chaine)
+bool est_espace_blanc(char caractere)
+{
+	return caractere == ' ' || caractere == '\n' || caractere == '\t';
+}
+
+bool est_caractere_special(char c, int &i)
+{
+	auto iterateur = std::lower_bound(
+				std::begin(paires_identifiant_caractere),
+				std::end(paires_identifiant_caractere),
+				PaireIndentifiantCaractere{IDENTIFIANT_NUL, c},
+				comparaison_paires_identifiant_caractere);
+
+	if (iterateur != std::end(paires_identifiant_caractere)) {
+		if ((*iterateur).caractere == c) {
+			i = (*iterateur).identifiant;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int id_caractere_double(const std::string &chaine)
+{
+	auto iterateur = std::lower_bound(
+				std::begin(paires_caracteres_double),
+				std::end(paires_caracteres_double),
+				PaireIndentifiantChaine{IDENTIFIANT_NUL, chaine},
+				comparaison_paires_identifiant);
+
+	if (iterateur != std::end(paires_caracteres_double)) {
+		if ((*iterateur).chaine == chaine) {
+			return (*iterateur).identifiant;
+		}
+	}
+
+	return IDENTIFIANT_NUL;
+}
+
+int id_chaine(const std::string &chaine)
 {
 	auto iterateur = std::lower_bound(
 				std::begin(paires_identifiant),
@@ -196,29 +230,42 @@ static int trouve_identifiant(const std::string &chaine)
 		}
 	}
 
-	return IDENTIFIANT_NUL;
+	return IDENTIFIANT_CHAINE_CARACTERE;
 }
 
-static int trouve_identifiant_caractere(const char caractere)
-{
-	auto iterateur = std::lower_bound(
-				std::begin(paires_identifiant_caractere),
-				std::end(paires_identifiant_caractere),
-				PaireIndentifiantCaractere{IDENTIFIANT_NUL, caractere},
-				comparaison_paires_identifiant_caractere);
+enum {
+	ETAT_NOMBRE_POINT,
+	ETAT_NOMBRE_EXPONENTIEL,
+	ETAT_NOMBRE_DEBUT,
+};
 
-	if (iterateur != std::end(paires_identifiant_caractere)) {
-		if ((*iterateur).caractere == caractere) {
-			return (*iterateur).identifiant;
+int extrait_nombre(const char *debut, const char *fin, std::string &chaine)
+{
+	int compte = 0;
+	int etat = ETAT_NOMBRE_DEBUT;
+
+	while (debut != fin) {
+		if (!est_nombre(*debut) && *debut != '.') {
+			break;
 		}
+
+		if (*debut == '.') {
+			if ((*(debut + 1) == '.') && (*(debut + 2) == '.')) {
+				break;
+			}
+
+			if (etat == ETAT_NOMBRE_POINT) {
+				throw ErreurFrappe("", 0, 0, "Erreur ! Le nombre contient un point en trop !\n");
+			}
+
+			etat = ETAT_NOMBRE_POINT;
+		}
+
+		chaine.push_back(*debut++);
+		++compte;
 	}
 
-	return IDENTIFIANT_NUL;
-}
-
-static bool est_nombre(const char caractere)
-{
-	return (caractere >= '0' && caractere <= '9') || caractere == '.';
+	return compte;
 }
 
 /* ************************************************************************** */
@@ -242,14 +289,6 @@ Decoupeur::Decoupeur(const std::string_view &chaine)
 	, m_fini(false)
 	, m_caractere_courant('\0')
 {
-	std::sort(std::begin(paires_identifiant),
-			  std::end(paires_identifiant),
-			  comparaison_paires_identifiant);
-
-	std::sort(std::begin(paires_identifiant_caractere),
-			  std::end(paires_identifiant_caractere),
-			  comparaison_paires_identifiant_caractere);
-
 	m_lignes.push_back({&m_chaine[m_position],
 						trouve_taille_ligne(m_chaine, m_position)});
 }
@@ -261,171 +300,203 @@ void Decoupeur::impression_debogage(const std::string &quoi)
 			  << ", position : " << m_position_ligne << ".\n";
 }
 
-void Decoupeur::saute_espaces_blancs()
+void Decoupeur::avance(int compte)
 {
-	auto caractere = m_chaine[m_position];
-
-	while (caractere == ' ' || caractere == '\n' || caractere == '\t') {
-		++m_position;
-		++m_position_ligne;
-
-		if (m_position == m_chaine.size()) {
-			m_fini = true;
-			break;
-		}
-
-		if (caractere == '\n') {
-			m_lignes.push_back({&m_chaine[m_position + 1],
-								trouve_taille_ligne(m_chaine, m_position + 1)});
-
-			++m_ligne;
-			m_position_ligne = 0;
-		}
-
-		caractere = m_chaine[m_position];
-	}
+	m_position += compte;
+	m_debut += compte;
+	m_position_ligne += compte;
 }
 
-char Decoupeur::regarde_caractere_suivant()
-{
-	if (m_position >= m_chaine.size()) {
-		return '\0';
-	}
-
-	return m_chaine[m_position];
-}
-
-char Decoupeur::caractere_suivant()
-{
-	m_caractere_courant = m_chaine[m_position++];
-	++m_position_ligne;
-
-	if (m_position == m_chaine.size()) {
-		m_fini = true;
-	}
-
-	return m_caractere_courant;
-}
-
-char Decoupeur::caractere_courant()
-{
-	return m_caractere_courant;
-}
-
-std::string Decoupeur::decoupe_chaine_litterale()
-{
-	std::string mot_courant;
-
-	while (caractere_suivant() != '"') {
-		mot_courant.push_back(caractere_courant());
-	}
-
-	return mot_courant;
-}
-
-std::string Decoupeur::decoupe_nombre()
-{
-	std::string mot_courant;
-
-	while (est_nombre(caractere_courant())) {
-		mot_courant.push_back(caractere_courant());
-
-		if (!est_nombre(regarde_caractere_suivant())) {
-			break;
-		}
-
-		caractere_suivant();
-	}
-
-	return mot_courant;
-}
-
+// si caractere blanc:
+//    ajoute mot
+// sinon si caractere speciale:
+//    ajoute mot
+//    si caractere suivant constitue caractere double
+//        ajoute mot caractere double
+//    sinon
+//        si caractere est '.':
+//            decoupe nombre ou trois point
+//        sinon si caractere est '"':
+//            decoupe chaine caractere littérale
+//        sinon si caractere est '#':
+//            decoupe commentaire
+//        sinon si caractere est '\'':
+//            decoupe caractere
+//        sinon:
+//        	ajoute mot caractere simple
+// sinon si nombre et mot est vide:
+//    decoupe nombre
+// sinon:
+//    ajoute caractere mot courant
 void Decoupeur::decoupe()
 {
-#ifdef DEBOGUE_DECOUPEUR
-	std::cout << "Démarrage de l'analyse d'une chaîne de "
-			  << m_chaine.size() << " caractères.\n";
-#endif
+	LOG << "Démarrage de l'analyse d'une chaîne de "
+		<< m_chaine.size() << " caractères.\n";
 
 	std::string mot_courant;
-	m_ligne = 0;
+	m_ligne = 1;
 	m_position = 0;
 	m_position_ligne = 0;
-	int identifiant = IDENTIFIANT_NUL;
 
-	while (!m_fini) {
-		saute_espaces_blancs();
-		const auto caractere = caractere_suivant();
+	m_debut = &m_chaine[0];
+	m_fin = &m_chaine[m_chaine.size()];
 
-		identifiant = trouve_identifiant_caractere(caractere);
+	while (m_debut != m_fin) {
+		int idc = IDENTIFIANT_NUL;
 
-		if (identifiant != IDENTIFIANT_NUL) {
+		if (est_espace_blanc(*m_debut)) {
 			if (!mot_courant.empty()) {
-				throw ErreurFrappe(
-							m_lignes[m_ligne],
-							m_ligne,
-							m_position_ligne,
-							"Identifiant inconnu !");
+				LOG << "Découpe mot courrant après espace blanc.\n";
+				ajoute_identifiant(id_chaine(mot_courant), mot_courant);
+				mot_courant = "";
 			}
 
-			if (identifiant == IDENTIFIANT_GUILLEMET) {
-				mot_courant = decoupe_chaine_litterale();
-				identifiant = IDENTIFIANT_CHAINE_CARACTERE;
+			if (*m_debut == '\n') {
+				m_lignes.push_back({&m_chaine[m_position + 1],
+									trouve_taille_ligne(m_chaine, m_position + 1)});
+
+				++m_ligne;
+				m_position_ligne = 0;
 			}
-			else {
-				mot_courant.push_back(caractere);
-			}
+
+			avance();
 		}
-		else if (caractere >= '0' && caractere <= '9') {
+		else if (est_caractere_special(*m_debut, idc)) {
 			if (!mot_courant.empty()) {
-				throw ErreurFrappe(
-							m_lignes[m_ligne],
-							m_ligne,
-							m_position_ligne,
-							"Identifiant inconnu !");
+				LOG << "Découpe mot courrant après caractère spécial.\n";
+				ajoute_identifiant(id_chaine(mot_courant), mot_courant);
+				mot_courant = "";
 			}
 
-			mot_courant = decoupe_nombre();
-			identifiant = IDENTIFIANT_NOMBRE;
-		}
-		else {
-			mot_courant.push_back(caractere);
-			identifiant = trouve_identifiant(mot_courant);
-		}
+			mot_courant.push_back(*m_debut);
+			mot_courant.push_back(*(m_debut + 1));
 
-		if (identifiant != IDENTIFIANT_NUL) {
-#ifdef DEBOGUE_DECOUPEUR
-			impression_debogage(mot_courant);
-#endif
+			auto id = id_caractere_double(mot_courant);
 
-			ajoute_identifiant(
-						identifiant,
-						m_lignes[m_ligne],
-						m_ligne,
-						m_position_ligne,
-						mot_courant);
+			if (id != IDENTIFIANT_NUL) {
+				LOG << "Découpe caractère double.\n";
+				ajoute_identifiant(id, mot_courant);
+				mot_courant = "";
+				avance(2);
+				continue;
+			}
 
 			mot_courant = "";
+
+			if (*m_debut == '.') {
+				if (*(m_debut + 1) == '.') {
+					if (*(m_debut + 2) != '.') {
+						throw ErreurFrappe(m_lignes[m_ligne - 1],
+										   m_ligne,
+										   m_position_ligne,
+										   "Erreur : un point est manquant ou un point est en trop !\n");
+					}
+
+					LOG << "Découpe trois point.\n";
+
+					ajoute_identifiant(IDENTIFIANT_TROIS_POINT, "...");
+					mot_courant = "";
+					avance(3);
+				}
+				else if (est_nombre(*(m_debut + 1))) {
+					LOG << "Découpe nombre commentaire par un point.\n";
+					int compte = extrait_nombre(m_debut, m_fin, mot_courant);
+					avance(compte);
+					ajoute_identifiant(IDENTIFIANT_NOMBRE, mot_courant);
+					mot_courant = "";
+				}
+				else {
+					throw ErreurFrappe(m_lignes[m_ligne - 1],
+										 m_ligne,
+										 m_position_ligne,
+										 "Erreur : point innatendu !\n");
+				}
+			}
+			else if (*m_debut == '"') {
+				LOG << "Découpe chaîne littérale.\n";
+
+				// Saute le premier guillemet.
+				avance();
+
+				while (m_debut != m_fin) {
+					if (*m_debut == '"' && *(m_debut - 1) != '\\') {
+						break;
+					}
+
+					mot_courant.push_back(*m_debut);
+					avance();
+				}
+
+				// Saute le dernier guillemet.
+				avance();
+
+				ajoute_identifiant(IDENTIFIANT_CHAINE_LITTERALE, mot_courant);
+				mot_courant = "";
+			}
+			else if (*m_debut == '\'') {
+				LOG << "Découpe lettre.\n";
+				// Saute la première apostrophe.
+				avance();
+
+				mot_courant.push_back(*m_debut);
+				avance();
+
+				// Saute la dernière apostrophe.
+				if (*m_debut != '\'') {
+					throw ErreurFrappe(m_lignes[m_ligne - 1],
+									   m_ligne,
+									   m_position_ligne,
+									   "Erreur : plusieurs caractère détectés !\n");
+				}
+
+				avance();
+
+				ajoute_identifiant(IDENTIFIANT_CARACTERE, mot_courant);
+				mot_courant = "";
+			}
+			else if (*m_debut == '#') {
+				LOG << "Découpe commentaire.\n";
+				// ignore commentaire
+				while (*m_debut != '\n') {
+					avance();
+				}
+			}
+			else {
+				LOG << "Découpe caractère simple.\n";
+				mot_courant.push_back(*m_debut);
+				ajoute_identifiant(idc, mot_courant);
+				mot_courant = "";
+				avance();
+			}
+		}
+		else if (est_nombre(*m_debut) && mot_courant.empty()) {
+			LOG << "Découpe nombre.\n";
+			int compte = extrait_nombre(m_debut, m_fin, mot_courant);
+			avance(compte);
+			ajoute_identifiant(IDENTIFIANT_NOMBRE, mot_courant);
+			mot_courant = "";
+		}
+		else {
+			mot_courant.push_back(*m_debut);
+			avance();
 		}
 	}
 
-#ifdef DEBOGUE_DECOUPEUR
-	std::cout << "Fin de l'analyse. Ligne : " << m_ligne
-			  << ". Position : " << m_position << ".\n";
-#endif
+	LOG << "Fin de l'analyse. Ligne : " << m_ligne
+		<< ". Position : " << m_position << ".\n";
 
 	if (!mot_courant.empty()) {
 		throw ErreurFrappe(
-					m_lignes[m_ligne],
+					m_lignes[m_ligne - 1],
 					m_ligne,
 					m_position_ligne,
 					"Le script ne semble pas terminé !");
 	}
 }
 
-void Decoupeur::ajoute_identifiant(int identifiant, const std::string_view &ligne, int numero_ligne, int position_ligne, const std::string &contenu)
+void Decoupeur::ajoute_identifiant(int identifiant, const std::string &contenu)
 {
-	m_identifiants.push_back({identifiant, numero_ligne, position_ligne, contenu, ligne});
+	m_identifiants.push_back({identifiant, m_ligne, m_position_ligne, contenu, m_lignes[m_ligne - 1]});
 }
 
 const std::vector<DonneesMorceaux> &Decoupeur::morceaux() const

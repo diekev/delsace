@@ -37,16 +37,16 @@ namespace kangao {
 static bool est_identifiant_controle(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_CONTROLE_CURSEUR:
-		case IDENTIFIANT_CONTROLE_CURSEUR_DECIMAL:
-		case IDENTIFIANT_CONTROLE_ETIQUETTE:
-		case IDENTIFIANT_CONTROLE_LISTE:
-		case IDENTIFIANT_CONTROLE_CASE_COCHER:
-		case IDENTIFIANT_CONTROLE_CHAINE:
-		case IDENTIFIANT_CONTROLE_FICHIER_ENTREE:
-		case IDENTIFIANT_CONTROLE_FICHIER_SORTIE:
-		case IDENTIFIANT_CONTROLE_COULEUR:
-		case IDENTIFIANT_CONTROLE_VECTEUR:
+		case IDENTIFIANT_ENTIER:
+		case IDENTIFIANT_DECIMAL:
+		case IDENTIFIANT_ETIQUETTE:
+		case IDENTIFIANT_LISTE:
+		case IDENTIFIANT_CASE:
+		case IDENTIFIANT_CHAINE:
+		case IDENTIFIANT_FICHIER_ENTREE:
+		case IDENTIFIANT_FICHIER_SORTIE:
+		case IDENTIFIANT_COULEUR:
+		case IDENTIFIANT_VECTEUR:
 			return true;
 		default:
 			return false;
@@ -56,16 +56,16 @@ static bool est_identifiant_controle(int identifiant)
 static bool est_identifiant_propriete(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_PROPRIETE_INFOBULLE:
-		case IDENTIFIANT_PROPRIETE_MIN:
-		case IDENTIFIANT_PROPRIETE_MAX:
-		case IDENTIFIANT_PROPRIETE_VALEUR:
-		case IDENTIFIANT_PROPRIETE_ATTACHE:
-		case IDENTIFIANT_PROPRIETE_PRECISION:
-		case IDENTIFIANT_PROPRIETE_PAS:
-		case IDENTIFIANT_PROPRIETE_ITEM:
-		case IDENTIFIANT_PROPRIETE_METADONNEE:
-		case IDENTIFIANT_PROPRIETE_ICONE:
+		case IDENTIFIANT_INFOBULLE:
+		case IDENTIFIANT_MIN:
+		case IDENTIFIANT_MAX:
+		case IDENTIFIANT_VALEUR:
+		case IDENTIFIANT_ATTACHE:
+		case IDENTIFIANT_PRECISION:
+		case IDENTIFIANT_PAS:
+		case IDENTIFIANT_ITEMS:
+		case IDENTIFIANT_METADONNEE:
+		case IDENTIFIANT_ICONE:
 			return true;
 		default:
 			return false;
@@ -109,13 +109,13 @@ void AnalyseuseDisposition::analyse_script_disposition()
 		lance_erreur("Le script doit commencer par 'disposition' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 		lance_erreur("Attendu le nom de la disposition après 'disposition' !");
 	}
 
 	m_assembleur->nom_disposition(m_identifiants[position()].contenu);
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom de la disposition !");
 	}
 
@@ -124,7 +124,7 @@ void AnalyseuseDisposition::analyse_script_disposition()
 
 	analyse_disposition();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 
@@ -139,13 +139,13 @@ void AnalyseuseDisposition::analyse_script_menu()
 		lance_erreur("Attendu la déclaration menu !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 		lance_erreur("Attendu le nom du menu après 'menu' !");
 	}
 
 	const auto nom = m_identifiants[position()].contenu;
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom du menu !");
 	}
 
@@ -153,7 +153,7 @@ void AnalyseuseDisposition::analyse_script_menu()
 
 	analyse_menu();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 
@@ -166,7 +166,7 @@ void AnalyseuseDisposition::analyse_script_barre_outils()
 		lance_erreur("Attendu la déclaration 'barre_outils' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après 'barre_outils' !");
 	}
 
@@ -174,14 +174,14 @@ void AnalyseuseDisposition::analyse_script_barre_outils()
 
 	analyse_barre_outils();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 }
 
 void AnalyseuseDisposition::analyse_barre_outils()
 {
-	if (est_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
+	if (est_identifiant(IDENTIFIANT_ACTION)) {
 		analyse_action();
 	}
 	else {
@@ -193,13 +193,13 @@ void AnalyseuseDisposition::analyse_barre_outils()
 
 void AnalyseuseDisposition::analyse_menu()
 {
-	if (est_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
+	if (est_identifiant(IDENTIFIANT_ACTION)) {
 		analyse_action();
 	}
 	else if (est_identifiant(IDENTIFIANT_MENU)) {
 		analyse_script_menu();
 	}
-	else if (est_identifiant(IDENTIFIANT_CONTROLE_SEPARATEUR)) {
+	else if (est_identifiant(IDENTIFIANT_SEPARATEUR)) {
 		m_assembleur->ajoute_separateur();
 		avance();
 	}
@@ -212,19 +212,19 @@ void AnalyseuseDisposition::analyse_menu()
 
 void AnalyseuseDisposition::analyse_action()
 {
-	if (!requiers_identifiant(IDENTIFIANT_CONTROLE_ACTION)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACTION)) {
 		lance_erreur("Attendu la déclaration d'une action !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu l'ouverture d'une paranthèse après 'action' !");
 	}
 
 	m_assembleur->ajoute_action();
 
-	analyse_propriete(IDENTIFIANT_CONTROLE_ACTION);
+	analyse_propriete(IDENTIFIANT_ACTION);
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu la fermeture d'une paranthèse !");
 	}
 }
@@ -240,7 +240,7 @@ void AnalyseuseDisposition::analyse_disposition()
 	else if (est_identifiant(IDENTIFIANT_DOSSIER)) {
 		analyse_dossier();
 	}
-	else if (est_identifiant(IDENTIFIANT_CONTROLE_BOUTON)) {
+	else if (est_identifiant(IDENTIFIANT_BOUTON)) {
 		analyse_bouton();
 	}
 	else if (est_identifiant_controle(identifiant_courant())) {
@@ -263,7 +263,7 @@ void AnalyseuseDisposition::analyse_ligne()
 		lance_erreur("Attendu la déclaration 'ligne' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la déclaration 'ligne' !");
 	}
 
@@ -273,7 +273,7 @@ void AnalyseuseDisposition::analyse_ligne()
 
 	m_assembleur->sort_disposition();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de la 'ligne' !");
 	}
 
@@ -290,7 +290,7 @@ void AnalyseuseDisposition::analyse_colonne()
 		lance_erreur("Attendu la déclaration 'colonne' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la déclaration 'colonne' !");
 	}
 
@@ -300,7 +300,7 @@ void AnalyseuseDisposition::analyse_colonne()
 
 	m_assembleur->sort_disposition();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de la 'colonne' !");
 	}
 
@@ -313,7 +313,7 @@ void AnalyseuseDisposition::analyse_dossier()
 		lance_erreur("Attendu la déclaration 'dossier' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la déclaration 'dossier' !");
 	}
 
@@ -323,7 +323,7 @@ void AnalyseuseDisposition::analyse_dossier()
 
 	m_assembleur->finalise_dossier();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de 'dossier' !");
 	}
 
@@ -341,13 +341,13 @@ void AnalyseuseDisposition::analyse_onglet()
 		lance_erreur("Attendu la déclaration 'onglet' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'onglet' !");
 	}
 
 	const auto &nom = m_identifiants[position()].contenu;
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom de 'onglet' !");
 	}
 
@@ -357,7 +357,7 @@ void AnalyseuseDisposition::analyse_onglet()
 
 	m_assembleur->finalise_onglet();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de 'onglet' !");
 	}
 
@@ -378,7 +378,7 @@ void AnalyseuseDisposition::analyse_controle()
 
 	avance();
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après la déclaration du contrôle !");
 	}
 
@@ -386,7 +386,7 @@ void AnalyseuseDisposition::analyse_controle()
 
 	analyse_propriete(identifiant_controle);
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la déclaration du contenu du contrôle !");
 	}
 
@@ -395,19 +395,19 @@ void AnalyseuseDisposition::analyse_controle()
 
 void AnalyseuseDisposition::analyse_bouton()
 {
-	if (!requiers_identifiant(IDENTIFIANT_CONTROLE_BOUTON)) {
+	if (!requiers_identifiant(IDENTIFIANT_BOUTON)) {
 		lance_erreur("Attendu la déclaration d'un bouton !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après la déclaration 'bouton' !");
 	}
 
 	m_assembleur->ajoute_bouton();
 
-	analyse_propriete(IDENTIFIANT_CONTROLE_BOUTON);
+	analyse_propriete(IDENTIFIANT_BOUTON);
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la déclaration du contenu du 'bouton' !");
 	}
 }
@@ -430,20 +430,20 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 		lance_erreur("Attendu la déclaration '=' !");
 	}
 
-	if (identifiant_propriete == IDENTIFIANT_PROPRIETE_ITEM) {
+	if (identifiant_propriete == IDENTIFIANT_ITEMS) {
 		analyse_liste_item();
 	}
 	else {
-		if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 			lance_erreur("Attendu une chaine de caractère !");
 		}
 
-		if (type_controle == IDENTIFIANT_CONTROLE_BOUTON) {
+		if (type_controle == IDENTIFIANT_BOUTON) {
 			m_assembleur->propriete_bouton(
 						identifiant_propriete,
 						m_identifiants[position()].contenu);
 		}
-		else if (type_controle == IDENTIFIANT_CONTROLE_ACTION) {
+		else if (type_controle == IDENTIFIANT_ACTION) {
 			m_assembleur->propriete_action(
 						identifiant_propriete,
 						m_identifiants[position()].contenu);
@@ -466,13 +466,13 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 
 void AnalyseuseDisposition::analyse_liste_item()
 {
-	if (!requiers_identifiant(IDENTIFIANT_CROCHET_OUVERT)) {
+	if (!requiers_identifiant(IDENTIFIANT_CROCHET_OUVRANT)) {
 		lance_erreur("Attendu un crochet ouvert !");
 	}
 
 	analyse_item();
 
-	if (!requiers_identifiant(IDENTIFIANT_CROCHET_FERME)) {
+	if (!requiers_identifiant(IDENTIFIANT_CROCHET_FERMANT)) {
 		lance_erreur("Attendu un crochet fermé !");
 	}
 }
@@ -480,11 +480,11 @@ void AnalyseuseDisposition::analyse_liste_item()
 /* { nom="", valeur=""}, */
 void AnalyseuseDisposition::analyse_item()
 {
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouverte !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_PROPRIETE_NOM)) {
+	if (!requiers_identifiant(IDENTIFIANT_NOM)) {
 		lance_erreur("Attendu la déclaration 'nom' après l'accolade ouverte !");
 	}
 
@@ -492,7 +492,7 @@ void AnalyseuseDisposition::analyse_item()
 		lance_erreur("Attendu la déclaration '=' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 		lance_erreur("Attendu une chaîne de caractère après '=' !");
 	}
 
@@ -502,7 +502,7 @@ void AnalyseuseDisposition::analyse_item()
 		lance_erreur("Attendu une virgule !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_PROPRIETE_VALEUR)) {
+	if (!requiers_identifiant(IDENTIFIANT_VALEUR)) {
 		lance_erreur("Attendu la déclaration 'nom' après l'accolade ouverte !");
 	}
 
@@ -510,13 +510,13 @@ void AnalyseuseDisposition::analyse_item()
 		lance_erreur("Attendu la déclaration '=' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 		lance_erreur("Attendu une chaîne de caractère après '=' !");
 	}
 
 	const auto valeur = m_identifiants[position()].contenu;
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermée !");
 	}
 

@@ -116,17 +116,17 @@ void AnalyseuseLogique::lance_analyse(const std::vector<DonneesMorceaux> &identi
 		lance_erreur("Le script doit commencer avec 'feuille' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 		lance_erreur("Attendu le nom de la feuille après 'feuille' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_corps();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 }
@@ -170,13 +170,13 @@ void AnalyseuseLogique::analyse_entree()
 		lance_erreur("Attendu la déclaration 'entrée' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_declaration(EXPRESSION_ENTREE);
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de l'entrée !");
 	}
 
@@ -191,7 +191,7 @@ void AnalyseuseLogique::analyse_declaration(const int type)
 	std::cout << __func__ << '\n';
 #endif
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 		recule();
 		return;
 	}
@@ -237,7 +237,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 		if (est_identifiant(IDENTIFIANT_NOMBRE)) {
 			output.push_back(variable);
 		}
-		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		else if (est_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 			if (!m_assembleuse.variable_connue(variable.valeur)) {
 				lance_erreur("Variable inconnue : " + variable.valeur);
 			}
@@ -255,21 +255,21 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 
 			stack.push(variable);
 		}
-		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
 			stack.push(variable);
 		}
-		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
 			if (stack.empty()) {
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (stack.top().identifiant != IDENTIFIANT_PARENTHESE_OUVERTE) {
+			while (stack.top().identifiant != IDENTIFIANT_PARENTHESE_OUVRANTE) {
 				output.push_back(stack.top());
 				stack.pop();
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVERTE) {
+			if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
 				stack.pop();
 			}
 		}
@@ -278,7 +278,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 	}
 
 	while (!stack.empty()) {
-		if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVERTE) {
+		if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
@@ -315,13 +315,13 @@ void AnalyseuseLogique::analyse_interface()
 		lance_erreur("Attendu la déclaration 'interface' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_declaration(EXPRESSION_INTERFACE);
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de l'interface !");
 	}
 
@@ -340,13 +340,13 @@ void AnalyseuseLogique::analyse_logique()
 		lance_erreur("Attendu la déclaration 'logique' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_relation();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la logique !");
 	}
 
@@ -368,15 +368,15 @@ void AnalyseuseLogique::analyse_relation()
 	if (est_identifiant(IDENTIFIANT_QUAND)) {
 		avance();
 
-		if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
+		if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
 			lance_erreur("Attendu une paranthèse ouvrante !");
 		}
 
-		if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 			lance_erreur("Attendu le nom d'une variable !");
 		}
 
-		if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
+		if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
 			lance_erreur("Attendu une paranthèse fermante !");
 		}
 	}
@@ -385,13 +385,13 @@ void AnalyseuseLogique::analyse_relation()
 		lance_erreur("Attendu la déclaration 'relation' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_declaration(EXPRESSION_RELATION);
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la relation !");
 	}
 
@@ -411,13 +411,13 @@ void AnalyseuseLogique::analyse_sortie()
 		lance_erreur("Attendu la déclaration 'sortie' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVERTE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	/******/
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMEE)) {
+	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la sortie !");
 	}
 

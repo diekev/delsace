@@ -1,0 +1,32 @@
+étiquette : afficher une chaîne de caractère dans l'interface
+    étiquette(texte="Texte étiquette")
+
+curseur : afficher une barre de selection
+    curseur(min="0"; max="100"; pas="1"; valeur="5"; attache=""; infobulle="")
+
+curseur_décimal : afficher une barre de selection
+    curseur_décimal(min="0.0"; max="1.0"; pas="0.01"; precision="5"; valeur="5"; attache=""; infobulle="")
+
+liste : afficher une liste déroulante
+    liste(valeur="jpeg"; items=[ { nom="", valeur=""}, ]; attache=""; infobulle="")
+
+case : afficher une case à cocher
+    case(valeur="true"; attache=""; infobulle="")
+
+chaine :
+    chaine(valeur=""; attache=""; infobulle="")
+
+selection fichier entrée :
+    fichier_entree(valeur=""; attache=""; infobulle="")
+
+sélection fichier sortie :
+    fichier_sortie(valeur=""; attache=""; infobulle="")
+
+sélection couleur :
+    couleur(valeur="0,0,0"; attache=""; infobulle="")
+
+sélection vecteur :
+    vecteur(valeur="0,0,0"; attache=""; infobulle="")
+
+bouton :
+   bouton(valeur=""; attache=""; infobulle="")

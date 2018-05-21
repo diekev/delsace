@@ -74,42 +74,42 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 	m_donnees_controle = DonneesControle();
 
 	switch (identifiant) {
-		case IDENTIFIANT_CONTROLE_CURSEUR:
+		case IDENTIFIANT_ENTIER:
 			controle = new ControleInt;
 			m_donnees_controle.type = TypePropriete::ENTIER;
 			break;
-		case IDENTIFIANT_CONTROLE_CURSEUR_DECIMAL:
+		case IDENTIFIANT_DECIMAL:
 			controle = new ControleFloat;
 			m_donnees_controle.type = TypePropriete::DECIMAL;
 			break;
-		case IDENTIFIANT_CONTROLE_ETIQUETTE:
+		case IDENTIFIANT_ETIQUETTE:
 			controle = new Etiquette;
 			break;
-		case IDENTIFIANT_CONTROLE_LISTE:
+		case IDENTIFIANT_LISTE:
 			controle = new ControleEnum;
 			m_donnees_controle.type = TypePropriete::ENUM;
 			break;
-		case IDENTIFIANT_CONTROLE_CASE_COCHER:
+		case IDENTIFIANT_CASE:
 			controle = new ControleBool;
 			m_donnees_controle.type = TypePropriete::BOOL;
 			break;
-		case IDENTIFIANT_CONTROLE_CHAINE:
+		case IDENTIFIANT_CHAINE:
 			controle = new ControleChaineCaractere;
 			m_donnees_controle.type = TypePropriete::CHAINE_CARACTERE;
 			break;
-		case IDENTIFIANT_CONTROLE_FICHIER_ENTREE:
+		case IDENTIFIANT_FICHIER_ENTREE:
 			controle = new ControleFichier(true);
 			m_donnees_controle.type = TypePropriete::FICHIER_ENTREE;
 			break;
-		case IDENTIFIANT_CONTROLE_FICHIER_SORTIE:
+		case IDENTIFIANT_FICHIER_SORTIE:
 			controle = new ControleFichier(false);
 			m_donnees_controle.type = TypePropriete::FICHIER_SORTIE;
 			break;
-		case IDENTIFIANT_CONTROLE_COULEUR:
+		case IDENTIFIANT_COULEUR:
 			controle = new ControleCouleur;
 			m_donnees_controle.type = TypePropriete::COULEUR;
 			break;
-		case IDENTIFIANT_CONTROLE_VECTEUR:
+		case IDENTIFIANT_VECTEUR:
 			controle = new ControleVec3;
 			m_donnees_controle.type = TypePropriete::VECTEUR;
 			break;
@@ -164,26 +164,26 @@ void AssembleurDisposition::sort_disposition()
 void AssembleurDisposition::propriete_controle(int identifiant, const std::string &valeur)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_PROPRIETE_INFOBULLE:
+		case IDENTIFIANT_INFOBULLE:
 			m_donnees_controle.infobulle = valeur;
 			break;
-		case IDENTIFIANT_PROPRIETE_MIN:
+		case IDENTIFIANT_MIN:
 			m_donnees_controle.valeur_min = valeur;
 			break;
-		case IDENTIFIANT_PROPRIETE_MAX:
+		case IDENTIFIANT_MAX:
 			m_donnees_controle.valeur_max = valeur;
 			break;
-		case IDENTIFIANT_PROPRIETE_VALEUR:
+		case IDENTIFIANT_VALEUR:
 			m_donnees_controle.valeur_defaut = valeur;
 			break;
-		case IDENTIFIANT_PROPRIETE_ATTACHE:		
+		case IDENTIFIANT_ATTACHE:		
 			m_donnees_controle.nom = valeur;
 			m_donnees_controle.pointeur = (*m_manipulable)[valeur];
 			break;
-		case IDENTIFIANT_PROPRIETE_PRECISION:
+		case IDENTIFIANT_PRECISION:
 			m_donnees_controle.precision = valeur;
 			break;
-		case IDENTIFIANT_PROPRIETE_PAS:
+		case IDENTIFIANT_PAS:
 			m_donnees_controle.pas = valeur;
 			break;
 	}
@@ -192,19 +192,19 @@ void AssembleurDisposition::propriete_controle(int identifiant, const std::strin
 void AssembleurDisposition::propriete_bouton(int identifiant, const std::string &valeur)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_PROPRIETE_INFOBULLE:
+		case IDENTIFIANT_INFOBULLE:
 			m_dernier_bouton->etablie_infobulle(valeur);
 			break;
-		case IDENTIFIANT_PROPRIETE_VALEUR:
+		case IDENTIFIANT_VALEUR:
 			m_dernier_bouton->etablie_valeur(valeur);
 			break;
-		case IDENTIFIANT_PROPRIETE_ATTACHE:
+		case IDENTIFIANT_ATTACHE:
 			m_dernier_bouton->etablie_attache(valeur);
 			break;
-		case IDENTIFIANT_PROPRIETE_METADONNEE:
+		case IDENTIFIANT_METADONNEE:
 			m_dernier_bouton->etablie_metadonnee(valeur);
 			break;
-		case IDENTIFIANT_PROPRIETE_ICONE:
+		case IDENTIFIANT_ICONE:
 			m_dernier_bouton->etablie_icone(valeur);
 			break;
 	}
@@ -213,19 +213,19 @@ void AssembleurDisposition::propriete_bouton(int identifiant, const std::string 
 void AssembleurDisposition::propriete_action(int identifiant, const std::string &valeur)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_PROPRIETE_INFOBULLE:
+		case IDENTIFIANT_INFOBULLE:
 			m_derniere_action->etablie_infobulle(valeur.c_str());
 			break;
-		case IDENTIFIANT_PROPRIETE_VALEUR:
+		case IDENTIFIANT_VALEUR:
 			m_derniere_action->etablie_valeur(valeur.c_str());
 			break;
-		case IDENTIFIANT_PROPRIETE_ATTACHE:
+		case IDENTIFIANT_ATTACHE:
 			m_derniere_action->etablie_attache(valeur);
 			break;
-		case IDENTIFIANT_PROPRIETE_METADONNEE:
+		case IDENTIFIANT_METADONNEE:
 			m_derniere_action->etablie_metadonnee(valeur);
 			break;
-		case IDENTIFIANT_PROPRIETE_ICONE:
+		case IDENTIFIANT_ICONE:
 			m_derniere_action->etablie_icone(valeur);
 			break;
 	}
