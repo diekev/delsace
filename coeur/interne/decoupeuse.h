@@ -31,7 +31,7 @@
 namespace danjo {
 
 /**
- * La classe Decoupeur découpe une chaîne de caractère en morceaux selon les
+ * La classe Decoupeuse découpe une chaîne de caractère en morceaux selon les
  * mots-clés du langage.
  */
 class Decoupeuse {
@@ -49,7 +49,7 @@ class Decoupeuse {
 
 public:
 	/**
-	 * Construit une instance de Decoupeur pour la chaîne spécifiée.
+	 * Construit une instance de Decoupeuse pour la chaîne spécifiée.
 	 */
 	explicit Decoupeuse(const std::string_view &chaine);
 
