@@ -1,0 +1,22 @@
+# Exemple d'association avec kuri
+
+fonction main()
+{
+	soit nombre = 1;
+
+	associe nombre {
+		0...9 : imprime('0' + nombre);
+		10...99 : imprime("10...99");
+		sinon : imprime("Inconnu");
+	}
+
+	soit nom = "bob";
+
+	associe nom {
+		"bob" : imprime("bob");
+		"stéphane" : imprime("stéphane");
+		sinon : imprime("Inconnu");
+	}
+
+    retourne 0;
+}

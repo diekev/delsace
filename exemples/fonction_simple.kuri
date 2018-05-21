@@ -1,0 +1,7 @@
+# License GPL
+
+fonction main()
+{
+	soit valeur = 0;
+	retourne valeur;
+}

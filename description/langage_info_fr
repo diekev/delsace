@@ -1,0 +1,45 @@
+
+importe dossier.fichier.A
+
+# types
+# bool      | booléen
+# char      | entier8
+# short     | entier16
+# int       | entier32
+# long      | entier64
+# half      | décimal16
+# float     | décimal32
+# double    | décimal64
+# void*     | pointeur
+# nullptr_t | nul
+
+fonction ajoute(entier16 a, entier16 b)
+{
+	retourne a + b;
+}
+
+gabarit (T) {
+fonction ajoute(T a, T b)
+{
+	retourne a + b;
+}
+}
+
+var c = ajoute(entier16)(a, b);
+var f = fonction() {};
+
+classe X implémente Y, Z {
+public:
+	void foo();
+	void bar();
+
+protégé:
+
+privé:
+}
+
+gabarit {
+classe Y {
+
+}
+}

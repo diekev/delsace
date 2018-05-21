@@ -1,0 +1,194 @@
+importe std.flux
+
+classe gabarit(T) Noeud {
+	T posx = 0;
+	T posy = 0;
+
+	constructeur() = défaut;
+
+	destructeur() = défaut;
+
+	fonction compile()
+	{
+		posx = 0;
+		posy = 0;
+	}
+}
+
+enum {
+	OUVERT,
+	FERME,
+}
+
+fonction ajoute(d32 x, d32 y) -> d32
+{
+	retourne x + y;
+}
+
+classe Fichier {
+	fonction ouvre();
+
+	fonction ferme();
+
+	fonction état();
+}
+
+fonction foo(chemin)
+{
+	Fichier fichier(chemin);
+
+	ouvre(fichier);
+
+	si état(fichier) != OUVERT {
+		retourne faux;
+	}
+
+	retourne vrai;
+
+sortie:
+	ferme(fichier);
+
+échec:
+	ferme(fichier);
+}
+
+fonction gabarit(E, V) trouve(E premier, E dernier, V valeur)
+{
+	boucle premier...dernier {
+		if *premier == valeur {
+			arrête;
+		}
+	}
+	sinon {
+		retourne premier;
+	}
+
+	retourne dernier;
+}
+
+iter = trouve(début(graphe), fin(graphe), noeud);
+
+Noeud noeud;
+
+Manière d'accès de noeud::posy
+posy de noeud = posy de noeud + 5;
+
+# Manière d'appel de Noeud::compile()
+compile(noeud);
+
+boucle ... {
+	si condition {
+		arrête;
+	}
+}
+sinon {
+}
+
+fonction lanceuse(entier32 constant compte_argument, phrase arguments[])
+{
+	retourne 0;
+}
+
+Mots-clés :
+arrête
+associe
+boucle
+classe
+constant
+constructeur
+de
+destructeur
+défaut
+enum
+exprime
+échec
+faux
+fonction
+gabarit
+imprime
+importe
+opérateur
+si
+sinon
+soit
+sortie
+vrai
+
+opérateurs :
+...
+==
+!=
+<=
+>=
+->
+<
+>
+=
+!
++
+-
+++
+--
+*
+/
+%
+&
+&&
+|
+||
+[]
+^
+(
+)
+{
+}
+"
+'
+;
+:
+
+types :
+entier8 | e8
+entier16 | e16
+entier32 | e32
+entier64 | e64
+entier8ns | e8ns
+entier16ns | e16ns
+entier32ns | e32ns
+entier64ns | e64ns
+décimal32 | d32
+décimal64 | d64
+phrase/chaîne
+booléen
+
+programme:
+	fonction | enum | classe | importation
+
+fonction:
+	id_fonction chaine ( liste_parametre ) { expressions }
+
+enum:
+	enum { chaine [= valeur[,]] ... };
+
+classe:
+	id_classe chaine { expressions | fonction }
+
+chaine:
+
+liste_parametre:
+	parametre [, liste_parametre]
+
+parametre:
+	id_type chaine
+
+expressions:
+	declaration | assignement | appel
+
+declaration:
+	id_type chaine = expression_d;
+
+assignement:
+	chaine = expression_d;
+
+appel:
+	chaine(liste_param);
