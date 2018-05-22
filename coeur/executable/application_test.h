@@ -22,7 +22,33 @@
  *
  */
 
-int main()
-{
-	return 0;
-}
+#pragma once
+
+#include <QMainWindow>
+
+#include "conteneur_controles.h"
+#include "danjo.h"
+#include "manipulable.h"
+#include "repondant_bouton.h"
+
+class WidgetTest : public danjo::ConteneurControles {
+public:
+	explicit WidgetTest(QWidget *parent = nullptr);
+
+private Q_SLOTS:
+	void ajourne_manipulable() override;
+};
+
+class RepondantBoutonTest : public danjo::RepondantBouton {
+public:
+	void repond_clique(const std::string &valeur, const std::string &metadonnee) override;
+	bool evalue_predicat(const std::string &valeur, const std::string &metadonnee) override;
+};
+
+class FenetreTest : public QMainWindow {
+	danjo::Manipulable m_manipulable;
+	RepondantBoutonTest m_repondant;
+
+public:
+	FenetreTest();
+};

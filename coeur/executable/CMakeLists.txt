@@ -25,16 +25,23 @@ set(INCLUSIONS
 	${INCLUSIONS_SYSTEMES}
 )
 
-set(BIBLIOTHEQUES
-	danjo
-)
-
 add_executable(outils_danjo
 	lanceur.cc
 )
 
 target_include_directories(outils_danjo PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(outils_danjo "${BIBLIOTHEQUES}")
+target_link_libraries(outils_danjo danjo)
 
 install(TARGETS outils_danjo RUNTIME DESTINATION bin)
+
+add_executable(application_test
+	application_test.h
+	application_test.cc
+)
+
+target_include_directories(application_test PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(application_test "${BIBLIOTHEQUES}" danjo)
+
+install(TARGETS application_test RUNTIME DESTINATION bin)

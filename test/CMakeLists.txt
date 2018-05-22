@@ -25,7 +25,7 @@ add_executable(test_danjo
 
 target_include_directories(test_danjo PUBLIC "${INCLUSIONS_SYSTEMES}")
 
-target_link_libraries(test_danjo "${BIBLIOTHEQUES}" danjo)
+target_link_libraries(test_danjo danjo)
 
 install(
 	TARGETS test_danjo RUNTIME DESTINATION bin
