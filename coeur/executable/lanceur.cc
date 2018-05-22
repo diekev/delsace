@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
 		danjo::Decoupeuse decoupeuse(texte.c_str());
 		decoupeuse.decoupe();
 
-		auto debut = decoupeuse.morceaux().begin();
-		auto fin = decoupeuse.morceaux().end();
+		auto debut = decoupeuse.begin();
+		auto fin = decoupeuse.end();
 
 		if (debut->identifiant != danjo::IDENTIFIANT_DISPOSITION) {
 			return 1;

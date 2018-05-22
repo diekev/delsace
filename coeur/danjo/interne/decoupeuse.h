@@ -48,6 +48,9 @@ class Decoupeuse {
 	std::vector<DonneesMorceaux> m_identifiants{};
 
 public:
+	using iterateur = std::vector<DonneesMorceaux>::iterator;
+	using iterateur_const = std::vector<DonneesMorceaux>::const_iterator;
+
 	/**
 	 * Construit une instance de Decoupeuse pour la chaîne spécifiée.
 	 */
@@ -77,6 +80,29 @@ public:
 	const std::vector<DonneesMorceaux> &morceaux() const;
 
 	void avance(int compte = 1);
+
+	/**
+	 * Retourne un itérateur pointant vers le début de la liste d'identifiants.
+	 */
+	iterateur begin();
+
+	/**
+	 * Retourne un itérateur pointant vers la fin de la liste d'identifiants.
+	 */
+	iterateur end();
+
+	/**
+	 * Retourne un itérateur constant pointant vers le début de la liste
+	 * d'identifiants.
+	 */
+	iterateur_const cbegin() const;
+
+	/**
+	 * Retourne un itérateur constant pointant vers la fin de la liste
+	 * d'identifiants.
+	 */
+	iterateur_const cend() const;
+
 private:
 	/**
 	 * Imprime un simple message de débogage contenant la ligne, la position, et

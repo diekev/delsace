@@ -307,6 +307,26 @@ void Decoupeuse::avance(int compte)
 	m_position_ligne += compte;
 }
 
+Decoupeuse::iterateur Decoupeuse::begin()
+{
+	return m_identifiants.begin();
+}
+
+Decoupeuse::iterateur Decoupeuse::end()
+{
+	return m_identifiants.end();
+}
+
+Decoupeuse::iterateur_const Decoupeuse::cbegin() const
+{
+	return m_identifiants.cbegin();
+}
+
+Decoupeuse::iterateur_const Decoupeuse::cend() const
+{
+	return m_identifiants.end();
+}
+
 // si caractere blanc:
 //    ajoute mot
 // sinon si caractere speciale:
