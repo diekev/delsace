@@ -22,7 +22,14 @@
  *
  */
 
+#include "test_decoupage.h"
+
 int main()
 {
-	return 0;
+	numero7::test_unitaire::ControleurUnitaire controleur;
+	controleur.ajoute_fonction(test_decoupage);
+
+	controleur.performe_controles();
+
+	controleur.imprime_resultat();
 }

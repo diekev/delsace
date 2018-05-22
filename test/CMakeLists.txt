@@ -19,13 +19,26 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_executable(test_danjo
-	main.cc
+set(INCLUSIONS
+	${INCLUSIONS_SYSTEMES}
+	${TEST_UNITAIRE_INCLUDE_DIRS}
 )
 
-target_include_directories(test_danjo PUBLIC "${INCLUSIONS_SYSTEMES}")
+set(BIBLIOTHEQUES
+	${TEST_UNITAIRE_LIBRARIES}
+	danjo
+)
 
-target_link_libraries(test_danjo danjo)
+add_executable(test_danjo
+	test_decoupage.h
+
+	test_decoupage.cc
+	tests.cc
+)
+
+target_include_directories(test_danjo PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(test_danjo "${BIBLIOTHEQUES}")
 
 install(
 	TARGETS test_danjo RUNTIME DESTINATION bin
