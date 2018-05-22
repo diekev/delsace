@@ -434,8 +434,77 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 		analyse_liste_item();
 	}
 	else {
-		if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
-			lance_erreur("Attendu une chaine de caractère !");
+		switch (identifiant_propriete) {
+			case IDENTIFIANT_VALEUR:
+			{
+				switch (type_controle) {
+					case IDENTIFIANT_ENTIER:
+					case IDENTIFIANT_DECIMAL:
+					{
+						if (!requiers_identifiant(IDENTIFIANT_NOMBRE)) {
+							lance_erreur("Attendu un nombre !");
+						}
+
+						break;
+					}
+					case IDENTIFIANT_FICHIER_ENTREE:
+					case IDENTIFIANT_FICHIER_SORTIE:
+					case IDENTIFIANT_CHAINE:
+					case IDENTIFIANT_ETIQUETTE:
+					case IDENTIFIANT_LISTE:
+					case IDENTIFIANT_COULEUR:
+					case IDENTIFIANT_VECTEUR:
+					case IDENTIFIANT_BOUTON:
+					case IDENTIFIANT_ACTION:
+					{
+						if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+							lance_erreur("Attendu une chaine littérale !");
+						}
+
+						break;
+					}
+					case IDENTIFIANT_CASE:
+					{
+						if (!est_identifiant(IDENTIFIANT_VRAI) && !est_identifiant(IDENTIFIANT_FAUX)) {
+							lance_erreur("Attendu l'identifiant vrai ou faux !");
+						}
+
+						avance();
+						break;
+					}
+				}
+
+				break;
+			}
+			case IDENTIFIANT_ATTACHE:
+			{
+				if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+					lance_erreur("Attendu une chaine de caractère !");
+				}
+
+				break;
+			}
+			case IDENTIFIANT_PRECISION:
+			case IDENTIFIANT_MIN:
+			case IDENTIFIANT_MAX:
+			case IDENTIFIANT_PAS:
+			{
+				if (!requiers_identifiant(IDENTIFIANT_NOMBRE)) {
+					lance_erreur("Attendu un nombre !");
+				}
+
+				break;
+			}
+			case IDENTIFIANT_INFOBULLE:
+			case IDENTIFIANT_METADONNEE:
+			case IDENTIFIANT_ICONE:
+			{
+				if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+					lance_erreur("Attendu une chaine littérale !");
+				}
+
+				break;
+			}
 		}
 
 		if (type_controle == IDENTIFIANT_BOUTON) {

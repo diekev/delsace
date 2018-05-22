@@ -1,11 +1,11 @@
 menu "Fichier" {
-	action(valeur="Nouveau fichier ou projet..."; attache="nouveau_fichier")
-	action(valeur="Ouvrir un fichier ou projet..."; attache="ouvrir_fichier")
+	action(valeur="Nouveau fichier ou projet..."; attache=nouveau_fichier)
+	action(valeur="Ouvrir un fichier ou projet..."; attache=ouvrir_fichier)
 	menu "Fichiers récents" {
 	}
 	séparateur
-	action(valeur="Sauvegarder..."; attache="sauvegarder")
-	action(valeur="Sauvegarder sous..."; attache="sauvegarder_sous")
+	action(valeur="Sauvegarder..."; attache=sauvegarder)
+	action(valeur="Sauvegarder sous..."; attache=sauvegarder_sous)
 	séparateur
-	action(valeur="Quitter..."; attache="quitter")
+	action(valeur="Quitter..."; attache=quitter)
 }
