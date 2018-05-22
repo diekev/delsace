@@ -104,13 +104,12 @@ public:
 int main(int argc, char *argv[])
 {
 #if 1
-//	QApplication app(argc, argv);
+	QApplication app(argc, argv);
 
-//	FenetreTest fenetre;
-//	fenetre.show();
+	FenetreTest fenetre;
+	fenetre.show();
 
-//	return app.exec();
-	danjo::genere_fichier_dan("exemples/disposition_test.jo");
+	return app.exec();
 #else
 	auto texte_logique = danjo::contenu_fichier("exemples/test.dan");
 	danjo::compile_feuille_logique(texte_logique.c_str());

@@ -19,5 +19,22 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(danjo)
-add_subdirectory(executable)
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${INCLUSIONS_SYSTEMES}
+)
+
+set(BIBLIOTHEQUES
+	danjo
+)
+
+add_executable(outils_danjo
+	lanceur.cc
+)
+
+target_include_directories(outils_danjo PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(outils_danjo "${BIBLIOTHEQUES}")
+
+install(TARGETS outils_danjo RUNTIME DESTINATION bin)
