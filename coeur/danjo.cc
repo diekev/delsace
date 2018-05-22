@@ -322,4 +322,97 @@ void compile_feuille_logique(const char *texte_entree)
 	}
 }
 
+void genere_fichier_dan(const std::experimental::filesystem::path &chemin)
+{
+	try {
+		auto texte = contenu_fichier(chemin);
+
+		Decoupeuse decoupeuse(texte.c_str());
+		decoupeuse.decoupe();
+
+		auto debut = decoupeuse.morceaux().begin();
+		auto fin = decoupeuse.morceaux().end();
+
+		if (debut->identifiant != IDENTIFIANT_DISPOSITION) {
+			return;
+		}
+
+		auto chemin_dan = chemin;
+		chemin_dan.replace_extension("dan");
+
+		std::ofstream fichier;
+		fichier.open(chemin_dan.c_str());
+
+		std::ostream &os = fichier;
+
+		++debut;
+
+		auto nom_disposition = debut->contenu;
+
+		os << "feuille \"" << nom_disposition << "\" {\n";
+		os << "\tinterface {\n";
+
+		auto nom_propriete = std::string("");
+		auto valeur_propriete = std::string("");
+
+		while (debut++ != fin) {
+			if (!est_identifiant_controle(debut->identifiant)) {
+				continue;
+			}
+
+			if (debut->identifiant == IDENTIFIANT_ETIQUETTE) {
+				continue;
+			}
+
+			auto identifiant = debut->identifiant;
+
+			nom_propriete = "";
+			valeur_propriete = "";
+
+			while (debut->identifiant != IDENTIFIANT_PARENTHESE_FERMANTE) {
+				if (debut->identifiant == IDENTIFIANT_VALEUR) {
+					++debut;
+					++debut;
+
+					valeur_propriete = debut->contenu;
+				}
+				else if (debut->identifiant == IDENTIFIANT_ATTACHE) {
+					++debut;
+					++debut;
+
+					nom_propriete = debut->contenu;
+				}
+
+				++debut;
+			}
+
+			os << "\t\t" << nom_propriete << ":";
+
+			switch (identifiant) {
+				case IDENTIFIANT_COULEUR:
+					os << "couleur(" << valeur_propriete << ");\n";
+					break;
+				case IDENTIFIANT_VECTEUR:
+					os << "vecteur(" << valeur_propriete << ");\n";
+					break;
+				case IDENTIFIANT_FICHIER_ENTREE:
+				case IDENTIFIANT_FICHIER_SORTIE:
+				case IDENTIFIANT_CHAINE:
+				case IDENTIFIANT_LISTE:
+					os << "\"" << valeur_propriete << "\";\n";
+					break;
+				default:
+					os << valeur_propriete << ";\n";
+					break;
+			}
+		}
+
+		os << "\t}\n";
+		os << "}";
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi();
+	}
+}
+
 }  /* namespace danjo */

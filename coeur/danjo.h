@@ -104,4 +104,13 @@ QBoxLayout *compile_interface(
 
 void compile_feuille_logique(const char *texte_entree);
 
+/**
+ * Génère un fichier dan à partir d'un fichier jo. Le fichier dan ne contiendra
+ * que la définition de l'interface. Si le fichier jo indiqué par le chemin
+ * n'existe pas ou ne contient pas de définition de disposition, la fonction
+ * retourne sans erreur. Si le fichier jo contient des erreurs de frappe, une
+ * exception sera lancée, cependant aucune analyse syntactique n'est effectuée.
+ */
+void genere_fichier_dan(const std::experimental::filesystem::path &chemin);
+
 }  /* namespace danjo */

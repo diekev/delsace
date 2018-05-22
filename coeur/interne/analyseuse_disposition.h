@@ -161,4 +161,6 @@ private:
 	void analyse_barre_outils();
 };
 
+bool est_identifiant_controle(int identifiant);
+
 }  /* namespace danjo */

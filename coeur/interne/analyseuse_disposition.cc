@@ -34,7 +34,7 @@ namespace danjo {
 
 /* ************************************************************************** */
 
-static bool est_identifiant_controle(int identifiant)
+bool est_identifiant_controle(int identifiant)
 {
 	switch (identifiant) {
 		case IDENTIFIANT_ENTIER:
