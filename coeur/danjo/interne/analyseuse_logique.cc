@@ -191,7 +191,7 @@ void AnalyseuseLogique::analyse_declaration(const int type)
 	std::cout << __func__ << '\n';
 #endif
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 		recule();
 		return;
 	}
@@ -237,7 +237,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 		if (est_identifiant(IDENTIFIANT_NOMBRE)) {
 			output.push_back(variable);
 		}
-		else if (est_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 			if (!m_assembleuse.variable_connue(variable.valeur)) {
 				lance_erreur("Variable inconnue : " + variable.valeur);
 			}
@@ -372,7 +372,7 @@ void AnalyseuseLogique::analyse_relation()
 			lance_erreur("Attendu une paranthèse ouvrante !");
 		}
 
-		if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+		if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 			lance_erreur("Attendu le nom d'une variable !");
 		}
 
