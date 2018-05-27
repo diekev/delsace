@@ -22,6 +22,7 @@
  *
  */
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 
@@ -31,23 +32,17 @@
 #include "danjo/danjo.h"
 #include "danjo/erreur.h"
 
-/**
- * Génère un fichier dan à partir d'un fichier jo. Le fichier dan ne contiendra
- * que la définition de l'interface. Si le fichier jo indiqué par le chemin
- * n'existe pas ou ne contient pas de définition de disposition, la fonction
- * retourne sans erreur. Si le fichier jo contient des erreurs de frappe, une
- * exception sera lancée, cependant aucune analyse syntactique n'est effectuée.
- */
-int main(int argc, char *argv[])
+static void imprime_morceaux(danjo::Decoupeuse::iterateur debut, danjo::Decoupeuse::iterateur fin)
 {
-	if (argc < 2) {
-		std::cerr << "Usage : outils_danjo chemin_fichier.jo\n";
-		return 1;
+	while (debut != fin) {
+		std::cerr << debut->identifiant << " : " << debut->contenu << '\n';
+		++debut;
 	}
+}
 
+static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
+{
 	try {
-		auto chemin = std::experimental::filesystem::path(argv[1]);
-
 		auto texte = danjo::contenu_fichier(chemin);
 
 		danjo::Decoupeuse decoupeuse(texte.c_str());
@@ -57,7 +52,7 @@ int main(int argc, char *argv[])
 		auto fin = decoupeuse.end();
 
 		if (debut->identifiant != danjo::IDENTIFIANT_DISPOSITION) {
-			return 1;
+			return;
 		}
 
 		auto chemin_dan = chemin;
@@ -89,8 +84,8 @@ int main(int argc, char *argv[])
 
 			auto identifiant = debut->identifiant;
 
-			nom_propriete = "";
-			valeur_propriete = "";
+			nom_propriete.clear();
+			valeur_propriete.clear();
 
 			while (debut->identifiant != danjo::IDENTIFIANT_PARENTHESE_FERMANTE) {
 				if (debut->identifiant == danjo::IDENTIFIANT_VALEUR) {
@@ -107,6 +102,12 @@ int main(int argc, char *argv[])
 				}
 
 				++debut;
+			}
+
+			if (nom_propriete.empty()) {
+				//imprime_morceaux(decoupeuse.begin(), decoupeuse.end());
+				std::cerr << "Fichier " << chemin << " : attache manquante !\n";
+				continue;
 			}
 
 			os << "\t\t" << nom_propriete << ":";
@@ -135,7 +136,43 @@ int main(int argc, char *argv[])
 	}
 	catch (const danjo::ErreurFrappe &e) {
 		std::cerr << e.quoi();
+		return;
+	}
+}
+
+/**
+ * Génère un fichier dan à partir d'un fichier jo. Le fichier dan ne contiendra
+ * que la définition de l'interface. Si le fichier jo indiqué par le chemin
+ * n'existe pas ou ne contient pas de définition de disposition, la fonction
+ * retourne sans erreur. Si le fichier jo contient des erreurs de frappe, une
+ * exception sera lancée, cependant aucune analyse syntactique n'est effectuée.
+ */
+int main(int argc, char *argv[])
+{
+	if (argc < 2) {
+		std::cerr << "Usage : outils_danjo chemin_fichier.jo|chemin_dossier\n";
 		return 1;
+	}
+
+	auto chemin = std::experimental::filesystem::path(argv[1]);
+
+	if (std::experimental::filesystem::is_directory(chemin)) {
+		for (const auto &donnees : std::experimental::filesystem::directory_iterator(chemin)) {
+			auto chemin_fichier = donnees.path();
+
+			if (std::experimental::filesystem::is_directory(chemin_fichier)) {
+				continue;
+			}
+
+			if (chemin_fichier.extension() != ".jo") {
+				continue;
+			}
+
+			cree_fichier_dan(chemin_fichier);
+		}
+	}
+	else {
+		cree_fichier_dan(chemin);
 	}
 
 	return 0;
