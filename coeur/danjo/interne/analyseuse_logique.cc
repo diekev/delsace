@@ -30,8 +30,21 @@
 
 #include "postfix.h"
 
-#define DEBOGUE_ANALYSEUSE
+//#define DEBOGUE_ANALYSEUSE
 #define DEBOGUE_EXPRESSION
+
+#ifdef DEBOGUE_ANALYSEUSE
+# define LOG std::cout
+#else
+struct Loggeuse {};
+
+template <typename T>
+Loggeuse &operator<<(Loggeuse &l, const T &) { return l; }
+
+Loggeuse loggeuse_analyseuse;
+
+# define LOG loggeuse_analyseuse
+#endif
 
 namespace danjo {
 
@@ -133,9 +146,7 @@ void AnalyseuseLogique::lance_analyse(const std::vector<DonneesMorceaux> &identi
 
 void AnalyseuseLogique::analyse_corps()
 {
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << '\n';
-#endif
+	LOG << __func__ << '\n';
 
 	if (est_identifiant(IDENTIFIANT_ENTREE)) {
 		analyse_entree();
@@ -155,16 +166,12 @@ void AnalyseuseLogique::analyse_corps()
 
 	analyse_corps();
 
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << " fin\n";
-#endif
+	LOG << __func__ << " fin\n";
 }
 
 void AnalyseuseLogique::analyse_entree()
 {
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << '\n';
-#endif
+	LOG << __func__ << '\n';
 
 	if (!requiers_identifiant(IDENTIFIANT_ENTREE)) {
 		lance_erreur("Attendu la déclaration 'entrée' !");
@@ -180,16 +187,12 @@ void AnalyseuseLogique::analyse_entree()
 		lance_erreur("Attendu une accolade fermante à la fin de l'entrée !");
 	}
 
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << " fin\n";
-#endif
+	LOG << __func__ << " fin\n";
 }
 
 void AnalyseuseLogique::analyse_declaration(const int type)
 {
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << '\n';
-#endif
+	LOG << __func__ << '\n';
 
 	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 		recule();
@@ -212,16 +215,12 @@ void AnalyseuseLogique::analyse_declaration(const int type)
 
 	analyse_declaration(type);
 
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << " fin\n";
-#endif
+	LOG << __func__ << " fin\n";
 }
 
 void AnalyseuseLogique::analyse_expression(const std::string &nom, const int type)
 {
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << '\n';
-#endif
+	LOG << __func__ << '\n';
 
 	/* Algorithme de Dijkstra pour générer une notation polonaire inversée. */
 
@@ -300,16 +299,12 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 
 	m_assembleuse.ajoute_expression(nom, type, output);
 
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << " fin\n";
-#endif
+	LOG << __func__ << " fin\n";
 }
 
 void AnalyseuseLogique::analyse_interface()
 {
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << '\n';
-#endif
+	LOG << __func__ << '\n';
 
 	if (!requiers_identifiant(IDENTIFIANT_INTERFACE)) {
 		lance_erreur("Attendu la déclaration 'interface' !");
@@ -325,16 +320,12 @@ void AnalyseuseLogique::analyse_interface()
 		lance_erreur("Attendu une accolade fermante à la fin de l'interface !");
 	}
 
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << " fin\n";
-#endif
+	LOG << __func__ << " fin\n";
 }
 
 void AnalyseuseLogique::analyse_logique()
 {
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << '\n';
-#endif
+	LOG << __func__ << '\n';
 
 	if (!requiers_identifiant(IDENTIFIANT_LOGIQUE)) {
 		lance_erreur("Attendu la déclaration 'logique' !");
@@ -350,16 +341,12 @@ void AnalyseuseLogique::analyse_logique()
 		lance_erreur("Attendu une accolade fermante à la fin de la logique !");
 	}
 
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << " fin\n";
-#endif
+	LOG << __func__ << " fin\n";
 }
 
 void AnalyseuseLogique::analyse_relation()
 {
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << '\n';
-#endif
+	LOG << __func__ << '\n';
 
 	if (!est_identifiant(IDENTIFIANT_RELATION) && !est_identifiant(IDENTIFIANT_QUAND)) {
 		return;
@@ -397,16 +384,13 @@ void AnalyseuseLogique::analyse_relation()
 
 	analyse_relation();
 
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << " fin\n";
-#endif
+	LOG << __func__ << " fin\n";
 }
 
 void AnalyseuseLogique::analyse_sortie()
 {
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << '\n';
-#endif
+	LOG << __func__ << '\n';
+
 	if (!requiers_identifiant(IDENTIFIANT_SORTIE)) {
 		lance_erreur("Attendu la déclaration 'sortie' !");
 	}
@@ -421,9 +405,7 @@ void AnalyseuseLogique::analyse_sortie()
 		lance_erreur("Attendu une accolade fermante à la fin de la sortie !");
 	}
 
-#ifdef DEBOGUE_ANALYSEUSE
-	std::cout << __func__ << " fin\n";
-#endif
+	LOG << __func__ << " fin\n";
 }
 
 }  /* namespace danjo */
