@@ -38,7 +38,7 @@
 struct Loggeur {};
 
 template <typename T>
-Loggeur &operator<<(Loggeur &, const T &) {}
+Loggeur &operator<<(Loggeur &l, const T &) { return l; }
 
 Loggeur loggeur_principal;
 
