@@ -54,8 +54,8 @@ add_library(danjo STATIC
 	interne/controles.cc
 	interne/decoupeuse.cc
 	interne/donnees_controle.cc
+	interne/expression.cc
 	interne/morceaux.cc
-	interne/postfix.cc
 
 	conteneur_controles.cc
 	erreur.cc
@@ -73,8 +73,8 @@ add_library(danjo STATIC
 	interne/controles.h
 	interne/decoupeuse.h
 	interne/donnees_controle.h
+	interne/expression.h
 	interne/morceaux.h
-	interne/postfix.h
 
 	${ENTETES}
 

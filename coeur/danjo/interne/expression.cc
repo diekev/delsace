@@ -22,7 +22,7 @@
  *
  */
 
-#include "postfix.h"
+#include "expression.h"
 
 #include <cmath>
 #include <iostream>

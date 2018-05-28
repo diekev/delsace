@@ -29,7 +29,7 @@
 #include <stack>
 #include <unordered_map>
 
-#include "postfix.h"
+#include "expression.h"
 #include "manipulable.h"
 
 //#define DEBOGUE_ANALYSEUSE
