@@ -25,10 +25,12 @@
 #include "analyseuse_logique.h"
 
 #include <iostream>
-#include <unordered_map>
+#include <set>
 #include <stack>
+#include <unordered_map>
 
 #include "postfix.h"
+#include "manipulable.h"
 
 //#define DEBOGUE_ANALYSEUSE
 #define DEBOGUE_EXPRESSION
@@ -84,13 +86,15 @@ enum {
 };
 
 class AssembleuseLogique {
-	std::unordered_map<std::string, std::vector<Variable>> m_expressions_entree;
-	std::unordered_map<std::string, std::vector<Variable>> m_expressions_interface;
-	std::unordered_map<std::string, std::vector<Variable>> m_expressions_relation;
-	std::unordered_map<std::string, Variable> m_variables;
+	std::unordered_map<std::string, std::vector<Symbole>> m_expressions_entree;
+	std::unordered_map<std::string, std::vector<Symbole>> m_expressions_interface;
+	std::unordered_map<std::string, std::vector<Symbole>> m_expressions_relation;
+	std::set<std::string> m_variables;
+
+	Manipulable m_manipulable;
 
 public:
-	void ajoute_expression(const std::string &nom, const int type, const std::vector<Variable> &expression)
+	void ajoute_expression(const std::string &nom, const int type, const std::vector<Symbole> &expression)
 	{
 		switch (type) {
 			case EXPRESSION_ENTREE:
@@ -107,7 +111,7 @@ public:
 
 	void ajoute_variable(const std::string &nom)
 	{
-		m_variables.insert({nom, Variable()});
+		m_variables.insert(nom);
 	}
 
 	bool variable_connue(const std::string &nom)
@@ -222,82 +226,97 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 {
 	LOG << __func__ << '\n';
 
-	/* Algorithme de Dijkstra pour générer une notation polonaire inversée. */
+	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
-	std::vector<Variable> output;
-	std::stack<Variable> stack;
+	std::vector<Symbole> expression;
+	std::stack<Symbole> pile;
 
-	Variable variable;
+	Symbole symbole;
+	std::string valeur;
 
 	while (!est_identifiant(IDENTIFIANT_POINT_VIRGULE)) {
-		variable.identifiant = identifiant_courant();
-		variable.valeur = m_identifiants[position() + 1].contenu;
+		symbole.identifiant = identifiant_courant();
+		valeur = m_identifiants[position() + 1].contenu;
 
 		if (est_identifiant(IDENTIFIANT_NOMBRE)) {
-			output.push_back(variable);
+			symbole.valeur = std::experimental::any(std::stoi(valeur));
+			expression.push_back(symbole);
 		}
 		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
-			if (!m_assembleuse.variable_connue(variable.valeur)) {
-				lance_erreur("Variable inconnue : " + variable.valeur);
+			if (!m_assembleuse.variable_connue(valeur)) {
+				lance_erreur("Variable inconnue : " + valeur);
 			}
 
-			output.push_back(variable);
+			symbole.valeur = std::experimental::any(valeur);
+			expression.push_back(symbole);
 		}
-		else if (est_operateur(variable.identifiant)) {
-			while (!stack.empty()
-				   && est_operateur(stack.top().identifiant)
-				   && (precedence_faible(variable.identifiant, stack.top().identifiant)))
+		else if (est_operateur(symbole.identifiant)) {
+			while (!pile.empty()
+				   && est_operateur(pile.top().identifiant)
+				   && (precedence_faible(symbole.identifiant, pile.top().identifiant)))
 			{
-				output.push_back(stack.top());
-				stack.pop();
+				expression.push_back(pile.top());
+				pile.pop();
 			}
 
-			stack.push(variable);
+			symbole.valeur = std::experimental::any(valeur);
+			pile.push(symbole);
 		}
 		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
-			stack.push(variable);
+			pile.push(symbole);
 		}
 		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
-			if (stack.empty()) {
+			if (pile.empty()) {
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (stack.top().identifiant != IDENTIFIANT_PARENTHESE_OUVRANTE) {
-				output.push_back(stack.top());
-				stack.pop();
+			while (pile.top().identifiant != IDENTIFIANT_PARENTHESE_OUVRANTE) {
+				expression.push_back(pile.top());
+				pile.pop();
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
-				stack.pop();
+			if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
+				pile.pop();
 			}
 		}
 
 		avance();
 	}
 
-	while (!stack.empty()) {
-		if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
+	while (!pile.empty()) {
+		if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		output.push_back(stack.top());
-		stack.pop();
+		expression.push_back(pile.top());
+		pile.pop();
 	}
 
 #ifdef DEBOGUE_EXPRESSION
-	std::cerr << "Expression (" << nom << ") : " ;
-	for (const Variable &variable : output) {
-		std::cerr << variable.valeur << ' ';
+	std::ostream &os = std::cerr;
+
+	os << "Expression (" << nom << ") : " ;
+
+	for (const Symbole &symbole : expression) {
+		switch (symbole.identifiant) {
+			case IDENTIFIANT_NOMBRE:
+				os << std::experimental::any_cast<int>(symbole.valeur) << ' ';
+				break;
+			default:
+				os << std::experimental::any_cast<std::string>(symbole.valeur) << ' ';
+				break;
+		}
 	}
-	std::cerr << '\n';
 
-	auto resultat = evalue_expression(output);
+	os << '\n';
 
-	std::cerr << "Résultat : " << resultat << '\n';
+	auto resultat = evalue_expression(expression);
+
+	os << "Résultat : " << std::experimental::any_cast<int>(resultat.valeur) << '\n';
 #endif
 
-	m_assembleuse.ajoute_expression(nom, type, output);
+	m_assembleuse.ajoute_expression(nom, type, expression);
 
 	LOG << __func__ << " fin\n";
 }

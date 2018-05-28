@@ -24,20 +24,21 @@
 
 #pragma once
 
+#include <experimental/any>
 #include <string>
 #include <queue>
 
 namespace danjo {
 
-struct Variable {
+struct Symbole {
+	std::experimental::any valeur;
 	int identifiant;
-	std::string valeur;
 };
 
 bool est_operateur(int identifiant);
 
 bool precedence_faible(int identifiant1, int identifiant2);
 
-double evalue_expression(const std::vector<Variable> &expression);
+Symbole evalue_expression(const std::vector<Symbole> &expression);
 
 }  /* namespace danjo */

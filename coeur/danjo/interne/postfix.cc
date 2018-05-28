@@ -153,39 +153,58 @@ bool precedence_faible(int identifiant1, int identifiant2)
 			|| ((p2.first == DROITE) && (p1.second < p2.second));
 }
 
-double evalue_expression(const std::vector<Variable> &expression)
+Symbole evalue_expression(const std::vector<Symbole> &expression)
 {
-	std::stack<double> stack;
+	std::stack<Symbole> stack;
 
 	/* Push a zero on the stack in case the expression starts with a negative
 	 * number, or is empty. */
-	stack.push(0);
+	stack.push({std::experimental::any(0), IDENTIFIANT_NOMBRE});
 
-	for (const Variable &variable : expression) {
-		if (est_operateur(variable.identifiant)) {
+	for (const Symbole &symbole : expression) {
+		if (est_operateur(symbole.identifiant)) {
 			auto op1 = stack.top();
 			stack.pop();
 
 			auto op2 = stack.top();
 			stack.pop();
 
-			auto result = evalue_operation(op2, op1, variable.identifiant);
-			stack.push(result);
+			auto valeur = evalue_operation(
+							  std::experimental::any_cast<int>(op2.valeur),
+							  std::experimental::any_cast<int>(op1.valeur),
+							  symbole.identifiant);
+
+			Symbole resultat;
+			resultat.valeur = std::experimental::any(int(valeur));
+			resultat.identifiant = IDENTIFIANT_NOMBRE;
+
+			stack.push(resultat);
 		}
-		else if (est_operateur_logique(variable.identifiant)) {
+		else if (est_operateur_logique(symbole.identifiant)) {
 			auto op1 = stack.top();
 			stack.pop();
 
-			auto result = evalue_operation_logique(op1, variable.identifiant);
-			stack.push(result);
+			auto valeur = evalue_operation_logique(
+							  std::experimental::any_cast<int>(op1.valeur),
+							  symbole.identifiant);
+
+			Symbole resultat;
+			resultat.valeur = std::experimental::any(int(valeur));
+			resultat.identifiant = IDENTIFIANT_NOMBRE;
+
+			stack.push(resultat);
 		}
 		else {
-			if (variable.identifiant == IDENTIFIANT_NOMBRE) {
-				stack.push(std::stod(variable.valeur));
+			if (symbole.identifiant == IDENTIFIANT_NOMBRE) {
+				stack.push(symbole);
 			}
-			else if (variable.identifiant == IDENTIFIANT_CHAINE_CARACTERE) {
+			else if (symbole.identifiant == IDENTIFIANT_CHAINE_CARACTERE) {
 				/* À FAIRE : évalue la propriété. */
-				stack.push(1.0);
+				Symbole tmp;
+				tmp.valeur = std::experimental::any(1);
+				tmp.identifiant = IDENTIFIANT_NOMBRE;
+
+				stack.push(tmp);
 			}
 		}
 	}
