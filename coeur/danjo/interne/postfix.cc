@@ -29,6 +29,7 @@
 #include <stack>
 #include <vector>
 
+#include "manipulable.h"
 #include "morceaux.h"
 
 namespace danjo {
@@ -153,7 +154,7 @@ bool precedence_faible(int identifiant1, int identifiant2)
 			|| ((p2.first == DROITE) && (p1.second < p2.second));
 }
 
-Symbole evalue_expression(const std::vector<Symbole> &expression)
+Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable)
 {
 	std::stack<Symbole> stack;
 
@@ -199,9 +200,10 @@ Symbole evalue_expression(const std::vector<Symbole> &expression)
 				stack.push(symbole);
 			}
 			else if (symbole.identifiant == IDENTIFIANT_CHAINE_CARACTERE) {
-				/* À FAIRE : évalue la propriété. */
+				auto nom = std::experimental::any_cast<std::string>(symbole.valeur);
+
 				Symbole tmp;
-				tmp.valeur = std::experimental::any(1);
+				tmp.valeur = manipulable->evalue_entier(nom);
 				tmp.identifiant = IDENTIFIANT_NOMBRE;
 
 				stack.push(tmp);

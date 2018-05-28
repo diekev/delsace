@@ -118,6 +118,11 @@ public:
 	{
 		return m_variables.find(nom) != m_variables.end();
 	}
+
+	Manipulable *manipulable()
+	{
+		return &m_manipulable;
+	}
 };
 
 AssembleuseLogique m_assembleuse;
@@ -311,7 +316,15 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 
 	os << '\n';
 
-	auto resultat = evalue_expression(expression);
+	Manipulable *manipulable = m_assembleuse.manipulable();
+
+	auto resultat = evalue_expression(expression, manipulable);
+
+	switch (resultat.identifiant) {
+		case IDENTIFIANT_NOMBRE:
+			manipulable->ajoute_propriete(nom, TypePropriete::ENTIER, resultat.valeur);
+			break;
+	}
 
 	os << "Résultat : " << std::experimental::any_cast<int>(resultat.valeur) << '\n';
 #endif

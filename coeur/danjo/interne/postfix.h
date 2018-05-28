@@ -30,6 +30,8 @@
 
 namespace danjo {
 
+class Manipulable;
+
 struct Symbole {
 	std::experimental::any valeur;
 	int identifiant;
@@ -39,6 +41,6 @@ bool est_operateur(int identifiant);
 
 bool precedence_faible(int identifiant1, int identifiant2);
 
-Symbole evalue_expression(const std::vector<Symbole> &expression);
+Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable);
 
 }  /* namespace danjo */
