@@ -441,9 +441,11 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 					case IDENTIFIANT_ENTIER:
 					case IDENTIFIANT_DECIMAL:
 					{
-						if (!requiers_identifiant(IDENTIFIANT_NOMBRE)) {
+						if (!est_identifiant(IDENTIFIANT_NOMBRE) && !est_identifiant(IDENTIFIANT_NOMBRE_DECIMAL)) {
 							lance_erreur("Attendu un nombre !");
 						}
+
+						avance();
 
 						break;
 					}
@@ -489,9 +491,11 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 			case IDENTIFIANT_MAX:
 			case IDENTIFIANT_PAS:
 			{
-				if (!requiers_identifiant(IDENTIFIANT_NOMBRE)) {
+				if (!est_identifiant(IDENTIFIANT_NOMBRE) && !est_identifiant(IDENTIFIANT_NOMBRE_DECIMAL)) {
 					lance_erreur("Attendu un nombre !");
 				}
+
+				avance();
 
 				break;
 			}

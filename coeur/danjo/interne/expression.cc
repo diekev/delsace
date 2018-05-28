@@ -185,17 +185,50 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 			pile.push(resultat);
 		}
 		else {
-			if (symbole.identifiant == IDENTIFIANT_NOMBRE) {
-				pile.push(symbole);
-			}
-			else if (symbole.identifiant == IDENTIFIANT_CHAINE_CARACTERE) {
-				auto nom = std::experimental::any_cast<std::string>(symbole.valeur);
+			switch (symbole.identifiant) {
+				case IDENTIFIANT_BOOL:
+				case IDENTIFIANT_NOMBRE:
+				case IDENTIFIANT_NOMBRE_DECIMAL:
+				{
+					pile.push(symbole);
+					break;
+				}
+				case IDENTIFIANT_CHAINE_CARACTERE:
+				{
+					auto nom = std::experimental::any_cast<std::string>(symbole.valeur);
 
-				Symbole tmp;
-				tmp.valeur = manipulable->evalue_entier(nom);
-				tmp.identifiant = IDENTIFIANT_NOMBRE;
+					Symbole tmp;
 
-				pile.push(tmp);
+					switch (manipulable->type_propriete(nom)) {
+						case TypePropriete::ENTIER:
+						{
+							tmp.valeur = manipulable->evalue_entier(nom);
+							tmp.identifiant = IDENTIFIANT_NOMBRE;
+							break;
+						}
+						case TypePropriete::DECIMAL:
+						{
+							tmp.valeur = manipulable->evalue_decimal(nom);
+							tmp.identifiant = IDENTIFIANT_NOMBRE_DECIMAL;
+							break;
+						}
+						case TypePropriete::BOOL:
+						{
+							auto valeur = manipulable->evalue_bool(nom);
+							tmp.valeur = valeur;
+							tmp.identifiant = IDENTIFIANT_BOOL;
+							break;
+						}
+						default:
+						{
+							std::cerr << "Le type de propriété n'est pas supporté !\n";
+							break;
+						}
+					}
+
+					pile.push(tmp);
+					break;
+				}
 			}
 		}
 	}

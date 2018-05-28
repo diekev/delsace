@@ -200,4 +200,10 @@ void *Manipulable::operator[](const std::string &nom)
 	return pointeur;
 }
 
+TypePropriete Manipulable::type_propriete(const std::string &nom)
+{
+	const auto &propriete = m_proprietes[nom];
+	return propriete.type;
+}
+
 }  /* namespace danjo */

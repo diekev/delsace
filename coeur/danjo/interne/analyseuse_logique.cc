@@ -50,6 +50,24 @@ Loggeuse loggeuse_analyseuse;
 
 namespace danjo {
 
+void imprime_valeur_symbole(Symbole symbole, std::ostream &os)
+{
+	switch (symbole.identifiant) {
+		case IDENTIFIANT_NOMBRE:
+			os << std::experimental::any_cast<int>(symbole.valeur) << ' ';
+			break;
+		case IDENTIFIANT_NOMBRE_DECIMAL:
+			os << std::experimental::any_cast<float>(symbole.valeur) << ' ';
+			break;
+		case IDENTIFIANT_BOOL:
+			os << std::experimental::any_cast<bool>(symbole.valeur) << ' ';
+			break;
+		default:
+			os << std::experimental::any_cast<std::string>(symbole.valeur) << ' ';
+			break;
+	}
+}
+
 enum {
 	EXPRESSION_ENTREE,
 	EXPRESSION_INTERFACE,
@@ -219,6 +237,15 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 			symbole.valeur = std::experimental::any(std::stoi(valeur));
 			expression.push_back(symbole);
 		}
+		else if (est_identifiant(IDENTIFIANT_NOMBRE_DECIMAL)) {
+			symbole.valeur = std::experimental::any(std::stof(valeur));
+			expression.push_back(symbole);
+		}
+		else if (est_identifiant(IDENTIFIANT_VRAI) || est_identifiant(IDENTIFIANT_FAUX)) {
+			symbole.valeur = (valeur == "vrai");
+			symbole.identifiant = IDENTIFIANT_BOOL;
+			expression.push_back(symbole);
+		}
 		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 			if (!m_assembleuse.variable_connue(valeur)) {
 				lance_erreur("Variable inconnue : " + valeur);
@@ -276,14 +303,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 	os << "Expression (" << nom << ") : " ;
 
 	for (const Symbole &symbole : expression) {
-		switch (symbole.identifiant) {
-			case IDENTIFIANT_NOMBRE:
-				os << std::experimental::any_cast<int>(symbole.valeur) << ' ';
-				break;
-			default:
-				os << std::experimental::any_cast<std::string>(symbole.valeur) << ' ';
-				break;
-		}
+		imprime_valeur_symbole(symbole, os);
 	}
 
 	os << '\n';
@@ -298,10 +318,18 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 			case IDENTIFIANT_NOMBRE:
 				manipulable->ajoute_propriete(nom, TypePropriete::ENTIER, resultat.valeur);
 				break;
+			case IDENTIFIANT_NOMBRE_DECIMAL:
+				manipulable->ajoute_propriete(nom, TypePropriete::DECIMAL, resultat.valeur);
+				break;
+			case IDENTIFIANT_BOOL:
+				manipulable->ajoute_propriete(nom, TypePropriete::BOOL, resultat.valeur);
+				break;
 		}
 
 #ifdef DEBOGUE_EXPRESSION
-		os << "Résultat : " << std::experimental::any_cast<int>(resultat.valeur) << '\n';
+		os << "Résultat : ";
+		imprime_valeur_symbole(symbole, os);
+		os << '\n';
 #endif
 	}
 

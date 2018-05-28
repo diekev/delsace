@@ -33,7 +33,7 @@ public:
 	AnalyseuseLogique() = default;
 
 	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
-
+        
 private:
 	void analyse_corps();
 	void analyse_entree();

@@ -239,10 +239,11 @@ enum {
 	ETAT_NOMBRE_DEBUT,
 };
 
-int extrait_nombre(const char *debut, const char *fin, std::string &chaine)
+int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int &id)
 {
 	int compte = 0;
 	int etat = ETAT_NOMBRE_DEBUT;
+	id = IDENTIFIANT_NOMBRE;
 
 	while (debut != fin) {
 		if (!est_nombre(*debut) && *debut != '.') {
@@ -259,6 +260,7 @@ int extrait_nombre(const char *debut, const char *fin, std::string &chaine)
 			}
 
 			etat = ETAT_NOMBRE_POINT;
+			id = IDENTIFIANT_NOMBRE_DECIMAL;
 		}
 
 		chaine.push_back(*debut++);
@@ -420,9 +422,9 @@ void Decoupeuse::decoupe()
 				}
 				else if (est_nombre(*(m_debut + 1))) {
 					LOG << "Découpe nombre commentaire par un point.\n";
-					int compte = extrait_nombre(m_debut, m_fin, mot_courant);
+					int compte = extrait_nombre(m_debut, m_fin, mot_courant, id);
 					avance(compte);
-					ajoute_identifiant(IDENTIFIANT_NOMBRE, mot_courant);
+					ajoute_identifiant(id, mot_courant);
 					mot_courant = "";
 				}
 				else {
@@ -491,9 +493,10 @@ void Decoupeuse::decoupe()
 		}
 		else if (est_nombre(*m_debut) && mot_courant.empty()) {
 			LOG << "Découpe nombre.\n";
-			int compte = extrait_nombre(m_debut, m_fin, mot_courant);
+			int id;
+			int compte = extrait_nombre(m_debut, m_fin, mot_courant, id);
 			avance(compte);
-			ajoute_identifiant(IDENTIFIANT_NOMBRE, mot_courant);
+			ajoute_identifiant(id, mot_courant);
 			mot_courant = "";
 		}
 		else {

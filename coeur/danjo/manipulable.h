@@ -194,6 +194,11 @@ public:
 	 * Retourne un pointeur vers la valeur de la propriété au nom spécifié.
 	 */
 	void *operator[](const std::string &nom);
+
+	/**
+	 * Retourne le type de la propriété du nom spécifié.
+	 */
+	TypePropriete type_propriete(const std::string &nom);
 };
 
 }  /* namespace danjo */
