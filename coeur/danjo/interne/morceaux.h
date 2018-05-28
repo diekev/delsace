@@ -121,6 +121,8 @@ enum {
 	IDENTIFIANT_CHAINE_LITTERALE,
 	IDENTIFIANT_CARACTERE,
 	IDENTIFIANT_NOMBRE,
+	IDENTIFIANT_NOMBRE_DECIMAL,
+	IDENTIFIANT_BOOL,
 	IDENTIFIANT_NUL,
 };
 
@@ -135,5 +137,7 @@ struct DonneesMorceaux {
 };
 
 std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur = ' ');
+
+const char *chaine_identifiant(int identifiant);
 
 }  /* namespace danjo */

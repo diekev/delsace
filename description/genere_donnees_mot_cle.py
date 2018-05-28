@@ -100,6 +100,8 @@ identifiant_extra = [
 	"CHAINE_LITTERALE",
 	"CARACTERE",
 	"NOMBRE",
+	"NOMBRE_DECIMAL",
+	"BOOL",
 	"NUL",
 ]
 
@@ -141,8 +143,8 @@ def imprime_identifiants():
 		print("\t{ "+"IDENTIFIANT_{}, '{}'".format(cs[1], cs[0])+' },')
 
 
-def imprime_impression_identifiant():
-	print 'const char *imprime_identifiant(int identifiant)'
+def imprime_chaines_identifiants():
+	print 'const char *chaine_identifiant(int identifiant)'
 	print '{'
 	print '\tswitch (identifiant) {'
 
@@ -170,3 +172,4 @@ def imprime_impression_identifiant():
 	print '}'
 
 imprime_identifiants()
+imprime_chaines_identifiants()
