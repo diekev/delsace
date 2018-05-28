@@ -54,6 +54,7 @@ enum {
 	EXPRESSION_ENTREE,
 	EXPRESSION_INTERFACE,
 	EXPRESSION_RELATION,
+	EXPRESSION_SORTIE,
 };
 
 class AssembleuseLogique {
@@ -406,7 +407,7 @@ void AnalyseuseLogique::analyse_sortie()
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
-	/******/
+	analyse_declaration(EXPRESSION_SORTIE);
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la sortie !");
