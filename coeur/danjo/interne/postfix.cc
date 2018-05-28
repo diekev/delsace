@@ -34,17 +34,6 @@
 
 namespace danjo {
 
-struct DonneesVariables {
-	int identifiant;
-	double valeur;
-	std::string nom_propriete;
-};
-
-struct DonneesExpression {
-	std::string propriete_sortie;
-	std::vector<DonneesVariables> donnees;
-};
-
 bool est_operateur(int identifiant)
 {
 	switch (identifiant) {
@@ -156,19 +145,19 @@ bool precedence_faible(int identifiant1, int identifiant2)
 
 Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable)
 {
-	std::stack<Symbole> stack;
+	std::stack<Symbole> pile;
 
-	/* Push a zero on the stack in case the expression starts with a negative
-	 * number, or is empty. */
-	stack.push({std::experimental::any(0), IDENTIFIANT_NOMBRE});
+	/* Pousse un zéro sur la pile si jamais l'expression est vide ou démarre
+	 * avec un nombre négatif. */
+	pile.push({std::experimental::any(0), IDENTIFIANT_NOMBRE});
 
 	for (const Symbole &symbole : expression) {
 		if (est_operateur(symbole.identifiant)) {
-			auto op1 = stack.top();
-			stack.pop();
+			auto op1 = pile.top();
+			pile.pop();
 
-			auto op2 = stack.top();
-			stack.pop();
+			auto op2 = pile.top();
+			pile.pop();
 
 			auto valeur = evalue_operation(
 							  std::experimental::any_cast<int>(op2.valeur),
@@ -179,11 +168,11 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 			resultat.valeur = std::experimental::any(int(valeur));
 			resultat.identifiant = IDENTIFIANT_NOMBRE;
 
-			stack.push(resultat);
+			pile.push(resultat);
 		}
 		else if (est_operateur_logique(symbole.identifiant)) {
-			auto op1 = stack.top();
-			stack.pop();
+			auto op1 = pile.top();
+			pile.pop();
 
 			auto valeur = evalue_operation_logique(
 							  std::experimental::any_cast<int>(op1.valeur),
@@ -193,11 +182,11 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 			resultat.valeur = std::experimental::any(int(valeur));
 			resultat.identifiant = IDENTIFIANT_NOMBRE;
 
-			stack.push(resultat);
+			pile.push(resultat);
 		}
 		else {
 			if (symbole.identifiant == IDENTIFIANT_NOMBRE) {
-				stack.push(symbole);
+				pile.push(symbole);
 			}
 			else if (symbole.identifiant == IDENTIFIANT_CHAINE_CARACTERE) {
 				auto nom = std::experimental::any_cast<std::string>(symbole.valeur);
@@ -206,12 +195,12 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 				tmp.valeur = manipulable->evalue_entier(nom);
 				tmp.identifiant = IDENTIFIANT_NOMBRE;
 
-				stack.push(tmp);
+				pile.push(tmp);
 			}
 		}
 	}
 
-	return stack.top();
+	return pile.top();
 }
 
 }  /* namespace danjo */
