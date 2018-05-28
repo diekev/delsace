@@ -91,7 +91,7 @@ FenetreTest::FenetreTest()
 
 int main(int argc, char *argv[])
 {
-#if 1
+#if 0
 	QApplication app(argc, argv);
 
 	FenetreTest fenetre;
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 
 	return app.exec();
 #else
-	auto texte_logique = danjo::contenu_fichier("exemples/test.dan");
+	auto texte_logique = danjo::contenu_fichier("exemples/redimension_image.dan");
 	danjo::compile_feuille_logique(texte_logique.c_str());
 #endif
 }

@@ -24,6 +24,7 @@ set(INCLUSIONS
 )
 
 set(FICHIERS
+	redimension_image.dan
 	test.dan
 
 	disposition_test.jo

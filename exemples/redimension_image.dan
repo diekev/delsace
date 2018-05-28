@@ -1,0 +1,31 @@
+feuille "redimension_image" {
+    entrée {
+        largeur_initiale = 5 * 300;
+        hauteur_initiale = 7 * 300;
+    }
+    interface {
+        preserver_ratio = vrai;
+        largeur_absolue = largeur_initiale;
+        hauteur_absolue = hauteur_initiale;
+        largeur_relative = 100.0;
+        hauteur_relative = 100.0;
+    }
+    logique {
+        relation {
+            largeur_absolue = largeur_relative * largeur_initiale / 100;
+            largeur_relative = largeur_absolue * 100 / largeur_initiale;
+        }
+        relation {
+            hauteur_absolue = hauteur_relative * hauteur_initiale / 100;
+            hauteur_relative = hauteur_absolue * 100 / hauteur_initiale;
+        }
+        quand (preserver_ratio) relation {
+            largeur_relative = hauteur_relative;
+            hauteur_relative = largeur_relative;
+        }
+    }
+    sortie {
+        hauteur = hauteur_absolue;
+        largeur = largeur_absolue;
+    }
+}
