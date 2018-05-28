@@ -66,6 +66,41 @@ auto est_operateur_logique(int identifiant)
 	}
 }
 
+#if 0
+auto peut_evaleur_symboles(const Symbole &s1, const Symbole &s2)
+{
+	if (s1.identifiant == s2.identifiant) {
+		return true;
+	}
+
+	if (s1.identifiant == IDENTIFIANT_NOMBRE) {
+		return s2.identifiant == IDENTIFIANT_NOMBRE_DECIMAL;
+	}
+
+	if (s2.identifiant == IDENTIFIANT_NOMBRE) {
+		return s1.identifiant == IDENTIFIANT_NOMBRE_DECIMAL;
+	}
+
+	return false;
+}
+
+auto evalue_operation(const Symbole &s1, const Symbole &s2, int operation)
+{
+	if (!peut_evaleur_symboles(s1, s2)) {
+		return Symbole();
+	}
+
+	switch (operation) {
+		case IDENTIFIANT_PLUS:
+			break;
+		default:
+			break;
+	}
+
+	return Symbole();
+}
+#endif
+
 auto evalue_operation(const double op1, const double op2, int identifiant)
 {
 	switch (identifiant) {
