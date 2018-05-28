@@ -286,19 +286,23 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 	}
 
 	os << '\n';
-
-	Manipulable *manipulable = m_assembleuse.manipulable();
-
-	auto resultat = evalue_expression(expression, manipulable);
-
-	switch (resultat.identifiant) {
-		case IDENTIFIANT_NOMBRE:
-			manipulable->ajoute_propriete(nom, TypePropriete::ENTIER, resultat.valeur);
-			break;
-	}
-
-	os << "Résultat : " << std::experimental::any_cast<int>(resultat.valeur) << '\n';
 #endif
+
+	if (type == EXPRESSION_ENTREE || type == EXPRESSION_INTERFACE) {
+		Manipulable *manipulable = m_assembleuse.manipulable();
+
+		auto resultat = evalue_expression(expression, manipulable);
+
+		switch (resultat.identifiant) {
+			case IDENTIFIANT_NOMBRE:
+				manipulable->ajoute_propriete(nom, TypePropriete::ENTIER, resultat.valeur);
+				break;
+		}
+
+#ifdef DEBOGUE_EXPRESSION
+		os << "Résultat : " << std::experimental::any_cast<int>(resultat.valeur) << '\n';
+#endif
+	}
 
 	m_assembleuse.ajoute_expression(nom, type, expression);
 
