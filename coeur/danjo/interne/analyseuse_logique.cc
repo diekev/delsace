@@ -168,16 +168,21 @@ void imprime_graphe(std::ostream &os, const graphe_contrainte &graphe)
 
 	auto index = 0;
 
+	os << "graph graphe_contrainte {\n";
+
 	while (debut_contrainte != fin_contrainte) {
 		contrainte *c = *debut_contrainte;
 
 		for (Variable *v : c->m_variables) {
-			os << "C" << index << " (" << c->m_sortie->nom << ") -- " << v->nom << '\n';
+			//os << "C" << index << " (" << c->m_sortie->nom << ") -- " << v->nom << '\n';
+			os << "\t" << c->m_sortie->nom << " -> " << v->nom << ";\n";
 		}
 
 		++index;
 		++debut_contrainte;
 	}
+
+	os << "}\n";
 }
 
 graphe_contrainte::~graphe_contrainte()
