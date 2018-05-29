@@ -328,7 +328,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 
 #ifdef DEBOGUE_EXPRESSION
 		os << "Résultat : ";
-		imprime_valeur_symbole(symbole, os);
+		imprime_valeur_symbole(resultat, os);
 		os << '\n';
 #endif
 	}
