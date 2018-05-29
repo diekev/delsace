@@ -306,4 +306,22 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 	return pile.top();
 }
 
+void imprime_valeur_symbole(Symbole symbole, std::ostream &os)
+{
+	switch (symbole.identifiant) {
+		case IDENTIFIANT_NOMBRE:
+			os << std::experimental::any_cast<int>(symbole.valeur) << ' ';
+			break;
+		case IDENTIFIANT_NOMBRE_DECIMAL:
+			os << std::experimental::any_cast<float>(symbole.valeur) << ' ';
+			break;
+		case IDENTIFIANT_BOOL:
+			os << std::experimental::any_cast<bool>(symbole.valeur) << ' ';
+			break;
+		default:
+			os << std::experimental::any_cast<std::string>(symbole.valeur) << ' ';
+			break;
+	}
+}
+
 }  /* namespace danjo */

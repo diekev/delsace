@@ -43,4 +43,6 @@ bool precedence_faible(int identifiant1, int identifiant2);
 
 Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable);
 
+void imprime_valeur_symbole(Symbole symbole, std::ostream &os);
+
 }  /* namespace danjo */
