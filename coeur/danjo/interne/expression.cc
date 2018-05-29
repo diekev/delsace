@@ -66,38 +66,96 @@ auto est_operateur_logique(int identifiant)
 	}
 }
 
-#if 0
-auto peut_evaleur_symboles(const Symbole &s1, const Symbole &s2)
+#if 1
+static int promeut(int id1, int id2)
 {
-	if (s1.identifiant == s2.identifiant) {
-		return true;
+	if (id1 == id2) {
+		return id1;
 	}
 
-	if (s1.identifiant == IDENTIFIANT_NOMBRE) {
-		return s2.identifiant == IDENTIFIANT_NOMBRE_DECIMAL;
-	}
-
-	if (s2.identifiant == IDENTIFIANT_NOMBRE) {
-		return s1.identifiant == IDENTIFIANT_NOMBRE_DECIMAL;
-	}
-
-	return false;
+	return IDENTIFIANT_NOMBRE_DECIMAL;
 }
 
-auto evalue_operation(const Symbole &s1, const Symbole &s2, int operation)
+#define DEFINI_FONCTION(__nom, __op) \
+	template <typename T1, typename T2 = T1> \
+	Symbole __nom(const Symbole &s1, const Symbole &s2) \
+	{ \
+		Symbole ret; \
+		ret.valeur = std::experimental::any_cast<T1>(s1.valeur) \
+					  __op std::experimental::any_cast<T2>(s2.valeur); \
+		ret.identifiant = promeut(s1.identifiant, s2.identifiant); \
+		return ret; \
+	}
+
+DEFINI_FONCTION(additionne, +)
+DEFINI_FONCTION(soustrait, -)
+DEFINI_FONCTION(divise, /)
+DEFINI_FONCTION(multiplie, *)
+DEFINI_FONCTION(compare_egalite, ==)
+DEFINI_FONCTION(compare_difference, !=)
+DEFINI_FONCTION(compare_inferiorite, <)
+DEFINI_FONCTION(compare_superiorite, >)
+DEFINI_FONCTION(compare_inf_egal, <=)
+DEFINI_FONCTION(compare_sup_egal, >=)
+DEFINI_FONCTION(octet_et, &)
+DEFINI_FONCTION(octet_ou, |)
+DEFINI_FONCTION(octet_oux, ^)
+
+#define DEFINI_CAS_SIMPLE(__id, __fonction) \
+	case __id: \
+		if (s1.identifiant == IDENTIFIANT_NOMBRE) { \
+			return __fonction<int>(s1, s2); \
+		} \
+		if (s1.identifiant == IDENTIFIANT_NOMBRE_DECIMAL) { \
+			return __fonction<float>(s1, s2); \
+		} \
+		if (s1.identifiant == IDENTIFIANT_BOOL) { \
+			return __fonction<bool>(s1, s2); \
+		} \
+		break;
+
+#define DEFINI_CAS_DOUBLE(__id, __fonction) \
+	case __id: \
+		if (s1.identifiant == IDENTIFIANT_NOMBRE && s2.identifiant == IDENTIFIANT_NOMBRE_DECIMAL) { \
+			return __fonction<int, float>(s1, s2); \
+		} \
+		if (s1.identifiant == IDENTIFIANT_NOMBRE_DECIMAL && s2.identifiant == IDENTIFIANT_NOMBRE) { \
+			return __fonction<float, int>(s1, s2); \
+		} \
+		break;
+
+Symbole evalue_operation(const Symbole &s1, const Symbole &s2, int operation)
 {
-	if (!peut_evaleur_symboles(s1, s2)) {
-		return Symbole();
+	if (s1.identifiant == s2.identifiant) {
+		switch (operation) {
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_PLUS, additionne);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_MOINS, soustrait);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_DIVISE, divise);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_FOIS, multiplie);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_EGALITE, compare_egalite);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_DIFFERENCE, compare_difference);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_INFERIEUR, compare_inferiorite);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_SUPERIEUR, compare_superiorite);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_INFERIEUR_EGAL, compare_inf_egal);
+			DEFINI_CAS_SIMPLE(IDENTIFIANT_SUPERIEUR_EGAL, compare_sup_egal);
+		}
+	}
+	else {
+		switch (operation) {
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_PLUS, additionne);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_MOINS, soustrait);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_DIVISE, divise);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_FOIS, multiplie);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_EGALITE, compare_egalite);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_DIFFERENCE, compare_difference);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_INFERIEUR, compare_inferiorite);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_SUPERIEUR, compare_superiorite);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_INFERIEUR_EGAL, compare_inf_egal);
+			DEFINI_CAS_DOUBLE(IDENTIFIANT_SUPERIEUR_EGAL, compare_sup_egal);
+		}
 	}
 
-	switch (operation) {
-		case IDENTIFIANT_PLUS:
-			break;
-		default:
-			break;
-	}
-
-	return Symbole();
+	return {};
 }
 #else
 auto evalue_operation(const Symbole &s1, const Symbole &s2, int identifiant)
