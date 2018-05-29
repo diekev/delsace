@@ -31,6 +31,7 @@
 #include <unordered_map>
 
 #include "expression.h"
+#include "graphe_contrainte.h"
 #include "manipulable.h"
 
 //#define DEBOGUE_ANALYSEUSE
@@ -75,133 +76,6 @@ enum {
 	EXPRESSION_RELATION,
 	EXPRESSION_SORTIE,
 };
-
-class Variable;
-
-class contrainte {
-public:
-	std::vector<Variable *> m_variables;
-	std::vector<Symbole> m_expression;
-	Variable *m_sortie;
-	std::vector<Symbole> m_condition;
-};
-
-class Variable {
-public:
-	std::vector<contrainte *> m_contraintes;
-
-	std::string nom; // nom de la propriété du manipulable
-	int degree;
-};
-
-class graphe_contrainte {
-	std::vector<contrainte *> m_contraintes;
-	std::vector<Variable *> m_variables;
-
-public:
-	using iterateur_contrainte = std::vector<contrainte *>::iterator;
-	using iterateur_contrainte_const = std::vector<contrainte *>::const_iterator;
-	using iterateur_variable = std::vector<Variable *>::iterator;
-	using iterateur_variable_const = std::vector<Variable *>::const_iterator;
-
-	~graphe_contrainte();
-
-	void ajoute_contrainte(contrainte *c)
-	{
-		m_contraintes.push_back(c);
-	}
-
-	void ajoute_variable(Variable *v)
-	{
-		m_variables.push_back(v);
-	}
-
-	/* Itérateurs contrainte. */
-
-	iterateur_contrainte debut_contrainte()
-	{
-		return m_contraintes.begin();
-	}
-
-	iterateur_contrainte fin_contrainte()
-	{
-		return m_contraintes.end();
-	}
-
-	iterateur_contrainte_const debut_contrainte() const
-	{
-		return m_contraintes.cbegin();
-	}
-
-	iterateur_contrainte_const fin_contrainte() const
-	{
-		return m_contraintes.cend();
-	}
-
-	/* Itérateurs variables. */
-
-	iterateur_variable debut_variable()
-	{
-		return m_variables.begin();
-	}
-
-	iterateur_variable fin_variable()
-	{
-		return m_variables.end();
-	}
-
-	iterateur_variable_const debut_variable() const
-	{
-		return m_variables.cbegin();
-	}
-
-	iterateur_variable_const fin_variable() const
-	{
-		return m_variables.cend();
-	}
-};
-
-void imprime_graphe(std::ostream &os, const graphe_contrainte &graphe)
-{
-	auto debut_contrainte = graphe.debut_contrainte();
-	auto fin_contrainte = graphe.fin_contrainte();
-
-	auto index = 0;
-
-	os << "graph graphe_contrainte {\n";
-
-	while (debut_contrainte != fin_contrainte) {
-		contrainte *c = *debut_contrainte;
-
-		for (Variable *v : c->m_variables) {
-			//os << "C" << index << " (" << c->m_sortie->nom << ") -- " << v->nom << '\n';
-			os << "\t" << c->m_sortie->nom << " -> " << v->nom << ";\n";
-		}
-
-		++index;
-		++debut_contrainte;
-	}
-
-	os << "}\n";
-}
-
-graphe_contrainte::~graphe_contrainte()
-{
-	imprime_graphe(std::cerr, *this);
-	for (auto &v : m_variables) {
-		delete v;
-	}
-
-	for (auto &c : m_contraintes) {
-		delete c;
-	}
-}
-
-void connecte(contrainte *c, Variable *v)
-{
-	c->m_variables.push_back(v);
-	v->m_contraintes.push_back(c);
-}
 
 class AssembleuseLogique {
 	std::set<std::string> m_noms_variables;

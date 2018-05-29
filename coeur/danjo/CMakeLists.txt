@@ -55,6 +55,7 @@ add_library(danjo STATIC
 	interne/decoupeuse.cc
 	interne/donnees_controle.cc
 	interne/expression.cc
+	interne/graphe_contrainte.cc
 	interne/morceaux.cc
 
 	conteneur_controles.cc
@@ -74,6 +75,7 @@ add_library(danjo STATIC
 	interne/decoupeuse.h
 	interne/donnees_controle.h
 	interne/expression.h
+	interne/graphe_contrainte.h
 	interne/morceaux.h
 
 	${ENTETES}
