@@ -99,50 +99,77 @@ auto evalue_operation(const Symbole &s1, const Symbole &s2, int operation)
 
 	return Symbole();
 }
-#endif
-
-auto evalue_operation(const double op1, const double op2, int identifiant)
+#else
+auto evalue_operation(const Symbole &s1, const Symbole &s2, int identifiant)
 {
+	Symbole resultat;
+	resultat.identifiant = IDENTIFIANT_NOMBRE;
+	resultat.valeur = 0;
+
+	auto op1 = std::experimental::any_cast<int>(s1.valeur);
+	auto op2 = std::experimental::any_cast<int>(s2.valeur);
+
 	switch (identifiant) {
 		case IDENTIFIANT_PLUS:
-			return op1 + op2;
+			resultat.valeur = op1 + op2;
+			break;
 		case IDENTIFIANT_MOINS:
-			return op1 - op2;
+			resultat.valeur = op1 - op2;
+			break;
 		case IDENTIFIANT_FOIS:
-			return op1 * op2;
+			resultat.valeur = op1 * op2;
+			break;
 		case IDENTIFIANT_DIVISE:
-			return op1 / op2;
+			resultat.valeur = op1 / op2;
+			break;
 		case IDENTIFIANT_EGALITE:
-			return static_cast<double>(op1 == op2);
+			resultat.valeur = static_cast<int>(op1 == op2);
+			break;
 		case IDENTIFIANT_DIFFERENCE:
-			return static_cast<double>(op1 != op2);
+			resultat.valeur = static_cast<int>(op1 != op2);
+			break;
 		case IDENTIFIANT_INFERIEUR:
-			return static_cast<double>(op1 < op2);
+			resultat.valeur = static_cast<int>(op1 < op2);
+			break;
 		case IDENTIFIANT_SUPERIEUR:
-			return static_cast<double>(op1 > op2);
+			resultat.valeur = static_cast<int>(op1 > op2);
+			break;
 		case IDENTIFIANT_INFERIEUR_EGAL:
-			return static_cast<double>(op1 <= op2);
+			resultat.valeur = static_cast<int>(op1 <= op2);
+			break;
 		case IDENTIFIANT_SUPERIEUR_EGAL:
-			return static_cast<double>(op1 >= op2);
+			resultat.valeur = static_cast<int>(op1 >= op2);
+			break;
 		case IDENTIFIANT_ESPERLUETTE:
-			return static_cast<double>(static_cast<long int>(op1) & static_cast<long int>(op2));
+			resultat.valeur = static_cast<int>(static_cast<int>(op1) & static_cast<int>(op2));
+			break;
 		case IDENTIFIANT_BARRE:
-			return static_cast<double>(static_cast<long int>(op1) | static_cast<long int>(op2));
+			resultat.valeur = static_cast<int>(static_cast<int>(op1) | static_cast<int>(op2));
+			break;
 		case IDENTIFIANT_CHAPEAU:
-			return static_cast<double>(static_cast<long int>(op1) ^ static_cast<long int>(op2));
+			resultat.valeur = static_cast<int>(static_cast<int>(op1) ^ static_cast<int>(op2));
+			break;
 	}
 
-	return 0.0;
+	return resultat;
 }
+#endif
 
-auto evalue_operation_logique(const double op1, int identifiant)
+auto evalue_operation_logique(const Symbole &s1, int identifiant)
 {
+	Symbole resultat;
+	resultat.identifiant = IDENTIFIANT_NOMBRE;
+	resultat.valeur = 0;
+
+	auto op1 = std::experimental::any_cast<int>(s1.valeur);
+
 	switch (identifiant) {
 		case IDENTIFIANT_TILDE:
-			return static_cast<double>(~static_cast<long int>(op1));
+			resultat.valeur = static_cast<int>(~static_cast<int>(op1));
+			break;
 	}
 
-	return 0.0;
+	return resultat;
 }
 
 enum {
@@ -188,35 +215,20 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 
 	for (const Symbole &symbole : expression) {
 		if (est_operateur(symbole.identifiant)) {
-			auto op1 = pile.top();
+			auto s2 = pile.top();
 			pile.pop();
 
-			auto op2 = pile.top();
+			auto s1 = pile.top();
 			pile.pop();
 
-			auto valeur = evalue_operation(
-							  std::experimental::any_cast<int>(op2.valeur),
-							  std::experimental::any_cast<int>(op1.valeur),
-							  symbole.identifiant);
-
-			Symbole resultat;
-			resultat.valeur = std::experimental::any(int(valeur));
-			resultat.identifiant = IDENTIFIANT_NOMBRE;
-
+			auto resultat = evalue_operation(s1, s2, symbole.identifiant);
 			pile.push(resultat);
 		}
 		else if (est_operateur_logique(symbole.identifiant)) {
-			auto op1 = pile.top();
+			auto s1 = pile.top();
 			pile.pop();
 
-			auto valeur = evalue_operation_logique(
-							  std::experimental::any_cast<int>(op1.valeur),
-							  symbole.identifiant);
-
-			Symbole resultat;
-			resultat.valeur = std::experimental::any(int(valeur));
-			resultat.identifiant = IDENTIFIANT_NOMBRE;
-
+			auto resultat = evalue_operation_logique(s1, symbole.identifiant);
 			pile.push(resultat);
 		}
 		else {
