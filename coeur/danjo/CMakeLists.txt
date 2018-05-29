@@ -48,6 +48,7 @@ add_library(danjo STATIC
 	interne/analyseuse_disposition.cc
 	interne/analyseuse_logique.cc
 	interne/assembleuse_disposition.cc
+	interne/assembleuse_logique.cc
 	interne/base_analyseuse.cc
 	interne/base_controles.cc
 	interne/bouton.cc
@@ -68,6 +69,7 @@ add_library(danjo STATIC
 	interne/analyseuse_disposition.h
 	interne/analyseuse_logique.h
 	interne/assembleuse_disposition.h
+	interne/assembleuse_logique.h
 	interne/base_analyseuse.h
 	interne/base_controles.h
 	interne/bouton.h

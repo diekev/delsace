@@ -22,34 +22,49 @@
  *
  */
 
-#pragma once
-
-#include "base_analyseuse.h"
 #include "assembleuse_logique.h"
+
+#include <algorithm>
 
 namespace danjo {
 
-class Manipulable;
+Variable *AssembleuseLogique::ajoute_variable(const std::string &nom)
+{
+	auto var = new Variable;
+	var->degree = 0;
+	var->nom = nom;
 
-class AnalyseuseLogique : public Analyseuse {
-	AssembleuseLogique m_assembleuse;
-	Manipulable *m_manipulable;
-	bool m_initialise_manipulable;
+	m_graphe.ajoute_variable(var);
+	m_noms_variables.insert(nom);
 
-public:
-	explicit AnalyseuseLogique(Manipulable *manipulable, bool initialise_manipulable = false);
+	return var;
+}
 
-	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
-        
-private:
-	void analyse_corps();
-	void analyse_entree();
-	void analyse_declaration(const int type);
-	void analyse_expression(const std::string &nom, const int type);
-	void analyse_interface();
-	void analyse_logique();
-	void analyse_sortie();
-	void analyse_relation();
-};
+void AssembleuseLogique::ajoute_contrainte(contrainte *c)
+{
+	m_graphe.ajoute_contrainte(c);
+}
+
+bool AssembleuseLogique::variable_connue(const std::string &nom)
+{
+	return m_noms_variables.find(nom) != m_noms_variables.end();
+}
+
+Variable *AssembleuseLogique::variable(const std::string &nom)
+{
+	auto debut = m_graphe.debut_variable();
+	auto fin = m_graphe.fin_variable();
+
+	auto iter = std::find_if(debut, fin, [&](const Variable *variable)
+	{
+		return variable->nom == nom;
+	});
+
+	if (iter == fin) {
+		return nullptr;
+	}
+
+	return *iter;
+}
 
 }  /* namespace danjo */

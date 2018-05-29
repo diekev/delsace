@@ -24,32 +24,26 @@
 
 #pragma once
 
-#include "base_analyseuse.h"
-#include "assembleuse_logique.h"
+#include <set>
+
+#include "graphe_contrainte.h"
 
 namespace danjo {
 
-class Manipulable;
+class AssembleuseLogique {
+	std::set<std::string> m_noms_variables;
 
-class AnalyseuseLogique : public Analyseuse {
-	AssembleuseLogique m_assembleuse;
-	Manipulable *m_manipulable;
-	bool m_initialise_manipulable;
+	graphe_contrainte m_graphe;
 
 public:
-	explicit AnalyseuseLogique(Manipulable *manipulable, bool initialise_manipulable = false);
 
-	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
-        
-private:
-	void analyse_corps();
-	void analyse_entree();
-	void analyse_declaration(const int type);
-	void analyse_expression(const std::string &nom, const int type);
-	void analyse_interface();
-	void analyse_logique();
-	void analyse_sortie();
-	void analyse_relation();
+	Variable *ajoute_variable(const std::string &nom);
+
+	void ajoute_contrainte(contrainte *c);
+
+	bool variable_connue(const std::string &nom);
+
+	Variable *variable(const std::string &nom);
 };
 
 }  /* namespace danjo */

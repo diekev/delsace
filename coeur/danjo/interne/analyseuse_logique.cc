@@ -77,55 +77,6 @@ enum {
 	EXPRESSION_SORTIE,
 };
 
-class AssembleuseLogique {
-	std::set<std::string> m_noms_variables;
-
-	graphe_contrainte m_graphe;
-
-public:
-
-	Variable *ajoute_variable(const std::string &nom)
-	{
-		auto var = new Variable;
-		var->degree = 0;
-		var->nom = nom;
-
-		m_graphe.ajoute_variable(var);
-		m_noms_variables.insert(nom);
-
-		return var;
-	}
-
-	void ajoute_contrainte(contrainte *c)
-	{
-		m_graphe.ajoute_contrainte(c);
-	}
-
-	bool variable_connue(const std::string &nom)
-	{
-		return m_noms_variables.find(nom) != m_noms_variables.end();
-	}
-
-	Variable *variable(const std::string &nom)
-	{
-		auto debut = m_graphe.debut_variable();
-		auto fin = m_graphe.fin_variable();
-
-		auto iter = std::find_if(debut, fin, [&](const Variable *variable)
-		{
-			return variable->nom == nom;
-		});
-
-		if (iter == fin) {
-			return nullptr;
-		}
-
-		return *iter;
-	}
-};
-
-AssembleuseLogique m_assembleuse;
-
 /* ************************************************************************** */
 
 AnalyseuseLogique::AnalyseuseLogique(Manipulable *manipulable, bool initialise_manipulable)
