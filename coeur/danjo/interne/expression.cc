@@ -66,7 +66,6 @@ auto est_operateur_logique(int identifiant)
 	}
 }
 
-#if 1
 static int promeut(int id1, int id2)
 {
 	if (id1 == id2) {
@@ -157,61 +156,6 @@ Symbole evalue_operation(const Symbole &s1, const Symbole &s2, int operation)
 
 	return {};
 }
-#else
-auto evalue_operation(const Symbole &s1, const Symbole &s2, int identifiant)
-{
-	Symbole resultat;
-	resultat.identifiant = IDENTIFIANT_NOMBRE;
-	resultat.valeur = 0;
-
-	auto op1 = std::experimental::any_cast<int>(s1.valeur);
-	auto op2 = std::experimental::any_cast<int>(s2.valeur);
-
-	switch (identifiant) {
-		case IDENTIFIANT_PLUS:
-			resultat.valeur = op1 + op2;
-			break;
-		case IDENTIFIANT_MOINS:
-			resultat.valeur = op1 - op2;
-			break;
-		case IDENTIFIANT_FOIS:
-			resultat.valeur = op1 * op2;
-			break;
-		case IDENTIFIANT_DIVISE:
-			resultat.valeur = op1 / op2;
-			break;
-		case IDENTIFIANT_EGALITE:
-			resultat.valeur = static_cast<int>(op1 == op2);
-			break;
-		case IDENTIFIANT_DIFFERENCE:
-			resultat.valeur = static_cast<int>(op1 != op2);
-			break;
-		case IDENTIFIANT_INFERIEUR:
-			resultat.valeur = static_cast<int>(op1 < op2);
-			break;
-		case IDENTIFIANT_SUPERIEUR:
-			resultat.valeur = static_cast<int>(op1 > op2);
-			break;
-		case IDENTIFIANT_INFERIEUR_EGAL:
-			resultat.valeur = static_cast<int>(op1 <= op2);
-			break;
-		case IDENTIFIANT_SUPERIEUR_EGAL:
-			resultat.valeur = static_cast<int>(op1 >= op2);
-			break;
-		case IDENTIFIANT_ESPERLUETTE:
-			resultat.valeur = static_cast<int>(static_cast<int>(op1) & static_cast<int>(op2));
-			break;
-		case IDENTIFIANT_BARRE:
-			resultat.valeur = static_cast<int>(static_cast<int>(op1) | static_cast<int>(op2));
-			break;
-		case IDENTIFIANT_CHAPEAU:
-			resultat.valeur = static_cast<int>(static_cast<int>(op1) ^ static_cast<int>(op2));
-			break;
-	}
-
-	return resultat;
-}
-#endif
 
 auto evalue_operation_logique(const Symbole &s1, int identifiant)
 {
