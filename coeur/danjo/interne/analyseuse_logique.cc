@@ -403,6 +403,18 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 			symbole.identifiant = IDENTIFIANT_BOOL;
 			expression.push_back(symbole);
 		}
+		else if (est_identifiant(IDENTIFIANT_COULEUR)) {
+			/* À FAIRE */
+			expression.push_back(symbole);
+		}
+		else if (est_identifiant(IDENTIFIANT_VECTEUR)) {
+			/* À FAIRE */
+			expression.push_back(symbole);
+		}
+		else if (est_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+			symbole.valeur = valeur;
+			expression.push_back(symbole);
+		}
 		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 			if (!m_assembleuse.variable_connue(valeur)) {
 				lance_erreur("Variable inconnue : " + valeur);
@@ -483,6 +495,15 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 				break;
 			case IDENTIFIANT_BOOL:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::BOOL, resultat.valeur);
+				break;
+			case IDENTIFIANT_CHAINE_LITTERALE:
+				m_manipulable->ajoute_propriete(nom, TypePropriete::CHAINE_CARACTERE, resultat.valeur);
+				break;
+			case IDENTIFIANT_COULEUR:
+				m_manipulable->ajoute_propriete(nom, TypePropriete::COULEUR, resultat.valeur);
+				break;
+			case IDENTIFIANT_VECTEUR:
+				m_manipulable->ajoute_propriete(nom, TypePropriete::VECTEUR, resultat.valeur);
 				break;
 		}
 

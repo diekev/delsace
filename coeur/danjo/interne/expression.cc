@@ -238,6 +238,9 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 				case IDENTIFIANT_BOOL:
 				case IDENTIFIANT_NOMBRE:
 				case IDENTIFIANT_NOMBRE_DECIMAL:
+				case IDENTIFIANT_CHAINE_LITTERALE:
+				case IDENTIFIANT_COULEUR:
+				case IDENTIFIANT_VECTEUR:
 				{
 					pile.push(symbole);
 					break;
@@ -263,9 +266,29 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 						}
 						case TypePropriete::BOOL:
 						{
-							auto valeur = manipulable->evalue_bool(nom);
-							tmp.valeur = valeur;
+							tmp.valeur = manipulable->evalue_bool(nom);
 							tmp.identifiant = IDENTIFIANT_BOOL;
+							break;
+						}
+						case TypePropriete::COULEUR:
+						{
+							tmp.valeur = manipulable->evalue_couleur(nom);
+							tmp.identifiant = IDENTIFIANT_COULEUR;
+							break;
+						}
+						case TypePropriete::VECTEUR:
+						{
+							tmp.valeur = manipulable->evalue_vecteur(nom);
+							tmp.identifiant = IDENTIFIANT_VECTEUR;
+							break;
+						}
+						case TypePropriete::ENUM:
+						case TypePropriete::FICHIER_ENTREE:
+						case TypePropriete::FICHIER_SORTIE:
+						case TypePropriete::CHAINE_CARACTERE:
+						{
+							tmp.valeur = manipulable->evalue_chaine(nom);
+							tmp.identifiant = IDENTIFIANT_CHAINE_LITTERALE;
 							break;
 						}
 						default:
