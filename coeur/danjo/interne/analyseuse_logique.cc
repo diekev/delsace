@@ -24,11 +24,8 @@
 
 #include "analyseuse_logique.h"
 
-#include <algorithm>
 #include <iostream>
-#include <set>
 #include <stack>
-#include <unordered_map>
 
 #include "expression.h"
 #include "graphe_contrainte.h"
@@ -76,8 +73,6 @@ enum {
 	EXPRESSION_RELATION,
 	EXPRESSION_SORTIE,
 };
-
-/* ************************************************************************** */
 
 AnalyseuseLogique::AnalyseuseLogique(Manipulable *manipulable, bool initialise_manipulable)
 	: m_manipulable(manipulable)

@@ -24,10 +24,8 @@
 
 #include "expression.h"
 
-#include <cmath>
 #include <iostream>
 #include <stack>
-#include <vector>
 
 #include "manipulable.h"
 #include "morceaux.h"
