@@ -99,7 +99,10 @@ int main(int argc, char *argv[])
 
 	return app.exec();
 #else
-	auto texte_logique = danjo::contenu_fichier("exemples/redimension_image.dan");
-	danjo::compile_feuille_logique(texte_logique.c_str());
+//	auto texte_logique = danjo::contenu_fichier("exemples/redimension_image.dan");
+//	danjo::compile_feuille_logique(texte_logique.c_str());
+
+	danjo::Manipulable manipulable;
+	danjo::initialise_interface("exemples/redimension_image.dan", &manipulable);
 #endif
 }

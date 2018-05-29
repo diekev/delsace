@@ -28,9 +28,14 @@
 
 namespace danjo {
 
+class Manipulable;
+
 class AnalyseuseLogique : public Analyseuse {
+	Manipulable *m_manipulable;
+	bool m_initialise_manipulable;
+
 public:
-	AnalyseuseLogique() = default;
+	explicit AnalyseuseLogique(Manipulable *manipulable, bool initialise_manipulable = false);
 
 	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
         

@@ -208,8 +208,6 @@ class AssembleuseLogique {
 
 	graphe_contrainte m_graphe;
 
-	Manipulable m_manipulable;
-
 public:
 
 	Variable *ajoute_variable(const std::string &nom)
@@ -250,16 +248,16 @@ public:
 
 		return *iter;
 	}
-
-	Manipulable *manipulable()
-	{
-		return &m_manipulable;
-	}
 };
 
 AssembleuseLogique m_assembleuse;
 
 /* ************************************************************************** */
+
+AnalyseuseLogique::AnalyseuseLogique(Manipulable *manipulable, bool initialise_manipulable)
+	: m_manipulable(manipulable)
+	, m_initialise_manipulable(initialise_manipulable)
+{}
 
 void AnalyseuseLogique::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
 {
@@ -361,7 +359,9 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 {
 	LOG << __func__ << '\n';
 
-	/* Trouve la variable de sortie. */
+	const auto construit_graphe = !m_initialise_manipulable
+								  && (type == EXPRESSION_RELATION
+									  || type == EXPRESSION_SORTIE);
 	contrainte *cont = nullptr;
 	Variable *sortie = nullptr;
 
@@ -372,7 +372,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 		sortie = m_assembleuse.variable(nom);
 	}
 
-	if (type == EXPRESSION_RELATION || type == EXPRESSION_SORTIE) {
+	if (construit_graphe) {
 		/* Crée une contrainte. */
 		cont = new contrainte;
 		cont->m_sortie = sortie;
@@ -408,7 +408,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 				lance_erreur("Variable inconnue : " + valeur);
 			}
 
-			if (type == EXPRESSION_RELATION || type == EXPRESSION_SORTIE) {
+			if (construit_graphe) {
 				auto variable = m_assembleuse.variable(valeur);
 				connecte(cont, variable);
 			}
@@ -472,19 +472,17 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 #endif
 
 	if (type == EXPRESSION_ENTREE || type == EXPRESSION_INTERFACE) {
-		Manipulable *manipulable = m_assembleuse.manipulable();
-
-		auto resultat = evalue_expression(expression, manipulable);
+		auto resultat = evalue_expression(expression, m_manipulable);
 
 		switch (resultat.identifiant) {
 			case IDENTIFIANT_NOMBRE:
-				manipulable->ajoute_propriete(nom, TypePropriete::ENTIER, resultat.valeur);
+				m_manipulable->ajoute_propriete(nom, TypePropriete::ENTIER, resultat.valeur);
 				break;
 			case IDENTIFIANT_NOMBRE_DECIMAL:
-				manipulable->ajoute_propriete(nom, TypePropriete::DECIMAL, resultat.valeur);
+				m_manipulable->ajoute_propriete(nom, TypePropriete::DECIMAL, resultat.valeur);
 				break;
 			case IDENTIFIANT_BOOL:
-				manipulable->ajoute_propriete(nom, TypePropriete::BOOL, resultat.valeur);
+				m_manipulable->ajoute_propriete(nom, TypePropriete::BOOL, resultat.valeur);
 				break;
 		}
 
@@ -495,7 +493,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 #endif
 	}
 
-	if (type == EXPRESSION_RELATION || type == EXPRESSION_SORTIE) {
+	if (construit_graphe) {
 		m_assembleuse.ajoute_contrainte(cont);
 		cont->m_expression = expression;
 	}

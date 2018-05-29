@@ -104,4 +104,11 @@ QBoxLayout *compile_interface(
 
 void compile_feuille_logique(const char *texte_entree);
 
+/**
+ * Initialise les propriétés d'un manipulable depuis un fichier .dan.
+ */
+void initialise_interface(
+		const std::experimental::filesystem::path &chemin_texte,
+		Manipulable *manipulable);
+
 }  /* namespace danjo */

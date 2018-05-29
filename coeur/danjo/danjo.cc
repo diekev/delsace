@@ -307,7 +307,7 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes,
 
 void compile_feuille_logique(const char *texte_entree)
 {
-	AnalyseuseLogique analyseuse;
+	AnalyseuseLogique analyseuse(nullptr);
 	Decoupeuse decoupeuse(texte_entree);
 
 	try {
@@ -319,6 +319,24 @@ void compile_feuille_logique(const char *texte_entree)
 	}
 	catch (const ErreurSyntactique &e) {
 		std::cerr << e.quoi();
+	}
+}
+
+void initialise_interface(
+		const std::experimental::filesystem::path &chemin_texte,
+		Manipulable *manipulable)
+{
+	const auto texte_entree = contenu_fichier(chemin_texte);
+	Decoupeuse decoupeuse(texte_entree.c_str());
+
+	try {
+		decoupeuse.decoupe();
+
+		AnalyseuseLogique analyseuse(manipulable, true);
+		analyseuse.lance_analyse(decoupeuse.morceaux());
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi() << '\n';
 	}
 }
 
