@@ -3,7 +3,7 @@ disposition "1disposition_début" {
 	colonne {
 		ligne {
 			étiquette(valeur="Taille image")
-			entier(valeur=6; min=0; max=200; infobulle="La taille de l'image sur l'axe des X."; attache=taille_x)
+			entier(valeur=6; min=-10; max=200; infobulle="La taille de l'image sur l'axe des X."; attache=taille_x)
 		}
 		ligne {
 			étiquette(valeur="Taille image Y")

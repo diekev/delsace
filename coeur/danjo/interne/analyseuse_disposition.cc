@@ -434,6 +434,8 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 		analyse_liste_item();
 	}
 	else {
+		auto valeur_negative = false;
+
 		switch (identifiant_propriete) {
 			case IDENTIFIANT_VALEUR:
 			{
@@ -441,6 +443,11 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 					case IDENTIFIANT_ENTIER:
 					case IDENTIFIANT_DECIMAL:
 					{
+						if (est_identifiant(IDENTIFIANT_MOINS)) {
+							valeur_negative = true;
+							avance();
+						}
+
 						if (!est_identifiant(IDENTIFIANT_NOMBRE) && !est_identifiant(IDENTIFIANT_NOMBRE_DECIMAL)) {
 							lance_erreur("Attendu un nombre !");
 						}
@@ -491,6 +498,11 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 			case IDENTIFIANT_MAX:
 			case IDENTIFIANT_PAS:
 			{
+				if (est_identifiant(IDENTIFIANT_MOINS)) {
+					valeur_negative = true;
+					avance();
+				}
+
 				if (!est_identifiant(IDENTIFIANT_NOMBRE) && !est_identifiant(IDENTIFIANT_NOMBRE_DECIMAL)) {
 					lance_erreur("Attendu un nombre !");
 				}
@@ -522,9 +534,13 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 						m_identifiants[position()].contenu);
 		}
 		else {
+			const auto valeur = valeur_negative ?
+							  "-" + m_identifiants[position()].contenu
+						  : m_identifiants[position()].contenu;
+
 			m_assembleur->propriete_controle(
 						identifiant_propriete,
-						m_identifiants[position()].contenu);
+						valeur);
 		}
 	}
 

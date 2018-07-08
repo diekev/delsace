@@ -91,7 +91,7 @@ FenetreTest::FenetreTest()
 
 int main(int argc, char *argv[])
 {
-#if 0
+#if 1
 	QApplication app(argc, argv);
 
 	FenetreTest fenetre;
