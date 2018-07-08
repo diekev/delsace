@@ -267,6 +267,20 @@ void ControleVec3::finalise(const DonneesControle &donnees)
 {
 	m_pointeur = static_cast<float *>(donnees.pointeur);
 
+	auto min = 0.0f;
+
+	if (donnees.valeur_min != "") {
+		min = convertie<float>(donnees.valeur_min);
+	}
+
+	auto max = min + 1.0f;
+
+	if (donnees.valeur_max != "") {
+		max = convertie<float>(donnees.valeur_max);
+	}
+
+	setMinMax(min, max);
+
 	auto valeurs = decoupe(donnees.valeur_defaut, ',');
 	auto index = 0;
 
