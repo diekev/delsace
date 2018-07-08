@@ -189,10 +189,13 @@ void ControleEnum::finalise(const DonneesControle &donnees)
 {
 	m_pointeur = static_cast<std::string *>(donnees.pointeur);
 
-	const auto valeur_defaut = donnees.valeur_defaut;
+	auto valeur_defaut = donnees.valeur_defaut;
 
 	if (donnees.initialisation) {
 		*m_pointeur = valeur_defaut;
+	}
+	else {
+		valeur_defaut = *m_pointeur;
 	}
 
 	const auto vieil_etat = m_liste_deroulante->blockSignals(true);
