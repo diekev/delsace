@@ -284,7 +284,7 @@ void ControleVec3::finalise(const DonneesControle &donnees)
 	auto valeurs = decoupe(donnees.valeur_defaut, ',');
 	auto index = 0;
 
-	float valeur_defaut[3];
+	float valeur_defaut[3] = { 0.0f, 0.0f, 0.0f };
 
 	for (auto v : valeurs) {
 		valeur_defaut[index++] = std::atof(v.c_str());

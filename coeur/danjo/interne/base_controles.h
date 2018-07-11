@@ -230,7 +230,7 @@ class SelecteurCouleur : public Controle {
 	float m_max = 0.0f;
 
 protected:
-	float m_valeur_defaut[3];
+	float m_valeur_defaut[4];
 	float *m_couleur = nullptr;
 
 public:

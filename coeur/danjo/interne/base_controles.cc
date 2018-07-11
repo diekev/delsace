@@ -366,12 +366,17 @@ void SelecteurCouleur::finalise(const DonneesControle &donnees)
 	auto valeurs = decoupe(donnees.valeur_defaut, ',');
 	auto index = 0;
 
+	m_valeur_defaut[0] = 1.0f;
+	m_valeur_defaut[1] = 1.0f;
+	m_valeur_defaut[2] = 1.0f;
+	m_valeur_defaut[3] = 1.0f;
+
 	for (auto v : valeurs) {
 		m_valeur_defaut[index++] = std::atof(v.c_str());
 	}
 
 	if (donnees.initialisation) {
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < 4; ++i) {
 			m_couleur[i] = m_valeur_defaut[i];
 		}
 	}
