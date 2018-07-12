@@ -12,8 +12,8 @@ disposition "1disposition_début" {
 
 		liste(valeur="exr"; items=[{ nom="JPEG", valeur="jpeg"}, { nom="EXR", valeur="exr"}, { nom="PNG", valeur="png"}]; attache=type_fichier)
 		chaine(valeur=""; attache=nom_fichier)
-		fichier_entrée(valeur=""; attache=fichier_in)
-		fichier_sortie(valeur=""; attache=fichier_ex)
+		fichier_entrée(valeur=""; attache=fichier_in; filtres="Images (*.jpg *jpeg)")
+		fichier_sortie(valeur=""; attache=fichier_ex; filtres="Images (*.exr *png)")
 		vecteur(valeur="0, 1, 0"; attache=direction)
 	}
 	dossier {

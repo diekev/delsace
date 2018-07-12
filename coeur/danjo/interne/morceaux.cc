@@ -78,6 +78,8 @@ const char *chaine_identifiant(int identifiant)
 			return "IDENTIFIANT_FICHIER_ENTREE";
 		case IDENTIFIANT_FICHIER_SORTIE:
 			return "IDENTIFIANT_FICHIER_SORTIE";
+		case IDENTIFIANT_FILTRES:
+			return "IDENTIFIANT_FILTRES";
 		case IDENTIFIANT_ICONE:
 			return "IDENTIFIANT_ICONE";
 		case IDENTIFIANT_INFOBULLE:

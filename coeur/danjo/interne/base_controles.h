@@ -175,6 +175,7 @@ class SelecteurFichier : public Controle {
 	QLineEdit *m_line_edit;
 	QPushButton *m_push_button;
 
+	QString m_filtres;
 	bool m_input;
 
 public:
@@ -183,6 +184,8 @@ public:
 	~SelecteurFichier() = default;
 
 	void setValue(const QString &text);
+
+	void ajourne_filtres(const QString &chaine);
 
 private Q_SLOTS:
 	void setChoosenFile();

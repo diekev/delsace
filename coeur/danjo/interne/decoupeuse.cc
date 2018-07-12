@@ -80,6 +80,7 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_FEUILLE, "feuille" },
 	{ IDENTIFIANT_FICHIER_ENTREE, "fichier_entrée" },
 	{ IDENTIFIANT_FICHIER_SORTIE, "fichier_sortie" },
+	{ IDENTIFIANT_FILTRES, "filtres" },
 	{ IDENTIFIANT_ICONE, "icône" },
 	{ IDENTIFIANT_INFOBULLE, "infobulle" },
 	{ IDENTIFIANT_INTERFACE, "interface" },

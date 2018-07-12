@@ -66,6 +66,7 @@ static bool est_identifiant_propriete(int identifiant)
 		case IDENTIFIANT_ITEMS:
 		case IDENTIFIANT_METADONNEE:
 		case IDENTIFIANT_ICONE:
+		case IDENTIFIANT_FILTRES:
 			return true;
 		default:
 			return false;
@@ -512,6 +513,7 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 				break;
 			}
 			case IDENTIFIANT_INFOBULLE:
+			case IDENTIFIANT_FILTRES:
 			case IDENTIFIANT_METADONNEE:
 			case IDENTIFIANT_ICONE:
 			{

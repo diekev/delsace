@@ -341,6 +341,8 @@ void ControleFichier::finalise(const DonneesControle &donnees)
 	setValue(m_pointeur->c_str());
 
 	setToolTip(donnees.infobulle.c_str());
+
+	ajourne_filtres(donnees.filtres.c_str());
 }
 
 void ControleFichier::ajourne_valeur_pointee(const QString &valeur)

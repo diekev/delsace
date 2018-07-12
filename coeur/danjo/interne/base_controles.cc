@@ -274,13 +274,27 @@ void SelecteurFichier::setValue(const QString &text)
 
 void SelecteurFichier::setChoosenFile()
 {
-	const auto filename = m_input ? QFileDialog::getOpenFileName(this)
-								  : QFileDialog::getSaveFileName(this);
+	QString chemin;
+	QString caption = "";
+	QString dir = "";
+	QString filtres = m_filtres;
 
-	if (!filename.isEmpty()) {
-		m_line_edit->setText(filename);
-		Q_EMIT(valeur_changee(filename));
+	if (m_input) {
+		chemin = QFileDialog::getOpenFileName(this, caption, dir, filtres);
 	}
+	else {
+		chemin = QFileDialog::getSaveFileName(this, caption, dir, filtres);
+	}
+
+	if (!chemin.isEmpty()) {
+		m_line_edit->setText(chemin);
+		Q_EMIT(valeur_changee(chemin));
+	}
+}
+
+void SelecteurFichier::ajourne_filtres(const QString &chaine)
+{
+	m_filtres = chaine;
 }
 
 /* ************************************************************************** */

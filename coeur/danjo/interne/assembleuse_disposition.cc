@@ -186,6 +186,9 @@ void AssembleurDisposition::propriete_controle(int identifiant, const std::strin
 		case IDENTIFIANT_PAS:
 			m_donnees_controle.pas = valeur;
 			break;
+		case IDENTIFIANT_FILTRES:
+			m_donnees_controle.filtres = valeur;
+			break;
 	}
 }
 

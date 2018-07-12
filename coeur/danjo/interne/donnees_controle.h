@@ -40,6 +40,7 @@ struct DonneesControle {
 	std::string precision = "";
 	std::string pas = "";
 	std::string infobulle = "";
+	std::string filtres = "";
 	std::vector<std::pair<std::string, std::string>> valeur_enum{};
 	TypePropriete type = {};
 
