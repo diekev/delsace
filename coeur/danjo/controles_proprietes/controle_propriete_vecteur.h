@@ -24,36 +24,50 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "controle_propriete.h"
 
-#include "manipulable.h"
+class QVBoxLayout;
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
+class SelecteurFloat;
+
+class SelecteurVec3 : public ControlePropriete {
+	Q_OBJECT
+
+	SelecteurFloat *m_x, *m_y, *m_z;
+	QVBoxLayout *m_agencement;
+
+private Q_SLOTS:
+	void xValueChanged(double value);
+	void yValueChanged(double value);
+	void zValueChanged(double value);
+
+Q_SIGNALS:
+	void valeur_changee(double value, int axis);
+
+public:
+	explicit SelecteurVec3(QWidget *parent = nullptr);
+	~SelecteurVec3() = default;
+
+	void setValue(float *value);
+	void getValue(float *value) const;
+	void setMinMax(float min, float max) const;
 };
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+class ControleProprieteVec3 final : public SelecteurVec3 {
+	Q_OBJECT
 
-	bool initialisation = false;
+	float *m_pointeur;
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+public:
+	explicit ControleProprieteVec3(QWidget *parent = nullptr);
+	~ControleProprieteVec3() = default;
+
+	void finalise(const DonneesControle &donnees) override;
+
+private Q_SLOTS:
+	void ajourne_valeur_pointee(double valeur, int axis);
 };
 
 }  /* namespace danjo */

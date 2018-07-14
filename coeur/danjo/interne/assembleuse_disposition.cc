@@ -27,13 +27,23 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
+#include <QTabWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
+
+#include "controles_proprietes/controle_propriete_bool.h"
+#include "controles_proprietes/controle_propriete_chaine.h"
+#include "controles_proprietes/controle_propriete_couleur.h"
+#include "controles_proprietes/controle_propriete_decimal.h"
+#include "controles_proprietes/controle_propriete_entier.h"
+#include "controles_proprietes/controle_propriete_etiquette.h"
+#include "controles_proprietes/controle_propriete_enum.h"
+#include "controles_proprietes/controle_propriete_fichier.h"
+#include "controles_proprietes/controle_propriete_vecteur.h"
 
 #include "action.h"
 #include "bouton.h"
 #include "conteneur_controles.h"
-#include "controles.h"
 #include "manipulable.h"
 #include "morceaux.h"
 #include "repondant_bouton.h"
@@ -69,48 +79,48 @@ void AssembleurDisposition::ajoute_disposition(int identifiant)
 
 void AssembleurDisposition::ajoute_controle(int identifiant)
 {
-	Controle *controle = nullptr;
+	ControlePropriete *controle = nullptr;
 
 	m_donnees_controle = DonneesControle();
 
 	switch (identifiant) {
 		case IDENTIFIANT_ENTIER:
-			controle = new ControleInt;
+			controle = new ControleProprieteEntier;
 			m_donnees_controle.type = TypePropriete::ENTIER;
 			break;
 		case IDENTIFIANT_DECIMAL:
-			controle = new ControleFloat;
+			controle = new ControleProprieteDecimal;
 			m_donnees_controle.type = TypePropriete::DECIMAL;
 			break;
 		case IDENTIFIANT_ETIQUETTE:
-			controle = new Etiquette;
+			controle = new ControleProprieteEtiquette;
 			break;
 		case IDENTIFIANT_LISTE:
-			controle = new ControleEnum;
+			controle = new ControleProprieteEnum;
 			m_donnees_controle.type = TypePropriete::ENUM;
 			break;
 		case IDENTIFIANT_CASE:
-			controle = new ControleBool;
+			controle = new ControleProprieteBool;
 			m_donnees_controle.type = TypePropriete::BOOL;
 			break;
 		case IDENTIFIANT_CHAINE:
-			controle = new ControleChaineCaractere;
+			controle = new ControleProprieteChaineCaractere;
 			m_donnees_controle.type = TypePropriete::CHAINE_CARACTERE;
 			break;
 		case IDENTIFIANT_FICHIER_ENTREE:
-			controle = new ControleFichier(true);
+			controle = new ControleProprieteFichier(true);
 			m_donnees_controle.type = TypePropriete::FICHIER_ENTREE;
 			break;
 		case IDENTIFIANT_FICHIER_SORTIE:
-			controle = new ControleFichier(false);
+			controle = new ControleProprieteFichier(false);
 			m_donnees_controle.type = TypePropriete::FICHIER_SORTIE;
 			break;
 		case IDENTIFIANT_COULEUR:
-			controle = new ControleCouleur;
+			controle = new ControleProprieteCouleur;
 			m_donnees_controle.type = TypePropriete::COULEUR;
 			break;
 		case IDENTIFIANT_VECTEUR:
-			controle = new ControleVec3;
+			controle = new ControleProprieteVec3;
 			m_donnees_controle.type = TypePropriete::VECTEUR;
 			break;
 	}
@@ -152,7 +162,7 @@ void AssembleurDisposition::finalise_controle()
 
 	m_dernier_controle->finalise(m_donnees_controle);
 
-	QObject::connect(m_dernier_controle, &Controle::controle_change,
+	QObject::connect(m_dernier_controle, &ControlePropriete::controle_change,
 					 m_conteneur, &ConteneurControles::ajourne_manipulable);
 }
 

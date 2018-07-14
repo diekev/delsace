@@ -24,36 +24,58 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "controle_propriete.h"
 
-#include "manipulable.h"
+class QHBoxLayout;
+class QDoubleSpinBox;
+class QSlider;
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
+class SelecteurFloat : public ControlePropriete {
+	Q_OBJECT
+
+	QHBoxLayout *m_agencement;
+	QDoubleSpinBox *m_spin_box;
+	QSlider *m_slider;
+
+protected:
+	float m_scale;
+	float m_min;
+	float m_max;
+
+public:
+	explicit SelecteurFloat(QWidget *parent = nullptr);
+	~SelecteurFloat() = default;
+
+	void finalise(const DonneesControle &) override;
+
+	void valeur(float value);
+	float valeur() const;
+
+	void setRange(float min, float max);
+
+Q_SIGNALS:
+	void valeur_changee(double value);
+
+private Q_SLOTS:
+	void ValueChanged();
+	void updateLabel(int value);
 };
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+class ControleProprieteDecimal final : public SelecteurFloat {
+	Q_OBJECT
 
-	bool initialisation = false;
+	float *m_pointeur;
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+public:
+	explicit ControleProprieteDecimal(QWidget *parent = nullptr);
+	~ControleProprieteDecimal() = default;
+
+	void finalise(const DonneesControle &donnees) override;
+
+private Q_SLOTS:
+	void ajourne_valeur_pointee(double valeur);
 };
 
 }  /* namespace danjo */

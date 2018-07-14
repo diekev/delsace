@@ -22,38 +22,12 @@
  *
  */
 
-#pragma once
-
-#include <string>
-#include <vector>
-
-#include "manipulable.h"
+#include "controle_propriete.h"
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
-};
-
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
-
-	bool initialisation = false;
-
-	DonneesControle() = default;
-	~DonneesControle() = default;
-};
+ControlePropriete::ControlePropriete(QWidget *parent)
+	: QWidget(parent)
+{}
 
 }  /* namespace danjo */

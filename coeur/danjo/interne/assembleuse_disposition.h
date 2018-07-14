@@ -41,7 +41,7 @@ namespace danjo {
 class Action;
 class Bouton;
 class ConteneurControles;
-class Controle;
+class ControlePropriete;
 class Manipulable;
 class RepondantBouton;
 
@@ -59,7 +59,7 @@ class AssembleurDisposition {
 	std::vector<std::pair<std::string, QMenu *>> m_donnees_menus;
 
 	Action *m_derniere_action = nullptr;
-	Controle *m_dernier_controle = nullptr;
+	ControlePropriete *m_dernier_controle = nullptr;
 	Bouton *m_dernier_bouton = nullptr;
 	QMenu *m_menu_racine = nullptr;
 

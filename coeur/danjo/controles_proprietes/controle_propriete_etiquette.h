@@ -24,36 +24,21 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "controle_propriete.h"
 
-#include "manipulable.h"
+class QHBoxLayout;
+class QLabel;
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
-};
+class ControleProprieteEtiquette final : public ControlePropriete {
+	QHBoxLayout *m_agencement;
+	QLabel *m_etiquette;
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+public:
+	explicit ControleProprieteEtiquette(QWidget *parent = nullptr);
 
-	bool initialisation = false;
-
-	DonneesControle() = default;
-	~DonneesControle() = default;
+	void finalise(const DonneesControle &donnees) override;
 };
 
 }  /* namespace danjo */

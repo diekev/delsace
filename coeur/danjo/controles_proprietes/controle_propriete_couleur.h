@@ -24,36 +24,47 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "manipulable.h"
+#include "controle_propriete.h"
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
+class SelecteurCouleur : public ControlePropriete {
+	Q_OBJECT
+
+	float m_min = 0.0f;
+	float m_max = 0.0f;
+
+protected:
+	float m_valeur_defaut[4];
+	float *m_couleur = nullptr;
+
+public:
+	explicit SelecteurCouleur(QWidget *parent = nullptr);
+
+	~SelecteurCouleur() = default;
+
+	void mouseReleaseEvent(QMouseEvent *e) override;
+
+	void finalise(const DonneesControle &donnees) override;
+
+	void paintEvent(QPaintEvent *) override;
+
+Q_SIGNALS:
+	void clicked();
+	void valeur_changee(double value, int axis);
 };
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+class ControleProprieteCouleur final : public SelecteurCouleur {
+	Q_OBJECT
 
-	bool initialisation = false;
+	float *m_pointeur;
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+public:
+	explicit ControleProprieteCouleur(QWidget *parent = nullptr);
+	~ControleProprieteCouleur() = default;
+
+private Q_SLOTS:
+	void ajourne_valeur_pointee(double valeur, int axis);
 };
 
 }  /* namespace danjo */

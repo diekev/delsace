@@ -24,36 +24,29 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "controle_propriete.h"
 
-#include "manipulable.h"
+class QCheckBox;
+class QHBoxLayout;
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
-};
+class ControleProprieteBool final : public ControlePropriete {
+	Q_OBJECT
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+	QHBoxLayout *m_agencement;
+	QCheckBox *m_case_a_cocher;
 
-	bool initialisation = false;
+	bool *m_pointeur;
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+public:
+	explicit ControleProprieteBool(QWidget *parent = nullptr);
+	~ControleProprieteBool() = default;
+
+	void finalise(const DonneesControle &donnees) override;
+
+private Q_SLOTS:
+	void ajourne_valeur_pointee(bool valeur);
 };
 
 }  /* namespace danjo */

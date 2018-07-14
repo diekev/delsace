@@ -24,36 +24,29 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "controle_propriete.h"
 
-#include "manipulable.h"
+class QHBoxLayout;
+class QLineEdit;
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
-};
+class ControleProprieteChaineCaractere final : public ControlePropriete {
+	Q_OBJECT
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+	QHBoxLayout *m_agencement;
+	QLineEdit *m_editeur_ligne;
 
-	bool initialisation = false;
+	std::string *m_pointeur;
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+public:
+	explicit ControleProprieteChaineCaractere(QWidget *parent = nullptr);
+	~ControleProprieteChaineCaractere() = default;
+
+	void finalise(const DonneesControle &donnees) override;
+
+private Q_SLOTS:
+	void ajourne_valeur_pointee();
 };
 
 }  /* namespace danjo */

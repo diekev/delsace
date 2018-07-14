@@ -24,36 +24,34 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "manipulable.h"
+#include <QWidget>
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
-};
+struct DonneesControle;
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+/**
+ * La classe Controle donne l'interface nécessaire pour les contrôles à afficher
+ * dans l'interface utilisateur. Dès que le contrôle est changé le signal
+ * Controle::controle_change() est émis.
+ */
+class ControlePropriete : public QWidget {
+	Q_OBJECT
 
-	bool initialisation = false;
+public:
+	explicit ControlePropriete(QWidget *parent = nullptr);
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+	/**
+	 * Finalise le contrôle. Cette fonction est appelée à la fin de la création
+	 * du contrôle par l'assembleur de contrôle.
+	 */
+	virtual void finalise(const DonneesControle &donnees) = 0;
+
+Q_SIGNALS:
+	/**
+	 * Signal émis quand la valeur du contrôle est changée dans l'interface.
+	 */
+	void controle_change();
 };
 
 }  /* namespace danjo */

@@ -27,10 +27,20 @@ set(INCLUSIONS
 qt5_wrap_cpp(
 	moc_headers
 
+	controles_proprietes/controle_propriete.h
+	controles_proprietes/controle_propriete_bool.h
+	controles_proprietes/controle_propriete_chaine.h
+	controles_proprietes/controle_propriete_couleur.h
+	controles_proprietes/controle_propriete_decimal.h
+	controles_proprietes/controle_propriete_entier.h
+	controles_proprietes/controle_propriete_enum.h
+	controles_proprietes/controle_propriete_etiquette.h
+	controles_proprietes/controle_propriete_fichier.h
+	controles_proprietes/controle_propriete_liste.h
+	controles_proprietes/controle_propriete_vecteur.h
+
 	interne/action.h
-	interne/base_controles.h
 	interne/bouton.h
-	interne/controles.h
 
 	conteneur_controles.h
 )
@@ -44,15 +54,25 @@ set(ENTETES
 )
 
 add_library(danjo STATIC
+	controles_proprietes/controle_propriete.cc
+	controles_proprietes/controle_propriete_bool.cc
+	controles_proprietes/controle_propriete_chaine.cc
+	controles_proprietes/controle_propriete_couleur.cc
+	controles_proprietes/controle_propriete_decimal.cc
+	controles_proprietes/controle_propriete_entier.cc
+	controles_proprietes/controle_propriete_enum.cc
+	controles_proprietes/controle_propriete_etiquette.cc
+	controles_proprietes/controle_propriete_fichier.cc
+	controles_proprietes/controle_propriete_liste.cc
+	controles_proprietes/controle_propriete_vecteur.cc
+
 	interne/action.cc
 	interne/analyseuse_disposition.cc
 	interne/analyseuse_logique.cc
 	interne/assembleuse_disposition.cc
 	interne/assembleuse_logique.cc
 	interne/base_analyseuse.cc
-	interne/base_controles.cc
 	interne/bouton.cc
-	interne/controles.cc
 	interne/decoupeuse.cc
 	interne/donnees_controle.cc
 	interne/expression.cc
@@ -65,15 +85,25 @@ add_library(danjo STATIC
 	manipulable.cc
 	repondant_bouton.cc
 
+	controles_proprietes/controle_propriete.h
+	controles_proprietes/controle_propriete_bool.h
+	controles_proprietes/controle_propriete_chaine.h
+	controles_proprietes/controle_propriete_couleur.h
+	controles_proprietes/controle_propriete_decimal.h
+	controles_proprietes/controle_propriete_entier.h
+	controles_proprietes/controle_propriete_enum.h
+	controles_proprietes/controle_propriete_etiquette.h
+	controles_proprietes/controle_propriete_fichier.h
+	controles_proprietes/controle_propriete_liste.h
+	controles_proprietes/controle_propriete_vecteur.h
+
 	interne/action.h
 	interne/analyseuse_disposition.h
 	interne/analyseuse_logique.h
 	interne/assembleuse_disposition.h
 	interne/assembleuse_logique.h
 	interne/base_analyseuse.h
-	interne/base_controles.h
 	interne/bouton.h
-	interne/controles.h
 	interne/decoupeuse.h
 	interne/donnees_controle.h
 	interne/expression.h

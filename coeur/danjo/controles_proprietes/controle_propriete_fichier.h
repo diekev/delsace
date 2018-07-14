@@ -24,36 +24,53 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "controle_propriete.h"
 
-#include "manipulable.h"
+class QHBoxLayout;
+class QLineEdit;
+class QPushButton;
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
+class SelecteurFichier : public ControlePropriete {
+	Q_OBJECT
+
+	QHBoxLayout *m_agencement;
+	QLineEdit *m_line_edit;
+	QPushButton *m_push_button;
+
+	QString m_filtres;
+	bool m_input;
+
+public:
+	explicit SelecteurFichier(bool input, QWidget *parent = nullptr);
+
+	~SelecteurFichier() = default;
+
+	void setValue(const QString &text);
+
+	void ajourne_filtres(const QString &chaine);
+
+private Q_SLOTS:
+	void setChoosenFile();
+
+Q_SIGNALS:
+	void valeur_changee(const QString &text);
 };
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+class ControleProprieteFichier final : public SelecteurFichier {
+	Q_OBJECT
 
-	bool initialisation = false;
+	std::string *m_pointeur;
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+public:
+	explicit ControleProprieteFichier(bool input, QWidget *parent = nullptr);
+	~ControleProprieteFichier() = default;
+
+	void finalise(const DonneesControle &donnees) override;
+
+private Q_SLOTS:
+	void ajourne_valeur_pointee(const QString &valeur);
 };
 
 }  /* namespace danjo */

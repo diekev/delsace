@@ -24,36 +24,55 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "controle_propriete.h"
 
-#include "manipulable.h"
+class QHBoxLayout;
+class QSpinBox;
+class QSlider;
 
 namespace danjo {
 
-enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
+class SelecteurInt : public ControlePropriete {
+	Q_OBJECT
+
+	QHBoxLayout *m_agencement;
+	QSpinBox *m_spin_box;
+	QSlider *m_slider;
+
+protected:
+	int m_min, m_max;
+
+public:
+	explicit SelecteurInt(QWidget *parent = nullptr);
+	~SelecteurInt() = default;
+
+	void finalise(const DonneesControle &) override;
+
+	void setValue(int value);
+	int value() const;
+	void setRange(int min, int max);
+
+Q_SIGNALS:
+	void valeur_changee(int value);
+
+private Q_SLOTS:
+	void ValueChanged();
+	void updateLabel(int value);
 };
 
-struct DonneesControle {
-	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
-	TypePropriete type = {};
+class ControleProprieteEntier final : public SelecteurInt {
+	Q_OBJECT
 
-	bool initialisation = false;
+	int *m_pointeur;
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+public:
+	explicit ControleProprieteEntier(QWidget *parent = nullptr);
+	~ControleProprieteEntier() = default;
+
+	void finalise(const DonneesControle &donnees) override;
+
+private Q_SLOTS:
+	void ajourne_valeur_pointee(int valeur);
 };
 
 }  /* namespace danjo */
