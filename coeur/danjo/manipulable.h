@@ -144,6 +144,11 @@ public:
 	bool evalue_bool(const std::string &nom);
 
 	/**
+	 * Évalue la valeur d'une propriété de type 'énum' du nom spécifié.
+	 */
+	std::string evalue_enum(const std::string &nom);
+
+	/**
 	 * Évalue la valeur d'une propriété de type 'liste' du nom spécifié.
 	 */
 	std::string evalue_liste(const std::string &nom);

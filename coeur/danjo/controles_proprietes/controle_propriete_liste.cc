@@ -72,6 +72,7 @@ void ControleProprieteListe::finalise(const DonneesControle &donnees)
 		*m_pointeur = donnees.valeur_defaut;
 	}
 
+	attache(donnees.nom);
 	m_editeur_texte->setText(m_pointeur->c_str());
 
 	setToolTip(donnees.infobulle.c_str());

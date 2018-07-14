@@ -118,6 +118,8 @@ const char *chaine_identifiant(int identifiant)
 			return "IDENTIFIANT_RESULTAT";
 		case IDENTIFIANT_SORTIE:
 			return "IDENTIFIANT_SORTIE";
+		case IDENTIFIANT_SUFFIXE:
+			return "IDENTIFIANT_SUFFIXE";
 		case IDENTIFIANT_SEPARATEUR:
 			return "IDENTIFIANT_SEPARATEUR";
 		case IDENTIFIANT_VALEUR:
@@ -126,6 +128,8 @@ const char *chaine_identifiant(int identifiant)
 			return "IDENTIFIANT_VECTEUR";
 		case IDENTIFIANT_VRAI:
 			return "IDENTIFIANT_VRAI";
+		case IDENTIFIANT_ENUM:
+			return "IDENTIFIANT_ENUM";
 		case IDENTIFIANT_ETIQUETTE:
 			return "IDENTIFIANT_ETIQUETTE";
 		case IDENTIFIANT_DIFFERENCE:

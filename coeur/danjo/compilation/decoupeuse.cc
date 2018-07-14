@@ -100,10 +100,12 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_RELATION, "relation" },
 	{ IDENTIFIANT_RESULTAT, "résultat" },
 	{ IDENTIFIANT_SORTIE, "sortie" },
+	{ IDENTIFIANT_SUFFIXE, "suffixe" },
 	{ IDENTIFIANT_SEPARATEUR, "séparateur" },
 	{ IDENTIFIANT_VALEUR, "valeur" },
 	{ IDENTIFIANT_VECTEUR, "vecteur" },
 	{ IDENTIFIANT_VRAI, "vrai" },
+	{ IDENTIFIANT_ENUM, "énum" },
 	{ IDENTIFIANT_ETIQUETTE, "étiquette" },
 };
 

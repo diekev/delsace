@@ -41,6 +41,13 @@ void WidgetTest::ajourne_manipulable()
 {
 }
 
+void WidgetTest::obtiens_liste(const std::string &attache, std::vector<std::string> &chaines)
+{
+	std::cerr << "Obtention de la liste pour l'attache : " << attache << '\n';
+
+	chaines.push_back("image");
+}
+
 /* ************************************************************************** */
 
 void RepondantBoutonTest::repond_clique(const std::string &valeur, const std::string &metadonnee)

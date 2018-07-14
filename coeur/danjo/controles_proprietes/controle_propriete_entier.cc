@@ -69,6 +69,7 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
 	}
 
 	m_controle->valeur(*m_pointeur);
+	m_controle->suffixe(donnees.suffixe.c_str());
 
 	setToolTip(donnees.infobulle.c_str());
 }

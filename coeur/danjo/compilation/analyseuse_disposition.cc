@@ -41,6 +41,7 @@ bool est_identifiant_controle(int identifiant)
 		case IDENTIFIANT_DECIMAL:
 		case IDENTIFIANT_ETIQUETTE:
 		case IDENTIFIANT_LISTE:
+		case IDENTIFIANT_ENUM:
 		case IDENTIFIANT_CASE:
 		case IDENTIFIANT_CHAINE:
 		case IDENTIFIANT_FICHIER_ENTREE:
@@ -67,6 +68,7 @@ static bool est_identifiant_propriete(int identifiant)
 		case IDENTIFIANT_METADONNEE:
 		case IDENTIFIANT_ICONE:
 		case IDENTIFIANT_FILTRES:
+		case IDENTIFIANT_SUFFIXE:
 			return true;
 		default:
 			return false;
@@ -461,6 +463,7 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 					case IDENTIFIANT_FICHIER_SORTIE:
 					case IDENTIFIANT_CHAINE:
 					case IDENTIFIANT_ETIQUETTE:
+					case IDENTIFIANT_ENUM:
 					case IDENTIFIANT_LISTE:
 					case IDENTIFIANT_COULEUR:
 					case IDENTIFIANT_VECTEUR:
@@ -516,6 +519,7 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 			case IDENTIFIANT_FILTRES:
 			case IDENTIFIANT_METADONNEE:
 			case IDENTIFIANT_ICONE:
+			case IDENTIFIANT_SUFFIXE:
 			{
 				if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
 					lance_erreur("Attendu une chaine littérale !");

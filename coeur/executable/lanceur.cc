@@ -123,6 +123,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 				case danjo::IDENTIFIANT_FICHIER_SORTIE:
 				case danjo::IDENTIFIANT_CHAINE:
 				case danjo::IDENTIFIANT_LISTE:
+				case danjo::IDENTIFIANT_ENUM:
 					os << "\"" << valeur_propriete << "\";\n";
 					break;
 				default:

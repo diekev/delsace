@@ -42,6 +42,7 @@
 #include "controles_proprietes/controle_propriete_etiquette.h"
 #include "controles_proprietes/controle_propriete_enum.h"
 #include "controles_proprietes/controle_propriete_fichier.h"
+#include "controles_proprietes/controle_propriete_liste.h"
 #include "controles_proprietes/controle_propriete_vecteur.h"
 
 #include "conteneur_controles.h"
@@ -96,10 +97,18 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 		case IDENTIFIANT_ETIQUETTE:
 			controle = new ControleProprieteEtiquette;
 			break;
-		case IDENTIFIANT_LISTE:
+		case IDENTIFIANT_ENUM:
 			controle = new ControleProprieteEnum;
 			m_donnees_controle.type = TypePropriete::ENUM;
 			break;
+		case IDENTIFIANT_LISTE:
+		{
+			auto controle_liste = new ControleProprieteListe;
+			controle_liste->conteneur(m_conteneur);
+			controle = controle_liste;
+			m_donnees_controle.type = TypePropriete::CHAINE_CARACTERE;
+			break;
+		}
 		case IDENTIFIANT_CASE:
 			controle = new ControleProprieteBool;
 			m_donnees_controle.type = TypePropriete::BOOL;
@@ -199,6 +208,9 @@ void AssembleurDisposition::propriete_controle(int identifiant, const std::strin
 			break;
 		case IDENTIFIANT_FILTRES:
 			m_donnees_controle.filtres = valeur;
+			break;
+		case IDENTIFIANT_SUFFIXE:
+			m_donnees_controle.suffixe = valeur;
 			break;
 	}
 }

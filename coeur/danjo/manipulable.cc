@@ -123,6 +123,11 @@ bool Manipulable::evalue_bool(const std::string &nom)
 	return std::experimental::any_cast<bool>(m_proprietes[nom].valeur);
 }
 
+std::string Manipulable::evalue_enum(const std::string &nom)
+{
+	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);
+}
+
 std::string Manipulable::evalue_liste(const std::string &nom)
 {
 	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);

@@ -42,6 +42,9 @@ mot_cle = [
 	"quand",
 	"sortie",
 	"résultat",
+	"filtres",
+	"énum",
+	"suffixe",
 ]
 
 caracteres_double = [
@@ -111,10 +114,13 @@ mot_cle = sorted(mot_cle)
 caracteres_double = sorted(caracteres_double, key=itemgetter(0))
 caracteres_speciaux = sorted(caracteres_speciaux, key=itemgetter(0))
 
+def enleve_caracteres_speciaux(chaine):
+    return chaine.replace('é', 'e').replace('ê', 'e').replace('î', 'i').replace('ô', 'o')
+
 def imprime_identifiants():
 	print 'enum {'
 	for mc in mot_cle:
-		mcn = mc.replace('é', 'e').replace('ê', 'e').replace('î', 'i')
+		mcn = enleve_caracteres_speciaux(mc)
 		mcn = mcn.upper()
 
 		print('\tIDENTIFIANT_{},'.format(mcn))
@@ -131,7 +137,7 @@ def imprime_identifiants():
 	print '};'
 
 	for mc in mot_cle:
-		mcn = mc.replace('é', 'e').replace('ê', 'e').replace('î', 'i').replace('ô', 'o')
+		mcn = enleve_caracteres_speciaux(mc)
 		mcn = mcn.upper()
 
 		print('\t{ '+'IDENTIFIANT_{}, "{}"'.format(mcn, mc)+' },')
@@ -149,7 +155,7 @@ def imprime_chaines_identifiants():
 	print '\tswitch (identifiant) {'
 
 	for mc in mot_cle:
-		mcn = mc.replace('é', 'e').replace('ê', 'e').replace('î', 'i').replace('ô', 'o')
+		mcn = enleve_caracteres_speciaux(mc)
 		mcn = 'IDENTIFIANT_' + mcn.upper()
 
 		print '\t\tcase {}:'.format(mcn)
