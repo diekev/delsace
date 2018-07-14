@@ -313,6 +313,9 @@ ControleCouleur::ControleCouleur(QWidget *parent)
 	: SelecteurCouleur(parent)
 {
 	connect(this, &SelecteurCouleur::valeur_changee, this, &ControleCouleur::ajourne_valeur_pointee);
+	auto metriques = this->fontMetrics();
+	setFixedHeight(metriques.height() * 1.5f);
+	setFixedWidth(metriques.width("#000000"));
 }
 
 void ControleCouleur::ajourne_valeur_pointee(double valeur, int axis)
