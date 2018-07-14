@@ -200,6 +200,11 @@ void ControleNombreDecimal::ajourne_plage(float min, float max)
 	m_max = max;
 }
 
+void ControleNombreDecimal::valeur(const float v)
+{
+	m_valeur = v;
+}
+
 void ControleNombreDecimal::suffixe(const QString &s)
 {
 	m_suffixe = s;

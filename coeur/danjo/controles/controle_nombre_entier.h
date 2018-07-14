@@ -53,7 +53,9 @@ public:
 
 	void keyPressEvent(QKeyEvent *event);
 
-	void ajourne_plage(float min, float max);
+	void ajourne_plage(int min, int max);
+
+	void valeur(const int v);
 
 	void suffixe(const QString &s);
 

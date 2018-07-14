@@ -27,42 +27,18 @@
 #include "controle_propriete.h"
 
 class QHBoxLayout;
-class QSpinBox;
-class QSlider;
+class ControleNombreEntier;
 
 namespace danjo {
 
-class SelecteurInt : public ControlePropriete {
+class ControleProprieteEntier final : public ControlePropriete {
 	Q_OBJECT
 
+	/* interface */
 	QHBoxLayout *m_agencement;
-	QSpinBox *m_spin_box;
-	QSlider *m_slider;
+	ControleNombreEntier *m_controle;
 
-protected:
-	int m_min, m_max;
-
-public:
-	explicit SelecteurInt(QWidget *parent = nullptr);
-	~SelecteurInt() = default;
-
-	void finalise(const DonneesControle &) override;
-
-	void setValue(int value);
-	int value() const;
-	void setRange(int min, int max);
-
-Q_SIGNALS:
-	void valeur_changee(int value);
-
-private Q_SLOTS:
-	void ValueChanged();
-	void updateLabel(int value);
-};
-
-class ControleProprieteEntier final : public SelecteurInt {
-	Q_OBJECT
-
+	/* connexion */
 	int *m_pointeur;
 
 public:

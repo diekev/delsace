@@ -25,81 +25,40 @@
 #include "controle_propriete_entier.h"
 
 #include <QHBoxLayout>
-#include <QSlider>
-#include <QSpinBox>
+
+#include "controles/controle_nombre_entier.h"
 
 #include "donnees_controle.h"
 
 namespace danjo {
 
-SelecteurInt::SelecteurInt(QWidget *parent)
+ControleProprieteEntier::ControleProprieteEntier(QWidget *parent)
 	: ControlePropriete(parent)
 	, m_agencement(new QHBoxLayout(this))
-	, m_spin_box(new QSpinBox(this))
-	, m_slider(new QSlider(Qt::Orientation::Horizontal, this))
-{
-	m_agencement->addWidget(m_spin_box);
-	m_agencement->addWidget(m_slider);
-
-	setLayout(m_agencement);
-
-	m_spin_box->setAlignment(Qt::AlignRight);
-	m_spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons);
-	m_spin_box->setReadOnly(true);
-
-	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-
-	connect(m_slider, SIGNAL(sliderReleased()), this, SLOT(ValueChanged()));
-	connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(updateLabel(int)));
-}
-
-void SelecteurInt::finalise(const DonneesControle &)
-{
-
-}
-
-void SelecteurInt::ValueChanged()
-{
-	const auto value = m_slider->value();
-	m_spin_box->setValue(value);
-	Q_EMIT(valeur_changee(value));
-}
-
-void SelecteurInt::updateLabel(int value)
-{
-	m_spin_box->setValue(value);
-}
-
-void SelecteurInt::setValue(int value)
-{
-	m_spin_box->setValue(value);
-	m_slider->setValue(value);
-}
-
-int SelecteurInt::value() const
-{
-	return m_spin_box->value();
-}
-
-void SelecteurInt::setRange(int min, int max)
-{
-	m_slider->setRange(min, max);
-	m_spin_box->setRange(min, max);
-}
-
-ControleProprieteEntier::ControleProprieteEntier(QWidget *parent)
-	: SelecteurInt(parent)
+	, m_controle(new ControleNombreEntier(this))
 	, m_pointeur(nullptr)
 {
-	connect(this, &SelecteurInt::valeur_changee, this, &ControleProprieteEntier::ajourne_valeur_pointee);
+	m_agencement->addWidget(m_controle);
+	setLayout(m_agencement);
+
+	connect(m_controle, &ControleNombreEntier::valeur_changee, this, &ControleProprieteEntier::ajourne_valeur_pointee);
 }
 
 void ControleProprieteEntier::finalise(const DonneesControle &donnees)
 {
-	m_min = std::atoi(donnees.valeur_min.c_str());
-	m_max = std::atoi(donnees.valeur_max.c_str());
+	auto min = std::numeric_limits<int>::min();
 
-	setRange(m_min, m_max);
+	if (donnees.valeur_min != "") {
+		min = std::atoi(donnees.valeur_min.c_str());
+	}
+
+	auto max = std::numeric_limits<int>::max();
+
+	if (donnees.valeur_max != "") {
+		max = std::atoi(donnees.valeur_max.c_str());
+	}
+
+	m_controle->ajourne_plage(min, max);
 
 	m_pointeur = static_cast<int *>(donnees.pointeur);
 
@@ -109,7 +68,7 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
 		*m_pointeur = valeur_defaut;
 	}
 
-	setValue(*m_pointeur);
+	m_controle->valeur(*m_pointeur);
 
 	setToolTip(donnees.infobulle.c_str());
 }

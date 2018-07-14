@@ -26,46 +26,19 @@
 
 #include "controle_propriete.h"
 
+class ControleNombreDecimal;
 class QHBoxLayout;
-class QDoubleSpinBox;
-class QSlider;
 
 namespace danjo {
 
-class SelecteurFloat : public ControlePropriete {
+class ControleProprieteDecimal final : public ControlePropriete {
 	Q_OBJECT
 
+	/* interface */
 	QHBoxLayout *m_agencement;
-	QDoubleSpinBox *m_spin_box;
-	QSlider *m_slider;
+	ControleNombreDecimal *m_controle;
 
-protected:
-	float m_scale;
-	float m_min;
-	float m_max;
-
-public:
-	explicit SelecteurFloat(QWidget *parent = nullptr);
-	~SelecteurFloat() = default;
-
-	void finalise(const DonneesControle &) override;
-
-	void valeur(float value);
-	float valeur() const;
-
-	void setRange(float min, float max);
-
-Q_SIGNALS:
-	void valeur_changee(double value);
-
-private Q_SLOTS:
-	void ValueChanged();
-	void updateLabel(int value);
-};
-
-class ControleProprieteDecimal final : public SelecteurFloat {
-	Q_OBJECT
-
+	/* connexion */
 	float *m_pointeur;
 
 public:
@@ -75,7 +48,7 @@ public:
 	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
-	void ajourne_valeur_pointee(double valeur);
+	void ajourne_valeur_pointee(float valeur);
 };
 
 }  /* namespace danjo */

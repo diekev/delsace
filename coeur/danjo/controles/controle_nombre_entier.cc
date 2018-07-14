@@ -176,10 +176,15 @@ void ControleNombreEntier::keyPressEvent(QKeyEvent *event)
 	update();
 }
 
-void ControleNombreEntier::ajourne_plage(float min, float max)
+void ControleNombreEntier::ajourne_plage(int min, int max)
 {
 	m_min = min;
 	m_max = max;
+}
+
+void ControleNombreEntier::valeur(const int v)
+{
+	m_valeur = v;
 }
 
 void ControleNombreEntier::suffixe(const QString &s)

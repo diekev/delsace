@@ -24,11 +24,13 @@
 
 #include "controle_propriete_vecteur.h"
 
-#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #include <sstream>
 
 #include "compilation/morceaux.h"
+
+#include "controles/controle_nombre_decimal.h"
 
 #include "controle_propriete_decimal.h"
 #include "donnees_controle.h"
@@ -47,86 +49,42 @@ static T convertie(const std::string &valeur)
 	return result;
 }
 
-SelecteurVec3::SelecteurVec3(QWidget *parent)
+ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	: ControlePropriete(parent)
-	, m_x(new SelecteurFloat(this))
-	, m_y(new SelecteurFloat(this))
-	, m_z(new SelecteurFloat(this))
-	, m_agencement(new QVBoxLayout(this))
+	, m_agencement(new QHBoxLayout(this))
+	, m_x(new ControleNombreDecimal(this))
+	, m_y(new ControleNombreDecimal(this))
+	, m_z(new ControleNombreDecimal(this))
+	, m_pointeur(nullptr)
 {
-	connect(m_x, SIGNAL(valeur_changee(double)), this, SLOT(xValueChanged(double)));
-	connect(m_y, SIGNAL(valeur_changee(double)), this, SLOT(yValueChanged(double)));
-	connect(m_z, SIGNAL(valeur_changee(double)), this, SLOT(zValueChanged(double)));
-
 	m_agencement->addWidget(m_x);
 	m_agencement->addWidget(m_y);
 	m_agencement->addWidget(m_z);
 
-	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	setLayout(m_agencement);
 
-	m_agencement->setSpacing(0);
-}
-
-void SelecteurVec3::xValueChanged(double value)
-{
-	Q_EMIT(valeur_changee(value, AXIS_X));
-}
-
-void SelecteurVec3::yValueChanged(double value)
-{
-	Q_EMIT(valeur_changee(value, AXIS_Y));
-}
-
-void SelecteurVec3::zValueChanged(double value)
-{
-	Q_EMIT(valeur_changee(value, AXIS_Z));
-}
-
-void SelecteurVec3::setValue(float *value)
-{
-	m_x->valeur(value[AXIS_X]);
-	m_y->valeur(value[AXIS_Y]);
-	m_z->valeur(value[AXIS_Z]);
-}
-
-void SelecteurVec3::getValue(float *value) const
-{
-	value[AXIS_X] = m_x->valeur();
-	value[AXIS_Y] = m_y->valeur();
-	value[AXIS_Z] = m_z->valeur();
-}
-
-void SelecteurVec3::setMinMax(float min, float max) const
-{
-	m_x->setRange(min, max);
-	m_y->setRange(min, max);
-	m_z->setRange(min, max);
-}
-
-ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
-	: SelecteurVec3(parent)
-	, m_pointeur(nullptr)
-{
-	connect(this, &SelecteurVec3::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_pointee);
+	connect(m_x, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_x);
+	connect(m_y, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_y);
+	connect(m_z, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_z);
 }
 
 void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<float *>(donnees.pointeur);
-
-	auto min = 0.0f;
+	auto min = -std::numeric_limits<float>::max();
 
 	if (donnees.valeur_min != "") {
-		min = convertie<float>(donnees.valeur_min);
+		min = convertie<float>(donnees.valeur_min.c_str());
 	}
 
-	auto max = min + 1.0f;
+	auto max = std::numeric_limits<float>::max();
 
 	if (donnees.valeur_max != "") {
-		max = convertie<float>(donnees.valeur_max);
+		max = convertie<float>(donnees.valeur_max.c_str());
 	}
 
-	setMinMax(min, max);
+	m_x->ajourne_plage(min, max);
+	m_y->ajourne_plage(min, max);
+	m_z->ajourne_plage(min, max);
 
 	auto valeurs = decoupe(donnees.valeur_defaut, ',');
 	auto index = 0;
@@ -137,20 +95,36 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 		valeur_defaut[index++] = std::atof(v.c_str());
 	}
 
+	m_pointeur = static_cast<float *>(donnees.pointeur);
+
 	if (donnees.initialisation) {
 		m_pointeur[0] = valeur_defaut[0];
 		m_pointeur[1] = valeur_defaut[1];
 		m_pointeur[2] = valeur_defaut[2];
 	}
 
-	setValue(m_pointeur);
+	m_x->valeur(m_pointeur[0]);
+	m_y->valeur(m_pointeur[1]);
+	m_z->valeur(m_pointeur[2]);
 
 	setToolTip(donnees.infobulle.c_str());
 }
 
-void ControleProprieteVec3::ajourne_valeur_pointee(double valeur, int axis)
+void ControleProprieteVec3::ajourne_valeur_x(float valeur)
 {
-	m_pointeur[axis] = static_cast<float>(valeur);
+	m_pointeur[0] = valeur;
+	Q_EMIT(controle_change());
+}
+
+void ControleProprieteVec3::ajourne_valeur_y(float valeur)
+{
+	m_pointeur[1] = valeur;
+	Q_EMIT(controle_change());
+}
+
+void ControleProprieteVec3::ajourne_valeur_z(float valeur)
+{
+	m_pointeur[2] = valeur;
 	Q_EMIT(controle_change());
 }
 

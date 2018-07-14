@@ -29,7 +29,7 @@
 class ControleNombreDecimal : public QWidget {
 	Q_OBJECT
 
-	float m_valeur = 1.50f;
+	float m_valeur = 0.0f;
 	float m_min = -std::numeric_limits<float>::max();
 	float m_max = std::numeric_limits<float>::max();
 	int m_precision = 10;
@@ -56,6 +56,8 @@ public:
 	void keyPressEvent(QKeyEvent *event);
 
 	void ajourne_plage(float min, float max);
+
+	void valeur(const float v);
 
 	void suffixe(const QString &s);
 
