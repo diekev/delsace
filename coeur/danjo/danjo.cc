@@ -32,10 +32,10 @@
 
 #include "controles/action.h"
 
-#include "interne/analyseuse_disposition.h"
-#include "interne/analyseuse_logique.h"
-#include "interne/assembleuse_disposition.h"
-#include "interne/decoupeuse.h"
+#include "compilation/analyseuse_disposition.h"
+#include "compilation/analyseuse_logique.h"
+#include "compilation/assembleuse_disposition.h"
+#include "compilation/decoupeuse.h"
 
 #include "erreur.h"
 #include "manipulable.h"

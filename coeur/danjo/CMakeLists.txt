@@ -70,15 +70,15 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_vecteur.cc
 	controles_proprietes/donnees_controle.cc
 
-	interne/analyseuse_disposition.cc
-	interne/analyseuse_logique.cc
-	interne/assembleuse_disposition.cc
-	interne/assembleuse_logique.cc
-	interne/base_analyseuse.cc
-	interne/decoupeuse.cc
-	interne/expression.cc
-	interne/graphe_contrainte.cc
-	interne/morceaux.cc
+	compilation/analyseuse_disposition.cc
+	compilation/analyseuse_logique.cc
+	compilation/assembleuse_disposition.cc
+	compilation/assembleuse_logique.cc
+	compilation/base_analyseuse.cc
+	compilation/decoupeuse.cc
+	compilation/expression.cc
+	compilation/graphe_contrainte.cc
+	compilation/morceaux.cc
 
 	conteneur_controles.cc
 	erreur.cc
@@ -102,15 +102,15 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_vecteur.h
 	controles_proprietes/donnees_controle.h
 
-	interne/analyseuse_disposition.h
-	interne/analyseuse_logique.h
-	interne/assembleuse_disposition.h
-	interne/assembleuse_logique.h
-	interne/base_analyseuse.h
-	interne/decoupeuse.h
-	interne/expression.h
-	interne/graphe_contrainte.h
-	interne/morceaux.h
+	compilation/analyseuse_disposition.h
+	compilation/analyseuse_logique.h
+	compilation/assembleuse_disposition.h
+	compilation/assembleuse_logique.h
+	compilation/base_analyseuse.h
+	compilation/decoupeuse.h
+	compilation/expression.h
+	compilation/graphe_contrainte.h
+	compilation/morceaux.h
 
 	${ENTETES}
 

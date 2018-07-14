@@ -26,7 +26,7 @@
 
 #include <cstring>
 
-#include "interne/decoupeuse.h"
+#include "compilation/decoupeuse.h"
 
 template <typename I1, typename I2>
 bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)

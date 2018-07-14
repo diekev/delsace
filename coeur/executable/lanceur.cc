@@ -26,8 +26,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "danjo/interne/decoupeuse.h"
-#include "danjo/interne/analyseuse_disposition.h"
+#include "danjo/compilation/decoupeuse.h"
+#include "danjo/compilation/analyseuse_disposition.h"
 
 #include "danjo/danjo.h"
 #include "danjo/erreur.h"

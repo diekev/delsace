@@ -28,7 +28,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-#include "interne/morceaux.h"
+#include "compilation/morceaux.h"
 
 #include "donnees_controle.h"
 

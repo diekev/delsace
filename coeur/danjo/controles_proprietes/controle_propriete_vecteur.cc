@@ -28,7 +28,7 @@
 
 #include <sstream>
 
-#include "interne/morceaux.h"
+#include "compilation/morceaux.h"
 
 #include "controle_propriete_decimal.h"
 #include "donnees_controle.h"
