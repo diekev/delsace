@@ -29,6 +29,8 @@ qt5_wrap_cpp(
 
 	controles/action.h
 	controles/bouton.h
+	controles/controle_nombre_decimal.h
+	controles/controle_nombre_entier.h
 
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h
@@ -56,6 +58,13 @@ set(ENTETES
 add_library(danjo STATIC
 	controles/action.cc
 	controles/bouton.cc
+	controles/controle_courbe_couleur.cc
+	controles/controle_nombre_decimal.cc
+	controles/controle_nombre_entier.cc
+	controles/controle_rampe_couleur.cc
+	controles/controle_roue_couleur.cc
+	controles/controle_spectre_couleur.cc
+	controles/controle_teinte_couleur.cc
 
 	controles_proprietes/controle_propriete.cc
 	controles_proprietes/controle_propriete_bool.cc
@@ -88,6 +97,13 @@ add_library(danjo STATIC
 
 	controles/action.h
 	controles/bouton.h
+	controles/controle_courbe_couleur.h
+	controles/controle_nombre_decimal.h
+	controles/controle_nombre_entier.h
+	controles/controle_rampe_couleur.h
+	controles/controle_roue_couleur.h
+	controles/controle_spectre_couleur.h
+	controles/controle_teinte_couleur.h
 
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h

@@ -45,3 +45,13 @@ target_include_directories(application_test PUBLIC "${INCLUSIONS}")
 target_link_libraries(application_test "${BIBLIOTHEQUES}" danjo)
 
 install(TARGETS application_test RUNTIME DESTINATION bin)
+
+add_executable(controles
+	controles.cc
+)
+
+target_include_directories(controles PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(controles "${BIBLIOTHEQUES}" danjo)
+
+install(TARGETS controles RUNTIME DESTINATION bin)
