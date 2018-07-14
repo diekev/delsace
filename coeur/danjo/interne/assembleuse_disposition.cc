@@ -31,6 +31,9 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 
+#include "controles/action.h"
+#include "controles/bouton.h"
+
 #include "controles_proprietes/controle_propriete_bool.h"
 #include "controles_proprietes/controle_propriete_chaine.h"
 #include "controles_proprietes/controle_propriete_couleur.h"
@@ -41,8 +44,6 @@
 #include "controles_proprietes/controle_propriete_fichier.h"
 #include "controles_proprietes/controle_propriete_vecteur.h"
 
-#include "action.h"
-#include "bouton.h"
 #include "conteneur_controles.h"
 #include "manipulable.h"
 #include "morceaux.h"

@@ -30,7 +30,8 @@
 #include <QMenu>
 #include <QToolBar>
 
-#include "interne/action.h"
+#include "controles/action.h"
+
 #include "interne/analyseuse_disposition.h"
 #include "interne/analyseuse_logique.h"
 #include "interne/assembleuse_disposition.h"

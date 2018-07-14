@@ -27,6 +27,9 @@ set(INCLUSIONS
 qt5_wrap_cpp(
 	moc_headers
 
+	controles/action.h
+	controles/bouton.h
+
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h
 	controles_proprietes/controle_propriete_chaine.h
@@ -38,9 +41,6 @@ qt5_wrap_cpp(
 	controles_proprietes/controle_propriete_fichier.h
 	controles_proprietes/controle_propriete_liste.h
 	controles_proprietes/controle_propriete_vecteur.h
-
-	interne/action.h
-	interne/bouton.h
 
 	conteneur_controles.h
 )
@@ -54,6 +54,9 @@ set(ENTETES
 )
 
 add_library(danjo STATIC
+	controles/action.cc
+	controles/bouton.cc
+
 	controles_proprietes/controle_propriete.cc
 	controles_proprietes/controle_propriete_bool.cc
 	controles_proprietes/controle_propriete_chaine.cc
@@ -66,13 +69,11 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_liste.cc
 	controles_proprietes/controle_propriete_vecteur.cc
 
-	interne/action.cc
 	interne/analyseuse_disposition.cc
 	interne/analyseuse_logique.cc
 	interne/assembleuse_disposition.cc
 	interne/assembleuse_logique.cc
 	interne/base_analyseuse.cc
-	interne/bouton.cc
 	interne/decoupeuse.cc
 	interne/donnees_controle.cc
 	interne/expression.cc
@@ -84,6 +85,9 @@ add_library(danjo STATIC
 	danjo.cc
 	manipulable.cc
 	repondant_bouton.cc
+
+	controles/action.h
+	controles/bouton.h
 
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h
@@ -97,13 +101,11 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_liste.h
 	controles_proprietes/controle_propriete_vecteur.h
 
-	interne/action.h
 	interne/analyseuse_disposition.h
 	interne/analyseuse_logique.h
 	interne/assembleuse_disposition.h
 	interne/assembleuse_logique.h
 	interne/base_analyseuse.h
-	interne/bouton.h
 	interne/decoupeuse.h
 	interne/donnees_controle.h
 	interne/expression.h
