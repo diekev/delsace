@@ -31,12 +31,31 @@
 #include "danjo/controles/controle_roue_couleur.h"
 #include "danjo/controles/controle_spectre_couleur.h"
 #include "danjo/controles/controle_teinte_couleur.h"
+#include "danjo/controles_proprietes/controle_propriete_liste.h"
+
+#include "danjo/conteneur_controles.h"
+
+class Conteneur : public danjo::ConteneurControles {
+public:
+	void ajourne_manipulable() override {}
+
+	void obtiens_liste(
+			const std::string &/*attache*/,
+			std::vector<std::string> &chaines) override
+	{
+		chaines.push_back("action1");
+		chaines.push_back("action2");
+	}
+};
 
 int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
 
-	ControleNombreEntier controle;
+	Conteneur conteneur;
+
+	danjo::ControleProprieteListe controle;
+	controle.conteneur(&conteneur);
 	controle.show();
 
 	return app.exec();

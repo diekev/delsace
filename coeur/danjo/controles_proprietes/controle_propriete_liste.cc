@@ -29,79 +29,39 @@
 #include <QMenu>
 #include <QPushButton>
 
+#include <iostream>
+
 #include "donnees_controle.h"
+
+#include "conteneur_controles.h"
 
 namespace danjo {
 
-SelecteurListe::SelecteurListe(QWidget *parent)
+ControleProprieteListe::ControleProprieteListe(QWidget *parent)
 	: ControlePropriete(parent)
 	, m_agencement(new QHBoxLayout(this))
-	, m_line_edit(new QLineEdit(this))
-	, m_push_button(new QPushButton("list", this))
-	, m_list_widget(new QMenu())
+	, m_editeur_texte(new QLineEdit(this))
+	, m_bouton_liste(new QPushButton("list", this))
+	, m_liste(new QMenu(this))
 {
-	m_agencement->addWidget(m_line_edit);
-	m_agencement->addWidget(m_push_button);
+	m_agencement->addWidget(m_editeur_texte);
+	m_agencement->addWidget(m_bouton_liste);
 
-	connect(m_push_button, SIGNAL(clicked()), this, SLOT(showList()));
+	setLayout(m_agencement);
 
-	connect(m_line_edit, SIGNAL(returnPressed()), this, SLOT(updateText()));
+	connect(m_bouton_liste, SIGNAL(clicked()), this, SLOT(montre_liste()));
+	connect(m_editeur_texte, SIGNAL(returnPressed()), this, SLOT(texte_modifie()));
+	connect(m_liste, SIGNAL(aboutToShow()), this, SLOT(ajourne_liste()));
 }
 
-SelecteurListe::~SelecteurListe()
+void ControleProprieteListe::attache(const std::string &attache)
 {
-	delete m_list_widget;
+	m_attache = attache;
 }
 
-void SelecteurListe::addField(const QString &text)
+void ControleProprieteListe::conteneur(ConteneurControles *conteneur)
 {
-	auto action = m_list_widget->addAction(text);
-	connect(action, SIGNAL(triggered()), this, SLOT(handleClick()));
-}
-
-void SelecteurListe::setValue(const QString &text)
-{
-	m_line_edit->setText(text);
-}
-
-void SelecteurListe::showList()
-{
-	/* Figure out where the bottom left corner of the push is located. */
-	QRect widgetRect = m_push_button->geometry();
-	auto bottom_left = m_push_button->parentWidget()->mapToGlobal(widgetRect.bottomLeft());
-
-	m_list_widget->popup(bottom_left);
-}
-
-void SelecteurListe::updateText()
-{
-	Q_EMIT(valeur_changee(m_line_edit->text()));
-}
-
-void SelecteurListe::handleClick()
-{
-	auto action = qobject_cast<QAction *>(sender());
-
-	if (!action) {
-		return;
-	}
-
-	auto text = m_line_edit->text();
-
-	if (!text.isEmpty()) {
-		text += ",";
-	}
-
-	text += action->text();
-
-	this->setValue(text);
-	Q_EMIT(valeur_changee(text));
-}
-
-ControleProprieteListe::ControleProprieteListe(QWidget *parent)
-	: SelecteurListe(parent)
-{
-	connect(this, &SelecteurListe::valeur_changee, this, &ControleProprieteListe::ajourne_valeur_pointee);
+	m_conteneur = conteneur;
 }
 
 void ControleProprieteListe::finalise(const DonneesControle &donnees)
@@ -112,15 +72,75 @@ void ControleProprieteListe::finalise(const DonneesControle &donnees)
 		*m_pointeur = donnees.valeur_defaut;
 	}
 
-	setValue(m_pointeur->c_str());
+	m_editeur_texte->setText(m_pointeur->c_str());
 
 	setToolTip(donnees.infobulle.c_str());
 }
 
+void ControleProprieteListe::montre_liste()
+{
+	/* La liste est positionnée en dessous du bouton, alignée à sa gauche. */
+	const auto &rect = m_bouton_liste->geometry();
+	const auto &bas_gauche = m_bouton_liste->parentWidget()->mapToGlobal(rect.bottomLeft());
+
+	m_liste->popup(bas_gauche);
+}
+
+void ControleProprieteListe::texte_modifie()
+{
+	ajourne_valeur_pointee(m_editeur_texte->text());
+}
+
 void ControleProprieteListe::ajourne_valeur_pointee(const QString &valeur)
 {
+	if (m_pointeur == nullptr) {
+		return;
+	}
+
 	*m_pointeur = valeur.toStdString();
 	Q_EMIT(controle_change());
+}
+
+void ControleProprieteListe::ajourne_liste()
+{
+	if (m_conteneur == nullptr) {
+		return;
+	}
+
+	std::vector<std::string> chaines;
+	m_conteneur->obtiens_liste(m_attache, chaines);
+
+	m_liste->clear();
+
+	for (const auto &chaine : chaines) {
+		auto action = m_liste->addAction(chaine.c_str());
+		connect(action, SIGNAL(triggered()), this, SLOT(repond_clique()));
+	}
+}
+
+void ControleProprieteListe::repond_clique()
+{
+	auto action = qobject_cast<QAction *>(sender());
+
+	if (!action) {
+		return;
+	}
+
+	const auto &texte_action = action->text();
+	auto texte_courant = m_editeur_texte->text();
+
+	if (texte_courant.contains(texte_action)) {
+		return;
+	}
+
+	if (!texte_courant.isEmpty()) {
+		texte_courant += ",";
+	}
+
+	texte_courant += action->text();
+
+	m_editeur_texte->setText(texte_courant);
+	ajourne_valeur_pointee(texte_courant);
 }
 
 }  /* namespace danjo */

@@ -52,6 +52,9 @@ ControleProprieteDecimal::ControleProprieteDecimal(QWidget *parent)
 	, m_controle(new ControleNombreDecimal(this))
 	, m_pointeur(nullptr)
 {
+	m_agencement->addWidget(m_controle);
+	setLayout(m_agencement);
+
 	connect(m_controle, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteDecimal::ajourne_valeur_pointee);
 }
 

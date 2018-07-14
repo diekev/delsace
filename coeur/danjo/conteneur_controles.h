@@ -49,6 +49,12 @@ public Q_SLOTS:
 	 * dans l'interface.
 	 */
 	virtual void ajourne_manipulable() = 0;
+
+	/**
+	 * Cette méthode est appelée à chaque fois qu'un controle de liste a besoin
+	 * de mettre à jour sa liste de chaînes disponible pour l'attache spécifiée.
+	 */
+	virtual void obtiens_liste(const std::string &attache, std::vector<std::string> &chaines);
 };
 
 }  /* namespace danjo */

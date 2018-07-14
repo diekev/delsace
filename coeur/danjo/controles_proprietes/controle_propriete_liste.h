@@ -33,47 +33,38 @@ class QPushButton;
 
 namespace danjo {
 
-class SelecteurListe : public ControlePropriete {
+class ConteneurControles;
+
+class ControleProprieteListe final : public ControlePropriete {
 	Q_OBJECT
 
+	/* interface */
 	QHBoxLayout *m_agencement;
-	QLineEdit *m_line_edit;
-	QPushButton *m_push_button;
-	QMenu *m_list_widget;
+	QLineEdit *m_editeur_texte;
+	QPushButton *m_bouton_liste;
+	QMenu *m_liste;
 
-	bool m_input;
-
-public:
-	explicit SelecteurListe(QWidget *parent = nullptr);
-
-	~SelecteurListe();
-
-	void setValue(const QString &text);
-
-	void addField(const QString &text);
-
-private Q_SLOTS:
-	void showList();
-	void handleClick();
-	void updateText();
-
-Q_SIGNALS:
-	void valeur_changee(const QString &text);
-};
-
-class ControleProprieteListe final : public SelecteurListe {
-	Q_OBJECT
-
-	std::string *m_pointeur;
+	/* connexion */
+	ConteneurControles *m_conteneur = nullptr;
+	std::string m_attache = "";
+	std::string *m_pointeur = nullptr;
 
 public:
 	explicit ControleProprieteListe(QWidget *parent = nullptr);
 
 	~ControleProprieteListe() = default;
 
+	void attache(const std::string &attache);
+
+	void conteneur(ConteneurControles *conteneur);
+
 	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
+	void montre_liste();
+	void repond_clique();
+	void texte_modifie();
+	void ajourne_liste();
 	void ajourne_valeur_pointee(const QString &valeur);
 };
 

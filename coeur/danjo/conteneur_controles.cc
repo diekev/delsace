@@ -30,4 +30,11 @@ ConteneurControles::ConteneurControles(QWidget *parent)
 	: QWidget(parent)
 {}
 
+void ConteneurControles::obtiens_liste(
+		const std::string &/*attache*/,
+		std::vector<std::string> &chaines)
+{
+	chaines.clear();
+}
+
 }  /* namespace danjo */
