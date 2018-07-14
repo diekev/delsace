@@ -28,8 +28,9 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-#include "interne/donnees_controle.h"
 #include "interne/morceaux.h"
+
+#include "donnees_controle.h"
 
 namespace danjo {
 

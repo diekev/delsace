@@ -68,6 +68,7 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_fichier.cc
 	controles_proprietes/controle_propriete_liste.cc
 	controles_proprietes/controle_propriete_vecteur.cc
+	controles_proprietes/donnees_controle.cc
 
 	interne/analyseuse_disposition.cc
 	interne/analyseuse_logique.cc
@@ -75,7 +76,6 @@ add_library(danjo STATIC
 	interne/assembleuse_logique.cc
 	interne/base_analyseuse.cc
 	interne/decoupeuse.cc
-	interne/donnees_controle.cc
 	interne/expression.cc
 	interne/graphe_contrainte.cc
 	interne/morceaux.cc
@@ -100,6 +100,7 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_fichier.h
 	controles_proprietes/controle_propriete_liste.h
 	controles_proprietes/controle_propriete_vecteur.h
+	controles_proprietes/donnees_controle.h
 
 	interne/analyseuse_disposition.h
 	interne/analyseuse_logique.h
@@ -107,7 +108,6 @@ add_library(danjo STATIC
 	interne/assembleuse_logique.h
 	interne/base_analyseuse.h
 	interne/decoupeuse.h
-	interne/donnees_controle.h
 	interne/expression.h
 	interne/graphe_contrainte.h
 	interne/morceaux.h

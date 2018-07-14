@@ -28,7 +28,7 @@
 #include <string>
 #include <vector>
 
-#include "donnees_controle.h"
+#include "controles_proprietes/donnees_controle.h"
 
 class QBoxLayout;
 class QLabel;

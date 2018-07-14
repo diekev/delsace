@@ -27,7 +27,7 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 
-#include "interne/donnees_controle.h"
+#include "donnees_controle.h"
 
 namespace danjo {
 

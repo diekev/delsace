@@ -28,7 +28,7 @@
 #include <QSlider>
 #include <QSpinBox>
 
-#include "interne/donnees_controle.h"
+#include "donnees_controle.h"
 
 namespace danjo {
 

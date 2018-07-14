@@ -28,10 +28,10 @@
 
 #include <sstream>
 
-#include "interne/donnees_controle.h"
 #include "interne/morceaux.h"
 
 #include "controle_propriete_decimal.h"
+#include "donnees_controle.h"
 
 namespace danjo {
 

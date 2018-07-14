@@ -27,7 +27,7 @@
 #include <QHBoxLayout>
 #include <QLineEdit>
 
-#include "interne/donnees_controle.h"
+#include "donnees_controle.h"
 
 namespace danjo {
 
