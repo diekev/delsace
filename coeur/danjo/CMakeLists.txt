@@ -59,6 +59,7 @@ add_library(danjo STATIC
 	controles/action.cc
 	controles/bouton.cc
 	controles/controle_courbe_couleur.cc
+	controles/controle_masque.cc
 	controles/controle_nombre_decimal.cc
 	controles/controle_nombre_entier.cc
 	controles/controle_rampe_couleur.cc
@@ -100,6 +101,7 @@ add_library(danjo STATIC
 	controles/action.h
 	controles/bouton.h
 	controles/controle_courbe_couleur.h
+	controles/controle_masque.h
 	controles/controle_nombre_decimal.h
 	controles/controle_nombre_entier.h
 	controles/controle_rampe_couleur.h

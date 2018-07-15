@@ -25,6 +25,7 @@
 #include <QApplication>
 
 #include "danjo/controles/controle_courbe_couleur.h"
+#include "danjo/controles/controle_masque.h"
 #include "danjo/controles/controle_nombre_decimal.h"
 #include "danjo/controles/controle_nombre_entier.h"
 #include "danjo/controles/controle_rampe_couleur.h"
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
 //	controle.conteneur(&conteneur);
 //	controle.show();
 
-	ControleSpectreCouleur controle;
+	ControleMasque controle;
 	controle.show();
 
 	return app.exec();
