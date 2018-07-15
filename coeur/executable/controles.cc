@@ -52,10 +52,13 @@ int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
 
-	Conteneur conteneur;
+//	Conteneur conteneur;
 
-	danjo::ControleProprieteListe controle;
-	controle.conteneur(&conteneur);
+//	danjo::ControleProprieteListe controle;
+//	controle.conteneur(&conteneur);
+//	controle.show();
+
+	ControleSpectreCouleur controle;
 	controle.show();
 
 	return app.exec();

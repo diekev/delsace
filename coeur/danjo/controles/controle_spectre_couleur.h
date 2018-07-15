@@ -26,9 +26,65 @@
 
 #include <QWidget>
 
+struct Point {
+	float x;
+	float y;
+};
+
+enum {
+	CONTROLE_CONTRAINT = 0,
+	CONTROLE_LIBRE     = 1,
+};
+
+enum {
+	POINT_CONTROLE1 = 0,
+	POINT_CENTRE    = 1,
+	POINT_CONTROLE2 = 2,
+
+	NOMBRE_POINT
+};
+
+struct PointBezier {
+	Point co[NOMBRE_POINT];
+	char type_controle = CONTROLE_CONTRAINT;
+};
+
+struct CourbeBezier {
+	std::vector<PointBezier> points;
+
+	/* extension du point minimum en dehors des limites de la courbe */
+	PointBezier extension_min;
+
+	/* extension du point maximum en dehors des limites de la courbe */
+	PointBezier extension_max;
+
+	/* Pour le rendu et l'évaluation. */
+	std::vector<Point> table;
+
+	/* valeur minimale de la courbe pour l'évaluation */
+	float valeur_min = 0.0f;
+
+	/* valeur maximale de la courbe pour l'évaluation */
+	float valeur_max = 1.0f;
+};
+
+void construit_table_courbe(CourbeBezier &courbe);
+
 class ControleSpectreCouleur : public QWidget {
+	CourbeBezier m_courbe;
+	PointBezier *m_point_courant = nullptr;
+	int m_type_point = 0;
+
 public:
 	explicit ControleSpectreCouleur(QWidget *parent = nullptr);
 
 	void paintEvent(QPaintEvent *event) override;
+
+	void mousePressEvent(QMouseEvent *event) override;
+
+	void mouseMoveEvent(QMouseEvent *event) override;
+
+	void mouseReleaseEvent(QMouseEvent *event) override;
+
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
 };
