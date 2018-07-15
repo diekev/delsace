@@ -89,6 +89,8 @@ add_library(danjo STATIC
 	compilation/graphe_contrainte.cc
 	compilation/morceaux.cc
 
+	types/courbe_bezier.cc
+
 	conteneur_controles.cc
 	erreur.cc
 	danjo.cc
@@ -127,6 +129,8 @@ add_library(danjo STATIC
 	compilation/expression.h
 	compilation/graphe_contrainte.h
 	compilation/morceaux.h
+
+	types/courbe_bezier.h
 
 	${ENTETES}
 
