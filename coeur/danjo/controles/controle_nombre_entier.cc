@@ -191,3 +191,20 @@ void ControleNombreEntier::suffixe(const QString &s)
 {
 	m_suffixe = s;
 }
+
+int ControleNombreEntier::min() const
+{
+	return m_min;
+}
+
+int ControleNombreEntier::max() const
+{
+	return m_max;
+}
+
+void ControleNombreEntier::ajourne_valeur(int valeur)
+{
+	m_valeur = std::max(m_min, std::min(valeur, m_max));
+	update();
+	Q_EMIT(valeur_changee(m_valeur));
+}

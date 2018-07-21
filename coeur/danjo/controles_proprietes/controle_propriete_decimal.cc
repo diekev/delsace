@@ -25,9 +25,11 @@
 #include "controle_propriete_decimal.h"
 
 #include <QHBoxLayout>
+#include <QPushButton>
 
 #include <sstream>
 
+#include "controles/controle_echelle_valeur.h"
 #include "controles/controle_nombre_decimal.h"
 
 #include "donnees_controle.h"
@@ -50,18 +52,39 @@ ControleProprieteDecimal::ControleProprieteDecimal(QWidget *parent)
 	: ControlePropriete(parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_controle(new ControleNombreDecimal(this))
+	, m_bouton(new QPushButton("H", this))
+	, m_echelle(new ControleEchelleDecimale())
 	, m_pointeur(nullptr)
 {
+	auto metriques = this->fontMetrics();
+	m_bouton->setFixedWidth(metriques.width("H") * 2.0f);
+	m_agencement->addWidget(m_bouton);
 	m_agencement->addWidget(m_controle);
 	setLayout(m_agencement);
 
+	m_echelle->setWindowFlags(Qt::WindowStaysOnTopHint);
+
 	connect(m_controle, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteDecimal::ajourne_valeur_pointee);
+	connect(m_bouton, &QPushButton::pressed, this, &ControleProprieteDecimal::montre_echelle);
+	connect(m_echelle, &ControleEchelleDecimale::valeur_changee, m_controle, &ControleNombreDecimal::ajourne_valeur);
+}
+
+ControleProprieteDecimal::~ControleProprieteDecimal()
+{
+	delete m_echelle;
 }
 
 void ControleProprieteDecimal::ajourne_valeur_pointee(float valeur)
 {
 	*m_pointeur = valeur;
 	Q_EMIT(controle_change());
+}
+
+void ControleProprieteDecimal::montre_echelle()
+{
+	m_echelle->valeur(*m_pointeur);
+	m_echelle->plage(m_controle->min(), m_controle->max());
+	m_echelle->show();
 }
 
 void ControleProprieteDecimal::finalise(const DonneesControle &donnees)

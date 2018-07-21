@@ -209,3 +209,20 @@ void ControleNombreDecimal::suffixe(const QString &s)
 {
 	m_suffixe = s;
 }
+
+float ControleNombreDecimal::min() const
+{
+	return m_min;
+}
+
+float ControleNombreDecimal::max() const
+{
+	return m_max;
+}
+
+void ControleNombreDecimal::ajourne_valeur(float valeur)
+{
+	m_valeur = std::max(m_min, std::min(valeur, m_max));
+	update();
+	Q_EMIT(valeur_changee(m_valeur));
+}

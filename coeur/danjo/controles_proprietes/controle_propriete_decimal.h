@@ -26,8 +26,10 @@
 
 #include "controle_propriete.h"
 
+class ControleEchelleDecimale;
 class ControleNombreDecimal;
 class QHBoxLayout;
+class QPushButton;
 
 namespace danjo {
 
@@ -38,17 +40,21 @@ class ControleProprieteDecimal final : public ControlePropriete {
 	QHBoxLayout *m_agencement;
 	ControleNombreDecimal *m_controle;
 
+	QPushButton *m_bouton;
+	ControleEchelleDecimale *m_echelle;
+
 	/* connexion */
 	float *m_pointeur;
 
 public:
 	explicit ControleProprieteDecimal(QWidget *parent = nullptr);
-	~ControleProprieteDecimal() = default;
+	~ControleProprieteDecimal();
 
 	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(float valeur);
+	void montre_echelle();
 };
 
 }  /* namespace danjo */

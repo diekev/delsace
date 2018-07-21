@@ -61,7 +61,14 @@ public:
 
 	void suffixe(const QString &s);
 
+	float min() const;
+
+	float max() const;
+
 Q_SIGNALS:
 	void valeur_changee(float);
+
+public Q_SLOTS:
+	void ajourne_valeur(float valeur);
 };
 

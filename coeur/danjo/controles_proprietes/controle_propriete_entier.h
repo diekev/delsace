@@ -26,8 +26,10 @@
 
 #include "controle_propriete.h"
 
-class QHBoxLayout;
+class ControleEchelleEntiere;
 class ControleNombreEntier;
+class QHBoxLayout;
+class QPushButton;
 
 namespace danjo {
 
@@ -38,17 +40,21 @@ class ControleProprieteEntier final : public ControlePropriete {
 	QHBoxLayout *m_agencement;
 	ControleNombreEntier *m_controle;
 
+	QPushButton *m_bouton;
+	ControleEchelleEntiere *m_echelle;
+
 	/* connexion */
 	int *m_pointeur;
 
 public:
 	explicit ControleProprieteEntier(QWidget *parent = nullptr);
-	~ControleProprieteEntier() = default;
+	~ControleProprieteEntier();
 
 	void finalise(const DonneesControle &donnees) override;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(int valeur);
+	void montre_echelle();
 };
 
 }  /* namespace danjo */

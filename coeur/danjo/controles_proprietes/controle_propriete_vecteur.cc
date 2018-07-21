@@ -25,11 +25,13 @@
 #include "controle_propriete_vecteur.h"
 
 #include <QHBoxLayout>
+#include <QPushButton>
 
 #include <sstream>
 
 #include "compilation/morceaux.h"
 
+#include "controles/controle_echelle_valeur.h"
 #include "controles/controle_nombre_decimal.h"
 
 #include "controle_propriete_decimal.h"
@@ -55,17 +57,49 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	, m_x(new ControleNombreDecimal(this))
 	, m_y(new ControleNombreDecimal(this))
 	, m_z(new ControleNombreDecimal(this))
+	, m_bouton_x(new QPushButton("H", this))
+	, m_bouton_y(new QPushButton("H", this))
+	, m_bouton_z(new QPushButton("H", this))
+	, m_echelle_x(new ControleEchelleDecimale())
+	, m_echelle_y(new ControleEchelleDecimale())
+	, m_echelle_z(new ControleEchelleDecimale())
 	, m_pointeur(nullptr)
 {
-	m_agencement->addWidget(m_x);
-	m_agencement->addWidget(m_y);
-	m_agencement->addWidget(m_z);
+	auto metriques = this->fontMetrics();
+	m_bouton_x->setFixedWidth(metriques.width("H") * 2.0f);
+	m_bouton_y->setFixedWidth(metriques.width("H") * 2.0f);
+	m_bouton_z->setFixedWidth(metriques.width("H") * 2.0f);
 
+	m_agencement->addWidget(m_bouton_x);
+	m_agencement->addWidget(m_x);
+	m_agencement->addWidget(m_bouton_y);
+	m_agencement->addWidget(m_y);
+	m_agencement->addWidget(m_bouton_z);
+	m_agencement->addWidget(m_z);
 	setLayout(m_agencement);
+
+	m_echelle_x->setWindowFlags(Qt::WindowStaysOnTopHint);
+	m_echelle_y->setWindowFlags(Qt::WindowStaysOnTopHint);
+	m_echelle_z->setWindowFlags(Qt::WindowStaysOnTopHint);
 
 	connect(m_x, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_x);
 	connect(m_y, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_y);
 	connect(m_z, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_z);
+
+	connect(m_bouton_x, &QPushButton::pressed, this, &ControleProprieteVec3::montre_echelle_x);
+	connect(m_bouton_y, &QPushButton::pressed, this, &ControleProprieteVec3::montre_echelle_y);
+	connect(m_bouton_z, &QPushButton::pressed, this, &ControleProprieteVec3::montre_echelle_z);
+
+	connect(m_echelle_x, &ControleEchelleDecimale::valeur_changee, m_x, &ControleNombreDecimal::ajourne_valeur);
+	connect(m_echelle_y, &ControleEchelleDecimale::valeur_changee, m_y, &ControleNombreDecimal::ajourne_valeur);
+	connect(m_echelle_z, &ControleEchelleDecimale::valeur_changee, m_z, &ControleNombreDecimal::ajourne_valeur);
+}
+
+ControleProprieteVec3::~ControleProprieteVec3()
+{
+	delete m_echelle_x;
+	delete m_echelle_y;
+	delete m_echelle_z;
 }
 
 void ControleProprieteVec3::finalise(const DonneesControle &donnees)
@@ -108,6 +142,27 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 	m_z->valeur(m_pointeur[2]);
 
 	setToolTip(donnees.infobulle.c_str());
+}
+
+void ControleProprieteVec3::montre_echelle_x()
+{
+	m_echelle_x->valeur(m_pointeur[0]);
+	m_echelle_x->plage(m_x->min(), m_x->max());
+	m_echelle_x->show();
+}
+
+void ControleProprieteVec3::montre_echelle_y()
+{
+	m_echelle_y->valeur(m_pointeur[1]);
+	m_echelle_y->plage(m_y->min(), m_y->max());
+	m_echelle_y->show();
+}
+
+void ControleProprieteVec3::montre_echelle_z()
+{
+	m_echelle_z->valeur(m_pointeur[2]);
+	m_echelle_z->plage(m_z->min(), m_z->max());
+	m_echelle_z->show();
 }
 
 void ControleProprieteVec3::ajourne_valeur_x(float valeur)
