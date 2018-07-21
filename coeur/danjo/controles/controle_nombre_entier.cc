@@ -42,8 +42,18 @@ void ControleNombreEntier::paintEvent(QPaintEvent *)
 	QPainter painter(this);
 
 	/* Couleur d'arrière plan. */
-	QBrush pinceaux(QColor(40, 40, 40));
-	painter.fillRect(this->rect(), pinceaux);
+	if (m_temps_exact) { // image courante
+		QBrush pinceaux(QColor(31, 46, 158));
+		painter.fillRect(this->rect(), pinceaux);
+	}
+	else if (m_anime) {
+		QBrush pinceaux(QColor(18, 91, 18));
+		painter.fillRect(this->rect(), pinceaux);
+	}
+	else {
+		QBrush pinceaux(QColor(40, 40, 40));
+		painter.fillRect(this->rect(), pinceaux);
+	}
 
 	painter.setPen(QColor(255, 255, 255));
 
@@ -104,6 +114,10 @@ void ControleNombreEntier::mouseMoveEvent(QMouseEvent *event)
 		m_vieil_x = x;
 
 		Q_EMIT(valeur_changee(m_valeur));
+
+		if (m_anime) {
+			m_temps_exact = true;
+		}
 
 		update();
 	}
@@ -166,6 +180,11 @@ void ControleNombreEntier::keyPressEvent(QKeyEvent *event)
 			if (m_tampon != "") {
 				m_valeur = m_tampon.toInt();
 				m_valeur = std::max(m_min, std::min(m_valeur, m_max));
+
+				if (m_anime) {
+					m_temps_exact = true;
+				}
+
 				Q_EMIT(valeur_changee(m_valeur));
 			}
 
@@ -202,9 +221,21 @@ int ControleNombreEntier::max() const
 	return m_max;
 }
 
+void ControleNombreEntier::marque_anime(bool ouinon, bool temps_exacte)
+{
+	m_anime = ouinon;
+	m_temps_exact = temps_exacte;
+	update();
+}
+
 void ControleNombreEntier::ajourne_valeur(int valeur)
 {
 	m_valeur = std::max(m_min, std::min(valeur, m_max));
+
+	if (m_anime) {
+		m_temps_exact = true;
+	}
+
 	update();
 	Q_EMIT(valeur_changee(m_valeur));
 }

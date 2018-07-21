@@ -57,6 +57,7 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	, m_x(new ControleNombreDecimal(this))
 	, m_y(new ControleNombreDecimal(this))
 	, m_z(new ControleNombreDecimal(this))
+	, m_bouton_animation(new QPushButton("C", this))
 	, m_bouton_x(new QPushButton("H", this))
 	, m_bouton_y(new QPushButton("H", this))
 	, m_bouton_z(new QPushButton("H", this))
@@ -69,7 +70,9 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	m_bouton_x->setFixedWidth(metriques.width("H") * 2.0f);
 	m_bouton_y->setFixedWidth(metriques.width("H") * 2.0f);
 	m_bouton_z->setFixedWidth(metriques.width("H") * 2.0f);
+	m_bouton_animation->setFixedWidth(metriques.width("C") * 2.0f);
 
+	m_agencement->addWidget(m_bouton_animation);
 	m_agencement->addWidget(m_bouton_x);
 	m_agencement->addWidget(m_x);
 	m_agencement->addWidget(m_bouton_y);
@@ -93,6 +96,8 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	connect(m_echelle_x, &ControleEchelleDecimale::valeur_changee, m_x, &ControleNombreDecimal::ajourne_valeur);
 	connect(m_echelle_y, &ControleEchelleDecimale::valeur_changee, m_y, &ControleNombreDecimal::ajourne_valeur);
 	connect(m_echelle_z, &ControleEchelleDecimale::valeur_changee, m_z, &ControleNombreDecimal::ajourne_valeur);
+
+	connect(m_bouton_animation, &QPushButton::pressed, this, &ControleProprieteVec3::bascule_animation);
 }
 
 ControleProprieteVec3::~ControleProprieteVec3()
@@ -132,54 +137,114 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 	m_pointeur = static_cast<float *>(donnees.pointeur);
 
 	if (donnees.initialisation) {
-		m_pointeur[0] = valeur_defaut[0];
-		m_pointeur[1] = valeur_defaut[1];
-		m_pointeur[2] = valeur_defaut[2];
+		m_propriete->valeur = glm::vec3(valeur_defaut[0], valeur_defaut[1], valeur_defaut[2]);
 	}
 
-	m_x->valeur(m_pointeur[0]);
-	m_y->valeur(m_pointeur[1]);
-	m_z->valeur(m_pointeur[2]);
+	m_animation = m_propriete->est_anime();
+
+	if (m_animation) {
+		m_bouton_animation->setText("c");
+		auto temps_exacte = m_propriete->possede_cle(m_temps);
+		m_x->marque_anime(m_animation, temps_exacte);
+		m_y->marque_anime(m_animation, temps_exacte);
+		m_z->marque_anime(m_animation, temps_exacte);
+		const auto &valeur = m_propriete->evalue_vecteur(m_temps);
+		m_x->valeur(valeur[0]);
+		m_y->valeur(valeur[1]);
+		m_z->valeur(valeur[2]);
+	}
+	else {
+		const auto &valeur = std::experimental::any_cast<glm::vec3>(m_propriete->valeur);
+		m_x->valeur(valeur[0]);
+		m_y->valeur(valeur[1]);
+		m_z->valeur(valeur[2]);
+	}
 
 	setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteVec3::montre_echelle_x()
 {
-	m_echelle_x->valeur(m_pointeur[0]);
+	m_echelle_x->valeur(m_x->valeur());
 	m_echelle_x->plage(m_x->min(), m_x->max());
 	m_echelle_x->show();
 }
 
 void ControleProprieteVec3::montre_echelle_y()
 {
-	m_echelle_y->valeur(m_pointeur[1]);
+	m_echelle_y->valeur(m_y->valeur());
 	m_echelle_y->plage(m_y->min(), m_y->max());
 	m_echelle_y->show();
 }
 
 void ControleProprieteVec3::montre_echelle_z()
 {
-	m_echelle_z->valeur(m_pointeur[2]);
+	m_echelle_z->valeur(m_z->valeur());
 	m_echelle_z->plage(m_z->min(), m_z->max());
 	m_echelle_z->show();
 }
 
+void ControleProprieteVec3::bascule_animation()
+{
+	m_animation = !m_animation;
+
+	if (m_animation == false) {
+		m_propriete->supprime_animation();
+		const auto &valeur = std::experimental::any_cast<glm::vec3>(m_propriete->valeur);
+		m_x->valeur(valeur.x);
+		m_y->valeur(valeur.y);
+		m_z->valeur(valeur.z);
+		m_bouton_animation->setText("C");
+	}
+	else {
+		m_propriete->ajoute_cle(std::experimental::any_cast<glm::vec3>(m_propriete->valeur), m_temps);
+		m_bouton_animation->setText("c");
+	}
+
+	m_x->marque_anime(m_animation, m_animation);
+	m_y->marque_anime(m_animation, m_animation);
+	m_z->marque_anime(m_animation, m_animation);
+}
+
 void ControleProprieteVec3::ajourne_valeur_x(float valeur)
 {
-	m_pointeur[0] = valeur;
+	auto vec = glm::vec3(valeur, m_y->valeur(), m_z->valeur());
+
+	if (m_animation) {
+		m_propriete->ajoute_cle(vec, m_temps);
+	}
+	else {
+		m_propriete->valeur = vec;
+	}
+
 	Q_EMIT(controle_change());
 }
 
 void ControleProprieteVec3::ajourne_valeur_y(float valeur)
 {
-	m_pointeur[1] = valeur;
+	auto vec = glm::vec3(m_x->valeur(), valeur, m_z->valeur());
+
+	if (m_animation) {
+		m_propriete->ajoute_cle(vec, m_temps);
+	}
+	else {
+		m_propriete->valeur = vec;
+	}
+
 	Q_EMIT(controle_change());
 }
 
 void ControleProprieteVec3::ajourne_valeur_z(float valeur)
 {
-	m_pointeur[2] = valeur;
+	auto vec = glm::vec3(m_x->valeur(), m_y->valeur(), valeur);
+
+	if (m_animation) {
+		m_propriete->ajoute_cle(vec, m_temps);
+	}
+	else {
+		m_propriete->valeur = vec;
+	}
+
 	Q_EMIT(controle_change());
 }
 

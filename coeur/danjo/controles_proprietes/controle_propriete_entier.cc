@@ -39,11 +39,16 @@ ControleProprieteEntier::ControleProprieteEntier(QWidget *parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_controle(new ControleNombreEntier(this))
 	, m_bouton(new QPushButton("H", this))
+	, m_bouton_animation(new QPushButton("C", this))
 	, m_echelle(new ControleEchelleEntiere())
 	, m_pointeur(nullptr)
 {
 	auto metriques = this->fontMetrics();
+
 	m_bouton->setFixedWidth(metriques.width("H") * 2.0f);
+	m_bouton_animation->setFixedWidth(metriques.width("C") * 2.0f);
+
+	m_agencement->addWidget(m_bouton_animation);
 	m_agencement->addWidget(m_bouton);
 	m_agencement->addWidget(m_controle);
 	setLayout(m_agencement);
@@ -53,6 +58,7 @@ ControleProprieteEntier::ControleProprieteEntier(QWidget *parent)
 	connect(m_controle, &ControleNombreEntier::valeur_changee, this, &ControleProprieteEntier::ajourne_valeur_pointee);
 	connect(m_bouton, &QPushButton::pressed, this, &ControleProprieteEntier::montre_echelle);
 	connect(m_echelle, &ControleEchelleEntiere::valeur_changee, m_controle, &ControleNombreEntier::ajourne_valeur);
+	connect(m_bouton_animation, &QPushButton::pressed, this, &ControleProprieteEntier::bascule_animation);
 }
 
 ControleProprieteEntier::~ControleProprieteEntier()
@@ -62,9 +68,26 @@ ControleProprieteEntier::~ControleProprieteEntier()
 
 void ControleProprieteEntier::montre_echelle()
 {
-	m_echelle->valeur(*m_pointeur);
+	m_echelle->valeur(std::experimental::any_cast<int>(m_propriete->valeur));
 	m_echelle->plage(m_controle->min(), m_controle->max());
 	m_echelle->show();
+}
+
+void ControleProprieteEntier::bascule_animation()
+{
+	m_animation = !m_animation;
+
+	if (m_animation == false) {
+		m_propriete->supprime_animation();
+		m_controle->valeur(std::experimental::any_cast<int>(m_propriete->valeur));
+		m_bouton_animation->setText("C");
+	}
+	else {
+		m_propriete->ajoute_cle(std::experimental::any_cast<int>(m_propriete->valeur), m_temps);
+		m_bouton_animation->setText("c");
+	}
+
+	m_controle->marque_anime(m_animation, m_animation);
 }
 
 void ControleProprieteEntier::finalise(const DonneesControle &donnees)
@@ -88,10 +111,20 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
 	const auto valeur_defaut = std::atoi(donnees.valeur_defaut.c_str());
 
 	if (donnees.initialisation) {
-		*m_pointeur = valeur_defaut;
+		m_propriete->valeur = valeur_defaut;
 	}
 
-	m_controle->valeur(*m_pointeur);
+	m_animation = m_propriete->est_anime();
+
+	if (m_animation) {
+		m_bouton_animation->setText("c");
+		m_controle->marque_anime(m_animation, m_propriete->possede_cle(m_temps));
+		m_controle->valeur(m_propriete->evalue_entier(m_temps));
+	}
+	else {
+		m_controle->valeur(std::experimental::any_cast<int>(m_propriete->valeur));
+	}
+
 	m_controle->suffixe(donnees.suffixe.c_str());
 
 	setToolTip(donnees.infobulle.c_str());
@@ -99,7 +132,13 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
 
 void ControleProprieteEntier::ajourne_valeur_pointee(int valeur)
 {
-	*m_pointeur = valeur;
+	if (m_animation) {
+		m_propriete->ajoute_cle(valeur, m_temps);
+	}
+	else {
+		m_propriete->valeur = valeur;
+	}
+
 	Q_EMIT(controle_change());
 }
 

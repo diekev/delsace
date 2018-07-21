@@ -41,6 +41,7 @@ class ControleProprieteEntier final : public ControlePropriete {
 	ControleNombreEntier *m_controle;
 
 	QPushButton *m_bouton;
+	QPushButton *m_bouton_animation;
 	ControleEchelleEntiere *m_echelle;
 
 	/* connexion */
@@ -55,6 +56,7 @@ public:
 private Q_SLOTS:
 	void ajourne_valeur_pointee(int valeur);
 	void montre_echelle();
+	void bascule_animation();
 };
 
 }  /* namespace danjo */

@@ -41,6 +41,7 @@ class ControleProprieteVec3 final : public ControlePropriete {
 	ControleNombreDecimal *m_y;
 	ControleNombreDecimal *m_z;
 
+	QPushButton *m_bouton_animation;
 	QPushButton *m_bouton_x;
 	QPushButton *m_bouton_y;
 	QPushButton *m_bouton_z;
@@ -63,6 +64,7 @@ private Q_SLOTS:
 	void montre_echelle_x();
 	void montre_echelle_y();
 	void montre_echelle_z();
+	void bascule_animation();
 };
 
 }  /* namespace danjo */

@@ -27,6 +27,7 @@
 #include <experimental/any>
 #include <glm/glm.hpp>
 #include <unordered_map>
+#include <vector>
 
 namespace danjo {
 
@@ -47,6 +48,36 @@ struct Propriete {
 	TypePropriete type;
 
 	bool visible;
+	std::vector<std::pair<int, std::experimental::any>> courbe;
+
+	void ajoute_cle(const int v, int temps);
+
+	void ajoute_cle(const float v, int temps);
+
+	void ajoute_cle(const glm::vec3 &v, int temps);
+
+	void ajoute_cle(const glm::vec4 &v, int temps);
+
+	void supprime_animation();
+
+	bool est_anime() const;
+
+	bool possede_cle(int temps) const;
+
+	int evalue_entier(int temps);
+
+	float evalue_decimal(int temps);
+
+	glm::vec3 evalue_vecteur(int temps);
+
+	glm::vec4 evalue_couleur(int temps);
+
+private:
+	void ajoute_cle_impl(const std::experimental::any &v, int temps);
+
+	void tri_courbe();
+
+	bool trouve_valeurs_temps(int temps, std::experimental::any &v1, std::experimental::any &v2, int &t1, int &t2);
 };
 
 /**
@@ -106,22 +137,22 @@ public:
 	/**
 	 * Évalue la valeur d'une propriété de type 'entier' du nom spécifié.
 	 */
-	int evalue_entier(const std::string &nom);
+	int evalue_entier(const std::string &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'décimal' du nom spécifié.
 	 */
-	float evalue_decimal(const std::string &nom);
+	float evalue_decimal(const std::string &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'vecteur' du nom spécifié.
 	 */
-	glm::vec3 evalue_vecteur(const std::string &nom);
+	glm::vec3 evalue_vecteur(const std::string &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'couleur' du nom spécifié.
 	 */
-	glm::vec4 evalue_couleur(const std::string &nom);
+	glm::vec4 evalue_couleur(const std::string &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_entrée' du nom spécifié.
@@ -204,6 +235,8 @@ public:
 	 * Retourne le type de la propriété du nom spécifié.
 	 */
 	TypePropriete type_propriete(const std::string &nom);
+
+	Propriete *propriete(const std::string &nom);
 };
 
 }  /* namespace danjo */

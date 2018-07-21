@@ -42,8 +42,18 @@ void ControleNombreDecimal::paintEvent(QPaintEvent *)
 	QPainter painter(this);
 
 	/* Couleur d'arrière plan. */
-	QBrush pinceaux(QColor(40, 40, 40));
-	painter.fillRect(this->rect(), pinceaux);
+	if (m_temps_exacte) { // image courante
+		QBrush pinceaux(QColor(31, 46, 158));
+		painter.fillRect(this->rect(), pinceaux);
+	}
+	else if (m_anime) {
+		QBrush pinceaux(QColor(18, 91, 18));
+		painter.fillRect(this->rect(), pinceaux);
+	}
+	else {
+		QBrush pinceaux(QColor(40, 40, 40));
+		painter.fillRect(this->rect(), pinceaux);
+	}
 
 	painter.setPen(QColor(255, 255, 255));
 
@@ -118,6 +128,10 @@ void ControleNombreDecimal::mouseMoveEvent(QMouseEvent *event)
 
 		m_vieil_x = x;
 
+		if (m_anime) {
+			m_temps_exacte = true;
+		}
+
 		Q_EMIT(valeur_changee(m_valeur));
 
 		update();
@@ -184,6 +198,10 @@ void ControleNombreDecimal::keyPressEvent(QKeyEvent *event)
 			if (m_tampon != "") {
 				m_valeur = m_tampon.toFloat();
 				m_valeur = std::max(m_min, std::min(m_valeur, m_max));
+
+				if (m_anime) {
+					m_temps_exacte = true;
+				}
 				Q_EMIT(valeur_changee(m_valeur));
 			}
 
@@ -194,10 +212,22 @@ void ControleNombreDecimal::keyPressEvent(QKeyEvent *event)
 	update();
 }
 
+void ControleNombreDecimal::marque_anime(bool ouinon, bool temps_exacte)
+{
+	m_anime = ouinon;
+	m_temps_exacte = temps_exacte;
+	update();
+}
+
 void ControleNombreDecimal::ajourne_plage(float min, float max)
 {
 	m_min = min;
 	m_max = max;
+}
+
+float ControleNombreDecimal::valeur() const
+{
+	return m_valeur;
 }
 
 void ControleNombreDecimal::valeur(const float v)
@@ -223,6 +253,10 @@ float ControleNombreDecimal::max() const
 void ControleNombreDecimal::ajourne_valeur(float valeur)
 {
 	m_valeur = std::max(m_min, std::min(valeur, m_max));
+
+	if (m_anime) {
+		m_temps_exacte = true;
+	}
 	update();
 	Q_EMIT(valeur_changee(m_valeur));
 }

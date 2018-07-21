@@ -29,6 +29,7 @@
 namespace danjo {
 
 struct DonneesControle;
+struct Propriete;
 
 /**
  * La classe Controle donne l'interface nécessaire pour les contrôles à afficher
@@ -38,6 +39,11 @@ struct DonneesControle;
 class ControlePropriete : public QWidget {
 	Q_OBJECT
 
+protected:
+	Propriete *m_propriete = nullptr;
+	int m_temps = 0;
+	bool m_animation = false;
+
 public:
 	explicit ControlePropriete(QWidget *parent = nullptr);
 
@@ -46,6 +52,10 @@ public:
 	 * du contrôle par l'assembleur de contrôle.
 	 */
 	virtual void finalise(const DonneesControle &donnees) = 0;
+
+	void proriete(Propriete *p);
+
+	void temps(int t);
 
 Q_SIGNALS:
 	/**

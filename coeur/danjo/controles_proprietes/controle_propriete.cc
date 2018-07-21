@@ -30,4 +30,14 @@ ControlePropriete::ControlePropriete(QWidget *parent)
 	: QWidget(parent)
 {}
 
+void ControlePropriete::proriete(Propriete *p)
+{
+	m_propriete = p;
+}
+
+void ControlePropriete::temps(int t)
+{
+	m_temps = t;
+}
+
 }  /* namespace danjo */

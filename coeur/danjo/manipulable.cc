@@ -26,6 +26,188 @@
 
 namespace danjo {
 
+/* ************************************************************************** */
+
+void Propriete::ajoute_cle(const int v, int temps)
+{
+	assert(type == TypePropriete::ENTIER);
+	ajoute_cle_impl(std::experimental::any(v), temps);
+}
+
+void Propriete::ajoute_cle(const float v, int temps)
+{
+	assert(type == TypePropriete::DECIMAL);
+	ajoute_cle_impl(std::experimental::any(v), temps);
+}
+
+void Propriete::ajoute_cle(const glm::vec3 &v, int temps)
+{
+	assert(type == TypePropriete::VECTEUR);
+	ajoute_cle_impl(std::experimental::any(v), temps);
+}
+
+void Propriete::ajoute_cle(const glm::vec4 &v, int temps)
+{
+	assert(type == TypePropriete::COULEUR);
+	ajoute_cle_impl(std::experimental::any(v), temps);
+}
+
+void Propriete::supprime_animation()
+{
+	courbe.clear();
+}
+
+bool Propriete::est_anime() const
+{
+	return !courbe.empty();
+}
+
+bool Propriete::possede_cle(int temps) const
+{
+	for (const auto &valeur : courbe) {
+		if (valeur.first == temps) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int Propriete::evalue_entier(int temps)
+{
+	assert(type == TypePropriete::ENTIER);
+	std::experimental::any v1, v2;
+	int t1, t2;
+
+	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+		return std::experimental::any_cast<int>(v1);
+	}
+
+	auto dt = t2 - t1;
+	auto fac = (temps - t1) / static_cast<float>(dt);
+	auto i1 = std::experimental::any_cast<int>(v1);
+	auto i2 = std::experimental::any_cast<int>(v2);
+
+	return (1.0f - fac) * i1 + fac * i2;
+}
+
+float Propriete::evalue_decimal(int temps)
+{
+	assert(type == TypePropriete::DECIMAL);
+	std::experimental::any v1, v2;
+	int t1, t2;
+
+	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+		return std::experimental::any_cast<float>(v1);
+	}
+
+	auto dt = t2 - t1;
+	auto fac = (temps - t1) / static_cast<float>(dt);
+	auto i1 = std::experimental::any_cast<float>(v1);
+	auto i2 = std::experimental::any_cast<float>(v2);
+
+	return (1.0f - fac) * i1 + fac * i2;
+}
+
+glm::vec3 Propriete::evalue_vecteur(int temps)
+{
+	assert(type == TypePropriete::VECTEUR);
+	std::experimental::any v1, v2;
+	int t1, t2;
+
+	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+		return std::experimental::any_cast<glm::vec3>(v1);
+	}
+
+	auto dt = t2 - t1;
+	auto fac = (temps - t1) / static_cast<float>(dt);
+	auto i1 = std::experimental::any_cast<glm::vec3>(v1);
+	auto i2 = std::experimental::any_cast<glm::vec3>(v2);
+
+	return (1.0f - fac) * i1 + fac * i2;
+}
+
+glm::vec4 Propriete::evalue_couleur(int temps)
+{
+	assert(type == TypePropriete::COULEUR);
+	std::experimental::any v1, v2;
+	int t1, t2;
+
+	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+		return std::experimental::any_cast<glm::vec4>(v1);
+	}
+
+	auto dt = t2 - t1;
+	auto fac = (temps - t1) / static_cast<float>(dt);
+	auto i1 = std::experimental::any_cast<glm::vec4>(v1);
+	auto i2 = std::experimental::any_cast<glm::vec4>(v2);
+
+	return (1.0f - fac) * i1 + fac * i2;
+}
+
+void Propriete::ajoute_cle_impl(const std::experimental::any &v, int temps)
+{
+	bool insere = false;
+	size_t i = 0;
+
+	for (; i < courbe.size(); ++i) {
+		if (courbe[i].first == temps) {
+			courbe[i].second = v;
+			insere = true;
+			break;
+		}
+
+		if (courbe[i].first > temps) {
+			courbe.insert(courbe.begin() + i, std::make_pair(temps, v));
+			insere = true;
+			break;
+		}
+	}
+
+	if (!insere) {
+		courbe.push_back(std::make_pair(temps, v));
+	}
+}
+
+bool Propriete::trouve_valeurs_temps(int temps, std::experimental::any &v1, std::experimental::any &v2, int &t1, int &t2)
+{
+	bool v1_trouve = false;
+	bool v2_trouve = false;
+
+	for (size_t i = 0; i < courbe.size(); ++i) {
+		if (courbe[i].first < temps) {
+			v1 = courbe[i].second;
+			t1 = courbe[i].first;
+			v1_trouve = true;
+			continue;
+		}
+
+		if (courbe[i].first == temps) {
+			v1 = courbe[i].second;
+			return true;
+		}
+
+		if (courbe[i].first > temps) {
+			v2 = courbe[i].second;
+			t2 = courbe[i].first;
+			v2_trouve = true;
+			break;
+		}
+	}
+
+	if (!v1_trouve) {
+		v1 = v2;
+	}
+
+	if (!v2_trouve) {
+		v2 = v1;
+	}
+
+	return false;
+}
+
+/* ************************************************************************** */
+
 Manipulable::iterateur Manipulable::debut()
 {
 	return m_proprietes.begin();
@@ -83,24 +265,48 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 	m_proprietes[nom] = Propriete{valeur, type};
 }
 
-int Manipulable::evalue_entier(const std::string &nom)
+int Manipulable::evalue_entier(const std::string &nom, int temps)
 {
-	return std::experimental::any_cast<int>(m_proprietes[nom].valeur);
+	Propriete &prop = m_proprietes[nom];
+
+	if (prop.est_anime()) {
+		return prop.evalue_entier(temps);
+	}
+
+	return std::experimental::any_cast<int>(prop.valeur);
 }
 
-float Manipulable::evalue_decimal(const std::string &nom)
+float Manipulable::evalue_decimal(const std::string &nom, int temps)
 {
-	return std::experimental::any_cast<float>(m_proprietes[nom].valeur);
+	Propriete &prop = m_proprietes[nom];
+
+	if (prop.est_anime()) {
+		return prop.evalue_decimal(temps);
+	}
+
+	return std::experimental::any_cast<float>(prop.valeur);
 }
 
-glm::vec3 Manipulable::evalue_vecteur(const std::string &nom)
+glm::vec3 Manipulable::evalue_vecteur(const std::string &nom, int temps)
 {
-	return std::experimental::any_cast<glm::vec3>(m_proprietes[nom].valeur);
+	Propriete &prop = m_proprietes[nom];
+
+	if (prop.est_anime()) {
+		return prop.evalue_vecteur(temps);
+	}
+
+	return std::experimental::any_cast<glm::vec3>(prop.valeur);
 }
 
-glm::vec4 Manipulable::evalue_couleur(const std::string &nom)
+glm::vec4 Manipulable::evalue_couleur(const std::string &nom, int temps)
 {
-	return std::experimental::any_cast<glm::vec4>(m_proprietes[nom].valeur);
+	Propriete &prop = m_proprietes[nom];
+
+	if (prop.est_anime()) {
+		return prop.evalue_couleur(temps);
+	}
+
+	return std::experimental::any_cast<glm::vec4>(prop.valeur);
 }
 
 std::string Manipulable::evalue_fichier_entree(const std::string &nom)
@@ -209,6 +415,17 @@ TypePropriete Manipulable::type_propriete(const std::string &nom)
 {
 	const auto &propriete = m_proprietes[nom];
 	return propriete.type;
+}
+
+Propriete *Manipulable::propriete(const std::string &nom)
+{
+	auto iter = m_proprietes.find(nom);
+
+	if (iter == m_proprietes.end()) {
+		return nullptr;
+	}
+
+	return &(iter->second);
 }
 
 }  /* namespace danjo */

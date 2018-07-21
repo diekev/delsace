@@ -37,6 +37,8 @@ class ControleNombreEntier : public QWidget {
 	int m_vieil_x = 0;
 	QString m_tampon = "";
 	QString m_suffixe = "";
+	bool m_anime = false;
+	bool m_temps_exact = false;
 
 public:
 	explicit ControleNombreEntier(QWidget *parent = nullptr);
@@ -62,6 +64,8 @@ public:
 	int min() const;
 
 	int max() const;
+
+	void marque_anime(bool ouinon, bool temps_exacte);
 
 Q_SIGNALS:
 	void valeur_changee(int);

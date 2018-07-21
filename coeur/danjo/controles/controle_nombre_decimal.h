@@ -39,6 +39,8 @@ class ControleNombreDecimal : public QWidget {
 	int m_vieil_x = 0;
 	QString m_tampon = "";
 	QString m_suffixe = "";
+	bool m_anime = false;
+	bool m_temps_exacte = false;
 
 public:
 	explicit ControleNombreDecimal(QWidget *parent = nullptr);
@@ -55,7 +57,11 @@ public:
 
 	void keyPressEvent(QKeyEvent *event);
 
+	void marque_anime(bool ouinon, bool temps_exacte);
+
 	void ajourne_plage(float min, float max);
+
+	float valeur() const;
 
 	void valeur(const float v);
 

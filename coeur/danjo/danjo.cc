@@ -57,7 +57,9 @@ std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
 	return contenu;
 }
 
-QBoxLayout *compile_interface(DonneesInterface &donnnes, const char *texte_entree)
+QBoxLayout *compile_interface(DonneesInterface &donnnes,
+							  const char *texte_entree,
+							  int temps)
 {
 	if (donnnes.manipulable == nullptr) {
 		return nullptr;
@@ -66,7 +68,8 @@ QBoxLayout *compile_interface(DonneesInterface &donnnes, const char *texte_entre
 	AssembleurDisposition assembleur(
 				donnnes.manipulable,
 				donnnes.repondant_bouton,
-				donnnes.conteneur);
+				donnnes.conteneur,
+				temps);
 
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
@@ -93,14 +96,15 @@ QBoxLayout *compile_interface(DonneesInterface &donnnes, const char *texte_entre
 
 QBoxLayout *compile_interface(
 		DonneesInterface &donnnes,
-		const std::experimental::filesystem::path &chemin_texte)
+		const std::experimental::filesystem::path &chemin_texte,
+		int temps)
 {
 	if (donnnes.manipulable == nullptr) {
 		return nullptr;
 	}
 
 	const auto texte_entree = contenu_fichier(chemin_texte.c_str());
-	return compile_interface(donnnes, texte_entree.c_str());
+	return compile_interface(donnnes, texte_entree.c_str(), temps);
 }
 
 QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
@@ -225,7 +229,7 @@ QMenu *GestionnaireInterface::compile_menu(DonneesInterface &donnnes, const char
 	return assembleur.menu();
 }
 
-QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, const char *texte_entree)
+QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, const char *texte_entree, int temps)
 {
 	if (donnnes.manipulable == nullptr) {
 		return nullptr;
@@ -234,7 +238,8 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, 
 	AssembleurDisposition assembleur(
 				donnnes.manipulable,
 				donnnes.repondant_bouton,
-				donnnes.conteneur);
+				donnnes.conteneur,
+				temps);
 
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);

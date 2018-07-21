@@ -52,10 +52,11 @@
 
 namespace danjo {
 
-AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, RepondantBouton *repondant_bouton, ConteneurControles *conteneur)
+AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, RepondantBouton *repondant_bouton, ConteneurControles *conteneur, int temps)
 	: m_manipulable(manipulable)
 	, m_repondant(repondant_bouton)
 	, m_conteneur(conteneur)
+	, m_temps(temps)
 {}
 
 void AssembleurDisposition::ajoute_disposition(int identifiant)
@@ -170,6 +171,8 @@ void AssembleurDisposition::finalise_controle()
 		m_donnees_controle.initialisation = false;
 	}
 
+	m_dernier_controle->proriete(m_manipulable->propriete(m_donnees_controle.nom));
+	m_dernier_controle->temps(m_temps);
 	m_dernier_controle->finalise(m_donnees_controle);
 
 	QObject::connect(m_dernier_controle, &ControlePropriete::controle_change,
