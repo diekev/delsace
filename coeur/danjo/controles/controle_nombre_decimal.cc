@@ -94,6 +94,7 @@ void ControleNombreDecimal::mousePressEvent(QMouseEvent *event)
 		QApplication::setOverrideCursor(Qt::SplitHCursor);
 		m_vieil_x = event->pos().x();
 		m_souris_pressee = true;
+		event->accept();
 		update();
 	}
 }
@@ -103,6 +104,8 @@ void ControleNombreDecimal::mouseDoubleClickEvent(QMouseEvent *event)
 	m_edition = true;
 	m_tampon = "";
 	update();
+	setFocus();
+	event->accept();
 }
 
 void ControleNombreDecimal::mouseMoveEvent(QMouseEvent *event)
@@ -135,14 +138,16 @@ void ControleNombreDecimal::mouseMoveEvent(QMouseEvent *event)
 		Q_EMIT(valeur_changee(m_valeur));
 
 		update();
+		event->accept();
 	}
 }
 
-void ControleNombreDecimal::mouseReleaseEvent(QMouseEvent *)
+void ControleNombreDecimal::mouseReleaseEvent(QMouseEvent *event)
 {
 	QApplication::restoreOverrideCursor();
 
 	m_souris_pressee = false;
+	event->accept();
 }
 
 void ControleNombreDecimal::keyPressEvent(QKeyEvent *event)
@@ -150,6 +155,8 @@ void ControleNombreDecimal::keyPressEvent(QKeyEvent *event)
 	if (m_edition == false) {
 		return;
 	}
+
+	event->accept();
 
 	switch (event->key()) {
 		case Qt::Key_Minus:

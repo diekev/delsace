@@ -94,6 +94,7 @@ void ControleNombreEntier::mousePressEvent(QMouseEvent *event)
 		QApplication::setOverrideCursor(Qt::SplitHCursor);
 		m_vieil_x = event->pos().x();
 		m_souris_pressee = true;
+		event->accept();
 		update();
 	}
 }
@@ -102,7 +103,9 @@ void ControleNombreEntier::mouseDoubleClickEvent(QMouseEvent *event)
 {
 	m_edition = true;
 	m_tampon = "";
+	event->accept();
 	update();
+	setFocus();
 }
 
 void ControleNombreEntier::mouseMoveEvent(QMouseEvent *event)
@@ -120,13 +123,15 @@ void ControleNombreEntier::mouseMoveEvent(QMouseEvent *event)
 		}
 
 		update();
+		event->accept();
 	}
 }
 
-void ControleNombreEntier::mouseReleaseEvent(QMouseEvent *)
+void ControleNombreEntier::mouseReleaseEvent(QMouseEvent *event)
 {
 	QApplication::restoreOverrideCursor();
 
+	event->accept();
 	m_souris_pressee = false;
 }
 
@@ -135,6 +140,8 @@ void ControleNombreEntier::keyPressEvent(QKeyEvent *event)
 	if (m_edition == false) {
 		return;
 	}
+
+	event->accept();
 
 	switch (event->key()) {
 		case Qt::Key_Minus:
