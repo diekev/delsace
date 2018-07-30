@@ -68,6 +68,8 @@ public:
 
 	QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);
 
+	QMenu *compile_menu_interrogeable(DonneesInterface &donnnes, const char *texte_entree);
+
 	QBoxLayout *compile_interface(
 			DonneesInterface &donnnes,
 			const char *texte_entree,
@@ -86,6 +88,8 @@ public:
 std::string contenu_fichier(const std::experimental::filesystem::path &chemin);
 
 QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);
+
+QMenu *compile_menu_interrogeable(DonneesInterface &donnnes, const char *texte_entree);
 
 /**
  * Compile le script d'interface contenu dans texte_entree, et retourne un

@@ -46,6 +46,7 @@ qt5_wrap_cpp(
 	controles_proprietes/controle_propriete_vecteur.h
 
 	conteneur_controles.h
+	menu_interrogeable.h
 )
 
 set(ENTETES
@@ -53,6 +54,7 @@ set(ENTETES
 	erreur.h
 	danjo.h
 	manipulable.h
+	menu_interrogeable.h
 	repondant_bouton.h
 )
 
@@ -98,6 +100,7 @@ add_library(danjo STATIC
 	erreur.cc
 	danjo.cc
 	manipulable.cc
+	menu_interrogeable.cc
 	repondant_bouton.cc
 
 	controles/action.h

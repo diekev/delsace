@@ -39,6 +39,7 @@
 
 #include "erreur.h"
 #include "manipulable.h"
+#include "menu_interrogeable.h"
 
 namespace danjo {
 
@@ -133,6 +134,41 @@ QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
 	}
 
 	return assembleur.menu();
+}
+
+QMenu *compile_menu_interrogeable(DonneesInterface &donnnes, const char *texte_entree)
+{
+	AssembleurDisposition assembleur(
+				donnnes.manipulable,
+				donnnes.repondant_bouton,
+				donnnes.conteneur);
+
+	AnalyseuseDisposition analyseuse;
+	analyseuse.installe_assembleur(&assembleur);
+
+	Decoupeuse decoupeuse(texte_entree);
+
+	try {
+		decoupeuse.decoupe();
+		analyseuse.lance_analyse(decoupeuse.morceaux());
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+	catch (const ErreurSyntactique &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+
+	/* À FAIRE : déplace ça dans l'assembleuse. */
+	auto menu_interrogeable = new MenuInterrogeable("");
+
+	for (auto &action : assembleur.menu()->actions()) {
+		menu_interrogeable->addAction(action);
+	}
+
+	return menu_interrogeable;
 }
 
 GestionnaireInterface::~GestionnaireInterface()
