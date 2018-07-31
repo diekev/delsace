@@ -25,6 +25,7 @@
 #include "courbe_bezier.h"
 
 #include <algorithm>
+#include <cmath>
 
 void ajoute_point_courbe(CourbeBezier &courbe, float x, float y)
 {
@@ -64,45 +65,38 @@ void construit_table_courbe(CourbeBezier &courbe)
 		const auto &p1 = courbe.points[i];
 		const auto &p2 = courbe.points[i + 1];
 
-		const auto &x1 = p1.co[POINT_CENTRE].x;
-		const auto &y1 = p1.co[POINT_CENTRE].y;
-		const auto &x_pt2 = p1.co[POINT_CONTROLE2].x;
-		const auto &y_pt2 = p1.co[POINT_CONTROLE2].y;
-		const auto &x2 = p2.co[POINT_CENTRE].x;
-		const auto &y2 = p2.co[POINT_CENTRE].y;
-		const auto &x_pt1 = p2.co[POINT_CONTROLE1].x;
-		const auto &y_pt1 = p2.co[POINT_CONTROLE1].y;
+		/* formule
+		 *  x0 * (1.0 - t)^3
+		 *  + 3 * x1 * t * (1.0 - t)^2
+		 *  + 3 * x2 * t^2 * (1.0 - t)
+		 *  + x3 * t^3
+		 */
 
-		courbe.table.push_back(Point{x1, y1});
+		const auto &x0 =     p1.co[POINT_CENTRE].x;
+		const auto &y0 =     p1.co[POINT_CENTRE].y;
+		const auto &x1 = 3 * p1.co[POINT_CONTROLE2].x;
+		const auto &y1 = 3 * p1.co[POINT_CONTROLE2].y;
+		const auto &x2 = 3 * p2.co[POINT_CONTROLE1].x;
+		const auto &y2 = 3 * p2.co[POINT_CONTROLE1].y;
+		const auto &x3 =     p2.co[POINT_CENTRE].x;
+		const auto &y3 =     p2.co[POINT_CENTRE].y;
+
+		courbe.table.push_back(Point{x0, y0});
 
 		for (int i = 1; i <= res_courbe; ++i) {
 			const auto fac_i = facteur * i;
 			const auto mfac_i = 1.0f - fac_i;
 
-			/* centre -> pt2 */
-			const auto x_c_pt2 = mfac_i * x1 + fac_i * x_pt2;
-			const auto y_c_pt2 = mfac_i * y1 + fac_i * y_pt2;
+			const auto p0x = x0                         * std::pow(mfac_i, 3.0f);
+			const auto p0y = y0                         * std::pow(mfac_i, 3.0f);
+			const auto p1x = x1 * fac_i                 * std::pow(mfac_i, 2.0f);
+			const auto p1y = y1 * fac_i                 * std::pow(mfac_i, 2.0f);
+			const auto p2x = x2 * std::pow(fac_i, 2.0f) * mfac_i;
+			const auto p2y = y2 * std::pow(fac_i, 2.0f) * mfac_i;
+			const auto p3x = x3 * std::pow(fac_i, 3.0f);
+			const auto p3y = y3 * std::pow(fac_i, 3.0f);
 
-			/* pt2 -> pt1 */
-			const auto x_pt2_pt1 = mfac_i * x_pt2 + fac_i * x_pt1;
-			const auto y_pt2_pt1 = mfac_i * y_pt2 + fac_i * y_pt1;
-
-			/* pt1 -> centre */
-			const auto x_pt1_c = mfac_i * x_pt1 + fac_i * x2;
-			const auto y_pt1_c = mfac_i * y_pt1 + fac_i * y2;
-
-			/* c_pt2 -> pt2_pt1 */
-			const auto x_c_pt1 = mfac_i * x_c_pt2 + fac_i * x_pt2_pt1;
-			const auto y_c_pt1 = mfac_i * y_c_pt2 + fac_i * y_pt2_pt1;
-
-			/* pt2_pt1 -> pt1_c */
-			const auto x_pt2_c = mfac_i * x_pt2_pt1 + fac_i * x_pt1_c;
-			const auto y_pt2_c = mfac_i * y_pt2_pt1 + fac_i * y_pt1_c;
-
-			const auto xt2 = mfac_i * x_c_pt1 + fac_i * x_pt2_c;
-			const auto yt2 = mfac_i * y_c_pt1 + fac_i * y_pt2_c;
-
-			courbe.table.push_back(Point{xt2, yt2});
+			courbe.table.push_back(Point{p0x + p1x + p2x + p3x, p0y + p1y + p2y + p3y});
 		}
 	}
 }

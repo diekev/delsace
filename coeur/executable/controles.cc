@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 //	controle.conteneur(&conteneur);
 //	controle.show();
 
-	ControleEchelleDecimale controle;
+	ControleSpectreCouleur controle;
 	controle.show();
 
 	return app.exec();
