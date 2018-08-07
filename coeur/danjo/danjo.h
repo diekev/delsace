@@ -52,6 +52,7 @@ struct DonneesAction {
 
 class GestionnaireInterface {
 	std::unordered_map<std::string, QMenu *> m_menus;
+	std::unordered_map<std::string, QMenu *> m_menus_interrogeables;
 	std::unordered_map<std::string, QBoxLayout *> m_dispositions;
 	std::vector<QToolBar *> m_barres_outils;
 
@@ -66,18 +67,18 @@ public:
 
 	void ajourne_disposition(const std::string &nom, int temps = 0);
 
-	QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);
+	QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
 
-	QMenu *compile_menu_interrogeable(DonneesInterface &donnnes, const char *texte_entree);
+	QMenu *compile_menu_interrogeable(DonneesInterface &donnees, const char *texte_entree);
 
 	QBoxLayout *compile_interface(
-			DonneesInterface &donnnes,
+			DonneesInterface &donnees,
 			const char *texte_entree,
 			int temps = 0);
 
 	QMenu *pointeur_menu(const std::string &nom);
 
-	QToolBar *compile_barre_outils(DonneesInterface &donnnes, const char *texte_entree);
+	QToolBar *compile_barre_outils(DonneesInterface &donnees, const char *texte_entree);
 };
 
 /**
@@ -87,16 +88,16 @@ public:
  */
 std::string contenu_fichier(const std::experimental::filesystem::path &chemin);
 
-QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree);
+QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
 
-QMenu *compile_menu_interrogeable(DonneesInterface &donnnes, const char *texte_entree);
+QMenu *compile_menu_interrogeable(DonneesInterface &donnees, const char *texte_entree);
 
 /**
  * Compile le script d'interface contenu dans texte_entree, et retourne un
  * pointeur vers le QBoxLayout ainsi créé.
  */
 QBoxLayout *compile_interface(
-		DonneesInterface &donnnes,
+		DonneesInterface &donnees,
 		const char *texte_entree,
 		int temps = 0);
 
@@ -105,7 +106,7 @@ QBoxLayout *compile_interface(
  * spécifié, et retourne un pointeur vers le QBoxLayout ainsi créé.
  */
 QBoxLayout *compile_interface(
-		DonneesInterface &donnnes,
+		DonneesInterface &donnees,
 		const std::experimental::filesystem::path &chemin_texte,
 		int temps = 0);
 

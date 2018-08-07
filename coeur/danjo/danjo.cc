@@ -43,137 +43,19 @@
 
 namespace danjo {
 
-std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
-{
-	if (!std::experimental::filesystem::exists(chemin)) {
-		return "";
-	}
-
-	std::ifstream entree;
-	entree.open(chemin.c_str());
-
-	std::string contenu((std::istreambuf_iterator<char>(entree)),
-						(std::istreambuf_iterator<char>()));
-
-	return contenu;
-}
-
-QBoxLayout *compile_interface(DonneesInterface &donnnes,
-							  const char *texte_entree,
-							  int temps)
-{
-	if (donnnes.manipulable == nullptr) {
-		return nullptr;
-	}
-
-	AssembleurDisposition assembleur(
-				donnnes.manipulable,
-				donnnes.repondant_bouton,
-				donnnes.conteneur,
-				temps);
-
-	AnalyseuseDisposition analyseur;
-	analyseur.installe_assembleur(&assembleur);
-
-	Decoupeuse decoupeuse(texte_entree);
-
-	try {
-		decoupeuse.decoupe();
-		analyseur.lance_analyse(decoupeuse.morceaux());
-	}
-	catch (const ErreurFrappe &e) {
-		std::cerr << e.quoi();
-		return nullptr;
-	}
-	catch (const ErreurSyntactique &e) {
-		std::cerr << e.quoi();
-		return nullptr;
-	}
-
-	donnnes.manipulable->initialise();
-
-	return assembleur.disposition();
-}
-
-QBoxLayout *compile_interface(
-		DonneesInterface &donnnes,
-		const std::experimental::filesystem::path &chemin_texte,
-		int temps)
-{
-	if (donnnes.manipulable == nullptr) {
-		return nullptr;
-	}
-
-	const auto texte_entree = contenu_fichier(chemin_texte.c_str());
-	return compile_interface(donnnes, texte_entree.c_str(), temps);
-}
-
-QMenu *compile_menu(DonneesInterface &donnnes, const char *texte_entree)
-{
-	AssembleurDisposition assembleur(
-				donnnes.manipulable,
-				donnnes.repondant_bouton,
-				donnnes.conteneur);
-
-	AnalyseuseDisposition analyseur;
-	analyseur.installe_assembleur(&assembleur);
-
-	Decoupeuse decoupeuse(texte_entree);
-
-	try {
-		decoupeuse.decoupe();
-		analyseur.lance_analyse(decoupeuse.morceaux());
-	}
-	catch (const ErreurFrappe &e) {
-		std::cerr << e.quoi();
-		return nullptr;
-	}
-	catch (const ErreurSyntactique &e) {
-		std::cerr << e.quoi();
-		return nullptr;
-	}
-
-	return assembleur.menu();
-}
-
-QMenu *compile_menu_interrogeable(DonneesInterface &donnnes, const char *texte_entree)
-{
-	AssembleurDisposition assembleur(
-				donnnes.manipulable,
-				donnnes.repondant_bouton,
-				donnnes.conteneur);
-
-	AnalyseuseDisposition analyseuse;
-	analyseuse.installe_assembleur(&assembleur);
-
-	Decoupeuse decoupeuse(texte_entree);
-
-	try {
-		decoupeuse.decoupe();
-		analyseuse.lance_analyse(decoupeuse.morceaux());
-	}
-	catch (const ErreurFrappe &e) {
-		std::cerr << e.quoi();
-		return nullptr;
-	}
-	catch (const ErreurSyntactique &e) {
-		std::cerr << e.quoi();
-		return nullptr;
-	}
-
-	/* À FAIRE : déplace ça dans l'assembleuse. */
-	auto menu_interrogeable = new MenuInterrogeable("");
-
-	for (auto &action : assembleur.menu()->actions()) {
-		menu_interrogeable->addAction(action);
-	}
-
-	return menu_interrogeable;
-}
-
 GestionnaireInterface::~GestionnaireInterface()
 {
 	for (const auto &donnees : m_menus) {
+		auto menu = donnees.second;
+
+		for (auto &action : menu->actions()) {
+			delete action;
+		}
+
+		delete menu;
+	}
+
+	for (const auto &donnees : m_menus_interrogeables) {
 		auto menu = donnees.second;
 
 		for (auto &action : menu->actions()) {
@@ -233,12 +115,14 @@ void GestionnaireInterface::recree_menu(
 	}
 }
 
-QMenu *GestionnaireInterface::compile_menu(DonneesInterface &donnnes, const char *texte_entree)
+QMenu *GestionnaireInterface::compile_menu(
+		DonneesInterface &donnees,
+		const char *texte_entree)
 {
 	AssembleurDisposition assembleur(
-				donnnes.manipulable,
-				donnnes.repondant_bouton,
-				donnnes.conteneur);
+				donnees.manipulable,
+				donnees.repondant_bouton,
+				donnees.conteneur);
 
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
@@ -265,16 +149,58 @@ QMenu *GestionnaireInterface::compile_menu(DonneesInterface &donnnes, const char
 	return assembleur.menu();
 }
 
-QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, const char *texte_entree, int temps)
+QMenu *GestionnaireInterface::compile_menu_interrogeable(
+		DonneesInterface &donnees,
+		const char *texte_entree)
 {
-	if (donnnes.manipulable == nullptr) {
+	AssembleurDisposition assembleur(
+				donnees.manipulable,
+				donnees.repondant_bouton,
+				donnees.conteneur);
+
+	AnalyseuseDisposition analyseuse;
+	analyseuse.installe_assembleur(&assembleur);
+
+	Decoupeuse decoupeuse(texte_entree);
+
+	try {
+		decoupeuse.decoupe();
+		analyseuse.lance_analyse(decoupeuse.morceaux());
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+	catch (const ErreurSyntactique &e) {
+		std::cerr << e.quoi();
+		return nullptr;
+	}
+
+	/* À FAIRE : déplace ça dans l'assembleuse. */
+	auto menu_interrogeable = new MenuInterrogeable("");
+
+	for (auto &action : assembleur.menu()->actions()) {
+		menu_interrogeable->addAction(action);
+	}
+
+	/* À FAIRE : déduplique les menus. */
+	for (const auto &pair : assembleur.donnees_menus()) {
+		m_menus_interrogeables.insert(pair);
+	}
+
+	return menu_interrogeable;
+}
+
+QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnees, const char *texte_entree, int temps)
+{
+	if (donnees.manipulable == nullptr) {
 		return nullptr;
 	}
 
 	AssembleurDisposition assembleur(
-				donnnes.manipulable,
-				donnnes.repondant_bouton,
-				donnnes.conteneur,
+				donnees.manipulable,
+				donnees.repondant_bouton,
+				donnees.conteneur,
 				temps);
 
 	AnalyseuseDisposition analyseur;
@@ -300,7 +226,7 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnnes, 
 
 	m_dispositions.insert({nom, dispostion});
 
-	donnnes.manipulable->initialise();
+	donnees.manipulable->initialise();
 
 	return dispostion;
 }
@@ -317,12 +243,12 @@ QMenu *GestionnaireInterface::pointeur_menu(const std::string &nom)
 	return (*iter).second;
 }
 
-QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes, const char *texte_entree)
+QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees, const char *texte_entree)
 {
 	AssembleurDisposition assembleur(
-				donnnes.manipulable,
-				donnnes.repondant_bouton,
-				donnnes.conteneur);
+				donnees.manipulable,
+				donnees.repondant_bouton,
+				donnees.conteneur);
 
 	AnalyseuseDisposition analyseur;
 	analyseur.installe_assembleur(&assembleur);
@@ -347,6 +273,58 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnnes,
 	return assembleur.barre_outils();
 }
 
+/* ************************************************************************** */
+
+std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
+{
+	if (!std::experimental::filesystem::exists(chemin)) {
+		return "";
+	}
+
+	std::ifstream entree;
+	entree.open(chemin.c_str());
+
+	std::string contenu((std::istreambuf_iterator<char>(entree)),
+						(std::istreambuf_iterator<char>()));
+
+	return contenu;
+}
+
+/* ************************************************************************** */
+
+static GestionnaireInterface __gestionnaire;
+
+QBoxLayout *compile_interface(
+		DonneesInterface &donnees,
+		const char *texte_entree,
+		int temps)
+{
+	return __gestionnaire.compile_interface(donnees, texte_entree, temps);
+}
+
+QBoxLayout *compile_interface(
+		DonneesInterface &donnees,
+		const std::experimental::filesystem::path &chemin_texte,
+		int temps)
+{
+	if (donnees.manipulable == nullptr) {
+		return nullptr;
+	}
+
+	const auto texte_entree = contenu_fichier(chemin_texte.c_str());
+	return __gestionnaire.compile_interface(donnees, texte_entree.c_str(), temps);
+}
+
+QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree)
+{
+	return __gestionnaire.compile_menu(donnees, texte_entree);
+}
+
+QMenu *compile_menu_interrogeable(DonneesInterface &donnees, const char *texte_entree)
+{
+	return __gestionnaire.compile_menu_interrogeable(donnees, texte_entree);
+}
+
 void compile_feuille_logique(const char *texte_entree)
 {
 	AnalyseuseLogique analyseuse(nullptr);
@@ -362,6 +340,9 @@ void compile_feuille_logique(const char *texte_entree)
 	catch (const ErreurSyntactique &e) {
 		std::cerr << e.quoi();
 	}
+
+	/* À FAIRE */
+//	return __gestionnaire.compile_feuille_logique(texte_entree);
 }
 
 void initialise_interface(
@@ -380,6 +361,9 @@ void initialise_interface(
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi() << '\n';
 	}
+
+	/* À FAIRE */
+//	return __gestionnaire.initialise_interface(texte_entree, manipulable);
 }
 
 }  /* namespace danjo */
