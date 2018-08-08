@@ -30,6 +30,7 @@ set(FICHIERS
 	disposition_test.jo
 	menu_edition.jo
 	menu_fichier.jo
+	redimension_image.jo
 )
 
 install(

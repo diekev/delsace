@@ -79,6 +79,8 @@ public:
 	QMenu *pointeur_menu(const std::string &nom);
 
 	QToolBar *compile_barre_outils(DonneesInterface &donnees, const char *texte_entree);
+
+	bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree);
 };
 
 /**
@@ -118,5 +120,7 @@ void compile_feuille_logique(const char *texte_entree);
 void initialise_interface(
 		const std::experimental::filesystem::path &chemin_texte,
 		Manipulable *manipulable);
+
+bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree);
 
 }  /* namespace danjo */

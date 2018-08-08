@@ -27,6 +27,7 @@
 #include <fstream>
 #include <iostream>
 
+#include <QBoxLayout>
 #include <QMenu>
 #include <QToolBar>
 
@@ -37,6 +38,7 @@
 #include "compilation/assembleuse_disposition.h"
 #include "compilation/decoupeuse.h"
 
+#include "dialogue.h"
 #include "erreur.h"
 #include "manipulable.h"
 #include "menu_interrogeable.h"
@@ -273,6 +275,20 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees,
 	return assembleur.barre_outils();
 }
 
+bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const char *texte_entree)
+{
+	auto disposition = this->compile_interface(donnees, texte_entree);
+
+	if (disposition == nullptr) {
+		return false;
+	}
+
+	Dialogue dialogue(disposition);
+	dialogue.show();
+
+	return dialogue.exec() == QDialog::Accepted;
+}
+
 /* ************************************************************************** */
 
 std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
@@ -363,7 +379,12 @@ void initialise_interface(
 	}
 
 	/* À FAIRE */
-//	return __gestionnaire.initialise_interface(texte_entree, manipulable);
+	//	return __gestionnaire.initialise_interface(texte_entree, manipulable);
+}
+
+bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree)
+{
+	return __gestionnaire.montre_dialogue(donnees, texte_entree);
 }
 
 }  /* namespace danjo */

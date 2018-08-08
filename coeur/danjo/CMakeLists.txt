@@ -97,6 +97,7 @@ add_library(danjo STATIC
 	types/courbe_bezier.cc
 
 	conteneur_controles.cc
+	dialogue.cc
 	erreur.cc
 	danjo.cc
 	manipulable.cc
@@ -140,6 +141,7 @@ add_library(danjo STATIC
 
 	types/courbe_bezier.h
 
+	dialogue.h
 	${ENTETES}
 
 	${moc_headers}

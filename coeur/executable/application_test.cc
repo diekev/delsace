@@ -54,6 +54,27 @@ void RepondantBoutonTest::repond_clique(const std::string &valeur, const std::st
 {
 	std::cerr << "Répondant au clique pour " << valeur
 			  << ", avec métadonnée " << metadonnee << '\n';
+
+	if (valeur == "redimension_image") {
+		danjo::Manipulable manipulable;
+
+		auto donnees = danjo::DonneesInterface();
+		donnees.manipulable = &manipulable;
+		donnees.repondant_bouton = this;
+		donnees.conteneur = nullptr;
+
+		auto texte_entree = danjo::contenu_fichier("exemples/redimension_image.jo");
+		auto ok = danjo::montre_dialogue(donnees, texte_entree.c_str());
+
+		if (ok) {
+			std::cerr << "Dialogue accepté !\n";
+			std::cerr << "Largeur : " << manipulable.evalue_entier("largeur") << '\n';
+			std::cerr << "Hauteur : " << manipulable.evalue_entier("hauteur") << '\n';
+		}
+		else {
+			std::cerr << "Dialogue rejeté !\n";
+		}
+	}
 }
 
 bool RepondantBoutonTest::evalue_predicat(const std::string &valeur, const std::string &metadonnee)
