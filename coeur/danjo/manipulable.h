@@ -108,19 +108,6 @@ public:
 	iterateur fin();
 
 	/**
-	 * Retourne si oui ou non le manipulable a été initialisé. Cette propriété
-	 * est utilisée pour définir si oui ou non les contrôles créés dans
-	 * l'interface doivent prendre leurs valeurs par défaut, ou celles du
-	 * manipulable.
-	 */
-	bool est_initialise() const;
-
-	/**
-	 * Marque le manipulable comme étant initialisé.
-	 */
-	void initialise();
-
-	/**
 	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.
 	 *
 	 * La valeur spécifiée est la valeur par défaut du manipulable.

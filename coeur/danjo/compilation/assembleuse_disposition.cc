@@ -136,8 +136,6 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 			break;
 	}
 
-	m_donnees_controle.initialisation = !m_manipulable->est_initialise();
-
 	m_dernier_controle = controle;
 	m_pile_dispositions.top()->addWidget(controle);
 }

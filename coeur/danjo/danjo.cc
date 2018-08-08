@@ -228,8 +228,6 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnees, 
 
 	m_dispositions.insert({nom, disposition});
 
-	donnees.manipulable->initialise();
-
 	return disposition;
 }
 
