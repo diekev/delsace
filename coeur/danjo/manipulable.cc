@@ -255,6 +255,13 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 	m_proprietes[nom] = Propriete{valeur, type};
 }
 
+void Manipulable::ajoute_propriete_extra(const std::string &nom, const Propriete &propriete)
+{
+	Propriete prop = propriete;
+	prop.est_extra = true;
+	m_proprietes[nom] = prop;
+}
+
 int Manipulable::evalue_entier(const std::string &nom, int temps)
 {
 	Propriete &prop = m_proprietes[nom];

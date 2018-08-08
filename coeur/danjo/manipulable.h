@@ -47,7 +47,10 @@ struct Propriete {
 	std::experimental::any valeur;
 	TypePropriete type;
 
-	bool visible;
+	bool est_extra = false;
+
+	bool visible = true;
+
 	std::vector<std::pair<int, std::experimental::any>> courbe;
 
 	void ajoute_cle(const int v, int temps);
@@ -113,6 +116,11 @@ public:
 	 * La valeur spécifiée est la valeur par défaut du manipulable.
 	 */
 	void ajoute_propriete(const std::string &nom, TypePropriete type, const std::experimental::any &valeur);
+
+	/**
+	 * Ajoute une propriété extra à ce manipulable avec le nom spécifié.
+	 */
+	void ajoute_propriete_extra(const std::string &nom, const Propriete &propriete);
 
 	/**
 	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.

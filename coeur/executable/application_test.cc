@@ -92,6 +92,17 @@ FenetreTest::FenetreTest()
 {
 	auto widget_test = new WidgetTest;
 
+	danjo::Propriete prop;
+	prop.type = danjo::TypePropriete::ENTIER;
+	prop.valeur = 9;
+
+	m_manipulable.ajoute_propriete_extra("prop_entier", prop);
+
+	prop.type = danjo::TypePropriete::DECIMAL;
+	prop.valeur = 16.2f;
+
+	m_manipulable.ajoute_propriete_extra("prop_decimal", prop);
+
 	auto donnees = danjo::DonneesInterface();
 	donnees.manipulable = &m_manipulable;
 	donnees.repondant_bouton = &m_repondant;

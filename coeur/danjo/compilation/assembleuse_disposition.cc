@@ -140,6 +140,71 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 	m_pile_dispositions.top()->addWidget(controle);
 }
 
+void AssembleurDisposition::cree_controles_proprietes_extra()
+{
+	auto debut = m_manipulable->debut();
+	auto fin = m_manipulable->fin();
+
+	for (auto iter = debut; iter != fin; ++iter) {
+		const Propriete &prop = iter->second;
+
+		if (!prop.est_extra) {
+			continue;
+		}
+
+		int identifiant = -1;
+
+		switch (prop.type) {
+			case TypePropriete::ENTIER:
+				identifiant = IDENTIFIANT_ENTIER;
+				break;
+			case TypePropriete::DECIMAL:
+				identifiant = IDENTIFIANT_DECIMAL;
+				break;
+			case TypePropriete::ENUM:
+				identifiant = IDENTIFIANT_ENUM;
+				break;
+			case TypePropriete::CHAINE_CARACTERE:
+				identifiant = IDENTIFIANT_CHAINE;
+				break;
+			case TypePropriete::FICHIER_ENTREE:
+				identifiant = IDENTIFIANT_FICHIER_ENTREE;
+				break;
+			case TypePropriete::FICHIER_SORTIE:
+				identifiant = IDENTIFIANT_FICHIER_SORTIE;
+				break;
+			case TypePropriete::COULEUR:
+				identifiant = IDENTIFIANT_COULEUR;
+				break;
+			case TypePropriete::VECTEUR:
+				identifiant = IDENTIFIANT_VECTEUR;
+				break;
+			default:
+				break;
+		}
+
+		if (identifiant == -1) {
+			continue;
+		}
+
+		ajoute_disposition(IDENTIFIANT_LIGNE);
+
+		auto etiquette = new ControleProprieteEtiquette;
+		auto donnees_etiquette = DonneesControle();
+		donnees_etiquette.valeur_defaut = iter->first;
+		etiquette->finalise(donnees_etiquette);
+
+		m_pile_dispositions.top()->addWidget(etiquette);
+
+		ajoute_controle(identifiant);
+		m_donnees_controle.nom = iter->first;
+		m_donnees_controle.pointeur = (*m_manipulable)[m_donnees_controle.nom];
+		finalise_controle();
+
+		sors_disposition();
+	}
+}
+
 void AssembleurDisposition::ajoute_item_liste(const std::string &nom, const std::string &valeur)
 {
 	m_donnees_controle.valeur_enum.push_back({nom, valeur});
@@ -179,7 +244,7 @@ void AssembleurDisposition::finalise_controle()
 	}
 }
 
-void AssembleurDisposition::sort_disposition()
+void AssembleurDisposition::sors_disposition()
 {
 	m_pile_dispositions.pop();
 }

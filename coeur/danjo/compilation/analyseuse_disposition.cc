@@ -137,6 +137,8 @@ void AnalyseuseDisposition::analyse_script_disposition()
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 
+	m_assembleur->cree_controles_proprietes_extra();
+
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << " fin\n";
 #endif
@@ -280,7 +282,7 @@ void AnalyseuseDisposition::analyse_ligne()
 
 	analyse_disposition();
 
-	m_assembleur->sort_disposition();
+	m_assembleur->sors_disposition();
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de la 'ligne' !");
@@ -307,7 +309,7 @@ void AnalyseuseDisposition::analyse_colonne()
 
 	analyse_disposition();
 
-	m_assembleur->sort_disposition();
+	m_assembleur->sors_disposition();
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de la 'colonne' !");

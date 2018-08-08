@@ -130,7 +130,7 @@ public:
 	 * Enlève la disposition courante du sommet de la pile. La disposition se
 	 * trouvant en dessous devient la disposition active.
 	 */
-	void sort_disposition();
+	void sors_disposition();
 
 	/**
 	 * Ajoute une propriété au dernier contrôle ajouté.
@@ -208,6 +208,11 @@ public:
 	 * Retourne un pointeur vers la barre à outils créée.
 	 */
 	QToolBar *barre_outils() const;
+
+	/**
+	 * Créé les controles pour les propriétés extras.
+	 */
+	void cree_controles_proprietes_extra();
 };
 
 }  /* namespace danjo */
