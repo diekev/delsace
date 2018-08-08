@@ -175,8 +175,10 @@ void AssembleurDisposition::finalise_controle()
 	m_dernier_controle->temps(m_temps);
 	m_dernier_controle->finalise(m_donnees_controle);
 
-	QObject::connect(m_dernier_controle, &ControlePropriete::controle_change,
-					 m_conteneur, &ConteneurControles::ajourne_manipulable);
+	if (m_conteneur != nullptr) {
+		QObject::connect(m_dernier_controle, &ControlePropriete::controle_change,
+						 m_conteneur, &ConteneurControles::ajourne_manipulable);
+	}
 }
 
 void AssembleurDisposition::sort_disposition()
