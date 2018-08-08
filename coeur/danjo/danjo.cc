@@ -223,14 +223,14 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnees, 
 		return nullptr;
 	}
 
-	auto dispostion = assembleur.disposition();
+	auto disposition = assembleur.disposition();
 	auto nom = assembleur.nom_disposition();
 
-	m_dispositions.insert({nom, dispostion});
+	m_dispositions.insert({nom, disposition});
 
 	donnees.manipulable->initialise();
 
-	return dispostion;
+	return disposition;
 }
 
 QMenu *GestionnaireInterface::pointeur_menu(const std::string &nom)

@@ -100,6 +100,12 @@ void AnalyseuseDisposition::lance_analyse(const std::vector<DonneesMorceaux> &id
 	else if (est_identifiant(IDENTIFIANT_BARRE_OUTILS)) {
 		analyse_script_barre_outils();
 	}
+	else {
+		/* avance car lance_erreur dépend de position qui est retourne
+		 * m_position - 1, et nous sommes à la position 0. */
+		avance();
+		lance_erreur("Le script ne commence par aucun mot-clé connu !");
+	}
 }
 
 void AnalyseuseDisposition::analyse_script_disposition()
