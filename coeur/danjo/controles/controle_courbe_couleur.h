@@ -26,17 +26,12 @@
 
 #include <QWidget>
 
-struct point {
-	double x, y;
-};
-
-struct courbe {
-	std::vector<point> points;
-};
+#include "types/courbe_bezier.h"
 
 class ControleCourbeCouleur : public QWidget {
-	courbe c;
-	point *point_courant = nullptr;
+	CourbeBezier m_courbe;
+	PointBezier *m_point_courant = nullptr;
+	int m_type_point = 0;
 
 public:
 	explicit ControleCourbeCouleur(QWidget *parent = nullptr);
@@ -48,4 +43,6 @@ public:
 	void mouseMoveEvent(QMouseEvent *event) override;
 
 	void mouseReleaseEvent(QMouseEvent */*event*/) override;
+
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
 };
