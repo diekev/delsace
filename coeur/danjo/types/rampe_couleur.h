@@ -24,41 +24,31 @@
 
 #pragma once
 
-#include <QWidget>
+#include <glm/glm.hpp>
+#include <vector>
 
-class RampeCouleur;
-class PointRampeCouleur;
-
-class ControleRampeCouleur : public QWidget {
-	Q_OBJECT
-
-	RampeCouleur *m_rampe = nullptr;
-	PointRampeCouleur *m_point_courant = nullptr;
-	bool m_point_selectionne = false;
-
-public:
-	explicit ControleRampeCouleur(QWidget *parent = nullptr);
-
-	void installe_rampe(RampeCouleur *rampe);
-
-	void paintEvent(QPaintEvent *event) override;
-
-	void mousePressEvent(QMouseEvent *event) override;
-
-	void mouseMoveEvent(QMouseEvent *event) override;
-
-	void mouseReleaseEvent(QMouseEvent *event) override;
-
-	void mouseDoubleClickEvent(QMouseEvent *event) override;
-
-	void ajourne_position(float x);
-
-private:
-	float position_degrade(float x);
-
-Q_SIGNALS:
-	void point_change();
-	void controle_ajoute();
-
-	void position_modifie(float x);
+enum {
+	INTERPOLATION_RVB = 0,
+	INTERPOLATION_HSV = 1,
 };
+
+struct PointRampeCouleur {
+	float position;
+	glm::vec4 couleur;
+	bool selectionne = false;
+};
+
+struct RampeCouleur {
+	std::vector<PointRampeCouleur> points;
+	char interpolation = INTERPOLATION_RVB;
+};
+
+void cree_rampe_defaut(RampeCouleur &rampe);
+
+void tri_points_rampe(RampeCouleur &rampe);
+
+void ajoute_point_rampe(RampeCouleur &rampe, float x, const glm::vec4 &couleur);
+
+PointRampeCouleur *trouve_point_selectionne(const RampeCouleur &rampe);
+
+glm::vec4 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur);

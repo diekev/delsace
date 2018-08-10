@@ -31,6 +31,7 @@
 
 struct CourbeBezier;
 struct CourbeCouleur;
+struct RampeCouleur;
 
 namespace danjo {
 
@@ -46,6 +47,7 @@ enum TypePropriete {
 	ENUM,
 	COURBE_COULEUR,
 	COURBE_VALEUR,
+	RAMPE_COULEUR,
 };
 
 struct Propriete {
@@ -193,6 +195,11 @@ public:
 	 * Retourne la courbe de la propriété 'courbe_valeur' du nom spécifié.
 	 */
 	CourbeBezier *evalue_courbe_valeur(const std::string &nom);
+
+	/**
+	 * Retourne la rampe de la propriété 'rampe_couleur' du nom spécifié.
+	 */
+	RampeCouleur *evalue_rampe_couleur(const std::string &nom);
 
 	/**
 	 * Rends la propriété spécifiée visible dans l'interface.

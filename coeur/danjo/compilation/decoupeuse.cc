@@ -99,6 +99,7 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_PAS, "pas" },
 	{ IDENTIFIANT_PRECISION, "précision" },
 	{ IDENTIFIANT_QUAND, "quand" },
+	{ IDENTIFIANT_RAMPE_COULEUR, "rampe_couleur" },
 	{ IDENTIFIANT_RELATION, "relation" },
 	{ IDENTIFIANT_RESULTAT, "résultat" },
 	{ IDENTIFIANT_SORTIE, "sortie" },

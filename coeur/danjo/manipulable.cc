@@ -25,6 +25,7 @@
 #include "manipulable.h"
 
 #include "types/courbe_bezier.h"
+#include "types/rampe_couleur.h"
 
 namespace danjo {
 
@@ -262,6 +263,13 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 			valeur = std::experimental::any(courbe);
 			break;
 		}
+		case TypePropriete::RAMPE_COULEUR:
+		{
+			auto rampe = RampeCouleur();
+			cree_rampe_defaut(rampe);
+			valeur = std::experimental::any(rampe);
+			break;
+		}
 	}
 
 	m_proprietes[nom] = Propriete{valeur, type};
@@ -358,6 +366,11 @@ CourbeBezier *Manipulable::evalue_courbe_valeur(const std::string &nom)
 	return std::experimental::any_cast<CourbeBezier>(&m_proprietes[nom].valeur);
 }
 
+RampeCouleur *Manipulable::evalue_rampe_couleur(const std::string &nom)
+{
+	return std::experimental::any_cast<RampeCouleur>(&m_proprietes[nom].valeur);
+}
+
 void Manipulable::rend_propriete_visible(const std::string &nom, bool ouinon)
 {
 	m_proprietes[nom].visible = ouinon;
@@ -430,6 +443,9 @@ void *Manipulable::operator[](const std::string &nom)
 			break;
 		case TypePropriete::COURBE_VALEUR:
 			pointeur = std::experimental::any_cast<CourbeBezier>(&propriete.valeur);
+			break;
+		case TypePropriete::RAMPE_COULEUR:
+			pointeur = std::experimental::any_cast<RampeCouleur>(&propriete.valeur);
 			break;
 	}
 

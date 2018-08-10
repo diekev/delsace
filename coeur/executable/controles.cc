@@ -35,9 +35,14 @@
 #include "danjo/controles/controle_teinte_couleur.h"
 #include "danjo/controles_proprietes/controle_propriete_courbe_couleur.h"
 #include "danjo/controles_proprietes/controle_propriete_courbe_valeur.h"
+#include "danjo/controles_proprietes/controle_propriete_rampe_couleur.h"
 #include "danjo/controles_proprietes/controle_propriete_liste.h"
 
 #include "danjo/conteneur_controles.h"
+
+#include "danjo/controles_proprietes/donnees_controle.h"
+
+#include "types/rampe_couleur.h"
 
 class Conteneur : public danjo::ConteneurControles {
 public:
@@ -62,7 +67,16 @@ int main(int argc, char *argv[])
 //	controle.conteneur(&conteneur);
 //	controle.show();
 
-	danjo::ControleProprieteCourbeValeur controle;
+	RampeCouleur rampe;
+	ajoute_point_rampe(rampe, 0.0f, glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
+	ajoute_point_rampe(rampe, 0.5f, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
+	ajoute_point_rampe(rampe, 1.0f, glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+
+	danjo::DonneesControle donnees;
+	donnees.pointeur = &rampe;
+
+	danjo::ControleProprieteRampeCouleur controle;
+	controle.finalise(donnees);
 	controle.show();
 
 	return app.exec();

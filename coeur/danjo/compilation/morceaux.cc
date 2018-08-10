@@ -116,6 +116,8 @@ const char *chaine_identifiant(int identifiant)
 			return "IDENTIFIANT_PRECISION";
 		case IDENTIFIANT_QUAND:
 			return "IDENTIFIANT_QUAND";
+		case IDENTIFIANT_RAMPE_COULEUR:
+			return "IDENTIFIANT_RAMPE_COULEUR";
 		case IDENTIFIANT_RELATION:
 			return "IDENTIFIANT_RELATION";
 		case IDENTIFIANT_RESULTAT:
@@ -243,6 +245,5 @@ const char *chaine_identifiant(int identifiant)
 	}
 	return "NULL";
 }
-
 
 }  /* namespace danjo */

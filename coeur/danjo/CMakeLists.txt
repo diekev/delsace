@@ -33,6 +33,7 @@ qt5_wrap_cpp(
 	controles/controle_echelle_valeur.h
 	controles/controle_nombre_decimal.h
 	controles/controle_nombre_entier.h
+	controles/controle_rampe_couleur.h
 
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h
@@ -45,6 +46,7 @@ qt5_wrap_cpp(
 	controles_proprietes/controle_propriete_enum.h
 	controles_proprietes/controle_propriete_etiquette.h
 	controles_proprietes/controle_propriete_fichier.h
+	controles_proprietes/controle_propriete_rampe_couleur.h
 	controles_proprietes/controle_propriete_liste.h
 	controles_proprietes/controle_propriete_vecteur.h
 
@@ -54,6 +56,7 @@ qt5_wrap_cpp(
 
 set(ENTETES_TYPES
 	types/courbe_bezier.h
+	types/rampe_couleur.h
 )
 
 set(ENTETES
@@ -89,6 +92,7 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_enum.cc
 	controles_proprietes/controle_propriete_etiquette.cc
 	controles_proprietes/controle_propriete_fichier.cc
+	controles_proprietes/controle_propriete_rampe_couleur.cc
 	controles_proprietes/controle_propriete_liste.cc
 	controles_proprietes/controle_propriete_vecteur.cc
 	controles_proprietes/donnees_controle.cc
@@ -104,6 +108,7 @@ add_library(danjo STATIC
 	compilation/morceaux.cc
 
 	types/courbe_bezier.cc
+	types/rampe_couleur.cc
 
 	conteneur_controles.cc
 	dialogue.cc
@@ -137,6 +142,7 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_etiquette.h
 	controles_proprietes/controle_propriete_fichier.h
 	controles_proprietes/controle_propriete_liste.h
+	controles_proprietes/controle_propriete_rampe_couleur.h
 	controles_proprietes/controle_propriete_vecteur.h
 	controles_proprietes/donnees_controle.h
 
@@ -150,7 +156,7 @@ add_library(danjo STATIC
 	compilation/graphe_contrainte.h
 	compilation/morceaux.h
 
-	types/courbe_bezier.h
+	${ENTETES_TYPES}
 
 	dialogue.h
 	${ENTETES}

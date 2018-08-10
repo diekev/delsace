@@ -50,6 +50,7 @@ bool est_identifiant_controle(int identifiant)
 		case IDENTIFIANT_VECTEUR:
 		case IDENTIFIANT_COURBE_COULEUR:
 		case IDENTIFIANT_COURBE_VALEUR:
+		case IDENTIFIANT_RAMPE_COULEUR:
 			return true;
 		default:
 			return false;

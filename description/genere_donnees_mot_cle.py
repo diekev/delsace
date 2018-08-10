@@ -47,6 +47,7 @@ mot_cle = [
 	"suffixe",
 	"courbe_couleur",
 	"courbe_valeur",
+	"rampe_couleur",
 ]
 
 caracteres_double = [

@@ -45,6 +45,7 @@
 #include "controles_proprietes/controle_propriete_enum.h"
 #include "controles_proprietes/controle_propriete_fichier.h"
 #include "controles_proprietes/controle_propriete_liste.h"
+#include "controles_proprietes/controle_propriete_rampe_couleur.h"
 #include "controles_proprietes/controle_propriete_vecteur.h"
 
 #include "conteneur_controles.h"
@@ -143,6 +144,10 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 		case IDENTIFIANT_COURBE_VALEUR:
 			controle = new ControleProprieteCourbeValeur;
 			m_donnees_controle.type = TypePropriete::COURBE_VALEUR;
+			break;
+		case IDENTIFIANT_RAMPE_COULEUR:
+			controle = new ControleProprieteRampeCouleur;
+			m_donnees_controle.type = TypePropriete::RAMPE_COULEUR;
 			break;
 	}
 
