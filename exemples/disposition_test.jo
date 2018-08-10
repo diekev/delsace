@@ -28,6 +28,14 @@ disposition "1disposition_début" {
 				case(valeur=vrai; attache=cocher)
 			}
 		}
+		onglet "Courbe Couleur" {
+			étiquette(valeur="Courbe")
+			courbe_couleur(attache=courbe_1)
+		}
+		onglet "Courbe Valeur" {
+			étiquette(valeur="Courbe")
+			courbe_valeur(attache=courbe_2)
+		}
 	}
 	ligne {
 		étiquette(valeur="Ligne 2")

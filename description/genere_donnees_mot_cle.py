@@ -45,6 +45,8 @@ mot_cle = [
 	"filtres",
 	"énum",
 	"suffixe",
+	"courbe_couleur",
+	"courbe_valeur",
 ]
 
 caracteres_double = [

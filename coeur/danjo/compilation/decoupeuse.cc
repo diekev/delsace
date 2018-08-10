@@ -71,6 +71,8 @@ static PaireIndentifiantChaine paires_identifiant[] = {
 	{ IDENTIFIANT_CHAINE, "chaine" },
 	{ IDENTIFIANT_COLONNE, "colonne" },
 	{ IDENTIFIANT_COULEUR, "couleur" },
+	{ IDENTIFIANT_COURBE_COULEUR, "courbe_couleur" },
+	{ IDENTIFIANT_COURBE_VALEUR, "courbe_valeur" },
 	{ IDENTIFIANT_DISPOSITION, "disposition" },
 	{ IDENTIFIANT_DOSSIER, "dossier" },
 	{ IDENTIFIANT_DECIMAL, "décimal" },

@@ -24,6 +24,8 @@
 
 #include "manipulable.h"
 
+#include "types/courbe_bezier.h"
+
 namespace danjo {
 
 /* ************************************************************************** */
@@ -250,6 +252,16 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 		case TypePropriete::BOOL:
 			valeur = std::experimental::any(false);
 			break;
+		case TypePropriete::COURBE_COULEUR:
+			valeur = std::experimental::any(CourbeCouleur());
+			break;
+		case TypePropriete::COURBE_VALEUR:
+		{
+			auto courbe = CourbeBezier();
+			cree_courbe_defaut(courbe);
+			valeur = std::experimental::any(courbe);
+			break;
+		}
 	}
 
 	m_proprietes[nom] = Propriete{valeur, type};
@@ -336,6 +348,16 @@ std::string Manipulable::evalue_liste(const std::string &nom)
 	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);
 }
 
+CourbeCouleur *Manipulable::evalue_courbe_couleur(const std::string &nom)
+{
+	return std::experimental::any_cast<CourbeCouleur>(&m_proprietes[nom].valeur);
+}
+
+CourbeBezier *Manipulable::evalue_courbe_valeur(const std::string &nom)
+{
+	return std::experimental::any_cast<CourbeBezier>(&m_proprietes[nom].valeur);
+}
+
 void Manipulable::rend_propriete_visible(const std::string &nom, bool ouinon)
 {
 	m_proprietes[nom].visible = ouinon;
@@ -402,6 +424,12 @@ void *Manipulable::operator[](const std::string &nom)
 			break;
 		case TypePropriete::BOOL:
 			pointeur = std::experimental::any_cast<bool>(&propriete.valeur);
+			break;
+		case TypePropriete::COURBE_COULEUR:
+			pointeur = std::experimental::any_cast<CourbeCouleur>(&propriete.valeur);
+			break;
+		case TypePropriete::COURBE_VALEUR:
+			pointeur = std::experimental::any_cast<CourbeBezier>(&propriete.valeur);
 			break;
 	}
 

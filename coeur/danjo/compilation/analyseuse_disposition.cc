@@ -48,6 +48,8 @@ bool est_identifiant_controle(int identifiant)
 		case IDENTIFIANT_FICHIER_SORTIE:
 		case IDENTIFIANT_COULEUR:
 		case IDENTIFIANT_VECTEUR:
+		case IDENTIFIANT_COURBE_COULEUR:
+		case IDENTIFIANT_COURBE_VALEUR:
 			return true;
 		default:
 			return false;

@@ -240,6 +240,7 @@ float ControleNombreDecimal::valeur() const
 void ControleNombreDecimal::valeur(const float v)
 {
 	m_valeur = v;
+	update();
 }
 
 void ControleNombreDecimal::suffixe(const QString &s)

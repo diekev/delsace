@@ -29,191 +29,43 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+#include "types/courbe_bezier.h"
+
 /* ************************************************************************** */
 
 #undef DEBOGAGE_CONTROLES
 
-auto operator+(const Point &p1, const Point &p2)
-{
-	return Point{
-		p1.x + p2.x,
-		p1.y + p2.y
-	};
-}
-
-auto operator-(const Point &p1, const Point &p2)
-{
-	return Point{
-		p1.x - p2.x,
-		p1.y - p2.y
-	};
-}
-
-auto operator*(const Point &p1, const float f)
-{
-	return Point{
-		p1.x * f,
-		p1.y * f
-	};
-}
-
-auto longueur(const Point &p)
-{
-	return std::sqrt(p.x * p.x + p.y * p.y);
-}
-
-auto longueur(const Point &p1, const Point &p2)
-{
-	return longueur(p1 - p2);
-}
-
-/* ************************************************************************** */
-
-/**
- * Voir http://whizkidtech.redprince.net/bezier/circle/
- * et rB290361776e5858b3903a83c0cddf722b8340e699
- */
-static constexpr auto KAPPA = 2.5614f;
-
-void calcule_controles_courbe(CourbeBezier &courbe)
-{
-	const auto nombre_points = courbe.points.size();
-
-	/* fais pointer les controles vers le centre des points environnants */
-	for (size_t i = 0; i < nombre_points; ++i) {
-		auto &p = courbe.points[i];
-
-		if (i == 0) {
-			p.co[POINT_CONTROLE2] = courbe.points[i + 1].co[POINT_CENTRE];
-			p.co[POINT_CONTROLE1] = p.co[POINT_CENTRE] * 2.0f - p.co[POINT_CONTROLE2];
-		}
-		else if (i == nombre_points - 1) {
-			p.co[POINT_CONTROLE1] = courbe.points[i - 1].co[POINT_CENTRE];
-			p.co[POINT_CONTROLE2] = p.co[POINT_CENTRE] * 2.0f - p.co[POINT_CONTROLE1];
-		}
-		else {
-			p.co[POINT_CONTROLE1] = courbe.points[i - 1].co[POINT_CENTRE];
-			p.co[POINT_CONTROLE2] = courbe.points[i + 1].co[POINT_CENTRE];
-		}
-	}
-
-	/* corrige les controles pour qu'ils soient tangeants à la courbe */
-	for (auto &p : courbe.points) {
-		auto &p0 = p.co[POINT_CONTROLE1];
-		const auto &p1 = p.co[POINT_CENTRE];
-		auto &p2 = p.co[POINT_CONTROLE2];
-
-		auto vec_a = Point{p1.x - p0.x, p1.y - p0.y};
-		auto vec_b = Point{p2.x - p1.x, p2.y - p1.y};
-
-		auto len_a = longueur(vec_a);
-		auto len_b = longueur(vec_b);
-
-		if (len_a == 0.0f) {
-			len_a = 1.0f;
-		}
-
-		if (len_b == 0.0f) {
-			len_b = 1.0f;
-		}
-
-		Point tangeante;
-		tangeante.x = vec_b.x / len_b + vec_a.x / len_a;
-		tangeante.y = vec_b.y / len_b + vec_a.y / len_a;
-
-		auto len_t = longueur(tangeante) * KAPPA;
-
-		if (len_t != 0.0f) {
-			// point a
-			len_a /= len_t;
-			p0 = p1 + tangeante * -len_a;
-
-			// point b
-			len_b /= len_t;
-			p2 = p1 + tangeante *  len_b;
-		}
-	}
-
-	/* corrige premier et dernier point pour pointer vers le controle le plus proche */
-	if (nombre_points > 2) {
-		// premier
-		{
-			auto &p0 = courbe.points[0];
-
-			auto hlen = longueur(p0.co[POINT_CENTRE], p0.co[POINT_CONTROLE2]); /* original handle length */
-			/* clip handle point */
-			auto vec = courbe.points[1].co[POINT_CONTROLE1];
-
-			if (vec.x < p0.co[POINT_CENTRE].x) {
-				vec.x = p0.co[POINT_CENTRE].x;
-			}
-
-			vec = vec - p0.co[POINT_CENTRE];
-			auto nlen = longueur(vec);
-
-			if (nlen > 1e-6f) {
-				vec = vec * (hlen / nlen);
-				p0.co[POINT_CONTROLE2] = vec + p0.co[POINT_CENTRE];
-				p0.co[POINT_CONTROLE1] = p0.co[POINT_CENTRE] - vec;
-			}
-		}
-
-		// dernier
-		{
-			auto &p0 = courbe.points[nombre_points - 1];
-
-			auto hlen = longueur(p0.co[POINT_CENTRE], p0.co[POINT_CONTROLE1]); /* original handle length */
-			/* clip handle point */
-			auto vec = courbe.points[nombre_points - 2].co[POINT_CONTROLE2];
-
-			if (vec.x > p0.co[POINT_CENTRE].x) {
-				vec.x = p0.co[POINT_CENTRE].x;
-			}
-
-			vec = vec - p0.co[POINT_CENTRE];
-			auto nlen = longueur(vec);
-
-			if (nlen > 1e-6f) {
-				vec = vec * (hlen / nlen);
-				p0.co[POINT_CONTROLE1] = p0.co[POINT_CENTRE] + vec;
-				p0.co[POINT_CONTROLE2] = p0.co[POINT_CENTRE] - vec;
-			}
-		}
-	}
-
-	construit_table_courbe(courbe);
-}
-
-ControleCourbeCouleur::ControleCourbeCouleur(QWidget *parent)
-	: QWidget(parent)
-{
-	resize(300, 300);
-
-	ajoute_point_courbe(m_courbe, 0.0f, 0.0f);
-	ajoute_point_courbe(m_courbe, 1.0f, 1.0f);
-	ajoute_point_courbe(m_courbe, 0.6f, 0.4f);
-	ajoute_point_courbe(m_courbe, 0.4f, 0.2f);
-
-	calcule_controles_courbe(m_courbe);
-}
-
-enum {
-	COURBE_ROUGE  = 0,
-	COURBE_VERTE  = 1,
-	COURBE_BLEUE  = 2,
-	COURBE_VALEUR = 3,
-};
-
-static QColor COULEURS_COURBES[4] = {
+static QColor COULEURS_COURBES[5] = {
+	QColor(255, 255, 255),
 	QColor(255, 0, 0),
 	QColor(0, 255, 0),
 	QColor(0, 0, 255),
 	QColor(255, 255, 255),
 };
 
+/* ************************************************************************** */
+
+ControleCourbeCouleur::ControleCourbeCouleur(QWidget *parent)
+	: QWidget(parent)
+{
+	setMinimumSize(300, 300);
+}
+
+void ControleCourbeCouleur::change_mode(int mode)
+{
+	m_mode = mode;
+	update();
+}
+
+void ControleCourbeCouleur::installe_courbe(CourbeBezier *courbe)
+{
+	m_courbe = courbe;
+	m_point_courant = courbe->point_courant;
+	update();
+}
+
 void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 {
-	const auto role = COURBE_VALEUR;
 	const auto hauteur = size().height();
 	const auto largeur = size().width();
 
@@ -255,21 +107,21 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 
 	/* dessine la courbe */
 
-	auto stylo_colore = QPen(COULEURS_COURBES[role]);
+	auto stylo_colore = QPen(COULEURS_COURBES[m_mode]);
 	stylo_colore.setWidthF(1.0f);
 	painter.setPen(stylo_colore);
 
-	auto p1 = m_courbe.extension_min.co[POINT_CENTRE];
-	auto p2 = m_courbe.table[0];
+	auto p1 = m_courbe->extension_min.co[POINT_CENTRE];
+	auto p2 = m_courbe->table[0];
 
 	painter.drawLine(p1.x * largeur,
 					 (1.0f - p1.y) * hauteur,
 					 p2.x * largeur,
 					 (1.0f - p2.y) * hauteur);
 
-	for (size_t i = 0; i < m_courbe.table.size() - 1; ++i) {
-		p1 = m_courbe.table[i];
-		p2 = m_courbe.table[i + 1];
+	for (size_t i = 0; i < m_courbe->table.size() - 1; ++i) {
+		p1 = m_courbe->table[i];
+		p2 = m_courbe->table[i + 1];
 
 		painter.drawLine(p1.x * largeur,
 						 (1.0f - p1.y) * hauteur,
@@ -277,8 +129,8 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 						 (1.0f - p2.y) * hauteur);
 	}
 
-	p1 = m_courbe.table[m_courbe.table.size() - 1];
-	p2 = m_courbe.extension_max.co[POINT_CENTRE];
+	p1 = m_courbe->table[m_courbe->table.size() - 1];
+	p2 = m_courbe->extension_max.co[POINT_CENTRE];
 
 	painter.drawLine(p1.x * largeur,
 					 (1.0f - p1.y) * hauteur,
@@ -286,13 +138,13 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 					 (1.0f - p2.y) * hauteur);
 
 	/* dessine les points */
-	stylo_colore = QPen(COULEURS_COURBES[role]);
+	stylo_colore = QPen(COULEURS_COURBES[m_mode]);
 	stylo_colore.setWidthF(5.0f);
 
 	auto stylo_blanc = QPen(Qt::yellow);
 	stylo_blanc.setWidthF(5.0f);
 
-	for (const PointBezier &point : m_courbe.points) {
+	for (const PointBezier &point : m_courbe->points) {
 		if (&point == m_point_courant) {
 			painter.setPen(stylo_blanc);
 		}
@@ -319,7 +171,7 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 
 	painter.setPen(stylo);
 
-	for (const PointBezier &point : m_courbe.points) {
+	for (const PointBezier &point : m_courbe->points) {
 		painter.drawLine(point.co[POINT_CONTROLE1].x * largeur,
 						 (1.0f - point.co[POINT_CONTROLE1].y) * hauteur,
 						 point.co[POINT_CENTRE].x * largeur,
@@ -342,10 +194,11 @@ void ControleCourbeCouleur::mousePressEvent(QMouseEvent *event)
 	const auto &taille_fenetre_x = 10.0f / static_cast<float>(size().width());
 	const auto &taille_fenetre_y = 10.0f / static_cast<float>(size().height());
 
-	m_point_courant = nullptr;
+	PointBezier *point_courant = nullptr;
+	m_point_selectionne = false;
 	m_type_point = -1;
 
-	for (PointBezier &point : m_courbe.points) {
+	for (PointBezier &point : m_courbe->points) {
 		auto dist_x = point.co[POINT_CENTRE].x - x;
 
 		if (std::abs(dist_x) > taille_fenetre_x) {
@@ -355,29 +208,43 @@ void ControleCourbeCouleur::mousePressEvent(QMouseEvent *event)
 		auto dist_y = point.co[POINT_CENTRE].y - (1.0f - y);
 
 		if (std::abs(dist_y) < taille_fenetre_y) {
-			m_point_courant = &point;
+			point_courant = &point;
 		}
+	}
+
+	if (point_courant != nullptr) {
+		if (point_courant != m_courbe->point_courant) {
+			m_courbe->point_courant = point_courant;
+			Q_EMIT point_change();
+			update();
+		}
+
+		m_point_courant = point_courant;
+		m_point_selectionne = true;
 	}
 }
 
 void ControleCourbeCouleur::mouseMoveEvent(QMouseEvent *event)
 {
-	if (m_point_courant != nullptr) {
+	if (m_point_selectionne) {
 		const auto &x = event->pos().x() / static_cast<float>(size().width());
 		const auto &y = event->pos().y() / static_cast<float>(size().height());
 
 		m_point_courant->co[POINT_CENTRE].x = std::max(0.0f, std::min(1.0f, x));
 		m_point_courant->co[POINT_CENTRE].y = std::max(0.0f, std::min(1.0f, 1.0f - y));
 
-		calcule_controles_courbe(m_courbe);
+		calcule_controles_courbe(*m_courbe);
 
 		update();
+
+		Q_EMIT position_changee(m_point_courant->co[POINT_CENTRE].x,
+								m_point_courant->co[POINT_CENTRE].y);
 	}
 }
 
 void ControleCourbeCouleur::mouseReleaseEvent(QMouseEvent *)
 {
-	//m_point_courant = nullptr;
+	m_point_selectionne = false;
 }
 
 void ControleCourbeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
@@ -385,8 +252,22 @@ void ControleCourbeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
 	const auto &x = event->pos().x() / static_cast<float>(size().width());
 	const auto &y = event->pos().y() / static_cast<float>(size().height());
 
-	ajoute_point_courbe(m_courbe, x, 1.0f - y);
-	calcule_controles_courbe(m_courbe);
+	ajoute_point_courbe(*m_courbe, x, 1.0f - y);
+	calcule_controles_courbe(*m_courbe);
 
+	update();
+}
+
+void ControleCourbeCouleur::ajourne_position_x(float v)
+{
+	m_point_courant->co[POINT_CENTRE].x = v;
+	calcule_controles_courbe(*m_courbe);
+	update();
+}
+
+void ControleCourbeCouleur::ajourne_position_y(float v)
+{
+	m_point_courant->co[POINT_CENTRE].y = v;
+	calcule_controles_courbe(*m_courbe);
 	update();
 }

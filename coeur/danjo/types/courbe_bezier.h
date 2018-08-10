@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <glm/glm.hpp>
 #include <vector>
 
 struct Point {
@@ -53,6 +54,9 @@ struct CourbeBezier {
 	/* les points constituants cette courbe */
 	std::vector<PointBezier> points;
 
+	/* le point courant de cette courbe */
+	PointBezier *point_courant = nullptr;
+
 	/* extension du point minimum en dehors des limites de la courbe */
 	PointBezier extension_min;
 
@@ -68,10 +72,42 @@ struct CourbeBezier {
 	/* valeur maximale de la courbe pour l'évaluation */
 	float valeur_max = 1.0f;
 
+	/* défini si oui ou non la table doit être utilisée lors de l'évaluation
+	 * de la courbe */
+	bool utilise_table = true;
+
 	CourbeBezier() = default;
 	~CourbeBezier() = default;
 };
 
+enum {
+	COURBE_MAITRESSE = 0,
+	COURBE_ROUGE     = 1,
+	COURBE_VERTE     = 2,
+	COURBE_BLEUE     = 3,
+	COURBE_VALEUR    = 4,
+};
+
+struct CourbeCouleur {
+	CourbeBezier courbe_m;
+	CourbeBezier courbe_r;
+	CourbeBezier courbe_v;
+	CourbeBezier courbe_b;
+	CourbeBezier courbe_a;
+
+	int mode = COURBE_MAITRESSE;
+
+	CourbeCouleur();
+};
+
+void cree_courbe_defaut(CourbeBezier &courbe);
+
 void construit_table_courbe(CourbeBezier &courbe);
 
 void ajoute_point_courbe(CourbeBezier &courbe, float x, float y);
+
+void calcule_controles_courbe(CourbeBezier &courbe);
+
+float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur);
+
+glm::vec4 evalue_courbe_couleur(const CourbeCouleur &courbe, const glm::vec4 &valeur);

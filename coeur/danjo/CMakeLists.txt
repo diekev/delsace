@@ -29,6 +29,7 @@ qt5_wrap_cpp(
 
 	controles/action.h
 	controles/bouton.h
+	controles/controle_courbe_couleur.h
 	controles/controle_echelle_valeur.h
 	controles/controle_nombre_decimal.h
 	controles/controle_nombre_entier.h
@@ -37,6 +38,8 @@ qt5_wrap_cpp(
 	controles_proprietes/controle_propriete_bool.h
 	controles_proprietes/controle_propriete_chaine.h
 	controles_proprietes/controle_propriete_couleur.h
+	controles_proprietes/controle_propriete_courbe_couleur.h
+	controles_proprietes/controle_propriete_courbe_valeur.h
 	controles_proprietes/controle_propriete_decimal.h
 	controles_proprietes/controle_propriete_entier.h
 	controles_proprietes/controle_propriete_enum.h
@@ -47,6 +50,10 @@ qt5_wrap_cpp(
 
 	conteneur_controles.h
 	menu_interrogeable.h
+)
+
+set(ENTETES_TYPES
+	types/courbe_bezier.h
 )
 
 set(ENTETES
@@ -75,6 +82,8 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_bool.cc
 	controles_proprietes/controle_propriete_chaine.cc
 	controles_proprietes/controle_propriete_couleur.cc
+	controles_proprietes/controle_propriete_courbe_couleur.cc
+	controles_proprietes/controle_propriete_courbe_valeur.cc
 	controles_proprietes/controle_propriete_decimal.cc
 	controles_proprietes/controle_propriete_entier.cc
 	controles_proprietes/controle_propriete_enum.cc
@@ -120,6 +129,8 @@ add_library(danjo STATIC
 	controles_proprietes/controle_propriete_bool.h
 	controles_proprietes/controle_propriete_chaine.h
 	controles_proprietes/controle_propriete_couleur.h
+	controles_proprietes/controle_propriete_courbe_couleur.h
+	controles_proprietes/controle_propriete_courbe_valeur.h
 	controles_proprietes/controle_propriete_decimal.h
 	controles_proprietes/controle_propriete_entier.h
 	controles_proprietes/controle_propriete_enum.h
@@ -156,4 +167,9 @@ install(TARGETS danjo ARCHIVE DESTINATION lib)
 install(
 	FILES ${ENTETES}
 	DESTINATION include/danjo
+)
+
+install(
+	FILES ${ENTETES_TYPES}
+	DESTINATION include/danjo/types
 )

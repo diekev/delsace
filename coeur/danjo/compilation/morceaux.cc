@@ -60,6 +60,10 @@ const char *chaine_identifiant(int identifiant)
 			return "IDENTIFIANT_COLONNE";
 		case IDENTIFIANT_COULEUR:
 			return "IDENTIFIANT_COULEUR";
+		case IDENTIFIANT_COURBE_COULEUR:
+			return "IDENTIFIANT_COURBE_COULEUR";
+		case IDENTIFIANT_COURBE_VALEUR:
+			return "IDENTIFIANT_COURBE_VALEUR";
 		case IDENTIFIANT_DISPOSITION:
 			return "IDENTIFIANT_DISPOSITION";
 		case IDENTIFIANT_DOSSIER:
@@ -239,5 +243,6 @@ const char *chaine_identifiant(int identifiant)
 	}
 	return "NULL";
 }
+
 
 }  /* namespace danjo */

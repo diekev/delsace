@@ -33,6 +33,8 @@
 #include "danjo/controles/controle_roue_couleur.h"
 #include "danjo/controles/controle_spectre_couleur.h"
 #include "danjo/controles/controle_teinte_couleur.h"
+#include "danjo/controles_proprietes/controle_propriete_courbe_couleur.h"
+#include "danjo/controles_proprietes/controle_propriete_courbe_valeur.h"
 #include "danjo/controles_proprietes/controle_propriete_liste.h"
 
 #include "danjo/conteneur_controles.h"
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
 //	controle.conteneur(&conteneur);
 //	controle.show();
 
-	ControleCourbeCouleur controle;
+	danjo::ControleProprieteCourbeValeur controle;
 	controle.show();
 
 	return app.exec();

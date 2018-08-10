@@ -29,6 +29,9 @@
 #include <unordered_map>
 #include <vector>
 
+struct CourbeBezier;
+struct CourbeCouleur;
+
 namespace danjo {
 
 enum TypePropriete {
@@ -41,6 +44,8 @@ enum TypePropriete {
 	CHAINE_CARACTERE,
 	BOOL,
 	ENUM,
+	COURBE_COULEUR,
+	COURBE_VALEUR,
 };
 
 struct Propriete {
@@ -178,6 +183,16 @@ public:
 	 * Évalue la valeur d'une propriété de type 'liste' du nom spécifié.
 	 */
 	std::string evalue_liste(const std::string &nom);
+
+	/**
+	 * Retourne la courbe de la propriété 'courbe_couleur' du nom spécifié.
+	 */
+	CourbeCouleur *evalue_courbe_couleur(const std::string &nom);
+
+	/**
+	 * Retourne la courbe de la propriété 'courbe_valeur' du nom spécifié.
+	 */
+	CourbeBezier *evalue_courbe_valeur(const std::string &nom);
 
 	/**
 	 * Rends la propriété spécifiée visible dans l'interface.

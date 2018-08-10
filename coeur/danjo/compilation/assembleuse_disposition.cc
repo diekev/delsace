@@ -37,6 +37,8 @@
 #include "controles_proprietes/controle_propriete_bool.h"
 #include "controles_proprietes/controle_propriete_chaine.h"
 #include "controles_proprietes/controle_propriete_couleur.h"
+#include "controles_proprietes/controle_propriete_courbe_couleur.h"
+#include "controles_proprietes/controle_propriete_courbe_valeur.h"
 #include "controles_proprietes/controle_propriete_decimal.h"
 #include "controles_proprietes/controle_propriete_entier.h"
 #include "controles_proprietes/controle_propriete_etiquette.h"
@@ -133,6 +135,14 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 		case IDENTIFIANT_VECTEUR:
 			controle = new ControleProprieteVec3;
 			m_donnees_controle.type = TypePropriete::VECTEUR;
+			break;
+		case IDENTIFIANT_COURBE_COULEUR:
+			controle = new ControleProprieteCourbeCouleur;
+			m_donnees_controle.type = TypePropriete::COURBE_COULEUR;
+			break;
+		case IDENTIFIANT_COURBE_VALEUR:
+			controle = new ControleProprieteCourbeValeur;
+			m_donnees_controle.type = TypePropriete::COURBE_VALEUR;
 			break;
 	}
 
