@@ -44,9 +44,6 @@ class ControleProprieteDecimal final : public ControlePropriete {
 	QPushButton *m_bouton_animation;
 	ControleEchelleDecimale *m_echelle;
 
-	/* connexion */
-	float *m_pointeur;
-
 public:
 	explicit ControleProprieteDecimal(QWidget *parent = nullptr);
 	~ControleProprieteDecimal();

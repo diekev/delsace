@@ -57,7 +57,6 @@ ControleProprieteDecimal::ControleProprieteDecimal(QWidget *parent)
 	, m_bouton(new QPushButton("H", this))
 	, m_bouton_animation(new QPushButton("C", this))
 	, m_echelle(new ControleEchelleDecimale())
-	, m_pointeur(nullptr)
 {
 	auto metriques = this->fontMetrics();
 
@@ -134,12 +133,8 @@ void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
 
 	m_controle->ajourne_plage(min, max);
 
-	m_pointeur = static_cast<float *>(donnees.pointeur);
-
-	const auto valeur_defaut = convertie<float>(donnees.valeur_defaut);
-
 	if (donnees.initialisation) {
-		m_propriete->valeur = valeur_defaut;
+		m_propriete->valeur = convertie<float>(donnees.valeur_defaut);
 	}
 
 	m_animation = m_propriete->est_anime();

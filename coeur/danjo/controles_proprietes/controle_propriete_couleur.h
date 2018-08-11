@@ -39,10 +39,6 @@ class ControleProprieteCouleur final : public ControlePropriete {
 
 	QHBoxLayout *m_agencement;
 	ControleCouleur *m_controle_couleur;
-	float m_min = 0.0f;
-	float m_max = 0.0f;
-	float m_valeur_defaut[4];
-	couleur32 *m_couleur;
 
 public:
 	explicit ControleProprieteCouleur(QWidget *parent = nullptr);

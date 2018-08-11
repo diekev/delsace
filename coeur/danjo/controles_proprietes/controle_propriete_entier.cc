@@ -41,7 +41,6 @@ ControleProprieteEntier::ControleProprieteEntier(QWidget *parent)
 	, m_bouton(new QPushButton("H", this))
 	, m_bouton_animation(new QPushButton("C", this))
 	, m_echelle(new ControleEchelleEntiere())
-	, m_pointeur(nullptr)
 {
 	auto metriques = this->fontMetrics();
 
@@ -106,12 +105,8 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
 
 	m_controle->ajourne_plage(min, max);
 
-	m_pointeur = static_cast<int *>(donnees.pointeur);
-
-	const auto valeur_defaut = std::atoi(donnees.valeur_defaut.c_str());
-
 	if (donnees.initialisation) {
-		m_propriete->valeur = valeur_defaut;
+		m_propriete->valeur = std::atoi(donnees.valeur_defaut.c_str());
 	}
 
 	m_animation = m_propriete->est_anime();

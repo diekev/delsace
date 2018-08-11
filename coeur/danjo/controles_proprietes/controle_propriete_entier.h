@@ -44,9 +44,6 @@ class ControleProprieteEntier final : public ControlePropriete {
 	QPushButton *m_bouton_animation;
 	ControleEchelleEntiere *m_echelle;
 
-	/* connexion */
-	int *m_pointeur;
-
 public:
 	explicit ControleProprieteEntier(QWidget *parent = nullptr);
 	~ControleProprieteEntier();

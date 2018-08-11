@@ -64,7 +64,6 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	, m_echelle_x(new ControleEchelleDecimale())
 	, m_echelle_y(new ControleEchelleDecimale())
 	, m_echelle_z(new ControleEchelleDecimale())
-	, m_pointeur(nullptr)
 {
 	auto metriques = this->fontMetrics();
 	m_bouton_x->setFixedWidth(metriques.width("H") * 2.0f);
@@ -125,19 +124,17 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 	m_y->ajourne_plage(min, max);
 	m_z->ajourne_plage(min, max);
 
-	auto valeurs = decoupe(donnees.valeur_defaut, ',');
-	auto index = 0;
-
-	float valeur_defaut[3] = { 0.0f, 0.0f, 0.0f };
-
-	for (auto v : valeurs) {
-		valeur_defaut[index++] = std::atof(v.c_str());
-	}
-
-	m_pointeur = static_cast<float *>(donnees.pointeur);
-
 	if (donnees.initialisation) {
-		m_propriete->valeur = glm::vec3(valeur_defaut[0], valeur_defaut[1], valeur_defaut[2]);
+		auto valeurs = decoupe(donnees.valeur_defaut, ',');
+		auto index = 0;
+
+		glm::vec3 valeur_defaut = { 0.0f, 0.0f, 0.0f };
+
+		for (auto v : valeurs) {
+			valeur_defaut[index++] = std::atof(v.c_str());
+		}
+
+		m_propriete->valeur = valeur_defaut;
 	}
 
 	m_animation = m_propriete->est_anime();

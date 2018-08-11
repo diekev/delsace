@@ -38,7 +38,6 @@ ControleProprieteCouleur::ControleProprieteCouleur(QWidget *parent)
 	: ControlePropriete(parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_controle_couleur(new ControleCouleur(this))
-	, m_couleur(nullptr)
 {
 	m_agencement->addWidget(m_controle_couleur);
 
@@ -48,46 +47,39 @@ ControleProprieteCouleur::ControleProprieteCouleur(QWidget *parent)
 
 void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
 {
-	m_min = 0.0f;
+	auto min = 0.0f;
 	if (donnees.valeur_min != "") {
-		m_min = std::atof(donnees.valeur_min.c_str());
+		min = std::atof(donnees.valeur_min.c_str());
 	}
 
-	m_max = 1.0f;
+	auto max = 1.0f;
 	if (donnees.valeur_max != "") {
-		m_max = std::atof(donnees.valeur_max.c_str());
+		max = std::atof(donnees.valeur_max.c_str());
 	}
 
-	m_controle_couleur->ajourne_plage(m_min, m_max);
-
-	m_couleur = static_cast<couleur32 *>(donnees.pointeur);
-
-	auto valeurs = decoupe(donnees.valeur_defaut, ',');
-	auto index = 0;
-
-	m_valeur_defaut[0] = 1.0f;
-	m_valeur_defaut[1] = 1.0f;
-	m_valeur_defaut[2] = 1.0f;
-	m_valeur_defaut[3] = 1.0f;
-
-	for (auto v : valeurs) {
-		m_valeur_defaut[index++] = std::atof(v.c_str());
-	}
+	m_controle_couleur->ajourne_plage(min, max);
 
 	if (donnees.initialisation) {
-		for (int i = 0; i < 4; ++i) {
-			(*m_couleur)[i] = m_valeur_defaut[i];
+		auto valeurs = decoupe(donnees.valeur_defaut, ',');
+		auto index = 0;
+
+		couleur32 valeur_defaut(1.0f);
+
+		for (auto v : valeurs) {
+			valeur_defaut[index++] = std::atof(v.c_str());
 		}
+
+		m_propriete->valeur = valeur_defaut;
 	}
 
-	m_controle_couleur->couleur(*m_couleur);
+	m_controle_couleur->couleur(std::experimental::any_cast<couleur32>(m_propriete->valeur));
 
 	setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteCouleur::ajourne_couleur()
 {
-	*m_couleur = m_controle_couleur->couleur();
+	m_propriete->valeur = m_controle_couleur->couleur();
 	Q_EMIT(controle_change());
 }
 

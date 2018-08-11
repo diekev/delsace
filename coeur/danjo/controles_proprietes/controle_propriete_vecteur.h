@@ -49,8 +49,6 @@ class ControleProprieteVec3 final : public ControlePropriete {
 	ControleEchelleDecimale *m_echelle_y;
 	ControleEchelleDecimale *m_echelle_z;
 
-	float *m_pointeur;
-
 public:
 	explicit ControleProprieteVec3(QWidget *parent = nullptr);
 	~ControleProprieteVec3();
