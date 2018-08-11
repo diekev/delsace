@@ -224,6 +224,8 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnees, 
 	}
 
 	auto disposition = assembleur.disposition();
+	disposition->addStretch();
+
 	auto nom = assembleur.nom_disposition();
 
 	m_dispositions.insert({nom, disposition});
