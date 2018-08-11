@@ -102,6 +102,7 @@ void ControleProprieteCouleur::mouseReleaseEvent(QMouseEvent *e)
 {
 	if (QRect(QPoint(0, 0), this->size()).contains(e->pos())) {
 		m_dialogue->couleur_originale(m_couleur);
+		m_dialogue->setModal(true);
 		m_dialogue->show();
 
 		auto ok = m_dialogue->exec();
