@@ -24,34 +24,38 @@
 
 #pragma once
 
-#include "controle_propriete.h"
+#include <QWidget>
 
 #include "types/couleur.h"
 
-class QHBoxLayout;
-
 namespace danjo {
 
-class ControleCouleur;
+class DialogueCouleur;
 
-class ControleProprieteCouleur final : public ControlePropriete {
+class ControleCouleur final : public QWidget {
 	Q_OBJECT
 
-	QHBoxLayout *m_agencement;
-	ControleCouleur *m_controle_couleur;
-	float m_min = 0.0f;
-	float m_max = 0.0f;
-	float m_valeur_defaut[4];
-	couleur32 *m_couleur;
+	DialogueCouleur *m_dialogue;
+	couleur32 m_couleur;
 
 public:
-	explicit ControleProprieteCouleur(QWidget *parent = nullptr);
-	~ControleProprieteCouleur() = default;
+	explicit ControleCouleur(QWidget *parent = nullptr);
 
-	void finalise(const DonneesControle &donnees) override;
+	couleur32 couleur();
+
+	void couleur(const couleur32 &c);
+
+	void ajourne_plage(const float min, const float max);
+
+	void mouseReleaseEvent(QMouseEvent *e) override;
+
+	void paintEvent(QPaintEvent *) override;
 
 private Q_SLOTS:
 	void ajourne_couleur();
+
+Q_SIGNALS:
+	void couleur_changee();
 };
 
 }  /* namespace danjo */

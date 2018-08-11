@@ -29,6 +29,7 @@ qt5_wrap_cpp(
 
 	controles/action.h
 	controles/bouton.h
+	controles/controle_couleur.h
 	controles/controle_couleur_tsv.h
 	controles/controle_courbe_couleur.h
 	controles/controle_echelle_valeur.h
@@ -76,6 +77,7 @@ set(ENTETES
 add_library(danjo STATIC
 	controles/action.cc
 	controles/bouton.cc
+	controles/controle_couleur.cc
 	controles/controle_couleur_tsv.cc
 	controles/controle_courbe_couleur.cc
 	controles/controle_echelle_valeur.cc
@@ -130,6 +132,7 @@ add_library(danjo STATIC
 
 	controles/action.h
 	controles/bouton.h
+	controles/controle_couleur.h
 	controles/controle_couleur_tsv.h
 	controles/controle_courbe_couleur.h
 	controles/controle_echelle_valeur.h

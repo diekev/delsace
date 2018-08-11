@@ -145,7 +145,7 @@ DialogueCouleur::DialogueCouleur(QWidget *parent)
 	setLayout(m_disposition);
 }
 
-void DialogueCouleur::couleur_originale(const float *c)
+void DialogueCouleur::couleur_originale(const couleur32 &c)
 {
 	for (int i = 0; i < 4; ++i) {
 		m_couleur_origine[i] = c[i];
@@ -195,7 +195,7 @@ void DialogueCouleur::ajourne_plage(float min, float max)
 	m_a->ajourne_plage(0.0f, 1.0f);
 }
 
-couleur32 DialogueCouleur::requiers_couleur(const float *couleur_origine)
+couleur32 DialogueCouleur::requiers_couleur(const couleur32 &couleur_origine)
 {
 	DialogueCouleur dialogue;
 	dialogue.couleur_originale(couleur_origine);

@@ -75,7 +75,7 @@ class DialogueCouleur final : public QDialog {
 public:
 	explicit DialogueCouleur(QWidget *parent = nullptr);
 
-	void couleur_originale(const float *c);
+	void couleur_originale(const couleur32 &c);
 	couleur32 couleur_originale();
 
 	couleur32 couleur_nouvelle();
@@ -84,7 +84,7 @@ public:
 
 	void ajourne_plage(float min, float max);
 
-	static couleur32 requiers_couleur(const float *couleur_origine);
+	static couleur32 requiers_couleur(const couleur32 &couleur_origine);
 
 public Q_SLOTS:
 	void ajourne_couleur();
