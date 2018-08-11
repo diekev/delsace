@@ -98,31 +98,21 @@ couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 				rvb_vers_hsv(c0[0], c0[1], c0[2], &h0, &s0, &v0);
 				rvb_vers_hsv(c1[0], c1[1], c1[2], &h1, &s1, &v1);
 
+				/* Les teintes doivent être interpolées selon leurs angles, donc
+				 * on doit définir la distance entre les angles et leur
+				 * orientation anti-horaire (dist_a) ou horaire (dist_h).
+				 */
+				const auto dist_a = (h0 >= h1) ? h0 - h1 : 1 + h0 - h1;
+				const auto dist_h = (h0 >= h1) ? 1 + h1 - h0 : h1 - h0;
+				auto nh = (dist_h <= dist_a) ? h0 + (dist_h * fac)
+											 : h0 - (dist_a * fac);
 
-				float nh;
-				float d = h1 - h0;
-				auto t = fac;
-
-				if (h0 > h1) {
-					std::swap(h0, h1);
-					d = -d;
-					t = 1 - t;
+				if (nh < 0.0f) {
+					nh = 1 + nh;
 				}
 
-				/* 180 degrés */
-				if (d > 0.5) {
-					/* 360 degrés */
-					h0 = h0 + 1.0f;
-					/* 360 degrés */
-					nh = (1.0f - fac) * h0 + fac * h1;
-
-					if (nh > 1.0f) {
-						nh -= 1.0f;
-					}
-				}
-				/* 180 degrés */
-				else if (d <= 0.5) {
-					nh = h0 + t * d;
+				if (nh > 1.0f) {
+					nh = nh - 1.0f;
 				}
 
 				auto ns = (1.0f - fac) * s0 + fac * s1;
