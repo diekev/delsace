@@ -28,6 +28,9 @@
 
 #include "outils.h"
 
+/**
+ * Pris depuis http://lolengine.net/blog/2013/01/13/fast-rgb-to-hsv.
+ */
 void rvb_vers_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 {
 	auto k = 0.0f;
