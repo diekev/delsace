@@ -53,6 +53,7 @@ couleur32 ControleCouleur::couleur()
 void ControleCouleur::couleur(const couleur32 &c)
 {
 	m_couleur = c;
+	update();
 }
 
 void ControleCouleur::ajourne_plage(const float min, const float max)

@@ -37,6 +37,8 @@ class QVBoxLayout;
 
 namespace danjo {
 
+class ControleCouleur;
+
 class ControleProprieteRampeCouleur final : public ControlePropriete {
 	Q_OBJECT
 
@@ -53,6 +55,9 @@ class ControleProprieteRampeCouleur final : public ControlePropriete {
 	QPushButton *m_bouton_echelle;
 	ControleEchelleDecimale *m_echelle;
 	ControleNombreDecimal *m_pos;
+
+	/* controle de la couleur */
+	ControleCouleur *m_controle_couleur;
 
 	/* connexion */
 	RampeCouleur *m_rampe;
@@ -72,6 +77,8 @@ private Q_SLOTS:
 	void ajourne_point_actif();
 
 	void ajourne_interpolation(int i);
+
+	void ajourne_couleur();
 };
 
 }  /* namespace danjo */

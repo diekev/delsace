@@ -28,6 +28,7 @@
 #include <QComboBox>
 #include <QPushButton>
 
+#include "controles/controle_couleur.h"
 #include "controles/controle_echelle_valeur.h"
 #include "controles/controle_nombre_decimal.h"
 #include "controles/controle_rampe_couleur.h"
@@ -47,6 +48,7 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(QWidget *parent)
 	, m_bouton_echelle(new QPushButton("H", this))
 	, m_echelle(new ControleEchelleDecimale())
 	, m_pos(new ControleNombreDecimal(this))
+	, m_controle_couleur(new ControleCouleur(this))
 {
 	m_interpolation->addItem("RVB");
 	m_interpolation->addItem("HSV");
@@ -59,6 +61,7 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(QWidget *parent)
 
 	m_agencement_nombre->addWidget(m_bouton_echelle);
 	m_agencement_nombre->addWidget(m_pos);
+	m_agencement_nombre->addWidget(m_controle_couleur);
 	m_agencement_principal->addLayout(m_agencement_nombre);
 
 	m_echelle->setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -84,6 +87,9 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(QWidget *parent)
 	connect(m_pos, &ControleNombreDecimal::valeur_changee,
 			this, &ControleProprieteRampeCouleur::ajourne_position_controle);
 
+	connect(m_controle_couleur, &ControleCouleur::couleur_changee,
+			this, &ControleProprieteRampeCouleur::ajourne_couleur);
+
 	setLayout(m_agencement_principal);
 }
 
@@ -98,6 +104,13 @@ void ControleProprieteRampeCouleur::finalise(const DonneesControle &donnees)
 	m_controle_rampe->installe_rampe(m_rampe);
 	m_pos->ajourne_plage(0.0f, 1.0f);
 	m_interpolation->setCurrentIndex(m_rampe->interpolation);
+
+	auto point = trouve_point_selectionne(*m_rampe);
+
+	if (point != nullptr) {
+		m_controle_couleur->couleur(point->couleur);
+	}
+
 	setToolTip(donnees.infobulle.c_str());
 }
 
@@ -124,6 +137,7 @@ void ControleProprieteRampeCouleur::ajourne_point_actif()
 {
 	auto point = trouve_point_selectionne(*m_rampe);
 	m_pos->valeur(point->position);
+	m_controle_couleur->couleur(point->couleur);
 }
 
 void ControleProprieteRampeCouleur::ajourne_interpolation(int i)
@@ -131,13 +145,21 @@ void ControleProprieteRampeCouleur::ajourne_interpolation(int i)
 	m_rampe->interpolation = i;
 	m_controle_rampe->update();
 	Q_EMIT(controle_change());
+}
 
+void ControleProprieteRampeCouleur::ajourne_couleur()
+{
+	auto point = trouve_point_selectionne(*m_rampe);
+	point->couleur = m_controle_couleur->couleur();
+	m_controle_rampe->update();
+	Q_EMIT(controle_change());
 }
 
 void ControleProprieteRampeCouleur::controle_ajoute()
 {
 	auto point = trouve_point_selectionne(*m_rampe);
 	m_pos->valeur(point->position);
+	m_controle_couleur->couleur(point->couleur);
 	Q_EMIT(controle_change());
 }
 
