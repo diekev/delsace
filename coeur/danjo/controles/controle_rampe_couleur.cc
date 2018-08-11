@@ -27,35 +27,8 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+#include "types/outils.h"
 #include "types/rampe_couleur.h"
-
-static float restreint(float a, float min, float max)
-{
-	if (a < min) {
-		return min;
-	}
-
-	if (a > max) {
-		return max;
-	}
-
-	return a;
-}
-
-QColor converti_couleur(float r, float v, float b, float a)
-{
-	r = restreint(r, 0.0f, 1.0f);
-	v = restreint(v, 0.0f, 1.0f);
-	b = restreint(b, 0.0f, 1.0f);
-	a = restreint(a, 0.0f, 1.0f);
-
-	return QColor(r * 255, v * 255, b * 255, a * 255);
-}
-
-QColor converti_couleur(const glm::vec4 &rvba)
-{
-	return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
-}
 
 /* ************************************************************************** */
 
@@ -211,7 +184,7 @@ void ControleRampeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
 {
 	const auto &x = position_degrade(event->pos().x());
 
-	auto couleur = glm::vec4{1.0f, 0.0f, 1.0f, 1.0f};
+	auto couleur = couleur32{1.0f, 0.0f, 1.0f, 1.0f};
 	ajoute_point_rampe(*m_rampe, x, couleur);
 	update();
 

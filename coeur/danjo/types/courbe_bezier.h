@@ -24,8 +24,9 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
 #include <vector>
+
+#include "couleur.h"
 
 struct Point {
 	float x;
@@ -110,4 +111,4 @@ void calcule_controles_courbe(CourbeBezier &courbe);
 
 float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur);
 
-glm::vec4 evalue_courbe_couleur(const CourbeCouleur &courbe, const glm::vec4 &valeur);
+couleur32 evalue_courbe_couleur(const CourbeCouleur &courbe, const couleur32 &valeur);

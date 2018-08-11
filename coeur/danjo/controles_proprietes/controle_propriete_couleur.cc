@@ -24,25 +24,45 @@
 
 #include "controle_propriete_couleur.h"
 
-#include <QColorDialog>
 #include <QMouseEvent>
 #include <QPainter>
 
 #include "compilation/morceaux.h"
 
+#include "dialogues/dialogue_couleur.h"
+
+#include "types/outils.h"
+
 #include "donnees_controle.h"
 
 namespace danjo {
 
-SelecteurCouleur::SelecteurCouleur(QWidget *parent)
+ControleProprieteCouleur::ControleProprieteCouleur(QWidget *parent)
 	: ControlePropriete(parent)
 	, m_couleur(nullptr)
-{}
-
-void SelecteurCouleur::finalise(const DonneesControle &donnees)
+	, m_dialogue(new DialogueCouleur(this))
 {
-	m_min = std::atof(donnees.valeur_min.c_str());
-	m_max = std::atof(donnees.valeur_max.c_str());
+	connect(m_dialogue, &DialogueCouleur::couleur_changee, this, &ControleProprieteCouleur::ajourne_couleur);
+
+	auto metriques = this->fontMetrics();
+	setFixedHeight(metriques.height() * 1.5f);
+	setFixedWidth(metriques.width("#000000"));
+}
+
+void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
+{
+	m_min = 0.0f;
+	if (donnees.valeur_min != "") {
+		m_min = std::atof(donnees.valeur_min.c_str());
+	}
+
+	m_max = 1.0f;
+	if (donnees.valeur_max != "") {
+		m_max = std::atof(donnees.valeur_max.c_str());
+	}
+
+	m_dialogue->ajourne_plage(m_min, m_max);
+
 	m_couleur = static_cast<float *>(donnees.pointeur);
 
 	auto valeurs = decoupe(donnees.valeur_defaut, ',');
@@ -66,52 +86,44 @@ void SelecteurCouleur::finalise(const DonneesControle &donnees)
 	setToolTip(donnees.infobulle.c_str());
 }
 
-void SelecteurCouleur::mouseReleaseEvent(QMouseEvent *e)
+void ControleProprieteCouleur::ajourne_couleur()
+{
+	const auto &couleur = m_dialogue->couleur_nouvelle();
+
+	for (int i = 0; i < 4; ++i) {
+		m_couleur[i] = couleur[i];
+	}
+
+	update();
+	Q_EMIT(controle_change());
+}
+
+void ControleProprieteCouleur::mouseReleaseEvent(QMouseEvent *e)
 {
 	if (QRect(QPoint(0, 0), this->size()).contains(e->pos())) {
-		Q_EMIT(clicked());
+		m_dialogue->couleur_originale(m_couleur);
+		m_dialogue->show();
 
-		const auto &color = QColorDialog::getColor(QColor(m_couleur[0] * 255, m_couleur[1] * 255, m_couleur[2] * 255, m_couleur[3] * 255));
+		auto ok = m_dialogue->exec();
 
-		if (color.isValid()) {
-			m_couleur[0] = color.redF();
-			m_couleur[1] = color.greenF();
-			m_couleur[2] = color.blueF();
-			m_couleur[3] = color.alphaF();
+		auto couleur = (ok == QDialog::Accepted) ? m_dialogue->couleur_nouvelle()
+												 : m_dialogue->couleur_originale();
 
-			for (int i = 0; i < 4; ++i) {
-				Q_EMIT(valeur_changee(m_couleur[i], i));
-			}
+		for (int i = 0; i < 4; ++i) {
+			m_couleur[i] = couleur[i];
 		}
+
+		update();
+		Q_EMIT(controle_change());
 	}
 }
 
-void SelecteurCouleur::paintEvent(QPaintEvent *)
+void ControleProprieteCouleur::paintEvent(QPaintEvent *)
 {
-	QPainter painter(this);
-	const auto &rect = this->geometry();
-
-	QColor color(m_couleur[0] * 255, m_couleur[1] * 255, m_couleur[2] * 255, m_couleur[3] * 255);
-
-	const auto w = rect.width();
-	const auto h = rect.height();
-
-	painter.fillRect(0, 0, w, h, color);
-}
-
-ControleProprieteCouleur::ControleProprieteCouleur(QWidget *parent)
-	: SelecteurCouleur(parent)
-{
-	connect(this, &SelecteurCouleur::valeur_changee, this, &ControleProprieteCouleur::ajourne_valeur_pointee);
-	auto metriques = this->fontMetrics();
-	setFixedHeight(metriques.height() * 1.5f);
-	setFixedWidth(metriques.width("#000000"));
-}
-
-void ControleProprieteCouleur::ajourne_valeur_pointee(double valeur, int axis)
-{
-	m_couleur[axis] = static_cast<float>(valeur);
-	Q_EMIT(controle_change());
+	QPainter peintre(this);
+	peintre.fillRect(this->rect(), converti_couleur(m_couleur));
+	peintre.setPen(QPen(Qt::black));
+	peintre.drawRect(0, 0, this->rect().width() - 1, this->rect().height() - 1);
 }
 
 }  /* namespace danjo */

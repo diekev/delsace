@@ -29,6 +29,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "types/couleur.h"
+
 struct CourbeBezier;
 struct CourbeCouleur;
 struct RampeCouleur;
@@ -66,7 +68,7 @@ struct Propriete {
 
 	void ajoute_cle(const glm::vec3 &v, int temps);
 
-	void ajoute_cle(const glm::vec4 &v, int temps);
+	void ajoute_cle(const couleur32 &v, int temps);
 
 	void supprime_animation();
 
@@ -80,7 +82,7 @@ struct Propriete {
 
 	glm::vec3 evalue_vecteur(int temps);
 
-	glm::vec4 evalue_couleur(int temps);
+	couleur32 evalue_couleur(int temps);
 
 private:
 	void ajoute_cle_impl(const std::experimental::any &v, int temps);
@@ -154,7 +156,7 @@ public:
 	/**
 	 * Évalue la valeur d'une propriété de type 'couleur' du nom spécifié.
 	 */
-	glm::vec4 evalue_couleur(const std::string &nom, int temps = 0);
+	couleur32 evalue_couleur(const std::string &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_entrée' du nom spécifié.
@@ -235,7 +237,7 @@ public:
 	/**
 	 * Établie la valeur de la propriété de type couleur spécifiée.
 	 */
-	void valeur_couleur(const std::string &nom, const glm::vec4 &valeur);
+	void valeur_couleur(const std::string &nom, const couleur32 &valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type chaine, fichier, ou liste

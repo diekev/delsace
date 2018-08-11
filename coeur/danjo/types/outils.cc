@@ -22,34 +22,25 @@
  *
  */
 
-#pragma once
+#include "outils.h"
 
-#include <vector>
 
-#include "couleur.h"
+QColor converti_couleur(float r, float v, float b, float a)
+{
+	r = restreint(r, 0.0f, 1.0f);
+	v = restreint(v, 0.0f, 1.0f);
+	b = restreint(b, 0.0f, 1.0f);
+	a = restreint(a, 0.0f, 1.0f);
 
-enum {
-	INTERPOLATION_RVB = 0,
-	INTERPOLATION_HSV = 1,
-};
+	return QColor(r * 255, v * 255, b * 255, a * 255);
+}
 
-struct PointRampeCouleur {
-	float position;
-	couleur32 couleur;
-	bool selectionne = false;
-};
+QColor converti_couleur(const float *rvba)
+{
+	return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
+}
 
-struct RampeCouleur {
-	std::vector<PointRampeCouleur> points;
-	char interpolation = INTERPOLATION_RVB;
-};
-
-void cree_rampe_defaut(RampeCouleur &rampe);
-
-void tri_points_rampe(RampeCouleur &rampe);
-
-void ajoute_point_rampe(RampeCouleur &rampe, float x, const couleur32 &couleur);
-
-PointRampeCouleur *trouve_point_selectionne(const RampeCouleur &rampe);
-
-couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur);
+QColor converti_couleur(const couleur32 &rvba)
+{
+	return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
+}

@@ -49,7 +49,7 @@ void Propriete::ajoute_cle(const glm::vec3 &v, int temps)
 	ajoute_cle_impl(std::experimental::any(v), temps);
 }
 
-void Propriete::ajoute_cle(const glm::vec4 &v, int temps)
+void Propriete::ajoute_cle(const couleur32 &v, int temps)
 {
 	assert(type == TypePropriete::COULEUR);
 	ajoute_cle_impl(std::experimental::any(v), temps);
@@ -130,20 +130,20 @@ glm::vec3 Propriete::evalue_vecteur(int temps)
 	return (1.0f - fac) * i1 + fac * i2;
 }
 
-glm::vec4 Propriete::evalue_couleur(int temps)
+couleur32 Propriete::evalue_couleur(int temps)
 {
 	assert(type == TypePropriete::COULEUR);
 	std::experimental::any v1, v2;
 	int t1, t2;
 
 	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-		return std::experimental::any_cast<glm::vec4>(v1);
+		return std::experimental::any_cast<couleur32>(v1);
 	}
 
 	auto dt = t2 - t1;
 	auto fac = (temps - t1) / static_cast<float>(dt);
-	auto i1 = std::experimental::any_cast<glm::vec4>(v1);
-	auto i2 = std::experimental::any_cast<glm::vec4>(v2);
+	auto i1 = std::experimental::any_cast<couleur32>(v1);
+	auto i2 = std::experimental::any_cast<couleur32>(v2);
 
 	return (1.0f - fac) * i1 + fac * i2;
 }
@@ -242,7 +242,7 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 			valeur = std::experimental::any(glm::vec3(0));
 			break;
 		case TypePropriete::COULEUR:
-			valeur = std::experimental::any(glm::vec4(0));
+			valeur = std::experimental::any(couleur32(0));
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::FICHIER_ENTREE:
@@ -315,7 +315,7 @@ glm::vec3 Manipulable::evalue_vecteur(const std::string &nom, int temps)
 	return std::experimental::any_cast<glm::vec3>(prop.valeur);
 }
 
-glm::vec4 Manipulable::evalue_couleur(const std::string &nom, int temps)
+couleur32 Manipulable::evalue_couleur(const std::string &nom, int temps)
 {
 	Propriete &prop = m_proprietes[nom];
 
@@ -323,7 +323,7 @@ glm::vec4 Manipulable::evalue_couleur(const std::string &nom, int temps)
 		return prop.evalue_couleur(temps);
 	}
 
-	return std::experimental::any_cast<glm::vec4>(prop.valeur);
+	return std::experimental::any_cast<couleur32>(prop.valeur);
 }
 
 std::string Manipulable::evalue_fichier_entree(const std::string &nom)
@@ -401,7 +401,7 @@ void Manipulable::valeur_vecteur(const std::string &nom, const glm::vec3 &valeur
 	m_proprietes[nom].valeur = valeur;
 }
 
-void Manipulable::valeur_couleur(const std::string &nom, const glm::vec4 &valeur)
+void Manipulable::valeur_couleur(const std::string &nom, const couleur32 &valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
@@ -427,7 +427,7 @@ void *Manipulable::operator[](const std::string &nom)
 			pointeur = std::experimental::any_cast<glm::vec3>(&propriete.valeur);
 			break;
 		case TypePropriete::COULEUR:
-			pointeur = std::experimental::any_cast<glm::vec4>(&propriete.valeur);
+			pointeur = std::experimental::any_cast<couleur32>(&propriete.valeur);
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::FICHIER_ENTREE:

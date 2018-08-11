@@ -24,32 +24,26 @@
 
 #pragma once
 
-#include <vector>
-
 #include "couleur.h"
 
-enum {
-	INTERPOLATION_RVB = 0,
-	INTERPOLATION_HSV = 1,
-};
+#include <QColor>
 
-struct PointRampeCouleur {
-	float position;
-	couleur32 couleur;
-	bool selectionne = false;
-};
+template <typename T>
+static auto restreint(const T &a, const T &min, const T &max)
+{
+	if (a < min) {
+		return min;
+	}
 
-struct RampeCouleur {
-	std::vector<PointRampeCouleur> points;
-	char interpolation = INTERPOLATION_RVB;
-};
+	if (a > max) {
+		return max;
+	}
 
-void cree_rampe_defaut(RampeCouleur &rampe);
+	return a;
+}
 
-void tri_points_rampe(RampeCouleur &rampe);
+QColor converti_couleur(float r, float v, float b, float a);
 
-void ajoute_point_rampe(RampeCouleur &rampe, float x, const couleur32 &couleur);
+QColor converti_couleur(const float *rvba);
 
-PointRampeCouleur *trouve_point_selectionne(const RampeCouleur &rampe);
-
-couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur);
+QColor converti_couleur(const couleur32 &rvba);

@@ -324,9 +324,9 @@ float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur)
 	return 0.0f;
 }
 
-glm::vec4 evalue_courbe_couleur(const CourbeCouleur &courbe, const glm::vec4 &valeur)
+couleur32 evalue_courbe_couleur(const CourbeCouleur &courbe, const couleur32 &valeur)
 {
-	glm::vec4 res;
+	couleur32 res;
 
 	/* applique la courbe maitresse, sauf pour l'alpha */
 	res[0] = evalue_courbe_bezier(courbe.courbe_m, valeur[0]);

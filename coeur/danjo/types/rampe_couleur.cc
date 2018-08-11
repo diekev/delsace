@@ -26,11 +26,13 @@
 
 #include <algorithm>
 
+#include "types/outils.h"
+
 void cree_rampe_defaut(RampeCouleur &rampe)
 {
-	ajoute_point_rampe(rampe, 0.0f, glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
-	ajoute_point_rampe(rampe, 0.5f, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
-	ajoute_point_rampe(rampe, 1.0f, glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+	ajoute_point_rampe(rampe, 0.0f, couleur32{0.0f, 0.0f, 0.0f, 1.0f});
+	ajoute_point_rampe(rampe, 0.5f, couleur32{0.0f, 1.0f, 0.0f, 1.0f});
+	ajoute_point_rampe(rampe, 1.0f, couleur32{1.0f, 1.0f, 1.0f, 1.0f});
 }
 
 void tri_points_rampe(RampeCouleur &rampe)
@@ -42,7 +44,7 @@ void tri_points_rampe(RampeCouleur &rampe)
 	});
 }
 
-void ajoute_point_rampe(RampeCouleur &rampe, float x, const glm::vec4 &couleur)
+void ajoute_point_rampe(RampeCouleur &rampe, float x, const couleur32 &couleur)
 {
 	PointRampeCouleur p;
 	p.position = x;
@@ -64,60 +66,7 @@ PointRampeCouleur *trouve_point_selectionne(const RampeCouleur &rampe)
 	return nullptr;
 }
 
-template <typename T>
-static auto restreint(const T &a, const T &min, const T &max)
-{
-	if (a < min) {
-		return min;
-	}
-
-	if (a > max) {
-		return max;
-	}
-
-	return a;
-}
-
-void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
-{
-	float k = 0.0f;
-	float chroma;
-	float min_gb;
-
-	if (g < b) {
-		std::swap(g, b);
-		k = -1.0f;
-	}
-	min_gb = b;
-	if (r < g) {
-		std::swap(r, g);
-		k = -2.0f / 6.0f - k;
-		min_gb = std::min(g, b);
-	}
-
-	chroma = r - min_gb;
-
-	*lh = std::abs(k + (g - b) / (6.0f * chroma + 1e-20f));
-	*ls = chroma / (r + 1e-20f);
-	*lv = r;
-}
-
-void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
-{
-	auto nr =        std::abs(h * 6.0f - 3.0f) - 1.0f;
-	auto ng = 2.0f - std::abs(h * 6.0f - 2.0f);
-	auto nb = 2.0f - std::abs(h * 6.0f - 4.0f);
-
-	nr = restreint(nr, 0.0f, 1.0f);
-	nb = restreint(nb, 0.0f, 1.0f);
-	ng = restreint(ng, 0.0f, 1.0f);
-
-	*r = ((nr - 1.0f) * s + 1.0f) * v;
-	*g = ((ng - 1.0f) * s + 1.0f) * v;
-	*b = ((nb - 1.0f) * s + 1.0f) * v;
-}
-
-glm::vec4 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
+couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 {
 	auto v = restreint(valeur, 0.0f, 1.0f);
 
@@ -133,7 +82,7 @@ glm::vec4 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 		return rampe.points[rampe.points.size() - 1].couleur;
 	}
 
-	glm::vec4 res;
+	couleur32 res;
 
 	for (size_t i = 0; i < rampe.points.size() - 1; ++i) {
 		const auto &p0 = rampe.points[i];
@@ -146,8 +95,8 @@ glm::vec4 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 
 			if (rampe.interpolation == INTERPOLATION_HSV) {
 				float h0, s0, v0, h1, s1, v1;
-				rgb_to_hsv(c0[0], c0[1], c0[2], &h0, &s0, &v0);
-				rgb_to_hsv(c1[0], c1[1], c1[2], &h1, &s1, &v1);
+				rvb_vers_hsv(c0[0], c0[1], c0[2], &h0, &s0, &v0);
+				rvb_vers_hsv(c1[0], c1[1], c1[2], &h1, &s1, &v1);
 
 
 				float nh;
@@ -180,7 +129,7 @@ glm::vec4 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 				auto nv = (1.0f - fac) * v0 + fac * v1;
 				res[3] = (1.0f - fac) * c0.a + fac * c1.a;
 
-				hsv_to_rgb(nh, ns, nv, &res[0], &res[1], &res[2]);
+				hsv_vers_rvb(nh, ns, nv, &res[0], &res[1], &res[2]);
 			}
 			else {
 				for (int i = 0; i < 4; ++i) {
@@ -193,5 +142,5 @@ glm::vec4 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 	}
 
 	/* ne devrait pas arriver */
-	return glm::vec4(0.0f);
+	return couleur32(0.0f);
 }

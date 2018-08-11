@@ -29,6 +29,7 @@ qt5_wrap_cpp(
 
 	controles/action.h
 	controles/bouton.h
+	controles/controle_couleur_tsv.h
 	controles/controle_courbe_couleur.h
 	controles/controle_echelle_valeur.h
 	controles/controle_nombre_decimal.h
@@ -50,12 +51,16 @@ qt5_wrap_cpp(
 	controles_proprietes/controle_propriete_liste.h
 	controles_proprietes/controle_propriete_vecteur.h
 
+	dialogues/dialogue_couleur.h
+
 	conteneur_controles.h
 	menu_interrogeable.h
 )
 
 set(ENTETES_TYPES
+	types/couleur.h
 	types/courbe_bezier.h
+	types/outils.h
 	types/rampe_couleur.h
 )
 
@@ -71,6 +76,7 @@ set(ENTETES
 add_library(danjo STATIC
 	controles/action.cc
 	controles/bouton.cc
+	controles/controle_couleur_tsv.cc
 	controles/controle_courbe_couleur.cc
 	controles/controle_echelle_valeur.cc
 	controles/controle_masque.cc
@@ -107,7 +113,11 @@ add_library(danjo STATIC
 	compilation/graphe_contrainte.cc
 	compilation/morceaux.cc
 
+	dialogues/dialogue_couleur.cc
+
+	types/couleur.cc
 	types/courbe_bezier.cc
+	types/outils.cc
 	types/rampe_couleur.cc
 
 	conteneur_controles.cc
@@ -120,6 +130,7 @@ add_library(danjo STATIC
 
 	controles/action.h
 	controles/bouton.h
+	controles/controle_couleur_tsv.h
 	controles/controle_courbe_couleur.h
 	controles/controle_echelle_valeur.h
 	controles/controle_masque.h
@@ -155,6 +166,8 @@ add_library(danjo STATIC
 	compilation/expression.h
 	compilation/graphe_contrainte.h
 	compilation/morceaux.h
+
+	dialogues/dialogue_couleur.h
 
 	${ENTETES_TYPES}
 

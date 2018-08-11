@@ -28,20 +28,20 @@
 
 namespace danjo {
 
-class SelecteurCouleur : public ControlePropriete {
+class DialogueCouleur;
+
+class ControleProprieteCouleur final : public ControlePropriete {
 	Q_OBJECT
 
+	DialogueCouleur *m_dialogue;
 	float m_min = 0.0f;
 	float m_max = 0.0f;
-
-protected:
 	float m_valeur_defaut[4];
-	float *m_couleur = nullptr;
+	float *m_couleur;
 
 public:
-	explicit SelecteurCouleur(QWidget *parent = nullptr);
-
-	~SelecteurCouleur() = default;
+	explicit ControleProprieteCouleur(QWidget *parent = nullptr);
+	~ControleProprieteCouleur() = default;
 
 	void mouseReleaseEvent(QMouseEvent *e) override;
 
@@ -49,22 +49,8 @@ public:
 
 	void paintEvent(QPaintEvent *) override;
 
-Q_SIGNALS:
-	void clicked();
-	void valeur_changee(double value, int axis);
-};
-
-class ControleProprieteCouleur final : public SelecteurCouleur {
-	Q_OBJECT
-
-	float *m_pointeur;
-
-public:
-	explicit ControleProprieteCouleur(QWidget *parent = nullptr);
-	~ControleProprieteCouleur() = default;
-
 private Q_SLOTS:
-	void ajourne_valeur_pointee(double valeur, int axis);
+	void ajourne_couleur();
 };
 
 }  /* namespace danjo */
