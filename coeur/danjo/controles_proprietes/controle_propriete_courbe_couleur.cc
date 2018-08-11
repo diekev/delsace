@@ -39,8 +39,6 @@
 
 namespace danjo {
 
-static CourbeCouleur courbe_globale;
-
 ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(QWidget *parent)
 	: ControlePropriete(parent)
 	, m_agencement_principal(new QVBoxLayout())
@@ -55,14 +53,6 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(QWidget *parent)
 	, m_echelle_y(new ControleEchelleDecimale())
 	, m_pos_y(new ControleNombreDecimal(this))
 {
-#if 0
-	m_courbe = &courbe_globale;
-	change_mode_courbe(0);
-	m_utilise_table->setChecked(m_courbe->courbe_m.utilise_table);
-	m_pos_x->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
-	m_pos_y->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
-#endif
-
 	m_selection_mode->addItem("Maitresse");
 	m_selection_mode->addItem("Rouge");
 	m_selection_mode->addItem("Verte");

@@ -26,7 +26,6 @@
 
 #include <QBoxLayout>
 #include <QCheckBox>
-#include <QComboBox>
 #include <QPushButton>
 
 #include "controles/controle_courbe_couleur.h"
@@ -38,8 +37,6 @@
 #include "donnees_controle.h"
 
 namespace danjo {
-
-static CourbeBezier courbe_bezier;
 
 ControleProprieteCourbeValeur::ControleProprieteCourbeValeur(QWidget *parent)
 	: ControlePropriete(parent)
@@ -54,15 +51,6 @@ ControleProprieteCourbeValeur::ControleProprieteCourbeValeur(QWidget *parent)
 	, m_echelle_y(new ControleEchelleDecimale())
 	, m_pos_y(new ControleNombreDecimal(this))
 {
-#if 0
-	m_courbe = &courbe_bezier;
-	cree_courbe_defaut(*m_courbe);
-	m_controle_courbe->installe_courbe(m_courbe);
-	m_utilise_table->setChecked(m_courbe->utilise_table);
-	m_pos_x->ajourne_plage(m_courbe->valeur_min, m_courbe->valeur_max);
-	m_pos_y->ajourne_plage(m_courbe->valeur_min, m_courbe->valeur_max);
-#endif
-
 	m_agencement_principal->addWidget(m_utilise_table);
 	m_agencement_principal->addWidget(m_controle_courbe);
 
