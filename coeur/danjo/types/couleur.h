@@ -57,6 +57,8 @@ struct couleur {
 		for (int i = 0; i < 4; ++i) {
 			*(&r + i) += *(&autre.r + i);
 		}
+
+		return *this;
 	}
 
 	couleur &operator*=(const couleur &autre)
@@ -64,6 +66,8 @@ struct couleur {
 		for (int i = 0; i < 4; ++i) {
 			*(&r + i) *= *(&autre.r + i);
 		}
+
+		return *this;
 	}
 
 	couleur &operator*=(const T &valeur)
@@ -71,6 +75,8 @@ struct couleur {
 		for (int i = 0; i < 4; ++i) {
 			*(&r + i) *= valeur;
 		}
+
+		return *this;
 	}
 
 	couleur &operator/=(const couleur &autre)
@@ -78,6 +84,8 @@ struct couleur {
 		for (int i = 0; i < 4; ++i) {
 			*(&r + i) /= *(&autre.r + i);
 		}
+
+		return *this;
 	}
 
 	couleur &operator/=(const T &valeur)
@@ -85,6 +93,8 @@ struct couleur {
 		for (int i = 0; i < 4; ++i) {
 			*(&r + i) /= valeur;
 		}
+
+		return *this;
 	}
 };
 
