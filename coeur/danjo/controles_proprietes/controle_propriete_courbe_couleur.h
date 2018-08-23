@@ -48,6 +48,7 @@ class ControleProprieteCourbeCouleur final : public ControlePropriete {
 
 	/* courbe */
 	QComboBox *m_selection_mode;
+	QComboBox *m_selection_type;
 	QCheckBox *m_utilise_table;
 	ControleCourbeCouleur *m_controle_courbe;
 
@@ -77,6 +78,7 @@ private Q_SLOTS:
 	void montre_echelle_y();
 
 	void change_mode_courbe(int mode);
+	void change_type_courbe(int type);
 	void bascule_utilise_table(bool ouinon);
 
 	void ajourne_position(float x, float y);

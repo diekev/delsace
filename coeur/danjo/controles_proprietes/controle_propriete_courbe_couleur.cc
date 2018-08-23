@@ -44,6 +44,7 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(QWidget *parent)
 	, m_agencement_principal(new QVBoxLayout())
 	, m_agencement_nombre(new QHBoxLayout())
 	, m_selection_mode(new QComboBox(this))
+	, m_selection_type(new QComboBox(this))
 	, m_utilise_table(new QCheckBox("Utilise table", this))
 	, m_controle_courbe(new ControleCourbeCouleur(this))
 	, m_bouton_echelle_x(new QPushButton("H", this))
@@ -59,7 +60,11 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(QWidget *parent)
 	m_selection_mode->addItem("Bleue");
 	m_selection_mode->addItem("Alpha");
 
+	m_selection_type->addItem("RGB");
+	m_selection_type->addItem("Filmique");
+
 	m_agencement_principal->addWidget(m_selection_mode);
+	m_agencement_principal->addWidget(m_selection_type);
 	m_agencement_principal->addWidget(m_utilise_table);
 	m_agencement_principal->addWidget(m_controle_courbe);
 
@@ -78,6 +83,9 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(QWidget *parent)
 
 	connect(m_selection_mode, SIGNAL(currentIndexChanged(int)),
 			this, SLOT(change_mode_courbe(int)));
+
+	connect(m_selection_type, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(change_type_courbe(int)));
 
 	connect(m_utilise_table, &QCheckBox::clicked,
 			this, &ControleProprieteCourbeCouleur::bascule_utilise_table);
@@ -121,7 +129,8 @@ void ControleProprieteCourbeCouleur::finalise(const DonneesControle &donnees)
 	m_courbe = static_cast<CourbeCouleur *>(donnees.pointeur);
 	m_selection_mode->setCurrentIndex(m_courbe->mode);
 	change_mode_courbe(m_courbe->mode);
-	m_utilise_table->setChecked(m_courbe->courbe_m.utilise_table);
+	m_selection_type->setCurrentIndex(m_courbe->type);
+	m_utilise_table->setChecked(m_courbe->courbes[COURBE_MAITRESSE].utilise_table);
 	m_pos_x->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
 	m_pos_y->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
 	setToolTip(donnees.infobulle.c_str());
@@ -143,38 +152,27 @@ void ControleProprieteCourbeCouleur::montre_echelle_y()
 
 void ControleProprieteCourbeCouleur::change_mode_courbe(int mode)
 {
-	switch (mode) {
-		default:
-		case 0:
-			m_courbe_active = &m_courbe->courbe_m;
-			break;
-		case 1:
-			m_courbe_active = &m_courbe->courbe_r;
-			break;
-		case 2:
-			m_courbe_active = &m_courbe->courbe_v;
-			break;
-		case 3:
-			m_courbe_active = &m_courbe->courbe_b;
-			break;
-		case 4:
-			m_courbe_active = &m_courbe->courbe_a;
-			break;
-	}
-
+	m_courbe_active = &m_courbe->courbes[mode];
 	m_courbe->mode = mode;
 	m_controle_courbe->installe_courbe(m_courbe_active);
 	m_controle_courbe->change_mode(mode);
 	ajourne_point_actif();
 }
 
+void ControleProprieteCourbeCouleur::change_type_courbe(int type)
+{
+	m_courbe->type = type;
+
+	Q_EMIT(controle_change());
+}
+
 void ControleProprieteCourbeCouleur::bascule_utilise_table(bool ouinon)
 {
-	m_courbe->courbe_m.utilise_table = ouinon;
-	m_courbe->courbe_r.utilise_table = ouinon;
-	m_courbe->courbe_v.utilise_table = ouinon;
-	m_courbe->courbe_b.utilise_table = ouinon;
-	m_courbe->courbe_a.utilise_table = ouinon;
+	m_courbe->courbes[COURBE_MAITRESSE].utilise_table = ouinon;
+	m_courbe->courbes[COURBE_ROUGE].utilise_table = ouinon;
+	m_courbe->courbes[COURBE_VERTE].utilise_table = ouinon;
+	m_courbe->courbes[COURBE_BLEUE].utilise_table = ouinon;
+	m_courbe->courbes[COURBE_VALEUR].utilise_table = ouinon;
 	Q_EMIT(controle_change());
 }
 

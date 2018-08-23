@@ -65,11 +65,9 @@ auto longueur(const Point &p1, const Point &p2)
 
 CourbeCouleur::CourbeCouleur()
 {
-	cree_courbe_defaut(courbe_m);
-	cree_courbe_defaut(courbe_r);
-	cree_courbe_defaut(courbe_v);
-	cree_courbe_defaut(courbe_b);
-	cree_courbe_defaut(courbe_a);
+	for (int i = 0; i < NOMBRE_COURBES; ++i) {
+		cree_courbe_defaut(courbes[i]);
+	}
 }
 
 /* ************************************************************************** */
@@ -324,21 +322,107 @@ float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur)
 	return 0.0f;
 }
 
+enum {
+	/* Cas 1 : r >= v >  b */
+	R_S_V_S_B,
+	/* Cas 2 : b >  r >= v */
+	B_S_R_S_V,
+	/* Cas 3 : r >= b >  g */
+	R_S_B_S_V,
+	/* Cas 4 : r >= v == b */
+	R_S_V_E_B,
+	/* Cas 5 : v >  r >= b */
+	V_S_R_S_B,
+	/* Cas 6 : b >  v >  r */
+	B_S_V_S_R,
+	/* Cas 7 : v >= b >  r */
+	V_S_B_S_R,
+};
+
+static int ordre_triage_canal(const couleur32 &c)
+{
+	const auto r = c[0];
+	const auto g = c[1];
+	const auto b = c[2];
+
+	if (r > g) {
+		if (g > b) {
+			return R_S_V_S_B;
+		}
+
+		if (b > r) {
+			return B_S_R_S_V;
+		}
+
+		if (b > g) {
+			return R_S_B_S_V;
+		}
+
+		return R_S_V_E_B;
+	}
+
+	if (r >= b) {
+		return V_S_R_S_B;
+	}
+
+	if (b >  g) {
+		return B_S_V_S_R;
+	}
+
+	return V_S_B_S_R;
+}
+
+static const int index_canaux_tries[7][3] = {
+	{0, 1, 2},
+	{2, 0, 1},
+	{0, 2, 1},
+	{0, 1, 2},
+	{1, 0, 2},
+	{2, 1, 0},
+	{1, 2, 0},
+};
+
 couleur32 evalue_courbe_couleur(const CourbeCouleur &courbe, const couleur32 &valeur)
 {
 	couleur32 res;
 
 	/* applique la courbe maitresse, sauf pour l'alpha */
-	res[0] = evalue_courbe_bezier(courbe.courbe_m, valeur[0]);
-	res[1] = evalue_courbe_bezier(courbe.courbe_m, valeur[1]);
-	res[2] = evalue_courbe_bezier(courbe.courbe_m, valeur[2]);
+	res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_MAITRESSE], valeur[0]);
+	res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_MAITRESSE], valeur[1]);
+	res[2] = evalue_courbe_bezier(courbe.courbes[COURBE_MAITRESSE], valeur[2]);
 	res[3] = valeur[3];
 
 	/* applique les courbes individuelles */
-	res[0] = evalue_courbe_bezier(courbe.courbe_r, res[0]);
-	res[1] = evalue_courbe_bezier(courbe.courbe_v, res[1]);
-	res[2] = evalue_courbe_bezier(courbe.courbe_b, res[2]);
-	res[3] = evalue_courbe_bezier(courbe.courbe_a, res[3]);
+	if (courbe.type == COURBE_COULEUR_RGB) {
+		res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_ROUGE], res[0]);
+		res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_VERTE], res[1]);
+		res[2] = evalue_courbe_bezier(courbe.courbes[COURBE_BLEUE], res[2]);
+		res[3] = evalue_courbe_bezier(courbe.courbes[COURBE_VALEUR], res[3]);
+	}
+	else {
+		const auto ordre = ordre_triage_canal(res);
+
+		if (ordre == R_S_V_E_B) {
+			/* Cas 4 : r >= g == b */
+			res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_ROUGE], res[0]);
+			res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_VERTE], res[1]);
+			res[2] = res[1];
+		}
+		else {
+			const auto index = index_canaux_tries[ordre];
+			const float v0in = res[index[0]];
+			const float v1in = res[index[1]];
+			const float v2in = res[index[2]];
+
+			const float v0 = evalue_courbe_bezier(courbe.courbes[COURBE_ROUGE + index[0]], v0in);
+			const float v2 = evalue_courbe_bezier(courbe.courbes[COURBE_ROUGE + index[2]], v2in);
+			const float v1 = v2 + ((v0 - v2) * (v1in - v2in) / (v0in - v2in));
+
+			res[index[0]] = v0;
+			res[index[1]] = v1;
+			res[index[2]] = v2;
+		}
+	}
 
 	return res;
 }

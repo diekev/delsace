@@ -87,16 +87,20 @@ enum {
 	COURBE_VERTE     = 2,
 	COURBE_BLEUE     = 3,
 	COURBE_VALEUR    = 4,
+
+	NOMBRE_COURBES = 5,
+};
+
+enum {
+	COURBE_COULEUR_RGB      = 0,
+	COURBE_COULEUR_FILMIQUE = 1,
 };
 
 struct CourbeCouleur {
-	CourbeBezier courbe_m;
-	CourbeBezier courbe_r;
-	CourbeBezier courbe_v;
-	CourbeBezier courbe_b;
-	CourbeBezier courbe_a;
+	CourbeBezier courbes[NOMBRE_COURBES];
 
 	int mode = COURBE_MAITRESSE;
+	int type = COURBE_COULEUR_RGB;
 
 	CourbeCouleur();
 };
