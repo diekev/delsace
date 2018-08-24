@@ -198,6 +198,10 @@ void ControleProprieteCourbeCouleur::ajourne_position_y(float v)
 
 void ControleProprieteCourbeCouleur::ajourne_point_actif()
 {
+	if (m_courbe_active->point_courant == nullptr) {
+		return;
+	}
+
 	m_pos_x->valeur(m_courbe_active->point_courant->co[POINT_CENTRE].x);
 	m_pos_y->valeur(m_courbe_active->point_courant->co[POINT_CENTRE].y);
 }

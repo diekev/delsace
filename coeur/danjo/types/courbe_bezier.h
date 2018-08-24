@@ -78,7 +78,10 @@ struct CourbeBezier {
 	bool utilise_table = true;
 
 	CourbeBezier() = default;
-	~CourbeBezier() = default;
+	~CourbeBezier();
+
+	CourbeBezier(const CourbeBezier &autre);
+	CourbeBezier(CourbeBezier &&autre) = default;
 };
 
 enum {
@@ -103,6 +106,10 @@ struct CourbeCouleur {
 	int type = COURBE_COULEUR_RGB;
 
 	CourbeCouleur();
+	~CourbeCouleur() = default;
+
+	CourbeCouleur(const CourbeCouleur &autre) = default;
+	CourbeCouleur(CourbeCouleur &&autre) = default;
 };
 
 void cree_courbe_defaut(CourbeBezier &courbe);

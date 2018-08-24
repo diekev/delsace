@@ -63,6 +63,27 @@ auto longueur(const Point &p1, const Point &p2)
 
 /* ************************************************************************** */
 
+CourbeBezier::CourbeBezier(const CourbeBezier &autre)
+{
+	this->points = autre.points;
+	/* À FAIRE : il nous faut une meilleure manière de préserver l'information
+	 * du point courant */
+	this->point_courant = nullptr;
+	this->extension_min = autre.extension_min;
+	this->extension_max = autre.extension_max;
+	this->table = autre.table;
+	this->valeur_min = autre.valeur_min;
+	this->valeur_max = autre.valeur_max;
+	this->utilise_table = autre.utilise_table;
+}
+
+CourbeBezier::~CourbeBezier()
+{
+	point_courant = nullptr;
+}
+
+/* ************************************************************************** */
+
 CourbeCouleur::CourbeCouleur()
 {
 	for (int i = 0; i < NOMBRE_COURBES; ++i) {
