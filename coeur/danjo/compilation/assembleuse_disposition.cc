@@ -55,15 +55,20 @@
 
 namespace danjo {
 
-AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, RepondantBouton *repondant_bouton, ConteneurControles *conteneur, int temps)
+AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, RepondantBouton *repondant_bouton, ConteneurControles *conteneur, int temps, bool initialisation_seule)
 	: m_manipulable(manipulable)
 	, m_repondant(repondant_bouton)
 	, m_conteneur(conteneur)
 	, m_temps(temps)
+	, m_initialisation_seule(initialisation_seule)
 {}
 
 void AssembleurDisposition::ajoute_disposition(int identifiant)
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	QBoxLayout *disposition = nullptr;
 
 	switch (identifiant) {
@@ -152,11 +157,18 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 	}
 
 	m_dernier_controle = controle;
-	m_pile_dispositions.top()->addWidget(controle);
+
+	if (!m_initialisation_seule) {
+		m_pile_dispositions.top()->addWidget(controle);
+	}
 }
 
 void AssembleurDisposition::cree_controles_proprietes_extra()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	auto debut = m_manipulable->debut();
 	auto fin = m_manipulable->fin();
 
@@ -222,11 +234,19 @@ void AssembleurDisposition::cree_controles_proprietes_extra()
 
 void AssembleurDisposition::ajoute_item_liste(const std::string &nom, const std::string &valeur)
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	m_donnees_controle.valeur_enum.push_back({nom, valeur});
 }
 
 void AssembleurDisposition::ajoute_bouton()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	Bouton *bouton = new Bouton;
 	bouton->installe_repondant(m_repondant);
 
@@ -249,9 +269,18 @@ void AssembleurDisposition::finalise_controle()
 		m_donnees_controle.initialisation = false;
 	}
 
+	/* NOTE : l'initialisation de la valeur par défaut de la propriété se fait
+	 * dans la méthode 'finalise' du controle. */
 	m_dernier_controle->proriete(m_manipulable->propriete(m_donnees_controle.nom));
 	m_dernier_controle->temps(m_temps);
 	m_dernier_controle->finalise(m_donnees_controle);
+
+	if (m_initialisation_seule) {
+		/* Si on ne fait qu'initialiser les propriétés du manipulable, on peut
+		 * directement supprimer le controle. */
+		delete m_dernier_controle;
+		m_dernier_controle = nullptr;
+	}
 
 	if (m_conteneur != nullptr) {
 		QObject::connect(m_dernier_controle, &ControlePropriete::controle_change,
@@ -300,6 +329,10 @@ void AssembleurDisposition::propriete_controle(int identifiant, const std::strin
 
 void AssembleurDisposition::propriete_bouton(int identifiant, const std::string &valeur)
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	switch (identifiant) {
 		case IDENTIFIANT_INFOBULLE:
 			m_dernier_bouton->etablie_infobulle(valeur);
@@ -321,6 +354,10 @@ void AssembleurDisposition::propriete_bouton(int identifiant, const std::string 
 
 void AssembleurDisposition::propriete_action(int identifiant, const std::string &valeur)
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	switch (identifiant) {
 		case IDENTIFIANT_INFOBULLE:
 			m_derniere_action->etablie_infobulle(valeur.c_str());
@@ -356,6 +393,10 @@ QMenu *AssembleurDisposition::menu()
 
 void AssembleurDisposition::ajoute_menu(const std::string &nom)
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	auto menu = new QMenu(nom.c_str());
 
 	if (!m_pile_menus.empty()) {
@@ -377,6 +418,10 @@ void AssembleurDisposition::sort_menu()
 
 void AssembleurDisposition::ajoute_action()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	auto action = new Action;
 	action->installe_repondant(m_repondant);
 
@@ -393,11 +438,19 @@ void AssembleurDisposition::ajoute_action()
 
 void AssembleurDisposition::ajoute_separateur()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	m_pile_menus.top()->addSeparator();
 }
 
 void AssembleurDisposition::ajoute_dossier()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	QTabWidget *dossier = new QTabWidget;
 
 	m_pile_dispositions.top()->addWidget(dossier);
@@ -412,6 +465,10 @@ void AssembleurDisposition::finalise_dossier()
 
 void AssembleurDisposition::ajoute_onglet(const std::string &nom)
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	/* À FAIRE : expose contrôle de la direction. */
 	auto disp_onglet = new QVBoxLayout;
 
@@ -445,6 +502,10 @@ const std::vector<std::pair<std::string, QMenu *>> &AssembleurDisposition::donne
 
 void AssembleurDisposition::ajoute_barre_outils()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	if (m_barre_outils) {
 		delete m_barre_outils;
 	}

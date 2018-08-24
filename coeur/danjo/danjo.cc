@@ -233,6 +233,36 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnees, 
 	return disposition;
 }
 
+void GestionnaireInterface::initialise_interface(Manipulable *manipulable, const char *texte_entree)
+{
+	if (manipulable == nullptr) {
+		return;
+	}
+
+	AssembleurDisposition assembleuse(
+				manipulable,
+				nullptr,
+				nullptr,
+				0,
+				true);
+
+	AnalyseuseDisposition analyseuse;
+	analyseuse.installe_assembleur(&assembleuse);
+
+	Decoupeuse decoupeuse(texte_entree);
+
+	try {
+		decoupeuse.decoupe();
+		analyseuse.lance_analyse(decoupeuse.morceaux());
+	}
+	catch (const ErreurFrappe &e) {
+		std::cerr << e.quoi();
+	}
+	catch (const ErreurSyntactique &e) {
+		std::cerr << e.quoi();
+	}
+}
+
 QMenu *GestionnaireInterface::pointeur_menu(const std::string &nom)
 {
 	auto iter = m_menus.find(nom);
@@ -294,6 +324,7 @@ bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const cha
 std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
 {
 	if (!std::experimental::filesystem::exists(chemin)) {
+		std::cerr << "Le chemin de fichier " << chemin << " ne pointe vers aucun fichier !\n";
 		return "";
 	}
 
@@ -361,25 +392,9 @@ void compile_feuille_logique(const char *texte_entree)
 //	return __gestionnaire.compile_feuille_logique(texte_entree);
 }
 
-void initialise_interface(
-		const std::experimental::filesystem::path &chemin_texte,
-		Manipulable *manipulable)
+void initialise_interface(Manipulable *manipulable, const char *texte_entree)
 {
-	const auto texte_entree = contenu_fichier(chemin_texte);
-	Decoupeuse decoupeuse(texte_entree.c_str());
-
-	try {
-		decoupeuse.decoupe();
-
-		AnalyseuseLogique analyseuse(manipulable, true);
-		analyseuse.lance_analyse(decoupeuse.morceaux());
-	}
-	catch (const ErreurFrappe &e) {
-		std::cerr << e.quoi() << '\n';
-	}
-
-	/* À FAIRE */
-	//	return __gestionnaire.initialise_interface(texte_entree, manipulable);
+	return __gestionnaire.initialise_interface(manipulable, texte_entree);
 }
 
 bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree)

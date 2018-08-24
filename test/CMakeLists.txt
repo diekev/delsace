@@ -31,8 +31,10 @@ set(BIBLIOTHEQUES
 
 add_executable(test_danjo
 	test_decoupage.h
+	test_initialisation.h
 
 	test_decoupage.cc
+	test_initialisation.cc
 	tests.cc
 )
 

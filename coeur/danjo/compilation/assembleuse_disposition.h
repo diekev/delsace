@@ -74,6 +74,7 @@ class AssembleurDisposition {
 	std::string m_nom = "";
 
 	int m_temps = 0;
+	bool m_initialisation_seule = false;
 
 	DonneesControle m_donnees_controle;
 
@@ -93,7 +94,8 @@ public:
 			Manipulable *manipulable,
 			RepondantBouton *repondant_bouton,
 			ConteneurControles *conteneur,
-			int temps = 0);
+			int temps = 0,
+			bool initialisation_seule = false);
 
 	/**
 	 * Ajoute une disposition (ligne ou colonne) à la pile de disposition.

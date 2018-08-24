@@ -22,22 +22,8 @@
  *
  */
 
-#include "test_decoupage.h"
-#include "test_initialisation.h"
+#pragma once
 
-#include <QApplication>
+#include <test_unitaire/test_unitaire.h>
 
-int main(int argc, char **argv)
-{
-	/* Il nous faut une application pour pouvoir construire les QWidgets
-	 * nécessaires à l'initialisation des propriétés. */
-	QApplication app(argc, argv);
-
-	numero7::test_unitaire::ControleurUnitaire controleur;
-	controleur.ajoute_fonction(test_decoupage);
-	controleur.ajoute_fonction(test_initialisation);
-
-	controleur.performe_controles();
-
-	controleur.imprime_resultat();
-}
+void test_initialisation(numero7::test_unitaire::ControleurUnitaire &controleur);

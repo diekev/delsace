@@ -76,6 +76,8 @@ public:
 			const char *texte_entree,
 			int temps = 0);
 
+	void initialise_interface(Manipulable *manipulable, const char *texte_entree);
+
 	QMenu *pointeur_menu(const std::string &nom);
 
 	QToolBar *compile_barre_outils(DonneesInterface &donnees, const char *texte_entree);
@@ -115,11 +117,9 @@ QBoxLayout *compile_interface(
 void compile_feuille_logique(const char *texte_entree);
 
 /**
- * Initialise les propriétés d'un manipulable depuis un fichier .dan.
+ * Initialise les propriétés d'un manipulable depuis un fichier .jo.
  */
-void initialise_interface(
-		const std::experimental::filesystem::path &chemin_texte,
-		Manipulable *manipulable);
+void initialise_interface(Manipulable *manipulable, const char *texte_entree);
 
 bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree);
 
