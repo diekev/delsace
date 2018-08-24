@@ -324,7 +324,6 @@ bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const cha
 std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
 {
 	if (!std::experimental::filesystem::exists(chemin)) {
-		std::cerr << "Le chemin de fichier " << chemin << " ne pointe vers aucun fichier !\n";
 		return "";
 	}
 
