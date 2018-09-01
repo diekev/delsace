@@ -92,8 +92,8 @@ void AnalyseuseLogique::analyse_corps()
 	if (est_identifiant(IDENTIFIANT_ENTREE)) {
 		analyse_entree();
 	}
-	else if (est_identifiant(IDENTIFIANT_INTERFACE)) {
-		analyse_interface();
+	else if (est_identifiant(IDENTIFIANT_ENTREFACE)) {
+		analyse_entreface();
 	}
 	else if (est_identifiant(IDENTIFIANT_LOGIQUE)) {
 		analyse_logique();
@@ -324,12 +324,12 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 	LOG << __func__ << " fin\n";
 }
 
-void AnalyseuseLogique::analyse_interface()
+void AnalyseuseLogique::analyse_entreface()
 {
 	LOG << __func__ << '\n';
 
-	if (!requiers_identifiant(IDENTIFIANT_INTERFACE)) {
-		lance_erreur("Attendu la déclaration 'interface' !");
+	if (!requiers_identifiant(IDENTIFIANT_ENTREFACE)) {
+		lance_erreur("Attendu la déclaration 'entreface' !");
 	}
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
@@ -339,7 +339,7 @@ void AnalyseuseLogique::analyse_interface()
 	analyse_declaration(EXPRESSION_INTERFACE);
 
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
-		lance_erreur("Attendu une accolade fermante à la fin de l'interface !");
+		lance_erreur("Attendu une accolade fermante à la fin de l'entreface !");
 	}
 
 	LOG << __func__ << " fin\n";

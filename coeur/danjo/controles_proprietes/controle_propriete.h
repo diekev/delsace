@@ -32,8 +32,8 @@ struct DonneesControle;
 struct Propriete;
 
 /**
- * La classe Controle donne l'interface nécessaire pour les contrôles à afficher
- * dans l'interface utilisateur. Dès que le contrôle est changé le signal
+ * La classe Controle donne l'entreface nécessaire pour les contrôles à afficher
+ * dans l'entreface utilisateur. Dès que le contrôle est changé le signal
  * Controle::controle_change() est émis.
  */
 class ControlePropriete : public QWidget {
@@ -59,7 +59,7 @@ public:
 
 Q_SIGNALS:
 	/**
-	 * Signal émis quand la valeur du contrôle est changée dans l'interface.
+	 * Signal émis quand la valeur du contrôle est changée dans l'entreface.
 	 */
 	void controle_change();
 };

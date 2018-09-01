@@ -46,7 +46,7 @@ class Manipulable;
 class RepondantBouton;
 
 /**
- * La classe AssembleurDisposition s'occupe de créer l'interface en fonction de
+ * La classe AssembleurDisposition s'occupe de créer l'entreface en fonction de
  * ce que l'analyseur lui dit.
  *
  * L'assembleur met en place les connections entre signaux et slots des
@@ -83,12 +83,12 @@ public:
 	 * Construit une instance d'un assembleur avec les paramètres spécifiés.
 	 *
 	 * Le manipulable est l'objet qui contient les propriétés exposées dans
-	 * l'interface.
+	 * l'entreface.
 	 *
 	 * Le repondant_bouton est l'objet qui doit répondre des cliques de bouton.
 	 *
 	 * Le conteneur est l'objet qui soit détient le manipulable, soit répond
-	 * aux changements des contrôles exposés dans l'interface.
+	 * aux changements des contrôles exposés dans l'entreface.
 	 */
 	explicit AssembleurDisposition(
 			Manipulable *manipulable,

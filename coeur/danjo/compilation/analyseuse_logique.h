@@ -46,7 +46,7 @@ private:
 	void analyse_entree();
 	void analyse_declaration(const int type);
 	void analyse_expression(const std::string &nom, const int type);
-	void analyse_interface();
+	void analyse_entreface();
 	void analyse_logique();
 	void analyse_sortie();
 	void analyse_relation();

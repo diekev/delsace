@@ -41,7 +41,7 @@
 #include "dialogue.h"
 #include "erreur.h"
 #include "manipulable.h"
-#include "menu_interrogeable.h"
+#include "menu_entrerogeable.h"
 
 namespace danjo {
 
@@ -57,7 +57,7 @@ GestionnaireInterface::~GestionnaireInterface()
 		delete menu;
 	}
 
-	for (const auto &donnees : m_menus_interrogeables) {
+	for (const auto &donnees : m_menus_entrerogeables) {
 		auto menu = donnees.second;
 
 		for (auto &action : menu->actions()) {
@@ -151,7 +151,7 @@ QMenu *GestionnaireInterface::compile_menu(
 	return assembleur.menu();
 }
 
-QMenu *GestionnaireInterface::compile_menu_interrogeable(
+QMenu *GestionnaireInterface::compile_menu_entrerogeable(
 		DonneesInterface &donnees,
 		const char *texte_entree)
 {
@@ -179,21 +179,21 @@ QMenu *GestionnaireInterface::compile_menu_interrogeable(
 	}
 
 	/* À FAIRE : déplace ça dans l'assembleuse. */
-	auto menu_interrogeable = new MenuInterrogeable("");
+	auto menu_entrerogeable = new MenuEntrerogeable("");
 
 	for (auto &action : assembleur.menu()->actions()) {
-		menu_interrogeable->addAction(action);
+		menu_entrerogeable->addAction(action);
 	}
 
 	/* À FAIRE : déduplique les menus. */
 	for (const auto &pair : assembleur.donnees_menus()) {
-		m_menus_interrogeables.insert(pair);
+		m_menus_entrerogeables.insert(pair);
 	}
 
-	return menu_interrogeable;
+	return menu_entrerogeable;
 }
 
-QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnees, const char *texte_entree, int temps)
+QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, const char *texte_entree, int temps)
 {
 	if (donnees.manipulable == nullptr) {
 		return nullptr;
@@ -233,7 +233,7 @@ QBoxLayout *GestionnaireInterface::compile_interface(DonneesInterface &donnees, 
 	return disposition;
 }
 
-void GestionnaireInterface::initialise_interface(Manipulable *manipulable, const char *texte_entree)
+void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const char *texte_entree)
 {
 	if (manipulable == nullptr) {
 		return;
@@ -307,7 +307,7 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees,
 
 bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const char *texte_entree)
 {
-	auto disposition = this->compile_interface(donnees, texte_entree);
+	auto disposition = this->compile_entreface(donnees, texte_entree);
 
 	if (disposition == nullptr) {
 		return false;
@@ -340,15 +340,15 @@ std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
 
 static GestionnaireInterface __gestionnaire;
 
-QBoxLayout *compile_interface(
+QBoxLayout *compile_entreface(
 		DonneesInterface &donnees,
 		const char *texte_entree,
 		int temps)
 {
-	return __gestionnaire.compile_interface(donnees, texte_entree, temps);
+	return __gestionnaire.compile_entreface(donnees, texte_entree, temps);
 }
 
-QBoxLayout *compile_interface(
+QBoxLayout *compile_entreface(
 		DonneesInterface &donnees,
 		const std::experimental::filesystem::path &chemin_texte,
 		int temps)
@@ -358,7 +358,7 @@ QBoxLayout *compile_interface(
 	}
 
 	const auto texte_entree = contenu_fichier(chemin_texte.c_str());
-	return __gestionnaire.compile_interface(donnees, texte_entree.c_str(), temps);
+	return __gestionnaire.compile_entreface(donnees, texte_entree.c_str(), temps);
 }
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree)
@@ -366,9 +366,9 @@ QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree)
 	return __gestionnaire.compile_menu(donnees, texte_entree);
 }
 
-QMenu *compile_menu_interrogeable(DonneesInterface &donnees, const char *texte_entree)
+QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_entree)
 {
-	return __gestionnaire.compile_menu_interrogeable(donnees, texte_entree);
+	return __gestionnaire.compile_menu_entrerogeable(donnees, texte_entree);
 }
 
 void compile_feuille_logique(const char *texte_entree)
@@ -391,9 +391,9 @@ void compile_feuille_logique(const char *texte_entree)
 //	return __gestionnaire.compile_feuille_logique(texte_entree);
 }
 
-void initialise_interface(Manipulable *manipulable, const char *texte_entree)
+void initialise_entreface(Manipulable *manipulable, const char *texte_entree)
 {
-	return __gestionnaire.initialise_interface(manipulable, texte_entree);
+	return __gestionnaire.initialise_entreface(manipulable, texte_entree);
 }
 
 bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree)

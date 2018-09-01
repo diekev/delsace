@@ -27,22 +27,22 @@
 #include <QMenu>
 
 /**
- * Un MenuInterrogeable est un menu qui nous permet de chercher une de ses
+ * Un MenuEntrerogeable est un menu qui nous permet de chercher une de ses
  * actions en tapant un texte dans une barre de recherche. Les actions pouvant
  * correspondre au texte sont ajoutées dans un menu auxiliaire affiché à côté
- * du MenuInterrogeable actif.
+ * du MenuEntrerogeable actif.
  *
  * L'implémentation est tiré de
  * http://www.mprazak.info/posts/fuzzy-search-menu-in-qt/
  */
-class MenuInterrogeable final : public QMenu {
+class MenuEntrerogeable final : public QMenu {
 	Q_OBJECT
 
 	std::map<QString, QAction *> m_actions;
 	QMenu *m_menu_auxiliaire = nullptr;
 
 public:
-	MenuInterrogeable(const QString &titre, QWidget *parent = nullptr);
+	MenuEntrerogeable(const QString &titre, QWidget *parent = nullptr);
 
 protected:
 	void showEvent(QShowEvent *event) override;

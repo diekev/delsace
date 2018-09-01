@@ -37,7 +37,7 @@ void test_initialisation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	auto manipulable = danjo::Manipulable();
 
 	const auto texte_entree = danjo::contenu_fichier("exemples/disposition_test.jo");
-	danjo::initialise_interface(&manipulable, texte_entree.c_str());
+	danjo::initialise_entreface(&manipulable, texte_entree.c_str());
 
 	CU_VERIFIE_CONDITION(controleur, possede_propriete(manipulable, "taille_x"));
 	CU_VERIFIE_CONDITION(controleur, possede_propriete(manipulable, "taille_y"));

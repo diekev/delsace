@@ -55,7 +55,7 @@ qt5_wrap_cpp(
 	dialogues/dialogue_couleur.h
 
 	conteneur_controles.h
-	menu_interrogeable.h
+	menu_entrerogeable.h
 )
 
 set(ENTETES_TYPES
@@ -70,7 +70,7 @@ set(ENTETES
 	erreur.h
 	danjo.h
 	manipulable.h
-	menu_interrogeable.h
+	menu_entrerogeable.h
 	repondant_bouton.h
 )
 
@@ -127,7 +127,7 @@ add_library(danjo STATIC
 	erreur.cc
 	danjo.cc
 	manipulable.cc
-	menu_interrogeable.cc
+	menu_entrerogeable.cc
 	repondant_bouton.cc
 
 	controles/action.h

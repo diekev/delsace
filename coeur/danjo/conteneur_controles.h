@@ -30,12 +30,12 @@ namespace danjo {
 
 /**
  * La classe ConteneurControles sert de classe de base pour faire le pont entre
- * l'interface et le programme.
+ * l'entreface et le programme.
  *
  * Cette classe contiendra la disposition provenant de la compilation d'un
- * script, et à chaque fois qu'un contrôle est modifié dans l'interface,
+ * script, et à chaque fois qu'un contrôle est modifié dans l'entreface,
  * le Q_SLOT ajourne_manipulable est appelé pour que le programme répondent au
- * changement dans l'interface.
+ * changement dans l'entreface.
  */
 class ConteneurControles : public QWidget {
 	Q_OBJECT
@@ -46,7 +46,7 @@ public:
 public Q_SLOTS:
 	/**
 	 * Cette méthode est appelée à chaque qu'un contrôle associé est modifiée
-	 * dans l'interface.
+	 * dans l'entreface.
 	 */
 	virtual void ajourne_manipulable() = 0;
 

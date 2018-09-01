@@ -29,8 +29,8 @@
 #include "couleur.h"
 
 enum {
-	INTERPOLATION_RVB = 0,
-	INTERPOLATION_HSV = 1,
+	ENTREPOLATION_RVB = 0,
+	ENTREPOLATION_HSV = 1,
 };
 
 struct PointRampeCouleur {
@@ -41,7 +41,7 @@ struct PointRampeCouleur {
 
 struct RampeCouleur {
 	std::vector<PointRampeCouleur> points;
-	char interpolation = INTERPOLATION_RVB;
+	char entrepolation = ENTREPOLATION_RVB;
 };
 
 void cree_rampe_defaut(RampeCouleur &rampe);

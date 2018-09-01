@@ -31,7 +31,7 @@ namespace danjo {
 class RepondantBouton;
 
 /**
- * La classe bouton représente un bouton cliquable dans l'interface. Elle
+ * La classe bouton représente un bouton cliquable dans l'entreface. Elle
  * contient un pointeur vers un RepondantBouton qui est appelé quand le bouton
  * est cliqué.
  */
@@ -59,7 +59,7 @@ public:
 
 	/**
 	 * Établie la valeur du bouton, c'est-à-dire la chaîne de caractère qui sera
-	 * affichée sur le bouton dans l'interface.
+	 * affichée sur le bouton dans l'entreface.
 	 */
 	void etablie_valeur(const std::string &valeur);
 

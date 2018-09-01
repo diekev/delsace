@@ -94,9 +94,9 @@ private:
 
 /**
  * La classe Manipulable représente un objet qui peut être manipulé dans
- * l'interface. Les propriétés du manipulable sont celles qui seront attachées
+ * l'entreface. Les propriétés du manipulable sont celles qui seront attachées
  * aux contrôles par l'assembleur. Il est nécessaire que l'instance possède
- * toutes les propriétés utilisées dans le script de définition de l'interface.
+ * toutes les propriétés utilisées dans le script de définition de l'entreface.
  */
 class Manipulable {
 	std::unordered_map<std::string, Propriete> m_proprietes{};
@@ -204,7 +204,7 @@ public:
 	RampeCouleur *evalue_rampe_couleur(const std::string &nom);
 
 	/**
-	 * Rends la propriété spécifiée visible dans l'interface.
+	 * Rends la propriété spécifiée visible dans l'entreface.
 	 */
 	void rend_propriete_visible(const std::string &nom, bool ouinon);
 

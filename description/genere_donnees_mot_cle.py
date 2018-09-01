@@ -37,7 +37,7 @@ mot_cle = [
 	"logique",
 	"feuille",
 	"entrée",
-	"interface",
+	"entreface",
 	"relation",
 	"quand",
 	"sortie",

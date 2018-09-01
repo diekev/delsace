@@ -3,7 +3,7 @@ feuille "redimension_image" {
         largeur_initiale = 5 * 300;
         hauteur_initiale = 7 * 300;
     }
-    interface {
+    entreface {
         preserver_ratio = vrai;
         largeur_absolue = largeur_initiale;
         hauteur_absolue = hauteur_initiale;

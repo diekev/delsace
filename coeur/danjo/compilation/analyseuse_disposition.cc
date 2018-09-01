@@ -91,7 +91,7 @@ void AnalyseuseDisposition::lance_analyse(const std::vector<DonneesMorceaux> &id
 	m_position = 0;
 
 	if (m_assembleur == nullptr) {
-		throw "Un assembleur doit être installé avant de générer l'interface !";
+		throw "Un assembleur doit être installé avant de générer l'entreface !";
 	}
 
 	if (est_identifiant(IDENTIFIANT_DISPOSITION)) {

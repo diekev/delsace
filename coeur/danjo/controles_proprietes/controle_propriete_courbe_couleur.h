@@ -42,7 +42,7 @@ namespace danjo {
 class ControleProprieteCourbeCouleur final : public ControlePropriete {
 	Q_OBJECT
 
-	/* interface */
+	/* entreface */
 	QVBoxLayout *m_agencement_principal;
 	QHBoxLayout *m_agencement_nombre;
 

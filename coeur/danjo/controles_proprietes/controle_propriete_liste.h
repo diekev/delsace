@@ -38,7 +38,7 @@ class ConteneurControles;
 class ControleProprieteListe final : public ControlePropriete {
 	Q_OBJECT
 
-	/* interface */
+	/* entreface */
 	QHBoxLayout *m_agencement;
 	QLineEdit *m_editeur_texte;
 	QPushButton *m_bouton_liste;

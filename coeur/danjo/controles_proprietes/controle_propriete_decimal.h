@@ -36,7 +36,7 @@ namespace danjo {
 class ControleProprieteDecimal final : public ControlePropriete {
 	Q_OBJECT
 
-	/* interface */
+	/* entreface */
 	QHBoxLayout *m_agencement;
 	ControleNombreDecimal *m_controle;
 

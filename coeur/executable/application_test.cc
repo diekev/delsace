@@ -110,7 +110,7 @@ FenetreTest::FenetreTest()
 
 	auto texte_entree = danjo::contenu_fichier("exemples/disposition_test.jo");
 
-	auto disposition = danjo::compile_interface(donnees, texte_entree.c_str());
+	auto disposition = danjo::compile_entreface(donnees, texte_entree.c_str());
 	widget_test->setLayout(disposition);
 
 	setCentralWidget(widget_test);
@@ -142,6 +142,6 @@ int main(int argc, char *argv[])
 //	danjo::compile_feuille_logique(texte_logique.c_str());
 
 	danjo::Manipulable manipulable;
-	danjo::initialise_interface("exemples/redimension_image.dan", &manipulable);
+	danjo::initialise_entreface("exemples/redimension_image.dan", &manipulable);
 #endif
 }

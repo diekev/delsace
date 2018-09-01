@@ -42,11 +42,11 @@ class ControleCouleur;
 class ControleProprieteRampeCouleur final : public ControlePropriete {
 	Q_OBJECT
 
-	/* interface */
+	/* entreface */
 	QVBoxLayout *m_agencement_principal;
 	QHBoxLayout *m_agencement_nombre;
 
-	QComboBox *m_interpolation;
+	QComboBox *m_entrepolation;
 
 	/* rampe */
 	ControleRampeCouleur *m_controle_rampe;
@@ -76,7 +76,7 @@ private Q_SLOTS:
 	void ajourne_position_controle(float v);
 	void ajourne_point_actif();
 
-	void ajourne_interpolation(int i);
+	void ajourne_entrepolation(int i);
 
 	void ajourne_couleur();
 };

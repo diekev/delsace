@@ -52,7 +52,7 @@ struct DonneesAction {
 
 class GestionnaireInterface {
 	std::unordered_map<std::string, QMenu *> m_menus;
-	std::unordered_map<std::string, QMenu *> m_menus_interrogeables;
+	std::unordered_map<std::string, QMenu *> m_menus_entrerogeables;
 	std::unordered_map<std::string, QBoxLayout *> m_dispositions;
 	std::vector<QToolBar *> m_barres_outils;
 
@@ -69,14 +69,14 @@ public:
 
 	QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
 
-	QMenu *compile_menu_interrogeable(DonneesInterface &donnees, const char *texte_entree);
+	QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_entree);
 
-	QBoxLayout *compile_interface(
+	QBoxLayout *compile_entreface(
 			DonneesInterface &donnees,
 			const char *texte_entree,
 			int temps = 0);
 
-	void initialise_interface(Manipulable *manipulable, const char *texte_entree);
+	void initialise_entreface(Manipulable *manipulable, const char *texte_entree);
 
 	QMenu *pointeur_menu(const std::string &nom);
 
@@ -94,22 +94,22 @@ std::string contenu_fichier(const std::experimental::filesystem::path &chemin);
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
 
-QMenu *compile_menu_interrogeable(DonneesInterface &donnees, const char *texte_entree);
+QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_entree);
 
 /**
- * Compile le script d'interface contenu dans texte_entree, et retourne un
+ * Compile le script d'entreface contenu dans texte_entree, et retourne un
  * pointeur vers le QBoxLayout ainsi créé.
  */
-QBoxLayout *compile_interface(
+QBoxLayout *compile_entreface(
 		DonneesInterface &donnees,
 		const char *texte_entree,
 		int temps = 0);
 
 /**
- * Compile le script d'interface contenu dans le fichier dont le chemin est
+ * Compile le script d'entreface contenu dans le fichier dont le chemin est
  * spécifié, et retourne un pointeur vers le QBoxLayout ainsi créé.
  */
-QBoxLayout *compile_interface(
+QBoxLayout *compile_entreface(
 		DonneesInterface &donnees,
 		const std::experimental::filesystem::path &chemin_texte,
 		int temps = 0);
@@ -119,7 +119,7 @@ void compile_feuille_logique(const char *texte_entree);
 /**
  * Initialise les propriétés d'un manipulable depuis un fichier .jo.
  */
-void initialise_interface(Manipulable *manipulable, const char *texte_entree);
+void initialise_entreface(Manipulable *manipulable, const char *texte_entree);
 
 bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree);
 

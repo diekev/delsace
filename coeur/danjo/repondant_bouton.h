@@ -29,8 +29,8 @@
 namespace danjo {
 
 /**
- * La classe RepondantBouton définie l'interface nécessaire pour attacher un
- * objet à plusieurs bouton dans une interface utilisateur. À chaque fois qu'un
+ * La classe RepondantBouton définie l'entreface nécessaire pour attacher un
+ * objet à plusieurs bouton dans une entreface utilisateur. À chaque fois qu'un
  * bouton est cliqué, cette classe est invoquée.
  */
 class RepondantBouton {

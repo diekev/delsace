@@ -68,7 +68,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 		auto nom_disposition = debut->contenu;
 
 		os << "feuille \"" << nom_disposition << "\" {\n";
-		os << "\tinterface {\n";
+		os << "\tentreface {\n";
 
 		auto nom_propriete = std::string("");
 		auto valeur_propriete = std::string("");
@@ -143,7 +143,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 
 /**
  * Génère un fichier dan à partir d'un fichier jo. Le fichier dan ne contiendra
- * que la définition de l'interface. Si le fichier jo indiqué par le chemin
+ * que la définition de l'entreface. Si le fichier jo indiqué par le chemin
  * n'existe pas ou ne contient pas de définition de disposition, la fonction
  * retourne sans erreur. Si le fichier jo contient des erreurs de frappe, une
  * exception sera lancée, cependant aucune analyse syntactique n'est effectuée.

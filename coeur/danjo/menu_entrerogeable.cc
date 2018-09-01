@@ -22,7 +22,7 @@
  *
  */
 
-#include "menu_interrogeable.h"
+#include "menu_entrerogeable.h"
 
 #include <cassert>
 
@@ -110,11 +110,11 @@ protected:
 
 /* ************************************************************************** */
 
-MenuInterrogeable::MenuInterrogeable(const QString &titre, QWidget *parent)
+MenuEntrerogeable::MenuEntrerogeable(const QString &titre, QWidget *parent)
 	: QMenu(titre, parent)
 {}
 
-void MenuInterrogeable::init(QMenu *menu)
+void MenuEntrerogeable::init(QMenu *menu)
 {
 	const auto &acts = menu->actions();
 
@@ -134,7 +134,7 @@ void MenuInterrogeable::init(QMenu *menu)
 	}
 }
 
-void MenuInterrogeable::changement_texte(const QString &texte)
+void MenuEntrerogeable::changement_texte(const QString &texte)
 {
 	assert(m_menu_auxiliaire);
 	m_menu_auxiliaire->hide();
@@ -173,7 +173,7 @@ void MenuInterrogeable::changement_texte(const QString &texte)
 	editeur_ligne->setFocus();
 }
 
-void MenuInterrogeable::showEvent(QShowEvent *event)
+void MenuEntrerogeable::showEvent(QShowEvent *event)
 {
 	if (this->actions().size() > 0) {
 		/* Obtiens le QWidgetAction, en présumant qu'il n'y en a qu'un. */
@@ -195,7 +195,7 @@ void MenuInterrogeable::showEvent(QShowEvent *event)
 		auto editeur_ligne = dynamic_cast<QLineEdit *>(wa->defaultWidget());
 		assert(editeur_ligne != nullptr);
 
-		connect(editeur_ligne, &QLineEdit::textEdited, this, &MenuInterrogeable::changement_texte);
+		connect(editeur_ligne, &QLineEdit::textEdited, this, &MenuEntrerogeable::changement_texte);
 
 		/* Prépare l'éditeur de texte et capture le focus pour écouter les
 			 * frappes de clavier. */

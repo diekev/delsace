@@ -93,12 +93,12 @@ couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 			const auto &c1 = p1.couleur;
 			auto fac = (v - p0.position) / (p1.position - p0.position);
 
-			if (rampe.interpolation == INTERPOLATION_HSV) {
+			if (rampe.entrepolation == ENTREPOLATION_HSV) {
 				float h0, s0, v0, h1, s1, v1;
 				rvb_vers_hsv(c0[0], c0[1], c0[2], &h0, &s0, &v0);
 				rvb_vers_hsv(c1[0], c1[1], c1[2], &h1, &s1, &v1);
 
-				/* Les teintes doivent être interpolées selon leurs angles, donc
+				/* Les teintes doivent être entrepolées selon leurs angles, donc
 				 * on doit définir la distance entre les angles et leur
 				 * orientation anti-horaire (dist_a) ou horaire (dist_h).
 				 */

@@ -72,6 +72,8 @@ const char *chaine_identifiant(int identifiant)
 			return "IDENTIFIANT_DECIMAL";
 		case IDENTIFIANT_ENTIER:
 			return "IDENTIFIANT_ENTIER";
+		case IDENTIFIANT_ENTREFACE:
+			return "IDENTIFIANT_ENTREFACE";
 		case IDENTIFIANT_ENTREE:
 			return "IDENTIFIANT_ENTREE";
 		case IDENTIFIANT_FAUX:
@@ -88,8 +90,6 @@ const char *chaine_identifiant(int identifiant)
 			return "IDENTIFIANT_ICONE";
 		case IDENTIFIANT_INFOBULLE:
 			return "IDENTIFIANT_INFOBULLE";
-		case IDENTIFIANT_INTERFACE:
-			return "IDENTIFIANT_INTERFACE";
 		case IDENTIFIANT_ITEMS:
 			return "IDENTIFIANT_ITEMS";
 		case IDENTIFIANT_LIGNE:

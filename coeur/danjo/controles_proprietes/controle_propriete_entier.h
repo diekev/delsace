@@ -36,7 +36,7 @@ namespace danjo {
 class ControleProprieteEntier final : public ControlePropriete {
 	Q_OBJECT
 
-	/* interface */
+	/* entreface */
 	QHBoxLayout *m_agencement;
 	ControleNombreEntier *m_controle;
 

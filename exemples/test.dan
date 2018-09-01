@@ -4,7 +4,7 @@ feuille "test" {
 		largeur_initial = ((5 * 35.5) + 2) * 7;
 		résolution = hauteur_initial * largeur_initial;
 	}
-	interface {
+	entreface {
 	}
 	logique {
 		relation {

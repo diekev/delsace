@@ -46,7 +46,7 @@ public:
 	AnalyseuseDisposition() = default;
 
 	/**
-	 * Installe l'assembleur à utiliser pour générer l'interface.
+	 * Installe l'assembleur à utiliser pour générer l'entreface.
 	 */
 	void installe_assembleur(AssembleurDisposition *assembleur);
 

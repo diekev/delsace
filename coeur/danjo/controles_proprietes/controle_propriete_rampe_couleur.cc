@@ -43,17 +43,17 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(QWidget *parent)
 	: ControlePropriete(parent)
 	, m_agencement_principal(new QVBoxLayout())
 	, m_agencement_nombre(new QHBoxLayout())
-	, m_interpolation(new QComboBox(this))
+	, m_entrepolation(new QComboBox(this))
 	, m_controle_rampe(new ControleRampeCouleur(this))
 	, m_bouton_echelle(new QPushButton("H", this))
 	, m_echelle(new ControleEchelleDecimale())
 	, m_pos(new ControleNombreDecimal(this))
 	, m_controle_couleur(new ControleCouleur(this))
 {
-	m_interpolation->addItem("RVB");
-	m_interpolation->addItem("HSV");
+	m_entrepolation->addItem("RVB");
+	m_entrepolation->addItem("HSV");
 
-	m_agencement_principal->addWidget(m_interpolation);
+	m_agencement_principal->addWidget(m_entrepolation);
 	m_agencement_principal->addWidget(m_controle_rampe);
 
 	auto metriques = this->fontMetrics();
@@ -66,8 +66,8 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(QWidget *parent)
 
 	m_echelle->setWindowFlags(Qt::WindowStaysOnTopHint);
 
-	connect(m_interpolation, SIGNAL(currentIndexChanged(int)),
-			this, SLOT(ajourne_interpolation(int)));
+	connect(m_entrepolation, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(ajourne_entrepolation(int)));
 
 	connect(m_controle_rampe, &ControleRampeCouleur::position_modifie,
 			this, &ControleProprieteRampeCouleur::ajourne_position);
@@ -103,7 +103,7 @@ void ControleProprieteRampeCouleur::finalise(const DonneesControle &donnees)
 	m_rampe = static_cast<RampeCouleur *>(donnees.pointeur);
 	m_controle_rampe->installe_rampe(m_rampe);
 	m_pos->ajourne_plage(0.0f, 1.0f);
-	m_interpolation->setCurrentIndex(m_rampe->interpolation);
+	m_entrepolation->setCurrentIndex(m_rampe->entrepolation);
 
 	auto point = trouve_point_selectionne(*m_rampe);
 
@@ -140,9 +140,9 @@ void ControleProprieteRampeCouleur::ajourne_point_actif()
 	m_controle_couleur->couleur(point->couleur);
 }
 
-void ControleProprieteRampeCouleur::ajourne_interpolation(int i)
+void ControleProprieteRampeCouleur::ajourne_entrepolation(int i)
 {
-	m_rampe->interpolation = i;
+	m_rampe->entrepolation = i;
 	m_controle_rampe->update();
 	Q_EMIT(controle_change());
 }
