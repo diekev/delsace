@@ -41,6 +41,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -Og -Wno-error=unus
 
 # ------------------------------------------------------------------------------
 
+find_package(LLVM REQUIRED)
 find_package(TestUnitaire REQUIRED)
 
 # ------------------------------------------------------------------------------

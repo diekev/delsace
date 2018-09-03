@@ -28,8 +28,39 @@
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
 
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/IRBuilder.h>
+
 int main()
 {
+#if 0
+	auto context = llvm::LLVMContext();
+	auto module = new llvm::Module("top", context);
+
+	auto constructeur = llvm::IRBuilder<>(context);
+
+	std::vector<llvm::Type *> putsArgs;
+	putsArgs.push_back(constructeur.getInt8Ty()->getPointerTo());
+	llvm::ArrayRef<llvm::Type*>  argsRef(putsArgs);
+
+	auto *putsType =
+	  llvm::FunctionType::get(constructeur.getInt32Ty(), argsRef, false);
+	llvm::Constant *putsFunc = module->getOrInsertFunction("puts", putsType);
+
+	auto type_fonction = llvm::FunctionType::get(constructeur.getInt32Ty(), false);
+	auto fonction_main = llvm::Function::Create(type_fonction, llvm::Function::ExternalLinkage, "main", module);
+
+	auto entree = llvm::BasicBlock::Create(context, "entrypoint", fonction_main);
+	constructeur.SetInsertPoint(entree);
+
+	auto valeur = constructeur.CreateGlobalStringPtr("hello world!\n");
+
+	constructeur.CreateCall(putsFunc, valeur);
+	constructeur.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0, false));
+
+	module->dump();
+#else
 //	const char *str = ".3 boucle 0...20 { imprime(index != modèle de voiture); }";
 
 	const char *str = ""
@@ -40,7 +71,12 @@ int main()
 	" 11...20: imprime(20);\n"
 	" sinon:imprime(inconnu);\n"
 	"decoupeuse_texte decoupeuse(str, str + len);\n"
-	"}";
+	"}"
+					  "entier32 do_math(entier32 a) {"
+					  "soit x = a * 5 + 3;"
+					"}"
+
+					"do_math(10)";
 
 	const size_t len = std::strlen(str);
 
@@ -59,4 +95,5 @@ int main()
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message();
 	}
+#endif
 }

@@ -22,10 +22,12 @@
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${LLVM_INCLUDE_DIR}
 )
 
 set(BIBLIOTHEQUES
 	decoupage
+	${LLVM_LIBRARY}
 )
 
 add_executable(kuri
