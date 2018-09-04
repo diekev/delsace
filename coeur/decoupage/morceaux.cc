@@ -197,6 +197,8 @@ const char *chaine_identifiant(int identifiant)
 			return "IDENTIFIANT_NOMBRE";
 		case IDENTIFIANT_DECIMAL:
 			return "IDENTIFIANT_DECIMAL";
+		case IDENTIFIANT_VIRGULE:
+			return "IDENTIFIANT_VIRGULE";
 		case IDENTIFIANT_NUL:
 			return "IDENTIFIANT_NUL";
 	}

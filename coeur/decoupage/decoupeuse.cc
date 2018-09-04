@@ -129,6 +129,7 @@ const paire_identifiant_caractere paires_caracteres_speciaux[] = {
 	{ IDENTIFIANT_PARENTHESE_FERMANTE, ')' },
 	{ IDENTIFIANT_FOIS, '*' },
 	{ IDENTIFIANT_PLUS, '+' },
+	{ IDENTIFIANT_VIRGULE, ',' },
 	{ IDENTIFIANT_MOINS, '-' },
 	{ IDENTIFIANT_POINT, '.' },
 	{ IDENTIFIANT_DIVISE, '/' },
@@ -385,8 +386,14 @@ void decoupeuse_texte::genere_morceaux()
 	}
 
 	if (!mot_courant.empty()) {
+		std::cerr << mot_courant << '\n';
 		throw erreur::frappe("Erreur : des caractères en trop se trouve à la fin du texte !");
 	}
+}
+
+const std::vector<DonneesMorceaux> &decoupeuse_texte::morceaux() const
+{
+	return m_morceaux;
 }
 
 decoupeuse_texte::iterateur decoupeuse_texte::begin()

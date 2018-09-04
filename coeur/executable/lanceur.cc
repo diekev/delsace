@@ -25,12 +25,15 @@
 #include <cstring>
 #include <iostream>
 
+#include "decoupage/analyseuse_grammaire.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
 
+#if 0
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
+#endif
 
 int main()
 {
@@ -64,19 +67,16 @@ int main()
 //	const char *str = ".3 boucle 0...20 { imprime(index != modèle de voiture); }";
 
 	const char *str = ""
-	"# Ceci est un commentaire \n"
-	"soit str='a';\n"
-	"associe nombre {\n"
-	" 0...10: imprime(10);\n"
-	" 11...20: imprime(20);\n"
-	" sinon:imprime(inconnu);\n"
-	"decoupeuse_texte decoupeuse(str, str + len);\n"
+	"fonction ajouter(entier8 a, entier8 b)"
+	"{"
+	"	retourne a + b;"
 	"}"
-					  "entier32 do_math(entier32 a) {"
-					  "soit x = a * 5 + 3;"
-					"}"
-
-					"do_math(10)";
+	""
+	"fonction principale()"
+	"{"
+	""
+	"	retourne 0;"
+	"}";
 
 	const size_t len = std::strlen(str);
 
@@ -89,11 +89,14 @@ int main()
 		}
 
 		//assembleuse_arbre assembleuse;
-		//analyseuse_grammaire analyseuse(assembleuse);
-		//analyseuse.lance_analyse(decoupeuse_texte.begin(), decoupeuse_texte.end());
+		analyseuse_grammaire analyseuse;
+		analyseuse.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const erreur::frappe &erreur_frappe) {
-		std::cerr << erreur_frappe.message();
+		std::cerr << erreur_frappe.message() << '\n';
+	}
+	catch (const char *e) {
+		std::cerr << e << '\n';
 	}
 #endif
 }

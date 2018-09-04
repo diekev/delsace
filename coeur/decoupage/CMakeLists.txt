@@ -24,11 +24,15 @@ set(INCLUSIONS
 )
 
 set(SOURCES
+	analyseuse.h
+	analyseuse_grammaire.h
     arbre.h
     decoupeuse.h
 	erreur.h
     morceaux.h
 
+	analyseuse.cc
+	analyseuse_grammaire.cc
     decoupeuse.cc
 	erreur.cc
     morceaux.cc

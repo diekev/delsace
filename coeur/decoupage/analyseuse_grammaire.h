@@ -24,26 +24,17 @@
 
 #pragma once
 
-#include <vector>
+#include "analyseuse.h"
 
-#include "morceaux.h"
-
-class decoupeuse_texte {
-	const char *m_debut = nullptr;
-	const char *m_fin = nullptr;
-
-	std::vector<DonneesMorceaux> m_morceaux;
-
+class analyseuse_grammaire : public Analyseuse {
 public:
-	using iterateur = std::vector<DonneesMorceaux>::iterator;
+	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
 
-	decoupeuse_texte(const char *debut, const char *fin);
-
-	void genere_morceaux();
-
-	const std::vector<DonneesMorceaux> &morceaux() const;
-
-	iterateur begin();
-
-	iterateur end();
+private:
+	void analyse_corps();
+	void analyse_declaration_fonction();
+	void analyse_parametres_fonction();
+	void analyse_corps_fonction();
+	void analyse_expression_droite(int identifiant_final);
+	void analyse_appel_fonction();
 };
