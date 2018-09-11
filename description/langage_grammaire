@@ -15,6 +15,31 @@ classe gabarit(T) Noeud {
 	}
 }
 
+classe vecteur2 {
+    e8 x;
+    e8 y;
+
+    construction()
+    {
+        x = 0;
+        y = 0;
+    }
+
+    construction(e8 vx, e8 vy)
+    {
+        x = vx;
+        y = vy;
+    }
+
+    destruction()
+
+    vecteur2 opération+()
+}
+
+# converti les méthodes en 'nom_méthode' + '_' + 'nom_classe'
+
+soit vec = vecteur2();  # converti en soit vec = construction_vecteur2();
+
 enum {
 	OUVERT,
 	FERME,
