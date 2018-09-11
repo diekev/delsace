@@ -262,6 +262,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 			avance();
 
+			/* fonction : chaine + ( */
 			if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
 				avance();
 
@@ -271,12 +272,13 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 					lance_erreur("Attendu une paranthèse fermante après les paramètres de la fonction !");
 				}
 			}
+			/* accès propriété : chaine + de + chaine */
 			else if (est_identifiant(IDENTIFIANT_DE)) {
 				/* À FAIRE : structure, classe */
 				lance_erreur("L'accès de propriété de structure n'est pas implémenté");
 			}
+			/* variable : chaine */
 			else {
-				/* variable */
 			}
 		}
 
