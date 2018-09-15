@@ -1,0 +1,31 @@
+// https://en.cppreference.com/w/cpp/language/integer_literal
+
+Valeur Entière Littérale
+
+Permet l'utilisation de valeurs entières littérales directement dans les expressions.
+
+Syntax
+
+Une valeur entière littérale est une expresion primaire de la forme
+
+littérale-décimal suffix-entier
+littérale-octal suffix-entier
+littérale-hexadécimal suffix-entier
+littérale-binaire suffix-entier
+
+où
+
+littérale-décimal est une séquence de chiffres décimaux (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+littérale-octal est la séquence de caractères 0o ou 0O suivi de un ou plusieurs chiffres octaux (0, 1, 2, 3, 4, 5, 6, 7)
+littérale-hexadécimal est la séquence de caractères 0x ou 0X suivi de un ou plusieurs chiffres héxadécimaux (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, A, b, B, c, C, d, D, e, E, f, F)
+littérale-binaire est la séquence de caractères 0b ou 0B suivi de un ou plusieurs chiffres binaire (0, 1)
+
+Exemple
+
+soit d = 42;
+soit o = 0o52;
+soit O = 0O52;
+soit x = 0x2a;
+soit X = 0X2A;
+soit b = 0b101010;
+soit B = 0B101010;
