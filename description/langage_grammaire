@@ -109,6 +109,57 @@ boucle ... {
 sinon {
 }
 
+fonction decoupe(chaine *s, e32 pattern) -> chaine
+{
+    chaine temp;
+
+    boucle 0...longueur(s) comme c {
+        if c == pattern {
+            soit temp2 = temp;
+            temp = "";
+            retiens temp2;
+        }
+
+        temp += c;
+    }
+}
+
+fonction principale()
+{
+    boucle decoupe("Le temps est moche", ' ') comme mot {
+        imprime("%s", mot);
+    }
+}
+
+fonction xyz()
+{
+    # ID_POUR
+    # ID_CHAINE
+    # ID_DANS
+    # expr
+    pour mot dans decoupe("", "") {
+        imprime("%s", mot);
+    }
+    sinon {
+
+    }
+
+    boucle {
+        arrête;
+        continue;
+    }
+    sinon {
+
+    }
+
+    pour index dans 0...10 {
+
+    }
+    sinon {
+
+    }
+}
+
 fonction lanceuse(entier32 constant compte_argument, phrase arguments[])
 {
 	retourne 0;
