@@ -22,16 +22,8 @@
  *
  */
 
-#include "test_decoupage.h"
-#include "test_decoupage_nombres.h"
+#pragma once
 
-int main()
-{
-	numero7::test_unitaire::ControleurUnitaire controleur;
-	controleur.ajoute_fonction(test_decoupage);
-	controleur.ajoute_fonction(test_decoupage_nombres);
+#include <test_unitaire/test_unitaire.h>
 
-	controleur.performe_controles();
-
-	controleur.imprime_resultat();
-}
+void test_decoupage_nombres(numero7::test_unitaire::ControleurUnitaire &controleur);

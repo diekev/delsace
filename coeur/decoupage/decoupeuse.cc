@@ -29,6 +29,7 @@
 #include <cstring>
 
 #include "erreur.h"
+#include "nombres.h"
 
 /* ************************************************************************** */
 
@@ -151,11 +152,6 @@ bool est_espace_blanc(char c)
 	return c == ' ' || c == '\n' || c == '\t';
 }
 
-bool est_nombre(char c)
-{
-	return (c >= '0') && (c <= '9');
-}
-
 bool est_caractere_special(char c, int &i)
 {
 	auto iterateur = std::lower_bound(
@@ -206,41 +202,6 @@ int id_chaine(const std::string &chaine)
 	}
 
 	return IDENTIFIANT_CHAINE_CARACTERE;
-}
-
-enum {
-	ETAT_NOMBRE_POINT,
-	ETAT_NOMBRE_EXPONENTIEL,
-	ETAT_NOMBRE_DEBUT,
-};
-
-int extrait_nombre(const char *debut, const char *fin, std::string &chaine)
-{
-	int compte = 0;
-	int etat = ETAT_NOMBRE_DEBUT;
-
-	while (debut != fin) {
-		if (!est_nombre(*debut) && *debut != '.') {
-			break;
-		}
-
-		if (*debut == '.') {
-			if ((*(debut + 1) == '.') && (*(debut + 2) == '.')) {
-				break;
-			}
-
-			if (etat == ETAT_NOMBRE_POINT) {
-				throw erreur::frappe("Erreur ! Le nombre contient un point en trop !\n");
-			}
-
-			etat = ETAT_NOMBRE_POINT;
-		}
-
-		chaine.push_back(*debut++);
-		++compte;
-	}
-
-	return compte;
 }
 
 /* ************************************************************************** */
@@ -319,10 +280,11 @@ void decoupeuse_texte::genere_morceaux()
 					mot_courant = "";
 					debut += 3;
 				}
-				else if (est_nombre(*(debut + 1))) {
-					int compte = extrait_nombre(debut, fin, mot_courant);
+				else if (est_nombre_decimal(*(debut + 1))) {
+					int id_nombre;
+					int compte = extrait_nombre(debut, fin, mot_courant, id_nombre);
 					debut += compte;
-					m_morceaux.push_back({ mot_courant, IDENTIFIANT_NOMBRE });
+					m_morceaux.push_back({ mot_courant, id_nombre });
 					mot_courant = "";
 				}
 				else {
@@ -374,10 +336,11 @@ void decoupeuse_texte::genere_morceaux()
 				++debut;
 			}
 		}
-		else if (est_nombre(*debut) && mot_courant.empty()) {
-			int compte = extrait_nombre(debut, fin, mot_courant);
+		else if (est_nombre_decimal(*debut) && mot_courant.empty()) {
+			int id_nombre;
+			int compte = extrait_nombre(debut, fin, mot_courant, id_nombre);
 			debut += compte;
-			m_morceaux.push_back({ mot_courant, IDENTIFIANT_NOMBRE });
+			m_morceaux.push_back({ mot_courant, id_nombre });
 			mot_courant = "";
 		}
 		else {

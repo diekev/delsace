@@ -22,16 +22,14 @@
  *
  */
 
-#include "test_decoupage.h"
-#include "test_decoupage_nombres.h"
+#pragma once
 
-int main()
-{
-	numero7::test_unitaire::ControleurUnitaire controleur;
-	controleur.ajoute_fonction(test_decoupage);
-	controleur.ajoute_fonction(test_decoupage_nombres);
+#include <string>
 
-	controleur.performe_controles();
+bool est_nombre_decimal(char c);
 
-	controleur.imprime_resultat();
-}
+int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int &id_nombre);
+
+long converti_chaine_nombre_entier(const std::string &chaine, int identifiant);
+
+double converti_chaine_nombre_decimal(const std::string &chaine, int identifiant);

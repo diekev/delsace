@@ -32,8 +32,10 @@ set(BIBLIOTHEQUES
 
 set(SOURCES
 	test_decoupage.h
+	test_decoupage_nombres.h
 
 	test_decoupage.cc
+	test_decoupage_nombres.cc
 	tests.cc
 )
 

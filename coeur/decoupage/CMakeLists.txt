@@ -30,12 +30,14 @@ set(SOURCES
     decoupeuse.h
 	erreur.h
 	morceaux.h
+	nombres.h
 
 	analyseuse.cc
 	analyseuse_grammaire.cc
     decoupeuse.cc
 	erreur.cc
 	morceaux.cc
+	nombres.cc
 	preproces.cc
 )
 
