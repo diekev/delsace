@@ -87,7 +87,8 @@ caracteres_speciaux = [
 	[";","POINT_VIRGULE"],
 	[":","DOUBLE_POINT"],
 	[".","POINT"],
-	["#","DIESE"]
+	["#","DIESE"],
+	[",","VIRGULE"]
 ]
 
 identifiant_extra = [
@@ -168,3 +169,4 @@ def imprime_impression_identifiant():
 	print '}'
 
 imprime_identifiants()
+imprime_impression_identifiant()
