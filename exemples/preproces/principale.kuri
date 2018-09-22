@@ -1,0 +1,30 @@
+# Ligne de license ou commentaire
+
+#!importe "algorithme.kuri"
+#!importe "constantes.kuri"
+#!importe "math.kuri"
+
+#!si faux
+soit X : d64 = 5.0;
+soit variable Y : d32 = 5.0;
+#!sinon
+fonction degrée_à_radians(degree : d64) : d64
+{
+	retourne degree * 180.0 * PI_INVERSE;
+}
+
+fonction radians_à_degrée(d64 radians) : d64
+{
+	retourne radians * PI / 180.0;
+}
+
+fonction opère_selon(fonction(e32, e32) e32) : fonction(e32, e32) e32
+{
+
+}
+#!finsi
+
+fonction principale(compte : e32, chaines : *[]e8)
+{
+
+}

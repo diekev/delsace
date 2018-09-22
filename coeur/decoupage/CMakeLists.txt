@@ -29,13 +29,14 @@ set(SOURCES
     arbre.h
     decoupeuse.h
 	erreur.h
-    morceaux.h
+	morceaux.h
 
 	analyseuse.cc
 	analyseuse_grammaire.cc
     decoupeuse.cc
 	erreur.cc
-    morceaux.cc
+	morceaux.cc
+	preproces.cc
 )
 
 add_library(decoupage STATIC "${SOURCES}")
