@@ -165,6 +165,158 @@ fonction lanceuse(entier32 constant compte_argument, phrase arguments[])
 	retourne 0;
 }
 
+types :
+c8  # utf-8
+c16 # utf-16
+c32 # utf-32
+
+e8
+e16
+e32
+e64
+
+d16
+d32
+d64
+
+bool
+
+rien
+
+déclaration variable :
+soit          chaine                      egale expr ;
+soit          chaine point_double    type egale expr ;
+soit          chaine point_double  * type egale expr ;
+soit          chaine point_double [] type egale expr ;
+soit variable chaine                      egale expr ;
+soit variable chaine point_double    type egale expr ;
+soit variable chaine point_double  * type egale expr ;
+soit variable chaine point_double [] type egale expr ;
+
+soit          p        = 0;
+soit          p :  e32 = 0;
+soit          p : *e32 = nul;
+soit variable p        = 0;
+soit variable p :  e32 = 0;
+soit variable p : *e32 = nul; # pointeur vers un entier
+soit v = 0;
+soit variable ptr = @v;  # pointeur variable vers un entier
+
+soit variable mémoire_vidéo : *e8 = 0x80;
+
+assignation variable :
+chaine egale expr ;
+
+p = 1;
+
+appele_fonction ;
+chaine(expr...);
+
+déclaration fonction :
+fonction chaine ( paramètres... )                   { ... }
+fonction chaine ( paramètres... ) point_double type { ... }
+
+déclation paramètres fonction :
+chaine :   type
+chaine : * type
+
+déclaration structure :
+
+structure chaine { déclaration variable }
+
+structure Image {
+	*type   chaine;
+	[6]type chaine;
+
+	données      : *rien;
+	hauteur      : e64;
+	largeur      : e64;
+	composant    : e8;
+	type_données : e8;
+}
+
+déclaration pointeur     : *type
+déréférencement pointeur : *chaine
+recherche addresse       : @chaine
+
+déclaration référence : &type
+
+déclaration tableau : [N]type
+déréférencement tableau : chaine[n]
+recherche addresse : @chaine
+
+conversion de type :
+
+transtype<type>(chaine);
+
+fonction impression_chaine(où : *e8, chaine : *e8)
+{
+	boucle {
+		si *chaine == 0 {
+			arrête;
+		}
+
+		*où++ = *chaine++;
+	}
+}
+
+fonction impression_entier(où : *e8, valeur : e32)
+{
+	soit variable temp = valeur;
+
+	if temp < 0 {
+		*où++ = '-';
+		temp = -temp;
+	}
+
+	if temp > 1_000_000_000 {
+		*où++ = '0' + temp / 1_000_000_000;
+		temp = temp % 1_000_000_000;
+	}
+
+	if temp > 100_000_000 {
+		*où++ = '0' + temp / 100_000_000;
+		temp = temp % 100_000_000;
+	}
+
+	if temp > 10_000_000 {
+		*où++ = '0' + temp / 10_000_000;
+		temp = temp % 10_000_000;
+	}
+
+	if temp > 1_000_000 {
+		*où++ = '0' + temp / 1_000_000;
+		temp = temp % 1_000_000;
+	}
+
+	if temp > 100_000 {
+		*où++ = '0' + temp / 100_000;
+		temp = temp % 100_000;
+	}
+
+	if temp > 10_000 {
+		*où++ = '0' + temp / 10_000;
+		temp = temp % 10_000;
+	}
+
+	if temp > 1_000 {
+		*où++ = '0' + temp / 1_000;
+		temp = temp % 1_000;
+	}
+
+	if temp > 100 {
+		*où++ = '0' + temp / 100;
+		temp = temp % 100;
+	}
+
+	if temp > 10 {
+		*où++ = '0' + temp / 10;
+		temp = temp % 10;
+	}
+
+	*où++ = '0' + temp;
+}
+
 Mots-clés :
 arrête
 associe
