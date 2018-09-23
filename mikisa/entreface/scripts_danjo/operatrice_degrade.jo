@@ -1,0 +1,29 @@
+disposition "operatrice_degrade" {
+    ligne {
+	    rampe_couleur(attache=degrade)
+	}
+    ligne {
+        étiquette(valeur="Décalage")
+		décimal(valeur=0.0; attache=décalage; min=-1; max=1)
+    }
+	ligne {
+	    étiquette(valeur="Angle")
+		décimal(valeur=0.0; attache=angle; min=0; max=360)
+		}
+    ligne {
+        étiquette(valeur="Rouge")
+		case(valeur=vrai; attache=rouge)
+    }
+    ligne {
+        étiquette(valeur="Vert")
+		case(valeur=vrai; attache=vert)
+    }
+    ligne {
+        étiquette(valeur="Bleu")
+		case(valeur=vrai; attache=bleu)
+    }
+    ligne {
+        étiquette(valeur="Alpha")
+		case(valeur=vrai; attache=alpha)
+    }
+}

@@ -1,0 +1,67 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2017 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#pragma once
+
+#include <math/matrice/matrice.h>
+#include <math/vec3.h>
+
+#include <vector>
+
+struct CarreauPellicule {
+	int x;
+	int y;
+	int largeur;
+	int hauteur;
+};
+
+struct PixelPellicule {
+	numero7::math::vec3d couleur;
+	double poids;
+};
+
+class Pellicule {
+	numero7::math::matrice<numero7::math::vec3d> m_matrice;
+
+	std::vector<PixelPellicule> m_pixels_pellicule;
+
+public:
+	Pellicule();
+
+	int hauteur() const;
+
+	int largeur() const;
+
+	void ajoute_echantillon(int i, int j, const numero7::math::vec3d &couleur, const double poids = 1.0);
+
+	const numero7::math::vec3d &couleur(int i, int j);
+
+	const numero7::math::matrice<numero7::math::vec3d> &donnees();
+
+	void reinitialise();
+
+	void redimensionne(const numero7::math::Hauteur &hauteur, const numero7::math::Largeur &largeur);
+
+	void creer_image();
+};

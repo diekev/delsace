@@ -1,0 +1,46 @@
+disposition "operatrice_grade" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Point Noir")
+		couleur(valeur="0,0,0,1"; attache=point_noir; min=-1; max=1; infobulle="Cette couleur est tournée en noir.")
+    }
+    ligne {
+        étiquette(valeur="Point Blanc")
+		couleur(valeur="1,1,1,1"; attache=point_blanc; min=0; max=4; infobulle="Cette couleur est tournée en blanc.")
+    }
+    ligne {
+        étiquette(valeur="Lift")
+		couleur(valeur="0,0,0,1"; attache=noir; min=-1; max=1; infobulle="Le noir devient cette couleur.")
+    }
+    ligne {
+        étiquette(valeur="Gain")
+		couleur(valeur="1,1,1,1"; attache=blanc; min=0; max=4; infobulle="Le blanc devient cette couleur.")
+    }
+    ligne {
+        étiquette(valeur="Multiple")
+		couleur(valeur="1,1,1,1"; attache=multiple; min=0; max=4; infobulle="Constante servant à multiplier le résultat.")
+    }
+    ligne {
+        étiquette(valeur="Ajout")
+		couleur(valeur="0,0,0,1"; attache=ajout; min=-1; max=1; infobulle="Constante ajouter au résultat, modifie le noir et le blanc.")
+    }
+    ligne {
+        étiquette(valeur="Gamma")
+		couleur(valeur="1,1,1,1"; attache=gamma; min=0.5; max=5; infobulle="Correction de gamma appliquée au résultat.")
+    }
+    ligne {
+        étiquette(valeur="Inverse")
+		case(valeur=faux; attache=inverse; infobulle="Inverse l'équation pour défaire la correction.")
+    }
+    ligne {
+        étiquette(valeur="Limite noir")
+		case(valeur=vrai; attache=limite_noir; infobulle="Les valeurs en dessous de zéro sont mises à zéro.")
+    }
+    ligne {
+        étiquette(valeur="Limite blanc")
+		case(valeur=faux; attache=limite_blanc; infobulle="Les valeurs au dessus de un sont mises à un.")
+    }
+}

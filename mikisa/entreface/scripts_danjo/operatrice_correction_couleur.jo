@@ -1,0 +1,18 @@
+disposition "operatrice_correction_couleur" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Décalage")
+		couleur(valeur="0,0,0,1"; attache=décalage; min=-1; max=1)
+    }
+    ligne {
+        étiquette(valeur="Pente")
+		couleur(valeur="1,1,1,1"; attache=pente; min=-1; max=1)
+    }
+    ligne {
+        étiquette(valeur="Puissance")
+		couleur(valeur="1,1,1,1"; attache=puissance; min=-1; max=1)
+    }
+}

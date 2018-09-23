@@ -1,0 +1,17 @@
+menu "Noeud Détail" {
+    menu "Entrée" {
+	    action(valeur="Entrée"; attache=ajouter_noeud; métadonnée="Entrée")
+		action(valeur="Valeur"; attache=ajouter_noeud; métadonnée="Valeur")
+		action(valeur="Vecteur"; attache=ajouter_noeud; métadonnée="Vecteur")
+	}
+	menu "Opération" {
+	    action(valeur="Bruit Procédurel"; attache=ajouter_noeud; métadonnée="Bruit Procédurel")
+		action(valeur="Combine Vecteur"; attache=ajouter_noeud; métadonnée="Combine Vecteur")
+		action(valeur="Mathématiques"; attache=ajouter_noeud; métadonnée="Mathématiques")
+		action(valeur="Sépare Vecteur"; attache=ajouter_noeud; métadonnée="Sépare Vecteur")
+		action(valeur="Traduction Vecteur"; attache=ajouter_noeud; métadonnée="Traduction Vecteur")
+	}
+	menu "Sortie" {
+	    action(valeur="Sortie"; attache=ajouter_noeud; métadonnée="Sortie")
+	}
+}

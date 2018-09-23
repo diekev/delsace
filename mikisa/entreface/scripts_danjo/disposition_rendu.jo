@@ -1,0 +1,14 @@
+disposition "rendu" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à rendre.")
+	}
+    ligne {
+	    étiquette(valeur="Chemin")
+		fichier_sortie(valeur=""; attache=chemin; filtres="Images (*.jpg *.jpeg *.exr)")
+	}
+	ligne {
+	    bouton(attache=rendu_image; infobulle="Rend l'image courante"; valeur="Image")
+		bouton(attache=rendu_sequence; infobulle="Rend la séquence d'image"; valeur="Séquence")
+	}
+}

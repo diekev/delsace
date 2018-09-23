@@ -1,0 +1,10 @@
+disposition "operatrice_premultiplication" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+	    étiquette(valeur="Inverse")
+		case(valeur=faux; attache=inverse)
+	}
+}

@@ -1,0 +1,30 @@
+disposition "Caméra" {
+    ligne {
+        étiquette("Position")
+        vecteur(valeur="0,0,0"; min=-10; max=10; attache=position)
+    }
+    ligne {
+        étiquette("Rotation")
+        vecteur(valeur="0,0,0"; min=0; max=360; attache=rotation)
+    }
+    ligne {
+        étiquette("Ouverture obturateur")
+        décimal(valeur=0.0; min=0; max=1.0; attache=ouverture)
+    }
+    ligne {
+        étiquette("Fermeture obturateur")
+        décimal(valeur=0.0; min=0; max=1.0; attache=fermeture)
+    }
+    ligne {
+        étiquette("Rayon lentille")
+        décimal(valeur=0.0; min=0; max=1.0; attache=rayon)
+    }
+    ligne {
+        étiquette("Distance focale")
+        décimal(valeur=0.0; min=0; max=100.0; attache=distance)
+    }
+    ligne {
+        étiquette("Champs de vue")
+        décimal(valeur=60.0; min=0; max=360.0; attache=champs_de_vue)
+    }
+}

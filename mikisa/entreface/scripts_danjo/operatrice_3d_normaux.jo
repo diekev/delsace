@@ -1,0 +1,13 @@
+disposition "operatrice_3d_normaux.jo" {
+    ligne {
+	    étiquette(valeur="Type")
+		énum(valeur="plats"; attache=type_normaux; items=[
+		     {nom="Plats", valeur="plats"},
+			 {nom="Lisses", valeur="lisses"}
+			 ])
+	}
+	ligne {
+	    étiquette(valeur="Inverse direction")
+		case(valeur=faux; attache=inverse_direction)
+	}
+}

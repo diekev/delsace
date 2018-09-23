@@ -1,0 +1,22 @@
+disposition "operatrice_tournoiement" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à visionner.")
+	}
+	ligne {
+	    étiquette(valeur="Décalage X")
+		décimal(valeur=0.0; attache=décalage_x; min=-1.0; max=1.0)
+	}
+	ligne {
+	    étiquette(valeur="Décalage Y")
+		décimal(valeur=0.0; attache=décalage_y; min=-1.0; max=1.0)
+	}
+	ligne {
+	    étiquette(valeur="Taille")
+		décimal(valeur=1.0; attache=taille; min=0.0; max=10.0)
+	}
+	ligne {
+	    étiquette(valeur="Périodes")
+		décimal(valeur=1.0; attache=périodes; min=0.0; max=10.0)
+	}
+}

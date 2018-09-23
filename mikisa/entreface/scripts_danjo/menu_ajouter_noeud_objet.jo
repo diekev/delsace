@@ -1,0 +1,27 @@
+menu "Noeud Objet" {
+    menu "Entrée" {
+	    action(valeur="Création Corps"; attache=ajouter_noeud; métadonnée="Création Corps")
+		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
+	}
+	menu "Attribut" {
+	    action(valeur="Création Attribut"; attache=ajouter_noeud; métadonnée="Création Attribut")
+		action(valeur="Randomisation Attribut"; attache=ajouter_noeud; métadonnée="Randomisation Attribut")
+		action(valeur="Suppression Attribut"; attache=ajouter_noeud; métadonnée="Suppression Attribut")
+	}
+	menu "Cheveux" {
+	    action(valeur="Création Courbes"; attache=ajouter_noeud; métadonnée="Création Courbes")
+	}
+	menu "Maillage" {
+	    action(valeur="Création Normaux"; attache=ajouter_noeud; métadonnée="Création Normaux")
+		action(valeur="Fusionnage Corps"; attache=ajouter_noeud; métadonnée="Fusionnage Corps")
+		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe Maillage")
+		action(valeur="OpenSubDiv"; attache=ajouter_noeud; métadonnée="OpenSubDiv")
+		action(valeur="Texture"; attache=ajouter_noeud; métadonnée="Texture")
+	}
+	menu "Particules" {
+	    action(valeur="Création Points"; attache=ajouter_noeud; métadonnée="Création Points")
+	}
+	menu "Sortie" {
+	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
+	}
+}

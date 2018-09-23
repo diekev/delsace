@@ -1,0 +1,120 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#pragma once
+
+#include <math/point3.h>
+
+class Rayon;
+
+/**
+ * La classe BoiteEnglobante représente le volume englobant un objet dans
+ * l'espace tridimensionnel.
+ */
+class BoiteEnglobante {
+public:
+	numero7::math::point3d min = numero7::math::point3d(INFINITY);
+	numero7::math::point3d max = numero7::math::point3d(-INFINITY);
+
+	/**
+	 * Construit une instance de BoiteEnglobante avec des valeurs par défaut.
+	 * Les limites de la boîte sont définies pour être dégénérées : min > max.
+	 */
+	BoiteEnglobante() = default;
+
+	/**
+	 * Construit une instance de BoiteEnglobante à partir d'un simple point.
+	 * Après cette opération, l'expression min == max == point est vraie.
+	 */
+	explicit BoiteEnglobante(const numero7::math::point3d &point);
+
+	/**
+	 * Construit une instance de BoiteEnglobante à partir de deux points. Les
+	 * coordonnées minimum et maximum de la boîte sont définies comme étant les
+	 * valeurs minimum et maximum des coordonnées des points d'entrées ; ainsi
+	 * les points spécifiés n'ont pas besoin d'être ordonnés.
+	 */
+	BoiteEnglobante(
+			const numero7::math::point3d &p1,
+			const numero7::math::point3d &p2);
+
+	/**
+	 * Retourne vrai s'il y a chevauchement entre la boîte spécifiée et celle-ci.
+	 */
+	bool chevauchement(const BoiteEnglobante &boite);
+
+	/**
+	 * Retourne vrai si le point spécifié est contenu dans cette boîte.
+	 */
+	bool contient(const numero7::math::point3d &point);
+
+	/**
+	 * Étend les limite de la boîte selon le delta spécifié, qui est enlevé au
+	 * point minimum, et ajouté au point maximum.
+	 */
+	void etend(float delta);
+
+	/**
+	 * Retourne l'aire de la surface des six faces de cette boîte.
+	 */
+	float aire_surface() const;
+
+	/**
+	 * Retourne le volume de cette boîte.
+	 */
+	float volume() const;
+
+	/**
+	 * Retourne l'index (0, 1, 2) de la dimension (x, y, z) ayant la plus grande
+	 * ampleur.
+	 */
+	int ampleur_maximale() const;
+
+	/**
+	 * Retourne la position d'un point relativement aux coordonnées de cette
+	 * boîte. Un point se situant au coin minimum de cette boîte aura un
+	 * décalage de (0, 0, 0), alors qu'un point au coin maximum en aura un de
+	 * (1, 1, 1), etc.
+	 */
+	numero7::math::vec3d decalage(const numero7::math::point3d &point);
+};
+
+/**
+ * Performe l'union d'une boîte et d'un point et retourne la boîte y résultant.
+ */
+BoiteEnglobante unie(
+		const BoiteEnglobante &boite,
+		const numero7::math::point3d &point);
+
+/**
+ * Performe l'union de deux boîtes et retourne la boîte y résultant.
+ */
+BoiteEnglobante unie(
+		const BoiteEnglobante &boite1,
+		const BoiteEnglobante &boite2);
+
+/**
+ * Retourne vrai si le rayon a entresecté la boîte spécifiée.
+ */
+bool entresecte_boite(const BoiteEnglobante &boite, const Rayon &rayon);

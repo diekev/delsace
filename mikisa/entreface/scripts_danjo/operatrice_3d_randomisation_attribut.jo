@@ -1,0 +1,10 @@
+disposition "operatrice_3d_randomisation_attribut" {
+    ligne {
+	    étiquette(valeur="Nom")
+		chaine(valeur=""; attache=nom_attribut)
+	}
+	ligne {
+	    étiquette(valeur="Graine")
+		entier(valeur=1; attache=graine; min=1)
+	}
+}

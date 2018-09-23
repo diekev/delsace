@@ -1,0 +1,27 @@
+disposition "operatrice_melange" {
+    ligne {
+	    étiquette(valeur="Nom Calque A")
+		liste(valeur="image"; attache=nom_calque_a; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+	    étiquette(valeur="Nom Calque B")
+		liste(valeur="image"; attache=nom_calque_b; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Opération")
+		énum(valeur="mélanger"; attache=operation;
+            items=[{nom="Mélanger", valeur="mélanger"},
+                   {nom="Ajouter", valeur="ajouter"},
+                   {nom="Soustraire", valeur="soustraire"},
+                   {nom="Diviser", valeur="diviser"},
+                   {nom="Multiplier", valeur="multiplier"},
+                   {nom="Écran", valeur="écran"},
+                   {nom="Superposer", valeur="superposer"},
+                   {nom="Différence", valeur="différence"}
+            ])
+    }
+    ligne {
+        étiquette(valeur="Facteur")
+		décimal(valeur=1.0; attache=facteur; min=0; max=1)
+    }
+}

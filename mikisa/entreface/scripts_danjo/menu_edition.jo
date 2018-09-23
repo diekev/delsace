@@ -1,0 +1,5 @@
+menu "Édition" {
+    action(valeur="Sors noeud"; attache=sors_noeud)
+	séparateur
+	action(valeur="Ajouter Propriété"; attache=ajouter_propriete)
+}

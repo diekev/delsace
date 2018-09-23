@@ -1,0 +1,23 @@
+Kamikaze
+- Modélisation procédurale d'objet 3D
+
+Kanba
+- Peinture d'objet 3D en utilisant PTex
+
+Koudou
+- Rendu de scène 3D par traçage de rayon
+
+Mikisa
+- Composition/compositing
+- Fonctionalités :
+-- Compositage :
+---- Lecture de fichiers JPG, EXR
+---- Écriture de fichiers JPG, EXR
+-- Édition 3D :
+---- Lecture de fichiers OBJ, STL
+
+Poséidon
+- Simulation de fluide
+
+Silvathèque
+- Croissance de plante

@@ -1,0 +1,10 @@
+disposition "ajouter_propriete" {
+    ligne {
+	    étiquette(valeur="Nom")
+        chaine(valeur=""; attache=attache_propriete)
+    }
+    ligne {
+        étiquette(valeur="Type")
+        énum(valeur="décimal"; attache=type_propriete; items=[{nom="Décimal", valeur="décimal"}, {nom="Entier", valeur="entier"}])
+    }
+}

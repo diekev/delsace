@@ -1,0 +1,6 @@
+disposition "operatrice_3d_suppression_attribut" {
+    ligne {
+	    étiquette(valeur="Nom")
+		chaine(valeur=""; attache=nom_attribut)
+	}
+}

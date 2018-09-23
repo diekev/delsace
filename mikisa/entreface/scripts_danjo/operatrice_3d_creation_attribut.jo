@@ -1,0 +1,30 @@
+disposition "operatrice_3d_creation_attribut" {
+    ligne {
+	    étiquette(valeur="Nom")
+		chaine(valeur=""; attache=nom_attribut)
+	}
+	ligne {
+	    étiquette(valeur="Type")
+		énum(valeur="décimal"; attache=type_attribut; items=[
+		     {nom="Entier8", valeur="ent8"},
+			 {nom="Entier32", valeur="ent32"},
+			 {nom="Décimal", valeur="décimal"},
+			 {nom="Chaine", valeur="chaine"},
+			 {nom="Vec2", valeur="vec2"},
+			 {nom="Vec3", valeur="vec3"},
+			 {nom="Vec4", valeur="vec4"},
+			 {nom="Mat3", valeur="mat3"},
+			 {nom="Mat4", valeur="mat4"}
+			 ])
+	}
+	ligne {
+	    étiquette(valeur="Portée")
+		énum(valeur="point"; attache=portee_attribut; items=[
+		     {nom="Points", valeur="point"},
+			 {nom="Polygones", valeur="polygone"},
+			 {nom="Points Polygones", valeur="poly_point"},
+			 {nom="Segments", valeur="segment"},
+			 {nom="Points Segments", valeur="segment_point"}
+			 ])
+	}
+}

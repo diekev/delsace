@@ -1,0 +1,6 @@
+disposition "operatrice_visionnage" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à visionner.")
+	}
+}

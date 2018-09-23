@@ -1,0 +1,158 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#include "commandes_vue3d.h"
+
+#include <iostream>
+#include <math/conversion_point_vecteur.h>
+#include <math/vec2.h>
+#include <QKeyEvent>
+
+#include "bibliotheques/commandes/commande.h"
+#include "bibliotheques/vision/camera.h"
+
+#include "../evenement.h"
+#include "../koudou.h"
+
+/* ************************************************************************** */
+
+class CommandeZoomCamera : public Commande {
+public:
+	CommandeZoomCamera() = default;
+	~CommandeZoomCamera() = default;
+
+	int execute(void *pointeur, const DonneesCommande &donnees) override
+	{
+		auto koudou = static_cast<Koudou *>(pointeur);
+		const auto delta = donnees.x;
+
+		auto camera = koudou->camera;
+
+		if (delta >= 0) {
+			auto distance = camera->distance() + camera->vitesse_zoom();
+			camera->distance(distance);
+		}
+		else {
+			const float temp = camera->distance() - camera->vitesse_zoom();
+			auto distance = glm::max(0.0f, temp);
+			camera->distance(distance);
+		}
+
+		camera->ajuste_vitesse();
+		camera->besoin_ajournement(true);
+
+		koudou->notifie_auditeurs(type_evenement::camera | type_evenement::modifie);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class CommandeTourneCamera : public Commande {
+	float m_vieil_x;
+	float m_vieil_y;
+
+public:
+	CommandeTourneCamera() = default;
+	~CommandeTourneCamera() = default;
+
+	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	{
+		m_vieil_x = donnees.x;
+		m_vieil_y = donnees.x;
+		return EXECUTION_COMMANDE_MODALE;
+	}
+
+	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	{
+		auto koudou = static_cast<Koudou *>(pointeur);
+		auto camera = koudou->camera;
+
+		const float dx = donnees.x - m_vieil_x;
+		const float dy = donnees.y - m_vieil_y;
+
+		camera->tete(camera->tete() + dy * camera->vitesse_chute());
+		camera->inclinaison(camera->inclinaison() + dx * camera->vitesse_chute());
+		camera->besoin_ajournement(true);
+
+		m_vieil_x = donnees.x;
+		m_vieil_y = donnees.y;
+
+		koudou->notifie_auditeurs(type_evenement::camera | type_evenement::modifie);
+	}
+};
+
+/* ************************************************************************** */
+
+class CommandePanCamera : public Commande {
+	float m_vieil_x;
+	float m_vieil_y;
+
+public:
+	CommandePanCamera() = default;
+	~CommandePanCamera() = default;
+
+	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	{
+		m_vieil_x = donnees.x;
+		m_vieil_y = donnees.x;
+		return EXECUTION_COMMANDE_MODALE;
+	}
+
+	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	{
+		auto koudou = static_cast<Koudou *>(pointeur);
+		auto camera = koudou->camera;
+
+		const float dx = donnees.x - m_vieil_x;
+		const float dy = donnees.y - m_vieil_y;
+
+		auto cible = (dy * camera->haut() - dx * camera->droite()) * camera->vitesse_laterale();
+		camera->cible(camera->cible() + cible);
+		camera->besoin_ajournement(true);
+
+		m_vieil_x = donnees.x;
+		m_vieil_y = donnees.y;
+
+		koudou->notifie_auditeurs(type_evenement::camera | type_evenement::modifie);
+	}
+};
+
+/* ************************************************************************** */
+
+void enregistre_commandes_vue3d(UsineCommande *usine)
+{
+	usine->enregistre_type("commande_zoom_camera",
+						   description_commande<CommandeZoomCamera>(
+							   "vue_3d", Qt::MidButton, 0, 0, true));
+
+	usine->enregistre_type("commande_tourne_camera",
+						   description_commande<CommandeTourneCamera>(
+							   "vue_3d", Qt::MidButton, 0, 0, false));
+
+	usine->enregistre_type("commande_pan_camera",
+						   description_commande<CommandePanCamera>(
+							   "vue_3d", Qt::MidButton, Qt::ShiftModifier, 0, false));
+}

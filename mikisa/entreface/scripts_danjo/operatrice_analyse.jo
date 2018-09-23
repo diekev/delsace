@@ -1,0 +1,46 @@
+disposition "operatrice_analyse" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Opération")
+		énum(valeur="gradient"; attache=operation;
+		    items=[{nom="Gradient", valeur="gradient"},
+			       {nom="Divergence", valeur="divergence"},
+                   {nom="Laplacien", valeur="laplacien"},
+				   {nom="Courbe", valeur="courbe"}
+            ])
+    }
+	ligne {
+	    étiquette(valeur="Direction")
+		énum(valeur="dir_x"; attache=direction;
+		    items=[{nom="X", valeur="dir_x"},
+			       {nom="Y", valeur="dir_y"},
+				   {nom="XY", valeur="dir_xy"}
+		])
+	}
+	ligne {
+	    étiquette(valeur="Différentiation")
+		énum(valeur="avant"; attache=différentiation;
+		    items=[{nom="Avant", valeur="avant"},
+			       {nom="Arrière", valeur="arrière"}
+			])
+	}
+	ligne {
+	    étiquette(valeur="Dx0")
+		entier(valeur=1; attache=dx0; min=0; max=1)
+	}
+	ligne {
+	    étiquette(valeur="Dx1")
+		entier(valeur=1; attache=dx1; min=0; max=1)
+	}
+	ligne {
+	    étiquette(valeur="Dy0")
+		entier(valeur=1; attache=dy0; min=0; max=1)
+	}
+	ligne {
+	    étiquette(valeur="Dy1")
+		entier(valeur=1; attache=dy1; min=0; max=1)
+	}
+}

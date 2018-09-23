@@ -1,0 +1,10 @@
+disposition "operatrice_deformation" {
+    ligne {
+	    étiquette(valeur="Nom Calque A")
+		liste(valeur="image"; attache=nom_calque_a; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+	    étiquette(valeur="Nom Calque B")
+		liste(valeur="image"; attache=nom_calque_b; infobulle="Nom du calque à modifier.")
+	}
+}

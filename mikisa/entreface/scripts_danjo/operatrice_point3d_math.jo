@@ -1,0 +1,10 @@
+disposition "operatrice_point3d_math" {
+    ligne {
+	    étiquette(valeur="Opération")
+		énum(attache=opération; valeur="addition";
+		     items=[{nom="Addition", valeur="addition"},
+			        {nom="Soustraction", valeur="soustraction"},
+					{nom="Multiplication", valeur="multiplication"},
+					{nom="Division", valeur="division"}])
+	}
+}

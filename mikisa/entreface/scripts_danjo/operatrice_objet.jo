@@ -1,0 +1,24 @@
+disposition "operatrice_objet" {
+    ligne {
+	    étiquette(valeur="Forme")
+		énum(valeur="cube"; attache=forme;
+		      items=[
+			  {nom="Plan", valeur="plan"},
+			  {nom="Cube", valeur="cube"},
+			  {nom="Cylindre", valeur="cylindre"},
+			  {nom="Sphère", valeur="sphère"}
+			  ])
+	}
+	ligne {
+	    étiquette(valeur="Position")
+		vecteur(valeur="0,0,0"; attache=position)
+	}
+	ligne {
+	    étiquette(valeur="Rotation")
+		vecteur(valeur="0,0,0"; attache=rotation)
+	}
+	ligne {
+	    étiquette(valeur="Taille")
+		vecteur(valeur="1,1,1"; attache=taille)
+	}
+}

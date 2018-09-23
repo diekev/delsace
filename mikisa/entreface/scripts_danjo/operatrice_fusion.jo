@@ -1,0 +1,28 @@
+disposition "operatrice_fusionnage" {
+    ligne {
+	    étiquette(valeur="Nom Calque A")
+		liste(valeur="image"; attache=nom_calque_a; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+	    étiquette(valeur="Nom Calque B")
+		liste(valeur="image"; attache=nom_calque_b; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+	    étiquette(valeur="Opération")
+		énum(valeur="A_sur_B"; attache=operation;
+		    items=[{nom="A", valeur="A"},
+				   {nom="B", valeur="B"},
+				   {nom="A sur B", valeur="A_sur_B"},
+				   {nom="B sur A", valeur="B_sur_A"},
+				   {nom="A dans B", valeur="A_dans_B"},
+				   {nom="B dans A", valeur="B_dans_A"},
+				   {nom="A hors B", valeur="A_hors_B"},
+				   {nom="B hors A", valeur="B_hors_A"},
+				   {nom="A au dessus B", valeur="A_au_dessus_de_B"},
+				   {nom="B au dessus A", valeur="B_au_dessus_de_A"},
+				   {nom="Clarification", valeur="clarification"},
+				   {nom="Plus", valeur="plus"},
+				   {nom="XOR", valeur="xor"}
+				])
+			}
+}
