@@ -159,6 +159,17 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
 	}
 
+	/* vérifie si le type de la fonction est explicit. */
+	if (est_identifiant(IDENTIFIANT_DOUBLE_POINT)) {
+		avance();
+
+		if (!est_identifiant_type(identifiant_courant())) {
+			lance_erreur("Attendu la déclaration du type de retour de la fonction après ':'");
+		}
+
+		avance();
+	}
+
 	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 	}
