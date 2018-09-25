@@ -29,6 +29,8 @@
 
 #include "expression.h"
 
+#define DEBOGUE_EXPRESSION
+
 #if 0
 #include <stack>
 
@@ -338,33 +340,31 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 
 	Symbole symbole;
 
+	/* Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
+	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
+	 * fontion. */
+	auto paren = 0;
+
 	while (!est_identifiant(identifiant_final)) {
 		symbole.identifiant = identifiant_courant();
 		symbole.chaine = m_identifiants[position() + 1].chaine;
 
-		if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
-			//avance();
+		/* appel fonction : chaine + ( */
+		if (sont_2_identifiants(IDENTIFIANT_CHAINE_CARACTERE, IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+			avance();
+			avance();
 
-			/* fonction : chaine + ( */
-			if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
-				//avance();
-
-				analyse_appel_fonction();
-
-				if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
-					lance_erreur("Attendu une paranthèse fermante après les paramètres de la fonction !");
-				}
-			}
-			/* accès propriété : chaine + de + chaine */
-			else if (est_identifiant(IDENTIFIANT_DE)) {
-				/* À FAIRE : structure, classe */
-				lance_erreur("L'accès de propriété de structure n'est pas implémenté");
-			}
-			/* variable : chaine */
-			else {
-				/* À FAIRE : vérifie que la variable existe */
-				expression.push_back(symbole);
-			}
+			analyse_appel_fonction();
+			expression.push_back(symbole);
+		}
+		/* accès propriété : chaine + de + chaine */
+		else if (sont_3_identifiants(IDENTIFIANT_CHAINE_CARACTERE, IDENTIFIANT_DE, IDENTIFIANT_CHAINE_CARACTERE)) {
+			/* À FAIRE : structure, classe */
+			lance_erreur("L'accès de propriété de structure n'est pas implémentée");
+		}
+		/* variable : chaine */
+		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+			expression.push_back(symbole);
 		}
 		else if (est_nombre(identifiant_courant())) {
 			expression.push_back(symbole);
@@ -381,9 +381,19 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			pile.push(symbole);
 		}
 		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+			++paren;
 			pile.push(symbole);
 		}
 		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+			/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
+			 * atteint la fin d'une déclaration d'appel de fonction. */
+			if (paren == 0) {
+				/* recule pour être synchroniser avec la sortie dans
+				 * analyse_appel_fonction() */
+				recule();
+				break;
+			}
+
 			if (pile.empty()) {
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
@@ -397,6 +407,8 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
 				pile.pop();
 			}
+
+			--paren;
 		}
 
 		avance();
@@ -411,13 +423,13 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		pile.pop();
 	}
 
+#ifdef DEBOGUE_EXPRESSION
 	std::cerr << "Expression : " ;
-
 	for (const Symbole &symbole : expression) {
 		std::cerr << symbole.chaine << ' ';
 	}
-
 	std::cerr << '\n';
+#endif
 
 	/* saute l'identifiant final */
 	avance();

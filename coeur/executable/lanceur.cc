@@ -74,7 +74,7 @@ int main()
 	"\n"
 	"fonction principale()\n"
 	"{\n"
-	"	retourne 0;\n"
+	"	retourne ajouter(5, (3 + pow(8 + 3)));\n"
 	"}\n";
 
 	const size_t len = std::strlen(str);

@@ -60,6 +60,18 @@ protected:
 	bool est_identifiant(int identifiant);
 
 	/**
+	 * Retourne vrai si l'identifiant courant et celui d'après sont égaux à ceux
+	 * spécifiés dans le même ordre.
+	 */
+	bool sont_2_identifiants(int id1, int id2);
+
+	/**
+	 * Retourne vrai si l'identifiant courant et les deux d'après sont égaux à
+	 * ceux spécifiés dans le même ordre.
+	 */
+	bool sont_3_identifiants(int id1, int id2, int id3);
+
+	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.

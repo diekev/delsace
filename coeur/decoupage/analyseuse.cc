@@ -61,6 +61,27 @@ bool Analyseuse::est_identifiant(int identifiant)
 	return identifiant == this->identifiant_courant();
 }
 
+bool Analyseuse::sont_2_identifiants(int id1, int id2)
+{
+	if (m_position + 2 >= m_identifiants.size()) {
+		return false;
+	}
+
+	return m_identifiants[m_position].identifiant == id1
+			&& m_identifiants[m_position + 1].identifiant == id2;
+}
+
+bool Analyseuse::sont_3_identifiants(int id1, int id2, int id3)
+{
+	if (m_position + 3 >= m_identifiants.size()) {
+		return false;
+	}
+
+	return m_identifiants[m_position].identifiant == id1
+			&& m_identifiants[m_position + 1].identifiant == id2
+			&& m_identifiants[m_position + 2].identifiant == id3;
+}
+
 int Analyseuse::identifiant_courant() const
 {
 	if (m_position >= m_identifiants.size()) {
