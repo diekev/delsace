@@ -24,7 +24,7 @@
 
 #include "unicode.h"
 
-inline bool entre(char c, char a, char b)
+inline bool entre(unsigned char c, unsigned char a, unsigned char b)
 {
 	return c >= a && c <= b;
 }
@@ -44,11 +44,11 @@ int nombre_octets(const char *sequence)
 	}
 
 	if (entre(sequence[0], 0xE0, 0xEF)) {
-		if (sequence[0] == 0xE0 && !entre(sequence[1], 0xA0, 0xBF)) {
+		if (static_cast<unsigned char>(sequence[0]) == 0xE0 && !entre(sequence[1], 0xA0, 0xBF)) {
 			return 0;
 		}
 
-		if (sequence[0] == 0xED && !entre(sequence[1], 0x80, 0x9F)) {
+		if (static_cast<unsigned char>(sequence[0]) == 0xED && !entre(sequence[1], 0x80, 0x9F)) {
 			return 0;
 		}
 
@@ -64,11 +64,11 @@ int nombre_octets(const char *sequence)
 	}
 
 	if (entre(sequence[0], 0xF0, 0xF4)) {
-		if (sequence[0] == 0xF0 && !entre(sequence[1], 0x90, 0xBF)) {
+		if (static_cast<unsigned char>(sequence[0]) == 0xF0 && !entre(sequence[1], 0x90, 0xBF)) {
 			return 0;
 		}
 
-		if (sequence[0] == 0xF4 && !entre(sequence[1], 0x80, 0x8F)) {
+		if (static_cast<unsigned char>(sequence[0]) == 0xF4 && !entre(sequence[1], 0x80, 0x8F)) {
 			return 0;
 		}
 
