@@ -24,6 +24,11 @@
 
 #include "analyseuse_grammaire.h"
 
+#include <iostream>
+#include <stack>
+
+#include "expression.h"
+
 #if 0
 #include <stack>
 
@@ -216,6 +221,15 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	/* assignement : soit x = a + b; */
 	if (est_identifiant(IDENTIFIANT_SOIT)) {
 		avance();
+
+		if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+			lance_erreur("Attendu une chaîne de caractère après 'soit'");
+		}
+
+		if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+			lance_erreur("Attendu '=' après chaîne de caractère");
+		}
+
 		analyse_expression_droite(IDENTIFIANT_POINT_VIRGULE);
 	}
 	/* retour : retourne a + b; */
@@ -266,6 +280,50 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	analyse_corps_fonction();
 }
 
+static bool est_nombre(int identifiant)
+{
+	switch (identifiant) {
+		case IDENTIFIANT_NOMBRE_BINAIRE:
+		case IDENTIFIANT_NOMBRE_ENTIER:
+		case IDENTIFIANT_NOMBRE_HEXADECIMAL:
+		case IDENTIFIANT_NOMBRE_OCTAL:
+		case IDENTIFIANT_NOMBRE_REEL:
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool est_operateur(int identifiant)
+{
+	switch (identifiant) {
+		case IDENTIFIANT_PLUS:
+		case IDENTIFIANT_MOINS:
+		case IDENTIFIANT_FOIS:
+		case IDENTIFIANT_DIVISE:
+		case IDENTIFIANT_ESPERLUETTE:
+		case IDENTIFIANT_EXCLAMATION:
+		case IDENTIFIANT_POURCENT:
+		case IDENTIFIANT_INFERIEUR:
+		case IDENTIFIANT_SUPERIEUR:
+		case IDENTIFIANT_DIFFERENCE:
+		case IDENTIFIANT_ESP_ESP:
+		case IDENTIFIANT_PLUS_PLUS:
+		case IDENTIFIANT_MOINS_MOINS:
+		case IDENTIFIANT_DECALAGE_GAUCHE:
+		case IDENTIFIANT_INFERIEUR_EGAL:
+		case IDENTIFIANT_EGALITE:
+		case IDENTIFIANT_SUPERIEUR_EGAL:
+		case IDENTIFIANT_DECALAGE_DROITE:
+		case IDENTIFIANT_BARE_BARRE:
+		case IDENTIFIANT_BARRE:
+		case IDENTIFIANT_CHAPEAU:
+			return true;
+		default:
+			return false;
+	}
+}
+
 struct Symbole {
 	int identifiant;
 	std::string chaine;
@@ -273,13 +331,23 @@ struct Symbole {
 
 void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 {
+	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
+
+	std::vector<Symbole> expression;
+	std::stack<Symbole> pile;
+
+	Symbole symbole;
+
 	while (!est_identifiant(identifiant_final)) {
+		symbole.identifiant = identifiant_courant();
+		symbole.chaine = m_identifiants[position() + 1].chaine;
+
 		if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
-			avance();
+			//avance();
 
 			/* fonction : chaine + ( */
 			if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
-				avance();
+				//avance();
 
 				analyse_appel_fonction();
 
@@ -294,11 +362,62 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			}
 			/* variable : chaine */
 			else {
+				/* À FAIRE : vérifie que la variable existe */
+				expression.push_back(symbole);
+			}
+		}
+		else if (est_nombre(identifiant_courant())) {
+			expression.push_back(symbole);
+		}
+		else if (est_operateur(identifiant_courant())) {
+			while (!pile.empty()
+				   && est_operateur(pile.top().identifiant)
+				   && (precedence_faible(symbole.identifiant, pile.top().identifiant)))
+			{
+				expression.push_back(pile.top());
+				pile.pop();
+			}
+
+			pile.push(symbole);
+		}
+		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+			pile.push(symbole);
+		}
+		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+			if (pile.empty()) {
+				lance_erreur("Il manque une paranthèse dans l'expression !");
+			}
+
+			while (pile.top().identifiant != IDENTIFIANT_PARENTHESE_OUVRANTE) {
+				expression.push_back(pile.top());
+				pile.pop();
+			}
+
+			/* Enlève la parenthèse restante de la pile. */
+			if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
+				pile.pop();
 			}
 		}
 
 		avance();
 	}
+
+	while (!pile.empty()) {
+		if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
+			lance_erreur("Il manque une paranthèse dans l'expression !");
+		}
+
+		expression.push_back(pile.top());
+		pile.pop();
+	}
+
+	std::cerr << "Expression : " ;
+
+	for (const Symbole &symbole : expression) {
+		std::cerr << symbole.chaine << ' ';
+	}
+
+	std::cerr << '\n';
 
 	/* saute l'identifiant final */
 	avance();

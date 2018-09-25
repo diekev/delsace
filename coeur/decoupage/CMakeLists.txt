@@ -29,6 +29,7 @@ set(SOURCES
     arbre.h
     decoupeuse.h
 	erreur.h
+	expression.h
 	morceaux.h
 	nombres.h
 	unicode.h
@@ -37,6 +38,7 @@ set(SOURCES
 	analyseuse_grammaire.cc
     decoupeuse.cc
 	erreur.cc
+	expression.cc
 	morceaux.cc
 	nombres.cc
 	preproces.cc
