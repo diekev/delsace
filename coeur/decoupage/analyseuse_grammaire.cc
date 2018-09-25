@@ -177,15 +177,19 @@ void analyseuse_grammaire::analyse_parametres_fonction()
 		return;
 	}
 
+	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		lance_erreur("Attendu le nom de la variable");
+	}
+
+	if (!requiers_identifiant(IDENTIFIANT_DOUBLE_POINT)) {
+		lance_erreur("Attendu un double point après la déclaration de la variable");
+	}
+
 	if (!est_identifiant_type(identifiant_courant())) {
 		lance_erreur("Attendu la déclaration d'un type");
 	}
 
 	avance();
-
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
-		lance_erreur("Attendu le nom de la variable");
-	}
 
 	/* fin des paramètres */
 	if (!requiers_identifiant(IDENTIFIANT_VIRGULE)) {

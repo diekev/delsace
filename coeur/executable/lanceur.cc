@@ -67,7 +67,7 @@ int main()
 //	const char *str = ".3 boucle 0...20 { imprime(index != modèle de voiture); }";
 
 	const char *str = ""
-	"fonction ajouter(entier8 a, entier8 b)\n"
+	"fonction ajouter(a : e8, b : e8)\n"
 	"{\n"
 	"	retourne a + b;\n"
 	"}\n"
