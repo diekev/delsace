@@ -166,19 +166,19 @@ int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int 
 	if (*debut == '0' && (*(debut + 1) == 'b' || *(debut + 1) == 'B')) {
 		id_nombre = IDENTIFIANT_NOMBRE_BINAIRE;
 		debut += 2;
-		return extrait_nombre_binaire(debut, fin, chaine);
+		return extrait_nombre_binaire(debut, fin, chaine) + 2;
 	}
 
 	if (*debut == '0' && (*(debut + 1) == 'o' || *(debut + 1) == 'O')) {
 		id_nombre = IDENTIFIANT_NOMBRE_OCTAL;
 		debut += 2;
-		return extrait_nombre_octal(debut, fin, chaine);
+		return extrait_nombre_octal(debut, fin, chaine) + 2;
 	}
 
 	if (*debut == '0' && (*(debut + 1) == 'x' || *(debut + 1) == 'X')) {
 		id_nombre = IDENTIFIANT_NOMBRE_HEXADECIMAL;
 		debut += 2;
-		return extrait_nombre_hexadecimal(debut, fin, chaine);
+		return extrait_nombre_hexadecimal(debut, fin, chaine) + 2;
 	}
 
 	return extrait_nombre_decimal(debut, fin, chaine, id_nombre);
