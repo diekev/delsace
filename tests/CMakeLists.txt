@@ -33,9 +33,11 @@ set(BIBLIOTHEQUES
 set(SOURCES
 	test_decoupage.h
 	test_decoupage_nombres.h
+	test_unicode.h
 
 	test_decoupage.cc
 	test_decoupage_nombres.cc
+	test_unicode.cc
 	tests.cc
 )
 

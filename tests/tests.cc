@@ -24,12 +24,14 @@
 
 #include "test_decoupage.h"
 #include "test_decoupage_nombres.h"
+#include "test_unicode.h"
 
 int main()
 {
 	numero7::test_unitaire::ControleurUnitaire controleur;
 	controleur.ajoute_fonction(test_decoupage);
 	controleur.ajoute_fonction(test_decoupage_nombres);
+	controleur.ajoute_fonction(test_unicode);
 
 	controleur.performe_controles();
 

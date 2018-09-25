@@ -24,46 +24,6 @@
 
 #pragma once
 
-#include <string_view>
-#include <vector>
+#include <test_unitaire/test_unitaire.h>
 
-#include "morceaux.h"
-
-class decoupeuse_texte {
-	const char *m_debut_orig = nullptr;
-	const char *m_debut = nullptr;
-	const char *m_fin = nullptr;
-
-	int m_position_ligne = 0;
-	int m_compte_ligne = 1;
-
-	std::string_view m_ligne_courante;
-
-	std::vector<DonneesMorceaux> m_morceaux;
-
-public:
-	using iterateur = std::vector<DonneesMorceaux>::iterator;
-
-	decoupeuse_texte(const char *debut, const char *fin);
-
-	void genere_morceaux();
-
-	const std::vector<DonneesMorceaux> &morceaux() const;
-
-	iterateur begin();
-
-	iterateur end();
-
-private:
-	void avance(int n = 1);
-
-	char caractere_courant() const;
-
-	char caractere_voisin(int n = 1) const;
-
-	void pousse_mot(std::string &mot_courant, int identifiant);
-
-	void lance_erreur(const std::string &quoi) const;
-
-	void analyse_caractere_simple(std::string &mot_courant);
-};
+void test_unicode(numero7::test_unitaire::ControleurUnitaire &controleur);

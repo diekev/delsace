@@ -31,6 +31,7 @@ set(SOURCES
 	erreur.h
 	morceaux.h
 	nombres.h
+	unicode.h
 
 	analyseuse.cc
 	analyseuse_grammaire.cc
@@ -39,6 +40,7 @@ set(SOURCES
 	morceaux.cc
 	nombres.cc
 	preproces.cc
+	unicode.cc
 )
 
 add_library(decoupage STATIC "${SOURCES}")

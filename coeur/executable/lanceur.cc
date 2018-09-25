@@ -67,16 +67,15 @@ int main()
 //	const char *str = ".3 boucle 0...20 { imprime(index != modèle de voiture); }";
 
 	const char *str = ""
-	"fonction ajouter(entier8 a, entier8 b)"
-	"{"
-	"	retourne a + b;"
-	"}"
-	""
-	"fonction principale()"
-	"{"
-	""
-	"	retourne 0;"
-	"}";
+	"fonction ajouter(entier8 a, entier8 b)\n"
+	"{\n"
+	"	retourne a + b;\n"
+	"}\n"
+	"\n"
+	"fonction principale()\n"
+	"{\n"
+	"	retourne 0;\n"
+	"}\n";
 
 	const size_t len = std::strlen(str);
 
