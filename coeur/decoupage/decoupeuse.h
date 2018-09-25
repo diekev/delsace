@@ -55,6 +55,8 @@ public:
 	iterateur end();
 
 private:
+	bool fini() const;
+
 	void avance(int n = 1);
 
 	char caractere_courant() const;

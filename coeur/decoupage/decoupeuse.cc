@@ -239,7 +239,7 @@ void decoupeuse_texte::genere_morceaux()
 {
 	std::string mot_courant = "";
 
-	while (m_debut != m_fin) {
+	while (!this->fini()) {
 		const auto nombre_octet = nombre_octets(m_debut);
 
 		if (nombre_octet == 1) {
@@ -278,6 +278,11 @@ decoupeuse_texte::iterateur decoupeuse_texte::begin()
 decoupeuse_texte::iterateur decoupeuse_texte::end()
 {
 	return m_morceaux.end();
+}
+
+bool decoupeuse_texte::fini() const
+{
+	return m_debut >= m_fin;
 }
 
 void decoupeuse_texte::avance(int n)
@@ -403,7 +408,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			// Saute le premier guillemet.
 			this->avance();
 
-			while (m_debut != m_fin) {
+			while (!this->fini()) {
 				if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
 					break;
 				}
