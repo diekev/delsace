@@ -1,0 +1,101 @@
+fonction nombre_octets_unicode(sequence : *e8)
+{
+    si 0x00 <= sequence[0] <= 0x7F {
+        retourne 1;
+    }
+
+    si 0xC2 <= sequence[0] <= 0xDF {
+        si !(0x80 <= sequence[1] <= 0xBF) {
+            retourne 0;
+        }
+
+        retourne 1;
+    }
+
+    si 0xE0 <= sequence[0] <= 0xEF {
+        si sequence[0] == 0xE0 && !(0xA0 <= sequence[1] <= 0xBF) {
+            retourne 0;
+        }
+
+        si sequence[0] == 0xED && !(0x80 <= sequence[1] <= 0x9F) {
+            retourne 0;
+        }
+
+        si !(0x80 <= sequence[1] <= 0xBF) {
+            retourne 0;
+        }
+
+        si !(0x80 <= sequence[2] <= 0xBF) {
+            retourne 0;
+        }
+
+        retourne 2;
+    }
+
+    si 0xF0 <= sequence[0] <= 0xF4 {
+        si sequence[0] == 0xF0 && !(0x90 <= sequence[1] <= 0xBF) {
+            retourne 0;
+        }
+
+        si sequence[0] == 0xF4 && !(0x80 <= sequence[1] <= 0x8F) {
+            retourne 0;
+        }
+
+        si !(0x80 <= sequence[1] <= 0xBF) {
+            retourne 0;
+        }
+
+        si !(0x80 <= sequence[2] <= 0xBF) {
+            retourne 0;
+        }
+
+        si !(0x80 <= sequence[3] <= 0xBF) {
+            retourne 0;
+        }
+
+        retourne 4;
+    }
+
+    retourne 0;
+}
+
+# seul les fichiers encodés en unicode sont acceptés
+# inférences de type
+# typage strict
+# portée explicite
+fonction decoupe_texte(debut : *e8)
+{
+    soit variable pos = 0;
+    soit variable copie = debut;
+
+    boucle (*copie != '\0') {
+        soit nombre_octet = nombre_octets_unicode(copie);
+
+        associe nombre_octet {
+            1: {
+                # vérifie caractère simple
+                ++copie;
+                ++pos;
+                imprime(sortie, "Caractère de 1 octet !\n");
+            }
+            2...4: {
+                # ajoute caractère au mot courant
+                copie += nombre_octet;
+                pos += nombre_octet;
+                imprime(sortie, "Caractère de {e32} octets !\n", nombre_octet);
+            }
+            sinon: {
+                # codec unicode ne peut comprendre le caractère
+                imprime(sortie, "{*e8}\n", copie);
+
+                pour i dans 0...(pos - 1) {
+                    imprime(sortie, " ");
+                }
+
+                imprime(sortie, "^~~~\n");
+                imprime(sortie, "Le codec unicode ne peut comprendre l'octet à la position {e32} !\n", pos);
+                return;
+            }
+        }
+    }
+}
