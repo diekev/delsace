@@ -92,16 +92,17 @@ noeud->ajoute_noeud(noeud);
 static bool est_identifiant_type(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_ENTIER8:
-		case IDENTIFIANT_ENTIER8NS:
-		case IDENTIFIANT_ENTIER16:
-		case IDENTIFIANT_ENTIER16NS:
-		case IDENTIFIANT_ENTIER32:
-		case IDENTIFIANT_ENTIER32NS:
-		case IDENTIFIANT_ENTIER64:
-		case IDENTIFIANT_ENTIER64NS:
-		case IDENTIFIANT_DECIMAL32:
-		case IDENTIFIANT_DECIMAL64:
+		case IDENTIFIANT_E8:
+		case IDENTIFIANT_E8NS:
+		case IDENTIFIANT_E16:
+		case IDENTIFIANT_E16NS:
+		case IDENTIFIANT_E32:
+		case IDENTIFIANT_E32NS:
+		case IDENTIFIANT_E64:
+		case IDENTIFIANT_E64NS:
+		case IDENTIFIANT_R16:
+		case IDENTIFIANT_R32:
+		case IDENTIFIANT_R64:
 		case IDENTIFIANT_BOOLEEN:
 			return true;
 		default:

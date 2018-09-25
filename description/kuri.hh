@@ -20,11 +20,11 @@ using e16_ns = unsigned short;
 using e32_ns = unsigned int;
 using e64_ns = unsigned long;
 
-using decimal32 = float;
-using decimal64 = double;
+using reel32 = float;
+using reel64 = double;
 
-using d32 = float;
-using d64 = double;
+using r32 = float;
+using r64 = double;
 
 using booleen = bool;
 

@@ -39,10 +39,10 @@ void test_decoupage_nombre_decimal(numero7::test_unitaire::ControleurUnitaire &c
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), chaine, id_nombre);
 
 		CU_VERIFIE_CONDITION(controleur, compte == 3);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == IDENTIFIANT_NOMBRE_DECIMAL);
+		CU_VERIFIE_CONDITION(controleur, id_nombre == IDENTIFIANT_NOMBRE_REEL);
 		CU_VERIFIE_EGALITE(controleur, chaine, std::string("0.5"));
 
-		auto nombre = converti_chaine_nombre_decimal(chaine, id_nombre);
+		auto nombre = converti_chaine_nombre_reel(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, nombre, 0.5);
 	}
@@ -55,10 +55,10 @@ void test_decoupage_nombre_decimal(numero7::test_unitaire::ControleurUnitaire &c
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), chaine, id_nombre);
 
 		CU_VERIFIE_CONDITION(controleur, compte == 7);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == IDENTIFIANT_NOMBRE_DECIMAL);
+		CU_VERIFIE_CONDITION(controleur, id_nombre == IDENTIFIANT_NOMBRE_REEL);
 		CU_VERIFIE_EGALITE(controleur, chaine, std::string("0.55957"));
 
-		auto nombre = converti_chaine_nombre_decimal(chaine, id_nombre);
+		auto nombre = converti_chaine_nombre_reel(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, nombre, 0.55957);
 	}

@@ -77,17 +77,15 @@ const paire_identifiant_chaine paires_mots_cles[] = {
 	{ IDENTIFIANT_CONSTRUCTEUR, "constructeur" },
 	{ IDENTIFIANT_DE, "de" },
 	{ IDENTIFIANT_DESTRUCTEUR, "destructeur" },
-	{ IDENTIFIANT_DECIMAL32, "décimal32" },
-	{ IDENTIFIANT_DECIMAL64, "décimal64" },
 	{ IDENTIFIANT_DEFAUT, "défaut" },
-	{ IDENTIFIANT_ENTIER16, "entier16" },
-	{ IDENTIFIANT_ENTIER16NS, "entier16ns" },
-	{ IDENTIFIANT_ENTIER32, "entier32" },
-	{ IDENTIFIANT_ENTIER32NS, "entier32ns" },
-	{ IDENTIFIANT_ENTIER64, "entier64" },
-	{ IDENTIFIANT_ENTIER64NS, "entier64ns" },
-	{ IDENTIFIANT_ENTIER8, "entier8" },
-	{ IDENTIFIANT_ENTIER8NS, "entier8ns" },
+	{ IDENTIFIANT_E16, "e16" },
+	{ IDENTIFIANT_E16NS, "e16ns" },
+	{ IDENTIFIANT_E32, "e32" },
+	{ IDENTIFIANT_E32NS, "e32ns" },
+	{ IDENTIFIANT_E64, "e64" },
+	{ IDENTIFIANT_E64NS, "e64ns" },
+	{ IDENTIFIANT_E8, "e8" },
+	{ IDENTIFIANT_E8NS, "e8ns" },
 	{ IDENTIFIANT_ENUM, "enum" },
 	{ IDENTIFIANT_EXPRIME, "exprime" },
 	{ IDENTIFIANT_FAUX, "faux" },
@@ -97,6 +95,9 @@ const paire_identifiant_chaine paires_mots_cles[] = {
 	{ IDENTIFIANT_IMPRIME, "imprime" },
 	{ IDENTIFIANT_INDEX, "index" },
 	{ IDENTIFIANT_OPERATEUR, "opérateur" },
+	{ IDENTIFIANT_R16, "r16" },
+	{ IDENTIFIANT_R32, "r32" },
+	{ IDENTIFIANT_R64, "r64" },
 	{ IDENTIFIANT_RETOURNE, "retourne" },
 	{ IDENTIFIANT_SI, "si" },
 	{ IDENTIFIANT_SINON, "sinon" },
@@ -176,10 +177,10 @@ bool est_espace_blanc(char c)
 bool est_caractere_special(char c, int &i)
 {
 	auto iterateur = std::lower_bound(
-				std::begin(paires_caracteres_speciaux),
-				std::end(paires_caracteres_speciaux),
-				paire_identifiant_caractere{IDENTIFIANT_NUL, c},
-				comparaison_paires_caractere);
+						 std::begin(paires_caracteres_speciaux),
+						 std::end(paires_caracteres_speciaux),
+						 paire_identifiant_caractere{IDENTIFIANT_NUL, c},
+						 comparaison_paires_caractere);
 
 	if (iterateur != std::end(paires_caracteres_speciaux)) {
 		if ((*iterateur).caractere == c) {
@@ -194,10 +195,10 @@ bool est_caractere_special(char c, int &i)
 int id_caractere_double(const std::string &chaine)
 {
 	auto iterateur = std::lower_bound(
-				std::begin(paires_caracteres_double),
-				std::end(paires_caracteres_double),
-				paire_identifiant_chaine{IDENTIFIANT_NUL, chaine},
-				comparaison_paires_identifiant);
+						 std::begin(paires_caracteres_double),
+						 std::end(paires_caracteres_double),
+						 paire_identifiant_chaine{IDENTIFIANT_NUL, chaine},
+						 comparaison_paires_identifiant);
 
 	if (iterateur != std::end(paires_caracteres_double)) {
 		if ((*iterateur).chaine == chaine) {
@@ -211,10 +212,10 @@ int id_caractere_double(const std::string &chaine)
 int id_chaine(const std::string &chaine)
 {
 	auto iterateur = std::lower_bound(
-				std::begin(paires_mots_cles),
-				std::end(paires_mots_cles),
-				paire_identifiant_chaine{IDENTIFIANT_NUL, chaine},
-				comparaison_paires_identifiant);
+						 std::begin(paires_mots_cles),
+						 std::end(paires_mots_cles),
+						 paire_identifiant_chaine{IDENTIFIANT_NUL, chaine},
+						 comparaison_paires_identifiant);
 
 	if (iterateur != std::end(paires_mots_cles)) {
 		if ((*iterateur).chaine == chaine) {

@@ -151,7 +151,7 @@ static int extrait_nombre_decimal(const char *debut, const char *fin, std::strin
 			}
 
 			etat = ETAT_NOMBRE_POINT;
-			id_nombre = IDENTIFIANT_NOMBRE_DECIMAL;
+			id_nombre = IDENTIFIANT_NOMBRE_REEL;
 		}
 
 		chaine.push_back(*debut++);
@@ -268,10 +268,10 @@ long converti_chaine_nombre_entier(const std::string &chaine, int identifiant)
 	}
 }
 
-double converti_chaine_nombre_decimal(const std::string &chaine, int identifiant)
+double converti_chaine_nombre_reel(const std::string &chaine, int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_NOMBRE_DECIMAL:
+		case IDENTIFIANT_NOMBRE_REEL:
 			return std::atof(chaine.c_str());
 		default:
 			return 0.0;
