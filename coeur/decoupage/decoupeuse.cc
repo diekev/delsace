@@ -344,7 +344,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 //        ajoute mot caractere double
 //    sinon
 //        si caractere est '.':
-//            decoupe nombre ou trois point
+//            decoupe trois point
 //        sinon si caractere est '"':
 //            decoupe chaine caractere littérale
 //        sinon si caractere est '#':
@@ -387,24 +387,17 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 		mot_courant = "";
 
 		if (this->caractere_courant() == '.') {
-			if (this->caractere_voisin() == '.') {
-				if (this->caractere_voisin(2) != '.') {
-					lance_erreur("Un point est manquant ou un point est en trop !\n");
-				}
-
-				mot_courant = "...";
-				this->pousse_mot(mot_courant, IDENTIFIANT_TROIS_POINT);
-				this->avance(3);
-			}
-			else if (est_nombre_decimal(this->caractere_voisin())) {
-				int id_nombre;
-				int compte = extrait_nombre(m_debut, m_fin, mot_courant, id_nombre);
-				this->avance(compte);
-				this->pousse_mot(mot_courant, id_nombre);
-			}
-			else {
+			if (this->caractere_voisin() != '.') {
 				lance_erreur("Point inattendu !\n");
 			}
+
+			if (this->caractere_voisin(2) != '.') {
+				lance_erreur("Un point est manquant ou un point est en trop !\n");
+			}
+
+			mot_courant = "...";
+			this->pousse_mot(mot_courant, IDENTIFIANT_TROIS_POINT);
+			this->avance(3);
 		}
 		else if (this->caractere_courant() == '"') {
 			// Saute le premier guillemet.
