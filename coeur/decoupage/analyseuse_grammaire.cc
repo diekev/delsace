@@ -136,9 +136,18 @@ void analyseuse_grammaire::analyse_corps()
 	if (est_identifiant(ID_FONCTION)) {
 		analyse_declaration_fonction();
 	}
+	else if (est_identifiant(ID_SOIT)) {
+		analyse_declaration_constante();
+	}
+	else if (est_identifiant(ID_STRUCTURE)) {
+		analyse_declaration_structure();
+	}
+	else if (est_identifiant(ID_ENUM)) {
+		analyse_declaration_enum();
+	}
 	else {
 		avance();
-		lance_erreur("Le script doit commencé par 'fonction'");
+		lance_erreur("Identifiant inattendu, doit être 'soit', 'fonction', 'structure', ou 'énum'");
 	}
 
 	if (m_position != m_identifiants.size()) {
@@ -445,5 +454,115 @@ void analyseuse_grammaire::analyse_appel_fonction()
 
 	if (!est_identifiant(ID_PARENTHESE_FERMANTE)) {
 		analyse_appel_fonction();
+	}
+}
+
+void analyseuse_grammaire::analyse_declaration_constante()
+{
+	if (!requiers_identifiant(ID_SOIT)) {
+		lance_erreur("Attendu la déclaration 'soit'");
+	}
+
+	if (!requiers_identifiant(ID_CONSTANTE)) {
+		lance_erreur("Attendu la déclaration 'constante' après 'soit'");
+	}
+
+	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+		lance_erreur("Attendu une chaîne de caractère après 'constante'");
+	}
+
+	/* Vérifie s'il y a typage explicit */
+	if (est_identifiant(ID_DOUBLE_POINTS)) {
+		avance();
+
+		if (!est_identifiant_type(this->identifiant_courant())) {
+			lance_erreur("Attendu la déclaration du type après ':'");
+		}
+
+		avance();
+	}
+
+	if (!requiers_identifiant(ID_EGAL)) {
+		lance_erreur("Attendu '=' après la déclaration de la constante");
+	}
+
+	analyse_expression_droite(ID_POINT_VIRGULE);
+}
+
+void analyseuse_grammaire::analyse_declaration_structure()
+{
+	if (!requiers_identifiant(ID_STRUCTURE)) {
+		lance_erreur("Attendu la déclaration 'structure'");
+	}
+
+	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+		lance_erreur("Attendu une chaîne de caractères après 'structure'");
+	}
+
+	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
+		lance_erreur("Attendu '{'");
+	}
+
+	/* chaine : type ; */
+	while (true) {
+		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+			/* nous avons terminé */
+			recule();
+			break;
+		}
+
+		if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
+			lance_erreur("Attendu ':'");
+		}
+
+		if (!est_identifiant_type(this->identifiant_courant())) {
+			lance_erreur("Attendu la déclaration d'un type");
+		}
+
+		avance();
+
+		if (!requiers_identifiant(ID_POINT_VIRGULE)) {
+			lance_erreur("Attendu ';'");
+		}
+	}
+
+	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+		lance_erreur("Attendu '}' à la fin de la déclaration de la structure");
+	}
+}
+
+void analyseuse_grammaire::analyse_declaration_enum()
+{
+	if (!requiers_identifiant(ID_ENUM)) {
+		lance_erreur("Attendu la déclaration 'énum'");
+	}
+
+	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
+		lance_erreur("Attendu '{' après 'énum'");
+	}
+
+	while (true) {
+		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+			/* nous avons terminé */
+			recule();
+			break;
+		}
+
+		if (est_identifiant(ID_EGAL)) {
+			avance();
+
+			// À FAIRE : analyse_expression_droite(ID_VIRGULE);
+			if (!requiers_identifiant(ID_NOMBRE_ENTIER)) {
+				lance_erreur("Attendu un nombre entier après '='");
+			}
+		}
+
+		if (!requiers_identifiant(ID_VIRGULE)) {
+			lance_erreur("Attendu ',' à la fin de la déclaration");
+		}
+	}
+
+	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+		lance_erreur("Attendu '}' à la fin de la déclaration de l'énum");
 	}
 }

@@ -67,6 +67,16 @@ int main()
 //	const char *str = ".3 boucle 0...20 { imprime(index != modèle de voiture); }";
 
 	const char *str = ""
+					  "soit constante PI = 3.14159;\n"
+					  "énum {\n\n"
+					  "	LUMIÈRE_DISTANTE = 0,\n"
+					  "	LUMIÈRE_POINT,\n"
+					  "}\n"
+					  "structure Vecteur {\n"
+					  "	x : r32;\n"
+					  "	y : r32;\n"
+					  "	z : r32;\n"
+					  "}\n"
 	"fonction ajouter(a : e8, b : e8) : e8\n"
 	"{\n"
 	"	retourne a + b;\n"
