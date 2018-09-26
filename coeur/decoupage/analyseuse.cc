@@ -85,7 +85,7 @@ bool Analyseuse::sont_3_identifiants(int id1, int id2, int id3)
 int Analyseuse::identifiant_courant() const
 {
 	if (m_position >= m_identifiants.size()) {
-		return IDENTIFIANT_NUL;
+		return ID_INCONNU;
 	}
 
 	return m_identifiants[m_position].identifiant;

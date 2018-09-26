@@ -39,35 +39,35 @@ struct DonneesPrecedence {
 static DonneesPrecedence associativite(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_BARE_BARRE:
+		case ID_BARRE_BARRE:
 			return { GAUCHE, 0 };
-		case IDENTIFIANT_ESP_ESP:
+		case ID_ESP_ESP:
 			return { GAUCHE, 1 };
-		case IDENTIFIANT_BARRE:
+		case ID_BARRE:
 			return { GAUCHE, 2};
-		case IDENTIFIANT_CHAPEAU:
+		case ID_CHAPEAU:
 			return { GAUCHE, 3};
-		case IDENTIFIANT_ESPERLUETTE:
+		case ID_ESPERLUETTE:
 			return { GAUCHE, 4};
-		case IDENTIFIANT_DIFFERENCE:
-		case IDENTIFIANT_EGALITE:
+		case ID_DIFFERENCE:
+		case ID_EGALITE:
 			return { GAUCHE, 5};
-		case IDENTIFIANT_INFERIEUR:
-		case IDENTIFIANT_INFERIEUR_EGAL:
-		case IDENTIFIANT_SUPERIEUR:
-		case IDENTIFIANT_SUPERIEUR_EGAL:
+		case ID_INFERIEUR:
+		case ID_INFERIEUR_EGAL:
+		case ID_SUPERIEUR:
+		case ID_SUPERIEUR_EGAL:
 			return { GAUCHE, 6};
-		case IDENTIFIANT_DECALAGE_GAUCHE:
-		case IDENTIFIANT_DECALAGE_DROITE:
+		case ID_DECALAGE_GAUCHE:
+		case ID_DECALAGE_DROITE:
 			return { GAUCHE, 7};
-		case IDENTIFIANT_PLUS:
-		case IDENTIFIANT_MOINS:
+		case ID_PLUS:
+		case ID_MOINS:
 			return { GAUCHE, 8};
-		case IDENTIFIANT_FOIS:
-		case IDENTIFIANT_DIVISE:
-		case IDENTIFIANT_POURCENT:
+		case ID_FOIS:
+		case ID_DIVISE:
+		case ID_POURCENT:
 			return { GAUCHE, 9};
-		case IDENTIFIANT_EXCLAMATION:
+		case ID_EXCLAMATION:
 			return { GAUCHE, 10 };
 	}
 

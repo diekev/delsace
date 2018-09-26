@@ -24,7 +24,6 @@
 
 #include "decoupeuse.h"
 
-#include <algorithm>
 #include <iostream>
 #include <cstring>
 #include <sstream>
@@ -52,178 +51,9 @@ static size_t trouve_fin_ligne(const char *debut, const char *fin)
 	return pos;
 }
 
-/* ************************************************************************** */
-
-struct paire_identifiant_chaine {
-	int identifiant;
-	std::string chaine;
-};
-
-static bool comparaison_paires_identifiant(
-		const paire_identifiant_chaine &a,
-		const paire_identifiant_chaine &b)
-{
-	return a.chaine < b.chaine;
-}
-
-const paire_identifiant_chaine paires_mots_cles[] = {
-	{ IDENTIFIANT_ARRETE, "arrête" },
-	{ IDENTIFIANT_ASSOCIE, "associe" },
-	{ IDENTIFIANT_BOOLEEN, "booléen" },
-	{ IDENTIFIANT_BOUCLE, "boucle" },
-	{ IDENTIFIANT_CHAINE, "chaîne" },
-	{ IDENTIFIANT_CLASSE, "classe" },
-	{ IDENTIFIANT_CONSTANT, "constant" },
-	{ IDENTIFIANT_CONSTRUCTEUR, "constructeur" },
-	{ IDENTIFIANT_DE, "de" },
-	{ IDENTIFIANT_DESTRUCTEUR, "destructeur" },
-	{ IDENTIFIANT_DEFAUT, "défaut" },
-	{ IDENTIFIANT_E16, "e16" },
-	{ IDENTIFIANT_E16NS, "e16ns" },
-	{ IDENTIFIANT_E32, "e32" },
-	{ IDENTIFIANT_E32NS, "e32ns" },
-	{ IDENTIFIANT_E64, "e64" },
-	{ IDENTIFIANT_E64NS, "e64ns" },
-	{ IDENTIFIANT_E8, "e8" },
-	{ IDENTIFIANT_E8NS, "e8ns" },
-	{ IDENTIFIANT_ENUM, "enum" },
-	{ IDENTIFIANT_EXPRIME, "exprime" },
-	{ IDENTIFIANT_FAUX, "faux" },
-	{ IDENTIFIANT_FONCTION, "fonction" },
-	{ IDENTIFIANT_GABARIT, "gabarit" },
-	{ IDENTIFIANT_IMPORTE, "importe" },
-	{ IDENTIFIANT_IMPRIME, "imprime" },
-	{ IDENTIFIANT_INDEX, "index" },
-	{ IDENTIFIANT_OPERATEUR, "opérateur" },
-	{ IDENTIFIANT_R16, "r16" },
-	{ IDENTIFIANT_R32, "r32" },
-	{ IDENTIFIANT_R64, "r64" },
-	{ IDENTIFIANT_RETOURNE, "retourne" },
-	{ IDENTIFIANT_SI, "si" },
-	{ IDENTIFIANT_SINON, "sinon" },
-	{ IDENTIFIANT_SOIT, "soit" },
-	{ IDENTIFIANT_SORTIE, "sortie" },
-	{ IDENTIFIANT_VRAI, "vrai" },
-	{ IDENTIFIANT_ECHEC, "échec" },
-};
-
-const paire_identifiant_chaine paires_caracteres_double[] = {
-	{ IDENTIFIANT_DIFFERENCE, "!=" },
-	{ IDENTIFIANT_ESP_ESP, "&&" },
-	{ IDENTIFIANT_ET_EGAL, "&=" },
-	{ IDENTIFIANT_FOIS_EGAL, "*=" },
-	{ IDENTIFIANT_PLUS_PLUS, "++" },
-	{ IDENTIFIANT_PLUS_EGAL, "+=" },
-	{ IDENTIFIANT_MOINS_MOINS, "--" },
-	{ IDENTIFIANT_MOINS_EGAL, "-=" },
-	{ IDENTIFIANT_FLECHE, "->" },
-	{ IDENTIFIANT_TROIS_POINT, "..." },
-	{ IDENTIFIANT_DIVISE_EGAL, "/=" },
-	{ IDENTIFIANT_DECALAGE_GAUCHE, "<<" },
-	{ IDENTIFIANT_INFERIEUR_EGAL, "<=" },
-	{ IDENTIFIANT_EGALITE, "==" },
-	{ IDENTIFIANT_SUPERIEUR_EGAL, ">=" },
-	{ IDENTIFIANT_DECALAGE_DROITE, ">>" },
-	{ IDENTIFIANT_OUX_EGAL, "^=" },
-	{ IDENTIFIANT_OU_EGAL, "|=" },
-	{ IDENTIFIANT_BARE_BARRE, "||" },
-};
-
-struct paire_identifiant_caractere {
-	int identifiant;
-	char caractere;
-};
-
-static bool comparaison_paires_caractere(
-		const paire_identifiant_caractere &a,
-		const paire_identifiant_caractere &b)
-{
-	return a.caractere < b.caractere;
-}
-
-const paire_identifiant_caractere paires_caracteres_speciaux[] = {
-	{ IDENTIFIANT_EXCLAMATION, '!' },
-	{ IDENTIFIANT_GUILLEMET, '"' },
-	{ IDENTIFIANT_DIESE, '#' },
-	{ IDENTIFIANT_POURCENT, '%' },
-	{ IDENTIFIANT_ESPERLUETTE, '&' },
-	{ IDENTIFIANT_APOSTROPHE, '\'' },
-	{ IDENTIFIANT_PARENTHESE_OUVRANTE, '(' },
-	{ IDENTIFIANT_PARENTHESE_FERMANTE, ')' },
-	{ IDENTIFIANT_FOIS, '*' },
-	{ IDENTIFIANT_PLUS, '+' },
-	{ IDENTIFIANT_VIRGULE, ',' },
-	{ IDENTIFIANT_MOINS, '-' },
-	{ IDENTIFIANT_POINT, '.' },
-	{ IDENTIFIANT_DIVISE, '/' },
-	{ IDENTIFIANT_DOUBLE_POINT, ':' },
-	{ IDENTIFIANT_POINT_VIRGULE, ';' },
-	{ IDENTIFIANT_INFERIEUR, '<' },
-	{ IDENTIFIANT_EGAL, '=' },
-	{ IDENTIFIANT_SUPERIEUR, '>' },
-	{ IDENTIFIANT_CROCHET_OUVRANT, '[' },
-	{ IDENTIFIANT_CROCHET_FERMANT, ']' },
-	{ IDENTIFIANT_CHAPEAU, '^' },
-	{ IDENTIFIANT_ACCOLADE_OUVRANTE, '{' },
-	{ IDENTIFIANT_BARRE, '|' },
-	{ IDENTIFIANT_ACCOLADE_FERMANTE, '}' },
-};
-
 bool est_espace_blanc(char c)
 {
 	return c == ' ' || c == '\n' || c == '\t';
-}
-
-bool est_caractere_special(char c, int &i)
-{
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_caracteres_speciaux),
-						 std::end(paires_caracteres_speciaux),
-						 paire_identifiant_caractere{IDENTIFIANT_NUL, c},
-						 comparaison_paires_caractere);
-
-	if (iterateur != std::end(paires_caracteres_speciaux)) {
-		if ((*iterateur).caractere == c) {
-			i = (*iterateur).identifiant;
-			return true;
-		}
-	}
-
-	return false;
-}
-
-int id_caractere_double(const std::string &chaine)
-{
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_caracteres_double),
-						 std::end(paires_caracteres_double),
-						 paire_identifiant_chaine{IDENTIFIANT_NUL, chaine},
-						 comparaison_paires_identifiant);
-
-	if (iterateur != std::end(paires_caracteres_double)) {
-		if ((*iterateur).chaine == chaine) {
-			return (*iterateur).identifiant;
-		}
-	}
-
-	return IDENTIFIANT_NUL;
-}
-
-int id_chaine(const std::string &chaine)
-{
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_mots_cles),
-						 std::end(paires_mots_cles),
-						 paire_identifiant_chaine{IDENTIFIANT_NUL, chaine},
-						 comparaison_paires_identifiant);
-
-	if (iterateur != std::end(paires_mots_cles)) {
-		if ((*iterateur).chaine == chaine) {
-			return (*iterateur).identifiant;
-		}
-	}
-
-	return IDENTIFIANT_CHAINE_CARACTERE;
 }
 
 /* ************************************************************************** */
@@ -365,7 +195,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 //    ajoute caractere mot courant
 void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 {
-	int idc = IDENTIFIANT_NUL;
+	int idc = ID_INCONNU;
 
 	if (est_espace_blanc(this->caractere_courant())) {
 		if (!mot_courant.empty()) {
@@ -384,7 +214,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 
 		auto id = id_caractere_double(mot_courant);
 
-		if (id != IDENTIFIANT_NUL) {
+		if (id != ID_INCONNU) {
 			this->pousse_mot(mot_courant, id);
 			this->avance(2);
 			return;
@@ -402,7 +232,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			}
 
 			mot_courant = "...";
-			this->pousse_mot(mot_courant, IDENTIFIANT_TROIS_POINT);
+			this->pousse_mot(mot_courant, ID_TROIS_POINTS);
 			this->avance(3);
 		}
 		else if (this->caractere_courant() == '"') {
@@ -421,7 +251,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			// Saute le dernier guillemet.
 			this->avance();
 
-			this->pousse_mot(mot_courant, IDENTIFIANT_CHAINE_LITTERALE);
+			this->pousse_mot(mot_courant, ID_CHAINE_LITTERALE);
 		}
 		else if (this->caractere_courant() == '\'') {
 			// Saute la première apostrophe.
@@ -436,7 +266,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			}
 			this->avance();
 
-			this->pousse_mot(mot_courant, IDENTIFIANT_CARACTERE);
+			this->pousse_mot(mot_courant, ID_CARACTERE);
 		}
 		else if (this->caractere_courant() == '#') {
 			// ignore commentaire

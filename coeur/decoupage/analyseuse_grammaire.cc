@@ -99,18 +99,18 @@ noeud->ajoute_noeud(noeud);
 static bool est_identifiant_type(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_E8:
-		case IDENTIFIANT_E8NS:
-		case IDENTIFIANT_E16:
-		case IDENTIFIANT_E16NS:
-		case IDENTIFIANT_E32:
-		case IDENTIFIANT_E32NS:
-		case IDENTIFIANT_E64:
-		case IDENTIFIANT_E64NS:
-		case IDENTIFIANT_R16:
-		case IDENTIFIANT_R32:
-		case IDENTIFIANT_R64:
-		case IDENTIFIANT_BOOLEEN:
+		case ID_E8:
+		case ID_E8NS:
+		case ID_E16:
+		case ID_E16NS:
+		case ID_E32:
+		case ID_E32NS:
+		case ID_E64:
+		case ID_E64NS:
+		case ID_R16:
+		case ID_R32:
+		case ID_R64:
+		case ID_BOOL:
 			return true;
 		default:
 			return false;
@@ -133,7 +133,7 @@ void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &ide
 
 void analyseuse_grammaire::analyse_corps()
 {
-	if (est_identifiant(IDENTIFIANT_FONCTION)) {
+	if (est_identifiant(ID_FONCTION)) {
 		analyse_declaration_fonction();
 	}
 	else {
@@ -148,26 +148,26 @@ void analyseuse_grammaire::analyse_corps()
 
 void analyseuse_grammaire::analyse_declaration_fonction()
 {
-	if (!requiers_identifiant(IDENTIFIANT_FONCTION)) {
+	if (!requiers_identifiant(ID_FONCTION)) {
 		lance_erreur("Attendu la déclaration du mot-clé 'fonction'");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu la déclaration du nom de la fonction");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
 	}
 
 	analyse_parametres_fonction();
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+	if (!requiers_identifiant(ID_PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
 	}
 
 	/* vérifie si le type de la fonction est explicit. */
-	if (est_identifiant(IDENTIFIANT_DOUBLE_POINT)) {
+	if (est_identifiant(ID_DOUBLE_POINTS)) {
 		avance();
 
 		if (!est_identifiant_type(identifiant_courant())) {
@@ -177,29 +177,29 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		avance();
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 	}
 
 	analyse_corps_fonction();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la fonction");
 	}
 }
 
 void analyseuse_grammaire::analyse_parametres_fonction()
 {
-	if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+	if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
 		/* La liste est vide. */
 		return;
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu le nom de la variable");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_DOUBLE_POINT)) {
+	if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
 		lance_erreur("Attendu un double point après la déclaration de la variable");
 	}
 
@@ -210,7 +210,7 @@ void analyseuse_grammaire::analyse_parametres_fonction()
 	avance();
 
 	/* fin des paramètres */
-	if (!requiers_identifiant(IDENTIFIANT_VIRGULE)) {
+	if (!requiers_identifiant(ID_VIRGULE)) {
 		recule();
 		return;
 	}
@@ -221,56 +221,56 @@ void analyseuse_grammaire::analyse_parametres_fonction()
 void analyseuse_grammaire::analyse_corps_fonction()
 {
 	/* assignement : soit x = a + b; */
-	if (est_identifiant(IDENTIFIANT_SOIT)) {
+	if (est_identifiant(ID_SOIT)) {
 		avance();
 
-		if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 			lance_erreur("Attendu une chaîne de caractère après 'soit'");
 		}
 
-		if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+		if (!requiers_identifiant(ID_EGAL)) {
 			lance_erreur("Attendu '=' après chaîne de caractère");
 		}
 
-		analyse_expression_droite(IDENTIFIANT_POINT_VIRGULE);
+		analyse_expression_droite(ID_POINT_VIRGULE);
 	}
 	/* retour : retourne a + b; */
-	else if (est_identifiant(IDENTIFIANT_RETOURNE)) {
+	else if (est_identifiant(ID_RETOURNE)) {
 		avance();
-		analyse_expression_droite(IDENTIFIANT_POINT_VIRGULE);
+		analyse_expression_droite(ID_POINT_VIRGULE);
 	}
 	/* controle de flux : si */
-	else if (est_identifiant(IDENTIFIANT_SI)) {
+	else if (est_identifiant(ID_SI)) {
 		avance();
-		analyse_expression_droite(IDENTIFIANT_ACCOLADE_OUVRANTE);
+		analyse_expression_droite(ID_ACCOLADE_OUVRANTE);
 
 		analyse_corps_fonction();
 
-		if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+		if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
 			lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'");
 		}
 	}
 	/* controle de flux : sinon (si) */
-	else if (est_identifiant(IDENTIFIANT_SINON)) {
+	else if (est_identifiant(ID_SINON)) {
 		avance();
 
-		if (est_identifiant(IDENTIFIANT_SI)) {
+		if (est_identifiant(ID_SI)) {
 			avance();
-			analyse_expression_droite(IDENTIFIANT_ACCOLADE_OUVRANTE);
+			analyse_expression_droite(ID_ACCOLADE_OUVRANTE);
 		}
 		else {
-			if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+			if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
 				lance_erreur("Attendu une accolade ouvrante après 'sinon'");
 			}
 		}
 
 		analyse_corps_fonction();
 
-		if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+		if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
 			lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'");
 		}
 	}
-//	else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+//	else if (est_identifiant(ID_CHAINE_CARACTERE)) {
 //		/* appel : fais_quelque_chose(); */
 //		avance();
 //		analyse_expression_droite();
@@ -285,11 +285,11 @@ void analyseuse_grammaire::analyse_corps_fonction()
 static bool est_nombre(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_NOMBRE_BINAIRE:
-		case IDENTIFIANT_NOMBRE_ENTIER:
-		case IDENTIFIANT_NOMBRE_HEXADECIMAL:
-		case IDENTIFIANT_NOMBRE_OCTAL:
-		case IDENTIFIANT_NOMBRE_REEL:
+		case ID_NOMBRE_BINAIRE:
+		case ID_NOMBRE_ENTIER:
+		case ID_NOMBRE_HEXADECIMAL:
+		case ID_NOMBRE_OCTAL:
+		case ID_NOMBRE_REEL:
 			return true;
 		default:
 			return false;
@@ -299,27 +299,20 @@ static bool est_nombre(int identifiant)
 static bool est_operateur(int identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_PLUS:
-		case IDENTIFIANT_MOINS:
-		case IDENTIFIANT_FOIS:
-		case IDENTIFIANT_DIVISE:
-		case IDENTIFIANT_ESPERLUETTE:
-		case IDENTIFIANT_EXCLAMATION:
-		case IDENTIFIANT_POURCENT:
-		case IDENTIFIANT_INFERIEUR:
-		case IDENTIFIANT_SUPERIEUR:
-		case IDENTIFIANT_DIFFERENCE:
-		case IDENTIFIANT_ESP_ESP:
-		case IDENTIFIANT_PLUS_PLUS:
-		case IDENTIFIANT_MOINS_MOINS:
-		case IDENTIFIANT_DECALAGE_GAUCHE:
-		case IDENTIFIANT_INFERIEUR_EGAL:
-		case IDENTIFIANT_EGALITE:
-		case IDENTIFIANT_SUPERIEUR_EGAL:
-		case IDENTIFIANT_DECALAGE_DROITE:
-		case IDENTIFIANT_BARE_BARRE:
-		case IDENTIFIANT_BARRE:
-		case IDENTIFIANT_CHAPEAU:
+		case ID_PLUS:
+		case ID_MOINS:
+		case ID_FOIS:
+		case ID_DIVISE:
+		case ID_ESPERLUETTE:
+		case ID_EXCLAMATION:
+		case ID_POURCENT:
+		case ID_INFERIEUR:
+		case ID_SUPERIEUR:
+		case ID_DIFFERENCE:
+		case ID_ESP_ESP:
+		case ID_EGALITE:
+		case ID_BARRE:
+		case ID_CHAPEAU:
 			return true;
 		default:
 			return false;
@@ -350,7 +343,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		symbole.chaine = m_identifiants[position() + 1].chaine;
 
 		/* appel fonction : chaine + ( */
-		if (sont_2_identifiants(IDENTIFIANT_CHAINE_CARACTERE, IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+		if (sont_2_identifiants(ID_CHAINE_CARACTERE, ID_PARENTHESE_OUVRANTE)) {
 			avance();
 			avance();
 
@@ -358,12 +351,12 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			expression.push_back(symbole);
 		}
 		/* accès propriété : chaine + de + chaine */
-		else if (sont_3_identifiants(IDENTIFIANT_CHAINE_CARACTERE, IDENTIFIANT_DE, IDENTIFIANT_CHAINE_CARACTERE)) {
+		else if (sont_3_identifiants(ID_CHAINE_CARACTERE, ID_DE, ID_CHAINE_CARACTERE)) {
 			/* À FAIRE : structure, classe */
 			lance_erreur("L'accès de propriété de structure n'est pas implémentée");
 		}
 		/* variable : chaine */
-		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		else if (est_identifiant(ID_CHAINE_CARACTERE)) {
 			expression.push_back(symbole);
 		}
 		else if (est_nombre(identifiant_courant())) {
@@ -380,11 +373,11 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 
 			pile.push(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+		else if (est_identifiant(ID_PARENTHESE_OUVRANTE)) {
 			++paren;
 			pile.push(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+		else if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
 			/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
 			 * atteint la fin d'une déclaration d'appel de fonction. */
 			if (paren == 0) {
@@ -398,13 +391,13 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (pile.top().identifiant != IDENTIFIANT_PARENTHESE_OUVRANTE) {
+			while (pile.top().identifiant != ID_PARENTHESE_OUVRANTE) {
 				expression.push_back(pile.top());
 				pile.pop();
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
+			if (pile.top().identifiant == ID_PARENTHESE_OUVRANTE) {
 				pile.pop();
 			}
 
@@ -415,7 +408,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 	}
 
 	while (!pile.empty()) {
-		if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
+		if (pile.top().identifiant == ID_PARENTHESE_OUVRANTE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
@@ -441,16 +434,16 @@ void analyseuse_grammaire::analyse_appel_fonction()
 	/* ici nous devons être au niveau du premier paramètre */
 
 	/* aucun paramètre, ou la liste de paramètre est vide */
-	if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+	if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
 		return;
 	}
 
 	/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 	 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 	 * paranthèse fermante est trouvé est que la pile est vide */
-	analyse_expression_droite(IDENTIFIANT_VIRGULE);
+	analyse_expression_droite(ID_VIRGULE);
 
-	if (!est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+	if (!est_identifiant(ID_PARENTHESE_FERMANTE)) {
 		analyse_appel_fonction();
 	}
 }
