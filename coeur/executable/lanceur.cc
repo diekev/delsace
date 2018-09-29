@@ -28,6 +28,7 @@
 #include "decoupage/analyseuse_grammaire.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
+#include "decoupage/tampon_source.h"
 
 #if 0
 #include <llvm/IR/LLVMContext.h>
@@ -66,36 +67,42 @@ int main()
 #else
 //	const char *str = ".3 boucle 0...20 { imprime(index != modèle de voiture); }";
 
-	const char *str = ""
-					  "soit constante PI = 3.14159;\n"
-					  "énum {\n\n"
-					  "	LUMIÈRE_DISTANTE = 0,\n"
-					  "	LUMIÈRE_POINT,\n"
-					  "}\n"
-					  "structure Vecteur {\n"
-					  "	x : r32;\n"
-					  "	y : r32;\n"
-					  "	z : r32;\n"
-					  "}\n"
-	"fonction ajouter(a : e8, b : e8) : e8\n"
-	"{\n"
-	"	retourne a + b;\n"
-	"}\n"
-	"\n"
-	"fonction principale()\n"
-	"{\n"
-	"	retourne ajouter(5, (3 + pow(8 + 3)));\n"
-	"}\n";
+	const char *str =
+R"(soit constante PI = 3.14159;
 
-	const size_t len = std::strlen(str);
+énum {
+	LUMIÈRE_DISTANTE = 0,
+	LUMIÈRE_POINT,
+}
+
+structure Vecteur {
+	x : r32;
+	y : r32;
+	z : r32;
+}
+
+fonction ajouter(a : e8, b : e8) : e8
+{
+	retourne a + b;
+}
+
+fonction principale()
+{
+	retourne ajouter(5, (3 + pow(8 + 3)));
+}
+)";
+
+	auto tampon = TamponSource(str);
 
 	try {
-		decoupeuse_texte decoupeuse(str, str + len);
+		decoupeuse_texte decoupeuse(tampon);
 		decoupeuse.genere_morceaux();
 
+#if 0
 		for (auto &morceaux : decoupeuse) {
 			std::cout << "{ \"" << morceaux.chaine << "\", " << chaine_identifiant(morceaux.identifiant) << " },\n";
 		}
+#endif
 
 		//assembleuse_arbre assembleuse;
 		analyseuse_grammaire analyseuse;

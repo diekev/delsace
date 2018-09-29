@@ -34,23 +34,6 @@
 
 /* ************************************************************************** */
 
-static size_t trouve_fin_ligne(const char *debut, const char *fin)
-{
-	size_t pos = 0;
-
-	while (debut != fin) {
-		++pos;
-
-		if (*debut == '\n') {
-			break;
-		}
-
-		++debut;
-	}
-
-	return pos;
-}
-
 bool est_espace_blanc(char c)
 {
 	return c == ' ' || c == '\n' || c == '\t';
@@ -58,13 +41,12 @@ bool est_espace_blanc(char c)
 
 /* ************************************************************************** */
 
-decoupeuse_texte::decoupeuse_texte(const char *debut, const char *fin)
-	: m_debut_orig(debut)
-	, m_debut(debut)
-	, m_fin(fin)
-{
-	m_ligne_courante = std::string_view(m_debut, trouve_fin_ligne(debut, fin));
-}
+decoupeuse_texte::decoupeuse_texte(const TamponSource &tampon)
+	: m_tampon(tampon)
+	, m_debut_orig(m_tampon.debut())
+	, m_debut(m_tampon.debut())
+	, m_fin(m_tampon.fin())
+{}
 
 void decoupeuse_texte::genere_morceaux()
 {
@@ -122,8 +104,6 @@ void decoupeuse_texte::avance(int n)
 		if (this->caractere_courant() == '\n') {
 			++m_compte_ligne;
 			m_position_ligne = 0;
-
-			m_ligne_courante = std::string_view(m_debut + 1, trouve_fin_ligne(m_debut + 1, m_fin));
 		}
 		else {
 			++m_position_ligne;
@@ -151,14 +131,16 @@ void decoupeuse_texte::pousse_mot(std::string &mot_courant, int identifiant)
 
 void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 {
+	auto ligne_courante = m_tampon[m_compte_ligne];
+
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << m_compte_ligne << ":\n";
-	ss << m_ligne_courante;
+	ss << "Erreur : ligne:" << m_compte_ligne + 1 << ":\n";
+	ss << ligne_courante;
 
 	/* La position ligne est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (int i = 0; i < m_position_ligne; i += nombre_octets(&m_ligne_courante[i])) {
-		if (m_ligne_courante[i] == '\t') {
+	for (int i = 0; i < m_position_ligne; i += nombre_octets(&ligne_courante[i])) {
+		if (ligne_courante[i] == '\t') {
 			ss << '\t';
 		}
 		else {

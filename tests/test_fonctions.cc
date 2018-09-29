@@ -48,12 +48,11 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 			}
 			)";
 
-	const size_t len = std::strlen(texte);
-
+	auto tampon = TamponSource(texte);
 	auto erreur_lancee = false;
 
 	try {
-		decoupeuse_texte decoupeuse(texte, texte + len);
+		decoupeuse_texte decoupeuse(tampon);
 		decoupeuse.genere_morceaux();
 
 		analyseuse_grammaire analyseuse;

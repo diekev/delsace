@@ -34,6 +34,7 @@ set(SOURCES
 	expression.h
 	morceaux.h
 	nombres.h
+	tampon_source.h
 	unicode.h
 
 	analyseuse.cc
@@ -46,6 +47,7 @@ set(SOURCES
 	morceaux.cc
 	nombres.cc
 	preproces.cc
+	tampon_source.cc
 	unicode.cc
 )
 

@@ -57,9 +57,9 @@ void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
 						"	soit x = a;\n"
 						"}\n";
 
-	const size_t len = std::strlen(texte);
+	auto tampon = TamponSource(texte);
 
-	decoupeuse_texte decoupeuse(texte, texte + len);
+	decoupeuse_texte decoupeuse(tampon);
 	decoupeuse.genere_morceaux();
 
 	auto erreur_lancee = false;

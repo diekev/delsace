@@ -28,23 +28,23 @@
 #include <vector>
 
 #include "morceaux.h"
+#include "tampon_source.h"
 
 class decoupeuse_texte {
+	const TamponSource &m_tampon;
 	const char *m_debut_orig = nullptr;
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
 
 	int m_position_ligne = 0;
-	int m_compte_ligne = 1;
-
-	std::string_view m_ligne_courante;
+	int m_compte_ligne = 0;
 
 	std::vector<DonneesMorceaux> m_morceaux;
 
 public:
 	using iterateur = std::vector<DonneesMorceaux>::iterator;
 
-	decoupeuse_texte(const char *debut, const char *fin);
+	explicit decoupeuse_texte(const TamponSource &tampon);
 
 	void genere_morceaux();
 

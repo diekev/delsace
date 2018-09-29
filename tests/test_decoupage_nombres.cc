@@ -202,9 +202,9 @@ void test_decoupage_nombre_hexadecimal(numero7::test_unitaire::ControleurUnitair
 		CU_VERIFIE_EGALITE(controleur, nombre, 0xFFc945ABl);
 	}
 	{
-		const auto tampon = "0xff38ce";
+		auto tampon = TamponSource("0xff38ce");
 
-		decoupeuse_texte decoupeuse(tampon, tampon + std::strlen(tampon));
+		decoupeuse_texte decoupeuse(tampon);
 		decoupeuse.genere_morceaux();
 
 		const auto &morceaux = decoupeuse.morceaux();

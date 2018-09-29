@@ -30,7 +30,7 @@
 #include "arbre_syntactic.h"
 #include "expression.h"
 
-#define DEBOGUE_EXPRESSION
+#undef DEBOGUE_EXPRESSION
 
 static bool est_identifiant_type(int identifiant)
 {

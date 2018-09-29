@@ -130,9 +130,9 @@ bool test_decoupage_texte1()
 		{ ";", ID_POINT_VIRGULE }
 	};
 
-	const size_t len = std::strlen(texte);
+	auto tampon = TamponSource(texte);
 
-	decoupeuse_texte decoupeuse(texte, texte + len);
+	decoupeuse_texte decoupeuse(tampon);
 	decoupeuse.genere_morceaux();
 
 	return verifie_morceaux(decoupeuse.begin(),
