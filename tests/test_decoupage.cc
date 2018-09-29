@@ -28,6 +28,8 @@
 
 #include "decoupage/decoupeuse.h"
 
+#undef DEBOGUE_MORCEAUX
+
 template <typename I1, typename I2>
 bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 {
@@ -35,15 +37,31 @@ bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 	const auto dist2 = std::distance(debut2, fin2);
 
 	if (dist1 != dist2) {
+#ifdef DEBOGUE_MORCEAUX
+		std::cerr << "Les distances ne correspondent pas : "
+				  << dist1 << " vs " << dist2 << '\n';
+#endif
 		return false;
 	}
 
 	while (debut1 != fin1 && debut2 != fin2) {
 		if ((*debut1).identifiant != (*debut2).identifiant) {
+#ifdef DEBOGUE_MORCEAUX
+			std::cerr << "Les identifiants ne correspondent pas : "
+					  << chaine_identifiant((*debut1).identifiant)
+					  << " vs "
+					  << chaine_identifiant((*debut2).identifiant) << '\n';
+#endif
 			return false;
 		}
 
 		if ((*debut1).chaine != (*debut2).chaine) {
+#ifdef DEBOGUE_MORCEAUX
+			std::cerr << "Les chaînes ne correspondent pas : "
+					  << (*debut1).chaine
+					  << " vs "
+					  << (*debut2).chaine << '\n';
+#endif
 			return false;
 		}
 
@@ -59,8 +77,8 @@ bool test_decoupage_texte1()
 	const char *texte = "# Ceci est un commentaire \n"
 						"soit str='a';\n"
 						"associe nombre {\n"
-						"	0...10: imprime(10);\n"
-						"	11...20: imprime(20);\n"
+						"	0...1_000: imprime(1000);\n"
+						"	11_000...2_0000: imprime(20000);\n"
 						"	sinon:imprime(inconnu);\n"
 						"}\n"
 						"decoupeuse_texte decoupeuse(str, str + len);\n";
@@ -76,20 +94,20 @@ bool test_decoupage_texte1()
 		{ "{", ID_ACCOLADE_OUVRANTE },
 		{ "0", ID_NOMBRE_ENTIER },
 		{ "...", ID_TROIS_POINTS },
-		{ "10", ID_NOMBRE_ENTIER },
+		{ "1000", ID_NOMBRE_ENTIER },
 		{ ":", ID_DOUBLE_POINTS },
 		{ "imprime", ID_CHAINE_CARACTERE },
 		{ "(", ID_PARENTHESE_OUVRANTE },
-		{ "10", ID_NOMBRE_ENTIER },
+		{ "1000", ID_NOMBRE_ENTIER },
 		{ ")", ID_PARENTHESE_FERMANTE },
 		{ ";", ID_POINT_VIRGULE },
-		{ "11", ID_NOMBRE_ENTIER },
+		{ "11000", ID_NOMBRE_ENTIER },
 		{ "...", ID_TROIS_POINTS },
-		{ "20", ID_NOMBRE_ENTIER },
+		{ "20000", ID_NOMBRE_ENTIER },
 		{ ":", ID_DOUBLE_POINTS },
 		{ "imprime", ID_CHAINE_CARACTERE },
 		{ "(", ID_PARENTHESE_OUVRANTE },
-		{ "20", ID_NOMBRE_ENTIER },
+		{ "20000", ID_NOMBRE_ENTIER },
 		{ ")", ID_PARENTHESE_FERMANTE },
 		{ ";", ID_POINT_VIRGULE },
 		{ "sinon", ID_SINON },

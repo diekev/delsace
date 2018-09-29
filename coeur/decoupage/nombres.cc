@@ -65,16 +65,15 @@ static int extrait_nombre_binaire(const char *debut, const char *fin, std::strin
 	chaine.clear();
 
 	while (debut != fin) {
-		if (*debut == '_') {
-			++debut;
-			continue;
+		if (*debut != '_') {
+			if (!est_nombre_binaire(*debut)) {
+				break;
+			}
+
+			chaine.push_back(*debut);
 		}
 
-		if (!est_nombre_binaire(*debut)) {
-			break;
-		}
-
-		chaine.push_back(*debut++);
+		++debut;
 		++compte;
 	}
 
@@ -87,16 +86,15 @@ static int extrait_nombre_octal(const char *debut, const char *fin, std::string 
 	chaine.clear();
 
 	while (debut != fin) {
-		if (*debut == '_') {
-			++debut;
-			continue;
+		if (*debut != '_') {
+			if (!est_nombre_octal(*debut)) {
+				break;
+			}
+
+			chaine.push_back(*debut);
 		}
 
-		if (!est_nombre_octal(*debut)) {
-			break;
-		}
-
-		chaine.push_back(*debut++);
+		++debut;
 		++compte;
 	}
 
@@ -109,16 +107,15 @@ static int extrait_nombre_hexadecimal(const char *debut, const char *fin, std::s
 	chaine.clear();
 
 	while (debut != fin) {
-		if (*debut == '_') {
-			++debut;
-			continue;
+		if (*debut != '_') {
+			if (!est_nombre_hexadecimal(*debut)) {
+				break;
+			}
+
+			chaine.push_back(*debut);
 		}
 
-		if (!est_nombre_hexadecimal(*debut)) {
-			break;
-		}
-
-		chaine.push_back(*debut++);
+		++debut;
 		++compte;
 	}
 
@@ -132,29 +129,28 @@ static int extrait_nombre_decimal(const char *debut, const char *fin, std::strin
 	id_nombre = ID_NOMBRE_ENTIER;
 
 	while (debut != fin) {
-		if (*debut == '_') {
-			++debut;
-			continue;
-		}
-
-		if (!est_nombre_decimal(*debut) && *debut != '.') {
-			break;
-		}
-
-		if (*debut == '.') {
-			if ((*(debut + 1) == '.') && (*(debut + 2) == '.')) {
+		if (*debut != '_') {
+			if (!est_nombre_decimal(*debut) && *debut != '.') {
 				break;
 			}
 
-			if (etat == ETAT_NOMBRE_POINT) {
-				throw erreur::frappe("Erreur ! Le nombre contient un point en trop !\n");
+			if (*debut == '.') {
+				if ((*(debut + 1) == '.') && (*(debut + 2) == '.')) {
+					break;
+				}
+
+				if (etat == ETAT_NOMBRE_POINT) {
+					throw erreur::frappe("Erreur ! Le nombre contient un point en trop !\n");
+				}
+
+				etat = ETAT_NOMBRE_POINT;
+				id_nombre = ID_NOMBRE_REEL;
 			}
 
-			etat = ETAT_NOMBRE_POINT;
-			id_nombre = ID_NOMBRE_REEL;
+			chaine.push_back(*debut);
 		}
 
-		chaine.push_back(*debut++);
+		++debut;
 		++compte;
 	}
 
