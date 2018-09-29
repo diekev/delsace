@@ -55,15 +55,11 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 		decoupeuse_texte decoupeuse(tampon);
 		decoupeuse.genere_morceaux();
 
-		analyseuse_grammaire analyseuse;
+		auto analyseuse = analyseuse_grammaire(tampon);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const erreur::frappe &e) {
 		std::cerr << e.message() << '\n';
-		erreur_lancee = true;
-	}
-	catch (const char *e) {
-		std::cerr << e << '\n';
 		erreur_lancee = true;
 	}
 	catch (...) {

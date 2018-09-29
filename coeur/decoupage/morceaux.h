@@ -31,6 +31,8 @@
 struct DonneesMorceaux {
 	std::string chaine;
 	int identifiant;
+	int ligne;
+	int pos;
 };
 
 enum {

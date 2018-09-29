@@ -32,6 +32,8 @@ class analyseuse_grammaire : public Analyseuse {
 	assembleuse_arbre m_assembleuse;
 
 public:
+	explicit analyseuse_grammaire(const TamponSource &tampon);
+
 	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
 
 private:

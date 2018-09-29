@@ -27,6 +27,11 @@
 #include <sstream>
 
 #include "erreur.h"
+#include "unicode.h"
+
+Analyseuse::Analyseuse(const TamponSource &tampon)
+	: m_tampon(tampon)
+{}
 
 bool Analyseuse::requiers_identifiant(int identifiant)
 {
@@ -93,20 +98,31 @@ int Analyseuse::identifiant_courant() const
 
 void Analyseuse::lance_erreur(const std::string &quoi)
 {
-#if 0
-	const auto numero_ligne = m_identifiants[position()].numero_ligne;
 	const auto ligne = m_identifiants[position()].ligne;
-	const auto position_ligne = m_identifiants[position()].position_ligne;
-	const auto contenu = m_identifiants[position()].contenu;
-
-	throw erreur::frappe(ligne, numero_ligne, position_ligne, quoi, contenu);
-#else
+	const auto pos_mot = m_identifiants[position()].pos;
 	const auto identifiant = m_identifiants[position()].identifiant;
 	const auto &chaine = m_identifiants[position()].chaine;
 
+	auto ligne_courante = m_tampon[ligne];
+
 	std::stringstream ss;
+	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
+	ss << ligne_courante;
+
+	/* La position ligne est en octet, il faut donc compter le nombre d'octets
+	 * de chaque point de code pour bien formater l'erreur. */
+	for (int i = 0; i < pos_mot; i += nombre_octets(&ligne_courante[i])) {
+		if (ligne_courante[i] == '\t') {
+			ss << '\t';
+		}
+		else {
+			ss << ' ';
+		}
+	}
+
+	ss << "^~~~~~\n";
 	ss << quoi;
 	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
-	throw ss.str().c_str();
-#endif
+
+	throw erreur::frappe(ss.str().c_str());
 }

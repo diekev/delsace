@@ -65,7 +65,7 @@ void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
 	auto erreur_lancee = false;
 
 	try {
-		analyseuse_grammaire analyseuse;
+		auto analyseuse = analyseuse_grammaire(tampon);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (...) {

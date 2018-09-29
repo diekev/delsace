@@ -55,6 +55,10 @@ static bool est_identifiant_type(int identifiant)
 
 /* ************************************************************************** */
 
+analyseuse_grammaire::analyseuse_grammaire(const TamponSource &tampon)
+	: Analyseuse(tampon)
+{}
+
 void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
 {
 	m_identifiants = identifiants;

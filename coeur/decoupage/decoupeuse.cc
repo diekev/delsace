@@ -125,7 +125,7 @@ char decoupeuse_texte::caractere_voisin(int n) const
 
 void decoupeuse_texte::pousse_mot(std::string &mot_courant, int identifiant)
 {
-	m_morceaux.push_back({ mot_courant, identifiant });
+	m_morceaux.push_back({ mot_courant, identifiant, m_compte_ligne, m_pos_mot });
 	mot_courant = "";
 }
 
@@ -197,6 +197,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 		auto id = id_caractere_double(mot_courant);
 
 		if (id != ID_INCONNU) {
+			m_pos_mot = m_position_ligne;
 			this->pousse_mot(mot_courant, id);
 			this->avance(2);
 			return;
@@ -213,6 +214,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 				lance_erreur("Un point est manquant ou un point est en trop !\n");
 			}
 
+			m_pos_mot = m_position_ligne;
 			mot_courant = "...";
 			this->pousse_mot(mot_courant, ID_TROIS_POINTS);
 			this->avance(3);
@@ -221,6 +223,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			// Saute le premier guillemet.
 			this->avance();
 
+			m_pos_mot = m_position_ligne;
 			while (!this->fini()) {
 				if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
 					break;
@@ -239,6 +242,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			// Saute la première apostrophe.
 			this->avance();
 
+			m_pos_mot = m_position_ligne;
 			mot_courant.push_back(this->caractere_courant());
 			this->avance();
 
@@ -257,6 +261,7 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			}
 		}
 		else {
+			m_pos_mot = m_position_ligne;
 			mot_courant.push_back(this->caractere_courant());
 			this->pousse_mot(mot_courant, idc);
 			this->avance();
@@ -264,11 +269,16 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 	}
 	else if (est_nombre_decimal(this->caractere_courant()) && mot_courant.empty()) {
 		int id_nombre;
+		m_pos_mot = m_position_ligne;
 		const auto compte = extrait_nombre(m_debut, m_fin, mot_courant, id_nombre);
 		this->avance(compte);
 		this->pousse_mot(mot_courant, id_nombre);
 	}
 	else {
+		if (mot_courant.empty()) {
+			m_pos_mot = m_position_ligne;
+		}
+
 		mot_courant.push_back(this->caractere_courant());
 		this->avance();
 	}

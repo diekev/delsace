@@ -38,6 +38,7 @@ class decoupeuse_texte {
 
 	int m_position_ligne = 0;
 	int m_compte_ligne = 0;
+	int m_pos_mot = 0;
 
 	std::vector<DonneesMorceaux> m_morceaux;
 

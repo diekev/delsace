@@ -105,14 +105,11 @@ fonction principale()
 #endif
 
 		//assembleuse_arbre assembleuse;
-		analyseuse_grammaire analyseuse;
+		auto analyseuse = analyseuse_grammaire(tampon);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
-	}
-	catch (const char *e) {
-		std::cerr << e << '\n';
 	}
 #endif
 }

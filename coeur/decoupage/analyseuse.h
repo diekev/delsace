@@ -25,18 +25,21 @@
 #pragma once
 
 #include <vector>
+
 #include "morceaux.h"
+#include "tampon_source.h"
 
 /**
  * Classe de base pour définir des analyseurs syntactique.
  */
 class Analyseuse {
 protected:
+	const TamponSource &m_tampon;
 	std::vector<DonneesMorceaux> m_identifiants{};
 	int m_position = 0;
 
 public:
-	Analyseuse() = default;
+	Analyseuse(const TamponSource &tampon);
 	virtual ~Analyseuse() = default;
 
 	/**
