@@ -34,11 +34,13 @@ set(SOURCES
 	test_decoupage.h
 	test_decoupage_nombres.h
 	test_expression.h
+	test_fonctions.h
 	test_unicode.h
 
 	test_decoupage.cc
 	test_decoupage_nombres.cc
 	test_expression.cc
+	test_fonctions.cc
 	test_unicode.cc
 	tests.cc
 )
