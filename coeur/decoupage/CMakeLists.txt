@@ -26,6 +26,8 @@ set(INCLUSIONS
 set(SOURCES
 	analyseuse.h
 	analyseuse_grammaire.h
+	arbre_syntactic.h
+	assembleuse_arbre.h
     arbre.h
     decoupeuse.h
 	erreur.h
@@ -36,6 +38,8 @@ set(SOURCES
 
 	analyseuse.cc
 	analyseuse_grammaire.cc
+	arbre_syntactic.cc
+	assembleuse_arbre.cc
     decoupeuse.cc
 	erreur.cc
 	expression.cc

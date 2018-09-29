@@ -27,74 +27,10 @@
 #include <iostream>
 #include <stack>
 
+#include "arbre_syntactic.h"
 #include "expression.h"
 
 #define DEBOGUE_EXPRESSION
-
-#if 0
-#include <stack>
-
-enum {
-	NOEUD_APPEL_FONCTION,
-	NOEUD_DECLARE_FONCTION,
-	NOEUD_EXPRESSION,
-	NOEUD_VARIABLE,
-	NOEUD_NOMBRE_DECIMAL,
-	NOEUD_NOMBRE_ENTIER,
-};
-
-class Noeud {
-	std::string m_chaine;
-	std::vector<Noeud *> m_enfants;
-
-public:
-	Noeud(const std::string &chaine)
-		: m_chaine(chaine)
-	{}
-
-	void ajoute_noeud(Noeud *noeud)
-	{
-		m_enfants.push_back(noeud);
-	}
-
-	virtual void imprime_code(std::ostream &os) = 0;
-};
-
-class assembleuse_arbre {
-	Noeud *m_noeud_courant;
-	std::stack<Noeud *> m_noeuds;
-
-public:
-	void ajoute_noeud(int type, const std::string &chaine)
-	{
-		auto noeud = cree_noeud(type, chaine);
-		m_noeuds.top()->ajoute_noeud(noeud);
-		m_noeuds.push(noeud);
-	}
-
-	Noeud *cree_noeud(int type, const std::string &chaine)
-	{
-		return new Noeud(chaine);
-	}
-
-	void sors_noeud(int type)
-	{
-		m_noeuds.pop();
-	}
-};
-
-/* ajoute un noeud au noeud courant et utilise ce noeud comme noeud courant */
-m_assembleuse.ajoute_noeud(NOEUD_APPEL_FONCTION, chaine);
-
-/* sors du noeud courant en vérifiant que le type du noeud courant est bel et bien le type passé en paramètre */
-m_assembleuse.sors_noeud(NOEUD_APPEL_FONCTION);
-
-/* crée un noeud et retourne son pointeur */
-auto noeud = m_assembleuse.cree_noeud(NOEUD_VARIABLE, chaine);
-
-/* ajoute un noeud à la liste des noeuds du noeud */
-noeud->ajoute_noeud(noeud);
-#endif
 
 static bool est_identifiant_type(int identifiant)
 {
@@ -128,7 +64,11 @@ void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &ide
 		return;
 	}
 
+	m_assembleuse.ajoute_noeud(NOEUD_RACINE, "racine");
+
 	analyse_corps();
+
+	m_assembleuse.imprime_code(std::cerr);
 }
 
 void analyseuse_grammaire::analyse_corps()
@@ -165,10 +105,15 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu la déclaration du nom de la fonction");
 	}
 
+	// crée noeud fonction
+	const auto nom_fonction = m_identifiants[position()].chaine;
+	m_assembleuse.ajoute_noeud(NOEUD_DECLARATION_FONCTION, nom_fonction);
+
 	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
 	}
 
+	// À FAIRE : ajout des paramètres noeud->ajoute_parametre(nom, type);
 	analyse_parametres_fonction();
 
 	if (!requiers_identifiant(ID_PARENTHESE_FERMANTE)) {
@@ -195,6 +140,8 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la fonction");
 	}
+
+	m_assembleuse.sors_noeud(NOEUD_DECLARATION_FONCTION);
 }
 
 void analyseuse_grammaire::analyse_parametres_fonction()
@@ -231,6 +178,9 @@ void analyseuse_grammaire::analyse_corps_fonction()
 {
 	/* assignement : soit x = a + b; */
 	if (est_identifiant(ID_SOIT)) {
+		// À FAIRE : crée noeud déclaration variable
+		// À FAIRE : ajout des expressions noeud_fonction->ajoute_enfant(expression);
+
 		avance();
 
 		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
@@ -246,7 +196,9 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	/* retour : retourne a + b; */
 	else if (est_identifiant(ID_RETOURNE)) {
 		avance();
+		m_assembleuse.ajoute_noeud(NOEUD_RETOUR, "");
 		analyse_expression_droite(ID_POINT_VIRGULE);
+		m_assembleuse.sors_noeud(NOEUD_RETOUR);
 	}
 	/* controle de flux : si */
 	else if (est_identifiant(ID_SI)) {

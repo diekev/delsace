@@ -26,7 +26,11 @@
 
 #include "analyseuse.h"
 
+#include "assembleuse_arbre.h"
+
 class analyseuse_grammaire : public Analyseuse {
+	assembleuse_arbre m_assembleuse;
+
 public:
 	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
 
