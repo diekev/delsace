@@ -31,31 +31,32 @@
 
 void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte = ""
-						"fonction foo()\n"
-						"{\n"
-						"	soit x = a + b;\n"
-						"	soit x = a - b;\n"
-						"	soit x = a * b;\n"
-						"	soit x = a / b;\n"
-						"	soit x = a << b;\n"
-						"	soit x = a >> b;\n"
-						"	soit x = a == b;\n"
-						"	soit x = a != b;\n"
-						"	soit x = a <= b;\n"
-						"	soit x = a >= b;\n"
-						"	soit x = 0x80 <= a <= 0xBF;\n"
-						"	soit x = a < b;\n"
-						"	soit x = a > b;\n"
-						"	soit x = a && b;\n"
-						"	soit x = a & b;\n"
-						"	soit x = a || b;\n"
-						"	soit x = a | b;\n"
-						"	soit x = a ^ b;\n"
-						"	soit x = !a;\n"
-						"	soit x = ~a;\n"
-						"	soit x = a;\n"
-						"}\n";
+	const char *texte =
+R"(fonction foo()
+{
+	soit x = a + b;
+	soit x = a - b;
+	soit x = a * b;
+	soit x = a / b;
+	soit x = a << b;
+	soit x = a >> b;
+	soit x = a == b;
+	soit x = a != b;
+	soit x = a <= b;
+	soit x = a >= b;
+	soit x = 0x80 <= a <= 0xBF;
+	soit x = a < b;
+	soit x = a > b;
+	soit x = a && b;
+	soit x = a & b;
+	soit x = a || b;
+	soit x = a | b;
+	soit x = a ^ b;
+	soit x = !a;
+	soit x = ~a;
+	soit x = a;
+}
+)";
 
 	auto tampon = TamponSource(texte);
 

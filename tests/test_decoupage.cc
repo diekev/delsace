@@ -74,14 +74,16 @@ bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 
 bool test_decoupage_texte1()
 {
-	const char *texte = "# Ceci est un commentaire \n"
-						"soit str='a';\n"
-						"associe nombre {\n"
-						"	0...1_000: imprime(1000);\n"
-						"	11_000...2_0000: imprime(20000);\n"
-						"	sinon:imprime(inconnu);\n"
-						"}\n"
-						"decoupeuse_texte decoupeuse(str, str + len);\n";
+	const char *texte =
+R"(# Ceci est un commentaire
+soit str='a';
+associe nombre {
+	0...1_000: imprime(1000);
+	11_000...2_0000: imprime(20000);
+	sinon:imprime(inconnu);
+}
+decoupeuse_texte decoupeuse(str, str + len);
+)";
 
 	const DonneesMorceaux donnees_morceaux[] = {
 		{ "soit", ID_SOIT },
