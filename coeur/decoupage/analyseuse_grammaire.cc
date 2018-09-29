@@ -278,6 +278,7 @@ static bool est_operateur(int identifiant)
 		case ID_EGALITE:
 		case ID_BARRE:
 		case ID_CHAPEAU:
+		case ID_TILDE:
 			return true;
 		default:
 			return false;

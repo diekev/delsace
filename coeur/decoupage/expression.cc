@@ -68,6 +68,7 @@ static DonneesPrecedence associativite(int identifiant)
 		case ID_POURCENT:
 			return { GAUCHE, 9};
 		case ID_EXCLAMATION:
+		case ID_TILDE:
 			return { GAUCHE, 10 };
 	}
 
