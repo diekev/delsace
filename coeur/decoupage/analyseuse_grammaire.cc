@@ -31,6 +31,7 @@
 #include "expression.h"
 
 #undef DEBOGUE_EXPRESSION
+#undef DEBOGUE_ARBRE
 
 static bool est_identifiant_type(int identifiant)
 {
@@ -67,30 +68,6 @@ static bool est_nombre(int identifiant)
 	}
 }
 
-static bool est_operateur(int identifiant)
-{
-	switch (identifiant) {
-		case ID_PLUS:
-		case ID_MOINS:
-		case ID_FOIS:
-		case ID_DIVISE:
-		case ID_ESPERLUETTE:
-		case ID_EXCLAMATION:
-		case ID_POURCENT:
-		case ID_INFERIEUR:
-		case ID_SUPERIEUR:
-		case ID_DIFFERENCE:
-		case ID_ESP_ESP:
-		case ID_EGALITE:
-		case ID_BARRE:
-		case ID_CHAPEAU:
-		case ID_TILDE:
-			return true;
-		default:
-			return false;
-	}
-}
-
 static bool est_operateur_simple(int identifiant)
 {
 	switch (identifiant) {
@@ -112,16 +89,26 @@ static bool est_operateur_double(int identifiant)
 		case ID_ESPERLUETTE:
 		case ID_POURCENT:
 		case ID_INFERIEUR:
+		case ID_INFERIEUR_EGAL:
 		case ID_SUPERIEUR:
+		case ID_SUPERIEUR_EGAL:
+		case ID_DECALAGE_DROITE:
+		case ID_DECALAGE_GAUCHE:
 		case ID_DIFFERENCE:
 		case ID_ESP_ESP:
 		case ID_EGALITE:
+		case ID_BARRE_BARRE:
 		case ID_BARRE:
 		case ID_CHAPEAU:
 			return true;
 		default:
 			return false;
 	}
+}
+
+static bool est_operateur(int identifiant)
+{
+	return est_operateur_simple(identifiant) || est_operateur_double(identifiant);
 }
 
 /* ************************************************************************** */
@@ -143,7 +130,9 @@ void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &ide
 
 	analyse_corps();
 
+#ifdef DEBOGUE_ARBRE
 	m_assembleuse.imprime_code(std::cerr);
+#endif
 }
 
 void analyseuse_grammaire::analyse_corps()
@@ -465,11 +454,18 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		}
 	}
 
-	if (pile_noeud.size() != 1) {
-		std::cerr << "Il reste plus d'un noeud dans la pile !\n";
-	}
-
 	m_assembleuse.ajoute_noeud(pile_noeud.top());
+	pile_noeud.pop();
+
+	if (pile_noeud.size() != 0) {
+		std::cerr << "Il reste plus d'un noeud dans la pile ! :";
+
+		while (!pile_noeud.empty()) {
+			auto noeud = pile_noeud.top();
+			pile_noeud.pop();
+			std::cerr << '\t' << chaine_identifiant(noeud->identifiant) << '\n';
+		}
+	}
 
 	/* saute l'identifiant final */
 	avance();
