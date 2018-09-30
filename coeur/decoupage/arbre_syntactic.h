@@ -52,7 +52,9 @@ protected:
 	std::vector<Noeud *> m_enfants;
 
 public:
-	Noeud(const std::string &chaine);
+	int identifiant;
+
+	Noeud(const std::string &chaine, int id);
 
 	virtual ~Noeud();
 
@@ -66,95 +68,95 @@ public:
 	 * attendu que le noeud demande à ces enfants d'imprimer leurs 'codes' dans
 	 * le bon ordre.
 	 */
-	virtual void imprime_code(std::ostream &os) = 0;
+	virtual void imprime_code(std::ostream &os, int tab) = 0;
 };
 
 /* ************************************************************************** */
 
 class NoeudRacine final : public Noeud {
 public:
-	NoeudRacine(const std::string &chaine);
+	NoeudRacine(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudAppelFonction final : public Noeud {
 public:
-	NoeudAppelFonction(const std::string &chaine);
+	NoeudAppelFonction(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudDeclarationFonction final : public Noeud {
 public:
-	NoeudDeclarationFonction(const std::string &chaine);
+	NoeudDeclarationFonction(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudExpression final : public Noeud {
 public:
-	NoeudExpression(const std::string &chaine);
+	NoeudExpression(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudAssignationVariable final : public Noeud {
 public:
-	NoeudAssignationVariable(const std::string &chaine);
+	NoeudAssignationVariable(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudNombreEntier final : public Noeud {
 public:
-	NoeudNombreEntier(const std::string &chaine);
+	NoeudNombreEntier(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudNombreReel final : public Noeud {
 public:
-	NoeudNombreReel(const std::string &chaine);
+	NoeudNombreReel(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudVariable final : public Noeud {
 public:
-	NoeudVariable(const std::string &chaine);
+	NoeudVariable(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudOperation final : public Noeud {
 public:
-	NoeudOperation(const std::string &chaine);
+	NoeudOperation(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };
 
 /* ************************************************************************** */
 
 class NoeudRetour final : public Noeud {
 public:
-	NoeudRetour(const std::string &chaine);
+	NoeudRetour(const std::string &chaine, int id);
 
-	void imprime_code(std::ostream &os);
+	void imprime_code(std::ostream &os, int tab) override;
 };

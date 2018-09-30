@@ -26,8 +26,18 @@
 
 /* ************************************************************************** */
 
-Noeud::Noeud(const std::string &chaine)
+static void imprime_tab(std::ostream &os, int tab)
+{
+	for (int i = 0; i < tab; ++i) {
+		os << ' ' << ' ';
+	}
+}
+
+/* ************************************************************************** */
+
+Noeud::Noeud(const std::string &chaine, int id)
 	: m_chaine(chaine)
+	, identifiant(id)
 {}
 
 Noeud::~Noeud()
@@ -44,118 +54,154 @@ void Noeud::ajoute_noeud(Noeud *noeud)
 
 /* ************************************************************************** */
 
-NoeudRacine::NoeudRacine(const std::string &chaine)
-	: Noeud(chaine)
+NoeudRacine::NoeudRacine(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudRacine::imprime_code(std::ostream &os)
+void NoeudRacine::imprime_code(std::ostream &os, int tab)
 {
 	os << "NoeudRacine\n";
 
 	for (auto noeud : m_enfants) {
-		noeud->imprime_code(os);
+		noeud->imprime_code(os, tab + 1);
 	}
 }
 
 /* ************************************************************************** */
 
-NoeudAppelFonction::NoeudAppelFonction(const std::string &chaine)
-	: Noeud(chaine)
+NoeudAppelFonction::NoeudAppelFonction(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudAppelFonction::imprime_code(std::ostream &os)
+void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 {
-	os << "NoeudAppelFonction\n";
+	imprime_tab(os, tab);
+
+	os << "NoeudAppelFonction : " << m_chaine << '\n';
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
 }
 
 /* ************************************************************************** */
 
-NoeudDeclarationFonction::NoeudDeclarationFonction(const std::string &chaine)
-	: Noeud(chaine)
+NoeudDeclarationFonction::NoeudDeclarationFonction(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudDeclarationFonction::imprime_code(std::ostream &os)
+void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 {
+	imprime_tab(os, tab);
+
 	os << "NoeudDeclarationFonction : " << m_chaine << '\n';
 
 	for (auto noeud : m_enfants) {
-		noeud->imprime_code(os);
+		noeud->imprime_code(os, tab + 1);
 	}
 }
 
 /* ************************************************************************** */
 
-NoeudExpression::NoeudExpression(const std::string &chaine)
-	: Noeud(chaine)
+NoeudExpression::NoeudExpression(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudExpression::imprime_code(std::ostream &os)
+void NoeudExpression::imprime_code(std::ostream &os, int tab)
 {
-	os << "NoeudExpression\n";
+	imprime_tab(os, tab);
+
+	os << "NoeudExpression : " << m_chaine << '\n';
+
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
 }
 
 /* ************************************************************************** */
 
-NoeudAssignationVariable::NoeudAssignationVariable(const std::string &chaine)
-	: Noeud(chaine)
+NoeudAssignationVariable::NoeudAssignationVariable(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudAssignationVariable::imprime_code(std::ostream &os)
+void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 {
-	os << "NoeudAssignationVariable\n";
+	imprime_tab(os, tab);
+
+	os << "NoeudAssignationVariable : " << m_chaine << '\n';
 }
 
 /* ************************************************************************** */
 
-NoeudNombreEntier::NoeudNombreEntier(const std::string &chaine)
-	: Noeud(chaine)
+NoeudNombreEntier::NoeudNombreEntier(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudNombreEntier::imprime_code(std::ostream &os)
+void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 {
-	os << "NoeudNombreEntier\n";
+	imprime_tab(os, tab);
+
+	os << "NoeudNombreEntier : " << m_chaine << '\n';
 }
 
 /* ************************************************************************** */
 
-NoeudNombreReel::NoeudNombreReel(const std::string &chaine)
-	: Noeud(chaine)
+NoeudNombreReel::NoeudNombreReel(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudNombreReel::imprime_code(std::ostream &os)
+void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 {
-	os << "NoeudNombreReel\n";
+	imprime_tab(os, tab);
+
+	os << "NoeudNombreReel : " << m_chaine << '\n';
 }
 
 /* ************************************************************************** */
 
-NoeudVariable::NoeudVariable(const std::string &chaine)
-	: Noeud(chaine)
+NoeudVariable::NoeudVariable(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudVariable::imprime_code(std::ostream &os)
+void NoeudVariable::imprime_code(std::ostream &os, int tab)
 {
-	os << "NoeudVariable\n";
+	imprime_tab(os, tab);
+
+	os << "NoeudVariable : " << m_chaine << '\n';
+
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
 }
 
 /* ************************************************************************** */
 
-NoeudOperation::NoeudOperation(const std::string &chaine)
-	: Noeud(chaine)
+NoeudOperation::NoeudOperation(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudOperation::imprime_code(std::ostream &os)
+void NoeudOperation::imprime_code(std::ostream &os, int tab)
 {
-	os << "NoeudOperation\n";
+	imprime_tab(os, tab);
+
+	os << "NoeudOperation : " << m_chaine << '\n';
+
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
 }
 
 /* ************************************************************************** */
 
-NoeudRetour::NoeudRetour(const std::string &chaine)
-	: Noeud(chaine)
+NoeudRetour::NoeudRetour(const std::string &chaine, int id)
+	: Noeud(chaine, id)
 {}
 
-void NoeudRetour::imprime_code(std::ostream &os)
+void NoeudRetour::imprime_code(std::ostream &os, int tab)
 {
-	os << "NoeudRetour\n";
+	imprime_tab(os, tab);
+
+	os << "NoeudRetour : " << m_chaine << '\n';
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
 }
