@@ -52,4 +52,3 @@ set(SOURCES
 
 add_library(decoupage STATIC "${SOURCES}")
 target_include_directories(decoupage PUBLIC "${INCLUSIONS}")
-
