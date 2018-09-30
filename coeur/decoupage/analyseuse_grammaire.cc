@@ -244,9 +244,6 @@ void analyseuse_grammaire::analyse_corps_fonction()
 {
 	/* assignement : soit x = a + b; */
 	if (est_identifiant(ID_SOIT)) {
-		// À FAIRE : crée noeud déclaration variable
-		// À FAIRE : ajout des expressions noeud_fonction->ajoute_enfant(expression);
-
 		avance();
 
 		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
