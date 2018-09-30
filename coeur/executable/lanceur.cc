@@ -30,6 +30,8 @@
 #include "decoupage/erreur.h"
 #include "decoupage/tampon_source.h"
 
+#include <chronometrage/chronometre_de_portee.h>
+
 #if 0
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -92,11 +94,20 @@ fonction principale()
 }
 )";
 
+	auto temps_tampon    = 0.0;
+	auto temps_decoupage = 0.0;
+	auto temps_analyse   = 0.0;
+
+	const auto debut_tampon = numero7::chronometrage::maintenant();
 	auto tampon = TamponSource(str);
+	temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
 
 	try {
 		decoupeuse_texte decoupeuse(tampon);
+
+		const auto debut_decoupeuse = numero7::chronometrage::maintenant();
 		decoupeuse.genere_morceaux();
+		temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupeuse;
 
 #if 0
 		for (auto &morceaux : decoupeuse) {
@@ -106,10 +117,28 @@ fonction principale()
 
 		//assembleuse_arbre assembleuse;
 		auto analyseuse = analyseuse_grammaire(tampon);
+
+		const auto debut_analyseuse = numero7::chronometrage::maintenant();
 		analyseuse.lance_analyse(decoupeuse.morceaux());
+		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 	}
+
+	const auto temps_total = (temps_tampon + temps_decoupage + temps_analyse);
+
+	auto pourcentage = [&](const double &x)
+	{
+		return x * 100.0 / temps_total;
+	};
+
+	std::ostream &os = std::cout;
+
+	os << "Nombre de lignes : " << tampon.nombre_lignes() << '\n';
+	os << "Temps scène : " << temps_total << '\n';
+	os << '\t' << "Temps tampon    : " << temps_tampon << " (" << pourcentage(temps_tampon) << "%)\n";
+	os << '\t' << "Temps découpage : " << temps_decoupage << " (" << pourcentage(temps_decoupage) << "%)\n";
+	os << '\t' << "Temps analyse   : " << temps_analyse << " (" << pourcentage(temps_analyse) << "%)\n";
 #endif
 }
