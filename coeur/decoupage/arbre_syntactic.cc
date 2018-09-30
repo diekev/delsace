@@ -186,7 +186,7 @@ void NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 
 	llvm::ArrayRef<llvm::Value*> args(parametres);
 
-	llvm::CallInst::Create(fonction, args, "");
+	llvm::CallInst::Create(fonction, args, "", contexte.block_courant());
 }
 
 /* ************************************************************************** */
