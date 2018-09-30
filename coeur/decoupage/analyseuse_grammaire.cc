@@ -225,6 +225,7 @@ void analyseuse_grammaire::analyse_parametres_fonction()
 	}
 
 	if (!est_identifiant_type(identifiant_courant())) {
+		avance();
 		lance_erreur("Attendu la déclaration d'un type");
 	}
 
@@ -559,6 +560,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 		}
 
 		if (!est_identifiant_type(this->identifiant_courant())) {
+			avance();
 			lance_erreur("Attendu la déclaration d'un type");
 		}
 
