@@ -56,7 +56,7 @@ public:
 
 	Noeud(const std::string &chaine, int id);
 
-	virtual ~Noeud();
+	virtual ~Noeud() = default;
 
 	/**
 	 * Ajoute un noeud à la liste des noeuds du noeud.

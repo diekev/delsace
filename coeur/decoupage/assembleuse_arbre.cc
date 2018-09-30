@@ -28,70 +28,79 @@
 
 assembleuse_arbre::~assembleuse_arbre()
 {
-	/* NOTE : il est possible que la compilation s'arrête à cause d'une erreur,
-	 * et puisque nous utilisons la pile pour définir le noeud racine courant,
-	 * la pile peut contenir plus de noeud que le noeud racine global.
-	 * Afin d'éviter de supprimer plusieurs fois les mêmes noeuds, on enlève
-	 * tous les noeuds de le pile sauf le noeud racine global. */
-	while (m_noeuds.size() > 1) {
-		m_noeuds.pop();
+	for (auto noeud : m_noeuds) {
+		delete noeud;
 	}
-
-	delete m_noeuds.top();
 }
 
 Noeud *assembleuse_arbre::ajoute_noeud(int type, const std::string &chaine, int id, bool ajoute)
 {
 	auto noeud = cree_noeud(type, chaine, id);
 
-	if (!m_noeuds.empty() && ajoute) {
-		m_noeuds.top()->ajoute_noeud(noeud);
+	if (!m_pile.empty() && ajoute) {
+		m_pile.top()->ajoute_noeud(noeud);
 	}
 
-	m_noeuds.push(noeud);
+	m_pile.push(noeud);
 
 	return noeud;
 }
 
 void assembleuse_arbre::ajoute_noeud(Noeud *noeud)
 {
-	m_noeuds.top()->ajoute_noeud(noeud);
+	m_pile.top()->ajoute_noeud(noeud);
 }
 
 Noeud *assembleuse_arbre::cree_noeud(int type, const std::string &chaine, int id)
 {
+	Noeud *noeud = nullptr;
+
 	switch (type) {
 		case NOEUD_RACINE:
-			return new NoeudRacine(chaine, id);
+			noeud = new NoeudRacine(chaine, id);
+			break;
 		case NOEUD_APPEL_FONCTION:
-			return new NoeudAppelFonction(chaine, id);
+			noeud = new NoeudAppelFonction(chaine, id);
+			break;
 		case NOEUD_DECLARATION_FONCTION:
-			return new NoeudDeclarationFonction(chaine, id);
+			noeud = new NoeudDeclarationFonction(chaine, id);
+			break;
 		case NOEUD_EXPRESSION:
-			return new NoeudExpression(chaine, id);
+			noeud = new NoeudExpression(chaine, id);
+			break;
 		case NOEUD_ASSIGNATION_VARIABLE:
-			return new NoeudAssignationVariable(chaine, id);
+			noeud = new NoeudAssignationVariable(chaine, id);
+			break;
 		case NOEUD_VARIABLE:
-			return new NoeudVariable(chaine, id);
+			noeud = new NoeudVariable(chaine, id);
+			break;
 		case NOEUD_NOMBRE_ENTIER:
-			return new NoeudNombreEntier(chaine, id);
+			noeud = new NoeudNombreEntier(chaine, id);
+			break;
 		case NOEUD_NOMBRE_REEL:
-			return new NoeudNombreReel(chaine, id);
+			noeud = new NoeudNombreReel(chaine, id);
+			break;
 		case NOEUD_OPERATION:
-			return new NoeudOperation(chaine, id);
+			noeud = new NoeudOperation(chaine, id);
+			break;
 		case NOEUD_RETOUR:
-			return new NoeudRetour(chaine, id);
+			noeud = new NoeudRetour(chaine, id);
+			break;
 	}
 
-	return nullptr;
+	if (noeud != nullptr) {
+		m_noeuds.push_back(noeud);
+	}
+
+	return noeud;
 }
 
 void assembleuse_arbre::sors_noeud(int type)
 {
-	m_noeuds.pop();
+	m_pile.pop();
 }
 
 void assembleuse_arbre::imprime_code(std::ostream &os)
 {
-	m_noeuds.top()->imprime_code(os, 0);
+	m_pile.top()->imprime_code(os, 0);
 }

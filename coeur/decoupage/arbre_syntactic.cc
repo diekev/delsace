@@ -40,13 +40,6 @@ Noeud::Noeud(const std::string &chaine, int id)
 	, identifiant(id)
 {}
 
-Noeud::~Noeud()
-{
-	for (Noeud *noeud : m_enfants) {
-		delete noeud;
-	}
-}
-
 void Noeud::ajoute_noeud(Noeud *noeud)
 {
 	m_enfants.push_back(noeud);

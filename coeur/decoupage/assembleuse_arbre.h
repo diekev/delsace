@@ -26,12 +26,13 @@
 
 #include <stack>
 #include <string>
+#include <vector>
 
 class Noeud;
 
 class assembleuse_arbre {
-	Noeud *m_noeud_courant;
-	std::stack<Noeud *> m_noeuds;
+	std::stack<Noeud *> m_pile;
+	std::vector<Noeud *> m_noeuds;
 
 public:
 	~assembleuse_arbre();
