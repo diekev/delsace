@@ -28,10 +28,16 @@
 
 assembleuse_arbre::~assembleuse_arbre()
 {
-	while (!m_noeuds.empty()) {
-		delete m_noeuds.top();
+	/* NOTE : il est possible que la compilation s'arrête à cause d'une erreur,
+	 * et puisque nous utilisons la pile pour définir le noeud racine courant,
+	 * la pile peut contenir plus de noeud que le noeud racine global.
+	 * Afin d'éviter de supprimer plusieurs fois les mêmes noeuds, on enlève
+	 * tous les noeuds de le pile sauf le noeud racine global. */
+	while (m_noeuds.size() > 1) {
 		m_noeuds.pop();
 	}
+
+	delete m_noeuds.top();
 }
 
 Noeud *assembleuse_arbre::ajoute_noeud(int type, const std::string &chaine, int id, bool ajoute)
