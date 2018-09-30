@@ -319,11 +319,10 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'");
 		}
 	}
-//	else if (est_identifiant(ID_CHAINE_CARACTERE)) {
-//		/* appel : fais_quelque_chose(); */
-//		avance();
-//		analyse_expression_droite();
-//	}
+	/* appel : fais_quelque_chose(); */
+	else if (sont_2_identifiants(ID_CHAINE_CARACTERE, ID_PARENTHESE_OUVRANTE)) {
+		analyse_expression_droite(ID_POINT_VIRGULE);
+	}
 	else {
 		return;
 	}

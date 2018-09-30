@@ -46,6 +46,7 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 
 			fonction principale(compte : e32, arguments : e8) : e32
 			{
+				ne_retourne_rien();
 				soit a = ajouter(5, 8);
 				soit b = ajouter(8, 5);
 				soit c = ajouter(ajouter(a + b, b), ajouter(b + a, a));
