@@ -120,7 +120,14 @@ void Analyseuse::lance_erreur(const std::string &quoi)
 		}
 	}
 
-	ss << "^~~~~~\n";
+	ss << '^';
+
+	for (int i = 0; i < chaine.size() - 1; ++i) {
+		ss << '~';
+	}
+
+	ss << '\n';
+
 	ss << quoi;
 	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
 
