@@ -61,7 +61,8 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 		decoupeuse_texte decoupeuse(tampon);
 		decoupeuse.genere_morceaux();
 
-		auto analyseuse = analyseuse_grammaire(tampon);
+		auto assembleuse = assembleuse_arbre();
+		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const erreur::frappe &e) {

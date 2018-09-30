@@ -78,10 +78,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	auto temps_chargement = 0.0;
-	auto temps_tampon     = 0.0;
-	auto temps_decoupage  = 0.0;
-	auto temps_analyse    = 0.0;
+	auto temps_chargement      = 0.0;
+	auto temps_tampon          = 0.0;
+	auto temps_decoupage       = 0.0;
+	auto temps_analyse         = 0.0;
+	auto temps_generation_code = 0.0;
 
 	auto debut_chargement = numero7::chronometrage::maintenant();
 	auto texte = charge_fichier(chemin_fichier);
@@ -98,36 +99,54 @@ int main(int argc, char *argv[])
 		decoupeuse.genere_morceaux();
 		temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupeuse;
 
-		auto analyseuse = analyseuse_grammaire(tampon);
+		auto assembleuse = assembleuse_arbre();
+		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
 
 		const auto debut_analyseuse = numero7::chronometrage::maintenant();
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
+
+		const auto debut_generation_code = numero7::chronometrage::maintenant();
+		assembleuse.genere_code_llvm();
+		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 	}
 
-	const auto temps_total = temps_tampon
+	const auto temps_scene = temps_tampon
 							 + temps_decoupage
 							 + temps_analyse
 							 + temps_chargement;
 
-	auto pourcentage = [&](const double &x)
+	const auto temps_coulisse = temps_generation_code;
+
+	const auto temps_total = temps_scene + temps_coulisse;
+
+	auto pourcentage = [&](const double &x, const double &total)
 	{
-		return x * 100.0 / temps_total;
+		return x * 100.0 / total;
 	};
 
 	std::ostream &os = std::cout;
 
+	os << "------------------------------------------------------------------\n";
 	os << "Nombre de lignes : " << tampon.nombre_lignes() << '\n';
-	os << "Temps scène : " << temps_total << '\n';
+	os << "Temps total : " << temps_total << '\n';
+
+	os << "Temps scène : " << temps_scene
+	   << " (" << pourcentage(temps_scene, temps_total) << "%)\n";
 	os << '\t' << "Temps chargement : " << temps_chargement
-	   << " (" << pourcentage(temps_chargement) << "%)\n";
+	   << " (" << pourcentage(temps_chargement, temps_scene) << "%)\n";
 	os << '\t' << "Temps tampon     : " << temps_tampon
-	   << " (" << pourcentage(temps_tampon) << "%)\n";
+	   << " (" << pourcentage(temps_tampon, temps_scene) << "%)\n";
 	os << '\t' << "Temps découpage  : " << temps_decoupage
-	   << " (" << pourcentage(temps_decoupage) << "%)\n";
+	   << " (" << pourcentage(temps_decoupage, temps_scene) << "%)\n";
 	os << '\t' << "Temps analyse    : " << temps_analyse
-	   << " (" << pourcentage(temps_analyse) << "%)\n";
+	   << " (" << pourcentage(temps_analyse, temps_scene) << "%)\n";
+
+	os << "Temps coulisse : " << temps_coulisse
+	   << " (" << pourcentage(temps_coulisse, temps_total) << "%)\n";
+	os << '\t' << "Temps génération code : " << temps_generation_code
+	   << " (" << pourcentage(temps_generation_code, temps_coulisse) << "%)\n";
 }

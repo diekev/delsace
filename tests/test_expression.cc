@@ -68,7 +68,8 @@ R"(fonction foo()
 	auto erreur_lancee = false;
 
 	try {
-		auto analyseuse = analyseuse_grammaire(tampon);
+		auto assembleuse = assembleuse_arbre();
+		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 	}
 	catch (const erreur::frappe &e) {

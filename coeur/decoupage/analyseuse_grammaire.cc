@@ -126,8 +126,9 @@ static bool est_operateur(int identifiant)
 
 /* ************************************************************************** */
 
-analyseuse_grammaire::analyseuse_grammaire(const TamponSource &tampon)
+analyseuse_grammaire::analyseuse_grammaire(const TamponSource &tampon, assembleuse_arbre *assembleuse)
 	: Analyseuse(tampon)
+	, m_assembleuse(assembleuse)
 {}
 
 void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
@@ -139,15 +140,13 @@ void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &ide
 		return;
 	}
 
-	m_assembleuse.ajoute_noeud(NOEUD_RACINE, "racine", -1);
+	m_assembleuse->ajoute_noeud(NOEUD_RACINE, "racine", -1);
 
 	analyse_corps();
 
 #ifdef DEBOGUE_ARBRE
-	m_assembleuse.imprime_code(std::cerr);
+	m_assembleuse->imprime_code(std::cerr);
 #endif
-
-	m_assembleuse.genere_code_llvm();
 }
 
 void analyseuse_grammaire::analyse_corps()
@@ -186,7 +185,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	// crée noeud fonction
 	const auto nom_fonction = m_identifiants[position()].chaine;
-	m_assembleuse.ajoute_noeud(NOEUD_DECLARATION_FONCTION, nom_fonction, ID_FONCTION);
+	m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, nom_fonction, ID_FONCTION);
 
 	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
@@ -221,7 +220,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu une accolade fermante à la fin de la fonction");
 	}
 
-	m_assembleuse.sors_noeud(NOEUD_DECLARATION_FONCTION);
+	m_assembleuse->sors_noeud(NOEUD_DECLARATION_FONCTION);
 }
 
 void analyseuse_grammaire::analyse_parametres_fonction()
@@ -282,14 +281,14 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			lance_erreur("Attendu '=' après chaîne de caractère");
 		}
 
-		m_assembleuse.ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, nom, ID_CHAINE_CARACTERE);
+		m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, nom, ID_CHAINE_CARACTERE);
 		analyse_expression_droite(ID_POINT_VIRGULE);
-		m_assembleuse.sors_noeud(NOEUD_ASSIGNATION_VARIABLE);
+		m_assembleuse->sors_noeud(NOEUD_ASSIGNATION_VARIABLE);
 	}
 	/* retour : retourne a + b; */
 	else if (est_identifiant(ID_RETOURNE)) {
 		avance();
-		m_assembleuse.ajoute_noeud(NOEUD_RETOUR, "", ID_RETOURNE);
+		m_assembleuse->ajoute_noeud(NOEUD_RETOUR, "", ID_RETOURNE);
 
 		/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 		if (!est_identifiant(ID_POINT_VIRGULE)) {
@@ -299,7 +298,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			avance();
 		}
 
-		m_assembleuse.sors_noeud(NOEUD_RETOUR);
+		m_assembleuse->sors_noeud(NOEUD_RETOUR);
 	}
 	/* controle de flux : si */
 	else if (est_identifiant(ID_SI)) {
@@ -371,11 +370,11 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			avance();
 			avance();
 
-			auto noeud = m_assembleuse.ajoute_noeud(NOEUD_APPEL_FONCTION, symbole.chaine, symbole.identifiant, false);
+			auto noeud = m_assembleuse->ajoute_noeud(NOEUD_APPEL_FONCTION, symbole.chaine, symbole.identifiant, false);
 
 			analyse_appel_fonction();
 
-			m_assembleuse.sors_noeud(NOEUD_APPEL_FONCTION);
+			m_assembleuse->sors_noeud(NOEUD_APPEL_FONCTION);
 
 			expression.push_back(noeud);
 		}
@@ -386,15 +385,15 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		}
 		/* variable : chaine */
 		else if (est_identifiant(ID_CHAINE_CARACTERE)) {
-			auto noeud = m_assembleuse.cree_noeud(NOEUD_VARIABLE, symbole.chaine, symbole.identifiant);
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, symbole.chaine, symbole.identifiant);
 			expression.push_back(noeud);
 		}
 		else if (identifiant_courant() == ID_NOMBRE_REEL) {
-			auto noeud = m_assembleuse.cree_noeud(NOEUD_NOMBRE_REEL, symbole.chaine, symbole.identifiant);
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_REEL, symbole.chaine, symbole.identifiant);
 			expression.push_back(noeud);
 		}
 		else if (est_nombre_entier(identifiant_courant())) {
-			auto noeud = m_assembleuse.cree_noeud(NOEUD_NOMBRE_ENTIER, symbole.chaine, symbole.identifiant);
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_ENTIER, symbole.chaine, symbole.identifiant);
 			expression.push_back(noeud);
 		}
 		else if (est_operateur(identifiant_courant())) {
@@ -402,7 +401,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 				   && est_operateur(pile.top().identifiant)
 				   && (precedence_faible(symbole.identifiant, pile.top().identifiant)))
 			{
-				auto noeud = m_assembleuse.cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+				auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
 				expression.push_back(noeud);
 				pile.pop();
 			}
@@ -428,7 +427,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			}
 
 			while (pile.top().identifiant != ID_PARENTHESE_OUVRANTE) {
-				auto noeud = m_assembleuse.cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+				auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
 				expression.push_back(noeud);
 				pile.pop();
 			}
@@ -453,7 +452,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		auto noeud = m_assembleuse.cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+		auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
 		expression.push_back(noeud);
 		pile.pop();
 	}
@@ -494,7 +493,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		}
 	}
 
-	m_assembleuse.ajoute_noeud(pile_noeud.top());
+	m_assembleuse->ajoute_noeud(pile_noeud.top());
 	pile_noeud.pop();
 
 	if (pile_noeud.size() != 0) {

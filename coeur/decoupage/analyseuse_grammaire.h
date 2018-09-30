@@ -29,10 +29,10 @@
 #include "assembleuse_arbre.h"
 
 class analyseuse_grammaire : public Analyseuse {
-	assembleuse_arbre m_assembleuse;
+	assembleuse_arbre *m_assembleuse = nullptr;
 
 public:
-	explicit analyseuse_grammaire(const TamponSource &tampon);
+	analyseuse_grammaire(const TamponSource &tampon, assembleuse_arbre *assembleuse);
 
 	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
 
