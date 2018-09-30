@@ -78,12 +78,15 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	std::ostream &os = std::cout;
+
 	auto temps_chargement      = 0.0;
 	auto temps_tampon          = 0.0;
 	auto temps_decoupage       = 0.0;
 	auto temps_analyse         = 0.0;
 	auto temps_generation_code = 0.0;
 
+	os << "Ouverture de '" << chemin_fichier << "'...\n";
 	auto debut_chargement = numero7::chronometrage::maintenant();
 	auto texte = charge_fichier(chemin_fichier);
 	temps_chargement = numero7::chronometrage::maintenant() - debut_chargement;
@@ -127,8 +130,6 @@ int main(int argc, char *argv[])
 	{
 		return x * 100.0 / total;
 	};
-
-	std::ostream &os = std::cout;
 
 	os << "------------------------------------------------------------------\n";
 	os << "Nombre de lignes : " << tampon.nombre_lignes() << '\n';
