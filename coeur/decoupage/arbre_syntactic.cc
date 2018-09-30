@@ -213,8 +213,6 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 
 void NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto constructeur = llvm::IRBuilder<>(contexte.contexte);
-
 	/* Crée la liste de paramètres */
 	std::vector<llvm::Type *> parametres;
 
@@ -230,8 +228,6 @@ void NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte
 
 	auto entree = llvm::BasicBlock::Create(contexte.contexte, "entrypoint", fonction_main);
 	contexte.pousse_block(entree);
-
-	constructeur.SetInsertPoint(entree);
 
 	for (auto noeud : m_enfants) {
 		noeud->genere_code_llvm(contexte);
