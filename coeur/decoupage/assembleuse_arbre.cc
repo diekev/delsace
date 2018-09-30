@@ -109,11 +109,11 @@ void assembleuse_arbre::imprime_code(std::ostream &os)
 
 void assembleuse_arbre::genere_code_llvm()
 {
-	auto contexte = llvm::LLVMContext();
-	auto module = new llvm::Module("top", contexte);
+	ContexteGenerationCode contexte_generation;
+	contexte_generation.module = new llvm::Module("top", contexte_generation.contexte);
 
-	m_pile.top()->genere_code_llvm(contexte, module);
+	m_pile.top()->genere_code_llvm(contexte_generation);
 
-	module->dump();
-	delete module;
+	contexte_generation.module->dump();
+	delete contexte_generation.module;
 }

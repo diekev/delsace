@@ -99,6 +99,27 @@ static void imprime_tab(std::ostream &os, int tab)
 
 /* ************************************************************************** */
 
+void ContexteGenerationCode::pousse_block(llvm::BasicBlock *block)
+{
+	pile_block.push(block);
+}
+
+void ContexteGenerationCode::jete_block()
+{
+	pile_block.pop();
+}
+
+llvm::BasicBlock *ContexteGenerationCode::block_courant() const
+{
+	if (pile_block.empty()) {
+		return nullptr;
+	}
+
+	return pile_block.top();
+}
+
+/* ************************************************************************** */
+
 Noeud::Noeud(const std::string &chaine, int id)
 	: m_chaine(chaine)
 	, identifiant(id)
@@ -124,10 +145,10 @@ void NoeudRacine::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-void NoeudRacine::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 	for (auto noeud : m_enfants) {
-		noeud->genere_code_llvm(contexte, module);
+		noeud->genere_code_llvm(contexte);
 	}
 }
 
@@ -147,9 +168,9 @@ void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-void NoeudAppelFonction::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto fonction = module->getFunction(m_chaine);
+	auto fonction = contexte.module->getFunction(m_chaine);
 
 	if (fonction == nullptr) {
 		std::cerr << "Impossible de trouver la fonction '" << m_chaine << "' !\n";
@@ -160,7 +181,7 @@ void NoeudAppelFonction::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Mod
 	std::vector<llvm::Value *> parametres;
 
 	for (auto noeud : m_enfants) {
-		noeud->genere_code_llvm(contexte, module);
+		noeud->genere_code_llvm(contexte);
 	}
 
 	llvm::ArrayRef<llvm::Value*> args(parametres);
@@ -190,31 +211,34 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-void NoeudDeclarationFonction::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto constructeur = llvm::IRBuilder<>(contexte);
+	auto constructeur = llvm::IRBuilder<>(contexte.contexte);
 
 	/* Crée la liste de paramètres */
 	std::vector<llvm::Type *> parametres;
 
 	for (const auto &argument : m_arguments) {
-		parametres.push_back(type_argument(contexte, argument.id_type));
+		parametres.push_back(type_argument(contexte.contexte, argument.id_type));
 	}
 
 	llvm::ArrayRef<llvm::Type*> args(parametres);
 
 	/* Crée fonction */
-	auto type_fonction = llvm::FunctionType::get(type_argument(contexte, this->type_retour), args, false);
-	auto fonction_main = llvm::Function::Create(type_fonction, llvm::Function::ExternalLinkage, m_chaine, module);
+	auto type_fonction = llvm::FunctionType::get(type_argument(contexte.contexte, this->type_retour), args, false);
+	auto fonction_main = llvm::Function::Create(type_fonction, llvm::Function::ExternalLinkage, m_chaine, contexte.module);
 
-	auto entree = llvm::BasicBlock::Create(contexte, "entrypoint", fonction_main);
+	auto entree = llvm::BasicBlock::Create(contexte.contexte, "entrypoint", fonction_main);
+	contexte.pousse_block(entree);
+
 	constructeur.SetInsertPoint(entree);
 
 	for (auto noeud : m_enfants) {
-		noeud->genere_code_llvm(contexte, module);
+		noeud->genere_code_llvm(contexte);
 	}
 
-	constructeur.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte), 0, false));
+	constructeur.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0, false));
+	contexte.jete_block();
 }
 
 /* ************************************************************************** */
@@ -234,7 +258,7 @@ void NoeudExpression::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-void NoeudExpression::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudExpression::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 
 }
@@ -256,7 +280,7 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-void NoeudAssignationVariable::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 
 }
@@ -274,7 +298,7 @@ void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 	os << "NoeudNombreEntier : " << m_chaine << '\n';
 }
 
-void NoeudNombreEntier::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 
 }
@@ -292,7 +316,7 @@ void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 	os << "NoeudNombreReel : " << m_chaine << '\n';
 }
 
-void NoeudNombreReel::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 
 }
@@ -314,7 +338,7 @@ void NoeudVariable::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-void NoeudVariable::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 
 }
@@ -336,7 +360,7 @@ void NoeudOperation::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-void NoeudOperation::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 
 }
@@ -357,7 +381,7 @@ void NoeudRetour::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-void NoeudRetour::genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module)
+void NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 
 }

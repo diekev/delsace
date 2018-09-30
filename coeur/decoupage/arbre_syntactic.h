@@ -25,10 +25,15 @@
 #pragma once
 
 #include <iostream>
+#include <stack>
 #include <string>
 #include <vector>
 
 #include <llvm/IR/LLVMContext.h>
+
+namespace llvm {
+class BasicBlock;
+}  /* namespace llvm */
 
 enum {
 	NOEUD_RACINE,
@@ -48,6 +53,20 @@ enum {
 struct ArgumentFonction {
 	std::string chaine;
 	int id_type;
+};
+
+struct ContexteGenerationCode {
+	llvm::Module *module;
+	llvm::LLVMContext contexte;
+
+	void pousse_block(llvm::BasicBlock *block);
+
+	void jete_block();
+
+	llvm::BasicBlock *block_courant() const;
+
+private:
+	std::stack<llvm::BasicBlock *> pile_block;
 };
 
 /* ************************************************************************** */
@@ -82,7 +101,7 @@ public:
 	/**
 	 * Génère le code pour LLVM.
 	 */
-	virtual void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) = 0;
+	virtual void genere_code_llvm(ContexteGenerationCode &contexte) = 0;
 };
 
 /* ************************************************************************** */
@@ -93,7 +112,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -104,7 +123,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -121,7 +140,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -132,7 +151,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -143,7 +162,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -154,7 +173,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -165,7 +184,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -176,7 +195,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -187,7 +206,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -198,5 +217,5 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
+	void genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
