@@ -97,6 +97,8 @@ int main(int argc, char *argv[])
 
 	module->dump();
 #else
+	std::ios::sync_with_stdio(false);
+
 	if (argc != 2) {
 		std::cerr << "Utilisation : " << argv[0] << " FICHIER\n";
 		return 1;
