@@ -77,6 +77,7 @@ bool test_decoupage_texte1()
 	const char *texte =
 R"(# Ceci est un commentaire
 soit str='a';
+soit str0='\0';
 associe nombre {
 	0...1_000: imprime(1000);
 	11_000...2_0000: imprime(20000);
@@ -90,6 +91,11 @@ decoupeuse_texte decoupeuse(str, str + len);
 		{ "str", ID_CHAINE_CARACTERE },
 		{ "=", ID_EGAL },
 		{ "a", ID_CARACTERE },
+		{ ";", ID_POINT_VIRGULE },
+		{ "soit", ID_SOIT },
+		{ "str0", ID_CHAINE_CARACTERE },
+		{ "=", ID_EGAL },
+		{ "\\0", ID_CARACTERE },
 		{ ";", ID_POINT_VIRGULE },
 		{ "associe", ID_ASSOCIE },
 		{ "nombre", ID_CHAINE_CARACTERE },

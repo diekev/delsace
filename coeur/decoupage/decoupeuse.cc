@@ -243,6 +243,12 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			this->avance();
 
 			m_pos_mot = m_position_ligne;
+
+			if (this->caractere_courant() == '\\') {
+				mot_courant.push_back(this->caractere_courant());
+				this->avance();
+			}
+
 			mot_courant.push_back(this->caractere_courant());
 			this->avance();
 
