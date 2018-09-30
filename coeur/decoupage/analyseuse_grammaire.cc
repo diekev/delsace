@@ -190,6 +190,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		avance();
 
 		if (!est_identifiant_type(identifiant_courant())) {
+			avance();
 			lance_erreur("Attendu la déclaration du type de retour de la fonction après ':'");
 		}
 
