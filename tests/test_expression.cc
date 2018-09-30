@@ -28,6 +28,7 @@
 
 #include "analyseuse_grammaire.h"
 #include "decoupeuse.h"
+#include "erreur.h"
 
 void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
@@ -54,6 +55,7 @@ R"(fonction foo()
 	soit x = a ^ b;
 	soit x = !a;
 	soit x = ~a;
+	soit x = @a;
 	soit x = a;
 }
 )";
@@ -68,6 +70,10 @@ R"(fonction foo()
 	try {
 		auto analyseuse = analyseuse_grammaire(tampon);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
+	}
+	catch (const erreur::frappe &e) {
+		std::cerr << e.message() << '\n';
+		erreur_lancee = true;
 	}
 	catch (...) {
 		erreur_lancee = true;

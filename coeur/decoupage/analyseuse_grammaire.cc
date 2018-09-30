@@ -71,6 +71,7 @@ static bool est_nombre(int identifiant)
 static bool est_operateur_simple(int identifiant)
 {
 	switch (identifiant) {
+		case ID_AROBASE:
 		case ID_EXCLAMATION:
 		case ID_TILDE:
 			return true;
@@ -407,6 +408,10 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			}
 
 			--paren;
+		}
+		else {
+			avance();
+			lance_erreur("Identifiant inattendu dans l'expression");
 		}
 
 		avance();
