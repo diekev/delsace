@@ -34,6 +34,11 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	const char *texte =
 			R"(
+			fonction ne_retourne_rien() : rien
+			{
+				retourne;
+			}
+
 			fonction ajouter(a : e32, b : e32) : e32
 			{
 				retourne a + b;

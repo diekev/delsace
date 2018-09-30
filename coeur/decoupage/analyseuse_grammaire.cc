@@ -277,7 +277,15 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	else if (est_identifiant(ID_RETOURNE)) {
 		avance();
 		m_assembleuse.ajoute_noeud(NOEUD_RETOUR, "", ID_RETOURNE);
-		analyse_expression_droite(ID_POINT_VIRGULE);
+
+		/* Considération du cas où l'on ne retourne rien 'retourne;'. */
+		if (!est_identifiant(ID_POINT_VIRGULE)) {
+			analyse_expression_droite(ID_POINT_VIRGULE);
+		}
+		else {
+			avance();
+		}
+
 		m_assembleuse.sors_noeud(NOEUD_RETOUR);
 	}
 	/* controle de flux : si */
