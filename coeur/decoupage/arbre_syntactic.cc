@@ -237,7 +237,6 @@ void NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte
 		noeud->genere_code_llvm(contexte);
 	}
 
-	constructeur.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0, false));
 	contexte.jete_block();
 }
 
@@ -383,5 +382,11 @@ void NoeudRetour::imprime_code(std::ostream &os, int tab)
 
 void NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 {
+	llvm::Value *valeur = nullptr;
 
+	if (m_enfants.size() > 0) {
+		valeur = llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0, false);
+	}
+
+	llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.block_courant());
 }
