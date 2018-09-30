@@ -1,0 +1,119 @@
+# Programme
+-----------
+
+Un programme Kuri peut-être consitutué de plusieurs fichiers, s'incluant les uns les autres. Toutefois, tous les fichiers doivent être encodé en UTF-8.
+
+La résolution des chemins de fichiers et des fichiers à inclure pour compiler un programme Kuri se fait par le compileur quand celui-ci est invoqué.
+
+# Fonction
+----------
+
+La fonction est la composante principale d'un programme Kuri. Aucune logique ne peut se faire en dehors d'une fonction.
+
+# Expression
+------------
+
+Une expression est un ensemble de mot et symboles retournant une valeur.
+
+Par exemple 2 + 3 retourne la valeur 5, mais a = 2 n'est pas une expression car elle ne retourne aucune valeur.
+
+Expression arithmétique :
+une expression arithmétique est une expression qui retourne un nombre. Par exemple : 6 + 7.
+
+Expression booléenne :
+une expression booléenne est une expression qui retourne soit vrai, soit faux. Par exemple : 6 < 7.
+
+Expression structurante :
+une expression structurante est une expression que retourne une structure de données via une fonction : soit arbre = crée_arbre();
+
+# Variables
+-----------
+
+Une variable est un stockage temporaire d'une valeur.
+
+# Controle de flux
+------------------
+
+On peut contrôler le flux du programme via des contrôles selon des expressions booléennes.
+
+si vrai {
+    # exécute ce code
+}
+sinon {
+    # sinon exécute ce code
+}
+
+associe [expr] {
+    [expr] : { ... };
+    sinon : { ... };
+}
+
+# Boucle
+--------
+
+Les boucles sont utiles pour répéter un processus plusieurs fois.
+
+Il existe deux manières de faire des boucles en Kuri :
+
+-- pour (decl) dans (expr) { }
+-- boucle [expr] {}
+
+Si une boucle est terminé par un appel à arrête, et qu'elle est suivie du controle sinon, le code à l'intérieur du block sinon sera exécuté.
+
+boucle {
+    si x < 10 {
+        arrête;
+    }
+}
+sinon {
+    # Ce code sera exécuté si x est inférieur à 10
+}
+
+pour x dans 0...9 {
+    si x*x > 10 {
+        arrête;
+    }
+}
+sinon {
+    # Ce code sera exécuté quand le carré de x sera supérieur à 10
+}
+
+# Constantes
+------------
+
+Les constantes sont des valeurs que personnes ne peut modifier dans le programmes et qui doivent être déclarées à la racine des fichiers.
+
+Les constantes peuvent par exemple être des constantes mathématiques comme PI, ou tout autre valeur constante dans votre programme.
+
+soit constante PI : r64 = 3.14159;
+soit constante SERVEUR : *c8 = "serveur.fr";
+
+Comme tout autre déclaration, une constante ne peut être utilisée qu'après avoir été déclarée, donc on ne peut appelé une constante qu'après avoir inclus son fichier dans le nôtre.
+
+# Énumérations
+--------------
+
+Une énumération est un ensemble de valeur constante nommée.
+
+énum {
+    LUMIÈRE_DISTANTE = 0,
+    LUMIÈRE_POINT    = 1,
+    LUMIÈRE_AIRE     = 2,
+    LUMIÈRE_SPOT     = 3,
+}
+
+# Structures
+------------
+
+Une structure est un ensemble de données logiquement apparenté. Une structure peut servir pour représenter un objet réel, ou en ensemble de paramètres d'une fonction.
+
+structure Vecteur3D {
+    x : r64;
+    y : r64;
+    z : r64;
+}
+
+structure Paramètres {
+    inverse : bool;
+    nombre : e32;
+}
