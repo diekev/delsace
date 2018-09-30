@@ -48,6 +48,7 @@ static bool est_identifiant_type(int identifiant)
 		case ID_R32:
 		case ID_R64:
 		case ID_BOOL:
+		case ID_RIEN:
 			return true;
 		default:
 			return false;
