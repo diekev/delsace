@@ -23,6 +23,8 @@
  */
 
 #include <cstring>
+#include <experimental/filesystem>
+#include <fstream>
 #include <iostream>
 
 #include "decoupage/analyseuse_grammaire.h"
@@ -32,13 +34,35 @@
 
 #include <chronometrage/chronometre_de_portee.h>
 
+static std::string charge_fichier(const char *chemin_fichier)
+{
+	std::ifstream fichier;
+	fichier.open(chemin_fichier);
+
+	if (!fichier) {
+		return "";
+	}
+
+	std::string texte;
+	std::string tampon;
+
+	while (std::getline(fichier, tampon)) {
+		/* restore le caractère de fin de ligne */
+		tampon.append(1, '\n');
+
+		texte += tampon;
+	}
+
+	return texte;
+}
+
 #if 0
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
 #endif
 
-int main()
+int main(int argc, char *argv[])
 {
 #if 0
 	auto context = llvm::LLVMContext();
@@ -67,39 +91,29 @@ int main()
 
 	module->dump();
 #else
-//	const char *str = ".3 boucle 0...20 { imprime(index != modèle de voiture); }";
+	if (argc != 2) {
+		std::cerr << "Utilisation : " << argv[0] << " FICHIER\n";
+		return 1;
+	}
 
-	const char *str =
-R"(soit constante PI = 3.14159;
+	const auto chemin_fichier = argv[1];
 
-énum {
-	LUMIÈRE_DISTANTE = 0,
-	LUMIÈRE_POINT,
-}
+	if (!std::experimental::filesystem::exists(chemin_fichier)) {
+		std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
+		return 1;
+	}
 
-structure Vecteur {
-	x : r32;
-	y : r32;
-	z : r32;
-}
+	auto temps_chargement = 0.0;
+	auto temps_tampon     = 0.0;
+	auto temps_decoupage  = 0.0;
+	auto temps_analyse    = 0.0;
 
-fonction ajouter(a : e8, b : e8) : e8
-{
-	retourne a + b;
-}
-
-fonction principale()
-{
-	retourne ajouter(5, (3 + pow(8 + 3)));
-}
-)";
-
-	auto temps_tampon    = 0.0;
-	auto temps_decoupage = 0.0;
-	auto temps_analyse   = 0.0;
+	auto debut_chargement = numero7::chronometrage::maintenant();
+	auto texte = charge_fichier(chemin_fichier);
+	temps_chargement = numero7::chronometrage::maintenant() - debut_chargement;
 
 	const auto debut_tampon = numero7::chronometrage::maintenant();
-	auto tampon = TamponSource(str);
+	auto tampon = TamponSource(texte);
 	temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
 
 	try {
@@ -126,7 +140,10 @@ fonction principale()
 		std::cerr << erreur_frappe.message() << '\n';
 	}
 
-	const auto temps_total = (temps_tampon + temps_decoupage + temps_analyse);
+	const auto temps_total = temps_tampon
+							 + temps_decoupage
+							 + temps_analyse
+							 + temps_chargement;
 
 	auto pourcentage = [&](const double &x)
 	{
@@ -137,8 +154,9 @@ fonction principale()
 
 	os << "Nombre de lignes : " << tampon.nombre_lignes() << '\n';
 	os << "Temps scène : " << temps_total << '\n';
-	os << '\t' << "Temps tampon    : " << temps_tampon << " (" << pourcentage(temps_tampon) << "%)\n";
-	os << '\t' << "Temps découpage : " << temps_decoupage << " (" << pourcentage(temps_decoupage) << "%)\n";
-	os << '\t' << "Temps analyse   : " << temps_analyse << " (" << pourcentage(temps_analyse) << "%)\n";
+	os << '\t' << "Temps chargement : " << temps_chargement << " (" << pourcentage(temps_chargement) << "%)\n";
+	os << '\t' << "Temps tampon     : " << temps_tampon << " (" << pourcentage(temps_tampon) << "%)\n";
+	os << '\t' << "Temps découpage  : " << temps_decoupage << " (" << pourcentage(temps_decoupage) << "%)\n";
+	os << '\t' << "Temps analyse    : " << temps_analyse << " (" << pourcentage(temps_analyse) << "%)\n";
 #endif
 }

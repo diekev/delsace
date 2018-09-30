@@ -29,6 +29,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	decoupage
 	${LLVM_LIBRARY}
+	stdc++fs
 )
 
 add_executable(kuri
