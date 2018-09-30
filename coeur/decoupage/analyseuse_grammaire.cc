@@ -255,6 +255,17 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 		auto nom = m_identifiants[position()].chaine;
 
+		if (est_identifiant(ID_DOUBLE_POINTS)) {
+			avance();
+
+			if (!est_identifiant_type(this->identifiant_courant())) {
+				avance();
+				lance_erreur("Attendu la déclaration d'un type après ':'");
+			}
+
+			avance();
+		}
+
 		if (!requiers_identifiant(ID_EGAL)) {
 			lance_erreur("Attendu '=' après chaîne de caractère");
 		}
