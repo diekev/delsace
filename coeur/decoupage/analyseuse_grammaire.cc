@@ -53,6 +53,77 @@ static bool est_identifiant_type(int identifiant)
 	}
 }
 
+static bool est_nombre(int identifiant)
+{
+	switch (identifiant) {
+		case ID_NOMBRE_BINAIRE:
+		case ID_NOMBRE_ENTIER:
+		case ID_NOMBRE_HEXADECIMAL:
+		case ID_NOMBRE_OCTAL:
+		case ID_NOMBRE_REEL:
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool est_operateur(int identifiant)
+{
+	switch (identifiant) {
+		case ID_PLUS:
+		case ID_MOINS:
+		case ID_FOIS:
+		case ID_DIVISE:
+		case ID_ESPERLUETTE:
+		case ID_EXCLAMATION:
+		case ID_POURCENT:
+		case ID_INFERIEUR:
+		case ID_SUPERIEUR:
+		case ID_DIFFERENCE:
+		case ID_ESP_ESP:
+		case ID_EGALITE:
+		case ID_BARRE:
+		case ID_CHAPEAU:
+		case ID_TILDE:
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool est_operateur_simple(int identifiant)
+{
+	switch (identifiant) {
+		case ID_EXCLAMATION:
+		case ID_TILDE:
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool est_operateur_double(int identifiant)
+{
+	switch (identifiant) {
+		case ID_PLUS:
+		case ID_MOINS:
+		case ID_FOIS:
+		case ID_DIVISE:
+		case ID_ESPERLUETTE:
+		case ID_POURCENT:
+		case ID_INFERIEUR:
+		case ID_SUPERIEUR:
+		case ID_DIFFERENCE:
+		case ID_ESP_ESP:
+		case ID_EGALITE:
+		case ID_BARRE:
+		case ID_CHAPEAU:
+			return true;
+		default:
+			return false;
+	}
+}
+
 /* ************************************************************************** */
 
 analyseuse_grammaire::analyseuse_grammaire(const TamponSource &tampon)
@@ -68,7 +139,7 @@ void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &ide
 		return;
 	}
 
-	m_assembleuse.ajoute_noeud(NOEUD_RACINE, "racine");
+	m_assembleuse.ajoute_noeud(NOEUD_RACINE, "racine", -1);
 
 	analyse_corps();
 
@@ -111,7 +182,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	// crée noeud fonction
 	const auto nom_fonction = m_identifiants[position()].chaine;
-	m_assembleuse.ajoute_noeud(NOEUD_DECLARATION_FONCTION, nom_fonction);
+	m_assembleuse.ajoute_noeud(NOEUD_DECLARATION_FONCTION, nom_fonction, ID_FONCTION);
 
 	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
@@ -200,7 +271,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	/* retour : retourne a + b; */
 	else if (est_identifiant(ID_RETOURNE)) {
 		avance();
-		m_assembleuse.ajoute_noeud(NOEUD_RETOUR, "");
+		m_assembleuse.ajoute_noeud(NOEUD_RETOUR, "", ID_RETOURNE);
 		analyse_expression_droite(ID_POINT_VIRGULE);
 		m_assembleuse.sors_noeud(NOEUD_RETOUR);
 	}
@@ -247,44 +318,6 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	analyse_corps_fonction();
 }
 
-static bool est_nombre(int identifiant)
-{
-	switch (identifiant) {
-		case ID_NOMBRE_BINAIRE:
-		case ID_NOMBRE_ENTIER:
-		case ID_NOMBRE_HEXADECIMAL:
-		case ID_NOMBRE_OCTAL:
-		case ID_NOMBRE_REEL:
-			return true;
-		default:
-			return false;
-	}
-}
-
-static bool est_operateur(int identifiant)
-{
-	switch (identifiant) {
-		case ID_PLUS:
-		case ID_MOINS:
-		case ID_FOIS:
-		case ID_DIVISE:
-		case ID_ESPERLUETTE:
-		case ID_EXCLAMATION:
-		case ID_POURCENT:
-		case ID_INFERIEUR:
-		case ID_SUPERIEUR:
-		case ID_DIFFERENCE:
-		case ID_ESP_ESP:
-		case ID_EGALITE:
-		case ID_BARRE:
-		case ID_CHAPEAU:
-		case ID_TILDE:
-			return true;
-		default:
-			return false;
-	}
-}
-
 struct Symbole {
 	int identifiant;
 	std::string chaine;
@@ -294,7 +327,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
-	std::vector<Symbole> expression;
+	std::vector<Noeud *> expression;
 	std::stack<Symbole> pile;
 
 	Symbole symbole;
@@ -313,8 +346,13 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			avance();
 			avance();
 
+			auto noeud = m_assembleuse.ajoute_noeud(NOEUD_APPEL_FONCTION, symbole.chaine, symbole.identifiant, false);
+
 			analyse_appel_fonction();
-			expression.push_back(symbole);
+
+			m_assembleuse.sors_noeud(NOEUD_APPEL_FONCTION);
+
+			expression.push_back(noeud);
 		}
 		/* accès propriété : chaine + de + chaine */
 		else if (sont_3_identifiants(ID_CHAINE_CARACTERE, ID_DE, ID_CHAINE_CARACTERE)) {
@@ -323,17 +361,24 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		}
 		/* variable : chaine */
 		else if (est_identifiant(ID_CHAINE_CARACTERE)) {
-			expression.push_back(symbole);
+			auto noeud = m_assembleuse.cree_noeud(NOEUD_VARIABLE, symbole.chaine, symbole.identifiant);
+			expression.push_back(noeud);
+		}
+		else if (identifiant_courant() == ID_NOMBRE_REEL) {
+			auto noeud = m_assembleuse.cree_noeud(NOEUD_NOMBRE_REEL, symbole.chaine, symbole.identifiant);
+			expression.push_back(noeud);
 		}
 		else if (est_nombre(identifiant_courant())) {
-			expression.push_back(symbole);
+			auto noeud = m_assembleuse.cree_noeud(NOEUD_NOMBRE_ENTIER, symbole.chaine, symbole.identifiant);
+			expression.push_back(noeud);
 		}
 		else if (est_operateur(identifiant_courant())) {
 			while (!pile.empty()
 				   && est_operateur(pile.top().identifiant)
 				   && (precedence_faible(symbole.identifiant, pile.top().identifiant)))
 			{
-				expression.push_back(pile.top());
+				auto noeud = m_assembleuse.cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+				expression.push_back(noeud);
 				pile.pop();
 			}
 
@@ -358,7 +403,8 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			}
 
 			while (pile.top().identifiant != ID_PARENTHESE_OUVRANTE) {
-				expression.push_back(pile.top());
+				auto noeud = m_assembleuse.cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+				expression.push_back(noeud);
 				pile.pop();
 			}
 
@@ -378,7 +424,8 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		expression.push_back(pile.top());
+		auto noeud = m_assembleuse.cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+		expression.push_back(noeud);
 		pile.pop();
 	}
 
@@ -389,6 +436,40 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 	}
 	std::cerr << '\n';
 #endif
+
+	std::stack<Noeud *> pile_noeud;
+
+	for (Noeud *noeud : expression) {
+		if (est_operateur_double(noeud->identifiant)) {
+			auto n1 = pile_noeud.top();
+			pile_noeud.pop();
+
+			auto n2 = pile_noeud.top();
+			pile_noeud.pop();
+
+			noeud->ajoute_noeud(n1);
+			noeud->ajoute_noeud(n2);
+
+			pile_noeud.push(noeud);
+		}
+		else if (est_operateur_simple(noeud->identifiant)) {
+			auto n1 = pile_noeud.top();
+			pile_noeud.pop();
+
+			noeud->ajoute_noeud(n1);
+
+			pile_noeud.push(noeud);
+		}
+		else {
+			pile_noeud.push(noeud);
+		}
+	}
+
+	if (pile_noeud.size() != 1) {
+		std::cerr << "Il reste plus d'un noeud dans la pile !\n";
+	}
+
+	m_assembleuse.ajoute_noeud(pile_noeud.top());
 
 	/* saute l'identifiant final */
 	avance();

@@ -34,17 +34,26 @@ class assembleuse_arbre {
 	std::stack<Noeud *> m_noeuds;
 
 public:
+	~assembleuse_arbre();
+
 	/**
 	 * Ajoute un noeud au noeud courant et utilise ce noeud comme noeud courant.
 	 * Tous les noeuds ajouter par après seront des enfants de celui-ci.
+	 *
+	 * Retourne un pointeur vers le noeud ajouter.
 	 */
-	void ajoute_noeud(int type, const std::string &chaine);
+	Noeud *ajoute_noeud(int type, const std::string &chaine, int id, bool ajoute = true);
+
+	/**
+	 * Ajoute le noeud spécifié au noeud courant.
+	 */
+	void ajoute_noeud(Noeud *noeud);
 
 	/**
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	Noeud *cree_noeud(int type, const std::string &chaine);
+	Noeud *cree_noeud(int type, const std::string &chaine, int id);
 
 	/**
 	 * Sors du noeud courant en vérifiant que le type du noeud courant est bel

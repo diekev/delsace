@@ -26,40 +26,55 @@
 
 #include "arbre_syntactic.h"
 
-void assembleuse_arbre::ajoute_noeud(int type, const std::string &chaine)
+assembleuse_arbre::~assembleuse_arbre()
 {
-	auto noeud = cree_noeud(type, chaine);
+	while (!m_noeuds.empty()) {
+		delete m_noeuds.top();
+		m_noeuds.pop();
+	}
+}
 
-	if (!m_noeuds.empty()) {
+Noeud *assembleuse_arbre::ajoute_noeud(int type, const std::string &chaine, int id, bool ajoute)
+{
+	auto noeud = cree_noeud(type, chaine, id);
+
+	if (!m_noeuds.empty() && ajoute) {
 		m_noeuds.top()->ajoute_noeud(noeud);
 	}
 
 	m_noeuds.push(noeud);
+
+	return noeud;
 }
 
-Noeud *assembleuse_arbre::cree_noeud(int type, const std::string &chaine)
+void assembleuse_arbre::ajoute_noeud(Noeud *noeud)
+{
+	m_noeuds.top()->ajoute_noeud(noeud);
+}
+
+Noeud *assembleuse_arbre::cree_noeud(int type, const std::string &chaine, int id)
 {
 	switch (type) {
 		case NOEUD_RACINE:
-			return new NoeudRacine(chaine);
+			return new NoeudRacine(chaine, id);
 		case NOEUD_APPEL_FONCTION:
-			return new NoeudAppelFonction(chaine);
+			return new NoeudAppelFonction(chaine, id);
 		case NOEUD_DECLARATION_FONCTION:
-			return new NoeudDeclarationFonction(chaine);
+			return new NoeudDeclarationFonction(chaine, id);
 		case NOEUD_EXPRESSION:
-			return new NoeudExpression(chaine);
+			return new NoeudExpression(chaine, id);
 		case NOEUD_ASSIGNATION_VARIABLE:
-			return new NoeudAssignationVariable(chaine);
+			return new NoeudAssignationVariable(chaine, id);
 		case NOEUD_VARIABLE:
-			return new NoeudVariable(chaine);
+			return new NoeudVariable(chaine, id);
 		case NOEUD_NOMBRE_ENTIER:
-			return new NoeudNombreEntier(chaine);
+			return new NoeudNombreEntier(chaine, id);
 		case NOEUD_NOMBRE_REEL:
-			return new NoeudNombreReel(chaine);
+			return new NoeudNombreReel(chaine, id);
 		case NOEUD_OPERATION:
-			return new NoeudOperation(chaine);
+			return new NoeudOperation(chaine, id);
 		case NOEUD_RETOUR:
-			return new NoeudRetour(chaine);
+			return new NoeudRetour(chaine, id);
 	}
 
 	return nullptr;
@@ -72,5 +87,5 @@ void assembleuse_arbre::sors_noeud(int type)
 
 void assembleuse_arbre::imprime_code(std::ostream &os)
 {
-	m_noeuds.top()->imprime_code(os);
+	m_noeuds.top()->imprime_code(os, 0);
 }
