@@ -55,18 +55,22 @@ static bool est_identifiant_type(int identifiant)
 	}
 }
 
-static bool est_nombre(int identifiant)
+static bool est_nombre_entier(int identifiant)
 {
 	switch (identifiant) {
 		case ID_NOMBRE_BINAIRE:
 		case ID_NOMBRE_ENTIER:
 		case ID_NOMBRE_HEXADECIMAL:
 		case ID_NOMBRE_OCTAL:
-		case ID_NOMBRE_REEL:
 			return true;
 		default:
 			return false;
 	}
+}
+
+static bool est_nombre(int identifiant)
+{
+	return est_nombre_entier(identifiant) || (identifiant == ID_NOMBRE_REEL);
 }
 
 static bool est_operateur_simple(int identifiant)
@@ -380,7 +384,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			auto noeud = m_assembleuse.cree_noeud(NOEUD_NOMBRE_REEL, symbole.chaine, symbole.identifiant);
 			expression.push_back(noeud);
 		}
-		else if (est_nombre(identifiant_courant())) {
+		else if (est_nombre_entier(identifiant_courant())) {
 			auto noeud = m_assembleuse.cree_noeud(NOEUD_NOMBRE_ENTIER, symbole.chaine, symbole.identifiant);
 			expression.push_back(noeud);
 		}
@@ -614,9 +618,12 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			avance();
 
 			// À FAIRE : analyse_expression_droite(ID_VIRGULE);
-			if (!requiers_identifiant(ID_NOMBRE_ENTIER)) {
+			if (!est_nombre_entier(this->identifiant_courant())) {
+				avance();
 				lance_erreur("Attendu un nombre entier après '='");
 			}
+
+			avance();
 		}
 
 		if (!requiers_identifiant(ID_VIRGULE)) {
