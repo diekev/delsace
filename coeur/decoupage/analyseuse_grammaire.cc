@@ -33,6 +33,13 @@
 #undef DEBOGUE_EXPRESSION
 #undef DEBOGUE_ARBRE
 
+/* À FAIRE :
+ * - transtype<>()
+ * - gabarit
+ * - accès tableau [expr]
+ * - spécification type *, []
+ */
+
 static bool est_identifiant_type(int identifiant)
 {
 	switch (identifiant) {
