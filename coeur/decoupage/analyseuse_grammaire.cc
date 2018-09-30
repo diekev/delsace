@@ -251,11 +251,15 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			lance_erreur("Attendu une chaîne de caractère après 'soit'");
 		}
 
+		auto nom = m_identifiants[position()].chaine;
+
 		if (!requiers_identifiant(ID_EGAL)) {
 			lance_erreur("Attendu '=' après chaîne de caractère");
 		}
 
+		m_assembleuse.ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, nom, ID_CHAINE_CARACTERE);
 		analyse_expression_droite(ID_POINT_VIRGULE);
+		m_assembleuse.sors_noeud(NOEUD_ASSIGNATION_VARIABLE);
 	}
 	/* retour : retourne a + b; */
 	else if (est_identifiant(ID_RETOURNE)) {

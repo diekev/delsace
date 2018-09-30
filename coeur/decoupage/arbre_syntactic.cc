@@ -128,6 +128,10 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 	imprime_tab(os, tab);
 
 	os << "NoeudAssignationVariable : " << m_chaine << '\n';
+
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
 }
 
 /* ************************************************************************** */
