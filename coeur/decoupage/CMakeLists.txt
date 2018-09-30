@@ -28,7 +28,6 @@ set(SOURCES
 	analyseuse_grammaire.h
 	arbre_syntactic.h
 	assembleuse_arbre.h
-    arbre.h
     decoupeuse.h
 	erreur.h
 	expression.h
