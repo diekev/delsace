@@ -43,7 +43,13 @@ static std::string charge_fichier(const char *chemin_fichier)
 		return "";
 	}
 
+	fichier.seekg(0, fichier.end);
+	const auto taille_fichier = fichier.tellg();
+	fichier.seekg(0, fichier.beg);
+
 	std::string texte;
+	texte.reserve(taille_fichier);
+
 	std::string tampon;
 
 	while (std::getline(fichier, tampon)) {
