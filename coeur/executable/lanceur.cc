@@ -117,19 +117,12 @@ int main(int argc, char *argv[])
 	temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
 
 	try {
-		decoupeuse_texte decoupeuse(tampon);
+		auto decoupeuse = decoupeuse_texte(tampon);
 
 		const auto debut_decoupeuse = numero7::chronometrage::maintenant();
 		decoupeuse.genere_morceaux();
 		temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupeuse;
 
-#if 0
-		for (auto &morceaux : decoupeuse) {
-			std::cout << "{ \"" << morceaux.chaine << "\", " << chaine_identifiant(morceaux.identifiant) << " },\n";
-		}
-#endif
-
-		//assembleuse_arbre assembleuse;
 		auto analyseuse = analyseuse_grammaire(tampon);
 
 		const auto debut_analyseuse = numero7::chronometrage::maintenant();
@@ -154,9 +147,13 @@ int main(int argc, char *argv[])
 
 	os << "Nombre de lignes : " << tampon.nombre_lignes() << '\n';
 	os << "Temps scène : " << temps_total << '\n';
-	os << '\t' << "Temps chargement : " << temps_chargement << " (" << pourcentage(temps_chargement) << "%)\n";
-	os << '\t' << "Temps tampon     : " << temps_tampon << " (" << pourcentage(temps_tampon) << "%)\n";
-	os << '\t' << "Temps découpage  : " << temps_decoupage << " (" << pourcentage(temps_decoupage) << "%)\n";
-	os << '\t' << "Temps analyse    : " << temps_analyse << " (" << pourcentage(temps_analyse) << "%)\n";
+	os << '\t' << "Temps chargement : " << temps_chargement
+	   << " (" << pourcentage(temps_chargement) << "%)\n";
+	os << '\t' << "Temps tampon     : " << temps_tampon
+	   << " (" << pourcentage(temps_tampon) << "%)\n";
+	os << '\t' << "Temps découpage  : " << temps_decoupage
+	   << " (" << pourcentage(temps_decoupage) << "%)\n";
+	os << '\t' << "Temps analyse    : " << temps_analyse
+	   << " (" << pourcentage(temps_analyse) << "%)\n";
 #endif
 }
