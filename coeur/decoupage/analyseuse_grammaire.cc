@@ -439,10 +439,10 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 
 	for (Noeud *noeud : expression) {
 		if (est_operateur_double(noeud->identifiant)) {
-			auto n1 = pile_noeud.top();
+			auto n2 = pile_noeud.top();
 			pile_noeud.pop();
 
-			auto n2 = pile_noeud.top();
+			auto n1 = pile_noeud.top();
 			pile_noeud.pop();
 
 			noeud->ajoute_noeud(n1);
