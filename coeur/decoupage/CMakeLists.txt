@@ -21,6 +21,11 @@
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${LLVM_INCLUDE_DIR}
+)
+
+set(BIBLIOTHEQUES
+	${LLVM_LIBRARY}
 )
 
 set(SOURCES
@@ -51,4 +56,7 @@ set(SOURCES
 )
 
 add_library(decoupage STATIC "${SOURCES}")
+
 target_include_directories(decoupage PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(decoupage "${BIBLIOTHEQUES}")

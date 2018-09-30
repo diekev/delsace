@@ -62,41 +62,8 @@ static std::string charge_fichier(const char *chemin_fichier)
 	return texte;
 }
 
-#if 0
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/IRBuilder.h>
-#endif
-
 int main(int argc, char *argv[])
 {
-#if 0
-	auto context = llvm::LLVMContext();
-	auto module = new llvm::Module("top", context);
-
-	auto constructeur = llvm::IRBuilder<>(context);
-
-	std::vector<llvm::Type *> putsArgs;
-	putsArgs.push_back(constructeur.getInt8Ty()->getPointerTo());
-	llvm::ArrayRef<llvm::Type*>  argsRef(putsArgs);
-
-	auto *putsType =
-	  llvm::FunctionType::get(constructeur.getInt32Ty(), argsRef, false);
-	llvm::Constant *putsFunc = module->getOrInsertFunction("puts", putsType);
-
-	auto type_fonction = llvm::FunctionType::get(constructeur.getInt32Ty(), false);
-	auto fonction_main = llvm::Function::Create(type_fonction, llvm::Function::ExternalLinkage, "main", module);
-
-	auto entree = llvm::BasicBlock::Create(context, "entrypoint", fonction_main);
-	constructeur.SetInsertPoint(entree);
-
-	auto valeur = constructeur.CreateGlobalStringPtr("hello world!\n");
-
-	constructeur.CreateCall(putsFunc, valeur);
-	constructeur.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0, false));
-
-	module->dump();
-#else
 	std::ios::sync_with_stdio(false);
 
 	if (argc != 2) {
@@ -163,5 +130,4 @@ int main(int argc, char *argv[])
 	   << " (" << pourcentage(temps_decoupage) << "%)\n";
 	os << '\t' << "Temps analyse    : " << temps_analyse
 	   << " (" << pourcentage(temps_analyse) << "%)\n";
-#endif
 }

@@ -146,6 +146,8 @@ void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &ide
 #ifdef DEBOGUE_ARBRE
 	m_assembleuse.imprime_code(std::cerr);
 #endif
+
+	m_assembleuse.genere_code_llvm();
 }
 
 void analyseuse_grammaire::analyse_corps()

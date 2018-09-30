@@ -70,4 +70,9 @@ public:
 	 * Cette fonction est là pour le débogage.
 	 */
 	void imprime_code(std::ostream &os);
+
+	/**
+	 * Traverse l'arbre et génère le code LLVM.
+	 */
+	void genere_code_llvm();
 };

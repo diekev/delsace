@@ -24,6 +24,8 @@
 
 #include "assembleuse_arbre.h"
 
+#include <llvm/IR/Module.h>
+
 #include "arbre_syntactic.h"
 
 assembleuse_arbre::~assembleuse_arbre()
@@ -103,4 +105,15 @@ void assembleuse_arbre::sors_noeud(int type)
 void assembleuse_arbre::imprime_code(std::ostream &os)
 {
 	m_pile.top()->imprime_code(os, 0);
+}
+
+void assembleuse_arbre::genere_code_llvm()
+{
+	auto contexte = llvm::LLVMContext();
+	auto module = new llvm::Module("top", contexte);
+
+	m_pile.top()->genere_code_llvm(contexte, module);
+
+	module->dump();
+	delete module;
 }

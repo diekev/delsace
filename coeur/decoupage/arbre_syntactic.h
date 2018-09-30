@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include <llvm/IR/LLVMContext.h>
+
 enum {
 	NOEUD_RACINE,
 	NOEUD_DECLARATION_FONCTION,
@@ -69,6 +71,11 @@ public:
 	 * le bon ordre.
 	 */
 	virtual void imprime_code(std::ostream &os, int tab) = 0;
+
+	/**
+	 * Génère le code pour LLVM.
+	 */
+	virtual void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) = 0;
 };
 
 /* ************************************************************************** */
@@ -78,6 +85,8 @@ public:
 	NoeudRacine(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -87,6 +96,8 @@ public:
 	NoeudAppelFonction(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -96,6 +107,8 @@ public:
 	NoeudDeclarationFonction(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -105,6 +118,8 @@ public:
 	NoeudExpression(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -114,6 +129,8 @@ public:
 	NoeudAssignationVariable(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -123,6 +140,8 @@ public:
 	NoeudNombreEntier(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -132,6 +151,8 @@ public:
 	NoeudNombreReel(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -141,6 +162,8 @@ public:
 	NoeudVariable(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -150,6 +173,8 @@ public:
 	NoeudOperation(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
 
 /* ************************************************************************** */
@@ -159,4 +184,6 @@ public:
 	NoeudRetour(const std::string &chaine, int id);
 
 	void imprime_code(std::ostream &os, int tab) override;
+
+	void genere_code_llvm(llvm::LLVMContext &contexte, llvm::Module *module) override;
 };
