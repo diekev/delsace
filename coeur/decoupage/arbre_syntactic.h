@@ -45,6 +45,13 @@ enum {
 
 /* ************************************************************************** */
 
+struct ArgumentFonction {
+	std::string chaine;
+	int id_type;
+};
+
+/* ************************************************************************** */
+
 /**
  * Classe de base représentant un noeud dans l'arbre.
  */
@@ -103,8 +110,14 @@ public:
 /* ************************************************************************** */
 
 class NoeudDeclarationFonction final : public Noeud {
+	std::vector<ArgumentFonction> m_arguments;
+
 public:
+	int type_retour = 0;
+
 	NoeudDeclarationFonction(const std::string &chaine, int id);
+
+	void ajoute_argument(const ArgumentFonction &argument);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

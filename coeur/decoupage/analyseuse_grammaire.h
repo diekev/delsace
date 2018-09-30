@@ -28,6 +28,8 @@
 
 #include "assembleuse_arbre.h"
 
+class NoeudDeclarationFonction;
+
 class analyseuse_grammaire : public Analyseuse {
 	assembleuse_arbre *m_assembleuse = nullptr;
 
@@ -39,7 +41,7 @@ public:
 private:
 	void analyse_corps();
 	void analyse_declaration_fonction();
-	void analyse_parametres_fonction();
+	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud);
 	void analyse_corps_fonction();
 	void analyse_expression_droite(int identifiant_final);
 	void analyse_appel_fonction();

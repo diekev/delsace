@@ -185,14 +185,14 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	// crée noeud fonction
 	const auto nom_fonction = m_identifiants[position()].chaine;
-	m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, nom_fonction, ID_FONCTION);
+	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, nom_fonction, ID_FONCTION);
+	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
 
 	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
 	}
 
-	// À FAIRE : ajout des paramètres noeud->ajoute_parametre(nom, type);
-	analyse_parametres_fonction();
+	analyse_parametres_fonction(noeud_declaration);
 
 	if (!requiers_identifiant(ID_PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
@@ -208,6 +208,8 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		}
 
 		avance();
+
+		noeud_declaration->type_retour = m_identifiants[position()].identifiant;
 	}
 
 	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
@@ -223,16 +225,20 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	m_assembleuse->sors_noeud(NOEUD_DECLARATION_FONCTION);
 }
 
-void analyseuse_grammaire::analyse_parametres_fonction()
+void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud)
 {
 	if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
 		/* La liste est vide. */
 		return;
 	}
 
+	ArgumentFonction arg;
+
 	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu le nom de la variable");
 	}
+
+	arg.chaine = m_identifiants[position()].chaine;
 
 	if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
 		lance_erreur("Attendu un double point après la déclaration de la variable");
@@ -245,13 +251,17 @@ void analyseuse_grammaire::analyse_parametres_fonction()
 
 	avance();
 
+	arg.id_type = m_identifiants[position()].identifiant;
+
+	noeud->ajoute_argument(arg);
+
 	/* fin des paramètres */
 	if (!requiers_identifiant(ID_VIRGULE)) {
 		recule();
 		return;
 	}
 
-	analyse_parametres_fonction();
+	analyse_parametres_fonction(noeud);
 }
 
 void analyseuse_grammaire::analyse_corps_fonction()

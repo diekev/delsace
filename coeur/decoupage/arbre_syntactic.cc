@@ -27,6 +27,8 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
 
+#include "morceaux.h"
+
 /* ************************************************************************** */
 
 void test_llvm()
@@ -59,6 +61,31 @@ void test_llvm()
 	constructeur.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0, false));
 
 	module->dump();
+}
+
+static llvm::Type *type_argument(llvm::LLVMContext &contexte, int identifiant)
+{
+	switch (identifiant) {
+		case ID_BOOL:
+			return llvm::Type::getInt1Ty(contexte);
+		case ID_E8:
+			return llvm::Type::getInt8Ty(contexte);
+		case ID_E16:
+			return llvm::Type::getInt16Ty(contexte);
+		case ID_E32:
+			return llvm::Type::getInt32Ty(contexte);
+		case ID_E64:
+			return llvm::Type::getInt64Ty(contexte);
+		case ID_R16:
+			return llvm::Type::getHalfTy(contexte);
+		case ID_R32:
+			return llvm::Type::getFloatTy(contexte);
+		case ID_R64:
+			return llvm::Type::getDoubleTy(contexte);
+		default:
+		case ID_RIEN:
+			return llvm::Type::getVoidTy(contexte);
+	}
 }
 
 /* ************************************************************************** */
@@ -147,6 +174,11 @@ NoeudDeclarationFonction::NoeudDeclarationFonction(const std::string &chaine, in
 	: Noeud(chaine, id)
 {}
 
+void NoeudDeclarationFonction::ajoute_argument(const ArgumentFonction &argument)
+{
+	m_arguments.push_back(argument);
+}
+
 void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
@@ -164,13 +196,15 @@ void NoeudDeclarationFonction::genere_code_llvm(llvm::LLVMContext &contexte, llv
 
 	/* Crée la liste de paramètres */
 	std::vector<llvm::Type *> parametres;
-	parametres.push_back(constructeur.getInt32Ty());
-	parametres.push_back(constructeur.getInt32Ty());
+
+	for (const auto &argument : m_arguments) {
+		parametres.push_back(type_argument(contexte, argument.id_type));
+	}
 
 	llvm::ArrayRef<llvm::Type*> args(parametres);
 
 	/* Crée fonction */
-	auto type_fonction = llvm::FunctionType::get(constructeur.getInt32Ty(), args, false);
+	auto type_fonction = llvm::FunctionType::get(type_argument(contexte, this->type_retour), args, false);
 	auto fonction_main = llvm::Function::Create(type_fonction, llvm::Function::ExternalLinkage, m_chaine, module);
 
 	auto entree = llvm::BasicBlock::Create(contexte, "entrypoint", fonction_main);
