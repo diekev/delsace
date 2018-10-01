@@ -27,12 +27,14 @@
 #include <iostream>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <llvm/IR/LLVMContext.h>
 
 namespace llvm {
 class BasicBlock;
+class Value;
 }  /* namespace llvm */
 
 enum {
@@ -55,6 +57,11 @@ struct ArgumentFonction {
 	int id_type;
 };
 
+struct Block {
+	llvm::BasicBlock *block;
+	std::unordered_map<std::string, llvm::Value *> locals;
+};
+
 struct ContexteGenerationCode {
 	llvm::Module *module;
 	llvm::LLVMContext contexte;
@@ -65,8 +72,12 @@ struct ContexteGenerationCode {
 
 	llvm::BasicBlock *block_courant() const;
 
+	void pousse_locale(const std::string &nom, llvm::Value *valeur);
+
+	llvm::Value *locale(const std::string &nom);
+
 private:
-	std::stack<llvm::BasicBlock *> pile_block;
+	std::stack<Block> pile_block;
 };
 
 /* ************************************************************************** */
@@ -81,6 +92,7 @@ protected:
 
 public:
 	int identifiant;
+	int type = -1;
 
 	Noeud(const std::string &chaine, int id);
 
@@ -101,7 +113,12 @@ public:
 	/**
 	 * Génère le code pour LLVM.
 	 */
-	virtual void genere_code_llvm(ContexteGenerationCode &contexte) = 0;
+	virtual llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) = 0;
+
+	/**
+	 * Calcul le type de ce noeud en cherchant parmis ses enfants si nécessaire.
+	 */
+	virtual int calcul_type();
 };
 
 /* ************************************************************************** */
@@ -112,7 +129,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -123,7 +140,9 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int calcul_type() override;
 };
 
 /* ************************************************************************** */
@@ -140,7 +159,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -151,7 +170,9 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int calcul_type() override;
 };
 
 /* ************************************************************************** */
@@ -162,7 +183,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -173,7 +194,9 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int calcul_type() override;
 };
 
 /* ************************************************************************** */
@@ -184,7 +207,9 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int calcul_type() override;
 };
 
 /* ************************************************************************** */
@@ -195,7 +220,9 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int calcul_type() override;
 };
 
 /* ************************************************************************** */
@@ -206,7 +233,9 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int calcul_type() override;
 };
 
 /* ************************************************************************** */
@@ -217,5 +246,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	void genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int calcul_type() override;
 };

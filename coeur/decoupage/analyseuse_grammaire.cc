@@ -275,6 +275,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		}
 
 		auto nom = m_identifiants[position()].chaine;
+		auto type = -1;
 
 		if (est_identifiant(ID_DOUBLE_POINTS)) {
 			avance();
@@ -285,14 +286,19 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			}
 
 			avance();
+
+			type = m_identifiants[position()].identifiant;
 		}
 
 		if (!requiers_identifiant(ID_EGAL)) {
 			lance_erreur("Attendu '=' après chaîne de caractère");
 		}
 
-		m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, nom, ID_CHAINE_CARACTERE);
+		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, nom, ID_CHAINE_CARACTERE);
+		noeud->type = type;
+
 		analyse_expression_droite(ID_POINT_VIRGULE);
+
 		m_assembleuse->sors_noeud(NOEUD_ASSIGNATION_VARIABLE);
 	}
 	/* retour : retourne a + b; */
