@@ -107,13 +107,72 @@ void assembleuse_arbre::imprime_code(std::ostream &os)
 	m_pile.top()->imprime_code(os, 0);
 }
 
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+
 void assembleuse_arbre::genere_code_llvm()
 {
+	/* choix de la cible */
+	const auto triplet_cible = llvm::sys::getDefaultTargetTriple();
+
+	llvm::InitializeAllTargetInfos();
+	llvm::InitializeAllTargets();
+	llvm::InitializeAllTargetMCs();
+	llvm::InitializeAllAsmParsers();
+	llvm::InitializeAllAsmPrinters();
+
+	auto erreur = std::string{""};
+	auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
+
+	if (!cible) {
+		std::cerr << erreur;
+		return;
+	}
+
+	auto CPU = "generic";
+	auto feature = "";
+	auto options = llvm::TargetOptions{};
+	auto RM = llvm::Optional<llvm::Reloc::Model>();
+	auto machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options, RM);
+
 	ContexteGenerationCode contexte_generation;
-	contexte_generation.module = new llvm::Module("top", contexte_generation.contexte);
+	auto module = new llvm::Module("top", contexte_generation.contexte);
+	module->setDataLayout(machine_cible->createDataLayout());
+	module->setTargetTriple(triplet_cible);
+
+	contexte_generation.module = module;
 
 	m_pile.top()->genere_code_llvm(contexte_generation);
 
+	/* définition du fichier de sortie */
+	auto chemin_sortie = "/tmp/kuri.o";
+	std::error_code ec;
+
+	llvm::raw_fd_ostream dest(chemin_sortie, ec, llvm::sys::fs::F_None);
+
+	if (ec) {
+		std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
+		delete contexte_generation.module;
+		return;
+	}
+
+	llvm::legacy::PassManager pass;
+	auto type_fichier = llvm::TargetMachine::CGFT_ObjectFile;
+
+	if (machine_cible->addPassesToEmitFile(pass, dest, type_fichier)) {
+		std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
+		delete contexte_generation.module;
+		return;
+	}
+
 	contexte_generation.module->dump();
+
+	pass.run(*module);
+	dest.flush();
+
 	delete contexte_generation.module;
 }
