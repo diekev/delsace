@@ -37,8 +37,19 @@
  * - transtype<>()
  * - gabarit
  * - accès tableau [expr]
- * - spécification type *, []
  */
+
+static bool est_specifiant_type(int identifiant)
+{
+	switch (identifiant) {
+		case ID_FOIS:
+		case ID_ESPERLUETTE:
+		case ID_CROCHET_OUVRANT:
+			return true;
+		default:
+			return false;
+	}
+}
 
 static bool est_identifiant_type(int identifiant)
 {
@@ -200,15 +211,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	/* vérifie si le type de la fonction est explicit. */
 	if (est_identifiant(ID_DOUBLE_POINTS)) {
-		avance();
-
-		if (!est_identifiant_type(identifiant_courant())) {
-			avance();
-			lance_erreur("Attendu la déclaration du type de retour de la fonction après ':'");
-		}
-
-		avance();
-
+		analyse_declaration_type();
 		noeud_declaration->type_retour = m_identifiants[position()].identifiant;
 	}
 
@@ -240,16 +243,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 
 	arg.chaine = m_identifiants[position()].chaine;
 
-	if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
-		lance_erreur("Attendu un double point après la déclaration de la variable");
-	}
-
-	if (!est_identifiant_type(identifiant_courant())) {
-		avance();
-		lance_erreur("Attendu la déclaration d'un type");
-	}
-
-	avance();
+	analyse_declaration_type();
 
 	arg.id_type = m_identifiants[position()].identifiant;
 
@@ -278,15 +272,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		auto type = -1;
 
 		if (est_identifiant(ID_DOUBLE_POINTS)) {
-			avance();
-
-			if (!est_identifiant_type(this->identifiant_courant())) {
-				avance();
-				lance_erreur("Attendu la déclaration d'un type après ':'");
-			}
-
-			avance();
-
+			analyse_declaration_type();
 			type = m_identifiants[position()].identifiant;
 		}
 
@@ -562,13 +548,7 @@ void analyseuse_grammaire::analyse_declaration_constante()
 
 	/* Vérifie s'il y a typage explicit */
 	if (est_identifiant(ID_DOUBLE_POINTS)) {
-		avance();
-
-		if (!est_identifiant_type(this->identifiant_courant())) {
-			lance_erreur("Attendu la déclaration du type après ':'");
-		}
-
-		avance();
+		analyse_declaration_type();
 	}
 
 	if (!requiers_identifiant(ID_EGAL)) {
@@ -600,16 +580,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 			break;
 		}
 
-		if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
-			lance_erreur("Attendu ':'");
-		}
-
-		if (!est_identifiant_type(this->identifiant_courant())) {
-			avance();
-			lance_erreur("Attendu la déclaration d'un type");
-		}
-
-		avance();
+		analyse_declaration_type();
 
 		if (!requiers_identifiant(ID_POINT_VIRGULE)) {
 			lance_erreur("Attendu ';'");
@@ -658,4 +629,42 @@ void analyseuse_grammaire::analyse_declaration_enum()
 	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu '}' à la fin de la déclaration de l'énum");
 	}
+}
+
+void analyseuse_grammaire::analyse_declaration_type()
+{
+	if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
+		lance_erreur("Attendu ':'");
+	}
+
+	while (est_specifiant_type(identifiant_courant())) {
+		if (this->identifiant_courant() == ID_CROCHET_OUVRANT) {
+			avance();
+
+			if (this->identifiant_courant() != ID_CROCHET_FERMANT) {
+				/* À FAIRE : expression */
+				if (!est_nombre_entier(this->identifiant_courant())) {
+					avance();
+
+					lance_erreur("Attendu un nombre entier après [");
+				}
+
+				avance();
+			}
+
+			if (this->identifiant_courant() != ID_CROCHET_FERMANT) {
+				avance();
+				lance_erreur("Attendu ']'");
+			}
+		}
+
+		avance();
+	}
+
+	if (!est_identifiant_type(this->identifiant_courant())) {
+		avance();
+		lance_erreur("Attendu la déclaration d'un type");
+	}
+
+	avance();
 }

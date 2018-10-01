@@ -48,4 +48,5 @@ private:
 	void analyse_declaration_structure();
 	void analyse_declaration_constante();
 	void analyse_declaration_enum();
+	void analyse_declaration_type();
 };
