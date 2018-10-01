@@ -32,7 +32,7 @@ class frappe {
 	std::string m_message;
 
 public:
-	frappe(const char *message);
+	explicit frappe(const char *message);
 
 	const char *message() const;
 };

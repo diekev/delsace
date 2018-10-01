@@ -243,7 +243,6 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Crée code pour les arguments */
 	auto valeurs_args = fonction->arg_begin();
-	llvm::Value *valeur;
 
 	for (const auto &argument : m_arguments) {
 		auto alloc = new llvm::AllocaInst(
@@ -253,7 +252,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 		contexte.pousse_locale(argument.chaine, alloc);
 
-		valeur = &*valeurs_args++;
+		llvm::Value *valeur = &*valeurs_args++;
 		valeur->setName(argument.chaine.c_str());
 
 		new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
