@@ -285,7 +285,7 @@ void NoeudExpression::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudExpression::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudExpression::genere_code_llvm(ContexteGenerationCode &/*contexte*/)
 {
 	return nullptr;
 }
@@ -350,7 +350,11 @@ void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 	const auto valeur = converti_chaine_nombre_entier(m_chaine, identifiant);
-	return llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), valeur, false);
+
+	return llvm::ConstantInt::get(
+				llvm::Type::getInt32Ty(contexte.contexte),
+				static_cast<uint64_t>(valeur),
+				false);
 }
 
 int NoeudNombreEntier::calcul_type()
@@ -375,7 +379,10 @@ void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 	const auto valeur = converti_chaine_nombre_reel(m_chaine, identifiant);
-	return llvm::ConstantFP::get(llvm::Type::getDoubleTy(contexte.contexte), valeur);
+
+	return llvm::ConstantFP::get(
+				llvm::Type::getDoubleTy(contexte.contexte),
+				valeur);
 }
 
 int NoeudNombreReel::calcul_type()

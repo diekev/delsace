@@ -233,7 +233,7 @@ static long converti_chaine_nombre_hexadecimal(const std::string &chaine)
 			resultat |= ((int(c) - int('0')) * static_cast<long>(std::pow(16, n)));
 		}
 		else {
-			c = ::tolower(c);
+			c = static_cast<char>(::tolower(c));
 			resultat |= ((int(c) - int('a') + 10) * static_cast<long>(std::pow(16, n)));
 		}
 

@@ -97,7 +97,7 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const std::string &chaine, int id
 	return noeud;
 }
 
-void assembleuse_arbre::sors_noeud(int type)
+void assembleuse_arbre::sors_noeud(int /*type*/)
 {
 	m_pile.pop();
 }

@@ -36,7 +36,7 @@ class Analyseuse {
 protected:
 	const TamponSource &m_tampon;
 	std::vector<DonneesMorceaux> m_identifiants{};
-	int m_position = 0;
+	size_t m_position = 0;
 
 public:
 	Analyseuse(const TamponSource &tampon);
@@ -79,7 +79,7 @@ protected:
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
-	void lance_erreur(const std::string &quoi);
+	[[noreturn]] void lance_erreur(const std::string &quoi);
 
 	/**
 	 * Avance l'analyseur d'un cran sur le vecteur d'identifiants.
@@ -94,7 +94,7 @@ protected:
 	/**
 	 * Retourne la position courante sur le vecteur d'identifiants.
 	 */
-	int position();
+	size_t position();
 
 	/**
 	 * Retourne l'identifiant courant.

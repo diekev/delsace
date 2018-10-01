@@ -115,9 +115,9 @@ def construit_structures():
 
 	structures += u'struct DonneesMorceaux {\n'
 	structures += u'\tstd::string chaine;\n'
+	structures += u'\tsize_t ligne;\n'
+	structures += u'\tsize_t pos;\n'
 	structures += u'\tint identifiant;\n'
-	structures += u'\tint ligne;\n'
-	structures += u'\tint pos;\n'
 	structures += u'};\n\n'
 
 	return structures

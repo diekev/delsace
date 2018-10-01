@@ -44,7 +44,7 @@ static std::string charge_fichier(const char *chemin_fichier)
 	}
 
 	fichier.seekg(0, fichier.end);
-	const auto taille_fichier = fichier.tellg();
+	const auto taille_fichier = static_cast<std::string::size_type>(fichier.tellg());
 	fichier.seekg(0, fichier.beg);
 
 	std::string texte;

@@ -31,56 +31,64 @@ inline bool entre(unsigned char c, unsigned char a, unsigned char b)
 
 int nombre_octets(const char *sequence)
 {
-	if (entre(sequence[0], 0x00, 0x7F)) {
+	const auto s0 = static_cast<unsigned char>(sequence[0]);
+
+	if (entre(s0, 0x00, 0x7F)) {
 		return 1;
 	}
 
-	if (entre(sequence[0], 0xC2, 0xDF)) {
-		if (!entre(sequence[1], 0x80, 0xBF)) {
+	const auto s1 = static_cast<unsigned char>(sequence[1]);
+
+	if (entre(s0, 0xC2, 0xDF)) {
+		if (!entre(s1, 0x80, 0xBF)) {
 			return 0;
 		}
 
 		return 2;
 	}
 
-	if (entre(sequence[0], 0xE0, 0xEF)) {
-		if (static_cast<unsigned char>(sequence[0]) == 0xE0 && !entre(sequence[1], 0xA0, 0xBF)) {
+	const auto s2 = static_cast<unsigned char>(sequence[2]);
+
+	if (entre(s0, 0xE0, 0xEF)) {
+		if (s0 == 0xE0 && !entre(s1, 0xA0, 0xBF)) {
 			return 0;
 		}
 
-		if (static_cast<unsigned char>(sequence[0]) == 0xED && !entre(sequence[1], 0x80, 0x9F)) {
+		if (s0 == 0xED && !entre(s1, 0x80, 0x9F)) {
 			return 0;
 		}
 
-		if (!entre(sequence[1], 0x80, 0xBF)) {
+		if (!entre(s1, 0x80, 0xBF)) {
 			return 0;
 		}
 
-		if (!entre(sequence[2], 0x80, 0xBF)) {
+		if (!entre(s2, 0x80, 0xBF)) {
 			return 0;
 		}
 
 		return 3;
 	}
 
-	if (entre(sequence[0], 0xF0, 0xF4)) {
-		if (static_cast<unsigned char>(sequence[0]) == 0xF0 && !entre(sequence[1], 0x90, 0xBF)) {
+	const auto s3 = static_cast<unsigned char>(sequence[3]);
+
+	if (entre(s0, 0xF0, 0xF4)) {
+		if (s0 == 0xF0 && !entre(s1, 0x90, 0xBF)) {
 			return 0;
 		}
 
-		if (static_cast<unsigned char>(sequence[0]) == 0xF4 && !entre(sequence[1], 0x80, 0x8F)) {
+		if (s0 == 0xF4 && !entre(s1, 0x80, 0x8F)) {
 			return 0;
 		}
 
-		if (!entre(sequence[1], 0x80, 0xBF)) {
+		if (!entre(s1, 0x80, 0xBF)) {
 			return 0;
 		}
 
-		if (!entre(sequence[2], 0x80, 0xBF)) {
+		if (!entre(s2, 0x80, 0xBF)) {
 			return 0;
 		}
 
-		if (!entre(sequence[3], 0x80, 0xBF)) {
+		if (!entre(s3, 0x80, 0xBF)) {
 			return 0;
 		}
 

@@ -36,9 +36,9 @@ class decoupeuse_texte {
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
 
-	int m_position_ligne = 0;
-	int m_compte_ligne = 0;
-	int m_pos_mot = 0;
+	size_t m_position_ligne = 0;
+	size_t m_compte_ligne = 0;
+	size_t m_pos_mot = 0;
 
 	std::vector<DonneesMorceaux> m_morceaux;
 
@@ -66,7 +66,7 @@ private:
 
 	void pousse_mot(std::string &mot_courant, int identifiant);
 
-	void lance_erreur(const std::string &quoi) const;
+	[[noreturn]] void lance_erreur(const std::string &quoi) const;
 
 	void analyse_caractere_simple(std::string &mot_courant);
 };

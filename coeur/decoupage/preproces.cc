@@ -99,7 +99,7 @@ inline bool existe(const std::string &chemin)
 
 struct DonneesLigne {
 	std::string chemin_fichier;
-	int numero_ligne;
+	size_t numero_ligne;
 };
 
 struct Preproces {
@@ -205,7 +205,7 @@ void charge_fichier(Preproces &preproces, const std::string &chemin)
 	preproces.fichiers_visites.insert(chemin_);
 	std::cout << "Chargement du fichier : '" << chemin_ << "'\n";
 
-	int ligne_fichier = 0;
+	size_t ligne_fichier = 0;
 	bool si_rencontre = false;
 	bool ignore_texte = false;
 
@@ -268,7 +268,7 @@ void charge_fichier(Preproces &preproces, const std::string &chemin)
 
 				++iter;
 
-				const auto pos = iter - tampon.begin();
+				const auto pos = static_cast<size_t>(iter - tampon.begin());
 
 				auto chemin_fichier = tampon.substr(pos, tampon.size() - pos - 2);
 				charge_fichier(preproces, chemin_fichier);

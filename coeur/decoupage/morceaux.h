@@ -30,9 +30,9 @@
 
 struct DonneesMorceaux {
 	std::string chaine;
+	size_t ligne;
+	size_t pos;
 	int identifiant;
-	int ligne;
-	int pos;
 };
 
 enum {

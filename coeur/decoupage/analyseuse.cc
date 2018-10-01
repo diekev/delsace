@@ -56,7 +56,7 @@ void Analyseuse::recule()
 	m_position -= 1;
 }
 
-int Analyseuse::position()
+size_t Analyseuse::position()
 {
 	return m_position - 1;
 }
@@ -111,7 +111,7 @@ void Analyseuse::lance_erreur(const std::string &quoi)
 
 	/* La position ligne est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (int i = 0; i < pos_mot; i += nombre_octets(&ligne_courante[i])) {
+	for (size_t i = 0; i < pos_mot; i += static_cast<size_t>(nombre_octets(&ligne_courante[i]))) {
 		if (ligne_courante[i] == '\t') {
 			ss << '\t';
 		}
@@ -122,7 +122,7 @@ void Analyseuse::lance_erreur(const std::string &quoi)
 
 	ss << '^';
 
-	for (int i = 0; i < chaine.size() - 1; ++i) {
+	for (size_t i = 0; i < chaine.size() - 1; ++i) {
 		ss << '~';
 	}
 

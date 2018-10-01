@@ -125,7 +125,7 @@ char decoupeuse_texte::caractere_voisin(int n) const
 
 void decoupeuse_texte::pousse_mot(std::string &mot_courant, int identifiant)
 {
-	m_morceaux.push_back({ mot_courant, identifiant, m_compte_ligne, m_pos_mot });
+	m_morceaux.push_back({ mot_courant, m_compte_ligne, m_pos_mot, identifiant });
 	mot_courant = "";
 }
 
@@ -139,7 +139,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 
 	/* La position ligne est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (int i = 0; i < m_position_ligne; i += nombre_octets(&ligne_courante[i])) {
+	for (size_t i = 0; i < m_position_ligne; i += static_cast<size_t>(nombre_octets(&ligne_courante[i]))) {
 		if (ligne_courante[i] == '\t') {
 			ss << '\t';
 		}

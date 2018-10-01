@@ -345,8 +345,9 @@ void analyseuse_grammaire::analyse_corps_fonction()
 }
 
 struct Symbole {
-	int identifiant;
 	std::string chaine;
+	int identifiant;
+	int pad;
 };
 
 void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
