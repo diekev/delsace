@@ -368,7 +368,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 						 argument.chaine,
 						 contexte.block_courant());
 
-		donnees_fonctions.args.insert({argument.chaine, {index++, argument.id_type}});
+		donnees_fonctions.args.insert({argument.chaine, {index++, argument.id_type, 0}});
 
 		contexte.pousse_locale(argument.chaine, alloc, argument.id_type);
 
