@@ -30,6 +30,8 @@
 
 class Noeud;
 
+struct ContexteGenerationCode;
+
 class assembleuse_arbre {
 	std::stack<Noeud *> m_pile;
 	std::vector<Noeud *> m_noeuds;
@@ -74,5 +76,5 @@ public:
 	/**
 	 * Traverse l'arbre et génère le code LLVM.
 	 */
-	void genere_code_llvm();
+	void genere_code_llvm(ContexteGenerationCode &contexte_generation);
 };

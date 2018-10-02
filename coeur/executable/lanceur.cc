@@ -28,6 +28,7 @@
 #include <iostream>
 
 #include "decoupage/analyseuse_grammaire.h"
+#include "decoupage/arbre_syntactic.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
 #include "decoupage/tampon_source.h"
@@ -60,6 +61,23 @@ static std::string charge_fichier(const char *chemin_fichier)
 	}
 
 	return texte;
+}
+
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+
+static void initialise_llvm()
+{
+	llvm::InitializeAllTargetInfos();
+	llvm::InitializeAllTargets();
+	llvm::InitializeAllTargetMCs();
+	llvm::InitializeAllAsmParsers();
+	llvm::InitializeAllAsmPrinters();
 }
 
 int main(int argc, char *argv[])
@@ -109,9 +127,67 @@ int main(int argc, char *argv[])
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
 
+		const auto triplet_cible = llvm::sys::getDefaultTargetTriple();
+
+		initialise_llvm();
+
+		auto erreur = std::string{""};
+		auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
+
+		if (!cible) {
+			std::cerr << erreur << '\n';
+			return 1;
+		}
+
+		auto CPU = "generic";
+		auto feature = "";
+		auto options = llvm::TargetOptions{};
+		auto RM = llvm::Optional<llvm::Reloc::Model>();
+		auto machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options, RM);
+
+		ContexteGenerationCode contexte_generation;
+		auto module = new llvm::Module(chemin_fichier, contexte_generation.contexte);
+		module->setDataLayout(machine_cible->createDataLayout());
+		module->setTargetTriple(triplet_cible);
+
+		contexte_generation.module = module;
+
 		const auto debut_generation_code = numero7::chronometrage::maintenant();
-		assembleuse.genere_code_llvm();
+		assembleuse.genere_code_llvm(contexte_generation);
 		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
+
+		/* définition du fichier de sortie */
+		const auto emet_fichier_objet = false;
+
+		if (emet_fichier_objet) {
+			auto chemin_sortie = "/tmp/kuri.o";
+			std::error_code ec;
+
+			llvm::raw_fd_ostream dest(chemin_sortie, ec, llvm::sys::fs::F_None);
+
+			if (ec) {
+				std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
+				delete module;
+				return 1;
+			}
+
+			llvm::legacy::PassManager pass;
+			auto type_fichier = llvm::TargetMachine::CGFT_ObjectFile;
+
+			if (machine_cible->addPassesToEmitFile(pass, dest, type_fichier)) {
+				std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
+				delete module;
+				return 1;
+			}
+
+			pass.run(*module);
+			dest.flush();
+		}
+		else {
+			module->dump();
+		}
+
+		delete contexte_generation.module;
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';

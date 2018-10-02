@@ -24,7 +24,10 @@
 
 #include "test_variables.h"
 
+#include <llvm/IR/Module.h>
+
 #include "analyseuse_grammaire.h"
+#include "arbre_syntactic.h"
 #include "decoupeuse.h"
 #include "erreur.h"
 
@@ -40,7 +43,11 @@ static bool retourne_erreur_lancee(const char *texte, const bool imprime_message
 		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 
-		assembleuse.genere_code_llvm();
+		auto contexte = ContexteGenerationCode();
+		auto module = llvm::Module("test", contexte.contexte);
+		contexte.module = &module;
+
+		assembleuse.genere_code_llvm(contexte);
 	}
 	catch (const erreur::frappe &e) {
 		if (imprime_message) {
