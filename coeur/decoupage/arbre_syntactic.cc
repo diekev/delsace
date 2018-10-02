@@ -270,11 +270,13 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 			enfants.push_back(m_enfants[index]);
 		}
 
-		parametres.reserve(m_noms_arguments.size());
+		parametres.resize(m_noms_arguments.size());
 
-		for (const auto &enfant : enfants) {
-			parametres.push_back(enfant->genere_code_llvm(contexte));
-		}
+		std::transform(enfants.begin(), enfants.end(), parametres.begin(),
+					   [&](Noeud *enfant)
+		{
+			return enfant->genere_code_llvm(contexte);
+		});
 	}
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
@@ -322,11 +324,13 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 	/* Crée la liste de paramètres */
-	std::vector<llvm::Type *> parametres;
+	std::vector<llvm::Type *> parametres(m_arguments.size());
 
-	for (const auto &argument : m_arguments) {
-		parametres.push_back(type_argument(contexte.contexte, argument.id_type));
-	}
+	std::transform(m_arguments.begin(), m_arguments.end(), parametres.begin(),
+				   [&](const ArgumentFonction &donnees)
+	{
+		return type_argument(contexte.contexte, donnees.id_type);
+	});
 
 	llvm::ArrayRef<llvm::Type*> args(parametres);
 
