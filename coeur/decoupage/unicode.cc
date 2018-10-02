@@ -47,8 +47,6 @@ int nombre_octets(const char *sequence)
 		return 2;
 	}
 
-	const auto s2 = static_cast<unsigned char>(sequence[2]);
-
 	if (entre(s0, 0xE0, 0xEF)) {
 		if (s0 == 0xE0 && !entre(s1, 0xA0, 0xBF)) {
 			return 0;
@@ -62,14 +60,14 @@ int nombre_octets(const char *sequence)
 			return 0;
 		}
 
+		const auto s2 = static_cast<unsigned char>(sequence[2]);
+
 		if (!entre(s2, 0x80, 0xBF)) {
 			return 0;
 		}
 
 		return 3;
 	}
-
-	const auto s3 = static_cast<unsigned char>(sequence[3]);
 
 	if (entre(s0, 0xF0, 0xF4)) {
 		if (s0 == 0xF0 && !entre(s1, 0x90, 0xBF)) {
@@ -84,9 +82,13 @@ int nombre_octets(const char *sequence)
 			return 0;
 		}
 
+		const auto s2 = static_cast<unsigned char>(sequence[2]);
+
 		if (!entre(s2, 0x80, 0xBF)) {
 			return 0;
 		}
+
+		const auto s3 = static_cast<unsigned char>(sequence[3]);
 
 		if (!entre(s3, 0x80, 0xBF)) {
 			return 0;
