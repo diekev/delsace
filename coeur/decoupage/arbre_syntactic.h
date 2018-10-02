@@ -110,11 +110,19 @@ struct DonneesArgument {
 
 struct DonneesFonction {
 	std::unordered_map<std::string, DonneesArgument> args;
+	int type_retour;
+	int pad;
+};
+
+struct DonneesVariable {
+	llvm::Value *valeur;
+	int type;
+	int pad;
 };
 
 struct Block {
 	llvm::BasicBlock *block;
-	std::unordered_map<std::string, llvm::Value *> locals;
+	std::unordered_map<std::string, DonneesVariable> locals;
 };
 
 struct ContexteGenerationCode {
@@ -127,9 +135,11 @@ struct ContexteGenerationCode {
 
 	llvm::BasicBlock *block_courant() const;
 
-	void pousse_locale(const std::string &nom, llvm::Value *valeur);
+	void pousse_locale(const std::string &nom, llvm::Value *valeur, int type);
 
-	llvm::Value *locale(const std::string &nom);
+	llvm::Value *valeur_locale(const std::string &nom);
+
+	int type_locale(const std::string &nom);
 
 	void ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees);
 
@@ -178,7 +188,7 @@ public:
 	/**
 	 * Calcul le type de ce noeud en cherchant parmis ses enfants si nécessaire.
 	 */
-	virtual int calcul_type();
+	virtual int calcul_type(ContexteGenerationCode &contexte);
 };
 
 /* ************************************************************************** */
@@ -205,7 +215,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int calcul_type() override;
+	int calcul_type(ContexteGenerationCode &contexte) override;
 
 	void ajoute_nom_argument(const std::string &nom);
 };
@@ -237,7 +247,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int calcul_type() override;
+	int calcul_type(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -261,7 +271,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int calcul_type() override;
+	int calcul_type(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -274,7 +284,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int calcul_type() override;
+	int calcul_type(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -287,7 +297,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int calcul_type() override;
+	int calcul_type(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -300,7 +310,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int calcul_type() override;
+	int calcul_type(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -313,5 +323,5 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int calcul_type() override;
+	int calcul_type(ContexteGenerationCode &contexte) override;
 };

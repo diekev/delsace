@@ -27,6 +27,9 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
 
+#include <sstream>
+
+#include "erreur.h"
 #include "morceaux.h"
 #include "nombres.h"
 
@@ -89,12 +92,12 @@ llvm::BasicBlock *ContexteGenerationCode::block_courant() const
 	return pile_block.top().block;
 }
 
-void ContexteGenerationCode::pousse_locale(const std::string &nom, llvm::Value *valeur)
+void ContexteGenerationCode::pousse_locale(const std::string &nom, llvm::Value *valeur, int type)
 {
-	pile_block.top().locals.insert({nom, valeur});
+	pile_block.top().locals.insert({nom, {valeur, type, 0}});
 }
 
-llvm::Value *ContexteGenerationCode::locale(const std::string &nom)
+llvm::Value *ContexteGenerationCode::valeur_locale(const std::string &nom)
 {
 	auto iter = pile_block.top().locals.find(nom);
 
@@ -102,7 +105,18 @@ llvm::Value *ContexteGenerationCode::locale(const std::string &nom)
 		return nullptr;
 	}
 
-	return iter->second;
+	return iter->second.valeur;
+}
+
+int ContexteGenerationCode::type_locale(const std::string &nom)
+{
+	auto iter = pile_block.top().locals.find(nom);
+
+	if (iter == pile_block.top().locals.end()) {
+		return -1;
+	}
+
+	return iter->second.type;
 }
 
 void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees)
@@ -127,7 +141,7 @@ void Noeud::ajoute_noeud(Noeud *noeud)
 	m_enfants.push_back(noeud);
 }
 
-int Noeud::calcul_type()
+int Noeud::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	return this->type;
 }
@@ -202,8 +216,16 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 					continue;
 				}
 
-				if (pair.second.type != enfant->calcul_type()) {
-					throw "Les types d'arguments ne correspondent pas !\n";
+				const auto type_arg = pair.second.type;
+				const auto type_enf = enfant->calcul_type(contexte);
+
+				if (pair.second.type != enfant->calcul_type(contexte)) {
+					std::stringstream ss;
+					ss << "Fonction : '" << m_chaine << "', argument " << index << '\n';
+					ss << "Les types d'arguments ne correspondent pas !\n";
+					ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
+					ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
+					throw erreur::frappe(ss.str().c_str());
 				}
 			}
 
@@ -233,10 +255,16 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 			}
 
 			const auto index = iter->second.index;
-			const auto type = iter->second.type;
+			const auto type_arg = iter->second.type;
+			const auto type_enf = m_enfants[index]->calcul_type(contexte);
 
-			if (type != m_enfants[index]->calcul_type()) {
-				throw "Les types d'arguments ne correspondent pas !\n";
+			if (type_arg != type_enf) {
+				std::stringstream ss;
+				ss << "Fonction : '" << m_chaine << "', argument " << index << '\n';
+				ss << "Les types d'arguments ne correspondent pas !\n";
+				ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
+				ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
+				throw erreur::frappe(ss.str().c_str());
 			}
 
 			enfants.push_back(m_enfants[index]);
@@ -254,8 +282,13 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	return llvm::CallInst::Create(fonction, args, "", contexte.block_courant());
 }
 
-int NoeudAppelFonction::calcul_type()
+int NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
 {
+	if (this->type == -1) {
+		auto donnees_fonction = contexte.donnees_fonction(m_chaine);
+		this->type = donnees_fonction.type_retour;
+	}
+
 	return this->type;
 }
 
@@ -318,8 +351,10 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Crée code pour les arguments */
 	auto valeurs_args = fonction->arg_begin();
-	auto donnees_fonctions = DonneesFonction();
 	auto index = 0ul;
+
+	auto donnees_fonctions = DonneesFonction();
+	donnees_fonctions.type_retour = this->type_retour;
 
 	for (const auto &argument : m_arguments) {
 		auto alloc = new llvm::AllocaInst(
@@ -329,7 +364,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 		donnees_fonctions.args.insert({argument.chaine, {index++, argument.id_type}});
 
-		contexte.pousse_locale(argument.chaine, alloc);
+		contexte.pousse_locale(argument.chaine, alloc, argument.id_type);
 
 		llvm::Value *valeur = &*valeurs_args++;
 		valeur->setName(argument.chaine.c_str());
@@ -371,7 +406,7 @@ llvm::Value *NoeudExpression::genere_code_llvm(ContexteGenerationCode &/*context
 	return nullptr;
 }
 
-int NoeudExpression::calcul_type()
+int NoeudExpression::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	return this->type;
 }
@@ -395,7 +430,7 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto valeur = contexte.locale(m_chaine);
+	auto valeur = contexte.valeur_locale(m_chaine);
 
 	if (valeur != nullptr) {
 		throw "Variable redéfinie !";
@@ -404,7 +439,11 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	assert(m_enfants.size() == 1);
 
 	if (this->type == -1) {
-		this->type = m_enfants[0]->calcul_type();
+		this->type = m_enfants[0]->calcul_type(contexte);
+
+		if (this->type == -1) {
+			throw "Impossible de définir le type de la variable !";
+		}
 	}
 
 	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
@@ -416,7 +455,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto alloc = new llvm::AllocaInst(type_llvm, m_chaine, contexte.block_courant());
 	new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 
-	contexte.pousse_locale(m_chaine, alloc);
+	contexte.pousse_locale(m_chaine, alloc, this->type);
 
 	return alloc;
 }
@@ -444,7 +483,7 @@ llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &context
 				false);
 }
 
-int NoeudNombreEntier::calcul_type()
+int NoeudNombreEntier::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	this->type = ID_E32;
 	return this->type;
@@ -472,7 +511,7 @@ llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 				valeur);
 }
 
-int NoeudNombreReel::calcul_type()
+int NoeudNombreReel::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	this->type = ID_R64;
 	return this->type;
@@ -497,7 +536,7 @@ void NoeudVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	llvm::Value *valeur = contexte.locale(m_chaine);
+	llvm::Value *valeur = contexte.valeur_locale(m_chaine);
 
 	if (valeur == nullptr) {
 		throw "Variable inconnue";
@@ -506,10 +545,9 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 	return new llvm::LoadInst(valeur, "", false, contexte.block_courant());
 }
 
-int NoeudVariable::calcul_type()
+int NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 {
-	/* À FAIRE : stocke le type de la variable. */
-	return this->type;
+	return contexte.type_locale(m_chaine);
 }
 
 /* ************************************************************************** */
@@ -552,7 +590,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 	assert(m_enfants.size() == 2);
 
-	if (m_enfants[0]->calcul_type() != m_enfants[1]->calcul_type()) {
+	if (m_enfants[0]->calcul_type(contexte) != m_enfants[1]->calcul_type(contexte)) {
 		throw "Les types de l'opération sont différents !";
 	}
 
@@ -562,9 +600,9 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 	return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.block_courant());
 }
 
-int NoeudOperation::calcul_type()
+int NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 {
-	return this->type;
+	return m_enfants[0]->calcul_type(contexte);
 }
 
 /* ************************************************************************** */
@@ -595,7 +633,11 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 	return llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.block_courant());
 }
 
-int NoeudRetour::calcul_type()
+int NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 {
-	return this->type;
+	if (m_enfants.size() == 0) {
+		return ID_RIEN;
+	}
+
+	return m_enfants[0]->calcul_type(contexte);
 }
