@@ -31,32 +31,38 @@ void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
 	const char *texte =
 R"(fonction foo()
 {
-	soit x = a + b;
-	soit x = a - b;
-	soit x = a * b;
-	soit x = a / b;
-	soit x = a << b;
-	soit x = a >> b;
-	soit x = a == b;
-	soit x = a != b;
-	soit x = a <= b;
-	soit x = a >= b;
-	soit x = 0x80 <= a <= 0xBF;
-	soit x = a < b;
-	soit x = a > b;
-	soit x = a && b;
-	soit x = a & b;
-	soit x = a || b;
-	soit x = a | b;
-	soit x = a ^ b;
-	soit x = !a;
-	soit x = ~a;
-	soit x = @a;
-	soit x = a;
+	soit a = 5;
+	soit b = 5;
+	soit x00 = a + b;
+	soit x01 = a - b;
+	soit x02 = a * b;
+	soit x03 = a / b;
+	soit x04 = a << b;
+	soit x05 = a >> b;
+	soit x06 = a == b;
+	soit x07 = a != b;
+	soit x08 = a <= b;
+	soit x09 = a >= b;
+	soit x10 = 0x80 <= a <= 0xBF;
+	soit x11 = a < b;
+	soit x12 = a > b;
+	soit x13 = a && b;
+	soit x14 = a & b;
+	soit x15 = a || b;
+	soit x16 = a | b;
+	soit x17 = a ^ b;
+	soit x18 = !a;
+	soit x19 = ~a;
+	soit x20 = @a;
+	soit x21 = a;
 }
 )";
 
-	/* À FAIRE : passage du test avec la génération du code. */
-	const auto erreur_lancee = retourne_erreur_lancee(texte, true, false);
+	/* Passage du test sans la génération du code. */
+	auto erreur_lancee = retourne_erreur_lancee(texte, true, false);
+	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+
+	/* Passage du test avec la génération du code. */
+	erreur_lancee = retourne_erreur_lancee(texte, true, true);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 }

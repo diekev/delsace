@@ -60,6 +60,34 @@ static llvm::Type *type_argument(llvm::LLVMContext &contexte, int identifiant)
 	}
 }
 
+static bool est_type_entier(int type)
+{
+	switch (type) {
+		case ID_BOOL:
+		case ID_E8:
+		case ID_E16:
+		case ID_E32:
+		case ID_E64:
+			return true;
+		default:
+			return false;
+	}
+}
+
+#if 0
+static bool est_type_reel(int type)
+{
+	switch (type) {
+		case ID_R16:
+		case ID_R32:
+		case ID_R64:
+			return true;
+		default:
+			return false;
+	}
+}
+#endif
+
 /* ************************************************************************** */
 
 static void imprime_tab(std::ostream &os, int tab)
@@ -585,35 +613,143 @@ void NoeudOperation::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	llvm::Instruction::BinaryOps instr;
+	if (m_enfants.size() == 1) {
+		llvm::Instruction::BinaryOps instr;
+		auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
+		auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
-	switch (this->identifiant) {
-		case ID_PLUS:
-			instr = llvm::Instruction::Add;
-			break;
-		case ID_MOINS:
-			instr = llvm::Instruction::Sub;
-			break;
-		case ID_FOIS:
-			instr = llvm::Instruction::Mul;
-			break;
-		case ID_DIVISE:
-			instr = llvm::Instruction::SDiv;
-			break;
-		default:
-			return nullptr;
+		switch (this->identifiant) {
+			case ID_EXCLAMATION:
+				instr = llvm::Instruction::Xor;
+				valeur2 = valeur1;
+				break;
+			case ID_TILDE:
+				instr = llvm::Instruction::Xor;
+				valeur2 = llvm::ConstantInt::get(
+							  llvm::Type::getInt32Ty(contexte.contexte),
+							  static_cast<uint64_t>(0),
+							  false);
+				break;
+			case ID_AROBASE:
+				/* À FAIRE : prend addresse. */
+				return valeur1;
+			default:
+				return nullptr;
+		}
+
+		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.block_courant());
 	}
 
-	assert(m_enfants.size() == 2);
+	if (m_enfants.size() == 2) {
+		llvm::Instruction::BinaryOps instr;
 
-	if (m_enfants[0]->calcul_type(contexte) != m_enfants[1]->calcul_type(contexte)) {
-		throw "Les types de l'opération sont différents !";
+		const auto type1 = m_enfants[0]->calcul_type(contexte);
+		const auto type2 = m_enfants[1]->calcul_type(contexte);
+
+		if (type1 != type2) {
+			throw "Les types de l'opération sont différents !";
+		}
+
+		/* À FAIRE : typage */
+
+		switch (this->identifiant) {
+			case ID_PLUS:
+				if (est_type_entier(type1)) {
+					instr = llvm::Instruction::Add;
+				}
+				else {
+					instr = llvm::Instruction::FAdd;
+				}
+
+				break;
+			case ID_MOINS:
+				if (est_type_entier(type1)) {
+					instr = llvm::Instruction::Sub;
+				}
+				else {
+					instr = llvm::Instruction::FSub;
+				}
+
+				break;
+			case ID_FOIS:
+				if (est_type_entier(type1)) {
+					instr = llvm::Instruction::Mul;
+				}
+				else {
+					instr = llvm::Instruction::FMul;
+				}
+
+				break;
+			case ID_DIVISE:
+				if (est_type_entier(type1)) {
+					instr = llvm::Instruction::SDiv;
+				}
+				else {
+					instr = llvm::Instruction::FDiv;
+				}
+
+				break;
+			case ID_POURCENT:
+				if (est_type_entier(type1)) {
+					instr = llvm::Instruction::SRem;
+				}
+				else {
+					instr = llvm::Instruction::FRem;
+				}
+
+				break;
+			case ID_DECALAGE_DROITE:
+				if (!est_type_entier(type1)) {
+					throw "Besoin d'un type entier pour le décalage !";
+				}
+				instr = llvm::Instruction::LShr;
+				break;
+			case ID_DECALAGE_GAUCHE:
+				if (!est_type_entier(type1)) {
+					throw "Besoin d'un type entier pour le décalage !";
+				}
+				instr = llvm::Instruction::Shl;
+				break;
+			case ID_ESPERLUETTE:
+			case ID_ESP_ESP:
+				if (!est_type_entier(type1)) {
+					throw "Besoin d'un type entier pour l'opération binaire !";
+				}
+				instr = llvm::Instruction::And;
+				break;
+			case ID_BARRE:
+			case ID_BARRE_BARRE:
+				if (!est_type_entier(type1)) {
+					throw "Besoin d'un type entier pour l'opération binaire !";
+				}
+				instr = llvm::Instruction::Or;
+				break;
+			case ID_CHAPEAU:
+				if (!est_type_entier(type1)) {
+					throw "Besoin d'un type entier pour l'opération binaire !";
+				}
+				instr = llvm::Instruction::Xor;
+				break;
+			/* À FAIRE. */
+			case ID_INFERIEUR:
+			case ID_INFERIEUR_EGAL:
+			case ID_SUPERIEUR:
+			case ID_SUPERIEUR_EGAL:
+			case ID_EGALITE:
+			case ID_DIFFERENCE:
+				instr = llvm::Instruction::Add;
+				break;
+			default:
+				return nullptr;
+		}
+
+		auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
+		auto valeur2 = m_enfants[1]->genere_code_llvm(contexte);
+
+		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.block_courant());
 	}
 
-	auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
-	auto valeur2 = m_enfants[1]->genere_code_llvm(contexte);
-
-	return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.block_courant());
+	return nullptr;
 }
 
 int NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
