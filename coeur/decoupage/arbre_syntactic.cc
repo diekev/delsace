@@ -120,6 +120,33 @@ llvm::BasicBlock *ContexteGenerationCode::block_courant() const
 	return pile_block.top().block;
 }
 
+void ContexteGenerationCode::pousse_globale(const std::string &nom, llvm::Value *valeur, int type)
+{
+	globales.insert({nom, {valeur, type, 0}});
+}
+
+llvm::Value *ContexteGenerationCode::valeur_globale(const std::string &nom)
+{
+	auto iter = globales.find(nom);
+
+	if (iter == globales.end()) {
+		return nullptr;
+	}
+
+	return iter->second.valeur;
+}
+
+int ContexteGenerationCode::type_globale(const std::string &nom)
+{
+	auto iter = globales.find(nom);
+
+	if (iter == globales.end()) {
+		return -1;
+	}
+
+	return iter->second.type;
+}
+
 void ContexteGenerationCode::pousse_locale(const std::string &nom, llvm::Value *valeur, int type)
 {
 	pile_block.top().locals.insert({nom, {valeur, type, 0}});
@@ -473,7 +500,14 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto valeur = contexte.valeur_locale(m_chaine);
 
 	if (valeur != nullptr) {
-		throw "Variable redéfinie !";
+		throw "Redéfinition de la variable !";
+	}
+	else {
+		valeur = contexte.valeur_globale(m_chaine);
+
+		if (valeur != nullptr) {
+			throw "Redéfinition de la variable !";
+		}
 	}
 
 	assert(m_enfants.size() == 1);
@@ -502,6 +536,51 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	contexte.pousse_locale(m_chaine, alloc, this->type);
 
 	return alloc;
+}
+
+/* ************************************************************************** */
+
+NoeudConstante::NoeudConstante(const std::string &chaine, int id)
+	: Noeud(chaine, id)
+{}
+
+void NoeudConstante::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+
+	os << "NoeudConstante : " << m_chaine << '\n';
+
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
+}
+
+llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
+{
+	auto valeur = contexte.valeur_globale(m_chaine);
+
+	if (valeur != nullptr) {
+		throw "Redéfinition de la variable globale !";
+	}
+
+	if (this->type == -1) {
+		this->type = m_enfants[0]->calcul_type(contexte);
+
+		if (this->type == -1) {
+			throw "Impossible de définir le type de la variable globale.";
+		}
+	}
+
+	valeur = m_enfants[0]->genere_code_llvm(contexte);
+
+	contexte.pousse_globale(m_chaine, valeur, this->type);
+
+	return valeur;
+}
+
+int NoeudConstante::calcul_type(ContexteGenerationCode &contexte)
+{
+	return contexte.type_globale(m_chaine);
 }
 
 /* ************************************************************************** */
@@ -580,10 +659,14 @@ void NoeudVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	llvm::Value *valeur = contexte.valeur_locale(m_chaine);
+	auto valeur = contexte.valeur_locale(m_chaine);
 
 	if (valeur == nullptr) {
-		throw "Variable inconnue";
+		valeur = contexte.valeur_globale(m_chaine);
+
+		if (valeur == nullptr) {
+			throw "Variable inconnue";
+		}
 	}
 
 	return new llvm::LoadInst(valeur, "", false, contexte.block_courant());
@@ -591,7 +674,13 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 
 int NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 {
-	return contexte.type_locale(m_chaine);
+	auto valeur = contexte.type_locale(m_chaine);
+
+	if (valeur == -1) {
+		valeur = contexte.type_globale(m_chaine);
+	}
+
+	return valeur;
 }
 
 /* ************************************************************************** */

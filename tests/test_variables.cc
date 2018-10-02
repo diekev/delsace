@@ -28,17 +28,66 @@
 
 static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction principale(compte : e32, arguments : e8) : e32
-			{
-				soit compte = 0;
-				retourne 0;
-			}
-			)";
+	/* redéfinition argument fonction */
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : e32, arguments : e8) : e32
+				{
+					soit compte = 0;
+					retourne 0;
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* redéfinition variable local */
+	{
+		const char *texte =
+				R"(
+				fonction principale()
+				{
+					soit x = 0;
+					soit x = 0;
+					retourne 0;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* redéfinition variable globale */
+	{
+		const char *texte =
+				R"(
+				soit constante PI = 3.14159;
+				fonction principale()
+				{
+					soit PI = 3.14159;
+					retourne 0;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* redéfinition variable énum */
+	{
+		const char *texte =
+				R"(
+				énum {
+					LUMIÈRE_DISTANTE = 0,
+				}
+				fonction principale()
+				{
+					soit LUMIÈRE_DISTANTE = 0;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
 }
 
 static void test_variable_indefinie(numero7::test_unitaire::ControleurUnitaire &controleur)

@@ -569,16 +569,26 @@ void analyseuse_grammaire::analyse_declaration_constante()
 		lance_erreur("Attendu une chaîne de caractère après 'constante'");
 	}
 
+	auto nom = m_identifiants[position()].chaine;
+	auto id = m_identifiants[position()].identifiant;
+	auto type = -1;
+
 	/* Vérifie s'il y a typage explicit */
 	if (est_identifiant(ID_DOUBLE_POINTS)) {
 		analyse_declaration_type();
+		type = m_identifiants[position()].identifiant;;
 	}
+
+	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, nom, id);
+	noeud->type = type;
 
 	if (!requiers_identifiant(ID_EGAL)) {
 		lance_erreur("Attendu '=' après la déclaration de la constante");
 	}
 
 	analyse_expression_droite(ID_POINT_VIRGULE);
+
+	m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
 }
 
 void analyseuse_grammaire::analyse_declaration_structure()
@@ -632,6 +642,13 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			break;
 		}
 
+		auto nom = m_identifiants[position()].chaine;
+		auto id = m_identifiants[position()].identifiant;
+		auto type = ID_E32;
+
+		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, nom, id);
+		noeud->type = type;
+
 		if (est_identifiant(ID_EGAL)) {
 			avance();
 
@@ -642,7 +659,15 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			}
 
 			avance();
+
+			nom = m_identifiants[position()].chaine;
+			id = m_identifiants[position()].identifiant;
+
+			m_assembleuse->ajoute_noeud(NOEUD_NOMBRE_ENTIER, nom, id);
+			m_assembleuse->sors_noeud(NOEUD_NOMBRE_ENTIER);
 		}
+
+		m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
 
 		if (!requiers_identifiant(ID_VIRGULE)) {
 			lance_erreur("Attendu ',' à la fin de la déclaration");

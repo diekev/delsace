@@ -86,6 +86,9 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const std::string &chaine, int id
 		case NOEUD_RETOUR:
 			noeud = new NoeudRetour(chaine, id);
 			break;
+		case NOEUD_CONSTANTE:
+			noeud = new NoeudConstante(chaine, id);
+			break;
 	}
 
 	if (noeud != nullptr) {

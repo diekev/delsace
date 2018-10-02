@@ -43,6 +43,7 @@ enum {
 	NOEUD_APPEL_FONCTION,
 	NOEUD_EXPRESSION,
 	NOEUD_VARIABLE,
+	NOEUD_CONSTANTE,
 	NOEUD_ASSIGNATION_VARIABLE,
 	NOEUD_NOMBRE_REEL,
 	NOEUD_NOMBRE_ENTIER,
@@ -136,6 +137,12 @@ struct ContexteGenerationCode {
 
 	llvm::BasicBlock *block_courant() const;
 
+	void pousse_globale(const std::string &nom, llvm::Value *valeur, int type);
+
+	llvm::Value *valeur_globale(const std::string &nom);
+
+	int type_globale(const std::string &nom);
+
 	void pousse_locale(const std::string &nom, llvm::Value *valeur, int type);
 
 	llvm::Value *valeur_locale(const std::string &nom);
@@ -148,6 +155,7 @@ struct ContexteGenerationCode {
 
 private:
 	std::stack<Block> pile_block;
+	std::unordered_map<std::string, DonneesVariable> globales;
 	std::unordered_map<std::string, DonneesFonction> fonctions;
 };
 
@@ -261,6 +269,19 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+};
+
+/* ************************************************************************** */
+
+class NoeudConstante final : public Noeud {
+public:
+	NoeudConstante(const std::string &chaine, int id);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int calcul_type(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
