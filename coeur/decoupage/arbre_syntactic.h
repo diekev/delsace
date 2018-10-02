@@ -106,6 +106,7 @@ struct ArgumentFonction {
 struct DonneesArgument {
 	size_t index;
 	int type;
+	int pad;
 };
 
 struct DonneesFonction {
@@ -227,6 +228,7 @@ class NoeudDeclarationFonction final : public Noeud {
 
 public:
 	int type_retour = -1;
+	int pad;
 
 	NoeudDeclarationFonction(const std::string &chaine, int id);
 
