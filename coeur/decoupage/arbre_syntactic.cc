@@ -231,6 +231,8 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 			auto valeur = enfant->genere_code_llvm(contexte);
 			parametres.push_back(valeur);
+
+			++index;
 		}
 	}
 	else {
