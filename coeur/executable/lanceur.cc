@@ -27,7 +27,13 @@
 #include <fstream>
 #include <iostream>
 
-#include <cstdio>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
 
 #include "decoupage/analyseuse_grammaire.h"
 #include "decoupage/arbre_syntactic.h"
@@ -64,14 +70,6 @@ static std::string charge_fichier(const char *chemin_fichier)
 
 	return texte;
 }
-
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Target/TargetMachine.h>
-#include <llvm/Target/TargetOptions.h>
 
 static void initialise_llvm()
 {
