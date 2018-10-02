@@ -550,7 +550,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
-		 * paranthèse fermante est trouvé est que la pile est vide */
+		 * paranthèse fermante est trouvé et que la pile est vide */
 		analyse_expression_droite(ID_VIRGULE);
 	}
 }
