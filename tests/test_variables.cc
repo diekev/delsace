@@ -24,51 +24,7 @@
 
 #include "test_variables.h"
 
-#include <llvm/IR/Module.h>
-
-#include "analyseuse_grammaire.h"
-#include "arbre_syntactic.h"
-#include "decoupeuse.h"
-#include "erreur.h"
-
-static bool retourne_erreur_lancee(const char *texte, const bool imprime_message)
-{
-	auto tampon = TamponSource(texte);
-
-	try {
-		decoupeuse_texte decoupeuse(tampon);
-		decoupeuse.genere_morceaux();
-
-		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
-		analyseuse.lance_analyse(decoupeuse.morceaux());
-
-		auto contexte = ContexteGenerationCode();
-		auto module = llvm::Module("test", contexte.contexte);
-		contexte.module = &module;
-
-		assembleuse.genere_code_llvm(contexte);
-	}
-	catch (const erreur::frappe &e) {
-		if (imprime_message) {
-			std::cerr << e.message() << '\n';
-		}
-
-		return true;
-	}
-	catch (const char *e) {
-		if (imprime_message) {
-			std::cerr << e << '\n';
-		}
-
-		return true;
-	}
-	catch (...) {
-		return true;
-	}
-
-	return false;
-}
+#include "outils.h"
 
 static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
 {

@@ -22,40 +22,6 @@
  *
  */
 
-#include "test_expression.h"
+#pragma once
 
-#include "outils.h"
-
-void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
-{
-	const char *texte =
-R"(fonction foo()
-{
-	soit x = a + b;
-	soit x = a - b;
-	soit x = a * b;
-	soit x = a / b;
-	soit x = a << b;
-	soit x = a >> b;
-	soit x = a == b;
-	soit x = a != b;
-	soit x = a <= b;
-	soit x = a >= b;
-	soit x = 0x80 <= a <= 0xBF;
-	soit x = a < b;
-	soit x = a > b;
-	soit x = a && b;
-	soit x = a & b;
-	soit x = a || b;
-	soit x = a | b;
-	soit x = a ^ b;
-	soit x = !a;
-	soit x = ~a;
-	soit x = @a;
-	soit x = a;
-}
-)";
-
-	const auto erreur_lancee = retourne_erreur_lancee(texte, true);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
-}
+bool retourne_erreur_lancee(const char *texte, const bool imprime_message);

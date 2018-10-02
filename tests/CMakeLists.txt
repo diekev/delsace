@@ -31,6 +31,7 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
+	outils.h
 	test_decoupage.h
 	test_decoupage_nombres.h
 	test_expression.h
@@ -39,6 +40,7 @@ set(SOURCES
 	test_unicode.h
 	test_variables.h
 
+	outils.cc
 	test_decoupage.cc
 	test_decoupage_nombres.cc
 	test_expression.cc
