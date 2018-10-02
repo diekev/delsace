@@ -27,6 +27,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <cstdio>
+
 #include "decoupage/analyseuse_grammaire.h"
 #include "decoupage/arbre_syntactic.h"
 #include "decoupage/decoupeuse.h"
@@ -187,6 +189,7 @@ int main(int argc, char *argv[])
 			module->dump();
 		}
 
+		delete machine_cible;
 		delete contexte_generation.module;
 	}
 	catch (const erreur::frappe &erreur_frappe) {
