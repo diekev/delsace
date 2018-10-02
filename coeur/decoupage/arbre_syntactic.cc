@@ -180,21 +180,43 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		throw "Fonction inconnue !\n";
 	}
 
+	auto donnees_fonction = contexte.donnees_fonction(m_chaine);
+
+	if (m_enfants.size() != donnees_fonction.args.size()) {
+		throw "Le nombre d'arguments de la fonction est incorrect.";
+	}
+
 	/* Cherche la liste d'arguments */
 	std::vector<llvm::Value *> parametres;
 
 	if (m_noms_arguments.empty()) {
 		parametres.reserve(m_enfants.size());
+		auto index = 0ul;
 
 		/* Les arguments sont dans l'ordre. */
-		for (auto noeud : m_enfants) {
-			auto valeur = noeud->genere_code_llvm(contexte);
+		for (const auto &enfant : m_enfants) {
+
+			/* À FAIRE : trouver mieux que ça. */
+			for (const auto &pair : donnees_fonction.args) {
+				if (pair.second.index != index) {
+					continue;
+				}
+
+				if (pair.second.type != enfant->calcul_type()) {
+					throw "Les types d'arguments ne correspondent pas !\n";
+				}
+			}
+
+			auto valeur = enfant->genere_code_llvm(contexte);
 			parametres.push_back(valeur);
 		}
 	}
 	else {
 		/* Il faut trouver l'ordre des arguments. À FAIRE : tests. */
-		auto donnees_fonction = contexte.donnees_fonction(m_chaine);
+
+		if (m_noms_arguments.size() != donnees_fonction.args.size()) {
+			throw "Le nombre d'arguments de la fonction est incorrect.";
+		}
 
 		/* Réordonne les enfants selon l'apparition des arguments car LLVM est
 		 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent

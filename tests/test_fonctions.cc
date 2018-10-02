@@ -188,6 +188,49 @@ static void test_type_argument_echec(
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 }
 
+static void test_nombre_argument(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	/* avec argument nommé */
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : e32, b : e32) : e32
+				{
+					retourne a + b;
+				}
+
+				fonction principale(compte : e32, arguments : e8) : e32
+				{
+					soit x = ajouter(a=5);
+					retourne x != 5;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* sans argument nommé */
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : e32, b : e32) : e32
+				{
+					retourne a + b;
+				}
+
+				fonction principale(compte : e32, arguments : e8) : e32
+				{
+					soit x = ajouter(5, 6, 7);
+					retourne x != 5;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+}
+
 void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	test_fonction_general(controleur);
@@ -195,4 +238,5 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 	test_argument_nomme_succes(controleur);
 	test_argument_nomme_echec(controleur);
 	test_type_argument_echec(controleur);
+	test_nombre_argument(controleur);
 }
