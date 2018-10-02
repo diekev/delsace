@@ -330,6 +330,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	llvm::ArrayRef<llvm::Type*> args(parametres);
 
+	/* À FAIRE : calcule type retour, considération fonction récursive. */
+
 	/* Crée fonction */
 	auto type_fonction = llvm::FunctionType::get(
 							 type_argument(contexte.contexte, this->type_retour),
@@ -443,6 +445,10 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 		if (this->type == -1) {
 			throw "Impossible de définir le type de la variable !";
+		}
+
+		if (this->type == ID_RIEN) {
+			throw "Impossible d'assigner une expression de type 'rien' à une variable !";
 		}
 	}
 

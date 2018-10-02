@@ -226,7 +226,7 @@ class NoeudDeclarationFonction final : public Noeud {
 	std::vector<ArgumentFonction> m_arguments;
 
 public:
-	int type_retour = 0;
+	int type_retour = -1;
 
 	NoeudDeclarationFonction(const std::string &chaine, int id);
 
