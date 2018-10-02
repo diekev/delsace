@@ -24,8 +24,6 @@
 
 #include "test_fonctions.h"
 
-#include <cstring>
-
 #include "analyseuse_grammaire.h"
 #include "decoupeuse.h"
 #include "erreur.h"
