@@ -116,6 +116,9 @@ int main(int argc, char *argv[])
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 	}
+	catch (const char *e) {
+		std::cerr << e << '\n';
+	}
 
 	const auto temps_scene = temps_tampon
 							 + temps_decoupage

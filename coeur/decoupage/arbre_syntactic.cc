@@ -373,6 +373,12 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
+	auto valeur = contexte.locale(m_chaine);
+
+	if (valeur != nullptr) {
+		throw "Variable redéfinie !";
+	}
+
 	assert(m_enfants.size() == 1);
 
 	if (this->type == -1) {
@@ -382,7 +388,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 	 * la variable sur la pile et celle de stockage de la valeur soit côte à
 	 * côte. */
-	auto valeur = m_enfants[0]->genere_code_llvm(contexte);
+	valeur = m_enfants[0]->genere_code_llvm(contexte);
 
 	auto type_llvm = type_argument(contexte.contexte, this->type);
 	auto alloc = new llvm::AllocaInst(type_llvm, m_chaine, contexte.block_courant());
@@ -472,8 +478,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 	llvm::Value *valeur = contexte.locale(m_chaine);
 
 	if (valeur == nullptr) {
-		std::cerr << "NoeudVariable::genere_code_llvm : Variable '" << m_chaine << "' inconnue !\n";
-		return nullptr;
+		throw "Variable inconnue";
 	}
 
 	return new llvm::LoadInst(valeur, "", false, contexte.block_courant());
@@ -524,6 +529,10 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 	}
 
 	assert(m_enfants.size() == 2);
+
+	if (m_enfants[0]->calcul_type() != m_enfants[1]->calcul_type()) {
+		throw "Les types de l'opération sont différents !";
+	}
 
 	auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
 	auto valeur2 = m_enfants[1]->genere_code_llvm(contexte);
