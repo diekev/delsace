@@ -82,6 +82,32 @@ static void initialise_llvm()
 	llvm::InitializeAllAsmPrinters();
 }
 
+static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
+{
+	auto chemin_sortie = "/tmp/kuri.o";
+	std::error_code ec;
+
+	llvm::raw_fd_ostream dest(chemin_sortie, ec, llvm::sys::fs::F_None);
+
+	if (ec) {
+		std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
+		return false;
+	}
+
+	llvm::legacy::PassManager pass;
+	auto type_fichier = llvm::TargetMachine::CGFT_ObjectFile;
+
+	if (machine_cible->addPassesToEmitFile(pass, dest, type_fichier)) {
+		std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
+		return false;
+	}
+
+	pass.run(module);
+	dest.flush();
+
+	return true;
+}
+
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -100,6 +126,7 @@ int main(int argc, char *argv[])
 
 	std::ostream &os = std::cout;
 
+	auto resultat = 0;
 	auto temps_chargement      = 0.0;
 	auto temps_tampon          = 0.0;
 	auto temps_decoupage       = 0.0;
@@ -148,11 +175,11 @@ int main(int argc, char *argv[])
 		auto machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options, RM);
 
 		ContexteGenerationCode contexte_generation;
-		auto module = new llvm::Module(chemin_fichier, contexte_generation.contexte);
-		module->setDataLayout(machine_cible->createDataLayout());
-		module->setTargetTriple(triplet_cible);
+		auto module = llvm::Module(chemin_fichier, contexte_generation.contexte);
+		module.setDataLayout(machine_cible->createDataLayout());
+		module.setTargetTriple(triplet_cible);
 
-		contexte_generation.module = module;
+		contexte_generation.module = &module;
 
 		const auto debut_generation_code = numero7::chronometrage::maintenant();
 		assembleuse.genere_code_llvm(contexte_generation);
@@ -162,35 +189,15 @@ int main(int argc, char *argv[])
 		const auto emet_fichier_objet = false;
 
 		if (emet_fichier_objet) {
-			auto chemin_sortie = "/tmp/kuri.o";
-			std::error_code ec;
-
-			llvm::raw_fd_ostream dest(chemin_sortie, ec, llvm::sys::fs::F_None);
-
-			if (ec) {
-				std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
-				delete module;
-				return 1;
+			if (!ecris_fichier_objet(machine_cible, module)) {
+				resultat = 1;
 			}
-
-			llvm::legacy::PassManager pass;
-			auto type_fichier = llvm::TargetMachine::CGFT_ObjectFile;
-
-			if (machine_cible->addPassesToEmitFile(pass, dest, type_fichier)) {
-				std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
-				delete module;
-				return 1;
-			}
-
-			pass.run(*module);
-			dest.flush();
 		}
 		else {
-			module->dump();
+			module.dump();
 		}
 
 		delete machine_cible;
-		delete contexte_generation.module;
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
@@ -232,4 +239,6 @@ int main(int argc, char *argv[])
 	   << " (" << pourcentage(temps_coulisse, temps_total) << "%)\n";
 	os << '\t' << "Temps génération code : " << temps_generation_code
 	   << " (" << pourcentage(temps_generation_code, temps_coulisse) << "%)\n";
+
+	return resultat;
 }
