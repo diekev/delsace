@@ -169,9 +169,9 @@ void assembleuse_arbre::genere_code_llvm()
 		return;
 	}
 
-	contexte_generation.module->dump();
+//	contexte_generation.module->dump();
 
-	pass.run(*module);
+//	pass.run(*module);
 	dest.flush();
 
 	delete contexte_generation.module;

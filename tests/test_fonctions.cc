@@ -30,7 +30,36 @@
 #include "decoupeuse.h"
 #include "erreur.h"
 
-void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
+static bool retourne_erreur_lancee(const char *texte, const bool imprime_message)
+{
+	auto tampon = TamponSource(texte);
+
+	try {
+		decoupeuse_texte decoupeuse(tampon);
+		decoupeuse.genere_morceaux();
+
+		auto assembleuse = assembleuse_arbre();
+		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
+		analyseuse.lance_analyse(decoupeuse.morceaux());
+
+		assembleuse.genere_code_llvm();
+	}
+	catch (const erreur::frappe &e) {
+		if (imprime_message) {
+			std::cerr << e.message() << '\n';
+		}
+
+		return true;
+	}
+	catch (...) {
+		return true;
+	}
+
+	return false;
+}
+
+static void test_fonction_general(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	const char *texte =
 			R"(
@@ -54,24 +83,116 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 			}
 			)";
 
-	auto tampon = TamponSource(texte);
-	auto erreur_lancee = false;
-
-	try {
-		decoupeuse_texte decoupeuse(tampon);
-		decoupeuse.genere_morceaux();
-
-		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
-		analyseuse.lance_analyse(decoupeuse.morceaux());
-	}
-	catch (const erreur::frappe &e) {
-		std::cerr << e.message() << '\n';
-		erreur_lancee = true;
-	}
-	catch (...) {
-		erreur_lancee = true;
-	}
-
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+}
+
+static void test_fonction_inconnue(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	const char *texte =
+			R"(
+			fonction principale(compte : e32, arguments : e8) : e32
+			{
+				retourne sortie(0);
+			}
+			)";
+
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+}
+
+static void test_argument_nomme_succes(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	const char *texte =
+			R"(
+			fonction ajouter(a : e32, b : e32) : e32
+			{
+				retourne a + b;
+			}
+
+			fonction principale(compte : e32, arguments : e8) : e32
+			{
+				soit x = ajouter(a=5, b=6);
+				soit y = ajouter(b=5, a=6);
+				retourne x - y;
+			}
+			)";
+
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+}
+
+static void test_argument_nomme_echec(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	/* argument redondant */
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : e32, b : e32) : e32
+				{
+					retourne a + b;
+				}
+
+				fonction principale(compte : e32, arguments : e8) : e32
+				{
+					soit x = ajouter(a=5, a=6);
+					retourne x != 5;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* argument inconnu */
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : e32, b : e32) : e32
+				{
+					retourne a + b;
+				}
+
+				fonction principale(compte : e32, arguments : e8) : e32
+				{
+					soit x = ajouter(a=5, c=6);
+					retourne x != 5;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+}
+
+static void test_type_argument_echec(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	const char *texte =
+			R"(
+			fonction ajouter(a : e32, b : e32) : e32
+			{
+				retourne a + b;
+			}
+
+			fonction principale(compte : e32, arguments : e8) : e32
+			{
+				soit x = ajouter(a=5.0, b=6.0);
+				retourne x != 5;
+			}
+			)";
+
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+}
+
+void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	test_fonction_general(controleur);
+	test_fonction_inconnue(controleur);
+	test_argument_nomme_succes(controleur);
+	test_argument_nomme_echec(controleur);
+	test_type_argument_echec(controleur);
 }

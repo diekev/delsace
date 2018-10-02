@@ -177,8 +177,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	auto fonction = contexte.module->getFunction(m_chaine);
 
 	if (fonction == nullptr) {
-		std::cerr << "Impossible de trouver la fonction '" << m_chaine << "' !\n";
-		return nullptr;
+		throw "Fonction inconnue !\n";
 	}
 
 	/* Cherche la liste d'arguments */
@@ -205,7 +204,19 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		enfants.reserve(m_noms_arguments.size());
 
 		for (const auto &nom : m_noms_arguments) {
-			auto index = donnees_fonction.index_args[nom];
+			auto iter = donnees_fonction.args.find(nom);
+
+			if (iter == donnees_fonction.args.end()) {
+				throw "Argument inconnu !\n";
+			}
+
+			const auto index = iter->second.index;
+			const auto type = iter->second.type;
+
+			if (type != m_enfants[index]->calcul_type()) {
+				throw "Les types d'arguments ne correspondent pas !\n";
+			}
+
 			enfants.push_back(m_enfants[index]);
 		}
 
@@ -294,7 +305,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 						 argument.chaine,
 						 contexte.block_courant());
 
-		donnees_fonctions.index_args.insert({argument.chaine, index++});
+		donnees_fonctions.args.insert({argument.chaine, {index++, argument.id_type}});
 
 		contexte.pousse_locale(argument.chaine, alloc);
 

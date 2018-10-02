@@ -103,8 +103,13 @@ struct ArgumentFonction {
 	int id_type;
 };
 
+struct DonneesArgument {
+	size_t index;
+	int type;
+};
+
 struct DonneesFonction {
-	std::unordered_map<std::string, size_t> index_args;
+	std::unordered_map<std::string, DonneesArgument> args;
 };
 
 struct Block {
