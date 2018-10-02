@@ -359,6 +359,10 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	donnees_fonctions.type_retour = this->type_retour;
 
 	for (const auto &argument : m_arguments) {
+		if (contexte.valeur_locale(argument.chaine) != nullptr) {
+			throw "Redéclaration de l'argument !";
+		}
+
 		auto alloc = new llvm::AllocaInst(
 						 type_argument(contexte.contexte, argument.id_type),
 						 argument.chaine,
