@@ -52,6 +52,52 @@ enum {
 
 /* ************************************************************************** */
 
+/* Idée pour un réusinage du code pour supprimer les tables virtuelles des
+ * noeuds. Ces tables virtuelles doivent à chaque fois être résolues ce qui
+ * nous fait perdre du temps. Au lieu d'avoir un système d'héritage, nous
+ * pourrions avoir un système plus manuel selon les observations suivantes :
+ *
+ * noeud racine : multiples enfants pouvant être dans des tableaux différents
+ * -- noeud déclaration fonction
+ * -- noeud déclaration structure
+ * -- noeud déclaration énum
+ *
+ * noeud déclaration fonction : multiples enfants de types différents
+ * -- déclaration variable / expression / retour / controle flux
+ *
+ * noeud appel fonction : multiples enfants de mêmes types
+ * -- noeud expression
+ *
+ * noeud déclaration variable : un seul enfant
+ * -- noeud expression
+ *
+ * noeud retour : un seul enfant
+ * -- noeud expression
+ *
+ * noeud opérateur : 1 ou 2 enfants de même type
+ * -- noeud expression
+ *
+ * noeud expression : un seul enfant, peut utiliser une énumeration pour choisir
+ *                    le bon noeud
+ * -- noeud (variable | opérateur | nombre entier | nombre réel | appel fonction)
+ *
+ * noeud variable : aucun enfant
+ * noeud nombre entier : aucun enfant
+ * noeud nombre réel : aucun enfant
+ *
+ * Le seul type de neoud posant problème est le noeud de déclaration de
+ * fonction, mais nous pourrions avoir des tableaux séparés avec une structure
+ * de données pour définir l'ordre d'apparition des noeuds des tableaux dans la
+ * fonction. Tous les autres types de noeuds ont des enfants bien défini, donc
+ * nous pourrions peut-être supprimer l'héritage, tout en forçant une interface
+ * commune à tous les noeuds.
+ *
+ * Mais pour tester ce réusinage, ce vaudrait bien essayer d'attendre que le
+ * langage soit un peu mieux défini.
+ */
+
+/* ************************************************************************** */
+
 struct ArgumentFonction {
 	std::string chaine;
 	int id_type;
