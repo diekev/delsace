@@ -25,6 +25,7 @@
 #include "analyseuse_grammaire.h"
 
 #include <iostream>
+#include <set>
 #include <stack>
 
 #include "arbre_syntactic.h"
@@ -375,7 +376,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 
 			auto noeud = m_assembleuse->ajoute_noeud(NOEUD_APPEL_FONCTION, symbole.chaine, symbole.identifiant, false);
 
-			analyse_appel_fonction();
+			analyse_appel_fonction(dynamic_cast<NoeudAppelFonction *>(noeud));
 
 			m_assembleuse->sors_noeud(NOEUD_APPEL_FONCTION);
 
@@ -514,22 +515,43 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 }
 
 /* f(g(5, 6 + 3 * (2 - 5)), h()); */
-void analyseuse_grammaire::analyse_appel_fonction()
+void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
 
-	/* aucun paramètre, ou la liste de paramètre est vide */
-	if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
-		return;
-	}
+	auto arguments_nommees = false;
+	std::set<std::string> args;
 
-	/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
-	 * si identifiant final == ')', alors l'algorithme s'arrête quand une
-	 * paranthèse fermante est trouvé est que la pile est vide */
-	analyse_expression_droite(ID_VIRGULE);
+	while (true) {
+		/* aucun paramètre, ou la liste de paramètre est vide */
+		if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
+			return;
+		}
 
-	if (!est_identifiant(ID_PARENTHESE_FERMANTE)) {
-		analyse_appel_fonction();
+		if (sont_2_identifiants(ID_CHAINE_CARACTERE, ID_EGAL)) {
+			avance();
+			arguments_nommees = true;
+
+			auto nom_argument = m_identifiants[position()].chaine;
+
+			if (args.find(nom_argument) != args.end()) {
+				lance_erreur("Argument déjà nommé");
+			}
+
+			args.insert(nom_argument);
+			noeud->ajoute_nom_argument(nom_argument);
+
+			avance();
+		}
+		else if (arguments_nommees == true) {
+			avance();
+			lance_erreur("Attendu le nom de l'argument");
+		}
+
+		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
+		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
+		 * paranthèse fermante est trouvé est que la pile est vide */
+		analyse_expression_droite(ID_VIRGULE);
 	}
 }
 

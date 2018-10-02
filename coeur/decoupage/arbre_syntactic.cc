@@ -105,6 +105,16 @@ llvm::Value *ContexteGenerationCode::locale(const std::string &nom)
 	return iter->second;
 }
 
+void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees)
+{
+	fonctions.insert({nom, donnees});
+}
+
+DonneesFonction ContexteGenerationCode::donnees_fonction(const std::string &nom)
+{
+	return fonctions[nom];
+}
+
 /* ************************************************************************** */
 
 Noeud::Noeud(const std::string &chaine, int id)
@@ -174,9 +184,36 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	/* Cherche la liste d'arguments */
 	std::vector<llvm::Value *> parametres;
 
-	for (auto noeud : m_enfants) {
-		auto valeur = noeud->genere_code_llvm(contexte);
-		parametres.push_back(valeur);
+	if (m_noms_arguments.empty()) {
+		parametres.reserve(m_enfants.size());
+
+		/* Les arguments sont dans l'ordre. */
+		for (auto noeud : m_enfants) {
+			auto valeur = noeud->genere_code_llvm(contexte);
+			parametres.push_back(valeur);
+		}
+	}
+	else {
+		/* Il faut trouver l'ordre des arguments. À FAIRE : tests. */
+		auto donnees_fonction = contexte.donnees_fonction(m_chaine);
+
+		/* Réordonne les enfants selon l'apparition des arguments car LLVM est
+		 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
+		 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
+		 * code est généré. */
+		std::vector<Noeud *> enfants;
+		enfants.reserve(m_noms_arguments.size());
+
+		for (const auto &nom : m_noms_arguments) {
+			auto index = donnees_fonction.index_args[nom];
+			enfants.push_back(m_enfants[index]);
+		}
+
+		parametres.reserve(m_noms_arguments.size());
+
+		for (const auto &enfant : enfants) {
+			parametres.push_back(enfant->genere_code_llvm(contexte));
+		}
 	}
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
@@ -187,6 +224,11 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 int NoeudAppelFonction::calcul_type()
 {
 	return this->type;
+}
+
+void NoeudAppelFonction::ajoute_nom_argument(const std::string &nom)
+{
+	m_noms_arguments.push_back(nom);
 }
 
 /* ************************************************************************** */
@@ -243,12 +285,16 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Crée code pour les arguments */
 	auto valeurs_args = fonction->arg_begin();
+	auto donnees_fonctions = DonneesFonction();
+	auto index = 0ul;
 
 	for (const auto &argument : m_arguments) {
 		auto alloc = new llvm::AllocaInst(
 						 type_argument(contexte.contexte, argument.id_type),
 						 argument.chaine,
 						 contexte.block_courant());
+
+		donnees_fonctions.index_args.insert({argument.chaine, index++});
 
 		contexte.pousse_locale(argument.chaine, alloc);
 
@@ -257,6 +303,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 		new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 	}
+
+	contexte.ajoute_donnees_fonctions(m_chaine, donnees_fonctions);
 
 	/* Crée code pour les expressions */
 	for (auto noeud : m_enfants) {

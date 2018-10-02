@@ -178,6 +178,8 @@ déclation paramètres fonction :
 chaine :   type
 chaine : * type
 
+Il est possible de nommer les arguments de l'appel d'une fonction. Si l'on commence à nommer les arguments, tous les arguments doivent être nommés.
+
 
 # Expression
 ------------

@@ -57,6 +57,10 @@ struct ArgumentFonction {
 	int id_type;
 };
 
+struct DonneesFonction {
+	std::unordered_map<std::string, size_t> index_args;
+};
+
 struct Block {
 	llvm::BasicBlock *block;
 	std::unordered_map<std::string, llvm::Value *> locals;
@@ -76,8 +80,13 @@ struct ContexteGenerationCode {
 
 	llvm::Value *locale(const std::string &nom);
 
+	void ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees);
+
+	DonneesFonction donnees_fonction(const std::string &nom);
+
 private:
 	std::stack<Block> pile_block;
+	std::unordered_map<std::string, DonneesFonction> fonctions;
 };
 
 /* ************************************************************************** */
@@ -135,6 +144,9 @@ public:
 /* ************************************************************************** */
 
 class NoeudAppelFonction final : public Noeud {
+	/* les noms des arguments s'il sont nommés */
+	std::vector<std::string> m_noms_arguments;
+
 public:
 	NoeudAppelFonction(const std::string &chaine, int id);
 
@@ -143,6 +155,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	int calcul_type() override;
+
+	void ajoute_nom_argument(const std::string &nom);
 };
 
 /* ************************************************************************** */
