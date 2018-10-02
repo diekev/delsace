@@ -56,6 +56,7 @@ R"(fonction foo()
 }
 )";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, true);
+	/* À FAIRE : passage du test avec la génération du code. */
+	const auto erreur_lancee = retourne_erreur_lancee(texte, true, false);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 }

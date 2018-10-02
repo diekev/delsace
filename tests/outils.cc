@@ -31,7 +31,10 @@
 #include "decoupeuse.h"
 #include "erreur.h"
 
-bool retourne_erreur_lancee(const char *texte, const bool imprime_message)
+bool retourne_erreur_lancee(
+		const char *texte,
+		const bool imprime_message,
+		const bool genere_code)
 {
 	auto tampon = TamponSource(texte);
 
@@ -43,11 +46,13 @@ bool retourne_erreur_lancee(const char *texte, const bool imprime_message)
 		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 
-		auto contexte = ContexteGenerationCode();
-		auto module = llvm::Module("test", contexte.contexte);
-		contexte.module = &module;
+		if (genere_code) {
+			auto contexte = ContexteGenerationCode();
+			auto module = llvm::Module("test", contexte.contexte);
+			contexte.module = &module;
 
-		assembleuse.genere_code_llvm(contexte);
+			assembleuse.genere_code_llvm(contexte);
+		}
 	}
 	catch (const erreur::frappe &e) {
 		if (imprime_message) {

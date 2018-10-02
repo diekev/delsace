@@ -24,4 +24,7 @@
 
 #pragma once
 
-bool retourne_erreur_lancee(const char *texte, const bool imprime_message);
+bool retourne_erreur_lancee(
+		const char *texte,
+		const bool imprime_message,
+		const bool genere_code = true);
