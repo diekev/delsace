@@ -24,10 +24,7 @@
 
 #include "analyseuse.h"
 
-#include <sstream>
-
 #include "erreur.h"
-#include "unicode.h"
 
 Analyseuse::Analyseuse(const TamponSource &tampon)
 	: m_tampon(tampon)
@@ -98,38 +95,5 @@ int Analyseuse::identifiant_courant() const
 
 void Analyseuse::lance_erreur(const std::string &quoi)
 {
-	const auto ligne = m_identifiants[position()].ligne;
-	const auto pos_mot = m_identifiants[position()].pos;
-	const auto identifiant = m_identifiants[position()].identifiant;
-	const auto &chaine = m_identifiants[position()].chaine;
-
-	auto ligne_courante = m_tampon[ligne];
-
-	std::stringstream ss;
-	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
-	ss << ligne_courante;
-
-	/* La position ligne est en octet, il faut donc compter le nombre d'octets
-	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < pos_mot; i += static_cast<size_t>(nombre_octets(&ligne_courante[i]))) {
-		if (ligne_courante[i] == '\t') {
-			ss << '\t';
-		}
-		else {
-			ss << ' ';
-		}
-	}
-
-	ss << '^';
-
-	for (size_t i = 0; i < chaine.size() - 1; ++i) {
-		ss << '~';
-	}
-
-	ss << '\n';
-
-	ss << quoi;
-	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
-
-	throw erreur::frappe(ss.str().c_str());
+	erreur::lance_erreur(quoi, m_tampon, m_identifiants[position()]);
 }

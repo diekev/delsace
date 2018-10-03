@@ -24,6 +24,12 @@
 
 #include "erreur.h"
 
+#include <sstream>
+
+#include "morceaux.h"
+#include "tampon_source.h"
+#include "unicode.h"
+
 namespace erreur {
 
 frappe::frappe(const char *message)
@@ -33,6 +39,44 @@ frappe::frappe(const char *message)
 const char *frappe::message() const
 {
 	return m_message.c_str();
+}
+
+void lance_erreur(const std::string &quoi, const TamponSource &tampon, const DonneesMorceaux &morceau)
+{
+	const auto ligne = morceau.ligne;
+	const auto pos_mot = morceau.pos;
+	const auto identifiant = morceau.identifiant;
+	const auto &chaine = morceau.chaine;
+
+	auto ligne_courante = tampon[ligne];
+
+	std::stringstream ss;
+	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
+	ss << ligne_courante;
+
+	/* La position ligne est en octet, il faut donc compter le nombre d'octets
+	 * de chaque point de code pour bien formater l'erreur. */
+	for (size_t i = 0; i < pos_mot; i += static_cast<size_t>(nombre_octets(&ligne_courante[i]))) {
+		if (ligne_courante[i] == '\t') {
+			ss << '\t';
+		}
+		else {
+			ss << ' ';
+		}
+	}
+
+	ss << '^';
+
+	for (size_t i = 0; i < chaine.size() - 1; ++i) {
+		ss << '~';
+	}
+
+	ss << '\n';
+
+	ss << quoi;
+	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
+
+	throw erreur::frappe(ss.str().c_str());
 }
 
 }

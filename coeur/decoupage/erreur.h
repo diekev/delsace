@@ -26,6 +26,9 @@
 
 #include <string>
 
+struct DonneesMorceaux;
+struct TamponSource;
+
 namespace erreur {
 
 class frappe {
@@ -37,4 +40,8 @@ public:
 	const char *message() const;
 };
 
+[[noreturn]] void lance_erreur(
+		const std::string &quoi,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau);
 }
