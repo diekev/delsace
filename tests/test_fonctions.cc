@@ -214,6 +214,26 @@ static void test_argument_unique(
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 }
 
+static void test_fonction_redinie(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	const char *texte =
+			R"(
+			fonction principale(compte : e32, arguments : e8) : e32
+			{
+				retourne 0;
+			}
+
+			fonction principale(compte : e32, arguments : e8) : e32
+			{
+				retourne 0;
+			}
+			)";
+
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+}
+
 void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	test_fonction_general(controleur);
@@ -223,4 +243,5 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 	test_type_argument_echec(controleur);
 	test_nombre_argument(controleur);
 	test_argument_unique(controleur);
+	test_fonction_redinie(controleur);
 }

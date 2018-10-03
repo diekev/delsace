@@ -380,6 +380,12 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
+	auto fonction = contexte.module->getFunction(m_chaine);
+
+	if (fonction != nullptr) {
+		throw "Redéfinition de la fonction !";
+	}
+
 	/* Crée la liste de paramètres */
 	std::vector<llvm::Type *> parametres(m_arguments.size());
 
@@ -399,11 +405,11 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 							 args,
 							 false);
 
-	auto fonction = llvm::Function::Create(
-						type_fonction,
-						llvm::Function::ExternalLinkage,
-						m_chaine,
-						contexte.module);
+	fonction = llvm::Function::Create(
+				   type_fonction,
+				   llvm::Function::ExternalLinkage,
+				   m_chaine,
+				   contexte.module);
 
 	auto block = llvm::BasicBlock::Create(
 					 contexte.contexte,
