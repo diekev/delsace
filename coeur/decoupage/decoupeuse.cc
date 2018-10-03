@@ -43,7 +43,6 @@ bool est_espace_blanc(char c)
 
 decoupeuse_texte::decoupeuse_texte(const TamponSource &tampon)
 	: m_tampon(tampon)
-	, m_debut_orig(m_tampon.debut())
 	, m_debut_mot(m_tampon.debut())
 	, m_debut(m_tampon.debut())
 	, m_fin(m_tampon.fin())

@@ -32,7 +32,6 @@
 
 class decoupeuse_texte {
 	const TamponSource &m_tampon;
-	const char *m_debut_orig = nullptr;
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
