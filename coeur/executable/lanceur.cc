@@ -50,7 +50,7 @@ struct OptionsCompilation {
 	char pad[6];
 };
 
-static OptionsCompilation genere_argument_compilation(int argc, char **argv)
+static OptionsCompilation genere_options_compilation(int argc, char **argv)
 {
 	OptionsCompilation opts;
 
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	const auto ops = genere_argument_compilation(argc, argv);
+	const auto ops = genere_options_compilation(argc, argv);
 
 	const auto chemin_fichier = ops.chemin_fichier;
 
