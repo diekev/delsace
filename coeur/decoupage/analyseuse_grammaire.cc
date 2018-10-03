@@ -87,10 +87,12 @@ static bool est_nombre_entier(int identifiant)
 	}
 }
 
+#if 0
 static bool est_nombre(int identifiant)
 {
 	return est_nombre_entier(identifiant) || (identifiant == ID_NOMBRE_REEL);
 }
+#endif
 
 static bool est_operateur_simple(int identifiant)
 {
