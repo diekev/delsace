@@ -108,3 +108,8 @@ DonneesFonction ContexteGenerationCode::donnees_fonction(const std::string &nom)
 {
 	return fonctions[nom];
 }
+
+bool ContexteGenerationCode::fonction_existe(const std::string &nom)
+{
+	return fonctions.find(nom) != fonctions.end();
+}

@@ -298,12 +298,6 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto fonction = contexte.module->getFunction(m_donnees_morceaux.chaine);
-
-	if (fonction != nullptr) {
-		throw "Redéfinition de la fonction !";
-	}
-
 	/* Crée la liste de paramètres */
 	std::vector<llvm::Type *> parametres(m_arguments.size());
 
@@ -323,7 +317,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 							 args,
 							 false);
 
-	fonction = llvm::Function::Create(
+	auto fonction = llvm::Function::Create(
 				   type_fonction,
 				   llvm::Function::ExternalLinkage,
 				   m_donnees_morceaux.chaine,
@@ -338,10 +332,6 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Crée code pour les arguments */
 	auto valeurs_args = fonction->arg_begin();
-	auto index = 0ul;
-
-	auto donnees_fonctions = DonneesFonction();
-	donnees_fonctions.type_retour = this->type_retour;
 
 	for (const auto &argument : m_arguments) {
 		if (contexte.valeur_locale(argument.chaine) != nullptr) {
@@ -353,8 +343,6 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 						 argument.chaine,
 						 contexte.block_courant());
 
-		donnees_fonctions.args.insert({argument.chaine, {index++, argument.id_type, 0}});
-
 		contexte.pousse_locale(argument.chaine, alloc, argument.id_type);
 
 		llvm::Value *valeur = &*valeurs_args++;
@@ -362,8 +350,6 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 		new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 	}
-
-	contexte.ajoute_donnees_fonctions(m_donnees_morceaux.chaine, donnees_fonctions);
 
 	/* Crée code pour les expressions */
 	for (auto noeud : m_enfants) {

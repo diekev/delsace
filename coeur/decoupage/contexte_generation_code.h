@@ -35,15 +35,15 @@ class Value;
 }  /* namespace llvm */
 
 struct DonneesArgument {
-	size_t index;
-	int type;
-	int pad;
+	size_t index = 0;
+	int type = -1;
+	int pad = 0;
 };
 
 struct DonneesFonction {
-	std::unordered_map<std::string, DonneesArgument> args;
-	int type_retour;
-	int pad;
+	std::unordered_map<std::string, DonneesArgument> args{};
+	int type_retour = -1;
+	int pad = 0;
 };
 
 struct DonneesVariable {
@@ -81,7 +81,15 @@ struct ContexteGenerationCode {
 
 	void ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees);
 
+	/* ********************************************************************** */
+
 	DonneesFonction donnees_fonction(const std::string &nom);
+
+	/**
+	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
+	 * ayant déjà été ajouté à la liste de fonctions de ce contexte.
+	 */
+	bool fonction_existe(const std::string &nom);
 
 private:
 	std::stack<Block> pile_block;

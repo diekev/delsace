@@ -31,18 +31,22 @@
 class NoeudAppelFonction;
 class NoeudDeclarationFonction;
 
+struct ContexteGenerationCode;
+struct DonneesFonction;
+
 class analyseuse_grammaire : public Analyseuse {
 	assembleuse_arbre *m_assembleuse = nullptr;
+	ContexteGenerationCode &m_contexte;
 
 public:
-	analyseuse_grammaire(const TamponSource &tampon, assembleuse_arbre *assembleuse);
+	analyseuse_grammaire(ContexteGenerationCode &contexte, const TamponSource &tampon, assembleuse_arbre *assembleuse);
 
 	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
 
 private:
 	void analyse_corps();
 	void analyse_declaration_fonction();
-	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud);
+	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees);
 	void analyse_corps_fonction();
 	void analyse_expression_droite(int identifiant_final);
 	void analyse_appel_fonction(NoeudAppelFonction *noeud);

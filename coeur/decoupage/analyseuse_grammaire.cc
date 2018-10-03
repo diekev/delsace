@@ -29,6 +29,7 @@
 #include <stack>
 
 #include "arbre_syntactic.h"
+#include "contexte_generation_code.h"
 #include "expression.h"
 
 #undef DEBOGUE_EXPRESSION
@@ -140,9 +141,10 @@ static bool est_operateur(int identifiant)
 
 /* ************************************************************************** */
 
-analyseuse_grammaire::analyseuse_grammaire(const TamponSource &tampon, assembleuse_arbre *assembleuse)
+analyseuse_grammaire::analyseuse_grammaire(ContexteGenerationCode &contexte, const TamponSource &tampon, assembleuse_arbre *assembleuse)
 	: Analyseuse(tampon)
 	, m_assembleuse(assembleuse)
+	, m_contexte(contexte)
 {}
 
 void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
@@ -199,6 +201,11 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	// crée noeud fonction
 	const auto nom_fonction = m_identifiants[position()].chaine;
+
+	if (m_contexte.fonction_existe(nom_fonction)) {
+		lance_erreur("Redéfinition de la fonction");
+	}
+
 	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
 
@@ -206,7 +213,9 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
 	}
 
-	analyse_parametres_fonction(noeud_declaration);
+	auto donnees_fonctions = DonneesFonction{};
+
+	analyse_parametres_fonction(noeud_declaration, donnees_fonctions);
 
 	if (!requiers_identifiant(ID_PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
@@ -216,7 +225,10 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	if (est_identifiant(ID_DOUBLE_POINTS)) {
 		analyse_declaration_type();
 		noeud_declaration->type_retour = m_identifiants[position()].identifiant;
+		donnees_fonctions.type_retour = noeud_declaration->type_retour;
 	}
+
+	m_contexte.ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
 	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
@@ -231,7 +243,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	m_assembleuse->sors_noeud(NOEUD_DECLARATION_FONCTION);
 }
 
-void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud)
+void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees)
 {
 	if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
 		/* La liste est vide. */
@@ -246,9 +258,19 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 
 	arg.chaine = m_identifiants[position()].chaine;
 
+	if (donnees.args.find(arg.chaine) != donnees.args.end()) {
+		lance_erreur("Redéfinition de l'argument");
+	}
+
 	analyse_declaration_type();
 
 	arg.id_type = m_identifiants[position()].identifiant;
+
+	DonneesArgument donnees_arg;
+	donnees_arg.index = donnees.args.size();
+	donnees_arg.type = arg.id_type;
+
+	donnees.args.insert({arg.chaine, donnees_arg});
 
 	noeud->ajoute_argument(arg);
 
@@ -258,7 +280,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		return;
 	}
 
-	analyse_parametres_fonction(noeud);
+	analyse_parametres_fonction(noeud, donnees);
 }
 
 void analyseuse_grammaire::analyse_corps_fonction()

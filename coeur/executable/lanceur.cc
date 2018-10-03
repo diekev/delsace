@@ -175,6 +175,7 @@ int main(int argc, char *argv[])
 	temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
 
 	try {
+		auto contexte_generation = ContexteGenerationCode{};
 		auto decoupeuse = decoupeuse_texte(tampon);
 
 		os << "Découpage du texte..." << std::endl;
@@ -183,7 +184,7 @@ int main(int argc, char *argv[])
 		temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupeuse;
 
 		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
+		auto analyseuse = analyseuse_grammaire(contexte_generation, tampon, &assembleuse);
 
 		os << "Analyse de morceaux..." << std::endl;
 		const auto debut_analyseuse = numero7::chronometrage::maintenant();
@@ -208,7 +209,6 @@ int main(int argc, char *argv[])
 		auto RM = llvm::Optional<llvm::Reloc::Model>();
 		auto machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options, RM);
 
-		ContexteGenerationCode contexte_generation;
 		auto module = llvm::Module(chemin_fichier, contexte_generation.contexte);
 		module.setDataLayout(machine_cible->createDataLayout());
 		module.setTargetTriple(triplet_cible);

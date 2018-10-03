@@ -43,12 +43,12 @@ bool retourne_erreur_lancee(
 		decoupeuse_texte decoupeuse(tampon);
 		decoupeuse.genere_morceaux();
 
+		auto contexte = ContexteGenerationCode();
 		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
+		auto analyseuse = analyseuse_grammaire(contexte, tampon, &assembleuse);
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 
 		if (genere_code) {
-			auto contexte = ContexteGenerationCode();
 			auto module = llvm::Module("test", contexte.contexte);
 			contexte.module = &module;
 
