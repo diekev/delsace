@@ -24,10 +24,11 @@
 
 #include "outils.h"
 
+#include <iostream>
 #include <llvm/IR/Module.h>
 
 #include "analyseuse_grammaire.h"
-#include "arbre_syntactic.h"
+#include "contexte_generation_code.h"
 #include "decoupeuse.h"
 #include "erreur.h"
 

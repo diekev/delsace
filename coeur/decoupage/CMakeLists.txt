@@ -33,6 +33,7 @@ set(SOURCES
 	analyseuse_grammaire.h
 	arbre_syntactic.h
 	assembleuse_arbre.h
+	contexte_generation_code.h
     decoupeuse.h
 	erreur.h
 	expression.h
@@ -45,6 +46,7 @@ set(SOURCES
 	analyseuse_grammaire.cc
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
+	contexte_generation_code.cc
     decoupeuse.cc
 	erreur.cc
 	expression.cc

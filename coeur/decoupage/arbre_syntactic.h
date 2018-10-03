@@ -24,13 +24,7 @@
 
 #pragma once
 
-#include <iostream>
-#include <stack>
-#include <string>
-#include <unordered_map>
 #include <vector>
-
-#include <llvm/IR/LLVMContext.h>
 
 #include "morceaux.h"
 
@@ -38,6 +32,8 @@ namespace llvm {
 class BasicBlock;
 class Value;
 }  /* namespace llvm */
+
+struct ContexteGenerationCode;
 
 enum {
 	NOEUD_RACINE,
@@ -104,61 +100,6 @@ enum {
 struct ArgumentFonction {
 	std::string chaine;
 	int id_type;
-};
-
-struct DonneesArgument {
-	size_t index;
-	int type;
-	int pad;
-};
-
-struct DonneesFonction {
-	std::unordered_map<std::string, DonneesArgument> args;
-	int type_retour;
-	int pad;
-};
-
-struct DonneesVariable {
-	llvm::Value *valeur;
-	int type;
-	int pad;
-};
-
-struct Block {
-	llvm::BasicBlock *block;
-	std::unordered_map<std::string, DonneesVariable> locals;
-};
-
-struct ContexteGenerationCode {
-	llvm::Module *module;
-	llvm::LLVMContext contexte;
-
-	void pousse_block(llvm::BasicBlock *block);
-
-	void jete_block();
-
-	llvm::BasicBlock *block_courant() const;
-
-	void pousse_globale(const std::string &nom, llvm::Value *valeur, int type);
-
-	llvm::Value *valeur_globale(const std::string &nom);
-
-	int type_globale(const std::string &nom);
-
-	void pousse_locale(const std::string &nom, llvm::Value *valeur, int type);
-
-	llvm::Value *valeur_locale(const std::string &nom);
-
-	int type_locale(const std::string &nom);
-
-	void ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees);
-
-	DonneesFonction donnees_fonction(const std::string &nom);
-
-private:
-	std::stack<Block> pile_block;
-	std::unordered_map<std::string, DonneesVariable> globales;
-	std::unordered_map<std::string, DonneesFonction> fonctions;
 };
 
 /* ************************************************************************** */

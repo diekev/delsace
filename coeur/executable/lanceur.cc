@@ -36,7 +36,7 @@
 #include <llvm/Target/TargetOptions.h>
 
 #include "decoupage/analyseuse_grammaire.h"
-#include "decoupage/arbre_syntactic.h"
+#include "decoupage/contexte_generation_code.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
 #include "decoupage/tampon_source.h"

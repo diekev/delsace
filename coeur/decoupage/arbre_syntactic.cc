@@ -29,6 +29,7 @@
 
 #include <sstream>
 
+#include "contexte_generation_code.h"
 #include "erreur.h"
 #include "morceaux.h"
 #include "nombres.h"
@@ -95,93 +96,6 @@ static void imprime_tab(std::ostream &os, int tab)
 	for (int i = 0; i < tab; ++i) {
 		os << ' ' << ' ';
 	}
-}
-
-/* ************************************************************************** */
-
-void ContexteGenerationCode::pousse_block(llvm::BasicBlock *block)
-{
-	Block b;
-	b.block = block;
-	pile_block.push(b);
-}
-
-void ContexteGenerationCode::jete_block()
-{
-	pile_block.pop();
-}
-
-llvm::BasicBlock *ContexteGenerationCode::block_courant() const
-{
-	if (pile_block.empty()) {
-		return nullptr;
-	}
-
-	return pile_block.top().block;
-}
-
-void ContexteGenerationCode::pousse_globale(const std::string &nom, llvm::Value *valeur, int type)
-{
-	globales.insert({nom, {valeur, type, 0}});
-}
-
-llvm::Value *ContexteGenerationCode::valeur_globale(const std::string &nom)
-{
-	auto iter = globales.find(nom);
-
-	if (iter == globales.end()) {
-		return nullptr;
-	}
-
-	return iter->second.valeur;
-}
-
-int ContexteGenerationCode::type_globale(const std::string &nom)
-{
-	auto iter = globales.find(nom);
-
-	if (iter == globales.end()) {
-		return -1;
-	}
-
-	return iter->second.type;
-}
-
-void ContexteGenerationCode::pousse_locale(const std::string &nom, llvm::Value *valeur, int type)
-{
-	pile_block.top().locals.insert({nom, {valeur, type, 0}});
-}
-
-llvm::Value *ContexteGenerationCode::valeur_locale(const std::string &nom)
-{
-	auto iter = pile_block.top().locals.find(nom);
-
-	if (iter == pile_block.top().locals.end()) {
-		return nullptr;
-	}
-
-	return iter->second.valeur;
-}
-
-int ContexteGenerationCode::type_locale(const std::string &nom)
-{
-	auto iter = pile_block.top().locals.find(nom);
-
-	if (iter == pile_block.top().locals.end()) {
-		return -1;
-	}
-
-	return iter->second.type;
-}
-
-void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees)
-{
-	fonctions.insert({nom, donnees});
-}
-
-DonneesFonction ContexteGenerationCode::donnees_fonction(const std::string &nom)
-{
-	return fonctions[nom];
 }
 
 /* ************************************************************************** */
