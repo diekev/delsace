@@ -43,6 +43,32 @@
 
 #include <chronometrage/chronometre_de_portee.h>
 
+struct OptionsCompilation {
+	const char *chemin_fichier = nullptr;
+	bool emet_fichier_objet = false;
+	bool emet_code_intermediaire = false;
+	char pad[6];
+};
+
+static OptionsCompilation genere_argument_compilation(int argc, char **argv)
+{
+	OptionsCompilation opts;
+
+	for (int i = 1; i < argc; ++i) {
+		if (std::strcmp(argv[i], "-ir") == 0) {
+			opts.emet_code_intermediaire = true;
+		}
+		else if (std::strcmp(argv[i], "-o") == 0) {
+			opts.emet_fichier_objet = true;
+		}
+		else {
+			opts.chemin_fichier = argv[i];
+		}
+	}
+
+	return opts;
+}
+
 static std::string charge_fichier(const char *chemin_fichier)
 {
 	std::ifstream fichier;
@@ -110,12 +136,19 @@ int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
 
-	if (argc != 2) {
-		std::cerr << "Utilisation : " << argv[0] << " FICHIER\n";
+	if (argc < 2) {
+		std::cerr << "Utilisation : " << argv[0] << " FICHIER [options...]\n";
 		return 1;
 	}
 
-	const auto chemin_fichier = argv[1];
+	const auto ops = genere_argument_compilation(argc, argv);
+
+	const auto chemin_fichier = ops.chemin_fichier;
+
+	if (chemin_fichier == nullptr) {
+		std::cerr << "Aucun fichier spécifié !\n";
+		return 1;
+	}
 
 	if (!std::experimental::filesystem::exists(chemin_fichier)) {
 		std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
@@ -188,15 +221,14 @@ int main(int argc, char *argv[])
 		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
 
 		/* définition du fichier de sortie */
-		const auto emet_fichier_objet = false;
-
-		if (emet_fichier_objet) {
+		if (ops.emet_fichier_objet) {
 			os << "Écriture du code dans un fichier..." << std::endl;
 			if (!ecris_fichier_objet(machine_cible, module)) {
 				resultat = 1;
 			}
 		}
-		else {
+
+		if (ops.emet_code_intermediaire) {
 			module.dump();
 		}
 
