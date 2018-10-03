@@ -369,12 +369,6 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	analyse_corps_fonction();
 }
 
-struct Symbole {
-	std::string chaine;
-	int identifiant;
-	int pad;
-};
-
 void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
