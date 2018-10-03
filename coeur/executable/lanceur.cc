@@ -131,11 +131,12 @@ int main(int argc, char *argv[])
 	auto temps_analyse         = 0.0;
 	auto temps_generation_code = 0.0;
 
-	os << "Ouverture de '" << chemin_fichier << "'...\n";
+	os << "Ouverture de '" << chemin_fichier << "'..." << std::endl;
 	auto debut_chargement = numero7::chronometrage::maintenant();
 	auto texte = charge_fichier(chemin_fichier);
 	temps_chargement = numero7::chronometrage::maintenant() - debut_chargement;
 
+	os << "Génération du tampon texte..." << std::endl;
 	const auto debut_tampon = numero7::chronometrage::maintenant();
 	auto tampon = TamponSource(texte);
 	temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
@@ -143,6 +144,7 @@ int main(int argc, char *argv[])
 	try {
 		auto decoupeuse = decoupeuse_texte(tampon);
 
+		os << "Découpage du texte..." << std::endl;
 		const auto debut_decoupeuse = numero7::chronometrage::maintenant();
 		decoupeuse.genere_morceaux();
 		temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupeuse;
@@ -150,6 +152,7 @@ int main(int argc, char *argv[])
 		auto assembleuse = assembleuse_arbre();
 		auto analyseuse = analyseuse_grammaire(tampon, &assembleuse);
 
+		os << "Analyse de morceaux..." << std::endl;
 		const auto debut_analyseuse = numero7::chronometrage::maintenant();
 		analyseuse.lance_analyse(decoupeuse.morceaux());
 		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
@@ -179,6 +182,7 @@ int main(int argc, char *argv[])
 
 		contexte_generation.module = &module;
 
+		os << "Génération du code..." << std::endl;
 		const auto debut_generation_code = numero7::chronometrage::maintenant();
 		assembleuse.genere_code_llvm(contexte_generation);
 		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
@@ -187,6 +191,7 @@ int main(int argc, char *argv[])
 		const auto emet_fichier_objet = false;
 
 		if (emet_fichier_objet) {
+			os << "Écriture du code dans un fichier..." << std::endl;
 			if (!ecris_fichier_objet(machine_cible, module)) {
 				resultat = 1;
 			}
