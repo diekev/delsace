@@ -152,7 +152,7 @@ void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &ide
 		return;
 	}
 
-	m_assembleuse->ajoute_noeud(NOEUD_RACINE, "racine", -1);
+	m_assembleuse->ajoute_noeud(NOEUD_RACINE, DonneesMorceaux{"racine", 0ul, 0ul, -1});
 
 	analyse_corps();
 
@@ -197,7 +197,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	// crée noeud fonction
 	const auto nom_fonction = m_identifiants[position()].chaine;
-	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, nom_fonction, ID_FONCTION);
+	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
 
 	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
@@ -269,7 +269,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			lance_erreur("Attendu une chaîne de caractère après 'soit'");
 		}
 
-		auto nom = m_identifiants[position()].chaine;
+		const auto &morceau = m_identifiants[position()];
 		auto type = -1;
 
 		if (est_identifiant(ID_DOUBLE_POINTS)) {
@@ -281,7 +281,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			lance_erreur("Attendu '=' après chaîne de caractère");
 		}
 
-		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, nom, ID_CHAINE_CARACTERE);
+		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, morceau);
 		noeud->type = type;
 
 		analyse_expression_droite(ID_POINT_VIRGULE);
@@ -291,7 +291,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	/* retour : retourne a + b; */
 	else if (est_identifiant(ID_RETOURNE)) {
 		avance();
-		m_assembleuse->ajoute_noeud(NOEUD_RETOUR, "", ID_RETOURNE);
+		m_assembleuse->ajoute_noeud(NOEUD_RETOUR, m_identifiants[position()]);
 
 		/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 		if (!est_identifiant(ID_POINT_VIRGULE)) {
@@ -356,9 +356,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
 	std::vector<Noeud *> expression;
-	std::stack<Symbole> pile;
-
-	Symbole symbole;
+	std::stack<DonneesMorceaux> pile;
 
 	/* Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
 	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
@@ -366,15 +364,14 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 	auto paren = 0;
 
 	while (!est_identifiant(identifiant_final)) {
-		symbole.identifiant = identifiant_courant();
-		symbole.chaine = m_identifiants[position() + 1].chaine;
+		const auto &morceau = m_identifiants[position() + 1];
 
 		/* appel fonction : chaine + ( */
 		if (sont_2_identifiants(ID_CHAINE_CARACTERE, ID_PARENTHESE_OUVRANTE)) {
 			avance();
 			avance();
 
-			auto noeud = m_assembleuse->ajoute_noeud(NOEUD_APPEL_FONCTION, symbole.chaine, symbole.identifiant, false);
+			auto noeud = m_assembleuse->ajoute_noeud(NOEUD_APPEL_FONCTION, morceau, false);
 
 			analyse_appel_fonction(dynamic_cast<NoeudAppelFonction *>(noeud));
 
@@ -389,32 +386,32 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		}
 		/* variable : chaine */
 		else if (est_identifiant(ID_CHAINE_CARACTERE)) {
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, symbole.chaine, symbole.identifiant);
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, morceau);
 			expression.push_back(noeud);
 		}
 		else if (identifiant_courant() == ID_NOMBRE_REEL) {
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_REEL, symbole.chaine, symbole.identifiant);
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_REEL, morceau);
 			expression.push_back(noeud);
 		}
 		else if (est_nombre_entier(identifiant_courant())) {
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_ENTIER, symbole.chaine, symbole.identifiant);
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_ENTIER, morceau);
 			expression.push_back(noeud);
 		}
 		else if (est_operateur(identifiant_courant())) {
 			while (!pile.empty()
 				   && est_operateur(pile.top().identifiant)
-				   && (precedence_faible(symbole.identifiant, pile.top().identifiant)))
+				   && (precedence_faible(morceau.identifiant, pile.top().identifiant)))
 			{
-				auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+				auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top());
 				expression.push_back(noeud);
 				pile.pop();
 			}
 
-			pile.push(symbole);
+			pile.push(morceau);
 		}
 		else if (est_identifiant(ID_PARENTHESE_OUVRANTE)) {
 			++paren;
-			pile.push(symbole);
+			pile.push(morceau);
 		}
 		else if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
 			/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
@@ -431,7 +428,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			}
 
 			while (pile.top().identifiant != ID_PARENTHESE_OUVRANTE) {
-				auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+				auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top());
 				expression.push_back(noeud);
 				pile.pop();
 			}
@@ -456,7 +453,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top().chaine, pile.top().identifiant);
+		auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top());
 		expression.push_back(noeud);
 		pile.pop();
 	}
@@ -472,7 +469,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 	std::stack<Noeud *> pile_noeud;
 
 	for (Noeud *noeud : expression) {
-		if (est_operateur_double(noeud->identifiant)) {
+		if (est_operateur_double(noeud->identifiant())) {
 			auto n2 = pile_noeud.top();
 			pile_noeud.pop();
 
@@ -484,7 +481,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 
 			pile_noeud.push(noeud);
 		}
-		else if (est_operateur_simple(noeud->identifiant)) {
+		else if (est_operateur_simple(noeud->identifiant())) {
 			auto n1 = pile_noeud.top();
 			pile_noeud.pop();
 
@@ -506,7 +503,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		while (!pile_noeud.empty()) {
 			auto noeud = pile_noeud.top();
 			pile_noeud.pop();
-			std::cerr << '\t' << chaine_identifiant(noeud->identifiant) << '\n';
+			std::cerr << '\t' << chaine_identifiant(noeud->identifiant()) << '\n';
 		}
 	}
 
@@ -569,8 +566,7 @@ void analyseuse_grammaire::analyse_declaration_constante()
 		lance_erreur("Attendu une chaîne de caractère après 'constante'");
 	}
 
-	auto nom = m_identifiants[position()].chaine;
-	auto id = m_identifiants[position()].identifiant;
+	auto pos = position();
 	auto type = -1;
 
 	/* Vérifie s'il y a typage explicit */
@@ -579,7 +575,7 @@ void analyseuse_grammaire::analyse_declaration_constante()
 		type = m_identifiants[position()].identifiant;;
 	}
 
-	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, nom, id);
+	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[pos]);
 	noeud->type = type;
 
 	if (!requiers_identifiant(ID_EGAL)) {
@@ -642,12 +638,8 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			break;
 		}
 
-		auto nom = m_identifiants[position()].chaine;
-		auto id = m_identifiants[position()].identifiant;
-		auto type = ID_E32;
-
-		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, nom, id);
-		noeud->type = type;
+		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[position()]);
+		noeud->type = ID_E32;
 
 		if (est_identifiant(ID_EGAL)) {
 			avance();
@@ -660,10 +652,8 @@ void analyseuse_grammaire::analyse_declaration_enum()
 
 			avance();
 
-			nom = m_identifiants[position()].chaine;
-			id = m_identifiants[position()].identifiant;
 
-			m_assembleuse->ajoute_noeud(NOEUD_NOMBRE_ENTIER, nom, id);
+			m_assembleuse->ajoute_noeud(NOEUD_NOMBRE_ENTIER, m_identifiants[position()]);
 			m_assembleuse->sors_noeud(NOEUD_NOMBRE_ENTIER);
 		}
 

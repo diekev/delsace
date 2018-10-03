@@ -32,6 +32,8 @@
 
 #include <llvm/IR/LLVMContext.h>
 
+#include "morceaux.h"
+
 namespace llvm {
 class BasicBlock;
 class Value;
@@ -166,14 +168,16 @@ private:
  */
 class Noeud {
 protected:
-	std::string m_chaine;
 	std::vector<Noeud *> m_enfants;
 
+	DonneesMorceaux m_donnees_morceaux;
+
+	int pad;
+
 public:
-	int identifiant;
 	int type = -1;
 
-	Noeud(const std::string &chaine, int id);
+	explicit Noeud(const DonneesMorceaux &morceau);
 
 	virtual ~Noeud() = default;
 
@@ -198,13 +202,18 @@ public:
 	 * Calcul le type de ce noeud en cherchant parmis ses enfants si nécessaire.
 	 */
 	virtual int calcul_type(ContexteGenerationCode &contexte);
+
+	/**
+	 * Retourne l'identifiant du morceau de ce noeud.
+	 */
+	int identifiant() const;
 };
 
 /* ************************************************************************** */
 
 class NoeudRacine final : public Noeud {
 public:
-	NoeudRacine(const std::string &chaine, int id);
+	explicit NoeudRacine(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -218,7 +227,7 @@ class NoeudAppelFonction final : public Noeud {
 	std::vector<std::string> m_noms_arguments;
 
 public:
-	NoeudAppelFonction(const std::string &chaine, int id);
+	explicit NoeudAppelFonction(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -236,9 +245,9 @@ class NoeudDeclarationFonction final : public Noeud {
 
 public:
 	int type_retour = -1;
-	int pad;
+	int pad1;
 
-	NoeudDeclarationFonction(const std::string &chaine, int id);
+	explicit NoeudDeclarationFonction(const DonneesMorceaux &morceau);
 
 	void ajoute_argument(const ArgumentFonction &argument);
 
@@ -251,7 +260,7 @@ public:
 
 class NoeudExpression final : public Noeud {
 public:
-	NoeudExpression(const std::string &chaine, int id);
+	explicit NoeudExpression(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -264,7 +273,7 @@ public:
 
 class NoeudAssignationVariable final : public Noeud {
 public:
-	NoeudAssignationVariable(const std::string &chaine, int id);
+	explicit NoeudAssignationVariable(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -275,7 +284,7 @@ public:
 
 class NoeudConstante final : public Noeud {
 public:
-	NoeudConstante(const std::string &chaine, int id);
+	explicit NoeudConstante(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -288,7 +297,7 @@ public:
 
 class NoeudNombreEntier final : public Noeud {
 public:
-	NoeudNombreEntier(const std::string &chaine, int id);
+	explicit NoeudNombreEntier(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -301,7 +310,7 @@ public:
 
 class NoeudNombreReel final : public Noeud {
 public:
-	NoeudNombreReel(const std::string &chaine, int id);
+	explicit NoeudNombreReel(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -314,7 +323,7 @@ public:
 
 class NoeudVariable final : public Noeud {
 public:
-	NoeudVariable(const std::string &chaine, int id);
+	explicit NoeudVariable(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -327,7 +336,7 @@ public:
 
 class NoeudOperation final : public Noeud {
 public:
-	NoeudOperation(const std::string &chaine, int id);
+	explicit NoeudOperation(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -340,7 +349,7 @@ public:
 
 class NoeudRetour final : public Noeud {
 public:
-	NoeudRetour(const std::string &chaine, int id);
+	explicit NoeudRetour(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

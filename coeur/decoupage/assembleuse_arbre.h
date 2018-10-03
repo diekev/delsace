@@ -31,6 +31,7 @@
 class Noeud;
 
 struct ContexteGenerationCode;
+struct DonneesMorceaux;
 
 class assembleuse_arbre {
 	std::stack<Noeud *> m_pile;
@@ -45,7 +46,7 @@ public:
 	 *
 	 * Retourne un pointeur vers le noeud ajouter.
 	 */
-	Noeud *ajoute_noeud(int type, const std::string &chaine, int id, bool ajoute = true);
+	Noeud *ajoute_noeud(int type, const DonneesMorceaux &morceau, bool ajoute = true);
 
 	/**
 	 * Ajoute le noeud spécifié au noeud courant.
@@ -56,7 +57,7 @@ public:
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	Noeud *cree_noeud(int type, const std::string &chaine, int id);
+	Noeud *cree_noeud(int type, const DonneesMorceaux &morceau);
 
 	/**
 	 * Sors du noeud courant en vérifiant que le type du noeud courant est bel

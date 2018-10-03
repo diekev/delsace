@@ -33,9 +33,9 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-Noeud *assembleuse_arbre::ajoute_noeud(int type, const std::string &chaine, int id, bool ajoute)
+Noeud *assembleuse_arbre::ajoute_noeud(int type, const DonneesMorceaux &morceau, bool ajoute)
 {
-	auto noeud = cree_noeud(type, chaine, id);
+	auto noeud = cree_noeud(type, morceau);
 
 	if (!m_pile.empty() && ajoute) {
 		m_pile.top()->ajoute_noeud(noeud);
@@ -51,43 +51,43 @@ void assembleuse_arbre::ajoute_noeud(Noeud *noeud)
 	m_pile.top()->ajoute_noeud(noeud);
 }
 
-Noeud *assembleuse_arbre::cree_noeud(int type, const std::string &chaine, int id)
+Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 {
 	Noeud *noeud = nullptr;
 
 	switch (type) {
 		case NOEUD_RACINE:
-			noeud = new NoeudRacine(chaine, id);
+			noeud = new NoeudRacine(morceau);
 			break;
 		case NOEUD_APPEL_FONCTION:
-			noeud = new NoeudAppelFonction(chaine, id);
+			noeud = new NoeudAppelFonction(morceau);
 			break;
 		case NOEUD_DECLARATION_FONCTION:
-			noeud = new NoeudDeclarationFonction(chaine, id);
+			noeud = new NoeudDeclarationFonction(morceau);
 			break;
 		case NOEUD_EXPRESSION:
-			noeud = new NoeudExpression(chaine, id);
+			noeud = new NoeudExpression(morceau);
 			break;
 		case NOEUD_ASSIGNATION_VARIABLE:
-			noeud = new NoeudAssignationVariable(chaine, id);
+			noeud = new NoeudAssignationVariable(morceau);
 			break;
 		case NOEUD_VARIABLE:
-			noeud = new NoeudVariable(chaine, id);
+			noeud = new NoeudVariable(morceau);
 			break;
 		case NOEUD_NOMBRE_ENTIER:
-			noeud = new NoeudNombreEntier(chaine, id);
+			noeud = new NoeudNombreEntier(morceau);
 			break;
 		case NOEUD_NOMBRE_REEL:
-			noeud = new NoeudNombreReel(chaine, id);
+			noeud = new NoeudNombreReel(morceau);
 			break;
 		case NOEUD_OPERATION:
-			noeud = new NoeudOperation(chaine, id);
+			noeud = new NoeudOperation(morceau);
 			break;
 		case NOEUD_RETOUR:
-			noeud = new NoeudRetour(chaine, id);
+			noeud = new NoeudRetour(morceau);
 			break;
 		case NOEUD_CONSTANTE:
-			noeud = new NoeudConstante(chaine, id);
+			noeud = new NoeudConstante(morceau);
 			break;
 	}
 

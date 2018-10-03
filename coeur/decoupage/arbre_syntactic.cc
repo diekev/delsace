@@ -186,9 +186,8 @@ DonneesFonction ContexteGenerationCode::donnees_fonction(const std::string &nom)
 
 /* ************************************************************************** */
 
-Noeud::Noeud(const std::string &chaine, int id)
-	: m_chaine(chaine)
-	, identifiant(id)
+Noeud::Noeud(const DonneesMorceaux &morceau)
+	: m_donnees_morceaux(morceau)
 {}
 
 void Noeud::ajoute_noeud(Noeud *noeud)
@@ -201,10 +200,15 @@ int Noeud::calcul_type(ContexteGenerationCode &/*contexte*/)
 	return this->type;
 }
 
+int Noeud::identifiant() const
+{
+	return m_donnees_morceaux.identifiant;
+}
+
 /* ************************************************************************** */
 
-NoeudRacine::NoeudRacine(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudRacine::NoeudRacine(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudRacine::imprime_code(std::ostream &os, int tab)
@@ -227,15 +231,15 @@ llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudAppelFonction::NoeudAppelFonction(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudAppelFonction::NoeudAppelFonction(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudAppelFonction : " << m_chaine << '\n';
+	os << "NoeudAppelFonction : " << m_donnees_morceaux.chaine << '\n';
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
 	}
@@ -243,13 +247,13 @@ void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto fonction = contexte.module->getFunction(m_chaine);
+	auto fonction = contexte.module->getFunction(m_donnees_morceaux.chaine);
 
 	if (fonction == nullptr) {
 		throw "Fonction inconnue !\n";
 	}
 
-	auto donnees_fonction = contexte.donnees_fonction(m_chaine);
+	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 
 	if (m_enfants.size() != donnees_fonction.args.size()) {
 		throw "Le nombre d'arguments de la fonction est incorrect.";
@@ -276,7 +280,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 				if (pair.second.type != enfant->calcul_type(contexte)) {
 					std::stringstream ss;
-					ss << "Fonction : '" << m_chaine << "', argument " << index << '\n';
+					ss << "Fonction : '" << m_donnees_morceaux.chaine << "', argument " << index << '\n';
 					ss << "Les types d'arguments ne correspondent pas !\n";
 					ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
 					ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
@@ -317,7 +321,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 			if (type_arg != type_enf) {
 				std::stringstream ss;
-				ss << "Fonction : '" << m_chaine << "', argument " << index << '\n';
+				ss << "Fonction : '" << m_donnees_morceaux.chaine << "', argument " << index << '\n';
 				ss << "Les types d'arguments ne correspondent pas !\n";
 				ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
 				ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
@@ -344,7 +348,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 int NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (this->type == -1) {
-		auto donnees_fonction = contexte.donnees_fonction(m_chaine);
+		auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 		this->type = donnees_fonction.type_retour;
 	}
 
@@ -358,8 +362,8 @@ void NoeudAppelFonction::ajoute_nom_argument(const std::string &nom)
 
 /* ************************************************************************** */
 
-NoeudDeclarationFonction::NoeudDeclarationFonction(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudDeclarationFonction::NoeudDeclarationFonction(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudDeclarationFonction::ajoute_argument(const ArgumentFonction &argument)
@@ -371,7 +375,7 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudDeclarationFonction : " << m_chaine << '\n';
+	os << "NoeudDeclarationFonction : " << m_donnees_morceaux.chaine << '\n';
 
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
@@ -380,7 +384,7 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto fonction = contexte.module->getFunction(m_chaine);
+	auto fonction = contexte.module->getFunction(m_donnees_morceaux.chaine);
 
 	if (fonction != nullptr) {
 		throw "Redéfinition de la fonction !";
@@ -408,7 +412,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	fonction = llvm::Function::Create(
 				   type_fonction,
 				   llvm::Function::ExternalLinkage,
-				   m_chaine,
+				   m_donnees_morceaux.chaine,
 				   contexte.module);
 
 	auto block = llvm::BasicBlock::Create(
@@ -445,7 +449,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 	}
 
-	contexte.ajoute_donnees_fonctions(m_chaine, donnees_fonctions);
+	contexte.ajoute_donnees_fonctions(m_donnees_morceaux.chaine, donnees_fonctions);
 
 	/* Crée code pour les expressions */
 	for (auto noeud : m_enfants) {
@@ -459,15 +463,15 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 /* ************************************************************************** */
 
-NoeudExpression::NoeudExpression(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudExpression::NoeudExpression(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudExpression::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudExpression : " << m_chaine << '\n';
+	os << "NoeudExpression : " << m_donnees_morceaux.chaine << '\n';
 
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
@@ -486,15 +490,15 @@ int NoeudExpression::calcul_type(ContexteGenerationCode &/*contexte*/)
 
 /* ************************************************************************** */
 
-NoeudAssignationVariable::NoeudAssignationVariable(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudAssignationVariable::NoeudAssignationVariable(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudAssignationVariable : " << m_chaine << '\n';
+	os << "NoeudAssignationVariable : " << m_donnees_morceaux.chaine << '\n';
 
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
@@ -503,13 +507,13 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto valeur = contexte.valeur_locale(m_chaine);
+	auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
 
 	if (valeur != nullptr) {
 		throw "Redéfinition de la variable !";
 	}
 	else {
-		valeur = contexte.valeur_globale(m_chaine);
+		valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
 
 		if (valeur != nullptr) {
 			throw "Redéfinition de la variable !";
@@ -536,25 +540,25 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	valeur = m_enfants[0]->genere_code_llvm(contexte);
 
 	auto type_llvm = type_argument(contexte.contexte, this->type);
-	auto alloc = new llvm::AllocaInst(type_llvm, m_chaine, contexte.block_courant());
+	auto alloc = new llvm::AllocaInst(type_llvm, m_donnees_morceaux.chaine, contexte.block_courant());
 	new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 
-	contexte.pousse_locale(m_chaine, alloc, this->type);
+	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->type);
 
 	return alloc;
 }
 
 /* ************************************************************************** */
 
-NoeudConstante::NoeudConstante(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudConstante::NoeudConstante(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudConstante::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudConstante : " << m_chaine << '\n';
+	os << "NoeudConstante : " << m_donnees_morceaux.chaine << '\n';
 
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
@@ -563,7 +567,7 @@ void NoeudConstante::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto valeur = contexte.valeur_globale(m_chaine);
+	auto valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
 
 	if (valeur != nullptr) {
 		throw "Redéfinition de la variable globale !";
@@ -579,32 +583,34 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
 
 	valeur = m_enfants[0]->genere_code_llvm(contexte);
 
-	contexte.pousse_globale(m_chaine, valeur, this->type);
+	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->type);
 
 	return valeur;
 }
 
 int NoeudConstante::calcul_type(ContexteGenerationCode &contexte)
 {
-	return contexte.type_globale(m_chaine);
+	return contexte.type_globale(m_donnees_morceaux.chaine);
 }
 
 /* ************************************************************************** */
 
-NoeudNombreEntier::NoeudNombreEntier(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudNombreEntier::NoeudNombreEntier(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudNombreEntier : " << m_chaine << '\n';
+	os << "NoeudNombreEntier : " << m_donnees_morceaux.chaine << '\n';
 }
 
 llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	const auto valeur = converti_chaine_nombre_entier(m_chaine, identifiant);
+	const auto valeur = converti_chaine_nombre_entier(
+							m_donnees_morceaux.chaine,
+							m_donnees_morceaux.identifiant);
 
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt32Ty(contexte.contexte),
@@ -620,20 +626,22 @@ int NoeudNombreEntier::calcul_type(ContexteGenerationCode &/*contexte*/)
 
 /* ************************************************************************** */
 
-NoeudNombreReel::NoeudNombreReel(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudNombreReel::NoeudNombreReel(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudNombreReel : " << m_chaine << '\n';
+	os << "NoeudNombreReel : " << m_donnees_morceaux.chaine << '\n';
 }
 
 llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	const auto valeur = converti_chaine_nombre_reel(m_chaine, identifiant);
+	const auto valeur = converti_chaine_nombre_reel(
+							m_donnees_morceaux.chaine,
+							m_donnees_morceaux.identifiant);
 
 	return llvm::ConstantFP::get(
 				llvm::Type::getDoubleTy(contexte.contexte),
@@ -648,15 +656,15 @@ int NoeudNombreReel::calcul_type(ContexteGenerationCode &/*contexte*/)
 
 /* ************************************************************************** */
 
-NoeudVariable::NoeudVariable(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudVariable::NoeudVariable(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudVariable::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudVariable : " << m_chaine << '\n';
+	os << "NoeudVariable : " << m_donnees_morceaux.chaine << '\n';
 
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
@@ -665,10 +673,10 @@ void NoeudVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto valeur = contexte.valeur_locale(m_chaine);
+	auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
 
 	if (valeur == nullptr) {
-		valeur = contexte.valeur_globale(m_chaine);
+		valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
 
 		if (valeur == nullptr) {
 			throw "Variable inconnue";
@@ -680,10 +688,10 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 
 int NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 {
-	auto valeur = contexte.type_locale(m_chaine);
+	auto valeur = contexte.type_locale(m_donnees_morceaux.chaine);
 
 	if (valeur == -1) {
-		valeur = contexte.type_globale(m_chaine);
+		valeur = contexte.type_globale(m_donnees_morceaux.chaine);
 	}
 
 	return valeur;
@@ -691,15 +699,15 @@ int NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudOperation::NoeudOperation(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudOperation::NoeudOperation(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudOperation::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudOperation : " << m_chaine << '\n';
+	os << "NoeudOperation : " << m_donnees_morceaux.chaine << '\n';
 
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
@@ -713,7 +721,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
 		auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
-		switch (this->identifiant) {
+		switch (this->m_donnees_morceaux.identifiant) {
 			case ID_EXCLAMATION:
 				instr = llvm::Instruction::Xor;
 				valeur2 = valeur1;
@@ -747,7 +755,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 		/* À FAIRE : typage */
 
-		switch (this->identifiant) {
+		switch (this->m_donnees_morceaux.identifiant) {
 			case ID_PLUS:
 				if (est_type_entier(type1)) {
 					instr = llvm::Instruction::Add;
@@ -854,15 +862,15 @@ int NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudRetour::NoeudRetour(const std::string &chaine, int id)
-	: Noeud(chaine, id)
+NoeudRetour::NoeudRetour(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
 {}
 
 void NoeudRetour::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudRetour : " << m_chaine << '\n';
+	os << "NoeudRetour : " << m_donnees_morceaux.chaine << '\n';
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
 	}
