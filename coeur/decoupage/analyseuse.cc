@@ -43,9 +43,9 @@ bool Analyseuse::requiers_identifiant(int identifiant)
 	return est_bon;
 }
 
-void Analyseuse::avance()
+void Analyseuse::avance(size_t n)
 {
-	++m_position;
+	m_position += n;
 }
 
 void Analyseuse::recule()

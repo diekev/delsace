@@ -82,9 +82,9 @@ protected:
 	[[noreturn]] void lance_erreur(const std::string &quoi);
 
 	/**
-	 * Avance l'analyseur d'un cran sur le vecteur d'identifiants.
+	 * Avance l'analyseur du nombre de cran spécifié sur le vecteur de morceaux.
 	 */
-	void avance();
+	void avance(size_t n = 1);
 
 	/**
 	 * Recule l'analyseur d'un cran sur le vecteur d'identifiants.

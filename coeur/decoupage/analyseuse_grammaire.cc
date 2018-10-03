@@ -386,8 +386,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 
 		/* appel fonction : chaine + ( */
 		if (sont_2_identifiants(ID_CHAINE_CARACTERE, ID_PARENTHESE_OUVRANTE)) {
-			avance();
-			avance();
+			avance(2);
 
 			auto noeud = m_assembleuse->ajoute_noeud(NOEUD_APPEL_FONCTION, morceau, false);
 
@@ -663,13 +662,9 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			avance();
 
 			// À FAIRE : analyse_expression_droite(ID_VIRGULE);
-			if (!est_nombre_entier(this->identifiant_courant())) {
-				avance();
+			if (!requiers_nombre_entier()) {
 				lance_erreur("Attendu un nombre entier après '='");
 			}
-
-			avance();
-
 
 			m_assembleuse->ajoute_noeud(NOEUD_NOMBRE_ENTIER, m_identifiants[position()]);
 			m_assembleuse->sors_noeud(NOEUD_NOMBRE_ENTIER);
@@ -694,33 +689,35 @@ void analyseuse_grammaire::analyse_declaration_type()
 	}
 
 	while (est_specifiant_type(identifiant_courant())) {
-		if (this->identifiant_courant() == ID_CROCHET_OUVRANT) {
-			avance();
-
+		if (requiers_identifiant(ID_CROCHET_OUVRANT)) {
 			if (this->identifiant_courant() != ID_CROCHET_FERMANT) {
 				/* À FAIRE : expression */
-				if (!est_nombre_entier(this->identifiant_courant())) {
-					avance();
-
+				if (!requiers_nombre_entier()) {
 					lance_erreur("Attendu un nombre entier après [");
 				}
-
-				avance();
 			}
 
-			if (this->identifiant_courant() != ID_CROCHET_FERMANT) {
-				avance();
+			if (!requiers_identifiant(ID_CROCHET_FERMANT)) {
 				lance_erreur("Attendu ']'");
 			}
 		}
-
-		avance();
 	}
 
-	if (!est_identifiant_type(this->identifiant_courant())) {
-		avance();
+	if (!requiers_identifiant_type()) {
 		lance_erreur("Attendu la déclaration d'un type");
 	}
+}
 
+bool analyseuse_grammaire::requiers_identifiant_type()
+{
+	const auto ok = est_identifiant_type(this->identifiant_courant());
 	avance();
+	return ok;
+}
+
+bool analyseuse_grammaire::requiers_nombre_entier()
+{
+	const auto ok = est_nombre_entier(this->identifiant_courant());
+	avance();
+	return ok;
 }

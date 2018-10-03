@@ -54,4 +54,7 @@ private:
 	void analyse_declaration_constante();
 	void analyse_declaration_enum();
 	void analyse_declaration_type();
+
+	bool requiers_identifiant_type();
+	bool requiers_nombre_entier();
 };
