@@ -182,7 +182,7 @@ int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int 
 
 /* ************************************************************************** */
 
-static long converti_chaine_nombre_binaire(const std::string &chaine)
+static long converti_chaine_nombre_binaire(const std::string_view &chaine)
 {
 	if (chaine.length() > 64) {
 		/* À FAIRE : erreur, surcharge. */
@@ -200,7 +200,7 @@ static long converti_chaine_nombre_binaire(const std::string &chaine)
 	return resultat;
 }
 
-static long converti_chaine_nombre_octal(const std::string &chaine)
+static long converti_chaine_nombre_octal(const std::string_view &chaine)
 {
 	if (chaine.length() > 22 || chaine > "1777777777777777777777") {
 		/* À FAIRE : erreur, surcharge. */
@@ -218,7 +218,7 @@ static long converti_chaine_nombre_octal(const std::string &chaine)
 	return resultat;
 }
 
-static long converti_chaine_nombre_hexadecimal(const std::string &chaine)
+static long converti_chaine_nombre_hexadecimal(const std::string_view &chaine)
 {
 	if (chaine.length() > 16) {
 		/* À FAIRE : erreur, surcharge. */
@@ -243,7 +243,7 @@ static long converti_chaine_nombre_hexadecimal(const std::string &chaine)
 	return resultat;
 }
 
-long converti_chaine_nombre_entier(const std::string &chaine, int identifiant)
+long converti_chaine_nombre_entier(const std::string_view &chaine, int identifiant)
 {
 	switch (identifiant) {
 		case ID_NOMBRE_ENTIER:
@@ -252,7 +252,7 @@ long converti_chaine_nombre_entier(const std::string &chaine, int identifiant)
 				return std::numeric_limits<long>::max();
 			}
 
-			return std::atol(chaine.c_str());
+			return std::atol(&chaine[0]);
 		case ID_NOMBRE_BINAIRE:
 			return converti_chaine_nombre_binaire(chaine);
 		case ID_NOMBRE_OCTAL:
@@ -264,11 +264,11 @@ long converti_chaine_nombre_entier(const std::string &chaine, int identifiant)
 	}
 }
 
-double converti_chaine_nombre_reel(const std::string &chaine, int identifiant)
+double converti_chaine_nombre_reel(const std::string_view &chaine, int identifiant)
 {
 	switch (identifiant) {
 		case ID_NOMBRE_REEL:
-			return std::atof(chaine.c_str());
+			return std::atof(&chaine[0]);
 		default:
 			return 0.0;
 	}

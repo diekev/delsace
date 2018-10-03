@@ -46,9 +46,9 @@ int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int 
  * chaîne de caractère représente un nombre qui ne peut être représenté par un
  * entier de type 'long' (64-bit), la valeur maximale 0xffffffff est retournée.
  */
-long converti_chaine_nombre_entier(const std::string &chaine, int identifiant);
+long converti_chaine_nombre_entier(const std::string_view &chaine, int identifiant);
 
 /**
  * Converti une chaîne de caractère en un nombre réel de type 'double'.
  */
-double converti_chaine_nombre_reel(const std::string &chaine, int identifiant);
+double converti_chaine_nombre_reel(const std::string_view &chaine, int identifiant);

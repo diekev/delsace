@@ -161,7 +161,7 @@ void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto fonction = contexte.module->getFunction(m_donnees_morceaux.chaine);
+	auto fonction = contexte.module->getFunction(std::string(m_donnees_morceaux.chaine));
 
 	if (fonction == nullptr) {
 		throw "Fonction inconnue !\n";
@@ -269,7 +269,7 @@ int NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
 	return this->type;
 }
 
-void NoeudAppelFonction::ajoute_nom_argument(const std::string &nom)
+void NoeudAppelFonction::ajoute_nom_argument(const std::string_view &nom)
 {
 	m_noms_arguments.push_back(nom);
 }
@@ -320,7 +320,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	auto fonction = llvm::Function::Create(
 				   type_fonction,
 				   llvm::Function::ExternalLinkage,
-				   m_donnees_morceaux.chaine,
+				   std::string(m_donnees_morceaux.chaine),
 				   contexte.module);
 
 	auto block = llvm::BasicBlock::Create(
@@ -440,7 +440,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	valeur = m_enfants[0]->genere_code_llvm(contexte);
 
 	auto type_llvm = type_argument(contexte.contexte, this->type);
-	auto alloc = new llvm::AllocaInst(type_llvm, m_donnees_morceaux.chaine, contexte.block_courant());
+	auto alloc = new llvm::AllocaInst(type_llvm, std::string(m_donnees_morceaux.chaine), contexte.block_courant());
 	new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 
 	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->type);

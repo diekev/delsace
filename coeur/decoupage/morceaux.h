@@ -29,7 +29,7 @@
 #include <string>
 
 struct DonneesMorceaux {
-	std::string chaine;
+	std::string_view chaine;
 	size_t ligne;
 	size_t pos;
 	int identifiant;
@@ -119,5 +119,5 @@ enum {
 
 const char *chaine_identifiant(int id);
 bool est_caractere_special(char c, int &i);
-int id_caractere_double(const std::string &chaine);
-int id_chaine(const std::string &chaine);
+int id_caractere_double(const std::string_view &chaine);
+int id_chaine(const std::string_view &chaine);

@@ -33,12 +33,14 @@
 class decoupeuse_texte {
 	const TamponSource &m_tampon;
 	const char *m_debut_orig = nullptr;
+	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
 
 	size_t m_position_ligne = 0;
 	size_t m_compte_ligne = 0;
 	size_t m_pos_mot = 0;
+	size_t m_taille_mot_courant = 0;
 
 	std::vector<DonneesMorceaux> m_morceaux;
 
@@ -64,9 +66,15 @@ private:
 
 	char caractere_voisin(int n = 1) const;
 
-	void pousse_mot(std::string &mot_courant, int identifiant);
+	std::string_view mot_courant() const;
 
 	[[noreturn]] void lance_erreur(const std::string &quoi) const;
 
-	void analyse_caractere_simple(std::string &mot_courant);
+	void analyse_caractere_simple();
+
+	void pousse_caractere();
+
+	void pousse_mot(int identifiant);
+
+	void enregistre_pos_mot();
 };

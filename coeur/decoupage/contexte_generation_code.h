@@ -41,7 +41,7 @@ struct DonneesArgument {
 };
 
 struct DonneesFonction {
-	std::unordered_map<std::string, DonneesArgument> args{};
+	std::unordered_map<std::string_view, DonneesArgument> args{};
 	int type_retour = -1;
 	int pad = 0;
 };
@@ -54,7 +54,7 @@ struct DonneesVariable {
 
 struct Block {
 	llvm::BasicBlock *block;
-	std::unordered_map<std::string, DonneesVariable> locals;
+	std::unordered_map<std::string_view, DonneesVariable> locals;
 };
 
 struct ContexteGenerationCode {
@@ -67,32 +67,32 @@ struct ContexteGenerationCode {
 
 	llvm::BasicBlock *block_courant() const;
 
-	void pousse_globale(const std::string &nom, llvm::Value *valeur, int type);
+	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, int type);
 
-	llvm::Value *valeur_globale(const std::string &nom);
+	llvm::Value *valeur_globale(const std::string_view &nom);
 
-	int type_globale(const std::string &nom);
+	int type_globale(const std::string_view &nom);
 
-	void pousse_locale(const std::string &nom, llvm::Value *valeur, int type);
+	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, int type);
 
-	llvm::Value *valeur_locale(const std::string &nom);
+	llvm::Value *valeur_locale(const std::string_view &nom);
 
-	int type_locale(const std::string &nom);
+	int type_locale(const std::string_view &nom);
 
-	void ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees);
+	void ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees);
 
 	/* ********************************************************************** */
 
-	DonneesFonction donnees_fonction(const std::string &nom);
+	DonneesFonction donnees_fonction(const std::string_view &nom);
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
 	 * ayant déjà été ajouté à la liste de fonctions de ce contexte.
 	 */
-	bool fonction_existe(const std::string &nom);
+	bool fonction_existe(const std::string_view &nom);
 
 private:
 	std::stack<Block> pile_block;
-	std::unordered_map<std::string, DonneesVariable> globales;
-	std::unordered_map<std::string, DonneesFonction> fonctions;
+	std::unordered_map<std::string_view, DonneesVariable> globales;
+	std::unordered_map<std::string_view, DonneesFonction> fonctions;
 };

@@ -211,7 +211,7 @@ void test_decoupage_nombre_hexadecimal(numero7::test_unitaire::ControleurUnitair
 
 		CU_VERIFIE_CONDITION(controleur, morceaux.size() == 1);
 		CU_VERIFIE_CONDITION(controleur, morceaux[0].identifiant == ID_NOMBRE_HEXADECIMAL);
-		CU_VERIFIE_EGALITE(controleur, morceaux[0].chaine, std::string("ff38ce"));
+		CU_VERIFIE_EGALITE(controleur, morceaux[0].chaine, std::string_view("ff38ce"));
 	}
 }
 

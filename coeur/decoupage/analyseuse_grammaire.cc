@@ -534,7 +534,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 	/* ici nous devons être au niveau du premier paramètre */
 
 	auto arguments_nommees = false;
-	std::set<std::string> args;
+	std::set<std::string_view> args;
 
 	while (true) {
 		/* aucun paramètre, ou la liste de paramètre est vide */

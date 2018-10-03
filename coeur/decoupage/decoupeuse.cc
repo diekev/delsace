@@ -44,28 +44,27 @@ bool est_espace_blanc(char c)
 decoupeuse_texte::decoupeuse_texte(const TamponSource &tampon)
 	: m_tampon(tampon)
 	, m_debut_orig(m_tampon.debut())
+	, m_debut_mot(m_tampon.debut())
 	, m_debut(m_tampon.debut())
 	, m_fin(m_tampon.fin())
 {}
 
 void decoupeuse_texte::genere_morceaux()
 {
-	std::string mot_courant = "";
+	m_taille_mot_courant = 0;
 
 	while (!this->fini()) {
 		const auto nombre_octet = nombre_octets(m_debut);
 
 		if (nombre_octet == 1) {
-			analyse_caractere_simple(mot_courant);
+			analyse_caractere_simple();
 		}
 		else if (nombre_octet >= 2 && nombre_octet <= 4) {
 			/* Les caractères spéciaux ne peuvent être des caractères unicode
 			 * pour le moment, donc on les copie directement dans le tampon du
 			 * mot_courant. */
-			for (int i = 0; i < nombre_octet; ++i) {
-				mot_courant.push_back(this->caractere_courant());
-				this->avance();
-			}
+			m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+			this->avance(nombre_octet);
 		}
 		else {
 			/* Le caractère (octet) courant est invalide dans le codec unicode. */
@@ -73,7 +72,7 @@ void decoupeuse_texte::genere_morceaux()
 		}
 	}
 
-	if (!mot_courant.empty()) {
+	if (m_taille_mot_courant != 0) {
 		lance_erreur("Des caractères en trop se trouve à la fin du texte !");
 	}
 }
@@ -123,10 +122,9 @@ char decoupeuse_texte::caractere_voisin(int n) const
 	return *(m_debut + n);
 }
 
-void decoupeuse_texte::pousse_mot(std::string &mot_courant, int identifiant)
+std::string_view decoupeuse_texte::mot_courant() const
 {
-	m_morceaux.push_back({ mot_courant, m_compte_ligne, m_pos_mot, identifiant });
-	mot_courant = "";
+	return std::string_view(m_debut_mot, m_taille_mot_courant);
 }
 
 void decoupeuse_texte::lance_erreur(const std::string &quoi) const
@@ -175,35 +173,31 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 //    decoupe nombre
 // sinon:
 //    ajoute caractere mot courant
-void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
+void decoupeuse_texte::analyse_caractere_simple()
 {
 	int idc = ID_INCONNU;
 
 	if (est_espace_blanc(this->caractere_courant())) {
-		if (!mot_courant.empty()) {
-			this->pousse_mot(mot_courant, id_chaine(mot_courant));
+		if (m_taille_mot_courant != 0) {
+			this->pousse_mot(id_chaine(this->mot_courant()));
 		}
 
 		this->avance();
 	}
 	else if (est_caractere_special(this->caractere_courant(), idc)) {
-		if (!mot_courant.empty()) {
-			this->pousse_mot(mot_courant, id_chaine(mot_courant));
+		if (m_taille_mot_courant != 0) {
+			this->pousse_mot(id_chaine(this->mot_courant()));
 		}
 
-		mot_courant.push_back(this->caractere_courant());
-		mot_courant.push_back(this->caractere_voisin());
+		this->enregistre_pos_mot();
 
-		auto id = id_caractere_double(mot_courant);
+		auto id = id_caractere_double(std::string_view(m_debut, 2));
 
 		if (id != ID_INCONNU) {
-			m_pos_mot = m_position_ligne;
-			this->pousse_mot(mot_courant, id);
+			this->pousse_mot(id);
 			this->avance(2);
 			return;
 		}
-
-		mot_courant = "";
 
 		if (this->caractere_courant() == '.') {
 			if (this->caractere_voisin() != '.') {
@@ -214,51 +208,54 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 				lance_erreur("Un point est manquant ou un point est en trop !\n");
 			}
 
-			m_pos_mot = m_position_ligne;
-			mot_courant = "...";
-			this->pousse_mot(mot_courant, ID_TROIS_POINTS);
+			this->pousse_caractere();
+			this->pousse_caractere();
+			this->pousse_caractere();
+
+			this->pousse_mot(ID_TROIS_POINTS);
 			this->avance(3);
 		}
 		else if (this->caractere_courant() == '"') {
 			// Saute le premier guillemet.
 			this->avance();
+			this->enregistre_pos_mot();
 
-			m_pos_mot = m_position_ligne;
 			while (!this->fini()) {
 				if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
 					break;
 				}
 
-				mot_courant.push_back(this->caractere_courant());
+				this->pousse_caractere();
 				this->avance();
 			}
 
 			// Saute le dernier guillemet.
 			this->avance();
 
-			this->pousse_mot(mot_courant, ID_CHAINE_LITTERALE);
+			this->pousse_mot(ID_CHAINE_LITTERALE);
 		}
 		else if (this->caractere_courant() == '\'') {
 			// Saute la première apostrophe.
 			this->avance();
 
-			m_pos_mot = m_position_ligne;
+			this->enregistre_pos_mot();
 
 			if (this->caractere_courant() == '\\') {
-				mot_courant.push_back(this->caractere_courant());
+				this->pousse_caractere();
 				this->avance();
 			}
 
-			mot_courant.push_back(this->caractere_courant());
+			this->pousse_caractere();
+			this->pousse_mot(ID_CARACTERE);
+
 			this->avance();
 
 			// Saute la dernière apostrophe.
 			if (this->caractere_courant() != '\'') {
 				lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n");
 			}
-			this->avance();
 
-			this->pousse_mot(mot_courant, ID_CARACTERE);
+			this->avance();
 		}
 		else if (this->caractere_courant() == '#') {
 			// ignore commentaire
@@ -267,25 +264,53 @@ void decoupeuse_texte::analyse_caractere_simple(std::string &mot_courant)
 			}
 		}
 		else {
-			m_pos_mot = m_position_ligne;
-			mot_courant.push_back(this->caractere_courant());
-			this->pousse_mot(mot_courant, idc);
+			this->pousse_caractere();
+			this->pousse_mot(idc);
 			this->avance();
 		}
 	}
-	else if (est_nombre_decimal(this->caractere_courant()) && mot_courant.empty()) {
+	else if (est_nombre_decimal(this->caractere_courant()) && m_taille_mot_courant == 0) {
+		this->enregistre_pos_mot();
+
 		int id_nombre;
-		m_pos_mot = m_position_ligne;
-		const auto compte = extrait_nombre(m_debut, m_fin, mot_courant, id_nombre);
-		this->avance(compte);
-		this->pousse_mot(mot_courant, id_nombre);
-	}
-	else {
-		if (mot_courant.empty()) {
-			m_pos_mot = m_position_ligne;
+		std::string nombre;
+		const auto compte = extrait_nombre(m_debut, m_fin, nombre, id_nombre);
+
+		m_taille_mot_courant = static_cast<size_t>(compte);
+
+		/* À FAIRE : reconsidération de la manière de découper les nombres. */
+		if (id_nombre != ID_NOMBRE_ENTIER && id_nombre != ID_NOMBRE_REEL) {
+			m_pos_mot += 2;
+			m_debut_mot += 2;
+			m_taille_mot_courant -= 2;
 		}
 
-		mot_courant.push_back(this->caractere_courant());
+		this->pousse_mot(id_nombre);
+		this->avance(compte);
+	}
+	else {
+		if (m_taille_mot_courant == 0) {
+			this->enregistre_pos_mot();
+		}
+
+		this->pousse_caractere();
 		this->avance();
 	}
+}
+
+void decoupeuse_texte::pousse_caractere()
+{
+	m_taille_mot_courant += 1;
+}
+
+void decoupeuse_texte::pousse_mot(int identifiant)
+{
+	m_morceaux.push_back({ mot_courant(), m_compte_ligne, m_pos_mot, identifiant });
+	m_taille_mot_courant = 0;
+}
+
+void decoupeuse_texte::enregistre_pos_mot()
+{
+	m_pos_mot = m_position_ligne;
+	m_debut_mot = m_debut;
 }

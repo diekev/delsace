@@ -30,7 +30,7 @@
 
 struct paire_identifiant_chaine {
 	int identifiant;
-	std::string chaine;
+	std::string_view chaine;
 };
 
 struct paire_identifiant_caractere {
@@ -314,7 +314,7 @@ bool est_caractere_special(char c, int &i)
 	return false;
 }
 
-int id_caractere_double(const std::string &chaine)
+int id_caractere_double(const std::string_view &chaine)
 {
 	auto iterateur = std::lower_bound(
 						 std::begin(paires_caracteres_double),
@@ -331,7 +331,7 @@ int id_caractere_double(const std::string &chaine)
 	return ID_INCONNU;
 }
 
-int id_chaine(const std::string &chaine)
+int id_chaine(const std::string_view &chaine)
 {
 	auto iterateur = std::lower_bound(
 						 std::begin(paires_mots_cles),

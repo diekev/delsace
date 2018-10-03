@@ -114,7 +114,7 @@ def construit_structures():
 	structures = u''
 
 	structures += u'struct DonneesMorceaux {\n'
-	structures += u'\tstd::string chaine;\n'
+	structures += u'\tstd::string_view chaine;\n'
 	structures += u'\tsize_t ligne;\n'
 	structures += u'\tsize_t pos;\n'
 	structures += u'\tint identifiant;\n'
@@ -236,7 +236,7 @@ tableaux = construit_tableaux()
 structures_paires = u"""
 struct paire_identifiant_chaine {
 	int identifiant;
-	std::string chaine;
+	std::string_view chaine;
 };
 
 struct paire_identifiant_caractere {
@@ -279,7 +279,7 @@ bool est_caractere_special(char c, int &i)
 	return false;
 }
 
-int id_caractere_double(const std::string &chaine)
+int id_caractere_double(const std::string_view &chaine)
 {
 	auto iterateur = std::lower_bound(
 						 std::begin(paires_caracteres_double),
@@ -296,7 +296,7 @@ int id_caractere_double(const std::string &chaine)
 	return ID_INCONNU;
 }
 
-int id_chaine(const std::string &chaine)
+int id_chaine(const std::string_view &chaine)
 {
 	auto iterateur = std::lower_bound(
 						 std::begin(paires_mots_cles),
@@ -317,8 +317,8 @@ int id_chaine(const std::string &chaine)
 declaration_fonctions = u"""
 const char *chaine_identifiant(int id);
 bool est_caractere_special(char c, int &i);
-int id_caractere_double(const std::string &chaine);
-int id_chaine(const std::string &chaine);
+int id_caractere_double(const std::string_view &chaine);
+int id_chaine(const std::string_view &chaine);
 """
 
 with io.open(u"../coeur/decoupage/morceaux.h", u'w') as entete:

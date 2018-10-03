@@ -165,7 +165,7 @@ public:
 
 class NoeudAppelFonction final : public Noeud {
 	/* les noms des arguments s'il sont nommés */
-	std::vector<std::string> m_noms_arguments;
+	std::vector<std::string_view> m_noms_arguments;
 
 public:
 	explicit NoeudAppelFonction(const DonneesMorceaux &morceau);
@@ -176,7 +176,7 @@ public:
 
 	int calcul_type(ContexteGenerationCode &contexte) override;
 
-	void ajoute_nom_argument(const std::string &nom);
+	void ajoute_nom_argument(const std::string_view &nom);
 };
 
 /* ************************************************************************** */

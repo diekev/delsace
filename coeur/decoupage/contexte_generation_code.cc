@@ -45,12 +45,12 @@ llvm::BasicBlock *ContexteGenerationCode::block_courant() const
 	return pile_block.top().block;
 }
 
-void ContexteGenerationCode::pousse_globale(const std::string &nom, llvm::Value *valeur, int type)
+void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, int type)
 {
 	globales.insert({nom, {valeur, type, 0}});
 }
 
-llvm::Value *ContexteGenerationCode::valeur_globale(const std::string &nom)
+llvm::Value *ContexteGenerationCode::valeur_globale(const std::string_view &nom)
 {
 	auto iter = globales.find(nom);
 
@@ -61,7 +61,7 @@ llvm::Value *ContexteGenerationCode::valeur_globale(const std::string &nom)
 	return iter->second.valeur;
 }
 
-int ContexteGenerationCode::type_globale(const std::string &nom)
+int ContexteGenerationCode::type_globale(const std::string_view &nom)
 {
 	auto iter = globales.find(nom);
 
@@ -72,12 +72,12 @@ int ContexteGenerationCode::type_globale(const std::string &nom)
 	return iter->second.type;
 }
 
-void ContexteGenerationCode::pousse_locale(const std::string &nom, llvm::Value *valeur, int type)
+void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, int type)
 {
 	pile_block.top().locals.insert({nom, {valeur, type, 0}});
 }
 
-llvm::Value *ContexteGenerationCode::valeur_locale(const std::string &nom)
+llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 {
 	auto iter = pile_block.top().locals.find(nom);
 
@@ -88,7 +88,7 @@ llvm::Value *ContexteGenerationCode::valeur_locale(const std::string &nom)
 	return iter->second.valeur;
 }
 
-int ContexteGenerationCode::type_locale(const std::string &nom)
+int ContexteGenerationCode::type_locale(const std::string_view &nom)
 {
 	auto iter = pile_block.top().locals.find(nom);
 
@@ -99,17 +99,17 @@ int ContexteGenerationCode::type_locale(const std::string &nom)
 	return iter->second.type;
 }
 
-void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string &nom, const DonneesFonction &donnees)
+void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees)
 {
 	fonctions.insert({nom, donnees});
 }
 
-DonneesFonction ContexteGenerationCode::donnees_fonction(const std::string &nom)
+DonneesFonction ContexteGenerationCode::donnees_fonction(const std::string_view &nom)
 {
 	return fonctions[nom];
 }
 
-bool ContexteGenerationCode::fonction_existe(const std::string &nom)
+bool ContexteGenerationCode::fonction_existe(const std::string_view &nom)
 {
 	return fonctions.find(nom) != fonctions.end();
 }
