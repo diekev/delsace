@@ -46,7 +46,7 @@
 fonction principale()
 {
 	# En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
-	soit ptr_vidéo = transtype<*c8>(0xb8OOO);
+	soit ptr_vidéo = transtype<*e8>(0xb8000);
 
 	# Cette boucle clarifie l'écran.
 	# Il y a 25 lignes de 80 colonnes.
