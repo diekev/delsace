@@ -418,6 +418,38 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_CHAINE_LITTERALE, morceau);
 			expression.push_back(noeud);
 		}
+		else if (identifiant_courant() == ID_TRANSTYPE) {
+			avance();
+
+			if (!requiers_identifiant(ID_INFERIEUR)) {
+				lance_erreur("Attendu '<' après 'transtype'");
+			}
+
+			auto donnees_type = DonneesType{};
+			analyse_declaration_type(donnees_type, false);
+
+			if (!requiers_identifiant(ID_SUPERIEUR)) {
+				lance_erreur("Attendu '>' après déclaration du type");
+			}
+
+			if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
+				lance_erreur("Attendu '(' après '>'");
+			}
+
+			/* À FAIRE : expression ? */
+			if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+				lance_erreur("Attendu chaîne caractère après '('");
+			}
+
+			/* À FAIRE : noeud dédié */
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, m_identifiants[position()]);
+			expression.push_back(noeud);
+
+			/* vérifie mais n'avance pas */
+			if (!est_identifiant(ID_PARENTHESE_FERMANTE)) {
+				lance_erreur("Attendu ')' après déclaration de la variable");
+			}
+		}
 		else if (est_operateur(identifiant_courant())) {
 			while (!pile.empty()
 				   && est_operateur(pile.top().identifiant)
@@ -687,9 +719,9 @@ void analyseuse_grammaire::analyse_declaration_enum()
 }
 #include "nombres.h"
 
-void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type)
+void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, bool double_point)
 {
-	if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
+	if (double_point && !requiers_identifiant(ID_DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
 	}
 

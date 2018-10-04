@@ -54,7 +54,7 @@ private:
 	void analyse_declaration_structure();
 	void analyse_declaration_constante();
 	void analyse_declaration_enum();
-	void analyse_declaration_type(DonneesType &donnees_type);
+	void analyse_declaration_type(DonneesType &donnees_type, bool double_point = true);
 
 	bool requiers_identifiant_type();
 	bool requiers_nombre_entier();
