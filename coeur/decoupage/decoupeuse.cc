@@ -62,6 +62,10 @@ void decoupeuse_texte::genere_morceaux()
 			/* Les caractères spéciaux ne peuvent être des caractères unicode
 			 * pour le moment, donc on les copie directement dans le tampon du
 			 * mot_courant. */
+			if (m_taille_mot_courant == 0) {
+				this->enregistre_pos_mot();
+			}
+
 			m_taille_mot_courant += static_cast<size_t>(nombre_octet);
 			this->avance(nombre_octet);
 		}
