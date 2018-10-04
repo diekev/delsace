@@ -51,9 +51,9 @@ llvm::BasicBlock *ContexteGenerationCode::block_courant() const
 	return pile_block.top().block;
 }
 
-void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, int type)
+void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
 {
-	globales.insert({nom, {valeur, type, 0}});
+	globales.insert({nom, {valeur, type}});
 }
 
 llvm::Value *ContexteGenerationCode::valeur_globale(const std::string_view &nom)
@@ -67,20 +67,20 @@ llvm::Value *ContexteGenerationCode::valeur_globale(const std::string_view &nom)
 	return iter->second.valeur;
 }
 
-int ContexteGenerationCode::type_globale(const std::string_view &nom)
+const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &nom)
 {
 	auto iter = globales.find(nom);
 
 	if (iter == globales.end()) {
-		return -1;
+		return this->m_donnees_type_invalide;
 	}
 
-	return iter->second.type;
+	return iter->second.donnees_type;
 }
 
-void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, int type)
+void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
 {
-	pile_block.top().locals.insert({nom, {valeur, type, 0}});
+	pile_block.top().locals.insert({nom, {valeur, type}});
 }
 
 llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
@@ -94,15 +94,15 @@ llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 	return iter->second.valeur;
 }
 
-int ContexteGenerationCode::type_locale(const std::string_view &nom)
+const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &nom)
 {
 	auto iter = pile_block.top().locals.find(nom);
 
 	if (iter == pile_block.top().locals.end()) {
-		return -1;
+		return this->m_donnees_type_invalide;
 	}
 
-	return iter->second.type;
+	return iter->second.donnees_type;
 }
 
 void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees)

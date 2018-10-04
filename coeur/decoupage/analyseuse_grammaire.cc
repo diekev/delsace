@@ -223,9 +223,8 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	/* vérifie si le type de la fonction est explicit. */
 	if (est_identifiant(ID_DOUBLE_POINTS)) {
-		analyse_declaration_type();
-		noeud_declaration->type_retour = m_identifiants[position()].identifiant;
-		donnees_fonctions.type_retour = noeud_declaration->type_retour;
+		analyse_declaration_type(noeud_declaration->donnees_type);
+		donnees_fonctions.donnees_type = noeud_declaration->donnees_type;
 	}
 
 	m_contexte.ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
@@ -262,13 +261,14 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		lance_erreur("Redéfinition de l'argument");
 	}
 
-	analyse_declaration_type();
+	auto donnees_type = DonneesType{};
+	analyse_declaration_type(donnees_type);
 
-	arg.id_type = m_identifiants[position()].identifiant;
+	arg.donnees_type = donnees_type;
 
 	DonneesArgument donnees_arg;
 	donnees_arg.index = donnees.args.size();
-	donnees_arg.type = arg.id_type;
+	donnees_arg.donnees_type = donnees_type;
 
 	donnees.args.insert({arg.chaine, donnees_arg});
 
@@ -294,11 +294,10 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		}
 
 		const auto &morceau = m_identifiants[position()];
-		auto type = -1;
+		auto donnees_type = DonneesType{};
 
 		if (est_identifiant(ID_DOUBLE_POINTS)) {
-			analyse_declaration_type();
-			type = m_identifiants[position()].identifiant;
+			analyse_declaration_type(donnees_type);
 		}
 
 		if (!requiers_identifiant(ID_EGAL)) {
@@ -306,7 +305,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		}
 
 		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, morceau);
-		noeud->type = type;
+		noeud->donnees_type = donnees_type;
 
 		analyse_expression_droite(ID_POINT_VIRGULE);
 
@@ -584,16 +583,15 @@ void analyseuse_grammaire::analyse_declaration_constante()
 	}
 
 	auto pos = position();
-	auto type = -1;
+	auto donnees_type = DonneesType{};
 
 	/* Vérifie s'il y a typage explicit */
 	if (est_identifiant(ID_DOUBLE_POINTS)) {
-		analyse_declaration_type();
-		type = m_identifiants[position()].identifiant;;
+		analyse_declaration_type(donnees_type);
 	}
 
 	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[pos]);
-	noeud->type = type;
+	noeud->donnees_type = donnees_type;
 
 	if (!requiers_identifiant(ID_EGAL)) {
 		lance_erreur("Attendu '=' après la déclaration de la constante");
@@ -626,7 +624,8 @@ void analyseuse_grammaire::analyse_declaration_structure()
 			break;
 		}
 
-		analyse_declaration_type();
+		auto donnees_type = DonneesType{};
+		analyse_declaration_type(donnees_type);
 
 		if (!requiers_identifiant(ID_POINT_VIRGULE)) {
 			lance_erreur("Attendu ';'");
@@ -656,7 +655,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 		}
 
 		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[position()]);
-		noeud->type = ID_E32;
+		noeud->donnees_type.pousse(ID_E32);
 
 		if (est_identifiant(ID_EGAL)) {
 			avance();
@@ -682,15 +681,19 @@ void analyseuse_grammaire::analyse_declaration_enum()
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_type()
+void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type)
 {
 	if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
 	}
 
 	while (est_specifiant_type(identifiant_courant())) {
+		bool est_pointeur = true;
+
 		if (requiers_identifiant(ID_CROCHET_OUVRANT)) {
 			if (this->identifiant_courant() != ID_CROCHET_FERMANT) {
+				est_pointeur = false;
+
 				/* À FAIRE : expression */
 				if (!requiers_nombre_entier()) {
 					lance_erreur("Attendu un nombre entier après [");
@@ -701,11 +704,17 @@ void analyseuse_grammaire::analyse_declaration_type()
 				lance_erreur("Attendu ']'");
 			}
 		}
+
+		if (est_pointeur) {
+			donnees_type.pousse(ID_POINTEUR);
+		}
 	}
 
 	if (!requiers_identifiant_type()) {
 		lance_erreur("Attendu la déclaration d'un type");
 	}
+
+	donnees_type.pousse(m_identifiants[position()].identifiant);
 }
 
 bool analyseuse_grammaire::requiers_identifiant_type()

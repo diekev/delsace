@@ -96,6 +96,9 @@ id_extra = [
     u"CHAINE_CARACTERE",
     u"CHAINE_LITTERALE",
     u"CARACTERE",
+    u"POINTEUR",
+    u"TABLEAU",
+    u"REFERENCE",
 	u'INCONNU',
 ]
 

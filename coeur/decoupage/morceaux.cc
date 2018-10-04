@@ -274,6 +274,12 @@ const char *chaine_identifiant(int id)
 			return "ID_CHAINE_LITTERALE";
 		case ID_CARACTERE:
 			return "ID_CARACTERE";
+		case ID_POINTEUR:
+			return "ID_POINTEUR";
+		case ID_TABLEAU:
+			return "ID_TABLEAU";
+		case ID_REFERENCE:
+			return "ID_REFERENCE";
 		case ID_INCONNU:
 			return "ID_INCONNU";
 	};

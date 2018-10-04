@@ -29,6 +29,8 @@
 #include <stack>
 #include <unordered_map>
 
+#include "donnees_type.h"
+
 struct TamponSource;
 
 namespace llvm {
@@ -38,20 +40,17 @@ class Value;
 
 struct DonneesArgument {
 	size_t index = 0;
-	int type = -1;
-	int pad = 0;
+	DonneesType donnees_type{};
 };
 
 struct DonneesFonction {
 	std::unordered_map<std::string_view, DonneesArgument> args{};
-	int type_retour = -1;
-	int pad = 0;
+	DonneesType donnees_type{};
 };
 
 struct DonneesVariable {
 	llvm::Value *valeur;
-	int type;
-	int pad;
+	DonneesType donnees_type{};
 };
 
 struct Block {
@@ -72,17 +71,17 @@ struct ContexteGenerationCode {
 
 	llvm::BasicBlock *block_courant() const;
 
-	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, int type);
+	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type);
 
 	llvm::Value *valeur_globale(const std::string_view &nom);
 
-	int type_globale(const std::string_view &nom);
+	const DonneesType &type_globale(const std::string_view &nom);
 
-	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, int type);
+	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type);
 
 	llvm::Value *valeur_locale(const std::string_view &nom);
 
-	int type_locale(const std::string_view &nom);
+	const DonneesType &type_locale(const std::string_view &nom);
 
 	void ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees);
 
@@ -100,4 +99,7 @@ private:
 	std::stack<Block> pile_block;
 	std::unordered_map<std::string_view, DonneesVariable> globales;
 	std::unordered_map<std::string_view, DonneesFonction> fonctions;
+
+	/* Utilisé au cas où nous ne pouvons trouver une variable locale ou globale. */
+	DonneesType m_donnees_type_invalide;
 };

@@ -30,6 +30,7 @@
 #include <sstream>
 
 #include "contexte_generation_code.h"
+#include "donnees_type.h"
 #include "erreur.h"
 #include "morceaux.h"
 #include "nombres.h"
@@ -37,29 +38,48 @@
 
 /* ************************************************************************** */
 
-static llvm::Type *type_argument(llvm::LLVMContext &contexte, int identifiant)
+static llvm::Type *converti_type(
+		llvm::LLVMContext &contexte,
+		const DonneesType &donnees_type)
 {
-	switch (identifiant) {
-		case ID_BOOL:
-			return llvm::Type::getInt1Ty(contexte);
-		case ID_E8:
-			return llvm::Type::getInt8Ty(contexte);
-		case ID_E16:
-			return llvm::Type::getInt16Ty(contexte);
-		case ID_E32:
-			return llvm::Type::getInt32Ty(contexte);
-		case ID_E64:
-			return llvm::Type::getInt64Ty(contexte);
-		case ID_R16:
-			return llvm::Type::getHalfTy(contexte);
-		case ID_R32:
-			return llvm::Type::getFloatTy(contexte);
-		case ID_R64:
-			return llvm::Type::getDoubleTy(contexte);
-		default:
-		case ID_RIEN:
-			return llvm::Type::getVoidTy(contexte);
+	llvm::Type *type = nullptr;
+
+	for (int identifiant : donnees_type) {
+		switch (identifiant) {
+			case ID_BOOL:
+				type = llvm::Type::getInt1Ty(contexte);
+				break;
+			case ID_E8:
+				type = llvm::Type::getInt8Ty(contexte);
+				break;
+			case ID_E16:
+				type = llvm::Type::getInt16Ty(contexte);
+				break;
+			case ID_E32:
+				type = llvm::Type::getInt32Ty(contexte);
+				break;
+			case ID_E64:
+				type = llvm::Type::getInt64Ty(contexte);
+				break;
+			case ID_R16:
+				type = llvm::Type::getHalfTy(contexte);
+				break;
+			case ID_R32:
+				type = llvm::Type::getFloatTy(contexte);
+				break;
+			case ID_R64:
+				type = llvm::Type::getDoubleTy(contexte);
+				break;
+			case ID_RIEN:
+				type = llvm::Type::getVoidTy(contexte);
+				break;
+			case ID_POINTEUR:
+				type = llvm::PointerType::get(type, 0);
+				break;
+		}
 	}
+
+	return type;
 }
 
 static bool est_type_entier(int type)
@@ -110,9 +130,9 @@ void Noeud::ajoute_noeud(Noeud *noeud)
 	m_enfants.push_back(noeud);
 }
 
-int Noeud::calcul_type(ContexteGenerationCode &/*contexte*/)
+const DonneesType &Noeud::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
-	return this->type;
+	return this->donnees_type;
 }
 
 int Noeud::identifiant() const
@@ -197,13 +217,13 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 					continue;
 				}
 
-				const auto type_arg = pair.second.type;
+				const auto type_arg = pair.second.donnees_type;
 				const auto type_enf = enfant->calcul_type(contexte);
 
 				if (type_arg != type_enf) {
 					erreur::lance_erreur_type_arguments(
-								type_arg,
-								type_enf,
+								type_arg.type_base(),
+								type_enf.type_base(),
 								pair.first,
 								contexte.tampon,
 								m_donnees_morceaux);
@@ -246,13 +266,13 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 							m_donnees_morceaux);
 			}
 
-			const auto type_arg = iter->second.type;
+			const auto type_arg = iter->second.donnees_type;
 			const auto type_enf = m_enfants[index]->calcul_type(contexte);
 
 			if (type_arg != type_enf) {
 				erreur::lance_erreur_type_arguments(
-							type_arg,
-							type_enf,
+							type_arg.type_base(),
+							type_enf.type_base(),
 							nom,
 							contexte.tampon,
 							m_donnees_morceaux);
@@ -277,14 +297,14 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	return llvm::CallInst::Create(fonction, args, "", contexte.block_courant());
 }
 
-int NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
+const DonneesType &NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
 {
-	if (this->type == -1) {
+	if (this->donnees_type.est_invalide()) {
 		auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
-		this->type = donnees_fonction.type_retour;
+		this->donnees_type = donnees_fonction.donnees_type;
 	}
 
-	return this->type;
+	return this->donnees_type;
 }
 
 void NoeudAppelFonction::ajoute_nom_argument(const std::string_view &nom)
@@ -322,16 +342,19 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	std::transform(m_arguments.begin(), m_arguments.end(), parametres.begin(),
 				   [&](const ArgumentFonction &donnees)
 	{
-		return type_argument(contexte.contexte, donnees.id_type);
+		return converti_type(contexte.contexte, donnees.donnees_type);
 	});
 
 	llvm::ArrayRef<llvm::Type*> args(parametres);
 
 	/* À FAIRE : calcule type retour, considération fonction récursive. */
+	if (this->donnees_type.est_invalide()) {
+		this->donnees_type.pousse(ID_RIEN);
+	}
 
 	/* Crée fonction */
 	auto type_fonction = llvm::FunctionType::get(
-							 type_argument(contexte.contexte, this->type_retour),
+							 converti_type(contexte.contexte, this->donnees_type),
 							 args,
 							 false);
 
@@ -353,11 +376,11 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	for (const auto &argument : m_arguments) {
 		auto alloc = new llvm::AllocaInst(
-						 type_argument(contexte.contexte, argument.id_type),
+						 converti_type(contexte.contexte, argument.donnees_type),
 						 argument.chaine,
 						 contexte.block_courant());
 
-		contexte.pousse_locale(argument.chaine, alloc, argument.id_type);
+		contexte.pousse_locale(argument.chaine, alloc, argument.donnees_type);
 
 		llvm::Value *valeur = &*valeurs_args++;
 		valeur->setName(argument.chaine.c_str());
@@ -397,9 +420,9 @@ llvm::Value *NoeudExpression::genere_code_llvm(ContexteGenerationCode &/*context
 	return nullptr;
 }
 
-int NoeudExpression::calcul_type(ContexteGenerationCode &/*contexte*/)
+const DonneesType &NoeudExpression::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
-	return this->type;
+	return this->donnees_type;
 }
 
 /* ************************************************************************** */
@@ -436,14 +459,14 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	assert(m_enfants.size() == 1);
 
-	if (this->type == -1) {
-		this->type = m_enfants[0]->calcul_type(contexte);
+	if (this->donnees_type.est_invalide()) {
+		this->donnees_type = m_enfants[0]->calcul_type(contexte);
 
-		if (this->type == -1) {
+		if (this->donnees_type.est_invalide()) {
 			throw "Impossible de définir le type de la variable !";
 		}
 
-		if (this->type == ID_RIEN) {
+		if (this->donnees_type.type_base() == ID_RIEN) {
 			throw "Impossible d'assigner une expression de type 'rien' à une variable !";
 		}
 	}
@@ -453,11 +476,11 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	 * côte. */
 	valeur = m_enfants[0]->genere_code_llvm(contexte);
 
-	auto type_llvm = type_argument(contexte.contexte, this->type);
+	auto type_llvm = converti_type(contexte.contexte, this->donnees_type);
 	auto alloc = new llvm::AllocaInst(type_llvm, std::string(m_donnees_morceaux.chaine), contexte.block_courant());
 	new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 
-	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->type);
+	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type);
 
 	return alloc;
 }
@@ -487,22 +510,22 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
 		throw "Redéfinition de la variable globale !";
 	}
 
-	if (this->type == -1) {
-		this->type = m_enfants[0]->calcul_type(contexte);
+	if (this->donnees_type.est_invalide()) {
+		this->donnees_type = m_enfants[0]->calcul_type(contexte);
 
-		if (this->type == -1) {
+		if (this->donnees_type.est_invalide()) {
 			throw "Impossible de définir le type de la variable globale.";
 		}
 	}
 
 	valeur = m_enfants[0]->genere_code_llvm(contexte);
 
-	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->type);
+	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->donnees_type);
 
 	return valeur;
 }
 
-int NoeudConstante::calcul_type(ContexteGenerationCode &contexte)
+const DonneesType &NoeudConstante::calcul_type(ContexteGenerationCode &contexte)
 {
 	return contexte.type_globale(m_donnees_morceaux.chaine);
 }
@@ -511,7 +534,9 @@ int NoeudConstante::calcul_type(ContexteGenerationCode &contexte)
 
 NoeudNombreEntier::NoeudNombreEntier(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
-{}
+{
+	this->donnees_type.pousse(ID_E32);
+}
 
 void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 {
@@ -532,17 +557,18 @@ llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &context
 				false);
 }
 
-int NoeudNombreEntier::calcul_type(ContexteGenerationCode &/*contexte*/)
+const DonneesType &NoeudNombreEntier::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
-	this->type = ID_E32;
-	return this->type;
+	return this->donnees_type;
 }
 
 /* ************************************************************************** */
 
 NoeudNombreReel::NoeudNombreReel(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
-{}
+{
+	this->donnees_type.pousse(ID_R64);
+}
 
 void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 {
@@ -562,10 +588,9 @@ llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 				valeur);
 }
 
-int NoeudNombreReel::calcul_type(ContexteGenerationCode &/*contexte*/)
+const DonneesType &NoeudNombreReel::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
-	this->type = ID_R64;
-	return this->type;
+	return this->donnees_type;
 }
 
 /* ************************************************************************** */
@@ -600,15 +625,17 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 	return new llvm::LoadInst(valeur, "", false, contexte.block_courant());
 }
 
-int NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
+const DonneesType &NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 {
-	auto valeur = contexte.type_locale(m_donnees_morceaux.chaine);
-
-	if (valeur == -1) {
-		valeur = contexte.type_globale(m_donnees_morceaux.chaine);
+	if (contexte.valeur_locale(m_donnees_morceaux.chaine) != nullptr) {
+		return contexte.type_locale(m_donnees_morceaux.chaine);
 	}
 
-	return valeur;
+	if (contexte.valeur_globale(m_donnees_morceaux.chaine) != nullptr) {
+		return contexte.type_globale(m_donnees_morceaux.chaine);
+	}
+
+	throw "NoeudVariable::calcul_type : variable inconnue";
 }
 
 /* ************************************************************************** */
@@ -671,7 +698,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 		switch (this->m_donnees_morceaux.identifiant) {
 			case ID_PLUS:
-				if (est_type_entier(type1)) {
+				if (est_type_entier(type1.type_base())) {
 					instr = llvm::Instruction::Add;
 				}
 				else {
@@ -680,7 +707,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_MOINS:
-				if (est_type_entier(type1)) {
+				if (est_type_entier(type1.type_base())) {
 					instr = llvm::Instruction::Sub;
 				}
 				else {
@@ -689,7 +716,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_FOIS:
-				if (est_type_entier(type1)) {
+				if (est_type_entier(type1.type_base())) {
 					instr = llvm::Instruction::Mul;
 				}
 				else {
@@ -698,7 +725,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_DIVISE:
-				if (est_type_entier(type1)) {
+				if (est_type_entier(type1.type_base())) {
 					instr = llvm::Instruction::SDiv;
 				}
 				else {
@@ -707,7 +734,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_POURCENT:
-				if (est_type_entier(type1)) {
+				if (est_type_entier(type1.type_base())) {
 					instr = llvm::Instruction::SRem;
 				}
 				else {
@@ -716,33 +743,33 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_DECALAGE_DROITE:
-				if (!est_type_entier(type1)) {
+				if (!est_type_entier(type1.type_base())) {
 					throw "Besoin d'un type entier pour le décalage !";
 				}
 				instr = llvm::Instruction::LShr;
 				break;
 			case ID_DECALAGE_GAUCHE:
-				if (!est_type_entier(type1)) {
+				if (!est_type_entier(type1.type_base())) {
 					throw "Besoin d'un type entier pour le décalage !";
 				}
 				instr = llvm::Instruction::Shl;
 				break;
 			case ID_ESPERLUETTE:
 			case ID_ESP_ESP:
-				if (!est_type_entier(type1)) {
+				if (!est_type_entier(type1.type_base())) {
 					throw "Besoin d'un type entier pour l'opération binaire !";
 				}
 				instr = llvm::Instruction::And;
 				break;
 			case ID_BARRE:
 			case ID_BARRE_BARRE:
-				if (!est_type_entier(type1)) {
+				if (!est_type_entier(type1.type_base())) {
 					throw "Besoin d'un type entier pour l'opération binaire !";
 				}
 				instr = llvm::Instruction::Or;
 				break;
 			case ID_CHAPEAU:
-				if (!est_type_entier(type1)) {
+				if (!est_type_entier(type1.type_base())) {
 					throw "Besoin d'un type entier pour l'opération binaire !";
 				}
 				instr = llvm::Instruction::Xor;
@@ -769,7 +796,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 	return nullptr;
 }
 
-int NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
+const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 {
 	return m_enfants[0]->calcul_type(contexte);
 }
@@ -778,7 +805,9 @@ int NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 
 NoeudRetour::NoeudRetour(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
-{}
+{
+	this->donnees_type.pousse(ID_RIEN);
+}
 
 void NoeudRetour::imprime_code(std::ostream &os, int tab)
 {
@@ -802,10 +831,10 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 	return llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.block_courant());
 }
 
-int NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
+const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (m_enfants.size() == 0) {
-		return ID_RIEN;
+		return this->donnees_type;
 	}
 
 	return m_enfants[0]->calcul_type(contexte);

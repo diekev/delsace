@@ -35,6 +35,7 @@ set(SOURCES
 	assembleuse_arbre.h
 	contexte_generation_code.h
     decoupeuse.h
+	donnees_type.h
 	erreur.h
 	expression.h
 	morceaux.h
@@ -48,6 +49,7 @@ set(SOURCES
 	assembleuse_arbre.cc
 	contexte_generation_code.cc
     decoupeuse.cc
+	donnees_type.cc
 	erreur.cc
 	expression.cc
 	morceaux.cc
