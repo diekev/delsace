@@ -41,6 +41,27 @@ const char *frappe::message() const
 	return m_message.c_str();
 }
 
+static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const std::string_view &chaine)
+{
+	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
+	 * de chaque point de code pour bien formater l'erreur. */
+	for (size_t i = 0; i < nombre; i += static_cast<size_t>(nombre_octets(&chaine[i]))) {
+		if (chaine[i] == '\t') {
+			os << '\t';
+		}
+		else {
+			os << ' ';
+		}
+	}
+}
+
+static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
+{
+	for (size_t i = 0; i < chaine.size() - 1; i += static_cast<size_t>(nombre_octets(&chaine[i]))) {
+		os << '~';
+	}
+}
+
 void lance_erreur(const std::string &quoi, const TamponSource &tampon, const DonneesMorceaux &morceau)
 {
 	const auto ligne = morceau.ligne;
@@ -54,29 +75,108 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
-	/* La position ligne est en octet, il faut donc compter le nombre d'octets
-	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < pos_mot; i += static_cast<size_t>(nombre_octets(&ligne_courante[i]))) {
-		if (ligne_courante[i] == '\t') {
-			ss << '\t';
-		}
-		else {
-			ss << ' ';
-		}
-	}
-
+	imprime_caractere_vide(ss, pos_mot, ligne_courante);
 	ss << '^';
-
-	for (size_t i = 0; i < chaine.size() - 1; ++i) {
-		ss << '~';
-	}
-
+	imprime_tilde(ss, chaine);
 	ss << '\n';
 
 	ss << quoi;
 	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
 
 	throw erreur::frappe(ss.str().c_str());
+}
+
+[[noreturn]] void lance_erreur_nombre_arguments(
+		const size_t nombre_arguments,
+		const size_t nombre_recus,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau)
+{
+	const auto ligne = tampon[morceau.ligne];
+
+	std::stringstream ss;
+	ss << "Erreur : ligne:" << morceau.ligne + 1 << ":\n";
+	ss << ligne;
+
+	imprime_caractere_vide(ss, morceau.pos, ligne);
+	ss << '^';
+	imprime_tilde(ss, morceau.chaine);
+	ss << '\n';
+
+	ss << "Le nombre d'arguments de la fonction est incorrect.\n";
+	ss << "Requiers : " << nombre_arguments << '\n';
+	ss << "Obtenu : " << nombre_recus << '\n';
+
+	throw frappe(ss.str().c_str());
+}
+
+[[noreturn]] void lance_erreur_type_arguments(
+		const int type_arg,
+		const int type_enf,
+		const std::string_view &nom_arg,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau)
+{
+	const auto ligne = tampon[morceau.ligne];
+
+	std::stringstream ss;
+	ss << "Erreur : ligne:" << morceau.ligne + 1 << ":\n";
+	ss << ligne;
+
+	imprime_caractere_vide(ss, morceau.pos, ligne);
+	ss << '^';
+	imprime_tilde(ss, morceau.chaine);
+	ss << '\n';
+
+	ss << "Fonction : '" << morceau.chaine << "', argument " << nom_arg << '\n';
+	ss << "Les types d'arguments ne correspondent pas !\n";
+	ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
+	ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
+	throw frappe(ss.str().c_str());
+}
+
+[[noreturn]] void lance_erreur_argument_inconnu(
+		const std::string_view &nom_arg,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau)
+{
+	const auto ligne = tampon[morceau.ligne];
+
+	std::stringstream ss;
+	ss << "Erreur : ligne:" << morceau.ligne + 1 << ":\n";
+	ss << ligne;
+
+	imprime_caractere_vide(ss, morceau.pos, ligne);
+	ss << '^';
+	imprime_tilde(ss, morceau.chaine);
+	ss << '\n';
+
+	ss << "Fonction : '" << morceau.chaine
+	   << "', argument nommé '" << nom_arg << "' inconnu !\n";
+
+	throw frappe(ss.str().c_str());
+}
+
+[[noreturn]] void lance_erreur_redeclaration_argument(
+		const std::string_view &nom_arg,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau)
+{
+	const auto ligne = tampon[morceau.ligne];
+
+	std::stringstream ss;
+	ss << "Erreur : ligne:" << morceau.ligne + 1 << ":\n";
+	ss << ligne;
+
+	imprime_caractere_vide(ss, morceau.pos, ligne);
+	ss << '^';
+	imprime_tilde(ss, morceau.chaine);
+	ss << '\n';
+
+	ss << "Fonction : '" << morceau.chaine
+	   << "', redéclaration de l'argument '" << nom_arg << "' !\n";
+
+	throw frappe(ss.str().c_str());
 }
 
 }

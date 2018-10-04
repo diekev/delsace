@@ -33,6 +33,7 @@
 #include "erreur.h"
 #include "morceaux.h"
 #include "nombres.h"
+#include "tampon_source.h"
 
 /* ************************************************************************** */
 
@@ -164,13 +165,20 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	auto fonction = contexte.module->getFunction(std::string(m_donnees_morceaux.chaine));
 
 	if (fonction == nullptr) {
-		throw "Fonction inconnue !\n";
+		erreur::lance_erreur(
+					"Fonction inconnue",
+					contexte.tampon,
+					m_donnees_morceaux);
 	}
 
 	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 
 	if (m_enfants.size() != donnees_fonction.args.size()) {
-		throw "Le nombre d'arguments de la fonction est incorrect.";
+		erreur::lance_erreur_nombre_arguments(
+					donnees_fonction.args.size(),
+					m_enfants.size(),
+					contexte.tampon,
+					m_donnees_morceaux);
 	}
 
 	/* Cherche la liste d'arguments */
@@ -192,13 +200,13 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 				const auto type_arg = pair.second.type;
 				const auto type_enf = enfant->calcul_type(contexte);
 
-				if (pair.second.type != enfant->calcul_type(contexte)) {
-					std::stringstream ss;
-					ss << "Fonction : '" << m_donnees_morceaux.chaine << "', argument " << index << '\n';
-					ss << "Les types d'arguments ne correspondent pas !\n";
-					ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
-					ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
-					throw erreur::frappe(ss.str().c_str());
+				if (type_arg != type_enf) {
+					erreur::lance_erreur_type_arguments(
+								type_arg,
+								type_enf,
+								pair.first,
+								contexte.tampon,
+								m_donnees_morceaux);
 				}
 			}
 
@@ -212,7 +220,11 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		/* Il faut trouver l'ordre des arguments. À FAIRE : tests. */
 
 		if (m_noms_arguments.size() != donnees_fonction.args.size()) {
-			throw "Le nombre d'arguments de la fonction est incorrect.";
+			erreur::lance_erreur_nombre_arguments(
+						donnees_fonction.args.size(),
+						m_enfants.size(),
+						contexte.tampon,
+						m_donnees_morceaux);
 		}
 
 		/* Réordonne les enfants selon l'apparition des arguments car LLVM est
@@ -222,27 +234,33 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		std::vector<Noeud *> enfants;
 		enfants.reserve(m_noms_arguments.size());
 
+		auto index = 0ul;
+
 		for (const auto &nom : m_noms_arguments) {
 			auto iter = donnees_fonction.args.find(nom);
 
 			if (iter == donnees_fonction.args.end()) {
-				throw "Argument inconnu !\n";
+				erreur::lance_erreur_argument_inconnu(
+							nom,
+							contexte.tampon,
+							m_donnees_morceaux);
 			}
 
-			const auto index = iter->second.index;
 			const auto type_arg = iter->second.type;
 			const auto type_enf = m_enfants[index]->calcul_type(contexte);
 
 			if (type_arg != type_enf) {
-				std::stringstream ss;
-				ss << "Fonction : '" << m_donnees_morceaux.chaine << "', argument " << index << '\n';
-				ss << "Les types d'arguments ne correspondent pas !\n";
-				ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
-				ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
-				throw erreur::frappe(ss.str().c_str());
+				erreur::lance_erreur_type_arguments(
+							type_arg,
+							type_enf,
+							nom,
+							contexte.tampon,
+							m_donnees_morceaux);
 			}
 
 			enfants.push_back(m_enfants[index]);
+
+			++index;
 		}
 
 		parametres.resize(m_noms_arguments.size());
@@ -334,10 +352,6 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	auto valeurs_args = fonction->arg_begin();
 
 	for (const auto &argument : m_arguments) {
-		if (contexte.valeur_locale(argument.chaine) != nullptr) {
-			throw "Redéclaration de l'argument !";
-		}
-
 		auto alloc = new llvm::AllocaInst(
 						 type_argument(contexte.contexte, argument.id_type),
 						 argument.chaine,

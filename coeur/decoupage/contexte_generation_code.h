@@ -29,6 +29,8 @@
 #include <stack>
 #include <unordered_map>
 
+struct TamponSource;
+
 namespace llvm {
 class BasicBlock;
 class Value;
@@ -58,8 +60,11 @@ struct Block {
 };
 
 struct ContexteGenerationCode {
+	const TamponSource &tampon;
 	llvm::Module *module;
 	llvm::LLVMContext contexte;
+
+	ContexteGenerationCode(const TamponSource &tampon_source);
 
 	void pousse_block(llvm::BasicBlock *block);
 

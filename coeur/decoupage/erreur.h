@@ -44,4 +44,28 @@ public:
 		const std::string &quoi,
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau);
+
+[[noreturn]] void lance_erreur_nombre_arguments(
+		const size_t nombre_arguments,
+		const size_t nombre_recus,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau);
+
+[[noreturn]] void lance_erreur_type_arguments(
+		const int type_arg,
+		const int type_enf,
+		const std::string_view &nom_arg,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau);
+
+[[noreturn]] void lance_erreur_argument_inconnu(
+		const std::string_view &nom_arg,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau);
+
+[[noreturn]] void lance_erreur_redeclaration_argument(
+		const std::string_view &nom_arg,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau);
+
 }

@@ -24,6 +24,12 @@
 
 #include "contexte_generation_code.h"
 
+ContexteGenerationCode::ContexteGenerationCode(const TamponSource &tampon_source)
+	: tampon(tampon_source)
+	, module(nullptr)
+	, contexte{}
+{}
+
 void ContexteGenerationCode::pousse_block(llvm::BasicBlock *block)
 {
 	Block b;
