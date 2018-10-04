@@ -32,6 +32,7 @@
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "expression.h"
+#include "nombres.h"
 
 #undef DEBOGUE_EXPRESSION
 #undef DEBOGUE_ARBRE
@@ -717,7 +718,6 @@ void analyseuse_grammaire::analyse_declaration_enum()
 		lance_erreur("Attendu '}' à la fin de la déclaration de l'énum");
 	}
 }
-#include "nombres.h"
 
 void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, bool double_point)
 {
