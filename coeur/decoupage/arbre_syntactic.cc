@@ -675,8 +675,16 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 							  false);
 				break;
 			case ID_AROBASE:
-				/* À FAIRE : prend addresse. */
-				return valeur1;
+			{
+				auto inst_load = dynamic_cast<llvm::LoadInst *>(valeur1);
+
+				if (inst_load == nullptr) {
+					/* Ne devrais pas arriver. */
+					return nullptr;
+				}
+
+				return inst_load->getPointerOperand();
+			}
 			default:
 				return nullptr;
 		}
@@ -798,6 +806,12 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 {
+	if (m_donnees_morceaux.identifiant == ID_AROBASE) {
+		this->donnees_type.pousse(ID_POINTEUR);
+		this->donnees_type.pousse(m_enfants[0]->calcul_type(contexte));
+		return this->donnees_type;
+	}
+
 	return m_enfants[0]->calcul_type(contexte);
 }
 

@@ -47,6 +47,13 @@ public:
 	void pousse(int identifiant);
 
 	/**
+	 * Pousse les identifiants d'un autre vecteur de données dans celui-ci.
+	 * Cette fonction est principalement là pour générer les données relatives
+	 * à la prise de l'addresse d'une variable.
+	 */
+	void pousse(const DonneesType &autre);
+
+	/**
 	 * Retourne le type de base, à savoir le premier élément déclaré. Par
 	 * exemple si nous déclarons '**e8', le type de base sera '*' (ID_POINTEUR),
 	 * alors que pour 'e32', ce sera 'e32' (ID_E32).

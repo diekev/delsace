@@ -31,6 +31,13 @@ void DonneesType::pousse(int identifiant)
 	m_donnees.push_back(identifiant);
 }
 
+void DonneesType::pousse(const DonneesType &autre)
+{
+	for (int identifiant : autre.m_donnees) {
+		m_donnees.push_back(identifiant);
+	}
+}
+
 int DonneesType::type_base() const
 {
 	return m_donnees.front();
