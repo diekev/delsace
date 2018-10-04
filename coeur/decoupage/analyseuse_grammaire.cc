@@ -680,6 +680,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 		lance_erreur("Attendu '}' à la fin de la déclaration de l'énum");
 	}
 }
+#include "nombres.h"
 
 void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type)
 {
@@ -689,15 +690,21 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type)
 
 	while (est_specifiant_type(identifiant_courant())) {
 		bool est_pointeur = true;
+		bool est_tableau  = false;
+		int taille = 0;
 
 		if (requiers_identifiant(ID_CROCHET_OUVRANT)) {
 			if (this->identifiant_courant() != ID_CROCHET_FERMANT) {
 				est_pointeur = false;
+				est_tableau = true;
 
 				/* À FAIRE : expression */
 				if (!requiers_nombre_entier()) {
 					lance_erreur("Attendu un nombre entier après [");
 				}
+
+				const auto &morceau = m_identifiants[position()];
+				taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
 			}
 
 			if (!requiers_identifiant(ID_CROCHET_FERMANT)) {
@@ -707,6 +714,10 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type)
 
 		if (est_pointeur) {
 			donnees_type.pousse(ID_POINTEUR);
+		}
+		else if (est_tableau) {
+			/* À FAIRE ? : meilleure manière de stocker la taille. */
+			donnees_type.pousse(ID_TABLEAU | (taille << 8));
 		}
 	}
 

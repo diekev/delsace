@@ -45,7 +45,7 @@ static llvm::Type *converti_type(
 	llvm::Type *type = nullptr;
 
 	for (int identifiant : donnees_type) {
-		switch (identifiant) {
+		switch (identifiant & 0xff) {
 			case ID_BOOL:
 				type = llvm::Type::getInt1Ty(contexte);
 				break;
@@ -76,6 +76,12 @@ static llvm::Type *converti_type(
 			case ID_POINTEUR:
 				type = llvm::PointerType::get(type, 0);
 				break;
+			case ID_TABLEAU:
+			{
+				const auto taille = static_cast<uint64_t>(identifiant) & 0xffffff00;
+				type = llvm::ArrayType::get(type, taille >> 8);
+				break;
+			}
 		}
 	}
 
