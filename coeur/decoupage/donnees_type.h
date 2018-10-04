@@ -40,16 +40,18 @@ public:
 	using iterateur_const = std::vector<int>::const_reverse_iterator;
 
 	/**
-	 * Ajoute un identifiant à ces données. Ceci est la seule manière de
-	 * modifier le contenu de ces données, donc il vaut mieux faire en sorte de
-	 * pousser des données correctes.
+	 * Ajoute un identifiant à ces données. Il ne sera pas possible de supprimer
+	 * l'identifiant poussé, donc il vaut mieux faire en sorte de pousser des
+	 * données correctes dans un ordre correcte.
 	 */
 	void pousse(int identifiant);
 
 	/**
 	 * Pousse les identifiants d'un autre vecteur de données dans celui-ci.
 	 * Cette fonction est principalement là pour générer les données relatives
-	 * à la prise de l'addresse d'une variable.
+	 * à la prise de l'addresse d'une variable. Il ne sera pas possible de
+	 * supprimer les identifiants poussés, donc il vaut mieux faire en sorte de
+	 * pousser des données correctes dans un ordre correcte.
 	 */
 	void pousse(const DonneesType &autre);
 
@@ -64,8 +66,8 @@ public:
 	int type_base() const;
 
 	/**
-	 * Retourne vrai si les données ne sont pas vides, ou si le dernier élément
-	 * du tableau n'est ni un pointeur, ni un tableau, ni une référence.
+	 * Retourne vrai si les données sont vides, ou si le dernier élément du
+	 * tableau n'est ni un pointeur, ni un tableau, ni une référence.
 	 */
 	bool est_invalide() const;
 
