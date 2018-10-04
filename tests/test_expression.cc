@@ -24,6 +24,7 @@
 
 #include "test_expression.h"
 
+#include "erreur.h"
 #include "outils.h"
 
 void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
@@ -59,10 +60,10 @@ R"(fonction foo()
 )";
 
 	/* Passage du test sans la génération du code. */
-	auto erreur_lancee = retourne_erreur_lancee(texte, true, false);
+	auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::AUCUNE_ERREUR, false);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 
 	/* Passage du test avec la génération du code. */
-	erreur_lancee = retourne_erreur_lancee(texte, true, true);
+	erreur_lancee = retourne_erreur_lancee(texte, false, erreur::AUCUNE_ERREUR, true);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 }

@@ -148,7 +148,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 	ss << "^~~~\n";
 	ss << quoi;
 
-	throw erreur::frappe(ss.str().c_str());
+	throw erreur::frappe(ss.str().c_str(), erreur::DECOUPAGE);
 }
 
 // si caractere blanc:

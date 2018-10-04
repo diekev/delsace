@@ -32,9 +32,15 @@
 
 namespace erreur {
 
-frappe::frappe(const char *message)
+frappe::frappe(const char *message, int type)
 	: m_message(message)
+	, m_type(type)
 {}
+
+int frappe::type() const
+{
+	return m_type;
+}
 
 const char *frappe::message() const
 {
@@ -62,7 +68,7 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 	}
 }
 
-void lance_erreur(const std::string &quoi, const TamponSource &tampon, const DonneesMorceaux &morceau)
+void lance_erreur(const std::string &quoi, const TamponSource &tampon, const DonneesMorceaux &morceau, int type)
 {
 	const auto ligne = morceau.ligne;
 	const auto pos_mot = morceau.pos;
@@ -83,7 +89,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << quoi;
 	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
 
-	throw erreur::frappe(ss.str().c_str());
+	throw erreur::frappe(ss.str().c_str(), type);
 }
 
 [[noreturn]] void lance_erreur_nombre_arguments(
@@ -107,7 +113,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Requiers : " << nombre_arguments << '\n';
 	ss << "Obtenu : " << nombre_recus << '\n';
 
-	throw frappe(ss.str().c_str());
+	throw frappe(ss.str().c_str(), NOMBRE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
@@ -132,7 +138,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Les types d'arguments ne correspondent pas !\n";
 	ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
 	ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
-	throw frappe(ss.str().c_str());
+	throw frappe(ss.str().c_str(), TYPE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_argument_inconnu(
@@ -154,7 +160,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Fonction : '" << morceau.chaine
 	   << "', argument nommé '" << nom_arg << "' inconnu !\n";
 
-	throw frappe(ss.str().c_str());
+	throw frappe(ss.str().c_str(), ARGUMENT_INCONNU);
 }
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
@@ -176,7 +182,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Fonction : '" << morceau.chaine
 	   << "', redéclaration de l'argument '" << nom_arg << "' !\n";
 
-	throw frappe(ss.str().c_str());
+	throw frappe(ss.str().c_str(), ARGUMENT_REDEFINI);
 }
 
 }

@@ -24,6 +24,7 @@
 
 #include "test_types.h"
 
+#include "erreur.h"
 #include "outils.h"
 
 static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire &controleur)
@@ -44,7 +45,7 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_RIEN);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* impossibilité de définir */
@@ -63,7 +64,7 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::TYPE_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -92,7 +93,7 @@ static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitair
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::AUCUNE_ERREUR);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 }
 

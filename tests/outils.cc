@@ -35,6 +35,7 @@
 bool retourne_erreur_lancee(
 		const char *texte,
 		const bool imprime_message,
+		const int type,
 		const bool genere_code)
 {
 	auto tampon = TamponSource(texte);
@@ -60,17 +61,7 @@ bool retourne_erreur_lancee(
 			std::cerr << e.message() << '\n';
 		}
 
-		return true;
-	}
-	catch (const char *e) {
-		if (imprime_message) {
-			std::cerr << e << '\n';
-		}
-
-		return true;
-	}
-	catch (...) {
-		return true;
+		return type == e.type();
 	}
 
 	return false;

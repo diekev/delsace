@@ -93,7 +93,7 @@ int Analyseuse::identifiant_courant() const
 	return m_identifiants[m_position].identifiant;
 }
 
-void Analyseuse::lance_erreur(const std::string &quoi)
+void Analyseuse::lance_erreur(const std::string &quoi, int type)
 {
-	erreur::lance_erreur(quoi, m_tampon, m_identifiants[position()]);
+	erreur::lance_erreur(quoi, m_tampon, m_identifiants[position()], type);
 }

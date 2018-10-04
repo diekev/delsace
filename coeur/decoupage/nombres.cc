@@ -140,7 +140,7 @@ static int extrait_nombre_decimal(const char *debut, const char *fin, std::strin
 				}
 
 				if (etat == ETAT_NOMBRE_POINT) {
-					throw erreur::frappe("Erreur ! Le nombre contient un point en trop !\n");
+					throw erreur::frappe("Erreur ! Le nombre contient un point en trop !\n", erreur::DECOUPAGE);
 				}
 
 				etat = ETAT_NOMBRE_POINT;

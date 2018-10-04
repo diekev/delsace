@@ -31,11 +31,32 @@ struct TamponSource;
 
 namespace erreur {
 
+enum {
+	NORMAL,
+	DECOUPAGE,
+	NOMBRE_ARGUMENT,
+	TYPE_ARGUMENT,
+	ARGUMENT_INCONNU,
+	ARGUMENT_REDEFINI,
+	VARIABLE_INCONNUE,
+	VARIABLE_REDEFINIE,
+	FONCTION_INCONNUE,
+	FONCTION_REDEFINIE,
+	ASSIGNATION_RIEN,
+	TYPE_INCONNU,
+	TYPE_DIFFERENTS,
+
+	AUCUNE_ERREUR,
+};
+
 class frappe {
 	std::string m_message;
+	int m_type;
 
 public:
-	explicit frappe(const char *message);
+	frappe(const char *message, int type);
+
+	int type() const;
 
 	const char *message() const;
 };
@@ -43,7 +64,8 @@ public:
 [[noreturn]] void lance_erreur(
 		const std::string &quoi,
 		const TamponSource &tampon,
-		const DonneesMorceaux &morceau);
+		const DonneesMorceaux &morceau,
+		int type = NORMAL);
 
 [[noreturn]] void lance_erreur_nombre_arguments(
 		const size_t nombre_arguments,

@@ -194,7 +194,8 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		erreur::lance_erreur(
 					"Fonction inconnue",
 					contexte.tampon,
-					m_donnees_morceaux);
+					m_donnees_morceaux,
+					erreur::FONCTION_INCONNUE);
 	}
 
 	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
@@ -453,13 +454,21 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
 
 	if (valeur != nullptr) {
-		throw "Redéfinition de la variable !";
+		erreur::lance_erreur(
+					"Redéfinition de la variable !",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::VARIABLE_REDEFINIE);
 	}
 	else {
 		valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
 
 		if (valeur != nullptr) {
-			throw "Redéfinition de la variable !";
+			erreur::lance_erreur(
+						"Redéfinition de la variable !",
+						contexte.tampon,
+						m_donnees_morceaux,
+						erreur::VARIABLE_REDEFINIE);
 		}
 	}
 
@@ -469,11 +478,19 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 		this->donnees_type = m_enfants[0]->calcul_type(contexte);
 
 		if (this->donnees_type.est_invalide()) {
-			throw "Impossible de définir le type de la variable !";
+			erreur::lance_erreur(
+						"Impossible de définir le type de la variable !",
+						contexte.tampon,
+						m_donnees_morceaux,
+						erreur::TYPE_INCONNU);
 		}
 
 		if (this->donnees_type.type_base() == ID_RIEN) {
-			throw "Impossible d'assigner une expression de type 'rien' à une variable !";
+			erreur::lance_erreur(
+						"Impossible d'assigner une expression de type 'rien' à une variable !",
+						contexte.tampon,
+						m_donnees_morceaux,
+						erreur::ASSIGNATION_RIEN);
 		}
 	}
 
@@ -513,14 +530,22 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
 	auto valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
 
 	if (valeur != nullptr) {
-		throw "Redéfinition de la variable globale !";
+		erreur::lance_erreur(
+					"Redéfinition de la variable globale !",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::VARIABLE_REDEFINIE);
 	}
 
 	if (this->donnees_type.est_invalide()) {
 		this->donnees_type = m_enfants[0]->calcul_type(contexte);
 
 		if (this->donnees_type.est_invalide()) {
-			throw "Impossible de définir le type de la variable globale.";
+			erreur::lance_erreur(
+						"Impossible de définir le type de la variable globale !",
+						contexte.tampon,
+						m_donnees_morceaux,
+						erreur::TYPE_INCONNU);
 		}
 	}
 
@@ -624,7 +649,11 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 		valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
 
 		if (valeur == nullptr) {
-			throw "Variable inconnue";
+			erreur::lance_erreur(
+						"Variable inconnue !",
+						contexte.tampon,
+						m_donnees_morceaux,
+						erreur::VARIABLE_INCONNUE);
 		}
 	}
 
@@ -641,7 +670,11 @@ const DonneesType &NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 		return contexte.type_globale(m_donnees_morceaux.chaine);
 	}
 
-	throw "NoeudVariable::calcul_type : variable inconnue";
+	erreur::lance_erreur(
+				"NoeudVariable::calcul_type : variable inconnue !",
+				contexte.tampon,
+				m_donnees_morceaux,
+				erreur::VARIABLE_INCONNUE);
 }
 
 /* ************************************************************************** */
@@ -705,7 +738,11 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		const auto type2 = m_enfants[1]->calcul_type(contexte);
 
 		if (type1 != type2) {
-			throw "Les types de l'opération sont différents !";
+			erreur::lance_erreur(
+						"Les types de l'opération sont différents !",
+						contexte.tampon,
+						m_donnees_morceaux,
+						erreur::TYPE_DIFFERENTS);
 		}
 
 		/* À FAIRE : typage */
@@ -758,33 +795,53 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				break;
 			case ID_DECALAGE_DROITE:
 				if (!est_type_entier(type1.type_base())) {
-					throw "Besoin d'un type entier pour le décalage !";
+					erreur::lance_erreur(
+								"Besoin d'un type entier pour le décalage !",
+								contexte.tampon,
+								m_donnees_morceaux,
+								erreur::TYPE_DIFFERENTS);
 				}
 				instr = llvm::Instruction::LShr;
 				break;
 			case ID_DECALAGE_GAUCHE:
 				if (!est_type_entier(type1.type_base())) {
-					throw "Besoin d'un type entier pour le décalage !";
+					erreur::lance_erreur(
+								"Besoin d'un type entier pour le décalage !",
+								contexte.tampon,
+								m_donnees_morceaux,
+								erreur::TYPE_DIFFERENTS);
 				}
 				instr = llvm::Instruction::Shl;
 				break;
 			case ID_ESPERLUETTE:
 			case ID_ESP_ESP:
 				if (!est_type_entier(type1.type_base())) {
-					throw "Besoin d'un type entier pour l'opération binaire !";
+					erreur::lance_erreur(
+								"Besoin d'un type entier pour l'opération binaire !",
+								contexte.tampon,
+								m_donnees_morceaux,
+								erreur::TYPE_DIFFERENTS);
 				}
 				instr = llvm::Instruction::And;
 				break;
 			case ID_BARRE:
 			case ID_BARRE_BARRE:
 				if (!est_type_entier(type1.type_base())) {
-					throw "Besoin d'un type entier pour l'opération binaire !";
+					erreur::lance_erreur(
+								"Besoin d'un type entier pour l'opération binaire !",
+								contexte.tampon,
+								m_donnees_morceaux,
+								erreur::TYPE_DIFFERENTS);
 				}
 				instr = llvm::Instruction::Or;
 				break;
 			case ID_CHAPEAU:
 				if (!est_type_entier(type1.type_base())) {
-					throw "Besoin d'un type entier pour l'opération binaire !";
+					erreur::lance_erreur(
+								"Besoin d'un type entier pour l'opération binaire !",
+								contexte.tampon,
+								m_donnees_morceaux,
+								erreur::TYPE_DIFFERENTS);
 				}
 				instr = llvm::Instruction::Xor;
 				break;

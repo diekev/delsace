@@ -24,6 +24,7 @@
 
 #include "test_fonctions.h"
 
+#include "erreur.h"
 #include "outils.h"
 
 static void test_fonction_general(
@@ -51,7 +52,7 @@ static void test_fonction_general(
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::AUCUNE_ERREUR);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 }
 
@@ -66,7 +67,7 @@ static void test_fonction_inconnue(
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::FONCTION_INCONNUE);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 }
 
@@ -88,7 +89,7 @@ static void test_argument_nomme_succes(
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::AUCUNE_ERREUR);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 }
 
@@ -111,7 +112,7 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ARGUMENT_REDEFINI);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* argument inconnu */
@@ -130,7 +131,7 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ARGUMENT_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -152,7 +153,7 @@ static void test_type_argument_echec(
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::TYPE_ARGUMENT);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 }
 
@@ -175,7 +176,7 @@ static void test_nombre_argument(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NOMBRE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* sans argument nommé */
@@ -194,7 +195,7 @@ static void test_nombre_argument(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NOMBRE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -210,7 +211,7 @@ static void test_argument_unique(
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ARGUMENT_REDEFINI);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 }
 
@@ -230,7 +231,7 @@ static void test_fonction_redinie(
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::FONCTION_REDEFINIE);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 }
 

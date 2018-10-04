@@ -24,6 +24,7 @@
 
 #include "test_variables.h"
 
+#include "erreur.h"
 #include "outils.h"
 
 static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
@@ -39,7 +40,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* redéfinition variable local */
@@ -54,7 +55,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* redéfinition variable globale */
@@ -69,7 +70,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* redéfinition variable énum */
@@ -85,7 +86,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -101,7 +102,7 @@ static void test_variable_indefinie(numero7::test_unitaire::ControleurUnitaire &
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_INCONNUE);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 }
 

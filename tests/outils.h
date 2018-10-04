@@ -27,4 +27,5 @@
 bool retourne_erreur_lancee(
 		const char *texte,
 		const bool imprime_message,
+		const int type,
 		const bool genere_code = true);

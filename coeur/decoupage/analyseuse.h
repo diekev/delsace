@@ -79,7 +79,7 @@ protected:
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
-	[[noreturn]] void lance_erreur(const std::string &quoi);
+	[[noreturn]] void lance_erreur(const std::string &quoi, int type = 0);
 
 	/**
 	 * Avance l'analyseur du nombre de cran spécifié sur le vecteur de morceaux.

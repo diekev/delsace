@@ -30,6 +30,7 @@
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
+#include "erreur.h"
 #include "expression.h"
 
 #undef DEBOGUE_EXPRESSION
@@ -203,7 +204,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	const auto nom_fonction = m_identifiants[position()].chaine;
 
 	if (m_contexte.fonction_existe(nom_fonction)) {
-		lance_erreur("Redéfinition de la fonction");
+		lance_erreur("Redéfinition de la fonction", erreur::FONCTION_REDEFINIE);
 	}
 
 	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, m_identifiants[position()]);
@@ -258,7 +259,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 	arg.chaine = m_identifiants[position()].chaine;
 
 	if (donnees.args.find(arg.chaine) != donnees.args.end()) {
-		lance_erreur("Redéfinition de l'argument");
+		lance_erreur("Redéfinition de l'argument", erreur::ARGUMENT_REDEFINI);
 	}
 
 	auto donnees_type = DonneesType{};
@@ -548,7 +549,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 			auto nom_argument = m_identifiants[position()].chaine;
 
 			if (args.find(nom_argument) != args.end()) {
-				lance_erreur("Argument déjà nommé");
+				lance_erreur("Argument déjà nommé", erreur::ARGUMENT_REDEFINI);
 			}
 
 			args.insert(nom_argument);
