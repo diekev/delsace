@@ -414,6 +414,10 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_ENTIER, morceau);
 			expression.push_back(noeud);
 		}
+		else if (identifiant_courant() == ID_CHAINE_LITTERALE) {
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_CHAINE_LITTERALE, morceau);
+			expression.push_back(noeud);
+		}
 		else if (est_operateur(identifiant_courant())) {
 			while (!pile.empty()
 				   && est_operateur(pile.top().identifiant)

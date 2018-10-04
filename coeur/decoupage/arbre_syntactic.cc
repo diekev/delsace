@@ -626,6 +626,43 @@ const DonneesType &NoeudNombreReel::calcul_type(ContexteGenerationCode &/*contex
 
 /* ************************************************************************** */
 
+NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{
+	this->donnees_type.pousse(ID_TABLEAU | static_cast<int>(m_donnees_morceaux.chaine.size() << 8));
+	this->donnees_type.pousse(ID_E8);
+}
+
+void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+
+	os << "NoeudChaineLitterale : " << m_donnees_morceaux.chaine << '\n';
+}
+
+llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &contexte)
+{
+	auto constante = llvm::ConstantDataArray::getString(
+						 contexte.contexte,
+						 std::string(m_donnees_morceaux.chaine));
+
+	auto type = converti_type(contexte.contexte, this->donnees_type);
+
+	return new llvm::GlobalVariable(
+				*contexte.module,
+				type,
+				true,
+				llvm::GlobalValue::InternalLinkage,
+				constante);
+}
+
+const DonneesType &NoeudChaineLitterale::calcul_type(ContexteGenerationCode &/*contexte*/)
+{
+	return this->donnees_type;
+}
+
+/* ************************************************************************** */
+
 NoeudVariable::NoeudVariable(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {}

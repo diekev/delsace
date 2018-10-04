@@ -48,6 +48,7 @@ enum {
 	NOEUD_NOMBRE_ENTIER,
 	NOEUD_OPERATION,
 	NOEUD_RETOUR,
+	NOEUD_CHAINE_LITTERALE,
 };
 
 /* ************************************************************************** */
@@ -251,6 +252,19 @@ public:
 class NoeudNombreReel final : public Noeud {
 public:
 	explicit NoeudNombreReel(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+};
+
+/* ************************************************************************** */
+
+class NoeudChaineLitterale final : public Noeud {
+public:
+	explicit NoeudChaineLitterale(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

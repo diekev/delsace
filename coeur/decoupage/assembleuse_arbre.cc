@@ -89,6 +89,9 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 		case NOEUD_CONSTANTE:
 			noeud = new NoeudConstante(morceau);
 			break;
+		case NOEUD_CHAINE_LITTERALE:
+			noeud = new NoeudChaineLitterale(morceau);
+			break;
 	}
 
 	if (noeud != nullptr) {
