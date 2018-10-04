@@ -26,95 +26,86 @@
  
 #include "morceaux.h"
 
-#include <algorithm>
+#include <unordered_map>
 
-struct paire_identifiant_chaine {
-	int identifiant;
-	std::string_view chaine;
+static std::unordered_map<std::string_view, int> paires_mots_cles = {
+	{ "arrête", ID_ARRETE },
+	{ "associe", ID_ASSOCIE },
+	{ "bool", ID_BOOL },
+	{ "boucle", ID_BOUCLE },
+	{ "constante", ID_CONSTANTE },
+	{ "continue", ID_CONTINUE },
+	{ "dans", ID_DANS },
+	{ "de", ID_DE },
+	{ "défère", ID_DEFERE },
+	{ "e16", ID_E16 },
+	{ "e16ns", ID_E16NS },
+	{ "e32", ID_E32 },
+	{ "e32ns", ID_E32NS },
+	{ "e64", ID_E64 },
+	{ "e64ns", ID_E64NS },
+	{ "e8", ID_E8 },
+	{ "e8ns", ID_E8NS },
+	{ "faux", ID_FAUX },
+	{ "fonction", ID_FONCTION },
+	{ "gabarit", ID_GABARIT },
+	{ "pour", ID_POUR },
+	{ "r16", ID_R16 },
+	{ "r32", ID_R32 },
+	{ "r64", ID_R64 },
+	{ "retourne", ID_RETOURNE },
+	{ "rien", ID_RIEN },
+	{ "si", ID_SI },
+	{ "sinon", ID_SINON },
+	{ "soit", ID_SOIT },
+	{ "structure", ID_STRUCTURE },
+	{ "transtype", ID_TRANSTYPE },
+	{ "variable", ID_VARIABLE },
+	{ "vrai", ID_VRAI },
+	{ "énum", ID_ENUM },
 };
 
-struct paire_identifiant_caractere {
-	int identifiant;
-	char caractere;
+static std::unordered_map<std::string_view, int> paires_caracteres_double = {
+	{ "!=", ID_DIFFERENCE },
+	{ "&&", ID_ESP_ESP },
+	{ "<<", ID_DECALAGE_GAUCHE },
+	{ "<=", ID_INFERIEUR_EGAL },
+	{ "==", ID_EGALITE },
+	{ ">=", ID_SUPERIEUR_EGAL },
+	{ ">>", ID_DECALAGE_DROITE },
+	{ "||", ID_BARRE_BARRE },
 };
 
-static paire_identifiant_chaine paires_mots_cles[] = {
-	{ID_ARRETE, "arrête"},
-	{ID_ASSOCIE, "associe"},
-	{ID_BOOL, "bool"},
-	{ID_BOUCLE, "boucle"},
-	{ID_CONSTANTE, "constante"},
-	{ID_CONTINUE, "continue"},
-	{ID_DANS, "dans"},
-	{ID_DE, "de"},
-	{ID_DEFERE, "défère"},
-	{ID_E16, "e16"},
-	{ID_E16NS, "e16ns"},
-	{ID_E32, "e32"},
-	{ID_E32NS, "e32ns"},
-	{ID_E64, "e64"},
-	{ID_E64NS, "e64ns"},
-	{ID_E8, "e8"},
-	{ID_E8NS, "e8ns"},
-	{ID_FAUX, "faux"},
-	{ID_FONCTION, "fonction"},
-	{ID_GABARIT, "gabarit"},
-	{ID_POUR, "pour"},
-	{ID_R16, "r16"},
-	{ID_R32, "r32"},
-	{ID_R64, "r64"},
-	{ID_RETOURNE, "retourne"},
-	{ID_RIEN, "rien"},
-	{ID_SI, "si"},
-	{ID_SINON, "sinon"},
-	{ID_SOIT, "soit"},
-	{ID_STRUCTURE, "structure"},
-	{ID_TRANSTYPE, "transtype"},
-	{ID_VARIABLE, "variable"},
-	{ID_VRAI, "vrai"},
-	{ID_ENUM, "énum"},
+static std::unordered_map<char, int> paires_caracteres_speciaux = {
+	{ '!', ID_EXCLAMATION },
+	{ '"', ID_GUILLEMET },
+	{ '#', ID_DIESE },
+	{ '%', ID_POURCENT },
+	{ '&', ID_ESPERLUETTE },
+	{ '\'', ID_APOSTROPHE },
+	{ '(', ID_PARENTHESE_OUVRANTE },
+	{ ')', ID_PARENTHESE_FERMANTE },
+	{ '*', ID_FOIS },
+	{ '+', ID_PLUS },
+	{ ',', ID_VIRGULE },
+	{ '-', ID_MOINS },
+	{ '.', ID_POINT },
+	{ '/', ID_DIVISE },
+	{ ':', ID_DOUBLE_POINTS },
+	{ ';', ID_POINT_VIRGULE },
+	{ '<', ID_INFERIEUR },
+	{ '=', ID_EGAL },
+	{ '>', ID_SUPERIEUR },
+	{ '@', ID_AROBASE },
+	{ '[', ID_CROCHET_OUVRANT },
+	{ ']', ID_CROCHET_FERMANT },
+	{ '^', ID_CHAPEAU },
+	{ '{', ID_ACCOLADE_OUVRANTE },
+	{ '|', ID_BARRE },
+	{ '}', ID_ACCOLADE_FERMANTE },
+	{ '~', ID_TILDE },
 };
 
-static paire_identifiant_chaine paires_caracteres_double[] = {
-	{ID_DIFFERENCE, "!="},
-	{ID_ESP_ESP, "&&"},
-	{ID_DECALAGE_GAUCHE, "<<"},
-	{ID_INFERIEUR_EGAL, "<="},
-	{ID_EGALITE, "=="},
-	{ID_SUPERIEUR_EGAL, ">="},
-	{ID_DECALAGE_DROITE, ">>"},
-	{ID_BARRE_BARRE, "||"},
-};
-
-static paire_identifiant_caractere paires_caracteres_speciaux[] = {
-	{ID_EXCLAMATION, '!'},
-	{ID_GUILLEMET, '"'},
-	{ID_DIESE, '#'},
-	{ID_POURCENT, '%'},
-	{ID_ESPERLUETTE, '&'},
-	{ID_APOSTROPHE, '\''},
-	{ID_PARENTHESE_OUVRANTE, '('},
-	{ID_PARENTHESE_FERMANTE, ')'},
-	{ID_FOIS, '*'},
-	{ID_PLUS, '+'},
-	{ID_VIRGULE, ','},
-	{ID_MOINS, '-'},
-	{ID_POINT, '.'},
-	{ID_DIVISE, '/'},
-	{ID_DOUBLE_POINTS, ':'},
-	{ID_POINT_VIRGULE, ';'},
-	{ID_INFERIEUR, '<'},
-	{ID_EGAL, '='},
-	{ID_SUPERIEUR, '>'},
-	{ID_AROBASE, '@'},
-	{ID_CROCHET_OUVRANT, '['},
-	{ID_CROCHET_FERMANT, ']'},
-	{ID_CHAPEAU, '^'},
-	{ID_ACCOLADE_OUVRANTE, '{'},
-	{ID_BARRE, '|'},
-	{ID_ACCOLADE_FERMANTE, '}'},
-	{ID_TILDE, '~'},
-};
 const char *chaine_identifiant(int id)
 {
 	switch (id) {
@@ -287,34 +278,13 @@ const char *chaine_identifiant(int id)
 	return "ERREUR";
 }
 
-
-static bool comparaison_paires_identifiant(
-		const paire_identifiant_chaine &a,
-		const paire_identifiant_chaine &b)
-{
-	return a.chaine < b.chaine;
-}
-
-static bool comparaison_paires_caractere(
-		const paire_identifiant_caractere &a,
-		const paire_identifiant_caractere &b)
-{
-	return a.caractere < b.caractere;
-}
-
 bool est_caractere_special(char c, int &i)
 {
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_caracteres_speciaux),
-						 std::end(paires_caracteres_speciaux),
-						 paire_identifiant_caractere{ID_INCONNU, c},
-						 comparaison_paires_caractere);
+	auto iterateur = paires_caracteres_speciaux.find(c);
 
-	if (iterateur != std::end(paires_caracteres_speciaux)) {
-		if ((*iterateur).caractere == c) {
-			i = (*iterateur).identifiant;
-			return true;
-		}
+	if (iterateur != paires_caracteres_speciaux.end()) {
+		i = (*iterateur).second;
+		return true;
 	}
 
 	return false;
@@ -322,16 +292,10 @@ bool est_caractere_special(char c, int &i)
 
 int id_caractere_double(const std::string_view &chaine)
 {
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_caracteres_double),
-						 std::end(paires_caracteres_double),
-						 paire_identifiant_chaine{ID_INCONNU, chaine},
-						 comparaison_paires_identifiant);
+	auto iterateur = paires_caracteres_double.find(chaine);
 
-	if (iterateur != std::end(paires_caracteres_double)) {
-		if ((*iterateur).chaine == chaine) {
-			return (*iterateur).identifiant;
-		}
+	if (iterateur != paires_caracteres_double.end()) {
+		return (*iterateur).second;
 	}
 
 	return ID_INCONNU;
@@ -339,16 +303,10 @@ int id_caractere_double(const std::string_view &chaine)
 
 int id_chaine(const std::string_view &chaine)
 {
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_mots_cles),
-						 std::end(paires_mots_cles),
-						 paire_identifiant_chaine{ID_INCONNU, chaine},
-						 comparaison_paires_identifiant);
+	auto iterateur = paires_mots_cles.find(chaine);
 
-	if (iterateur != std::end(paires_mots_cles)) {
-		if ((*iterateur).chaine == chaine) {
-			return (*iterateur).identifiant;
-		}
+	if (iterateur != paires_mots_cles.end()) {
+		return (*iterateur).second;
 	}
 
 	return ID_CHAINE_CARACTERE;

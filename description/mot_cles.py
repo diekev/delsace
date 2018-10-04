@@ -129,31 +129,31 @@ def construit_structures():
 def construit_tableaux():
 	tableaux = u''
 
-	tableaux += u'static paire_identifiant_chaine paires_mots_cles[] = {\n'
+	tableaux += u'static std::unordered_map<std::string_view, int> paires_mots_cles = {\n'
 
 	for mot in mot_cles:
 		m = enleve_accent(mot)
 		m = m.upper()
-		tableaux += u'\t{' + u'ID_{}, "{}"'.format(m, mot) + '},\n'
+		tableaux += u'\t{{ "{}", ID_{} }},\n'.format(mot, m)
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static paire_identifiant_chaine paires_caracteres_double[] = {\n'
+	tableaux += u'static std::unordered_map<std::string_view, int> paires_caracteres_double = {\n'
 
 	for c in caracteres_double:
-		tableaux += u'\t{' + u'ID_{}, "{}"'.format(c[1], c[0]) + '},\n'
+		tableaux += u'\t{{ "{}", ID_{} }},\n'.format(c[0], c[1])
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static paire_identifiant_caractere paires_caracteres_speciaux[] = {\n'
+	tableaux += u'static std::unordered_map<char, int> paires_caracteres_speciaux = {\n'
 
 	for c in caracteres_simple:
 		if c[0] == "'":
 			c[0] = "\\'"
 
-		tableaux += u'\t{' + u"ID_{}, '{}'".format(c[1], c[0]) + '},\n'
+		tableaux += u"\t{{ '{}', ID_{} }},\n".format(c[0], c[1])
 
-	tableaux += u'};\n'
+	tableaux += u'};\n\n'
 
 	return tableaux
 
@@ -199,7 +199,7 @@ def construit_fonction_chaine_identifiant():
 
 	fonction += u'\t};\n'
 	fonction += u'\n\treturn "ERREUR";\n'
-	fonction += u'}\n\n'
+	fonction += u'}\n'
 
 	return fonction
 
@@ -236,47 +236,14 @@ fonction = construit_fonction_chaine_identifiant()
 structures = construit_structures()
 tableaux = construit_tableaux()
 
-structures_paires = u"""
-struct paire_identifiant_chaine {
-	int identifiant;
-	std::string_view chaine;
-};
-
-struct paire_identifiant_caractere {
-	int identifiant;
-	char caractere;
-};
-
-"""
-
 fonctions = u"""
-static bool comparaison_paires_identifiant(
-		const paire_identifiant_chaine &a,
-		const paire_identifiant_chaine &b)
-{
-	return a.chaine < b.chaine;
-}
-
-static bool comparaison_paires_caractere(
-		const paire_identifiant_caractere &a,
-		const paire_identifiant_caractere &b)
-{
-	return a.caractere < b.caractere;
-}
-
 bool est_caractere_special(char c, int &i)
 {
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_caracteres_speciaux),
-						 std::end(paires_caracteres_speciaux),
-						 paire_identifiant_caractere{ID_INCONNU, c},
-						 comparaison_paires_caractere);
+	auto iterateur = paires_caracteres_speciaux.find(c);
 
-	if (iterateur != std::end(paires_caracteres_speciaux)) {
-		if ((*iterateur).caractere == c) {
-			i = (*iterateur).identifiant;
-			return true;
-		}
+	if (iterateur != paires_caracteres_speciaux.end()) {
+		i = (*iterateur).second;
+		return true;
 	}
 
 	return false;
@@ -284,16 +251,10 @@ bool est_caractere_special(char c, int &i)
 
 int id_caractere_double(const std::string_view &chaine)
 {
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_caracteres_double),
-						 std::end(paires_caracteres_double),
-						 paire_identifiant_chaine{ID_INCONNU, chaine},
-						 comparaison_paires_identifiant);
+	auto iterateur = paires_caracteres_double.find(chaine);
 
-	if (iterateur != std::end(paires_caracteres_double)) {
-		if ((*iterateur).chaine == chaine) {
-			return (*iterateur).identifiant;
-		}
+	if (iterateur != paires_caracteres_double.end()) {
+		return (*iterateur).second;
 	}
 
 	return ID_INCONNU;
@@ -301,16 +262,10 @@ int id_caractere_double(const std::string_view &chaine)
 
 int id_chaine(const std::string_view &chaine)
 {
-	auto iterateur = std::lower_bound(
-						 std::begin(paires_mots_cles),
-						 std::end(paires_mots_cles),
-						 paire_identifiant_chaine{ID_INCONNU, chaine},
-						 comparaison_paires_identifiant);
+	auto iterateur = paires_mots_cles.find(chaine);
 
-	if (iterateur != std::end(paires_mots_cles)) {
-		if ((*iterateur).chaine == chaine) {
-			return (*iterateur).identifiant;
-		}
+	if (iterateur != paires_mots_cles.end()) {
+		return (*iterateur).second;
 	}
 
 	return ID_CHAINE_CARACTERE;
@@ -319,8 +274,11 @@ int id_chaine(const std::string_view &chaine)
 
 declaration_fonctions = u"""
 const char *chaine_identifiant(int id);
+
 bool est_caractere_special(char c, int &i);
+
 int id_caractere_double(const std::string_view &chaine);
+
 int id_chaine(const std::string_view &chaine);
 """
 
@@ -336,8 +294,7 @@ with io.open(u"../coeur/decoupage/morceaux.h", u'w') as entete:
 with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.h"\n\n')
-	source.write(u'#include <algorithm>\n')
-	source.write(structures_paires)
+	source.write(u'#include <unordered_map>\n\n')
 	source.write(tableaux)
 	source.write(fonction)
 	source.write(fonctions)
