@@ -197,6 +197,8 @@ void decoupeuse_texte::analyse_caractere_simple()
 		auto id = id_caractere_double(std::string_view(m_debut, 2));
 
 		if (id != ID_INCONNU) {
+			this->pousse_caractere();
+			this->pousse_caractere();
 			this->pousse_mot(id);
 			this->avance(2);
 			return;
