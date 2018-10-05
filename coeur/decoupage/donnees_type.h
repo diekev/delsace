@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include <llvm/ADT/SmallVector.h>
 
 /**
  * Classe pour gérer les données du type d'une variable ou d'une constante. En
@@ -34,10 +34,11 @@
  * structure, etc...).
  */
 class DonneesType {
-	std::vector<int> m_donnees{};
+	/* Petite optimisation pour les types simples. */
+	llvm::SmallVector<int, 1> m_donnees{};
 
 public:
-	using iterateur_const = std::vector<int>::const_reverse_iterator;
+	using iterateur_const = llvm::SmallVectorImpl<int>::const_reverse_iterator;
 
 	DonneesType() = default;
 

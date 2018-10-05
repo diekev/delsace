@@ -61,10 +61,10 @@ bool DonneesType::est_invalide() const
 
 DonneesType::iterateur_const DonneesType::begin() const
 {
-	return m_donnees.crbegin();
+	return m_donnees.rbegin();
 }
 
 DonneesType::iterateur_const DonneesType::end() const
 {
-	return m_donnees.crend();
+	return m_donnees.rend();
 }
