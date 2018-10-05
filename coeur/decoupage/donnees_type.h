@@ -34,10 +34,12 @@
  * structure, etc...).
  */
 class DonneesType {
-	std::vector<int> m_donnees;
+	std::vector<int> m_donnees{};
 
 public:
 	using iterateur_const = std::vector<int>::const_reverse_iterator;
+
+	DonneesType() = default;
 
 	/**
 	 * Ajoute un identifiant à ces données. Il ne sera pas possible de supprimer

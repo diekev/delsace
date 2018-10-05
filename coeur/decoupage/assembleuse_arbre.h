@@ -34,10 +34,11 @@ struct ContexteGenerationCode;
 struct DonneesMorceaux;
 
 class assembleuse_arbre {
-	std::stack<Noeud *> m_pile;
-	std::vector<Noeud *> m_noeuds;
+	std::stack<Noeud *> m_pile{};
+	std::vector<Noeud *> m_noeuds{};
 
 public:
+	assembleuse_arbre() = default;
 	~assembleuse_arbre();
 
 	/**
