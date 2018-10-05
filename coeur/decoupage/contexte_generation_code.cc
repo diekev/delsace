@@ -119,3 +119,18 @@ bool ContexteGenerationCode::fonction_existe(const std::string_view &nom)
 {
 	return fonctions.find(nom) != fonctions.end();
 }
+
+bool ContexteGenerationCode::structure_existe(const std::string_view &nom)
+{
+	return structures.find(nom) != structures.end();
+}
+
+void ContexteGenerationCode::ajoute_donnees_structure(const std::string_view &nom, const DonneesStructure &donnees)
+{
+	structures.insert({nom, donnees});
+}
+
+const DonneesStructure &ContexteGenerationCode::donnees_structure(const std::string_view &nom)
+{
+	return structures[nom];
+}

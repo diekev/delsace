@@ -69,6 +69,7 @@ static bool est_identifiant_type(int identifiant)
 		case ID_R64:
 		case ID_BOOL:
 		case ID_RIEN:
+		case ID_CHAINE_CARACTERE:
 			return true;
 		default:
 			return false;
@@ -663,9 +664,17 @@ void analyseuse_grammaire::analyse_declaration_structure()
 		lance_erreur("Attendu une chaîne de caractères après 'structure'");
 	}
 
+	auto nom_structure = m_identifiants[position()].chaine;
+
+	if (m_contexte.structure_existe(nom_structure)) {
+		lance_erreur("Redéfinition de la structure", erreur::STRUCTURE_REDEFINIE);
+	}
+
 	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu '{'");
 	}
+
+	auto donnees_structure = DonneesStructure{};
 
 	/* chaine : type ; */
 	while (true) {
@@ -675,13 +684,20 @@ void analyseuse_grammaire::analyse_declaration_structure()
 			break;
 		}
 
+		auto nom_membre = m_identifiants[position()].chaine;
+
 		auto donnees_type = DonneesType{};
 		analyse_declaration_type(donnees_type);
 
 		if (!requiers_identifiant(ID_POINT_VIRGULE)) {
 			lance_erreur("Attendu ';'");
 		}
+
+		donnees_structure.index_membres.insert({nom_membre, donnees_structure.donnees_types.size()});
+		donnees_structure.donnees_types.push_back(donnees_type);
 	}
+
+	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 
 	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu '}' à la fin de la déclaration de la structure");
@@ -775,7 +791,17 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 		lance_erreur("Attendu la déclaration d'un type");
 	}
 
-	donnees_type.pousse(m_identifiants[position()].identifiant);
+	const auto identifiant = m_identifiants[position()].identifiant;
+
+	if (identifiant == ID_CHAINE_CARACTERE) {
+		const auto nom_type = m_identifiants[position()].chaine;
+
+		if (!m_contexte.structure_existe(nom_type)) {
+			lance_erreur("Structure inconnue", erreur::STRUCTURE_INCONNUE);
+		}
+	}
+
+	donnees_type.pousse(identifiant);
 }
 
 bool analyseuse_grammaire::requiers_identifiant_type()

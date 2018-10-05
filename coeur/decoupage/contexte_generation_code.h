@@ -58,6 +58,11 @@ struct Block {
 	std::unordered_map<std::string_view, DonneesVariable> locals;
 };
 
+struct DonneesStructure {
+	std::unordered_map<std::string_view, size_t> index_membres;
+	std::vector<DonneesType> donnees_types;
+};
+
 struct ContexteGenerationCode {
 	const TamponSource &tampon;
 	llvm::Module *module;
@@ -95,10 +100,32 @@ struct ContexteGenerationCode {
 	 */
 	bool fonction_existe(const std::string_view &nom);
 
+	/* ********************************************************************** */
+
+	/**
+	 * Retourne vrai si le nom spécifié en paramètre est celui d'une structure
+	 * ayant déjà été ajouté à la liste de structures de ce contexte.
+	 */
+	bool structure_existe(const std::string_view &nom);
+
+	/**
+	 * Ajoute les données de la structure dont le nom est spécifié en paramètres
+	 * à la table de structure de ce contexte.
+	 */
+	void ajoute_donnees_structure(const std::string_view &nom, const DonneesStructure &donnees);
+
+	/**
+	 * Retourne les données de la structure dont le nom est spécifié en
+	 * paramètre. Si aucune structure ne portant ce nom n'existe, des données
+	 * vides sont retournées.
+	 */
+	const DonneesStructure &donnees_structure(const std::string_view &nom);
+
 private:
 	std::stack<Block> pile_block;
 	std::unordered_map<std::string_view, DonneesVariable> globales;
 	std::unordered_map<std::string_view, DonneesFonction> fonctions;
+	std::unordered_map<std::string_view, DonneesStructure> structures;
 
 	/* Utilisé au cas où nous ne pouvons trouver une variable locale ou globale. */
 	DonneesType m_donnees_type_invalide;
