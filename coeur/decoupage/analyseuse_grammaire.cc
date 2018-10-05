@@ -35,7 +35,6 @@
 #include "nombres.h"
 
 #undef DEBOGUE_EXPRESSION
-#undef DEBOGUE_ARBRE
 
 /* À FAIRE :
  * - transtype<>()
@@ -160,10 +159,6 @@ void analyseuse_grammaire::lance_analyse()
 	m_assembleuse->ajoute_noeud(NOEUD_RACINE, DonneesMorceaux{"racine", 0ul, 0ul, -1});
 
 	analyse_corps();
-
-#ifdef DEBOGUE_ARBRE
-	m_assembleuse->imprime_code(std::cerr);
-#endif
 }
 
 void analyseuse_grammaire::analyse_corps()

@@ -47,7 +47,8 @@ struct OptionsCompilation {
 	const char *chemin_fichier = nullptr;
 	bool emet_fichier_objet = false;
 	bool emet_code_intermediaire = false;
-	char pad[6];
+	bool emet_arbre = false;
+	char pad[5];
 };
 
 static OptionsCompilation genere_options_compilation(int argc, char **argv)
@@ -60,6 +61,9 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 		}
 		else if (std::strcmp(argv[i], "-o") == 0) {
 			opts.emet_fichier_objet = true;
+		}
+		else if (std::strcmp(argv[i], "-a") == 0) {
+			opts.emet_arbre = true;
 		}
 		else {
 			opts.chemin_fichier = argv[i];
@@ -230,6 +234,10 @@ int main(int argc, char *argv[])
 
 		if (ops.emet_code_intermediaire) {
 			module.dump();
+		}
+
+		if (ops.emet_arbre) {
+			assembleuse.imprime_code(os);
 		}
 
 		delete machine_cible;
