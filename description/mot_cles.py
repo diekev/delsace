@@ -129,7 +129,7 @@ def construit_structures():
 def construit_tableaux():
 	tableaux = u''
 
-	tableaux += u'static std::unordered_map<std::string_view, int> paires_mots_cles = {\n'
+	tableaux += u'static std::map<std::string_view, int> paires_mots_cles = {\n'
 
 	for mot in mot_cles:
 		m = enleve_accent(mot)
@@ -138,14 +138,14 @@ def construit_tableaux():
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::unordered_map<std::string_view, int> paires_caracteres_double = {\n'
+	tableaux += u'static std::map<std::string_view, int> paires_caracteres_double = {\n'
 
 	for c in caracteres_double:
 		tableaux += u'\t{{ "{}", ID_{} }},\n'.format(c[0], c[1])
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::unordered_map<char, int> paires_caracteres_speciaux = {\n'
+	tableaux += u'static std::map<char, int> paires_caracteres_speciaux = {\n'
 
 	for c in caracteres_simple:
 		if c[0] == "'":
@@ -294,7 +294,7 @@ with io.open(u"../coeur/decoupage/morceaux.h", u'w') as entete:
 with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.h"\n\n')
-	source.write(u'#include <unordered_map>\n\n')
+	source.write(u'#include <map>\n\n')
 	source.write(tableaux)
 	source.write(fonction)
 	source.write(fonctions)

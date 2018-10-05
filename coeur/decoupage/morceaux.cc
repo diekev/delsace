@@ -26,9 +26,9 @@
  
 #include "morceaux.h"
 
-#include <unordered_map>
+#include <map>
 
-static std::unordered_map<std::string_view, int> paires_mots_cles = {
+static std::map<std::string_view, int> paires_mots_cles = {
 	{ "arrête", ID_ARRETE },
 	{ "associe", ID_ASSOCIE },
 	{ "bool", ID_BOOL },
@@ -65,7 +65,7 @@ static std::unordered_map<std::string_view, int> paires_mots_cles = {
 	{ "énum", ID_ENUM },
 };
 
-static std::unordered_map<std::string_view, int> paires_caracteres_double = {
+static std::map<std::string_view, int> paires_caracteres_double = {
 	{ "!=", ID_DIFFERENCE },
 	{ "&&", ID_ESP_ESP },
 	{ "<<", ID_DECALAGE_GAUCHE },
@@ -76,7 +76,7 @@ static std::unordered_map<std::string_view, int> paires_caracteres_double = {
 	{ "||", ID_BARRE_BARRE },
 };
 
-static std::unordered_map<char, int> paires_caracteres_speciaux = {
+static std::map<char, int> paires_caracteres_speciaux = {
 	{ '!', ID_EXCLAMATION },
 	{ '"', ID_GUILLEMET },
 	{ '#', ID_DIESE },
