@@ -26,7 +26,6 @@
 
 #include <iostream>
 #include <set>
-#include <stack>
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
@@ -364,12 +363,14 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	analyse_corps_fonction();
 }
 
+static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(ID_PARENTHESE_OUVRANTE);
+
 void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
 	std::vector<Noeud *> expression;
-	std::stack<DonneesMorceaux> pile;
+	std::vector<Noeud *> pile;
 
 	/* Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
 	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
@@ -447,19 +448,20 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 		}
 		else if (est_operateur(identifiant_courant())) {
 			while (!pile.empty()
-				   && est_operateur(pile.top().identifiant)
-				   && (precedence_faible(morceau.identifiant, pile.top().identifiant)))
+				   && pile.back() != NOEUD_PARENTHESE
+				   && est_operateur(pile.back()->identifiant())
+				   && (precedence_faible(morceau.identifiant, pile.back()->identifiant())))
 			{
-				auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top());
-				expression.push_back(noeud);
-				pile.pop();
+				expression.push_back(pile.back());
+				pile.pop_back();
 			}
 
-			pile.push(morceau);
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, morceau);
+			pile.push_back(noeud);
 		}
 		else if (est_identifiant(ID_PARENTHESE_OUVRANTE)) {
 			++paren;
-			pile.push(morceau);
+			pile.push_back(NOEUD_PARENTHESE);
 		}
 		else if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
 			/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
@@ -475,16 +477,13 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (pile.top().identifiant != ID_PARENTHESE_OUVRANTE) {
-				auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top());
-				expression.push_back(noeud);
-				pile.pop();
+			while (pile.back() != NOEUD_PARENTHESE) {
+				expression.push_back(pile.back());
+				pile.pop_back();
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			if (pile.top().identifiant == ID_PARENTHESE_OUVRANTE) {
-				pile.pop();
-			}
+			pile.pop_back();
 
 			--paren;
 		}
@@ -497,13 +496,12 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 	}
 
 	while (!pile.empty()) {
-		if (pile.top().identifiant == ID_PARENTHESE_OUVRANTE) {
+		if (pile.back() == NOEUD_PARENTHESE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, pile.top());
-		expression.push_back(noeud);
-		pile.pop();
+		expression.push_back(pile.back());
+		pile.pop_back();
 	}
 
 #ifdef DEBOGUE_EXPRESSION
@@ -514,46 +512,45 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 	std::cerr << '\n';
 #endif
 
-	std::vector<Noeud *> pile_noeud;
-	pile_noeud.reserve(expression.size());
+	pile.reserve(expression.size());
 
 	for (Noeud *noeud : expression) {
 		if (est_operateur_double(noeud->identifiant())) {
-			auto n2 = pile_noeud.back();
-			pile_noeud.pop_back();
+			auto n2 = pile.back();
+			pile.pop_back();
 
-			auto n1 = pile_noeud.back();
-			pile_noeud.pop_back();
+			auto n1 = pile.back();
+			pile.pop_back();
 
 			noeud->reserve_enfants(2);
 			noeud->ajoute_noeud(n1);
 			noeud->ajoute_noeud(n2);
 
-			pile_noeud.push_back(noeud);
+			pile.push_back(noeud);
 		}
 		else if (est_operateur_simple(noeud->identifiant())) {
-			auto n1 = pile_noeud.back();
-			pile_noeud.pop_back();
+			auto n1 = pile.back();
+			pile.pop_back();
 
 			noeud->reserve_enfants(1);
 			noeud->ajoute_noeud(n1);
 
-			pile_noeud.push_back(noeud);
+			pile.push_back(noeud);
 		}
 		else {
-			pile_noeud.push_back(noeud);
+			pile.push_back(noeud);
 		}
 	}
 
-	m_assembleuse->ajoute_noeud(pile_noeud.back());
-	pile_noeud.pop_back();
+	m_assembleuse->ajoute_noeud(pile.back());
+	pile.pop_back();
 
-	if (pile_noeud.size() != 0) {
+	if (pile.size() != 0) {
 		std::cerr << "Il reste plus d'un noeud dans la pile ! :";
 
-		while (!pile_noeud.empty()) {
-			auto noeud = pile_noeud.back();
-			pile_noeud.pop_back();
+		while (!pile.empty()) {
+			auto noeud = pile.back();
+			pile.pop_back();
 			std::cerr << '\t' << chaine_identifiant(noeud->identifiant()) << '\n';
 		}
 	}
