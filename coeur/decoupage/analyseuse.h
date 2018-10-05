@@ -35,11 +35,11 @@
 class Analyseuse {
 protected:
 	const TamponSource &m_tampon;
-	std::vector<DonneesMorceaux> m_identifiants{};
+	const std::vector<DonneesMorceaux> &m_identifiants;
 	size_t m_position = 0;
 
 public:
-	Analyseuse(const TamponSource &tampon);
+	Analyseuse(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon);
 	virtual ~Analyseuse() = default;
 
 	/**
@@ -48,7 +48,7 @@ public:
 	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
 	 * une exception est lancée.
 	 */
-	virtual void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) = 0;
+	virtual void lance_analyse() = 0;
 
 protected:
 	/**

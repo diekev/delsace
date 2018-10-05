@@ -26,8 +26,9 @@
 
 #include "erreur.h"
 
-Analyseuse::Analyseuse(const TamponSource &tampon)
+Analyseuse::Analyseuse(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon)
 	: m_tampon(tampon)
+	, m_identifiants(identifiants)
 {}
 
 bool Analyseuse::requiers_identifiant(int identifiant)

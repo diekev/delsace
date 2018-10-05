@@ -46,8 +46,8 @@ bool retourne_erreur_lancee(
 
 		auto contexte = ContexteGenerationCode{tampon};
 		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(contexte, tampon, &assembleuse);
-		analyseuse.lance_analyse(decoupeuse.morceaux());
+		auto analyseuse = analyseuse_grammaire(contexte, decoupeuse.morceaux(), tampon, &assembleuse);
+		analyseuse.lance_analyse();
 
 		if (genere_code) {
 			auto module = llvm::Module("test", contexte.contexte);

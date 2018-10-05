@@ -143,15 +143,14 @@ static bool est_operateur(int identifiant)
 
 /* ************************************************************************** */
 
-analyseuse_grammaire::analyseuse_grammaire(ContexteGenerationCode &contexte, const TamponSource &tampon, assembleuse_arbre *assembleuse)
-	: Analyseuse(tampon)
+analyseuse_grammaire::analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon, assembleuse_arbre *assembleuse)
+	: Analyseuse(identifiants, tampon)
 	, m_assembleuse(assembleuse)
 	, m_contexte(contexte)
 {}
 
-void analyseuse_grammaire::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
+void analyseuse_grammaire::lance_analyse()
 {
-	m_identifiants = identifiants;
 	m_position = 0;
 
 	if (m_identifiants.size() == 0) {

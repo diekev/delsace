@@ -40,9 +40,9 @@ class analyseuse_grammaire : public Analyseuse {
 	ContexteGenerationCode &m_contexte;
 
 public:
-	analyseuse_grammaire(ContexteGenerationCode &contexte, const TamponSource &tampon, assembleuse_arbre *assembleuse);
+	analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon, assembleuse_arbre *assembleuse);
 
-	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
+	void lance_analyse() override;
 
 private:
 	void analyse_corps();
