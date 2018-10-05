@@ -70,28 +70,82 @@ struct ContexteGenerationCode {
 
 	ContexteGenerationCode(const TamponSource &tampon_source);
 
+	/* ********************************************************************** */
+
+	/**
+	 * Pousse le block sur la pile de blocks. Ceci construit un Block qui
+	 * contiendra le block LLVM passé en paramètre. Routes les locales poussées
+	 * après un tel appel seront ajoutées à ce block.
+	 */
 	void pousse_block(llvm::BasicBlock *block);
 
+	/**
+	 * Enlève le block du haut de la pile de blocks.
+	 */
 	void jete_block();
 
+	/**
+	 * Retourne un pointeur vers le block LLVM du block courant.
+	 */
 	llvm::BasicBlock *block_courant() const;
-
-	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type);
-
-	llvm::Value *valeur_globale(const std::string_view &nom);
-
-	const DonneesType &type_globale(const std::string_view &nom);
-
-	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type);
-
-	llvm::Value *valeur_locale(const std::string_view &nom);
-
-	const DonneesType &type_locale(const std::string_view &nom);
-
-	void ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees);
 
 	/* ********************************************************************** */
 
+	/**
+	 * Ajoute les données de la globale dont le nom est spécifié en paramètres
+	 * à la table de globales de ce contexte.
+	 */
+	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type);
+
+	/**
+	 * Retourne un pointeur vers la valeur LLVM de la globale dont le nom est
+	 * spécifié en paramètre. Si aucune globale de ce nom n'existe, retourne
+	 * nullptr.
+	 */
+	llvm::Value *valeur_globale(const std::string_view &nom);
+
+	/**
+	 * Retourne les données de la globale dont le nom est spécifié en
+	 * paramètre. Si aucune globale ne portant ce nom n'existe, des données
+	 * vides sont retournées.
+	 */
+	const DonneesType &type_globale(const std::string_view &nom);
+
+	/* ********************************************************************** */
+
+	/**
+	 * Ajoute les données de la locale dont le nom est spécifié en paramètres
+	 * à la table de locales du block courant de ce contexte.
+	 */
+	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type);
+
+	/**
+	 * Retourne un pointeur vers la valeur LLVM de la locale dont le nom est
+	 * spécifié en paramètre. Si aucune locale de ce nom n'existe, retourne
+	 * nullptr.
+	 */
+	llvm::Value *valeur_locale(const std::string_view &nom);
+
+	/**
+	 * Retourne les données de la locale dont le nom est spécifié en paramètre.
+	 * Si aucune locale ne portant ce nom n'existe, des données vides sont
+	 * retournées.
+	 */
+	const DonneesType &type_locale(const std::string_view &nom);
+
+	/* ********************************************************************** */
+
+	/**
+	 * Ajoute les données de la fonction dont le nom est spécifié en paramètres
+	 * à la table de fonctions de ce contexte.
+	 */
+	void ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees);
+
+	/**
+	 * Retourne les données de la fonction dont le nom est spécifié en
+	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
+	 * vides sont retournées.
+	 */
 	const DonneesFonction &donnees_fonction(const std::string_view &nom);
 
 	/**
