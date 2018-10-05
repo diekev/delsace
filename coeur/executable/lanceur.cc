@@ -253,8 +253,9 @@ int main(int argc, char *argv[])
 	};
 
 	os << "------------------------------------------------------------------\n";
-	os << "Nombre de lignes : " << tampon.nombre_lignes() << '\n';
-	os << "Temps total : " << temps_total << '\n';
+	os << "Nombre de lignes             : " << tampon.nombre_lignes() << '\n';
+	os << "Temps total                  : " << temps_total << '\n';
+	os << "Nombre de lignes par seconde : " << tampon.nombre_lignes() / temps_total << '\n';
 
 	os << "Temps scène : " << temps_scene
 	   << " (" << pourcentage(temps_scene, temps_total) << "%)\n";
