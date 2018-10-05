@@ -96,6 +96,7 @@ static bool est_type_entier(int type)
 		case ID_E16:
 		case ID_E32:
 		case ID_E64:
+		case ID_POINTEUR:  /* À FAIRE : sépare ça. */
 			return true;
 		default:
 			return false;
