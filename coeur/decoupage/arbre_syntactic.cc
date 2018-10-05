@@ -131,6 +131,11 @@ Noeud::Noeud(const DonneesMorceaux &morceau)
 	: m_donnees_morceaux(morceau)
 {}
 
+void Noeud::reserve_enfants(size_t n)
+{
+	m_enfants.reserve(n);
+}
+
 void Noeud::ajoute_noeud(Noeud *noeud)
 {
 	m_enfants.push_back(noeud);

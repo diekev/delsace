@@ -148,6 +148,7 @@ public:
 	 * Retourne l'identifiant du morceau de ce noeud.
 	 */
 	int identifiant() const;
+	void reserve_enfants(size_t n);
 };
 
 /* ************************************************************************** */

@@ -520,43 +520,46 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 	std::cerr << '\n';
 #endif
 
-	std::stack<Noeud *> pile_noeud;
+	std::vector<Noeud *> pile_noeud;
+	pile_noeud.reserve(expression.size());
 
 	for (Noeud *noeud : expression) {
 		if (est_operateur_double(noeud->identifiant())) {
-			auto n2 = pile_noeud.top();
-			pile_noeud.pop();
+			auto n2 = pile_noeud.back();
+			pile_noeud.pop_back();
 
-			auto n1 = pile_noeud.top();
-			pile_noeud.pop();
+			auto n1 = pile_noeud.back();
+			pile_noeud.pop_back();
 
+			noeud->reserve_enfants(2);
 			noeud->ajoute_noeud(n1);
 			noeud->ajoute_noeud(n2);
 
-			pile_noeud.push(noeud);
+			pile_noeud.push_back(noeud);
 		}
 		else if (est_operateur_simple(noeud->identifiant())) {
-			auto n1 = pile_noeud.top();
-			pile_noeud.pop();
+			auto n1 = pile_noeud.back();
+			pile_noeud.pop_back();
 
+			noeud->reserve_enfants(1);
 			noeud->ajoute_noeud(n1);
 
-			pile_noeud.push(noeud);
+			pile_noeud.push_back(noeud);
 		}
 		else {
-			pile_noeud.push(noeud);
+			pile_noeud.push_back(noeud);
 		}
 	}
 
-	m_assembleuse->ajoute_noeud(pile_noeud.top());
-	pile_noeud.pop();
+	m_assembleuse->ajoute_noeud(pile_noeud.back());
+	pile_noeud.pop_back();
 
 	if (pile_noeud.size() != 0) {
 		std::cerr << "Il reste plus d'un noeud dans la pile ! :";
 
 		while (!pile_noeud.empty()) {
-			auto noeud = pile_noeud.top();
-			pile_noeud.pop();
+			auto noeud = pile_noeud.back();
+			pile_noeud.pop_back();
 			std::cerr << '\t' << chaine_identifiant(noeud->identifiant()) << '\n';
 		}
 	}
