@@ -91,7 +91,6 @@ elseif(CMAKE_BUILD_TYPE MATCHES "Profile")
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 elseif(CMAKE_BUILD_TYPE MATCHES "Release")
 	add_compile_options(-O3)
-	add_compile_options(-Weffc++)
 endif()
 
 # ------------------------------------------------------------------------------
