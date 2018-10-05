@@ -780,7 +780,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		const auto type1 = m_enfants[0]->calcul_type(contexte);
 		const auto type2 = m_enfants[1]->calcul_type(contexte);
 
-		if (type1 != type2) {
+		if (this->m_donnees_morceaux.identifiant != ID_CROCHET_OUVRANT && type1 != type2) {
 			erreur::lance_erreur(
 						"Les types de l'opération sont différents !",
 						contexte.tampon,
@@ -789,6 +789,9 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		}
 
 		/* À FAIRE : typage */
+
+		auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
+		auto valeur2 = m_enfants[1]->genere_code_llvm(contexte);
 
 		switch (this->m_donnees_morceaux.identifiant) {
 			case ID_PLUS:
@@ -897,12 +900,24 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 			case ID_DIFFERENCE:
 				instr = llvm::Instruction::Add;
 				break;
+			case ID_CROCHET_OUVRANT:
+				if (type2.type_base() != ID_POINTEUR && (type2.type_base() & 0xff) != ID_TABLEAU) {
+					erreur::lance_erreur(
+								"Le type ne peut être déréférencé !",
+								contexte.tampon,
+								m_donnees_morceaux,
+								erreur::TYPE_DIFFERENTS);
+				}
+
+				return llvm::GetElementPtrInst::Create(
+							converti_type(contexte.contexte, type2),
+							valeur2,
+							llvm::ArrayRef<llvm::Value *>{valeur1},
+							"",
+							contexte.block_courant());
 			default:
 				return nullptr;
 		}
-
-		auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
-		auto valeur2 = m_enfants[1]->genere_code_llvm(contexte);
 
 		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.block_courant());
 	}

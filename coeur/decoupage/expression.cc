@@ -71,6 +71,8 @@ static DonneesPrecedence associativite(int identifiant)
 		case ID_TILDE:
 		case ID_AROBASE:
 			return { DROITE, 10 };
+		case ID_CROCHET_OUVRANT:
+			return { GAUCHE, 11 };
 	}
 
 	return { GAUCHE, 0 };

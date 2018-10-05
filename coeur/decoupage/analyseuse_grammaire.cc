@@ -101,6 +101,7 @@ static bool est_operateur_simple(int identifiant)
 		case ID_AROBASE:
 		case ID_EXCLAMATION:
 		case ID_TILDE:
+		case ID_CROCHET_OUVRANT:
 			return true;
 		default:
 			return false;
@@ -456,7 +457,25 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 				pile.pop_back();
 			}
 
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, morceau);
+			auto noeud = static_cast<Noeud *>(nullptr);
+
+			if (identifiant_courant() == ID_CROCHET_OUVRANT) {
+				avance();
+
+				noeud = m_assembleuse->ajoute_noeud(NOEUD_OPERATION, morceau, false);
+
+				analyse_expression_droite(ID_CROCHET_FERMANT);
+
+				m_assembleuse->sors_noeud(NOEUD_OPERATION);
+
+				/* nous reculons, car on avance de nouveau avant de recommencer
+				 * la boucle plus bas */
+				recule();
+			}
+			else {
+				noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, morceau);
+			}
+
 			pile.push_back(noeud);
 		}
 		else if (est_identifiant(ID_PARENTHESE_OUVRANTE)) {
