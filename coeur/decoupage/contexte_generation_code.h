@@ -92,7 +92,7 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-	DonneesFonction donnees_fonction(const std::string_view &nom);
+	const DonneesFonction &donnees_fonction(const std::string_view &nom);
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction

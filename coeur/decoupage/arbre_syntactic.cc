@@ -204,7 +204,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 					erreur::FONCTION_INCONNUE);
 	}
 
-	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
+	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 
 	if (m_enfants.size() != donnees_fonction.args.size()) {
 		erreur::lance_erreur_nombre_arguments(
@@ -313,7 +313,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 const DonneesType &NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (this->donnees_type.est_invalide()) {
-		auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
+		const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 		this->donnees_type = donnees_fonction.donnees_type;
 	}
 

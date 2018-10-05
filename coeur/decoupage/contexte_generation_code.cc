@@ -110,7 +110,7 @@ void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string_view &no
 	fonctions.insert({nom, donnees});
 }
 
-DonneesFonction ContexteGenerationCode::donnees_fonction(const std::string_view &nom)
+const DonneesFonction &ContexteGenerationCode::donnees_fonction(const std::string_view &nom)
 {
 	return fonctions[nom];
 }
