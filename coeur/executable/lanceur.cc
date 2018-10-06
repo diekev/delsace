@@ -39,6 +39,7 @@
 #include "decoupage/contexte_generation_code.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
+#include "decoupage/preproces.hh"
 #include "decoupage/tampon_source.h"
 
 #include <chronometrage/chronometre_de_portee.h>
@@ -71,34 +72,6 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 	}
 
 	return opts;
-}
-
-static std::string charge_fichier(const char *chemin_fichier)
-{
-	std::ifstream fichier;
-	fichier.open(chemin_fichier);
-
-	if (!fichier) {
-		return "";
-	}
-
-	fichier.seekg(0, fichier.end);
-	const auto taille_fichier = static_cast<std::string::size_type>(fichier.tellg());
-	fichier.seekg(0, fichier.beg);
-
-	std::string texte;
-	texte.reserve(taille_fichier);
-
-	std::string tampon;
-
-	while (std::getline(fichier, tampon)) {
-		/* restore le caractère de fin de ligne */
-		tampon.append(1, '\n');
-
-		texte += tampon;
-	}
-
-	return texte;
 }
 
 static void initialise_llvm()
@@ -172,12 +145,13 @@ int main(int argc, char *argv[])
 
 	os << "Ouverture de '" << chemin_fichier << "'..." << std::endl;
 	auto debut_chargement = numero7::chronometrage::maintenant();
-	auto texte = charge_fichier(chemin_fichier);
+	auto preproces = Preproces{};
+	charge_fichier(preproces, chemin_fichier);
 	temps_chargement = numero7::chronometrage::maintenant() - debut_chargement;
 
 	os << "Génération du tampon texte..." << std::endl;
 	const auto debut_tampon = numero7::chronometrage::maintenant();
-	auto tampon = TamponSource(texte);
+	auto tampon = TamponSource(preproces.tampon);
 	temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
 
 	try {

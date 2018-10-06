@@ -82,52 +82,23 @@
  */
 
 #include <fstream>
+#include <experimental/filesystem>
 #include <iostream>
-#include <set>
-#include <stack>
-#include <string>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <unordered_map>
-#include <vector>
 
-inline bool existe(const std::string &chemin)
+#include "preproces.hh"
+
+static std::string trouve_chemin_absolu(Preproces &preproces, const std::string &chemin)
 {
-	struct stat tampon;
-	return (stat(chemin.c_str(), &tampon) == 0);
-}
-
-struct DonneesLigne {
-	std::string chemin_fichier;
-	size_t numero_ligne;
-};
-
-struct Preproces {
-	std::stack<std::string> dossier_courant;
-	std::set<std::string> chemin_inclusions;
-	std::set<std::string> fichiers;
-	std::set<std::string> fichiers_visites;
-	std::string tampon;
-	std::vector<DonneesLigne> donnees_lignes;
-	size_t nombre_lignes_total = 0;
-};
-
-std::string trouve_chemin_absolu(Preproces &preproces, const std::string &chemin)
-{
-	if (existe(chemin)) {
+	if (std::experimental::filesystem::exists(chemin)) {
 		return chemin;
 	}
 
 	for (const auto &chemin_inclusion : preproces.chemin_inclusions) {
-		auto chemin_tmp = chemin_inclusion;
+		auto chemin_tmp = std::experimental::filesystem::path(chemin_inclusion);
 
-		if (chemin_tmp.back() != '/') {
-			chemin_tmp.push_back('/');
-		}
+		chemin_tmp /= chemin;
 
-		chemin_tmp += chemin;
-
-		if (existe(chemin_tmp)) {
+		if (std::experimental::filesystem::exists(chemin_tmp)) {
 			return chemin_tmp;
 		}
 	}
@@ -135,28 +106,7 @@ std::string trouve_chemin_absolu(Preproces &preproces, const std::string &chemin
 	return chemin;
 }
 
-std::string trouve_vrai_chemin(const std::string &chemin)
-{
-	char tampon[1024];
-	auto r = getcwd(tampon, 1024);
-
-	if (r == nullptr) {
-		std::cerr << "Une erreur est survenue lors de la résolution du vrai chemin de '" << chemin << "'\n";
-	}
-
-	std::string vrai_chemin;
-	vrai_chemin += tampon;
-
-	if (vrai_chemin.back() != '/') {
-		vrai_chemin += '/';
-	}
-
-	vrai_chemin += chemin;
-
-	return vrai_chemin;
-}
-
-void ajoute_chemin_courant(Preproces &preproces, const std::string &chemin)
+static void ajoute_chemin_courant(Preproces &preproces, const std::string &chemin)
 {
 	const auto pos = chemin.find_last_of('/');
 	auto dossier = chemin.substr(0, pos);
@@ -164,12 +114,7 @@ void ajoute_chemin_courant(Preproces &preproces, const std::string &chemin)
 	preproces.chemin_inclusions.insert(dossier);
 }
 
-void ajoute_chemin_inclusion(Preproces &preproces, const std::string &chemin)
-{
-	preproces.chemin_inclusions.insert(chemin);
-}
-
-bool est_symbole(std::string::iterator iter, const char *chaine, size_t taille)
+static bool est_symbole(std::string::iterator iter, const char *chaine, size_t taille)
 {
 	for (size_t i = 0; i < taille; ++i) {
 		if (*iter++ != chaine[i]) {
@@ -201,8 +146,15 @@ void charge_fichier(Preproces &preproces, const std::string &chemin)
 		return;
 	}
 
+	fichier.seekg(0, fichier.end);
+	const auto taille_fichier = static_cast<std::string::size_type>(fichier.tellg());
+	fichier.seekg(0, fichier.beg);
+
+	preproces.tampon.reserve(preproces.tampon.size() + taille_fichier);
+
 	ajoute_chemin_courant(preproces, chemin_);
 	preproces.fichiers_visites.insert(chemin_);
+
 	std::cout << "Chargement du fichier : '" << chemin_ << "'\n";
 
 	size_t ligne_fichier = 0;
@@ -218,7 +170,7 @@ void charge_fichier(Preproces &preproces, const std::string &chemin)
 			continue;
 		}
 
-		tampon.push_back('\n');
+		tampon.append(1, '\n');
 
 		auto iter = tampon.begin();
 
@@ -304,37 +256,3 @@ void imprime_donnees_lignes(Preproces &preproces, std::ostream &os)
 		   << donnees.numero_ligne << '\n';
 	}
 }
-
-#if 0
-/* Trouve le chemin absolu du fichier racine.
- * Trouve le chemin absolu du dossier du chemin racine.
- * Ajout du chemin du dossier à la pile des chemins du projet.
- * Quand on a une importation, si le fichier ne se trouve pas dans le dossier courant.
- * Si le fichier n'est pas trouvé, recherche dans le CHEMIN système. */
-int main(int argc, char *argv[])
-{
-	/* Les 'streams' de C++ sont synchronisés avec stdio de C, mais puisque nous
-	 * n'utilisons pas les flux de C, nous pouvons désactiver la synchronisation
-	 * afin d'accélérer les flux. */
-	std::ios::sync_with_stdio(false);
-
-	if (argc != 2) {
-		std::cerr << "Usage : " << argv[0] << " fichier\n";
-		return 1;
-	}
-
-	Preproces preproces;
-
-	ajoute_chemin_inclusion(preproces, "/usr/include/");
-	ajoute_chemin_inclusion(preproces, "/usr/include/kuri/include/");
-
-	auto chemin_racine = trouve_vrai_chemin(argv[1]);
-	charge_fichier(preproces, chemin_racine);
-
-	std::cout << "Nombre de fichiers      : " << preproces.fichiers.size() << '\n';
-	std::cout << "Nombre de lignes total  : " << preproces.nombre_lignes_total << '\n';
-	std::cout << "Nombre de lignes généré : " << preproces.donnees_lignes.size() << '\n';
-
-	return 0;
-}
-#endif

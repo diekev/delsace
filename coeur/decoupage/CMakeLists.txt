@@ -40,6 +40,7 @@ set(SOURCES
 	expression.h
 	morceaux.h
 	nombres.h
+	preproces.hh
 	tampon_source.h
 	unicode.h
 
