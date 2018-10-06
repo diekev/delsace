@@ -167,6 +167,8 @@ int main(int argc, char *argv[])
 	auto temps_decoupage       = 0.0;
 	auto temps_analyse         = 0.0;
 	auto temps_generation_code = 0.0;
+	auto debut_nettoyage       = 0.0;
+	auto temps_nettoyage       = 0.0;
 
 	os << "Ouverture de '" << chemin_fichier << "'..." << std::endl;
 	auto debut_chargement = numero7::chronometrage::maintenant();
@@ -241,10 +243,14 @@ int main(int argc, char *argv[])
 		}
 
 		delete machine_cible;
+		os << "Nettoyage..." << std::endl;
+		debut_nettoyage = numero7::chronometrage::maintenant();
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 	}
+
+	temps_nettoyage = numero7::chronometrage::maintenant() - debut_nettoyage;
 
 	const auto temps_scene = temps_tampon
 							 + temps_decoupage
@@ -253,7 +259,7 @@ int main(int argc, char *argv[])
 
 	const auto temps_coulisse = temps_generation_code;
 
-	const auto temps_total = temps_scene + temps_coulisse;
+	const auto temps_total = temps_scene + temps_coulisse + temps_nettoyage;
 
 	auto pourcentage = [&](const double &x, const double &total)
 	{
@@ -280,6 +286,11 @@ int main(int argc, char *argv[])
 	   << " (" << pourcentage(temps_coulisse, temps_total) << "%)\n";
 	os << '\t' << "Temps génération code : " << temps_generation_code
 	   << " (" << pourcentage(temps_generation_code, temps_coulisse) << "%)\n";
+
+	os << "Temps Nettoyage : " << temps_nettoyage
+	   << " (" << pourcentage(temps_nettoyage, temps_total) << "%)\n";
+
+	os << std::endl;
 
 	return resultat;
 }
