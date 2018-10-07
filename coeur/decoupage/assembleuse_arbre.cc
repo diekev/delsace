@@ -129,8 +129,9 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 	return noeud;
 }
 
-void assembleuse_arbre::sors_noeud(int /*type*/)
+void assembleuse_arbre::sors_noeud(int type)
 {
+	assert(m_pile.top()->type_noeud() == type);
 	m_pile.pop();
 }
 
