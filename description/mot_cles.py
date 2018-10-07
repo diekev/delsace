@@ -239,17 +239,29 @@ tableaux = construit_tableaux()
 fonctions = u"""
 static bool tables_caracteres[256] = {};
 static int tables_identifiants[256] = {};
+static bool tables_caracteres_double[256] = {};
+static bool tables_mots_cles[256] = {};
 
 void construit_tables_caractere_speciaux()
 {
 	for (int i = 0; i < 256; ++i) {
 		tables_caracteres[i] = false;
+		tables_caracteres_double[i] = false;
+		tables_mots_cles[i] = false;
 		tables_identifiants[i] = -1;
 	}
 
 	for (const auto &iter : paires_caracteres_speciaux) {
 		tables_caracteres[int(iter.first)] = true;
 		tables_identifiants[int(iter.first)] = iter.second;
+	}
+
+	for (const auto &iter : paires_caracteres_double) {
+		tables_caracteres_double[int(iter.first[0])] = true;
+	}
+
+	for (const auto &iter : paires_mots_cles) {
+		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
 	}
 }
 
@@ -265,6 +277,10 @@ bool est_caractere_special(char c, int &i)
 
 int id_caractere_double(const std::string_view &chaine)
 {
+	if (!tables_caracteres_double[int(chaine[0])]) {
+		return ID_INCONNU;
+	}
+
 	auto iterateur = paires_caracteres_double.find(chaine);
 
 	if (iterateur != paires_caracteres_double.end()) {
@@ -276,6 +292,10 @@ int id_caractere_double(const std::string_view &chaine)
 
 int id_chaine(const std::string_view &chaine)
 {
+	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
+		return ID_CHAINE_CARACTERE;
+	}
+
 	auto iterateur = paires_mots_cles.find(chaine);
 
 	if (iterateur != paires_mots_cles.end()) {
