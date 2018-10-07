@@ -221,7 +221,7 @@ class NoeudDeclarationFonction final : public Noeud {
 
 public:
 	int type_retour = -1;
-	int pad1;
+	int pad1 = 0;
 
 	explicit NoeudDeclarationFonction(const DonneesMorceaux &morceau);
 

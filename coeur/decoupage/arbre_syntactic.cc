@@ -83,12 +83,20 @@ static llvm::Type *converti_type(
 
 				if (donnees_structure.type_llvm == nullptr) {
 					std::vector<llvm::Type *> types_membres;
+					types_membres.resize(donnees_structure.donnees_types.size());
 
-					for (const auto &donnees_type : donnees_structure.donnees_types) {
-						types_membres.push_back(converti_type(contexte, donnees_type));
-					}
+					std::transform(donnees_structure.donnees_types.begin(),
+								   donnees_structure.donnees_types.end(),
+								   types_membres.begin(),
+								   [&](const DonneesType &donnees)
+					{
+						return converti_type(contexte, donnees);
+					});
 
-					donnees_structure.type_llvm = llvm::StructType::get(contexte.contexte, types_membres, false);
+					donnees_structure.type_llvm = llvm::StructType::get(
+													  contexte.contexte,
+													  types_membres,
+													  false);
 				}
 
 				type = donnees_structure.type_llvm;

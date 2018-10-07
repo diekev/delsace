@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 	temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
 
 	try {
-		auto contexte_generation = ContexteGenerationCode{tampon};
+		auto contexte_generation = ContexteGenerationCode(tampon);
 		auto decoupeuse = decoupeuse_texte(tampon);
 
 		os << "Découpage du texte..." << std::endl;

@@ -33,9 +33,9 @@ void DonneesType::pousse(int identifiant)
 
 void DonneesType::pousse(const DonneesType &autre)
 {
-	for (int identifiant : autre.m_donnees) {
-		m_donnees.push_back(identifiant);
-	}
+	const auto taille = m_donnees.size();
+	m_donnees.resize(taille + autre.m_donnees.size());
+	std::copy(autre.m_donnees.begin(), autre.m_donnees.end(), m_donnees.begin() + taille);
 }
 
 int DonneesType::type_base() const
