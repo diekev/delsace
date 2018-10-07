@@ -33,12 +33,8 @@
 #include "expression.h"
 #include "nombres.h"
 
-#undef DEBOGUE_EXPRESSION
-
 /* À FAIRE :
- * - transtype<>()
  * - gabarit
- * - accès tableau [expr]
  */
 
 static bool est_specifiant_type(int identifiant)
@@ -557,14 +553,6 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 		m_expression.push_back(m_pile_expr.back());
 		m_pile_expr.pop_back();
 	}
-
-#ifdef DEBOGUE_EXPRESSION
-	std::cerr << "Expression : " ;
-	for (const Symbole &symbole : expression) {
-		std::cerr << symbole.chaine << ' ';
-	}
-	std::cerr << '\n';
-#endif
 
 	m_pile_expr.reserve(m_expression.size());
 
