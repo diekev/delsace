@@ -279,8 +279,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
 		 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
 		 * code est généré. */
-		std::vector<Noeud *> enfants;
-		enfants.reserve(m_noms_arguments.size());
+		std::vector<Noeud *> enfants(m_noms_arguments.size());
 
 		auto index = 0ul;
 
@@ -294,6 +293,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 							m_donnees_morceaux);
 			}
 
+			const auto index_arg = iter->second.index;
 			const auto type_arg = iter->second.donnees_type;
 			const auto type_enf = m_enfants[index]->calcul_type(contexte);
 
@@ -306,7 +306,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 							m_donnees_morceaux);
 			}
 
-			enfants.push_back(m_enfants[index]);
+			enfants[index_arg] = m_enfants[index];
 
 			++index;
 		}
