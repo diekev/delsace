@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 		auto assembleuse = assembleuse_arbre();
 		auto analyseuse = analyseuse_grammaire(contexte_generation, decoupeuse.morceaux(), tampon, &assembleuse);
 
-		os << "Analyse de morceaux..." << std::endl;
+		os << "Analyse des morceaux..." << std::endl;
 		const auto debut_analyseuse = numero7::chronometrage::maintenant();
 		analyseuse.lance_analyse();
 		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
