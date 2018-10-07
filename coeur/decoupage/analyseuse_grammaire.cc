@@ -395,8 +395,24 @@ static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(ID_PARENTHESE_OUVRANTE)
 void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, const bool calcul_expression)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
-	m_expression.clear();
-	m_pile_expr.clear();
+
+	/* Ces vecteurs sont utilisés pour stocker les données des expressions
+	 * compilées au travers de 'analyse_expression_droite()'. Ce serait bien de
+	 * transformer ces vecteur en membres de la classe pour pouvoir réutiliser
+	 * la mémoire qu'ils allouent après leurs utilisations. Ainsi nous n'aurions
+	 * pas à récréer des vecteurs à chaque appel vers
+	 * 'analyse_expression_droite()', mais cela rend la classe peu sûre niveau
+	 * multi-threading.
+	 *
+	 * Le problème avec cette approche est que cette fonction peut s'appeler de
+	 * manière récursive, et on ne peut donc pas les réutiliser. Peut-être
+	 * pourrions nous utiliser une pile de ces vecteurs ?
+	 */
+	std::vector<Noeud *> expression;
+	expression.reserve(32);
+
+	std::vector<Noeud *> pile;
+	pile.reserve(32);
 
 	/* Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
 	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
@@ -416,7 +432,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 
 			m_assembleuse->sors_noeud(NOEUD_APPEL_FONCTION);
 
-			m_expression.push_back(noeud);
+			expression.push_back(noeud);
 		}
 		/* accès propriété : chaine + de + chaine */
 		else if (sont_3_identifiants(ID_CHAINE_CARACTERE, ID_DE, ID_CHAINE_CARACTERE)) {
@@ -426,25 +442,25 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 		/* variable : chaine */
 		else if (est_identifiant(ID_CHAINE_CARACTERE)) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, morceau);
-			m_expression.push_back(noeud);
+			expression.push_back(noeud);
 		}
 		else if (identifiant_courant() == ID_NOMBRE_REEL) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_REEL, morceau);
-			m_expression.push_back(noeud);
+			expression.push_back(noeud);
 		}
 		else if (est_nombre_entier(identifiant_courant())) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_ENTIER, morceau);
-			m_expression.push_back(noeud);
+			expression.push_back(noeud);
 		}
 		else if (identifiant_courant() == ID_CHAINE_LITTERALE) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_CHAINE_LITTERALE, morceau);
-			m_expression.push_back(noeud);
+			expression.push_back(noeud);
 		}
 		else if (est_identifiant(ID_VRAI) || est_identifiant(ID_FAUX)) {
 			/* remplace l'identifiant par ID_BOOL */
 			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne, morceau.pos, ID_BOOL };
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_BOOLEEN, morceau_bool);
-			m_expression.push_back(noeud);
+			expression.push_back(noeud);
 		}
 		else if (identifiant_courant() == ID_TRANSTYPE) {
 			avance();
@@ -471,7 +487,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 
 			/* À FAIRE : noeud dédié */
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, m_identifiants[position()]);
-			m_expression.push_back(noeud);
+			expression.push_back(noeud);
 
 			/* vérifie mais n'avance pas */
 			if (!est_identifiant(ID_PARENTHESE_FERMANTE)) {
@@ -479,13 +495,13 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			}
 		}
 		else if (est_operateur(identifiant_courant())) {
-			while (!m_pile_expr.empty()
-				   && m_pile_expr.back() != NOEUD_PARENTHESE
-				   && est_operateur(m_pile_expr.back()->identifiant())
-				   && (precedence_faible(morceau.identifiant, m_pile_expr.back()->identifiant())))
+			while (!pile.empty()
+				   && pile.back() != NOEUD_PARENTHESE
+				   && est_operateur(pile.back()->identifiant())
+				   && (precedence_faible(morceau.identifiant, pile.back()->identifiant())))
 			{
-				m_expression.push_back(m_pile_expr.back());
-				m_pile_expr.pop_back();
+				expression.push_back(pile.back());
+				pile.pop_back();
 			}
 
 			auto noeud = static_cast<Noeud *>(nullptr);
@@ -507,11 +523,11 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 				noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, morceau);
 			}
 
-			m_pile_expr.push_back(noeud);
+			pile.push_back(noeud);
 		}
 		else if (est_identifiant(ID_PARENTHESE_OUVRANTE)) {
 			++paren;
-			m_pile_expr.push_back(NOEUD_PARENTHESE);
+			pile.push_back(NOEUD_PARENTHESE);
 		}
 		else if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
 			/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
@@ -523,17 +539,17 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 				break;
 			}
 
-			if (m_pile_expr.empty()) {
+			if (pile.empty()) {
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (m_pile_expr.back() != NOEUD_PARENTHESE) {
-				m_expression.push_back(m_pile_expr.back());
-				m_pile_expr.pop_back();
+			while (pile.back() != NOEUD_PARENTHESE) {
+				expression.push_back(pile.back());
+				pile.pop_back();
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			m_pile_expr.pop_back();
+			pile.pop_back();
 
 			--paren;
 		}
@@ -545,24 +561,24 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 		avance();
 	}
 
-	while (!m_pile_expr.empty()) {
-		if (m_pile_expr.back() == NOEUD_PARENTHESE) {
+	while (!pile.empty()) {
+		if (pile.back() == NOEUD_PARENTHESE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		m_expression.push_back(m_pile_expr.back());
-		m_pile_expr.pop_back();
+		expression.push_back(pile.back());
+		pile.pop_back();
 	}
 
-	m_pile_expr.reserve(m_expression.size());
+	pile.reserve(expression.size());
 
-	for (Noeud *noeud : m_expression) {
+	for (Noeud *noeud : expression) {
 		if (est_operateur_double(noeud->identifiant())) {
-			auto n2 = m_pile_expr.back();
-			m_pile_expr.pop_back();
+			auto n2 = pile.back();
+			pile.pop_back();
 
-			auto n1 = m_pile_expr.back();
-			m_pile_expr.pop_back();
+			auto n1 = pile.back();
+			pile.pop_back();
 
 			if (n1->est_constant() && n2->est_constant()) {
 				if (est_operateur_constant(noeud->identifiant())) {
@@ -585,11 +601,11 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 				noeud->ajoute_noeud(n2);
 			}
 
-			m_pile_expr.push_back(noeud);
+			pile.push_back(noeud);
 		}
 		else if (est_operateur_simple(noeud->identifiant())) {
-			auto n1 = m_pile_expr.back();
-			m_pile_expr.pop_back();
+			auto n1 = pile.back();
+			pile.pop_back();
 
 			if (n1->est_constant()) {
 				if (est_operateur_constant(noeud->identifiant())) {
@@ -607,22 +623,22 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 				noeud->ajoute_noeud(n1);
 			}
 
-			m_pile_expr.push_back(noeud);
+			pile.push_back(noeud);
 		}
 		else {
-			m_pile_expr.push_back(noeud);
+			pile.push_back(noeud);
 		}
 	}
 
-	m_assembleuse->ajoute_noeud(m_pile_expr.back());
-	m_pile_expr.pop_back();
+	m_assembleuse->ajoute_noeud(pile.back());
+	pile.pop_back();
 
-	if (m_pile_expr.size() != 0) {
+	if (pile.size() != 0) {
 		std::cerr << "Il reste plus d'un noeud dans la pile ! :";
 
-		while (!m_pile_expr.empty()) {
-			auto noeud = m_pile_expr.back();
-			m_pile_expr.pop_back();
+		while (!pile.empty()) {
+			auto noeud = pile.back();
+			pile.pop_back();
 			std::cerr << '\t' << chaine_identifiant(noeud->identifiant()) << '\n';
 		}
 	}
