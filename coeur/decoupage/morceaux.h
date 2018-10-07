@@ -122,6 +122,8 @@ enum {
 
 const char *chaine_identifiant(int id);
 
+void construit_tables_caractere_speciaux();
+
 bool est_caractere_special(char c, int &i);
 
 int id_caractere_double(const std::string_view &chaine);

@@ -46,7 +46,9 @@ decoupeuse_texte::decoupeuse_texte(const TamponSource &tampon)
 	, m_debut_mot(m_tampon.debut())
 	, m_debut(m_tampon.debut())
 	, m_fin(m_tampon.fin())
-{}
+{
+	construit_tables_caractere_speciaux();
+}
 
 void decoupeuse_texte::genere_morceaux()
 {

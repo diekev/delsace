@@ -237,16 +237,30 @@ structures = construit_structures()
 tableaux = construit_tableaux()
 
 fonctions = u"""
-bool est_caractere_special(char c, int &i)
-{
-	auto iterateur = paires_caracteres_speciaux.find(c);
+static bool tables_caracteres[256] = {};
+static int tables_identifiants[256] = {};
 
-	if (iterateur != paires_caracteres_speciaux.end()) {
-		i = (*iterateur).second;
-		return true;
+void construit_tables_caractere_speciaux()
+{
+	for (int i = 0; i < 256; ++i) {
+		tables_caracteres[i] = false;
+		tables_identifiants[i] = -1;
 	}
 
-	return false;
+	for (const auto &iter : paires_caracteres_speciaux) {
+		tables_caracteres[int(iter.first)] = true;
+		tables_identifiants[int(iter.first)] = iter.second;
+	}
+}
+
+bool est_caractere_special(char c, int &i)
+{
+	if (!tables_caracteres[static_cast<int>(c)]) {
+		return false;
+	}
+
+	i = tables_identifiants[static_cast<int>(c)];
+	return true;
 }
 
 int id_caractere_double(const std::string_view &chaine)
@@ -274,6 +288,8 @@ int id_chaine(const std::string_view &chaine)
 
 declaration_fonctions = u"""
 const char *chaine_identifiant(int id);
+
+void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, int &i);
 
