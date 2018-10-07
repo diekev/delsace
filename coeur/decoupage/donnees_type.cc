@@ -68,3 +68,14 @@ DonneesType::iterateur_const DonneesType::end() const
 {
 	return m_donnees.rend();
 }
+
+DonneesType DonneesType::derefence() const
+{
+	auto donnees = DonneesType{};
+
+	for (size_t i = 1; i < m_donnees.size(); ++i) {
+		donnees.pousse(m_donnees[i]);
+	}
+
+	return donnees;
+}

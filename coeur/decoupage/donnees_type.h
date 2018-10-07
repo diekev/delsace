@@ -91,6 +91,13 @@ public:
 	 * des données.
 	 */
 	iterateur_const end() const;
+
+	/**
+	 * Retourne des données pour un type correspondant au déréférencement de ce
+	 * type. Si le type n'est ni un pointeur, ni un tableau, retourne des
+	 * données invalides.
+	 */
+	DonneesType derefence() const;
 };
 
 /**

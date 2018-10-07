@@ -1051,6 +1051,12 @@ const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 		return this->donnees_type;
 	}
 
+	if (m_donnees_morceaux.identifiant == ID_CROCHET_OUVRANT) {
+		auto donnees_enfant = m_enfants[1]->calcul_type(contexte);
+		this->donnees_type = donnees_enfant.derefence();
+		return this->donnees_type;
+	}
+
 	return m_enfants[0]->calcul_type(contexte);
 }
 
