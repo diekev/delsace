@@ -27,7 +27,7 @@
 #include "erreur.h"
 #include "outils.h"
 
-void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_expression_general(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	const char *texte =
 R"(fonction foo()
@@ -66,4 +66,159 @@ R"(fonction foo()
 	/* Passage du test avec la génération du code. */
 	erreur_lancee = retourne_erreur_lancee(texte, false, erreur::AUCUNE_ERREUR, true);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+}
+
+static void test_expression_constante_reelle(numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	/* comparaison réussie */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5.0 == 2.0;
+		soit t1 = 5.0 != 2.0;
+		soit t2 = 5.0 <= 2.0;
+		soit t3 = 5.0 >= 2.0;
+		soit t4 = 5.0 < 2.0;
+		soit t5 = 5.0 > 2.0;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	/* comparaison échouée */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5.0 == 2;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* comparaison échouée */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5.0 && 2.0;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* arithmétique réussie */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5.0 + 2.0;
+		soit t1 = 5.0 - 2.0;
+		soit t2 = 5.0 * 2.0;
+		soit t3 = 5.0 / 2.0;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	/* arithmétique échouée */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5.0 % 2.0;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* binaire échouée */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5.0 & 2.0;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+}
+
+static void test_expression_constante_entiere(numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	/* comparaison réussie */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5 == 2;
+		soit t1 = 5 != 2;
+		soit t2 = 5 <= 2;
+		soit t3 = 5 >= 2;
+		soit t4 = 5 < 2;
+		soit t5 = 5 > 2;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	/* arithmétique réussie */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5 + 2;
+		soit t1 = 5 - 2;
+		soit t2 = 5 * 2;
+		soit t3 = 5 / 2;
+		soit t4 = 5 % 2;
+		soit t5 = 5 >> 2;
+		soit t6 = 5 << 2;
+		soit t7 = 5 & 2;
+		soit t8 = 5 | 2;
+		soit t9 = 5 ^ t0;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	/* binaire réussie */
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit t0 = 5 & 2;
+		soit t1 = 5 | 2;
+	}
+	)";
+
+		/* Passage du test sans la génération du code. */
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+}
+
+void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	test_expression_general(controleur);
+	test_expression_constante_reelle(controleur);
+	test_expression_constante_entiere(controleur);
 }
