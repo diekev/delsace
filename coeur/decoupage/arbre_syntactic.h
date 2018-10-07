@@ -49,6 +49,7 @@ enum {
 	NOEUD_OPERATION,
 	NOEUD_RETOUR,
 	NOEUD_CHAINE_LITTERALE,
+	NOEUD_BOOLEEN,
 };
 
 /* ************************************************************************** */
@@ -277,6 +278,23 @@ public:
 class NoeudNombreEntier final : public Noeud {
 public:
 	explicit NoeudNombreEntier(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	bool est_constant() const override;
+
+	int type_noeud() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudBooleen final : public Noeud {
+public:
+	explicit NoeudBooleen(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

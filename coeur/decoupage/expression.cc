@@ -252,6 +252,11 @@ static inline double extrait_nombre_reel(Noeud *n)
 	return n->calcule ? n->valeur_reelle : converti_chaine_nombre_reel(n->chaine(), n->identifiant());
 }
 
+static inline bool extrait_valeur_bool(Noeud *n)
+{
+	return n->calcule ? n->valeur_boolenne : (n->chaine() == "vrai");
+}
+
 Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1, Noeud *n2)
 {
 	if (!sont_compatibles(n1->identifiant(), n2->identifiant())) {
@@ -273,14 +278,15 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			/* À FAIRE : noeud booléen */
-			n1->valeur_reelle = calcul_expression_comparaison(op->identifiant(), v1, v2);
-			n1->calcule = true;
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0, 0, ID_BOOL });
+			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
+			noeud->calcule = true;
 
 			assembleuse.supprime_noeud(op);
+			assembleuse.supprime_noeud(n1);
 			assembleuse.supprime_noeud(n2);
 
-			return n1;
+			return noeud;
 		}
 
 		return nullptr;
@@ -301,8 +307,38 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			/* À FAIRE : noeud booléen */
-			n1->valeur_entiere = calcul_expression_comparaison(op->identifiant(), v1, v2);
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0, 0, ID_BOOL });
+			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
+			noeud->calcule = true;
+
+			assembleuse.supprime_noeud(op);
+			assembleuse.supprime_noeud(n1);
+			assembleuse.supprime_noeud(n2);
+
+			return noeud;
+		}
+
+		if (est_operation_booleenne(op->identifiant())) {
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0, 0, ID_BOOL });
+			noeud->valeur_boolenne = calcul_expression_boolenne(op->identifiant(), v1, v2);
+			noeud->calcule = true;
+
+			assembleuse.supprime_noeud(op);
+			assembleuse.supprime_noeud(n1);
+			assembleuse.supprime_noeud(n2);
+
+			return noeud;
+		}
+
+		return nullptr;
+	}
+
+	if (n1->identifiant() == ID_BOOL) {
+		auto v1 = extrait_valeur_bool(n1);
+		auto v2 = extrait_valeur_bool(n2);
+
+		if (est_operation_comparaison(op->identifiant())) {
+			n1->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			n1->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -312,8 +348,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_booleenne(op->identifiant())) {
-			/* À FAIRE : noeud booléen */
-			n1->valeur_entiere = calcul_expression_boolenne(op->identifiant(), v1, v2);
+			n1->valeur_boolenne = calcul_expression_boolenne(op->identifiant(), v1, v2);
 			n1->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -321,8 +356,6 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 
 			return n1;
 		}
-
-		return nullptr;
 	}
 
 	return nullptr;

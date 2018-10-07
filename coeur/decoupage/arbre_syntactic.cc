@@ -652,6 +652,53 @@ int NoeudNombreEntier::type_noeud() const
 
 /* ************************************************************************** */
 
+NoeudBooleen::NoeudBooleen(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{
+	this->donnees_type.pousse(ID_BOOL);
+}
+
+void NoeudBooleen::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+
+	os << "NoeudBooleen : ";
+
+	if (this->calcule) {
+		os << ((this->valeur_boolenne) ? "vrai" : "faux") << '\n';
+	}
+	else {
+		os << m_donnees_morceaux.chaine << '\n';
+	}
+}
+
+llvm::Value *NoeudBooleen::genere_code_llvm(ContexteGenerationCode &contexte)
+{
+	const auto valeur = this->calcule ? this->valeur_boolenne
+									  : (this->chaine() == "vrai");
+	return llvm::ConstantInt::get(
+				llvm::Type::getInt1Ty(contexte.contexte),
+				static_cast<uint64_t>(valeur),
+				false);
+}
+
+const DonneesType &NoeudBooleen::calcul_type(ContexteGenerationCode &/*contexte*/)
+{
+	return this->donnees_type;
+}
+
+bool NoeudBooleen::est_constant() const
+{
+	return true;
+}
+
+int NoeudBooleen::type_noeud() const
+{
+	return NOEUD_BOOLEEN;
+}
+
+/* ************************************************************************** */
+
 NoeudNombreReel::NoeudNombreReel(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {

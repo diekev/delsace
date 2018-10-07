@@ -445,6 +445,12 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_CHAINE_LITTERALE, morceau);
 			expression.push_back(noeud);
 		}
+		else if (est_identifiant(ID_VRAI) || est_identifiant(ID_FAUX)) {
+			/* remplace l'identifiant par ID_BOOL */
+			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne, morceau.pos, ID_BOOL };
+			auto noeud = m_assembleuse->cree_noeud(NOEUD_BOOLEEN, morceau_bool);
+			expression.push_back(noeud);
+		}
 		else if (identifiant_courant() == ID_TRANSTYPE) {
 			avance();
 
