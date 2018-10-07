@@ -54,6 +54,7 @@ void assembleuse_arbre::ajoute_noeud(Noeud *noeud)
 Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 {
 	Noeud *noeud = nullptr;
+	bool reutilise = false;
 
 	switch (type) {
 		case NOEUD_RACINE:
@@ -75,13 +76,37 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 			noeud = new NoeudVariable(morceau);
 			break;
 		case NOEUD_NOMBRE_ENTIER:
-			noeud = new NoeudNombreEntier(morceau);
+			if (!noeuds_entier_libres.empty()) {
+				noeud = noeuds_entier_libres.back();
+				noeuds_entier_libres.pop_back();
+				*noeud = NoeudNombreEntier(morceau);
+				reutilise = true;
+			}
+			else {
+				noeud = new NoeudNombreEntier(morceau);
+			}
 			break;
 		case NOEUD_NOMBRE_REEL:
-			noeud = new NoeudNombreReel(morceau);
+			if (!noeuds_reel_libres.empty()) {
+				noeud = noeuds_reel_libres.back();
+				noeuds_reel_libres.pop_back();
+				*noeud = NoeudNombreReel(morceau);
+				reutilise = true;
+			}
+			else {
+				noeud = new NoeudNombreReel(morceau);
+			}
 			break;
 		case NOEUD_OPERATION:
-			noeud = new NoeudOperation(morceau);
+			if (!noeuds_op_libres.empty()) {
+				noeud = noeuds_op_libres.back();
+				noeuds_op_libres.pop_back();
+				*noeud = NoeudOperation(morceau);
+				reutilise = true;
+			}
+			else {
+				noeud = new NoeudOperation(morceau);
+			}
 			break;
 		case NOEUD_RETOUR:
 			noeud = new NoeudRetour(morceau);
@@ -94,7 +119,7 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 			break;
 	}
 
-	if (noeud != nullptr) {
+	if (!reutilise && noeud != nullptr) {
 		m_noeuds.push_back(noeud);
 	}
 
@@ -115,4 +140,19 @@ void assembleuse_arbre::imprime_code(std::ostream &os)
 void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_generation)
 {
 	m_pile.top()->genere_code_llvm(contexte_generation);
+}
+
+void assembleuse_arbre::supprime_noeud(Noeud *noeud)
+{
+	switch (noeud->type_noeud()) {
+		case NOEUD_NOMBRE_ENTIER:
+			this->noeuds_entier_libres.push_back(dynamic_cast<NoeudNombreEntier *>(noeud));
+			break;
+		case NOEUD_NOMBRE_REEL:
+			this->noeuds_reel_libres.push_back(dynamic_cast<NoeudNombreReel *>(noeud));
+			break;
+		case NOEUD_OPERATION:
+			this->noeuds_op_libres.push_back(dynamic_cast<NoeudOperation *>(noeud));
+			break;
+	}
 }

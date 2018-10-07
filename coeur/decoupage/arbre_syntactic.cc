@@ -137,6 +137,16 @@ void Noeud::reserve_enfants(size_t n)
 	m_enfants.reserve(n);
 }
 
+bool Noeud::est_constant() const
+{
+	return false;
+}
+
+const std::string_view &Noeud::chaine() const
+{
+	return m_donnees_morceaux.chaine;
+}
+
 void Noeud::ajoute_noeud(Noeud *noeud)
 {
 	m_enfants.push_back(noeud);
@@ -174,6 +184,11 @@ llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte)
 	}
 
 	return nullptr;
+}
+
+int NoeudRacine::type_noeud() const
+{
+	return NOEUD_RACINE;
 }
 
 /* ************************************************************************** */
@@ -325,6 +340,11 @@ void NoeudAppelFonction::ajoute_nom_argument(const std::string_view &nom)
 	m_noms_arguments.push_back(nom);
 }
 
+int NoeudAppelFonction::type_noeud() const
+{
+	return NOEUD_APPEL_FONCTION;
+}
+
 /* ************************************************************************** */
 
 NoeudDeclarationFonction::NoeudDeclarationFonction(const DonneesMorceaux &morceau)
@@ -411,6 +431,11 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	return nullptr;
 }
 
+int NoeudDeclarationFonction::type_noeud() const
+{
+	return NOEUD_DECLARATION_FONCTION;
+}
+
 /* ************************************************************************** */
 
 NoeudExpression::NoeudExpression(const DonneesMorceaux &morceau)
@@ -436,6 +461,11 @@ llvm::Value *NoeudExpression::genere_code_llvm(ContexteGenerationCode &/*context
 const DonneesType &NoeudExpression::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	return this->donnees_type;
+}
+
+int NoeudExpression::type_noeud() const
+{
+	return NOEUD_EXPRESSION;
 }
 
 /* ************************************************************************** */
@@ -514,6 +544,11 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	return alloc;
 }
 
+int NoeudAssignationVariable::type_noeud() const
+{
+	return NOEUD_ASSIGNATION_VARIABLE;
+}
+
 /* ************************************************************************** */
 
 NoeudConstante::NoeudConstante(const DonneesMorceaux &morceau)
@@ -567,6 +602,11 @@ const DonneesType &NoeudConstante::calcul_type(ContexteGenerationCode &contexte)
 	return contexte.type_globale(m_donnees_morceaux.chaine);
 }
 
+int NoeudConstante::type_noeud() const
+{
+	return NOEUD_CONSTANTE;
+}
+
 /* ************************************************************************** */
 
 NoeudNombreEntier::NoeudNombreEntier(const DonneesMorceaux &morceau)
@@ -584,9 +624,10 @@ void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	const auto valeur = converti_chaine_nombre_entier(
-							m_donnees_morceaux.chaine,
-							m_donnees_morceaux.identifiant);
+	const auto valeur = this->calcule ? this->valeur_entiere :
+										converti_chaine_nombre_entier(
+											m_donnees_morceaux.chaine,
+											m_donnees_morceaux.identifiant);
 
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt32Ty(contexte.contexte),
@@ -597,6 +638,16 @@ llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &context
 const DonneesType &NoeudNombreEntier::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	return this->donnees_type;
+}
+
+bool NoeudNombreEntier::est_constant() const
+{
+	return true;
+}
+
+int NoeudNombreEntier::type_noeud() const
+{
+	return NOEUD_NOMBRE_ENTIER;
 }
 
 /* ************************************************************************** */
@@ -616,9 +667,10 @@ void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	const auto valeur = converti_chaine_nombre_reel(
-							m_donnees_morceaux.chaine,
-							m_donnees_morceaux.identifiant);
+	const auto valeur = this->calcule ? this->valeur_reelle :
+										converti_chaine_nombre_reel(
+											m_donnees_morceaux.chaine,
+											m_donnees_morceaux.identifiant);
 
 	return llvm::ConstantFP::get(
 				llvm::Type::getDoubleTy(contexte.contexte),
@@ -628,6 +680,16 @@ llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 const DonneesType &NoeudNombreReel::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	return this->donnees_type;
+}
+
+bool NoeudNombreReel::est_constant() const
+{
+	return true;
+}
+
+int NoeudNombreReel::type_noeud() const
+{
+	return NOEUD_NOMBRE_REEL;
 }
 
 /* ************************************************************************** */
@@ -665,6 +727,11 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 const DonneesType &NoeudChaineLitterale::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	return this->donnees_type;
+}
+
+int NoeudChaineLitterale::type_noeud() const
+{
+	return NOEUD_CHAINE_LITTERALE;
 }
 
 /* ************************************************************************** */
@@ -718,6 +785,11 @@ const DonneesType &NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 				contexte.tampon,
 				m_donnees_morceaux,
 				erreur::VARIABLE_INCONNUE);
+}
+
+int NoeudVariable::type_noeud() const
+{
+	return NOEUD_VARIABLE;
 }
 
 /* ************************************************************************** */
@@ -936,6 +1008,11 @@ const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 	return m_enfants[0]->calcul_type(contexte);
 }
 
+int NoeudOperation::type_noeud() const
+{
+	return NOEUD_OPERATION;
+}
+
 /* ************************************************************************** */
 
 NoeudRetour::NoeudRetour(const DonneesMorceaux &morceau)
@@ -973,4 +1050,9 @@ const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 	}
 
 	return m_enfants[0]->calcul_type(contexte);
+}
+
+int NoeudRetour::type_noeud() const
+{
+	return NOEUD_RETOUR;
 }

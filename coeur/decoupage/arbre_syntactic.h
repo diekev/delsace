@@ -116,7 +116,16 @@ protected:
 	DonneesMorceaux m_donnees_morceaux;
 
 public:
+	union {
+		double valeur_reelle;
+		long valeur_entiere;
+		bool valeur_boolenne;
+	};
+
 	DonneesType donnees_type{};
+
+	bool calcule = false;
+	char pad[7];
 
 	explicit Noeud(const DonneesMorceaux &morceau);
 
@@ -149,6 +158,22 @@ public:
 	 */
 	int identifiant() const;
 	void reserve_enfants(size_t n);
+
+	/**
+	 * Retourne vrai si le résultat du noeud peut-être évalué durant la
+	 * compilation.
+	 */
+	virtual bool est_constant() const;
+
+	/**
+	 * Retourne une référence constante vers la chaine du morceau de ce noeud.
+	 */
+	const std::string_view &chaine() const;
+
+	/**
+	 * Retourne le type syntactic de noeud.
+	 */
+	virtual int type_noeud() const = 0;
 };
 
 /* ************************************************************************** */
@@ -160,6 +185,8 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -178,6 +205,8 @@ public:
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	void ajoute_nom_argument(const std::string_view &nom);
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -196,6 +225,8 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -209,6 +240,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -220,6 +253,8 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -233,6 +268,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -246,6 +283,10 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	bool est_constant() const override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -259,6 +300,10 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	bool est_constant() const override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -272,6 +317,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -285,6 +332,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -298,6 +347,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };
 
 /* ************************************************************************** */
@@ -311,4 +362,6 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
 };

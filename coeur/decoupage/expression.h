@@ -24,4 +24,11 @@
 
 #pragma once
 
+class assembleuse_arbre;
+class Noeud;
+
 bool precedence_faible(int identifiant1, int identifiant2);
+
+Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1, Noeud *n2);
+
+Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1);

@@ -24,11 +24,15 @@
 
 #pragma once
 
+#include <list>
 #include <stack>
 #include <string>
 #include <vector>
 
 class Noeud;
+class NoeudNombreEntier;
+class NoeudNombreReel;
+class NoeudOperation;
 
 struct ContexteGenerationCode;
 struct DonneesMorceaux;
@@ -36,6 +40,10 @@ struct DonneesMorceaux;
 class assembleuse_arbre {
 	std::stack<Noeud *> m_pile{};
 	std::vector<Noeud *> m_noeuds{};
+
+	std::list<NoeudOperation *> noeuds_op_libres;
+	std::list<NoeudNombreEntier *> noeuds_entier_libres;
+	std::list<NoeudNombreReel *> noeuds_reel_libres;
 
 public:
 	assembleuse_arbre() = default;
@@ -79,4 +87,6 @@ public:
 	 * Traverse l'arbre et génère le code LLVM.
 	 */
 	void genere_code_llvm(ContexteGenerationCode &contexte_generation);
+
+	void supprime_noeud(Noeud *noeud);
 };

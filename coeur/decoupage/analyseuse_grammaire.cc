@@ -141,6 +141,35 @@ static bool est_operateur(int identifiant)
 	return est_operateur_simple(identifiant) || est_operateur_double(identifiant);
 }
 
+static bool est_operateur_constant(int identifiant)
+{
+	switch (identifiant) {
+		case ID_PLUS:
+		case ID_MOINS:
+		case ID_FOIS:
+		case ID_DIVISE:
+		case ID_ESPERLUETTE:
+		case ID_POURCENT:
+		case ID_INFERIEUR:
+		case ID_INFERIEUR_EGAL:
+		case ID_SUPERIEUR:
+		case ID_SUPERIEUR_EGAL:
+		case ID_DECALAGE_DROITE:
+		case ID_DECALAGE_GAUCHE:
+		case ID_DIFFERENCE:
+		case ID_ESP_ESP:
+		case ID_EGALITE:
+		case ID_BARRE_BARRE:
+		case ID_BARRE:
+		case ID_CHAPEAU:
+		case ID_EXCLAMATION:
+		case ID_TILDE:
+			return true;
+		default:
+			return false;
+	}
+}
+
 /* ************************************************************************** */
 
 analyseuse_grammaire::analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon, assembleuse_arbre *assembleuse)
@@ -367,7 +396,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(ID_PARENTHESE_OUVRANTE);
 
-void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
+void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, const bool calcul_expression)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
@@ -542,9 +571,26 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			auto n1 = pile.back();
 			pile.pop_back();
 
-			noeud->reserve_enfants(2);
-			noeud->ajoute_noeud(n1);
-			noeud->ajoute_noeud(n2);
+			if (n1->est_constant() && n2->est_constant()) {
+				if (est_operateur_constant(noeud->identifiant())) {
+					noeud = calcul_expression_double(*m_assembleuse, noeud, n1, n2);
+
+					if (noeud == nullptr) {
+						lance_erreur("Ne peut pas calculer l'expression");
+					}
+				}
+				else if (calcul_expression) {
+					lance_erreur("Ne peut pas calculer l'expression");
+				}
+			}
+			else if (calcul_expression) {
+				lance_erreur("Ne peut pas calculer l'expression");
+			}
+			else {
+				noeud->reserve_enfants(2);
+				noeud->ajoute_noeud(n1);
+				noeud->ajoute_noeud(n2);
+			}
 
 			pile.push_back(noeud);
 		}
@@ -552,8 +598,21 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final)
 			auto n1 = pile.back();
 			pile.pop_back();
 
-			noeud->reserve_enfants(1);
-			noeud->ajoute_noeud(n1);
+			if (n1->est_constant()) {
+				if (est_operateur_constant(noeud->identifiant())) {
+					noeud = calcul_expression_simple(*m_assembleuse, noeud, n1);
+				}
+				else if (calcul_expression) {
+					lance_erreur("Ne peut pas calculer l'expression");
+				}
+			}
+			else if (calcul_expression) {
+				lance_erreur("Ne peut pas calculer l'expression");
+			}
+			else {
+				noeud->reserve_enfants(1);
+				noeud->ajoute_noeud(n1);
+			}
 
 			pile.push_back(noeud);
 		}
@@ -649,7 +708,7 @@ void analyseuse_grammaire::analyse_declaration_constante()
 		lance_erreur("Attendu '=' après la déclaration de la constante");
 	}
 
-	analyse_expression_droite(ID_POINT_VIRGULE);
+	analyse_expression_droite(ID_POINT_VIRGULE, true);
 
 	m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
 }
@@ -727,13 +786,16 @@ void analyseuse_grammaire::analyse_declaration_enum()
 		if (est_identifiant(ID_EGAL)) {
 			avance();
 
-			// À FAIRE : analyse_expression_droite(ID_VIRGULE);
+#if 1
+			analyse_expression_droite(ID_VIRGULE, true);
+#else
 			if (!requiers_nombre_entier()) {
 				lance_erreur("Attendu un nombre entier après '='");
 			}
 
 			m_assembleuse->ajoute_noeud(NOEUD_NOMBRE_ENTIER, m_identifiants[position()]);
 			m_assembleuse->sors_noeud(NOEUD_NOMBRE_ENTIER);
+#endif
 		}
 
 		m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
@@ -764,13 +826,17 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 				est_pointeur = false;
 				est_tableau = true;
 
-				/* À FAIRE : expression */
+				/* À FAIRE */
+#if 0
+				analyse_expression_droite(ID_CROCHET_FERMANT, true);
+#else
 				if (!requiers_nombre_entier()) {
 					lance_erreur("Attendu un nombre entier après [");
 				}
 
 				const auto &morceau = m_identifiants[position()];
 				taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
+#endif
 			}
 
 			if (!requiers_identifiant(ID_CROCHET_FERMANT)) {
