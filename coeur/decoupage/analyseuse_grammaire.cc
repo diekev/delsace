@@ -856,7 +856,7 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 		lance_erreur("Attendu la déclaration d'un type");
 	}
 
-	const auto identifiant = m_identifiants[position()].identifiant;
+	auto identifiant = m_identifiants[position()].identifiant;
 
 	if (identifiant == ID_CHAINE_CARACTERE) {
 		const auto nom_type = m_identifiants[position()].chaine;
@@ -864,6 +864,9 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 		if (!m_contexte.structure_existe(nom_type)) {
 			lance_erreur("Structure inconnue", erreur::STRUCTURE_INCONNUE);
 		}
+
+		const auto &donnees_structure = m_contexte.donnees_structure(nom_type);
+		identifiant = (identifiant | (static_cast<int>(donnees_structure.id) << 8));
 	}
 
 	donnees_type.pousse(identifiant);

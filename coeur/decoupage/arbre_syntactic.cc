@@ -39,7 +39,7 @@
 /* ************************************************************************** */
 
 static llvm::Type *converti_type(
-		llvm::LLVMContext &contexte,
+		ContexteGenerationCode &contexte,
 		const DonneesType &donnees_type)
 {
 	llvm::Type *type = nullptr;
@@ -47,35 +47,53 @@ static llvm::Type *converti_type(
 	for (int identifiant : donnees_type) {
 		switch (identifiant & 0xff) {
 			case ID_BOOL:
-				type = llvm::Type::getInt1Ty(contexte);
+				type = llvm::Type::getInt1Ty(contexte.contexte);
 				break;
 			case ID_E8:
-				type = llvm::Type::getInt8Ty(contexte);
+				type = llvm::Type::getInt8Ty(contexte.contexte);
 				break;
 			case ID_E16:
-				type = llvm::Type::getInt16Ty(contexte);
+				type = llvm::Type::getInt16Ty(contexte.contexte);
 				break;
 			case ID_E32:
-				type = llvm::Type::getInt32Ty(contexte);
+				type = llvm::Type::getInt32Ty(contexte.contexte);
 				break;
 			case ID_E64:
-				type = llvm::Type::getInt64Ty(contexte);
+				type = llvm::Type::getInt64Ty(contexte.contexte);
 				break;
 			case ID_R16:
-				type = llvm::Type::getHalfTy(contexte);
+				type = llvm::Type::getHalfTy(contexte.contexte);
 				break;
 			case ID_R32:
-				type = llvm::Type::getFloatTy(contexte);
+				type = llvm::Type::getFloatTy(contexte.contexte);
 				break;
 			case ID_R64:
-				type = llvm::Type::getDoubleTy(contexte);
+				type = llvm::Type::getDoubleTy(contexte.contexte);
 				break;
 			case ID_RIEN:
-				type = llvm::Type::getVoidTy(contexte);
+				type = llvm::Type::getVoidTy(contexte.contexte);
 				break;
 			case ID_POINTEUR:
 				type = llvm::PointerType::get(type, 0);
 				break;
+			case ID_CHAINE_CARACTERE:
+			{
+				const auto &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
+				auto &donnees_structure = contexte.donnees_structure(id_structure);
+
+				if (donnees_structure.type_llvm == nullptr) {
+					std::vector<llvm::Type *> types_membres;
+
+					for (const auto &donnees_type : donnees_structure.donnees_types) {
+						types_membres.push_back(converti_type(contexte, donnees_type));
+					}
+
+					donnees_structure.type_llvm = llvm::StructType::get(contexte.contexte, types_membres, false);
+				}
+
+				type = donnees_structure.type_llvm;
+				break;
+			}
 			case ID_TABLEAU:
 			{
 				const auto taille = static_cast<uint64_t>(identifiant) & 0xffffff00;
@@ -375,7 +393,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	std::transform(m_arguments.begin(), m_arguments.end(), parametres.begin(),
 				   [&](const ArgumentFonction &donnees)
 	{
-		return converti_type(contexte.contexte, donnees.donnees_type);
+		return converti_type(contexte, donnees.donnees_type);
 	});
 
 	llvm::ArrayRef<llvm::Type*> args(parametres);
@@ -387,7 +405,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Crée fonction */
 	auto type_fonction = llvm::FunctionType::get(
-							 converti_type(contexte.contexte, this->donnees_type),
+							 converti_type(contexte, this->donnees_type),
 							 args,
 							 false);
 
@@ -409,7 +427,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	for (const auto &argument : m_arguments) {
 		auto alloc = new llvm::AllocaInst(
-						 converti_type(contexte.contexte, argument.donnees_type),
+						 converti_type(contexte, argument.donnees_type),
 						 argument.chaine,
 						 contexte.block_courant());
 
@@ -535,7 +553,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	 * côte. */
 	valeur = m_enfants[0]->genere_code_llvm(contexte);
 
-	auto type_llvm = converti_type(contexte.contexte, this->donnees_type);
+	auto type_llvm = converti_type(contexte, this->donnees_type);
 	auto alloc = new llvm::AllocaInst(type_llvm, std::string(m_donnees_morceaux.chaine), contexte.block_courant());
 	new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 
@@ -761,7 +779,7 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 						 contexte.contexte,
 						 std::string(m_donnees_morceaux.chaine));
 
-	auto type = converti_type(contexte.contexte, this->donnees_type);
+	auto type = converti_type(contexte, this->donnees_type);
 
 	return new llvm::GlobalVariable(
 				*contexte.module,

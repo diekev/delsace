@@ -35,6 +35,7 @@ struct TamponSource;
 
 namespace llvm {
 class BasicBlock;
+class Type;
 class Value;
 }  /* namespace llvm */
 
@@ -61,6 +62,8 @@ struct Block {
 struct DonneesStructure {
 	std::unordered_map<std::string_view, size_t> index_membres;
 	std::vector<DonneesType> donnees_types;
+	llvm::Type *type_llvm;
+	size_t id;
 };
 
 struct ContexteGenerationCode {
@@ -164,9 +167,10 @@ struct ContexteGenerationCode {
 
 	/**
 	 * Ajoute les données de la structure dont le nom est spécifié en paramètres
-	 * à la table de structure de ce contexte.
+	 * à la table de structure de ce contexte. Retourne l'id de la structure
+	 * ainsi ajoutée.
 	 */
-	void ajoute_donnees_structure(const std::string_view &nom, const DonneesStructure &donnees);
+	size_t ajoute_donnees_structure(const std::string_view &nom, DonneesStructure &donnees);
 
 	/**
 	 * Retourne les données de la structure dont le nom est spécifié en
@@ -175,11 +179,19 @@ struct ContexteGenerationCode {
 	 */
 	const DonneesStructure &donnees_structure(const std::string_view &nom);
 
+	/**
+	 * Retourne les données de la structure dont l'id est spécifié en
+	 * paramètre. Si aucune structure ne portant cette id n'existe, des données
+	 * vides sont retournées.
+	 */
+	DonneesStructure &donnees_structure(const size_t id);
+
 private:
 	std::stack<Block> pile_block;
 	std::unordered_map<std::string_view, DonneesVariable> globales;
 	std::unordered_map<std::string_view, DonneesFonction> fonctions;
 	std::unordered_map<std::string_view, DonneesStructure> structures;
+	std::vector<std::string_view> nom_structures;
 
 	/* Utilisé au cas où nous ne pouvons trouver une variable locale ou globale. */
 	DonneesType m_donnees_type_invalide;

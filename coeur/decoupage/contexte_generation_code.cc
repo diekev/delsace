@@ -125,12 +125,21 @@ bool ContexteGenerationCode::structure_existe(const std::string_view &nom)
 	return structures.find(nom) != structures.end();
 }
 
-void ContexteGenerationCode::ajoute_donnees_structure(const std::string_view &nom, const DonneesStructure &donnees)
+size_t ContexteGenerationCode::ajoute_donnees_structure(const std::string_view &nom, DonneesStructure &donnees)
 {
+	donnees.id = nom_structures.size();
+	donnees.type_llvm = nullptr;
 	structures.insert({nom, donnees});
+	nom_structures.push_back(nom);
+	return donnees.id;
 }
 
 const DonneesStructure &ContexteGenerationCode::donnees_structure(const std::string_view &nom)
 {
 	return structures[nom];
+}
+
+DonneesStructure &ContexteGenerationCode::donnees_structure(const size_t id)
+{
+	return structures[nom_structures[id]];
 }
