@@ -785,17 +785,10 @@ void analyseuse_grammaire::analyse_declaration_enum()
 
 		if (est_identifiant(ID_EGAL)) {
 			avance();
-
-#if 1
 			analyse_expression_droite(ID_VIRGULE, true);
-#else
-			if (!requiers_nombre_entier()) {
-				lance_erreur("Attendu un nombre entier après '='");
-			}
 
-			m_assembleuse->ajoute_noeud(NOEUD_NOMBRE_ENTIER, m_identifiants[position()]);
-			m_assembleuse->sors_noeud(NOEUD_NOMBRE_ENTIER);
-#endif
+			/* recule pour tester la virgule après */
+			recule();
 		}
 
 		m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
