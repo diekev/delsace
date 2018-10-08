@@ -39,6 +39,17 @@ class analyseuse_grammaire : public Analyseuse {
 	assembleuse_arbre *m_assembleuse = nullptr;
 	ContexteGenerationCode &m_contexte;
 
+	/* Ces vecteurs sont utilisés pour stocker les données des expressions
+	 * compilées au travers de 'analyse_expression_droite()'. Nous les stockons
+	 * pour pouvoir réutiliser la mémoire qu'ils allouent après leurs
+	 * utilisations. Ainsi nous n'avons pas à récréer des vecteurs à chaque
+	 * appel vers 'analyse_expression_droite()', mais cela rend la classe peu
+	 * sûre niveau multi-threading.
+	 */
+	using paire_vecteurs = std::pair<std::vector<Noeud *>, std::vector<Noeud *>>;
+	std::vector<paire_vecteurs> m_paires_vecteurs;
+	size_t m_profondeur = 0;
+
 public:
 	analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon, assembleuse_arbre *assembleuse);
 

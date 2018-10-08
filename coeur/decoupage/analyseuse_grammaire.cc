@@ -33,6 +33,12 @@
 #include "expression.h"
 #include "nombres.h"
 
+/**
+ * Limitation du nombre récursif de sous-expressions (par exemple :
+ * f(g(h(i(j()))))).
+ */
+static constexpr auto PROFONDEUR_EXPRESSION_MAX = 32;
+
 /* À FAIRE :
  * - gabarit
  */
@@ -172,6 +178,7 @@ analyseuse_grammaire::analyseuse_grammaire(ContexteGenerationCode &contexte, con
 	: Analyseuse(identifiants, tampon)
 	, m_assembleuse(assembleuse)
 	, m_contexte(contexte)
+	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
 {}
 
 void analyseuse_grammaire::lance_analyse()
@@ -403,16 +410,16 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 	 * pas à récréer des vecteurs à chaque appel vers
 	 * 'analyse_expression_droite()', mais cela rend la classe peu sûre niveau
 	 * multi-threading.
-	 *
-	 * Le problème avec cette approche est que cette fonction peut s'appeler de
-	 * manière récursive, et on ne peut donc pas les réutiliser. Peut-être
-	 * pourrions nous utiliser une pile de ces vecteurs ?
 	 */
-	std::vector<Noeud *> expression;
-	expression.reserve(32);
+	if (m_profondeur >= m_paires_vecteurs.size()) {
+		lance_erreur("Excès de la pile d'expression autorisée");
+	}
 
-	std::vector<Noeud *> pile;
-	pile.reserve(32);
+	std::vector<Noeud *> &expression = m_paires_vecteurs[m_profondeur].first;
+	expression.clear();
+
+	std::vector<Noeud *> &pile = m_paires_vecteurs[m_profondeur].second;
+	pile.clear();
 
 	/* Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
 	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
@@ -511,7 +518,9 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 
 				noeud = m_assembleuse->ajoute_noeud(NOEUD_OPERATION, morceau, false);
 
+				++m_profondeur;
 				analyse_expression_droite(ID_CROCHET_FERMANT);
+				--m_profondeur;
 
 				m_assembleuse->sors_noeud(NOEUD_OPERATION);
 
@@ -684,7 +693,9 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
+		++m_profondeur;
 		analyse_expression_droite(ID_VIRGULE);
+		--m_profondeur;
 	}
 }
 
