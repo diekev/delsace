@@ -278,7 +278,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0, 0, ID_BOOL });
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, ID_BOOL });
 			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -307,7 +307,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0, 0, ID_BOOL });
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, ID_BOOL });
 			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -319,7 +319,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_booleenne(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0, 0, ID_BOOL });
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, ID_BOOL });
 			noeud->valeur_boolenne = calcul_expression_boolenne(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 

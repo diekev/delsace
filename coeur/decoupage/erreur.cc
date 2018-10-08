@@ -70,8 +70,8 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 
 void lance_erreur(const std::string &quoi, const TamponSource &tampon, const DonneesMorceaux &morceau, int type)
 {
-	const auto ligne = morceau.ligne;
-	const auto pos_mot = morceau.pos;
+	const auto ligne = morceau.ligne_pos >> 32;
+	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
 	const auto identifiant = morceau.identifiant;
 	const auto &chaine = morceau.chaine;
 
@@ -87,7 +87,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << '\n';
 
 	ss << quoi;
-	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
+	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(int(identifiant)) << ')';
 
 	throw erreur::frappe(ss.str().c_str(), type);
 }
@@ -98,13 +98,15 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau)
 {
-	const auto ligne = tampon[morceau.ligne];
+	const auto numero_ligne = morceau.ligne_pos >> 32;
+	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << morceau.ligne + 1 << ":\n";
+	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, morceau.pos, ligne);
+	imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
 	imprime_tilde(ss, morceau.chaine);
 	ss << '\n';
@@ -123,13 +125,15 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau)
 {
-	const auto ligne = tampon[morceau.ligne];
+	const auto numero_ligne = morceau.ligne_pos >> 32;
+	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << morceau.ligne + 1 << ":\n";
+	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, morceau.pos, ligne);
+	imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
 	imprime_tilde(ss, morceau.chaine);
 	ss << '\n';
@@ -146,13 +150,15 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau)
 {
-	const auto ligne = tampon[morceau.ligne];
+	const auto numero_ligne = morceau.ligne_pos >> 32;
+	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << morceau.ligne + 1 << ":\n";
+	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, morceau.pos, ligne);
+	imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
 	imprime_tilde(ss, morceau.chaine);
 	ss << '\n';
@@ -168,13 +174,15 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau)
 {
-	const auto ligne = tampon[morceau.ligne];
+	const auto numero_ligne = morceau.ligne_pos >> 32;
+	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << morceau.ligne + 1 << ":\n";
+	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, morceau.pos, ligne);
+	imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
 	imprime_tilde(ss, morceau.chaine);
 	ss << '\n';

@@ -312,7 +312,7 @@ void decoupeuse_texte::pousse_caractere()
 
 void decoupeuse_texte::pousse_mot(int identifiant)
 {
-	m_morceaux.push_back({ mot_courant(), m_compte_ligne, m_pos_mot, identifiant });
+	m_morceaux.push_back({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), static_cast<size_t>(identifiant) });
 	m_taille_mot_courant = 0;
 }
 

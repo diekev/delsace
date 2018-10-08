@@ -182,7 +182,7 @@ void analyseuse_grammaire::lance_analyse()
 		return;
 	}
 
-	m_assembleuse->ajoute_noeud(NOEUD_RACINE, DonneesMorceaux{"racine", 0ul, 0ul, -1});
+	m_assembleuse->ajoute_noeud(NOEUD_RACINE, DonneesMorceaux{"racine", 0ul, static_cast<size_t>(-1) });
 
 	analyse_corps();
 }
@@ -458,7 +458,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 		}
 		else if (est_identifiant(ID_VRAI) || est_identifiant(ID_FAUX)) {
 			/* remplace l'identifiant par ID_BOOL */
-			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne, morceau.pos, ID_BOOL };
+			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, ID_BOOL };
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_BOOLEEN, morceau_bool);
 			expression.push_back(noeud);
 		}
@@ -498,7 +498,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			while (!pile.empty()
 				   && pile.back() != NOEUD_PARENTHESE
 				   && est_operateur(pile.back()->identifiant())
-				   && (precedence_faible(morceau.identifiant, pile.back()->identifiant())))
+				   && (precedence_faible(static_cast<int>(morceau.identifiant), pile.back()->identifiant())))
 			{
 				expression.push_back(pile.back());
 				pile.pop_back();
