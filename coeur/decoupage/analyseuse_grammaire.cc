@@ -837,7 +837,7 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 				}
 
 				const auto &morceau = m_identifiants[position()];
-				taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
+				taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, static_cast<int>(morceau.identifiant)));
 #endif
 			}
 
@@ -869,10 +869,10 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 		}
 
 		const auto &donnees_structure = m_contexte.donnees_structure(nom_type);
-		identifiant = (identifiant | (static_cast<int>(donnees_structure.id) << 8));
+		identifiant = (identifiant | (donnees_structure.id << 8));
 	}
 
-	donnees_type.pousse(identifiant);
+	donnees_type.pousse(static_cast<int>(identifiant));
 }
 
 bool analyseuse_grammaire::requiers_identifiant_type()
