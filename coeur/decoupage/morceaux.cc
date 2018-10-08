@@ -46,9 +46,11 @@ static std::map<std::string_view, int> paires_mots_cles = {
 	{ "e64ns", ID_E64NS },
 	{ "e8", ID_E8 },
 	{ "e8ns", ID_E8NS },
+	{ "employant", ID_EMPLOYANT },
 	{ "faux", ID_FAUX },
 	{ "fonction", ID_FONCTION },
 	{ "gabarit", ID_GABARIT },
+	{ "mémoire", ID_MEMOIRE },
 	{ "pour", ID_POUR },
 	{ "r16", ID_R16 },
 	{ "r32", ID_R32 },
@@ -59,7 +61,9 @@ static std::map<std::string_view, int> paires_mots_cles = {
 	{ "sinon", ID_SINON },
 	{ "soit", ID_SOIT },
 	{ "structure", ID_STRUCTURE },
+	{ "taille_de", ID_TAILLE_DE },
 	{ "transtype", ID_TRANSTYPE },
+	{ "type", ID_TYPE },
 	{ "variable", ID_VARIABLE },
 	{ "vrai", ID_VRAI },
 	{ "énum", ID_ENUM },
@@ -213,12 +217,16 @@ const char *chaine_identifiant(int id)
 			return "ID_E8";
 		case ID_E8NS:
 			return "ID_E8NS";
+		case ID_EMPLOYANT:
+			return "ID_EMPLOYANT";
 		case ID_FAUX:
 			return "ID_FAUX";
 		case ID_FONCTION:
 			return "ID_FONCTION";
 		case ID_GABARIT:
 			return "ID_GABARIT";
+		case ID_MEMOIRE:
+			return "ID_MEMOIRE";
 		case ID_POUR:
 			return "ID_POUR";
 		case ID_R16:
@@ -239,8 +247,12 @@ const char *chaine_identifiant(int id)
 			return "ID_SOIT";
 		case ID_STRUCTURE:
 			return "ID_STRUCTURE";
+		case ID_TAILLE_DE:
+			return "ID_TAILLE_DE";
 		case ID_TRANSTYPE:
 			return "ID_TRANSTYPE";
+		case ID_TYPE:
+			return "ID_TYPE";
 		case ID_VARIABLE:
 			return "ID_VARIABLE";
 		case ID_VRAI:
