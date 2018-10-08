@@ -109,6 +109,90 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
 	return true;
 }
 
+struct temps_seconde {
+	double valeur;
+
+	explicit temps_seconde(double v)
+		: valeur(v)
+	{}
+};
+
+static std::ostream &operator<<(std::ostream &os, const temps_seconde &t)
+{
+	auto valeur = static_cast<int>(t.valeur * 1000);
+
+	if (valeur < 1) {
+		valeur = static_cast<int>(t.valeur * 1000000);
+		if (valeur < 10) {
+			os << ' ' << ' ' << ' ';
+		}
+		else if (valeur < 100) {
+			os << ' ' << ' ';
+		}
+		else if (valeur < 1000) {
+			os << ' ';
+		}
+
+		os << valeur << "ns";
+	}
+	else {
+		if (valeur < 10) {
+			os << ' ' << ' ' << ' ';
+		}
+		else if (valeur < 100) {
+			os << ' ' << ' ';
+		}
+		else if (valeur < 1000) {
+			os << ' ';
+		}
+
+		os << valeur << "ms";
+	}
+
+	return os;
+}
+
+struct pourcentage {
+	double valeur;
+
+	explicit pourcentage(double v)
+		: valeur(v)
+	{}
+};
+
+static std::ostream &operator<<(std::ostream &os, const pourcentage &p)
+{
+	const auto valeur = static_cast<int>(p.valeur * 100) / 100.0;
+
+	if (valeur < 10) {
+		os << ' ' << ' ';
+	}
+	else if (valeur < 100) {
+		os << ' ';
+	}
+
+	os << valeur << "%";
+
+	return os;
+}
+
+template <typename T>
+static void formatte_taille_octet(std::ostream &os, T taille)
+{
+	if (taille > (1024 * 1024 * 1024)) {
+		os << (taille / (1024 * 1024 * 1024)) << "Go";
+	}
+	if (taille > (1024 * 1024)) {
+		os << (taille / (1024 * 1024)) << "Mo";
+	}
+	else if (taille > 1024) {
+		os << (taille / 1024) << "Ko";
+	}
+	else {
+		os << (taille) << "o";
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -235,34 +319,45 @@ int main(int argc, char *argv[])
 
 	const auto temps_total = temps_scene + temps_coulisse + temps_nettoyage;
 
-	auto pourcentage = [&](const double &x, const double &total)
+	auto calc_pourcentage = [&](const double &x, const double &total)
 	{
-		return x * 100.0 / total;
+		return pourcentage(x * 100.0 / total);
 	};
 
 	os << "------------------------------------------------------------------\n";
+	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
 	os << "Nombre de lignes             : " << tampon.nombre_lignes() << '\n';
-	os << "Temps total                  : " << temps_total << '\n';
 	os << "Nombre de lignes par seconde : " << tampon.nombre_lignes() / temps_total << '\n';
+	os << "Taille des données           : ";
+	formatte_taille_octet(os, tampon.taille_donnees());
+	os << '\n';
+	os << "Débit par seconde            : ";
+	formatte_taille_octet(os, (tampon.taille_donnees() / temps_total));
+	os << '\n';
 
-	os << "Temps scène : " << temps_scene
-	   << " (" << pourcentage(temps_scene, temps_total) << "%)\n";
-	os << '\t' << "Temps chargement : " << temps_chargement
-	   << " (" << pourcentage(temps_chargement, temps_scene) << "%)\n";
-	os << '\t' << "Temps tampon     : " << temps_tampon
-	   << " (" << pourcentage(temps_tampon, temps_scene) << "%)\n";
-	os << '\t' << "Temps découpage  : " << temps_decoupage
-	   << " (" << pourcentage(temps_decoupage, temps_scene) << "%)\n";
-	os << '\t' << "Temps analyse    : " << temps_analyse
-	   << " (" << pourcentage(temps_analyse, temps_scene) << "%)\n";
+	os << '\n';
+	os << "Temps scène : " << temps_seconde(temps_scene)
+	   << " (" << calc_pourcentage(temps_scene, temps_total) << ")\n";
+	os << '\t' << "Temps chargement : " << temps_seconde(temps_chargement)
+	   << " (" << calc_pourcentage(temps_chargement, temps_scene) << ")\n";
+	os << '\t' << "Temps tampon     : " << temps_seconde(temps_tampon)
+	   << " (" << calc_pourcentage(temps_tampon, temps_scene) << ")\n";
+	os << '\t' << "Temps découpage  : " << temps_seconde(temps_decoupage)
+	   << " (" << calc_pourcentage(temps_decoupage, temps_scene) << ") (";
+	formatte_taille_octet(os, tampon.taille_donnees() / temps_decoupage);
+	os << ")\n";
+	os << '\t' << "Temps analyse    : " << temps_seconde(temps_analyse)
+	   << " (" << calc_pourcentage(temps_analyse, temps_scene) << ")\n";
 
-	os << "Temps coulisse : " << temps_coulisse
-	   << " (" << pourcentage(temps_coulisse, temps_total) << "%)\n";
-	os << '\t' << "Temps génération code : " << temps_generation_code
-	   << " (" << pourcentage(temps_generation_code, temps_coulisse) << "%)\n";
+	os << '\n';
+	os << "Temps coulisse : " << temps_seconde(temps_coulisse)
+	   << " (" << calc_pourcentage(temps_coulisse, temps_total) << ")\n";
+	os << '\t' << "Temps génération code : " << temps_seconde(temps_generation_code)
+	   << " (" << calc_pourcentage(temps_generation_code, temps_coulisse) << ")\n";
 
-	os << "Temps Nettoyage : " << temps_nettoyage
-	   << " (" << pourcentage(temps_nettoyage, temps_total) << "%)\n";
+	os << '\n';
+	os << "Temps Nettoyage : " << temps_seconde(temps_nettoyage)
+	   << " (" << calc_pourcentage(temps_nettoyage, temps_total) << ")\n";
 
 	os << std::endl;
 

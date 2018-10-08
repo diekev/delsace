@@ -81,6 +81,11 @@ size_t TamponSource::nombre_lignes() const noexcept
 	return m_lignes.size();
 }
 
+size_t TamponSource::taille_donnees() const noexcept
+{
+	return m_tampon.size() * sizeof(std::string_view::value_type);
+}
+
 void TamponSource::construit_lignes()
 {
 	for (size_t i = 0; i < m_tampon.size();) {

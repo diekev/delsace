@@ -68,6 +68,11 @@ public:
 	 */
 	size_t nombre_lignes() const noexcept;
 
+	/**
+	 * Retourne la taille des données en octets du tampon.
+	 */
+	size_t taille_donnees() const noexcept;
+
 private:
 	/**
 	 * Construit le vecteur contenant les données de chaque ligne du tampon.
