@@ -146,6 +146,9 @@ void charge_fichier(Preproces &preproces, const std::string &chemin)
 		return;
 	}
 
+	auto index_fichier = preproces.liste_fichier.size();
+	preproces.liste_fichier.push_back(chemin_);
+
 	fichier.seekg(0, fichier.end);
 	const auto taille_fichier = static_cast<std::string::size_type>(fichier.tellg());
 	fichier.seekg(0, fichier.beg);
@@ -234,7 +237,7 @@ void charge_fichier(Preproces &preproces, const std::string &chemin)
 		}
 
 		preproces.tampon += tampon;
-		preproces.donnees_lignes.push_back(DonneesLigne{chemin_, ligne_fichier});
+		preproces.donnees_lignes.push_back(index_fichier << 32 | ligne_fichier);
 	}
 
 	preproces.nombre_lignes_total += ligne_fichier;
@@ -250,9 +253,9 @@ void imprime_donnees_lignes(Preproces &preproces, std::ostream &os)
 {
 	auto i = 0;
 
-	for (const DonneesLigne &donnees : preproces.donnees_lignes) {
+	for (const auto &donnees : preproces.donnees_lignes) {
 		os << i++ << " : "
-		   << donnees.chemin_fichier << ':'
-		   << donnees.numero_ligne << '\n';
+		   << (donnees >> 32) << ':'
+		   << (donnees & 0xffffffff) << '\n';
 	}
 }

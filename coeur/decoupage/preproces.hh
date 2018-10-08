@@ -29,18 +29,33 @@
 #include <string>
 #include <vector>
 
-struct DonneesLigne {
-	std::string chemin_fichier;
-	size_t numero_ligne;
-};
-
 struct Preproces {
+	/* pile pour les dossiers courants */
 	std::stack<std::string> dossier_courant;
+
+	/* ensemble des chemins d'inclusions */
 	std::set<std::string> chemin_inclusions;
+
+	/* ensemble de fichiers déjà chargés, duplicat de liste_fichier en bas, mais
+	 * nous permet de chercher plus vite si un fichier à déjà été chargé */
 	std::set<std::string> fichiers;
+
+	/* ensemble des fichiers visités afin de vérifier si un fichier a déjà été
+	 * chargé ou non ; permet de détecter des dépendances cycliques entre les
+	 * fichiers. */
 	std::set<std::string> fichiers_visites;
+
+	/* le tampon construit par le chargement de tous les fichiers */
 	std::string tampon;
-	std::vector<DonneesLigne> donnees_lignes;
+
+	/* numéro ligne << 32 | index fichier (dans liste_fichier) */
+	std::vector<size_t> donnees_lignes;
+
+	/* liste des fichiers à utiliser avec donness_lignes */
+	std::vector<std::string> liste_fichier;
+
+	/* nombre total de lignes dans le tampon, sans les lignes vides ou les
+	 * lignes de commentaires */
 	size_t nombre_lignes_total = 0;
 };
 
