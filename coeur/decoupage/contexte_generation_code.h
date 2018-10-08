@@ -187,6 +187,7 @@ struct ContexteGenerationCode {
 	DonneesStructure &donnees_structure(const size_t id);
 
 private:
+	Block *m_block_courant = nullptr;
 	std::stack<Block> pile_block;
 	std::unordered_map<std::string_view, DonneesVariable> globales;
 	std::unordered_map<std::string_view, DonneesFonction> fonctions;

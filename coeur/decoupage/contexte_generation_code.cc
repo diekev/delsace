@@ -35,20 +35,22 @@ void ContexteGenerationCode::pousse_block(llvm::BasicBlock *block)
 	Block b;
 	b.block = block;
 	pile_block.push(b);
+	m_block_courant = &pile_block.top();
 }
 
 void ContexteGenerationCode::jete_block()
 {
 	pile_block.pop();
+	m_block_courant = (pile_block.empty()) ? nullptr : &pile_block.top();
 }
 
 llvm::BasicBlock *ContexteGenerationCode::block_courant() const
 {
-	if (pile_block.empty()) {
+	if (m_block_courant == nullptr) {
 		return nullptr;
 	}
 
-	return pile_block.top().block;
+	return m_block_courant->block;
 }
 
 void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
@@ -80,14 +82,14 @@ const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &
 
 void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
 {
-	pile_block.top().locals.insert({nom, {valeur, type}});
+	m_block_courant->locals.insert({nom, {valeur, type}});
 }
 
 llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 {
-	auto iter = pile_block.top().locals.find(nom);
+	auto iter = m_block_courant->locals.find(nom);
 
-	if (iter == pile_block.top().locals.end()) {
+	if (iter == m_block_courant->locals.end()) {
 		return nullptr;
 	}
 
@@ -96,9 +98,9 @@ llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 
 const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &nom)
 {
-	auto iter = pile_block.top().locals.find(nom);
+	auto iter = m_block_courant->locals.find(nom);
 
-	if (iter == pile_block.top().locals.end()) {
+	if (iter == m_block_courant->locals.end()) {
 		return this->m_donnees_type_invalide;
 	}
 
