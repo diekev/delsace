@@ -158,9 +158,9 @@ Noeud::Noeud(const DonneesMorceaux &morceau)
 	: m_donnees_morceaux(morceau)
 {}
 
-void Noeud::reserve_enfants(size_t n)
+void Noeud::reserve_enfants(size_t /*n*/)
 {
-	m_enfants.reserve(n);
+	//m_enfants.reserve(n);
 }
 
 bool Noeud::est_constant() const
@@ -307,7 +307,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		 * code est généré. */
 		std::vector<Noeud *> enfants(m_noms_arguments.size());
 
-		auto index = 0ul;
+		auto enfant = m_enfants.begin();
 
 		for (const auto &nom : m_noms_arguments) {
 			auto iter = donnees_fonction.args.find(nom);
@@ -321,7 +321,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 			const auto index_arg = iter->second.index;
 			const auto type_arg = iter->second.donnees_type;
-			const auto type_enf = m_enfants[index]->calcul_type(contexte);
+			const auto type_enf = (*enfant)->calcul_type(contexte);
 
 			if (type_arg != type_enf) {
 				erreur::lance_erreur_type_arguments(
@@ -332,9 +332,9 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 							m_donnees_morceaux);
 			}
 
-			enfants[index_arg] = m_enfants[index];
+			enfants[index_arg] = *enfant;
 
-			++index;
+			++enfant;
 		}
 
 		parametres.resize(m_noms_arguments.size());
@@ -537,7 +537,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	assert(m_enfants.size() == 1);
 
 	if (this->donnees_type.est_invalide()) {
-		this->donnees_type = m_enfants[0]->calcul_type(contexte);
+		this->donnees_type = m_enfants.front()->calcul_type(contexte);
 
 		if (this->donnees_type.est_invalide()) {
 			erreur::lance_erreur(
@@ -559,7 +559,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 	 * la variable sur la pile et celle de stockage de la valeur soit côte à
 	 * côte. */
-	valeur = m_enfants[0]->genere_code_llvm(contexte);
+	valeur = m_enfants.front()->genere_code_llvm(contexte);
 
 	auto type_llvm = converti_type(contexte, this->donnees_type);
 	auto alloc = new llvm::AllocaInst(type_llvm, std::string(m_donnees_morceaux.chaine), contexte.block_courant());
@@ -605,7 +605,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
 	}
 
 	if (this->donnees_type.est_invalide()) {
-		this->donnees_type = m_enfants[0]->calcul_type(contexte);
+		this->donnees_type = m_enfants.front()->calcul_type(contexte);
 
 		if (this->donnees_type.est_invalide()) {
 			erreur::lance_erreur(
@@ -616,7 +616,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
 		}
 	}
 
-	valeur = m_enfants[0]->genere_code_llvm(contexte);
+	valeur = m_enfants.front()->genere_code_llvm(contexte);
 
 	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->donnees_type);
 
@@ -886,7 +886,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 	if (m_enfants.size() == 1) {
 		llvm::Instruction::BinaryOps instr;
-		auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
+		auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
 		auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
 		switch (this->m_donnees_morceaux.identifiant) {
@@ -922,8 +922,8 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 	if (m_enfants.size() == 2) {
 		llvm::Instruction::BinaryOps instr;
 
-		const auto type1 = m_enfants[0]->calcul_type(contexte);
-		const auto type2 = m_enfants[1]->calcul_type(contexte);
+		const auto type1 = m_enfants.front()->calcul_type(contexte);
+		const auto type2 = m_enfants.back()->calcul_type(contexte);
 
 		if (this->m_donnees_morceaux.identifiant != ID_CROCHET_OUVRANT && type1 != type2) {
 			erreur::lance_erreur(
@@ -935,8 +935,8 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 		/* À FAIRE : typage */
 
-		auto valeur1 = m_enfants[0]->genere_code_llvm(contexte);
-		auto valeur2 = m_enfants[1]->genere_code_llvm(contexte);
+		auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
+		auto valeur2 = m_enfants.back()->genere_code_llvm(contexte);
 
 		switch (this->m_donnees_morceaux.identifiant) {
 			case ID_PLUS:
@@ -1073,17 +1073,17 @@ const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (m_donnees_morceaux.identifiant == ID_AROBASE) {
 		this->donnees_type.pousse(ID_POINTEUR);
-		this->donnees_type.pousse(m_enfants[0]->calcul_type(contexte));
+		this->donnees_type.pousse(m_enfants.front()->calcul_type(contexte));
 		return this->donnees_type;
 	}
 
 	if (m_donnees_morceaux.identifiant == ID_CROCHET_OUVRANT) {
-		auto donnees_enfant = m_enfants[1]->calcul_type(contexte);
+		auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
 		this->donnees_type = donnees_enfant.derefence();
 		return this->donnees_type;
 	}
 
-	return m_enfants[0]->calcul_type(contexte);
+	return m_enfants.front()->calcul_type(contexte);
 }
 
 int NoeudOperation::type_noeud() const
@@ -1115,7 +1115,7 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 
 	if (m_enfants.size() > 0) {
 		assert(m_enfants.size() == 1);
-		valeur = m_enfants[0]->genere_code_llvm(contexte);
+		valeur = m_enfants.front()->genere_code_llvm(contexte);
 	}
 
 	return llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.block_courant());
@@ -1127,7 +1127,7 @@ const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 		return this->donnees_type;
 	}
 
-	return m_enfants[0]->calcul_type(contexte);
+	return m_enfants.front()->calcul_type(contexte);
 }
 
 int NoeudRetour::type_noeud() const

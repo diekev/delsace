@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include <list>
 
 #include "donnees_type.h"
 #include "morceaux.h"
@@ -114,7 +114,7 @@ struct ArgumentFonction {
  */
 class Noeud {
 protected:
-	std::vector<Noeud *> m_enfants;
+	std::list<Noeud *> m_enfants;
 
 	/* Il sera bien de stocker une référence ou un pointeur pour éviter de
 	 * copier les données trop de fois, mais nous construisons également des
@@ -200,7 +200,7 @@ public:
 
 class NoeudAppelFonction final : public Noeud {
 	/* les noms des arguments s'il sont nommés */
-	std::vector<std::string_view> m_noms_arguments;
+	std::list<std::string_view> m_noms_arguments;
 
 public:
 	explicit NoeudAppelFonction(const DonneesMorceaux &morceau);
@@ -219,7 +219,7 @@ public:
 /* ************************************************************************** */
 
 class NoeudDeclarationFonction final : public Noeud {
-	std::vector<ArgumentFonction> m_arguments;
+	std::list<ArgumentFonction> m_arguments;
 
 public:
 	int type_retour = -1;
