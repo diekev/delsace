@@ -86,6 +86,8 @@ enum {
  * noeud variable : aucun enfant
  * noeud nombre entier : aucun enfant
  * noeud nombre réel : aucun enfant
+ * noeud booléen : aucun enfant
+ * noeud chaine caractère : aucun enfant
  *
  * Le seul type de neoud posant problème est le noeud de déclaration de
  * fonction, mais nous pourrions avoir des tableaux séparés avec une structure
