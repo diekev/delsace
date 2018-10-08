@@ -24,6 +24,11 @@
 
 #pragma once
 
+#undef DEBOGUE_IDENTIFIANT
+
+#ifdef DEBOGUE_IDENTIFIANT
+#	include <map>
+#endif
 #include <vector>
 
 #include "morceaux.h"
@@ -38,6 +43,10 @@ protected:
 	const std::vector<DonneesMorceaux> &m_identifiants;
 	size_t m_position = 0;
 
+#ifdef DEBOGUE_IDENTIFIANT
+	std::map<int, int> m_tableau_identifiant;
+#endif
+
 public:
 	Analyseuse(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon);
 	virtual ~Analyseuse() = default;
@@ -49,6 +58,10 @@ public:
 	 * une exception est lancée.
 	 */
 	virtual void lance_analyse() = 0;
+
+#ifdef DEBOGUE_IDENTIFIANT
+	void imprime_identifiants_plus_utilises(std::ostream &os, size_t nombre = 5);
+#endif
 
 protected:
 	/**

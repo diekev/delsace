@@ -24,12 +24,38 @@
 
 #include "analyseuse.h"
 
+#ifdef DEBOGUE_IDENTIFIANT
+#include <algorithm>
+#include <iostream>
+#endif
+
 #include "erreur.h"
 
 Analyseuse::Analyseuse(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon)
 	: m_tampon(tampon)
 	, m_identifiants(identifiants)
 {}
+
+#ifdef DEBOGUE_IDENTIFIANT
+void Analyseuse::imprime_identifiants_plus_utilises(std::ostream &os, size_t nombre)
+{
+	std::vector<std::pair<int, int>> tableau(m_tableau_identifiant.size());
+	std::copy(m_tableau_identifiant.begin(), m_tableau_identifiant.end(), tableau.begin());
+
+	std::sort(tableau.begin(), tableau.end(),
+			  [](const std::pair<int, int> &a, const std::pair<int, int> &b)
+	{
+		return a.second > b.second;
+	});
+
+	os << "--------------------------------\n";
+	os << "Identifiant les plus comparées :\n";
+	for (size_t i = 0; i < nombre; ++i) {
+		os << chaine_identifiant(tableau[i].first) << " : " << tableau[i].second << '\n';
+	}
+	os << "--------------------------------\n";
+}
+#endif
 
 bool Analyseuse::requiers_identifiant(int identifiant)
 {
@@ -61,6 +87,9 @@ size_t Analyseuse::position()
 
 bool Analyseuse::est_identifiant(int identifiant)
 {
+#ifdef DEBOGUE_IDENTIFIANT
+	m_tableau_identifiant[identifiant]++;
+#endif
 	return identifiant == this->identifiant_courant();
 }
 
@@ -69,6 +98,11 @@ bool Analyseuse::sont_2_identifiants(int id1, int id2)
 	if (m_position + 2 >= m_identifiants.size()) {
 		return false;
 	}
+
+#ifdef DEBOGUE_IDENTIFIANT
+	m_tableau_identifiant[id1]++;
+	m_tableau_identifiant[id2]++;
+#endif
 
 	return m_identifiants[m_position].identifiant == id1
 			&& m_identifiants[m_position + 1].identifiant == id2;
@@ -79,6 +113,12 @@ bool Analyseuse::sont_3_identifiants(int id1, int id2, int id3)
 	if (m_position + 3 >= m_identifiants.size()) {
 		return false;
 	}
+
+#ifdef DEBOGUE_IDENTIFIANT
+	m_tableau_identifiant[id1]++;
+	m_tableau_identifiant[id2]++;
+	m_tableau_identifiant[id3]++;
+#endif
 
 	return m_identifiants[m_position].identifiant == id1
 			&& m_identifiants[m_position + 1].identifiant == id2

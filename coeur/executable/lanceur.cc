@@ -253,6 +253,9 @@ int main(int argc, char *argv[])
 		os << "Analyse des morceaux..." << std::endl;
 		const auto debut_analyseuse = numero7::chronometrage::maintenant();
 		analyseuse.lance_analyse();
+#ifdef DEBOGUE_IDENTIFIANT
+		analyseuse.imprime_identifiants_plus_utilises(os);
+#endif
 		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
 
 		const auto triplet_cible = llvm::sys::getDefaultTargetTriple();
