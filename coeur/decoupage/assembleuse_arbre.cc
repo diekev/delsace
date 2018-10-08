@@ -58,21 +58,27 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 
 	switch (type) {
 		case NOEUD_RACINE:
+			m_memoire_utilisee += sizeof(NoeudRacine);
 			noeud = new NoeudRacine(morceau);
 			break;
 		case NOEUD_APPEL_FONCTION:
+			m_memoire_utilisee += sizeof(NoeudAppelFonction);
 			noeud = new NoeudAppelFonction(morceau);
 			break;
 		case NOEUD_DECLARATION_FONCTION:
+			m_memoire_utilisee += sizeof(NoeudDeclarationFonction);
 			noeud = new NoeudDeclarationFonction(morceau);
 			break;
 		case NOEUD_EXPRESSION:
+			m_memoire_utilisee += sizeof(NoeudExpression);
 			noeud = new NoeudExpression(morceau);
 			break;
 		case NOEUD_ASSIGNATION_VARIABLE:
+			m_memoire_utilisee += sizeof(NoeudAssignationVariable);
 			noeud = new NoeudAssignationVariable(morceau);
 			break;
 		case NOEUD_VARIABLE:
+			m_memoire_utilisee += sizeof(NoeudVariable);
 			noeud = new NoeudVariable(morceau);
 			break;
 		case NOEUD_NOMBRE_ENTIER:
@@ -83,6 +89,7 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 				reutilise = true;
 			}
 			else {
+				m_memoire_utilisee += sizeof(NoeudNombreEntier);
 				noeud = new NoeudNombreEntier(morceau);
 			}
 			break;
@@ -94,6 +101,7 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 				reutilise = true;
 			}
 			else {
+				m_memoire_utilisee += sizeof(NoeudNombreReel);
 				noeud = new NoeudNombreReel(morceau);
 			}
 			break;
@@ -105,19 +113,24 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 				reutilise = true;
 			}
 			else {
+				m_memoire_utilisee += sizeof(NoeudOperation);
 				noeud = new NoeudOperation(morceau);
 			}
 			break;
 		case NOEUD_RETOUR:
+			m_memoire_utilisee += sizeof(NoeudRetour);
 			noeud = new NoeudRetour(morceau);
 			break;
 		case NOEUD_CONSTANTE:
+			m_memoire_utilisee += sizeof(NoeudConstante);
 			noeud = new NoeudConstante(morceau);
 			break;
 		case NOEUD_CHAINE_LITTERALE:
+			m_memoire_utilisee += sizeof(NoeudChaineLitterale);
 			noeud = new NoeudChaineLitterale(morceau);
 			break;
 		case NOEUD_BOOLEEN:
+			m_memoire_utilisee += sizeof(NoeudBooleen);
 			noeud = new NoeudBooleen(morceau);
 			break;
 	}
@@ -158,4 +171,32 @@ void assembleuse_arbre::supprime_noeud(Noeud *noeud)
 			this->noeuds_op_libres.push_back(dynamic_cast<NoeudOperation *>(noeud));
 			break;
 	}
+}
+
+size_t assembleuse_arbre::memoire_utilisee() const
+{
+	return m_memoire_utilisee + m_noeuds.size() * sizeof(Noeud *);
+}
+
+void imprime_taille_memoire_noeud(std::ostream &os)
+{
+	os << "------------------------------------------------------------------\n";
+	os << "NoeudRacine              : " << sizeof(NoeudRacine) << '\n';
+	os << "NoeudAppelFonction       : " << sizeof(NoeudAppelFonction) << '\n';
+	os << "NoeudDeclarationFonction : " << sizeof(NoeudDeclarationFonction) << '\n';
+	os << "NoeudExpression          : " << sizeof(NoeudExpression) << '\n';
+	os << "NoeudAssignationVariable : " << sizeof(NoeudAssignationVariable) << '\n';
+	os << "NoeudVariable            : " << sizeof(NoeudVariable) << '\n';
+	os << "NoeudNombreEntier        : " << sizeof(NoeudNombreEntier) << '\n';
+	os << "NoeudNombreReel          : " << sizeof(NoeudNombreReel) << '\n';
+	os << "NoeudOperation           : " << sizeof(NoeudOperation) << '\n';
+	os << "NoeudRetour              : " << sizeof(NoeudRetour) << '\n';
+	os << "NoeudConstante           : " << sizeof(NoeudConstante) << '\n';
+	os << "NoeudChaineLitterale     : " << sizeof(NoeudChaineLitterale) << '\n';
+	os << "NoeudBooleen             : " << sizeof(NoeudBooleen) << '\n';
+	os << "------------------------------------------------------------------\n";
+	os << "DonneesType              : " << sizeof(DonneesType) << '\n';
+	os << "DonneesMorceaux          : " << sizeof(DonneesMorceaux) << '\n';
+	os << "std::vector<Noeud *>     : " << sizeof(std::vector<Noeud *>) << '\n';
+	os << "------------------------------------------------------------------\n";
 }

@@ -82,6 +82,11 @@ void decoupeuse_texte::genere_morceaux()
 	}
 }
 
+size_t decoupeuse_texte::memoire_morceaux() const
+{
+	return m_morceaux.size() * sizeof(DonneesMorceaux);
+}
+
 const std::vector<DonneesMorceaux> &decoupeuse_texte::morceaux() const
 {
 	return m_morceaux;

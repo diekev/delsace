@@ -176,21 +176,30 @@ static std::ostream &operator<<(std::ostream &os, const pourcentage &p)
 	return os;
 }
 
-template <typename T>
-static void formatte_taille_octet(std::ostream &os, T taille)
+struct taille_octet {
+	size_t valeur;
+
+	explicit taille_octet(size_t v)
+		: valeur(v)
+	{}
+};
+
+static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
 {
-	if (taille > (1024 * 1024 * 1024)) {
-		os << (taille / (1024 * 1024 * 1024)) << "Go";
+	if (taille.valeur > (1024 * 1024 * 1024)) {
+		os << (taille.valeur / (1024 * 1024 * 1024)) << "Go";
 	}
-	if (taille > (1024 * 1024)) {
-		os << (taille / (1024 * 1024)) << "Mo";
+	else if (taille.valeur > (1024 * 1024)) {
+		os << (taille.valeur / (1024 * 1024)) << "Mo";
 	}
-	else if (taille > 1024) {
-		os << (taille / 1024) << "Ko";
+	else if (taille.valeur > 1024) {
+		os << (taille.valeur / 1024) << "Ko";
 	}
 	else {
-		os << (taille) << "o";
+		os << (taille.valeur) << "o";
 	}
+
+	return os;
 }
 
 int main(int argc, char *argv[])
@@ -226,6 +235,8 @@ int main(int argc, char *argv[])
 	auto temps_generation_code = 0.0;
 	auto debut_nettoyage       = 0.0;
 	auto temps_nettoyage       = 0.0;
+	auto mem_morceaux          = 0ul;
+	auto mem_arbre             = 0ul;
 
 	os << "Ouverture de '" << chemin_fichier << "'..." << std::endl;
 	auto debut_chargement = numero7::chronometrage::maintenant();
@@ -245,6 +256,7 @@ int main(int argc, char *argv[])
 		os << "Découpage du texte..." << std::endl;
 		const auto debut_decoupeuse = numero7::chronometrage::maintenant();
 		decoupeuse.genere_morceaux();
+		mem_morceaux = decoupeuse.memoire_morceaux();
 		temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupeuse;
 
 		auto assembleuse = assembleuse_arbre();
@@ -256,6 +268,7 @@ int main(int argc, char *argv[])
 #ifdef DEBOGUE_IDENTIFIANT
 		analyseuse.imprime_identifiants_plus_utilises(os);
 #endif
+		mem_arbre = assembleuse.memoire_utilisee();
 		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
 
 		const auto triplet_cible = llvm::sys::getDefaultTargetTriple();
@@ -331,12 +344,15 @@ int main(int argc, char *argv[])
 	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
 	os << "Nombre de lignes             : " << tampon.nombre_lignes() << '\n';
 	os << "Nombre de lignes par seconde : " << tampon.nombre_lignes() / temps_total << '\n';
-	os << "Taille des données           : ";
-	formatte_taille_octet(os, tampon.taille_donnees());
+	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(tampon.taille_donnees() / temps_total)) << '\n';
+
+	const auto mem_totale = tampon.taille_donnees() + mem_morceaux + mem_arbre;
+
 	os << '\n';
-	os << "Débit par seconde            : ";
-	formatte_taille_octet(os, (tampon.taille_donnees() / temps_total));
-	os << '\n';
+	os << "Mémoire : " << taille_octet(mem_totale) << '\n';
+	os << "\tTampon   : " << taille_octet(tampon.taille_donnees()) << '\n';
+	os << "\tMorceaux : " << taille_octet(mem_morceaux) << '\n';
+	os << "\tArbre    : " << taille_octet(mem_arbre) << '\n';
 
 	os << '\n';
 	os << "Temps scène : " << temps_seconde(temps_scene)
@@ -346,11 +362,11 @@ int main(int argc, char *argv[])
 	os << '\t' << "Temps tampon     : " << temps_seconde(temps_tampon)
 	   << " (" << calc_pourcentage(temps_tampon, temps_scene) << ")\n";
 	os << '\t' << "Temps découpage  : " << temps_seconde(temps_decoupage)
-	   << " (" << calc_pourcentage(temps_decoupage, temps_scene) << ") (";
-	formatte_taille_octet(os, tampon.taille_donnees() / temps_decoupage);
-	os << ")\n";
+	   << " (" << calc_pourcentage(temps_decoupage, temps_scene) << ") ("
+	   << taille_octet(static_cast<size_t>(tampon.taille_donnees() / temps_decoupage)) << ")\n";
 	os << '\t' << "Temps analyse    : " << temps_seconde(temps_analyse)
-	   << " (" << calc_pourcentage(temps_analyse, temps_scene) << ")\n";
+	   << " (" << calc_pourcentage(temps_analyse, temps_scene) << ") ("
+	   << taille_octet(static_cast<size_t>(mem_morceaux / temps_analyse)) << ")\n";
 
 	os << '\n';
 	os << "Temps coulisse : " << temps_seconde(temps_coulisse)
@@ -361,6 +377,8 @@ int main(int argc, char *argv[])
 	os << '\n';
 	os << "Temps Nettoyage : " << temps_seconde(temps_nettoyage)
 	   << " (" << calc_pourcentage(temps_nettoyage, temps_total) << ")\n";
+
+	//	imprime_taille_memoire_noeud(os);
 
 	os << std::endl;
 

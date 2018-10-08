@@ -45,6 +45,8 @@ class assembleuse_arbre {
 	std::list<NoeudNombreEntier *> noeuds_entier_libres;
 	std::list<NoeudNombreReel *> noeuds_reel_libres;
 
+	size_t m_memoire_utilisee = 0;
+
 public:
 	assembleuse_arbre() = default;
 	~assembleuse_arbre();
@@ -89,4 +91,15 @@ public:
 	void genere_code_llvm(ContexteGenerationCode &contexte_generation);
 
 	void supprime_noeud(Noeud *noeud);
+
+	/**
+	 * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds
+	 * de l'arbre.
+	 */
+	size_t memoire_utilisee() const;
 };
+
+/**
+ * Imprime la taille en mémoire des noeuds et des types qu'ils peuvent contenir.
+ */
+void imprime_taille_memoire_noeud(std::ostream &os);

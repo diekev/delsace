@@ -50,6 +50,11 @@ public:
 
 	void genere_morceaux();
 
+	/**
+	 * Retourne la taille en octets de la mémoire utilisée par les morceaux.
+	 */
+	size_t memoire_morceaux() const;
+
 	const std::vector<DonneesMorceaux> &morceaux() const;
 
 	iterateur begin();
