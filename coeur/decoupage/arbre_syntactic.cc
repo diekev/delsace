@@ -867,6 +867,38 @@ int NoeudVariable::type_noeud() const
 
 /* ************************************************************************** */
 
+NoeudAccesMembre::NoeudAccesMembre(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudAccesMembre::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+
+	os << "NoeudAccesVariable : " << m_donnees_morceaux.chaine << '\n';
+
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
+}
+
+llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &/*contexte*/)
+{
+	return nullptr;
+}
+
+const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &contexte)
+{
+	return m_enfants.front()->calcul_type(contexte);
+}
+
+int NoeudAccesMembre::type_noeud() const
+{
+	return NOEUD_ACCES_MEMBRE;
+}
+
+/* ************************************************************************** */
+
 NoeudOperation::NoeudOperation(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {}

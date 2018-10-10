@@ -81,6 +81,10 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 			m_memoire_utilisee += sizeof(NoeudVariable);
 			noeud = new NoeudVariable(morceau);
 			break;
+		case NOEUD_ACCES_MEMBRE:
+			m_memoire_utilisee += sizeof(NoeudAccesMembre);
+			noeud = new NoeudAccesMembre(morceau);
+			break;
 		case NOEUD_NOMBRE_ENTIER:
 			if (!noeuds_entier_libres.empty()) {
 				noeud = noeuds_entier_libres.back();

@@ -132,6 +132,7 @@ static bool est_operateur_double(int identifiant)
 		case ID_BARRE_BARRE:
 		case ID_BARRE:
 		case ID_CHAPEAU:
+		case ID_DE:
 			return true;
 		default:
 			return false;
@@ -433,11 +434,6 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 
 			expression.push_back(noeud);
 		}
-		/* accès propriété : chaine + de + chaine */
-		else if (sont_3_identifiants(ID_CHAINE_CARACTERE, ID_DE, ID_CHAINE_CARACTERE)) {
-			/* À FAIRE : structure, classe */
-			lance_erreur("L'accès de propriété de structure n'est pas implémentée");
-		}
 		/* variable : chaine */
 		else if (est_identifiant(ID_CHAINE_CARACTERE)) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, morceau);
@@ -519,6 +515,9 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 				/* nous reculons, car on avance de nouveau avant de recommencer
 				 * la boucle plus bas */
 				recule();
+			}
+			else if (identifiant_courant() == ID_DE) {
+				noeud = m_assembleuse->cree_noeud(NOEUD_ACCES_MEMBRE, morceau);
 			}
 			else {
 				noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, morceau);
