@@ -31,6 +31,8 @@
 
 #include "donnees_type.h"
 
+#define VECTEUR_LOCAL
+
 struct TamponSource;
 
 namespace llvm {
@@ -56,7 +58,11 @@ struct DonneesVariable {
 
 struct Block {
 	llvm::BasicBlock *block;
+#ifdef VECTEUR_LOCAL
+	std::vector<std::pair<std::string_view, DonneesVariable>> locals;
+#else
 	std::unordered_map<std::string_view, DonneesVariable> locals;
+#endif
 };
 
 struct DonneesStructure {

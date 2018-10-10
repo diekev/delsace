@@ -82,11 +82,16 @@ const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &
 
 void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
 {
+#ifndef VECTEUR_LOCAL
 	m_block_courant->locals.insert({nom, {valeur, type}});
+#else
+	m_block_courant->locals.push_back({nom, {valeur, type}});
+#endif
 }
 
 llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 {
+#ifndef VECTEUR_LOCAL
 	auto iter = m_block_courant->locals.find(nom);
 
 	if (iter == m_block_courant->locals.end()) {
@@ -94,10 +99,20 @@ llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 	}
 
 	return iter->second.valeur;
+#else
+	for (const auto &local : m_block_courant->locals) {
+		if (local.first == nom) {
+			return local.second.valeur;
+		}
+	}
+
+	return nullptr;
+#endif
 }
 
 const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &nom)
 {
+#ifndef VECTEUR_LOCAL
 	auto iter = m_block_courant->locals.find(nom);
 
 	if (iter == m_block_courant->locals.end()) {
@@ -105,6 +120,14 @@ const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &n
 	}
 
 	return iter->second.donnees_type;
+#else
+	for (const auto &local : m_block_courant->locals) {
+		if (local.first == nom) {
+			return local.second.donnees_type;
+		}
+	}
+	return this->m_donnees_type_invalide;
+#endif
 }
 
 void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees)
