@@ -403,14 +403,6 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
-	/* Ces vecteurs sont utilisés pour stocker les données des expressions
-	 * compilées au travers de 'analyse_expression_droite()'. Ce serait bien de
-	 * transformer ces vecteur en membres de la classe pour pouvoir réutiliser
-	 * la mémoire qu'ils allouent après leurs utilisations. Ainsi nous n'aurions
-	 * pas à récréer des vecteurs à chaque appel vers
-	 * 'analyse_expression_droite()', mais cela rend la classe peu sûre niveau
-	 * multi-threading.
-	 */
 	if (m_profondeur >= m_paires_vecteurs.size()) {
 		lance_erreur("Excès de la pile d'expression autorisée");
 	}
