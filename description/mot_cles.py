@@ -43,6 +43,8 @@ mot_cles = [
 	u'rien',
 ]
 
+taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
+
 mot_cles = sorted(mot_cles)
 
 caracteres_simple = [
@@ -295,6 +297,10 @@ int id_caractere_double(const std::string_view &chaine)
 
 int id_chaine(const std::string_view &chaine)
 {
+	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
+		return ID_CHAINE_CARACTERE;
+	}
+
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
 		return ID_CHAINE_CARACTERE;
 	}
@@ -336,5 +342,6 @@ with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
 	source.write(u'#include <map>\n\n')
 	source.write(tableaux)
 	source.write(fonction)
+	source.write(u'\nstatic constexpr auto TAILLE_MAX_MOT_CLE = {};\n'.format(taille_max_mot_cles))
 	source.write(fonctions)
 

@@ -290,6 +290,8 @@ const char *chaine_identifiant(int id)
 	return "ERREUR";
 }
 
+static constexpr auto TAILLE_MAX_MOT_CLE = 9;
+
 static bool tables_caracteres[256] = {};
 static int tables_identifiants[256] = {};
 static bool tables_caracteres_double[256] = {};
@@ -345,6 +347,10 @@ int id_caractere_double(const std::string_view &chaine)
 
 int id_chaine(const std::string_view &chaine)
 {
+	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
+		return ID_CHAINE_CARACTERE;
+	}
+
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
 		return ID_CHAINE_CARACTERE;
 	}
