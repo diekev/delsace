@@ -435,29 +435,29 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			expression.push_back(noeud);
 		}
 		/* variable : chaine */
-		else if (est_identifiant(ID_CHAINE_CARACTERE)) {
+		else if (morceau.identifiant == ID_CHAINE_CARACTERE) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, morceau);
 			expression.push_back(noeud);
 		}
-		else if (identifiant_courant() == ID_NOMBRE_REEL) {
+		else if (morceau.identifiant == ID_NOMBRE_REEL) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_REEL, morceau);
 			expression.push_back(noeud);
 		}
-		else if (est_nombre_entier(identifiant_courant())) {
+		else if (est_nombre_entier(static_cast<int>(morceau.identifiant))) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_ENTIER, morceau);
 			expression.push_back(noeud);
 		}
-		else if (identifiant_courant() == ID_CHAINE_LITTERALE) {
+		else if (morceau.identifiant == ID_CHAINE_LITTERALE) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_CHAINE_LITTERALE, morceau);
 			expression.push_back(noeud);
 		}
-		else if (est_identifiant(ID_VRAI) || est_identifiant(ID_FAUX)) {
+		else if (morceau.identifiant == ID_VRAI || morceau.identifiant == ID_FAUX) {
 			/* remplace l'identifiant par ID_BOOL */
 			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, ID_BOOL };
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_BOOLEEN, morceau_bool);
 			expression.push_back(noeud);
 		}
-		else if (identifiant_courant() == ID_TRANSTYPE) {
+		else if (morceau.identifiant == ID_TRANSTYPE) {
 			avance();
 
 			if (!requiers_identifiant(ID_INFERIEUR)) {
@@ -489,7 +489,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 				lance_erreur("Attendu ')' après déclaration de la variable");
 			}
 		}
-		else if (est_operateur(identifiant_courant())) {
+		else if (est_operateur(static_cast<int>(morceau.identifiant))) {
 			while (!pile.empty()
 				   && pile.back() != NOEUD_PARENTHESE
 				   && est_operateur(pile.back()->identifiant())
@@ -501,7 +501,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 
 			auto noeud = static_cast<Noeud *>(nullptr);
 
-			if (identifiant_courant() == ID_CROCHET_OUVRANT) {
+			if (morceau.identifiant == ID_CROCHET_OUVRANT) {
 				avance();
 
 				noeud = m_assembleuse->ajoute_noeud(NOEUD_OPERATION, morceau, false);
@@ -516,7 +516,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 				 * la boucle plus bas */
 				recule();
 			}
-			else if (identifiant_courant() == ID_DE) {
+			else if (morceau.identifiant == ID_DE) {
 				noeud = m_assembleuse->cree_noeud(NOEUD_ACCES_MEMBRE, morceau);
 			}
 			else {
@@ -525,11 +525,11 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 
 			pile.push_back(noeud);
 		}
-		else if (est_identifiant(ID_PARENTHESE_OUVRANTE)) {
+		else if (morceau.identifiant == ID_PARENTHESE_OUVRANTE) {
 			++paren;
 			pile.push_back(NOEUD_PARENTHESE);
 		}
-		else if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
+		else if (morceau.identifiant == ID_PARENTHESE_FERMANTE) {
 			/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
 			 * atteint la fin d'une déclaration d'appel de fonction. */
 			if (paren == 0) {
