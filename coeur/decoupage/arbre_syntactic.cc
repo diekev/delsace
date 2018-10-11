@@ -675,7 +675,14 @@ void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudNombreEntier : " << m_donnees_morceaux.chaine << '\n';
+	os << "NoeudNombreEntier : ";
+
+	if (this->calcule) {
+		os << this->valeur_entiere << '\n';
+	}
+	else {
+		os << m_donnees_morceaux.chaine << '\n';
+	}
 }
 
 llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte)
@@ -765,7 +772,14 @@ void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudNombreReel : " << m_donnees_morceaux.chaine << '\n';
+	os << "NoeudNombreReel : ";
+
+	if (this->calcule) {
+		os << this->valeur_reelle << '\n';
+	}
+	else {
+		os << m_donnees_morceaux.chaine << '\n';
+	}
 }
 
 llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
