@@ -183,7 +183,7 @@ struct ContexteGenerationCode {
 	 * paramètre. Si aucune structure ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	const DonneesStructure &donnees_structure(const std::string_view &nom);
+	DonneesStructure &donnees_structure(const std::string_view &nom);
 
 	/**
 	 * Retourne les données de la structure dont l'id est spécifié en

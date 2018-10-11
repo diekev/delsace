@@ -882,14 +882,29 @@ void NoeudAccesMembre::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &/*contexte*/)
+llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	return nullptr;
+	const auto &type_structure = m_enfants.back()->calcul_type(contexte);
+	const auto &nom_membre = m_enfants.front()->chaine();
+
+	auto &donnees_structure = contexte.donnees_structure(size_t(type_structure.type_base() >> 8));
+
+	const auto index_membre = donnees_structure.index_membres[nom_membre];
+
+	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
+
+	return llvm::ExtractValueInst::Create(
+				valeur, {static_cast<unsigned>(index_membre)}, "", contexte.block_courant());
 }
 
 const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &contexte)
 {
-	return m_enfants.front()->calcul_type(contexte);
+	const auto &type_structure = m_enfants.back()->calcul_type(contexte);
+	auto &donnees_structure = contexte.donnees_structure(size_t(type_structure.type_base() >> 8));
+	const auto &nom_membre = m_enfants.front()->chaine();
+	const auto index_membre = donnees_structure.index_membres[nom_membre];
+
+	return donnees_structure.donnees_types[index_membre];
 }
 
 int NoeudAccesMembre::type_noeud() const

@@ -159,7 +159,7 @@ size_t ContexteGenerationCode::ajoute_donnees_structure(const std::string_view &
 	return donnees.id;
 }
 
-const DonneesStructure &ContexteGenerationCode::donnees_structure(const std::string_view &nom)
+DonneesStructure &ContexteGenerationCode::donnees_structure(const std::string_view &nom)
 {
 	return structures[nom];
 }
