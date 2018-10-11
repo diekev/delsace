@@ -323,7 +323,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			lance_erreur("Attendu une chaîne de caractère après 'soit'");
 		}
 
-		const auto &morceau = m_identifiants[position()];
+		const auto &morceau_variable = m_identifiants[position()];
 		auto donnees_type = DonneesType{};
 
 		if (est_identifiant(ID_DOUBLE_POINTS)) {
@@ -334,8 +334,14 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			lance_erreur("Attendu '=' après chaîne de caractère");
 		}
 
-		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, morceau);
+		const auto &morceau_egal = m_identifiants[position()];
+
+		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, morceau_egal);
 		noeud->donnees_type = donnees_type;
+
+		auto noeud_decl = m_assembleuse->cree_noeud(NOEUD_DECLARATION_VARIABLE, morceau_variable);
+		noeud_decl->donnees_type = donnees_type;
+		noeud->ajoute_noeud(noeud_decl);
 
 		analyse_expression_droite(ID_POINT_VIRGULE);
 
@@ -476,7 +482,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			}
 
 			/* À FAIRE : expression ? */
-			if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+			if (!requiers_nombre_entier()) {
 				lance_erreur("Attendu chaîne caractère après '('");
 			}
 

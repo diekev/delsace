@@ -77,6 +77,10 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 			m_memoire_utilisee += sizeof(NoeudAssignationVariable);
 			noeud = new NoeudAssignationVariable(morceau);
 			break;
+		case NOEUD_DECLARATION_VARIABLE:
+			m_memoire_utilisee += sizeof(NoeudDeclarationVariable);
+			noeud = new NoeudDeclarationVariable(morceau);
+			break;
 		case NOEUD_VARIABLE:
 			m_memoire_utilisee += sizeof(NoeudVariable);
 			noeud = new NoeudVariable(morceau);

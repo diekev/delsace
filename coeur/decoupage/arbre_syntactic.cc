@@ -513,6 +513,60 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
+	assert(m_enfants.size() == 2);
+
+	this->donnees_type = m_enfants.back()->calcul_type(contexte);
+
+	if (this->donnees_type.est_invalide()) {
+		erreur::lance_erreur(
+					"Impossible de définir le type de la variable !",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::TYPE_INCONNU);
+	}
+
+	if (this->donnees_type.type_base() == ID_RIEN) {
+		erreur::lance_erreur(
+					"Impossible d'assigner une expression de type 'rien' à une variable !",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::ASSIGNATION_RIEN);
+	}
+
+	/* Ajourne les données du premier enfant si elles sont invalides, dans le
+	 * cas d'une déclaration de variable. */
+	if (m_enfants.front()->donnees_type.est_invalide()) {
+		m_enfants.front()->donnees_type = this->donnees_type;
+	}
+
+	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
+	 * la variable sur la pile et celle de stockage de la valeur soit côte à
+	 * côte. */
+	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
+
+	auto alloc = m_enfants.front()->genere_code_llvm(contexte);
+	return new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
+}
+
+int NoeudAssignationVariable::type_noeud() const
+{
+	return NOEUD_ASSIGNATION_VARIABLE;
+}
+
+/* ************************************************************************** */
+
+NoeudDeclarationVariable::NoeudDeclarationVariable(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudDeclarationVariable::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudDeclarationVariable : " << m_donnees_morceaux.chaine << '\n';
+}
+
+llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
+{
 	auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
 
 	if (valeur != nullptr) {
@@ -534,45 +588,21 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 		}
 	}
 
-	assert(m_enfants.size() == 1);
-
-	if (this->donnees_type.est_invalide()) {
-		this->donnees_type = m_enfants.front()->calcul_type(contexte);
-
-		if (this->donnees_type.est_invalide()) {
-			erreur::lance_erreur(
-						"Impossible de définir le type de la variable !",
-						contexte.tampon,
-						m_donnees_morceaux,
-						erreur::TYPE_INCONNU);
-		}
-
-		if (this->donnees_type.type_base() == ID_RIEN) {
-			erreur::lance_erreur(
-						"Impossible d'assigner une expression de type 'rien' à une variable !",
-						contexte.tampon,
-						m_donnees_morceaux,
-						erreur::ASSIGNATION_RIEN);
-		}
-	}
-
-	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
-	 * la variable sur la pile et celle de stockage de la valeur soit côte à
-	 * côte. */
-	valeur = m_enfants.front()->genere_code_llvm(contexte);
-
 	auto type_llvm = converti_type(contexte, this->donnees_type);
-	auto alloc = new llvm::AllocaInst(type_llvm, std::string(m_donnees_morceaux.chaine), contexte.block_courant());
-	new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
+
+	auto alloc = new llvm::AllocaInst(
+					 type_llvm,
+					 std::string(m_donnees_morceaux.chaine),
+					 contexte.block_courant());
 
 	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type);
 
 	return alloc;
 }
 
-int NoeudAssignationVariable::type_noeud() const
+int NoeudDeclarationVariable::type_noeud() const
 {
-	return NOEUD_ASSIGNATION_VARIABLE;
+	return NOEUD_DECLARATION_VARIABLE;
 }
 
 /* ************************************************************************** */

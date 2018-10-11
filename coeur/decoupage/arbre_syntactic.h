@@ -44,6 +44,7 @@ enum {
 	NOEUD_VARIABLE,
 	NOEUD_ACCES_MEMBRE,
 	NOEUD_CONSTANTE,
+	NOEUD_DECLARATION_VARIABLE,
 	NOEUD_ASSIGNATION_VARIABLE,
 	NOEUD_NOMBRE_REEL,
 	NOEUD_NOMBRE_ENTIER,
@@ -71,7 +72,8 @@ enum {
  * noeud appel fonction : multiples enfants de mêmes types
  * -- noeud expression
  *
- * noeud déclaration variable : un seul enfant
+ * noeud assignation variable : deux enfants
+ * -- noeud expression | noeud déclaration variable
  * -- noeud expression
  *
  * noeud retour : un seul enfant
@@ -87,6 +89,7 @@ enum {
  * noeud accès membre : deux enfants de même type
  * -- noeud variable
  *
+ * noeud déclaration variable : aucun enfant
  * noeud variable : aucun enfant
  * noeud nombre entier : aucun enfant
  * noeud nombre réel : aucun enfant
@@ -260,6 +263,19 @@ public:
 class NoeudAssignationVariable final : public Noeud {
 public:
 	explicit NoeudAssignationVariable(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	int type_noeud() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudDeclarationVariable final : public Noeud {
+public:
+	explicit NoeudDeclarationVariable(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
