@@ -133,6 +133,7 @@ static bool est_operateur_double(int identifiant)
 		case ID_BARRE:
 		case ID_CHAPEAU:
 		case ID_DE:
+		case ID_EGAL:
 			return true;
 		default:
 			return false;
@@ -398,15 +399,17 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		analyse_expression_droite(ID_POINT_VIRGULE);
 	}
 	else {
-		return;
+		analyse_expression_droite(ID_POINT_VIRGULE, false, true);
 	}
 
-	analyse_corps_fonction();
+	if (!est_identifiant(ID_ACCOLADE_FERMANTE)) {
+		analyse_corps_fonction();
+	}
 }
 
 static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(ID_PARENTHESE_OUVRANTE);
 
-void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, const bool calcul_expression)
+void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, const bool calcul_expression, const bool assignation)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
@@ -525,6 +528,14 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			else if (morceau.identifiant == ID_DE) {
 				noeud = m_assembleuse->cree_noeud(NOEUD_ACCES_MEMBRE, morceau);
 			}
+			else if (morceau.identifiant == ID_EGAL) {
+				if (!assignation) {
+					avance();
+					lance_erreur("Ne peut faire d'assignation dans une expression droite");
+				}
+
+				noeud = m_assembleuse->cree_noeud(NOEUD_ASSIGNATION_VARIABLE, morceau);
+			}
 			else {
 				noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, morceau);
 			}
@@ -595,11 +606,11 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 					}
 				}
 				else if (calcul_expression) {
-					lance_erreur("Ne peut pas calculer l'expression");
+					lance_erreur("Ne peut pas calculer l'expression car l'opérateur n'est pas constant");
 				}
 			}
 			else if (calcul_expression) {
-				lance_erreur("Ne peut pas calculer l'expression");
+				lance_erreur("Ne peut pas calculer l'expression pour la constante");
 			}
 			else {
 				noeud->reserve_enfants(2);

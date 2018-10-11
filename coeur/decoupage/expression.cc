@@ -43,41 +43,43 @@ struct DonneesPrecedence {
 static DonneesPrecedence associativite(int identifiant)
 {
 	switch (identifiant) {
+		case ID_EGAL:
+			return { DROITE, 0 };
 		case ID_BARRE_BARRE:
-			return { GAUCHE, 0 };
-		case ID_ESP_ESP:
 			return { GAUCHE, 1 };
-		case ID_BARRE:
+		case ID_ESP_ESP:
 			return { GAUCHE, 2 };
-		case ID_CHAPEAU:
+		case ID_BARRE:
 			return { GAUCHE, 3 };
-		case ID_ESPERLUETTE:
+		case ID_CHAPEAU:
 			return { GAUCHE, 4 };
+		case ID_ESPERLUETTE:
+			return { GAUCHE, 5 };
 		case ID_DIFFERENCE:
 		case ID_EGALITE:
-			return { GAUCHE, 5 };
+			return { GAUCHE, 6 };
 		case ID_INFERIEUR:
 		case ID_INFERIEUR_EGAL:
 		case ID_SUPERIEUR:
 		case ID_SUPERIEUR_EGAL:
-			return { GAUCHE, 6 };
+			return { GAUCHE, 7 };
 		case ID_DECALAGE_GAUCHE:
 		case ID_DECALAGE_DROITE:
-			return { GAUCHE, 7 };
+			return { GAUCHE, 8 };
 		case ID_PLUS:
 		case ID_MOINS:
-			return { GAUCHE, 8 };
+			return { GAUCHE, 9 };
 		case ID_FOIS:
 		case ID_DIVISE:
 		case ID_POURCENT:
-			return { GAUCHE, 9 };
+			return { GAUCHE, 10 };
 		case ID_EXCLAMATION:
 		case ID_TILDE:
 		case ID_AROBASE:
 		case ID_DE:
-			return { DROITE, 10 };
+			return { DROITE, 11 };
 		case ID_CROCHET_OUVRANT:
-			return { GAUCHE, 11 };
+			return { GAUCHE, 12 };
 	}
 
 	return { GAUCHE, 0 };
