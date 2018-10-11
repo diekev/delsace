@@ -185,7 +185,7 @@ const DonneesType &Noeud::calcul_type(ContexteGenerationCode &/*contexte*/)
 
 int Noeud::identifiant() const
 {
-	return m_donnees_morceaux.identifiant;
+	return static_cast<int>(m_donnees_morceaux.identifiant);
 }
 
 /* ************************************************************************** */
@@ -683,7 +683,7 @@ llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &context
 	const auto valeur = this->calcule ? this->valeur_entiere :
 										converti_chaine_nombre_entier(
 											m_donnees_morceaux.chaine,
-											m_donnees_morceaux.identifiant);
+											static_cast<int>(m_donnees_morceaux.identifiant));
 
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt32Ty(contexte.contexte),
@@ -773,7 +773,7 @@ llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 	const auto valeur = this->calcule ? this->valeur_reelle :
 										converti_chaine_nombre_reel(
 											m_donnees_morceaux.chaine,
-											m_donnees_morceaux.identifiant);
+											static_cast<int>(m_donnees_morceaux.identifiant));
 
 	return llvm::ConstantFP::get(
 				llvm::Type::getDoubleTy(contexte.contexte),

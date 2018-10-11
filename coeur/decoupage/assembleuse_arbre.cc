@@ -154,6 +154,7 @@ void assembleuse_arbre::sors_noeud(int type)
 {
 	assert(m_pile.top()->type_noeud() == type);
 	m_pile.pop();
+	static_cast<void>(type);
 }
 
 void assembleuse_arbre::imprime_code(std::ostream &os)
