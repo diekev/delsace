@@ -43,11 +43,12 @@
 	TE_BLANC         = 0x0F,
 }
 
-fonction principale()
-{
-	# En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
-	soit ptr_vidéo = transtype<*e8>(0xb8000);
+structure Kernel {
+	ptr_vidéo : *e8;
+}
 
+fonction clarifie_écran(ptr_vidéo : *e8) : rien
+{
 	# Cette boucle clarifie l'écran.
 	# Il y a 25 lignes de 80 colonnes.
 	# Chaque élément prend 2 octets.
@@ -58,12 +59,14 @@ fonction principale()
 		# Octet d'attribut - écran noir.
 		ptr_vidéo[j + 1] = AP_NOIR | TE_NOIR;
 	}
+}
 
-	# Cette boucle écris la chaine à la mémoire vidéo.
-	soit chaine = "mon premier kernel";
+fonction écris_chaîne(ptr_vidéo : *e8, chaine : *e8) : rien
+{
 	soit variable i = 0;
 	soit variable j = 0;
 
+	# Cette boucle écris la chaine à la mémoire vidéo.
 	boucle {
 		si chaine[j] == '\0' {
 			arrête;
@@ -78,6 +81,18 @@ fonction principale()
 		i = i + 2;
 		j = j + 1;
 	}
+}
+
+fonction principale()
+{
+	# En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
+	soit ptr_vidéo = transtype<*e8>(0xb8000);
+
+	clarifie_écran(ptr_vidéo);
+
+	soit chaine = "mon premier kernel";
+
+	écris_chaîne(ptr_vidéo, chaine);
 
 	boucle {}
 }
