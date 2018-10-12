@@ -30,7 +30,9 @@
 
 void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* réassignation : SUCCÈS */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable 'variable' peut être réassignée");
 	{
 		const char *texte =
 				R"(
@@ -44,7 +46,11 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
-	/* réassignation : ÉCHEC */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable constante ne peut être réassignée");
 	{
 		const char *texte =
 				R"(
@@ -58,7 +64,11 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* assignation de pointeur */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"L'addresse d'une variable ne peut être assignée");
 	{
 		const char *texte =
 				R"(
@@ -72,7 +82,11 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* assignation de tableaux : À FAIRE : référence */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut assigner une valeur à un élément d'un tableau");
 	{
 		const char *texte =
 				R"(
@@ -85,7 +99,12 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
-	/* assignation de tableaux, échec car mauvais type */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut pas assigner une valeur à un élément d'un tableau"
+				" d'un type différent");
 	{
 		const char *texte =
 				R"(
@@ -98,7 +117,12 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* assignation de tableaux, échec car invariable */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut assigner une valeur scalaire à une variable de type"
+				" tableau");
 	{
 		const char *texte =
 				R"(
@@ -111,7 +135,12 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* assignation autre type */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut réassigner une valeur d'un type différent à une"
+				" variable");
 	{
 		const char *texte =
 				R"(
@@ -125,7 +154,11 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* assignation dans une expression */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut avoir une assignation dans une expression droite");
 	{
 		const char *texte =
 				R"(
@@ -139,7 +172,11 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* assignation d'un membre scalaire d'une structure */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut assigner une valeur à un membre d'une structure");
 	{
 		const char *texte =
 				R"(
@@ -155,7 +192,12 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
-	/* assignation d'un membre tableau d'une structure : SUCCÈS */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut assigner une valeur à un élément d'un membre de type"
+				" tableau d'une structure");
 	{
 		const char *texte =
 				R"(
@@ -171,7 +213,12 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
-	/* assignation d'un membre tableau d'une structure : ÉCHEC */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut pas assigner une valeur scalaire à un membre de type"
+				" tableau d'une structure");
 	{
 		const char *texte =
 				R"(
@@ -187,4 +234,5 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
