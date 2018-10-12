@@ -30,7 +30,21 @@
 
 void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* réassignation : À FAIRE : 'variable' */
+	/* réassignation : SUCCÈS */
+	{
+		const char *texte =
+				R"(
+				fonction foo()
+				{
+					soit variable a = 5;
+					a = 6;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	/* réassignation : ÉCHEC */
 	{
 		const char *texte =
 				R"(
@@ -42,7 +56,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				)";
 
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* assignation de pointeur */
 	{
@@ -50,7 +64,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				R"(
 				fonction foo()
 				{
-					soit a = 5;
+					soit variable a = 5;
 					@a = 6;
 				}
 				)";
@@ -58,11 +72,11 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* assignation de tableaux : À FAIRE : référence, paramètre */
+	/* assignation de tableaux : À FAIRE : référence */
 	{
 		const char *texte =
 				R"(
-				fonction foo(a : [2]e32)
+				fonction foo(variable a : [2]e32)
 				{
 					a[0] = 5;
 				}
@@ -71,7 +85,20 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
-	/* assignation de tableaux */
+	/* assignation de tableaux, échec car mauvais type */
+	{
+		const char *texte =
+				R"(
+				fonction foo(variable a : [2]e32)
+				{
+					a = 6;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_MAUVAIS_TYPE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	/* assignation de tableaux, échec car invariable */
 	{
 		const char *texte =
 				R"(
@@ -90,12 +117,12 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				R"(
 				fonction foo()
 				{
-					soit a = 5.0;
+					soit variable a = 5.0;
 					a = 6;
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* assignation dans une expression */
@@ -119,7 +146,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				structure Vecteur3D {
 					x : e32;
 				}
-				fonction foo(v : Vecteur3D)
+				fonction foo(variable v : Vecteur3D)
 				{
 					x de v = 5;
 				}
@@ -135,7 +162,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				structure Vecteur3D {
 					x : [2]e32;
 				}
-				fonction foo(v : Vecteur3D)
+				fonction foo(variable v : Vecteur3D)
 				{
 					x[0] de v = 5;
 				}
@@ -151,13 +178,13 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				structure Vecteur3D {
 					x : [2]e32;
 				}
-				fonction foo(v : Vecteur3D)
+				fonction foo(variable v : Vecteur3D)
 				{
 					x de v = 5;
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_INVALIDE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }

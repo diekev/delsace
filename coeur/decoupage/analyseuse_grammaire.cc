@@ -282,6 +282,11 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 
 	ArgumentFonction arg;
 
+	if (est_identifiant(ID_VARIABLE)) {
+		arg.est_variable = true;
+		avance();
+	}
+
 	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu le nom de la variable");
 	}
@@ -320,6 +325,13 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	if (est_identifiant(ID_SOIT)) {
 		avance();
 
+		auto est_variable = false;
+
+		if (est_identifiant(ID_VARIABLE)) {
+			est_variable = true;
+			avance();
+		}
+
 		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 			lance_erreur("Attendu une chaîne de caractère après 'soit'");
 		}
@@ -342,6 +354,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 		auto noeud_decl = m_assembleuse->cree_noeud(NOEUD_DECLARATION_VARIABLE, morceau_variable);
 		noeud_decl->donnees_type = donnees_type;
+		noeud_decl->est_variable = est_variable;
 		noeud->ajoute_noeud(noeud_decl);
 
 		analyse_expression_droite(ID_POINT_VIRGULE);

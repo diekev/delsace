@@ -173,6 +173,11 @@ const std::string_view &Noeud::chaine() const
 	return m_donnees_morceaux.chaine;
 }
 
+bool Noeud::peut_etre_assigne(ContexteGenerationCode &/*contexte*/) const
+{
+	return false;
+}
+
 void Noeud::ajoute_noeud(Noeud *noeud)
 {
 	m_enfants.push_back(noeud);
@@ -439,7 +444,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 						 argument.chaine,
 						 contexte.block_courant());
 
-		contexte.pousse_locale(argument.chaine, alloc, argument.donnees_type);
+		contexte.pousse_locale(argument.chaine, alloc, argument.donnees_type, argument.est_variable);
 
 		llvm::Value *valeur = &*valeurs_args++;
 		valeur->setName(argument.chaine.c_str());
@@ -514,6 +519,14 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 	assert(m_enfants.size() == 2);
+
+	if (!m_enfants.front()->peut_etre_assigne(contexte)) {
+		erreur::lance_erreur(
+					"Impossible d'assigner l'expression à la variable !",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::ASSIGNATION_INVALIDE);
+	}
 
 	this->donnees_type = m_enfants.back()->calcul_type(contexte);
 
@@ -606,7 +619,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 					 std::string(m_donnees_morceaux.chaine),
 					 contexte.block_courant());
 
-	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type);
+	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, this->est_variable);
 
 	return alloc;
 }
@@ -614,6 +627,11 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 int NoeudDeclarationVariable::type_noeud() const
 {
 	return NOEUD_DECLARATION_VARIABLE;
+}
+
+bool NoeudDeclarationVariable::peut_etre_assigne(ContexteGenerationCode &/*contexte*/) const
+{
+	return true;
 }
 
 /* ************************************************************************** */
@@ -920,6 +938,11 @@ int NoeudVariable::type_noeud() const
 	return NOEUD_VARIABLE;
 }
 
+bool NoeudVariable::peut_etre_assigne(ContexteGenerationCode &contexte) const
+{
+	return contexte.peut_etre_assigne(m_donnees_morceaux.chaine);
+}
+
 /* ************************************************************************** */
 
 NoeudAccesMembre::NoeudAccesMembre(const DonneesMorceaux &morceau)
@@ -988,6 +1011,11 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 int NoeudAccesMembre::type_noeud() const
 {
 	return NOEUD_ACCES_MEMBRE;
+}
+
+bool NoeudAccesMembre::peut_etre_assigne(ContexteGenerationCode &contexte) const
+{
+	return m_enfants.back()->peut_etre_assigne(contexte);
 }
 
 /* ************************************************************************** */
@@ -1214,6 +1242,20 @@ const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 int NoeudOperation::type_noeud() const
 {
 	return NOEUD_OPERATION;
+}
+
+bool NoeudOperation::peut_etre_assigne(ContexteGenerationCode &contexte) const
+{
+	if (m_donnees_morceaux.identifiant == ID_AROBASE) {
+		/* ne peut assigné dans une prise d'addresse */
+		return false;
+	}
+
+	if (m_donnees_morceaux.identifiant == ID_CROCHET_OUVRANT) {
+		return m_enfants.back()->peut_etre_assigne(contexte);
+	}
+
+	return false;
 }
 
 /* ************************************************************************** */

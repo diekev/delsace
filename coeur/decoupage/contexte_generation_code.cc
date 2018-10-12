@@ -80,12 +80,12 @@ const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &
 	return iter->second.donnees_type;
 }
 
-void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
+void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type, const bool est_variable)
 {
 #ifndef VECTEUR_LOCAL
-	m_block_courant->locals.insert({nom, {valeur, type}});
+	m_block_courant->locals.insert({nom, {valeur, type, est_variable, {}}});
 #else
-	m_block_courant->locals.push_back({nom, {valeur, type}});
+	m_block_courant->locals.push_back({nom, {valeur, type, est_variable, {}}});
 #endif
 }
 
@@ -127,6 +127,28 @@ const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &n
 		}
 	}
 	return this->m_donnees_type_invalide;
+#endif
+}
+
+
+bool ContexteGenerationCode::peut_etre_assigne(const std::string_view &nom)
+{
+#ifndef VECTEUR_LOCAL
+	auto iter = m_block_courant->locals.find(nom);
+
+	if (iter == m_block_courant->locals.end()) {
+		return false;
+	}
+
+	return iter->second.est_variable;
+#else
+	for (const auto &local : m_block_courant->locals) {
+		if (local.first == nom) {
+			return local.second.est_variable;
+		}
+	}
+
+	return false;
 #endif
 }
 

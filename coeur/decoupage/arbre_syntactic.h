@@ -112,6 +112,7 @@ enum {
 struct ArgumentFonction {
 	std::string chaine;
 	DonneesType donnees_type{};
+	bool est_variable = false;
 };
 
 /* ************************************************************************** */
@@ -139,7 +140,8 @@ public:
 	DonneesType donnees_type{};
 
 	bool calcule = false;
-	char pad[7];
+	char est_variable = false;
+	char pad[6];
 
 	explicit Noeud(const DonneesMorceaux &morceau);
 
@@ -188,6 +190,8 @@ public:
 	 * Retourne le type syntactic de noeud.
 	 */
 	virtual int type_noeud() const = 0;
+
+	virtual bool peut_etre_assigne(ContexteGenerationCode &contexte) const;
 };
 
 /* ************************************************************************** */
@@ -282,6 +286,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	int type_noeud() const override;
+
+	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
 };
 
 /* ************************************************************************** */
@@ -378,6 +384,8 @@ public:
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	int type_noeud() const override;
+
+	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
 };
 
 /* ************************************************************************** */
@@ -393,6 +401,8 @@ public:
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	int type_noeud() const override;
+
+	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
 };
 
 /* ************************************************************************** */
@@ -408,6 +418,8 @@ public:
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	int type_noeud() const override;
+
+	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
 };
 
 /* ************************************************************************** */

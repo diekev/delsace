@@ -217,7 +217,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Type à gauche : " << type_gauche << '\n';
 	ss << "Type à droite : " << type_droite << '\n';
 
-	throw frappe(ss.str().c_str(), ASSIGNATION_INVALIDE);
+	throw frappe(ss.str().c_str(), ASSIGNATION_MAUVAIS_TYPE);
 }
 
 }

@@ -54,6 +54,8 @@ struct DonneesFonction {
 struct DonneesVariable {
 	llvm::Value *valeur;
 	DonneesType donnees_type{};
+	bool est_variable = false;
+	char pad[7];
 };
 
 struct Block {
@@ -126,7 +128,7 @@ struct ContexteGenerationCode {
 	 * Ajoute les données de la locale dont le nom est spécifié en paramètres
 	 * à la table de locales du block courant de ce contexte.
 	 */
-	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type);
+	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type, const bool est_variable);
 
 	/**
 	 * Retourne un pointeur vers la valeur LLVM de la locale dont le nom est
@@ -141,6 +143,12 @@ struct ContexteGenerationCode {
 	 * retournées.
 	 */
 	const DonneesType &type_locale(const std::string_view &nom);
+
+	/**
+	 * Retourne vrai si la variable locale dont le nom est spécifié peut être
+	 * assignée.
+	 */
+	bool peut_etre_assigne(const std::string_view &nom);
 
 	/* ********************************************************************** */
 
