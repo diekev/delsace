@@ -32,6 +32,7 @@ set(BIBLIOTHEQUES
 
 set(SOURCES
 	outils.h
+	test_assignation.hh
 	test_decoupage.h
 	test_decoupage_nombres.h
 	test_expression.h
@@ -42,6 +43,7 @@ set(SOURCES
 	test_variables.h
 
 	outils.cc
+	test_assignation.cc
 	test_decoupage.cc
 	test_decoupage_nombres.cc
 	test_expression.cc

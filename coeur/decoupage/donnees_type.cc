@@ -79,3 +79,45 @@ DonneesType DonneesType::derefence() const
 
 	return donnees;
 }
+
+std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
+{
+	for (const auto &donnee : donnees_type) {
+		switch (donnee & 0xff) {
+			case ID_POINTEUR:
+				os << '*';
+				break;
+			case ID_TABLEAU:
+				os << '[';
+				os << (donnee >> 8);
+				os << ']';
+				break;
+			case ID_E8:
+				os << "e8";
+				break;
+			case ID_E16:
+				os << "e16";
+				break;
+			case ID_E32:
+				os << "e32";
+				break;
+			case ID_E64:
+				os << "e64";
+				break;
+			case ID_R16:
+				os << "r16";
+				break;
+			case ID_R32:
+				os << "r32";
+				break;
+			case ID_R64:
+				os << "r64";
+				break;
+			default:
+				os << chaine_identifiant(donnee & 0xff);
+				break;
+		}
+	}
+
+	return os;
+}

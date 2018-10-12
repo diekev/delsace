@@ -117,3 +117,5 @@ inline bool operator!=(const DonneesType &type_a, const DonneesType &type_b)
 {
 	return !(type_a == type_b);
 }
+
+std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type);

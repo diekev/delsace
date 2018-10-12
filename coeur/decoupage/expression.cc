@@ -44,7 +44,7 @@ static DonneesPrecedence associativite(int identifiant)
 {
 	switch (identifiant) {
 		case ID_EGAL:
-			return { DROITE, 0 };
+			return { GAUCHE, 0 };
 		case ID_BARRE_BARRE:
 			return { GAUCHE, 1 };
 		case ID_ESP_ESP:

@@ -26,6 +26,7 @@
 
 #include <sstream>
 
+#include "donnees_type.h"
 #include "morceaux.h"
 #include "tampon_source.h"
 #include "unicode.h"
@@ -191,6 +192,32 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	   << "', redéclaration de l'argument '" << nom_arg << "' !\n";
 
 	throw frappe(ss.str().c_str(), ARGUMENT_REDEFINI);
+}
+
+[[noreturn]] void lance_erreur_assignation_type_differents(
+		const DonneesType &type_gauche,
+		const DonneesType &type_droite,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau)
+{
+	const auto numero_ligne = morceau.ligne_pos >> 32;
+	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto ligne = tampon[numero_ligne];
+
+	std::stringstream ss;
+	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << ligne;
+
+	imprime_caractere_vide(ss, pos_mot, ligne);
+	ss << '^';
+	imprime_tilde(ss, morceau.chaine);
+	ss << '\n';
+
+	ss << "Ne peut pas assigner des types différents !\n";
+	ss << "Type à gauche : " << type_gauche << '\n';
+	ss << "Type à droite : " << type_droite << '\n';
+
+	throw frappe(ss.str().c_str(), ASSIGNATION_INVALIDE);
 }
 
 }

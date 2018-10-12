@@ -26,6 +26,8 @@
 
 #include <string>
 
+struct DonneesType;
+
 struct DonneesMorceaux;
 struct TamponSource;
 
@@ -49,6 +51,7 @@ enum {
 	STRUCTURE_REDEFINIE,
 	MEMBRE_INCONNU,
 	MEMBRE_REDEFINI,
+	ASSIGNATION_INVALIDE,
 
 	AUCUNE_ERREUR,
 };
@@ -91,6 +94,12 @@ public:
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
 		const std::string_view &nom_arg,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau);
+
+[[noreturn]] void lance_erreur_assignation_type_differents(
+		const DonneesType &type_gauche,
+		const DonneesType &type_droite,
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau);
 

@@ -22,30 +22,8 @@
  *
  */
 
-#include "test_assignation.hh"
-#include "test_decoupage.h"
-#include "test_decoupage_nombres.h"
-#include "test_expression.h"
-#include "test_fonctions.h"
-#include "test_structures.hh"
-#include "test_types.h"
-#include "test_unicode.h"
-#include "test_variables.h"
+#pragma once
 
-int main()
-{
-	numero7::test_unitaire::ControleurUnitaire controleur;
-	controleur.ajoute_fonction(test_decoupage);
-	controleur.ajoute_fonction(test_decoupage_nombres);
-	controleur.ajoute_fonction(test_unicode);
-	controleur.ajoute_fonction(test_expression);
-	controleur.ajoute_fonction(test_fonctions);
-	controleur.ajoute_fonction(test_types);
-	controleur.ajoute_fonction(test_variables);
-	controleur.ajoute_fonction(test_structures);
-	controleur.ajoute_fonction(test_assignation);
+#include <test_unitaire/test_unitaire.h>
 
-	controleur.performe_controles();
-
-	controleur.imprime_resultat();
-}
+void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur);

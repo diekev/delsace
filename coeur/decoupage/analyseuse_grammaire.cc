@@ -531,7 +531,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			else if (morceau.identifiant == ID_EGAL) {
 				if (!assignation) {
 					avance();
-					lance_erreur("Ne peut faire d'assignation dans une expression droite");
+					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::ASSIGNATION_INVALIDE);
 				}
 
 				noeud = m_assembleuse->cree_noeud(NOEUD_ASSIGNATION_VARIABLE, morceau);

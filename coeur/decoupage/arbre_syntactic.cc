@@ -535,8 +535,19 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	/* Ajourne les données du premier enfant si elles sont invalides, dans le
 	 * cas d'une déclaration de variable. */
-	if (m_enfants.front()->donnees_type.est_invalide()) {
+	const auto type_gauche = m_enfants.front()->calcul_type(contexte);
+
+	if (type_gauche.est_invalide()) {
 		m_enfants.front()->donnees_type = this->donnees_type;
+	}
+	else {
+		if (type_gauche != this->donnees_type) {
+			erreur::lance_erreur_assignation_type_differents(
+						type_gauche,
+						this->donnees_type,
+						contexte.tampon,
+						m_donnees_morceaux);
+		}
 	}
 
 	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
