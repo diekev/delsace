@@ -36,6 +36,7 @@ set(SOURCES
 	test_decoupage_nombres.h
 	test_expression.h
 	test_fonctions.h
+	test_structures.hh
 	test_types.h
 	test_unicode.h
 	test_variables.h
@@ -45,6 +46,7 @@ set(SOURCES
 	test_decoupage_nombres.cc
 	test_expression.cc
 	test_fonctions.cc
+	test_structures.cc
 	test_types.cc
 	test_unicode.cc
 	test_variables.cc

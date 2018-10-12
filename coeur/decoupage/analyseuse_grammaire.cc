@@ -773,6 +773,10 @@ void analyseuse_grammaire::analyse_declaration_structure()
 
 		auto nom_membre = m_identifiants[position()].chaine;
 
+		if (donnees_structure.index_membres.find(nom_membre) != donnees_structure.index_membres.end()) {
+			lance_erreur("Redéfinition du membre", erreur::MEMBRE_REDEFINI);
+		}
+
 		auto donnees_type = DonneesType{};
 		analyse_declaration_type(donnees_type);
 

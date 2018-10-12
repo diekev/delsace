@@ -933,7 +933,18 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 	auto &donnees_structure = contexte.donnees_structure(size_t(type_structure.type_base() >> 8));
 
-	const auto index_membre = donnees_structure.index_membres[nom_membre];
+	const auto iter = donnees_structure.index_membres.find(nom_membre);
+
+	if (iter == donnees_structure.index_membres.end()) {
+		/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
+		erreur::lance_erreur(
+					"Membre inconnu",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::MEMBRE_INCONNU);
+	}
+
+	const auto index_membre = iter->second;
 
 	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
 
@@ -946,7 +957,19 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 	const auto &type_structure = m_enfants.back()->calcul_type(contexte);
 	auto &donnees_structure = contexte.donnees_structure(size_t(type_structure.type_base() >> 8));
 	const auto &nom_membre = m_enfants.front()->chaine();
-	const auto index_membre = donnees_structure.index_membres[nom_membre];
+
+	const auto iter = donnees_structure.index_membres.find(nom_membre);
+
+	if (iter == donnees_structure.index_membres.end()) {
+		/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
+		erreur::lance_erreur(
+					"Membre inconnu",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::MEMBRE_INCONNU);
+	}
+
+	const auto index_membre = iter->second;
 
 	return donnees_structure.donnees_types[index_membre];
 }
