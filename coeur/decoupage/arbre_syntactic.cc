@@ -49,16 +49,16 @@ static llvm::Type *converti_type(
 			case ID_BOOL:
 				type = llvm::Type::getInt1Ty(contexte.contexte);
 				break;
-			case ID_E8:
+			case ID_N8:
 				type = llvm::Type::getInt8Ty(contexte.contexte);
 				break;
-			case ID_E16:
+			case ID_N16:
 				type = llvm::Type::getInt16Ty(contexte.contexte);
 				break;
-			case ID_E32:
+			case ID_N32:
 				type = llvm::Type::getInt32Ty(contexte.contexte);
 				break;
-			case ID_E64:
+			case ID_N64:
 				type = llvm::Type::getInt64Ty(contexte.contexte);
 				break;
 			case ID_R16:
@@ -118,10 +118,10 @@ static bool est_type_entier(int type)
 {
 	switch (type) {
 		case ID_BOOL:
-		case ID_E8:
-		case ID_E16:
-		case ID_E32:
-		case ID_E64:
+		case ID_N8:
+		case ID_N16:
+		case ID_N32:
+		case ID_N64:
 		case ID_POINTEUR:  /* À FAIRE : sépare ça. */
 			return true;
 		default:
@@ -697,7 +697,7 @@ int NoeudConstante::type_noeud() const
 NoeudNombreEntier::NoeudNombreEntier(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
-	this->donnees_type.pousse(ID_E32);
+	this->donnees_type.pousse(ID_N32);
 }
 
 void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
@@ -844,7 +844,7 @@ NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
 	this->donnees_type.pousse(ID_TABLEAU | static_cast<int>(m_donnees_morceaux.chaine.size() << 8));
-	this->donnees_type.pousse(ID_E8);
+	this->donnees_type.pousse(ID_N8);
 }
 
 void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)

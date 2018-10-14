@@ -37,12 +37,12 @@ static void test_fonction_general(
 				retourne;
 			}
 
-			fonction ajouter(a : e32, b : e32) : e32
+			fonction ajouter(a : n32, b : n32) : n32
 			{
 				retourne a + b;
 			}
 
-			fonction principale(compte : e32, arguments : e8) : e32
+			fonction principale(compte : n32, arguments : n8) : n32
 			{
 				ne_retourne_rien();
 				soit a = ajouter(5, 8);
@@ -61,7 +61,7 @@ static void test_fonction_inconnue(
 {
 	const char *texte =
 			R"(
-			fonction principale(compte : e32, arguments : e8) : e32
+			fonction principale(compte : n32, arguments : n8) : n32
 			{
 				retourne sortie(0);
 			}
@@ -76,12 +76,12 @@ static void test_argument_nomme_succes(
 {
 	const char *texte =
 			R"(
-			fonction ajouter(a : e32, b : e32) : e32
+			fonction ajouter(a : n32, b : n32) : n32
 			{
 				retourne a + b;
 			}
 
-			fonction principale(compte : e32, arguments : e8) : e32
+			fonction principale(compte : n32, arguments : n8) : n32
 			{
 				soit x = ajouter(a=5, b=6);
 				soit y = ajouter(b=5, a=6);
@@ -100,12 +100,12 @@ static void test_argument_nomme_echec(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : e32, b : e32) : e32
+				fonction ajouter(a : n32, b : n32) : n32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : e32, arguments : e8) : e32
+				fonction principale(compte : n32, arguments : n8) : n32
 				{
 					soit x = ajouter(a=5, a=6);
 					retourne x != 5;
@@ -119,12 +119,12 @@ static void test_argument_nomme_echec(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : e32, b : e32) : e32
+				fonction ajouter(a : n32, b : n32) : n32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : e32, arguments : e8) : e32
+				fonction principale(compte : n32, arguments : n8) : n32
 				{
 					soit x = ajouter(a=5, c=6);
 					retourne x != 5;
@@ -141,12 +141,12 @@ static void test_type_argument_echec(
 {
 	const char *texte =
 			R"(
-			fonction ajouter(a : e32, b : e32) : e32
+			fonction ajouter(a : n32, b : n32) : n32
 			{
 				retourne a + b;
 			}
 
-			fonction principale(compte : e32, arguments : e8) : e32
+			fonction principale(compte : n32, arguments : n8) : n32
 			{
 				soit x = ajouter(a=5.0, b=6.0);
 				retourne x != 5;
@@ -164,12 +164,12 @@ static void test_nombre_argument(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : e32, b : e32) : e32
+				fonction ajouter(a : n32, b : n32) : n32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : e32, arguments : e8) : e32
+				fonction principale(compte : n32, arguments : n8) : n32
 				{
 					soit x = ajouter(a=5);
 					retourne x != 5;
@@ -183,12 +183,12 @@ static void test_nombre_argument(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : e32, b : e32) : e32
+				fonction ajouter(a : n32, b : n32) : n32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : e32, arguments : e8) : e32
+				fonction principale(compte : n32, arguments : n8) : n32
 				{
 					soit x = ajouter(5, 6, 7);
 					retourne x != 5;
@@ -205,7 +205,7 @@ static void test_argument_unique(
 {
 	const char *texte =
 			R"(
-			fonction principale(compte : e32, compte : e8) : e32
+			fonction principale(compte : n32, compte : n8) : n32
 			{
 				retourne x != 5;
 			}
@@ -220,12 +220,12 @@ static void test_fonction_redinie(
 {
 	const char *texte =
 			R"(
-			fonction principale(compte : e32, arguments : e8) : e32
+			fonction principale(compte : n32, arguments : n8) : n32
 			{
 				retourne 0;
 			}
 
-			fonction principale(compte : e32, arguments : e8) : e32
+			fonction principale(compte : n32, arguments : n8) : n32
 			{
 				retourne 0;
 			}

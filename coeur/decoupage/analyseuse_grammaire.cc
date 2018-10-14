@@ -58,17 +58,17 @@ static bool est_specifiant_type(int identifiant)
 static bool est_identifiant_type(int identifiant)
 {
 	switch (identifiant) {
-		case ID_E8:
-		case ID_E8NS:
-		case ID_E16:
-		case ID_E16NS:
-		case ID_E32:
-		case ID_E32NS:
-		case ID_E64:
-		case ID_E64NS:
+		case ID_N8:
+		case ID_N16:
+		case ID_N32:
+		case ID_N64:
 		case ID_R16:
 		case ID_R32:
 		case ID_R64:
+		case ID_Z8:
+		case ID_Z16:
+		case ID_Z32:
+		case ID_Z64:
 		case ID_BOOL:
 		case ID_RIEN:
 		case ID_CHAINE_CARACTERE:
@@ -826,7 +826,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 		}
 
 		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[position()]);
-		noeud->donnees_type.pousse(ID_E32);
+		noeud->donnees_type.pousse(ID_N32);
 
 		if (est_identifiant(ID_EGAL)) {
 			avance();

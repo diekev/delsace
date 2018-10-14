@@ -60,8 +60,8 @@ public:
 
 	/**
 	 * Retourne le type de base, à savoir le premier élément déclaré. Par
-	 * exemple si nous déclarons '**e8', le type de base sera '*' (ID_POINTEUR),
-	 * alors que pour 'e32', ce sera 'e32' (ID_E32).
+	 * exemple si nous déclarons '**n8', le type de base sera '*' (ID_POINTEUR),
+	 * alors que pour 'n32', ce sera 'n32' (ID_E32).
 	 *
 	 * Cette fonction ne vérifie pas que les données sont valide, donc l'appeler
 	 * sur des données invalide (vide) crashera le programme.
@@ -76,18 +76,18 @@ public:
 
 	/**
 	 * Retourne un itérateur constante vers le début de ces données. Puisque les
-	 * données sont poussées dans l'ordre de déclaration du code (ex: **e8) et
+	 * données sont poussées dans l'ordre de déclaration du code (ex: **n8) et
 	 * que nous avons besoin de l'ordre inverse pour construire le type LLVM
-	 * (ex: e8**), l'itérateur est en fait un itérateur inverse et part de la
+	 * (ex: n8**), l'itérateur est en fait un itérateur inverse et part de la
 	 * fin des données.
 	 */
 	iterateur_const begin() const;
 
 	/**
 	 * Retourne un itérateur constante vers la fin de ces données. Puisque les
-	 * données sont poussées dans l'ordre de déclaration du code (ex: **e8) et
+	 * données sont poussées dans l'ordre de déclaration du code (ex: **n8) et
 	 * que nous avons besoin de l'ordre inverse pour construire le type LLVM
-	 * (ex: e8**), l'itérateur est en fait un itérateur inverse et part du début
+	 * (ex: n8**), l'itérateur est en fait un itérateur inverse et part du début
 	 * des données.
 	 */
 	iterateur_const end() const;

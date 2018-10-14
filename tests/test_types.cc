@@ -38,7 +38,7 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 					retourne;
 				}
 
-				fonction principale(compte : e32, arguments : e8) : e32
+				fonction principale(compte : n32, arguments : n8) : n32
 				{
 					soit a = ne_retourne_rien();
 					retourne 0;
@@ -57,7 +57,7 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 					retourne;
 				}
 
-				fonction principale(compte : e32, arguments : e8) : e32
+				fonction principale(compte : n32, arguments : n8) : n32
 				{
 					soit a = ne_retourne_rien();
 					retourne 0;
@@ -73,7 +73,7 @@ static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitair
 {
 	const char *texte =
 			R"(
-			fonction ajouter(x : e32) : e32
+			fonction ajouter(x : n32) : n32
 			{
 				retourne x + 2;
 			}
@@ -83,7 +83,7 @@ static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitair
 				retourne x + 2.0;
 			}
 
-			fonction principale(compte : e32, arguments : e8) : e32
+			fonction principale(compte : n32, arguments : n8) : n32
 			{
 				soit a = ajouter(9);
 				soit b = ajouter(a);

@@ -33,7 +33,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : e32, arguments : e8) : e32
+				fonction principale(compte : n32, arguments : n8) : n32
 				{
 					soit compte = 0;
 					retourne 0;
@@ -95,7 +95,7 @@ static void test_variable_indefinie(numero7::test_unitaire::ControleurUnitaire &
 {
 	const char *texte =
 			R"(
-			fonction principale(compte : e32, arguments : e8) : e32
+			fonction principale(compte : n32, arguments : n8) : n32
 			{
 				soit a = comte;
 				retourne 0;

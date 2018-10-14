@@ -92,17 +92,17 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				os << (donnee >> 8);
 				os << ']';
 				break;
-			case ID_E8:
-				os << "e8";
+			case ID_N8:
+				os << "n8";
 				break;
-			case ID_E16:
-				os << "e16";
+			case ID_N16:
+				os << "n16";
 				break;
-			case ID_E32:
-				os << "e32";
+			case ID_N32:
+				os << "n32";
 				break;
-			case ID_E64:
-				os << "e64";
+			case ID_N64:
+				os << "n64";
 				break;
 			case ID_R16:
 				os << "r16";

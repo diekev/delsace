@@ -1,4 +1,4 @@
-fonction nombre_octets_unicode(sequence : *e8)
+fonction nombre_octets_unicode(sequence : *n8)
 {
     si 0x00 <= sequence[0] <= 0x7F {
         retourne 1;
@@ -63,7 +63,7 @@ fonction nombre_octets_unicode(sequence : *e8)
 # inférences de type
 # typage strict
 # portée explicite
-fonction decoupe_texte(debut : *e8)
+fonction decoupe_texte(debut : *n8)
 {
     soit variable pos = 0;
     soit variable copie = debut;
@@ -82,18 +82,18 @@ fonction decoupe_texte(debut : *e8)
                 # ajoute caractère au mot courant
                 copie += nombre_octet;
                 pos += nombre_octet;
-                imprime(sortie, "Caractère de {e32} octets !\n", nombre_octet);
+                imprime(sortie, "Caractère de {n32} octets !\n", nombre_octet);
             }
             sinon: {
                 # codec unicode ne peut comprendre le caractère
-                imprime(sortie, "{*e8}\n", copie);
+                imprime(sortie, "{*n8}\n", copie);
 
                 pour i dans 0...(pos - 1) {
                     imprime(sortie, " ");
                 }
 
                 imprime(sortie, "^~~~\n");
-                imprime(sortie, "Le codec unicode ne peut comprendre l'octet à la position {e32} !\n", pos);
+                imprime(sortie, "Le codec unicode ne peut comprendre l'octet à la position {n32} !\n", pos);
                 return;
             }
         }

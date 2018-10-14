@@ -38,19 +38,15 @@ static std::map<std::string_view, int> paires_mots_cles = {
 	{ "dans", ID_DANS },
 	{ "de", ID_DE },
 	{ "défère", ID_DEFERE },
-	{ "e16", ID_E16 },
-	{ "e16ns", ID_E16NS },
-	{ "e32", ID_E32 },
-	{ "e32ns", ID_E32NS },
-	{ "e64", ID_E64 },
-	{ "e64ns", ID_E64NS },
-	{ "e8", ID_E8 },
-	{ "e8ns", ID_E8NS },
 	{ "employant", ID_EMPLOYANT },
 	{ "faux", ID_FAUX },
 	{ "fonction", ID_FONCTION },
 	{ "gabarit", ID_GABARIT },
 	{ "mémoire", ID_MEMOIRE },
+	{ "n16", ID_N16 },
+	{ "n32", ID_N32 },
+	{ "n64", ID_N64 },
+	{ "n8", ID_N8 },
 	{ "pour", ID_POUR },
 	{ "r16", ID_R16 },
 	{ "r32", ID_R32 },
@@ -66,6 +62,10 @@ static std::map<std::string_view, int> paires_mots_cles = {
 	{ "type", ID_TYPE },
 	{ "variable", ID_VARIABLE },
 	{ "vrai", ID_VRAI },
+	{ "z16", ID_Z16 },
+	{ "z32", ID_Z32 },
+	{ "z64", ID_Z64 },
+	{ "z8", ID_Z8 },
 	{ "énum", ID_ENUM },
 };
 
@@ -201,22 +201,6 @@ const char *chaine_identifiant(int id)
 			return "ID_DE";
 		case ID_DEFERE:
 			return "ID_DEFERE";
-		case ID_E16:
-			return "ID_E16";
-		case ID_E16NS:
-			return "ID_E16NS";
-		case ID_E32:
-			return "ID_E32";
-		case ID_E32NS:
-			return "ID_E32NS";
-		case ID_E64:
-			return "ID_E64";
-		case ID_E64NS:
-			return "ID_E64NS";
-		case ID_E8:
-			return "ID_E8";
-		case ID_E8NS:
-			return "ID_E8NS";
 		case ID_EMPLOYANT:
 			return "ID_EMPLOYANT";
 		case ID_FAUX:
@@ -227,6 +211,14 @@ const char *chaine_identifiant(int id)
 			return "ID_GABARIT";
 		case ID_MEMOIRE:
 			return "ID_MEMOIRE";
+		case ID_N16:
+			return "ID_N16";
+		case ID_N32:
+			return "ID_N32";
+		case ID_N64:
+			return "ID_N64";
+		case ID_N8:
+			return "ID_N8";
 		case ID_POUR:
 			return "ID_POUR";
 		case ID_R16:
@@ -257,6 +249,14 @@ const char *chaine_identifiant(int id)
 			return "ID_VARIABLE";
 		case ID_VRAI:
 			return "ID_VRAI";
+		case ID_Z16:
+			return "ID_Z16";
+		case ID_Z32:
+			return "ID_Z32";
+		case ID_Z64:
+			return "ID_Z64";
+		case ID_Z8:
+			return "ID_Z8";
 		case ID_ENUM:
 			return "ID_ENUM";
 		case ID_NOMBRE_REEL:

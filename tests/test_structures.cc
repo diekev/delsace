@@ -35,13 +35,13 @@ static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire 
 		const char *texte =
 				R"(
 				structure Vecteur2D {
-					x : e32;
-					y : e32;
+					x : n32;
+					y : n32;
 				}
 				structure Vecteur3D {
-					x : e32;
-					y : e32;
-					z : e32;
+					x : n32;
+					y : n32;
+					z : n32;
 				}
 				)";
 
@@ -53,13 +53,13 @@ static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire 
 		const char *texte =
 				R"(
 				structure Vecteur2D {
-					x : e32;
-					y : e32;
+					x : n32;
+					y : n32;
 				}
 				structure Vecteur2D {
-					x : e32;
-					y : e32;
-					z : e32;
+					x : n32;
+					y : n32;
+					z : n32;
 				}
 				)";
 
@@ -75,13 +75,13 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 		const char *texte =
 				R"(
 				structure Vecteur2D {
-					x : e32;
-					y : e32;
+					x : n32;
+					y : n32;
 				}
 				structure Vecteur2D {
-					x : e32;
-					y : e32;
-					z : e32;
+					x : n32;
+					y : n32;
+					z : n32;
 				}
 				)";
 
@@ -94,7 +94,7 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 				R"(
 				structure Vecteur3D {
 					xy : Vecteur2D;
-					z : e32;
+					z : n32;
 				}
 				)";
 
@@ -122,8 +122,8 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 		const char *texte =
 				R"(
 				structure Vecteur2D {
-					x : e32;
-					y : e32;
+					x : n32;
+					y : n32;
 				}
 				fonction accès_x(v : Vecteur2D) : rien
 				{
@@ -139,8 +139,8 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 		const char *texte =
 				R"(
 				structure Vecteur2D {
-					x : e32;
-					y : e32;
+					x : n32;
+					y : n32;
 				}
 				fonction accès_x(v : Vecteur2D) : rien
 				{
@@ -156,8 +156,8 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 		const char *texte =
 				R"(
 				structure Vecteur2D {
-					x : e32;
-					y : e32;
+					x : n32;
+					y : n32;
 				}
 				fonction accès_x(v : Vecteur2D) : rien
 				{
@@ -177,8 +177,8 @@ static void test_membre_unique(numero7::test_unitaire::ControleurUnitaire &contr
 		const char *texte =
 				R"(
 				structure Vecteur2D {
-					x : e32;
-					x : e32;
+					x : n32;
+					x : n32;
 				}
 				)";
 

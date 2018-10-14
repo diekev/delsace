@@ -2,7 +2,7 @@
 -----------
 
 programme:
-	fonction | enum | classe | importation
+	fonction | enum | classe | importation
 
 fonction:
 	id_fonction chaine ( liste_parametre ) { expressions }
@@ -11,7 +11,7 @@ enum:
 	enum { chaine [= valeur[,]] ... };
 
 classe:
-	id_classe chaine { expressions | fonction }
+	id_classe chaine { expressions | fonction }
 
 chaine:
 
@@ -42,7 +42,7 @@ Un programme Kuri peut-être consitutué de plusieurs fichiers, s'incluant les u
 La résolution des chemins de fichiers et des fichiers à inclure pour compiler un programme Kuri se fait par le compileur quand celui-ci est invoqué.
 
 
-# Caractères spéciaux
+# Caractères spéciaux
 ---------------------
 
 Un programme Kuri peut contenir toutes sortes de caractère Unicode encodé selon la norme UTF-8. Il existe plusieurs caractères spéciaux définissant qui ne peuvent être utilisés dans les noms de fonctions ou variables. Ces caractères servent en outre à définir les limites des instructions d'un programme Kuri.
@@ -56,7 +56,7 @@ Ces caractères et leurs significations sont les suivants :
 -- [ : démarre un tableau
 -- ] : termine un tableau
 -- : : démarre la déclaration d'un type
--- # : démarre un commentaire
+-- # : démarre un commentaire
 -- = : démarre l'assignation d'une variable
 -- ' : démarre la déclaration d'un caractère ASCII
 -- " : démarre la déclaration d'une chaîne littérale
@@ -87,23 +87,23 @@ En outre, certains caractères se composent pour faire des "caractères doubles"
 -- >> : opérateur de décalage de bits vers la droite
 
 
-# Mots spéciaux
+# Mots spéciaux
 ---------------
 
 En sus des caractères spéciaux, il existe une suite de mots réservés. Ces mots servent à instruire le compileur à faire certaines choses. Ces mots réservés sont les suivants :
 
 types :
--- e8  : représente un nombre entier représenté sur 8-bit (1 octet) dont les valeurs vont de -128 à 127
--- e16 : représente un nombre entier représenté sur 16-bit (2 octets) dont les valeurs vont de -2^15 à 2^15 - 1
--- e32 : représente un nombre entier représenté sur 32-bit (4 octets) dont les valeurs vont de -2^31 à 2^31 - 1
--- e64 : représente un nombre entier représenté sur 64-bit (8 octets) dont les valeurs vont de -2^63 à 2^32 - 1
--- e8ns  : représente un nombre entier représenté sur 8-bit (1 octet) dont les valeurs vont de 0 à 255
--- e16ns : représente un nombre entier représenté sur 16-bit (2 octets) dont les valeurs vont de 0 à 65536
--- e32ns : représente un nombre entier représenté sur 32-bit (4 octets) dont les valeurs vont de 0 à 2^32
--- e64ns : représente un nombre entier représenté sur 64-bit (8 octets) dont les valeurs vont de 0 à 2^64
--- r16 : représente un nombre réel à virgule flottante représenté sur 16-bit (2 octets)
--- r32 : représente un nombre réel à virgule flottante représenté sur 32-bit (4 octets)
--- r64 : représente un nombre réel à virgule flottante représenté sur 64-bit (8 octets)
+-- n8  : représente un nombre entier naturel représenté sur 8-bit (1 octet) dont les valeurs sont entre (0, 255)
+-- n16 : représente un nombre entier naturel représenté sur 16-bit (2 octets) dont les valeurs sont entre (0, 65 535)
+-- n32 : représente un nombre entier naturel représenté sur 32-bit (4 octets) dont les valeurs sont entre (0, 4 294 967 295)
+-- n64 : représente un nombre entier naturel représenté sur 64-bit (8 octets) dont les valeurs sont entre (0, 18 446 744 073 709 551 615)
+-- z8  : représente un nombre entier relatif représenté sur 8-bit (1 octet) dont les valeurs sont entre (-128, 127)
+-- z16 : représente un nombre entier relatif représenté sur 16-bit (2 octets) dont les valeurs sont entre (-32 768, 32 767)
+-- z32 : représente un nombre entier relatif représenté sur 32-bit (4 octets) dont les valeurs sont entre (-2 147 483 648, 2 147 483 647)
+-- z64 : représente un nombre entier relatif représenté sur 64-bit (8 octets) dont les valeurs sont entre (-9 223 372 036 854 775 808, 9 223 372 036 854 775 807)
+-- r16 : représente un nombre réel à virgule flottante représenté sur 16-bit (2 octets) (±65 504.0)          (2^16 - 2^5)
+-- r32 : représente un nombre réel à virgule flottante représenté sur 32-bit (4 octets) (±3,402823466×10³⁸)  (2^128 - 2^104)
+-- r64 : représente un nombre réel à virgule flottante représenté sur 64-bit (8 octets) (±1,797693135×10³⁰⁸) (2^1024 - 2^971)
 -- rien : représente l'absence de valeur (pour une fonction qui ne retourne rien)
 -- bool : représente une valeur qui ne peux prendre que deux valeurs
 
@@ -246,14 +246,14 @@ transtype<type>(chaine);
 On peut contrôler le flux du programme via des contrôles selon des expressions booléennes.
 
 si vrai {
-    # exécute ce code
+    # exécute ce code
 }
 sinon {
-    # sinon exécute ce code
+    # sinon exécute ce code
 }
 
 associe [expr] {
-    [expr] : { ... };
+    [expr] : { ... };
     sinon : { ... };
 }
 
@@ -276,7 +276,7 @@ boucle {
     }
 }
 sinon {
-    # Ce code sera exécuté si x est inférieur à 10
+    # Ce code sera exécuté si x est inférieur à 10
 }
 
 pour x dans 0...9 {
@@ -285,11 +285,11 @@ pour x dans 0...9 {
     }
 }
 sinon {
-    # Ce code sera exécuté quand le carré de x sera supérieur à 10
+    # Ce code sera exécuté quand le carré de x sera supérieur à 10
 }
 
 
-# Constantes
+# Constantes
 ------------
 
 Les constantes sont des valeurs que personnes ne peut modifier dans le programmes et qui doivent être déclarées à la racine des fichiers.

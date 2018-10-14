@@ -1,27 +1,14 @@
 #pragma once
 
-using entier8 = char;
-using entier16 = short;
-using entier32 = int;
-using entier64 = long;
-
-using e8 = char;
-using e16 = short;
-using e32 = int;
+using n8 = char;
+using n16 = short;
+using n32 = int;
 using e64 = long;
 
-using entier8_ns = unsigned char;
-using entier16_ns = unsigned short;
-using entier32_ns = unsigned int;
-using entier64_ns = unsigned long;
-
-using e8_ns = unsigned char;
-using e16_ns = unsigned short;
-using e32_ns = unsigned int;
-using e64_ns = unsigned long;
-
-using reel32 = float;
-using reel64 = double;
+using z8 = unsigned char;
+using z16 = unsigned short;
+using z32 = unsigned int;
+using z64 = unsigned long;
 
 using r32 = float;
 using r64 = double;

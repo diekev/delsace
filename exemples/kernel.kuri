@@ -44,10 +44,10 @@
 }
 
 structure Kernel {
-	ptr_vidéo : *e8;
+	ptr_vidéo : *n8;
 }
 
-fonction clarifie_écran(ptr_vidéo : *e8) : rien
+fonction clarifie_écran(ptr_vidéo : *n8) : rien
 {
 	# Cette boucle clarifie l'écran.
 	# Il y a 25 lignes de 80 colonnes.
@@ -61,7 +61,7 @@ fonction clarifie_écran(ptr_vidéo : *e8) : rien
 	}
 }
 
-fonction écris_chaîne(ptr_vidéo : *e8, chaine : *e8) : rien
+fonction écris_chaîne(ptr_vidéo : *n8, chaine : *n8) : rien
 {
 	soit variable i = 0;
 	soit variable j = 0;
