@@ -482,19 +482,8 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 		else if (morceau.identifiant == ID_TRANSTYPE) {
 			avance();
 
-			if (!requiers_identifiant(ID_INFERIEUR)) {
-				lance_erreur("Attendu '<' après 'transtype'");
-			}
-
-			auto donnees_type = DonneesType{};
-			analyse_declaration_type(donnees_type, false);
-
-			if (!requiers_identifiant(ID_SUPERIEUR)) {
-				lance_erreur("Attendu '>' après déclaration du type");
-			}
-
 			if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
-				lance_erreur("Attendu '(' après '>'");
+				lance_erreur("Attendu '(' après 'transtype'");
 			}
 
 			/* À FAIRE : expression ? */
@@ -506,9 +495,20 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, m_identifiants[position()]);
 			expression.push_back(noeud);
 
+			if (!requiers_identifiant(ID_PARENTHESE_FERMANTE)) {
+				lance_erreur("Attendu ')' après la déclaration de l'expression");
+			}
+
+			if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
+				lance_erreur("Attendu '(' après '>'");
+			}
+
+			auto donnees_type = DonneesType{};
+			analyse_declaration_type(donnees_type, false);
+
 			/* vérifie mais n'avance pas */
 			if (!est_identifiant(ID_PARENTHESE_FERMANTE)) {
-				lance_erreur("Attendu ')' après déclaration de la variable");
+				lance_erreur("Attendu ')' après la déclaration du type");
 			}
 		}
 		else if (est_operateur(static_cast<int>(morceau.identifiant))) {
