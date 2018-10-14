@@ -50,15 +50,20 @@ static llvm::Type *converti_type(
 				type = llvm::Type::getInt1Ty(contexte.contexte);
 				break;
 			case ID_N8:
+			case ID_Z8:
+				/* À FAIRE : LLVM supporte les entiers non-signés ? */
 				type = llvm::Type::getInt8Ty(contexte.contexte);
 				break;
 			case ID_N16:
+			case ID_Z16:
 				type = llvm::Type::getInt16Ty(contexte.contexte);
 				break;
 			case ID_N32:
+			case ID_Z32:
 				type = llvm::Type::getInt32Ty(contexte.contexte);
 				break;
 			case ID_N64:
+			case ID_Z64:
 				type = llvm::Type::getInt64Ty(contexte.contexte);
 				break;
 			case ID_R16:
@@ -122,6 +127,10 @@ static bool est_type_entier(int type)
 		case ID_N16:
 		case ID_N32:
 		case ID_N64:
+		case ID_Z8:
+		case ID_Z16:
+		case ID_Z32:
+		case ID_Z64:
 		case ID_POINTEUR:  /* À FAIRE : sépare ça. */
 			return true;
 		default:
