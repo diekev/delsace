@@ -168,7 +168,7 @@ appel fonction :
 chaine(expr...);
 
 appel fonction gabarit :
-soit c = ajoute(e16)(a, b);
+soit c = ajoute(a, b)(n16);
 
 déclaration fonction :
 fonction chaine ( paramètres... )                   { ... }
@@ -212,12 +212,12 @@ soit variable chaine :                 type = expr ;
 soit variable chaine : spécifieur_type type = expr ;
 
 Par exemple :
-soit          p        = 0;   # valeur de type e32
-soit          p :  e32 = 0;   # valeur de type e32
-soit          p : *e32 = nul; # pointeur constant vers un e32
-soit variable p        = 0;   # valeur variable de type e32
-soit variable p :  e32 = 0;   # valeur variable de type e32
-soit variable p : *e32 = nul; # pointeur variable vers un entier
+soit          p        = 0;   # valeur de type n32
+soit          p :  n32 = 0;   # valeur de type n32
+soit          p : *n32 = nul; # pointeur constant vers un n32
+soit variable p        = 0;   # valeur variable de type n32
+soit variable p :  n32 = 0;   # valeur variable de type n32
+soit variable p : *n32 = nul; # pointeur variable vers un entier
 
 assignation variable :
 chaine egale expr ;
@@ -237,7 +237,7 @@ recherche addresse : @chaine
 
 conversion de type :
 
-transtype<type>(chaine);
+transtype(chaine)(type);
 
 
 # Controle de flux
@@ -331,13 +331,13 @@ structure Vecteur3D {
 
 structure Paramètres {
     inverse : bool;
-    nombre : e32;
+	nombre : n32;
 }
 
 structure Image {
 	données      : *rien;
-	hauteur      : e64;
-	largeur      : e64;
-	composant    : e8;
-	type_données : e8;
+	hauteur      : n64;
+	largeur      : n64;
+	composant    : n8;
+	type_données : n8;
 }
