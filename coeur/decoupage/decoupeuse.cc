@@ -87,7 +87,7 @@ void decoupeuse_texte::genere_morceaux()
 	}
 
 	if (m_taille_mot_courant != 0) {
-		lance_erreur("Des caractères en trop se trouve à la fin du texte !");
+		lance_erreur("Des caractères en trop se trouvent à la fin du texte !");
 	}
 }
 
