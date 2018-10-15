@@ -57,23 +57,32 @@ void decoupeuse_texte::genere_morceaux()
 	while (!this->fini()) {
 		const auto nombre_octet = nombre_octets(m_debut);
 
-		if (nombre_octet == 1) {
-			analyse_caractere_simple();
-		}
-		else if (nombre_octet >= 2 && nombre_octet <= 4) {
-			/* Les caractères spéciaux ne peuvent être des caractères unicode
-			 * pour le moment, donc on les copie directement dans le tampon du
-			 * mot_courant. */
-			if (m_taille_mot_courant == 0) {
-				this->enregistre_pos_mot();
+		switch (nombre_octet) {
+			case 1:
+			{
+				analyse_caractere_simple();
+				break;
 			}
+			case 2:
+			case 3:
+			case 4:
+			{
+				/* Les caractères spéciaux ne peuvent être des caractères unicode
+				 * pour le moment, donc on les copie directement dans le tampon du
+				 * mot_courant. */
+				if (m_taille_mot_courant == 0) {
+					this->enregistre_pos_mot();
+				}
 
-			m_taille_mot_courant += static_cast<size_t>(nombre_octet);
-			this->avance(nombre_octet);
-		}
-		else {
-			/* Le caractère (octet) courant est invalide dans le codec unicode. */
-			lance_erreur("Le codec Unicode ne peut comprendre le caractère !");
+				m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+				this->avance(nombre_octet);
+				break;
+			}
+			default:
+			{
+				/* Le caractère (octet) courant est invalide dans le codec unicode. */
+				lance_erreur("Le codec Unicode ne peut comprendre le caractère !");
+			}
 		}
 	}
 
@@ -211,77 +220,89 @@ void decoupeuse_texte::analyse_caractere_simple()
 			return;
 		}
 
-		if (this->caractere_courant() == '.') {
-			if (this->caractere_voisin() != '.') {
-				lance_erreur("Point inattendu !\n");
-			}
+		switch (this->caractere_courant()) {
+			case '.':
+			{
+				if (this->caractere_voisin() != '.') {
+					lance_erreur("Point inattendu !\n");
+				}
 
-			if (this->caractere_voisin(2) != '.') {
-				lance_erreur("Un point est manquant ou un point est en trop !\n");
-			}
-
-			this->pousse_caractere();
-			this->pousse_caractere();
-			this->pousse_caractere();
-
-			this->pousse_mot(ID_TROIS_POINTS);
-			this->avance(3);
-		}
-		else if (this->caractere_courant() == '"') {
-			// Saute le premier guillemet.
-			this->avance();
-			this->enregistre_pos_mot();
-
-			while (!this->fini()) {
-				if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
-					break;
+				if (this->caractere_voisin(2) != '.') {
+					lance_erreur("Un point est manquant ou un point est en trop !\n");
 				}
 
 				this->pousse_caractere();
-				this->avance();
-			}
-
-			// Saute le dernier guillemet.
-			this->avance();
-
-			this->pousse_mot(ID_CHAINE_LITTERALE);
-		}
-		else if (this->caractere_courant() == '\'') {
-			// Saute la première apostrophe.
-			this->avance();
-
-			this->enregistre_pos_mot();
-
-			if (this->caractere_courant() == '\\') {
 				this->pousse_caractere();
+				this->pousse_caractere();
+
+				this->pousse_mot(ID_TROIS_POINTS);
+				this->avance(3);
+				break;
+			}
+			case '"':
+			{
+				/* Saute le premier guillemet. */
 				this->avance();
-			}
+				this->enregistre_pos_mot();
 
-			this->pousse_caractere();
-			this->pousse_mot(ID_CARACTERE);
+				while (!this->fini()) {
+					if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
+						break;
+					}
 
-			this->avance();
+					this->pousse_caractere();
+					this->avance();
+				}
 
-			// Saute la dernière apostrophe.
-			if (this->caractere_courant() != '\'') {
-				lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n");
-			}
-
-			this->avance();
-		}
-		else if (this->caractere_courant() == '#') {
-			// ignore commentaire
-			while (this->caractere_courant() != '\n') {
+				/* Saute le dernier guillemet. */
 				this->avance();
+
+				this->pousse_mot(ID_CHAINE_LITTERALE);
+				break;
 			}
-		}
-		else {
-			this->pousse_caractere();
-			this->pousse_mot(idc);
-			this->avance();
+			case '\'':
+			{
+				/* Saute la première apostrophe. */
+				this->avance();
+
+				this->enregistre_pos_mot();
+
+				if (this->caractere_courant() == '\\') {
+					this->pousse_caractere();
+					this->avance();
+				}
+
+				this->pousse_caractere();
+				this->pousse_mot(ID_CARACTERE);
+
+				this->avance();
+
+				/* Saute la dernière apostrophe. */
+				if (this->caractere_courant() != '\'') {
+					lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n");
+				}
+
+				this->avance();
+				break;
+			}
+			case '#':
+			{
+				/* ignore commentaire */
+				while (this->caractere_courant() != '\n') {
+					this->avance();
+				}
+				break;
+			}
+			default:
+			{
+				this->pousse_caractere();
+				this->pousse_mot(idc);
+				this->avance();
+				break;
+			}
 		}
 	}
-	else if (est_nombre_decimal(this->caractere_courant()) && m_taille_mot_courant == 0) {
+	else if (m_taille_mot_courant == 0 && est_nombre_decimal(this->caractere_courant())) {
 		this->enregistre_pos_mot();
 
 		int id_nombre;
