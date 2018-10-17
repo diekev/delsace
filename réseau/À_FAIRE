@@ -1,0 +1,12 @@
+- serveur
+-- courriel
+-- gérer les sessions
+-- websocket
+-- POST :
+---- formulaire
+---- params requête
+- mysql connexion
+- gabarit HTML
+-- dossier de gabarits
+-- langage
+- itsdangerous

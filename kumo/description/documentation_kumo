@@ -1,0 +1,88 @@
+struct propriete {
+	std::string nom;
+	int type;
+	int taille;
+	bool clé_primaire;
+	bool auto_inc;
+	std::any defaut;
+	std::string table;
+	std::string ref;
+	int suppression;
+	int ajournement;
+};
+
+ss << ' '
+ss << "INT";
+ss << "(" << taille << ")"
+ss << ' '
+ss << "NOT NULL"
+
+mot-clés :
+
+- clé
+- texte
+- table
+- référence
+- cascade
+- supprime
+- taille
+- nul
+- auto_incrémente
+- clé_primaire
+- temps_date
+- temps
+- temps_courant
+- défaut
+- faux
+- vrai
+- ajourne
+- variable
+- octet : [1, 2, 3, 4, 8]
+- signé : [vrai, faux]
+- zerofill : [vrai, faux]
+
+types :
+- bit
+- entier
+- réel
+- chaîne
+- binaire
+
+types mysql:
+- bit : taille 1 - 64
+- e8, tinyint, (1 octet) (unsigned) (zerofill) : entier (octet : 1, signé : faux, zerofill : vrai)
+- e16, bool, booléen
+- smallint (2 octets) (unsigned) (zerofill)
+- mediumint (3 octets) (unsigned) (zerofill)
+- integer (4 octets) (unsigned) (zerofill)
+- bigint  (8 octets) (unsigned) (zerofill)
+
+caractère :
+(
+)
+{
+}
+:
+,
+;
+
+-- langages
+---- bibliothèques
+------ analyseuse
+------ unicode
+---- su
+------ coeur
+------ description
+------ tests
+---- danjo
+------ coeur
+------ description
+------ tests
+---- kuri
+------ coeur
+------ description
+------ tests
+---- tori
+------ coeur
+------ description
+------ tests
