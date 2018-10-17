@@ -1,0 +1,19 @@
+structure Vecteur2D {
+	x : n32;
+	y : n32;
+}
+
+structure Vecteur3D {
+	xy : Vecteur2D;
+	z : n32;
+}
+
+fonction accès_x(v : Vecteur3D) : n32
+{
+	retourne x de xy de v;
+}
+
+fonction principale() : n32
+{
+	retourne 0;
+}

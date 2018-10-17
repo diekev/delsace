@@ -1,0 +1,17 @@
+structure Résolution3D {
+	x : n32;
+	y : n32;
+	z : n32;
+}
+
+fonction initialise_résolution3D(x : n32, y : n32, z : n32) : Résolution3D
+{
+	soit résolution : Résolution3D = { x:x, y:y, z:z };
+	return résolution;
+}
+
+structure gabarit(type T) Grille3D {
+	données : *T;
+	résolution : Résolution3D;
+	matrice : Matrice4x4;
+}

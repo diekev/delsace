@@ -1,0 +1,49 @@
+propriété Chronomètre(temps : r64) {
+	avant {
+		temps = maintenant();
+	}
+
+	après {
+		temps = temps - maintenant();
+	}
+}
+
+propriété ExclusionMutuelle(mutex : Mutex) {
+	avant {
+		vérouille(mutex);
+	}
+
+	après {
+		dévérouille(mutex);
+	}
+}
+
+fonction chronomètrée(temps : r64)
+{
+propriété:
+	Chronomètre(temps);
+}
+
+structure GestionnaireImage {
+	mutex_image : Mutex;
+
+	fonction charge_image()
+	{
+
+	}
+
+	fonction ecris_image()
+	{
+
+	}
+
+	propriété : ExclusionMutuelle(mutex_image);
+}
+
+fonction protégée(kuri : Kuri)
+{
+	propriété: ExclusionMutuelle(mutex de kuri);
+
+	auto fichier = ;
+
+}

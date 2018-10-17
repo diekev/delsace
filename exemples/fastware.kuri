@@ -1,0 +1,31 @@
+fonction optionel(drapeau : bool, valeur : n32) : n32
+{
+	retourne -transtype(drapeau)(n32) & valeur;
+}
+
+# opérateur ternaire sans branche : si drapeau est vrai retourne v1, sinon v2
+fonction ternaire(drapeau : bool, v1 : n32, v2 : n32) : n32
+{
+	retourne (-transtype(drapeau)(n32) & v1)
+	         | ((transtype(drapeau)(n32) - 1) & v2);
+}
+
+fonction échange(a : *r64, b : *r64) : rien
+{
+	soit temp = mémoire(a);
+	mémoire(a) = mémoire(b);
+	mémoire(b) = temp;
+}
+
+# retourne les 4 valeurs minimales d'un tableau
+fonction min4(p : []r64) : rien
+{
+	soit q = p.longueur / 4;
+	soit q2 = q + q;
+
+	chac i dans q...(q2 - 1) {
+		soit m0 = i - optionel(p[i - q] <= p[i], q);
+		soit m1 = i + q - optionel(p[i + q2] < p[i + q], q);
+		échange(@p[i - q], @p[p[m0] <= p[m1] ? m0 : m1]);
+	}
+}

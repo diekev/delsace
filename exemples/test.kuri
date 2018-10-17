@@ -1,0 +1,175 @@
+# Erreurs descriptives depuis l'arbre syntactic.
+# transtype, boucle, pour, si/sinon
+# Test : chaine littérale, déclaration, assignement de pointeur et tableau.
+# déréférencement de pointeur
+# Test : var[0], @var[0], type retour fonctions
+# Pas d'ombrage, pas d'ambiguïté entre déclaration et appel fonction, vérifie nom sont uniques
+# Concaténation de chaînes ("" + "").
+
+#!si vrai
+fonction principale(compte : n32, arguments : []*n8) : n32
+{
+	soit x = 2;
+	soit y = 5;
+	soit w = transtype(0)(n32);
+	x = y + 2 * 3;
+	retourne x;
+}
+#!sinon
+fonction multiplier(a : n32, b : n32) : n32
+{
+	retourne a * b;
+}
+
+fonction diviser(a : n32, b : n32) : n32
+{
+	retourne a / b;
+}
+
+fonction soustraire(a : n32, b : n32) : n32
+{
+	retourne a - b;
+}
+
+fonction additioner(a : n32, b : n32) : n32
+{
+	retourne a + b;
+}
+
+fonction multiplier_r64(a : r64, b : r64) : r64
+{
+	retourne a * b;
+}
+
+fonction diviser_r64(a : r64, b : r64) : r64
+{
+	retourne a / b;
+}
+
+fonction soustraire_r64(a : r64, b : r64) : r64
+{
+	retourne a - b;
+}
+
+fonction additioner_r64(a : r64, b : r64) : r64
+{
+	retourne a + b;
+}
+
+fonction multiplier_r32(a : r32, b : r32) : r32
+{
+	retourne a * b;
+}
+
+fonction diviser_r32(a : r32, b : r32) : r32
+{
+	retourne a / b;
+}
+
+fonction soustraire_r32(a : r32, b : r32) : r32
+{
+	retourne a - b;
+}
+
+fonction additioner_r32(a : r32, b : r32) : r32
+{
+	retourne a + b;
+}
+
+fonction multiplier_r16(a : r16, b : r16) : r16
+{
+	retourne a * b;
+}
+
+fonction diviser_r16(a : r16, b : r16) : r16
+{
+	retourne a / b;
+}
+
+fonction soustraire_r16(a : r16, b : r16) : r16
+{
+	retourne a - b;
+}
+
+fonction additioner_r16(a : r16, b : r16) : r16
+{
+	retourne a + b;
+}
+
+fonction multiplier_e16(a : e16, b : e16) : e16
+{
+	retourne a * b;
+}
+
+fonction diviser_e16(a : e16, b : e16) : e16
+{
+	retourne a / b;
+}
+
+fonction soustraire_e16(a : e16, b : e16) : e16
+{
+	retourne a - b;
+}
+
+fonction additioner_e16(a : e16, b : e16) : e16
+{
+	retourne a + b;
+}
+
+fonction multiplier_e8(a : e8, b : e8) : e8
+{
+	retourne a * b;
+}
+
+fonction diviser_e8(a : e8, b : e8) : e8
+{
+	retourne a / b;
+}
+
+fonction soustraire_e8(a : e8, b : e8) : e8
+{
+	retourne a - b;
+}
+
+fonction additioner_e8(a : e8, b : e8) : e8
+{
+	retourne a + b;
+}
+
+fonction multiplier_e64(a : e64, b : e64) : e64
+{
+	retourne a * b;
+}
+
+fonction diviser_e64(a : e64, b : e64) : e64
+{
+	retourne a / b;
+}
+
+fonction soustraire_e64(a : e64, b : e64) : e64
+{
+	retourne a - b;
+}
+
+fonction additioner_e64(a : e64, b : e64) : e64
+{
+	retourne a + b;
+}
+
+fonction ne_fais_rien() : rien
+{
+	retourne;
+}
+
+fonction principale(compte : n32, arguments : []*e8) : n32
+{
+	ne_fais_rien();
+	soit y = 9;
+	soit chaîne = "Salut, tout le monde !";
+	#soit w = transtype<*e8>(arguments);
+	soit z : *e8 = arguments;
+	soit x : n32 = additioner(b=5, a=multiplier(y, 8 + 3));
+	x = 5 + 2 * 3;
+	retourne x;
+}
+#!finsi

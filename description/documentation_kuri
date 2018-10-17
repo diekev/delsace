@@ -34,6 +34,16 @@ appel:
 	chaine(liste_param);
 
 
+# Faitures
+----------
+
+- portée explicite
+- typage inféré
+- = ne retourne pas de valeur
+- assignation obligatoire
+- constance par défaut
+
+
 # Programme
 -----------
 
