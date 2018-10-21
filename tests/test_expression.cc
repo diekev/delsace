@@ -60,11 +60,11 @@ R"(fonction foo()
 )";
 
 	/* Passage du test sans la génération du code. */
-	auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::AUCUNE_ERREUR, false);
+	auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, false);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 
 	/* Passage du test avec la génération du code. */
-	erreur_lancee = retourne_erreur_lancee(texte, false, erreur::AUCUNE_ERREUR, true);
+	erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, true);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 }
 
@@ -85,7 +85,7 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	/* comparaison échouée */
@@ -98,7 +98,7 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* comparaison échouée */
@@ -111,7 +111,7 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* arithmétique réussie */
@@ -127,7 +127,7 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	/* arithmétique échouée */
@@ -140,7 +140,7 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* binaire échouée */
@@ -153,7 +153,7 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -175,7 +175,7 @@ static void test_expression_constante_entiere(numero7::test_unitaire::Controleur
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	/* arithmétique réussie */
@@ -197,7 +197,7 @@ static void test_expression_constante_entiere(numero7::test_unitaire::Controleur
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	/* binaire réussie */
@@ -211,7 +211,7 @@ static void test_expression_constante_entiere(numero7::test_unitaire::Controleur
 	)";
 
 		/* Passage du test sans la génération du code. */
-		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::NORMAL, false);
+		auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 }

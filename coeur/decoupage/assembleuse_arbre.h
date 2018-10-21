@@ -29,6 +29,8 @@
 #include <string>
 #include <vector>
 
+#include "arbre_syntactic.h"
+
 class Noeud;
 class NoeudNombreEntier;
 class NoeudNombreReel;
@@ -57,7 +59,7 @@ public:
 	 *
 	 * Retourne un pointeur vers le noeud ajouter.
 	 */
-	Noeud *ajoute_noeud(int type, const DonneesMorceaux &morceau, bool ajoute = true);
+	Noeud *ajoute_noeud(type_noeud type, const DonneesMorceaux &morceau, bool ajoute = true);
 
 	/**
 	 * Ajoute le noeud spécifié au noeud courant.
@@ -68,13 +70,13 @@ public:
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	Noeud *cree_noeud(int type, const DonneesMorceaux &morceau);
+	Noeud *cree_noeud(type_noeud type, const DonneesMorceaux &morceau);
 
 	/**
 	 * Sors du noeud courant en vérifiant que le type du noeud courant est bel
 	 * et bien le type passé en paramètre.
 	 */
-	void sors_noeud(int type);
+	void sors_noeud(type_noeud type);
 
 	/**
 	 * Visite les enfants du noeud racine et demande à chacun d'eux d'imprimer

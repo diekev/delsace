@@ -23,9 +23,10 @@
  */
 
 #pragma once
+#include "erreur.h"
 
 bool retourne_erreur_lancee(
 		const char *texte,
 		const bool imprime_message,
-		const int type,
+		const erreur::type_erreur type,
 		const bool genere_code = true);

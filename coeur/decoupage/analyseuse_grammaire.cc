@@ -195,7 +195,7 @@ void analyseuse_grammaire::lance_analyse()
 		return;
 	}
 
-	m_assembleuse->ajoute_noeud(NOEUD_RACINE, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
+	m_assembleuse->ajoute_noeud(type_noeud::RACINE, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
 
 	analyse_corps();
 }
@@ -238,10 +238,10 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	const auto nom_fonction = m_identifiants[position()].chaine;
 
 	if (m_contexte.fonction_existe(nom_fonction)) {
-		lance_erreur("Redéfinition de la fonction", erreur::FONCTION_REDEFINIE);
+		lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
 	}
 
-	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, m_identifiants[position()]);
+	auto noeud = m_assembleuse->ajoute_noeud(type_noeud::DECLARATION_FONCTION, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
@@ -274,7 +274,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu une accolade fermante à la fin de la fonction");
 	}
 
-	m_assembleuse->sors_noeud(NOEUD_DECLARATION_FONCTION);
+	m_assembleuse->sors_noeud(type_noeud::DECLARATION_FONCTION);
 }
 
 void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees)
@@ -298,7 +298,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 	arg.chaine = m_identifiants[position()].chaine;
 
 	if (donnees.args.find(arg.chaine) != donnees.args.end()) {
-		lance_erreur("Redéfinition de l'argument", erreur::ARGUMENT_REDEFINI);
+		lance_erreur("Redéfinition de l'argument", erreur::type_erreur::ARGUMENT_REDEFINI);
 	}
 
 	auto donnees_type = DonneesType{};
@@ -359,22 +359,22 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 		const auto &morceau_egal = m_identifiants[position()];
 
-		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_ASSIGNATION_VARIABLE, morceau_egal);
+		auto noeud = m_assembleuse->ajoute_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau_egal);
 		noeud->donnees_type = donnees_type;
 
-		auto noeud_decl = m_assembleuse->cree_noeud(NOEUD_DECLARATION_VARIABLE, morceau_variable);
+		auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
 		noeud_decl->donnees_type = donnees_type;
 		noeud_decl->est_variable = est_variable;
 		noeud->ajoute_noeud(noeud_decl);
 
 		analyse_expression_droite(id_morceau::POINT_VIRGULE);
 
-		m_assembleuse->sors_noeud(NOEUD_ASSIGNATION_VARIABLE);
+		m_assembleuse->sors_noeud(type_noeud::ASSIGNATION_VARIABLE);
 	}
 	/* retour : retourne a + b; */
 	else if (est_identifiant(id_morceau::RETOURNE)) {
 		avance();
-		m_assembleuse->ajoute_noeud(NOEUD_RETOUR, m_identifiants[position()]);
+		m_assembleuse->ajoute_noeud(type_noeud::RETOUR, m_identifiants[position()]);
 
 		/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 		if (!est_identifiant(id_morceau::POINT_VIRGULE)) {
@@ -384,7 +384,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			avance();
 		}
 
-		m_assembleuse->sors_noeud(NOEUD_RETOUR);
+		m_assembleuse->sors_noeud(type_noeud::RETOUR);
 	}
 	/* controle de flux : si */
 	else if (est_identifiant(id_morceau::SI)) {
@@ -456,35 +456,35 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
 			avance(2);
 
-			auto noeud = m_assembleuse->ajoute_noeud(NOEUD_APPEL_FONCTION, morceau, false);
+			auto noeud = m_assembleuse->ajoute_noeud(type_noeud::APPEL_FONCTION, morceau, false);
 
 			analyse_appel_fonction(dynamic_cast<NoeudAppelFonction *>(noeud));
 
-			m_assembleuse->sors_noeud(NOEUD_APPEL_FONCTION);
+			m_assembleuse->sors_noeud(type_noeud::APPEL_FONCTION);
 
 			expression.push_back(noeud);
 		}
 		/* variable : chaine */
 		else if (morceau.identifiant == id_morceau::CHAINE_CARACTERE) {
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, morceau);
+			auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, morceau);
 			expression.push_back(noeud);
 		}
 		else if (morceau.identifiant == id_morceau::NOMBRE_REEL) {
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_REEL, morceau);
+			auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_REEL, morceau);
 			expression.push_back(noeud);
 		}
 		else if (est_nombre_entier(morceau.identifiant)) {
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_ENTIER, morceau);
+			auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_ENTIER, morceau);
 			expression.push_back(noeud);
 		}
 		else if (morceau.identifiant == id_morceau::CHAINE_LITTERALE) {
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_CHAINE_LITTERALE, morceau);
+			auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, morceau);
 			expression.push_back(noeud);
 		}
 		else if (morceau.identifiant == id_morceau::VRAI || morceau.identifiant == id_morceau::FAUX) {
 			/* remplace l'identifiant par id_morceau::BOOL */
 			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, id_morceau::BOOL };
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_BOOLEEN, morceau_bool);
+			auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, morceau_bool);
 			expression.push_back(noeud);
 		}
 		else if (morceau.identifiant == id_morceau::TRANSTYPE) {
@@ -500,7 +500,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			}
 
 			/* À FAIRE : noeud dédié */
-			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, m_identifiants[position()]);
+			auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
 			expression.push_back(noeud);
 
 			if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
@@ -534,31 +534,31 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			if (morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
 				avance();
 
-				noeud = m_assembleuse->ajoute_noeud(NOEUD_OPERATION, morceau, false);
+				noeud = m_assembleuse->ajoute_noeud(type_noeud::OPERATION, morceau, false);
 
 				++m_profondeur;
 				analyse_expression_droite(id_morceau::CROCHET_FERMANT);
 				--m_profondeur;
 
-				m_assembleuse->sors_noeud(NOEUD_OPERATION);
+				m_assembleuse->sors_noeud(type_noeud::OPERATION);
 
 				/* nous reculons, car on avance de nouveau avant de recommencer
 				 * la boucle plus bas */
 				recule();
 			}
 			else if (morceau.identifiant == id_morceau::DE) {
-				noeud = m_assembleuse->cree_noeud(NOEUD_ACCES_MEMBRE, morceau);
+				noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE, morceau);
 			}
 			else if (morceau.identifiant == id_morceau::EGAL) {
 				if (!assignation) {
 					avance();
-					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::ASSIGNATION_INVALIDE);
+					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
 				}
 
-				noeud = m_assembleuse->cree_noeud(NOEUD_ASSIGNATION_VARIABLE, morceau);
+				noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau);
 			}
 			else {
-				noeud = m_assembleuse->cree_noeud(NOEUD_OPERATION, morceau);
+				noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION, morceau);
 			}
 
 			pile.push_back(noeud);
@@ -706,7 +706,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 			auto nom_argument = m_identifiants[position()].chaine;
 
 			if (args.find(nom_argument) != args.end()) {
-				lance_erreur("Argument déjà nommé", erreur::ARGUMENT_REDEFINI);
+				lance_erreur("Argument déjà nommé", erreur::type_erreur::ARGUMENT_REDEFINI);
 			}
 
 			args.insert(nom_argument);
@@ -750,7 +750,7 @@ void analyseuse_grammaire::analyse_declaration_constante()
 		analyse_declaration_type(donnees_type);
 	}
 
-	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[pos]);
+	auto noeud = m_assembleuse->ajoute_noeud(type_noeud::CONSTANTE, m_identifiants[pos]);
 	noeud->donnees_type = donnees_type;
 
 	if (!requiers_identifiant(id_morceau::EGAL)) {
@@ -759,7 +759,7 @@ void analyseuse_grammaire::analyse_declaration_constante()
 
 	analyse_expression_droite(id_morceau::POINT_VIRGULE, true);
 
-	m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
+	m_assembleuse->sors_noeud(type_noeud::CONSTANTE);
 }
 
 void analyseuse_grammaire::analyse_declaration_structure()
@@ -775,7 +775,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 	auto nom_structure = m_identifiants[position()].chaine;
 
 	if (m_contexte.structure_existe(nom_structure)) {
-		lance_erreur("Redéfinition de la structure", erreur::STRUCTURE_REDEFINIE);
+		lance_erreur("Redéfinition de la structure", erreur::type_erreur::STRUCTURE_REDEFINIE);
 	}
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
@@ -795,7 +795,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 		auto nom_membre = m_identifiants[position()].chaine;
 
 		if (donnees_structure.index_membres.find(nom_membre) != donnees_structure.index_membres.end()) {
-			lance_erreur("Redéfinition du membre", erreur::MEMBRE_REDEFINI);
+			lance_erreur("Redéfinition du membre", erreur::type_erreur::MEMBRE_REDEFINI);
 		}
 
 		auto donnees_type = DonneesType{};
@@ -833,7 +833,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			break;
 		}
 
-		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[position()]);
+		auto noeud = m_assembleuse->ajoute_noeud(type_noeud::CONSTANTE, m_identifiants[position()]);
 		noeud->donnees_type.pousse(id_morceau::N32);
 
 		if (est_identifiant(id_morceau::EGAL)) {
@@ -844,7 +844,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			recule();
 		}
 
-		m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
+		m_assembleuse->sors_noeud(type_noeud::CONSTANTE);
 
 		if (!requiers_identifiant(id_morceau::VIRGULE)) {
 			lance_erreur("Attendu ',' à la fin de la déclaration");
@@ -909,7 +909,7 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 		const auto nom_type = m_identifiants[position()].chaine;
 
 		if (!m_contexte.structure_existe(nom_type)) {
-			lance_erreur("Structure inconnue", erreur::STRUCTURE_INCONNUE);
+			lance_erreur("Structure inconnue", erreur::type_erreur::STRUCTURE_INCONNUE);
 		}
 
 		const auto &donnees_structure = m_contexte.donnees_structure(nom_type);

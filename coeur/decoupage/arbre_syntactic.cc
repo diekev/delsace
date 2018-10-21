@@ -255,9 +255,9 @@ llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte)
 	return nullptr;
 }
 
-int NoeudRacine::type_noeud() const
+type_noeud NoeudRacine::type() const
 {
-	return NOEUD_RACINE;
+	return type_noeud::RACINE;
 }
 
 /* ************************************************************************** */
@@ -285,7 +285,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 					"Fonction inconnue",
 					contexte.tampon,
 					m_donnees_morceaux,
-					erreur::FONCTION_INCONNUE);
+					erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
 	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
@@ -409,9 +409,9 @@ void NoeudAppelFonction::ajoute_nom_argument(const std::string_view &nom)
 	m_noms_arguments.push_back(nom);
 }
 
-int NoeudAppelFonction::type_noeud() const
+type_noeud NoeudAppelFonction::type() const
 {
-	return NOEUD_APPEL_FONCTION;
+	return type_noeud::APPEL_FONCTION;
 }
 
 /* ************************************************************************** */
@@ -500,9 +500,9 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	return nullptr;
 }
 
-int NoeudDeclarationFonction::type_noeud() const
+type_noeud NoeudDeclarationFonction::type() const
 {
-	return NOEUD_DECLARATION_FONCTION;
+	return type_noeud::DECLARATION_FONCTION;
 }
 
 /* ************************************************************************** */
@@ -532,9 +532,9 @@ const DonneesType &NoeudExpression::calcul_type(ContexteGenerationCode &/*contex
 	return this->donnees_type;
 }
 
-int NoeudExpression::type_noeud() const
+type_noeud NoeudExpression::type() const
 {
-	return NOEUD_EXPRESSION;
+	return type_noeud::EXPRESSION;
 }
 
 /* ************************************************************************** */
@@ -563,7 +563,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 					"Impossible d'assigner l'expression à la variable !",
 					contexte.tampon,
 					m_donnees_morceaux,
-					erreur::ASSIGNATION_INVALIDE);
+					erreur::type_erreur::ASSIGNATION_INVALIDE);
 	}
 
 	this->donnees_type = m_enfants.back()->calcul_type(contexte);
@@ -573,7 +573,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 					"Impossible de définir le type de la variable !",
 					contexte.tampon,
 					m_donnees_morceaux,
-					erreur::TYPE_INCONNU);
+					erreur::type_erreur::TYPE_INCONNU);
 	}
 
 	if (this->donnees_type.type_base() == id_morceau::RIEN) {
@@ -581,7 +581,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 					"Impossible d'assigner une expression de type 'rien' à une variable !",
 					contexte.tampon,
 					m_donnees_morceaux,
-					erreur::ASSIGNATION_RIEN);
+					erreur::type_erreur::ASSIGNATION_RIEN);
 	}
 
 	/* Ajourne les données du premier enfant si elles sont invalides, dans le
@@ -610,9 +610,9 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	return new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
 }
 
-int NoeudAssignationVariable::type_noeud() const
+type_noeud NoeudAssignationVariable::type() const
 {
-	return NOEUD_ASSIGNATION_VARIABLE;
+	return type_noeud::ASSIGNATION_VARIABLE;
 }
 
 /* ************************************************************************** */
@@ -636,7 +636,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 					"Redéfinition de la variable !",
 					contexte.tampon,
 					m_donnees_morceaux,
-					erreur::VARIABLE_REDEFINIE);
+					erreur::type_erreur::VARIABLE_REDEFINIE);
 	}
 	else {
 		valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
@@ -646,7 +646,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 						"Redéfinition de la variable !",
 						contexte.tampon,
 						m_donnees_morceaux,
-						erreur::VARIABLE_REDEFINIE);
+						erreur::type_erreur::VARIABLE_REDEFINIE);
 		}
 	}
 
@@ -662,9 +662,9 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 	return alloc;
 }
 
-int NoeudDeclarationVariable::type_noeud() const
+type_noeud NoeudDeclarationVariable::type() const
 {
-	return NOEUD_DECLARATION_VARIABLE;
+	return type_noeud::DECLARATION_VARIABLE;
 }
 
 bool NoeudDeclarationVariable::peut_etre_assigne(ContexteGenerationCode &/*contexte*/) const
@@ -698,7 +698,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
 					"Redéfinition de la variable globale !",
 					contexte.tampon,
 					m_donnees_morceaux,
-					erreur::VARIABLE_REDEFINIE);
+					erreur::type_erreur::VARIABLE_REDEFINIE);
 	}
 
 	if (this->donnees_type.est_invalide()) {
@@ -709,7 +709,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
 						"Impossible de définir le type de la variable globale !",
 						contexte.tampon,
 						m_donnees_morceaux,
-						erreur::TYPE_INCONNU);
+						erreur::type_erreur::TYPE_INCONNU);
 		}
 	}
 
@@ -725,9 +725,9 @@ const DonneesType &NoeudConstante::calcul_type(ContexteGenerationCode &contexte)
 	return contexte.type_globale(m_donnees_morceaux.chaine);
 }
 
-int NoeudConstante::type_noeud() const
+type_noeud NoeudConstante::type() const
 {
-	return NOEUD_CONSTANTE;
+	return type_noeud::CONSTANTE;
 }
 
 /* ************************************************************************** */
@@ -775,9 +775,9 @@ bool NoeudNombreEntier::est_constant() const
 	return true;
 }
 
-int NoeudNombreEntier::type_noeud() const
+type_noeud NoeudNombreEntier::type() const
 {
-	return NOEUD_NOMBRE_ENTIER;
+	return type_noeud::NOMBRE_ENTIER;
 }
 
 /* ************************************************************************** */
@@ -822,9 +822,9 @@ bool NoeudBooleen::est_constant() const
 	return true;
 }
 
-int NoeudBooleen::type_noeud() const
+type_noeud NoeudBooleen::type() const
 {
-	return NOEUD_BOOLEEN;
+	return type_noeud::BOOLEEN;
 }
 
 /* ************************************************************************** */
@@ -871,9 +871,9 @@ bool NoeudNombreReel::est_constant() const
 	return true;
 }
 
-int NoeudNombreReel::type_noeud() const
+type_noeud NoeudNombreReel::type() const
 {
-	return NOEUD_NOMBRE_REEL;
+	return type_noeud::NOMBRE_REEL;
 }
 
 /* ************************************************************************** */
@@ -913,9 +913,9 @@ const DonneesType &NoeudChaineLitterale::calcul_type(ContexteGenerationCode &/*c
 	return this->donnees_type;
 }
 
-int NoeudChaineLitterale::type_noeud() const
+type_noeud NoeudChaineLitterale::type() const
 {
-	return NOEUD_CHAINE_LITTERALE;
+	return type_noeud::CHAINE_LITTERALE;
 }
 
 /* ************************************************************************** */
@@ -947,7 +947,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 						"Variable inconnue !",
 						contexte.tampon,
 						m_donnees_morceaux,
-						erreur::VARIABLE_INCONNUE);
+						erreur::type_erreur::VARIABLE_INCONNUE);
 		}
 	}
 
@@ -968,12 +968,12 @@ const DonneesType &NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 				"NoeudVariable::calcul_type : variable inconnue !",
 				contexte.tampon,
 				m_donnees_morceaux,
-				erreur::VARIABLE_INCONNUE);
+				erreur::type_erreur::VARIABLE_INCONNUE);
 }
 
-int NoeudVariable::type_noeud() const
+type_noeud NoeudVariable::type() const
 {
-	return NOEUD_VARIABLE;
+	return type_noeud::VARIABLE;
 }
 
 bool NoeudVariable::peut_etre_assigne(ContexteGenerationCode &contexte) const
@@ -1013,7 +1013,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 					"Membre inconnu",
 					contexte.tampon,
 					m_donnees_morceaux,
-					erreur::MEMBRE_INCONNU);
+					erreur::type_erreur::MEMBRE_INCONNU);
 	}
 
 	const auto index_membre = iter->second;
@@ -1038,7 +1038,7 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 					"Membre inconnu",
 					contexte.tampon,
 					m_donnees_morceaux,
-					erreur::MEMBRE_INCONNU);
+					erreur::type_erreur::MEMBRE_INCONNU);
 	}
 
 	const auto index_membre = iter->second;
@@ -1046,9 +1046,9 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 	return donnees_structure.donnees_types[index_membre];
 }
 
-int NoeudAccesMembre::type_noeud() const
+type_noeud NoeudAccesMembre::type() const
 {
-	return NOEUD_ACCES_MEMBRE;
+	return type_noeud::ACCES_MEMBRE;
 }
 
 bool NoeudAccesMembre::peut_etre_assigne(ContexteGenerationCode &contexte) const
@@ -1124,7 +1124,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 						"Les types de l'opération sont différents !",
 						contexte.tampon,
 						m_donnees_morceaux,
-						erreur::TYPE_DIFFERENTS);
+						erreur::type_erreur::TYPE_DIFFERENTS);
 		}
 
 		/* À FAIRE : typage */
@@ -1196,7 +1196,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								"Besoin d'un type entier pour le décalage !",
 								contexte.tampon,
 								m_donnees_morceaux,
-								erreur::TYPE_DIFFERENTS);
+								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 				break;
 			case id_morceau::DECALAGE_GAUCHE:
@@ -1205,7 +1205,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								"Besoin d'un type entier pour le décalage !",
 								contexte.tampon,
 								m_donnees_morceaux,
-								erreur::TYPE_DIFFERENTS);
+								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 
 				instr = llvm::Instruction::Shl;
@@ -1217,7 +1217,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								"Besoin d'un type entier pour l'opération binaire !",
 								contexte.tampon,
 								m_donnees_morceaux,
-								erreur::TYPE_DIFFERENTS);
+								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 				instr = llvm::Instruction::And;
 				break;
@@ -1228,7 +1228,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								"Besoin d'un type entier pour l'opération binaire !",
 								contexte.tampon,
 								m_donnees_morceaux,
-								erreur::TYPE_DIFFERENTS);
+								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 				instr = llvm::Instruction::Or;
 				break;
@@ -1238,7 +1238,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								"Besoin d'un type entier pour l'opération binaire !",
 								contexte.tampon,
 								m_donnees_morceaux,
-								erreur::TYPE_DIFFERENTS);
+								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 				instr = llvm::Instruction::Xor;
 				break;
@@ -1332,7 +1332,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								"Le type ne peut être déréférencé !",
 								contexte.tampon,
 								m_donnees_morceaux,
-								erreur::TYPE_DIFFERENTS);
+								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 
 				auto valeur = llvm::GetElementPtrInst::Create(
@@ -1386,9 +1386,9 @@ const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 	return this->donnees_type;
 }
 
-int NoeudOperation::type_noeud() const
+type_noeud NoeudOperation::type() const
 {
-	return NOEUD_OPERATION;
+	return type_noeud::OPERATION;
 }
 
 bool NoeudOperation::peut_etre_assigne(ContexteGenerationCode &contexte) const
@@ -1447,7 +1447,7 @@ const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 	return this->donnees_type;
 }
 
-int NoeudRetour::type_noeud() const
+type_noeud NoeudRetour::type() const
 {
-	return NOEUD_RETOUR;
+	return type_noeud::RETOUR;
 }

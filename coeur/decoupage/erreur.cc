@@ -33,12 +33,12 @@
 
 namespace erreur {
 
-frappe::frappe(const char *message, int type)
+frappe::frappe(const char *message, type_erreur type)
 	: m_message(message)
 	, m_type(type)
 {}
 
-int frappe::type() const
+type_erreur frappe::type() const
 {
 	return m_type;
 }
@@ -69,7 +69,11 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 	}
 }
 
-void lance_erreur(const std::string &quoi, const TamponSource &tampon, const DonneesMorceaux &morceau, int type)
+void lance_erreur(
+		const std::string &quoi,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau,
+		type_erreur type)
 {
 	const auto ligne = morceau.ligne_pos >> 32;
 	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
@@ -116,7 +120,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Requiers : " << nombre_arguments << '\n';
 	ss << "Obtenu : " << nombre_recus << '\n';
 
-	throw frappe(ss.str().c_str(), NOMBRE_ARGUMENT);
+	throw frappe(ss.str().c_str(), type_erreur::NOMBRE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
@@ -143,7 +147,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Les types d'arguments ne correspondent pas !\n";
 	ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
 	ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
-	throw frappe(ss.str().c_str(), TYPE_ARGUMENT);
+	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_argument_inconnu(
@@ -167,7 +171,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Fonction : '" << morceau.chaine
 	   << "', argument nommé '" << nom_arg << "' inconnu !\n";
 
-	throw frappe(ss.str().c_str(), ARGUMENT_INCONNU);
+	throw frappe(ss.str().c_str(), type_erreur::ARGUMENT_INCONNU);
 }
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
@@ -191,7 +195,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Fonction : '" << morceau.chaine
 	   << "', redéclaration de l'argument '" << nom_arg << "' !\n";
 
-	throw frappe(ss.str().c_str(), ARGUMENT_REDEFINI);
+	throw frappe(ss.str().c_str(), type_erreur::ARGUMENT_REDEFINI);
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
@@ -217,7 +221,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 	ss << "Type à gauche : " << type_gauche << '\n';
 	ss << "Type à droite : " << type_droite << '\n';
 
-	throw frappe(ss.str().c_str(), ASSIGNATION_MAUVAIS_TYPE);
+	throw frappe(ss.str().c_str(), type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 }
 
 }

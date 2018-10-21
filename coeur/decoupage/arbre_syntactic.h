@@ -36,22 +36,22 @@ class Value;
 
 struct ContexteGenerationCode;
 
-enum {
-	NOEUD_RACINE,
-	NOEUD_DECLARATION_FONCTION,
-	NOEUD_APPEL_FONCTION,
-	NOEUD_EXPRESSION,
-	NOEUD_VARIABLE,
-	NOEUD_ACCES_MEMBRE,
-	NOEUD_CONSTANTE,
-	NOEUD_DECLARATION_VARIABLE,
-	NOEUD_ASSIGNATION_VARIABLE,
-	NOEUD_NOMBRE_REEL,
-	NOEUD_NOMBRE_ENTIER,
-	NOEUD_OPERATION,
-	NOEUD_RETOUR,
-	NOEUD_CHAINE_LITTERALE,
-	NOEUD_BOOLEEN,
+enum class type_noeud : char {
+	RACINE,
+	DECLARATION_FONCTION,
+	APPEL_FONCTION,
+	EXPRESSION,
+	VARIABLE,
+	ACCES_MEMBRE,
+	CONSTANTE,
+	DECLARATION_VARIABLE,
+	ASSIGNATION_VARIABLE,
+	NOMBRE_REEL,
+	NOMBRE_ENTIER,
+	OPERATION,
+	RETOUR,
+	CHAINE_LITTERALE,
+	BOOLEEN,
 };
 
 /* ************************************************************************** */
@@ -189,7 +189,7 @@ public:
 	/**
 	 * Retourne le type syntactic de noeud.
 	 */
-	virtual int type_noeud() const = 0;
+	virtual type_noeud type() const = 0;
 
 	virtual bool peut_etre_assigne(ContexteGenerationCode &contexte) const;
 };
@@ -204,7 +204,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -224,7 +224,7 @@ public:
 
 	void ajoute_nom_argument(const std::string_view &nom);
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -244,7 +244,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -259,7 +259,7 @@ public:
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -272,7 +272,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -285,7 +285,7 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
 };
@@ -302,7 +302,7 @@ public:
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -319,7 +319,7 @@ public:
 
 	bool est_constant() const override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -336,7 +336,7 @@ public:
 
 	bool est_constant() const override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -353,7 +353,7 @@ public:
 
 	bool est_constant() const override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -368,7 +368,7 @@ public:
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */
@@ -383,7 +383,7 @@ public:
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
 };
@@ -400,7 +400,7 @@ public:
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
 };
@@ -417,7 +417,7 @@ public:
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
 };
@@ -434,5 +434,5 @@ public:
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
-	int type_noeud() const override;
+	type_noeud type() const override;
 };

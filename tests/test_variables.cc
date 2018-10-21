@@ -40,7 +40,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_REDEFINIE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* redéfinition variable local */
@@ -55,7 +55,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_REDEFINIE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* redéfinition variable globale */
@@ -70,7 +70,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_REDEFINIE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* redéfinition variable énum */
@@ -86,7 +86,7 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_REDEFINIE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -102,7 +102,7 @@ static void test_variable_indefinie(numero7::test_unitaire::ControleurUnitaire &
 			}
 			)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_INCONNUE);
+	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
 	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 }
 

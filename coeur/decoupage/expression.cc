@@ -29,13 +29,13 @@
 #include "erreur.h"
 #include "nombres.h"
 
-enum {
+enum class dir_associativite : int {
 	GAUCHE,
 	DROITE,
 };
 
 struct DonneesPrecedence {
-	int direction;
+	dir_associativite direction;
 	int priorite;
 };
 
@@ -43,45 +43,45 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 {
 	switch (identifiant) {
 		case id_morceau::EGAL:
-			return { GAUCHE, 0 };
+			return { dir_associativite::GAUCHE, 0 };
 		case id_morceau::BARRE_BARRE:
-			return { GAUCHE, 1 };
+			return { dir_associativite::GAUCHE, 1 };
 		case id_morceau::ESP_ESP:
-			return { GAUCHE, 2 };
+			return { dir_associativite::GAUCHE, 2 };
 		case id_morceau::BARRE:
-			return { GAUCHE, 3 };
+			return { dir_associativite::GAUCHE, 3 };
 		case id_morceau::CHAPEAU:
-			return { GAUCHE, 4 };
+			return { dir_associativite::GAUCHE, 4 };
 		case id_morceau::ESPERLUETTE:
-			return { GAUCHE, 5 };
+			return { dir_associativite::GAUCHE, 5 };
 		case id_morceau::DIFFERENCE:
 		case id_morceau::EGALITE:
-			return { GAUCHE, 6 };
+			return { dir_associativite::GAUCHE, 6 };
 		case id_morceau::INFERIEUR:
 		case id_morceau::INFERIEUR_EGAL:
 		case id_morceau::SUPERIEUR:
 		case id_morceau::SUPERIEUR_EGAL:
-			return { GAUCHE, 7 };
+			return { dir_associativite::GAUCHE, 7 };
 		case id_morceau::DECALAGE_GAUCHE:
 		case id_morceau::DECALAGE_DROITE:
-			return { GAUCHE, 8 };
+			return { dir_associativite::GAUCHE, 8 };
 		case id_morceau::PLUS:
 		case id_morceau::MOINS:
-			return { GAUCHE, 9 };
+			return { dir_associativite::GAUCHE, 9 };
 		case id_morceau::FOIS:
 		case id_morceau::DIVISE:
 		case id_morceau::POURCENT:
-			return { GAUCHE, 10 };
+			return { dir_associativite::GAUCHE, 10 };
 		case id_morceau::EXCLAMATION:
 		case id_morceau::TILDE:
 		case id_morceau::AROBASE:
 		case id_morceau::DE:
-			return { DROITE, 11 };
+			return { dir_associativite::DROITE, 11 };
 		case id_morceau::CROCHET_OUVRANT:
-			return { GAUCHE, 12 };
+			return { dir_associativite::GAUCHE, 12 };
 		default:
 			assert(false);
-			return { -1, -1 };
+			return { static_cast<dir_associativite>(-1), -1 };
 	}
 }
 
@@ -90,8 +90,8 @@ bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
 	auto p1 = associativite(identifiant1);
 	auto p2 = associativite(identifiant2);
 
-	return (p1.direction == GAUCHE && p1.priorite <= p2.priorite)
-			|| ((p2.direction == DROITE) && (p1.priorite < p2.priorite));
+	return (p1.direction == dir_associativite::GAUCHE && p1.priorite <= p2.priorite)
+			|| ((p2.direction == dir_associativite::DROITE) && (p1.priorite < p2.priorite));
 }
 
 /* ************************************************************************** */
@@ -281,7 +281,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -310,7 +310,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -322,7 +322,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_booleenne(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_boolenne = calcul_expression_boolenne(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -369,7 +369,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1)
 {
 #if 0
-	auto res = assembleuse.cree_noeud(NOEUD_NOMBRE_ENTIER, {});
+	auto res = assembleuse.cree_noeud(type_noeud::NOMBRE_ENTIER, {});
 	assembleuse.supprime_noeud(op);
 	assembleuse.supprime_noeud(n1);
 #endif

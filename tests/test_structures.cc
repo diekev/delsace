@@ -45,7 +45,7 @@ static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire 
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::STRUCTURE_REDEFINIE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	/* redéfinition */
@@ -63,7 +63,7 @@ static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire 
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::STRUCTURE_REDEFINIE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -85,7 +85,7 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::STRUCTURE_INCONNUE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	/* structure inconnue dans une autre structure */
@@ -98,7 +98,7 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::STRUCTURE_INCONNUE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* structure inconnue dans en paramètre d'une fonction */
@@ -110,7 +110,7 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::STRUCTURE_INCONNUE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -131,7 +131,7 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::MEMBRE_INCONNU);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	/* membre inconnu */
@@ -148,7 +148,7 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::MEMBRE_INCONNU);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 	/* structure inconnu */
@@ -165,7 +165,7 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::VARIABLE_INCONNUE);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }
@@ -182,7 +182,7 @@ static void test_membre_unique(numero7::test_unitaire::ControleurUnitaire &contr
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::MEMBRE_REDEFINI);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_REDEFINI);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
 }

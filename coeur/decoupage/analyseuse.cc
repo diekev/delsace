@@ -29,8 +29,6 @@
 #include <iostream>
 #endif
 
-#include "erreur.h"
-
 Analyseuse::Analyseuse(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon)
 	: m_tampon(tampon)
 	, m_identifiants(identifiants)
@@ -134,7 +132,7 @@ id_morceau Analyseuse::identifiant_courant() const
 	return m_identifiants[m_position].identifiant;
 }
 
-void Analyseuse::lance_erreur(const std::string &quoi, int type)
+void Analyseuse::lance_erreur(const std::string &quoi, erreur::type_erreur type)
 {
 	erreur::lance_erreur(quoi, m_tampon, m_identifiants[position()], type);
 }

@@ -35,7 +35,7 @@ struct TamponSource;
 
 namespace erreur {
 
-enum {
+enum class type_erreur : int {
 	NORMAL,
 	DECOUPAGE,
 	NOMBRE_ARGUMENT,
@@ -61,12 +61,12 @@ enum {
 
 class frappe {
 	std::string m_message;
-	int m_type;
+	type_erreur m_type;
 
 public:
-	frappe(const char *message, int type);
+	frappe(const char *message, type_erreur type);
 
-	int type() const;
+	type_erreur type() const;
 
 	const char *message() const;
 };
@@ -75,7 +75,7 @@ public:
 		const std::string &quoi,
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau,
-		int type = NORMAL);
+		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_nombre_arguments(
 		const size_t nombre_arguments,

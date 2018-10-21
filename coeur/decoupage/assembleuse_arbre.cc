@@ -24,8 +24,6 @@
 
 #include "assembleuse_arbre.h"
 
-#include "arbre_syntactic.h"
-
 assembleuse_arbre::~assembleuse_arbre()
 {
 	for (auto noeud : m_noeuds) {
@@ -33,7 +31,7 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-Noeud *assembleuse_arbre::ajoute_noeud(int type, const DonneesMorceaux &morceau, bool ajoute)
+Noeud *assembleuse_arbre::ajoute_noeud(type_noeud type, const DonneesMorceaux &morceau, bool ajoute)
 {
 	auto noeud = cree_noeud(type, morceau);
 
@@ -51,45 +49,45 @@ void assembleuse_arbre::ajoute_noeud(Noeud *noeud)
 	m_pile.top()->ajoute_noeud(noeud);
 }
 
-Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
+Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &morceau)
 {
 	Noeud *noeud = nullptr;
 	bool reutilise = false;
 
 	switch (type) {
-		case NOEUD_RACINE:
+		case type_noeud::RACINE:
 			m_memoire_utilisee += sizeof(NoeudRacine);
 			noeud = new NoeudRacine(morceau);
 			break;
-		case NOEUD_APPEL_FONCTION:
+		case type_noeud::APPEL_FONCTION:
 			m_memoire_utilisee += sizeof(NoeudAppelFonction);
 			noeud = new NoeudAppelFonction(morceau);
 			break;
-		case NOEUD_DECLARATION_FONCTION:
+		case type_noeud::DECLARATION_FONCTION:
 			m_memoire_utilisee += sizeof(NoeudDeclarationFonction);
 			noeud = new NoeudDeclarationFonction(morceau);
 			break;
-		case NOEUD_EXPRESSION:
+		case type_noeud::EXPRESSION:
 			m_memoire_utilisee += sizeof(NoeudExpression);
 			noeud = new NoeudExpression(morceau);
 			break;
-		case NOEUD_ASSIGNATION_VARIABLE:
+		case type_noeud::ASSIGNATION_VARIABLE:
 			m_memoire_utilisee += sizeof(NoeudAssignationVariable);
 			noeud = new NoeudAssignationVariable(morceau);
 			break;
-		case NOEUD_DECLARATION_VARIABLE:
+		case type_noeud::DECLARATION_VARIABLE:
 			m_memoire_utilisee += sizeof(NoeudDeclarationVariable);
 			noeud = new NoeudDeclarationVariable(morceau);
 			break;
-		case NOEUD_VARIABLE:
+		case type_noeud::VARIABLE:
 			m_memoire_utilisee += sizeof(NoeudVariable);
 			noeud = new NoeudVariable(morceau);
 			break;
-		case NOEUD_ACCES_MEMBRE:
+		case type_noeud::ACCES_MEMBRE:
 			m_memoire_utilisee += sizeof(NoeudAccesMembre);
 			noeud = new NoeudAccesMembre(morceau);
 			break;
-		case NOEUD_NOMBRE_ENTIER:
+		case type_noeud::NOMBRE_ENTIER:
 			if (!noeuds_entier_libres.empty()) {
 				noeud = noeuds_entier_libres.back();
 				noeuds_entier_libres.pop_back();
@@ -101,7 +99,7 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 				noeud = new NoeudNombreEntier(morceau);
 			}
 			break;
-		case NOEUD_NOMBRE_REEL:
+		case type_noeud::NOMBRE_REEL:
 			if (!noeuds_reel_libres.empty()) {
 				noeud = noeuds_reel_libres.back();
 				noeuds_reel_libres.pop_back();
@@ -113,7 +111,7 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 				noeud = new NoeudNombreReel(morceau);
 			}
 			break;
-		case NOEUD_OPERATION:
+		case type_noeud::OPERATION:
 			if (!noeuds_op_libres.empty()) {
 				noeud = noeuds_op_libres.back();
 				noeuds_op_libres.pop_back();
@@ -125,19 +123,19 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 				noeud = new NoeudOperation(morceau);
 			}
 			break;
-		case NOEUD_RETOUR:
+		case type_noeud::RETOUR:
 			m_memoire_utilisee += sizeof(NoeudRetour);
 			noeud = new NoeudRetour(morceau);
 			break;
-		case NOEUD_CONSTANTE:
+		case type_noeud::CONSTANTE:
 			m_memoire_utilisee += sizeof(NoeudConstante);
 			noeud = new NoeudConstante(morceau);
 			break;
-		case NOEUD_CHAINE_LITTERALE:
+		case type_noeud::CHAINE_LITTERALE:
 			m_memoire_utilisee += sizeof(NoeudChaineLitterale);
 			noeud = new NoeudChaineLitterale(morceau);
 			break;
-		case NOEUD_BOOLEEN:
+		case type_noeud::BOOLEEN:
 			m_memoire_utilisee += sizeof(NoeudBooleen);
 			noeud = new NoeudBooleen(morceau);
 			break;
@@ -150,9 +148,9 @@ Noeud *assembleuse_arbre::cree_noeud(int type, const DonneesMorceaux &morceau)
 	return noeud;
 }
 
-void assembleuse_arbre::sors_noeud(int type)
+void assembleuse_arbre::sors_noeud(type_noeud type)
 {
-	assert(m_pile.top()->type_noeud() == type);
+	assert(m_pile.top()->type() == type);
 	m_pile.pop();
 	static_cast<void>(type);
 }
@@ -171,15 +169,17 @@ void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_genera
 
 void assembleuse_arbre::supprime_noeud(Noeud *noeud)
 {
-	switch (noeud->type_noeud()) {
-		case NOEUD_NOMBRE_ENTIER:
+	switch (noeud->type()) {
+		case type_noeud::NOMBRE_ENTIER:
 			this->noeuds_entier_libres.push_back(dynamic_cast<NoeudNombreEntier *>(noeud));
 			break;
-		case NOEUD_NOMBRE_REEL:
+		case type_noeud::NOMBRE_REEL:
 			this->noeuds_reel_libres.push_back(dynamic_cast<NoeudNombreReel *>(noeud));
 			break;
-		case NOEUD_OPERATION:
+		case type_noeud::OPERATION:
 			this->noeuds_op_libres.push_back(dynamic_cast<NoeudOperation *>(noeud));
+			break;
+		default:
 			break;
 	}
 }

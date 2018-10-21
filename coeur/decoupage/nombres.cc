@@ -32,10 +32,10 @@
  *
  */
 
-enum {
-	ETAT_NOMBRE_POINT,
-	ETAT_NOMBRE_EXPONENTIEL,
-	ETAT_NOMBRE_DEBUT,
+enum class etat_nombre : char {
+	POINT,
+	EXPONENTIEL,
+	DEBUT,
 };
 
 static inline constexpr bool est_nombre_binaire(char c)
@@ -119,7 +119,7 @@ static int extrait_nombre_hexadecimal(const char *debut, const char *fin, std::s
 static int extrait_nombre_decimal(const char *debut, const char *fin, std::string &chaine, id_morceau &id_nombre)
 {
 	int compte = 0;
-	int etat = ETAT_NOMBRE_DEBUT;
+	auto etat = etat_nombre::DEBUT;
 	id_nombre = id_morceau::NOMBRE_ENTIER;
 
 	while (debut != fin) {
@@ -133,11 +133,11 @@ static int extrait_nombre_decimal(const char *debut, const char *fin, std::strin
 					break;
 				}
 
-				if (etat == ETAT_NOMBRE_POINT) {
-					throw erreur::frappe("Erreur ! Le nombre contient un point en trop !\n", erreur::DECOUPAGE);
+				if (etat == etat_nombre::POINT) {
+					throw erreur::frappe("Erreur ! Le nombre contient un point en trop !\n", erreur::type_erreur::DECOUPAGE);
 				}
 
-				etat = ETAT_NOMBRE_POINT;
+				etat = etat_nombre::POINT;
 				id_nombre = id_morceau::NOMBRE_REEL;
 			}
 
