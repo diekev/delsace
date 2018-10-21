@@ -1217,7 +1217,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				return llvm::GetElementPtrInst::Create(
-							converti_type(contexte, type2),
+							converti_type(contexte, type2.derefence()),
 							valeur2,
 							{ valeur1 },
 							"",
