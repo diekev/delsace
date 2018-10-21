@@ -130,7 +130,6 @@ const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &n
 #endif
 }
 
-
 bool ContexteGenerationCode::peut_etre_assigne(const std::string_view &nom)
 {
 #ifndef VECTEUR_LOCAL

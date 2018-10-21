@@ -372,4 +372,3 @@ with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
 	source.write(fonction)
 	source.write(u'\nstatic constexpr auto TAILLE_MAX_MOT_CLE = {};\n'.format(taille_max_mot_cles))
 	source.write(fonctions)
-

@@ -55,7 +55,7 @@ struct DonneesVariable {
 	llvm::Value *valeur;
 	DonneesType donnees_type{};
 	bool est_variable = false;
-	char pad[7];
+	char pad[7] = {};
 };
 
 struct Block {
