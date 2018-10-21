@@ -202,6 +202,39 @@ static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
 	return os;
 }
 
+static void cree_executable()
+{
+	if (!std::experimental::filesystem::exists("/tmp/execution_kuri.o")) {
+		auto err = system("as -o /tmp/execution_kuri.o fichiers/execution_kuri.S");
+
+		if (err != 0) {
+			std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
+			return;
+		}
+	}
+
+	if (!std::experimental::filesystem::exists("/tmp/kuri.o")) {
+		std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
+		return;
+	}
+
+	std::stringstream ss;
+	ss << "ld ";
+	/* ce qui chargera le programme */
+	ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
+	ss << "-m elf_x86_64 ";
+	ss << "--hash-style=gnu ";
+	ss << "-lc ";
+	ss << "/tmp/execution_kuri.o ";
+	ss << "/tmp/kuri.o";
+
+	auto err = system(ss.str().c_str());
+
+	if (err != 0) {
+		std::cerr << "Ne peut pas créer l'executable !\n";
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -315,6 +348,8 @@ int main(int argc, char *argv[])
 		if (ops.emet_arbre) {
 			assembleuse.imprime_code(os);
 		}
+
+		cree_executable();
 
 		delete machine_cible;
 		os << "Nettoyage..." << std::endl;

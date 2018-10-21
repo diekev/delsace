@@ -41,3 +41,5 @@ target_link_libraries(kuri "${BIBLIOTHEQUES}")
 install(
     TARGETS kuri RUNTIME DESTINATION .
 )
+
+install(FILES fichiers/execution_kuri.S DESTINATION fichiers)
