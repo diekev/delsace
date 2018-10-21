@@ -82,52 +82,57 @@ DonneesType DonneesType::derefence() const
 
 std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 {
-	for (const auto &donnee : donnees_type) {
-		switch (donnee & 0xff) {
-			case ID_POINTEUR:
-				os << '*';
-				break;
-			case ID_TABLEAU:
-				os << '[';
-				os << (donnee >> 8);
-				os << ']';
-				break;
-			case ID_N8:
-				os << "n8";
-				break;
-			case ID_N16:
-				os << "n16";
-				break;
-			case ID_N32:
-				os << "n32";
-				break;
-			case ID_N64:
-				os << "n64";
-				break;
-			case ID_R16:
-				os << "r16";
-				break;
-			case ID_R32:
-				os << "r32";
-				break;
-			case ID_R64:
-				os << "r64";
-				break;
-			case ID_Z8:
-				os << "z8";
-				break;
-			case ID_Z16:
-				os << "z16";
-				break;
-			case ID_Z32:
-				os << "z32";
-				break;
-			case ID_Z64:
-				os << "z64";
-				break;
-			default:
-				os << chaine_identifiant(donnee & 0xff);
-				break;
+	if (donnees_type.est_invalide()) {
+		os << "type invalide";
+	}
+	else {
+		for (const auto &donnee : donnees_type) {
+			switch (donnee & 0xff) {
+				case ID_POINTEUR:
+					os << '*';
+					break;
+				case ID_TABLEAU:
+					os << '[';
+					os << (donnee >> 8);
+					os << ']';
+					break;
+				case ID_N8:
+					os << "n8";
+					break;
+				case ID_N16:
+					os << "n16";
+					break;
+				case ID_N32:
+					os << "n32";
+					break;
+				case ID_N64:
+					os << "n64";
+					break;
+				case ID_R16:
+					os << "r16";
+					break;
+				case ID_R32:
+					os << "r32";
+					break;
+				case ID_R64:
+					os << "r64";
+					break;
+				case ID_Z8:
+					os << "z8";
+					break;
+				case ID_Z16:
+					os << "z16";
+					break;
+				case ID_Z32:
+					os << "z32";
+					break;
+				case ID_Z64:
+					os << "z64";
+					break;
+				default:
+					os << chaine_identifiant(donnee & 0xff);
+					break;
+			}
 		}
 	}
 

@@ -1037,7 +1037,7 @@ void NoeudOperation::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudOperation : " << m_donnees_morceaux.chaine << '\n';
+	os << "NoeudOperation : " << m_donnees_morceaux.chaine << " : " << this->donnees_type << '\n';
 
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
@@ -1216,8 +1216,10 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								erreur::TYPE_DIFFERENTS);
 				}
 
+				this->calcul_type(contexte);
+
 				return llvm::GetElementPtrInst::Create(
-							converti_type(contexte, type2.derefence()),
+							converti_type(contexte, this->donnees_type),
 							valeur2,
 							{ valeur1 },
 							"",
