@@ -481,6 +481,10 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, morceau);
 			expression.push_back(noeud);
 		}
+		else if (morceau.identifiant == id_morceau::CARACTERE) {
+			auto noeud = m_assembleuse->cree_noeud(type_noeud::CARACTERE, morceau);
+			expression.push_back(noeud);
+		}
 		else if (morceau.identifiant == id_morceau::VRAI || morceau.identifiant == id_morceau::FAUX) {
 			/* remplace l'identifiant par id_morceau::BOOL */
 			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, id_morceau::BOOL };

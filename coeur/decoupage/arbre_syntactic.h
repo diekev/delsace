@@ -52,6 +52,7 @@ enum class type_noeud : char {
 	RETOUR,
 	CHAINE_LITTERALE,
 	BOOLEEN,
+	CARACTERE,
 };
 
 /* ************************************************************************** */
@@ -327,6 +328,23 @@ public:
 class NoeudBooleen final : public Noeud {
 public:
 	explicit NoeudBooleen(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	bool est_constant() const override;
+
+	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudCaractere final : public Noeud {
+public:
+	explicit NoeudCaractere(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

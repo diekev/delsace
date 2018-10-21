@@ -829,6 +829,45 @@ type_noeud NoeudBooleen::type() const
 
 /* ************************************************************************** */
 
+NoeudCaractere::NoeudCaractere(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{
+	this->donnees_type.pousse(id_morceau::Z8);
+}
+
+void NoeudCaractere::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudCaractere : " << m_donnees_morceaux.chaine << '\n';
+}
+
+llvm::Value *NoeudCaractere::genere_code_llvm(ContexteGenerationCode &contexte)
+{
+	auto valeur = m_donnees_morceaux.chaine[0];
+
+	return llvm::ConstantInt::get(
+				llvm::Type::getInt8Ty(contexte.contexte),
+				static_cast<uint64_t>(valeur),
+				false);
+}
+
+const DonneesType &NoeudCaractere::calcul_type(ContexteGenerationCode &/*contexte*/)
+{
+	return this->donnees_type;
+}
+
+bool NoeudCaractere::est_constant() const
+{
+	return true;
+}
+
+type_noeud NoeudCaractere::type() const
+{
+	return type_noeud::CARACTERE;
+}
+
+/* ************************************************************************** */
+
 NoeudNombreReel::NoeudNombreReel(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {

@@ -87,6 +87,10 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &mor
 			m_memoire_utilisee += sizeof(NoeudAccesMembre);
 			noeud = new NoeudAccesMembre(morceau);
 			break;
+		case type_noeud::CARACTERE:
+			m_memoire_utilisee += sizeof(NoeudCaractere);
+			noeud = new NoeudCaractere(morceau);
+			break;
 		case type_noeud::NOMBRE_ENTIER:
 			if (!noeuds_entier_libres.empty()) {
 				noeud = noeuds_entier_libres.back();
@@ -205,6 +209,7 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 	os << "NoeudConstante           : " << sizeof(NoeudConstante) << '\n';
 	os << "NoeudChaineLitterale     : " << sizeof(NoeudChaineLitterale) << '\n';
 	os << "NoeudBooleen             : " << sizeof(NoeudBooleen) << '\n';
+	os << "NoeudCaractere           : " << sizeof(NoeudCaractere) << '\n';
 	os << "------------------------------------------------------------------\n";
 	os << "DonneesType              : " << sizeof(DonneesType) << '\n';
 	os << "DonneesMorceaux          : " << sizeof(DonneesMorceaux) << '\n';
