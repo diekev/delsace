@@ -82,23 +82,23 @@
  */
 
 #include <fstream>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <iostream>
 
 #include "preproces.hh"
 
 static std::string trouve_chemin_absolu(Preproces &preproces, const std::string &chemin)
 {
-	if (std::experimental::filesystem::exists(chemin)) {
+	if (std::filesystem::exists(chemin)) {
 		return chemin;
 	}
 
 	for (const auto &chemin_inclusion : preproces.chemin_inclusions) {
-		auto chemin_tmp = std::experimental::filesystem::path(chemin_inclusion);
+		auto chemin_tmp = std::filesystem::path(chemin_inclusion);
 
 		chemin_tmp /= chemin;
 
-		if (std::experimental::filesystem::exists(chemin_tmp)) {
+		if (std::filesystem::exists(chemin_tmp)) {
 			return chemin_tmp;
 		}
 	}

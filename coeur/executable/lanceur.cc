@@ -23,7 +23,7 @@
  */
 
 #include <cstring>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -204,7 +204,7 @@ static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
 
 static void cree_executable()
 {
-	if (!std::experimental::filesystem::exists("/tmp/execution_kuri.o")) {
+	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
 		auto err = system("as -o /tmp/execution_kuri.o fichiers/execution_kuri.S");
 
 		if (err != 0) {
@@ -213,7 +213,7 @@ static void cree_executable()
 		}
 	}
 
-	if (!std::experimental::filesystem::exists("/tmp/kuri.o")) {
+	if (!std::filesystem::exists("/tmp/kuri.o")) {
 		std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
 		return;
 	}
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (!std::experimental::filesystem::exists(chemin_fichier)) {
+	if (!std::filesystem::exists(chemin_fichier)) {
 		std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
 		return 1;
 	}
