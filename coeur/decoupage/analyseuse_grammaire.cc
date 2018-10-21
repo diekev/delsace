@@ -321,6 +321,12 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 
 void analyseuse_grammaire::analyse_corps_fonction()
 {
+	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
+	 * l'on n'ait pas terminé. */
+	if (est_identifiant(ID_ACCOLADE_FERMANTE)) {
+		return;
+	}
+
 	/* assignement : soit x = a + b; */
 	if (est_identifiant(ID_SOIT)) {
 		avance();
@@ -415,9 +421,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		analyse_expression_droite(ID_POINT_VIRGULE, false, true);
 	}
 
-	if (!est_identifiant(ID_ACCOLADE_FERMANTE)) {
-		analyse_corps_fonction();
-	}
+	analyse_corps_fonction();
 }
 
 static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(ID_PARENTHESE_OUVRANTE);
