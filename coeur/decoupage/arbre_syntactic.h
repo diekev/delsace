@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <any>
 #include <list>
 
 #include "donnees_type.h"
@@ -132,11 +133,7 @@ protected:
 	DonneesMorceaux m_donnees_morceaux;
 
 public:
-	union {
-		double valeur_reelle;
-		long valeur_entiere;
-		bool valeur_boolenne;
-	};
+	std::any valeur_calculee;
 
 	DonneesType donnees_type{};
 

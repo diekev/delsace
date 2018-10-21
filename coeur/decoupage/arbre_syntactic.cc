@@ -745,7 +745,7 @@ void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 	os << "NoeudNombreEntier : ";
 
 	if (this->calcule) {
-		os << this->valeur_entiere << '\n';
+		os << std::any_cast<long>(this->valeur_calculee) << '\n';
 	}
 	else {
 		os << m_donnees_morceaux.chaine << '\n';
@@ -754,7 +754,7 @@ void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	const auto valeur = this->calcule ? this->valeur_entiere :
+	const auto valeur = this->calcule ? std::any_cast<long>(this->valeur_calculee) :
 										converti_chaine_nombre_entier(
 											m_donnees_morceaux.chaine,
 											m_donnees_morceaux.identifiant);
@@ -795,7 +795,7 @@ void NoeudBooleen::imprime_code(std::ostream &os, int tab)
 	os << "NoeudBooleen : ";
 
 	if (this->calcule) {
-		os << ((this->valeur_boolenne) ? "vrai" : "faux") << '\n';
+		os << ((std::any_cast<bool>(this->valeur_calculee)) ? "vrai" : "faux") << '\n';
 	}
 	else {
 		os << m_donnees_morceaux.chaine << '\n';
@@ -804,7 +804,7 @@ void NoeudBooleen::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudBooleen::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	const auto valeur = this->calcule ? this->valeur_boolenne
+	const auto valeur = this->calcule ? std::any_cast<bool>(this->valeur_calculee)
 									  : (this->chaine() == "vrai");
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt1Ty(contexte.contexte),
@@ -881,7 +881,7 @@ void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 	os << "NoeudNombreReel : ";
 
 	if (this->calcule) {
-		os << this->valeur_reelle << '\n';
+		os << std::any_cast<double>(this->valeur_calculee) << '\n';
 	}
 	else {
 		os << m_donnees_morceaux.chaine << '\n';
@@ -890,7 +890,7 @@ void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	const auto valeur = this->calcule ? this->valeur_reelle :
+	const auto valeur = this->calcule ? std::any_cast<double>(this->valeur_calculee) :
 										converti_chaine_nombre_reel(
 											m_donnees_morceaux.chaine,
 											m_donnees_morceaux.identifiant);

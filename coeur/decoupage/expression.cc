@@ -257,17 +257,17 @@ static bool sont_compatibles(id_morceau id1, id_morceau id2)
 
 static inline long extrait_nombre_entier(Noeud *n)
 {
-	return n->calcule ? n->valeur_entiere : converti_chaine_nombre_entier(n->chaine(), n->identifiant());
+	return n->calcule ? std::any_cast<long>(n->valeur_calculee) : converti_chaine_nombre_entier(n->chaine(), n->identifiant());
 }
 
 static inline double extrait_nombre_reel(Noeud *n)
 {
-	return n->calcule ? n->valeur_reelle : converti_chaine_nombre_reel(n->chaine(), n->identifiant());
+	return n->calcule ? std::any_cast<double>(n->valeur_calculee) : converti_chaine_nombre_reel(n->chaine(), n->identifiant());
 }
 
 static inline bool extrait_valeur_bool(Noeud *n)
 {
-	return n->calcule ? n->valeur_boolenne : (n->chaine() == "vrai");
+	return n->calcule ? std::any_cast<bool>(n->valeur_calculee) : (n->chaine() == "vrai");
 }
 
 Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1, Noeud *n2)
@@ -281,7 +281,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		auto v2 = extrait_nombre_reel(n2);
 
 		if (est_operation_arithmetique_reel(op->identifiant())) {
-			n1->valeur_reelle = calcul_expression_nombre_reel(op->identifiant(), v1, v2);
+			n1->valeur_calculee = calcul_expression_nombre_reel(op->identifiant(), v1, v2);
 			n1->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -292,7 +292,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 
 		if (est_operation_comparaison(op->identifiant())) {
 			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
-			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
+			noeud->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -310,7 +310,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		auto v2 = extrait_nombre_entier(n2);
 
 		if (est_operation_arithmetique(op->identifiant())) {
-			n1->valeur_entiere = calcul_expression_nombre_entier(op->identifiant(), v1, v2);
+			n1->valeur_calculee = calcul_expression_nombre_entier(op->identifiant(), v1, v2);
 			n1->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -321,7 +321,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 
 		if (est_operation_comparaison(op->identifiant())) {
 			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
-			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
+			noeud->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -333,7 +333,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 
 		if (est_operation_booleenne(op->identifiant())) {
 			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
-			noeud->valeur_boolenne = calcul_expression_boolenne(op->identifiant(), v1, v2);
+			noeud->valeur_calculee = calcul_expression_boolenne(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -351,7 +351,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		auto v2 = extrait_valeur_bool(n2);
 
 		if (est_operation_comparaison(op->identifiant())) {
-			n1->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
+			n1->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			n1->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -361,7 +361,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_booleenne(op->identifiant())) {
-			n1->valeur_boolenne = calcul_expression_boolenne(op->identifiant(), v1, v2);
+			n1->valeur_calculee = calcul_expression_boolenne(op->identifiant(), v1, v2);
 			n1->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -381,7 +381,7 @@ Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 	if (n1->identifiant() == id_morceau::NOMBRE_ENTIER) {
 		if (op->identifiant() == id_morceau::TILDE) {
 			auto v = extrait_nombre_entier(n1);
-			n1->valeur_entiere = ~v;
+			n1->valeur_calculee = ~v;
 			n1->calcule = true;
 
 			assembleuse.supprime_noeud(op);
@@ -395,7 +395,7 @@ Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 	if (n1->identifiant() == id_morceau::BOOL) {
 		if (op->identifiant() == id_morceau::EXCLAMATION) {
 			auto v = extrait_valeur_bool(n1);
-			n1->valeur_boolenne = !v;
+			n1->valeur_calculee = !v;
 			n1->calcule = true;
 
 			assembleuse.supprime_noeud(op);
