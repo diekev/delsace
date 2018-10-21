@@ -1180,14 +1180,19 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_DECALAGE_DROITE:
-				if (!est_type_entier(type1.type_base())) {
+				if (est_type_entier_naturel(type1.type_base())) {
+					instr = llvm::Instruction::LShr;
+				}
+				else if (est_type_entier_relatif(type1.type_base())) {
+					instr = llvm::Instruction::AShr;
+				}
+				else {
 					erreur::lance_erreur(
 								"Besoin d'un type entier pour le décalage !",
 								contexte.tampon,
 								m_donnees_morceaux,
 								erreur::TYPE_DIFFERENTS);
 				}
-				instr = llvm::Instruction::LShr;
 				break;
 			case ID_DECALAGE_GAUCHE:
 				if (!est_type_entier(type1.type_base())) {
@@ -1197,6 +1202,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								m_donnees_morceaux,
 								erreur::TYPE_DIFFERENTS);
 				}
+
 				instr = llvm::Instruction::Shl;
 				break;
 			case ID_ESPERLUETTE:
