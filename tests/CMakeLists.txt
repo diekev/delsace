@@ -68,3 +68,11 @@ install(
 add_test(tests test_kuri)
 
 install(TARGETS test_kuri RUNTIME DESTINATION .)
+
+add_executable(test_aleatoire_kuri test_donnees_aleatoire.cc)
+target_include_directories(test_aleatoire_kuri PUBLIC "${INCLUSIONS}")
+target_link_libraries(test_aleatoire_kuri "${BIBLIOTHEQUES}")
+
+add_test(tests test_aleatoire_kuri)
+
+install(TARGETS test_aleatoire_kuri RUNTIME DESTINATION .)
