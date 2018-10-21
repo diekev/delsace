@@ -219,9 +219,19 @@ static bool calcul_expression_comparaison(id_morceau op, T n1, T n2)
 		case id_morceau::SUPERIEUR_EGAL:
 			return n1 >= n2;
 		case id_morceau::DIFFERENCE:
-			return n1 != n2;
+			if constexpr (std::is_floating_point<T>::value) {
+				return std::abs(n1 - n2) > std::numeric_limits<T>::epsilon();
+			}
+			else {
+				return n1 != n2;
+			}
 		case id_morceau::EGALITE:
-			return n1 == n2;
+			if constexpr (std::is_floating_point<T>::value) {
+				return std::abs(n1 - n2) <= std::numeric_limits<T>::epsilon();
+			}
+			else {
+				return n1 == n2;
+			}
 		default:
 			return false;
 	}
