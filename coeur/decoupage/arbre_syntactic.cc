@@ -138,6 +138,33 @@ static bool est_type_entier(int type)
 	}
 }
 
+static bool est_type_entier_naturel(int type)
+{
+	switch (type) {
+		case ID_N8:
+		case ID_N16:
+		case ID_N32:
+		case ID_N64:
+		case ID_POINTEUR:  /* À FAIRE : sépare ça. */
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool est_type_entier_relatif(int type)
+{
+	switch (type) {
+		case ID_Z8:
+		case ID_Z16:
+		case ID_Z32:
+		case ID_Z64:
+			return true;
+		default:
+			return false;
+	}
+}
+
 #if 0
 static bool est_type_reel(int type)
 {
@@ -1129,7 +1156,10 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_DIVISE:
-				if (est_type_entier(type1.type_base())) {
+				if (est_type_entier_naturel(type1.type_base())) {
+					instr = llvm::Instruction::UDiv;
+				}
+				else if (est_type_entier_relatif(type1.type_base())) {
 					instr = llvm::Instruction::SDiv;
 				}
 				else {
@@ -1138,7 +1168,10 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_POURCENT:
-				if (est_type_entier(type1.type_base())) {
+				if (est_type_entier_naturel(type1.type_base())) {
+					instr = llvm::Instruction::URem;
+				}
+				else if (est_type_entier_relatif(type1.type_base())) {
 					instr = llvm::Instruction::SRem;
 				}
 				else {
