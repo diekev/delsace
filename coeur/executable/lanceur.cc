@@ -333,20 +333,20 @@ int main(int argc, char *argv[])
 		assembleuse.genere_code_llvm(contexte_generation);
 		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
 
-		/* définition du fichier de sortie */
-		if (ops.emet_fichier_objet) {
-			os << "Écriture du code dans un fichier..." << std::endl;
-			if (!ecris_fichier_objet(machine_cible, module)) {
-				resultat = 1;
-			}
-		}
-
 		if (ops.emet_code_intermediaire) {
 			module.dump();
 		}
 
 		if (ops.emet_arbre) {
 			assembleuse.imprime_code(os);
+		}
+
+		/* définition du fichier de sortie */
+		if (ops.emet_fichier_objet) {
+			os << "Écriture du code dans un fichier..." << std::endl;
+			if (!ecris_fichier_objet(machine_cible, module)) {
+				resultat = 1;
+			}
 		}
 
 		cree_executable();
