@@ -706,7 +706,7 @@ int NoeudConstante::type_noeud() const
 NoeudNombreEntier::NoeudNombreEntier(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
-	this->donnees_type.pousse(ID_N32);
+	this->donnees_type.pousse(ID_Z32);
 }
 
 void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
