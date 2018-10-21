@@ -1429,7 +1429,7 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 
 	this->calcul_type(contexte);
 
-	if (m_enfants.size() > 0) {
+	if (!m_enfants.empty()) {
 		assert(m_enfants.size() == 1);
 		valeur = m_enfants.front()->genere_code_llvm(contexte);
 	}
@@ -1439,7 +1439,7 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 
 const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 {
-	if (m_enfants.size() == 0) {
+	if (m_enfants.empty()) {
 		return this->donnees_type;
 	}
 
