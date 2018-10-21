@@ -334,7 +334,9 @@ int main(int argc, char *argv[])
 		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
 
 		if (ops.emet_code_intermediaire) {
+			std::cerr <<  "------------------------------------------------------------------\n";
 			module.dump();
+			std::cerr <<  "------------------------------------------------------------------\n";
 		}
 
 		if (ops.emet_arbre) {

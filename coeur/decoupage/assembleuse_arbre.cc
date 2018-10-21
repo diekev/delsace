@@ -159,7 +159,9 @@ void assembleuse_arbre::sors_noeud(int type)
 
 void assembleuse_arbre::imprime_code(std::ostream &os)
 {
+	os << "------------------------------------------------------------------\n";
 	m_pile.top()->imprime_code(os, 0);
+	os << "------------------------------------------------------------------\n";
 }
 
 void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_generation)
