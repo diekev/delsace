@@ -1332,8 +1332,6 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								erreur::TYPE_DIFFERENTS);
 				}
 
-				this->calcul_type(contexte);
-
 				return llvm::GetElementPtrInst::Create(
 							converti_type(contexte, this->donnees_type),
 							valeur2,
@@ -1360,19 +1358,21 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 {
-	if (m_donnees_morceaux.identifiant == ID_AROBASE) {
-		this->donnees_type.pousse(ID_POINTEUR);
-		this->donnees_type.pousse(m_enfants.front()->calcul_type(contexte));
-		return this->donnees_type;
+	if (this->donnees_type.est_invalide()) {
+		if (m_donnees_morceaux.identifiant == ID_AROBASE) {
+			this->donnees_type.pousse(ID_POINTEUR);
+			this->donnees_type.pousse(m_enfants.front()->calcul_type(contexte));
+		}
+		else if (m_donnees_morceaux.identifiant == ID_CROCHET_OUVRANT) {
+			auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
+			this->donnees_type = donnees_enfant.derefence();
+		}
+		else {
+			this->donnees_type = m_enfants.front()->calcul_type(contexte);
+		}
 	}
 
-	if (m_donnees_morceaux.identifiant == ID_CROCHET_OUVRANT) {
-		auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
-		this->donnees_type = donnees_enfant.derefence();
-		return this->donnees_type;
-	}
-
-	return m_enfants.front()->calcul_type(contexte);
+	return this->donnees_type;
 }
 
 int NoeudOperation::type_noeud() const
@@ -1416,6 +1416,8 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 {
 	llvm::Value *valeur = nullptr;
 
+	this->calcul_type(contexte);
+
 	if (m_enfants.size() > 0) {
 		assert(m_enfants.size() == 1);
 		valeur = m_enfants.front()->genere_code_llvm(contexte);
@@ -1430,7 +1432,8 @@ const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 		return this->donnees_type;
 	}
 
-	return m_enfants.front()->calcul_type(contexte);
+	this->donnees_type = m_enfants.front()->calcul_type(contexte);
+	return this->donnees_type;
 }
 
 int NoeudRetour::type_noeud() const
