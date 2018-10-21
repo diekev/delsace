@@ -1109,7 +1109,10 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 	}
 
 	if (m_enfants.size() == 2) {
-		llvm::Instruction::BinaryOps instr;
+		auto instr = llvm::Instruction::Add;
+		auto predicat = llvm::CmpInst::Predicate::FCMP_FALSE;
+		auto est_comp_entier = false;
+		auto est_comp_reel = false;
 
 		const auto type1 = m_enfants.front()->calcul_type(contexte);
 		const auto type2 = m_enfants.back()->calcul_type(contexte);
@@ -1239,12 +1242,86 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				break;
 			/* À FAIRE. */
 			case ID_INFERIEUR:
+				if (est_type_entier_naturel(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_ULT;
+				}
+				else if (est_type_entier_relatif(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_SLT;
+				}
+				else {
+					est_comp_reel = true;
+					predicat = llvm::CmpInst::Predicate::FCMP_OLT;
+				}
+
+				break;
 			case ID_INFERIEUR_EGAL:
+				if (est_type_entier_naturel(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_ULE;
+				}
+				else if (est_type_entier_relatif(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_SLE;
+				}
+				else {
+					est_comp_reel = true;
+					predicat = llvm::CmpInst::Predicate::FCMP_OLE;
+				}
+
+				break;
 			case ID_SUPERIEUR:
+				if (est_type_entier_naturel(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_UGT;
+				}
+				else if (est_type_entier_relatif(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_SGT;
+				}
+				else {
+					est_comp_reel = true;
+					predicat = llvm::CmpInst::Predicate::FCMP_OGT;
+				}
+
+				break;
 			case ID_SUPERIEUR_EGAL:
+				if (est_type_entier_naturel(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_UGE;
+				}
+				else if (est_type_entier_relatif(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_SGE;
+				}
+				else {
+					est_comp_reel = true;
+					predicat = llvm::CmpInst::Predicate::FCMP_OGE;
+				}
+
+				break;
 			case ID_EGALITE:
+				if (est_type_entier(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_EQ;
+				}
+				else {
+					est_comp_reel = true;
+					predicat = llvm::CmpInst::Predicate::FCMP_OEQ;
+				}
+
+				break;
 			case ID_DIFFERENCE:
-				instr = llvm::Instruction::Add;
+				if (est_type_entier(type1.type_base())) {
+					est_comp_entier = true;
+					predicat = llvm::CmpInst::Predicate::ICMP_NE;
+				}
+				else {
+					est_comp_reel = true;
+					predicat = llvm::CmpInst::Predicate::FCMP_ONE;
+				}
+
 				break;
 			case ID_CROCHET_OUVRANT:
 				if (type2.type_base() != ID_POINTEUR && (type2.type_base() & 0xff) != ID_TABLEAU) {
@@ -1265,6 +1342,14 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 							contexte.block_courant());
 			default:
 				return nullptr;
+		}
+
+		if (est_comp_entier) {
+			return llvm::ICmpInst::Create(llvm::Instruction::ICmp, predicat, valeur1, valeur2, "", contexte.block_courant());
+		}
+
+		if (est_comp_reel) {
+			return llvm::FCmpInst::Create(llvm::Instruction::FCmp, predicat, valeur1, valeur2, "", contexte.block_courant());
 		}
 
 		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.block_courant());
