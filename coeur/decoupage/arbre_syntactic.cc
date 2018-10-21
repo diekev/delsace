@@ -1324,6 +1324,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				break;
 			case ID_CROCHET_OUVRANT:
+			{
 				if (type2.type_base() != ID_POINTEUR && (type2.type_base() & 0xff) != ID_TABLEAU) {
 					erreur::lance_erreur(
 								"Le type ne peut être déréférencé !",
@@ -1332,12 +1333,20 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								erreur::TYPE_DIFFERENTS);
 				}
 
-				return llvm::GetElementPtrInst::Create(
-							converti_type(contexte, this->donnees_type),
-							valeur2,
-							{ valeur1 },
-							"",
-							contexte.block_courant());
+				auto valeur = llvm::GetElementPtrInst::Create(
+								  converti_type(contexte, this->donnees_type),
+								  valeur2,
+								  { valeur1 },
+								  "",
+								  contexte.block_courant());
+
+				/* Ajout d'un niveau d'indirection pour pouvoir proprement
+				 * générer un code pour les expressions de type x[0][0]. Sans ça
+				 * LLVM n'arrive pas à déterminer correctement la valeur
+				 * déréférencée : on se retrouve avec type(x[0][0]) == (type[0])
+				 * ce qui n'est pas forcément le cas. */
+				return new llvm::LoadInst(valeur, "", contexte.block_courant());
+			}
 			default:
 				return nullptr;
 		}
