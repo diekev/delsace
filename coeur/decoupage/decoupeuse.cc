@@ -156,13 +156,19 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 
 	/* La position ligne est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < m_position_ligne; i += static_cast<size_t>(nombre_octets(&ligne_courante[i]))) {
+	for (size_t i = 0; i < m_position_ligne;) {
 		if (ligne_courante[i] == '\t') {
 			ss << '\t';
 		}
 		else {
 			ss << ' ';
 		}
+
+		/* il est possible que l'on reçoive un caractère unicode invalide, donc
+		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
+		 * boucle infinie. À FAIRE : trouver mieux */
+		auto n = std::max(1, nombre_octets(&ligne_courante[i]));
+		i += static_cast<size_t>(n);
 	}
 
 	ss << "^~~~\n";

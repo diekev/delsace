@@ -52,20 +52,32 @@ static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const 
 {
 	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < nombre; i += static_cast<size_t>(nombre_octets(&chaine[i]))) {
+	for (size_t i = 0; i < nombre;) {
 		if (chaine[i] == '\t') {
 			os << '\t';
 		}
 		else {
 			os << ' ';
 		}
+
+		/* il est possible que l'on reçoive un caractère unicode invalide, donc
+		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
+		 * boucle infinie. À FAIRE : trouver mieux */
+		auto n = std::max(1, nombre_octets(&chaine[i]));
+		i += static_cast<size_t>(n);
 	}
 }
 
 static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 {
-	for (size_t i = 0; i < chaine.size() - 1; i += static_cast<size_t>(nombre_octets(&chaine[i]))) {
+	for (size_t i = 0; i < chaine.size() - 1;) {
 		os << '~';
+
+		/* il est possible que l'on reçoive un caractère unicode invalide, donc
+		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
+		 * boucle infinie. À FAIRE : trouver mieux */
+		auto n = std::max(1, nombre_octets(&chaine[i]));
+		i += static_cast<size_t>(n);
 	}
 }
 
