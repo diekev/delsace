@@ -378,11 +378,33 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 
 Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1)
 {
-#if 0
-	auto res = assembleuse.cree_noeud(type_noeud::NOMBRE_ENTIER, {});
-	assembleuse.supprime_noeud(op);
-	assembleuse.supprime_noeud(n1);
-#endif
-	op->ajoute_noeud(n1);
-	return op;
+	if (n1->identifiant() == id_morceau::NOMBRE_ENTIER) {
+		if (op->identifiant() == id_morceau::TILDE) {
+			auto v = extrait_nombre_entier(n1);
+			n1->valeur_entiere = ~v;
+			n1->calcule = true;
+
+			assembleuse.supprime_noeud(op);
+
+			return n1;
+		}
+
+		return nullptr;
+	}
+
+	if (n1->identifiant() == id_morceau::BOOL) {
+		if (op->identifiant() == id_morceau::EXCLAMATION) {
+			auto v = extrait_valeur_bool(n1);
+			n1->valeur_boolenne = !v;
+			n1->calcule = true;
+
+			assembleuse.supprime_noeud(op);
+
+			return n1;
+		}
+
+		return nullptr;
+	}
+
+	return nullptr;
 }

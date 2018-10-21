@@ -652,13 +652,17 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			if (n1->est_constant()) {
 				if (est_operateur_constant(noeud->identifiant())) {
 					noeud = calcul_expression_simple(*m_assembleuse, noeud, n1);
+
+					if (noeud == nullptr) {
+						lance_erreur("Ne peut pas calculer l'expression");
+					}
 				}
 				else if (calcul_expression) {
-					lance_erreur("Ne peut pas calculer l'expression");
+					lance_erreur("Ne peut pas calculer l'expression car l'opérateur n'est pas constant");
 				}
 			}
 			else if (calcul_expression) {
-				lance_erreur("Ne peut pas calculer l'expression");
+				lance_erreur("Ne peut pas calculer l'expression car le noeud n'est pas constant");
 			}
 			else {
 				noeud->reserve_enfants(1);
