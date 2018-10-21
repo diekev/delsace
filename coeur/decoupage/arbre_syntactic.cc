@@ -928,14 +928,24 @@ void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudChaineLitterale : " << m_donnees_morceaux.chaine << '\n';
+	os << "NoeudChaineLitterale : ";
+	if (this->calcule) {
+		os << std::any_cast<std::string>(this->valeur_calculee) << '\n';
+	}
+	else {
+		os << m_donnees_morceaux.chaine << '\n';
+	}
 }
 
 llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &contexte)
 {
+	auto chaine = this->calcule
+				  ? std::any_cast<std::string>(this->valeur_calculee)
+				  : std::string(m_donnees_morceaux.chaine);
+
 	auto constante = llvm::ConstantDataArray::getString(
 						 contexte.contexte,
-						 std::string(m_donnees_morceaux.chaine));
+						 chaine);
 
 	auto type = converti_type(contexte, this->donnees_type);
 
@@ -950,6 +960,11 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 const DonneesType &NoeudChaineLitterale::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
 	return this->donnees_type;
+}
+
+bool NoeudChaineLitterale::est_constant() const
+{
+	return true;
 }
 
 type_noeud NoeudChaineLitterale::type() const

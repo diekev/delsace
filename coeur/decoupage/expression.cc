@@ -270,9 +270,39 @@ static inline bool extrait_valeur_bool(Noeud *n)
 	return n->calcule ? std::any_cast<bool>(n->valeur_calculee) : (n->chaine() == "vrai");
 }
 
+static inline std::string extrait_chaine(Noeud *n)
+{
+	return n->calcule ? std::any_cast<std::string>(n->valeur_calculee) : std::string(n->chaine());
+}
+
 Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1, Noeud *n2)
 {
 	if (!sont_compatibles(n1->identifiant(), n2->identifiant())) {
+		return nullptr;
+	}
+
+	if (n1->identifiant() == id_morceau::CHAINE_LITTERALE) {
+		if (op->identifiant() == id_morceau::PLUS) {
+			auto v1 = extrait_chaine(n1);
+			auto v2 = extrait_chaine(n2);
+
+			std::string v;
+			v.reserve(v1.size() + v2.size());
+			v.append(v1);
+			v.append(v2);
+
+			n1->valeur_calculee = v;
+			n1->calcule = true;
+			n1->donnees_type = DonneesType();
+			n1->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(v.size() << 8));
+			n1->donnees_type.pousse(id_morceau::N8);
+
+			assembleuse.supprime_noeud(op);
+			assembleuse.supprime_noeud(n2);
+
+			return n1;
+		}
+
 		return nullptr;
 	}
 

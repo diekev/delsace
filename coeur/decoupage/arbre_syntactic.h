@@ -383,6 +383,8 @@ public:
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
+	bool est_constant() const override;
+
 	type_noeud type() const override;
 };
 
