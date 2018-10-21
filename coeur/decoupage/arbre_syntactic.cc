@@ -1216,9 +1216,10 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								erreur::TYPE_DIFFERENTS);
 				}
 
-				return llvm::ExtractElementInst::Create(
+				return llvm::GetElementPtrInst::Create(
+							converti_type(contexte, type2),
 							valeur2,
-							valeur1,
+							{ valeur1 },
 							"",
 							contexte.block_courant());
 			default:
