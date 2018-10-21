@@ -176,7 +176,11 @@ static bool est_operateur_constant(id_morceau identifiant)
 
 /* ************************************************************************** */
 
-analyseuse_grammaire::analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon, assembleuse_arbre *assembleuse)
+analyseuse_grammaire::analyseuse_grammaire(
+		ContexteGenerationCode &contexte,
+		const std::vector<DonneesMorceaux> &identifiants,
+		const TamponSource &tampon,
+		assembleuse_arbre *assembleuse)
 	: Analyseuse(identifiants, tampon)
 	, m_assembleuse(assembleuse)
 	, m_contexte(contexte)
