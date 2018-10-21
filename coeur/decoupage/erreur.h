@@ -106,4 +106,10 @@ public:
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau);
 
+[[noreturn]] void lance_erreur_type_operation(
+		const DonneesType &type_gauche,
+		const DonneesType &type_droite,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau);
+
 }

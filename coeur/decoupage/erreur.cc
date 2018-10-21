@@ -236,4 +236,30 @@ void lance_erreur(
 	throw frappe(ss.str().c_str(), type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 }
 
+void lance_erreur_type_operation(
+		const DonneesType &type_gauche,
+		const DonneesType &type_droite,
+		const TamponSource &tampon,
+		const DonneesMorceaux &morceau)
+{
+	const auto numero_ligne = morceau.ligne_pos >> 32;
+	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto ligne = tampon[numero_ligne];
+
+	std::stringstream ss;
+	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << ligne;
+
+	imprime_caractere_vide(ss, pos_mot, ligne);
+	ss << '^';
+	imprime_tilde(ss, morceau.chaine);
+	ss << '\n';
+
+	ss << "Les types de l'opération sont différents !\n";
+	ss << "Type à gauche : " << type_gauche << '\n';
+	ss << "Type à droite : " << type_droite << '\n';
+
+	throw frappe(ss.str().c_str(), type_erreur::TYPE_DIFFERENTS);
+}
+
 }

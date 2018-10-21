@@ -1158,12 +1158,12 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		const auto type1 = m_enfants.front()->calcul_type(contexte);
 		const auto type2 = m_enfants.back()->calcul_type(contexte);
 
-		if (this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT && type1 != type2) {
-			erreur::lance_erreur(
-						"Les types de l'opération sont différents !",
+		if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT) && (type1 != type2)) {
+			erreur::lance_erreur_type_operation(
+						type1,
+						type2,
 						contexte.tampon,
-						m_donnees_morceaux,
-						erreur::type_erreur::TYPE_DIFFERENTS);
+						m_donnees_morceaux);
 		}
 
 		/* À FAIRE : typage */
