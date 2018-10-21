@@ -38,22 +38,17 @@ enum {
 	ETAT_NOMBRE_DEBUT,
 };
 
-bool est_nombre_decimal(char c)
-{
-	return (c >= '0') && (c <= '9');
-}
-
-static inline bool est_nombre_binaire(char c)
+static inline constexpr bool est_nombre_binaire(char c)
 {
 	return (c == '0' || c == '1');
 }
 
-static inline bool est_nombre_octal(char c)
+static inline constexpr bool est_nombre_octal(char c)
 {
 	return (c >= '0' && c <= '7');
 }
 
-static inline bool est_nombre_hexadecimal(char c)
+static inline constexpr bool est_nombre_hexadecimal(char c)
 {
 	return est_nombre_decimal(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 }

@@ -32,7 +32,10 @@
  * Retourne vrai si le caractère spécifié est un nombre décimal, c'est-à-dire
  * entre 0 et 9.
  */
-bool est_nombre_decimal(char c);
+constexpr bool est_nombre_decimal(char c)
+{
+	return (c >= '0') && (c <= '9');
+}
 
 /**
  * Extrait un nombre depuis une chaîne de caractère spécifiée par 'debut' et
