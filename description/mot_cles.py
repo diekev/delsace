@@ -121,12 +121,12 @@ def enleve_accent(mot):
 
 def construit_structures():
 	structures = u''
-
-	structures += u'struct DonneesMorceaux {\n'
+	structures += u'\nstruct DonneesMorceaux {\n'
 	structures += u'\tstd::string_view chaine;\n'
 	structures += u'\tsize_t ligne_pos;\n'
-	structures += u'\tsize_t identifiant;\n'
-	structures += u'};\n\n'
+	structures += u'\tid_morceau identifiant;\n'
+	structures += u'\tint pad = 0;\n'
+	structures += u'};\n'
 
 	return structures
 
@@ -134,29 +134,29 @@ def construit_structures():
 def construit_tableaux():
 	tableaux = u''
 
-	tableaux += u'static std::map<std::string_view, int> paires_mots_cles = {\n'
+	tableaux += u'static std::map<std::string_view, id_morceau> paires_mots_cles = {\n'
 
 	for mot in mot_cles:
 		m = enleve_accent(mot)
 		m = m.upper()
-		tableaux += u'\t{{ "{}", ID_{} }},\n'.format(mot, m)
+		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(mot, m)
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<std::string_view, int> paires_caracteres_double = {\n'
+	tableaux += u'static std::map<std::string_view, id_morceau> paires_caracteres_double = {\n'
 
 	for c in caracteres_double:
-		tableaux += u'\t{{ "{}", ID_{} }},\n'.format(c[0], c[1])
+		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(c[0], c[1])
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<char, int> paires_caracteres_speciaux = {\n'
+	tableaux += u'static std::map<char, id_morceau> paires_caracteres_speciaux = {\n'
 
 	for c in caracteres_simple:
 		if c[0] == "'":
 			c[0] = "\\'"
 
-		tableaux += u"\t{{ '{}', ID_{} }},\n".format(c[0], c[1])
+		tableaux += u"\t{{ '{}', id_morceau::{} }},\n".format(c[0], c[1])
 
 	tableaux += u'};\n\n'
 
@@ -164,19 +164,19 @@ def construit_tableaux():
 
 
 def constuit_enumeration():
-	enumeration = u'enum {\n'
+	enumeration = u'enum class id_morceau : int {\n'
 
 	for car in caracteres_simple:
-		enumeration += u'\tID_{},\n'.format(car[1])
+		enumeration += u'\t{},\n'.format(car[1])
 
 	for car in caracteres_double:
-		enumeration += u'\tID_{},\n'.format(car[1])
+		enumeration += u'\t{},\n'.format(car[1])
 
 	for mot in mot_cles + id_extra:
 		m = enleve_accent(mot)
 		m = m.upper()
 
-		enumeration += u'\tID_{},\n'.format(m)
+		enumeration += u'\t{},\n'.format(m)
 
 	enumeration += u'};\n'
 
@@ -184,23 +184,23 @@ def constuit_enumeration():
 
 
 def construit_fonction_chaine_identifiant():
-	fonction = u'const char *chaine_identifiant(int id)\n{\n'
+	fonction = u'const char *chaine_identifiant(id_morceau id)\n{\n'
 	fonction += u'\tswitch (id) {\n'
 
 	for car in caracteres_simple:
-		fonction += u'\t\tcase ID_{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "ID_{}";\n'.format(car[1])
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
 
 	for car in caracteres_double:
-		fonction += u'\t\tcase ID_{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "ID_{}";\n'.format(car[1])
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
 
 	for mot in mot_cles + id_extra:
 		m = enleve_accent(mot)
 		m = m.upper()
 
-		fonction += u'\t\tcase ID_{}:\n'.format(m)
-		fonction += u'\t\t\treturn "ID_{}";\n'.format(m)
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(m)
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(m)
 
 	fonction += u'\t};\n'
 	fonction += u'\n\treturn "ERREUR";\n'
@@ -243,7 +243,7 @@ tableaux = construit_tableaux()
 
 fonctions = u"""
 static bool tables_caracteres[256] = {};
-static int tables_identifiants[256] = {};
+static id_morceau tables_identifiants[256] = {};
 static bool tables_caracteres_double[256] = {};
 static bool tables_mots_cles[256] = {};
 
@@ -253,7 +253,7 @@ void construit_tables_caractere_speciaux()
 		tables_caracteres[i] = false;
 		tables_caracteres_double[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = -1;
+		tables_identifiants[i] = static_cast<id_morceau>(-1);
 	}
 
 	for (const auto &iter : paires_caracteres_speciaux) {
@@ -270,7 +270,7 @@ void construit_tables_caractere_speciaux()
 	}
 }
 
-bool est_caractere_special(char c, int &i)
+bool est_caractere_special(char c, id_morceau &i)
 {
 	if (!tables_caracteres[static_cast<int>(c)]) {
 		return false;
@@ -280,10 +280,10 @@ bool est_caractere_special(char c, int &i)
 	return true;
 }
 
-int id_caractere_double(const std::string_view &chaine)
+id_morceau id_caractere_double(const std::string_view &chaine)
 {
 	if (!tables_caracteres_double[int(chaine[0])]) {
-		return ID_INCONNU;
+		return id_morceau::INCONNU;
 	}
 
 	auto iterateur = paires_caracteres_double.find(chaine);
@@ -292,17 +292,17 @@ int id_caractere_double(const std::string_view &chaine)
 		return (*iterateur).second;
 	}
 
-	return ID_INCONNU;
+	return id_morceau::INCONNU;
 }
 
-int id_chaine(const std::string_view &chaine)
+id_morceau id_chaine(const std::string_view &chaine)
 {
 	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
-		return ID_CHAINE_CARACTERE;
+		return id_morceau::CHAINE_CARACTERE;
 	}
 
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
-		return ID_CHAINE_CARACTERE;
+		return id_morceau::CHAINE_CARACTERE;
 	}
 
 	auto iterateur = paires_mots_cles.find(chaine);
@@ -311,28 +311,56 @@ int id_chaine(const std::string_view &chaine)
 		return (*iterateur).second;
 	}
 
-	return ID_CHAINE_CARACTERE;
+	return id_morceau::CHAINE_CARACTERE;
+}
+"""
+
+fonctions_enumeration = u"""
+inline id_morceau operator&(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) & id2);
+}
+
+inline id_morceau operator|(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) | id2);
+}
+
+inline id_morceau operator|(id_morceau id1, id_morceau id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
+}
+
+inline id_morceau operator<<(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) << id2);
+}
+
+inline id_morceau operator>>(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
 }
 """
 
 declaration_fonctions = u"""
-const char *chaine_identifiant(int id);
+const char *chaine_identifiant(id_morceau id);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, int &i);
+bool est_caractere_special(char c, id_morceau &i);
 
-int id_caractere_double(const std::string_view &chaine);
+id_morceau id_caractere_double(const std::string_view &chaine);
 
-int id_chaine(const std::string_view &chaine);
+id_morceau id_chaine(const std::string_view &chaine);
 """
 
 with io.open(u"../coeur/decoupage/morceaux.h", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'#include <string>\n\n')
-	entete.write(structures)
 	entete.write(enumeration)
+	entete.write(fonctions_enumeration)
+	entete.write(structures)
 	entete.write(declaration_fonctions)
 
 

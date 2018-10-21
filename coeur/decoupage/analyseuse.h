@@ -44,7 +44,7 @@ protected:
 	size_t m_position = 0;
 
 #ifdef DEBOGUE_IDENTIFIANT
-	std::map<int, int> m_tableau_identifiant;
+	std::map<id_morceau, int> m_tableau_identifiant;
 #endif
 
 public:
@@ -68,24 +68,24 @@ protected:
 	 * Vérifie que l'identifiant courant est égal à celui spécifié puis avance
 	 * la position de l'analyseur sur le vecteur d'identifiant.
 	 */
-	bool requiers_identifiant(int identifiant);
+	bool requiers_identifiant(id_morceau identifiant);
 
 	/**
 	 * Retourne vrai si l'identifiant courant est égal à celui spécifié.
 	 */
-	bool est_identifiant(int identifiant);
+	bool est_identifiant(id_morceau identifiant);
 
 	/**
 	 * Retourne vrai si l'identifiant courant et celui d'après sont égaux à ceux
 	 * spécifiés dans le même ordre.
 	 */
-	bool sont_2_identifiants(int id1, int id2);
+	bool sont_2_identifiants(id_morceau id1, id_morceau id2);
 
 	/**
 	 * Retourne vrai si l'identifiant courant et les deux d'après sont égaux à
 	 * ceux spécifiés dans le même ordre.
 	 */
-	bool sont_3_identifiants(int id1, int id2, int id3);
+	bool sont_3_identifiants(id_morceau id1, id_morceau id2, id_morceau id3);
 
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
@@ -112,5 +112,5 @@ protected:
 	/**
 	 * Retourne l'identifiant courant.
 	 */
-	int identifiant_courant() const;
+	id_morceau identifiant_courant() const;
 };

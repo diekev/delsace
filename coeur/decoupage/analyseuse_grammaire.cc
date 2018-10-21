@@ -43,48 +43,48 @@ static constexpr auto PROFONDEUR_EXPRESSION_MAX = 32;
  * - gabarit
  */
 
-static bool est_specifiant_type(int identifiant)
+static bool est_specifiant_type(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_FOIS:
-		case ID_ESPERLUETTE:
-		case ID_CROCHET_OUVRANT:
+		case id_morceau::FOIS:
+		case id_morceau::ESPERLUETTE:
+		case id_morceau::CROCHET_OUVRANT:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_identifiant_type(int identifiant)
+static bool est_identifiant_type(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_N8:
-		case ID_N16:
-		case ID_N32:
-		case ID_N64:
-		case ID_R16:
-		case ID_R32:
-		case ID_R64:
-		case ID_Z8:
-		case ID_Z16:
-		case ID_Z32:
-		case ID_Z64:
-		case ID_BOOL:
-		case ID_RIEN:
-		case ID_CHAINE_CARACTERE:
+		case id_morceau::N8:
+		case id_morceau::N16:
+		case id_morceau::N32:
+		case id_morceau::N64:
+		case id_morceau::R16:
+		case id_morceau::R32:
+		case id_morceau::R64:
+		case id_morceau::Z8:
+		case id_morceau::Z16:
+		case id_morceau::Z32:
+		case id_morceau::Z64:
+		case id_morceau::BOOL:
+		case id_morceau::RIEN:
+		case id_morceau::CHAINE_CARACTERE:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_nombre_entier(int identifiant)
+static bool est_nombre_entier(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_NOMBRE_BINAIRE:
-		case ID_NOMBRE_ENTIER:
-		case ID_NOMBRE_HEXADECIMAL:
-		case ID_NOMBRE_OCTAL:
+		case id_morceau::NOMBRE_BINAIRE:
+		case id_morceau::NOMBRE_ENTIER:
+		case id_morceau::NOMBRE_HEXADECIMAL:
+		case id_morceau::NOMBRE_OCTAL:
 			return true;
 		default:
 			return false;
@@ -92,82 +92,82 @@ static bool est_nombre_entier(int identifiant)
 }
 
 #if 0
-static bool est_nombre(int identifiant)
+static bool est_nombre(id_morceau identifiant)
 {
-	return est_nombre_entier(identifiant) || (identifiant == ID_NOMBRE_REEL);
+	return est_nombre_entier(identifiant) || (identifiant == id_morceau::NOMBRE_REEL);
 }
 #endif
 
-static bool est_operateur_simple(int identifiant)
+static bool est_operateur_simple(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_AROBASE:
-		case ID_EXCLAMATION:
-		case ID_TILDE:
-		case ID_CROCHET_OUVRANT:
+		case id_morceau::AROBASE:
+		case id_morceau::EXCLAMATION:
+		case id_morceau::TILDE:
+		case id_morceau::CROCHET_OUVRANT:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_operateur_double(int identifiant)
+static bool est_operateur_double(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_PLUS:
-		case ID_MOINS:
-		case ID_FOIS:
-		case ID_DIVISE:
-		case ID_ESPERLUETTE:
-		case ID_POURCENT:
-		case ID_INFERIEUR:
-		case ID_INFERIEUR_EGAL:
-		case ID_SUPERIEUR:
-		case ID_SUPERIEUR_EGAL:
-		case ID_DECALAGE_DROITE:
-		case ID_DECALAGE_GAUCHE:
-		case ID_DIFFERENCE:
-		case ID_ESP_ESP:
-		case ID_EGALITE:
-		case ID_BARRE_BARRE:
-		case ID_BARRE:
-		case ID_CHAPEAU:
-		case ID_DE:
-		case ID_EGAL:
+		case id_morceau::PLUS:
+		case id_morceau::MOINS:
+		case id_morceau::FOIS:
+		case id_morceau::DIVISE:
+		case id_morceau::ESPERLUETTE:
+		case id_morceau::POURCENT:
+		case id_morceau::INFERIEUR:
+		case id_morceau::INFERIEUR_EGAL:
+		case id_morceau::SUPERIEUR:
+		case id_morceau::SUPERIEUR_EGAL:
+		case id_morceau::DECALAGE_DROITE:
+		case id_morceau::DECALAGE_GAUCHE:
+		case id_morceau::DIFFERENCE:
+		case id_morceau::ESP_ESP:
+		case id_morceau::EGALITE:
+		case id_morceau::BARRE_BARRE:
+		case id_morceau::BARRE:
+		case id_morceau::CHAPEAU:
+		case id_morceau::DE:
+		case id_morceau::EGAL:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_operateur(int identifiant)
+static bool est_operateur(id_morceau identifiant)
 {
 	return est_operateur_simple(identifiant) || est_operateur_double(identifiant);
 }
 
-static bool est_operateur_constant(int identifiant)
+static bool est_operateur_constant(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_PLUS:
-		case ID_MOINS:
-		case ID_FOIS:
-		case ID_DIVISE:
-		case ID_ESPERLUETTE:
-		case ID_POURCENT:
-		case ID_INFERIEUR:
-		case ID_INFERIEUR_EGAL:
-		case ID_SUPERIEUR:
-		case ID_SUPERIEUR_EGAL:
-		case ID_DECALAGE_DROITE:
-		case ID_DECALAGE_GAUCHE:
-		case ID_DIFFERENCE:
-		case ID_ESP_ESP:
-		case ID_EGALITE:
-		case ID_BARRE_BARRE:
-		case ID_BARRE:
-		case ID_CHAPEAU:
-		case ID_EXCLAMATION:
-		case ID_TILDE:
+		case id_morceau::PLUS:
+		case id_morceau::MOINS:
+		case id_morceau::FOIS:
+		case id_morceau::DIVISE:
+		case id_morceau::ESPERLUETTE:
+		case id_morceau::POURCENT:
+		case id_morceau::INFERIEUR:
+		case id_morceau::INFERIEUR_EGAL:
+		case id_morceau::SUPERIEUR:
+		case id_morceau::SUPERIEUR_EGAL:
+		case id_morceau::DECALAGE_DROITE:
+		case id_morceau::DECALAGE_GAUCHE:
+		case id_morceau::DIFFERENCE:
+		case id_morceau::ESP_ESP:
+		case id_morceau::EGALITE:
+		case id_morceau::BARRE_BARRE:
+		case id_morceau::BARRE:
+		case id_morceau::CHAPEAU:
+		case id_morceau::EXCLAMATION:
+		case id_morceau::TILDE:
 			return true;
 		default:
 			return false;
@@ -191,23 +191,23 @@ void analyseuse_grammaire::lance_analyse()
 		return;
 	}
 
-	m_assembleuse->ajoute_noeud(NOEUD_RACINE, DonneesMorceaux{"racine", 0ul, static_cast<size_t>(-1) });
+	m_assembleuse->ajoute_noeud(NOEUD_RACINE, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
 
 	analyse_corps();
 }
 
 void analyseuse_grammaire::analyse_corps()
 {
-	if (est_identifiant(ID_FONCTION)) {
+	if (est_identifiant(id_morceau::FONCTION)) {
 		analyse_declaration_fonction();
 	}
-	else if (est_identifiant(ID_SOIT)) {
+	else if (est_identifiant(id_morceau::SOIT)) {
 		analyse_declaration_constante();
 	}
-	else if (est_identifiant(ID_STRUCTURE)) {
+	else if (est_identifiant(id_morceau::STRUCTURE)) {
 		analyse_declaration_structure();
 	}
-	else if (est_identifiant(ID_ENUM)) {
+	else if (est_identifiant(id_morceau::ENUM)) {
 		analyse_declaration_enum();
 	}
 	else {
@@ -222,11 +222,11 @@ void analyseuse_grammaire::analyse_corps()
 
 void analyseuse_grammaire::analyse_declaration_fonction()
 {
-	if (!requiers_identifiant(ID_FONCTION)) {
+	if (!requiers_identifiant(id_morceau::FONCTION)) {
 		lance_erreur("Attendu la déclaration du mot-clé 'fonction'");
 	}
 
-	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Attendu la déclaration du nom de la fonction");
 	}
 
@@ -240,7 +240,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_DECLARATION_FONCTION, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
 
-	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
 	}
 
@@ -248,25 +248,25 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	analyse_parametres_fonction(noeud_declaration, donnees_fonctions);
 
-	if (!requiers_identifiant(ID_PARENTHESE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
 	}
 
 	/* vérifie si le type de la fonction est explicit. */
-	if (est_identifiant(ID_DOUBLE_POINTS)) {
+	if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
 		analyse_declaration_type(noeud_declaration->donnees_type);
 		donnees_fonctions.donnees_type = noeud_declaration->donnees_type;
 	}
 
 	m_contexte.ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
-	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 	}
 
 	analyse_corps_fonction();
 
-	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la fonction");
 	}
 
@@ -275,19 +275,19 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees)
 {
-	if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
+	if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		/* La liste est vide. */
 		return;
 	}
 
 	ArgumentFonction arg;
 
-	if (est_identifiant(ID_VARIABLE)) {
+	if (est_identifiant(id_morceau::VARIABLE)) {
 		arg.est_variable = true;
 		avance();
 	}
 
-	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Attendu le nom de la variable");
 	}
 
@@ -311,7 +311,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 	noeud->ajoute_argument(arg);
 
 	/* fin des paramètres */
-	if (!requiers_identifiant(ID_VIRGULE)) {
+	if (!requiers_identifiant(id_morceau::VIRGULE)) {
 		recule();
 		return;
 	}
@@ -323,33 +323,33 @@ void analyseuse_grammaire::analyse_corps_fonction()
 {
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
-	if (est_identifiant(ID_ACCOLADE_FERMANTE)) {
+	if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		return;
 	}
 
 	/* assignement : soit x = a + b; */
-	if (est_identifiant(ID_SOIT)) {
+	if (est_identifiant(id_morceau::SOIT)) {
 		avance();
 
 		auto est_variable = false;
 
-		if (est_identifiant(ID_VARIABLE)) {
+		if (est_identifiant(id_morceau::VARIABLE)) {
 			est_variable = true;
 			avance();
 		}
 
-		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+		if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 			lance_erreur("Attendu une chaîne de caractère après 'soit'");
 		}
 
 		const auto &morceau_variable = m_identifiants[position()];
 		auto donnees_type = DonneesType{};
 
-		if (est_identifiant(ID_DOUBLE_POINTS)) {
+		if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
 			analyse_declaration_type(donnees_type);
 		}
 
-		if (!requiers_identifiant(ID_EGAL)) {
+		if (!requiers_identifiant(id_morceau::EGAL)) {
 			lance_erreur("Attendu '=' après chaîne de caractère");
 		}
 
@@ -363,18 +363,18 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		noeud_decl->est_variable = est_variable;
 		noeud->ajoute_noeud(noeud_decl);
 
-		analyse_expression_droite(ID_POINT_VIRGULE);
+		analyse_expression_droite(id_morceau::POINT_VIRGULE);
 
 		m_assembleuse->sors_noeud(NOEUD_ASSIGNATION_VARIABLE);
 	}
 	/* retour : retourne a + b; */
-	else if (est_identifiant(ID_RETOURNE)) {
+	else if (est_identifiant(id_morceau::RETOURNE)) {
 		avance();
 		m_assembleuse->ajoute_noeud(NOEUD_RETOUR, m_identifiants[position()]);
 
 		/* Considération du cas où l'on ne retourne rien 'retourne;'. */
-		if (!est_identifiant(ID_POINT_VIRGULE)) {
-			analyse_expression_droite(ID_POINT_VIRGULE);
+		if (!est_identifiant(id_morceau::POINT_VIRGULE)) {
+			analyse_expression_droite(id_morceau::POINT_VIRGULE);
 		}
 		else {
 			avance();
@@ -383,50 +383,50 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		m_assembleuse->sors_noeud(NOEUD_RETOUR);
 	}
 	/* controle de flux : si */
-	else if (est_identifiant(ID_SI)) {
+	else if (est_identifiant(id_morceau::SI)) {
 		avance();
-		analyse_expression_droite(ID_ACCOLADE_OUVRANTE);
+		analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
 
 		analyse_corps_fonction();
 
-		if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 			lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'");
 		}
 	}
 	/* controle de flux : sinon (si) */
-	else if (est_identifiant(ID_SINON)) {
+	else if (est_identifiant(id_morceau::SINON)) {
 		avance();
 
-		if (est_identifiant(ID_SI)) {
+		if (est_identifiant(id_morceau::SI)) {
 			avance();
-			analyse_expression_droite(ID_ACCOLADE_OUVRANTE);
+			analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
 		}
 		else {
-			if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
+			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 				lance_erreur("Attendu une accolade ouvrante après 'sinon'");
 			}
 		}
 
 		analyse_corps_fonction();
 
-		if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 			lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'");
 		}
 	}
 	/* appel : fais_quelque_chose(); */
-	else if (sont_2_identifiants(ID_CHAINE_CARACTERE, ID_PARENTHESE_OUVRANTE)) {
-		analyse_expression_droite(ID_POINT_VIRGULE);
+	else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
+		analyse_expression_droite(id_morceau::POINT_VIRGULE);
 	}
 	else {
-		analyse_expression_droite(ID_POINT_VIRGULE, false, true);
+		analyse_expression_droite(id_morceau::POINT_VIRGULE, false, true);
 	}
 
 	analyse_corps_fonction();
 }
 
-static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(ID_PARENTHESE_OUVRANTE);
+static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(id_morceau::PARENTHESE_OUVRANTE);
 
-void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, const bool calcul_expression, const bool assignation)
+void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_final, const bool calcul_expression, const bool assignation)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
@@ -449,7 +449,7 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 		const auto &morceau = m_identifiants[position() + 1];
 
 		/* appel fonction : chaine + ( */
-		if (sont_2_identifiants(ID_CHAINE_CARACTERE, ID_PARENTHESE_OUVRANTE)) {
+		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
 			avance(2);
 
 			auto noeud = m_assembleuse->ajoute_noeud(NOEUD_APPEL_FONCTION, morceau, false);
@@ -461,32 +461,32 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			expression.push_back(noeud);
 		}
 		/* variable : chaine */
-		else if (morceau.identifiant == ID_CHAINE_CARACTERE) {
+		else if (morceau.identifiant == id_morceau::CHAINE_CARACTERE) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, morceau);
 			expression.push_back(noeud);
 		}
-		else if (morceau.identifiant == ID_NOMBRE_REEL) {
+		else if (morceau.identifiant == id_morceau::NOMBRE_REEL) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_REEL, morceau);
 			expression.push_back(noeud);
 		}
-		else if (est_nombre_entier(static_cast<int>(morceau.identifiant))) {
+		else if (est_nombre_entier(morceau.identifiant)) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_NOMBRE_ENTIER, morceau);
 			expression.push_back(noeud);
 		}
-		else if (morceau.identifiant == ID_CHAINE_LITTERALE) {
+		else if (morceau.identifiant == id_morceau::CHAINE_LITTERALE) {
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_CHAINE_LITTERALE, morceau);
 			expression.push_back(noeud);
 		}
-		else if (morceau.identifiant == ID_VRAI || morceau.identifiant == ID_FAUX) {
-			/* remplace l'identifiant par ID_BOOL */
-			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, ID_BOOL };
+		else if (morceau.identifiant == id_morceau::VRAI || morceau.identifiant == id_morceau::FAUX) {
+			/* remplace l'identifiant par id_morceau::BOOL */
+			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, id_morceau::BOOL };
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_BOOLEEN, morceau_bool);
 			expression.push_back(noeud);
 		}
-		else if (morceau.identifiant == ID_TRANSTYPE) {
+		else if (morceau.identifiant == id_morceau::TRANSTYPE) {
 			avance();
 
-			if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
+			if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 				lance_erreur("Attendu '(' après 'transtype'");
 			}
 
@@ -499,11 +499,11 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			auto noeud = m_assembleuse->cree_noeud(NOEUD_VARIABLE, m_identifiants[position()]);
 			expression.push_back(noeud);
 
-			if (!requiers_identifiant(ID_PARENTHESE_FERMANTE)) {
+			if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 				lance_erreur("Attendu ')' après la déclaration de l'expression");
 			}
 
-			if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
+			if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 				lance_erreur("Attendu '(' après '>'");
 			}
 
@@ -511,15 +511,15 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 			analyse_declaration_type(donnees_type, false);
 
 			/* vérifie mais n'avance pas */
-			if (!est_identifiant(ID_PARENTHESE_FERMANTE)) {
+			if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 				lance_erreur("Attendu ')' après la déclaration du type");
 			}
 		}
-		else if (est_operateur(static_cast<int>(morceau.identifiant))) {
+		else if (est_operateur(morceau.identifiant)) {
 			while (!pile.empty()
 				   && pile.back() != NOEUD_PARENTHESE
 				   && est_operateur(pile.back()->identifiant())
-				   && (precedence_faible(static_cast<int>(morceau.identifiant), pile.back()->identifiant())))
+				   && (precedence_faible(morceau.identifiant, pile.back()->identifiant())))
 			{
 				expression.push_back(pile.back());
 				pile.pop_back();
@@ -527,13 +527,13 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 
 			auto noeud = static_cast<Noeud *>(nullptr);
 
-			if (morceau.identifiant == ID_CROCHET_OUVRANT) {
+			if (morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
 				avance();
 
 				noeud = m_assembleuse->ajoute_noeud(NOEUD_OPERATION, morceau, false);
 
 				++m_profondeur;
-				analyse_expression_droite(ID_CROCHET_FERMANT);
+				analyse_expression_droite(id_morceau::CROCHET_FERMANT);
 				--m_profondeur;
 
 				m_assembleuse->sors_noeud(NOEUD_OPERATION);
@@ -542,10 +542,10 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 				 * la boucle plus bas */
 				recule();
 			}
-			else if (morceau.identifiant == ID_DE) {
+			else if (morceau.identifiant == id_morceau::DE) {
 				noeud = m_assembleuse->cree_noeud(NOEUD_ACCES_MEMBRE, morceau);
 			}
-			else if (morceau.identifiant == ID_EGAL) {
+			else if (morceau.identifiant == id_morceau::EGAL) {
 				if (!assignation) {
 					avance();
 					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::ASSIGNATION_INVALIDE);
@@ -559,11 +559,11 @@ void analyseuse_grammaire::analyse_expression_droite(int identifiant_final, cons
 
 			pile.push_back(noeud);
 		}
-		else if (morceau.identifiant == ID_PARENTHESE_OUVRANTE) {
+		else if (morceau.identifiant == id_morceau::PARENTHESE_OUVRANTE) {
 			++paren;
 			pile.push_back(NOEUD_PARENTHESE);
 		}
-		else if (morceau.identifiant == ID_PARENTHESE_FERMANTE) {
+		else if (morceau.identifiant == id_morceau::PARENTHESE_FERMANTE) {
 			/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
 			 * atteint la fin d'une déclaration d'appel de fonction. */
 			if (paren == 0) {
@@ -691,11 +691,11 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 
 	while (true) {
 		/* aucun paramètre, ou la liste de paramètre est vide */
-		if (est_identifiant(ID_PARENTHESE_FERMANTE)) {
+		if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 			return;
 		}
 
-		if (sont_2_identifiants(ID_CHAINE_CARACTERE, ID_EGAL)) {
+		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::EGAL)) {
 			avance();
 			arguments_nommees = true;
 
@@ -719,22 +719,22 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
 		++m_profondeur;
-		analyse_expression_droite(ID_VIRGULE);
+		analyse_expression_droite(id_morceau::VIRGULE);
 		--m_profondeur;
 	}
 }
 
 void analyseuse_grammaire::analyse_declaration_constante()
 {
-	if (!requiers_identifiant(ID_SOIT)) {
+	if (!requiers_identifiant(id_morceau::SOIT)) {
 		lance_erreur("Attendu la déclaration 'soit'");
 	}
 
-	if (!requiers_identifiant(ID_CONSTANTE)) {
+	if (!requiers_identifiant(id_morceau::CONSTANTE)) {
 		lance_erreur("Attendu la déclaration 'constante' après 'soit'");
 	}
 
-	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'constante'");
 	}
 
@@ -742,29 +742,29 @@ void analyseuse_grammaire::analyse_declaration_constante()
 	auto donnees_type = DonneesType{};
 
 	/* Vérifie s'il y a typage explicit */
-	if (est_identifiant(ID_DOUBLE_POINTS)) {
+	if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
 		analyse_declaration_type(donnees_type);
 	}
 
 	auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[pos]);
 	noeud->donnees_type = donnees_type;
 
-	if (!requiers_identifiant(ID_EGAL)) {
+	if (!requiers_identifiant(id_morceau::EGAL)) {
 		lance_erreur("Attendu '=' après la déclaration de la constante");
 	}
 
-	analyse_expression_droite(ID_POINT_VIRGULE, true);
+	analyse_expression_droite(id_morceau::POINT_VIRGULE, true);
 
 	m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
 }
 
 void analyseuse_grammaire::analyse_declaration_structure()
 {
-	if (!requiers_identifiant(ID_STRUCTURE)) {
+	if (!requiers_identifiant(id_morceau::STRUCTURE)) {
 		lance_erreur("Attendu la déclaration 'structure'");
 	}
 
-	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaîne de caractères après 'structure'");
 	}
 
@@ -774,7 +774,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 		lance_erreur("Redéfinition de la structure", erreur::STRUCTURE_REDEFINIE);
 	}
 
-	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu '{'");
 	}
 
@@ -782,7 +782,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 
 	/* chaine : type ; */
 	while (true) {
-		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+		if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 			/* nous avons terminé */
 			recule();
 			break;
@@ -797,7 +797,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 		auto donnees_type = DonneesType{};
 		analyse_declaration_type(donnees_type);
 
-		if (!requiers_identifiant(ID_POINT_VIRGULE)) {
+		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
 			lance_erreur("Attendu ';'");
 		}
 
@@ -807,34 +807,34 @@ void analyseuse_grammaire::analyse_declaration_structure()
 
 	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 
-	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu '}' à la fin de la déclaration de la structure");
 	}
 }
 
 void analyseuse_grammaire::analyse_declaration_enum()
 {
-	if (!requiers_identifiant(ID_ENUM)) {
+	if (!requiers_identifiant(id_morceau::ENUM)) {
 		lance_erreur("Attendu la déclaration 'énum'");
 	}
 
-	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu '{' après 'énum'");
 	}
 
 	while (true) {
-		if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+		if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 			/* nous avons terminé */
 			recule();
 			break;
 		}
 
 		auto noeud = m_assembleuse->ajoute_noeud(NOEUD_CONSTANTE, m_identifiants[position()]);
-		noeud->donnees_type.pousse(ID_N32);
+		noeud->donnees_type.pousse(id_morceau::N32);
 
-		if (est_identifiant(ID_EGAL)) {
+		if (est_identifiant(id_morceau::EGAL)) {
 			avance();
-			analyse_expression_droite(ID_VIRGULE, true);
+			analyse_expression_droite(id_morceau::VIRGULE, true);
 
 			/* recule pour tester la virgule après */
 			recule();
@@ -842,19 +842,19 @@ void analyseuse_grammaire::analyse_declaration_enum()
 
 		m_assembleuse->sors_noeud(NOEUD_CONSTANTE);
 
-		if (!requiers_identifiant(ID_VIRGULE)) {
+		if (!requiers_identifiant(id_morceau::VIRGULE)) {
 			lance_erreur("Attendu ',' à la fin de la déclaration");
 		}
 	}
 
-	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu '}' à la fin de la déclaration de l'énum");
 	}
 }
 
 void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, bool double_point)
 {
-	if (double_point && !requiers_identifiant(ID_DOUBLE_POINTS)) {
+	if (double_point && !requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
 	}
 
@@ -863,35 +863,35 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 		bool est_tableau  = false;
 		int taille = 0;
 
-		if (requiers_identifiant(ID_CROCHET_OUVRANT)) {
-			if (this->identifiant_courant() != ID_CROCHET_FERMANT) {
+		if (requiers_identifiant(id_morceau::CROCHET_OUVRANT)) {
+			if (this->identifiant_courant() != id_morceau::CROCHET_FERMANT) {
 				est_pointeur = false;
 				est_tableau = true;
 
 				/* À FAIRE */
 #if 0
-				analyse_expression_droite(ID_CROCHET_FERMANT, true);
+				analyse_expression_droite(id_morceau::CROCHET_FERMANT, true);
 #else
 				if (!requiers_nombre_entier()) {
 					lance_erreur("Attendu un nombre entier après [");
 				}
 
 				const auto &morceau = m_identifiants[position()];
-				taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, static_cast<int>(morceau.identifiant)));
+				taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
 #endif
 			}
 
-			if (!requiers_identifiant(ID_CROCHET_FERMANT)) {
+			if (!requiers_identifiant(id_morceau::CROCHET_FERMANT)) {
 				lance_erreur("Attendu ']'");
 			}
 		}
 
 		if (est_pointeur) {
-			donnees_type.pousse(ID_POINTEUR);
+			donnees_type.pousse(id_morceau::POINTEUR);
 		}
 		else if (est_tableau) {
 			/* À FAIRE ? : meilleure manière de stocker la taille. */
-			donnees_type.pousse(ID_TABLEAU | (taille << 8));
+			donnees_type.pousse(id_morceau::TABLEAU | (taille << 8));
 		}
 	}
 
@@ -901,7 +901,7 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 
 	auto identifiant = m_identifiants[position()].identifiant;
 
-	if (identifiant == ID_CHAINE_CARACTERE) {
+	if (identifiant == id_morceau::CHAINE_CARACTERE) {
 		const auto nom_type = m_identifiants[position()].chaine;
 
 		if (!m_contexte.structure_existe(nom_type)) {
@@ -909,10 +909,10 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 		}
 
 		const auto &donnees_structure = m_contexte.donnees_structure(nom_type);
-		identifiant = (identifiant | (donnees_structure.id << 8));
+		identifiant = (identifiant | (static_cast<int>(donnees_structure.id) << 8));
 	}
 
-	donnees_type.pousse(static_cast<int>(identifiant));
+	donnees_type.pousse(identifiant);
 }
 
 bool analyseuse_grammaire::requiers_identifiant_type()

@@ -57,7 +57,7 @@ void Analyseuse::imprime_identifiants_plus_utilises(std::ostream &os, size_t nom
 }
 #endif
 
-bool Analyseuse::requiers_identifiant(int identifiant)
+bool Analyseuse::requiers_identifiant(id_morceau identifiant)
 {
 	if (m_position >= m_identifiants.size()) {
 		return false;
@@ -85,7 +85,7 @@ size_t Analyseuse::position()
 	return m_position - 1;
 }
 
-bool Analyseuse::est_identifiant(int identifiant)
+bool Analyseuse::est_identifiant(id_morceau identifiant)
 {
 #ifdef DEBOGUE_IDENTIFIANT
 	m_tableau_identifiant[identifiant]++;
@@ -93,7 +93,7 @@ bool Analyseuse::est_identifiant(int identifiant)
 	return identifiant == this->identifiant_courant();
 }
 
-bool Analyseuse::sont_2_identifiants(int id1, int id2)
+bool Analyseuse::sont_2_identifiants(id_morceau id1, id_morceau id2)
 {
 	if (m_position + 2 >= m_identifiants.size()) {
 		return false;
@@ -104,11 +104,11 @@ bool Analyseuse::sont_2_identifiants(int id1, int id2)
 	m_tableau_identifiant[id2]++;
 #endif
 
-	return m_identifiants[m_position].identifiant == static_cast<size_t>(id1)
-			&& m_identifiants[m_position + 1].identifiant == static_cast<size_t>(id2);
+	return m_identifiants[m_position].identifiant == id1
+			&& m_identifiants[m_position + 1].identifiant == id2;
 }
 
-bool Analyseuse::sont_3_identifiants(int id1, int id2, int id3)
+bool Analyseuse::sont_3_identifiants(id_morceau id1, id_morceau id2, id_morceau id3)
 {
 	if (m_position + 3 >= m_identifiants.size()) {
 		return false;
@@ -120,18 +120,18 @@ bool Analyseuse::sont_3_identifiants(int id1, int id2, int id3)
 	m_tableau_identifiant[id3]++;
 #endif
 
-	return m_identifiants[m_position].identifiant == static_cast<size_t>(id1)
-			&& m_identifiants[m_position + 1].identifiant == static_cast<size_t>(id2)
-			&& m_identifiants[m_position + 2].identifiant == static_cast<size_t>(id3);
+	return m_identifiants[m_position].identifiant == id1
+			&& m_identifiants[m_position + 1].identifiant == id2
+			&& m_identifiants[m_position + 2].identifiant == id3;
 }
 
-int Analyseuse::identifiant_courant() const
+id_morceau Analyseuse::identifiant_courant() const
 {
 	if (m_position >= m_identifiants.size()) {
-		return ID_INCONNU;
+		return id_morceau::INCONNU;
 	}
 
-	return static_cast<int>(m_identifiants[m_position].identifiant);
+	return m_identifiants[m_position].identifiant;
 }
 
 void Analyseuse::lance_erreur(const std::string &quoi, int type)

@@ -24,10 +24,12 @@
 
 #pragma once
 
+#include "morceaux.h"
+
 class assembleuse_arbre;
 class Noeud;
 
-bool precedence_faible(int identifiant1, int identifiant2);
+bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2);
 
 Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1, Noeud *n2);
 

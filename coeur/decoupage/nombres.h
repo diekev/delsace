@@ -26,6 +26,8 @@
 
 #include <string>
 
+#include "morceaux.h"
+
 /**
  * Retourne vrai si le caractère spécifié est un nombre décimal, c'est-à-dire
  * entre 0 et 9.
@@ -39,16 +41,16 @@ bool est_nombre_decimal(char c);
  *
  * Retourne le nombre de caractère de la chaîne [debut, fin] qui a été consommé.
  */
-int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int &id_nombre);
+int extrait_nombre(const char *debut, const char *fin, std::string &chaine, id_morceau &id_nombre);
 
 /**
  * Converti une chaîne de caractère en un nombre entier de type 'long'. Si la
  * chaîne de caractère représente un nombre qui ne peut être représenté par un
  * entier de type 'long' (64-bit), la valeur maximale 0xffffffff est retournée.
  */
-long converti_chaine_nombre_entier(const std::string_view &chaine, int identifiant);
+long converti_chaine_nombre_entier(const std::string_view &chaine, id_morceau identifiant);
 
 /**
  * Converti une chaîne de caractère en un nombre réel de type 'double'.
  */
-double converti_chaine_nombre_reel(const std::string_view &chaine, int identifiant);
+double converti_chaine_nombre_reel(const std::string_view &chaine, id_morceau identifiant);

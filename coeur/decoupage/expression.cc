@@ -27,7 +27,6 @@
 #include "arbre_syntactic.h"
 #include "assembleuse_arbre.h"
 #include "erreur.h"
-#include "morceaux.h"
 #include "nombres.h"
 
 enum {
@@ -40,52 +39,53 @@ struct DonneesPrecedence {
 	int priorite;
 };
 
-static DonneesPrecedence associativite(int identifiant)
+static DonneesPrecedence associativite(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_EGAL:
+		case id_morceau::EGAL:
 			return { GAUCHE, 0 };
-		case ID_BARRE_BARRE:
+		case id_morceau::BARRE_BARRE:
 			return { GAUCHE, 1 };
-		case ID_ESP_ESP:
+		case id_morceau::ESP_ESP:
 			return { GAUCHE, 2 };
-		case ID_BARRE:
+		case id_morceau::BARRE:
 			return { GAUCHE, 3 };
-		case ID_CHAPEAU:
+		case id_morceau::CHAPEAU:
 			return { GAUCHE, 4 };
-		case ID_ESPERLUETTE:
+		case id_morceau::ESPERLUETTE:
 			return { GAUCHE, 5 };
-		case ID_DIFFERENCE:
-		case ID_EGALITE:
+		case id_morceau::DIFFERENCE:
+		case id_morceau::EGALITE:
 			return { GAUCHE, 6 };
-		case ID_INFERIEUR:
-		case ID_INFERIEUR_EGAL:
-		case ID_SUPERIEUR:
-		case ID_SUPERIEUR_EGAL:
+		case id_morceau::INFERIEUR:
+		case id_morceau::INFERIEUR_EGAL:
+		case id_morceau::SUPERIEUR:
+		case id_morceau::SUPERIEUR_EGAL:
 			return { GAUCHE, 7 };
-		case ID_DECALAGE_GAUCHE:
-		case ID_DECALAGE_DROITE:
+		case id_morceau::DECALAGE_GAUCHE:
+		case id_morceau::DECALAGE_DROITE:
 			return { GAUCHE, 8 };
-		case ID_PLUS:
-		case ID_MOINS:
+		case id_morceau::PLUS:
+		case id_morceau::MOINS:
 			return { GAUCHE, 9 };
-		case ID_FOIS:
-		case ID_DIVISE:
-		case ID_POURCENT:
+		case id_morceau::FOIS:
+		case id_morceau::DIVISE:
+		case id_morceau::POURCENT:
 			return { GAUCHE, 10 };
-		case ID_EXCLAMATION:
-		case ID_TILDE:
-		case ID_AROBASE:
-		case ID_DE:
+		case id_morceau::EXCLAMATION:
+		case id_morceau::TILDE:
+		case id_morceau::AROBASE:
+		case id_morceau::DE:
 			return { DROITE, 11 };
-		case ID_CROCHET_OUVRANT:
+		case id_morceau::CROCHET_OUVRANT:
 			return { GAUCHE, 12 };
+		default:
+			assert(false);
+			return { -1, -1 };
 	}
-
-	return { GAUCHE, 0 };
 }
 
-bool precedence_faible(int identifiant1, int identifiant2)
+bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
 {
 	auto p1 = associativite(identifiant1);
 	auto p2 = associativite(identifiant2);
@@ -96,106 +96,106 @@ bool precedence_faible(int identifiant1, int identifiant2)
 
 /* ************************************************************************** */
 
-static bool est_operation_arithmetique(int op)
+static bool est_operation_arithmetique(id_morceau op)
 {
 	switch (op) {
-		case ID_PLUS:
-		case ID_MOINS:
-		case ID_FOIS:
-		case ID_DIVISE:
-		case ID_POURCENT:
-		case ID_DECALAGE_DROITE:
-		case ID_DECALAGE_GAUCHE:
-		case ID_ESPERLUETTE:
-		case ID_BARRE:
-		case ID_CHAPEAU:
+		case id_morceau::PLUS:
+		case id_morceau::MOINS:
+		case id_morceau::FOIS:
+		case id_morceau::DIVISE:
+		case id_morceau::POURCENT:
+		case id_morceau::DECALAGE_DROITE:
+		case id_morceau::DECALAGE_GAUCHE:
+		case id_morceau::ESPERLUETTE:
+		case id_morceau::BARRE:
+		case id_morceau::CHAPEAU:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_operation_arithmetique_reel(int op)
+static bool est_operation_arithmetique_reel(id_morceau op)
 {
 	switch (op) {
-		case ID_PLUS:
-		case ID_MOINS:
-		case ID_FOIS:
-		case ID_DIVISE:
+		case id_morceau::PLUS:
+		case id_morceau::MOINS:
+		case id_morceau::FOIS:
+		case id_morceau::DIVISE:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_operation_comparaison(int op)
+static bool est_operation_comparaison(id_morceau op)
 {
 	switch (op) {
-		case ID_INFERIEUR:
-		case ID_INFERIEUR_EGAL:
-		case ID_SUPERIEUR:
-		case ID_SUPERIEUR_EGAL:
-		case ID_EGALITE:
-		case ID_DIFFERENCE:
+		case id_morceau::INFERIEUR:
+		case id_morceau::INFERIEUR_EGAL:
+		case id_morceau::SUPERIEUR:
+		case id_morceau::SUPERIEUR_EGAL:
+		case id_morceau::EGALITE:
+		case id_morceau::DIFFERENCE:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_operation_booleenne(int op)
+static bool est_operation_booleenne(id_morceau op)
 {
 	switch (op) {
-		case ID_ESP_ESP:
-		case ID_BARRE_BARRE:
+		case id_morceau::ESP_ESP:
+		case id_morceau::BARRE_BARRE:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static long calcul_expression_nombre_entier(int op, long n1, long n2)
+static long calcul_expression_nombre_entier(id_morceau op, long n1, long n2)
 {
 	switch (op) {
-		case ID_PLUS:
+		case id_morceau::PLUS:
 			return n1 + n2;
-		case ID_MOINS:
+		case id_morceau::MOINS:
 			return n1 - n2;
-		case ID_FOIS:
+		case id_morceau::FOIS:
 			return n1 * n2;
-		case ID_DIVISE:
+		case id_morceau::DIVISE:
 			if (n2 == 0) {
 				return 0;
 			}
 
 			return n1 / n2;
-		case ID_ESPERLUETTE:
+		case id_morceau::ESPERLUETTE:
 			return n1 & n2;
-		case ID_POURCENT:
+		case id_morceau::POURCENT:
 			return n1 % n2;
-		case ID_DECALAGE_DROITE:
+		case id_morceau::DECALAGE_DROITE:
 			return n1 >> n2;
-		case ID_DECALAGE_GAUCHE:
+		case id_morceau::DECALAGE_GAUCHE:
 			return n1 << n2;
-		case ID_BARRE:
+		case id_morceau::BARRE:
 			return n1 | n2;
-		case ID_CHAPEAU:
+		case id_morceau::CHAPEAU:
 			return n1 ^ n2;
 		default:
 			return 0;
 	}
 }
 
-static double calcul_expression_nombre_reel(int op, double n1, double n2)
+static double calcul_expression_nombre_reel(id_morceau op, double n1, double n2)
 {
 	switch (op) {
-		case ID_PLUS:
+		case id_morceau::PLUS:
 			return n1 + n2;
-		case ID_MOINS:
+		case id_morceau::MOINS:
 			return n1 - n2;
-		case ID_FOIS:
+		case id_morceau::FOIS:
 			return n1 * n2;
-		case ID_DIVISE:
+		case id_morceau::DIVISE:
 			if (n2 == 0.0) {
 				return 0;
 			}
@@ -207,20 +207,20 @@ static double calcul_expression_nombre_reel(int op, double n1, double n2)
 }
 
 template <typename T>
-static bool calcul_expression_comparaison(int op, T n1, T n2)
+static bool calcul_expression_comparaison(id_morceau op, T n1, T n2)
 {
 	switch (op) {
-		case ID_INFERIEUR:
+		case id_morceau::INFERIEUR:
 			return n1 < n2;
-		case ID_INFERIEUR_EGAL:
+		case id_morceau::INFERIEUR_EGAL:
 			return n1 <= n2;
-		case ID_SUPERIEUR:
+		case id_morceau::SUPERIEUR:
 			return n1 > n2;
-		case ID_SUPERIEUR_EGAL:
+		case id_morceau::SUPERIEUR_EGAL:
 			return n1 >= n2;
-		case ID_DIFFERENCE:
+		case id_morceau::DIFFERENCE:
 			return n1 != n2;
-		case ID_EGALITE:
+		case id_morceau::EGALITE:
 			return n1 == n2;
 		default:
 			return false;
@@ -228,19 +228,19 @@ static bool calcul_expression_comparaison(int op, T n1, T n2)
 }
 
 template <typename T>
-static bool calcul_expression_boolenne(int op, T n1, T n2)
+static bool calcul_expression_boolenne(id_morceau op, T n1, T n2)
 {
 	switch (op) {
-		case ID_ESP_ESP:
+		case id_morceau::ESP_ESP:
 			return n1 && n2;
-		case ID_BARRE_BARRE:
+		case id_morceau::BARRE_BARRE:
 			return n1 || n2;
 		default:
 			return false;
 	}
 }
 
-static bool sont_compatibles(int id1, int id2)
+static bool sont_compatibles(id_morceau id1, id_morceau id2)
 {
 	return id1 == id2;
 }
@@ -266,7 +266,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		return nullptr;
 	}
 
-	if (n1->identifiant() == ID_NOMBRE_REEL) {
+	if (n1->identifiant() == id_morceau::NOMBRE_REEL) {
 		auto v1 = extrait_nombre_reel(n1);
 		auto v2 = extrait_nombre_reel(n2);
 
@@ -281,7 +281,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, ID_BOOL });
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -295,7 +295,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		return nullptr;
 	}
 
-	if (n1->identifiant() == ID_NOMBRE_ENTIER) {
+	if (n1->identifiant() == id_morceau::NOMBRE_ENTIER) {
 		auto v1 = extrait_nombre_entier(n1);
 		auto v2 = extrait_nombre_entier(n2);
 
@@ -310,7 +310,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, ID_BOOL });
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_boolenne = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -322,7 +322,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_booleenne(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, ID_BOOL });
+			auto noeud = assembleuse.cree_noeud(NOEUD_BOOLEEN, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_boolenne = calcul_expression_boolenne(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -336,7 +336,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		return nullptr;
 	}
 
-	if (n1->identifiant() == ID_BOOL) {
+	if (n1->identifiant() == id_morceau::BOOL) {
 		auto v1 = extrait_valeur_bool(n1);
 		auto v2 = extrait_valeur_bool(n2);
 

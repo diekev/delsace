@@ -26,7 +26,7 @@
 
 #include "morceaux.h"
 
-void DonneesType::pousse(int identifiant)
+void DonneesType::pousse(id_morceau identifiant)
 {
 	m_donnees.push_back(identifiant);
 }
@@ -38,7 +38,7 @@ void DonneesType::pousse(const DonneesType &autre)
 	std::copy(autre.m_donnees.begin(), autre.m_donnees.end(), m_donnees.begin() + taille);
 }
 
-int DonneesType::type_base() const
+id_morceau DonneesType::type_base() const
 {
 	return m_donnees.front();
 }
@@ -50,13 +50,13 @@ bool DonneesType::est_invalide() const
 	}
 
 	switch (m_donnees.back()) {
-		case ID_POINTEUR:
-		case ID_REFERENCE:
-		case ID_TABLEAU:
+		case id_morceau::POINTEUR:
+		case id_morceau::REFERENCE:
+		case id_morceau::TABLEAU:
 			return true;
+		default:
+			return false;
 	}
-
-	return false;
 }
 
 DonneesType::iterateur_const DonneesType::begin() const
@@ -88,45 +88,45 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 	else {
 		for (const auto &donnee : donnees_type) {
 			switch (donnee & 0xff) {
-				case ID_POINTEUR:
+				case id_morceau::POINTEUR:
 					os << '*';
 					break;
-				case ID_TABLEAU:
+				case id_morceau::TABLEAU:
 					os << '[';
-					os << (donnee >> 8);
+					os << static_cast<size_t>(donnee >> 8);
 					os << ']';
 					break;
-				case ID_N8:
+				case id_morceau::N8:
 					os << "n8";
 					break;
-				case ID_N16:
+				case id_morceau::N16:
 					os << "n16";
 					break;
-				case ID_N32:
+				case id_morceau::N32:
 					os << "n32";
 					break;
-				case ID_N64:
+				case id_morceau::N64:
 					os << "n64";
 					break;
-				case ID_R16:
+				case id_morceau::R16:
 					os << "r16";
 					break;
-				case ID_R32:
+				case id_morceau::R32:
 					os << "r32";
 					break;
-				case ID_R64:
+				case id_morceau::R64:
 					os << "r64";
 					break;
-				case ID_Z8:
+				case id_morceau::Z8:
 					os << "z8";
 					break;
-				case ID_Z16:
+				case id_morceau::Z16:
 					os << "z16";
 					break;
-				case ID_Z32:
+				case id_morceau::Z32:
 					os << "z32";
 					break;
-				case ID_Z64:
+				case id_morceau::Z64:
 					os << "z64";
 					break;
 				default:

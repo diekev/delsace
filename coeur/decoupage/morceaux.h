@@ -28,107 +28,133 @@
 
 #include <string>
 
+enum class id_morceau : int {
+	EXCLAMATION,
+	GUILLEMET,
+	DIESE,
+	POURCENT,
+	ESPERLUETTE,
+	APOSTROPHE,
+	PARENTHESE_OUVRANTE,
+	PARENTHESE_FERMANTE,
+	FOIS,
+	PLUS,
+	VIRGULE,
+	MOINS,
+	POINT,
+	DIVISE,
+	DOUBLE_POINTS,
+	POINT_VIRGULE,
+	INFERIEUR,
+	EGAL,
+	SUPERIEUR,
+	AROBASE,
+	CROCHET_OUVRANT,
+	CROCHET_FERMANT,
+	CHAPEAU,
+	ACCOLADE_OUVRANTE,
+	BARRE,
+	ACCOLADE_FERMANTE,
+	TILDE,
+	DIFFERENCE,
+	ESP_ESP,
+	DECALAGE_GAUCHE,
+	INFERIEUR_EGAL,
+	EGALITE,
+	SUPERIEUR_EGAL,
+	DECALAGE_DROITE,
+	BARRE_BARRE,
+	ARRETE,
+	ASSOCIE,
+	BOOL,
+	BOUCLE,
+	CONSTANTE,
+	CONTINUE,
+	DANS,
+	DE,
+	DEFERE,
+	EMPLOYANT,
+	FAUX,
+	FONCTION,
+	GABARIT,
+	MEMOIRE,
+	N16,
+	N32,
+	N64,
+	N8,
+	POUR,
+	R16,
+	R32,
+	R64,
+	RETOURNE,
+	RIEN,
+	SI,
+	SINON,
+	SOIT,
+	STRUCTURE,
+	TAILLE_DE,
+	TRANSTYPE,
+	TYPE,
+	VARIABLE,
+	VRAI,
+	Z16,
+	Z32,
+	Z64,
+	Z8,
+	ENUM,
+	NOMBRE_REEL,
+	NOMBRE_ENTIER,
+	NOMBRE_HEXADECIMAL,
+	NOMBRE_OCTAL,
+	NOMBRE_BINAIRE,
+	TROIS_POINTS,
+	CHAINE_CARACTERE,
+	CHAINE_LITTERALE,
+	CARACTERE,
+	POINTEUR,
+	TABLEAU,
+	REFERENCE,
+	INCONNU,
+};
+
+inline id_morceau operator&(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) & id2);
+}
+
+inline id_morceau operator|(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) | id2);
+}
+
+inline id_morceau operator|(id_morceau id1, id_morceau id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
+}
+
+inline id_morceau operator<<(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) << id2);
+}
+
+inline id_morceau operator>>(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
+}
+
 struct DonneesMorceaux {
 	std::string_view chaine;
 	size_t ligne_pos;
-	size_t identifiant;
+	id_morceau identifiant;
+	int pad = 0;
 };
 
-enum {
-	ID_EXCLAMATION,
-	ID_GUILLEMET,
-	ID_DIESE,
-	ID_POURCENT,
-	ID_ESPERLUETTE,
-	ID_APOSTROPHE,
-	ID_PARENTHESE_OUVRANTE,
-	ID_PARENTHESE_FERMANTE,
-	ID_FOIS,
-	ID_PLUS,
-	ID_VIRGULE,
-	ID_MOINS,
-	ID_POINT,
-	ID_DIVISE,
-	ID_DOUBLE_POINTS,
-	ID_POINT_VIRGULE,
-	ID_INFERIEUR,
-	ID_EGAL,
-	ID_SUPERIEUR,
-	ID_AROBASE,
-	ID_CROCHET_OUVRANT,
-	ID_CROCHET_FERMANT,
-	ID_CHAPEAU,
-	ID_ACCOLADE_OUVRANTE,
-	ID_BARRE,
-	ID_ACCOLADE_FERMANTE,
-	ID_TILDE,
-	ID_DIFFERENCE,
-	ID_ESP_ESP,
-	ID_DECALAGE_GAUCHE,
-	ID_INFERIEUR_EGAL,
-	ID_EGALITE,
-	ID_SUPERIEUR_EGAL,
-	ID_DECALAGE_DROITE,
-	ID_BARRE_BARRE,
-	ID_ARRETE,
-	ID_ASSOCIE,
-	ID_BOOL,
-	ID_BOUCLE,
-	ID_CONSTANTE,
-	ID_CONTINUE,
-	ID_DANS,
-	ID_DE,
-	ID_DEFERE,
-	ID_EMPLOYANT,
-	ID_FAUX,
-	ID_FONCTION,
-	ID_GABARIT,
-	ID_MEMOIRE,
-	ID_N16,
-	ID_N32,
-	ID_N64,
-	ID_N8,
-	ID_POUR,
-	ID_R16,
-	ID_R32,
-	ID_R64,
-	ID_RETOURNE,
-	ID_RIEN,
-	ID_SI,
-	ID_SINON,
-	ID_SOIT,
-	ID_STRUCTURE,
-	ID_TAILLE_DE,
-	ID_TRANSTYPE,
-	ID_TYPE,
-	ID_VARIABLE,
-	ID_VRAI,
-	ID_Z16,
-	ID_Z32,
-	ID_Z64,
-	ID_Z8,
-	ID_ENUM,
-	ID_NOMBRE_REEL,
-	ID_NOMBRE_ENTIER,
-	ID_NOMBRE_HEXADECIMAL,
-	ID_NOMBRE_OCTAL,
-	ID_NOMBRE_BINAIRE,
-	ID_TROIS_POINTS,
-	ID_CHAINE_CARACTERE,
-	ID_CHAINE_LITTERALE,
-	ID_CARACTERE,
-	ID_POINTEUR,
-	ID_TABLEAU,
-	ID_REFERENCE,
-	ID_INCONNU,
-};
-
-const char *chaine_identifiant(int id);
+const char *chaine_identifiant(id_morceau id);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, int &i);
+bool est_caractere_special(char c, id_morceau &i);
 
-int id_caractere_double(const std::string_view &chaine);
+id_morceau id_caractere_double(const std::string_view &chaine);
 
-int id_chaine(const std::string_view &chaine);
+id_morceau id_chaine(const std::string_view &chaine);

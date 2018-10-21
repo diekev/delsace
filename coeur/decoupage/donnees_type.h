@@ -26,6 +26,8 @@
 
 #include <llvm/ADT/SmallVector.h>
 
+#include "morceaux.h"
+
 /**
  * Classe pour gérer les données du type d'une variable ou d'une constante. En
  * l'espèce, la classe contient un vecteur qui peut contenir un nombre variable
@@ -35,10 +37,10 @@
  */
 class DonneesType {
 	/* Petite optimisation pour les types simples. */
-	llvm::SmallVector<int, 1> m_donnees{};
+	llvm::SmallVector<id_morceau, 1> m_donnees{};
 
 public:
-	using iterateur_const = llvm::SmallVectorImpl<int>::const_reverse_iterator;
+	using iterateur_const = llvm::SmallVectorImpl<id_morceau>::const_reverse_iterator;
 
 	DonneesType() = default;
 
@@ -47,7 +49,7 @@ public:
 	 * l'identifiant poussé, donc il vaut mieux faire en sorte de pousser des
 	 * données correctes dans un ordre correcte.
 	 */
-	void pousse(int identifiant);
+	void pousse(id_morceau identifiant);
 
 	/**
 	 * Pousse les identifiants d'un autre vecteur de données dans celui-ci.
@@ -66,7 +68,7 @@ public:
 	 * Cette fonction ne vérifie pas que les données sont valide, donc l'appeler
 	 * sur des données invalide (vide) crashera le programme.
 	 */
-	int type_base() const;
+	id_morceau type_base() const;
 
 	/**
 	 * Retourne vrai si les données sont vides, ou si le dernier élément du

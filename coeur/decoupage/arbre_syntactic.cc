@@ -44,44 +44,44 @@ static llvm::Type *converti_type(
 {
 	llvm::Type *type = nullptr;
 
-	for (int identifiant : donnees_type) {
+	for (id_morceau identifiant : donnees_type) {
 		switch (identifiant & 0xff) {
-			case ID_BOOL:
+			case id_morceau::BOOL:
 				type = llvm::Type::getInt1Ty(contexte.contexte);
 				break;
-			case ID_N8:
-			case ID_Z8:
+			case id_morceau::N8:
+			case id_morceau::Z8:
 				/* À FAIRE : LLVM supporte les entiers non-signés ? */
 				type = llvm::Type::getInt8Ty(contexte.contexte);
 				break;
-			case ID_N16:
-			case ID_Z16:
+			case id_morceau::N16:
+			case id_morceau::Z16:
 				type = llvm::Type::getInt16Ty(contexte.contexte);
 				break;
-			case ID_N32:
-			case ID_Z32:
+			case id_morceau::N32:
+			case id_morceau::Z32:
 				type = llvm::Type::getInt32Ty(contexte.contexte);
 				break;
-			case ID_N64:
-			case ID_Z64:
+			case id_morceau::N64:
+			case id_morceau::Z64:
 				type = llvm::Type::getInt64Ty(contexte.contexte);
 				break;
-			case ID_R16:
+			case id_morceau::R16:
 				type = llvm::Type::getHalfTy(contexte.contexte);
 				break;
-			case ID_R32:
+			case id_morceau::R32:
 				type = llvm::Type::getFloatTy(contexte.contexte);
 				break;
-			case ID_R64:
+			case id_morceau::R64:
 				type = llvm::Type::getDoubleTy(contexte.contexte);
 				break;
-			case ID_RIEN:
+			case id_morceau::RIEN:
 				type = llvm::Type::getVoidTy(contexte.contexte);
 				break;
-			case ID_POINTEUR:
+			case id_morceau::POINTEUR:
 				type = llvm::PointerType::get(type, 0);
 				break;
-			case ID_CHAINE_CARACTERE:
+			case id_morceau::CHAINE_CARACTERE:
 			{
 				const auto &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
 				auto &donnees_structure = contexte.donnees_structure(id_structure);
@@ -107,58 +107,60 @@ static llvm::Type *converti_type(
 				type = donnees_structure.type_llvm;
 				break;
 			}
-			case ID_TABLEAU:
+			case id_morceau::TABLEAU:
 			{
 				const auto taille = static_cast<uint64_t>(identifiant) & 0xffffff00;
 				type = llvm::ArrayType::get(type, taille >> 8);
 				break;
 			}
+			default:
+				assert(false);
 		}
 	}
 
 	return type;
 }
 
-static bool est_type_entier(int type)
+static bool est_type_entier(id_morceau type)
 {
 	switch (type) {
-		case ID_BOOL:
-		case ID_N8:
-		case ID_N16:
-		case ID_N32:
-		case ID_N64:
-		case ID_Z8:
-		case ID_Z16:
-		case ID_Z32:
-		case ID_Z64:
-		case ID_POINTEUR:  /* À FAIRE : sépare ça. */
+		case id_morceau::BOOL:
+		case id_morceau::N8:
+		case id_morceau::N16:
+		case id_morceau::N32:
+		case id_morceau::N64:
+		case id_morceau::Z8:
+		case id_morceau::Z16:
+		case id_morceau::Z32:
+		case id_morceau::Z64:
+		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_type_entier_naturel(int type)
+static bool est_type_entier_naturel(id_morceau type)
 {
 	switch (type) {
-		case ID_N8:
-		case ID_N16:
-		case ID_N32:
-		case ID_N64:
-		case ID_POINTEUR:  /* À FAIRE : sépare ça. */
+		case id_morceau::N8:
+		case id_morceau::N16:
+		case id_morceau::N32:
+		case id_morceau::N64:
+		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_type_entier_relatif(int type)
+static bool est_type_entier_relatif(id_morceau type)
 {
 	switch (type) {
-		case ID_Z8:
-		case ID_Z16:
-		case ID_Z32:
-		case ID_Z64:
+		case id_morceau::Z8:
+		case id_morceau::Z16:
+		case id_morceau::Z32:
+		case id_morceau::Z64:
 			return true;
 		default:
 			return false;
@@ -166,12 +168,12 @@ static bool est_type_entier_relatif(int type)
 }
 
 #if 0
-static bool est_type_reel(int type)
+static bool est_type_reel(id_morceau type)
 {
 	switch (type) {
-		case ID_R16:
-		case ID_R32:
-		case ID_R64:
+		case id_morceau::R16:
+		case id_morceau::R32:
+		case id_morceau::R64:
 			return true;
 		default:
 			return false;
@@ -224,9 +226,9 @@ const DonneesType &Noeud::calcul_type(ContexteGenerationCode &/*contexte*/)
 	return this->donnees_type;
 }
 
-int Noeud::identifiant() const
+id_morceau Noeud::identifiant() const
 {
-	return static_cast<int>(m_donnees_morceaux.identifiant);
+	return m_donnees_morceaux.identifiant;
 }
 
 /* ************************************************************************** */
@@ -449,7 +451,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* À FAIRE : calcule type retour, considération fonction récursive. */
 	if (this->donnees_type.est_invalide()) {
-		this->donnees_type.pousse(ID_RIEN);
+		this->donnees_type.pousse(id_morceau::RIEN);
 	}
 
 	/* Crée fonction */
@@ -574,7 +576,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 					erreur::TYPE_INCONNU);
 	}
 
-	if (this->donnees_type.type_base() == ID_RIEN) {
+	if (this->donnees_type.type_base() == id_morceau::RIEN) {
 		erreur::lance_erreur(
 					"Impossible d'assigner une expression de type 'rien' à une variable !",
 					contexte.tampon,
@@ -733,7 +735,7 @@ int NoeudConstante::type_noeud() const
 NoeudNombreEntier::NoeudNombreEntier(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
-	this->donnees_type.pousse(ID_Z32);
+	this->donnees_type.pousse(id_morceau::Z32);
 }
 
 void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
@@ -755,7 +757,7 @@ llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &context
 	const auto valeur = this->calcule ? this->valeur_entiere :
 										converti_chaine_nombre_entier(
 											m_donnees_morceaux.chaine,
-											static_cast<int>(m_donnees_morceaux.identifiant));
+											m_donnees_morceaux.identifiant);
 
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt32Ty(contexte.contexte),
@@ -783,7 +785,7 @@ int NoeudNombreEntier::type_noeud() const
 NoeudBooleen::NoeudBooleen(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
-	this->donnees_type.pousse(ID_BOOL);
+	this->donnees_type.pousse(id_morceau::BOOL);
 }
 
 void NoeudBooleen::imprime_code(std::ostream &os, int tab)
@@ -830,7 +832,7 @@ int NoeudBooleen::type_noeud() const
 NoeudNombreReel::NoeudNombreReel(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
-	this->donnees_type.pousse(ID_R64);
+	this->donnees_type.pousse(id_morceau::R64);
 }
 
 void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
@@ -852,7 +854,7 @@ llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
 	const auto valeur = this->calcule ? this->valeur_reelle :
 										converti_chaine_nombre_reel(
 											m_donnees_morceaux.chaine,
-											static_cast<int>(m_donnees_morceaux.identifiant));
+											m_donnees_morceaux.identifiant);
 
 	return llvm::ConstantFP::get(
 				llvm::Type::getDoubleTy(contexte.contexte),
@@ -879,8 +881,8 @@ int NoeudNombreReel::type_noeud() const
 NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
-	this->donnees_type.pousse(ID_TABLEAU | static_cast<int>(m_donnees_morceaux.chaine.size() << 8));
-	this->donnees_type.pousse(ID_N8);
+	this->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(m_donnees_morceaux.chaine.size() << 8));
+	this->donnees_type.pousse(id_morceau::N8);
 }
 
 void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
@@ -1079,18 +1081,18 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
 		switch (this->m_donnees_morceaux.identifiant) {
-			case ID_EXCLAMATION:
+			case id_morceau::EXCLAMATION:
 				instr = llvm::Instruction::Xor;
 				valeur2 = valeur1;
 				break;
-			case ID_TILDE:
+			case id_morceau::TILDE:
 				instr = llvm::Instruction::Xor;
 				valeur2 = llvm::ConstantInt::get(
 							  llvm::Type::getInt32Ty(contexte.contexte),
 							  static_cast<uint64_t>(0),
 							  false);
 				break;
-			case ID_AROBASE:
+			case id_morceau::AROBASE:
 			{
 				auto inst_load = dynamic_cast<llvm::LoadInst *>(valeur1);
 
@@ -1117,7 +1119,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		const auto type1 = m_enfants.front()->calcul_type(contexte);
 		const auto type2 = m_enfants.back()->calcul_type(contexte);
 
-		if (this->m_donnees_morceaux.identifiant != ID_CROCHET_OUVRANT && type1 != type2) {
+		if (this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT && type1 != type2) {
 			erreur::lance_erreur(
 						"Les types de l'opération sont différents !",
 						contexte.tampon,
@@ -1131,7 +1133,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		auto valeur2 = m_enfants.back()->genere_code_llvm(contexte);
 
 		switch (this->m_donnees_morceaux.identifiant) {
-			case ID_PLUS:
+			case id_morceau::PLUS:
 				if (est_type_entier(type1.type_base())) {
 					instr = llvm::Instruction::Add;
 				}
@@ -1140,7 +1142,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_MOINS:
+			case id_morceau::MOINS:
 				if (est_type_entier(type1.type_base())) {
 					instr = llvm::Instruction::Sub;
 				}
@@ -1149,7 +1151,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_FOIS:
+			case id_morceau::FOIS:
 				if (est_type_entier(type1.type_base())) {
 					instr = llvm::Instruction::Mul;
 				}
@@ -1158,7 +1160,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_DIVISE:
+			case id_morceau::DIVISE:
 				if (est_type_entier_naturel(type1.type_base())) {
 					instr = llvm::Instruction::UDiv;
 				}
@@ -1170,7 +1172,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_POURCENT:
+			case id_morceau::POURCENT:
 				if (est_type_entier_naturel(type1.type_base())) {
 					instr = llvm::Instruction::URem;
 				}
@@ -1182,7 +1184,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_DECALAGE_DROITE:
+			case id_morceau::DECALAGE_DROITE:
 				if (est_type_entier_naturel(type1.type_base())) {
 					instr = llvm::Instruction::LShr;
 				}
@@ -1197,7 +1199,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								erreur::TYPE_DIFFERENTS);
 				}
 				break;
-			case ID_DECALAGE_GAUCHE:
+			case id_morceau::DECALAGE_GAUCHE:
 				if (!est_type_entier(type1.type_base())) {
 					erreur::lance_erreur(
 								"Besoin d'un type entier pour le décalage !",
@@ -1208,8 +1210,8 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 
 				instr = llvm::Instruction::Shl;
 				break;
-			case ID_ESPERLUETTE:
-			case ID_ESP_ESP:
+			case id_morceau::ESPERLUETTE:
+			case id_morceau::ESP_ESP:
 				if (!est_type_entier(type1.type_base())) {
 					erreur::lance_erreur(
 								"Besoin d'un type entier pour l'opération binaire !",
@@ -1219,8 +1221,8 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 				instr = llvm::Instruction::And;
 				break;
-			case ID_BARRE:
-			case ID_BARRE_BARRE:
+			case id_morceau::BARRE:
+			case id_morceau::BARRE_BARRE:
 				if (!est_type_entier(type1.type_base())) {
 					erreur::lance_erreur(
 								"Besoin d'un type entier pour l'opération binaire !",
@@ -1230,7 +1232,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 				instr = llvm::Instruction::Or;
 				break;
-			case ID_CHAPEAU:
+			case id_morceau::CHAPEAU:
 				if (!est_type_entier(type1.type_base())) {
 					erreur::lance_erreur(
 								"Besoin d'un type entier pour l'opération binaire !",
@@ -1241,7 +1243,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				instr = llvm::Instruction::Xor;
 				break;
 			/* À FAIRE. */
-			case ID_INFERIEUR:
+			case id_morceau::INFERIEUR:
 				if (est_type_entier_naturel(type1.type_base())) {
 					est_comp_entier = true;
 					predicat = llvm::CmpInst::Predicate::ICMP_ULT;
@@ -1256,7 +1258,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_INFERIEUR_EGAL:
+			case id_morceau::INFERIEUR_EGAL:
 				if (est_type_entier_naturel(type1.type_base())) {
 					est_comp_entier = true;
 					predicat = llvm::CmpInst::Predicate::ICMP_ULE;
@@ -1271,7 +1273,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_SUPERIEUR:
+			case id_morceau::SUPERIEUR:
 				if (est_type_entier_naturel(type1.type_base())) {
 					est_comp_entier = true;
 					predicat = llvm::CmpInst::Predicate::ICMP_UGT;
@@ -1286,7 +1288,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_SUPERIEUR_EGAL:
+			case id_morceau::SUPERIEUR_EGAL:
 				if (est_type_entier_naturel(type1.type_base())) {
 					est_comp_entier = true;
 					predicat = llvm::CmpInst::Predicate::ICMP_UGE;
@@ -1301,7 +1303,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_EGALITE:
+			case id_morceau::EGALITE:
 				if (est_type_entier(type1.type_base())) {
 					est_comp_entier = true;
 					predicat = llvm::CmpInst::Predicate::ICMP_EQ;
@@ -1312,7 +1314,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_DIFFERENCE:
+			case id_morceau::DIFFERENCE:
 				if (est_type_entier(type1.type_base())) {
 					est_comp_entier = true;
 					predicat = llvm::CmpInst::Predicate::ICMP_NE;
@@ -1323,9 +1325,9 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				}
 
 				break;
-			case ID_CROCHET_OUVRANT:
+			case id_morceau::CROCHET_OUVRANT:
 			{
-				if (type2.type_base() != ID_POINTEUR && (type2.type_base() & 0xff) != ID_TABLEAU) {
+				if (type2.type_base() != id_morceau::POINTEUR && (type2.type_base() & 0xff) != id_morceau::TABLEAU) {
 					erreur::lance_erreur(
 								"Le type ne peut être déréférencé !",
 								contexte.tampon,
@@ -1368,11 +1370,11 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (this->donnees_type.est_invalide()) {
-		if (m_donnees_morceaux.identifiant == ID_AROBASE) {
-			this->donnees_type.pousse(ID_POINTEUR);
+		if (this->m_donnees_morceaux.identifiant == id_morceau::AROBASE) {
+			this->donnees_type.pousse(id_morceau::POINTEUR);
 			this->donnees_type.pousse(m_enfants.front()->calcul_type(contexte));
 		}
-		else if (m_donnees_morceaux.identifiant == ID_CROCHET_OUVRANT) {
+		else if (this->m_donnees_morceaux.identifiant == id_morceau::CROCHET_OUVRANT) {
 			auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
 			this->donnees_type = donnees_enfant.derefence();
 		}
@@ -1391,12 +1393,12 @@ int NoeudOperation::type_noeud() const
 
 bool NoeudOperation::peut_etre_assigne(ContexteGenerationCode &contexte) const
 {
-	if (m_donnees_morceaux.identifiant == ID_AROBASE) {
+	if (this->m_donnees_morceaux.identifiant == id_morceau::AROBASE) {
 		/* ne peut assigné dans une prise d'addresse */
 		return false;
 	}
 
-	if (m_donnees_morceaux.identifiant == ID_CROCHET_OUVRANT) {
+	if (this->m_donnees_morceaux.identifiant == id_morceau::CROCHET_OUVRANT) {
 		return m_enfants.back()->peut_etre_assigne(contexte);
 	}
 
@@ -1408,7 +1410,7 @@ bool NoeudOperation::peut_etre_assigne(ContexteGenerationCode &contexte) const
 NoeudRetour::NoeudRetour(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
-	this->donnees_type.pousse(ID_RIEN);
+	this->donnees_type.pousse(id_morceau::RIEN);
 }
 
 void NoeudRetour::imprime_code(std::ostream &os, int tab)

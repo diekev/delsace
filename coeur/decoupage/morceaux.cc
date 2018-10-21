@@ -28,263 +28,263 @@
 
 #include <map>
 
-static std::map<std::string_view, int> paires_mots_cles = {
-	{ "arrête", ID_ARRETE },
-	{ "associe", ID_ASSOCIE },
-	{ "bool", ID_BOOL },
-	{ "boucle", ID_BOUCLE },
-	{ "constante", ID_CONSTANTE },
-	{ "continue", ID_CONTINUE },
-	{ "dans", ID_DANS },
-	{ "de", ID_DE },
-	{ "défère", ID_DEFERE },
-	{ "employant", ID_EMPLOYANT },
-	{ "faux", ID_FAUX },
-	{ "fonction", ID_FONCTION },
-	{ "gabarit", ID_GABARIT },
-	{ "mémoire", ID_MEMOIRE },
-	{ "n16", ID_N16 },
-	{ "n32", ID_N32 },
-	{ "n64", ID_N64 },
-	{ "n8", ID_N8 },
-	{ "pour", ID_POUR },
-	{ "r16", ID_R16 },
-	{ "r32", ID_R32 },
-	{ "r64", ID_R64 },
-	{ "retourne", ID_RETOURNE },
-	{ "rien", ID_RIEN },
-	{ "si", ID_SI },
-	{ "sinon", ID_SINON },
-	{ "soit", ID_SOIT },
-	{ "structure", ID_STRUCTURE },
-	{ "taille_de", ID_TAILLE_DE },
-	{ "transtype", ID_TRANSTYPE },
-	{ "type", ID_TYPE },
-	{ "variable", ID_VARIABLE },
-	{ "vrai", ID_VRAI },
-	{ "z16", ID_Z16 },
-	{ "z32", ID_Z32 },
-	{ "z64", ID_Z64 },
-	{ "z8", ID_Z8 },
-	{ "énum", ID_ENUM },
+static std::map<std::string_view, id_morceau> paires_mots_cles = {
+	{ "arrête", id_morceau::ARRETE },
+	{ "associe", id_morceau::ASSOCIE },
+	{ "bool", id_morceau::BOOL },
+	{ "boucle", id_morceau::BOUCLE },
+	{ "constante", id_morceau::CONSTANTE },
+	{ "continue", id_morceau::CONTINUE },
+	{ "dans", id_morceau::DANS },
+	{ "de", id_morceau::DE },
+	{ "défère", id_morceau::DEFERE },
+	{ "employant", id_morceau::EMPLOYANT },
+	{ "faux", id_morceau::FAUX },
+	{ "fonction", id_morceau::FONCTION },
+	{ "gabarit", id_morceau::GABARIT },
+	{ "mémoire", id_morceau::MEMOIRE },
+	{ "n16", id_morceau::N16 },
+	{ "n32", id_morceau::N32 },
+	{ "n64", id_morceau::N64 },
+	{ "n8", id_morceau::N8 },
+	{ "pour", id_morceau::POUR },
+	{ "r16", id_morceau::R16 },
+	{ "r32", id_morceau::R32 },
+	{ "r64", id_morceau::R64 },
+	{ "retourne", id_morceau::RETOURNE },
+	{ "rien", id_morceau::RIEN },
+	{ "si", id_morceau::SI },
+	{ "sinon", id_morceau::SINON },
+	{ "soit", id_morceau::SOIT },
+	{ "structure", id_morceau::STRUCTURE },
+	{ "taille_de", id_morceau::TAILLE_DE },
+	{ "transtype", id_morceau::TRANSTYPE },
+	{ "type", id_morceau::TYPE },
+	{ "variable", id_morceau::VARIABLE },
+	{ "vrai", id_morceau::VRAI },
+	{ "z16", id_morceau::Z16 },
+	{ "z32", id_morceau::Z32 },
+	{ "z64", id_morceau::Z64 },
+	{ "z8", id_morceau::Z8 },
+	{ "énum", id_morceau::ENUM },
 };
 
-static std::map<std::string_view, int> paires_caracteres_double = {
-	{ "!=", ID_DIFFERENCE },
-	{ "&&", ID_ESP_ESP },
-	{ "<<", ID_DECALAGE_GAUCHE },
-	{ "<=", ID_INFERIEUR_EGAL },
-	{ "==", ID_EGALITE },
-	{ ">=", ID_SUPERIEUR_EGAL },
-	{ ">>", ID_DECALAGE_DROITE },
-	{ "||", ID_BARRE_BARRE },
+static std::map<std::string_view, id_morceau> paires_caracteres_double = {
+	{ "!=", id_morceau::DIFFERENCE },
+	{ "&&", id_morceau::ESP_ESP },
+	{ "<<", id_morceau::DECALAGE_GAUCHE },
+	{ "<=", id_morceau::INFERIEUR_EGAL },
+	{ "==", id_morceau::EGALITE },
+	{ ">=", id_morceau::SUPERIEUR_EGAL },
+	{ ">>", id_morceau::DECALAGE_DROITE },
+	{ "||", id_morceau::BARRE_BARRE },
 };
 
-static std::map<char, int> paires_caracteres_speciaux = {
-	{ '!', ID_EXCLAMATION },
-	{ '"', ID_GUILLEMET },
-	{ '#', ID_DIESE },
-	{ '%', ID_POURCENT },
-	{ '&', ID_ESPERLUETTE },
-	{ '\'', ID_APOSTROPHE },
-	{ '(', ID_PARENTHESE_OUVRANTE },
-	{ ')', ID_PARENTHESE_FERMANTE },
-	{ '*', ID_FOIS },
-	{ '+', ID_PLUS },
-	{ ',', ID_VIRGULE },
-	{ '-', ID_MOINS },
-	{ '.', ID_POINT },
-	{ '/', ID_DIVISE },
-	{ ':', ID_DOUBLE_POINTS },
-	{ ';', ID_POINT_VIRGULE },
-	{ '<', ID_INFERIEUR },
-	{ '=', ID_EGAL },
-	{ '>', ID_SUPERIEUR },
-	{ '@', ID_AROBASE },
-	{ '[', ID_CROCHET_OUVRANT },
-	{ ']', ID_CROCHET_FERMANT },
-	{ '^', ID_CHAPEAU },
-	{ '{', ID_ACCOLADE_OUVRANTE },
-	{ '|', ID_BARRE },
-	{ '}', ID_ACCOLADE_FERMANTE },
-	{ '~', ID_TILDE },
+static std::map<char, id_morceau> paires_caracteres_speciaux = {
+	{ '!', id_morceau::EXCLAMATION },
+	{ '"', id_morceau::GUILLEMET },
+	{ '#', id_morceau::DIESE },
+	{ '%', id_morceau::POURCENT },
+	{ '&', id_morceau::ESPERLUETTE },
+	{ '\'', id_morceau::APOSTROPHE },
+	{ '(', id_morceau::PARENTHESE_OUVRANTE },
+	{ ')', id_morceau::PARENTHESE_FERMANTE },
+	{ '*', id_morceau::FOIS },
+	{ '+', id_morceau::PLUS },
+	{ ',', id_morceau::VIRGULE },
+	{ '-', id_morceau::MOINS },
+	{ '.', id_morceau::POINT },
+	{ '/', id_morceau::DIVISE },
+	{ ':', id_morceau::DOUBLE_POINTS },
+	{ ';', id_morceau::POINT_VIRGULE },
+	{ '<', id_morceau::INFERIEUR },
+	{ '=', id_morceau::EGAL },
+	{ '>', id_morceau::SUPERIEUR },
+	{ '@', id_morceau::AROBASE },
+	{ '[', id_morceau::CROCHET_OUVRANT },
+	{ ']', id_morceau::CROCHET_FERMANT },
+	{ '^', id_morceau::CHAPEAU },
+	{ '{', id_morceau::ACCOLADE_OUVRANTE },
+	{ '|', id_morceau::BARRE },
+	{ '}', id_morceau::ACCOLADE_FERMANTE },
+	{ '~', id_morceau::TILDE },
 };
 
-const char *chaine_identifiant(int id)
+const char *chaine_identifiant(id_morceau id)
 {
 	switch (id) {
-		case ID_EXCLAMATION:
-			return "ID_EXCLAMATION";
-		case ID_GUILLEMET:
-			return "ID_GUILLEMET";
-		case ID_DIESE:
-			return "ID_DIESE";
-		case ID_POURCENT:
-			return "ID_POURCENT";
-		case ID_ESPERLUETTE:
-			return "ID_ESPERLUETTE";
-		case ID_APOSTROPHE:
-			return "ID_APOSTROPHE";
-		case ID_PARENTHESE_OUVRANTE:
-			return "ID_PARENTHESE_OUVRANTE";
-		case ID_PARENTHESE_FERMANTE:
-			return "ID_PARENTHESE_FERMANTE";
-		case ID_FOIS:
-			return "ID_FOIS";
-		case ID_PLUS:
-			return "ID_PLUS";
-		case ID_VIRGULE:
-			return "ID_VIRGULE";
-		case ID_MOINS:
-			return "ID_MOINS";
-		case ID_POINT:
-			return "ID_POINT";
-		case ID_DIVISE:
-			return "ID_DIVISE";
-		case ID_DOUBLE_POINTS:
-			return "ID_DOUBLE_POINTS";
-		case ID_POINT_VIRGULE:
-			return "ID_POINT_VIRGULE";
-		case ID_INFERIEUR:
-			return "ID_INFERIEUR";
-		case ID_EGAL:
-			return "ID_EGAL";
-		case ID_SUPERIEUR:
-			return "ID_SUPERIEUR";
-		case ID_AROBASE:
-			return "ID_AROBASE";
-		case ID_CROCHET_OUVRANT:
-			return "ID_CROCHET_OUVRANT";
-		case ID_CROCHET_FERMANT:
-			return "ID_CROCHET_FERMANT";
-		case ID_CHAPEAU:
-			return "ID_CHAPEAU";
-		case ID_ACCOLADE_OUVRANTE:
-			return "ID_ACCOLADE_OUVRANTE";
-		case ID_BARRE:
-			return "ID_BARRE";
-		case ID_ACCOLADE_FERMANTE:
-			return "ID_ACCOLADE_FERMANTE";
-		case ID_TILDE:
-			return "ID_TILDE";
-		case ID_DIFFERENCE:
-			return "ID_DIFFERENCE";
-		case ID_ESP_ESP:
-			return "ID_ESP_ESP";
-		case ID_DECALAGE_GAUCHE:
-			return "ID_DECALAGE_GAUCHE";
-		case ID_INFERIEUR_EGAL:
-			return "ID_INFERIEUR_EGAL";
-		case ID_EGALITE:
-			return "ID_EGALITE";
-		case ID_SUPERIEUR_EGAL:
-			return "ID_SUPERIEUR_EGAL";
-		case ID_DECALAGE_DROITE:
-			return "ID_DECALAGE_DROITE";
-		case ID_BARRE_BARRE:
-			return "ID_BARRE_BARRE";
-		case ID_ARRETE:
-			return "ID_ARRETE";
-		case ID_ASSOCIE:
-			return "ID_ASSOCIE";
-		case ID_BOOL:
-			return "ID_BOOL";
-		case ID_BOUCLE:
-			return "ID_BOUCLE";
-		case ID_CONSTANTE:
-			return "ID_CONSTANTE";
-		case ID_CONTINUE:
-			return "ID_CONTINUE";
-		case ID_DANS:
-			return "ID_DANS";
-		case ID_DE:
-			return "ID_DE";
-		case ID_DEFERE:
-			return "ID_DEFERE";
-		case ID_EMPLOYANT:
-			return "ID_EMPLOYANT";
-		case ID_FAUX:
-			return "ID_FAUX";
-		case ID_FONCTION:
-			return "ID_FONCTION";
-		case ID_GABARIT:
-			return "ID_GABARIT";
-		case ID_MEMOIRE:
-			return "ID_MEMOIRE";
-		case ID_N16:
-			return "ID_N16";
-		case ID_N32:
-			return "ID_N32";
-		case ID_N64:
-			return "ID_N64";
-		case ID_N8:
-			return "ID_N8";
-		case ID_POUR:
-			return "ID_POUR";
-		case ID_R16:
-			return "ID_R16";
-		case ID_R32:
-			return "ID_R32";
-		case ID_R64:
-			return "ID_R64";
-		case ID_RETOURNE:
-			return "ID_RETOURNE";
-		case ID_RIEN:
-			return "ID_RIEN";
-		case ID_SI:
-			return "ID_SI";
-		case ID_SINON:
-			return "ID_SINON";
-		case ID_SOIT:
-			return "ID_SOIT";
-		case ID_STRUCTURE:
-			return "ID_STRUCTURE";
-		case ID_TAILLE_DE:
-			return "ID_TAILLE_DE";
-		case ID_TRANSTYPE:
-			return "ID_TRANSTYPE";
-		case ID_TYPE:
-			return "ID_TYPE";
-		case ID_VARIABLE:
-			return "ID_VARIABLE";
-		case ID_VRAI:
-			return "ID_VRAI";
-		case ID_Z16:
-			return "ID_Z16";
-		case ID_Z32:
-			return "ID_Z32";
-		case ID_Z64:
-			return "ID_Z64";
-		case ID_Z8:
-			return "ID_Z8";
-		case ID_ENUM:
-			return "ID_ENUM";
-		case ID_NOMBRE_REEL:
-			return "ID_NOMBRE_REEL";
-		case ID_NOMBRE_ENTIER:
-			return "ID_NOMBRE_ENTIER";
-		case ID_NOMBRE_HEXADECIMAL:
-			return "ID_NOMBRE_HEXADECIMAL";
-		case ID_NOMBRE_OCTAL:
-			return "ID_NOMBRE_OCTAL";
-		case ID_NOMBRE_BINAIRE:
-			return "ID_NOMBRE_BINAIRE";
-		case ID_TROIS_POINTS:
-			return "ID_TROIS_POINTS";
-		case ID_CHAINE_CARACTERE:
-			return "ID_CHAINE_CARACTERE";
-		case ID_CHAINE_LITTERALE:
-			return "ID_CHAINE_LITTERALE";
-		case ID_CARACTERE:
-			return "ID_CARACTERE";
-		case ID_POINTEUR:
-			return "ID_POINTEUR";
-		case ID_TABLEAU:
-			return "ID_TABLEAU";
-		case ID_REFERENCE:
-			return "ID_REFERENCE";
-		case ID_INCONNU:
-			return "ID_INCONNU";
+		case id_morceau::EXCLAMATION:
+			return "id_morceau::EXCLAMATION";
+		case id_morceau::GUILLEMET:
+			return "id_morceau::GUILLEMET";
+		case id_morceau::DIESE:
+			return "id_morceau::DIESE";
+		case id_morceau::POURCENT:
+			return "id_morceau::POURCENT";
+		case id_morceau::ESPERLUETTE:
+			return "id_morceau::ESPERLUETTE";
+		case id_morceau::APOSTROPHE:
+			return "id_morceau::APOSTROPHE";
+		case id_morceau::PARENTHESE_OUVRANTE:
+			return "id_morceau::PARENTHESE_OUVRANTE";
+		case id_morceau::PARENTHESE_FERMANTE:
+			return "id_morceau::PARENTHESE_FERMANTE";
+		case id_morceau::FOIS:
+			return "id_morceau::FOIS";
+		case id_morceau::PLUS:
+			return "id_morceau::PLUS";
+		case id_morceau::VIRGULE:
+			return "id_morceau::VIRGULE";
+		case id_morceau::MOINS:
+			return "id_morceau::MOINS";
+		case id_morceau::POINT:
+			return "id_morceau::POINT";
+		case id_morceau::DIVISE:
+			return "id_morceau::DIVISE";
+		case id_morceau::DOUBLE_POINTS:
+			return "id_morceau::DOUBLE_POINTS";
+		case id_morceau::POINT_VIRGULE:
+			return "id_morceau::POINT_VIRGULE";
+		case id_morceau::INFERIEUR:
+			return "id_morceau::INFERIEUR";
+		case id_morceau::EGAL:
+			return "id_morceau::EGAL";
+		case id_morceau::SUPERIEUR:
+			return "id_morceau::SUPERIEUR";
+		case id_morceau::AROBASE:
+			return "id_morceau::AROBASE";
+		case id_morceau::CROCHET_OUVRANT:
+			return "id_morceau::CROCHET_OUVRANT";
+		case id_morceau::CROCHET_FERMANT:
+			return "id_morceau::CROCHET_FERMANT";
+		case id_morceau::CHAPEAU:
+			return "id_morceau::CHAPEAU";
+		case id_morceau::ACCOLADE_OUVRANTE:
+			return "id_morceau::ACCOLADE_OUVRANTE";
+		case id_morceau::BARRE:
+			return "id_morceau::BARRE";
+		case id_morceau::ACCOLADE_FERMANTE:
+			return "id_morceau::ACCOLADE_FERMANTE";
+		case id_morceau::TILDE:
+			return "id_morceau::TILDE";
+		case id_morceau::DIFFERENCE:
+			return "id_morceau::DIFFERENCE";
+		case id_morceau::ESP_ESP:
+			return "id_morceau::ESP_ESP";
+		case id_morceau::DECALAGE_GAUCHE:
+			return "id_morceau::DECALAGE_GAUCHE";
+		case id_morceau::INFERIEUR_EGAL:
+			return "id_morceau::INFERIEUR_EGAL";
+		case id_morceau::EGALITE:
+			return "id_morceau::EGALITE";
+		case id_morceau::SUPERIEUR_EGAL:
+			return "id_morceau::SUPERIEUR_EGAL";
+		case id_morceau::DECALAGE_DROITE:
+			return "id_morceau::DECALAGE_DROITE";
+		case id_morceau::BARRE_BARRE:
+			return "id_morceau::BARRE_BARRE";
+		case id_morceau::ARRETE:
+			return "id_morceau::ARRETE";
+		case id_morceau::ASSOCIE:
+			return "id_morceau::ASSOCIE";
+		case id_morceau::BOOL:
+			return "id_morceau::BOOL";
+		case id_morceau::BOUCLE:
+			return "id_morceau::BOUCLE";
+		case id_morceau::CONSTANTE:
+			return "id_morceau::CONSTANTE";
+		case id_morceau::CONTINUE:
+			return "id_morceau::CONTINUE";
+		case id_morceau::DANS:
+			return "id_morceau::DANS";
+		case id_morceau::DE:
+			return "id_morceau::DE";
+		case id_morceau::DEFERE:
+			return "id_morceau::DEFERE";
+		case id_morceau::EMPLOYANT:
+			return "id_morceau::EMPLOYANT";
+		case id_morceau::FAUX:
+			return "id_morceau::FAUX";
+		case id_morceau::FONCTION:
+			return "id_morceau::FONCTION";
+		case id_morceau::GABARIT:
+			return "id_morceau::GABARIT";
+		case id_morceau::MEMOIRE:
+			return "id_morceau::MEMOIRE";
+		case id_morceau::N16:
+			return "id_morceau::N16";
+		case id_morceau::N32:
+			return "id_morceau::N32";
+		case id_morceau::N64:
+			return "id_morceau::N64";
+		case id_morceau::N8:
+			return "id_morceau::N8";
+		case id_morceau::POUR:
+			return "id_morceau::POUR";
+		case id_morceau::R16:
+			return "id_morceau::R16";
+		case id_morceau::R32:
+			return "id_morceau::R32";
+		case id_morceau::R64:
+			return "id_morceau::R64";
+		case id_morceau::RETOURNE:
+			return "id_morceau::RETOURNE";
+		case id_morceau::RIEN:
+			return "id_morceau::RIEN";
+		case id_morceau::SI:
+			return "id_morceau::SI";
+		case id_morceau::SINON:
+			return "id_morceau::SINON";
+		case id_morceau::SOIT:
+			return "id_morceau::SOIT";
+		case id_morceau::STRUCTURE:
+			return "id_morceau::STRUCTURE";
+		case id_morceau::TAILLE_DE:
+			return "id_morceau::TAILLE_DE";
+		case id_morceau::TRANSTYPE:
+			return "id_morceau::TRANSTYPE";
+		case id_morceau::TYPE:
+			return "id_morceau::TYPE";
+		case id_morceau::VARIABLE:
+			return "id_morceau::VARIABLE";
+		case id_morceau::VRAI:
+			return "id_morceau::VRAI";
+		case id_morceau::Z16:
+			return "id_morceau::Z16";
+		case id_morceau::Z32:
+			return "id_morceau::Z32";
+		case id_morceau::Z64:
+			return "id_morceau::Z64";
+		case id_morceau::Z8:
+			return "id_morceau::Z8";
+		case id_morceau::ENUM:
+			return "id_morceau::ENUM";
+		case id_morceau::NOMBRE_REEL:
+			return "id_morceau::NOMBRE_REEL";
+		case id_morceau::NOMBRE_ENTIER:
+			return "id_morceau::NOMBRE_ENTIER";
+		case id_morceau::NOMBRE_HEXADECIMAL:
+			return "id_morceau::NOMBRE_HEXADECIMAL";
+		case id_morceau::NOMBRE_OCTAL:
+			return "id_morceau::NOMBRE_OCTAL";
+		case id_morceau::NOMBRE_BINAIRE:
+			return "id_morceau::NOMBRE_BINAIRE";
+		case id_morceau::TROIS_POINTS:
+			return "id_morceau::TROIS_POINTS";
+		case id_morceau::CHAINE_CARACTERE:
+			return "id_morceau::CHAINE_CARACTERE";
+		case id_morceau::CHAINE_LITTERALE:
+			return "id_morceau::CHAINE_LITTERALE";
+		case id_morceau::CARACTERE:
+			return "id_morceau::CARACTERE";
+		case id_morceau::POINTEUR:
+			return "id_morceau::POINTEUR";
+		case id_morceau::TABLEAU:
+			return "id_morceau::TABLEAU";
+		case id_morceau::REFERENCE:
+			return "id_morceau::REFERENCE";
+		case id_morceau::INCONNU:
+			return "id_morceau::INCONNU";
 	};
 
 	return "ERREUR";
@@ -293,7 +293,7 @@ const char *chaine_identifiant(int id)
 static constexpr auto TAILLE_MAX_MOT_CLE = 9;
 
 static bool tables_caracteres[256] = {};
-static int tables_identifiants[256] = {};
+static id_morceau tables_identifiants[256] = {};
 static bool tables_caracteres_double[256] = {};
 static bool tables_mots_cles[256] = {};
 
@@ -303,7 +303,7 @@ void construit_tables_caractere_speciaux()
 		tables_caracteres[i] = false;
 		tables_caracteres_double[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = -1;
+		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
 	for (const auto &iter : paires_caracteres_speciaux) {
@@ -320,7 +320,7 @@ void construit_tables_caractere_speciaux()
 	}
 }
 
-bool est_caractere_special(char c, int &i)
+bool est_caractere_special(char c, id_morceau &i)
 {
 	if (!tables_caracteres[static_cast<int>(c)]) {
 		return false;
@@ -330,10 +330,10 @@ bool est_caractere_special(char c, int &i)
 	return true;
 }
 
-int id_caractere_double(const std::string_view &chaine)
+id_morceau id_caractere_double(const std::string_view &chaine)
 {
 	if (!tables_caracteres_double[int(chaine[0])]) {
-		return ID_INCONNU;
+		return id_morceau::INCONNU;
 	}
 
 	auto iterateur = paires_caracteres_double.find(chaine);
@@ -342,17 +342,17 @@ int id_caractere_double(const std::string_view &chaine)
 		return (*iterateur).second;
 	}
 
-	return ID_INCONNU;
+	return id_morceau::INCONNU;
 }
 
-int id_chaine(const std::string_view &chaine)
+id_morceau id_chaine(const std::string_view &chaine)
 {
 	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
-		return ID_CHAINE_CARACTERE;
+		return id_morceau::CHAINE_CARACTERE;
 	}
 
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
-		return ID_CHAINE_CARACTERE;
+		return id_morceau::CHAINE_CARACTERE;
 	}
 
 	auto iterateur = paires_mots_cles.find(chaine);
@@ -361,5 +361,5 @@ int id_chaine(const std::string_view &chaine)
 		return (*iterateur).second;
 	}
 
-	return ID_CHAINE_CARACTERE;
+	return id_morceau::CHAINE_CARACTERE;
 }

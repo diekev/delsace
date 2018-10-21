@@ -194,7 +194,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 //    ajoute caractere mot courant
 void decoupeuse_texte::analyse_caractere_simple()
 {
-	int idc = ID_INCONNU;
+	auto idc = id_morceau::INCONNU;
 
 	if (est_espace_blanc(this->caractere_courant())) {
 		if (m_taille_mot_courant != 0) {
@@ -212,7 +212,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 
 		auto id = id_caractere_double(std::string_view(m_debut, 2));
 
-		if (id != ID_INCONNU) {
+		if (id != id_morceau::INCONNU) {
 			this->pousse_caractere();
 			this->pousse_caractere();
 			this->pousse_mot(id);
@@ -235,7 +235,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 				this->pousse_caractere();
 				this->pousse_caractere();
 
-				this->pousse_mot(ID_TROIS_POINTS);
+				this->pousse_mot(id_morceau::TROIS_POINTS);
 				this->avance(3);
 				break;
 			}
@@ -257,7 +257,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 				/* Saute le dernier guillemet. */
 				this->avance();
 
-				this->pousse_mot(ID_CHAINE_LITTERALE);
+				this->pousse_mot(id_morceau::CHAINE_LITTERALE);
 				break;
 			}
 			case '\'':
@@ -273,7 +273,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 				}
 
 				this->pousse_caractere();
-				this->pousse_mot(ID_CARACTERE);
+				this->pousse_mot(id_morceau::CARACTERE);
 
 				this->avance();
 
@@ -305,14 +305,14 @@ void decoupeuse_texte::analyse_caractere_simple()
 	else if (m_taille_mot_courant == 0 && est_nombre_decimal(this->caractere_courant())) {
 		this->enregistre_pos_mot();
 
-		int id_nombre;
+		id_morceau id_nombre;
 		std::string nombre;
 		const auto compte = extrait_nombre(m_debut, m_fin, nombre, id_nombre);
 
 		m_taille_mot_courant = static_cast<size_t>(compte);
 
 		/* À FAIRE : reconsidération de la manière de découper les nombres. */
-		if (id_nombre != ID_NOMBRE_ENTIER && id_nombre != ID_NOMBRE_REEL) {
+		if (id_nombre != id_morceau::NOMBRE_ENTIER && id_nombre != id_morceau::NOMBRE_REEL) {
 			m_pos_mot += 2;
 			m_debut_mot += 2;
 			m_taille_mot_courant -= 2;
@@ -336,9 +336,9 @@ void decoupeuse_texte::pousse_caractere()
 	m_taille_mot_courant += 1;
 }
 
-void decoupeuse_texte::pousse_mot(int identifiant)
+void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_morceaux.push_back({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), static_cast<size_t>(identifiant) });
+	m_morceaux.push_back({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), identifiant });
 	m_taille_mot_courant = 0;
 }
 

@@ -27,7 +27,6 @@
 #include <cmath>
 
 #include "erreur.h"
-#include "morceaux.h"
 
 /* Logique de découpage et de conversion de nombres.
  *
@@ -122,11 +121,11 @@ static int extrait_nombre_hexadecimal(const char *debut, const char *fin, std::s
 	return compte;
 }
 
-static int extrait_nombre_decimal(const char *debut, const char *fin, std::string &chaine, int &id_nombre)
+static int extrait_nombre_decimal(const char *debut, const char *fin, std::string &chaine, id_morceau &id_nombre)
 {
 	int compte = 0;
 	int etat = ETAT_NOMBRE_DEBUT;
-	id_nombre = ID_NOMBRE_ENTIER;
+	id_nombre = id_morceau::NOMBRE_ENTIER;
 
 	while (debut != fin) {
 		if (*debut != '_') {
@@ -144,7 +143,7 @@ static int extrait_nombre_decimal(const char *debut, const char *fin, std::strin
 				}
 
 				etat = ETAT_NOMBRE_POINT;
-				id_nombre = ID_NOMBRE_REEL;
+				id_nombre = id_morceau::NOMBRE_REEL;
 			}
 
 			chaine.push_back(*debut);
@@ -157,22 +156,22 @@ static int extrait_nombre_decimal(const char *debut, const char *fin, std::strin
 	return compte;
 }
 
-int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int &id_nombre)
+int extrait_nombre(const char *debut, const char *fin, std::string &chaine, id_morceau &id_nombre)
 {
 	if (*debut == '0' && (*(debut + 1) == 'b' || *(debut + 1) == 'B')) {
-		id_nombre = ID_NOMBRE_BINAIRE;
+		id_nombre = id_morceau::NOMBRE_BINAIRE;
 		debut += 2;
 		return extrait_nombre_binaire(debut, fin, chaine) + 2;
 	}
 
 	if (*debut == '0' && (*(debut + 1) == 'o' || *(debut + 1) == 'O')) {
-		id_nombre = ID_NOMBRE_OCTAL;
+		id_nombre = id_morceau::NOMBRE_OCTAL;
 		debut += 2;
 		return extrait_nombre_octal(debut, fin, chaine) + 2;
 	}
 
 	if (*debut == '0' && (*(debut + 1) == 'x' || *(debut + 1) == 'X')) {
-		id_nombre = ID_NOMBRE_HEXADECIMAL;
+		id_nombre = id_morceau::NOMBRE_HEXADECIMAL;
 		debut += 2;
 		return extrait_nombre_hexadecimal(debut, fin, chaine) + 2;
 	}
@@ -243,31 +242,31 @@ static long converti_chaine_nombre_hexadecimal(const std::string_view &chaine)
 	return resultat;
 }
 
-long converti_chaine_nombre_entier(const std::string_view &chaine, int identifiant)
+long converti_chaine_nombre_entier(const std::string_view &chaine, id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_NOMBRE_ENTIER:
+		case id_morceau::NOMBRE_ENTIER:
 			if (chaine.length() > 19 || chaine > "9223372036854775807") {
 				/* À FAIRE : erreur, surcharge. */
 				return std::numeric_limits<long>::max();
 			}
 
 			return std::atol(&chaine[0]);
-		case ID_NOMBRE_BINAIRE:
+		case id_morceau::NOMBRE_BINAIRE:
 			return converti_chaine_nombre_binaire(chaine);
-		case ID_NOMBRE_OCTAL:
+		case id_morceau::NOMBRE_OCTAL:
 			return converti_chaine_nombre_octal(chaine);
-		case ID_NOMBRE_HEXADECIMAL:
+		case id_morceau::NOMBRE_HEXADECIMAL:
 			return converti_chaine_nombre_hexadecimal(chaine);
 		default:
 			return 0l;
 	}
 }
 
-double converti_chaine_nombre_reel(const std::string_view &chaine, int identifiant)
+double converti_chaine_nombre_reel(const std::string_view &chaine, id_morceau identifiant)
 {
 	switch (identifiant) {
-		case ID_NOMBRE_REEL:
+		case id_morceau::NOMBRE_REEL:
 			return std::atof(&chaine[0]);
 		default:
 			return 0.0;

@@ -172,7 +172,7 @@ public:
 	/**
 	 * Retourne l'identifiant du morceau de ce noeud.
 	 */
-	int identifiant() const;
+	id_morceau identifiant() const;
 	void reserve_enfants(size_t n);
 
 	/**

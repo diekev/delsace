@@ -60,7 +60,7 @@ private:
 	void analyse_declaration_fonction();
 	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees);
 	void analyse_corps_fonction();
-	void analyse_expression_droite(int identifiant_final, const bool calcul_expression = false, const bool assignation = false);
+	void analyse_expression_droite(id_morceau identifiant_final, const bool calcul_expression = false, const bool assignation = false);
 	void analyse_appel_fonction(NoeudAppelFonction *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_constante();
