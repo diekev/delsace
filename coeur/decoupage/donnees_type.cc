@@ -117,13 +117,13 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				os << "z8";
 				break;
 			case ID_Z16:
-				os << "z8";
+				os << "z16";
 				break;
 			case ID_Z32:
-				os << "z8";
+				os << "z32";
 				break;
 			case ID_Z64:
-				os << "z8";
+				os << "z64";
 				break;
 			default:
 				os << chaine_identifiant(donnee & 0xff);
