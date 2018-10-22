@@ -127,8 +127,89 @@ static void test_variable_indefinie(numero7::test_unitaire::ControleurUnitaire &
 	CU_TERMINE_PROPOSITION(controleur);
 }
 
+static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Les paramètres des fonctions peuvent être accéder dans toutes les portées filles de la fonction");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					si compte == 5 {
+						soit b = compte;
+					}
+
+					# Dans le code généré, après 'si' nous avons un nouveau bloc
+					# donc nous devons vérifier que les variables sont toujours
+					# accessibles.
+					soit c = compte;
+
+					retourne 0;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable dans une portée fille ne peut avoir le même nom"
+				" qu'une variable dans une portée mère");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					si compte == 5 {
+						soit a = compte;
+					}
+
+					retourne 0;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable définie après une portée peut avoir le même nom"
+				" qu'une variable dans la portée.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					si compte == 5 {
+						soit b = compte;
+					}
+
+					soit b = compte;
+					retourne 0;
+				}
+				)";
+
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+}
+
 void test_variables(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	test_variable_redefinie(controleur);
 	test_variable_indefinie(controleur);
+	test_portee_variable(controleur);
 }

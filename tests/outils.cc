@@ -31,6 +31,10 @@
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
 
+/* À FAIRE : il est possible qu'une erreur d'un autre type soit lancée, donc il
+ * faudrait avoir deux valeurs de retour : erreur_lancée, type_erreur_correct
+ */
+
 bool retourne_erreur_lancee(const char *texte,
 		const bool imprime_message,
 		const erreur::type_erreur type,
