@@ -1608,8 +1608,11 @@ void NoeudSi::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 {
+	const auto nombre_enfants = m_enfants.size();
+	auto iter_enfant = m_enfants.begin();
+
 	// noeud 1 : condition
-	auto enfant1 = m_enfants.front();
+	auto enfant1 = *iter_enfant++;
 	auto condition = enfant1->genere_code_llvm(contexte);
 
 	auto bloc_alors = llvm::BasicBlock::Create(
@@ -1617,24 +1620,26 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 						  "alors",
 						  contexte.fonction);
 
-//	auto bloc_sinon = llvm::BasicBlock::Create(
-//						  contexte.contexte,
-//						  "sinon",
-//						  contexte.fonction);
+	auto bloc_sinon = (nombre_enfants == 3)
+					  ? llvm::BasicBlock::Create(
+							contexte.contexte,
+							"sinon",
+							contexte.fonction)
+					  : nullptr;
 
 	auto bloc_fusion = llvm::BasicBlock::Create(
 						   contexte.contexte,
 						   "cont_si",
 						   contexte.fonction);
 
-	llvm::BranchInst::Create(bloc_alors, bloc_fusion, condition, contexte.bloc_courant());
+	llvm::BranchInst::Create(bloc_alors, (bloc_sinon != nullptr) ? bloc_sinon : bloc_fusion, condition, contexte.bloc_courant());
 
 	contexte.bloc_courant(bloc_alors);
 
 	contexte.empile_nombre_locales();
 
 	// noeud 2 : bloc
-	auto enfant2 = m_enfants.back();
+	auto enfant2 = *iter_enfant++;
 	enfant2->genere_code_llvm(contexte);
 
 	contexte.depile_nombre_locales();
@@ -1642,9 +1647,17 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 	llvm::BranchInst::Create(bloc_fusion, bloc_alors);
 
 	// noeud 3 : sinon (optionel)
-	if (m_enfants.size() > 2) {
-		auto enfant3 = ++enfant2;
+	if (nombre_enfants == 3) {
+		contexte.bloc_courant(bloc_sinon);
+
+		contexte.empile_nombre_locales();
+
+		auto enfant3 = *iter_enfant++;
 		enfant3->genere_code_llvm(contexte);
+
+		contexte.depile_nombre_locales();
+
+		llvm::BranchInst::Create(bloc_fusion, bloc_sinon);
 	}
 
 	contexte.bloc_courant(bloc_fusion);
