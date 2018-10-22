@@ -1611,7 +1611,7 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 	const auto nombre_enfants = m_enfants.size();
 	auto iter_enfant = m_enfants.begin();
 
-	// noeud 1 : condition
+	/* noeud 1 : condition */
 	auto enfant1 = *iter_enfant++;
 	auto condition = enfant1->genere_code_llvm(contexte);
 
@@ -1632,13 +1632,17 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 						   "cont_si",
 						   contexte.fonction);
 
-	llvm::BranchInst::Create(bloc_alors, (bloc_sinon != nullptr) ? bloc_sinon : bloc_fusion, condition, contexte.bloc_courant());
+	llvm::BranchInst::Create(
+				bloc_alors,
+				(bloc_sinon != nullptr) ? bloc_sinon : bloc_fusion,
+				condition,
+				contexte.bloc_courant());
 
 	contexte.bloc_courant(bloc_alors);
 
 	contexte.empile_nombre_locales();
 
-	// noeud 2 : bloc
+	/* noeud 2 : bloc */
 	auto enfant2 = *iter_enfant++;
 	enfant2->genere_code_llvm(contexte);
 
@@ -1646,7 +1650,7 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 
 	llvm::BranchInst::Create(bloc_fusion, bloc_alors);
 
-	// noeud 3 : sinon (optionel)
+	/* noeud 3 : sinon (optionel) */
 	if (nombre_enfants == 3) {
 		contexte.bloc_courant(bloc_sinon);
 
