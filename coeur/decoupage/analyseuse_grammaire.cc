@@ -195,7 +195,7 @@ void analyseuse_grammaire::lance_analyse()
 		return;
 	}
 
-	m_assembleuse->ajoute_noeud(type_noeud::RACINE, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
+	m_assembleuse->empile_noeud(type_noeud::RACINE, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
 
 	analyse_corps();
 }
@@ -241,7 +241,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
 	}
 
-	auto noeud = m_assembleuse->ajoute_noeud(type_noeud::DECLARATION_FONCTION, m_identifiants[position()]);
+	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
@@ -274,7 +274,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu une accolade fermante à la fin de la fonction");
 	}
 
-	m_assembleuse->sors_noeud(type_noeud::DECLARATION_FONCTION);
+	m_assembleuse->depile_noeud(type_noeud::DECLARATION_FONCTION);
 }
 
 void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees)
@@ -359,7 +359,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 		const auto &morceau_egal = m_identifiants[position()];
 
-		auto noeud = m_assembleuse->ajoute_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau_egal);
+		auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau_egal);
 		noeud->donnees_type = donnees_type;
 
 		auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
@@ -369,12 +369,12 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 		analyse_expression_droite(id_morceau::POINT_VIRGULE);
 
-		m_assembleuse->sors_noeud(type_noeud::ASSIGNATION_VARIABLE);
+		m_assembleuse->depile_noeud(type_noeud::ASSIGNATION_VARIABLE);
 	}
 	/* retour : retourne a + b; */
 	else if (est_identifiant(id_morceau::RETOURNE)) {
 		avance();
-		m_assembleuse->ajoute_noeud(type_noeud::RETOUR, m_identifiants[position()]);
+		m_assembleuse->empile_noeud(type_noeud::RETOUR, m_identifiants[position()]);
 
 		/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 		if (!est_identifiant(id_morceau::POINT_VIRGULE)) {
@@ -384,27 +384,27 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			avance();
 		}
 
-		m_assembleuse->sors_noeud(type_noeud::RETOUR);
+		m_assembleuse->depile_noeud(type_noeud::RETOUR);
 	}
 	/* controle de flux : si */
 	else if (est_identifiant(id_morceau::SI)) {
 		avance();
 
-		m_assembleuse->ajoute_noeud(type_noeud::SI, m_identifiants[position()]);
+		m_assembleuse->empile_noeud(type_noeud::SI, m_identifiants[position()]);
 
 		analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
 
-		m_assembleuse->ajoute_noeud(type_noeud::BLOC, m_identifiants[position()]);
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
 
 		analyse_corps_fonction();
 
-		m_assembleuse->sors_noeud(type_noeud::BLOC);
+		m_assembleuse->depile_noeud(type_noeud::BLOC);
 
 		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 			lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'");
 		}
 
-		m_assembleuse->sors_noeud(type_noeud::SI);
+		m_assembleuse->depile_noeud(type_noeud::SI);
 	}
 	/* controle de flux : sinon (si) */
 	else if (est_identifiant(id_morceau::SINON)) {
@@ -465,11 +465,11 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
 			avance(2);
 
-			auto noeud = m_assembleuse->ajoute_noeud(type_noeud::APPEL_FONCTION, morceau, false);
+			auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, morceau, false);
 
 			analyse_appel_fonction(dynamic_cast<NoeudAppelFonction *>(noeud));
 
-			m_assembleuse->sors_noeud(type_noeud::APPEL_FONCTION);
+			m_assembleuse->depile_noeud(type_noeud::APPEL_FONCTION);
 
 			expression.push_back(noeud);
 		}
@@ -547,13 +547,13 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			if (morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
 				avance();
 
-				noeud = m_assembleuse->ajoute_noeud(type_noeud::OPERATION, morceau, false);
+				noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION, morceau, false);
 
 				++m_profondeur;
 				analyse_expression_droite(id_morceau::CROCHET_FERMANT);
 				--m_profondeur;
 
-				m_assembleuse->sors_noeud(type_noeud::OPERATION);
+				m_assembleuse->depile_noeud(type_noeud::OPERATION);
 
 				/* nous reculons, car on avance de nouveau avant de recommencer
 				 * la boucle plus bas */
@@ -767,7 +767,7 @@ void analyseuse_grammaire::analyse_declaration_constante()
 		analyse_declaration_type(donnees_type);
 	}
 
-	auto noeud = m_assembleuse->ajoute_noeud(type_noeud::CONSTANTE, m_identifiants[pos]);
+	auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTANTE, m_identifiants[pos]);
 	noeud->donnees_type = donnees_type;
 
 	if (!requiers_identifiant(id_morceau::EGAL)) {
@@ -776,7 +776,7 @@ void analyseuse_grammaire::analyse_declaration_constante()
 
 	analyse_expression_droite(id_morceau::POINT_VIRGULE, true);
 
-	m_assembleuse->sors_noeud(type_noeud::CONSTANTE);
+	m_assembleuse->depile_noeud(type_noeud::CONSTANTE);
 }
 
 void analyseuse_grammaire::analyse_declaration_structure()
@@ -850,7 +850,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			break;
 		}
 
-		auto noeud = m_assembleuse->ajoute_noeud(type_noeud::CONSTANTE, m_identifiants[position()]);
+		auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTANTE, m_identifiants[position()]);
 		noeud->donnees_type.pousse(id_morceau::N32);
 
 		if (est_identifiant(id_morceau::EGAL)) {
@@ -861,7 +861,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			recule();
 		}
 
-		m_assembleuse->sors_noeud(type_noeud::CONSTANTE);
+		m_assembleuse->depile_noeud(type_noeud::CONSTANTE);
 
 		if (!requiers_identifiant(id_morceau::VIRGULE)) {
 			lance_erreur("Attendu ',' à la fin de la déclaration");

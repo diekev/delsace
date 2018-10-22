@@ -31,12 +31,12 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-Noeud *assembleuse_arbre::ajoute_noeud(type_noeud type, const DonneesMorceaux &morceau, bool ajoute)
+Noeud *assembleuse_arbre::empile_noeud(type_noeud type, const DonneesMorceaux &morceau, bool ajoute)
 {
 	auto noeud = cree_noeud(type, morceau);
 
 	if (!m_pile.empty() && ajoute) {
-		m_pile.top()->ajoute_noeud(noeud);
+		this->ajoute_noeud(noeud);
 	}
 
 	m_pile.push(noeud);
@@ -160,7 +160,7 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &mor
 	return noeud;
 }
 
-void assembleuse_arbre::sors_noeud(type_noeud type)
+void assembleuse_arbre::depile_noeud(type_noeud type)
 {
 	assert(m_pile.top()->type() == type);
 	m_pile.pop();

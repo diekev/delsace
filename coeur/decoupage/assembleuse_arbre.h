@@ -54,12 +54,14 @@ public:
 	~assembleuse_arbre();
 
 	/**
-	 * Ajoute un noeud au noeud courant et utilise ce noeud comme noeud courant.
-	 * Tous les noeuds ajouter par après seront des enfants de celui-ci.
+	 * Crée un nouveau noeud et met le sur le dessus de la pile de noeud. Si le
+	 * paramètre 'ajoute' est vrai, le noeud crée est ajouté à la liste des
+	 * enfants du noeud courant avant d'être empilé. Puisque le noeud est
+	 * empilé, il deviendra le noeud courant.
 	 *
-	 * Retourne un pointeur vers le noeud ajouter.
+	 * Retourne un pointeur vers le noeud ajouté.
 	 */
-	Noeud *ajoute_noeud(type_noeud type, const DonneesMorceaux &morceau, bool ajoute = true);
+	Noeud *empile_noeud(type_noeud type, const DonneesMorceaux &morceau, bool ajoute = true);
 
 	/**
 	 * Ajoute le noeud spécifié au noeud courant.
@@ -73,10 +75,10 @@ public:
 	Noeud *cree_noeud(type_noeud type, const DonneesMorceaux &morceau);
 
 	/**
-	 * Sors du noeud courant en vérifiant que le type du noeud courant est bel
-	 * et bien le type passé en paramètre.
+	 * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et
+	 * bien le type passé en paramètre.
 	 */
-	void sors_noeud(type_noeud type);
+	void depile_noeud(type_noeud type);
 
 	/**
 	 * Visite les enfants du noeud racine et demande à chacun d'eux d'imprimer
