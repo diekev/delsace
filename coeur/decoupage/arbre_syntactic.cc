@@ -198,7 +198,6 @@ static llvm::FunctionType *obtiens_type_fonction(
 		const DonneesType &donnees_retour,
 		bool est_variadique)
 {
-
 	std::vector<llvm::Type *> parametres(donnees_args.size());
 
 	std::transform(donnees_args.begin(), donnees_args.end(), parametres.begin(),
