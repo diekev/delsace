@@ -31,8 +31,6 @@
 
 #include "donnees_type.h"
 
-#define VECTEUR_LOCAL
-
 struct TamponSource;
 
 namespace llvm {
@@ -58,15 +56,6 @@ struct DonneesVariable {
 	char pad[7] = {};
 };
 
-struct Block {
-	llvm::BasicBlock *block;
-#ifdef VECTEUR_LOCAL
-	std::vector<std::pair<std::string_view, DonneesVariable>> locals;
-#else
-	std::unordered_map<std::string_view, DonneesVariable> locals;
-#endif
-};
-
 struct DonneesStructure {
 	std::unordered_map<std::string_view, size_t> index_membres;
 	std::vector<DonneesType> donnees_types;
@@ -85,21 +74,14 @@ struct ContexteGenerationCode {
 	/* ********************************************************************** */
 
 	/**
-	 * Pousse le block sur la pile de blocks. Ceci construit un Block qui
-	 * contiendra le block LLVM passé en paramètre. Routes les locales poussées
-	 * après un tel appel seront ajoutées à ce block.
+	 * Retourne un pointeur vers le block LLVM du bloc courant.
 	 */
-	void pousse_block(llvm::BasicBlock *block);
+	llvm::BasicBlock *bloc_courant() const;
 
 	/**
-	 * Enlève le block du haut de la pile de blocks.
+	 * Met un place le pointeur vers le bloc courant LLVM.
 	 */
-	void jete_block();
-
-	/**
-	 * Retourne un pointeur vers le block LLVM du block courant.
-	 */
-	llvm::BasicBlock *block_courant() const;
+	void bloc_courant(llvm::BasicBlock *bloc);
 
 	/* ********************************************************************** */
 
@@ -127,7 +109,10 @@ struct ContexteGenerationCode {
 
 	/**
 	 * Ajoute les données de la locale dont le nom est spécifié en paramètres
-	 * à la table de locales du block courant de ce contexte.
+	 * à la table de locales du block courant de ce contexte. Ajourne l'index
+	 * de fin des variables locales pour être au nombre de variables dans le
+	 * vecteur de variables. Voir 'pop_bloc_locales' pour la gestion des
+	 * variables.
 	 */
 	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type, const bool est_variable);
 
@@ -151,6 +136,28 @@ struct ContexteGenerationCode {
 	 */
 	bool peut_etre_assigne(const std::string_view &nom);
 
+	/**
+	 * Indique que l'on débute un nouveau bloc dans la fonction, et donc nous
+	 * enregistrons le nombre de variables jusqu'ici. Voir 'pop_bloc_locales'
+	 * pour la gestion des variables.
+	 */
+	void empile_nombre_locales();
+
+	/**
+	 * Indique que nous sortons d'un bloc, donc toutes les variables du bloc
+	 * sont 'effacées'. En fait les variables des fonctions sont tenues dans un
+	 * vecteur. À chaque fois que l'on rencontre un bloc, on pousse le nombre de
+	 * variables sur une pile, ainsi toutes les variables se trouvant entre
+	 * l'index de début du bloc et l'index de fin d'un bloc sont des variables
+	 * locales à ce bloc. Quand on sort du bloc, l'index de fin des variables
+	 * est réinitialisé pour être égal à ce qu'il était avant le début du bloc.
+	 * Ainsi, nous pouvons réutilisé la mémoire du vecteur de variable d'un bloc
+	 * à l'autre, d'une fonction à l'autre, tout en faisant en sorte que peut
+	 * importe le bloc dans lequel nous nous trouvons, on a accès à toutes les
+	 * variables jusqu'ici déclarées.
+	 */
+	void depile_nombre_locales();
+
 	/* ********************************************************************** */
 
 	/**
@@ -171,6 +178,20 @@ struct ContexteGenerationCode {
 	 * ayant déjà été ajouté à la liste de fonctions de ce contexte.
 	 */
 	bool fonction_existe(const std::string_view &nom);
+
+	/**
+	 * Indique le début d'une nouvelle fonction. Le compteur et le vecteur de
+	 * variables sont remis à zéro. Le pointeur passé en paramètre est celui de
+	 * la fonction courant.
+	 */
+	void commence_fonction(llvm::Function *f);
+
+	/**
+	 * Indique la fin de la fonction courant. Le compteur et le vecteur de
+	 * variables sont remis à zéro. Le bloc courant et la fonction courant sont
+	 * désormais égaux à 'nullptr'.
+	 */
+	void termine_fonction();
 
 	/* ********************************************************************** */
 
@@ -202,8 +223,7 @@ struct ContexteGenerationCode {
 	DonneesStructure &donnees_structure(const size_t id);
 
 private:
-	Block *m_block_courant = nullptr;
-	std::stack<Block> pile_block;
+	llvm::BasicBlock *m_bloc_courant = nullptr;
 	std::unordered_map<std::string_view, DonneesVariable> globales;
 	std::unordered_map<std::string_view, DonneesFonction> fonctions;
 	std::unordered_map<std::string_view, DonneesStructure> structures;
@@ -211,4 +231,8 @@ private:
 
 	/* Utilisé au cas où nous ne pouvons trouver une variable locale ou globale. */
 	DonneesType m_donnees_type_invalide;
+
+	std::vector<std::pair<std::string_view, DonneesVariable>> m_locales;
+	std::stack<size_t> m_pile_nombre_locales;
+	size_t m_nombre_locales = 0;
 };

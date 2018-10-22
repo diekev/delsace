@@ -441,7 +441,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
 
-	return llvm::CallInst::Create(fonction, args, "", contexte.block_courant());
+	return llvm::CallInst::Create(fonction, args, "", contexte.bloc_courant());
 }
 
 const DonneesType &NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
@@ -512,9 +512,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 					 "entrypoint",
 					 fonction);
 
-	contexte.fonction = fonction;
-
-	contexte.pousse_block(block);
+	contexte.commence_fonction(fonction);
+	contexte.bloc_courant(block);
 
 	/* Crée code pour les arguments */
 	auto valeurs_args = fonction->arg_begin();
@@ -523,14 +522,14 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		auto alloc = new llvm::AllocaInst(
 						 converti_type(contexte, argument.donnees_type),
 						 argument.chaine,
-						 contexte.block_courant());
+						 contexte.bloc_courant());
 
 		contexte.pousse_locale(argument.chaine, alloc, argument.donnees_type, argument.est_variable);
 
 		llvm::Value *valeur = &*valeurs_args++;
 		valeur->setName(argument.chaine.c_str());
 
-		new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
+		new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 	}
 
 	/* Crée code pour les expressions */
@@ -538,8 +537,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		noeud->genere_code_llvm(contexte);
 	}
 
-	contexte.jete_block();
-	contexte.fonction = nullptr;
+	contexte.termine_fonction();
 
 	return nullptr;
 }
@@ -651,7 +649,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
 
 	auto alloc = m_enfants.front()->genere_code_llvm(contexte);
-	return new llvm::StoreInst(valeur, alloc, false, contexte.block_courant());
+	return new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 }
 
 type_noeud NoeudAssignationVariable::type() const
@@ -699,7 +697,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto alloc = new llvm::AllocaInst(
 					 type_llvm,
 					 std::string(m_donnees_morceaux.chaine),
-					 contexte.block_courant());
+					 contexte.bloc_courant());
 
 	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, this->est_variable);
 
@@ -1089,7 +1087,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 		}
 	}
 
-	return new llvm::LoadInst(valeur, "", false, contexte.block_courant());
+	return new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
 }
 
 const DonneesType &NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
@@ -1159,7 +1157,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
 
 	return llvm::ExtractValueInst::Create(
-				valeur, {static_cast<unsigned>(index_membre)}, "", contexte.block_courant());
+				valeur, {static_cast<unsigned>(index_membre)}, "", contexte.bloc_courant());
 }
 
 const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &contexte)
@@ -1245,7 +1243,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 				return nullptr;
 		}
 
-		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.block_courant());
+		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
 	}
 
 	if (m_enfants.size() == 2) {
@@ -1478,28 +1476,28 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 								  valeur2,
 								  { valeur1 },
 								  "",
-								  contexte.block_courant());
+								  contexte.bloc_courant());
 
 				/* Ajout d'un niveau d'indirection pour pouvoir proprement
 				 * générer un code pour les expressions de type x[0][0]. Sans ça
 				 * LLVM n'arrive pas à déterminer correctement la valeur
 				 * déréférencée : on se retrouve avec type(x[0][0]) == (type[0])
 				 * ce qui n'est pas forcément le cas. */
-				return new llvm::LoadInst(valeur, "", contexte.block_courant());
+				return new llvm::LoadInst(valeur, "", contexte.bloc_courant());
 			}
 			default:
 				return nullptr;
 		}
 
 		if (est_comp_entier) {
-			return llvm::ICmpInst::Create(llvm::Instruction::ICmp, predicat, valeur1, valeur2, "", contexte.block_courant());
+			return llvm::ICmpInst::Create(llvm::Instruction::ICmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
 		}
 
 		if (est_comp_reel) {
-			return llvm::FCmpInst::Create(llvm::Instruction::FCmp, predicat, valeur1, valeur2, "", contexte.block_courant());
+			return llvm::FCmpInst::Create(llvm::Instruction::FCmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
 		}
 
-		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.block_courant());
+		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
 	}
 
 	return nullptr;
@@ -1572,7 +1570,7 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
 		valeur = m_enfants.front()->genere_code_llvm(contexte);
 	}
 
-	return llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.block_courant());
+	return llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.bloc_courant());
 }
 
 const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
@@ -1627,18 +1625,19 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 						   "cont_si",
 						   contexte.fonction);
 
-	llvm::BranchInst::Create(bloc_alors, bloc_fusion, condition, contexte.block_courant());
+	llvm::BranchInst::Create(bloc_alors, bloc_fusion, condition, contexte.bloc_courant());
 
-	contexte.jete_block();
-	contexte.pousse_block(bloc_alors);
+	contexte.bloc_courant(bloc_alors);
+
+	contexte.empile_nombre_locales();
 
 	// noeud 2 : bloc
 	auto enfant2 = m_enfants.back();
 	enfant2->genere_code_llvm(contexte);
 
-	llvm::BranchInst::Create(bloc_fusion, bloc_alors);
+	contexte.depile_nombre_locales();
 
-	contexte.jete_block();
+	llvm::BranchInst::Create(bloc_fusion, bloc_alors);
 
 	// noeud 3 : sinon (optionel)
 	if (m_enfants.size() > 2) {
@@ -1646,7 +1645,7 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 		enfant3->genere_code_llvm(contexte);
 	}
 
-	contexte.pousse_block(bloc_fusion);
+	contexte.bloc_courant(bloc_fusion);
 
 	return nullptr;
 }

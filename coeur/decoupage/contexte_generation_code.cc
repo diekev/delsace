@@ -30,27 +30,14 @@ ContexteGenerationCode::ContexteGenerationCode(const TamponSource &tampon_source
 	, contexte{}
 {}
 
-void ContexteGenerationCode::pousse_block(llvm::BasicBlock *block)
+llvm::BasicBlock *ContexteGenerationCode::bloc_courant() const
 {
-	Block b;
-	b.block = block;
-	pile_block.push(b);
-	m_block_courant = &pile_block.top();
+	return m_bloc_courant;
 }
 
-void ContexteGenerationCode::jete_block()
+void ContexteGenerationCode::bloc_courant(llvm::BasicBlock *bloc)
 {
-	pile_block.pop();
-	m_block_courant = (pile_block.empty()) ? nullptr : &pile_block.top();
-}
-
-llvm::BasicBlock *ContexteGenerationCode::block_courant() const
-{
-	if (m_block_courant == nullptr) {
-		return nullptr;
-	}
-
-	return m_block_courant->block;
+	m_bloc_courant = bloc;
 }
 
 void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
@@ -82,73 +69,70 @@ const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &
 
 void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type, const bool est_variable)
 {
-#ifndef VECTEUR_LOCAL
-	m_block_courant->locals.insert({nom, {valeur, type, est_variable, {}}});
-#else
-	m_block_courant->locals.push_back({nom, {valeur, type, est_variable, {}}});
-#endif
+	m_locales.push_back({nom, {valeur, type, est_variable, {}}});
+	++m_nombre_locales;
 }
 
 llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 {
-#ifndef VECTEUR_LOCAL
-	auto iter = m_block_courant->locals.find(nom);
+	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
+	auto iter = std::find_if(m_locales.begin(), iter_fin,
+							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+	{
+		return paire.first == nom;
+	});
 
-	if (iter == m_block_courant->locals.end()) {
+	if (iter == iter_fin) {
 		return nullptr;
 	}
 
 	return iter->second.valeur;
-#else
-	for (const auto &local : m_block_courant->locals) {
-		if (local.first == nom) {
-			return local.second.valeur;
-		}
-	}
-
-	return nullptr;
-#endif
 }
 
 const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &nom)
 {
-#ifndef VECTEUR_LOCAL
-	auto iter = m_block_courant->locals.find(nom);
+	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
+	auto iter = std::find_if(m_locales.begin(), iter_fin,
+							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+	{
+		return paire.first == nom;
+	});
 
-	if (iter == m_block_courant->locals.end()) {
+	if (iter == iter_fin) {
 		return this->m_donnees_type_invalide;
 	}
 
 	return iter->second.donnees_type;
-#else
-	for (const auto &local : m_block_courant->locals) {
-		if (local.first == nom) {
-			return local.second.donnees_type;
-		}
-	}
-	return this->m_donnees_type_invalide;
-#endif
 }
 
 bool ContexteGenerationCode::peut_etre_assigne(const std::string_view &nom)
 {
-#ifndef VECTEUR_LOCAL
-	auto iter = m_block_courant->locals.find(nom);
+	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
+	auto iter = std::find_if(m_locales.begin(), iter_fin,
+							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+	{
+		return paire.first == nom;
+	});
 
-	if (iter == m_block_courant->locals.end()) {
+	if (iter == iter_fin) {
 		return false;
 	}
 
 	return iter->second.est_variable;
-#else
-	for (const auto &local : m_block_courant->locals) {
-		if (local.first == nom) {
-			return local.second.est_variable;
-		}
-	}
+}
 
-	return false;
-#endif
+void ContexteGenerationCode::empile_nombre_locales()
+{
+	m_pile_nombre_locales.push(m_nombre_locales);
+}
+
+void ContexteGenerationCode::depile_nombre_locales()
+{
+	auto nombre_locales = m_pile_nombre_locales.top();
+	/* nous ne pouvons pas avoir moins de locales en sortant du bloc */
+	assert(nombre_locales <= m_nombre_locales);
+	m_nombre_locales = nombre_locales;
+	m_pile_nombre_locales.pop();
 }
 
 void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees)
@@ -164,6 +148,21 @@ const DonneesFonction &ContexteGenerationCode::donnees_fonction(const std::strin
 bool ContexteGenerationCode::fonction_existe(const std::string_view &nom)
 {
 	return fonctions.find(nom) != fonctions.end();
+}
+
+void ContexteGenerationCode::commence_fonction(llvm::Function *f)
+{
+	this->fonction = f;
+	m_nombre_locales = 0;
+	m_locales.clear();
+}
+
+void ContexteGenerationCode::termine_fonction()
+{
+	fonction = nullptr;
+	m_bloc_courant = nullptr;
+	m_nombre_locales = 0;
+	m_locales.clear();
 }
 
 bool ContexteGenerationCode::structure_existe(const std::string_view &nom)
