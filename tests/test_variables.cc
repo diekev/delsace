@@ -29,7 +29,9 @@
 
 static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* redéfinition argument fonction */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable ne peut prendre le nom d'un argument de la fonction");
 	{
 		const char *texte =
 				R"(
@@ -43,7 +45,11 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* redéfinition variable local */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable ne peut prendre le nom d'une autre variable locale");
 	{
 		const char *texte =
 				R"(
@@ -58,7 +64,11 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* redéfinition variable globale */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable ne peut prendre le nom d'une variable globale");
 	{
 		const char *texte =
 				R"(
@@ -73,7 +83,11 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* redéfinition variable énum */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable ne peut prendre le nom d'une valeur énumérée");
 	{
 		const char *texte =
 				R"(
@@ -89,21 +103,28 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_variable_indefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction principale(compte : n32, arguments : n8) : n32
-			{
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable indéfinie ne peut être utilisée");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : n32, arguments : n8) : n32
+				{
 				soit a = comte;
 				retourne 0;
-			}
-			)";
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 void test_variables(numero7::test_unitaire::ControleurUnitaire &controleur)

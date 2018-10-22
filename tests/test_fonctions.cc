@@ -30,73 +30,96 @@
 static void test_fonction_general(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction ne_retourne_rien() : rien
-			{
-				retourne;
-			}
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut appeler des fonctions connue avec les bon nombre et"
+				" types d'arguments.");
+	{
+		const char *texte =
+				R"(
+				fonction ne_retourne_rien() : rien
+				{
+					retourne;
+				}
 
-			fonction ajouter(a : z32, b : z32) : z32
-			{
-				retourne a + b;
-			}
+				fonction ajouter(a : z32, b : z32) : z32
+				{
+					retourne a + b;
+				}
 
-			fonction principale(compte : z32, arguments : z8) : z32
-			{
-				ne_retourne_rien();
-				soit a = ajouter(5, 8);
-				soit b = ajouter(8, 5);
-				soit c = ajouter(ajouter(a + b, b), ajouter(b + a, a));
-				retourne c != 5;
-			}
-			)";
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
+					ne_retourne_rien();
+					soit a = ajouter(5, 8);
+					soit b = ajouter(8, 5);
+					soit c = ajouter(ajouter(a + b, b), ajouter(b + a, a));
+					retourne c != 5;
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_fonction_inconnue(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction principale(compte : z32, arguments : z8) : z32
-			{
-				retourne sortie(0);
-			}
-			)";
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut appeler une fonction inconnue.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
+					retourne sortie(0);
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_INCONNUE);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_INCONNUE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_argument_nomme_succes(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction ajouter(a : z32, b : z32) : z32
-			{
-				retourne a + b;
-			}
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Il est possible de nommer les arguments passés à une fonction"
+				" selon le noms des arguments de sa défition.");
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : z32, b : z32) : z32
+				{
+					retourne a + b;
+				}
 
-			fonction principale(compte : z32, arguments : z8) : z32
-			{
-				soit x = ajouter(a=5, b=6);
-				soit y = ajouter(b=5, a=6);
-				retourne x - y;
-			}
-			)";
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
+					soit x = ajouter(a=5, b=6);
+					soit y = ajouter(b=5, a=6);
+					retourne x - y;
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_argument_nomme_echec(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	/* argument redondant */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Un argument nommé ne peut avoir le nom d'un argument déjà nommé.");
 	{
 		const char *texte =
 				R"(
@@ -115,7 +138,11 @@ static void test_argument_nomme_echec(
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* argument inconnu */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Un argument nommé ne peut avoir le nom d'un argument inconnu.");
 	{
 		const char *texte =
 				R"(
@@ -134,33 +161,44 @@ static void test_argument_nomme_echec(
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_type_argument_echec(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction ajouter(a : z32, b : z32) : z32
-			{
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Les types des arguments passés à une fonction ne peuvent être"
+				" différents de ceux de sa définition.");
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : z32, b : z32) : z32
+				{
 				retourne a + b;
-			}
+				}
 
-			fonction principale(compte : z32, arguments : z8) : z32
-			{
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
 				soit x = ajouter(a=5.0, b=6.0);
 				retourne x != 5;
-			}
-			)";
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_ARGUMENT);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_ARGUMENT);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_nombre_argument(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* avec argument nommé */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Le nombre d'arguments (nommés) passé à une fonction lors de son appel "
+				"doit être le même que le nombre d'arguments de sa définition.");
 	{
 		const char *texte =
 				R"(
@@ -179,7 +217,12 @@ static void test_nombre_argument(
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* sans argument nommé */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Le nombre d'arguments (anonymes) passé à une fonction lors de son appel "
+				"doit être le même que le nombre d'arguments de sa définition.");
 	{
 		const char *texte =
 				R"(
@@ -198,41 +241,54 @@ static void test_nombre_argument(
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_argument_unique(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction principale(compte : z32, compte : z8) : z32
-			{
-				retourne x != 5;
-			}
-			)";
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Deux arguments d'une fonction ne peuvent avoir les même nom.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, compte : z8) : z32
+				{
+					retourne x != 5;
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_fonction_redinie(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction principale(compte : z32, arguments : z8) : z32
-			{
-				retourne 0;
-			}
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Deux fonctions ne peuvent avoir les même nom.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
+					retourne 0;
+				}
 
-			fonction principale(compte : z32, arguments : z8) : z32
-			{
-				retourne 0;
-			}
-			)";
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
+					retourne 0;
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_REDEFINIE);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)

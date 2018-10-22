@@ -29,7 +29,9 @@
 
 static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* assignation de 'rien' */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut assigner la valeur d'une fonction de type rien");
 	{
 		const char *texte =
 				R"(
@@ -48,7 +50,12 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_RIEN);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* impossibilité de définir */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut assigner la valeur d'une fonction à une variable si"
+				" sont type de retour ne peut être défini");
 	{
 		const char *texte =
 				R"(
@@ -67,34 +74,43 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	const char *texte =
-			R"(
-			fonction ajouter(x : n32) : n32
-			{
-				retourne x + 2;
-			}
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Si les types de retour des fonctions est explicit, ce n'est pas"
+				" nécessaire de typer expliciter les variables stockant leurs"
+				" valeurs retournées.");
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(x : n32) : n32
+				{
+					retourne x + 2;
+				}
 
-			fonction ajouter_r64(x : r64) : r64
-			{
-				retourne x + 2.0;
-			}
+				fonction ajouter_r64(x : r64) : r64
+				{
+					retourne x + 2.0;
+				}
 
-			fonction principale(compte : n32, arguments : n8) : n32
-			{
-				soit a = ajouter(9);
-				soit b = ajouter(a);
-				soit x = 9.0;
-				soit y = ajouter_r64(x);
-				retourne 0;
-			}
-			)";
+				fonction principale(compte : n32, arguments : n8) : n32
+				{
+					soit a = ajouter(9);
+					soit b = ajouter(a);
+					soit x = 9.0;
+					soit y = ajouter_r64(x);
+					retourne 0;
+				}
+				)";
 
-	const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
-	CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 void test_types(numero7::test_unitaire::ControleurUnitaire &controleur)

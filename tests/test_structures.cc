@@ -30,7 +30,9 @@
 
 static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* définition unique */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une structure doit avoir un nom unique.");
 	{
 		const char *texte =
 				R"(
@@ -48,7 +50,11 @@ static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire 
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
-	/* redéfinition */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une structure ne peut avoir le nom d'une autre structure.");
 	{
 		const char *texte =
 				R"(
@@ -66,11 +72,14 @@ static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire 
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* structure connue */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une structure peut avoir une autre structure comme membre.");
 	{
 		const char *texte =
 				R"(
@@ -78,9 +87,8 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 					x : n32;
 					y : n32;
 				}
-				structure Vecteur2D {
-					x : n32;
-					y : n32;
+				structure Vecteur3D {
+					xy : Vecteur2D;
 					z : n32;
 				}
 				)";
@@ -88,7 +96,11 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
-	/* structure inconnue dans une autre structure */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une structure ne peut avoir une structure inconnue comme membre.");
 	{
 		const char *texte =
 				R"(
@@ -101,7 +113,11 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* structure inconnue dans en paramètre d'une fonction */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une fonction ne peut avoir une structure inconnue comme argument.");
 	{
 		const char *texte =
 				R"(
@@ -113,11 +129,14 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* membre connu */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut accèder qu'aux membres connus des structures.");
 	{
 		const char *texte =
 				R"(
@@ -134,7 +153,11 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
-	/* membre inconnu */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut pas accèder aux membres inconnus des structures.");
 	{
 		const char *texte =
 				R"(
@@ -151,7 +174,11 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
-	/* structure inconnu */
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut pas accèder aux membres d'une variable inconnue.");
 	{
 		const char *texte =
 				R"(
@@ -168,11 +195,14 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_membre_unique(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
-	/* membre redéfini */
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Les membres des structures ne peut avoir les mêmes noms.");
 	{
 		const char *texte =
 				R"(
@@ -185,6 +215,7 @@ static void test_membre_unique(numero7::test_unitaire::ControleurUnitaire &contr
 		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_REDEFINI);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 void test_structures(numero7::test_unitaire::ControleurUnitaire &controleur)
