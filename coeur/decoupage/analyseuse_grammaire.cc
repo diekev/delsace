@@ -389,13 +389,22 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	/* controle de flux : si */
 	else if (est_identifiant(id_morceau::SI)) {
 		avance();
+
+		m_assembleuse->ajoute_noeud(type_noeud::SI, m_identifiants[position()]);
+
 		analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
 
+		m_assembleuse->ajoute_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
 		analyse_corps_fonction();
+
+		m_assembleuse->sors_noeud(type_noeud::BLOC);
 
 		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 			lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'");
 		}
+
+		m_assembleuse->sors_noeud(type_noeud::SI);
 	}
 	/* controle de flux : sinon (si) */
 	else if (est_identifiant(id_morceau::SINON)) {

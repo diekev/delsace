@@ -471,6 +471,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 					 "entrypoint",
 					 fonction);
 
+	contexte.fonction = fonction;
+
 	contexte.pousse_block(block);
 
 	/* Crée code pour les arguments */
@@ -496,6 +498,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	}
 
 	contexte.jete_block();
+	contexte.fonction = nullptr;
 
 	return nullptr;
 }
@@ -1504,4 +1507,110 @@ const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 type_noeud NoeudRetour::type() const
 {
 	return type_noeud::RETOUR;
+}
+
+/* ************************************************************************** */
+
+NoeudSi::NoeudSi(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudSi::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+
+	os << "NoeudSi : " << m_donnees_morceaux.chaine << '\n';
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
+}
+
+llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
+{
+	// noeud 1 : condition
+	auto enfant1 = m_enfants.front();
+	auto condition = enfant1->genere_code_llvm(contexte);
+
+	auto bloc_alors = llvm::BasicBlock::Create(
+						  contexte.contexte,
+						  "alors",
+						  contexte.fonction);
+
+//	auto bloc_sinon = llvm::BasicBlock::Create(
+//						  contexte.contexte,
+//						  "sinon",
+//						  contexte.fonction);
+
+	auto bloc_fusion = llvm::BasicBlock::Create(
+						   contexte.contexte,
+						   "cont_si",
+						   contexte.fonction);
+
+	llvm::BranchInst::Create(bloc_alors, bloc_fusion, condition, contexte.block_courant());
+
+	contexte.jete_block();
+	contexte.pousse_block(bloc_alors);
+
+	// noeud 2 : bloc
+	auto enfant2 = m_enfants.back();
+	enfant2->genere_code_llvm(contexte);
+
+	llvm::BranchInst::Create(bloc_fusion, bloc_alors);
+
+	contexte.jete_block();
+
+	// noeud 3 : sinon (optionel)
+	if (m_enfants.size() > 2) {
+		auto enfant3 = ++enfant2;
+		enfant3->genere_code_llvm(contexte);
+	}
+
+	contexte.pousse_block(bloc_fusion);
+
+	return nullptr;
+}
+
+const DonneesType &NoeudSi::calcul_type(ContexteGenerationCode &)
+{
+	return this->donnees_type;
+}
+
+type_noeud NoeudSi::type() const
+{
+	return type_noeud::SI;
+}
+
+/* ************************************************************************** */
+
+NoeudBloc::NoeudBloc(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudBloc::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+
+	os << "NoeudBloc : " << m_donnees_morceaux.chaine << '\n';
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
+}
+
+llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte)
+{
+	for (auto enfant : m_enfants) {
+		enfant->genere_code_llvm(contexte);
+	}
+
+	return nullptr;
+}
+
+const DonneesType &NoeudBloc::calcul_type(ContexteGenerationCode &)
+{
+	return this->donnees_type;
+}
+
+type_noeud NoeudBloc::type() const
+{
+	return type_noeud::BLOC;
 }

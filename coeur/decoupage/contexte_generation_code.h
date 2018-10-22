@@ -78,6 +78,7 @@ struct ContexteGenerationCode {
 	const TamponSource &tampon;
 	llvm::Module *module;
 	llvm::LLVMContext contexte;
+	llvm::Function *fonction;
 
 	explicit ContexteGenerationCode(const TamponSource &tampon_source);
 

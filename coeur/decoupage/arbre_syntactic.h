@@ -54,6 +54,8 @@ enum class type_noeud : char {
 	CHAINE_LITTERALE,
 	BOOLEEN,
 	CARACTERE,
+	SI,
+	BLOC,
 };
 
 /* ************************************************************************** */
@@ -450,6 +452,36 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudSi final : public Noeud {
+public:
+	explicit NoeudSi(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
+
+	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudBloc final : public Noeud {
+public:
+	explicit NoeudBloc(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
 
 	type_noeud type() const override;
 };
