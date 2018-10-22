@@ -192,6 +192,55 @@ static void imprime_tab(std::ostream &os, int tab)
 
 /* ************************************************************************** */
 
+static llvm::FunctionType *obtiens_type_fonction(
+		ContexteGenerationCode &contexte,
+		std::list<ArgumentFonction> donnees_args,
+		const DonneesType &donnees_retour,
+		bool est_variadique)
+{
+
+	std::vector<llvm::Type *> parametres(donnees_args.size());
+
+	std::transform(donnees_args.begin(), donnees_args.end(), parametres.begin(),
+				   [&](const ArgumentFonction &donnees)
+	{
+		return converti_type(contexte, donnees.donnees_type);
+	});
+
+	llvm::ArrayRef<llvm::Type *> args(parametres);
+
+	return llvm::FunctionType::get(
+				converti_type(contexte, donnees_retour),
+				args,
+				est_variadique);
+}
+
+static void ajoute_printf(ContexteGenerationCode &contexte)
+{
+	std::list<ArgumentFonction> donnees_args;
+	auto donnees_arg = ArgumentFonction{};
+	donnees_arg.donnees_type.pousse(id_morceau::POINTEUR);
+	donnees_arg.donnees_type.pousse(id_morceau::Z8);
+	donnees_args.push_back(donnees_arg);
+
+	auto donnees_retour = DonneesType{};
+	donnees_retour.pousse(id_morceau::Z32);
+
+	auto type_printf = obtiens_type_fonction(
+						   contexte,
+						   donnees_args,
+						   donnees_retour,
+						   true);
+
+	llvm::Function::Create(
+				   type_printf,
+				   llvm::Function::ExternalLinkage,
+				   "printf",
+				   contexte.module);
+}
+
+/* ************************************************************************** */
+
 Noeud::Noeud(const DonneesMorceaux &morceau)
 	: m_donnees_morceaux(morceau)
 {}
@@ -248,6 +297,8 @@ void NoeudRacine::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte)
 {
+	ajoute_printf(contexte);
+
 	for (auto noeud : m_enfants) {
 		noeud->genere_code_llvm(contexte);
 	}
@@ -290,7 +341,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 
-	if (m_enfants.size() != donnees_fonction.args.size()) {
+	if (!fonction->isVarArg() && m_enfants.size() != donnees_fonction.args.size()) {
 		erreur::lance_erreur_nombre_arguments(
 					donnees_fonction.args.size(),
 					m_enfants.size(),
@@ -438,28 +489,19 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	/* Crée la liste de paramètres */
-	std::vector<llvm::Type *> parametres(m_arguments.size());
-
-	std::transform(m_arguments.begin(), m_arguments.end(), parametres.begin(),
-				   [&](const ArgumentFonction &donnees)
-	{
-		return converti_type(contexte, donnees.donnees_type);
-	});
-
-	llvm::ArrayRef<llvm::Type*> args(parametres);
-
 	/* À FAIRE : calcule type retour, considération fonction récursive. */
 	if (this->donnees_type.est_invalide()) {
 		this->donnees_type.pousse(id_morceau::RIEN);
 	}
 
-	/* Crée fonction */
-	auto type_fonction = llvm::FunctionType::get(
-							 converti_type(contexte, this->donnees_type),
-							 args,
+	/* Crée le type de la fonction */
+	auto type_fonction = obtiens_type_fonction(
+							 contexte,
+							 m_arguments,
+							 this->donnees_type,
 							 false);
 
+	/* Crée fonction */
 	auto fonction = llvm::Function::Create(
 				   type_fonction,
 				   llvm::Function::ExternalLinkage,
