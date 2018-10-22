@@ -202,25 +202,23 @@ void analyseuse_grammaire::lance_analyse()
 
 void analyseuse_grammaire::analyse_corps()
 {
-	if (est_identifiant(id_morceau::FONCTION)) {
-		analyse_declaration_fonction();
-	}
-	else if (est_identifiant(id_morceau::SOIT)) {
-		analyse_declaration_constante();
-	}
-	else if (est_identifiant(id_morceau::STRUCTURE)) {
-		analyse_declaration_structure();
-	}
-	else if (est_identifiant(id_morceau::ENUM)) {
-		analyse_declaration_enum();
-	}
-	else {
-		avance();
-		lance_erreur("Identifiant inattendu, doit être 'soit', 'fonction', 'structure', ou 'énum'");
-	}
-
-	if (m_position != m_identifiants.size()) {
-		analyse_corps();
+	while (m_position != m_identifiants.size()) {
+		if (est_identifiant(id_morceau::FONCTION)) {
+			analyse_declaration_fonction();
+		}
+		else if (est_identifiant(id_morceau::SOIT)) {
+			analyse_declaration_constante();
+		}
+		else if (est_identifiant(id_morceau::STRUCTURE)) {
+			analyse_declaration_structure();
+		}
+		else if (est_identifiant(id_morceau::ENUM)) {
+			analyse_declaration_enum();
+		}
+		else {
+			avance();
+			lance_erreur("Identifiant inattendu, doit être 'soit', 'fonction', 'structure', ou 'énum'");
+		}
 	}
 }
 
