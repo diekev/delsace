@@ -1211,7 +1211,9 @@ void NoeudOperation::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	if (m_enfants.size() == 1) {
+	const auto nombre_enfants = m_enfants.size();
+
+	if (nombre_enfants == 1) {
 		llvm::Instruction::BinaryOps instr;
 		auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
 		auto valeur2 = static_cast<llvm::Value *>(nullptr);
@@ -1246,7 +1248,7 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
 		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
 	}
 
-	if (m_enfants.size() == 2) {
+	if (nombre_enfants == 2) {
 		auto instr = llvm::Instruction::Add;
 		auto predicat = llvm::CmpInst::Predicate::FCMP_FALSE;
 		auto est_comp_entier = false;
