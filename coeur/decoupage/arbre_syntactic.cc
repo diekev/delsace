@@ -964,9 +964,6 @@ type_noeud NoeudNombreReel::type() const
 NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {
-	this->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(m_donnees_morceaux.chaine.size() << 8));
-	this->donnees_type.pousse(id_morceau::N8);
-
 	/* fais en sorte que les caractères échappés ne soient pas comptés comme
 	 * deux caractères distincts, ce qui ne peut se faire avec la
 	 * std::string_view */
@@ -1008,7 +1005,9 @@ NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 	}
 
 	this->valeur_calculee = corrigee;
-	this->calcule = true;
+
+	this->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(corrigee.size() << 8));
+	this->donnees_type.pousse(id_morceau::N8);
 }
 
 void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
@@ -1026,9 +1025,7 @@ void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &contexte)
 {
-	auto chaine = this->calcule
-				  ? std::any_cast<std::string>(this->valeur_calculee)
-				  : std::string(m_donnees_morceaux.chaine);
+	auto chaine = std::any_cast<std::string>(this->valeur_calculee);
 
 	auto constante = llvm::ConstantDataArray::getString(
 						 contexte.contexte,

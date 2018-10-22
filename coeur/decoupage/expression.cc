@@ -272,7 +272,7 @@ static inline bool extrait_valeur_bool(Noeud *n)
 
 static inline std::string extrait_chaine(Noeud *n)
 {
-	return n->calcule ? std::any_cast<std::string>(n->valeur_calculee) : std::string(n->chaine());
+	return std::any_cast<std::string>(n->valeur_calculee);
 }
 
 Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1, Noeud *n2)
