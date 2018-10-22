@@ -966,6 +966,49 @@ NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 {
 	this->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(m_donnees_morceaux.chaine.size() << 8));
 	this->donnees_type.pousse(id_morceau::N8);
+
+	/* fais en sorte que les caractères échappés ne soient pas comptés comme
+	 * deux caractères distincts, ce qui ne peut se faire avec la
+	 * std::string_view */
+	std::string corrigee;
+	corrigee.reserve(m_donnees_morceaux.chaine.size());
+
+	for (size_t i = 0; i < m_donnees_morceaux.chaine.size(); ++i) {
+		auto c = m_donnees_morceaux.chaine[i];
+
+		if (c == '\\') {
+			if (m_donnees_morceaux.chaine[i + 1] == 'n') {
+				corrigee.push_back('\n');
+				++i;
+				continue;
+			}
+			if (m_donnees_morceaux.chaine[i + 1] == 't') {
+				corrigee.push_back('\t');
+				++i;
+				continue;
+			}
+			if (m_donnees_morceaux.chaine[i + 1] == 'v') {
+				corrigee.push_back('\v');
+				++i;
+				continue;
+			}
+			if (m_donnees_morceaux.chaine[i + 1] == 'r') {
+				corrigee.push_back('\r');
+				++i;
+				continue;
+			}
+			if (m_donnees_morceaux.chaine[i + 1] == '\\') {
+				corrigee.push_back('\\');
+				++i;
+				continue;
+			}
+		}
+
+		corrigee.push_back(c);
+	}
+
+	this->valeur_calculee = corrigee;
+	this->calcule = true;
 }
 
 void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
