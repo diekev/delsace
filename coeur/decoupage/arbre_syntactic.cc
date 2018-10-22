@@ -1648,7 +1648,9 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 
 	contexte.depile_nombre_locales();
 
-	llvm::BranchInst::Create(bloc_fusion, bloc_alors);
+	/* Il est possible d'avoir des contrôles récursif, donc on fait une branche
+	 * dans le bloc courant du contexte qui peut être différent de bloc_alors. */
+	llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
 
 	/* noeud 3 : sinon (optionel) */
 	if (nombre_enfants == 3) {
@@ -1661,7 +1663,10 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
 
 		contexte.depile_nombre_locales();
 
-		llvm::BranchInst::Create(bloc_fusion, bloc_sinon);
+		/* Il est possible d'avoir des contrôles récursif, donc on fait une
+		 * branche dans le bloc courant du contexte qui peut être différent de
+		 * bloc_sinon. */
+		llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
 	}
 
 	contexte.bloc_courant(bloc_fusion);
