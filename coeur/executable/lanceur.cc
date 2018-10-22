@@ -349,9 +349,9 @@ int main(int argc, char *argv[])
 			if (!ecris_fichier_objet(machine_cible, module)) {
 				resultat = 1;
 			}
-		}
 
-		cree_executable();
+			cree_executable();
+		}
 
 		delete machine_cible;
 		os << "Nettoyage..." << std::endl;
