@@ -1,11 +1,3 @@
-# Erreurs descriptives depuis l'arbre syntactic.
-# transtype, boucle, pour, si/sinon
-# Test : chaine littérale, déclaration, assignement de pointeur et tableau.
-# déréférencement de pointeur
-# Test : var[0], @var[0], type retour fonctions
-# Pas d'ombrage, pas d'ambiguïté entre déclaration et appel fonction, vérifie nom sont uniques
-# Concaténation de chaînes ("" + "").
-
 #!si vrai
 fonction principale(compte : n32, arguments : []*n8) : n32
 {
