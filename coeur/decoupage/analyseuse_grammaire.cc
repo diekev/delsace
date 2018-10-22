@@ -321,6 +321,52 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 	analyse_parametres_fonction(noeud, donnees);
 }
 
+void analyseuse_grammaire::analyse_controle_si()
+{
+	if (!requiers_identifiant(id_morceau::SI)) {
+		lance_erreur("Attendu la déclaration 'si'");
+	}
+
+	m_assembleuse->empile_noeud(type_noeud::SI, m_identifiants[position()]);
+
+	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
+
+	m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
+	analyse_corps_fonction();
+
+	m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+		lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'");
+	}
+
+	if (est_identifiant(id_morceau::SINON)) {
+		avance();
+
+		if (est_identifiant(id_morceau::SI)) {
+			analyse_controle_si();
+		}
+		else {
+			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+				lance_erreur("Attendu une accolade ouvrante après 'sinon'");
+			}
+
+			m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
+			analyse_corps_fonction();
+
+			m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+				lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'");
+			}
+		}
+	}
+
+	m_assembleuse->depile_noeud(type_noeud::SI);
+}
+
 void analyseuse_grammaire::analyse_corps_fonction()
 {
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
@@ -386,41 +432,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	}
 	/* controle de flux : si */
 	else if (est_identifiant(id_morceau::SI)) {
-		avance();
-
-		m_assembleuse->empile_noeud(type_noeud::SI, m_identifiants[position()]);
-
-		analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
-
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
-
-		analyse_corps_fonction();
-
-		m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'");
-		}
-
-		if (est_identifiant(id_morceau::SINON)) {
-			avance();
-
-			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante après 'sinon'");
-			}
-
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
-
-			analyse_corps_fonction();
-
-			m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'");
-			}
-		}
-
-		m_assembleuse->depile_noeud(type_noeud::SI);
+		analyse_controle_si();
 	}
 	/* appel : fais_quelque_chose(); */
 	else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
