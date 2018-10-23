@@ -212,9 +212,6 @@ public:
 /* ************************************************************************** */
 
 class NoeudAppelFonction final : public Noeud {
-	/* les noms des arguments s'il sont nommés */
-	std::list<std::string_view> m_noms_arguments;
-
 public:
 	explicit NoeudAppelFonction(const DonneesMorceaux &morceau);
 
@@ -232,8 +229,6 @@ public:
 /* ************************************************************************** */
 
 class NoeudDeclarationFonction final : public Noeud {
-	std::list<ArgumentFonction> m_arguments;
-
 public:
 	explicit NoeudDeclarationFonction(const DonneesMorceaux &morceau);
 

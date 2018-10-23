@@ -234,5 +234,6 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 	os << "DonneesType              : " << sizeof(DonneesType) << '\n';
 	os << "DonneesMorceaux          : " << sizeof(DonneesMorceaux) << '\n';
 	os << "std::list<Noeud *>       : " << sizeof(std::list<Noeud *>) << '\n';
+	os << "std::any                 : " << sizeof(std::any) << '\n';
 	os << "------------------------------------------------------------------\n";
 }

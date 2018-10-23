@@ -319,7 +319,10 @@ type_noeud NoeudRacine::type() const
 
 NoeudAppelFonction::NoeudAppelFonction(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
-{}
+{
+	/* réutilisation du membre std::any pour économiser un peu de mémoire */
+	valeur_calculee = std::list<std::string_view>{};
+}
 
 void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 {
@@ -356,7 +359,9 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	/* Cherche la liste d'arguments */
 	std::vector<llvm::Value *> parametres;
 
-	if (m_noms_arguments.empty()) {
+	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
+
+	if (noms_arguments->empty()) {
 		parametres.reserve(m_enfants.size());
 		auto index = 0ul;
 
@@ -391,7 +396,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	else {
 		/* Il faut trouver l'ordre des arguments. À FAIRE : tests. */
 
-		if (m_noms_arguments.size() != donnees_fonction.args.size()) {
+		if (noms_arguments->size() != donnees_fonction.args.size()) {
 			erreur::lance_erreur_nombre_arguments(
 						donnees_fonction.args.size(),
 						m_enfants.size(),
@@ -403,11 +408,11 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
 		 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
 		 * code est généré. */
-		std::vector<Noeud *> enfants(m_noms_arguments.size());
+		std::vector<Noeud *> enfants(noms_arguments->size());
 
 		auto enfant = m_enfants.begin();
 
-		for (const auto &nom : m_noms_arguments) {
+		for (const auto &nom : *noms_arguments) {
 			auto iter = donnees_fonction.args.find(nom);
 
 			if (iter == donnees_fonction.args.end()) {
@@ -435,7 +440,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 			++enfant;
 		}
 
-		parametres.resize(m_noms_arguments.size());
+		parametres.resize(noms_arguments->size());
 
 		std::transform(enfants.begin(), enfants.end(), parametres.begin(),
 					   [&](Noeud *enfant)
@@ -461,7 +466,8 @@ const DonneesType &NoeudAppelFonction::calcul_type(ContexteGenerationCode &conte
 
 void NoeudAppelFonction::ajoute_nom_argument(const std::string_view &nom)
 {
-	m_noms_arguments.push_back(nom);
+	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
+	noms_arguments->push_back(nom);
 }
 
 type_noeud NoeudAppelFonction::type() const
@@ -473,11 +479,15 @@ type_noeud NoeudAppelFonction::type() const
 
 NoeudDeclarationFonction::NoeudDeclarationFonction(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
-{}
+{
+	/* réutilisation du membre std::any pour économiser un peu de mémoire */
+	valeur_calculee = std::list<ArgumentFonction>{};
+}
 
 void NoeudDeclarationFonction::ajoute_argument(const ArgumentFonction &argument)
 {
-	m_arguments.push_back(argument);
+	auto arguments = std::any_cast<std::list<ArgumentFonction>>(&valeur_calculee);
+	arguments->push_back(argument);
 }
 
 void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
@@ -498,10 +508,12 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		this->donnees_type.pousse(id_morceau::RIEN);
 	}
 
+	auto arguments = std::any_cast<std::list<ArgumentFonction>>(&valeur_calculee);
+
 	/* Crée le type de la fonction */
 	auto type_fonction = obtiens_type_fonction(
 							 contexte,
-							 m_arguments,
+							 *arguments,
 							 this->donnees_type,
 							 false);
 
@@ -523,7 +535,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	/* Crée code pour les arguments */
 	auto valeurs_args = fonction->arg_begin();
 
-	for (const auto &argument : m_arguments) {
+	for (const auto &argument : *arguments) {
 		auto alloc = new llvm::AllocaInst(
 						 converti_type(contexte, argument.donnees_type),
 						 argument.chaine,
