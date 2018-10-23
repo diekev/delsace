@@ -2,7 +2,9 @@ Faitures
 --------
 - utilisation de caractères unicodes UTF-8 dans les sources
 - impression dans la sortie standard via printf
-- contrôle de flux simple via si/sinon
+- contrôle de flux via si/sinon
+- boucle avec plage
+- boucle sans plage
 - déclaration et manipulation de variable
 - déclaration de structure
 - déclaration et appel de fonctions
@@ -15,9 +17,6 @@ Faitures
 
 À faire
 -------
-- contrôle de flux récursif (si ... { si ... {} sinon si ... {} })
-- boucle avec plage
-- boucle sans plage
 - transtypage
 - transtypage automatique des valeurs littérales dans les expressions ou autre
 ---- littérale + littérale -> littérale  # OK
@@ -42,6 +41,11 @@ Faitures
 - déréférencement de pointeur lors de l'accès de variables (via 'de')
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries
+- initialisation explicite des membres des structures lors de leur définition
+
+
+À faire (tests)
+---------------
 - test contrôles de flux doivent avoir des valeurs booléennes explicit
 - test opérateur booléen d'inversion '!' ne peut prendre qu'une valeur booléenne
 - test caractère simple (assignation + modification)
@@ -51,7 +55,8 @@ Faitures
 - test type retour
 - test fonction sans retour explicit a bel et bien une instruction de retour à sa fin
 - test que l'identifiant après une expression de retour est bel et bien une accolade fermante (pas d'expression inutile après un retour)
-- initialisation explicite des membres des structures lors de leur définition
+- test boucle 'pour' : déclaration variable unique, expr de même type, et type entier
+- test 'continue', 'arrête', en dehors des boucles
 
 
 Idées
