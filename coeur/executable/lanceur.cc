@@ -320,7 +320,9 @@ int main(int argc, char *argv[])
 		auto feature = "";
 		auto options = llvm::TargetOptions{};
 		auto RM = llvm::Optional<llvm::Reloc::Model>();
-		auto machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options, RM);
+		auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
+								 cible->createTargetMachine(
+									 triplet_cible, CPU, feature, options, RM));
 
 		auto module = llvm::Module(chemin_fichier, contexte_generation.contexte);
 		module.setDataLayout(machine_cible->createDataLayout());
@@ -346,14 +348,13 @@ int main(int argc, char *argv[])
 		/* définition du fichier de sortie */
 		if (ops.emet_fichier_objet) {
 			os << "Écriture du code dans un fichier..." << std::endl;
-			if (!ecris_fichier_objet(machine_cible, module)) {
+			if (!ecris_fichier_objet(machine_cible.get(), module)) {
 				resultat = 1;
 			}
 
 			cree_executable();
 		}
 
-		delete machine_cible;
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = numero7::chronometrage::maintenant();
 	}
