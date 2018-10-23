@@ -42,6 +42,7 @@ Faitures
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries
 - initialisation explicite des membres des structures lors de leur définition
+- ajout d'une instruction de retour pour les fonctions qui ne retourne rien et qui n'ont pas de retour explicite
 
 
 À faire (tests)
