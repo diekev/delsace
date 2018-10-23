@@ -1717,12 +1717,14 @@ llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const
 {
 	llvm::Value *valeur = nullptr;
 
+	auto bloc_entree = contexte.bloc_courant();
+
 	for (auto enfant : m_enfants) {
 		valeur = enfant->genere_code_llvm(contexte);
 
 		/* nul besoin de continuer à générer du code pour des expressions qui ne
 		 * seront jamais executées. À FAIRE : erreur de compilation ? */
-		if (est_branche_ou_retour(valeur)) {
+		if (est_branche_ou_retour(valeur) && bloc_entree == contexte.bloc_courant()) {
 			break;
 		}
 	}
