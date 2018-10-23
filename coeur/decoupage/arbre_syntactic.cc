@@ -190,6 +190,11 @@ static void imprime_tab(std::ostream &os, int tab)
 	}
 }
 
+static bool est_branche_ou_retour(llvm::Value *valeur)
+{
+	return (llvm::isa<llvm::BranchInst>(*valeur) || llvm::isa<llvm::ReturnInst>(*valeur));
+}
+
 /* ************************************************************************** */
 
 static llvm::FunctionType *obtiens_type_fonction(
@@ -1648,13 +1653,15 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 
 	/* noeud 2 : bloc */
 	auto enfant2 = *iter_enfant++;
-	enfant2->genere_code_llvm(contexte);
+	auto ret = enfant2->genere_code_llvm(contexte);
 
 	contexte.depile_nombre_locales();
 
 	/* Il est possible d'avoir des contrôles récursif, donc on fait une branche
 	 * dans le bloc courant du contexte qui peut être différent de bloc_alors. */
-	llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
+	if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_alors)) {
+		ret = llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
+	}
 
 	/* noeud 3 : sinon (optionel) */
 	if (nombre_enfants == 3) {
@@ -1663,19 +1670,21 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 		contexte.empile_nombre_locales();
 
 		auto enfant3 = *iter_enfant++;
-		enfant3->genere_code_llvm(contexte);
+		ret = enfant3->genere_code_llvm(contexte);
 
 		contexte.depile_nombre_locales();
 
 		/* Il est possible d'avoir des contrôles récursif, donc on fait une
 		 * branche dans le bloc courant du contexte qui peut être différent de
 		 * bloc_sinon. */
-		llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
+		if (!est_branche_ou_retour(ret)) {
+			ret = llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
+		}
 	}
 
 	contexte.bloc_courant(bloc_fusion);
 
-	return nullptr;
+	return ret;
 }
 
 const DonneesType &NoeudSi::calcul_type(ContexteGenerationCode &)
@@ -1706,11 +1715,19 @@ void NoeudBloc::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
+	llvm::Value *valeur = nullptr;
+
 	for (auto enfant : m_enfants) {
-		enfant->genere_code_llvm(contexte);
+		valeur = enfant->genere_code_llvm(contexte);
+
+		/* nul besoin de continuer à générer du code pour des expressions qui ne
+		 * seront jamais executées. À FAIRE : erreur de compilation ? */
+		if (est_branche_ou_retour(valeur)) {
+			break;
+		}
 	}
 
-	return nullptr;
+	return valeur;
 }
 
 const DonneesType &NoeudBloc::calcul_type(ContexteGenerationCode &)
@@ -1853,24 +1870,26 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		contexte.bloc_courant(bloc_corps);
 
 		/* génère le code du bloc */
-		enfant4->genere_code_llvm(contexte);
+		auto ret = enfant4->genere_code_llvm(contexte);
 
 		/* incrémente la variable (noeud_phi) */
-		auto val_inc = llvm::ConstantInt::get(
-						   llvm::Type::getInt32Ty(contexte.contexte),
-						   static_cast<uint64_t>(1),
-						   false);
+		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_corps)) {
+			auto val_inc = llvm::ConstantInt::get(
+							   llvm::Type::getInt32Ty(contexte.contexte),
+							   static_cast<uint64_t>(1),
+							   false);
 
-		auto inc = llvm::BinaryOperator::Create(
-					   llvm::Instruction::Add,
-					   noeud_phi,
-					   val_inc,
-					   "",
-					   contexte.bloc_courant());
+			auto inc = llvm::BinaryOperator::Create(
+						   llvm::Instruction::Add,
+						   noeud_phi,
+						   val_inc,
+						   "",
+						   contexte.bloc_courant());
 
-		noeud_phi->addIncoming(inc, contexte.bloc_courant());
+			noeud_phi->addIncoming(inc, contexte.bloc_courant());
 
-		llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+			llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+		}
 	}
 
 	contexte.depile_bloc_continue();
@@ -1976,16 +1995,18 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 
 	contexte.bloc_courant(bloc_boucle);
 
-	m_enfants.front()->genere_code_llvm(contexte);
+	auto ret = m_enfants.front()->genere_code_llvm(contexte);
 
-	llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+	if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_boucle)) {
+		ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+	}
 
 	contexte.depile_bloc_continue();
 	contexte.depile_bloc_arrete();
 	contexte.depile_nombre_locales();
 	contexte.bloc_courant(bloc_apres);
 
-	return nullptr;
+	return ret;
 }
 
 type_noeud NoeudBoucle::type() const
