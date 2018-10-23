@@ -47,7 +47,7 @@ structure Kernel {
 	ptr_vidéo : *z8;
 }
 
-fonction clarifie_écran(ptr_vidéo : *z8) : rien
+fonction clarifie_écran(variable ptr_vidéo : *z8) : rien
 {
 	# Cette boucle clarifie l'écran.
 	# Il y a 25 lignes de 80 colonnes.
@@ -59,9 +59,11 @@ fonction clarifie_écran(ptr_vidéo : *z8) : rien
 		# Octet d'attribut - écran noir.
 		ptr_vidéo[j + 1] = AP_NOIR | TE_NOIR;
 	}
+
+	retourne;
 }
 
-fonction écris_chaîne(ptr_vidéo : *z8, chaine : *z8) : rien
+fonction écris_chaîne(variable ptr_vidéo : *z8, chaine : *z8) : rien
 {
 	soit variable i = 0;
 	soit variable j = 0;
@@ -81,6 +83,8 @@ fonction écris_chaîne(ptr_vidéo : *z8, chaine : *z8) : rien
 		i = i + 2;
 		j = j + 1;
 	}
+
+	retourne;
 }
 
 fonction principale()
@@ -95,4 +99,6 @@ fonction principale()
 	écris_chaîne(ptr_vidéo, chaine);
 
 	boucle {}
+
+	retourne 0;
 }
