@@ -294,7 +294,7 @@ void NoeudRacine::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	ajoute_printf(contexte);
 
@@ -326,7 +326,7 @@ void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	auto fonction = contexte.module->getFunction(std::string(m_donnees_morceaux.chaine));
 
@@ -486,7 +486,7 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	/* À FAIRE : calcule type retour, considération fonction récursive. */
 	if (this->donnees_type.est_invalide()) {
@@ -564,7 +564,7 @@ void NoeudExpression::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudExpression::genere_code_llvm(ContexteGenerationCode &/*contexte*/)
+llvm::Value *NoeudExpression::genere_code_llvm(ContexteGenerationCode &/*contexte*/, const bool /*expr_gauche*/)
 {
 	return nullptr;
 }
@@ -596,7 +596,7 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	assert(m_enfants.size() == 2);
 
@@ -648,7 +648,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	 * côte. */
 	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
 
-	auto alloc = m_enfants.front()->genere_code_llvm(contexte);
+	auto alloc = m_enfants.front()->genere_code_llvm(contexte, true);
 	return new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 }
 
@@ -669,7 +669,7 @@ void NoeudDeclarationVariable::imprime_code(std::ostream &os, int tab)
 	os << "NoeudDeclarationVariable : " << m_donnees_morceaux.chaine << '\n';
 }
 
-llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
 
@@ -731,7 +731,7 @@ void NoeudConstante::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	auto valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
 
@@ -794,7 +794,7 @@ void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	const auto valeur = this->calcule ? std::any_cast<long>(this->valeur_calculee) :
 										converti_chaine_nombre_entier(
@@ -844,7 +844,7 @@ void NoeudBooleen::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudBooleen::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudBooleen::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	const auto valeur = this->calcule ? std::any_cast<bool>(this->valeur_calculee)
 									  : (this->chaine() == "vrai");
@@ -883,7 +883,7 @@ void NoeudCaractere::imprime_code(std::ostream &os, int tab)
 	os << "NoeudCaractere : " << m_donnees_morceaux.chaine << '\n';
 }
 
-llvm::Value *NoeudCaractere::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudCaractere::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	auto valeur = m_donnees_morceaux.chaine[0];
 
@@ -930,7 +930,7 @@ void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	const auto valeur = this->calcule ? std::any_cast<double>(this->valeur_calculee) :
 										converti_chaine_nombre_reel(
@@ -1021,7 +1021,7 @@ void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	auto chaine = std::any_cast<std::string>(this->valeur_calculee);
 
@@ -1071,7 +1071,7 @@ void NoeudVariable::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
 {
 	auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
 
@@ -1087,7 +1087,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 		}
 	}
 
-	if (dynamic_cast<llvm::PHINode *>(valeur)) {
+	if (expr_gauche || dynamic_cast<llvm::PHINode *>(valeur)) {
 		return valeur;
 	}
 
@@ -1138,7 +1138,7 @@ void NoeudAccesMembre::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	const auto &type_structure = m_enfants.back()->calcul_type(contexte);
 	const auto &nom_membre = m_enfants.front()->chaine();
@@ -1213,7 +1213,7 @@ void NoeudOperation::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	const auto nombre_enfants = m_enfants.size();
 
@@ -1565,7 +1565,7 @@ void NoeudRetour::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	llvm::Value *valeur = nullptr;
 
@@ -1610,7 +1610,7 @@ void NoeudSi::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	const auto nombre_enfants = m_enfants.size();
 	auto iter_enfant = m_enfants.begin();
@@ -1704,7 +1704,7 @@ void NoeudBloc::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	for (auto enfant : m_enfants) {
 		enfant->genere_code_llvm(contexte);
@@ -1759,7 +1759,7 @@ void NoeudPour::imprime_code(std::ostream &os, int tab)
  * apres_boucle:
  *	...
  */
-llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	auto iter = m_enfants.begin();
 
@@ -1903,7 +1903,7 @@ void NoeudContArr::imprime_code(std::ostream &os, int tab)
 	os << "NoeudContArr : " << m_donnees_morceaux.chaine << '\n';
 }
 
-llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte)
+llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	auto bloc = (m_donnees_morceaux.identifiant == id_morceau::CONTINUE)
 				? contexte.bloc_continue()

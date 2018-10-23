@@ -164,7 +164,7 @@ public:
 	/**
 	 * Génère le code pour LLVM.
 	 */
-	virtual llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) = 0;
+	virtual llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) = 0;
 
 	/**
 	 * Calcul le type de ce noeud en cherchant parmis ses enfants si nécessaire.
@@ -204,7 +204,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	type_noeud type() const override;
 };
@@ -220,7 +220,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -244,7 +244,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	type_noeud type() const override;
 };
@@ -257,7 +257,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -272,7 +272,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	type_noeud type() const override;
 };
@@ -285,7 +285,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	type_noeud type() const override;
 
@@ -300,7 +300,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -315,7 +315,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -332,7 +332,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -349,7 +349,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -366,7 +366,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -383,7 +383,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -400,7 +400,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -417,7 +417,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -434,7 +434,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -451,7 +451,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
@@ -466,7 +466,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
 
@@ -481,7 +481,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
 
@@ -496,7 +496,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
 
@@ -511,7 +511,7 @@ public:
 
 	void imprime_code(std::ostream &os, int tab) override;
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
 
