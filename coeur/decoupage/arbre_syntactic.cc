@@ -1087,6 +1087,10 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte)
 		}
 	}
 
+	if (dynamic_cast<llvm::PHINode *>(valeur)) {
+		return valeur;
+	}
+
 	return new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
 }
 
@@ -1717,4 +1721,145 @@ const DonneesType &NoeudBloc::calcul_type(ContexteGenerationCode &)
 type_noeud NoeudBloc::type() const
 {
 	return type_noeud::BLOC;
+}
+
+/* ************************************************************************** */
+
+NoeudPour::NoeudPour(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudPour::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+
+	os << "NoeudPour : " << m_donnees_morceaux.chaine << '\n';
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
+}
+
+/* Arbre :
+ * NoeudPour
+ * - enfant 1 : déclaration variable
+ * - enfant 2 : expr début
+ * - enfant 3 : expr fin
+ * - enfant 4 : bloc
+ */
+llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte)
+{
+	auto iter = m_enfants.begin();
+
+	/* on génère d'abord le type de la variable */
+	auto enfant1 = *iter++;
+	auto enfant2 = *iter++;
+	auto enfant3 = *iter++;
+	auto enfant4 = *iter++;
+
+	auto type_debut = enfant2->calcul_type(contexte);
+	auto type_fin = enfant3->calcul_type(contexte);
+
+	if (type_debut.est_invalide() || type_fin.est_invalide()) {
+		erreur::lance_erreur(
+					"Les types de l'expression sont invalides !",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::type_erreur::TYPE_INCONNU);
+	}
+
+	if (type_debut != type_fin) {
+		erreur::lance_erreur_type_operation(
+					type_debut,
+					type_fin,
+					contexte.tampon,
+					m_donnees_morceaux);
+	}
+
+	enfant1->donnees_type = type_debut;
+
+	/* création des blocs */
+	auto bloc_boucle = llvm::BasicBlock::Create(
+						  contexte.contexte,
+						  "boucle",
+						  contexte.fonction);
+
+	auto bloc_apres = llvm::BasicBlock::Create(
+						  contexte.contexte,
+						  "apres_boucle",
+						  contexte.fonction);
+
+	/* on crée une branche explicite dans le bloc */
+	llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+
+	auto bloc_pre = contexte.bloc_courant();
+
+	contexte.bloc_courant(bloc_boucle);
+	contexte.empile_nombre_locales();
+
+	/* création du code */
+
+	/* commence par la variable */
+
+	auto valeur_debut = enfant2->genere_code_llvm(contexte);
+
+	auto noeud_phi = llvm::PHINode::Create(
+						 converti_type(contexte, type_debut),
+						 2,
+						 std::string(enfant1->chaine()),
+						 contexte.bloc_courant());
+
+	noeud_phi->addIncoming(valeur_debut, bloc_pre);
+
+	contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false);
+
+	/* puis le bloc */
+	enfant4->genere_code_llvm(contexte);
+
+	/* incrémente la variable */
+	auto val_inc = llvm::ConstantInt::get(
+					   llvm::Type::getInt32Ty(contexte.contexte),
+					   static_cast<uint64_t>(1),
+					   false);
+
+	auto inc = llvm::BinaryOperator::Create(
+				   llvm::Instruction::Add,
+				   noeud_phi,
+				   val_inc,
+				   "",
+				   contexte.bloc_courant());
+
+	noeud_phi->addIncoming(inc, contexte.bloc_courant());
+
+	/* enfin la comparaison */
+	auto valeur_fin = enfant3->genere_code_llvm(contexte);
+
+	auto condition = llvm::ICmpInst::Create(
+						 llvm::Instruction::ICmp,
+						 llvm::CmpInst::Predicate::ICMP_SLT,
+						 noeud_phi,
+						 valeur_fin,
+						 "",
+						 contexte.bloc_courant());
+
+	llvm::BranchInst::Create(
+				bloc_boucle,
+				bloc_apres,
+				condition,
+				contexte.bloc_courant());
+
+	contexte.depile_nombre_locales();
+
+	contexte.bloc_courant(bloc_apres);
+
+	return nullptr;
+}
+
+const DonneesType &NoeudPour::calcul_type(ContexteGenerationCode &/*contexte*/)
+{
+	return this->donnees_type;
+}
+
+type_noeud NoeudPour::type() const
+{
+	return type_noeud::POUR;
 }

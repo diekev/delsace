@@ -67,6 +67,7 @@ private:
 	void analyse_declaration_enum();
 	void analyse_declaration_type(DonneesType &donnees_type, bool double_point = true);
 	void analyse_controle_si();
+	void analyse_controle_pour();
 
 	bool requiers_identifiant_type();
 	bool requiers_nombre_entier();

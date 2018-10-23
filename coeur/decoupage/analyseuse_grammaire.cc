@@ -367,6 +367,63 @@ void analyseuse_grammaire::analyse_controle_si()
 	m_assembleuse->depile_noeud(type_noeud::SI);
 }
 
+/* Arbre :
+ * NoeudPour
+ * - enfant 1 : déclaration variable
+ * - enfant 2 : expr début
+ * - enfant 3 : expr fin
+ * - enfant 4 : bloc
+ */
+void analyseuse_grammaire::analyse_controle_pour()
+{
+	if (!requiers_identifiant(id_morceau::POUR)) {
+		lance_erreur("Attendu la déclaration 'pour'");
+	}
+
+	m_assembleuse->empile_noeud(type_noeud::POUR, m_identifiants[position()]);
+
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+		lance_erreur("Attendu une chaîne de caractère après 'pour'");
+	}
+
+	/* enfant 1 : déclaration variable */
+
+	auto noeud = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_identifiants[position()]);
+	m_assembleuse->ajoute_noeud(noeud);
+
+	if (!requiers_identifiant(id_morceau::DANS)) {
+		lance_erreur("Attendu le mot 'dans' après la chaîne de caractère");
+	}
+
+	/* enfant 2 : expr début */
+
+	analyse_expression_droite(id_morceau::TROIS_POINTS);
+
+	/* enfant 3 : expr fin */
+
+	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
+
+	recule();
+
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+		lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'pour'");
+	}
+
+	/* enfant 4 : bloc */
+
+	m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
+	analyse_corps_fonction();
+
+	m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+		lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'pour'");
+	}
+
+	m_assembleuse->depile_noeud(type_noeud::POUR);
+}
+
 void analyseuse_grammaire::analyse_corps_fonction()
 {
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
@@ -433,6 +490,9 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	/* controle de flux : si */
 	else if (est_identifiant(id_morceau::SI)) {
 		analyse_controle_si();
+	}
+	else if (est_identifiant(id_morceau::POUR)) {
+		analyse_controle_pour();
 	}
 	/* appel : fais_quelque_chose(); */
 	else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
