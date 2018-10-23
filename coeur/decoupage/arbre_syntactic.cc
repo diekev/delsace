@@ -1171,7 +1171,7 @@ void NoeudOperation::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
 {
 	const auto nombre_enfants = m_enfants.size();
 
@@ -1441,6 +1441,12 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte, 
 								  { valeur1 },
 								  "",
 								  contexte.bloc_courant());
+
+				/* Dans le cas d'une assignation, on n'a pas besoin de charger
+				 * la valeur dans un registre. */
+				if (expr_gauche) {
+					return valeur;
+				}
 
 				/* Ajout d'un niveau d'indirection pour pouvoir proprement
 				 * générer un code pour les expressions de type x[0][0]. Sans ça
