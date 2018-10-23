@@ -41,7 +41,6 @@ enum class type_noeud : char {
 	RACINE,
 	DECLARATION_FONCTION,
 	APPEL_FONCTION,
-	EXPRESSION,
 	VARIABLE,
 	ACCES_MEMBRE,
 	CONSTANTE,
@@ -252,21 +251,6 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudExpression final : public Noeud {
-public:
-	explicit NoeudExpression(const DonneesMorceaux &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
-
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
 class NoeudAssignationVariable final : public Noeud {
 public:
 	explicit NoeudAssignationVariable(const DonneesMorceaux &morceau);
@@ -318,8 +302,6 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	bool est_constant() const override;
 
 	type_noeud type() const override;
@@ -334,8 +316,6 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
-
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	bool est_constant() const override;
 
@@ -352,8 +332,6 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	bool est_constant() const override;
 
 	type_noeud type() const override;
@@ -369,8 +347,6 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	bool est_constant() const override;
 
 	type_noeud type() const override;
@@ -385,8 +361,6 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
-
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	bool est_constant() const override;
 
@@ -469,8 +443,6 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
-
 	type_noeud type() const override;
 };
 
@@ -483,8 +455,6 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
-
-	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
 
 	type_noeud type() const override;
 };
@@ -499,8 +469,6 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
-
 	type_noeud type() const override;
 };
 
@@ -513,8 +481,6 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
-
-	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
 
 	type_noeud type() const override;
 };

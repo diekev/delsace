@@ -67,10 +67,6 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &mor
 			m_memoire_utilisee += sizeof(NoeudDeclarationFonction);
 			noeud = new NoeudDeclarationFonction(morceau);
 			break;
-		case type_noeud::EXPRESSION:
-			m_memoire_utilisee += sizeof(NoeudExpression);
-			noeud = new NoeudExpression(morceau);
-			break;
 		case type_noeud::ASSIGNATION_VARIABLE:
 			m_memoire_utilisee += sizeof(NoeudAssignationVariable);
 			noeud = new NoeudAssignationVariable(morceau);
@@ -219,7 +215,6 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 	os << "NoeudRacine              : " << sizeof(NoeudRacine) << '\n';
 	os << "NoeudAppelFonction       : " << sizeof(NoeudAppelFonction) << '\n';
 	os << "NoeudDeclarationFonction : " << sizeof(NoeudDeclarationFonction) << '\n';
-	os << "NoeudExpression          : " << sizeof(NoeudExpression) << '\n';
 	os << "NoeudAssignationVariable : " << sizeof(NoeudAssignationVariable) << '\n';
 	os << "NoeudVariable            : " << sizeof(NoeudVariable) << '\n';
 	os << "NoeudNombreEntier        : " << sizeof(NoeudNombreEntier) << '\n';

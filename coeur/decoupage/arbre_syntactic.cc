@@ -552,38 +552,6 @@ type_noeud NoeudDeclarationFonction::type() const
 
 /* ************************************************************************** */
 
-NoeudExpression::NoeudExpression(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
-{}
-
-void NoeudExpression::imprime_code(std::ostream &os, int tab)
-{
-	imprime_tab(os, tab);
-
-	os << "NoeudExpression : " << m_donnees_morceaux.chaine << '\n';
-
-	for (auto noeud : m_enfants) {
-		noeud->imprime_code(os, tab + 1);
-	}
-}
-
-llvm::Value *NoeudExpression::genere_code_llvm(ContexteGenerationCode &/*contexte*/, const bool /*expr_gauche*/)
-{
-	return nullptr;
-}
-
-const DonneesType &NoeudExpression::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	return this->donnees_type;
-}
-
-type_noeud NoeudExpression::type() const
-{
-	return type_noeud::EXPRESSION;
-}
-
-/* ************************************************************************** */
-
 NoeudAssignationVariable::NoeudAssignationVariable(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {}
@@ -810,11 +778,6 @@ llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &context
 				false);
 }
 
-const DonneesType &NoeudNombreEntier::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	return this->donnees_type;
-}
-
 bool NoeudNombreEntier::est_constant() const
 {
 	return true;
@@ -857,11 +820,6 @@ llvm::Value *NoeudBooleen::genere_code_llvm(ContexteGenerationCode &contexte, co
 				false);
 }
 
-const DonneesType &NoeudBooleen::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	return this->donnees_type;
-}
-
 bool NoeudBooleen::est_constant() const
 {
 	return true;
@@ -894,11 +852,6 @@ llvm::Value *NoeudCaractere::genere_code_llvm(ContexteGenerationCode &contexte, 
 				llvm::Type::getInt8Ty(contexte.contexte),
 				static_cast<uint64_t>(valeur),
 				false);
-}
-
-const DonneesType &NoeudCaractere::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	return this->donnees_type;
 }
 
 bool NoeudCaractere::est_constant() const
@@ -943,11 +896,6 @@ llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte,
 	return llvm::ConstantFP::get(
 				llvm::Type::getDoubleTy(contexte.contexte),
 				valeur);
-}
-
-const DonneesType &NoeudNombreReel::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	return this->donnees_type;
 }
 
 bool NoeudNombreReel::est_constant() const
@@ -1040,11 +988,6 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 				true,
 				llvm::GlobalValue::InternalLinkage,
 				constante);
-}
-
-const DonneesType &NoeudChaineLitterale::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	return this->donnees_type;
 }
 
 bool NoeudChaineLitterale::est_constant() const
@@ -1685,11 +1628,6 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 	return ret;
 }
 
-const DonneesType &NoeudSi::calcul_type(ContexteGenerationCode &)
-{
-	return this->donnees_type;
-}
-
 type_noeud NoeudSi::type() const
 {
 	return type_noeud::SI;
@@ -1728,11 +1666,6 @@ llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const
 	}
 
 	return valeur;
-}
-
-const DonneesType &NoeudBloc::calcul_type(ContexteGenerationCode &)
-{
-	return this->donnees_type;
 }
 
 type_noeud NoeudBloc::type() const
@@ -1902,17 +1835,12 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	return ret;
 }
 
-/* ************************************************************************** */
-
-const DonneesType &NoeudPour::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	return this->donnees_type;
-}
-
 type_noeud NoeudPour::type() const
 {
 	return type_noeud::POUR;
 }
+
+/* ************************************************************************** */
 
 NoeudContArr::NoeudContArr(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
@@ -1938,11 +1866,6 @@ llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte, co
 	}
 
 	return llvm::BranchInst::Create(bloc, contexte.bloc_courant());
-}
-
-const DonneesType &NoeudContArr::calcul_type(ContexteGenerationCode &)
-{
-	return this->donnees_type;
 }
 
 type_noeud NoeudContArr::type() const
