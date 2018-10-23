@@ -1231,339 +1231,385 @@ bool NoeudAccesMembre::peut_etre_assigne(ContexteGenerationCode &contexte) const
 
 /* ************************************************************************** */
 
-NoeudOperation::NoeudOperation(const DonneesMorceaux &morceau)
+NoeudOperationBinaire::NoeudOperationBinaire(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {}
 
-void NoeudOperation::imprime_code(std::ostream &os, int tab)
+void NoeudOperationBinaire::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << "NoeudOperation : " << m_donnees_morceaux.chaine << " : " << this->donnees_type << '\n';
+	os << "NoeudOperationBinaire : " << m_donnees_morceaux.chaine << " : " << this->donnees_type << '\n';
 
 	for (auto noeud : m_enfants) {
 		noeud->imprime_code(os, tab + 1);
 	}
 }
 
-llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
+llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
 {
-	const auto nombre_enfants = m_enfants.size();
+	auto instr = llvm::Instruction::Add;
+	auto predicat = llvm::CmpInst::Predicate::FCMP_FALSE;
+	auto est_comp_entier = false;
+	auto est_comp_reel = false;
 
-	if (nombre_enfants == 1) {
-		llvm::Instruction::BinaryOps instr;
-		auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
-		auto valeur2 = static_cast<llvm::Value *>(nullptr);
+	const auto type1 = m_enfants.front()->calcul_type(contexte);
+	const auto type2 = m_enfants.back()->calcul_type(contexte);
 
-		switch (this->m_donnees_morceaux.identifiant) {
-			case id_morceau::EXCLAMATION:
-				instr = llvm::Instruction::Xor;
-				valeur2 = valeur1;
-				break;
-			case id_morceau::TILDE:
-				instr = llvm::Instruction::Xor;
-				valeur2 = llvm::ConstantInt::get(
-							  llvm::Type::getInt32Ty(contexte.contexte),
-							  static_cast<uint64_t>(0),
-							  false);
-				break;
-			case id_morceau::AROBASE:
-			{
-				auto inst_load = dynamic_cast<llvm::LoadInst *>(valeur1);
-
-				if (inst_load == nullptr) {
-					/* Ne devrais pas arriver. */
-					return nullptr;
-				}
-
-				return inst_load->getPointerOperand();
-			}
-			default:
-				return nullptr;
-		}
-
-		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
+	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT) && (type1 != type2)) {
+		erreur::lance_erreur_type_operation(
+					type1,
+					type2,
+					contexte.tampon,
+					m_donnees_morceaux);
 	}
 
-	if (nombre_enfants == 2) {
-		auto instr = llvm::Instruction::Add;
-		auto predicat = llvm::CmpInst::Predicate::FCMP_FALSE;
-		auto est_comp_entier = false;
-		auto est_comp_reel = false;
+	/* À FAIRE : typage */
 
-		const auto type1 = m_enfants.front()->calcul_type(contexte);
-		const auto type2 = m_enfants.back()->calcul_type(contexte);
+	/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
+	const auto valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
 
-		if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT) && (type1 != type2)) {
-			erreur::lance_erreur_type_operation(
-						type1,
-						type2,
-						contexte.tampon,
-						m_donnees_morceaux);
-		}
+	auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
+	auto valeur2 = m_enfants.back()->genere_code_llvm(contexte, valeur2_brut);
 
-		/* À FAIRE : typage */
+	switch (this->m_donnees_morceaux.identifiant) {
+		case id_morceau::PLUS:
+			if (est_type_entier(type1.type_base())) {
+				instr = llvm::Instruction::Add;
+			}
+			else {
+				instr = llvm::Instruction::FAdd;
+			}
 
-		/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
-		const auto valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
+			break;
+		case id_morceau::MOINS:
+			if (est_type_entier(type1.type_base())) {
+				instr = llvm::Instruction::Sub;
+			}
+			else {
+				instr = llvm::Instruction::FSub;
+			}
 
-		auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
-		auto valeur2 = m_enfants.back()->genere_code_llvm(contexte, valeur2_brut);
+			break;
+		case id_morceau::FOIS:
+			if (est_type_entier(type1.type_base())) {
+				instr = llvm::Instruction::Mul;
+			}
+			else {
+				instr = llvm::Instruction::FMul;
+			}
 
-		switch (this->m_donnees_morceaux.identifiant) {
-			case id_morceau::PLUS:
-				if (est_type_entier(type1.type_base())) {
-					instr = llvm::Instruction::Add;
-				}
-				else {
-					instr = llvm::Instruction::FAdd;
-				}
+			break;
+		case id_morceau::DIVISE:
+			if (est_type_entier_naturel(type1.type_base())) {
+				instr = llvm::Instruction::UDiv;
+			}
+			else if (est_type_entier_relatif(type1.type_base())) {
+				instr = llvm::Instruction::SDiv;
+			}
+			else {
+				instr = llvm::Instruction::FDiv;
+			}
 
-				break;
-			case id_morceau::MOINS:
-				if (est_type_entier(type1.type_base())) {
-					instr = llvm::Instruction::Sub;
-				}
-				else {
-					instr = llvm::Instruction::FSub;
-				}
+			break;
+		case id_morceau::POURCENT:
+			if (est_type_entier_naturel(type1.type_base())) {
+				instr = llvm::Instruction::URem;
+			}
+			else if (est_type_entier_relatif(type1.type_base())) {
+				instr = llvm::Instruction::SRem;
+			}
+			else {
+				instr = llvm::Instruction::FRem;
+			}
 
-				break;
-			case id_morceau::FOIS:
-				if (est_type_entier(type1.type_base())) {
-					instr = llvm::Instruction::Mul;
-				}
-				else {
-					instr = llvm::Instruction::FMul;
-				}
+			break;
+		case id_morceau::DECALAGE_DROITE:
+			if (est_type_entier_naturel(type1.type_base())) {
+				instr = llvm::Instruction::LShr;
+			}
+			else if (est_type_entier_relatif(type1.type_base())) {
+				instr = llvm::Instruction::AShr;
+			}
+			else {
+				erreur::lance_erreur(
+							"Besoin d'un type entier pour le décalage !",
+							contexte.tampon,
+							m_donnees_morceaux,
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
+			break;
+		case id_morceau::DECALAGE_GAUCHE:
+			if (!est_type_entier(type1.type_base())) {
+				erreur::lance_erreur(
+							"Besoin d'un type entier pour le décalage !",
+							contexte.tampon,
+							m_donnees_morceaux,
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
 
-				break;
-			case id_morceau::DIVISE:
-				if (est_type_entier_naturel(type1.type_base())) {
-					instr = llvm::Instruction::UDiv;
-				}
-				else if (est_type_entier_relatif(type1.type_base())) {
-					instr = llvm::Instruction::SDiv;
-				}
-				else {
-					instr = llvm::Instruction::FDiv;
-				}
-
-				break;
-			case id_morceau::POURCENT:
-				if (est_type_entier_naturel(type1.type_base())) {
-					instr = llvm::Instruction::URem;
-				}
-				else if (est_type_entier_relatif(type1.type_base())) {
-					instr = llvm::Instruction::SRem;
-				}
-				else {
-					instr = llvm::Instruction::FRem;
-				}
-
-				break;
-			case id_morceau::DECALAGE_DROITE:
-				if (est_type_entier_naturel(type1.type_base())) {
-					instr = llvm::Instruction::LShr;
-				}
-				else if (est_type_entier_relatif(type1.type_base())) {
-					instr = llvm::Instruction::AShr;
-				}
-				else {
-					erreur::lance_erreur(
-								"Besoin d'un type entier pour le décalage !",
-								contexte.tampon,
-								m_donnees_morceaux,
-								erreur::type_erreur::TYPE_DIFFERENTS);
-				}
-				break;
-			case id_morceau::DECALAGE_GAUCHE:
-				if (!est_type_entier(type1.type_base())) {
-					erreur::lance_erreur(
-								"Besoin d'un type entier pour le décalage !",
-								contexte.tampon,
-								m_donnees_morceaux,
-								erreur::type_erreur::TYPE_DIFFERENTS);
-				}
-
-				instr = llvm::Instruction::Shl;
-				break;
-			case id_morceau::ESPERLUETTE:
-			case id_morceau::ESP_ESP:
-				if (!est_type_entier(type1.type_base())) {
-					erreur::lance_erreur(
-								"Besoin d'un type entier pour l'opération binaire !",
-								contexte.tampon,
-								m_donnees_morceaux,
-								erreur::type_erreur::TYPE_DIFFERENTS);
-				}
-				instr = llvm::Instruction::And;
-				break;
-			case id_morceau::BARRE:
-			case id_morceau::BARRE_BARRE:
-				if (!est_type_entier(type1.type_base())) {
-					erreur::lance_erreur(
-								"Besoin d'un type entier pour l'opération binaire !",
-								contexte.tampon,
-								m_donnees_morceaux,
-								erreur::type_erreur::TYPE_DIFFERENTS);
-				}
-				instr = llvm::Instruction::Or;
-				break;
-			case id_morceau::CHAPEAU:
-				if (!est_type_entier(type1.type_base())) {
-					erreur::lance_erreur(
-								"Besoin d'un type entier pour l'opération binaire !",
-								contexte.tampon,
-								m_donnees_morceaux,
-								erreur::type_erreur::TYPE_DIFFERENTS);
-				}
-				instr = llvm::Instruction::Xor;
-				break;
+			instr = llvm::Instruction::Shl;
+			break;
+		case id_morceau::ESPERLUETTE:
+		case id_morceau::ESP_ESP:
+			if (!est_type_entier(type1.type_base())) {
+				erreur::lance_erreur(
+							"Besoin d'un type entier pour l'opération binaire !",
+							contexte.tampon,
+							m_donnees_morceaux,
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
+			instr = llvm::Instruction::And;
+			break;
+		case id_morceau::BARRE:
+		case id_morceau::BARRE_BARRE:
+			if (!est_type_entier(type1.type_base())) {
+				erreur::lance_erreur(
+							"Besoin d'un type entier pour l'opération binaire !",
+							contexte.tampon,
+							m_donnees_morceaux,
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
+			instr = llvm::Instruction::Or;
+			break;
+		case id_morceau::CHAPEAU:
+			if (!est_type_entier(type1.type_base())) {
+				erreur::lance_erreur(
+							"Besoin d'un type entier pour l'opération binaire !",
+							contexte.tampon,
+							m_donnees_morceaux,
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
+			instr = llvm::Instruction::Xor;
+			break;
 			/* À FAIRE. */
-			case id_morceau::INFERIEUR:
-				if (est_type_entier_naturel(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_ULT;
-				}
-				else if (est_type_entier_relatif(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_SLT;
-				}
-				else {
-					est_comp_reel = true;
-					predicat = llvm::CmpInst::Predicate::FCMP_OLT;
-				}
+		case id_morceau::INFERIEUR:
+			if (est_type_entier_naturel(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_ULT;
+			}
+			else if (est_type_entier_relatif(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_SLT;
+			}
+			else {
+				est_comp_reel = true;
+				predicat = llvm::CmpInst::Predicate::FCMP_OLT;
+			}
 
-				break;
-			case id_morceau::INFERIEUR_EGAL:
-				if (est_type_entier_naturel(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_ULE;
-				}
-				else if (est_type_entier_relatif(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_SLE;
-				}
-				else {
-					est_comp_reel = true;
-					predicat = llvm::CmpInst::Predicate::FCMP_OLE;
-				}
+			break;
+		case id_morceau::INFERIEUR_EGAL:
+			if (est_type_entier_naturel(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_ULE;
+			}
+			else if (est_type_entier_relatif(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_SLE;
+			}
+			else {
+				est_comp_reel = true;
+				predicat = llvm::CmpInst::Predicate::FCMP_OLE;
+			}
 
-				break;
-			case id_morceau::SUPERIEUR:
-				if (est_type_entier_naturel(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_UGT;
-				}
-				else if (est_type_entier_relatif(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_SGT;
-				}
-				else {
-					est_comp_reel = true;
-					predicat = llvm::CmpInst::Predicate::FCMP_OGT;
-				}
+			break;
+		case id_morceau::SUPERIEUR:
+			if (est_type_entier_naturel(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_UGT;
+			}
+			else if (est_type_entier_relatif(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_SGT;
+			}
+			else {
+				est_comp_reel = true;
+				predicat = llvm::CmpInst::Predicate::FCMP_OGT;
+			}
 
-				break;
-			case id_morceau::SUPERIEUR_EGAL:
-				if (est_type_entier_naturel(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_UGE;
-				}
-				else if (est_type_entier_relatif(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_SGE;
-				}
-				else {
-					est_comp_reel = true;
-					predicat = llvm::CmpInst::Predicate::FCMP_OGE;
-				}
+			break;
+		case id_morceau::SUPERIEUR_EGAL:
+			if (est_type_entier_naturel(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_UGE;
+			}
+			else if (est_type_entier_relatif(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_SGE;
+			}
+			else {
+				est_comp_reel = true;
+				predicat = llvm::CmpInst::Predicate::FCMP_OGE;
+			}
 
-				break;
-			case id_morceau::EGALITE:
-				if (est_type_entier(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_EQ;
-				}
-				else {
-					est_comp_reel = true;
-					predicat = llvm::CmpInst::Predicate::FCMP_OEQ;
-				}
+			break;
+		case id_morceau::EGALITE:
+			if (est_type_entier(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_EQ;
+			}
+			else {
+				est_comp_reel = true;
+				predicat = llvm::CmpInst::Predicate::FCMP_OEQ;
+			}
 
-				break;
-			case id_morceau::DIFFERENCE:
-				if (est_type_entier(type1.type_base())) {
-					est_comp_entier = true;
-					predicat = llvm::CmpInst::Predicate::ICMP_NE;
-				}
-				else {
-					est_comp_reel = true;
-					predicat = llvm::CmpInst::Predicate::FCMP_ONE;
-				}
+			break;
+		case id_morceau::DIFFERENCE:
+			if (est_type_entier(type1.type_base())) {
+				est_comp_entier = true;
+				predicat = llvm::CmpInst::Predicate::ICMP_NE;
+			}
+			else {
+				est_comp_reel = true;
+				predicat = llvm::CmpInst::Predicate::FCMP_ONE;
+			}
 
-				break;
-			case id_morceau::CROCHET_OUVRANT:
-			{
-				if (type2.type_base() != id_morceau::POINTEUR && (type2.type_base() & 0xff) != id_morceau::TABLEAU) {
-					erreur::lance_erreur(
-								"Le type ne peut être déréférencé !",
-								contexte.tampon,
-								m_donnees_morceaux,
-								erreur::type_erreur::TYPE_DIFFERENTS);
-				}
+			break;
+		case id_morceau::CROCHET_OUVRANT:
+		{
+			if (type2.type_base() != id_morceau::POINTEUR && (type2.type_base() & 0xff) != id_morceau::TABLEAU) {
+				erreur::lance_erreur(
+							"Le type ne peut être déréférencé !",
+							contexte.tampon,
+							m_donnees_morceaux,
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
 
-				llvm::Value *valeur;
+			llvm::Value *valeur;
 
-				if (type2.type_base() == id_morceau::POINTEUR) {
-					valeur = llvm::GetElementPtrInst::Create(
-									  converti_type(contexte, this->donnees_type),
-									  valeur2,
-									  { valeur1 },
-									  "",
-									  contexte.bloc_courant());
-				}
-				else {
-					valeur = llvm::GetElementPtrInst::CreateInBounds(
-									  converti_type(contexte, type2),
-									  valeur2,
-									  { llvm::ConstantInt::get(valeur1->getType(), 0), valeur1 },
-									  "",
-									  contexte.bloc_courant());
-				}
+			if (type2.type_base() == id_morceau::POINTEUR) {
+				valeur = llvm::GetElementPtrInst::Create(
+							 converti_type(contexte, this->donnees_type),
+							 valeur2,
+				{ valeur1 },
+							 "",
+							 contexte.bloc_courant());
+			}
+			else {
+				valeur = llvm::GetElementPtrInst::CreateInBounds(
+							 converti_type(contexte, type2),
+							 valeur2,
+				{ llvm::ConstantInt::get(valeur1->getType(), 0), valeur1 },
+							 "",
+							 contexte.bloc_courant());
+			}
 
-				/* Dans le cas d'une assignation, on n'a pas besoin de charger
+			/* Dans le cas d'une assignation, on n'a pas besoin de charger
 				 * la valeur dans un registre. */
-				if (expr_gauche) {
-					return valeur;
-				}
+			if (expr_gauche) {
+				return valeur;
+			}
 
-				/* Ajout d'un niveau d'indirection pour pouvoir proprement
+			/* Ajout d'un niveau d'indirection pour pouvoir proprement
 				 * générer un code pour les expressions de type x[0][0]. Sans ça
 				 * LLVM n'arrive pas à déterminer correctement la valeur
 				 * déréférencée : on se retrouve avec type(x[0][0]) == (type[0])
 				 * ce qui n'est pas forcément le cas. */
-				return new llvm::LoadInst(valeur, "", contexte.bloc_courant());
-			}
-			default:
-				return nullptr;
+			return new llvm::LoadInst(valeur, "", contexte.bloc_courant());
 		}
-
-		if (est_comp_entier) {
-			return llvm::ICmpInst::Create(llvm::Instruction::ICmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
-		}
-
-		if (est_comp_reel) {
-			return llvm::FCmpInst::Create(llvm::Instruction::FCmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
-		}
-
-		return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
+		default:
+			return nullptr;
 	}
 
-	return nullptr;
+	if (est_comp_entier) {
+		return llvm::ICmpInst::Create(llvm::Instruction::ICmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
+	}
+
+	if (est_comp_reel) {
+		return llvm::FCmpInst::Create(llvm::Instruction::FCmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
+	}
+
+	return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
 }
 
-const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
+const DonneesType &NoeudOperationBinaire::calcul_type(ContexteGenerationCode &contexte)
+{
+	if (this->donnees_type.est_invalide()) {
+		if (this->m_donnees_morceaux.identifiant == id_morceau::CROCHET_OUVRANT) {
+			auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
+			this->donnees_type = donnees_enfant.derefence();
+		}
+		else {
+			this->donnees_type = m_enfants.front()->calcul_type(contexte);
+		}
+	}
+
+	return this->donnees_type;
+}
+
+type_noeud NoeudOperationBinaire::type() const
+{
+	return type_noeud::OPERATION_BINAIRE;
+}
+
+bool NoeudOperationBinaire::peut_etre_assigne(ContexteGenerationCode &contexte) const
+{
+	if (this->m_donnees_morceaux.identifiant == id_morceau::CROCHET_OUVRANT) {
+		return m_enfants.back()->peut_etre_assigne(contexte);
+	}
+
+	return false;
+}
+
+/* ************************************************************************** */
+
+NoeudOperationUnaire::NoeudOperationUnaire(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudOperationUnaire::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+
+	os << "NoeudOperationUnaire : " << m_donnees_morceaux.chaine
+	   << " : " << this->donnees_type << '\n';
+
+	m_enfants.front()->imprime_code(os, tab + 1);
+}
+
+llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+{
+	llvm::Instruction::BinaryOps instr;
+	auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
+	auto valeur2 = static_cast<llvm::Value *>(nullptr);
+
+	switch (this->m_donnees_morceaux.identifiant) {
+		case id_morceau::EXCLAMATION:
+		{
+			instr = llvm::Instruction::Xor;
+			valeur2 = valeur1;
+			break;
+		}
+		case id_morceau::TILDE:
+		{
+			instr = llvm::Instruction::Xor;
+			valeur2 = llvm::ConstantInt::get(
+						  llvm::Type::getInt32Ty(contexte.contexte),
+						  static_cast<uint64_t>(0),
+						  false);
+			break;
+		}
+		case id_morceau::AROBASE:
+		{
+			auto inst_load = dynamic_cast<llvm::LoadInst *>(valeur1);
+
+			if (inst_load == nullptr) {
+				/* Ne devrais pas arriver. */
+				return nullptr;
+			}
+
+			return inst_load->getPointerOperand();
+		}
+		default:
+		{
+			return nullptr;
+		}
+	}
+
+	return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
+}
+
+const DonneesType &NoeudOperationUnaire::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (this->donnees_type.est_invalide()) {
 		if (this->m_donnees_morceaux.identifiant == id_morceau::AROBASE) {
@@ -1582,23 +1628,9 @@ const DonneesType &NoeudOperation::calcul_type(ContexteGenerationCode &contexte)
 	return this->donnees_type;
 }
 
-type_noeud NoeudOperation::type() const
+type_noeud NoeudOperationUnaire::type() const
 {
-	return type_noeud::OPERATION;
-}
-
-bool NoeudOperation::peut_etre_assigne(ContexteGenerationCode &contexte) const
-{
-	if (this->m_donnees_morceaux.identifiant == id_morceau::AROBASE) {
-		/* ne peut assigné dans une prise d'addresse */
-		return false;
-	}
-
-	if (this->m_donnees_morceaux.identifiant == id_morceau::CROCHET_OUVRANT) {
-		return m_enfants.back()->peut_etre_assigne(contexte);
-	}
-
-	return false;
+	return type_noeud::OPERATION_UNAIRE;
 }
 
 /* ************************************************************************** */

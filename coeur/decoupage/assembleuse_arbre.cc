@@ -111,17 +111,21 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &mor
 				noeud = new NoeudNombreReel(morceau);
 			}
 			break;
-		case type_noeud::OPERATION:
+		case type_noeud::OPERATION_BINAIRE:
 			if (!noeuds_op_libres.empty()) {
 				noeud = noeuds_op_libres.back();
 				noeuds_op_libres.pop_back();
-				*noeud = NoeudOperation(morceau);
+				*noeud = NoeudOperationBinaire(morceau);
 				reutilise = true;
 			}
 			else {
-				m_memoire_utilisee += sizeof(NoeudOperation);
-				noeud = new NoeudOperation(morceau);
+				m_memoire_utilisee += sizeof(NoeudOperationBinaire);
+				noeud = new NoeudOperationBinaire(morceau);
 			}
+			break;
+		case type_noeud::OPERATION_UNAIRE:
+			m_memoire_utilisee += sizeof(NoeudOperationUnaire);
+			noeud = new NoeudOperationUnaire(morceau);
 			break;
 		case type_noeud::RETOUR:
 			m_memoire_utilisee += sizeof(NoeudRetour);
@@ -196,8 +200,8 @@ void assembleuse_arbre::supprime_noeud(Noeud *noeud)
 		case type_noeud::NOMBRE_REEL:
 			this->noeuds_reel_libres.push_back(dynamic_cast<NoeudNombreReel *>(noeud));
 			break;
-		case type_noeud::OPERATION:
-			this->noeuds_op_libres.push_back(dynamic_cast<NoeudOperation *>(noeud));
+		case type_noeud::OPERATION_BINAIRE:
+			this->noeuds_op_libres.push_back(dynamic_cast<NoeudOperationBinaire *>(noeud));
 			break;
 		default:
 			break;
@@ -219,7 +223,8 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 	os << "NoeudVariable            : " << sizeof(NoeudVariable) << '\n';
 	os << "NoeudNombreEntier        : " << sizeof(NoeudNombreEntier) << '\n';
 	os << "NoeudNombreReel          : " << sizeof(NoeudNombreReel) << '\n';
-	os << "NoeudOperation           : " << sizeof(NoeudOperation) << '\n';
+	os << "NoeudOperationBinaire    : " << sizeof(NoeudOperationBinaire) << '\n';
+	os << "NoeudOperationUnaire     : " << sizeof(NoeudOperationUnaire) << '\n';
 	os << "NoeudRetour              : " << sizeof(NoeudRetour) << '\n';
 	os << "NoeudConstante           : " << sizeof(NoeudConstante) << '\n';
 	os << "NoeudChaineLitterale     : " << sizeof(NoeudChaineLitterale) << '\n';

@@ -48,7 +48,8 @@ enum class type_noeud : char {
 	ASSIGNATION_VARIABLE,
 	NOMBRE_REEL,
 	NOMBRE_ENTIER,
-	OPERATION,
+	OPERATION_BINAIRE,
+	OPERATION_UNAIRE,
 	RETOUR,
 	CHAINE_LITTERALE,
 	BOOLEEN,
@@ -400,9 +401,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudOperation final : public Noeud {
+class NoeudOperationBinaire final : public Noeud {
 public:
-	explicit NoeudOperation(const DonneesMorceaux &morceau);
+	explicit NoeudOperationBinaire(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -413,6 +414,21 @@ public:
 	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudOperationUnaire final : public Noeud {
+public:
+	explicit NoeudOperationUnaire(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
+	type_noeud type() const override;
 };
 
 /* ************************************************************************** */

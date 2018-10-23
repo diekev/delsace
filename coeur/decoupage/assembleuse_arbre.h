@@ -34,7 +34,7 @@
 class Noeud;
 class NoeudNombreEntier;
 class NoeudNombreReel;
-class NoeudOperation;
+class NoeudOperationBinaire;
 
 struct ContexteGenerationCode;
 struct DonneesMorceaux;
@@ -43,7 +43,7 @@ class assembleuse_arbre {
 	std::stack<Noeud *> m_pile{};
 	std::vector<Noeud *> m_noeuds{};
 
-	std::list<NoeudOperation *> noeuds_op_libres;
+	std::list<NoeudOperationBinaire *> noeuds_op_libres;
 	std::list<NoeudNombreEntier *> noeuds_entier_libres;
 	std::list<NoeudNombreReel *> noeuds_reel_libres;
 

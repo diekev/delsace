@@ -98,7 +98,7 @@ static bool est_nombre(id_morceau identifiant)
 }
 #endif
 
-static bool est_operateur_simple(id_morceau identifiant)
+static bool est_operateur_unaire(id_morceau identifiant)
 {
 	switch (identifiant) {
 		case id_morceau::AROBASE:
@@ -111,7 +111,7 @@ static bool est_operateur_simple(id_morceau identifiant)
 	}
 }
 
-static bool est_operateur_double(id_morceau identifiant)
+static bool est_operateur_binaire(id_morceau identifiant)
 {
 	switch (identifiant) {
 		case id_morceau::PLUS:
@@ -142,7 +142,7 @@ static bool est_operateur_double(id_morceau identifiant)
 
 static bool est_operateur(id_morceau identifiant)
 {
-	return est_operateur_simple(identifiant) || est_operateur_double(identifiant);
+	return est_operateur_unaire(identifiant) || est_operateur_binaire(identifiant);
 }
 
 static bool est_operateur_constant(id_morceau identifiant)
@@ -661,13 +661,13 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			if (morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
 				avance();
 
-				noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION, morceau, false);
+				noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, morceau, false);
 
 				++m_profondeur;
 				analyse_expression_droite(id_morceau::CROCHET_FERMANT);
 				--m_profondeur;
 
-				m_assembleuse->depile_noeud(type_noeud::OPERATION);
+				m_assembleuse->depile_noeud(type_noeud::OPERATION_BINAIRE);
 
 				/* nous reculons, car on avance de nouveau avant de recommencer
 				 * la boucle plus bas */
@@ -685,7 +685,12 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau);
 			}
 			else {
-				noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION, morceau);
+				if (est_operateur_binaire(morceau.identifiant)) {
+					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
+				}
+				else {
+					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau);
+				}
 			}
 
 			pile.push_back(noeud);
@@ -738,7 +743,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	pile.reserve(expression.size());
 
 	for (Noeud *noeud : expression) {
-		if (est_operateur_double(noeud->identifiant())) {
+		if (est_operateur_binaire(noeud->identifiant())) {
 			auto n2 = pile.back();
 			pile.pop_back();
 
@@ -768,7 +773,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 			pile.push_back(noeud);
 		}
-		else if (est_operateur_simple(noeud->identifiant())) {
+		else if (est_operateur_unaire(noeud->identifiant())) {
 			auto n1 = pile.back();
 			pile.pop_back();
 
