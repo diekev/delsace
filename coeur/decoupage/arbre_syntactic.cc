@@ -121,6 +121,53 @@ static llvm::Type *converti_type(
 	return type;
 }
 
+static unsigned alignement(
+		ContexteGenerationCode &contexte,
+		const DonneesType &donnees_type)
+{
+	id_morceau identifiant = donnees_type.type_base();
+
+	switch (identifiant & 0xff) {
+		case id_morceau::BOOL:
+		case id_morceau::N8:
+		case id_morceau::Z8:
+			return 1;
+		case id_morceau::R16:
+		case id_morceau::N16:
+		case id_morceau::Z16:
+			return 2;
+		case id_morceau::R32:
+		case id_morceau::N32:
+		case id_morceau::Z32:
+			return 4;
+		case id_morceau::POINTEUR:
+		case id_morceau::R64:
+		case id_morceau::N64:
+		case id_morceau::Z64:
+			return 8;
+		case id_morceau::CHAINE_CARACTERE:
+		{
+			const auto &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
+			auto &donnees_structure = contexte.donnees_structure(id_structure);
+
+			std::vector<llvm::Type *> types_membres;
+			types_membres.resize(donnees_structure.donnees_types.size());
+
+			auto a = 0u;
+
+			for (const auto &donnees : donnees_structure.donnees_types) {
+				a = std::max(a, alignement(contexte, donnees));
+			}
+
+			return a;
+		}
+		default:
+			assert(false);
+	}
+
+	return 0;
+}
+
 static bool est_type_entier(id_morceau type)
 {
 	switch (type) {
@@ -541,6 +588,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 						 argument.chaine,
 						 contexte.bloc_courant());
 
+		alloc->setAlignment(alignement(contexte, argument.donnees_type));
+
 		contexte.pousse_locale(argument.chaine, alloc, argument.donnees_type, argument.est_variable);
 
 		llvm::Value *valeur = &*valeurs_args++;
@@ -683,6 +732,8 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 					 type_llvm,
 					 std::string(m_donnees_morceaux.chaine),
 					 contexte.bloc_courant());
+
+	alloc->setAlignment(alignement(contexte, this->donnees_type));
 
 	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, this->est_variable);
 
