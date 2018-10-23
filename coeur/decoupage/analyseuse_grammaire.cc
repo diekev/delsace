@@ -456,23 +456,41 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			analyse_declaration_type(donnees_type);
 		}
 
-		if (!requiers_identifiant(id_morceau::EGAL)) {
-			lance_erreur("Attendu '=' après chaîne de caractère");
+		/* À FAIRE : ceci est principalement pour pouvoir déclarer des
+		 * structures ou des tableaux en attendant de pouvoir les initialiser
+		 * par une assignation directe. par exemple : soit x = Vecteur3D(); */
+		if (!est_identifiant(id_morceau::EGAL)) {
+			if (!est_variable) {
+				avance();
+				lance_erreur("Attendu '=' après chaîne de caractère");
+			}
+
+			auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
+			noeud_decl->donnees_type = donnees_type;
+			noeud_decl->est_variable = est_variable;
+			m_assembleuse->depile_noeud(type_noeud::DECLARATION_VARIABLE);
+
+			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+				lance_erreur("Attendu ';' à la fin de la déclaration de la variable");
+			}
 		}
+		else {
+			avance();
 
-		const auto &morceau_egal = m_identifiants[position()];
+			const auto &morceau_egal = m_identifiants[position()];
 
-		auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau_egal);
-		noeud->donnees_type = donnees_type;
+			auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau_egal);
+			noeud->donnees_type = donnees_type;
 
-		auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
-		noeud_decl->donnees_type = donnees_type;
-		noeud_decl->est_variable = est_variable;
-		noeud->ajoute_noeud(noeud_decl);
+			auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
+			noeud_decl->donnees_type = donnees_type;
+			noeud_decl->est_variable = est_variable;
+			noeud->ajoute_noeud(noeud_decl);
 
-		analyse_expression_droite(id_morceau::POINT_VIRGULE);
+			analyse_expression_droite(id_morceau::POINT_VIRGULE);
 
-		m_assembleuse->depile_noeud(type_noeud::ASSIGNATION_VARIABLE);
+			m_assembleuse->depile_noeud(type_noeud::ASSIGNATION_VARIABLE);
+		}
 	}
 	/* retour : retourne a + b; */
 	else if (est_identifiant(id_morceau::RETOURNE)) {
