@@ -1250,8 +1250,11 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte, 
 
 		/* À FAIRE : typage */
 
+		/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
+		const auto valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
+
 		auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
-		auto valeur2 = m_enfants.back()->genere_code_llvm(contexte);
+		auto valeur2 = m_enfants.back()->genere_code_llvm(contexte, valeur2_brut);
 
 		switch (this->m_donnees_morceaux.identifiant) {
 			case id_morceau::PLUS:
@@ -1456,12 +1459,24 @@ llvm::Value *NoeudOperation::genere_code_llvm(ContexteGenerationCode &contexte, 
 								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 
-				auto valeur = llvm::GetElementPtrInst::Create(
-								  converti_type(contexte, this->donnees_type),
-								  valeur2,
-								  { valeur1 },
-								  "",
-								  contexte.bloc_courant());
+				llvm::Value *valeur;
+
+				if (type2.type_base() == id_morceau::POINTEUR) {
+					valeur = llvm::GetElementPtrInst::Create(
+									  converti_type(contexte, this->donnees_type),
+									  valeur2,
+									  { valeur1 },
+									  "",
+									  contexte.bloc_courant());
+				}
+				else {
+					valeur = llvm::GetElementPtrInst::CreateInBounds(
+									  converti_type(contexte, type2),
+									  valeur2,
+									  { llvm::ConstantInt::get(valeur1->getType(), 0), valeur1 },
+									  "",
+									  contexte.bloc_courant());
+				}
 
 				/* Dans le cas d'une assignation, on n'a pas besoin de charger
 				 * la valeur dans un registre. */
