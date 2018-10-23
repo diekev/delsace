@@ -24,8 +24,9 @@
 
 #include "arbre_syntactic.h"
 
-#include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
 
 #include <sstream>
 
@@ -607,6 +608,11 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	m_enfants.front()->genere_code_llvm(contexte);
 
 	contexte.termine_fonction();
+
+	/* optimise la fonction */
+	if (contexte.menageur_pass_fonction != nullptr) {
+		contexte.menageur_pass_fonction->run(*fonction);
+	}
 
 	return nullptr;
 }

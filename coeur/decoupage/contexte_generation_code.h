@@ -37,6 +37,10 @@ namespace llvm {
 class BasicBlock;
 class Type;
 class Value;
+
+namespace legacy {
+class FunctionPassManager;
+}
 }  /* namespace llvm */
 
 struct DonneesArgument {
@@ -68,6 +72,7 @@ struct ContexteGenerationCode {
 	llvm::Module *module;
 	llvm::LLVMContext contexte;
 	llvm::Function *fonction;
+	llvm::legacy::FunctionPassManager *menageur_pass_fonction = nullptr;
 
 	explicit ContexteGenerationCode(const TamponSource &tampon_source);
 

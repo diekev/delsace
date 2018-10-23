@@ -34,6 +34,9 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
+#include <llvm/Transforms/InstCombine/InstCombine.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Scalar/GVN.h>
 
 #include "decoupage/analyseuse_grammaire.h"
 #include "decoupage/contexte_generation_code.h"
@@ -333,6 +336,24 @@ int main(int argc, char *argv[])
 		module.setTargetTriple(triplet_cible);
 
 		contexte_generation.module = &module;
+
+		/* initialise ménageur passe fonction */
+		auto fpm = std::make_unique<llvm::legacy::FunctionPassManager>(&module);
+
+		/* Fais de simples optimisations "peephole" et de bit-twiddling.
+		 * Désactivée pour le moment, afin de s'assurer que le code est un temps
+		 * soit peu correcte en évitant de se faire avoir par une optimisation
+		 * trop aggressive. */
+		//fpm->add(llvm::createInstructionCombiningPass());
+		/* Réassocie les expressions. */
+		fpm->add(llvm::createReassociatePass());
+		/* Élimine les sous-expressions communes. */
+		fpm->add(llvm::createGVNPass());
+		/* Simplifie le graphe de contrôle de flux (p.e. en enlevant les blocs
+		 * inatteignables) */
+		fpm->add(llvm::createCFGSimplificationPass());
+
+		contexte_generation.menageur_pass_fonction = fpm.get();
 
 		os << "Génération du code..." << std::endl;
 		const auto debut_generation_code = numero7::chronometrage::maintenant();
