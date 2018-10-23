@@ -235,9 +235,6 @@ class NoeudDeclarationFonction final : public Noeud {
 	std::list<ArgumentFonction> m_arguments;
 
 public:
-	int type_retour = -1;
-	int pad1 = 0;
-
 	explicit NoeudDeclarationFonction(const DonneesMorceaux &morceau);
 
 	void ajoute_argument(const ArgumentFonction &argument);
