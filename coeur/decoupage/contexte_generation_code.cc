@@ -40,6 +40,36 @@ void ContexteGenerationCode::bloc_courant(llvm::BasicBlock *bloc)
 	m_bloc_courant = bloc;
 }
 
+void ContexteGenerationCode::empile_bloc_continue(llvm::BasicBlock *bloc)
+{
+	m_pile_continue.push(bloc);
+}
+
+void ContexteGenerationCode::depile_bloc_continue()
+{
+	m_pile_continue.pop();
+}
+
+llvm::BasicBlock *ContexteGenerationCode::bloc_continue()
+{
+	return m_pile_continue.empty() ? nullptr : m_pile_continue.top();
+}
+
+void ContexteGenerationCode::empile_bloc_arrete(llvm::BasicBlock *bloc)
+{
+	m_pile_arrete.push(bloc);
+}
+
+void ContexteGenerationCode::depile_bloc_arrete()
+{
+	m_pile_arrete.pop();
+}
+
+llvm::BasicBlock *ContexteGenerationCode::bloc_arrete()
+{
+	return m_pile_arrete.empty() ? nullptr : m_pile_arrete.top();
+}
+
 void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
 {
 	globales.insert({nom, {valeur, type}});

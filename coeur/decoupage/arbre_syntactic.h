@@ -57,6 +57,7 @@ enum class type_noeud : char {
 	SI,
 	BLOC,
 	POUR,
+	CONTINUE_ARRETE,
 };
 
 /* ************************************************************************** */
@@ -492,6 +493,21 @@ public:
 class NoeudPour final : public Noeud {
 public:
 	explicit NoeudPour(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
+
+	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudContArr final : public Noeud {
+public:
+	explicit NoeudContArr(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

@@ -83,6 +83,38 @@ struct ContexteGenerationCode {
 	 */
 	void bloc_courant(llvm::BasicBlock *bloc);
 
+	/**
+	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
+	 */
+	void empile_bloc_continue(llvm::BasicBlock *bloc);
+
+	/**
+	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
+	 */
+	void depile_bloc_continue();
+
+	/**
+	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
+	 * de boucle. Si la pile est vide, retourne un pointeur nul.
+	 */
+	llvm::BasicBlock *bloc_continue();
+
+	/**
+	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
+	 */
+	void empile_bloc_arrete(llvm::BasicBlock *bloc);
+
+	/**
+	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
+	 */
+	void depile_bloc_arrete();
+
+	/**
+	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
+	 * de boucle. Si la pile est vide, retourne un pointeur nul.
+	 */
+	llvm::BasicBlock *bloc_arrete();
+
 	/* ********************************************************************** */
 
 	/**
@@ -235,4 +267,8 @@ private:
 	std::vector<std::pair<std::string_view, DonneesVariable>> m_locales;
 	std::stack<size_t> m_pile_nombre_locales;
 	size_t m_nombre_locales = 0;
+
+
+	std::stack<llvm::BasicBlock *> m_pile_continue;
+	std::stack<llvm::BasicBlock *> m_pile_arrete;
 };

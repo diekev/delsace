@@ -1806,6 +1806,9 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte)
 						  "apres_boucle",
 						  contexte.fonction);
 
+	contexte.empile_bloc_continue(bloc_boucle);
+	contexte.empile_bloc_arrete(bloc_apres);
+
 	auto bloc_pre = contexte.bloc_courant();
 	contexte.empile_nombre_locales();
 
@@ -1870,11 +1873,15 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte)
 		llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 	}
 
+	contexte.depile_bloc_continue();
+	contexte.depile_bloc_arrete();
 	contexte.depile_nombre_locales();
 	contexte.bloc_courant(bloc_apres);
 
 	return nullptr;
 }
+
+/* ************************************************************************** */
 
 const DonneesType &NoeudPour::calcul_type(ContexteGenerationCode &/*contexte*/)
 {
@@ -1884,4 +1891,40 @@ const DonneesType &NoeudPour::calcul_type(ContexteGenerationCode &/*contexte*/)
 type_noeud NoeudPour::type() const
 {
 	return type_noeud::POUR;
+}
+
+NoeudContArr::NoeudContArr(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudContArr::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudContArr : " << m_donnees_morceaux.chaine << '\n';
+}
+
+llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte)
+{
+	auto bloc = (m_donnees_morceaux.identifiant == id_morceau::CONTINUE)
+				? contexte.bloc_continue()
+				: contexte.bloc_arrete();
+
+	if (bloc == nullptr) {
+		erreur::lance_erreur(
+					"'continue' ou 'arrête' en dehors d'une boucle",
+					contexte.tampon,
+					m_donnees_morceaux);
+	}
+
+	return llvm::BranchInst::Create(bloc, contexte.bloc_courant());
+}
+
+const DonneesType &NoeudContArr::calcul_type(ContexteGenerationCode &)
+{
+	return this->donnees_type;
+}
+
+type_noeud NoeudContArr::type() const
+{
+	return type_noeud::CONTINUE_ARRETE;
 }

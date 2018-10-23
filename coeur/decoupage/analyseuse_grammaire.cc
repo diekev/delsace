@@ -494,6 +494,15 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	else if (est_identifiant(id_morceau::POUR)) {
 		analyse_controle_pour();
 	}
+	else if (est_identifiant(id_morceau::ARRETE) || est_identifiant(id_morceau::CONTINUE)) {
+		avance();
+		m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, m_identifiants[position()]);
+		m_assembleuse->depile_noeud(type_noeud::CONTINUE_ARRETE);
+
+		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+			lance_erreur("Attendu un point virgule ';'");
+		}
+	}
 	/* appel : fais_quelque_chose(); */
 	else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
 		analyse_expression_droite(id_morceau::POINT_VIRGULE);
