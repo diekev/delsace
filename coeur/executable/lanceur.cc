@@ -49,7 +49,8 @@ struct OptionsCompilation {
 	bool emet_fichier_objet = false;
 	bool emet_code_intermediaire = false;
 	bool emet_arbre = false;
-	char pad[5];
+	bool imprime_taille_memoire_objet = false;
+	char pad[4];
 };
 
 static OptionsCompilation genere_options_compilation(int argc, char **argv)
@@ -65,6 +66,9 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 		}
 		else if (std::strcmp(argv[i], "-a") == 0) {
 			opts.emet_arbre = true;
+		}
+		else if (std::strcmp(argv[i], "-m") == 0) {
+			opts.imprime_taille_memoire_objet = true;
 		}
 		else {
 			opts.chemin_fichier = argv[i];
@@ -416,7 +420,9 @@ int main(int argc, char *argv[])
 	os << "Temps Nettoyage : " << temps_seconde(temps_nettoyage)
 	   << " (" << calc_pourcentage(temps_nettoyage, temps_total) << ")\n";
 
-	//	imprime_taille_memoire_noeud(os);
+	if (ops.imprime_taille_memoire_objet) {
+		imprime_taille_memoire_noeud(os);
+	}
 
 	os << std::endl;
 
