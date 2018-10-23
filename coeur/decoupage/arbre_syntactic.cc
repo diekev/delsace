@@ -1928,3 +1928,67 @@ type_noeud NoeudContArr::type() const
 {
 	return type_noeud::CONTINUE_ARRETE;
 }
+
+/* ************************************************************************** */
+
+NoeudBoucle::NoeudBoucle(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudBoucle::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudContArr : " << m_donnees_morceaux.chaine << '\n';
+	for (auto noeud : m_enfants) {
+		noeud->imprime_code(os, tab + 1);
+	}
+}
+
+/* boucle:
+ *	corps
+ *  br boucle
+ *
+ * apres_boucle:
+ *	...
+ */
+llvm::Value *NoeudBoucle::genere_code_llvm(
+		ContexteGenerationCode &contexte,
+		const bool /*expr_gauche*/)
+{
+	/* création des blocs */
+	auto bloc_boucle = llvm::BasicBlock::Create(
+						  contexte.contexte,
+						  "boucle",
+						  contexte.fonction);
+
+	auto bloc_apres = llvm::BasicBlock::Create(
+						  contexte.contexte,
+						  "apres_boucle",
+						  contexte.fonction);
+
+	contexte.empile_bloc_continue(bloc_boucle);
+	contexte.empile_bloc_arrete(bloc_apres);
+
+	contexte.empile_nombre_locales();
+
+	/* on crée une branche explicite dans le bloc */
+	llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+
+	contexte.bloc_courant(bloc_boucle);
+
+	m_enfants.front()->genere_code_llvm(contexte);
+
+	llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+
+	contexte.depile_bloc_continue();
+	contexte.depile_bloc_arrete();
+	contexte.depile_nombre_locales();
+	contexte.bloc_courant(bloc_apres);
+
+	return nullptr;
+}
+
+type_noeud NoeudBoucle::type() const
+{
+	return type_noeud::BOUCLE;
+}

@@ -494,6 +494,23 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	else if (est_identifiant(id_morceau::POUR)) {
 		analyse_controle_pour();
 	}
+	else if (est_identifiant(id_morceau::BOUCLE)) {
+		avance();
+
+		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+			lance_erreur("Attendu une accolade ouvrante '{' après 'boucle'");
+		}
+
+		m_assembleuse->empile_noeud(type_noeud::BOUCLE, m_identifiants[position()]);
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+		analyse_corps_fonction();
+		m_assembleuse->depile_noeud(type_noeud::BLOC);
+		m_assembleuse->depile_noeud(type_noeud::BOUCLE);
+
+		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+			lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'boucle'");
+		}
+	}
 	else if (est_identifiant(id_morceau::ARRETE) || est_identifiant(id_morceau::CONTINUE)) {
 		avance();
 		m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, m_identifiants[position()]);

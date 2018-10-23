@@ -58,6 +58,7 @@ enum class type_noeud : char {
 	BLOC,
 	POUR,
 	CONTINUE_ARRETE,
+	BOUCLE,
 };
 
 /* ************************************************************************** */
@@ -514,6 +515,19 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	const DonneesType &calcul_type(ContexteGenerationCode &/*contexte*/) override;
+
+	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudBoucle final : public Noeud {
+public:
+	explicit NoeudBoucle(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	type_noeud type() const override;
 };
