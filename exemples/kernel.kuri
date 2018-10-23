@@ -44,10 +44,10 @@
 }
 
 structure Kernel {
-	ptr_vidéo : *n8;
+	ptr_vidéo : *z8;
 }
 
-fonction clarifie_écran(ptr_vidéo : *n8) : rien
+fonction clarifie_écran(ptr_vidéo : *z8) : rien
 {
 	# Cette boucle clarifie l'écran.
 	# Il y a 25 lignes de 80 colonnes.
@@ -61,7 +61,7 @@ fonction clarifie_écran(ptr_vidéo : *n8) : rien
 	}
 }
 
-fonction écris_chaîne(ptr_vidéo : *n8, chaine : *n8) : rien
+fonction écris_chaîne(ptr_vidéo : *z8, chaine : *z8) : rien
 {
 	soit variable i = 0;
 	soit variable j = 0;
@@ -86,7 +86,7 @@ fonction écris_chaîne(ptr_vidéo : *n8, chaine : *n8) : rien
 fonction principale()
 {
 	# En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
-	soit ptr_vidéo = transtype<*e8>(0xb8000);
+	soit ptr_vidéo = transtype(0xb8000)(*z8);
 
 	clarifie_écran(ptr_vidéo);
 
