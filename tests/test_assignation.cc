@@ -92,7 +92,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo(variable a : [2]n32)
+				fonction foo(variable a : [2]z32)
 				{
 					a[0] = 5;
 				}
@@ -110,7 +110,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo(variable a : [2]n32)
+				fonction foo(variable a : [2]z32)
 				{
 					a = 6;
 				}
@@ -187,7 +187,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const char *texte =
 				R"(
 				structure Vecteur3D {
-					x : n32;
+					x : z32;
 				}
 				fonction foo(variable v : Vecteur3D)
 				{
@@ -208,7 +208,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const char *texte =
 				R"(
 				structure Vecteur3D {
-					x : [2]n32;
+					x : [2]z32;
 				}
 				fonction foo(variable v : Vecteur3D)
 				{
