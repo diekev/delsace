@@ -1745,6 +1745,19 @@ void NoeudPour::imprime_code(std::ostream &os, int tab)
  * - enfant 2 : expr début
  * - enfant 3 : expr fin
  * - enfant 4 : bloc
+ *
+ * boucle:
+ *	phi [entrée] [corps_boucle]
+ *	cmp phi, fin
+ *	br corps_boucle, apre_boucle
+ *
+ * corps_boucle:
+ *	...
+ *	inc phi
+ *	br boucle
+ *
+ * apres_boucle:
+ *	...
  */
 llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte)
 {
@@ -1783,72 +1796,81 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte)
 						  "boucle",
 						  contexte.fonction);
 
+	auto bloc_corps = llvm::BasicBlock::Create(
+						  contexte.contexte,
+						  "corps_boucle",
+						  contexte.fonction);
+
 	auto bloc_apres = llvm::BasicBlock::Create(
 						  contexte.contexte,
 						  "apres_boucle",
 						  contexte.fonction);
 
-	/* on crée une branche explicite dans le bloc */
-	llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
-
 	auto bloc_pre = contexte.bloc_courant();
-
-	contexte.bloc_courant(bloc_boucle);
 	contexte.empile_nombre_locales();
 
-	/* création du code */
+	auto noeud_phi = static_cast<llvm::PHINode *>(nullptr);
 
-	/* commence par la variable */
+	/* bloc_boucle */
+	{
+		/* on crée une branche explicite dans le bloc */
+		llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 
-	auto valeur_debut = enfant2->genere_code_llvm(contexte);
+		contexte.bloc_courant(bloc_boucle);
 
-	auto noeud_phi = llvm::PHINode::Create(
-						 converti_type(contexte, type_debut),
-						 2,
-						 std::string(enfant1->chaine()),
-						 contexte.bloc_courant());
+		noeud_phi = llvm::PHINode::Create(
+						converti_type(contexte, type_debut),
+						2,
+						std::string(enfant1->chaine()),
+						contexte.bloc_courant());
 
-	noeud_phi->addIncoming(valeur_debut, bloc_pre);
+		contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false);
 
-	contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false);
+		auto valeur_debut = enfant2->genere_code_llvm(contexte);
+		noeud_phi->addIncoming(valeur_debut, bloc_pre);
 
-	/* puis le bloc */
-	enfant4->genere_code_llvm(contexte);
+		auto valeur_fin = enfant3->genere_code_llvm(contexte);
 
-	/* incrémente la variable */
-	auto val_inc = llvm::ConstantInt::get(
-					   llvm::Type::getInt32Ty(contexte.contexte),
-					   static_cast<uint64_t>(1),
-					   false);
+		auto condition = llvm::ICmpInst::Create(
+							 llvm::Instruction::ICmp,
+							 llvm::CmpInst::Predicate::ICMP_SLT,
+							 noeud_phi,
+							 valeur_fin,
+							 "",
+							 contexte.bloc_courant());
 
-	auto inc = llvm::BinaryOperator::Create(
-				   llvm::Instruction::Add,
-				   noeud_phi,
-				   val_inc,
-				   "",
-				   contexte.bloc_courant());
+		llvm::BranchInst::Create(
+					bloc_corps,
+					bloc_apres,
+					condition,
+					contexte.bloc_courant());
+	}
+	/* bloc_corps */
+	{
+		contexte.bloc_courant(bloc_corps);
 
-	noeud_phi->addIncoming(inc, contexte.bloc_courant());
+		/* génère le code du bloc */
+		enfant4->genere_code_llvm(contexte);
 
-	/* enfin la comparaison */
-	auto valeur_fin = enfant3->genere_code_llvm(contexte);
+		/* incrémente la variable (noeud_phi) */
+		auto val_inc = llvm::ConstantInt::get(
+						   llvm::Type::getInt32Ty(contexte.contexte),
+						   static_cast<uint64_t>(1),
+						   false);
 
-	auto condition = llvm::ICmpInst::Create(
-						 llvm::Instruction::ICmp,
-						 llvm::CmpInst::Predicate::ICMP_SLT,
-						 noeud_phi,
-						 valeur_fin,
-						 "",
-						 contexte.bloc_courant());
+		auto inc = llvm::BinaryOperator::Create(
+					   llvm::Instruction::Add,
+					   noeud_phi,
+					   val_inc,
+					   "",
+					   contexte.bloc_courant());
 
-	llvm::BranchInst::Create(
-				bloc_boucle,
-				bloc_apres,
-				condition,
-				contexte.bloc_courant());
+		noeud_phi->addIncoming(inc, contexte.bloc_courant());
+
+		llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+	}
 
 	contexte.depile_nombre_locales();
-
 	contexte.bloc_courant(bloc_apres);
 
 	return nullptr;
