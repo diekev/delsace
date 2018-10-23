@@ -1867,12 +1867,14 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 					condition,
 					contexte.bloc_courant());
 	}
+
 	/* bloc_corps */
+	llvm::Value *ret;
 	{
 		contexte.bloc_courant(bloc_corps);
 
 		/* génère le code du bloc */
-		auto ret = enfant4->genere_code_llvm(contexte);
+		ret = enfant4->genere_code_llvm(contexte);
 
 		/* incrémente la variable (noeud_phi) */
 		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_corps)) {
@@ -1890,7 +1892,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 			noeud_phi->addIncoming(inc, contexte.bloc_courant());
 
-			llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+			ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 		}
 	}
 
@@ -1899,7 +1901,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	contexte.depile_nombre_locales();
 	contexte.bloc_courant(bloc_apres);
 
-	return nullptr;
+	return ret;
 }
 
 /* ************************************************************************** */
