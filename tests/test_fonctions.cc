@@ -57,7 +57,7 @@ static void test_fonction_general(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
@@ -78,8 +78,9 @@ static void test_fonction_inconnue(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_INCONNUE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_INCONNUE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 }
@@ -107,7 +108,7 @@ static void test_argument_nomme_succes(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
@@ -135,8 +136,9 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -158,8 +160,9 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 }
@@ -186,8 +189,9 @@ static void test_type_argument_echec(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_ARGUMENT);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 }
@@ -214,8 +218,9 @@ static void test_nombre_argument(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -238,8 +243,9 @@ static void test_nombre_argument(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 }
@@ -259,8 +265,9 @@ static void test_argument_unique(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 }
@@ -285,8 +292,9 @@ static void test_fonction_redinie(
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_REDEFINIE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 }

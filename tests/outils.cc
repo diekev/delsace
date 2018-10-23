@@ -31,16 +31,14 @@
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
 
-/* À FAIRE : il est possible qu'une erreur d'un autre type soit lancée, donc il
- * faudrait avoir deux valeurs de retour : erreur_lancée, type_erreur_correct
- */
-
-bool retourne_erreur_lancee(const char *texte,
+std::pair<bool, bool> retourne_erreur_lancee(const char *texte,
 		const bool imprime_message,
 		const erreur::type_erreur type,
 		const bool genere_code)
 {
 	auto tampon = TamponSource(texte);
+	auto erreur_lancee = false;
+	auto type_correcte = false;
 
 	try {
 		decoupeuse_texte decoupeuse(tampon);
@@ -63,8 +61,9 @@ bool retourne_erreur_lancee(const char *texte,
 			std::cerr << e.message() << '\n';
 		}
 
-		return type == e.type();
+		erreur_lancee = true;
+		type_correcte = type == e.type();
 	}
 
-	return false;
+	return { erreur_lancee, type_correcte };
 }

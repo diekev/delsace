@@ -43,7 +43,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
@@ -61,8 +61,9 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -79,8 +80,9 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -96,7 +98,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
@@ -114,8 +116,9 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -132,8 +135,9 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -151,8 +155,9 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -169,8 +174,9 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -189,7 +195,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
@@ -210,7 +216,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
@@ -231,8 +237,9 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 }

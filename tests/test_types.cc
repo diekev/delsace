@@ -47,8 +47,9 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_RIEN);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_RIEN);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
@@ -71,8 +72,9 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_INCONNU);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_INCONNU);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 }
@@ -107,7 +109,7 @@ static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitair
 				}
 				)";
 
-		const auto erreur_lancee = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
