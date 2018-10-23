@@ -194,6 +194,11 @@ public:
 	virtual type_noeud type() const = 0;
 
 	virtual bool peut_etre_assigne(ContexteGenerationCode &contexte) const;
+
+	/**
+	 * Retourne une référence constante vers les données du morceau de ce neoud.
+	 */
+	const DonneesMorceaux &donnees_morceau() const;
 };
 
 /* ************************************************************************** */

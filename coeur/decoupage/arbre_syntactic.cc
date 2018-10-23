@@ -316,6 +316,11 @@ bool Noeud::peut_etre_assigne(ContexteGenerationCode &/*contexte*/) const
 	return false;
 }
 
+const DonneesMorceaux &Noeud::donnees_morceau() const
+{
+	return m_donnees_morceaux;
+}
+
 void Noeud::ajoute_noeud(Noeud *noeud)
 {
 	m_enfants.push_back(noeud);
@@ -1836,6 +1841,27 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 					type_fin,
 					contexte.tampon,
 					m_donnees_morceaux);
+	}
+
+	auto valeur = contexte.valeur_locale(enfant1->chaine());
+
+	if (valeur != nullptr) {
+		erreur::lance_erreur(
+					"Rédéfinition de la variable",
+					contexte.tampon,
+					enfant1->donnees_morceau(),
+					erreur::type_erreur::VARIABLE_REDEFINIE);
+	}
+	else {
+		valeur = contexte.valeur_globale(enfant1->chaine());
+
+		if (valeur != nullptr) {
+			erreur::lance_erreur(
+						"Rédéfinition de la variable globale",
+						contexte.tampon,
+						enfant1->donnees_morceau(),
+						erreur::type_erreur::VARIABLE_REDEFINIE);
+		}
 	}
 
 	enfant1->donnees_type = type_debut;

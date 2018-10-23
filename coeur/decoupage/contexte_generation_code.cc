@@ -99,13 +99,20 @@ const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &
 
 void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type, const bool est_variable)
 {
-	m_locales.push_back({nom, {valeur, type, est_variable, {}}});
+	if (m_locales.size() > m_nombre_locales) {
+		m_locales[m_nombre_locales] = {nom, {valeur, type, est_variable, {}}};
+	}
+	else {
+		m_locales.push_back({nom, {valeur, type, est_variable, {}}});
+	}
+
 	++m_nombre_locales;
 }
 
 llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 {
 	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
+
 	auto iter = std::find_if(m_locales.begin(), iter_fin,
 							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
 	{

@@ -211,6 +211,282 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable définie avant un contrôle de flux peut être utilisée en dedans.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					si compte == 5 {
+						soit b = a;
+					}
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable définie avant un contrôle de flux peut être utilisée après lui.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					si compte == 5 {
+						soit b = a;
+					}
+
+					soit b = a + compte;
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable définie avant une boucle 'pour' peut être utilisée en dedans.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					pour i dans 0...10 {
+						soit b = a;
+					}
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une variable définie avant une boucle 'pour' peut être utilisée après.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					pour i dans 0...10 {
+						soit b = a + i;
+					}
+
+					soit b = a;
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"La variable itérable d'une boucle 'pour' ne peut avoir le même nom qu'une variable prédéfinie.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					pour a dans 0...10 {
+						soit b = a;
+					}
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"La variable itérable d'une boucle 'pour' ne être utilisée après la boucle.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					pour i dans 0...10 {
+						soit a = i;
+					}
+
+					soit a = i;
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Plusieurs boucles 'pour' de même portée racine peuvent avoir des variables de même nom.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					pour i dans 0...10 {
+						soit a = i;
+					}
+
+					pour i dans 0...10 {
+						soit a = i;
+					}
+
+					pour i dans 0...10 {
+						soit a = i;
+					}
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut définir sans problème des variables entre des boucles 'pour'.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					pour i dans 0...10 {
+						soit ai = i;
+					}
+
+					soit b = compte;
+					soit ba = a;
+
+					pour i dans 0...10 {
+						soit ai = i;
+					}
+
+					soit c = compte;
+					soit ca = b;
+					soit cb = a;
+					soit cba = ba;
+
+					pour i dans 0...10 {
+						soit ai = i;
+					}
+
+					soit d = compte;
+					soit da = b;
+					soit db = a;
+					soit dba = ba;
+					soit dca = cb;
+					soit dcb = ca;
+					soit dcba = cba;
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, true, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut définir sans problème des variables entre des contrôles de flux.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : n32
+				{
+					soit a = compte;
+
+					si a == 10 {
+						soit ai = a;
+					}
+					sinon {
+						soit ai = a;
+					}
+
+					soit b = compte;
+					soit ba = a;
+
+					si b == 10 {
+						soit bi = b;
+					}
+					sinon {
+						soit bi = a;
+					}
+
+					soit c = compte;
+					soit ca = b;
+					soit cb = a;
+					soit cba = ba;
+
+					si c == 10 {
+						soit ci = c;
+					}
+					sinon {
+						soit ci = a;
+					}
+
+					soit d = compte;
+					soit da = b;
+					soit db = a;
+					soit dba = ba;
+					soit dca = cb;
+					soit dcb = ca;
+					soit dcba = cba;
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 void test_variables(numero7::test_unitaire::ControleurUnitaire &controleur)
