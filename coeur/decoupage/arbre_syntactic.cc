@@ -583,7 +583,9 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 {
 	assert(m_enfants.size() == 2);
 
-	if (!m_enfants.front()->peut_etre_assigne(contexte)) {
+	auto variable = m_enfants.front();
+
+	if (!variable->peut_etre_assigne(contexte)) {
 		erreur::lance_erreur(
 					"Impossible d'assigner l'expression à la variable !",
 					contexte.tampon,
@@ -611,10 +613,10 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	/* Ajourne les données du premier enfant si elles sont invalides, dans le
 	 * cas d'une déclaration de variable. */
-	const auto type_gauche = m_enfants.front()->calcul_type(contexte);
+	const auto type_gauche = variable->calcul_type(contexte);
 
 	if (type_gauche.est_invalide()) {
-		m_enfants.front()->donnees_type = this->donnees_type;
+		variable->donnees_type = this->donnees_type;
 	}
 	else {
 		if (type_gauche != this->donnees_type) {
@@ -631,7 +633,19 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	 * côte. */
 	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
 
-	auto alloc = m_enfants.front()->genere_code_llvm(contexte, true);
+	auto alloc = variable->genere_code_llvm(contexte, true);
+
+	if (variable->type() == type_noeud::ACCES_MEMBRE) {
+		const auto index = std::any_cast<unsigned>(variable->valeur_calculee);
+
+		return llvm::InsertValueInst::Create(
+					alloc,
+					valeur,
+					llvm::makeArrayRef<unsigned>(index),
+					"",
+					contexte.bloc_courant());
+	}
+
 	return new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 }
 
@@ -1096,7 +1110,7 @@ void NoeudAccesMembre::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
 {
 	const auto &type_structure = m_enfants.back()->calcul_type(contexte);
 	const auto &nom_membre = m_enfants.front()->chaine();
@@ -1117,6 +1131,13 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 	const auto index_membre = iter->second;
 
 	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
+
+	/* Dans le cas d'une assignation, l'instruction d'insertion de la valeur
+	 * dans la structure se fait dans NoeudAssignation::genere_code_llvm(). */
+	if (expr_gauche) {
+		this->valeur_calculee = static_cast<unsigned>(index_membre);
+		return valeur;
+	}
 
 	return llvm::ExtractValueInst::Create(
 				valeur, {static_cast<unsigned>(index_membre)}, "", contexte.bloc_courant());
