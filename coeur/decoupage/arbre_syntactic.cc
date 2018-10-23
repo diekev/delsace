@@ -1715,6 +1715,9 @@ void NoeudPour::imprime_code(std::ostream &os, int tab)
  *
  * corps_boucle:
  *	...
+ *	br inc_boucle
+ *
+ * inc_boucle:
  *	inc phi
  *	br boucle
  *
@@ -1763,12 +1766,17 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 						  "corps_boucle",
 						  contexte.fonction);
 
+	auto bloc_inc = llvm::BasicBlock::Create(
+						contexte.contexte,
+						"inc_boucle",
+						contexte.fonction);
+
 	auto bloc_apres = llvm::BasicBlock::Create(
 						  contexte.contexte,
 						  "apres_boucle",
 						  contexte.fonction);
 
-	contexte.empile_bloc_continue(bloc_boucle);
+	contexte.empile_bloc_continue(bloc_inc);
 	contexte.empile_bloc_arrete(bloc_apres);
 
 	auto bloc_pre = contexte.bloc_courant();
@@ -1821,22 +1829,30 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 		/* incrémente la variable (noeud_phi) */
 		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_corps)) {
-			auto val_inc = llvm::ConstantInt::get(
-							   llvm::Type::getInt32Ty(contexte.contexte),
-							   static_cast<uint64_t>(1),
-							   false);
-
-			auto inc = llvm::BinaryOperator::Create(
-						   llvm::Instruction::Add,
-						   noeud_phi,
-						   val_inc,
-						   "",
-						   contexte.bloc_courant());
-
-			noeud_phi->addIncoming(inc, contexte.bloc_courant());
-
-			ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+			ret = llvm::BranchInst::Create(bloc_inc, contexte.bloc_courant());
 		}
+	}
+
+	/* inc_corps */
+	{
+		contexte.bloc_courant(bloc_inc);
+
+		/* incrémente la variable (noeud_phi) */
+		auto val_inc = llvm::ConstantInt::get(
+						   llvm::Type::getInt32Ty(contexte.contexte),
+						   static_cast<uint64_t>(1),
+						   false);
+
+		auto inc = llvm::BinaryOperator::Create(
+					   llvm::Instruction::Add,
+					   noeud_phi,
+					   val_inc,
+					   "",
+					   contexte.bloc_courant());
+
+		noeud_phi->addIncoming(inc, contexte.bloc_courant());
+
+		ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 	}
 
 	contexte.depile_bloc_continue();
