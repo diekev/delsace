@@ -266,7 +266,9 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 	}
 
+	m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
 	analyse_corps_fonction();
+	m_assembleuse->depile_noeud(type_noeud::BLOC);
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la fonction");

@@ -537,10 +537,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 	}
 
-	/* Crée code pour les expressions */
-	for (auto noeud : m_enfants) {
-		noeud->genere_code_llvm(contexte);
-	}
+	/* Crée code pour le bloc. */
+	m_enfants.front()->genere_code_llvm(contexte);
 
 	contexte.termine_fonction();
 
