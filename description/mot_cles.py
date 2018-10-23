@@ -253,7 +253,7 @@ void construit_tables_caractere_speciaux()
 		tables_caracteres[i] = false;
 		tables_caracteres_double[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = static_cast<id_morceau>(-1);
+		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
 	for (const auto &iter : paires_caracteres_speciaux) {
