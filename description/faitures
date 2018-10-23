@@ -13,6 +13,8 @@ Faitures
 - inférence de type
 - concaténation des chaînes littérales connues lors de la compilation via l'opérateur '+'
 - constant folding
+- manipulation de structure
+- manipulation de tableaux
 
 
 À faire
@@ -26,10 +28,8 @@ Faitures
 ---- entier + caractere    -> caractère  # À FAIRE
 ---- chaîne + caractere    -> chaîne     # À FAIRE
 ---- caractere + chaîne    -> chaîne     # À FAIRE
-- manipulation de structure
-- manipulation de tableaux
-- initialisation de tableaux
-- initialisation de structures
+- initialisation de tableaux dans la déclaration
+- initialisation de structures dans la déclaration
 - fonctions variadiques
 - fonctions gabarit/génériques avec contrats/concepts
 - structures gabarit/génériques
@@ -56,7 +56,7 @@ Faitures
 - test type retour
 - test fonction sans retour explicit a bel et bien une instruction de retour à sa fin
 - test que l'identifiant après une expression de retour est bel et bien une accolade fermante (pas d'expression inutile après un retour)
-- test boucle 'pour' : déclaration variable unique, expr de même type, et type entier
+- test boucle 'pour' : expr de même type, et type entier
 - test 'continue', 'arrête', en dehors des boucles
 
 
@@ -79,6 +79,7 @@ Idées
 - mot-clés pour des tests unitaires, avec maintenance des fonctions auxilliaires des tests par le compileur
 - mot-clés pour des tests fuzzés, avec maintenance des fonctions auxilliaires des tests par le compileur
 - mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
+- transformer les messages d'erreur en tutoriaux
 
 
 Sécurité/évitement des bugs
