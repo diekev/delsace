@@ -634,18 +634,6 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
 
 	auto alloc = variable->genere_code_llvm(contexte, true);
-
-	if (variable->type() == type_noeud::ACCES_MEMBRE) {
-		const auto index = std::any_cast<unsigned>(variable->valeur_calculee);
-
-		return llvm::InsertValueInst::Create(
-					alloc,
-					valeur,
-					llvm::makeArrayRef<unsigned>(index),
-					"",
-					contexte.bloc_courant());
-	}
-
 	return new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 }
 
@@ -1130,17 +1118,21 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 	const auto index_membre = iter->second;
 
-	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
+	auto valeur = m_enfants.back()->genere_code_llvm(contexte, true);
 
-	/* Dans le cas d'une assignation, l'instruction d'insertion de la valeur
-	 * dans la structure se fait dans NoeudAssignation::genere_code_llvm(). */
-	if (expr_gauche) {
-		this->valeur_calculee = static_cast<unsigned>(index_membre);
-		return valeur;
+	llvm::Value *ret = llvm::GetElementPtrInst::CreateInBounds(
+						   valeur, {
+							   llvm::ConstantInt::get(llvm::Type::getInt64Ty(contexte.contexte), 0),
+							   llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), index_membre)
+						   },
+						   "",
+						   contexte.bloc_courant());
+
+	if (!expr_gauche) {
+		ret = new llvm::LoadInst(ret, "", contexte.bloc_courant());
 	}
 
-	return llvm::ExtractValueInst::Create(
-				valeur, {static_cast<unsigned>(index_membre)}, "", contexte.bloc_courant());
+	return ret;
 }
 
 const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &contexte)
