@@ -394,6 +394,15 @@ const DonneesMorceaux &Noeud::donnees_morceau() const
 	return m_donnees_morceaux;
 }
 
+Noeud *Noeud::dernier_enfant() const
+{
+	if (m_enfants.empty()) {
+		return nullptr;
+	}
+
+	return m_enfants.back();
+}
+
 void Noeud::ajoute_noeud(Noeud *noeud)
 {
 	m_enfants.push_back(noeud);
@@ -581,6 +590,16 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 const DonneesType &NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
 {
+	auto fonction = contexte.module->getFunction(std::string(m_donnees_morceaux.chaine));
+
+	if (fonction == nullptr) {
+		erreur::lance_erreur(
+					"Fonction inconnue",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::type_erreur::FONCTION_INCONNUE);
+	}
+
 	if (this->donnees_type.est_invalide()) {
 		const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 		this->donnees_type = donnees_fonction.donnees_type;
@@ -628,10 +647,12 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	/* À FAIRE : calcule type retour, considération fonction récursive. */
-	if (this->donnees_type.est_invalide()) {
-		this->donnees_type.pousse(id_morceau::RIEN);
-	}
+	/* À FAIRE : inférence de type
+	 * - considération du type de retour des fonctions récursive
+	 * - il est possible que le retour dépende des variables locales de la
+	 *   fonction, donc il faut d'abord générer le code ou faire une prépasse
+	 *   pour générer les données nécessaires.
+	 */
 
 	auto arguments = std::any_cast<std::list<ArgumentFonction>>(&valeur_calculee);
 
@@ -677,7 +698,47 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	}
 
 	/* Crée code pour le bloc. */
-	m_enfants.front()->genere_code_llvm(contexte);
+	auto bloc = m_enfants.front();
+
+	bloc->genere_code_llvm(contexte);
+
+	/* vérifie le type du bloc */
+	auto type_bloc = bloc->calcul_type(contexte);
+	auto dernier = bloc->dernier_enfant();
+
+	/* si le bloc est vide -> vérifie qu'aucun type n'a été spécifié */
+	if (dernier == nullptr) {
+		if (this->donnees_type.type_base() != id_morceau::RIEN) {
+			erreur::lance_erreur(
+						"Instruction de retour manquante",
+						contexte.tampon,
+						m_donnees_morceaux,
+						erreur::type_erreur::TYPE_DIFFERENTS);
+		}
+	}
+	/* si le bloc n'est pas vide */
+	else {
+		/* si le dernier noeud n'est pas un noeud de retour -> vérifie qu'aucun type n'a été spécifié */
+		if (dernier->type() != type_noeud::RETOUR) {
+			if (this->donnees_type.type_base() != id_morceau::RIEN) {
+				erreur::lance_erreur(
+							"Instruction de retour manquante",
+							contexte.tampon,
+							m_donnees_morceaux,
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
+		}
+		/* vérifie que le type du bloc correspond au type de la fonction */
+		else {
+			if (this->donnees_type != type_bloc) {
+				erreur::lance_erreur(
+							"Le type de retour est invalide",
+							contexte.tampon,
+							m_donnees_morceaux,
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
+		}
+	}
 
 	contexte.termine_fonction();
 
@@ -767,6 +828,15 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	auto alloc = variable->genere_code_llvm(contexte, true);
 	return new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+}
+
+const DonneesType &NoeudAssignationVariable::calcul_type(ContexteGenerationCode &/*contexte*/)
+{
+	if (this->donnees_type.est_invalide()) {
+		this->donnees_type.pousse(id_morceau::RIEN);
+	}
+
+	return this->donnees_type;
 }
 
 type_noeud NoeudAssignationVariable::type() const
@@ -1820,6 +1890,7 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, con
 const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (m_enfants.empty()) {
+		this->donnees_type.pousse(id_morceau::RIEN);
 		return this->donnees_type;
 	}
 
@@ -1930,6 +2001,12 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 	return ret;
 }
 
+const DonneesType &NoeudSi::calcul_type(ContexteGenerationCode &contexte)
+{
+	/* retourne le type du bloc */
+	return m_enfants.back()->calcul_type(contexte);
+}
+
 type_noeud NoeudSi::type() const
 {
 	return type_noeud::SI;
@@ -1968,6 +2045,16 @@ llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const
 	}
 
 	return valeur;
+}
+
+const DonneesType &NoeudBloc::calcul_type(ContexteGenerationCode &contexte)
+{
+	if (m_enfants.empty()) {
+		this->donnees_type.pousse(id_morceau::RIEN);
+		return this->donnees_type;
+	}
+
+	return m_enfants.back()->calcul_type(contexte);
 }
 
 type_noeud NoeudBloc::type() const
@@ -2174,6 +2261,12 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	return ret;
 }
 
+const DonneesType &NoeudPour::calcul_type(ContexteGenerationCode &contexte)
+{
+	/* retourne le type du bloc */
+	return m_enfants.back()->calcul_type(contexte);
+}
+
 type_noeud NoeudPour::type() const
 {
 	return type_noeud::POUR;
@@ -2271,6 +2364,12 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 	contexte.bloc_courant(bloc_apres);
 
 	return ret;
+}
+
+const DonneesType &NoeudBoucle::calcul_type(ContexteGenerationCode &contexte)
+{
+	/* retourne le type du bloc */
+	return m_enfants.front()->calcul_type(contexte);
 }
 
 type_noeud NoeudBoucle::type() const

@@ -36,7 +36,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo()
+				fonction foo() : rien
 				{
 					soit variable a = 5;
 					a = 6;
@@ -54,7 +54,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo()
+				fonction foo() : rien
 				{
 					soit a = 5;
 					a = 6;
@@ -73,7 +73,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo()
+				fonction foo() : rien
 				{
 					soit variable a = 5;
 					@a = 6;
@@ -92,7 +92,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo(variable a : [2]z32)
+				fonction foo(variable a : [2]z32) : rien
 				{
 					a[0] = 5;
 				}
@@ -110,7 +110,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo(variable a : [2]z32)
+				fonction foo(variable a : [2]z32) : rien
 				{
 					a = 6;
 				}
@@ -129,7 +129,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo(a : [2]n32)
+				fonction foo(a : [2]n32) : rien
 				{
 					a = 6;
 				}
@@ -148,7 +148,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo()
+				fonction foo() : rien
 				{
 					soit variable a = 5.0;
 					a = 6;
@@ -167,7 +167,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 	{
 		const char *texte =
 				R"(
-				fonction foo()
+				fonction foo() : rien
 				{
 					soit a = 5.0;
 					soit b = a = 6;
@@ -189,7 +189,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				structure Vecteur3D {
 					x : z32;
 				}
-				fonction foo(variable v : Vecteur3D)
+				fonction foo(variable v : Vecteur3D) : rien
 				{
 					x de v = 5;
 				}
@@ -210,7 +210,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				structure Vecteur3D {
 					x : [2]z32;
 				}
-				fonction foo(variable v : Vecteur3D)
+				fonction foo(variable v : Vecteur3D) : rien
 				{
 					x[0] de v = 5;
 				}
@@ -231,7 +231,7 @@ void test_assignation(numero7::test_unitaire::ControleurUnitaire &controleur)
 				structure Vecteur3D {
 					x : [2]n32;
 				}
-				fonction foo(variable v : Vecteur3D)
+				fonction foo(variable v : Vecteur3D) : rien
 				{
 					x de v = 5;
 				}

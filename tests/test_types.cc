@@ -40,7 +40,7 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 					retourne;
 				}
 
-				fonction principale(compte : n32, arguments : n8) : n32
+				fonction principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = ne_retourne_rien();
 					retourne 0;
@@ -53,6 +53,7 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 	}
 	CU_TERMINE_PROPOSITION(controleur);
 
+#if 0 /* désactivation de ce test tant que le typage des fonctions est explicit */
 	CU_DEBUTE_PROPOSITION(
 				controleur,
 				"On ne peut assigner la valeur d'une fonction à une variable si"
@@ -65,7 +66,7 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 					retourne;
 				}
 
-				fonction principale(compte : n32, arguments : n8) : n32
+				fonction principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = ne_retourne_rien();
 					retourne 0;
@@ -77,6 +78,7 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
+#endif
 }
 
 static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitaire &controleur)
@@ -99,7 +101,7 @@ static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitair
 					retourne x + 2.0;
 				}
 
-				fonction principale(compte : z32, arguments : z8) :z32
+				fonction principale(compte : z32, arguments : z8) : z32
 				{
 					soit a = ajouter(9);
 					soit b = ajouter(a);

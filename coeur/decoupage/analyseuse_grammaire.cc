@@ -277,11 +277,9 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
 	}
 
-	/* vérifie si le type de la fonction est explicit. */
-	if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
-		analyse_declaration_type(noeud_declaration->donnees_type);
-		donnees_fonctions.donnees_type = noeud_declaration->donnees_type;
-	}
+	/* À FAIRE : inférence de type retour. */
+	analyse_declaration_type(noeud_declaration->donnees_type);
+	donnees_fonctions.donnees_type = noeud_declaration->donnees_type;
 
 	m_contexte.ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 

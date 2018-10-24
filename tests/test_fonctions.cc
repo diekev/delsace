@@ -47,7 +47,7 @@ static void test_fonction_general(
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonction principale(compte : z32, arguments : z8) : bool
 				{
 					ne_retourne_rien();
 					soit a = ajouter(5, 8);
@@ -57,7 +57,7 @@ static void test_fonction_general(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, true, erreur::type_erreur::AUCUNE_ERREUR);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);

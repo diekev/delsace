@@ -147,7 +147,7 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 					x : n32;
 					y : n32;
 				}
-				fonction accès_x(v : Vecteur2D) : rien
+				fonction accès_x(v : Vecteur2D) : n32
 				{
 					retourne x de v;
 				}

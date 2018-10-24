@@ -223,6 +223,12 @@ public:
 	 * Retourne une référence constante vers les données du morceau de ce neoud.
 	 */
 	const DonneesMorceaux &donnees_morceau() const;
+
+	/**
+	 * Retourne un pointeur vers le dernier enfant de ce noeud. Si le noeud n'a
+	 * aucun enfant, retourne nullptr.
+	 */
+	Noeud *dernier_enfant() const;
 };
 
 /* ************************************************************************** */
@@ -279,6 +285,8 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	type_noeud type() const override;
 };
@@ -479,6 +487,8 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
 	type_noeud type() const override;
 };
 
@@ -492,6 +502,8 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+
 	type_noeud type() const override;
 };
 
@@ -504,6 +516,8 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	type_noeud type() const override;
 };
@@ -530,6 +544,8 @@ public:
 	void imprime_code(std::ostream &os, int tab) override;
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 
 	type_noeud type() const override;
 };
