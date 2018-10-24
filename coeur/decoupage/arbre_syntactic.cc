@@ -832,7 +832,24 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 		}
 	}
 
-	valeur = m_enfants.front()->genere_code_llvm(contexte);
+	/* À FAIRE : énumération avec des expressions contenant d'autres énums.
+	 * différents types (réel, bool, etc..)
+	 */
+
+	auto n = converti_chaine_nombre_entier(
+				 m_enfants.front()->chaine(),
+				 m_enfants.front()->identifiant());
+
+	auto constante = llvm::ConstantInt::get(
+						 converti_type(contexte, this->donnees_type),
+						 static_cast<uint64_t>(n));
+
+	valeur = new llvm::GlobalVariable(
+				 *contexte.module,
+				 converti_type(contexte, this->donnees_type),
+				 true,
+				 llvm::GlobalValue::InternalLinkage,
+				 constante);
 
 	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->donnees_type);
 
