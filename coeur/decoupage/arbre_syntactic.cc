@@ -462,8 +462,8 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 				if (type_arg != type_enf) {
 					erreur::lance_erreur_type_arguments(
-								type_arg.type_base(),
-								type_enf.type_base(),
+								type_arg,
+								type_enf,
 								pair.first,
 								contexte.tampon,
 								m_donnees_morceaux);
@@ -511,8 +511,8 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 			if (type_arg != type_enf) {
 				erreur::lance_erreur_type_arguments(
-							type_arg.type_base(),
-							type_enf.type_base(),
+							type_arg,
+							type_enf,
 							nom,
 							contexte.tampon,
 							m_donnees_morceaux);

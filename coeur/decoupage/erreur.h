@@ -84,8 +84,8 @@ public:
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_type_arguments(
-		const id_morceau type_arg,
-		const id_morceau type_enf,
+		const DonneesType &type_arg,
+		const DonneesType &type_enf,
 		const std::string_view &nom_arg,
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau);

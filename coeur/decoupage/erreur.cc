@@ -136,8 +136,8 @@ void lance_erreur(
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
-		const id_morceau type_arg,
-		const id_morceau type_enf,
+		const DonneesType &type_arg,
+		const DonneesType &type_enf,
 		const std::string_view &nom_arg,
 		const TamponSource &tampon,
 		const DonneesMorceaux &morceau)
@@ -157,8 +157,8 @@ void lance_erreur(
 
 	ss << "Fonction : '" << morceau.chaine << "', argument " << nom_arg << '\n';
 	ss << "Les types d'arguments ne correspondent pas !\n";
-	ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
-	ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
+	ss << "Requiers : " << type_arg << '\n';
+	ss << "Obtenu   : " << type_enf << '\n';
 	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
 }
 
