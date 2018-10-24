@@ -2237,7 +2237,7 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 	if (est_type_entier(type_de.type_base())) {
 		/* un nombre entier peut être converti en l'adresse d'un pointeur */
 		if (this->donnees_type.type_base() == id_morceau::POINTEUR) {
-			return cree_instruction<llvm::PtrToIntInst, CastOps::PtrToInt>(valeur, type, contexte.bloc_courant());
+			return cree_instruction<llvm::IntToPtrInst, CastOps::IntToPtr>(valeur, type, contexte.bloc_courant());
 		}
 
 		if (est_type_reel(this->donnees_type.type_base())) {
