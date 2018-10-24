@@ -2239,10 +2239,45 @@ void NoeudTranstype::imprime_code(std::ostream &os, int tab)
 	m_enfants.front()->imprime_code(os, tab + 1);
 }
 
-template <typename Inst, llvm::Instruction::CastOps Op>
-llvm::Value *cree_instruction(llvm::Value *valeur, llvm::Type *type, llvm::BasicBlock *bloc)
+template <llvm::Instruction::CastOps Op>
+constexpr llvm::Value *cree_instruction(
+		llvm::Value *valeur,
+		llvm::Type *type,
+		llvm::BasicBlock *bloc)
 {
-	return Inst::Create(Op, valeur, type, "", bloc);
+	using CastOps = llvm::Instruction::CastOps;
+
+	static_assert(Op >= CastOps::Trunc && Op <= CastOps::AddrSpaceCast,
+				  "OpCode de transtypage inconnu");
+
+	switch (Op) {
+		case CastOps::IntToPtr:
+			return llvm::IntToPtrInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::UIToFP:
+			return llvm::UIToFPInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::SIToFP:
+			return llvm::SIToFPInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::Trunc:
+			return llvm::TruncInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::ZExt:
+			return llvm::ZExtInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::SExt:
+			return llvm::SExtInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::FPToUI:
+			return llvm::FPToUIInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::FPToSI:
+			return llvm::FPToSIInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::FPTrunc:
+			return llvm::FPTruncInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::FPExt:
+			return llvm::FPExtInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::PtrToInt:
+			return llvm::PtrToIntInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::BitCast:
+			return llvm::BitCastInst::Create(Op, valeur, type, "", bloc);
+		case CastOps::AddrSpaceCast:
+			return llvm::AddrSpaceCastInst::Create(Op, valeur, type, "", bloc);
+	}
 }
 
 llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
@@ -2256,9 +2291,9 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 	}
 
 	auto enfant = m_enfants.front();
-	const auto &type_de = m_enfants.front()->calcul_type(contexte);
+	const auto &donnees_type_de = m_enfants.front()->calcul_type(contexte);
 
-	if (type_de.est_invalide()) {
+	if (donnees_type_de.est_invalide()) {
 		erreur::lance_erreur(
 					"Ne peut calculer le type d'origine",
 					contexte.tampon,
@@ -2268,62 +2303,65 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 
 	auto valeur = enfant->genere_code_llvm(contexte);
 
-	if (type_de == this->donnees_type) {
+	if (donnees_type_de == this->donnees_type) {
 		return valeur;
 	}
 
 	using CastOps = llvm::Instruction::CastOps;
 
 	auto type = converti_type(contexte, this->donnees_type);
+	auto bloc = contexte.bloc_courant();
+	auto type_de = donnees_type_de.type_base();
+	auto type_vers = this->donnees_type.type_base();
 
-	if (est_type_entier(type_de.type_base())) {
+	if (est_type_entier(type_de)) {
 		/* un nombre entier peut être converti en l'adresse d'un pointeur */
-		if (this->donnees_type.type_base() == id_morceau::POINTEUR) {
-			return cree_instruction<llvm::IntToPtrInst, CastOps::IntToPtr>(valeur, type, contexte.bloc_courant());
+		if (type_vers == id_morceau::POINTEUR) {
+			return cree_instruction<CastOps::IntToPtr>(valeur, type, bloc);
 		}
 
-		if (est_type_reel(this->donnees_type.type_base())) {
-			if (est_type_entier_naturel(type_de.type_base())) {
-				return cree_instruction<llvm::UIToFPInst, CastOps::UIToFP>(valeur, type, contexte.bloc_courant());
+		if (est_type_reel(type_vers)) {
+			if (est_type_entier_naturel(type_de)) {
+				return cree_instruction<CastOps::UIToFP>(valeur, type, bloc);
 			}
 
-			return cree_instruction<llvm::SIToFPInst, CastOps::SIToFP>(valeur, type, contexte.bloc_courant());
+			return cree_instruction<CastOps::SIToFP>(valeur, type, bloc);
 		}
 
-		if (est_type_entier(this->donnees_type.type_base())) {
-			if (est_plus_petit(this->donnees_type.type_base(), type_de.type_base())) {
-				return cree_instruction<llvm::TruncInst, CastOps::Trunc>(valeur, type, contexte.bloc_courant());
+		if (est_type_entier(type_vers)) {
+			if (est_plus_petit(type_vers, type_de)) {
+				return cree_instruction<CastOps::Trunc>(valeur, type, bloc);
 			}
 
-			if (est_type_entier_naturel(type_de.type_base())) {
-				return cree_instruction<llvm::ZExtInst, CastOps::ZExt>(valeur, type, contexte.bloc_courant());
+			if (est_type_entier_naturel(type_de)) {
+				return cree_instruction<CastOps::ZExt>(valeur, type, bloc);
 			}
 
-			return cree_instruction<llvm::SExtInst, CastOps::SExt>(valeur, type, contexte.bloc_courant());
+			return cree_instruction<CastOps::SExt>(valeur, type, bloc);
 		}
 	}
 
-	if (est_type_reel(type_de.type_base())) {
-		if (est_type_entier_naturel(this->donnees_type.type_base())) {
-			return cree_instruction<llvm::FPToUIInst, CastOps::FPToUI>(valeur, type, contexte.bloc_courant());
+	if (est_type_reel(type_de)) {
+		if (est_type_entier_naturel(type_vers)) {
+			return cree_instruction<CastOps::FPToUI>(valeur, type, bloc);
 		}
 
-		if (est_type_entier_relatif(this->donnees_type.type_base())) {
-			return cree_instruction<llvm::FPToSIInst, CastOps::FPToSI>(valeur, type, contexte.bloc_courant());
+		if (est_type_entier_relatif(type_vers)) {
+			return cree_instruction<CastOps::FPToSI>(valeur, type, bloc);
 		}
 
-		if (est_type_reel(type_de.type_base())) {
-			if (est_plus_petit(this->donnees_type.type_base(), type_de.type_base())) {
-				return cree_instruction<llvm::FPTruncInst, CastOps::FPTrunc>(valeur, type, contexte.bloc_courant());
+		if (est_type_reel(type_de)) {
+			if (est_plus_petit(type_vers, type_de)) {
+				return cree_instruction<CastOps::FPTrunc>(valeur, type, bloc);
 			}
 
-			return cree_instruction<llvm::FPExtInst, CastOps::FPExt>(valeur, type, contexte.bloc_courant());
+			return cree_instruction<CastOps::FPExt>(valeur, type, bloc);
 		}
 	}
 
 	/* À FAIRE : PtrToInt, BitCast (Type Cast) */
 	erreur::lance_erreur_type_operation(
-				type_de,
+				donnees_type_de,
 				this->donnees_type,
 				contexte.tampon,
 				this->donnees_morceau());
