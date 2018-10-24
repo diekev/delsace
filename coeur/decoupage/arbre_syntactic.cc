@@ -700,7 +700,15 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	/* Crée code pour le bloc. */
 	auto bloc = m_enfants.front();
 
-	bloc->genere_code_llvm(contexte);
+	auto ret = bloc->genere_code_llvm(contexte);
+
+	/* Ajoute une instruction de retour si la dernière n'en est pas une. */
+	if (!est_branche_ou_retour(ret)) {
+		llvm::ReturnInst::Create(
+					contexte.contexte,
+					nullptr,
+					contexte.bloc_courant());
+	}
 
 	/* vérifie le type du bloc */
 	auto type_bloc = bloc->calcul_type(contexte);
