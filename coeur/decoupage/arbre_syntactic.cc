@@ -1630,11 +1630,11 @@ llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &cont
 
 			return inst_load->getPointerOperand();
 		}
-		case id_morceau::PLUS:
+		case id_morceau::PLUS_UNAIRE:
 		{
 			return valeur1;
 		}
-		case id_morceau::MOINS:
+		case id_morceau::MOINS_UNAIRE:
 		{
 			valeur2 = valeur1;
 

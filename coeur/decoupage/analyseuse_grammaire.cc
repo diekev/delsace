@@ -723,7 +723,8 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
 				}
 				else {
-					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau);
+					auto morceau_unaire = DonneesMorceaux{morceau.chaine, morceau.ligne_pos, id_operateur};
+					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau_unaire);
 				}
 			}
 
@@ -779,7 +780,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	pile.reserve(expression.size());
 
 	for (Noeud *noeud : expression) {
-		if (noeud->type() == type_noeud::OPERATION_BINAIRE) {
+		if (est_operateur_binaire(noeud->identifiant())) {
 			auto n2 = pile.back();
 			pile.pop_back();
 
@@ -809,7 +810,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 			pile.push_back(noeud);
 		}
-		else if (noeud->type() == type_noeud::OPERATION_UNAIRE) {
+		else if (est_operateur_unaire(noeud->identifiant())) {
 			auto n1 = pile.back();
 			pile.pop_back();
 
