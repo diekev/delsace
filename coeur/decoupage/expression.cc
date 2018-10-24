@@ -297,7 +297,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 			n1->calcule = true;
 			n1->donnees_type = DonneesType();
 			n1->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(v.size() << 8));
-			n1->donnees_type.pousse(id_morceau::N8);
+			n1->donnees_type.pousse(id_morceau::Z8);
 
 			assembleuse.supprime_noeud(op);
 			assembleuse.supprime_noeud(n2);

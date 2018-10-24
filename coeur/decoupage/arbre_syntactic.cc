@@ -1121,7 +1121,7 @@ NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 	this->valeur_calculee = corrigee;
 
 	this->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(corrigee.size() << 8));
-	this->donnees_type.pousse(id_morceau::N8);
+	this->donnees_type.pousse(id_morceau::Z8);
 }
 
 void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
