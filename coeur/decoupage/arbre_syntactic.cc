@@ -1614,12 +1614,30 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 const DonneesType &NoeudOperationBinaire::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (this->donnees_type.est_invalide()) {
-		if (this->m_donnees_morceaux.identifiant == id_morceau::CROCHET_OUVRANT) {
-			auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
-			this->donnees_type = donnees_enfant.derefence();
-		}
-		else {
-			this->donnees_type = m_enfants.front()->calcul_type(contexte);
+		switch (this->identifiant()) {
+			default:
+			{
+				this->donnees_type = m_enfants.front()->calcul_type(contexte);
+				break;
+			}
+			case id_morceau::CROCHET_OUVRANT:
+			{
+				auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
+				this->donnees_type = donnees_enfant.derefence();
+				break;
+			}
+			case id_morceau::EGALITE:
+			case id_morceau::DIFFERENCE:
+			case id_morceau::INFERIEUR:
+			case id_morceau::INFERIEUR_EGAL:
+			case id_morceau::SUPERIEUR:
+			case id_morceau::SUPERIEUR_EGAL:
+			case id_morceau::ESP_ESP:
+			case id_morceau::BARRE_BARRE:
+			{
+				this->donnees_type.pousse(id_morceau::BOOL);
+				break;
+			}
 		}
 	}
 
@@ -1659,13 +1677,22 @@ void NoeudOperationUnaire::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	llvm::Instruction::BinaryOps instr;
-	auto type1 = m_enfants.front()->calcul_type(contexte);
-	auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
+	auto enfant = m_enfants.front();
+	auto type1 = enfant->calcul_type(contexte);
+	auto valeur1 = enfant->genere_code_llvm(contexte);
 	auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
 	switch (this->m_donnees_morceaux.identifiant) {
 		case id_morceau::EXCLAMATION:
 		{
+			if (type1.type_base() != id_morceau::BOOL) {
+				erreur::lance_erreur(
+							"L'opérateur '!' doit recevoir une expression de type 'bool'",
+							contexte.tampon,
+							enfant->donnees_morceau(),
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
+
 			instr = llvm::Instruction::Xor;
 			valeur2 = valeur1;
 			break;
@@ -1724,16 +1751,29 @@ llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &cont
 const DonneesType &NoeudOperationUnaire::calcul_type(ContexteGenerationCode &contexte)
 {
 	if (this->donnees_type.est_invalide()) {
-		if (this->m_donnees_morceaux.identifiant == id_morceau::AROBASE) {
-			this->donnees_type.pousse(id_morceau::POINTEUR);
-			this->donnees_type.pousse(m_enfants.front()->calcul_type(contexte));
-		}
-		else if (this->m_donnees_morceaux.identifiant == id_morceau::CROCHET_OUVRANT) {
-			auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
-			this->donnees_type = donnees_enfant.derefence();
-		}
-		else {
-			this->donnees_type = m_enfants.front()->calcul_type(contexte);
+		switch (this->identifiant()) {
+			default:
+			{
+				this->donnees_type = m_enfants.front()->calcul_type(contexte);
+				break;
+			}
+			case id_morceau::AROBASE:
+			{
+				this->donnees_type.pousse(id_morceau::POINTEUR);
+				this->donnees_type.pousse(m_enfants.front()->calcul_type(contexte));
+				break;
+			}
+			case id_morceau::CROCHET_OUVRANT:
+			{
+				auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
+				this->donnees_type = donnees_enfant.derefence();
+				break;
+			}
+			case id_morceau::EXCLAMATION:
+			{
+				this->donnees_type.pousse(id_morceau::BOOL);
+				break;
+			}
 		}
 	}
 
@@ -1815,6 +1855,16 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 
 	/* noeud 1 : condition */
 	auto enfant1 = *iter_enfant++;
+
+	auto type_condition = enfant1->calcul_type(contexte);
+
+	if (type_condition.type_base() != id_morceau::BOOL) {
+		erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
+							 contexte.tampon,
+							 enfant1->donnees_morceau(),
+							 erreur::type_erreur::TYPE_DIFFERENTS);
+	}
+
 	auto condition = enfant1->genere_code_llvm(contexte);
 
 	auto bloc_alors = llvm::BasicBlock::Create(

@@ -48,8 +48,6 @@ Faitures
 
 À faire (tests)
 ---------------
-- test contrôles de flux doivent avoir des valeurs booléennes explicit
-- test opérateur booléen d'inversion '!' ne peut prendre qu'une valeur booléenne
 - test caractère simple (assignation + modification)
 - test opérateurs simple
 - test var[0], @var[0], type retour fonctions

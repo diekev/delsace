@@ -27,6 +27,44 @@
 #include "erreur.h"
 #include "outils.h"
 
+static void test_expression_flux_si(numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	CU_DEBUTE_PROPOSITION(controleur, "L'expression d'un contrôle 'si' doit être booléenne.");
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit a = 5;
+		soit b = 6;
+		si a == b {
+		}
+	}
+	)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(controleur, "L'expression d'un contrôle 'si' ne peut être d'un autre type que booléen.");
+	{
+		const char *texte =
+	R"(fonction foo()
+	{
+		soit a = 5;
+
+		si a {
+		}
+	}
+	)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+}
+
 static void test_expression_general(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	const char *texte =
@@ -44,7 +82,7 @@ R"(fonction foo()
 	soit x07 = a != b;
 	soit x08 = a <= b;
 	soit x09 = a >= b;
-	soit x10 = 0x80 <= a <= 0xBF;
+	soit x10 = 0x80 <= a && a <= 0xBF;
 	soit x11 = a < b;
 	soit x12 = a > b;
 	soit x13 = a && b;
@@ -52,7 +90,7 @@ R"(fonction foo()
 	soit x15 = a || b;
 	soit x16 = a | b;
 	soit x17 = a ^ b;
-	soit x18 = !a;
+	soit x18 = !(a == b);
 	soit x19 = ~a;
 	soit x20 = @a;
 	soit x21 = a;
@@ -230,4 +268,5 @@ void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
 	test_expression_general(controleur);
 	test_expression_constante_reelle(controleur);
 	test_expression_constante_entiere(controleur);
+	test_expression_flux_si(controleur);
 }
