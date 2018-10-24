@@ -86,7 +86,11 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 		os << "type invalide";
 	}
 	else {
-		for (const auto &donnee : donnees_type) {
+		auto debut = donnees_type.end() - 1;
+		auto fin = donnees_type.begin() - 1;
+
+		for (;debut != fin; --debut) {
+			auto donnee = *debut;
 			switch (donnee & 0xff) {
 				case id_morceau::POINTEUR:
 					os << '*';
