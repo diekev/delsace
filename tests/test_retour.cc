@@ -129,4 +129,26 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une fonction ne peut avoir des types de retour et "
+				"d'instructions de retour différents");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : z32
+				{
+					retourne 0.0;
+					soit a = 5;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::NORMAL);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }

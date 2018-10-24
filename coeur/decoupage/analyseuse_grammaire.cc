@@ -526,6 +526,10 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			avance();
 		}
 
+		if (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+			lance_erreur("Attendu une accolade fermante après l'expression de retour.");
+		}
+
 		m_assembleuse->depile_noeud(type_noeud::RETOUR);
 	}
 	/* controle de flux : si */

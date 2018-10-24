@@ -52,7 +52,6 @@ Faitures
 - test opérateurs simple
 - test @var[0]
 - test chaine littérale, déclaration, assignement de pointeur et tableau
-- test que l'identifiant après une expression de retour est bel et bien une accolade fermante (pas d'expression inutile après un retour)
 - test transtypage variable, nombre littéral, expression
 
 
