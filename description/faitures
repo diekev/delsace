@@ -50,13 +50,9 @@ Faitures
 ---------------
 - test caractère simple (assignation + modification)
 - test opérateurs simple
-- test var[0], @var[0], type retour fonctions
+- test @var[0]
 - test chaine littérale, déclaration, assignement de pointeur et tableau
-- test type retour
-- test fonction sans retour explicit a bel et bien une instruction de retour à sa fin
 - test que l'identifiant après une expression de retour est bel et bien une accolade fermante (pas d'expression inutile après un retour)
-- test boucle 'pour' : expr de même type, et type entier
-- test 'continue', 'arrête', en dehors des boucles
 - test transtypage variable, nombre littéral, expression
 
 
