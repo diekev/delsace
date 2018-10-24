@@ -59,6 +59,7 @@ Faitures
 - test que l'identifiant après une expression de retour est bel et bien une accolade fermante (pas d'expression inutile après un retour)
 - test boucle 'pour' : expr de même type, et type entier
 - test 'continue', 'arrête', en dehors des boucles
+- test transtypage variable, nombre littéral, expression
 
 
 Idées
