@@ -23,6 +23,7 @@
  */
 
 #include "test_assignation.hh"
+#include "test_boucle.hh"
 #include "test_decoupage.h"
 #include "test_decoupage_nombres.h"
 #include "test_expression.h"
@@ -46,6 +47,7 @@ int main()
 	controleur.ajoute_fonction(test_structures);
 	controleur.ajoute_fonction(test_assignation);
 	controleur.ajoute_fonction(test_retour);
+	controleur.ajoute_fonction(test_boucle);
 
 	controleur.performe_controles();
 

@@ -2294,7 +2294,8 @@ llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte, co
 		erreur::lance_erreur(
 					"'continue' ou 'arrête' en dehors d'une boucle",
 					contexte.tampon,
-					m_donnees_morceaux);
+					m_donnees_morceaux,
+					erreur::type_erreur::CONTROLE_INVALIDE);
 	}
 
 	return llvm::BranchInst::Create(bloc, contexte.bloc_courant());
