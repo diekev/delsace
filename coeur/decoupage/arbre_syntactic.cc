@@ -301,6 +301,31 @@ static bool est_type_reel(id_morceau type)
 	}
 }
 
+/**
+ * Retourne vrai si le type à droite peut-être assigné au type à gauche. Si les
+ * types ne correspondent pas directement, on vérifie s'il est possible de
+ * convertir silencieusement les types littéraux.
+ */
+static bool peut_assigner(
+		const DonneesType &gauche,
+		const DonneesType &droite,
+		type_noeud type_droite)
+{
+	if (gauche == droite) {
+		return true;
+	}
+
+	if (type_droite == type_noeud::NOMBRE_ENTIER && est_type_entier(gauche.type_base())) {
+		return true;
+	}
+
+	if (type_droite == type_noeud::NOMBRE_REEL && est_type_reel(gauche.type_base())) {
+		return true;
+	}
+
+	return false;
+}
+
 /* ************************************************************************** */
 
 static void imprime_tab(std::ostream &os, int tab)
@@ -816,11 +841,13 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	 * cas d'une déclaration de variable. */
 	const auto type_gauche = variable->calcul_type(contexte);
 
+	auto expression = m_enfants.back();
+
 	if (type_gauche.est_invalide()) {
 		variable->donnees_type = this->donnees_type;
 	}
 	else {
-		if (type_gauche != this->donnees_type) {
+		if (!peut_assigner(type_gauche, this->donnees_type, expression->type())) {
 			erreur::lance_erreur_assignation_type_differents(
 						type_gauche,
 						this->donnees_type,
@@ -832,7 +859,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 	 * la variable sur la pile et celle de stockage de la valeur soit côte à
 	 * côte. */
-	auto valeur = m_enfants.back()->genere_code_llvm(contexte);
+	auto valeur = expression->genere_code_llvm(contexte);
 
 	auto alloc = variable->genere_code_llvm(contexte, true);
 	return new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
