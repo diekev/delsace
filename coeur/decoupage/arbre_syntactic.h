@@ -73,8 +73,8 @@ enum class type_noeud : char {
  * -- noeud déclaration structure
  * -- noeud déclaration énum
  *
- * noeud déclaration fonction : multiples enfants de types différents
- * -- déclaration variable / expression / retour / controle flux
+ * noeud déclaration fonction : un seul enfant
+ * -- noeud bloc
  *
  * noeud appel fonction : multiples enfants de mêmes types
  * -- noeud expression
@@ -86,7 +86,11 @@ enum class type_noeud : char {
  * noeud retour : un seul enfant
  * -- noeud expression
  *
- * noeud opérateur : 1 ou 2 enfants de même type
+ * noeud opérateur binaire : 2 enfants de même type
+ * -- noeud expression
+ * -- noeud expression
+ *
+ * noeud opérateur binaire : un seul enfant
  * -- noeud expression
  *
  * noeud expression : un seul enfant, peut utiliser une énumeration pour choisir
@@ -96,12 +100,30 @@ enum class type_noeud : char {
  * noeud accès membre : deux enfants de même type
  * -- noeud variable
  *
+ * noeud boucle : un seul enfant
+ * -- noeud bloc
+ *
+ * noeud pour : 4 enfants
+ * -- noeud variable
+ * -- noeud expression
+ * -- noeud expression
+ * -- noeud bloc
+ *
+ * noeud bloc : multiples enfants de types différents
+ * -- déclaration variable / expression / retour / boucle pour
+ *
+ * noeud si : 2 ou 3 enfants
+ * -- noeud expression
+ * -- noeud bloc
+ * -- noeud si | noeud bloc
+ *
  * noeud déclaration variable : aucun enfant
  * noeud variable : aucun enfant
  * noeud nombre entier : aucun enfant
  * noeud nombre réel : aucun enfant
  * noeud booléen : aucun enfant
  * noeud chaine caractère : aucun enfant
+ * noeud continue_arrête : aucun enfant
  *
  * Le seul type de neoud posant problème est le noeud de déclaration de
  * fonction, mais nous pourrions avoir des tableaux séparés avec une structure
