@@ -170,6 +170,48 @@ static unsigned alignement(
 	return 0;
 }
 
+/**
+ * Retourne vrai si le premier type est un pointeur, le deuxième un tableau, et
+ * leurs types déréférencés sont égaux.
+ */
+static bool sont_pointeur_tableau_compatibles(
+		const DonneesType &type1,
+		const DonneesType &type2)
+{
+	if (type1.type_base() != id_morceau::POINTEUR) {
+		return false;
+	}
+
+	if ((type2.type_base() & 0xff) != id_morceau::TABLEAU) {
+		return false;
+	}
+
+	return type1.derefence() == type2.derefence();
+}
+
+/**
+ * Retourne vrai si les deux types peuvent être convertis silencieusement par le
+ * compileur.
+ */
+static bool sont_compatibles(
+		const DonneesType &type1,
+		const DonneesType &type2)
+{
+	if (type1 == type2) {
+		return true;
+	}
+
+	if (sont_pointeur_tableau_compatibles(type1, type2)) {
+		return true;
+	}
+
+	if (sont_pointeur_tableau_compatibles(type2, type1)) {
+		return true;
+	}
+
+	return false;
+}
+
 static bool est_type_entier(id_morceau type)
 {
 	switch (type) {
@@ -460,7 +502,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 				const auto type_arg = pair.second.donnees_type;
 				const auto type_enf = enfant->calcul_type(contexte);
 
-				if (type_arg != type_enf) {
+				if (!sont_compatibles(type_arg, type_enf)) {
 					erreur::lance_erreur_type_arguments(
 								type_arg,
 								type_enf,
@@ -509,7 +551,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 			const auto type_arg = iter->second.donnees_type;
 			const auto type_enf = (*enfant)->calcul_type(contexte);
 
-			if (type_arg != type_enf) {
+			if (!sont_compatibles(type_arg, type_enf)) {
 				erreur::lance_erreur_type_arguments(
 							type_arg,
 							type_enf,
