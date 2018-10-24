@@ -15,11 +15,12 @@ Faitures
 - constant folding
 - manipulation de structure
 - manipulation de tableaux
+- transtypage entre types simples
 
 
 À faire
 -------
-- transtypage
+- transtypage entre types complexes
 - transtypage automatique des valeurs littérales dans les expressions ou autre
 ---- littérale + littérale -> littérale  # OK
 ---- type + littérale      -> type       # À FAIRE (OK pour Z32, R64)

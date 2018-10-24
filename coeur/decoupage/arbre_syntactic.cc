@@ -215,7 +215,37 @@ static bool est_type_entier_relatif(id_morceau type)
 	}
 }
 
-#if 0
+static size_t taille_de(id_morceau type)
+{
+	switch (type) {
+		case id_morceau::BOOL:
+			return 1;
+		case id_morceau::N8:
+		case id_morceau::Z8:
+			return 8;
+		case id_morceau::N16:
+		case id_morceau::R16:
+		case id_morceau::Z16:
+			return 16;
+		case id_morceau::N32:
+		case id_morceau::R32:
+		case id_morceau::Z32:
+			return 32;
+		case id_morceau::N64:
+		case id_morceau::R64:
+		case id_morceau::Z64:
+		case id_morceau::POINTEUR:
+			return 64;
+		default:
+			return 0ul;
+	}
+}
+
+static bool est_plus_petit(id_morceau type1, id_morceau type2)
+{
+	return taille_de(type1) < taille_de(type2);
+}
+
 static bool est_type_reel(id_morceau type)
 {
 	switch (type) {
@@ -227,7 +257,6 @@ static bool est_type_reel(id_morceau type)
 			return false;
 	}
 }
-#endif
 
 /* ************************************************************************** */
 
@@ -2137,4 +2166,110 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 type_noeud NoeudBoucle::type() const
 {
 	return type_noeud::BOUCLE;
+}
+
+NoeudTranstype::NoeudTranstype(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudTranstype::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudTranstype : " << this->donnees_type << '\n';
+	m_enfants.front()->imprime_code(os, tab + 1);
+}
+
+template <typename Inst, llvm::Instruction::CastOps Op>
+llvm::Value *cree_instruction(llvm::Value *valeur, llvm::Type *type, llvm::BasicBlock *bloc)
+{
+	return Inst::Create(Op, valeur, type, "", bloc);
+}
+
+llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+{
+	if (this->donnees_type.est_invalide()) {
+		erreur::lance_erreur(
+					"Ne peut transtyper vers un type invalide",
+					contexte.tampon,
+					this->donnees_morceau(),
+					erreur::type_erreur::TYPE_INCONNU);
+	}
+
+	auto enfant = m_enfants.front();
+	const auto &type_de = m_enfants.front()->calcul_type(contexte);
+
+	if (type_de.est_invalide()) {
+		erreur::lance_erreur(
+					"Ne peut calculer le type d'origine",
+					contexte.tampon,
+					enfant->donnees_morceau(),
+					erreur::type_erreur::TYPE_INCONNU);
+	}
+
+	auto valeur = enfant->genere_code_llvm(contexte);
+
+	if (type_de == this->donnees_type) {
+		return valeur;
+	}
+
+	using CastOps = llvm::Instruction::CastOps;
+
+	auto type = converti_type(contexte, this->donnees_type);
+
+	if (est_type_entier(type_de.type_base())) {
+		/* un nombre entier peut être converti en l'adresse d'un pointeur */
+		if (this->donnees_type.type_base() == id_morceau::POINTEUR) {
+			return cree_instruction<llvm::PtrToIntInst, CastOps::PtrToInt>(valeur, type, contexte.bloc_courant());
+		}
+
+		if (est_type_reel(this->donnees_type.type_base())) {
+			if (est_type_entier_naturel(type_de.type_base())) {
+				return cree_instruction<llvm::UIToFPInst, CastOps::UIToFP>(valeur, type, contexte.bloc_courant());
+			}
+
+			return cree_instruction<llvm::SIToFPInst, CastOps::SIToFP>(valeur, type, contexte.bloc_courant());
+		}
+
+		if (est_type_entier(this->donnees_type.type_base())) {
+			if (est_plus_petit(this->donnees_type.type_base(), type_de.type_base())) {
+				return cree_instruction<llvm::TruncInst, CastOps::Trunc>(valeur, type, contexte.bloc_courant());
+			}
+
+				if (est_type_entier_naturel(type_de.type_base())) {
+					return cree_instruction<llvm::ZExtInst, CastOps::ZExt>(valeur, type, contexte.bloc_courant());
+				}
+
+				return cree_instruction<llvm::SExtInst, CastOps::SExt>(valeur, type, contexte.bloc_courant());
+		}
+	}
+
+	if (est_type_reel(type_de.type_base())) {
+		if (est_type_entier_naturel(this->donnees_type.type_base())) {
+			return cree_instruction<llvm::FPToUIInst, CastOps::FPToUI>(valeur, type, contexte.bloc_courant());
+		}
+
+		if (est_type_entier_relatif(this->donnees_type.type_base())) {
+			return cree_instruction<llvm::FPToSIInst, CastOps::FPToSI>(valeur, type, contexte.bloc_courant());
+		}
+
+		if (est_type_reel(type_de.type_base())) {
+			if (est_plus_petit(this->donnees_type.type_base(), type_de.type_base())) {
+				return cree_instruction<llvm::FPTruncInst, CastOps::FPTrunc>(valeur, type, contexte.bloc_courant());
+			}
+
+			return cree_instruction<llvm::FPExtInst, CastOps::FPExt>(valeur, type, contexte.bloc_courant());
+		}
+	}
+
+	/* À FAIRE : PtrToInt, BitCast (Type Cast) */
+	erreur::lance_erreur_type_operation(
+				type_de,
+				this->donnees_type,
+				contexte.tampon,
+				this->donnees_morceau());
+}
+
+type_noeud NoeudTranstype::type() const
+{
+	return type_noeud::TRANSTYPE;
 }

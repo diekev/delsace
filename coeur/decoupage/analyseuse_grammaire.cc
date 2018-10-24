@@ -645,14 +645,11 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				lance_erreur("Attendu '(' après 'transtype'");
 			}
 
-			/* À FAIRE : expression ? */
-			if (!requiers_nombre_entier()) {
-				lance_erreur("Attendu chaîne caractère après '('");
-			}
+			auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, morceau, false);
 
-			/* À FAIRE : noeud dédié */
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
-			expression.push_back(noeud);
+			++m_profondeur;
+			analyse_expression_droite(id_morceau::INCONNU);
+			--m_profondeur;
 
 			if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 				lance_erreur("Attendu ')' après la déclaration de l'expression");
@@ -662,13 +659,15 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				lance_erreur("Attendu '(' après '>'");
 			}
 
-			auto donnees_type = DonneesType{};
-			analyse_declaration_type(donnees_type, false);
+			analyse_declaration_type(noeud->donnees_type, false);
 
 			/* vérifie mais n'avance pas */
 			if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 				lance_erreur("Attendu ')' après la déclaration du type");
 			}
+
+			m_assembleuse->depile_noeud(type_noeud::TRANSTYPE);
+			expression.push_back(noeud);
 		}
 		else if (est_operateur(morceau.identifiant)) {
 			auto id_operateur = morceau.identifiant;
