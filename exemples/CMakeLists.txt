@@ -24,8 +24,6 @@ set(INCLUSIONS
 )
 
 set(FICHIERS
-    association.kuri
-    boucle.kuri
     controle_flux.kuri
     fonction_simple.kuri
 )
