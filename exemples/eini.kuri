@@ -1,0 +1,32 @@
+# type eini
+
+structure Vecteur3D {
+
+}
+
+fonction foo(valeur : eini) : eini
+{
+	# données eini
+	# - type_de : chaîne de caractère connu lors de la compilation
+	# - taille_de : taille en octet
+	# - extrait : valeur
+	# - savoir si fonction, structure, type usine ; classe_de ?
+	# savoir si pointeur, type pointée, ...
+
+	soit type = type_de(valeur);
+
+	si type == "z32" {
+		soit x = extrait(valeur : z32);
+	}
+	sinon si type == "z8" {
+		soit x = extrait(valeur : z8);
+	}
+	sinon si type == "Vecteur3D" {
+		soit x = extrait(valeur : Vecteur3D);
+	}
+
+	# construit
+
+	soit y = 5;
+	soit eini_y = eini(y);
+}

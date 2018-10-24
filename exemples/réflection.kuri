@@ -1,0 +1,84 @@
+# Réflection :
+# - pour pouvoir manipuler les types polymorphiques (bouton interface)
+# - savoir si une expression compile
+# - sérialisation/désérialisation
+
+# voir D pour la génération de structures
+# template GenStruct(string Name, string M1)
+# {
+#		const char[] GenStruct = "struct "
+#			~ Name ~ "{ int " ~ M1 ~ "; }";
+# }
+# ceci demande au parser de générer une chaîne qui est ensuite
+# collé dans le code source
+# mixin(GenStruct!("Foo", "bar"));
+
+#  C++ reflexpr
+# - get_data_members
+# - get_public_data_members
+# - is_public/private
+# - get_pointer
+
+structure Vecteur {
+	x : z32;
+
+	fonction longueur() : z32
+	{
+		retourne 0;
+	}
+}
+
+fonction bar() : z32
+{
+	retourne 1;
+}
+
+fonction foo()
+{
+	# réflection sur une structure ou un type
+	# - requiers un objet existant (pointeur, valeur)
+	# - accès membre (type / nom)
+	# - accès méthode (type / nom)
+	# - extraction et intraction des valeur des membre
+	# - itérations sur les membres, introspection
+	# - itérations sur les surcharges de méthode ou d'opérateurs
+	soit v : Vecteur;
+
+	# retourne les données associé au paramètre; type : objet
+	soit o = objet(v);
+	# retourne le champs appelé v; type : champs
+	soit cx = champs(o, "x");
+	# retourne la valeur du champs en z32
+	soit x = extrait(cx : z32);
+
+	# retourne le champs appelé v; type : champs
+	# champs(objet, chaîne, params...)
+	soit cf = champs(o, "longueur");
+
+	# retourne un pointeur vers la fonction
+	soit f = extrait(cf, function()z32);
+
+	# invoque la fonction
+	f(v);
+	invoque(f, v);
+
+	# réflection sur une fonction
+	# - requiers un pointeur vers une fonction
+	# - accès arité
+	# - accès paramètres (type/nom)
+	# - accès variables locales ? il faudrait donner des noms/annotations aux
+	#   portées ou forcer une déclaration unique des noms de variables
+
+	# retourne les données associé au paramètre; type : objet
+	soit of = objet(bar);
+
+	# retourne l'arité de la fonction
+	soit ar = arité(of);
+
+	# retourne un pointeur vers la fonction
+	soit ff = extrait(of, function()z32);
+
+	# invoque la fonction
+	ff();
+	invoque(ff);
+}
