@@ -1,12 +1,12 @@
-# Code des différentes couleurs pouvant être utilisées pour afficher du
-# texte à l'écran. Chaque octet du tampon de la mémoire vidéo destiné à
-# la couleur est divisé en deux valeurs hexadécimal, la première définie
+# Code des différentes couleurs pouvant être utilisées pour afficher du
+# texte à l'écran. Chaque octet du tampon de la mémoire vidéo destiné à
+# la couleur est divisé en deux valeurs hexadécimal, la première définie
 # l'arrière-plan, et la deuxième le texte.
 # Par exemple 0x07 représente un écran noir avec un texte gris clair.
-# Les valeurs sont « répétées » pour pouvoir écrire
-# AP_NOIR | TE_GRIS_CLAIR au lieu de (NOIR << 4) | GRIS_CLAIR.
+# Les valeurs sont « répétées » pour pouvoir écrire
+# AP_NOIR | TE_GRIS_CLAIR au lieu de (NOIR << 4) | GRIS_CLAIR.
 énum {
-	# Arrière-Plan
+	# Arrière-Plan
 	AP_NOIR          = 0x00,
 	AP_BLEU          = 0x10,
 	AP_VERT          = 0x20,
@@ -24,7 +24,7 @@
 	AP_BRUN_CLAIR    = 0xE0,
 	AP_BLANC         = 0xF0,
 
-	# Texte
+	# Texte
 	TE_NOIR          = 0x00,
 	TE_BLEU          = 0x01,
 	TE_VERT          = 0x02,
@@ -49,15 +49,15 @@ structure Kernel {
 
 fonction clarifie_écran(variable ptr_vidéo : *z8) : rien
 {
-	# Cette boucle clarifie l'écran.
+	# Cette boucle clarifie l'écran.
 	# Il y a 25 lignes de 80 colonnes.
 	# Chaque élément prend 2 octets.
-	pour j dans 0...(80 * 25 * 2) inc 2 {
-		# Caractère blanc
-		ptr_vidéo[j] = ' ';
+	pour j dans 0...(80 * 25 * 2) {
+		# Caractère blanc
+		ptr_vidéo[j * 2] = ' ';
 
 		# Octet d'attribut - écran noir.
-		ptr_vidéo[j + 1] = AP_NOIR | TE_NOIR;
+		ptr_vidéo[j * 2 + 1] = transtype(AP_NOIR | TE_NOIR)(z8);
 	}
 
 	retourne;
@@ -74,11 +74,11 @@ fonction écris_chaîne(variable ptr_vidéo : *z8, chaine : *z8) : rien
 			arrête;
 		}
 
-		# le caractère ascii.
+		# le caractère ascii.
 		ptr_vidéo[i] = chaine[j];
 
 		# Octet d'attribut - gris clair sur écran noir.
-		ptr_vidéo[i + 1] = AP_NOIR | TE_GRIS_CLAIR;
+		ptr_vidéo[i + 1] = transtype(AP_NOIR | TE_GRIS_CLAIR)(z8);
 
 		i = i + 2;
 		j = j + 1;
@@ -89,7 +89,7 @@ fonction écris_chaîne(variable ptr_vidéo : *z8, chaine : *z8) : rien
 
 fonction principale()
 {
-	# En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
+	# En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
 	soit ptr_vidéo = transtype(0xb8000)(*z8);
 
 	clarifie_écran(ptr_vidéo);
