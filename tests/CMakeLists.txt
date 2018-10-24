@@ -40,6 +40,7 @@ set(SOURCES
 	test_fonctions.h
 	test_retour.hh
 	test_structures.hh
+	test_transtype.hh
 	test_types.h
 	test_unicode.h
 	test_variables.h
@@ -53,6 +54,7 @@ set(SOURCES
 	test_fonctions.cc
 	test_retour.cc
 	test_structures.cc
+	test_transtype.cc
 	test_types.cc
 	test_unicode.cc
 	test_variables.cc

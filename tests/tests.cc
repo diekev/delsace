@@ -30,6 +30,7 @@
 #include "test_fonctions.h"
 #include "test_retour.hh"
 #include "test_structures.hh"
+#include "test_transtype.hh"
 #include "test_types.h"
 #include "test_unicode.h"
 #include "test_variables.h"
@@ -48,6 +49,7 @@ int main()
 	controleur.ajoute_fonction(test_assignation);
 	controleur.ajoute_fonction(test_retour);
 	controleur.ajoute_fonction(test_boucle);
+	controleur.ajoute_fonction(test_transtype);
 
 	controleur.performe_controles();
 
