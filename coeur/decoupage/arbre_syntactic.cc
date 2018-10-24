@@ -1356,8 +1356,20 @@ void NoeudAccesMembre::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
 {
-	const auto &type_structure = m_enfants.back()->calcul_type(contexte);
-	const auto &nom_membre = m_enfants.front()->chaine();
+	auto structure = m_enfants.back();
+	auto membre = m_enfants.front();
+
+	const auto &type_structure = structure->calcul_type(contexte);
+
+	if ((type_structure.type_base() & 0xff) != id_morceau::CHAINE_CARACTERE) {
+		erreur::lance_erreur(
+					"Impossible d'accéder au membre d'un objet n'état pas une structure",
+					contexte.tampon,
+					structure->donnees_morceau(),
+					erreur::type_erreur::TYPE_DIFFERENTS);
+	}
+
+	const auto &nom_membre = membre->chaine();
 
 	auto &donnees_structure = contexte.donnees_structure(size_t(type_structure.type_base() >> 8));
 
@@ -1374,7 +1386,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 	const auto index_membre = iter->second;
 
-	auto valeur = m_enfants.back()->genere_code_llvm(contexte, true);
+	auto valeur = structure->genere_code_llvm(contexte, true);
 
 	llvm::Value *ret = llvm::GetElementPtrInst::CreateInBounds(
 						   valeur, {
@@ -1393,9 +1405,21 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &contexte)
 {
-	const auto &type_structure = m_enfants.back()->calcul_type(contexte);
+	auto structure = m_enfants.back();
+	auto membre = m_enfants.front();
+
+	const auto &type_structure = structure->calcul_type(contexte);
+
+	if ((type_structure.type_base() & 0xff) != id_morceau::CHAINE_CARACTERE) {
+		erreur::lance_erreur(
+					"Impossible d'accéder au membre d'un objet n'état pas une structure",
+					contexte.tampon,
+					structure->donnees_morceau(),
+					erreur::type_erreur::TYPE_DIFFERENTS);
+	}
+
 	auto &donnees_structure = contexte.donnees_structure(size_t(type_structure.type_base() >> 8));
-	const auto &nom_membre = m_enfants.front()->chaine();
+	const auto &nom_membre = membre->chaine();
 
 	const auto iter = donnees_structure.index_membres.find(nom_membre);
 

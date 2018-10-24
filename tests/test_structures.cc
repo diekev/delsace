@@ -201,6 +201,27 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut pas accèder aux membres d'une variable qui n'est pas une structure.");
+	{
+		const char *texte =
+				R"(
+				fonction accès_x() : rien
+				{
+					soit a = 0;
+					soit b = x de a;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_membre_unique(numero7::test_unitaire::ControleurUnitaire &controleur)
