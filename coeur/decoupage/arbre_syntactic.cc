@@ -141,6 +141,7 @@ static unsigned alignement(
 		case id_morceau::N32:
 		case id_morceau::Z32:
 			return 4;
+		case id_morceau::TABLEAU:
 		case id_morceau::POINTEUR:
 		case id_morceau::R64:
 		case id_morceau::N64:
