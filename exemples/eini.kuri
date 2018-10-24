@@ -1,4 +1,26 @@
 # type eini
+# ---------
+# 
+# mots-clés
+# - classe_de : retourne une chaîne représentant la classe, p.e. "structure"
+# - type_de   : retourne une chaîne représentant le type, p.e. "Vecteur3D"
+# - extrait   : retourne la valeur de l'objet selon le type passé
+# - eini      : construit un eini
+# - taille_de : taille en octet
+#
+# +----------------------+-----------+---------------+-----------------+
+# | expression           | classe    | type          | valeur          |
+# +----------------------+-----------+---------------+-----------------+
+# | soit a = 5;          | structure | z32           | 5               |
+# | soit t = [N]z32;     | tableau   | [N]z32        | adresse         |
+# | soit t = *z32;       | pointeur  | *z32          | adresse         |
+# | fonction foo() : z32 | fonction  | fonction()z32 | adresse         |
+# | soit v = Vecteur3D;  | structure | Vecteur3D     | val initialisée |
+# | soit é = AP_NOIR;    | énum      | z32           | val AP_NOIR     |
+# +----------------------+-----------+---------------+-----------------+
+#
+# Comment faire pour stocker les objets lors de l'exécution ? Il faudrait une
+# allocation dynamique de la mémoire avec une désallocation automatique...
 
 structure Vecteur3D {
 
@@ -6,13 +28,6 @@ structure Vecteur3D {
 
 fonction foo(valeur : eini) : eini
 {
-	# données eini
-	# - type_de : chaîne de caractère connu lors de la compilation
-	# - taille_de : taille en octet
-	# - extrait : valeur
-	# - savoir si fonction, structure, type usine ; classe_de ?
-	# savoir si pointeur, type pointée, ...
-
 	soit type = type_de(valeur);
 
 	si type == "z32" {
