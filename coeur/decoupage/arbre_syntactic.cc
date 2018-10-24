@@ -2359,7 +2359,11 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 		}
 	}
 
-	/* À FAIRE : PtrToInt, BitCast (Type Cast) */
+	if (type_de == id_morceau::POINTEUR && est_type_entier(type_vers)) {
+		return cree_instruction<CastOps::PtrToInt>(valeur, type, bloc);
+	}
+
+	/* À FAIRE : BitCast (Type Cast) */
 	erreur::lance_erreur_type_operation(
 				donnees_type_de,
 				this->donnees_type,
