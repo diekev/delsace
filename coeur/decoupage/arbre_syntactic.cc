@@ -357,10 +357,10 @@ static void ajoute_printf(ContexteGenerationCode &contexte)
 						   true);
 
 	llvm::Function::Create(
-				   type_printf,
-				   llvm::Function::ExternalLinkage,
-				   "printf",
-				   contexte.module);
+				type_printf,
+				llvm::Function::ExternalLinkage,
+				"printf",
+				contexte.module);
 }
 
 /* ************************************************************************** */
@@ -644,10 +644,10 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Crée fonction */
 	auto fonction = llvm::Function::Create(
-				   type_fonction,
-				   llvm::Function::ExternalLinkage,
-				   std::string(m_donnees_morceaux.chaine),
-				   contexte.module);
+						type_fonction,
+						llvm::Function::ExternalLinkage,
+						std::string(m_donnees_morceaux.chaine),
+						contexte.module);
 
 	auto block = llvm::BasicBlock::Create(
 					 contexte.contexte,
@@ -2018,9 +2018,9 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	/* création des blocs */
 	auto bloc_boucle = llvm::BasicBlock::Create(
-						  contexte.contexte,
-						  "boucle",
-						  contexte.fonction);
+						   contexte.contexte,
+						   "boucle",
+						   contexte.fonction);
 
 	auto bloc_corps = llvm::BasicBlock::Create(
 						  contexte.contexte,
@@ -2190,9 +2190,9 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 {
 	/* création des blocs */
 	auto bloc_boucle = llvm::BasicBlock::Create(
-						  contexte.contexte,
-						  "boucle",
-						  contexte.fonction);
+						   contexte.contexte,
+						   "boucle",
+						   contexte.fonction);
 
 	auto bloc_apres = llvm::BasicBlock::Create(
 						  contexte.contexte,
@@ -2295,11 +2295,11 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 				return cree_instruction<llvm::TruncInst, CastOps::Trunc>(valeur, type, contexte.bloc_courant());
 			}
 
-				if (est_type_entier_naturel(type_de.type_base())) {
-					return cree_instruction<llvm::ZExtInst, CastOps::ZExt>(valeur, type, contexte.bloc_courant());
-				}
+			if (est_type_entier_naturel(type_de.type_base())) {
+				return cree_instruction<llvm::ZExtInst, CastOps::ZExt>(valeur, type, contexte.bloc_courant());
+			}
 
-				return cree_instruction<llvm::SExtInst, CastOps::SExt>(valeur, type, contexte.bloc_courant());
+			return cree_instruction<llvm::SExtInst, CastOps::SExt>(valeur, type, contexte.bloc_courant());
 		}
 	}
 
