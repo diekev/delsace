@@ -270,7 +270,7 @@ static void imprime_tab(std::ostream &os, int tab)
 
 static bool est_branche_ou_retour(llvm::Value *valeur)
 {
-	return (llvm::isa<llvm::BranchInst>(*valeur) || llvm::isa<llvm::ReturnInst>(*valeur));
+	return (valeur != nullptr) && (llvm::isa<llvm::BranchInst>(*valeur) || llvm::isa<llvm::ReturnInst>(*valeur));
 }
 
 /* ************************************************************************** */
