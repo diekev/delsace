@@ -87,7 +87,7 @@ fonction écris_chaîne(variable ptr_vidéo : *z8, chaine : *z8) : rien
 	retourne;
 }
 
-fonction principale()
+fonction principale() : z32
 {
 	# En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
 	soit ptr_vidéo = transtype(0xb8000)(*z8);
