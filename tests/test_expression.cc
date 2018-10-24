@@ -56,6 +56,8 @@ R"(fonction foo()
 	soit x19 = ~a;
 	soit x20 = @a;
 	soit x21 = a;
+	soit x22 = -a + -b;
+	soit x23 = +b - +a;
 }
 )";
 

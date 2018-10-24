@@ -105,6 +105,8 @@ static bool est_operateur_unaire(id_morceau identifiant)
 		case id_morceau::EXCLAMATION:
 		case id_morceau::TILDE:
 		case id_morceau::CROCHET_OUVRANT:
+		case id_morceau::PLUS_UNAIRE:
+		case id_morceau::MOINS_UNAIRE:
 			return true;
 		default:
 			return false;
@@ -172,6 +174,27 @@ static bool est_operateur_constant(id_morceau identifiant)
 		default:
 			return false;
 	}
+}
+
+/**
+ * Retourne vrai se l'identifiant passé en paramètre peut-être un identifiant
+ * valide pour précèder un opérateur unaire '+' ou '-'.
+ */
+static bool precede_unaire_valide(id_morceau dernier_identifiant)
+{
+	if (est_operateur(dernier_identifiant)) {
+		return true;
+	}
+
+	if (dernier_identifiant == id_morceau::PARENTHESE_OUVRANTE) {
+		return true;
+	}
+
+	if (dernier_identifiant == id_morceau::CROCHET_OUVRANT) {
+		return true;
+	}
+
+	return false;
 }
 
 /* ************************************************************************** */
@@ -571,6 +594,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
 	 * fontion. */
 	auto paren = 0;
+	auto dernier_identifiant = m_identifiants[position()].identifiant;
 
 	while (!est_identifiant(identifiant_final)) {
 		const auto &morceau = m_identifiants[position() + 1];
@@ -647,10 +671,21 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			}
 		}
 		else if (est_operateur(morceau.identifiant)) {
+			auto id_operateur = morceau.identifiant;
+
+			if (precede_unaire_valide(dernier_identifiant)) {
+				if (id_operateur == id_morceau::PLUS) {
+					id_operateur = id_morceau::PLUS_UNAIRE;
+				}
+				else if (id_operateur == id_morceau::MOINS) {
+					id_operateur = id_morceau::MOINS_UNAIRE;
+				}
+			}
+
 			while (!pile.empty()
 				   && pile.back() != NOEUD_PARENTHESE
 				   && est_operateur(pile.back()->identifiant())
-				   && (precedence_faible(morceau.identifiant, pile.back()->identifiant())))
+				   && (precedence_faible(id_operateur, pile.back()->identifiant())))
 			{
 				expression.push_back(pile.back());
 				pile.pop_back();
@@ -658,7 +693,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 			auto noeud = static_cast<Noeud *>(nullptr);
 
-			if (morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
+			if (id_operateur == id_morceau::CROCHET_OUVRANT) {
 				avance();
 
 				noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, morceau, false);
@@ -673,10 +708,10 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				 * la boucle plus bas */
 				recule();
 			}
-			else if (morceau.identifiant == id_morceau::DE) {
+			else if (id_operateur == id_morceau::DE) {
 				noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE, morceau);
 			}
-			else if (morceau.identifiant == id_morceau::EGAL) {
+			else if (id_operateur == id_morceau::EGAL) {
 				if (!assignation) {
 					avance();
 					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
@@ -685,7 +720,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau);
 			}
 			else {
-				if (est_operateur_binaire(morceau.identifiant)) {
+				if (est_operateur_binaire(id_operateur)) {
 					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
 				}
 				else {
@@ -728,6 +763,8 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			lance_erreur("Identifiant inattendu dans l'expression");
 		}
 
+		dernier_identifiant = morceau.identifiant;
+
 		avance();
 	}
 
@@ -743,7 +780,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	pile.reserve(expression.size());
 
 	for (Noeud *noeud : expression) {
-		if (est_operateur_binaire(noeud->identifiant())) {
+		if (noeud->type() == type_noeud::OPERATION_BINAIRE) {
 			auto n2 = pile.back();
 			pile.pop_back();
 
@@ -773,7 +810,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 			pile.push_back(noeud);
 		}
-		else if (est_operateur_unaire(noeud->identifiant())) {
+		else if (noeud->type() == type_noeud::OPERATION_UNAIRE) {
 			auto n1 = pile.back();
 			pile.pop_back();
 

@@ -269,6 +269,10 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::NOMBRE_OCTAL";
 		case id_morceau::NOMBRE_BINAIRE:
 			return "id_morceau::NOMBRE_BINAIRE";
+		case id_morceau::PLUS_UNAIRE:
+			return "id_morceau::PLUS_UNAIRE";
+		case id_morceau::MOINS_UNAIRE:
+			return "id_morceau::MOINS_UNAIRE";
 		case id_morceau::TROIS_POINTS:
 			return "id_morceau::TROIS_POINTS";
 		case id_morceau::CHAINE_CARACTERE:

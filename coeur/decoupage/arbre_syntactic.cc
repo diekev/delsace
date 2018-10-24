@@ -1570,6 +1570,7 @@ void NoeudOperationUnaire::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	llvm::Instruction::BinaryOps instr;
+	auto type1 = m_enfants.front()->calcul_type(contexte);
 	auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
 	auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
@@ -1599,6 +1600,28 @@ llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &cont
 			}
 
 			return inst_load->getPointerOperand();
+		}
+		case id_morceau::PLUS:
+		{
+			return valeur1;
+		}
+		case id_morceau::MOINS:
+		{
+			valeur2 = valeur1;
+
+			if (est_type_entier(type1.type_base())) {
+				valeur1 = llvm::ConstantInt::get(
+							  valeur2->getType(),
+							  static_cast<uint64_t>(0),
+							  false);
+				instr = llvm::Instruction::Sub;
+			}
+			else {
+				valeur1 = llvm::ConstantFP::get(valeur2->getType(), 0);
+				instr = llvm::Instruction::FSub;
+			}
+
+			break;
 		}
 		default:
 		{

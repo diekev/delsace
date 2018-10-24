@@ -76,6 +76,8 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 		case id_morceau::TILDE:
 		case id_morceau::AROBASE:
 		case id_morceau::DE:
+		case id_morceau::PLUS_UNAIRE:
+		case id_morceau::MOINS_UNAIRE:
 			return { dir_associativite::DROITE, 11 };
 		case id_morceau::CROCHET_OUVRANT:
 			return { dir_associativite::GAUCHE, 12 };
@@ -416,6 +418,42 @@ Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 
 			assembleuse.supprime_noeud(op);
 
+			return n1;
+		}
+
+		if (op->identifiant() == id_morceau::MOINS) {
+			auto v = extrait_nombre_entier(n1);
+			n1->valeur_calculee = -v;
+			n1->calcule = true;
+
+			assembleuse.supprime_noeud(op);
+
+			return n1;
+		}
+
+		if (op->identifiant() == id_morceau::PLUS) {
+			/* nul-op */
+			assembleuse.supprime_noeud(op);
+			return n1;
+		}
+
+		return nullptr;
+	}
+
+	if (n1->identifiant() == id_morceau::NOMBRE_REEL) {
+		if (op->identifiant() == id_morceau::MOINS) {
+			auto v = extrait_nombre_reel(n1);
+			n1->valeur_calculee = -v;
+			n1->calcule = true;
+
+			assembleuse.supprime_noeud(op);
+
+			return n1;
+		}
+
+		if (op->identifiant() == id_morceau::PLUS) {
+			/* nul-op */
+			assembleuse.supprime_noeud(op);
 			return n1;
 		}
 
