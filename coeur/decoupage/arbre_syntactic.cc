@@ -464,8 +464,8 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 					erreur::lance_erreur_type_arguments(
 								type_arg,
 								type_enf,
-								pair.first,
 								contexte.tampon,
+								enfant->donnees_morceau(),
 								m_donnees_morceaux);
 				}
 			}
@@ -513,8 +513,8 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 				erreur::lance_erreur_type_arguments(
 							type_arg,
 							type_enf,
-							nom,
 							contexte.tampon,
+							(*enfant)->donnees_morceau(),
 							m_donnees_morceaux);
 			}
 

@@ -81,6 +81,17 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 	}
 }
 
+static void imprime_ligne_entre(
+		std::ostream &os,
+		const std::string_view &chaine,
+		size_t debut,
+		size_t fin)
+{
+	for (auto i = debut; i < fin; ++i) {
+		os << chaine[i];
+	}
+}
+
 void lance_erreur(
 		const std::string &quoi,
 		const TamponSource &tampon,
@@ -138,27 +149,37 @@ void lance_erreur(
 [[noreturn]] void lance_erreur_type_arguments(
 		const DonneesType &type_arg,
 		const DonneesType &type_enf,
-		const std::string_view &nom_arg,
 		const TamponSource &tampon,
+		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto pos_mot = morceau_enfant.ligne_pos & 0xffffffff;
 	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;
+	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << "Dans l'appel de la fonction '" << morceau.chaine << "':\n";
 	ss << ligne;
 
 	imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
+	imprime_tilde(ss, morceau_enfant.chaine);
 	ss << '\n';
 
-	ss << "Fonction : '" << morceau.chaine << "', argument " << nom_arg << '\n';
-	ss << "Les types d'arguments ne correspondent pas !\n";
+	ss << "Le type de l'argument '" << morceau_enfant.chaine << "' ne correspond pas à celui requis !\n";
 	ss << "Requiers : " << type_arg << '\n';
 	ss << "Obtenu   : " << type_enf << '\n';
+	ss << '\n';
+	ss << "Astuce :\n";
+	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
+
+	imprime_ligne_entre(ss, ligne, 0, pos_mot);
+	ss << "transtype(" << morceau_enfant.chaine << ")(" << type_arg << ")";
+	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.size(), ligne.size());
+	ss << "\n----------------------------------------------------------------\n";
+
 	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
 }
 
