@@ -27,7 +27,72 @@
 #include "erreur.h"
 #include "outils.h"
 
-void test_boucle(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"La plage d'une boucle 'pour' avec des types entiers identiques est correcte");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					pour x dans 0...10 {
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"La plage d'une boucle 'pour' doit avoir des types identiques");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					pour x dans 0...10.0 {
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"La plage d'une boucle 'pour' doit avoir des types entiers");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					pour x dans 0.0...10.0 {
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+}
+
+static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &controleur)
 {
 	CU_DEBUTE_PROPOSITION(controleur, "Le mot clé 'continue' peut apparaître dans une boucle");
 	{
@@ -102,4 +167,10 @@ void test_boucle(numero7::test_unitaire::ControleurUnitaire &controleur)
 		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
+}
+
+void test_boucle(numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	test_plage_pour(controleur);
+	test_continue_arrete(controleur);
 }

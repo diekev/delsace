@@ -2130,6 +2130,14 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 					m_donnees_morceaux);
 	}
 
+	if (!est_type_entier(type_debut.type_base())) {
+		erreur::lance_erreur(
+					"Attendu des types entiers dans la plage de la boucle 'pour'",
+					contexte.tampon,
+					this->donnees_morceau(),
+					erreur::type_erreur::TYPE_DIFFERENTS);
+	}
+
 	auto valeur = contexte.valeur_locale(enfant1->chaine());
 
 	if (valeur != nullptr) {
