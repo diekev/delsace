@@ -107,6 +107,11 @@ public:
 	 * de l'arbre.
 	 */
 	size_t memoire_utilisee() const;
+
+	/**
+	 * Retourne le nombre de noeuds dans l'arbre.
+	 */
+	size_t nombre_noeuds() const;
 };
 
 /**

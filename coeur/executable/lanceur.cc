@@ -278,6 +278,8 @@ int main(int argc, char *argv[])
 	auto mem_morceaux          = 0ul;
 	auto mem_arbre             = 0ul;
 	auto mem_contexte          = 0ul;
+	auto nombre_morceaux       = 0ul;
+	auto nombre_noeuds         = 0ul;
 
 	os << "Ouverture de '" << chemin_fichier << "'..." << std::endl;
 	auto debut_chargement = numero7::chronometrage::maintenant();
@@ -298,6 +300,7 @@ int main(int argc, char *argv[])
 		const auto debut_decoupeuse = numero7::chronometrage::maintenant();
 		decoupeuse.genere_morceaux();
 		mem_morceaux = decoupeuse.memoire_morceaux();
+		nombre_morceaux = decoupeuse.morceaux().size();
 		temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupeuse;
 
 		auto assembleuse = assembleuse_arbre();
@@ -310,6 +313,7 @@ int main(int argc, char *argv[])
 		analyseuse.imprime_identifiants_plus_utilises(os);
 #endif
 		mem_arbre = assembleuse.memoire_utilisee();
+		nombre_noeuds = assembleuse.nombre_noeuds();
 		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
 
 		const auto triplet_cible = llvm::sys::getDefaultTargetTriple();
@@ -416,6 +420,11 @@ int main(int argc, char *argv[])
 							+ mem_morceaux
 							+ mem_arbre
 							+ mem_contexte;
+
+	os << '\n';
+	os << "Métriques :\n";
+	os << "\tNombre morceaux : " << nombre_morceaux << '\n';
+	os << "\tNombre noeuds   : " << nombre_noeuds << '\n';
 
 	os << '\n';
 	os << "Mémoire : " << taille_octet(mem_totale) << '\n';

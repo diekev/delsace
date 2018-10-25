@@ -221,6 +221,11 @@ size_t assembleuse_arbre::memoire_utilisee() const
 	return m_memoire_utilisee + m_noeuds.size() * sizeof(Noeud *);
 }
 
+size_t assembleuse_arbre::nombre_noeuds() const
+{
+	return m_noeuds.size();
+}
+
 void imprime_taille_memoire_noeud(std::ostream &os)
 {
 	os << "------------------------------------------------------------------\n";
