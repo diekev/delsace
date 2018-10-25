@@ -39,6 +39,11 @@
 
 /* ************************************************************************** */
 
+static auto cree_bloc(ContexteGenerationCode &contexte, const char *nom)
+{
+	return llvm::BasicBlock::Create(contexte.contexte, nom, contexte.fonction);
+}
+
 static llvm::Type *converti_type(
 		ContexteGenerationCode &contexte,
 		const DonneesType &donnees_type)
@@ -695,12 +700,10 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 						std::string(m_donnees_morceaux.chaine),
 						contexte.module);
 
-	auto block = llvm::BasicBlock::Create(
-					 contexte.contexte,
-					 "entrypoint",
-					 fonction);
-
 	contexte.commence_fonction(fonction);
+
+	auto block = cree_bloc(contexte, "entree");
+
 	contexte.bloc_courant(block);
 
 	/* Crée code pour les arguments */
@@ -2059,22 +2062,13 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 
 	auto condition = enfant1->genere_code_llvm(contexte);
 
-	auto bloc_alors = llvm::BasicBlock::Create(
-						  contexte.contexte,
-						  "alors",
-						  contexte.fonction);
+	auto bloc_alors = cree_bloc(contexte, "alors");
 
 	auto bloc_sinon = (nombre_enfants == 3)
-					  ? llvm::BasicBlock::Create(
-							contexte.contexte,
-							"sinon",
-							contexte.fonction)
+					  ? cree_bloc(contexte, "sinon")
 					  : nullptr;
 
-	auto bloc_fusion = llvm::BasicBlock::Create(
-						   contexte.contexte,
-						   "cont_si",
-						   contexte.fonction);
+	auto bloc_fusion = cree_bloc(contexte, "cont_si");
 
 	llvm::BranchInst::Create(
 				bloc_alors,
@@ -2285,32 +2279,13 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	enfant1->donnees_type = type_debut;
 
 	/* création des blocs */
-	auto bloc_boucle = llvm::BasicBlock::Create(
-						   contexte.contexte,
-						   "boucle",
-						   contexte.fonction);
-
-	auto bloc_corps = llvm::BasicBlock::Create(
-						  contexte.contexte,
-						  "corps_boucle",
-						  contexte.fonction);
-
-	auto bloc_inc = llvm::BasicBlock::Create(
-						contexte.contexte,
-						"inc_boucle",
-						contexte.fonction);
-
+	auto bloc_boucle = cree_bloc(contexte, "boucle");
+	auto bloc_corps = cree_bloc(contexte, "corps_boucle");
+	auto bloc_inc = cree_bloc(contexte, "inc_boucle");
 	auto bloc_sinon = (enfant5 != nullptr)
-					  ? llvm::BasicBlock::Create(
-							contexte.contexte,
-							"sinon_boucle",
-							contexte.fonction)
+					  ? cree_bloc(contexte, "sinon_boucle")
 					  : nullptr;
-
-	auto bloc_apres = llvm::BasicBlock::Create(
-						  contexte.contexte,
-						  "apres_boucle",
-						  contexte.fonction);
+	auto bloc_apres = cree_bloc(contexte, "apres_boucle");
 
 	contexte.empile_bloc_continue(bloc_inc);
 	contexte.empile_bloc_arrete((bloc_sinon != nullptr) ? bloc_sinon : bloc_apres);
@@ -2369,7 +2344,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		}
 	}
 
-	/* inc_corps */
+	/* inc_boucle */
 	{
 		contexte.bloc_courant(bloc_inc);
 
@@ -2490,22 +2465,9 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 	auto enfant2 = (m_enfants.size() == 2) ? *iter++ : nullptr;
 
 	/* création des blocs */
-	auto bloc_boucle = llvm::BasicBlock::Create(
-						   contexte.contexte,
-						   "boucle",
-						   contexte.fonction);
-
-	auto bloc_sinon = (enfant2 != nullptr)
-					  ? llvm::BasicBlock::Create(
-						  contexte.contexte,
-						  "sinon_boucle",
-						  contexte.fonction)
-					  : nullptr;
-
-	auto bloc_apres = llvm::BasicBlock::Create(
-						  contexte.contexte,
-						  "apres_boucle",
-						  contexte.fonction);
+	auto bloc_boucle = cree_bloc(contexte, "boucle");
+	auto bloc_sinon = (enfant2 != nullptr) ? cree_bloc(contexte, "sinon_boucle") : nullptr;
+	auto bloc_apres = cree_bloc(contexte, "apres_boucle");
 
 	contexte.empile_bloc_continue(bloc_boucle);
 	contexte.empile_bloc_arrete((enfant2 != nullptr) ? bloc_sinon : bloc_apres);
