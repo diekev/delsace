@@ -192,6 +192,10 @@ void assembleuse_arbre::imprime_code(std::ostream &os)
 
 void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_generation)
 {
+	if (m_pile.empty()) {
+		return;
+	}
+
 	m_pile.top()->genere_code_llvm(contexte_generation);
 }
 
