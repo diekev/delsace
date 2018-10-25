@@ -1,0 +1,72 @@
+structure ChaînePascal {
+	données : [256]z8;
+}
+
+fonction longueur_chaine(chaîne : *z8) : z32
+{
+	soit variable l = 0;
+
+	boucle {
+		si chaîne[l] == '\0' {
+			arrête;
+		}
+
+		l = l + 1;
+	}
+
+	retourne l;
+}
+
+fonction assigne_chaîne_pascal(variable cp : *ChaînePascal, c : *z8) : rien
+{
+	soit l = longueur_chaine(c);
+
+	données[0] de cp = transtype(l)(z8);
+
+	pour i dans 0 ... l {
+		données[1 + i] de cp = c[i];
+	}
+}
+
+fonction imprime_chaîne_pascal(cp : *ChaînePascal) : rien
+{
+	si cp == nul {
+	printf("la chaîne est nulle !\n");
+		retourne;
+	}
+
+	soit l = données[0] de cp;
+
+	pour i dans 0 ... transtype(l)(z32) {
+		printf("%c", données[1 + i] de cp);
+	}
+}
+
+fonction principale(compte : z32, arguments : **z8) : z32
+{
+	soit variable chaîne : ChaînePascal;
+
+	assigne_chaîne_pascal(@chaîne, "chaîne pascal");
+
+	imprime_chaîne_pascal(@chaîne);
+
+	pour i dans 0 ... compte {
+		soit l = longueur_chaine(arguments[i]);
+
+		printf("argument %s : longueur %d\n", arguments[i], l);
+	}
+
+	pour i dans 0 ... 10 {
+		pour j dans 0 ... i {
+			printf(" ");
+		}
+
+		pour j dans 0 ... 2 * (10 - i) {
+			printf("#");
+		}
+
+		printf("\n");
+	}
+
+	retourne 0;
+}
