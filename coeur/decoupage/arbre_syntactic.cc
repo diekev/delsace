@@ -1449,6 +1449,63 @@ bool NoeudAccesMembre::peut_etre_assigne(ContexteGenerationCode &contexte) const
 
 /* ************************************************************************** */
 
+static bool peut_operer(
+		const DonneesType &type1,
+		const DonneesType &type2,
+		type_noeud type_gauche,
+		type_noeud type_droite)
+{
+	if (est_type_entier(type1.type_base())) {
+		if (est_type_entier(type2.type_base())) {
+			return true;
+		}
+
+		if (type_droite == type_noeud::NOMBRE_ENTIER) {
+			return true;
+		}
+
+		return false;
+	}
+
+	if (est_type_entier(type2.type_base())) {
+		if (est_type_entier(type1.type_base())) {
+			return true;
+		}
+
+		if (type_gauche == type_noeud::NOMBRE_ENTIER) {
+			return true;
+		}
+
+		return false;
+	}
+
+	if (est_type_reel(type1.type_base())) {
+		if (est_type_reel(type2.type_base())) {
+			return true;
+		}
+
+		if (type_droite == type_noeud::NOMBRE_REEL) {
+			return true;
+		}
+
+		return false;
+	}
+
+	if (est_type_reel(type2.type_base())) {
+		if (est_type_reel(type1.type_base())) {
+			return true;
+		}
+
+		if (type_gauche == type_noeud::NOMBRE_REEL) {
+			return true;
+		}
+
+		return false;
+	}
+
+	return false;
+}
+
 NoeudOperationBinaire::NoeudOperationBinaire(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
 {}
@@ -1471,15 +1528,20 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 	auto est_comp_entier = false;
 	auto est_comp_reel = false;
 
-	const auto type1 = m_enfants.front()->calcul_type(contexte);
-	const auto type2 = m_enfants.back()->calcul_type(contexte);
+	auto enfant1 = m_enfants.front();
+	auto enfant2 = m_enfants.back();
 
-	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT) && (type1 != type2)) {
-		erreur::lance_erreur_type_operation(
-					type1,
-					type2,
-					contexte.tampon,
-					m_donnees_morceaux);
+	const auto type1 = enfant1->calcul_type(contexte);
+	const auto type2 = enfant2->calcul_type(contexte);
+
+	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT)) {
+		if (!peut_operer(type1, type2, enfant1->type(), enfant2->type())) {
+			erreur::lance_erreur_type_operation(
+						type1,
+						type2,
+						contexte.tampon,
+						m_donnees_morceaux);
+		}
 	}
 
 	/* À FAIRE : typage */
@@ -1487,8 +1549,8 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 	/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
 	const auto valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
 
-	auto valeur1 = m_enfants.front()->genere_code_llvm(contexte);
-	auto valeur2 = m_enfants.back()->genere_code_llvm(contexte, valeur2_brut);
+	auto valeur1 = enfant1->genere_code_llvm(contexte);
+	auto valeur2 = enfant2->genere_code_llvm(contexte, valeur2_brut);
 
 	switch (this->m_donnees_morceaux.identifiant) {
 		case id_morceau::PLUS:
