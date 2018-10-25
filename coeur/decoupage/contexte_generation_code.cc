@@ -225,3 +225,40 @@ DonneesStructure &ContexteGenerationCode::donnees_structure(const size_t id)
 {
 	return structures[nom_structures[id]];
 }
+
+size_t ContexteGenerationCode::memoire_utilisee() const
+{
+	size_t memoire = sizeof(ContexteGenerationCode);
+
+	/* globales */
+	memoire += globales.size() * (sizeof(DonneesVariable) + sizeof(std::string_view));
+
+	/* fonctions */
+	memoire += fonctions.size() * (sizeof(DonneesFonction) + sizeof(std::string_view));
+
+	for (const auto &fonction : fonctions) {
+		memoire += fonction.second.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
+	}
+
+	/* structures */
+	memoire += structures.size() * sizeof(DonneesStructure);
+
+	for (const auto &structure : structures) {
+		memoire += structure.second.index_membres.size() * (sizeof(size_t) + sizeof(std::string_view));
+		memoire += structure.second.donnees_types.size() * sizeof(DonneesType);
+	}
+
+	memoire += nom_structures.size() * sizeof(std::string_view);
+
+	/* m_locales */
+	memoire += m_locales.capacity() * sizeof(std::pair<std::string_view, DonneesVariable>);
+	memoire += m_pile_nombre_locales.size() * sizeof(size_t);
+
+	/* m_pile_continue */
+	memoire += m_pile_continue.size() * sizeof(llvm::BasicBlock *);
+
+	/* m_pile_arrete */
+	memoire += m_pile_arrete.size() * sizeof(llvm::BasicBlock *);
+
+	return memoire;
+}

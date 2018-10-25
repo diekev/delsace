@@ -259,6 +259,10 @@ struct ContexteGenerationCode {
 	 */
 	DonneesStructure &donnees_structure(const size_t id);
 
+	/* ********************************************************************** */
+
+	size_t memoire_utilisee() const;
+
 private:
 	llvm::BasicBlock *m_bloc_courant = nullptr;
 	std::unordered_map<std::string_view, DonneesVariable> globales;
@@ -272,7 +276,6 @@ private:
 	std::vector<std::pair<std::string_view, DonneesVariable>> m_locales;
 	std::stack<size_t> m_pile_nombre_locales;
 	size_t m_nombre_locales = 0;
-
 
 	std::stack<llvm::BasicBlock *> m_pile_continue;
 	std::stack<llvm::BasicBlock *> m_pile_arrete;

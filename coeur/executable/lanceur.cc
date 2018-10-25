@@ -277,6 +277,7 @@ int main(int argc, char *argv[])
 	auto temps_nettoyage       = 0.0;
 	auto mem_morceaux          = 0ul;
 	auto mem_arbre             = 0ul;
+	auto mem_contexte          = 0ul;
 
 	os << "Ouverture de '" << chemin_fichier << "'..." << std::endl;
 	auto debut_chargement = numero7::chronometrage::maintenant();
@@ -360,6 +361,8 @@ int main(int argc, char *argv[])
 		assembleuse.genere_code_llvm(contexte_generation);
 		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
 
+		mem_contexte = contexte_generation.memoire_utilisee();
+
 		if (ops.emet_code_intermediaire) {
 			std::cerr <<  "------------------------------------------------------------------\n";
 			module.dump();
@@ -409,13 +412,17 @@ int main(int argc, char *argv[])
 	os << "Nombre de lignes par seconde : " << tampon.nombre_lignes() / temps_total << '\n';
 	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(tampon.taille_donnees() / temps_total)) << '\n';
 
-	const auto mem_totale = tampon.taille_donnees() + mem_morceaux + mem_arbre;
+	const auto mem_totale = tampon.taille_donnees()
+							+ mem_morceaux
+							+ mem_arbre
+							+ mem_contexte;
 
 	os << '\n';
 	os << "Mémoire : " << taille_octet(mem_totale) << '\n';
 	os << "\tTampon   : " << taille_octet(tampon.taille_donnees()) << '\n';
 	os << "\tMorceaux : " << taille_octet(mem_morceaux) << '\n';
 	os << "\tArbre    : " << taille_octet(mem_arbre) << '\n';
+	os << "\tContexte : " << taille_octet(mem_contexte) << '\n';
 
 	os << '\n';
 	os << "Temps scène : " << temps_seconde(temps_scene)
