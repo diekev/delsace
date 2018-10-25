@@ -2205,6 +2205,7 @@ void NoeudPour::imprime_code(std::ostream &os, int tab)
  * - enfant 2 : expr début
  * - enfant 3 : expr fin
  * - enfant 4 : bloc
+ * - enfant 5 : bloc sinon (optionel)
  *
  * boucle:
  *	phi [entrée] [corps_boucle]
@@ -2231,6 +2232,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto enfant2 = *iter++;
 	auto enfant3 = *iter++;
 	auto enfant4 = *iter++;
+	auto enfant5 = (m_enfants.size() == 5) ? *iter++ : nullptr;
 
 	auto type_debut = enfant2->calcul_type(contexte);
 	auto type_fin = enfant3->calcul_type(contexte);
@@ -2298,13 +2300,20 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 						"inc_boucle",
 						contexte.fonction);
 
+	auto bloc_sinon = (enfant5 != nullptr)
+					  ? llvm::BasicBlock::Create(
+							contexte.contexte,
+							"sinon_boucle",
+							contexte.fonction)
+					  : nullptr;
+
 	auto bloc_apres = llvm::BasicBlock::Create(
 						  contexte.contexte,
 						  "apres_boucle",
 						  contexte.fonction);
 
 	contexte.empile_bloc_continue(bloc_inc);
-	contexte.empile_bloc_arrete(bloc_apres);
+	contexte.empile_bloc_arrete((bloc_sinon != nullptr) ? bloc_sinon : bloc_apres);
 
 	auto bloc_pre = contexte.bloc_courant();
 	contexte.empile_nombre_locales();
@@ -2380,6 +2389,21 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		noeud_phi->addIncoming(inc, contexte.bloc_courant());
 
 		ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+	}
+
+	contexte.depile_nombre_locales();
+	contexte.empile_nombre_locales();
+
+	if (bloc_sinon != nullptr) {
+		contexte.bloc_courant(bloc_sinon);
+
+		/* génère le code du bloc */
+		ret = enfant5->genere_code_llvm(contexte);
+
+		/* incrémente la variable (noeud_phi) */
+		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sinon)) {
+			ret = llvm::BranchInst::Create(bloc_apres, contexte.bloc_courant());
+		}
 	}
 
 	contexte.depile_bloc_continue();
@@ -2461,11 +2485,22 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 		ContexteGenerationCode &contexte,
 		const bool /*expr_gauche*/)
 {
+	auto iter = m_enfants.begin();
+	auto enfant1 = *iter++;
+	auto enfant2 = (m_enfants.size() == 2) ? *iter++ : nullptr;
+
 	/* création des blocs */
 	auto bloc_boucle = llvm::BasicBlock::Create(
 						   contexte.contexte,
 						   "boucle",
 						   contexte.fonction);
+
+	auto bloc_sinon = (enfant2 != nullptr)
+					  ? llvm::BasicBlock::Create(
+						  contexte.contexte,
+						  "sinon_boucle",
+						  contexte.fonction)
+					  : nullptr;
 
 	auto bloc_apres = llvm::BasicBlock::Create(
 						  contexte.contexte,
@@ -2473,7 +2508,7 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 						  contexte.fonction);
 
 	contexte.empile_bloc_continue(bloc_boucle);
-	contexte.empile_bloc_arrete(bloc_apres);
+	contexte.empile_bloc_arrete((enfant2 != nullptr) ? bloc_sinon : bloc_apres);
 
 	contexte.empile_nombre_locales();
 
@@ -2482,10 +2517,25 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 
 	contexte.bloc_courant(bloc_boucle);
 
-	auto ret = m_enfants.front()->genere_code_llvm(contexte);
+	auto ret = enfant1->genere_code_llvm(contexte);
 
 	if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_boucle)) {
 		ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+	}
+
+	contexte.depile_nombre_locales();
+	contexte.empile_nombre_locales();
+
+	if (bloc_sinon != nullptr) {
+		contexte.bloc_courant(bloc_sinon);
+
+		/* génère le code du bloc */
+		ret = enfant2->genere_code_llvm(contexte);
+
+		/* incrémente la variable (noeud_phi) */
+		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sinon)) {
+			ret = llvm::BranchInst::Create(bloc_apres, contexte.bloc_courant());
+		}
 	}
 
 	contexte.depile_bloc_continue();
