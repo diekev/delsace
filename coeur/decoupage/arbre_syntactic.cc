@@ -764,7 +764,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	auto ret = bloc->genere_code_llvm(contexte);
 
 	/* Ajoute une instruction de retour si la dernière n'en est pas une. */
-	if (!est_branche_ou_retour(ret)) {
+	if ((ret != nullptr) && !llvm::isa<llvm::ReturnInst>(*ret)) {
 		llvm::ReturnInst::Create(
 					contexte.contexte,
 					nullptr,

@@ -50,6 +50,29 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 
 	CU_DEBUTE_PROPOSITION(
 				controleur,
+				"Une fonction dont le type de retour est 'rien' peut ommettre"
+				" une instruction de retour même après une branche");
+	{
+		/* NOTE : ce genre de cas causait un crash à cause de la manière dont on
+		 * vérifiait la dernière instruction, donc on le test. */
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					pour i dans 0 ... 10 {
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
 				"Une fonction dont le type de retour est 'rien' ne peut pas "
 				"retourner de valeur");
 	{
