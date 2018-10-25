@@ -82,6 +82,7 @@ enum class id_morceau : int {
 	N32,
 	N64,
 	N8,
+	NUL,
 	POUR,
 	R16,
 	R32,

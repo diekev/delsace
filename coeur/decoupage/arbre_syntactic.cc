@@ -2729,3 +2729,31 @@ type_noeud NoeudTranstype::type() const
 {
 	return type_noeud::TRANSTYPE;
 }
+
+/* ************************************************************************** */
+
+NoeudNul::NoeudNul(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{
+	this->donnees_type.pousse(id_morceau::POINTEUR);
+	this->donnees_type.pousse(id_morceau::NUL);
+}
+
+void NoeudNul::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudNul\n";
+}
+
+llvm::Value *NoeudNul::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+{
+	return llvm::ConstantInt::get(
+				llvm::Type::getInt32Ty(contexte.contexte),
+				static_cast<uint64_t>(0),
+				false);
+}
+
+type_noeud NoeudNul::type() const
+{
+	return type_noeud::NUL;
+}

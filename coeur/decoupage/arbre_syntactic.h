@@ -60,6 +60,7 @@ enum class type_noeud : char {
 	CONTINUE_ARRETE,
 	BOUCLE,
 	TRANSTYPE,
+	NUL,
 };
 
 /* ************************************************************************** */
@@ -125,6 +126,7 @@ enum class type_noeud : char {
  * noeud booléen : aucun enfant
  * noeud chaine caractère : aucun enfant
  * noeud continue_arrête : aucun enfant
+ * noeud pointeur nul : aucun enfant
  *
  * Le seul type de neoud posant problème est le noeud de déclaration de
  * fonction, mais nous pourrions avoir des tableaux séparés avec une structure
@@ -555,6 +557,19 @@ public:
 class NoeudTranstype final : public Noeud {
 public:
 	explicit NoeudTranstype(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudNul final : public Noeud {
+public:
+	explicit NoeudNul(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

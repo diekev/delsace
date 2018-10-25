@@ -47,6 +47,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "n32", id_morceau::N32 },
 	{ "n64", id_morceau::N64 },
 	{ "n8", id_morceau::N8 },
+	{ "nul", id_morceau::NUL },
 	{ "pour", id_morceau::POUR },
 	{ "r16", id_morceau::R16 },
 	{ "r32", id_morceau::R32 },
@@ -219,6 +220,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::N64";
 		case id_morceau::N8:
 			return "id_morceau::N8";
+		case id_morceau::NUL:
+			return "id_morceau::NUL";
 		case id_morceau::POUR:
 			return "id_morceau::POUR";
 		case id_morceau::R16:
