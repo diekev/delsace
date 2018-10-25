@@ -345,6 +345,39 @@ static bool est_branche_ou_retour(llvm::Value *valeur)
 	return (valeur != nullptr) && (llvm::isa<llvm::BranchInst>(*valeur) || llvm::isa<llvm::ReturnInst>(*valeur));
 }
 
+char caractere_echape(const char *sequence)
+{
+	switch (sequence[0]) {
+		case '\\':
+			switch (sequence[1]) {
+				case '\\':
+					return '\\';
+				case '\'':
+					return '\'';
+				case 'a':
+					return '\a';
+				case 'b':
+					return '\b';
+				case 'f':
+					return '\f';
+				case 'n':
+					return '\n';
+				case 'r':
+					return '\r';
+				case 't':
+					return '\t';
+				case 'v':
+					return '\v';
+				case '0':
+					return '\0';
+				default:
+					return sequence[1];
+			}
+		default:
+			return sequence[0];
+	}
+}
+
 /* ************************************************************************** */
 
 static llvm::FunctionType *obtiens_type_fonction(
@@ -1119,7 +1152,7 @@ void NoeudCaractere::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudCaractere::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	auto valeur = m_donnees_morceaux.chaine[0];
+	auto valeur = caractere_echape(&m_donnees_morceaux.chaine[0]);
 
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt8Ty(contexte.contexte),
@@ -1196,31 +1229,8 @@ NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 		auto c = m_donnees_morceaux.chaine[i];
 
 		if (c == '\\') {
-			if (m_donnees_morceaux.chaine[i + 1] == 'n') {
-				corrigee.push_back('\n');
-				++i;
-				continue;
-			}
-			if (m_donnees_morceaux.chaine[i + 1] == 't') {
-				corrigee.push_back('\t');
-				++i;
-				continue;
-			}
-			if (m_donnees_morceaux.chaine[i + 1] == 'v') {
-				corrigee.push_back('\v');
-				++i;
-				continue;
-			}
-			if (m_donnees_morceaux.chaine[i + 1] == 'r') {
-				corrigee.push_back('\r');
-				++i;
-				continue;
-			}
-			if (m_donnees_morceaux.chaine[i + 1] == '\\') {
-				corrigee.push_back('\\');
-				++i;
-				continue;
-			}
+			c = caractere_echape(&m_donnees_morceaux.chaine[i]);
+			++i;
 		}
 
 		corrigee.push_back(c);
