@@ -1363,7 +1363,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 	if ((type_structure.type_base() & 0xff) != id_morceau::CHAINE_CARACTERE) {
 		erreur::lance_erreur(
-					"Impossible d'accéder au membre d'un objet n'état pas une structure",
+					"Impossible d'accéder au membre d'un objet n'étant pas une structure",
 					contexte.tampon,
 					structure->donnees_morceau(),
 					erreur::type_erreur::TYPE_DIFFERENTS);
@@ -1412,7 +1412,7 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 
 	if ((type_structure.type_base() & 0xff) != id_morceau::CHAINE_CARACTERE) {
 		erreur::lance_erreur(
-					"Impossible d'accéder au membre d'un objet n'état pas une structure",
+					"Impossible d'accéder au membre d'un objet n'étant pas une structure",
 					contexte.tampon,
 					structure->donnees_morceau(),
 					erreur::type_erreur::TYPE_DIFFERENTS);
