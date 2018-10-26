@@ -1242,7 +1242,7 @@ NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 
 	this->valeur_calculee = corrigee;
 
-	this->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(corrigee.size() << 8));
+	this->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>((corrigee.size() + 1) << 8));
 	this->donnees_type.pousse(id_morceau::Z8);
 }
 
@@ -1269,12 +1269,24 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 
 	auto type = converti_type(contexte, this->donnees_type);
 
-	return new llvm::GlobalVariable(
+	auto globale = new llvm::GlobalVariable(
 				*contexte.module,
 				type,
 				true,
-				llvm::GlobalValue::InternalLinkage,
-				constante);
+				llvm::GlobalValue::PrivateLinkage,
+				constante,
+				".chn");
+
+	globale->setAlignment(1);
+	globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+
+	return llvm::GetElementPtrInst::CreateInBounds(
+				globale, {
+					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
+					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0)
+				},
+				"",
+				contexte.bloc_courant());
 }
 
 bool NoeudChaineLitterale::est_constant() const
