@@ -757,6 +757,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	auto valeurs_args = fonction->arg_begin();
 
 	for (const auto &argument : *arguments) {
+		auto align = alignement(contexte, argument.donnees_type);
 		auto alloc = new llvm::AllocaInst(
 						 converti_type(contexte, argument.donnees_type),
 #ifdef NOMME_IR
@@ -766,7 +767,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 #endif
 						 contexte.bloc_courant());
 
-		alloc->setAlignment(alignement(contexte, argument.donnees_type));
+		alloc->setAlignment(align);
 
 		contexte.pousse_locale(argument.chaine, alloc, argument.donnees_type, argument.est_variable);
 
@@ -775,7 +776,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		valeur->setName(argument.chaine.c_str());
 #endif
 
-		new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+		auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+		store->setAlignment(align);
 	}
 
 	/* Crée code pour le bloc. */
@@ -918,7 +920,10 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto valeur = expression->genere_code_llvm(contexte);
 
 	auto alloc = variable->genere_code_llvm(contexte, true);
-	return new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+	auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+	store->setAlignment(alignement(contexte, expression->donnees_type));
+
+	return store;
 }
 
 const DonneesType &NoeudAssignationVariable::calcul_type(ContexteGenerationCode &/*contexte*/)
