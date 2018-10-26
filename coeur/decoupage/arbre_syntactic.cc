@@ -38,11 +38,18 @@
 #include "nombres.h"
 #include "tampon_source.h"
 
+#undef NOMME_IR
+
 /* ************************************************************************** */
 
 static auto cree_bloc(ContexteGenerationCode &contexte, const char *nom)
 {
+#ifdef NOMME_IR
 	return llvm::BasicBlock::Create(contexte.contexte, nom, contexte.fonction);
+#else
+	static_cast<void>(nom);
+	return llvm::BasicBlock::Create(contexte.contexte, "", contexte.fonction);
+#endif
 }
 
 static llvm::Type *converti_type(
@@ -752,7 +759,11 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	for (const auto &argument : *arguments) {
 		auto alloc = new llvm::AllocaInst(
 						 converti_type(contexte, argument.donnees_type),
+#ifdef NOMME_IR
 						 argument.chaine,
+#else
+						"",
+#endif
 						 contexte.bloc_courant());
 
 		alloc->setAlignment(alignement(contexte, argument.donnees_type));
@@ -760,7 +771,9 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		contexte.pousse_locale(argument.chaine, alloc, argument.donnees_type, argument.est_variable);
 
 		llvm::Value *valeur = &*valeurs_args++;
+#ifdef NOMME_IR
 		valeur->setName(argument.chaine.c_str());
+#endif
 
 		new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 	}
@@ -961,7 +974,11 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	auto alloc = new llvm::AllocaInst(
 					 type_llvm,
+ #ifdef NOMME_IR
 					 std::string(m_donnees_morceaux.chaine),
+ #else
+					 "",
+ #endif
 					 contexte.bloc_courant());
 
 	alloc->setAlignment(alignement(contexte, this->donnees_type));
