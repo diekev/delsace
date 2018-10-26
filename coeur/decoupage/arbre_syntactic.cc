@@ -1840,10 +1840,9 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			llvm::Value *valeur;
 
 			if (type2.type_base() == id_morceau::POINTEUR) {
-				valeur = llvm::GetElementPtrInst::Create(
-							 converti_type(contexte, this->donnees_type),
+				valeur = llvm::GetElementPtrInst::CreateInBounds(
 							 valeur2,
-				{ valeur1 },
+							 valeur1,
 							 "",
 							 contexte.bloc_courant());
 			}
