@@ -133,3 +133,34 @@ fonction gabarit(type N) puissance(b : N, e : N) : N
 {
 	retourne b ** e;
 }
+
+fonction max(a : r32, b : r32) : r32
+{
+	si a > b {
+		retourne a;
+	}
+
+	retourne b;
+}
+
+fonction min(a : r32, b : r32) : r32
+{
+	si a > b {
+		retourne b;
+	}
+
+	retourne a;
+}
+
+fonction restreint(a : r32, min : r32, max : r32) : r32
+{
+	si a < min {
+		retourne min;
+	}
+
+	si a > max {
+		retourne max;
+	}
+
+	retourne a;
+}
