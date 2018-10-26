@@ -1,72 +1,99 @@
+# Exemple de création, d'assignation, et d'impression d'une chaîne 'pascal' en
+# Kuri. Une chaîne 'pascal' est une chaîne dont le premier caractère est la
+# longueur de celle-ci, ce qui implique qu'elle ne pourra avoir qu'au maximum
+# 255 caractères.
+#
+# Si l'exemple a été compilé correctement, les chaînes "chaîne pascal\n" et
+# "chaîne pascal arguments nommés et désordonnés\n" seront imprimées dans la
+# sortie standard.
+
+# Définition de la structure ChaînePascal.
 structure ChaînePascal {
+	# Les données sont un tableau de 256 z8, à savoir taille + 255 caractères
+	# ascii.
 	données : [256]z8;
 }
 
-fonction longueur_chaine(chaîne : *z8) : z32
+# Retourne la longueur d'une chaîne 'C' terminée par '\0'. Si la chaîne n'est
+# pas terminée par '\0', la fonction restera bloquée dans une boucle infinie.
+fonction longueur(chaîne : *z8) : z64
 {
-	soit variable l = 0;
+	soit variable i : z64 = 0;
 
 	boucle {
-		si chaîne[l] == '\0' {
+		si chaîne[i] == '\0' {
 			arrête;
 		}
 
-		l = l + 1;
+		i = i + 1;
 	}
 
-	retourne l;
+	retourne i;
 }
 
-fonction assigne_chaîne_pascal(variable cp : *ChaînePascal, c : *z8) : rien
-{
-	soit l = longueur_chaine(c);
-
-	données[0] de cp = transtype(l)(z8);
-
-	pour i dans 0 ... l {
-		données[1 + i] de cp = c[i];
-	}
-}
-
-fonction imprime_chaîne_pascal(cp : *ChaînePascal) : rien
+# Assigne une chaîne 'C' terminée par '\0' à une ChaînePascal. La longueur de la
+# chaîne 'C' sera stockée dans le premier caractère des données de la
+# ChaînePascal ; les caractères suivants contiendront la chaîne elle-même.
+# 
+# Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
+# sortie standard, et la fonction retournera.
+# 
+# Si la chaîne 'C' mesure plus que 255 caractères, une erreur sera imprimée dans
+# la sortie standard, et la fonction retournera sans rien copier.
+fonction assigne_chaîne_pascal(variable cp : *ChaînePascal,  chaîne : *z8) : rien
 {
 	si cp == nul {
-	printf("la chaîne est nulle !\n");
+		printf("La chaîne pascal est nul !\n");
 		retourne;
 	}
 
-	soit l = données[0] de cp;
+	soit l = longueur(chaîne);
+
+	si l > 255 {
+		printf("Impossible d'assigner une chaîne de %d caractère à une ChaînePascal !\n", l);
+		retourne;
+	}
+
+	données[0] de cp = transtype(l)(z8);
 
 	pour i dans 0 ... transtype(l)(z32) {
-		printf("%c", données[1 + i] de cp);
+		données[1 + i] de cp = chaîne[i];
 	}
 }
 
+# Imprime une ChaînePascal dans la sortie standard.
+# 
+# Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
+# sortie standard, et la fonction retournera.
+fonction imprime_chaîne_pascal(cp : *ChaînePascal) : rien
+{
+	si cp == nul {
+		printf("La chaîne pascal est nul !\n");
+		retourne;
+	}
+
+	soit taille = données[0] de cp;
+
+	pour i dans 0 ... transtype(taille)(z32) {
+		printf("%c", données[i + 1] de cp);
+	}
+}
+
+# Point d'entrée des programmes Kuri.
 fonction principale(compte : z32, arguments : **z8) : z32
 {
 	soit variable chaîne : ChaînePascal;
 
-	assigne_chaîne_pascal(@chaîne, "chaîne pascal");
-
+	assigne_chaîne_pascal(@chaîne, "chaîne pascal\n");
 	imprime_chaîne_pascal(@chaîne);
 
-	pour i dans 0 ... compte {
-		soit l = longueur_chaine(arguments[i]);
+	# Il est possible de nommer les paramètres des fonctions et ainsi de les
+	# donner dans le désordre.
+	assigne_chaîne_pascal(
+	    chaîne="chaîne pascal arguments nommés et désordonnés\n",
+	    cp=@chaîne);
 
-		printf("argument %s : longueur %d\n", arguments[i], l);
-	}
-
-	pour i dans 0 ... 10 {
-		pour j dans 0 ... i {
-			printf(" ");
-		}
-
-		pour j dans 0 ... 2 * (10 - i) {
-			printf("#");
-		}
-
-		printf("\n");
-	}
+	imprime_chaîne_pascal(@chaîne);
 
 	retourne 0;
 }
