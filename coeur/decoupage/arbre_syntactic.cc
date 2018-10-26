@@ -908,7 +908,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	auto alloc = variable->genere_code_llvm(contexte, true);
 	auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
-	store->setAlignment(alignement(contexte, expression->donnees_type));
+	store->setAlignment(alignement(contexte, expression->calcul_type(contexte)));
 
 	return store;
 }
