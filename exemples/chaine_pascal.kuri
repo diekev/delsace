@@ -7,6 +7,9 @@
 # "chaîne pascal arguments nommés et désordonnés\n" seront imprimées dans la
 # sortie standard.
 
+# Déclaration de la fonction externe printf qui se trouve dans libc.
+fonction externe printf(format : *z8, args : ...) : z32;
+
 # Définition de la structure ChaînePascal.
 structure ChaînePascal {
 	# Les données sont un tableau de 256 z8, à savoir taille + 255 caractères
