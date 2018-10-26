@@ -165,6 +165,54 @@ static void test_argument_nomme_echec(
 		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Si un argument d'une fonction appelée est nommé, tous les arguments doivent l'être (premier).");
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : z32, b : z32) : z32
+				{
+					retourne a + b;
+				}
+
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
+					soit x = ajouter(a=5, 6);
+					retourne x != 5;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Si un argument d'une fonction appelée est nommé, tous les arguments doivent l'être (dernier).");
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : z32, b : z32) : z32
+				{
+					retourne a + b;
+				}
+
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
+					soit x = ajouter(5, b=6);
+					retourne x != 5;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 static void test_type_argument_echec(

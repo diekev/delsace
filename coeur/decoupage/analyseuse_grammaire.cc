@@ -929,7 +929,8 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
 
-	auto arguments_nommees = false;
+	auto arguments_commences = false;
+	auto arguments_nommes = false;
 	std::set<std::string_view> args;
 
 	while (true) {
@@ -940,7 +941,13 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 
 		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::EGAL)) {
 			avance();
-			arguments_nommees = true;
+
+			if (arguments_commences && !arguments_nommes) {
+				lance_erreur("Les arguments précédents n'ont pas été nommés !",
+							 erreur::type_erreur::ARGUMENT_INCONNU);
+			}
+
+			arguments_nommes = true;
 
 			auto nom_argument = m_identifiants[position()].chaine;
 
@@ -953,10 +960,12 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 
 			avance();
 		}
-		else if (arguments_nommees == true) {
+		else if (arguments_nommes == true) {
 			avance();
-			lance_erreur("Attendu le nom de l'argument");
+			lance_erreur("Attendu le nom de l'argument", erreur::type_erreur::ARGUMENT_INCONNU);
 		}
+
+		arguments_commences = true;
 
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
