@@ -24,6 +24,7 @@
 
 #include "arbre_syntactic.h"
 
+#include <llvm/IR/DataLayout.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
@@ -2756,4 +2757,39 @@ llvm::Value *NoeudNul::genere_code_llvm(ContexteGenerationCode &contexte, const 
 type_noeud NoeudNul::type() const
 {
 	return type_noeud::NUL;
+}
+
+/* ************************************************************************** */
+
+NoeudTailleDe::NoeudTailleDe(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{
+	this->donnees_type.pousse(id_morceau::N32);
+}
+
+void NoeudTailleDe::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	auto donnees = std::any_cast<DonneesType>(this->valeur_calculee);
+	os << "NoeudTailleDe : " << this->donnees_type << '\n';
+}
+
+llvm::Value *NoeudTailleDe::genere_code_llvm(
+		ContexteGenerationCode &contexte,
+		const bool /*expr_gauche*/)
+{
+	auto dl = llvm::DataLayout(contexte.module);
+	auto donnees = std::any_cast<DonneesType>(this->valeur_calculee);
+	auto type = converti_type(contexte, donnees);
+	auto taille = dl.getTypeAllocSizeInBits(type);
+
+	return llvm::ConstantInt::get(
+				llvm::Type::getInt32Ty(contexte.contexte),
+				taille,
+				false);
+}
+
+type_noeud NoeudTailleDe::type() const
+{
+	return type_noeud::TAILLE_DE;
 }

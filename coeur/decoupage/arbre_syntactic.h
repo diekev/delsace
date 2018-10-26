@@ -61,6 +61,7 @@ enum class type_noeud : char {
 	BOUCLE,
 	TRANSTYPE,
 	NUL,
+	TAILLE_DE,
 };
 
 /* ************************************************************************** */
@@ -570,6 +571,19 @@ public:
 class NoeudNul final : public Noeud {
 public:
 	explicit NoeudNul(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudTailleDe final : public Noeud {
+public:
+	explicit NoeudTailleDe(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

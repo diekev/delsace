@@ -678,6 +678,26 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			auto noeud = m_assembleuse->cree_noeud(type_noeud::NUL, morceau);
 			expression.push_back(noeud);
 		}
+		else if (morceau.identifiant == id_morceau::TAILLE_DE) {
+			avance();
+
+			if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+				lance_erreur("Attendu '(' après 'taille_de'");
+			}
+
+			auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, morceau);
+
+			auto donnees_type = DonneesType{};
+			analyse_declaration_type(donnees_type, false);
+			noeud->valeur_calculee = donnees_type;
+
+			/* vérifie mais n'avance pas */
+			if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+				lance_erreur("Attendu ')' après le type de 'taille_de'");
+			}
+
+			expression.push_back(noeud);
+		}
 		else if (morceau.identifiant == id_morceau::VRAI || morceau.identifiant == id_morceau::FAUX) {
 			/* remplace l'identifiant par id_morceau::BOOL */
 			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, id_morceau::BOOL };
