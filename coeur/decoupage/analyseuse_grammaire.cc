@@ -396,7 +396,8 @@ void analyseuse_grammaire::analyse_controle_si()
  * - enfant 2 : expr début
  * - enfant 3 : expr fin
  * - enfant 4 : bloc
- * - enfant 5 : bloc sinon
+ * - enfant 5 : bloc sansarrêt ou sinon
+ * - enfant 6 : bloc sinon
  */
 void analyseuse_grammaire::analyse_controle_pour()
 {
@@ -445,15 +446,34 @@ void analyseuse_grammaire::analyse_controle_pour()
 		lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'pour'");
 	}
 
-	/* enfant 5 : bloc sinon (optionel) */
-	if (est_identifiant(id_morceau::SINON)) {
+	/* enfant 5 : bloc sansarrêt (optionel) */
+	if (est_identifiant(id_morceau::SANSARRET)) {
 		avance();
+
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
 
 		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
 		}
 
+		analyse_corps_fonction();
+
+		m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+			lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'sinon'");
+		}
+	}
+
+	/* enfant 5 ou 6 : bloc sinon (optionel) */
+	if (est_identifiant(id_morceau::SINON)) {
+		avance();
+
 		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
+		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
+		}
 
 		analyse_corps_fonction();
 

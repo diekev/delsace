@@ -89,6 +89,7 @@ enum class id_morceau : int {
 	R64,
 	RETOURNE,
 	RIEN,
+	SANSARRET,
 	SI,
 	SINON,
 	SOIT,

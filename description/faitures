@@ -44,7 +44,6 @@ Faitures
 - initialisation explicite des membres des structures lors de leur définition
 - déclaration fonction externe
 - déclaration fonction variadique
-- bloc sansarrêt
 
 
 À faire (tests)

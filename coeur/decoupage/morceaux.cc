@@ -54,6 +54,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "r64", id_morceau::R64 },
 	{ "retourne", id_morceau::RETOURNE },
 	{ "rien", id_morceau::RIEN },
+	{ "sansarrêt", id_morceau::SANSARRET },
 	{ "si", id_morceau::SI },
 	{ "sinon", id_morceau::SINON },
 	{ "soit", id_morceau::SOIT },
@@ -234,6 +235,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::RETOURNE";
 		case id_morceau::RIEN:
 			return "id_morceau::RIEN";
+		case id_morceau::SANSARRET:
+			return "id_morceau::SANSARRET";
 		case id_morceau::SI:
 			return "id_morceau::SI";
 		case id_morceau::SINON:
@@ -297,7 +300,7 @@ const char *chaine_identifiant(id_morceau id)
 	return "ERREUR";
 }
 
-static constexpr auto TAILLE_MAX_MOT_CLE = 9;
+static constexpr auto TAILLE_MAX_MOT_CLE = 10;
 
 static bool tables_caracteres[256] = {};
 static id_morceau tables_identifiants[256] = {};

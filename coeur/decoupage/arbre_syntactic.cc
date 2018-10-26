@@ -2302,7 +2302,8 @@ void NoeudPour::imprime_code(std::ostream &os, int tab)
  * - enfant 2 : expr début
  * - enfant 3 : expr fin
  * - enfant 4 : bloc
- * - enfant 5 : bloc sinon (optionel)
+ * - enfant 5 : bloc sansarrêt ou sinon (optionel)
+ * - enfant 6 : bloc sinon (optionel)
  *
  * boucle:
  *	phi [entrée] [corps_boucle]
@@ -2322,6 +2323,7 @@ void NoeudPour::imprime_code(std::ostream &os, int tab)
  */
 llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
+	auto nombre_enfants = m_enfants.size();
 	auto iter = m_enfants.begin();
 
 	/* on génère d'abord le type de la variable */
@@ -2329,7 +2331,11 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto enfant2 = *iter++;
 	auto enfant3 = *iter++;
 	auto enfant4 = *iter++;
-	auto enfant5 = (m_enfants.size() == 5) ? *iter++ : nullptr;
+	auto enfant5 = (nombre_enfants >= 5) ? *iter++ : nullptr;
+	auto enfant6 = (nombre_enfants == 6) ? *iter++ : nullptr;
+
+	auto enfant_sans_arret = enfant5;
+	auto enfant_sinon = (nombre_enfants == 6) ? enfant6 : enfant5;
 
 	auto type_debut = enfant2->calcul_type(contexte);
 	auto type_fin = enfant3->calcul_type(contexte);
@@ -2385,9 +2391,23 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto bloc_boucle = cree_bloc(contexte, "boucle");
 	auto bloc_corps = cree_bloc(contexte, "corps_boucle");
 	auto bloc_inc = cree_bloc(contexte, "inc_boucle");
-	auto bloc_sinon = (enfant5 != nullptr)
-					  ? cree_bloc(contexte, "sinon_boucle")
-					  : nullptr;
+
+	auto bloc_sansarret = static_cast<llvm::BasicBlock *>(nullptr);
+	auto bloc_sinon = static_cast<llvm::BasicBlock *>(nullptr);
+
+	if (nombre_enfants == 5) {
+		if (enfant5->identifiant() == id_morceau::SINON) {
+			bloc_sinon = cree_bloc(contexte, "sinon_boucle");
+		}
+		else {
+			bloc_sansarret = cree_bloc(contexte, "sansarret_boucle");
+		}
+	}
+	else if (nombre_enfants == 6) {
+		bloc_sansarret = cree_bloc(contexte, "sansarret_boucle");
+		bloc_sinon = cree_bloc(contexte, "sinon_boucle");
+	}
+
 	auto bloc_apres = cree_bloc(contexte, "apres_boucle");
 
 	contexte.empile_bloc_continue(bloc_inc);
@@ -2428,7 +2448,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 		llvm::BranchInst::Create(
 					bloc_corps,
-					bloc_apres,
+					(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
 					condition,
 					contexte.bloc_courant());
 	}
@@ -2469,6 +2489,23 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 	}
 
+	contexte.depile_bloc_continue();
+	contexte.depile_bloc_arrete();
+	contexte.depile_nombre_locales();
+	contexte.empile_nombre_locales();
+
+	if (bloc_sansarret != nullptr) {
+		contexte.bloc_courant(bloc_sansarret);
+
+		/* génère le code du bloc */
+		ret = enfant_sans_arret->genere_code_llvm(contexte);
+
+		/* incrémente la variable (noeud_phi) */
+		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sansarret)) {
+			ret = llvm::BranchInst::Create(bloc_apres, contexte.bloc_courant());
+		}
+	}
+
 	contexte.depile_nombre_locales();
 	contexte.empile_nombre_locales();
 
@@ -2476,7 +2513,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		contexte.bloc_courant(bloc_sinon);
 
 		/* génère le code du bloc */
-		ret = enfant5->genere_code_llvm(contexte);
+		ret = enfant_sinon->genere_code_llvm(contexte);
 
 		/* incrémente la variable (noeud_phi) */
 		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sinon)) {
@@ -2484,8 +2521,6 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		}
 	}
 
-	contexte.depile_bloc_continue();
-	contexte.depile_bloc_arrete();
 	contexte.depile_nombre_locales();
 	contexte.bloc_courant(bloc_apres);
 

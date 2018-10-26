@@ -42,6 +42,7 @@ mot_cles = [
 	u'bool',
 	u'rien',
 	u'nul',
+	u'sansarrêt',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
