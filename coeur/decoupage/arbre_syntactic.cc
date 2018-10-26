@@ -400,9 +400,12 @@ static llvm::FunctionType *obtiens_type_fonction(
 		const DonneesType &donnees_retour,
 		bool est_variadique)
 {
-	std::vector<llvm::Type *> parametres(donnees_args.size());
+	auto debut = donnees_args.begin();
+	auto fin   = (est_variadique) ? --donnees_args.end() : donnees_args.end();
 
-	std::transform(donnees_args.begin(), donnees_args.end(), parametres.begin(),
+	std::vector<llvm::Type *> parametres(donnees_args.size() - est_variadique);
+
+	std::transform(debut, fin, parametres.begin(),
 				   [&](const ArgumentFonction &donnees)
 	{
 		return converti_type(contexte, donnees.donnees_type);
@@ -559,8 +562,14 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 					continue;
 				}
 
+
 				const auto type_arg = pair.second.donnees_type;
 				const auto type_enf = enfant->calcul_type(contexte);
+
+				/* À FAIRE : Que faire pour les fonctions variadiques ? */
+				if (fonction->isVarArg() && type_arg.est_invalide()) {
+					continue;
+				}
 
 				if (!sont_compatibles(type_arg, type_enf)) {
 					erreur::lance_erreur_type_arguments(
@@ -712,7 +721,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 							 contexte,
 							 *arguments,
 							 this->donnees_type,
-							 false);
+							 this->est_variable);
 
 	/* Crée fonction */
 	auto fonction = llvm::Function::Create(

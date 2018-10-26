@@ -337,8 +337,26 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		lance_erreur("Redéfinition de l'argument", erreur::type_erreur::ARGUMENT_REDEFINI);
 	}
 
+	if (!requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
+		lance_erreur("Attendu ':' après le nom de l'argument");
+	}
+
+	if (est_identifiant(id_morceau::TROIS_POINTS)) {
+		avance();
+
+		if (!noeud->est_externe) {
+			lance_erreur("La déclaration de fonction variadique n'est"
+						 " implémentée que pour les fonctions externes");
+		}
+
+		noeud->est_variable = true;
+	}
+
 	auto donnees_type = DonneesType{};
-	analyse_declaration_type(donnees_type);
+
+	if (!noeud->est_variable && !est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+		analyse_declaration_type(donnees_type, false);
+	}
 
 	arg.donnees_type = donnees_type;
 
@@ -356,7 +374,9 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		return;
 	}
 
-	analyse_parametres_fonction(noeud, donnees);
+	if (!noeud->est_variable) {
+		analyse_parametres_fonction(noeud, donnees);
+	}
 }
 
 void analyseuse_grammaire::analyse_controle_si()
