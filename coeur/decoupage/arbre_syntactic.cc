@@ -1348,7 +1348,13 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 		return valeur;
 	}
 
-	return new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
+	/* À FAIRE : redondant. */
+	auto type = this->calcul_type(contexte);
+
+	auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
+	charge->setAlignment(alignement(contexte, type));
+
+	return charge;
 }
 
 const DonneesType &NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
@@ -1456,7 +1462,9 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 	if (est_pointeur) {
 		/* déréférence le pointeur en le chargeant */
-		valeur = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+		auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+		charge->setAlignment(8);
+		valeur = charge;
 	}
 
 	ret = llvm::GetElementPtrInst::CreateInBounds(
@@ -1469,7 +1477,9 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 
 	if (!expr_gauche) {
-		ret = new llvm::LoadInst(ret, "", contexte.bloc_courant());
+		auto charge = new llvm::LoadInst(ret, "", contexte.bloc_courant());
+		charge->setAlignment(alignement(contexte, donnees_structure.donnees_types[index_membre]));
+		ret = charge;
 	}
 
 	return ret;
@@ -1878,7 +1888,9 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			 * LLVM n'arrive pas à déterminer correctement la valeur
 			 * déréférencée : on se retrouve avec type(x[0][0]) == (type[0])
 			 * ce qui n'est pas forcément le cas. */
-			return new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+			auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+			charge->setAlignment(alignement(contexte, type2));
+			return charge;
 		}
 		default:
 			return nullptr;
