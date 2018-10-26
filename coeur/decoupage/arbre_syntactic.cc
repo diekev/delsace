@@ -2781,7 +2781,7 @@ llvm::Value *NoeudTailleDe::genere_code_llvm(
 	auto dl = llvm::DataLayout(contexte.module);
 	auto donnees = std::any_cast<DonneesType>(this->valeur_calculee);
 	auto type = converti_type(contexte, donnees);
-	auto taille = dl.getTypeAllocSizeInBits(type);
+	auto taille = dl.getTypeAllocSize(type);
 
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt32Ty(contexte.contexte),
