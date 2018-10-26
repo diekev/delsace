@@ -151,6 +151,9 @@ static unsigned alignement(
 		case id_morceau::Z32:
 			return 4;
 		case id_morceau::TABLEAU:
+		{
+			return alignement(contexte, donnees_type.derefence());
+		}
 		case id_morceau::POINTEUR:
 		case id_morceau::R64:
 		case id_morceau::N64:
