@@ -259,6 +259,8 @@ struct ContexteGenerationCode {
 	 */
 	DonneesStructure &donnees_structure(const size_t id);
 
+	std::string nom_struct(const size_t id) const;
+
 	/* ********************************************************************** */
 
 	size_t memoire_utilisee() const;

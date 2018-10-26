@@ -105,9 +105,12 @@ static llvm::Type *converti_type(
 						return converti_type(contexte, donnees);
 					});
 
-					donnees_structure.type_llvm = llvm::StructType::get(
+					auto nom = "struct." + contexte.nom_struct(donnees_structure.id);
+
+					donnees_structure.type_llvm = llvm::StructType::create(
 													  contexte.contexte,
 													  types_membres,
+													  nom,
 													  false);
 				}
 

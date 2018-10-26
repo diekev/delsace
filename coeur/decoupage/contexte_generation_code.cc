@@ -226,6 +226,11 @@ DonneesStructure &ContexteGenerationCode::donnees_structure(const size_t id)
 	return structures[nom_structures[id]];
 }
 
+std::string ContexteGenerationCode::nom_struct(const size_t id) const
+{
+	return std::string{nom_structures[id]};
+}
+
 size_t ContexteGenerationCode::memoire_utilisee() const
 {
 	size_t memoire = sizeof(ContexteGenerationCode);
