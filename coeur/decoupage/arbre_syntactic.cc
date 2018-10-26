@@ -416,30 +416,6 @@ static llvm::FunctionType *obtiens_type_fonction(
 				est_variadique);
 }
 
-static void ajoute_printf(ContexteGenerationCode &contexte)
-{
-	std::list<ArgumentFonction> donnees_args;
-	auto donnees_arg = ArgumentFonction{};
-	donnees_arg.donnees_type.pousse(id_morceau::POINTEUR);
-	donnees_arg.donnees_type.pousse(id_morceau::Z8);
-	donnees_args.push_back(donnees_arg);
-
-	auto donnees_retour = DonneesType{};
-	donnees_retour.pousse(id_morceau::Z32);
-
-	auto type_printf = obtiens_type_fonction(
-						   contexte,
-						   donnees_args,
-						   donnees_retour,
-						   true);
-
-	llvm::Function::Create(
-				type_printf,
-				llvm::Function::ExternalLinkage,
-				"printf",
-				contexte.module);
-}
-
 /* ************************************************************************** */
 
 Noeud::Noeud(const DonneesMorceaux &morceau)
@@ -512,8 +488,6 @@ void NoeudRacine::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	ajoute_printf(contexte);
-
 	for (auto noeud : m_enfants) {
 		noeud->genere_code_llvm(contexte);
 	}
@@ -746,6 +720,10 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 						llvm::Function::ExternalLinkage,
 						std::string(m_donnees_morceaux.chaine),
 						contexte.module);
+
+	if (this->est_externe) {
+		return fonction;
+	}
 
 	contexte.commence_fonction(fonction);
 

@@ -74,6 +74,7 @@ enum class id_morceau : int {
 	DE,
 	DEFERE,
 	EMPLOYANT,
+	EXTERNE,
 	FAUX,
 	FONCTION,
 	GABARIT,

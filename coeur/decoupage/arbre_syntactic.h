@@ -170,7 +170,8 @@ public:
 
 	bool calcule = false;
 	char est_variable = false;
-	char pad[6];
+	bool est_externe = false;
+	char pad[5];
 
 	explicit Noeud(const DonneesMorceaux &morceau);
 

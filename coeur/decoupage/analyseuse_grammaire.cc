@@ -251,6 +251,13 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu la déclaration du mot-clé 'fonction'");
 	}
 
+	auto externe = false;
+
+	if (est_identifiant(id_morceau::EXTERNE)) {
+		avance();
+		externe = true;
+	}
+
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Attendu la déclaration du nom de la fonction");
 	}
@@ -264,6 +271,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
+	noeud_declaration->est_externe = externe;
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
@@ -283,16 +291,23 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	m_contexte.ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
-	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-		lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
+	if (externe) {
+		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+			lance_erreur("Attendu un point-virgule ';' après la déclaration de la fonction externe");
+		}
 	}
+	else {
+		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+			lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
+		}
 
-	m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
-	analyse_corps_fonction();
-	m_assembleuse->depile_noeud(type_noeud::BLOC);
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+		analyse_corps_fonction();
+		m_assembleuse->depile_noeud(type_noeud::BLOC);
 
-	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		lance_erreur("Attendu une accolade fermante à la fin de la fonction");
+		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+			lance_erreur("Attendu une accolade fermante à la fin de la fonction");
+		}
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_FONCTION);
