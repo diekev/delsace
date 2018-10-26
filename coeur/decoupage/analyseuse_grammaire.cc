@@ -722,7 +722,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			}
 
 			if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-				lance_erreur("Attendu '(' après '>'");
+				lance_erreur("Attendu '(' après ')'");
 			}
 
 			analyse_declaration_type(noeud->donnees_type, false);
