@@ -255,7 +255,7 @@ struct arbre {
 			return noeud;
 		}
 
-		p = this->rng(this->device);
+		p = this->rng(this->device) * prob;
 
 		if (p > 0.5) {
 			auto noeud = new parenthese{};
@@ -263,6 +263,8 @@ struct arbre {
 			this->noeuds.push_back(noeud);
 			return noeud;
 		}
+
+		p = this->rng(this->device);
 
 		if (p > 0.5) {
 			auto noeud = new appel_fonction{};
@@ -395,7 +397,7 @@ int main()
 	u_char tampon[64 * 1024];
 
 	for (const auto &foncs : testeur.fonctions) {
-		for (auto n = 0; n < 10; ++n) {
+		for (auto n = 0; n < 100; ++n) {
 			size_t taille = rng_taille(device);
 
 			if (foncs.initialisation) {
