@@ -47,13 +47,42 @@
 
 #include <chronometrage/chronometre_de_portee.h>
 
+static const char *options =
+R"(kuri [OPTIONS...] FICHIER
+
+-a, --aide
+	imprime cette aide
+
+-d, --dest FICHIER
+	Utilisé pour spécifié le nom du programme produit, utilise a.out par défaut.
+
+--émet-llvm
+	émet la représentation intermédiaire du code LLVM
+
+--émet-arbre
+	émet l'arbre syntactic
+
+-m, --mémoire
+	imprime la mémoire utilisée
+
+-t, --temps
+	imprime le temps utilisé
+
+-v, --version
+	imprime la version
+)";
+
 struct OptionsCompilation {
 	const char *chemin_fichier = nullptr;
-	bool emet_fichier_objet = false;
+	const char *chemin_sortie = "a.out";
+	bool emet_fichier_objet = true;
 	bool emet_code_intermediaire = false;
 	bool emet_arbre = false;
 	bool imprime_taille_memoire_objet = false;
-	char pad[4];
+	bool imprime_temps = false;
+	bool imprime_version = false;
+	bool imprime_aide = false;
+	bool erreur = false;
 };
 
 static OptionsCompilation genere_options_compilation(int argc, char **argv)
@@ -61,19 +90,55 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 	OptionsCompilation opts;
 
 	for (int i = 1; i < argc; ++i) {
-		if (std::strcmp(argv[i], "-ir") == 0) {
+		if (std::strcmp(argv[i], "-a") == 0) {
+			opts.imprime_aide = true;
+		}
+		else if (std::strcmp(argv[i], "--aide") == 0) {
+			opts.imprime_aide = true;
+		}
+		else if (std::strcmp(argv[i], "-t") == 0) {
+			opts.imprime_temps = true;
+		}
+		else if (std::strcmp(argv[i], "--temps") == 0) {
+			opts.imprime_temps = true;
+		}
+		else if (std::strcmp(argv[i], "-v") == 0) {
+			opts.imprime_version = true;
+		}
+		else if (std::strcmp(argv[i], "--version") == 0) {
+			opts.imprime_version = true;
+		}
+		else if (std::strcmp(argv[i], "--émet-llvm") == 0) {
 			opts.emet_code_intermediaire = true;
 		}
 		else if (std::strcmp(argv[i], "-o") == 0) {
 			opts.emet_fichier_objet = true;
 		}
-		else if (std::strcmp(argv[i], "-a") == 0) {
+		else if (std::strcmp(argv[i], "--émet-arbre") == 0) {
 			opts.emet_arbre = true;
 		}
 		else if (std::strcmp(argv[i], "-m") == 0) {
 			opts.imprime_taille_memoire_objet = true;
 		}
+		else if (std::strcmp(argv[i], "-d") == 0) {
+			if (i + 1 < argc) {
+				opts.chemin_sortie = argv[i + 1];
+				++i;
+			}
+		}
+		else if (std::strcmp(argv[i], "--dest") == 0) {
+			if (i + 1 < argc) {
+				opts.chemin_sortie = argv[i + 1];
+				++i;
+			}
+		}
 		else {
+			if (argv[i][0] == '-') {
+				std::cerr << "Argument inconnu " << argv[i] << '\n';
+				opts.erreur = true;
+				break;
+			}
+
 			opts.chemin_fichier = argv[i];
 		}
 	}
@@ -209,7 +274,7 @@ static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
 	return os;
 }
 
-static void cree_executable()
+static void cree_executable(const std::filesystem::path &dest)
 {
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
 		auto err = system("as -o /tmp/execution_kuri.o fichiers/execution_kuri.S");
@@ -233,7 +298,8 @@ static void cree_executable()
 	ss << "--hash-style=gnu ";
 	ss << "-lc ";
 	ss << "/tmp/execution_kuri.o ";
-	ss << "/tmp/kuri.o";
+	ss << "/tmp/kuri.o ";
+	ss << "-o " << dest;
 
 	auto err = system(ss.str().c_str());
 
@@ -252,6 +318,18 @@ int main(int argc, char *argv[])
 	}
 
 	const auto ops = genere_options_compilation(argc, argv);
+
+	if (ops.imprime_aide) {
+		std::cout << options;
+	}
+
+	if (ops.imprime_version) {
+		std::cout << "Kuri 0.1 alpha\n";
+	}
+
+	if (ops.erreur) {
+		return 1;
+	}
 
 	const auto chemin_fichier = ops.chemin_fichier;
 
@@ -384,7 +462,7 @@ int main(int argc, char *argv[])
 				resultat = 1;
 			}
 
-			cree_executable();
+			cree_executable(ops.chemin_sortie);
 		}
 
 		os << "Nettoyage..." << std::endl;
