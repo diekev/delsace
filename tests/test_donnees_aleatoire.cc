@@ -389,34 +389,78 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	return 0;
 }
 
+#include <unistd.h>
+#include <sys/wait.h>
+
 int main()
 {
 #if 1
 	auto chemin = std::string("/tmp/test");
 
-	for (auto n = 0; n < 100; ++n) {
-		u_char *tampon = nullptr;
-		size_t taille = 0ul;
+	auto pid = fork();
 
-		construit_tampon_aleatoire(&tampon, &taille);
+	if (pid == 0) {
+		for (auto n = 0; n < 100; ++n) {
+			u_char *tampon = nullptr;
+			size_t taille = 0ul;
 
-		if (tampon == nullptr) {
-			continue;
+			construit_tampon_aleatoire(&tampon, &taille);
+
+			if (tampon == nullptr) {
+				continue;
+			}
+
+			auto chemin_test = chemin + std::to_string(n);
+			std::ofstream of;
+
+			of.open(chemin_test.c_str());
+
+			of.write(reinterpret_cast<const char *>(tampon), static_cast<long>(taille));
+
+			std::cerr << "Lancement du test aléatoire " << n << ".\n";
+
+			test_entree_aleatoire(tampon, taille);
+
+			detruit_tampon_aleatoire(tampon);
 		}
 
-		auto chemin_test = chemin + std::to_string(n);
-		std::ofstream of;
-
-		of.open(chemin_test.c_str());
-
-		of.write(reinterpret_cast<const char *>(tampon), static_cast<long>(taille));
-
-		std::cerr << "Lancement du test aléatoire " << n << ".\n";
-
-		test_entree_aleatoire(tampon, taille);
-
-		detruit_tampon_aleatoire(tampon);
+		return 0;
 	}
+	else if (pid > 0) {
+		while (true) {
+			int status;
+			pid_t result = waitpid(pid, &status, WNOHANG);
+
+			if (result == 0) {
+				// Child still alive
+			}
+			else if (result == -1) {
+				std::cerr << "Erreur lors de l'attente\n";
+				break;
+			}
+			else {
+				if (WIFEXITED(status)) {
+					std::cerr << "Enfant a terminé normalement\n";
+				}
+				else if (WIFSTOPPED(status)) {
+					std::cerr << "Enfant a été terminé\n";
+				}
+				else if (WIFSIGNALED(status)) {
+					std::cerr << "Enfant a été signalé de terminé\n";
+				}
+				else if (WIFCONTINUED(status)) {
+					std::cerr << "Enfant a continué\n";
+				}
+
+				break;
+			}
+		}
+	}
+	else {
+		return 1;
+	}
+
+	return 0;
 #else
 	std::ifstream fichier("/tmp/test0");
 
