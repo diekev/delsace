@@ -170,6 +170,8 @@ static bool est_operateur_constant(id_morceau identifiant)
 		case id_morceau::CHAPEAU:
 		case id_morceau::EXCLAMATION:
 		case id_morceau::TILDE:
+		case id_morceau::PLUS_UNAIRE:
+		case id_morceau::MOINS_UNAIRE:
 			return true;
 		default:
 			return false;

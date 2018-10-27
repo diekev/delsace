@@ -421,7 +421,7 @@ Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 			return n1;
 		}
 
-		if (op->identifiant() == id_morceau::MOINS) {
+		if (op->identifiant() == id_morceau::MOINS_UNAIRE) {
 			auto v = extrait_nombre_entier(n1);
 			n1->valeur_calculee = -v;
 			n1->calcule = true;
@@ -431,7 +431,7 @@ Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 			return n1;
 		}
 
-		if (op->identifiant() == id_morceau::PLUS) {
+		if (op->identifiant() == id_morceau::PLUS_UNAIRE) {
 			/* nul-op */
 			assembleuse.supprime_noeud(op);
 			return n1;
@@ -441,7 +441,7 @@ Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 	}
 
 	if (n1->identifiant() == id_morceau::NOMBRE_REEL) {
-		if (op->identifiant() == id_morceau::MOINS) {
+		if (op->identifiant() == id_morceau::MOINS_UNAIRE) {
 			auto v = extrait_nombre_reel(n1);
 			n1->valeur_calculee = -v;
 			n1->calcule = true;
@@ -451,7 +451,7 @@ Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 			return n1;
 		}
 
-		if (op->identifiant() == id_morceau::PLUS) {
+		if (op->identifiant() == id_morceau::PLUS_UNAIRE) {
 			/* nul-op */
 			assembleuse.supprime_noeud(op);
 			return n1;
