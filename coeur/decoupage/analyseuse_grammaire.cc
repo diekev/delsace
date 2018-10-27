@@ -194,6 +194,10 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 		return true;
 	}
 
+	if (dernier_identifiant == id_morceau::RETOURNE) {
+		return true;
+	}
+
 	return false;
 }
 
