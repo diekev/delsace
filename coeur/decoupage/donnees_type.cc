@@ -133,6 +133,9 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				case id_morceau::Z64:
 					os << "z64";
 					break;
+				case id_morceau::BOOL:
+					os << "bool";
+					break;
 				default:
 					os << chaine_identifiant(donnee & 0xff);
 					break;
