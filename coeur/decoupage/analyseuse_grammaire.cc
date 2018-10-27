@@ -895,6 +895,13 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 		avance();
 	}
 
+	/* Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
+	 * éviter de crasher lors des fuzz-tests. */
+	if (expression.empty()) {
+		avance();
+		return;
+	}
+
 	while (!pile.empty()) {
 		if (pile.back() == NOEUD_PARENTHESE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
