@@ -27,6 +27,68 @@
 #include "erreur.h"
 #include "outils.h"
 
+static void test_declaration_fonction_variadique(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Ce n'est pas obliger de typer la liste d'arguments d'une fonction variable.");
+	{
+		const char *texte =
+				R"(
+				fonction externe principale(compte : z32, arguments : ...) : rien;
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"C'est possible de typer la liste d'arguments d'une fonction variable.");
+	{
+		const char *texte =
+				R"(
+				fonction externe principale(compte : z32, arguments : ...z32) : rien;
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, true, erreur::type_erreur::NORMAL);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut pas avoir d'autres arguments après un argument variadique.");
+	{
+		const char *texte =
+				R"(
+				fonction externe principale(arguments : ...*z32, compte : z32) : rien;
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On ne peut pas avoir plusieurs arguments variadiques.");
+	{
+		const char *texte =
+				R"(
+				fonction externe principale(arguments : ...*z32, comptes : ...z32) : rien;
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+}
+
 static void test_fonction_general(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
@@ -357,4 +419,5 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 	test_nombre_argument(controleur);
 	test_argument_unique(controleur);
 	test_fonction_redinie(controleur);
+	test_declaration_fonction_variadique(controleur);
 }
