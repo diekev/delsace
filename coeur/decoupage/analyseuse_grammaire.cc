@@ -91,12 +91,10 @@ static bool est_nombre_entier(id_morceau identifiant)
 	}
 }
 
-#if 0
 static bool est_nombre(id_morceau identifiant)
 {
 	return est_nombre_entier(identifiant) || (identifiant == id_morceau::NOMBRE_REEL);
 }
-#endif
 
 static bool est_operateur_unaire(id_morceau identifiant)
 {
@@ -188,19 +186,23 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 		return true;
 	}
 
-	if (dernier_identifiant == id_morceau::PARENTHESE_OUVRANTE) {
-		return true;
+	if (dernier_identifiant == id_morceau::PARENTHESE_FERMANTE) {
+		return false;
 	}
 
-	if (dernier_identifiant == id_morceau::CROCHET_OUVRANT) {
-		return true;
+	if (dernier_identifiant == id_morceau::CROCHET_FERMANT) {
+		return false;
 	}
 
-	if (dernier_identifiant == id_morceau::RETOURNE) {
-		return true;
+	if (dernier_identifiant == id_morceau::CHAINE_CARACTERE) {
+		return false;
 	}
 
-	return false;
+	if (est_nombre(dernier_identifiant)) {
+		return false;
+	}
+
+	return true;
 }
 
 /* ************************************************************************** */
