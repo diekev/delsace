@@ -823,6 +823,12 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				}
 			}
 
+			/* Correction de crash d'aléatest, improbable dans la vrai vie. */
+			if (expression.empty() && est_operateur_binaire(id_operateur)) {
+				avance();
+				lance_erreur("Opérateur binaire utilisé en début d'expression");
+			}
+
 			while (!pile.empty()
 				   && pile.back() != NOEUD_PARENTHESE
 				   && est_operateur(pile.back()->identifiant())
