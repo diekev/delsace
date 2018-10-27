@@ -36,6 +36,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <chronometrage/chronometrage.h>
+
 namespace test_decoupage {
 
 static int test_entree_aleatoire(const u_char *donnees, size_t taille)
@@ -326,6 +328,41 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
 }
 
+static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
+{
+	const auto max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
+
+	std::vector<DonneesMorceaux> morceaux;
+	morceaux.reserve(max_morceaux);
+
+	std::random_device device{};
+	std::uniform_int_distribution<u_char> rng{
+		static_cast<int>(id_morceau::EXCLAMATION),
+		static_cast<int>(id_morceau::INCONNU)
+	};
+
+	auto dm = DonneesMorceaux{};
+	dm.chaine = "texte_test";
+	dm.ligne_pos = 0ul;
+
+	for (auto id : sequence_declaration_fonction) {
+		dm.identifiant = id;
+		morceaux.push_back(dm);
+	}
+
+	for (auto n = morceaux.size(); n < max_morceaux - 1; ++n) {
+		dm.identifiant = static_cast<id_morceau>(rng(device));
+		morceaux.push_back(dm);
+	}
+
+	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
+	morceaux.push_back(dm);
+
+	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+
+	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+}
+
 static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 {
 	auto donnees_morceaux = reinterpret_cast<const DonneesMorceaux *>(donnees);
@@ -388,6 +425,7 @@ int main()
 
 	Testeur testeur;
 	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon, test_analyse::test_entree_aleatoire);
+	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon_aleatoire, test_analyse::test_entree_aleatoire);
 	testeur.ajoute_tests("decoupage", nullptr, test_decoupage::test_entree_aleatoire);
 
 	std::random_device device{};
@@ -415,6 +453,8 @@ int main()
 				return foncs.entree_test(tampon, taille);
 			}
 			else if (pid > 0) {
+				auto debut = numero7::chronometrage::maintenant();
+
 				while (true) {
 					int status;
 					pid_t result = waitpid(pid, &status, WNOHANG);
@@ -433,9 +473,23 @@ int main()
 							of.open(chemin_test.c_str());
 							of.write(reinterpret_cast<const char *>(tampon), static_cast<long>(taille));
 
-							std::cerr << "Enfant a échoué : écriture du fichier...\n";
+							std::cerr << "Enfant a échoué : écriture du fichier" << chemin << "...\n";
 						}
 
+						break;
+					}
+
+					auto temps = numero7::chronometrage::maintenant() - debut;
+
+					if (temps > 25.0) {
+						auto chemin_test = chemin + foncs.nom + "_boucle_infini" + std::to_string(n) + ".bin";
+						std::ofstream of;
+						of.open(chemin_test.c_str());
+						of.write(reinterpret_cast<const char *>(tampon), static_cast<long>(taille));
+
+						kill(pid, SIGKILL);
+
+						std::cerr << "Enfant a échoué : écriture du fichier" << chemin << "...\n";
 						break;
 					}
 				}
