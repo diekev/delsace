@@ -360,7 +360,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 
 	auto donnees_type = DonneesType{};
 
-	if (!noeud->est_variable && !est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+	if (!noeud->est_variable || !est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		analyse_declaration_type(donnees_type, false);
 	}
 
