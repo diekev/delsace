@@ -61,6 +61,8 @@ public:
 
 	iterateur end();
 
+	void imprime_morceaux(std::ostream &os);
+
 private:
 	bool fini() const;
 

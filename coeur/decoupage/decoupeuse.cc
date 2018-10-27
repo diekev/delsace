@@ -111,6 +111,13 @@ decoupeuse_texte::iterateur decoupeuse_texte::end()
 	return m_morceaux.end();
 }
 
+void decoupeuse_texte::imprime_morceaux(std::ostream &os)
+{
+	for (const auto &morceau : m_morceaux) {
+		os << chaine_identifiant(morceau.identifiant) << '\n';
+	}
+}
+
 bool decoupeuse_texte::fini() const
 {
 	return m_debut >= m_fin;
