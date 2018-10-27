@@ -33,10 +33,8 @@
 #include <fstream>
 #include <iostream>
 #include <random>
-#include <sys/wait.h>
-#include <unistd.h>
 
-#include <chronometrage/chronometrage.h>
+#include <test_unitaire/test_aleatoire.hh>
 
 namespace test_decoupage {
 
@@ -392,112 +390,17 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 } // namespace test_analyse
 
-using t_fonction_initialisation = std::function<void(u_char *, size_t)>;
-using t_fonction_entree_test = std::function<int(const u_char *, size_t)>;
-
-struct FonctionsTest {
-	std::string nom;
-	t_fonction_initialisation initialisation = nullptr;
-	t_fonction_entree_test entree_test = nullptr;
-};
-
-struct Testeur {
-	std::vector<FonctionsTest> fonctions;
-
-	void ajoute_tests(
-			const std::string &nom,
-			t_fonction_initialisation initialisation,
-			t_fonction_entree_test entree_test)
-	{
-		FonctionsTest foncs;
-		foncs.nom = nom;
-		foncs.initialisation = initialisation;
-		foncs.entree_test = entree_test;
-
-		fonctions.push_back(foncs);
-	}
-};
-
 int main()
 {
 #if 1
-	auto chemin = std::string("/tmp/test_");
-
-	Testeur testeur;
+	numero7::test_aleatoire::Testeur testeur;
 	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon, test_analyse::test_entree_aleatoire);
 	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon_aleatoire, test_analyse::test_entree_aleatoire);
 	testeur.ajoute_tests("decoupage", nullptr, test_decoupage::test_entree_aleatoire);
 
-	std::random_device device{};
-	std::uniform_int_distribution<u_char> rng{0, 255};
-	std::uniform_int_distribution<size_t> rng_taille{32 * 1024, 64 * 1024};
-
-	u_char tampon[64 * 1024];
-
-	for (const auto &foncs : testeur.fonctions) {
-		for (auto n = 0; n < 100; ++n) {
-			size_t taille = rng_taille(device);
-
-			if (foncs.initialisation) {
-				foncs.initialisation(tampon, taille);
-			}
-			else {
-				for (auto i = 0ul; i < taille; ++i) {
-					tampon[i] = rng(device);
-				}
-			}
-
-			auto pid = fork();
-
-			if (pid == 0) {
-				return foncs.entree_test(tampon, taille);
-			}
-			else if (pid > 0) {
-				auto debut = numero7::chronometrage::maintenant();
-
-				while (true) {
-					int status;
-					pid_t result = waitpid(pid, &status, WNOHANG);
-
-					if (result == 0) {
-						/* L'enfant est toujours en vie, continue. */
-					}
-					else if (result == -1) {
-						std::cerr << "Erreur lors de l'attente\n";
-						break;
-					}
-					else {
-						if (!WIFEXITED(status)) {
-							auto chemin_test = chemin + foncs.nom + std::to_string(n) + ".bin";
-							std::ofstream of;
-							of.open(chemin_test.c_str());
-							of.write(reinterpret_cast<const char *>(tampon), static_cast<long>(taille));
-
-							std::cerr << "Enfant a échoué : écriture du fichier" << chemin << "...\n";
-						}
-
-						break;
-					}
-
-					auto temps = numero7::chronometrage::maintenant() - debut;
-
-					if (temps > 25.0) {
-						auto chemin_test = chemin + foncs.nom + "_boucle_infini" + std::to_string(n) + ".bin";
-						std::ofstream of;
-						of.open(chemin_test.c_str());
-						of.write(reinterpret_cast<const char *>(tampon), static_cast<long>(taille));
-
-						kill(pid, SIGKILL);
-
-						std::cerr << "Enfant a échoué : écriture du fichier" << chemin << "...\n";
-						break;
-					}
-				}
-			}
-		}
-	}
+	return testeur.performe_tests(std::cerr);
 #else
-	std::ifstream fichier("/tmp/test2");
+	std::ifstream fichier("/tmp/test_analyse40.bin");
 
 	fichier.seekg(0, fichier.end);
 	const auto taille_fichier = static_cast<size_t>(fichier.tellg());
@@ -536,7 +439,7 @@ int main()
 	}
 
 	delete [] donnees;
-#endif
 
 	return 0;
+#endif
 }
