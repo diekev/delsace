@@ -8,11 +8,11 @@ if exists("b:current_syntax")
 endif
 
 " Keywords
-syn keyword mot_cles fonction retourne nul soit variable constante gabarit employant défère
-syn keyword mot_cles_struct structure énum 
+syn keyword mot_cles fonction retourne nul soit variable constante gabarit employant défère externe
+syn keyword mot_cles_struct structure énum
 syn keyword mot_cles_cond si sinon associe
-syn keyword mot_cles_boucle boucle pour dans arrête continue
-syn keyword operateurs de mémoire transtype taille_de 
+syn keyword mot_cles_boucle boucle pour dans arrête continue sansarrêt
+syn keyword operateurs de mémoire transtype taille_de
 syn keyword booleen vrai faux
 
 " Matches
@@ -23,8 +23,8 @@ syn match trois_point "\.\.\."
 syn match operateur_simple "[\[\]!+\-\*/@=<>\|&~]"
 syn match chaine_litterale "\".*\""
 syn match nombre_decimal '\d[0-9_]*'
-syn match nombre_decimal '0[xX][0-9a-fA-F_]\+' 
-syn match nombre_decimal '0[oO][0-7_]\+' 
+syn match nombre_decimal '0[xX][0-9a-fA-F_]\+'
+syn match nombre_decimal '0[oO][0-7_]\+'
 syn match nombre_decimal '0[bB][0-1_]\+'
 syn match nombre_reel '\d\+\.\d*'
 
