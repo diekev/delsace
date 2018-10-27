@@ -22,16 +22,22 @@
  *
  */
 
-#include <iostream>
-#include <random>
-
 #include <llvm/IR/Module.h>
 
 #include "analyseuse_grammaire.h"
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
 
-#if 0
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <random>
+#include <sys/wait.h>
+#include <unistd.h>
+
+namespace test_decoupage {
+
 static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 {
 	try {
@@ -61,34 +67,9 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	return 0;
 }
 
-int main()
-{
-	std::random_device device{};
-	std::uniform_int_distribution<u_char> rng{0, 255};
+} // namespace test_decoupage
 
-	std::uniform_int_distribution<int> rng_taille{0, 20 * 1024};
-
-	for (auto n = 0; n < 1000; ++n) {
-		const auto taille = rng_taille(device);
-
-		std::vector<u_char> tampon(static_cast<size_t>(taille));
-
-		for (auto i = 0; i < taille; ++i) {
-			tampon[static_cast<size_t>(i)] = rng(device);
-		}
-
-		std::cerr << "Lancement du test aléatoire pour " << taille << " caractères.\n";
-
-		test_entree_aleatoire(tampon.data(), taille);
-	}
-
-	return 0;
-}
-#else
-
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
+namespace test_analyse {
 
 static id_morceau sequence_declaration_fonction[] = {
 	id_morceau::FONCTION,
@@ -301,17 +282,12 @@ struct arbre {
 
 } // namespace arbre_expression
 
-static void construit_tampon_aleatoire(u_char **donnees, size_t *taille_donnees)
+static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 {
-	std::random_device device{};
-	std::uniform_int_distribution<int> rng{static_cast<int>(id_morceau::EXCLAMATION), static_cast<int>(id_morceau::INCONNU)};
-
-	std::uniform_int_distribution<size_t> rng_taille{0, 1024};
-	const auto taille = rng_taille(device);
-	const auto taille_total = taille + sizeof(*sequence_declaration_fonction) + 1;
+	const auto max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
 
 	std::vector<DonneesMorceaux> morceaux;
-	morceaux.reserve(taille_total);
+	morceaux.reserve(max_morceaux);
 
 	auto dm = DonneesMorceaux{};
 	dm.chaine = "texte_test";
@@ -322,7 +298,7 @@ static void construit_tampon_aleatoire(u_char **donnees, size_t *taille_donnees)
 		morceaux.push_back(dm);
 	}
 
-	for (auto n = 0ul; n < taille; ++n) {
+	for (auto n = morceaux.size(); n < max_morceaux - 1; ++n) {
 		auto arbre = arbre_expression::arbre{};
 		arbre.construit_expression();
 
@@ -336,6 +312,8 @@ static void construit_tampon_aleatoire(u_char **donnees, size_t *taille_donnees)
 
 		dm.identifiant = id_morceau::POINT_VIRGULE;
 		morceaux.push_back(dm);
+
+		n += arbre.noeuds.size();
 	}
 
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
@@ -343,23 +321,7 @@ static void construit_tampon_aleatoire(u_char **donnees, size_t *taille_donnees)
 
 	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
 
-	auto ptr = malloc(taille_octet);
-
-	if (ptr == nullptr) {
-		*donnees = nullptr;
-		*taille_donnees = 0ul;
-		return;
-	}
-
-	memcpy(ptr, morceaux.data(), taille_octet);
-
-	*donnees = static_cast<u_char *>(ptr);
-	*taille_donnees = taille_octet;
-}
-
-static void detruit_tampon_aleatoire(u_char *donnees)
-{
-	free(donnees);
+	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
 }
 
 static int test_entree_aleatoire(const u_char *donnees, size_t taille)
@@ -389,80 +351,97 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	return 0;
 }
 
-#include <unistd.h>
-#include <sys/wait.h>
+} // namespace test_analyse
+
+using t_fonction_initialisation = std::function<void(u_char *, size_t)>;
+using t_fonction_entree_test = std::function<int(const u_char *, size_t)>;
+
+struct FonctionsTest {
+	std::string nom;
+	t_fonction_initialisation initialisation = nullptr;
+	t_fonction_entree_test entree_test = nullptr;
+};
+
+struct Testeur {
+	std::vector<FonctionsTest> fonctions;
+
+	void ajoute_tests(
+			const std::string &nom,
+			t_fonction_initialisation initialisation,
+			t_fonction_entree_test entree_test)
+	{
+		FonctionsTest foncs;
+		foncs.nom = nom;
+		foncs.initialisation = initialisation;
+		foncs.entree_test = entree_test;
+
+		fonctions.push_back(foncs);
+	}
+};
 
 int main()
 {
 #if 1
-	auto chemin = std::string("/tmp/test");
+	auto chemin = std::string("/tmp/test_");
 
-	auto pid = fork();
+	Testeur testeur;
+	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon, test_analyse::test_entree_aleatoire);
+	testeur.ajoute_tests("decoupage", nullptr, test_decoupage::test_entree_aleatoire);
 
-	if (pid == 0) {
-		for (auto n = 0; n < 100; ++n) {
-			u_char *tampon = nullptr;
-			size_t taille = 0ul;
+	std::random_device device{};
+	std::uniform_int_distribution<u_char> rng{0, 255};
+	std::uniform_int_distribution<size_t> rng_taille{32 * 1024, 64 * 1024};
 
-			construit_tampon_aleatoire(&tampon, &taille);
+	u_char tampon[64 * 1024];
 
-			if (tampon == nullptr) {
-				continue;
-			}
+	for (const auto &foncs : testeur.fonctions) {
+		for (auto n = 0; n < 10; ++n) {
+			size_t taille = rng_taille(device);
 
-			auto chemin_test = chemin + std::to_string(n);
-			std::ofstream of;
-
-			of.open(chemin_test.c_str());
-
-			of.write(reinterpret_cast<const char *>(tampon), static_cast<long>(taille));
-
-			std::cerr << "Lancement du test aléatoire " << n << ".\n";
-
-			test_entree_aleatoire(tampon, taille);
-
-			detruit_tampon_aleatoire(tampon);
-		}
-
-		return 0;
-	}
-	else if (pid > 0) {
-		while (true) {
-			int status;
-			pid_t result = waitpid(pid, &status, WNOHANG);
-
-			if (result == 0) {
-				// Child still alive
-			}
-			else if (result == -1) {
-				std::cerr << "Erreur lors de l'attente\n";
-				break;
+			if (foncs.initialisation) {
+				foncs.initialisation(tampon, taille);
 			}
 			else {
-				if (WIFEXITED(status)) {
-					std::cerr << "Enfant a terminé normalement\n";
+				for (auto i = 0ul; i < taille; ++i) {
+					tampon[i] = rng(device);
 				}
-				else if (WIFSTOPPED(status)) {
-					std::cerr << "Enfant a été terminé\n";
-				}
-				else if (WIFSIGNALED(status)) {
-					std::cerr << "Enfant a été signalé de terminé\n";
-				}
-				else if (WIFCONTINUED(status)) {
-					std::cerr << "Enfant a continué\n";
-				}
+			}
 
-				break;
+			auto pid = fork();
+
+			if (pid == 0) {
+				return foncs.entree_test(tampon, taille);
+			}
+			else if (pid > 0) {
+				while (true) {
+					int status;
+					pid_t result = waitpid(pid, &status, WNOHANG);
+
+					if (result == 0) {
+						/* L'enfant est toujours en vie, continue. */
+					}
+					else if (result == -1) {
+						std::cerr << "Erreur lors de l'attente\n";
+						break;
+					}
+					else {
+						if (!WIFEXITED(status)) {
+							auto chemin_test = chemin + foncs.nom + std::to_string(n) + ".bin";
+							std::ofstream of;
+							of.open(chemin_test.c_str());
+							of.write(reinterpret_cast<const char *>(tampon), static_cast<long>(taille));
+
+							std::cerr << "Enfant a échoué : écriture du fichier...\n";
+						}
+
+						break;
+					}
+				}
 			}
 		}
 	}
-	else {
-		return 1;
-	}
-
-	return 0;
 #else
-	std::ifstream fichier("/tmp/test0");
+	std::ifstream fichier("/tmp/test2");
 
 	fichier.seekg(0, fichier.end);
 	const auto taille_fichier = static_cast<size_t>(fichier.tellg());
@@ -501,7 +480,7 @@ int main()
 	}
 
 	delete [] donnees;
+#endif
+
 	return 0;
-#endif
 }
-#endif
