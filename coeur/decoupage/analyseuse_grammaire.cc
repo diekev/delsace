@@ -533,6 +533,8 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
 	while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+		const auto pos = position();
+
 		/* assignement : soit x = a + b; */
 		if (est_identifiant(id_morceau::SOIT)) {
 			avance();
@@ -669,6 +671,21 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		}
 		else {
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, false, true);
+		}
+
+		/* Dans les fuzz-tests, c'est possible d'être bloqué dans une boucle
+		 * infinie :
+		 * - nous arrivons au dernier cas, analyse_expression_droite
+		 * - dans l'analyse, le premier identifiant est une parenthèse fermante
+		 * - puisque parenthèse fermante, on recule et on sors de la boucle
+		 * - puisqu'on sors de la boucle, on avance et on retourne
+		 * - donc recule + avance = on bouge pas.
+		 *
+		 * Pas sûr pour l'instant de la manière dont on pourrait résoudre ce
+		 * problème.
+		 */
+		if (pos == position()) {
+			lance_erreur("Boucle infini dans l'analyse du corps de la fonction");
 		}
 	}
 }
