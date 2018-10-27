@@ -532,149 +532,145 @@ void analyseuse_grammaire::analyse_corps_fonction()
 {
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
-	if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		return;
-	}
-
-	/* assignement : soit x = a + b; */
-	if (est_identifiant(id_morceau::SOIT)) {
-		avance();
-
-		auto est_variable = false;
-
-		if (est_identifiant(id_morceau::VARIABLE)) {
-			est_variable = true;
+	while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+		/* assignement : soit x = a + b; */
+		if (est_identifiant(id_morceau::SOIT)) {
 			avance();
-		}
 
-		if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-			lance_erreur("Attendu une chaîne de caractère après 'soit'");
-		}
+			auto est_variable = false;
 
-		const auto &morceau_variable = m_identifiants[position()];
-		auto donnees_type = DonneesType{};
-
-		if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
-			analyse_declaration_type(donnees_type);
-		}
-
-		/* À FAIRE : ceci est principalement pour pouvoir déclarer des
-		 * structures ou des tableaux en attendant de pouvoir les initialiser
-		 * par une assignation directe. par exemple : soit x = Vecteur3D(); */
-		if (!est_identifiant(id_morceau::EGAL)) {
-			if (!est_variable) {
+			if (est_identifiant(id_morceau::VARIABLE)) {
+				est_variable = true;
 				avance();
-				lance_erreur("Attendu '=' après chaîne de caractère");
 			}
 
-			auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
-			noeud_decl->donnees_type = donnees_type;
-			noeud_decl->est_variable = est_variable;
-			m_assembleuse->depile_noeud(type_noeud::DECLARATION_VARIABLE);
+			if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+				lance_erreur("Attendu une chaîne de caractère après 'soit'");
+			}
 
-			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
-				lance_erreur("Attendu ';' à la fin de la déclaration de la variable");
+			const auto &morceau_variable = m_identifiants[position()];
+			auto donnees_type = DonneesType{};
+
+			if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
+				analyse_declaration_type(donnees_type);
+			}
+
+			/* À FAIRE : ceci est principalement pour pouvoir déclarer des
+			 * structures ou des tableaux en attendant de pouvoir les initialiser
+			 * par une assignation directe. par exemple : soit x = Vecteur3D(); */
+			if (!est_identifiant(id_morceau::EGAL)) {
+				if (!est_variable) {
+					avance();
+					lance_erreur("Attendu '=' après chaîne de caractère");
+				}
+
+				auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
+				noeud_decl->donnees_type = donnees_type;
+				noeud_decl->est_variable = est_variable;
+				m_assembleuse->depile_noeud(type_noeud::DECLARATION_VARIABLE);
+
+				if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+					lance_erreur("Attendu ';' à la fin de la déclaration de la variable");
+				}
+			}
+			else {
+				avance();
+
+				const auto &morceau_egal = m_identifiants[position()];
+
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau_egal);
+				noeud->donnees_type = donnees_type;
+
+				auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
+				noeud_decl->donnees_type = donnees_type;
+				noeud_decl->est_variable = est_variable;
+				noeud->ajoute_noeud(noeud_decl);
+
+				analyse_expression_droite(id_morceau::POINT_VIRGULE);
+
+				m_assembleuse->depile_noeud(type_noeud::ASSIGNATION_VARIABLE);
 			}
 		}
-		else {
+		/* retour : retourne a + b; */
+		else if (est_identifiant(id_morceau::RETOURNE)) {
 			avance();
+			m_assembleuse->empile_noeud(type_noeud::RETOUR, m_identifiants[position()]);
 
-			const auto &morceau_egal = m_identifiants[position()];
+			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
+			if (!est_identifiant(id_morceau::POINT_VIRGULE)) {
+				analyse_expression_droite(id_morceau::POINT_VIRGULE);
+			}
+			else {
+				avance();
+			}
 
-			auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau_egal);
-			noeud->donnees_type = donnees_type;
+			if (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+				lance_erreur("Attendu une accolade fermante après l'expression de retour.");
+			}
 
-			auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
-			noeud_decl->donnees_type = donnees_type;
-			noeud_decl->est_variable = est_variable;
-			noeud->ajoute_noeud(noeud_decl);
-
-			analyse_expression_droite(id_morceau::POINT_VIRGULE);
-
-			m_assembleuse->depile_noeud(type_noeud::ASSIGNATION_VARIABLE);
+			m_assembleuse->depile_noeud(type_noeud::RETOUR);
 		}
-	}
-	/* retour : retourne a + b; */
-	else if (est_identifiant(id_morceau::RETOURNE)) {
-		avance();
-		m_assembleuse->empile_noeud(type_noeud::RETOUR, m_identifiants[position()]);
-
-		/* Considération du cas où l'on ne retourne rien 'retourne;'. */
-		if (!est_identifiant(id_morceau::POINT_VIRGULE)) {
-			analyse_expression_droite(id_morceau::POINT_VIRGULE);
+		/* controle de flux : si */
+		else if (est_identifiant(id_morceau::SI)) {
+			analyse_controle_si();
 		}
-		else {
-			avance();
+		else if (est_identifiant(id_morceau::POUR)) {
+			analyse_controle_pour();
 		}
-
-		if (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			lance_erreur("Attendu une accolade fermante après l'expression de retour.");
-		}
-
-		m_assembleuse->depile_noeud(type_noeud::RETOUR);
-	}
-	/* controle de flux : si */
-	else if (est_identifiant(id_morceau::SI)) {
-		analyse_controle_si();
-	}
-	else if (est_identifiant(id_morceau::POUR)) {
-		analyse_controle_pour();
-	}
-	else if (est_identifiant(id_morceau::BOUCLE)) {
-		avance();
-
-		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-			lance_erreur("Attendu une accolade ouvrante '{' après 'boucle'");
-		}
-
-		m_assembleuse->empile_noeud(type_noeud::BOUCLE, m_identifiants[position()]);
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
-		analyse_corps_fonction();
-		m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'boucle'");
-		}
-
-		/* enfant 2 : bloc sinon (optionel) */
-		if (est_identifiant(id_morceau::SINON)) {
+		else if (est_identifiant(id_morceau::BOUCLE)) {
 			avance();
 
 			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
+				lance_erreur("Attendu une accolade ouvrante '{' après 'boucle'");
 			}
 
+			m_assembleuse->empile_noeud(type_noeud::BOUCLE, m_identifiants[position()]);
 			m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
-
 			analyse_corps_fonction();
-
 			m_assembleuse->depile_noeud(type_noeud::BLOC);
 
 			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'sinon'");
+				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'boucle'");
+			}
+
+			/* enfant 2 : bloc sinon (optionel) */
+			if (est_identifiant(id_morceau::SINON)) {
+				avance();
+
+				if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+					lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
+				}
+
+				m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
+				analyse_corps_fonction();
+
+				m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+				if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+					lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'sinon'");
+				}
+			}
+
+			m_assembleuse->depile_noeud(type_noeud::BOUCLE);
+		}
+		else if (est_identifiant(id_morceau::ARRETE) || est_identifiant(id_morceau::CONTINUE)) {
+			avance();
+			m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, m_identifiants[position()]);
+			m_assembleuse->depile_noeud(type_noeud::CONTINUE_ARRETE);
+
+			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+				lance_erreur("Attendu un point virgule ';'");
 			}
 		}
-
-		m_assembleuse->depile_noeud(type_noeud::BOUCLE);
-	}
-	else if (est_identifiant(id_morceau::ARRETE) || est_identifiant(id_morceau::CONTINUE)) {
-		avance();
-		m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, m_identifiants[position()]);
-		m_assembleuse->depile_noeud(type_noeud::CONTINUE_ARRETE);
-
-		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
-			lance_erreur("Attendu un point virgule ';'");
+		/* appel : fais_quelque_chose(); */
+		else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
+			analyse_expression_droite(id_morceau::POINT_VIRGULE);
+		}
+		else {
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, false, true);
 		}
 	}
-	/* appel : fais_quelque_chose(); */
-	else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
-		analyse_expression_droite(id_morceau::POINT_VIRGULE);
-	}
-	else {
-		analyse_expression_droite(id_morceau::POINT_VIRGULE, false, true);
-	}
-
-	analyse_corps_fonction();
 }
 
 static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(id_morceau::PARENTHESE_OUVRANTE);
