@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_PROJET test_delsace)
+set(NOM_PROJET tests_unitaire_delsace)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
@@ -28,7 +28,9 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	${TEST_UNITAIRE_LIBRARIES}
+	base64
 	reseau
+	sha256
 )
 
 set(SOURCES
@@ -43,10 +45,21 @@ add_executable(${NOM_PROJET} ${SOURCES})
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
-install(
-	FILES ${FICHIERS}
-	DESTINATION exemples
+add_test(tests ${NOM_PROJET})
+
+install(TARGETS ${NOM_PROJET} RUNTIME DESTINATION .)
+
+set(NOM_PROJET tests_aleatoire_delsace)
+
+set(SOURCES
+	tests_aleatoire.cc
 )
+
+add_executable(${NOM_PROJET} ${SOURCES})
+
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+
 
 add_test(tests ${NOM_PROJET})
 
