@@ -16,6 +16,8 @@ Faitures
 - manipulation de structure
 - manipulation de tableaux
 - transtypage entre types simples
+- déclaration de fonctions externes pour lier des fichiers objets
+- déclaration de fonctions variadiques externes
 
 
 À faire
@@ -42,8 +44,6 @@ Faitures
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries
 - initialisation explicite des membres des structures lors de leur définition
-- déclaration fonction externe
-- déclaration fonction variadique
 
 
 À faire (tests)
@@ -75,6 +75,8 @@ Idées
 - mot-clés pour des tests fuzzés, avec maintenance des fonctions auxilliaires des tests par le compileur
 - mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
 - transformer les messages d'erreur en tutoriaux
+- valeur par défaut des arguments
+- plusieurs valeurs de retour, avec nom et valeur par défaut
 
 
 Sécurité/évitement des bugs
