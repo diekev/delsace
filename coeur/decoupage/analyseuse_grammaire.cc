@@ -708,142 +708,273 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	std::vector<Noeud *> &pile = m_paires_vecteurs[m_profondeur].second;
 	pile.clear();
 
+	auto vide_pile_operateur = [&](id_morceau id_operateur)
+	{
+		while (!pile.empty()
+			   && pile.back() != NOEUD_PARENTHESE
+			   && (precedence_faible(id_operateur, pile.back()->identifiant())))
+		{
+			expression.push_back(pile.back());
+			pile.pop_back();
+		}
+	};
+
 	/* Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
 	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
 	 * fontion. */
 	auto paren = 0;
 	auto dernier_identifiant = m_identifiants[position()].identifiant;
 
+	/* utilisé pour terminer la boucle quand elle nous atteignons une parenthèse
+	 * fermante */
+	auto termine_boucle = false;
+
 	while (!est_identifiant(identifiant_final)) {
 		const auto &morceau = m_identifiants[position() + 1];
 
-		/* appel fonction : chaine + ( */
-		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
-			avance(2);
-
-			auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, morceau, false);
-
-			analyse_appel_fonction(dynamic_cast<NoeudAppelFonction *>(noeud));
-
-			m_assembleuse->depile_noeud(type_noeud::APPEL_FONCTION);
-
-			expression.push_back(noeud);
-		}
-		/* variable : chaine */
-		else if (morceau.identifiant == id_morceau::CHAINE_CARACTERE) {
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, morceau);
-			expression.push_back(noeud);
-		}
-		else if (morceau.identifiant == id_morceau::NOMBRE_REEL) {
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_REEL, morceau);
-			expression.push_back(noeud);
-		}
-		else if (est_nombre_entier(morceau.identifiant)) {
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_ENTIER, morceau);
-			expression.push_back(noeud);
-		}
-		else if (morceau.identifiant == id_morceau::CHAINE_LITTERALE) {
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, morceau);
-			expression.push_back(noeud);
-		}
-		else if (morceau.identifiant == id_morceau::CARACTERE) {
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::CARACTERE, morceau);
-			expression.push_back(noeud);
-		}
-		else if (morceau.identifiant == id_morceau::NUL) {
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::NUL, morceau);
-			expression.push_back(noeud);
-		}
-		else if (morceau.identifiant == id_morceau::TAILLE_DE) {
-			avance();
-
-			if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-				lance_erreur("Attendu '(' après 'taille_de'");
-			}
-
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, morceau);
-
-			auto donnees_type = DonneesType{};
-			analyse_declaration_type(donnees_type, false);
-			noeud->valeur_calculee = donnees_type;
-
-			/* vérifie mais n'avance pas */
-			if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-				lance_erreur("Attendu ')' après le type de 'taille_de'");
-			}
-
-			expression.push_back(noeud);
-		}
-		else if (morceau.identifiant == id_morceau::VRAI || morceau.identifiant == id_morceau::FAUX) {
-			/* remplace l'identifiant par id_morceau::BOOL */
-			auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, id_morceau::BOOL };
-			auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, morceau_bool);
-			expression.push_back(noeud);
-		}
-		else if (morceau.identifiant == id_morceau::TRANSTYPE) {
-			avance();
-
-			if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-				lance_erreur("Attendu '(' après 'transtype'");
-			}
-
-			auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, morceau, false);
-
-			++m_profondeur;
-			analyse_expression_droite(id_morceau::INCONNU);
-			--m_profondeur;
-
-			if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-				lance_erreur("Attendu ')' après la déclaration de l'expression");
-			}
-
-			if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-				lance_erreur("Attendu '(' après ')'");
-			}
-
-			analyse_declaration_type(noeud->donnees_type, false);
-
-			/* vérifie mais n'avance pas */
-			if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-				lance_erreur("Attendu ')' après la déclaration du type");
-			}
-
-			m_assembleuse->depile_noeud(type_noeud::TRANSTYPE);
-			expression.push_back(noeud);
-		}
-		else if (est_operateur(morceau.identifiant)) {
-			auto id_operateur = morceau.identifiant;
-
-			if (precede_unaire_valide(dernier_identifiant)) {
-				if (id_operateur == id_morceau::PLUS) {
-					id_operateur = id_morceau::PLUS_UNAIRE;
-				}
-				else if (id_operateur == id_morceau::MOINS) {
-					id_operateur = id_morceau::MOINS_UNAIRE;
-				}
-			}
-
-			/* Correction de crash d'aléatest, improbable dans la vrai vie. */
-			if (expression.empty() && est_operateur_binaire(id_operateur)) {
-				avance();
-				lance_erreur("Opérateur binaire utilisé en début d'expression");
-			}
-
-			while (!pile.empty()
-				   && pile.back() != NOEUD_PARENTHESE
-				   && est_operateur(pile.back()->identifiant())
-				   && (precedence_faible(id_operateur, pile.back()->identifiant())))
+		switch (morceau.identifiant) {
+			case id_morceau::CHAINE_CARACTERE:
 			{
-				expression.push_back(pile.back());
-				pile.pop_back();
-			}
-
-			auto noeud = static_cast<Noeud *>(nullptr);
-
-			if (id_operateur == id_morceau::CROCHET_OUVRANT) {
 				avance();
 
-				noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, morceau, false);
+				/* appel fonction : chaine + ( */
+				if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+					avance();
+
+					auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, morceau, false);
+
+					analyse_appel_fonction(dynamic_cast<NoeudAppelFonction *>(noeud));
+
+					m_assembleuse->depile_noeud(type_noeud::APPEL_FONCTION);
+
+					expression.push_back(noeud);
+				}
+				/* variable : chaine */
+				else {
+					recule();
+
+					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, morceau);
+					expression.push_back(noeud);
+				}
+
+				break;
+			}
+			case id_morceau::NOMBRE_REEL:
+			{
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_REEL, morceau);
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::NOMBRE_BINAIRE:
+			case id_morceau::NOMBRE_ENTIER:
+			case id_morceau::NOMBRE_HEXADECIMAL:
+			case id_morceau::NOMBRE_OCTAL:
+			{
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_ENTIER, morceau);
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::CHAINE_LITTERALE:
+			{
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, morceau);
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::CARACTERE:
+			{
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::CARACTERE, morceau);
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::NUL:
+			{
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::NUL, morceau);
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::TAILLE_DE:
+			{
+				avance();
+
+				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+					lance_erreur("Attendu '(' après 'taille_de'");
+				}
+
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, morceau);
+
+				auto donnees_type = DonneesType{};
+				analyse_declaration_type(donnees_type, false);
+				noeud->valeur_calculee = donnees_type;
+
+				/* vérifie mais n'avance pas */
+				if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+					lance_erreur("Attendu ')' après le type de 'taille_de'");
+				}
+
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::VRAI:
+			case id_morceau::FAUX:
+			{
+				/* remplace l'identifiant par id_morceau::BOOL */
+				auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, id_morceau::BOOL };
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, morceau_bool);
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::TRANSTYPE:
+			{
+				avance();
+
+				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+					lance_erreur("Attendu '(' après 'transtype'");
+				}
+
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, morceau, false);
+
+				++m_profondeur;
+				analyse_expression_droite(id_morceau::INCONNU);
+				--m_profondeur;
+
+				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+					lance_erreur("Attendu ')' après la déclaration de l'expression");
+				}
+
+				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+					lance_erreur("Attendu '(' après ')'");
+				}
+
+				analyse_declaration_type(noeud->donnees_type, false);
+
+				/* vérifie mais n'avance pas */
+				if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+					lance_erreur("Attendu ')' après la déclaration du type");
+				}
+
+				m_assembleuse->depile_noeud(type_noeud::TRANSTYPE);
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::PARENTHESE_OUVRANTE:
+			{
+				++paren;
+				pile.push_back(NOEUD_PARENTHESE);
+				break;
+			}
+			case id_morceau::PARENTHESE_FERMANTE:
+			{
+				/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
+				 * atteint la fin d'une déclaration d'appel de fonction. */
+				if (paren == 0) {
+					/* recule pour être synchroniser avec la sortie dans
+					 * analyse_appel_fonction() */
+					recule();
+
+					/* À FAIRE */
+					termine_boucle = true;
+					break;
+				}
+
+				if (pile.empty()) {
+					lance_erreur("Il manque une paranthèse dans l'expression !");
+				}
+
+				while (pile.back() != NOEUD_PARENTHESE) {
+					expression.push_back(pile.back());
+					pile.pop_back();
+				}
+
+				/* Enlève la parenthèse restante de la pile. */
+				pile.pop_back();
+
+				--paren;
+				break;
+			}
+			/* opérations binaire */
+			case id_morceau::PLUS:
+			case id_morceau::MOINS:
+			{
+				auto id_operateur = morceau.identifiant;
+				auto noeud = static_cast<Noeud *>(nullptr);
+
+				if (precede_unaire_valide(dernier_identifiant)) {
+					if (id_operateur == id_morceau::PLUS) {
+						id_operateur = id_morceau::PLUS_UNAIRE;
+					}
+					else if (id_operateur == id_morceau::MOINS) {
+						id_operateur = id_morceau::MOINS_UNAIRE;
+					}
+
+					auto morceau_unaire = DonneesMorceaux{morceau.chaine, morceau.ligne_pos, id_operateur};
+					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau_unaire);
+				}
+				else {
+					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
+				}
+
+				vide_pile_operateur(id_operateur);
+
+				pile.push_back(noeud);
+
+				break;
+			}
+			case id_morceau::FOIS:
+			case id_morceau::DIVISE:
+			case id_morceau::ESPERLUETTE:
+			case id_morceau::POURCENT:
+			case id_morceau::INFERIEUR:
+			case id_morceau::INFERIEUR_EGAL:
+			case id_morceau::SUPERIEUR:
+			case id_morceau::SUPERIEUR_EGAL:
+			case id_morceau::DECALAGE_DROITE:
+			case id_morceau::DECALAGE_GAUCHE:
+			case id_morceau::DIFFERENCE:
+			case id_morceau::ESP_ESP:
+			case id_morceau::EGALITE:
+			case id_morceau::BARRE_BARRE:
+			case id_morceau::BARRE:
+			case id_morceau::CHAPEAU:
+			{
+				/* Correction de crash d'aléatest, improbable dans la vrai vie. */
+				if (expression.empty() && est_operateur_binaire(morceau.identifiant)) {
+					avance();
+					lance_erreur("Opérateur binaire utilisé en début d'expression");
+				}
+
+				vide_pile_operateur(morceau.identifiant);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
+				pile.push_back(noeud);
+
+				break;
+			}
+			case id_morceau::DE:
+			{
+				vide_pile_operateur(morceau.identifiant);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE, morceau);
+				pile.push_back(noeud);
+				break;
+			}
+			case id_morceau::EGAL:
+			{
+				if (!assignation) {
+					avance();
+					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
+				}
+
+				vide_pile_operateur(morceau.identifiant);
+
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau);
+				pile.push_back(noeud);
+				break;
+			}
+			case id_morceau::CROCHET_OUVRANT:
+			{
+				vide_pile_operateur(morceau.identifiant);
+				avance();
+
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, morceau, false);
+				pile.push_back(noeud);
 
 				++m_profondeur;
 				analyse_expression_droite(id_morceau::CROCHET_FERMANT);
@@ -854,61 +985,29 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				/* nous reculons, car on avance de nouveau avant de recommencer
 				 * la boucle plus bas */
 				recule();
-			}
-			else if (id_operateur == id_morceau::DE) {
-				noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE, morceau);
-			}
-			else if (id_operateur == id_morceau::EGAL) {
-				if (!assignation) {
-					avance();
-					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
-				}
-
-				noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau);
-			}
-			else {
-				if (est_operateur_binaire(id_operateur)) {
-					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
-				}
-				else {
-					auto morceau_unaire = DonneesMorceaux{morceau.chaine, morceau.ligne_pos, id_operateur};
-					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau_unaire);
-				}
-			}
-
-			pile.push_back(noeud);
-		}
-		else if (morceau.identifiant == id_morceau::PARENTHESE_OUVRANTE) {
-			++paren;
-			pile.push_back(NOEUD_PARENTHESE);
-		}
-		else if (morceau.identifiant == id_morceau::PARENTHESE_FERMANTE) {
-			/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
-			 * atteint la fin d'une déclaration d'appel de fonction. */
-			if (paren == 0) {
-				/* recule pour être synchroniser avec la sortie dans
-				 * analyse_appel_fonction() */
-				recule();
 				break;
 			}
-
-			if (pile.empty()) {
-				lance_erreur("Il manque une paranthèse dans l'expression !");
+			/* opérations unaire */
+			case id_morceau::AROBASE:
+			case id_morceau::EXCLAMATION:
+			case id_morceau::TILDE:
+			case id_morceau::PLUS_UNAIRE:
+			case id_morceau::MOINS_UNAIRE:
+			{
+				vide_pile_operateur(morceau.identifiant);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau);
+				pile.push_back(noeud);
+				break;
 			}
-
-			while (pile.back() != NOEUD_PARENTHESE) {
-				expression.push_back(pile.back());
-				pile.pop_back();
+			default:
+			{
+				avance();
+				lance_erreur("Identifiant inattendu dans l'expression");
 			}
-
-			/* Enlève la parenthèse restante de la pile. */
-			pile.pop_back();
-
-			--paren;
 		}
-		else {
-			avance();
-			lance_erreur("Identifiant inattendu dans l'expression");
+
+		if (termine_boucle) {
+			break;
 		}
 
 		dernier_identifiant = morceau.identifiant;
