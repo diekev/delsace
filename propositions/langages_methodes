@@ -1,0 +1,77 @@
+#
+# C++
+#
+struct Foo {
+	static void static_bar();
+	void methode_bar();
+};
+
+Foo::static_bar();
+foo.methode_bar();
+
+#
+# Java
+#
+class Foo {
+	public void static_bar();
+	public void methode_bar();
+};
+
+Foo.static_bar();
+foo.methode_bar();
+
+#
+# Python
+#
+class Foo():
+	@static_method
+	def static_bar(self):
+		pass
+
+	def methode_bar(self):
+		pass
+
+Foo.static_bar()
+foo.methode_bar()
+
+#
+# Rust
+#
+struct Foo {
+
+}
+
+impl Foo {
+	pub fn static_bar() -> void;
+	pub fn methode_bar(&self) -> void;
+}
+
+Foo::static_bar();
+foo.methode_bar();
+
+#
+# Go
+#
+type Foo struct {
+
+}
+
+func static_bar() void {
+
+}
+
+func (f Foo) methode_bar() void {
+
+}
+
+#
+# Kuri
+#
+structure Foo {
+	fonction static_bar();
+
+	fonction methode_bar(variable soi : *Foo);
+}
+
+Foo.static_bar();
+foo.methode_bar();

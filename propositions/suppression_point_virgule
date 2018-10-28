@@ -1,0 +1,36 @@
+Étude pour supprimer les points virgules, enlever le superflux pour aérer le langage.
+
+Les points virgules sont utilisés pour délimités les expressions dans le corps d'une fonction.
+
+Mais certaines expressions sont délimités par d'autres caractères, comme un crochet fermant (acces_tableau[expr]), une accolade ouvrante (si expr {), ou encore une virgule ou parenthèse fermante (appel(expr, expr)).
+
+Ces cas spéciaux font que l'analyse grammaticale du langage ne peut définir avec certitude un seul point de sortie de l'analyse d'expressions, et des comparaisons redondantes sont alors performées.
+
+On pourrait simplifier cette analyse en supprimant le point virgule, et en définissant non pas ce qui termine une expression, mais ce qui en commence.
+
+fin expression :
+	soit
+	retourne
+	si
+	{
+	]
+	,
+	...
+	) si dans transtype, ou appel fonction
+
+
+arrête expression si
+
+chaine   chaine  // x = a + b y = b + c
+                 //          ^
+
+littéral chaine  // x = a + 5 y = c + d
+                 //          ^
+
+chaine littéral  // erreur ? une littéral ne peut être assignée mais x = a + b 0 + ptr = a + c // ok
+
+) chaine         // a = appel() b = c
+                 //            ^
+
+] chaine         // a = membre[0] b = c
+                 //              ^
