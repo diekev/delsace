@@ -1090,13 +1090,32 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	pile.pop_back();
 
 	if (pile.size() != 0) {
-		std::cerr << "Il reste plus d'un noeud dans la pile ! :";
+		auto premier_noeud = pile.back();
+		auto dernier_noeud = premier_noeud;
+		pile.pop_back();
+
+		auto pos_premier = premier_noeud->donnees_morceau().ligne_pos & 0xffffffff;
+		auto pos_dernier = pos_premier;
 
 		while (!pile.empty()) {
-			auto noeud = pile.back();
+			auto n = pile.back();
 			pile.pop_back();
-			std::cerr << '\t' << chaine_identifiant(noeud->identifiant()) << '\n';
+
+			auto pos_n = n->donnees_morceau().ligne_pos & 0xffffffff;
+
+			if (pos_n < pos_premier) {
+				premier_noeud = n;
+			}
+			if (pos_n > pos_dernier) {
+				dernier_noeud = n;
+			}
 		}
+
+		erreur::lance_erreur_plage(
+					"Expression malformée, il est possible qu'il manque un opérateur",
+					m_tampon,
+					premier_noeud->donnees_morceau(),
+					dernier_noeud->donnees_morceau());
 	}
 
 	/* saute l'identifiant final */

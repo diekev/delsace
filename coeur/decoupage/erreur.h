@@ -78,6 +78,13 @@ public:
 		const DonneesMorceaux &morceau,
 		type_erreur type = type_erreur::NORMAL);
 
+[[noreturn]] void lance_erreur_plage(
+		const std::string &quoi,
+		const TamponSource &tampon,
+		const DonneesMorceaux &premier_morceau,
+		const DonneesMorceaux &dernier_morceau,
+		type_erreur type = type_erreur::NORMAL);
+
 [[noreturn]] void lance_erreur_nombre_arguments(
 		const size_t nombre_arguments,
 		const size_t nombre_recus,

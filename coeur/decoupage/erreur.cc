@@ -81,6 +81,19 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 	}
 }
 
+static void imprime_tilde(std::ostream &os, const std::string_view &chaine, size_t debut, size_t fin)
+{
+	for (size_t i = debut; i < fin;) {
+		os << '~';
+
+		/* il est possible que l'on reçoive un caractère unicode invalide, donc
+		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
+		 * boucle infinie. À FAIRE : trouver mieux */
+		auto n = std::max(1, nombre_octets(&chaine[i]));
+		i += static_cast<size_t>(n);
+	}
+}
+
 static void imprime_ligne_entre(
 		std::ostream &os,
 		const std::string_view &chaine,
@@ -116,6 +129,33 @@ void lance_erreur(
 
 	ss << quoi;
 	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
+
+	throw erreur::frappe(ss.str().c_str(), type);
+}
+
+void lance_erreur_plage(
+		const std::string &quoi,
+		const TamponSource &tampon,
+		const DonneesMorceaux &premier_morceau,
+		const DonneesMorceaux &dernier_morceau,
+		type_erreur type)
+{
+	const auto ligne = premier_morceau.ligne_pos >> 32;
+	const auto pos_premier = premier_morceau.ligne_pos & 0xffffffff;
+	const auto pos_dernier = dernier_morceau.ligne_pos & 0xffffffff;
+
+	auto ligne_courante = tampon[ligne];
+
+	std::stringstream ss;
+	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
+	ss << ligne_courante;
+
+	imprime_caractere_vide(ss, pos_premier, ligne_courante);
+	ss << '^';
+	imprime_tilde(ss, ligne_courante, pos_premier, pos_dernier + 1);
+	ss << '\n';
+
+	ss << quoi;
 
 	throw erreur::frappe(ss.str().c_str(), type);
 }
