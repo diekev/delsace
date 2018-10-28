@@ -193,9 +193,8 @@ void parenthese::visite(visiteur_arbre visiteur)
 	visiteur(id_morceau::PARENTHESE_FERMANTE);
 }
 
-
 struct appel_fonction : public expression {
-	expression *param;
+	std::vector<expression *> params;
 
 	virtual void visite(visiteur_arbre visiteur) override;
 };
@@ -204,8 +203,26 @@ void appel_fonction::visite(visiteur_arbre visiteur)
 {
 	visiteur(id_morceau::CHAINE_CARACTERE);
 	visiteur(id_morceau::PARENTHESE_OUVRANTE);
-	param->visite(visiteur);
+
+	for (auto enfant : params) {
+		enfant->visite(visiteur);
+	}
+
 	visiteur(id_morceau::PARENTHESE_FERMANTE);
+}
+
+struct acces_tableau : public expression {
+	expression *param;
+
+	virtual void visite(visiteur_arbre visiteur) override;
+};
+
+void acces_tableau::visite(visiteur_arbre visiteur)
+{
+	visiteur(id_morceau::CHAINE_CARACTERE);
+	visiteur(id_morceau::CROCHET_OUVRANT);
+	param->visite(visiteur);
+	visiteur(id_morceau::CROCHET_FERMANT);
 }
 
 struct arbre {
@@ -233,29 +250,7 @@ struct arbre {
 
 	expression *construit_expression_ex(double prob)
 	{
-		auto p = this->rng(this->device);
-
-		/* À FAIRE :
-		 * - opérateur[]
-		 * - nombre aléatoire de paramètres de fonctions
-		 */
-
-		if (p > prob) {
-			auto noeud = new variable{};
-			this->noeuds.push_back(noeud);
-			return noeud;
-		}
-
-		p = this->rng(this->device);
-
-		if (p > 0.5) {
-			auto noeud = new operation_unaire{};
-			noeud->droite = construit_expression_ex(prob / 1.2);
-			this->noeuds.push_back(noeud);
-			return noeud;
-		}
-
-		p = this->rng(this->device) * prob;
+		auto p = this->rng(this->device) * prob;
 
 		if (p > 0.5) {
 			auto noeud = new parenthese{};
@@ -264,21 +259,54 @@ struct arbre {
 			return noeud;
 		}
 
-		p = this->rng(this->device);
+		auto pi = static_cast<size_t>(this->rng(this->device) * 4);
 
-		if (p > 0.5) {
-			auto noeud = new appel_fonction{};
-			/* construction d'une nouvelle expression, donc réinitialise prob */
-			noeud->param = construit_expression_ex(1.0);
-			this->noeuds.push_back(noeud);
-			return noeud;
+		switch (pi) {
+			case 0:
+			{
+				auto noeud = new variable{};
+				this->noeuds.push_back(noeud);
+				return noeud;
+			}
+			case 1:
+			{
+				auto noeud = new operation_unaire{};
+				noeud->droite = construit_expression_ex(prob / 1.2);
+				this->noeuds.push_back(noeud);
+				return noeud;
+			}
+			case 2:
+			{
+				auto noeud = new appel_fonction{};
+
+				auto n = static_cast<size_t>(this->rng(this->device) * 10);
+
+				for (auto i = 0ul; i < n; ++i) {
+					/* construction d'une nouvelle expression, donc réinitialise prob */
+					auto enfant = construit_expression_ex(1.0);
+					noeud->params.push_back(enfant);
+				}
+
+				this->noeuds.push_back(noeud);
+				return noeud;
+			}
+			case 3:
+			{
+				auto noeud = new acces_tableau{};
+				noeud->param = construit_expression_ex(prob / 1.2);
+				this->noeuds.push_back(noeud);
+				return noeud;
+			}
+			default:
+			case 4:
+			{
+				auto noeud = new operation_binaire{};
+				noeud->droite = construit_expression_ex(prob / 1.2);
+				noeud->gauche = construit_expression_ex(prob / 1.2);
+				this->noeuds.push_back(noeud);
+				return noeud;
+			}
 		}
-
-		auto noeud = new operation_binaire{};
-		noeud->droite = construit_expression_ex(prob / 1.2);
-		noeud->gauche = construit_expression_ex(prob / 1.2);
-		this->noeuds.push_back(noeud);
-		return noeud;
 	}
 };
 
