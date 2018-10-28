@@ -140,11 +140,6 @@ static bool est_operateur_binaire(id_morceau identifiant)
 	}
 }
 
-static bool est_operateur(id_morceau identifiant)
-{
-	return est_operateur_unaire(identifiant) || est_operateur_binaire(identifiant);
-}
-
 static bool est_operateur_constant(id_morceau identifiant)
 {
 	switch (identifiant) {
