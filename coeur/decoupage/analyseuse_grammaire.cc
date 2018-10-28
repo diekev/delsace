@@ -182,10 +182,6 @@ static bool est_operateur_constant(id_morceau identifiant)
  */
 static bool precede_unaire_valide(id_morceau dernier_identifiant)
 {
-	if (est_operateur(dernier_identifiant)) {
-		return true;
-	}
-
 	if (dernier_identifiant == id_morceau::PARENTHESE_FERMANTE) {
 		return false;
 	}
