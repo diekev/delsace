@@ -314,6 +314,7 @@ struct arbre {
 
 static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 {
+#if 0
 	const auto max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
 
 	std::vector<DonneesMorceaux> morceaux;
@@ -352,10 +353,43 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
 
 	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+#else
+	const auto max_morceaux = taille_tampon / sizeof(id_morceau);
+
+	std::vector<id_morceau> morceaux;
+	morceaux.reserve(max_morceaux);
+
+	for (auto id : sequence_declaration_fonction) {
+		morceaux.push_back(id);
+	}
+
+	for (auto n = morceaux.size(); n < max_morceaux - 1; ++n) {
+		auto arbre = arbre_expression::arbre{};
+		arbre.construit_expression();
+
+		auto visiteur = [&](id_morceau id)
+		{
+			morceaux.push_back(id);
+		};
+
+		arbre.visite(visiteur);
+
+		morceaux.push_back(id_morceau::POINT_VIRGULE);
+
+		n += arbre.noeuds.size();
+	}
+
+	morceaux.push_back(id_morceau::ACCOLADE_FERMANTE);
+
+	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+
+	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+#endif
 }
 
 static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 {
+#if 0
 	const auto max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
 
 	std::vector<DonneesMorceaux> morceaux;
@@ -387,18 +421,49 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
 
 	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+#else
+	const auto max_morceaux = taille_tampon / sizeof(id_morceau);
+
+	std::random_device device{};
+	std::uniform_int_distribution<u_char> rng{
+		static_cast<int>(id_morceau::EXCLAMATION),
+		static_cast<int>(id_morceau::INCONNU)
+	};
+
+	std::vector<id_morceau> morceaux;
+	morceaux.reserve(max_morceaux);
+
+	for (auto id : sequence_declaration_fonction) {
+		morceaux.push_back(id);
+	}
+
+	for (auto n = morceaux.size(); n < max_morceaux - 1; ++n) {
+		morceaux.push_back(static_cast<id_morceau>(rng(device)));
+	}
+
+	morceaux.push_back(id_morceau::ACCOLADE_FERMANTE);
+
+	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+
+	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+#endif
 }
 
 static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 {
-	auto donnees_morceaux = reinterpret_cast<const DonneesMorceaux *>(donnees);
-	auto nombre_morceaux = taille / sizeof(DonneesMorceaux);
+	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
+	auto nombre_morceaux = taille / sizeof(id_morceau);
 
 	std::vector<DonneesMorceaux> morceaux;
 	morceaux.reserve(nombre_morceaux);
 
+	auto dm = DonneesMorceaux{};
+	dm.chaine = "texte_test";
+	dm.ligne_pos = 0ul;
+
 	for (size_t i = 0; i < nombre_morceaux; ++i) {
-		morceaux.push_back(donnees_morceaux[i]);
+		dm.identifiant = donnees_morceaux[i];
+		morceaux.push_back(dm);
 	}
 
 	try {
