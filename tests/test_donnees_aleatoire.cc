@@ -245,16 +245,22 @@ struct arbre {
 
 	void construit_expression()
 	{
-		this->racine = construit_expression_ex(1.0);
+		this->racine = construit_expression_ex(1.0, 0);
 	}
 
-	expression *construit_expression_ex(double prob)
+	expression *construit_expression_ex(double prob, int profondeur)
 	{
 		auto p = this->rng(this->device) * prob;
 
+		if (profondeur >= 32) {
+			auto noeud = new variable{};
+			this->noeuds.push_back(noeud);
+			return noeud;
+		}
+
 		if (p > 0.5) {
 			auto noeud = new parenthese{};
-			noeud->centre = construit_expression_ex(prob / 1.2);
+			noeud->centre = construit_expression_ex(prob / 1.2, profondeur + 1);
 			this->noeuds.push_back(noeud);
 			return noeud;
 		}
@@ -271,7 +277,7 @@ struct arbre {
 			case 1:
 			{
 				auto noeud = new operation_unaire{};
-				noeud->droite = construit_expression_ex(prob / 1.2);
+				noeud->droite = construit_expression_ex(prob / 1.2, profondeur + 1);
 				this->noeuds.push_back(noeud);
 				return noeud;
 			}
@@ -283,7 +289,7 @@ struct arbre {
 
 				for (auto i = 0ul; i < n; ++i) {
 					/* construction d'une nouvelle expression, donc réinitialise prob */
-					auto enfant = construit_expression_ex(1.0);
+					auto enfant = construit_expression_ex(1.0, profondeur + 1);
 					noeud->params.push_back(enfant);
 				}
 
@@ -293,7 +299,7 @@ struct arbre {
 			case 3:
 			{
 				auto noeud = new acces_tableau{};
-				noeud->param = construit_expression_ex(prob / 1.2);
+				noeud->param = construit_expression_ex(prob / 1.2, profondeur + 1);
 				this->noeuds.push_back(noeud);
 				return noeud;
 			}
@@ -301,8 +307,8 @@ struct arbre {
 			case 4:
 			{
 				auto noeud = new operation_binaire{};
-				noeud->droite = construit_expression_ex(prob / 1.2);
-				noeud->gauche = construit_expression_ex(prob / 1.2);
+				noeud->droite = construit_expression_ex(prob / 1.2, profondeur + 1);
+				noeud->gauche = construit_expression_ex(prob / 1.2, profondeur + 1);
 				this->noeuds.push_back(noeud);
 				return noeud;
 			}
