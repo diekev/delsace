@@ -2208,7 +2208,7 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 		/* Il est possible d'avoir des contrôles récursif, donc on fait une
 		 * branche dans le bloc courant du contexte qui peut être différent de
 		 * bloc_sinon. */
-		if (!est_branche_ou_retour(ret)) {
+		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sinon)) {
 			ret = llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
 		}
 	}
