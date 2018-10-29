@@ -21,6 +21,24 @@
 #
 # Comment faire pour stocker les objets lors de l'exécution ? Il faudrait une
 # allocation dynamique de la mémoire avec une désallocation automatique...
+#
+# structure eini {
+#	type   : *z8;   // par ex : "r8", "z32", "bool", "Point2D"
+#	classe : *z8;   // par ex : "structure", "fonction", "opérateur"
+#	valeur : *rien; // pointeur vers la valeur allouée
+# }
+#
+# construit eini :
+#	- alloue de l'espace pour la structure
+#	- renseigne le type
+#	- renseigne la classe
+#	- appel malloc pour allouée dynamiquement de la place sur la heap pour l'objet
+#
+# détruit eini :
+#	- appel free sur le pointeur
+#
+# assigne :
+#	- appel malloc / free sur le pointeur
 
 structure Vecteur3D {
 
