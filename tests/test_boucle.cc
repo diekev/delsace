@@ -72,13 +72,69 @@ static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controle
 
 	CU_DEBUTE_PROPOSITION(
 				controleur,
-				"La plage d'une boucle 'pour' doit avoir des types entiers");
+				"La plage d'une boucle 'pour' peut avoir des types réguliers");
 	{
 		const char *texte =
 				R"(
 				fonction foo() : rien
 				{
+					pour x dans 'a'...'z' {
+					}
+					pour x dans 0...10 {
+					}
 					pour x dans 0.0...10.0 {
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"La plage d'une boucle 'pour' ne être de type booléenne");
+	{
+		const char *texte =
+				R"(
+				structure Demo {
+					demo : z32;
+				}
+
+				fonction foo() : rien
+				{
+					pour x dans vrai...faux {
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"La plage d'une boucle 'pour' ne peut avoir des types définis par l'utilisateur");
+	{
+		const char *texte =
+				R"(
+				structure Demo {
+					demo : z32;
+				}
+
+				fonction foo() : rien
+				{
+					soit variable debut : Demo;
+					soit variable fin   : Demo;
+
+					pour x dans debut...fin {
 					}
 				}
 				)";

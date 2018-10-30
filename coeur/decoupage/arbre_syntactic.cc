@@ -54,85 +54,101 @@ static auto cree_bloc(ContexteGenerationCode &contexte, const char *nom)
 
 static llvm::Type *converti_type(
 		ContexteGenerationCode &contexte,
+		const DonneesType &donnees_type);
+
+static llvm::Type *converti_type_simple(
+		ContexteGenerationCode &contexte,
+		const id_morceau &identifiant,
+		llvm::Type *type_entree)
+{
+	llvm::Type *type = nullptr;
+
+	switch (identifiant & 0xff) {
+		case id_morceau::BOOL:
+			type = llvm::Type::getInt1Ty(contexte.contexte);
+			break;
+		case id_morceau::N8:
+		case id_morceau::Z8:
+			/* À FAIRE : LLVM supporte les entiers non-signés ? */
+			type = llvm::Type::getInt8Ty(contexte.contexte);
+			break;
+		case id_morceau::N16:
+		case id_morceau::Z16:
+			type = llvm::Type::getInt16Ty(contexte.contexte);
+			break;
+		case id_morceau::N32:
+		case id_morceau::Z32:
+			type = llvm::Type::getInt32Ty(contexte.contexte);
+			break;
+		case id_morceau::N64:
+		case id_morceau::Z64:
+			type = llvm::Type::getInt64Ty(contexte.contexte);
+			break;
+		case id_morceau::R16:
+			type = llvm::Type::getHalfTy(contexte.contexte);
+			break;
+		case id_morceau::R32:
+			type = llvm::Type::getFloatTy(contexte.contexte);
+			break;
+		case id_morceau::R64:
+			type = llvm::Type::getDoubleTy(contexte.contexte);
+			break;
+		case id_morceau::RIEN:
+			type = llvm::Type::getVoidTy(contexte.contexte);
+			break;
+		case id_morceau::POINTEUR:
+			type = llvm::PointerType::get(type_entree, 0);
+			break;
+		case id_morceau::CHAINE_CARACTERE:
+		{
+			const auto &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
+			auto &donnees_structure = contexte.donnees_structure(id_structure);
+
+			if (donnees_structure.type_llvm == nullptr) {
+				std::vector<llvm::Type *> types_membres;
+				types_membres.resize(donnees_structure.donnees_types.size());
+
+				std::transform(donnees_structure.donnees_types.begin(),
+							   donnees_structure.donnees_types.end(),
+							   types_membres.begin(),
+							   [&](const DonneesType &donnees)
+				{
+					return converti_type(contexte, donnees);
+				});
+
+				auto nom = "struct." + contexte.nom_struct(donnees_structure.id);
+
+				donnees_structure.type_llvm = llvm::StructType::create(
+												  contexte.contexte,
+												  types_membres,
+												  nom,
+												  false);
+			}
+
+			type = donnees_structure.type_llvm;
+			break;
+		}
+		case id_morceau::TABLEAU:
+		{
+			const auto taille = static_cast<uint64_t>(identifiant) & 0xffffff00;
+			type = llvm::ArrayType::get(type_entree, taille >> 8);
+			break;
+		}
+		default:
+			assert(false);
+	}
+
+	return type;
+}
+
+static llvm::Type *converti_type(
+		ContexteGenerationCode &contexte,
 		const DonneesType &donnees_type)
 {
 	llvm::Type *type = nullptr;
 
 	for (id_morceau identifiant : donnees_type) {
-		switch (identifiant & 0xff) {
-			case id_morceau::BOOL:
-				type = llvm::Type::getInt1Ty(contexte.contexte);
-				break;
-			case id_morceau::N8:
-			case id_morceau::Z8:
-				/* À FAIRE : LLVM supporte les entiers non-signés ? */
-				type = llvm::Type::getInt8Ty(contexte.contexte);
-				break;
-			case id_morceau::N16:
-			case id_morceau::Z16:
-				type = llvm::Type::getInt16Ty(contexte.contexte);
-				break;
-			case id_morceau::N32:
-			case id_morceau::Z32:
-				type = llvm::Type::getInt32Ty(contexte.contexte);
-				break;
-			case id_morceau::N64:
-			case id_morceau::Z64:
-				type = llvm::Type::getInt64Ty(contexte.contexte);
-				break;
-			case id_morceau::R16:
-				type = llvm::Type::getHalfTy(contexte.contexte);
-				break;
-			case id_morceau::R32:
-				type = llvm::Type::getFloatTy(contexte.contexte);
-				break;
-			case id_morceau::R64:
-				type = llvm::Type::getDoubleTy(contexte.contexte);
-				break;
-			case id_morceau::RIEN:
-				type = llvm::Type::getVoidTy(contexte.contexte);
-				break;
-			case id_morceau::POINTEUR:
-				type = llvm::PointerType::get(type, 0);
-				break;
-			case id_morceau::CHAINE_CARACTERE:
-			{
-				const auto &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
-				auto &donnees_structure = contexte.donnees_structure(id_structure);
-
-				if (donnees_structure.type_llvm == nullptr) {
-					std::vector<llvm::Type *> types_membres;
-					types_membres.resize(donnees_structure.donnees_types.size());
-
-					std::transform(donnees_structure.donnees_types.begin(),
-								   donnees_structure.donnees_types.end(),
-								   types_membres.begin(),
-								   [&](const DonneesType &donnees)
-					{
-						return converti_type(contexte, donnees);
-					});
-
-					auto nom = "struct." + contexte.nom_struct(donnees_structure.id);
-
-					donnees_structure.type_llvm = llvm::StructType::create(
-													  contexte.contexte,
-													  types_membres,
-													  nom,
-													  false);
-				}
-
-				type = donnees_structure.type_llvm;
-				break;
-			}
-			case id_morceau::TABLEAU:
-			{
-				const auto taille = static_cast<uint64_t>(identifiant) & 0xffffff00;
-				type = llvm::ArrayType::get(type, taille >> 8);
-				break;
-			}
-			default:
-				assert(false);
-		}
+		type = converti_type_simple(contexte, identifiant, type);
 	}
 
 	return type;
@@ -2297,6 +2313,83 @@ void NoeudPour::imprime_code(std::ostream &os, int tab)
 	}
 }
 
+static llvm::Value *comparaison_pour_type(
+		const id_morceau &type,
+		llvm::PHINode *noeud_phi,
+		llvm::Value *valeur_fin,
+		llvm::BasicBlock *bloc_courant)
+{
+	if (est_type_entier_naturel(type)) {
+		return llvm::ICmpInst::Create(
+					llvm::Instruction::ICmp,
+					llvm::CmpInst::Predicate::ICMP_ULE,
+					noeud_phi,
+					valeur_fin,
+					"",
+					bloc_courant);
+	}
+
+	if (est_type_entier_relatif(type)) {
+		return llvm::ICmpInst::Create(
+					llvm::Instruction::ICmp,
+					llvm::CmpInst::Predicate::ICMP_SLE,
+					noeud_phi,
+					valeur_fin,
+					"",
+					bloc_courant);
+	}
+
+	if (est_type_reel(type)) {
+		return llvm::FCmpInst::Create(
+					llvm::Instruction::FCmp,
+					llvm::CmpInst::Predicate::FCMP_OLE,
+					noeud_phi,
+					valeur_fin,
+					"",
+					bloc_courant);
+	}
+
+	return nullptr;
+}
+
+static llvm::Value *incremente_pour_type(
+		const id_morceau &type,
+		ContexteGenerationCode &contexte,
+		llvm::PHINode *noeud_phi,
+		llvm::BasicBlock *bloc_courant)
+{
+	auto type_llvm = converti_type_simple(contexte, type, nullptr);
+
+	if (est_type_entier(type)) {
+		auto val_inc = llvm::ConstantInt::get(
+						   type_llvm,
+						   static_cast<uint64_t>(1),
+						   false);
+
+		return llvm::BinaryOperator::Create(
+					   llvm::Instruction::Add,
+					   noeud_phi,
+					   val_inc,
+					   "",
+					   bloc_courant);
+	}
+
+	if (est_type_reel(type)) {
+		auto val_inc = llvm::ConstantFP::get(
+						   type_llvm,
+						   1.0);
+
+		return llvm::BinaryOperator::Create(
+					   llvm::Instruction::FAdd,
+					   noeud_phi,
+					   val_inc,
+					   "",
+					   bloc_courant);
+	}
+
+	return nullptr;
+}
+
 /* Arbre :
  * NoeudPour
  * - enfant 1 : déclaration variable
@@ -2357,9 +2450,11 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 					m_donnees_morceaux);
 	}
 
-	if (!est_type_entier(type_debut.type_base())) {
+	const auto type = type_debut.type_base();
+
+	if (!est_type_entier_naturel(type) && !est_type_entier_relatif(type) && !est_type_reel(type)) {
 		erreur::lance_erreur(
-					"Attendu des types entiers dans la plage de la boucle 'pour'",
+					"Attendu des types réguliers dans la plage de la boucle 'pour'",
 					contexte.tampon,
 					this->donnees_morceau(),
 					erreur::type_erreur::TYPE_DIFFERENTS);
@@ -2444,12 +2539,10 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 		auto valeur_fin = enfant3->genere_code_llvm(contexte);
 
-		auto condition = llvm::ICmpInst::Create(
-							 llvm::Instruction::ICmp,
-							 llvm::CmpInst::Predicate::ICMP_SLE,
+		auto condition = comparaison_pour_type(
+							 type,
 							 noeud_phi,
 							 valeur_fin,
-							 "",
 							 contexte.bloc_courant());
 
 		llvm::BranchInst::Create(
@@ -2474,16 +2567,10 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		contexte.bloc_courant(bloc_inc);
 
 		/* incrémente la variable (noeud_phi) */
-		auto val_inc = llvm::ConstantInt::get(
-						   llvm::Type::getInt32Ty(contexte.contexte),
-						   static_cast<uint64_t>(1),
-						   false);
-
-		auto inc = llvm::BinaryOperator::Create(
-					   llvm::Instruction::Add,
+		auto inc = incremente_pour_type(
+					   type,
+					   contexte,
 					   noeud_phi,
-					   val_inc,
-					   "",
 					   contexte.bloc_courant());
 
 		noeud_phi->addIncoming(inc, contexte.bloc_courant());
