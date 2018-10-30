@@ -246,7 +246,9 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
@@ -254,7 +256,9 @@ static void test_argument_nomme_echec(
 
 	CU_DEBUTE_PROPOSITION(
 				controleur,
-				"Si un argument d'une fonction appelée est nommé, tous les arguments doivent l'être (dernier).");
+				"Si un argument d'une fonction appelée est nommé, les précédents"
+				" peuvent être anonymes si l'argument nommé n'a pas le nom d'un"
+				" précédent argument.");
 	{
 		const char *texte =
 				R"(
@@ -266,11 +270,39 @@ static void test_argument_nomme_echec(
 				fonction principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(5, b=6);
-					retourne x != 5;
+					retourne 0;
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Si un argument d'une fonction appelée est nommé, il ne peut pas"
+				" prendre d'un argument précédent anonyme.");
+	{
+		const char *texte =
+				R"(
+				fonction ajouter(a : z32, b : z32) : z32
+				{
+					retourne a + b;
+				}
+
+				fonction principale(compte : z32, arguments : z8) : z32
+				{
+					soit x = ajouter(5, a=6);
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
@@ -295,7 +327,7 @@ static void test_type_argument_echec(
 				fonction principale(compte : z32, arguments : z8) : z32
 				{
 				soit x = ajouter(a=5.0, b=6.0);
-				retourne x != 5;
+				retourne 0;
 				}
 				)";
 

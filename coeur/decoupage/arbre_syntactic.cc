@@ -551,7 +551,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 
-	if (!fonction->isVarArg() && m_enfants.size() != donnees_fonction.args.size()) {
+	if (!fonction->isVarArg() && (m_enfants.size() != donnees_fonction.args.size())) {
 		erreur::lance_erreur_nombre_arguments(
 					donnees_fonction.args.size(),
 					m_enfants.size(),
@@ -560,81 +560,26 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	}
 
 	/* Cherche la liste d'arguments */
-	std::vector<llvm::Value *> parametres;
-
 	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
 
-	if (noms_arguments->empty()) {
-		parametres.reserve(m_enfants.size());
-		auto index = 0ul;
+	/* Réordonne les enfants selon l'apparition des arguments car LLVM est
+	 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
+	 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
+	 * code est généré. */
+	std::vector<Noeud *> enfants(noms_arguments->size());
 
-		/* Les arguments sont dans l'ordre. */
-		for (const auto &enfant : m_enfants) {
+	auto enfant = m_enfants.begin();
 
-			/* À FAIRE : trouver mieux que ça. */
-			for (const auto &pair : donnees_fonction.args) {
-				if (pair.second.index != index) {
-					continue;
-				}
+	for (const auto &nom : *noms_arguments) {
+		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
+		 * car ça a déjà été fait dans l'analyse grammaticale. */
+		const auto iter = donnees_fonction.args.find(nom);
+		const auto index_arg = iter->second.index;
+		const auto type_arg = iter->second.donnees_type;
+		const auto type_enf = (*enfant)->calcul_type(contexte);
 
-
-				const auto type_arg = pair.second.donnees_type;
-				const auto type_enf = enfant->calcul_type(contexte);
-
-				/* À FAIRE : Que faire pour les fonctions variadiques ? */
-				if (fonction->isVarArg() && type_arg.est_invalide()) {
-					continue;
-				}
-
-				if (!sont_compatibles(type_arg, type_enf)) {
-					erreur::lance_erreur_type_arguments(
-								type_arg,
-								type_enf,
-								contexte.tampon,
-								enfant->donnees_morceau(),
-								m_donnees_morceaux);
-				}
-			}
-
-			auto valeur = enfant->genere_code_llvm(contexte);
-			parametres.push_back(valeur);
-
-			++index;
-		}
-	}
-	else {
-		/* Il faut trouver l'ordre des arguments. À FAIRE : tests. */
-
-		if (noms_arguments->size() != donnees_fonction.args.size()) {
-			erreur::lance_erreur_nombre_arguments(
-						donnees_fonction.args.size(),
-						m_enfants.size(),
-						contexte.tampon,
-						m_donnees_morceaux);
-		}
-
-		/* Réordonne les enfants selon l'apparition des arguments car LLVM est
-		 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
-		 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
-		 * code est généré. */
-		std::vector<Noeud *> enfants(noms_arguments->size());
-
-		auto enfant = m_enfants.begin();
-
-		for (const auto &nom : *noms_arguments) {
-			auto iter = donnees_fonction.args.find(nom);
-
-			if (iter == donnees_fonction.args.end()) {
-				erreur::lance_erreur_argument_inconnu(
-							nom,
-							contexte.tampon,
-							m_donnees_morceaux);
-			}
-
-			const auto index_arg = iter->second.index;
-			const auto type_arg = iter->second.donnees_type;
-			const auto type_enf = (*enfant)->calcul_type(contexte);
-
+		/* À FAIRE : Que faire pour les fonctions variadiques ? */
+		if (!(fonction->isVarArg() && type_arg.est_invalide())) {
 			if (!sont_compatibles(type_arg, type_enf)) {
 				erreur::lance_erreur_type_arguments(
 							type_arg,
@@ -643,20 +588,21 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 							(*enfant)->donnees_morceau(),
 							m_donnees_morceaux);
 			}
-
-			enfants[index_arg] = *enfant;
-
-			++enfant;
 		}
 
-		parametres.resize(noms_arguments->size());
+		enfants[index_arg] = *enfant;
 
-		std::transform(enfants.begin(), enfants.end(), parametres.begin(),
-					   [&](Noeud *enfant)
-		{
-			return enfant->genere_code_llvm(contexte);
-		});
+		++enfant;
 	}
+
+	std::vector<llvm::Value *> parametres;
+	parametres.resize(noms_arguments->size());
+
+	std::transform(enfants.begin(), enfants.end(), parametres.begin(),
+				   [&](Noeud *enfant)
+	{
+		return enfant->genere_code_llvm(contexte);
+	});
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
 
