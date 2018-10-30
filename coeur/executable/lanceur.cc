@@ -390,6 +390,11 @@ int main(int argc, char *argv[])
 #ifdef DEBOGUE_IDENTIFIANT
 		analyseuse.imprime_identifiants_plus_utilises(os);
 #endif
+
+		if (ops.emet_arbre) {
+			assembleuse.imprime_code(os);
+		}
+
 		mem_arbre = assembleuse.memoire_utilisee();
 		nombre_noeuds = assembleuse.nombre_noeuds();
 		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
@@ -449,10 +454,6 @@ int main(int argc, char *argv[])
 			std::cerr <<  "------------------------------------------------------------------\n";
 			module.dump();
 			std::cerr <<  "------------------------------------------------------------------\n";
-		}
-
-		if (ops.emet_arbre) {
-			assembleuse.imprime_code(os);
 		}
 
 		/* définition du fichier de sortie */
