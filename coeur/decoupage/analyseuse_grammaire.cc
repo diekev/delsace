@@ -134,6 +134,7 @@ static bool est_operateur_binaire(id_morceau identifiant)
 		case id_morceau::CHAPEAU:
 		case id_morceau::DE:
 		case id_morceau::EGAL:
+		case id_morceau::TROIS_POINTS:
 			return true;
 		default:
 			return false;
@@ -439,11 +440,10 @@ void analyseuse_grammaire::analyse_controle_si()
 /* Arbre :
  * NoeudPour
  * - enfant 1 : déclaration variable
- * - enfant 2 : expr début
- * - enfant 3 : expr fin
- * - enfant 4 : bloc
- * - enfant 5 : bloc sansarrêt ou sinon
- * - enfant 6 : bloc sinon
+ * - enfant 2 : expr
+ * - enfant 3 : bloc
+ * - enfant 4 : bloc sansarrêt ou sinon
+ * - enfant 5 : bloc sinon
  */
 void analyseuse_grammaire::analyse_controle_pour()
 {
@@ -466,11 +466,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 		lance_erreur("Attendu le mot 'dans' après la chaîne de caractère");
 	}
 
-	/* enfant 2 : expr début */
-
-	analyse_expression_droite(id_morceau::TROIS_POINTS);
-
-	/* enfant 3 : expr fin */
+	/* enfant 2 : expr */
 
 	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
 
@@ -480,7 +476,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 		lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'pour'");
 	}
 
-	/* enfant 4 : bloc */
+	/* enfant 3 : bloc */
 
 	m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
 
@@ -492,7 +488,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 		lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'pour'");
 	}
 
-	/* enfant 5 : bloc sansarrêt (optionel) */
+	/* enfant 4 : bloc sansarrêt (optionel) */
 	if (est_identifiant(id_morceau::SANSARRET)) {
 		avance();
 
@@ -511,7 +507,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 		}
 	}
 
-	/* enfant 5 ou 6 : bloc sinon (optionel) */
+	/* enfant 4 ou 5 : bloc sinon (optionel) */
 	if (est_identifiant(id_morceau::SINON)) {
 		avance();
 
@@ -951,6 +947,13 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 				break;
 			}
+			case id_morceau::TROIS_POINTS:
+			{
+				vide_pile_operateur(morceau.identifiant);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::PLAGE, morceau);
+				pile.push_back(noeud);
+				break;
+			}
 			case id_morceau::DE:
 			{
 				vide_pile_operateur(morceau.identifiant);
@@ -1054,6 +1057,11 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				}
 				else if (calcul_expression) {
 					lance_erreur("Ne peut pas calculer l'expression car l'opérateur n'est pas constant");
+				}
+				else {
+					noeud->reserve_enfants(2);
+					noeud->ajoute_noeud(n1);
+					noeud->ajoute_noeud(n2);
 				}
 			}
 			else if (calcul_expression) {

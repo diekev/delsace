@@ -2361,11 +2361,10 @@ static llvm::Value *incremente_pour_type(
 /* Arbre :
  * NoeudPour
  * - enfant 1 : déclaration variable
- * - enfant 2 : expr début
- * - enfant 3 : expr fin
- * - enfant 4 : bloc
- * - enfant 5 : bloc sansarrêt ou sinon (optionel)
- * - enfant 6 : bloc sinon (optionel)
+ * - enfant 2 : expr
+ * - enfant 3 : bloc
+ * - enfant 4 : bloc sansarrêt ou sinon (optionel)
+ * - enfant 5 : bloc sinon (optionel)
  *
  * boucle:
  *	phi [entrée] [corps_boucle]
@@ -2392,41 +2391,11 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto enfant1 = *iter++;
 	auto enfant2 = *iter++;
 	auto enfant3 = *iter++;
-	auto enfant4 = *iter++;
-	auto enfant5 = (nombre_enfants >= 5) ? *iter++ : nullptr;
-	auto enfant6 = (nombre_enfants == 6) ? *iter++ : nullptr;
+	auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
+	auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
 
-	auto enfant_sans_arret = enfant5;
-	auto enfant_sinon = (nombre_enfants == 6) ? enfant6 : enfant5;
-
-	auto type_debut = enfant2->calcul_type(contexte);
-	auto type_fin = enfant3->calcul_type(contexte);
-
-	if (type_debut.est_invalide() || type_fin.est_invalide()) {
-		erreur::lance_erreur(
-					"Les types de l'expression sont invalides !",
-					contexte.tampon,
-					m_donnees_morceaux,
-					erreur::type_erreur::TYPE_INCONNU);
-	}
-
-	if (type_debut != type_fin) {
-		erreur::lance_erreur_type_operation(
-					type_debut,
-					type_fin,
-					contexte.tampon,
-					m_donnees_morceaux);
-	}
-
-	const auto type = type_debut.type_base();
-
-	if (!est_type_entier_naturel(type) && !est_type_entier_relatif(type) && !est_type_reel(type)) {
-		erreur::lance_erreur(
-					"Attendu des types réguliers dans la plage de la boucle 'pour'",
-					contexte.tampon,
-					this->donnees_morceau(),
-					erreur::type_erreur::TYPE_DIFFERENTS);
-	}
+	auto enfant_sans_arret = enfant4;
+	auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
 	auto valeur = contexte.valeur_locale(enfant1->chaine());
 
@@ -2449,6 +2418,10 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		}
 	}
 
+	auto type_debut = enfant2->calcul_type(contexte);
+
+	const auto type = type_debut.type_base();
+
 	enfant1->donnees_type = type_debut;
 
 	/* création des blocs */
@@ -2459,15 +2432,15 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto bloc_sansarret = static_cast<llvm::BasicBlock *>(nullptr);
 	auto bloc_sinon = static_cast<llvm::BasicBlock *>(nullptr);
 
-	if (nombre_enfants == 5) {
-		if (enfant5->identifiant() == id_morceau::SINON) {
+	if (nombre_enfants == 4) {
+		if (enfant4->identifiant() == id_morceau::SINON) {
 			bloc_sinon = cree_bloc(contexte, "sinon_boucle");
 		}
 		else {
 			bloc_sansarret = cree_bloc(contexte, "sansarret_boucle");
 		}
 	}
-	else if (nombre_enfants == 6) {
+	else if (nombre_enfants == 5) {
 		bloc_sansarret = cree_bloc(contexte, "sansarret_boucle");
 		bloc_sinon = cree_bloc(contexte, "sinon_boucle");
 	}
@@ -2501,10 +2474,12 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false);
 
-	auto valeur_debut = enfant2->genere_code_llvm(contexte);
-	noeud_phi->addIncoming(valeur_debut, bloc_pre);
+	enfant2->genere_code_llvm(contexte);
 
-	auto valeur_fin = enfant3->genere_code_llvm(contexte);
+	auto valeur_debut = contexte.valeur_locale("__debut");
+	auto valeur_fin = contexte.valeur_locale("__fin");
+
+	noeud_phi->addIncoming(valeur_debut, bloc_pre);
 
 	auto condition = comparaison_pour_type(
 						 type,
@@ -2520,8 +2495,8 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	/* bloc_corps */
 	contexte.bloc_courant(bloc_corps);
-	enfant4->valeur_calculee = bloc_inc;
-	auto ret = enfant4->genere_code_llvm(contexte);
+	enfant3->valeur_calculee = bloc_inc;
+	auto ret = enfant3->genere_code_llvm(contexte);
 
 	/* bloc_inc */
 	contexte.bloc_courant(bloc_inc);
@@ -2894,4 +2869,81 @@ llvm::Value *NoeudTailleDe::genere_code_llvm(
 type_noeud NoeudTailleDe::type() const
 {
 	return type_noeud::TAILLE_DE;
+}
+
+/* ************************************************************************** */
+
+NoeudPlage::NoeudPlage(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudPlage::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudPlage : ...\n";
+
+	for (auto &enfant : m_enfants) {
+		enfant->imprime_code(os, tab + 1);
+	}
+}
+
+llvm::Value *NoeudPlage::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+{
+	auto iter = m_enfants.begin();
+
+	auto enfant1 = *iter++;
+	auto enfant2 = *iter++;
+
+	auto valeur_debut = enfant1->genere_code_llvm(contexte);
+	auto valeur_fin = enfant2->genere_code_llvm(contexte);
+
+	contexte.pousse_locale("__debut", valeur_debut, this->donnees_type, false);
+	contexte.pousse_locale("__fin", valeur_fin, this->donnees_type, false);
+
+	return valeur_fin;
+}
+
+type_noeud NoeudPlage::type() const
+{
+	return type_noeud::PLAGE;
+}
+
+const DonneesType &NoeudPlage::calcul_type(ContexteGenerationCode &contexte)
+{
+	auto iter = m_enfants.begin();
+
+	auto enfant1 = *iter++;
+	auto enfant2 = *iter++;
+
+	auto type_debut = enfant1->calcul_type(contexte);
+	auto type_fin   = enfant2->calcul_type(contexte);
+
+	if (type_debut.est_invalide() || type_fin.est_invalide()) {
+		erreur::lance_erreur(
+					"Les types de l'expression sont invalides !",
+					contexte.tampon,
+					m_donnees_morceaux,
+					erreur::type_erreur::TYPE_INCONNU);
+	}
+
+	if (type_debut != type_fin) {
+		erreur::lance_erreur_type_operation(
+					type_debut,
+					type_fin,
+					contexte.tampon,
+					m_donnees_morceaux);
+	}
+
+	const auto type = type_debut.type_base();
+
+	if (!est_type_entier_naturel(type) && !est_type_entier_relatif(type) && !est_type_reel(type)) {
+		erreur::lance_erreur(
+					"Attendu des types réguliers dans la plage de la boucle 'pour'",
+					contexte.tampon,
+					this->donnees_morceau(),
+					erreur::type_erreur::TYPE_DIFFERENTS);
+	}
+
+	this->donnees_type = type_debut;
+	return this->donnees_type;
 }

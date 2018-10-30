@@ -62,6 +62,7 @@ enum class type_noeud : char {
 	TRANSTYPE,
 	NUL,
 	TAILLE_DE,
+	PLAGE,
 };
 
 /* ************************************************************************** */
@@ -592,4 +593,19 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudPlage final : public Noeud {
+public:
+	explicit NoeudPlage(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	type_noeud type() const override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
 };
