@@ -1160,10 +1160,6 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 
 			auto nom_argument = m_identifiants[position()].chaine;
 
-			if (args.find(nom_argument) != args.end()) {
-				lance_erreur("Argument déjà nommé", erreur::type_erreur::ARGUMENT_REDEFINI);
-			}
-
 			auto iter = donnees_fonction.args.find(nom_argument);
 
 			if (iter == donnees_fonction.args.end()) {
@@ -1171,6 +1167,10 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 							nom_argument,
 							m_tampon,
 							noeud->donnees_morceau());
+			}
+
+			if ((args.find(nom_argument) != args.end()) && !iter->second.est_variadic) {
+				lance_erreur("Argument déjà nommé", erreur::type_erreur::ARGUMENT_REDEFINI);
 			}
 
 			dernier_arg_variadique = iter->second.est_variadic;

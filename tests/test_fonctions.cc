@@ -27,6 +27,94 @@
 #include "erreur.h"
 #include "outils.h"
 
+static void test_appel_fonction_variadique_args_nommes(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"L'appel d'une fonction variadique n'a pas besoin de nommer les arguments.");
+	{
+		const char *texte =
+				R"(
+				fonction externe foo(a : z32, b : z32, c : ...z32) : rien;
+
+				fonction bar() : rien
+				{
+					foo(0, 1, 2, 3, 4, 5);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"L'appel d'une fonction variadique peut nommer tous les arguments.");
+	{
+		const char *texte =
+				R"(
+				fonction externe foo(a : z32, b : z32, c : ...z32) : rien;
+
+				fonction bar() : rien
+				{
+					foo(a=0, b=1, c=2, c=3, c=4, c=5);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, true, erreur::type_erreur::ARGUMENT_REDEFINI);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"L'appel d'une fonction variadique peut éviter de renommer l'argument variadique.");
+	{
+		const char *texte =
+				R"(
+				fonction externe foo(a : z32, b : z32, c : ...z32) : rien;
+
+				fonction bar() : rien
+				{
+					foo(a=0, b=1, c=2, 3, 4, 5);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"L'appel d'une fonction variadique peut nommer les arguments dans le désordre.");
+	{
+		const char *texte =
+				R"(
+				fonction externe foo(a : z32, b : z32, c : ...z32) : rien;
+
+				fonction bar() : rien
+				{
+					foo(a=0, c=1, 2, 3, 4, b=5);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+}
+
 static void test_appel_fonction_variadique(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
@@ -524,4 +612,5 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 	test_fonction_redinie(controleur);
 	test_declaration_fonction_variadique(controleur);
 	test_appel_fonction_variadique(controleur);
+	test_appel_fonction_variadique_args_nommes(controleur);
 }
