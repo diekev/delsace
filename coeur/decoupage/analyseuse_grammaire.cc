@@ -401,6 +401,17 @@ void analyseuse_grammaire::analyse_controle_si()
 	if (est_identifiant(id_morceau::SINON)) {
 		avance();
 
+		/* Peu importe que le 'sinon' contient un 'si' ou non, nous ajoutons un
+		 * bloc pour créer un niveau d'indirection. Car dans le cas où nous
+		 * avons un contrôle du type si/sinon si dans une boucle, la génération
+		 * de blocs LLVM dans l'arbre syntactic devient plus compliquée sans
+		 * cette indirection : certaines instructions de branchage ne sont pas
+		 * ajoutées alors qu'elles devraient l'être et la logique pour
+		 * correctement traiter ce cas sans l'indirection semble être complexe.
+		 * LLVM devrait pouvoir effacer cette indirection en enlevant les
+		 * branchements redondants. */
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
 		if (est_identifiant(id_morceau::SI)) {
 			analyse_controle_si();
 		}
@@ -409,16 +420,14 @@ void analyseuse_grammaire::analyse_controle_si()
 				lance_erreur("Attendu une accolade ouvrante après 'sinon'");
 			}
 
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
-
 			analyse_corps_fonction();
-
-			m_assembleuse->depile_noeud(type_noeud::BLOC);
 
 			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 				lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'");
 			}
 		}
+
+		m_assembleuse->depile_noeud(type_noeud::BLOC);
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::SI);

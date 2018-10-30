@@ -167,6 +167,84 @@ static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &con
 		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut avoir des contrôles de flux dans des boucles 'pour' sans problème");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					pour i dans 0 ... 10 {
+						si i > 5 {
+							si i > 8 {
+
+							}
+							sinon si i < 6 {
+
+							}
+							sinon {
+
+							}
+						}
+						sinon si i < 3 {
+
+						}
+						sinon {
+
+						}
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::CONTROLE_INVALIDE);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut avoir des contrôles de flux dans des boucles 'boucle' sans problème");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					soit variable i = 0;
+					boucle {
+
+						si i > 5 {
+							si i > 8 {
+
+							}
+							sinon si i < 6 {
+
+							}
+							sinon {
+
+							}
+						}
+						sinon si i < 3 {
+
+						}
+						sinon {
+
+						}
+
+						i = i + 1;
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::CONTROLE_INVALIDE);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 void test_boucle(numero7::test_unitaire::ControleurUnitaire &controleur)

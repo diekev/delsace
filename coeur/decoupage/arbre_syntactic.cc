@@ -769,7 +769,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Crée code pour le bloc. */
 	auto bloc = m_enfants.front();
-
+	bloc->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
 	auto ret = bloc->genere_code_llvm(contexte);
 
 	/* Ajoute une instruction de retour si la dernière n'en est pas une. */
@@ -2180,37 +2180,22 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 
 	contexte.bloc_courant(bloc_alors);
 
+	/* À FAIRE : voir situation similaire dans NoeudBoucle. La pile de locales
+	 * semble être brisée dès que nous avons plusieurs blocs. */
 	contexte.empile_nombre_locales();
 
 	/* noeud 2 : bloc */
 	auto enfant2 = *iter_enfant++;
+	enfant2->valeur_calculee = bloc_fusion;
 	auto ret = enfant2->genere_code_llvm(contexte);
-
-	contexte.depile_nombre_locales();
-
-	/* Il est possible d'avoir des contrôles récursif, donc on fait une branche
-	 * dans le bloc courant du contexte qui peut être différent de bloc_alors. */
-	if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_alors)) {
-		ret = llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
-	}
 
 	/* noeud 3 : sinon (optionel) */
 	if (nombre_enfants == 3) {
 		contexte.bloc_courant(bloc_sinon);
 
-		contexte.empile_nombre_locales();
-
 		auto enfant3 = *iter_enfant++;
+		enfant3->valeur_calculee = bloc_fusion;
 		ret = enfant3->genere_code_llvm(contexte);
-
-		contexte.depile_nombre_locales();
-
-		/* Il est possible d'avoir des contrôles récursif, donc on fait une
-		 * branche dans le bloc courant du contexte qui peut être différent de
-		 * bloc_sinon. */
-		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sinon)) {
-			ret = llvm::BranchInst::Create(bloc_fusion, contexte.bloc_courant());
-		}
 	}
 
 	contexte.bloc_courant(bloc_fusion);
@@ -2251,6 +2236,8 @@ llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	auto bloc_entree = contexte.bloc_courant();
 
+	contexte.empile_nombre_locales();
+
 	for (auto enfant : m_enfants) {
 		valeur = enfant->genere_code_llvm(contexte);
 
@@ -2260,6 +2247,21 @@ llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const
 			break;
 		}
 	}
+
+	auto bloc_suivant = std::any_cast<llvm::BasicBlock *>(this->valeur_calculee);
+
+	/* Un bloc_suivant nul indique que le bloc est celui d'une fonction, mais
+	 * les fonctions une logique différente. */
+	if (bloc_suivant != nullptr) {
+		/* Il est possible d'avoir des blocs récursifs, donc on fait une
+		 * branche dans le bloc courant du contexte qui peut être différent de
+		 * bloc_entree. */
+		if (!est_branche_ou_retour(valeur) || (bloc_entree != contexte.bloc_courant())) {
+			valeur = llvm::BranchInst::Create(bloc_suivant, contexte.bloc_courant());
+		}
+	}
+
+	contexte.depile_nombre_locales();
 
 	return valeur;
 }
@@ -2413,6 +2415,11 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	contexte.empile_bloc_arrete((bloc_sinon != nullptr) ? bloc_sinon : bloc_apres);
 
 	auto bloc_pre = contexte.bloc_courant();
+
+	/* À FAIRE : voir situation similaire dans NoeudBoucle. La pile de locales
+	 * semble être brisée dès que nous avons plusieurs blocs. */
+	contexte.empile_nombre_locales();
+
 	contexte.empile_nombre_locales();
 
 	auto noeud_phi = static_cast<llvm::PHINode *>(nullptr);
@@ -2458,12 +2465,8 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		contexte.bloc_courant(bloc_corps);
 
 		/* génère le code du bloc */
+		enfant4->valeur_calculee = bloc_inc;
 		ret = enfant4->genere_code_llvm(contexte);
-
-		/* incrémente la variable (noeud_phi) */
-		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_corps)) {
-			ret = llvm::BranchInst::Create(bloc_inc, contexte.bloc_courant());
-		}
 	}
 
 	/* inc_boucle */
@@ -2490,34 +2493,21 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	contexte.depile_bloc_continue();
 	contexte.depile_bloc_arrete();
-	contexte.depile_nombre_locales();
-	contexte.empile_nombre_locales();
 
 	if (bloc_sansarret != nullptr) {
 		contexte.bloc_courant(bloc_sansarret);
 
 		/* génère le code du bloc */
+		enfant_sans_arret->valeur_calculee = bloc_apres;
 		ret = enfant_sans_arret->genere_code_llvm(contexte);
-
-		/* incrémente la variable (noeud_phi) */
-		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sansarret)) {
-			ret = llvm::BranchInst::Create(bloc_apres, contexte.bloc_courant());
-		}
 	}
-
-	contexte.depile_nombre_locales();
-	contexte.empile_nombre_locales();
 
 	if (bloc_sinon != nullptr) {
 		contexte.bloc_courant(bloc_sinon);
 
 		/* génère le code du bloc */
+		enfant_sinon->valeur_calculee = bloc_apres;
 		ret = enfant_sinon->genere_code_llvm(contexte);
-
-		/* incrémente la variable (noeud_phi) */
-		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sinon)) {
-			ret = llvm::BranchInst::Create(bloc_apres, contexte.bloc_courant());
-		}
 	}
 
 	contexte.depile_nombre_locales();
@@ -2609,6 +2599,13 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 	contexte.empile_bloc_continue(bloc_boucle);
 	contexte.empile_bloc_arrete((enfant2 != nullptr) ? bloc_sinon : bloc_apres);
 
+	/* À FAIRE : il semblerait que la pile de nombre de locales soit brisée, car
+	 * cet appel est redondant compte tenu du fait qu'il est de nouveau fait
+	 * juste après dans NoeudBloc::genere_code_llvm.
+	 * Enlever cet appel nous fait perdre toutes les locales créées avant la
+	 * boucle, ce qui ne devrait pas arriver.
+	 * Il semblerait que l'erreur survienne dans le noeud de retour. Assigner
+	 * les variables fonctionne, mais les retourner ne fonctionnent pas. */
 	contexte.empile_nombre_locales();
 
 	/* on crée une branche explicite dans le bloc */
@@ -2616,30 +2613,19 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 
 	contexte.bloc_courant(bloc_boucle);
 
+	enfant1->valeur_calculee = bloc_boucle;
 	auto ret = enfant1->genere_code_llvm(contexte);
-
-	if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_boucle)) {
-		ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
-	}
-
-	contexte.depile_nombre_locales();
-	contexte.empile_nombre_locales();
 
 	if (bloc_sinon != nullptr) {
 		contexte.bloc_courant(bloc_sinon);
 
 		/* génère le code du bloc */
+		enfant2->valeur_calculee = bloc_apres;
 		ret = enfant2->genere_code_llvm(contexte);
-
-		/* incrémente la variable (noeud_phi) */
-		if (!est_branche_ou_retour(ret) || (contexte.bloc_courant() != bloc_sinon)) {
-			ret = llvm::BranchInst::Create(bloc_apres, contexte.bloc_courant());
-		}
 	}
 
 	contexte.depile_bloc_continue();
 	contexte.depile_bloc_arrete();
-	contexte.depile_nombre_locales();
 	contexte.bloc_courant(bloc_apres);
 
 	return ret;

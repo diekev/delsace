@@ -487,6 +487,158 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut réassigner une variable définie avant un contrôle de flux.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : z32
+				{
+					soit variable a = compte;
+
+					si a == 10 {
+						soit ai = a;
+					}
+					sinon {
+						soit ai = a;
+					}
+
+					a = 5;
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut réassigner une variable définie avant une boucle 'pour'.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : z32
+				{
+					soit variable a = compte;
+
+					pour x dans 0...10 {
+
+					}
+
+					a = 5;
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut réassigner une variable définie avant une boucle 'infinie'.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : z32
+				{
+				soit variable a = compte;
+
+					boucle {
+
+					}
+
+					a = 5;
+
+					retourne 0;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut retourner une variable définie avant un contrôle de flux.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : z32
+				{
+					soit a = compte;
+
+					si a == 10 {
+						soit ai = a;
+					}
+					sinon {
+						soit ai = a;
+					}
+
+					retourne a;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut retourner une variable définie avant une boucle 'pour'.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : z32
+				{
+					soit a = compte;
+
+					pour x dans 0...10 {
+
+					}
+
+					retourne a;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"On peut retourner une variable définie avant une boucle 'infinie'.");
+	{
+		const char *texte =
+				R"(
+				fonction principale(compte : z32, arguments : n8) : z32
+				{
+					soit a = compte;
+
+					boucle {
+
+					}
+
+					retourne a;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
 }
 
 void test_variables(numero7::test_unitaire::ControleurUnitaire &controleur)
