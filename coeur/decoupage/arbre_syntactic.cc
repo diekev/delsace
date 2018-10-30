@@ -2446,7 +2446,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 		auto condition = llvm::ICmpInst::Create(
 							 llvm::Instruction::ICmp,
-							 llvm::CmpInst::Predicate::ICMP_SLT,
+							 llvm::CmpInst::Predicate::ICMP_SLE,
 							 noeud_phi,
 							 valeur_fin,
 							 "",
