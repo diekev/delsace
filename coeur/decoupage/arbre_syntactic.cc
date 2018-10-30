@@ -724,6 +724,10 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	auto valeurs_args = fonction->arg_begin();
 
 	for (const auto &argument : *arguments) {
+		if (argument.est_variadic) {
+			continue;
+		}
+
 		auto align = alignement(contexte, argument.donnees_type);
 		auto alloc = new llvm::AllocaInst(
 						 converti_type(contexte, argument.donnees_type),

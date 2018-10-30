@@ -364,6 +364,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 	donnees_arg.donnees_type = donnees_type;
 	/* doit être vrai uniquement pour le dernier argument */
 	donnees_arg.est_variadic = noeud->est_variable;
+	arg.est_variadic = noeud->est_variable;
 
 	donnees.args.insert({arg.chaine, donnees_arg});
 

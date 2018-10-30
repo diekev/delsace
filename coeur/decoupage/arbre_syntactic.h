@@ -146,6 +146,7 @@ struct ArgumentFonction {
 	std::string chaine;
 	DonneesType donnees_type{};
 	bool est_variable = false;
+	bool est_variadic = false;
 };
 
 /* ************************************************************************** */
