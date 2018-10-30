@@ -69,7 +69,6 @@ static llvm::Type *converti_type_simple(
 			break;
 		case id_morceau::N8:
 		case id_morceau::Z8:
-			/* À FAIRE : LLVM supporte les entiers non-signés ? */
 			type = llvm::Type::getInt8Ty(contexte.contexte);
 			break;
 		case id_morceau::N16:
@@ -2520,79 +2519,66 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto noeud_phi = static_cast<llvm::PHINode *>(nullptr);
 
 	/* bloc_boucle */
-	{
-		/* on crée une branche explicite dans le bloc */
-		llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+	/* on crée une branche explicite dans le bloc */
+	llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 
-		contexte.bloc_courant(bloc_boucle);
+	contexte.bloc_courant(bloc_boucle);
 
-		noeud_phi = llvm::PHINode::Create(
-						converti_type(contexte, type_debut),
-						2,
-						std::string(enfant1->chaine()),
-						contexte.bloc_courant());
-
-		contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false);
-
-		auto valeur_debut = enfant2->genere_code_llvm(contexte);
-		noeud_phi->addIncoming(valeur_debut, bloc_pre);
-
-		auto valeur_fin = enfant3->genere_code_llvm(contexte);
-
-		auto condition = comparaison_pour_type(
-							 type,
-							 noeud_phi,
-							 valeur_fin,
-							 contexte.bloc_courant());
-
-		llvm::BranchInst::Create(
-					bloc_corps,
-					(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
-					condition,
+	noeud_phi = llvm::PHINode::Create(
+					converti_type(contexte, type_debut),
+					2,
+					std::string(enfant1->chaine()),
 					contexte.bloc_courant());
-	}
+
+	contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false);
+
+	auto valeur_debut = enfant2->genere_code_llvm(contexte);
+	noeud_phi->addIncoming(valeur_debut, bloc_pre);
+
+	auto valeur_fin = enfant3->genere_code_llvm(contexte);
+
+	auto condition = comparaison_pour_type(
+						 type,
+						 noeud_phi,
+						 valeur_fin,
+						 contexte.bloc_courant());
+
+	llvm::BranchInst::Create(
+				bloc_corps,
+				(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
+				condition,
+				contexte.bloc_courant());
 
 	/* bloc_corps */
-	llvm::Value *ret;
-	{
-		contexte.bloc_courant(bloc_corps);
+	contexte.bloc_courant(bloc_corps);
+	enfant4->valeur_calculee = bloc_inc;
+	auto ret = enfant4->genere_code_llvm(contexte);
 
-		/* génère le code du bloc */
-		enfant4->valeur_calculee = bloc_inc;
-		ret = enfant4->genere_code_llvm(contexte);
-	}
+	/* bloc_inc */
+	contexte.bloc_courant(bloc_inc);
 
-	/* inc_boucle */
-	{
-		contexte.bloc_courant(bloc_inc);
+	auto inc = incremente_pour_type(
+				   type,
+				   contexte,
+				   noeud_phi,
+				   contexte.bloc_courant());
 
-		/* incrémente la variable (noeud_phi) */
-		auto inc = incremente_pour_type(
-					   type,
-					   contexte,
-					   noeud_phi,
-					   contexte.bloc_courant());
+	noeud_phi->addIncoming(inc, contexte.bloc_courant());
 
-		noeud_phi->addIncoming(inc, contexte.bloc_courant());
+	ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 
-		ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
-	}
-
+	/* 'continue'/'arrête' dans les blocs 'sinon'/'sansarrêt' n'a aucun sens */
 	contexte.depile_bloc_continue();
 	contexte.depile_bloc_arrete();
 
 	if (bloc_sansarret != nullptr) {
 		contexte.bloc_courant(bloc_sansarret);
-
-		/* génère le code du bloc */
 		enfant_sans_arret->valeur_calculee = bloc_apres;
 		ret = enfant_sans_arret->genere_code_llvm(contexte);
 	}
 
 	if (bloc_sinon != nullptr) {
 		contexte.bloc_courant(bloc_sinon);
-
-		/* génère le code du bloc */
 		enfant_sinon->valeur_calculee = bloc_apres;
 		ret = enfant_sinon->genere_code_llvm(contexte);
 	}
@@ -2605,7 +2591,8 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 const DonneesType &NoeudPour::calcul_type(ContexteGenerationCode &contexte)
 {
-	/* retourne le type du bloc */
+	/* À FAIRE : trouver mieux.
+	 * Retourne le type du dernier bloc */
 	return m_enfants.back()->calcul_type(contexte);
 }
 
