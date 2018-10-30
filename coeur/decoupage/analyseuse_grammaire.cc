@@ -343,12 +343,12 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 	if (est_identifiant(id_morceau::TROIS_POINTS)) {
 		avance();
 
-		if (!noeud->est_externe) {
-			lance_erreur("La déclaration de fonction variadique n'est"
+		noeud->est_variable = true;
+
+		if (!noeud->est_externe && est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+			lance_erreur("La déclaration de fonction variadique sans type n'est"
 						 " implémentée que pour les fonctions externes");
 		}
-
-		noeud->est_variable = true;
 	}
 
 	auto donnees_type = DonneesType{};
