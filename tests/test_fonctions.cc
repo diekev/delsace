@@ -27,6 +27,77 @@
 #include "erreur.h"
 #include "outils.h"
 
+static void test_appel_fonction_variadique(
+		numero7::test_unitaire::ControleurUnitaire &controleur)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une fonction variadique dont l'argument variadic n'est pas typé"
+				" peut prendre n'importe quel type.");
+	{
+		const char *texte =
+				R"(
+				fonction externe printf(format : *z8, arguments : ...) : rien;
+
+				fonction foo() : rien
+				{
+					printf("%d%c%f%s", 0, 'z', 2.5, "chaine");
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une fonction variadique dont l'argument variadic est typé"
+				" ne peut prendre n'importe quel type.");
+	{
+		const char *texte =
+				R"(
+				fonction externe printf(format : *z8, arguments : ...z32) : rien;
+
+				fonction foo() : rien
+				{
+					printf("%d%c%f%s", 0, 'z', 2.5, "chaine");
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+
+	CU_DEBUTE_PROPOSITION(
+				controleur,
+				"Une fonction variadique dont l'argument variadic est typé est"
+				" correct si les types passés correspondent au type défini.");
+	{
+		const char *texte =
+				R"(
+				fonction externe printf(format : *z8, arguments : ...z32) : rien;
+
+				fonction foo() : rien
+				{
+					printf("%d%c%f%s", 0, 1, 2, 3, 4);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
+
+		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleur);
+}
+
 static void test_declaration_fonction_variadique(
 		numero7::test_unitaire::ControleurUnitaire &controleur)
 {
@@ -452,4 +523,5 @@ void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
 	test_argument_unique(controleur);
 	test_fonction_redinie(controleur);
 	test_declaration_fonction_variadique(controleur);
+	test_appel_fonction_variadique(controleur);
 }

@@ -569,17 +569,36 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	std::vector<Noeud *> enfants(noms_arguments->size());
 
 	auto enfant = m_enfants.begin();
+	auto nombre_arg_variadic = 0ul;
 
 	for (const auto &nom : *noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
 		 * car ça a déjà été fait dans l'analyse grammaticale. */
 		const auto iter = donnees_fonction.args.find(nom);
-		const auto index_arg = iter->second.index;
+		auto index_arg = iter->second.index;
 		const auto type_arg = iter->second.donnees_type;
 		const auto type_enf = (*enfant)->calcul_type(contexte);
 
-		/* À FAIRE : Que faire pour les fonctions variadiques ? */
-		if (!(fonction->isVarArg() && type_arg.est_invalide())) {
+		if (iter->second.est_variadic) {
+			if (!type_arg.est_invalide()) {
+				if (!sont_compatibles(type_arg, type_enf)) {
+					erreur::lance_erreur_type_arguments(
+								type_arg,
+								type_enf,
+								contexte.tampon,
+								(*enfant)->donnees_morceau(),
+								m_donnees_morceaux);
+				}
+			}
+
+			/* Décale l'index selon le nombre d'arguments dans l'argument
+			 * variadique, car ici index_arg est l'index dans la déclaration et
+			 * la déclaration ne contient qu'un seul argument variadic. */
+			index_arg += nombre_arg_variadic;
+
+			++nombre_arg_variadic;
+		}
+		else {
 			if (!sont_compatibles(type_arg, type_enf)) {
 				erreur::lance_erreur_type_arguments(
 							type_arg,

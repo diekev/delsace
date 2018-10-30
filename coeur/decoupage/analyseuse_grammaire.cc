@@ -362,6 +362,8 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 	DonneesArgument donnees_arg;
 	donnees_arg.index = donnees.args.size();
 	donnees_arg.donnees_type = donnees_type;
+	/* doit être vrai uniquement pour le dernier argument */
+	donnees_arg.est_variadic = noeud->est_variable;
 
 	donnees.args.insert({arg.chaine, donnees_arg});
 
@@ -1139,8 +1141,11 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 	auto index = 0ul;
 	auto arguments_nommes = false;
 	std::set<std::string_view> args;
+	auto dernier_arg_variadique = false;
 
 	const auto &donnees_fonction = m_contexte.donnees_fonction(noeud->chaine());
+
+	const auto nombre_args = donnees_fonction.args.size();
 
 	while (true) {
 		/* aucun paramètre, ou la liste de paramètre est vide */
@@ -1159,12 +1164,16 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 				lance_erreur("Argument déjà nommé", erreur::type_erreur::ARGUMENT_REDEFINI);
 			}
 
-			if (donnees_fonction.args.find(nom_argument) == donnees_fonction.args.end()) {
+			auto iter = donnees_fonction.args.find(nom_argument);
+
+			if (iter == donnees_fonction.args.end()) {
 				erreur::lance_erreur_argument_inconnu(
 							nom_argument,
 							m_tampon,
 							noeud->donnees_morceau());
 			}
+
+			dernier_arg_variadique = iter->second.est_variadic;
 
 			args.insert(nom_argument);
 			noeud->ajoute_nom_argument(nom_argument);
@@ -1172,7 +1181,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 			avance();
 		}
 		else {
-			if (arguments_nommes == true) {
+			if (arguments_nommes == true && dernier_arg_variadique == false) {
 				avance();
 				lance_erreur("Attendu le nom de l'argument", erreur::type_erreur::ARGUMENT_INCONNU);
 			}
@@ -1195,7 +1204,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 		analyse_expression_droite(id_morceau::VIRGULE);
 		--m_profondeur;
 
-		++index;
+		index = std::min(index + 1, nombre_args - 1);
 	}
 }
 

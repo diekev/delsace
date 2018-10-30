@@ -46,6 +46,8 @@ class FunctionPassManager;
 struct DonneesArgument {
 	size_t index = 0;
 	DonneesType donnees_type{};
+	bool est_variadic = false;
+	char pad[7];
 };
 
 struct DonneesFonction {
