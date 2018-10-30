@@ -96,7 +96,7 @@ static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controle
 
 	CU_DEBUTE_PROPOSITION(
 				controleur,
-				"La plage d'une boucle 'pour' ne être de type booléenne");
+				"La plage d'une boucle 'pour' ne peut être de type booléenne");
 	{
 		const char *texte =
 				R"(
