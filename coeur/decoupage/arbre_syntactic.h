@@ -143,15 +143,6 @@ enum class type_noeud : char {
 
 /* ************************************************************************** */
 
-struct ArgumentFonction {
-	std::string chaine;
-	DonneesType donnees_type{};
-	bool est_variable = false;
-	bool est_variadic = false;
-};
-
-/* ************************************************************************** */
-
 /**
  * Classe de base représentant un noeud dans l'arbre.
  */
@@ -272,8 +263,6 @@ public:
 class NoeudDeclarationFonction final : public Noeud {
 public:
 	explicit NoeudDeclarationFonction(const DonneesMorceaux &morceau);
-
-	void ajoute_argument(const ArgumentFonction &argument);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

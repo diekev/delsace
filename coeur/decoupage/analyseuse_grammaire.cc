@@ -320,10 +320,10 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		return;
 	}
 
-	ArgumentFonction arg;
+	auto est_variable = false;
 
 	if (est_identifiant(id_morceau::VARIABLE)) {
-		arg.est_variable = true;
+		est_variable = true;
 		avance();
 	}
 
@@ -331,9 +331,9 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		lance_erreur("Attendu le nom de la variable");
 	}
 
-	arg.chaine = m_identifiants[position()].chaine;
+	auto nom_parametre = m_identifiants[position()].chaine;
 
-	if (donnees.args.find(arg.chaine) != donnees.args.end()) {
+	if (donnees.args.find(nom_parametre) != donnees.args.end()) {
 		lance_erreur("Redéfinition de l'argument", erreur::type_erreur::ARGUMENT_REDEFINI);
 	}
 
@@ -358,18 +358,16 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		analyse_declaration_type(donnees_type, false);
 	}
 
-	arg.donnees_type = donnees_type;
 
 	DonneesArgument donnees_arg;
 	donnees_arg.index = donnees.args.size();
 	donnees_arg.donnees_type = donnees_type;
 	/* doit être vrai uniquement pour le dernier argument */
 	donnees_arg.est_variadic = noeud->est_variable;
-	arg.est_variadic = noeud->est_variable;
+	donnees_arg.est_variable = est_variable;
 
-	donnees.args.insert({arg.chaine, donnees_arg});
-
-	noeud->ajoute_argument(arg);
+	donnees.args.insert({nom_parametre, donnees_arg});
+	donnees.nom_args.push_back(nom_parametre);
 
 	/* fin des paramètres */
 	if (!requiers_identifiant(id_morceau::VIRGULE)) {
@@ -1195,15 +1193,10 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 				lance_erreur("Attendu le nom de l'argument", erreur::type_erreur::ARGUMENT_INCONNU);
 			}
 
-			/* par défaut nous nommons les arguments manuellement
-			 * À FAIRE : trouver mieux. */
-			for (const auto &arg : donnees_fonction.args) {
-				if (arg.second.index == index) {
-					auto nom_argument = arg.first;
-					args.insert(nom_argument);
-					noeud->ajoute_nom_argument(nom_argument);
-				}
-			}
+			/* par défaut nous nommons les arguments manuellement. */
+			auto nom_argument = donnees_fonction.nom_args[index];
+			args.insert(nom_argument);
+			noeud->ajoute_nom_argument(nom_argument);
 		}
 
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.

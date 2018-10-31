@@ -47,12 +47,14 @@ struct DonneesArgument {
 	size_t index = 0;
 	DonneesType donnees_type{};
 	bool est_variadic = false;
-	char pad[7];
+	bool est_variable = false;
+	char pad[6];
 };
 
 struct DonneesFonction {
 	std::unordered_map<std::string_view, DonneesArgument> args{};
 	DonneesType donnees_type{};
+	std::vector<std::string_view> nom_args;
 };
 
 struct DonneesVariable {

@@ -411,20 +411,22 @@ char caractere_echape(const char *sequence)
 
 static llvm::FunctionType *obtiens_type_fonction(
 		ContexteGenerationCode &contexte,
-		std::list<ArgumentFonction> donnees_args,
+		const DonneesFonction &donnees_fonction,
 		const DonneesType &donnees_retour,
 		bool est_variadique)
 {
-	auto debut = donnees_args.begin();
-	auto fin   = (est_variadique) ? --donnees_args.end() : donnees_args.end();
+	std::vector<llvm::Type *> parametres;
+	parametres.reserve(donnees_fonction.nom_args.size() - est_variadique);
 
-	std::vector<llvm::Type *> parametres(donnees_args.size() - est_variadique);
+	for (const auto &nom : donnees_fonction.nom_args) {
+		const auto &argument = donnees_fonction.args.find(nom);
 
-	std::transform(debut, fin, parametres.begin(),
-				   [&](const ArgumentFonction &donnees)
-	{
-		return converti_type(contexte, donnees.donnees_type);
-	});
+		if (argument->second.est_variadic) {
+			break;
+		}
+
+		parametres.push_back(converti_type(contexte, argument->second.donnees_type));
+	}
 
 	llvm::ArrayRef<llvm::Type *> args(parametres);
 
@@ -663,16 +665,7 @@ type_noeud NoeudAppelFonction::type() const
 
 NoeudDeclarationFonction::NoeudDeclarationFonction(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
-{
-	/* réutilisation du membre std::any pour économiser un peu de mémoire */
-	valeur_calculee = std::list<ArgumentFonction>{};
-}
-
-void NoeudDeclarationFonction::ajoute_argument(const ArgumentFonction &argument)
-{
-	auto arguments = std::any_cast<std::list<ArgumentFonction>>(&valeur_calculee);
-	arguments->push_back(argument);
-}
+{}
 
 void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 {
@@ -694,12 +687,12 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	 *   pour générer les données nécessaires.
 	 */
 
-	auto arguments = std::any_cast<std::list<ArgumentFonction>>(&valeur_calculee);
+	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 
 	/* Crée le type de la fonction */
 	auto type_fonction = obtiens_type_fonction(
 							 contexte,
-							 *arguments,
+							 donnees_fonction,
 							 this->donnees_type,
 							 this->est_variable);
 
@@ -723,7 +716,9 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	/* Crée code pour les arguments */
 	auto valeurs_args = fonction->arg_begin();
 
-	for (const auto &argument : *arguments) {
+	for (const auto &nom : donnees_fonction.nom_args) {
+		const auto &argument = donnees_fonction.args[nom];
+
 		if (argument.est_variadic) {
 			continue;
 		}
@@ -740,7 +735,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 		alloc->setAlignment(align);
 
-		contexte.pousse_locale(argument.chaine, alloc, argument.donnees_type, argument.est_variable);
+		contexte.pousse_locale(nom, alloc, argument.donnees_type, argument.est_variable);
 
 		llvm::Value *valeur = &*valeurs_args++;
 #ifdef NOMME_IR
