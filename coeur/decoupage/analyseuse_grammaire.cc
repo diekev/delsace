@@ -274,6 +274,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	}
 
 	auto donnees_fonctions = DonneesFonction{};
+	donnees_fonctions.est_externe = externe;
 
 	analyse_parametres_fonction(noeud_declaration, donnees_fonctions);
 

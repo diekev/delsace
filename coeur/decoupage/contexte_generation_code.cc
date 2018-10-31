@@ -97,13 +97,18 @@ const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &
 	return iter->second.donnees_type;
 }
 
-void ContexteGenerationCode::pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type, const bool est_variable)
+void ContexteGenerationCode::pousse_locale(
+		const std::string_view &nom,
+		llvm::Value *valeur,
+		const DonneesType &type,
+		const bool est_variable,
+		const bool est_variadique)
 {
 	if (m_locales.size() > m_nombre_locales) {
-		m_locales[m_nombre_locales] = {nom, {valeur, type, est_variable, {}}};
+		m_locales[m_nombre_locales] = {nom, {valeur, type, est_variable, est_variadique, {}}};
 	}
 	else {
-		m_locales.push_back({nom, {valeur, type, est_variable, {}}});
+		m_locales.push_back({nom, {valeur, type, est_variable, est_variadique, {}}});
 	}
 
 	++m_nombre_locales;
@@ -177,6 +182,22 @@ void ContexteGenerationCode::imprime_locales(std::ostream &os)
 	for (size_t i = 0; i < m_nombre_locales; ++i) {
 		os << '\t' << m_locales[i].first << '\n';
 	}
+}
+
+bool ContexteGenerationCode::est_locale_variadique(const std::string_view &nom)
+{
+	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
+	auto iter = std::find_if(m_locales.begin(), iter_fin,
+							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+	{
+		return paire.first == nom;
+	});
+
+	if (iter == iter_fin) {
+		return false;
+	}
+
+	return iter->second.est_variadic;
 }
 
 void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees)

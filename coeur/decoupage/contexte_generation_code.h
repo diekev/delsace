@@ -55,13 +55,16 @@ struct DonneesFonction {
 	std::unordered_map<std::string_view, DonneesArgument> args{};
 	DonneesType donnees_type{};
 	std::vector<std::string_view> nom_args;
+	bool est_externe = false;
+	char pad[7];
 };
 
 struct DonneesVariable {
 	llvm::Value *valeur;
 	DonneesType donnees_type{};
 	bool est_variable = false;
-	char pad[7] = {};
+	bool est_variadic = false;
+	char pad[6] = {};
 };
 
 struct DonneesStructure {
@@ -155,7 +158,12 @@ struct ContexteGenerationCode {
 	 * vecteur de variables. Voir 'pop_bloc_locales' pour la gestion des
 	 * variables.
 	 */
-	void pousse_locale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type, const bool est_variable);
+	void pousse_locale(
+			const std::string_view &nom,
+			llvm::Value *valeur,
+			const DonneesType &type,
+			const bool est_variable,
+			const bool est_variadique);
 
 	/**
 	 * Retourne un pointeur vers la valeur LLVM de la locale dont le nom est
@@ -203,6 +211,12 @@ struct ContexteGenerationCode {
 	 * Imprime le nom des variables locales dans le flux précisé.
 	 */
 	void imprime_locales(std::ostream &os);
+
+	/**
+	 * Retourne vrai si la variable est un argument variadic. Autrement,
+	 * retourne faux.
+	 */
+	bool est_locale_variadique(const std::string_view &nom);
 
 	/* ********************************************************************** */
 

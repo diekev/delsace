@@ -416,23 +416,26 @@ static llvm::FunctionType *obtiens_type_fonction(
 		bool est_variadique)
 {
 	std::vector<llvm::Type *> parametres;
-	parametres.reserve(donnees_fonction.nom_args.size() - est_variadique);
+	parametres.reserve(donnees_fonction.nom_args.size());
 
 	for (const auto &nom : donnees_fonction.nom_args) {
 		const auto &argument = donnees_fonction.args.find(nom);
 
 		if (argument->second.est_variadic) {
+			/* ajout de l'argument implicite du compte d'arguments var_args */
+			if (!donnees_fonction.est_externe) {
+				parametres.push_back(llvm::Type::getInt32Ty(contexte.contexte));
+			}
+
 			break;
 		}
 
 		parametres.push_back(converti_type(contexte, argument->second.donnees_type));
 	}
 
-	llvm::ArrayRef<llvm::Type *> args(parametres);
-
 	return llvm::FunctionType::get(
 				converti_type(contexte, donnees_retour),
-				args,
+				parametres,
 				est_variadique);
 }
 
@@ -561,6 +564,8 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 					m_donnees_morceaux);
 	}
 
+	auto fonction_variadique_interne = fonction->isVarArg() && !donnees_fonction.est_externe;
+
 	/* Cherche la liste d'arguments */
 	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
 
@@ -568,10 +573,26 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
 	 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
 	 * code est généré. */
-	std::vector<Noeud *> enfants(noms_arguments->size());
+	std::vector<Noeud *> enfants(noms_arguments->size() + fonction_variadique_interne);
+
+	auto noeud_nombre_args = static_cast<NoeudNombreEntier *>(nullptr);
+
+	if (fonction_variadique_interne) {
+		/* Pour les fonctions variadiques, il nous faut ajouter le nombre
+		 * d'arguments à l'appel de la fonction. */
+		auto nombre_args = donnees_fonction.args.size();
+		auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
+		auto index_premier_var_arg = nombre_args - 1;
+
+		noeud_nombre_args = new NoeudNombreEntier({});
+		noeud_nombre_args->valeur_calculee = static_cast<long>(nombre_args_var);
+		noeud_nombre_args->calcule = true;
+
+		enfants[index_premier_var_arg] = noeud_nombre_args;
+	}
 
 	auto enfant = m_enfants.begin();
-	auto nombre_arg_variadic = 0ul;
+	auto nombre_arg_variadic = 0ul + fonction_variadique_interne;
 
 	for (const auto &nom : *noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
@@ -617,7 +638,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	}
 
 	std::vector<llvm::Value *> parametres;
-	parametres.resize(noms_arguments->size());
+	parametres.resize(enfants.size());
 
 	std::transform(enfants.begin(), enfants.end(), parametres.begin(),
 				   [&](Noeud *enfant)
@@ -626,6 +647,8 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	});
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
+
+	delete noeud_nombre_args;
 
 	return llvm::CallInst::Create(fonction, args, "", contexte.bloc_courant());
 }
@@ -689,6 +712,15 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 
+	/* Pour les fonctions variadiques
+	 * - on ajoute manuellement un argument implicit correspondant au nombre
+	 *   d'args qui est appelé __compte_args
+	 * - lors de l'appel, puisque nous connaissons le nombre d'arguments, on le
+	 *   passe à la fonction
+	 * - les boucles n'ont plus qu'à utiliser le compte d'arguments comme valeur
+	 *   de fin de plage.
+	 */
+
 	/* Crée le type de la fonction */
 	auto type_fonction = obtiens_type_fonction(
 							 contexte,
@@ -718,32 +750,112 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	for (const auto &nom : donnees_fonction.nom_args) {
 		const auto &argument = donnees_fonction.args[nom];
+		auto align = unsigned{0};
+		auto type = static_cast<llvm::Type *>(nullptr);
 
 		if (argument.est_variadic) {
-			continue;
+			align = 8;
+
+			auto id = size_t{};
+
+			if (!contexte.structure_existe("va_list")) {
+				/* Crée la structure va_list pour Unix x84_64
+				 *  %struct.va_list = type { i32, i32, i8*, i8* }
+				 */
+
+				auto donnees_structure = DonneesStructure{};
+
+				auto dt = DonneesType{};
+				dt.pousse(id_morceau::Z32);
+
+				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
+				donnees_structure.donnees_types.push_back(dt);
+				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
+				donnees_structure.donnees_types.push_back(dt);
+
+				dt = DonneesType{};
+				dt.pousse(id_morceau::POINTEUR);
+				dt.pousse(id_morceau::Z8);
+
+				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
+				donnees_structure.donnees_types.push_back(dt);
+				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
+				donnees_structure.donnees_types.push_back(dt);
+
+				id = contexte.ajoute_donnees_structure("va_list", donnees_structure);
+			}
+			else {
+				id = contexte.donnees_structure("va_list").id;
+			}
+
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(id) << 8));
+
+			type = converti_type(contexte, dt);
+		}
+		else {
+			align = alignement(contexte, argument.donnees_type);
+			type = converti_type(contexte, argument.donnees_type);
 		}
 
-		auto align = alignement(contexte, argument.donnees_type);
-		auto alloc = new llvm::AllocaInst(
-						 converti_type(contexte, argument.donnees_type),
+		if (argument.est_variadic) {
+			/* stockage de l'argument implicit de compte d'argument */
+			auto valeur = &(*valeurs_args++);
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::Z32);
+
+			auto alloc_compte = new llvm::AllocaInst(
+									llvm::Type::getInt32Ty(contexte.contexte),
+									"",
+									contexte.bloc_courant());
+			alloc_compte->setAlignment(4);
+
+			auto store = new llvm::StoreInst(valeur, alloc_compte, false, contexte.bloc_courant());
+			store->setAlignment(4);
+
+			contexte.pousse_locale("__compte_args", alloc_compte, dt, false, false);
+
+			valeur = &(*valeurs_args++);
+
+			auto alloc = new llvm::AllocaInst(
+							 type,
 #ifdef NOMME_IR
-						 argument.chaine,
+							 argument.chaine,
 #else
-						"",
+							"",
 #endif
-						 contexte.bloc_courant());
+							 contexte.bloc_courant());
 
-		alloc->setAlignment(align);
+			alloc->setAlignment(align);
+			auto cast = new llvm::BitCastInst(alloc,
+										  llvm::Type::getInt8PtrTy(contexte.contexte),
+										  "",
+										  contexte.bloc_courant());
 
-		contexte.pousse_locale(nom, alloc, argument.donnees_type, argument.est_variable);
-
-		llvm::Value *valeur = &*valeurs_args++;
+			auto fonc = llvm::Intrinsic::getDeclaration(contexte.module, llvm::Intrinsic::vastart);
+			llvm::CallInst::Create(fonc, cast, "", contexte.bloc_courant());
+			contexte.pousse_locale(nom, cast, argument.donnees_type, argument.est_variable, argument.est_variadic);
+		}
+		else {
+			auto valeur = &(*valeurs_args++);
 #ifdef NOMME_IR
-		valeur->setName(argument.chaine.c_str());
+			valeur->setName(argument.chaine.c_str());
 #endif
 
-		auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
-		store->setAlignment(align);
+			auto alloc = new llvm::AllocaInst(
+							 type,
+	#ifdef NOMME_IR
+							 argument.chaine,
+	#else
+							"",
+	#endif
+							 contexte.bloc_courant());
+
+			alloc->setAlignment(align);
+			auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+			store->setAlignment(align);
+			contexte.pousse_locale(nom, alloc, argument.donnees_type, argument.est_variable, argument.est_variadic);
+		}
 	}
 
 	/* Crée code pour le bloc. */
@@ -954,7 +1066,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	alloc->setAlignment(alignement(contexte, this->donnees_type));
 
-	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, this->est_variable);
+	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, this->est_variable, false);
 
 	return alloc;
 }
@@ -1323,12 +1435,22 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 		}
 	}
 
-	if (expr_gauche || dynamic_cast<llvm::PHINode *>(valeur)) {
+	if (expr_gauche || dynamic_cast<llvm::PHINode *>(valeur) || dynamic_cast<llvm::VAArgInst *>(valeur)) {
 		return valeur;
 	}
 
 	/* À FAIRE : redondant. */
 	auto type = this->calcul_type(contexte);
+
+	if (contexte.est_locale_variadique(m_donnees_morceaux.chaine)) {
+		auto inst = new llvm::VAArgInst(
+						valeur,
+						converti_type(contexte, type),
+						"",
+						contexte.bloc_courant());
+
+		return inst;
+	}
 
 	auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
 	charge->setAlignment(alignement(contexte, type));
@@ -2082,6 +2204,24 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, con
 
 	this->calcul_type(contexte);
 
+	/* insère un appel à va_end avant chaque instruction de retour */
+	if (contexte.fonction->isVarArg()) {
+		const auto &donnees_fonction = contexte.donnees_fonction(std::string(contexte.fonction->getName()));
+
+		for (const auto &arg : donnees_fonction.args) {
+			if (arg.second.est_variadic) {
+				auto valeur = contexte.valeur_locale(arg.first);
+
+				assert(valeur != nullptr);
+
+				auto fonc = llvm::Intrinsic::getDeclaration(contexte.module, llvm::Intrinsic::vaend);
+
+				llvm::CallInst::Create(fonc, valeur, "", contexte.bloc_courant());
+				break;
+			}
+		}
+	}
+
 	if (!m_enfants.empty()) {
 		assert(m_enfants.size() == 1);
 		valeur = m_enfants.front()->genere_code_llvm(contexte);
@@ -2455,32 +2595,90 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	contexte.bloc_courant(bloc_boucle);
 
-	noeud_phi = llvm::PHINode::Create(
-					converti_type(contexte, type_debut),
-					2,
-					std::string(enfant1->chaine()),
+	if (enfant2->type() == type_noeud::PLAGE) {
+		noeud_phi = llvm::PHINode::Create(
+						converti_type(contexte, type_debut),
+						2,
+						std::string(enfant1->chaine()),
+						contexte.bloc_courant());
+	}
+	else if (enfant2->type() == type_noeud::VARIABLE) {
+		auto valeur = contexte.est_locale_variadique(enfant2->chaine());
+
+		if (!valeur) {
+			erreur::lance_erreur(
+						"La variable n'est pas un argument variadic",
+						contexte.tampon,
+						enfant2->donnees_morceau());
+		}
+
+		noeud_phi = llvm::PHINode::Create(
+						llvm::Type::getInt32Ty(contexte.contexte),
+						2,
+						std::string(enfant1->chaine()),
+						contexte.bloc_courant());
+	}
+	else {
+		erreur::lance_erreur(
+					"Expression inattendu dans la boucle 'pour'",
+					contexte.tampon,
+					m_donnees_morceaux);
+	}
+
+	if (enfant2->type() == type_noeud::PLAGE) {
+		enfant2->genere_code_llvm(contexte);
+
+		auto valeur_debut = contexte.valeur_locale("__debut");
+		auto valeur_fin = contexte.valeur_locale("__fin");
+
+		noeud_phi->addIncoming(valeur_debut, bloc_pre);
+
+		auto condition = comparaison_pour_type(
+							 type,
+							 noeud_phi,
+							 valeur_fin,
+							 contexte.bloc_courant());
+
+		llvm::BranchInst::Create(
+					bloc_corps,
+					(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
+					condition,
 					contexte.bloc_courant());
 
-	contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false);
+		contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false, false);
+	}
+	else if (enfant2->type() == type_noeud::VARIABLE) {
+		auto arg = enfant2->genere_code_llvm(contexte);
+		contexte.pousse_locale(enfant1->chaine(), arg, type_debut, false, false);
 
-	enfant2->genere_code_llvm(contexte);
+		auto valeur_debut = llvm::ConstantInt::get(
+								llvm::Type::getInt32Ty(contexte.contexte),
+								static_cast<uint64_t>(0),
+								false);
 
-	auto valeur_debut = contexte.valeur_locale("__debut");
-	auto valeur_fin = contexte.valeur_locale("__fin");
+		auto valeur_fin = contexte.valeur_locale("__compte_args");
 
-	noeud_phi->addIncoming(valeur_debut, bloc_pre);
+		/* __compte_args est une AllocaInst (dans NoeudDeclarationFonction)
+		 * donc il faut le charger */
+		auto charge_valeur_fin = new llvm::LoadInst(
+									 valeur_fin, "", contexte.bloc_courant());
 
-	auto condition = comparaison_pour_type(
-						 type,
-						 noeud_phi,
-						 valeur_fin,
-						 contexte.bloc_courant());
+		noeud_phi->addIncoming(valeur_debut, bloc_pre);
 
-	llvm::BranchInst::Create(
-				bloc_corps,
-				(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
-				condition,
-				contexte.bloc_courant());
+		auto condition = llvm::ICmpInst::Create(
+							 llvm::Instruction::ICmp,
+							 llvm::CmpInst::Predicate::ICMP_SLT,
+							 noeud_phi,
+							 charge_valeur_fin,
+							 "",
+							 contexte.bloc_courant());
+
+		llvm::BranchInst::Create(
+					bloc_corps,
+					(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
+					condition,
+					contexte.bloc_courant());
+	}
 
 	/* bloc_corps */
 	contexte.bloc_courant(bloc_corps);
@@ -2490,13 +2688,24 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	/* bloc_inc */
 	contexte.bloc_courant(bloc_inc);
 
-	auto inc = incremente_pour_type(
-				   type,
-				   contexte,
-				   noeud_phi,
-				   contexte.bloc_courant());
+	if (enfant2->type() == type_noeud::PLAGE) {
+		auto inc = incremente_pour_type(
+					   type,
+					   contexte,
+					   noeud_phi,
+					   contexte.bloc_courant());
 
-	noeud_phi->addIncoming(inc, contexte.bloc_courant());
+		noeud_phi->addIncoming(inc, contexte.bloc_courant());
+	}
+	else if (enfant2->type() == type_noeud::VARIABLE) {
+		auto inc = incremente_pour_type(
+					   id_morceau::Z32,
+					   contexte,
+					   noeud_phi,
+					   contexte.bloc_courant());
+
+		noeud_phi->addIncoming(inc, contexte.bloc_courant());
+	}
 
 	ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 
@@ -2877,8 +3086,8 @@ llvm::Value *NoeudPlage::genere_code_llvm(ContexteGenerationCode &contexte, cons
 	auto valeur_debut = enfant1->genere_code_llvm(contexte);
 	auto valeur_fin = enfant2->genere_code_llvm(contexte);
 
-	contexte.pousse_locale("__debut", valeur_debut, this->donnees_type, false);
-	contexte.pousse_locale("__fin", valeur_fin, this->donnees_type, false);
+	contexte.pousse_locale("__debut", valeur_debut, this->donnees_type, false, false);
+	contexte.pousse_locale("__fin", valeur_fin, this->donnees_type, false, false);
 
 	return valeur_fin;
 }
