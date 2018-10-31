@@ -18,6 +18,8 @@ Faitures
 - transtypage entre types simples
 - déclaration de fonctions externes pour lier des fichiers objets
 - déclaration de fonctions variadiques externes
+- fonctions variadiques sur un type donnée
+- utilisation des fonctions de la bibliothèque standard de C
 
 
 À faire
@@ -33,7 +35,6 @@ Faitures
 ---- caractere + chaîne    -> chaîne     # À FAIRE
 - initialisation de tableaux dans la déclaration
 - initialisation de structures dans la déclaration
-- fonctions variadiques
 - fonctions gabarit/génériques avec contrats/concepts
 - structures gabarit/génériques
 - association/switch
