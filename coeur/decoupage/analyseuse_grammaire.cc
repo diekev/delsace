@@ -1150,6 +1150,14 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 	std::set<std::string_view> args;
 	auto dernier_arg_variadique = false;
 
+	if (!m_contexte.fonction_existe(noeud->chaine())) {
+		erreur::lance_erreur(
+					"Fonction inconnue",
+					m_tampon,
+					noeud->donnees_morceau(),
+					erreur::type_erreur::FONCTION_INCONNUE);
+	}
+
 	const auto &donnees_fonction = m_contexte.donnees_fonction(noeud->chaine());
 
 	const auto nombre_args = donnees_fonction.args.size();
