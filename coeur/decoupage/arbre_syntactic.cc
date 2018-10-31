@@ -2069,9 +2069,7 @@ type_noeud NoeudOperationUnaire::type() const
 
 NoeudRetour::NoeudRetour(const DonneesMorceaux &morceau)
 	: Noeud(morceau)
-{
-	this->donnees_type.pousse(id_morceau::RIEN);
-}
+{}
 
 void NoeudRetour::imprime_code(std::ostream &os, int tab)
 {
@@ -2099,6 +2097,10 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, con
 
 const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
 {
+	if (!this->donnees_type.est_invalide()) {
+		return this->donnees_type;
+	}
+
 	if (m_enfants.empty()) {
 		this->donnees_type.pousse(id_morceau::RIEN);
 		return this->donnees_type;
@@ -2163,10 +2165,6 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 				contexte.bloc_courant());
 
 	contexte.bloc_courant(bloc_alors);
-
-	/* À FAIRE : voir situation similaire dans NoeudBoucle. La pile de locales
-	 * semble être brisée dès que nous avons plusieurs blocs. */
-	contexte.empile_nombre_locales();
 
 	/* noeud 2 : bloc */
 	auto enfant2 = *iter_enfant++;
@@ -2452,10 +2450,6 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	auto bloc_pre = contexte.bloc_courant();
 
-	/* À FAIRE : voir situation similaire dans NoeudBoucle. La pile de locales
-	 * semble être brisée dès que nous avons plusieurs blocs. */
-	contexte.empile_nombre_locales();
-
 	contexte.empile_nombre_locales();
 
 	auto noeud_phi = static_cast<llvm::PHINode *>(nullptr);
@@ -2616,15 +2610,6 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 
 	contexte.empile_bloc_continue(bloc_boucle);
 	contexte.empile_bloc_arrete((enfant2 != nullptr) ? bloc_sinon : bloc_apres);
-
-	/* À FAIRE : il semblerait que la pile de nombre de locales soit brisée, car
-	 * cet appel est redondant compte tenu du fait qu'il est de nouveau fait
-	 * juste après dans NoeudBloc::genere_code_llvm.
-	 * Enlever cet appel nous fait perdre toutes les locales créées avant la
-	 * boucle, ce qui ne devrait pas arriver.
-	 * Il semblerait que l'erreur survienne dans le noeud de retour. Assigner
-	 * les variables fonctionne, mais les retourner ne fonctionnent pas. */
-	contexte.empile_nombre_locales();
 
 	/* on crée une branche explicite dans le bloc */
 	llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
