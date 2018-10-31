@@ -197,6 +197,11 @@ struct ContexteGenerationCode {
 	 */
 	void depile_nombre_locales();
 
+	/**
+	 * Imprime le nom des variables locales dans le flux précisé.
+	 */
+	void imprime_locales(std::ostream &os);
+
 	/* ********************************************************************** */
 
 	/**

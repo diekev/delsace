@@ -172,6 +172,13 @@ void ContexteGenerationCode::depile_nombre_locales()
 	m_pile_nombre_locales.pop();
 }
 
+void ContexteGenerationCode::imprime_locales(std::ostream &os)
+{
+	for (size_t i = 0; i < m_nombre_locales; ++i) {
+		os << '\t' << m_locales[i].first << '\n';
+	}
+}
+
 void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees)
 {
 	fonctions.insert({nom, donnees});
