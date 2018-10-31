@@ -39,10 +39,6 @@
  */
 static constexpr auto PROFONDEUR_EXPRESSION_MAX = 32;
 
-/* À FAIRE :
- * - gabarit
- */
-
 static bool est_specifiant_type(id_morceau identifiant)
 {
 	switch (identifiant) {
