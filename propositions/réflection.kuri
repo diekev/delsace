@@ -82,3 +82,50 @@ fonction foo()
 	ff();
 	invoque(ff);
 }
+
+structure Vecteur2D {
+	x : z32;
+	y : z32;
+	z : z32;
+}
+
+# structure définie par le compileur
+structure données_membre {
+	type   : *z8;
+	nom    : *z8;
+	classe : *z8;
+	index  : z32;
+}
+
+taille_de
+type_de
+classe_de
+nombre_membres
+possède_membre
+ajourne_membre
+index_de
+données_membre
+membres
+
+fonction foo()
+{
+	soit v : Vecteur2D;
+
+	soit t = type_de(v); # retourne "Vecteur2D"
+	soit c = classe_de(v); # retourne "structure"
+	soit n = nombre_membres(v); # retourne 3
+
+	soit ouinon = possède_membre(v, "x");
+
+	ajourne_membre(v, "x", valeur);
+
+	soit index = index_de(v, "x");
+
+	soit m = données_membre(v, 0); # retourne une structure "données_membre" contenant les données du membre à l'index 0
+
+	soit tm = type_de(m); # retourne type de m
+
+	pour m dans membres(v) { # iter sur les membres de v
+
+	}
+}
