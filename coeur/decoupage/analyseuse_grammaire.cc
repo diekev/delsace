@@ -1059,6 +1059,14 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 		LOG_EXPRESSION << '\t' << chaine_identifiant(noeud->identifiant()) << '\n';
 
 		if (est_operateur_binaire(noeud->identifiant())) {
+			if (pile.size() < 2) {
+				erreur::lance_erreur(
+							"Expression malformée",
+							m_tampon,
+							noeud->donnees_morceau(),
+							erreur::type_erreur::NORMAL);
+			}
+
 			auto n2 = pile.back();
 			pile.pop_back();
 
@@ -1083,6 +1091,14 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				}
 			}
 			else if (calcul_expression) {
+				if (pile.size() < 1) {
+					erreur::lance_erreur(
+								"Expression malformée",
+								m_tampon,
+								noeud->donnees_morceau(),
+								erreur::type_erreur::NORMAL);
+				}
+
 				lance_erreur("Ne peut pas calculer l'expression pour la constante");
 			}
 			else {
