@@ -76,6 +76,8 @@ bool test_decoupage_texte1()
 {
 	const char *texte =
 R"(# Ceci est un commentaire
+« ceci est une chaine française avec espaces »
+«ceci est une chaine française sans espaces»
 soit str='a';
 soit str0='\0';
 associe nombre {
@@ -87,6 +89,8 @@ decoupeuse_texte decoupeuse(str, str + len);
 )";
 
 	const DonneesMorceaux donnees_morceaux[] = {
+		{ " ceci est une chaine française avec espaces ", 0ul, id_morceau::CHAINE_LITTERALE },
+		{ "ceci est une chaine française sans espaces", 0ul, id_morceau::CHAINE_LITTERALE },
 		{ "soit", 0ul, id_morceau::SOIT },
 		{ "str", 0ul, id_morceau::CHAINE_CARACTERE },
 		{ "=", 0ul, id_morceau::EGAL },

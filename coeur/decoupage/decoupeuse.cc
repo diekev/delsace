@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -41,6 +41,44 @@ constexpr bool est_espace_blanc(char c)
 
 /* ************************************************************************** */
 
+static constexpr auto ESPACE_INSECABLE = 0x00A0;
+static constexpr auto GUILLEMET_OUVRANT = 0x00AB;
+static constexpr auto GUILLEMET_FERMANT = 0x00BB;
+
+constexpr auto converti_utf32(const char *sequence, int n)
+{
+	const auto s0 = static_cast<unsigned char>(sequence[0]);
+
+	if (n == 1) {
+		return static_cast<int>(s0) & 0b01111111;
+	}
+
+	const auto s1 = static_cast<unsigned char>(sequence[1]);
+
+	if (n == 2) {
+		auto valeur = (s0 & 0b00011111) << 6 | (s1 & 0b00111111);
+		return valeur;
+	}
+
+	const auto s2 = static_cast<unsigned char>(sequence[2]);
+
+	if (n == 3) {
+		auto valeur = (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111);
+		return valeur;
+	}
+
+	const auto s3 = static_cast<unsigned char>(sequence[3]);
+
+	if (n == 4) {
+		auto valeur = (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111);
+		return valeur;
+	}
+
+	return 0;
+}
+
+/* ************************************************************************** */
+
 decoupeuse_texte::decoupeuse_texte(const TamponSource &tampon)
 	: m_tampon(tampon)
 	, m_debut_mot(m_tampon.debut())
@@ -55,7 +93,7 @@ void decoupeuse_texte::genere_morceaux()
 	m_taille_mot_courant = 0;
 
 	while (!this->fini()) {
-		const auto nombre_octet = nombre_octets(m_debut);
+		auto nombre_octet = nombre_octets(m_debut);
 
 		switch (nombre_octet) {
 			case 1:
@@ -67,15 +105,50 @@ void decoupeuse_texte::genere_morceaux()
 			case 3:
 			case 4:
 			{
-				/* Les caractères spéciaux ne peuvent être des caractères unicode
-				 * pour le moment, donc on les copie directement dans le tampon du
-				 * mot_courant. */
 				if (m_taille_mot_courant == 0) {
 					this->enregistre_pos_mot();
 				}
 
-				m_taille_mot_courant += static_cast<size_t>(nombre_octet);
-				this->avance(nombre_octet);
+				auto c = converti_utf32(m_debut, nombre_octet);
+
+				if (c == ESPACE_INSECABLE) {
+					if (m_taille_mot_courant != 0) {
+						this->pousse_mot(id_chaine(this->mot_courant()));
+					}
+
+					this->avance(nombre_octet);
+				}
+				else if (c == GUILLEMET_OUVRANT) {
+					if (m_taille_mot_courant != 0) {
+						this->pousse_mot(id_chaine(this->mot_courant()));
+					}
+
+					/* Saute le premier guillemet. */
+					this->avance(nombre_octet);
+					this->enregistre_pos_mot();
+
+					while (!this->fini()) {
+						nombre_octet = nombre_octets(m_debut);
+						c = converti_utf32(m_debut, nombre_octet);
+
+						if (c == GUILLEMET_FERMANT) {
+							break;
+						}
+
+						m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+						this->avance(nombre_octet);
+					}
+
+					/* Saute le dernier guillemet. */
+					this->avance(nombre_octet);
+
+					this->pousse_mot(id_morceau::CHAINE_LITTERALE);
+				}
+				else {
+					m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+					this->avance(nombre_octet);
+				}
+
 				break;
 			}
 			default:
