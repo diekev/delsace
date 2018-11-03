@@ -44,7 +44,7 @@ constexpr bool est_nombre_decimal(char c)
  *
  * Retourne le nombre de caractère de la chaîne [debut, fin] qui a été consommé.
  */
-int extrait_nombre(const char *debut, const char *fin, std::string &chaine, id_morceau &id_nombre);
+size_t extrait_nombre(const char *debut, const char *fin, id_morceau &id_nombre);
 
 /**
  * Converti une chaîne de caractère en un nombre entier de type 'long'. Si la

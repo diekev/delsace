@@ -319,20 +319,17 @@ void decoupeuse_texte::analyse_caractere_simple()
 		this->enregistre_pos_mot();
 
 		id_morceau id_nombre;
-		std::string nombre;
-		const auto compte = extrait_nombre(m_debut, m_fin, nombre, id_nombre);
 
-		m_taille_mot_courant = static_cast<size_t>(compte);
-
-		/* À FAIRE : reconsidération de la manière de découper les nombres. */
-		if (id_nombre != id_morceau::NOMBRE_ENTIER && id_nombre != id_morceau::NOMBRE_REEL) {
-			m_pos_mot += 2;
-			m_debut_mot += 2;
-			m_taille_mot_courant -= 2;
-		}
+		/* NOTE : on utilise une variable temporaire pour stocker le compte au
+		 * lieu d'utiliser m_taille_mot_courant directement, car
+		 * m_taille_mot_courant est remis à 0 dans pousse_mot() donc on ne peut
+		 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
+		 * infinie. */
+		const auto compte = extrait_nombre(m_debut, m_fin, id_nombre);
+		m_taille_mot_courant = compte;
 
 		this->pousse_mot(id_nombre);
-		this->avance(compte);
+		this->avance(static_cast<int>(compte));
 	}
 	else {
 		if (m_taille_mot_courant == 0) {
