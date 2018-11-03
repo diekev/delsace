@@ -1158,7 +1158,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 	const auto &donnees_fonction = m_contexte.donnees_fonction(noeud->chaine());
 
 	/* utilise min car arg.size() - 1 peut-être égal à size_t::max() */
-	const auto nombre_args = std::min(0ul, donnees_fonction.args.size() - 1);
+	const auto nombre_args = donnees_fonction.args.empty() ? 0ul : donnees_fonction.args.size() - 1;
 
 	while (true) {
 		/* aucun paramètre, ou la liste de paramètre est vide */
@@ -1214,7 +1214,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 		analyse_expression_droite(id_morceau::VIRGULE);
 		--m_profondeur;
 
-		index = std::min(index + 1, nombre_args - 1);
+		index = std::min(index + 1, nombre_args);
 	}
 }
 
