@@ -33,6 +33,21 @@
 #include "expression.h"
 #include "nombres.h"
 
+#undef DEBOGUE_EXPRESSION
+
+#ifdef DEBOGUE_EXPRESSION
+#define LOG_EXPRESSION std::cerr
+#else
+struct FauxLogExpression {};
+
+template <typename T>
+FauxLogExpression &operator<<(FauxLogExpression &os, const T &) { return os; }
+
+static FauxLogExpression faux_log_expression;
+
+#define LOG_EXPRESSION faux_log_expression
+#endif
+
 /**
  * Limitation du nombre récursif de sous-expressions (par exemple :
  * f(g(h(i(j()))))).
@@ -723,8 +738,12 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	 * fermante */
 	auto termine_boucle = false;
 
+	LOG_EXPRESSION << "Vecteur :\n";
+
 	while (!est_identifiant(identifiant_final)) {
 		const auto &morceau = m_identifiants[position() + 1];
+
+		LOG_EXPRESSION << '\t' << chaine_identifiant(morceau.identifiant) << '\n';
 
 		switch (morceau.identifiant) {
 			case id_morceau::CHAINE_CARACTERE:
@@ -1034,7 +1053,11 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 	pile.reserve(expression.size());
 
+	LOG_EXPRESSION << "Expression :\n";
+
 	for (Noeud *noeud : expression) {
+		LOG_EXPRESSION << '\t' << chaine_identifiant(noeud->identifiant()) << '\n';
+
 		if (est_operateur_binaire(noeud->identifiant())) {
 			auto n2 = pile.back();
 			pile.pop_back();
