@@ -31,6 +31,7 @@ syn match nombre_reel '\d\+\.\d*'
 " Régions
 syn region bloc start='{' end='}' fold transparent
 syn region caractere start='\'' end='\''
+syn region chaine start="«" end="»"
 
 let b:current_syntax = "kuri"
 
@@ -44,6 +45,7 @@ hi def link operateur_simple Operator
 hi def link pre_condition PreCondit
 hi def link booleen Boolean
 hi def link chaine_litterale String
+hi def link chaine String
 hi def link trois_point Operator
 hi def link nombre_decimal Number
 hi def link nombre_reel Float
