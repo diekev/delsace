@@ -491,54 +491,10 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 int main()
 {
-#if 1
 	numero7::test_aleatoire::Testeur testeur;
 	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon, test_analyse::test_entree_aleatoire);
 	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon_aleatoire, test_analyse::test_entree_aleatoire);
 	testeur.ajoute_tests("decoupage", nullptr, test_decoupage::test_entree_aleatoire);
 
 	return testeur.performe_tests(std::cerr);
-#else
-	std::ifstream fichier("/tmp/test_analyse40.bin");
-
-	fichier.seekg(0, fichier.end);
-	const auto taille_fichier = static_cast<size_t>(fichier.tellg());
-	fichier.seekg(0, fichier.beg);
-
-	char *donnees = new char[taille_fichier];
-
-	fichier.read(donnees, static_cast<long>(taille_fichier));
-
-	auto donnees_morceaux = reinterpret_cast<const DonneesMorceaux *>(donnees);
-	auto nombre_morceaux = taille_fichier / sizeof(DonneesMorceaux);
-
-	std::vector<DonneesMorceaux> morceaux;
-	morceaux.reserve(nombre_morceaux);
-
-	for (size_t i = 0; i < nombre_morceaux; ++i) {
-		auto dm = donnees_morceaux[i];
-		/* rétabli une chaîne car nous une décharge de la mémoire, donc les
-		 * pointeurs sont mauvais. */
-		dm.chaine = "texte_test";
-		morceaux.push_back(dm);
-	}
-
-	std::cerr << "Il y a " << nombre_morceaux << " morceaux.\n";
-
-	auto tampon = TamponSource("texte_test");
-
-	try {
-		auto contexte = ContexteGenerationCode{tampon};
-		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(contexte, morceaux, tampon, &assembleuse);
-		analyseuse.lance_analyse();
-	}
-	catch (...) {
-
-	}
-
-	delete [] donnees;
-
-	return 0;
-#endif
 }

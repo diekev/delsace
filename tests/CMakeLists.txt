@@ -82,3 +82,11 @@ target_link_libraries(test_aleatoire_kuri "${BIBLIOTHEQUES}")
 add_test(tests test_aleatoire_kuri)
 
 install(TARGETS test_aleatoire_kuri RUNTIME DESTINATION .)
+
+add_executable(charge_fichier_aleatoire charge_fichier_aleatoire.cc)
+target_include_directories(charge_fichier_aleatoire PUBLIC "${INCLUSIONS}")
+target_link_libraries(charge_fichier_aleatoire "${BIBLIOTHEQUES}")
+
+add_test(tests charge_fichier_aleatoire)
+
+install(TARGETS charge_fichier_aleatoire RUNTIME DESTINATION .)
