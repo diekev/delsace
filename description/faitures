@@ -85,6 +85,8 @@ Idées
 - transformer les messages d'erreur en tutoriaux
 - valeur par défaut des arguments
 - plusieurs valeurs de retour, avec nom et valeur par défaut
+- type de tableau par défaut, le compilateur s'occupant de préserver la taille du tableau pour faire des vérifications en place
+- loge/déloge pour les loyers dynamics de mémoire
 
 
 Sécurité/évitement des bugs
