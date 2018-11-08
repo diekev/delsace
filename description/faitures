@@ -45,6 +45,13 @@ Faitures
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries
 - initialisation explicite des membres des structures lors de leur définition
+- type de tableau par défaut ([]z32 -> structure __Tableau_z32 { données :  *z32, compte : z32 })
+---- ainsi on pourrait faire en sorte que le compileur connaisse à tout moment la taille du tableau pour éviter les dépassements de tampon
+---- boucle 'pour v dans tableau', considération modification en ayant un pointeur vers la valeur 'pour @v dans tableau' ?
+---- pour les tableaux dynamics :
+-------- x = loge [1024] z32;
+-------- x = reloge [2048] z32;
+-------- déloge [2048] x; # vérifie taille ?
 
 
 À faire (tests)
@@ -86,7 +93,7 @@ Idées
 - valeur par défaut des arguments
 - plusieurs valeurs de retour, avec nom et valeur par défaut
 - type de tableau par défaut, le compilateur s'occupant de préserver la taille du tableau pour faire des vérifications en place
-- loge/déloge pour les loyers dynamics de mémoire
+- loge/déloge/reloge pour les loyers dynamics de mémoire
 
 
 Sécurité/évitement des bugs
