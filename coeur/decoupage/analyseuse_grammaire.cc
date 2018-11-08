@@ -54,6 +54,13 @@ static FauxLogExpression faux_log_expression;
  */
 static constexpr auto PROFONDEUR_EXPRESSION_MAX = 32;
 
+/**
+ * Pointeur spécial utilisé pour représenter un noeud de type paranthèse
+ * ouvrante dans l'arbre syntactic. Ce noeud n'est pas insérer dans l'arbre,
+ * mais simplement utilisé pour compiler les arbres syntactics des expressions.
+ */
+static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(id_morceau::PARENTHESE_OUVRANTE);
+
 static bool est_specifiant_type(id_morceau identifiant)
 {
 	switch (identifiant) {
@@ -700,8 +707,6 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		}
 	}
 }
-
-static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(id_morceau::PARENTHESE_OUVRANTE);
 
 void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_final, const bool calcul_expression, const bool assignation)
 {
