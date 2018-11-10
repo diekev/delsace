@@ -84,7 +84,9 @@ static llvm::Type *converti_type_simple(
 			type = llvm::Type::getInt64Ty(contexte.contexte);
 			break;
 		case id_morceau::R16:
-			type = llvm::Type::getHalfTy(contexte.contexte);
+			/* À FAIRE : type R16 */
+			//type = llvm::Type::getHalfTy(contexte.contexte);
+			type = llvm::Type::getFloatTy(contexte.contexte);
 			break;
 		case id_morceau::R32:
 			type = llvm::Type::getFloatTy(contexte.contexte);
