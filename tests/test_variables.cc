@@ -334,7 +334,7 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 
 	CU_DEBUTE_PROPOSITION(
 				controleur,
-				"La variable itérable d'une boucle 'pour' ne être utilisée après la boucle.");
+				"La variable itérable d'une boucle 'pour' ne peut être utilisée après la boucle.");
 	{
 		const char *texte =
 				R"(

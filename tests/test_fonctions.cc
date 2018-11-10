@@ -66,7 +66,7 @@ static void test_appel_fonction_variadique_args_nommes(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
-				texte, true, erreur::type_erreur::ARGUMENT_REDEFINI);
+				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
@@ -212,7 +212,7 @@ static void test_declaration_fonction_variadique(
 				fonction externe principale(compte : z32, arguments : ...z32) : rien;
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, true, erreur::type_erreur::NORMAL);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);
@@ -278,7 +278,7 @@ static void test_fonction_general(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, true, erreur::type_erreur::AUCUNE_ERREUR);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleur);

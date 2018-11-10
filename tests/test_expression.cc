@@ -106,7 +106,7 @@ R"(fonction foo() : rien
 	}
 	{
 		/* Passage du test avec la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, true, erreur::type_erreur::AUCUNE_ERREUR, true);
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, true);
 		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
 	}
 }
