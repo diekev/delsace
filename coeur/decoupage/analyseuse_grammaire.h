@@ -34,10 +34,10 @@ class NoeudDeclarationFonction;
 
 struct ContexteGenerationCode;
 struct DonneesFonction;
+struct DonneesModule;
 
 class analyseuse_grammaire : public Analyseuse {
 	assembleuse_arbre *m_assembleuse = nullptr;
-	ContexteGenerationCode &m_contexte;
 
 	/* Ces vecteurs sont utilisés pour stocker les données des expressions
 	 * compilées au travers de 'analyse_expression_droite()'. Nous les stockons
@@ -50,13 +50,15 @@ class analyseuse_grammaire : public Analyseuse {
 	std::vector<paire_vecteurs> m_paires_vecteurs;
 	size_t m_profondeur = 0;
 
-public:
-	analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon, assembleuse_arbre *assembleuse);
+	DonneesModule *m_module;
 
-	void lance_analyse() override;
+public:
+	analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, assembleuse_arbre *assembleuse, DonneesModule *module);
+
+	void lance_analyse(std::ostream &os) override;
 
 private:
-	void analyse_corps();
+	void analyse_corps(std::ostream &os);
 	void analyse_declaration_fonction();
 	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees);
 	void analyse_corps_fonction();

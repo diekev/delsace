@@ -26,7 +26,9 @@
 
 #include <sstream>
 
+#include "contexte_generation_code.h"
 #include "donnees_type.h"
+#include "modules.hh"
 #include "morceaux.h"
 #include "tampon_source.h"
 #include "unicode.h"
@@ -52,7 +54,7 @@ static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const 
 {
 	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < nombre;) {
+	for (size_t i = 0; i < std::min(nombre, chaine.size());) {
 		if (chaine[i] == '\t') {
 			os << '\t';
 		}
@@ -107,7 +109,7 @@ static void imprime_ligne_entre(
 
 void lance_erreur(
 		const std::string &quoi,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau,
 		type_erreur type)
 {
@@ -116,7 +118,8 @@ void lance_erreur(
 	const auto identifiant = morceau.identifiant;
 	const auto &chaine = morceau.chaine;
 
-	auto ligne_courante = tampon[ligne];
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne_courante = module->tampon[ligne];
 
 	std::stringstream ss;
 	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
@@ -135,7 +138,7 @@ void lance_erreur(
 
 void lance_erreur_plage(
 		const std::string &quoi,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &premier_morceau,
 		const DonneesMorceaux &dernier_morceau,
 		type_erreur type)
@@ -144,7 +147,8 @@ void lance_erreur_plage(
 	const auto pos_premier = premier_morceau.ligne_pos & 0xffffffff;
 	const auto pos_dernier = dernier_morceau.ligne_pos & 0xffffffff;
 
-	auto ligne_courante = tampon[ligne];
+	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
+	auto ligne_courante = module->tampon[ligne];
 
 	std::stringstream ss;
 	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
@@ -163,12 +167,13 @@ void lance_erreur_plage(
 [[noreturn]] void lance_erreur_nombre_arguments(
 		const size_t nombre_arguments,
 		const size_t nombre_recus,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
 	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
-	const auto ligne = tampon[numero_ligne];
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
@@ -189,13 +194,14 @@ void lance_erreur_plage(
 [[noreturn]] void lance_erreur_type_arguments(
 		const DonneesType &type_arg,
 		const DonneesType &type_enf,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
 	const auto pos_mot = morceau_enfant.ligne_pos & 0xffffffff;
-	const auto ligne = tampon[numero_ligne];
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
 	ss << "\n----------------------------------------------------------------\n";
@@ -225,12 +231,13 @@ void lance_erreur_plage(
 
 [[noreturn]] void lance_erreur_argument_inconnu(
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
 	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
-	const auto ligne = tampon[numero_ligne];
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
@@ -249,12 +256,13 @@ void lance_erreur_plage(
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
 	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
-	const auto ligne = tampon[numero_ligne];
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
@@ -274,12 +282,13 @@ void lance_erreur_plage(
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const DonneesType &type_gauche,
 		const DonneesType &type_droite,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
 	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
-	const auto ligne = tampon[numero_ligne];
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
@@ -300,12 +309,13 @@ void lance_erreur_plage(
 void lance_erreur_type_operation(
 		const DonneesType &type_gauche,
 		const DonneesType &type_droite,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
 	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
-	const auto ligne = tampon[numero_ligne];
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";

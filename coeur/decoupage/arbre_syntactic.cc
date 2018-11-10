@@ -34,6 +34,7 @@
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
 #include "erreur.h"
+#include "modules.hh"
 #include "morceaux.h"
 #include "nombres.h"
 #include "tampon_source.h"
@@ -532,6 +533,7 @@ NoeudAppelFonction::NoeudAppelFonction(const DonneesMorceaux &morceau)
 {
 	/* réutilisation du membre std::any pour économiser un peu de mémoire */
 	valeur_calculee = std::list<std::string_view>{};
+	this->module_appel = morceau.module;
 }
 
 void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
@@ -546,12 +548,18 @@ void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	auto fonction = contexte.module->getFunction(std::string(m_donnees_morceaux.chaine));
+	/* broyage du nom */
+	auto module = contexte.module(static_cast<size_t>(this->module_appel));
+	auto nom_module = module->nom;
+	auto nom_fonction = std::string(m_donnees_morceaux.chaine);
+	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
+
+	auto fonction = contexte.module_llvm->getFunction(nom_broye);
 
 	if (fonction == nullptr) {
 		erreur::lance_erreur(
-					"Fonction inconnue",
-					contexte.tampon,
+					"NoeudAppelFonction::genere_code_llvm : fonction inconnue",
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
@@ -562,7 +570,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		erreur::lance_erreur_nombre_arguments(
 					donnees_fonction.args.size(),
 					m_enfants.size(),
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux);
 	}
 
@@ -610,7 +618,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 					erreur::lance_erreur_type_arguments(
 								type_arg,
 								type_enf,
-								contexte.tampon,
+								contexte,
 								(*enfant)->donnees_morceau(),
 								m_donnees_morceaux);
 				}
@@ -628,7 +636,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 				erreur::lance_erreur_type_arguments(
 							type_arg,
 							type_enf,
-							contexte.tampon,
+							contexte,
 							(*enfant)->donnees_morceau(),
 							m_donnees_morceaux);
 			}
@@ -657,12 +665,18 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 const DonneesType &NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
 {
-	auto fonction = contexte.module->getFunction(std::string(m_donnees_morceaux.chaine));
+	/* broyage du nom */
+	auto module = contexte.module(static_cast<size_t>(this->module_appel));
+	auto nom_module = module->nom;
+	auto nom_fonction = std::string(m_donnees_morceaux.chaine);
+	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
+
+	auto fonction = contexte.module_llvm->getFunction(nom_broye);
 
 	if (fonction == nullptr) {
 		erreur::lance_erreur(
-					"Fonction inconnue",
-					contexte.tampon,
+					"NoeudAppelFonction::calcul_type : fonction inconnue",
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
@@ -730,12 +744,17 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 							 this->donnees_type,
 							 this->est_variable);
 
+	/* broyage du nom */
+	auto nom_module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module))->nom;
+	auto nom_fonction = std::string(m_donnees_morceaux.chaine);
+	auto nom_broye = (!this->est_externe && nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
+
 	/* Crée fonction */
 	auto fonction = llvm::Function::Create(
 						type_fonction,
 						llvm::Function::ExternalLinkage,
-						std::string(m_donnees_morceaux.chaine),
-						contexte.module);
+						nom_broye,
+						contexte.module_llvm);
 
 	if (this->est_externe) {
 		return fonction;
@@ -834,7 +853,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 										  "",
 										  contexte.bloc_courant());
 
-			auto fonc = llvm::Intrinsic::getDeclaration(contexte.module, llvm::Intrinsic::vastart);
+			auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vastart);
 			llvm::CallInst::Create(fonc, cast, "", contexte.bloc_courant());
 			contexte.pousse_locale(nom, cast, argument.donnees_type, argument.est_variable, argument.est_variadic);
 		}
@@ -882,7 +901,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		if (this->donnees_type.type_base() != id_morceau::RIEN) {
 			erreur::lance_erreur(
 						"Instruction de retour manquante",
-						contexte.tampon,
+						contexte,
 						m_donnees_morceaux,
 						erreur::type_erreur::TYPE_DIFFERENTS);
 		}
@@ -894,7 +913,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 			if (this->donnees_type.type_base() != id_morceau::RIEN) {
 				erreur::lance_erreur(
 							"Instruction de retour manquante",
-							contexte.tampon,
+							contexte,
 							m_donnees_morceaux,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -904,7 +923,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 			if (this->donnees_type != type_bloc) {
 				erreur::lance_erreur(
 							"Le type de retour est invalide",
-							contexte.tampon,
+							contexte,
 							m_donnees_morceaux,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -952,7 +971,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	if (!variable->peut_etre_assigne(contexte)) {
 		erreur::lance_erreur(
 					"Impossible d'assigner l'expression à la variable !",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::ASSIGNATION_INVALIDE);
 	}
@@ -962,7 +981,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	if (this->donnees_type.est_invalide()) {
 		erreur::lance_erreur(
 					"Impossible de définir le type de la variable !",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::TYPE_INCONNU);
 	}
@@ -970,7 +989,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	if (this->donnees_type.type_base() == id_morceau::RIEN) {
 		erreur::lance_erreur(
 					"Impossible d'assigner une expression de type 'rien' à une variable !",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::ASSIGNATION_RIEN);
 	}
@@ -989,7 +1008,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 			erreur::lance_erreur_assignation_type_differents(
 						type_gauche,
 						this->donnees_type,
-						contexte.tampon,
+						contexte,
 						m_donnees_morceaux);
 		}
 	}
@@ -1039,7 +1058,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 	if (valeur != nullptr) {
 		erreur::lance_erreur(
 					"Redéfinition de la variable !",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::VARIABLE_REDEFINIE);
 	}
@@ -1049,7 +1068,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 		if (valeur != nullptr) {
 			erreur::lance_erreur(
 						"Redéfinition de la variable !",
-						contexte.tampon,
+						contexte,
 						m_donnees_morceaux,
 						erreur::type_erreur::VARIABLE_REDEFINIE);
 		}
@@ -1107,7 +1126,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 	if (valeur != nullptr) {
 		erreur::lance_erreur(
 					"Redéfinition de la variable globale !",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::VARIABLE_REDEFINIE);
 	}
@@ -1118,7 +1137,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 		if (this->donnees_type.est_invalide()) {
 			erreur::lance_erreur(
 						"Impossible de définir le type de la variable globale !",
-						contexte.tampon,
+						contexte,
 						m_donnees_morceaux,
 						erreur::type_erreur::TYPE_INCONNU);
 		}
@@ -1137,7 +1156,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 						 static_cast<uint64_t>(n));
 
 	valeur = new llvm::GlobalVariable(
-				 *contexte.module,
+				 *contexte.module_llvm,
 				 converti_type(contexte, this->donnees_type),
 				 true,
 				 llvm::GlobalValue::InternalLinkage,
@@ -1375,7 +1394,7 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 	auto type = converti_type(contexte, this->donnees_type);
 
 	auto globale = new llvm::GlobalVariable(
-				*contexte.module,
+				*contexte.module_llvm,
 				type,
 				true,
 				llvm::GlobalValue::PrivateLinkage,
@@ -1431,7 +1450,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 		if (valeur == nullptr) {
 			erreur::lance_erreur(
 						"Variable inconnue !",
-						contexte.tampon,
+						contexte,
 						m_donnees_morceaux,
 						erreur::type_erreur::VARIABLE_INCONNUE);
 		}
@@ -1472,7 +1491,7 @@ const DonneesType &NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
 
 	erreur::lance_erreur(
 				"NoeudVariable::calcul_type : variable inconnue !",
-				contexte.tampon,
+				contexte,
 				m_donnees_morceaux,
 				erreur::type_erreur::VARIABLE_INCONNUE);
 }
@@ -1525,7 +1544,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 			else {
 				erreur::lance_erreur(
 							"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-							contexte.tampon,
+							contexte,
 							structure->donnees_morceau(),
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -1533,7 +1552,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 		else {
 			erreur::lance_erreur(
 						"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-						contexte.tampon,
+						contexte,
 						structure->donnees_morceau(),
 						erreur::type_erreur::TYPE_DIFFERENTS);
 		}
@@ -1552,7 +1571,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 		/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
 		erreur::lance_erreur(
 					"Membre inconnu",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::MEMBRE_INCONNU);
 	}
@@ -1607,7 +1626,7 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 			else {
 				erreur::lance_erreur(
 							"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-							contexte.tampon,
+							contexte,
 							structure->donnees_morceau(),
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -1615,7 +1634,7 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 		else {
 			erreur::lance_erreur(
 						"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-						contexte.tampon,
+						contexte,
 						structure->donnees_morceau(),
 						erreur::type_erreur::TYPE_DIFFERENTS);
 		}
@@ -1634,7 +1653,7 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 		/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
 		erreur::lance_erreur(
 					"Membre inconnu",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::MEMBRE_INCONNU);
 	}
@@ -1746,7 +1765,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			erreur::lance_erreur_type_operation(
 						type1,
 						type2,
-						contexte.tampon,
+						contexte,
 						m_donnees_morceaux);
 		}
 	}
@@ -1821,7 +1840,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			else {
 				erreur::lance_erreur(
 							"Besoin d'un type entier pour le décalage !",
-							contexte.tampon,
+							contexte,
 							m_donnees_morceaux,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -1830,7 +1849,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			if (!est_type_entier(type1.type_base())) {
 				erreur::lance_erreur(
 							"Besoin d'un type entier pour le décalage !",
-							contexte.tampon,
+							contexte,
 							m_donnees_morceaux,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -1842,7 +1861,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			if (!est_type_entier(type1.type_base())) {
 				erreur::lance_erreur(
 							"Besoin d'un type entier pour l'opération binaire !",
-							contexte.tampon,
+							contexte,
 							m_donnees_morceaux,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -1853,7 +1872,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			if (!est_type_entier(type1.type_base())) {
 				erreur::lance_erreur(
 							"Besoin d'un type entier pour l'opération binaire !",
-							contexte.tampon,
+							contexte,
 							m_donnees_morceaux,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -1863,7 +1882,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			if (!est_type_entier(type1.type_base())) {
 				erreur::lance_erreur(
 							"Besoin d'un type entier pour l'opération binaire !",
-							contexte.tampon,
+							contexte,
 							m_donnees_morceaux,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -1957,7 +1976,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			if (type2.type_base() != id_morceau::POINTEUR && (type2.type_base() & 0xff) != id_morceau::TABLEAU) {
 				erreur::lance_erreur(
 							"Le type ne peut être déréférencé !",
-							contexte.tampon,
+							contexte,
 							m_donnees_morceaux,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -2087,7 +2106,7 @@ llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &cont
 			if (type1.type_base() != id_morceau::BOOL) {
 				erreur::lance_erreur(
 							"L'opérateur '!' doit recevoir une expression de type 'bool'",
-							contexte.tampon,
+							contexte,
 							enfant->donnees_morceau(),
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
@@ -2216,7 +2235,7 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, con
 
 				assert(valeur != nullptr);
 
-				auto fonc = llvm::Intrinsic::getDeclaration(contexte.module, llvm::Intrinsic::vaend);
+				auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vaend);
 
 				llvm::CallInst::Create(fonc, valeur, "", contexte.bloc_courant());
 				break;
@@ -2280,7 +2299,7 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 
 	if (type_condition.type_base() != id_morceau::BOOL) {
 		erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
-							 contexte.tampon,
+							 contexte,
 							 enfant1->donnees_morceau(),
 							 erreur::type_erreur::TYPE_DIFFERENTS);
 	}
@@ -2537,7 +2556,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	if (valeur != nullptr) {
 		erreur::lance_erreur(
 					"Rédéfinition de la variable",
-					contexte.tampon,
+					contexte,
 					enfant1->donnees_morceau(),
 					erreur::type_erreur::VARIABLE_REDEFINIE);
 	}
@@ -2547,7 +2566,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		if (valeur != nullptr) {
 			erreur::lance_erreur(
 						"Rédéfinition de la variable globale",
-						contexte.tampon,
+						contexte,
 						enfant1->donnees_morceau(),
 						erreur::type_erreur::VARIABLE_REDEFINIE);
 		}
@@ -2610,7 +2629,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 		if (!valeur) {
 			erreur::lance_erreur(
 						"La variable n'est pas un argument variadic",
-						contexte.tampon,
+						contexte,
 						enfant2->donnees_morceau());
 		}
 
@@ -2623,7 +2642,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	else {
 		erreur::lance_erreur(
 					"Expression inattendu dans la boucle 'pour'",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux);
 	}
 
@@ -2766,7 +2785,7 @@ llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte, co
 	if (bloc == nullptr) {
 		erreur::lance_erreur(
 					"'continue' ou 'arrête' en dehors d'une boucle",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::CONTROLE_INVALIDE);
 	}
@@ -2908,7 +2927,7 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 	if (this->donnees_type.est_invalide()) {
 		erreur::lance_erreur(
 					"Ne peut transtyper vers un type invalide",
-					contexte.tampon,
+					contexte,
 					this->donnees_morceau(),
 					erreur::type_erreur::TYPE_INCONNU);
 	}
@@ -2919,7 +2938,7 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 	if (donnees_type_de.est_invalide()) {
 		erreur::lance_erreur(
 					"Ne peut calculer le type d'origine",
-					contexte.tampon,
+					contexte,
 					enfant->donnees_morceau(),
 					erreur::type_erreur::TYPE_INCONNU);
 	}
@@ -2990,7 +3009,7 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 	erreur::lance_erreur_type_operation(
 				donnees_type_de,
 				this->donnees_type,
-				contexte.tampon,
+				contexte,
 				this->donnees_morceau());
 }
 
@@ -3046,7 +3065,7 @@ llvm::Value *NoeudTailleDe::genere_code_llvm(
 		ContexteGenerationCode &contexte,
 		const bool /*expr_gauche*/)
 {
-	auto dl = llvm::DataLayout(contexte.module);
+	auto dl = llvm::DataLayout(contexte.module_llvm);
 	auto donnees = std::any_cast<DonneesType>(this->valeur_calculee);
 	auto type = converti_type(contexte, donnees);
 	auto taille = dl.getTypeAllocSize(type);
@@ -3112,7 +3131,7 @@ const DonneesType &NoeudPlage::calcul_type(ContexteGenerationCode &contexte)
 	if (type_debut.est_invalide() || type_fin.est_invalide()) {
 		erreur::lance_erreur(
 					"Les types de l'expression sont invalides !",
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::TYPE_INCONNU);
 	}
@@ -3121,7 +3140,7 @@ const DonneesType &NoeudPlage::calcul_type(ContexteGenerationCode &contexte)
 		erreur::lance_erreur_type_operation(
 					type_debut,
 					type_fin,
-					contexte.tampon,
+					contexte,
 					m_donnees_morceaux);
 	}
 
@@ -3130,11 +3149,116 @@ const DonneesType &NoeudPlage::calcul_type(ContexteGenerationCode &contexte)
 	if (!est_type_entier_naturel(type) && !est_type_entier_relatif(type) && !est_type_reel(type)) {
 		erreur::lance_erreur(
 					"Attendu des types réguliers dans la plage de la boucle 'pour'",
-					contexte.tampon,
+					contexte,
 					this->donnees_morceau(),
 					erreur::type_erreur::TYPE_DIFFERENTS);
 	}
 
 	this->donnees_type = type_debut;
 	return this->donnees_type;
+}
+
+/* ************************************************************************** */
+
+NoeudAccesMembrePoint::NoeudAccesMembrePoint(const DonneesMorceaux &morceau)
+	: Noeud(morceau)
+{}
+
+void NoeudAccesMembrePoint::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudAccesMembrePoint : .\n";
+
+	for (auto &enfant : m_enfants) {
+		enfant->imprime_code(os, tab + 1);
+	}
+}
+
+llvm::Value *NoeudAccesMembrePoint::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+{
+	auto enfant1 = m_enfants.front();
+	auto enfant2 = m_enfants.back();
+
+	const auto nom_module = enfant1->chaine();
+
+	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
+
+	if (!module->importe_module(nom_module)) {
+		erreur::lance_erreur(
+					"module inconnu",
+					contexte,
+					enfant1->donnees_morceau(),
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	auto module_importe = contexte.module(nom_module);
+
+	if (module_importe == nullptr) {
+		erreur::lance_erreur(
+					"module inconnu",
+					contexte,
+					enfant1->donnees_morceau(),
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	const auto nom_fonction = enfant2->chaine();
+
+	if (!module_importe->possede_fonction(nom_fonction)) {
+		erreur::lance_erreur(
+					"Le module ne possède pas la fonction",
+					contexte,
+					enfant2->donnees_morceau(),
+					erreur::type_erreur::FONCTION_INCONNUE);
+	}
+
+	enfant2->module_appel = static_cast<int>(module_importe->id);
+
+	return enfant2->genere_code_llvm(contexte);
+}
+
+type_noeud NoeudAccesMembrePoint::type() const
+{
+	return type_noeud::ACCES_MEMBRE_POINT;
+}
+
+const DonneesType &NoeudAccesMembrePoint::calcul_type(ContexteGenerationCode &contexte)
+{
+	auto enfant1 = m_enfants.front();
+	auto enfant2 = m_enfants.back();
+
+	const auto nom_module = enfant1->chaine();
+
+	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
+
+	if (!module->importe_module(nom_module)) {
+		erreur::lance_erreur(
+					"module inconnu",
+					contexte,
+					enfant1->donnees_morceau(),
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	auto module_importe = contexte.module(nom_module);
+
+	if (module_importe == nullptr) {
+		erreur::lance_erreur(
+					"module inconnu",
+					contexte,
+					enfant1->donnees_morceau(),
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	const auto nom_fonction = enfant2->chaine();
+
+	if (!module_importe->possede_fonction(nom_fonction)) {
+		erreur::lance_erreur(
+					"Le module ne possède pas la fonction",
+					contexte,
+					enfant2->donnees_morceau(),
+					erreur::type_erreur::FONCTION_INCONNUE);
+	}
+
+	enfant2->module_appel = static_cast<int>(module_importe->id);
+
+	return m_enfants.back()->calcul_type(contexte);
 }

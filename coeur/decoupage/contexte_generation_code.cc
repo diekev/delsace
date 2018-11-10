@@ -24,11 +24,56 @@
 
 #include "contexte_generation_code.h"
 
-ContexteGenerationCode::ContexteGenerationCode(const TamponSource &tampon_source)
-	: tampon(tampon_source)
-	, module(nullptr)
-	, contexte{}
-{}
+#include "modules.hh"
+
+ContexteGenerationCode::~ContexteGenerationCode()
+{
+	for (auto module : modules) {
+		delete module;
+	}
+}
+
+/* ************************************************************************** */
+
+DonneesModule *ContexteGenerationCode::cree_module(const std::string &nom)
+{
+	auto module = new DonneesModule;
+	module->id = modules.size();
+	module->nom = nom;
+
+	modules.push_back(module);
+
+	return module;
+}
+
+DonneesModule *ContexteGenerationCode::module(size_t index) const
+{
+	return modules[index];
+}
+
+DonneesModule *ContexteGenerationCode::module(const std::string_view &nom) const
+{
+	for (auto module : modules) {
+		if (module->nom == nom) {
+			return module;
+		}
+	}
+
+	return nullptr;
+}
+
+bool ContexteGenerationCode::module_existe(const std::string_view &nom) const
+{
+	for (auto module : modules) {
+		if (module->nom == nom) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* ************************************************************************** */
 
 llvm::BasicBlock *ContexteGenerationCode::bloc_courant() const
 {
@@ -294,4 +339,23 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	memoire += m_pile_arrete.size() * sizeof(llvm::BasicBlock *);
 
 	return memoire;
+}
+
+Metriques ContexteGenerationCode::rassemble_metriques() const
+{
+	auto metriques = Metriques{};
+	metriques.nombre_modules  = modules.size();
+
+	for (auto module : modules) {
+		metriques.nombre_lignes += module->tampon.nombre_lignes();
+		metriques.memoire_tampons += module->tampon.taille_donnees();
+		metriques.memoire_morceaux += module->morceaux.size() * sizeof(DonneesMorceaux);
+		metriques.nombre_morceaux += module->morceaux.size();
+		metriques.temps_analyse += module->temps_analyse;
+		metriques.temps_chargement += module->temps_chargement;
+		metriques.temps_tampon += module->temps_tampon;
+		metriques.temps_decoupage += module->temps_decoupage;
+	}
+
+	return metriques;
 }

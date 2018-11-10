@@ -30,28 +30,34 @@
 #include "analyseuse_grammaire.h"
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
+#include "modules.hh"
 
-std::pair<bool, bool> retourne_erreur_lancee(const char *texte,
+std::pair<bool, bool> retourne_erreur_lancee(
+		const char *texte,
 		const bool imprime_message,
 		const erreur::type_erreur type,
 		const bool genere_code)
 {
-	auto tampon = TamponSource(texte);
+	auto contexte = ContexteGenerationCode{};
+	auto module = contexte.cree_module("test");
+	module->tampon = TamponSource(texte);
+
 	auto erreur_lancee = false;
 	auto type_correcte = false;
 
 	try {
-		decoupeuse_texte decoupeuse(tampon);
+		decoupeuse_texte decoupeuse(module);
 		decoupeuse.genere_morceaux();
 
-		auto contexte = ContexteGenerationCode{tampon};
 		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(contexte, decoupeuse.morceaux(), tampon, &assembleuse);
-		analyseuse.lance_analyse();
+		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module);
+
+		std::ostream os(nullptr);
+		analyseuse.lance_analyse(os);
 
 		if (genere_code) {
-			auto module = llvm::Module("test", contexte.contexte);
-			contexte.module = &module;
+			auto module_llvm = llvm::Module("test", contexte.contexte);
+			contexte.module_llvm = &module_llvm;
 
 			assembleuse.genere_code_llvm(contexte);
 		}

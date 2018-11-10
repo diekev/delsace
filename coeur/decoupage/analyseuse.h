@@ -31,16 +31,16 @@
 #endif
 #include <vector>
 
+#include "contexte_generation_code.h"
 #include "erreur.h"
 #include "morceaux.h"
-#include "tampon_source.h"
 
 /**
  * Classe de base pour définir des analyseurs syntactique.
  */
 class Analyseuse {
 protected:
-	const TamponSource &m_tampon;
+	ContexteGenerationCode &m_contexte;
 	const std::vector<DonneesMorceaux> &m_identifiants;
 	size_t m_position = 0;
 
@@ -49,7 +49,7 @@ protected:
 #endif
 
 public:
-	Analyseuse(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon);
+	Analyseuse(const std::vector<DonneesMorceaux> &identifiants, ContexteGenerationCode &contexte);
 	virtual ~Analyseuse() = default;
 
 	/**
@@ -58,7 +58,7 @@ public:
 	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
 	 * une exception est lancée.
 	 */
-	virtual void lance_analyse() = 0;
+	virtual void lance_analyse(std::ostream &os) = 0;
 
 #ifdef DEBOGUE_IDENTIFIANT
 	void imprime_identifiants_plus_utilises(std::ostream &os, size_t nombre = 5);

@@ -81,6 +81,7 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 		case id_morceau::PLUS_UNAIRE:
 		case id_morceau::MOINS_UNAIRE:
 			return { dir_associativite::DROITE, 12 };
+		case id_morceau::POINT:
 		case id_morceau::CROCHET_OUVRANT:
 			return { dir_associativite::GAUCHE, 13 };
 		default:

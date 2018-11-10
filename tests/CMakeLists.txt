@@ -38,6 +38,7 @@ set(SOURCES
 	test_decoupage_nombres.h
 	test_expression.h
 	test_fonctions.h
+	test_modules.hh
 	test_retour.hh
 	test_structures.hh
 	test_transtype.hh
@@ -52,6 +53,7 @@ set(SOURCES
 	test_decoupage_nombres.cc
 	test_expression.cc
 	test_fonctions.cc
+	test_modules.cc
 	test_retour.cc
 	test_structures.cc
 	test_transtype.cc
@@ -90,3 +92,16 @@ target_link_libraries(charge_fichier_aleatoire "${BIBLIOTHEQUES}")
 add_test(tests charge_fichier_aleatoire)
 
 install(TARGETS charge_fichier_aleatoire RUNTIME DESTINATION .)
+
+set(FICHIERS_TESTS
+	fichiers/module_test.kuri
+	fichiers/test_fonction_inconnue_module.kuri
+	fichiers/test_module_correcte.kuri
+	fichiers/test_module_inconnu.kuri
+	fichiers/test_utilisation_module_inconnu.kuri
+)
+
+install(
+	FILES ${FICHIERS_TESTS}
+	DESTINATION fichiers_tests
+)

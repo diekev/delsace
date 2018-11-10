@@ -78,6 +78,7 @@ enum class id_morceau : int {
 	FAUX,
 	FONCTION,
 	GABARIT,
+	IMPORTE,
 	MEMOIRE,
 	N16,
 	N32,
@@ -151,7 +152,7 @@ struct DonneesMorceaux {
 	std::string_view chaine;
 	size_t ligne_pos;
 	id_morceau identifiant;
-	int pad = 0;
+	int module = 0;
 };
 
 const char *chaine_identifiant(id_morceau id);

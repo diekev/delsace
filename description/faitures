@@ -20,6 +20,7 @@ Faitures
 - déclaration de fonctions variadiques externes
 - fonctions variadiques sur un type donnée
 - utilisation des fonctions de la bibliothèque standard de C
+- utilisation de modules pour séparer le code en composant
 
 
 À faire
@@ -52,6 +53,13 @@ Faitures
 -------- x = loge [1024] z32;
 -------- x = reloge [2048] z32;
 -------- déloge [2048] x; # vérifie taille ?
+- modules
+---- préfixe les structures et les énumérations du nom du module
+---- stocke les données des fonctions par module
+---- ne charge les modules que s'il n'ont pas déjà été chargés
+- réusinage du système de vérification sémantique du code notamment pour dédupliquer ce code et prendre en compte l'analyse de fonctions dans des modules externes dont nous ne pouvons savoir le type avant l'analyse sémantique
+- ajout d'un nom aux énums
+- unification du code d'accès au membre avec 'de' et '.'
 
 
 À faire (tests)

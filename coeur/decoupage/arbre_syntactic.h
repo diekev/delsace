@@ -43,6 +43,7 @@ enum class type_noeud : char {
 	APPEL_FONCTION,
 	VARIABLE,
 	ACCES_MEMBRE,
+	ACCES_MEMBRE_POINT,
 	CONSTANTE,
 	DECLARATION_VARIABLE,
 	ASSIGNATION_VARIABLE,
@@ -164,7 +165,8 @@ public:
 	bool calcule = false;
 	char est_variable = false;
 	bool est_externe = false;
-	char pad[5];
+	char pad;
+	int module_appel; // module pour les appels de fonctions importées
 
 	explicit Noeud(const DonneesMorceaux &morceau);
 
@@ -589,6 +591,21 @@ public:
 class NoeudPlage final : public Noeud {
 public:
 	explicit NoeudPlage(const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	type_noeud type() const override;
+
+	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+};
+
+/* ************************************************************************** */
+
+class NoeudAccesMembrePoint final : public Noeud {
+public:
+	explicit NoeudAccesMembrePoint(const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

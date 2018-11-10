@@ -42,7 +42,7 @@
 #include "decoupage/contexte_generation_code.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
-#include "decoupage/preproces.hh"
+#include "decoupage/modules.hh"
 #include "decoupage/tampon_source.h"
 
 #include <chronometrage/chronometre_de_portee.h>
@@ -346,60 +346,37 @@ int main(int argc, char *argv[])
 	std::ostream &os = std::cout;
 
 	auto resultat = 0;
-	auto temps_chargement      = 0.0;
-	auto temps_tampon          = 0.0;
-	auto temps_decoupage       = 0.0;
-	auto temps_analyse         = 0.0;
 	auto temps_generation_code = 0.0;
 	auto debut_nettoyage       = 0.0;
 	auto temps_nettoyage       = 0.0;
 	auto temps_fichier_objet   = 0.0;
 	auto temps_executable      = 0.0;
-	auto mem_morceaux          = 0ul;
 	auto mem_arbre             = 0ul;
 	auto mem_contexte          = 0ul;
-	auto nombre_morceaux       = 0ul;
 	auto nombre_noeuds         = 0ul;
 
-	os << "Ouverture de '" << chemin_fichier << "'..." << std::endl;
-	auto debut_chargement = numero7::chronometrage::maintenant();
-	auto preproces = Preproces{};
-	charge_fichier(preproces, chemin_fichier);
-	temps_chargement = numero7::chronometrage::maintenant() - debut_chargement;
-
-	os << "Génération du tampon texte..." << std::endl;
-	const auto debut_tampon = numero7::chronometrage::maintenant();
-	auto tampon = TamponSource(preproces.tampon);
-	temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
+	auto metriques = Metriques{};
 
 	try {
-		auto contexte_generation = ContexteGenerationCode(tampon);
-		auto decoupeuse = decoupeuse_texte(tampon);
+		/* enregistre le dossier d'origine */
+		auto dossier_origine = std::filesystem::current_path();
 
-		os << "Découpage du texte..." << std::endl;
-		const auto debut_decoupeuse = numero7::chronometrage::maintenant();
-		decoupeuse.genere_morceaux();
-		mem_morceaux = decoupeuse.memoire_morceaux();
-		nombre_morceaux = decoupeuse.morceaux().size();
-		temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupeuse;
+		auto chemin = std::filesystem::path(chemin_fichier);
+		auto dossier = chemin.parent_path();
+		std::filesystem::current_path(dossier);
+
+		auto nom_module = chemin.stem();
 
 		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(contexte_generation, decoupeuse.morceaux(), tampon, &assembleuse);
+		auto contexte_generation = ContexteGenerationCode{};
+		contexte_generation.assembleuse = &assembleuse;
 
-		os << "Analyse des morceaux..." << std::endl;
-		const auto debut_analyseuse = numero7::chronometrage::maintenant();
-		analyseuse.lance_analyse();
-#ifdef DEBOGUE_IDENTIFIANT
-		analyseuse.imprime_identifiants_plus_utilises(os);
-#endif
+		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
+		charge_module(os, nom_module, contexte_generation, {}, true);
 
 		if (ops.emet_arbre) {
 			assembleuse.imprime_code(os);
 		}
-
-		mem_arbre = assembleuse.memoire_utilisee();
-		nombre_noeuds = assembleuse.nombre_noeuds();
-		temps_analyse = numero7::chronometrage::maintenant() - debut_analyseuse;
 
 		const auto triplet_cible = llvm::sys::getDefaultTargetTriple();
 
@@ -421,11 +398,11 @@ int main(int argc, char *argv[])
 								 cible->createTargetMachine(
 									 triplet_cible, CPU, feature, options, RM));
 
-		auto module = llvm::Module(chemin_fichier, contexte_generation.contexte);
+		auto module = llvm::Module(nom_module.c_str(), contexte_generation.contexte);
 		module.setDataLayout(machine_cible->createDataLayout());
 		module.setTargetTriple(triplet_cible);
 
-		contexte_generation.module = &module;
+		contexte_generation.module_llvm = &module;
 
 		/* initialise ménageur passe fonction */
 		auto fpm = std::make_unique<llvm::legacy::FunctionPassManager>(&module);
@@ -446,11 +423,11 @@ int main(int argc, char *argv[])
 		contexte_generation.menageur_pass_fonction = fpm.get();
 
 		os << "Génération du code..." << std::endl;
-		const auto debut_generation_code = numero7::chronometrage::maintenant();
+		auto debut_generation_code = numero7::chronometrage::maintenant();
 		assembleuse.genere_code_llvm(contexte_generation);
 		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
-
-		mem_contexte = contexte_generation.memoire_utilisee();
+		mem_arbre = assembleuse.memoire_utilisee();
+		nombre_noeuds = assembleuse.nombre_noeuds();
 
 		if (ops.emet_code_intermediaire) {
 			std::cerr <<  "------------------------------------------------------------------\n";
@@ -472,6 +449,12 @@ int main(int argc, char *argv[])
 			temps_executable = numero7::chronometrage::maintenant() - debut_executable;
 		}
 
+		/* restore le dossier d'origine */
+		std::filesystem::current_path(dossier_origine);
+
+		metriques = contexte_generation.rassemble_metriques();
+		mem_contexte = contexte_generation.memoire_utilisee();
+
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = numero7::chronometrage::maintenant();
 	}
@@ -481,10 +464,10 @@ int main(int argc, char *argv[])
 
 	temps_nettoyage = numero7::chronometrage::maintenant() - debut_nettoyage;
 
-	const auto temps_scene = temps_tampon
-							 + temps_decoupage
-							 + temps_analyse
-							 + temps_chargement;
+	const auto temps_scene = metriques.temps_tampon
+							 + metriques.temps_decoupage
+							 + metriques.temps_analyse
+							 + metriques.temps_chargement;
 
 	const auto temps_coulisse = temps_generation_code
 								+ temps_fichier_objet
@@ -499,40 +482,41 @@ int main(int argc, char *argv[])
 
 	os << "------------------------------------------------------------------\n";
 	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
-	os << "Nombre de lignes             : " << tampon.nombre_lignes() << '\n';
-	os << "Nombre de lignes par seconde : " << tampon.nombre_lignes() / temps_total << '\n';
-	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(tampon.taille_donnees() / temps_total)) << '\n';
+	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
+	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
+	os << "Nombre de lignes par seconde : " << metriques.nombre_lignes / temps_total << '\n';
+	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(metriques.memoire_tampons / temps_total)) << '\n';
 
-	const auto mem_totale = tampon.taille_donnees()
-							+ mem_morceaux
+	const auto mem_totale = metriques.memoire_tampons
+							+ metriques.memoire_morceaux
 							+ mem_arbre
 							+ mem_contexte;
 
 	os << '\n';
 	os << "Métriques :\n";
-	os << "\tNombre morceaux : " << nombre_morceaux << '\n';
+	os << "\tNombre morceaux : " << metriques.nombre_morceaux << '\n';
 	os << "\tNombre noeuds   : " << nombre_noeuds << '\n';
 
 	os << '\n';
 	os << "Mémoire : " << taille_octet(mem_totale) << '\n';
-	os << "\tTampon   : " << taille_octet(tampon.taille_donnees()) << '\n';
-	os << "\tMorceaux : " << taille_octet(mem_morceaux) << '\n';
+	os << "\tTampon   : " << taille_octet(metriques.memoire_tampons) << '\n';
+	os << "\tMorceaux : " << taille_octet(metriques.memoire_morceaux) << '\n';
 	os << "\tArbre    : " << taille_octet(mem_arbre) << '\n';
 	os << "\tContexte : " << taille_octet(mem_contexte) << '\n';
 
 	os << '\n';
 	os << "Temps scène : " << temps_seconde(temps_scene)
 	   << " (" << calc_pourcentage(temps_scene, temps_total) << ")\n";
-	os << '\t' << "Temps chargement : " << temps_seconde(temps_chargement)
-	   << " (" << calc_pourcentage(temps_chargement, temps_scene) << ")\n";
-	os << '\t' << "Temps tampon     : " << temps_seconde(temps_tampon)
-	   << " (" << calc_pourcentage(temps_tampon, temps_scene) << ")\n";
-	os << '\t' << "Temps découpage  : " << temps_seconde(temps_decoupage)
-	   << " (" << calc_pourcentage(temps_decoupage, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(tampon.taille_donnees() / temps_decoupage)) << ")\n";
-	os << '\t' << "Temps analyse    : " << temps_seconde(temps_analyse)
-	   << " (" << calc_pourcentage(temps_analyse, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(mem_morceaux / temps_analyse)) << ")\n";
+	os << '\t' << "Temps chargement : " << temps_seconde(metriques.temps_chargement)
+	   << " (" << calc_pourcentage(metriques.temps_chargement, temps_scene) << ")\n";
+	os << '\t' << "Temps tampon     : " << temps_seconde(metriques.temps_tampon)
+	   << " (" << calc_pourcentage(metriques.temps_tampon, temps_scene) << ")\n";
+	os << '\t' << "Temps découpage  : " << temps_seconde(metriques.temps_decoupage)
+	   << " (" << calc_pourcentage(metriques.temps_decoupage, temps_scene) << ") ("
+	   << taille_octet(static_cast<size_t>(metriques.memoire_tampons / metriques.temps_decoupage)) << ")\n";
+	os << '\t' << "Temps analyse    : " << temps_seconde(metriques.temps_analyse)
+	   << " (" << calc_pourcentage(metriques.temps_analyse, temps_scene) << ") ("
+	   << taille_octet(static_cast<size_t>(metriques.memoire_morceaux / metriques.temps_analyse)) << ")\n";
 
 	os << '\n';
 	os << "Temps coulisse : " << temps_seconde(temps_coulisse)

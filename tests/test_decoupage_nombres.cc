@@ -26,8 +26,10 @@
 
 #include <cstring>
 
+#include "contexte_generation_code.h"  // pour DonneesModule
 #include "decoupeuse.h"
 #include "erreur.h"
+#include "modules.hh"
 #include "morceaux.h"
 #include "nombres.h"
 
@@ -202,12 +204,13 @@ void test_decoupage_nombre_hexadecimal(numero7::test_unitaire::ControleurUnitair
 		CU_VERIFIE_EGALITE(controleur, nombre, 0xFFc945ABl);
 	}
 	{
-		auto tampon = TamponSource("0xff38ce");
+		auto module = DonneesModule{};
+		module.tampon = TamponSource("0xff38ce");
 
-		decoupeuse_texte decoupeuse(tampon);
+		decoupeuse_texte decoupeuse(&module);
 		decoupeuse.genere_morceaux();
 
-		const auto &morceaux = decoupeuse.morceaux();
+		const auto &morceaux = module.morceaux;
 
 		CU_VERIFIE_CONDITION(controleur, morceaux.size() == 1);
 		CU_VERIFIE_CONDITION(controleur, morceaux[0].identifiant == id_morceau::NOMBRE_HEXADECIMAL);

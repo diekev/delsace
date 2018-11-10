@@ -21,11 +21,13 @@
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${TEST_UNITAIRE_INCLUDE_DIRS}
 	${LLVM_INCLUDE_DIR}
 )
 
 set(BIBLIOTHEQUES
 	${LLVM_LIBRARY}
+	stdc++fs
 )
 
 set(SOURCES
@@ -38,9 +40,9 @@ set(SOURCES
 	donnees_type.h
 	erreur.h
 	expression.h
+	modules.hh
 	morceaux.h
 	nombres.h
-	preproces.hh
 	tampon_source.h
 	unicode.h
 
@@ -53,9 +55,9 @@ set(SOURCES
 	donnees_type.cc
 	erreur.cc
 	expression.cc
+	modules.cc
 	morceaux.cc
 	nombres.cc
-	preproces.cc
 	tampon_source.cc
 	unicode.cc
 )

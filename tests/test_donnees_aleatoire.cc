@@ -27,6 +27,7 @@
 #include "analyseuse_grammaire.h"
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
+#include "modules.hh"
 
 #include <cstdlib>
 #include <cstring>
@@ -50,15 +51,18 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 			texte.push_back(donnees_char[i]);
 		}
 
-		auto tampon = TamponSource(texte);
+		auto contexte = ContexteGenerationCode{};
+		auto module = contexte.cree_module("");
+		module->tampon = TamponSource(texte);
 
-		decoupeuse_texte decoupeuse(tampon);
+		decoupeuse_texte decoupeuse(module);
 		decoupeuse.genere_morceaux();
 
-		auto contexte = ContexteGenerationCode{tampon};
 		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(contexte, decoupeuse.morceaux(), tampon, &assembleuse);
-		analyseuse.lance_analyse();
+		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module);
+
+		std::ostream os(nullptr);
+		analyseuse.lance_analyse(os);
 	}
 	catch (...) {
 
@@ -117,6 +121,7 @@ static id_morceau id_operateurs_binaire[] = {
 	id_morceau::CHAPEAU,
 	id_morceau::DE,
 	id_morceau::EGAL,
+	id_morceau::POINT,
 };
 
 static id_morceau id_variables[] = {
@@ -466,6 +471,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	auto dm = DonneesMorceaux{};
 	dm.chaine = "texte_test";
 	dm.ligne_pos = 0ul;
+	dm.module = 0;
 
 	for (size_t i = 0; i < nombre_morceaux; ++i) {
 		dm.identifiant = donnees_morceaux[i];
@@ -473,12 +479,14 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	}
 
 	try {
-		auto tampon = TamponSource("texte_test");
-
-		auto contexte = ContexteGenerationCode{tampon};
+		auto contexte = ContexteGenerationCode{};
+		auto module = contexte.cree_module("");
+		module->tampon = TamponSource("texte_test");
 		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(contexte, morceaux, tampon, &assembleuse);
-		analyseuse.lance_analyse();
+		auto analyseuse = analyseuse_grammaire(contexte, morceaux, &assembleuse, module);
+
+		std::ostream os(nullptr);
+		analyseuse.lance_analyse(os);
 	}
 	catch (...) {
 

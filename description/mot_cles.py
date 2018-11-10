@@ -44,6 +44,7 @@ mot_cles = [
 	u'nul',
 	u'sansarrêt',
 	u'externe',
+	u'importe',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -130,7 +131,7 @@ def construit_structures():
 	structures += u'\tstd::string_view chaine;\n'
 	structures += u'\tsize_t ligne_pos;\n'
 	structures += u'\tid_morceau identifiant;\n'
-	structures += u'\tint pad = 0;\n'
+	structures += u'\tint module = 0;\n'
 	structures += u'};\n'
 
 	return structures

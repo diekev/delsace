@@ -31,7 +31,7 @@
 struct DonneesType;
 
 struct DonneesMorceaux;
-struct TamponSource;
+struct ContexteGenerationCode;
 
 namespace erreur {
 
@@ -56,6 +56,7 @@ enum class type_erreur : int {
 	ASSIGNATION_INVALIDE,
 	ASSIGNATION_MAUVAIS_TYPE,
 	CONTROLE_INVALIDE,
+	MODULE_INCONNU,
 
 	AUCUNE_ERREUR,
 };
@@ -74,13 +75,13 @@ public:
 
 [[noreturn]] void lance_erreur(
 		const std::string &quoi,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_plage(
 		const std::string &quoi,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &premier_morceau,
 		const DonneesMorceaux &dernier_morceau,
 		type_erreur type = type_erreur::NORMAL);
@@ -88,36 +89,36 @@ public:
 [[noreturn]] void lance_erreur_nombre_arguments(
 		const size_t nombre_arguments,
 		const size_t nombre_recus,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_type_arguments(
 		const DonneesType &type_arg,
 		const DonneesType &type_enf,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_argument_inconnu(
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const DonneesType &type_gauche,
 		const DonneesType &type_droite,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
 		const DonneesType &type_gauche,
 		const DonneesType &type_droite,
-		const TamponSource &tampon,
+		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
 }

@@ -29,6 +29,7 @@
 #include "analyseuse_grammaire.h"
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
+#include "modules.hh"
 
 int main(int argc, char *argv[])
 {
@@ -59,18 +60,22 @@ int main(int argc, char *argv[])
 		/* rétabli une chaîne car nous une décharge de la mémoire, donc les
 		 * pointeurs sont mauvais. */
 		dm.chaine = "texte_test";
+		dm.ligne_pos = 0ul;
+		dm.module = 0;
 		morceaux.push_back(dm);
 	}
 
 	std::cerr << "Il y a " << nombre_morceaux << " morceaux.\n";
 
-	auto tampon = TamponSource("texte_test");
-
 	try {
-		auto contexte = ContexteGenerationCode{tampon};
+		auto contexte = ContexteGenerationCode{};
+		auto module = contexte.cree_module("");
+		module->tampon = TamponSource("texte_test");
 		auto assembleuse = assembleuse_arbre();
-		auto analyseuse = analyseuse_grammaire(contexte, morceaux, tampon, &assembleuse);
-		analyseuse.lance_analyse();
+		auto analyseuse = analyseuse_grammaire(contexte, morceaux, &assembleuse, module);
+
+		std::ostream os(nullptr);
+		analyseuse.lance_analyse(os);
 	}
 	catch (...) {
 

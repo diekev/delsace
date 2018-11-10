@@ -26,7 +26,9 @@
 
 #include <cstring>
 
+#include "decoupage/contexte_generation_code.h"  // pour DonneesModule
 #include "decoupage/decoupeuse.h"
+#include "modules.hh"
 
 #undef DEBOGUE_MORCEAUX
 
@@ -142,13 +144,14 @@ decoupeuse_texte decoupeuse(str, str + len);
 		{ ";", 0ul, id_morceau::POINT_VIRGULE }
 	};
 
-	auto tampon = TamponSource(texte);
+	auto module = DonneesModule{};
+	module.tampon = TamponSource(texte);
 
-	decoupeuse_texte decoupeuse(tampon);
+	decoupeuse_texte decoupeuse(&module);
 	decoupeuse.genere_morceaux();
 
-	return verifie_morceaux(decoupeuse.begin(),
-							decoupeuse.end(),
+	return verifie_morceaux(module.morceaux.begin(),
+							module.morceaux.end(),
 							std::begin(donnees_morceaux),
 							std::end(donnees_morceaux));
 }

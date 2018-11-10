@@ -29,8 +29,8 @@
 #include <iostream>
 #endif
 
-Analyseuse::Analyseuse(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon)
-	: m_tampon(tampon)
+Analyseuse::Analyseuse(const std::vector<DonneesMorceaux> &identifiants, ContexteGenerationCode &contexte)
+	: m_contexte(contexte)
 	, m_identifiants(identifiants)
 {}
 
@@ -134,5 +134,5 @@ id_morceau Analyseuse::identifiant_courant() const
 
 void Analyseuse::lance_erreur(const std::string &quoi, erreur::type_erreur type)
 {
-	erreur::lance_erreur(quoi, m_tampon, m_identifiants[position()], type);
+	erreur::lance_erreur(quoi, m_contexte, m_identifiants[position()], type);
 }

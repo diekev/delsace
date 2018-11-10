@@ -31,6 +31,7 @@
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "expression.h"
+#include "modules.hh"
 #include "nombres.h"
 
 #undef DEBOGUE_EXPRESSION
@@ -151,6 +152,7 @@ static bool est_operateur_binaire(id_morceau identifiant)
 		case id_morceau::BARRE:
 		case id_morceau::CHAPEAU:
 		case id_morceau::DE:
+		case id_morceau::POINT:
 		case id_morceau::EGAL:
 		case id_morceau::TROIS_POINTS:
 			return true;
@@ -220,15 +222,15 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
 		const std::vector<DonneesMorceaux> &identifiants,
-		const TamponSource &tampon,
-		assembleuse_arbre *assembleuse)
-	: Analyseuse(identifiants, tampon)
+		assembleuse_arbre *assembleuse,
+		DonneesModule *module)
+	: Analyseuse(identifiants, contexte)
 	, m_assembleuse(assembleuse)
-	, m_contexte(contexte)
 	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
+	, m_module(module)
 {}
 
-void analyseuse_grammaire::lance_analyse()
+void analyseuse_grammaire::lance_analyse(std::ostream &os)
 {
 	m_position = 0;
 
@@ -238,10 +240,10 @@ void analyseuse_grammaire::lance_analyse()
 
 	m_assembleuse->empile_noeud(type_noeud::RACINE, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
 
-	analyse_corps();
+	analyse_corps(os);
 }
 
-void analyseuse_grammaire::analyse_corps()
+void analyseuse_grammaire::analyse_corps(std::ostream &os)
 {
 	while (m_position != m_identifiants.size()) {
 		if (est_identifiant(id_morceau::FONCTION)) {
@@ -256,9 +258,20 @@ void analyseuse_grammaire::analyse_corps()
 		else if (est_identifiant(id_morceau::ENUM)) {
 			analyse_declaration_enum();
 		}
+		else if (est_identifiant(id_morceau::IMPORTE)) {
+			avance();
+
+			if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+				lance_erreur("Attendu une chaîne de caractère après 'importe'");
+			}
+
+			const auto nom_module = m_identifiants[position()].chaine;
+			m_module->modules_importes.push_back(nom_module);
+			charge_module(os, std::string(nom_module), m_contexte, m_identifiants[position()]);
+		}
 		else {
 			avance();
-			lance_erreur("Identifiant inattendu, doit être 'soit', 'fonction', 'structure', ou 'énum'");
+			lance_erreur("Identifiant inattendu, doit être 'soit', 'fonction', 'structure', 'importe', ou 'énum'");
 		}
 	}
 }
@@ -286,6 +299,8 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	if (m_contexte.fonction_existe(nom_fonction)) {
 		lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
 	}
+
+	m_module->fonctions_exportees.push_back(nom_fonction);
 
 	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
@@ -980,6 +995,13 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				pile.push_back(noeud);
 				break;
 			}
+			case id_morceau::POINT:
+			{
+				vide_pile_operateur(morceau.identifiant);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE_POINT, morceau);
+				pile.push_back(noeud);
+				break;
+			}
 			case id_morceau::EGAL:
 			{
 				if (!assignation) {
@@ -1067,7 +1089,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			if (pile.size() < 2) {
 				erreur::lance_erreur(
 							"Expression malformée",
-							m_tampon,
+							m_contexte,
 							noeud->donnees_morceau(),
 							erreur::type_erreur::NORMAL);
 			}
@@ -1099,7 +1121,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				if (pile.size() < 1) {
 					erreur::lance_erreur(
 								"Expression malformée",
-								m_tampon,
+								m_contexte,
 								noeud->donnees_morceau(),
 								erreur::type_erreur::NORMAL);
 				}
@@ -1172,7 +1194,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 		erreur::lance_erreur_plage(
 					"Expression malformée, il est possible qu'il manque un opérateur",
-					m_tampon,
+					m_contexte,
 					premier_noeud->donnees_morceau(),
 					dernier_noeud->donnees_morceau());
 	}
@@ -1194,7 +1216,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 	if (!m_contexte.fonction_existe(noeud->chaine())) {
 		erreur::lance_erreur(
 					"Fonction inconnue",
-					m_tampon,
+					m_contexte,
 					noeud->donnees_morceau(),
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
@@ -1222,7 +1244,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 			if (iter == donnees_fonction.args.end()) {
 				erreur::lance_erreur_argument_inconnu(
 							nom_argument,
-							m_tampon,
+							m_contexte,
 							noeud->donnees_morceau());
 			}
 

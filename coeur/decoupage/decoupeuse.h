@@ -30,8 +30,10 @@
 #include "morceaux.h"
 #include "tampon_source.h"
 
+struct DonneesModule;
+
 class decoupeuse_texte {
-	const TamponSource &m_tampon;
+	DonneesModule *m_module;
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
@@ -41,12 +43,10 @@ class decoupeuse_texte {
 	size_t m_pos_mot = 0;
 	size_t m_taille_mot_courant = 0;
 
-	std::vector<DonneesMorceaux> m_morceaux;
-
 public:
 	using iterateur = std::vector<DonneesMorceaux>::iterator;
 
-	explicit decoupeuse_texte(const TamponSource &tampon);
+	explicit decoupeuse_texte(DonneesModule *module);
 
 	void genere_morceaux();
 
@@ -54,12 +54,6 @@ public:
 	 * Retourne la taille en octets de la mémoire utilisée par les morceaux.
 	 */
 	size_t memoire_morceaux() const;
-
-	const std::vector<DonneesMorceaux> &morceaux() const;
-
-	iterateur begin();
-
-	iterateur end();
 
 	void imprime_morceaux(std::ostream &os);
 

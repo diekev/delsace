@@ -30,8 +30,11 @@
 #include <unordered_map>
 
 #include "donnees_type.h"
+#include "tampon_source.h"
 
-struct TamponSource;
+class assembleuse_arbre;
+
+struct DonneesModule;
 
 namespace llvm {
 class BasicBlock;
@@ -42,6 +45,18 @@ namespace legacy {
 class FunctionPassManager;
 }
 }  /* namespace llvm */
+
+struct Metriques {
+	size_t nombre_modules = 0ul;
+	size_t nombre_lignes = 0ul;
+	size_t nombre_morceaux = 0ul;
+	size_t memoire_tampons = 0ul;
+	size_t memoire_morceaux = 0ul;
+	double temps_chargement = 0.0;
+	double temps_analyse = 0.0;
+	double temps_tampon = 0.0;
+	double temps_decoupage = 0.0;
+};
 
 struct DonneesArgument {
 	size_t index = 0;
@@ -75,13 +90,44 @@ struct DonneesStructure {
 };
 
 struct ContexteGenerationCode {
-	const TamponSource &tampon;
-	llvm::Module *module;
-	llvm::LLVMContext contexte;
-	llvm::Function *fonction;
+	llvm::Module *module_llvm = nullptr;
+	llvm::LLVMContext contexte{};
+	llvm::Function *fonction = nullptr;
 	llvm::legacy::FunctionPassManager *menageur_pass_fonction = nullptr;
+	assembleuse_arbre *assembleuse = nullptr;
 
-	explicit ContexteGenerationCode(const TamponSource &tampon_source);
+	std::vector<DonneesModule *> modules{};
+
+	ContexteGenerationCode() = default;
+
+	~ContexteGenerationCode();
+
+	/* ********************************************************************** */
+
+	/**
+	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
+	 * module ainsi créé. Aucune vérification n'est faite quant à la présence
+	 * d'un module avec un nom similaire pour l'instant.
+	 */
+	DonneesModule *cree_module(const std::string &nom);
+
+	/**
+	 * Retourne un pointeur vers le module à l'index indiqué. Si l'index est
+	 * en dehors de portée, le programme crashera.
+	 */
+	DonneesModule *module(size_t index) const;
+
+	/**
+	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+	 * module n'a ce nom, retourne nullptr.
+	 */
+	DonneesModule *module(const std::string_view &nom) const;
+
+	/**
+	 * Retourne vrai si le module dont le nom est spécifié existe dans la liste
+	 * de module de ce contexte.
+	 */
+	bool module_existe(const std::string_view &nom) const;
 
 	/* ********************************************************************** */
 
@@ -287,6 +333,13 @@ struct ContexteGenerationCode {
 	/* ********************************************************************** */
 
 	size_t memoire_utilisee() const;
+
+	/**
+	 * Retourne les métriques de ce contexte. Les métriques sont calculées à
+	 * chaque appel à cette fonction, et une structure neuve est retournée à
+	 * chaque fois.
+	 */
+	Metriques rassemble_metriques() const;
 
 private:
 	llvm::BasicBlock *m_bloc_courant = nullptr;

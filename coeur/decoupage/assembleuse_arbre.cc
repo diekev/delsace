@@ -179,6 +179,10 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &mor
 			m_memoire_utilisee += sizeof(NoeudPlage);
 			noeud = new NoeudPlage(morceau);
 			break;
+		case type_noeud::ACCES_MEMBRE_POINT:
+			m_memoire_utilisee += sizeof(NoeudAccesMembrePoint);
+			noeud = new NoeudAccesMembrePoint(morceau);
+			break;
 	}
 
 	if (!reutilise && noeud != nullptr) {
@@ -264,6 +268,7 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 	os << "NoeudNul                 : " << sizeof(NoeudNul) << '\n';
 	os << "NoeudTailleDe            : " << sizeof(NoeudTailleDe) << '\n';
 	os << "NoeudPlage               : " << sizeof(NoeudPlage) << '\n';
+	os << "NoeudAccesMembrePoint    : " << sizeof(NoeudAccesMembrePoint) << '\n';
 	os << "------------------------------------------------------------------\n";
 	os << "DonneesType              : " << sizeof(DonneesType) << '\n';
 	os << "DonneesMorceaux          : " << sizeof(DonneesMorceaux) << '\n';

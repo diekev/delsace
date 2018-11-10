@@ -28,6 +28,7 @@
 #include "test_decoupage_nombres.h"
 #include "test_expression.h"
 #include "test_fonctions.h"
+#include "test_modules.hh"
 #include "test_retour.hh"
 #include "test_structures.hh"
 #include "test_transtype.hh"
@@ -50,6 +51,7 @@ int main()
 	controleur.ajoute_fonction(test_retour);
 	controleur.ajoute_fonction(test_boucle);
 	controleur.ajoute_fonction(test_transtype);
+	controleur.ajoute_fonction(test_modules);
 
 	controleur.performe_controles();
 

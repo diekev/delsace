@@ -28,7 +28,9 @@
 #include <cstring>
 #include <sstream>
 
+#include "contexte_generation_code.h"  // pour DonneesModule
 #include "erreur.h"
+#include "modules.hh"
 #include "nombres.h"
 #include "unicode.h"
 
@@ -100,11 +102,11 @@ constexpr auto converti_utf32(const char *sequence, int n)
 
 /* ************************************************************************** */
 
-decoupeuse_texte::decoupeuse_texte(const TamponSource &tampon)
-	: m_tampon(tampon)
-	, m_debut_mot(m_tampon.debut())
-	, m_debut(m_tampon.debut())
-	, m_fin(m_tampon.fin())
+decoupeuse_texte::decoupeuse_texte(DonneesModule *module)
+	: m_module(module)
+	, m_debut_mot(module->tampon.debut())
+	, m_debut(module->tampon.debut())
+	, m_fin(module->tampon.fin())
 {
 	construit_tables_caractere_speciaux();
 }
@@ -213,27 +215,12 @@ void decoupeuse_texte::genere_morceaux()
 
 size_t decoupeuse_texte::memoire_morceaux() const
 {
-	return m_morceaux.size() * sizeof(DonneesMorceaux);
-}
-
-const std::vector<DonneesMorceaux> &decoupeuse_texte::morceaux() const
-{
-	return m_morceaux;
-}
-
-decoupeuse_texte::iterateur decoupeuse_texte::begin()
-{
-	return m_morceaux.begin();
-}
-
-decoupeuse_texte::iterateur decoupeuse_texte::end()
-{
-	return m_morceaux.end();
+	return m_module->morceaux.size() * sizeof(DonneesMorceaux);
 }
 
 void decoupeuse_texte::imprime_morceaux(std::ostream &os)
 {
-	for (const auto &morceau : m_morceaux) {
+	for (const auto &morceau : m_module->morceaux) {
 		os << chaine_identifiant(morceau.identifiant) << '\n';
 	}
 }
@@ -275,7 +262,7 @@ std::string_view decoupeuse_texte::mot_courant() const
 
 void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 {
-	auto ligne_courante = m_tampon[m_compte_ligne];
+	auto ligne_courante = m_module->tampon[m_compte_ligne];
 
 	std::stringstream ss;
 	ss << "Erreur : ligne:" << m_compte_ligne + 1 << ":\n";
@@ -357,7 +344,10 @@ void decoupeuse_texte::analyse_caractere_simple()
 			case '.':
 			{
 				if (this->caractere_voisin() != '.') {
-					lance_erreur("Point inattendu !\n");
+					this->pousse_caractere();
+					this->pousse_mot(id_morceau::POINT);
+					this->avance();
+					break;
 				}
 
 				if (this->caractere_voisin(2) != '.') {
@@ -468,7 +458,7 @@ void decoupeuse_texte::pousse_caractere()
 
 void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_morceaux.push_back({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), identifiant });
+	m_module->morceaux.push_back({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), identifiant, static_cast<int>(m_module->id) });
 	m_taille_mot_courant = 0;
 }
 
