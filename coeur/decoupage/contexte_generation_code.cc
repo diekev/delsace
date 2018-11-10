@@ -131,6 +131,17 @@ llvm::Value *ContexteGenerationCode::valeur_globale(const std::string_view &nom)
 	return iter->second.valeur;
 }
 
+bool ContexteGenerationCode::globale_existe(const std::string_view &nom)
+{
+	auto iter = globales.find(nom);
+
+	if (iter == globales.end()) {
+		return false;
+	}
+
+	return true;
+}
+
 const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &nom)
 {
 	auto iter = globales.find(nom);
@@ -174,6 +185,23 @@ llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 	}
 
 	return iter->second.valeur;
+}
+
+bool ContexteGenerationCode::locale_existe(const std::string_view &nom)
+{
+	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
+
+	auto iter = std::find_if(m_locales.begin(), iter_fin,
+							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+	{
+		return paire.first == nom;
+	});
+
+	if (iter == iter_fin) {
+		return false;
+	}
+
+	return true;
 }
 
 const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &nom)

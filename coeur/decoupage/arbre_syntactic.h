@@ -190,11 +190,6 @@ public:
 	virtual llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) = 0;
 
 	/**
-	 * Calcul le type de ce noeud en cherchant parmis ses enfants si nécessaire.
-	 */
-	virtual const DonneesType &calcul_type(ContexteGenerationCode &contexte);
-
-	/**
 	 * Retourne l'identifiant du morceau de ce noeud.
 	 */
 	id_morceau identifiant() const;
@@ -228,6 +223,11 @@ public:
 	 * aucun enfant, retourne nullptr.
 	 */
 	Noeud *dernier_enfant() const;
+
+	/**
+	 * Performe la validation sémantique du noeud et de ses enfants.
+	 */
+	virtual void perfome_validation_semantique(ContexteGenerationCode &contexte);
 };
 
 /* ************************************************************************** */
@@ -253,11 +253,11 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	void ajoute_nom_argument(const std::string_view &nom);
 
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -271,6 +271,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -283,9 +285,9 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -301,6 +303,8 @@ public:
 	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -313,9 +317,9 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -403,11 +407,11 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -420,11 +424,11 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -437,11 +441,11 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
 
 	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -454,9 +458,9 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -469,9 +473,9 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -484,9 +488,9 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -499,9 +503,9 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -514,9 +518,9 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -542,8 +546,6 @@ public:
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
-
 	type_noeud type() const override;
 };
 
@@ -558,6 +560,8 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
 
 	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -598,7 +602,7 @@ public:
 
 	type_noeud type() const override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
 
 /* ************************************************************************** */
@@ -613,5 +617,5 @@ public:
 
 	type_noeud type() const override;
 
-	const DonneesType &calcul_type(ContexteGenerationCode &contexte) override;
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };

@@ -189,6 +189,11 @@ struct ContexteGenerationCode {
 	llvm::Value *valeur_globale(const std::string_view &nom);
 
 	/**
+	 * Retourne vrai s'il existe une globale dont le nom correspond au spécifié.
+	 */
+	bool globale_existe(const std::string_view &nom);
+
+	/**
 	 * Retourne les données de la globale dont le nom est spécifié en
 	 * paramètre. Si aucune globale ne portant ce nom n'existe, des données
 	 * vides sont retournées.
@@ -217,6 +222,11 @@ struct ContexteGenerationCode {
 	 * nullptr.
 	 */
 	llvm::Value *valeur_locale(const std::string_view &nom);
+
+	/**
+	 * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
+	 */
+	bool locale_existe(const std::string_view &nom);
 
 	/**
 	 * Retourne les données de la locale dont le nom est spécifié en paramètre.

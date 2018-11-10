@@ -482,14 +482,16 @@ Noeud *Noeud::dernier_enfant() const
 	return m_enfants.back();
 }
 
+void Noeud::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	for (auto enfant : m_enfants) {
+		enfant->perfome_validation_semantique(contexte);
+	}
+}
+
 void Noeud::ajoute_noeud(Noeud *noeud)
 {
 	m_enfants.push_back(noeud);
-}
-
-const DonneesType &Noeud::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	return this->donnees_type;
 }
 
 id_morceau Noeud::identifiant() const
@@ -515,6 +517,7 @@ void NoeudRacine::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	for (auto noeud : m_enfants) {
+		noeud->perfome_validation_semantique(contexte);
 		noeud->genere_code_llvm(contexte);
 	}
 
@@ -556,23 +559,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 	auto fonction = contexte.module_llvm->getFunction(nom_broye);
 
-	if (fonction == nullptr) {
-		erreur::lance_erreur(
-					"NoeudAppelFonction::genere_code_llvm : fonction inconnue",
-					contexte,
-					m_donnees_morceaux,
-					erreur::type_erreur::FONCTION_INCONNUE);
-	}
-
 	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
-
-	if (!fonction->isVarArg() && (m_enfants.size() != donnees_fonction.args.size())) {
-		erreur::lance_erreur_nombre_arguments(
-					donnees_fonction.args.size(),
-					m_enfants.size(),
-					contexte,
-					m_donnees_morceaux);
-	}
 
 	auto fonction_variadique_interne = fonction->isVarArg() && !donnees_fonction.est_externe;
 
@@ -610,7 +597,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		const auto iter = donnees_fonction.args.find(nom);
 		auto index_arg = iter->second.index;
 		const auto type_arg = iter->second.donnees_type;
-		const auto type_enf = (*enfant)->calcul_type(contexte);
+		const auto type_enf = (*enfant)->donnees_type;
 
 		if (iter->second.est_variadic) {
 			if (!type_arg.est_invalide()) {
@@ -663,7 +650,18 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	return llvm::CallInst::Create(fonction, args, "", contexte.bloc_courant());
 }
 
-const DonneesType &NoeudAppelFonction::calcul_type(ContexteGenerationCode &contexte)
+void NoeudAppelFonction::ajoute_nom_argument(const std::string_view &nom)
+{
+	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
+	noms_arguments->push_back(nom);
+}
+
+type_noeud NoeudAppelFonction::type() const
+{
+	return type_noeud::APPEL_FONCTION;
+}
+
+void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
 	/* broyage du nom */
 	auto module = contexte.module(static_cast<size_t>(this->module_appel));
@@ -681,23 +679,22 @@ const DonneesType &NoeudAppelFonction::calcul_type(ContexteGenerationCode &conte
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
+	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
+
+	if (!fonction->isVarArg() && (m_enfants.size() != donnees_fonction.args.size())) {
+		erreur::lance_erreur_nombre_arguments(
+					donnees_fonction.args.size(),
+					m_enfants.size(),
+					contexte,
+					m_donnees_morceaux);
+	}
+
 	if (this->donnees_type.est_invalide()) {
 		const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 		this->donnees_type = donnees_fonction.donnees_type;
 	}
 
-	return this->donnees_type;
-}
-
-void NoeudAppelFonction::ajoute_nom_argument(const std::string_view &nom)
-{
-	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
-	noms_arguments->push_back(nom);
-}
-
-type_noeud NoeudAppelFonction::type() const
-{
-	return type_noeud::APPEL_FONCTION;
+	Noeud::perfome_validation_semantique(contexte);
 }
 
 /* ************************************************************************** */
@@ -892,8 +889,52 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 					contexte.bloc_courant());
 	}
 
+	contexte.termine_fonction();
+
+	/* optimise la fonction */
+	if (contexte.menageur_pass_fonction != nullptr) {
+		contexte.menageur_pass_fonction->run(*fonction);
+	}
+
+	return nullptr;
+}
+
+type_noeud NoeudDeclarationFonction::type() const
+{
+	return type_noeud::DECLARATION_FONCTION;
+}
+
+void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	if (this->est_externe) {
+		return;
+	}
+
+	contexte.commence_fonction(nullptr);
+
+	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
+
+	/* Pousse les paramètres sur la pile. */
+	for (const auto &nom : donnees_fonction.nom_args) {
+		const auto &argument = donnees_fonction.args[nom];
+
+		if (argument.est_variadic) {
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::Z32);
+
+			contexte.pousse_locale("__compte_args", nullptr, dt, false, false);
+			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_variable, argument.est_variadic);
+		}
+		else {
+			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_variable, argument.est_variadic);
+		}
+	}
+
 	/* vérifie le type du bloc */
-	auto type_bloc = bloc->calcul_type(contexte);
+	auto bloc = m_enfants.front();
+
+	bloc->perfome_validation_semantique(contexte);
+	auto type_bloc = bloc->donnees_type;
 	auto dernier = bloc->dernier_enfant();
 
 	/* si le bloc est vide -> vérifie qu'aucun type n'a été spécifié */
@@ -931,18 +972,6 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	}
 
 	contexte.termine_fonction();
-
-	/* optimise la fonction */
-	if (contexte.menageur_pass_fonction != nullptr) {
-		contexte.menageur_pass_fonction->run(*fonction);
-	}
-
-	return nullptr;
-}
-
-type_noeud NoeudDeclarationFonction::type() const
-{
-	return type_noeud::DECLARATION_FONCTION;
 }
 
 /* ************************************************************************** */
@@ -967,6 +996,29 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	assert(m_enfants.size() == 2);
 
 	auto variable = m_enfants.front();
+	auto expression = m_enfants.back();
+
+	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
+	 * la variable sur la pile et celle de stockage de la valeur soit côte à
+	 * côte. */
+	auto valeur = expression->genere_code_llvm(contexte);
+
+	auto alloc = variable->genere_code_llvm(contexte, true);
+	auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+	store->setAlignment(alignement(contexte, expression->donnees_type));
+
+	return store;
+}
+
+type_noeud NoeudAssignationVariable::type() const
+{
+	return type_noeud::ASSIGNATION_VARIABLE;
+}
+
+void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	auto variable = m_enfants.front();
+	auto expression = m_enfants.back();
 
 	if (!variable->peut_etre_assigne(contexte)) {
 		erreur::lance_erreur(
@@ -976,7 +1028,9 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 					erreur::type_erreur::ASSIGNATION_INVALIDE);
 	}
 
-	this->donnees_type = m_enfants.back()->calcul_type(contexte);
+	expression->perfome_validation_semantique(contexte);
+
+	this->donnees_type = expression->donnees_type;
 
 	if (this->donnees_type.est_invalide()) {
 		erreur::lance_erreur(
@@ -996,47 +1050,21 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	/* Ajourne les données du premier enfant si elles sont invalides, dans le
 	 * cas d'une déclaration de variable. */
-	const auto type_gauche = variable->calcul_type(contexte);
-
-	auto expression = m_enfants.back();
+	const auto type_gauche = variable->donnees_type;
 
 	if (type_gauche.est_invalide()) {
 		variable->donnees_type = this->donnees_type;
 	}
-	else {
-		if (!peut_assigner(type_gauche, this->donnees_type, expression->type())) {
-			erreur::lance_erreur_assignation_type_differents(
-						type_gauche,
-						this->donnees_type,
-						contexte,
-						m_donnees_morceaux);
-		}
+
+	variable->perfome_validation_semantique(contexte);
+
+	if (!peut_assigner(variable->donnees_type, this->donnees_type, expression->type())) {
+		erreur::lance_erreur_assignation_type_differents(
+					variable->donnees_type,
+					this->donnees_type,
+					contexte,
+					m_donnees_morceaux);
 	}
-
-	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
-	 * la variable sur la pile et celle de stockage de la valeur soit côte à
-	 * côte. */
-	auto valeur = expression->genere_code_llvm(contexte);
-
-	auto alloc = variable->genere_code_llvm(contexte, true);
-	auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
-	store->setAlignment(alignement(contexte, expression->calcul_type(contexte)));
-
-	return store;
-}
-
-const DonneesType &NoeudAssignationVariable::calcul_type(ContexteGenerationCode &/*contexte*/)
-{
-	if (this->donnees_type.est_invalide()) {
-		this->donnees_type.pousse(id_morceau::RIEN);
-	}
-
-	return this->donnees_type;
-}
-
-type_noeud NoeudAssignationVariable::type() const
-{
-	return type_noeud::ASSIGNATION_VARIABLE;
 }
 
 /* ************************************************************************** */
@@ -1053,27 +1081,6 @@ void NoeudDeclarationVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
-
-	if (valeur != nullptr) {
-		erreur::lance_erreur(
-					"Redéfinition de la variable !",
-					contexte,
-					m_donnees_morceaux,
-					erreur::type_erreur::VARIABLE_REDEFINIE);
-	}
-	else {
-		valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
-
-		if (valeur != nullptr) {
-			erreur::lance_erreur(
-						"Redéfinition de la variable !",
-						contexte,
-						m_donnees_morceaux,
-						erreur::type_erreur::VARIABLE_REDEFINIE);
-		}
-	}
-
 	auto type_llvm = converti_type(contexte, this->donnees_type);
 
 	auto alloc = new llvm::AllocaInst(
@@ -1102,6 +1109,32 @@ bool NoeudDeclarationVariable::peut_etre_assigne(ContexteGenerationCode &/*conte
 	return true;
 }
 
+void NoeudDeclarationVariable::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	auto existe = contexte.locale_existe(m_donnees_morceaux.chaine);
+
+	if (existe) {
+		erreur::lance_erreur(
+					"Redéfinition de la variable locale",
+					contexte,
+					m_donnees_morceaux,
+					erreur::type_erreur::VARIABLE_REDEFINIE);
+	}
+	else {
+		existe = contexte.globale_existe(m_donnees_morceaux.chaine);
+
+		if (existe) {
+			erreur::lance_erreur(
+						"Redéfinition de la variable globale",
+						contexte,
+						m_donnees_morceaux,
+						erreur::type_erreur::VARIABLE_REDEFINIE);
+		}
+	}
+
+	contexte.pousse_locale(m_donnees_morceaux.chaine, nullptr, this->donnees_type, this->est_variable, false);
+}
+
 /* ************************************************************************** */
 
 NoeudConstante::NoeudConstante(const DonneesMorceaux &morceau)
@@ -1121,28 +1154,6 @@ void NoeudConstante::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	auto valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
-
-	if (valeur != nullptr) {
-		erreur::lance_erreur(
-					"Redéfinition de la variable globale !",
-					contexte,
-					m_donnees_morceaux,
-					erreur::type_erreur::VARIABLE_REDEFINIE);
-	}
-
-	if (this->donnees_type.est_invalide()) {
-		this->donnees_type = m_enfants.front()->calcul_type(contexte);
-
-		if (this->donnees_type.est_invalide()) {
-			erreur::lance_erreur(
-						"Impossible de définir le type de la variable globale !",
-						contexte,
-						m_donnees_morceaux,
-						erreur::type_erreur::TYPE_INCONNU);
-		}
-	}
-
 	/* À FAIRE : énumération avec des expressions contenant d'autres énums.
 	 * différents types (réel, bool, etc..)
 	 */
@@ -1155,7 +1166,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 						 converti_type(contexte, this->donnees_type),
 						 static_cast<uint64_t>(n));
 
-	valeur = new llvm::GlobalVariable(
+	auto valeur = new llvm::GlobalVariable(
 				 *contexte.module_llvm,
 				 converti_type(contexte, this->donnees_type),
 				 true,
@@ -1167,14 +1178,39 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 	return valeur;
 }
 
-const DonneesType &NoeudConstante::calcul_type(ContexteGenerationCode &contexte)
-{
-	return contexte.type_globale(m_donnees_morceaux.chaine);
-}
-
 type_noeud NoeudConstante::type() const
 {
 	return type_noeud::CONSTANTE;
+}
+
+void NoeudConstante::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	auto valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
+
+	if (valeur != nullptr) {
+		erreur::lance_erreur(
+					"Redéfinition de la variable globale !",
+					contexte,
+					m_donnees_morceaux,
+					erreur::type_erreur::VARIABLE_REDEFINIE);
+	}
+
+	m_enfants.front()->perfome_validation_semantique(contexte);
+
+	if (this->donnees_type.est_invalide()) {
+		this->donnees_type = m_enfants.front()->donnees_type;
+
+		if (this->donnees_type.est_invalide()) {
+			erreur::lance_erreur(
+						"Impossible de définir le type de la variable globale !",
+						contexte,
+						m_donnees_morceaux,
+						erreur::type_erreur::TYPE_INCONNU);
+		}
+	}
+	/* À FAIRE : vérifie typage */
+
+	contexte.pousse_globale(m_donnees_morceaux.chaine, nullptr, this->donnees_type);
 }
 
 /* ************************************************************************** */
@@ -1446,14 +1482,6 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 
 	if (valeur == nullptr) {
 		valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
-
-		if (valeur == nullptr) {
-			erreur::lance_erreur(
-						"Variable inconnue !",
-						contexte,
-						m_donnees_morceaux,
-						erreur::type_erreur::VARIABLE_INCONNUE);
-		}
 	}
 
 	if (expr_gauche || dynamic_cast<llvm::PHINode *>(valeur) || dynamic_cast<llvm::VAArgInst *>(valeur)) {
@@ -1461,7 +1489,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 	}
 
 	/* À FAIRE : redondant. */
-	auto type = this->calcul_type(contexte);
+	auto type = this->donnees_type;
 
 	if (contexte.est_locale_variadique(m_donnees_morceaux.chaine)) {
 		auto inst = new llvm::VAArgInst(
@@ -1479,23 +1507,6 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 	return charge;
 }
 
-const DonneesType &NoeudVariable::calcul_type(ContexteGenerationCode &contexte)
-{
-	if (contexte.valeur_locale(m_donnees_morceaux.chaine) != nullptr) {
-		return contexte.type_locale(m_donnees_morceaux.chaine);
-	}
-
-	if (contexte.valeur_globale(m_donnees_morceaux.chaine) != nullptr) {
-		return contexte.type_globale(m_donnees_morceaux.chaine);
-	}
-
-	erreur::lance_erreur(
-				"NoeudVariable::calcul_type : variable inconnue !",
-				contexte,
-				m_donnees_morceaux,
-				erreur::type_erreur::VARIABLE_INCONNUE);
-}
-
 type_noeud NoeudVariable::type() const
 {
 	return type_noeud::VARIABLE;
@@ -1504,6 +1515,25 @@ type_noeud NoeudVariable::type() const
 bool NoeudVariable::peut_etre_assigne(ContexteGenerationCode &contexte) const
 {
 	return contexte.peut_etre_assigne(m_donnees_morceaux.chaine);
+}
+
+void NoeudVariable::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	if (contexte.locale_existe(m_donnees_morceaux.chaine)) {
+		this->donnees_type = contexte.type_locale(m_donnees_morceaux.chaine);
+		return;
+	}
+
+	if (contexte.globale_existe(m_donnees_morceaux.chaine)) {
+		this->donnees_type = contexte.type_globale(m_donnees_morceaux.chaine);
+		return;
+	}
+
+	erreur::lance_erreur(
+				"Variable inconnue",
+				contexte,
+				m_donnees_morceaux,
+				erreur::type_erreur::VARIABLE_INCONNUE);
 }
 
 /* ************************************************************************** */
@@ -1528,7 +1558,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 	auto structure = m_enfants.back();
 	auto membre = m_enfants.front();
 
-	const auto &type_structure = structure->calcul_type(contexte);
+	const auto &type_structure = structure->donnees_type;
 
 	auto index_structure = 0ul;
 	auto est_pointeur = false;
@@ -1541,20 +1571,6 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 				index_structure = size_t(deref.type_base() >> 8);
 				est_pointeur = true;
 			}
-			else {
-				erreur::lance_erreur(
-							"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-							contexte,
-							structure->donnees_morceau(),
-							erreur::type_erreur::TYPE_DIFFERENTS);
-			}
-		}
-		else {
-			erreur::lance_erreur(
-						"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-						contexte,
-						structure->donnees_morceau(),
-						erreur::type_erreur::TYPE_DIFFERENTS);
 		}
 	}
 	else {
@@ -1566,15 +1582,6 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 	auto &donnees_structure = contexte.donnees_structure(index_structure);
 
 	const auto iter = donnees_structure.index_membres.find(nom_membre);
-
-	if (iter == donnees_structure.index_membres.end()) {
-		/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
-		erreur::lance_erreur(
-					"Membre inconnu",
-					contexte,
-					m_donnees_morceaux,
-					erreur::type_erreur::MEMBRE_INCONNU);
-	}
 
 	const auto index_membre = iter->second;
 
@@ -1607,12 +1614,24 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 	return ret;
 }
 
-const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &contexte)
+type_noeud NoeudAccesMembre::type() const
+{
+	return type_noeud::ACCES_MEMBRE;
+}
+
+bool NoeudAccesMembre::peut_etre_assigne(ContexteGenerationCode &contexte) const
+{
+	return m_enfants.back()->peut_etre_assigne(contexte);
+}
+
+void NoeudAccesMembre::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
 	auto structure = m_enfants.back();
 	auto membre = m_enfants.front();
 
-	const auto &type_structure = structure->calcul_type(contexte);
+	structure->perfome_validation_semantique(contexte);
+
+	const auto &type_structure = structure->donnees_type;
 
 	auto index_structure = 0ul;
 
@@ -1660,17 +1679,7 @@ const DonneesType &NoeudAccesMembre::calcul_type(ContexteGenerationCode &context
 
 	const auto index_membre = iter->second;
 
-	return donnees_structure.donnees_types[index_membre];
-}
-
-type_noeud NoeudAccesMembre::type() const
-{
-	return type_noeud::ACCES_MEMBRE;
-}
-
-bool NoeudAccesMembre::peut_etre_assigne(ContexteGenerationCode &contexte) const
-{
-	return m_enfants.back()->peut_etre_assigne(contexte);
+	this->donnees_type = donnees_structure.donnees_types[index_membre];
 }
 
 /* ************************************************************************** */
@@ -1757,18 +1766,8 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 	auto enfant1 = m_enfants.front();
 	auto enfant2 = m_enfants.back();
 
-	const auto type1 = enfant1->calcul_type(contexte);
-	const auto type2 = enfant2->calcul_type(contexte);
-
-	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT)) {
-		if (!peut_operer(type1, type2, enfant1->type(), enfant2->type())) {
-			erreur::lance_erreur_type_operation(
-						type1,
-						type2,
-						contexte,
-						m_donnees_morceaux);
-		}
-	}
+	const auto type1 = enfant1->donnees_type;
+	const auto type2 = enfant2->donnees_type;
 
 	/* À FAIRE : typage */
 
@@ -2029,39 +2028,6 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 	return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
 }
 
-const DonneesType &NoeudOperationBinaire::calcul_type(ContexteGenerationCode &contexte)
-{
-	if (this->donnees_type.est_invalide()) {
-		switch (this->identifiant()) {
-			default:
-			{
-				this->donnees_type = m_enfants.front()->calcul_type(contexte);
-				break;
-			}
-			case id_morceau::CROCHET_OUVRANT:
-			{
-				auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
-				this->donnees_type = donnees_enfant.derefence();
-				break;
-			}
-			case id_morceau::EGALITE:
-			case id_morceau::DIFFERENCE:
-			case id_morceau::INFERIEUR:
-			case id_morceau::INFERIEUR_EGAL:
-			case id_morceau::SUPERIEUR:
-			case id_morceau::SUPERIEUR_EGAL:
-			case id_morceau::ESP_ESP:
-			case id_morceau::BARRE_BARRE:
-			{
-				this->donnees_type.pousse(id_morceau::BOOL);
-				break;
-			}
-		}
-	}
-
-	return this->donnees_type;
-}
-
 type_noeud NoeudOperationBinaire::type() const
 {
 	return type_noeud::OPERATION_BINAIRE;
@@ -2074,6 +2040,53 @@ bool NoeudOperationBinaire::peut_etre_assigne(ContexteGenerationCode &contexte) 
 	}
 
 	return false;
+}
+
+void NoeudOperationBinaire::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	auto enfant1 = m_enfants.front();
+	auto enfant2 = m_enfants.back();
+
+	enfant1->perfome_validation_semantique(contexte);
+	enfant2->perfome_validation_semantique(contexte);
+
+	const auto type1 = enfant1->donnees_type;
+	const auto type2 = enfant2->donnees_type;
+
+	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT)) {
+		if (!peut_operer(type1, type2, enfant1->type(), enfant2->type())) {
+			erreur::lance_erreur_type_operation(
+						type1,
+						type2,
+						contexte,
+						m_donnees_morceaux);
+		}
+	}
+
+	switch (this->identifiant()) {
+		default:
+		{
+			this->donnees_type = type1;
+			break;
+		}
+		case id_morceau::CROCHET_OUVRANT:
+		{
+			this->donnees_type = type2.derefence();
+			break;
+		}
+		case id_morceau::EGALITE:
+		case id_morceau::DIFFERENCE:
+		case id_morceau::INFERIEUR:
+		case id_morceau::INFERIEUR_EGAL:
+		case id_morceau::SUPERIEUR:
+		case id_morceau::SUPERIEUR_EGAL:
+		case id_morceau::ESP_ESP:
+		case id_morceau::BARRE_BARRE:
+		{
+			this->donnees_type.pousse(id_morceau::BOOL);
+			break;
+		}
+	}
 }
 
 /* ************************************************************************** */
@@ -2096,21 +2109,13 @@ llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &cont
 {
 	llvm::Instruction::BinaryOps instr;
 	auto enfant = m_enfants.front();
-	auto type1 = enfant->calcul_type(contexte);
+	auto type1 = enfant->donnees_type;
 	auto valeur1 = enfant->genere_code_llvm(contexte);
 	auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
 	switch (this->m_donnees_morceaux.identifiant) {
 		case id_morceau::EXCLAMATION:
 		{
-			if (type1.type_base() != id_morceau::BOOL) {
-				erreur::lance_erreur(
-							"L'opérateur '!' doit recevoir une expression de type 'bool'",
-							contexte,
-							enfant->donnees_morceau(),
-							erreur::type_erreur::TYPE_DIFFERENTS);
-			}
-
 			instr = llvm::Instruction::Xor;
 			valeur2 = valeur1;
 			break;
@@ -2166,41 +2171,45 @@ llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &cont
 	return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
 }
 
-const DonneesType &NoeudOperationUnaire::calcul_type(ContexteGenerationCode &contexte)
+type_noeud NoeudOperationUnaire::type() const
 {
+	return type_noeud::OPERATION_UNAIRE;
+}
+
+void NoeudOperationUnaire::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	auto enfant = m_enfants.front();
+	enfant->perfome_validation_semantique(contexte);
+	auto type = enfant->donnees_type;
+
 	if (this->donnees_type.est_invalide()) {
 		switch (this->identifiant()) {
 			default:
 			{
-				this->donnees_type = m_enfants.front()->calcul_type(contexte);
+				this->donnees_type = enfant->donnees_type;
 				break;
 			}
 			case id_morceau::AROBASE:
 			{
 				this->donnees_type.pousse(id_morceau::POINTEUR);
-				this->donnees_type.pousse(m_enfants.front()->calcul_type(contexte));
-				break;
-			}
-			case id_morceau::CROCHET_OUVRANT:
-			{
-				auto donnees_enfant = m_enfants.back()->calcul_type(contexte);
-				this->donnees_type = donnees_enfant.derefence();
+				this->donnees_type.pousse(type);
 				break;
 			}
 			case id_morceau::EXCLAMATION:
 			{
+				if (type.type_base() != id_morceau::BOOL) {
+					erreur::lance_erreur(
+								"L'opérateur '!' doit recevoir une expression de type 'bool'",
+								contexte,
+								enfant->donnees_morceau(),
+								erreur::type_erreur::TYPE_DIFFERENTS);
+				}
+
 				this->donnees_type.pousse(id_morceau::BOOL);
 				break;
 			}
 		}
 	}
-
-	return this->donnees_type;
-}
-
-type_noeud NoeudOperationUnaire::type() const
-{
-	return type_noeud::OPERATION_UNAIRE;
 }
 
 /* ************************************************************************** */
@@ -2222,8 +2231,6 @@ void NoeudRetour::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	llvm::Value *valeur = nullptr;
-
-	this->calcul_type(contexte);
 
 	/* insère un appel à va_end avant chaque instruction de retour */
 	if (contexte.fonction->isVarArg()) {
@@ -2251,24 +2258,20 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, con
 	return llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.bloc_courant());
 }
 
-const DonneesType &NoeudRetour::calcul_type(ContexteGenerationCode &contexte)
-{
-	if (!this->donnees_type.est_invalide()) {
-		return this->donnees_type;
-	}
-
-	if (m_enfants.empty()) {
-		this->donnees_type.pousse(id_morceau::RIEN);
-		return this->donnees_type;
-	}
-
-	this->donnees_type = m_enfants.front()->calcul_type(contexte);
-	return this->donnees_type;
-}
-
 type_noeud NoeudRetour::type() const
 {
 	return type_noeud::RETOUR;
+}
+
+void NoeudRetour::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	if (m_enfants.empty()) {
+		this->donnees_type.pousse(id_morceau::RIEN);
+		return;
+	}
+
+	m_enfants.front()->perfome_validation_semantique(contexte);
+	this->donnees_type = m_enfants.front()->donnees_type;
 }
 
 /* ************************************************************************** */
@@ -2294,15 +2297,6 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 
 	/* noeud 1 : condition */
 	auto enfant1 = *iter_enfant++;
-
-	auto type_condition = enfant1->calcul_type(contexte);
-
-	if (type_condition.type_base() != id_morceau::BOOL) {
-		erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
-							 contexte,
-							 enfant1->donnees_morceau(),
-							 erreur::type_erreur::TYPE_DIFFERENTS);
-	}
 
 	auto condition = enfant1->genere_code_llvm(contexte);
 
@@ -2341,15 +2335,36 @@ llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const b
 	return ret;
 }
 
-const DonneesType &NoeudSi::calcul_type(ContexteGenerationCode &contexte)
-{
-	/* retourne le type du bloc */
-	return m_enfants.back()->calcul_type(contexte);
-}
-
 type_noeud NoeudSi::type() const
 {
 	return type_noeud::SI;
+}
+
+void NoeudSi::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	const auto nombre_enfants = m_enfants.size();
+	auto iter_enfant = m_enfants.begin();
+
+	auto enfant1 = *iter_enfant++;
+	auto enfant2 = *iter_enfant++;
+
+	enfant1->perfome_validation_semantique(contexte);
+	auto type_condition = enfant1->donnees_type;
+
+	if (type_condition.type_base() != id_morceau::BOOL) {
+		erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
+							 contexte,
+							 enfant1->donnees_morceau(),
+							 erreur::type_erreur::TYPE_DIFFERENTS);
+	}
+
+	enfant2->perfome_validation_semantique(contexte);
+
+	/* noeud 3 : sinon (optionel) */
+	if (nombre_enfants == 3) {
+		auto enfant3 = *iter_enfant++;
+		enfant3->perfome_validation_semantique(contexte);
+	}
 }
 
 /* ************************************************************************** */
@@ -2404,19 +2419,25 @@ llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const
 	return valeur;
 }
 
-const DonneesType &NoeudBloc::calcul_type(ContexteGenerationCode &contexte)
-{
-	if (m_enfants.empty()) {
-		this->donnees_type.pousse(id_morceau::RIEN);
-		return this->donnees_type;
-	}
-
-	return m_enfants.back()->calcul_type(contexte);
-}
-
 type_noeud NoeudBloc::type() const
 {
 	return type_noeud::BLOC;
+}
+
+void NoeudBloc::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	contexte.empile_nombre_locales();
+
+	Noeud::perfome_validation_semantique(contexte);
+
+	if (m_enfants.empty()) {
+		this->donnees_type.pousse(id_morceau::RIEN);
+	}
+	else {
+		this->donnees_type = m_enfants.back()->donnees_type;
+	}
+
+	contexte.depile_nombre_locales();
 }
 
 /* ************************************************************************** */
@@ -2551,28 +2572,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto enfant_sans_arret = enfant4;
 	auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
-	auto valeur = contexte.valeur_locale(enfant1->chaine());
-
-	if (valeur != nullptr) {
-		erreur::lance_erreur(
-					"Rédéfinition de la variable",
-					contexte,
-					enfant1->donnees_morceau(),
-					erreur::type_erreur::VARIABLE_REDEFINIE);
-	}
-	else {
-		valeur = contexte.valeur_globale(enfant1->chaine());
-
-		if (valeur != nullptr) {
-			erreur::lance_erreur(
-						"Rédéfinition de la variable globale",
-						contexte,
-						enfant1->donnees_morceau(),
-						erreur::type_erreur::VARIABLE_REDEFINIE);
-		}
-	}
-
-	auto type_debut = enfant2->calcul_type(contexte);
+	auto type_debut = enfant2->donnees_type;
 
 	const auto type = type_debut.type_base();
 
@@ -2624,26 +2624,11 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 						contexte.bloc_courant());
 	}
 	else if (enfant2->type() == type_noeud::VARIABLE) {
-		auto valeur = contexte.est_locale_variadique(enfant2->chaine());
-
-		if (!valeur) {
-			erreur::lance_erreur(
-						"La variable n'est pas un argument variadic",
-						contexte,
-						enfant2->donnees_morceau());
-		}
-
 		noeud_phi = llvm::PHINode::Create(
 						llvm::Type::getInt32Ty(contexte.contexte),
 						2,
 						std::string(enfant1->chaine()),
 						contexte.bloc_courant());
-	}
-	else {
-		erreur::lance_erreur(
-					"Expression inattendu dans la boucle 'pour'",
-					contexte,
-					m_donnees_morceaux);
 	}
 
 	if (enfant2->type() == type_noeud::PLAGE) {
@@ -2752,16 +2737,76 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	return ret;
 }
 
-const DonneesType &NoeudPour::calcul_type(ContexteGenerationCode &contexte)
-{
-	/* À FAIRE : trouver mieux.
-	 * Retourne le type du dernier bloc */
-	return m_enfants.back()->calcul_type(contexte);
-}
-
 type_noeud NoeudPour::type() const
 {
 	return type_noeud::POUR;
+}
+
+void NoeudPour::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	const auto nombre_enfants = m_enfants.size();
+	auto iter = m_enfants.begin();
+
+	/* on génère d'abord le type de la variable */
+	auto enfant1 = *iter++;
+	auto enfant2 = *iter++;
+	auto enfant3 = *iter++;
+	auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
+	auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
+
+	if (contexte.locale_existe(enfant1->chaine())) {
+		erreur::lance_erreur(
+					"Rédéfinition de la variable",
+					contexte,
+					enfant1->donnees_morceau(),
+					erreur::type_erreur::VARIABLE_REDEFINIE);
+	}
+
+	if (contexte.globale_existe(enfant1->chaine())) {
+		erreur::lance_erreur(
+					"Rédéfinition de la variable globale",
+					contexte,
+					enfant1->donnees_morceau(),
+					erreur::type_erreur::VARIABLE_REDEFINIE);
+	}
+
+
+	if (enfant2->type() == type_noeud::PLAGE) {
+	}
+	else if (enfant2->type() == type_noeud::VARIABLE) {
+		auto valeur = contexte.est_locale_variadique(enfant2->chaine());
+
+		if (!valeur) {
+			erreur::lance_erreur(
+						"La variable n'est pas un argument variadic",
+						contexte,
+						enfant2->donnees_morceau());
+		}
+	}
+	else {
+		erreur::lance_erreur(
+					"Expression inattendu dans la boucle 'pour'",
+					contexte,
+					m_donnees_morceaux);
+	}
+
+	enfant2->perfome_validation_semantique(contexte);
+
+	contexte.empile_nombre_locales();
+
+	contexte.pousse_locale(enfant1->chaine(), nullptr, enfant2->donnees_type, false, false);
+
+	enfant3->perfome_validation_semantique(contexte);
+
+	if (enfant4 != nullptr) {
+		enfant4->perfome_validation_semantique(contexte);
+
+		if (enfant5 != nullptr) {
+			enfant5->perfome_validation_semantique(contexte);
+		}
+	}
+
+	contexte.depile_nombre_locales();
 }
 
 /* ************************************************************************** */
@@ -2859,12 +2904,6 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 	return ret;
 }
 
-const DonneesType &NoeudBoucle::calcul_type(ContexteGenerationCode &contexte)
-{
-	/* retourne le type du bloc */
-	return m_enfants.front()->calcul_type(contexte);
-}
-
 type_noeud NoeudBoucle::type() const
 {
 	return type_noeud::BOUCLE;
@@ -2924,26 +2963,9 @@ constexpr llvm::Value *cree_instruction(
 
 llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	if (this->donnees_type.est_invalide()) {
-		erreur::lance_erreur(
-					"Ne peut transtyper vers un type invalide",
-					contexte,
-					this->donnees_morceau(),
-					erreur::type_erreur::TYPE_INCONNU);
-	}
-
 	auto enfant = m_enfants.front();
-	const auto &donnees_type_de = m_enfants.front()->calcul_type(contexte);
-
-	if (donnees_type_de.est_invalide()) {
-		erreur::lance_erreur(
-					"Ne peut calculer le type d'origine",
-					contexte,
-					enfant->donnees_morceau(),
-					erreur::type_erreur::TYPE_INCONNU);
-	}
-
 	auto valeur = enfant->genere_code_llvm(contexte);
+	const auto &donnees_type_de = enfant->donnees_type;
 
 	if (donnees_type_de == this->donnees_type) {
 		return valeur;
@@ -3016,6 +3038,29 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 type_noeud NoeudTranstype::type() const
 {
 	return type_noeud::TRANSTYPE;
+}
+
+void NoeudTranstype::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	if (this->donnees_type.est_invalide()) {
+		erreur::lance_erreur(
+					"Ne peut transtyper vers un type invalide",
+					contexte,
+					this->donnees_morceau(),
+					erreur::type_erreur::TYPE_INCONNU);
+	}
+
+	auto enfant = m_enfants.front();
+	enfant->perfome_validation_semantique(contexte);
+	const auto &donnees_type_de = enfant->donnees_type;
+
+	if (donnees_type_de.est_invalide()) {
+		erreur::lance_erreur(
+					"Ne peut calculer le type d'origine",
+					contexte,
+					enfant->donnees_morceau(),
+					erreur::type_erreur::TYPE_INCONNU);
+	}
 }
 
 /* ************************************************************************** */
@@ -3118,15 +3163,18 @@ type_noeud NoeudPlage::type() const
 	return type_noeud::PLAGE;
 }
 
-const DonneesType &NoeudPlage::calcul_type(ContexteGenerationCode &contexte)
+void NoeudPlage::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
 	auto iter = m_enfants.begin();
 
 	auto enfant1 = *iter++;
 	auto enfant2 = *iter++;
 
-	auto type_debut = enfant1->calcul_type(contexte);
-	auto type_fin   = enfant2->calcul_type(contexte);
+	enfant1->perfome_validation_semantique(contexte);
+	enfant2->perfome_validation_semantique(contexte);
+
+	auto type_debut = enfant1->donnees_type;
+	auto type_fin   = enfant2->donnees_type;
 
 	if (type_debut.est_invalide() || type_fin.est_invalide()) {
 		erreur::lance_erreur(
@@ -3155,7 +3203,9 @@ const DonneesType &NoeudPlage::calcul_type(ContexteGenerationCode &contexte)
 	}
 
 	this->donnees_type = type_debut;
-	return this->donnees_type;
+
+	contexte.pousse_locale("__debut", nullptr, this->donnees_type, false, false);
+	contexte.pousse_locale("__fin", nullptr, this->donnees_type, false, false);
 }
 
 /* ************************************************************************** */
@@ -3176,44 +3226,7 @@ void NoeudAccesMembrePoint::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudAccesMembrePoint::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	auto enfant1 = m_enfants.front();
-	auto enfant2 = m_enfants.back();
-
-	const auto nom_module = enfant1->chaine();
-
-	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
-
-	if (!module->importe_module(nom_module)) {
-		erreur::lance_erreur(
-					"module inconnu",
-					contexte,
-					enfant1->donnees_morceau(),
-					erreur::type_erreur::MODULE_INCONNU);
-	}
-
-	auto module_importe = contexte.module(nom_module);
-
-	if (module_importe == nullptr) {
-		erreur::lance_erreur(
-					"module inconnu",
-					contexte,
-					enfant1->donnees_morceau(),
-					erreur::type_erreur::MODULE_INCONNU);
-	}
-
-	const auto nom_fonction = enfant2->chaine();
-
-	if (!module_importe->possede_fonction(nom_fonction)) {
-		erreur::lance_erreur(
-					"Le module ne possède pas la fonction",
-					contexte,
-					enfant2->donnees_morceau(),
-					erreur::type_erreur::FONCTION_INCONNUE);
-	}
-
-	enfant2->module_appel = static_cast<int>(module_importe->id);
-
-	return enfant2->genere_code_llvm(contexte);
+	return m_enfants.back()->genere_code_llvm(contexte);
 }
 
 type_noeud NoeudAccesMembrePoint::type() const
@@ -3221,7 +3234,7 @@ type_noeud NoeudAccesMembrePoint::type() const
 	return type_noeud::ACCES_MEMBRE_POINT;
 }
 
-const DonneesType &NoeudAccesMembrePoint::calcul_type(ContexteGenerationCode &contexte)
+void NoeudAccesMembrePoint::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
 	auto enfant1 = m_enfants.front();
 	auto enfant2 = m_enfants.back();
@@ -3260,5 +3273,7 @@ const DonneesType &NoeudAccesMembrePoint::calcul_type(ContexteGenerationCode &co
 
 	enfant2->module_appel = static_cast<int>(module_importe->id);
 
-	return m_enfants.back()->calcul_type(contexte);
+	enfant2->perfome_validation_semantique(contexte);
+
+	this->donnees_type = enfant2->donnees_type;
 }
