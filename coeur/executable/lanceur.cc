@@ -353,6 +353,8 @@ int main(int argc, char *argv[])
 	auto temps_generation_code = 0.0;
 	auto debut_nettoyage       = 0.0;
 	auto temps_nettoyage       = 0.0;
+	auto temps_fichier_objet   = 0.0;
+	auto temps_executable      = 0.0;
 	auto mem_morceaux          = 0ul;
 	auto mem_arbre             = 0ul;
 	auto mem_contexte          = 0ul;
@@ -459,11 +461,15 @@ int main(int argc, char *argv[])
 		/* définition du fichier de sortie */
 		if (ops.emet_fichier_objet) {
 			os << "Écriture du code dans un fichier..." << std::endl;
+			auto debut_fichier_objet = numero7::chronometrage::maintenant();
 			if (!ecris_fichier_objet(machine_cible.get(), module)) {
 				resultat = 1;
 			}
+			temps_fichier_objet = numero7::chronometrage::maintenant() - debut_fichier_objet;
 
+			auto debut_executable = numero7::chronometrage::maintenant();
 			cree_executable(ops.chemin_sortie);
+			temps_executable = numero7::chronometrage::maintenant() - debut_executable;
 		}
 
 		os << "Nettoyage..." << std::endl;
@@ -480,7 +486,9 @@ int main(int argc, char *argv[])
 							 + temps_analyse
 							 + temps_chargement;
 
-	const auto temps_coulisse = temps_generation_code;
+	const auto temps_coulisse = temps_generation_code
+								+ temps_fichier_objet
+								+ temps_executable;
 
 	const auto temps_total = temps_scene + temps_coulisse + temps_nettoyage;
 
@@ -531,6 +539,10 @@ int main(int argc, char *argv[])
 	   << " (" << calc_pourcentage(temps_coulisse, temps_total) << ")\n";
 	os << '\t' << "Temps génération code : " << temps_seconde(temps_generation_code)
 	   << " (" << calc_pourcentage(temps_generation_code, temps_coulisse) << ")\n";
+	os << '\t' << "Temps fichier objet   : " << temps_seconde(temps_fichier_objet)
+	   << " (" << calc_pourcentage(temps_fichier_objet, temps_coulisse) << ")\n";
+	os << '\t' << "Temps exécutable      : " << temps_seconde(temps_executable)
+	   << " (" << calc_pourcentage(temps_executable, temps_coulisse) << ")\n";
 
 	os << '\n';
 	os << "Temps Nettoyage : " << temps_seconde(temps_nettoyage)
