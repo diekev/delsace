@@ -24,7 +24,11 @@
 
 #include "test_modules.hh"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #include <llvm/IR/Module.h>
+#pragma GCC diagnostic pop
 
 #include <filesystem>
 

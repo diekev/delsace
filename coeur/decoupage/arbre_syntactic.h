@@ -149,24 +149,24 @@ enum class type_noeud : char {
  */
 class Noeud {
 protected:
-	std::list<Noeud *> m_enfants;
+	std::list<Noeud *> m_enfants{};
 
 	/* Il sera bien de stocker une référence ou un pointeur pour éviter de
 	 * copier les données trop de fois, mais nous construisons également des
 	 * données tamporaires (par exemple dans les expressions pré-calculées), ce
 	 * qui nous empêche l'utilisation de pointeurs. */
-	DonneesMorceaux m_donnees_morceaux;
+	DonneesMorceaux m_donnees_morceaux{};
 
 public:
-	std::any valeur_calculee;
+	std::any valeur_calculee{};
 
 	DonneesType donnees_type{};
 
 	bool calcule = false;
 	char est_variable = false;
 	bool est_externe = false;
-	char pad;
-	int module_appel; // module pour les appels de fonctions importées
+	char pad{};
+	int module_appel{}; // module pour les appels de fonctions importées
 
 	explicit Noeud(const DonneesMorceaux &morceau);
 

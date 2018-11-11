@@ -27,6 +27,10 @@
 #include <fstream>
 #include <iostream>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/FileSystem.h>
@@ -37,6 +41,7 @@
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
+#pragma GCC diagnostic pop
 
 #include "decoupage/analyseuse_grammaire.h"
 #include "decoupage/contexte_generation_code.h"

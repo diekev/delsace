@@ -24,7 +24,10 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <llvm/ADT/SmallVector.h>
+#pragma GCC diagnostic pop
 
 #include "morceaux.h"
 

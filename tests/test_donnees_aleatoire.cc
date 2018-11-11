@@ -22,7 +22,11 @@
  *
  */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #include <llvm/IR/Module.h>
+#pragma GCC diagnostic pop
 
 #include "analyseuse_grammaire.h"
 #include "contexte_generation_code.h"
@@ -154,7 +158,7 @@ void variable::visite(visiteur_arbre visiteur)
 }
 
 struct operation_unaire : public expression {
-	expression *droite;
+	expression *droite{};
 
 	virtual void visite(visiteur_arbre visiteur) override;
 };
@@ -169,8 +173,8 @@ void operation_unaire::visite(visiteur_arbre visiteur)
 }
 
 struct operation_binaire : public expression {
-	expression *gauche;
-	expression *droite;
+	expression *gauche{};
+	expression *droite{};
 
 	virtual void visite(visiteur_arbre visiteur) override;
 };
@@ -186,7 +190,7 @@ void operation_binaire::visite(visiteur_arbre visiteur)
 }
 
 struct parenthese : public expression {
-	expression *centre;
+	expression *centre{};
 
 	virtual void visite(visiteur_arbre visiteur) override;
 };
@@ -199,7 +203,7 @@ void parenthese::visite(visiteur_arbre visiteur)
 }
 
 struct appel_fonction : public expression {
-	std::vector<expression *> params;
+	std::vector<expression *> params{};
 
 	virtual void visite(visiteur_arbre visiteur) override;
 };
@@ -217,7 +221,7 @@ void appel_fonction::visite(visiteur_arbre visiteur)
 }
 
 struct acces_tableau : public expression {
-	expression *param;
+	expression *param{};
 
 	virtual void visite(visiteur_arbre visiteur) override;
 };

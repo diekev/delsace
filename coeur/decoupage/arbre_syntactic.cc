@@ -24,10 +24,14 @@
 
 #include "arbre_syntactic.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #include <llvm/IR/DataLayout.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
+#pragma GCC diagnostic pop
 
 #include <sstream>
 
@@ -445,7 +449,7 @@ static llvm::FunctionType *obtiens_type_fonction(
 /* ************************************************************************** */
 
 Noeud::Noeud(const DonneesMorceaux &morceau)
-	: m_donnees_morceaux(morceau)
+	: m_donnees_morceaux{morceau}
 {}
 
 void Noeud::reserve_enfants(size_t /*n*/)

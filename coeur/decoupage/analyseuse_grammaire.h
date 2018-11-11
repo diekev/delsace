@@ -55,6 +55,11 @@ class analyseuse_grammaire : public Analyseuse {
 public:
 	analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, assembleuse_arbre *assembleuse, DonneesModule *module);
 
+	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
+	 * module. */
+	analyseuse_grammaire(const analyseuse_grammaire &) = delete;
+	analyseuse_grammaire &operator=(const analyseuse_grammaire &) = delete;
+
 	void lance_analyse(std::ostream &os) override;
 
 private:

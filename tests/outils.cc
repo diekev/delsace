@@ -25,7 +25,12 @@
 #include "outils.h"
 
 #include <iostream>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #include <llvm/IR/Module.h>
+#pragma GCC diagnostic pop
 
 #include "analyseuse_grammaire.h"
 #include "contexte_generation_code.h"

@@ -43,9 +43,9 @@ class assembleuse_arbre {
 	std::stack<Noeud *> m_pile{};
 	std::vector<Noeud *> m_noeuds{};
 
-	std::list<NoeudOperationBinaire *> noeuds_op_libres;
-	std::list<NoeudNombreEntier *> noeuds_entier_libres;
-	std::list<NoeudNombreReel *> noeuds_reel_libres;
+	std::list<NoeudOperationBinaire *> noeuds_op_libres{};
+	std::list<NoeudNombreEntier *> noeuds_entier_libres{};
+	std::list<NoeudNombreReel *> noeuds_reel_libres{};
 
 	size_t m_memoire_utilisee = 0;
 

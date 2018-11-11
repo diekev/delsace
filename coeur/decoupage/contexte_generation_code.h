@@ -24,7 +24,11 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #include <llvm/IR/LLVMContext.h>
+#pragma GCC diagnostic pop
 
 #include <stack>
 #include <unordered_map>
@@ -69,7 +73,7 @@ struct DonneesArgument {
 struct DonneesFonction {
 	std::unordered_map<std::string_view, DonneesArgument> args{};
 	DonneesType donnees_type{};
-	std::vector<std::string_view> nom_args;
+	std::vector<std::string_view> nom_args{};
 	bool est_externe = false;
 	bool est_variadique = false;
 	char pad[6];
@@ -84,10 +88,10 @@ struct DonneesVariable {
 };
 
 struct DonneesStructure {
-	std::unordered_map<std::string_view, size_t> index_membres;
-	std::vector<DonneesType> donnees_types;
-	llvm::Type *type_llvm;
-	size_t id;
+	std::unordered_map<std::string_view, size_t> index_membres{};
+	std::vector<DonneesType> donnees_types{};
+	llvm::Type *type_llvm{nullptr};
+	size_t id{0ul};
 };
 
 struct ContexteGenerationCode {
@@ -102,6 +106,13 @@ struct ContexteGenerationCode {
 	ContexteGenerationCode() = default;
 
 	~ContexteGenerationCode();
+
+	/* ********************************************************************** */
+
+	/* Désactive la copie, car il ne peut y avoir qu'un seul contexte par
+	 * compilation. */
+	ContexteGenerationCode(const ContexteGenerationCode &) = delete;
+	ContexteGenerationCode &operator=(const ContexteGenerationCode &) = delete;
 
 	/* ********************************************************************** */
 
@@ -354,18 +365,18 @@ struct ContexteGenerationCode {
 
 private:
 	llvm::BasicBlock *m_bloc_courant = nullptr;
-	std::unordered_map<std::string_view, DonneesVariable> globales;
-	std::unordered_map<std::string_view, DonneesFonction> fonctions;
-	std::unordered_map<std::string_view, DonneesStructure> structures;
-	std::vector<std::string_view> nom_structures;
+	std::unordered_map<std::string_view, DonneesVariable> globales{};
+	std::unordered_map<std::string_view, DonneesFonction> fonctions{};
+	std::unordered_map<std::string_view, DonneesStructure> structures{};
+	std::vector<std::string_view> nom_structures{};
 
 	/* Utilisé au cas où nous ne pouvons trouver une variable locale ou globale. */
-	DonneesType m_donnees_type_invalide;
+	DonneesType m_donnees_type_invalide{};
 
-	std::vector<std::pair<std::string_view, DonneesVariable>> m_locales;
-	std::stack<size_t> m_pile_nombre_locales;
+	std::vector<std::pair<std::string_view, DonneesVariable>> m_locales{};
+	std::stack<size_t> m_pile_nombre_locales{};
 	size_t m_nombre_locales = 0;
 
-	std::stack<llvm::BasicBlock *> m_pile_continue;
-	std::stack<llvm::BasicBlock *> m_pile_arrete;
+	std::stack<llvm::BasicBlock *> m_pile_continue{};
+	std::stack<llvm::BasicBlock *> m_pile_arrete{};
 };
