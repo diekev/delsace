@@ -669,11 +669,9 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 	auto nom_fonction = std::string(m_donnees_morceaux.chaine);
 	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
 
-	auto fonction = contexte.module_llvm->getFunction(nom_broye);
-
-	if (fonction == nullptr) {
+	if (!module->possede_fonction(m_donnees_morceaux.chaine)) {
 		erreur::lance_erreur(
-					"NoeudAppelFonction::calcul_type : fonction inconnue",
+					"Fonction inconnue",
 					contexte,
 					m_donnees_morceaux,
 					erreur::type_erreur::FONCTION_INCONNUE);
@@ -681,7 +679,7 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 
 	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 
-	if (!fonction->isVarArg() && (m_enfants.size() != donnees_fonction.args.size())) {
+	if (!donnees_fonction.est_variadique && (m_enfants.size() != donnees_fonction.args.size())) {
 		erreur::lance_erreur_nombre_arguments(
 					donnees_fonction.args.size(),
 					m_enfants.size(),
@@ -690,7 +688,6 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 	}
 
 	if (this->donnees_type.est_invalide()) {
-		const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
 		this->donnees_type = donnees_fonction.donnees_type;
 	}
 
@@ -744,7 +741,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	/* broyage du nom */
 	auto nom_module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module))->nom;
 	auto nom_fonction = std::string(m_donnees_morceaux.chaine);
-	auto nom_broye = (!this->est_externe && nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
+	auto nom_broye = (this->est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
 
 	/* Crée fonction */
 	auto fonction = llvm::Function::Create(

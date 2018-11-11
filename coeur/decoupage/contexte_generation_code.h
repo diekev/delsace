@@ -71,7 +71,8 @@ struct DonneesFonction {
 	DonneesType donnees_type{};
 	std::vector<std::string_view> nom_args;
 	bool est_externe = false;
-	char pad[7];
+	bool est_variadique = false;
+	char pad[6];
 };
 
 struct DonneesVariable {

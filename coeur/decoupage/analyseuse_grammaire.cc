@@ -402,6 +402,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 
 	donnees.args.insert({nom_parametre, donnees_arg});
 	donnees.nom_args.push_back(nom_parametre);
+	donnees.est_variadique = noeud->est_variable;
 
 	/* fin des paramètres */
 	if (!requiers_identifiant(id_morceau::VIRGULE)) {
