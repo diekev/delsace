@@ -24,7 +24,7 @@
 
 #include <iostream>
 
-#include <test_unitaire/test_aleatoire.hh>
+#include "../tests/test_aleatoire.hh"
 
 #include "../base64/base64.hh"
 #include "../réseau/uri.hh"
@@ -64,7 +64,7 @@ int test_aleatoire_sha256(const u_char *donnees, size_t taille)
 
 int main()
 {
-	numero7::test_aleatoire::Testeur testeur;
+	dls::test_aleatoire::Testeuse testeur;
 	testeur.ajoute_tests("uri", nullptr, test_aleatoire_uri);
 	testeur.ajoute_tests("base64_encode", nullptr, test_aleatoire_base64_encode);
 	testeur.ajoute_tests("base64_decode", nullptr, test_aleatoire_base64_decode);

@@ -19,19 +19,20 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE tests)
+set(NOM_BIBLIOTHEQUE chrono)
 
 set(ENTETES
-	test_aleatoire.hh
-	test_unitaire.hh
+	chronometrage.hh
+	chronometre_de_portee.hh
+	pointeur_chronometre.hh
+	outils.hh
 )
 
 set(SOURCES
-	test_unitaire.cc
-	test_aleatoire.cc
+	main.cc
 )
 
-add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+add_library(${NOM_BIBLIOTHEQUE} STATIC main.cc ${ENTETES})
 
 install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})

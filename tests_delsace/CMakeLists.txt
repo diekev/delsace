@@ -14,24 +14,52 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2017 Kévin Dietrich.
+# The Original Code is Copyright (C) 2018 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE tests)
+set(NOM_PROJET tests_unitaire_delsace)
 
-set(ENTETES
-	test_aleatoire.hh
-	test_unitaire.hh
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+set(BIBLIOTHEQUES
+	tests
+	base64
+	reseau
+	sha256
 )
 
 set(SOURCES
-	test_unitaire.cc
-	test_aleatoire.cc
+	tests.cc
+	test_uri.cc
+
+	test_uri.hh
 )
 
-add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+add_executable(${NOM_PROJET} ${SOURCES})
 
-install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+
+add_test(tests ${NOM_PROJET})
+
+install(TARGETS ${NOM_PROJET} RUNTIME DESTINATION .)
+
+set(NOM_PROJET tests_aleatoire_delsace)
+
+set(SOURCES
+	tests_aleatoire.cc
+)
+
+add_executable(${NOM_PROJET} ${SOURCES})
+
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+
+
+add_test(tests ${NOM_PROJET})
+
+install(TARGETS ${NOM_PROJET} RUNTIME DESTINATION .)

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2017 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,6 +24,39 @@
 
 #pragma once
 
-#include <test_unitaire/test_unitaire.h>
+#include "outils.hh"
 
-void test_uri(numero7::test_unitaire::ControleurUnitaire &controleur);
+#include <iostream>
+
+namespace dls {
+namespace chronometrage {
+
+/**
+ * Cette classe sert à chronométrer sa propre durée de vie, et ainsi l'étendue
+ * du cadre dans lequel une de ses instance vit.
+ */
+class chronometre_de_portee {
+	double m_debut = 0.0;
+	std::string m_message = {};
+	std::ostream &m_flux;
+
+public:
+	explicit chronometre_de_portee(
+			const std::string &message,
+			std::ostream &flux = std::cerr)
+		: m_debut(maintenant())
+		, m_message(message)
+		, m_flux(flux)
+	{}
+
+	~chronometre_de_portee()
+	{
+		m_flux << m_message << " : " << (maintenant() - m_debut) << '\n';
+	}
+};
+
+#define CHRONOMETRE_PORTEE(message, flux) \
+	dls::chronometrage::chronometre_de_portee chrono_portee(message, flux);
+
+}  /* namespace chronometrage */
+}  /* namespace dls */

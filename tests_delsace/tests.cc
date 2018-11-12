@@ -26,10 +26,10 @@
 
 int main()
 {
-	numero7::test_unitaire::ControleurUnitaire controleur;
-	controleur.ajoute_fonction(test_uri);
+	dls::test_unitaire::Controleuse controleuse;
+	controleuse.ajoute_fonction(test_uri);
 
-	controleur.performe_controles();
+	controleuse.performe_controles();
 
-	controleur.imprime_resultat();
+	controleuse.imprime_resultat();
 }
