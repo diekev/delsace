@@ -397,11 +397,11 @@ int main(int argc, char *argv[])
 
 		auto CPU = "generic";
 		auto feature = "";
-		auto options = llvm::TargetOptions{};
+		auto options_cible = llvm::TargetOptions{};
 		auto RM = llvm::Optional<llvm::Reloc::Model>();
 		auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
 								 cible->createTargetMachine(
-									 triplet_cible, CPU, feature, options, RM));
+									 triplet_cible, CPU, feature, options_cible, RM));
 
 		auto module = llvm::Module(nom_module.c_str(), contexte_generation.contexte);
 		module.setDataLayout(machine_cible->createDataLayout());

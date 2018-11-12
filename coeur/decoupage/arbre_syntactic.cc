@@ -2239,13 +2239,13 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, con
 
 		for (const auto &arg : donnees_fonction.args) {
 			if (arg.second.est_variadic) {
-				auto valeur = contexte.valeur_locale(arg.first);
+				auto valeur_varg = contexte.valeur_locale(arg.first);
 
-				assert(valeur != nullptr);
+				assert(valeur_varg != nullptr);
 
 				auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vaend);
 
-				llvm::CallInst::Create(fonc, valeur, "", contexte.bloc_courant());
+				llvm::CallInst::Create(fonc, valeur_varg, "", contexte.bloc_courant());
 				break;
 			}
 		}
