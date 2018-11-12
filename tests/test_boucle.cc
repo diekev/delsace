@@ -188,6 +188,98 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Il est possible d'associer la variable d'une boucle 'pour' à un contrôle 'arrête' ou 'continue'");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					pour i dans 0 ... 10 {
+						arrête i;
+					}
+					pour i dans 0 ... 10 {
+						continue i;
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Une boucle 'boucle' ne peut avoir une variable associée au contrôle 'arrête' ou 'continue'");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					boucle {
+						continue a;
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"La variable d'un contrôle 'arrête' ou 'continue' doit être connue");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					pour i dans 0 ... 10 {
+						arrête j;
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"La variable d'un contrôle 'arrête' ou 'continue' doit être celle d'une boucle");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					soit a = 5;
+
+					pour i dans 0 ... 10 {
+						arrête a;
+					}
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
 	CU_DEBUTE_PROPOSITION(controleuse, "Le mot clé 'continue' ne peut apparaître hors d'une boucle");
 	{
 		const char *texte =

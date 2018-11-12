@@ -693,6 +693,13 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		else if (est_identifiant(id_morceau::ARRETE) || est_identifiant(id_morceau::CONTINUE)) {
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, m_identifiants[position()]);
+
+			if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
+				avance();
+				m_assembleuse->empile_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
+				m_assembleuse->depile_noeud(type_noeud::VARIABLE);
+			}
+
 			m_assembleuse->depile_noeud(type_noeud::CONTINUE_ARRETE);
 
 			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {

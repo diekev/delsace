@@ -70,7 +70,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 	}
 	catch (const erreur::frappe &e) {
 		if (imprime_message) {
-			std::cerr << e.message() << '\n';
+			std::cerr << e.message() << static_cast<int>( e.type()) << ' ' << static_cast<int>(type) << '\n';
 		}
 
 		erreur_lancee = true;

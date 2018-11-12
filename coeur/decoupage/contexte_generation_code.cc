@@ -85,34 +85,62 @@ void ContexteGenerationCode::bloc_courant(llvm::BasicBlock *bloc)
 	m_bloc_courant = bloc;
 }
 
-void ContexteGenerationCode::empile_bloc_continue(llvm::BasicBlock *bloc)
+void ContexteGenerationCode::empile_bloc_continue(std::string_view chaine, llvm::BasicBlock *bloc)
 {
-	m_pile_continue.push(bloc);
+	m_pile_continue.push_back({chaine, bloc});
 }
 
 void ContexteGenerationCode::depile_bloc_continue()
 {
-	m_pile_continue.pop();
+	m_pile_continue.pop_back();
 }
 
-llvm::BasicBlock *ContexteGenerationCode::bloc_continue()
+llvm::BasicBlock *ContexteGenerationCode::bloc_continue(std::string_view chaine)
 {
-	return m_pile_continue.empty() ? nullptr : m_pile_continue.top();
+	if (m_pile_continue.empty()) {
+		return nullptr;
+	}
+
+	if (chaine.empty()) {
+		return m_pile_continue.back().second;
+	}
+
+	for (const auto &paire : m_pile_continue) {
+		if (paire.first == chaine) {
+			return paire.second;
+		}
+	}
+
+	return nullptr;
 }
 
-void ContexteGenerationCode::empile_bloc_arrete(llvm::BasicBlock *bloc)
+void ContexteGenerationCode::empile_bloc_arrete(std::string_view chaine, llvm::BasicBlock *bloc)
 {
-	m_pile_arrete.push(bloc);
+	m_pile_arrete.push_back({chaine, bloc});
 }
 
 void ContexteGenerationCode::depile_bloc_arrete()
 {
-	m_pile_arrete.pop();
+	m_pile_arrete.pop_back();
 }
 
-llvm::BasicBlock *ContexteGenerationCode::bloc_arrete()
+llvm::BasicBlock *ContexteGenerationCode::bloc_arrete(std::string_view chaine)
 {
-	return m_pile_arrete.empty() ? nullptr : m_pile_arrete.top();
+	if (m_pile_arrete.empty()) {
+		return nullptr;
+	}
+
+	if (chaine.empty()) {
+		return m_pile_arrete.back().second;
+	}
+
+	for (const auto &paire : m_pile_arrete) {
+		if (paire.first == chaine) {
+			return paire.second;
+		}
+	}
+
+	return nullptr;
 }
 
 void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)

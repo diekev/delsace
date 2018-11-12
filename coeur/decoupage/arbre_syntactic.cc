@@ -2602,8 +2602,8 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	auto bloc_apres = cree_bloc(contexte, "apres_boucle");
 
-	contexte.empile_bloc_continue(bloc_inc);
-	contexte.empile_bloc_arrete((bloc_sinon != nullptr) ? bloc_sinon : bloc_apres);
+	contexte.empile_bloc_continue(enfant1->chaine(), bloc_inc);
+	contexte.empile_bloc_arrete(enfant1->chaine(), (bloc_sinon != nullptr) ? bloc_sinon : bloc_apres);
 
 	auto bloc_pre = contexte.bloc_courant();
 
@@ -2824,16 +2824,27 @@ void NoeudContArr::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
+	auto chaine_var = m_enfants.empty() ? std::string_view{""} : m_enfants.front()->chaine();
+
 	auto bloc = (m_donnees_morceaux.identifiant == id_morceau::CONTINUE)
-				? contexte.bloc_continue()
-				: contexte.bloc_arrete();
+				? contexte.bloc_continue(chaine_var)
+				: contexte.bloc_arrete(chaine_var);
 
 	if (bloc == nullptr) {
-		erreur::lance_erreur(
-					"'continue' ou 'arrête' en dehors d'une boucle",
-					contexte,
-					m_donnees_morceaux,
-					erreur::type_erreur::CONTROLE_INVALIDE);
+		if (chaine_var.empty()) {
+			erreur::lance_erreur(
+						"'continue' ou 'arrête' en dehors d'une boucle",
+						contexte,
+						m_donnees_morceaux,
+						erreur::type_erreur::CONTROLE_INVALIDE);
+		}
+		else {
+			erreur::lance_erreur(
+						"Variable inconnue",
+						contexte,
+						m_enfants.front()->donnees_morceau(),
+						erreur::type_erreur::VARIABLE_INCONNUE);
+		}
 	}
 
 	return llvm::BranchInst::Create(bloc, contexte.bloc_courant());
@@ -2879,8 +2890,8 @@ llvm::Value *NoeudBoucle::genere_code_llvm(
 	auto bloc_sinon = (enfant2 != nullptr) ? cree_bloc(contexte, "sinon_boucle") : nullptr;
 	auto bloc_apres = cree_bloc(contexte, "apres_boucle");
 
-	contexte.empile_bloc_continue(bloc_boucle);
-	contexte.empile_bloc_arrete((enfant2 != nullptr) ? bloc_sinon : bloc_apres);
+	contexte.empile_bloc_continue("", bloc_boucle);
+	contexte.empile_bloc_arrete("", (enfant2 != nullptr) ? bloc_sinon : bloc_apres);
 
 	/* on crée une branche explicite dans le bloc */
 	llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());

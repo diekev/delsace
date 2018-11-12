@@ -156,7 +156,7 @@ struct ContexteGenerationCode {
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
 	 */
-	void empile_bloc_continue(llvm::BasicBlock *bloc);
+	void empile_bloc_continue(std::string_view chaine, llvm::BasicBlock *bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
@@ -167,12 +167,12 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	llvm::BasicBlock *bloc_continue();
+	llvm::BasicBlock *bloc_continue(std::string_view chaine);
 
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
 	 */
-	void empile_bloc_arrete(llvm::BasicBlock *bloc);
+	void empile_bloc_arrete(std::string_view chaine, llvm::BasicBlock *bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
@@ -183,7 +183,7 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	llvm::BasicBlock *bloc_arrete();
+	llvm::BasicBlock *bloc_arrete(std::string_view chaine);
 
 	/* ********************************************************************** */
 
@@ -377,6 +377,8 @@ private:
 	std::stack<size_t> m_pile_nombre_locales{};
 	size_t m_nombre_locales = 0;
 
-	std::stack<llvm::BasicBlock *> m_pile_continue{};
-	std::stack<llvm::BasicBlock *> m_pile_arrete{};
+	using paire_bloc = std::pair<std::string_view, llvm::BasicBlock *>;
+
+	std::vector<paire_bloc> m_pile_continue{};
+	std::vector<paire_bloc> m_pile_arrete{};
 };
