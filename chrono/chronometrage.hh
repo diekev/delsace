@@ -31,7 +31,7 @@
 #include <utility>  /* pour std::forward */
 
 namespace dls {
-namespace chronometrage {
+namespace chrono {
 
 namespace __privee {
 
@@ -184,5 +184,5 @@ double chronometre_boucle_epoque(
 	return (temps_fonction_min - temps_iterations_min);
 }
 
-}  /* namespace chronometrage */
+}  /* namespace chrono */
 }  /* namespace dls */

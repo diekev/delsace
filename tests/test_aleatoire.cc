@@ -30,7 +30,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "../chrono/chronometrage.hh"
+#include "../chrono/outils.hh"
 
 namespace dls {
 namespace test_aleatoire {
@@ -80,7 +80,7 @@ int Testeuse::performe_tests(std::ostream &os)
 				return foncs.entree_test(tampon, taille);
 			}
 			else if (pid > 0) {
-				auto debut = chronometrage::maintenant();
+				auto debut = chrono::maintenant();
 
 				while (true) {
 					int status;
@@ -106,7 +106,7 @@ int Testeuse::performe_tests(std::ostream &os)
 						break;
 					}
 
-					auto temps = chronometrage::maintenant() - debut;
+					auto temps = chrono::maintenant() - debut;
 
 					if (temps > 25.0) {
 						auto chemin_test = chemin + foncs.nom + "_boucle_infini" + std::to_string(n) + ".bin";

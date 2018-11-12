@@ -29,7 +29,7 @@
 #include <iostream>
 
 namespace dls {
-namespace chronometrage {
+namespace chrono {
 
 /**
  * Cette classe sert à chronométrer sa propre durée de vie, et ainsi l'étendue
@@ -56,7 +56,7 @@ public:
 };
 
 #define CHRONOMETRE_PORTEE(message, flux) \
-	dls::chronometrage::chronometre_de_portee chrono_portee(message, flux);
+	dls::chrono::chronometre_de_portee chrono_portee(message, flux);
 
-}  /* namespace chronometrage */
+}  /* namespace chrono */
 }  /* namespace dls */

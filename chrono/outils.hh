@@ -27,7 +27,7 @@
 #include <sys/time.h>
 
 namespace dls {
-namespace chronometrage {
+namespace chrono {
 
 /**
  * Retourne le temps courrant en seconde.
@@ -40,5 +40,5 @@ inline double maintenant()
 	return now.tv_sec + now.tv_usec * 1e-6;
 }
 
-}  /* namespace chronometrage */
+}  /* namespace chrono */
 }  /* namespace dls */

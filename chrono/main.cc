@@ -54,7 +54,7 @@ static void test_pointeur_chrono(std::ostream &os)
 
 	Dormeur dormeur;
 
-	dls::chronometrage::pointeur_chronometre<Dormeur> chrono_dormeur(&dormeur, os);
+	dls::chrono::pointeur_chronometre<Dormeur> chrono_dormeur(&dormeur, os);
 
 	IMPRIME_PUIS_EXECUTE(os, chrono_dormeur->dors_trois_secondes());
 	IMPRIME_PUIS_EXECUTE(os, chrono_dormeur->dors_une_seconde());
@@ -64,7 +64,7 @@ static void test_pointeur_chrono(std::ostream &os)
 
 static void test_char_vers_int(std::ostream &os, const char *nombre)
 {
-	using namespace dls::chronometrage;
+	using namespace dls::chrono;
 
 	auto char_vers_int = [=]()
 	{
@@ -173,7 +173,7 @@ static uint32_t nombre_chiffre_base_10_pro(uint64_t v)
 
 static void test_compte_chiffre(std::ostream &os, uint64_t nombre)
 {
-	using namespace dls::chronometrage;
+	using namespace dls::chrono;
 
 	os << "Temps d'exécution : "
 	   << chronometre_boucle_epoque(1000000, 1000, false, nombre_chiffre_base_10, nombre)
@@ -192,7 +192,7 @@ static void test_compte_chiffre(std::ostream &os, uint64_t nombre)
 
 static void test_nombre_vers_ascii(std::ostream &os, uint64_t nombre)
 {
-	using namespace dls::chronometrage;
+	using namespace dls::chrono;
 
 	char tampon[32] = { 0 };
 

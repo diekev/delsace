@@ -29,7 +29,7 @@
 #include <iostream>
 
 namespace dls {
-namespace chronometrage {
+namespace chrono {
 
 /**
  * Cette classe sert à chronométrer les méthodes d'un objet à chaque fois que
@@ -140,5 +140,5 @@ public:
 	flux << #x" : "; \
 	x;
 
-}  /* namespace chronometrage */
+}  /* namespace chrono */
 }  /* namespace dls */
