@@ -39,7 +39,7 @@
 #include <iostream>
 #include <random>
 
-#include <test_unitaire/test_aleatoire.hh>
+#include <tests/test_aleatoire.hh>
 
 namespace test_decoupage {
 
@@ -503,10 +503,10 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 int main()
 {
-	numero7::test_aleatoire::Testeur testeur;
-	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon, test_analyse::test_entree_aleatoire);
-	testeur.ajoute_tests("analyse", test_analyse::rempli_tampon_aleatoire, test_analyse::test_entree_aleatoire);
-	testeur.ajoute_tests("decoupage", nullptr, test_decoupage::test_entree_aleatoire);
+	dls::test_aleatoire::Testeuse testeuse;
+	testeuse.ajoute_tests("analyse", test_analyse::rempli_tampon, test_analyse::test_entree_aleatoire);
+	testeuse.ajoute_tests("analyse", test_analyse::rempli_tampon_aleatoire, test_analyse::test_entree_aleatoire);
+	testeuse.ajoute_tests("decoupage", nullptr, test_decoupage::test_entree_aleatoire);
 
-	return testeur.performe_tests(std::cerr);
+	return testeuse.performe_tests(std::cerr);
 }

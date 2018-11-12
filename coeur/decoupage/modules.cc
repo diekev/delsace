@@ -29,7 +29,7 @@
 #include <iostream>
 #include <string>
 
-#include <chronometrage/chronometre_de_portee.h>
+#include <chrono/outils.hh>
 
 #include "analyseuse_grammaire.h"
 #include "assembleuse_arbre.h"
@@ -125,18 +125,18 @@ void charge_module(
 	/* Le module racine n'a pas de nom, afin que les noms de ses fonctions ne
 	 * soient pas broyés. */
 	auto module = contexte.cree_module(est_racine ? "" : nom);
-	auto debut_chargement = numero7::chronometrage::maintenant();
+	auto debut_chargement = dls::chrono::maintenant();
 	auto tampon = charge_fichier(chemin, contexte, morceau);
-	module->temps_chargement = numero7::chronometrage::maintenant() - debut_chargement;
+	module->temps_chargement = dls::chrono::maintenant() - debut_chargement;
 
-	auto debut_tampon = numero7::chronometrage::maintenant();
+	auto debut_tampon = dls::chrono::maintenant();
 	module->tampon = TamponSource(tampon);
-	module->temps_tampon = numero7::chronometrage::maintenant() - debut_tampon;
+	module->temps_tampon = dls::chrono::maintenant() - debut_tampon;
 
 	auto decoupeuse = decoupeuse_texte(module);
-	auto debut_decoupage = numero7::chronometrage::maintenant();
+	auto debut_decoupage = dls::chrono::maintenant();
 	decoupeuse.genere_morceaux();
-	module->temps_decoupage = numero7::chronometrage::maintenant() - debut_decoupage;
+	module->temps_decoupage = dls::chrono::maintenant() - debut_decoupage;
 
 	auto analyseuse = analyseuse_grammaire(
 						  contexte,
@@ -144,7 +144,7 @@ void charge_module(
 						  contexte.assembleuse,
 						  module);
 
-	auto debut_analyse = numero7::chronometrage::maintenant();
+	auto debut_analyse = dls::chrono::maintenant();
 	analyseuse.lance_analyse(os);
-	module->temps_analyse = numero7::chronometrage::maintenant() - debut_analyse;
+	module->temps_analyse = dls::chrono::maintenant() - debut_analyse;
 }

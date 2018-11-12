@@ -27,10 +27,10 @@
 #include "erreur.h"
 #include "outils.h"
 
-static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"La plage d'une boucle 'pour' avec des types entiers identiques est correcte");
 	{
 		const char *texte =
@@ -45,12 +45,12 @@ static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controle
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"La plage d'une boucle 'pour' doit avoir des types identiques");
 	{
 		const char *texte =
@@ -65,13 +65,13 @@ static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controle
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"La plage d'une boucle 'pour' peut avoir des types réguliers");
 	{
 		const char *texte =
@@ -90,12 +90,12 @@ static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controle
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"La plage d'une boucle 'pour' ne peut être de type booléenne");
 	{
 		const char *texte =
@@ -114,13 +114,13 @@ static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controle
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"La plage d'une boucle 'pour' ne peut avoir des types définis par l'utilisateur");
 	{
 		const char *texte =
@@ -142,15 +142,15 @@ static void test_plage_pour(numero7::test_unitaire::ControleurUnitaire &controle
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 {
-	CU_DEBUTE_PROPOSITION(controleur, "Le mot clé 'continue' peut apparaître dans une boucle");
+	CU_DEBUTE_PROPOSITION(controleuse, "Le mot clé 'continue' peut apparaître dans une boucle");
 	{
 		const char *texte =
 				R"(
@@ -165,11 +165,11 @@ static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &con
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
-	CU_DEBUTE_PROPOSITION(controleur, "Le mot clé 'arrête' peut apparaître dans une boucle");
+	CU_DEBUTE_PROPOSITION(controleuse, "Le mot clé 'arrête' peut apparaître dans une boucle");
 	{
 		const char *texte =
 				R"(
@@ -184,11 +184,11 @@ static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &con
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
-	CU_DEBUTE_PROPOSITION(controleur, "Le mot clé 'continue' ne peut apparaître hors d'une boucle");
+	CU_DEBUTE_PROPOSITION(controleuse, "Le mot clé 'continue' ne peut apparaître hors d'une boucle");
 	{
 		const char *texte =
 				R"(
@@ -201,12 +201,12 @@ static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &con
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::CONTROLE_INVALIDE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
-	CU_DEBUTE_PROPOSITION(controleur, "Le mot clé 'arrête' ne peut apparaître hors d'une boucle");
+	CU_DEBUTE_PROPOSITION(controleuse, "Le mot clé 'arrête' ne peut apparaître hors d'une boucle");
 	{
 		const char *texte =
 				R"(
@@ -219,13 +219,13 @@ static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &con
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::CONTROLE_INVALIDE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut avoir des contrôles de flux dans des boucles 'pour' sans problème");
 	{
 		const char *texte =
@@ -257,12 +257,12 @@ static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &con
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::CONTROLE_INVALIDE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut avoir des contrôles de flux dans des boucles 'boucle' sans problème");
 	{
 		const char *texte =
@@ -298,13 +298,13 @@ static void test_continue_arrete(numero7::test_unitaire::ControleurUnitaire &con
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::CONTROLE_INVALIDE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-void test_boucle(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_boucle(dls::test_unitaire::Controleuse &controleuse)
 {
-	test_plage_pour(controleur);
-	test_continue_arrete(controleur);
+	test_plage_pour(controleuse);
+	test_continue_arrete(controleuse);
 }

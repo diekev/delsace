@@ -38,22 +38,22 @@
 
 int main()
 {
-	numero7::test_unitaire::ControleurUnitaire controleur;
-	controleur.ajoute_fonction(test_decoupage);
-	controleur.ajoute_fonction(test_decoupage_nombres);
-	controleur.ajoute_fonction(test_unicode);
-	controleur.ajoute_fonction(test_expression);
-	controleur.ajoute_fonction(test_fonctions);
-	controleur.ajoute_fonction(test_types);
-	controleur.ajoute_fonction(test_variables);
-	controleur.ajoute_fonction(test_structures);
-	controleur.ajoute_fonction(test_assignation);
-	controleur.ajoute_fonction(test_retour);
-	controleur.ajoute_fonction(test_boucle);
-	controleur.ajoute_fonction(test_transtype);
-	controleur.ajoute_fonction(test_modules);
+	dls::test_unitaire::Controleuse controleuse;
+	controleuse.ajoute_fonction(test_decoupage);
+	controleuse.ajoute_fonction(test_decoupage_nombres);
+	controleuse.ajoute_fonction(test_unicode);
+	controleuse.ajoute_fonction(test_expression);
+	controleuse.ajoute_fonction(test_fonctions);
+	controleuse.ajoute_fonction(test_types);
+	controleuse.ajoute_fonction(test_variables);
+	controleuse.ajoute_fonction(test_structures);
+	controleuse.ajoute_fonction(test_assignation);
+	controleuse.ajoute_fonction(test_retour);
+	controleuse.ajoute_fonction(test_boucle);
+	controleuse.ajoute_fonction(test_transtype);
+	controleuse.ajoute_fonction(test_modules);
 
-	controleur.performe_controles();
+	controleuse.performe_controles();
 
-	controleur.imprime_resultat();
+	controleuse.imprime_resultat();
 }

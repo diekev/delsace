@@ -27,9 +27,9 @@
 #include "erreur.h"
 #include "outils.h"
 
-static void test_expression_flux_si(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_expression_flux_si(dls::test_unitaire::Controleuse &controleuse)
 {
-	CU_DEBUTE_PROPOSITION(controleur, "L'expression d'un contrôle 'si' doit être booléenne.");
+	CU_DEBUTE_PROPOSITION(controleuse, "L'expression d'un contrôle 'si' doit être booléenne.");
 	{
 		const char *texte =
 	R"(fonction foo() : rien
@@ -42,11 +42,11 @@ static void test_expression_flux_si(numero7::test_unitaire::ControleurUnitaire &
 	)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
-	CU_DEBUTE_PROPOSITION(controleur, "L'expression d'un contrôle 'si' ne peut être d'un autre type que booléen.");
+	CU_DEBUTE_PROPOSITION(controleuse, "L'expression d'un contrôle 'si' ne peut être d'un autre type que booléen.");
 	{
 		const char *texte =
 	R"(fonction foo() : rien
@@ -59,13 +59,13 @@ static void test_expression_flux_si(numero7::test_unitaire::ControleurUnitaire &
 	)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_expression_general(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_expression_general(dls::test_unitaire::Controleuse &controleuse)
 {
 	const char *texte =
 R"(fonction foo() : rien
@@ -102,16 +102,16 @@ R"(fonction foo() : rien
 	{
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	{
 		/* Passage du test avec la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, true);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 }
 
-static void test_expression_constante_reelle(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &controleuse)
 {
 	/* comparaison réussie */
 	{
@@ -129,7 +129,7 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	/* comparaison échouée */
 	{
@@ -142,8 +142,8 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
 	/* comparaison échouée */
 	{
@@ -156,8 +156,8 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
 	/* arithmétique réussie */
 	{
@@ -173,7 +173,7 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	/* arithmétique échouée */
 	{
@@ -186,8 +186,8 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
 	/* binaire échouée */
 	{
@@ -200,12 +200,12 @@ static void test_expression_constante_reelle(numero7::test_unitaire::ControleurU
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
 }
 
-static void test_expression_constante_entiere(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_expression_constante_entiere(dls::test_unitaire::Controleuse &controleuse)
 {
 	/* comparaison réussie */
 	{
@@ -223,7 +223,7 @@ static void test_expression_constante_entiere(numero7::test_unitaire::Controleur
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	/* arithmétique réussie */
 	{
@@ -245,7 +245,7 @@ static void test_expression_constante_entiere(numero7::test_unitaire::Controleur
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	/* binaire réussie */
 	{
@@ -259,14 +259,14 @@ static void test_expression_constante_entiere(numero7::test_unitaire::Controleur
 
 		/* Passage du test sans la génération du code. */
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 }
 
-void test_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_expression(dls::test_unitaire::Controleuse &controleuse)
 {
-	test_expression_general(controleur);
-	test_expression_constante_reelle(controleur);
-	test_expression_constante_entiere(controleur);
-	test_expression_flux_si(controleur);
+	test_expression_general(controleuse);
+	test_expression_constante_reelle(controleuse);
+	test_expression_constante_entiere(controleuse);
+	test_expression_flux_si(controleuse);
 }

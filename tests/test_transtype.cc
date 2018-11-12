@@ -27,10 +27,10 @@
 #include "erreur.h"
 #include "outils.h"
 
-static void test_transtype_litterales(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_transtype_litterales(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les nombres littéraux entiers peuvent être convertis en types relatifs.");
 	{
 		const char *texte =
@@ -47,12 +47,12 @@ static void test_transtype_litterales(numero7::test_unitaire::ControleurUnitaire
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les nombres littéraux entiers peuvent être convertis en types naturels.");
 	{
 		const char *texte =
@@ -69,12 +69,12 @@ static void test_transtype_litterales(numero7::test_unitaire::ControleurUnitaire
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les nombres littéraux entiers ne peuvent pas être convertis en types réels.");
 	{
 		const char *texte =
@@ -90,13 +90,13 @@ static void test_transtype_litterales(numero7::test_unitaire::ControleurUnitaire
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les nombres littéraux réels peuvent être convertis en types réels.");
 	{
 		const char *texte =
@@ -112,12 +112,12 @@ static void test_transtype_litterales(numero7::test_unitaire::ControleurUnitaire
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les nombres littéraux réels ne peuvent pas être convertis en types relatifs.");
 	{
 		const char *texte =
@@ -134,13 +134,13 @@ static void test_transtype_litterales(numero7::test_unitaire::ControleurUnitaire
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les nombres littéraux réels ne peuvent pas être convertis en types naturels.");
 	{
 		const char *texte =
@@ -157,15 +157,15 @@ static void test_transtype_litterales(numero7::test_unitaire::ControleurUnitaire
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_transtype_variable(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse)
 {
-	CU_DEBUTE_PROPOSITION(controleur,
+	CU_DEBUTE_PROPOSITION(controleuse,
 						  "On peut transtyper entre types entiers relatif et naturel");
 	{
 		const char *texte =
@@ -180,11 +180,11 @@ static void test_transtype_variable(numero7::test_unitaire::ControleurUnitaire &
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
-	CU_DEBUTE_PROPOSITION(controleur,
+	CU_DEBUTE_PROPOSITION(controleuse,
 						  "On peut transtyper entre types entiers de tailles binaires différentes");
 	{
 		const char *texte =
@@ -199,12 +199,12 @@ static void test_transtype_variable(numero7::test_unitaire::ControleurUnitaire &
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut transtyper entre types entiers naturel et relatif de"
 				" tailles binaires différentes");
 	{
@@ -220,11 +220,11 @@ static void test_transtype_variable(numero7::test_unitaire::ControleurUnitaire &
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
-	CU_DEBUTE_PROPOSITION(controleur,
+	CU_DEBUTE_PROPOSITION(controleuse,
 						  "On peut transtyper entre types entiers et réels");
 	{
 		const char *texte =
@@ -240,12 +240,12 @@ static void test_transtype_variable(numero7::test_unitaire::ControleurUnitaire &
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut transtyper entre types entiers et réels de tailles"
 				" binaires différentes");
 	{
@@ -262,15 +262,15 @@ static void test_transtype_variable(numero7::test_unitaire::ControleurUnitaire &
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_transtype_expression(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_transtype_expression(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut transtyper le résultat des expressions");
 	{
 		const char *texte =
@@ -286,14 +286,14 @@ static void test_transtype_expression(numero7::test_unitaire::ControleurUnitaire
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-void test_transtype(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_transtype(dls::test_unitaire::Controleuse &controleuse)
 {
-	test_transtype_litterales(controleur);
-	test_transtype_variable(controleur);
-	test_transtype_expression(controleur);
+	test_transtype_litterales(controleuse);
+	test_transtype_variable(controleuse);
+	test_transtype_expression(controleuse);
 }

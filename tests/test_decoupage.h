@@ -24,6 +24,6 @@
 
 #pragma once
 
-#include <test_unitaire/test_unitaire.h>
+#include <tests/test_unitaire.hh>
 
-void test_decoupage(numero7::test_unitaire::ControleurUnitaire &controleur);
+void test_decoupage(dls::test_unitaire::Controleuse &controleuse);

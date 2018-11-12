@@ -28,10 +28,10 @@
 
 #include "outils.h"
 
-static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_structure_redefinie(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une structure doit avoir un nom unique.");
 	{
 		const char *texte =
@@ -48,12 +48,12 @@ static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire 
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une structure ne peut avoir le nom d'une autre structure.");
 	{
 		const char *texte =
@@ -70,16 +70,16 @@ static void test_structure_redefinie(numero7::test_unitaire::ControleurUnitaire 
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_structure_inconnue(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une structure peut avoir une autre structure comme membre.");
 	{
 		const char *texte =
@@ -95,12 +95,12 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une structure ne peut avoir une structure inconnue comme membre.");
 	{
 		const char *texte =
@@ -112,13 +112,13 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction ne peut avoir une structure inconnue comme argument.");
 	{
 		const char *texte =
@@ -129,16 +129,16 @@ static void test_structure_inconnue(numero7::test_unitaire::ControleurUnitaire &
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::STRUCTURE_INCONNUE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_acces_membre(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut accèder qu'aux membres connus des structures.");
 	{
 		const char *texte =
@@ -154,12 +154,12 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_INCONNU);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut pas accèder aux membres inconnus des structures.");
 	{
 		const char *texte =
@@ -175,13 +175,13 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_INCONNU);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut pas accèder aux membres d'une variable inconnue.");
 	{
 		const char *texte =
@@ -197,13 +197,13 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut pas accèder aux membres d'une variable qui n'est pas une structure.");
 	{
 		const char *texte =
@@ -218,16 +218,16 @@ static void test_acces_membre(numero7::test_unitaire::ControleurUnitaire &contro
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_membre_unique(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_membre_unique(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les membres des structures ne peut avoir les mêmes noms.");
 	{
 		const char *texte =
@@ -239,16 +239,16 @@ static void test_membre_unique(numero7::test_unitaire::ControleurUnitaire &contr
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::MEMBRE_REDEFINI);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-void test_structures(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_structures(dls::test_unitaire::Controleuse &controleuse)
 {
-	test_structure_redefinie(controleur);
-	test_structure_inconnue(controleur);
-	test_acces_membre(controleur);
-	test_membre_unique(controleur);
+	test_structure_redefinie(controleuse);
+	test_structure_inconnue(controleuse);
+	test_acces_membre(controleuse);
+	test_membre_unique(controleuse);
 }

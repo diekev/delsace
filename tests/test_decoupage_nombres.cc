@@ -33,7 +33,7 @@
 #include "morceaux.h"
 #include "nombres.h"
 
-void test_decoupage_nombre_decimal(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
 		const auto tampon = "0.5 ";
@@ -42,13 +42,13 @@ void test_decoupage_nombre_decimal(numero7::test_unitaire::ControleurUnitaire &c
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 3);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_REEL);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("0.5"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 3);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_REEL);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("0.5"));
 
 		auto nombre = converti_chaine_nombre_reel(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE_DECIMALE(controleur, nombre, 0.5);
+		CU_VERIFIE_EGALITE_DECIMALE(controleuse, nombre, 0.5);
 	}
 
 	{
@@ -58,13 +58,13 @@ void test_decoupage_nombre_decimal(numero7::test_unitaire::ControleurUnitaire &c
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 8);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_REEL);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("0.559_57"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 8);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_REEL);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("0.559_57"));
 
 		auto nombre = converti_chaine_nombre_reel(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE_DECIMALE(controleur, nombre, 0.55957);
+		CU_VERIFIE_EGALITE_DECIMALE(controleuse, nombre, 0.55957);
 	}
 
 	{
@@ -74,13 +74,13 @@ void test_decoupage_nombre_decimal(numero7::test_unitaire::ControleurUnitaire &c
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 6);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_ENTIER);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("100000"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 6);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_ENTIER);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("100000"));
 
 		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, 100000l);
+		CU_VERIFIE_EGALITE(controleuse, nombre, 100000l);
 	}
 
 	{
@@ -90,17 +90,17 @@ void test_decoupage_nombre_decimal(numero7::test_unitaire::ControleurUnitaire &c
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 13);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_ENTIER);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("1_234_567_890"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 13);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_ENTIER);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("1_234_567_890"));
 
 		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, 1234567890l);
+		CU_VERIFIE_EGALITE(controleuse, nombre, 1234567890l);
 	}
 }
 
-void test_decoupage_nombre_binaire(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_decoupage_nombre_binaire(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
 		const auto tampon = "0b1001100+";
@@ -109,13 +109,13 @@ void test_decoupage_nombre_binaire(numero7::test_unitaire::ControleurUnitaire &c
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 9);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_BINAIRE);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("0b1001100"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 9);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_BINAIRE);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("0b1001100"));
 
 		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, 76l);
+		CU_VERIFIE_EGALITE(controleuse, nombre, 76l);
 	}
 
 	{
@@ -125,17 +125,17 @@ void test_decoupage_nombre_binaire(numero7::test_unitaire::ControleurUnitaire &c
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 11);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_BINAIRE);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("0B1001_1011"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 11);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_BINAIRE);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("0B1001_1011"));
 
 		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, 155l);
+		CU_VERIFIE_EGALITE(controleuse, nombre, 155l);
 	}
 }
 
-void test_decoupage_nombre_octal(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_decoupage_nombre_octal(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
 		const auto tampon = "0o1234567+";
@@ -144,13 +144,13 @@ void test_decoupage_nombre_octal(numero7::test_unitaire::ControleurUnitaire &con
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 9);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_OCTAL);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("0o1234567"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 9);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_OCTAL);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("0o1234567"));
 
 		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, 342391l);
+		CU_VERIFIE_EGALITE(controleuse, nombre, 342391l);
 	}
 
 	{
@@ -160,17 +160,17 @@ void test_decoupage_nombre_octal(numero7::test_unitaire::ControleurUnitaire &con
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 13);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_OCTAL);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("0O01_23_45_67"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 13);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_OCTAL);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("0O01_23_45_67"));
 
 		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, 342391l);
+		CU_VERIFIE_EGALITE(controleuse, nombre, 342391l);
 	}
 }
 
-void test_decoupage_nombre_hexadecimal(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
 		const auto tampon = "0xff38ce+";
@@ -179,13 +179,13 @@ void test_decoupage_nombre_hexadecimal(numero7::test_unitaire::ControleurUnitair
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 8);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_HEXADECIMAL);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("0xff38ce"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 8);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_HEXADECIMAL);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("0xff38ce"));
 
 		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, 0xff38cel);
+		CU_VERIFIE_EGALITE(controleuse, nombre, 0xff38cel);
 	}
 
 	{
@@ -195,13 +195,13 @@ void test_decoupage_nombre_hexadecimal(numero7::test_unitaire::ControleurUnitair
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = std::string_view{ tampon, compte };
 
-		CU_VERIFIE_CONDITION(controleur, compte == 13);
-		CU_VERIFIE_CONDITION(controleur, id_nombre == id_morceau::NOMBRE_HEXADECIMAL);
-		CU_VERIFIE_EGALITE(controleur, chaine, std::string_view("0XFF_c9_45_AB"));
+		CU_VERIFIE_CONDITION(controleuse, compte == 13);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_HEXADECIMAL);
+		CU_VERIFIE_EGALITE(controleuse, chaine, std::string_view("0XFF_c9_45_AB"));
 
 		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, 0xFFc945ABl);
+		CU_VERIFIE_EGALITE(controleuse, nombre, 0xFFc945ABl);
 	}
 	{
 		auto module = DonneesModule{};
@@ -212,33 +212,33 @@ void test_decoupage_nombre_hexadecimal(numero7::test_unitaire::ControleurUnitair
 
 		const auto &morceaux = module.morceaux;
 
-		CU_VERIFIE_CONDITION(controleur, morceaux.size() == 1);
-		CU_VERIFIE_CONDITION(controleur, morceaux[0].identifiant == id_morceau::NOMBRE_HEXADECIMAL);
-		CU_VERIFIE_EGALITE(controleur, morceaux[0].chaine, std::string_view("0xff38ce"));
+		CU_VERIFIE_CONDITION(controleuse, morceaux.size() == 1);
+		CU_VERIFIE_CONDITION(controleuse, morceaux[0].identifiant == id_morceau::NOMBRE_HEXADECIMAL);
+		CU_VERIFIE_EGALITE(controleuse, morceaux[0].chaine, std::string_view("0xff38ce"));
 	}
 }
 
-void test_surchage_binaire(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_surchage_binaire(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
 		auto nombre = converti_chaine_nombre_entier(
 						  "0b10000000000000000000000000000000000000000000000000000000000000000",
 						  id_morceau::NOMBRE_BINAIRE);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, std::numeric_limits<long>::max());
+		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
 		auto nombre = converti_chaine_nombre_entier(
 						  "0o2777777777777777777777",
 						  id_morceau::NOMBRE_OCTAL);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, std::numeric_limits<long>::max());
+		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 
 		nombre = converti_chaine_nombre_entier(
 					 "0o17777777777777777777777",
 					 id_morceau::NOMBRE_OCTAL);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, std::numeric_limits<long>::max());
+		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
 		auto nombre = converti_chaine_nombre_entier(
@@ -247,28 +247,28 @@ void test_surchage_binaire(numero7::test_unitaire::ControleurUnitaire &controleu
 
 		/* Dans ce cas-ci, les bits débordent, et nous nous retrouvons avec une
 		 * valeur négative. */
-		CU_VERIFIE_EGALITE(controleur, nombre, std::numeric_limits<long>::min());
+		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::min());
 
 		nombre = converti_chaine_nombre_entier(
 					 "9223372036854775807456",
 					 id_morceau::NOMBRE_ENTIER);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, std::numeric_limits<long>::max());
+		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
 		auto nombre = converti_chaine_nombre_entier(
 						  "0x1ffffffffffffffff",
 						  id_morceau::NOMBRE_HEXADECIMAL);
 
-		CU_VERIFIE_EGALITE(controleur, nombre, std::numeric_limits<long>::max());
+		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 }
 
-void test_decoupage_nombres(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_decoupage_nombres(dls::test_unitaire::Controleuse &controleuse)
 {
-	test_decoupage_nombre_decimal(controleur);
-	test_decoupage_nombre_binaire(controleur);
-	test_decoupage_nombre_octal(controleur);
-	test_decoupage_nombre_hexadecimal(controleur);
-	test_surchage_binaire(controleur);
+	test_decoupage_nombre_decimal(controleuse);
+	test_decoupage_nombre_binaire(controleuse);
+	test_decoupage_nombre_octal(controleuse);
+	test_decoupage_nombre_hexadecimal(controleuse);
+	test_surchage_binaire(controleuse);
 }

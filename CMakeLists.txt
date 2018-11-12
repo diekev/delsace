@@ -99,7 +99,7 @@ endif()
 # ------------------------------------------------------------------------------
 
 find_package(LLVM REQUIRED)
-find_package(TestUnitaire REQUIRED)
+find_package(Delsace COMPONENTS chrono tests REQUIRED)
 
 # ------------------------------------------------------------------------------
 

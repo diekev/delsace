@@ -27,10 +27,10 @@
 #include "erreur.h"
 #include "outils.h"
 
-static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_variable_redefinie(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable ne peut prendre le nom d'un argument de la fonction");
 	{
 		const char *texte =
@@ -43,13 +43,13 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable ne peut prendre le nom d'une autre variable locale");
 	{
 		const char *texte =
@@ -63,13 +63,13 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable ne peut prendre le nom d'une variable globale");
 	{
 		const char *texte =
@@ -83,13 +83,13 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable ne peut prendre le nom d'une valeur énumérée");
 	{
 		const char *texte =
@@ -104,16 +104,16 @@ static void test_variable_redefinie(numero7::test_unitaire::ControleurUnitaire &
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_variable_indefinie(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_variable_indefinie(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable indéfinie ne peut être utilisée");
 	{
 		const char *texte =
@@ -126,16 +126,16 @@ static void test_variable_indefinie(numero7::test_unitaire::ControleurUnitaire &
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les paramètres des fonctions peuvent être accéder dans toutes les portées filles de la fonction");
 	{
 		const char *texte =
@@ -158,12 +158,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable dans une portée fille ne peut avoir le même nom"
 				" qu'une variable dans une portée mère");
 	{
@@ -182,13 +182,13 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable définie après une portée peut avoir le même nom"
 				" qu'une variable dans la portée.");
 	{
@@ -208,12 +208,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable définie avant un contrôle de flux peut être utilisée en dedans.");
 	{
 		const char *texte =
@@ -231,12 +231,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable définie avant un contrôle de flux peut être utilisée après lui.");
 	{
 		const char *texte =
@@ -256,12 +256,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable définie avant une boucle 'pour' peut être utilisée en dedans.");
 	{
 		const char *texte =
@@ -279,12 +279,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une variable définie avant une boucle 'pour' peut être utilisée après.");
 	{
 		const char *texte =
@@ -304,12 +304,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"La variable itérable d'une boucle 'pour' ne peut avoir le même nom qu'une variable prédéfinie.");
 	{
 		const char *texte =
@@ -327,13 +327,13 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"La variable itérable d'une boucle 'pour' ne peut être utilisée après la boucle.");
 	{
 		const char *texte =
@@ -351,13 +351,13 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_INCONNUE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Plusieurs boucles 'pour' de même portée racine peuvent avoir des variables de même nom.");
 	{
 		const char *texte =
@@ -381,12 +381,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut définir sans problème des variables entre des boucles 'pour'.");
 	{
 		const char *texte =
@@ -428,12 +428,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut définir sans problème des variables entre des contrôles de flux.");
 	{
 		const char *texte =
@@ -484,12 +484,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut réassigner une variable définie avant un contrôle de flux.");
 	{
 		const char *texte =
@@ -512,13 +512,13 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut réassigner une variable définie avant une boucle 'pour'.");
 	{
 		const char *texte =
@@ -538,12 +538,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut réassigner une variable définie avant une boucle 'infinie'.");
 	{
 		const char *texte =
@@ -563,12 +563,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut retourner une variable définie avant un contrôle de flux.");
 	{
 		const char *texte =
@@ -589,13 +589,13 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut retourner une variable définie avant une boucle 'pour'.");
 	{
 		const char *texte =
@@ -613,12 +613,12 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut retourner une variable définie avant une boucle 'infinie'.");
 	{
 		const char *texte =
@@ -636,14 +636,14 @@ static void test_portee_variable(numero7::test_unitaire::ControleurUnitaire &con
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-void test_variables(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_variables(dls::test_unitaire::Controleuse &controleuse)
 {
-	test_variable_redefinie(controleur);
-	test_variable_indefinie(controleur);
-	test_portee_variable(controleur);
+	test_variable_redefinie(controleuse);
+	test_variable_indefinie(controleuse);
+	test_portee_variable(controleuse);
 }

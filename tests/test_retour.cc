@@ -27,10 +27,10 @@
 #include "erreur.h"
 #include "outils.h"
 
-void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_retour(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction dont le type de retour est 'rien' peut ommettre"
 				" une instruction de retour");
 	{
@@ -44,12 +44,12 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction dont le type de retour est 'rien' peut ommettre"
 				" une instruction de retour même après une branche");
 	{
@@ -67,12 +67,12 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction dont le type de retour est 'rien' ne peut pas "
 				"retourner de valeur");
 	{
@@ -87,13 +87,13 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction dont le type de retour est de différent 'rien' ne"
 				" peut ommettre une instruction de retour");
 	{
@@ -107,13 +107,13 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction dont le type de retour est égal au type de son "
 				"instruction de retour est correcte");
 	{
@@ -128,12 +128,12 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction ne peut avoir des types de retour et "
 				"d'instructions de retour différents");
 	{
@@ -148,13 +148,13 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction ne peut avoir des types de retour et "
 				"d'instructions de retour différents");
 	{
@@ -170,8 +170,8 @@ void test_retour(numero7::test_unitaire::ControleurUnitaire &controleur)
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::NORMAL);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }

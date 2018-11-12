@@ -27,10 +27,10 @@
 #include "erreur.h"
 #include "outils.h"
 
-static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_inference_type_echec(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut assigner la valeur d'une fonction de type rien");
 	{
 		const char *texte =
@@ -48,14 +48,14 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_RIEN);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 #if 0 /* désactivation de ce test tant que le typage des fonctions est explicit */
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut assigner la valeur d'une fonction à une variable si"
 				" sont type de retour ne peut être défini");
 	{
@@ -74,17 +74,17 @@ static void test_inference_type_echec(numero7::test_unitaire::ControleurUnitaire
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_INCONNU);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 #endif
 }
 
-static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitaire &controleur)
+static void test_inference_type_succes(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Si les types de retour des fonctions est explicit, ce n'est pas"
 				" nécessaire de typer expliciter les variables stockant leurs"
 				" valeurs retournées.");
@@ -112,13 +112,13 @@ static void test_inference_type_succes(numero7::test_unitaire::ControleurUnitair
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-void test_types(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_types(dls::test_unitaire::Controleuse &controleuse)
 {
-	test_inference_type_echec(controleur);
-	test_inference_type_succes(controleur);
+	test_inference_type_echec(controleuse);
+	test_inference_type_succes(controleuse);
 }

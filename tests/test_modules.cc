@@ -83,56 +83,56 @@ static std::pair<bool, bool> retourne_erreur_module_lancee(
 	return { erreur_lancee, type_correcte };
 }
 
-void test_modules(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_modules(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"La compilation de module fonctionne si le module est connu.");
 	{
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
 				"fichiers_tests/test_module_correcte.kuri", false, erreur::type_erreur::AUCUNE_ERREUR);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut pas appeler une fonction inconnue d'un module.");
 	{
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
 				"fichiers_tests/test_fonction_inconnue_module.kuri", false, erreur::type_erreur::FONCTION_INCONNUE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut importer un module inconnu.");
 	{
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
 				"fichiers_tests/test_module_inconnu.kuri", false, erreur::type_erreur::MODULE_INCONNU);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	/* À FAIRE : normalement l'erreur doit être de type MODULE_INCONNU, mais une
 	 * erreur de type FONCTION_INCONNUE est lancée lors de l'analyse car on ne
 	 * trouve pas la fonction : il faut retarder le lancement d'erreur inconnue
 	 * pour entrevenir lors de l'analyse sémantique. */
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut accéder à un module non-importé.");
 	{
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
 				"fichiers_tests/test_utilisation_module_inconnu.kuri", false, erreur::type_erreur::FONCTION_INCONNUE);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }

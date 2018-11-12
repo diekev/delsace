@@ -28,10 +28,10 @@
 #include "outils.h"
 
 static void test_appel_fonction_variadique_args_nommes(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"L'appel d'une fonction variadique n'a pas besoin de nommer les arguments.");
 	{
 		const char *texte =
@@ -47,12 +47,12 @@ static void test_appel_fonction_variadique_args_nommes(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"L'appel d'une fonction variadique peut nommer tous les arguments.");
 	{
 		const char *texte =
@@ -68,12 +68,12 @@ static void test_appel_fonction_variadique_args_nommes(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"L'appel d'une fonction variadique peut éviter de renommer l'argument variadique.");
 	{
 		const char *texte =
@@ -89,12 +89,12 @@ static void test_appel_fonction_variadique_args_nommes(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"L'appel d'une fonction variadique peut nommer les arguments dans le désordre.");
 	{
 		const char *texte =
@@ -110,16 +110,16 @@ static void test_appel_fonction_variadique_args_nommes(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_appel_fonction_variadique(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction variadique dont l'argument variadic n'est pas typé"
 				" peut prendre n'importe quel type.");
 	{
@@ -136,12 +136,12 @@ static void test_appel_fonction_variadique(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction variadique dont l'argument variadic est typé"
 				" ne peut prendre n'importe quel type.");
 	{
@@ -158,13 +158,13 @@ static void test_appel_fonction_variadique(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Une fonction variadique dont l'argument variadic est typé est"
 				" correct si les types passés correspondent au type défini.");
 	{
@@ -181,16 +181,16 @@ static void test_appel_fonction_variadique(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_declaration_fonction_variadique(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Ce n'est pas obliger de typer la liste d'arguments d'une fonction variable.");
 	{
 		const char *texte =
@@ -199,12 +199,12 @@ static void test_declaration_fonction_variadique(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"C'est possible de typer la liste d'arguments d'une fonction variable.");
 	{
 		const char *texte =
@@ -213,12 +213,12 @@ static void test_declaration_fonction_variadique(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut pas avoir d'autres arguments après un argument variadique.");
 	{
 		const char *texte =
@@ -227,13 +227,13 @@ static void test_declaration_fonction_variadique(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut pas avoir plusieurs arguments variadiques.");
 	{
 		const char *texte =
@@ -242,17 +242,17 @@ static void test_declaration_fonction_variadique(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_fonction_general(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On peut appeler des fonctions connue avec les bon nombre et"
 				" types d'arguments.");
 	{
@@ -279,16 +279,16 @@ static void test_fonction_general(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_fonction_inconnue(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"On ne peut appeler une fonction inconnue.");
 	{
 		const char *texte =
@@ -300,17 +300,17 @@ static void test_fonction_inconnue(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_INCONNUE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_argument_nomme_succes(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Il est possible de nommer les arguments passés à une fonction"
 				" selon le noms des arguments de sa défition.");
 	{
@@ -330,17 +330,17 @@ static void test_argument_nomme_succes(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_argument_nomme_echec(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	/* argument redondant */
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Un argument nommé ne peut avoir le nom d'un argument déjà nommé.");
 	{
 		const char *texte =
@@ -358,13 +358,13 @@ static void test_argument_nomme_echec(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Un argument nommé ne peut avoir le nom d'un argument inconnu.");
 	{
 		const char *texte =
@@ -382,13 +382,13 @@ static void test_argument_nomme_echec(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Si un argument d'une fonction appelée est nommé, tous les arguments doivent l'être (premier).");
 	{
 		const char *texte =
@@ -408,13 +408,13 @@ static void test_argument_nomme_echec(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Si un argument d'une fonction appelée est nommé, les précédents"
 				" peuvent être anonymes si l'argument nommé n'a pas le nom d'un"
 				" précédent argument.");
@@ -436,12 +436,12 @@ static void test_argument_nomme_echec(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == false);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Si un argument d'une fonction appelée est nommé, il ne peut pas"
 				" prendre d'un argument précédent anonyme.");
 	{
@@ -462,17 +462,17 @@ static void test_argument_nomme_echec(
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_type_argument_echec(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Les types des arguments passés à une fonction ne peuvent être"
 				" différents de ceux de sa définition.");
 	{
@@ -491,17 +491,17 @@ static void test_type_argument_echec(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_ARGUMENT);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_nombre_argument(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Le nombre d'arguments (nommés) passé à une fonction lors de son appel "
 				"doit être le même que le nombre d'arguments de sa définition.");
 	{
@@ -520,13 +520,13 @@ static void test_nombre_argument(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Le nombre d'arguments (anonymes) passé à une fonction lors de son appel "
 				"doit être le même que le nombre d'arguments de sa définition.");
 	{
@@ -545,17 +545,17 @@ static void test_nombre_argument(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_argument_unique(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Deux arguments d'une fonction ne peuvent avoir les même nom.");
 	{
 		const char *texte =
@@ -567,17 +567,17 @@ static void test_argument_unique(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_fonction_redinie(
-		numero7::test_unitaire::ControleurUnitaire &controleur)
+		dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
-				controleur,
+				controleuse,
 				"Deux fonctions ne peuvent avoir les même nom.");
 	{
 		const char *texte =
@@ -594,23 +594,23 @@ static void test_fonction_redinie(
 				)";
 
 		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleur, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleur, type_correcte == true);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
-	CU_TERMINE_PROPOSITION(controleur);
+	CU_TERMINE_PROPOSITION(controleuse);
 }
 
-void test_fonctions(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_fonctions(dls::test_unitaire::Controleuse &controleuse)
 {
-	test_fonction_general(controleur);
-	test_fonction_inconnue(controleur);
-	test_argument_nomme_succes(controleur);
-	test_argument_nomme_echec(controleur);
-	test_type_argument_echec(controleur);
-	test_nombre_argument(controleur);
-	test_argument_unique(controleur);
-	test_fonction_redinie(controleur);
-	test_declaration_fonction_variadique(controleur);
-	test_appel_fonction_variadique(controleur);
-	test_appel_fonction_variadique_args_nommes(controleur);
+	test_fonction_general(controleuse);
+	test_fonction_inconnue(controleuse);
+	test_argument_nomme_succes(controleuse);
+	test_argument_nomme_echec(controleuse);
+	test_type_argument_echec(controleuse);
+	test_nombre_argument(controleuse);
+	test_argument_unique(controleuse);
+	test_fonction_redinie(controleuse);
+	test_declaration_fonction_variadique(controleuse);
+	test_appel_fonction_variadique(controleuse);
+	test_appel_fonction_variadique_args_nommes(controleuse);
 }

@@ -24,6 +24,6 @@
 
 #pragma once
 
-#include <test_unitaire/test_unitaire.h>
+#include <tests/test_unitaire.hh>
 
-void test_transtype(numero7::test_unitaire::ControleurUnitaire &controleur);
+void test_transtype(dls::test_unitaire::Controleuse &controleuse);

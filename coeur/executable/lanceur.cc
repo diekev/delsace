@@ -50,7 +50,7 @@
 #include "decoupage/modules.hh"
 #include "decoupage/tampon_source.h"
 
-#include <chronometrage/chronometre_de_portee.h>
+#include <chrono/outils.hh>
 
 static const char *options =
 R"(kuri [OPTIONS...] FICHIER
@@ -428,9 +428,9 @@ int main(int argc, char *argv[])
 		contexte_generation.menageur_pass_fonction = fpm.get();
 
 		os << "Génération du code..." << std::endl;
-		auto debut_generation_code = numero7::chronometrage::maintenant();
+		auto debut_generation_code = dls::chrono::maintenant();
 		assembleuse.genere_code_llvm(contexte_generation);
-		temps_generation_code = numero7::chronometrage::maintenant() - debut_generation_code;
+		temps_generation_code = dls::chrono::maintenant() - debut_generation_code;
 		mem_arbre = assembleuse.memoire_utilisee();
 		nombre_noeuds = assembleuse.nombre_noeuds();
 
@@ -443,15 +443,15 @@ int main(int argc, char *argv[])
 		/* définition du fichier de sortie */
 		if (ops.emet_fichier_objet) {
 			os << "Écriture du code dans un fichier..." << std::endl;
-			auto debut_fichier_objet = numero7::chronometrage::maintenant();
+			auto debut_fichier_objet = dls::chrono::maintenant();
 			if (!ecris_fichier_objet(machine_cible.get(), module)) {
 				resultat = 1;
 			}
-			temps_fichier_objet = numero7::chronometrage::maintenant() - debut_fichier_objet;
+			temps_fichier_objet = dls::chrono::maintenant() - debut_fichier_objet;
 
-			auto debut_executable = numero7::chronometrage::maintenant();
+			auto debut_executable = dls::chrono::maintenant();
 			cree_executable(ops.chemin_sortie);
-			temps_executable = numero7::chronometrage::maintenant() - debut_executable;
+			temps_executable = dls::chrono::maintenant() - debut_executable;
 		}
 
 		/* restore le dossier d'origine */
@@ -461,13 +461,13 @@ int main(int argc, char *argv[])
 		mem_contexte = contexte_generation.memoire_utilisee();
 
 		os << "Nettoyage..." << std::endl;
-		debut_nettoyage = numero7::chronometrage::maintenant();
+		debut_nettoyage = dls::chrono::maintenant();
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 	}
 
-	temps_nettoyage = numero7::chronometrage::maintenant() - debut_nettoyage;
+	temps_nettoyage = dls::chrono::maintenant() - debut_nettoyage;
 
 	const auto temps_scene = metriques.temps_tampon
 							 + metriques.temps_decoupage
