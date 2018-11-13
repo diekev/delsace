@@ -39,14 +39,8 @@
 #ifdef DEBOGUE_EXPRESSION
 #define LOG_EXPRESSION std::cerr
 #else
-struct FauxLogExpression {};
-
-template <typename T>
-FauxLogExpression &operator<<(FauxLogExpression &os, const T &) { return os; }
-
-static FauxLogExpression faux_log_expression;
-
-#define LOG_EXPRESSION faux_log_expression
+static std::ostream log_muet_expression(nullptr);
+#define LOG_EXPRESSION log_muet_expression
 #endif
 
 /**
