@@ -31,6 +31,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#include <llvm/InitializePasses.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/FileSystem.h>
@@ -39,6 +40,7 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/Transforms/InstCombine/InstCombine.h>
+#include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
@@ -203,11 +205,43 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 
 static void initialise_llvm()
 {
-	llvm::InitializeAllTargetInfos();
-	llvm::InitializeAllTargets();
-	llvm::InitializeAllTargetMCs();
-	llvm::InitializeAllAsmParsers();
-	llvm::InitializeAllAsmPrinters();
+	if (llvm::InitializeNativeTarget()
+			|| llvm::InitializeNativeTargetAsmParser()
+			|| llvm::InitializeNativeTargetAsmPrinter())
+	{
+		std::cerr << "Ne peut pas initiliser LLVM !\n";
+		exit(EXIT_FAILURE);
+	}
+
+	/* Initialise les passes. */
+	auto &registre = *llvm::PassRegistry::getPassRegistry();
+	llvm::initializeCore(registre);
+	llvm::initializeScalarOpts(registre);
+	llvm::initializeObjCARCOpts(registre);
+	llvm::initializeVectorization(registre);
+	llvm::initializeIPO(registre);
+	llvm::initializeAnalysis(registre);
+	llvm::initializeTransformUtils(registre);
+	llvm::initializeInstCombine(registre);
+	llvm::initializeInstrumentation(registre);
+	llvm::initializeTarget(registre);
+
+	/* Pour les passes de transformation de code, seuls celles d'IR à IR sont
+	 * supportées. */
+	llvm::initializeCodeGenPreparePass(registre);
+	llvm::initializeAtomicExpandPass(registre);
+	llvm::initializeWinEHPreparePass(registre);
+	llvm::initializeDwarfEHPreparePass(registre);
+	llvm::initializeSjLjEHPreparePass(registre);
+	llvm::initializePreISelIntrinsicLoweringLegacyPassPass(registre);
+	llvm::initializeGlobalMergePass(registre);
+	llvm::initializeInterleavedAccessPass(registre);
+	llvm::initializeUnreachableBlockElimLegacyPassPass(registre);
+}
+
+static void issitialise_llvm()
+{
+	llvm::llvm_shutdown();
 }
 
 /**
@@ -636,6 +670,8 @@ int main(int argc, char *argv[])
 	}
 
 	os << std::endl;
+
+	issitialise_llvm();
 
 	return resultat;
 }
