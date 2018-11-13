@@ -893,8 +893,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	contexte.termine_fonction();
 
 	/* optimise la fonction */
-	if (contexte.menageur_pass_fonction != nullptr) {
-		contexte.menageur_pass_fonction->run(*fonction);
+	if (contexte.menageur_fonctions != nullptr) {
+		contexte.menageur_fonctions->run(*fonction);
 	}
 
 	return nullptr;

@@ -24,6 +24,12 @@
 
 #include "contexte_generation_code.h"
 
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#include <llvm/IR/LegacyPassManager.h>
+#pragma GCC diagnostic pop
+
 #include "modules.hh"
 
 ContexteGenerationCode::~ContexteGenerationCode()
@@ -31,6 +37,8 @@ ContexteGenerationCode::~ContexteGenerationCode()
 	for (auto module : modules) {
 		delete module;
 	}
+
+	delete menageur_fonctions;
 }
 
 /* ************************************************************************** */

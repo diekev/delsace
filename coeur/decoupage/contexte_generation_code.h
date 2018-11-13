@@ -98,7 +98,7 @@ struct ContexteGenerationCode {
 	llvm::Module *module_llvm = nullptr;
 	llvm::LLVMContext contexte{};
 	llvm::Function *fonction = nullptr;
-	llvm::legacy::FunctionPassManager *menageur_pass_fonction = nullptr;
+	llvm::legacy::FunctionPassManager *menageur_fonctions = nullptr;
 	assembleuse_arbre *assembleuse = nullptr;
 
 	std::vector<DonneesModule *> modules{};

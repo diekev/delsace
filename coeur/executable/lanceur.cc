@@ -39,6 +39,7 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/Transforms/InstCombine/InstCombine.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
 #pragma GCC diagnostic pop
@@ -75,7 +76,35 @@ R"(kuri [OPTIONS...] FICHIER
 
 -v, --version
 	imprime la version
+
+-O0
+	Ne performe aucune optimisation. Ceci est le défaut.
+
+-O1
+	Optimise le code. Augmente le temps de compilation.
+
+-O2
+	Optimise le code encore plus. Augmente le temps de compilation.
+
+-Os
+	Comme -O2, mais minimise la taille du code. Augmente le temps de compilation.
+
+-Oz
+	Comme -Os, mais minimise encore plus la taille du code. Augmente le temps de compilation.
+
+-O3
+	Optimise le code toujours plus. Augmente le temps de compilation.
 )";
+
+enum class NiveauOptimisation : char {
+	Aucun,
+	O0,
+	O1,
+	O2,
+	Os,
+	Oz,
+	O3,
+};
 
 struct OptionsCompilation {
 	const char *chemin_fichier = nullptr;
@@ -88,6 +117,9 @@ struct OptionsCompilation {
 	bool imprime_version = false;
 	bool imprime_aide = false;
 	bool erreur = false;
+
+	NiveauOptimisation optimisation = NiveauOptimisation::Aucun;
+	char pad[7];
 };
 
 static OptionsCompilation genere_options_compilation(int argc, char **argv)
@@ -125,6 +157,24 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 		else if (std::strcmp(argv[i], "-m") == 0) {
 			opts.imprime_taille_memoire_objet = true;
 		}
+		else if (std::strcmp(argv[i], "-O0") == 0) {
+			opts.optimisation = NiveauOptimisation::O0;
+		}
+		else if (std::strcmp(argv[i], "-O1") == 0) {
+			opts.optimisation = NiveauOptimisation::O1;
+		}
+		else if (std::strcmp(argv[i], "-O2") == 0) {
+			opts.optimisation = NiveauOptimisation::O2;
+		}
+		else if (std::strcmp(argv[i], "-Os") == 0) {
+			opts.optimisation = NiveauOptimisation::Os;
+		}
+		else if (std::strcmp(argv[i], "-Oz") == 0) {
+			opts.optimisation = NiveauOptimisation::Oz;
+		}
+		else if (std::strcmp(argv[i], "-O3") == 0) {
+			opts.optimisation = NiveauOptimisation::O3;
+		}
 		else if (std::strcmp(argv[i], "-d") == 0) {
 			if (i + 1 < argc) {
 				opts.chemin_sortie = argv[i + 1];
@@ -158,6 +208,66 @@ static void initialise_llvm()
 	llvm::InitializeAllTargetMCs();
 	llvm::InitializeAllAsmParsers();
 	llvm::InitializeAllAsmPrinters();
+}
+
+/**
+ * Ajoute les passes d'optimisation au ménageur en fonction du niveau
+ * d'optimisation.
+ */
+static void ajoute_passes(
+		llvm::legacy::FunctionPassManager &menageur_fonctions,
+		uint niveau_optimisation,
+		uint niveau_taille)
+{
+	llvm::PassManagerBuilder builder;
+	builder.OptLevel = niveau_optimisation;
+	builder.SizeLevel = niveau_taille;
+	builder.DisableUnrollLoops = (niveau_optimisation == 0);
+
+	/* À FAIRE : enlignage. */
+
+	/* Pour plus d'informations sur les vectoriseurs, suivre le lien :
+	 * http://llvm.org/docs/Vectorizers.html */
+	builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+	builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+
+	builder.populateFunctionPassManager(menageur_fonctions);
+}
+
+/**
+ * Initialise le ménageur de passes fonctions du contexte selon le niveau
+ * d'optimisation.
+ */
+static void initialise_optimisation(
+		NiveauOptimisation optimisation,
+		ContexteGenerationCode &contexte)
+{
+	if (contexte.menageur_fonctions == nullptr) {
+		contexte.menageur_fonctions = new llvm::legacy::FunctionPassManager(contexte.module_llvm);
+	}
+
+	switch (optimisation) {
+		case NiveauOptimisation::Aucun:
+			break;
+		case NiveauOptimisation::O0:
+			ajoute_passes(*contexte.menageur_fonctions, 0, 0);
+			break;
+		case NiveauOptimisation::O1:
+			ajoute_passes(*contexte.menageur_fonctions, 1, 0);
+			break;
+		case NiveauOptimisation::O2:
+			ajoute_passes(*contexte.menageur_fonctions, 2, 0);
+			break;
+		case NiveauOptimisation::Os:
+			ajoute_passes(*contexte.menageur_fonctions, 2, 1);
+			break;
+		case NiveauOptimisation::Oz:
+			ajoute_passes(*contexte.menageur_fonctions, 2, 2);
+			break;
+		case NiveauOptimisation::O3:
+			ajoute_passes(*contexte.menageur_fonctions, 3, 0);
+			break;
+	}
 }
 
 static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
@@ -409,23 +519,7 @@ int main(int argc, char *argv[])
 
 		contexte_generation.module_llvm = &module;
 
-		/* initialise ménageur passe fonction */
-		auto fpm = std::make_unique<llvm::legacy::FunctionPassManager>(&module);
-
-		/* Fais de simples optimisations "peephole" et de bit-twiddling.
-		 * Désactivée pour le moment, afin de s'assurer que le code est un temps
-		 * soit peu correcte en évitant de se faire avoir par une optimisation
-		 * trop aggressive. */
-		//fpm->add(llvm::createInstructionCombiningPass());
-		/* Réassocie les expressions. */
-		fpm->add(llvm::createReassociatePass());
-		/* Élimine les sous-expressions communes. */
-		fpm->add(llvm::createGVNPass());
-		/* Simplifie le graphe de contrôle de flux (p.e. en enlevant les blocs
-		 * inatteignables) */
-		fpm->add(llvm::createCFGSimplificationPass());
-
-		contexte_generation.menageur_pass_fonction = fpm.get();
+		initialise_optimisation(ops.optimisation, contexte_generation);
 
 		os << "Génération du code..." << std::endl;
 		auto debut_generation_code = dls::chrono::maintenant();
