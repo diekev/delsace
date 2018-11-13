@@ -48,12 +48,12 @@ struct DonneesModule {
 	/**
 	 * Retourne vrai si le module importe un module du nom spécifié.
 	 */
-	bool importe_module(const std::string_view &nom) const;
+	bool importe_module(const std::string_view &nom_module) const;
 
 	/**
 	 * Retourne vrai si le module possède une fonction du nom spécifié.
 	 */
-	bool possede_fonction(const std::string_view &nom) const;
+	bool possede_fonction(const std::string_view &nom_fonction) const;
 };
 
 /**

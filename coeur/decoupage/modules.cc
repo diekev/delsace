@@ -39,10 +39,10 @@
 
 /* ************************************************************************** */
 
-bool DonneesModule::importe_module(const std::string_view &nom) const
+bool DonneesModule::importe_module(const std::string_view &nom_module) const
 {
 	for (const auto &mi : modules_importes) {
-		if (mi == nom) {
+		if (mi == nom_module) {
 			return true;
 		}
 	}
@@ -50,10 +50,10 @@ bool DonneesModule::importe_module(const std::string_view &nom) const
 	return false;
 }
 
-bool DonneesModule::possede_fonction(const std::string_view &nom) const
+bool DonneesModule::possede_fonction(const std::string_view &nom_fonction) const
 {
 	for (const auto &fi : fonctions_exportees) {
-		if (fi == nom) {
+		if (fi == nom_fonction) {
 			return true;
 		}
 	}

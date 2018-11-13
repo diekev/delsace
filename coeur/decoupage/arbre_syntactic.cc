@@ -27,6 +27,11 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
 #include <llvm/IR/DataLayout.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
@@ -642,9 +647,9 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	parametres.resize(enfants.size());
 
 	std::transform(enfants.begin(), enfants.end(), parametres.begin(),
-				   [&](Noeud *enfant)
+				   [&](Noeud *noeud_enfant)
 	{
-		return enfant->genere_code_llvm(contexte);
+		return noeud_enfant->genere_code_llvm(contexte);
 	});
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);

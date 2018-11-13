@@ -27,6 +27,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <llvm/IR/LegacyPassManager.h>
 #pragma GCC diagnostic pop
 
@@ -378,8 +379,8 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	/* fonctions */
 	memoire += fonctions.size() * (sizeof(DonneesFonction) + sizeof(std::string_view));
 
-	for (const auto &fonction : fonctions) {
-		memoire += fonction.second.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
+	for (const auto &fonc : fonctions) {
+		memoire += fonc.second.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
 	}
 
 	/* structures */

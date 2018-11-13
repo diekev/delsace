@@ -25,6 +25,11 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
 #include <llvm/IR/Module.h>
 #pragma GCC diagnostic pop
 
@@ -49,7 +54,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto donnees_char = reinterpret_cast<const char *>(donnees);
 
 		std::string texte;
-		texte.reserve(static_cast<size_t>(taille) + 1);
+		texte.reserve(taille + 1ul);
 
 		for (auto i = 0ul; i < taille; ++i) {
 			texte.push_back(donnees_char[i]);

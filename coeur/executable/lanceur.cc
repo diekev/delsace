@@ -31,6 +31,11 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
 #include <llvm/InitializePasses.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
@@ -617,8 +622,8 @@ int main(int argc, char *argv[])
 	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
 	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
 	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
-	os << "Nombre de lignes par seconde : " << metriques.nombre_lignes / temps_total << '\n';
-	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(metriques.memoire_tampons / temps_total)) << '\n';
+	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_total << '\n';
+	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(metriques.nombre_lignes) / temps_total)) << '\n';
 
 	const auto mem_totale = metriques.memoire_tampons
 							+ metriques.memoire_morceaux
@@ -646,10 +651,10 @@ int main(int argc, char *argv[])
 	   << " (" << calc_pourcentage(metriques.temps_tampon, temps_scene) << ")\n";
 	os << '\t' << "Temps découpage  : " << temps_seconde(metriques.temps_decoupage)
 	   << " (" << calc_pourcentage(metriques.temps_decoupage, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(metriques.memoire_tampons / metriques.temps_decoupage)) << ")\n";
+	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_tampons) / metriques.temps_decoupage)) << ")\n";
 	os << '\t' << "Temps analyse    : " << temps_seconde(metriques.temps_analyse)
 	   << " (" << calc_pourcentage(metriques.temps_analyse, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(metriques.memoire_morceaux / metriques.temps_analyse)) << ")\n";
+	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_morceaux) / metriques.temps_analyse)) << ")\n";
 
 	os << '\n';
 	os << "Temps coulisse : " << temps_seconde(temps_coulisse)
