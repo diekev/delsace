@@ -563,7 +563,7 @@ int main(int argc, char *argv[])
 		os << "Génération du code..." << std::endl;
 		auto debut_generation_code = dls::chrono::maintenant();
 		assembleuse.genere_code_llvm(contexte_generation);
-		temps_generation_code = dls::chrono::maintenant() - debut_generation_code;
+		temps_generation_code = dls::chrono::delta(debut_generation_code);
 		mem_arbre = assembleuse.memoire_utilisee();
 		nombre_noeuds = assembleuse.nombre_noeuds();
 
@@ -580,11 +580,11 @@ int main(int argc, char *argv[])
 			if (!ecris_fichier_objet(machine_cible.get(), module)) {
 				resultat = 1;
 			}
-			temps_fichier_objet = dls::chrono::maintenant() - debut_fichier_objet;
+			temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
 
 			auto debut_executable = dls::chrono::maintenant();
 			cree_executable(ops.chemin_sortie);
-			temps_executable = dls::chrono::maintenant() - debut_executable;
+			temps_executable = dls::chrono::delta(debut_executable);
 		}
 
 		/* restore le dossier d'origine */
@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
 		std::cerr << erreur_frappe.message() << '\n';
 	}
 
-	temps_nettoyage = dls::chrono::maintenant() - debut_nettoyage;
+	temps_nettoyage = dls::chrono::delta(debut_nettoyage);
 
 	const auto temps_scene = metriques.temps_tampon
 							 + metriques.temps_decoupage
