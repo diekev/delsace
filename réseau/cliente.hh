@@ -211,7 +211,7 @@ public:
 		TypeCliente::construit_requete(donnees, requete);
 
 		if (m_securise) {
-			auto taille = SSL_write(m_ssl, requete.c_str(), requete.size());
+			auto taille = SSL_write(m_ssl, requete.c_str(), static_cast<int>(requete.size()));
 
 			if (taille <= 0) {
 				imprime_erreur_ssl(m_ssl, taille, "Erreur lors de l'écriture SSL : ");
@@ -226,7 +226,7 @@ public:
 
 	void recois_reponse()
 	{
-		static constexpr auto MAXDATASIZE = 1024;
+		static constexpr auto MAXDATASIZE = 1024ul;
 
 		char tampon[MAXDATASIZE];
 
@@ -238,7 +238,7 @@ public:
 
 				if (taille > 0) {
 					tampon[taille] = '\0';
-					reponse.append(tampon, taille);
+					reponse.append(tampon, static_cast<size_t>(taille));
 				}
 				else if (taille <= 0) {
 					auto erreur = SSL_get_error(m_ssl, taille);
@@ -288,9 +288,9 @@ public:
 
 				if (taille > 0) {
 					tampon[taille] = '\0';
-					reponse.append(tampon, taille);
+					reponse.append(tampon, static_cast<size_t>(taille));
 
-					if (taille < MAXDATASIZE) {
+					if (taille < static_cast<long>(MAXDATASIZE)) {
 						break;
 					}
 				}

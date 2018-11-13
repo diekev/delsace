@@ -32,7 +32,7 @@
 
 /* ************************************************************************** */
 
-static bool est_drapeaux(int identifiant)
+static bool est_drapeaux(size_t identifiant)
 {
 	switch (identifiant) {
 		case ID_VARIABLE:
@@ -192,7 +192,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 	}
 }
 
-bool analyseuse_grammaire::requiers_type(int identifiant)
+bool analyseuse_grammaire::requiers_type(size_t identifiant)
 {
 	avance();
 
@@ -213,7 +213,7 @@ bool analyseuse_grammaire::requiers_type(int identifiant)
 
 static void initialise_propriete(
 		Colonne &colonne,
-		int id_propriete,
+		size_t id_propriete,
 		const DonneesMorceaux &donnees)
 {
 	switch (id_propriete) {
@@ -286,7 +286,7 @@ void analyseuse_grammaire::analyse_propriete_colonne(Colonne &colonne)
 	}
 }
 
-bool analyseuse_grammaire::requiers_propriete(int identifiant)
+bool analyseuse_grammaire::requiers_propriete(size_t identifiant)
 {
 	avance();
 
@@ -305,7 +305,7 @@ bool analyseuse_grammaire::requiers_propriete(int identifiant)
 	}
 }
 
-bool analyseuse_grammaire::requiers_valeur(int identifiant)
+bool analyseuse_grammaire::requiers_valeur(size_t identifiant)
 {
 	avance();
 

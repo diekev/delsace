@@ -107,7 +107,7 @@ double chronometre_boucle(
 	 * avec boucle. */
 
 	if (normalise) {
-		return ((maintenant() - debut) - temps_iterations) / iterations;
+		return ((maintenant() - debut) - temps_iterations) / static_cast<double>(iterations);
 	}
 
 	return ((maintenant() - debut) - temps_iterations);
@@ -178,7 +178,7 @@ double chronometre_boucle_epoque(
 	 * avec boucle. */
 
 	if (normalise) {
-		return (temps_fonction_min - temps_iterations_min) / iterations;
+		return (temps_fonction_min - temps_iterations_min) / static_cast<double>(iterations);
 	}
 
 	return (temps_fonction_min - temps_iterations_min);

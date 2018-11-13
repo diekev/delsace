@@ -201,7 +201,7 @@ std::string empreinte(const std::string &entree)
 
 	auto ctx = SHA256{};
 	ctx.init();
-	ctx.update(reinterpret_cast<const unsigned char*>(entree.c_str()), entree.length());
+	ctx.update(reinterpret_cast<const unsigned char*>(entree.c_str()), static_cast<uint32_t>(entree.length()));
 	ctx.final(digest);
 
 	char buf[2 * SHA256::DIGEST_SIZE + 1];

@@ -55,24 +55,24 @@ protected:
 	 * Vérifie que l'identifiant courant est égal à celui spécifié puis avance
 	 * la position de l'analyseur sur le vecteur d'identifiant.
 	 */
-	bool requiers_identifiant(int identifiant);
+	bool requiers_identifiant(size_t identifiant);
 
 	/**
 	 * Retourne vrai si l'identifiant courant est égal à celui spécifié.
 	 */
-	bool est_identifiant(int identifiant);
+	bool est_identifiant(size_t identifiant);
 
 	/**
 	 * Retourne vrai si l'identifiant courant et celui d'après sont égaux à ceux
 	 * spécifiés dans le même ordre.
 	 */
-	bool sont_2_identifiants(int id1, int id2);
+	bool sont_2_identifiants(size_t id1, size_t id2);
 
 	/**
 	 * Retourne vrai si l'identifiant courant et les deux d'après sont égaux à
 	 * ceux spécifiés dans le même ordre.
 	 */
-	bool sont_3_identifiants(int id1, int id2, int id3);
+	bool sont_3_identifiants(size_t id1, size_t id2, size_t id3);
 
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
@@ -99,5 +99,5 @@ protected:
 	/**
 	 * Retourne l'identifiant courant.
 	 */
-	int identifiant_courant() const;
+	size_t identifiant_courant() const;
 };

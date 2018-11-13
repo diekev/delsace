@@ -42,8 +42,8 @@ char *_crypt_gensalt_traditional_rn(const char *prefix, unsigned long count,
 		return NULL;
 	}
 
-	output[0] = _crypt_itoa64[(unsigned int)input[0] & 0x3f];
-	output[1] = _crypt_itoa64[(unsigned int)input[1] & 0x3f];
+	output[0] = (char)_crypt_itoa64[(unsigned int)input[0] & 0x3f];
+	output[1] = (char)_crypt_itoa64[(unsigned int)input[1] & 0x3f];
 	output[2] = '\0';
 
 	return output;
@@ -68,17 +68,17 @@ char *_crypt_gensalt_extended_rn(const char *prefix, unsigned long count,
 	if (!count) count = 725;
 
 	output[0] = '_';
-	output[1] = _crypt_itoa64[count & 0x3f];
-	output[2] = _crypt_itoa64[(count >> 6) & 0x3f];
-	output[3] = _crypt_itoa64[(count >> 12) & 0x3f];
-	output[4] = _crypt_itoa64[(count >> 18) & 0x3f];
+	output[1] = (char)_crypt_itoa64[count & 0x3f];
+	output[2] = (char)_crypt_itoa64[(count >> 6) & 0x3f];
+	output[3] = (char)_crypt_itoa64[(count >> 12) & 0x3f];
+	output[4] = (char)_crypt_itoa64[(count >> 18) & 0x3f];
 	value = (unsigned long)(unsigned char)input[0] |
 		((unsigned long)(unsigned char)input[1] << 8) |
 		((unsigned long)(unsigned char)input[2] << 16);
-	output[5] = _crypt_itoa64[value & 0x3f];
-	output[6] = _crypt_itoa64[(value >> 6) & 0x3f];
-	output[7] = _crypt_itoa64[(value >> 12) & 0x3f];
-	output[8] = _crypt_itoa64[(value >> 18) & 0x3f];
+	output[5] = (char)_crypt_itoa64[value & 0x3f];
+	output[6] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
+	output[7] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
+	output[8] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
 	output[9] = '\0';
 
 	return output;
@@ -103,20 +103,20 @@ char *_crypt_gensalt_md5_rn(const char *prefix, unsigned long count,
 	value = (unsigned long)(unsigned char)input[0] |
 		((unsigned long)(unsigned char)input[1] << 8) |
 		((unsigned long)(unsigned char)input[2] << 16);
-	output[3] = _crypt_itoa64[value & 0x3f];
-	output[4] = _crypt_itoa64[(value >> 6) & 0x3f];
-	output[5] = _crypt_itoa64[(value >> 12) & 0x3f];
-	output[6] = _crypt_itoa64[(value >> 18) & 0x3f];
+	output[3] = (char)_crypt_itoa64[value & 0x3f];
+	output[4] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
+	output[5] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
+	output[6] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
 	output[7] = '\0';
 
 	if (size >= 6 && output_size >= 3 + 4 + 4 + 1) {
 		value = (unsigned long)(unsigned char)input[3] |
 			((unsigned long)(unsigned char)input[4] << 8) |
 			((unsigned long)(unsigned char)input[5] << 16);
-		output[7] = _crypt_itoa64[value & 0x3f];
-		output[8] = _crypt_itoa64[(value >> 6) & 0x3f];
-		output[9] = _crypt_itoa64[(value >> 12) & 0x3f];
-		output[10] = _crypt_itoa64[(value >> 18) & 0x3f];
+		output[7] = (char)_crypt_itoa64[value & 0x3f];
+		output[8] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
+		output[9] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
+		output[10] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
 		output[11] = '\0';
 	}
 

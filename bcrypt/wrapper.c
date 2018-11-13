@@ -63,7 +63,7 @@ static int _crypt_data_alloc(void **data, int *size, int need)
 
 	if (*data && *size >= need) return 0;
 
-	updated = realloc(*data, need);
+	updated = realloc(*data, (size_t)need);
 
 	if (!updated) {
 #ifndef __GLIBC__

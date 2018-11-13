@@ -31,7 +31,7 @@ Analyseuse::Analyseuse(const std::vector<DonneesMorceaux> &identifiants, const T
 	, m_identifiants(identifiants)
 {}
 
-bool Analyseuse::requiers_identifiant(int identifiant)
+bool Analyseuse::requiers_identifiant(size_t identifiant)
 {
 	if (m_position >= m_identifiants.size()) {
 		return false;
@@ -59,39 +59,39 @@ size_t Analyseuse::position()
 	return m_position - 1;
 }
 
-bool Analyseuse::est_identifiant(int identifiant)
+bool Analyseuse::est_identifiant(size_t identifiant)
 {
 	return identifiant == this->identifiant_courant();
 }
 
-bool Analyseuse::sont_2_identifiants(int id1, int id2)
+bool Analyseuse::sont_2_identifiants(size_t id1, size_t id2)
 {
 	if (m_position + 2 >= m_identifiants.size()) {
 		return false;
 	}
 
-	return m_identifiants[m_position].identifiant == static_cast<size_t>(id1)
-			&& m_identifiants[m_position + 1].identifiant == static_cast<size_t>(id2);
+	return m_identifiants[m_position].identifiant == id1
+			&& m_identifiants[m_position + 1].identifiant == id2;
 }
 
-bool Analyseuse::sont_3_identifiants(int id1, int id2, int id3)
+bool Analyseuse::sont_3_identifiants(size_t id1, size_t id2, size_t id3)
 {
 	if (m_position + 3 >= m_identifiants.size()) {
 		return false;
 	}
 
-	return m_identifiants[m_position].identifiant == static_cast<size_t>(id1)
-			&& m_identifiants[m_position + 1].identifiant == static_cast<size_t>(id2)
-			&& m_identifiants[m_position + 2].identifiant == static_cast<size_t>(id3);
+	return m_identifiants[m_position].identifiant == id1
+			&& m_identifiants[m_position + 1].identifiant == id2
+			&& m_identifiants[m_position + 2].identifiant == id3;
 }
 
-int Analyseuse::identifiant_courant() const
+size_t Analyseuse::identifiant_courant() const
 {
 	if (m_position >= m_identifiants.size()) {
 		return ID_INCONNU;
 	}
 
-	return static_cast<int>(m_identifiants[m_position].identifiant);
+	return m_identifiants[m_position].identifiant;
 }
 
 void Analyseuse::lance_erreur(const std::string &quoi, int type)

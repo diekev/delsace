@@ -40,9 +40,10 @@ public:
 		, m_ligne(mysql_fetch_row(m_resultat))
 	{}
 
-	void operator++()
+	iterateur_ligne &operator++()
 	{
 		m_ligne = mysql_fetch_row(m_resultat);
+		return *this;
 	}
 
 	MYSQL_ROW ligne() const

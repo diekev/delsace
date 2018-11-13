@@ -28,8 +28,8 @@
 #include <vector>
 
 class TamponSource {
-	std::string m_tampon;
-	std::vector<std::string_view> m_lignes;
+	std::string m_tampon{};
+	std::vector<std::string_view> m_lignes{};
 
 public:
 	/**

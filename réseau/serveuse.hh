@@ -55,7 +55,7 @@ template <
 		ConceptTypeServeuse TypeServeuse
 >
 struct serveuse {
-	int m_prise;
+	int m_prise{-1};
 
 public:
 	serveuse()
@@ -144,7 +144,7 @@ public:
 	type_requete charge_donnees_requete(int prise, const sockaddr_in &their_addr)
 	{
 		printf("serveur: Reçu connection de %s\n", inet_ntoa(their_addr.sin_addr));
-		static constexpr auto MAXDATASIZE = 1024;
+		static constexpr auto MAXDATASIZE = 1024ul;
 
 		char tampon[MAXDATASIZE];
 
@@ -157,7 +157,7 @@ public:
 				tampon[taille] = '\0';
 				requete.append(tampon, static_cast<size_t>(taille));
 
-				if (taille < MAXDATASIZE) {
+				if (taille < static_cast<long>(MAXDATASIZE)) {
 					break;
 				}
 			}

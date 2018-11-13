@@ -86,7 +86,7 @@ static void test_char_vers_int(std::ostream &os, const char *nombre)
 		unsigned i = 0;
 
 		for (; *n != '\0'; ++n) {
-			resultat += table[i++] * (*n - '0');
+			resultat += table[i++] * static_cast<unsigned>(*n - '0');
 		}
 
 		return resultat;
@@ -139,8 +139,6 @@ static uint32_t nombre_chiffre_base_10_opt(uint64_t v)
 		resultat += 4;
 		v /= 1000U;
 	}
-
-	return resultat;
 }
 
 static uint32_t nombre_chiffre_base_10_pro(uint64_t v)
@@ -167,8 +165,6 @@ static uint32_t nombre_chiffre_base_10_pro(uint64_t v)
 		resultat += 4;
 		v /= 1000U;
 	}
-
-	return resultat;
 }
 
 static void test_compte_chiffre(std::ostream &os, uint64_t nombre)
@@ -198,15 +194,15 @@ static void test_nombre_vers_ascii(std::ostream &os, uint64_t nombre)
 
 	auto nombre_vers_ascii = [&](uint64_t valeur)
 	{
-		char *dst = tampon;
+		auto dst = tampon;
 		auto debut = dst;
 
 		do {
-			*dst++ = '0' + (valeur % 10);
+			*dst++ = static_cast<char>('0' + (valeur % 10));
 			valeur /= 10;
 		} while (valeur != 0);
 
-		const uint32_t resultat = dst - debut;
+		const auto resultat = static_cast<uint32_t>(dst - debut);
 
 		for (dst--; dst > debut; debut++, dst--) {
 			std::iter_swap(dst, debut);
@@ -230,12 +226,12 @@ static void test_nombre_vers_ascii(std::ostream &os, uint64_t nombre)
 			auto const q = v / 10;
 			auto const r = static_cast<uint32_t>(v % 10);
 
-			dst[pos--] = '0' + r;
+			dst[pos--] = static_cast<char>('0' + r);
 			v = q;
 		}
 
 		/* Le dernier chiffre est aisément géré. */
-		*dst = static_cast<uint32_t>(v) + '0';
+		*dst = static_cast<char>(static_cast<uint32_t>(v) + '0');
 
 		return resultat;
 	};

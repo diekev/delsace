@@ -31,15 +31,15 @@ namespace reseau {
 // URI = scheme:[//authority]path[?query][#fragment]
 // authority = [userinfo@]host[:port]
 class uri {
-	std::string m_uri;
-	std::string_view m_schema;
-	std::string_view m_autorite;
-	std::string_view m_chemin;
-	std::string_view m_requete;
-	std::string_view m_fragment;
-	std::string_view m_userinfo;
-	std::string_view m_hote;
-	std::string_view m_port;
+	std::string m_uri{};
+	std::string_view m_schema{};
+	std::string_view m_autorite{};
+	std::string_view m_chemin{};
+	std::string_view m_requete{};
+	std::string_view m_fragment{};
+	std::string_view m_userinfo{};
+	std::string_view m_hote{};
+	std::string_view m_port{};
 
 public:
 	explicit uri(const std::string &chaine);

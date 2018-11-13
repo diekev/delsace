@@ -55,7 +55,7 @@ static int try_read(int fd, char *out, size_t count)
 		if (partial < 1)
 			return -1;
 
-		total += partial;
+		total += (size_t)(partial);
 	}
 
 	return 0;
@@ -70,26 +70,24 @@ static int try_read(int fd, char *out, size_t count)
 */
 static int timing_safe_strcmp(const char *str1, const char *str2)
 {
-	const unsigned char *u1;
-	const unsigned char *u2;
-	int ret;
-	int i;
-
-	int len1 = strlen(str1);
-	int len2 = strlen(str2);
+	size_t len1 = strlen(str1);
+	size_t len2 = strlen(str2);
 
 	/* In our context both strings should always have the same length
 	 * because they will be hashed passwords. */
-	if (len1 != len2)
+	if (len1 != len2) {
 		return 1;
+	}
 
 	/* Force unsigned for bitwise operations. */
-	u1 = (const unsigned char *)str1;
-	u2 = (const unsigned char *)str2;
+	const unsigned char *u1 = (const unsigned char *)str1;
+	const unsigned char *u2 = (const unsigned char *)str2;
 
-	ret = 0;
-	for (i = 0; i < len1; ++i)
+	int ret = 0;
+
+	for (size_t i = 0; i < len1; ++i) {
 		ret |= (u1[i] ^ u2[i]);
+	}
 
 	return ret;
 }
@@ -116,7 +114,7 @@ int bcrypt_gensalt(int factor, char salt[BCRYPT_HASHSIZE])
 
 	/* Generate salt. */
 	workf = (factor < 4 || factor > 31)?12:factor;
-	aux = crypt_gensalt_rn("$2a$", workf, input, RANDBYTES,
+	aux = crypt_gensalt_rn("$2a$", (size_t)(workf), input, RANDBYTES,
 			       salt, BCRYPT_HASHSIZE);
 	return (aux == NULL)?5:0;
 }

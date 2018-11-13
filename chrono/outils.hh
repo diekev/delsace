@@ -37,7 +37,7 @@ inline double maintenant()
 	struct timeval now;
 	gettimeofday(&now, nullptr);
 
-	return now.tv_sec + now.tv_usec * 1e-6;
+	return static_cast<double>(now.tv_sec) + static_cast<double>(now.tv_usec) * 1e-6;
 }
 
 }  /* namespace chrono */

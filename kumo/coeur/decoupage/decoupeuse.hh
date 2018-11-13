@@ -41,12 +41,16 @@ class decoupeuse_texte {
 	size_t m_pos_mot = 0;
 	size_t m_taille_mot_courant = 0;
 
-	std::vector<DonneesMorceaux> m_morceaux;
+	std::vector<DonneesMorceaux> m_morceaux{};
 
 public:
 	using iterateur = std::vector<DonneesMorceaux>::iterator;
 
 	explicit decoupeuse_texte(const TamponSource &tampon);
+
+	/* désactivation de la copie */
+	decoupeuse_texte(const decoupeuse_texte &) = delete;
+	decoupeuse_texte &operator=(const decoupeuse_texte &) = delete;
 
 	void genere_morceaux();
 

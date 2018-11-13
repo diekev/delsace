@@ -31,7 +31,7 @@
 
 struct Colonne {
 	std::string nom = "";
-	int type;
+	size_t type{};
 	int taille = 0;
 	int octet = 4;
 	bool cle_primaire = false;
@@ -40,26 +40,26 @@ struct Colonne {
 	bool signee = true;
 	bool peut_etre_nulle = true;
 	bool a_valeur_defaut = false;
-	int id_valeur_defaut = 0;
+	size_t id_valeur_defaut = 0;
 	std::experimental::any defaut;
 	std::string table = "";
 	std::string ref = "";
-	int suppression = 0;
+	size_t suppression = 0;
 	int ajournement = 0;
 };
 
 struct Table {
-	std::vector<Colonne> colonnes;
-	std::string_view nom;
+	std::vector<Colonne> colonnes{};
+	std::string_view nom{};
 };
 
 struct Schema {
-	std::vector<Table> tables;
-	std::string_view nom;
+	std::vector<Table> tables{};
+	std::string_view nom{};
 };
 
 class analyseuse_grammaire : public Analyseuse {
-	Schema m_schema;
+	Schema m_schema{};
 
 public:
 	analyseuse_grammaire(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon);
@@ -74,7 +74,7 @@ private:
 	void analyse_declaration_colonne(Table &table);
 	void analyse_propriete_colonne(Colonne &colonne);
 
-	bool requiers_type(int identifiant);
-	bool requiers_propriete(int identifiant);
-	bool requiers_valeur(int identifiant);
+	bool requiers_type(size_t identifiant);
+	bool requiers_propriete(size_t identifiant);
+	bool requiers_valeur(size_t identifiant);
 };

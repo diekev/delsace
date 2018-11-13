@@ -42,7 +42,7 @@ using t_fonction_entree_test = std::function<int(const u_char *, size_t)>;
  */
 class Testeuse {
 	struct FonctionsTest {
-		std::string nom;
+		std::string nom{};
 		t_fonction_initialisation initialisation = nullptr;
 		t_fonction_entree_test entree_test = nullptr;
 	};
