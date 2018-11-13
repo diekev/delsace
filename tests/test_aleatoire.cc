@@ -106,7 +106,7 @@ int Testeuse::performe_tests(std::ostream &os)
 						break;
 					}
 
-					auto temps = chrono::maintenant() - debut;
+					auto temps = chrono::delta(debut);
 
 					if (temps > 25.0) {
 						auto chemin_test = chemin + foncs.nom + "_boucle_infini" + std::to_string(n) + ".bin";

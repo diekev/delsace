@@ -69,7 +69,7 @@ double chronometre_fonction(Fonction &&fonction, Parametres &&... params)
 
 	fonction(std::forward<Parametres>(params)...);
 
-	return maintenant() - debut;
+	return delta(debut);
 }
 
 /**
@@ -91,7 +91,7 @@ double chronometre_boucle(
 		__privee::empeche_optimisation();
 	}
 
-	auto temps_iterations = maintenant() - debut;
+	auto temps_iterations = delta(debut);
 
 	i = iterations;
 
@@ -107,10 +107,10 @@ double chronometre_boucle(
 	 * avec boucle. */
 
 	if (normalise) {
-		return ((maintenant() - debut) - temps_iterations) / static_cast<double>(iterations);
+		return (delta(debut) - temps_iterations) / static_cast<double>(iterations);
 	}
 
-	return ((maintenant() - debut) - temps_iterations);
+	return (delta(debut) - temps_iterations);
 }
 
 /**
@@ -146,7 +146,7 @@ double chronometre_boucle_epoque(
 			__privee::empeche_optimisation();
 		}
 
-		auto temps_iterations = maintenant() - debut;
+		auto temps_iterations = delta(debut);
 
 		if (temps_iterations_min > temps_iterations) {
 			temps_iterations_min = temps_iterations;
@@ -167,7 +167,7 @@ double chronometre_boucle_epoque(
 						fonction(std::forward<Parametres>(params)...));
 		}
 
-		auto temps_fonction = maintenant() - debut;
+		auto temps_fonction = delta(debut);
 
 		if (temps_fonction_min > temps_fonction) {
 			temps_fonction_min = temps_fonction;

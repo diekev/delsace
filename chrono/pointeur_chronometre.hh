@@ -64,7 +64,7 @@ public:
 		~chronometre_portee()
 		{
 			if (m_parent != nullptr) {
-				m_parent->m_flux_sortie << (maintenant() - m_debut) << '\n';
+				m_parent->m_flux_sortie << delta(m_debut) << '\n';
 			}
 		}
 

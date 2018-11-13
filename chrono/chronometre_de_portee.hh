@@ -51,7 +51,7 @@ public:
 
 	~chronometre_de_portee()
 	{
-		m_flux << m_message << " : " << (maintenant() - m_debut) << '\n';
+		m_flux << m_message << " : " << delta(m_debut) << '\n';
 	}
 };
 
