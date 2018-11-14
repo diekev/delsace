@@ -69,7 +69,7 @@ struct Metriques {
 
 struct DonneesArgument {
 	size_t index = 0;
-	DonneesType donnees_type{};
+	size_t donnees_type{-1ul};
 	bool est_variadic = false;
 	bool est_variable = false;
 	char pad[6];
@@ -77,7 +77,7 @@ struct DonneesArgument {
 
 struct DonneesFonction {
 	std::unordered_map<std::string_view, DonneesArgument> args{};
-	DonneesType donnees_type{};
+	size_t donnees_type{-1ul};
 	std::vector<std::string_view> nom_args{};
 	bool est_externe = false;
 	bool est_variadique = false;
@@ -86,7 +86,7 @@ struct DonneesFonction {
 
 struct DonneesVariable {
 	llvm::Value *valeur;
-	DonneesType donnees_type{};
+	size_t donnees_type{-1ul};
 	bool est_variable = false;
 	bool est_variadic = false;
 	char pad[6] = {};
@@ -94,7 +94,7 @@ struct DonneesVariable {
 
 struct DonneesStructure {
 	std::unordered_map<std::string_view, size_t> index_membres{};
-	std::vector<DonneesType> donnees_types{};
+	std::vector<size_t> donnees_types{};
 	llvm::Type *type_llvm{nullptr};
 	size_t id{0ul};
 };
@@ -107,6 +107,8 @@ struct ContexteGenerationCode {
 	assembleuse_arbre *assembleuse = nullptr;
 
 	std::vector<DonneesModule *> modules{};
+
+	MagasinDonneesType magasin_types{};
 
 	ContexteGenerationCode() = default;
 
@@ -196,7 +198,7 @@ struct ContexteGenerationCode {
 	 * Ajoute les données de la globale dont le nom est spécifié en paramètres
 	 * à la table de globales de ce contexte.
 	 */
-	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type);
+	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type);
 
 	/**
 	 * Retourne un pointeur vers la valeur LLVM de la globale dont le nom est
@@ -215,7 +217,7 @@ struct ContexteGenerationCode {
 	 * paramètre. Si aucune globale ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	const DonneesType &type_globale(const std::string_view &nom);
+	size_t type_globale(const std::string_view &nom);
 
 	/* ********************************************************************** */
 
@@ -229,7 +231,7 @@ struct ContexteGenerationCode {
 	void pousse_locale(
 			const std::string_view &nom,
 			llvm::Value *valeur,
-			const DonneesType &type,
+			const size_t &index_type,
 			const bool est_variable,
 			const bool est_variadique);
 
@@ -250,7 +252,7 @@ struct ContexteGenerationCode {
 	 * Si aucune locale ne portant ce nom n'existe, des données vides sont
 	 * retournées.
 	 */
-	const DonneesType &type_locale(const std::string_view &nom);
+	size_t type_locale(const std::string_view &nom);
 
 	/**
 	 * Retourne vrai si la variable locale dont le nom est spécifié peut être
@@ -374,9 +376,6 @@ private:
 	std::unordered_map<std::string_view, DonneesFonction> fonctions{};
 	std::unordered_map<std::string_view, DonneesStructure> structures{};
 	std::vector<std::string_view> nom_structures{};
-
-	/* Utilisé au cas où nous ne pouvons trouver une variable locale ou globale. */
-	DonneesType m_donnees_type_invalide{};
 
 	std::vector<std::pair<std::string_view, DonneesVariable>> m_locales{};
 	std::stack<size_t> m_pile_nombre_locales{};

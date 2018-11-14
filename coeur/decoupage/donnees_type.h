@@ -34,6 +34,9 @@
 #include <llvm/ADT/SmallVector.h>
 #pragma GCC diagnostic pop
 
+#include <unordered_map>
+#include <vector>
+
 #include "morceaux.h"
 
 /**
@@ -129,3 +132,33 @@ inline bool operator!=(const DonneesType &type_a, const DonneesType &type_b)
 }
 
 std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type);
+
+/* ************************************************************************** */
+
+namespace std {
+
+template <>
+struct hash<DonneesType> {
+	/* Utilisation de l'algorithme DJB2 pour générer une empreinte. */
+	size_t operator()(const DonneesType &donnees) const
+	{
+		auto empreinte = 5381ul;
+
+		for (const auto &id : donnees) {
+			empreinte = ((empreinte << 5) + empreinte) + static_cast<size_t>(id);
+		}
+
+		return empreinte;
+	}
+};
+
+}
+
+/* ************************************************************************** */
+
+struct MagasinDonneesType {
+	std::unordered_map<DonneesType, size_t> donnees_type_index;
+	std::vector<DonneesType> donnees_types;
+
+	size_t ajoute_type(const DonneesType &donnees);
+};

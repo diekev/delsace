@@ -72,7 +72,7 @@ private:
 	void analyse_declaration_structure();
 	void analyse_declaration_constante();
 	void analyse_declaration_enum();
-	void analyse_declaration_type(DonneesType &donnees_type, bool double_point = true);
+	size_t analyse_declaration_type(bool double_point = true);
 	void analyse_controle_si();
 	void analyse_controle_pour();
 

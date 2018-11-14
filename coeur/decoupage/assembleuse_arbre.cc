@@ -31,9 +31,9 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-Noeud *assembleuse_arbre::empile_noeud(type_noeud type, const DonneesMorceaux &morceau, bool ajoute)
+Noeud *assembleuse_arbre::empile_noeud(type_noeud type, ContexteGenerationCode &contexte, const DonneesMorceaux &morceau, bool ajoute)
 {
-	auto noeud = cree_noeud(type, morceau);
+	auto noeud = cree_noeud(type, contexte, morceau);
 
 	if (!m_pile.empty() && ajoute) {
 		this->ajoute_noeud(noeud);
@@ -49,7 +49,7 @@ void assembleuse_arbre::ajoute_noeud(Noeud *noeud)
 	m_pile.top()->ajoute_noeud(noeud);
 }
 
-Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &morceau)
+Noeud *assembleuse_arbre::cree_noeud(type_noeud type, ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
 {
 	Noeud *noeud = nullptr;
 	bool reutilise = false;
@@ -57,131 +57,131 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &mor
 	switch (type) {
 		case type_noeud::RACINE:
 			m_memoire_utilisee += sizeof(NoeudRacine);
-			noeud = new NoeudRacine(morceau);
+			noeud = new NoeudRacine(contexte, morceau);
 			break;
 		case type_noeud::APPEL_FONCTION:
 			m_memoire_utilisee += sizeof(NoeudAppelFonction);
-			noeud = new NoeudAppelFonction(morceau);
+			noeud = new NoeudAppelFonction(contexte, morceau);
 			break;
 		case type_noeud::DECLARATION_FONCTION:
 			m_memoire_utilisee += sizeof(NoeudDeclarationFonction);
-			noeud = new NoeudDeclarationFonction(morceau);
+			noeud = new NoeudDeclarationFonction(contexte, morceau);
 			break;
 		case type_noeud::ASSIGNATION_VARIABLE:
 			m_memoire_utilisee += sizeof(NoeudAssignationVariable);
-			noeud = new NoeudAssignationVariable(morceau);
+			noeud = new NoeudAssignationVariable(contexte, morceau);
 			break;
 		case type_noeud::DECLARATION_VARIABLE:
 			m_memoire_utilisee += sizeof(NoeudDeclarationVariable);
-			noeud = new NoeudDeclarationVariable(morceau);
+			noeud = new NoeudDeclarationVariable(contexte, morceau);
 			break;
 		case type_noeud::VARIABLE:
 			m_memoire_utilisee += sizeof(NoeudVariable);
-			noeud = new NoeudVariable(morceau);
+			noeud = new NoeudVariable(contexte, morceau);
 			break;
 		case type_noeud::ACCES_MEMBRE:
 			m_memoire_utilisee += sizeof(NoeudAccesMembre);
-			noeud = new NoeudAccesMembre(morceau);
+			noeud = new NoeudAccesMembre(contexte, morceau);
 			break;
 		case type_noeud::CARACTERE:
 			m_memoire_utilisee += sizeof(NoeudCaractere);
-			noeud = new NoeudCaractere(morceau);
+			noeud = new NoeudCaractere(contexte, morceau);
 			break;
 		case type_noeud::NOMBRE_ENTIER:
 			if (!noeuds_entier_libres.empty()) {
 				noeud = noeuds_entier_libres.back();
 				noeuds_entier_libres.pop_back();
-				*noeud = NoeudNombreEntier(morceau);
+				*noeud = NoeudNombreEntier(contexte, morceau);
 				reutilise = true;
 			}
 			else {
 				m_memoire_utilisee += sizeof(NoeudNombreEntier);
-				noeud = new NoeudNombreEntier(morceau);
+				noeud = new NoeudNombreEntier(contexte, morceau);
 			}
 			break;
 		case type_noeud::NOMBRE_REEL:
 			if (!noeuds_reel_libres.empty()) {
 				noeud = noeuds_reel_libres.back();
 				noeuds_reel_libres.pop_back();
-				*noeud = NoeudNombreReel(morceau);
+				*noeud = NoeudNombreReel(contexte, morceau);
 				reutilise = true;
 			}
 			else {
 				m_memoire_utilisee += sizeof(NoeudNombreReel);
-				noeud = new NoeudNombreReel(morceau);
+				noeud = new NoeudNombreReel(contexte, morceau);
 			}
 			break;
 		case type_noeud::OPERATION_BINAIRE:
 			if (!noeuds_op_libres.empty()) {
 				noeud = noeuds_op_libres.back();
 				noeuds_op_libres.pop_back();
-				*noeud = NoeudOperationBinaire(morceau);
+				*noeud = NoeudOperationBinaire(contexte, morceau);
 				reutilise = true;
 			}
 			else {
 				m_memoire_utilisee += sizeof(NoeudOperationBinaire);
-				noeud = new NoeudOperationBinaire(morceau);
+				noeud = new NoeudOperationBinaire(contexte, morceau);
 			}
 			break;
 		case type_noeud::OPERATION_UNAIRE:
 			m_memoire_utilisee += sizeof(NoeudOperationUnaire);
-			noeud = new NoeudOperationUnaire(morceau);
+			noeud = new NoeudOperationUnaire(contexte, morceau);
 			break;
 		case type_noeud::RETOUR:
 			m_memoire_utilisee += sizeof(NoeudRetour);
-			noeud = new NoeudRetour(morceau);
+			noeud = new NoeudRetour(contexte, morceau);
 			break;
 		case type_noeud::CONSTANTE:
 			m_memoire_utilisee += sizeof(NoeudConstante);
-			noeud = new NoeudConstante(morceau);
+			noeud = new NoeudConstante(contexte, morceau);
 			break;
 		case type_noeud::CHAINE_LITTERALE:
 			m_memoire_utilisee += sizeof(NoeudChaineLitterale);
-			noeud = new NoeudChaineLitterale(morceau);
+			noeud = new NoeudChaineLitterale(contexte, morceau);
 			break;
 		case type_noeud::BOOLEEN:
 			m_memoire_utilisee += sizeof(NoeudBooleen);
-			noeud = new NoeudBooleen(morceau);
+			noeud = new NoeudBooleen(contexte, morceau);
 			break;
 		case type_noeud::SI:
 			m_memoire_utilisee += sizeof(NoeudSi);
-			noeud = new NoeudSi(morceau);
+			noeud = new NoeudSi(contexte, morceau);
 			break;
 		case type_noeud::BLOC:
 			m_memoire_utilisee += sizeof(NoeudBloc);
-			noeud = new NoeudBloc(morceau);
+			noeud = new NoeudBloc(contexte, morceau);
 			break;
 		case type_noeud::POUR:
 			m_memoire_utilisee += sizeof(NoeudPour);
-			noeud = new NoeudPour(morceau);
+			noeud = new NoeudPour(contexte, morceau);
 			break;
 		case type_noeud::CONTINUE_ARRETE:
 			m_memoire_utilisee += sizeof(NoeudContArr);
-			noeud = new NoeudContArr(morceau);
+			noeud = new NoeudContArr(contexte, morceau);
 			break;
 		case type_noeud::BOUCLE:
 			m_memoire_utilisee += sizeof(NoeudBoucle);
-			noeud = new NoeudBoucle(morceau);
+			noeud = new NoeudBoucle(contexte, morceau);
 			break;
 		case type_noeud::TRANSTYPE:
 			m_memoire_utilisee += sizeof(NoeudTranstype);
-			noeud = new NoeudTranstype(morceau);
+			noeud = new NoeudTranstype(contexte, morceau);
 			break;
 		case type_noeud::NUL:
 			m_memoire_utilisee += sizeof(NoeudNul);
-			noeud = new NoeudNul(morceau);
+			noeud = new NoeudNul(contexte, morceau);
 			break;
 		case type_noeud::TAILLE_DE:
 			m_memoire_utilisee += sizeof(NoeudTailleDe);
-			noeud = new NoeudTailleDe(morceau);
+			noeud = new NoeudTailleDe(contexte, morceau);
 			break;
 		case type_noeud::PLAGE:
 			m_memoire_utilisee += sizeof(NoeudPlage);
-			noeud = new NoeudPlage(morceau);
+			noeud = new NoeudPlage(contexte, morceau);
 			break;
 		case type_noeud::ACCES_MEMBRE_POINT:
 			m_memoire_utilisee += sizeof(NoeudAccesMembrePoint);
-			noeud = new NoeudAccesMembrePoint(morceau);
+			noeud = new NoeudAccesMembrePoint(contexte, morceau);
 			break;
 	}
 

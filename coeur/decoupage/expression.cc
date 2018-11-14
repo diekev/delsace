@@ -26,6 +26,7 @@
 
 #include "arbre_syntactic.h"
 #include "assembleuse_arbre.h"
+#include "contexte_generation_code.h"
 #include "erreur.h"
 #include "nombres.h"
 
@@ -280,7 +281,7 @@ static inline std::string extrait_chaine(Noeud *n)
 	return std::any_cast<std::string>(n->valeur_calculee);
 }
 
-Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1, Noeud *n2)
+Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerationCode &contexte, Noeud *op, Noeud *n1, Noeud *n2)
 {
 	if (!sont_compatibles(n1->identifiant(), n2->identifiant())) {
 		return nullptr;
@@ -298,9 +299,10 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 
 			n1->valeur_calculee = v;
 			n1->calcule = true;
-			n1->donnees_type = DonneesType();
-			n1->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>(v.size() << 8));
-			n1->donnees_type.pousse(id_morceau::Z8);
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::TABLEAU | static_cast<int>(v.size() << 8));
+			dt.pousse(id_morceau::Z8);
+			n1->donnees_type = contexte.magasin_types.ajoute_type(dt);
 
 			assembleuse.supprime_noeud(op);
 			assembleuse.supprime_noeud(n2);
@@ -326,7 +328,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -355,7 +357,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -367,7 +369,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, Noeud *op, Noeud
 		}
 
 		if (est_operation_booleenne(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, { "", 0ul, id_morceau::BOOL });
 			noeud->valeur_calculee = calcul_expression_boolenne(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 

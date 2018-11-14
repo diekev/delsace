@@ -232,7 +232,7 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 		return;
 	}
 
-	m_assembleuse->empile_noeud(type_noeud::RACINE, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
+	m_assembleuse->empile_noeud(type_noeud::RACINE, m_contexte, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
 
 	analyse_corps(os);
 }
@@ -296,7 +296,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	m_module->fonctions_exportees.push_back(nom_fonction);
 
-	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_identifiants[position()]);
+	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_contexte, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
 	noeud_declaration->est_externe = externe;
 
@@ -314,7 +314,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	}
 
 	/* À FAIRE : inférence de type retour. */
-	analyse_declaration_type(noeud_declaration->donnees_type);
+	noeud_declaration->donnees_type = analyse_declaration_type();
 	donnees_fonctions.donnees_type = noeud_declaration->donnees_type;
 
 	m_contexte.ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
@@ -329,7 +329,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 			lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 		}
 
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, m_identifiants[position()]);
 		analyse_corps_fonction();
 		m_assembleuse->depile_noeud(type_noeud::BLOC);
 
@@ -380,10 +380,10 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		}
 	}
 
-	auto donnees_type = DonneesType{};
+	auto donnees_type = size_t{-1ul};
 
 	if (!noeud->est_variable || !est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-		analyse_declaration_type(donnees_type, false);
+		donnees_type = analyse_declaration_type(false);
 	}
 
 
@@ -415,11 +415,11 @@ void analyseuse_grammaire::analyse_controle_si()
 		lance_erreur("Attendu la déclaration 'si'");
 	}
 
-	m_assembleuse->empile_noeud(type_noeud::SI, m_identifiants[position()]);
+	m_assembleuse->empile_noeud(type_noeud::SI, m_contexte, m_identifiants[position()]);
 
 	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
 
-	m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+	m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, m_identifiants[position()]);
 
 	analyse_corps_fonction();
 
@@ -441,7 +441,7 @@ void analyseuse_grammaire::analyse_controle_si()
 		 * correctement traiter ce cas sans l'indirection semble être complexe.
 		 * LLVM devrait pouvoir effacer cette indirection en enlevant les
 		 * branchements redondants. */
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, m_identifiants[position()]);
 
 		if (est_identifiant(id_morceau::SI)) {
 			analyse_controle_si();
@@ -478,7 +478,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 		lance_erreur("Attendu la déclaration 'pour'");
 	}
 
-	m_assembleuse->empile_noeud(type_noeud::POUR, m_identifiants[position()]);
+	m_assembleuse->empile_noeud(type_noeud::POUR, m_contexte, m_identifiants[position()]);
 
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'pour'");
@@ -486,7 +486,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 
 	/* enfant 1 : déclaration variable */
 
-	auto noeud = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_identifiants[position()]);
+	auto noeud = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, m_identifiants[position()]);
 	m_assembleuse->ajoute_noeud(noeud);
 
 	if (!requiers_identifiant(id_morceau::DANS)) {
@@ -505,7 +505,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 
 	/* enfant 3 : bloc */
 
-	m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+	m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, m_identifiants[position()]);
 
 	analyse_corps_fonction();
 
@@ -519,7 +519,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 	if (est_identifiant(id_morceau::SANSARRET)) {
 		avance();
 
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, m_identifiants[position()]);
 
 		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
@@ -538,7 +538,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 	if (est_identifiant(id_morceau::SINON)) {
 		avance();
 
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, m_identifiants[position()]);
 
 		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
@@ -579,10 +579,10 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			}
 
 			const auto &morceau_variable = m_identifiants[position()];
-			auto donnees_type = DonneesType{};
+			auto donnees_type = size_t{-1ul};
 
 			if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
-				analyse_declaration_type(donnees_type);
+				donnees_type = analyse_declaration_type();
 			}
 
 			/* À FAIRE : ceci est principalement pour pouvoir déclarer des
@@ -594,7 +594,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 					lance_erreur("Attendu '=' après chaîne de caractère");
 				}
 
-				auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
+				auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
 				noeud_decl->donnees_type = donnees_type;
 				noeud_decl->est_variable = est_variable;
 				m_assembleuse->depile_noeud(type_noeud::DECLARATION_VARIABLE);
@@ -608,10 +608,10 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 				const auto &morceau_egal = m_identifiants[position()];
 
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau_egal);
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, m_contexte, morceau_egal);
 				noeud->donnees_type = donnees_type;
 
-				auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, morceau_variable);
+				auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
 				noeud_decl->donnees_type = donnees_type;
 				noeud_decl->est_variable = est_variable;
 				noeud->ajoute_noeud(noeud_decl);
@@ -624,7 +624,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		/* retour : retourne a + b; */
 		else if (est_identifiant(id_morceau::RETOURNE)) {
 			avance();
-			m_assembleuse->empile_noeud(type_noeud::RETOUR, m_identifiants[position()]);
+			m_assembleuse->empile_noeud(type_noeud::RETOUR, m_contexte, m_identifiants[position()]);
 
 			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 			if (!est_identifiant(id_morceau::POINT_VIRGULE)) {
@@ -654,8 +654,8 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu une accolade ouvrante '{' après 'boucle'");
 			}
 
-			m_assembleuse->empile_noeud(type_noeud::BOUCLE, m_identifiants[position()]);
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+			m_assembleuse->empile_noeud(type_noeud::BOUCLE, m_contexte, m_identifiants[position()]);
+			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, m_identifiants[position()]);
 			analyse_corps_fonction();
 			m_assembleuse->depile_noeud(type_noeud::BLOC);
 
@@ -671,7 +671,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 					lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
 				}
 
-				m_assembleuse->empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+				m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, m_identifiants[position()]);
 
 				analyse_corps_fonction();
 
@@ -686,11 +686,12 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		}
 		else if (est_identifiant(id_morceau::ARRETE) || est_identifiant(id_morceau::CONTINUE)) {
 			avance();
-			m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, m_identifiants[position()]);
+
+			m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, m_contexte, m_identifiants[position()]);
 
 			if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
 				avance();
-				m_assembleuse->empile_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
+				m_assembleuse->empile_noeud(type_noeud::VARIABLE, m_contexte, m_identifiants[position()]);
 				m_assembleuse->depile_noeud(type_noeud::VARIABLE);
 			}
 
@@ -776,7 +777,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 					avance();
 
-					auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, morceau, false);
+					auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, m_contexte, morceau, false);
 
 					analyse_appel_fonction(dynamic_cast<NoeudAppelFonction *>(noeud));
 
@@ -788,7 +789,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				else {
 					recule();
 
-					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, morceau);
+					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
 					expression.push_back(noeud);
 				}
 
@@ -796,7 +797,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			}
 			case id_morceau::NOMBRE_REEL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_REEL, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_REEL, m_contexte, morceau);
 				expression.push_back(noeud);
 				break;
 			}
@@ -805,25 +806,25 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			case id_morceau::NOMBRE_HEXADECIMAL:
 			case id_morceau::NOMBRE_OCTAL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_ENTIER, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_ENTIER, m_contexte, morceau);
 				expression.push_back(noeud);
 				break;
 			}
 			case id_morceau::CHAINE_LITTERALE:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, m_contexte, morceau);
 				expression.push_back(noeud);
 				break;
 			}
 			case id_morceau::CARACTERE:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::CARACTERE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::CARACTERE, m_contexte, morceau);
 				expression.push_back(noeud);
 				break;
 			}
 			case id_morceau::NUL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::NUL, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::NUL, m_contexte, morceau);
 				expression.push_back(noeud);
 				break;
 			}
@@ -835,10 +836,10 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 					lance_erreur("Attendu '(' après 'taille_de'");
 				}
 
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, m_contexte, morceau);
 
-				auto donnees_type = DonneesType{};
-				analyse_declaration_type(donnees_type, false);
+				auto donnees_type = size_t{-1ul};
+				donnees_type = analyse_declaration_type(false);
 				noeud->valeur_calculee = donnees_type;
 
 				/* vérifie mais n'avance pas */
@@ -854,7 +855,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			{
 				/* remplace l'identifiant par id_morceau::BOOL */
 				auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, id_morceau::BOOL };
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, morceau_bool);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, m_contexte, morceau_bool);
 				expression.push_back(noeud);
 				break;
 			}
@@ -866,7 +867,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 					lance_erreur("Attendu '(' après 'transtype'");
 				}
 
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, m_contexte, morceau, false);
 
 				++m_profondeur;
 				analyse_expression_droite(id_morceau::INCONNU);
@@ -880,7 +881,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 					lance_erreur("Attendu '(' après ')'");
 				}
 
-				analyse_declaration_type(noeud->donnees_type, false);
+				noeud->donnees_type = analyse_declaration_type(false);
 
 				/* vérifie mais n'avance pas */
 				if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
@@ -942,10 +943,10 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 					}
 
 					auto morceau_unaire = DonneesMorceaux{morceau.chaine, morceau.ligne_pos, id_operateur};
-					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau_unaire);
+					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, m_contexte, morceau_unaire);
 				}
 				else {
-					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
+					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau);
 				}
 
 				vide_pile_operateur(id_operateur);
@@ -978,7 +979,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				}
 
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau);
 				pile.push_back(noeud);
 
 				break;
@@ -986,21 +987,21 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			case id_morceau::TROIS_POINTS:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::PLAGE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::PLAGE, m_contexte, morceau);
 				pile.push_back(noeud);
 				break;
 			}
 			case id_morceau::DE:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE, m_contexte, morceau);
 				pile.push_back(noeud);
 				break;
 			}
 			case id_morceau::POINT:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE_POINT, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE_POINT, m_contexte, morceau);
 				pile.push_back(noeud);
 				break;
 			}
@@ -1013,7 +1014,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 				vide_pile_operateur(morceau.identifiant);
 
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, m_contexte, morceau);
 				pile.push_back(noeud);
 				break;
 			}
@@ -1022,7 +1023,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				vide_pile_operateur(morceau.identifiant);
 				avance();
 
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
 				pile.push_back(noeud);
 
 				++m_profondeur;
@@ -1044,7 +1045,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			case id_morceau::MOINS_UNAIRE:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, m_contexte, morceau);
 				pile.push_back(noeud);
 				break;
 			}
@@ -1104,7 +1105,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 			if (n1->est_constant() && n2->est_constant()) {
 				if (est_operateur_constant(noeud->identifiant())) {
-					noeud = calcul_expression_double(*m_assembleuse, noeud, n1, n2);
+					noeud = calcul_expression_double(*m_assembleuse, m_contexte, noeud, n1, n2);
 
 					if (noeud == nullptr) {
 						lance_erreur("Ne peut pas calculer l'expression");
@@ -1301,14 +1302,14 @@ void analyseuse_grammaire::analyse_declaration_constante()
 	}
 
 	auto pos = position();
-	auto donnees_type = DonneesType{};
+	auto donnees_type = size_t{-1ul};
 
 	/* Vérifie s'il y a typage explicit */
 	if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
-		analyse_declaration_type(donnees_type);
+		donnees_type = analyse_declaration_type();
 	}
 
-	auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTANTE, m_identifiants[pos]);
+	auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTANTE, m_contexte, m_identifiants[pos]);
 	noeud->donnees_type = donnees_type;
 
 	if (!requiers_identifiant(id_morceau::EGAL)) {
@@ -1356,8 +1357,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 			lance_erreur("Redéfinition du membre", erreur::type_erreur::MEMBRE_REDEFINI);
 		}
 
-		auto donnees_type = DonneesType{};
-		analyse_declaration_type(donnees_type);
+		auto donnees_type = analyse_declaration_type();
 
 		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
 			lance_erreur("Attendu ';'");
@@ -1391,8 +1391,10 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			break;
 		}
 
-		auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTANTE, m_identifiants[position()]);
-		noeud->donnees_type.pousse(id_morceau::N32);
+		auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTANTE, m_contexte, m_identifiants[position()]);
+		auto dt = DonneesType{};
+		dt.pousse(id_morceau::N32);
+		noeud->donnees_type = m_contexte.magasin_types.ajoute_type(dt);
 
 		if (est_identifiant(id_morceau::EGAL)) {
 			avance();
@@ -1414,11 +1416,13 @@ void analyseuse_grammaire::analyse_declaration_enum()
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, bool double_point)
+size_t analyseuse_grammaire::analyse_declaration_type(bool double_point)
 {
 	if (double_point && !requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
 	}
+
+	DonneesType donnees_type;
 
 	while (est_specifiant_type(identifiant_courant())) {
 		bool est_pointeur = true;
@@ -1475,6 +1479,8 @@ void analyseuse_grammaire::analyse_declaration_type(DonneesType &donnees_type, b
 	}
 
 	donnees_type.pousse(identifiant);
+
+	return m_contexte.magasin_types.ajoute_type(donnees_type);
 }
 
 bool analyseuse_grammaire::requiers_identifiant_type()

@@ -160,7 +160,7 @@ protected:
 public:
 	std::any valeur_calculee{};
 
-	DonneesType donnees_type{};
+	size_t donnees_type = -1ul;
 
 	bool calcule = false;
 	char est_variable = false;
@@ -168,7 +168,7 @@ public:
 	char pad{};
 	int module_appel{}; // module pour les appels de fonctions importées
 
-	explicit Noeud(const DonneesMorceaux &morceau);
+	explicit Noeud(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	virtual ~Noeud() = default;
 
@@ -234,7 +234,7 @@ public:
 
 class NoeudRacine final : public Noeud {
 public:
-	explicit NoeudRacine(const DonneesMorceaux &morceau);
+	explicit NoeudRacine(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -247,7 +247,7 @@ public:
 
 class NoeudAppelFonction final : public Noeud {
 public:
-	explicit NoeudAppelFonction(const DonneesMorceaux &morceau);
+	explicit NoeudAppelFonction(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -264,7 +264,7 @@ public:
 
 class NoeudDeclarationFonction final : public Noeud {
 public:
-	explicit NoeudDeclarationFonction(const DonneesMorceaux &morceau);
+	explicit NoeudDeclarationFonction(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -279,7 +279,7 @@ public:
 
 class NoeudAssignationVariable final : public Noeud {
 public:
-	explicit NoeudAssignationVariable(const DonneesMorceaux &morceau);
+	explicit NoeudAssignationVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -294,7 +294,7 @@ public:
 
 class NoeudDeclarationVariable final : public Noeud {
 public:
-	explicit NoeudDeclarationVariable(const DonneesMorceaux &morceau);
+	explicit NoeudDeclarationVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -311,7 +311,7 @@ public:
 
 class NoeudConstante final : public Noeud {
 public:
-	explicit NoeudConstante(const DonneesMorceaux &morceau);
+	explicit NoeudConstante(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -326,7 +326,7 @@ public:
 
 class NoeudNombreEntier final : public Noeud {
 public:
-	explicit NoeudNombreEntier(const DonneesMorceaux &morceau);
+	explicit NoeudNombreEntier(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -341,7 +341,7 @@ public:
 
 class NoeudBooleen final : public Noeud {
 public:
-	explicit NoeudBooleen(const DonneesMorceaux &morceau);
+	explicit NoeudBooleen(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -356,7 +356,7 @@ public:
 
 class NoeudCaractere final : public Noeud {
 public:
-	explicit NoeudCaractere(const DonneesMorceaux &morceau);
+	explicit NoeudCaractere(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -371,7 +371,7 @@ public:
 
 class NoeudNombreReel final : public Noeud {
 public:
-	explicit NoeudNombreReel(const DonneesMorceaux &morceau);
+	explicit NoeudNombreReel(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -386,7 +386,7 @@ public:
 
 class NoeudChaineLitterale final : public Noeud {
 public:
-	explicit NoeudChaineLitterale(const DonneesMorceaux &morceau);
+	explicit NoeudChaineLitterale(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -401,7 +401,7 @@ public:
 
 class NoeudVariable final : public Noeud {
 public:
-	explicit NoeudVariable(const DonneesMorceaux &morceau);
+	explicit NoeudVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -418,7 +418,7 @@ public:
 
 class NoeudAccesMembre final : public Noeud {
 public:
-	explicit NoeudAccesMembre(const DonneesMorceaux &morceau);
+	explicit NoeudAccesMembre(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -435,7 +435,7 @@ public:
 
 class NoeudOperationBinaire final : public Noeud {
 public:
-	explicit NoeudOperationBinaire(const DonneesMorceaux &morceau);
+	explicit NoeudOperationBinaire(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -452,7 +452,7 @@ public:
 
 class NoeudOperationUnaire final : public Noeud {
 public:
-	explicit NoeudOperationUnaire(const DonneesMorceaux &morceau);
+	explicit NoeudOperationUnaire(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -467,7 +467,7 @@ public:
 
 class NoeudRetour final : public Noeud {
 public:
-	explicit NoeudRetour(const DonneesMorceaux &morceau);
+	explicit NoeudRetour(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -482,7 +482,7 @@ public:
 
 class NoeudSi final : public Noeud {
 public:
-	explicit NoeudSi(const DonneesMorceaux &morceau);
+	explicit NoeudSi(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -497,7 +497,7 @@ public:
 
 class NoeudBloc final : public Noeud {
 public:
-	explicit NoeudBloc(const DonneesMorceaux &morceau);
+	explicit NoeudBloc(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -512,7 +512,7 @@ public:
 
 class NoeudPour final : public Noeud {
 public:
-	explicit NoeudPour(const DonneesMorceaux &morceau);
+	explicit NoeudPour(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -527,7 +527,7 @@ public:
 
 class NoeudContArr final : public Noeud {
 public:
-	explicit NoeudContArr(const DonneesMorceaux &morceau);
+	explicit NoeudContArr(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -540,7 +540,7 @@ public:
 
 class NoeudBoucle final : public Noeud {
 public:
-	explicit NoeudBoucle(const DonneesMorceaux &morceau);
+	explicit NoeudBoucle(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -553,7 +553,7 @@ public:
 
 class NoeudTranstype final : public Noeud {
 public:
-	explicit NoeudTranstype(const DonneesMorceaux &morceau);
+	explicit NoeudTranstype(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -568,7 +568,7 @@ public:
 
 class NoeudNul final : public Noeud {
 public:
-	explicit NoeudNul(const DonneesMorceaux &morceau);
+	explicit NoeudNul(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -581,7 +581,7 @@ public:
 
 class NoeudTailleDe final : public Noeud {
 public:
-	explicit NoeudTailleDe(const DonneesMorceaux &morceau);
+	explicit NoeudTailleDe(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -594,7 +594,7 @@ public:
 
 class NoeudPlage final : public Noeud {
 public:
-	explicit NoeudPlage(const DonneesMorceaux &morceau);
+	explicit NoeudPlage(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
@@ -609,7 +609,7 @@ public:
 
 class NoeudAccesMembrePoint final : public Noeud {
 public:
-	explicit NoeudAccesMembrePoint(const DonneesMorceaux &morceau);
+	explicit NoeudAccesMembrePoint(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 

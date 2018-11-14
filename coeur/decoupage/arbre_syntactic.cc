@@ -122,9 +122,10 @@ static llvm::Type *converti_type_simple(
 				std::transform(donnees_structure.donnees_types.begin(),
 							   donnees_structure.donnees_types.end(),
 							   types_membres.begin(),
-							   [&](const DonneesType &donnees)
+							   [&](const size_t index_type)
 				{
-					return converti_type(contexte, donnees);
+					const auto &dt = contexte.magasin_types.donnees_types[index_type];
+					return converti_type(contexte, dt);
 				});
 
 				auto nom = "struct." + contexte.nom_struct(donnees_structure.id);
@@ -204,7 +205,8 @@ static unsigned alignement(
 			auto a = 0u;
 
 			for (const auto &donnees : donnees_structure.donnees_types) {
-				a = std::max(a, alignement(contexte, donnees));
+				const auto &dt = contexte.magasin_types.donnees_types[donnees];
+				a = std::max(a, alignement(contexte, dt));
 			}
 
 			return a;
@@ -442,7 +444,8 @@ static llvm::FunctionType *obtiens_type_fonction(
 			break;
 		}
 
-		parametres.push_back(converti_type(contexte, argument->second.donnees_type));
+		const auto &dt = contexte.magasin_types.donnees_types[argument->second.donnees_type];
+		parametres.push_back(converti_type(contexte, dt));
 	}
 
 	return llvm::FunctionType::get(
@@ -453,7 +456,7 @@ static llvm::FunctionType *obtiens_type_fonction(
 
 /* ************************************************************************** */
 
-Noeud::Noeud(const DonneesMorceaux &morceau)
+Noeud::Noeud(ContexteGenerationCode &/*contexte*/, const DonneesMorceaux &morceau)
 	: m_donnees_morceaux{morceau}
 {}
 
@@ -510,8 +513,8 @@ id_morceau Noeud::identifiant() const
 
 /* ************************************************************************** */
 
-NoeudRacine::NoeudRacine(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudRacine::NoeudRacine(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudRacine::imprime_code(std::ostream &os, int tab)
@@ -540,8 +543,8 @@ type_noeud NoeudRacine::type() const
 
 /* ************************************************************************** */
 
-NoeudAppelFonction::NoeudAppelFonction(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudAppelFonction::NoeudAppelFonction(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {
 	/* réutilisation du membre std::any pour économiser un peu de mémoire */
 	valeur_calculee = std::list<std::string_view>{};
@@ -590,7 +593,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
 		auto index_premier_var_arg = nombre_args - 1;
 
-		noeud_nombre_args = new NoeudNombreEntier({});
+		noeud_nombre_args = new NoeudNombreEntier(contexte, {});
 		noeud_nombre_args->valeur_calculee = static_cast<long>(nombre_args_var);
 		noeud_nombre_args->calcule = true;
 
@@ -605,8 +608,10 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		 * car ça a déjà été fait dans l'analyse grammaticale. */
 		const auto iter = donnees_fonction.args.find(nom);
 		auto index_arg = iter->second.index;
-		const auto type_arg = iter->second.donnees_type;
-		const auto type_enf = (*enfant)->donnees_type;
+		const auto index_type_arg = iter->second.donnees_type;
+		const auto index_type_enf = (*enfant)->donnees_type;
+		const auto &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
+		const auto &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
 
 		if (iter->second.est_variadic) {
 			if (!type_arg.est_invalide()) {
@@ -696,7 +701,7 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 					m_donnees_morceaux);
 	}
 
-	if (this->donnees_type.est_invalide()) {
+	if (this->donnees_type == -1ul) {
 		this->donnees_type = donnees_fonction.donnees_type;
 	}
 
@@ -705,8 +710,8 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 
 /* ************************************************************************** */
 
-NoeudDeclarationFonction::NoeudDeclarationFonction(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudDeclarationFonction::NoeudDeclarationFonction(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
@@ -741,10 +746,11 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	 */
 
 	/* Crée le type de la fonction */
+	const auto &this_dt = contexte.magasin_types.donnees_types[this->donnees_type];
 	auto type_fonction = obtiens_type_fonction(
 							 contexte,
 							 donnees_fonction,
-							 this->donnees_type,
+							 this_dt,
 							 this->est_variable);
 
 	/* broyage du nom */
@@ -793,18 +799,18 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 				dt.pousse(id_morceau::Z32);
 
 				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
-				donnees_structure.donnees_types.push_back(dt);
+				donnees_structure.donnees_types.push_back(contexte.magasin_types.ajoute_type(dt));
 				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
-				donnees_structure.donnees_types.push_back(dt);
+				donnees_structure.donnees_types.push_back(contexte.magasin_types.ajoute_type(dt));
 
 				dt = DonneesType{};
 				dt.pousse(id_morceau::POINTEUR);
 				dt.pousse(id_morceau::Z8);
 
 				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
-				donnees_structure.donnees_types.push_back(dt);
+				donnees_structure.donnees_types.push_back(contexte.magasin_types.ajoute_type(dt));
 				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
-				donnees_structure.donnees_types.push_back(dt);
+				donnees_structure.donnees_types.push_back(contexte.magasin_types.ajoute_type(dt));
 
 				id = contexte.ajoute_donnees_structure("va_list", donnees_structure);
 			}
@@ -818,8 +824,9 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 			type = converti_type(contexte, dt);
 		}
 		else {
-			align = alignement(contexte, argument.donnees_type);
-			type = converti_type(contexte, argument.donnees_type);
+			auto dt = contexte.magasin_types.donnees_types[argument.donnees_type];
+			align = alignement(contexte, dt);
+			type = converti_type(contexte, dt);
 		}
 
 		if (argument.est_variadic) {
@@ -827,6 +834,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 			auto valeur = &(*valeurs_args++);
 			auto dt = DonneesType{};
 			dt.pousse(id_morceau::Z32);
+			auto index_dt = contexte.magasin_types.ajoute_type(dt);
 
 			auto alloc_compte = new llvm::AllocaInst(
 									llvm::Type::getInt32Ty(contexte.contexte),
@@ -837,7 +845,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 			auto store = new llvm::StoreInst(valeur, alloc_compte, false, contexte.bloc_courant());
 			store->setAlignment(4);
 
-			contexte.pousse_locale("__compte_args", alloc_compte, dt, false, false);
+			contexte.pousse_locale("__compte_args", alloc_compte, index_dt, false, false);
 
 			valeur = &(*valeurs_args++);
 
@@ -928,7 +936,9 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 			auto dt = DonneesType{};
 			dt.pousse(id_morceau::Z32);
 
-			contexte.pousse_locale("__compte_args", nullptr, dt, false, false);
+			auto index_dt = contexte.magasin_types.ajoute_type(dt);
+
+			contexte.pousse_locale("__compte_args", nullptr, index_dt, false, false);
 			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_variable, argument.est_variadic);
 		}
 		else {
@@ -943,9 +953,11 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 	auto type_bloc = bloc->donnees_type;
 	auto dernier = bloc->dernier_enfant();
 
+	auto dt = contexte.magasin_types.donnees_types[this->donnees_type];
+
 	/* si le bloc est vide -> vérifie qu'aucun type n'a été spécifié */
 	if (dernier == nullptr) {
-		if (this->donnees_type.type_base() != id_morceau::RIEN) {
+		if (dt.type_base() != id_morceau::RIEN) {
 			erreur::lance_erreur(
 						"Instruction de retour manquante",
 						contexte,
@@ -957,7 +969,7 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 	else {
 		/* si le dernier noeud n'est pas un noeud de retour -> vérifie qu'aucun type n'a été spécifié */
 		if (dernier->type() != type_noeud::RETOUR) {
-			if (this->donnees_type.type_base() != id_morceau::RIEN) {
+			if (dt.type_base() != id_morceau::RIEN) {
 				erreur::lance_erreur(
 							"Instruction de retour manquante",
 							contexte,
@@ -982,8 +994,8 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 
 /* ************************************************************************** */
 
-NoeudAssignationVariable::NoeudAssignationVariable(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudAssignationVariable::NoeudAssignationVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
@@ -1011,7 +1023,9 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	auto alloc = variable->genere_code_llvm(contexte, true);
 	auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
-	store->setAlignment(alignement(contexte, expression->donnees_type));
+
+	const auto &dt = contexte.magasin_types.donnees_types[expression->donnees_type];
+	store->setAlignment(alignement(contexte, dt));
 
 	return store;
 }
@@ -1038,7 +1052,7 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 
 	this->donnees_type = expression->donnees_type;
 
-	if (this->donnees_type.est_invalide()) {
+	if (this->donnees_type == -1ul) {
 		erreur::lance_erreur(
 					"Impossible de définir le type de la variable !",
 					contexte,
@@ -1046,7 +1060,9 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 					erreur::type_erreur::TYPE_INCONNU);
 	}
 
-	if (this->donnees_type.type_base() == id_morceau::RIEN) {
+	const auto &dt = contexte.magasin_types.donnees_types[this->donnees_type];
+
+	if (dt.type_base() == id_morceau::RIEN) {
 		erreur::lance_erreur(
 					"Impossible d'assigner une expression de type 'rien' à une variable !",
 					contexte,
@@ -1056,18 +1072,18 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 
 	/* Ajourne les données du premier enfant si elles sont invalides, dans le
 	 * cas d'une déclaration de variable. */
-	const auto type_gauche = variable->donnees_type;
-
-	if (type_gauche.est_invalide()) {
+	if (variable->donnees_type == -1ul) {
 		variable->donnees_type = this->donnees_type;
 	}
 
 	variable->perfome_validation_semantique(contexte);
 
-	if (!peut_assigner(variable->donnees_type, this->donnees_type, expression->type())) {
+	const auto &type_gauche = contexte.magasin_types.donnees_types[variable->donnees_type];
+
+	if (!peut_assigner(type_gauche, dt, expression->type())) {
 		erreur::lance_erreur_assignation_type_differents(
-					variable->donnees_type,
-					this->donnees_type,
+					type_gauche,
+					dt,
 					contexte,
 					m_donnees_morceaux);
 	}
@@ -1075,8 +1091,8 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 
 /* ************************************************************************** */
 
-NoeudDeclarationVariable::NoeudDeclarationVariable(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudDeclarationVariable::NoeudDeclarationVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudDeclarationVariable::imprime_code(std::ostream &os, int tab)
@@ -1087,7 +1103,8 @@ void NoeudDeclarationVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	auto type_llvm = converti_type(contexte, this->donnees_type);
+	const auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto type_llvm = converti_type(contexte, type);
 
 	auto alloc = new llvm::AllocaInst(
 					 type_llvm,
@@ -1098,7 +1115,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
  #endif
 					 contexte.bloc_courant());
 
-	alloc->setAlignment(alignement(contexte, this->donnees_type));
+	alloc->setAlignment(alignement(contexte, type));
 
 	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, this->est_variable, false);
 
@@ -1143,8 +1160,8 @@ void NoeudDeclarationVariable::perfome_validation_semantique(ContexteGenerationC
 
 /* ************************************************************************** */
 
-NoeudConstante::NoeudConstante(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudConstante::NoeudConstante(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudConstante::imprime_code(std::ostream &os, int tab)
@@ -1168,13 +1185,15 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 				 m_enfants.front()->chaine(),
 				 m_enfants.front()->identifiant());
 
+	const auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
+
 	auto constante = llvm::ConstantInt::get(
-						 converti_type(contexte, this->donnees_type),
+						 converti_type(contexte, type),
 						 static_cast<uint64_t>(n));
 
 	auto valeur = new llvm::GlobalVariable(
 				 *contexte.module_llvm,
-				 converti_type(contexte, this->donnees_type),
+				 converti_type(contexte, type),
 				 true,
 				 llvm::GlobalValue::InternalLinkage,
 				 constante);
@@ -1203,10 +1222,10 @@ void NoeudConstante::perfome_validation_semantique(ContexteGenerationCode &conte
 
 	m_enfants.front()->perfome_validation_semantique(contexte);
 
-	if (this->donnees_type.est_invalide()) {
+	if (this->donnees_type == -1ul) {
 		this->donnees_type = m_enfants.front()->donnees_type;
 
-		if (this->donnees_type.est_invalide()) {
+		if (this->donnees_type == -1ul) {
 			erreur::lance_erreur(
 						"Impossible de définir le type de la variable globale !",
 						contexte,
@@ -1221,10 +1240,13 @@ void NoeudConstante::perfome_validation_semantique(ContexteGenerationCode &conte
 
 /* ************************************************************************** */
 
-NoeudNombreEntier::NoeudNombreEntier(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudNombreEntier::NoeudNombreEntier(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {
-	this->donnees_type.pousse(id_morceau::Z32);
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::Z32);
+
+	this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 }
 
 void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
@@ -1266,10 +1288,13 @@ type_noeud NoeudNombreEntier::type() const
 
 /* ************************************************************************** */
 
-NoeudBooleen::NoeudBooleen(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudBooleen::NoeudBooleen(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {
-	this->donnees_type.pousse(id_morceau::BOOL);
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::BOOL);
+
+	this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 }
 
 void NoeudBooleen::imprime_code(std::ostream &os, int tab)
@@ -1308,10 +1333,13 @@ type_noeud NoeudBooleen::type() const
 
 /* ************************************************************************** */
 
-NoeudCaractere::NoeudCaractere(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudCaractere::NoeudCaractere(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {
-	this->donnees_type.pousse(id_morceau::Z8);
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::Z8);
+
+	this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 }
 
 void NoeudCaractere::imprime_code(std::ostream &os, int tab)
@@ -1342,10 +1370,13 @@ type_noeud NoeudCaractere::type() const
 
 /* ************************************************************************** */
 
-NoeudNombreReel::NoeudNombreReel(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudNombreReel::NoeudNombreReel(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {
-	this->donnees_type.pousse(id_morceau::R64);
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::R64);
+
+	this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 }
 
 void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
@@ -1386,8 +1417,8 @@ type_noeud NoeudNombreReel::type() const
 
 /* ************************************************************************** */
 
-NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudChaineLitterale::NoeudChaineLitterale(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {
 	/* fais en sorte que les caractères échappés ne soient pas comptés comme
 	 * deux caractères distincts, ce qui ne peut se faire avec la
@@ -1408,8 +1439,11 @@ NoeudChaineLitterale::NoeudChaineLitterale(const DonneesMorceaux &morceau)
 
 	this->valeur_calculee = corrigee;
 
-	this->donnees_type.pousse(id_morceau::TABLEAU | static_cast<int>((corrigee.size() + 1) << 8));
-	this->donnees_type.pousse(id_morceau::Z8);
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::TABLEAU | static_cast<int>((corrigee.size() + 1) << 8));
+	dt.pousse(id_morceau::Z8);
+
+	this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 }
 
 void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
@@ -1433,7 +1467,8 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 						 contexte.contexte,
 						 chaine);
 
-	auto type = converti_type(contexte, this->donnees_type);
+	const auto &this_type = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto type = converti_type(contexte, this_type);
 
 	auto globale = new llvm::GlobalVariable(
 				*contexte.module_llvm,
@@ -1467,8 +1502,8 @@ type_noeud NoeudChaineLitterale::type() const
 
 /* ************************************************************************** */
 
-NoeudVariable::NoeudVariable(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudVariable::NoeudVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudVariable::imprime_code(std::ostream &os, int tab)
@@ -1494,8 +1529,8 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 		return valeur;
 	}
 
-	/* À FAIRE : redondant. */
-	auto type = this->donnees_type;
+	const auto &index_type = this->donnees_type;
+	const auto &type = contexte.magasin_types.donnees_types[index_type];
 
 	if (contexte.est_locale_variadique(m_donnees_morceaux.chaine)) {
 		auto inst = new llvm::VAArgInst(
@@ -1544,8 +1579,8 @@ void NoeudVariable::perfome_validation_semantique(ContexteGenerationCode &contex
 
 /* ************************************************************************** */
 
-NoeudAccesMembre::NoeudAccesMembre(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudAccesMembre::NoeudAccesMembre(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudAccesMembre::imprime_code(std::ostream &os, int tab)
@@ -1564,7 +1599,8 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 	auto structure = m_enfants.back();
 	auto membre = m_enfants.front();
 
-	const auto &type_structure = structure->donnees_type;
+	const auto &index_type = structure->donnees_type;
+	const auto &type_structure = contexte.magasin_types.donnees_types[index_type];
 
 	auto index_structure = 0ul;
 	auto est_pointeur = false;
@@ -1613,7 +1649,8 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 	if (!expr_gauche) {
 		auto charge = new llvm::LoadInst(ret, "", contexte.bloc_courant());
-		charge->setAlignment(alignement(contexte, donnees_structure.donnees_types[index_membre]));
+		const auto &dt = contexte.magasin_types.donnees_types[donnees_structure.donnees_types[index_membre]];
+		charge->setAlignment(alignement(contexte, dt));
 		ret = charge;
 	}
 
@@ -1637,7 +1674,8 @@ void NoeudAccesMembre::perfome_validation_semantique(ContexteGenerationCode &con
 
 	structure->perfome_validation_semantique(contexte);
 
-	const auto &type_structure = structure->donnees_type;
+	const auto &index_type = structure->donnees_type;
+	const auto &type_structure = contexte.magasin_types.donnees_types[index_type];
 
 	auto index_structure = 0ul;
 
@@ -1747,8 +1785,8 @@ static bool peut_operer(
 	return false;
 }
 
-NoeudOperationBinaire::NoeudOperationBinaire(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudOperationBinaire::NoeudOperationBinaire(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudOperationBinaire::imprime_code(std::ostream &os, int tab)
@@ -1772,8 +1810,21 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 	auto enfant1 = m_enfants.front();
 	auto enfant2 = m_enfants.back();
 
-	const auto type1 = enfant1->donnees_type;
-	const auto type2 = enfant2->donnees_type;
+	const auto index_type1 = enfant1->donnees_type;
+	const auto index_type2 = enfant2->donnees_type;
+
+	const auto &type1 = contexte.magasin_types.donnees_types[index_type1];
+	const auto &type2 = contexte.magasin_types.donnees_types[index_type2];
+
+	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT)) {
+		if (!peut_operer(type1, type2, enfant1->type(), enfant2->type())) {
+			erreur::lance_erreur_type_operation(
+						type1,
+						type2,
+						contexte,
+						m_donnees_morceaux);
+		}
+	}
 
 	/* À FAIRE : typage */
 
@@ -2056,8 +2107,11 @@ void NoeudOperationBinaire::perfome_validation_semantique(ContexteGenerationCode
 	enfant1->perfome_validation_semantique(contexte);
 	enfant2->perfome_validation_semantique(contexte);
 
-	const auto type1 = enfant1->donnees_type;
-	const auto type2 = enfant2->donnees_type;
+	const auto index_type1 = enfant1->donnees_type;
+	const auto index_type2 = enfant2->donnees_type;
+
+	const auto &type1 = contexte.magasin_types.donnees_types[index_type1];
+	const auto &type2 = contexte.magasin_types.donnees_types[index_type2];
 
 	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT)) {
 		if (!peut_operer(type1, type2, enfant1->type(), enfant2->type())) {
@@ -2072,12 +2126,16 @@ void NoeudOperationBinaire::perfome_validation_semantique(ContexteGenerationCode
 	switch (this->identifiant()) {
 		default:
 		{
-			this->donnees_type = type1;
+			this->donnees_type = index_type1;
 			break;
 		}
 		case id_morceau::CROCHET_OUVRANT:
 		{
-			this->donnees_type = type2.derefence();
+			auto donnees_enfant = m_enfants.back()->donnees_type;
+
+			const auto &type = contexte.magasin_types.donnees_types[donnees_enfant];
+			auto dt = type.derefence();
+			this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 			break;
 		}
 		case id_morceau::EGALITE:
@@ -2089,7 +2147,10 @@ void NoeudOperationBinaire::perfome_validation_semantique(ContexteGenerationCode
 		case id_morceau::ESP_ESP:
 		case id_morceau::BARRE_BARRE:
 		{
-			this->donnees_type.pousse(id_morceau::BOOL);
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::BOOL);
+
+			this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 			break;
 		}
 	}
@@ -2097,8 +2158,8 @@ void NoeudOperationBinaire::perfome_validation_semantique(ContexteGenerationCode
 
 /* ************************************************************************** */
 
-NoeudOperationUnaire::NoeudOperationUnaire(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudOperationUnaire::NoeudOperationUnaire(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudOperationUnaire::imprime_code(std::ostream &os, int tab)
@@ -2115,7 +2176,8 @@ llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &cont
 {
 	llvm::Instruction::BinaryOps instr;
 	auto enfant = m_enfants.front();
-	auto type1 = enfant->donnees_type;
+	auto index_type1 = enfant->donnees_type;
+	const auto &type1 = contexte.magasin_types.donnees_types[index_type1];
 	auto valeur1 = enfant->genere_code_llvm(contexte);
 	auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
@@ -2186,9 +2248,10 @@ void NoeudOperationUnaire::perfome_validation_semantique(ContexteGenerationCode 
 {
 	auto enfant = m_enfants.front();
 	enfant->perfome_validation_semantique(contexte);
-	auto type = enfant->donnees_type;
+	auto index_type = enfant->donnees_type;
+	const auto &type = contexte.magasin_types.donnees_types[index_type];
 
-	if (this->donnees_type.est_invalide()) {
+	if (this->donnees_type == -1ul) {
 		switch (this->identifiant()) {
 			default:
 			{
@@ -2197,8 +2260,11 @@ void NoeudOperationUnaire::perfome_validation_semantique(ContexteGenerationCode 
 			}
 			case id_morceau::AROBASE:
 			{
-				this->donnees_type.pousse(id_morceau::POINTEUR);
-				this->donnees_type.pousse(type);
+				auto dt = DonneesType{};
+				dt.pousse(id_morceau::POINTEUR);
+				dt.pousse(type);
+
+				this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 				break;
 			}
 			case id_morceau::EXCLAMATION:
@@ -2211,7 +2277,9 @@ void NoeudOperationUnaire::perfome_validation_semantique(ContexteGenerationCode 
 								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 
-				this->donnees_type.pousse(id_morceau::BOOL);
+				auto dt = DonneesType{};
+				dt.pousse(id_morceau::BOOL);
+				this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 				break;
 			}
 		}
@@ -2220,8 +2288,8 @@ void NoeudOperationUnaire::perfome_validation_semantique(ContexteGenerationCode 
 
 /* ************************************************************************** */
 
-NoeudRetour::NoeudRetour(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudRetour::NoeudRetour(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudRetour::imprime_code(std::ostream &os, int tab)
@@ -2272,7 +2340,9 @@ type_noeud NoeudRetour::type() const
 void NoeudRetour::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
 	if (m_enfants.empty()) {
-		this->donnees_type.pousse(id_morceau::RIEN);
+		auto dt = DonneesType{};
+		dt.pousse(id_morceau::RIEN);
+		this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 		return;
 	}
 
@@ -2282,8 +2352,8 @@ void NoeudRetour::perfome_validation_semantique(ContexteGenerationCode &contexte
 
 /* ************************************************************************** */
 
-NoeudSi::NoeudSi(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudSi::NoeudSi(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudSi::imprime_code(std::ostream &os, int tab)
@@ -2355,7 +2425,8 @@ void NoeudSi::perfome_validation_semantique(ContexteGenerationCode &contexte)
 	auto enfant2 = *iter_enfant++;
 
 	enfant1->perfome_validation_semantique(contexte);
-	auto type_condition = enfant1->donnees_type;
+	auto index_type = enfant1->donnees_type;
+	const auto &type_condition = contexte.magasin_types.donnees_types[index_type];
 
 	if (type_condition.type_base() != id_morceau::BOOL) {
 		erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
@@ -2375,8 +2446,8 @@ void NoeudSi::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudBloc::NoeudBloc(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudBloc::NoeudBloc(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudBloc::imprime_code(std::ostream &os, int tab)
@@ -2437,7 +2508,9 @@ void NoeudBloc::perfome_validation_semantique(ContexteGenerationCode &contexte)
 	Noeud::perfome_validation_semantique(contexte);
 
 	if (m_enfants.empty()) {
-		this->donnees_type.pousse(id_morceau::RIEN);
+		auto dt = DonneesType{};
+		dt.pousse(id_morceau::RIEN);
+		this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 	}
 	else {
 		this->donnees_type = m_enfants.back()->donnees_type;
@@ -2448,8 +2521,8 @@ void NoeudBloc::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudPour::NoeudPour(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudPour::NoeudPour(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudPour::imprime_code(std::ostream &os, int tab)
@@ -2578,11 +2651,11 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto enfant_sans_arret = enfant4;
 	auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
-	auto type_debut = enfant2->donnees_type;
-
+	auto index_type = enfant2->donnees_type;
+	const auto &type_debut = contexte.magasin_types.donnees_types[index_type];
 	const auto type = type_debut.type_base();
 
-	enfant1->donnees_type = type_debut;
+	enfant1->donnees_type = index_type;
 
 	/* création des blocs */
 	auto bloc_boucle = cree_bloc(contexte, "boucle");
@@ -2657,11 +2730,11 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 					condition,
 					contexte.bloc_courant());
 
-		contexte.pousse_locale(enfant1->chaine(), noeud_phi, type_debut, false, false);
+		contexte.pousse_locale(enfant1->chaine(), noeud_phi, index_type, false, false);
 	}
 	else if (enfant2->type() == type_noeud::VARIABLE) {
 		auto arg = enfant2->genere_code_llvm(contexte);
-		contexte.pousse_locale(enfant1->chaine(), arg, type_debut, false, false);
+		contexte.pousse_locale(enfant1->chaine(), arg, index_type, false, false);
 
 		auto valeur_debut = llvm::ConstantInt::get(
 								llvm::Type::getInt32Ty(contexte.contexte),
@@ -2817,8 +2890,8 @@ void NoeudPour::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudContArr::NoeudContArr(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudContArr::NoeudContArr(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudContArr::imprime_code(std::ostream &os, int tab)
@@ -2862,8 +2935,8 @@ type_noeud NoeudContArr::type() const
 
 /* ************************************************************************** */
 
-NoeudBoucle::NoeudBoucle(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudBoucle::NoeudBoucle(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudBoucle::imprime_code(std::ostream &os, int tab)
@@ -2926,8 +2999,8 @@ type_noeud NoeudBoucle::type() const
 	return type_noeud::BOUCLE;
 }
 
-NoeudTranstype::NoeudTranstype(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudTranstype::NoeudTranstype(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudTranstype::imprime_code(std::ostream &os, int tab)
@@ -2982,18 +3055,21 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 {
 	auto enfant = m_enfants.front();
 	auto valeur = enfant->genere_code_llvm(contexte);
-	const auto &donnees_type_de = enfant->donnees_type;
+	const auto &index_type_de = enfant->donnees_type;
 
-	if (donnees_type_de == this->donnees_type) {
+	if (index_type_de == this->donnees_type) {
 		return valeur;
 	}
 
-	using CastOps = llvm::Instruction::CastOps;
+	const auto &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
 
-	auto type = converti_type(contexte, this->donnees_type);
+	using CastOps = llvm::Instruction::CastOps;
+	const auto &dt = contexte.magasin_types.donnees_types[this->donnees_type];
+
+	auto type = converti_type(contexte, dt);
 	auto bloc = contexte.bloc_courant();
 	auto type_de = donnees_type_de.type_base();
-	auto type_vers = this->donnees_type.type_base();
+	auto type_vers = dt.type_base();
 
 	if (est_type_entier(type_de)) {
 		/* un nombre entier peut être converti en l'adresse d'un pointeur */
@@ -3047,7 +3123,7 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 	/* À FAIRE : BitCast (Type Cast) */
 	erreur::lance_erreur_type_operation(
 				donnees_type_de,
-				this->donnees_type,
+				dt,
 				contexte,
 				this->donnees_morceau());
 }
@@ -3059,7 +3135,7 @@ type_noeud NoeudTranstype::type() const
 
 void NoeudTranstype::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
-	if (this->donnees_type.est_invalide()) {
+	if (this->donnees_type == -1ul) {
 		erreur::lance_erreur(
 					"Ne peut transtyper vers un type invalide",
 					contexte,
@@ -3069,9 +3145,8 @@ void NoeudTranstype::perfome_validation_semantique(ContexteGenerationCode &conte
 
 	auto enfant = m_enfants.front();
 	enfant->perfome_validation_semantique(contexte);
-	const auto &donnees_type_de = enfant->donnees_type;
 
-	if (donnees_type_de.est_invalide()) {
+	if (enfant->donnees_type == -1ul) {
 		erreur::lance_erreur(
 					"Ne peut calculer le type d'origine",
 					contexte,
@@ -3082,11 +3157,14 @@ void NoeudTranstype::perfome_validation_semantique(ContexteGenerationCode &conte
 
 /* ************************************************************************** */
 
-NoeudNul::NoeudNul(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudNul::NoeudNul(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {
-	this->donnees_type.pousse(id_morceau::POINTEUR);
-	this->donnees_type.pousse(id_morceau::NUL);
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::POINTEUR);
+	dt.pousse(id_morceau::NUL);
+
+	this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 }
 
 void NoeudNul::imprime_code(std::ostream &os, int tab)
@@ -3110,10 +3188,13 @@ type_noeud NoeudNul::type() const
 
 /* ************************************************************************** */
 
-NoeudTailleDe::NoeudTailleDe(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudTailleDe::NoeudTailleDe(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {
-	this->donnees_type.pousse(id_morceau::N32);
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::N32);
+
+	this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 }
 
 void NoeudTailleDe::imprime_code(std::ostream &os, int tab)
@@ -3145,8 +3226,8 @@ type_noeud NoeudTailleDe::type() const
 
 /* ************************************************************************** */
 
-NoeudPlage::NoeudPlage(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudPlage::NoeudPlage(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudPlage::imprime_code(std::ostream &os, int tab)
@@ -3190,8 +3271,19 @@ void NoeudPlage::perfome_validation_semantique(ContexteGenerationCode &contexte)
 	enfant1->perfome_validation_semantique(contexte);
 	enfant2->perfome_validation_semantique(contexte);
 
-	auto type_debut = enfant1->donnees_type;
-	auto type_fin   = enfant2->donnees_type;
+	auto index_type_debut = enfant1->donnees_type;
+	auto index_type_fin   = enfant2->donnees_type;
+
+	if (index_type_debut == -1ul || index_type_fin == -1ul) {
+		erreur::lance_erreur(
+					"Les types de l'expression sont invalides !",
+					contexte,
+					m_donnees_morceaux,
+					erreur::type_erreur::TYPE_INCONNU);
+	}
+
+	const auto &type_debut = contexte.magasin_types.donnees_types[index_type_debut];
+	const auto &type_fin   = contexte.magasin_types.donnees_types[index_type_fin];
 
 	if (type_debut.est_invalide() || type_fin.est_invalide()) {
 		erreur::lance_erreur(
@@ -3201,7 +3293,7 @@ void NoeudPlage::perfome_validation_semantique(ContexteGenerationCode &contexte)
 					erreur::type_erreur::TYPE_INCONNU);
 	}
 
-	if (type_debut != type_fin) {
+	if (index_type_debut != index_type_fin) {
 		erreur::lance_erreur_type_operation(
 					type_debut,
 					type_fin,
@@ -3219,7 +3311,7 @@ void NoeudPlage::perfome_validation_semantique(ContexteGenerationCode &contexte)
 					erreur::type_erreur::TYPE_DIFFERENTS);
 	}
 
-	this->donnees_type = type_debut;
+	this->donnees_type = index_type_debut;
 
 	contexte.pousse_locale("__debut", nullptr, this->donnees_type, false, false);
 	contexte.pousse_locale("__fin", nullptr, this->donnees_type, false, false);
@@ -3227,8 +3319,8 @@ void NoeudPlage::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudAccesMembrePoint::NoeudAccesMembrePoint(const DonneesMorceaux &morceau)
-	: Noeud(morceau)
+NoeudAccesMembrePoint::NoeudAccesMembrePoint(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
 {}
 
 void NoeudAccesMembrePoint::imprime_code(std::ostream &os, int tab)

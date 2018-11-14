@@ -145,3 +145,21 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 
 	return os;
 }
+
+/* ************************************************************************** */
+
+size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
+{
+	auto iter = donnees_type_index.find(donnees);
+
+	if (iter != donnees_type_index.end()) {
+		return iter->second;
+	}
+
+	auto index = donnees_types.size();
+	donnees_types.push_back(donnees);
+
+	donnees_type_index.insert({donnees, index});
+
+	return index;
+}

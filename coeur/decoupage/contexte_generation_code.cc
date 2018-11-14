@@ -152,9 +152,9 @@ llvm::BasicBlock *ContexteGenerationCode::bloc_arrete(std::string_view chaine)
 	return nullptr;
 }
 
-void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const DonneesType &type)
+void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type)
 {
-	globales.insert({nom, {valeur, type}});
+	globales.insert({nom, {valeur, index_type}});
 }
 
 llvm::Value *ContexteGenerationCode::valeur_globale(const std::string_view &nom)
@@ -179,12 +179,12 @@ bool ContexteGenerationCode::globale_existe(const std::string_view &nom)
 	return true;
 }
 
-const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &nom)
+size_t ContexteGenerationCode::type_globale(const std::string_view &nom)
 {
 	auto iter = globales.find(nom);
 
 	if (iter == globales.end()) {
-		return this->m_donnees_type_invalide;
+		return -1ul;
 	}
 
 	return iter->second.donnees_type;
@@ -193,15 +193,15 @@ const DonneesType &ContexteGenerationCode::type_globale(const std::string_view &
 void ContexteGenerationCode::pousse_locale(
 		const std::string_view &nom,
 		llvm::Value *valeur,
-		const DonneesType &type,
+		const size_t &index_type,
 		const bool est_variable,
 		const bool est_variadique)
 {
 	if (m_locales.size() > m_nombre_locales) {
-		m_locales[m_nombre_locales] = {nom, {valeur, type, est_variable, est_variadique, {}}};
+		m_locales[m_nombre_locales] = {nom, {valeur, index_type, est_variable, est_variadique, {}}};
 	}
 	else {
-		m_locales.push_back({nom, {valeur, type, est_variable, est_variadique, {}}});
+		m_locales.push_back({nom, {valeur, index_type, est_variable, est_variadique, {}}});
 	}
 
 	++m_nombre_locales;
@@ -241,7 +241,7 @@ bool ContexteGenerationCode::locale_existe(const std::string_view &nom)
 	return true;
 }
 
-const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &nom)
+size_t ContexteGenerationCode::type_locale(const std::string_view &nom)
 {
 	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
 	auto iter = std::find_if(m_locales.begin(), iter_fin,
@@ -251,7 +251,7 @@ const DonneesType &ContexteGenerationCode::type_locale(const std::string_view &n
 	});
 
 	if (iter == iter_fin) {
-		return this->m_donnees_type_invalide;
+		return -1ul;
 	}
 
 	return iter->second.donnees_type;
@@ -402,6 +402,10 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 
 	/* m_pile_arrete */
 	memoire += m_pile_arrete.size() * sizeof(llvm::BasicBlock *);
+
+	/* magasin_types */
+	memoire += magasin_types.donnees_types.size() * sizeof(DonneesType);
+	memoire += magasin_types.donnees_type_index.size() * (sizeof(size_t) + sizeof(size_t));
 
 	return memoire;
 }

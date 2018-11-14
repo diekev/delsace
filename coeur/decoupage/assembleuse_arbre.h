@@ -61,7 +61,7 @@ public:
 	 *
 	 * Retourne un pointeur vers le noeud ajouté.
 	 */
-	Noeud *empile_noeud(type_noeud type, const DonneesMorceaux &morceau, bool ajoute = true);
+	Noeud *empile_noeud(type_noeud type, ContexteGenerationCode &contexte, const DonneesMorceaux &morceau, bool ajoute = true);
 
 	/**
 	 * Ajoute le noeud spécifié au noeud courant.
@@ -72,7 +72,7 @@ public:
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	Noeud *cree_noeud(type_noeud type, const DonneesMorceaux &morceau);
+	Noeud *cree_noeud(type_noeud type, ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
 
 	/**
 	 * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et
