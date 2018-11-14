@@ -170,7 +170,7 @@ def construit_tableaux():
 
 
 def constuit_enumeration():
-	enumeration = u'enum class id_morceau : int {\n'
+	enumeration = u'enum class id_morceau : unsigned int {\n'
 
 	for car in caracteres_simple:
 		enumeration += u'\t{},\n'.format(car[1])

@@ -28,7 +28,7 @@
 
 #include <string>
 
-enum class id_morceau : int {
+enum class id_morceau : unsigned int {
 	EXCLAMATION,
 	GUILLEMET,
 	DIESE,
