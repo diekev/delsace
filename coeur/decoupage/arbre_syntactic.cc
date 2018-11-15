@@ -199,9 +199,6 @@ static unsigned alignement(
 			const auto &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
 			auto &donnees_structure = contexte.donnees_structure(id_structure);
 
-			std::vector<llvm::Type *> types_membres;
-			types_membres.resize(donnees_structure.donnees_types.size());
-
 			auto a = 0u;
 
 			for (const auto &donnees : donnees_structure.donnees_types) {
