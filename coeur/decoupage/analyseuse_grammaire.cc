@@ -1115,7 +1115,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 					lance_erreur("Ne peut pas calculer l'expression car l'opérateur n'est pas constant");
 				}
 				else {
-					noeud->reserve_enfants(2);
 					noeud->ajoute_noeud(n1);
 					noeud->ajoute_noeud(n2);
 				}
@@ -1132,7 +1131,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				lance_erreur("Ne peut pas calculer l'expression pour la constante");
 			}
 			else {
-				noeud->reserve_enfants(2);
 				noeud->ajoute_noeud(n1);
 				noeud->ajoute_noeud(n2);
 			}
@@ -1159,7 +1157,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				lance_erreur("Ne peut pas calculer l'expression car le noeud n'est pas constant");
 			}
 			else {
-				noeud->reserve_enfants(1);
 				noeud->ajoute_noeud(n1);
 			}
 

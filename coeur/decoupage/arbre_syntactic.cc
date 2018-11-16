@@ -457,11 +457,6 @@ Noeud::Noeud(ContexteGenerationCode &/*contexte*/, const DonneesMorceaux &morcea
 	: m_donnees_morceaux{morceau}
 {}
 
-void Noeud::reserve_enfants(size_t /*n*/)
-{
-	//m_enfants.reserve(n);
-}
-
 bool Noeud::est_constant() const
 {
 	return false;
@@ -826,6 +821,12 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 			type = converti_type(contexte, dt);
 		}
 
+#ifdef NOMME_IR
+		const auto &nom_argument = argument.chaine;
+#else
+		const auto &nom_argument = "";
+#endif
+
 		if (argument.est_variadic) {
 			/* stockage de l'argument implicit de compte d'argument */
 			auto valeur = &(*valeurs_args++);
@@ -848,18 +849,14 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 			auto alloc = new llvm::AllocaInst(
 							 type,
-#ifdef NOMME_IR
-							 argument.chaine,
-#else
-							"",
-#endif
+							 nom_argument,
 							 contexte.bloc_courant());
 
 			alloc->setAlignment(align);
 			auto cast = new llvm::BitCastInst(alloc,
-										  llvm::Type::getInt8PtrTy(contexte.contexte),
-										  "",
-										  contexte.bloc_courant());
+											  llvm::Type::getInt8PtrTy(contexte.contexte),
+											  "",
+											  contexte.bloc_courant());
 
 			auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vastart);
 			llvm::CallInst::Create(fonc, cast, "", contexte.bloc_courant());
@@ -867,17 +864,11 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		}
 		else {
 			auto valeur = &(*valeurs_args++);
-#ifdef NOMME_IR
-			valeur->setName(argument.chaine.c_str());
-#endif
+			valeur->setName(nom_argument);
 
 			auto alloc = new llvm::AllocaInst(
 							 type,
-	#ifdef NOMME_IR
-							 argument.chaine,
-	#else
-							"",
-	#endif
+							 nom_argument,
 							 contexte.bloc_courant());
 
 			alloc->setAlignment(align);
@@ -1105,11 +1096,11 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	auto alloc = new llvm::AllocaInst(
 					 type_llvm,
- #ifdef NOMME_IR
+#ifdef NOMME_IR
 					 std::string(m_donnees_morceaux.chaine),
- #else
+#else
 					 "",
- #endif
+#endif
 					 contexte.bloc_courant());
 
 	alloc->setAlignment(alignement(contexte, type));
@@ -1189,11 +1180,11 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 						 static_cast<uint64_t>(n));
 
 	auto valeur = new llvm::GlobalVariable(
-				 *contexte.module_llvm,
-				 converti_type(contexte, type),
-				 true,
-				 llvm::GlobalValue::InternalLinkage,
-				 constante);
+					  *contexte.module_llvm,
+					  converti_type(contexte, type),
+					  true,
+					  llvm::GlobalValue::InternalLinkage,
+					  constante);
 
 	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->donnees_type);
 
@@ -1468,12 +1459,12 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 	auto type = converti_type(contexte, this_type);
 
 	auto globale = new llvm::GlobalVariable(
-				*contexte.module_llvm,
-				type,
-				true,
-				llvm::GlobalValue::PrivateLinkage,
-				constante,
-				".chn");
+					   *contexte.module_llvm,
+					   type,
+					   true,
+					   llvm::GlobalValue::PrivateLinkage,
+					   constante,
+					   ".chn");
 
 	globale->setAlignment(1);
 	globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
@@ -2586,11 +2577,11 @@ static llvm::Value *incremente_pour_type(
 						   false);
 
 		return llvm::BinaryOperator::Create(
-					   llvm::Instruction::Add,
-					   noeud_phi,
-					   val_inc,
-					   "",
-					   bloc_courant);
+					llvm::Instruction::Add,
+					noeud_phi,
+					val_inc,
+					"",
+					bloc_courant);
 	}
 
 	if (est_type_reel(type)) {
@@ -2599,11 +2590,11 @@ static llvm::Value *incremente_pour_type(
 						   1.0);
 
 		return llvm::BinaryOperator::Create(
-					   llvm::Instruction::FAdd,
-					   noeud_phi,
-					   val_inc,
-					   "",
-					   bloc_courant);
+					llvm::Instruction::FAdd,
+					noeud_phi,
+					val_inc,
+					"",
+					bloc_courant);
 	}
 
 	return nullptr;

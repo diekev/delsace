@@ -193,7 +193,6 @@ public:
 	 * Retourne l'identifiant du morceau de ce noeud.
 	 */
 	id_morceau identifiant() const;
-	void reserve_enfants(size_t n);
 
 	/**
 	 * Retourne vrai si le résultat du noeud peut-être évalué durant la
@@ -211,6 +210,9 @@ public:
 	 */
 	virtual type_noeud type() const = 0;
 
+	/**
+	 * Retourne vrai si le noeud peut se trouver à gauche d'un opérateur '='.
+	 */
 	virtual bool peut_etre_assigne(ContexteGenerationCode &contexte) const;
 
 	/**
