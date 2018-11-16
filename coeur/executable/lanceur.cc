@@ -516,6 +516,11 @@ int main(int argc, char *argv[])
 		auto dossier_origine = std::filesystem::current_path();
 
 		auto chemin = std::filesystem::path(chemin_fichier);
+
+		if (chemin.is_relative()) {
+			chemin = std::filesystem::absolute(chemin);
+		}
+
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
