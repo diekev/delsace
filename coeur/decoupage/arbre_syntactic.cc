@@ -38,6 +38,7 @@
 #include <llvm/IR/Module.h>
 #pragma GCC diagnostic pop
 
+#include <iostream>
 #include <set>
 #include <sstream>
 
@@ -801,8 +802,6 @@ type_noeud NoeudAppelFonction::type() const
 {
 	return type_noeud::APPEL_FONCTION;
 }
-
-#include <iostream>
 
 void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
