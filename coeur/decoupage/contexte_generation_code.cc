@@ -310,21 +310,6 @@ bool ContexteGenerationCode::est_locale_variadique(const std::string_view &nom)
 	return iter->second.est_variadic;
 }
 
-void ContexteGenerationCode::ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees)
-{
-	fonctions.insert({nom, donnees});
-}
-
-const DonneesFonction &ContexteGenerationCode::donnees_fonction(const std::string_view &nom)
-{
-	return fonctions[nom];
-}
-
-bool ContexteGenerationCode::fonction_existe(const std::string_view &nom)
-{
-	return fonctions.find(nom) != fonctions.end();
-}
-
 void ContexteGenerationCode::commence_fonction(llvm::Function *f)
 {
 	this->fonction = f;
@@ -377,11 +362,6 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	memoire += globales.size() * (sizeof(DonneesVariable) + sizeof(std::string_view));
 
 	/* fonctions */
-	memoire += fonctions.size() * (sizeof(DonneesFonction) + sizeof(std::string_view));
-
-	for (const auto &fonc : fonctions) {
-		memoire += fonc.second.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
-	}
 
 	/* structures */
 	memoire += structures.size() * sizeof(DonneesStructure);
@@ -406,6 +386,10 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	/* magasin_types */
 	memoire += magasin_types.donnees_types.size() * sizeof(DonneesType);
 	memoire += magasin_types.donnees_type_index.size() * (sizeof(size_t) + sizeof(size_t));
+
+	for (auto module : modules) {
+		memoire += module->memoire_utilisee();
+	}
 
 	return memoire;
 }

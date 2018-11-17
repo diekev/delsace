@@ -38,6 +38,7 @@
 #include <llvm/IR/Module.h>
 #pragma GCC diagnostic pop
 
+#include <set>
 #include <sstream>
 
 #include "contexte_generation_code.h"
@@ -563,7 +564,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 	auto fonction = contexte.module_llvm->getFunction(nom_broye);
 
-	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
+	const auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	auto fonction_variadique_interne = fonction->isVarArg() && !donnees_fonction.est_externe;
 
@@ -683,7 +684,7 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
-	const auto &donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
+	const auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	if (!donnees_fonction.est_variadique && (m_enfants.size() != donnees_fonction.args.size())) {
 		erreur::lance_erreur_nombre_arguments(
@@ -695,6 +696,60 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 
 	if (this->donnees_type == -1ul) {
 		this->donnees_type = donnees_fonction.donnees_type;
+	}
+
+	/* vérifie que les arguments soient proprement nommés */
+	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
+	auto arguments_nommes = false;
+	std::set<std::string_view> args;
+	auto dernier_arg_variadique = false;
+	const auto nombre_args = donnees_fonction.args.size();
+
+	auto index = 0ul;
+	const auto index_max = nombre_args - donnees_fonction.est_variadique;
+
+	for (auto &nom_arg : *noms_arguments) {
+		if (nom_arg != "") {
+			arguments_nommes = true;
+
+			auto iter = donnees_fonction.args.find(nom_arg);
+
+			if (iter == donnees_fonction.args.end()) {
+				erreur::lance_erreur_argument_inconnu(
+							nom_arg,
+							contexte,
+							this->donnees_morceau());
+			}
+
+			if ((args.find(nom_arg) != args.end()) && !iter->second.est_variadic) {
+				/* À FAIRE : trouve le morceau correspondant à l'argument. */
+				erreur::lance_erreur("Argument déjà nommé",
+									 contexte,
+									 this->donnees_morceau(),
+									 erreur::type_erreur::ARGUMENT_REDEFINI);
+			}
+
+			dernier_arg_variadique = iter->second.est_variadic;
+
+			args.insert(nom_arg);
+		}
+		else {
+			if (arguments_nommes == true && dernier_arg_variadique == false) {
+				/* À FAIRE : trouve le morceau correspondant à l'argument. */
+				erreur::lance_erreur("Attendu le nom de l'argument",
+									 contexte,
+									 this->donnees_morceau(),
+									 erreur::type_erreur::ARGUMENT_INCONNU);
+			}
+
+			if (nombre_args != 0) {
+				auto nom_argument = donnees_fonction.nom_args[index];
+				args.insert(nom_argument);
+				nom_arg = nom_argument;
+			}
+		}
+
+		index = std::min(index + 1, index_max);
 	}
 
 	Noeud::perfome_validation_semantique(contexte);
@@ -726,7 +781,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	 *   pour générer les données nécessaires.
 	 */
 
-	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
+	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
+	auto donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	/* Pour les fonctions variadiques
 	 * - on ajoute manuellement un argument implicit correspondant au nombre
@@ -914,7 +970,8 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 
 	contexte.commence_fonction(nullptr);
 
-	auto donnees_fonction = contexte.donnees_fonction(m_donnees_morceaux.chaine);
+	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
+	auto donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	/* Pousse les paramètres sur la pile. */
 	for (const auto &nom : donnees_fonction.nom_args) {
@@ -2293,10 +2350,11 @@ void NoeudRetour::imprime_code(std::ostream &os, int tab)
 llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
 	llvm::Value *valeur = nullptr;
+	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
 
 	/* insère un appel à va_end avant chaque instruction de retour */
 	if (contexte.fonction->isVarArg()) {
-		const auto &donnees_fonction = contexte.donnees_fonction(std::string(contexte.fonction->getName()));
+		const auto &donnees_fonction = module->donnees_fonction(std::string(contexte.fonction->getName()));
 
 		for (const auto &arg : donnees_fonction.args) {
 			if (arg.second.est_variadic) {

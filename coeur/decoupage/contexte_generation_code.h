@@ -67,23 +67,6 @@ struct Metriques {
 	double temps_decoupage = 0.0;
 };
 
-struct DonneesArgument {
-	size_t index = 0;
-	size_t donnees_type{-1ul};
-	bool est_variadic = false;
-	bool est_variable = false;
-	char pad[6];
-};
-
-struct DonneesFonction {
-	std::unordered_map<std::string_view, DonneesArgument> args{};
-	size_t donnees_type{-1ul};
-	std::vector<std::string_view> nom_args{};
-	bool est_externe = false;
-	bool est_variadique = false;
-	char pad[6];
-};
-
 struct DonneesVariable {
 	llvm::Value *valeur;
 	size_t donnees_type{-1ul};
@@ -296,25 +279,6 @@ struct ContexteGenerationCode {
 	/* ********************************************************************** */
 
 	/**
-	 * Ajoute les données de la fonction dont le nom est spécifié en paramètres
-	 * à la table de fonctions de ce contexte.
-	 */
-	void ajoute_donnees_fonctions(const std::string_view &nom, const DonneesFonction &donnees);
-
-	/**
-	 * Retourne les données de la fonction dont le nom est spécifié en
-	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
-	 * vides sont retournées.
-	 */
-	const DonneesFonction &donnees_fonction(const std::string_view &nom);
-
-	/**
-	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
-	 * ayant déjà été ajouté à la liste de fonctions de ce contexte.
-	 */
-	bool fonction_existe(const std::string_view &nom);
-
-	/**
 	 * Indique le début d'une nouvelle fonction. Le compteur et le vecteur de
 	 * variables sont remis à zéro. Le pointeur passé en paramètre est celui de
 	 * la fonction courant.
@@ -373,7 +337,6 @@ struct ContexteGenerationCode {
 private:
 	llvm::BasicBlock *m_bloc_courant = nullptr;
 	std::unordered_map<std::string_view, DonneesVariable> globales{};
-	std::unordered_map<std::string_view, DonneesFonction> fonctions{};
 	std::unordered_map<std::string_view, DonneesStructure> structures{};
 	std::vector<std::string_view> nom_structures{};
 

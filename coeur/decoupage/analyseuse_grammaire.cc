@@ -290,7 +290,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	// crée noeud fonction
 	const auto nom_fonction = m_identifiants[position()].chaine;
 
-	if (m_contexte.fonction_existe(nom_fonction)) {
+	if (m_module->fonction_existe(nom_fonction)) {
 		lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
 	}
 
@@ -317,7 +317,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	noeud_declaration->donnees_type = analyse_declaration_type();
 	donnees_fonctions.donnees_type = noeud_declaration->donnees_type;
 
-	m_contexte.ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
+	m_module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
 	if (externe) {
 		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
@@ -1208,24 +1208,6 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
 
-	auto index = 0ul;
-	auto arguments_nommes = false;
-	std::set<std::string_view> args;
-	auto dernier_arg_variadique = false;
-
-	if (!m_contexte.fonction_existe(noeud->chaine())) {
-		erreur::lance_erreur(
-					"Fonction inconnue",
-					m_contexte,
-					noeud->donnees_morceau(),
-					erreur::type_erreur::FONCTION_INCONNUE);
-	}
-
-	const auto &donnees_fonction = m_contexte.donnees_fonction(noeud->chaine());
-
-	/* utilise min car arg.size() - 1 peut-être égal à size_t::max() */
-	const auto nombre_args = donnees_fonction.args.empty() ? 0ul : donnees_fonction.args.size() - 1;
-
 	while (true) {
 		/* aucun paramètre, ou la liste de paramètre est vide */
 		if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
@@ -1235,42 +1217,13 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::EGAL)) {
 			avance();
 
-			arguments_nommes = true;
-
 			auto nom_argument = m_identifiants[position()].chaine;
-
-			auto iter = donnees_fonction.args.find(nom_argument);
-
-			if (iter == donnees_fonction.args.end()) {
-				erreur::lance_erreur_argument_inconnu(
-							nom_argument,
-							m_contexte,
-							noeud->donnees_morceau());
-			}
-
-			if ((args.find(nom_argument) != args.end()) && !iter->second.est_variadic) {
-				lance_erreur("Argument déjà nommé", erreur::type_erreur::ARGUMENT_REDEFINI);
-			}
-
-			dernier_arg_variadique = iter->second.est_variadic;
-
-			args.insert(nom_argument);
 			noeud->ajoute_nom_argument(nom_argument);
 
 			avance();
 		}
 		else {
-			if (arguments_nommes == true && dernier_arg_variadique == false) {
-				avance();
-				lance_erreur("Attendu le nom de l'argument", erreur::type_erreur::ARGUMENT_INCONNU);
-			}
-
-			/* par défaut nous nommons les arguments manuellement. */
-			if (nombre_args != 0) {
-				auto nom_argument = donnees_fonction.nom_args[index];
-				args.insert(nom_argument);
-				noeud->ajoute_nom_argument(nom_argument);
-			}
+			noeud->ajoute_nom_argument("");
 		}
 
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
@@ -1279,8 +1232,6 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 		++m_profondeur;
 		analyse_expression_droite(id_morceau::VIRGULE);
 		--m_profondeur;
-
-		index = std::min(index + 1, nombre_args);
 	}
 }
 
