@@ -500,6 +500,7 @@ int main(int argc, char *argv[])
 	std::ostream &os = std::cout;
 
 	auto resultat = 0;
+	auto debut_compilation     = dls::chrono::maintenant();
 	auto temps_generation_code = 0.0;
 	auto debut_nettoyage       = 0.0;
 	auto temps_nettoyage       = 0.0;
@@ -606,6 +607,7 @@ int main(int argc, char *argv[])
 	}
 
 	temps_nettoyage = dls::chrono::delta(debut_nettoyage);
+	const auto temps_total = dls::chrono::delta(debut_compilation);
 
 	const auto temps_scene = metriques.temps_tampon
 							 + metriques.temps_decoupage
@@ -616,7 +618,7 @@ int main(int argc, char *argv[])
 								+ temps_fichier_objet
 								+ temps_executable;
 
-	const auto temps_total = temps_scene + temps_coulisse + temps_nettoyage;
+	const auto temps_aggrege = temps_scene + temps_coulisse + temps_nettoyage;
 
 	auto calc_pourcentage = [&](const double &x, const double &total)
 	{
@@ -625,10 +627,11 @@ int main(int argc, char *argv[])
 
 	os << "------------------------------------------------------------------\n";
 	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
+	os << "Temps aggrégé                : " << temps_seconde(temps_aggrege) << '\n';
 	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
 	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
-	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_total << '\n';
-	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(metriques.nombre_lignes) / temps_total)) << '\n';
+	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_aggrege << '\n';
+	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(metriques.nombre_lignes) / temps_aggrege)) << '\n';
 
 	const auto mem_totale = metriques.memoire_tampons
 							+ metriques.memoire_morceaux
