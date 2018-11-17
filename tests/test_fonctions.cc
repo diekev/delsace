@@ -27,6 +27,173 @@
 #include "erreur.h"
 #include "outils.h"
 
+static void test_pointeur_fonction(
+		dls::test_unitaire::Controleuse &controleuse)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Une variable ou un membre d'une structure peut être un pointeur vers une fonction.");
+	{
+		const char *texte =
+				R"(
+				structure Foo {
+					x : fonction(z32,*z8,z32)z32;
+				}
+
+				fonction bar(a : fonction(r32, r64)rien) : rien
+				{
+					soit x = a;
+					soit y : fonction(r32, r64)rien = a;
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On ne peut appeler une variable qui n'est pas un pointeur fonction.");
+	{
+		const char *texte =
+				R"(
+				fonction bar() : rien
+				{
+					soit x = 5;
+					soit y = x();
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::FONCTION_INCONNUE);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On peut appeler sans problème un pointeur vers une fonction.");
+	{
+		const char *texte =
+				R"(
+				fonction bar(a : fonction(r64, r64)r32) : r32
+				{
+					retourne a(0.2, 0.4);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On ne peut pas nommer les arguments d'un pointeur vers une fonction.");
+	{
+		const char *texte =
+				R"(
+				fonction bar(a : fonction(r32, r64)r32) : r32
+				{
+					retourne a(x=0.2, z=0.4);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Les pointeurs fonction ont un typage strict (succès).");
+	{
+		const char *texte =
+				R"(
+				fonction ajoute_cb(x : r64, z : r64, cb : fonction(r64, r64) r64) : r64
+				{
+					retourne cb(x, z);
+				}
+
+				fonction ajoute_deux(x : r64, y : r64) : r64
+				{
+					retourne x + y;
+				}
+
+				fonction bar() : r64
+				{
+					retourne ajoute_cb(1.0, 2.0, ajoute_deux);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Les pointeurs fonction ont un typage strict (échec).");
+	{
+		const char *texte =
+				R"(
+				fonction ajoute_cb(x : r64, z : r64, cb : fonction(r64, r64) r64) : r64
+				{
+					retourne cb(x, z);
+				}
+
+				fonction ajoute_trois(x : r64, y : r64, z : r64) : r64
+				{
+					retourne x + y + z;
+				}
+
+				fonction bar() : r64
+				{
+					retourne ajoute_cb(1.0, 2.0, ajoute_trois);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Les arguments des pointeurs fonction ont un typage strict.");
+	{
+		const char *texte =
+				R"(
+				fonction ajoute_cb(x : z32, z : z32, cb : fonction(r32, r32) r32) : r32
+				{
+					retourne cb(x, z);
+				}
+				)";
+
+		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+}
+
 static void test_appel_fonction_variadique_args_nommes(
 		dls::test_unitaire::Controleuse &controleuse)
 {
@@ -613,4 +780,5 @@ void test_fonctions(dls::test_unitaire::Controleuse &controleuse)
 	test_declaration_fonction_variadique(controleuse);
 	test_appel_fonction_variadique(controleuse);
 	test_appel_fonction_variadique_args_nommes(controleuse);
+	test_pointeur_fonction(controleuse);
 }

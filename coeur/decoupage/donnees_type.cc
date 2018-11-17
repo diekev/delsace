@@ -136,6 +136,18 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				case id_morceau::BOOL:
 					os << "bool";
 					break;
+				case id_morceau::FONCTION:
+					os << "fonction";
+					break;
+				case id_morceau::PARENTHESE_OUVRANTE:
+					os << '(';
+					break;
+				case id_morceau::PARENTHESE_FERMANTE:
+					os << ')';
+					break;
+				case id_morceau::VIRGULE:
+					os << ',';
+					break;
 				default:
 					os << chaine_identifiant(donnee & 0xff);
 					break;

@@ -39,6 +39,10 @@
 
 #include "morceaux.h"
 
+namespace llvm {
+class Type;
+}
+
 /**
  * Classe pour gérer les données du type d'une variable ou d'une constante. En
  * l'espèce, la classe contient un vecteur qui peut contenir un nombre variable
@@ -49,11 +53,15 @@
 class DonneesType {
 	/* Petite optimisation pour les types simples. */
 	llvm::SmallVector<id_morceau, 1> m_donnees{};
+	llvm::Type *m_type{nullptr};
 
 public:
 	using iterateur_const = llvm::SmallVectorImpl<id_morceau>::const_reverse_iterator;
 
 	DonneesType() = default;
+
+	DonneesType(const DonneesType &) = default;
+	DonneesType &operator=(const DonneesType &) = default;
 
 	/**
 	 * Ajoute un identifiant à ces données. Il ne sera pas possible de supprimer
@@ -111,22 +119,57 @@ public:
 	 * données invalides.
 	 */
 	DonneesType derefence() const;
+
+	llvm::Type *type_llvm() const
+	{
+		return m_type;
+	}
+
+	void type_llvm(llvm::Type *tllvm)
+	{
+		m_type = tllvm;
+	}
 };
 
 /**
- * Compare deux DonneesType et retourne vrai s'ils sont égaux. L'égalité est
- * déterminée par le type de base des données.
+ * Compare deux DonneesType et retourne vrai s'ils sont égaux.
  */
-inline bool operator==(const DonneesType &type_a, const DonneesType &type_b)
+[[nodiscard]] inline bool operator==(const DonneesType &type_a, const DonneesType &type_b) noexcept
 {
-	return type_a.type_base() == type_b.type_base();
+	/* Petite optimisation. */
+	if (type_a.type_base() != type_b.type_base()) {
+		return false;
+	}
+
+	auto debut_a = type_a.begin();
+	auto fin_a = type_a.end();
+
+	auto debut_b = type_b.begin();
+	auto fin_b = type_b.end();
+
+	auto distance_a = std::distance(debut_a, fin_a);
+	auto distance_b = std::distance(debut_b, fin_b);
+
+	if (distance_a != distance_b) {
+		return false;
+	}
+
+	while (debut_a != fin_a) {
+		if (*debut_a != *debut_b) {
+			return false;
+		}
+
+		++debut_a;
+		++debut_b;
+	}
+
+	return true;
 }
 
 /**
- * Compare deux DonneesType et retourne vrai s'ils sont inégaux. L'inégalité est
- * déterminée par le type de base des données.
+ * Compare deux DonneesType et retourne vrai s'ils sont inégaux.
  */
-inline bool operator!=(const DonneesType &type_a, const DonneesType &type_b)
+[[nodiscard]] inline bool operator!=(const DonneesType &type_a, const DonneesType &type_b) noexcept
 {
 	return !(type_a == type_b);
 }

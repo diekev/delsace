@@ -66,7 +66,7 @@ void DonneesModule::ajoute_donnees_fonctions(const std::string_view &nom_fonctio
 	fonctions.insert({nom_fonction, donnees});
 }
 
-const DonneesFonction &DonneesModule::donnees_fonction(const std::string_view &nom_fonction) const noexcept
+DonneesFonction &DonneesModule::donnees_fonction(const std::string_view &nom_fonction) noexcept
 {
 	auto iter = fonctions.find(nom_fonction);
 

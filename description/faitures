@@ -21,6 +21,7 @@ Faitures
 - fonctions variadiques sur un type donnée
 - utilisation des fonctions de la bibliothèque standard de C
 - utilisation de modules pour séparer le code en composant
+- manipulation de pointeurs vers fonction
 
 
 À faire

@@ -304,18 +304,25 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
 	}
 
+	auto donnees_type_fonction = DonneesType{};
+	donnees_type_fonction.pousse(id_morceau::FONCTION);
+	donnees_type_fonction.pousse(id_morceau::PARENTHESE_OUVRANTE);
+
 	auto donnees_fonctions = DonneesFonction{};
 	donnees_fonctions.est_externe = externe;
 
-	analyse_parametres_fonction(noeud_declaration, donnees_fonctions);
+	analyse_parametres_fonction(noeud_declaration, donnees_fonctions, &donnees_type_fonction);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
 	}
 
+	donnees_type_fonction.pousse(id_morceau::PARENTHESE_FERMANTE);
+
 	/* À FAIRE : inférence de type retour. */
-	noeud_declaration->donnees_type = analyse_declaration_type();
-	donnees_fonctions.donnees_type = noeud_declaration->donnees_type;
+	noeud_declaration->donnees_type = analyse_declaration_type(&donnees_type_fonction);
+	donnees_fonctions.index_type_retour = noeud_declaration->donnees_type;
+	donnees_fonctions.index_type = m_contexte.magasin_types.ajoute_type(donnees_type_fonction);
 
 	m_module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
@@ -341,7 +348,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_FONCTION);
 }
 
-void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees)
+void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees, DonneesType *donnees_type_fonction)
 {
 	if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		/* La liste est vide. */
@@ -383,7 +390,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 	auto donnees_type = size_t{-1ul};
 
 	if (!noeud->est_variable || !est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-		donnees_type = analyse_declaration_type(false);
+		donnees_type = analyse_declaration_type(donnees_type_fonction, false);
 	}
 
 
@@ -404,8 +411,10 @@ void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction 
 		return;
 	}
 
+	donnees_type_fonction->pousse(id_morceau::VIRGULE);
+
 	if (!noeud->est_variable) {
-		analyse_parametres_fonction(noeud, donnees);
+		analyse_parametres_fonction(noeud, donnees, donnees_type_fonction);
 	}
 }
 
@@ -839,7 +848,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, m_contexte, morceau);
 
 				auto donnees_type = size_t{-1ul};
-				donnees_type = analyse_declaration_type(false);
+				donnees_type = analyse_declaration_type(nullptr, false);
 				noeud->valeur_calculee = donnees_type;
 
 				/* vérifie mais n'avance pas */
@@ -881,7 +890,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 					lance_erreur("Attendu '(' après ')'");
 				}
 
-				noeud->donnees_type = analyse_declaration_type(false);
+				noeud->donnees_type = analyse_declaration_type(nullptr, false);
 
 				/* vérifie mais n'avance pas */
 				if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
@@ -1364,12 +1373,58 @@ void analyseuse_grammaire::analyse_declaration_enum()
 	}
 }
 
-size_t analyseuse_grammaire::analyse_declaration_type(bool double_point)
+
+size_t analyseuse_grammaire::analyse_declaration_type(DonneesType *donnees_type_fonction, bool double_point)
 {
 	if (double_point && !requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
 	}
 
+	/* Vérifie si l'on a un pointeur vers une fonction. */
+	if (est_identifiant(id_morceau::FONCTION)) {
+		avance();
+
+		auto dt = DonneesType{};
+		dt.pousse(id_morceau::FONCTION);
+
+		if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+			lance_erreur("Attendu un '(' après 'fonction'");
+		}
+
+		dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
+
+		while (true) {
+			if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+				break;
+			}
+
+			analyse_declaration_type(&dt, false);
+
+			if (!est_identifiant(id_morceau::VIRGULE)) {
+				break;
+			}
+
+			avance();
+			dt.pousse(id_morceau::VIRGULE);
+		}
+
+		avance();
+		dt.pousse(id_morceau::PARENTHESE_FERMANTE);
+
+		analyse_declaration_type(&dt, false);
+
+		if (donnees_type_fonction) {
+			donnees_type_fonction->pousse(dt);
+		}
+
+		return m_contexte.magasin_types.ajoute_type(dt);
+	}
+
+	return analyse_declaration_type_ex(donnees_type_fonction);
+}
+
+size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_type_fonction)
+{
 	DonneesType donnees_type;
 
 	while (est_specifiant_type(identifiant_courant())) {
@@ -1427,6 +1482,10 @@ size_t analyseuse_grammaire::analyse_declaration_type(bool double_point)
 	}
 
 	donnees_type.pousse(identifiant);
+
+	if (donnees_type_fonction) {
+		donnees_type_fonction->pousse(donnees_type);
+	}
 
 	return m_contexte.magasin_types.ajoute_type(donnees_type);
 }

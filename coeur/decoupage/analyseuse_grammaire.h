@@ -65,14 +65,15 @@ public:
 private:
 	void analyse_corps(std::ostream &os);
 	void analyse_declaration_fonction();
-	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees);
+	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees, DonneesType *donnees_type_fonction);
 	void analyse_corps_fonction();
 	void analyse_expression_droite(id_morceau identifiant_final, const bool calcul_expression = false, const bool assignation = false);
 	void analyse_appel_fonction(NoeudAppelFonction *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_constante();
 	void analyse_declaration_enum();
-	size_t analyse_declaration_type(bool double_point = true);
+	size_t analyse_declaration_type(DonneesType *donnees_type_fonction = nullptr, bool double_point = true);
+	size_t analyse_declaration_type_ex(DonneesType *donnees_type_fonction = nullptr);
 	void analyse_controle_si();
 	void analyse_controle_pour();
 

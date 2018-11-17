@@ -65,7 +65,7 @@ static auto cree_bloc(ContexteGenerationCode &contexte, const char *nom)
 
 static llvm::Type *converti_type(
 		ContexteGenerationCode &contexte,
-		const DonneesType &donnees_type);
+		DonneesType &donnees_type);
 
 static llvm::Type *converti_type_simple(
 		ContexteGenerationCode &contexte,
@@ -125,7 +125,7 @@ static llvm::Type *converti_type_simple(
 							   types_membres.begin(),
 							   [&](const size_t index_type)
 				{
-					const auto &dt = contexte.magasin_types.donnees_types[index_type];
+					auto &dt = contexte.magasin_types.donnees_types[index_type];
 					return converti_type(contexte, dt);
 				});
 
@@ -154,15 +154,100 @@ static llvm::Type *converti_type_simple(
 	return type;
 }
 
+/**
+ * Retourne un vecteur contenant les DonneesType de chaque paramètre et du type
+ * de retour d'un DonneesType d'un pointeur fonction. Si le DonneesType passé en
+ * paramètre n'est pas un pointeur fonction, retourne un vecteur vide.
+ */
+[[nodiscard]] static auto donnees_types_parametres(
+		const DonneesType &donnees_type) noexcept(false) -> std::vector<DonneesType>
+{
+	if (donnees_type.type_base() != id_morceau::FONCTION) {
+		return {};
+	}
+
+	auto dt = DonneesType{};
+	std::vector<DonneesType> donnees_types;
+
+	auto debut = donnees_type.end() - 1;
+	auto fin   = donnees_type.begin() - 1;
+
+	--debut; /* fonction */
+	--debut; /* ( */
+
+	/* type paramètres */
+	while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+			dt.pousse(*debut--);
+
+			if (*debut == id_morceau::VIRGULE) {
+				--debut;
+				break;
+			}
+		}
+
+		donnees_types.push_back(dt);
+
+		dt = DonneesType{};
+	}
+
+	--debut; /* ) */
+
+	/* type retour */
+	while (debut != fin) {
+		dt.pousse(*debut--);
+	}
+
+	donnees_types.push_back(dt);
+
+	return donnees_types;
+}
+
 static llvm::Type *converti_type(
 		ContexteGenerationCode &contexte,
-		const DonneesType &donnees_type)
+		DonneesType &donnees_type)
 {
+
+	/* Pointeur vers une fonction, seulement valide lors d'assignement, ou en
+	 * paramètre de fonction. */
+	if (donnees_type.type_base() == id_morceau::FONCTION) {
+		if (donnees_type.type_llvm() != nullptr) {
+			return llvm::PointerType::get(donnees_type.type_llvm(), 0);
+		}
+
+		llvm::Type *type = nullptr;
+		auto dt = DonneesType{};
+		std::vector<llvm::Type *> parametres;
+
+		auto dt_params = donnees_types_parametres(donnees_type);
+
+		for (size_t i = 0; i < dt_params.size() - 1; ++i) {
+			type = converti_type(contexte, dt_params[i]);
+			parametres.push_back(type);
+		}
+
+		type = converti_type(contexte, dt_params.back());
+		type = llvm::FunctionType::get(
+					type,
+					parametres,
+					false);
+
+		donnees_type.type_llvm(type);
+
+		return llvm::PointerType::get(type, 0);
+	}
+
+	if (donnees_type.type_llvm() != nullptr) {
+		return donnees_type.type_llvm();
+	}
+
 	llvm::Type *type = nullptr;
 
 	for (id_morceau identifiant : donnees_type) {
 		type = converti_type_simple(contexte, identifiant, type);
 	}
+
+	donnees_type.type_llvm(type);
 
 	return type;
 }
@@ -190,6 +275,7 @@ static unsigned alignement(
 		{
 			return alignement(contexte, donnees_type.derefence());
 		}
+		case id_morceau::FONCTION:
 		case id_morceau::POINTEUR:
 		case id_morceau::R64:
 		case id_morceau::N64:
@@ -245,6 +331,12 @@ static bool sont_compatibles(
 {
 	if (type1 == type2) {
 		return true;
+	}
+
+	/* Nous savons que les types sont différents, donc si l'un des deux est un
+	 * pointeur fonction, nous pouvons retourner faux. */
+	if (type1.type_base() == id_morceau::FONCTION) {
+		return false;
 	}
 
 	if (sont_pointeur_tableau_compatibles(type1, type2)) {
@@ -424,7 +516,7 @@ char caractere_echape(const char *sequence)
 static llvm::FunctionType *obtiens_type_fonction(
 		ContexteGenerationCode &contexte,
 		const DonneesFonction &donnees_fonction,
-		const DonneesType &donnees_retour,
+		DonneesType &donnees_retour,
 		bool est_variadique)
 {
 	std::vector<llvm::Type *> parametres;
@@ -442,7 +534,7 @@ static llvm::FunctionType *obtiens_type_fonction(
 			break;
 		}
 
-		const auto &dt = contexte.magasin_types.donnees_types[argument->second.donnees_type];
+		auto &dt = contexte.magasin_types.donnees_types[argument->second.donnees_type];
 		parametres.push_back(converti_type(contexte, dt));
 	}
 
@@ -563,18 +655,61 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
 
 	auto fonction = contexte.module_llvm->getFunction(nom_broye);
+	auto est_pointeur_fonction = (fonction == nullptr && contexte.locale_existe(m_donnees_morceaux.chaine));
+
+	std::vector<llvm::Value *> parametres;
+
+	/* Cherche la liste d'arguments */
+	if (est_pointeur_fonction) {
+		auto index_type = contexte.type_locale(m_donnees_morceaux.chaine);
+		auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
+		auto dt_params = donnees_types_parametres(dt_fonc);
+
+		auto enfant = m_enfants.begin();
+
+		/* Validation des types passés en paramètre. */
+		for (size_t i = 0; i < dt_params.size() - 1; ++i) {
+			auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->donnees_type];
+
+			if (!sont_compatibles(dt_params[i], type_enf)) {
+				erreur::lance_erreur_type_arguments(
+							dt_params[i],
+							type_enf,
+							contexte,
+							(*enfant)->donnees_morceau(),
+							m_donnees_morceaux);
+			}
+
+			++enfant;
+		}
+
+		auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
+		parametres.resize(m_enfants.size());
+
+		std::transform(m_enfants.begin(), m_enfants.end(), parametres.begin(),
+					   [&](Noeud *noeud_enfant)
+		{
+			return noeud_enfant->genere_code_llvm(contexte);
+		});
+
+		llvm::ArrayRef<llvm::Value *> args(parametres);
+
+		auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
+		/* À FAIRE : alignement pointeur. */
+		charge->setAlignment(8);
+
+		return llvm::CallInst::Create(charge, args, "", contexte.bloc_courant());
+	}
 
 	const auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	auto fonction_variadique_interne = fonction->isVarArg() && !donnees_fonction.est_externe;
 
-	/* Cherche la liste d'arguments */
-	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
-
 	/* Réordonne les enfants selon l'apparition des arguments car LLVM est
 	 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
 	 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
 	 * code est généré. */
+	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
 	std::vector<Noeud *> enfants(noms_arguments->size() + fonction_variadique_interne);
 
 	auto noeud_nombre_args = static_cast<NoeudNombreEntier *>(nullptr);
@@ -641,7 +776,6 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		++enfant;
 	}
 
-	std::vector<llvm::Value *> parametres;
 	parametres.resize(enfants.size());
 
 	std::transform(enfants.begin(), enfants.end(), parametres.begin(),
@@ -668,6 +802,8 @@ type_noeud NoeudAppelFonction::type() const
 	return type_noeud::APPEL_FONCTION;
 }
 
+#include <iostream>
+
 void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
 	/* broyage du nom */
@@ -676,7 +812,57 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 	auto nom_fonction = std::string(m_donnees_morceaux.chaine);
 	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
 
+	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
+
 	if (!module->possede_fonction(m_donnees_morceaux.chaine)) {
+		/* Nous avons un pointeur vers une fonction. */
+		if (contexte.locale_existe(m_donnees_morceaux.chaine)) {
+			for (const auto &nom : *noms_arguments) {
+				if (nom.empty()) {
+					continue;
+				}
+
+				/* À FAIRE : trouve les données morceaux idoines. */
+				erreur::lance_erreur(
+							"Les arguments d'un pointeur fonction ne peuvent être nommés",
+							contexte,
+							this->donnees_morceau(),
+							erreur::type_erreur::ARGUMENT_INCONNU);
+			}
+
+			/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
+
+			const auto &dt_pf = contexte.magasin_types.donnees_types[contexte.type_locale(m_donnees_morceaux.chaine)];
+
+			if (dt_pf.type_base() != id_morceau::FONCTION) {
+				erreur::lance_erreur(
+							"La variable doit être un pointeur vers une fonction",
+							contexte,
+							this->donnees_morceau(),
+							erreur::type_erreur::FONCTION_INCONNUE);
+			}
+
+			auto debut = dt_pf.end() - 1;
+			auto fin   = dt_pf.begin() - 1;
+
+			while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+				--debut;
+			}
+
+			--debut;
+
+			auto dt = DonneesType{};
+
+			while (debut != fin) {
+				dt.pousse(*debut--);
+			}
+
+			this->donnees_type = contexte.magasin_types.ajoute_type(dt);
+
+			Noeud::perfome_validation_semantique(contexte);
+			return;
+		}
+
 		erreur::lance_erreur(
 					"Fonction inconnue",
 					contexte,
@@ -695,11 +881,10 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 	}
 
 	if (this->donnees_type == -1ul) {
-		this->donnees_type = donnees_fonction.donnees_type;
+		this->donnees_type = donnees_fonction.index_type_retour;
 	}
 
 	/* vérifie que les arguments soient proprement nommés */
-	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
 	auto arguments_nommes = false;
 	std::set<std::string_view> args;
 	auto dernier_arg_variadique = false;
@@ -782,7 +967,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	 */
 
 	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
-	auto donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
+	auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	/* Pour les fonctions variadiques
 	 * - on ajoute manuellement un argument implicit correspondant au nombre
@@ -794,12 +979,14 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	 */
 
 	/* Crée le type de la fonction */
-	const auto &this_dt = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto &this_dt = contexte.magasin_types.donnees_types[this->donnees_type];
 	auto type_fonction = obtiens_type_fonction(
 							 contexte,
 							 donnees_fonction,
 							 this_dt,
 							 this->est_variable);
+
+	contexte.magasin_types.donnees_types[donnees_fonction.index_type].type_llvm(type_fonction);
 
 	/* broyage du nom */
 	auto nom_module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module))->nom;
@@ -1148,7 +1335,7 @@ void NoeudDeclarationVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
-	const auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
 	auto type_llvm = converti_type(contexte, type);
 
 	auto alloc = new llvm::AllocaInst(
@@ -1230,15 +1417,16 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 				 m_enfants.front()->chaine(),
 				 m_enfants.front()->identifiant());
 
-	const auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto type_llvm = converti_type(contexte, type);
 
 	auto constante = llvm::ConstantInt::get(
-						 converti_type(contexte, type),
+						 type_llvm,
 						 static_cast<uint64_t>(n));
 
 	auto valeur = new llvm::GlobalVariable(
 					  *contexte.module_llvm,
-					  converti_type(contexte, type),
+					  type_llvm,
 					  true,
 					  llvm::GlobalValue::InternalLinkage,
 					  constante);
@@ -1512,7 +1700,7 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 						 contexte.contexte,
 						 chaine);
 
-	const auto &this_type = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto &this_type = contexte.magasin_types.donnees_types[this->donnees_type];
 	auto type = converti_type(contexte, this_type);
 
 	auto globale = new llvm::GlobalVariable(
@@ -1568,6 +1756,11 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 
 	if (valeur == nullptr) {
 		valeur = contexte.valeur_globale(m_donnees_morceaux.chaine);
+
+		if (valeur == nullptr) {
+			valeur = contexte.module_llvm->getFunction(std::string(m_donnees_morceaux.chaine));
+			return valeur;
+		}
 	}
 
 	if (expr_gauche || dynamic_cast<llvm::PHINode *>(valeur) || dynamic_cast<llvm::VAArgInst *>(valeur)) {
@@ -1575,7 +1768,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 	}
 
 	const auto &index_type = this->donnees_type;
-	const auto &type = contexte.magasin_types.donnees_types[index_type];
+	auto &type = contexte.magasin_types.donnees_types[index_type];
 
 	if (contexte.est_locale_variadique(m_donnees_morceaux.chaine)) {
 		auto inst = new llvm::VAArgInst(
@@ -1612,6 +1805,15 @@ void NoeudVariable::perfome_validation_semantique(ContexteGenerationCode &contex
 
 	if (contexte.globale_existe(m_donnees_morceaux.chaine)) {
 		this->donnees_type = contexte.type_globale(m_donnees_morceaux.chaine);
+		return;
+	}
+
+	/* Vérifie si c'est une fonction. */
+	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
+
+	if (module->fonction_existe(m_donnees_morceaux.chaine)) {
+		const auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
+		this->donnees_type = donnees_fonction.index_type;
 		return;
 	}
 
@@ -1859,7 +2061,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 	const auto index_type2 = enfant2->donnees_type;
 
 	const auto &type1 = contexte.magasin_types.donnees_types[index_type1];
-	const auto &type2 = contexte.magasin_types.donnees_types[index_type2];
+	auto &type2 = contexte.magasin_types.donnees_types[index_type2];
 
 	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT)) {
 		if (!peut_operer(type1, type2, enfant1->type(), enfant2->type())) {
@@ -2698,7 +2900,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 	auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
 	auto index_type = enfant2->donnees_type;
-	const auto &type_debut = contexte.magasin_types.donnees_types[index_type];
+	auto &type_debut = contexte.magasin_types.donnees_types[index_type];
 	const auto type = type_debut.type_base();
 
 	enfant1->donnees_type = index_type;
@@ -3110,7 +3312,7 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 	const auto &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
 
 	using CastOps = llvm::Instruction::CastOps;
-	const auto &dt = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto &dt = contexte.magasin_types.donnees_types[this->donnees_type];
 
 	auto type = converti_type(contexte, dt);
 	auto bloc = contexte.bloc_courant();

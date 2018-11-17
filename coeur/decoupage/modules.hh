@@ -30,6 +30,10 @@
 #include "morceaux.h"
 #include "tampon_source.h"
 
+namespace llvm {
+class Type;
+}
+
 struct ContexteGenerationCode;
 
 struct DonneesArgument {
@@ -42,7 +46,8 @@ struct DonneesArgument {
 
 struct DonneesFonction {
 	std::unordered_map<std::string_view, DonneesArgument> args{};
-	size_t donnees_type{-1ul};
+	size_t index_type_retour{-1ul};
+	size_t index_type{-1ul};
 	std::vector<std::string_view> nom_args{};
 	bool est_externe = false;
 	bool est_variadique = false;
@@ -85,7 +90,7 @@ struct DonneesModule {
 	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	[[nodiscard]] const DonneesFonction &donnees_fonction(const std::string_view &nom_fonction) const  noexcept;
+	[[nodiscard]] DonneesFonction &donnees_fonction(const std::string_view &nom_fonction) noexcept;
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
