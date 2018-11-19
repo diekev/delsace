@@ -130,7 +130,7 @@ bool test_decoupage_texte1()
 							std::end(donnees_morceaux));
 }
 
-void test_decoupage(numero7::test_unitaire::ControleurUnitaire &controleur)
+void test_decoupage(dls::test_unitaire::Controleuse &controleuse)
 {
-	CU_VERIFIE_CONDITION(controleur, test_decoupage_texte1());
+	CU_VERIFIE_CONDITION(controleuse, test_decoupage_texte1());
 }

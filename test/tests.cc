@@ -33,11 +33,11 @@ int main(int argc, char **argv)
 	 * nécessaires à l'initialisation des propriétés. */
 	QApplication app(argc, argv);
 
-	numero7::test_unitaire::ControleurUnitaire controleur;
-	controleur.ajoute_fonction(test_decoupage);
-	controleur.ajoute_fonction(test_initialisation);
+	auto controleuse = dls::test_unitaire::Controleuse{};
+	controleuse.ajoute_fonction(test_decoupage);
+	controleuse.ajoute_fonction(test_initialisation);
 
-	controleur.performe_controles();
+	controleuse.performe_controles();
 
-	controleur.imprime_resultat();
+	controleuse.imprime_resultat();
 }
