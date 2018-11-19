@@ -42,7 +42,7 @@ struct Loggeuse {};
 template <typename T>
 Loggeuse &operator<<(Loggeuse &l, const T &) { return l; }
 
-Loggeuse loggeuse_analyseuse;
+static Loggeuse loggeuse_analyseuse;
 
 # define LOG loggeuse_analyseuse
 #endif
@@ -56,31 +56,39 @@ enum {
 	EXPRESSION_SORTIE,
 };
 
-AnalyseuseLogique::AnalyseuseLogique(Manipulable *manipulable, bool initialise_manipulable)
-	: m_manipulable(manipulable)
+AnalyseuseLogique::AnalyseuseLogique(
+		Manipulable *manipulable,
+		const TamponSource &tampon,
+		const std::vector<DonneesMorceaux> &identifiants,
+		bool initialise_manipulable)
+	: Analyseuse(tampon, identifiants)
+	, m_manipulable(manipulable)
 	, m_initialise_manipulable(initialise_manipulable)
 {}
 
-void AnalyseuseLogique::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
+void AnalyseuseLogique::lance_analyse()
 {
-	m_identifiants = identifiants;
+	if (m_identifiants.empty()) {
+		return;
+	}
+
 	m_position = 0;
 
-	if (!requiers_identifiant(IDENTIFIANT_FEUILLE)) {
+	if (!requiers_identifiant(id_morceau::FEUILLE)) {
 		lance_erreur("Le script doit commencer avec 'feuille' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
 		lance_erreur("Attendu le nom de la feuille après 'feuille' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_corps();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 }
@@ -89,16 +97,16 @@ void AnalyseuseLogique::analyse_corps()
 {
 	LOG << __func__ << '\n';
 
-	if (est_identifiant(IDENTIFIANT_ENTREE)) {
+	if (est_identifiant(id_morceau::ENTREE)) {
 		analyse_entree();
 	}
-	else if (est_identifiant(IDENTIFIANT_ENTREFACE)) {
+	else if (est_identifiant(id_morceau::ENTREFACE)) {
 		analyse_entreface();
 	}
-	else if (est_identifiant(IDENTIFIANT_LOGIQUE)) {
+	else if (est_identifiant(id_morceau::LOGIQUE)) {
 		analyse_logique();
 	}
-	else if (est_identifiant(IDENTIFIANT_SORTIE)) {
+	else if (est_identifiant(id_morceau::SORTIE)) {
 		analyse_sortie();
 	}
 	else {
@@ -114,17 +122,17 @@ void AnalyseuseLogique::analyse_entree()
 {
 	LOG << __func__ << '\n';
 
-	if (!requiers_identifiant(IDENTIFIANT_ENTREE)) {
+	if (!requiers_identifiant(id_morceau::ENTREE)) {
 		lance_erreur("Attendu la déclaration 'entrée' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_declaration(EXPRESSION_ENTREE);
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de l'entrée !");
 	}
 
@@ -135,20 +143,20 @@ void AnalyseuseLogique::analyse_declaration(const int type)
 {
 	LOG << __func__ << '\n';
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		recule();
 		return;
 	}
 
-	const auto nom = m_identifiants[position()].contenu;
+	const auto nom = m_identifiants[position()].chaine;
 
-	if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+	if (!requiers_identifiant(id_morceau::EGAL)) {
 		lance_erreur("Attendu '=' !");
 	}
 
-	analyse_expression(nom, type);
+	analyse_expression(std::string{nom}, type);
 
-	if (!requiers_identifiant(IDENTIFIANT_POINT_VIRGULE)) {
+	if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
 		lance_erreur("Attendu un point virgule !");
 	}
 
@@ -188,36 +196,36 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 	Symbole symbole;
 	std::string valeur;
 
-	while (!est_identifiant(IDENTIFIANT_POINT_VIRGULE)) {
+	while (!est_identifiant(id_morceau::POINT_VIRGULE)) {
 		symbole.identifiant = identifiant_courant();
-		valeur = m_identifiants[position() + 1].contenu;
+		valeur = m_identifiants[position() + 1].chaine;
 
-		if (est_identifiant(IDENTIFIANT_NOMBRE)) {
+		if (est_identifiant(id_morceau::NOMBRE)) {
 			symbole.valeur = std::experimental::any(std::stoi(valeur));
 			expression.push_back(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_NOMBRE_DECIMAL)) {
+		else if (est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
 			symbole.valeur = std::experimental::any(std::stof(valeur));
 			expression.push_back(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_VRAI) || est_identifiant(IDENTIFIANT_FAUX)) {
+		else if (est_identifiant(id_morceau::VRAI) || est_identifiant(id_morceau::FAUX)) {
 			symbole.valeur = (valeur == "vrai");
-			symbole.identifiant = IDENTIFIANT_BOOL;
+			symbole.identifiant = id_morceau::BOOL;
 			expression.push_back(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_COULEUR)) {
+		else if (est_identifiant(id_morceau::COULEUR)) {
 			/* À FAIRE */
 			expression.push_back(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_VECTEUR)) {
+		else if (est_identifiant(id_morceau::VECTEUR)) {
 			/* À FAIRE */
 			expression.push_back(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+		else if (est_identifiant(id_morceau::CHAINE_LITTERALE)) {
 			symbole.valeur = valeur;
 			expression.push_back(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		else if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
 			if (!m_assembleuse.variable_connue(valeur)) {
 				lance_erreur("Variable inconnue : " + valeur);
 			}
@@ -242,21 +250,21 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 			symbole.valeur = std::experimental::any(valeur);
 			pile.push(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+		else if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 			pile.push(symbole);
 		}
-		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+		else if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 			if (pile.empty()) {
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (pile.top().identifiant != IDENTIFIANT_PARENTHESE_OUVRANTE) {
+			while (pile.top().identifiant != id_morceau::PARENTHESE_OUVRANTE) {
 				expression.push_back(pile.top());
 				pile.pop();
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
+			if (pile.top().identifiant == id_morceau::PARENTHESE_OUVRANTE) {
 				pile.pop();
 			}
 		}
@@ -265,7 +273,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 	}
 
 	while (!pile.empty()) {
-		if (pile.top().identifiant == IDENTIFIANT_PARENTHESE_OUVRANTE) {
+		if (pile.top().identifiant == id_morceau::PARENTHESE_OUVRANTE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
@@ -289,22 +297,24 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 		auto resultat = evalue_expression(expression, m_manipulable);
 
 		switch (resultat.identifiant) {
-			case IDENTIFIANT_NOMBRE:
+			default:
+				break;
+			case id_morceau::NOMBRE:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::ENTIER, resultat.valeur);
 				break;
-			case IDENTIFIANT_NOMBRE_DECIMAL:
+			case id_morceau::NOMBRE_DECIMAL:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::DECIMAL, resultat.valeur);
 				break;
-			case IDENTIFIANT_BOOL:
+			case id_morceau::BOOL:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::BOOL, resultat.valeur);
 				break;
-			case IDENTIFIANT_CHAINE_LITTERALE:
+			case id_morceau::CHAINE_LITTERALE:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::CHAINE_CARACTERE, resultat.valeur);
 				break;
-			case IDENTIFIANT_COULEUR:
+			case id_morceau::COULEUR:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::COULEUR, resultat.valeur);
 				break;
-			case IDENTIFIANT_VECTEUR:
+			case id_morceau::VECTEUR:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::VECTEUR, resultat.valeur);
 				break;
 		}
@@ -328,17 +338,17 @@ void AnalyseuseLogique::analyse_entreface()
 {
 	LOG << __func__ << '\n';
 
-	if (!requiers_identifiant(IDENTIFIANT_ENTREFACE)) {
+	if (!requiers_identifiant(id_morceau::ENTREFACE)) {
 		lance_erreur("Attendu la déclaration 'entreface' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_declaration(EXPRESSION_INTERFACE);
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de l'entreface !");
 	}
 
@@ -349,17 +359,17 @@ void AnalyseuseLogique::analyse_logique()
 {
 	LOG << __func__ << '\n';
 
-	if (!requiers_identifiant(IDENTIFIANT_LOGIQUE)) {
+	if (!requiers_identifiant(id_morceau::LOGIQUE)) {
 		lance_erreur("Attendu la déclaration 'logique' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_relation();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la logique !");
 	}
 
@@ -370,37 +380,37 @@ void AnalyseuseLogique::analyse_relation()
 {
 	LOG << __func__ << '\n';
 
-	if (!est_identifiant(IDENTIFIANT_RELATION) && !est_identifiant(IDENTIFIANT_QUAND)) {
+	if (!est_identifiant(id_morceau::RELATION) && !est_identifiant(id_morceau::QUAND)) {
 		return;
 	}
 
-	if (est_identifiant(IDENTIFIANT_QUAND)) {
+	if (est_identifiant(id_morceau::QUAND)) {
 		avance();
 
-		if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+		if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 			lance_erreur("Attendu une paranthèse ouvrante !");
 		}
 
-		if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+		if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 			lance_erreur("Attendu le nom d'une variable !");
 		}
 
-		if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+		if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 			lance_erreur("Attendu une paranthèse fermante !");
 		}
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_RELATION)) {
+	if (!requiers_identifiant(id_morceau::RELATION)) {
 		lance_erreur("Attendu la déclaration 'relation' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_declaration(EXPRESSION_RELATION);
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la relation !");
 	}
 
@@ -413,17 +423,17 @@ void AnalyseuseLogique::analyse_sortie()
 {
 	LOG << __func__ << '\n';
 
-	if (!requiers_identifiant(IDENTIFIANT_SORTIE)) {
+	if (!requiers_identifiant(id_morceau::SORTIE)) {
 		lance_erreur("Attendu la déclaration 'sortie' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante !");
 	}
 
 	analyse_declaration(EXPRESSION_SORTIE);
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin de la sortie !");
 	}
 

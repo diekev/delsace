@@ -35,7 +35,7 @@
 static void imprime_morceaux(danjo::Decoupeuse::iterateur debut, danjo::Decoupeuse::iterateur fin)
 {
 	while (debut != fin) {
-		std::cerr << debut->identifiant << " : " << debut->contenu << '\n';
+		std::cerr << chaine_identifiant(debut->identifiant) << " : " << debut->chaine << '\n';
 		++debut;
 	}
 }
@@ -45,13 +45,14 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 	try {
 		auto texte = danjo::contenu_fichier(chemin);
 
-		danjo::Decoupeuse decoupeuse(texte.c_str());
+		auto tampon = TamponSource(texte.c_str());
+		auto decoupeuse = danjo::Decoupeuse(tampon);
 		decoupeuse.decoupe();
 
 		auto debut = decoupeuse.begin();
 		auto fin = decoupeuse.end();
 
-		if (debut->identifiant != danjo::IDENTIFIANT_DISPOSITION) {
+		if (debut->identifiant != danjo::id_morceau::DISPOSITION) {
 			return;
 		}
 
@@ -65,7 +66,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 
 		++debut;
 
-		auto nom_disposition = debut->contenu;
+		auto nom_disposition = debut->chaine;
 
 		os << "feuille \"" << nom_disposition << "\" {\n";
 		os << "\tentreface {\n";
@@ -78,7 +79,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 				continue;
 			}
 
-			if (debut->identifiant == danjo::IDENTIFIANT_ETIQUETTE) {
+			if (debut->identifiant == danjo::id_morceau::ETIQUETTE) {
 				continue;
 			}
 
@@ -87,18 +88,18 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 			nom_propriete.clear();
 			valeur_propriete.clear();
 
-			while (debut->identifiant != danjo::IDENTIFIANT_PARENTHESE_FERMANTE) {
-				if (debut->identifiant == danjo::IDENTIFIANT_VALEUR) {
+			while (debut->identifiant != danjo::id_morceau::PARENTHESE_FERMANTE) {
+				if (debut->identifiant == danjo::id_morceau::VALEUR) {
 					++debut;
 					++debut;
 
-					valeur_propriete = debut->contenu;
+					valeur_propriete = debut->chaine;
 				}
-				else if (debut->identifiant == danjo::IDENTIFIANT_ATTACHE) {
+				else if (debut->identifiant == danjo::id_morceau::ATTACHE) {
 					++debut;
 					++debut;
 
-					nom_propriete = debut->contenu;
+					nom_propriete = debut->chaine;
 				}
 
 				++debut;
@@ -113,17 +114,17 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 			os << "\t\t" << nom_propriete << ":";
 
 			switch (identifiant) {
-				case danjo::IDENTIFIANT_COULEUR:
+				case danjo::id_morceau::COULEUR:
 					os << "couleur(" << valeur_propriete << ");\n";
 					break;
-				case danjo::IDENTIFIANT_VECTEUR:
+				case danjo::id_morceau::VECTEUR:
 					os << "vecteur(" << valeur_propriete << ");\n";
 					break;
-				case danjo::IDENTIFIANT_FICHIER_ENTREE:
-				case danjo::IDENTIFIANT_FICHIER_SORTIE:
-				case danjo::IDENTIFIANT_CHAINE:
-				case danjo::IDENTIFIANT_LISTE:
-				case danjo::IDENTIFIANT_ENUM:
+				case danjo::id_morceau::FICHIER_ENTREE:
+				case danjo::id_morceau::FICHIER_SORTIE:
+				case danjo::id_morceau::CHAINE:
+				case danjo::id_morceau::LISTE:
+				case danjo::id_morceau::ENUM:
 					os << "\"" << valeur_propriete << "\";\n";
 					break;
 				default:

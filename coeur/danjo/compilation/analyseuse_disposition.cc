@@ -34,44 +34,44 @@ namespace danjo {
 
 /* ************************************************************************** */
 
-bool est_identifiant_controle(int identifiant)
+bool est_identifiant_controle(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_ENTIER:
-		case IDENTIFIANT_DECIMAL:
-		case IDENTIFIANT_ETIQUETTE:
-		case IDENTIFIANT_LISTE:
-		case IDENTIFIANT_ENUM:
-		case IDENTIFIANT_CASE:
-		case IDENTIFIANT_CHAINE:
-		case IDENTIFIANT_FICHIER_ENTREE:
-		case IDENTIFIANT_FICHIER_SORTIE:
-		case IDENTIFIANT_COULEUR:
-		case IDENTIFIANT_VECTEUR:
-		case IDENTIFIANT_COURBE_COULEUR:
-		case IDENTIFIANT_COURBE_VALEUR:
-		case IDENTIFIANT_RAMPE_COULEUR:
+		case id_morceau::ENTIER:
+		case id_morceau::DECIMAL:
+		case id_morceau::ETIQUETTE:
+		case id_morceau::LISTE:
+		case id_morceau::ENUM:
+		case id_morceau::CASE:
+		case id_morceau::CHAINE:
+		case id_morceau::FICHIER_ENTREE:
+		case id_morceau::FICHIER_SORTIE:
+		case id_morceau::COULEUR:
+		case id_morceau::VECTEUR:
+		case id_morceau::COURBE_COULEUR:
+		case id_morceau::COURBE_VALEUR:
+		case id_morceau::RAMPE_COULEUR:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_identifiant_propriete(int identifiant)
+static bool est_identifiant_propriete(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_INFOBULLE:
-		case IDENTIFIANT_MIN:
-		case IDENTIFIANT_MAX:
-		case IDENTIFIANT_VALEUR:
-		case IDENTIFIANT_ATTACHE:
-		case IDENTIFIANT_PRECISION:
-		case IDENTIFIANT_PAS:
-		case IDENTIFIANT_ITEMS:
-		case IDENTIFIANT_METADONNEE:
-		case IDENTIFIANT_ICONE:
-		case IDENTIFIANT_FILTRES:
-		case IDENTIFIANT_SUFFIXE:
+		case id_morceau::INFOBULLE:
+		case id_morceau::MIN:
+		case id_morceau::MAX:
+		case id_morceau::VALEUR:
+		case id_morceau::ATTACHE:
+		case id_morceau::PRECISION:
+		case id_morceau::PAS:
+		case id_morceau::ITEMS:
+		case id_morceau::METADONNEE:
+		case id_morceau::ICONE:
+		case id_morceau::FILTRES:
+		case id_morceau::SUFFIXE:
 			return true;
 		default:
 			return false;
@@ -80,27 +80,36 @@ static bool est_identifiant_propriete(int identifiant)
 
 /* ************************************************************************** */
 
+AnalyseuseDisposition::AnalyseuseDisposition(
+		const TamponSource &tampon,
+		const std::vector<DonneesMorceaux> &identifiants)
+	: Analyseuse(tampon, identifiants)
+{}
+
 void AnalyseuseDisposition::installe_assembleur(AssembleurDisposition *assembleur)
 {
 	m_assembleur = assembleur;
 }
 
-void AnalyseuseDisposition::lance_analyse(const std::vector<DonneesMorceaux> &identifiants)
+void AnalyseuseDisposition::lance_analyse()
 {
-	m_identifiants = identifiants;
+	if (m_identifiants.empty()) {
+		return;
+	}
+
 	m_position = 0;
 
 	if (m_assembleur == nullptr) {
 		throw "Un assembleur doit être installé avant de générer l'entreface !";
 	}
 
-	if (est_identifiant(IDENTIFIANT_DISPOSITION)) {
+	if (est_identifiant(id_morceau::DISPOSITION)) {
 		analyse_script_disposition();
 	}
-	else if (est_identifiant(IDENTIFIANT_MENU)) {
+	else if (est_identifiant(id_morceau::MENU)) {
 		analyse_script_menu();
 	}
-	else if (est_identifiant(IDENTIFIANT_BARRE_OUTILS)) {
+	else if (est_identifiant(id_morceau::BARRE_OUTILS)) {
 		analyse_script_barre_outils();
 	}
 	else {
@@ -117,26 +126,26 @@ void AnalyseuseDisposition::analyse_script_disposition()
 	std::cout << __func__ << " début\n";
 #endif
 
-	if (!requiers_identifiant(IDENTIFIANT_DISPOSITION)) {
+	if (!requiers_identifiant(id_morceau::DISPOSITION)) {
 		lance_erreur("Le script doit commencer par 'disposition' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
 		lance_erreur("Attendu le nom de la disposition après 'disposition' !");
 	}
 
-	m_assembleur->nom_disposition(m_identifiants[position()].contenu);
+	m_assembleur->nom_disposition(std::string{m_identifiants[position()].chaine});
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom de la disposition !");
 	}
 
 	/* Ajout d'une disposition par défaut. */
-	m_assembleur->ajoute_disposition(IDENTIFIANT_COLONNE);
+	m_assembleur->ajoute_disposition(id_morceau::COLONNE);
 
 	analyse_disposition();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 
@@ -149,25 +158,25 @@ void AnalyseuseDisposition::analyse_script_disposition()
 
 void AnalyseuseDisposition::analyse_script_menu()
 {
-	if (!requiers_identifiant(IDENTIFIANT_MENU)) {
+	if (!requiers_identifiant(id_morceau::MENU)) {
 		lance_erreur("Attendu la déclaration menu !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
 		lance_erreur("Attendu le nom du menu après 'menu' !");
 	}
 
-	const auto nom = m_identifiants[position()].contenu;
+	const auto nom = m_identifiants[position()].chaine;
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom du menu !");
 	}
 
-	m_assembleur->ajoute_menu(nom);
+	m_assembleur->ajoute_menu(std::string{nom});
 
 	analyse_menu();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 
@@ -176,11 +185,11 @@ void AnalyseuseDisposition::analyse_script_menu()
 
 void AnalyseuseDisposition::analyse_script_barre_outils()
 {
-	if (!requiers_identifiant(IDENTIFIANT_BARRE_OUTILS)) {
+	if (!requiers_identifiant(id_morceau::BARRE_OUTILS)) {
 		lance_erreur("Attendu la déclaration 'barre_outils' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après 'barre_outils' !");
 	}
 
@@ -188,14 +197,14 @@ void AnalyseuseDisposition::analyse_script_barre_outils()
 
 	analyse_barre_outils();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 }
 
 void AnalyseuseDisposition::analyse_barre_outils()
 {
-	if (est_identifiant(IDENTIFIANT_ACTION)) {
+	if (est_identifiant(id_morceau::ACTION)) {
 		analyse_action();
 	}
 	else {
@@ -207,13 +216,13 @@ void AnalyseuseDisposition::analyse_barre_outils()
 
 void AnalyseuseDisposition::analyse_menu()
 {
-	if (est_identifiant(IDENTIFIANT_ACTION)) {
+	if (est_identifiant(id_morceau::ACTION)) {
 		analyse_action();
 	}
-	else if (est_identifiant(IDENTIFIANT_MENU)) {
+	else if (est_identifiant(id_morceau::MENU)) {
 		analyse_script_menu();
 	}
-	else if (est_identifiant(IDENTIFIANT_SEPARATEUR)) {
+	else if (est_identifiant(id_morceau::SEPARATEUR)) {
 		m_assembleur->ajoute_separateur();
 		avance();
 	}
@@ -226,35 +235,35 @@ void AnalyseuseDisposition::analyse_menu()
 
 void AnalyseuseDisposition::analyse_action()
 {
-	if (!requiers_identifiant(IDENTIFIANT_ACTION)) {
+	if (!requiers_identifiant(id_morceau::ACTION)) {
 		lance_erreur("Attendu la déclaration d'une action !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu l'ouverture d'une paranthèse après 'action' !");
 	}
 
 	m_assembleur->ajoute_action();
 
-	analyse_propriete(IDENTIFIANT_ACTION);
+	analyse_propriete(id_morceau::ACTION);
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu la fermeture d'une paranthèse !");
 	}
 }
 
 void AnalyseuseDisposition::analyse_disposition()
 {
-	if (est_identifiant(IDENTIFIANT_LIGNE)) {
+	if (est_identifiant(id_morceau::LIGNE)) {
 		analyse_ligne();
 	}
-	else if (est_identifiant(IDENTIFIANT_COLONNE)) {
+	else if (est_identifiant(id_morceau::COLONNE)) {
 		analyse_colonne();
 	}
-	else if (est_identifiant(IDENTIFIANT_DOSSIER)) {
+	else if (est_identifiant(id_morceau::DOSSIER)) {
 		analyse_dossier();
 	}
-	else if (est_identifiant(IDENTIFIANT_BOUTON)) {
+	else if (est_identifiant(id_morceau::BOUTON)) {
 		analyse_bouton();
 	}
 	else if (est_identifiant_controle(identifiant_courant())) {
@@ -273,21 +282,21 @@ void AnalyseuseDisposition::analyse_ligne()
 	std::cout << __func__ << '\n';
 #endif
 
-	if (!requiers_identifiant(IDENTIFIANT_LIGNE)) {
+	if (!requiers_identifiant(id_morceau::LIGNE)) {
 		lance_erreur("Attendu la déclaration 'ligne' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la déclaration 'ligne' !");
 	}
 
-	m_assembleur->ajoute_disposition(IDENTIFIANT_LIGNE);
+	m_assembleur->ajoute_disposition(id_morceau::LIGNE);
 
 	analyse_disposition();
 
 	m_assembleur->sors_disposition();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de la 'ligne' !");
 	}
 
@@ -300,21 +309,21 @@ void AnalyseuseDisposition::analyse_colonne()
 	std::cout << __func__ << '\n';
 #endif
 
-	if (!requiers_identifiant(IDENTIFIANT_COLONNE)) {
+	if (!requiers_identifiant(id_morceau::COLONNE)) {
 		lance_erreur("Attendu la déclaration 'colonne' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la déclaration 'colonne' !");
 	}
 
-	m_assembleur->ajoute_disposition(IDENTIFIANT_COLONNE);
+	m_assembleur->ajoute_disposition(id_morceau::COLONNE);
 
 	analyse_disposition();
 
 	m_assembleur->sors_disposition();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de la 'colonne' !");
 	}
 
@@ -323,11 +332,11 @@ void AnalyseuseDisposition::analyse_colonne()
 
 void AnalyseuseDisposition::analyse_dossier()
 {
-	if (!requiers_identifiant(IDENTIFIANT_DOSSIER)) {
+	if (!requiers_identifiant(id_morceau::DOSSIER)) {
 		lance_erreur("Attendu la déclaration 'dossier' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après la déclaration 'dossier' !");
 	}
 
@@ -337,7 +346,7 @@ void AnalyseuseDisposition::analyse_dossier()
 
 	m_assembleur->finalise_dossier();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de 'dossier' !");
 	}
 
@@ -347,31 +356,31 @@ void AnalyseuseDisposition::analyse_dossier()
 void AnalyseuseDisposition::analyse_onglet()
 {
 	/* Soit le dossier est vide, soit il n'y a plus d'onglets. */
-	if (!est_identifiant(IDENTIFIANT_ONGLET)) {
+	if (!est_identifiant(id_morceau::ONGLET)) {
 		return;
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_ONGLET)) {
+	if (!requiers_identifiant(id_morceau::ONGLET)) {
 		lance_erreur("Attendu la déclaration 'onglet' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'onglet' !");
 	}
 
-	const auto &nom = m_identifiants[position()].contenu;
+	const auto &nom = m_identifiants[position()].chaine;
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom de 'onglet' !");
 	}
 
-	m_assembleur->ajoute_onglet(nom);
+	m_assembleur->ajoute_onglet(std::string{nom});
 
 	analyse_disposition();
 
 	m_assembleur->finalise_onglet();
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante après la déclaration du contenu de 'onglet' !");
 	}
 
@@ -392,7 +401,7 @@ void AnalyseuseDisposition::analyse_controle()
 
 	avance();
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après la déclaration du contrôle !");
 	}
 
@@ -400,7 +409,7 @@ void AnalyseuseDisposition::analyse_controle()
 
 	analyse_propriete(identifiant_controle);
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la déclaration du contenu du contrôle !");
 	}
 
@@ -409,24 +418,24 @@ void AnalyseuseDisposition::analyse_controle()
 
 void AnalyseuseDisposition::analyse_bouton()
 {
-	if (!requiers_identifiant(IDENTIFIANT_BOUTON)) {
+	if (!requiers_identifiant(id_morceau::BOUTON)) {
 		lance_erreur("Attendu la déclaration d'un bouton !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après la déclaration 'bouton' !");
 	}
 
 	m_assembleur->ajoute_bouton();
 
-	analyse_propriete(IDENTIFIANT_BOUTON);
+	analyse_propriete(id_morceau::BOUTON);
 
-	if (!requiers_identifiant(IDENTIFIANT_PARENTHESE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la déclaration du contenu du 'bouton' !");
 	}
 }
 
-void AnalyseuseDisposition::analyse_propriete(int type_controle)
+void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 {
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << '\n';
@@ -440,29 +449,33 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 
 	avance();
 
-	if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+	if (!requiers_identifiant(id_morceau::EGAL)) {
 		lance_erreur("Attendu la déclaration '=' !");
 	}
 
-	if (identifiant_propriete == IDENTIFIANT_ITEMS) {
+	if (identifiant_propriete == id_morceau::ITEMS) {
 		analyse_liste_item();
 	}
 	else {
 		auto valeur_negative = false;
 
 		switch (identifiant_propriete) {
-			case IDENTIFIANT_VALEUR:
+			default:
+				break;
+			case id_morceau::VALEUR:
 			{
 				switch (type_controle) {
-					case IDENTIFIANT_ENTIER:
-					case IDENTIFIANT_DECIMAL:
+					default:
+						break;
+					case id_morceau::ENTIER:
+					case id_morceau::DECIMAL:
 					{
-						if (est_identifiant(IDENTIFIANT_MOINS)) {
+						if (est_identifiant(id_morceau::MOINS)) {
 							valeur_negative = true;
 							avance();
 						}
 
-						if (!est_identifiant(IDENTIFIANT_NOMBRE) && !est_identifiant(IDENTIFIANT_NOMBRE_DECIMAL)) {
+						if (!est_identifiant(id_morceau::NOMBRE) && !est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
 							lance_erreur("Attendu un nombre !");
 						}
 
@@ -470,26 +483,26 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 
 						break;
 					}
-					case IDENTIFIANT_FICHIER_ENTREE:
-					case IDENTIFIANT_FICHIER_SORTIE:
-					case IDENTIFIANT_CHAINE:
-					case IDENTIFIANT_ETIQUETTE:
-					case IDENTIFIANT_ENUM:
-					case IDENTIFIANT_LISTE:
-					case IDENTIFIANT_COULEUR:
-					case IDENTIFIANT_VECTEUR:
-					case IDENTIFIANT_BOUTON:
-					case IDENTIFIANT_ACTION:
+					case id_morceau::FICHIER_ENTREE:
+					case id_morceau::FICHIER_SORTIE:
+					case id_morceau::CHAINE:
+					case id_morceau::ETIQUETTE:
+					case id_morceau::ENUM:
+					case id_morceau::LISTE:
+					case id_morceau::COULEUR:
+					case id_morceau::VECTEUR:
+					case id_morceau::BOUTON:
+					case id_morceau::ACTION:
 					{
-						if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+						if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
 							lance_erreur("Attendu une chaine littérale !");
 						}
 
 						break;
 					}
-					case IDENTIFIANT_CASE:
+					case id_morceau::CASE:
 					{
-						if (!est_identifiant(IDENTIFIANT_VRAI) && !est_identifiant(IDENTIFIANT_FAUX)) {
+						if (!est_identifiant(id_morceau::VRAI) && !est_identifiant(id_morceau::FAUX)) {
 							lance_erreur("Attendu l'identifiant vrai ou faux !");
 						}
 
@@ -500,25 +513,25 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 
 				break;
 			}
-			case IDENTIFIANT_ATTACHE:
+			case id_morceau::ATTACHE:
 			{
-				if (!requiers_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
+				if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 					lance_erreur("Attendu une chaine de caractère !");
 				}
 
 				break;
 			}
-			case IDENTIFIANT_PRECISION:
-			case IDENTIFIANT_MIN:
-			case IDENTIFIANT_MAX:
-			case IDENTIFIANT_PAS:
+			case id_morceau::PRECISION:
+			case id_morceau::MIN:
+			case id_morceau::MAX:
+			case id_morceau::PAS:
 			{
-				if (est_identifiant(IDENTIFIANT_MOINS)) {
+				if (est_identifiant(id_morceau::MOINS)) {
 					valeur_negative = true;
 					avance();
 				}
 
-				if (!est_identifiant(IDENTIFIANT_NOMBRE) && !est_identifiant(IDENTIFIANT_NOMBRE_DECIMAL)) {
+				if (!est_identifiant(id_morceau::NOMBRE) && !est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
 					lance_erreur("Attendu un nombre !");
 				}
 
@@ -526,13 +539,13 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 
 				break;
 			}
-			case IDENTIFIANT_INFOBULLE:
-			case IDENTIFIANT_FILTRES:
-			case IDENTIFIANT_METADONNEE:
-			case IDENTIFIANT_ICONE:
-			case IDENTIFIANT_SUFFIXE:
+			case id_morceau::INFOBULLE:
+			case id_morceau::FILTRES:
+			case id_morceau::METADONNEE:
+			case id_morceau::ICONE:
+			case id_morceau::SUFFIXE:
 			{
-				if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+				if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
 					lance_erreur("Attendu une chaine littérale !");
 				}
 
@@ -540,20 +553,20 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 			}
 		}
 
-		if (type_controle == IDENTIFIANT_BOUTON) {
+		if (type_controle == id_morceau::BOUTON) {
 			m_assembleur->propriete_bouton(
 						identifiant_propriete,
-						m_identifiants[position()].contenu);
+						std::string{m_identifiants[position()].chaine});
 		}
-		else if (type_controle == IDENTIFIANT_ACTION) {
+		else if (type_controle == id_morceau::ACTION) {
 			m_assembleur->propriete_action(
 						identifiant_propriete,
-						m_identifiants[position()].contenu);
+			std::string{m_identifiants[position()].chaine});
 		}
 		else {
 			const auto valeur = valeur_negative ?
-							  "-" + m_identifiants[position()].contenu
-						  : m_identifiants[position()].contenu;
+									"-" + std::string{m_identifiants[position()].chaine}
+								  : std::string{m_identifiants[position()].chaine};
 
 			m_assembleur->propriete_controle(
 						identifiant_propriete,
@@ -561,7 +574,7 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 		}
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_POINT_VIRGULE)) {
+	if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
 		/* Fin des identifiants propriétés. */
 		recule();
 		return;
@@ -572,13 +585,13 @@ void AnalyseuseDisposition::analyse_propriete(int type_controle)
 
 void AnalyseuseDisposition::analyse_liste_item()
 {
-	if (!requiers_identifiant(IDENTIFIANT_CROCHET_OUVRANT)) {
+	if (!requiers_identifiant(id_morceau::CROCHET_OUVRANT)) {
 		lance_erreur("Attendu un crochet ouvert !");
 	}
 
 	analyse_item();
 
-	if (!requiers_identifiant(IDENTIFIANT_CROCHET_FERMANT)) {
+	if (!requiers_identifiant(id_morceau::CROCHET_FERMANT)) {
 		lance_erreur("Attendu un crochet fermé !");
 	}
 }
@@ -586,49 +599,49 @@ void AnalyseuseDisposition::analyse_liste_item()
 /* { nom="", valeur=""}, */
 void AnalyseuseDisposition::analyse_item()
 {
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouverte !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_NOM)) {
+	if (!requiers_identifiant(id_morceau::NOM)) {
 		lance_erreur("Attendu la déclaration 'nom' après l'accolade ouverte !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+	if (!requiers_identifiant(id_morceau::EGAL)) {
 		lance_erreur("Attendu la déclaration '=' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
 		lance_erreur("Attendu une chaîne de caractère après '=' !");
 	}
 
-	const auto nom = m_identifiants[position()].contenu;
+	const auto nom = m_identifiants[position()].chaine;
 
-	if (!requiers_identifiant(IDENTIFIANT_VIRGULE)) {
+	if (!requiers_identifiant(id_morceau::VIRGULE)) {
 		lance_erreur("Attendu une virgule !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_VALEUR)) {
+	if (!requiers_identifiant(id_morceau::VALEUR)) {
 		lance_erreur("Attendu la déclaration 'nom' après l'accolade ouverte !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_EGAL)) {
+	if (!requiers_identifiant(id_morceau::EGAL)) {
 		lance_erreur("Attendu la déclaration '=' !");
 	}
 
-	if (!requiers_identifiant(IDENTIFIANT_CHAINE_LITTERALE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
 		lance_erreur("Attendu une chaîne de caractère après '=' !");
 	}
 
-	const auto valeur = m_identifiants[position()].contenu;
+	const auto valeur = m_identifiants[position()].chaine;
 
-	if (!requiers_identifiant(IDENTIFIANT_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermée !");
 	}
 
-	m_assembleur->ajoute_item_liste(nom, valeur);
+	m_assembleur->ajoute_item_liste(std::string{nom}, std::string{valeur});
 
-	if (!requiers_identifiant(IDENTIFIANT_VIRGULE)) {
+	if (!requiers_identifiant(id_morceau::VIRGULE)) {
 		/* Fin des identifiants item. */
 		recule();
 		return;

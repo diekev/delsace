@@ -30,6 +30,8 @@
 
 #include "controles_proprietes/donnees_controle.h"
 
+#include "morceaux.h"
+
 class QBoxLayout;
 class QLabel;
 class QMenu;
@@ -100,12 +102,12 @@ public:
 	/**
 	 * Ajoute une disposition (ligne ou colonne) à la pile de disposition.
 	 */
-	void ajoute_disposition(int identifiant);
+	void ajoute_disposition(id_morceau identifiant);
 
 	/**
 	 * Ajoute un contrôle à la disposition se trouvant au sommet de la pile.
 	 */
-	void ajoute_controle(int identifiant);
+	void ajoute_controle(id_morceau identifiant);
 
 	/**
 	 * Ajoute une item à un contrôle de type liste déroulante. Le dernier
@@ -137,12 +139,12 @@ public:
 	/**
 	 * Ajoute une propriété au dernier contrôle ajouté.
 	 */
-	void propriete_controle(int identifiant, const std::string &valeur);
+	void propriete_controle(id_morceau identifiant, const std::string &valeur);
 
 	/**
 	 * Ajoute une propriété au dernier bouton ajouté.
 	 */
-	void propriete_bouton(int indentifiant, const std::string &valeur);
+	void propriete_bouton(id_morceau indentifiant, const std::string &valeur);
 
 	/**
 	 * Retourne la disposition se trouvant au sommet de la pile de dispositions.
@@ -158,7 +160,7 @@ public:
 
 	void ajoute_action();
 
-	void propriete_action(int identifiant, const std::string &valeur);
+	void propriete_action(id_morceau identifiant, const std::string &valeur);
 
 	void ajoute_separateur();
 

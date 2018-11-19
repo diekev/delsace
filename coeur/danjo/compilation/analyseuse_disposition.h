@@ -43,7 +43,9 @@ class AnalyseuseDisposition : public Analyseuse {
 	AssembleurDisposition *m_assembleur = nullptr;
 
 public:
-	AnalyseuseDisposition() = default;
+	explicit AnalyseuseDisposition(
+			const TamponSource &tampon,
+			const std::vector<DonneesMorceaux> &identifiants);
 
 	/**
 	 * Installe l'assembleur à utiliser pour générer l'entreface.
@@ -56,7 +58,7 @@ public:
 	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
 	 * une exception est lancée.
 	 */
-	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
+	void lance_analyse() override;
 
 private:
 	/**
@@ -119,7 +121,7 @@ private:
 	 * avec identifiant_propriété pouvant prendre l'une des valeurs suivantes :
 	 * valeur, min, max, items, infobulle, précision, pas, attache.
 	 */
-	void analyse_propriete(int type_controle);
+	void analyse_propriete(id_morceau type_controle);
 
 	/**
 	 * Analyse la déclaration d'une liste d'items pour un contrôle de type
@@ -161,6 +163,6 @@ private:
 	void analyse_barre_outils();
 };
 
-bool est_identifiant_controle(int identifiant);
+bool est_identifiant_controle(id_morceau identifiant);
 
 }  /* namespace danjo */

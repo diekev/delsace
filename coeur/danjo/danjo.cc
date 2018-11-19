@@ -121,19 +121,20 @@ QMenu *GestionnaireInterface::compile_menu(
 		DonneesInterface &donnees,
 		const char *texte_entree)
 {
-	AssembleurDisposition assembleur(
+	AssembleurDisposition assembleuse(
 				donnees.manipulable,
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	AnalyseuseDisposition analyseur;
-	analyseur.installe_assembleur(&assembleur);
-
-	Decoupeuse decoupeuse(texte_entree);
+	auto tampon = TamponSource(texte_entree);
+	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
 		decoupeuse.decoupe();
-		analyseur.lance_analyse(decoupeuse.morceaux());
+
+		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
+		analyseuse.installe_assembleur(&assembleuse);
+		analyseuse.lance_analyse();
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -144,30 +145,31 @@ QMenu *GestionnaireInterface::compile_menu(
 		return nullptr;
 	}
 
-	for (const auto &pair : assembleur.donnees_menus()) {
+	for (const auto &pair : assembleuse.donnees_menus()) {
 		m_menus.insert(pair);
 	}
 
-	return assembleur.menu();
+	return assembleuse.menu();
 }
 
 QMenu *GestionnaireInterface::compile_menu_entrerogeable(
 		DonneesInterface &donnees,
 		const char *texte_entree)
 {
-	AssembleurDisposition assembleur(
+	AssembleurDisposition assembleuse(
 				donnees.manipulable,
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	AnalyseuseDisposition analyseuse;
-	analyseuse.installe_assembleur(&assembleur);
-
-	Decoupeuse decoupeuse(texte_entree);
+	auto tampon = TamponSource(texte_entree);
+	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
 		decoupeuse.decoupe();
-		analyseuse.lance_analyse(decoupeuse.morceaux());
+
+		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
+		analyseuse.installe_assembleur(&assembleuse);
+		analyseuse.lance_analyse();
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -181,12 +183,12 @@ QMenu *GestionnaireInterface::compile_menu_entrerogeable(
 	/* À FAIRE : déplace ça dans l'assembleuse. */
 	auto menu_entrerogeable = new MenuEntrerogeable("");
 
-	for (auto &action : assembleur.menu()->actions()) {
+	for (auto &action : assembleuse.menu()->actions()) {
 		menu_entrerogeable->addAction(action);
 	}
 
 	/* À FAIRE : déduplique les menus. */
-	for (const auto &pair : assembleur.donnees_menus()) {
+	for (const auto &pair : assembleuse.donnees_menus()) {
 		m_menus_entrerogeables.insert(pair);
 	}
 
@@ -199,20 +201,21 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 		return nullptr;
 	}
 
-	AssembleurDisposition assembleur(
+	AssembleurDisposition assembleuse(
 				donnees.manipulable,
 				donnees.repondant_bouton,
 				donnees.conteneur,
 				temps);
 
-	AnalyseuseDisposition analyseur;
-	analyseur.installe_assembleur(&assembleur);
-
-	Decoupeuse decoupeuse(texte_entree);
+	auto tampon = TamponSource(texte_entree);
+	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
 		decoupeuse.decoupe();
-		analyseur.lance_analyse(decoupeuse.morceaux());
+
+		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
+		analyseuse.installe_assembleur(&assembleuse);
+		analyseuse.lance_analyse();
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -223,10 +226,10 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 		return nullptr;
 	}
 
-	auto disposition = assembleur.disposition();
+	auto disposition = assembleuse.disposition();
 	disposition->addStretch();
 
-	auto nom = assembleur.nom_disposition();
+	auto nom = assembleuse.nom_disposition();
 
 	m_dispositions.insert({nom, disposition});
 
@@ -246,14 +249,15 @@ void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const
 				0,
 				true);
 
-	AnalyseuseDisposition analyseuse;
-	analyseuse.installe_assembleur(&assembleuse);
-
-	Decoupeuse decoupeuse(texte_entree);
+	auto tampon = TamponSource(texte_entree);
+	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
 		decoupeuse.decoupe();
-		analyseuse.lance_analyse(decoupeuse.morceaux());
+
+		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
+		analyseuse.installe_assembleur(&assembleuse);
+		analyseuse.lance_analyse();
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -282,14 +286,15 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees,
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	AnalyseuseDisposition analyseur;
-	analyseur.installe_assembleur(&assembleur);
-
-	Decoupeuse decoupeuse(texte_entree);
+	auto tampon = TamponSource(texte_entree);
+	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
 		decoupeuse.decoupe();
-		analyseur.lance_analyse(decoupeuse.morceaux());
+
+		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
+		analyseuse.installe_assembleur(&assembleur);
+		analyseuse.lance_analyse();
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -373,12 +378,14 @@ QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_e
 
 void compile_feuille_logique(const char *texte_entree)
 {
-	AnalyseuseLogique analyseuse(nullptr);
-	Decoupeuse decoupeuse(texte_entree);
+	auto tampon = TamponSource(texte_entree);
+	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
 		decoupeuse.decoupe();
-		analyseuse.lance_analyse(decoupeuse.morceaux());
+
+		auto analyseuse = AnalyseuseLogique(nullptr, tampon, decoupeuse.morceaux());
+		analyseuse.lance_analyse();
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();

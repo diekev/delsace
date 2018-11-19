@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "morceaux.h"
+#include "tampon_source.h"
 
 namespace danjo {
 
@@ -35,11 +36,13 @@ namespace danjo {
  */
 class Analyseuse {
 protected:
-	std::vector<DonneesMorceaux> m_identifiants{};
-	int m_position = 0;
+	const std::vector<DonneesMorceaux> &m_identifiants;
+	const TamponSource &m_tampon;
+	size_t m_position = 0;
 
 public:
-	Analyseuse() = default;
+	explicit Analyseuse(const TamponSource &tampon, const std::vector<DonneesMorceaux> &identifiants);
+
 	virtual ~Analyseuse() = default;
 
 	/**
@@ -48,26 +51,26 @@ public:
 	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
 	 * une exception est lancée.
 	 */
-	virtual void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) = 0;
+	virtual void lance_analyse() = 0;
 
 protected:
 	/**
 	 * Vérifie que l'identifiant courant est égal à celui spécifié puis avance
 	 * la position de l'analyseur sur le vecteur d'identifiant.
 	 */
-	bool requiers_identifiant(int identifiant);
+	bool requiers_identifiant(id_morceau identifiant);
 
 	/**
 	 * Retourne vrai si l'identifiant courant est égal à celui spécifié.
 	 */
-	bool est_identifiant(int identifiant);
+	bool est_identifiant(id_morceau identifiant);
 
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
-	void lance_erreur(const std::string &quoi);
+	[[noreturn]] void lance_erreur(const std::string &quoi);
 
 	/**
 	 * Avance l'analyseur d'un cran sur le vecteur d'identifiants.
@@ -82,12 +85,12 @@ protected:
 	/**
 	 * Retourne la position courante sur le vecteur d'identifiants.
 	 */
-	int position();
+	size_t position();
 
 	/**
 	 * Retourne l'identifiant courant.
 	 */
-	int identifiant_courant() const;
+	id_morceau identifiant_courant() const;
 };
 
 } /* namespace danjo */

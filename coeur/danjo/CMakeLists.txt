@@ -114,6 +114,9 @@ add_library(danjo STATIC
 	compilation/expression.cc
 	compilation/graphe_contrainte.cc
 	compilation/morceaux.cc
+	compilation/nombres.cc
+	compilation/tampon_source.cc
+	compilation/unicode.cc
 
 	dialogues/dialogue_couleur.cc
 
@@ -169,6 +172,9 @@ add_library(danjo STATIC
 	compilation/expression.h
 	compilation/graphe_contrainte.h
 	compilation/morceaux.h
+	compilation/nombres.h
+	compilation/tampon_source.h
+	compilation/unicode.h
 
 	dialogues/dialogue_couleur.h
 

@@ -1,184 +1,395 @@
 # -*- coding:utf8 -*-
 
-mot_cle = [
-    "disposition",
-	"menu",
-	"barre_outils",
-	"colonne",
-	"ligne",
-	"dossier",
-	"onglet",
-	"étiquette",
-	"entier",
-	"décimal",
-	"liste",
-	"case",
-	"chaine",
-	"fichier_entrée",
-	"fichier_sortie",
-	"couleur",
-	"vecteur",
-	"bouton",
-	"action",
-	"séparateur",
-	"infobulle",
-	"min",
-	"max",
-	"valeur",
-	"attache",
-	"précision",
-	"pas",
-	"items",
-	"nom",
-	"métadonnée",
-	"icône",
-    "vrai",
-	"faux",
-	"logique",
-	"feuille",
-	"entrée",
-	"entreface",
-	"relation",
-	"quand",
-	"sortie",
-	"résultat",
-	"filtres",
-	"énum",
-	"suffixe",
-	"courbe_couleur",
-	"courbe_valeur",
-	"rampe_couleur",
+# -*- coding:utf-8 -*-
+
+import io
+
+mot_cles = [
+    u"disposition",
+	u"menu",
+	u"barre_outils",
+	u"colonne",
+	u"ligne",
+	u"dossier",
+	u"onglet",
+	u"étiquette",
+	u"entier",
+	u"décimal",
+	u"liste",
+	u"case",
+	u"chaine",
+	u"fichier_entrée",
+	u"fichier_sortie",
+	u"couleur",
+	u"vecteur",
+	u"bouton",
+	u"action",
+	u"séparateur",
+	u"infobulle",
+	u"min",
+	u"max",
+	u"valeur",
+	u"attache",
+	u"précision",
+	u"pas",
+	u"items",
+	u"nom",
+	u"métadonnée",
+	u"icône",
+    u"vrai",
+	u"faux",
+	u"logique",
+	u"feuille",
+	u"entrée",
+	u"entreface",
+	u"relation",
+	u"quand",
+	u"sortie",
+	u"résultat",
+	u"filtres",
+	u"énum",
+	u"suffixe",
+	u"courbe_couleur",
+	u"courbe_valeur",
+	u"rampe_couleur",
 ]
+
+taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
+
+mot_cles = sorted(mot_cles)
+
+caracteres_simple = [
+	[u'+', u'PLUS'],
+	[u'-', u'MOINS'],
+	[u'/', u'DIVISE'],
+	[u'*', u'FOIS'],
+	[u'%', u'POURCENT'],
+	[u'=', u'EGAL'],
+	[u'@', u'AROBASE'],
+	[u'#', u'DIESE'],
+	[u'(', u'PARENTHESE_OUVRANTE'],
+	[u')', u'PARENTHESE_FERMANTE'],
+	[u'{', u'ACCOLADE_OUVRANTE'],
+	[u'}', u'ACCOLADE_FERMANTE'],
+	[u'[', u'CROCHET_OUVRANT'],
+	[u']', u'CROCHET_FERMANT'],
+	[u'.', u'POINT'],
+	[u',', u'VIRGULE'],
+	[u';', u'POINT_VIRGULE'],
+	[u':', u'DOUBLE_POINTS'],
+	[u'!', u'EXCLAMATION'],
+	[u'&', u'ESPERLUETTE'],
+	[u'|', u'BARRE'],
+	[u'^', u'CHAPEAU'],
+	[u'~', u'TILDE'],
+	[u"'", u'APOSTROPHE'],
+	[u'"', u'GUILLEMET'],
+	[u'<', u'INFERIEUR'],
+	[u'>', u'SUPERIEUR'],
+]
+
+caracteres_simple = sorted(caracteres_simple)
 
 caracteres_double = [
-	["...","TROIS_POINT"],
-	["==","EGALITE"],
-	["!=","DIFFERENCE"],
-	["<=","INFERIEUR_EGAL"],
-	[">=","SUPERIEUR_EGAL"],
-	["->","FLECHE"],
-	["&&","ESP_ESP"],
-	["++","PLUS_PLUS"],
-	["--","MOINS_MOINS"],
-	["+=","PLUS_EGAL"],
-	["-=","MOINS_EGAL"],
-	["*=","FOIS_EGAL"],
-	["/=","DIVISE_EGAL"],
-	["^=","OUX_EGAL"],
-	["|=","OU_EGAL"],
-	["&=","ET_EGAL"],
-	["||","BARE_BARRE"],
-	["<<","DECALAGE_GAUCHE"],
-	[">>","DECALAGE_DROITE"]
+	[u"...", u"TROIS_POINT"],
+	[u"==", u"EGALITE"],
+	[u"!=", u"DIFFERENCE"],
+	[u"<=", u"INFERIEUR_EGAL"],
+	[u">=", u"SUPERIEUR_EGAL"],
+	[u"->", u"FLECHE"],
+	[u"&&", u"ESP_ESP"],
+	[u"++", u"PLUS_PLUS"],
+	[u"--", u"MOINS_MOINS"],
+	[u"+=", u"PLUS_EGAL"],
+	[u"-=", u"MOINS_EGAL"],
+	[u"*=", u"FOIS_EGAL"],
+	[u"/=", u"DIVISE_EGAL"],
+	[u"^=", u"OUX_EGAL"],
+	[u"|=", u"OU_EGAL"],
+	[u"&=", u"ET_EGAL"],
+	[u"||", u"BARE_BARRE"],
+	[u"<<", u"DECALAGE_GAUCHE"],
+	[u">>", u"DECALAGE_DROITE"]
 ]
 
-caracteres_speciaux = [
-	["<","INFERIEUR"],
-	[">","SUPERIEUR"],
-	["=","EGAL"],
-	["!","EXCLAMATION"],
-	["+","PLUS"],
-	["-","MOINS"],
-	["*","FOIS"],
-	["/","DIVISE"],
-	["%","POURCENT"],
-	["&","ESPERLUETTE"],
-	["|","BARRE"],
-	["[","CROCHET_OUVRANT"],
-	["]","CROCHET_FERMANT"],
-	["^","CHAPEAU"],
-	["(","PARENTHESE_OUVRANTE"],
-	[")","PARENTHESE_FERMANTE"],
-	["{","ACCOLADE_OUVRANTE"],
-	["}","ACCOLADE_FERMANTE"],
-	["\"","GUILLEMET"],
-	["'","APOSTROPHE"],
-	[";","POINT_VIRGULE"],
-	[":","DOUBLE_POINT"],
-	[".","POINT"],
-	["#","DIESE"],
-	["~","TILDE"],
-	[",","VIRGULE"]
+caracteres_double = sorted(caracteres_double)
+
+id_extra = [
+	u"CHAINE_CARACTERE",
+	u"CHAINE_LITTERALE",
+	u"CARACTERE",
+	u"NOMBRE",
+	u"NOMBRE_DECIMAL",
+	u"BOOL",
+	u"NUL",
+	u"INCONNU",
 ]
 
-identifiant_extra = [
-	"CHAINE_CARACTERE",
-	"CHAINE_LITTERALE",
-	"CARACTERE",
-	"NOMBRE",
-	"NOMBRE_DECIMAL",
-	"BOOL",
-	"NUL",
-]
 
-from operator import itemgetter
+def enleve_accent(mot):
+	mot = mot.replace(u'é', 'e')
+	mot = mot.replace(u'è', 'e')
+	mot = mot.replace(u'â', 'a')
+	mot = mot.replace(u'ê', 'e')
+	mot = mot.replace(u'ô', 'o')
 
-mot_cle = sorted(mot_cle)
-caracteres_double = sorted(caracteres_double, key=itemgetter(0))
-caracteres_speciaux = sorted(caracteres_speciaux, key=itemgetter(0))
-
-def enleve_caracteres_speciaux(chaine):
-    return chaine.replace('é', 'e').replace('ê', 'e').replace('î', 'i').replace('ô', 'o')
-
-def imprime_identifiants():
-	print 'enum {'
-	for mc in mot_cle:
-		mcn = enleve_caracteres_speciaux(mc)
-		mcn = mcn.upper()
-
-		print('\tIDENTIFIANT_{},'.format(mcn))
-
-	for cs in caracteres_speciaux:
-		print('\tIDENTIFIANT_{},'.format(cs[1]))
-
-	for cs in caracteres_double:
-		print('\tIDENTIFIANT_{},'.format(cs[1]))
-
-	for id_extra in identifiant_extra:
-		print('\tIDENTIFIANT_{},'.format(id_extra))
-
-	print '};'
-
-	for mc in mot_cle:
-		mcn = enleve_caracteres_speciaux(mc)
-		mcn = mcn.upper()
-
-		print('\t{ '+'IDENTIFIANT_{}, "{}"'.format(mcn, mc)+' },')
-
-	for cs in caracteres_double:
-		print("\t{ "+'IDENTIFIANT_{}, "{}"'.format(cs[1], cs[0])+' },')
-
-	for cs in caracteres_speciaux:
-		print("\t{ "+"IDENTIFIANT_{}, '{}'".format(cs[1], cs[0])+' },')
+	return mot
 
 
-def imprime_chaines_identifiants():
-	print 'const char *chaine_identifiant(int identifiant)'
-	print '{'
-	print '\tswitch (identifiant) {'
+def construit_structures():
+	structures = u''
+	structures += u'\nstruct DonneesMorceaux {\n'
+	structures += u'\tstd::string_view chaine;\n'
+	structures += u'\tsize_t ligne_pos;\n'
+	structures += u'\tid_morceau identifiant;\n'
+	structures += u'\tint pad = 0;\n'
+	structures += u'};\n'
 
-	for mc in mot_cle:
-		mcn = enleve_caracteres_speciaux(mc)
-		mcn = 'IDENTIFIANT_' + mcn.upper()
+	return structures
 
-		print '\t\tcase {}:'.format(mcn)
-		print '\t\t\treturn "{}";'.format(mcn)
 
-	for cs in caracteres_double:
-		print '\t\tcase IDENTIFIANT_{}:'.format(cs[1])
-		print '\t\t\treturn "IDENTIFIANT_{}";'.format(cs[1])
+def construit_tableaux():
+	tableaux = u''
 
-	for cs in caracteres_speciaux:
-		print '\t\tcase IDENTIFIANT_{}:'.format(cs[1])
-		print '\t\t\treturn "IDENTIFIANT_{}";'.format(cs[1])
+	tableaux += u'static std::map<std::string_view, id_morceau> paires_mots_cles = {\n'
 
-	for id_extra in identifiant_extra:
-		print '\t\tcase IDENTIFIANT_{}:'.format(id_extra)
-		print '\t\t\treturn "IDENTIFIANT_{}";'.format(id_extra)
+	for mot in mot_cles:
+		m = enleve_accent(mot)
+		m = m.upper()
+		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(mot, m)
 
-	print '\t}'
-	print '\treturn "NULL";'
-	print '}'
+	tableaux += u'};\n\n'
 
-imprime_identifiants()
-imprime_chaines_identifiants()
+	tableaux += u'static std::map<std::string_view, id_morceau> paires_caracteres_double = {\n'
+
+	for c in caracteres_double:
+		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(c[0], c[1])
+
+	tableaux += u'};\n\n'
+
+	tableaux += u'static std::map<char, id_morceau> paires_caracteres_speciaux = {\n'
+
+	for c in caracteres_simple:
+		if c[0] == "'":
+			c[0] = "\\'"
+
+		tableaux += u"\t{{ '{}', id_morceau::{} }},\n".format(c[0], c[1])
+
+	tableaux += u'};\n\n'
+
+	return tableaux
+
+
+def constuit_enumeration():
+	enumeration = u'enum class id_morceau : unsigned int {\n'
+
+	for car in caracteres_simple:
+		enumeration += u'\t{},\n'.format(car[1])
+
+	for car in caracteres_double:
+		enumeration += u'\t{},\n'.format(car[1])
+
+	for mot in mot_cles + id_extra:
+		m = enleve_accent(mot)
+		m = m.upper()
+
+		enumeration += u'\t{},\n'.format(m)
+
+	enumeration += u'};\n'
+
+	return enumeration
+
+
+def construit_fonction_chaine_identifiant():
+	fonction = u'const char *chaine_identifiant(id_morceau id)\n{\n'
+	fonction += u'\tswitch (id) {\n'
+
+	for car in caracteres_simple:
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
+
+	for car in caracteres_double:
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
+
+	for mot in mot_cles + id_extra:
+		m = enleve_accent(mot)
+		m = m.upper()
+
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(m)
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(m)
+
+	fonction += u'\t};\n'
+	fonction += u'\n\treturn "ERREUR";\n'
+	fonction += u'}\n'
+
+	return fonction
+
+
+license_ = u"""/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+ /* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
+ """
+
+enumeration = constuit_enumeration()
+fonction = construit_fonction_chaine_identifiant()
+structures = construit_structures()
+tableaux = construit_tableaux()
+
+fonctions = u"""
+static bool tables_caracteres[256] = {};
+static id_morceau tables_identifiants[256] = {};
+static bool tables_caracteres_double[256] = {};
+static bool tables_mots_cles[256] = {};
+
+void construit_tables_caractere_speciaux()
+{
+	for (int i = 0; i < 256; ++i) {
+		tables_caracteres[i] = false;
+		tables_caracteres_double[i] = false;
+		tables_mots_cles[i] = false;
+		tables_identifiants[i] = id_morceau::INCONNU;
+	}
+
+	for (const auto &iter : paires_caracteres_speciaux) {
+		tables_caracteres[int(iter.first)] = true;
+		tables_identifiants[int(iter.first)] = iter.second;
+	}
+
+	for (const auto &iter : paires_caracteres_double) {
+		tables_caracteres_double[int(iter.first[0])] = true;
+	}
+
+	for (const auto &iter : paires_mots_cles) {
+		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
+	}
+}
+
+bool est_caractere_special(char c, id_morceau &i)
+{
+	if (!tables_caracteres[static_cast<int>(c)]) {
+		return false;
+	}
+
+	i = tables_identifiants[static_cast<int>(c)];
+	return true;
+}
+
+id_morceau id_caractere_double(const std::string_view &chaine)
+{
+	if (!tables_caracteres_double[int(chaine[0])]) {
+		return id_morceau::INCONNU;
+	}
+
+	auto iterateur = paires_caracteres_double.find(chaine);
+
+	if (iterateur != paires_caracteres_double.end()) {
+		return (*iterateur).second;
+	}
+
+	return id_morceau::INCONNU;
+}
+
+id_morceau id_chaine(const std::string_view &chaine)
+{
+	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
+		return id_morceau::CHAINE_CARACTERE;
+	}
+
+	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
+		return id_morceau::CHAINE_CARACTERE;
+	}
+
+	auto iterateur = paires_mots_cles.find(chaine);
+
+	if (iterateur != paires_mots_cles.end()) {
+		return (*iterateur).second;
+	}
+
+	return id_morceau::CHAINE_CARACTERE;
+}
+"""
+
+fonctions_enumeration = u"""
+inline id_morceau operator&(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) & id2);
+}
+
+inline id_morceau operator|(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) | id2);
+}
+
+inline id_morceau operator|(id_morceau id1, id_morceau id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
+}
+
+inline id_morceau operator<<(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) << id2);
+}
+
+inline id_morceau operator>>(id_morceau id1, int id2)
+{
+	return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
+}
+"""
+
+declaration_fonctions = u"""
+const char *chaine_identifiant(id_morceau id);
+
+void construit_tables_caractere_speciaux();
+
+bool est_caractere_special(char c, id_morceau &i);
+
+id_morceau id_caractere_double(const std::string_view &chaine);
+
+id_morceau id_chaine(const std::string_view &chaine);
+"""
+
+with io.open(u"../coeur/danjo/compilation/morceaux.h", u'w') as entete:
+	entete.write(license_)
+	entete.write(u'\n#pragma once\n\n')
+	entete.write(u'#include <string>\n\n')
+	entete.write(u'namespace danjo {\n\n')
+	entete.write(enumeration)
+	entete.write(fonctions_enumeration)
+	entete.write(structures)
+	entete.write(declaration_fonctions)
+	entete.write(u'\n}  /* namespace danjo */\n')
+
+
+with io.open(u'../coeur/danjo/compilation/morceaux.cc', u'w') as source:
+	source.write(license_)
+	source.write(u'\n#include "morceaux.h"\n\n')
+	source.write(u'#include <map>\n\n')
+	source.write(u'namespace danjo {\n\n')
+	source.write(tableaux)
+	source.write(fonction)
+	source.write(u'\nstatic constexpr auto TAILLE_MAX_MOT_CLE = {};\n'.format(taille_max_mot_cles))
+	source.write(fonctions)
+	source.write(u'\n}  /* namespace danjo */\n')

@@ -37,9 +37,13 @@ class AnalyseuseLogique : public Analyseuse {
 	bool m_initialise_manipulable;
 
 public:
-	explicit AnalyseuseLogique(Manipulable *manipulable, bool initialise_manipulable = false);
+	explicit AnalyseuseLogique(
+			Manipulable *manipulable,
+			const TamponSource &tampon,
+			const std::vector<DonneesMorceaux> &identifiants,
+			bool initialise_manipulable = false);
 
-	void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) override;
+	void lance_analyse() override;
         
 private:
 	void analyse_corps();

@@ -32,6 +32,20 @@
 
 #include "donnees_controle.h"
 
+#include <sstream>
+static std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur)
+{
+	std::vector<std::string> resultat;
+	std::stringstream ss(chaine);
+	std::string temp;
+
+	while (std::getline(ss, temp, delimiteur)) {
+		resultat.push_back(temp);
+	}
+
+	return resultat;
+}
+
 namespace danjo {
 
 ControleProprieteCouleur::ControleProprieteCouleur(QWidget *parent)

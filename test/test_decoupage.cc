@@ -28,6 +28,8 @@
 
 #include "compilation/decoupeuse.h"
 
+#undef DEBOGUE_MORCEAUX
+
 template <typename I1, typename I2>
 bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 {
@@ -35,15 +37,36 @@ bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 	const auto dist2 = std::distance(debut2, fin2);
 
 	if (dist1 != dist2) {
+#ifdef DEBOGUE_MORCEAUX
+		std::cerr << "Les distances ne sont pas égales : "
+				  << dist1
+				  << " != "
+				  << dist2
+				  << '\n';
+#endif
 		return false;
 	}
 
 	while (debut1 != fin1 && debut2 != fin2) {
 		if ((*debut1).identifiant != (*debut2).identifiant) {
+#ifdef DEBOGUE_MORCEAUX
+			std::cerr << "Les identifiants ne sont pas égaux : "
+					  << danjo::chaine_identifiant((*debut1).identifiant)
+					  << " != "
+					  << danjo::chaine_identifiant((*debut2).identifiant)
+					  << '\n';
+#endif
 			return false;
 		}
 
-		if ((*debut1).contenu != (*debut2).contenu) {
+		if ((*debut1).chaine != (*debut2).chaine) {
+#ifdef DEBOGUE_MORCEAUX
+			std::cerr << "Les chaînes ne sont pas égales : "
+					  << (*debut1).chaine
+					  << " != "
+					  << (*debut2).chaine
+					  << '\n';
+#endif
 			return false;
 		}
 
@@ -64,40 +87,41 @@ bool test_decoupage_texte1()
 						"}\n";
 
 	const danjo::DonneesMorceaux donnees_morceaux[] = {
-		{ danjo::IDENTIFIANT_DISPOSITION, 0, 0, "disposition", "" },
-		{ danjo::IDENTIFIANT_CHAINE_LITTERALE, 0, 0, "Taille Image", "" },
-		{ danjo::IDENTIFIANT_ACCOLADE_OUVRANTE, 0, 0, "{", "" },
-		{ danjo::IDENTIFIANT_LIGNE, 0, 0, "ligne", "" },
-		{ danjo::IDENTIFIANT_ACCOLADE_OUVRANTE, 0, 0, "{", "" },
-		{ danjo::IDENTIFIANT_ETIQUETTE, 0, 0, "étiquette", "" },
-		{ danjo::IDENTIFIANT_PARENTHESE_OUVRANTE, 0, 0, "(", "" },
-		{ danjo::IDENTIFIANT_VALEUR, 0, 0, "valeur", "" },
-		{ danjo::IDENTIFIANT_EGAL, 0, 0, "=", "" },
-		{ danjo::IDENTIFIANT_CHAINE_LITTERALE, 0, 0, "Dimension X", "" },
-		{ danjo::IDENTIFIANT_PARENTHESE_FERMANTE, 0, 0, ")", "" },
-		{ danjo::IDENTIFIANT_ENTIER, 0, 0, "entier", "" },
-		{ danjo::IDENTIFIANT_PARENTHESE_OUVRANTE, 0, 0, "(", "" },
-		{ danjo::IDENTIFIANT_VALEUR, 0, 0, "valeur", "" },
-		{ danjo::IDENTIFIANT_EGAL, 0, 0, "=", "" },
-		{ danjo::IDENTIFIANT_NOMBRE, 0, 0, "1920", "" },
-		{ danjo::IDENTIFIANT_POINT_VIRGULE, 0, 0, ";", "" },
-		{ danjo::IDENTIFIANT_MIN, 0, 0, "min", "" },
-		{ danjo::IDENTIFIANT_EGAL, 0, 0, "=", "" },
-		{ danjo::IDENTIFIANT_NOMBRE, 0, 0, "4", "" },
-		{ danjo::IDENTIFIANT_POINT_VIRGULE, 0, 0, ";", "" },
-		{ danjo::IDENTIFIANT_MAX, 0, 0, "max", "" },
-		{ danjo::IDENTIFIANT_EGAL, 0, 0, "=", "" },
-		{ danjo::IDENTIFIANT_NOMBRE, 0, 0, "8196", "" },
-		{ danjo::IDENTIFIANT_POINT_VIRGULE, 0, 0, ";", "" },
-		{ danjo::IDENTIFIANT_ATTACHE, 0, 0, "attache", "" },
-		{ danjo::IDENTIFIANT_EGAL, 0, 0, "=", "" },
-		{ danjo::IDENTIFIANT_CHAINE_CARACTERE, 0, 0, "dimension_x", "" },
-		{ danjo::IDENTIFIANT_PARENTHESE_FERMANTE, 0, 0, ")", "" },
-		{ danjo::IDENTIFIANT_ACCOLADE_FERMANTE, 0, 0, "}", "" },
-		{ danjo::IDENTIFIANT_ACCOLADE_FERMANTE, 0, 0, "}", "" },
+		{ "disposition", 0, danjo::id_morceau::DISPOSITION },
+		{ "Taille Image", 0, danjo::id_morceau::CHAINE_LITTERALE },
+		{ "{", 0, danjo::id_morceau::ACCOLADE_OUVRANTE },
+		{ "ligne", 0, danjo::id_morceau::LIGNE },
+		{ "{", 0, danjo::id_morceau::ACCOLADE_OUVRANTE },
+		{ "étiquette", 0, danjo::id_morceau::ETIQUETTE },
+		{ "(", 0, danjo::id_morceau::PARENTHESE_OUVRANTE },
+		{ "valeur", 0, danjo::id_morceau::VALEUR },
+		{ "=", 0, danjo::id_morceau::EGAL },
+		{ "Dimension X", 0, danjo::id_morceau::CHAINE_LITTERALE },
+		{ ")", 0, danjo::id_morceau::PARENTHESE_FERMANTE },
+		{ "entier", 0, danjo::id_morceau::ENTIER },
+		{ "(", 0, danjo::id_morceau::PARENTHESE_OUVRANTE },
+		{ "valeur", 0, danjo::id_morceau::VALEUR },
+		{ "=", 0, danjo::id_morceau::EGAL },
+		{ "1920", 0, danjo::id_morceau::NOMBRE },
+		{ ";", 0, danjo::id_morceau::POINT_VIRGULE },
+		{ "min", 0, danjo::id_morceau::MIN },
+		{ "=", 0, danjo::id_morceau::EGAL },
+		{ "4", 0, danjo::id_morceau::NOMBRE },
+		{ ";", 0, danjo::id_morceau::POINT_VIRGULE },
+		{ "max", 0, danjo::id_morceau::MAX },
+		{ "=", 0, danjo::id_morceau::EGAL },
+		{ "8196", 0, danjo::id_morceau::NOMBRE },
+		{ ";", 0, danjo::id_morceau::POINT_VIRGULE },
+		{ "attache", 0, danjo::id_morceau::ATTACHE },
+		{ "=", 0, danjo::id_morceau::EGAL },
+		{ "dimension_x", 0, danjo::id_morceau::CHAINE_CARACTERE },
+		{ ")", 0, danjo::id_morceau::PARENTHESE_FERMANTE },
+		{ "}", 0, danjo::id_morceau::ACCOLADE_FERMANTE },
+		{ "}", 0, danjo::id_morceau::ACCOLADE_FERMANTE },
 	};
 
-	danjo::Decoupeuse decoupeuse(texte);
+	auto tampon = TamponSource(texte);
+	auto decoupeuse = danjo::Decoupeuse(tampon);
 	decoupeuse.decoupe();
 
 	return verifie_morceaux(decoupeuse.begin(),

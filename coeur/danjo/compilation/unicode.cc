@@ -15,36 +15,11 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2015 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#pragma once
-
-#include <experimental/any>
-#include <string>
-#include <vector>
-
-#include "morceaux.h"
-
-namespace danjo {
-
-class Manipulable;
-
-struct Symbole {
-	std::experimental::any valeur;
-	id_morceau identifiant;
-};
-
-bool est_operateur(id_morceau identifiant);
-
-bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2);
-
-Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable);
-
-void imprime_valeur_symbole(Symbole symbole, std::ostream &os);
-
-}  /* namespace danjo */
+#include "unicode.h"

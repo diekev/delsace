@@ -50,7 +50,6 @@
 
 #include "conteneur_controles.h"
 #include "manipulable.h"
-#include "morceaux.h"
 #include "repondant_bouton.h"
 
 namespace danjo {
@@ -63,7 +62,7 @@ AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, Repondant
 	, m_initialisation_seule(initialisation_seule)
 {}
 
-void AssembleurDisposition::ajoute_disposition(int identifiant)
+void AssembleurDisposition::ajoute_disposition(id_morceau identifiant)
 {
 	if (m_initialisation_seule) {
 		return;
@@ -73,10 +72,10 @@ void AssembleurDisposition::ajoute_disposition(int identifiant)
 
 	switch (identifiant) {
 		default:
-		case IDENTIFIANT_LIGNE:
+		case id_morceau::LIGNE:
 			disposition = new QHBoxLayout;
 			break;
-		case IDENTIFIANT_COLONNE:
+		case id_morceau::COLONNE:
 			disposition = new QVBoxLayout;
 			break;
 	}
@@ -88,29 +87,29 @@ void AssembleurDisposition::ajoute_disposition(int identifiant)
 	m_pile_dispositions.push(disposition);
 }
 
-void AssembleurDisposition::ajoute_controle(int identifiant)
+void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
 {
 	ControlePropriete *controle = nullptr;
 
 	m_donnees_controle = DonneesControle();
 
 	switch (identifiant) {
-		case IDENTIFIANT_ENTIER:
+		case id_morceau::ENTIER:
 			controle = new ControleProprieteEntier;
 			m_donnees_controle.type = TypePropriete::ENTIER;
 			break;
-		case IDENTIFIANT_DECIMAL:
+		case id_morceau::DECIMAL:
 			controle = new ControleProprieteDecimal;
 			m_donnees_controle.type = TypePropriete::DECIMAL;
 			break;
-		case IDENTIFIANT_ETIQUETTE:
+		case id_morceau::ETIQUETTE:
 			controle = new ControleProprieteEtiquette;
 			break;
-		case IDENTIFIANT_ENUM:
+		case id_morceau::ENUM:
 			controle = new ControleProprieteEnum;
 			m_donnees_controle.type = TypePropriete::ENUM;
 			break;
-		case IDENTIFIANT_LISTE:
+		case id_morceau::LISTE:
 		{
 			auto controle_liste = new ControleProprieteListe;
 			controle_liste->conteneur(m_conteneur);
@@ -118,41 +117,43 @@ void AssembleurDisposition::ajoute_controle(int identifiant)
 			m_donnees_controle.type = TypePropriete::CHAINE_CARACTERE;
 			break;
 		}
-		case IDENTIFIANT_CASE:
+		case id_morceau::CASE:
 			controle = new ControleProprieteBool;
 			m_donnees_controle.type = TypePropriete::BOOL;
 			break;
-		case IDENTIFIANT_CHAINE:
+		case id_morceau::CHAINE:
 			controle = new ControleProprieteChaineCaractere;
 			m_donnees_controle.type = TypePropriete::CHAINE_CARACTERE;
 			break;
-		case IDENTIFIANT_FICHIER_ENTREE:
+		case id_morceau::FICHIER_ENTREE:
 			controle = new ControleProprieteFichier(true);
 			m_donnees_controle.type = TypePropriete::FICHIER_ENTREE;
 			break;
-		case IDENTIFIANT_FICHIER_SORTIE:
+		case id_morceau::FICHIER_SORTIE:
 			controle = new ControleProprieteFichier(false);
 			m_donnees_controle.type = TypePropriete::FICHIER_SORTIE;
 			break;
-		case IDENTIFIANT_COULEUR:
+		case id_morceau::COULEUR:
 			controle = new ControleProprieteCouleur;
 			m_donnees_controle.type = TypePropriete::COULEUR;
 			break;
-		case IDENTIFIANT_VECTEUR:
+		case id_morceau::VECTEUR:
 			controle = new ControleProprieteVec3;
 			m_donnees_controle.type = TypePropriete::VECTEUR;
 			break;
-		case IDENTIFIANT_COURBE_COULEUR:
+		case id_morceau::COURBE_COULEUR:
 			controle = new ControleProprieteCourbeCouleur;
 			m_donnees_controle.type = TypePropriete::COURBE_COULEUR;
 			break;
-		case IDENTIFIANT_COURBE_VALEUR:
+		case id_morceau::COURBE_VALEUR:
 			controle = new ControleProprieteCourbeValeur;
 			m_donnees_controle.type = TypePropriete::COURBE_VALEUR;
 			break;
-		case IDENTIFIANT_RAMPE_COULEUR:
+		case id_morceau::RAMPE_COULEUR:
 			controle = new ControleProprieteRampeCouleur;
 			m_donnees_controle.type = TypePropriete::RAMPE_COULEUR;
+			break;
+		default:
 			break;
 	}
 
@@ -179,42 +180,42 @@ void AssembleurDisposition::cree_controles_proprietes_extra()
 			continue;
 		}
 
-		int identifiant = -1;
+		auto identifiant = id_morceau::INCONNU;
 
 		switch (prop.type) {
 			case TypePropriete::ENTIER:
-				identifiant = IDENTIFIANT_ENTIER;
+				identifiant = id_morceau::ENTIER;
 				break;
 			case TypePropriete::DECIMAL:
-				identifiant = IDENTIFIANT_DECIMAL;
+				identifiant = id_morceau::DECIMAL;
 				break;
 			case TypePropriete::ENUM:
-				identifiant = IDENTIFIANT_ENUM;
+				identifiant = id_morceau::ENUM;
 				break;
 			case TypePropriete::CHAINE_CARACTERE:
-				identifiant = IDENTIFIANT_CHAINE;
+				identifiant = id_morceau::CHAINE;
 				break;
 			case TypePropriete::FICHIER_ENTREE:
-				identifiant = IDENTIFIANT_FICHIER_ENTREE;
+				identifiant = id_morceau::FICHIER_ENTREE;
 				break;
 			case TypePropriete::FICHIER_SORTIE:
-				identifiant = IDENTIFIANT_FICHIER_SORTIE;
+				identifiant = id_morceau::FICHIER_SORTIE;
 				break;
 			case TypePropriete::COULEUR:
-				identifiant = IDENTIFIANT_COULEUR;
+				identifiant = id_morceau::COULEUR;
 				break;
 			case TypePropriete::VECTEUR:
-				identifiant = IDENTIFIANT_VECTEUR;
+				identifiant = id_morceau::VECTEUR;
 				break;
 			default:
 				break;
 		}
 
-		if (identifiant == -1) {
+		if (identifiant == id_morceau::INCONNU) {
 			continue;
 		}
 
-		ajoute_disposition(IDENTIFIANT_LIGNE);
+		ajoute_disposition(id_morceau::LIGNE);
 
 		auto etiquette = new ControleProprieteEtiquette;
 		auto donnees_etiquette = DonneesControle();
@@ -293,86 +294,92 @@ void AssembleurDisposition::sors_disposition()
 	m_pile_dispositions.pop();
 }
 
-void AssembleurDisposition::propriete_controle(int identifiant, const std::string &valeur)
+void AssembleurDisposition::propriete_controle(id_morceau identifiant, const std::string &valeur)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_INFOBULLE:
+		case id_morceau::INFOBULLE:
 			m_donnees_controle.infobulle = valeur;
 			break;
-		case IDENTIFIANT_MIN:
+		case id_morceau::MIN:
 			m_donnees_controle.valeur_min = valeur;
 			break;
-		case IDENTIFIANT_MAX:
+		case id_morceau::MAX:
 			m_donnees_controle.valeur_max = valeur;
 			break;
-		case IDENTIFIANT_VALEUR:
+		case id_morceau::VALEUR:
 			m_donnees_controle.valeur_defaut = valeur;
 			break;
-		case IDENTIFIANT_ATTACHE:		
+		case id_morceau::ATTACHE:		
 			m_donnees_controle.nom = valeur;
 			m_donnees_controle.pointeur = (*m_manipulable)[valeur];
 			break;
-		case IDENTIFIANT_PRECISION:
+		case id_morceau::PRECISION:
 			m_donnees_controle.precision = valeur;
 			break;
-		case IDENTIFIANT_PAS:
+		case id_morceau::PAS:
 			m_donnees_controle.pas = valeur;
 			break;
-		case IDENTIFIANT_FILTRES:
+		case id_morceau::FILTRES:
 			m_donnees_controle.filtres = valeur;
 			break;
-		case IDENTIFIANT_SUFFIXE:
+		case id_morceau::SUFFIXE:
 			m_donnees_controle.suffixe = valeur;
 			break;
+		default:
+			break;
 	}
 }
 
-void AssembleurDisposition::propriete_bouton(int identifiant, const std::string &valeur)
+void AssembleurDisposition::propriete_bouton(id_morceau identifiant, const std::string &valeur)
 {
 	if (m_initialisation_seule) {
 		return;
 	}
 
 	switch (identifiant) {
-		case IDENTIFIANT_INFOBULLE:
+		case id_morceau::INFOBULLE:
 			m_dernier_bouton->etablie_infobulle(valeur);
 			break;
-		case IDENTIFIANT_VALEUR:
+		case id_morceau::VALEUR:
 			m_dernier_bouton->etablie_valeur(valeur);
 			break;
-		case IDENTIFIANT_ATTACHE:
+		case id_morceau::ATTACHE:
 			m_dernier_bouton->etablie_attache(valeur);
 			break;
-		case IDENTIFIANT_METADONNEE:
+		case id_morceau::METADONNEE:
 			m_dernier_bouton->etablie_metadonnee(valeur);
 			break;
-		case IDENTIFIANT_ICONE:
+		case id_morceau::ICONE:
 			m_dernier_bouton->etablie_icone(valeur);
+			break;
+		default:
 			break;
 	}
 }
 
-void AssembleurDisposition::propriete_action(int identifiant, const std::string &valeur)
+void AssembleurDisposition::propriete_action(id_morceau identifiant, const std::string &valeur)
 {
 	if (m_initialisation_seule) {
 		return;
 	}
 
 	switch (identifiant) {
-		case IDENTIFIANT_INFOBULLE:
+		case id_morceau::INFOBULLE:
 			m_derniere_action->etablie_infobulle(valeur.c_str());
 			break;
-		case IDENTIFIANT_VALEUR:
+		case id_morceau::VALEUR:
 			m_derniere_action->etablie_valeur(valeur.c_str());
 			break;
-		case IDENTIFIANT_ATTACHE:
+		case id_morceau::ATTACHE:
 			m_derniere_action->etablie_attache(valeur);
 			break;
-		case IDENTIFIANT_METADONNEE:
+		case id_morceau::METADONNEE:
 			m_derniere_action->etablie_metadonnee(valeur);
 			break;
-		case IDENTIFIANT_ICONE:
+		case id_morceau::ICONE:
 			m_derniere_action->etablie_icone(valeur);
+			break;
+		default:
 			break;
 	}
 }

@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "morceaux.h"
+#include "tampon_source.h"
 
 namespace danjo {
 
@@ -35,17 +36,19 @@ namespace danjo {
  * mots-clés du langage.
  */
 class Decoupeuse {
-	std::string_view m_chaine;
-	int m_position;
-	int m_position_ligne;
-	int m_ligne;
-	bool m_fini;
-	char m_caractere_courant;
+	size_t m_position{0};
+	size_t m_position_ligne{0};
+	size_t m_pos_mot{0};
+	size_t m_ligne{0};
+	size_t m_taille_mot_courant{0};
+	bool m_fini{false};
+	char m_caractere_courant{'\0'};
 	const char *m_debut = nullptr;
+	const char *m_debut_mot = nullptr;
 	const char *m_fin = nullptr;
 
-	std::vector<std::string_view> m_lignes;
 	std::vector<DonneesMorceaux> m_identifiants{};
+	const TamponSource &m_tampon;
 
 public:
 	using iterateur = std::vector<DonneesMorceaux>::iterator;
@@ -54,7 +57,7 @@ public:
 	/**
 	 * Construit une instance de Decoupeuse pour la chaîne spécifiée.
 	 */
-	explicit Decoupeuse(const std::string_view &chaine);
+	explicit Decoupeuse(const TamponSource &tampon);
 
 	/**
 	 * Lance la découpe de la chaîne de caractère spécifiée en paramètre du
@@ -72,14 +75,12 @@ public:
 	 * Ajoute un identifiant au vecteur d'identifiants avec les données passées
 	 * en paramètres.
 	 */
-	void ajoute_identifiant(int identifiant, const std::string &contenu);
+	void ajoute_identifiant(id_morceau identifiant, const std::string_view &contenu);
 
 	/**
 	 * Retourne la liste de morceaux découpés.
 	 */
 	const std::vector<DonneesMorceaux> &morceaux() const;
-
-	void avance(int compte = 1);
 
 	/**
 	 * Retourne un itérateur pointant vers le début de la liste d'identifiants.
@@ -110,6 +111,64 @@ private:
 	 */
 	/* cppcheck-suppress unusedPrivateFunction */
 	void impression_debogage(const std::string &quoi);
+
+	/**
+	 * Avance le curseur sur le tampon du nombre de crans spécifié en paramètre.
+	 */
+	void avance(size_t compte = 1);
+
+	/**
+	 * Réinitialise la taille du mot courant, et copie la valeur du curseur
+	 * courant vers le pointeur du début du mot courant.
+	 */
+	void enregistre_pos_mot();
+
+	/**
+	 * Ajoute le mot_courant() à la liste de morceaux de cette découpeuse en le
+	 * couplant à l'identifiant spécifié.
+	 */
+	void pousse_mot(id_morceau identifiant);
+
+	/**
+	 * Incrémente la taille du mot courant.
+	 */
+	void pousse_caractere();
+
+	/**
+	 * Performe l'analyse d'un caractère UTF-8 encodé sur un seul octet. Ceci
+	 * est la logique principale de découpage du tampon source.
+	 */
+	void analyse_caractere_simple();
+
+	/**
+	 * Retourne vrai si le tampon source a été consommé jusqu'au bout.
+	 */
+	[[nodiscard]] bool fini() const;
+
+	/**
+	 * Retourne le caractère couramment pointé par le curseur sur le tampon.
+	 */
+	[[nodiscard]] char caractere_courant() const;
+
+	/**
+	 * Retourne le caractère se trouvrant à la position (courante + n). Si le
+	 * caractère à la position (courante + n) est hors de portée, retourne le
+	 * caractère le plus proche de la position (courante + n).
+	 */
+	[[nodiscard]] char caractere_voisin(int n = 1) const;
+
+	/**
+	 * Retourne une string_view sur le mot dont le début à été marqué par le
+	 * dernier appel à enregistre_pos_mot(), et dont la taille correspond au
+	 * nombre d'appel à pousse_caractère() depuis l'enregistrement de la
+	 * position.
+	 */
+	[[nodiscard]] std::string_view mot_courant() const;
+
+	/**
+	 * Lance une erreur dont le message correspond au paramètre 'quoi'.
+	 */
+	[[noreturn]] void lance_erreur(const std::string &quoi) const;
 };
 
 }  /* namespace danjo */

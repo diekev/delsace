@@ -29,276 +29,86 @@
 
 #include "erreur.h"
 #include "morceaux.h"
-
-//#define DEBOGUE_DECOUPEUR
-
-#ifdef DEBOGUE_DECOUPEUR
-# define LOG std::cerr
-#else
-struct Loggeur {};
-
-template <typename T>
-Loggeur &operator<<(Loggeur &l, const T &) { return l; }
-
-Loggeur loggeur_principal;
-
-# define LOG loggeur_principal
-#endif
+#include "nombres.h"
+#include "unicode.h"
 
 namespace danjo {
 
 /* ************************************************************************** */
 
-struct PaireIndentifiantChaine {
-	int identifiant;
-	std::string chaine;
-};
-
-static bool comparaison_paires_identifiant(
-		const PaireIndentifiantChaine &a,
-		const PaireIndentifiantChaine &b)
+constexpr bool est_espace_blanc(char c)
 {
-	return a.chaine < b.chaine;
-}
-
-/* Liste générée par genere_donnees_mot_cle.py */
-static PaireIndentifiantChaine paires_identifiant[] = {
-	{ IDENTIFIANT_ACTION, "action" },
-	{ IDENTIFIANT_ATTACHE, "attache" },
-	{ IDENTIFIANT_BARRE_OUTILS, "barre_outils" },
-	{ IDENTIFIANT_BOUTON, "bouton" },
-	{ IDENTIFIANT_CASE, "case" },
-	{ IDENTIFIANT_CHAINE, "chaine" },
-	{ IDENTIFIANT_COLONNE, "colonne" },
-	{ IDENTIFIANT_COULEUR, "couleur" },
-	{ IDENTIFIANT_COURBE_COULEUR, "courbe_couleur" },
-	{ IDENTIFIANT_COURBE_VALEUR, "courbe_valeur" },
-	{ IDENTIFIANT_DISPOSITION, "disposition" },
-	{ IDENTIFIANT_DOSSIER, "dossier" },
-	{ IDENTIFIANT_DECIMAL, "décimal" },
-	{ IDENTIFIANT_ENTIER, "entier" },
-	{ IDENTIFIANT_ENTREFACE, "entreface" },
-	{ IDENTIFIANT_ENTREE, "entrée" },
-	{ IDENTIFIANT_FAUX, "faux" },
-	{ IDENTIFIANT_FEUILLE, "feuille" },
-	{ IDENTIFIANT_FICHIER_ENTREE, "fichier_entrée" },
-	{ IDENTIFIANT_FICHIER_SORTIE, "fichier_sortie" },
-	{ IDENTIFIANT_FILTRES, "filtres" },
-	{ IDENTIFIANT_ICONE, "icône" },
-	{ IDENTIFIANT_INFOBULLE, "infobulle" },
-	{ IDENTIFIANT_ITEMS, "items" },
-	{ IDENTIFIANT_LIGNE, "ligne" },
-	{ IDENTIFIANT_LISTE, "liste" },
-	{ IDENTIFIANT_LOGIQUE, "logique" },
-	{ IDENTIFIANT_MAX, "max" },
-	{ IDENTIFIANT_MENU, "menu" },
-	{ IDENTIFIANT_MIN, "min" },
-	{ IDENTIFIANT_METADONNEE, "métadonnée" },
-	{ IDENTIFIANT_NOM, "nom" },
-	{ IDENTIFIANT_ONGLET, "onglet" },
-	{ IDENTIFIANT_PAS, "pas" },
-	{ IDENTIFIANT_PRECISION, "précision" },
-	{ IDENTIFIANT_QUAND, "quand" },
-	{ IDENTIFIANT_RAMPE_COULEUR, "rampe_couleur" },
-	{ IDENTIFIANT_RELATION, "relation" },
-	{ IDENTIFIANT_RESULTAT, "résultat" },
-	{ IDENTIFIANT_SORTIE, "sortie" },
-	{ IDENTIFIANT_SUFFIXE, "suffixe" },
-	{ IDENTIFIANT_SEPARATEUR, "séparateur" },
-	{ IDENTIFIANT_VALEUR, "valeur" },
-	{ IDENTIFIANT_VECTEUR, "vecteur" },
-	{ IDENTIFIANT_VRAI, "vrai" },
-	{ IDENTIFIANT_ENUM, "énum" },
-	{ IDENTIFIANT_ETIQUETTE, "étiquette" },
-};
-
-/* Liste générée par genere_donnees_mot_cle.py */
-static PaireIndentifiantChaine paires_caracteres_double[] = {
-	{ IDENTIFIANT_DIFFERENCE, "!=" },
-	{ IDENTIFIANT_ESP_ESP, "&&" },
-	{ IDENTIFIANT_ET_EGAL, "&=" },
-	{ IDENTIFIANT_FOIS_EGAL, "*=" },
-	{ IDENTIFIANT_PLUS_PLUS, "++" },
-	{ IDENTIFIANT_PLUS_EGAL, "+=" },
-	{ IDENTIFIANT_MOINS_MOINS, "--" },
-	{ IDENTIFIANT_MOINS_EGAL, "-=" },
-	{ IDENTIFIANT_FLECHE, "->" },
-	{ IDENTIFIANT_TROIS_POINT, "..." },
-	{ IDENTIFIANT_DIVISE_EGAL, "/=" },
-	{ IDENTIFIANT_DECALAGE_GAUCHE, "<<" },
-	{ IDENTIFIANT_INFERIEUR_EGAL, "<=" },
-	{ IDENTIFIANT_EGALITE, "==" },
-	{ IDENTIFIANT_SUPERIEUR_EGAL, ">=" },
-	{ IDENTIFIANT_DECALAGE_DROITE, ">>" },
-	{ IDENTIFIANT_OUX_EGAL, "^=" },
-	{ IDENTIFIANT_OU_EGAL, "|=" },
-	{ IDENTIFIANT_BARE_BARRE, "||" },
-};
-
-struct PaireIndentifiantCaractere {
-	int identifiant;
-	char caractere;
-};
-
-static bool comparaison_paires_identifiant_caractere(
-		const PaireIndentifiantCaractere &a,
-		const PaireIndentifiantCaractere &b)
-{
-	return a.caractere < b.caractere;
-}
-
-/* Liste générée par genere_donnees_mot_cle.py */
-static PaireIndentifiantCaractere paires_identifiant_caractere[] = {
-	{ IDENTIFIANT_EXCLAMATION, '!' },
-	{ IDENTIFIANT_GUILLEMET, '"' },
-	{ IDENTIFIANT_DIESE, '#' },
-	{ IDENTIFIANT_POURCENT, '%' },
-	{ IDENTIFIANT_ESPERLUETTE, '&' },
-	{ IDENTIFIANT_APOSTROPHE, '\'' },
-	{ IDENTIFIANT_PARENTHESE_OUVRANTE, '(' },
-	{ IDENTIFIANT_PARENTHESE_FERMANTE, ')' },
-	{ IDENTIFIANT_FOIS, '*' },
-	{ IDENTIFIANT_PLUS, '+' },
-	{ IDENTIFIANT_VIRGULE, ',' },
-	{ IDENTIFIANT_MOINS, '-' },
-	{ IDENTIFIANT_POINT, '.' },
-	{ IDENTIFIANT_DIVISE, '/' },
-	{ IDENTIFIANT_DOUBLE_POINT, ':' },
-	{ IDENTIFIANT_POINT_VIRGULE, ';' },
-	{ IDENTIFIANT_INFERIEUR, '<' },
-	{ IDENTIFIANT_EGAL, '=' },
-	{ IDENTIFIANT_SUPERIEUR, '>' },
-	{ IDENTIFIANT_CROCHET_OUVRANT, '[' },
-	{ IDENTIFIANT_CROCHET_FERMANT, ']' },
-	{ IDENTIFIANT_CHAPEAU, '^' },
-	{ IDENTIFIANT_ACCOLADE_OUVRANTE, '{' },
-	{ IDENTIFIANT_BARRE, '|' },
-	{ IDENTIFIANT_ACCOLADE_FERMANTE, '}' },
-	{ IDENTIFIANT_TILDE, '~' },
-};
-
-static bool est_nombre(const char caractere)
-{
-	return (caractere >= '0' && caractere <= '9');
-}
-
-bool est_espace_blanc(char caractere)
-{
-	return caractere == ' ' || caractere == '\n' || caractere == '\t';
-}
-
-bool est_caractere_special(char c, int &i)
-{
-	auto iterateur = std::lower_bound(
-				std::begin(paires_identifiant_caractere),
-				std::end(paires_identifiant_caractere),
-				PaireIndentifiantCaractere{IDENTIFIANT_NUL, c},
-				comparaison_paires_identifiant_caractere);
-
-	if (iterateur != std::end(paires_identifiant_caractere)) {
-		if ((*iterateur).caractere == c) {
-			i = (*iterateur).identifiant;
-			return true;
-		}
-	}
-
-	return false;
-}
-
-int id_caractere_double(const std::string &chaine)
-{
-	auto iterateur = std::lower_bound(
-				std::begin(paires_caracteres_double),
-				std::end(paires_caracteres_double),
-				PaireIndentifiantChaine{IDENTIFIANT_NUL, chaine},
-				comparaison_paires_identifiant);
-
-	if (iterateur != std::end(paires_caracteres_double)) {
-		if ((*iterateur).chaine == chaine) {
-			return (*iterateur).identifiant;
-		}
-	}
-
-	return IDENTIFIANT_NUL;
-}
-
-int id_chaine(const std::string &chaine)
-{
-	auto iterateur = std::lower_bound(
-				std::begin(paires_identifiant),
-				std::end(paires_identifiant),
-				PaireIndentifiantChaine{IDENTIFIANT_NUL, chaine},
-				comparaison_paires_identifiant);
-
-	if (iterateur != std::end(paires_identifiant)) {
-		if ((*iterateur).chaine == chaine) {
-			return (*iterateur).identifiant;
-		}
-	}
-
-	return IDENTIFIANT_CHAINE_CARACTERE;
-}
-
-enum {
-	ETAT_NOMBRE_POINT,
-	ETAT_NOMBRE_EXPONENTIEL,
-	ETAT_NOMBRE_DEBUT,
-};
-
-int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int &id)
-{
-	int compte = 0;
-	int etat = ETAT_NOMBRE_DEBUT;
-	id = IDENTIFIANT_NOMBRE;
-
-	while (debut != fin) {
-		if (!est_nombre(*debut) && *debut != '.') {
-			break;
-		}
-
-		if (*debut == '.') {
-			if ((*(debut + 1) == '.') && (*(debut + 2) == '.')) {
-				break;
-			}
-
-			if (etat == ETAT_NOMBRE_POINT) {
-				throw ErreurFrappe("", 0, 0, "Erreur ! Le nombre contient un point en trop !\n");
-			}
-
-			etat = ETAT_NOMBRE_POINT;
-			id = IDENTIFIANT_NOMBRE_DECIMAL;
-		}
-
-		chaine.push_back(*debut++);
-		++compte;
-	}
-
-	return compte;
+	return c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\v' || c == '\f';
 }
 
 /* ************************************************************************** */
 
-size_t trouve_taille_ligne(const std::string_view &chaine, size_t pos)
-{
-	const auto debut = pos;
+/* espaces */
+static constexpr auto ESPACE_INSECABLE             = 0x00A0;
+static constexpr auto ESPACE_D_OGAM                = 0x1680;
+static constexpr auto SEPARATEUR_VOYELLES_MONGOL   = 0x180E;
+static constexpr auto DEMI_CADRATIN                = 0x2000;
+static constexpr auto CADRATIN                     = 0x2001;
+static constexpr auto ESPACE_DEMI_CADRATIN         = 0x2002;
+static constexpr auto ESPACE_CADRATIN              = 0x2003;
+static constexpr auto TIERS_DE_CADRATIN            = 0x2004;
+static constexpr auto QUART_DE_CADRATIN            = 0x2005;
+static constexpr auto SIXIEME_DE_CADRATIN          = 0x2006;
+static constexpr auto ESPACE_TABULAIRE             = 0x2007;
+static constexpr auto ESPACE_PONCTUATION           = 0x2008;
+static constexpr auto ESPACE_FINE                  = 0x2009;
+static constexpr auto ESPACE_ULTRAFINE             = 0x200A;
+static constexpr auto ESPACE_SANS_CHASSE           = 0x200B;
+static constexpr auto ESPACE_INSECABLE_ETROITE     = 0x202F;
+static constexpr auto ESPACE_MOYENNE_MATHEMATIQUE  = 0x205F;
+static constexpr auto ESPACE_IDEOGRAPHIQUE         = 0x3000;
+static constexpr auto ESPACE_INSECABLE_SANS_CHASSE = 0xFEFF;
 
-	while (pos < chaine.size() && chaine[pos] != '\n') {
-		++pos;
+/* guillemets */
+static constexpr auto GUILLEMET_OUVRANT = 0x00AB;  /* « */
+static constexpr auto GUILLEMET_FERMANT = 0x00BB;  /* » */
+
+constexpr auto converti_utf32(const char *sequence, int n)
+{
+	const auto s0 = static_cast<unsigned char>(sequence[0]);
+
+	if (n == 1) {
+		return static_cast<int>(s0) & 0b01111111;
 	}
 
-	return pos - debut;
+	const auto s1 = static_cast<unsigned char>(sequence[1]);
+
+	if (n == 2) {
+		auto valeur = (s0 & 0b00011111) << 6 | (s1 & 0b00111111);
+		return valeur;
+	}
+
+	const auto s2 = static_cast<unsigned char>(sequence[2]);
+
+	if (n == 3) {
+		auto valeur = (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111);
+		return valeur;
+	}
+
+	const auto s3 = static_cast<unsigned char>(sequence[3]);
+
+	if (n == 4) {
+		auto valeur = (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111);
+		return valeur;
+	}
+
+	return 0;
 }
 
-Decoupeuse::Decoupeuse(const std::string_view &chaine)
-	: m_chaine(chaine)
-	, m_position(0)
-	, m_position_ligne(0)
-	, m_ligne(0)
-	, m_fini(false)
-	, m_caractere_courant('\0')
+/* ************************************************************************** */
+
+Decoupeuse::Decoupeuse(const TamponSource &tampon)
+	: m_debut(tampon.debut())
+	, m_debut_mot(tampon.debut())
+	, m_fin(tampon.fin())
+	, m_tampon(tampon)
 {
-	m_lignes.push_back({&m_chaine[m_position],
-						trouve_taille_ligne(m_chaine, m_position)});
+	construit_tables_caractere_speciaux();
 }
 
 void Decoupeuse::impression_debogage(const std::string &quoi)
@@ -306,13 +116,6 @@ void Decoupeuse::impression_debogage(const std::string &quoi)
 	std::cout << "Trouvé symbole " << quoi
 			  << ", ligne : " << m_ligne
 			  << ", position : " << m_position_ligne << ".\n";
-}
-
-void Decoupeuse::avance(int compte)
-{
-	m_position += compte;
-	m_debut += compte;
-	m_position_ligne += compte;
 }
 
 Decoupeuse::iterateur Decoupeuse::begin()
@@ -333,6 +136,108 @@ Decoupeuse::iterateur_const Decoupeuse::cbegin() const
 Decoupeuse::iterateur_const Decoupeuse::cend() const
 {
 	return m_identifiants.end();
+}
+
+void Decoupeuse::decoupe()
+{
+	m_taille_mot_courant = 0;
+
+	while (!this->fini()) {
+		auto nombre_octet = nombre_octets(m_debut);
+
+		switch (nombre_octet) {
+			case 1:
+			{
+				analyse_caractere_simple();
+				break;
+			}
+			case 2:
+			case 3:
+			case 4:
+			{
+				if (m_taille_mot_courant == 0) {
+					this->enregistre_pos_mot();
+				}
+
+				auto c = converti_utf32(m_debut, nombre_octet);
+
+				switch (c) {
+					case ESPACE_INSECABLE:
+					case ESPACE_D_OGAM:
+					case SEPARATEUR_VOYELLES_MONGOL:
+					case DEMI_CADRATIN:
+					case CADRATIN:
+					case ESPACE_DEMI_CADRATIN:
+					case ESPACE_CADRATIN:
+					case TIERS_DE_CADRATIN:
+					case QUART_DE_CADRATIN:
+					case SIXIEME_DE_CADRATIN:
+					case ESPACE_TABULAIRE:
+					case ESPACE_PONCTUATION:
+					case ESPACE_FINE:
+					case ESPACE_ULTRAFINE:
+					case ESPACE_SANS_CHASSE:
+					case ESPACE_INSECABLE_ETROITE:
+					case ESPACE_MOYENNE_MATHEMATIQUE:
+					case ESPACE_IDEOGRAPHIQUE:
+					case ESPACE_INSECABLE_SANS_CHASSE:
+					{
+						if (m_taille_mot_courant != 0) {
+							this->pousse_mot(id_chaine(this->mot_courant()));
+						}
+
+						this->avance(static_cast<size_t>(nombre_octet));
+						break;
+					}
+					case GUILLEMET_OUVRANT:
+					{
+						if (m_taille_mot_courant != 0) {
+							this->pousse_mot(id_chaine(this->mot_courant()));
+						}
+
+						/* Saute le premier guillemet. */
+						this->avance(static_cast<size_t>(nombre_octet));
+						this->enregistre_pos_mot();
+
+						while (!this->fini()) {
+							nombre_octet = nombre_octets(m_debut);
+							c = converti_utf32(m_debut, nombre_octet);
+
+							if (c == GUILLEMET_FERMANT) {
+								break;
+							}
+
+							m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+							this->avance(static_cast<size_t>(nombre_octet));
+						}
+
+						/* Saute le dernier guillemet. */
+						this->avance(static_cast<size_t>(nombre_octet));
+
+						this->pousse_mot(id_morceau::CHAINE_LITTERALE);
+						break;
+					}
+					default:
+					{
+						m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+						this->avance(static_cast<size_t>(nombre_octet));
+						break;
+					}
+				}
+
+				break;
+			}
+			default:
+			{
+				/* Le caractère (octet) courant est invalide dans le codec unicode. */
+				lance_erreur("Le codec Unicode ne peut comprendre le caractère !");
+			}
+		}
+	}
+
+	if (m_taille_mot_courant != 0) {
+		lance_erreur("Des caractères en trop se trouvent à la fin du texte !");
+	}
 }
 
 // si caractere blanc:
@@ -356,181 +261,211 @@ Decoupeuse::iterateur_const Decoupeuse::cend() const
 //    decoupe nombre
 // sinon:
 //    ajoute caractere mot courant
-void Decoupeuse::decoupe()
+void Decoupeuse::analyse_caractere_simple()
 {
-	LOG << "Démarrage de l'analyse d'une chaîne de "
-		<< m_chaine.size() << " caractères.\n";
+	auto idc = id_morceau::INCONNU;
 
-	std::string mot_courant;
-	m_ligne = 1;
-	m_position = 0;
-	m_position_ligne = 0;
-
-	m_debut = &m_chaine[0];
-	m_fin = &m_chaine[m_chaine.size()];
-
-	while (m_debut != m_fin) {
-		int idc = IDENTIFIANT_NUL;
-
-		if (est_espace_blanc(*m_debut)) {
-			if (!mot_courant.empty()) {
-				LOG << "Découpe mot courrant après espace blanc.\n";
-				ajoute_identifiant(id_chaine(mot_courant), mot_courant);
-				mot_courant = "";
-			}
-
-			if (*m_debut == '\n') {
-				m_lignes.push_back({&m_chaine[m_position + 1],
-									trouve_taille_ligne(m_chaine, m_position + 1)});
-
-				++m_ligne;
-				m_position_ligne = 0;
-			}
-
-			avance();
+	if (est_espace_blanc(this->caractere_courant())) {
+		if (m_taille_mot_courant != 0) {
+			this->pousse_mot(id_chaine(this->mot_courant()));
 		}
-		else if (est_caractere_special(*m_debut, idc)) {
-			if (!mot_courant.empty()) {
-				LOG << "Découpe mot courrant après caractère spécial.\n";
-				ajoute_identifiant(id_chaine(mot_courant), mot_courant);
-				mot_courant = "";
-			}
 
-			mot_courant.push_back(*m_debut);
-			mot_courant.push_back(*(m_debut + 1));
+		this->avance();
+	}
+	else if (est_caractere_special(this->caractere_courant(), idc)) {
+		if (m_taille_mot_courant != 0) {
+			this->pousse_mot(id_chaine(this->mot_courant()));
+		}
 
-			auto id = id_caractere_double(mot_courant);
+		this->enregistre_pos_mot();
 
-			if (id != IDENTIFIANT_NUL) {
-				LOG << "Découpe caractère double.\n";
-				ajoute_identifiant(id, mot_courant);
-				mot_courant = "";
-				avance(2);
-				continue;
-			}
+		auto id = id_caractere_double(std::string_view(m_debut, 2));
 
-			mot_courant = "";
+		if (id != id_morceau::INCONNU) {
+			this->pousse_caractere();
+			this->pousse_caractere();
+			this->pousse_mot(id);
+			this->avance(2);
+			return;
+		}
 
-			if (*m_debut == '.') {
-				if (*(m_debut + 1) == '.') {
-					if (*(m_debut + 2) != '.') {
-						throw ErreurFrappe(m_lignes[m_ligne - 1],
-										   m_ligne,
-										   m_position_ligne,
-										   "Erreur : un point est manquant ou un point est en trop !\n");
-					}
-
-					LOG << "Découpe trois point.\n";
-
-					ajoute_identifiant(IDENTIFIANT_TROIS_POINT, "...");
-					mot_courant = "";
-					avance(3);
+		switch (this->caractere_courant()) {
+			case '.':
+			{
+				if (this->caractere_voisin() != '.') {
+					lance_erreur("Point inattendu !\n");
 				}
-				else if (est_nombre(*(m_debut + 1))) {
-					LOG << "Découpe nombre commentaire par un point.\n";
-					int compte = extrait_nombre(m_debut, m_fin, mot_courant, id);
-					avance(compte);
-					ajoute_identifiant(id, mot_courant);
-					mot_courant = "";
+
+				if (this->caractere_voisin(2) != '.') {
+					lance_erreur("Un point est manquant ou un point est en trop !\n");
 				}
-				else {
-					throw ErreurFrappe(m_lignes[m_ligne - 1],
-										 m_ligne,
-										 m_position_ligne,
-										 "Erreur : point innatendu !\n");
-				}
+
+				this->pousse_caractere();
+				this->pousse_caractere();
+				this->pousse_caractere();
+
+				this->pousse_mot(id_morceau::TROIS_POINT);
+				this->avance(3);
+				break;
 			}
-			else if (*m_debut == '"') {
-				LOG << "Découpe chaîne littérale.\n";
+			case '"':
+			{
+				/* Saute le premier guillemet. */
+				this->avance();
+				this->enregistre_pos_mot();
 
-				// Saute le premier guillemet.
-				avance();
-
-				while (m_debut != m_fin) {
-					if (*m_debut == '"' && *(m_debut - 1) != '\\') {
+				while (!this->fini()) {
+					if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
 						break;
 					}
 
-					mot_courant.push_back(*m_debut);
-					avance();
+					this->pousse_caractere();
+					this->avance();
 				}
 
-				// Saute le dernier guillemet.
-				avance();
+				/* Saute le dernier guillemet. */
+				this->avance();
 
-				ajoute_identifiant(IDENTIFIANT_CHAINE_LITTERALE, mot_courant);
-				mot_courant = "";
+				this->pousse_mot(id_morceau::CHAINE_LITTERALE);
+				break;
 			}
-			else if (*m_debut == '\'') {
-				LOG << "Découpe lettre.\n";
-				// Saute la première apostrophe.
-				avance();
+			case '\'':
+			{
+				/* Saute la première apostrophe. */
+				this->avance();
 
-				mot_courant.push_back(*m_debut);
-				avance();
+				this->enregistre_pos_mot();
 
-				// Saute la dernière apostrophe.
-				if (*m_debut != '\'') {
-					throw ErreurFrappe(m_lignes[m_ligne - 1],
-									   m_ligne,
-									   m_position_ligne,
-									   "Erreur : plusieurs caractère détectés !\n");
+				if (this->caractere_courant() == '\\') {
+					this->pousse_caractere();
+					this->avance();
 				}
 
-				avance();
+				this->pousse_caractere();
+				this->pousse_mot(id_morceau::CARACTERE);
 
-				ajoute_identifiant(IDENTIFIANT_CARACTERE, mot_courant);
-				mot_courant = "";
-			}
-			else if (*m_debut == '#') {
-				LOG << "Découpe commentaire.\n";
-				// ignore commentaire
-				while (*m_debut != '\n') {
-					avance();
+				this->avance();
+
+				/* Saute la dernière apostrophe. */
+				if (this->caractere_courant() != '\'') {
+					lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n");
 				}
+
+				this->avance();
+				break;
 			}
-			else {
-				LOG << "Découpe caractère simple.\n";
-				mot_courant.push_back(*m_debut);
-				ajoute_identifiant(idc, mot_courant);
-				mot_courant = "";
-				avance();
+			case '#':
+			{
+				/* ignore commentaire */
+				while (this->caractere_courant() != '\n') {
+					this->avance();
+				}
+				break;
 			}
-		}
-		else if (est_nombre(*m_debut) && mot_courant.empty()) {
-			LOG << "Découpe nombre.\n";
-			int id;
-			int compte = extrait_nombre(m_debut, m_fin, mot_courant, id);
-			avance(compte);
-			ajoute_identifiant(id, mot_courant);
-			mot_courant = "";
-		}
-		else {
-			mot_courant.push_back(*m_debut);
-			avance();
+			default:
+			{
+				this->pousse_caractere();
+				this->pousse_mot(idc);
+				this->avance();
+				break;
+			}
 		}
 	}
+	else if (m_taille_mot_courant == 0 && est_nombre_decimal(this->caractere_courant())) {
+		this->enregistre_pos_mot();
 
-	LOG << "Fin de l'analyse. Ligne : " << m_ligne
-		<< ". Position : " << m_position << ".\n";
+		id_morceau id_nombre;
 
-	if (!mot_courant.empty()) {
-		throw ErreurFrappe(
-					m_lignes[m_ligne - 1],
-					m_ligne,
-					m_position_ligne,
-					"Le script ne semble pas terminé !");
+		/* NOTE : on utilise une variable temporaire pour stocker le compte au
+		 * lieu d'utiliser m_taille_mot_courant directement, car
+		 * m_taille_mot_courant est remis à 0 dans pousse_mot() donc on ne peut
+		 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
+		 * infinie. */
+		const auto compte = extrait_nombre(m_debut, m_fin, id_nombre);
+		m_taille_mot_courant = compte;
+
+		this->pousse_mot(id_nombre);
+		this->avance(compte);
+	}
+	else {
+		if (m_taille_mot_courant == 0) {
+			this->enregistre_pos_mot();
+		}
+
+		this->pousse_caractere();
+		this->avance();
 	}
 }
 
-void Decoupeuse::ajoute_identifiant(int identifiant, const std::string &contenu)
+void Decoupeuse::lance_erreur(const std::string &quoi) const
 {
-	m_identifiants.push_back({identifiant, m_ligne, m_position_ligne, contenu, m_lignes[m_ligne - 1]});
+	throw ErreurFrappe(m_tampon[m_ligne],
+					   m_ligne + 1,
+					   m_position_ligne,
+					   quoi);
+}
+
+void Decoupeuse::ajoute_identifiant(id_morceau identifiant, const std::string_view &contenu)
+{
+	m_identifiants.push_back({contenu, m_ligne | m_position_ligne, identifiant});
 }
 
 const std::vector<DonneesMorceaux> &Decoupeuse::morceaux() const
 {
 	return m_identifiants;
+}
+
+void Decoupeuse::pousse_caractere()
+{
+	m_taille_mot_courant += 1;
+}
+
+void Decoupeuse::pousse_mot(id_morceau identifiant)
+{
+	m_identifiants.push_back({ mot_courant(), ((m_ligne << 32) | m_position_ligne), identifiant });
+	m_taille_mot_courant = 0;
+}
+
+void Decoupeuse::enregistre_pos_mot()
+{
+	m_pos_mot = m_position_ligne;
+	m_debut_mot = m_debut;
+}
+
+bool Decoupeuse::fini() const
+{
+	return m_debut >= m_fin;
+}
+
+void Decoupeuse::avance(size_t compte)
+{
+	for (size_t i = 0; i < compte; ++i) {
+		if (this->caractere_courant() == '\n') {
+			++m_ligne;
+			m_position_ligne = 0;
+		}
+		else {
+			++m_position_ligne;
+		}
+
+		++m_debut;
+	}
+}
+
+char Decoupeuse::caractere_courant() const
+{
+	return *m_debut;
+}
+
+char Decoupeuse::caractere_voisin(int n) const
+{
+	auto ptr = std::max(m_debut, std::min(m_fin, m_debut + n));
+	return *ptr;
+}
+
+std::string_view Decoupeuse::mot_courant() const
+{
+	return std::string_view(m_debut_mot, m_taille_mot_courant);
 }
 
 }  /* namespace danjo */

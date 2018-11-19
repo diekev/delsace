@@ -28,7 +28,14 @@
 
 namespace danjo {
 
-bool Analyseuse::requiers_identifiant(int identifiant)
+Analyseuse::Analyseuse(
+		const TamponSource &tampon,
+		const std::vector<DonneesMorceaux> &identifiants)
+	: m_tampon(tampon)
+	, m_identifiants(identifiants)
+{}
+
+bool Analyseuse::requiers_identifiant(id_morceau identifiant)
 {
 	if (m_position >= m_identifiants.size()) {
 		return false;
@@ -51,20 +58,20 @@ void Analyseuse::recule()
 	m_position -= 1;
 }
 
-int Analyseuse::position()
+size_t Analyseuse::position()
 {
 	return m_position - 1;
 }
 
-bool Analyseuse::est_identifiant(int identifiant)
+bool Analyseuse::est_identifiant(id_morceau identifiant)
 {
 	return identifiant == this->identifiant_courant();
 }
 
-int Analyseuse::identifiant_courant() const
+id_morceau Analyseuse::identifiant_courant() const
 {
 	if (m_position >= m_identifiants.size()) {
-		return IDENTIFIANT_NUL;
+		return id_morceau::NUL;
 	}
 
 	return m_identifiants[m_position].identifiant;
@@ -72,12 +79,12 @@ int Analyseuse::identifiant_courant() const
 
 void Analyseuse::lance_erreur(const std::string &quoi)
 {
-	const auto numero_ligne = m_identifiants[position()].numero_ligne;
-	const auto ligne = m_identifiants[position()].ligne;
-	const auto position_ligne = m_identifiants[position()].position_ligne;
-	const auto contenu = m_identifiants[position()].contenu;
+	const auto numero_ligne = (m_identifiants[position()].ligne_pos >> 32);
+	const auto position_ligne = m_identifiants[position()].ligne_pos & 0xffffffff;
+	const auto ligne = m_tampon[numero_ligne];
+	const auto contenu = m_identifiants[position()].chaine;
 
-	throw ErreurSyntactique(ligne, numero_ligne, position_ligne, quoi, contenu);
+	throw ErreurSyntactique(ligne, numero_ligne + 1, position_ligne, quoi, contenu);
 }
 
 }  /* namespace danjo */

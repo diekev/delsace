@@ -41,9 +41,9 @@ public:
 	 */
 	ErreurFrappe(
 			const std::string_view &ligne,
-			int numero_ligne,
-			int position_ligne,
-			const std::string &quoi);
+			size_t numero_ligne,
+			size_t position_ligne,
+			const std::string_view &quoi);
 
 	/**
 	 * Retourne le message d'erreur.
@@ -64,10 +64,10 @@ public:
 	 */
 	ErreurSyntactique(
 			const std::string_view &ligne,
-			int numero_ligne,
-			int position_ligne,
-			const std::string &quoi,
-			const std::string &contenu);
+			size_t numero_ligne,
+			size_t position_ligne,
+			const std::string_view &quoi,
+			const std::string_view &contenu);
 
 	/**
 	 * Retourne le message d'erreur.

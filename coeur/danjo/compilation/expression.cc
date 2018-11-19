@@ -32,45 +32,45 @@
 
 namespace danjo {
 
-bool est_operateur(int identifiant)
+bool est_operateur(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_PLUS:
-		case IDENTIFIANT_DIVISE:
-		case IDENTIFIANT_FOIS:
-		case IDENTIFIANT_MOINS:
-		case IDENTIFIANT_EGALITE:
-		case IDENTIFIANT_DIFFERENCE:
-		case IDENTIFIANT_INFERIEUR:
-		case IDENTIFIANT_SUPERIEUR:
-		case IDENTIFIANT_INFERIEUR_EGAL:
-		case IDENTIFIANT_SUPERIEUR_EGAL:
-		case IDENTIFIANT_ESPERLUETTE:
-		case IDENTIFIANT_BARRE:
-		case IDENTIFIANT_CHAPEAU:
+		case id_morceau::PLUS:
+		case id_morceau::DIVISE:
+		case id_morceau::FOIS:
+		case id_morceau::MOINS:
+		case id_morceau::EGALITE:
+		case id_morceau::DIFFERENCE:
+		case id_morceau::INFERIEUR:
+		case id_morceau::SUPERIEUR:
+		case id_morceau::INFERIEUR_EGAL:
+		case id_morceau::SUPERIEUR_EGAL:
+		case id_morceau::ESPERLUETTE:
+		case id_morceau::BARRE:
+		case id_morceau::CHAPEAU:
 			return true;
 		default:
 			return false;
 	}
 }
 
-auto est_operateur_logique(int identifiant)
+auto est_operateur_logique(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_TILDE:
+		case id_morceau::TILDE:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static int promeut(int id1, int id2)
+static id_morceau promeut(id_morceau id1, id_morceau id2)
 {
 	if (id1 == id2) {
 		return id1;
 	}
 
-	return IDENTIFIANT_NOMBRE_DECIMAL;
+	return id_morceau::NOMBRE_DECIMAL;
 }
 
 #define DEFINI_FONCTION(__nom, __op) \
@@ -100,72 +100,78 @@ DEFINI_FONCTION(octet_oux, ^)
 
 #define DEFINI_CAS_SIMPLE(__id, __fonction) \
 	case __id: \
-		if (s1.identifiant == IDENTIFIANT_NOMBRE) { \
+		if (s1.identifiant == id_morceau::NOMBRE) { \
 			return __fonction<int>(s1, s2); \
 		} \
-		if (s1.identifiant == IDENTIFIANT_NOMBRE_DECIMAL) { \
+		if (s1.identifiant == id_morceau::NOMBRE_DECIMAL) { \
 			return __fonction<float>(s1, s2); \
 		} \
-		if (s1.identifiant == IDENTIFIANT_BOOL) { \
+		if (s1.identifiant == id_morceau::BOOL) { \
 			return __fonction<bool>(s1, s2); \
 		} \
 		break;
 
 #define DEFINI_CAS_DOUBLE(__id, __fonction) \
 	case __id: \
-		if (s1.identifiant == IDENTIFIANT_NOMBRE && s2.identifiant == IDENTIFIANT_NOMBRE_DECIMAL) { \
+		if (s1.identifiant == id_morceau::NOMBRE && s2.identifiant == id_morceau::NOMBRE_DECIMAL) { \
 			return __fonction<int, float>(s1, s2); \
 		} \
-		if (s1.identifiant == IDENTIFIANT_NOMBRE_DECIMAL && s2.identifiant == IDENTIFIANT_NOMBRE) { \
+		if (s1.identifiant == id_morceau::NOMBRE_DECIMAL && s2.identifiant == id_morceau::NOMBRE) { \
 			return __fonction<float, int>(s1, s2); \
 		} \
 		break;
 
-Symbole evalue_operation(const Symbole &s1, const Symbole &s2, int operation)
+Symbole evalue_operation(const Symbole &s1, const Symbole &s2, id_morceau operation)
 {
 	if (s1.identifiant == s2.identifiant) {
 		switch (operation) {
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_PLUS, additionne);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_MOINS, soustrait);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_DIVISE, divise);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_FOIS, multiplie);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_EGALITE, compare_egalite);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_DIFFERENCE, compare_difference);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_INFERIEUR, compare_inferiorite);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_SUPERIEUR, compare_superiorite);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_INFERIEUR_EGAL, compare_inf_egal);
-			DEFINI_CAS_SIMPLE(IDENTIFIANT_SUPERIEUR_EGAL, compare_sup_egal);
+			default:
+				break;
+			DEFINI_CAS_SIMPLE(id_morceau::PLUS, additionne);
+			DEFINI_CAS_SIMPLE(id_morceau::MOINS, soustrait);
+			DEFINI_CAS_SIMPLE(id_morceau::DIVISE, divise);
+			DEFINI_CAS_SIMPLE(id_morceau::FOIS, multiplie);
+			DEFINI_CAS_SIMPLE(id_morceau::EGALITE, compare_egalite);
+			DEFINI_CAS_SIMPLE(id_morceau::DIFFERENCE, compare_difference);
+			DEFINI_CAS_SIMPLE(id_morceau::INFERIEUR, compare_inferiorite);
+			DEFINI_CAS_SIMPLE(id_morceau::SUPERIEUR, compare_superiorite);
+			DEFINI_CAS_SIMPLE(id_morceau::INFERIEUR_EGAL, compare_inf_egal);
+			DEFINI_CAS_SIMPLE(id_morceau::SUPERIEUR_EGAL, compare_sup_egal);
 		}
 	}
 	else {
 		switch (operation) {
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_PLUS, additionne);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_MOINS, soustrait);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_DIVISE, divise);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_FOIS, multiplie);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_EGALITE, compare_egalite);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_DIFFERENCE, compare_difference);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_INFERIEUR, compare_inferiorite);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_SUPERIEUR, compare_superiorite);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_INFERIEUR_EGAL, compare_inf_egal);
-			DEFINI_CAS_DOUBLE(IDENTIFIANT_SUPERIEUR_EGAL, compare_sup_egal);
+			default:
+				break;
+			DEFINI_CAS_DOUBLE(id_morceau::PLUS, additionne);
+			DEFINI_CAS_DOUBLE(id_morceau::MOINS, soustrait);
+			DEFINI_CAS_DOUBLE(id_morceau::DIVISE, divise);
+			DEFINI_CAS_DOUBLE(id_morceau::FOIS, multiplie);
+			DEFINI_CAS_DOUBLE(id_morceau::EGALITE, compare_egalite);
+			DEFINI_CAS_DOUBLE(id_morceau::DIFFERENCE, compare_difference);
+			DEFINI_CAS_DOUBLE(id_morceau::INFERIEUR, compare_inferiorite);
+			DEFINI_CAS_DOUBLE(id_morceau::SUPERIEUR, compare_superiorite);
+			DEFINI_CAS_DOUBLE(id_morceau::INFERIEUR_EGAL, compare_inf_egal);
+			DEFINI_CAS_DOUBLE(id_morceau::SUPERIEUR_EGAL, compare_sup_egal);
 		}
 	}
 
 	return {};
 }
 
-auto evalue_operation_logique(const Symbole &s1, int identifiant)
+auto evalue_operation_logique(const Symbole &s1, id_morceau identifiant)
 {
 	Symbole resultat;
-	resultat.identifiant = IDENTIFIANT_NOMBRE;
+	resultat.identifiant = id_morceau::NOMBRE;
 	resultat.valeur = 0;
 
 	auto op1 = std::experimental::any_cast<int>(s1.valeur);
 
 	switch (identifiant) {
-		case IDENTIFIANT_TILDE:
+		case id_morceau::TILDE:
 			resultat.valeur = static_cast<int>(~static_cast<int>(op1));
+			break;
+		default:
 			break;
 	}
 
@@ -177,18 +183,20 @@ enum {
 	DROITE,
 };
 
-static std::pair<int, int> associativite(int identifiant)
+static std::pair<int, int> associativite(id_morceau identifiant)
 {
 	switch (identifiant) {
-		case IDENTIFIANT_PLUS:
-		case IDENTIFIANT_MOINS:
+		default:
+			break;
+		case id_morceau::PLUS:
+		case id_morceau::MOINS:
 			return { GAUCHE, 0};
-		case IDENTIFIANT_FOIS:
-		case IDENTIFIANT_DIVISE:
+		case id_morceau::FOIS:
+		case id_morceau::DIVISE:
 		/* À FAIRE : modulo */
 			return { GAUCHE, 1};
 #if 0
-		case IDENTIFIANT_PUISSANCE:
+		case id_morceau::PUISSANCE:
 			return { DROITE, 2};
 #endif
 	}
@@ -196,7 +204,7 @@ static std::pair<int, int> associativite(int identifiant)
 	return { GAUCHE, 0 };
 }
 
-bool precedence_faible(int identifiant1, int identifiant2)
+bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
 {
 	auto p1 = associativite(identifiant1);
 	auto p2 = associativite(identifiant2);
@@ -211,7 +219,7 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 
 	/* Pousse un zéro sur la pile si jamais l'expression est vide ou démarre
 	 * avec un nombre négatif. */
-	pile.push({std::experimental::any(0), IDENTIFIANT_NOMBRE});
+	pile.push({std::experimental::any(0), id_morceau::NOMBRE});
 
 	for (const Symbole &symbole : expression) {
 		if (est_operateur(symbole.identifiant)) {
@@ -233,17 +241,19 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 		}
 		else {
 			switch (symbole.identifiant) {
-				case IDENTIFIANT_BOOL:
-				case IDENTIFIANT_NOMBRE:
-				case IDENTIFIANT_NOMBRE_DECIMAL:
-				case IDENTIFIANT_CHAINE_LITTERALE:
-				case IDENTIFIANT_COULEUR:
-				case IDENTIFIANT_VECTEUR:
+				default:
+					break;
+				case id_morceau::BOOL:
+				case id_morceau::NOMBRE:
+				case id_morceau::NOMBRE_DECIMAL:
+				case id_morceau::CHAINE_LITTERALE:
+				case id_morceau::COULEUR:
+				case id_morceau::VECTEUR:
 				{
 					pile.push(symbole);
 					break;
 				}
-				case IDENTIFIANT_CHAINE_CARACTERE:
+				case id_morceau::CHAINE_CARACTERE:
 				{
 					auto nom = std::experimental::any_cast<std::string>(symbole.valeur);
 
@@ -253,31 +263,31 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 						case TypePropriete::ENTIER:
 						{
 							tmp.valeur = manipulable->evalue_entier(nom);
-							tmp.identifiant = IDENTIFIANT_NOMBRE;
+							tmp.identifiant = id_morceau::NOMBRE;
 							break;
 						}
 						case TypePropriete::DECIMAL:
 						{
 							tmp.valeur = manipulable->evalue_decimal(nom);
-							tmp.identifiant = IDENTIFIANT_NOMBRE_DECIMAL;
+							tmp.identifiant = id_morceau::NOMBRE_DECIMAL;
 							break;
 						}
 						case TypePropriete::BOOL:
 						{
 							tmp.valeur = manipulable->evalue_bool(nom);
-							tmp.identifiant = IDENTIFIANT_BOOL;
+							tmp.identifiant = id_morceau::BOOL;
 							break;
 						}
 						case TypePropriete::COULEUR:
 						{
 							tmp.valeur = manipulable->evalue_couleur(nom);
-							tmp.identifiant = IDENTIFIANT_COULEUR;
+							tmp.identifiant = id_morceau::COULEUR;
 							break;
 						}
 						case TypePropriete::VECTEUR:
 						{
 							tmp.valeur = manipulable->evalue_vecteur(nom);
-							tmp.identifiant = IDENTIFIANT_VECTEUR;
+							tmp.identifiant = id_morceau::VECTEUR;
 							break;
 						}
 						case TypePropriete::ENUM:
@@ -286,7 +296,7 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 						case TypePropriete::CHAINE_CARACTERE:
 						{
 							tmp.valeur = manipulable->evalue_chaine(nom);
-							tmp.identifiant = IDENTIFIANT_CHAINE_LITTERALE;
+							tmp.identifiant = id_morceau::CHAINE_LITTERALE;
 							break;
 						}
 						default:
@@ -309,13 +319,13 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 void imprime_valeur_symbole(Symbole symbole, std::ostream &os)
 {
 	switch (symbole.identifiant) {
-		case IDENTIFIANT_NOMBRE:
+		case id_morceau::NOMBRE:
 			os << std::experimental::any_cast<int>(symbole.valeur) << ' ';
 			break;
-		case IDENTIFIANT_NOMBRE_DECIMAL:
+		case id_morceau::NOMBRE_DECIMAL:
 			os << std::experimental::any_cast<float>(symbole.valeur) << ' ';
 			break;
-		case IDENTIFIANT_BOOL:
+		case id_morceau::BOOL:
 			os << std::experimental::any_cast<bool>(symbole.valeur) << ' ';
 			break;
 		default:

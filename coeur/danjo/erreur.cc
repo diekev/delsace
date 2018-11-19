@@ -30,9 +30,9 @@ namespace danjo {
 
 ErreurFrappe::ErreurFrappe(
 		const std::string_view &ligne,
-		int numero_ligne,
-		int position_ligne,
-		const std::string &quoi)
+		size_t numero_ligne,
+		size_t position_ligne,
+		const std::string_view &quoi)
 {
 	std::stringstream ss;
 
@@ -52,10 +52,10 @@ const char *ErreurFrappe::quoi() const
 
 ErreurSyntactique::ErreurSyntactique(
 		const std::string_view &ligne,
-		int numero_ligne,
-		int position_ligne,
-		const std::string &quoi,
-		const std::string &contenu)
+		size_t numero_ligne,
+		size_t position_ligne,
+		const std::string_view &quoi,
+		const std::string_view &contenu)
 {
 	std::stringstream ss;
 
