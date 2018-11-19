@@ -24,7 +24,7 @@
 
 #include "rendu_lumiere.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <numeric>
 
 #include "bibliotheques/opengl/tampon_rendu.h"
@@ -49,11 +49,11 @@ void RenduLumiere::initialise()
 	m_tampon = new TamponRendu;
 
 	m_tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	m_tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	m_tampon->finalise_programme();
@@ -69,9 +69,9 @@ void RenduLumiere::initialise()
 	m_tampon->parametres_programme(parametre_programme);
 
 	auto programme = m_tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", 1.0f, 0.0f, 0.0f, 1.0f);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 1.0f, 0.0f, 0.0f, 1.0f);
+	programme->desactive();
 
 	std::vector<numero7::math::vec3f> sommets;
 

@@ -24,7 +24,7 @@
 
 #include "rendu_maillage.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <numeric>
 
 #include "../bibliotheques/opengl/tampon_rendu.h"
@@ -39,11 +39,11 @@ static TamponRendu *cree_tampon_surface()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/object.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/object.frag"));
 
 	tampon->finalise_programme();
@@ -60,7 +60,7 @@ static TamponRendu *cree_tampon_surface()
 	parametres.ajoute_uniforme("has_vcolors");
 
 	auto program = tampon->programme();
-	program->uniform("color", 1.0f, 1.0f, 1.0f);
+	program->uniforme("color", 1.0f, 1.0f, 1.0f);
 
 	tampon->parametres_programme(parametres);
 
@@ -160,9 +160,9 @@ void RenduMaillage::dessine(const ContexteRendu &contexte)
 		m_tampon_surface->parametres_dessin(parametres_dessin);
 
 		auto programme = m_tampon_surface->programme();
-		programme->enable();
-		programme->uniform("color", 0.0f, 0.0f, 0.0f);
-		programme->disable();
+		programme->active();
+		programme->uniforme("color", 0.0f, 0.0f, 0.0f);
+		programme->desactive();
 
 		m_tampon_surface->dessine(contexte);
 	}
@@ -175,9 +175,9 @@ void RenduMaillage::dessine(const ContexteRendu &contexte)
 		m_tampon_surface->parametres_dessin(parametres_dessin);
 
 		auto programme = m_tampon_surface->programme();
-		programme->enable();
-		programme->uniform("color", 1.0f, 1.0f, 1.0f);
-		programme->disable();
+		programme->active();
+		programme->uniforme("color", 1.0f, 1.0f, 1.0f);
+		programme->desactive();
 
 		m_tampon_surface->dessine(contexte);
 	}

@@ -24,7 +24,7 @@
 
 #include "tampon_rendu.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <mutex>
@@ -104,24 +104,24 @@ TamponRendu::~TamponRendu()
 	delete m_atlas;
 }
 
-void TamponRendu::charge_source_programme(int type_programme, const std::string &source, std::ostream &os)
+void TamponRendu::charge_source_programme(numero7::ego::Nuanceur type_programme, const std::string &source, std::ostream &os)
 {
-	m_programme.load(type_programme, source, os);
+	m_programme.charge(type_programme, source, os);
 }
 
 void TamponRendu::parametres_programme(const ParametresProgramme &parametres)
 {
-	m_programme.enable();
+	m_programme.active();
 
 	for (const auto &attribut : parametres.attributs()) {
-		m_programme.addAttribute(attribut);
+		m_programme.ajoute_attribut(attribut);
 	}
 
 	for (const auto &uniform : parametres.uniformes()) {
-		m_programme.addUniform(uniform);
+		m_programme.ajoute_uniforme(uniform);
 	}
 
-	m_programme.disable();
+	m_programme.desactive();
 }
 
 void TamponRendu::parametres_dessin(const ParametresDessin &parametres)
@@ -131,7 +131,7 @@ void TamponRendu::parametres_dessin(const ParametresDessin &parametres)
 
 void TamponRendu::finalise_programme(std::ostream &os)
 {
-	m_programme.createAndLinkProgram(os);
+	m_programme.cree_et_lie_programme(os);
 }
 
 void TamponRendu::peut_surligner(bool ouinon)
@@ -142,7 +142,7 @@ void TamponRendu::peut_surligner(bool ouinon)
 void TamponRendu::initialise_tampon()
 {
 	if (m_donnees_tampon == nullptr) {
-		m_donnees_tampon = numero7::ego::BufferObject::create();
+		m_donnees_tampon = numero7::ego::TamponObjet::create();
 	}
 }
 
@@ -205,7 +205,7 @@ void TamponRendu::remplie_tampon_extra(const ParametresTampon &parametres)
 
 void TamponRendu::dessine(const ContexteRendu &contexte)
 {
-	if (!m_programme.isValid()) {
+	if (!m_programme.est_valide()) {
 		std::cerr << "Programme invalide !\n";
 		return;
 	}
@@ -219,7 +219,7 @@ void TamponRendu::dessine(const ContexteRendu &contexte)
 
 	numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon avant utilisation programme");
 
-	m_programme.enable();
+	m_programme.active();
 	m_donnees_tampon->bind();
 
 	if (m_texture) {
@@ -265,7 +265,7 @@ void TamponRendu::dessine(const ContexteRendu &contexte)
 	}
 
 	m_donnees_tampon->unbind();
-	m_programme.disable();
+	m_programme.desactive();
 
 	if (m_paramatres_dessin.type_dessin() == GL_POINTS) {
 		glPointSize(1.0f);
@@ -275,7 +275,7 @@ void TamponRendu::dessine(const ContexteRendu &contexte)
 	}
 }
 
-numero7::ego::Program *TamponRendu::programme()
+numero7::ego::Programme *TamponRendu::programme()
 {
 	return &m_programme;
 }

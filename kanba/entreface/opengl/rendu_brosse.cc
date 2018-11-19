@@ -58,11 +58,11 @@ static TamponRendu *creer_tampon()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				source_vertex);
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				source_fragment);
 
 	tampon->finalise_programme();
@@ -86,9 +86,9 @@ static TamponRendu *creer_tampon()
 	tampon->parametres_dessin(parametres_dessin);
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", 0.8f, 0.1f, 0.1f, 1.0f);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 0.8f, 0.1f, 0.1f, 1.0f);
+	programme->desactive();
 
 	return tampon;
 }
@@ -147,12 +147,12 @@ void RenduBrosse::dessine(
 		const float pos_y)
 {
 	auto programme = m_tampon_contour->programme();
-	programme->enable();
-	programme->uniform("taille_x", taille_x);
-	programme->uniform("taille_y", taille_y);
-	programme->uniform("pos_x", pos_x);
-	programme->uniform("pos_y", pos_y);
-	programme->disable();
+	programme->active();
+	programme->uniforme("taille_x", taille_x);
+	programme->uniforme("taille_y", taille_y);
+	programme->uniforme("pos_x", pos_x);
+	programme->uniforme("pos_y", pos_y);
+	programme->desactive();
 
 	m_tampon_contour->dessine(contexte);
 }

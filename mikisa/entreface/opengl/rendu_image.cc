@@ -24,7 +24,7 @@
 
 #include "rendu_image.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 
 #include "bibliotheques/opengl/tampon_rendu.h"
 
@@ -57,8 +57,8 @@ static TamponRendu *cree_tampon_image()
 {
 	auto tampon = new TamponRendu();
 
-	tampon->charge_source_programme(numero7::ego::VERTEX_SHADER, source_vertex);
-	tampon->charge_source_programme(numero7::ego::FRAGMENT_SHADER, source_fragment);
+	tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex);
+	tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment);
 	tampon->finalise_programme();
 
 	ParametresProgramme parametre_programme;
@@ -73,9 +73,9 @@ static TamponRendu *cree_tampon_image()
 	auto texture = tampon->texture();
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("image", texture->number());
-	programme->disable();
+	programme->active();
+	programme->uniforme("image", texture->number());
+	programme->desactive();
 
 	float sommets[8] = {
 		0.0f, 0.0f,
@@ -135,8 +135,8 @@ static TamponRendu *cree_tampon_bordure()
 {
 	auto tampon = new TamponRendu();
 
-	tampon->charge_source_programme(numero7::ego::VERTEX_SHADER, source_vertex_bordure);
-	tampon->charge_source_programme(numero7::ego::FRAGMENT_SHADER, source_fragment_bordure);
+	tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex_bordure);
+	tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
 	tampon->finalise_programme();
 
 	ParametresProgramme parametre_programme;

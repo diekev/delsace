@@ -24,7 +24,7 @@
 
 #include "rendu_nuage_points.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <numeric>
 
 #include "../bibliotheques/opengl/tampon_rendu.h"
@@ -38,11 +38,11 @@ static TamponRendu *cree_tampon_points()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/flat_shader.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/flat_shader.frag"));
 
 	tampon->finalise_programme();
@@ -59,7 +59,7 @@ static TamponRendu *cree_tampon_points()
 	tampon->parametres_programme(parametres_programme);
 
 	auto programme = tampon->programme();
-	programme->uniform("color", 0.0f, 0.0f, 0.0f, 1.0f);
+	programme->uniforme("color", 0.0f, 0.0f, 0.0f, 1.0f);
 
 	ParametresDessin parametres_dessin;
 	parametres_dessin.type_dessin(GL_POINTS);

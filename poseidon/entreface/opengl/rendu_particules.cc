@@ -24,7 +24,7 @@
 
 #include "rendu_particules.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 
 #include "bibliotheques/opengl/contexte_rendu.h"
 #include "bibliotheques/opengl/tampon_rendu.h"
@@ -38,11 +38,11 @@ static TamponRendu *cree_tampon()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
@@ -62,9 +62,9 @@ static TamponRendu *cree_tampon()
 	tampon->parametres_dessin(parametres_dessin);
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", 0.1f, 0.2f, 0.7f, 1.0f);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 0.1f, 0.2f, 0.7f, 1.0f);
+	programme->desactive();
 
 	return tampon;
 }

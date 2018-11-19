@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <ego/program.h>
-#include <ego/bufferobject.h>
+#include <ego/programme.h>
+#include <ego/tampon_objet.h>
 #include <ego/texture.h>
 
 #include <math/matrice/matrice.h>
@@ -40,8 +40,8 @@ class VueCanevas;
 class VisionneurImage {
 	VueCanevas *m_parent;
 
-	numero7::ego::Program m_program;
-	numero7::ego::BufferObject::Ptr m_buffer;
+	numero7::ego::Programme m_program;
+	numero7::ego::TamponObjet::Ptr m_buffer;
 	numero7::ego::Texture2D::Ptr m_texture_R;
 	numero7::ego::Texture2D::Ptr m_texture_G;
 	numero7::ego::Texture2D::Ptr m_texture_B;

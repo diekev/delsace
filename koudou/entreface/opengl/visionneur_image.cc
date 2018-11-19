@@ -24,7 +24,7 @@
 
 #include "visionneur_image.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <image/pixel.h>
 
 #include "../editeur_canevas.h"
@@ -115,27 +115,27 @@ void VisionneurImage::initialise()
 	m_texture_B = numero7::ego::Texture2D::create(2);
 	m_texture_A = numero7::ego::Texture2D::create(3);
 
-	m_program.load(numero7::ego::VERTEX_SHADER, vertex_source);
-	m_program.load(numero7::ego::FRAGMENT_SHADER, fragment_source);
+	m_program.charge(numero7::ego::Nuanceur::VERTEX, vertex_source);
+	m_program.charge(numero7::ego::Nuanceur::FRAGMENT, fragment_source);
 
-	m_program.createAndLinkProgram();
+	m_program.cree_et_lie_programme();
 
-	m_program.enable();
+	m_program.active();
 	{
-		m_program.addAttribute("vertex");
-		m_program.addUniform("red_channel");
-		m_program.addUniform("green_channel");
-		m_program.addUniform("blue_channel");
-		m_program.addUniform("alpha_channel");
+		m_program.ajoute_attribut("vertex");
+		m_program.ajoute_uniforme("red_channel");
+		m_program.ajoute_uniforme("green_channel");
+		m_program.ajoute_uniforme("blue_channel");
+		m_program.ajoute_uniforme("alpha_channel");
 
 		glUniform1i(m_program("red_channel"), m_texture_R->number());
 		glUniform1i(m_program("green_channel"), m_texture_G->number());
 		glUniform1i(m_program("blue_channel"), m_texture_B->number());
 		glUniform1i(m_program("alpha_channel"), m_texture_A->number());
 	}
-	m_program.disable();
+	m_program.desactive();
 
-	m_buffer = numero7::ego::BufferObject::create();
+	m_buffer = numero7::ego::TamponObjet::create();
 
 	m_buffer->bind();
 	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
@@ -146,8 +146,8 @@ void VisionneurImage::initialise()
 
 void VisionneurImage::peint_opengl()
 {
-	if (m_program.isValid()) {
-		m_program.enable();
+	if (m_program.est_valide()) {
+		m_program.active();
 		m_buffer->bind();
 		m_texture_R->bind();
 		m_texture_G->bind();
@@ -159,7 +159,7 @@ void VisionneurImage::peint_opengl()
 		m_texture_G->unbind();
 		m_texture_R->unbind();
 		m_buffer->unbind();
-		m_program.disable();
+		m_program.desactive();
 	}
 }
 

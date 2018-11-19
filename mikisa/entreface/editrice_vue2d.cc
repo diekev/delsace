@@ -27,7 +27,7 @@
 #include "editrice_vue2d.h"
 
 #include <cassert>
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <iostream>
 
 #include <QApplication>

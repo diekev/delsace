@@ -49,8 +49,8 @@ RenduManipulatrice2D::RenduManipulatrice2D()
 	m_tampon = new TamponRendu();
 
 
-	m_tampon->charge_source_programme(numero7::ego::VERTEX_SHADER, source_vertex_bordure);
-	m_tampon->charge_source_programme(numero7::ego::FRAGMENT_SHADER, source_fragment_bordure);
+	m_tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex_bordure);
+	m_tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
 	m_tampon->finalise_programme();
 
 	ParametresProgramme parametre_programme;

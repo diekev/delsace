@@ -24,7 +24,7 @@
 
 #include "visionneur_image.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <numero7/image/pixel.h>
 
 #include "coeur/kanba.h"
@@ -77,21 +77,21 @@ void VisionneurImage::initialise()
 {
 	m_texture = numero7::ego::Texture2D::create(0);
 
-	m_program.load(numero7::ego::VERTEX_SHADER, vertex_source);
-	m_program.load(numero7::ego::FRAGMENT_SHADER, fragment_source);
+	m_program.charge(numero7::ego::Nuanceur::VERTEX, vertex_source);
+	m_program.charge(numero7::ego::Nuanceur::FRAGMENT, fragment_source);
 
-	m_program.createAndLinkProgram();
+	m_program.cree_et_lie_programme();
 
-	m_program.enable();
+	m_program.active();
 	{
-		m_program.addAttribute("vertex");
-		m_program.addUniform("image");
+		m_program.ajoute_attribut("vertex");
+		m_program.ajoute_uniforme("image");
 
 		glUniform1i(m_program("image"), m_texture->number());
 	}
-	m_program.disable();
+	m_program.desactive();
 
-	m_buffer = numero7::ego::BufferObject::create();
+	m_buffer = numero7::ego::TamponObjet::create();
 
 	m_buffer->bind();
 	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
@@ -108,8 +108,8 @@ void VisionneurImage::peint_opengl()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable (GL_BLEND);
-	if (m_program.isValid()) {
-		m_program.enable();
+	if (m_program.est_valide()) {
+		m_program.active();
 		m_buffer->bind();
 		m_texture->bind();
 
@@ -117,7 +117,7 @@ void VisionneurImage::peint_opengl()
 
 		m_texture->unbind();
 		m_buffer->unbind();
-		m_program.disable();
+		m_program.desactive();
 	}
 	glDisable (GL_BLEND);
 }

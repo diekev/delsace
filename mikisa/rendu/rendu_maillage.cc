@@ -24,7 +24,7 @@
 
 #include "rendu_maillage.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <numeric>
 
 #include "bibliotheques/opengl/contexte_rendu.h"
@@ -262,11 +262,11 @@ TamponRendu *cree_tampon_surface(bool possede_uvs)
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/diffus.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/diffus.frag"));
 
 	tampon->finalise_programme();
@@ -288,9 +288,9 @@ TamponRendu *cree_tampon_surface(bool possede_uvs)
 	tampon->parametres_programme(parametre_programme);
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("possede_uvs", possede_uvs);
-	programme->disable();
+	programme->active();
+	programme->uniforme("possede_uvs", possede_uvs);
+	programme->desactive();
 
 	return tampon;
 }
@@ -438,30 +438,30 @@ void RenduMaillage::initialise()
 void RenduMaillage::dessine(const ContexteRendu &contexte)
 {
 	auto programme = m_tampon->programme();
-	programme->enable();
+	programme->active();
 
 	if (m_tampon->texture()) {
-		programme->uniform("image", m_tampon->texture()->number());
+		programme->uniforme("image", m_tampon->texture()->number());
 	}
 
 	auto texture_image = m_maillage->texture();
 
 	if (texture_image) {
-		programme->uniform("methode", texture_image->projection());
-		programme->uniform("taille_texture", texture_image->taille().x, texture_image->taille().y);
+		programme->uniforme("methode", texture_image->projection());
+		programme->uniforme("taille_texture", texture_image->taille().x, texture_image->taille().y);
 
 		if (texture_image->camera()) {
 			auto camera = texture_image->camera();
 			glUniformMatrix4fv((*programme)("MV"), 1, GL_FALSE, glm::value_ptr(camera->MV()));
 			glUniformMatrix4fv((*programme)("P"), 1, GL_FALSE, glm::value_ptr(camera->P()));
-			programme->uniform("direction_camera", camera->dir().x, camera->dir().y, camera->dir().z);
+			programme->uniforme("direction_camera", camera->dir().x, camera->dir().y, camera->dir().z);
 		}
 	}
 	else {
-		programme->uniform("methode", -1);
+		programme->uniforme("methode", -1);
 	}
 
-	programme->disable();
+	programme->desactive();
 
 	m_tampon->dessine(contexte);
 }
@@ -528,11 +528,11 @@ static TamponRendu *cree_tampon_segments()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
@@ -552,9 +552,9 @@ static TamponRendu *cree_tampon_segments()
 	tampon->parametres_dessin(parametres_dessin);
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", 0.0f, 0.0f, 0.0f, 1.0f);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 0.0f, 0.0f, 0.0f, 1.0f);
+	programme->desactive();
 
 	return tampon;
 }
@@ -668,9 +668,9 @@ void RenduCorps::dessine(const ContexteRendu &contexte)
 
 	if (m_tampon_polygones != nullptr) {
 		auto programme = m_tampon_polygones->programme();
-		programme->enable();
-		programme->uniform("methode", -1);
-		programme->disable();
+		programme->active();
+		programme->uniforme("methode", -1);
+		programme->desactive();
 
 		m_tampon_polygones->dessine(contexte);
 	}

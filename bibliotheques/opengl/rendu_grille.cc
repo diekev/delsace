@@ -25,7 +25,7 @@
 #include "rendu_grille.h"
 
 #include <algorithm>
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <GL/glew.h>
 #include <numeric>
 
@@ -36,11 +36,11 @@ static TamponRendu *cree_tampon(const glm::vec4 &couleur, float taille_ligne)
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
@@ -60,9 +60,9 @@ static TamponRendu *cree_tampon(const glm::vec4 &couleur, float taille_ligne)
 	tampon->parametres_dessin(parametres_dessin);
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	return tampon;
 }

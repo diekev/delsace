@@ -23,7 +23,7 @@ set(_ego_SEARCH_DIRS
 
 find_path(EGO_INCLUDE_DIR
 	NAMES
-	    ego/bufferobject.h
+	    ego/tampon_objet.h
 	HINTS
 	    ${_ego_SEARCH_DIRS}
 	PATH_SUFFIXES

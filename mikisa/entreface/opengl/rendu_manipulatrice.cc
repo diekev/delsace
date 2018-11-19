@@ -24,7 +24,7 @@
 
 #include "rendu_manipulatrice.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <math/vec3.h>
 
 #include "bibliotheques/opengl/tampon_rendu.h"
@@ -66,11 +66,11 @@ static TamponRendu *cree_tampon_base(const glm::vec4 &couleur)
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
@@ -84,9 +84,9 @@ static TamponRendu *cree_tampon_base(const glm::vec4 &couleur)
 	tampon->parametres_programme(parametre_programme);
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	return tampon;
 }
@@ -283,9 +283,9 @@ void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	auto programme = m_tampon_axe_x->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	if (etat == ETAT_INTERSECTION_Y || etat == ETAT_SELECTION_Y || etat == ETAT_INTERSECTION_XYZ) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -295,9 +295,9 @@ void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	programme = m_tampon_axe_y->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	if (etat == ETAT_INTERSECTION_Z || etat == ETAT_SELECTION_Z || etat == ETAT_INTERSECTION_XYZ) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -307,9 +307,9 @@ void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	programme = m_tampon_axe_z->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	if (etat == ETAT_INTERSECTION_XYZ) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -319,9 +319,9 @@ void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	programme = m_tampon_poignee_xyz->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 }
 
 void RenduManipulatricePosition::dessine(const ContexteRendu &contexte)
@@ -383,9 +383,9 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	auto programme = m_tampon_axe_x->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	if (etat == ETAT_INTERSECTION_Y || etat == ETAT_SELECTION_Y || etat == ETAT_INTERSECTION_XYZ) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -395,9 +395,9 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	programme = m_tampon_axe_y->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	if (etat == ETAT_INTERSECTION_Z || etat == ETAT_SELECTION_Z || etat == ETAT_INTERSECTION_XYZ) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -407,9 +407,9 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	programme = m_tampon_axe_z->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	if (etat == ETAT_INTERSECTION_XYZ) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -419,9 +419,9 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	programme = m_tampon_poignee_xyz->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 }
 
 void RenduManipulatriceEchelle::dessine(const ContexteRendu &contexte)
@@ -559,9 +559,9 @@ void RenduManipulatriceRotation::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	auto programme = m_tampon_axe_x->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	if (etat == ETAT_INTERSECTION_Y || etat == ETAT_SELECTION_Y) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -571,9 +571,9 @@ void RenduManipulatriceRotation::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	programme = m_tampon_axe_y->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 
 	if (etat == ETAT_INTERSECTION_Z || etat == ETAT_SELECTION_Z) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -583,9 +583,9 @@ void RenduManipulatriceRotation::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	programme = m_tampon_axe_z->programme();
-	programme->enable();
-	programme->uniform("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
+	programme->desactive();
 }
 
 void RenduManipulatriceRotation::dessine(const ContexteRendu &contexte)

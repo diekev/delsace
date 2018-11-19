@@ -24,7 +24,7 @@
 
 #include "rendu_texte.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <glm/glm.hpp>
 #include <vector>
 #include <unordered_map>
@@ -132,11 +132,11 @@ static TamponRendu *cree_tampon()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				source_vertex);
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				source_fragment);
 
 	tampon->finalise_programme();
@@ -156,10 +156,10 @@ static TamponRendu *cree_tampon()
 	auto texture = tampon->texture();
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", 1.0f, 0.0f, 1.0f, 1.0f);
-	programme->uniform("texture_texte", texture->number());
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 1.0f, 0.0f, 1.0f, 1.0f);
+	programme->uniforme("texture_texte", texture->number());
+	programme->desactive();
 
 	return tampon;
 }

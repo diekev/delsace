@@ -24,7 +24,7 @@
 
 #include "operatrice_scene.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
 

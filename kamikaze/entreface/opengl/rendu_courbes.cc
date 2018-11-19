@@ -24,7 +24,7 @@
 
 #include "rendu_courbes.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <numeric>
 
 #include "../bibliotheques/opengl/tampon_rendu.h"
@@ -38,11 +38,11 @@ static TamponRendu *create_point_buffer()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/flat_shader.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/flat_shader.frag"));
 
 	tampon->finalise_programme();
@@ -58,8 +58,8 @@ static TamponRendu *create_point_buffer()
 
 	tampon->parametres_programme(parametres_programme);
 
-	numero7::ego::Program *program = tampon->programme();
-	program->uniform("color", 0.0f, 0.0f, 0.0f);
+	auto program = tampon->programme();
+	program->uniforme("color", 0.0f, 0.0f, 0.0f);
 
 	ParametresDessin parametres_dessin;
 	parametres_dessin.type_dessin(GL_LINES);

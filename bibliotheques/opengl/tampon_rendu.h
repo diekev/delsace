@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <ego/bufferobject.h>
-#include <ego/program.h>
+#include <ego/tampon_objet.h>
+#include <ego/programme.h>
 #include <ego/texture.h>
 
 #include <glm/glm.hpp>
@@ -171,8 +171,8 @@ public:
  * La classe TamponRendu gère les données et les paramètres d'un BufferObject.
  */
 class TamponRendu {
-	numero7::ego::BufferObject::Ptr m_donnees_tampon = nullptr;
-	numero7::ego::Program m_programme;
+	numero7::ego::TamponObjet::Ptr m_donnees_tampon = nullptr;
+	numero7::ego::Programme m_programme;
 	size_t m_elements = 0;
 
 	numero7::ego::Texture2D::Ptr m_texture = nullptr;
@@ -197,7 +197,7 @@ public:
 	 * les fichiers et de mettre leurs contenus dans des std::string.
 	 */
 	void charge_source_programme(
-			int type_programme,
+			numero7::ego::Nuanceur type_programme,
 			const std::string &source,
 			std::ostream &os = std::cerr);
 
@@ -243,7 +243,7 @@ public:
 	/**
 	 * Retourne un pointeur vers le programme de ce tampon.
 	 */
-	numero7::ego::Program *programme();
+	numero7::ego::Programme *programme();
 
 	/**
 	 * Ajoute une texture dans ce tampon.

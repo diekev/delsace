@@ -24,7 +24,7 @@
 
 #include "rendu_maillage.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <numeric>
 
 #include "bibliotheques/opengl/tampon_rendu.h"
@@ -67,11 +67,11 @@ void RenduMaillage::genere_tampon_surface()
 	m_tampon_surface = new TamponRendu;
 
 	m_tampon_surface->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/diffus.vert"));
 
 	m_tampon_surface->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/diffus.frag"));
 
 	m_tampon_surface->finalise_programme();
@@ -93,9 +93,9 @@ void RenduMaillage::genere_tampon_surface()
 	m_tampon_surface->parametres_programme(parametre_programme);
 
 	auto programme = m_tampon_surface->programme();
-	programme->enable();
-	programme->uniform("couleur", 1.0f, 1.0f, 1.0f, 1.0f);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 1.0f, 1.0f, 1.0f, 1.0f);
+	programme->desactive();
 
 	auto nombre_sommets = std::distance(m_maillage->begin(), m_maillage->end());
 
@@ -148,11 +148,11 @@ void RenduMaillage::genere_tampon_normal()
 	m_tampon_normal = new TamponRendu;
 
 	m_tampon_normal->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	m_tampon_normal->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	m_tampon_normal->finalise_programme();
@@ -168,9 +168,9 @@ void RenduMaillage::genere_tampon_normal()
 	m_tampon_normal->parametres_programme(parametre_programme);
 
 	auto programme = m_tampon_normal->programme();
-	programme->enable();
-	programme->uniform("couleur", 0.5f, 1.0f, 0.5f, 1.0f);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 0.5f, 1.0f, 0.5f, 1.0f);
+	programme->desactive();
 
 	auto nombre_triangle = std::distance(m_maillage->begin(), m_maillage->end());
 
@@ -230,8 +230,8 @@ void RenduMaillage::dessine(const ContexteRendu &contexte, const Scene &scene)
 	}
 
 	auto programme = m_tampon_surface->programme();
-	programme->enable();
-	programme->uniform("couleur", spectre[0], spectre[1], spectre[2], 1.0f);
+	programme->active();
+	programme->uniforme("couleur", spectre[0], spectre[1], spectre[2], 1.0f);
 
 	/* À FAIRE : trouve les lumières les plus proches. */
 	const auto nombre_lumiere = std::min(8ul, scene.lumieres.size());
@@ -240,19 +240,19 @@ void RenduMaillage::dessine(const ContexteRendu &contexte, const Scene &scene)
 		auto lumiere = scene.lumieres[i];
 		spectre = lumiere->spectre;
 		auto transform = lumiere->transformation.matrice();
-		programme->uniform("lumieres[" + std::to_string(i) + "].couleur", spectre[0], spectre[1], spectre[2], 1.0f);
+		programme->uniforme("lumieres[" + std::to_string(i) + "].couleur", spectre[0], spectre[1], spectre[2], 1.0f);
 
 		if (lumiere->type == LUMIERE_DISTANTE) {
-			programme->uniform("lumieres[" + std::to_string(i) + "].position", 0.0f, 0.0f, 1.0f);
+			programme->uniforme("lumieres[" + std::to_string(i) + "].position", 0.0f, 0.0f, 1.0f);
 		}
 		else {
-			programme->uniform("lumieres[" + std::to_string(i) + "].position", float(transform[0][3]), float(transform[1][3]), float(transform[2][3]));
+			programme->uniforme("lumieres[" + std::to_string(i) + "].position", float(transform[0][3]), float(transform[1][3]), float(transform[2][3]));
 		}
 
-		programme->uniform("lumieres[" + std::to_string(i) + "].type", static_cast<int>(lumiere->type));
+		programme->uniforme("lumieres[" + std::to_string(i) + "].type", static_cast<int>(lumiere->type));
 	}
 
-	programme->disable();
+	programme->desactive();
 
 	m_tampon_surface->dessine(contexte);
 

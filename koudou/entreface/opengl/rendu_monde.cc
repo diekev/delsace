@@ -24,7 +24,7 @@
 
 #include "rendu_monde.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <GL/glew.h>
 
 #include "bibliotheques/objets/adaptrice_creation.h"
@@ -96,17 +96,17 @@ static TamponRendu *cree_tampon(TypeTexture type_texture)
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	if (type_texture == TypeTexture::COULEUR) {
 		tampon->charge_source_programme(
-					numero7::ego::FRAGMENT_SHADER,
+					numero7::ego::Nuanceur::FRAGMENT,
 					numero7::ego::util::str_from_file("nuanceurs/couleur.frag"));
 	}
 	else {
 		tampon->charge_source_programme(
-					numero7::ego::FRAGMENT_SHADER,
+					numero7::ego::Nuanceur::FRAGMENT,
 					numero7::ego::util::str_from_file("nuanceurs/texture.frag"));
 	}
 
@@ -128,9 +128,9 @@ static TamponRendu *cree_tampon(TypeTexture type_texture)
 
 	if (type_texture == TypeTexture::COULEUR) {
 		auto programme = tampon->programme();
-		programme->enable();
-		programme->uniform("couleur", 1.0f, 0.0f, 1.0f, 1.0f);
-		programme->disable();
+		programme->active();
+		programme->uniforme("couleur", 1.0f, 0.0f, 1.0f, 1.0f);
+		programme->desactive();
 	}
 	else {
 		tampon->ajoute_texture();
@@ -138,9 +138,9 @@ static TamponRendu *cree_tampon(TypeTexture type_texture)
 		auto texture = tampon->texture();
 
 		auto programme = tampon->programme();
-		programme->enable();
-		programme->uniform("image", texture->number());
-		programme->disable();
+		programme->active();
+		programme->uniforme("image", texture->number());
+		programme->desactive();
 	}
 
 	return tampon;
@@ -235,9 +235,9 @@ void RenduMonde::ajourne()
 			auto spectre = texture->echantillone(numero7::math::vec3d(0.0));
 
 			auto programme = m_tampon->programme();
-			programme->enable();
-			programme->uniform("couleur", spectre[0], spectre[1], spectre[2], 1.0f);
-			programme->disable();
+			programme->active();
+			programme->uniforme("couleur", spectre[0], spectre[1], spectre[2], 1.0f);
+			programme->desactive();
 		}
 	}
 }

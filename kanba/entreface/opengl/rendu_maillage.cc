@@ -24,7 +24,7 @@
 
 #include "rendu_maillage.h"
 
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <numeric>
 #include <numero7/math/vec2.h>
 
@@ -84,11 +84,11 @@ TamponRendu *cree_tampon_arrete()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
@@ -102,9 +102,9 @@ TamponRendu *cree_tampon_arrete()
 	tampon->parametres_programme(parametre_programme);
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", 0.0f, 0.0f, 0.0f, 1.0f);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 0.0f, 0.0f, 0.0f, 1.0f);
+	programme->desactive();
 
 	return tampon;
 }
@@ -157,11 +157,11 @@ TamponRendu *cree_tampon_normal()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
@@ -175,9 +175,9 @@ TamponRendu *cree_tampon_normal()
 	tampon->parametres_programme(parametre_programme);
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", 0.5f, 1.0f, 0.5f, 1.0f);
-	programme->disable();
+	programme->active();
+	programme->uniforme("couleur", 0.5f, 1.0f, 0.5f, 1.0f);
+	programme->desactive();
 
 	return tampon;
 }
@@ -244,19 +244,19 @@ TamponRendu *creer_tampon()
 
 #ifdef BOMBAGE_TEXTURE
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/texture_bombee.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/texture_bombee.frag"));
 #else
 	tampon->charge_source_programme(
-				numero7::ego::VERTEX_SHADER,
+				numero7::ego::Nuanceur::VERTEX,
 				numero7::ego::util::str_from_file("nuanceurs/diffus.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::FRAGMENT_SHADER,
+				numero7::ego::Nuanceur::FRAGMENT,
 				numero7::ego::util::str_from_file("nuanceurs/diffus.frag"));
 #endif
 
@@ -284,16 +284,16 @@ TamponRendu *creer_tampon()
 #endif
 
 	auto programme = tampon->programme();
-	programme->enable();
-	programme->uniform("couleur", 1.0f, 1.0f, 1.0f, 1.0f);
-	programme->uniform("taille_u", 1.0f);
-	programme->uniform("taille_v", 1.0f);
+	programme->active();
+	programme->uniforme("couleur", 1.0f, 1.0f, 1.0f, 1.0f);
+	programme->uniforme("taille_u", 1.0f);
+	programme->uniforme("taille_v", 1.0f);
 #ifdef BOMBAGE_TEXTURE
-	programme->uniform("texture_poly", texture->number());
+	programme->uniforme("texture_poly", texture->number());
 #else
-	programme->uniform("texture_poly", texture->nombre());
+	programme->uniforme("texture_poly", texture->nombre());
 #endif
-	programme->disable();
+	programme->desactive();
 
 	return tampon;
 }

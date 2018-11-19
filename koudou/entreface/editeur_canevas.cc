@@ -30,7 +30,7 @@
 #include "editeur_canevas.h"
 
 #include <cassert>
-#include <ego/utils.h>
+#include <ego/outils.h>
 #include <iostream>
 
 #include <QApplication>
