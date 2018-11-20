@@ -507,42 +507,42 @@ public:
 void enregistre_operatrices_point3d(UsineOperatrice *usine)
 {
 	usine->register_type(NOM_GRAPHE_MAILLAGE,
-						 create_desc<OperatriceGrapheMaillage>(
+						 cree_desc<OperatriceGrapheMaillage>(
 							 NOM_GRAPHE_MAILLAGE, AIDE_GRAPHE_MAILLAGE));
 
 	usine->register_type(NOM_ENTREE,
-						 create_desc<OperatricePoint3DEntree>(
+						 cree_desc<OperatricePoint3DEntree>(
 							 NOM_ENTREE, AIDE_ENTREE));
 
 	usine->register_type(NOM_SORTIE,
-						 create_desc<OperatricePoint3DSortie>(
+						 cree_desc<OperatricePoint3DSortie>(
 							 NOM_SORTIE, AIDE_SORTIE));
 
 	usine->register_type(NOM_MATH,
-						 create_desc<OperatricePoint3DMath>(
+						 cree_desc<OperatricePoint3DMath>(
 							 NOM_MATH, AIDE_MATH));
 
 	usine->register_type(NOM_VALEUR,
-						 create_desc<OperatricePoint3DValeur>(
+						 cree_desc<OperatricePoint3DValeur>(
 							 NOM_VALEUR, AIDE_VALEUR));
 
 	usine->register_type(NOM_VECTEUR,
-						 create_desc<OperatricePoint3DVecteur>(
+						 cree_desc<OperatricePoint3DVecteur>(
 							 NOM_VECTEUR, AIDE_VECTEUR));
 
 	usine->register_type(NOM_SEPARE_VECTEUR,
-						 create_desc<OperatricePoint3DSepareVecteur>(
+						 cree_desc<OperatricePoint3DSepareVecteur>(
 							 NOM_SEPARE_VECTEUR, AIDE_SEPARE_VECTEUR));
 
 	usine->register_type(NOM_COMBINE_VECTEUR,
-						 create_desc<OperatricePoint3DCombineVecteur>(
+						 cree_desc<OperatricePoint3DCombineVecteur>(
 							 NOM_COMBINE_VECTEUR, AIDE_COMBINE_VECTEUR));
 
 	usine->register_type(NOM_BRUIT_PROC,
-						 create_desc<OperatricePoint3DBruitProc>(
+						 cree_desc<OperatricePoint3DBruitProc>(
 							 NOM_BRUIT_PROC, AIDE_BRUIT_PROC));
 
 	usine->register_type(NOM_TRAD_VEC,
-						 create_desc<OperatriceTradVec>(
+						 cree_desc<OperatriceTradVec>(
 							 NOM_TRAD_VEC, AIDE_TRAD_VEC));
 }

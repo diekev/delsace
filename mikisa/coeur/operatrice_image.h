@@ -79,12 +79,12 @@ struct Calque {
 	/**
 	 * Retourne la valeur du tampon de ce calque à la position <x, y>.
 	 */
-	numero7::image::Pixel<float> valeur(int x, int y) const;
+	numero7::image::Pixel<float> valeur(size_t x, size_t y) const;
 
 	/**
 	 * Ajourne la valeur du tampon de ce calque à la position <x, y>.
 	 */
-	void valeur(int x, int y, const numero7::image::Pixel<float> &pixel);
+	void valeur(size_t x, size_t y, const numero7::image::Pixel<float> &pixel);
 
 	/**
 	 * Échantillonne le tampon de ce calque à la position <x, y> en utilisant

@@ -119,6 +119,9 @@ public:
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
+
 		if (m_saturation == 1.0f) {
 			return pixel;
 		}
@@ -167,7 +170,7 @@ public:
 static constexpr auto NOM_MELANGE = "Mélanger";
 static constexpr auto AIDE_MELANGE = "Mélange deux images.";
 
-class OperatriceMelange : public OperatriceImage {
+class OperatriceMelange final : public OperatriceImage {
 public:
 	explicit OperatriceMelange(Noeud *node)
 		: OperatriceImage(node)
@@ -261,7 +264,7 @@ static constexpr auto AIDE_FUSIONNAGE = "Fusionne deux images selon les algorith
 /**
  * Implémentation basée sur https://keithp.com/~keithp/porterduff/p253-porter.pdf
  */
-class OperatriceFusionnage : public OperatriceImage {
+class OperatriceFusionnage final : public OperatriceImage {
 	enum {
 		FUSION_CLARIFICATION,
 		FUSION_A,
@@ -518,11 +521,16 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
+
 		m_rng.seed(19937);
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
+
 		numero7::image::Pixel<float> resultat;
 		resultat.r = m_dist(m_rng);
 		resultat.g = m_dist(m_rng);
@@ -538,7 +546,7 @@ public:
 static constexpr auto NOM_CONSTANTE = "Constante";
 static constexpr auto AIDE_CONSTANTE = "Applique une couleur constante à toute l'image.";
 
-class OperatriceConstante : public OperatricePixel {
+class OperatriceConstante final : public OperatricePixel {
 	couleur32 m_couleur;
 
 public:
@@ -565,11 +573,15 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 		m_couleur = evalue_couleur("couleur_constante");
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(pixel);
+		INUTILISE(x);
+		INUTILISE(y);
 		numero7::image::Pixel<float> resultat;
 		resultat.r = m_couleur[0];
 		resultat.g = m_couleur[1];
@@ -585,7 +597,7 @@ public:
 static constexpr auto NOM_DEGRADE = "Dégradé";
 static constexpr auto AIDE_DEGRADE = "Génère un dégradé sur l'image.";
 
-class OperatriceDegrade : public OperatricePixel {
+class OperatriceDegrade final : public OperatricePixel {
 	enum {
 		MASK_R = (1 << 0),
 		MASK_G = (1 << 1),
@@ -599,6 +611,8 @@ class OperatriceDegrade : public OperatricePixel {
 	float m_angle = 0.0f;
 	float m_cos_angle = 1.0f;
 	float m_sin_angle = 0.0f;
+
+	int pad = 0;
 
 	RampeCouleur *m_rampe;
 
@@ -645,7 +659,7 @@ public:
 			m_canaux |= MASK_A;
 		}
 
-		m_angle = evalue_decimal("angle") * POIDS_DEG_RAD;
+		m_angle = evalue_decimal("angle") * static_cast<float>(POIDS_DEG_RAD);
 		m_cos_angle = std::cos(m_angle);
 		m_sin_angle = std::sin(m_angle);
 
@@ -681,7 +695,7 @@ public:
 static constexpr auto NOM_NUAGE = "Nuage";
 static constexpr auto AIDE_NUAGE = "Crée un bruit de nuage";
 
-class OperatriceNuage : public OperatricePixel {
+class OperatriceNuage final : public OperatricePixel {
 	numero7::math::BruitFlux2D m_bruit_flux;
 
 	glm::vec3 m_frequence = glm::vec3(1.0f);
@@ -692,6 +706,7 @@ class OperatriceNuage : public OperatricePixel {
 	float m_durete = 1.0f;
 	int m_dimensions = 1;
 	bool m_dur = false;
+	char pad[3];
 
 public:
 	explicit OperatriceNuage(Noeud *node)
@@ -732,8 +747,9 @@ public:
 		m_dimensions = (dimensions == "3D") ? 3 : 1;
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &/*pixel*/, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(pixel);
 		auto somme_x = 0.0f;
 		auto somme_y = 0.0f;
 		auto somme_z = 0.0f;
@@ -781,9 +797,9 @@ public:
 			}
 		}
 
-		auto bruit_x = somme_x * ((float)(1 << m_octaves) / (float)((1 << (m_octaves + 1)) - 1));
-		auto bruit_y = somme_y * ((float)(1 << m_octaves) / (float)((1 << (m_octaves + 1)) - 1));
-		auto bruit_z = somme_z * ((float)(1 << m_octaves) / (float)((1 << (m_octaves + 1)) - 1));
+		auto bruit_x = somme_x * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
+		auto bruit_y = somme_y * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
+		auto bruit_z = somme_z * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
 
 		numero7::image::Pixel<float> resultat;
 		resultat.r = bruit_x;
@@ -875,11 +891,12 @@ void restreint(numero7::image::Pixel<float> &pixel, float min, float max)
 	}
 }
 
-class OperatriceEtalonnage : public OperatricePixel {
+class OperatriceEtalonnage final  : public OperatricePixel {
 	bool m_inverse = false;
 	bool m_restreint_noir = false;
 	bool m_restreint_blanc = false;
 	bool m_entrepolation_lineaire = false;
+	int pad;
 
 	numero7::image::Pixel<float> m_point_noir;
 	numero7::image::Pixel<float> m_point_blanc;
@@ -917,6 +934,7 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 		auto ajoute = evalue_couleur("ajout");
 		auto multiplie = evalue_couleur("multiple");
 		auto gamma = evalue_couleur("gamma");
@@ -964,6 +982,9 @@ public:
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
+
 		numero7::image::Pixel<float> resultat = pixel;
 
 		if (!m_inverse) {
@@ -1076,6 +1097,7 @@ static constexpr auto AIDE_CORRECTION_GAMMA = "Applique une correction gamma à 
 
 class OperatriceCorrectionGamma : public OperatricePixel {
 	float m_gamma = 1.0f;
+	int pad;
 
 public:
 	explicit OperatriceCorrectionGamma(Noeud *node)
@@ -1106,6 +1128,8 @@ public:
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		numero7::image::Pixel<float> resultat;
 		resultat.r = std::pow(pixel.r, m_gamma);
 		resultat.g = std::pow(pixel.g, m_gamma);
@@ -1335,6 +1359,8 @@ public:
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		auto resultat = pixel;
 
 		resultat.r = resultat.r * m_pente[0] + m_decalage[0];
@@ -1379,10 +1405,13 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		numero7::image::Pixel<float> resultat;
 		resultat.r = 1.0f - pixel.r;
 		resultat.g = 1.0f - pixel.g;
@@ -1403,6 +1432,7 @@ class OperatriceIncrustation final : public OperatricePixel {
 	float m_angle = 0.0f;
 	float m_a = 0.0f;
 	float m_b = 0.0f;
+	int pad = 0;
 
 public:
 	explicit OperatriceIncrustation(Noeud *node)
@@ -1428,14 +1458,17 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 		m_couleur = evalue_couleur("masque");
-		m_angle = std::cos(evalue_decimal("angle") * POIDS_DEG_RAD);
+		m_angle = std::cos(evalue_decimal("angle") * static_cast<float>(POIDS_DEG_RAD));
 		m_a = evalue_decimal("a");
 		m_b = evalue_decimal("b");
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 #if 0
 		const auto cos_angle = pixel.r * m_couleur.r
 							   + pixel.g * m_couleur.g
@@ -1482,6 +1515,7 @@ static constexpr auto AIDE_PREMULTIPLICATION = "Prémultiplie les couleurs des p
 
 class OperatricePremultiplication final : public OperatricePixel {
 	bool m_inverse = false;
+	bool pad[7];
 
 public:
 	explicit OperatricePremultiplication(Noeud *node)
@@ -1507,11 +1541,14 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 		m_inverse = evalue_bool("inverse");
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		auto facteur = pixel.a;
 
 		if (m_inverse && (facteur != 0.0f)) {
@@ -1557,10 +1594,13 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		numero7::image::Pixel<float> resultat;
 
 		auto facteur = pixel.r * 0.2126f + pixel.g * 0.7152f + pixel.b * 0.0722f;
@@ -1621,6 +1661,8 @@ public:
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		numero7::image::Pixel<float> resultat;
 
 		if (m_pivot > 0.0f) {
@@ -1677,6 +1719,8 @@ public:
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		couleur32 temp;
 		temp.r = pixel.r;
 		temp.v = pixel.g;
@@ -1728,8 +1772,9 @@ public:
 		return AIDE_TRADUCTION;
 	}
 
-	void evalue_entrees(int /*temps*/) override
+	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 		m_vieux_min = evalue_couleur("vieux_min");
 		m_vieux_max = evalue_couleur("vieux_max");
 		m_neuf_min = evalue_couleur("neuf_min");
@@ -1738,6 +1783,8 @@ public:
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		numero7::image::Pixel<float> resultat;
 
 		for (int i = 0; i < 3; ++i) {
@@ -1781,14 +1828,17 @@ public:
 		return AIDE_MIN_MAX;
 	}
 
-	void evalue_entrees(int /*temps*/) override
+	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 		m_neuf_min = evalue_couleur("neuf_min");
 		m_neuf_max = evalue_couleur("neuf_max");
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		numero7::image::Pixel<float> resultat;
 		resultat.r = (pixel.r - m_neuf_min.r) / (m_neuf_max.r - m_neuf_min.r);
 		resultat.g = (pixel.g - m_neuf_min.v) / (m_neuf_max.v - m_neuf_min.v);
@@ -1833,7 +1883,7 @@ static numero7::math::mat4 matrices_daltonisme[] = {
 	  0.0f, 0.125f, 0.875f, 0.0f,
 	  0.0f, 0.0f, 0.0f, 1.0f },
 	{ 0.625f, 0.375f, 0.0f, 0.0f,
-	  0.70, 0.3f, 0.0f, 0.0f,
+	  0.70f, 0.3f, 0.0f, 0.0f,
 	  0.0f, 0.3f, 0.7f, 0.0f,
 	  0.0f, 0.0f, 0.0f, 1.0f },
 	{ 0.8f, 0.2f, 0.0f, 0.0f,
@@ -1895,8 +1945,9 @@ public:
 		return AIDE_DALTONISME;
 	}
 
-	void evalue_entrees(int /*temps*/) override
+	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 		auto type = evalue_enum("type");
 
 		if (type == "protanopie") {
@@ -1930,6 +1981,8 @@ public:
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		return pixel * m_matrice;
 	}
 };
@@ -1938,26 +1991,26 @@ public:
 
 void enregistre_operatrices_pixel(UsineOperatrice *usine)
 {
-	usine->register_type("Graphe", create_desc<OperatriceGraphePixel>("Graphe", "Ajoute un graphe travaillant sur les pixels de l'image de manière individuelle"));
+	usine->register_type("Graphe", cree_desc<OperatriceGraphePixel>("Graphe", "Ajoute un graphe travaillant sur les pixels de l'image de manière individuelle"));
 
-	usine->register_type(NOM_NUAGE, create_desc<OperatriceNuage>(NOM_NUAGE, AIDE_NUAGE));
-	usine->register_type(NOM_CONSTANTE, create_desc<OperatriceConstante>(NOM_CONSTANTE, AIDE_CONSTANTE));
-	usine->register_type(NOM_CORRECTION_GAMMA, create_desc<OperatriceCorrectionGamma>(NOM_CORRECTION_GAMMA, AIDE_CORRECTION_GAMMA));
-	usine->register_type(NOM_ETALONNAGE, create_desc<OperatriceEtalonnage>(NOM_ETALONNAGE, AIDE_ETALONNAGE));
-	usine->register_type(NOM_DEGRADE, create_desc<OperatriceDegrade>(NOM_DEGRADE, AIDE_DEGRADE));
-	usine->register_type(NOM_MELANGE, create_desc<OperatriceMelange>(NOM_MELANGE, AIDE_MELANGE));
-	usine->register_type(NOM_BRUITAGE, create_desc<OperatriceBruitage>(NOM_BRUITAGE, AIDE_BRUITAGE));
-	usine->register_type(NOM_SATURATION, create_desc<OperatriceSaturation>(NOM_SATURATION, AIDE_SATURATION));
-	usine->register_type(NOM_MAPPAGE_TONAL, create_desc<OperatriceMappageTonal>(NOM_MAPPAGE_TONAL, AIDE_MAPPAGE_TONAL));
-	usine->register_type(NOM_CORRECTION_COULEUR, create_desc<OperatriceCorrectionCouleur>(NOM_CORRECTION_COULEUR, AIDE_CORRECTION_COULEUR));
-	usine->register_type(NOM_INVERSEMENT, create_desc<OperatriceInversement>(NOM_INVERSEMENT, AIDE_INVERSEMENT));
-	usine->register_type(NOM_INCRUSTATION, create_desc<OperatriceIncrustation>(NOM_INCRUSTATION, AIDE_INCRUSTATION));
-	usine->register_type(NOM_FUSIONNAGE, create_desc<OperatriceFusionnage>(NOM_FUSIONNAGE, AIDE_FUSIONNAGE));
-	usine->register_type(NOM_PREMULTIPLICATION, create_desc<OperatricePremultiplication>(NOM_PREMULTIPLICATION, AIDE_PREMULTIPLICATION));
-	usine->register_type(NOM_NORMALISATION, create_desc<OperatriceNormalisation>(NOM_NORMALISATION, AIDE_NORMALISATION));
-	usine->register_type(NOM_CONTRASTE, create_desc<OperatriceContraste>(NOM_CONTRASTE, AIDE_CONTRASTE));
-	usine->register_type(NOM_COURBE_COULEUR, create_desc<OperatriceCourbeCouleur>(NOM_COURBE_COULEUR, AIDE_COURBE_COULEUR));
-	usine->register_type(NOM_TRADUCTION, create_desc<OperatriceTraduction>(NOM_TRADUCTION, AIDE_TRADUCTION));
-	usine->register_type(NOM_MIN_MAX, create_desc<OperatriceMinMax>(NOM_MIN_MAX, AIDE_MIN_MAX));
-	usine->register_type(NOM_DALTONISME, create_desc<OperatriceDaltonisme>(NOM_DALTONISME, AIDE_DALTONISME));
+	usine->register_type(NOM_NUAGE, cree_desc<OperatriceNuage>(NOM_NUAGE, AIDE_NUAGE));
+	usine->register_type(NOM_CONSTANTE, cree_desc<OperatriceConstante>(NOM_CONSTANTE, AIDE_CONSTANTE));
+	usine->register_type(NOM_CORRECTION_GAMMA, cree_desc<OperatriceCorrectionGamma>(NOM_CORRECTION_GAMMA, AIDE_CORRECTION_GAMMA));
+	usine->register_type(NOM_ETALONNAGE, cree_desc<OperatriceEtalonnage>(NOM_ETALONNAGE, AIDE_ETALONNAGE));
+	usine->register_type(NOM_DEGRADE, cree_desc<OperatriceDegrade>(NOM_DEGRADE, AIDE_DEGRADE));
+	usine->register_type(NOM_MELANGE, cree_desc<OperatriceMelange>(NOM_MELANGE, AIDE_MELANGE));
+	usine->register_type(NOM_BRUITAGE, cree_desc<OperatriceBruitage>(NOM_BRUITAGE, AIDE_BRUITAGE));
+	usine->register_type(NOM_SATURATION, cree_desc<OperatriceSaturation>(NOM_SATURATION, AIDE_SATURATION));
+	usine->register_type(NOM_MAPPAGE_TONAL, cree_desc<OperatriceMappageTonal>(NOM_MAPPAGE_TONAL, AIDE_MAPPAGE_TONAL));
+	usine->register_type(NOM_CORRECTION_COULEUR, cree_desc<OperatriceCorrectionCouleur>(NOM_CORRECTION_COULEUR, AIDE_CORRECTION_COULEUR));
+	usine->register_type(NOM_INVERSEMENT, cree_desc<OperatriceInversement>(NOM_INVERSEMENT, AIDE_INVERSEMENT));
+	usine->register_type(NOM_INCRUSTATION, cree_desc<OperatriceIncrustation>(NOM_INCRUSTATION, AIDE_INCRUSTATION));
+	usine->register_type(NOM_FUSIONNAGE, cree_desc<OperatriceFusionnage>(NOM_FUSIONNAGE, AIDE_FUSIONNAGE));
+	usine->register_type(NOM_PREMULTIPLICATION, cree_desc<OperatricePremultiplication>(NOM_PREMULTIPLICATION, AIDE_PREMULTIPLICATION));
+	usine->register_type(NOM_NORMALISATION, cree_desc<OperatriceNormalisation>(NOM_NORMALISATION, AIDE_NORMALISATION));
+	usine->register_type(NOM_CONTRASTE, cree_desc<OperatriceContraste>(NOM_CONTRASTE, AIDE_CONTRASTE));
+	usine->register_type(NOM_COURBE_COULEUR, cree_desc<OperatriceCourbeCouleur>(NOM_COURBE_COULEUR, AIDE_COURBE_COULEUR));
+	usine->register_type(NOM_TRADUCTION, cree_desc<OperatriceTraduction>(NOM_TRADUCTION, AIDE_TRADUCTION));
+	usine->register_type(NOM_MIN_MAX, cree_desc<OperatriceMinMax>(NOM_MIN_MAX, AIDE_MIN_MAX));
+	usine->register_type(NOM_DALTONISME, cree_desc<OperatriceDaltonisme>(NOM_DALTONISME, AIDE_DALTONISME));
 }

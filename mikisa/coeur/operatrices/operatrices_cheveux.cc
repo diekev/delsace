@@ -408,7 +408,7 @@ public:
 void enregistre_operatrices_cheveux(UsineOperatrice *usine)
 {
 	usine->register_type(NOM_CREATION_COURBES,
-						 create_desc<OperatriceCreationCourbes>(
+						 cree_desc<OperatriceCreationCourbes>(
 							 NOM_CREATION_COURBES,
 							 AIDE_CREATION_COURBES));
 }

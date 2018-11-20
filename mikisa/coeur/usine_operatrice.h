@@ -48,11 +48,14 @@ struct DescOperatrice {
 };
 
 template <typename T>
-static inline constexpr DescOperatrice create_desc(const std::string &name,
-                                                 const std::string &tooltip)
+inline DescOperatrice cree_desc(
+        const std::string &nom,
+        const std::string &info_bulle)
 {
-	return DescOperatrice(name, tooltip,
-	                    [](Noeud *node) -> OperatriceImage* { return new T(node); });
+	return DescOperatrice(
+	            nom,
+	            info_bulle,
+	            [](Noeud *noeud) -> OperatriceImage* { return new T(noeud); });
 }
 
 class UsineOperatrice final {

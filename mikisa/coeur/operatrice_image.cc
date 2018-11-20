@@ -33,18 +33,18 @@
 
 /* ************************************************************************** */
 
-numero7::image::Pixel<float> Calque::valeur(int x, int y) const
+numero7::image::Pixel<float> Calque::valeur(size_t x, size_t y) const
 {
-	x = std::max(0, std::min(x, tampon.nombre_colonnes() - 1));
-	y = std::max(0, std::min(y, tampon.nombre_lignes() - 1));
-	return tampon[y][x];
+	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
+	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
+	return tampon[static_cast<int>(y)][static_cast<int>(x)];
 }
 
-void Calque::valeur(int x, int y, const numero7::image::Pixel<float> &pixel)
+void Calque::valeur(size_t x, size_t y, const numero7::image::Pixel<float> &pixel)
 {
-	x = std::max(0, std::min(x, tampon.nombre_colonnes() - 1));
-	y = std::max(0, std::min(y, tampon.nombre_lignes() - 1));
-	tampon[y][x] = pixel;
+	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
+	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
+	tampon[static_cast<int>(y)][static_cast<int>(x)] = pixel;
 }
 
 numero7::image::Pixel<float> Calque::echantillone(float x, float y) const

@@ -99,7 +99,7 @@ public:
 void enregistre_operatrices_particules(UsineOperatrice *usine)
 {
 	usine->register_type(NOM_CREATION_POINTS,
-						 create_desc<OperatriceCreationPoints>(
+						 cree_desc<OperatriceCreationPoints>(
 							 NOM_CREATION_POINTS,
 							 AIDE_CREATION_POINTS));
 }
