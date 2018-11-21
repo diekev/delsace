@@ -41,7 +41,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -Og -Wno-error=unus
 
 # ------------------------------------------------------------------------------
 
-find_package(Delsace COMPONENTS tests REQUIRED)
+find_package(Delsace COMPONENTS math tests REQUIRED)
 
 find_package(Qt5Core REQUIRED)
 set(INCLUSIONS_QT5_CORE ${Qt5Core_INCLUDE_DIRS})

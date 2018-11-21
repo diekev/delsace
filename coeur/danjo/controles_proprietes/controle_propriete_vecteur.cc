@@ -142,7 +142,7 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 		auto valeurs = decoupe(donnees.valeur_defaut, ',');
 		auto index = 0;
 
-		glm::vec3 valeur_defaut = { 0.0f, 0.0f, 0.0f };
+		auto valeur_defaut = dls::math::vec3f();
 
 		for (auto v : valeurs) {
 			valeur_defaut[index++] = std::atof(v.c_str());
@@ -165,7 +165,7 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 		m_z->valeur(valeur[2]);
 	}
 	else {
-		const auto &valeur = std::experimental::any_cast<glm::vec3>(m_propriete->valeur);
+		const auto &valeur = std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur);
 		m_x->valeur(valeur[0]);
 		m_y->valeur(valeur[1]);
 		m_z->valeur(valeur[2]);
@@ -201,14 +201,14 @@ void ControleProprieteVec3::bascule_animation()
 
 	if (m_animation == false) {
 		m_propriete->supprime_animation();
-		const auto &valeur = std::experimental::any_cast<glm::vec3>(m_propriete->valeur);
-		m_x->valeur(valeur.x);
-		m_y->valeur(valeur.y);
-		m_z->valeur(valeur.z);
+		const auto &valeur = std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur);
+		m_x->valeur(valeur[0]);
+		m_y->valeur(valeur[1]);
+		m_z->valeur(valeur[2]);
 		m_bouton_animation->setText("C");
 	}
 	else {
-		m_propriete->ajoute_cle(std::experimental::any_cast<glm::vec3>(m_propriete->valeur), m_temps);
+		m_propriete->ajoute_cle(std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur), m_temps);
 		m_bouton_animation->setText("c");
 	}
 
@@ -219,7 +219,7 @@ void ControleProprieteVec3::bascule_animation()
 
 void ControleProprieteVec3::ajourne_valeur_x(float valeur)
 {
-	auto vec = glm::vec3(valeur, m_y->valeur(), m_z->valeur());
+	auto vec = dls::math::vec3f(valeur, m_y->valeur(), m_z->valeur());
 
 	if (m_animation) {
 		m_propriete->ajoute_cle(vec, m_temps);
@@ -233,7 +233,7 @@ void ControleProprieteVec3::ajourne_valeur_x(float valeur)
 
 void ControleProprieteVec3::ajourne_valeur_y(float valeur)
 {
-	auto vec = glm::vec3(m_x->valeur(), valeur, m_z->valeur());
+	auto vec = dls::math::vec3f(m_x->valeur(), valeur, m_z->valeur());
 
 	if (m_animation) {
 		m_propriete->ajoute_cle(vec, m_temps);
@@ -247,7 +247,7 @@ void ControleProprieteVec3::ajourne_valeur_y(float valeur)
 
 void ControleProprieteVec3::ajourne_valeur_z(float valeur)
 {
-	auto vec = glm::vec3(m_x->valeur(), m_y->valeur(), valeur);
+	auto vec = dls::math::vec3f(m_x->valeur(), m_y->valeur(), valeur);
 
 	if (m_animation) {
 		m_propriete->ajoute_cle(vec, m_temps);

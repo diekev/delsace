@@ -24,6 +24,8 @@
 
 #include "manipulable.h"
 
+#include <assert.h>
+
 #include "types/courbe_bezier.h"
 #include "types/rampe_couleur.h"
 
@@ -43,7 +45,7 @@ void Propriete::ajoute_cle(const float v, int temps)
 	ajoute_cle_impl(std::experimental::any(v), temps);
 }
 
-void Propriete::ajoute_cle(const glm::vec3 &v, int temps)
+void Propriete::ajoute_cle(const dls::math::vec3f &v, int temps)
 {
 	assert(type == TypePropriete::VECTEUR);
 	ajoute_cle_impl(std::experimental::any(v), temps);
@@ -112,20 +114,20 @@ float Propriete::evalue_decimal(int temps)
 	return (1.0f - fac) * i1 + fac * i2;
 }
 
-glm::vec3 Propriete::evalue_vecteur(int temps)
+dls::math::vec3f Propriete::evalue_vecteur(int temps)
 {
 	assert(type == TypePropriete::VECTEUR);
 	std::experimental::any v1, v2;
 	int t1, t2;
 
 	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-		return std::experimental::any_cast<glm::vec3>(v1);
+		return std::experimental::any_cast<dls::math::vec3f>(v1);
 	}
 
 	auto dt = t2 - t1;
 	auto fac = (temps - t1) / static_cast<float>(dt);
-	auto i1 = std::experimental::any_cast<glm::vec3>(v1);
-	auto i2 = std::experimental::any_cast<glm::vec3>(v2);
+	auto i1 = std::experimental::any_cast<dls::math::vec3f>(v1);
+	auto i2 = std::experimental::any_cast<dls::math::vec3f>(v2);
 
 	return (1.0f - fac) * i1 + fac * i2;
 }
@@ -239,7 +241,7 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 			valeur = std::experimental::any(0.0f);
 			break;
 		case TypePropriete::VECTEUR:
-			valeur = std::experimental::any(glm::vec3(0));
+			valeur = std::experimental::any(dls::math::vec3f(0));
 			break;
 		case TypePropriete::COULEUR:
 			valeur = std::experimental::any(couleur32(0));
@@ -304,7 +306,7 @@ float Manipulable::evalue_decimal(const std::string &nom, int temps)
 	return std::experimental::any_cast<float>(prop.valeur);
 }
 
-glm::vec3 Manipulable::evalue_vecteur(const std::string &nom, int temps)
+dls::math::vec3f Manipulable::evalue_vecteur(const std::string &nom, int temps)
 {
 	Propriete &prop = m_proprietes[nom];
 
@@ -312,7 +314,7 @@ glm::vec3 Manipulable::evalue_vecteur(const std::string &nom, int temps)
 		return prop.evalue_vecteur(temps);
 	}
 
-	return std::experimental::any_cast<glm::vec3>(prop.valeur);
+	return std::experimental::any_cast<dls::math::vec3f>(prop.valeur);
 }
 
 couleur32 Manipulable::evalue_couleur(const std::string &nom, int temps)
@@ -396,7 +398,7 @@ void Manipulable::valeur_decimal(const std::string &nom, float valeur)
 	m_proprietes[nom].valeur = valeur;
 }
 
-void Manipulable::valeur_vecteur(const std::string &nom, const glm::vec3 &valeur)
+void Manipulable::valeur_vecteur(const std::string &nom, const dls::math::vec3f &valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
@@ -424,7 +426,7 @@ void *Manipulable::operator[](const std::string &nom)
 			pointeur = std::experimental::any_cast<float>(&propriete.valeur);
 			break;
 		case TypePropriete::VECTEUR:
-			pointeur = std::experimental::any_cast<glm::vec3>(&propriete.valeur);
+			pointeur = std::experimental::any_cast<dls::math::vec3f>(&propriete.valeur);
 			break;
 		case TypePropriete::COULEUR:
 			pointeur = std::experimental::any_cast<couleur32>(&propriete.valeur);

@@ -25,7 +25,7 @@
 #pragma once
 
 #include <experimental/any>
-#include <glm/glm.hpp>
+#include <delsace/math/vecteur.hh>
 #include <unordered_map>
 #include <vector>
 
@@ -66,7 +66,7 @@ struct Propriete {
 
 	void ajoute_cle(const float v, int temps);
 
-	void ajoute_cle(const glm::vec3 &v, int temps);
+	void ajoute_cle(const dls::math::vec3f &v, int temps);
 
 	void ajoute_cle(const couleur32 &v, int temps);
 
@@ -80,7 +80,7 @@ struct Propriete {
 
 	float evalue_decimal(int temps);
 
-	glm::vec3 evalue_vecteur(int temps);
+	dls::math::vec3f evalue_vecteur(int temps);
 
 	couleur32 evalue_couleur(int temps);
 
@@ -151,7 +151,7 @@ public:
 	/**
 	 * Évalue la valeur d'une propriété de type 'vecteur' du nom spécifié.
 	 */
-	glm::vec3 evalue_vecteur(const std::string &nom, int temps = 0);
+	dls::math::vec3f evalue_vecteur(const std::string &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'couleur' du nom spécifié.
@@ -232,7 +232,7 @@ public:
 	/**
 	 * Établie la valeur de la propriété de type vecteur spécifiée.
 	 */
-	void valeur_vecteur(const std::string &nom, const glm::vec3 &valeur);
+	void valeur_vecteur(const std::string &nom, const dls::math::vec3f &valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type couleur spécifiée.
