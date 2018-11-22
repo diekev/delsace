@@ -27,6 +27,7 @@
 #include <iostream>
 #include <set>
 
+#include "arbre_syntactic.hh"
 #include "erreur.hh"
 
 /* ************************************************************************** */
@@ -43,14 +44,20 @@ void analyseuse_grammaire::lance_analyse()
 		return;
 	}
 
+	m_assembleuse.empile_noeud(type_noeud::BLOC, {});
+
 	this->analyse_page();
+
+	m_assembleuse.imprime_arbre(std::cerr);
+
+	m_assembleuse.depile_noeud(type_noeud::BLOC);
 }
 
 void analyseuse_grammaire::analyse_page()
 {
-	while (!(m_position != m_identifiants.size())) {
+	while ((m_position != m_identifiants.size())) {
 		if (est_identifiant(ID_CHAINE_CARACTERE)) {
-			// m_assembleuse.ajoute_noeud(ID_CHAINE_CARACTERE, m_identifiants[position()]);
+			m_assembleuse.ajoute_noeud(type_noeud::CHAINE_CARACTERE, m_identifiants[position()]);
 			avance();
 		}
 		else if (est_identifiant(ID_DEBUT_EXPRESSION)) {
@@ -63,7 +70,7 @@ void analyseuse_grammaire::analyse_page()
 				lance_erreur("Attendu identifiant de la variable après '{{'");
 			}
 
-			// m_assembleuse.ajoute_noeud(ID_DEBUT_VARIABLE, m_identifiants[position()]);
+			m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
 
 			if (!requiers_identifiant(ID_FIN_VARIABLE)) {
 				lance_erreur("Attendu '}}' à la fin de la déclaration d'une variable");
@@ -87,21 +94,37 @@ void analyseuse_grammaire::analyse_expression()
 	else if (est_identifiant(ID_SINON)) {
 		// assert(m_assembleuse.noued_courant() == 'SI');
 		avance();
+
+		if (!requiers_identifiant(ID_FIN_EXPRESSION)) {
+			lance_erreur("Attendu '%}'");
+		}
+
+		m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
+		analyse_page();
+
+		m_assembleuse.depile_noeud(type_noeud::BLOC);
 	}
 	else if (est_identifiant(ID_FINSI)) {
-		// assert(m_assembleuse.noued_courant() == 'SI' || 'SINON');
 		avance();
+
+		m_assembleuse.depile_noeud(type_noeud::SI);
+
+		if (!requiers_identifiant(ID_FIN_EXPRESSION)) {
+			lance_erreur("Attendu '%}'");
+		}
 	}
 	else if (est_identifiant(ID_FINPOUR)) {
-		// assert(m_assembleuse.noued_courant() == 'POUR');
 		avance();
+
+		m_assembleuse.depile_noeud(type_noeud::POUR);
+
+		if (!requiers_identifiant(ID_FIN_EXPRESSION)) {
+			lance_erreur("Attendu '%}'");
+		}
 	}
 	else {
 		lance_erreur("Identifiant inconnu");
-	}
-
-	if (!requiers_identifiant(ID_FIN_EXPRESSION)) {
-		lance_erreur("Attendu '%}'");
 	}
 }
 
@@ -111,9 +134,23 @@ void analyseuse_grammaire::analyse_si()
 		lance_erreur("Attendu 'si'");
 	}
 
+	m_assembleuse.empile_noeud(type_noeud::SI, m_identifiants[position()]);
+
 	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'si'");
 	}
+
+	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
+
+	if (!requiers_identifiant(ID_FIN_EXPRESSION)) {
+		lance_erreur("Attendu '%}'");
+	}
+
+	m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
+	analyse_page();
+
+	m_assembleuse.depile_noeud(type_noeud::BLOC);
 }
 
 void analyseuse_grammaire::analyse_pour()
@@ -122,9 +159,13 @@ void analyseuse_grammaire::analyse_pour()
 		lance_erreur("Attendu 'pour'");
 	}
 
+	m_assembleuse.empile_noeud(type_noeud::POUR, m_identifiants[position()]);
+
 	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'pour'");
 	}
+
+	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
 
 	if (!requiers_identifiant(ID_DANS)) {
 		lance_erreur("Attendu 'dans'");
@@ -133,4 +174,16 @@ void analyseuse_grammaire::analyse_pour()
 	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'dans'");
 	}
+
+	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
+
+	if (!requiers_identifiant(ID_FIN_EXPRESSION)) {
+		lance_erreur("Attendu '%}'");
+	}
+
+	m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+
+	analyse_page();
+
+	m_assembleuse.depile_noeud(type_noeud::BLOC);
 }

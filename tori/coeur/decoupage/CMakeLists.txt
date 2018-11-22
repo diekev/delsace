@@ -31,6 +31,8 @@ set(BIBLIOTHEQUES
 set(SOURCES
 	analyseuse.cc
 	analyseuse_grammaire.cc
+	arbre_syntactic.cc
+	assembleuse_arbre.cc
 	decoupeuse.cc
 	erreur.cc
 	morceaux.cc
@@ -38,6 +40,8 @@ set(SOURCES
 
 	analyseuse.hh
 	analyseuse_grammaire.hh
+	arbre_syntactic.hh
+	assembleuse_arbre.hh
 	decoupeuse.hh
 	erreur.hh
 	morceaux.hh

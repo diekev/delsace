@@ -24,24 +24,28 @@
 
 #pragma once
 
-#include "analyseuse.hh"
-
-#include <experimental/any>
+#include <iostream>
+#include <stack>
 #include <vector>
 
-#include "assembleuse_arbre.hh"
+class Noeud;
+enum class type_noeud : unsigned int;
+struct DonneesMorceaux;
 
-class analyseuse_grammaire : public Analyseuse {
-	assembleuse_arbre m_assembleuse;
+class assembleuse_arbre {
+	std::stack<Noeud *> m_pile;
+	std::vector<Noeud *> m_noeuds;
 
 public:
-	analyseuse_grammaire(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon);
+	~assembleuse_arbre();
 
-	void lance_analyse() override;
+	Noeud *cree_noeud(type_noeud type, const DonneesMorceaux &donnees);
 
-private:
-	void analyse_page();
-	void analyse_expression();
-	void analyse_si();
-	void analyse_pour();
+	void ajoute_noeud(type_noeud type, const DonneesMorceaux &donnees);
+
+	void empile_noeud(type_noeud type, const DonneesMorceaux &donnees);
+
+	void depile_noeud(type_noeud type);
+
+	void imprime_arbre(std::ostream &os);
 };

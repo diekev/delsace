@@ -33,6 +33,8 @@ int main()
 	auto texte = "{% pour x dans evenements %}<a href='{{ lien }}'>{% si variable %}{{ variable }}{% sinon %}texte{% finsi %}</a>{% finpour %}";
 	//auto texte = "{%si lien%}";
 
+	std::cerr << "texte : \n" << texte << '\n';
+
 	auto tampon = TamponSource{texte};
 
 	auto decoupeuse = decoupeuse_texte(tampon);
