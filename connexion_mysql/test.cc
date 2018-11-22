@@ -89,14 +89,18 @@ struct Profil {
 	std::string age;
 };
 
-int main()
+int main(int argc, char **argv)
 {
+	if (argc < 5) {
+		return 1;
+	}
+
 	MYSQL mysql;
 	mysql_init(&mysql);
 
 	mysql_options(&mysql,MYSQL_READ_DEFAULT_GROUP,"option");
 
-	auto connexion = mysql_real_connect(&mysql, "localhost", "root", "u1z-dotl50", "test", 0, nullptr, 0);
+	auto connexion = mysql_real_connect(&mysql, argv[1], argv[2], argv[3], argv[4], 0, nullptr, 0);
 
 	if (connexion == nullptr) {
 		printf("Une erreur s'est produite lors de la connexion à la BDD!");
