@@ -47,5 +47,7 @@ public:
 
 	void depile_noeud(type_noeud type);
 
+	void escompte_type(type_noeud type);
+
 	void imprime_arbre(std::ostream &os);
 };

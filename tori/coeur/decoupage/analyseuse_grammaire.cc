@@ -99,14 +99,18 @@ void analyseuse_grammaire::analyse_expression()
 			lance_erreur("Attendu '%}'");
 		}
 
+		m_assembleuse.depile_noeud(type_noeud::BLOC);
+
+		m_assembleuse.escompte_type(type_noeud::SI);
+
 		m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
 
 		analyse_page();
-
-		m_assembleuse.depile_noeud(type_noeud::BLOC);
 	}
 	else if (est_identifiant(ID_FINSI)) {
 		avance();
+
+		m_assembleuse.depile_noeud(type_noeud::BLOC);
 
 		m_assembleuse.depile_noeud(type_noeud::SI);
 
@@ -116,6 +120,8 @@ void analyseuse_grammaire::analyse_expression()
 	}
 	else if (est_identifiant(ID_FINPOUR)) {
 		avance();
+
+		m_assembleuse.depile_noeud(type_noeud::BLOC);
 
 		m_assembleuse.depile_noeud(type_noeud::POUR);
 
@@ -149,8 +155,6 @@ void analyseuse_grammaire::analyse_si()
 	m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
 
 	analyse_page();
-
-	m_assembleuse.depile_noeud(type_noeud::BLOC);
 }
 
 void analyseuse_grammaire::analyse_pour()
@@ -184,6 +188,4 @@ void analyseuse_grammaire::analyse_pour()
 	m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
 
 	analyse_page();
-
-	m_assembleuse.depile_noeud(type_noeud::BLOC);
 }
