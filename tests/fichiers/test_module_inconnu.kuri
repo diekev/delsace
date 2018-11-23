@@ -1,4 +1,4 @@
-importe inconnu
+importe "inconnu"
 
 fonction principale(compte : z32, arguments : **z8) : z32
 {

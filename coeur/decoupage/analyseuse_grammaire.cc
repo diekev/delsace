@@ -255,8 +255,8 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 		else if (est_identifiant(id_morceau::IMPORTE)) {
 			avance();
 
-			if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-				lance_erreur("Attendu une chaîne de caractère après 'importe'");
+			if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+				lance_erreur("Attendu une chaîne littérale après 'importe'");
 			}
 
 			const auto nom_module = m_identifiants[position()].chaine;
