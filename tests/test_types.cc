@@ -57,7 +57,7 @@ static void test_inference_type_echec(dls::test_unitaire::Controleuse &controleu
 	CU_DEBUTE_PROPOSITION(
 				controleuse,
 				"On ne peut assigner la valeur d'une fonction à une variable si"
-				" sont type de retour ne peut être défini");
+				" son type de retour ne peut être défini");
 	{
 		const char *texte =
 				R"(

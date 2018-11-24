@@ -143,7 +143,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 
 	CU_DEBUTE_PROPOSITION(
 				controleuse,
-				"On peut réassigner une valeur d'un type différent à une"
+				"On ne peut pas réassigner une valeur d'un type différent à une"
 				" variable");
 	{
 		const char *texte =
