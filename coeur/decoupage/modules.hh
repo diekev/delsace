@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <set>
 #include <string>
 #include <unordered_map>
 
@@ -57,8 +58,8 @@ struct DonneesFonction {
 struct DonneesModule {
 	TamponSource tampon{""};
 	std::vector<DonneesMorceaux> morceaux{};
-	std::vector<std::string_view> modules_importes{};
-	std::vector<std::string_view> fonctions_exportees{};
+	std::set<std::string_view> modules_importes{};
+	std::set<std::string_view> fonctions_exportees{};
 	std::unordered_map<std::string_view, DonneesFonction> fonctions{};
 	size_t id = 0ul;
 	std::string nom{""};

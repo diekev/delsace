@@ -41,24 +41,12 @@
 
 bool DonneesModule::importe_module(const std::string_view &nom_module) const
 {
-	for (const auto &mi : modules_importes) {
-		if (mi == nom_module) {
-			return true;
-		}
-	}
-
-	return false;
+	return modules_importes.find(nom_module) != modules_importes.end();
 }
 
 bool DonneesModule::possede_fonction(const std::string_view &nom_fonction) const
 {
-	for (const auto &fi : fonctions_exportees) {
-		if (fi == nom_fonction) {
-			return true;
-		}
-	}
-
-	return false;
+	return fonctions_exportees.find(nom_fonction) != fonctions_exportees.end();
 }
 
 void DonneesModule::ajoute_donnees_fonctions(const std::string_view &nom_fonction, const DonneesFonction &donnees)

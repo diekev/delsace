@@ -262,7 +262,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 			}
 
 			const auto nom_module = m_identifiants[position()].chaine;
-			m_module->modules_importes.push_back(nom_module);
+			m_module->modules_importes.insert(nom_module);
 			charge_module(os, std::string(nom_module), m_contexte, m_identifiants[position()]);
 		}
 		else {
@@ -296,7 +296,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
 	}
 
-	m_module->fonctions_exportees.push_back(nom_fonction);
+	m_module->fonctions_exportees.insert(nom_fonction);
 
 	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_contexte, m_identifiants[position()]);
 	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
