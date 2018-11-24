@@ -549,6 +549,40 @@ static llvm::FunctionType *obtiens_type_fonction(
 
 /* ************************************************************************** */
 
+static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte, int index_module)
+{
+	auto module = contexte.module(static_cast<size_t>(index_module));
+
+	/* insère un appel à va_end avant chaque instruction de retour */
+	if (contexte.fonction->isVarArg()) {
+		const auto &donnees_fonction = module->donnees_fonction(std::string(contexte.fonction->getName()));
+
+		for (const auto &arg : donnees_fonction.args) {
+			if (arg.second.est_variadic) {
+				auto valeur_varg = contexte.valeur_locale(arg.first);
+
+				assert(valeur_varg != nullptr);
+
+				auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vaend);
+
+				llvm::CallInst::Create(fonc, valeur_varg, "", contexte.bloc_courant());
+				break;
+			}
+		}
+	}
+
+	/* génère le code pour les blocs déférés */
+	auto pile_noeud = contexte.noeuds_deferes();
+
+	while (!pile_noeud.empty()) {
+		auto noeud = pile_noeud.top();
+		noeud->genere_code_llvm(contexte);
+		pile_noeud.pop();
+	}
+}
+
+/* ************************************************************************** */
+
 Noeud::Noeud(ContexteGenerationCode &/*contexte*/, const DonneesMorceaux &morceau)
 	: m_donnees_morceaux{morceau}
 {}
@@ -1140,6 +1174,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Ajoute une instruction de retour si la dernière n'en est pas une. */
 	if ((ret != nullptr) && !llvm::isa<llvm::ReturnInst>(*ret)) {
+		genere_code_extra_pre_retour(contexte, m_donnees_morceaux.module);
+
 		llvm::ReturnInst::Create(
 					contexte.contexte,
 					nullptr,
@@ -2563,35 +2599,9 @@ void NoeudRetour::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
+	genere_code_extra_pre_retour(contexte, m_donnees_morceaux.module);
+
 	llvm::Value *valeur = nullptr;
-	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
-
-	/* insère un appel à va_end avant chaque instruction de retour */
-	if (contexte.fonction->isVarArg()) {
-		const auto &donnees_fonction = module->donnees_fonction(std::string(contexte.fonction->getName()));
-
-		for (const auto &arg : donnees_fonction.args) {
-			if (arg.second.est_variadic) {
-				auto valeur_varg = contexte.valeur_locale(arg.first);
-
-				assert(valeur_varg != nullptr);
-
-				auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vaend);
-
-				llvm::CallInst::Create(fonc, valeur_varg, "", contexte.bloc_courant());
-				break;
-			}
-		}
-	}
-
-	/* génère le code pour les blocs déférés */
-	auto pile_noeud = contexte.noeuds_deferes();
-
-	while (!pile_noeud.empty()) {
-		auto noeud = pile_noeud.top();
-		noeud->genere_code_llvm(contexte);
-		pile_noeud.pop();
-	}
 
 	if (!m_enfants.empty()) {
 		assert(m_enfants.size() == 1);
