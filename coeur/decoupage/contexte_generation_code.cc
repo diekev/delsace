@@ -398,6 +398,8 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 {
 	auto metriques = Metriques{};
 	metriques.nombre_modules  = modules.size();
+	metriques.temps_validation = this->temps_validation;
+	metriques.temps_generation = this->temps_generation;
 
 	for (auto module : modules) {
 		metriques.nombre_lignes += module->tampon.nombre_lignes();

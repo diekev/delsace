@@ -65,6 +65,8 @@ struct Metriques {
 	double temps_analyse = 0.0;
 	double temps_tampon = 0.0;
 	double temps_decoupage = 0.0;
+	double temps_validation = 0.0;
+	double temps_generation = 0.0;
 };
 
 struct DonneesVariable {
@@ -348,4 +350,9 @@ private:
 
 	std::vector<paire_bloc> m_pile_continue{};
 	std::vector<paire_bloc> m_pile_arrete{};
+
+public:
+	/* À FAIRE : bouge ça d'ici. */
+	double temps_validation = 0.0;
+	double temps_generation = 0.0;
 };

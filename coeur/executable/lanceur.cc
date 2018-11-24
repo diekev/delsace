@@ -500,15 +500,14 @@ int main(int argc, char *argv[])
 	std::ostream &os = std::cout;
 
 	auto resultat = 0;
-	auto debut_compilation     = dls::chrono::maintenant();
-	auto temps_generation_code = 0.0;
-	auto debut_nettoyage       = 0.0;
-	auto temps_nettoyage       = 0.0;
-	auto temps_fichier_objet   = 0.0;
-	auto temps_executable      = 0.0;
-	auto mem_arbre             = 0ul;
-	auto mem_contexte          = 0ul;
-	auto nombre_noeuds         = 0ul;
+	auto debut_compilation   = dls::chrono::maintenant();
+	auto debut_nettoyage     = 0.0;
+	auto temps_nettoyage     = 0.0;
+	auto temps_fichier_objet = 0.0;
+	auto temps_executable    = 0.0;
+	auto mem_arbre           = 0ul;
+	auto mem_contexte        = 0ul;
+	auto nombre_noeuds       = 0ul;
 
 	auto metriques = Metriques{};
 
@@ -567,9 +566,7 @@ int main(int argc, char *argv[])
 		initialise_optimisation(ops.optimisation, contexte_generation);
 
 		os << "Génération du code..." << std::endl;
-		auto debut_generation_code = dls::chrono::maintenant();
 		assembleuse.genere_code_llvm(contexte_generation);
-		temps_generation_code = dls::chrono::delta(debut_generation_code);
 		mem_arbre = assembleuse.memoire_utilisee();
 		nombre_noeuds = assembleuse.nombre_noeuds();
 
@@ -612,9 +609,10 @@ int main(int argc, char *argv[])
 	const auto temps_scene = metriques.temps_tampon
 							 + metriques.temps_decoupage
 							 + metriques.temps_analyse
-							 + metriques.temps_chargement;
+							 + metriques.temps_chargement
+							 + metriques.temps_validation;
 
-	const auto temps_coulisse = temps_generation_code
+	const auto temps_coulisse = metriques.temps_generation
 								+ temps_fichier_objet
 								+ temps_executable;
 
@@ -663,12 +661,14 @@ int main(int argc, char *argv[])
 	os << '\t' << "Temps analyse    : " << temps_seconde(metriques.temps_analyse)
 	   << " (" << calc_pourcentage(metriques.temps_analyse, temps_scene) << ") ("
 	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_morceaux) / metriques.temps_analyse)) << ")\n";
+	os << '\t' << "Temps validation : " << temps_seconde(metriques.temps_validation)
+	   << " (" << calc_pourcentage(metriques.temps_validation, temps_scene) << ")\n";
 
 	os << '\n';
 	os << "Temps coulisse : " << temps_seconde(temps_coulisse)
 	   << " (" << calc_pourcentage(temps_coulisse, temps_total) << ")\n";
-	os << '\t' << "Temps génération code : " << temps_seconde(temps_generation_code)
-	   << " (" << calc_pourcentage(temps_generation_code, temps_coulisse) << ")\n";
+	os << '\t' << "Temps génération code : " << temps_seconde(metriques.temps_generation)
+	   << " (" << calc_pourcentage(metriques.temps_generation, temps_coulisse) << ")\n";
 	os << '\t' << "Temps fichier objet   : " << temps_seconde(temps_fichier_objet)
 	   << " (" << calc_pourcentage(temps_fichier_objet, temps_coulisse) << ")\n";
 	os << '\t' << "Temps exécutable      : " << temps_seconde(temps_executable)

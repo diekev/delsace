@@ -42,6 +42,8 @@
 #include <set>
 #include <sstream>
 
+#include <delsace/chrono/chronometrage.hh>
+
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
 #include "erreur.h"
@@ -614,10 +616,21 @@ void NoeudRacine::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
 {
+	auto temps_validation = 0.0;
+	auto temps_generation = 0.0;
+
 	for (auto noeud : m_enfants) {
+		auto debut_validation = dls::chrono::maintenant();
 		noeud->perfome_validation_semantique(contexte);
+		temps_validation += dls::chrono::delta(debut_validation);
+
+		auto debut_generation = dls::chrono::maintenant();
 		noeud->genere_code_llvm(contexte);
+		temps_generation += dls::chrono::delta(debut_generation);
 	}
+
+	contexte.temps_generation = temps_generation;
+	contexte.temps_validation = temps_validation;
 
 	return nullptr;
 }
