@@ -37,11 +37,13 @@
 #undef DEBOGUE_EXPRESSION
 
 #ifdef DEBOGUE_EXPRESSION
-#define LOG_EXPRESSION std::cerr
+static constexpr auto g_log_expression = true;
 #else
-static std::ostream log_muet_expression(nullptr);
-#define LOG_EXPRESSION log_muet_expression
+static constexpr auto g_log_expression = false;
 #endif
+
+#define DEB_LOG_EXPRESSION if (g_log_expression) { std::cerr
+#define FIN_LOG_EXPRESSION '\n';}
 
 /**
  * Limitation du nombre récursif de sous-expressions (par exemple :
@@ -770,12 +772,12 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	 * fermante */
 	auto termine_boucle = false;
 
-	LOG_EXPRESSION << "Vecteur :\n";
+	DEB_LOG_EXPRESSION << "Vecteur :" << FIN_LOG_EXPRESSION;
 
 	while (!est_identifiant(identifiant_final)) {
 		const auto &morceau = m_identifiants[position() + 1];
 
-		LOG_EXPRESSION << '\t' << chaine_identifiant(morceau.identifiant) << '\n';
+		DEB_LOG_EXPRESSION << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
 		switch (morceau.identifiant) {
 			case id_morceau::CHAINE_CARACTERE:
@@ -1092,10 +1094,10 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 	pile.reserve(expression.size());
 
-	LOG_EXPRESSION << "Expression :\n";
+	DEB_LOG_EXPRESSION << "Expression :" << FIN_LOG_EXPRESSION;
 
 	for (Noeud *noeud : expression) {
-		LOG_EXPRESSION << '\t' << chaine_identifiant(noeud->identifiant()) << '\n';
+		DEB_LOG_EXPRESSION << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
 		if (est_operateur_binaire(noeud->identifiant())) {
 			if (pile.size() < 2) {
