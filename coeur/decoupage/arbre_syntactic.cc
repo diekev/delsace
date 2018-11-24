@@ -2584,6 +2584,15 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, con
 		}
 	}
 
+	/* génère le code pour les blocs déférés */
+	auto pile_noeud = contexte.noeuds_deferes();
+
+	while (!pile_noeud.empty()) {
+		auto noeud = pile_noeud.top();
+		noeud->genere_code_llvm(contexte);
+		pile_noeud.pop();
+	}
+
 	if (!m_enfants.empty()) {
 		assert(m_enfants.size() == 1);
 		valeur = m_enfants.front()->genere_code_llvm(contexte);
@@ -3645,4 +3654,34 @@ void NoeudAccesMembrePoint::perfome_validation_semantique(ContexteGenerationCode
 	enfant2->perfome_validation_semantique(contexte);
 
 	this->donnees_type = enfant2->donnees_type;
+}
+
+/* ************************************************************************** */
+
+NoeudDefere::NoeudDefere(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
+{}
+
+void NoeudDefere::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudDefere : \n";
+	m_enfants.front()->imprime_code(os, tab + 1);
+}
+
+llvm::Value *NoeudDefere::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+{
+	auto noeud = m_enfants.front();
+
+	/* La valeur_calculee d'un bloc est son bloc suivant, qui dans le cas d'un
+	 * bloc déféré n'en est aucun. */
+	noeud->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
+
+	contexte.defere_noeud(noeud);
+	return nullptr;
+}
+
+type_noeud NoeudDefere::type() const
+{
+	return type_noeud::DEFERE;
 }

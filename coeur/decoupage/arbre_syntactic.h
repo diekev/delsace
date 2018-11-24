@@ -64,6 +64,7 @@ enum class type_noeud : char {
 	NUL,
 	TAILLE_DE,
 	PLAGE,
+	DEFERE,
 };
 
 /* ************************************************************************** */
@@ -620,4 +621,17 @@ public:
 	type_noeud type() const override;
 
 	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
+};
+
+/* ************************************************************************** */
+
+class NoeudDefere final : public Noeud {
+public:
+	explicit NoeudDefere(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche = false) override;
+
+	type_noeud type() const override;
 };

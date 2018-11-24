@@ -42,6 +42,7 @@
 #include "tampon_source.h"
 
 class assembleuse_arbre;
+class Noeud;
 
 struct DonneesModule;
 
@@ -327,6 +328,18 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
+	/**
+	 * Ajoute un noeud à la pile des noeuds déférés.
+	 */
+	void defere_noeud(Noeud *noeud);
+
+	/**
+	 * Retourne une référence vers la pile constante de noeuds déférés.
+	 */
+	const std::stack<Noeud *> &noeuds_deferes() const;
+
+	/* ********************************************************************** */
+
 	size_t memoire_utilisee() const;
 
 	/**
@@ -350,6 +363,8 @@ private:
 
 	std::vector<paire_bloc> m_pile_continue{};
 	std::vector<paire_bloc> m_pile_arrete{};
+
+	std::stack<Noeud *> m_noeuds_deferes{};
 
 public:
 	/* À FAIRE : bouge ça d'ici. */

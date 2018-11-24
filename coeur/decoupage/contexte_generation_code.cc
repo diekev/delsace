@@ -354,6 +354,20 @@ std::string ContexteGenerationCode::nom_struct(const size_t id) const
 	return std::string{nom_structures[id]};
 }
 
+/* ************************************************************************** */
+
+void ContexteGenerationCode::defere_noeud(Noeud *noeud)
+{
+	m_noeuds_deferes.push(noeud);
+}
+
+const std::stack<Noeud *> &ContexteGenerationCode::noeuds_deferes() const
+{
+	return m_noeuds_deferes;
+}
+
+/* ************************************************************************** */
+
 size_t ContexteGenerationCode::memoire_utilisee() const
 {
 	size_t memoire = sizeof(ContexteGenerationCode);
