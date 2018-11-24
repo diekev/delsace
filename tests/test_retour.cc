@@ -41,7 +41,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -64,7 +64,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -84,7 +84,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -104,7 +104,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -125,7 +125,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -145,7 +145,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -167,7 +167,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::NORMAL);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);

@@ -36,7 +36,7 @@
 void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
-		const auto tampon = "0.5 ";
+		auto const tampon = "0.5 ";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -52,7 +52,7 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 	}
 
 	{
-		const auto tampon = "0.559_57";
+		auto const tampon = "0.559_57";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -68,7 +68,7 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 	}
 
 	{
-		const auto tampon = "100000+";
+		auto const tampon = "100000+";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -84,7 +84,7 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 	}
 
 	{
-		const auto tampon = "1_234_567_890 ";
+		auto const tampon = "1_234_567_890 ";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -103,7 +103,7 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 void test_decoupage_nombre_binaire(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
-		const auto tampon = "0b1001100+";
+		auto const tampon = "0b1001100+";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -119,7 +119,7 @@ void test_decoupage_nombre_binaire(dls::test_unitaire::Controleuse &controleuse)
 	}
 
 	{
-		const auto tampon = "0B1001_1011 ";
+		auto const tampon = "0B1001_1011 ";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -138,7 +138,7 @@ void test_decoupage_nombre_binaire(dls::test_unitaire::Controleuse &controleuse)
 void test_decoupage_nombre_octal(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
-		const auto tampon = "0o1234567+";
+		auto const tampon = "0o1234567+";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -154,7 +154,7 @@ void test_decoupage_nombre_octal(dls::test_unitaire::Controleuse &controleuse)
 	}
 
 	{
-		const auto tampon = "0O01_23_45_67 ";
+		auto const tampon = "0O01_23_45_67 ";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -173,7 +173,7 @@ void test_decoupage_nombre_octal(dls::test_unitaire::Controleuse &controleuse)
 void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
-		const auto tampon = "0xff38ce+";
+		auto const tampon = "0xff38ce+";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -189,7 +189,7 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 	}
 
 	{
-		const auto tampon = "0XFF_c9_45_AB ";
+		auto const tampon = "0XFF_c9_45_AB ";
 		id_morceau id_nombre;
 
 		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
@@ -210,7 +210,7 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 		decoupeuse_texte decoupeuse(&module);
 		decoupeuse.genere_morceaux();
 
-		const auto &morceaux = module.morceaux;
+		auto const &morceaux = module.morceaux;
 
 		CU_VERIFIE_CONDITION(controleuse, morceaux.size() == 1);
 		CU_VERIFIE_CONDITION(controleuse, morceaux[0].identifiant == id_morceau::NOMBRE_HEXADECIMAL);

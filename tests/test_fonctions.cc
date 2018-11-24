@@ -47,7 +47,7 @@ static void test_pointeur_fonction(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -67,7 +67,7 @@ static void test_pointeur_fonction(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::FONCTION_INCONNUE);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -87,7 +87,7 @@ static void test_pointeur_fonction(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -106,7 +106,7 @@ static void test_pointeur_fonction(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -136,7 +136,7 @@ static void test_pointeur_fonction(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -165,7 +165,7 @@ static void test_pointeur_fonction(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -185,7 +185,7 @@ static void test_pointeur_fonction(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -211,7 +211,7 @@ static void test_appel_fonction_variadique_args_nommes(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -232,7 +232,7 @@ static void test_appel_fonction_variadique_args_nommes(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -253,7 +253,7 @@ static void test_appel_fonction_variadique_args_nommes(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -274,7 +274,7 @@ static void test_appel_fonction_variadique_args_nommes(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -300,7 +300,7 @@ static void test_appel_fonction_variadique(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -322,7 +322,7 @@ static void test_appel_fonction_variadique(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -345,7 +345,7 @@ static void test_appel_fonction_variadique(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -365,7 +365,7 @@ static void test_declaration_fonction_variadique(
 				fonction externe principale(compte : z32, arguments : ...) : rien;
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
@@ -379,7 +379,7 @@ static void test_declaration_fonction_variadique(
 				fonction externe principale(compte : z32, arguments : ...z32) : rien;
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
@@ -393,7 +393,7 @@ static void test_declaration_fonction_variadique(
 				fonction externe principale(arguments : ...*z32, compte : z32) : rien;
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -408,7 +408,7 @@ static void test_declaration_fonction_variadique(
 				fonction externe principale(arguments : ...*z32, comptes : ...z32) : rien;
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -445,7 +445,7 @@ static void test_fonction_general(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
@@ -466,7 +466,7 @@ static void test_fonction_inconnue(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_INCONNUE);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_INCONNUE);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -496,7 +496,7 @@ static void test_argument_nomme_succes(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
@@ -524,7 +524,7 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -548,7 +548,7 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -572,7 +572,7 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -600,7 +600,7 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_INCONNU);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -626,7 +626,7 @@ static void test_argument_nomme_echec(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
 				texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -657,7 +657,7 @@ static void test_type_argument_echec(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_ARGUMENT);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -686,7 +686,7 @@ static void test_nombre_argument(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -711,7 +711,7 @@ static void test_nombre_argument(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NOMBRE_ARGUMENT);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -733,7 +733,7 @@ static void test_argument_unique(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ARGUMENT_REDEFINI);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -760,7 +760,7 @@ static void test_fonction_redinie(
 				}
 				)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_REDEFINIE);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::FONCTION_REDEFINIE);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}

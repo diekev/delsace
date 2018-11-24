@@ -335,7 +335,7 @@ struct arbre {
 static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	const auto max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
+	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
 
 	std::vector<DonneesMorceaux> morceaux;
 	morceaux.reserve(max_morceaux);
@@ -370,11 +370,11 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
 	morceaux.push_back(dm);
 
-	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
 
 	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
 #else
-	const auto max_morceaux = taille_tampon / sizeof(id_morceau);
+	auto const max_morceaux = taille_tampon / sizeof(id_morceau);
 
 	std::vector<id_morceau> morceaux;
 	morceaux.reserve(max_morceaux);
@@ -401,7 +401,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
 	morceaux.push_back(id_morceau::ACCOLADE_FERMANTE);
 
-	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
 
 	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
 #endif
@@ -410,7 +410,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	const auto max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
+	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
 
 	std::vector<DonneesMorceaux> morceaux;
 	morceaux.reserve(max_morceaux);
@@ -438,11 +438,11 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
 	morceaux.push_back(dm);
 
-	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
 
 	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
 #else
-	const auto max_morceaux = taille_tampon / sizeof(id_morceau);
+	auto const max_morceaux = taille_tampon / sizeof(id_morceau);
 
 	std::random_device device{};
 	std::uniform_int_distribution<u_char> rng{
@@ -463,7 +463,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
 	morceaux.push_back(id_morceau::ACCOLADE_FERMANTE);
 
-	const auto taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
 
 	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
 #endif

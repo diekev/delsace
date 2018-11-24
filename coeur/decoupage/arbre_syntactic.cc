@@ -56,7 +56,7 @@
 
 /* ************************************************************************** */
 
-static auto cree_bloc(ContexteGenerationCode &contexte, const char *nom)
+static auto cree_bloc(ContexteGenerationCode &contexte, char const *nom)
 {
 #ifdef NOMME_IR
 	return llvm::BasicBlock::Create(contexte.contexte, nom, contexte.fonction);
@@ -116,7 +116,7 @@ static llvm::Type *converti_type_simple(
 			break;
 		case id_morceau::CHAINE_CARACTERE:
 		{
-			const auto &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
+			auto const &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
 			auto &donnees_structure = contexte.donnees_structure(id_structure);
 
 			if (donnees_structure.type_llvm == nullptr) {
@@ -146,7 +146,7 @@ static llvm::Type *converti_type_simple(
 		}
 		case id_morceau::TABLEAU:
 		{
-			const auto taille = static_cast<uint64_t>(identifiant) & 0xffffff00;
+			auto const taille = static_cast<uint64_t>(identifiant) & 0xffffff00;
 			type = llvm::ArrayType::get(type_entree, taille >> 8);
 			break;
 		}
@@ -286,13 +286,13 @@ static unsigned alignement(
 			return 8;
 		case id_morceau::CHAINE_CARACTERE:
 		{
-			const auto &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
+			auto const &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
 			auto &donnees_structure = contexte.donnees_structure(id_structure);
 
 			auto a = 0u;
 
-			for (const auto &donnees : donnees_structure.donnees_types) {
-				const auto &dt = contexte.magasin_types.donnees_types[donnees];
+			for (auto const &donnees : donnees_structure.donnees_types) {
+				auto const &dt = contexte.magasin_types.donnees_types[donnees];
 				a = std::max(a, alignement(contexte, dt));
 			}
 
@@ -481,7 +481,7 @@ static bool est_branche_ou_retour(llvm::Value *valeur)
 	return (valeur != nullptr) && (llvm::isa<llvm::BranchInst>(*valeur) || llvm::isa<llvm::ReturnInst>(*valeur));
 }
 
-char caractere_echape(const char *sequence)
+char caractere_echape(char const *sequence)
 {
 	switch (sequence[0]) {
 		case '\\':
@@ -525,8 +525,8 @@ static llvm::FunctionType *obtiens_type_fonction(
 	std::vector<llvm::Type *> parametres;
 	parametres.reserve(donnees_fonction.nom_args.size());
 
-	for (const auto &nom : donnees_fonction.nom_args) {
-		const auto &argument = donnees_fonction.args.find(nom);
+	for (auto const &nom : donnees_fonction.nom_args) {
+		auto const &argument = donnees_fonction.args.find(nom);
 
 		if (argument->second.est_variadic) {
 			/* ajout de l'argument implicite du compte d'arguments var_args */
@@ -555,9 +555,9 @@ static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte, int i
 
 	/* insère un appel à va_end avant chaque instruction de retour */
 	if (contexte.fonction->isVarArg()) {
-		const auto &donnees_fonction = module->donnees_fonction(std::string(contexte.fonction->getName()));
+		auto const &donnees_fonction = module->donnees_fonction(std::string(contexte.fonction->getName()));
 
-		for (const auto &arg : donnees_fonction.args) {
+		for (auto const &arg : donnees_fonction.args) {
 			if (arg.second.est_variadic) {
 				auto valeur_varg = contexte.valeur_locale(arg.first);
 
@@ -583,7 +583,7 @@ static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte, int i
 
 /* ************************************************************************** */
 
-Noeud::Noeud(ContexteGenerationCode &/*contexte*/, const DonneesMorceaux &morceau)
+Noeud::Noeud(ContexteGenerationCode &/*contexte*/, DonneesMorceaux const &morceau)
 	: m_donnees_morceaux{morceau}
 {}
 
@@ -592,7 +592,7 @@ bool Noeud::est_constant() const
 	return false;
 }
 
-const std::string_view &Noeud::chaine() const
+std::string_view const &Noeud::chaine() const
 {
 	return m_donnees_morceaux.chaine;
 }
@@ -602,7 +602,7 @@ bool Noeud::peut_etre_assigne(ContexteGenerationCode &/*contexte*/) const
 	return false;
 }
 
-const DonneesMorceaux &Noeud::donnees_morceau() const
+DonneesMorceaux const &Noeud::donnees_morceau() const
 {
 	return m_donnees_morceaux;
 }
@@ -635,7 +635,7 @@ id_morceau Noeud::identifiant() const
 
 /* ************************************************************************** */
 
-NoeudRacine::NoeudRacine(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudRacine::NoeudRacine(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -648,7 +648,7 @@ void NoeudRacine::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudRacine::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto temps_validation = 0.0;
 	auto temps_generation = 0.0;
@@ -676,7 +676,7 @@ type_noeud NoeudRacine::type() const
 
 /* ************************************************************************** */
 
-NoeudAppelFonction::NoeudAppelFonction(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudAppelFonction::NoeudAppelFonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
 	/* réutilisation du membre std::any pour économiser un peu de mémoire */
@@ -694,7 +694,7 @@ void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	/* broyage du nom */
 	auto module = contexte.module(static_cast<size_t>(this->module_appel));
@@ -749,7 +749,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		return llvm::CallInst::Create(charge, args, "", contexte.bloc_courant());
 	}
 
-	const auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
+	auto const &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	auto fonction_variadique_interne = fonction->isVarArg() && !donnees_fonction.est_externe;
 
@@ -779,15 +779,15 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	auto enfant = m_enfants.begin();
 	auto nombre_arg_variadic = 0ul + fonction_variadique_interne;
 
-	for (const auto &nom : *noms_arguments) {
+	for (auto const &nom : *noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
 		 * car ça a déjà été fait dans l'analyse grammaticale. */
-		const auto iter = donnees_fonction.args.find(nom);
+		auto const iter = donnees_fonction.args.find(nom);
 		auto index_arg = iter->second.index;
-		const auto index_type_arg = iter->second.donnees_type;
-		const auto index_type_enf = (*enfant)->donnees_type;
-		const auto &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
-		const auto &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
+		auto const index_type_arg = iter->second.donnees_type;
+		auto const index_type_enf = (*enfant)->donnees_type;
+		auto const &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
+		auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
 
 		if (iter->second.est_variadic) {
 			if (!type_arg.est_invalide()) {
@@ -863,7 +863,7 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 	if (!module->possede_fonction(m_donnees_morceaux.chaine)) {
 		/* Nous avons un pointeur vers une fonction. */
 		if (contexte.locale_existe(m_donnees_morceaux.chaine)) {
-			for (const auto &nom : *noms_arguments) {
+			for (auto const &nom : *noms_arguments) {
 				if (nom.empty()) {
 					continue;
 				}
@@ -878,7 +878,7 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 
 			/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
 
-			const auto &dt_pf = contexte.magasin_types.donnees_types[contexte.type_locale(m_donnees_morceaux.chaine)];
+			auto const &dt_pf = contexte.magasin_types.donnees_types[contexte.type_locale(m_donnees_morceaux.chaine)];
 
 			if (dt_pf.type_base() != id_morceau::FONCTION) {
 				erreur::lance_erreur(
@@ -916,7 +916,7 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
-	const auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
+	auto const &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	if (!donnees_fonction.est_variadique && (m_enfants.size() != donnees_fonction.args.size())) {
 		erreur::lance_erreur_nombre_arguments(
@@ -934,10 +934,10 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 	auto arguments_nommes = false;
 	std::set<std::string_view> args;
 	auto dernier_arg_variadique = false;
-	const auto nombre_args = donnees_fonction.args.size();
+	auto const nombre_args = donnees_fonction.args.size();
 
 	auto index = 0ul;
-	const auto index_max = nombre_args - donnees_fonction.est_variadique;
+	auto const index_max = nombre_args - donnees_fonction.est_variadique;
 
 	for (auto &nom_arg : *noms_arguments) {
 		if (nom_arg != "") {
@@ -988,7 +988,7 @@ void NoeudAppelFonction::perfome_validation_semantique(ContexteGenerationCode &c
 
 /* ************************************************************************** */
 
-NoeudDeclarationFonction::NoeudDeclarationFonction(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudDeclarationFonction::NoeudDeclarationFonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -1003,7 +1003,7 @@ void NoeudDeclarationFonction::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	/* À FAIRE : inférence de type
 	 * - considération du type de retour des fonctions récursive
@@ -1059,8 +1059,8 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	/* Crée code pour les arguments */
 	auto valeurs_args = fonction->arg_begin();
 
-	for (const auto &nom : donnees_fonction.nom_args) {
-		const auto &argument = donnees_fonction.args[nom];
+	for (auto const &nom : donnees_fonction.nom_args) {
+		auto const &argument = donnees_fonction.args[nom];
 		auto align = unsigned{0};
 		auto type = static_cast<llvm::Type *>(nullptr);
 
@@ -1111,9 +1111,9 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		}
 
 #ifdef NOMME_IR
-		const auto &nom_argument = argument.chaine;
+		auto const &nom_argument = argument.chaine;
 #else
-		const auto &nom_argument = "";
+		auto const &nom_argument = "";
 #endif
 
 		if (argument.est_variadic) {
@@ -1209,8 +1209,8 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 	auto donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
 	/* Pousse les paramètres sur la pile. */
-	for (const auto &nom : donnees_fonction.nom_args) {
-		const auto &argument = donnees_fonction.args[nom];
+	for (auto const &nom : donnees_fonction.nom_args) {
+		auto const &argument = donnees_fonction.args[nom];
 
 		if (argument.est_variadic) {
 			auto dt = DonneesType{};
@@ -1274,7 +1274,7 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 
 /* ************************************************************************** */
 
-NoeudAssignationVariable::NoeudAssignationVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudAssignationVariable::NoeudAssignationVariable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -1289,7 +1289,7 @@ void NoeudAssignationVariable::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	assert(m_enfants.size() == 2);
 
@@ -1304,7 +1304,7 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto alloc = variable->genere_code_llvm(contexte, true);
 	auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 
-	const auto &dt = contexte.magasin_types.donnees_types[expression->donnees_type];
+	auto const &dt = contexte.magasin_types.donnees_types[expression->donnees_type];
 	store->setAlignment(alignement(contexte, dt));
 
 	return store;
@@ -1340,7 +1340,7 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 					erreur::type_erreur::TYPE_INCONNU);
 	}
 
-	const auto &dt = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto const &dt = contexte.magasin_types.donnees_types[this->donnees_type];
 
 	if (dt.type_base() == id_morceau::RIEN) {
 		erreur::lance_erreur(
@@ -1358,7 +1358,7 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 
 	variable->perfome_validation_semantique(contexte);
 
-	const auto &type_gauche = contexte.magasin_types.donnees_types[variable->donnees_type];
+	auto const &type_gauche = contexte.magasin_types.donnees_types[variable->donnees_type];
 
 	if (!peut_assigner(type_gauche, dt, expression->type())) {
 		erreur::lance_erreur_assignation_type_differents(
@@ -1371,7 +1371,7 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 
 /* ************************************************************************** */
 
-NoeudDeclarationVariable::NoeudDeclarationVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudDeclarationVariable::NoeudDeclarationVariable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -1381,7 +1381,7 @@ void NoeudDeclarationVariable::imprime_code(std::ostream &os, int tab)
 	os << "NoeudDeclarationVariable : " << m_donnees_morceaux.chaine << '\n';
 }
 
-llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
 	auto type_llvm = converti_type(contexte, type);
@@ -1440,7 +1440,7 @@ void NoeudDeclarationVariable::perfome_validation_semantique(ContexteGenerationC
 
 /* ************************************************************************** */
 
-NoeudConstante::NoeudConstante(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudConstante::NoeudConstante(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -1455,7 +1455,7 @@ void NoeudConstante::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	/* À FAIRE : énumération avec des expressions contenant d'autres énums.
 	 * différents types (réel, bool, etc..)
@@ -1521,7 +1521,7 @@ void NoeudConstante::perfome_validation_semantique(ContexteGenerationCode &conte
 
 /* ************************************************************************** */
 
-NoeudNombreEntier::NoeudNombreEntier(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudNombreEntier::NoeudNombreEntier(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
 	auto dt = DonneesType{};
@@ -1544,9 +1544,9 @@ void NoeudNombreEntier::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudNombreEntier::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
-	const auto valeur = this->calcule ? std::any_cast<long>(this->valeur_calculee) :
+	auto const valeur = this->calcule ? std::any_cast<long>(this->valeur_calculee) :
 										converti_chaine_nombre_entier(
 											m_donnees_morceaux.chaine,
 											m_donnees_morceaux.identifiant);
@@ -1569,7 +1569,7 @@ type_noeud NoeudNombreEntier::type() const
 
 /* ************************************************************************** */
 
-NoeudBooleen::NoeudBooleen(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudBooleen::NoeudBooleen(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
 	auto dt = DonneesType{};
@@ -1592,9 +1592,9 @@ void NoeudBooleen::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudBooleen::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudBooleen::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
-	const auto valeur = this->calcule ? std::any_cast<bool>(this->valeur_calculee)
+	auto const valeur = this->calcule ? std::any_cast<bool>(this->valeur_calculee)
 									  : (this->chaine() == "vrai");
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt1Ty(contexte.contexte),
@@ -1614,7 +1614,7 @@ type_noeud NoeudBooleen::type() const
 
 /* ************************************************************************** */
 
-NoeudCaractere::NoeudCaractere(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudCaractere::NoeudCaractere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
 	auto dt = DonneesType{};
@@ -1629,7 +1629,7 @@ void NoeudCaractere::imprime_code(std::ostream &os, int tab)
 	os << "NoeudCaractere : " << m_donnees_morceaux.chaine << '\n';
 }
 
-llvm::Value *NoeudCaractere::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudCaractere::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto valeur = caractere_echape(&m_donnees_morceaux.chaine[0]);
 
@@ -1651,7 +1651,7 @@ type_noeud NoeudCaractere::type() const
 
 /* ************************************************************************** */
 
-NoeudNombreReel::NoeudNombreReel(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudNombreReel::NoeudNombreReel(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
 	auto dt = DonneesType{};
@@ -1674,9 +1674,9 @@ void NoeudNombreReel::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudNombreReel::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
-	const auto valeur = this->calcule ? std::any_cast<double>(this->valeur_calculee) :
+	auto const valeur = this->calcule ? std::any_cast<double>(this->valeur_calculee) :
 										converti_chaine_nombre_reel(
 											m_donnees_morceaux.chaine,
 											m_donnees_morceaux.identifiant);
@@ -1698,7 +1698,7 @@ type_noeud NoeudNombreReel::type() const
 
 /* ************************************************************************** */
 
-NoeudChaineLitterale::NoeudChaineLitterale(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudChaineLitterale::NoeudChaineLitterale(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
 	/* fais en sorte que les caractères échappés ne soient pas comptés comme
@@ -1740,7 +1740,7 @@ void NoeudChaineLitterale::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto chaine = std::any_cast<std::string>(this->valeur_calculee);
 
@@ -1783,7 +1783,7 @@ type_noeud NoeudChaineLitterale::type() const
 
 /* ************************************************************************** */
 
-NoeudVariable::NoeudVariable(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudVariable::NoeudVariable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -1798,7 +1798,7 @@ void NoeudVariable::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
+llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche)
 {
 	auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
 
@@ -1815,7 +1815,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, c
 		return valeur;
 	}
 
-	const auto &index_type = this->donnees_type;
+	auto const &index_type = this->donnees_type;
 	auto &type = contexte.magasin_types.donnees_types[index_type];
 
 	if (contexte.est_locale_variadique(m_donnees_morceaux.chaine)) {
@@ -1860,7 +1860,7 @@ void NoeudVariable::perfome_validation_semantique(ContexteGenerationCode &contex
 	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
 
 	if (module->fonction_existe(m_donnees_morceaux.chaine)) {
-		const auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
+		auto const &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 		this->donnees_type = donnees_fonction.index_type;
 		return;
 	}
@@ -1874,7 +1874,7 @@ void NoeudVariable::perfome_validation_semantique(ContexteGenerationCode &contex
 
 /* ************************************************************************** */
 
-NoeudAccesMembre::NoeudAccesMembre(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudAccesMembre::NoeudAccesMembre(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -1889,13 +1889,13 @@ void NoeudAccesMembre::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
+llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche)
 {
 	auto structure = m_enfants.back();
 	auto membre = m_enfants.front();
 
-	const auto &index_type = structure->donnees_type;
-	const auto &type_structure = contexte.magasin_types.donnees_types[index_type];
+	auto const &index_type = structure->donnees_type;
+	auto const &type_structure = contexte.magasin_types.donnees_types[index_type];
 
 	auto index_structure = 0ul;
 	auto est_pointeur = false;
@@ -1914,13 +1914,13 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 		index_structure = size_t(type_structure.type_base() >> 8);
 	}
 
-	const auto &nom_membre = membre->chaine();
+	auto const &nom_membre = membre->chaine();
 
 	auto &donnees_structure = contexte.donnees_structure(index_structure);
 
-	const auto iter = donnees_structure.index_membres.find(nom_membre);
+	auto const iter = donnees_structure.index_membres.find(nom_membre);
 
-	const auto index_membre = iter->second;
+	auto const index_membre = iter->second;
 
 	auto valeur = structure->genere_code_llvm(contexte, true);
 
@@ -1944,7 +1944,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 	if (!expr_gauche) {
 		auto charge = new llvm::LoadInst(ret, "", contexte.bloc_courant());
-		const auto &dt = contexte.magasin_types.donnees_types[donnees_structure.donnees_types[index_membre]];
+		auto const &dt = contexte.magasin_types.donnees_types[donnees_structure.donnees_types[index_membre]];
 		charge->setAlignment(alignement(contexte, dt));
 		ret = charge;
 	}
@@ -1969,8 +1969,8 @@ void NoeudAccesMembre::perfome_validation_semantique(ContexteGenerationCode &con
 
 	structure->perfome_validation_semantique(contexte);
 
-	const auto &index_type = structure->donnees_type;
-	const auto &type_structure = contexte.magasin_types.donnees_types[index_type];
+	auto const &index_type = structure->donnees_type;
+	auto const &type_structure = contexte.magasin_types.donnees_types[index_type];
 
 	auto index_structure = 0ul;
 
@@ -2001,11 +2001,11 @@ void NoeudAccesMembre::perfome_validation_semantique(ContexteGenerationCode &con
 		index_structure = size_t(type_structure.type_base() >> 8);
 	}
 
-	const auto &nom_membre = membre->chaine();
+	auto const &nom_membre = membre->chaine();
 
 	auto &donnees_structure = contexte.donnees_structure(index_structure);
 
-	const auto iter = donnees_structure.index_membres.find(nom_membre);
+	auto const iter = donnees_structure.index_membres.find(nom_membre);
 
 	if (iter == donnees_structure.index_membres.end()) {
 		/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
@@ -2016,7 +2016,7 @@ void NoeudAccesMembre::perfome_validation_semantique(ContexteGenerationCode &con
 					erreur::type_erreur::MEMBRE_INCONNU);
 	}
 
-	const auto index_membre = iter->second;
+	auto const index_membre = iter->second;
 
 	this->donnees_type = donnees_structure.donnees_types[index_membre];
 }
@@ -2080,7 +2080,7 @@ static bool peut_operer(
 	return false;
 }
 
-NoeudOperationBinaire::NoeudOperationBinaire(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudOperationBinaire::NoeudOperationBinaire(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -2095,7 +2095,7 @@ void NoeudOperationBinaire::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &contexte, const bool expr_gauche)
+llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche)
 {
 	auto instr = llvm::Instruction::Add;
 	auto predicat = llvm::CmpInst::Predicate::FCMP_FALSE;
@@ -2105,10 +2105,10 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 	auto enfant1 = m_enfants.front();
 	auto enfant2 = m_enfants.back();
 
-	const auto index_type1 = enfant1->donnees_type;
-	const auto index_type2 = enfant2->donnees_type;
+	auto const index_type1 = enfant1->donnees_type;
+	auto const index_type2 = enfant2->donnees_type;
 
-	const auto &type1 = contexte.magasin_types.donnees_types[index_type1];
+	auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
 	auto &type2 = contexte.magasin_types.donnees_types[index_type2];
 
 	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT)) {
@@ -2124,7 +2124,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 	/* À FAIRE : typage */
 
 	/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
-	const auto valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
+	auto const valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
 
 	auto valeur1 = enfant1->genere_code_llvm(contexte);
 	auto valeur2 = enfant2->genere_code_llvm(contexte, valeur2_brut);
@@ -2402,11 +2402,11 @@ void NoeudOperationBinaire::perfome_validation_semantique(ContexteGenerationCode
 	enfant1->perfome_validation_semantique(contexte);
 	enfant2->perfome_validation_semantique(contexte);
 
-	const auto index_type1 = enfant1->donnees_type;
-	const auto index_type2 = enfant2->donnees_type;
+	auto const index_type1 = enfant1->donnees_type;
+	auto const index_type2 = enfant2->donnees_type;
 
-	const auto &type1 = contexte.magasin_types.donnees_types[index_type1];
-	const auto &type2 = contexte.magasin_types.donnees_types[index_type2];
+	auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
+	auto const &type2 = contexte.magasin_types.donnees_types[index_type2];
 
 	if ((this->m_donnees_morceaux.identifiant != id_morceau::CROCHET_OUVRANT)) {
 		if (!peut_operer(type1, type2, enfant1->type(), enfant2->type())) {
@@ -2428,7 +2428,7 @@ void NoeudOperationBinaire::perfome_validation_semantique(ContexteGenerationCode
 		{
 			auto donnees_enfant = m_enfants.back()->donnees_type;
 
-			const auto &type = contexte.magasin_types.donnees_types[donnees_enfant];
+			auto const &type = contexte.magasin_types.donnees_types[donnees_enfant];
 			auto dt = type.derefence();
 			this->donnees_type = contexte.magasin_types.ajoute_type(dt);
 			break;
@@ -2453,7 +2453,7 @@ void NoeudOperationBinaire::perfome_validation_semantique(ContexteGenerationCode
 
 /* ************************************************************************** */
 
-NoeudOperationUnaire::NoeudOperationUnaire(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudOperationUnaire::NoeudOperationUnaire(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -2467,12 +2467,12 @@ void NoeudOperationUnaire::imprime_code(std::ostream &os, int tab)
 	m_enfants.front()->imprime_code(os, tab + 1);
 }
 
-llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	llvm::Instruction::BinaryOps instr;
 	auto enfant = m_enfants.front();
 	auto index_type1 = enfant->donnees_type;
-	const auto &type1 = contexte.magasin_types.donnees_types[index_type1];
+	auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
 	auto valeur1 = enfant->genere_code_llvm(contexte);
 	auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
@@ -2544,7 +2544,7 @@ void NoeudOperationUnaire::perfome_validation_semantique(ContexteGenerationCode 
 	auto enfant = m_enfants.front();
 	enfant->perfome_validation_semantique(contexte);
 	auto index_type = enfant->donnees_type;
-	const auto &type = contexte.magasin_types.donnees_types[index_type];
+	auto const &type = contexte.magasin_types.donnees_types[index_type];
 
 	if (this->donnees_type == -1ul) {
 		switch (this->identifiant()) {
@@ -2583,7 +2583,7 @@ void NoeudOperationUnaire::perfome_validation_semantique(ContexteGenerationCode 
 
 /* ************************************************************************** */
 
-NoeudRetour::NoeudRetour(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudRetour::NoeudRetour(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -2597,7 +2597,7 @@ void NoeudRetour::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	genere_code_extra_pre_retour(contexte, m_donnees_morceaux.module);
 
@@ -2631,7 +2631,7 @@ void NoeudRetour::perfome_validation_semantique(ContexteGenerationCode &contexte
 
 /* ************************************************************************** */
 
-NoeudSi::NoeudSi(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudSi::NoeudSi(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -2645,9 +2645,9 @@ void NoeudSi::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudSi::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
-	const auto nombre_enfants = m_enfants.size();
+	auto const nombre_enfants = m_enfants.size();
 	auto iter_enfant = m_enfants.begin();
 
 	/* noeud 1 : condition */
@@ -2697,7 +2697,7 @@ type_noeud NoeudSi::type() const
 
 void NoeudSi::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
-	const auto nombre_enfants = m_enfants.size();
+	auto const nombre_enfants = m_enfants.size();
 	auto iter_enfant = m_enfants.begin();
 
 	auto enfant1 = *iter_enfant++;
@@ -2705,7 +2705,7 @@ void NoeudSi::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 	enfant1->perfome_validation_semantique(contexte);
 	auto index_type = enfant1->donnees_type;
-	const auto &type_condition = contexte.magasin_types.donnees_types[index_type];
+	auto const &type_condition = contexte.magasin_types.donnees_types[index_type];
 
 	if (type_condition.type_base() != id_morceau::BOOL) {
 		erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
@@ -2725,7 +2725,7 @@ void NoeudSi::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudBloc::NoeudBloc(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudBloc::NoeudBloc(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -2739,7 +2739,7 @@ void NoeudBloc::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudBloc::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	llvm::Value *valeur = nullptr;
 
@@ -2800,7 +2800,7 @@ void NoeudBloc::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudPour::NoeudPour(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudPour::NoeudPour(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -2915,7 +2915,7 @@ static llvm::Value *incremente_pour_type(
  * apres_boucle:
  *	...
  */
-llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto nombre_enfants = m_enfants.size();
 	auto iter = m_enfants.begin();
@@ -2932,7 +2932,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, const
 
 	auto index_type = enfant2->donnees_type;
 	auto &type_debut = contexte.magasin_types.donnees_types[index_type];
-	const auto type = type_debut.type_base();
+	auto const type = type_debut.type_base();
 
 	enfant1->donnees_type = index_type;
 
@@ -3102,7 +3102,7 @@ type_noeud NoeudPour::type() const
 
 void NoeudPour::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
-	const auto nombre_enfants = m_enfants.size();
+	auto const nombre_enfants = m_enfants.size();
 	auto iter = m_enfants.begin();
 
 	/* on génère d'abord le type de la variable */
@@ -3169,7 +3169,7 @@ void NoeudPour::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudContArr::NoeudContArr(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudContArr::NoeudContArr(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -3179,7 +3179,7 @@ void NoeudContArr::imprime_code(std::ostream &os, int tab)
 	os << "NoeudContArr : " << m_donnees_morceaux.chaine << '\n';
 }
 
-llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudContArr::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto chaine_var = m_enfants.empty() ? std::string_view{""} : m_enfants.front()->chaine();
 
@@ -3214,7 +3214,7 @@ type_noeud NoeudContArr::type() const
 
 /* ************************************************************************** */
 
-NoeudBoucle::NoeudBoucle(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudBoucle::NoeudBoucle(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -3236,7 +3236,7 @@ void NoeudBoucle::imprime_code(std::ostream &os, int tab)
  */
 llvm::Value *NoeudBoucle::genere_code_llvm(
 		ContexteGenerationCode &contexte,
-		const bool /*expr_gauche*/)
+		bool const /*expr_gauche*/)
 {
 	auto iter = m_enfants.begin();
 	auto enfant1 = *iter++;
@@ -3278,7 +3278,7 @@ type_noeud NoeudBoucle::type() const
 	return type_noeud::BOUCLE;
 }
 
-NoeudTranstype::NoeudTranstype(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudTranstype::NoeudTranstype(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -3330,17 +3330,17 @@ constexpr llvm::Value *cree_instruction(
 	}
 }
 
-llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto enfant = m_enfants.front();
 	auto valeur = enfant->genere_code_llvm(contexte);
-	const auto &index_type_de = enfant->donnees_type;
+	auto const &index_type_de = enfant->donnees_type;
 
 	if (index_type_de == this->donnees_type) {
 		return valeur;
 	}
 
-	const auto &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
+	auto const &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
 
 	using CastOps = llvm::Instruction::CastOps;
 	auto &dt = contexte.magasin_types.donnees_types[this->donnees_type];
@@ -3436,7 +3436,7 @@ void NoeudTranstype::perfome_validation_semantique(ContexteGenerationCode &conte
 
 /* ************************************************************************** */
 
-NoeudNul::NoeudNul(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudNul::NoeudNul(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
 	auto dt = DonneesType{};
@@ -3452,7 +3452,7 @@ void NoeudNul::imprime_code(std::ostream &os, int tab)
 	os << "NoeudNul\n";
 }
 
-llvm::Value *NoeudNul::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudNul::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	return llvm::ConstantInt::get(
 				llvm::Type::getInt32Ty(contexte.contexte),
@@ -3467,7 +3467,7 @@ type_noeud NoeudNul::type() const
 
 /* ************************************************************************** */
 
-NoeudTailleDe::NoeudTailleDe(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudTailleDe::NoeudTailleDe(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
 	auto dt = DonneesType{};
@@ -3485,7 +3485,7 @@ void NoeudTailleDe::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudTailleDe::genere_code_llvm(
 		ContexteGenerationCode &contexte,
-		const bool /*expr_gauche*/)
+		bool const /*expr_gauche*/)
 {
 	auto dl = llvm::DataLayout(contexte.module_llvm);
 	auto donnees = std::any_cast<DonneesType>(this->valeur_calculee);
@@ -3505,7 +3505,7 @@ type_noeud NoeudTailleDe::type() const
 
 /* ************************************************************************** */
 
-NoeudPlage::NoeudPlage(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudPlage::NoeudPlage(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -3519,7 +3519,7 @@ void NoeudPlage::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudPlage::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudPlage::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto iter = m_enfants.begin();
 
@@ -3561,8 +3561,8 @@ void NoeudPlage::perfome_validation_semantique(ContexteGenerationCode &contexte)
 					erreur::type_erreur::TYPE_INCONNU);
 	}
 
-	const auto &type_debut = contexte.magasin_types.donnees_types[index_type_debut];
-	const auto &type_fin   = contexte.magasin_types.donnees_types[index_type_fin];
+	auto const &type_debut = contexte.magasin_types.donnees_types[index_type_debut];
+	auto const &type_fin   = contexte.magasin_types.donnees_types[index_type_fin];
 
 	if (type_debut.est_invalide() || type_fin.est_invalide()) {
 		erreur::lance_erreur(
@@ -3580,7 +3580,7 @@ void NoeudPlage::perfome_validation_semantique(ContexteGenerationCode &contexte)
 					m_donnees_morceaux);
 	}
 
-	const auto type = type_debut.type_base();
+	auto const type = type_debut.type_base();
 
 	if (!est_type_entier_naturel(type) && !est_type_entier_relatif(type) && !est_type_reel(type)) {
 		erreur::lance_erreur(
@@ -3598,7 +3598,7 @@ void NoeudPlage::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-NoeudAccesMembrePoint::NoeudAccesMembrePoint(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudAccesMembrePoint::NoeudAccesMembrePoint(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -3612,7 +3612,7 @@ void NoeudAccesMembrePoint::imprime_code(std::ostream &os, int tab)
 	}
 }
 
-llvm::Value *NoeudAccesMembrePoint::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudAccesMembrePoint::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	return m_enfants.back()->genere_code_llvm(contexte);
 }
@@ -3627,7 +3627,7 @@ void NoeudAccesMembrePoint::perfome_validation_semantique(ContexteGenerationCode
 	auto enfant1 = m_enfants.front();
 	auto enfant2 = m_enfants.back();
 
-	const auto nom_module = enfant1->chaine();
+	auto const nom_module = enfant1->chaine();
 
 	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
 
@@ -3649,7 +3649,7 @@ void NoeudAccesMembrePoint::perfome_validation_semantique(ContexteGenerationCode
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
-	const auto nom_fonction = enfant2->chaine();
+	auto const nom_fonction = enfant2->chaine();
 
 	if (!module_importe->possede_fonction(nom_fonction)) {
 		erreur::lance_erreur(
@@ -3668,7 +3668,7 @@ void NoeudAccesMembrePoint::perfome_validation_semantique(ContexteGenerationCode
 
 /* ************************************************************************** */
 
-NoeudDefere::NoeudDefere(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+NoeudDefere::NoeudDefere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
@@ -3679,7 +3679,7 @@ void NoeudDefere::imprime_code(std::ostream &os, int tab)
 	m_enfants.front()->imprime_code(os, tab + 1);
 }
 
-llvm::Value *NoeudDefere::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+llvm::Value *NoeudDefere::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto noeud = m_enfants.front();
 

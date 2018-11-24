@@ -53,12 +53,16 @@ class analyseuse_grammaire : public Analyseuse {
 	DonneesModule *m_module;
 
 public:
-	analyseuse_grammaire(ContexteGenerationCode &contexte, const std::vector<DonneesMorceaux> &identifiants, assembleuse_arbre *assembleuse, DonneesModule *module);
+	analyseuse_grammaire(
+			ContexteGenerationCode &contexte,
+			std::vector<DonneesMorceaux> const &identifiants,
+			assembleuse_arbre *assembleuse,
+			DonneesModule *module);
 
 	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
 	 * module. */
-	analyseuse_grammaire(const analyseuse_grammaire &) = delete;
-	analyseuse_grammaire &operator=(const analyseuse_grammaire &) = delete;
+	analyseuse_grammaire(analyseuse_grammaire const &) = delete;
+	analyseuse_grammaire &operator=(analyseuse_grammaire const &) = delete;
 
 	void lance_analyse(std::ostream &os) override;
 
@@ -67,7 +71,7 @@ private:
 	void analyse_declaration_fonction();
 	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees, DonneesType *donnees_type_fonction);
 	void analyse_corps_fonction();
-	void analyse_expression_droite(id_morceau identifiant_final, const bool calcul_expression = false, const bool assignation = false);
+	void analyse_expression_droite(id_morceau identifiant_final, bool const calcul_expression = false, bool const assignation = false);
 	void analyse_appel_fonction(NoeudAppelFonction *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_constante();

@@ -187,7 +187,7 @@ struct hash<DonneesType> {
 	{
 		auto empreinte = 5381ul;
 
-		for (const auto &id : donnees) {
+		for (auto const &id : donnees) {
 			empreinte = ((empreinte << 5) + empreinte) + static_cast<size_t>(id);
 		}
 

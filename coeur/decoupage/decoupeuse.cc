@@ -70,27 +70,27 @@ static constexpr auto GUILLEMET_FERMANT = 0x00BB;  /* » */
 
 constexpr auto converti_utf32(const char *sequence, int n)
 {
-	const auto s0 = static_cast<unsigned char>(sequence[0]);
+	auto const s0 = static_cast<unsigned char>(sequence[0]);
 
 	if (n == 1) {
 		return static_cast<int>(s0) & 0b01111111;
 	}
 
-	const auto s1 = static_cast<unsigned char>(sequence[1]);
+	auto const s1 = static_cast<unsigned char>(sequence[1]);
 
 	if (n == 2) {
 		auto valeur = (s0 & 0b00011111) << 6 | (s1 & 0b00111111);
 		return valeur;
 	}
 
-	const auto s2 = static_cast<unsigned char>(sequence[2]);
+	auto const s2 = static_cast<unsigned char>(sequence[2]);
 
 	if (n == 3) {
 		auto valeur = (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111);
 		return valeur;
 	}
 
-	const auto s3 = static_cast<unsigned char>(sequence[3]);
+	auto const s3 = static_cast<unsigned char>(sequence[3]);
 
 	if (n == 4) {
 		auto valeur = (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111);
@@ -220,7 +220,7 @@ size_t decoupeuse_texte::memoire_morceaux() const
 
 void decoupeuse_texte::imprime_morceaux(std::ostream &os)
 {
-	for (const auto &morceau : m_module->morceaux) {
+	for (auto const &morceau : m_module->morceaux) {
 		os << chaine_identifiant(morceau.identifiant) << '\n';
 	}
 }
@@ -435,7 +435,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 		 * m_taille_mot_courant est remis à 0 dans pousse_mot() donc on ne peut
 		 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
 		 * infinie. */
-		const auto compte = extrait_nombre(m_debut, m_fin, id_nombre);
+		auto const compte = extrait_nombre(m_debut, m_fin, id_nombre);
 		m_taille_mot_courant = compte;
 
 		this->pousse_mot(id_nombre);

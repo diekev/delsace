@@ -388,7 +388,7 @@ struct pourcentage {
 
 static std::ostream &operator<<(std::ostream &os, const pourcentage &p)
 {
-	const auto valeur = static_cast<int>(p.valeur * 100) / 100.0;
+	auto const valeur = static_cast<int>(p.valeur * 100) / 100.0;
 
 	if (valeur < 10) {
 		os << ' ' << ' ';
@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	const auto ops = genere_options_compilation(argc, argv);
+	auto const ops = genere_options_compilation(argc, argv);
 
 	if (ops.imprime_aide) {
 		std::cout << options;
@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	const auto chemin_fichier = ops.chemin_fichier;
+	auto const chemin_fichier = ops.chemin_fichier;
 
 	if (chemin_fichier == nullptr) {
 		std::cerr << "Aucun fichier spécifié !\n";
@@ -537,7 +537,7 @@ int main(int argc, char *argv[])
 			assembleuse.imprime_code(os);
 		}
 
-		const auto triplet_cible = llvm::sys::getDefaultTargetTriple();
+		auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
 		initialise_llvm();
 
@@ -604,19 +604,19 @@ int main(int argc, char *argv[])
 	}
 
 	temps_nettoyage = dls::chrono::delta(debut_nettoyage);
-	const auto temps_total = dls::chrono::delta(debut_compilation);
+	auto const temps_total = dls::chrono::delta(debut_compilation);
 
-	const auto temps_scene = metriques.temps_tampon
+	auto const temps_scene = metriques.temps_tampon
 							 + metriques.temps_decoupage
 							 + metriques.temps_analyse
 							 + metriques.temps_chargement
 							 + metriques.temps_validation;
 
-	const auto temps_coulisse = metriques.temps_generation
+	auto const temps_coulisse = metriques.temps_generation
 								+ temps_fichier_objet
 								+ temps_executable;
 
-	const auto temps_aggrege = temps_scene + temps_coulisse + temps_nettoyage;
+	auto const temps_aggrege = temps_scene + temps_coulisse + temps_nettoyage;
 
 	auto calc_pourcentage = [&](const double &x, const double &total)
 	{
@@ -631,7 +631,7 @@ int main(int argc, char *argv[])
 	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_aggrege << '\n';
 	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(metriques.nombre_lignes) / temps_aggrege)) << '\n';
 
-	const auto mem_totale = metriques.memoire_tampons
+	auto const mem_totale = metriques.memoire_tampons
 							+ metriques.memoire_morceaux
 							+ mem_arbre
 							+ mem_contexte;

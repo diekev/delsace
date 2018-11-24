@@ -94,7 +94,7 @@ void test_modules(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"La compilation de module fonctionne si le module est connu.");
 	{
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
 				"fichiers_tests/test_module_correcte.kuri", false, erreur::type_erreur::AUCUNE_ERREUR);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
@@ -105,7 +105,7 @@ void test_modules(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"On ne peut pas appeler une fonction inconnue d'un module.");
 	{
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
 				"fichiers_tests/test_fonction_inconnue_module.kuri", false, erreur::type_erreur::FONCTION_INCONNUE);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -117,7 +117,7 @@ void test_modules(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"On ne peut importer un module inconnu.");
 	{
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
 				"fichiers_tests/test_module_inconnu.kuri", false, erreur::type_erreur::MODULE_INCONNU);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
@@ -129,7 +129,7 @@ void test_modules(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"On ne peut accéder à un module non-importé.");
 	{
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
 				"fichiers_tests/test_utilisation_module_inconnu.kuri", false, erreur::type_erreur::MODULE_INCONNU);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);

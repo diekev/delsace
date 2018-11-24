@@ -36,13 +36,13 @@ constexpr bool entre(unsigned char c, unsigned char a, unsigned char b)
  */
 constexpr int nombre_octets(const char *sequence)
 {
-	const auto s0 = static_cast<unsigned char>(sequence[0]);
+	auto const s0 = static_cast<unsigned char>(sequence[0]);
 
 	if (entre(s0, 0x00, 0x7F)) {
 		return 1;
 	}
 
-	const auto s1 = static_cast<unsigned char>(sequence[1]);
+	auto const s1 = static_cast<unsigned char>(sequence[1]);
 
 	if (entre(s0, 0xC2, 0xDF)) {
 		if (!entre(s1, 0x80, 0xBF)) {
@@ -65,7 +65,7 @@ constexpr int nombre_octets(const char *sequence)
 			return 0;
 		}
 
-		const auto s2 = static_cast<unsigned char>(sequence[2]);
+		auto const s2 = static_cast<unsigned char>(sequence[2]);
 
 		if (!entre(s2, 0x80, 0xBF)) {
 			return 0;
@@ -87,13 +87,13 @@ constexpr int nombre_octets(const char *sequence)
 			return 0;
 		}
 
-		const auto s2 = static_cast<unsigned char>(sequence[2]);
+		auto const s2 = static_cast<unsigned char>(sequence[2]);
 
 		if (!entre(s2, 0x80, 0xBF)) {
 			return 0;
 		}
 
-		const auto s3 = static_cast<unsigned char>(sequence[3]);
+		auto const s3 = static_cast<unsigned char>(sequence[3]);
 
 		if (!entre(s3, 0x80, 0xBF)) {
 			return 0;

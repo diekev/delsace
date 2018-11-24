@@ -217,7 +217,7 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 
 analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
-		const std::vector<DonneesMorceaux> &identifiants,
+		std::vector<DonneesMorceaux> const &identifiants,
 		assembleuse_arbre *assembleuse,
 		DonneesModule *module)
 	: Analyseuse(identifiants, contexte)
@@ -261,7 +261,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 				lance_erreur("Attendu une chaîne littérale après 'importe'");
 			}
 
-			const auto nom_module = m_identifiants[position()].chaine;
+			auto const nom_module = m_identifiants[position()].chaine;
 			m_module->modules_importes.insert(nom_module);
 			charge_module(os, std::string(nom_module), m_contexte, m_identifiants[position()]);
 		}
@@ -290,7 +290,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	}
 
 	// crée noeud fonction
-	const auto nom_fonction = m_identifiants[position()].chaine;
+	auto const nom_fonction = m_identifiants[position()].chaine;
 
 	if (m_module->fonction_existe(nom_fonction)) {
 		lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
@@ -572,7 +572,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
 	while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		const auto pos = position();
+		auto const pos = position();
 
 		/* assignement : soit x = a + b; */
 		if (est_identifiant(id_morceau::SOIT)) {
@@ -589,7 +589,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu une chaîne de caractère après 'soit'");
 			}
 
-			const auto &morceau_variable = m_identifiants[position()];
+			auto const &morceau_variable = m_identifiants[position()];
 			auto donnees_type = size_t{-1ul};
 
 			if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
@@ -617,7 +617,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			else {
 				avance();
 
-				const auto &morceau_egal = m_identifiants[position()];
+				auto const &morceau_egal = m_identifiants[position()];
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, m_contexte, morceau_egal);
 				noeud->donnees_type = donnees_type;
@@ -756,7 +756,10 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	}
 }
 
-void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_final, const bool calcul_expression, const bool assignation)
+void analyseuse_grammaire::analyse_expression_droite(
+		id_morceau identifiant_final,
+		bool const calcul_expression,
+		bool const assignation)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
@@ -794,7 +797,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 	DEB_LOG_EXPRESSION << "Vecteur :" << FIN_LOG_EXPRESSION;
 
 	while (!requiers_identifiant(identifiant_final)) {
-		const auto &morceau = m_identifiants[position()];
+		auto const &morceau = m_identifiants[position()];
 
 		DEB_LOG_EXPRESSION << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
@@ -1436,7 +1439,7 @@ size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_ty
 					lance_erreur("Attendu un nombre entier après [");
 				}
 
-				const auto &morceau = m_identifiants[position()];
+				auto const &morceau = m_identifiants[position()];
 				taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
 #endif
 			}
@@ -1462,13 +1465,13 @@ size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_ty
 	auto identifiant = m_identifiants[position()].identifiant;
 
 	if (identifiant == id_morceau::CHAINE_CARACTERE) {
-		const auto nom_type = m_identifiants[position()].chaine;
+		auto const nom_type = m_identifiants[position()].chaine;
 
 		if (!m_contexte.structure_existe(nom_type)) {
 			lance_erreur("Structure inconnue", erreur::type_erreur::STRUCTURE_INCONNUE);
 		}
 
-		const auto &donnees_structure = m_contexte.donnees_structure(nom_type);
+		auto const &donnees_structure = m_contexte.donnees_structure(nom_type);
 		identifiant = (identifiant | (static_cast<int>(donnees_structure.id) << 8));
 	}
 
@@ -1483,14 +1486,14 @@ size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_ty
 
 bool analyseuse_grammaire::requiers_identifiant_type()
 {
-	const auto ok = est_identifiant_type(this->identifiant_courant());
+	auto const ok = est_identifiant_type(this->identifiant_courant());
 	avance();
 	return ok;
 }
 
 bool analyseuse_grammaire::requiers_nombre_entier()
 {
-	const auto ok = est_nombre_entier(this->identifiant_courant());
+	auto const ok = est_nombre_entier(this->identifiant_courant());
 	avance();
 	return ok;
 }

@@ -33,7 +33,7 @@ void DonneesType::pousse(id_morceau identifiant)
 
 void DonneesType::pousse(const DonneesType &autre)
 {
-	const auto taille = m_donnees.size();
+	auto const taille = m_donnees.size();
 	m_donnees.resize(taille + autre.m_donnees.size());
 	std::copy(autre.m_donnees.begin(), autre.m_donnees.end(), m_donnees.begin() + taille);
 }

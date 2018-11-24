@@ -39,22 +39,22 @@
 
 /* ************************************************************************** */
 
-bool DonneesModule::importe_module(const std::string_view &nom_module) const
+bool DonneesModule::importe_module(std::string_view const &nom_module) const
 {
 	return modules_importes.find(nom_module) != modules_importes.end();
 }
 
-bool DonneesModule::possede_fonction(const std::string_view &nom_fonction) const
+bool DonneesModule::possede_fonction(std::string_view const &nom_fonction) const
 {
 	return fonctions_exportees.find(nom_fonction) != fonctions_exportees.end();
 }
 
-void DonneesModule::ajoute_donnees_fonctions(const std::string_view &nom_fonction, const DonneesFonction &donnees)
+void DonneesModule::ajoute_donnees_fonctions(std::string_view const &nom_fonction, DonneesFonction const &donnees)
 {
 	fonctions.insert({nom_fonction, donnees});
 }
 
-DonneesFonction &DonneesModule::donnees_fonction(const std::string_view &nom_fonction) noexcept
+DonneesFonction &DonneesModule::donnees_fonction(std::string_view const &nom_fonction) noexcept
 {
 	auto iter = fonctions.find(nom_fonction);
 
@@ -65,7 +65,7 @@ DonneesFonction &DonneesModule::donnees_fonction(const std::string_view &nom_fon
 	return iter->second;
 }
 
-bool DonneesModule::fonction_existe(const std::string_view &nom_fonction) const noexcept
+bool DonneesModule::fonction_existe(std::string_view const &nom_fonction) const noexcept
 {
 	return fonctions.find(nom_fonction) != fonctions.end();
 }
@@ -74,7 +74,7 @@ size_t DonneesModule::memoire_utilisee() const noexcept
 {
 	auto memoire = fonctions.size() * (sizeof(DonneesFonction) + sizeof(std::string_view));
 
-	for (const auto &fonc : fonctions) {
+	for (auto const &fonc : fonctions) {
 		memoire += fonc.second.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
 	}
 
@@ -84,9 +84,9 @@ size_t DonneesModule::memoire_utilisee() const noexcept
 /* ************************************************************************** */
 
 static auto charge_fichier(
-		const std::string &chemin,
+		std::string const &chemin,
 		ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
+		DonneesMorceaux const &morceau)
 {
 	std::ifstream fichier;
 	fichier.open(chemin.c_str());
@@ -100,7 +100,7 @@ static auto charge_fichier(
 	}
 
 	fichier.seekg(0, fichier.end);
-	const auto taille_fichier = static_cast<std::string::size_type>(fichier.tellg());
+	auto const taille_fichier = static_cast<std::string::size_type>(fichier.tellg());
 	fichier.seekg(0, fichier.beg);
 
 	std::string tampon;
@@ -117,9 +117,9 @@ static auto charge_fichier(
 
 void charge_module(
 		std::ostream &os,
-		const std::string &nom,
+		std::string const &nom,
 		ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau,
+		DonneesMorceaux const &morceau,
 		bool est_racine)
 {
 	os << "Chargement du module : " << nom << std::endl;

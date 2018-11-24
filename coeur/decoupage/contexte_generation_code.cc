@@ -114,7 +114,7 @@ llvm::BasicBlock *ContexteGenerationCode::bloc_continue(std::string_view chaine)
 		return m_pile_continue.back().second;
 	}
 
-	for (const auto &paire : m_pile_continue) {
+	for (auto const &paire : m_pile_continue) {
 		if (paire.first == chaine) {
 			return paire.second;
 		}
@@ -143,7 +143,7 @@ llvm::BasicBlock *ContexteGenerationCode::bloc_arrete(std::string_view chaine)
 		return m_pile_arrete.back().second;
 	}
 
-	for (const auto &paire : m_pile_arrete) {
+	for (auto const &paire : m_pile_arrete) {
 		if (paire.first == chaine) {
 			return paire.second;
 		}
@@ -380,7 +380,7 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	/* structures */
 	memoire += structures.size() * sizeof(DonneesStructure);
 
-	for (const auto &structure : structures) {
+	for (auto const &structure : structures) {
 		memoire += structure.second.index_membres.size() * (sizeof(size_t) + sizeof(std::string_view));
 		memoire += structure.second.donnees_types.size() * sizeof(DonneesType);
 	}

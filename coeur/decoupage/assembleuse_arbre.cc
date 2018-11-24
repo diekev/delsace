@@ -31,7 +31,7 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-Noeud *assembleuse_arbre::empile_noeud(type_noeud type, ContexteGenerationCode &contexte, const DonneesMorceaux &morceau, bool ajoute)
+Noeud *assembleuse_arbre::empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau, bool ajoute)
 {
 	auto noeud = cree_noeud(type, contexte, morceau);
 
@@ -49,7 +49,7 @@ void assembleuse_arbre::ajoute_noeud(Noeud *noeud)
 	m_pile.top()->ajoute_noeud(noeud);
 }
 
-Noeud *assembleuse_arbre::cree_noeud(type_noeud type, ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+Noeud *assembleuse_arbre::cree_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 {
 	Noeud *noeud = nullptr;
 	bool reutilise = false;

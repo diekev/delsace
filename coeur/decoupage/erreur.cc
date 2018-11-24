@@ -113,10 +113,10 @@ void lance_erreur(
 		const DonneesMorceaux &morceau,
 		type_erreur type)
 {
-	const auto ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
-	const auto identifiant = morceau.identifiant;
-	const auto &chaine = morceau.chaine;
+	auto const ligne = morceau.ligne_pos >> 32;
+	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const identifiant = morceau.identifiant;
+	auto const &chaine = morceau.chaine;
 
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne_courante = module->tampon[ligne];
@@ -143,9 +143,9 @@ void lance_erreur_plage(
 		const DonneesMorceaux &dernier_morceau,
 		type_erreur type)
 {
-	const auto ligne = premier_morceau.ligne_pos >> 32;
-	const auto pos_premier = premier_morceau.ligne_pos & 0xffffffff;
-	const auto pos_dernier = dernier_morceau.ligne_pos & 0xffffffff;
+	auto const ligne = premier_morceau.ligne_pos >> 32;
+	auto const pos_premier = premier_morceau.ligne_pos & 0xffffffff;
+	auto const pos_dernier = dernier_morceau.ligne_pos & 0xffffffff;
 
 	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
 	auto ligne_courante = module->tampon[ligne];
@@ -170,8 +170,8 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = morceau.ligne_pos >> 32;
+	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -198,8 +198,8 @@ void lance_erreur_plage(
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau_enfant.ligne_pos & 0xffffffff;
+	auto const numero_ligne = morceau.ligne_pos >> 32;
+	auto const pos_mot = morceau_enfant.ligne_pos & 0xffffffff;
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -234,8 +234,8 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = morceau.ligne_pos >> 32;
+	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -259,8 +259,8 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = morceau.ligne_pos >> 32;
+	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -285,8 +285,8 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = morceau.ligne_pos >> 32;
+	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -312,8 +312,8 @@ void lance_erreur_type_operation(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = morceau.ligne_pos >> 32;
+	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 

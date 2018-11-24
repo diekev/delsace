@@ -322,16 +322,16 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
-	for (const auto &iter : paires_caracteres_speciaux) {
+	for (auto const &iter : paires_caracteres_speciaux) {
 		tables_caracteres[int(iter.first)] = true;
 		tables_identifiants[int(iter.first)] = iter.second;
 	}
 
-	for (const auto &iter : paires_caracteres_double) {
+	for (auto const &iter : paires_caracteres_double) {
 		tables_caracteres_double[int(iter.first[0])] = true;
 	}
 
-	for (const auto &iter : paires_mots_cles) {
+	for (auto const &iter : paires_mots_cles) {
 		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
 	}
 }

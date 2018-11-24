@@ -49,7 +49,7 @@ protected:
 #endif
 
 public:
-	Analyseuse(const std::vector<DonneesMorceaux> &identifiants, ContexteGenerationCode &contexte);
+	Analyseuse(std::vector<DonneesMorceaux> const &identifiants, ContexteGenerationCode &contexte);
 	virtual ~Analyseuse() = default;
 
 	/**

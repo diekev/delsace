@@ -29,7 +29,7 @@
 #include <iostream>
 #endif
 
-Analyseuse::Analyseuse(const std::vector<DonneesMorceaux> &identifiants, ContexteGenerationCode &contexte)
+Analyseuse::Analyseuse(std::vector<DonneesMorceaux> const &identifiants, ContexteGenerationCode &contexte)
 	: m_contexte(contexte)
 	, m_identifiants(identifiants)
 {}
@@ -61,7 +61,7 @@ bool Analyseuse::requiers_identifiant(id_morceau identifiant)
 		return false;
 	}
 
-	const auto est_bon = this->est_identifiant(identifiant);
+	auto const est_bon = this->est_identifiant(identifiant);
 
 	avance();
 

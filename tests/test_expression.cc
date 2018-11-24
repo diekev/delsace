@@ -41,7 +41,7 @@ static void test_expression_flux_si(dls::test_unitaire::Controleuse &controleuse
 	}
 	)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
@@ -58,7 +58,7 @@ static void test_expression_flux_si(dls::test_unitaire::Controleuse &controleuse
 	}
 	)";
 
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -101,12 +101,12 @@ R"(fonction foo() : rien
 
 	{
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	{
 		/* Passage du test avec la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, true);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::AUCUNE_ERREUR, true);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 }
@@ -128,7 +128,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	/* comparaison échouée */
@@ -141,7 +141,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -155,7 +155,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -172,7 +172,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	/* arithmétique échouée */
@@ -185,7 +185,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -199,7 +199,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
@@ -222,7 +222,7 @@ static void test_expression_constante_entiere(dls::test_unitaire::Controleuse &c
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	/* arithmétique réussie */
@@ -244,7 +244,7 @@ static void test_expression_constante_entiere(dls::test_unitaire::Controleuse &c
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	/* binaire réussie */
@@ -258,7 +258,7 @@ static void test_expression_constante_entiere(dls::test_unitaire::Controleuse &c
 	)";
 
 		/* Passage du test sans la génération du code. */
-		const auto [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL, false);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 }

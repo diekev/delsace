@@ -35,8 +35,8 @@
 template <typename I1, typename I2>
 bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 {
-	const auto dist1 = std::distance(debut1, fin1);
-	const auto dist2 = std::distance(debut2, fin2);
+	auto const dist1 = std::distance(debut1, fin1);
+	auto const dist2 = std::distance(debut2, fin2);
 
 	if (dist1 != dist2) {
 #ifdef DEBOGUE_MORCEAUX

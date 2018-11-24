@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	std::ifstream fichier(argv[1]);
 
 	fichier.seekg(0, fichier.end);
-	const auto taille_fichier = static_cast<size_t>(fichier.tellg());
+	auto const taille_fichier = static_cast<size_t>(fichier.tellg());
 	fichier.seekg(0, fichier.beg);
 
 	char *donnees = new char[taille_fichier];

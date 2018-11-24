@@ -73,31 +73,31 @@ struct DonneesModule {
 	/**
 	 * Retourne vrai si le module importe un module du nom spécifié.
 	 */
-	bool importe_module(const std::string_view &nom_module) const;
+	bool importe_module(std::string_view const &nom_module) const;
 
 	/**
 	 * Retourne vrai si le module possède une fonction du nom spécifié.
 	 */
-	bool possede_fonction(const std::string_view &nom_fonction) const;
+	bool possede_fonction(std::string_view const &nom_fonction) const;
 
 	/**
 	 * Ajoute les données de la fonction dont le nom est spécifié en paramètres
 	 * à la table de fonctions de ce contexte.
 	 */
-	void ajoute_donnees_fonctions(const std::string_view &nom_fonction, const DonneesFonction &donnees);
+	void ajoute_donnees_fonctions(std::string_view const &nom_fonction, DonneesFonction const &donnees);
 
 	/**
 	 * Retourne les données de la fonction dont le nom est spécifié en
 	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	[[nodiscard]] DonneesFonction &donnees_fonction(const std::string_view &nom_fonction) noexcept;
+	[[nodiscard]] DonneesFonction &donnees_fonction(std::string_view const &nom_fonction) noexcept;
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
 	 * ayant déjà été ajouté à la liste de fonctions de ce module.
 	 */
-	[[nodiscard]] bool fonction_existe(const std::string_view &nom_fonction) const noexcept;
+	[[nodiscard]] bool fonction_existe(std::string_view const &nom_fonction) const noexcept;
 
 	/**
 	 * Retourne la mémoire utilisée en octet par les données de ce module. La
@@ -132,7 +132,7 @@ private:
  */
 void charge_module(
 		std::ostream &os,
-		const std::string &nom,
+		std::string const &nom,
 		ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau,
+		DonneesMorceaux const &morceau,
 		bool est_racine = false);
