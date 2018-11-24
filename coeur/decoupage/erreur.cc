@@ -222,7 +222,7 @@ void lance_erreur_plage(
 	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
 	imprime_ligne_entre(ss, ligne, 0, pos_mot);
-	ss << "transtype(" << morceau_enfant.chaine << ")(" << type_arg << ")";
+	ss << "transtype(" << morceau_enfant.chaine << " : " << type_arg << ")";
 	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.size(), ligne.size());
 	ss << "\n----------------------------------------------------------------\n";
 

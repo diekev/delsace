@@ -3,7 +3,7 @@ fonction principale(compte : n32, arguments : []*n8) : n32
 {
 	soit x = 2;
 	soit y = 5;
-	soit w = transtype(0)(n32);
+	soit w = transtype(0 : n32);
 	x = y + 2 * 3;
 	retourne x;
 }
@@ -158,7 +158,7 @@ fonction principale(compte : n32, arguments : []*e8) : n32
 	ne_fais_rien();
 	soit y = 9;
 	soit chaîne = "Salut, tout le monde !";
-	#soit w = transtype<*e8>(arguments);
+	#soit w = transtype(arguments : *e8);
 	soit z : *e8 = arguments;
 	soit x : n32 = additioner(b=5, a=multiplier(y, 8 + 3));
 	x = 5 + 2 * 3;

@@ -173,7 +173,7 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 				fonction foo() : rien
 				{
 					soit x : z32 = 0;
-					soit y : n32 = transtype(x)(n32);
+					soit y : n32 = transtype(x : n32);
 				}
 				)";
 
@@ -192,7 +192,7 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 				fonction foo() : rien
 				{
 					soit x : z32 = 0;
-					soit y : z8  = transtype(x)(z8);
+					soit y : z8  = transtype(x : z8);
 				}
 				)";
 
@@ -213,7 +213,7 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 				fonction foo() : rien
 				{
 					soit x : z32 = 0;
-					soit y : n8  = transtype(x)(n8);
+					soit y : n8  = transtype(x : n8);
 				}
 				)";
 
@@ -232,8 +232,8 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 				fonction foo() : rien
 				{
 					soit x : z32 = 0;
-					soit y : r32 = transtype(x)(r32);
-					soit z : z32 = transtype(y)(z32);
+					soit y : r32 = transtype(x : r32);
+					soit z : z32 = transtype(y : z32);
 				}
 				)";
 
@@ -254,8 +254,8 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 				fonction foo() : rien
 				{
 					soit x : z32 = 0;
-					soit y : r64 = transtype(x)(r64);
-					soit z : z32 = transtype(y)(z32);
+					soit y : r64 = transtype(x : r64);
+					soit z : z32 = transtype(y : z32);
 				}
 				)";
 
@@ -279,7 +279,7 @@ static void test_transtype_expression(dls::test_unitaire::Controleuse &controleu
 				{
 					soit x : z32 = 1;
 					soit y : z32 = 5;
-					soit z : z32 = transtype(x + y * 5)(z32);
+					soit z : z32 = transtype(x + y * 5 : z32);
 				}
 				)";
 

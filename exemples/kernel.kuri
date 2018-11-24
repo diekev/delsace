@@ -57,7 +57,7 @@ fonction clarifie_écran(variable ptr_vidéo : *z8) : rien
 		ptr_vidéo[j * 2] = ' ';
 
 		# Octet d'attribut - écran noir.
-		ptr_vidéo[j * 2 + 1] = transtype(AP_NOIR | TE_NOIR)(z8);
+		ptr_vidéo[j * 2 + 1] = transtype(AP_NOIR | TE_NOIR : z8);
 	}
 
 	retourne;
@@ -78,7 +78,7 @@ fonction écris_chaîne(variable ptr_vidéo : *z8, chaine : *z8) : rien
 		ptr_vidéo[i] = chaine[j];
 
 		# Octet d'attribut - gris clair sur écran noir.
-		ptr_vidéo[i + 1] = transtype(AP_NOIR | TE_GRIS_CLAIR)(z8);
+		ptr_vidéo[i + 1] = transtype(AP_NOIR | TE_GRIS_CLAIR : z8);
 
 		i = i + 2;
 		j = j + 1;
@@ -90,7 +90,7 @@ fonction écris_chaîne(variable ptr_vidéo : *z8, chaine : *z8) : rien
 fonction principale() : z32
 {
 	# En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
-	soit ptr_vidéo = transtype(0xb8000)(*z8);
+	soit ptr_vidéo = transtype(0xb8000 : *z8);
 
 	clarifie_écran(ptr_vidéo);
 

@@ -57,9 +57,9 @@ fonction assigne_chaîne_pascal(variable cp : *ChaînePascal,  chaîne : *z8) : 
 		retourne;
 	}
 
-	données[0] de cp = transtype(l)(z8);
+	données[0] de cp = transtype(l : z8);
 
-	pour i dans 0 ... transtype(l)(z32) {
+	pour i dans 0 ... transtype(l : z32) {
 		données[1 + i] de cp = chaîne[i];
 	}
 }
@@ -77,7 +77,7 @@ fonction imprime_chaîne_pascal(cp : *ChaînePascal) : rien
 
 	soit taille = données[0] de cp;
 
-	pour i dans 0 ... transtype(taille)(z32) {
+	pour i dans 0 ... transtype(taille : z32) {
 		printf("%c", données[i + 1] de cp);
 	}
 }

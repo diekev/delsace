@@ -1,13 +1,13 @@
 fonction optionel(drapeau : bool, valeur : n32) : n32
 {
-	retourne -transtype(drapeau)(n32) & valeur;
+	retourne -transtype(drapeau : n32) & valeur;
 }
 
 # opérateur ternaire sans branche : si drapeau est vrai retourne v1, sinon v2
 fonction ternaire(drapeau : bool, v1 : n32, v2 : n32) : n32
 {
-	retourne (-transtype(drapeau)(n32) & v1)
-	         | ((transtype(drapeau)(n32) - 1) & v2);
+	retourne (-transtype(drapeau : n32) & v1)
+	         | ((transtype(drapeau : n32) - 1) & v2);
 }
 
 fonction échange(a : *r64, b : *r64) : rien

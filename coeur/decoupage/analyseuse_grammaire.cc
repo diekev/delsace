@@ -881,15 +881,12 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, m_contexte, morceau, false);
 
 				++m_profondeur;
-				analyse_expression_droite(id_morceau::INCONNU);
+				analyse_expression_droite(id_morceau::DOUBLE_POINTS);
+				recule();
 				--m_profondeur;
 
-				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-					lance_erreur("Attendu ')' après la déclaration de l'expression");
-				}
-
-				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-					lance_erreur("Attendu '(' après ')'");
+				if (!requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
+					lance_erreur("Attendu ':' après la déclaration de l'expression");
 				}
 
 				noeud->donnees_type = analyse_declaration_type(nullptr, false);
