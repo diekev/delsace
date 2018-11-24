@@ -774,16 +774,14 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 	DEB_LOG_EXPRESSION << "Vecteur :" << FIN_LOG_EXPRESSION;
 
-	while (!est_identifiant(identifiant_final)) {
-		const auto &morceau = m_identifiants[position() + 1];
+	while (!requiers_identifiant(identifiant_final)) {
+		const auto &morceau = m_identifiants[position()];
 
 		DEB_LOG_EXPRESSION << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
 		switch (morceau.identifiant) {
 			case id_morceau::CHAINE_CARACTERE:
 			{
-				avance();
-
 				/* appel fonction : chaine + ( */
 				if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 					avance();
@@ -798,8 +796,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				}
 				/* variable : chaine */
 				else {
-					recule();
-
 					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
 					expression.push_back(noeud);
 				}
@@ -841,8 +837,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			}
 			case id_morceau::TAILLE_DE:
 			{
-				avance();
-
 				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 					lance_erreur("Attendu '(' après 'taille_de'");
 				}
@@ -853,8 +847,7 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 				donnees_type = analyse_declaration_type(nullptr, false);
 				noeud->valeur_calculee = donnees_type;
 
-				/* vérifie mais n'avance pas */
-				if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 					lance_erreur("Attendu ')' après le type de 'taille_de'");
 				}
 
@@ -872,8 +865,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			}
 			case id_morceau::TRANSTYPE:
 			{
-				avance();
-
 				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 					lance_erreur("Attendu '(' après 'transtype'");
 				}
@@ -882,17 +873,11 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 				++m_profondeur;
 				analyse_expression_droite(id_morceau::DOUBLE_POINTS);
-				recule();
 				--m_profondeur;
-
-				if (!requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
-					lance_erreur("Attendu ':' après la déclaration de l'expression");
-				}
 
 				noeud->donnees_type = analyse_declaration_type(nullptr, false);
 
-				/* vérifie mais n'avance pas */
-				if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 					lance_erreur("Attendu ')' après la déclaration du type");
 				}
 
@@ -982,7 +967,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			{
 				/* Correction de crash d'aléatest, improbable dans la vrai vie. */
 				if (expression.empty() && est_operateur_binaire(morceau.identifiant)) {
-					avance();
 					lance_erreur("Opérateur binaire utilisé en début d'expression");
 				}
 
@@ -1016,7 +1000,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			case id_morceau::EGAL:
 			{
 				if (!assignation) {
-					avance();
 					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
 				}
 
@@ -1029,7 +1012,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			case id_morceau::CROCHET_OUVRANT:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				avance();
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
 				pile.push_back(noeud);
@@ -1040,9 +1022,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 
 				m_assembleuse->depile_noeud(type_noeud::OPERATION_BINAIRE);
 
-				/* nous reculons, car on avance de nouveau avant de recommencer
-				 * la boucle plus bas */
-				recule();
 				break;
 			}
 			/* opérations unaire */
@@ -1059,7 +1038,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 			}
 			default:
 			{
-				avance();
 				lance_erreur("Identifiant inattendu dans l'expression");
 			}
 		}
@@ -1069,14 +1047,11 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 		}
 
 		dernier_identifiant = morceau.identifiant;
-
-		avance();
 	}
 
 	/* Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
 	 * éviter de crasher lors des fuzz-tests. */
 	if (expression.empty()) {
-		avance();
 		return;
 	}
 
@@ -1206,9 +1181,6 @@ void analyseuse_grammaire::analyse_expression_droite(id_morceau identifiant_fina
 					premier_noeud->donnees_morceau(),
 					dernier_noeud->donnees_morceau());
 	}
-
-	/* saute l'identifiant final */
-	avance();
 }
 
 /* f(g(5, 6 + 3 * (2 - 5)), h()); */
@@ -1219,6 +1191,7 @@ void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
 	while (true) {
 		/* aucun paramètre, ou la liste de paramètre est vide */
 		if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+			avance();
 			return;
 		}
 
