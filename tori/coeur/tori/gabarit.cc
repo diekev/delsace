@@ -22,39 +22,27 @@
  *
  */
 
-#pragma once
+#include "gabarit.hh"
 
-#include <iostream>
-#include <map>
-#include <stack>
-#include <vector>
-
-class Noeud;
-enum class type_noeud : unsigned int;
-struct DonneesMorceaux;
+#include "../decoupage/analyseuse_grammaire.hh"
+#include "../decoupage/assembleuse_arbre.hh"
+#include "../decoupage/decoupeuse.hh"
 
 namespace tori {
-class ObjetDictionnaire;
+
+std::string calcul_gabarit(std::string const &gabarit, ObjetDictionnaire &objet)
+{
+	auto const tampon = TamponSource{gabarit};
+
+	auto decoupeuse = decoupeuse_texte(tampon);
+	decoupeuse.genere_morceaux();
+
+	auto assembleuse = assembleuse_arbre{};
+
+	auto analyseuse = analyseuse_grammaire(decoupeuse.morceaux(), tampon, assembleuse);
+	analyseuse.lance_analyse();
+
+	return assembleuse.genere_code(objet);
 }
 
-class assembleuse_arbre {
-	std::stack<Noeud *> m_pile{};
-	std::vector<Noeud *> m_noeuds{};
-
-public:
-	~assembleuse_arbre();
-
-	Noeud *cree_noeud(type_noeud type, const DonneesMorceaux &donnees);
-
-	void ajoute_noeud(type_noeud type, const DonneesMorceaux &donnees);
-
-	void empile_noeud(type_noeud type, const DonneesMorceaux &donnees);
-
-	void depile_noeud(type_noeud type);
-
-	void escompte_type(type_noeud type);
-
-	void imprime_arbre(std::ostream &os);
-
-	std::string genere_code(tori::ObjetDictionnaire &objet) const;
-};
+}  /* namespace tori */

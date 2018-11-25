@@ -39,19 +39,19 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &don
 
 	switch (type) {
 		case type_noeud::CHAINE_CARACTERE:
-			noeud = new NoeudChaineCaractere();
+			noeud = new NoeudChaineCaractere(donnees);
 			break;
 		case type_noeud::VARIABLE:
-			noeud = new NoeudVariable();
+			noeud = new NoeudVariable(donnees);
 			break;
 		case type_noeud::BLOC:
-			noeud = new NoeudBloc();
+			noeud = new NoeudBloc(donnees);
 			break;
 		case type_noeud::SI:
-			noeud = new NoeudSi();
+			noeud = new NoeudSi(donnees);
 			break;
 		case type_noeud::POUR:
-			noeud = new NoeudPour();
+			noeud = new NoeudPour(donnees);
 			break;
 	}
 
@@ -99,4 +99,15 @@ void assembleuse_arbre::imprime_arbre(std::ostream &os)
 	}
 
 	m_pile.top()->imprime_arbre(os, 0);
+}
+
+std::string assembleuse_arbre::genere_code(tori::ObjetDictionnaire &objet) const
+{
+	if (m_pile.empty()) {
+		return "";
+	}
+
+	auto tampon = std::string{};
+	m_pile.top()->genere_code(tampon, objet);
+	return tampon;
 }

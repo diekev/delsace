@@ -26,6 +26,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	coeur_tori
 )
 
 set(SOURCES

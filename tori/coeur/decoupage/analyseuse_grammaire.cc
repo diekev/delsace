@@ -28,12 +28,18 @@
 #include <set>
 
 #include "arbre_syntactic.hh"
+#include "assembleuse_arbre.hh"
 #include "erreur.hh"
+#include "objet.hh"
 
 /* ************************************************************************** */
 
-analyseuse_grammaire::analyseuse_grammaire(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon)
+analyseuse_grammaire::analyseuse_grammaire(
+		std::vector<DonneesMorceaux> const &identifiants,
+		TamponSource const &tampon,
+		assembleuse_arbre &assembleuse)
 	: Analyseuse(identifiants, tampon)
+	, m_assembleuse(assembleuse)
 {}
 
 void analyseuse_grammaire::lance_analyse()
@@ -48,17 +54,15 @@ void analyseuse_grammaire::lance_analyse()
 
 	this->analyse_page();
 
-	m_assembleuse.imprime_arbre(std::cerr);
-
-	m_assembleuse.depile_noeud(type_noeud::BLOC);
+	m_assembleuse.escompte_type(type_noeud::BLOC);
 }
 
 void analyseuse_grammaire::analyse_page()
 {
 	while ((m_position != m_identifiants.size())) {
 		if (est_identifiant(ID_CHAINE_CARACTERE)) {
-			m_assembleuse.ajoute_noeud(type_noeud::CHAINE_CARACTERE, m_identifiants[position()]);
 			avance();
+			m_assembleuse.ajoute_noeud(type_noeud::CHAINE_CARACTERE, m_identifiants[position()]);
 		}
 		else if (est_identifiant(ID_DEBUT_EXPRESSION)) {
 			analyse_expression();

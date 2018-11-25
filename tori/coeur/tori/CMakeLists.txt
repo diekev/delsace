@@ -19,6 +19,26 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(decoupage)
-add_subdirectory(executable)
-add_subdirectory(tori)
+set(NOM_PROJET coeur_tori)
+
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+set(BIBLIOTHEQUES
+	decoupage_tori
+)
+
+set(SOURCES
+	gabarit.cc
+	objet.cc
+
+	gabarit.hh
+	objet.hh
+)
+
+add_library(${NOM_PROJET} STATIC "${SOURCES}")
+
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")

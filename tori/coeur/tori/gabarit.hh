@@ -24,37 +24,12 @@
 
 #pragma once
 
-#include <iostream>
-#include <map>
-#include <stack>
-#include <vector>
-
-class Noeud;
-enum class type_noeud : unsigned int;
-struct DonneesMorceaux;
+#include <string>
 
 namespace tori {
-class ObjetDictionnaire;
-}
 
-class assembleuse_arbre {
-	std::stack<Noeud *> m_pile{};
-	std::vector<Noeud *> m_noeuds{};
+struct ObjetDictionnaire;
 
-public:
-	~assembleuse_arbre();
+std::string calcul_gabarit(std::string const &gabarit, ObjetDictionnaire &objet);
 
-	Noeud *cree_noeud(type_noeud type, const DonneesMorceaux &donnees);
-
-	void ajoute_noeud(type_noeud type, const DonneesMorceaux &donnees);
-
-	void empile_noeud(type_noeud type, const DonneesMorceaux &donnees);
-
-	void depile_noeud(type_noeud type);
-
-	void escompte_type(type_noeud type);
-
-	void imprime_arbre(std::ostream &os);
-
-	std::string genere_code(tori::ObjetDictionnaire &objet) const;
-};
+}  /* namespace tori */

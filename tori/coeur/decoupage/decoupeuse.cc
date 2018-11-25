@@ -32,16 +32,10 @@
 
 /* ************************************************************************** */
 
-template <typename T>
-bool est_element(T a, T b)
+template <typename T, typename... Ts>
+bool est_element(T a, Ts... ts)
 {
-	return a == b;
-}
-
-template <typename T, typename T1, typename... Ts>
-bool est_element(T a, T1 b, Ts... ts)
-{
-	return a == b || est_element(a, ts...);
+	return ((a == ts) || ...);
 }
 
 static bool est_caractere_blanc(char c)

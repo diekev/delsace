@@ -29,13 +29,16 @@
 #include <experimental/any>
 #include <vector>
 
-#include "assembleuse_arbre.hh"
+class assembleuse_arbre;
 
 class analyseuse_grammaire : public Analyseuse {
-	assembleuse_arbre m_assembleuse;
+	assembleuse_arbre &m_assembleuse;
 
 public:
-	analyseuse_grammaire(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon);
+	analyseuse_grammaire(
+	        std::vector<DonneesMorceaux> const &identifiants,
+	        TamponSource const &tampon,
+	        assembleuse_arbre &assembleuse);
 
 	void lance_analyse() override;
 

@@ -27,6 +27,12 @@
 #include <iostream>
 #include <vector>
 
+#include "morceaux.hh"
+
+namespace tori {
+struct ObjetDictionnaire;
+}
+
 enum class type_noeud : unsigned int {
 	CHAINE_CARACTERE,
 	VARIABLE,
@@ -39,9 +45,13 @@ enum class type_noeud : unsigned int {
 
 class Noeud {
 protected:
-	std::vector<Noeud *> enfants;
+	std::vector<Noeud *> enfants{};
 
 public:
+	DonneesMorceaux donnees_morceaux;
+
+	Noeud(const DonneesMorceaux &donnees);
+
 	virtual ~Noeud() = default;
 
 	void ajoute_enfant(Noeud *noeud);
@@ -49,49 +59,71 @@ public:
 	virtual type_noeud type() const = 0;
 
 	virtual void imprime_arbre(std::ostream &os, int tab) const = 0;
+
+	virtual void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const = 0;
 };
 
 /* ************************************************************************** */
 
 class NoeudChaineCaractere final : public Noeud {
 public:
+	NoeudChaineCaractere(const DonneesMorceaux &donnees);
+
 	type_noeud type() const override;
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
+
+	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
 };
 
 /* ************************************************************************** */
 
 class NoeudVariable final : public Noeud {
 public:
+	NoeudVariable(const DonneesMorceaux &donnees);
+
 	type_noeud type() const override;
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
+
+	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
 };
 
 /* ************************************************************************** */
 
 class NoeudBloc final : public Noeud {
 public:
+	NoeudBloc(const DonneesMorceaux &donnees);
+
 	type_noeud type() const override;
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
+
+	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
 };
 
 /* ************************************************************************** */
 
 class NoeudSi final : public Noeud {
 public:
+	NoeudSi(const DonneesMorceaux &donnees);
+
 	type_noeud type() const override;
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
+
+	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
 };
 
 /* ************************************************************************** */
 
 class NoeudPour final : public Noeud {
 public:
+	NoeudPour(const DonneesMorceaux &donnees);
+
 	type_noeud type() const override;
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
+
+	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
 };

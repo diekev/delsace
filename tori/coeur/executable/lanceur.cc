@@ -25,23 +25,38 @@
 #include <cstring>
 #include <iostream>
 
-#include "decoupage/analyseuse_grammaire.hh"
-#include "decoupage/decoupeuse.hh"
+#include "tori/gabarit.hh"
+#include "tori/objet.hh"
 
 int main()
 {
-	auto texte = "{% pour x dans evenements %}<a href='{{ lien }}'>{% si variable %}{{ variable }}{% sinon %}texte{% finsi %}</a>{% finpour %}";
-	//auto texte = "{%si lien%}";
+	auto texte = "{%pour x dans evenements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}";
+	// tests : avec et sans espace avant }}, %} et après {{, {%
 
 	std::cerr << "texte : \n" << texte << '\n';
 
-	auto tampon = TamponSource{texte};
+	auto objet = tori::ObjetDictionnaire{};
 
-	auto decoupeuse = decoupeuse_texte(tampon);
-	decoupeuse.genere_morceaux();
+	auto tableau = tori::ObjetTableau::construit(127l, 36.0, "chaine test");
+	objet.insere("evenements", tableau);
 
-	auto analyseuse = analyseuse_grammaire(decoupeuse.morceaux(), tampon);
-	analyseuse.lance_analyse();
+	auto chaine1 = tori::construit_objet("http://aaa");
+	objet.insere("lien", chaine1);
+
+	chaine1 = tori::construit_objet("eh ouais...");
+	objet.insere("variable", chaine1);
+
+	auto tampon = tori::calcul_gabarit(texte, objet);
+
+	if (tampon.empty()) {
+
+	}
+
+	std::cerr << "-----------------------------------------------\n";
+	std::cerr << "Résultat :\n";
+	std::cerr << tampon;
+	std::cerr << '\n';
+	std::cerr << "-----------------------------------------------\n";
 
 	return 0;
 }

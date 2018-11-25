@@ -24,6 +24,10 @@
 
 #include "arbre_syntactic.hh"
 
+#include <sstream>
+
+#include "../tori/objet.hh"
+
 static void imprime_tab(std::ostream &os, int tab)
 {
 	for (int i = 0; i < tab; ++i) {
@@ -33,12 +37,20 @@ static void imprime_tab(std::ostream &os, int tab)
 
 /* ************************************************************************** */
 
+Noeud::Noeud(const DonneesMorceaux &donnees)
+	: donnees_morceaux(donnees)
+{}
+
 void Noeud::ajoute_enfant(Noeud *noeud)
 {
 	enfants.push_back(noeud);
 }
 
 /* ************************************************************************** */
+
+NoeudChaineCaractere::NoeudChaineCaractere(const DonneesMorceaux &donnees)
+	: Noeud(donnees)
+{}
 
 type_noeud NoeudChaineCaractere::type() const
 {
@@ -51,7 +63,16 @@ void NoeudChaineCaractere::imprime_arbre(std::ostream &os, int tab) const
 	os << "Chaîne Caractère\n";
 }
 
+void NoeudChaineCaractere::genere_code(std::string &tampon, tori::ObjetDictionnaire &/*objet*/) const
+{
+	tampon += donnees_morceaux.chaine;
+}
+
 /* ************************************************************************** */
+
+NoeudVariable::NoeudVariable(const DonneesMorceaux &donnees)
+	: Noeud(donnees)
+{}
 
 type_noeud NoeudVariable::type() const
 {
@@ -64,7 +85,56 @@ void NoeudVariable::imprime_arbre(std::ostream &os, int tab) const
 	os << "Variable\n";
 }
 
+void NoeudVariable::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const
+{
+	auto variable = this->donnees_morceaux.chaine;
+	auto iter = objet.valeur.find(std::string(variable));
+
+	if (iter != objet.valeur.end()) {
+		auto const &objet_variable = iter->second;
+
+		switch (objet_variable->type) {
+			case tori::type_objet::NUL:
+			{
+				tampon += "nul";
+				break;
+			}
+			case tori::type_objet::CHAINE:
+			{
+				auto chaine = static_cast<tori::ObjetChaine *>(objet_variable.get());
+				tampon += chaine->valeur;
+				break;
+			}
+			case tori::type_objet::NOMBRE_ENTIER:
+			{
+				auto nombre = static_cast<tori::ObjetNombreEntier *>(objet_variable.get());
+				tampon += std::to_string(nombre->valeur);
+				break;
+			}
+			case tori::type_objet::NOMBRE_REEL:
+			{
+				auto nombre = static_cast<tori::ObjetNombreReel *>(objet_variable.get());
+				tampon += std::to_string(nombre->valeur);
+				break;
+			}
+			case tori::type_objet::TABLEAU:
+			case tori::type_objet::DICTIONNAIRE:
+			{
+				std::stringstream ss;
+				ss << std::hex << objet_variable.get();
+
+				tampon += "objet à " + ss.str();
+				break;
+			}
+		}
+	}
+}
+
 /* ************************************************************************** */
+
+NoeudBloc::NoeudBloc(const DonneesMorceaux &donnees)
+	: Noeud(donnees)
+{}
 
 type_noeud NoeudBloc::type() const
 {
@@ -81,7 +151,18 @@ void NoeudBloc::imprime_arbre(std::ostream &os, int tab) const
 	}
 }
 
+void NoeudBloc::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const
+{
+	for (auto enfant : enfants) {
+		enfant->genere_code(tampon, objet);
+	}
+}
+
 /* ************************************************************************** */
+
+NoeudSi::NoeudSi(const DonneesMorceaux &donnees)
+	: Noeud(donnees)
+{}
 
 type_noeud NoeudSi::type() const
 {
@@ -98,7 +179,25 @@ void NoeudSi::imprime_arbre(std::ostream &os, int tab) const
 	}
 }
 
+void NoeudSi::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const
+{
+	auto variable = enfants[0]->donnees_morceaux.chaine;
+
+	if (objet.valeur.find(std::string(variable)) != objet.valeur.end()) {
+		enfants[1]->genere_code(tampon, objet);
+	}
+	else {
+		if (enfants.size() > 2) {
+			enfants[2]->genere_code(tampon, objet);
+		}
+	}
+}
+
 /* ************************************************************************** */
+
+NoeudPour::NoeudPour(const DonneesMorceaux &donnees)
+	: Noeud(donnees)
+{}
 
 type_noeud NoeudPour::type() const
 {
@@ -112,5 +211,65 @@ void NoeudPour::imprime_arbre(std::ostream &os, int tab) const
 
 	for (auto enfant : enfants) {
 		enfant->imprime_arbre(os, tab + 1);
+	}
+}
+
+void NoeudPour::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const
+{
+	auto propriete = enfants[1]->donnees_morceaux.chaine;
+	auto iter = objet.valeur.find(std::string(propriete));
+
+	if (iter == objet.valeur.end()) {
+		return;
+	}
+
+	auto objet_iter = iter->second;
+
+	auto variable = enfants[0]->donnees_morceaux.chaine;
+
+	switch (objet_iter->type) {
+		case tori::type_objet::NUL:
+		{
+			throw "Objet nul n'est pas itérable !";
+		}
+		case tori::type_objet::CHAINE:
+		{
+			throw "Objet chaine n'est pas itérable !";
+		}
+		case tori::type_objet::NOMBRE_ENTIER:
+		{
+			throw "Objet nombre entier n'est pas itérable !";
+		}
+		case tori::type_objet::NOMBRE_REEL:
+		{
+			throw "Objet nombre réel n'est pas itérable !";
+		}
+		case tori::type_objet::TABLEAU:
+		{
+			auto tableau = static_cast<tori::ObjetTableau *>(objet_iter.get());
+
+			for (auto const &objet_tableau : tableau->valeur) {
+				objet.valeur[std::string(variable)] = objet_tableau;
+
+				enfants[2]->genere_code(tampon, objet);
+			}
+
+			break;
+		}
+		case tori::type_objet::DICTIONNAIRE:
+		{
+			auto dictionnaire = static_cast<tori::ObjetDictionnaire *>(objet_iter.get());
+
+			for (auto const &paire_iter : dictionnaire->valeur) {
+				auto objet_nom = std::make_shared<tori::ObjetChaine>();
+				objet_nom->valeur = paire_iter.first;
+
+				objet.valeur[std::string(variable)] = objet_nom;
+
+				enfants[2]->genere_code(tampon, objet);
+			}
+
+			break;
+		}
 	}
 }
