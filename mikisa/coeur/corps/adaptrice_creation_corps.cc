@@ -22,114 +22,13 @@
  *
  */
 
-#include "adaptrice_creation_maillage.h"
+#include "adaptrice_creation_corps.h"
 
 #include "../attribut.h"
 
+#include "corps.h"
 #include "groupes.h"
-#include "maillage.h"
-
-/* ************************************************************************** */
-
-void AdaptriceCreationMaillage::ajoute_sommet(const float x, const float y, const float z, const float w)
-{
-	maillage->ajoute_sommet(dls::math::vec3f(x, y, z));
-}
-
-void AdaptriceCreationMaillage::ajoute_normal(const float x, const float y, const float z)
-{
-//	maillage->ajoute_normal(dls::math::vec3f(x, y, z));
-
-	if (attribut_normal == nullptr) {
-		attribut_normal = maillage->ajoute_attribut("N", type_attribut::ATTRIBUT_VEC3, ATTR_PORTEE_POINT, 0);
-	}
-
-	attribut_normal->pousse_vec3(dls::math::vec3f(x, y, z));
-}
-
-void AdaptriceCreationMaillage::ajoute_coord_uv_sommet(const float u, const float v, const float w)
-{
-//	maillage->ajoute_uv(dls::math::vec2f(u, v));
-
-	if (attribut_uvs == nullptr) {
-		attribut_uvs = maillage->ajoute_attribut("UV", type_attribut::ATTRIBUT_VEC2, ATTR_PORTEE_POLYGONE_POINT, 0);
-	}
-
-	attribut_uvs->pousse_vec2(dls::math::vec2f(u, v));
-}
-
-void AdaptriceCreationMaillage::ajoute_parametres_sommet(const float x, const float y, const float z)
-{}
-
-void AdaptriceCreationMaillage::ajoute_polygone(const int *index_sommet, const int *index_uvs, const int *index_normaux, int nombre)
-{
-	auto poly_3 = (nombre == 3) ? -1 : index_sommet[3];
-
-	auto poly = maillage->ajoute_quad(index_sommet[0], index_sommet[1], index_sommet[2], poly_3);
-
-	if (index_normaux) {
-		for (int i = 0; i < nombre; ++i) {
-			poly->normaux[i] = index_normaux[i];
-		}
-	}
-
-	if (index_uvs) {
-		for (int i = 0; i < nombre; ++i) {
-			poly->uvs[i] = index_uvs[i];
-		}
-	}
-
-//	std::vector<std::string> noms;
-
-//	for (const auto &nom : noms) {
-//		maillage->groupe(nom).push_back(poly->index);
-//	}
-}
-
-void AdaptriceCreationMaillage::ajoute_ligne(const int *index, int nombre)
-{}
-
-void AdaptriceCreationMaillage::ajoute_objet(const std::string &nom)
-{
-	maillage->nom = nom;
-}
-
-void AdaptriceCreationMaillage::reserve_polygones(const size_t nombre)
-{
-	maillage->reserve_polygones(nombre);
-}
-
-void AdaptriceCreationMaillage::reserve_sommets(const size_t nombre)
-{
-	maillage->reserve_sommets(nombre);
-}
-
-void AdaptriceCreationMaillage::reserve_normaux(const size_t nombre)
-{
-	if (attribut_normal == nullptr) {
-		attribut_normal = maillage->ajoute_attribut("N", type_attribut::ATTRIBUT_VEC3, ATTR_PORTEE_POINT, 0);
-		attribut_normal->reserve(nombre);
-	}
-}
-
-void AdaptriceCreationMaillage::reserve_uvs(const size_t nombre)
-{
-	if (attribut_uvs == nullptr) {
-		attribut_uvs = maillage->ajoute_attribut("UV", type_attribut::ATTRIBUT_VEC2, ATTR_PORTEE_POLYGONE_POINT, 0);
-		attribut_uvs->reserve(nombre);
-	}
-}
-
-void AdaptriceCreationMaillage::groupes(const std::vector<std::string> &noms)
-{
-	/* À FAIRE : création de groupes nommés de polygones ; ici nous définissons
-	 * quels groupes sont actifs. */
-
-//	std::map<std::string, std::vector<int>> m_groupes_polys;
-}
-
-void AdaptriceCreationMaillage::groupe_nuancage(const int index)
-{}
+#include "listes.h"
 
 /* ************************************************************************** */
 

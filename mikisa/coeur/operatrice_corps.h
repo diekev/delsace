@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "corps/collection.h"
 #include "corps/corps.h"
 #include "operatrice_image.h"
 
@@ -32,7 +31,6 @@ class Noeud;
 
 class OperatriceCorps : public OperatriceImage {
 protected:
-	Collection m_collection;
 	Corps m_corps;
 
 public:
@@ -41,8 +39,6 @@ public:
 	virtual ~OperatriceCorps() = default;
 
 	int type() const override;
-
-	Collection *collection() override;
 
 	Corps *corps() override;
 };

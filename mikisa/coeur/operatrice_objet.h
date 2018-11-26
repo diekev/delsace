@@ -26,8 +26,6 @@
 
 #include "bibliotheques/graphe/graphe.h"
 
-#include "corps/maillage.h"
-
 #include "manipulatrice.h"
 #include "objet.h"
 #include "operatrice_image.h"

@@ -26,7 +26,6 @@
 
 #include "bibliotheques/graphe/noeud.h"
 
-#include "corps/collection.h"
 #include "corps/corps.h"
 
 #include "noeud_image.h"
@@ -217,24 +216,6 @@ TextureImage *EntreeOperatrice::requiers_texture(const Rectangle &rectangle, con
 
 	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
 	return operatrice->texture();
-}
-
-void EntreeOperatrice::requiers_collection(Collection &collection, const Rectangle &rectangle, const int temps)
-{
-	auto lien = m_ptr->lien;
-
-	if (lien == nullptr) {
-		return;
-	}
-
-	auto noeud = lien->parent;
-
-	execute_noeud(noeud, rectangle, temps);
-
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
-	auto collection_op = operatrice->collection();
-
-	collection_op->transfers_corps_a(collection);
 }
 
 const Corps *EntreeOperatrice::requiers_corps(const Rectangle &rectangle, const int temps)
@@ -431,11 +412,6 @@ TextureImage *OperatriceImage::texture()
 }
 
 Objet *OperatriceImage::objet()
-{
-	return nullptr;
-}
-
-Collection *OperatriceImage::collection()
 {
 	return nullptr;
 }

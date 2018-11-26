@@ -34,9 +34,7 @@
 #include "bibliotheques/texture/texture.h"
 #include "bibliotheques/vision/camera.h"
 
-#include "coeur/corps/courbes.h"
-#include "coeur/corps/maillage.h"
-#include "coeur/corps/nuage_points.h"
+#include "coeur/corps/corps.h"
 
 #include "coeur/composite.h"
 #include "coeur/manipulatrice.h"
@@ -44,9 +42,7 @@
 #include "coeur/objet.h"
 #include "coeur/scene.h"
 
-#include "rendu/rendu_courbe.h"
-#include "rendu/rendu_maillage.h"
-#include "rendu/rendu_particules.h"
+#include "rendu/rendu_corps.h"
 
 #include "rendu_manipulatrice.h"
 
@@ -180,65 +176,6 @@ void VisionneurScene::peint_opengl()
 				rendu_corps.dessine(m_contexte);
 
 				m_stack.enleve_sommet();
-			}
-
-			for (Corps *corps : objet->collection.plage()) {
-				if (corps->type == CORPS_MAILLAGE) {
-					auto maillage = dynamic_cast<Maillage *>(corps);
-
-					m_stack.pousse(maillage->transformation.matrice());
-					m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
-
-					RenduMaillage rendu_maillage(maillage);
-					rendu_maillage.initialise();
-					rendu_maillage.dessine(m_contexte);
-
-					m_stack.enleve_sommet();
-
-					if (maillage->texture() && maillage->texture()->camera()) {
-						camera = maillage->texture()->camera();
-
-						/* la rotation de la caméra est appliquée aux points dans
-						 * RenduCamera, donc on recrée une matrice sans rotation, et dont
-						 * la taille dans la scène est de 1.0 (en mettant à l'échelle
-						 * avec un facteur de 1.0 / distance éloignée. */
-						auto matrice = dls::math::mat4x4d(1.0);
-						matrice = dls::math::translation(matrice, dls::math::vec3d(camera->pos()));
-						matrice = dls::math::dimension(matrice, dls::math::vec3d(1.0 / camera->eloigne()));
-						m_stack.pousse(matrice);
-						m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
-
-						RenduCamera rendu_camera(camera);
-						rendu_camera.initialise();
-						rendu_camera.dessine(m_contexte);
-
-						m_stack.enleve_sommet();
-					}
-				}
-				else if (corps->type == CORPS_COURBE) {
-					auto courbes = dynamic_cast<Courbes *>(corps);
-
-					m_stack.pousse(courbes->transformation.matrice());
-					m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
-
-					RenduCourbe rendu_courbes(courbes);
-					rendu_courbes.initialise();
-					rendu_courbes.dessine(m_contexte);
-
-					m_stack.enleve_sommet();
-				}
-				else if (corps->type == CORPS_NUAGE_POINTS) {
-					auto points = dynamic_cast<NuagePoints *>(corps);
-
-					m_stack.pousse(points->transformation.matrice());
-					m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
-
-					RenduParticules rendu_particules(points);
-					rendu_particules.initialise();
-					rendu_particules.dessine(m_contexte);
-
-					m_stack.enleve_sommet();
-				}
 			}
 
 			m_stack.enleve_sommet();

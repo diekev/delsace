@@ -27,7 +27,6 @@
 #include <random>
 
 #include "../corps/corps.h"
-#include "../corps/nuage_points.h"
 
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"

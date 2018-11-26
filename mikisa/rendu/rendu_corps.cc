@@ -22,7 +22,7 @@
  *
  */
 
-#include "rendu_maillage.h"
+#include "rendu_corps.h"
 
 #include <ego/outils.h>
 #include <numeric>
@@ -33,7 +33,6 @@
 #include "bibliotheques/vision/camera.h"
 
 #include "coeur/corps/corps.h"
-#include "coeur/corps/maillage.h"
 
 #include "coeur/attribut.h"
 
@@ -225,39 +224,7 @@ void compile_sources_nuanceur(Maillage *maillage)
 
 /* ************************************************************************** */
 
-static void genere_texture(
-		numero7::ego::Texture2D *texture,
-		const void *donnes,
-		GLint *taille,
-		int enveloppage,
-		int entrepolation)
-{
-	texture->free(true);
-	texture->bind();
-	texture->setType(GL_FLOAT, GL_RGB, GL_RGB);
-
-	if (entrepolation == ENTREPOLATION_LINEAIRE) {
-		texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	}
-	else if (entrepolation == ENTREPOLATION_VOISINAGE_PROCHE) {
-		texture->setMinMagFilter(GL_NEAREST, GL_NEAREST);
-	}
-
-	if (enveloppage == ENVELOPPAGE_REPETITION) {
-		texture->setWrapping(GL_REPEAT);
-	}
-	else if (enveloppage == ENVELOPPAGE_REPETITION_MIRROIR) {
-		texture->setWrapping(GL_MIRRORED_REPEAT);
-	}
-	else if (enveloppage == ENVELOPPAGE_RESTRICTION) {
-		texture->setWrapping(GL_CLAMP_TO_EDGE);
-	}
-
-	texture->fill(donnes, taille);
-	texture->unbind();
-}
-
-TamponRendu *cree_tampon_surface(bool possede_uvs)
+static TamponRendu *cree_tampon_surface(bool possede_uvs)
 {
 	auto tampon = new TamponRendu;
 
@@ -293,177 +260,6 @@ TamponRendu *cree_tampon_surface(bool possede_uvs)
 	programme->desactive();
 
 	return tampon;
-}
-
-TamponRendu *genere_tampon_surface(Maillage *maillage)
-{
-	const auto nombre_polygones = maillage->nombre_polygones();
-	const auto nombre_elements = nombre_polygones * 4;
-
-	const auto attr_normaux = maillage->attribut("N");
-	const auto attr_uvs = maillage->attribut("UV");
-
-	const auto possede_uvs = attr_uvs != nullptr;
-	const auto possede_normaux = attr_normaux != nullptr;
-
-	auto tampon = cree_tampon_surface(possede_uvs);
-
-	std::vector<dls::math::vec3f> sommets;
-	sommets.reserve(nombre_elements);
-
-	std::vector<dls::math::vec3f> normaux;
-	normaux.reserve(nombre_elements);
-
-	std::vector<dls::math::vec2f> uvs;
-	uvs.reserve(nombre_elements);
-
-	/* OpenGL ne travaille qu'avec des floats. */
-	for (size_t	i = 0; i < nombre_polygones; ++i) {
-		const auto poly = maillage->polygone(i);
-
-		sommets.push_back(poly->s[0]->pos);
-		sommets.push_back(poly->s[1]->pos);
-		sommets.push_back(poly->s[2]->pos);
-
-		if (possede_normaux) {
-			if (attr_normaux->portee == ATTR_PORTEE_POINT) {
-				normaux.push_back(attr_normaux->vec3(poly->s[0]->index));
-				normaux.push_back(attr_normaux->vec3(poly->s[1]->index));
-				normaux.push_back(attr_normaux->vec3(poly->s[2]->index));
-			}
-			else if (attr_normaux->portee == ATTR_PORTEE_POLYGONE) {
-				normaux.push_back(attr_normaux->vec3(i));
-				normaux.push_back(attr_normaux->vec3(i));
-				normaux.push_back(attr_normaux->vec3(i));
-			}
-		}
-
-		if (possede_uvs) {
-			uvs.push_back(attr_uvs->vec2(poly->uvs[0]));
-			uvs.push_back(attr_uvs->vec2(poly->uvs[1]));
-			uvs.push_back(attr_uvs->vec2(poly->uvs[2]));
-		}
-
-		if (poly->s[3]) {
-			sommets.push_back(poly->s[0]->pos);
-			sommets.push_back(poly->s[2]->pos);
-			sommets.push_back(poly->s[3]->pos);
-
-			if (possede_normaux) {
-				if (attr_normaux->portee == ATTR_PORTEE_POINT) {
-					normaux.push_back(attr_normaux->vec3(poly->s[0]->index));
-					normaux.push_back(attr_normaux->vec3(poly->s[2]->index));
-					normaux.push_back(attr_normaux->vec3(poly->s[3]->index));
-				}
-				else if (attr_normaux->portee == ATTR_PORTEE_POLYGONE) {
-					normaux.push_back(attr_normaux->vec3(i));
-					normaux.push_back(attr_normaux->vec3(i));
-					normaux.push_back(attr_normaux->vec3(i));
-				}
-			}
-
-			if (possede_uvs) {
-				uvs.push_back(attr_uvs->vec2(poly->uvs[0]));
-				uvs.push_back(attr_uvs->vec2(poly->uvs[2]));
-				uvs.push_back(attr_uvs->vec2(poly->uvs[3]));
-			}
-		}
-	}
-
-	ParametresTampon parametres_tampon;
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.elements = sommets.size();
-
-	tampon->remplie_tampon(parametres_tampon);
-
-	parametres_tampon.attribut = "normaux";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_donnees_extra = normaux.data();
-	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.elements = normaux.size();
-
-	tampon->remplie_tampon_extra(parametres_tampon);
-
-	if (possede_uvs) {
-		parametres_tampon.attribut = "uvs";
-		parametres_tampon.dimension_attribut = 2;
-		parametres_tampon.pointeur_donnees_extra = uvs.data();
-		parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(dls::math::vec2f);
-		parametres_tampon.elements = uvs.size();
-
-		tampon->remplie_tampon_extra(parametres_tampon);
-	}
-
-	numero7::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
-
-	return tampon;
-}
-
-/* ************************************************************************** */
-
-RenduMaillage::RenduMaillage(Maillage *maillage)
-	: m_maillage(maillage)
-{}
-
-RenduMaillage::~RenduMaillage()
-{
-	delete m_tampon;
-}
-
-void RenduMaillage::initialise()
-{
-	m_tampon = genere_tampon_surface(m_maillage);
-
-	if (m_maillage->texture()) {
-		auto texture_image = m_maillage->texture();
-		m_tampon->ajoute_texture();
-		auto texture = m_tampon->texture();
-
-		GLint taille_texture[2] = {
-			texture_image->largeur(),
-			texture_image->hauteur()
-		};
-
-		genere_texture(texture,
-					   texture_image->donnees(),
-					   taille_texture,
-					   texture_image->enveloppage(),
-					   texture_image->entrepolation());
-	}
-}
-
-void RenduMaillage::dessine(const ContexteRendu &contexte)
-{
-	auto programme = m_tampon->programme();
-	programme->active();
-
-	if (m_tampon->texture()) {
-		programme->uniforme("image", m_tampon->texture()->number());
-	}
-
-	auto texture_image = m_maillage->texture();
-
-	if (texture_image) {
-		programme->uniforme("methode", texture_image->projection());
-		programme->uniforme("taille_texture", texture_image->taille().x, texture_image->taille().y);
-
-		if (texture_image->camera()) {
-			auto camera = texture_image->camera();
-			glUniformMatrix4fv((*programme)("MV"), 1, GL_FALSE, &camera->MV()[0][0]);
-			glUniformMatrix4fv((*programme)("P"), 1, GL_FALSE, &camera->P()[0][0]);
-			programme->uniforme("direction_camera", camera->dir().x, camera->dir().y, camera->dir().z);
-		}
-	}
-	else {
-		programme->uniforme("methode", -1);
-	}
-
-	programme->desactive();
-
-	m_tampon->dessine(contexte);
 }
 
 /* ************************************************************************** */

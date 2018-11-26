@@ -32,10 +32,7 @@
 #include "bibliotheques/texture/texture.h"
 #include "bibliotheques/vision/camera.h"
 
-#include "../corps/adaptrice_creation_maillage.h"
-#include "../corps/courbes.h"
-#include "../corps/maillage.h"
-#include "../corps/nuage_points.h"
+#include "../corps/adaptrice_creation_corps.h"
 
 #include "../attribut.h"
 #include "../manipulatrice.h"

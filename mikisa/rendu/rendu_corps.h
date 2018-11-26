@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -22,21 +22,39 @@
  *
  */
 
-#include "nuage_points.h"
+#pragma once
 
-NuagePoints::NuagePoints()
-	: Corps()
-{
-	this->nom = "nuage_points";
-	this->type = CORPS_NUAGE_POINTS;
-}
+class Corps;
+class ContexteRendu;
+class TamponRendu;
 
-void NuagePoints::reinitialise()
-{
-	m_points.reinitialise();
-}
+/**
+ * La classe RenduCorps contient la logique de rendu d'un corps dans la
+ * scène 3D.
+ */
+class RenduCorps {
+	TamponRendu *m_tampon_points = nullptr;
+	TamponRendu *m_tampon_polygones = nullptr;
+	TamponRendu *m_tampon_segments = nullptr;
 
-ListePoints *NuagePoints::liste_points()
-{
-	return &m_points;
-}
+	Corps *m_corps = nullptr;
+
+public:
+	/**
+	 * RenduCorps une instance de RenduMaillage pour le maillage spécifié.
+	 */
+	explicit RenduCorps(Corps *corps);
+
+	/**
+	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+	 * utiliser l'instance crashera le programme.
+	 */
+	~RenduCorps();
+
+	void initialise();
+
+	/**
+	 * Dessine le maillage dans le contexte spécifié.
+	 */
+	void dessine(const ContexteRendu &contexte);
+};

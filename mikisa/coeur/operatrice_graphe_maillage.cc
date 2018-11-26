@@ -27,7 +27,6 @@
 #include <delsace/math/bruit.hh>
 
 #include "corps/corps.h"
-#include "corps/maillage.h"
 
 /* ************************************************************************** */
 

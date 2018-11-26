@@ -72,14 +72,10 @@ add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_vue2d.h
 	commandes/commandes_vue3d.h
 
-	corps/adaptrice_creation_maillage.h
+	corps/adaptrice_creation_corps.h
 	corps/corps.h
-	corps/collection.h
-	corps/courbes.h
 	corps/groupes.h
 	corps/listes.h
-	corps/maillage.h
-	corps/nuage_points.h
 
 	operatrices/operatrices_3d.h
 	operatrices/operatrices_cheveux.h
@@ -121,14 +117,10 @@ add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_vue2d.cc
 	commandes/commandes_vue3d.cc
 
-	corps/adaptrice_creation_maillage.cc
+	corps/adaptrice_creation_corps.cc
 	corps/corps.cc
-	corps/collection.cc
-	corps/courbes.cc
 	corps/groupes.cc
 	corps/listes.cc
-	corps/maillage.cc
-	corps/nuage_points.cc
 
 	operatrices/operatrices_3d.cc
 	operatrices/operatrices_cheveux.cc

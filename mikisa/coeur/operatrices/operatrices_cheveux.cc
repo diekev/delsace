@@ -27,9 +27,6 @@
 #include <random>
 
 #include "../corps/corps.h"
-#include "../corps/courbes.h"
-#include "../corps/maillage.h"
-#include "../corps/nuage_points.h"
 
 #include "../attribut.h"
 #include "../operatrice_corps.h"
@@ -175,7 +172,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto courbes = m_collection.cree_courbes();
+		auto courbes = nullptr;
 
 		const auto nombre_courbes = liste_points->taille();
 		const auto segments = evalue_entier("segments");
@@ -220,11 +217,11 @@ public:
 			direction = DIRECTION_PERSONALISEE;
 		}
 
-		courbes->nombre_courbes = nombre_courbes;
-		courbes->segments_par_courbe = segments;
+//		courbes->nombre_courbes = nombre_courbes;
+//		courbes->segments_par_courbe = segments;
 
-		courbes->liste_points()->reserve(nombre_courbes * (segments + 1));
-		courbes->liste_segments()->reserve(nombre_courbes * segments);
+//		courbes->liste_points()->reserve(nombre_courbes * (segments + 1));
+//		courbes->liste_segments()->reserve(nombre_courbes * segments);
 
 		std::uniform_real_distribution<float> dist_taille(taille_min, taille_max);
 		std::mt19937 rng(19937);
@@ -274,7 +271,7 @@ class OperatriceCollisionCheveux : public OperatriceCorps {
 public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		Courbes *courbes = charge_courbes(rectangle, temps);
+		auto const courbes = charge_courbes(rectangle, temps);
 
 		if (courbes == nullptr) {
 			ajoute_avertissement("Aucune courbe n'a été trouvée !");
@@ -282,7 +279,7 @@ public:
 		}
 
 		/* obtiens le maillage de collision */
-		Maillage *maillage_collision = charge_maillage_collesion(rectangle, temps);
+		auto const maillage_collision = charge_maillage_collesion(rectangle, temps);
 
 		if (maillage_collision == nullptr) {
 			ajoute_avertissement("Aucun maillage de collision n'a été trouvé !");
@@ -295,7 +292,7 @@ public:
 
 		/* identifie les courbes dont la boite englobante se trouve dans la
 		 * boite englobante du maillage de collision */
-		Courbes *liste_courbes = trouve_courbes_pres_maillage(maillage_collision, courbes);
+		auto liste_courbes = trouve_courbes_pres_maillage(maillage_collision, courbes);
 
 		static_cast<void>(liste_courbes);
 
@@ -323,44 +320,21 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	Maillage *charge_maillage_collesion(const Rectangle &rectangle, const int temps)
+	Corps const *charge_maillage_collesion(const Rectangle &rectangle, const int temps)
 	{
-		Collection collection_collision;
-		input(0)->requiers_collection(collection_collision, rectangle, temps);
-
-		Maillage *maillage_collision = nullptr;
-
-		for (Corps *corps : collection_collision.plage()) {
-			if (corps->type != CORPS_MAILLAGE) {
-				continue;
-			}
-
-			maillage_collision = dynamic_cast<Maillage *>(corps);
-		}
-
-		return maillage_collision;
+		return input(0)->requiers_corps(rectangle, temps);
 	}
 
-	Courbes *charge_courbes(const Rectangle &rectangle, const int temps)
+	Corps const *charge_courbes(const Rectangle &rectangle, const int temps)
 	{
-		input(1)->requiers_collection(m_collection, rectangle, temps);
-
-		for (Corps *corps : m_collection.plage()) {
-			if (corps->type != CORPS_COURBE) {
-				continue;
-			}
-
-			return dynamic_cast<Courbes *>(corps);
-		}
-
-		return nullptr;
+		return input(1)->requiers_corps(rectangle, temps);
 	}
 
-	ArbreOcternaire *construit_arbre(Maillage *maillage)
+	ArbreOcternaire *construit_arbre(Corps const *maillage)
 	{
 		ArbreOcternaire *arbre = new ArbreOcternaire;
 
-		for (Polygone *poly : maillage->liste_polys()->polys()) {
+		for (Polygone *poly : maillage->polys()->polys()) {
 			auto triangle = new Triangle();
 			triangle->p0 = poly->s[0]->pos;
 			triangle->p1 = poly->s[1]->pos;
@@ -391,13 +365,13 @@ public:
 		return arbre;
 	}
 
-	Courbes *trouve_courbes_pres_maillage(Maillage *maillage, Courbes *courbes)
+	Corps const *trouve_courbes_pres_maillage(Corps const *maillage, Corps const *courbes)
 	{
-		for (size_t i = 0; i < courbes->nombre_courbes; ++i) {
-			for (size_t j = 0; j < courbes->segments_par_courbe; ++j) {
+//		for (size_t i = 0; i < courbes->nombre_courbes; ++i) {
+//			for (size_t j = 0; j < courbes->segments_par_courbe; ++j) {
 
-			}
-		}
+//			}
+//		}
 
 		return nullptr;
 	}

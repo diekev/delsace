@@ -29,9 +29,9 @@
 
 #include "bibliotheques/vision/camera.h"
 
-#include "rendu/rendu_maillage.h"
+#include "rendu/rendu_corps.h"
 
-#include "corps/maillage.h"
+#include "corps/corps.h"
 
 #include "objet.h"
 
@@ -170,21 +170,6 @@ int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 				rendu_corps.dessine(m_contexte);
 
 				m_pile.enleve_sommet();
-			}
-
-			for (Corps *corps : objet->collection.plage()) {
-				if (corps->type == CORPS_MAILLAGE) {
-					auto maillage = dynamic_cast<Maillage *>(corps);
-
-					m_pile.pousse(maillage->transformation.matrice());
-					m_contexte.matrice_objet(converti_matrice_glm(m_pile.sommet()));
-
-					RenduMaillage rendu_maillage(maillage);
-					rendu_maillage.initialise();
-					rendu_maillage.dessine(m_contexte);
-
-					m_pile.enleve_sommet();
-				}
 			}
 
 			m_pile.enleve_sommet();

@@ -35,9 +35,7 @@
 #include "bibliotheques/geometrie/rectangle.h"
 #include "bibliotheques/outils/iterateurs.h"
 
-class Collection;
 class Corps;
-class Maillage;
 class Manipulatrice3D;
 class Noeud;
 class PriseEntree;
@@ -216,8 +214,6 @@ public:
 	 */
 	TextureImage *requiers_texture(const Rectangle &rectangle, const int temps);
 
-	void requiers_collection(Collection &collection, const Rectangle &rectangle, const int temps);
-
 	const Corps *requiers_corps(const Rectangle &rectangle, const int temps);
 
 	Corps *requiers_copie_corps(Corps *corps, const Rectangle &rectangle, const int temps);
@@ -333,8 +329,6 @@ public:
 	virtual TextureImage *texture();
 
 	virtual Objet *objet();
-
-	virtual Collection *collection();
 
 	virtual Corps *corps();
 

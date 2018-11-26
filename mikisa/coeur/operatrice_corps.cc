@@ -34,11 +34,6 @@ int OperatriceCorps::type() const
 	return OPERATRICE_CORPS;
 }
 
-Collection *OperatriceCorps::collection()
-{
-	return &m_collection;
-}
-
 Corps *OperatriceCorps::corps()
 {
 	return &m_corps;

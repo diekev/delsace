@@ -37,13 +37,9 @@ set(BIBLIOTHEQUES
 )
 
 add_library(${NOM_CIBLE} STATIC
-	rendu_courbe.cc
-	rendu_maillage.cc
-	rendu_particules.cc
+	rendu_corps.cc
 
-	rendu_courbe.h
-	rendu_maillage.h
-	rendu_particules.h
+	rendu_corps.h
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
