@@ -73,17 +73,17 @@ public:
 	 * Étend les limite de la boîte selon le delta spécifié, qui est enlevé au
 	 * point minimum, et ajouté au point maximum.
 	 */
-	void etend(float delta);
+	void etend(double delta);
 
 	/**
 	 * Retourne l'aire de la surface des six faces de cette boîte.
 	 */
-	float aire_surface() const;
+	double aire_surface() const;
 
 	/**
 	 * Retourne le volume de cette boîte.
 	 */
-	float volume() const;
+	double volume() const;
 
 	/**
 	 * Retourne l'index (0, 1, 2) de la dimension (x, y, z) ayant la plus grande

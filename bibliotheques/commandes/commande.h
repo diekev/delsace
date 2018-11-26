@@ -67,14 +67,13 @@ struct DescriptionCommande {
 	int modificateur = 0;
 	int cle = 0;
 	bool double_clique = false;
+	bool pad[3];
 
 	fonction_usine construction_commande = nullptr;
 };
 
-#include <iostream>
-
 template <typename T>
-static inline constexpr auto description_commande(
+inline auto description_commande(
 		const std::string &categorie,
 		int souris,
 		int modificateur,

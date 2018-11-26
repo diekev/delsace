@@ -33,16 +33,16 @@
 
 inline void xyz_vers_rgb(const float xyz[3], float rgb[3])
 {
-	rgb[0] = 3.240479 * xyz[0] - 1.537150 * xyz[1] - 0.498535 * xyz[2];
-	rgb[1] = -0.969256 * xyz[0] + 1.875991 * xyz[1] + 0.041556 * xyz[2];
-	rgb[2] = 0.055648 * xyz[0] - 0.204043 * xyz[1] + 1.057311 * xyz[2];
+	rgb[0] =  3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2];
+	rgb[1] = -0.969256f * xyz[0] + 1.875991f * xyz[1] + 0.041556f * xyz[2];
+	rgb[2] =  0.055648f * xyz[0] - 0.204043f * xyz[1] + 1.057311f * xyz[2];
 }
 
 inline void rgb_vers_xyz(const float rgb[3], float xyz[3])
 {
-	xyz[0] = 0.412453 * rgb[0] + 0.357580 * rgb[1] + 0.180423 * rgb[2];
-	xyz[1] = 0.212671 * rgb[0] + 0.715160 * rgb[1] + 0.072169 * rgb[2];
-	xyz[2] = 0.019334 * rgb[0] + 0.119193 * rgb[1] + 0.950227 * rgb[2];
+	xyz[0] = 0.412453f * rgb[0] + 0.357580f * rgb[1] + 0.180423f * rgb[2];
+	xyz[1] = 0.212671f * rgb[0] + 0.715160f * rgb[1] + 0.072169f * rgb[2];
+	xyz[2] = 0.019334f * rgb[0] + 0.119193f * rgb[1] + 0.950227f * rgb[2];
 }
 
 float moyenne_echantillons(const float *lambdas, const float *valeurs, int n, const float debut_lambda, const float fin_lambda);
@@ -70,7 +70,7 @@ extern const float CIE_X[nCIESamples];
 extern const float CIE_Y[nCIESamples];
 extern const float CIE_Z[nCIESamples];
 extern const float CIE_lambda[nCIESamples];
-static const float CIE_Y_integral = 106.856895;
+static const float CIE_Y_integral = 106.856895f;
 
 static const int nRGB2SpectSamples = 32;
 extern const float RGB2SpectLambda[nRGB2SpectSamples];
@@ -504,14 +504,16 @@ public:
 
 inline auto entrepolation_lineaire(const SpectreEchantillon &a, const SpectreEchantillon &b, const float t)
 {
-	return (1.0 - t) * a + t * b;
+	return (1.0f - t) * a + t * b;
 }
 
 /* ************************************************************************** */
 
 class SpectreRGB : public SpectreCoefficient<3> {
 public:
-	explicit SpectreRGB(float valeur = 0.0);
+	explicit SpectreRGB(float valeur = 0.0f);
+
+	explicit SpectreRGB(double valeur);
 
 	/* cppcheck-suppress noExplicitConstructor */
 	SpectreRGB(const SpectreCoefficient<3> &spectre);
@@ -537,13 +539,13 @@ public:
 
 inline auto entrepolation_lineaire(const SpectreRGB &a, const SpectreRGB &b, const float t)
 {
-	return (1.0 - t) * a + t * b;
+	return (1.0f - t) * a + t * b;
 }
 
 inline bool operator==(const SpectreRGB &a, const SpectreRGB &b)
 {
-	for (int i = 0; i < 3; ++i) {
-		if (a[i] != b[i]) {
+	for (size_t i = 0; i < 3; ++i) {
+		if (std::abs(a[i] - b[i]) > 1e-6f) {
 			return false;
 		}
 	}
@@ -558,7 +560,7 @@ inline bool operator!=(const SpectreRGB &a, const SpectreRGB &b)
 
 inline bool operator<(const SpectreRGB &a, const SpectreRGB &b)
 {
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		if (a[i] > b[i]) {
 			return false;
 		}
@@ -574,7 +576,7 @@ inline bool operator<=(const SpectreRGB &a, const SpectreRGB &b)
 
 inline bool operator>(const SpectreRGB &a, const SpectreRGB &b)
 {
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		if (a[i] > b[i]) {
 			return false;
 		}

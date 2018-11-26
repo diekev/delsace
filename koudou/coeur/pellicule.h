@@ -30,10 +30,10 @@
 #include <vector>
 
 struct CarreauPellicule {
-	int x;
-	int y;
-	int largeur;
-	int hauteur;
+	unsigned int x;
+	unsigned int y;
+	unsigned int largeur;
+	unsigned int hauteur;
 };
 
 struct PixelPellicule {
@@ -53,7 +53,7 @@ public:
 
 	int largeur() const;
 
-	void ajoute_echantillon(int i, int j, const dls::math::vec3d &couleur, const double poids = 1.0);
+	void ajoute_echantillon(size_t i, size_t j, const dls::math::vec3d &couleur, const double poids = 1.0);
 
 	const dls::math::vec3d &couleur(int i, int j);
 

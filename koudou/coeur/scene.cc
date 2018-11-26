@@ -60,7 +60,7 @@ Spectre spectre_monde(const Monde &monde, const dls::math::vec3d &direction)
 Scene::Scene()
 {
 	/* Création du monde. */
-	float rgb_monde[3] = {0.05, 0.35, 0.8};
+	float rgb_monde[3] = {0.05f, 0.35f, 0.8f};
 
 	Texture *texture = new TextureCouleur;
 
@@ -79,7 +79,7 @@ Scene::Scene()
 
 	transformation *= math::translation(0.0, 2.0, 4.0);
 
-	float rgb1[3] = {1.0, 0.6, 0.6};
+	float rgb1[3] = {1.0f, 0.6f, 0.6f};
 	auto lumiere_point = new LumierePoint(transformation, Spectre::depuis_rgb(rgb1), 100);
 	ajoute_lumiere(lumiere_point);
 	lumiere_point->nuanceur = NuanceurEmission::defaut();
@@ -87,7 +87,7 @@ Scene::Scene()
 	transformation = math::transformation();
 	transformation *= math::translation(-1.0, 4.0, -1.0);
 
-	float rgb2[3] = {0.6, 0.6, 1.0};
+	float rgb2[3] = {0.6f, 0.6f, 1.0f};
 	lumiere_point = new LumierePoint(transformation, Spectre::depuis_rgb(rgb2), 100);
 	lumiere_point->nuanceur = NuanceurEmission::defaut();
 	ajoute_lumiere(lumiere_point);
@@ -229,7 +229,7 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 
 			rayon.direction = direction_op;
 
-			for (int i = 0; i < 3; ++i) {
+			for (size_t i = 0; i < 3; ++i) {
 				rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
 			}
 
@@ -260,7 +260,7 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 
 			rayon.direction = direction_op;
 
-			for (int i = 0; i < 3; ++i) {
+			for (size_t i = 0; i < 3; ++i) {
 				rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
 			}
 
@@ -279,7 +279,7 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 	const auto posv = dls::math::vec3d(pos.x, pos.y, pos.z); /* XXX - PAS BEAU. */
 	const auto direction = dls::math::normalise(point - posv);
 	rayon.direction = direction;
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
 	}
 	spectre += spectre_monde(scene.monde, direction) * ombre_scene(parametres, scene, rayon, 1000.0);

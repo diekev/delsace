@@ -112,7 +112,7 @@ static void min_max_vecteur(
 		dls::math::point3d &min,
 		dls::math::point3d &max)
 {
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		min[i] = std::min(min[i], vecteur[i]);
 		max[i] = std::max(max[i], vecteur[i]);
 	}

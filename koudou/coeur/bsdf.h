@@ -39,7 +39,7 @@ struct BSDF {
 
 	virtual void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) = 0;
 
-	virtual void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) = 0;
+	virtual void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) = 0;
 
 	ContexteNuancage &contexte;
 };
@@ -49,7 +49,7 @@ struct BSDFTrivial : public BSDF {
 
 	void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) override;
 
-	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) override;
+	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) override;
 };
 
 struct BSDFAngleVue : public BSDF {
@@ -57,7 +57,7 @@ struct BSDFAngleVue : public BSDF {
 
 	void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) override;
 
-	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) override;
+	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) override;
 };
 
 struct BSDFDiffus : public BSDF {
@@ -67,7 +67,7 @@ struct BSDFDiffus : public BSDF {
 
 	void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) override;
 
-	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) override;
+	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) override;
 };
 
 struct BSDFReflectance : public BSDF {
@@ -75,7 +75,7 @@ struct BSDFReflectance : public BSDF {
 
 	void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) override;
 
-	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) override;
+	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) override;
 };
 
 struct BSDFVerre : public BSDF {
@@ -85,7 +85,7 @@ struct BSDFVerre : public BSDF {
 
 	void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) override;
 
-	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) override;
+	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) override;
 };
 
 struct BSDFVolume : public BSDF {
@@ -97,7 +97,7 @@ struct BSDFVolume : public BSDF {
 
 	void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) override;
 
-	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) override;
+	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) override;
 };
 
 struct BSDFPhaseIsotropique : public BSDF {
@@ -109,7 +109,7 @@ struct BSDFPhaseIsotropique : public BSDF {
 
 	void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) override;
 
-	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) override;
+	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) override;
 };
 
 struct BSDFPhaseAnisotropique : public BSDF {
@@ -117,17 +117,17 @@ struct BSDFPhaseAnisotropique : public BSDF {
 	Spectre sigma_a = Spectre(1.0);
 	Spectre sigma_s = Spectre(1.0);
 
-	bool isotropique = false;
 	double g;
 	double un_plus_g2;
 	double un_moins_g2;
 	double un_sur_2g;
+	bool isotropique = false;
 
 	BSDFPhaseAnisotropique(ContexteNuancage &ctx, double g_ = 1.0);
 
 	void evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf) override;
 
-	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur) override;
+	void genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur) override;
 
 private:
 	double calcul_pdf(double cos_theta) const;

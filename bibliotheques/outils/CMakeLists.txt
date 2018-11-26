@@ -28,6 +28,7 @@ add_library(${NOM_CIBLE} STATIC
 	iterateurs.cc
 
     constantes.h
+	definitions.hh
 	iterateurs.h
     parallelisme.h
 )

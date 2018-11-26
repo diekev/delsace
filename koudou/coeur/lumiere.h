@@ -29,17 +29,18 @@
 
 class Nuanceur;
 
-enum {
-	LUMIERE_POINT,
-	LUMIERE_DISTANTE,
+enum class type_lumiere : char {
+	POINT,
+	DISTANTE,
 };
 
 struct Lumiere {
 	math::transformation transformation;
 	Nuanceur *nuanceur = nullptr;
+	double intensite = 0.0;
 	Spectre spectre;
-	double intensite = 0.0f;
-	char type = LUMIERE_POINT;
+	type_lumiere type = type_lumiere::POINT;
+	char pad[3];
 
 	Lumiere() = default;
 

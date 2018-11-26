@@ -36,7 +36,7 @@ class GNA;
 class Lumiere;
 class Maillage;
 class Nuanceur;
-class ParametresRendu;
+struct ParametresRendu;
 class Texture;
 
 struct Objet;

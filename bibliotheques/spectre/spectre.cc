@@ -635,6 +635,10 @@ SpectreRGB::SpectreRGB(float valeur)
 	: SpectreCoefficient<3>(valeur)
 {}
 
+SpectreRGB::SpectreRGB(double valeur)
+	: SpectreCoefficient<3>(static_cast<float>(valeur))
+{}
+
 SpectreRGB::SpectreRGB(const SpectreCoefficient<3> &spectre)
 	: SpectreCoefficient<3>(spectre)
 {}

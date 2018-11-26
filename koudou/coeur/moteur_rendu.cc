@@ -43,7 +43,7 @@
 
 /* ************************************************************************** */
 
-vision::EchantillonCamera genere_echantillon(GNA &gna, int x, int y)
+vision::EchantillonCamera genere_echantillon(GNA &gna, unsigned int x, unsigned int y)
 {
 	vision::EchantillonCamera echantillon;
 	echantillon.x = x + gna.nombre_aleatoire();
@@ -72,7 +72,7 @@ static Rayon genere_rayon(vision::Camera3D *camera, const vision::EchantillonCam
 	r.origine = dls::math::point3d(origine.x, origine.y, origine.z);
 	r.direction = dls::math::vec3d(direction.x, direction.y, direction.z);
 
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		r.inverse_direction[i] = 1.0 / r.direction[i];
 	}
 
@@ -98,7 +98,7 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 	Rayon rayon_local = rayon;
 	ContexteNuancage contexte;
 
-	for (int i = 0; i < parametres.nombre_rebonds; ++i) {
+	for (auto i = 0u; i < parametres.nombre_rebonds; ++i) {
 		const auto entresection = parametres.acceleratrice->entresecte(
 									  scene,
 									  rayon_local,
@@ -147,7 +147,7 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 			auto bsdf = nuanceur->cree_BSDF(contexte);
 			bsdf->genere_echantillon(gna, parametres, rayon_local.direction, Ls, pdf, profondeur);
 
-			spectre_entresection *= (Ls / pdf);
+			spectre_entresection *= (Ls / static_cast<float>(pdf));
 			spectre_pixel += spectre_entresection;
 
 			delete bsdf;
@@ -156,11 +156,11 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 		rayon_local.origine = contexte.P;
 
 
-		if (spectre_entresection.y() <= 0.1) {
+		if (spectre_entresection.y() <= 0.1f) {
 			break;
 		}
 
-		for (int i = 0; i < 3; ++i) {
+		for (size_t i = 0; i < 3; ++i) {
 			rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
 		}
 	}
@@ -170,7 +170,7 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 
 /* ************************************************************************** */
 
-void MoteurRendu::echantillone_scene(const ParametresRendu &parametres, const std::vector<CarreauPellicule> &carreaux, int echantillon)
+void MoteurRendu::echantillone_scene(const ParametresRendu &parametres, const std::vector<CarreauPellicule> &carreaux, unsigned int echantillon)
 {
 	auto camera = parametres.camera;
 	/* À FAIRE : redimensionne la caméra et la pellicule selon la fenêtre
@@ -187,13 +187,13 @@ void MoteurRendu::echantillone_scene(const ParametresRendu &parametres, const st
 	tbb::parallel_for(tbb::blocked_range<size_t>(0, carreaux.size()),
 					  [&](const tbb::blocked_range<size_t> &plage)
 	{
-		GNA gna(17771 + plage.begin() * (echantillon + 1));
+		GNA gna(17771 + static_cast<unsigned int>(plage.begin()) * (echantillon + 1));
 
 		for (size_t j = plage.begin(); j < plage.end(); ++j) {
 			const auto &carreau = carreaux[j];
 
-			for (int x = carreau.x; x < carreau.x + carreau.largeur; ++x) {
-				for (int y = carreau.y; y < carreau.y + carreau.hauteur; ++y) {
+			for (auto x = carreau.x; x < carreau.x + carreau.largeur; ++x) {
+				for (auto y = carreau.y; y < carreau.y + carreau.hauteur; ++y) {
 					auto echantillon_camera = genere_echantillon(gna, x, y);
 
 					Rayon rayon = genere_rayon(camera, echantillon_camera);
@@ -204,7 +204,7 @@ void MoteurRendu::echantillone_scene(const ParametresRendu &parametres, const st
 					auto spectre_actuel = calcul_spectre(gna, parametres, rayon);
 
 					/* Corrige gamma. */
-					spectre_actuel = puissance(spectre_actuel, 0.45);
+					spectre_actuel = puissance(spectre_actuel, 0.45f);
 
 					float rgb[3];
 					spectre_actuel.vers_rvb(rgb);
@@ -272,16 +272,16 @@ void TacheRendu::commence(const Koudou &koudou)
 	/* Génère carreaux. */
 	const auto largeur_carreau = koudou.parametres_rendu.largeur_carreau;
 	const auto hauteur_carreau = koudou.parametres_rendu.hauteur_carreau;
-	const auto largeur_pellicule = moteur_rendu->pellicule().nombre_colonnes();
-	const auto hauteur_pellicule = moteur_rendu->pellicule().nombre_lignes();
+	const auto largeur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_colonnes());
+	const auto hauteur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_lignes());
 	const auto carreaux_x = std::ceil(largeur_pellicule / static_cast<float>(largeur_carreau));
 	const auto carreaux_y = std::ceil(hauteur_pellicule / static_cast<float>(hauteur_carreau));
 
 	std::vector<CarreauPellicule> carreaux;
-	carreaux.reserve(carreaux_x * carreaux_y);
+	carreaux.reserve(static_cast<size_t>(carreaux_x * carreaux_y));
 
-	for (int i = 0; i < carreaux_x; ++i) {
-		for (int j = 0; j < carreaux_y; ++j) {
+	for (unsigned int i = 0; i < carreaux_x; ++i) {
+		for (unsigned int j = 0; j < carreaux_y; ++j) {
 			CarreauPellicule carreau;
 			carreau.x = i * largeur_carreau;
 			carreau.y = j * hauteur_carreau;
@@ -295,7 +295,7 @@ void TacheRendu::commence(const Koudou &koudou)
 	auto temps_ecoule = 0.0;
 	auto temps_restant = 0.0;
 	auto temps_echantillon = 0.0;
-	auto e = 0;
+	auto e = 0u;
 
 	for (; e < nombre_echantillons; ++e) {
 		m_notaire->signale_progres_temps(e + 1, temps_echantillon, temps_ecoule, temps_restant);
@@ -315,7 +315,7 @@ void TacheRendu::commence(const Koudou &koudou)
 		temps_restant = (temps_ecoule / (e + 1.0) * nombre_echantillons) - temps_ecoule;
 
 		m_notaire->signale_rendu_fini();
-		m_notaire->signale_progres_avance(((e + 1.0) / nombre_echantillons) * 100);
+		m_notaire->signale_progres_avance(((e + 1.0f) / nombre_echantillons) * 100);
 	}
 
 	/* Il est possible que le temps restant ne soit pas égal à 0.0 quand

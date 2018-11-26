@@ -61,7 +61,7 @@ void NotaireTache::signale_progres_avance(float progres)
 	Q_EMIT(progres_avance(progres));
 }
 
-void NotaireTache::signale_progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant)
+void NotaireTache::signale_progres_temps(unsigned int echantillon, double temps_echantillon, double temps_ecoule, double temps_restant)
 {
 	Q_EMIT(progres_temps(echantillon, temps_echantillon, temps_ecoule, temps_restant));
 }

@@ -45,7 +45,7 @@ public:
 	void signale_tache_commence();
 	void signale_tache_fini();
 	void signale_progres_avance(float progres);
-	void signale_progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant);
+	void signale_progres_temps(unsigned int echantillon, double temps_echantillon, double temps_ecoule, double temps_restant);
 
 Q_SIGNALS:
 	void rendu_fini();
@@ -54,7 +54,7 @@ Q_SIGNALS:
 	void tache_fini();
 
 	void progres_avance(float progres);
-	void progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant);
+	void progres_temps(unsigned int echantillon, double temps_echantillon, double temps_ecoule, double temps_restant);
 };
 
 class Tache : public tbb::task {

@@ -22,36 +22,6 @@
  *
  */
 
-#include "lumiere.h"
+#pragma once
 
-#include "nuanceur.h"
-
-Lumiere::Lumiere(const math::transformation &transform)
-	: transformation(transform)
-{}
-
-Lumiere::~Lumiere()
-{
-	delete nuanceur;
-}
-
-LumierePoint::LumierePoint(const math::transformation &transform, Spectre spectre, double intensite)
-	: Lumiere(transform)
-{
-	this->type = type_lumiere::POINT;
-	this->spectre = spectre;
-	this->intensite = intensite;
-
-	transform(dls::math::point3d(0.0), &this->pos);
-}
-
-LumiereDistante::LumiereDistante(const math::transformation &transform, Spectre spectre, double intensite)
-	: Lumiere(transform)
-{
-	this->type = type_lumiere::DISTANTE;
-	this->spectre = spectre;
-	this->intensite = intensite;
-
-	transform(dls::math::vec3d(0.0, 0.0, -1.0), &this->dir);
-	this->dir = dls::math::normalise(this->dir);
-}
+#define INUTILISE(x) static_cast<void>((x))

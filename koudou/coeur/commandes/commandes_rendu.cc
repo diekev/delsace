@@ -34,7 +34,6 @@
 class CommandeDemarreRendu : public Commande {
 public:
 	CommandeDemarreRendu() = default;
-	~CommandeDemarreRendu() = default;
 
 	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
 	{
@@ -51,7 +50,6 @@ public:
 class CommandeArreteRendu : public Commande {
 public:
 	CommandeArreteRendu() = default;
-	~CommandeArreteRendu() = default;
 
 	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
 	{

@@ -246,10 +246,10 @@ void FenetrePrincipale::tache_commence()
 
 void FenetrePrincipale::progres_avance(float progress)
 {
-	m_progress_bar->setValue(progress);
+	m_progress_bar->setValue(static_cast<int>(progress));
 }
 
-void FenetrePrincipale::progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant)
+void FenetrePrincipale::progres_temps(unsigned int echantillon, double temps_echantillon, double temps_ecoule, double temps_restant)
 {
 	m_koudou.informations_rendu.echantillon = echantillon;
 	m_koudou.informations_rendu.temps_echantillon = temps_echantillon;

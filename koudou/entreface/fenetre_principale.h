@@ -56,7 +56,7 @@ public Q_SLOTS:
 	void tache_fini();
 
 	void progres_avance(float progres);
-	void progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant);
+	void progres_temps(unsigned int echantillon, double temps_echantillon, double temps_ecoule, double temps_restant);
 
 private:
 	void genere_menu_preference();

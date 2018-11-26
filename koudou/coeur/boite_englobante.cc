@@ -54,21 +54,21 @@ bool BoiteEnglobante::contient(const dls::math::point3d &point)
 	return x && y && z;
 }
 
-void BoiteEnglobante::etend(float delta)
+void BoiteEnglobante::etend(double delta)
 {
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		min[i] -= delta;
 		max[i] += delta;
 	}
 }
 
-float BoiteEnglobante::aire_surface() const
+double BoiteEnglobante::aire_surface() const
 {
 	const auto d = max - min;
-	return 2.0f * (d.x * d.y + d.x * d.z + d.y * d.z);
+	return 2.0 * (d.x * d.y + d.x * d.z + d.y * d.z);
 }
 
-float BoiteEnglobante::volume() const
+double BoiteEnglobante::volume() const
 {
 	const auto d = max - min;
 	return (d.x * d.y * d.z);
@@ -101,7 +101,7 @@ BoiteEnglobante unie(const BoiteEnglobante &boite, const dls::math::point3d &poi
 {
 	BoiteEnglobante resultat;
 
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		resultat.min[i] = std::min(boite.min[i], point[i]);
 		resultat.max[i] = std::max(boite.max[i], point[i]);
 	}
@@ -113,7 +113,7 @@ BoiteEnglobante unie(const BoiteEnglobante &boite1, const BoiteEnglobante &boite
 {
 	BoiteEnglobante resultat;
 
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		resultat.min[i] = std::min(boite1.min[i], boite2.min[i]);
 		resultat.max[i] = std::max(boite1.max[i], boite2.max[i]);
 	}
@@ -132,7 +132,7 @@ bool entresecte_boite(const BoiteEnglobante &boite, const Rayon &rayon)
 	auto tmin = std::min(t1, t2);
 	auto tmax = std::max(t1, t2);
 
-	for (int i = 1; i < 3; ++i) {
+	for (size_t i = 1; i < 3; ++i) {
 		t1 = (boite.min[i] - rayon.origine[i]) * rayon.inverse_direction[i];
 		t2 = (boite.max[i] - rayon.origine[i]) * rayon.inverse_direction[i];
 

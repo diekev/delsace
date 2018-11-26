@@ -38,9 +38,9 @@ int Pellicule::largeur() const
 	return m_matrice.dimensions().largeur;
 }
 
-void Pellicule::ajoute_echantillon(int i, int j, const dls::math::vec3d &couleur, const double poids)
+void Pellicule::ajoute_echantillon(size_t i, size_t j, const dls::math::vec3d &couleur, const double poids)
 {
-	auto index = i + m_matrice.nombre_colonnes() * j;
+	auto index = i + static_cast<size_t>(m_matrice.nombre_colonnes()) * j;
 	auto &pixel_pellicule = m_pixels_pellicule[index];
 	pixel_pellicule.couleur += couleur;
 	pixel_pellicule.poids += poids;

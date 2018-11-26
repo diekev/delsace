@@ -37,6 +37,7 @@
 #include <delsace/math/matrice.hh>
 
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
 #include "../operatrice_graphe_pixel.h"
@@ -49,10 +50,6 @@
  * |_ OpératricePixel
  * |_ OpératriceGraphePixel
  */
-
-#ifndef INUTULISE
-#	define INUTILISE(x) static_cast<void>((x));
-#endif
 
 /* ************************************************************************** */
 

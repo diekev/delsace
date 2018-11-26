@@ -25,6 +25,7 @@
 #include "bsdf.h"
 
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/definitions.hh"
 
 #include "gna.h"
 #include "koudou.h"
@@ -48,12 +49,20 @@ BSDFTrivial::BSDFTrivial(ContexteNuancage &ctx)
 
 void BSDFTrivial::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(dir);
+
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFTrivial::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFTrivial::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(profondeur);
+
 	dir = -contexte.V;
 	pdf = 1.0;
 	L = Spectre(1.0);
@@ -67,12 +76,18 @@ BSDFAngleVue::BSDFAngleVue(ContexteNuancage &ctx)
 
 void BSDFAngleVue::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(dir);
+
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFAngleVue::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFAngleVue::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
+	INUTILISE(profondeur);
+
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
 	pdf = PI;
 
@@ -89,12 +104,18 @@ BSDFDiffus::BSDFDiffus(ContexteNuancage &ctx, Spectre s)
 
 void BSDFDiffus::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(dir);
+
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFDiffus::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFDiffus::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
+	INUTILISE(profondeur);
+
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
 	pdf = PI;
 	L = spectre * spectre_lumiere(parametres, parametres.scene, gna, contexte.P, contexte.N);
@@ -115,11 +136,15 @@ BSDFReflectance::BSDFReflectance(ContexteNuancage &ctx)
 
 void BSDFReflectance::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(dir);
+
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	dir = -contexte.V;
 	pdf = 1.0;
@@ -133,11 +158,11 @@ void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parame
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
 
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
 	}
 
-	L = 0.8 * calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
+	L = 0.8f * calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 }
 
 /* ************************************************************************** */
@@ -214,11 +239,14 @@ BSDFVerre::BSDFVerre(ContexteNuancage &ctx)
 
 void BSDFVerre::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(dir);
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
 	pdf = 1.0;
@@ -258,7 +286,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, 
 
 	L = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 #else
-	auto refractionColor = Spectre(0);
+	auto refractionColor = Spectre(0.0f);
 
 	/* Calcul le fresnel. */
 	double kr;
@@ -277,7 +305,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, 
 		rayon_local.distance_min = rayon.distance_min;
 		rayon_local.distance_max = rayon.distance_max;
 
-		for (int i = 0; i < 3; ++i) {
+		for (size_t i = 0; i < 3; ++i) {
 			rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
 		}
 
@@ -290,14 +318,14 @@ void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, 
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
 
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
 	}
 
 	auto reflectionColor = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 
 	/* Mélange les deux. */
-	L = reflectionColor * kr + refractionColor * (1 - kr);
+	L = reflectionColor * static_cast<float>(kr) + refractionColor * static_cast<float>(1.0 - kr);
 #endif
 }
 
@@ -309,12 +337,18 @@ BSDFVolume::BSDFVolume(ContexteNuancage &ctx)
 
 void BSDFVolume::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(dir);
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFVolume::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFVolume::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
+	INUTILISE(gna);
+	INUTILISE(profondeur);
+
 	dir = -contexte.V;
 	pdf = 1.0;
 
@@ -332,13 +366,13 @@ void BSDFVolume::genere_echantillon(GNA &gna, const ParametresRendu &parametres,
 	auto P = rayon_local.origine + isect.distance * rayon_local.direction;
 	auto taille = longueur(P - contexte.P);
 
-	auto n = static_cast<int>(taille / 0.001);
+	auto n = static_cast<size_t>(taille / 0.001);
 	auto accumulation = Spectre(1.0);
 
 	while (n--) {
-		accumulation[0] *= std::exp(-densite * (sigma_a[0] + sigma_s[0]) * 0.001);
-		accumulation[1] *= std::exp(-densite * (sigma_a[1] + sigma_s[1]) * 0.001);
-		accumulation[2] *= std::exp(-densite * (sigma_a[2] + sigma_s[2]) * 0.001);
+		accumulation[0] *= std::exp(-densite * static_cast<double>(sigma_a[0] + sigma_s[0]) * 0.001);
+		accumulation[1] *= std::exp(-densite * static_cast<double>(sigma_a[1] + sigma_s[1]) * 0.001);
+		accumulation[2] *= std::exp(-densite * static_cast<double>(sigma_a[2] + sigma_s[2]) * 0.001);
 	}
 
 	L = accumulation;
@@ -355,12 +389,19 @@ BSDFPhaseIsotropique::BSDFPhaseIsotropique(ContexteNuancage &ctx)
 
 void BSDFPhaseIsotropique::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(dir);
+
 	pdf = 0.25 * PI_INV;
 	L = Spectre(pdf);
 }
 
-void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
+	INUTILISE(parametres);
+	INUTILISE(profondeur);
+
 	auto xi = gna.nombre_aleatoire();
 	dir.z = xi * 2.0 - 1.0; // cos_theta;
 
@@ -398,7 +439,7 @@ static void cree_base_orthonormal(
 	const auto sign = std::copysign(static_cast<T>(1.0), n.z);
 	const auto a = static_cast<T>(-1.0) / (sign + n.z);
 	const auto b = n.x * n.y * a;
-	b0 = dls::math::vec3<T>(1.0f + sign * n.x * n.x * a, sign * b, -sign * n.x);
+	b0 = dls::math::vec3<T>(1.0 + sign * n.x * n.x * a, sign * b, -sign * n.x);
 	b1 = dls::math::vec3<T>(b, sign + n.y * n.y * a, -n.y);
 }
 
@@ -424,6 +465,10 @@ BSDFPhaseAnisotropique::BSDFPhaseAnisotropique(ContexteNuancage &ctx, double g_)
 
 void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
+	INUTILISE(gna);
+	INUTILISE(parametres);
+	INUTILISE(dir);
+
 	if (isotropique) {
 		pdf = 0.25 * PI_INV;
 	}
@@ -435,8 +480,11 @@ void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, const ParametresRendu 
 	L = Spectre(pdf);
 }
 
-void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
+	INUTILISE(parametres);
+	INUTILISE(profondeur);
+
 	if (isotropique) {
 		/* Pareil que BSDFPhaseIsotropique::genere_echantillon. */
 		auto xi = gna.nombre_aleatoire();
@@ -462,7 +510,7 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, const ParametresRendu 
 	else {
 		auto phi = gna.nombre_aleatoire() * TAU;
 		auto cos_theta = inverse_cdf(gna.nombre_aleatoire());
-		auto sin_theta = std::sqrt(1.0f - cos_theta * cos_theta); // carré de sin_theta
+		auto sin_theta = std::sqrt(1.0 - cos_theta * cos_theta); // carré de sin_theta
 		auto in = -contexte.V;
 
 		dls::math::vec3d t0, t1;
@@ -477,11 +525,11 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, const ParametresRendu 
 
 double BSDFPhaseAnisotropique::calcul_pdf(double cos_theta) const
 {
-	return 0.25 * un_moins_g2 / (M_PI * std::pow(un_plus_g2 - 2.0f * g * cos_theta, 1.5f));
+	return 0.25 * un_moins_g2 / (M_PI * std::pow(un_plus_g2 - 2.0 * g * cos_theta, 1.5f));
 }
 
 double BSDFPhaseAnisotropique::inverse_cdf(double xi) const
 {
-	const auto t = (un_moins_g2) / (1.0f - g + 2.0f * g * xi);
+	const auto t = (un_moins_g2) / (1.0 - g + 2.0 * g * xi);
 	return un_sur_2g * (un_plus_g2 - t * t);
 }

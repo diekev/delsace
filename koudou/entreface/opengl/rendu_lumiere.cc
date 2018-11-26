@@ -75,7 +75,7 @@ void RenduLumiere::initialise()
 
 	std::vector<dls::math::vec3f> sommets;
 
-	if (m_lumiere->type == LUMIERE_POINT) {
+	if (m_lumiere->type == type_lumiere::POINT) {
 		sommets.resize(6);
 
 		sommets[0] = dls::math::vec3f(-1.0,  0.0,  0.0);

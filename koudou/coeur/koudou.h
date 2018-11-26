@@ -48,11 +48,11 @@ enum {
 };
 
 struct ParametresRendu {
-	int nombre_echantillons = 32;
-	int nombre_rebonds = 5;
-	int resolution = 0;
-	int hauteur_carreau = 32;
-	int largeur_carreau = 32;
+	unsigned int nombre_echantillons = 32;
+	unsigned int nombre_rebonds = 5;
+	unsigned int resolution = 0;
+	unsigned int hauteur_carreau = 32;
+	unsigned int largeur_carreau = 32;
 
 	Scene scene;
 #ifdef NOUVELLE_CAMERA
@@ -81,7 +81,7 @@ struct InformationsRendu {
 	double temps_echantillon = 0.0;
 
 	/* L'échantillon courant. */
-	int echantillon = 0;
+	unsigned int echantillon = 0;
 };
 
 struct Koudou : public Audite {

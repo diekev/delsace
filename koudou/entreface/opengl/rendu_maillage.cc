@@ -100,10 +100,10 @@ void RenduMaillage::genere_tampon_surface()
 	auto nombre_sommets = std::distance(m_maillage->begin(), m_maillage->end());
 
 	std::vector<dls::math::vec3f> sommets;
-	sommets.reserve(nombre_sommets * 3);
+	sommets.reserve(static_cast<size_t>(nombre_sommets * 3));
 
 	std::vector<dls::math::vec3f> normaux;
-	normaux.reserve(nombre_sommets * 3);
+	normaux.reserve(static_cast<size_t>(nombre_sommets * 3));
 
 	/* OpenGL ne travaille qu'avec des floats. */
 	for (const Triangle *triangle : *m_maillage) {
@@ -175,7 +175,7 @@ void RenduMaillage::genere_tampon_normal()
 	auto nombre_triangle = std::distance(m_maillage->begin(), m_maillage->end());
 
 	std::vector<dls::math::vec3f> sommets;
-	sommets.reserve(nombre_triangle * 2);
+	sommets.reserve(static_cast<size_t>(nombre_triangle * 2));
 
 	for (const Triangle *triangle : *m_maillage) {
 		const auto &N = normalise(triangle->normal);
@@ -242,7 +242,7 @@ void RenduMaillage::dessine(const ContexteRendu &contexte, const Scene &scene)
 		auto transform = lumiere->transformation.matrice();
 		programme->uniforme("lumieres[" + std::to_string(i) + "].couleur", spectre[0], spectre[1], spectre[2], 1.0f);
 
-		if (lumiere->type == LUMIERE_DISTANTE) {
+		if (lumiere->type == type_lumiere::DISTANTE) {
 			programme->uniforme("lumieres[" + std::to_string(i) + "].position", 0.0f, 0.0f, 1.0f);
 		}
 		else {

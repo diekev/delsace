@@ -36,8 +36,6 @@ class AdaptriceChargementMaillage : public objets::AdaptriceCreationObjet {
 	std::vector<dls::math::vec3d> m_sommets;
 
 public:
-	virtual ~AdaptriceChargementMaillage() = default;
-
 	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
 
 	void ajoute_normal(const float x, const float y, const float z) override;
@@ -46,23 +44,23 @@ public:
 
 	void ajoute_parametres_sommet(const float x, const float y, const float z) override;
 
-	void ajoute_polygone(const int *index_sommet, const int */*index_uv*/, const int */*index_normal*/, int nombre) override;
+	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, int nombre) override;
 
 	void ajoute_ligne(const int *index, int nombre) override;
 
 	void ajoute_objet(const std::string &nom) override;
 
-	void reserve_polygones(const size_t nombre) override {}
+	void reserve_polygones(const size_t nombre) override;
 
-	void reserve_sommets(const size_t nombre) override {}
+	void reserve_sommets(const size_t nombre) override;
 
-	void reserve_normaux(const size_t nombre) override {}
+	void reserve_normaux(const size_t nombre) override;
 
-	void reserve_uvs(const size_t nombre) override {}
+	void reserve_uvs(const size_t nombre) override;
 
-	void groupes(const std::vector<std::string> &noms) override {}
+	void groupes(const std::vector<std::string> &noms) override;
 
-	void groupe_nuancage(const int index) override {}
+	void groupe_nuancage(const int index) override;
 
 	Maillage *maillage;
 };
