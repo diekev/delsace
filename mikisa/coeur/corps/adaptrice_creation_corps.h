@@ -34,8 +34,6 @@ class Attribut;
 
 class AdaptriceCreationCorps : public objets::AdaptriceCreationObjet {
 public:
-	virtual ~AdaptriceCreationCorps() = default;
-
 	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
 
 	void ajoute_normal(const float x, const float y, const float z) override;

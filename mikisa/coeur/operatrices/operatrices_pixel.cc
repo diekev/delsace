@@ -51,6 +51,9 @@
  * |_ OpératriceGraphePixel
  */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static constexpr auto NOM_SATURATION = "Saturation";
@@ -2032,3 +2035,5 @@ void enregistre_operatrices_pixel(UsineOperatrice *usine)
 	usine->register_type(NOM_MIN_MAX, cree_desc<OperatriceMinMax>(NOM_MIN_MAX, AIDE_MIN_MAX));
 	usine->register_type(NOM_DALTONISME, cree_desc<OperatriceDaltonisme>(NOM_DALTONISME, AIDE_DALTONISME));
 }
+
+#pragma clang diagnostic pop

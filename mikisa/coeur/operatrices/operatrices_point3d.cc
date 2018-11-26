@@ -29,6 +29,9 @@
 #include "../operatrice_graphe_maillage.h"
 #include "../usine_operatrice.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static constexpr auto NOM_ENTREE = "Entrée";
@@ -546,3 +549,5 @@ void enregistre_operatrices_point3d(UsineOperatrice *usine)
 						 cree_desc<OperatriceTradVec>(
 							 NOM_TRAD_VEC, AIDE_TRAD_VEC));
 }
+
+#pragma clang diagnostic pop

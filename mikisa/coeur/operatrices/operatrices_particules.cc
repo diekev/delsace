@@ -31,6 +31,9 @@
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static constexpr auto NOM_CREATION_POINTS = "Création Points";
@@ -102,3 +105,5 @@ void enregistre_operatrices_particules(UsineOperatrice *usine)
 							 NOM_CREATION_POINTS,
 							 AIDE_CREATION_POINTS));
 }
+
+#pragma clang diagnostic pop

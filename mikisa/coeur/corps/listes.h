@@ -46,7 +46,7 @@ struct Sommet {
 	int index;
 };
 
-struct Polygone;
+class Polygone;
 
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ enum {
  * tridimensionel.
  */
 class Polygone {
-	std::vector<int> m_sommets;
+	std::vector<size_t> m_sommets;
 
 public:
 	/* Les sommets formant ce polygone. */
@@ -108,11 +108,11 @@ public:
 	int type = POLYGONE_FERME;
 
 	/* L'index de ce polygone. */
-	int index = 0;
+	size_t index = 0;
 
-	static Polygone *construit(Corps *corps, int type_polygone = POLYGONE_FERME, int nombre_sommets = 0);
+	static Polygone *construit(Corps *corps, int type_polygone = POLYGONE_FERME, size_t nombre_sommets = 0);
 
-	void ajoute_sommet(int s);
+	void ajoute_sommet(size_t s);
 
 	void reserve_sommets(size_t nombre);
 
@@ -120,7 +120,7 @@ public:
 
 	size_t nombre_segments() const;
 
-	int index_point(size_t i);
+	size_t index_point(size_t i);
 };
 
 /* ************************************************************************** */
@@ -140,7 +140,7 @@ public:
 
 	void reserve(const size_t nombre);
 
-	const size_t taille() const;
+	size_t taille() const;
 
 	void pousse(Point3D *p);
 
@@ -168,7 +168,7 @@ public:
 
 	void reserve(const size_t nombre);
 
-	const size_t taille() const;
+	size_t taille() const;
 
 	void pousse(Sommet *s);
 
@@ -194,7 +194,7 @@ public:
 
 	void reserve(const size_t nombre);
 
-	const size_t taille() const;
+	size_t taille() const;
 
 	void pousse(Arrete *s);
 
@@ -220,7 +220,7 @@ public:
 
 	void reserve(const size_t nombre);
 
-	const size_t taille() const;
+	size_t taille() const;
 
 	void pousse(Polygone *s);
 

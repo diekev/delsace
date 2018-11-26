@@ -39,6 +39,9 @@
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 template <typename TypeOperation>
@@ -1490,3 +1493,5 @@ void enregistre_operatrices_region(UsineOperatrice *usine)
 	usine->register_type(NOM_DILATION, cree_desc<OperatriceDilation>(NOM_DILATION, AIDE_DILATION));
 	usine->register_type(NOM_EROSION, cree_desc<OperatriceErosion>(NOM_EROSION, AIDE_EROSION));
 }
+
+#pragma clang diagnostic pop

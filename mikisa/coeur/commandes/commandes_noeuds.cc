@@ -43,6 +43,9 @@
 #include "../operatrice_scene.h"
 #include "../usine_operatrice.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 /**
@@ -628,3 +631,5 @@ void enregistre_commandes_graphes(UsineCommande *usine)
 						   description_commande<CommandeSorsNoeud>(
 							   "graphe", 0, 0, 0, false));
 }
+
+#pragma clang diagnostic pop

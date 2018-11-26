@@ -29,6 +29,7 @@
 #include "bibliotheques/objets/creation.h"
 #include "bibliotheques/objets/import_objet.h"
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/texture/texture.h"
 #include "bibliotheques/vision/camera.h"
 
@@ -42,6 +43,9 @@
 #include "../operatrice_objet.h"
 #include "../operatrice_scene.h"
 #include "../usine_operatrice.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 
@@ -146,6 +150,8 @@ public:
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
+		INUTILISE(rectangle);
+
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -290,8 +296,10 @@ public:
 		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
 	}
 
-	int execute(const Rectangle &/*rectangle*/, const int temps) override
+	int execute(const Rectangle &rectangle, const int temps) override
 	{
+		INUTILISE(rectangle);
+
 		const auto largeur = evalue_entier("largeur");
 		const auto hauteur = evalue_entier("hauteur");
 		const auto longueur_focale = evalue_decimal("longueur_focale");
@@ -497,11 +505,13 @@ public:
 
 	int type_entree(int n) const override
 	{
+		INUTILISE(n);
 		return OPERATRICE_IMAGE;
 	}
 
 	const char *nom_entree(int n) override
 	{
+		INUTILISE(n);
 		return "image";
 	}
 
@@ -595,6 +605,8 @@ public:
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
+		INUTILISE(rectangle);
+
 		auto chemin = evalue_fichier_entree("chemin");
 
 		if (chemin == "") {
@@ -772,7 +784,7 @@ public:
 					continue;
 				}
 
-				for (int i = 0; i < poly->nombre_segments(); ++i) {
+				for (size_t i = 0; i < poly->nombre_segments(); ++i) {
 					const auto index_sommet = poly->index_point(i);
 
 					if (poids[index_sommet] != 0) {
@@ -825,7 +837,7 @@ struct SommetOSD {
 		_position[2] = src._position[2];
 	}
 
-	void Clear( void * =0 )
+	void Clear( void * = nullptr )
 	{
 		_position[0] = _position[1] = _position[2] = 0.0f;
 	}
@@ -916,6 +928,7 @@ public:
 		}
 		else {
 			ajoute_avertissement("Type de schéma invalide !");
+			return EXECUTION_ECHOUEE;
 		}
 
 		OpenSubdiv::Sdc::Options options;
@@ -987,8 +1000,8 @@ public:
 		auto nombre_polygones = m_corps.polys()->taille();
 
 		Descripteur desc;
-		desc.numVertices = nombre_sommets;
-		desc.numFaces    = nombre_polygones;
+		desc.numVertices = static_cast<int>(nombre_sommets);
+		desc.numFaces    = static_cast<int>(nombre_polygones);
 
 		std::vector<int> nombre_sommets_par_poly;
 		nombre_sommets_par_poly.reserve(nombre_polygones);
@@ -997,10 +1010,10 @@ public:
 		index_sommets_polys.reserve(nombre_sommets * nombre_polygones);
 
 		for (Polygone *poly : m_corps.polys()->polys()) {
-			nombre_sommets_par_poly.push_back(poly->nombre_sommets());
+			nombre_sommets_par_poly.push_back(static_cast<int>(poly->nombre_sommets()));
 
-			for (int i = 0; i < poly->nombre_sommets(); ++i) {
-				index_sommets_polys.push_back(poly->index_point(i));
+			for (size_t i = 0; i < poly->nombre_sommets(); ++i) {
+				index_sommets_polys.push_back(static_cast<int>(poly->index_point(i)));
 			}
 		}
 
@@ -1016,7 +1029,7 @@ public:
 
 		/* Alloue un tampon pouvant contenir le nombre total de sommets à
 			 * 'niveau_max' de rafinement. */
-		std::vector<SommetOSD> sommets_osd(rafineur->GetNumVerticesTotal());
+		std::vector<SommetOSD> sommets_osd(static_cast<size_t>(rafineur->GetNumVerticesTotal()));
 		SommetOSD *sommets = &sommets_osd[0];
 
 		/* Initialise les positions du maillage grossier. */
@@ -1037,10 +1050,10 @@ public:
 
 		{
 			const auto ref_der_niv = rafineur->GetLevel(niveau_max);
-			nombre_sommets = ref_der_niv.GetNumVertices();
-			nombre_polygones = ref_der_niv.GetNumFaces();
+			nombre_sommets = static_cast<size_t>(ref_der_niv.GetNumVertices());
+			nombre_polygones = static_cast<size_t>(ref_der_niv.GetNumFaces());
 
-			int premier_sommet = rafineur->GetNumVerticesTotal() - nombre_sommets;
+			auto premier_sommet = static_cast<size_t>(rafineur->GetNumVerticesTotal()) - nombre_sommets;
 
 			m_corps.reinitialise();
 			m_corps.points()->reserve(nombre_sommets);
@@ -1048,7 +1061,7 @@ public:
 
 			auto liste_points = m_corps.points();
 
-			for (int vert = 0; vert < nombre_sommets; ++vert) {
+			for (size_t vert = 0; vert < nombre_sommets; ++vert) {
 				float const * pos = sommets[premier_sommet + vert].GetPosition();
 				auto p3d = new Point3D;
 				p3d->x = pos[0];
@@ -1057,13 +1070,13 @@ public:
 				liste_points->pousse(p3d);
 			}
 
-			for (int face = 0; face < nombre_polygones; ++face) {
-				auto fverts = ref_der_niv.GetFaceVertices(face);
+			for (size_t face = 0; face < nombre_polygones; ++face) {
+				auto fverts = ref_der_niv.GetFaceVertices(static_cast<int>(face));
 
-				auto poly = Polygone::construit(&m_corps, POLYGONE_FERME, fverts.size());
+				auto poly = Polygone::construit(&m_corps, POLYGONE_FERME, static_cast<size_t>(fverts.size()));
 
 				for (int i = 0; i < fverts.size(); ++i) {
-					poly->ajoute_sommet(fverts[i]);
+					poly->ajoute_sommet(static_cast<size_t>(fverts[i]));
 				}
 			}
 		}
@@ -1339,7 +1352,7 @@ public:
 		switch (attrib->type()) {
 			case type_attribut::ATTRIBUT_ENT8:
 			{
-				std::uniform_int_distribution<char> dist(0, 255);
+				std::uniform_int_distribution<char> dist(-128, 127);
 				std::mt19937 rng(graine);
 
 				for (auto &v : attrib->ent8()) {
@@ -1526,7 +1539,7 @@ public:
 		for (Polygone *poly : liste_polys1->polys()) {
 			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
-			for (int i = 0; i < poly->nombre_sommets(); ++i) {
+			for (size_t i = 0; i < poly->nombre_sommets(); ++i) {
 				polygone->ajoute_sommet(poly->index_point(i));
 			}
 		}
@@ -1547,6 +1560,7 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 };
+
 /* ************************************************************************** */
 
 void enregistre_operatrices_3d(UsineOperatrice *usine)
@@ -1582,3 +1596,5 @@ void enregistre_operatrices_3d(UsineOperatrice *usine)
 							 NOM_FUSION_CORPS,
 							 AIDE_FUSION_CORPS));
 }
+
+#pragma clang diagnostic pop

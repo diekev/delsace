@@ -24,6 +24,8 @@
 
 #include "adaptrice_creation_corps.h"
 
+#include "bibliotheques/outils/definitions.hh"
+
 #include "../attribut.h"
 
 #include "corps.h"
@@ -34,6 +36,8 @@
 
 void AdaptriceCreationCorps::ajoute_sommet(const float x, const float y, const float z, const float w)
 {
+	INUTILISE(w);
+
 	auto point = new Point3D;
 	point->x = x;
 	point->y = y;
@@ -53,6 +57,8 @@ void AdaptriceCreationCorps::ajoute_normal(const float x, const float y, const f
 
 void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v, const float w)
 {
+	INUTILISE(w);
+
 	if (attribut_uvs == nullptr) {
 		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::ATTRIBUT_VEC2, ATTR_PORTEE_POLYGONE_POINT, 0);
 	}
@@ -61,11 +67,18 @@ void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v
 }
 
 void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float y, const float z)
-{}
+{
+	INUTILISE(x);
+	INUTILISE(y);
+	INUTILISE(z);
+}
 
 void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int *index_uvs, const int *index_normaux, int nombre)
 {
-	auto poly = Polygone::construit(corps, POLYGONE_FERME, nombre);
+	INUTILISE(index_uvs);
+	INUTILISE(index_normaux);
+
+	auto poly = Polygone::construit(corps, POLYGONE_FERME, static_cast<size_t>(nombre));
 
 	for (int i = 0; i < nombre; ++i) {
 		poly->ajoute_sommet(index_sommet[i]);
@@ -77,7 +90,10 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 }
 
 void AdaptriceCreationCorps::ajoute_ligne(const int *index, int nombre)
-{}
+{
+	INUTILISE(index);
+	INUTILISE(nombre);
+}
 
 void AdaptriceCreationCorps::ajoute_objet(const std::string &nom)
 {
@@ -121,4 +137,6 @@ void AdaptriceCreationCorps::groupes(const std::vector<std::string> &noms)
 }
 
 void AdaptriceCreationCorps::groupe_nuancage(const int index)
-{}
+{
+	INUTILISE(index);
+}

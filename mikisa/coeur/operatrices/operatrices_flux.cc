@@ -36,6 +36,9 @@
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static void corrige_chemin_pour_temps(std::string &chemin, const int image)
@@ -91,15 +94,17 @@ static type_image charge_exr(const char *chemin)
 
 	Imath::Box2i dw = file.dataWindow();
 
-	auto width = dw.max.x - dw.min.x + 1;
-	auto height = dw.max.y - dw.min.y + 1;
+	auto width = static_cast<size_t>(dw.max.x - dw.min.x + 1);
+	auto height = static_cast<size_t>(dw.max.y - dw.min.y + 1);
 
 	std::vector<openexr::Rgba> pixels(width * height);
 
-	file.setFrameBuffer(&pixels[0]- dw.min.x - dw.min.y * width, 1, width);
+	file.setFrameBuffer(&pixels[0] - static_cast<size_t>(dw.min.x - dw.min.y) * width, 1, width);
 	file.readPixels(dw.min.y, dw.max.y);
 
-	type_image img = type_image(numero7::math::Largeur(width), numero7::math::Hauteur(height));
+	type_image img = type_image(
+						 numero7::math::Largeur(static_cast<int>(width)),
+						 numero7::math::Hauteur(static_cast<int>(height)));
 
 	size_t idx(0);
 	for (size_t y(0); y < height; ++y) {
@@ -110,7 +115,7 @@ static type_image charge_exr(const char *chemin)
 			pixel.b = pixels[idx].b;
 			pixel.a = pixels[idx].a;
 
-			img[y][x] = pixel;
+			img[static_cast<int>(y)][x] = pixel;
 		}
 	}
 
@@ -131,7 +136,7 @@ public:
 		outputs(0);
 	}
 
-	int type() const
+	int type() const override
 	{
 		return OPERATRICE_SORTIE_IMAGE;
 	}
@@ -161,16 +166,17 @@ public:
 
 /* ************************************************************************** */
 
-enum {
-	TYPE_FICHIER_IMAGE,
-	TYPE_FICHIER_FILM,
-	TYPE_FICHIER_OBJET
+enum class type_fichier : char {
+	IMAGE,
+	FILM,
+	OBJET
 };
 
 struct DonneesFichier {
-	char type = TYPE_FICHIER_IMAGE;
-	bool entree = true;
 	std::list<OperatriceImage *> operatrices;
+	type_fichier type = type_fichier::IMAGE;
+	bool entree = true;
+	char pad[6];
 };
 
 #include <algorithm>
@@ -182,7 +188,7 @@ public:
 	using plage = plage_iterable<std::unordered_map<std::string, DonneesFichier>::iterator>;
 	using plage_const = plage_iterable<std::unordered_map<std::string, DonneesFichier>::const_iterator>;
 
-	void ajoute_chemin(OperatriceImage *operatrice, const std::string &chemin, int type_fichier, bool entree)
+	void ajoute_chemin(OperatriceImage *operatrice, const std::string &chemin, type_fichier type_fichier, bool entree)
 	{
 		auto iter = m_tableau.find(chemin);
 
@@ -265,7 +271,7 @@ public:
 		return AIDE_LECTURE_JPEG;
 	}
 
-	const char *chemin_entreface() const
+	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_lecture_fichier.jo";
 	}
@@ -317,15 +323,15 @@ public:
 			tampon->tampon = type_image(m_image_chargee.dimensions());
 		}
 
-		auto debut_x = std::max(0, static_cast<int>(rectangle.x));
-		auto fin_x = std::min(m_image_chargee.nombre_colonnes(), largeur);
-		auto debut_y = std::max(0, static_cast<int>(rectangle.y));
-		auto fin_y = std::min(m_image_chargee.nombre_lignes(), hauteur);
+		auto debut_x = std::max(0ul, static_cast<size_t>(rectangle.x));
+		auto fin_x = static_cast<size_t>(std::min(m_image_chargee.nombre_colonnes(), largeur));
+		auto debut_y = std::max(0ul, static_cast<size_t>(rectangle.y));
+		auto fin_y = static_cast<size_t>(std::min(m_image_chargee.nombre_lignes(), hauteur));
 
-		for (int x = debut_x; x < fin_x; ++x) {
-			for (int y = debut_y; y < fin_y; ++y) {
+		for (size_t x = debut_x; x < fin_x; ++x) {
+			for (size_t y = debut_y; y < fin_y; ++y) {
 				/* À FAIRE : alpha. */
-				auto pixel = m_image_chargee[y][x];
+				auto pixel = m_image_chargee[static_cast<int>(y)][x];
 				pixel.a = 1.0f;
 
 				tampon->valeur(x, y, pixel);
@@ -366,7 +372,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		const auto value = evalue_entier("prise");
-		input(value)->requiers_image(m_image, rectangle, temps);
+		input(static_cast<size_t>(value))->requiers_image(m_image, rectangle, temps);
 		return EXECUTION_REUSSIE;
 	}
 };
@@ -379,3 +385,5 @@ void enregistre_operatrices_flux(UsineOperatrice *usine)
 	usine->register_type(NOM_VISIONNAGE, cree_desc<OperatriceVisionnage>(NOM_VISIONNAGE, AIDE_VISIONNAGE));
 	usine->register_type(NOM_LECTURE_JPEG, cree_desc<OperatriceLectureJPEG>(NOM_LECTURE_JPEG, AIDE_LECTURE_JPEG));
 }
+
+#pragma clang diagnostic pop

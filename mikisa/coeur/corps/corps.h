@@ -83,13 +83,13 @@ struct Corps {
 
 	GroupePolygone *ajoute_groupe_polygone(const std::string &nom);
 
-	int ajoute_point(float x, float y, float z);
+	size_t ajoute_point(float x, float y, float z);
 
 	/**
 	 * Retourne l'index du point se trouvant aux coordonnées x, y, z spécifiée.
 	 * Si aucun point ne s'y trouve, retourne -1.
 	 */
-	int index_point(float x, float y, float z);
+	size_t index_point(float x, float y, float z);
 
 	void ajoute_polygone(Polygone *p);
 

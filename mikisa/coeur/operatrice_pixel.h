@@ -59,8 +59,6 @@ class OperatricePixel : public OperatriceImage {
 public:
 	explicit OperatricePixel(Noeud *node);
 
-	virtual ~OperatricePixel() = default;
-
 	virtual int type() const override;
 
 	virtual void evalue_entrees(int temps) = 0;

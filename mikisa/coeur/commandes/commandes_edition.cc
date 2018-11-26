@@ -33,6 +33,9 @@
 #include "../evenement.h"
 #include "../mikisa.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 class CommandeAjouterPropriete final : public Commande {
@@ -97,3 +100,5 @@ void enregistre_commandes_edition(UsineCommande *usine)
 						   description_commande<CommandeAjouterPropriete>(
 							   "", 0, 0, 0, false));
 }
+
+#pragma clang diagnostic pop

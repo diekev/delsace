@@ -36,6 +36,9 @@
 #include "../manipulatrice.h"
 #include "../mikisa.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 class CommandeZoomCamera3D : public Commande {
@@ -366,3 +369,5 @@ void enregistre_commandes_vue3d(UsineCommande *usine)
 						   description_commande<CommandeDeplaceManipulatrice>(
 							   "vue_3d", Qt::LeftButton, 0, 0, false));
 }
+
+#pragma clang diagnostic pop

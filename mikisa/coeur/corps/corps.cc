@@ -26,6 +26,8 @@
 
 #include <algorithm>
 
+#include "bibliotheques/outils/definitions.hh"
+
 #include "../attribut.h"
 
 #include "groupes.h"
@@ -90,11 +92,11 @@ GroupePolygone *Corps::ajoute_groupe_polygone(const std::string &nom)
 	return groupe;
 }
 
-int Corps::ajoute_point(float x, float y, float z)
+size_t Corps::ajoute_point(float x, float y, float z)
 {
 	auto index = index_point(x, y, z);
 
-	if (index != -1) {
+	if (index != -1ul) {
 		return index;
 	}
 
@@ -108,8 +110,11 @@ int Corps::ajoute_point(float x, float y, float z)
 	return m_points.taille() - 1;
 }
 
-int Corps::index_point(float x, float y, float z)
+size_t Corps::index_point(float x, float y, float z)
 {
+	INUTILISE(x);
+	INUTILISE(y);
+	INUTILISE(z);
 //	int i = 0;
 
 //	for (Point3D *point : m_points.points()) {
@@ -120,7 +125,7 @@ int Corps::index_point(float x, float y, float z)
 //		++i;
 //	};
 
-	return -1;
+	return -1ul;
 }
 
 void Corps::ajoute_polygone(Polygone *p)
@@ -195,7 +200,7 @@ void Corps::copie_vers(Corps *corps) const
 	for (Polygone *polygone : this->polys()->polys()) {
 		auto poly = Polygone::construit(corps, polygone->type, polygone->nombre_sommets());
 
-		for (int i = 0; i < polygone->nombre_sommets(); ++i) {
+		for (size_t i = 0; i < polygone->nombre_sommets(); ++i) {
 			poly->ajoute_sommet(polygone->index_point(i));
 		}
 	}

@@ -34,6 +34,9 @@
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 class CommandeZoomCamera2D final : public Commande {
@@ -96,3 +99,5 @@ void enregistre_commandes_vue2d(UsineCommande *usine)
 						   description_commande<CommandePanCamera2D>(
 							   "vue_2d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 }
+
+#pragma clang diagnostic pop

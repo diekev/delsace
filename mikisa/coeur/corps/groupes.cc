@@ -26,7 +26,7 @@
 
 /* ************************************************************************** */
 
-void GroupePoint::ajoute_point(int index_point)
+void GroupePoint::ajoute_point(size_t index_point)
 {
 	this->m_points.push_back(index_point);
 }
@@ -48,7 +48,7 @@ GroupePoint::plage_points_const GroupePoint::index() const
 
 /* ************************************************************************** */
 
-void GroupePolygone::ajoute_primitive(int index_poly)
+void GroupePolygone::ajoute_primitive(size_t index_poly)
 {
 	this->m_polygones.push_back(index_poly);
 }

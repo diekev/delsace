@@ -51,8 +51,8 @@ static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 {
 	dls::math::mat4x4<float> resultat;
 
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
+	for (size_t i = 0; i < 4; ++i) {
+		for (size_t j = 0; j < 4; ++j) {
 			resultat[i][j] = static_cast<float>(matrice[i][j]);
 		}
 	}
@@ -153,7 +153,7 @@ void VisionneurScene::peint_opengl()
 			 * avec un facteur de 1.0 / distance éloignée. */
 			auto matrice = dls::math::mat4x4d(1.0);
 			matrice = dls::math::translation(matrice, dls::math::vec3d(camera->pos()));
-			matrice = dls::math::dimension(matrice, dls::math::vec3d(1.0 / camera->eloigne()));
+			matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera->eloigne())));
 			m_stack.pousse(matrice);
 			m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 

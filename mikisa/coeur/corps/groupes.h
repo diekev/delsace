@@ -32,15 +32,15 @@
 /* ************************************************************************** */
 
 class GroupePoint {
-	std::vector<int> m_points;
+	std::vector<size_t> m_points;
 
 public:
-	using plage_points = plage_iterable<std::vector<int>::iterator>;
-	using plage_points_const = plage_iterable<std::vector<int>::const_iterator>;
+	using plage_points = plage_iterable<std::vector<size_t>::iterator>;
+	using plage_points_const = plage_iterable<std::vector<size_t>::const_iterator>;
 
 	std::string nom;
 
-	void ajoute_point(int index_point);
+	void ajoute_point(size_t index_point);
 
 	void reserve(const size_t nombre);
 
@@ -52,15 +52,15 @@ public:
 /* ************************************************************************** */
 
 class GroupePolygone {
-	std::vector<int> m_polygones;
+	std::vector<size_t> m_polygones;
 
 public:
-	using plage_points = plage_iterable<std::vector<int>::iterator>;
-	using plage_points_const = plage_iterable<std::vector<int>::const_iterator>;
+	using plage_points = plage_iterable<std::vector<size_t>::iterator>;
+	using plage_points_const = plage_iterable<std::vector<size_t>::const_iterator>;
 
 	std::string nom;
 
-	void ajoute_primitive(int index_poly);
+	void ajoute_primitive(size_t index_poly);
 
 	void reserve(const size_t nombre);
 

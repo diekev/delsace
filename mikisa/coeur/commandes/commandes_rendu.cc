@@ -40,6 +40,9 @@
 #include "../evenement.h"
 #include "../mikisa.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 struct ParametresImage {
@@ -253,3 +256,5 @@ void enregistre_commandes_rendu(UsineCommande *usine)
 						   description_commande<CommandeRenduSequence>(
 							   "rendu", 0, 0, 0, false));
 }
+
+#pragma clang diagnostic pop

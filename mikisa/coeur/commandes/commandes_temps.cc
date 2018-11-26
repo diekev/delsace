@@ -30,6 +30,9 @@
 #include "../evenement.h"
 #include "../mikisa.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 class CommandeChangementTemps final : public Commande {
@@ -101,3 +104,5 @@ void enregistre_commandes_temps(UsineCommande *usine)
 						   description_commande<CommandeChangementTemps>(
 							   "scene", 0, 0, 0, false));
 }
+
+#pragma clang diagnostic pop

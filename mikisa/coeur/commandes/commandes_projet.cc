@@ -30,6 +30,9 @@
 #include "../mikisa.h"
 #include "../sauvegarde.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static void ouvre_fichier_implementation(Mikisa *mikisa, const std::string &chemin_projet)
@@ -157,3 +160,5 @@ void enregistre_commandes_projet(UsineCommande *usine)
 						   description_commande<CommandeSauvegarderSous>(
 							   "projet", 0, 0, 0, false));
 }
+
+#pragma clang diagnostic pop

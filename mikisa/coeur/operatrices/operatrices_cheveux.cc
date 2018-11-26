@@ -26,17 +26,22 @@
 
 #include <random>
 
+#include "bibliotheques/outils/definitions.hh"
+
 #include "../corps/corps.h"
 
 #include "../attribut.h"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static void init_min_max(dls::math::vec3f &min, dls::math::vec3f &max)
 {
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		min[i] = -std::numeric_limits<float>::max();
 		max[i] =  std::numeric_limits<float>::max();
 	}
@@ -44,7 +49,7 @@ static void init_min_max(dls::math::vec3f &min, dls::math::vec3f &max)
 
 static void min_max_vecteur(dls::math::vec3f &min, dls::math::vec3f &max, const dls::math::vec3f &v)
 {
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		if (v[i] < min[i]) {
 			min[i] = v[i];
 		}
@@ -174,7 +179,10 @@ public:
 
 		auto courbes = nullptr;
 
+		INUTILISE(courbes);
+
 		const auto nombre_courbes = liste_points->taille();
+		INUTILISE(nombre_courbes);
 		const auto segments = evalue_entier("segments");
 		const auto inv_segments = 1.0f / segments;
 		const auto taille_min = evalue_decimal("taille_min");
@@ -200,7 +208,7 @@ public:
 			style_creation = STYLE_CREATION_LONGUEUR;
 		}
 
-		Attribut *attr_N;
+		Attribut *attr_N = nullptr;
 		int direction;
 
 		if (chaine_direction == "normal") {
@@ -210,7 +218,6 @@ public:
 
 			if (attr_N == nullptr) {
 				ajoute_avertissement("Aucun attribut normal (N) trouvé sur les particules !");
-				direction = DIRECTION_PERSONALISEE;
 			}
 		}
 		else {
@@ -226,20 +233,20 @@ public:
 		std::uniform_real_distribution<float> dist_taille(taille_min, taille_max);
 		std::mt19937 rng(19937);
 
-		auto index_point = 0;
+		auto index_point = 0ul;
 		for (Point3D *point : liste_points->points()) {
 			const auto taille_courbe = dist_taille(rng) * multiplication_taille;
 
-			int nombre_segment;
+			size_t nombre_segment;
 			float taille_segment;
 
 			if (style_creation == STYLE_CREATION_SEGMENT) {
-				nombre_segment = segments;
+				nombre_segment = static_cast<size_t>(segments);
 				taille_segment = taille_courbe * inv_segments;
 			}
 			else {
 				taille_segment = longueur_segment * multiplication_taille;
-				nombre_segment = static_cast<int>(taille_courbe / taille_segment);
+				nombre_segment = static_cast<size_t>(taille_courbe / taille_segment);
 			}
 
 			if (direction == DIRECTION_NORMAL) {
@@ -294,7 +301,7 @@ public:
 		 * boite englobante du maillage de collision */
 		auto liste_courbes = trouve_courbes_pres_maillage(maillage_collision, courbes);
 
-		static_cast<void>(liste_courbes);
+		INUTILISE(liste_courbes);
 
 
 		/* chaque segment de ces courbes sont testés pour une collision avec les
@@ -367,6 +374,8 @@ public:
 
 	Corps const *trouve_courbes_pres_maillage(Corps const *maillage, Corps const *courbes)
 	{
+		INUTILISE(courbes);
+		INUTILISE(maillage);
 //		for (size_t i = 0; i < courbes->nombre_courbes; ++i) {
 //			for (size_t j = 0; j < courbes->segments_par_courbe; ++j) {
 
@@ -386,3 +395,5 @@ void enregistre_operatrices_cheveux(UsineOperatrice *usine)
 							 NOM_CREATION_COURBES,
 							 AIDE_CREATION_COURBES));
 }
+
+#pragma clang diagnostic pop

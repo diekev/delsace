@@ -28,7 +28,7 @@
 
 /* ************************************************************************** */
 
-Polygone *Polygone::construit(Corps *corps, int type_polygone, int nombre_sommets)
+Polygone *Polygone::construit(Corps *corps, int type_polygone, size_t nombre_sommets)
 {
 	Polygone *p = new Polygone;
 	p->type = type_polygone;
@@ -39,7 +39,7 @@ Polygone *Polygone::construit(Corps *corps, int type_polygone, int nombre_sommet
 	return p;
 }
 
-void Polygone::ajoute_sommet(int s)
+void Polygone::ajoute_sommet(size_t s)
 {
 	m_sommets.push_back(s);
 }
@@ -63,7 +63,7 @@ size_t Polygone::nombre_segments() const
 	return this->nombre_sommets() - 1;
 }
 
-int Polygone::index_point(size_t i)
+size_t Polygone::index_point(size_t i)
 {
 	return m_sommets[i];
 }
@@ -94,7 +94,7 @@ void ListePoints3D::reserve(const size_t nombre)
 	m_sommets.reserve(nombre);
 }
 
-const size_t ListePoints3D::taille() const
+size_t ListePoints3D::taille() const
 {
 	return m_sommets.size();
 }
@@ -146,7 +146,7 @@ void ListePoints::reserve(const size_t nombre)
 	m_sommets.reserve(nombre);
 }
 
-const size_t ListePoints::taille() const
+size_t ListePoints::taille() const
 {
 	return m_sommets.size();
 }
@@ -192,7 +192,7 @@ void ListeSegments::reserve(const size_t nombre)
 	m_sommets.reserve(nombre);
 }
 
-const size_t ListeSegments::taille() const
+size_t ListeSegments::taille() const
 {
 	return m_sommets.size();
 }
@@ -238,7 +238,7 @@ void ListePolygones::reserve(const size_t nombre)
 	m_polygones.reserve(nombre);
 }
 
-const size_t ListePolygones::taille() const
+size_t ListePolygones::taille() const
 {
 	return m_polygones.size();
 }
