@@ -79,7 +79,7 @@ public:
 	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
 	{
 		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.x;
+		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
@@ -115,7 +115,7 @@ public:
 	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
 	{
 		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.x;
+		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
