@@ -26,18 +26,15 @@
 
 #include "bibliotheques/transformation/transformation.h"
 
-#include <math/point3.h>
-#include <math/vec3.h>
-
 #include "corps/collection.h"
 
 struct Objet {
 	/* transformation */
 	math::transformation transformation = math::transformation();
-	numero7::math::point3f pivot        = numero7::math::point3f(0.0f);
-	numero7::math::point3f position     = numero7::math::point3f(0.0f);
-	numero7::math::point3f echelle      = numero7::math::point3f(1.0f);
-	numero7::math::point3f rotation     = numero7::math::point3f(0.0f);
+	dls::math::point3f pivot        = dls::math::point3f(0.0f);
+	dls::math::point3f position     = dls::math::point3f(0.0f);
+	dls::math::point3f echelle      = dls::math::point3f(1.0f);
+	dls::math::point3f rotation     = dls::math::point3f(0.0f);
 	float echelle_uniforme              = 1.0f;
 
 	/* autres propriétés */

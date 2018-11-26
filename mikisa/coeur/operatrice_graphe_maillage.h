@@ -52,21 +52,21 @@ enum {
 
 /* ************************************************************************** */
 
-namespace numero7 {
+namespace dls {
 namespace math {
 class BruitPerlin3D;
 }  /* namespace math */
 }  /* namespace numero7 */
 
 class GestionnaireDonneesGraphe {
-	std::vector<numero7::math::BruitPerlin3D *> m_bruits;
+	std::vector<dls::math::BruitPerlin3D *> m_bruits;
 
 public:
 	void reinitialise();
 
-	size_t ajoute_bruit(numero7::math::BruitPerlin3D *bruit);
+	size_t ajoute_bruit(dls::math::BruitPerlin3D *bruit);
 
-	numero7::math::BruitPerlin3D *bruit(size_t index) const;
+	dls::math::BruitPerlin3D *bruit(size_t index) const;
 };
 
 /* ************************************************************************** */

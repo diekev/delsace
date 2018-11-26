@@ -26,10 +26,10 @@
 
 #include "melange.h"
 
-#include <numero7/math/vec4.h>
+#include <delsace/math/vecteur.hh>
 
 struct Brosse {
-	numero7::math::vec4f couleur = numero7::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
+	dls::math::vec4f couleur = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
 	float opacite = 1.0f;
 	int rayon = 35;
 

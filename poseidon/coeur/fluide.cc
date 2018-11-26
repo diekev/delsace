@@ -48,7 +48,7 @@ Fluide::Fluide()
 	temps_precedent = 0;
 	source = new Maillage;
 	domaine = new Maillage;
-	res = numero7::math::vec3i(32);
+	res = dls::math::vec3i(32);
 
 	AdaptriceCreationMaillage adaptrice;
 
@@ -195,7 +195,7 @@ void Fluide::transfert_velocite()
 				for (int x = 0; x < res.x; ++x, ++index) {
 					const auto &parts = grille_particules.particule(x, y, z);
 
-					auto vel = numero7::math::vec3f(0.0f);
+					auto vel = dls::math::vec3f(0.0f);
 					auto poids = 0.0f;
 
 					for (auto &p : parts) {
@@ -204,7 +204,7 @@ void Fluide::transfert_velocite()
 					}
 
 					if (poids == 0.0f) {
-						vel = numero7::math::vec3f(0.0f);
+						vel = dls::math::vec3f(0.0f);
 					}
 					else {
 						drapeaux.valeur(index, CELLULE_FLUIDE);
@@ -230,7 +230,7 @@ void Fluide::ajoute_acceleration()
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	const auto &taille_domaine = domaine->taille();
 
-	numero7::math::vec3f dh_domaine(
+	dls::math::vec3f dh_domaine(
 		taille_domaine[0] / res.x,
 		taille_domaine[1] / res.y,
 		taille_domaine[2] / res.z
@@ -284,8 +284,8 @@ void Fluide::conditions_bordure()
 				velocite_z.valeur(x, y, 0, 0.0f);
 				velocite_z.valeur(x, y, res.z - 1, 0.0f);
 #else
-				velocite.valeur(x, y, 0, numero7::math::vec3f(0.0f));
-				velocite.valeur(x, y, res.z - 1, numero7::math::vec3f(0.0f));
+				velocite.valeur(x, y, 0, dls::math::vec3f(0.0f));
+				velocite.valeur(x, y, res.z - 1, dls::math::vec3f(0.0f));
 #endif
 			}
 		}
@@ -300,8 +300,8 @@ void Fluide::conditions_bordure()
 				velocite_y.valeur(x, 0, z, 0.0f);
 				velocite_y.valeur(x, res.y - 1, z, 0.0f);
 #else
-				velocite.valeur(x, 0, z, numero7::math::vec3f(0.0f));
-				velocite.valeur(x, res.y - 1, z, numero7::math::vec3f(0.0f));
+				velocite.valeur(x, 0, z, dls::math::vec3f(0.0f));
+				velocite.valeur(x, res.y - 1, z, dls::math::vec3f(0.0f));
 #endif
 			}
 		}
@@ -316,8 +316,8 @@ void Fluide::conditions_bordure()
 				velocite_x.valeur(0, y, z, 0.0f);
 				velocite_x.valeur(res.x - 1, y, z, 0.0f);
 #else
-				velocite.valeur(0, y, z, numero7::math::vec3f(0.0f));
-				velocite.valeur(res.x - 1, y, z, numero7::math::vec3f(0.0f));
+				velocite.valeur(0, y, z, dls::math::vec3f(0.0f));
+				velocite.valeur(res.x - 1, y, z, dls::math::vec3f(0.0f));
 #endif
 			}
 		}
@@ -394,7 +394,7 @@ void Fluide::construit_champs_distance()
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	/* Initialise phi selon les drapeaux. */
 	const auto &taille_domaine = domaine->taille();
-	auto distance_max = numero7::math::longueur(taille_domaine);
+	auto distance_max = dls::math::longueur(taille_domaine);
 
 	phi.arriere_plan(distance_max);
 
@@ -539,7 +539,7 @@ void Fluide::etend_champs_velocite()
 
 	const auto &taille_domaine = domaine->taille();
 
-	numero7::math::vec3f dh(
+	dls::math::vec3f dh(
 		taille_domaine[0] / res.x,
 		taille_domaine[1] / res.y,
 		taille_domaine[2] / res.z
@@ -630,7 +630,7 @@ void Fluide::sauvegarde_velocite_PIC()
 			auto vel_x = velocite_x.valeur(index + 1);
 			auto vel_y = velocite_y.valeur(index + res.x);
 			auto vel_z = velocite_z.valeur(index + res.x * res.y);
-			p.vel_pic = numero7::math::vec3f(vel_x, vel_y, vel_z);
+			p.vel_pic = dls::math::vec3f(vel_x, vel_y, vel_z);
 #else
 			p.vel_pic = velocite.valeur(pos_domaine.x, pos_domaine.y, pos_domaine.z);
 #endif
@@ -671,7 +671,7 @@ void Fluide::advecte_particules()
 			auto vel_y = velocite_y.valeur(index + res.x);
 			auto vel_z = velocite_z.valeur(index + res.x * res.y);
 
-			pos_domaine = (p.pos - min_domaine) - numero7::math::vec3f(vel_x, vel_y, vel_z);
+			pos_domaine = (p.pos - min_domaine) - dls::math::vec3f(vel_x, vel_y, vel_z);
 #else
 			auto vel = velocite.valeur(pos_domaine.x, pos_domaine.y, pos_domaine.z);
 
@@ -691,7 +691,7 @@ void Fluide::advecte_particules()
 			vel_y = velocite_y.valeur(index + res.x);
 			vel_z = velocite_z.valeur(index + res.x * res.y);
 
-			p.pos += numero7::math::vec3f(vel_x, vel_y, vel_z);
+			p.pos += dls::math::vec3f(vel_x, vel_y, vel_z);
 #else
 			vel = velocite.valeur(pos_domaine.x, pos_domaine.y, pos_domaine.z);
 			p.pos += vel;
@@ -700,9 +700,9 @@ void Fluide::advecte_particules()
 	});
 }
 
-bool contiens(const numero7::math::vec3f &min,
-			  const numero7::math::vec3f &max,
-			  const numero7::math::vec3f &pos)
+bool contiens(const dls::math::vec3f &min,
+			  const dls::math::vec3f &max,
+			  const dls::math::vec3f &pos)
 {
 	for (int i = 0; i < 3; ++i) {
 		if (pos[i] < min[i] || pos[i] >= max[i]) {
@@ -724,7 +724,7 @@ void cree_particule(Fluide *fluide, int nombre)
 	const auto &min_domaine = fluide->domaine->min();
 	const auto &taille_domaine = fluide->domaine->taille();
 
-	numero7::math::vec3f dh_domaine(
+	dls::math::vec3f dh_domaine(
 		taille_domaine[0] / fluide->res.x,
 		taille_domaine[1] / fluide->res.y,
 		taille_domaine[2] / fluide->res.z
@@ -740,15 +740,15 @@ void cree_particule(Fluide *fluide, int nombre)
 	std::uniform_real_distribution<float> dist_y(-dh_4.y, dh_4.y);
 	std::uniform_real_distribution<float> dist_z(-dh_4.z, dh_4.z);
 
-	numero7::math::vec3f decalage[8] = {
-		numero7::math::vec3f(-dh_4.x, -dh_4.y, -dh_4.z),
-		numero7::math::vec3f(-dh_4.x,  dh_4.y, -dh_4.z),
-		numero7::math::vec3f(-dh_4.x, -dh_4.y,  dh_4.z),
-		numero7::math::vec3f(-dh_4.x,  dh_4.y,  dh_4.z),
-		numero7::math::vec3f( dh_4.x, -dh_4.y, -dh_4.z),
-		numero7::math::vec3f( dh_4.x,  dh_4.y, -dh_4.z),
-		numero7::math::vec3f( dh_4.x, -dh_4.y,  dh_4.z),
-		numero7::math::vec3f( dh_4.x,  dh_4.y,  dh_4.z),
+	dls::math::vec3f decalage[8] = {
+		dls::math::vec3f(-dh_4.x, -dh_4.y, -dh_4.z),
+		dls::math::vec3f(-dh_4.x,  dh_4.y, -dh_4.z),
+		dls::math::vec3f(-dh_4.x, -dh_4.y,  dh_4.z),
+		dls::math::vec3f(-dh_4.x,  dh_4.y,  dh_4.z),
+		dls::math::vec3f( dh_4.x, -dh_4.y, -dh_4.z),
+		dls::math::vec3f( dh_4.x,  dh_4.y, -dh_4.z),
+		dls::math::vec3f( dh_4.x, -dh_4.y,  dh_4.z),
+		dls::math::vec3f( dh_4.x,  dh_4.y,  dh_4.z),
 	};
 
 	/* trouve si les voxels entresectent la source, si oui, ajoute des
@@ -773,7 +773,7 @@ void cree_particule(Fluide *fluide, int nombre)
 					p.pos.x = pos_p.x + dist_x(rng);
 					p.pos.y = pos_p.y + dist_y(rng);
 					p.pos.z = pos_p.z + dist_z(rng);
-					p.vel = numero7::math::vec3f(0.0f);
+					p.vel = dls::math::vec3f(0.0f);
 
 					fluide->particules.push_back(p);
 				}

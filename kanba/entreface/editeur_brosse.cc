@@ -25,7 +25,6 @@
 #include "editeur_brosse.h"
 
 #include <danjo/danjo.h>
-#include <numero7/math/vec4.h>
 
 #include <QVBoxLayout>
 #include <QScrollArea>
@@ -79,7 +78,7 @@ static TypeMelange mode_fusion_depuis_nom(const std::string &nom)
 VueBrosse::VueBrosse(Kanba *kanba)
 	: m_kanba(kanba)
 {
-	ajoute_propriete("couleur_brosse", danjo::TypePropriete::COULEUR, glm::vec4(1.0f));
+	ajoute_propriete("couleur_brosse", danjo::TypePropriete::COULEUR, dls::math::vec4f(1.0f));
 	ajoute_propriete("rayon", danjo::TypePropriete::ENTIER, 35);
 	ajoute_propriete("opacité", danjo::TypePropriete::DECIMAL, 1.0f);
 	ajoute_propriete("mode_fusion", danjo::TypePropriete::ENUM);
@@ -88,7 +87,7 @@ VueBrosse::VueBrosse(Kanba *kanba)
 void VueBrosse::ajourne_donnees()
 {
 	auto couleur = evalue_couleur("couleur_brosse");
-	m_kanba->brosse->couleur = numero7::math::vec4f(couleur.r, couleur.v, couleur.b, couleur.a);
+	m_kanba->brosse->couleur = dls::math::vec4f(couleur.r, couleur.v, couleur.b, couleur.a);
 	m_kanba->brosse->rayon = evalue_entier("rayon");
 	m_kanba->brosse->opacite = evalue_decimal("opacité");
 	m_kanba->brosse->mode_fusion = mode_fusion_depuis_nom(evalue_enum("mode_fusion"));

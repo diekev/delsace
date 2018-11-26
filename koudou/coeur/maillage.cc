@@ -24,8 +24,6 @@
 
 #include "maillage.h"
 
-#include <math/conversion_point_vecteur.h>
-
 #include "bibliotheques/objets/creation.h"
 
 #include "commandes/adaptrice_creation_maillage.h"
@@ -34,7 +32,7 @@
 #include "types.h"
 
 Maillage::Maillage()
-	: m_transformation(numero7::math::mat4d::identity())
+	: m_transformation(dls::math::mat4x4d(1.0))
 	, m_nuanceur(nullptr)
 {}
 
@@ -68,9 +66,9 @@ Maillage::const_iterateur Maillage::end() const
 }
 
 void Maillage::ajoute_triangle(
-		const numero7::math::vec3d &v0,
-		const numero7::math::vec3d &v1,
-		const numero7::math::vec3d &v2)
+		const dls::math::vec3d &v0,
+		const dls::math::vec3d &v1,
+		const dls::math::vec3d &v2)
 {
 	auto triangle = new Triangle;
 	triangle->v0 = v0;
@@ -110,9 +108,9 @@ Nuanceur *Maillage::nuanceur() const
 }
 
 static void min_max_vecteur(
-		const numero7::math::vec3d &vecteur,
-		numero7::math::point3d &min,
-		numero7::math::point3d &max)
+		const dls::math::vec3d &vecteur,
+		dls::math::point3d &min,
+		dls::math::point3d &max)
 {
 	for (int i = 0; i < 3; ++i) {
 		min[i] = std::min(min[i], vecteur[i]);
@@ -122,8 +120,8 @@ static void min_max_vecteur(
 
 void Maillage::calcule_boite_englobante()
 {
-	numero7::math::point3d min(INFINITE);
-	numero7::math::point3d max(-INFINITE);
+	dls::math::point3d min(INFINITE);
+	dls::math::point3d max(-INFINITE);
 
 	for (const Triangle *triangle : *this) {
 		min_max_vecteur(triangle->v0, min, max);
@@ -168,11 +166,11 @@ Maillage *Maillage::cree_plan()
 {
 	auto maillage = new Maillage;
 
-	const numero7::math::vec3d vertices[8] = {
-		numero7::math::vec3d(-5.0, 0.0, -5.0),
-		numero7::math::vec3d(-5.0, 0.0,  5.0),
-		numero7::math::vec3d( 5.0, 0.0,  5.0),
-		numero7::math::vec3d( 5.0, 0.0, -5.0),
+	const dls::math::vec3d vertices[8] = {
+		dls::math::vec3d(-5.0, 0.0, -5.0),
+		dls::math::vec3d(-5.0, 0.0,  5.0),
+		dls::math::vec3d( 5.0, 0.0,  5.0),
+		dls::math::vec3d( 5.0, 0.0, -5.0),
 	};
 
 	maillage->ajoute_triangle(
@@ -192,12 +190,12 @@ Maillage *Maillage::cree_plan()
 }
 
 void Maillage::calcule_limites(
-		const numero7::math::vec3d &normal,
+		const dls::math::vec3d &normal,
 		double &d_proche,
 		double &d_eloigne) const
 {
 	for (const auto &tri : m_triangles) {
-		auto d = numero7::math::produit_scalaire(normal, tri->v0);
+		auto d = dls::math::produit_scalaire(normal, tri->v0);
 
 		if (d < d_proche) {
 			d_proche = d;
@@ -206,7 +204,7 @@ void Maillage::calcule_limites(
 			d_eloigne = d;
 		}
 
-		d = numero7::math::produit_scalaire(normal, tri->v1);
+		d = dls::math::produit_scalaire(normal, tri->v1);
 
 		if (d < d_proche) {
 			d_proche = d;
@@ -215,7 +213,7 @@ void Maillage::calcule_limites(
 			d_eloigne = d;
 		}
 
-		d = numero7::math::produit_scalaire(normal, tri->v2);
+		d = dls::math::produit_scalaire(normal, tri->v2);
 
 		if (d < d_proche) {
 			d_proche = d;
@@ -236,12 +234,12 @@ const std::string &Maillage::nom() const
 	return m_nom;
 }
 
-numero7::math::vec3d calcul_normal(const Triangle &triangle)
+dls::math::vec3d calcul_normal(const Triangle &triangle)
 {
 	auto c1 = triangle.v1 - triangle.v0;
 	auto c2 = triangle.v2 - triangle.v0;
 
-	return numero7::math::normalise(numero7::math::produit_croix(c1, c2));
+	return dls::math::normalise(dls::math::produit_croix(c1, c2));
 }
 
 /**
@@ -258,23 +256,23 @@ bool entresecte_triangle(const Triangle &triangle, const Rayon &rayon, double &d
 
 	const auto &cote1 = vertex1 - vertex0;
 	const auto &cote2 = vertex2 - vertex0;
-	const auto &h = numero7::math::produit_croix(rayon.direction, cote2);
-	const auto angle = numero7::math::produit_scalaire(cote1, h);
+	const auto &h = dls::math::produit_croix(rayon.direction, cote2);
+	const auto angle = dls::math::produit_scalaire(cote1, h);
 
 	if (angle > -epsilon && angle < epsilon) {
 		return false;
 	}
 
 	const auto f = 1 / angle;
-	const auto &s = numero7::math::vecteur_depuis_point(rayon.origine) - vertex0;
-	const auto angle_u = f * numero7::math::produit_scalaire(s, h);
+	const auto &s = dls::math::vec3d(rayon.origine) - vertex0;
+	const auto angle_u = f * dls::math::produit_scalaire(s, h);
 
 	if (angle_u < 0.0 || angle_u > 1.0) {
 		return false;
 	}
 
-	const auto q = numero7::math::produit_croix(s, cote1);
-	const auto angle_v = f * numero7::math::produit_scalaire(rayon.direction, q);
+	const auto q = dls::math::produit_croix(s, cote1);
+	const auto angle_v = f * dls::math::produit_scalaire(rayon.direction, q);
 
 	if (angle_v < 0.0 || angle_u + angle_v > 1.0) {
 		return false;
@@ -282,7 +280,7 @@ bool entresecte_triangle(const Triangle &triangle, const Rayon &rayon, double &d
 
 	/* À cette étape on peut calculer t pour trouver le point d'entresection sur
 	 * la ligne. */
-	const auto t = f * numero7::math::produit_scalaire(cote2, q);
+	const auto t = f * dls::math::produit_scalaire(cote2, q);
 
 	/* Entresection avec le rayon. */
 	if (t > epsilon) {

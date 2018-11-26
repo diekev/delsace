@@ -38,11 +38,11 @@ VueCamera::VueCamera(ProjectiveCamera *camera)
 	: m_camera(camera)
 {
 	ajoute_propriete("position", "Position", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(glm::vec3{0.0f, 0.0f, 0.0f});
+	etablie_valeur_vec3_defaut(dls::math::vec3f{0.0f, 0.0f, 0.0f});
 	etablie_min_max(-10.0f, 10.0f);
 
 	ajoute_propriete("rotation", "Rotation", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(glm::vec3{0.0f, 0.0f, 0.0f});
+	etablie_valeur_vec3_defaut(dls::math::vec3f{0.0f, 0.0f, 0.0f});
 	etablie_min_max(0.0f, 360.0f);
 
 	ajoute_propriete("ouverture", "Ouverture obturateur", TypePropriete::FLOAT);
@@ -72,8 +72,8 @@ void VueCamera::ajourne_donnees()
 	const auto position = evalue_vec3("position");
 	const auto rotation = evalue_vec3("rotation");
 
-	m_camera->position(numero7::math::vec3d(position.x, position.y, position.z));
-	m_camera->rotation(numero7::math::vec3d(rotation.x * POIDS_DEG_RAD, rotation.y * POIDS_DEG_RAD, rotation.z * POIDS_DEG_RAD));
+	m_camera->position(dls::math::vec3d(position.x, position.y, position.z));
+	m_camera->rotation(dls::math::vec3d(rotation.x * POIDS_DEG_RAD, rotation.y * POIDS_DEG_RAD, rotation.z * POIDS_DEG_RAD));
 	m_camera->distance_focale(evalue_float("distance"));
 	m_camera->champs_de_vue(evalue_float("champs_de_vue"));
 	m_camera->rayon_lentille(evalue_float("rayon"));
@@ -96,8 +96,8 @@ bool VueCamera::ajourne_proprietes()
 	const auto position = m_camera->position();
 	const auto rotation = m_camera->rotation();
 
-	ajourne_valeur_vec3("position", glm::vec3(position.x, position.y, position.z));
-	ajourne_valeur_vec3("rotation", glm::vec3(rotation.x * POIDS_RAD_DEG, rotation.y * POIDS_RAD_DEG, rotation.z * POIDS_RAD_DEG));
+	ajourne_valeur_vec3("position", dls::math::vec3f(position.x, position.y, position.z));
+	ajourne_valeur_vec3("rotation", dls::math::vec3f(rotation.x * POIDS_RAD_DEG, rotation.y * POIDS_RAD_DEG, rotation.z * POIDS_RAD_DEG));
 #endif
 
 	return true;

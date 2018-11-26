@@ -24,6 +24,8 @@
 
 #include "persona.h"
 
+#include <cassert>
+
 void Persona::ajoute_propriete(std::string nom, std::string nom_entreface, TypePropriete type)
 {
 	Propriete prop;
@@ -40,10 +42,10 @@ void Persona::ajoute_propriete(std::string nom, std::string nom_entreface, TypeP
 			prop.donnee = std::experimental::any(0.0f);
 			break;
 		case TypePropriete::VEC3:
-			prop.donnee = std::experimental::any(glm::vec3(0.0f));
+			prop.donnee = std::experimental::any(dls::math::vec3f(0.0f));
 			break;
 		case TypePropriete::COULEUR:
-			prop.donnee = std::experimental::any(glm::vec4(0.0f));
+			prop.donnee = std::experimental::any(dls::math::vec4f(0.0f));
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::INT:
@@ -114,26 +116,26 @@ int Persona::evalue_bool(const std::string &nom_propriete)
 	return false;
 }
 
-glm::vec3 Persona::evalue_vec3(const std::string &nom_propriete)
+dls::math::vec3f Persona::evalue_vec3(const std::string &nom_propriete)
 {
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
 	if (prop) {
-		return std::experimental::any_cast<glm::vec3>(prop->donnee);
+		return std::experimental::any_cast<dls::math::vec3f>(prop->donnee);
 	}
 
-	return glm::vec3(0.0f, 0.0f, 0.0f);
+	return dls::math::vec3f(0.0f, 0.0f, 0.0f);
 }
 
-glm::vec4 Persona::evalue_couleur(const std::string &nom_propriete)
+dls::math::vec4f Persona::evalue_couleur(const std::string &nom_propriete)
 {
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
 	if (prop) {
-		return std::experimental::any_cast<glm::vec4>(prop->donnee);
+		return std::experimental::any_cast<dls::math::vec4f>(prop->donnee);
 	}
 
-	return glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	return dls::math::vec4f(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 std::string Persona::evalue_string(const std::string &nom_propriete)
@@ -202,7 +204,7 @@ void Persona::etablie_valeur_string_defaut(const std::string &valeur)
 	prop.donnee = std::experimental::any(valeur);
 }
 
-void Persona::etablie_valeur_vec3_defaut(const glm::vec3 &valeur)
+void Persona::etablie_valeur_vec3_defaut(const dls::math::vec3f &valeur)
 {
 	Propriete &prop = this->m_proprietes.back();
 
@@ -211,7 +213,7 @@ void Persona::etablie_valeur_vec3_defaut(const glm::vec3 &valeur)
 	prop.donnee = std::experimental::any(valeur);
 }
 
-void Persona::etablie_valeur_couleur_defaut(const glm::vec4 &valeur)
+void Persona::etablie_valeur_couleur_defaut(const dls::math::vec4f &valeur)
 {
 	Propriete &prop = this->m_proprietes.back();
 
@@ -256,7 +258,7 @@ void Persona::ajourne_valeur_bool(const std::string &nom_propriete, bool valeur)
 	(*donnees) = valeur;
 }
 
-void Persona::ajourne_valeur_couleur(const std::string &nom_propriete, const glm::vec4 &valeur)
+void Persona::ajourne_valeur_couleur(const std::string &nom_propriete, const dls::math::vec4f &valeur)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -264,7 +266,7 @@ void Persona::ajourne_valeur_couleur(const std::string &nom_propriete, const glm
 		return;
 	}
 
-	auto donnees = std::experimental::any_cast<glm::vec4>(&prop->donnee);
+	auto donnees = std::experimental::any_cast<dls::math::vec4f>(&prop->donnee);
 	(*donnees) = valeur;
 }
 
@@ -293,7 +295,7 @@ void Persona::ajourne_valeur_enum(const std::string &nom_propriete, const Propri
 	prop->items_enumeration = propriete;
 }
 
-void Persona::ajourne_valeur_vec3(const std::string &nom_propriete, const glm::vec3 &valeur)
+void Persona::ajourne_valeur_vec3(const std::string &nom_propriete, const dls::math::vec3f &valeur)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -301,7 +303,7 @@ void Persona::ajourne_valeur_vec3(const std::string &nom_propriete, const glm::v
 		return;
 	}
 
-	auto donnees = std::experimental::any_cast<glm::vec3>(&prop->donnee);
+	auto donnees = std::experimental::any_cast<dls::math::vec3f>(&prop->donnee);
 	(*donnees) = valeur;
 }
 

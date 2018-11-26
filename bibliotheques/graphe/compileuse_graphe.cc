@@ -63,7 +63,7 @@ void CompileuseGraphe::ajoute_noeud(float x, float y, float z)
 	m_pile[m_decalage++] = z;
 }
 
-void CompileuseGraphe::ajoute_noeud(const numero7::math::vec3f &v)
+void CompileuseGraphe::ajoute_noeud(const dls::math::vec3f &v)
 {
 	if (m_decalage + 3 >= TAILLE_PILE) {
 		throw "Il n'y a plus de place dans la pile !";
@@ -123,7 +123,7 @@ void CompileuseGraphe::stocke_decimal(size_t decalage, const float &v)
 	m_pile[decalage++] = v;
 }
 
-void CompileuseGraphe::stocke_vec3f(size_t decalage, const numero7::math::vec3f &v)
+void CompileuseGraphe::stocke_vec3f(size_t decalage, const dls::math::vec3f &v)
 {
 	m_pile[decalage++] = v.x;
 	m_pile[decalage++] = v.y;

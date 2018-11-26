@@ -26,8 +26,6 @@
 
 #include <iostream>
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "sdk/primitive.h"
 #include "sdk/outils/chaîne_caractère.h"
 
@@ -73,7 +71,7 @@ void Scene::entresect(const Ray &/*ray*/)
 }
 
 /* Select the object which is closest to pos. */
-void Scene::selectObject(const glm::vec3 &pos)
+void Scene::selectObject(const dls::math::vec3f &pos)
 {
 	float min = 1000.0f;
 	int selected_object = -1, index = 0;
@@ -86,7 +84,7 @@ void Scene::selectObject(const glm::vec3 &pos)
 		}
 
 		for (const auto &prim : object->collection()->primitives()) {
-			float dist = glm::distance(prim->pos(), pos);
+			float dist = dls::math::longueur(prim->pos() - pos);
 
 			if (/*dist < 1.0f &&*/ dist < min) {
 				selected_object = index;

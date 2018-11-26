@@ -24,10 +24,6 @@
 
 #pragma once
 
-#include <numero7/image/pixel.h>
-#include <numero7/math/matrice/matrice.h>
-#include <numero7/math/vec4.h>
-
 #include <QGLWidget>
 #include "base_editeur.h"
 

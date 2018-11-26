@@ -184,9 +184,9 @@ public:
 
 		m_corps.transformation = transformation;
 
-//		m_manipulatrice_position.pos(numero7::math::point3f(position.x, position.y, position.z));
-//		m_manipulatrice_rotation.pos(numero7::math::point3f(position.x, position.y, position.z));
-//		m_manipulatrice_echelle.pos(numero7::math::point3f(position.x, position.y, position.z));
+//		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
+//		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
+//		m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
 
 //		if (input(0)->connectee() == false) {
 //			ajoute_avertissement("Aucune texture connectée");
@@ -269,28 +269,28 @@ public:
 
 	void ajourne_selon_manipulatrice_3d(int type, const int temps) override
 	{
-		glm::vec3 position;
+		dls::math::vec3f position;
 
 		if (type == MANIPULATION_POSITION) {
 			auto p = m_manipulatrice_position.pos();
-			position = glm::vec3(p.x, p.y, p.z);
-			m_camera.position(glm::vec3(position.x, position.y, position.z));
+			position = dls::math::vec3f(p.x, p.y, p.z);
+			m_camera.position(dls::math::vec3f(position.x, position.y, position.z));
 			m_camera.ajourne_pour_operatrice();
 
-			valeur_vecteur("position", glm::vec3(position.x, position.y, position.z));
+			valeur_vecteur("position", dls::math::vec3f(position.x, position.y, position.z));
 		}
 		else if (type == MANIPULATION_ROTATION) {
 			auto rotation = m_manipulatrice_rotation.rotation();
-			m_camera.rotation(glm::vec3(rotation.x, rotation.y, rotation.z));
+			m_camera.rotation(dls::math::vec3f(rotation.x, rotation.y, rotation.z));
 			m_camera.ajourne_pour_operatrice();
 
 			position = evalue_vecteur("position", temps);
 
-			valeur_vecteur("rotation", glm::vec3(rotation.x, rotation.y, rotation.z) * glm::vec3(POIDS_RAD_DEG));
+			valeur_vecteur("rotation", dls::math::vec3f(rotation.x, rotation.y, rotation.z) * static_cast<float>(POIDS_RAD_DEG));
 		}
 
-		m_manipulatrice_position.pos(numero7::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_rotation.pos(numero7::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
 	}
 
 	int execute(const Rectangle &/*rectangle*/, const int temps) override
@@ -317,11 +317,11 @@ public:
 		m_camera.largeur_senseur(largeur_senseur);
 		m_camera.profondeur(proche, eloigne);
 		m_camera.position(position);
-		m_camera.rotation(rotation * glm::vec3(POIDS_DEG_RAD));
+		m_camera.rotation(rotation * dls::math::vec3f(POIDS_DEG_RAD));
 		m_camera.ajourne_pour_operatrice();
 
-		m_manipulatrice_position.pos(numero7::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_rotation.pos(numero7::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
 
 		return EXECUTION_REUSSIE;
 	}
@@ -468,7 +468,7 @@ public:
 
 		auto taille_texture = evalue_vecteur("taille_texture", temps);
 
-		m_texture.taille(numero7::math::vec3f(taille_texture.x,
+		m_texture.taille(dls::math::vec3f(taille_texture.x,
 											  taille_texture.y,
 											  taille_texture.z));
 		return EXECUTION_REUSSIE;
@@ -554,31 +554,31 @@ public:
 
 	void ajourne_selon_manipulatrice_3d(int type, const int temps) override
 	{
-		glm::vec3 position, rotation, taille;
+		dls::math::vec3f position, rotation, taille;
 
 		if (type == MANIPULATION_POSITION) {
 			auto p = m_manipulatrice_position.pos();
-			position = glm::vec3(p.x, p.y, p.z);
+			position = dls::math::vec3f(p.x, p.y, p.z);
 			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
 			taille = evalue_vecteur("taille", temps);
 
-			valeur_vecteur("position", glm::vec3(position.x, position.y, position.z));
+			valeur_vecteur("position", dls::math::vec3f(position.x, position.y, position.z));
 		}
 		else if (type == MANIPULATION_ECHELLE) {
 			position = evalue_vecteur("position", temps);
 			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
 			auto t = m_manipulatrice_echelle.taille();
-			taille = glm::vec3(t.x, t.y, t.z);
+			taille = dls::math::vec3f(t.x, t.y, t.z);
 
-			valeur_vecteur("taille", glm::vec3(taille.x, taille.y, taille.z));
+			valeur_vecteur("taille", dls::math::vec3f(taille.x, taille.y, taille.z));
 		}
 		else if (type == MANIPULATION_ROTATION) {
 			position = evalue_vecteur("position", temps);
 			auto r = m_manipulatrice_rotation.rotation();
-			rotation = glm::vec3(r.x, r.y, r.z);
+			rotation = dls::math::vec3f(r.x, r.y, r.z);
 			taille = evalue_vecteur("taille", temps);
 
-			valeur_vecteur("rotation", glm::vec3(rotation.x, rotation.y, rotation.z) * glm::vec3(POIDS_RAD_DEG));
+			valeur_vecteur("rotation", dls::math::vec3f(rotation.x, rotation.y, rotation.z) * static_cast<float>(POIDS_RAD_DEG));
 		}
 		else {
 			return;
@@ -591,9 +591,9 @@ public:
 		m_transformation *= math::rotation_y(rotation.y);
 		m_transformation *= math::rotation_z(rotation.z);
 
-		m_manipulatrice_position.pos(numero7::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_rotation.pos(numero7::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_echelle.pos(numero7::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -639,9 +639,9 @@ public:
 
 		m_corps.transformation = m_transformation;
 
-		m_manipulatrice_position.pos(numero7::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_rotation.pos(numero7::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_echelle.pos(numero7::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
 
 //		if (input(0)->connectee() == false) {
 //			ajoute_avertissement("Aucune texture connectée");
@@ -724,7 +724,7 @@ public:
 
 			for (Polygone *poly : liste_polys->polys()) {
 				if (poly->type != POLYGONE_FERME || poly->nombre_sommets() < 3) {
-					attr_normaux->pousse_vec3(numero7::math::vec3f(0.0f));
+					attr_normaux->pousse_vec3(dls::math::vec3f(0.0f));
 					continue;
 				}
 
@@ -753,7 +753,7 @@ public:
 			/* calcul le normal de chaque polygone */
 			for (Polygone *poly : liste_polys->polys()) {
 				if (poly->type != POLYGONE_FERME || poly->nombre_sommets() < 3) {
-					poly->nor = numero7::math::vec3f(0.0f);
+					poly->nor = dls::math::vec3f(0.0f);
 					continue;
 				}
 

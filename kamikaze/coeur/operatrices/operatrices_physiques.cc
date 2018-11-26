@@ -27,23 +27,21 @@
 #include "sdk/operatrice.h"
 #include "sdk/prim_points.h"
 
-#include "sdk/outils/mathématiques.h"
-
 /* ************************************************************************** */
 
 static const char *NOM_GRAVITE = "Gravité";
 static const char *AIDE_GRAVITE = "Applique une force de gravité aux primitives d'entrées.";
 
 struct PlanPhysique {
-	glm::vec3 pos = glm::vec3{0.0f, 0.0f, 0.0f};
-	glm::vec3 nor = glm::vec3{0.0f, 1.0f, 0.0f};
+	dls::math::vec3d pos = dls::math::vec3d{0.0f, 0.0f, 0.0f};
+	dls::math::vec3d nor = dls::math::vec3d{0.0f, 1.0f, 0.0f};
 };
 
 PlanPhysique plan_global;
 
-static bool verifie_collision(const PlanPhysique &plan, const glm::vec3 &pos, const glm::vec3 &vel)
+static bool verifie_collision(const PlanPhysique &plan, const dls::math::vec3d &pos, const dls::math::vec3d &vel)
 {
-	const auto &XPdotN = glm::dot(pos - plan.pos, plan.nor);
+	const auto &XPdotN = dls::math::produit_scalaire(pos - plan.pos, plan.nor);
 
 	/* Est-on à une distance epsilon du plan ? */
 	if (XPdotN >= std::numeric_limits<float>::epsilon()) {
@@ -51,7 +49,7 @@ static bool verifie_collision(const PlanPhysique &plan, const glm::vec3 &pos, co
 	}
 
 	/* Va-t-on vers le plan ? */
-	if (glm::dot(plan.nor, vel) >= 0.0f) {
+	if (dls::math::produit_scalaire(plan.nor, vel) >= 0.0f) {
 		return false;
 	}
 
@@ -59,7 +57,7 @@ static bool verifie_collision(const PlanPhysique &plan, const glm::vec3 &pos, co
 }
 
 class OperatriceGravite : public Operatrice {
-	glm::vec3 m_gravite = glm::vec3{0.0f, -9.80665f, 0.0f};
+	dls::math::vec3f m_gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};
 	PrimitiveCollection *m_collection_original = nullptr;
 	PrimitiveCollection *m_derniere_collection = nullptr;
 	int m_image_debut = 0;
@@ -134,10 +132,10 @@ public:
 				point += velocite;
 
 				/* Calcul la position en espace objet. */
-				const auto pos = nuage_points->matrix() * point;
+				const auto pos = nuage_points->matrix() * dls::math::vec3d(point);
 
 				/* Vérifie l'existence d'une collision avec le plan global. */
-				if (verifie_collision(plan_global, pos, velocite)) {
+				if (verifie_collision(plan_global, pos, dls::math::vec3d(velocite))) {
 					attr_vel->vec3(i, -velocite);
 				}
 			}

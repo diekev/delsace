@@ -25,10 +25,7 @@
 #include "commandes_vue3d.h"
 
 #include <iostream>
-#include <numero7/math/conversion_point_vecteur.h>
-#include <numero7/math/vec2.h>
 #include <QKeyEvent>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/objets/creation.h"
@@ -62,7 +59,7 @@ public:
 		}
 		else {
 			const float temp = camera->distance() - camera->vitesse_zoom();
-			auto distance = glm::max(0.0f, temp);
+			auto distance = std::max(0.0f, temp);
 			camera->distance(distance);
 		}
 
@@ -168,7 +165,7 @@ auto restreint(T a, T min, T max)
 
 struct TexelProjete {
 	/* La position du texel sur l'écran. */
-	numero7::math::point2f pos;
+	dls::math::point2f pos;
 
 	/* L'index du polygone possédant le texel. */
 	size_t index;
@@ -182,13 +179,13 @@ struct TexelProjete {
 
 struct Seau {
 	std::list<TexelProjete> texels = std::list<TexelProjete>{};
-	numero7::math::vec2f min = numero7::math::vec2f(0.0);
-	numero7::math::vec2f max = numero7::math::vec2f(0.0);
+	dls::math::vec2f min = dls::math::vec2f(0.0);
+	dls::math::vec2f max = dls::math::vec2f(0.0);
 
 	Seau() = default;
 };
 
-Seau *cherche_seau(std::vector<Seau> &seaux, const numero7::math::point2f &pos, int seaux_x, int seaux_y, int largeur, int hauteur)
+Seau *cherche_seau(std::vector<Seau> &seaux, const dls::math::point2f &pos, int seaux_x, int seaux_y, int largeur, int hauteur)
 {
 	auto x = pos.x / largeur;
 	auto y = pos.y / hauteur;
@@ -246,7 +243,7 @@ public:
 
 		auto nombre_polys = maillage->nombre_polygones();
 
-		const auto &dir = numero7::math::vec3f(
+		const auto &dir = dls::math::vec3f(
 							  -camera->dir().x,
 							  -camera->dir().y,
 							  -camera->dir().z);
@@ -257,7 +254,7 @@ public:
 
 			//std::cerr << "Angle : " << angle << '\n';
 
-			if (angle <= 0.0 || angle >= 1.0) {
+			if (angle <= 0.0f || angle >= 1.0f) {
 				//std::cerr << "Le polygone " << poly->index << " ne fait pas face à l'écran !\n";
 				continue;
 			}
@@ -286,7 +283,7 @@ public:
 					const auto &pos3d = v0 + static_cast<float>(j) * du + static_cast<float>(k) * dv;
 
 					// calcul position 2D du texel
-					const auto &pos2d = camera->pos_ecran(numero7::math::point_depuis_vecteur(pos3d));
+					const auto &pos2d = camera->pos_ecran(dls::math::point3f(pos3d));
 
 					// cherche seau
 					auto seau = cherche_seau(seaux, pos2d, seaux_x, seaux_y, camera->largeur(), camera->hauteur());
@@ -302,9 +299,9 @@ public:
 			}
 		}
 
-		auto pos_brosse = numero7::math::point2f(donnees.x, donnees.y);
+		auto pos_brosse = dls::math::point2f(donnees.x, donnees.y);
 
-		auto tampon = static_cast<numero7::math::vec4f *>(calque->tampon);
+		auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
 		const auto &rayon_inverse = 1.0f / brosse->rayon;
 

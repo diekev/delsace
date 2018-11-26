@@ -133,7 +133,7 @@ void VueCanevas::mouseReleaseEvent(QMouseEvent *e)
 	m_koudou->repondant_commande->acheve_commande_modale(donnees);
 }
 
-void VueCanevas::charge_image(const numero7::math::matrice<numero7::math::vec3d> &image)
+void VueCanevas::charge_image(const numero7::math::matrice<dls::math::vec3d> &image)
 {
 	m_visionneur_image->charge_image(image);
 }

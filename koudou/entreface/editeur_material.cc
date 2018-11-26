@@ -39,7 +39,7 @@
 
 static auto converti_couleur(const Spectre &spectre)
 {
-	return glm::vec4(spectre[0], spectre[1], spectre[2], 1.0);
+	return dls::math::vec4f(spectre[0], spectre[1], spectre[2], 1.0);
 }
 
 VueMaterial::VueMaterial(Nuanceur *nuaceur)

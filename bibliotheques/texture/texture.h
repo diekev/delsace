@@ -27,7 +27,7 @@
 #include <experimental/filesystem>
 #include <image/pixel.h>
 #include <math/matrice/matrice.h>
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 #include "bibliotheques/spectre/spectre.h"
 
@@ -65,7 +65,7 @@ enum {
 
 class Texture {
 public:
-	virtual Spectre echantillone(const numero7::math::vec3d &direction) const = 0;
+	virtual Spectre echantillone(const dls::math::vec3d &direction) const = 0;
 
 	virtual TypeTexture type() const = 0;
 };
@@ -84,7 +84,7 @@ public:
 
 	Spectre spectre() const;
 
-	Spectre echantillone(const numero7::math::vec3d &direction) const override;
+	Spectre echantillone(const dls::math::vec3d &direction) const override;
 
 	TypeTexture type() const override;
 };
@@ -100,12 +100,12 @@ class TextureImage final : public Texture {
 	int m_entrepolation = ENTREPOLATION_LINEAIRE;
 	int m_enveloppage = ENVELOPPAGE_REPETITION;
 
-	numero7::math::vec3f m_taille = numero7::math::vec3f(1.0f);
+	dls::math::vec3f m_taille = dls::math::vec3f(1.0f);
 
 public:
 	TextureImage() = default;
 
-	Spectre echantillone(const numero7::math::vec3d &direction) const override;
+	Spectre echantillone(const dls::math::vec3d &direction) const override;
 
 	void etablie_image(const numero7::math::matrice<Spectre> &image);
 
@@ -127,9 +127,9 @@ public:
 
 	void camera(vision::Camera3D *p);
 
-	numero7::math::vec3f taille() const;
+	dls::math::vec3f taille() const;
 
-	void taille(const numero7::math::vec3f &taille);
+	void taille(const dls::math::vec3f &taille);
 
 	vision::Camera3D *camera() const;
 

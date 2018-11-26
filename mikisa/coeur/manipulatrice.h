@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include <math/point3.h>
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 enum {
 	ETAT_DEFAUT         = 0,
@@ -48,8 +47,8 @@ enum {
 /* ************************************************************************** */
 
 struct Plan {
-	numero7::math::point3f pos;
-	numero7::math::vec3f   nor;
+	dls::math::point3f pos;
+	dls::math::vec3f   nor;
 };
 
 enum {
@@ -59,138 +58,138 @@ enum {
 	PLAN_XYZ,
 };
 
-bool entresecte_plan(const Plan &plan, const numero7::math::point3f &orig, const numero7::math::vec3f &dir, float &t);
+bool entresecte_plan(const Plan &plan, const dls::math::point3f &orig, const dls::math::vec3f &dir, float &t);
 
 /* ************************************************************************** */
 
 class Manipulatrice3D {
 protected:
-	numero7::math::point3f m_position = numero7::math::point3f(0.0f);
-	numero7::math::point3f m_taille = numero7::math::point3f(1.0f);
-	numero7::math::point3f m_taille_originale = numero7::math::point3f(1.0f);
-	numero7::math::point3f m_rotation = numero7::math::point3f(0.0f);
-	numero7::math::point3f m_rotation_originale = numero7::math::point3f(0.0f);
+	dls::math::point3f m_position = dls::math::point3f(0.0f);
+	dls::math::point3f m_taille = dls::math::point3f(1.0f);
+	dls::math::point3f m_taille_originale = dls::math::point3f(1.0f);
+	dls::math::point3f m_rotation = dls::math::point3f(0.0f);
+	dls::math::point3f m_rotation_originale = dls::math::point3f(0.0f);
 	int m_etat = 0;
 
 public:
 	virtual ~Manipulatrice3D() = default;
 
-	const numero7::math::point3f &pos() const;
+	const dls::math::point3f &pos() const;
 
-	void pos(const numero7::math::point3f &pos);
+	void pos(const dls::math::point3f &pos);
 
-	const numero7::math::point3f &taille() const;
+	const dls::math::point3f &taille() const;
 
-	void taille(const numero7::math::point3f &t);
+	void taille(const dls::math::point3f &t);
 
-	const numero7::math::point3f &rotation() const;
+	const dls::math::point3f &rotation() const;
 
-	void rotation(const numero7::math::point3f &r);
+	void rotation(const dls::math::point3f &r);
 
 	int etat() const;
 
-	virtual	bool entresecte(const numero7::math::point3f &orig, const numero7::math::vec3f &dir) = 0;
+	virtual	bool entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir) = 0;
 
-	virtual	void repond_manipulation(const numero7::math::vec3f &delta) = 0;
+	virtual	void repond_manipulation(const dls::math::vec3f &delta) = 0;
 };
 
 /* ************************************************************************** */
 
 class ManipulatricePosition3D final : public Manipulatrice3D {
 	/* boite englobante */
-	numero7::math::vec3f m_min = numero7::math::vec3f(0.0f);
-	numero7::math::vec3f m_max = numero7::math::vec3f(1.0f);
+	dls::math::vec3f m_min = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_max = dls::math::vec3f(1.0f);
 
 	/* baton axe x */
-	numero7::math::vec3f m_min_baton_x;
-	numero7::math::vec3f m_max_baton_x;
+	dls::math::vec3f m_min_baton_x;
+	dls::math::vec3f m_max_baton_x;
 
 	/* baton axe y */
-	numero7::math::vec3f m_min_baton_y;
-	numero7::math::vec3f m_max_baton_y;
+	dls::math::vec3f m_min_baton_y;
+	dls::math::vec3f m_max_baton_y;
 
 	/* baton axe z */
-	numero7::math::vec3f m_min_baton_z;
-	numero7::math::vec3f m_max_baton_z;
+	dls::math::vec3f m_min_baton_z;
+	dls::math::vec3f m_max_baton_z;
 
 	/* poignée axe x */
-	numero7::math::vec3f m_min_poignee_x;
-	numero7::math::vec3f m_max_poignee_x;
+	dls::math::vec3f m_min_poignee_x;
+	dls::math::vec3f m_max_poignee_x;
 
 	/* poignée axe y */
-	numero7::math::vec3f m_min_poignee_y;
-	numero7::math::vec3f m_max_poignee_y;
+	dls::math::vec3f m_min_poignee_y;
+	dls::math::vec3f m_max_poignee_y;
 
 	/* poignée axe z */
-	numero7::math::vec3f m_min_poignee_z;
-	numero7::math::vec3f m_max_poignee_z;
+	dls::math::vec3f m_min_poignee_z;
+	dls::math::vec3f m_max_poignee_z;
 
 	/* poignée axe xyz */
-	numero7::math::vec3f m_min_poignee_xyz;
-	numero7::math::vec3f m_max_poignee_xyz;
+	dls::math::vec3f m_min_poignee_xyz;
+	dls::math::vec3f m_max_poignee_xyz;
 
 public:
 	ManipulatricePosition3D();
 
-	bool entresecte(const numero7::math::point3f &orig, const numero7::math::vec3f &dir) override;
+	bool entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir) override;
 
-	void repond_manipulation(const numero7::math::vec3f &delta) override;
+	void repond_manipulation(const dls::math::vec3f &delta) override;
 };
 
 /* ************************************************************************** */
 
 class ManipulatriceEchelle3D final : public Manipulatrice3D {
 	/* boite englobante */
-	numero7::math::vec3f m_min = numero7::math::vec3f(0.0f);
-	numero7::math::vec3f m_max = numero7::math::vec3f(1.0f);
+	dls::math::vec3f m_min = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_max = dls::math::vec3f(1.0f);
 
 	/* baton axe x */
-	numero7::math::vec3f m_min_baton_x;
-	numero7::math::vec3f m_max_baton_x;
+	dls::math::vec3f m_min_baton_x;
+	dls::math::vec3f m_max_baton_x;
 
 	/* baton axe y */
-	numero7::math::vec3f m_min_baton_y;
-	numero7::math::vec3f m_max_baton_y;
+	dls::math::vec3f m_min_baton_y;
+	dls::math::vec3f m_max_baton_y;
 
 	/* baton axe z */
-	numero7::math::vec3f m_min_baton_z;
-	numero7::math::vec3f m_max_baton_z;
+	dls::math::vec3f m_min_baton_z;
+	dls::math::vec3f m_max_baton_z;
 
 	/* poignée axe x */
-	numero7::math::vec3f m_min_poignee_x;
-	numero7::math::vec3f m_max_poignee_x;
+	dls::math::vec3f m_min_poignee_x;
+	dls::math::vec3f m_max_poignee_x;
 
 	/* poignée axe y */
-	numero7::math::vec3f m_min_poignee_y;
-	numero7::math::vec3f m_max_poignee_y;
+	dls::math::vec3f m_min_poignee_y;
+	dls::math::vec3f m_max_poignee_y;
 
 	/* poignée axe z */
-	numero7::math::vec3f m_min_poignee_z;
-	numero7::math::vec3f m_max_poignee_z;
+	dls::math::vec3f m_min_poignee_z;
+	dls::math::vec3f m_max_poignee_z;
 
 	/* poignée axe xyz */
-	numero7::math::vec3f m_min_poignee_xyz;
-	numero7::math::vec3f m_max_poignee_xyz;
+	dls::math::vec3f m_min_poignee_xyz;
+	dls::math::vec3f m_max_poignee_xyz;
 
 public:
 	ManipulatriceEchelle3D();
 
-	bool entresecte(const numero7::math::point3f &orig, const numero7::math::vec3f &dir) override;
+	bool entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir) override;
 
-	void repond_manipulation(const numero7::math::vec3f &delta) override;
+	void repond_manipulation(const dls::math::vec3f &delta) override;
 };
 
 /* ************************************************************************** */
 
 class ManipulatriceRotation3D final : public Manipulatrice3D {
 	/* boite englobante */
-	numero7::math::vec3f m_min = numero7::math::vec3f(0.0f);
-	numero7::math::vec3f m_max = numero7::math::vec3f(1.0f);
+	dls::math::vec3f m_min = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_max = dls::math::vec3f(1.0f);
 
 public:
 	ManipulatriceRotation3D();
 
-	bool entresecte(const numero7::math::point3f &orig, const numero7::math::vec3f &dir) override;
+	bool entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir) override;
 
-	void repond_manipulation(const numero7::math::vec3f &delta) override;
+	void repond_manipulation(const dls::math::vec3f &delta) override;
 };

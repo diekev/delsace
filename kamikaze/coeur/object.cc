@@ -24,7 +24,6 @@
 
 #include "object.h"
 
-#include <glm/gtc/matrix_transform.hpp>
 #include "sdk/context.h"
 #include "sdk/primitive.h"
 
@@ -39,9 +38,9 @@ Object::Object(const Context &contexte)
 	add_input("Parent");
 	add_output("Child");
 
-	ajoute_propriete("position", danjo::TypePropriete::VECTEUR, glm::vec3(0.0));
-	ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR, glm::vec3(0.0));
-	ajoute_propriete("taille", danjo::TypePropriete::VECTEUR, glm::vec3(1.0));
+	ajoute_propriete("position", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0));
+	ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0));
+	ajoute_propriete("taille", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0));
 
 	updateMatrix();
 }
@@ -56,12 +55,12 @@ void Object::collection(PrimitiveCollection *coll)
 	m_collection = coll;
 }
 
-void Object::matrix(const glm::mat4 &m)
+void Object::matrix(const dls::math::mat4x4d &m)
 {
 	m_matrix = m;
 }
 
-const glm::mat4 &Object::matrix() const
+const dls::math::mat4x4d &Object::matrix() const
 {
 	return m_matrix;
 }
@@ -93,14 +92,18 @@ void Object::updateMatrix()
 	const auto m_rotation = evalue_vecteur("rotation");
 	const auto m_scale = evalue_vecteur("taille");
 
-	m_matrix = glm::mat4(1.0f);
-	m_matrix = glm::translate(m_matrix, m_pos);
-	m_matrix = glm::rotate(m_matrix, glm::radians(m_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	m_matrix = glm::rotate(m_matrix, glm::radians(m_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	m_matrix = glm::rotate(m_matrix, glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	m_matrix = glm::scale(m_matrix, m_scale);
+	auto const angle_x = static_cast<double>(dls::math::degrees_vers_radians(m_rotation.x));
+	auto const angle_y = static_cast<double>(dls::math::degrees_vers_radians(m_rotation.y));
+	auto const angle_z = static_cast<double>(dls::math::degrees_vers_radians(m_rotation.z));
 
-	m_inv_matrix = glm::inverse(m_matrix);
+	m_matrix = dls::math::mat4x4d(1.0);
+	m_matrix = dls::math::translation(m_matrix, dls::math::vec3d(m_pos));
+	m_matrix = dls::math::rotation(m_matrix, angle_x, dls::math::vec3d(1.0f, 0.0f, 0.0f));
+	m_matrix = dls::math::rotation(m_matrix, angle_y, dls::math::vec3d(0.0f, 1.0f, 0.0f));
+	m_matrix = dls::math::rotation(m_matrix, angle_z, dls::math::vec3d(0.0f, 0.0f, 1.0f));
+	m_matrix = dls::math::dimension(m_matrix, dls::math::vec3d(m_scale));
+
+	m_inv_matrix = dls::math::inverse(m_matrix);
 }
 
 void Object::addChild(Object *child)

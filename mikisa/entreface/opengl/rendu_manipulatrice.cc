@@ -25,7 +25,6 @@
 #include "rendu_manipulatrice.h"
 
 #include <ego/outils.h>
-#include <math/vec3.h>
 
 #include "bibliotheques/opengl/tampon_rendu.h"
 
@@ -50,18 +49,18 @@ static constexpr auto RAYON_BRANCHE = 0.02f;
 static constexpr auto RAYON_POIGNEE = 0.10f;
 static constexpr auto TAILLE = 1.0f;
 
-static const glm::vec4 couleurs[NOMBRE_TAMPON] = {
-	glm::vec4{1.0f, 0.0f, 0.0f, 1.0f}, // TAMPON_X
-	glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, // TAMPON_Y
-	glm::vec4{0.0f, 0.0f, 1.0f, 1.0f}, // TAMPON_Z
-	glm::vec4{1.0f, 1.0f, 0.0f, 1.0f}, // TAMPON_XY
-	glm::vec4{1.0f, 0.0f, 1.0f, 1.0f}, // TAMPON_XZ
-	glm::vec4{0.0f, 1.0f, 1.0f, 1.0f}, // TAMPON_YZ
-	glm::vec4{0.8f, 0.8f, 0.8f, 1.0f}, // TAMPON_XYZ
-	glm::vec4{1.0f, 1.0f, 0.1f, 1.0f}, // TAMPON_SELECTION
+static const dls::math::vec4f couleurs[NOMBRE_TAMPON] = {
+	dls::math::vec4f{1.0f, 0.0f, 0.0f, 1.0f}, // TAMPON_X
+	dls::math::vec4f{0.0f, 1.0f, 0.0f, 1.0f}, // TAMPON_Y
+	dls::math::vec4f{0.0f, 0.0f, 1.0f, 1.0f}, // TAMPON_Z
+	dls::math::vec4f{1.0f, 1.0f, 0.0f, 1.0f}, // TAMPON_XY
+	dls::math::vec4f{1.0f, 0.0f, 1.0f, 1.0f}, // TAMPON_XZ
+	dls::math::vec4f{0.0f, 1.0f, 1.0f, 1.0f}, // TAMPON_YZ
+	dls::math::vec4f{0.8f, 0.8f, 0.8f, 1.0f}, // TAMPON_XYZ
+	dls::math::vec4f{1.0f, 1.0f, 0.1f, 1.0f}, // TAMPON_SELECTION
 };
 
-static TamponRendu *cree_tampon_base(const glm::vec4 &couleur)
+static TamponRendu *cree_tampon_base(const dls::math::vec4f &couleur)
 {
 	auto tampon = new TamponRendu;
 
@@ -92,22 +91,22 @@ static TamponRendu *cree_tampon_base(const glm::vec4 &couleur)
 }
 
 static void ajoute_baton_axe(
-		const numero7::math::vec3f &min,
-		const numero7::math::vec3f &max,
-		std::vector<numero7::math::vec3f> &sommets,
+		const dls::math::vec3f &min,
+		const dls::math::vec3f &max,
+		std::vector<dls::math::vec3f> &sommets,
 		std::vector<unsigned int> &indices)
 {
 	const auto decalage = sommets.size();
 
-	const numero7::math::vec3f coins[8] = {
-		numero7::math::vec3f(min[0], min[1], min[2]),
-		numero7::math::vec3f(max[0], min[1], min[2]),
-		numero7::math::vec3f(max[0], max[1], min[2]),
-		numero7::math::vec3f(min[0], max[1], min[2]),
-		numero7::math::vec3f(min[0], min[1], max[2]),
-		numero7::math::vec3f(max[0], min[1], max[2]),
-		numero7::math::vec3f(max[0], max[1], max[2]),
-		numero7::math::vec3f(min[0], max[1], max[2])
+	const dls::math::vec3f coins[8] = {
+		dls::math::vec3f(min[0], min[1], min[2]),
+		dls::math::vec3f(max[0], min[1], min[2]),
+		dls::math::vec3f(max[0], max[1], min[2]),
+		dls::math::vec3f(min[0], max[1], min[2]),
+		dls::math::vec3f(min[0], min[1], max[2]),
+		dls::math::vec3f(max[0], min[1], max[2]),
+		dls::math::vec3f(max[0], max[1], max[2]),
+		dls::math::vec3f(min[0], max[1], max[2])
 	};
 
 	sommets.reserve(sommets.size() + 8);
@@ -137,22 +136,22 @@ static void ajoute_baton_axe(
 }
 
 static void ajoute_poignee_axe(
-		const numero7::math::vec3f &min,
-		const numero7::math::vec3f &max,
-		std::vector<numero7::math::vec3f> &sommets,
+		const dls::math::vec3f &min,
+		const dls::math::vec3f &max,
+		std::vector<dls::math::vec3f> &sommets,
 		std::vector<unsigned int> &indices)
 {
 	const auto decalage = sommets.size();
 
-	const numero7::math::vec3f coins[8] = {
-		numero7::math::vec3f(min[0], min[1], min[2]),
-		numero7::math::vec3f(max[0], min[1], min[2]),
-		numero7::math::vec3f(max[0], max[1], min[2]),
-		numero7::math::vec3f(min[0], max[1], min[2]),
-		numero7::math::vec3f(min[0], min[1], max[2]),
-		numero7::math::vec3f(max[0], min[1], max[2]),
-		numero7::math::vec3f(max[0], max[1], max[2]),
-		numero7::math::vec3f(min[0], max[1], max[2])
+	const dls::math::vec3f coins[8] = {
+		dls::math::vec3f(min[0], min[1], min[2]),
+		dls::math::vec3f(max[0], min[1], min[2]),
+		dls::math::vec3f(max[0], max[1], min[2]),
+		dls::math::vec3f(min[0], max[1], min[2]),
+		dls::math::vec3f(min[0], min[1], max[2]),
+		dls::math::vec3f(max[0], min[1], max[2]),
+		dls::math::vec3f(max[0], max[1], max[2]),
+		dls::math::vec3f(min[0], max[1], max[2])
 	};
 
 	sommets.reserve(sommets.size() + 8);
@@ -185,47 +184,47 @@ static TamponRendu *cree_tampon_axe(int axe, float taille)
 {
 	auto tampon = cree_tampon_base(couleurs[axe]);
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	std::vector<unsigned int> indices;
 
 	switch (axe) {
 		case TAMPON_X:
 		{
-			auto min = numero7::math::vec3f(RAYON_POIGNEE * 2, -RAYON_BRANCHE, -RAYON_BRANCHE);
-			auto max = numero7::math::vec3f(taille,  RAYON_BRANCHE,  RAYON_BRANCHE);
+			auto min = dls::math::vec3f(RAYON_POIGNEE * 2, -RAYON_BRANCHE, -RAYON_BRANCHE);
+			auto max = dls::math::vec3f(taille,  RAYON_BRANCHE,  RAYON_BRANCHE);
 			ajoute_baton_axe(min, max, sommets, indices);
 
-			min = numero7::math::vec3f(taille - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-			max = numero7::math::vec3f(taille + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
+			min = dls::math::vec3f(taille - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
+			max = dls::math::vec3f(taille + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
 			ajoute_poignee_axe(min, max, sommets, indices);
 			break;
 		}
 		case TAMPON_Y:
 		{
-			auto min = numero7::math::vec3f(-RAYON_BRANCHE, RAYON_POIGNEE * 2, -RAYON_BRANCHE);
-			auto max = numero7::math::vec3f( RAYON_BRANCHE, taille,  RAYON_BRANCHE);
+			auto min = dls::math::vec3f(-RAYON_BRANCHE, RAYON_POIGNEE * 2, -RAYON_BRANCHE);
+			auto max = dls::math::vec3f( RAYON_BRANCHE, taille,  RAYON_BRANCHE);
 			ajoute_baton_axe(min, max, sommets, indices);
 
-			min = numero7::math::vec3f(-RAYON_POIGNEE, taille - RAYON_POIGNEE, -RAYON_POIGNEE);
-			max = numero7::math::vec3f( RAYON_POIGNEE, taille + RAYON_POIGNEE,  RAYON_POIGNEE);
+			min = dls::math::vec3f(-RAYON_POIGNEE, taille - RAYON_POIGNEE, -RAYON_POIGNEE);
+			max = dls::math::vec3f( RAYON_POIGNEE, taille + RAYON_POIGNEE,  RAYON_POIGNEE);
 			ajoute_poignee_axe(min, max, sommets, indices);
 			break;
 		}
 		case TAMPON_Z:
 		{
-			auto min = numero7::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE, RAYON_POIGNEE * 2);
-			auto max = numero7::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, taille);
+			auto min = dls::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE, RAYON_POIGNEE * 2);
+			auto max = dls::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, taille);
 			ajoute_baton_axe(min, max, sommets, indices);
 
-			min = numero7::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, taille - RAYON_POIGNEE);
-			max = numero7::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, taille + RAYON_POIGNEE);
+			min = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, taille - RAYON_POIGNEE);
+			max = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, taille + RAYON_POIGNEE);
 			ajoute_poignee_axe(min, max, sommets, indices);
 			break;
 		}
 		case TAMPON_XYZ:
 		{
-			auto min = numero7::math::vec3f(-taille, -taille, -taille);
-			auto max = numero7::math::vec3f( taille,  taille, taille);
+			auto min = dls::math::vec3f(-taille, -taille, -taille);
+			auto max = dls::math::vec3f( taille,  taille, taille);
 
 			ajoute_poignee_axe(min, max, sommets, indices);
 			break;
@@ -236,7 +235,7 @@ static TamponRendu *cree_tampon_axe(int axe, float taille)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = indices.data();
 	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
 	parametres_tampon.elements = indices.size();
@@ -273,7 +272,7 @@ void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
 	}
 
 	auto etat = m_pointeur->etat();
-	glm::vec4 couleur;
+	dls::math::vec4f couleur;
 
 	if (etat == ETAT_INTERSECTION_X || etat == ETAT_SELECTION_X || etat == ETAT_INTERSECTION_XYZ) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -373,7 +372,7 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 //	}
 
 	auto etat = m_pointeur->etat();
-	glm::vec4 couleur;
+	dls::math::vec4f couleur;
 
 	if (etat == ETAT_INTERSECTION_X || etat == ETAT_SELECTION_X || etat == ETAT_INTERSECTION_XYZ) {
 		couleur = couleurs[TAMPON_SELECTION];
@@ -443,7 +442,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 	auto tampon = cree_tampon_base(couleurs[axe]);
 
 	const auto segments = 64;
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	std::vector<unsigned int> indices;
 
 	sommets.reserve(segments + 1);
@@ -455,7 +454,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 			const auto phid = 2.0f * static_cast<float>(M_PI) / segments;
 			auto phi = 0.0f;
 
-			numero7::math::vec3f point;
+			dls::math::vec3f point;
 
 			for (int a = 0; a < segments; ++a, phi += phid) {
 				point[0] = 0.0f;
@@ -471,7 +470,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 			const auto phid = 2.0f * static_cast<float>(M_PI) / segments;
 			auto phi = 0.0f;
 
-			numero7::math::vec3f point;
+			dls::math::vec3f point;
 
 			for (int a = 0; a < segments; ++a, phi += phid) {
 				point[0] = std::sin(phi);
@@ -487,7 +486,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 			const auto phid = 2.0f * static_cast<float>(M_PI) / segments;
 			auto phi = 0.0f;
 
-			numero7::math::vec3f point;
+			dls::math::vec3f point;
 
 			for (int a = 0; a < segments; ++a, phi += phid) {
 				point[0] = std::sin(phi);
@@ -509,7 +508,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = indices.data();
 	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
 	parametres_tampon.elements = indices.size();
@@ -549,7 +548,7 @@ void RenduManipulatriceRotation::manipulatrice(Manipulatrice3D *pointeur)
 
 	auto etat = m_pointeur->etat();
 
-	glm::vec4 couleur;
+	dls::math::vec4f couleur;
 
 	if (etat == ETAT_INTERSECTION_X || etat == ETAT_SELECTION_X) {
 		couleur = couleurs[TAMPON_SELECTION];

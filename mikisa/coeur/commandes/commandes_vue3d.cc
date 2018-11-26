@@ -25,10 +25,7 @@
 #include "commandes_vue3d.h"
 
 #include <iostream>
-#include <math/conversion_point_vecteur.h>
-#include <math/vec2.h>
 #include <QKeyEvent>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/objets/creation.h"
@@ -56,7 +53,7 @@ public:
 		}
 		else {
 			const auto temp = camera->distance() - camera->vitesse_zoom();
-			const auto distance = glm::max(0.0f, temp);
+			const auto distance = std::max(0.0f, temp);
 			camera->distance(distance);
 		}
 
@@ -155,7 +152,7 @@ public:
 		/* génère un rayon sous la souris */
 		auto camera = mikisa->camera_3d;
 
-		auto pos = numero7::math::point3f(
+		auto pos = dls::math::point3f(
 					   donnees.x / camera->largeur(),
 					   1.0f - (donnees.y / camera->hauteur()),
 					   0.0f);
@@ -165,10 +162,7 @@ public:
 		pos[2] = 1.0f;
 		const auto fin = camera->pos_monde(pos);
 
-		const auto orig = numero7::math::point3f(
-							  camera->pos().x,
-							  camera->pos().y,
-							  camera->pos().z);
+		const auto orig = dls::math::point3f(camera->pos());
 
 		const auto dir = normalise(fin - debut);
 
@@ -188,14 +182,14 @@ public:
 /* ************************************************************************** */
 
 static Plan plans[] = {
-	{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-	{{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-	{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-	{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{0.0f, 0.0f, 1.0f}},
+	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{0.0f, 1.0f, 0.0f}},
+	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{1.0f, 0.0f, 0.0f}},
+	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{1.0f, 1.0f, 1.0f}},
 };
 
 class CommandeDeplaceManipulatrice : public Commande {
-	numero7::math::vec3f m_delta = numero7::math::vec3f(0.0f);
+	dls::math::vec3f m_delta = dls::math::vec3f(0.0f);
 
 public:
 	CommandeDeplaceManipulatrice() = default;
@@ -217,7 +211,7 @@ public:
 		/* génère un rayon sous la souris */
 		auto camera = mikisa->camera_3d;
 
-		auto pos = numero7::math::point3f(
+		auto pos = dls::math::point3f(
 					   donnees.x / camera->largeur(),
 					   1.0f - (donnees.y / camera->hauteur()),
 					   0.0f);
@@ -227,10 +221,7 @@ public:
 		pos[2] = 1.0f;
 		const auto fin = camera->pos_monde(pos);
 
-		const auto orig = numero7::math::point3f(
-							  camera->pos().x,
-							  camera->pos().y,
-							  camera->pos().z);
+		const auto orig = dls::math::point3f(camera->pos());
 
 		const auto dir = normalise(fin - debut);
 
@@ -253,7 +244,7 @@ public:
 		else if (manipulatrice->etat() == ETAT_INTERSECTION_XYZ) {
 			plan = PLAN_XYZ;
 			auto dir_cam = mikisa->camera_3d->dir();
-			plans[PLAN_XYZ].nor = numero7::math::vec3f(dir_cam.x, dir_cam.y, dir_cam.z);
+			plans[PLAN_XYZ].nor = dls::math::vec3f(dir_cam.x, dir_cam.y, dir_cam.z);
 		}
 
 		if (plan == -1) {
@@ -300,7 +291,7 @@ public:
 		/* génère un rayon sous la souris */
 		auto camera = mikisa->camera_3d;
 
-		auto pos = numero7::math::point3f(
+		auto pos = dls::math::point3f(
 					   donnees.x / camera->largeur(),
 					   1.0f - (donnees.y / camera->hauteur()),
 					   0.0f);
@@ -310,10 +301,7 @@ public:
 		pos[2] = 1.0f;
 		const auto fin = camera->pos_monde(pos);
 
-		const auto orig = numero7::math::point3f(
-							  camera->pos().x,
-							  camera->pos().y,
-							  camera->pos().z);
+		const auto orig = dls::math::point3f(camera->pos());
 
 		const auto dir = normalise(fin - debut);
 
@@ -340,7 +328,7 @@ public:
 		const auto &ok = entresecte_plan(plans[plan], orig, dir, t);
 
 		if (ok) {
-			const auto &pos = vecteur_depuis_point(orig + t * dir);
+			const auto &pos = dls::math::vec3f(orig) + t * dir;
 			manipulatrice->repond_manipulation(pos - m_delta);
 		}
 

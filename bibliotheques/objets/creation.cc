@@ -24,8 +24,7 @@
 
 #include "creation.h"
 
-#include <math/vec2.h>
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 #include "adaptrice_creation.h"
 
@@ -72,18 +71,18 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 	}
 #endif
 
-	numero7::math::vec3f min(-taille_x + centre_x, -taille_y + centre_y, -taille_z + centre_z);
-	numero7::math::vec3f max( taille_x + centre_x,  taille_y + centre_y,  taille_z + centre_z);
+	dls::math::vec3f min(-taille_x + centre_x, -taille_y + centre_y, -taille_z + centre_z);
+	dls::math::vec3f max( taille_x + centre_x,  taille_y + centre_y,  taille_z + centre_z);
 
-	const numero7::math::vec3f sommets[8] = {
-		numero7::math::vec3f(min[0], min[1], min[2]),
-		numero7::math::vec3f(max[0], min[1], min[2]),
-		numero7::math::vec3f(max[0], max[1], min[2]),
-		numero7::math::vec3f(min[0], max[1], min[2]),
-		numero7::math::vec3f(min[0], min[1], max[2]),
-		numero7::math::vec3f(max[0], min[1], max[2]),
-		numero7::math::vec3f(max[0], max[1], max[2]),
-		numero7::math::vec3f(min[0], max[1], max[2])
+	const dls::math::vec3f sommets[8] = {
+		dls::math::vec3f(min[0], min[1], min[2]),
+		dls::math::vec3f(max[0], min[1], min[2]),
+		dls::math::vec3f(max[0], max[1], min[2]),
+		dls::math::vec3f(min[0], max[1], min[2]),
+		dls::math::vec3f(min[0], min[1], max[2]),
+		dls::math::vec3f(max[0], min[1], max[2]),
+		dls::math::vec3f(max[0], max[1], max[2]),
+		dls::math::vec3f(min[0], max[1], max[2])
 	};
 
 	adaptrice->reserve_sommets(8);
@@ -92,13 +91,13 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 		adaptrice->ajoute_sommet(sommet.x, sommet.y, sommet.z);
 	}
 
-	const numero7::math::vec3f normaux[6] = {
-		numero7::math::vec3f(-1.0f,  0.0f,  0.0f),
-		numero7::math::vec3f( 1.0f,  0.0f,  0.0f),
-		numero7::math::vec3f( 0.0f, -1.0f,  0.0f),
-		numero7::math::vec3f( 0.0f,  1.0f,  0.0f),
-		numero7::math::vec3f( 0.0f,  0.0f, -1.0f),
-		numero7::math::vec3f( 0.0f,  0.0f,  1.0f),
+	const dls::math::vec3f normaux[6] = {
+		dls::math::vec3f(-1.0f,  0.0f,  0.0f),
+		dls::math::vec3f( 1.0f,  0.0f,  0.0f),
+		dls::math::vec3f( 0.0f, -1.0f,  0.0f),
+		dls::math::vec3f( 0.0f,  1.0f,  0.0f),
+		dls::math::vec3f( 0.0f,  0.0f, -1.0f),
+		dls::math::vec3f( 0.0f,  0.0f,  1.0f),
 	};
 
 	adaptrice->reserve_normaux(6);
@@ -107,11 +106,11 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 		adaptrice->ajoute_normal(normal.x, normal.y, normal.z);
 	}
 
-	const numero7::math::vec2f uvs[4] = {
-		{ 0.0f, 0.0f },
-		{ 0.0f, 1.0f },
-		{ 1.0f, 1.0f },
-		{ 1.0f, 0.0f },
+	const dls::math::vec2f uvs[4] = {
+		dls::math::vec2f{ 0.0f, 0.0f },
+		dls::math::vec2f{ 0.0f, 1.0f },
+		dls::math::vec2f{ 1.0f, 1.0f },
+		dls::math::vec2f{ 1.0f, 0.0f },
 	};
 
 	adaptrice->reserve_uvs(4);
@@ -154,7 +153,7 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 template <typename T>
 auto sphere(const T u, const T v, const T rayon)
 {
-	return numero7::math::vec3<T>(
+	return dls::math::vec3<T>(
 				std::cos(u) * std::sin(v) * rayon,
 				std::cos(v) * rayon,
 				std::sin(u) * std::sin(v) * rayon);
@@ -184,7 +183,7 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 	int poly[4] = { 0, 1, 2, 3 };
 	const int decalage = 4;
 
-	const auto &centre = numero7::math::vec3f(centre_x, centre_y, centre_z);
+	const auto &centre = dls::math::vec3f(centre_x, centre_y, centre_z);
 
 	for (int i = 0; i < resolution_u; i++) {
 		for (int j = 0; j < resolution_v; j++) {
@@ -573,7 +572,7 @@ void cree_icosphere(AdaptriceCreationObjet *adaptrice,
 
 	adaptrice->reserve_sommets(12);
 
-	numero7::math::vec3f vec, nor;
+	dls::math::vec3f vec, nor;
 
 	for (int a = 0; a < 12; a++) {
 		vec[0] = rayon_div * icovert[a][0] + centre_x;

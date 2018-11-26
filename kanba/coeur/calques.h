@@ -27,8 +27,6 @@
 #include <string>
 #include <vector>
 
-#include <numero7/math/vec4.h>
-
 #include "melange.h"
 
 enum TypeDonnees {
@@ -67,7 +65,7 @@ struct Calque {
 	/* TypeCalque::PROCEDUREL */
 	int octaves = 1;
 	float taille = 1.0f;
-	numero7::math::vec4f couleur = numero7::math::vec4f(0.0f);
+	dls::math::vec4f couleur = dls::math::vec4f(0.0f);
 
 	Calque() = default;
 	~Calque();
@@ -96,7 +94,7 @@ struct CanauxTexture {
 	/* La largeur initiale du tampon des calques. */
 	size_t largeur;
 
-	numero7::math::vec4f *tampon_diffusion = nullptr;
+	dls::math::vec4f *tampon_diffusion = nullptr;
 
 	CanauxTexture() = default;
 	~CanauxTexture();

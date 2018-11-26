@@ -38,14 +38,14 @@
 
 class AdaptriceCreation : public objets::AdaptriceCreationObjet {
 public:
-	std::vector<glm::vec3> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	std::vector<unsigned int> index;
 
 	virtual ~AdaptriceCreation() = default;
 
 	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override
 	{
-		sommets.push_back(glm::vec3(x, y, z));
+		sommets.push_back(dls::math::vec3f(x, y, z));
 	}
 
 	void ajoute_normal(const float x, const float y, const float z) override
@@ -180,7 +180,7 @@ RenduMonde::RenduMonde(Koudou *koudou)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = m_sommets.data();
-	parametres_tampon.taille_octet_sommets = m_sommets.size() * sizeof(glm::vec3);
+	parametres_tampon.taille_octet_sommets = m_sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = m_index.data();
 	parametres_tampon.taille_octet_index = m_index.size() * sizeof(unsigned int);
 	parametres_tampon.elements = m_index.size();
@@ -208,7 +208,7 @@ void RenduMonde::ajourne()
 			parametres_tampon.attribut = "sommets";
 			parametres_tampon.dimension_attribut = 3;
 			parametres_tampon.pointeur_sommets = m_sommets.data();
-			parametres_tampon.taille_octet_sommets = m_sommets.size() * sizeof(glm::vec3);
+			parametres_tampon.taille_octet_sommets = m_sommets.size() * sizeof(dls::math::vec3f);
 			parametres_tampon.pointeur_index = m_index.data();
 			parametres_tampon.taille_octet_index = m_index.size() * sizeof(unsigned int);
 			parametres_tampon.elements = m_index.size();
@@ -232,7 +232,7 @@ void RenduMonde::ajourne()
 			}
 		}
 		else {
-			auto spectre = texture->echantillone(numero7::math::vec3d(0.0));
+			auto spectre = texture->echantillone(dls::math::vec3d(0.0));
 
 			auto programme = m_tampon->programme();
 			programme->active();

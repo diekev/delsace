@@ -25,10 +25,7 @@
 #include "commandes_vue3d.h"
 
 #include <iostream>
-#include <numero7/math/conversion_point_vecteur.h>
-#include <numero7/math/vec2.h>
 #include <QKeyEvent>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/objets/creation.h"
@@ -57,7 +54,7 @@ public:
 		}
 		else {
 			const float temp = camera->distance() - camera->vitesse_zoom();
-			auto distance = glm::max(0.0f, temp);
+			auto distance = std::max(0.0f, temp);
 			camera->distance(distance);
 		}
 

@@ -27,8 +27,7 @@
 #include <algorithm>
 #include <random>
 
-#include <numero7/math/bruit.h>
-#include <numero7/math/conversion_point_vecteur.h>
+#include <delsace/math/bruit.hh>
 
 #include "bibliotheques/texture/texture.h"
 
@@ -52,11 +51,11 @@ static unsigned int prochain_multiple_de_2(unsigned int v)
 
 void ajoute_calque_procedurale(Maillage *maillage)
 {
-	numero7::math::BruitPerlin3D bruit;
+	dls::math::BruitPerlin3D bruit;
 
 	const auto nombre_polygones = maillage->nombre_polygones();
 	const auto largeur = maillage->largeur_texture();
-	auto tampon = static_cast<numero7::math::vec4f *>(maillage->calque_actif()->tampon);
+	auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
 	for (size_t i = 0; i < nombre_polygones; ++i) {
 		auto poly = maillage->polygone(i);
@@ -82,7 +81,7 @@ void ajoute_calque_procedurale(Maillage *maillage)
 
 				auto couleur = bruit(coord * 10.f);
 
-				tampon_poly[index] = numero7::math::vec4f(couleur, couleur, couleur, 1.0f);
+				tampon_poly[index] = dls::math::vec4f(couleur, couleur, couleur, 1.0f);
 			}
 		}
 	}
@@ -92,7 +91,7 @@ void ajoute_calque_echiquier(Maillage *maillage)
 {
 	const auto nombre_polygones = maillage->nombre_polygones();
 	const auto largeur = maillage->largeur_texture();
-	auto tampon = static_cast<numero7::math::vec4f *>(maillage->calque_actif()->tampon);
+	auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
 	std::mt19937 rng(19937);
 	std::uniform_real_distribution<float> dist(0.0f, 360.0f);
@@ -103,8 +102,8 @@ void ajoute_calque_echiquier(Maillage *maillage)
 		auto hue = dist(rng);
 		auto sat = 1.0f;
 		auto val = 1.0f;
-		auto couleur1 = numero7::math::vec4f(1.0f);
-		auto couleur2 = numero7::math::vec4f(1.0f);
+		auto couleur1 = dls::math::vec4f(1.0f);
+		auto couleur2 = dls::math::vec4f(1.0f);
 
 		converti_hsv_rvb(couleur1.x, couleur1.y, couleur1.z, hue, sat, val);
 		sat = 0.5f;
@@ -130,7 +129,7 @@ void ajoute_calque_echiquier(Maillage *maillage)
 	}
 }
 
-auto echantillone_texture(TextureImage *texture_image, const numero7::math::vec2f &uv)
+auto echantillone_texture(TextureImage *texture_image, const dls::math::vec2f &uv)
 {
 	auto x = static_cast<int>(uv.x * texture_image->largeur());
 	auto y = static_cast<int>(uv.y * texture_image->hauteur());
@@ -152,7 +151,7 @@ auto echantillone_texture(TextureImage *texture_image, const numero7::math::vec2
 	}
 
 	auto spectre = texture_image->echantillone_uv(x, y);
-	return numero7::math::vec4f(spectre[0], spectre[1], spectre[2], 1.0f);
+	return dls::math::vec4f(spectre[0], spectre[1], spectre[2], 1.0f);
 }
 
 void ajoute_calque_projection_triplanaire(Maillage *maillage)
@@ -161,14 +160,14 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 
 	const auto nombre_polygones = maillage->nombre_polygones();
 	const auto largeur = maillage->largeur_texture();
-	auto tampon = static_cast<numero7::math::vec4f *>(maillage->calque_actif()->tampon);
+	auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
 	for (size_t i = 0; i < nombre_polygones; ++i) {
 		auto poly = maillage->polygone(i);
 
-		const auto angle_xy = abs(poly->nor.z);// abs(produit_scalaire(poly->nor, numero7::math::vec3f(0.0, 0.0, 1.0)));
-		const auto angle_xz = abs(poly->nor.y);// abs(produit_scalaire(poly->nor, numero7::math::vec3f(0.0, 1.0, 0.0)));
-		const auto angle_yz = abs(poly->nor.x);// abs(produit_scalaire(poly->nor, numero7::math::vec3f(1.0, 0.0, 0.0)));
+		const auto angle_xy = abs(poly->nor.z);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 0.0, 1.0)));
+		const auto angle_xz = abs(poly->nor.y);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 1.0, 0.0)));
+		const auto angle_yz = abs(poly->nor.x);// abs(produit_scalaire(poly->nor, dls::math::vec3f(1.0, 0.0, 0.0)));
 
 		float poids = (angle_xy + angle_xz + angle_yz);
 
@@ -198,9 +197,9 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 
 				const auto &sommet = v0 + static_cast<float>(j) * dv + static_cast<float>(k) * du;
 
-				const auto UV_xy = numero7::math::vec2f(sommet.x, sommet.y);
-				const auto UV_xz = numero7::math::vec2f(sommet.x, sommet.z);
-				const auto UV_yz = numero7::math::vec2f(sommet.y, sommet.z);
+				const auto UV_xy = dls::math::vec2f(sommet.x, sommet.y);
+				const auto UV_xz = dls::math::vec2f(sommet.x, sommet.z);
+				const auto UV_yz = dls::math::vec2f(sommet.y, sommet.z);
 
 				const auto couleur_xy = echantillone_texture(texture_image, UV_xy);
 				const auto couleur_xz = echantillone_texture(texture_image, UV_xz);
@@ -269,7 +268,7 @@ void assigne_texels_resolution(Maillage *maillage, int texels_par_cm)
 /* ************************************************************************** */
 
 Maillage::Maillage()
-	: m_transformation(numero7::math::mat4d::identity())
+	: m_transformation(dls::math::mat4x4d(1.0))
 	, m_texture_surrannee(true)
 	, m_largeur_texture(0)
 	, m_nom("maillage")
@@ -290,7 +289,7 @@ Maillage::~Maillage()
 	}
 }
 
-void Maillage::ajoute_sommet(const numero7::math::vec3f &coord)
+void Maillage::ajoute_sommet(const dls::math::vec3f &coord)
 {
 	auto sommet = new Sommet();
 	sommet->pos = coord;
@@ -298,7 +297,7 @@ void Maillage::ajoute_sommet(const numero7::math::vec3f &coord)
 	m_sommets.push_back(sommet);
 }
 
-void Maillage::ajoute_sommets(const numero7::math::vec3f *sommets, size_t nombre)
+void Maillage::ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre)
 {
 	m_sommets.reserve(m_sommets.size() + nombre);
 
@@ -345,7 +344,7 @@ void Maillage::ajoute_quad(const int s0, const int s1, const int s2, const int s
 
 	auto c1 = poly->s[1]->pos - poly->s[0]->pos;
 	auto c2 = poly->s[2]->pos - poly->s[0]->pos;
-	poly->nor =  numero7::math::normalise(numero7::math::produit_croix(c1, c2));
+	poly->nor = dls::math::normalise(dls::math::produit_croix(c1, c2));
 
 	poly->index = m_polys.size();
 

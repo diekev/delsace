@@ -29,10 +29,10 @@ static constexpr auto RAYON_POIGNEE = 0.10f;
 static constexpr auto TAILLE = 1.0f;
 
 static bool entresecte_min_max(
-		const numero7::math::vec3f &min,
-		const numero7::math::vec3f &max,
-		const numero7::math::point3f &origine,
-		const numero7::math::vec3f &inverse_direction)
+		const dls::math::vec3f &min,
+		const dls::math::vec3f &max,
+		const dls::math::point3f &origine,
+		const dls::math::vec3f &inverse_direction)
 {
 	auto t1 = (min[0] - origine[0]) * inverse_direction[0];
 	auto t2 = (max[0] - origine[0]) * inverse_direction[0];
@@ -51,7 +51,7 @@ static bool entresecte_min_max(
 	return tmax > std::max(tmin, 0.0f);
 }
 
-bool entresecte_plan(const Plan &plan, const numero7::math::point3f &orig, const numero7::math::vec3f &dir, float &t)
+bool entresecte_plan(const Plan &plan, const dls::math::point3f &orig, const dls::math::vec3f &dir, float &t)
 {
 	const auto denom = produit_scalaire(plan.nor, dir);
 
@@ -73,34 +73,34 @@ int Manipulatrice3D::etat() const
 	return m_etat;
 }
 
-void Manipulatrice3D::pos(const numero7::math::point3f &pos)
+void Manipulatrice3D::pos(const dls::math::point3f &pos)
 {
 	m_position = pos;
 }
 
-const numero7::math::point3f &Manipulatrice3D::taille() const
+const dls::math::point3f &Manipulatrice3D::taille() const
 {
 	return m_taille;
 }
 
-void Manipulatrice3D::taille(const numero7::math::point3f &t)
+void Manipulatrice3D::taille(const dls::math::point3f &t)
 {
 	m_taille = t;
 	m_taille_originale = t;
 }
 
-const numero7::math::point3f &Manipulatrice3D::rotation() const
+const dls::math::point3f &Manipulatrice3D::rotation() const
 {
 	return m_rotation;
 }
 
-void Manipulatrice3D::rotation(const numero7::math::point3f &r)
+void Manipulatrice3D::rotation(const dls::math::point3f &r)
 {
 	m_rotation_originale = r;
 	m_rotation = r;
 }
 
-const numero7::math::point3f &Manipulatrice3D::pos() const
+const dls::math::point3f &Manipulatrice3D::pos() const
 {
 	return m_position;
 }
@@ -109,34 +109,34 @@ const numero7::math::point3f &Manipulatrice3D::pos() const
 
 ManipulatricePosition3D::ManipulatricePosition3D()
 {
-	m_min = numero7::math::vec3f(-RAYON_POIGNEE);
-	m_max = numero7::math::vec3f(1.0f + RAYON_POIGNEE);
+	m_min = dls::math::vec3f(-RAYON_POIGNEE);
+	m_max = dls::math::vec3f(1.0f + RAYON_POIGNEE);
 
-	m_min_baton_x = numero7::math::vec3f(RAYON_POIGNEE * 2, -RAYON_BRANCHE, -RAYON_BRANCHE);
-	m_max_baton_x = numero7::math::vec3f(TAILLE,  RAYON_BRANCHE,  RAYON_BRANCHE);
+	m_min_baton_x = dls::math::vec3f(RAYON_POIGNEE * 2, -RAYON_BRANCHE, -RAYON_BRANCHE);
+	m_max_baton_x = dls::math::vec3f(TAILLE,  RAYON_BRANCHE,  RAYON_BRANCHE);
 
-	m_min_poignee_x = numero7::math::vec3f(TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_x = numero7::math::vec3f(TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
+	m_min_poignee_x = dls::math::vec3f(TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
+	m_max_poignee_x = dls::math::vec3f(TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
 
-	m_min_baton_y = numero7::math::vec3f(-RAYON_BRANCHE, RAYON_POIGNEE * 2, -RAYON_BRANCHE);
-	m_max_baton_y = numero7::math::vec3f( RAYON_BRANCHE, TAILLE,  RAYON_BRANCHE);
+	m_min_baton_y = dls::math::vec3f(-RAYON_BRANCHE, RAYON_POIGNEE * 2, -RAYON_BRANCHE);
+	m_max_baton_y = dls::math::vec3f( RAYON_BRANCHE, TAILLE,  RAYON_BRANCHE);
 
-	m_min_poignee_y = numero7::math::vec3f(-RAYON_POIGNEE, TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_y = numero7::math::vec3f( RAYON_POIGNEE, TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE);
+	m_min_poignee_y = dls::math::vec3f(-RAYON_POIGNEE, TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE);
+	m_max_poignee_y = dls::math::vec3f( RAYON_POIGNEE, TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE);
 
-	m_min_baton_z = numero7::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE, RAYON_POIGNEE * 2);
-	m_max_baton_z = numero7::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, TAILLE);
+	m_min_baton_z = dls::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE, RAYON_POIGNEE * 2);
+	m_max_baton_z = dls::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, TAILLE);
 
-	m_min_poignee_z = numero7::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, TAILLE - RAYON_POIGNEE);
-	m_max_poignee_z = numero7::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, TAILLE + RAYON_POIGNEE);
+	m_min_poignee_z = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, TAILLE - RAYON_POIGNEE);
+	m_max_poignee_z = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, TAILLE + RAYON_POIGNEE);
 
-	m_min_poignee_xyz = numero7::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_xyz = numero7::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
+	m_min_poignee_xyz = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
+	m_max_poignee_xyz = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
 }
 
-bool ManipulatricePosition3D::entresecte(const numero7::math::point3f &orig, const numero7::math::vec3f &dir)
+bool ManipulatricePosition3D::entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir)
 {
-	auto dir_inverse = numero7::math::vec3f(0.0f);
+	auto dir_inverse = dls::math::vec3f(0.0f);
 
 	for (int i = 0; i < 3; ++i) {
 		if (dir[i] != 0.0f) {
@@ -191,7 +191,7 @@ bool ManipulatricePosition3D::entresecte(const numero7::math::point3f &orig, con
 	return false;
 }
 
-void ManipulatricePosition3D::repond_manipulation(const numero7::math::vec3f &delta)
+void ManipulatricePosition3D::repond_manipulation(const dls::math::vec3f &delta)
 {
 	if (m_etat == ETAT_INTERSECTION_X) {
 		m_position.x = delta.x;
@@ -213,34 +213,34 @@ void ManipulatricePosition3D::repond_manipulation(const numero7::math::vec3f &de
 
 ManipulatriceEchelle3D::ManipulatriceEchelle3D()
 {
-	m_min = numero7::math::vec3f(-RAYON_POIGNEE);
-	m_max = numero7::math::vec3f(1.0f + RAYON_POIGNEE);
+	m_min = dls::math::vec3f(-RAYON_POIGNEE);
+	m_max = dls::math::vec3f(1.0f + RAYON_POIGNEE);
 
-	m_min_baton_x = numero7::math::vec3f(  0.0f, -RAYON_BRANCHE, -RAYON_BRANCHE);
-	m_max_baton_x = numero7::math::vec3f(TAILLE,  RAYON_BRANCHE,  RAYON_BRANCHE);
+	m_min_baton_x = dls::math::vec3f(  0.0f, -RAYON_BRANCHE, -RAYON_BRANCHE);
+	m_max_baton_x = dls::math::vec3f(TAILLE,  RAYON_BRANCHE,  RAYON_BRANCHE);
 
-	m_min_poignee_x = numero7::math::vec3f(TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_x = numero7::math::vec3f(TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
+	m_min_poignee_x = dls::math::vec3f(TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
+	m_max_poignee_x = dls::math::vec3f(TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
 
-	m_min_baton_y = numero7::math::vec3f(-RAYON_BRANCHE,   0.0f, -RAYON_BRANCHE);
-	m_max_baton_y = numero7::math::vec3f( RAYON_BRANCHE, TAILLE,  RAYON_BRANCHE);
+	m_min_baton_y = dls::math::vec3f(-RAYON_BRANCHE,   0.0f, -RAYON_BRANCHE);
+	m_max_baton_y = dls::math::vec3f( RAYON_BRANCHE, TAILLE,  RAYON_BRANCHE);
 
-	m_min_poignee_y = numero7::math::vec3f(-RAYON_POIGNEE, TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_y = numero7::math::vec3f( RAYON_POIGNEE, TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE);
+	m_min_poignee_y = dls::math::vec3f(-RAYON_POIGNEE, TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE);
+	m_max_poignee_y = dls::math::vec3f( RAYON_POIGNEE, TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE);
 
-	m_min_baton_z = numero7::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE,   0.0f);
-	m_max_baton_z = numero7::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, TAILLE);
+	m_min_baton_z = dls::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE,   0.0f);
+	m_max_baton_z = dls::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, TAILLE);
 
-	m_min_poignee_z = numero7::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, TAILLE - RAYON_POIGNEE);
-	m_max_poignee_z = numero7::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, TAILLE + RAYON_POIGNEE);
+	m_min_poignee_z = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, TAILLE - RAYON_POIGNEE);
+	m_max_poignee_z = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, TAILLE + RAYON_POIGNEE);
 
-	m_min_poignee_xyz = numero7::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_xyz = numero7::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
+	m_min_poignee_xyz = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
+	m_max_poignee_xyz = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
 }
 
-bool ManipulatriceEchelle3D::entresecte(const numero7::math::point3f &orig, const numero7::math::vec3f &dir)
+bool ManipulatriceEchelle3D::entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir)
 {
-	auto dir_inverse = numero7::math::vec3f(0.0f);
+	auto dir_inverse = dls::math::vec3f(0.0f);
 
 	for (int i = 0; i < 3; ++i) {
 		if (dir[i] != 0.0f) {
@@ -295,7 +295,7 @@ bool ManipulatriceEchelle3D::entresecte(const numero7::math::point3f &orig, cons
 	return false;
 }
 
-void ManipulatriceEchelle3D::repond_manipulation(const numero7::math::vec3f &delta)
+void ManipulatriceEchelle3D::repond_manipulation(const dls::math::vec3f &delta)
 {
 	if (m_etat == ETAT_INTERSECTION_X) {
 //		m_max.x = delta.x;
@@ -328,20 +328,20 @@ void ManipulatriceEchelle3D::repond_manipulation(const numero7::math::vec3f &del
 /* ************************************************************************** */
 
 static Plan plans_roues[] = {
-	{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-	{{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-	{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{0.0f, 0.0f, 1.0f}},
+	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{0.0f, 1.0f, 0.0f}},
+	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{1.0f, 0.0f, 0.0f}},
 };
 
 ManipulatriceRotation3D::ManipulatriceRotation3D()
 {
-	m_min = numero7::math::vec3f(-1.0f - RAYON_POIGNEE);
-	m_max = numero7::math::vec3f( 1.0f + RAYON_POIGNEE);
+	m_min = dls::math::vec3f(-1.0f - RAYON_POIGNEE);
+	m_max = dls::math::vec3f( 1.0f + RAYON_POIGNEE);
 }
 
-bool ManipulatriceRotation3D::entresecte(const numero7::math::point3f &orig, const numero7::math::vec3f &dir)
+bool ManipulatriceRotation3D::entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir)
 {
-	auto dir_inverse = numero7::math::vec3f(0.0f);
+	auto dir_inverse = dls::math::vec3f(0.0f);
 
 	for (int i = 0; i < 3; ++i) {
 		if (dir[i] != 0.0f) {
@@ -406,7 +406,7 @@ bool ManipulatriceRotation3D::entresecte(const numero7::math::point3f &orig, con
 	return m_etat != ETAT_DEFAUT;
 }
 
-void ManipulatriceRotation3D::repond_manipulation(const numero7::math::vec3f &delta)
+void ManipulatriceRotation3D::repond_manipulation(const dls::math::vec3f &delta)
 {
 	if (m_etat == ETAT_INTERSECTION_X) {
 		m_rotation.x = m_rotation_originale.x + delta.x;

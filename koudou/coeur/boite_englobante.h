@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <math/point3.h>
+#include <delsace/math/vecteur.hh>
 
 class Rayon;
 
@@ -34,8 +34,8 @@ class Rayon;
  */
 class BoiteEnglobante {
 public:
-	numero7::math::point3d min = numero7::math::point3d(INFINITY);
-	numero7::math::point3d max = numero7::math::point3d(-INFINITY);
+	dls::math::point3d min = dls::math::point3d(INFINITY);
+	dls::math::point3d max = dls::math::point3d(-INFINITY);
 
 	/**
 	 * Construit une instance de BoiteEnglobante avec des valeurs par défaut.
@@ -47,7 +47,7 @@ public:
 	 * Construit une instance de BoiteEnglobante à partir d'un simple point.
 	 * Après cette opération, l'expression min == max == point est vraie.
 	 */
-	explicit BoiteEnglobante(const numero7::math::point3d &point);
+	explicit BoiteEnglobante(const dls::math::point3d &point);
 
 	/**
 	 * Construit une instance de BoiteEnglobante à partir de deux points. Les
@@ -56,8 +56,8 @@ public:
 	 * les points spécifiés n'ont pas besoin d'être ordonnés.
 	 */
 	BoiteEnglobante(
-			const numero7::math::point3d &p1,
-			const numero7::math::point3d &p2);
+			const dls::math::point3d &p1,
+			const dls::math::point3d &p2);
 
 	/**
 	 * Retourne vrai s'il y a chevauchement entre la boîte spécifiée et celle-ci.
@@ -67,7 +67,7 @@ public:
 	/**
 	 * Retourne vrai si le point spécifié est contenu dans cette boîte.
 	 */
-	bool contient(const numero7::math::point3d &point);
+	bool contient(const dls::math::point3d &point);
 
 	/**
 	 * Étend les limite de la boîte selon le delta spécifié, qui est enlevé au
@@ -97,7 +97,7 @@ public:
 	 * décalage de (0, 0, 0), alors qu'un point au coin maximum en aura un de
 	 * (1, 1, 1), etc.
 	 */
-	numero7::math::vec3d decalage(const numero7::math::point3d &point);
+	dls::math::vec3d decalage(const dls::math::point3d &point);
 };
 
 /**
@@ -105,7 +105,7 @@ public:
  */
 BoiteEnglobante unie(
 		const BoiteEnglobante &boite,
-		const numero7::math::point3d &point);
+		const dls::math::point3d &point);
 
 /**
  * Performe l'union de deux boîtes et retourne la boîte y résultant.

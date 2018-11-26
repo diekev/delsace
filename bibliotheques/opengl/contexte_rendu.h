@@ -24,7 +24,8 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include <delsace/math/matrice.hh>
+#include <delsace/math/vecteur.hh>
 
 /**
  * La classe ContexteRendu contient les propriétés du contexte OpenGL dans
@@ -40,12 +41,12 @@
  * différentes classes de rendu d'objet dans la scène 3D.
  */
 class ContexteRendu {
-	glm::mat4 m_modele_vue;
-	glm::mat4 m_projection;
-	glm::mat4 m_modele_vue_projection;
-	glm::vec3 m_vue;
-	glm::mat3 m_normal;
-	glm::mat4 m_matrice_objet;
+	dls::math::mat4x4f m_modele_vue;
+	dls::math::mat4x4f m_projection;
+	dls::math::mat4x4f m_modele_vue_projection;
+	dls::math::vec3f m_vue;
+	dls::math::mat3x3f m_normal;
+	dls::math::mat4x4f m_matrice_objet;
 	bool m_pour_surlignage = false;
 	bool m_dessine_arretes = false;
 	bool m_dessine_normaux = false;
@@ -54,62 +55,62 @@ public:
 	/**
 	 * Retourne la matrice de modèle-vue.
 	 */
-	const glm::mat4 &modele_vue() const;
+	const dls::math::mat4x4f &modele_vue() const;
 
 	/**
 	 * Change la matrice de modèle-vue.
 	 */
-	void modele_vue(const glm::mat4 &matrice);
+	void modele_vue(const dls::math::mat4x4f &matrice);
 
 	/**
 	 * Retourne la matrice de projection.
 	 */
-	const glm::mat4 &projection() const;
+	const dls::math::mat4x4f &projection() const;
 
 	/**
 	 * Change la matrice de projection.
 	 */
-	void projection(const glm::mat4 &matrice);
+	void projection(const dls::math::mat4x4f &matrice);
 
 	/**
 	 * Retourne la direction vers laquelle la caméra pointe.
 	 */
-	const glm::vec3 &vue() const;
+	const dls::math::vec3f &vue() const;
 
 	/**
 	 * Change la direction vers laquelle la caméra pointe.
 	 */
-	void vue(const glm::vec3 &matrice);
+	void vue(const dls::math::vec3f &matrice);
 
 	/**
 	 * Retourne la matrice de normal.
 	 */
-	const glm::mat3 &normal() const;
+	const dls::math::mat3x3f &normal() const;
 
 	/**
 	 * Change la matrice de normal.
 	 */
-	void normal(const glm::mat3 &matrice);
+	void normal(const dls::math::mat3x3f &matrice);
 
 	/**
 	 * Retourne la matrice de modèle-vue-projection.
 	 */
-	const glm::mat4 &MVP() const;
+	const dls::math::mat4x4f &MVP() const;
 
 	/**
 	 * Change la matrice de modèle-vue-projection.
 	 */
-	void MVP(const glm::mat4 &matrice);
+	void MVP(const dls::math::mat4x4f &matrice);
 
 	/**
 	 * Retourne la matrice composée de l'objet courant.
 	 */
-	const glm::mat4 &matrice_objet() const;
+	const dls::math::mat4x4f &matrice_objet() const;
 
 	/**
 	 * Change la matrice composée de l'objet courant.
 	 */
-	void matrice_objet(const glm::mat4 &matrice);
+	void matrice_objet(const dls::math::mat4x4f &matrice);
 
 	/**
 	 * Retourne si oui ou non les données sont à utiliser pour surligner, ou

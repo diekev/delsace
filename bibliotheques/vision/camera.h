@@ -23,9 +23,8 @@
 
 #pragma once
 
-#include <glm/gtc/type_ptr.hpp>
-#include <math/point2.h>
-#include <math/point3.h>
+#include <delsace/math/matrice.hh>
+#include <delsace/math/vecteur.hh>
 
 namespace vision {
 
@@ -80,15 +79,15 @@ class Camera3D {
 	/* Vitesse de déplacement gauche-droite (X local). */
 	float m_vitesse_laterale = 0.0f;
 
-	glm::mat4 m_camera_vers_monde = glm::mat4(1.0f);
-	glm::mat4 m_monde_vers_camera = glm::mat4(1.0f);
-	glm::mat4 m_projection = glm::mat4(1.0f);
-	glm::vec3 m_position = glm::vec3(0.0f);
-	glm::vec3 m_rotation = glm::vec3(0.0f);
-	glm::vec3 m_direction = glm::vec3(0.0f);
-	glm::vec3 m_cible = glm::vec3(0.0f);
-	glm::vec3 m_droite = glm::vec3(0.0f);
-	glm::vec3 m_haut = glm::vec3(0.0f);
+	dls::math::mat4x4f m_camera_vers_monde = dls::math::mat4x4f(1.0f);
+	dls::math::mat4x4f m_monde_vers_camera = dls::math::mat4x4f(1.0f);
+	dls::math::mat4x4f m_projection = dls::math::mat4x4f(1.0f);
+	dls::math::vec3f m_position = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_rotation = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_direction = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_cible = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_droite = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_haut = dls::math::vec3f(0.0f);
 
 	bool m_besoin_ajournement = true;
 
@@ -113,22 +112,22 @@ public:
 	/**
 	 * Retourne la direction vers la laquelle la caméra pointe.
 	 */
-	glm::vec3 dir() const;
+	dls::math::vec3f dir() const;
 
 	/**
 	 * Retourne la matrice de modèle-vue.
 	 */
-	glm::mat4 MV() const;
+	dls::math::mat4x4f MV() const;
 
 	/**
 	 * Retourne la matrice de projection.
 	 */
-	glm::mat4 P() const;
+	dls::math::mat4x4f P() const;
 
 	/**
 	 * Retourne la position de la caméra.
 	 */
-	glm::vec3 pos() const;
+	dls::math::vec3f pos() const;
 
 	/**
 	 * Redimensionne la vue de la caméra. En effet, cette méthode ne fait que
@@ -167,13 +166,13 @@ public:
 
 	void tete(float x);
 
-	const glm::vec3 &cible() const;
+	const dls::math::vec3f &cible() const;
 
-	void cible(const glm::vec3 &x);
+	void cible(const dls::math::vec3f &x);
 
-	const glm::vec3 &haut() const;
+	const dls::math::vec3f &haut() const;
 
-	const glm::vec3 &droite() const;
+	const dls::math::vec3f &droite() const;
 
 	void besoin_ajournement(bool ouinon);
 
@@ -181,8 +180,8 @@ public:
 
 	int largeur() const;
 
-	numero7::math::point2f pos_ecran(const numero7::math::point3f &pos);
-	numero7::math::point3f pos_monde(const numero7::math::point3f &pos);
+	dls::math::point2f pos_ecran(const dls::math::point3f &pos);
+	dls::math::point3f pos_monde(const dls::math::point3f &pos);
 
 	void projection(TypeProjection proj);
 
@@ -192,14 +191,14 @@ public:
 
 	void profondeur(float proche, float eloigne);
 
-	void position(const glm::vec3 &p);
+	void position(const dls::math::vec3f &p);
 
-	void rotation(const glm::vec3 &r);
+	void rotation(const dls::math::vec3f &r);
 
 	void ajourne_pour_operatrice();
 
 	float eloigne() const;
-	glm::mat4 camera_vers_monde() const;
+	dls::math::mat4x4f camera_vers_monde() const;
 
 private:
 	void ajourne_projection();
@@ -218,8 +217,8 @@ protected:
 
 	Pellicule *m_pellicule;
 
-	numero7::math::vec3d m_position;
-	numero7::math::vec3d m_rotation;
+	dls::math::vec3d m_position;
+	dls::math::vec3d m_rotation;
 
 public:
 	Camera() = default;
@@ -234,11 +233,11 @@ public:
 	void fermeture_obturateur(double valeur);
 	double fermeture_obturateur();
 
-	void position(const numero7::math::vec3d &valeur);
-	numero7::math::vec3d position();
+	void position(const dls::math::vec3d &valeur);
+	dls::math::vec3d position();
 
-	void rotation(const numero7::math::vec3d &valeur);
-	numero7::math::vec3d rotation();
+	void rotation(const dls::math::vec3d &valeur);
+	dls::math::vec3d rotation();
 
 	virtual void ajourne();
 
@@ -293,8 +292,8 @@ Transformation orthogaphique(double znear, double zfar);
 
 class CameraOrthographique final : public ProjectiveCamera {
 private:
-	numero7::math::vec3d m_camera_dx;
-	numero7::math::vec3d m_camera_dy;
+	dls::math::vec3d m_camera_dx;
+	dls::math::vec3d m_camera_dy;
 
 public:
 	CameraOrthographique();
@@ -310,8 +309,8 @@ Transformation perspective(double fov, double n, double f);
 
 class CameraPerspective final : public ProjectiveCamera {
 private:
-	numero7::math::vec3d m_camera_dx;
-	numero7::math::vec3d m_camera_dy;
+	dls::math::vec3d m_camera_dx;
+	dls::math::vec3d m_camera_dy;
 
 public:
 	CameraPerspective();

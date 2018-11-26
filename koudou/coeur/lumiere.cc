@@ -42,7 +42,7 @@ LumierePoint::LumierePoint(const math::transformation &transform, Spectre spectr
 	this->spectre = spectre;
 	this->intensite = intensite;
 
-	transform(numero7::math::point3d(0.0), &this->pos);
+	transform(dls::math::point3d(0.0), &this->pos);
 }
 
 LumiereDistante::LumiereDistante(const math::transformation &transform, Spectre spectre, double intensite)
@@ -52,6 +52,6 @@ LumiereDistante::LumiereDistante(const math::transformation &transform, Spectre 
 	this->spectre = spectre;
 	this->intensite = intensite;
 
-	transform(numero7::math::vec3d(0.0, 0.0, -1.0), &this->dir);
-	this->dir = numero7::math::normalise(this->dir);
+	transform(dls::math::vec3d(0.0, 0.0, -1.0), &this->dir);
+	this->dir = dls::math::normalise(this->dir);
 }

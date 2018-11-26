@@ -26,9 +26,6 @@
 
 #include <vector>
 
-#include <math/point3.h>
-#include <math/vec3.h>
-
 #include "bibliotheques/transformation/transformation.h"
 
 #include "boite_englobante.h"
@@ -41,11 +38,11 @@ class Rayon;
  * tridimensionel.
  */
 struct Triangle {
-	numero7::math::vec3d v0;
-	numero7::math::vec3d v1;
-	numero7::math::vec3d v2;
+	dls::math::vec3d v0;
+	dls::math::vec3d v1;
+	dls::math::vec3d v2;
 
-	numero7::math::vec3d normal;
+	dls::math::vec3d normal;
 };
 
 /**
@@ -101,9 +98,9 @@ public:
 	 * normal du triangle est calculé en fonction de ces trois points.
 	 */
 	void ajoute_triangle(
-			const numero7::math::vec3d &v0,
-			const numero7::math::vec3d &v1,
-			const numero7::math::vec3d &v2);
+			const dls::math::vec3d &v0,
+			const dls::math::vec3d &v1,
+			const dls::math::vec3d &v2);
 
 	void transformation(const math::transformation &transforme);
 
@@ -145,7 +142,7 @@ public:
 	/**
 	 * Calcul les limites de l'objet selon l'algorithme des volumes englobants.
 	 */
-	void calcule_limites(const numero7::math::vec3d &normal, double &d_proche, double &d_eloigne) const;
+	void calcule_limites(const dls::math::vec3d &normal, double &d_proche, double &d_eloigne) const;
 
 	/**
 	 * Modifie le nom de ce maillage en fonction de celui passé en paramètre.
@@ -177,7 +174,7 @@ public:
 /**
  * Calcul et retourne le normal du triangle spécifié.
  */
-numero7::math::vec3d calcul_normal(const Triangle &triangle);
+dls::math::vec3d calcul_normal(const Triangle &triangle);
 
 /**
  * Retourne vrai s'il y a entresection entre le triangle et le rayon spécifiés.

@@ -25,7 +25,7 @@
 #pragma once
 
 #include <experimental/filesystem>
-#include <glm/gtc/type_ptr.hpp>
+#include <delsace/math/vecteur.hh>
 #include <vector>
 
 class ContexteRendu;
@@ -40,7 +40,7 @@ class RenduMonde {
 	TamponRendu *m_tampon = nullptr;
 	Monde *m_monde;
 
-	std::vector<glm::vec3> m_sommets;
+	std::vector<dls::math::vec3f> m_sommets;
 	std::vector<unsigned int> m_index;
 
 	/* Mémorisation des anciennes données. */

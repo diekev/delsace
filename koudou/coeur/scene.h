@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 #include <vector>
 
@@ -51,7 +51,7 @@ struct Monde {
 	~Monde();
 };
 
-Spectre spectre_monde(const Monde &monde, const numero7::math::vec3d &direction);
+Spectre spectre_monde(const Monde &monde, const dls::math::vec3d &direction);
 
 /* ************************************************************************** */
 
@@ -73,17 +73,17 @@ struct Scene {
 
 /* ************************************************************************** */
 
-numero7::math::vec3d normale_scene(const Scene &scene, const numero7::math::point3d &position, const Entresection &entresection);
+dls::math::vec3d normale_scene(const Scene &scene, const dls::math::point3d &position, const Entresection &entresection);
 
 double ombre_scene(const ParametresRendu &parametres, const Scene &scene, const Rayon &rayon, double distance_maximale);
 
-Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, GNA &gna, const numero7::math::point3d &pos, const numero7::math::vec3d &nor);
+Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, GNA &gna, const dls::math::point3d &pos, const dls::math::vec3d &nor);
 
 /* ************************************************************************** */
 
-numero7::math::vec3d reflect(const numero7::math::vec3d &nor, const numero7::math::vec3d &dir);
+dls::math::vec3d reflect(const dls::math::vec3d &nor, const dls::math::vec3d &dir);
 
 // return a random direction on the hemisphere
-numero7::math::vec3d cosine_direction(GNA &gna, const numero7::math::vec3d &nor);
+dls::math::vec3d cosine_direction(GNA &gna, const dls::math::vec3d &nor);
 
-numero7::math::vec3d get_brdf_ray(GNA &gna, const numero7::math::vec3d &nor, const numero7::math::vec3d &rd);
+dls::math::vec3d get_brdf_ray(GNA &gna, const dls::math::vec3d &nor, const dls::math::vec3d &rd);

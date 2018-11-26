@@ -27,17 +27,13 @@
 #include <vector>
 #include <map>
 
-#include <numero7/math/matrice/matrice.h>
-#include <numero7/math/point3.h>
-#include <numero7/math/vec3.h>
-
 #include "bibliotheques/transformation/transformation.h"
 
 /**
  * Représentation d'un sommet dans l'espace tridimensionel.
  */
 struct Sommet {
-	numero7::math::vec3f pos;
+	dls::math::vec3f pos;
 	int index;
 };
 
@@ -75,7 +71,7 @@ struct Polygone {
 	Arrete *a[4] = { nullptr, nullptr, nullptr, nullptr };
 
 	/* Le vecteur normal de ce polygone. */
-	numero7::math::vec3f nor;
+	dls::math::vec3f nor;
 
 	/* L'index de ce polygone. */
 	int index = 0;
@@ -105,7 +101,7 @@ class Maillage {
 
 	std::string m_nom;
 
-	numero7::math::vec3f m_min, m_max, m_taille;
+	dls::math::vec3f m_min, m_max, m_taille;
 
 public:
 	Maillage();
@@ -115,12 +111,12 @@ public:
 	/**
 	 * Ajoute un sommet à ce maillage.
 	 */
-	void ajoute_sommet(const numero7::math::vec3f &coord);
+	void ajoute_sommet(const dls::math::vec3f &coord);
 
 	/**
 	 * Ajoute une suite de sommets à ce maillage.
 	 */
-	void ajoute_sommets(const numero7::math::vec3f *sommets, size_t nombre);
+	void ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre);
 
 	/**
 	 * Retourne un pointeur vers le sommet dont l'index correspond à l'index
@@ -195,9 +191,9 @@ public:
 
 	void calcule_boite_englobante();
 
-	const numero7::math::vec3f &min() const;
+	const dls::math::vec3f &min() const;
 
-	const numero7::math::vec3f &max() const;
+	const dls::math::vec3f &max() const;
 
-	const numero7::math::vec3f &taille() const;
+	const dls::math::vec3f &taille() const;
 };

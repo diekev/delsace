@@ -28,12 +28,12 @@
 
 #include <vector>
 
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 class Maillage;
 
 class AdaptriceChargementMaillage : public objets::AdaptriceCreationObjet {
-	std::vector<numero7::math::vec3d> m_sommets;
+	std::vector<dls::math::vec3d> m_sommets;
 
 public:
 	virtual ~AdaptriceChargementMaillage() = default;

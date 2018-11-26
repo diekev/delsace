@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include <numero7/math/mat4.h>
 #include <map>
 #include <vector>
 

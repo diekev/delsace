@@ -53,7 +53,7 @@ struct Lumiere {
  * Dans ce cas, seule sa position dans la scène importe.
  */
 struct LumierePoint final : public Lumiere {
-	numero7::math::point3d pos;
+	dls::math::point3d pos;
 
 	LumierePoint(const math::transformation &transform, Spectre spectre = Spectre(1.0), double intensite = 1.0);
 };
@@ -63,7 +63,7 @@ struct LumierePoint final : public Lumiere {
  * Dans ce cas, la source est si loin que seule sa direction importe.
  */
 struct LumiereDistante final : public Lumiere {
-	numero7::math::vec3d dir;
+	dls::math::vec3d dir;
 
 	LumiereDistante(const math::transformation &transform, Spectre spectre = Spectre(1.0), double intensite = 1.0);
 };

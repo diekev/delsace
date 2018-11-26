@@ -29,7 +29,7 @@
 /* ************************************************************************** */
 
 Arbre::Arbre()
-	: m_transformation(numero7::math::mat4d::identity())
+	: m_transformation(dls::math::mat4x4d(1.0))
 	, m_parametres(new Parametres)
 {
 	parametres_tremble(m_parametres);
@@ -43,13 +43,13 @@ Arbre::~Arbre()
 }
 
 Arbre::Arbre(const Arbre &autre)
-	: m_transformation(numero7::math::mat4d::identity())
+	: m_transformation(dls::math::mat4x4d(1.0))
 	, m_parametres(new Parametres(*autre.m_parametres))
 {
 	cree_arbre(this);
 }
 
-void Arbre::ajoute_sommet(const numero7::math::vec3f &pos)
+void Arbre::ajoute_sommet(const dls::math::vec3f &pos)
 {
 	Sommet *s = new Sommet;
 	s->pos = pos;

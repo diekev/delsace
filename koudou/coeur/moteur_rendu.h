@@ -40,7 +40,7 @@ class MoteurRendu {
 public:
 	void echantillone_scene(const ParametresRendu &parametres, const std::vector<CarreauPellicule> &carreaux, int echantillon);
 
-	const numero7::math::matrice<numero7::math::vec3d> &pellicule();
+	const numero7::math::matrice<dls::math::vec3d> &pellicule();
 
 	void reinitialise();
 

@@ -28,6 +28,7 @@ set(INCLUSIONS
 	${INCLUSIONS_DANJO}
 	${INCLUSIONS_SYSFICHIER}
 	${INCLUSIONS_QT5_WIDGETS}
+	${INCLUSIONS_DELSACE_MATH}
 )
 
 set(BIBLIOTHEQUES
@@ -38,6 +39,7 @@ set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_TBB}
 	${BIBLIOTHEQUES_QT5_CORE}
 	${BIBLIOTHEQUES_QT5_WIDGETS}
+	${BIBLIOTHEQUE_DELSACE_MATH}
 	bib_objets
 	bib_vision
 	bib_xml
@@ -102,7 +104,6 @@ add_library(${NOM_CIBLE} STATIC
 	sdk/outils/chaîne_caractère.h
 	sdk/outils/géométrie.cc
 	sdk/outils/géométrie.h
-	sdk/outils/mathématiques.h
 	sdk/outils/rendu.h
 	sdk/attribute.cc
 	sdk/attribute.h

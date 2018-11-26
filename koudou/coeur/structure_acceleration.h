@@ -43,7 +43,7 @@ public:
 
 class VolumeEnglobant final : public StructureAcceleration {
 	static constexpr auto NOMBRE_NORMAUX_PLAN = 7;
-	static const numero7::math::vec3d NORMAUX_PLAN[NOMBRE_NORMAUX_PLAN];
+	static const dls::math::vec3d NORMAUX_PLAN[NOMBRE_NORMAUX_PLAN];
 
 	/* La struct Etendue contient les valeurs d_proche et d_eloignée pour chacun
 	 * des 7 plans englobant le volume de l'objet. */

@@ -64,7 +64,7 @@ public:
 
 	void update() override;
 
-	void computeBBox(glm::vec3 &min, glm::vec3 &max) override;
+	void computeBBox(dls::math::vec3f &min, dls::math::vec3f &max) override;
 
 	Primitive *copy() const override;
 

@@ -44,7 +44,7 @@ public:
 
 	Primitive *copy() const override;
 
-	void computeBBox(glm::vec3 &min, glm::vec3 &max) override;
+	void computeBBox(dls::math::vec3f &min, dls::math::vec3f &max) override;
 
 	static size_t id;
 	size_t typeID() const override;

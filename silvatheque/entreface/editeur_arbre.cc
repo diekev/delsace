@@ -25,7 +25,6 @@
 #include "editeur_arbre.h"
 
 #include <danjo/danjo.h>
-#include <numero7/math/vec4.h>
 
 #include <QVBoxLayout>
 #include <QScrollArea>

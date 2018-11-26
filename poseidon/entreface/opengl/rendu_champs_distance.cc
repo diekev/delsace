@@ -86,14 +86,14 @@ void RenduChampsDistance::initialise()
 	const auto &min_domaine = m_fluide->domaine->min();
 	const auto &taille_domaine = m_fluide->domaine->taille();
 
-	auto dh = numero7::math::vec3f(
+	auto dh = dls::math::vec3f(
 				  taille_domaine.x / float(m_fluide->res.x),
 				  taille_domaine.y / float(m_fluide->res.y),
 				  taille_domaine.z / float(m_fluide->res.z));
 
 	auto dh2 = dh * 0.5f;
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(m_fluide->res.x * m_fluide->res.y * m_fluide->res.z);
 
 	for (int x = 0; x < m_fluide->res.x; ++x) {
@@ -120,7 +120,7 @@ void RenduChampsDistance::initialise()
 	parametres.dimension_attribut = 3;
 	parametres.elements = sommets.size();
 	parametres.pointeur_sommets = sommets.data();
-	parametres.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 
 	m_tampon->remplie_tampon(parametres);
 }

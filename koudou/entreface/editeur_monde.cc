@@ -108,7 +108,7 @@ bool VueMonde::ajourne_proprietes()
 
 			auto couleur = texture->spectre();
 
-			ajourne_valeur_couleur("couleur", glm::vec4(couleur[0], couleur[1], couleur[2], 1.0f));
+			ajourne_valeur_couleur("couleur", dls::math::vec4f(couleur[0], couleur[1], couleur[2], 1.0f));
 		}
 	}
 

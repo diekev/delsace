@@ -69,7 +69,7 @@ public:
 
 	void entresect(const Ray &ray);
 
-	void selectObject(const glm::vec3 &pos);
+	void selectObject(const dls::math::vec3f &pos);
 
 	Depsgraph *depsgraph();
 

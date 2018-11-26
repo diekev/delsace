@@ -26,7 +26,6 @@
 
 #include <ego/outils.h>
 #include <GL/glew.h>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "bibliotheques/vision/camera.h"
 
@@ -36,9 +35,10 @@
 
 #include "objet.h"
 
-static glm::mat4 converti_matrice_glm(const numero7::math::mat4d &matrice)
+template <typename T>
+static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 {
-	glm::mat4 resultat;
+	dls::math::mat4x4f resultat;
 
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
@@ -155,15 +155,15 @@ int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 		m_contexte.modele_vue(MV);
 		m_contexte.projection(P);
 		m_contexte.MVP(MVP);
-		m_contexte.matrice_objet(m_pile.sommet());
+		m_contexte.matrice_objet(converti_matrice_glm(m_pile.sommet()));
 		m_contexte.pour_surlignage(false);
 
 		for (auto objet : m_scene.objets()) {
-			m_pile.pousse(converti_matrice_glm(objet->transformation.matrice()));
+			m_pile.pousse(objet->transformation.matrice());
 
 			if (objet->corps != nullptr) {
-				m_pile.pousse(converti_matrice_glm(objet->corps->transformation.matrice()));
-				m_contexte.matrice_objet(m_pile.sommet());
+				m_pile.pousse(objet->corps->transformation.matrice());
+				m_contexte.matrice_objet(converti_matrice_glm(m_pile.sommet()));
 
 				RenduCorps rendu_corps(objet->corps);
 				rendu_corps.initialise();
@@ -176,8 +176,8 @@ int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 				if (corps->type == CORPS_MAILLAGE) {
 					auto maillage = dynamic_cast<Maillage *>(corps);
 
-					m_pile.pousse(converti_matrice_glm(maillage->transformation.matrice()));
-					m_contexte.matrice_objet(m_pile.sommet());
+					m_pile.pousse(maillage->transformation.matrice());
+					m_contexte.matrice_objet(converti_matrice_glm(m_pile.sommet()));
 
 					RenduMaillage rendu_maillage(maillage);
 					rendu_maillage.initialise();

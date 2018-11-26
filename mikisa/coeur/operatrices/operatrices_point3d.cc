@@ -24,7 +24,7 @@
 
 #include "operatrices_point3d.h"
 
-#include <math/bruit.h>
+#include <delsace/math/bruit.hh>
 
 #include "../operatrice_graphe_maillage.h"
 #include "../usine_operatrice.h"
@@ -151,7 +151,7 @@ public:
 		compileuse.ajoute_noeud(NOEUD_POINT3D_VECTEUR);
 		auto decalage = compileuse.decalage_pile(output(0)->pointeur());
 		auto v = evalue_vecteur("vec", temps);
-		compileuse.stocke_vec3f(decalage, numero7::math::vec3f(v.x, v.y, v.z));
+		compileuse.stocke_vec3f(decalage, dls::math::vec3f(v.x, v.y, v.z));
 	}
 };
 
@@ -364,9 +364,9 @@ static constexpr auto NOM_BRUIT_PROC = "Bruit Procédurel";
 static constexpr auto AIDE_BRUIT_PROC = "";
 
 class OperatricePoint3DBruitProc final : public OperatricePoint3D {
-	numero7::math::BruitFlux3D m_bruit_x;
-	numero7::math::BruitFlux3D m_bruit_y;
-	numero7::math::BruitFlux3D m_bruit_z;
+	dls::math::BruitFlux3D m_bruit_x;
+	dls::math::BruitFlux3D m_bruit_y;
+	dls::math::BruitFlux3D m_bruit_z;
 
 public:
 	explicit OperatricePoint3DBruitProc(Noeud *noeud)
@@ -408,7 +408,7 @@ public:
 
 		/* prépare le bruit */
 		const auto graine = evalue_entier("graine");
-		m_bruit_x = numero7::math::BruitFlux3D(graine);
+		m_bruit_x = dls::math::BruitFlux3D(graine);
 		m_bruit_x.change_temps(evalue_decimal("temps", temps));
 
 		const auto dimension = evalue_enum("dimension");
@@ -427,10 +427,10 @@ public:
 		else {
 			compileuse.ajoute_noeud(3);
 
-			m_bruit_y = numero7::math::BruitFlux3D(graine + 1);
+			m_bruit_y = dls::math::BruitFlux3D(graine + 1);
 			m_bruit_y.change_temps(evalue_decimal("temps", temps));
 
-			m_bruit_z = numero7::math::BruitFlux3D(graine + 2);
+			m_bruit_z = dls::math::BruitFlux3D(graine + 2);
 			m_bruit_z.change_temps(evalue_decimal("temps", temps));
 
 			compileuse.ajoute_noeud(gestionnaire.ajoute_bruit(&m_bruit_x),

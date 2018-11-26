@@ -25,14 +25,13 @@
 #include "camera.h"
 
 #include <iostream>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "../outils/constantes.h"
 
 namespace vision {
 
 /* retourne deux solutions, pour pouvoir choisir la meilleure */
-void angles_euler_depuis_matrice(const glm::mat4 &matrice, glm::vec3 &angle1, glm::vec3 &angle2)
+void angles_euler_depuis_matrice(const dls::math::mat4x4f &matrice, dls::math::vec3f &angle1, dls::math::vec3f &angle2)
 {
 	const auto sy = std::hypot(matrice[0][0], matrice[0][1]);
 
@@ -52,10 +51,10 @@ void angles_euler_depuis_matrice(const glm::mat4 &matrice, glm::vec3 &angle1, gl
 	}
 }
 
-void angles_euler_depuis_matrice(const glm::mat4 &matrice, glm::vec3 &angle)
+void angles_euler_depuis_matrice(const dls::math::mat4x4f &matrice, dls::math::vec3f &angle)
 {
-	glm::vec3 angle1;
-	glm::vec3 angle2;
+	dls::math::vec3f angle1;
+	dls::math::vec3f angle2;
 	angles_euler_depuis_matrice(matrice, angle1, angle2);
 
 	const auto a = std::abs(angle1.x) + std::abs(angle1.y) + std::abs(angle1.z);
@@ -85,11 +84,11 @@ Camera3D::Camera3D(int largeur, int hauteur)
 	, m_vitesse_zoom(0.2f)
 	, m_vitesse_chute(0.5f)
 	, m_vitesse_laterale(0.05f)
-	, m_position(glm::vec3(0.0f, 0.0f, -1.0f))
-	, m_direction(glm::vec3(0.0f, 0.0f, 1.0f))
-	, m_cible(glm::vec3(0.0f))
-	, m_droite(glm::vec3(1.0f, 0.0f, 0.0f))
-	, m_haut(glm::vec3(0.0f, 1.0f, 0.0f))
+	, m_position(dls::math::vec3f(0.0f, 0.0f, -1.0f))
+	, m_direction(dls::math::vec3f(0.0f, 0.0f, 1.0f))
+	, m_cible(dls::math::vec3f(0.0f))
+	, m_droite(dls::math::vec3f(1.0f, 0.0f, 0.0f))
+	, m_haut(dls::math::vec3f(0.0f, 1.0f, 0.0f))
 	, m_besoin_ajournement(true)
 {}
 
@@ -145,22 +144,22 @@ void Camera3D::tete(float x)
 	m_tete = x;
 }
 
-const glm::vec3 &Camera3D::cible() const
+const dls::math::vec3f &Camera3D::cible() const
 {
 	return m_cible;
 }
 
-void Camera3D::cible(const glm::vec3 &x)
+void Camera3D::cible(const dls::math::vec3f &x)
 {
 	m_cible = x;
 }
 
-const glm::vec3 &Camera3D::haut() const
+const dls::math::vec3f &Camera3D::haut() const
 {
 	return m_haut;
 }
 
-const glm::vec3 &Camera3D::droite() const
+const dls::math::vec3f &Camera3D::droite() const
 {
 	return m_droite;
 }
@@ -191,12 +190,6 @@ void Camera3D::redimensionne(int largeur, int hauteur)
 	m_besoin_ajournement = true;
 }
 
-std::ostream &operator<<(std::ostream &os, const glm::vec3 &vec)
-{
-	os << vec[0] << ", " << vec[1] << ", " << vec[2];
-	return os;
-}
-
 void Camera3D::ajourne()
 {
 	if (!m_besoin_ajournement) {
@@ -207,25 +200,25 @@ void Camera3D::ajourne()
 		ajourne_projection();
 	}
 
-	const float tete = glm::radians(m_tete);
-	const float inclinaison = glm::radians(m_inclinaison);
+	const float tete = dls::math::degrees_vers_radians(m_tete);
+	const float inclinaison = dls::math::degrees_vers_radians(m_inclinaison);
 
 	m_position[0] = m_cible[0] + m_distance * std::cos(tete) * std::cos(inclinaison);
 	m_position[1] = m_cible[1] + m_distance * std::sin(tete);
 	m_position[2] = m_cible[2] + m_distance * std::cos(tete) * std::sin(inclinaison);
 
-	m_direction = glm::normalize(m_cible - m_position);
+	m_direction = dls::math::normalise(m_cible - m_position);
 
-	m_haut[1] = (glm::cos(tete)) > 0 ? 1.0f : -1.0f;
-	m_droite = glm::cross(m_direction, m_haut);
+	m_haut[1] = (std::cos(tete)) > 0 ? 1.0f : -1.0f;
+	m_droite = dls::math::produit_croix(m_direction, m_haut);
 
-	m_monde_vers_camera = glm::lookAt(m_position, m_cible, m_haut);
-	m_camera_vers_monde = glm::inverse(m_monde_vers_camera);
+	m_monde_vers_camera = dls::math::mire(m_position, m_cible, m_haut);
+	m_camera_vers_monde = dls::math::inverse(m_monde_vers_camera);
 
 	m_besoin_ajournement = false;
 
 #if 0
-	glm::vec3 rot;
+	dls::math::vec3f rot;
 	angles_euler_depuis_matrice(m_camera_vers_monde, rot);
 
 	std::cerr << "-------------------------------------------------------\n";
@@ -237,51 +230,49 @@ void Camera3D::ajourne()
 #endif
 }
 
-glm::vec3 Camera3D::dir() const
+dls::math::vec3f Camera3D::dir() const
 {
 	return m_direction;
 }
 
-glm::mat4 Camera3D::MV() const
+dls::math::mat4x4f Camera3D::MV() const
 {
 	return m_monde_vers_camera;
 }
 
-glm::mat4 Camera3D::camera_vers_monde() const
+dls::math::mat4x4f Camera3D::camera_vers_monde() const
 {
 	return m_camera_vers_monde;
 }
 
-glm::mat4 Camera3D::P() const
+dls::math::mat4x4f Camera3D::P() const
 {
 	return m_projection;
 }
 
-glm::vec3 Camera3D::pos() const
+dls::math::vec3f Camera3D::pos() const
 {
 	return m_position;
 }
 
-numero7::math::point2f Camera3D::pos_ecran(const numero7::math::point3f &pos)
+dls::math::point2f Camera3D::pos_ecran(const dls::math::point3f &pos)
 {
-	const auto &point_glm = glm::project(
-								glm::vec3(pos.x, pos.y, pos.z),
-								MV(),
-								P(),
-								glm::vec4(0, 0, largeur(), hauteur()));
+	const auto &point = dls::math::projette(
+							dls::math::vec3f(pos.x, pos.y, pos.z),
+							MV(),
+							P(),
+							dls::math::vec4f(0, 0, largeur(), hauteur()));
 
-	return numero7::math::point2f(point_glm.x, hauteur() - point_glm.y);
+	return dls::math::point2f(point.x, hauteur() - point.y);
 }
 
-numero7::math::point3f Camera3D::pos_monde(const numero7::math::point3f &pos)
+dls::math::point3f Camera3D::pos_monde(const dls::math::point3f &pos)
 {
-	const auto &point_glm = glm::unProject(
-								glm::vec3(pos.x * largeur(), pos.y * hauteur(), pos.z),
-								MV(),
-								P(),
-								glm::vec4(0, 0, largeur(), hauteur()));
-
-	return numero7::math::point3f(point_glm.x, point_glm.y, point_glm.z);
+	return dls::math::deprojette(
+				dls::math::vec3f(pos.x * largeur(), pos.y * hauteur(), pos.z),
+				MV(),
+				P(),
+				dls::math::vec4f(0, 0, largeur(), hauteur()));
 }
 
 void Camera3D::projection(TypeProjection proj)
@@ -305,12 +296,12 @@ void Camera3D::profondeur(float proche, float eloigne)
 	m_eloigne = eloigne;
 }
 
-void Camera3D::position(const glm::vec3 &p)
+void Camera3D::position(const dls::math::vec3f &p)
 {
 	m_position = p;
 }
 
-void Camera3D::rotation(const glm::vec3 &r)
+void Camera3D::rotation(const dls::math::vec3f &r)
 {
 	m_rotation = r;
 }
@@ -321,11 +312,12 @@ void Camera3D::ajourne_projection()
 		const auto largeur = m_distance * 0.5f;
 		const auto hauteur = largeur / m_aspect;
 
-		m_projection = glm::ortho(-largeur, largeur, -hauteur, hauteur, m_proche, m_eloigne);
+		m_projection = dls::math::ortho(-largeur, largeur, -hauteur, hauteur, m_proche, m_eloigne);
 	}
 	else {
-		const auto champs_de_vue = 2.0f * std::atan(0.5f * m_largeur_senseur / m_longueur_focale);
-		m_projection = glm::perspective(champs_de_vue, m_aspect, m_proche, m_eloigne);
+		/* À FAIRE : perspective prend des degrées mais devrait prendre des radians. */
+		const auto champs_de_vue = dls::math::radians_vers_degrees(2.0f * std::atan(0.5f * m_largeur_senseur / m_longueur_focale));
+		m_projection = dls::math::perspective(champs_de_vue, m_aspect, m_proche, m_eloigne);
 	}
 }
 
@@ -333,16 +325,16 @@ void Camera3D::ajourne_pour_operatrice()
 {
 	ajourne_projection();
 
-	m_camera_vers_monde = glm::mat4(1.0);
-	m_camera_vers_monde = glm::translate(m_camera_vers_monde, m_position);
-	m_camera_vers_monde = glm::rotate(m_camera_vers_monde, m_rotation.x, glm::vec3(1.0, 0.0, 0.0));
-	m_camera_vers_monde = glm::rotate(m_camera_vers_monde, m_rotation.y, glm::vec3(0.0, 1.0, 0.0));
-	m_camera_vers_monde = glm::rotate(m_camera_vers_monde, m_rotation.z, glm::vec3(0.0, 0.0, 1.0));
+	m_camera_vers_monde = dls::math::mat4x4f(1.0);
+	m_camera_vers_monde = dls::math::translation(m_camera_vers_monde, m_position);
+	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.x, dls::math::vec3f(1.0, 0.0, 0.0));
+	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.y, dls::math::vec3f(0.0, 1.0, 0.0));
+	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.z, dls::math::vec3f(0.0, 0.0, 1.0));
 
-	m_monde_vers_camera = glm::inverse(m_camera_vers_monde);
+	m_monde_vers_camera = dls::math::inverse(m_camera_vers_monde);
 
 #if 0
-	glm::vec3 rot;
+	dls::math::vec3f rot;
 	angles_euler_depuis_matrice(m_camera_vers_monde, rot);
 
 	std::cerr << "-------------------------------------------------------\n";
@@ -368,24 +360,24 @@ float Camera3D::eloigne() const
 #else
 Rayon Camera3D::genere_rayon(const EchantillonCamera &echantillon) const
 {
-	const auto &start = glm::unProject(
-							glm::vec3(echantillon.x, hauteur() - echantillon.y, 0.0f),
+	const auto &start = dls::math::deprojette(
+							dls::math::vec3f(echantillon.x, hauteur() - echantillon.y, 0.0f),
 							MV(),
 							P(),
-							glm::vec4(0, 0, largeur(), hauteur()));
+							dls::math::vec4f(0, 0, largeur(), hauteur()));
 
-	const auto &end = glm::unProject(
-						  glm::vec3(echantillon.x, hauteur() - echantillon.y, 1.0f),
+	const auto &end = dls::math::deprojette(
+						  dls::math::vec3f(echantillon.x, hauteur() - echantillon.y, 1.0f),
 						  MV(),
 						  P(),
-						  glm::vec4(0, 0, largeur(), hauteur()));
+						  dls::math::vec4f(0, 0, largeur(), hauteur()));
 
 	const auto origine = m_position;
-	const auto direction = glm::normalize(end - start);
+	const auto direction = dls::math::normalise(end - start);
 
 	Rayon r;
-	r.origine = numero7::math::point3d(origine.x, origine.y, origine.z);
-	r.direction = numero7::math::vec3d(direction.x, direction.y, direction.z);
+	r.origine = dls::math::point3d(origine.x, origine.y, origine.z);
+	r.direction = dls::math::vec3d(direction.x, direction.y, direction.z);
 
 	for (int i = 0; i < 3; ++i) {
 		r.inverse_direction[i] = 1.0 / r.direction[i];
@@ -406,7 +398,7 @@ Transformation orthogaphique(double znear, double zfar)
 
 Transformation perspective(double fov, double n, double f)
 {
-	numero7::math::mat4d matrice({1.0, 0.0, 0.0, 0.0,
+	dls::math::mat4d matrice({1.0, 0.0, 0.0, 0.0,
 								  0.0, 1.0, 0.0, 0.0,
 								  0.0, 0.0, f / (f - n), -f * n / (f - n),
 								  0.0, 0.0, 1.0, 0.0});
@@ -437,22 +429,22 @@ double Camera::fermeture_obturateur()
 	return m_obturateur_ferme;
 }
 
-void Camera::position(const numero7::math::vec3d &valeur)
+void Camera::position(const dls::math::vec3d &valeur)
 {
 	m_position = valeur;
 }
 
-numero7::math::vec3d Camera::position()
+dls::math::vec3d Camera::position()
 {
 	return m_position;
 }
 
-void Camera::rotation(const numero7::math::vec3d &valeur)
+void Camera::rotation(const dls::math::vec3d &valeur)
 {
 	m_rotation = valeur;
 }
 
-numero7::math::vec3d Camera::rotation()
+dls::math::vec3d Camera::rotation()
 {
 	return m_rotation;
 }
@@ -542,17 +534,17 @@ CameraOrthographique::CameraOrthographique()
 
 Rayon CameraOrthographique::genere_rayon(const EchantillonCamera &echantillon) const
 {
-	auto point_rateau = numero7::math::point3d(echantillon.x, echantillon.y, 0.0);
-	numero7::math::point3d point_camera;
+	auto point_rateau = dls::math::point3d(echantillon.x, echantillon.y, 0.0);
+	dls::math::point3d point_camera;
 
 	m_rateau_vers_camera(point_rateau, &point_camera);
 
 	Rayon rayon;
 	rayon.origine = point_camera;
-	rayon.direction = numero7::math::vec3d(0.0, 0.0, 1.0);
+	rayon.direction = dls::math::vec3d(0.0, 0.0, 1.0);
 	rayon.distance_min = 0.0;
 	rayon.distance_max = INFINITE;
-	rayon.temps = numero7::math::interp_lineaire(
+	rayon.temps = dls::math::interp_lineaire(
 					  m_obturateur_ouvert, m_obturateur_ferme, echantillon.temps);
 
 	m_camera_vers_monde(rayon.origine, &rayon.origine);
@@ -567,8 +559,8 @@ void CameraOrthographique::ajourne()
 
 	ProjectiveCamera::ajourne();
 
-	m_camera_dx = m_rateau_vers_camera(numero7::math::vec3d(1.0, 0.0, 0.0));
-	m_camera_dy = m_rateau_vers_camera(numero7::math::vec3d(0.0, 1.0, 0.0));
+	m_camera_dx = m_rateau_vers_camera(dls::math::vec3d(1.0, 0.0, 0.0));
+	m_camera_dy = m_rateau_vers_camera(dls::math::vec3d(0.0, 1.0, 0.0));
 }
 
 /* ************************************************************************** */
@@ -579,22 +571,22 @@ CameraPerspective::CameraPerspective()
 
 Rayon CameraPerspective::genere_rayon(const EchantillonCamera &echantillon) const
 {
-	auto point_rateau = numero7::math::point3d(echantillon.x, echantillon.y, 0.0);
-	numero7::math::point3d point_camera;
+	auto point_rateau = dls::math::point3d(echantillon.x, echantillon.y, 0.0);
+	dls::math::point3d point_camera;
 
 	m_rateau_vers_camera(point_rateau, &point_camera);
 
 	Rayon rayon;
-	rayon.origine = numero7::math::point3d(0.0, 0.0, 0.0);
+	rayon.origine = dls::math::point3d(0.0, 0.0, 0.0);
 
-	rayon.direction = numero7::math::vec3d(
+	rayon.direction = dls::math::vec3d(
 						  point_camera.x,
 						  point_camera.y,
 						  point_camera.z);
 
 	rayon.distance_min = 0.0;
 	rayon.distance_max = INFINITE;
-	rayon.temps = numero7::math::interp_lineaire(
+	rayon.temps = dls::math::interp_lineaire(
 					  m_obturateur_ouvert, m_obturateur_ferme, echantillon.temps);
 
 	/* À FAIRE : profondeur de champs. */
@@ -615,8 +607,8 @@ void CameraPerspective::ajourne()
 
 	ProjectiveCamera::ajourne();
 
-	m_camera_dx = m_rateau_vers_camera(numero7::math::vec3d(1.0, 0.0, 0.0));
-	m_camera_dy = m_rateau_vers_camera(numero7::math::vec3d(0.0, 1.0, 0.0));
+	m_camera_dx = m_rateau_vers_camera(dls::math::vec3d(1.0, 0.0, 0.0));
+	m_camera_dy = m_rateau_vers_camera(dls::math::vec3d(0.0, 1.0, 0.0));
 }
 #endif
 

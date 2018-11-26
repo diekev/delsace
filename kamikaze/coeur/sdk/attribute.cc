@@ -48,19 +48,19 @@ Attribute::Attribute(const std::string &name, AttributeType type, size_t size)
 			m_data.string_list = new std::vector<std::string>(size);
 			break;
 		case ATTR_TYPE_VEC2:
-			m_data.vec2_list = new std::vector<glm::vec2>(size);
+			m_data.vec2_list = new std::vector<dls::math::vec2f>(size);
 			break;
 		case ATTR_TYPE_VEC3:
-			m_data.vec3_list = new std::vector<glm::vec3>(size);
+			m_data.vec3_list = new std::vector<dls::math::vec3f>(size);
 			break;
 		case ATTR_TYPE_VEC4:
-			m_data.vec4_list = new std::vector<glm::vec4>(size);
+			m_data.vec4_list = new std::vector<dls::math::vec4f>(size);
 			break;
 		case ATTR_TYPE_MAT3:
-			m_data.mat3_list = new std::vector<glm::mat3>(size);
+			m_data.mat3_list = new std::vector<dls::math::mat3x3f>(size);
 			break;
 		case ATTR_TYPE_MAT4:
-			m_data.mat4_list = new std::vector<glm::mat4>(size);
+			m_data.mat4_list = new std::vector<dls::math::mat4x4f>(size);
 			break;
 		default:
 			break;
@@ -317,15 +317,15 @@ size_t Attribute::byte_size() const
 		case ATTR_TYPE_STRING:
 			return m_data.string_list->size() * sizeof(std::string);
 		case ATTR_TYPE_VEC2:
-			return m_data.vec2_list->size() * sizeof(glm::vec2);
+			return m_data.vec2_list->size() * sizeof(dls::math::vec2f);
 		case ATTR_TYPE_VEC3:
-			return m_data.vec3_list->size() * sizeof(glm::vec3);
+			return m_data.vec3_list->size() * sizeof(dls::math::vec3f);
 		case ATTR_TYPE_VEC4:
-			return m_data.vec4_list->size() * sizeof(glm::vec4);
+			return m_data.vec4_list->size() * sizeof(dls::math::vec4f);
 		case ATTR_TYPE_MAT3:
-			return m_data.mat3_list->size() * sizeof(glm::mat3);
+			return m_data.mat3_list->size() * sizeof(dls::math::mat3x3f);
 		case ATTR_TYPE_MAT4:
-			return m_data.mat4_list->size() * sizeof(glm::mat4);
+			return m_data.mat4_list->size() * sizeof(dls::math::mat4x4f);
 		default:
 			return 0;
 	}
@@ -361,52 +361,52 @@ int Attribute::float_(size_t n) const
 	return (*(m_data.float_list))[n];
 }
 
-void Attribute::vec2(size_t n, const glm::vec2 &v)
+void Attribute::vec2(size_t n, const dls::math::vec2f &v)
 {
 	(*(m_data.vec2_list))[n] = v;
 }
 
-const glm::vec2 &Attribute::vec2(size_t n) const
+const dls::math::vec2f &Attribute::vec2(size_t n) const
 {
 	return (*(m_data.vec2_list))[n];
 }
 
-void Attribute::vec3(size_t n, const glm::vec3 &v)
+void Attribute::vec3(size_t n, const dls::math::vec3f &v)
 {
 	(*(m_data.vec3_list))[n] = v;
 }
 
-const glm::vec3 &Attribute::vec3(size_t n) const
+const dls::math::vec3f &Attribute::vec3(size_t n) const
 {
 	return (*(m_data.vec3_list))[n];
 }
 
-void Attribute::vec4(size_t n, const glm::vec4 &v)
+void Attribute::vec4(size_t n, const dls::math::vec4f &v)
 {
 	(*(m_data.vec4_list))[n] = v;
 }
 
-const glm::vec4 &Attribute::vec4(size_t n) const
+const dls::math::vec4f &Attribute::vec4(size_t n) const
 {
 	return (*(m_data.vec4_list))[n];
 }
 
-void Attribute::mat3(size_t n, const glm::mat3 &m)
+void Attribute::mat3(size_t n, const dls::math::mat3x3f &m)
 {
 	(*(m_data.mat3_list))[n] = m;
 }
 
-const glm::mat3 &Attribute::mat3(size_t n) const
+const dls::math::mat3x3f &Attribute::mat3(size_t n) const
 {
 	return (*(m_data.mat3_list))[n];
 }
 
-void Attribute::mat4(size_t n, const glm::mat4 &m)
+void Attribute::mat4(size_t n, const dls::math::mat4x4f &m)
 {
 	(*(m_data.mat4_list))[n] = m;
 }
 
-const glm::mat4 &Attribute::mat4(size_t n) const
+const dls::math::mat4x4f &Attribute::mat4(size_t n) const
 {
 	return (*(m_data.mat4_list))[n];
 }

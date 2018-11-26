@@ -28,7 +28,7 @@ namespace vision {
 
 void Camera2D::ajourne_matrice()
 {
-	matrice = glm::mat4(1.0);
+	matrice = dls::math::mat4x4f(1.0);
 	matrice[0][0] = zoom;
 	matrice[1][1] = static_cast<float>(largeur) / hauteur * zoom;
 	matrice[3][0] = pos_x;

@@ -37,17 +37,17 @@ class Ray;
 class Primitive {
 protected:
 
-	glm::vec3 m_dimensions = glm::vec3(1.0f);
-	glm::vec3 m_scale = glm::vec3(1.0f);
-	glm::vec3 m_inv_size = glm::vec3(0.0f);
-	glm::vec3 m_rotation = glm::vec3(0.0f);
+	dls::math::vec3f m_dimensions = dls::math::vec3f(1.0f);
+	dls::math::vec3f m_scale = dls::math::vec3f(1.0f);
+	dls::math::vec3f m_inv_size = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_rotation = dls::math::vec3f(0.0f);
 
-	glm::vec3 m_min = glm::vec3(0.0f);
-	glm::vec3 m_max = glm::vec3(0.0f);
-	glm::vec3 m_pos = glm::vec3(0.0f);
+	dls::math::vec3f m_min = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_max = dls::math::vec3f(0.0f);
+	dls::math::vec3f m_pos = dls::math::vec3f(0.0f);
 
-	glm::mat4 m_matrix = glm::mat4(1.0f);
-	glm::mat4 m_inv_matrix = glm::mat4(1.0f);
+	dls::math::mat4x4d m_matrix = dls::math::mat4x4d(1.0f);
+	dls::math::mat4x4d m_inv_matrix = dls::math::mat4x4d(1.0f);
 
 	std::string m_name{};
 
@@ -77,20 +77,20 @@ public:
 	 * @param min         The minimum position of this bounding box.
 	 * @param max         The maximum position of this bounding box.
 	 */
-	virtual void computeBBox(glm::vec3 &min, glm::vec3 &max) = 0;
+	virtual void computeBBox(dls::math::vec3f &min, dls::math::vec3f &max) = 0;
 
 	/* todo: remove these? */
-	glm::vec3 pos() const;
-	glm::vec3 &pos();
-	glm::vec3 scale() const;
-	glm::vec3 &scale();
-	glm::vec3 rotation() const;
-	glm::vec3 &rotation();
+	dls::math::vec3f pos() const;
+	dls::math::vec3f &pos();
+	dls::math::vec3f scale() const;
+	dls::math::vec3f &scale();
+	dls::math::vec3f rotation() const;
+	dls::math::vec3f &rotation();
 
 	/* Return the object's matrix, mainly intended for rendering the active object */
-	const glm::mat4 &matrix() const;
-	glm::mat4 &matrix();
-	void matrix(const glm::mat4 &m);
+	const dls::math::mat4x4d &matrix() const;
+	dls::math::mat4x4d &matrix();
+	void matrix(const dls::math::mat4x4d &m);
 
 	virtual void update();
 

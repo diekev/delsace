@@ -308,13 +308,13 @@ TamponRendu *genere_tampon_surface(Maillage *maillage)
 
 	auto tampon = cree_tampon_surface(possede_uvs);
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_elements);
 
-	std::vector<numero7::math::vec3f> normaux;
+	std::vector<dls::math::vec3f> normaux;
 	normaux.reserve(nombre_elements);
 
-	std::vector<numero7::math::vec2f> uvs;
+	std::vector<dls::math::vec2f> uvs;
 	uvs.reserve(nombre_elements);
 
 	/* OpenGL ne travaille qu'avec des floats. */
@@ -374,7 +374,7 @@ TamponRendu *genere_tampon_surface(Maillage *maillage)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.elements = sommets.size();
 
 	tampon->remplie_tampon(parametres_tampon);
@@ -382,7 +382,7 @@ TamponRendu *genere_tampon_surface(Maillage *maillage)
 	parametres_tampon.attribut = "normaux";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_donnees_extra = normaux.data();
-	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.elements = normaux.size();
 
 	tampon->remplie_tampon_extra(parametres_tampon);
@@ -391,7 +391,7 @@ TamponRendu *genere_tampon_surface(Maillage *maillage)
 		parametres_tampon.attribut = "uvs";
 		parametres_tampon.dimension_attribut = 2;
 		parametres_tampon.pointeur_donnees_extra = uvs.data();
-		parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(numero7::math::vec2f);
+		parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(dls::math::vec2f);
 		parametres_tampon.elements = uvs.size();
 
 		tampon->remplie_tampon_extra(parametres_tampon);
@@ -452,8 +452,8 @@ void RenduMaillage::dessine(const ContexteRendu &contexte)
 
 		if (texture_image->camera()) {
 			auto camera = texture_image->camera();
-			glUniformMatrix4fv((*programme)("MV"), 1, GL_FALSE, glm::value_ptr(camera->MV()));
-			glUniformMatrix4fv((*programme)("P"), 1, GL_FALSE, glm::value_ptr(camera->P()));
+			glUniformMatrix4fv((*programme)("MV"), 1, GL_FALSE, &camera->MV()[0][0]);
+			glUniformMatrix4fv((*programme)("P"), 1, GL_FALSE, &camera->P()[0][0]);
 			programme->uniforme("direction_camera", camera->dir().x, camera->dir().y, camera->dir().z);
 		}
 	}
@@ -472,8 +472,8 @@ void ajoute_polygone_surface(
 		Polygone *polygone,
 		ListePoints3D *liste_points,
 		Attribut *attr_normaux,
-		std::vector<numero7::math::vec3f> &points,
-		std::vector<numero7::math::vec3f> &normaux)
+		std::vector<dls::math::vec3f> &points,
+		std::vector<dls::math::vec3f> &normaux)
 {
 	points.push_back(liste_points->point(polygone->index_point(0)));
 	points.push_back(liste_points->point(polygone->index_point(1)));
@@ -515,7 +515,7 @@ void ajoute_polygone_surface(
 void ajoute_polygone_segment(
 		Polygone *polygone,
 		ListePoints3D *liste_points,
-		std::vector<numero7::math::vec3f> &points)
+		std::vector<dls::math::vec3f> &points)
 {
 	for (int i = 0; i < polygone->nombre_segments(); ++i) {
 		points.push_back(liste_points->point(polygone->index_point(i)));
@@ -582,9 +582,9 @@ void RenduCorps::initialise()
 	if (liste_polys->taille() != 0ul) {
 
 		auto attr_N = m_corps->attribut("N");
-		std::vector<numero7::math::vec3f> points_polys;
-		std::vector<numero7::math::vec3f> points_segment;
-		std::vector<numero7::math::vec3f> normaux;
+		std::vector<dls::math::vec3f> points_polys;
+		std::vector<dls::math::vec3f> points_segment;
+		std::vector<dls::math::vec3f> normaux;
 
 		for (Polygone *polygone : liste_polys->polys()) {
 			if (polygone->type == POLYGONE_FERME) {
@@ -602,7 +602,7 @@ void RenduCorps::initialise()
 			parametres_tampon.attribut = "sommets";
 			parametres_tampon.dimension_attribut = 3;
 			parametres_tampon.pointeur_sommets = points_polys.data();
-			parametres_tampon.taille_octet_sommets = points_polys.size() * sizeof(numero7::math::vec3f);
+			parametres_tampon.taille_octet_sommets = points_polys.size() * sizeof(dls::math::vec3f);
 			parametres_tampon.elements = points_polys.size();
 
 			m_tampon_polygones->remplie_tampon(parametres_tampon);
@@ -611,7 +611,7 @@ void RenduCorps::initialise()
 				parametres_tampon.attribut = "normaux";
 				parametres_tampon.dimension_attribut = 3;
 				parametres_tampon.pointeur_donnees_extra = normaux.data();
-				parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(numero7::math::vec3f);
+				parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
 				parametres_tampon.elements = normaux.size();
 
 				m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
@@ -625,7 +625,7 @@ void RenduCorps::initialise()
 			parametres_tampon.attribut = "sommets";
 			parametres_tampon.dimension_attribut = 3;
 			parametres_tampon.pointeur_sommets = points_segment.data();
-			parametres_tampon.taille_octet_sommets = points_segment.size() * sizeof(numero7::math::vec3f);
+			parametres_tampon.taille_octet_sommets = points_segment.size() * sizeof(dls::math::vec3f);
 			parametres_tampon.elements = points_segment.size();
 
 			m_tampon_segments->remplie_tampon(parametres_tampon);
@@ -636,11 +636,11 @@ void RenduCorps::initialise()
 		return;
 	}
 
-	std::vector<numero7::math::vec3f> points;
+	std::vector<dls::math::vec3f> points;
 	points.reserve(liste_points->taille());
 
 	for (Point3D *point : liste_points->points()) {
-		points.push_back(numero7::math::vec3f(point->x, point->y, point->z));
+		points.push_back(dls::math::vec3f(point->x, point->y, point->z));
 	}
 
 	m_tampon_points = cree_tampon_segments();
@@ -649,7 +649,7 @@ void RenduCorps::initialise()
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = points.data();
-	parametres_tampon.taille_octet_sommets = points.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = points.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.elements = points.size();
 
 	ParametresDessin parametres_dessin;

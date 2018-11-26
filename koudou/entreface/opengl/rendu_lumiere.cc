@@ -73,27 +73,27 @@ void RenduLumiere::initialise()
 	programme->uniforme("couleur", 1.0f, 0.0f, 0.0f, 1.0f);
 	programme->desactive();
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 
 	if (m_lumiere->type == LUMIERE_POINT) {
 		sommets.resize(6);
 
-		sommets[0] = numero7::math::vec3f(-1.0,  0.0,  0.0);
-		sommets[1] = numero7::math::vec3f( 1.0,  0.0,  0.0);
-		sommets[2] = numero7::math::vec3f( 0.0, -1.0,  0.0);
-		sommets[3] = numero7::math::vec3f( 0.0,  1.0,  0.0);
-		sommets[4] = numero7::math::vec3f( 0.0,  0.0, -1.0);
-		sommets[5] = numero7::math::vec3f( 0.0,  0.0,  1.0);
+		sommets[0] = dls::math::vec3f(-1.0,  0.0,  0.0);
+		sommets[1] = dls::math::vec3f( 1.0,  0.0,  0.0);
+		sommets[2] = dls::math::vec3f( 0.0, -1.0,  0.0);
+		sommets[3] = dls::math::vec3f( 0.0,  1.0,  0.0);
+		sommets[4] = dls::math::vec3f( 0.0,  0.0, -1.0);
+		sommets[5] = dls::math::vec3f( 0.0,  0.0,  1.0);
 	}
 	else {
 		sommets.resize(6);
 
-		sommets[0] = numero7::math::vec3f( 0.0,  0.1,  0.0);
-		sommets[1] = numero7::math::vec3f( 0.0,  0.1, -1.0);
-		sommets[2] = numero7::math::vec3f( 0.1, -0.1,  0.0);
-		sommets[3] = numero7::math::vec3f( 0.1, -0.1, -1.0);
-		sommets[4] = numero7::math::vec3f(-0.1, -0.1,  0.0);
-		sommets[5] = numero7::math::vec3f(-0.1, -0.1, -1.0);
+		sommets[0] = dls::math::vec3f( 0.0,  0.1,  0.0);
+		sommets[1] = dls::math::vec3f( 0.0,  0.1, -1.0);
+		sommets[2] = dls::math::vec3f( 0.1, -0.1,  0.0);
+		sommets[3] = dls::math::vec3f( 0.1, -0.1, -1.0);
+		sommets[4] = dls::math::vec3f(-0.1, -0.1,  0.0);
+		sommets[5] = dls::math::vec3f(-0.1, -0.1, -1.0);
 	}
 
 	std::vector<unsigned int> indices(sommets.size());
@@ -103,7 +103,7 @@ void RenduLumiere::initialise()
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = indices.data();
 	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
 	parametres_tampon.elements = indices.size();
@@ -121,7 +121,7 @@ void RenduLumiere::dessine(const ContexteRendu &contexte)
 	m_tampon->dessine(contexte);
 }
 
-numero7::math::mat4d RenduLumiere::matrice() const
+dls::math::mat4x4d RenduLumiere::matrice() const
 {
 	return m_lumiere->transformation.matrice();
 }

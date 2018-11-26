@@ -25,7 +25,7 @@
 #include "rendu_texte.h"
 
 #include <ego/outils.h>
-#include <glm/glm.hpp>
+#include <delsace/math/vecteur.hh>
 #include <vector>
 #include <unordered_map>
 
@@ -59,7 +59,7 @@ static std::unordered_map<int, int> table_uv_texte({
 	{97, 0}, {98, 1}, {99, 2}, {100, 3}, {101, 4}, {102, 5}, {103, 6}, {104, 7}, {105, 8}, {106, 9}, {107, 10}, {108, 11}, {109, 12}, {110, 13}, {111, 14}, {112, 15}, {113, 16}, {114, 17}, {115, 18}, {116, 19}, {117, 20}, {118, 21}, {119, 22}, {120, 23}, {121, 24}, {122, 25}, {65, 26}, {66, 27}, {67, 28}, {68, 29}, {69, 30}, {70, 31}, {71, 32}, {72, 33}, {73, 34}, {74, 35}, {75, 36}, {76, 37}, {77, 38}, {78, 39}, {79, 40}, {80, 41}, {81, 42}, {82, 43}, {83, 44}, {84, 45}, {85, 46}, {86, 47}, {87, 48}, {88, 49}, {89, 50}, {90, 51}, {32, 52}, {44, 53}, {63, 54}, {59, 55}, {46, 56}, {58, 57}, {47, 58}, {33, 59}, {45, 60}, {42, 61}, {48, 62}, {49, 63}, {50, 64}, {51, 65}, {52, 66}, {53, 67}, {54, 68}, {55, 69}, {56, 70}, {57, 71}, {201, 72}, {202, 73}, {200, 74}, {192, 75}, {194, 76}, {207, 77}, {206, 78}, {212, 79}, {217, 80}, {220, 81}, {233, 82}, {234, 83}, {232, 84}, {224, 85}, {226, 86}, {239, 87}, {238, 88}, {244, 89}, {249, 90}, {252, 91},
 });
 
-static void rempli_uv(const std::string &chaine, std::vector<glm::vec2> &uvs)
+static void rempli_uv(const std::string &chaine, std::vector<dls::math::vec2f> &uvs)
 {
 	const auto echelle_lettres = 1.0 / table_uv_texte.size();
 
@@ -94,10 +94,10 @@ static void rempli_uv(const std::string &chaine, std::vector<glm::vec2> &uvs)
 
 		const auto decalage = table_uv_texte[valeur] * echelle_lettres;
 
-		uvs.push_back(glm::vec2(decalage, 1.0f));
-		uvs.push_back(glm::vec2(decalage + echelle_lettres, 1.0f));
-		uvs.push_back(glm::vec2(decalage + echelle_lettres, 0.0f));
-		uvs.push_back(glm::vec2(decalage, 0.0f));
+		uvs.push_back(dls::math::vec2f(decalage, 1.0f));
+		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
+		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 0.0f));
+		uvs.push_back(dls::math::vec2f(decalage, 0.0f));
 	}
 }
 #endif
@@ -201,7 +201,7 @@ void RenduTexte::ajourne(const std::string &texte)
 
 	/* Une texture avec toutes les lettres. */
 
-	std::vector<glm::vec2> vertex;
+	std::vector<dls::math::vec2f> vertex;
 	std::vector<unsigned int> index;
 
 	/* Calcul taille des lettres relativement à la fenêtre. */
@@ -212,10 +212,10 @@ void RenduTexte::ajourne(const std::string &texte)
 	for (size_t i = 0; i < texte.size(); ++i) {
 		const auto origine_x = i * largeur_lettre;
 
-		vertex.push_back(glm::vec2(origine_x, hauteur_lettre));
-		vertex.push_back(glm::vec2(origine_x + largeur_lettre, hauteur_lettre));
-		vertex.push_back(glm::vec2(origine_x + largeur_lettre, 0.0f));
-		vertex.push_back(glm::vec2(origine_x, 0.0f));
+		vertex.push_back(dls::math::vec2f(origine_x, hauteur_lettre));
+		vertex.push_back(dls::math::vec2f(origine_x + largeur_lettre, hauteur_lettre));
+		vertex.push_back(dls::math::vec2f(origine_x + largeur_lettre, 0.0f));
+		vertex.push_back(dls::math::vec2f(origine_x, 0.0f));
 
 		index.push_back(i * 4 + 0);
 		index.push_back(i * 4 + 1);
@@ -228,7 +228,7 @@ void RenduTexte::ajourne(const std::string &texte)
 	/* Placement en haut à gauche de l'écran. */
 	m_decalage += 1.0f;
 
-	const glm::vec2 decalage_vertex(
+	const dls::math::vec2f decalage_vertex(
 				-1.0 + largeur_lettre,
 				1.0 - m_decalage * hauteur_lettre);
 
@@ -237,7 +237,7 @@ void RenduTexte::ajourne(const std::string &texte)
 	}
 
 	/* Une fonction qui associe lettre -> coordonnées UV */
-	std::vector<glm::vec2> uvs;
+	std::vector<dls::math::vec2f> uvs;
 
 #if 0
 	const auto echelle_lettres = 1.0 / table_uv_texte.size();
@@ -245,10 +245,10 @@ void RenduTexte::ajourne(const std::string &texte)
 	for (const auto &caractere : texte) {
 		const auto decalage = table_uv_texte[caractere] * echelle_lettres;
 
-		uvs.push_back(glm::vec2(decalage, 1.0f));
-		uvs.push_back(glm::vec2(decalage + echelle_lettres, 1.0f));
-		uvs.push_back(glm::vec2(decalage + echelle_lettres, 0.0f));
-		uvs.push_back(glm::vec2(decalage, 0.0f));
+		uvs.push_back(dls::math::vec2f(decalage, 1.0f));
+		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
+		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 0.0f));
+		uvs.push_back(dls::math::vec2f(decalage, 0.0f));
 	}
 #else
 	rempli_uv(texte, uvs);
@@ -259,7 +259,7 @@ void RenduTexte::ajourne(const std::string &texte)
 	parametres_tampon.elements = index.size();
 	parametres_tampon.pointeur_index = index.data();
 	parametres_tampon.pointeur_sommets = vertex.data();
-	parametres_tampon.taille_octet_sommets = vertex.size() * sizeof(glm::vec2);
+	parametres_tampon.taille_octet_sommets = vertex.size() * sizeof(dls::math::vec2f);
 	parametres_tampon.taille_octet_index = index.size() * sizeof(unsigned int);
 	parametres_tampon.dimension_attribut = 2;
 
@@ -267,7 +267,7 @@ void RenduTexte::ajourne(const std::string &texte)
 
 	parametres_tampon.attribut = "uvs";
 	parametres_tampon.pointeur_donnees_extra = uvs.data();
-	parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(glm::vec2);
+	parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(dls::math::vec2f);
 	parametres_tampon.dimension_attribut = 2;
 
 	m_tampon->remplie_tampon_extra(parametres_tampon);

@@ -74,8 +74,8 @@ Koudou::Koudou()
 	camera->fermeture_obturateur(1.0);
 	camera->distance_focale(5.0);
 	camera->rayon_lentille(0.0);
-	camera->position(numero7::math::vec3d(0.0, 1.0, 5.0));
-	camera->rotation(numero7::math::vec3d(0.0, 0.0, 0.0));
+	camera->position(dls::math::vec3d(0.0, 1.0, 5.0));
+	camera->rotation(dls::math::vec3d(0.0, 0.0, 0.0));
 	camera->pellicule(m_koudou.moteur_rendu->pointeur_pellicule());
 
 	camera->ajourne();

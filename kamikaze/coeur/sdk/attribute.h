@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include <delsace/math/matrice.hh>
 #include <string>
 #include <vector>
 
@@ -47,11 +47,11 @@ class Attribute {
 		std::vector<int> *int_list;
 		std::vector<float> *float_list;
 		std::vector<std::string> *string_list;
-		std::vector<glm::vec2> *vec2_list;
-		std::vector<glm::vec3> *vec3_list;
-		std::vector<glm::vec4> *vec4_list;
-		std::vector<glm::mat3> *mat3_list;
-		std::vector<glm::mat4> *mat4_list;
+		std::vector<dls::math::vec2f> *vec2_list;
+		std::vector<dls::math::vec3f> *vec3_list;
+		std::vector<dls::math::vec4f> *vec4_list;
+		std::vector<dls::math::mat3x3f> *mat3_list;
+		std::vector<dls::math::mat4x4f> *mat4_list;
 	} m_data;
 
 	std::string m_name;
@@ -97,20 +97,20 @@ public:
 	void float_(size_t n, float f);
 	int float_(size_t n) const;
 
-	void vec2(size_t n, const glm::vec2 &v);
-	const glm::vec2 &vec2(size_t n) const;
+	void vec2(size_t n, const dls::math::vec2f &v);
+	const dls::math::vec2f &vec2(size_t n) const;
 
-	void vec3(size_t n, const glm::vec3 &v);
-	const glm::vec3 &vec3(size_t n) const;
+	void vec3(size_t n, const dls::math::vec3f &v);
+	const dls::math::vec3f &vec3(size_t n) const;
 
-	void vec4(size_t n, const glm::vec4 &v);
-	const glm::vec4 &vec4(size_t n) const;
+	void vec4(size_t n, const dls::math::vec4f &v);
+	const dls::math::vec4f &vec4(size_t n) const;
 
-	void mat3(size_t n, const glm::mat3 &m);
-	const glm::mat3 &mat3(size_t n) const;
+	void mat3(size_t n, const dls::math::mat3x3f &m);
+	const dls::math::mat3x3f &mat3(size_t n) const;
 
-	void mat4(size_t n, const glm::mat4 &m);
-	const glm::mat4 &mat4(size_t n) const;
+	void mat4(size_t n, const dls::math::mat4x4f &m);
+	const dls::math::mat4x4f &mat4(size_t n) const;
 
 	void stdstring(size_t n, const std::string &str);
 	const std::string &stdstring(size_t n) const;

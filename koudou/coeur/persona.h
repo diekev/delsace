@@ -25,8 +25,8 @@
 #pragma once
 
 #include <algorithm>
+#include <delsace/math/vecteur.hh>
 #include <experimental/any>
-#include <glm/glm.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -107,9 +107,9 @@ public:
 
 	void etablie_valeur_string_defaut(const std::string &valeur);
 
-	void etablie_valeur_vec3_defaut(const glm::vec3 &valeur);
+	void etablie_valeur_vec3_defaut(const dls::math::vec3f &valeur);
 
-	void etablie_valeur_couleur_defaut(const glm::vec4 &valeur);
+	void etablie_valeur_couleur_defaut(const dls::math::vec4f &valeur);
 
 	void ajourne_valeur_float(const std::string &nom_propriete, float valeur);
 
@@ -119,9 +119,9 @@ public:
 
 	void ajourne_valeur_string(const std::string &nom_propriete, const std::string &valeur);
 
-	void ajourne_valeur_couleur(const std::string &nom_propriete, const glm::vec4 &valeur);
+	void ajourne_valeur_couleur(const std::string &nom_propriete, const dls::math::vec4f &valeur);
 
-	void ajourne_valeur_vec3(const std::string &nom_propriete, const glm::vec3 &valeur);
+	void ajourne_valeur_vec3(const std::string &nom_propriete, const dls::math::vec3f &valeur);
 
 	void ajourne_valeur_enum(const std::string &nom_propriete, const ProprieteEnumerante &propriete);
 
@@ -135,9 +135,9 @@ public:
 
 	int evalue_bool(const std::string &nom_propriete);
 
-	glm::vec3 evalue_vec3(const std::string &nom_propriete);
+	dls::math::vec3f evalue_vec3(const std::string &nom_propriete);
 
-	glm::vec4 evalue_couleur(const std::string &nom_propriete);
+	dls::math::vec4f evalue_couleur(const std::string &nom_propriete);
 
 	std::string evalue_string(const std::string &nom_propriete);
 

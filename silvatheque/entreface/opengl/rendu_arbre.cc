@@ -26,7 +26,6 @@
 
 #include <ego/outils.h>
 #include <numeric>
-#include <numero7/math/vec2.h>
 
 #include "bibliotheques/opengl/contexte_rendu.h"
 #include "bibliotheques/opengl/tampon_rendu.h"
@@ -71,7 +70,7 @@ TamponRendu *genere_tampon_arrete(Arbre *arbre)
 	const auto nombre_elements = nombre_arretes * 2;
 	auto tampon = cree_tampon_arrete();
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_elements);
 
 	/* OpenGL ne travaille qu'avec des floats. */
@@ -87,7 +86,7 @@ TamponRendu *genere_tampon_arrete(Arbre *arbre)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = indices.data();
 	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
 	parametres_tampon.elements = indices.size();

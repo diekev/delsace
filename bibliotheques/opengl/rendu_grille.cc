@@ -25,13 +25,14 @@
 #include "rendu_grille.h"
 
 #include <algorithm>
+#include <delsace/math/vecteur.hh>
 #include <ego/outils.h>
 #include <GL/glew.h>
 #include <numeric>
 
 #include "bibliotheques/opengl/tampon_rendu.h"
 
-static TamponRendu *cree_tampon(const glm::vec4 &couleur, float taille_ligne)
+static TamponRendu *cree_tampon(const dls::math::vec4f &couleur, float taille_ligne)
 {
 	auto tampon = new TamponRendu;
 
@@ -74,20 +75,20 @@ RenduGrille::RenduGrille(int largeur, int hauteur)
 {
 	/* Création tampon grille. */
 
-	m_tampon_grille = cree_tampon(glm::vec4(1.0f), 1.0f);
+	m_tampon_grille = cree_tampon(dls::math::vec4f(1.0f), 1.0f);
 
 	const auto nombre_sommets = ((largeur + 1) + (hauteur + 1)) * 2;
-	std::vector<glm::vec3> sommets(nombre_sommets);
+	std::vector<dls::math::vec3f> sommets(nombre_sommets);
 
 	const auto moitie_largeur = (largeur / 2);
 	const auto moitie_hauteur = (hauteur / 2);
 	auto compte = 0;
 
 	for (int i = -moitie_hauteur; i <= moitie_hauteur; ++i) {
-		sommets[compte++] = glm::vec3(i, 0.0f, -moitie_hauteur);
-		sommets[compte++] = glm::vec3(i, 0.0f,  moitie_hauteur);
-		sommets[compte++] = glm::vec3(-moitie_largeur, 0.0f, i);
-		sommets[compte++] = glm::vec3( moitie_largeur, 0.0f, i);
+		sommets[compte++] = dls::math::vec3f(i, 0.0f, -moitie_hauteur);
+		sommets[compte++] = dls::math::vec3f(i, 0.0f,  moitie_hauteur);
+		sommets[compte++] = dls::math::vec3f(-moitie_largeur, 0.0f, i);
+		sommets[compte++] = dls::math::vec3f( moitie_largeur, 0.0f, i);
 	}
 
 	std::vector<unsigned int> index(largeur * hauteur);
@@ -97,7 +98,7 @@ RenduGrille::RenduGrille(int largeur, int hauteur)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(glm::vec3);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = index.data();
 	parametres_tampon.taille_octet_index = index.size() * sizeof(unsigned int);
 	parametres_tampon.elements = index.size();
@@ -111,14 +112,14 @@ RenduGrille::RenduGrille(int largeur, int hauteur)
 
 	/* Création tampon ligne X. */
 
-	m_tampon_axe_x = cree_tampon(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 2.0f);
+	m_tampon_axe_x = cree_tampon(dls::math::vec4f(1.0f, 0.0f, 0.0f, 1.0f), 2.0f);
 
-	std::vector<glm::vec3> sommets_x(2);
-	sommets_x[0] = glm::vec3(-moitie_largeur, 0.0f, 0.0f);
-	sommets_x[1] = glm::vec3( moitie_largeur, 0.0f, 0.0f);
+	std::vector<dls::math::vec3f> sommets_x(2);
+	sommets_x[0] = dls::math::vec3f(-moitie_largeur, 0.0f, 0.0f);
+	sommets_x[1] = dls::math::vec3f( moitie_largeur, 0.0f, 0.0f);
 
 	parametres_tampon.pointeur_sommets = sommets_x.data();
-	parametres_tampon.taille_octet_sommets = sommets_x.size() * sizeof(glm::vec3);
+	parametres_tampon.taille_octet_sommets = sommets_x.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = index_ligne.data();
 	parametres_tampon.taille_octet_index = index_ligne.size() * sizeof(unsigned int);
 	parametres_tampon.elements = index_ligne.size();
@@ -127,14 +128,14 @@ RenduGrille::RenduGrille(int largeur, int hauteur)
 
 	/* Création tampon ligne Z. */
 
-	m_tampon_axe_z = cree_tampon(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), 2.0f);
+	m_tampon_axe_z = cree_tampon(dls::math::vec4f(0.0f, 0.0f, 1.0f, 1.0f), 2.0f);
 
-	std::vector<glm::vec3> sommets_z(2);
-	sommets_z[0] = glm::vec3(0.0f, 0.0f, -moitie_hauteur);
-	sommets_z[1] = glm::vec3(0.0f, 0.0f,  moitie_hauteur);
+	std::vector<dls::math::vec3f> sommets_z(2);
+	sommets_z[0] = dls::math::vec3f(0.0f, 0.0f, -moitie_hauteur);
+	sommets_z[1] = dls::math::vec3f(0.0f, 0.0f,  moitie_hauteur);
 
 	parametres_tampon.pointeur_sommets = sommets_z.data();
-	parametres_tampon.taille_octet_sommets = sommets_z.size() * sizeof(glm::vec3);
+	parametres_tampon.taille_octet_sommets = sommets_z.size() * sizeof(dls::math::vec3f);
 
 	m_tampon_axe_z->remplie_tampon(parametres_tampon);
 }

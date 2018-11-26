@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <numero7/math/vec4.h>
+#include <delsace/math/vecteur.hh>
 
 enum class TypeMelange {
 	NORMAL,
@@ -35,9 +35,9 @@ enum class TypeMelange {
 };
 
 template <typename T>
-numero7::math::vec4<T> melange_normal(
-		const numero7::math::vec4<T> &a,
-		const numero7::math::vec4<T> &b,
+dls::math::vec4<T> melange_normal(
+        const dls::math::vec4<T> &a,
+        const dls::math::vec4<T> &b,
 		const T &facteur)
 {
 	if (b[3] == static_cast<T>(0)) {
@@ -48,9 +48,9 @@ numero7::math::vec4<T> melange_normal(
 }
 
 template <typename T>
-numero7::math::vec4<T> melange(
-		const numero7::math::vec4<T> &a,
-		const numero7::math::vec4<T> &b,
+dls::math::vec4<T> melange(
+        const dls::math::vec4<T> &a,
+        const dls::math::vec4<T> &b,
 		const T &facteur,
 		const TypeMelange type_melange)
 {

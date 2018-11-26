@@ -25,7 +25,6 @@
 #include "visionneur_scene.h"
 
 #include <GL/glew.h>
-#include <glm/gtc/matrix_inverse.hpp>
 #include <numero7/chronometrage/utilitaires.h>
 #include <sstream>
 
@@ -38,13 +37,14 @@
 
 #include "rendu_arbre.h"
 
-glm::mat4 converti_matrice_glm(const numero7::math::mat4d &matrice)
+template <typename T>
+static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 {
-	glm::mat4 resultat;
+	dls::math::mat4x4<float> resultat;
 
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			resultat[i][j] = matrice[i][j];
+			resultat[i][j] = static_cast<float>(matrice[i][j]);
 		}
 	}
 
@@ -105,8 +105,8 @@ void VisionneurScene::peint_opengl()
 	m_contexte.modele_vue(MV);
 	m_contexte.projection(P);
 	m_contexte.MVP(MVP);
-	m_contexte.normal(glm::inverseTranspose(glm::mat3(MV)));
-	m_contexte.matrice_objet(m_stack.sommet());
+	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
+	m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 	m_contexte.pour_surlignage(false);
 
 	/* Peint la scene. */

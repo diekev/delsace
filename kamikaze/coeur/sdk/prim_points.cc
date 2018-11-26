@@ -72,7 +72,7 @@ size_t PrimPoints::typeID() const
 	return PrimPoints::id;
 }
 
-void PrimPoints::computeBBox(glm::vec3 &min, glm::vec3 &max)
+void PrimPoints::computeBBox(dls::math::vec3f &min, dls::math::vec3f &max)
 {
 	calcule_boite_delimitation(m_points, m_min, m_max);
 

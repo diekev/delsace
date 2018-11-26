@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
 #include <GL/glew.h>  /* needs to be included before QGLWidget (includes gl.h) */
 #include <QGLWidget>
 #include <stack>
@@ -46,7 +45,7 @@ class Canevas : public QGLWidget {
 	Q_OBJECT
 
 	bool m_dessine_grille = true;
-	glm::vec4 m_bg = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+	dls::math::vec4f m_bg = dls::math::vec4f(0.5f, 0.5f, 0.5f, 1.0f);
 
 	RenduGrille *m_rendu_grille = nullptr;
 	RenduTexte *m_rendu_texte = nullptr;

@@ -29,9 +29,9 @@
 class Maillage;
 
 struct Particule {
-	numero7::math::vec3f pos;
-	numero7::math::vec3f vel;
-	numero7::math::vec3f vel_pic;
+	dls::math::vec3f pos;
+	dls::math::vec3f vel;
+	dls::math::vec3f vel_pic;
 };
 
 #if 0
@@ -68,7 +68,7 @@ public:
 #else
 class GrilleParticule {
 	std::vector<std::vector<Particule *>> m_donnees = {};
-	numero7::math::vec3i m_res = numero7::math::vec3i(0, 0, 0);
+	dls::math::vec3i m_res = dls::math::vec3i(0, 0, 0);
 	size_t m_nombre_voxels = 0;
 
 	std::vector<Particule *> m_arriere_plan = {};
@@ -139,7 +139,7 @@ struct Fluide {
 	Maillage *source;
 	Maillage *domaine;
 
-	numero7::math::vec3i res;
+	dls::math::vec3i res;
 
 	Grille<char> drapeaux;
 	Grille<float> phi;
@@ -149,8 +149,8 @@ struct Fluide {
 	Grille<float> velocite_x_ancienne;
 	Grille<float> velocite_y_ancienne;
 	Grille<float> velocite_z_ancienne;
-	Grille<numero7::math::vec3f> velocite;
-	Grille<numero7::math::vec3f> ancienne_velocites;
+	Grille<dls::math::vec3f> velocite;
+	Grille<dls::math::vec3f> ancienne_velocites;
 	GrilleParticule grille_particules;
 
 	std::vector<Particule> particules;

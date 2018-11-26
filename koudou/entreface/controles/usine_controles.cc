@@ -126,7 +126,7 @@ void controle_vec3(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleVec3;
 	controle->setMinMax(prop->min, prop->max);
-	controle->pointeur(&(std::experimental::any_cast<glm::vec3>(&prop->donnee)->x));
+	controle->pointeur(&(std::experimental::any_cast<dls::math::vec3f>(&prop->donnee)->x));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
 }
@@ -135,7 +135,7 @@ void controle_couleur(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleCouleur;
 	controle->setMinMax(prop->min, prop->max);
-	controle->pointeur(&(std::experimental::any_cast<glm::vec4>(&prop->donnee)->x));
+	controle->pointeur(&(std::experimental::any_cast<dls::math::vec4f>(&prop->donnee)->x));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
 }

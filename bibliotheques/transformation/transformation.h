@@ -24,38 +24,37 @@
 
 #pragma once
 
-#include <math/mat4.h>
-#include <math/point3.h>
-#include <math/vec3.h>
+#include <delsace/math/matrice.hh>
+#include <delsace/math/vecteur.hh>
 
 namespace math {
 
 class transformation {
-	numero7::math::mat4d m_matrice = numero7::math::mat4d::identity();
-	numero7::math::mat4d m_inverse = numero7::math::mat4d::identity();
+	dls::math::mat4x4d m_matrice = dls::math::mat4x4d(1.0);
+	dls::math::mat4x4d m_inverse = dls::math::mat4x4d(1.0);
 
 public:
 	transformation() = default;
 
 	transformation(
-			const numero7::math::mat4d &matrice,
-			const numero7::math::mat4d &inverse);
+			const dls::math::mat4x4d &matrice,
+			const dls::math::mat4x4d &inverse);
 
 	explicit transformation(const double matrice[4][4]);
 
-	explicit transformation(const numero7::math::mat4d &matrice);
+	explicit transformation(const dls::math::mat4x4d &matrice);
 
-	numero7::math::mat4d matrice() const;
+	dls::math::mat4x4d matrice() const;
 
-	numero7::math::mat4d inverse() const;
+	dls::math::mat4x4d inverse() const;
 
-	numero7::math::vec3d operator()(const numero7::math::vec3d &vecteur) const;
+	dls::math::vec3d operator()(const dls::math::vec3d &vecteur) const;
 
-	void operator()(const numero7::math::vec3d &vecteur, numero7::math::vec3d *vecteur_retour) const;
+	void operator()(const dls::math::vec3d &vecteur, dls::math::vec3d *vecteur_retour) const;
 
-	numero7::math::point3d operator()(const numero7::math::point3d &point) const;
+	dls::math::point3d operator()(const dls::math::point3d &point) const;
 
-	void operator()(const numero7::math::point3d &point, numero7::math::point3d *point_retour) const;
+	void operator()(const dls::math::point3d &point, dls::math::point3d *point_retour) const;
 
 	bool possede_echelle() const;
 
@@ -78,11 +77,11 @@ transformation inverse(const transformation &transforme);
 
 transformation translation(const double x, const double y, const double z);
 
-transformation translation(const numero7::math::vec3d &vecteur);
+transformation translation(const dls::math::vec3d &vecteur);
 
 transformation echelle(const double x, const double y, const double z);
 
-transformation echelle(const numero7::math::vec3d &vecteur);
+transformation echelle(const dls::math::vec3d &vecteur);
 
 transformation rotation_x(const double angle);
 
@@ -90,11 +89,11 @@ transformation rotation_y(const double angle);
 
 transformation rotation_z(const double angle);
 
-transformation rotation(const double angle, const numero7::math::vec3d &vecteur);
+transformation rotation(const double angle, const dls::math::vec3d &vecteur);
 
 transformation vise(
-		const numero7::math::vec3d &position,
-		const numero7::math::vec3d &mire,
-		const numero7::math::vec3d &haut);
+		const dls::math::vec3d &position,
+		const dls::math::vec3d &mire,
+		const dls::math::vec3d &haut);
 
 }  /* namespace math */

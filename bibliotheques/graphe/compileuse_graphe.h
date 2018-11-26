@@ -27,7 +27,7 @@
 #include <vector>
 
 #include <danjo/types/couleur.h>
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 struct PriseSortie;
 
@@ -53,13 +53,13 @@ public:
 
 	void ajoute_noeud(float x, float y, float z, float w);
 
-	void ajoute_noeud(const numero7::math::vec3f &v);
+	void ajoute_noeud(const dls::math::vec3f &v);
 
 	size_t decalage_pile(PriseSortie *prise);
 
 	void stocke_decimal(size_t decalage, const float &v);
 
-	void stocke_vec3f(size_t decalage, const numero7::math::vec3f &v);
+	void stocke_vec3f(size_t decalage, const dls::math::vec3f &v);
 
 	iterateur debut();
 
@@ -85,9 +85,9 @@ inline float pile_charge_decimal(CompileuseGraphe::iterateur &pointeur)
 	return *pointeur++;
 }
 
-inline numero7::math::vec3f pile_charge_vec3f(CompileuseGraphe::iterateur &pointeur)
+inline dls::math::vec3f pile_charge_vec3f(CompileuseGraphe::iterateur &pointeur)
 {
-	numero7::math::vec3f v;
+	dls::math::vec3f v;
 	v.x = *pointeur++;
 	v.y = *pointeur++;
 	v.z = *pointeur++;
@@ -114,7 +114,7 @@ inline void pile_stocke_decimal(CompileuseGraphe::iterateur &pointeur, const flo
 	*pointeur++ = d;
 }
 
-inline void pile_stocke_vec3f(CompileuseGraphe::iterateur &pointeur, const numero7::math::vec3f &v)
+inline void pile_stocke_vec3f(CompileuseGraphe::iterateur &pointeur, const dls::math::vec3f &v)
 {
 	*pointeur++ = v.x;
 	*pointeur++ = v.y;

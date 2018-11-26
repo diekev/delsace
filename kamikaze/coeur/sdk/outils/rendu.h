@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include <glm/gtc/type_ptr.hpp>
+#include <delsace/math/vecteur.hh>
 
 struct Ray {
-	glm::vec3 pos;
-	glm::vec3 dir;
+	dls::math::vec3f pos;
+	dls::math::vec3f dir;
 };

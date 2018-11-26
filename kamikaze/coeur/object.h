@@ -34,8 +34,8 @@ class PrimitiveCollection;
 class Object : public SceneNode {
 	PrimitiveCollection *m_collection = nullptr;
 
-	glm::mat4 m_matrix = glm::mat4(0.0f);
-	glm::mat4 m_inv_matrix = glm::mat4(0.0f);
+	dls::math::mat4x4d m_matrix = dls::math::mat4x4d(1.0);
+	dls::math::mat4x4d m_inv_matrix = dls::math::mat4x4d(1.0);
 
 	Graph m_graph;
 
@@ -50,8 +50,8 @@ public:
 	void collection(PrimitiveCollection *coll);
 
 	/* Return the object's matrix. */
-	void matrix(const glm::mat4 &m);
-	const glm::mat4 &matrix() const;
+	void matrix(const dls::math::mat4x4d &m);
+	const dls::math::mat4x4d &matrix() const;
 
 	/* Noeuds. */
 	void ajoute_noeud(Noeud *noeud);

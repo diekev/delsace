@@ -43,7 +43,7 @@ struct PCGSolver {
 	/* Vecteur de recherche */
 	Grille<float> s;
 
-	void initialise(const numero7::math::vec3i &res)
+	void initialise(const dls::math::vec3i &res)
 	{
 		M.initialise(res.x, res.y, res.z);
 
@@ -92,7 +92,7 @@ float calcul_divergence(
 }
 
 float calcul_divergence(
-		const Grille<numero7::math::vec3f> &grille,
+		const Grille<dls::math::vec3f> &grille,
 		Grille<float> &d)
 {
 	const auto res = d.resolution();
@@ -465,7 +465,7 @@ void soustrait_gradient_pression(Grille<float> &grille, const PCGSolver &pcg_sol
 	}
 }
 
-void rend_imcompressible(Grille<numero7::math::vec3f> &grille, const Grille<char> &drapeaux)
+void rend_imcompressible(Grille<dls::math::vec3f> &grille, const Grille<char> &drapeaux)
 {
 	const auto &res = grille.resolution();
 

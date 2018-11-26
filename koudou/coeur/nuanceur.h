@@ -33,9 +33,9 @@ struct Volume;
 
 struct ContexteNuancage {
 	Rayon rayon;
-	numero7::math::point3d P;
-	numero7::math::vec3d N;
-	numero7::math::vec3d V;
+	dls::math::point3d P;
+	dls::math::vec3d N;
+	dls::math::vec3d V;
 };
 
 enum class TypeNuanceur {

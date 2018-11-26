@@ -59,7 +59,7 @@ public:
 
 		const auto rayon_brosse = 10;
 		const auto rayon_carre = rayon_brosse * rayon_brosse;
-		const auto couleur_brosse = numero7::math::vec4f(1.0, 0.0, 1.0, 1.0);
+		const auto couleur_brosse = dls::math::vec4f(1.0, 0.0, 1.0, 1.0);
 
 		for (int i = -rayon_brosse; i < rayon_brosse; ++i) {
 			for (int j = -rayon_brosse; j < rayon_brosse; ++j) {

@@ -25,12 +25,8 @@
 #include "visionneur_scene.h"
 
 #include <GL/glew.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/matrix_inverse.hpp>
 #include <chronometrage/utilitaires.h>
 #include <sstream>
-
-#include <math/mat4.h>
 
 #include "bibliotheques/opengl/rendu_camera.h"
 #include "bibliotheques/opengl/rendu_grille.h"
@@ -54,13 +50,14 @@
 
 #include "rendu_manipulatrice.h"
 
-static glm::mat4 converti_matrice_glm(const numero7::math::mat4d &matrice)
+template <typename T>
+static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 {
-	glm::mat4 resultat;
+	dls::math::mat4x4<float> resultat;
 
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			resultat[i][j] = matrice[i][j];
+			resultat[i][j] = static_cast<float>(matrice[i][j]);
 		}
 	}
 
@@ -138,8 +135,8 @@ void VisionneurScene::peint_opengl()
 	m_contexte.modele_vue(MV);
 	m_contexte.projection(P);
 	m_contexte.MVP(MVP);
-	m_contexte.normal(glm::inverseTranspose(glm::mat3(MV)));
-	m_contexte.matrice_objet(m_stack.sommet());
+	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
+	m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 	m_contexte.pour_surlignage(false);
 
 	/* Peint la grille. */
@@ -158,11 +155,11 @@ void VisionneurScene::peint_opengl()
 			 * RenduCamera, donc on recrée une matrice sans rotation, et dont
 			 * la taille dans la scène est de 1.0 (en mettant à l'échelle
 			 * avec un facteur de 1.0 / distance éloignée. */
-			auto matrice = glm::mat4(1.0);
-			matrice = glm::translate(matrice, camera->pos());
-			matrice = glm::scale(matrice, glm::vec3(1.0 / camera->eloigne()));
+			auto matrice = dls::math::mat4x4d(1.0);
+			matrice = dls::math::translation(matrice, dls::math::vec3d(camera->pos()));
+			matrice = dls::math::dimension(matrice, dls::math::vec3d(1.0 / camera->eloigne()));
 			m_stack.pousse(matrice);
-			m_contexte.matrice_objet(m_stack.sommet());
+			m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
 			RenduCamera rendu_camera(camera);
 			rendu_camera.initialise();
@@ -172,11 +169,11 @@ void VisionneurScene::peint_opengl()
 		}
 
 		for (auto objet : scene->objets()) {
-			m_stack.pousse(converti_matrice_glm(objet->transformation.matrice()));
+			m_stack.pousse(objet->transformation.matrice());
 
 			if (objet->corps != nullptr) {
-				m_stack.pousse(converti_matrice_glm(objet->corps->transformation.matrice()));
-				m_contexte.matrice_objet(m_stack.sommet());
+				m_stack.pousse(objet->corps->transformation.matrice());
+				m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
 				RenduCorps rendu_corps(objet->corps);
 				rendu_corps.initialise();
@@ -189,8 +186,8 @@ void VisionneurScene::peint_opengl()
 				if (corps->type == CORPS_MAILLAGE) {
 					auto maillage = dynamic_cast<Maillage *>(corps);
 
-					m_stack.pousse(converti_matrice_glm(maillage->transformation.matrice()));
-					m_contexte.matrice_objet(m_stack.sommet());
+					m_stack.pousse(maillage->transformation.matrice());
+					m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
 					RenduMaillage rendu_maillage(maillage);
 					rendu_maillage.initialise();
@@ -205,11 +202,11 @@ void VisionneurScene::peint_opengl()
 						 * RenduCamera, donc on recrée une matrice sans rotation, et dont
 						 * la taille dans la scène est de 1.0 (en mettant à l'échelle
 						 * avec un facteur de 1.0 / distance éloignée. */
-						auto matrice = glm::mat4(1.0);
-						matrice = glm::translate(matrice, camera->pos());
-						matrice = glm::scale(matrice, glm::vec3(1.0 / camera->eloigne()));
+						auto matrice = dls::math::mat4x4d(1.0);
+						matrice = dls::math::translation(matrice, dls::math::vec3d(camera->pos()));
+						matrice = dls::math::dimension(matrice, dls::math::vec3d(1.0 / camera->eloigne()));
 						m_stack.pousse(matrice);
-						m_contexte.matrice_objet(m_stack.sommet());
+						m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
 						RenduCamera rendu_camera(camera);
 						rendu_camera.initialise();
@@ -221,8 +218,8 @@ void VisionneurScene::peint_opengl()
 				else if (corps->type == CORPS_COURBE) {
 					auto courbes = dynamic_cast<Courbes *>(corps);
 
-					m_stack.pousse(converti_matrice_glm(courbes->transformation.matrice()));
-					m_contexte.matrice_objet(m_stack.sommet());
+					m_stack.pousse(courbes->transformation.matrice());
+					m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
 					RenduCourbe rendu_courbes(courbes);
 					rendu_courbes.initialise();
@@ -233,8 +230,8 @@ void VisionneurScene::peint_opengl()
 				else if (corps->type == CORPS_NUAGE_POINTS) {
 					auto points = dynamic_cast<NuagePoints *>(corps);
 
-					m_stack.pousse(converti_matrice_glm(points->transformation.matrice()));
-					m_contexte.matrice_objet(m_stack.sommet());
+					m_stack.pousse(points->transformation.matrice());
+					m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
 					RenduParticules rendu_particules(points);
 					rendu_particules.initialise();
@@ -252,10 +249,10 @@ void VisionneurScene::peint_opengl()
 
 	if (m_mikisa->manipulation_3d_activee && m_mikisa->manipulatrice_3d) {
 		auto pos = m_mikisa->manipulatrice_3d->pos();
-		auto matrice = glm::mat4(1.0);
-		matrice = glm::translate(matrice, glm::vec3(pos.x, pos.y, pos.z));
+		auto matrice = dls::math::mat4x4d(1.0);
+		matrice = dls::math::translation(matrice, dls::math::vec3d(pos.x, pos.y, pos.z));
 		m_stack.pousse(matrice);
-		m_contexte.matrice_objet(m_stack.sommet());
+		m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
 		if (m_mikisa->type_manipulation_3d == MANIPULATION_ROTATION) {
 			m_rendu_manipulatrice_rot->manipulatrice(m_mikisa->manipulatrice_3d);

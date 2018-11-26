@@ -27,11 +27,6 @@
 #include <vector>
 #include <map>
 
-#include <math/matrice/matrice.h>
-#include <math/point3.h>
-#include <math/vec2.h>
-#include <math/vec3.h>
-
 #include "corps.h"
 #include "listes.h"
 
@@ -58,12 +53,12 @@ public:
 	/**
 	 * Ajoute un sommet à ce maillage.
 	 */
-	void ajoute_sommet(const numero7::math::vec3f &coord);
+	void ajoute_sommet(const dls::math::vec3f &coord);
 
 	/**
 	 * Ajoute une suite de sommets à ce maillage.
 	 */
-	void ajoute_sommets(const numero7::math::vec3f *sommets, size_t nombre);
+	void ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre);
 
 	/**
 	 * Retourne un pointeur vers le sommet dont l'index correspond à l'index

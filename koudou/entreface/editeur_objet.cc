@@ -41,15 +41,15 @@ VueObjet::VueObjet()
 	: m_objet(nullptr)
 {
 	ajoute_propriete("position", "Position", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(glm::vec3(0.0));
+	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0));
 	etablie_min_max(-10.0f, 10.0f);
 
 	ajoute_propriete("rotation", "Rotation", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(glm::vec3(0.0));
+	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0));
 	etablie_min_max(0.0f, 360.0f);
 
 	ajoute_propriete("échelle", "Échelle", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(glm::vec3(1.0));
+	etablie_valeur_vec3_defaut(dls::math::vec3f(1.0));
 	etablie_min_max(0.0f, 10.0f);
 
 	/* Propriétés maillages */

@@ -26,7 +26,7 @@
 
 #include <image/pixel.h>
 #include <math/matrice/matrice.h>
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 #include <QGLWidget>
 #include "base_editeur.h"
@@ -50,7 +50,7 @@ public:
 	void paintGL();
 	void resizeGL(int w, int h);
 
-	void charge_image(const numero7::math::matrice<numero7::math::vec3d> &image);
+	void charge_image(const numero7::math::matrice<dls::math::vec3d> &image);
 
 	void mousePressEvent(QMouseEvent *e) override;
 	void mouseMoveEvent(QMouseEvent *e) override;

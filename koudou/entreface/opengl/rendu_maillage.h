@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <math/mat4.h>
+#include <delsace/math/matrice.hh>
 
 class ContexteRendu;
 class Maillage;
@@ -62,7 +62,7 @@ public:
 	/**
 	 * Retourne la matrice du maillage.
 	 */
-	numero7::math::mat4d matrice() const;
+	dls::math::mat4x4d matrice() const;
 
 private:
 	void genere_tampon_surface();

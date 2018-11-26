@@ -85,7 +85,7 @@ static void sauvegarde_proprietes(
 			}
 			case danjo::TypePropriete::VECTEUR:
 			{
-				glm::vec3 donnees = manipulable->evalue_vecteur(nom);
+				auto donnees = manipulable->evalue_vecteur(nom);
 
 				element_donnees->SetAttribute("valeurx", donnees.x);
 				element_donnees->SetAttribute("valeury", donnees.y);
@@ -261,7 +261,7 @@ static void lecture_propriete(
 			const auto donnee_x = atof(element_donnees->Attribute("valeurx"));
 			const auto donnee_y = atof(element_donnees->Attribute("valeury"));
 			const auto donnee_z = atof(element_donnees->Attribute("valeurz"));
-			const auto donnees = glm::vec3{donnee_x, donnee_y, donnee_z};
+			const auto donnees = dls::math::vec3f{donnee_x, donnee_y, donnee_z};
 			manipulable->valeur_vecteur(nom_prop, donnees);
 			break;
 		}

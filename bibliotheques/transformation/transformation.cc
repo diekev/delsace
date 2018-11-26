@@ -26,7 +26,7 @@
 
 namespace math {
 
-transformation::transformation(const numero7::math::mat4d &matrice, const numero7::math::mat4d &inverse)
+transformation::transformation(const dls::math::mat4x4d &matrice, const dls::math::mat4x4d &inverse)
 	: m_matrice(matrice)
 	, m_inverse(inverse)
 {}
@@ -39,25 +39,25 @@ transformation::transformation(const double matrice[4][4])
 		}
 	}
 
-	m_inverse = numero7::math::inverse(m_matrice);
+	m_inverse = dls::math::inverse(m_matrice);
 }
 
-transformation::transformation(const numero7::math::mat4d &matrice)
+transformation::transformation(const dls::math::mat4x4d &matrice)
 	: m_matrice(matrice)
-	, m_inverse(numero7::math::inverse(m_matrice))
+	, m_inverse(dls::math::inverse(m_matrice))
 {}
 
-numero7::math::mat4d transformation::matrice() const
+dls::math::mat4x4d transformation::matrice() const
 {
 	return m_matrice;
 }
 
-numero7::math::mat4d transformation::inverse() const
+dls::math::mat4x4d transformation::inverse() const
 {
 	return m_inverse;
 }
 
-numero7::math::vec3d transformation::operator()(const numero7::math::vec3d &vecteur) const
+dls::math::vec3d transformation::operator()(const dls::math::vec3d &vecteur) const
 {
 	const auto x = vecteur[0];
 	const auto y = vecteur[1];
@@ -67,10 +67,10 @@ numero7::math::vec3d transformation::operator()(const numero7::math::vec3d &vect
 	const auto py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z;
 	const auto pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z;
 
-	return numero7::math::vec3d(px, py, pz);
+	return dls::math::vec3d(px, py, pz);
 }
 
-void transformation::operator()(const numero7::math::vec3d &vecteur, numero7::math::vec3d *vecteur_retour) const
+void transformation::operator()(const dls::math::vec3d &vecteur, dls::math::vec3d *vecteur_retour) const
 {
 	const auto x = vecteur[0];
 	const auto y = vecteur[1];
@@ -85,7 +85,7 @@ void transformation::operator()(const numero7::math::vec3d &vecteur, numero7::ma
 	vecteur_retour->z = pz;
 }
 
-numero7::math::point3d transformation::operator()(const numero7::math::point3d &point) const
+dls::math::point3d transformation::operator()(const dls::math::point3d &point) const
 {
 	const auto x = point[0];
 	const auto y = point[1];
@@ -97,13 +97,13 @@ numero7::math::point3d transformation::operator()(const numero7::math::point3d &
 	const auto pw = m_matrice[3][0] * x + m_matrice[3][1] * y + m_matrice[3][2] * z + m_matrice[3][3];
 
 	if (pw == 1.0) {
-		return numero7::math::point3d(px, py, pz);
+		return dls::math::point3d(px, py, pz);
 	}
 
-	return numero7::math::point3d(px, py, pz) / pw;
+	return dls::math::point3d(px, py, pz) / pw;
 }
 
-void transformation::operator()(const numero7::math::point3d &point, numero7::math::point3d *point_retour) const
+void transformation::operator()(const dls::math::point3d &point, dls::math::point3d *point_retour) const
 {
 	const auto x = point[0];
 	const auto y = point[1];
@@ -125,9 +125,9 @@ void transformation::operator()(const numero7::math::point3d &point, numero7::ma
 
 bool transformation::possede_echelle() const
 {
-	const auto a1 = numero7::math::longueur((*this)(numero7::math::vec3d(1.0, 0.0, 0.0)));
-	const auto a2 = numero7::math::longueur((*this)(numero7::math::vec3d(0.0, 1.0, 0.0)));
-	const auto a3 = numero7::math::longueur((*this)(numero7::math::vec3d(0.0, 0.0, 1.0)));
+	const auto a1 = dls::math::longueur((*this)(dls::math::vec3d(1.0, 0.0, 0.0)));
+	const auto a2 = dls::math::longueur((*this)(dls::math::vec3d(0.0, 1.0, 0.0)));
+	const auto a3 = dls::math::longueur((*this)(dls::math::vec3d(0.0, 0.0, 1.0)));
 
 	auto pas_un = [](const double valeur)
 	{
@@ -178,8 +178,8 @@ transformation inverse(const transformation &transforme)
 
 transformation translation(const double x, const double y, const double z)
 {
-	numero7::math::mat4d matrice = numero7::math::mat4d::identity();
-	numero7::math::mat4d matrice_inverse = numero7::math::mat4d::identity();
+	auto matrice = dls::math::mat4x4d(1.0);
+	auto matrice_inverse = dls::math::mat4x4d(1.0);
 
 	matrice[0][3] = x;
 	matrice[1][3] = y;
@@ -192,15 +192,15 @@ transformation translation(const double x, const double y, const double z)
 	return transformation(matrice, matrice_inverse);
 }
 
-transformation translation(const numero7::math::vec3d &vecteur)
+transformation translation(const dls::math::vec3d &vecteur)
 {
 	return translation(vecteur[0], vecteur[1], vecteur[2]);
 }
 
 transformation echelle(const double x, const double y, const double z)
 {
-	numero7::math::mat4d matrice = numero7::math::mat4d::identity();
-	numero7::math::mat4d matrice_inverse = numero7::math::mat4d::identity();
+	auto matrice = dls::math::mat4x4d(1.0);
+	auto matrice_inverse = dls::math::mat4x4d(1.0);
 
 	matrice[0][0] = x;
 	matrice[1][1] = y;
@@ -213,7 +213,7 @@ transformation echelle(const double x, const double y, const double z)
 	return transformation(matrice, matrice_inverse);
 }
 
-transformation echelle(const numero7::math::vec3d &vecteur)
+transformation echelle(const dls::math::vec3d &vecteur)
 {
 	return echelle(vecteur[0], vecteur[1], vecteur[2]);
 }
@@ -256,14 +256,14 @@ transformation rotation_x(const double angle)
 	const auto sin_angle = std::sin(angle);
 	const auto cos_angle = std::cos(angle);
 
-	numero7::math::mat4d matrice({
+	dls::math::mat4x4d matrice(
 		1.0,       0.0,        0.0, 0.0,
 		0.0, cos_angle, -sin_angle, 0.0,
 		0.0, sin_angle,  cos_angle, 0.0,
-		0.0,       0.0,        0.0, 1.0,
-	});
+		0.0,       0.0,        0.0, 1.0
+	);
 
-	return transformation(matrice, numero7::math::transpose(matrice));
+	return transformation(matrice, dls::math::transpose(matrice));
 }
 
 /**
@@ -307,14 +307,14 @@ transformation rotation_y(const double angle)
 	const auto sin_angle = std::sin(angle);
 	const auto cos_angle = std::cos(angle);
 
-	numero7::math::mat4d matrice({
+	dls::math::mat4x4d matrice(
 		cos_angle,  0.0, sin_angle, 0.0,
 		0.0,        1.0,       0.0, 0.0,
 		-sin_angle, 0.0, cos_angle, 0.0,
-		0.0,        0.0,       0.0, 1.0,
-	});
+		0.0,        0.0,       0.0, 1.0
+	);
 
-	return transformation(matrice, numero7::math::transpose(matrice));
+	return transformation(matrice, dls::math::transpose(matrice));
 }
 
 /**
@@ -360,23 +360,23 @@ transformation rotation_z(const double angle)
 	const auto sin_angle = std::sin(angle);
 	const auto cos_angle = std::cos(angle);
 
-	numero7::math::mat4d matrice({
+	dls::math::mat4x4d matrice(
 		 cos_angle, sin_angle, 0.0, 0.0,
 		-sin_angle, cos_angle, 0.0, 0.0,
 		0.0,        0.0, 1.0, 0.0,
-		0.0,        0.0, 0.0, 1.0,
-	});
+		0.0,        0.0, 0.0, 1.0
+	);
 
-	return transformation(matrice, numero7::math::transpose(matrice));
+	return transformation(matrice, dls::math::transpose(matrice));
 }
 
-transformation rotation(const double angle, const numero7::math::vec3d &vecteur)
+transformation rotation(const double angle, const dls::math::vec3d &vecteur)
 {
-	const auto a = numero7::math::normalise(vecteur);
+	const auto a = dls::math::normalise(vecteur);
 	const auto s = std::sin(angle);
 	const auto c = std::cos(angle);
 
-	numero7::math::mat4d matrice;
+	dls::math::mat4x4d matrice;
 
 	matrice[0][0] = a[0] * a[0] + (1.0 - a[0] * a[0]) * c;
 	matrice[0][1] = a[1] * a[1] + (1.0 - c) - a[2] * s;
@@ -398,13 +398,13 @@ transformation rotation(const double angle, const numero7::math::vec3d &vecteur)
 	matrice[3][2] = 0.0;
 	matrice[3][3] = 1.0;
 
-	return transformation(matrice, numero7::math::transpose(matrice));
+	return transformation(matrice, dls::math::transpose(matrice));
 }
 
 transformation vise(
-		const numero7::math::vec3d &position,
-		const numero7::math::vec3d &mire,
-		const numero7::math::vec3d &haut)
+		const dls::math::vec3d &position,
+		const dls::math::vec3d &mire,
+		const dls::math::vec3d &haut)
 {
 	std::cout << "============================\n";
 	std::cout << "LookAt\n";
@@ -412,11 +412,11 @@ transformation vise(
 	std::cout << "Mire : " << mire[0] << ", " << mire[1] << ", " << mire[2] << '\n';
 	std::cout << "Haut : " << haut[0] << ", " << haut[1] << ", " << haut[2] << '\n';
 
-	const auto direction = numero7::math::normalise(mire - position);
-	const auto droite = numero7::math::normalise(numero7::math::produit_croix(numero7::math::normalise(haut), direction));
-	const auto nouveau_haut = numero7::math::produit_croix(direction, droite);
+	const auto direction = dls::math::normalise(mire - position);
+	const auto droite = dls::math::normalise(dls::math::produit_croix(dls::math::normalise(haut), direction));
+	const auto nouveau_haut = dls::math::produit_croix(direction, droite);
 
-	numero7::math::mat4d matrice;
+	dls::math::mat4x4d matrice;
 
 	matrice[0][0] = droite[0];
 	matrice[1][0] = droite[1];
@@ -439,10 +439,10 @@ transformation vise(
 	matrice[3][3] = 1.0;
 
 	std::cout << "Matrice : " << matrice << '\n';
-	std::cout << "Inverse : " << numero7::math::inverse(matrice) << '\n';
+	std::cout << "Inverse : " << dls::math::inverse(matrice) << '\n';
 	std::cout << "============================\n";
 
-	return transformation(numero7::math::inverse(matrice), matrice);
+	return transformation(dls::math::inverse(matrice), matrice);
 }
 
 }  /* namespace math */

@@ -24,15 +24,9 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include <delsace/math/matrice.hh>
 #include <string>
 #include <vector>
-
-#include <math/vec2.h>
-#include <math/vec3.h>
-#include <math/vec4.h>
-#include <math/mat3.h>
-#include <math/mat4.h>
 
 #include "bibliotheques/outils/iterateurs.h"
 
@@ -98,11 +92,11 @@ class Attribut {
 		std::vector<int> *liste_ent32;
 		std::vector<float> *liste_decimal;
 		std::vector<std::string> *liste_chaine;
-		std::vector<numero7::math::vec2f> *liste_vec2;
-		std::vector<numero7::math::vec3f> *liste_vec3;
-		std::vector<numero7::math::vec4f> *liste_vec4;
-		std::vector<numero7::math::mat3> *liste_mat3;
-		std::vector<numero7::math::mat4> *liste_mat4;
+		std::vector<dls::math::vec2f> *liste_vec2;
+		std::vector<dls::math::vec3f> *liste_vec3;
+		std::vector<dls::math::vec4f> *liste_vec4;
+		std::vector<dls::math::mat3x3f> *liste_mat3;
+		std::vector<dls::math::mat4x4f> *liste_mat4;
 	} m_donnees;
 
 	std::string m_nom;
@@ -113,11 +107,11 @@ public:
 	DEFINI_ITERATEURS(ent32, int);
 	DEFINI_ITERATEURS(decimal, float);
 	DEFINI_ITERATEURS(chaine, std::string);
-	DEFINI_ITERATEURS(vec2, numero7::math::vec2f);
-	DEFINI_ITERATEURS(vec3, numero7::math::vec3f);
-	DEFINI_ITERATEURS(vec4, numero7::math::vec4f);
-	DEFINI_ITERATEURS(mat3, numero7::math::mat3);
-	DEFINI_ITERATEURS(mat4, numero7::math::mat4);
+	DEFINI_ITERATEURS(vec2, dls::math::vec2f);
+	DEFINI_ITERATEURS(vec3, dls::math::vec3f);
+	DEFINI_ITERATEURS(vec4, dls::math::vec4f);
+	DEFINI_ITERATEURS(mat3, dls::math::mat3x3f);
+	DEFINI_ITERATEURS(mat4, dls::math::mat4x4f);
 
 	int portee;
 
@@ -154,19 +148,19 @@ public:
 	DEFINI_ACESSEURS_POSITION(ent32, int)
 	DEFINI_ACESSEURS_POSITION(decimal, float)
 	DEFINI_ACESSEURS_POSITION(chaine, std::string)
-	DEFINI_ACESSEURS_POSITION(vec2, numero7::math::vec2f)
-	DEFINI_ACESSEURS_POSITION(vec3, numero7::math::vec3f)
-	DEFINI_ACESSEURS_POSITION(vec4, numero7::math::vec4f)
-	DEFINI_ACESSEURS_POSITION(mat3, numero7::math::mat3)
-	DEFINI_ACESSEURS_POSITION(mat4, numero7::math::mat4)
+	DEFINI_ACESSEURS_POSITION(vec2, dls::math::vec2f)
+	DEFINI_ACESSEURS_POSITION(vec3, dls::math::vec3f)
+	DEFINI_ACESSEURS_POSITION(vec4, dls::math::vec4f)
+	DEFINI_ACESSEURS_POSITION(mat3, dls::math::mat3x3f)
+	DEFINI_ACESSEURS_POSITION(mat4, dls::math::mat4x4f)
 
 	DEFINI_POUSSE_VALEUR(ent8, char)
 	DEFINI_POUSSE_VALEUR(ent32, int)
 	DEFINI_POUSSE_VALEUR(decimal, float)
 	DEFINI_POUSSE_VALEUR(chaine, std::string)
-	DEFINI_POUSSE_VALEUR(vec2, numero7::math::vec2f)
-	DEFINI_POUSSE_VALEUR(vec3, numero7::math::vec3f)
-	DEFINI_POUSSE_VALEUR(vec4, numero7::math::vec4f)
-	DEFINI_POUSSE_VALEUR(mat3, numero7::math::mat3)
-	DEFINI_POUSSE_VALEUR(mat4, numero7::math::mat4)
+	DEFINI_POUSSE_VALEUR(vec2, dls::math::vec2f)
+	DEFINI_POUSSE_VALEUR(vec3, dls::math::vec3f)
+	DEFINI_POUSSE_VALEUR(vec4, dls::math::vec4f)
+	DEFINI_POUSSE_VALEUR(mat3, dls::math::mat3x3f)
+	DEFINI_POUSSE_VALEUR(mat4, dls::math::mat4x4f)
 };

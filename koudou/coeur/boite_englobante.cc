@@ -26,12 +26,12 @@
 
 #include "types.h"
 
-BoiteEnglobante::BoiteEnglobante(const numero7::math::point3d &point)
+BoiteEnglobante::BoiteEnglobante(const dls::math::point3d &point)
 	: min(point)
 	, max(point)
 {}
 
-BoiteEnglobante::BoiteEnglobante(const numero7::math::point3d &p1, const numero7::math::point3d &p2)
+BoiteEnglobante::BoiteEnglobante(const dls::math::point3d &p1, const dls::math::point3d &p2)
 	: min(std::min(p1.x, p2.x), std::min(p1.y, p2.y), std::min(p1.z, p2.z))
 	, max(std::max(p1.x, p2.x), std::max(p1.y, p2.y), std::max(p1.z, p2.z))
 {}
@@ -45,7 +45,7 @@ bool BoiteEnglobante::chevauchement(const BoiteEnglobante &boite)
 	return x && y && z;
 }
 
-bool BoiteEnglobante::contient(const numero7::math::point3d &point)
+bool BoiteEnglobante::contient(const dls::math::point3d &point)
 {
 	const auto x = (point[0] >= min[0]) && (point[0] <= max[0]);
 	const auto y = (point[1] >= min[1]) && (point[1] <= max[1]);
@@ -89,15 +89,15 @@ int BoiteEnglobante::ampleur_maximale() const
 	return 2;
 }
 
-numero7::math::vec3d BoiteEnglobante::decalage(const numero7::math::point3d &point)
+dls::math::vec3d BoiteEnglobante::decalage(const dls::math::point3d &point)
 {
-	return numero7::math::vec3d(
+	return dls::math::vec3d(
 				(point[0] - min[0]) / (max[0] - min[0]),
 			(point[1] - min[1]) / (max[1] - min[1]),
 			(point[2] - min[2]) / (max[2] - min[2]));
 }
 
-BoiteEnglobante unie(const BoiteEnglobante &boite, const numero7::math::point3d &point)
+BoiteEnglobante unie(const BoiteEnglobante &boite, const dls::math::point3d &point)
 {
 	BoiteEnglobante resultat;
 

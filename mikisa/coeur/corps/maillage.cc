@@ -24,8 +24,6 @@
 
 #include "maillage.h"
 
-#include <math/conversion_point_vecteur.h>
-
 #include "../attribut.h"
 
 /* ************************************************************************** */
@@ -42,7 +40,7 @@ Maillage::~Maillage()
 	reinitialise();
 }
 
-void Maillage::ajoute_sommet(const numero7::math::vec3f &coord)
+void Maillage::ajoute_sommet(const dls::math::vec3f &coord)
 {
 	auto sommet = new Sommet();
 	sommet->pos = coord;
@@ -50,7 +48,7 @@ void Maillage::ajoute_sommet(const numero7::math::vec3f &coord)
 	m_sommets.pousse(sommet);
 }
 
-void Maillage::ajoute_sommets(const numero7::math::vec3f *sommets, size_t nombre)
+void Maillage::ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre)
 {
 	m_sommets.reserve(m_sommets.taille() + nombre);
 
@@ -135,7 +133,7 @@ Polygone *Maillage::ajoute_quad(const int s0, const int s1, const int s2, const 
 
 	auto c1 = poly->s[1]->pos - poly->s[0]->pos;
 	auto c2 = poly->s[2]->pos - poly->s[0]->pos;
-	poly->nor = numero7::math::normalise(numero7::math::produit_croix(c1, c2));
+	poly->nor = dls::math::normalise(dls::math::produit_croix(c1, c2));
 
 	poly->index = m_polys.taille();
 
@@ -189,7 +187,7 @@ Polygone *Maillage::polygone(size_t i)
 	return *(m_polys.polys().begin() + i);
 }
 
-static void min_max_vecteur(numero7::math::point3f &min, numero7::math::point3f &max, const numero7::math::vec3f &v)
+static void min_max_vecteur(dls::math::point3f &min, dls::math::point3f &max, const dls::math::vec3f &v)
 {
 	for (int i = 0; i < 3; ++i) {
 		if (v[i] < min[i]) {
@@ -203,14 +201,14 @@ static void min_max_vecteur(numero7::math::point3f &min, numero7::math::point3f 
 
 void Maillage::calcule_boite_englobante()
 {
-	this->min = numero7::math::point3f(std::numeric_limits<float>::max());
-	this->max = numero7::math::point3f(std::numeric_limits<float>::min());
+	this->min = dls::math::point3f(std::numeric_limits<float>::max());
+	this->max = dls::math::point3f(std::numeric_limits<float>::min());
 
 	for (const auto &s : m_sommets.sommets()) {
 		min_max_vecteur(this->min, this->max, s->pos);
 	}
 
-	this->taille = point_depuis_vecteur(this->max - this->min);
+	this->taille = dls::math::point3f(this->max - this->min);
 }
 
 void Maillage::texture(TextureImage *t)

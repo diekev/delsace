@@ -37,7 +37,7 @@
 
 /* ************************************************************************** */
 
-static void init_min_max(numero7::math::vec3f &min, numero7::math::vec3f &max)
+static void init_min_max(dls::math::vec3f &min, dls::math::vec3f &max)
 {
 	for (int i = 0; i < 3; ++i) {
 		min[i] = -std::numeric_limits<float>::max();
@@ -45,7 +45,7 @@ static void init_min_max(numero7::math::vec3f &min, numero7::math::vec3f &max)
 	}
 }
 
-static void min_max_vecteur(numero7::math::vec3f &min, numero7::math::vec3f &max, const numero7::math::vec3f &v)
+static void min_max_vecteur(dls::math::vec3f &min, dls::math::vec3f &max, const dls::math::vec3f &v)
 {
 	for (int i = 0; i < 3; ++i) {
 		if (v[i] < min[i]) {
@@ -58,15 +58,15 @@ static void min_max_vecteur(numero7::math::vec3f &min, numero7::math::vec3f &max
 }
 
 struct Triangle {
-	numero7::math::vec3f p0;
-	numero7::math::vec3f p1;
-	numero7::math::vec3f p2;
-	numero7::math::vec3f min;
-	numero7::math::vec3f max;
+	dls::math::vec3f p0;
+	dls::math::vec3f p1;
+	dls::math::vec3f p2;
+	dls::math::vec3f min;
+	dls::math::vec3f max;
 };
 
 struct DonneesCollesion {
-	numero7::math::vec3f normal;
+	dls::math::vec3f normal;
 	Arrete *segment;
 };
 
@@ -80,7 +80,7 @@ public:
 			nullptr, nullptr, nullptr, nullptr
 		};
 
-		numero7::math::vec3f min, max;
+		dls::math::vec3f min, max;
 
 		~Octant()
 		{
@@ -186,7 +186,7 @@ public:
 		const auto chaine_style_creation = evalue_enum("style_création");
 		const auto longueur_segment = evalue_decimal("taille_segment");
 		const auto nor = evalue_vecteur("normal");
-		auto normal = normalise(numero7::math::vec3f(nor.x, nor.y, nor.z));
+		auto normal = normalise(dls::math::vec3f(nor.x, nor.y, nor.z));
 		const auto chaine_direction = evalue_enum("direction");
 
 		/* À FAIRE : biais de longueur entre [-1.0, 1.0], où -1.0 = plus de
@@ -249,7 +249,7 @@ public:
 				normal = attr_N->vec3(index_point++);
 			}
 
-			auto pos = numero7::math::vec3f(point->x, point->y, point->z);
+			auto pos = dls::math::vec3f(point->x, point->y, point->z);
 
 			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 

@@ -24,7 +24,8 @@
 
 #pragma once
 
-#include <numero7/math/mat4.h>
+#include <delsace/math/matrice.hh>
+
 #include <map>
 #include <vector>
 
@@ -77,7 +78,7 @@ public:
 	/**
 	 * Retourne la matrice du maillage.
 	 */
-	numero7::math::mat4d matrice() const;
+	dls::math::mat4x4d matrice() const;
 
 	Maillage *maillage() const;
 

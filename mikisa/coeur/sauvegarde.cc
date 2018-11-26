@@ -118,7 +118,7 @@ static void sauvegarde_proprietes(
 			}
 			case danjo::TypePropriete::VECTEUR:
 			{
-				glm::vec3 donnees = manipulable->evalue_vecteur(nom);
+				dls::math::vec3f donnees = manipulable->evalue_vecteur(nom);
 
 				element_donnees->SetAttribute("valeurx", donnees.x);
 				element_donnees->SetAttribute("valeury", donnees.y);
@@ -129,7 +129,7 @@ static void sauvegarde_proprietes(
 
 					for (const auto &valeur : prop.courbe) {
 						auto element_cle = doc.NewElement("cle");
-						auto vec = std::experimental::any_cast<glm::vec3>(valeur.second);
+						auto vec = std::experimental::any_cast<dls::math::vec3f>(valeur.second);
 						element_cle->SetAttribute("temps", valeur.first);
 						element_cle->SetAttribute("valeurx", vec.x);
 						element_cle->SetAttribute("valeury", vec.y);
@@ -319,7 +319,7 @@ static void lecture_propriete(
 			const auto donnee_x = atof(element_donnees->Attribute("valeurx"));
 			const auto donnee_y = atof(element_donnees->Attribute("valeury"));
 			const auto donnee_z = atof(element_donnees->Attribute("valeurz"));
-			const auto donnees = glm::vec3{donnee_x, donnee_y, donnee_z};
+			const auto donnees = dls::math::vec3f{donnee_x, donnee_y, donnee_z};
 			manipulable->ajoute_propriete(nom_prop, danjo::TypePropriete::VECTEUR, donnees);
 
 			const auto element_animation = element_donnees->FirstChildElement("animation");
@@ -335,7 +335,7 @@ static void lecture_propriete(
 					auto valeury = static_cast<float>(atof(element_cle->Attribute("valeury")));
 					auto valeurz = static_cast<float>(atof(element_cle->Attribute("valeurz")));
 
-					prop->ajoute_cle(glm::vec3{valeurx, valeury, valeurz}, temps);
+					prop->ajoute_cle(dls::math::vec3f{valeurx, valeury, valeurz}, temps);
 				}
 			}
 

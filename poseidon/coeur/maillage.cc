@@ -27,7 +27,7 @@
 /* ************************************************************************** */
 
 Maillage::Maillage()
-	: m_transformation(numero7::math::mat4d::identity())
+	: m_transformation(dls::math::mat4x4d(1.0))
 	, m_nom("maillage")
 {}
 
@@ -46,7 +46,7 @@ Maillage::~Maillage()
 	}
 }
 
-void Maillage::ajoute_sommet(const numero7::math::vec3f &coord)
+void Maillage::ajoute_sommet(const dls::math::vec3f &coord)
 {
 	auto sommet = new Sommet();
 	sommet->pos = coord;
@@ -54,7 +54,7 @@ void Maillage::ajoute_sommet(const numero7::math::vec3f &coord)
 	m_sommets.push_back(sommet);
 }
 
-void Maillage::ajoute_sommets(const numero7::math::vec3f *sommets, size_t nombre)
+void Maillage::ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre)
 {
 	m_sommets.reserve(m_sommets.size() + nombre);
 
@@ -101,7 +101,7 @@ void Maillage::ajoute_quad(const int s0, const int s1, const int s2, const int s
 
 	auto c1 = poly->s[1]->pos - poly->s[0]->pos;
 	auto c2 = poly->s[2]->pos - poly->s[0]->pos;
-	poly->nor =  numero7::math::normalise(numero7::math::produit_croix(c1, c2));
+	poly->nor =  dls::math::normalise(dls::math::produit_croix(c1, c2));
 
 	poly->index = m_polys.size();
 
@@ -168,7 +168,7 @@ Polygone *Maillage::polygone(size_t i)
 	return m_polys[i];
 }
 
-static void min_max_vecteur(numero7::math::vec3f &min, numero7::math::vec3f &max, const numero7::math::vec3f &v)
+static void min_max_vecteur(dls::math::vec3f &min, dls::math::vec3f &max, const dls::math::vec3f &v)
 {
 	for (int i = 0; i < 3; ++i) {
 		if (v[i] < min[i]) {
@@ -182,8 +182,8 @@ static void min_max_vecteur(numero7::math::vec3f &min, numero7::math::vec3f &max
 
 void Maillage::calcule_boite_englobante()
 {
-	m_min = numero7::math::vec3f(std::numeric_limits<float>::max());
-	m_max = numero7::math::vec3f(std::numeric_limits<float>::min());
+	m_min = dls::math::vec3f(std::numeric_limits<float>::max());
+	m_max = dls::math::vec3f(std::numeric_limits<float>::min());
 
 	for (const auto &s : m_sommets) {
 		min_max_vecteur(m_min, m_max, s->pos);
@@ -192,17 +192,17 @@ void Maillage::calcule_boite_englobante()
 	m_taille = m_max - m_min;
 }
 
-const numero7::math::vec3f &Maillage::min() const
+const dls::math::vec3f &Maillage::min() const
 {
 	return m_min;
 }
 
-const numero7::math::vec3f &Maillage::max() const
+const dls::math::vec3f &Maillage::max() const
 {
 	return m_max;
 }
 
-const numero7::math::vec3f &Maillage::taille() const
+const dls::math::vec3f &Maillage::taille() const
 {
 	return m_taille;
 }

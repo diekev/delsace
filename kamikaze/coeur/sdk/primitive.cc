@@ -25,7 +25,6 @@
 
 #include <algorithm>
 #include <GL/glew.h>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "outils/chaîne_caractère.h"
 #include "outils/rendu.h"
@@ -68,10 +67,10 @@ bool Primitive::entresect(const Ray &ray, float &min) const
 	const auto inv_dir = 1.0f / ray.dir;
 	const auto t_min = (m_min - ray.pos) * inv_dir;
 	const auto t_max = (m_max - ray.pos) * inv_dir;
-	const auto t1 = glm::min(t_min, t_max);
-	const auto t2 = glm::max(t_min, t_max);
-	const auto t_near = glm::max(t1.x, glm::max(t1.y, t1.z));
-	const auto t_far = glm::min(t2.x, glm::min(t2.y, t2.z));
+	const auto t1 = std::min(t_min, t_max);
+	const auto t2 = std::max(t_min, t_max);
+	const auto t_near = std::max(t1.x, std::max(t1.y, t1.z));
+	const auto t_far = std::min(t2.x, std::min(t2.y, t2.z));
 
 	if (t_near < t_far && t_near < min) {
 		min = t_near;
@@ -81,53 +80,53 @@ bool Primitive::entresect(const Ray &ray, float &min) const
 	return false;
 }
 
-glm::vec3 Primitive::pos() const
+dls::math::vec3f Primitive::pos() const
 {
 	return m_pos;
 }
 
-glm::vec3 &Primitive::pos()
+dls::math::vec3f &Primitive::pos()
 {
 	m_need_update = true;
 	return m_pos;
 }
 
-glm::vec3 Primitive::scale() const
+dls::math::vec3f Primitive::scale() const
 {
 	return m_scale;
 }
 
-glm::vec3 &Primitive::scale()
+dls::math::vec3f &Primitive::scale()
 {
 	m_need_update = true;
 	return m_scale;
 }
 
-glm::vec3 Primitive::rotation() const
+dls::math::vec3f Primitive::rotation() const
 {
 	return m_rotation;
 }
 
-glm::vec3 &Primitive::rotation()
+dls::math::vec3f &Primitive::rotation()
 {
 	m_need_update = true;
 	return m_rotation;
 }
 
-const glm::mat4 &Primitive::matrix() const
+const dls::math::mat4x4d &Primitive::matrix() const
 {
 	return m_matrix;
 }
 
-glm::mat4 &Primitive::matrix()
+dls::math::mat4x4d &Primitive::matrix()
 {
 	return m_matrix;
 }
 
-void Primitive::matrix(const glm::mat4 &m)
+void Primitive::matrix(const dls::math::mat4x4d &m)
 {
 	m_matrix = m;
-	m_inv_matrix = glm::inverse(m);
+	m_inv_matrix = dls::math::inverse(m);
 }
 
 void Primitive::update()

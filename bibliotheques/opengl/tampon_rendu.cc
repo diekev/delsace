@@ -26,7 +26,6 @@
 
 #include <ego/outils.h>
 #include <GL/glew.h>
-#include <glm/gtc/type_ptr.hpp>
 #include <mutex>
 #include <tbb/concurrent_vector.h>
 
@@ -232,13 +231,13 @@ void TamponRendu::dessine(const ContexteRendu &contexte)
 
 	numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après attache texture");
 
-	glUniformMatrix4fv(m_programme("matrice"), 1, GL_FALSE, glm::value_ptr(contexte.matrice_objet()));
+	glUniformMatrix4fv(m_programme("matrice"), 1, GL_FALSE, &contexte.matrice_objet()[0][0]);
 	numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice objet");
-	glUniformMatrix4fv(m_programme("MVP"), 1, GL_FALSE, glm::value_ptr(contexte.MVP()));
+	glUniformMatrix4fv(m_programme("MVP"), 1, GL_FALSE, &contexte.MVP()[0][0]);
 	numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice MVP");
 
 	if (m_requiers_normal) {
-		glUniformMatrix3fv(m_programme("N"), 1, GL_FALSE, glm::value_ptr(contexte.normal()));
+		glUniformMatrix3fv(m_programme("N"), 1, GL_FALSE, &contexte.normal()[0][0]);
 		numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice N");
 	}
 

@@ -90,7 +90,7 @@ size_t SegmentPrim::typeID() const
 	return SegmentPrim::id;
 }
 
-void SegmentPrim::computeBBox(glm::vec3 &min, glm::vec3 &max)
+void SegmentPrim::computeBBox(dls::math::vec3f &min, dls::math::vec3f &max)
 {
 	calcule_boite_delimitation(m_points, m_min, m_max);
 

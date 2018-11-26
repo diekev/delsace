@@ -25,7 +25,7 @@
 #include "rendu_brosse.h"
 
 #include <numero7/ego/outils.h>
-#include <numero7/math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 #include "bibliotheques/opengl/tampon_rendu.h"
 #include "bibliotheques/outils/constantes.h"
@@ -110,13 +110,13 @@ void RenduBrosse::initialise()
 
 	const auto &points = 64;
 
-	std::vector<numero7::math::vec3f> sommets(points + 1);
+	std::vector<dls::math::vec3f> sommets(points + 1);
 
 	for(int i = 0; i <= points; i++){
 		const auto angle = TAU * i / static_cast<float>(points);
 		const auto x = std::cos(angle);
 		const auto y = std::sin(angle);
-		sommets[i] = numero7::math::vec3f(x, y, 0.0);
+		sommets[i] = dls::math::vec3f(x, y, 0.0);
 	}
 
 	std::vector<unsigned int> index;
@@ -131,7 +131,7 @@ void RenduBrosse::initialise()
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = index.data();
 	parametres_tampon.taille_octet_index = index.size() * sizeof(unsigned int);
 	parametres_tampon.elements = index.size();

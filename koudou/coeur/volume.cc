@@ -24,7 +24,7 @@
 
 #include "volume.h"
 
-#include <math/bruit.h>
+#include <delsace/math/bruit.hh>
 
 #include "bsdf.h"
 #include "gna.h"
@@ -66,7 +66,7 @@ bool VolumeLoiBeers::integre(GNA &gna, const ParametresRendu &parametres, Spectr
 	return true;
 }
 
-Spectre VolumeLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const numero7::math::point3d &P0, const numero7::math::point3d &P1)
+Spectre VolumeLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const dls::math::point3d &P0, const dls::math::point3d &P1)
 {
 	const auto distance = longueur(P0 - P1);
 
@@ -105,7 +105,7 @@ bool VolumeHeterogeneLoiBeers::integre(GNA &gna, const ParametresRendu &parametr
 	return true;
 }
 
-Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const numero7::math::point3d &P0, const numero7::math::point3d &P1)
+Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const dls::math::point3d &P0, const dls::math::point3d &P1)
 {
 	const auto distance = longueur(P0 - P1);
 	const auto dir = (P1 - P0);
@@ -114,7 +114,7 @@ Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, const ParametresRendu 
 	auto t = 0.0;
 
 	/* À FAIRE. */
-	auto bruit = numero7::math::BruitPerlin3D();
+	auto bruit = dls::math::BruitPerlin3D();
 
 	do {
 		auto zeta = gna.nombre_aleatoire();
@@ -189,7 +189,7 @@ bool VolumeDiffusionSimple::integre(
 	L = Spectre(0.0);
 	auto L_bsdf = Spectre(0.0);
 	auto pdf_bsdf = 0.0;
-	auto dir_echantillon = numero7::math::vec3d(0.0);
+	auto dir_echantillon = dls::math::vec3d(0.0);
 
 	auto pdf_lumiere = 1.0; // À FAIRE
 	auto transmittance_rayon = 1.0; //  À FAIRE
@@ -219,8 +219,8 @@ bool VolumeDiffusionSimple::integre(
 Spectre VolumeDiffusionSimple::transmittance(
 		GNA &gna,
 		const ParametresRendu &parametres,
-		const numero7::math::point3d &P0,
-		const numero7::math::point3d &P1)
+		const dls::math::point3d &P0,
+		const dls::math::point3d &P1)
 {
 	const auto distance = longueur(P0 - P1);
 
@@ -262,7 +262,7 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 	auto t = 0.0;
 
 	/* À FAIRE. */
-	auto bruit = numero7::math::BruitPerlin3D();
+	auto bruit = dls::math::BruitPerlin3D();
 
 	do {
 		auto zeta = gna.nombre_aleatoire();
@@ -298,7 +298,7 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 		BSDFPhaseAnisotropique bsdf_phase(contexte);
 		L = Spectre(0.0);
 		Spectre L_bsdf, beamTransmittance;
-		numero7::math::vec3d dir_echantillon;
+		dls::math::vec3d dir_echantillon;
 		auto pdf_bsdf = 0.0;
 		auto pdf_lumiere = 1.0; // À FAIRE
 		auto transmittance_rayon = 1.0; //  À FAIRE
@@ -332,8 +332,8 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 Spectre VolumeHeterogeneDiffusionSimple::transmittance(
 		GNA &gna,
 		const ParametresRendu &parametres,
-		const numero7::math::point3d &P0,
-		const numero7::math::point3d &P1)
+		const dls::math::point3d &P0,
+		const dls::math::point3d &P1)
 {
 	const auto distance = longueur(P0 - P1);
 

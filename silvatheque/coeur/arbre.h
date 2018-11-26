@@ -27,10 +27,6 @@
 #include <vector>
 #include <map>
 
-#include <numero7/math/matrice/matrice.h>
-#include <numero7/math/point3.h>
-#include <numero7/math/vec3.h>
-
 #include "bibliotheques/outils/iterateurs.h"
 #include "bibliotheques/transformation/transformation.h"
 
@@ -40,7 +36,7 @@ struct Parametres;
  * Représentation d'un sommet dans l'espace tridimensionel.
  */
 struct Sommet {
-	numero7::math::vec3f pos;
+	dls::math::vec3f pos;
 	int index;
 };
 
@@ -74,7 +70,7 @@ public:
 
 	Arbre &operator=(const Arbre &autre) = default;
 
-	void ajoute_sommet(const numero7::math::vec3f &pos);
+	void ajoute_sommet(const dls::math::vec3f &pos);
 
 	void ajoute_arrete(int s0, int s1);
 

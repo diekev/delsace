@@ -46,13 +46,13 @@ BSDFTrivial::BSDFTrivial(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFTrivial::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const numero7::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFTrivial::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFTrivial::genere_echantillon(GNA &gna, const ParametresRendu &parametres, numero7::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFTrivial::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
 {
 	dir = -contexte.V;
 	pdf = 1.0;
@@ -65,13 +65,13 @@ BSDFAngleVue::BSDFAngleVue(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFAngleVue::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const numero7::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFAngleVue::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFAngleVue::genere_echantillon(GNA &gna, const ParametresRendu &parametres, numero7::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFAngleVue::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
 {
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
 	pdf = PI;
@@ -87,13 +87,13 @@ BSDFDiffus::BSDFDiffus(ContexteNuancage &ctx, Spectre s)
 	, spectre(s)
 {}
 
-void BSDFDiffus::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const numero7::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFDiffus::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFDiffus::genere_echantillon(GNA &gna, const ParametresRendu &parametres, numero7::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFDiffus::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
 {
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
 	pdf = PI;
@@ -103,8 +103,8 @@ void BSDFDiffus::genere_echantillon(GNA &gna, const ParametresRendu &parametres,
 /* ************************************************************************** */
 
 inline auto reflechi(
-		const numero7::math::vec3d &I,
-		const numero7::math::vec3d &N)
+		const dls::math::vec3d &I,
+		const dls::math::vec3d &N)
 {
 	return I - 2.0 * produit_scalaire(I, N) * N;
 }
@@ -113,13 +113,13 @@ BSDFReflectance::BSDFReflectance(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFReflectance::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const numero7::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFReflectance::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parametres, numero7::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
 {
 	dir = -contexte.V;
 	pdf = 1.0;
@@ -143,8 +143,8 @@ void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parame
 /* ************************************************************************** */
 
 auto refracte0(
-		const numero7::math::vec3d &I,
-		const numero7::math::vec3d &N,
+		const dls::math::vec3d &I,
+		const dls::math::vec3d &N,
 		const double idr)
 {
 	auto Nrefr = N;
@@ -169,15 +169,15 @@ auto refracte0(
 	auto k = 1.0 - eta * eta * (1.0 - cos_theta * cos_theta);
 
 	if (k < 0.0) {
-		return numero7::math::vec3d(0.0);
+		return dls::math::vec3d(0.0);
 	}
 
 	return eta * I + (eta * cos_theta - sqrt(k)) * Nrefr;
 }
 
 auto fresnel0(
-		const numero7::math::vec3d &I,
-		const numero7::math::vec3d &N,
+		const dls::math::vec3d &I,
+		const dls::math::vec3d &N,
 		const double &idr,
 		double &kr)
 {
@@ -212,13 +212,13 @@ BSDFVerre::BSDFVerre(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFVerre::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const numero7::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFVerre::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, numero7::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
 {
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
 	pdf = 1.0;
@@ -307,13 +307,13 @@ BSDFVolume::BSDFVolume(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFVolume::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const numero7::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFVolume::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
 	pdf = 0.0;
 	L = Spectre(0.0);
 }
 
-void BSDFVolume::genere_echantillon(GNA &gna, const ParametresRendu &parametres, numero7::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFVolume::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
 {
 	dir = -contexte.V;
 	pdf = 1.0;
@@ -353,13 +353,13 @@ BSDFPhaseIsotropique::BSDFPhaseIsotropique(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFPhaseIsotropique::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const numero7::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFPhaseIsotropique::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
 	pdf = 0.25 * PI_INV;
 	L = Spectre(pdf);
 }
 
-void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, numero7::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
 {
 	auto xi = gna.nombre_aleatoire();
 	dir.z = xi * 2.0 - 1.0; // cos_theta;
@@ -391,15 +391,15 @@ void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, const ParametresRendu &p
  */
 template <typename T>
 static void cree_base_orthonormal(
-		const numero7::math::vec3<T> &n,
-		numero7::math::vec3<T> &b0,
-		numero7::math::vec3<T> &b1)
+		const dls::math::vec3<T> &n,
+		dls::math::vec3<T> &b0,
+		dls::math::vec3<T> &b1)
 {
 	const auto sign = std::copysign(static_cast<T>(1.0), n.z);
 	const auto a = static_cast<T>(-1.0) / (sign + n.z);
 	const auto b = n.x * n.y * a;
-	b0 = numero7::math::vec3<T>(1.0f + sign * n.x * n.x * a, sign * b, -sign * n.x);
-	b1 = numero7::math::vec3<T>(b, sign + n.y * n.y * a, -n.y);
+	b0 = dls::math::vec3<T>(1.0f + sign * n.x * n.x * a, sign * b, -sign * n.x);
+	b1 = dls::math::vec3<T>(b, sign + n.y * n.y * a, -n.y);
 }
 
 BSDFPhaseAnisotropique::BSDFPhaseAnisotropique(ContexteNuancage &ctx, double g_)
@@ -422,7 +422,7 @@ BSDFPhaseAnisotropique::BSDFPhaseAnisotropique(ContexteNuancage &ctx, double g_)
 	}
 }
 
-void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const numero7::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
 {
 	if (isotropique) {
 		pdf = 0.25 * PI_INV;
@@ -435,7 +435,7 @@ void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, const ParametresRendu 
 	L = Spectre(pdf);
 }
 
-void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, numero7::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
+void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, int profondeur)
 {
 	if (isotropique) {
 		/* Pareil que BSDFPhaseIsotropique::genere_echantillon. */
@@ -465,7 +465,7 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, const ParametresRendu 
 		auto sin_theta = std::sqrt(1.0f - cos_theta * cos_theta); // carré de sin_theta
 		auto in = -contexte.V;
 
-		numero7::math::vec3d t0, t1;
+		dls::math::vec3d t0, t1;
 		cree_base_orthonormal(in, t0, t1);
 
 		dir = sin_theta * std::sin(phi) * t0 + sin_theta * std::cos(phi) * t1 + cos_theta * in;

@@ -102,7 +102,7 @@ size_t Mesh::typeID() const
 	return Mesh::id;
 }
 
-void Mesh::computeBBox(glm::vec3 &min, glm::vec3 &max)
+void Mesh::computeBBox(dls::math::vec3f &min, dls::math::vec3f &max)
 {
 	calcule_boite_delimitation(m_point_list, m_min, m_max);
 

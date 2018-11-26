@@ -32,7 +32,7 @@
 /* ************************************************************************** */
 
 static void extrait_canal(
-		const numero7::math::matrice<numero7::math::vec3d> &image,
+		const numero7::math::matrice<dls::math::vec3d> &image,
 		float *donnees,
 		int canal)
 {
@@ -168,7 +168,7 @@ void VisionneurImage::redimensionne(int largeur, int hauteur)
 	glViewport(0, 0, largeur, hauteur);
 }
 
-void VisionneurImage::charge_image(const numero7::math::matrice<numero7::math::vec3d> &image)
+void VisionneurImage::charge_image(const numero7::math::matrice<dls::math::vec3d> &image)
 {
 	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
 		return;

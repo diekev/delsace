@@ -24,8 +24,6 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "primitive.h"
 
 class FenetrePrincipale;

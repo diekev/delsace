@@ -228,12 +228,12 @@ double restreint(double valeur, double min, double max)
 	return valeur;
 }
 
-double theta_spherique(const numero7::math::vec3d &vecteur)
+double theta_spherique(const dls::math::vec3d &vecteur)
 {
 	return std::acos(restreint(vecteur.y, -1.0, 1.0));
 }
 
-double phi_spherique(const numero7::math::vec3d &vecteur)
+double phi_spherique(const dls::math::vec3d &vecteur)
 {
 	auto p = std::atan2(vecteur.z, vecteur.x);
 	return (p < 0.0) ? p + TAU : p;
@@ -270,7 +270,7 @@ Spectre TextureCouleur::spectre() const
 	return m_spectre;
 }
 
-Spectre TextureCouleur::echantillone(const numero7::math::vec3d &direction) const
+Spectre TextureCouleur::echantillone(const dls::math::vec3d &direction) const
 {
 	return m_spectre;
 }
@@ -282,10 +282,10 @@ TypeTexture TextureCouleur::type() const
 
 /* ************************************************************************** */
 
-Spectre TextureImage::echantillone(const numero7::math::vec3d &direction) const
+Spectre TextureImage::echantillone(const dls::math::vec3d &direction) const
 {
 	/* Mappage sphérique. */
-	auto vec = numero7::math::normalise(direction - numero7::math::vec3d(0.0, 0.0, 0.0));
+	auto vec = dls::math::normalise(direction - dls::math::vec3d(0.0, 0.0, 0.0));
 
 	auto theta = theta_spherique(vec);
 	auto phi = phi_spherique(vec);
@@ -375,12 +375,12 @@ void TextureImage::camera(vision::Camera3D *p)
 	m_camera = p;
 }
 
-numero7::math::vec3f TextureImage::taille() const
+dls::math::vec3f TextureImage::taille() const
 {
 	return m_taille;
 }
 
-void TextureImage::taille(const numero7::math::vec3f &taille)
+void TextureImage::taille(const dls::math::vec3f &taille)
 {
 	m_taille = taille;
 }

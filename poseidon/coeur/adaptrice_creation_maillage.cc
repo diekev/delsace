@@ -28,7 +28,7 @@
 
 void AdaptriceCreationMaillage::ajoute_sommet(const float x, const float y, const float z, const float w)
 {
-	maillage->ajoute_sommet(numero7::math::vec3f(x, y, z));
+	maillage->ajoute_sommet(dls::math::vec3f(x, y, z));
 }
 
 void AdaptriceCreationMaillage::ajoute_normal(const float x, const float y, const float z)

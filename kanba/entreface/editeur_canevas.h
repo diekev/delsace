@@ -24,9 +24,8 @@
 
 #pragma once
 
-#include <numero7/image/pixel.h>
 #include <numero7/math/matrice/matrice.h>
-#include <numero7/math/vec4.h>
+#include <delsace/math/vecteur.hh>
 
 #include <QGLWidget>
 #include "base_editeur.h"
@@ -59,7 +58,7 @@ public:
 	void paintGL();
 	void resizeGL(int w, int h);
 
-	void charge_image(const numero7::math::matrice<numero7::math::vec4f> &image);
+	void charge_image(const numero7::math::matrice<dls::math::vec4f> &image);
 
 	void mode_visionnage(int mode);
 

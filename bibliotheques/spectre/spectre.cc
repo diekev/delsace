@@ -25,8 +25,7 @@
 #include "spectre.h"
 
 #include <algorithm>
-
-#include "bibliotheques/math/outils.h"
+#include <delsace/math/entrepolation.hh>
 
 /* ************************************************************************** */
 
@@ -48,7 +47,7 @@ int trouve_entrevalle(int taille, const Predicate &predicat)
 		}
 	}
 
-	return math::restreint(debut - 1, 0, taille - 2);
+	return dls::math::restreint(debut - 1, 0, taille - 2);
 }
 
 float moyenne_echantillons(
@@ -88,7 +87,7 @@ float moyenne_echantillons(
 
 	auto entrepole = [lambdas, valeurs](float w, int i)
 	{
-		return math::entrepolation_lineaire(
+		return dls::math::entrepolation_lineaire(
 					valeurs[i],
 					valeurs[i + 1],
 				(w - lambdas[i]) / (lambdas[i + 1] - lambdas[i]));
@@ -153,7 +152,7 @@ float entrepole_echantillons_spectre(
 
 	const auto t = (l - lambdas[offset]) / (lambdas[offset + 1] - lambdas[offset]);
 
-	return math::entrepolation_lineaire(valeurs[offset], valeurs[offset + 1], t);
+	return dls::math::entrepolation_lineaire(valeurs[offset], valeurs[offset + 1], t);
 }
 
 // Given a piecewise-linear SPD with values in vIn[] at corresponding
@@ -218,7 +217,7 @@ void reechantillone_spectre_lineaire(
 	// specified range are given by the valid endpoints.
 	auto vInClamped = [&](int index)
 	{
-		return vIn[math::restreint(index, 0, nIn - 1)];
+		return vIn[dls::math::restreint(index, 0, nIn - 1)];
 	};
 
 	// Helper that upsamples ors downsample the given SPD at the given
@@ -284,7 +283,7 @@ void reechantillone_spectre_lineaire(
 			// lambda.
 			float t = (lambda - lambdaInClamped(start)) /
 					  (lambdaInClamped(end) - lambdaInClamped(start));
-			return math::entrepolation_lineaire(vInClamped(start), vInClamped(end), t);
+			return dls::math::entrepolation_lineaire(vInClamped(start), vInClamped(end), t);
 		}
 
 		// Upsampling: use a box filter and average all values in the
@@ -301,7 +300,7 @@ void reechantillone_spectre_lineaire(
 		// since we're resampling it at a regular and increasing set of
 		// lambdas. It would be nice to polish that up.
 		float lambda =
-			math::entrepolation_lineaire(lambdaMin, lambdaMax, float(outOffset) / (nOut - 1));
+			dls::math::entrepolation_lineaire(lambdaMin, lambdaMax, float(outOffset) / (nOut - 1));
 
 		vOut[outOffset] = resample(lambda);
 	}
@@ -397,8 +396,8 @@ SpectreEchantillon SpectreEchantillon::depuis_echantillons(const float *lambda, 
 	SpectreEchantillon resultat;
 
 	for (int i = 0; i < NOMBRE_ECHANTILLONS; ++i) {
-		const auto lambda0 = math::entrepolation_lineaire(DEBUT_LAMBDA_SPECTRE, FIN_LAMBDA_SPECTRE, i / static_cast<float>(NOMBRE_ECHANTILLONS));
-		const auto lambda1 = math::entrepolation_lineaire(DEBUT_LAMBDA_SPECTRE, FIN_LAMBDA_SPECTRE, (i + 1) / static_cast<float>(NOMBRE_ECHANTILLONS));
+		const auto lambda0 = dls::math::entrepolation_lineaire(DEBUT_LAMBDA_SPECTRE, FIN_LAMBDA_SPECTRE, i / static_cast<float>(NOMBRE_ECHANTILLONS));
+		const auto lambda1 = dls::math::entrepolation_lineaire(DEBUT_LAMBDA_SPECTRE, FIN_LAMBDA_SPECTRE, (i + 1) / static_cast<float>(NOMBRE_ECHANTILLONS));
 
 		resultat[i] = moyenne_echantillons(lambda, v, n, lambda0, lambda1);
 	}
@@ -553,12 +552,12 @@ void SpectreEchantillon::initialisation()
 {
 	// Compute XYZ matching functions for _SampledSpectrum_
 	for (int i = 0; i < NOMBRE_ECHANTILLONS; ++i) {
-		const auto wl0 = math::entrepolation_lineaire(
+		const auto wl0 = dls::math::entrepolation_lineaire(
 							 DEBUT_LAMBDA_SPECTRE,
 							 FIN_LAMBDA_SPECTRE,
 							 float(i) / float(NOMBRE_ECHANTILLONS));
 
-		const auto wl1 = math::entrepolation_lineaire(
+		const auto wl1 = dls::math::entrepolation_lineaire(
 							 DEBUT_LAMBDA_SPECTRE,
 							 FIN_LAMBDA_SPECTRE,
 							 float(i + 1) / float(NOMBRE_ECHANTILLONS));
@@ -575,12 +574,12 @@ void SpectreEchantillon::initialisation()
 
 	// Compute RGB to spectrum functions for _SampledSpectrum_
 	for (int i = 0; i < NOMBRE_ECHANTILLONS; ++i) {
-		const auto wl0 = math::entrepolation_lineaire(
+		const auto wl0 = dls::math::entrepolation_lineaire(
 							 DEBUT_LAMBDA_SPECTRE,
 							 FIN_LAMBDA_SPECTRE,
 							 float(i) / float(NOMBRE_ECHANTILLONS));
 
-		const auto wl1 = math::entrepolation_lineaire(
+		const auto wl1 = dls::math::entrepolation_lineaire(
 							 DEBUT_LAMBDA_SPECTRE,
 							 FIN_LAMBDA_SPECTRE,
 							 float(i + 1) / float(NOMBRE_ECHANTILLONS));

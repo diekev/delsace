@@ -90,7 +90,7 @@ void Visionneuse2D::paintGL()
 
 	m_rendu_image->dessine(m_contexte);
 
-	m_contexte.matrice_objet(glm::mat4(1.0));
+	m_contexte.matrice_objet(dls::math::mat4x4f(1.0));
 
 	/* À FAIRE */
 	m_rendu_manipulatrice->dessine(m_contexte);
@@ -107,7 +107,7 @@ void Visionneuse2D::resizeGL(int w, int h)
 
 	m_mikisa->camera_2d->ajourne_matrice();
 
-	m_matrice_image = glm::mat4(1.0);
+	m_matrice_image = dls::math::mat4x4f(1.0);
 	m_matrice_image[0][0] = 1.0;
 	m_matrice_image[1][1] = static_cast<float>(720) / 1280;
 }
@@ -115,7 +115,7 @@ void Visionneuse2D::resizeGL(int w, int h)
 void Visionneuse2D::charge_image(const numero7::math::matrice<numero7::image::Pixel<float>> &image)
 {
 	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
-		m_matrice_image = glm::mat4(1.0);
+		m_matrice_image = dls::math::mat4x4f(1.0);
 		m_matrice_image[0][0] = 1.0;
 		m_matrice_image[1][1] = static_cast<float>(720) / 1280;
 		return;
@@ -126,7 +126,7 @@ void Visionneuse2D::charge_image(const numero7::math::matrice<numero7::image::Pi
 		static_cast<GLint>(image.nombre_lignes())
 	};
 
-	m_matrice_image = glm::mat4(1.0);
+	m_matrice_image = dls::math::mat4x4f(1.0);
 	m_matrice_image[0][0] = 1.0;
 	m_matrice_image[1][1] = static_cast<float>(size[1]) / size[0];
 

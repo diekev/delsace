@@ -24,17 +24,17 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include <delsace/math/vecteur.hh>
 #include <vector>
 
 class PointList {
-	std::vector<glm::vec3> m_points{};
+	std::vector<dls::math::vec3f> m_points{};
 
 public:
 	PointList() = default;
 
-	void push_back(const glm::vec3 &point);
-	void push_back(glm::vec3 &&point);
+	void push_back(const dls::math::vec3f &point);
+	void push_back(dls::math::vec3f &&point);
 
 	void reserve(size_t n);
 
@@ -46,20 +46,20 @@ public:
 
 	const void *data() const;
 
-	glm::vec3 &operator[](size_t i);
-	const glm::vec3 &operator[](size_t i) const;
+	dls::math::vec3f &operator[](size_t i);
+	const dls::math::vec3f &operator[](size_t i) const;
 };
 
 /* ************************************************************************** */
 
 class EdgeList {
-	std::vector<glm::uvec2> m_edge{};
+	std::vector<dls::math::vec2i> m_edge{};
 
 public:
 	EdgeList() = default;
 
-	void push_back(const glm::uvec2 &edge);
-	void push_back(glm::uvec2 &&edge);
+	void push_back(const dls::math::vec2i &edge);
+	void push_back(dls::math::vec2i &&edge);
 
 	void reserve(size_t n);
 
@@ -71,8 +71,8 @@ public:
 
 	const void *data() const;
 
-	glm::uvec2 &operator[](size_t i);
-	const glm::uvec2 &operator[](size_t i) const;
+	dls::math::vec2i &operator[](size_t i);
+	const dls::math::vec2i &operator[](size_t i) const;
 };
 
 /* ************************************************************************** */
@@ -84,14 +84,14 @@ public:
 static constexpr auto INVALID_INDEX = std::numeric_limits<unsigned int>::max();
 
 class PolygonList {
-	std::vector<glm::uvec4> m_polys{};
+	std::vector<dls::math::vec4i> m_polys{};
 
 public:
 	PolygonList() = default;
 
-	void push_back(const glm::uvec4 &poly);
+	void push_back(const dls::math::vec4i &poly);
 
-	void push_back(glm::uvec4 &&poly);
+	void push_back(dls::math::vec4i &&poly);
 
 	void reserve(size_t n);
 
@@ -103,7 +103,7 @@ public:
 
 	const void *data() const;
 
-	glm::uvec4 &operator[](size_t i);
+	dls::math::vec4i &operator[](size_t i);
 
-	const glm::uvec4 &operator[](size_t i) const;
+	const dls::math::vec4i &operator[](size_t i) const;
 };

@@ -24,21 +24,21 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include <delsace/math/vecteur.hh>
 
 class Attribute;
 class PointList;
 class PolygonList;
 
-inline glm::vec3 normale_triangle(
-		const glm::vec3 &v0,
-		const glm::vec3 &v1,
-		const glm::vec3 &v2)
+inline dls::math::vec3f normale_triangle(
+		const dls::math::vec3f &v0,
+		const dls::math::vec3f &v1,
+		const dls::math::vec3f &v2)
 {
 	const auto n0 = v0 - v1;
 	const auto n1 = v2 - v1;
 
-	return glm::cross(n1, n0);
+	return dls::math::produit_croix(n1, n0);
 }
 
 void calcule_normales(
@@ -49,5 +49,5 @@ void calcule_normales(
 
 void calcule_boite_delimitation(
 		const PointList &points,
-		glm::vec3 &min,
-		glm::vec3 &max);
+		dls::math::vec3f &min,
+		dls::math::vec3f &max);

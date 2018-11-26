@@ -28,8 +28,6 @@
 #include <ego/programme.h>
 #include <ego/texture.h>
 
-#include <glm/glm.hpp>
-
 #include <string>
 #include <vector>
 

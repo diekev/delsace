@@ -79,7 +79,7 @@ static TamponRendu *genere_tampon_courbes(Courbes *courbes)
 
 	const size_t nombre_elements = courbes->nombre_courbes * (courbes->segments_par_courbe * 2);
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(courbes->liste_points()->taille());
 
 	std::vector<int> index;
@@ -98,7 +98,7 @@ static TamponRendu *genere_tampon_courbes(Courbes *courbes)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = index.data();
 	parametres_tampon.taille_octet_index = index.size() * sizeof(int);
 	parametres_tampon.elements = index.size();

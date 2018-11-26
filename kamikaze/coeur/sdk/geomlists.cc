@@ -24,12 +24,12 @@
 
 #include "geomlists.h"
 
-void PointList::push_back(const glm::vec3 &point)
+void PointList::push_back(const dls::math::vec3f &point)
 {
 	m_points.push_back(point);
 }
 
-void PointList::push_back(glm::vec3 &&point)
+void PointList::push_back(dls::math::vec3f &&point)
 {
 	m_points.emplace_back(std::move(point));
 }
@@ -51,7 +51,7 @@ size_t PointList::size() const
 
 size_t PointList::byte_size() const
 {
-	return m_points.size() * sizeof(glm::vec3);
+	return m_points.size() * sizeof(dls::math::vec3f);
 }
 
 const void *PointList::data() const
@@ -63,24 +63,24 @@ const void *PointList::data() const
 	return (&m_points[0][0]);
 }
 
-glm::vec3 &PointList::operator[](size_t i)
+dls::math::vec3f &PointList::operator[](size_t i)
 {
 	return m_points[i];
 }
 
-const glm::vec3 &PointList::operator[](size_t i) const
+const dls::math::vec3f &PointList::operator[](size_t i) const
 {
 	return m_points[i];
 }
 
 /* ************************************************************************** */
 
-void EdgeList::push_back(const glm::uvec2 &edge)
+void EdgeList::push_back(const dls::math::vec2i &edge)
 {
 	m_edge.push_back(edge);
 }
 
-void EdgeList::push_back(glm::uvec2 &&edge)
+void EdgeList::push_back(dls::math::vec2i &&edge)
 {
 	m_edge.push_back(edge);
 }
@@ -102,7 +102,7 @@ size_t EdgeList::size() const
 
 size_t EdgeList::byte_size() const
 {
-	return m_edge.size() * sizeof(glm::uvec2);
+	return m_edge.size() * sizeof(dls::math::vec2i);
 }
 
 const void *EdgeList::data() const
@@ -114,24 +114,24 @@ const void *EdgeList::data() const
 	return (&m_edge[0][0]);
 }
 
-glm::uvec2 &EdgeList::operator[](size_t i)
+dls::math::vec2i &EdgeList::operator[](size_t i)
 {
 	return m_edge[i];
 }
 
-const glm::uvec2 &EdgeList::operator[](size_t i) const
+const dls::math::vec2i &EdgeList::operator[](size_t i) const
 {
 	return m_edge[i];
 }
 
 /* ************************************************************************** */
 
-void PolygonList::push_back(const glm::uvec4 &poly)
+void PolygonList::push_back(const dls::math::vec4i &poly)
 {
 	m_polys.push_back(poly);
 }
 
-void PolygonList::push_back(glm::uvec4 &&poly)
+void PolygonList::push_back(dls::math::vec4i &&poly)
 {
 	m_polys.emplace_back(std::move(poly));
 }
@@ -153,7 +153,7 @@ size_t PolygonList::size() const
 
 size_t PolygonList::byte_size() const
 {
-	return m_polys.size() * sizeof(glm::ivec4);
+	return m_polys.size() * sizeof(dls::math::vec4i);
 }
 
 const void *PolygonList::data() const
@@ -165,12 +165,12 @@ const void *PolygonList::data() const
 	return (&m_polys[0][0]);
 }
 
-glm::uvec4 &PolygonList::operator[](size_t i)
+dls::math::vec4i &PolygonList::operator[](size_t i)
 {
 	return m_polys[i];
 }
 
-const glm::uvec4 &PolygonList::operator[](size_t i) const
+const dls::math::vec4i &PolygonList::operator[](size_t i) const
 {
 	return m_polys[i];
 }

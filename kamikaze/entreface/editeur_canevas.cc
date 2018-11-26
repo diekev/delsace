@@ -25,8 +25,6 @@
 #include "editeur_canevas.h"
 
 #include <chronometrage/utilitaires.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/matrix_inverse.hpp>
 #include <iostream>
 
 #include <QApplication>
@@ -54,6 +52,20 @@
 
 #include "coeur/object.h"
 #include "coeur/scene.h"
+
+template <typename T>
+[[nodiscard]] auto converti_matrice_opengl(dls::math::mat4x4<T> const &mat)
+{
+	dls::math::mat4x4<float> resultat;
+
+	for (size_t i = 0; i < 4; ++i) {
+		for (size_t j = 0; j < 4; ++j) {
+			resultat[i][j] = static_cast<float>(mat[i][j]);
+		}
+	}
+
+	return resultat;
+}
 
 Canevas::Canevas(RepondantCommande *repondant, QWidget *parent)
     : QGLWidget(parent)
@@ -121,8 +133,8 @@ void Canevas::paintGL()
 	m_contexte_rendu.modele_vue(MV);
 	m_contexte_rendu.projection(P);
 	m_contexte_rendu.MVP(MVP);
-	m_contexte_rendu.normal(glm::inverseTranspose(glm::mat3(MV)));
-	m_contexte_rendu.matrice_objet(m_pile.sommet());
+	m_contexte_rendu.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
+	m_contexte_rendu.matrice_objet(converti_matrice_opengl(m_pile.sommet()));
 	m_contexte_rendu.pour_surlignage(false);
 
 	/* À FAIRE */
@@ -182,7 +194,7 @@ void Canevas::paintGL()
 
 				m_pile.pousse(prim->matrix());
 
-				m_contexte_rendu.matrice_objet(m_pile.sommet());
+				m_contexte_rendu.matrice_objet(converti_matrice_opengl(m_pile.sommet()));
 
 				rendu_primitive->dessine(m_contexte_rendu);
 
@@ -311,7 +323,7 @@ void Canevas::changeBackground()
 	const auto &color = QColorDialog::getColor();
 
 	if (color.isValid()) {
-		m_bg = glm::vec4(color.redF(), color.greenF(), color.blueF(), 1.0f);
+		m_bg = dls::math::vec4f(color.redF(), color.greenF(), color.blueF(), 1.0f);
 		glClearColor(m_bg.r, m_bg.g, m_bg.b, m_bg.a);
 		update();
 	}

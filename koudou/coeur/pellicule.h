@@ -25,7 +25,7 @@
 #pragma once
 
 #include <math/matrice/matrice.h>
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 #include <vector>
 
@@ -37,12 +37,12 @@ struct CarreauPellicule {
 };
 
 struct PixelPellicule {
-	numero7::math::vec3d couleur;
+	dls::math::vec3d couleur;
 	double poids;
 };
 
 class Pellicule {
-	numero7::math::matrice<numero7::math::vec3d> m_matrice;
+	numero7::math::matrice<dls::math::vec3d> m_matrice;
 
 	std::vector<PixelPellicule> m_pixels_pellicule;
 
@@ -53,11 +53,11 @@ public:
 
 	int largeur() const;
 
-	void ajoute_echantillon(int i, int j, const numero7::math::vec3d &couleur, const double poids = 1.0);
+	void ajoute_echantillon(int i, int j, const dls::math::vec3d &couleur, const double poids = 1.0);
 
-	const numero7::math::vec3d &couleur(int i, int j);
+	const dls::math::vec3d &couleur(int i, int j);
 
-	const numero7::math::matrice<numero7::math::vec3d> &donnees();
+	const numero7::math::matrice<dls::math::vec3d> &donnees();
 
 	void reinitialise();
 

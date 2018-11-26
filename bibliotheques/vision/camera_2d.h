@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include <delsace/math/matrice.hh>
 
 namespace vision {
 
@@ -34,7 +34,7 @@ struct Camera2D {
 	float pos_x = 0.0f;
 	float pos_y = 0.0f;
 	float zoom = 1.0f;
-	glm::mat4 matrice = glm::mat4(1.0);
+	dls::math::mat4x4f matrice = dls::math::mat4x4f(1.0);
 
 	Camera2D() = default;
 	~Camera2D() = default;

@@ -25,8 +25,6 @@
 #include "moteur_rendu.h"
 
 #include <chronometrage/utilitaires.h>
-#include <math/conversion_point_vecteur.h>
-#include <math/vec2.h>
 
 #include <tbb/parallel_for.h>
 
@@ -56,7 +54,7 @@ vision::EchantillonCamera genere_echantillon(GNA &gna, int x, int y)
 
 static Rayon genere_rayon(vision::Camera3D *camera, const vision::EchantillonCamera &echantillon)
 {
-	auto pos = numero7::math::point3f(
+	auto pos = dls::math::point3f(
 				   echantillon.x / camera->largeur(),
 				   (camera->hauteur() - echantillon.y) / camera->hauteur(),
 				   0.0f);
@@ -71,8 +69,8 @@ static Rayon genere_rayon(vision::Camera3D *camera, const vision::EchantillonCam
 	const auto direction = normalise(fin - debut);
 
 	Rayon r;
-	r.origine = numero7::math::point3d(origine.x, origine.y, origine.z);
-	r.direction = numero7::math::vec3d(direction.x, direction.y, direction.z);
+	r.origine = dls::math::point3d(origine.x, origine.y, origine.z);
+	r.direction = dls::math::vec3d(direction.x, direction.y, direction.z);
 
 	for (int i = 0; i < 3; ++i) {
 		r.inverse_direction[i] = 1.0 / r.direction[i];
@@ -90,7 +88,7 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 
 	if (profondeur > 5) {
 		auto point = rayon.origine + rayon.direction;
-		auto vecteur = numero7::math::vecteur_depuis_point(point);
+		auto vecteur = dls::math::vec3d(point);
 		return spectre_monde(scene.monde, vecteur);
 	}
 
@@ -108,8 +106,8 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 
 		if (entresection.type_objet == OBJET_TYPE_AUCUN) {
 			if (i == 0) {
-				auto point = rayon_local.origine + rayon_local.direction;
-				auto vecteur = numero7::math::vecteur_depuis_point(point);
+				auto point = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
+				auto vecteur = dls::math::vec3d(point);
 				return spectre_monde(scene.monde, vecteur);
 			}
 
@@ -117,7 +115,7 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 		}
 
 		// get pos and normal at the entresection point
-		contexte.P = rayon_local.origine + entresection.distance * rayon_local.direction;
+		contexte.P = rayon_local.origine + entresection.distance * dls::math::point3d(rayon_local.direction);
 		contexte.N = normale_scene(scene, contexte.P, entresection);
 		contexte.V = -rayon_local.direction;
 
@@ -211,7 +209,7 @@ void MoteurRendu::echantillone_scene(const ParametresRendu &parametres, const st
 					float rgb[3];
 					spectre_actuel.vers_rvb(rgb);
 
-					m_pellicule.ajoute_echantillon(x, y, numero7::math::vec3d(rgb[0], rgb[1], rgb[2]));
+					m_pellicule.ajoute_echantillon(x, y, dls::math::vec3d(rgb[0], rgb[1], rgb[2]));
 				}
 			}
 		}
@@ -232,7 +230,7 @@ Pellicule *MoteurRendu::pointeur_pellicule()
 	return &m_pellicule;
 }
 
-const numero7::math::matrice<numero7::math::vec3d> &MoteurRendu::pellicule()
+const numero7::math::matrice<dls::math::vec3d> &MoteurRendu::pellicule()
 {
 	m_pellicule.creer_image();
 	return m_pellicule.donnees();

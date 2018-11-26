@@ -24,8 +24,6 @@
 
 #include "scene.h"
 
-#include <math/vec2.h>
-
 #include <cassert>
 
 #include "bibliotheques/outils/constantes.h"
@@ -47,7 +45,7 @@ Monde::~Monde()
 	supprime_texture(texture);
 }
 
-Spectre spectre_monde(const Monde &monde, const numero7::math::vec3d &direction)
+Spectre spectre_monde(const Monde &monde, const dls::math::vec3d &direction)
 {
 	if (monde.texture) {
 		return monde.texture->echantillone(direction);
@@ -172,14 +170,14 @@ void Scene::ajoute_lumiere(Lumiere *lumiere)
 
 /* ************************************************************************** */
 
-numero7::math::vec3d normale_scene(const Scene &scene, const numero7::math::point3d &position, const Entresection &entresection)
+dls::math::vec3d normale_scene(const Scene &scene, const dls::math::point3d &position, const Entresection &entresection)
 {
 	switch (entresection.type_objet) {
 		default:
 		case OBJET_TYPE_AUCUN:
 		case OBJET_TYPE_LUMIERE:
 		{
-			return numero7::math::vec3d(0.0);
+			return dls::math::vec3d(0.0);
 		}
 		case OBJET_TYPE_TRIANGLE:
 		{
@@ -201,7 +199,7 @@ double ombre_scene(const ParametresRendu &parametres, const Scene &scene, const 
 	return 0.0;
 }
 
-Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, GNA &gna, const numero7::math::point3d &pos, const numero7::math::vec3d &nor)
+Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, GNA &gna, const dls::math::point3d &pos, const dls::math::vec3d &nor)
 {
 	/* Biais pour les rayons d'ombrage. À FAIRE : mettre dans les paramètres. */
 	const auto biais = 1e-4;
@@ -218,12 +216,12 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 
 		if (lumiere_distante != nullptr) {
 			const auto direction = lumiere_distante->dir;
-			const auto direction_op = numero7::math::vec3d(
+			const auto direction_op = dls::math::vec3d(
 										  -direction.x,
 										  -direction.y,
 										  -direction.z);
 
-			const auto angle = numero7::math::produit_scalaire(direction_op, nor);
+			const auto angle = dls::math::produit_scalaire(direction_op, nor);
 
 			if (angle <= 0.0) {
 				continue;
@@ -246,15 +244,15 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 
 		if (lumiere_point != nullptr) {
 			const auto direction = pos - lumiere_point->pos;
-			const auto dist2 = numero7::math::longueur_carree(direction);
+			const auto dist2 = dls::math::longueur_carree(direction);
 			auto dist = sqrt(dist2);
 
-			const auto direction_op = numero7::math::vec3d(
+			const auto direction_op = dls::math::vec3d(
 										  -direction.x / dist,
 										  -direction.y / dist,
 										  -direction.z / dist);
 
-			const auto angle = numero7::math::produit_scalaire(direction_op, nor);
+			const auto angle = dls::math::produit_scalaire(direction_op, nor);
 
 			if (angle <= 0.0) {
 				continue;
@@ -278,8 +276,8 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 
 	/* Échantillone ciel. */
 	const auto point = 1000.0 * cosine_direction(gna, nor);
-	const auto posv = numero7::math::vec3d(pos.x, pos.y, pos.z); /* XXX - PAS BEAU. */
-	const auto direction = numero7::math::normalise(point - posv);
+	const auto posv = dls::math::vec3d(pos.x, pos.y, pos.z); /* XXX - PAS BEAU. */
+	const auto direction = dls::math::normalise(point - posv);
 	rayon.direction = direction;
 	for (int i = 0; i < 3; ++i) {
 		rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
@@ -289,30 +287,30 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 	return spectre;
 }
 
-numero7::math::vec3d get_brdf_ray(GNA &gna, const numero7::math::vec3d &nor, const numero7::math::vec3d &rd)
+dls::math::vec3d get_brdf_ray(GNA &gna, const dls::math::vec3d &nor, const dls::math::vec3d &rd)
 {
 	if (gna.nombre_aleatoire() < 0.793) {
 		return cosine_direction(gna, nor);
 	}
 
 	const auto p = reflect(nor, rd);
-	return numero7::math::normalise(p + cosine_direction(gna, p) * 0.1);
+	return dls::math::normalise(p + cosine_direction(gna, p) * 0.1);
 }
 
-numero7::math::vec3d cosine_direction(GNA &gna, const numero7::math::vec3d &nor)
+dls::math::vec3d cosine_direction(GNA &gna, const dls::math::vec3d &nor)
 {
-	auto r = numero7::math::vec2d(gna.nombre_aleatoire() * TAU, gna.nombre_aleatoire() * TAU);
+	auto r = dls::math::vec2d(gna.nombre_aleatoire() * TAU, gna.nombre_aleatoire() * TAU);
 	auto sin_r = sin(r[0]);
-	auto dr = numero7::math::vec3d(sin_r * sin(r[1]), sin_r * cos(r[1]), cos(r[0]));
+	auto dr = dls::math::vec3d(sin_r * sin(r[1]), sin_r * cos(r[1]), cos(r[0]));
 
-	if (numero7::math::produit_scalaire(dr, nor) < 0.0) {
-		numero7::math::vec3d(-dr[0], -dr[1], -dr[2]);
+	if (dls::math::produit_scalaire(dr, nor) < 0.0) {
+		dls::math::vec3d(-dr[0], -dr[1], -dr[2]);
 	}
 
 	return dr;
 }
 
-numero7::math::vec3d reflect(const numero7::math::vec3d &nor, const numero7::math::vec3d &dir)
+dls::math::vec3d reflect(const dls::math::vec3d &nor, const dls::math::vec3d &dir)
 {
 	return dir - (2.0 * produit_scalaire(dir, nor) * nor);
 }

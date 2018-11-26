@@ -49,19 +49,19 @@ Attribut::Attribut(const std::string &name, type_attribut type, int portee, size
 			m_donnees.liste_chaine = new std::vector<std::string>(size);
 			break;
 		case ATTRIBUT_VEC2:
-			m_donnees.liste_vec2 = new std::vector<numero7::math::vec2f>(size);
+			m_donnees.liste_vec2 = new std::vector<dls::math::vec2f>(size);
 			break;
 		case ATTRIBUT_VEC3:
-			m_donnees.liste_vec3 = new std::vector<numero7::math::vec3f>(size);
+			m_donnees.liste_vec3 = new std::vector<dls::math::vec3f>(size);
 			break;
 		case ATTRIBUT_VEC4:
-			m_donnees.liste_vec4 = new std::vector<numero7::math::vec4f>(size);
+			m_donnees.liste_vec4 = new std::vector<dls::math::vec4f>(size);
 			break;
 		case ATTRIBUT_MAT3:
-			m_donnees.liste_mat3 = new std::vector<numero7::math::mat3>(size);
+			m_donnees.liste_mat3 = new std::vector<dls::math::mat3x3f>(size);
 			break;
 		case ATTRIBUT_MAT4:
-			m_donnees.liste_mat4 = new std::vector<numero7::math::mat4>(size);
+			m_donnees.liste_mat4 = new std::vector<dls::math::mat4x4f>(size);
 			break;
 		default:
 			break;
@@ -318,15 +318,15 @@ size_t Attribut::taille_octets() const
 		case ATTRIBUT_CHAINE:
 			return m_donnees.liste_chaine->size() * sizeof(std::string);
 		case ATTRIBUT_VEC2:
-			return m_donnees.liste_vec2->size() * sizeof(numero7::math::vec2f);
+			return m_donnees.liste_vec2->size() * sizeof(dls::math::vec2f);
 		case ATTRIBUT_VEC3:
-			return m_donnees.liste_vec3->size() * sizeof(numero7::math::vec3f);
+			return m_donnees.liste_vec3->size() * sizeof(dls::math::vec3f);
 		case ATTRIBUT_VEC4:
-			return m_donnees.liste_vec4->size() * sizeof(numero7::math::vec4f);
+			return m_donnees.liste_vec4->size() * sizeof(dls::math::vec4f);
 		case ATTRIBUT_MAT3:
-			return m_donnees.liste_mat3->size() * sizeof(numero7::math::mat3);
+			return m_donnees.liste_mat3->size() * sizeof(dls::math::mat3x3f);
 		case ATTRIBUT_MAT4:
-			return m_donnees.liste_mat4->size() * sizeof(numero7::math::mat4);
+			return m_donnees.liste_mat4->size() * sizeof(dls::math::mat4x4f);
 		default:
 			return 0;
 	}

@@ -26,7 +26,6 @@
 
 #include <ego/outils.h>
 #include <numeric>
-#include <numero7/math/vec2.h>
 
 #include "bibliotheques/opengl/atlas_texture.h"
 #include "bibliotheques/opengl/contexte_rendu.h"
@@ -115,7 +114,7 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 	const auto nombre_elements = nombre_arretes * 2;
 	auto tampon = cree_tampon_arrete();
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_elements);
 
 	/* OpenGL ne travaille qu'avec des floats. */
@@ -133,7 +132,7 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = indices.data();
 	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
 	parametres_tampon.elements = indices.size();
@@ -188,7 +187,7 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 	const auto nombre_elements = nombre_polygones * 2;
 	auto tampon = cree_tampon_normal();
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_elements);
 
 	/* OpenGL ne travaille qu'avec des floats. */
@@ -219,7 +218,7 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = indices.data();
 	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
 	parametres_tampon.elements = indices.size();
@@ -303,13 +302,13 @@ TamponRendu *genere_tampon(Maillage *maillage, const std::vector<uint> &id_polys
 	auto nombre_elements = id_polys.size() * 6;
 	auto tampon = creer_tampon();
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_elements);
 
-	std::vector<numero7::math::vec3f> uvs;
+	std::vector<dls::math::vec3f> uvs;
 	uvs.reserve(nombre_elements);
 
-	std::vector<numero7::math::vec3f> normaux;
+	std::vector<dls::math::vec3f> normaux;
 	normaux.reserve(nombre_elements);
 
 	auto index_poly = 0;
@@ -330,22 +329,22 @@ TamponRendu *genere_tampon(Maillage *maillage, const std::vector<uint> &id_polys
 			sommets.push_back(poly->s[2]->pos);
 			sommets.push_back(poly->s[3]->pos);
 
-			uvs.push_back(numero7::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.push_back(numero7::math::vec3f(0.0f, 1.0f, index_poly));
-			uvs.push_back(numero7::math::vec3f(1.0f, 1.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(0.0f, 0.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(0.0f, 1.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(1.0f, 1.0f, index_poly));
 
-			uvs.push_back(numero7::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.push_back(numero7::math::vec3f(1.0f, 1.0f, index_poly));
-			uvs.push_back(numero7::math::vec3f(1.0f, 0.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(0.0f, 0.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(1.0f, 1.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(1.0f, 0.0f, index_poly));
 
 			normaux.push_back(poly->nor);
 			normaux.push_back(poly->nor);
 			normaux.push_back(poly->nor);
 		}
 		else {
-			uvs.push_back(numero7::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.push_back(numero7::math::vec3f(0.0f, 1.0f, index_poly));
-			uvs.push_back(numero7::math::vec3f(1.0f, 0.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(0.0f, 0.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(0.0f, 1.0f, index_poly));
+			uvs.push_back(dls::math::vec3f(1.0f, 0.0f, index_poly));
 		}
 
 		++index_poly;
@@ -356,7 +355,7 @@ TamponRendu *genere_tampon(Maillage *maillage, const std::vector<uint> &id_polys
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.elements = sommets.size();
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 
 	tampon->remplie_tampon(parametres_tampon);
 
@@ -364,14 +363,14 @@ TamponRendu *genere_tampon(Maillage *maillage, const std::vector<uint> &id_polys
 
 	parametres_tampon.attribut = "normal";
 	parametres_tampon.pointeur_donnees_extra = normaux.data();
-	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
 
 	tampon->remplie_tampon_extra(parametres_tampon);
 	numero7::ego::util::GPU_check_errors("Erreur lors de la création du tampon de normal");
 
 	parametres_tampon.attribut = "uvs";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_donnees_extra = uvs.data();
 
 	tampon->remplie_tampon_extra(parametres_tampon);
@@ -523,7 +522,7 @@ void RenduMaillage::ajourne_texture()
 //				  << taille_texture[1] << "x"
 //				  << taille_texture[2] << '\n';
 
-		std::vector<numero7::math::vec4f> image(taille_texture[0] * taille_texture[1] * taille_texture[2]);
+		std::vector<dls::math::vec4f> image(taille_texture[0] * taille_texture[1] * taille_texture[2]);
 		auto donnees = image.data();
 
 		/* Copie les texels dans l'atlas OpenGL. */
@@ -580,7 +579,7 @@ void RenduMaillage::dessine(const ContexteRendu &contexte)
 	}
 }
 
-numero7::math::mat4d RenduMaillage::matrice() const
+dls::math::mat4x4d RenduMaillage::matrice() const
 {
 	return m_maillage->transformation().matrice();
 }

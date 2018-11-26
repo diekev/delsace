@@ -42,7 +42,7 @@ struct Volume {
 
 	virtual bool integre(GNA &gna, const ParametresRendu &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo) = 0;
 
-	virtual Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const numero7::math::point3d &P0, const numero7::math::point3d &P1) = 0;
+	virtual Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const dls::math::point3d &P0, const dls::math::point3d &P1) = 0;
 };
 
 struct VolumeLoiBeers : public Volume {
@@ -52,7 +52,7 @@ struct VolumeLoiBeers : public Volume {
 
 	bool integre(GNA &gna, const ParametresRendu &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo) override;
 
-	Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const numero7::math::point3d &P0, const numero7::math::point3d &P1) override;
+	Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const dls::math::point3d &P0, const dls::math::point3d &P1) override;
 };
 
 struct VolumeHeterogeneLoiBeers : public Volume {
@@ -63,7 +63,7 @@ struct VolumeHeterogeneLoiBeers : public Volume {
 
 	bool integre(GNA &gna, const ParametresRendu &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo) override;
 
-	Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const numero7::math::point3d &P0, const numero7::math::point3d &P1) override;
+	Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const dls::math::point3d &P0, const dls::math::point3d &P1) override;
 };
 
 struct VolumeDiffusionSimple : public Volume {
@@ -74,7 +74,7 @@ struct VolumeDiffusionSimple : public Volume {
 
 	bool integre(GNA &gna, const ParametresRendu &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo) override;
 
-	Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const numero7::math::point3d &P0, const numero7::math::point3d &P1) override;
+	Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const dls::math::point3d &P0, const dls::math::point3d &P1) override;
 };
 
 struct VolumeHeterogeneDiffusionSimple : public Volume {
@@ -84,5 +84,5 @@ struct VolumeHeterogeneDiffusionSimple : public Volume {
 
 	bool integre(GNA &gna, const ParametresRendu &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo) override;
 
-	Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const numero7::math::point3d &P0, const numero7::math::point3d &P1) override;
+	Spectre transmittance(GNA &gna, const ParametresRendu &parametres, const dls::math::point3d &P0, const dls::math::point3d &P1) override;
 };

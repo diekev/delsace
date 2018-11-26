@@ -28,7 +28,7 @@
 
 void AdaptriceChargementMaillage::ajoute_sommet(const float x, const float y, const float z, const float w)
 {
-	m_sommets.push_back(numero7::math::vec3d(x, y, z));
+	m_sommets.push_back(dls::math::vec3d(x, y, z));
 }
 
 void AdaptriceChargementMaillage::ajoute_normal(const float x, const float y, const float z)

@@ -39,9 +39,9 @@
 
 template <typename T>
 static auto moyenne(
-		const numero7::math::vec3<T> &v0,
-		const numero7::math::vec3<T> &v1,
-		const numero7::math::vec3<T> &v2)
+		const dls::math::vec3<T> &v0,
+		const dls::math::vec3<T> &v1,
+		const dls::math::vec3<T> &v2)
 {
 	return (v0 + v1 + v2) / static_cast<T>(3);
 }
@@ -99,19 +99,19 @@ void RenduMaillage::genere_tampon_surface()
 
 	auto nombre_sommets = std::distance(m_maillage->begin(), m_maillage->end());
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_sommets * 3);
 
-	std::vector<numero7::math::vec3f> normaux;
+	std::vector<dls::math::vec3f> normaux;
 	normaux.reserve(nombre_sommets * 3);
 
 	/* OpenGL ne travaille qu'avec des floats. */
 	for (const Triangle *triangle : *m_maillage) {
-		sommets.push_back(numero7::math::vec3f(triangle->v0.x, triangle->v0.y, triangle->v0.z));
-		sommets.push_back(numero7::math::vec3f(triangle->v1.x, triangle->v1.y, triangle->v1.z));
-		sommets.push_back(numero7::math::vec3f(triangle->v2.x, triangle->v2.y, triangle->v2.z));
+		sommets.push_back(dls::math::vec3f(triangle->v0.x, triangle->v0.y, triangle->v0.z));
+		sommets.push_back(dls::math::vec3f(triangle->v1.x, triangle->v1.y, triangle->v1.z));
+		sommets.push_back(dls::math::vec3f(triangle->v2.x, triangle->v2.y, triangle->v2.z));
 
-		auto normal = numero7::math::vec3f(triangle->normal.x, triangle->normal.y, triangle->normal.z);
+		auto normal = dls::math::vec3f(triangle->normal.x, triangle->normal.y, triangle->normal.z);
 
 		normaux.push_back(normal);
 		normaux.push_back(normal);
@@ -125,7 +125,7 @@ void RenduMaillage::genere_tampon_surface()
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = indices.data();
 	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
 	parametres_tampon.elements = indices.size();
@@ -134,7 +134,7 @@ void RenduMaillage::genere_tampon_surface()
 
 	parametres_tampon.attribut = "normal";
 	parametres_tampon.pointeur_donnees_extra = normaux.data();
-	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
 
 	m_tampon_surface->remplie_tampon_extra(parametres_tampon);
 }
@@ -174,7 +174,7 @@ void RenduMaillage::genere_tampon_normal()
 
 	auto nombre_triangle = std::distance(m_maillage->begin(), m_maillage->end());
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_triangle * 2);
 
 	for (const Triangle *triangle : *m_maillage) {
@@ -183,8 +183,8 @@ void RenduMaillage::genere_tampon_normal()
 
 		const auto &NV = V + N;
 
-		sommets.push_back(numero7::math::vec3f(V.x, V.y, V.z));
-		sommets.push_back(numero7::math::vec3f(NV.x, NV.y, NV.z));
+		sommets.push_back(dls::math::vec3f(V.x, V.y, V.z));
+		sommets.push_back(dls::math::vec3f(NV.x, NV.y, NV.z));
 	}
 
 	std::vector<unsigned int> indices(sommets.size());
@@ -194,7 +194,7 @@ void RenduMaillage::genere_tampon_normal()
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.pointeur_index = indices.data();
 	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
 	parametres_tampon.elements = indices.size();
@@ -261,7 +261,7 @@ void RenduMaillage::dessine(const ContexteRendu &contexte, const Scene &scene)
 	}
 }
 
-numero7::math::mat4d RenduMaillage::matrice() const
+dls::math::mat4x4d RenduMaillage::matrice() const
 {
 	return m_maillage->transformation().matrice();
 }

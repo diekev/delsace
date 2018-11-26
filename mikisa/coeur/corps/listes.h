@@ -26,7 +26,7 @@
 
 #include <vector>
 
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 #include "bibliotheques/outils/iterateurs.h"
 
@@ -42,7 +42,7 @@ struct Point3D {
  * Représentation d'un sommet dans l'espace tridimensionel.
  */
 struct Sommet {
-	numero7::math::vec3f pos;
+	dls::math::vec3f pos;
 	int index;
 };
 
@@ -96,7 +96,7 @@ public:
 	int uvs[4] = { 0, 0, 0, 0 };
 
 	/* Le vecteur normal de ce polygone. */
-	numero7::math::vec3f nor;
+	dls::math::vec3f nor;
 
 	/* nouvelle entreface */
 	Polygone() = default;
@@ -144,7 +144,7 @@ public:
 
 	void pousse(Point3D *p);
 
-	numero7::math::vec3f point(size_t i) const;
+	dls::math::vec3f point(size_t i) const;
 
 	plage_sommets points();
 

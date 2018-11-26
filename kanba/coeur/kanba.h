@@ -27,7 +27,7 @@
 #include "bibliotheques/audition/audition.h"
 
 #include <numero7/math/matrice/matrice.h>
-#include <numero7/math/vec4.h>
+#include <delsace/math/vecteur.hh>
 
 class BaseEditrice;
 class Brosse;
@@ -47,7 +47,7 @@ enum {
 };
 
 struct Kanba : public Audite {
-	numero7::math::matrice<numero7::math::vec4f> tampon;
+	numero7::math::matrice<dls::math::vec4f> tampon;
 
 	/* Interface utilisateur. */
 	FenetrePrincipale *fenetre_principale = nullptr;

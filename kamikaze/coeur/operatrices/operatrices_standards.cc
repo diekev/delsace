@@ -24,7 +24,7 @@
 
 #include "operatrices_standards.h"
 
-#include <math/bruit.h>
+#include <delsace/math/bruit.hh>
 
 #include "../bibliotheques/objets/adaptrice_creation.h"
 #include "../bibliotheques/objets/creation.h"
@@ -36,7 +36,6 @@
 #include "sdk/segmentprim.h"
 
 #include "sdk/outils/géométrie.h"
-#include "sdk/outils/mathématiques.h"
 
 #include <random>
 #include <sstream>
@@ -47,7 +46,7 @@ class AdaptriceCreationMaillage final : public objets::AdaptriceCreationObjet {
 public:
 	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f)
 	{
-		points->push_back(glm::vec3(x, y, z));
+		points->push_back(dls::math::vec3f(x, y, z));
 	}
 
 	void ajoute_normal(const float x, const float y, const float z) {}
@@ -59,10 +58,10 @@ public:
 	void ajoute_polygone(const int *index_sommet, const int */*index_uv*/, const int */*index_normal*/, int nombre)
 	{
 		if (nombre == 4) {
-			polys->push_back(glm::uvec4(index_sommet[0], index_sommet[1], index_sommet[2], index_sommet[3]));
+			polys->push_back(dls::math::vec4i(index_sommet[0], index_sommet[1], index_sommet[2], index_sommet[3]));
 		}
 		else if (nombre == 3) {
-			polys->push_back(glm::uvec4(index_sommet[0], index_sommet[1], index_sommet[2], INVALID_INDEX));
+			polys->push_back(dls::math::vec4i(index_sommet[0], index_sommet[1], index_sommet[2], INVALID_INDEX));
 		}
 	}
 
@@ -125,8 +124,8 @@ public:
 	{
 		sorties(1);
 
-		ajoute_propriete("taille", danjo::TypePropriete::VECTEUR, glm::vec3(1.0));
-		ajoute_propriete("centre", danjo::TypePropriete::VECTEUR, glm::vec3(0.0));
+		ajoute_propriete("taille", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0));
+		ajoute_propriete("centre", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0));
 		ajoute_propriete("échelle", danjo::TypePropriete::DECIMAL, 1.0f);
 	}
 
@@ -183,10 +182,10 @@ public:
 
 		ajoute_propriete("ordre_transformation", danjo::TypePropriete::ENUM, std::string("pre"));
 		ajoute_propriete("ordre_rotation", danjo::TypePropriete::ENUM, std::string("xyz"));
-		ajoute_propriete("translation", danjo::TypePropriete::VECTEUR, glm::vec3(0.0));
-		ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR, glm::vec3(0.0));
-		ajoute_propriete("taille", danjo::TypePropriete::VECTEUR, glm::vec3(1.0));
-		ajoute_propriete("pivot", danjo::TypePropriete::VECTEUR, glm::vec3(0.0));
+		ajoute_propriete("translation", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0));
+		ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0));
+		ajoute_propriete("taille", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0));
+		ajoute_propriete("pivot", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0));
 		ajoute_propriete("échelle", danjo::TypePropriete::DECIMAL, 1.0f);
 		ajoute_propriete("inverse", danjo::TypePropriete::BOOL, false);
 	}
@@ -215,11 +214,11 @@ public:
 	{
 		entree(0)->requiers_collection(m_collection, contexte, temps);
 
-		const auto translate = evalue_vecteur("translation");
-		const auto rotate = evalue_vecteur("rotation");
-		const auto scale = evalue_vecteur("taille");
-		const auto pivot = evalue_vecteur("pivot");
-		const auto uniform_scale = evalue_decimal("échelle");
+		const auto translate = dls::math::vec3d(evalue_vecteur("translation"));
+		const auto rotate = dls::math::vec3d(evalue_vecteur("rotation"));
+		const auto scale = dls::math::vec3d(evalue_vecteur("taille"));
+		const auto pivot = dls::math::vec3d(evalue_vecteur("pivot"));
+		const auto uniform_scale = static_cast<double>(evalue_decimal("échelle"));
 		const auto transform_type = evalue_enum("ordre_transformation");
 		const auto rot_order = evalue_enum("ordre_rotation");
 		auto index_ordre = -1;
@@ -253,10 +252,10 @@ public:
 			{ 2, 1, 0 }, // Z Y X
 		};
 
-		glm::vec3 axis[3] = {
-			glm::vec3(1.0f, 0.0f, 0.0f),
-			glm::vec3(0.0f, 1.0f, 0.0f),
-			glm::vec3(0.0f, 0.0f, 1.0f),
+		dls::math::vec3d axis[3] = {
+			dls::math::vec3d(1.0f, 0.0f, 0.0f),
+			dls::math::vec3d(0.0f, 1.0f, 0.0f),
+			dls::math::vec3d(0.0f, 0.0f, 1.0f),
 		};
 
 		const auto X = rot_ord[index_ordre][0];
@@ -264,26 +263,29 @@ public:
 		const auto Z = rot_ord[index_ordre][2];
 
 		for (auto &prim : primitive_iterator(this->m_collection)) {
-			auto matrix = glm::mat4(1.0f);
+			auto matrix = dls::math::mat4x4d(1.0);
+			auto const angle_x = static_cast<double>(dls::math::degrees_vers_radians(rotate[X]));
+			auto const angle_y = static_cast<double>(dls::math::degrees_vers_radians(rotate[Y]));
+			auto const angle_z = static_cast<double>(dls::math::degrees_vers_radians(rotate[Z]));
 
 			if (transform_type == "pre") {
-				matrix = pre_translate(matrix, pivot);
-				matrix = pre_rotate(matrix, glm::radians(rotate[X]), axis[X]);
-				matrix = pre_rotate(matrix, glm::radians(rotate[Y]), axis[Y]);
-				matrix = pre_rotate(matrix, glm::radians(rotate[Z]), axis[Z]);
-				matrix = pre_scale(matrix, scale * uniform_scale);
-				matrix = pre_translate(matrix, -pivot);
-				matrix = pre_translate(matrix, translate);
+				matrix = dls::math::pre_translation(matrix, pivot);
+				matrix = dls::math::pre_rotation(matrix, angle_x, axis[X]);
+				matrix = dls::math::pre_rotation(matrix, angle_y, axis[Y]);
+				matrix = dls::math::pre_rotation(matrix, angle_z, axis[Z]);
+				matrix = dls::math::pre_dimension(matrix, scale * uniform_scale);
+				matrix = dls::math::pre_translation(matrix, -pivot);
+				matrix = dls::math::pre_translation(matrix, translate);
 				matrix = matrix * prim->matrix();
 			}
 			else {
-				matrix = post_translate(matrix, pivot);
-				matrix = post_rotate(matrix, glm::radians(rotate[X]), axis[X]);
-				matrix = post_rotate(matrix, glm::radians(rotate[Y]), axis[Y]);
-				matrix = post_rotate(matrix, glm::radians(rotate[Z]), axis[Z]);
-				matrix = post_scale(matrix, scale * uniform_scale);
-				matrix = post_translate(matrix, -pivot);
-				matrix = post_translate(matrix, translate);
+				matrix = dls::math::post_translation(matrix, pivot);
+				matrix = dls::math::post_rotation(matrix, angle_x, axis[X]);
+				matrix = dls::math::post_rotation(matrix, angle_y, axis[Y]);
+				matrix = dls::math::post_rotation(matrix, angle_z, axis[Z]);
+				matrix = dls::math::post_dimension(matrix, scale * uniform_scale);
+				matrix = dls::math::post_translation(matrix, -pivot);
+				matrix = dls::math::post_translation(matrix, translate);
 				matrix = prim->matrix() * matrix;
 			}
 
@@ -304,7 +306,7 @@ public:
 	{
 		sorties(1);
 
-		ajoute_propriete("centre", danjo::TypePropriete::VECTEUR, glm::vec3(0.0));
+		ajoute_propriete("centre", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0));
 		ajoute_propriete("rayon_majeur", danjo::TypePropriete::DECIMAL, 1.0f);
 		ajoute_propriete("rayon_mineur", danjo::TypePropriete::DECIMAL, 0.25f);
 		ajoute_propriete("segments_majeurs", danjo::TypePropriete::ENTIER, 48);
@@ -367,8 +369,8 @@ public:
 	{
 		sorties(1);
 
-		ajoute_propriete("centre", danjo::TypePropriete::VECTEUR, glm::vec3(0.0));
-		ajoute_propriete("taille", danjo::TypePropriete::VECTEUR, glm::vec3(1.0));
+		ajoute_propriete("centre", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0));
+		ajoute_propriete("taille", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0));
 		ajoute_propriete("lignes", danjo::TypePropriete::ENTIER, 2);
 		ajoute_propriete("colonnes", danjo::TypePropriete::ENTIER, 2);
 	}
@@ -685,7 +687,7 @@ public:
 			auto polys = mesh->polys();
 
 			for (size_t i = 0, ie = points->size(); i < ie ; ++i) {
-				normals->vec3(i, glm::vec3(0.0f));
+				normals->vec3(i, dls::math::vec3f(0.0f));
 			}
 
 			calcule_normales(*points, *polys, *normals, flip);
@@ -699,8 +701,8 @@ static const char *NOM_BRUIT = "Bruit";
 static const char *AIDE_BRUIT = "Ajouter du bruit.";
 
 class OperatriceBruitage : public Operatrice {
-	numero7::math::BruitPerlin3D m_bruit_perlin;
-	numero7::math::BruitFlux3D m_bruit_flux;
+	dls::math::BruitPerlin3D m_bruit_perlin;
+	dls::math::BruitFlux3D m_bruit_flux;
 
 public:
 	OperatriceBruitage(Noeud *noeud, const Context &contexte)
@@ -808,7 +810,7 @@ public:
 
 				for (size_t j = 0; j < octaves; ++j) {
 					if (bruit == "simplex") {
-						valeur += (amplitude * numero7::math::bruit_simplex_3d(x * frequency, y * frequency, z * frequency));
+						valeur += (amplitude * dls::math::bruit_simplex_3d(x * frequency, y * frequency, z * frequency));
 					}
 					else if (bruit == "perlin") {
 						valeur += (amplitude * m_bruit_perlin(x * frequency, y * frequency, z * frequency));
@@ -861,7 +863,7 @@ public:
 
 		ajoute_propriete("portée", danjo::TypePropriete::ENUM, std::string("vertices"));
 		ajoute_propriete("méthode", danjo::TypePropriete::ENUM, std::string("unique"));
-		ajoute_propriete("couleur", danjo::TypePropriete::COULEUR, glm::vec3(0.5, 0.5, 0.5));
+		ajoute_propriete("couleur", danjo::TypePropriete::COULEUR, dls::math::vec3f(0.5, 0.5, 0.5));
 		ajoute_propriete("graine", danjo::TypePropriete::ENTIER, 1);
 	}
 
@@ -931,17 +933,17 @@ public:
 				const auto &color = evalue_couleur("color");
 
 				for (size_t i = 0, e = colors->size(); i < e; ++i) {
-					colors->vec4(i, glm::vec4(color.r, color.v, color.b, color.a));
+					colors->vec4(i, dls::math::vec4f(color.r, color.v, color.b, color.a));
 				}
 			}
 			else if (methode == "aléatoire") {
 				if (portee == "vertices") {
 					for (size_t i = 0, e = colors->size(); i < e; ++i) {
-						colors->vec4(i, glm::vec4{dist(rng), dist(rng), dist(rng), 1.0f});
+						colors->vec4(i, dls::math::vec4f{dist(rng), dist(rng), dist(rng), 1.0f});
 					}
 				}
 				else if (portee == "primitive") {
-					const auto &color = glm::vec4{dist(rng), dist(rng), dist(rng), 1.0f};
+					const auto &color = dls::math::vec4f{dist(rng), dist(rng), dist(rng), 1.0f};
 
 					for (size_t i = 0, e = colors->size(); i < e; ++i) {
 						colors->vec4(i, color);
@@ -1012,8 +1014,8 @@ public:
 		sorties(1);
 
 		ajoute_propriete("nombre_points", danjo::TypePropriete::ENTIER, 1000);
-		ajoute_propriete("limite_min", danjo::TypePropriete::VECTEUR, glm::vec3(-1.0));
-		ajoute_propriete("limite_max", danjo::TypePropriete::VECTEUR, glm::vec3(1.0));
+		ajoute_propriete("limite_min", danjo::TypePropriete::VECTEUR, dls::math::vec3f(-1.0));
+		ajoute_propriete("limite_max", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0));
 	}
 
 	const char *chemin_entreface() const override
@@ -1054,7 +1056,7 @@ public:
 		std::mt19937 rng_z(19937 + 2);
 
 		for (size_t i = 0; i < nombre_points; ++i) {
-			const auto &point = glm::vec3(dist_x(rng_x), dist_y(rng_y), dist_z(rng_z));
+			const auto &point = dls::math::vec3f(dist_x(rng_x), dist_y(rng_y), dist_z(rng_z));
 			(*point_list)[i] = point;
 		}
 
@@ -1322,21 +1324,21 @@ public:
 
 			if (distribution == "constante") {
 				for (size_t i = 0; i < attribute->size(); ++i) {
-					attribute->vec3(i, glm::vec3{value, value, value});
+					attribute->vec3(i, dls::math::vec3f{value, value, value});
 				}
 			}
 			else if (distribution == "uniforme") {
 				std::uniform_real_distribution<float> dist(min_value, max_value);
 
 				for (size_t i = 0; i < attribute->size(); ++i) {
-					attribute->vec3(i, glm::vec3{dist(rng), dist(rng), dist(rng)});
+					attribute->vec3(i, dls::math::vec3f{dist(rng), dist(rng), dist(rng)});
 				}
 			}
 			else if (distribution == "gaussienne") {
 				std::normal_distribution<float> dist(mean, stddev);
 
 				for (size_t i = 0; i < attribute->size(); ++i) {
-					attribute->vec3(i, glm::vec3{dist(rng), dist(rng), dist(rng)});
+					attribute->vec3(i, dls::math::vec3f{dist(rng), dist(rng), dist(rng)});
 				}
 
 			}
@@ -1347,7 +1349,7 @@ public:
 /* ************************************************************************** */
 
 struct Triangle {
-	glm::vec3 v0, v1, v2;
+	dls::math::vec3f v0, v1, v2;
 };
 
 std::vector<Triangle> convertis_maillage_triangles(const Mesh *maillage_entree)
@@ -1407,7 +1409,7 @@ public:
 		ajoute_propriete("segments", danjo::TypePropriete::ENTIER, 1);
 		ajoute_propriete("taille", danjo::TypePropriete::DECIMAL, 1.0f);
 		ajoute_propriete("direction", danjo::TypePropriete::ENUM, std::string("normal"));
-		ajoute_propriete("normal", danjo::TypePropriete::VECTEUR, glm::vec3(0.0f, 1.0f, 0.0f));
+		ajoute_propriete("normal", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f, 1.0f, 0.0f));
 	}
 
 	const char *chemin_entreface() const override
@@ -1488,7 +1490,7 @@ public:
 			output_edges->reserve(input_points->size() * segment_number);
 			output_points->reserve(total_points);
 			auto head = 0;
-			glm::vec3 normale;
+			dls::math::vec3f normale;
 
 			for (size_t i = 0; i < input_points->size(); ++i) {
 				auto point = (*input_points)[i];
@@ -1501,7 +1503,7 @@ public:
 					point += (segment_size * normale);
 					output_points->push_back(point);
 
-					output_edges->push_back(glm::uvec2{head, ++head});
+					output_edges->push_back(dls::math::vec2i{head, ++head});
 				}
 
 				++head;
@@ -1525,7 +1527,7 @@ public:
 
 			auto head = 0;
 
-			glm::vec3 normale;
+			dls::math::vec3f normale;
 
 			for (const Triangle &triangle : triangles) {
 				const auto v0 = triangle.v0;
@@ -1535,7 +1537,7 @@ public:
 				const auto e0 = v1 - v0;
 				const auto e1 = v2 - v0;
 
-				normale = (direction_normal) ? glm::normalize(normale_triangle(v0, v1, v2)) : segment_normal;
+				normale = (direction_normal) ? dls::math::normalise(normale_triangle(v0, v1, v2)) : segment_normal;
 
 				for (size_t j = 0; j < nombre_courbes; ++j) {
 					/* Génère des coordonnées barycentriques aléatoires. */
@@ -1556,7 +1558,7 @@ public:
 						pos += (segment_size * normale);
 						output_points->push_back(pos);
 
-						output_edges->push_back(glm::uvec2{head, ++head});
+						output_edges->push_back(dls::math::vec2i{head, ++head});
 					}
 
 					++head;

@@ -24,8 +24,6 @@
 
 #include "structure_acceleration.h"
 
-#include <math/conversion_point_vecteur.h>
-
 #include "boite_englobante.h"
 #include "maillage.h"
 #include "scene.h"
@@ -100,14 +98,14 @@ Entresection StructureAcceleration::entresecte(
 
 /* ************************************************************************** */
 
-const numero7::math::vec3d VolumeEnglobant::NORMAUX_PLAN[VolumeEnglobant::NOMBRE_NORMAUX_PLAN] = {
-	numero7::math::vec3d(1, 0, 0),
-	numero7::math::vec3d(0, 1, 0),
-	numero7::math::vec3d(0, 0, 1),
-	numero7::math::vec3d( std::sqrt(3) / 3.f,  std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
-	numero7::math::vec3d(-std::sqrt(3) / 3.f,  std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
-	numero7::math::vec3d(-std::sqrt(3) / 3.f, -std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
-	numero7::math::vec3d( std::sqrt(3) / 3.f, -std::sqrt(3) / 3.f, std::sqrt(3) / 3.f)
+const dls::math::vec3d VolumeEnglobant::NORMAUX_PLAN[VolumeEnglobant::NOMBRE_NORMAUX_PLAN] = {
+	dls::math::vec3d(1, 0, 0),
+	dls::math::vec3d(0, 1, 0),
+	dls::math::vec3d(0, 0, 1),
+	dls::math::vec3d( std::sqrt(3) / 3.f,  std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
+	dls::math::vec3d(-std::sqrt(3) / 3.f,  std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
+	dls::math::vec3d(-std::sqrt(3) / 3.f, -std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
+	dls::math::vec3d( std::sqrt(3) / 3.f, -std::sqrt(3) / 3.f, std::sqrt(3) / 3.f)
 };
 
 VolumeEnglobant::Etendue::Etendue()
@@ -193,8 +191,8 @@ Entresection VolumeEnglobant::entresecte(
 		transforme_inverse(rayon.direction, &rayon_local.direction);
 
 		for (uint8_t i = 0; i < NOMBRE_NORMAUX_PLAN; ++i) {
-			numerateur_precalcule[i] = numero7::math::produit_scalaire(NORMAUX_PLAN[i], numero7::math::vecteur_depuis_point(rayon_local.origine));
-			denominateur_precalcule[i] = numero7::math::produit_scalaire(NORMAUX_PLAN[i], rayon_local.direction);
+			numerateur_precalcule[i] = dls::math::produit_scalaire(NORMAUX_PLAN[i], dls::math::vec3d(rayon_local.origine));
+			denominateur_precalcule[i] = dls::math::produit_scalaire(NORMAUX_PLAN[i], rayon_local.direction);
 		}
 
 		bool touche = m_etendues[index].entresecte(

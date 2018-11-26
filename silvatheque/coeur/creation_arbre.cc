@@ -160,7 +160,7 @@ void cree_arbre(Arbre *arbre)
 	auto taille_tronc = params->Scale * params->_0Scale;
 	auto taille_segment = taille_tronc / params->_0CurveRes;
 
-	auto origine = numero7::math::vec3f(0.0f, 0.0f, 0.0f);
+	auto origine = dls::math::vec3f(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < params->_0CurveRes; ++i) {
 		arbre->ajoute_sommet(origine);

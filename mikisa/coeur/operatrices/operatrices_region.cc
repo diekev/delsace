@@ -32,7 +32,6 @@
 #include <numero7/image/operations/operations.h>
 
 #include <numero7/math/matrice/operations.h>
-#include <numero7/math/outils.h>
 
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/parallelisme.h"

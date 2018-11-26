@@ -85,7 +85,7 @@ void RenduParticules::initialise()
 {
 	m_tampon = cree_tampon();
 
-	std::vector<numero7::math::vec3f> points;
+	std::vector<dls::math::vec3f> points;
 	points.reserve(m_fluide->particules.size());
 
 	for (const auto &particule : m_fluide->particules) {
@@ -97,7 +97,7 @@ void RenduParticules::initialise()
 	parametres.dimension_attribut = 3;
 	parametres.pointeur_sommets = points.data();
 	parametres.elements = points.size();
-	parametres.taille_octet_sommets = points.size() * sizeof(numero7::math::vec3f);
+	parametres.taille_octet_sommets = points.size() * sizeof(dls::math::vec3f);
 
 	m_tampon->remplie_tampon(parametres);
 }

@@ -104,10 +104,10 @@ void ListePoints3D::pousse(Point3D *s)
 	m_sommets.push_back(s);
 }
 
-numero7::math::vec3f ListePoints3D::point(size_t i) const
+dls::math::vec3f ListePoints3D::point(size_t i) const
 {
 	auto p = m_sommets[i];
-	return numero7::math::vec3f(p->x, p->y, p->z);
+	return dls::math::vec3f(p->x, p->y, p->z);
 }
 
 ListePoints3D::plage_sommets ListePoints3D::points()

@@ -29,7 +29,7 @@
 #include <ego/texture.h>
 
 #include <math/matrice/matrice.h>
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 
 class VueCanevas;
 
@@ -101,5 +101,5 @@ public:
 	 * Charge l'image spécifiée dans le visionneur. Les données de l'image sont
 	 * copiées dans des tampons OpenGL pour le rendu.
 	 */
-	void charge_image(const numero7::math::matrice<numero7::math::vec3d> &image);
+	void charge_image(const numero7::math::matrice<dls::math::vec3d> &image);
 };

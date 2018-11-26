@@ -73,7 +73,7 @@ static TamponRendu *genere_tampon_particules(NuagePoints *points)
 {
 	auto tampon = cree_tampon_particules();
 
-	std::vector<numero7::math::vec3f> sommets;
+	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(points->liste_points()->taille());
 
 	for (Sommet *sommet : points->liste_points()->sommets()) {
@@ -84,7 +84,7 @@ static TamponRendu *genere_tampon_particules(NuagePoints *points)
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
 	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(numero7::math::vec3f);
+	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
 	parametres_tampon.elements = sommets.size();
 
 	tampon->remplie_tampon(parametres_tampon);

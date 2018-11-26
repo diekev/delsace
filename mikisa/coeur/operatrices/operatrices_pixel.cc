@@ -32,11 +32,10 @@
 
 #include <numero7/image/operations/melange.h>
 #include <numero7/image/outils/couleurs.h>
-#include <numero7/math/bruit.h>
-#include <numero7/math/mat4.h>
+#include <delsace/math/bruit.hh>
+#include <delsace/math/entrepolation.hh>
+#include <delsace/math/matrice.hh>
 
-#include "bibliotheques/math/entrepolation.h"
-#include "bibliotheques/math/outils.h"
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/parallelisme.h"
 
@@ -50,6 +49,10 @@
  * |_ OpératricePixel
  * |_ OpératriceGraphePixel
  */
+
+#ifndef INUTULISE
+#	define INUTILISE(x) static_cast<void>((x));
+#endif
 
 /* ************************************************************************** */
 
@@ -151,9 +154,9 @@ public:
 		resultat.a = pixel.a;
 
 		if (m_saturation != 0.0f) {
-			resultat.r = math::entrepolation_lineaire(sat, pixel.r, m_saturation);
-			resultat.g = math::entrepolation_lineaire(sat, pixel.g, m_saturation);
-			resultat.b = math::entrepolation_lineaire(sat, pixel.b, m_saturation);
+			resultat.r = dls::math::entrepolation_lineaire(sat, pixel.r, m_saturation);
+			resultat.g = dls::math::entrepolation_lineaire(sat, pixel.g, m_saturation);
+			resultat.b = dls::math::entrepolation_lineaire(sat, pixel.b, m_saturation);
 		}
 		else {
 			resultat.r = sat;
@@ -696,10 +699,10 @@ static constexpr auto NOM_NUAGE = "Nuage";
 static constexpr auto AIDE_NUAGE = "Crée un bruit de nuage";
 
 class OperatriceNuage final : public OperatricePixel {
-	numero7::math::BruitFlux2D m_bruit_flux;
+	dls::math::BruitFlux2D m_bruit_flux;
 
-	glm::vec3 m_frequence = glm::vec3(1.0f);
-	glm::vec3 m_decalage = glm::vec3(0.0f);
+	dls::math::vec3f m_frequence = dls::math::vec3f(1.0f);
+	dls::math::vec3f m_decalage = dls::math::vec3f(0.0f);
 	float m_amplitude = 1.0f;
 	int m_octaves = 1.0f;
 	float m_lacunarite = 1.0f;
@@ -1478,7 +1481,7 @@ public:
 			return pixel;
 		}
 
-		glm::vec4 T;
+		dls::math::vec4f T;
 		T.r = pixel.r - m_couleur.r;
 		T.g = pixel.g - m_couleur.g;
 		T.b = pixel.b - m_couleur.b;
@@ -1788,7 +1791,7 @@ public:
 		numero7::image::Pixel<float> resultat;
 
 		for (int i = 0; i < 3; ++i) {
-			resultat[i] = math::traduit(pixel[i], m_vieux_min[i], m_vieux_max[i], m_neuf_min[i], m_neuf_max[i]);
+			resultat[i] = dls::math::traduit(pixel[i], m_vieux_min[i], m_vieux_max[i], m_neuf_min[i], m_neuf_max[i]);
 		}
 
 		resultat.a = pixel.a;
@@ -1869,47 +1872,65 @@ enum {
 /* source
  * https://web.archive.org/web/20081014161121/http://www.colorjack.com/labs/colormatrix/
  */
-static numero7::math::mat4 matrices_daltonisme[] = {
-	{ 1.0f, 0.0f, 0.0f, 0.0f,
-	  0.0f, 1.0f, 0.0f, 0.0f,
-	  0.0f, 0.0f, 1.0f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
-	{ 0.56667f, 0.43333f, 0.0f, 0.0f,
-	  0.55833f, 0.44167f, 0.0f, 0.0f,
-	  0.0f, 0.24167f, 0.75833f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
-	{ 0.81667f, 0.18333f, 0.0f, 0.0f,
-	  0.33333f, 0.66667f, 0.0f, 0.0f,
-	  0.0f, 0.125f, 0.875f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
-	{ 0.625f, 0.375f, 0.0f, 0.0f,
-	  0.70f, 0.3f, 0.0f, 0.0f,
-	  0.0f, 0.3f, 0.7f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
-	{ 0.8f, 0.2f, 0.0f, 0.0f,
-	  0.25833f, 0.74167f, 0.0f, 0.0f,
-	  0.0f, 0.14167f, 0.85833f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
-	{ 0.95f, 0.05f, 0.0f, 0.0f,
-	  0.0f, 0.43333f, 0.56667f, 0.0f,
-	  0.0f, 0.475f, 0.525f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
-	{ 0.96667f, 0.03333f, 0.0f, 0.0f,
-	  0.0f, 0.73333f, 0.26667f, 0.0f,
-	  0.0f, 0.18333f, 0.81667f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
+static dls::math::mat4x4f matrices_daltonisme[] = {
+	dls::math::mat4x4f{
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
+	dls::math::mat4x4f{
+		0.56667f, 0.43333f, 0.0f, 0.0f,
+		0.55833f, 0.44167f, 0.0f, 0.0f,
+		0.0f, 0.24167f, 0.75833f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
+	dls::math::mat4x4f{
+		0.81667f, 0.18333f, 0.0f, 0.0f,
+		0.33333f, 0.66667f, 0.0f, 0.0f,
+		0.0f, 0.125f, 0.875f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
+	dls::math::mat4x4f{
+		0.625f, 0.375f, 0.0f, 0.0f,
+		0.70f, 0.3f, 0.0f, 0.0f,
+		0.0f, 0.3f, 0.7f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
+	dls::math::mat4x4f{
+		0.8f, 0.2f, 0.0f, 0.0f,
+		0.25833f, 0.74167f, 0.0f, 0.0f,
+		0.0f, 0.14167f, 0.85833f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
+	dls::math::mat4x4f{
+		0.95f, 0.05f, 0.0f, 0.0f,
+		0.0f, 0.43333f, 0.56667f, 0.0f,
+		0.0f, 0.475f, 0.525f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
+	dls::math::mat4x4f{
+		0.96667f, 0.03333f, 0.0f, 0.0f,
+		0.0f, 0.73333f, 0.26667f, 0.0f,
+		0.0f, 0.18333f, 0.81667f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
 	/* utilisation des poids ITU-R BT.709 */
-	{ 0.212671f, 0.715160f, 0.072169f, 0.0f,
-	  0.212671f, 0.715160f, 0.072169f, 0.0f,
-	  0.212671f, 0.715160f, 0.072169f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
-	{ 0.618f, 0.320f, 0.062f, 0.0f,
-	  0.163f, 0.775f, 0.062f, 0.0f,
-	  0.163f, 0.320f, 0.516f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f },
+	dls::math::mat4x4f{
+		0.212671f, 0.715160f, 0.072169f, 0.0f,
+		0.212671f, 0.715160f, 0.072169f, 0.0f,
+		0.212671f, 0.715160f, 0.072169f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
+	dls::math::mat4x4f{
+		0.618f, 0.320f, 0.062f, 0.0f,
+		0.163f, 0.775f, 0.062f, 0.0f,
+		0.163f, 0.320f, 0.516f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	},
 };
 
-auto operator*(const numero7::image::Pixel<float> &p, const numero7::math::mat4 &m)
+auto operator*(const numero7::image::Pixel<float> &p, const dls::math::mat4x4f &m)
 {
 	numero7::image::Pixel<float> r;
 	r.r = p.r * m[0][0] + p.g * m[0][1] + p.b * m[0][2] + p.a * m[0][3];
@@ -1921,7 +1942,7 @@ auto operator*(const numero7::image::Pixel<float> &p, const numero7::math::mat4 
 }
 
 class OperatriceDaltonisme final : public OperatricePixel {
-	numero7::math::mat4 m_matrice;
+	dls::math::mat4x4f m_matrice;
 
 public:
 	explicit OperatriceDaltonisme(Noeud *node)

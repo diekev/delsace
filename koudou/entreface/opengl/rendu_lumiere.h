@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <math/mat4.h>
+#include <delsace/math/matrice.hh>
 
 class ContexteRendu;
 struct Lumiere;
@@ -60,6 +60,6 @@ public:
 	/**
 	 * Retourne la matrice de la lumière.
 	 */
-	numero7::math::mat4d matrice() const;
+	dls::math::mat4x4d matrice() const;
 };
 

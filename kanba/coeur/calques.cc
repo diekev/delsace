@@ -26,9 +26,6 @@
 
 #include <algorithm>
 
-#include <numero7/math/vec3.h>
-#include <numero7/math/vec4.h>
-
 #include "melange.h"
 
 Calque::~Calque()
@@ -38,10 +35,10 @@ Calque::~Calque()
 			delete [] static_cast<float *>(tampon);
 			break;
 		case TypeDonnees::COULEUR:
-			delete [] static_cast<numero7::math::vec4f *>(tampon);
+			delete [] static_cast<dls::math::vec4f *>(tampon);
 			break;
 		case TypeDonnees::VECTEUR:
-			delete [] static_cast<numero7::math::vec3f *>(tampon);
+			delete [] static_cast<dls::math::vec3f *>(tampon);
 			break;
 	}
 }
@@ -68,13 +65,13 @@ Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal)
 		case TypeCanal::DEPLACEMENT_VECTORIEL:
 		case TypeCanal::NORMAL:
 			calque->type_donnees = VECTEUR;
-			calque->tampon = new numero7::math::vec3f[res];
-			std::fill_n(static_cast<numero7::math::vec3f *>(calque->tampon), res, numero7::math::vec3f(0.0f));
+			calque->tampon = new dls::math::vec3f[res];
+			std::fill_n(static_cast<dls::math::vec3f *>(calque->tampon), res, dls::math::vec3f(0.0f));
 			break;
 		case TypeCanal::DIFFUSION:
 			calque->type_donnees = COULEUR;
-			calque->tampon = new numero7::math::vec4f[res];
-			std::fill_n(static_cast<numero7::math::vec4f *>(calque->tampon), res, numero7::math::vec4f(0.0f));
+			calque->tampon = new dls::math::vec4f[res];
+			std::fill_n(static_cast<dls::math::vec4f *>(calque->tampon), res, dls::math::vec4f(0.0f));
 			break;
 		case TypeCanal::SPECULARITE:
 		case TypeCanal::GLOSS:
@@ -113,13 +110,13 @@ void fusionne_calques(CanauxTexture &canaux)
 	const auto res = canaux.hauteur * canaux.largeur;
 
 	if (canaux.tampon_diffusion == nullptr) {
-		canaux.tampon_diffusion = new numero7::math::vec4f[res];
+		canaux.tampon_diffusion = new dls::math::vec4f[res];
 	}
 
-	std::fill_n(canaux.tampon_diffusion, res, numero7::math::vec4f(0.0f));
+	std::fill_n(canaux.tampon_diffusion, res, dls::math::vec4f(0.0f));
 
 	for (const auto &calque : canaux.calques[TypeCanal::DIFFUSION]) {
-		auto tampon = static_cast<numero7::math::vec4f *>(calque->tampon);
+		auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
 		for (size_t i = 0; i < res; ++i) {
 			canaux.tampon_diffusion[i] = melange(

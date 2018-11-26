@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include <math/vec3.h>
-#include <math/point3.h>
+#include <delsace/math/vecteur.hh>
 
 /* ************************************************************************** */
 
@@ -58,9 +57,9 @@ struct Entresection {
 /* ************************************************************************** */
 
 struct Rayon {
-	numero7::math::point3d origine;
-	numero7::math::vec3d direction;
-	numero7::math::vec3d inverse_direction;
+	dls::math::point3d origine;
+	dls::math::vec3d direction;
+	dls::math::vec3d inverse_direction;
 
 	double distance_min = 0.0;
 	double distance_max = 0.0;

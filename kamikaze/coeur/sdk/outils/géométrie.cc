@@ -59,20 +59,20 @@ void calcule_normales(
 
 	if (flip) {
 		for (size_t i = 0, ie = points.size(); i < ie ; ++i) {
-			normales.vec3(i, glm::normalize(normales.vec3(i)));
+			normales.vec3(i, dls::math::normalise(normales.vec3(i)));
 		}
 	}
 	else {
 		for (size_t i = 0, ie = points.size(); i < ie ; ++i) {
-			normales.vec3(i, -glm::normalize(normales.vec3(i)));
+			normales.vec3(i, -dls::math::normalise(normales.vec3(i)));
 		}
 	}
 }
 
 void calcule_boite_delimitation(
 		const PointList &points,
-		glm::vec3 &min,
-		glm::vec3 &max)
+		dls::math::vec3f &min,
+		dls::math::vec3f &max)
 {
 	for (size_t i = 0, ie = points.size(); i < ie; ++i) {
 		auto vert = points[i];

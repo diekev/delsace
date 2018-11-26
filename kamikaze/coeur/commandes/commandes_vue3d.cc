@@ -24,8 +24,6 @@
 
 #include "commandes_vue3d.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <QKeyEvent>
 
 #include "bibliotheques/commandes/commande.h"
@@ -56,7 +54,7 @@ public:
 		}
 		else {
 			const float temp = camera->distance() - camera->vitesse_zoom();
-			auto distance = glm::max(0.0f, temp);
+			auto distance = std::max(0.0f, temp);
 			camera->distance(distance);
 		}
 
@@ -162,19 +160,19 @@ public:
 		const auto &P = camera->P();
 
 #if 1
-		const auto &debut = glm::unProject(glm::vec3(x, camera->hauteur() - y, 0.0f), MV, P, glm::vec4(0, 0, camera->largeur(), camera->hauteur()));
-		const auto &fin = glm::unProject(glm::vec3(x, camera->hauteur() - y, 1.0f), MV, P, glm::vec4(0, 0, camera->largeur(), camera->hauteur()));
+		const auto &debut = dls::math::deprojette(dls::math::vec3f(x, camera->hauteur() - y, 0.0f), MV, P, dls::math::vec4f(0, 0, camera->largeur(), camera->hauteur()));
+		const auto &fin   = dls::math::deprojette(dls::math::vec3f(x, camera->hauteur() - y, 1.0f), MV, P, dls::math::vec4f(0, 0, camera->largeur(), camera->hauteur()));
 
 		Ray ray;
 		ray.pos = camera->pos();
-		ray.dir = glm::normalize(fin - debut);
+		ray.dir = dls::math::normalise(fin - debut);
 
 		contexte.scene->entresect(ray);
 #else
 		float z;
 		glReadPixels(x, m_hauteur - y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
 
-		const auto pos = glm::unProject(glm::vec3(x, camera->hauteur() - y, z), MV, P, glm::vec4(0, 0, camera->largeur(), camera->hauteur()));
+		const auto pos = dls::math::deprojette(dls::math::vec3f(x, camera->hauteur() - y, z), MV, P, dls::math::vec4f(0, 0, camera->largeur(), camera->hauteur()));
 		contexte.scene->selectObject(pos);
 #endif
 

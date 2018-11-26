@@ -24,8 +24,6 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include <image/pixel.h>
 #include <math/matrice/matrice.h>
 
@@ -49,7 +47,7 @@ class Visionneuse2D : public QGLWidget {
 	EditriceVue2D *m_base;
 
 	ContexteRendu m_contexte;
-	glm::mat4 m_matrice_image;
+	dls::math::mat4x4f m_matrice_image;
 
 public:
 	explicit Visionneuse2D(Mikisa *mikisa, EditriceVue2D *base, QWidget *parent = nullptr);

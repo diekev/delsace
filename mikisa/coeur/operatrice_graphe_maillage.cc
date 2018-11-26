@@ -24,9 +24,7 @@
 
 #include "operatrice_graphe_maillage.h"
 
-#include <math/bruit.h>
-
-#include "bibliotheques/math/outils.h"
+#include <delsace/math/bruit.hh>
 
 #include "corps/corps.h"
 #include "corps/maillage.h"
@@ -37,8 +35,8 @@ void execute_graphe(
 		CompileuseGraphe::iterateur debut,
 		CompileuseGraphe::iterateur fin,
 		const GestionnaireDonneesGraphe &gestionnaire,
-		const numero7::math::vec3f &entree,
-		numero7::math::vec3f &sortie)
+		const dls::math::vec3f &entree,
+		dls::math::vec3f &sortie)
 {
 	auto courant = debut;
 
@@ -111,7 +109,7 @@ void execute_graphe(
 			}
 			case NOEUD_POINT3D_COMBINE_VECTEUR:
 			{
-				numero7::math::vec3f vec;
+				dls::math::vec3f vec;
 
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
@@ -138,7 +136,7 @@ void execute_graphe(
 				/* charge bruit */
 				auto dimension = pile_charge_entier(courant);
 
-				numero7::math::BruitPerlin3D *bruit_x, *bruit_y, *bruit_z;
+				dls::math::BruitPerlin3D *bruit_x, *bruit_y, *bruit_z;
 
 				if (dimension == 1) {
 					auto index_bruit = pile_charge_entier(courant);
@@ -220,7 +218,7 @@ void execute_graphe(
 				auto ry = somme_y * ((float)(1 << octaves) / (float)((1 << (octaves + 1)) - 1));
 				auto rz = somme_z * ((float)(1 << octaves) / (float)((1 << (octaves + 1)) - 1));
 
-				pile_stocke_vec3f(courant, numero7::math::vec3f(rx, ry, rz));
+				pile_stocke_vec3f(courant, dls::math::vec3f(rx, ry, rz));
 
 				break;
 			}
@@ -235,9 +233,9 @@ void execute_graphe(
 				auto neuf_min = pile_charge_decimal(courant);
 				auto neuf_max = pile_charge_decimal(courant);
 
-				vec.x = math::traduit(vec.x, vieux_min, vieux_max, neuf_min, neuf_max);
-				vec.y = math::traduit(vec.y, vieux_min, vieux_max, neuf_min, neuf_max);
-				vec.z = math::traduit(vec.z, vieux_min, vieux_max, neuf_min, neuf_max);
+				vec.x = dls::math::traduit(vec.x, vieux_min, vieux_max, neuf_min, neuf_max);
+				vec.y = dls::math::traduit(vec.y, vieux_min, vieux_max, neuf_min, neuf_max);
+				vec.z = dls::math::traduit(vec.z, vieux_min, vieux_max, neuf_min, neuf_max);
 
 				pile_stocke_vec3f(courant, vec);
 
@@ -314,7 +312,7 @@ int OperatriceGrapheMaillage::execute(const Rectangle &rectangle, const int temp
 	auto pile = m_compileuse.pile();
 
 	for (Point3D *point : m_corps.points()->points()) {
-		numero7::math::vec3f pos = numero7::math::vec3f(point->x, point->y, point->z);
+		dls::math::vec3f pos = dls::math::vec3f(point->x, point->y, point->z);
 
 		execute_graphe(pile.begin(), pile.end(), m_gestionnaire, pos, pos);
 
@@ -369,13 +367,13 @@ void GestionnaireDonneesGraphe::reinitialise()
 	m_bruits.clear();
 }
 
-size_t GestionnaireDonneesGraphe::ajoute_bruit(numero7::math::BruitPerlin3D *bruit)
+size_t GestionnaireDonneesGraphe::ajoute_bruit(dls::math::BruitPerlin3D *bruit)
 {
 	m_bruits.push_back(bruit);
 	return m_bruits.size() - 1;
 }
 
-numero7::math::BruitPerlin3D *GestionnaireDonneesGraphe::bruit(size_t index) const
+dls::math::BruitPerlin3D *GestionnaireDonneesGraphe::bruit(size_t index) const
 {
 	assert(index < m_bruits.size());
 	return m_bruits[index];

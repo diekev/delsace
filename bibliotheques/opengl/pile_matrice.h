@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include <delsace/math/matrice.hh>
 #include <stack>
 #include <vector>
 
@@ -37,7 +37,7 @@
  * pour dessiner l'objet courant.
  */
 class PileMatrice {
-	std::stack<glm::mat4, std::vector<glm::mat4>> m_pile;
+	std::stack<dls::math::mat4x4d, std::vector<dls::math::mat4x4d>> m_pile;
 
 public:
 	/**
@@ -51,7 +51,7 @@ public:
 	 * à la matrice alors au sommet multipliée par la matrice passée en
 	 * paramètre.
 	 */
-	inline void pousse(const glm::mat4 &mat);
+	inline void pousse(const dls::math::mat4x4d &mat);
 
 	/**
 	 * Fais sauter le sommet de la pile de celle-ci.
@@ -61,12 +61,12 @@ public:
 	/**
 	 * Retourne la matrice se trouvant au sommet de la pile.
 	 */
-	inline const glm::mat4 &sommet() const;
+	inline const dls::math::mat4x4d &sommet() const;
 };
 
 /* Implémentation des méthodes inlignées. */
 
-inline void PileMatrice::pousse(const glm::mat4 &mat)
+inline void PileMatrice::pousse(const dls::math::mat4x4d &mat)
 {
 	m_pile.push(m_pile.top() * mat);
 }
@@ -76,7 +76,7 @@ inline void PileMatrice::enleve_sommet()
 	m_pile.pop();
 }
 
-inline const glm::mat4 &PileMatrice::sommet() const
+inline const dls::math::mat4x4d &PileMatrice::sommet() const
 {
 	return m_pile.top();
 }

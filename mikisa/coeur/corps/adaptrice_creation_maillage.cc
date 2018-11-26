@@ -33,29 +33,29 @@
 
 void AdaptriceCreationMaillage::ajoute_sommet(const float x, const float y, const float z, const float w)
 {
-	maillage->ajoute_sommet(numero7::math::vec3f(x, y, z));
+	maillage->ajoute_sommet(dls::math::vec3f(x, y, z));
 }
 
 void AdaptriceCreationMaillage::ajoute_normal(const float x, const float y, const float z)
 {
-//	maillage->ajoute_normal(numero7::math::vec3f(x, y, z));
+//	maillage->ajoute_normal(dls::math::vec3f(x, y, z));
 
 	if (attribut_normal == nullptr) {
 		attribut_normal = maillage->ajoute_attribut("N", type_attribut::ATTRIBUT_VEC3, ATTR_PORTEE_POINT, 0);
 	}
 
-	attribut_normal->pousse_vec3(numero7::math::vec3f(x, y, z));
+	attribut_normal->pousse_vec3(dls::math::vec3f(x, y, z));
 }
 
 void AdaptriceCreationMaillage::ajoute_coord_uv_sommet(const float u, const float v, const float w)
 {
-//	maillage->ajoute_uv(numero7::math::vec2f(u, v));
+//	maillage->ajoute_uv(dls::math::vec2f(u, v));
 
 	if (attribut_uvs == nullptr) {
 		attribut_uvs = maillage->ajoute_attribut("UV", type_attribut::ATTRIBUT_VEC2, ATTR_PORTEE_POLYGONE_POINT, 0);
 	}
 
-	attribut_uvs->pousse_vec2(numero7::math::vec2f(u, v));
+	attribut_uvs->pousse_vec2(dls::math::vec2f(u, v));
 }
 
 void AdaptriceCreationMaillage::ajoute_parametres_sommet(const float x, const float y, const float z)
@@ -149,7 +149,7 @@ void AdaptriceCreationCorps::ajoute_normal(const float x, const float y, const f
 		attribut_normal = corps->ajoute_attribut("N", type_attribut::ATTRIBUT_VEC3, ATTR_PORTEE_POINT, 0);
 	}
 
-	attribut_normal->pousse_vec3(numero7::math::vec3f(x, y, z));
+	attribut_normal->pousse_vec3(dls::math::vec3f(x, y, z));
 }
 
 void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v, const float w)
@@ -158,7 +158,7 @@ void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v
 		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::ATTRIBUT_VEC2, ATTR_PORTEE_POLYGONE_POINT, 0);
 	}
 
-	attribut_uvs->pousse_vec2(numero7::math::vec2f(u, v));
+	attribut_uvs->pousse_vec2(dls::math::vec2f(u, v));
 }
 
 void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float y, const float z)

@@ -27,7 +27,6 @@
 #include <cmath>
 #include <vector>
 
-#include "bibliotheques/math/entrepolation.h"
 #include "bibliotheques/outils/constantes.h"
 
 /* ************************************************************************** */

@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include <math/vec3.h>
+#include <delsace/math/vecteur.hh>
 #include <vector>
 
 template <typename T>
 class Grille {
 	std::vector<T> m_donnees = {};
 
-	numero7::math::vec3i m_res = numero7::math::vec3i(0, 0, 0);
+	dls::math::vec3i m_res = dls::math::vec3i(0, 0, 0);
 	size_t m_nombre_voxels = 0;
 
 	T m_arriere_plan = T(0);
@@ -73,7 +73,7 @@ public:
 		std::fill(m_donnees.begin(), m_donnees.end(), T(0));
 	}
 
-	numero7::math::vec3i resolution() const
+	dls::math::vec3i resolution() const
 	{
 		return m_res;
 	}

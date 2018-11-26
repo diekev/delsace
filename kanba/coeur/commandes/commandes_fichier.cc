@@ -230,7 +230,7 @@ static bool lis_maillage(std::ifstream &fichier, Maillage *maillage)
 	size_t nombre_sommets, nombre_arretes, nombre_polygones;
 	lis_fichier(fichier, nombre_sommets);
 
-	numero7::math::vec3f pos;
+	dls::math::vec3f pos;
 
 	for (size_t i = 0; i < nombre_sommets; ++i) {
 		lis_fichier(fichier, pos.x);
@@ -244,7 +244,7 @@ static bool lis_maillage(std::ifstream &fichier, Maillage *maillage)
 
 	lis_fichier(fichier, nombre_polygones);
 
-	numero7::math::vec4i poly;
+	dls::math::vec4i poly;
 
 	for (size_t i = 0; i < nombre_polygones; ++i) {
 		lis_fichier(fichier, poly.x);
@@ -345,10 +345,10 @@ static bool lis_calque(std::ifstream &fichier, Calque *calque, size_t resolution
 			calque->tampon = new float[resolution];
 			break;
 		case TypeDonnees::COULEUR:
-			calque->tampon = new numero7::math::vec4f[resolution];
+			calque->tampon = new dls::math::vec4f[resolution];
 			break;
 		case TypeDonnees::VECTEUR:
-			calque->tampon = new numero7::math::vec3f[resolution];
+			calque->tampon = new dls::math::vec3f[resolution];
 			break;
 	}
 
@@ -440,10 +440,10 @@ static void ecris_canaux(std::ofstream &fichier, CanauxTexture &canaux)
 				taille_tampon *= sizeof(float);
 				break;
 			case TypeDonnees::COULEUR:
-				taille_tampon *= sizeof(numero7::math::vec4f);
+				taille_tampon *= sizeof(dls::math::vec4f);
 				break;
 			case TypeDonnees::VECTEUR:
-				taille_tampon *= sizeof(numero7::math::vec3f);
+				taille_tampon *= sizeof(dls::math::vec3f);
 				break;
 		}
 

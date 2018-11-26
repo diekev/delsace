@@ -26,9 +26,6 @@
 
 #include "bibliotheques/transformation/transformation.h"
 
-#include <math/point3.h>
-#include <math/vec3.h>
-
 #include <unordered_map>
 #include <vector>
 
@@ -57,16 +54,16 @@ class GroupePolygone;
 struct Corps {
 	/* transformation */
 	math::transformation transformation = math::transformation();
-	numero7::math::point3f pivot        = numero7::math::point3f(0.0f);
-	numero7::math::point3f position     = numero7::math::point3f(0.0f);
-	numero7::math::point3f echelle      = numero7::math::point3f(1.0f);
-	numero7::math::point3f rotation     = numero7::math::point3f(0.0f);
+	dls::math::point3f pivot        = dls::math::point3f(0.0f);
+	dls::math::point3f position     = dls::math::point3f(0.0f);
+	dls::math::point3f echelle      = dls::math::point3f(1.0f);
+	dls::math::point3f rotation     = dls::math::point3f(0.0f);
 	float echelle_uniforme              = 1.0f;
 
 	/* boîte englobante */
-	numero7::math::point3f min    = numero7::math::point3f(0.0f);
-	numero7::math::point3f max    = numero7::math::point3f(0.0f);
-	numero7::math::point3f taille = numero7::math::point3f(0.0f);
+	dls::math::point3f min    = dls::math::point3f(0.0f);
+	dls::math::point3f max    = dls::math::point3f(0.0f);
+	dls::math::point3f taille = dls::math::point3f(0.0f);
 
 	/* autres propriétés */
 	std::string nom = "corps";
