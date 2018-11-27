@@ -33,10 +33,10 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "associe", id_morceau::ASSOCIE },
 	{ "bool", id_morceau::BOOL },
 	{ "boucle", id_morceau::BOUCLE },
-	{ "constante", id_morceau::CONSTANTE },
 	{ "continue", id_morceau::CONTINUE },
 	{ "dans", id_morceau::DANS },
 	{ "de", id_morceau::DE },
+	{ "dyn", id_morceau::DYN },
 	{ "défère", id_morceau::DEFERE },
 	{ "employant", id_morceau::EMPLOYANT },
 	{ "externe", id_morceau::EXTERNE },
@@ -49,6 +49,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "n32", id_morceau::N32 },
 	{ "n64", id_morceau::N64 },
 	{ "n8", id_morceau::N8 },
+	{ "nonsûr", id_morceau::NONSUR },
 	{ "nul", id_morceau::NUL },
 	{ "pour", id_morceau::POUR },
 	{ "r16", id_morceau::R16 },
@@ -64,7 +65,6 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "taille_de", id_morceau::TAILLE_DE },
 	{ "transtype", id_morceau::TRANSTYPE },
 	{ "type", id_morceau::TYPE },
-	{ "variable", id_morceau::VARIABLE },
 	{ "vrai", id_morceau::VRAI },
 	{ "z16", id_morceau::Z16 },
 	{ "z32", id_morceau::Z32 },
@@ -195,14 +195,14 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::BOOL";
 		case id_morceau::BOUCLE:
 			return "id_morceau::BOUCLE";
-		case id_morceau::CONSTANTE:
-			return "id_morceau::CONSTANTE";
 		case id_morceau::CONTINUE:
 			return "id_morceau::CONTINUE";
 		case id_morceau::DANS:
 			return "id_morceau::DANS";
 		case id_morceau::DE:
 			return "id_morceau::DE";
+		case id_morceau::DYN:
+			return "id_morceau::DYN";
 		case id_morceau::DEFERE:
 			return "id_morceau::DEFERE";
 		case id_morceau::EMPLOYANT:
@@ -227,6 +227,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::N64";
 		case id_morceau::N8:
 			return "id_morceau::N8";
+		case id_morceau::NONSUR:
+			return "id_morceau::NONSUR";
 		case id_morceau::NUL:
 			return "id_morceau::NUL";
 		case id_morceau::POUR:
@@ -257,8 +259,6 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::TRANSTYPE";
 		case id_morceau::TYPE:
 			return "id_morceau::TYPE";
-		case id_morceau::VARIABLE:
-			return "id_morceau::VARIABLE";
 		case id_morceau::VRAI:
 			return "id_morceau::VRAI";
 		case id_morceau::Z16:
@@ -322,16 +322,16 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
-	for (auto const &iter : paires_caracteres_speciaux) {
+	for (const auto &iter : paires_caracteres_speciaux) {
 		tables_caracteres[int(iter.first)] = true;
 		tables_identifiants[int(iter.first)] = iter.second;
 	}
 
-	for (auto const &iter : paires_caracteres_double) {
+	for (const auto &iter : paires_caracteres_double) {
 		tables_caracteres_double[int(iter.first[0])] = true;
 	}
 
-	for (auto const &iter : paires_mots_cles) {
+	for (const auto &iter : paires_mots_cles) {
 		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
 	}
 }

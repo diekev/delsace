@@ -41,7 +41,7 @@ struct DonneesArgument {
 	size_t index = 0;
 	size_t donnees_type{-1ul};
 	bool est_variadic = false;
-	bool est_variable = false;
+	bool est_dynamic = false;
 	char pad[6];
 };
 

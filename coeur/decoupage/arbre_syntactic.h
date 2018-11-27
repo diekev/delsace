@@ -65,6 +65,7 @@ enum class type_noeud : char {
 	TAILLE_DE,
 	PLAGE,
 	DEFERE,
+	NONSUR,
 };
 
 /* ************************************************************************** */
@@ -145,6 +146,12 @@ enum class type_noeud : char {
 
 /* ************************************************************************** */
 
+enum {
+	DYNAMIC  = (1 << 0),
+	VARIADIC = (1 << 1),
+	GLOBAL   = (1 << 2),
+};
+
 /**
  * Classe de base représentant un noeud dans l'arbre.
  */
@@ -164,7 +171,7 @@ public:
 	size_t donnees_type = -1ul;
 
 	bool calcule = false;
-	char est_variable = false;
+	char drapeaux = false;
 	bool est_externe = false;
 	char pad{};
 	int module_appel{}; // module pour les appels de fonctions importées
@@ -634,4 +641,19 @@ public:
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
 	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudNonSur final : public Noeud {
+public:
+	explicit NoeudNonSur(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
+
+	type_noeud type() const override;
+
+	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };

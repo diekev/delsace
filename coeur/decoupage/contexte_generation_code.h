@@ -71,9 +71,9 @@ struct Metriques {
 };
 
 struct DonneesVariable {
-	llvm::Value *valeur;
+	llvm::Value *valeur{nullptr};
 	size_t donnees_type{-1ul};
-	bool est_variable = false;
+	bool est_dynamique = false;
 	bool est_variadic = false;
 	char pad[6] = {};
 };
@@ -84,6 +84,9 @@ struct DonneesStructure {
 	llvm::Type *type_llvm{nullptr};
 	size_t id{0ul};
 };
+
+using conteneur_globales = std::unordered_map<std::string_view, DonneesVariable>;
+using conteneur_locales = std::vector<std::pair<std::string_view, DonneesVariable>>;
 
 struct ContexteGenerationCode {
 	llvm::Module *module_llvm = nullptr;
@@ -184,7 +187,7 @@ struct ContexteGenerationCode {
 	 * Ajoute les données de la globale dont le nom est spécifié en paramètres
 	 * à la table de globales de ce contexte.
 	 */
-	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type);
+	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type, bool est_dynamique);
 
 	/**
 	 * Retourne un pointeur vers la valeur LLVM de la globale dont le nom est
@@ -204,6 +207,10 @@ struct ContexteGenerationCode {
 	 * vides sont retournées.
 	 */
 	size_t type_globale(const std::string_view &nom);
+
+	conteneur_globales::const_iterator iter_globale(const std::string_view &nom);
+
+	conteneur_globales::const_iterator fin_globales();
 
 	/* ********************************************************************** */
 
@@ -279,6 +286,10 @@ struct ContexteGenerationCode {
 	 */
 	bool est_locale_variadique(const std::string_view &nom);
 
+	conteneur_locales::const_iterator iter_locale(const std::string_view &nom);
+
+	conteneur_locales::const_iterator fin_locales();
+
 	/* ********************************************************************** */
 
 	/**
@@ -349,13 +360,26 @@ struct ContexteGenerationCode {
 	 */
 	Metriques rassemble_metriques() const;
 
+	/* ********************************************************************** */
+
+	/**
+	 * Définie si oui ou non le contexte est non-sûr, c'est-à-dire que l'on peut
+	 * manipuler des objets dangereux.
+	 */
+	void non_sur(bool ouinon);
+
+	/**
+	 * Retourne si oui ou non le contexte est non-sûr.
+	 */
+	bool non_sur() const;
+
 private:
 	llvm::BasicBlock *m_bloc_courant = nullptr;
-	std::unordered_map<std::string_view, DonneesVariable> globales{};
+	conteneur_globales globales{};
 	std::unordered_map<std::string_view, DonneesStructure> structures{};
 	std::vector<std::string_view> nom_structures{};
 
-	std::vector<std::pair<std::string_view, DonneesVariable>> m_locales{};
+	conteneur_locales m_locales{};
 	std::stack<size_t> m_pile_nombre_locales{};
 	size_t m_nombre_locales = 0;
 
@@ -365,6 +389,8 @@ private:
 	std::vector<paire_bloc> m_pile_arrete{};
 
 	std::stack<Noeud *> m_noeuds_deferes{};
+
+	bool m_non_sur = false;
 
 public:
 	/* À FAIRE : bouge ça d'ici. */

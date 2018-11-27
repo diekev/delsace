@@ -32,13 +32,13 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 {
 	CU_DEBUTE_PROPOSITION(
 				controleuse,
-				"Une variable 'variable' peut être réassignée");
+				"Une variable dynamique peut être réassignée");
 	{
 		const char *texte =
 				R"(
 				fonction foo() : rien
 				{
-					soit variable a = 5;
+					dyn a = 5;
 					a = 6;
 				}
 				)";
@@ -75,7 +75,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 				R"(
 				fonction foo() : rien
 				{
-					soit variable a = 5;
+					dyn a = 5;
 					@a = 6;
 				}
 				)";
@@ -92,7 +92,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo(variable a : [2]z32) : rien
+				fonction foo(dyn a : [2]z32) : rien
 				{
 					a[0] = 5;
 				}
@@ -110,7 +110,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo(variable a : [2]z32) : rien
+				fonction foo(dyn a : [2]z32) : rien
 				{
 					a = 6;
 				}
@@ -150,7 +150,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 				R"(
 				fonction foo() : rien
 				{
-					soit variable a = 5.0;
+					dyn a = 5.0;
 					a = 6;
 				}
 				)";
@@ -189,7 +189,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 				structure Vecteur3D {
 					x : z32;
 				}
-				fonction foo(variable v : Vecteur3D) : rien
+				fonction foo(dyn v : Vecteur3D) : rien
 				{
 					x de v = 5;
 				}
@@ -210,7 +210,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 				structure Vecteur3D {
 					x : [2]z32;
 				}
-				fonction foo(variable v : Vecteur3D) : rien
+				fonction foo(dyn v : Vecteur3D) : rien
 				{
 					x[0] de v = 5;
 				}
@@ -231,7 +231,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 				structure Vecteur3D {
 					x : [2]n32;
 				}
-				fonction foo(variable v : Vecteur3D) : rien
+				fonction foo(dyn v : Vecteur3D) : rien
 				{
 					x de v = 5;
 				}
@@ -240,6 +240,64 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On ne peut pas réassigner une valeur à une globale constante");
+	{
+		const char *texte =
+				R"(
+				soit PI = 3.14;
+				fonction foo() : rien
+				{
+					PI = 5.0;
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On ne peut pas réassigner une valeur à une globale dynamique en-dehors d'un bloc 'nonsûr'");
+	{
+		const char *texte =
+				R"(
+				dyn PI = 3.14;
+				fonction foo() : rien
+				{
+					PI = 5.0;
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On peut réassigner une valeur à une globale dynamique dans un bloc 'nonsûr'");
+	{
+		const char *texte =
+				R"(
+				dyn PI = 3.14;
+				fonction foo() : rien
+				{
+					nonsûr {
+						PI = 5.0;
+					}
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 }

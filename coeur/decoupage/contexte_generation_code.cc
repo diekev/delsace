@@ -152,9 +152,15 @@ llvm::BasicBlock *ContexteGenerationCode::bloc_arrete(std::string_view chaine)
 	return nullptr;
 }
 
-void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type)
+void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type, bool est_dynamique)
 {
-	globales.insert({nom, {valeur, index_type}});
+	/* Nous utilisons ça plutôt que 'insert' car la valeur est poussée deux fois :
+	 * - la première fois, nulle, lors de la validation sémantique,
+	 * - la deuxième fois, correcte, lors de la génération du code.
+	 *
+	 * 'insert' n'insert pas si la valeur existe déjà, donc nous nous
+	 * retrouvions avec un pointeur nul. */
+	globales[nom] = { valeur, index_type, est_dynamique };
 }
 
 llvm::Value *ContexteGenerationCode::valeur_globale(const std::string_view &nom)
@@ -188,6 +194,16 @@ size_t ContexteGenerationCode::type_globale(const std::string_view &nom)
 	}
 
 	return iter->second.donnees_type;
+}
+
+conteneur_globales::const_iterator ContexteGenerationCode::iter_globale(const std::string_view &nom)
+{
+	return globales.find(nom);
+}
+
+conteneur_globales::const_iterator ContexteGenerationCode::fin_globales()
+{
+	return globales.end();
 }
 
 void ContexteGenerationCode::pousse_locale(
@@ -259,18 +275,13 @@ size_t ContexteGenerationCode::type_locale(const std::string_view &nom)
 
 bool ContexteGenerationCode::peut_etre_assigne(const std::string_view &nom)
 {
-	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
-	auto iter = std::find_if(m_locales.begin(), iter_fin,
-							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
-	{
-		return paire.first == nom;
-	});
+	auto iter = iter_locale(nom);
 
-	if (iter == iter_fin) {
+	if (iter == fin_locales()) {
 		return false;
 	}
 
-	return iter->second.est_variable;
+	return iter->second.est_dynamique;
 }
 
 void ContexteGenerationCode::empile_nombre_locales()
@@ -296,18 +307,30 @@ void ContexteGenerationCode::imprime_locales(std::ostream &os)
 
 bool ContexteGenerationCode::est_locale_variadique(const std::string_view &nom)
 {
-	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
-	auto iter = std::find_if(m_locales.begin(), iter_fin,
+	auto iter = iter_locale(nom);
+
+	if (iter == fin_locales()) {
+		return false;
+	}
+
+	return iter->second.est_variadic;
+}
+
+conteneur_locales::const_iterator ContexteGenerationCode::iter_locale(const std::string_view &nom)
+{
+	auto iter_fin = fin_locales();
+	auto iter = std::find_if(m_locales.cbegin(), iter_fin,
 							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
 	{
 		return paire.first == nom;
 	});
 
-	if (iter == iter_fin) {
-		return false;
-	}
+	return iter;
+}
 
-	return iter->second.est_variadic;
+conteneur_locales::const_iterator ContexteGenerationCode::fin_locales()
+{
+	return m_locales.begin() + static_cast<long>(m_nombre_locales);
 }
 
 void ContexteGenerationCode::commence_fonction(llvm::Function *f)
@@ -427,4 +450,16 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	}
 
 	return metriques;
+}
+
+/* ************************************************************************** */
+
+void ContexteGenerationCode::non_sur(bool ouinon)
+{
+	m_non_sur = ouinon;
+}
+
+bool ContexteGenerationCode::non_sur() const
+{
+	return m_non_sur;
 }

@@ -4,8 +4,7 @@ import io
 
 mot_cles = [
 	u'soit',
-	u'constante',
-	u'variable',
+	u'dyn',
 	u'fonction',
 	u'boucle',
 	u'pour',
@@ -45,6 +44,7 @@ mot_cles = [
 	u'sansarrêt',
 	u'externe',
 	u'importe',
+	u'nonsûr',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -121,6 +121,7 @@ def enleve_accent(mot):
 	mot = mot.replace(u'â', 'a')
 	mot = mot.replace(u'ê', 'e')
 	mot = mot.replace(u'ô', 'o')
+	mot = mot.replace(u'û', 'u')
 
 	return mot
 

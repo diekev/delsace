@@ -358,7 +358,7 @@ static void test_declaration_fonction_variadique(
 {
 	CU_DEBUTE_PROPOSITION(
 				controleuse,
-				"Ce n'est pas obliger de typer la liste d'arguments d'une fonction variable.");
+				"Ce n'est pas obliger de typer la liste d'arguments d'une fonction variadique.");
 	{
 		const char *texte =
 				R"(
@@ -372,7 +372,7 @@ static void test_declaration_fonction_variadique(
 
 	CU_DEBUTE_PROPOSITION(
 				controleuse,
-				"C'est possible de typer la liste d'arguments d'une fonction variable.");
+				"C'est possible de typer la liste d'arguments d'une fonction variadique.");
 	{
 		const char *texte =
 				R"(

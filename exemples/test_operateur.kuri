@@ -8,15 +8,15 @@ structure Vecteur3D {
 fonction racine_carré(x : n32) : n32
 {
 #!si vrai
-	soit variable num = x;
-	soit variable res = 0;
+	dyn num = x;
+	dyn res = 0;
 
 	# Le second bit est mis en place
 	# n8  : 1 << 6
 	# n16 : 1 << 14
 	# n32 : 1 << 30
 	# n64 : 1 << 62
-	soit variable bit = 1 << 30;
+	dyn bit = 1 << 30;
 
 	boucle {
 		si bit <= num {
@@ -46,8 +46,8 @@ fonction racine_carré(x : n32) : n32
 		retourne x;
 	}
 
-	soit variable i = 1;
-	soit variable res = 1;
+	dyn i = 1;
+	dyn res = 1;
 
 	boucle {
 		si res > x {

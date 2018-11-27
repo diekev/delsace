@@ -131,8 +131,8 @@ static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 
 				fonction foo() : rien
 				{
-					soit variable debut : Demo;
-					soit variable fin   : Demo;
+					dyn debut : Demo;
+					dyn fin   : Demo;
 
 					pour x dans debut...fin {
 					}
@@ -361,7 +361,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 				R"(
 				fonction foo() : rien
 				{
-					soit variable i = 0;
+					dyn i = 0;
 					boucle {
 
 						si i > 5 {

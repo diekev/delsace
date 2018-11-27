@@ -1030,7 +1030,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 							 contexte,
 							 donnees_fonction,
 							 this_dt,
-							 this->est_variable);
+							 (this->drapeaux & VARIADIC) != 0);
 
 	contexte.magasin_types.donnees_types[donnees_fonction.index_type].type_llvm(type_fonction);
 
@@ -1149,7 +1149,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 			auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vastart);
 			llvm::CallInst::Create(fonc, cast, "", contexte.bloc_courant());
-			contexte.pousse_locale(nom, cast, argument.donnees_type, argument.est_variable, argument.est_variadic);
+			contexte.pousse_locale(nom, cast, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
 		}
 		else {
 			auto valeur = &(*valeurs_args++);
@@ -1163,7 +1163,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 			alloc->setAlignment(align);
 			auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 			store->setAlignment(align);
-			contexte.pousse_locale(nom, alloc, argument.donnees_type, argument.est_variable, argument.est_variadic);
+			contexte.pousse_locale(nom, alloc, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
 		}
 	}
 
@@ -1219,10 +1219,10 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 			auto index_dt = contexte.magasin_types.ajoute_type(dt);
 
 			contexte.pousse_locale("__compte_args", nullptr, index_dt, false, false);
-			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_variable, argument.est_variadic);
+			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
 		}
 		else {
-			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_variable, argument.est_variadic);
+			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
 		}
 	}
 
@@ -1302,6 +1302,14 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto valeur = expression->genere_code_llvm(contexte);
 
 	auto alloc = variable->genere_code_llvm(contexte, true);
+
+	if (variable->type() == type_noeud::DECLARATION_VARIABLE && (variable->drapeaux & GLOBAL) != 0) {
+		assert(expression->est_constant());
+		auto vg = dynamic_cast<llvm::GlobalVariable *>(alloc);
+		vg->setInitializer(dynamic_cast<llvm::Constant *>(valeur));
+		return vg;
+	}
+
 	auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 
 	auto const &dt = contexte.magasin_types.donnees_types[expression->donnees_type];
@@ -1386,6 +1394,21 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
 	auto type_llvm = converti_type(contexte, type);
 
+	if ((this->drapeaux & GLOBAL) != 0) {
+		auto valeur = new llvm::GlobalVariable(
+						  *contexte.module_llvm,
+						  type_llvm,
+						  true,
+						  llvm::GlobalValue::InternalLinkage,
+						  nullptr);
+
+		valeur->setConstant((this->drapeaux & DYNAMIC) == 0);
+		valeur->setAlignment(alignement(contexte, type));
+
+		contexte.pousse_globale(this->chaine(), valeur, this->donnees_type, (this->drapeaux & DYNAMIC) != 0);
+		return valeur;
+	}
+
 	auto alloc = new llvm::AllocaInst(
 					 type_llvm,
 #ifdef NOMME_IR
@@ -1397,7 +1420,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	alloc->setAlignment(alignement(contexte, type));
 
-	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, this->est_variable, false);
+	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, (this->drapeaux & DYNAMIC) != 0, false);
 
 	return alloc;
 }
@@ -1435,7 +1458,12 @@ void NoeudDeclarationVariable::perfome_validation_semantique(ContexteGenerationC
 		}
 	}
 
-	contexte.pousse_locale(m_donnees_morceaux.chaine, nullptr, this->donnees_type, this->est_variable, false);
+	if ((this->drapeaux & GLOBAL) != 0) {
+		contexte.pousse_globale(m_donnees_morceaux.chaine, nullptr, this->donnees_type, (this->drapeaux & DYNAMIC) != 0);
+	}
+	else {
+		contexte.pousse_locale(m_donnees_morceaux.chaine, nullptr, this->donnees_type, (this->drapeaux & DYNAMIC) != 0, false);
+	}
 }
 
 /* ************************************************************************** */
@@ -1479,7 +1507,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 					  llvm::GlobalValue::InternalLinkage,
 					  constante);
 
-	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->donnees_type);
+	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->donnees_type, false);
 
 	return valeur;
 }
@@ -1516,7 +1544,7 @@ void NoeudConstante::perfome_validation_semantique(ContexteGenerationCode &conte
 	}
 	/* À FAIRE : vérifie typage */
 
-	contexte.pousse_globale(m_donnees_morceaux.chaine, nullptr, this->donnees_type);
+	contexte.pousse_globale(m_donnees_morceaux.chaine, nullptr, this->donnees_type, false);
 }
 
 /* ************************************************************************** */
@@ -1841,7 +1869,43 @@ type_noeud NoeudVariable::type() const
 
 bool NoeudVariable::peut_etre_assigne(ContexteGenerationCode &contexte) const
 {
-	return contexte.peut_etre_assigne(m_donnees_morceaux.chaine);
+	auto iter_local = contexte.iter_locale(m_donnees_morceaux.chaine);
+
+	if (iter_local != contexte.fin_locales()) {
+		if (!iter_local->second.est_dynamique) {
+			erreur::lance_erreur(
+						"Ne peut pas assigner une variable locale non-dynamique",
+						contexte,
+						this->donnees_morceau(),
+						erreur::type_erreur::ASSIGNATION_INVALIDE);
+		}
+
+		return true;
+	}
+
+	auto iter_globale = contexte.iter_globale(m_donnees_morceaux.chaine);
+
+	if (iter_globale != contexte.fin_globales()) {
+		if (!contexte.non_sur()) {
+			erreur::lance_erreur(
+						"Ne peut pas assigner une variable globale en dehors d'un bloc 'nonsûr'",
+						contexte,
+						this->donnees_morceau(),
+						erreur::type_erreur::ASSIGNATION_INVALIDE);
+		}
+
+		if (!iter_globale->second.est_dynamique) {
+			erreur::lance_erreur(
+						"Ne peut pas assigner une variable globale non-dynamique",
+						contexte,
+						this->donnees_morceau(),
+						erreur::type_erreur::ASSIGNATION_INVALIDE);
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 void NoeudVariable::perfome_validation_semantique(ContexteGenerationCode &contexte)
@@ -2727,7 +2791,9 @@ void NoeudSi::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 NoeudBloc::NoeudBloc(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
-{}
+{
+	this->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
+}
 
 void NoeudBloc::imprime_code(std::ostream &os, int tab)
 {
@@ -3694,4 +3760,34 @@ llvm::Value *NoeudDefere::genere_code_llvm(ContexteGenerationCode &contexte, boo
 type_noeud NoeudDefere::type() const
 {
 	return type_noeud::DEFERE;
+}
+
+/* ************************************************************************** */
+
+NoeudNonSur::NoeudNonSur(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
+{}
+
+void NoeudNonSur::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudNonSur : \n";
+	m_enfants.front()->imprime_code(os, tab + 1);
+}
+
+llvm::Value *NoeudNonSur::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+{
+	return m_enfants.front()->genere_code_llvm(contexte, false);
+}
+
+type_noeud NoeudNonSur::type() const
+{
+	return type_noeud::NONSUR;
+}
+
+void NoeudNonSur::perfome_validation_semantique(ContexteGenerationCode &contexte)
+{
+	contexte.non_sur(true);
+	m_enfants.front()->perfome_validation_semantique(contexte);
+	contexte.non_sur(false);
 }

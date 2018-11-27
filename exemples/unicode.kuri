@@ -65,8 +65,8 @@ fonction nombre_octets_unicode(sequence : *n8)
 # portée explicite
 fonction decoupe_texte(debut : *n8)
 {
-    soit variable pos = 0;
-    soit variable copie = debut;
+    dyn pos = 0;
+    dyn copie = debut;
 
     boucle (*copie != '\0') {
         soit nombre_octet = nombre_octets_unicode(copie);

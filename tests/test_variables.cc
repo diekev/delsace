@@ -74,7 +74,7 @@ static void test_variable_redefinie(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				soit constante PI = 3.14159;
+				soit PI = 3.14159;
 				fonction principale() : z32
 				{
 					soit PI = 3.14159;
@@ -496,7 +496,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 				R"(
 				fonction principale(compte : z32, arguments : n8) : z32
 				{
-					soit variable a = compte;
+					dyn a = compte;
 
 					si a == 10 {
 						soit ai = a;
@@ -525,7 +525,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 				R"(
 				fonction principale(compte : z32, arguments : n8) : z32
 				{
-					soit variable a = compte;
+					dyn a = compte;
 
 					pour x dans 0...10 {
 
@@ -550,7 +550,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 				R"(
 				fonction principale(compte : z32, arguments : n8) : z32
 				{
-				soit variable a = compte;
+					dyn a = compte;
 
 					boucle {
 

@@ -21,7 +21,7 @@ structure ChaînePascal {
 # pas terminée par '\0', la fonction restera bloquée dans une boucle infinie.
 fonction longueur(chaîne : *z8) : z64
 {
-	soit variable i : z64 = 0;
+	dyn i : z64 = 0;
 
 	boucle {
 		si chaîne[i] == '\0' {
@@ -43,7 +43,7 @@ fonction longueur(chaîne : *z8) : z64
 # 
 # Si la chaîne 'C' mesure plus que 255 caractères, une erreur sera imprimée dans
 # la sortie standard, et la fonction retournera sans rien copier.
-fonction assigne_chaîne_pascal(variable cp : *ChaînePascal,  chaîne : *z8) : rien
+fonction assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) : rien
 {
 	si cp == nul {
 		printf("La chaîne pascal est nul !\n");
@@ -85,7 +85,7 @@ fonction imprime_chaîne_pascal(cp : *ChaînePascal) : rien
 # Point d'entrée des programmes Kuri.
 fonction principale(compte : z32, arguments : **z8) : z32
 {
-	soit variable chaîne : ChaînePascal;
+	dyn chaîne : ChaînePascal;
 
 	assigne_chaîne_pascal(@chaîne, "chaîne pascal\n");
 	imprime_chaîne_pascal(@chaîne);
