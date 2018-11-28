@@ -556,19 +556,14 @@ static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte, int i
 	/* insère un appel à va_end avant chaque instruction de retour */
 	if (contexte.fonction->isVarArg()) {
 		auto const &donnees_fonction = module->donnees_fonction(std::string(contexte.fonction->getName()));
+		auto const &nom_dernier_arg = donnees_fonction.nom_args.back();
+		auto valeur_varg = contexte.valeur_locale(nom_dernier_arg);
 
-		for (auto const &arg : donnees_fonction.args) {
-			if (arg.second.est_variadic) {
-				auto valeur_varg = contexte.valeur_locale(arg.first);
+		assert(valeur_varg != nullptr);
 
-				assert(valeur_varg != nullptr);
+		auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vaend);
 
-				auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vaend);
-
-				llvm::CallInst::Create(fonc, valeur_varg, "", contexte.bloc_courant());
-				break;
-			}
-		}
+		llvm::CallInst::Create(fonc, valeur_varg, "", contexte.bloc_courant());
 	}
 
 	/* génère le code pour les blocs déférés */
@@ -1910,13 +1905,17 @@ bool NoeudVariable::peut_etre_assigne(ContexteGenerationCode &contexte) const
 
 void NoeudVariable::perfome_validation_semantique(ContexteGenerationCode &contexte)
 {
-	if (contexte.locale_existe(m_donnees_morceaux.chaine)) {
-		this->donnees_type = contexte.type_locale(m_donnees_morceaux.chaine);
+	auto const &iter_locale = contexte.iter_locale(m_donnees_morceaux.chaine);
+
+	if (iter_locale != contexte.fin_locales()) {
+		this->donnees_type = iter_locale->second.donnees_type;
 		return;
 	}
 
-	if (contexte.globale_existe(m_donnees_morceaux.chaine)) {
-		this->donnees_type = contexte.type_globale(m_donnees_morceaux.chaine);
+	auto const &iter_globale = contexte.iter_globale(m_donnees_morceaux.chaine);
+
+	if (iter_globale != contexte.fin_globales()) {
+		this->donnees_type = iter_globale->second.donnees_type;
 		return;
 	}
 
