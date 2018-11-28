@@ -29,7 +29,7 @@
 #include <iostream>
 #endif
 
-Analyseuse::Analyseuse(std::vector<DonneesMorceaux> const &identifiants, ContexteGenerationCode &contexte)
+Analyseuse::Analyseuse(std::vector<DonneesMorceaux> &identifiants, ContexteGenerationCode &contexte)
 	: m_contexte(contexte)
 	, m_identifiants(identifiants)
 {}

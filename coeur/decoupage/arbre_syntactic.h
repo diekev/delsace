@@ -158,12 +158,7 @@ enum {
 class Noeud {
 protected:
 	std::list<Noeud *> m_enfants{};
-
-	/* Il sera bien de stocker une référence ou un pointeur pour éviter de
-	 * copier les données trop de fois, mais nous construisons également des
-	 * données tamporaires (par exemple dans les expressions pré-calculées), ce
-	 * qui nous empêche l'utilisation de pointeurs. */
-	DonneesMorceaux m_donnees_morceaux{};
+	DonneesMorceaux const &m_donnees_morceaux;
 
 public:
 	std::any valeur_calculee{};

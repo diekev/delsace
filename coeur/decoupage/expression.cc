@@ -328,7 +328,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerati
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, op->donnees_morceau());
 			noeud->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -357,7 +357,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerati
 		}
 
 		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, op->donnees_morceau());
 			noeud->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 
@@ -369,7 +369,7 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerati
 		}
 
 		if (est_operation_booleenne(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, { "", 0ul, id_morceau::BOOL });
+			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, op->donnees_morceau());
 			noeud->valeur_calculee = calcul_expression_boolenne(op->identifiant(), v1, v2);
 			noeud->calcule = true;
 

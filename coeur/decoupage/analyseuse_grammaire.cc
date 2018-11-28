@@ -217,7 +217,7 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 
 analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
-		std::vector<DonneesMorceaux> const &identifiants,
+		std::vector<DonneesMorceaux> &identifiants,
 		assembleuse_arbre *assembleuse,
 		DonneesModule *module)
 	: Analyseuse(identifiants, contexte)
@@ -234,7 +234,7 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 		return;
 	}
 
-	m_assembleuse->empile_noeud(type_noeud::RACINE, m_contexte, DonneesMorceaux{"racine", 0ul, id_morceau::INCONNU });
+	m_assembleuse->empile_noeud(type_noeud::RACINE, m_contexte, m_identifiants[0]);
 
 	analyse_corps(os);
 }
@@ -773,7 +773,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 	DEB_LOG_EXPRESSION << "Vecteur :" << FIN_LOG_EXPRESSION;
 
 	while (!requiers_identifiant(identifiant_final)) {
-		auto const &morceau = m_identifiants[position()];
+		auto &morceau = m_identifiants[position()];
 
 		DEB_LOG_EXPRESSION << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
@@ -856,8 +856,8 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::FAUX:
 			{
 				/* remplace l'identifiant par id_morceau::BOOL */
-				auto morceau_bool = DonneesMorceaux{ morceau.chaine, morceau.ligne_pos, id_morceau::BOOL };
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, m_contexte, morceau_bool);
+				morceau.identifiant = id_morceau::BOOL;
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, m_contexte, morceau);
 				expression.push_back(noeud);
 				break;
 			}
@@ -933,8 +933,8 @@ void analyseuse_grammaire::analyse_expression_droite(
 						id_operateur = id_morceau::MOINS_UNAIRE;
 					}
 
-					auto morceau_unaire = DonneesMorceaux{morceau.chaine, morceau.ligne_pos, id_operateur};
-					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, m_contexte, morceau_unaire);
+					morceau.identifiant = id_operateur;
+					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, m_contexte, morceau);
 				}
 				else {
 					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau);

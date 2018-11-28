@@ -55,7 +55,7 @@ class analyseuse_grammaire : public Analyseuse {
 public:
 	analyseuse_grammaire(
 			ContexteGenerationCode &contexte,
-			std::vector<DonneesMorceaux> const &identifiants,
+			std::vector<DonneesMorceaux> &identifiants,
 			assembleuse_arbre *assembleuse,
 			DonneesModule *module);
 

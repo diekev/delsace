@@ -41,7 +41,10 @@
 class Analyseuse {
 protected:
 	ContexteGenerationCode &m_contexte;
-	const std::vector<DonneesMorceaux> &m_identifiants;
+	/* La référence n'est pas constante car l'analyseuse peut changer
+	 * l'identifiant des morceaux
+	 * (par exemple id_morceau::PLUS -> id_morceau::PLUS_UNAIRE). */
+	std::vector<DonneesMorceaux> &m_identifiants;
 	size_t m_position = 0;
 
 #ifdef DEBOGUE_IDENTIFIANT
@@ -49,7 +52,7 @@ protected:
 #endif
 
 public:
-	Analyseuse(std::vector<DonneesMorceaux> const &identifiants, ContexteGenerationCode &contexte);
+	Analyseuse(std::vector<DonneesMorceaux> &identifiants, ContexteGenerationCode &contexte);
 	virtual ~Analyseuse() = default;
 
 	/**

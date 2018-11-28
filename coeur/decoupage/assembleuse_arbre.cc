@@ -91,7 +91,10 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, ContexteGenerationCode &co
 			if (!noeuds_entier_libres.empty()) {
 				noeud = noeuds_entier_libres.back();
 				noeuds_entier_libres.pop_back();
-				*noeud = NoeudNombreEntier(contexte, morceau);
+				/* Utilisation du 'placement new' pour construire à l'endroit du
+				 * pointeur, car morceau est une référence, et nous ne pouvons
+				 * appeler le constructeur de copie à cause de cette référence. */
+				new(noeud) NoeudNombreEntier(contexte, morceau);
 				reutilise = true;
 			}
 			else {
@@ -103,7 +106,10 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, ContexteGenerationCode &co
 			if (!noeuds_reel_libres.empty()) {
 				noeud = noeuds_reel_libres.back();
 				noeuds_reel_libres.pop_back();
-				*noeud = NoeudNombreReel(contexte, morceau);
+				/* Utilisation du 'placement new' pour construire à l'endroit du
+				 * pointeur, car morceau est une référence, et nous ne pouvons
+				 * appeler le constructeur de copie à cause de cette référence. */
+				new(noeud) NoeudNombreReel(contexte, morceau);
 				reutilise = true;
 			}
 			else {
@@ -115,7 +121,10 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, ContexteGenerationCode &co
 			if (!noeuds_op_libres.empty()) {
 				noeud = noeuds_op_libres.back();
 				noeuds_op_libres.pop_back();
-				*noeud = NoeudOperationBinaire(contexte, morceau);
+				/* Utilisation du 'placement new' pour construire à l'endroit du
+				 * pointeur, car morceau est une référence, et nous ne pouvons
+				 * appeler le constructeur de copie à cause de cette référence. */
+				new(noeud) NoeudOperationBinaire(contexte, morceau);
 				reutilise = true;
 			}
 			else {
