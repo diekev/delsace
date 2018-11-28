@@ -428,10 +428,17 @@ static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
 	return os;
 }
 
-static void cree_executable(const std::filesystem::path &dest)
+static void cree_executable(const std::filesystem::path &dest, const std::filesystem::path &racine_kuri)
 {
+	/* Compile le fichier objet qui appelera 'fonction principale'. */
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
-		auto err = system("as -o /tmp/execution_kuri.o fichiers/execution_kuri.S");
+		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
+
+		std::stringstream ss;
+		ss << "as -o /tmp/execution_kuri.o ";
+		ss << chemin_execution_S;
+
+		auto err = system(ss.str().c_str());
 
 		if (err != 0) {
 			std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
@@ -482,6 +489,14 @@ int main(int argc, char *argv[])
 	}
 
 	if (ops.erreur) {
+		return 1;
+	}
+
+	auto const &chemin_racine_kuri = getenv("RACINE_KURI");
+
+	if (chemin_racine_kuri == nullptr) {
+		std::cerr << "Impossible de trouver le chemin racine de l'installation de kuri !\n";
+		std::cerr << "Possible solution : veuillez faire en sorte que la variable d'environnement 'RACINE_KURI' soit définie !\n";
 		return 1;
 	}
 
@@ -586,7 +601,7 @@ int main(int argc, char *argv[])
 			temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
 
 			auto debut_executable = dls::chrono::maintenant();
-			cree_executable(ops.chemin_sortie);
+			cree_executable(ops.chemin_sortie, chemin_racine_kuri);
 			temps_executable = dls::chrono::delta(debut_executable);
 		}
 
