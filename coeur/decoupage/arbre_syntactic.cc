@@ -146,8 +146,24 @@ static llvm::Type *converti_type_simple(
 		}
 		case id_morceau::TABLEAU:
 		{
-			auto const taille = static_cast<uint64_t>(identifiant) & 0xffffff00;
-			type = llvm::ArrayType::get(type_entree, taille >> 8);
+			auto const taille = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
+
+			if (taille != 0) {
+				type = llvm::ArrayType::get(type_entree, taille);
+			}
+			else {
+				/* type = structure { *type, n64 } */
+				std::vector<llvm::Type *> types_membres(2ul);
+				types_membres[0] = llvm::PointerType::get(type_entree, 0);
+				types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
+
+				type = llvm::StructType::create(
+						   contexte.contexte,
+						   types_membres,
+						   "struct.tableau",
+						   false);
+			}
+
 			break;
 		}
 		default:
@@ -276,6 +292,10 @@ static unsigned alignement(
 			return 4;
 		case id_morceau::TABLEAU:
 		{
+			if (size_t(identifiant >> 8) == 0) {
+				return 8;
+			}
+
 			return alignement(contexte, donnees_type.derefence());
 		}
 		case id_morceau::FONCTION:
@@ -305,52 +325,60 @@ static unsigned alignement(
 	return 0;
 }
 
-/**
- * Retourne vrai si le premier type est un pointeur, le deuxième un tableau, et
- * leurs types déréférencés sont égaux.
- */
-static bool sont_pointeur_tableau_compatibles(
-		const DonneesType &type1,
-		const DonneesType &type2)
-{
-	if (type1.type_base() != id_morceau::POINTEUR) {
-		return false;
-	}
-
-	if ((type2.type_base() & 0xff) != id_morceau::TABLEAU) {
-		return false;
-	}
-
-	return type1.derefence() == type2.derefence();
-}
+enum class niveau_compat : char {
+	aucune,
+	ok,
+	converti_tableau,
+};
 
 /**
  * Retourne vrai si les deux types peuvent être convertis silencieusement par le
  * compileur.
  */
-static bool sont_compatibles(
+static niveau_compat sont_compatibles(
 		const DonneesType &type1,
 		const DonneesType &type2)
 {
 	if (type1 == type2) {
-		return true;
+		return niveau_compat::ok;
 	}
 
 	/* Nous savons que les types sont différents, donc si l'un des deux est un
 	 * pointeur fonction, nous pouvons retourner faux. */
 	if (type1.type_base() == id_morceau::FONCTION) {
-		return false;
+		return niveau_compat::aucune;
 	}
 
-	if (sont_pointeur_tableau_compatibles(type1, type2)) {
-		return true;
+	if (type1.type_base() == id_morceau::TABLEAU) {
+		if ((type2.type_base() & 0xff) != id_morceau::TABLEAU) {
+			return niveau_compat::aucune;
+		}
+
+		if (type1.derefence() == type2.derefence()) {
+			return niveau_compat::converti_tableau;
+		}
+
+		return niveau_compat::aucune;
 	}
 
-	if (sont_pointeur_tableau_compatibles(type2, type1)) {
-		return true;
+	/* À FAIRE : C-strings */
+	if (type1.type_base() == id_morceau::POINTEUR) {
+		if (type1.derefence().type_base() != id_morceau::Z8) {
+			return niveau_compat::aucune;
+		}
+
+		if ((type2.type_base() & 0xff) == id_morceau::TABLEAU) {
+			if (size_t(type2.type_base() >> 8) == 0) {
+				return niveau_compat::aucune;
+			}
+		}
+
+		if (type2.derefence().type_base() == id_morceau::Z8) {
+			return niveau_compat::ok;
+		}
 	}
 
-	return false;
+	return niveau_compat::aucune;
 }
 
 static bool est_type_entier(id_morceau type)
@@ -671,6 +699,92 @@ type_noeud NoeudRacine::type() const
 
 /* ************************************************************************** */
 
+[[nodiscard]] static llvm::Value *accede_taille_tableau(
+		ContexteGenerationCode &contexte,
+		llvm::Value *tableau,
+		bool charge = false)
+{
+	auto ptr_taille = llvm::GetElementPtrInst::CreateInBounds(
+			  tableau, {
+				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
+				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 1)
+			  },
+			  "",
+			  contexte.bloc_courant());
+
+	if (charge == true) {
+		return new llvm::LoadInst(ptr_taille, "", contexte.bloc_courant());
+	}
+
+	return ptr_taille;
+}
+[[nodiscard]] static llvm::Value *accede_pointeur_tableau(
+		ContexteGenerationCode &contexte,
+		llvm::Value *tableau)
+{
+	return llvm::GetElementPtrInst::CreateInBounds(
+				tableau, {
+					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
+					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0)
+				},
+				"",
+				contexte.bloc_courant());
+}
+
+[[nodiscard]] static auto converti_vers_tableau_dyn(
+		ContexteGenerationCode &contexte,
+		llvm::Value *tableau,
+		DonneesType const &donnees_type)
+{
+	/* trouve le type de la structure tableau */
+	auto deref = donnees_type.derefence();
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::TABLEAU);
+	dt.pousse(deref);
+
+	auto type_llvm = converti_type(contexte, dt);
+
+	/* alloue de l'espace pour ce type */
+	auto alloc = new llvm::AllocaInst(type_llvm, "", contexte.bloc_courant());
+	alloc->setAlignment(8);
+
+	/* copie le pointeur du début du tableau */
+	auto ptr_valeur = accede_pointeur_tableau(contexte, alloc);
+
+	/* charge le premier élément du tableau */
+	auto premier_elem = llvm::GetElementPtrInst::CreateInBounds(
+							donnees_type.type_llvm(),
+							tableau,
+	{ llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
+	  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0)
+							},
+							"",
+							contexte.bloc_courant());
+
+	auto charge = new llvm::LoadInst(premier_elem, "", contexte.bloc_courant());
+	charge->setAlignment(8);
+	auto addresse = charge->getPointerOperand();
+
+	auto stocke = new llvm::StoreInst(addresse, ptr_valeur, contexte.bloc_courant());
+	stocke->setAlignment(8);
+
+	/* copie la taille du tableau */
+	auto ptr_taille = accede_taille_tableau(contexte, alloc);
+
+	auto taille_tableau = donnees_type.type_base() >> 8;
+	auto constante = llvm::ConstantInt::get(
+						 llvm::Type::getInt64Ty(contexte.contexte),
+						 uint64_t(taille_tableau),
+						 false);
+
+	stocke = new llvm::StoreInst(constante, ptr_taille, contexte.bloc_courant());
+	stocke->setAlignment(8);
+
+	charge = new llvm::LoadInst(alloc, "", contexte.bloc_courant());
+	charge->setAlignment(8);
+	return charge;
+}
+
 NoeudAppelFonction::NoeudAppelFonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
@@ -714,13 +828,18 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		for (size_t i = 0; i < dt_params.size() - 1; ++i) {
 			auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->donnees_type];
 
-			if (!sont_compatibles(dt_params[i], type_enf)) {
+			auto compat = sont_compatibles(dt_params[i], type_enf);
+
+			if (compat == niveau_compat::aucune) {
 				erreur::lance_erreur_type_arguments(
 							dt_params[i],
 							type_enf,
 							contexte,
 							(*enfant)->donnees_morceau(),
 							m_donnees_morceaux);
+			}
+			else if (compat == niveau_compat::converti_tableau) {
+				(*enfant)->drapeaux |= CONVERTI_TABLEAU;
 			}
 
 			++enfant;
@@ -732,7 +851,15 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		std::transform(m_enfants.begin(), m_enfants.end(), parametres.begin(),
 					   [&](Noeud *noeud_enfant)
 		{
-			return noeud_enfant->genere_code_llvm(contexte);
+			auto conversion = (noeud_enfant->drapeaux & CONVERTI_TABLEAU) != 0;
+			auto valeur_enfant = noeud_enfant->genere_code_llvm(contexte, conversion);
+
+			if (conversion) {
+				auto const &dt = contexte.magasin_types.donnees_types[noeud_enfant->donnees_type];
+				valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt);
+			}
+
+			return valeur_enfant;
 		});
 
 		llvm::ArrayRef<llvm::Value *> args(parametres);
@@ -786,13 +913,18 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 		if (iter->second.est_variadic) {
 			if (!type_arg.est_invalide()) {
-				if (!sont_compatibles(type_arg, type_enf)) {
+				auto compat = sont_compatibles(type_arg, type_enf);
+
+				if (compat == niveau_compat::aucune) {
 					erreur::lance_erreur_type_arguments(
 								type_arg,
 								type_enf,
 								contexte,
 								(*enfant)->donnees_morceau(),
 								m_donnees_morceaux);
+				}
+				else if (compat == niveau_compat::converti_tableau) {
+					(*enfant)->drapeaux |= CONVERTI_TABLEAU;
 				}
 			}
 
@@ -804,13 +936,18 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 			++nombre_arg_variadic;
 		}
 		else {
-			if (!sont_compatibles(type_arg, type_enf)) {
+			auto compat = sont_compatibles(type_arg, type_enf);
+
+			if (compat == niveau_compat::aucune) {
 				erreur::lance_erreur_type_arguments(
 							type_arg,
 							type_enf,
 							contexte,
 							(*enfant)->donnees_morceau(),
 							m_donnees_morceaux);
+			}
+			else if (compat == niveau_compat::converti_tableau) {
+				(*enfant)->drapeaux |= CONVERTI_TABLEAU;
 			}
 		}
 
@@ -824,7 +961,15 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 	std::transform(enfants.begin(), enfants.end(), parametres.begin(),
 				   [&](Noeud *noeud_enfant)
 	{
-		return noeud_enfant->genere_code_llvm(contexte);
+		auto conversion = (noeud_enfant->drapeaux & CONVERTI_TABLEAU) != 0;
+		auto valeur_enfant = noeud_enfant->genere_code_llvm(contexte, conversion);
+
+		if (conversion) {
+			auto const &dt = contexte.magasin_types.donnees_types[noeud_enfant->donnees_type];
+			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt);
+		}
+
+		return valeur_enfant;
 	});
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
@@ -1415,6 +1560,30 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	alloc->setAlignment(alignement(contexte, type));
 
+	/* Mets à zéro les valeurs des tableaux dynamics. */
+	if (type.type_base() == id_morceau::TABLEAU) {
+		auto pointeur = accede_pointeur_tableau(contexte, alloc);
+
+		auto stocke = new llvm::StoreInst(
+						  llvm::ConstantInt::get(
+							  llvm::Type::getInt64Ty(contexte.contexte),
+							  static_cast<uint64_t>(0),
+							  false),
+						  pointeur,
+						  contexte.bloc_courant());
+		stocke->setAlignment(8);
+
+		auto taille = accede_taille_tableau(contexte, alloc);
+		stocke = new llvm::StoreInst(
+					 llvm::ConstantInt::get(
+						 llvm::Type::getInt64Ty(contexte.contexte),
+						 static_cast<uint64_t>(0),
+						 false),
+					 taille,
+					 contexte.bloc_courant());
+		stocke->setAlignment(8);
+	}
+
 	contexte.pousse_locale(m_donnees_morceaux.chaine, alloc, this->donnees_type, (this->drapeaux & DYNAMIC) != 0, false);
 
 	return alloc;
@@ -1958,24 +2127,41 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 	auto membre = m_enfants.front();
 
 	auto const &index_type = structure->donnees_type;
-	auto const &type_structure = contexte.magasin_types.donnees_types[index_type];
+	auto type_structure = contexte.magasin_types.donnees_types[index_type];
 
-	auto index_structure = 0ul;
-	auto est_pointeur = false;
+	auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
 
-	if ((type_structure.type_base() & 0xff) != id_morceau::CHAINE_CARACTERE) {
-		if (type_structure.type_base() == id_morceau::POINTEUR) {
-			auto deref = type_structure.derefence();
+	if (est_pointeur) {
+		type_structure = type_structure.derefence();
+	}
 
-			if ((deref.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-				index_structure = size_t(deref.type_base() >> 8);
-				est_pointeur = true;
-			}
+	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+		auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
+
+		if (taille != 0) {
+			return llvm::ConstantInt::get(
+						converti_type(contexte, contexte.magasin_types.donnees_types[this->donnees_type]),
+						taille);
 		}
+
+		/* charge taille de la structure tableau { *type, taille } */
+		auto valeur = structure->genere_code_llvm(contexte, true);
+
+		if (est_pointeur) {
+			/* déréférence le pointeur en le chargeant */
+			auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+			charge->setAlignment(8);
+			valeur = charge;
+		}
+
+		if (m_donnees_morceaux.chaine == "pointeur") {
+			return accede_pointeur_tableau(contexte, valeur);
+		}
+
+		return accede_taille_tableau(contexte, valeur, true);
 	}
-	else {
-		index_structure = size_t(type_structure.type_base() >> 8);
-	}
+
+	auto index_structure = size_t(type_structure.type_base() >> 8);
 
 	auto const &nom_membre = membre->chaine();
 
@@ -2033,55 +2219,55 @@ void NoeudAccesMembre::perfome_validation_semantique(ContexteGenerationCode &con
 	structure->perfome_validation_semantique(contexte);
 
 	auto const &index_type = structure->donnees_type;
-	auto const &type_structure = contexte.magasin_types.donnees_types[index_type];
+	auto type_structure = contexte.magasin_types.donnees_types[index_type];
 
-	auto index_structure = 0ul;
+	if (type_structure.type_base() == id_morceau::POINTEUR) {
+		type_structure = type_structure.derefence();
+	}
 
-	if ((type_structure.type_base() & 0xff) != id_morceau::CHAINE_CARACTERE) {
-		if (type_structure.type_base() == id_morceau::POINTEUR) {
-			auto deref = type_structure.derefence();
-
-			if ((deref.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-				index_structure = size_t(deref.type_base() >> 8);
-			}
-			else {
-				erreur::lance_erreur(
-							"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-							contexte,
-							structure->donnees_morceau(),
-							erreur::type_erreur::TYPE_DIFFERENTS);
-			}
-		}
-		else {
+	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+		if (membre->chaine() != "taille" && membre->chaine() != "pointeur") {
 			erreur::lance_erreur(
-						"Impossible d'accéder au membre d'un objet n'étant pas une structure",
+						"Le tableau ne possède pas cette propriété !",
 						contexte,
-						structure->donnees_morceau(),
-						erreur::type_erreur::TYPE_DIFFERENTS);
+						membre->donnees_morceau(),
+						erreur::type_erreur::MEMBRE_INCONNU);
 		}
+
+		auto dt = DonneesType{};
+		dt.pousse(id_morceau::N64);
+
+		this->donnees_type = contexte.magasin_types.ajoute_type(dt);
+	}
+	else if ((type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+		auto const index_structure = size_t(type_structure.type_base() >> 8);
+
+		auto const &nom_membre = membre->chaine();
+
+		auto &donnees_structure = contexte.donnees_structure(index_structure);
+
+		auto const iter = donnees_structure.index_membres.find(nom_membre);
+
+		if (iter == donnees_structure.index_membres.end()) {
+			/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
+			erreur::lance_erreur(
+						"Membre inconnu",
+						contexte,
+						m_donnees_morceaux,
+						erreur::type_erreur::MEMBRE_INCONNU);
+		}
+
+		auto const index_membre = iter->second;
+
+		this->donnees_type = donnees_structure.donnees_types[index_membre];
 	}
 	else {
-		index_structure = size_t(type_structure.type_base() >> 8);
-	}
-
-	auto const &nom_membre = membre->chaine();
-
-	auto &donnees_structure = contexte.donnees_structure(index_structure);
-
-	auto const iter = donnees_structure.index_membres.find(nom_membre);
-
-	if (iter == donnees_structure.index_membres.end()) {
-		/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
 		erreur::lance_erreur(
-					"Membre inconnu",
+					"Impossible d'accéder au membre d'un objet n'étant pas une structure",
 					contexte,
-					m_donnees_morceaux,
-					erreur::type_erreur::MEMBRE_INCONNU);
+					structure->donnees_morceau(),
+					erreur::type_erreur::TYPE_DIFFERENTS);
 	}
-
-	auto const index_membre = iter->second;
-
-	this->donnees_type = donnees_structure.donnees_types[index_membre];
 }
 
 /* ************************************************************************** */
@@ -2414,7 +2600,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 			}
 
 			/* Dans le cas d'une assignation, on n'a pas besoin de charger
-				 * la valeur dans un registre. */
+			 * la valeur dans un registre. */
 			if (expr_gauche) {
 				return valeur;
 			}
@@ -3039,6 +3225,13 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 
 	contexte.bloc_courant(bloc_boucle);
 
+	auto index_type2 = enfant2->donnees_type;
+	auto &type2 = contexte.magasin_types.donnees_types[index_type2];
+
+	const auto tableau = (type2.type_base() & 0xff) == id_morceau::TABLEAU;
+	const auto taille_tableau = static_cast<uint64_t>(type2.type_base() >> 8);
+	auto pointeur_tableau = static_cast<llvm::Value *>(nullptr);
+
 	if (enfant2->type() == type_noeud::PLAGE) {
 		noeud_phi = llvm::PHINode::Create(
 						converti_type(contexte, type_debut),
@@ -3048,7 +3241,8 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 	}
 	else if (enfant2->type() == type_noeud::VARIABLE) {
 		noeud_phi = llvm::PHINode::Create(
-						llvm::Type::getInt32Ty(contexte.contexte),
+						tableau ? llvm::Type::getInt64Ty(contexte.contexte)
+								: llvm::Type::getInt32Ty(contexte.contexte),
 						2,
 						std::string(enfant1->chaine()),
 						contexte.bloc_courant());
@@ -3077,40 +3271,106 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 		contexte.pousse_locale(enfant1->chaine(), noeud_phi, index_type, false, false);
 	}
 	else if (enfant2->type() == type_noeud::VARIABLE) {
-		auto arg = enfant2->genere_code_llvm(contexte);
-		contexte.pousse_locale(enfant1->chaine(), arg, index_type, false, false);
+		if (tableau) {
+			auto valeur_debut = llvm::ConstantInt::get(
+									llvm::Type::getInt64Ty(contexte.contexte),
+									static_cast<uint64_t>(0),
+									false);
 
-		auto valeur_debut = llvm::ConstantInt::get(
-								llvm::Type::getInt32Ty(contexte.contexte),
-								static_cast<uint64_t>(0),
-								false);
+			auto valeur_fin = static_cast<llvm::Value *>(nullptr);
 
-		auto valeur_fin = contexte.valeur_locale("__compte_args");
+			if (taille_tableau != 0) {
+				valeur_fin = llvm::ConstantInt::get(
+								 llvm::Type::getInt64Ty(contexte.contexte),
+								 static_cast<uint64_t>(type2.type_base() >> 8),
+								 false);
+			}
+			else {
+				pointeur_tableau = enfant2->genere_code_llvm(contexte, true);
+				valeur_fin = accede_taille_tableau(contexte, pointeur_tableau, true);
+			}
 
-		/* __compte_args est une AllocaInst (dans NoeudDeclarationFonction)
-		 * donc il faut le charger */
-		auto charge_valeur_fin = new llvm::LoadInst(
-									 valeur_fin, "", contexte.bloc_courant());
+			auto condition = llvm::ICmpInst::Create(
+								 llvm::Instruction::ICmp,
+								 llvm::CmpInst::Predicate::ICMP_SLT,
+								 noeud_phi,
+								 valeur_fin,
+								 "",
+								 contexte.bloc_courant());
 
-		noeud_phi->addIncoming(valeur_debut, bloc_pre);
+			noeud_phi->addIncoming(valeur_debut, bloc_pre);
 
-		auto condition = llvm::ICmpInst::Create(
-							 llvm::Instruction::ICmp,
-							 llvm::CmpInst::Predicate::ICMP_SLT,
-							 noeud_phi,
-							 charge_valeur_fin,
-							 "",
-							 contexte.bloc_courant());
+			llvm::BranchInst::Create(
+						bloc_corps,
+						(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
+						condition,
+						contexte.bloc_courant());
+		}
+		else {
+			auto arg = enfant2->genere_code_llvm(contexte);
+			contexte.pousse_locale(enfant1->chaine(), arg, index_type, false, false);
 
-		llvm::BranchInst::Create(
-					bloc_corps,
-					(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
-					condition,
-					contexte.bloc_courant());
+			auto valeur_debut = llvm::ConstantInt::get(
+									llvm::Type::getInt32Ty(contexte.contexte),
+									static_cast<uint64_t>(0),
+									false);
+
+			auto valeur_fin = contexte.valeur_locale("__compte_args");
+
+			/* __compte_args est une AllocaInst (dans NoeudDeclarationFonction)
+			 * donc il faut le charger */
+			auto charge_valeur_fin = new llvm::LoadInst(
+										 valeur_fin, "", contexte.bloc_courant());
+
+			noeud_phi->addIncoming(valeur_debut, bloc_pre);
+
+			auto condition = llvm::ICmpInst::Create(
+								 llvm::Instruction::ICmp,
+								 llvm::CmpInst::Predicate::ICMP_SLT,
+								 noeud_phi,
+								 charge_valeur_fin,
+								 "",
+								 contexte.bloc_courant());
+
+			llvm::BranchInst::Create(
+						bloc_corps,
+						(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
+						condition,
+						contexte.bloc_courant());
+		}
 	}
 
 	/* bloc_corps */
 	contexte.bloc_courant(bloc_corps);
+
+	if (tableau) {
+		auto valeur_arg = static_cast<llvm::Value *>(nullptr);
+
+		if (taille_tableau != 0) {
+			auto valeur_tableau = enfant2->genere_code_llvm(contexte, true);
+
+			valeur_arg = llvm::GetElementPtrInst::CreateInBounds(
+						 converti_type(contexte, type2),
+						 valeur_tableau,
+			{ llvm::ConstantInt::get(noeud_phi->getType(), 0), noeud_phi },
+						 "",
+						 contexte.bloc_courant());
+		}
+		else {
+			auto pointeur = accede_pointeur_tableau(contexte, pointeur_tableau);
+
+			pointeur = new llvm::LoadInst(pointeur, "", contexte.bloc_courant());
+
+			valeur_arg = llvm::GetElementPtrInst::CreateInBounds(
+						 pointeur,
+						 noeud_phi,
+						 "",
+						 contexte.bloc_courant());
+		}
+
+		contexte.pousse_locale(enfant1->chaine(), valeur_arg, index_type, false, false);
+	}
+
 	enfant3->valeur_calculee = bloc_inc;
 	auto ret = enfant3->genere_code_llvm(contexte);
 
@@ -3128,7 +3388,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 	}
 	else if (enfant2->type() == type_noeud::VARIABLE) {
 		auto inc = incremente_pour_type(
-					   id_morceau::Z32,
+					   tableau ? id_morceau::N64 : id_morceau::Z32,
 					   contexte,
 					   noeud_phi,
 					   contexte.bloc_courant());
@@ -3193,17 +3453,26 @@ void NoeudPour::perfome_validation_semantique(ContexteGenerationCode &contexte)
 					erreur::type_erreur::VARIABLE_REDEFINIE);
 	}
 
+	enfant2->perfome_validation_semantique(contexte);
 
 	if (enfant2->type() == type_noeud::PLAGE) {
 	}
 	else if (enfant2->type() == type_noeud::VARIABLE) {
-		auto valeur = contexte.est_locale_variadique(enfant2->chaine());
+		auto index_type = enfant2->donnees_type;
+		auto &type = contexte.magasin_types.donnees_types[index_type];
 
-		if (!valeur) {
-			erreur::lance_erreur(
-						"La variable n'est pas un argument variadic",
-						contexte,
-						enfant2->donnees_morceau());
+		if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
+			/* ok. */
+		}
+		else {
+			auto valeur = contexte.est_locale_variadique(enfant2->chaine());
+
+			if (!valeur) {
+				erreur::lance_erreur(
+							"La variable n'est ni un argument variadic, ni un tableau",
+							contexte,
+							enfant2->donnees_morceau());
+			}
 		}
 	}
 	else {
@@ -3213,11 +3482,27 @@ void NoeudPour::perfome_validation_semantique(ContexteGenerationCode &contexte)
 					m_donnees_morceaux);
 	}
 
-	enfant2->perfome_validation_semantique(contexte);
-
 	contexte.empile_nombre_locales();
 
-	contexte.pousse_locale(enfant1->chaine(), nullptr, enfant2->donnees_type, false, false);
+	auto index_type = enfant2->donnees_type;
+	auto &type = contexte.magasin_types.donnees_types[index_type];
+	auto index_type_deref = contexte.magasin_types.ajoute_type(type.derefence());
+
+	auto est_dynamique = false;
+	auto iter_locale = contexte.iter_locale(enfant2->chaine());
+
+	if (iter_locale != contexte.fin_locales()) {
+		est_dynamique = iter_locale->second.est_dynamique;
+	}
+	else {
+		auto iter_globale = contexte.iter_globale(enfant2->chaine());
+
+		if (iter_globale != contexte.fin_globales()) {
+			est_dynamique = iter_globale->second.est_dynamique;
+		}
+	}
+
+	contexte.pousse_locale(enfant1->chaine(), nullptr, index_type_deref, est_dynamique, false);
 
 	enfant3->perfome_validation_semantique(contexte);
 

@@ -1424,10 +1424,10 @@ size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_ty
 		int taille = 0;
 
 		if (requiers_identifiant(id_morceau::CROCHET_OUVRANT)) {
-			if (this->identifiant_courant() != id_morceau::CROCHET_FERMANT) {
-				est_pointeur = false;
-				est_tableau = true;
+			est_pointeur = false;
+			est_tableau = true;
 
+			if (this->identifiant_courant() != id_morceau::CROCHET_FERMANT) {
 				/* À FAIRE */
 #if 0
 				analyse_expression_droite(id_morceau::CROCHET_FERMANT, true);

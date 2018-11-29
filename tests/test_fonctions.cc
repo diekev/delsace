@@ -292,11 +292,11 @@ static void test_appel_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe printf(format : *z8, arguments : ...) : rien;
+				fonction externe printf(arguments : ...) : rien;
 
 				fonction foo() : rien
 				{
-					printf("%d%c%f%s", 0, 'z', 2.5, "chaine");
+					printf(0, 'z', 2.5, "chaine");
 				}
 				)";
 
@@ -314,11 +314,11 @@ static void test_appel_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe printf(format : *z8, arguments : ...z32) : rien;
+				fonction externe printf(arguments : ...z32) : rien;
 
 				fonction foo() : rien
 				{
-					printf("%d%c%f%s", 0, 'z', 2.5, "chaine");
+					printf(0, 'z', 2.5, "chaine");
 				}
 				)";
 
@@ -337,11 +337,11 @@ static void test_appel_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe printf(format : *z8, arguments : ...z32) : rien;
+				fonction externe printf(arguments : ...z32) : rien;
 
 				fonction foo() : rien
 				{
-					printf("%d%c%f%s", 0, 1, 2, 3, 4);
+					printf(0, 1, 2, 3, 4);
 				}
 				)";
 

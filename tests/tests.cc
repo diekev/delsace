@@ -31,6 +31,7 @@
 #include "test_modules.hh"
 #include "test_retour.hh"
 #include "test_structures.hh"
+#include "test_tableaux.hh"
 #include "test_transtype.hh"
 #include "test_types.h"
 #include "test_unicode.h"
@@ -52,6 +53,7 @@ int main()
 	controleuse.ajoute_fonction(test_boucle);
 	controleuse.ajoute_fonction(test_transtype);
 	controleuse.ajoute_fonction(test_modules);
+	controleuse.ajoute_fonction(test_tableaux);
 
 	controleuse.performe_controles();
 

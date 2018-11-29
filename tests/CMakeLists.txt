@@ -41,6 +41,7 @@ set(SOURCES
 	test_modules.hh
 	test_retour.hh
 	test_structures.hh
+	test_tableaux.hh
 	test_transtype.hh
 	test_types.h
 	test_unicode.h
@@ -56,6 +57,7 @@ set(SOURCES
 	test_modules.cc
 	test_retour.cc
 	test_structures.cc
+	test_tableaux.cc
 	test_transtype.cc
 	test_types.cc
 	test_unicode.cc

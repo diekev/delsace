@@ -97,7 +97,11 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 					break;
 				case id_morceau::TABLEAU:
 					os << '[';
-					os << static_cast<size_t>(donnee >> 8);
+
+					if (static_cast<size_t>(donnee >> 8) != 0) {
+						os << static_cast<size_t>(donnee >> 8);
+					}
+
 					os << ']';
 					break;
 				case id_morceau::N8:

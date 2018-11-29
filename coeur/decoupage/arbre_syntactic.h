@@ -147,9 +147,10 @@ enum class type_noeud : char {
 /* ************************************************************************** */
 
 enum {
-	DYNAMIC  = (1 << 0),
-	VARIADIC = (1 << 1),
-	GLOBAL   = (1 << 2),
+	DYNAMIC          = (1 << 0),
+	VARIADIC         = (1 << 1),
+	GLOBAL           = (1 << 2),
+	CONVERTI_TABLEAU = (1 << 3),
 };
 
 /**
