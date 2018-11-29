@@ -53,14 +53,14 @@ enum TypePropriete {
 };
 
 struct Propriete {
-	std::experimental::any valeur;
-	TypePropriete type;
+	std::experimental::any valeur{};
+	TypePropriete type{};
 
 	bool est_extra = false;
 
 	bool visible = true;
 
-	std::vector<std::pair<int, std::experimental::any>> courbe;
+	std::vector<std::pair<int, std::experimental::any>> courbe{};
 
 	void ajoute_cle(const int v, int temps);
 
