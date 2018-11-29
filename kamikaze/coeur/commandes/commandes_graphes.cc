@@ -39,9 +39,9 @@
 
 class CommandeDessineGrapheObjet final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto scene_node = scene->active_node();
@@ -68,9 +68,9 @@ public:
 
 class CommandeDessineGrapheDependance final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 		DepsGraphDumper gd(scene->depsgraph());
@@ -88,7 +88,7 @@ public:
 /* ************************************************************************** */
 
 class CommandeGrapheZoom final : public Commande {
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto zoom = 1.0f;
 
@@ -120,7 +120,7 @@ class CommandeGrapheZoom final : public Commande {
 			zoom = 3.0f;
 		}
 
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
@@ -134,10 +134,10 @@ class CommandeGrapheZoom final : public Commande {
 /* ************************************************************************** */
 
 class CommandeGrapheSupprimeSelection final : public Commande {
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		/* À FAIRE : évenements */
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
@@ -161,9 +161,9 @@ class CommandeGrapheSupprimeSelection final : public Commande {
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 
-	bool evalue_predicat(void *pointeur, const std::string &/*metadonnee*/) override
+	bool evalue_predicat(std::any const &pointeur, const std::string &/*metadonnee*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
@@ -186,9 +186,9 @@ class CommandeGrapheSupprimeSelection final : public Commande {
 /* ************************************************************************** */
 
 class CommandeGrapheCentre final : public Commande {
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
@@ -206,9 +206,9 @@ class CommandeGrapheCentre final : public Commande {
 /* ************************************************************************** */
 
 class CommandeGrapheBasculeExpansion final : public Commande {
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
@@ -232,9 +232,9 @@ class CommandeGrapheBasculeExpansion final : public Commande {
 /* ************************************************************************** */
 
 class CommandeGrapheSelection final : public Commande {
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		const auto pos_x = donnees.x;
 		const auto pos_y = donnees.y;
@@ -283,9 +283,9 @@ class CommandeGrapheSelection final : public Commande {
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees)
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees)
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 
@@ -323,9 +323,9 @@ public:
 	CommandeGrapheEntreObjet() = default;
 	~CommandeGrapheEntreObjet() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		const auto pos_x = donnees.x;
 		const auto pos_y = donnees.y;

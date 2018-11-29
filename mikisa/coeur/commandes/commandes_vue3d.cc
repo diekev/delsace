@@ -29,6 +29,7 @@
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/objets/creation.h"
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/vision/camera.h"
 
 #include "../evenement.h"
@@ -43,9 +44,9 @@
 
 class CommandeZoomCamera3D : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		const auto delta = donnees.y;
 
 		auto camera = mikisa->camera_3d;
@@ -78,16 +79,17 @@ class CommandeTourneCamera3D : public Commande {
 public:
 	CommandeTourneCamera3D() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_3d;
 
 		const float dx = (donnees.x - m_vieil_x);
@@ -113,16 +115,17 @@ class CommandePanCamera3D : public Commande {
 public:
 	CommandePanCamera3D() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_3d;
 
 		const float dx = (donnees.x - m_vieil_x);
@@ -143,9 +146,9 @@ public:
 
 class CommandeSurvoleScene : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto manipulatrice = mikisa->manipulatrice_3d;
 
 		if (manipulatrice == nullptr) {
@@ -197,9 +200,9 @@ class CommandeDeplaceManipulatrice : public Commande {
 public:
 	CommandeDeplaceManipulatrice() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		if (mikisa->manipulation_3d_activee == false) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -273,9 +276,9 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees)
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees)
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		if (mikisa->manipulation_3d_activee == false) {
 			return;

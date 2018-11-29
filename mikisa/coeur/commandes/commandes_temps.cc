@@ -37,9 +37,9 @@
 
 class CommandeChangementTemps final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		if (donnees.metadonnee == "va_image_debut") {
 			mikisa->temps_courant = mikisa->temps_debut;

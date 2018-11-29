@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <any>
 #include <stack>
 #include <unordered_map>
 
@@ -49,13 +50,13 @@ class Commande {
 public:
 	virtual ~Commande() = default;
 
-	virtual bool evalue_predicat(void *pointeur, const std::string &metadonnee);
+	virtual bool evalue_predicat(std::any const &pointeur, const std::string &metadonnee);
 
-	virtual int execute(void *pointeur, const DonneesCommande &donnees) = 0;
+	virtual int execute(std::any const &pointeur, const DonneesCommande &donnees) = 0;
 
-	virtual void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees);
+	virtual void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees);
 
-	virtual void termine_execution_modale(void *pointeur, const DonneesCommande &donnees);
+	virtual void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees);
 };
 
 struct DescriptionCommande {

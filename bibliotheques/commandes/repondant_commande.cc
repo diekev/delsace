@@ -28,7 +28,7 @@
 
 #include "commande.h"
 
-RepondantCommande::RepondantCommande(UsineCommande *usine_commande, void *pointeur)
+RepondantCommande::RepondantCommande(UsineCommande *usine_commande, const std::any &pointeur)
 	: m_usine_commande(usine_commande)
 	, m_pointeur(pointeur)
 {}

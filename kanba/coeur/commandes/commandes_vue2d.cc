@@ -48,14 +48,14 @@ public:
 	CommandePeinture2D() = default;
 	~CommandePeinture2D() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 #if 0
 		std::cerr << __func__ << '\n';
 		std::cerr << "Position <" << donnees.x << ',' << donnees.y << ">\n";
 #endif
 
-		auto kanba = static_cast<Kanba *>(pointeur);
+		auto kanba = std::any_cast<Kanba *>(pointeur);
 
 		const auto rayon_brosse = 10;
 		const auto rayon_carre = rayon_brosse * rayon_brosse;
@@ -87,12 +87,12 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		execute(pointeur, donnees);
 	}
 
-	void termine_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		execute(pointeur, donnees);
 	}

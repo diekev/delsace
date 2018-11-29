@@ -28,6 +28,7 @@
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/vision/camera_2d.h"
 
 #include "coeur/composite.h"
@@ -41,9 +42,9 @@
 
 class CommandeZoomCamera2D final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_2d;
 
 		camera->zoom *= (donnees.y < 0) ? PHI_INV : PHI;
@@ -64,16 +65,17 @@ class CommandePanCamera2D final : public Commande {
 public:
 	CommandePanCamera2D() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_2d;
 
 		camera->pos_x += static_cast<float>(m_vieil_x - donnees.x) / camera->largeur;

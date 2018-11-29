@@ -34,9 +34,9 @@
 
 class CommandeAjouterCalque : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto kanba = static_cast<Kanba *>(pointeur);
+		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto maillage = kanba->maillage;
 
 		if (maillage == nullptr) {
@@ -57,9 +57,9 @@ public:
 
 class CommandeSupprimerCalque : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto kanba = static_cast<Kanba *>(pointeur);
+		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto maillage = kanba->maillage;
 
 		if (maillage == nullptr) {

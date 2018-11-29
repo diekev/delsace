@@ -145,9 +145,9 @@ static bool peut_connecter(PriseEntree *entree, PriseSortie *sortie)
 
 class CommandeDessineGrapheComposite final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto composite = mikisa->composite;
 
 		ImprimeuseGraphe gd(&composite->graph());
@@ -166,9 +166,9 @@ public:
 
 class CommandeAjoutNoeud final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto noeud = new Noeud(supprime_operatrice_image);
 		auto nom = donnees.metadonnee;
 
@@ -206,9 +206,9 @@ class CommandeSelectionGraphe final : public Commande {
 public:
 	CommandeSelectionGraphe() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
 		Noeud *noeud_selection = nullptr;
@@ -257,9 +257,9 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
 		if (graphe->connexion_active != nullptr) {
@@ -280,9 +280,9 @@ public:
 		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
 	}
 
-	void termine_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
 		bool connexion = false;
@@ -328,9 +328,9 @@ public:
 
 class CommandeSupprimeSelection final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 		auto noeud = graphe->noeud_actif;
 
@@ -374,9 +374,9 @@ public:
 
 class CommandeInfoNoeud final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		if (mikisa->contexte == GRAPHE_PIXEL || mikisa->contexte == GRAPHE_MAILLAGE) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -413,9 +413,9 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void termine_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
 		delete graphe->info_noeud;
@@ -434,9 +434,9 @@ class CommandeDeplaceGraphe final : public Commande {
 public:
 	CommandeDeplaceGraphe() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
 		m_delta_x = donnees.x - graphe->centre_x;
@@ -445,9 +445,9 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
 		graphe->centre_x += m_delta_x - donnees.x;
@@ -463,9 +463,9 @@ class CommandeZoomGraphe final : public Commande {
 public:
 	CommandeZoomGraphe() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
 		graphe->zoom *= (donnees.y > 0) ? PHI : PHI_INV;
@@ -480,9 +480,9 @@ public:
 
 class CommandeEntreNoeud final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
 		selectionne_noeud(mikisa, noeud, *graphe);
@@ -540,9 +540,9 @@ public:
 
 class CommandeSorsNoeud final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		if (mikisa->contexte == GRAPHE_COMPOSITE) {
 			return EXECUTION_COMMANDE_ECHOUEE;

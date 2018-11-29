@@ -29,6 +29,7 @@
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/objets/creation.h"
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/vision/camera.h"
 
 #include "../evenement.h"
@@ -41,9 +42,9 @@ public:
 	CommandeZoomCamera() = default;
 	~CommandeZoomCamera() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto silvatheque = static_cast<Silvatheque *>(pointeur);
+		auto silvatheque = std::any_cast<Silvatheque *>(pointeur);
 		const auto delta = donnees.x;
 
 		auto camera = silvatheque->camera;
@@ -77,16 +78,17 @@ public:
 	CommandeTourneCamera() = default;
 	~CommandeTourneCamera() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto silvatheque = static_cast<Silvatheque *>(pointeur);
+		auto silvatheque = std::any_cast<Silvatheque *>(pointeur);
 		auto camera = silvatheque->camera;
 
 		const float dx = (donnees.x - m_vieil_x);
@@ -111,18 +113,18 @@ class CommandePanCamera : public Commande {
 
 public:
 	CommandePanCamera() = default;
-	~CommandePanCamera() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto silvatheque = static_cast<Silvatheque *>(pointeur);
+		auto silvatheque = std::any_cast<Silvatheque *>(pointeur);
 		auto camera = silvatheque->camera;
 
 		const float dx = (donnees.x - m_vieil_x);

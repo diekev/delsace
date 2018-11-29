@@ -66,9 +66,9 @@ static void ouvre_fichier_implementation(Main *main, const Context &contexte, co
 
 class CommandeOuvrir final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto chemin_projet = main->requiers_dialogue(FICHIER_OUVERTURE);
 
 		if (chemin_projet.empty()) {
@@ -85,9 +85,9 @@ public:
 
 class CommandeOuvrirRecent final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 
 		ouvre_fichier_implementation(main, main->contexte, donnees.metadonnee);
 
@@ -109,9 +109,9 @@ static void sauve_fichier_sous(Main *main, const Context &context)
 
 class CommandeSauvegarder final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 
 		if (main->projet_ouvert()) {
 			kamikaze::sauvegarde_projet(main->chemin_projet(), *main, main->contexte.scene);
@@ -128,9 +128,9 @@ public:
 
 class CommandeSauvegarderSous final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		sauve_fichier_sous(main, main->contexte);
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -141,7 +141,7 @@ public:
 
 class CommandeDefaire final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		/* À FAIRE */
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -152,7 +152,7 @@ public:
 
 class CommandeRefaire final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		/* À FAIRE */
 		return EXECUTION_COMMANDE_REUSSIE;

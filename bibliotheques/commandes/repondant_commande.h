@@ -26,6 +26,7 @@
 
 #include <danjo/repondant_bouton.h>
 
+#include <any>
 #include <string>
 
 class Commande;
@@ -34,12 +35,12 @@ class UsineCommande;
 
 class RepondantCommande : public danjo::RepondantBouton {
 	UsineCommande *m_usine_commande;
-	void *m_pointeur = nullptr;
+	std::any m_pointeur = nullptr;
 
 	Commande *m_commande_modale = nullptr;
 
 public:
-	RepondantCommande(UsineCommande *usine_commande, void *pointeur);
+	RepondantCommande(UsineCommande *usine_commande, std::any const &pointeur);
 
 	bool appele_commande(const std::string &categorie, const DonneesCommande &donnees_commande);
 

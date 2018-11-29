@@ -26,21 +26,29 @@
 
 #include <cassert>
 
-bool Commande::evalue_predicat(void *pointeur, const std::string &metadonnee)
+#include "../outils/definitions.hh"
+
+bool Commande::evalue_predicat(std::any const &pointeur, const std::string &metadonnee)
 {
+	INUTILISE(pointeur);
+	INUTILISE(metadonnee);
 	return true;
 }
 
 void Commande::ajourne_execution_modale(
-		void */*pointeur*/,
-		const DonneesCommande &/*donnees*/)
+		std::any const &pointeur,
+		const DonneesCommande &donnees)
 {
+	INUTILISE(pointeur);
+	INUTILISE(donnees);
 }
 
 void Commande::termine_execution_modale(
-		void */*pointeur*/,
-		const DonneesCommande &/*donnees*/)
+		std::any const &pointeur,
+		const DonneesCommande &donnees)
 {
+	INUTILISE(pointeur);
+	INUTILISE(donnees);
 }
 
 void UsineCommande::enregistre_type(const std::string &nom, const DescriptionCommande &description)

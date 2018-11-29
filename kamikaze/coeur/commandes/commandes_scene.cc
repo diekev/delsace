@@ -32,9 +32,9 @@
 
 class CommandeChangementTemps final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 

@@ -47,12 +47,12 @@ public:
 	CommandeAjoutObjet() = default;
 	~CommandeAjoutObjet() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override;
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
 };
 
-int CommandeAjoutObjet::execute(void *pointeur, const DonneesCommande &donnees)
+int CommandeAjoutObjet::execute(std::any const &pointeur, const DonneesCommande &donnees)
 {
-	auto main = static_cast<Main *>(pointeur);
+	auto main = std::any_cast<Main *>(pointeur);
 	const auto &contexte = main->contexte;
 	m_scene = contexte.scene;
 
@@ -75,12 +75,12 @@ public:
 	CommandeAjoutNoeud() = default;
 	~CommandeAjoutNoeud() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override;
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
 };
 
-int CommandeAjoutNoeud::execute(void *pointeur, const DonneesCommande &donnees)
+int CommandeAjoutNoeud::execute(std::any const &pointeur, const DonneesCommande &donnees)
 {
-	auto main = static_cast<Main *>(pointeur);
+	auto main = std::any_cast<Main *>(pointeur);
 	const auto &contexte = main->contexte;
 	m_scene = contexte.scene;
 	auto scene_node = m_scene->active_node();
@@ -118,12 +118,12 @@ public:
 	CommandeObjetPrereglage() = default;
 	~CommandeObjetPrereglage() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override;
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
 };
 
-int CommandeObjetPrereglage::execute(void *pointeur, const DonneesCommande &donnees)
+int CommandeObjetPrereglage::execute(std::any const &pointeur, const DonneesCommande &donnees)
 {
-	auto main = static_cast<Main *>(pointeur);
+	auto main = std::any_cast<Main *>(pointeur);
 	const auto &contexte = main->contexte;
 	m_scene = contexte.scene;
 
@@ -176,9 +176,9 @@ public:
 	CommandeEntreObjet() = default;
 	~CommandeEntreObjet() = default;
 
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		contexte.eval_ctx->edit_mode = true;
 		contexte.scene->notify_listeners(type_evenement::objet | type_evenement::selectione);
@@ -194,9 +194,9 @@ public:
 	CommandeSorsObjet() = default;
 	~CommandeSorsObjet() = default;
 
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		contexte.eval_ctx->edit_mode = false;
 		contexte.scene->notify_listeners(type_evenement::objet | type_evenement::selectione);

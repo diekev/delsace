@@ -34,9 +34,9 @@
 
 class CommandeChangementTemps final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto poseidon = static_cast<Poseidon *>(pointeur);
+		auto poseidon = std::any_cast<Poseidon *>(pointeur);
 		auto fluide = poseidon->fluide;
 
 		if (donnees.metadonnee == "va_image_debut") {

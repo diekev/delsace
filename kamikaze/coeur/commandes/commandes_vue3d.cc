@@ -27,6 +27,7 @@
 #include <QKeyEvent>
 
 #include "bibliotheques/commandes/commande.h"
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/vision/camera.h"
 
 #include "sdk/context.h"
@@ -40,9 +41,9 @@ public:
 	CommandeZoomCamera() = default;
 	~CommandeZoomCamera() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		const auto delta = donnees.x;
 
@@ -77,16 +78,17 @@ public:
 	CommandeTourneCamera() = default;
 	~CommandeTourneCamera() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto camera = contexte.camera;
 
@@ -114,16 +116,17 @@ public:
 	CommandePanCamera() = default;
 	~CommandePanCamera() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto camera = contexte.camera;
 
@@ -148,9 +151,9 @@ public:
 	CommandeSelectionneObjet() = default;
 	~CommandeSelectionneObjet() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		const auto x = donnees.x;
 		const auto y = donnees.y;
@@ -187,9 +190,9 @@ public:
 	CommandeSupprimeObjet() = default;
 	~CommandeSupprimeObjet() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto main = static_cast<Main *>(pointeur);
+		auto main = std::any_cast<Main *>(pointeur);
 		const auto &contexte = main->contexte;
 		auto scene = contexte.scene;
 

@@ -169,9 +169,9 @@ static bool ecris_image(
 
 class CommandeRenduImage final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		if (mikisa->nom_calque_sortie == "") {
 			/* À FAIRE : erreur. */
@@ -202,9 +202,9 @@ public:
 
 class CommandeRenduSequence final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		const auto temps_originale = mikisa->temps_courant;
 

@@ -70,9 +70,9 @@ static void ouvre_fichier_implementation(Mikisa *mikisa, const std::string &chem
 
 class CommandeOuvrir final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		const auto chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE);
 
 		if (chemin_projet.empty()) {
@@ -89,9 +89,9 @@ public:
 
 class CommandeOuvrirRecent final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		ouvre_fichier_implementation(mikisa, donnees.metadonnee);
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -112,9 +112,9 @@ static void sauve_fichier_sous(Mikisa *mikisa)
 
 class CommandeSauvegarder final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		if (mikisa->projet_ouvert()) {
 			coeur::sauvegarde_projet(mikisa->chemin_projet(), *mikisa);
@@ -131,9 +131,9 @@ public:
 
 class CommandeSauvegarderSous final : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto mikisa = static_cast<Mikisa *>(pointeur);
+		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		sauve_fichier_sous(mikisa);
 
 		return EXECUTION_COMMANDE_REUSSIE;

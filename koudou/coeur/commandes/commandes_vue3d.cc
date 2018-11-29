@@ -28,6 +28,7 @@
 #include <QKeyEvent>
 
 #include "bibliotheques/commandes/commande.h"
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/vision/camera.h"
 
 #include "../evenement.h"
@@ -39,9 +40,9 @@ class CommandeZoomCamera : public Commande {
 public:
 	CommandeZoomCamera() = default;
 
-	int execute(void *pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto koudou = static_cast<Koudou *>(pointeur);
+		auto koudou = std::any_cast<Koudou *>(pointeur);
 		const auto delta = donnees.x;
 
 		auto camera = koudou->camera;
@@ -74,16 +75,17 @@ class CommandeTourneCamera : public Commande {
 public:
 	CommandeTourneCamera() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto koudou = static_cast<Koudou *>(pointeur);
+		auto koudou = std::any_cast<Koudou *>(pointeur);
 		auto camera = koudou->camera;
 
 		const float dx = donnees.x - m_vieil_x;
@@ -109,16 +111,17 @@ class CommandePanCamera : public Commande {
 public:
 	CommandePanCamera() = default;
 
-	int execute(void */*pointeur*/, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
+		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(void *pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
-		auto koudou = static_cast<Koudou *>(pointeur);
+		auto koudou = std::any_cast<Koudou *>(pointeur);
 		auto camera = koudou->camera;
 
 		const float dx = donnees.x - m_vieil_x;

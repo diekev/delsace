@@ -41,9 +41,9 @@
 
 class CommandeOuvrirFichier : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto kanba = static_cast<Kanba *>(pointeur);
+		auto kanba = std::any_cast<Kanba *>(pointeur);
 		const auto chemin_projet = kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
 		if (chemin_projet.empty()) {
@@ -453,9 +453,9 @@ static void ecris_canaux(std::ofstream &fichier, CanauxTexture &canaux)
 
 class CommandeOuvrirProjet : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto kanba = static_cast<Kanba *>(pointeur);
+		auto kanba = std::any_cast<Kanba *>(pointeur);
 		const auto chemin_projet = "/home/kevin/test.cnvs" ;// kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
 //		if (chemin_projet.empty()) {
@@ -517,9 +517,9 @@ public:
 
 class CommandeSauvegarderProjet : public Commande {
 public:
-	int execute(void *pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
-		auto kanba = static_cast<Kanba *>(pointeur);
+		auto kanba = std::any_cast<Kanba *>(pointeur);
 
 		if (kanba->maillage == nullptr) {
 			return EXECUTION_COMMANDE_ECHOUEE;
