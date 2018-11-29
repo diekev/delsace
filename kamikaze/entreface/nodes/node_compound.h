@@ -31,8 +31,6 @@ class ObjectNodeItem : public QtNode {
 public:
 	ObjectNodeItem(SceneNode *scene_node, const QString &title, QGraphicsItem *parent = nullptr);
 
-	~ObjectNodeItem() = default;
-
 	SceneNode *scene_node() const;
 
 	void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;

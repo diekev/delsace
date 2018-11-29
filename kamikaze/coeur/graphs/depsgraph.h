@@ -87,8 +87,6 @@ public:
 	DepsObjectNode() = delete;
 	explicit DepsObjectNode(Object *object);
 
-	~DepsObjectNode() = default;
-
 	void pre_process() override;
 	void process(const Context &context, TaskNotifier *notifier) override;
 
@@ -107,8 +105,6 @@ public:
 	ObjectGraphDepsNode() = delete;
 	explicit ObjectGraphDepsNode(Graph *graph);
 
-	~ObjectGraphDepsNode() = default;
-
 	void process(const Context &context, TaskNotifier *notifier) override;
 
 	Graph *graph();
@@ -122,7 +118,6 @@ public:
 class TimeDepsNode : public DepsNode {
 public:
 	TimeDepsNode() = default;
-	~TimeDepsNode() = default;
 
 	void process(const Context &context, TaskNotifier *notifier) override;
 

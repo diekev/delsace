@@ -45,7 +45,6 @@ class EditriceRendu : public BaseEditrice {
 
 public:
 	explicit EditriceRendu(Mikisa *mikisa, QWidget *parent = nullptr);
-	~EditriceRendu() = default;
 
 	void ajourne_etat(int evenement) override;
 

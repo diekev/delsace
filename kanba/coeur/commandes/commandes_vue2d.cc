@@ -46,7 +46,6 @@ T distance_carree(T x1, T y1, T x2, T y2)
 class CommandePeinture2D : public Commande {
 public:
 	CommandePeinture2D() = default;
-	~CommandePeinture2D() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{

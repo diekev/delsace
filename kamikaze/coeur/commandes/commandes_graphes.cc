@@ -321,7 +321,6 @@ class CommandeGrapheSelection final : public Commande {
 class CommandeGrapheEntreObjet : public Commande {
 public:
 	CommandeGrapheEntreObjet() = default;
-	~CommandeGrapheEntreObjet() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{

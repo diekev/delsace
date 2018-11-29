@@ -45,7 +45,6 @@ class CommandeAjoutObjet : public Commande {
 
 public:
 	CommandeAjoutObjet() = default;
-	~CommandeAjoutObjet() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
 };
@@ -73,7 +72,6 @@ class CommandeAjoutNoeud : public Commande {
 
 public:
 	CommandeAjoutNoeud() = default;
-	~CommandeAjoutNoeud() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
 };
@@ -116,7 +114,6 @@ class CommandeObjetPrereglage : public Commande {
 
 public:
 	CommandeObjetPrereglage() = default;
-	~CommandeObjetPrereglage() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
 };
@@ -174,7 +171,6 @@ int CommandeObjetPrereglage::execute(std::any const &pointeur, const DonneesComm
 class CommandeEntreObjet : public Commande {
 public:
 	CommandeEntreObjet() = default;
-	~CommandeEntreObjet() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
@@ -192,7 +188,6 @@ public:
 class CommandeSorsObjet : public Commande {
 public:
 	CommandeSorsObjet() = default;
-	~CommandeSorsObjet() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{

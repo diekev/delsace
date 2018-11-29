@@ -35,8 +35,6 @@ public:
 	    : QGraphicsScene(parent)
 	{}
 
-	virtual ~QtNodeGraphicsScene() = default;
-
 	void mousePressEvent(QGraphicsSceneMouseEvent *event) override
 	{
 		if (event->button() == Qt::RightButton) {

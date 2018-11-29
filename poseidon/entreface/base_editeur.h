@@ -45,7 +45,6 @@ protected:
 
 public:
 	explicit BaseEditrice(Poseidon &poseidon, QWidget *parent = nullptr);
-	virtual ~BaseEditrice() = default;
 
 	void actif(bool yesno);
 	void rend_actif();

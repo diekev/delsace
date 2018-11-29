@@ -45,7 +45,6 @@ protected:
 
 public:
 	explicit BaseEditrice(Silvatheque &silvatheque, QWidget *parent = nullptr);
-	virtual ~BaseEditrice() = default;
 
 	void actif(bool yesno);
 	void rend_actif();

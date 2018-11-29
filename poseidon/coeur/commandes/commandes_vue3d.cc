@@ -40,7 +40,6 @@
 class CommandeZoomCamera : public Commande {
 public:
 	CommandeZoomCamera() = default;
-	~CommandeZoomCamera() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
@@ -76,7 +75,6 @@ class CommandeTourneCamera : public Commande {
 
 public:
 	CommandeTourneCamera() = default;
-	~CommandeTourneCamera() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
@@ -114,7 +112,6 @@ class CommandePanCamera : public Commande {
 
 public:
 	CommandePanCamera() = default;
-	~CommandePanCamera() = default;
 
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{

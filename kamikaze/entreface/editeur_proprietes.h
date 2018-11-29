@@ -49,7 +49,6 @@ class EditriceProprietes : public BaseEditrice {
 
 public:
 	explicit EditriceProprietes(QWidget *parent = nullptr);
-	~EditriceProprietes() = default;
 
 	void update_state(type_evenement event) override;
 

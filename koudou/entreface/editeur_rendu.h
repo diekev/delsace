@@ -49,7 +49,6 @@ class EditriceRendu : public BaseEditrice {
 
 public:
 	explicit EditriceRendu(Koudou &koudou, QWidget *parent = nullptr);
-	~EditriceRendu() = default;
 
 	void ajourne_etat(int event) override;
 

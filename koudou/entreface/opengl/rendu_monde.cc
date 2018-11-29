@@ -41,8 +41,6 @@ public:
 	std::vector<dls::math::vec3f> sommets;
 	std::vector<unsigned int> index;
 
-	virtual ~AdaptriceCreation() = default;
-
 	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override
 	{
 		sommets.push_back(dls::math::vec3f(x, y, z));
