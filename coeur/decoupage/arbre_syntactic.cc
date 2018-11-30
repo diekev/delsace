@@ -3499,7 +3499,10 @@ void NoeudPour::perfome_validation_semantique(ContexteGenerationCode &contexte)
 
 	auto index_type = enfant2->donnees_type;
 	auto &type = contexte.magasin_types.donnees_types[index_type];
-	auto index_type_deref = contexte.magasin_types.ajoute_type(type.derefence());
+
+	if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
+		index_type = contexte.magasin_types.ajoute_type(type.derefence());
+	}
 
 	auto est_dynamique = false;
 	auto iter_locale = contexte.iter_locale(enfant2->chaine());
@@ -3515,7 +3518,7 @@ void NoeudPour::perfome_validation_semantique(ContexteGenerationCode &contexte)
 		}
 	}
 
-	contexte.pousse_locale(enfant1->chaine(), nullptr, index_type_deref, est_dynamique, false);
+	contexte.pousse_locale(enfant1->chaine(), nullptr, index_type, est_dynamique, false);
 
 	enfant3->perfome_validation_semantique(contexte);
 
