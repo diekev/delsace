@@ -3242,11 +3242,8 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 
 	contexte.bloc_courant(bloc_boucle);
 
-	auto index_type2 = enfant2->donnees_type;
-	auto &type2 = contexte.magasin_types.donnees_types[index_type2];
-
-	const auto tableau = (type2.type_base() & 0xff) == id_morceau::TABLEAU;
-	const auto taille_tableau = static_cast<uint64_t>(type2.type_base() >> 8);
+	const auto tableau = (type & 0xff) == id_morceau::TABLEAU;
+	const auto taille_tableau = static_cast<uint64_t>(type >> 8);
 	auto pointeur_tableau = static_cast<llvm::Value *>(nullptr);
 
 	if (enfant2->type() == type_noeud::PLAGE) {
@@ -3299,7 +3296,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 			if (taille_tableau != 0) {
 				valeur_fin = llvm::ConstantInt::get(
 								 llvm::Type::getInt64Ty(contexte.contexte),
-								 static_cast<uint64_t>(type2.type_base() >> 8),
+								 taille_tableau,
 								 false);
 			}
 			else {
@@ -3369,7 +3366,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 			valeur_arg = accede_element_tableau(
 						 contexte,
 						 valeur_tableau,
-						 converti_type(contexte, type2),
+						 converti_type(contexte, type_debut),
 						 noeud_phi);
 		}
 		else {
