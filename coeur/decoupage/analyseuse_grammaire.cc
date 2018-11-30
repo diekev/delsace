@@ -51,6 +51,42 @@ static constexpr auto g_log_expression = false;
  */
 static constexpr auto PROFONDEUR_EXPRESSION_MAX = 32;
 
+/* Tabulations utilisées au début des logs. */
+static const char *tabulations[PROFONDEUR_EXPRESSION_MAX] = {
+	"",
+	" ",
+	"  ",
+	"   ",
+	"    ",
+	"     ",
+	"      ",
+	"       ",
+	"        ",
+	"         ",
+	"          ",
+	"           ",
+	"            ",
+	"             ",
+	"              ",
+	"               ",
+	"                ",
+	"                 ",
+	"                  ",
+	"                   ",
+	"                    ",
+	"                     ",
+	"                      ",
+	"                       ",
+	"                        ",
+	"                         ",
+	"                          ",
+	"                           ",
+	"                            ",
+	"                             ",
+	"                              ",
+	"                               ",
+};
+
 /**
  * Pointeur spécial utilisé pour représenter un noeud de type paranthèse
  * ouvrante dans l'arbre syntactic. Ce noeud n'est pas insérer dans l'arbre,
@@ -770,12 +806,12 @@ void analyseuse_grammaire::analyse_expression_droite(
 	 * fermante */
 	auto termine_boucle = false;
 
-	DEB_LOG_EXPRESSION << "Vecteur :" << FIN_LOG_EXPRESSION;
+	DEB_LOG_EXPRESSION << tabulations[m_profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
 
 	while (!requiers_identifiant(identifiant_final)) {
 		auto &morceau = m_identifiants[position()];
 
-		DEB_LOG_EXPRESSION << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[m_profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
 		switch (morceau.identifiant) {
 			case id_morceau::CHAINE_CARACTERE:
@@ -1064,10 +1100,10 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 	pile.reserve(expression.size());
 
-	DEB_LOG_EXPRESSION << "Expression :" << FIN_LOG_EXPRESSION;
+	DEB_LOG_EXPRESSION << tabulations[m_profondeur] << "Expression :" << FIN_LOG_EXPRESSION;
 
 	for (Noeud *noeud : expression) {
-		DEB_LOG_EXPRESSION << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[m_profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
 		if (est_operateur_binaire(noeud->identifiant())) {
 			if (pile.size() < 2) {
