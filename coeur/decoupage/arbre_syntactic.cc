@@ -699,36 +699,60 @@ type_noeud NoeudRacine::type() const
 
 /* ************************************************************************** */
 
-[[nodiscard]] static llvm::Value *accede_taille_tableau(
+enum {
+	/* TABLEAUX */
+	POINTEUR_TABLEAU = 0,
+	TAILLE_TABLEAU = 1,
+};
+
+[[nodiscard]] static llvm::Value *accede_membre_structure(
 		ContexteGenerationCode &contexte,
-		llvm::Value *tableau,
+		llvm::Value *structure,
+		uint64_t index,
 		bool charge = false)
 {
-	auto ptr_taille = llvm::GetElementPtrInst::CreateInBounds(
-			  tableau, {
+	auto ptr = llvm::GetElementPtrInst::CreateInBounds(
+			  structure, {
 				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
-				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 1)
+				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), index)
 			  },
 			  "",
 			  contexte.bloc_courant());
 
 	if (charge == true) {
-		return new llvm::LoadInst(ptr_taille, "", contexte.bloc_courant());
+		return new llvm::LoadInst(ptr, "", contexte.bloc_courant());
 	}
 
-	return ptr_taille;
+	return ptr;
 }
-[[nodiscard]] static llvm::Value *accede_pointeur_tableau(
+
+[[nodiscard]] static llvm::Value *accede_element_tableau(
 		ContexteGenerationCode &contexte,
-		llvm::Value *tableau)
+		llvm::Value *structure,
+		llvm::Type *type,
+		llvm::Value *index)
 {
 	return llvm::GetElementPtrInst::CreateInBounds(
-				tableau, {
+				type,
+				structure, {
 					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
-					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0)
+					index
 				},
 				"",
 				contexte.bloc_courant());
+}
+
+[[nodiscard]] static llvm::Value *accede_element_tableau(
+		ContexteGenerationCode &contexte,
+		llvm::Value *structure,
+		llvm::Type *type,
+		uint64_t index)
+{
+	return accede_element_tableau(
+				contexte,
+				structure,
+				type,
+				llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), index));
 }
 
 [[nodiscard]] static auto converti_vers_tableau_dyn(
@@ -749,17 +773,14 @@ type_noeud NoeudRacine::type() const
 	alloc->setAlignment(8);
 
 	/* copie le pointeur du début du tableau */
-	auto ptr_valeur = accede_pointeur_tableau(contexte, alloc);
+	auto ptr_valeur = accede_membre_structure(contexte, alloc, POINTEUR_TABLEAU);
 
 	/* charge le premier élément du tableau */
-	auto premier_elem = llvm::GetElementPtrInst::CreateInBounds(
-							donnees_type.type_llvm(),
+	auto premier_elem = accede_element_tableau(
+							contexte,
 							tableau,
-	{ llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
-	  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0)
-							},
-							"",
-							contexte.bloc_courant());
+							donnees_type.type_llvm(),
+							0ul);
 
 	auto charge = new llvm::LoadInst(premier_elem, "", contexte.bloc_courant());
 	charge->setAlignment(8);
@@ -769,7 +790,7 @@ type_noeud NoeudRacine::type() const
 	stocke->setAlignment(8);
 
 	/* copie la taille du tableau */
-	auto ptr_taille = accede_taille_tableau(contexte, alloc);
+	auto ptr_taille = accede_membre_structure(contexte, alloc, TAILLE_TABLEAU);
 
 	auto taille_tableau = donnees_type.type_base() >> 8;
 	auto constante = llvm::ConstantInt::get(
@@ -1562,7 +1583,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	/* Mets à zéro les valeurs des tableaux dynamics. */
 	if (type.type_base() == id_morceau::TABLEAU) {
-		auto pointeur = accede_pointeur_tableau(contexte, alloc);
+		auto pointeur = accede_membre_structure(contexte, alloc, POINTEUR_TABLEAU);
 
 		auto stocke = new llvm::StoreInst(
 						  llvm::ConstantInt::get(
@@ -1573,7 +1594,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 						  contexte.bloc_courant());
 		stocke->setAlignment(8);
 
-		auto taille = accede_taille_tableau(contexte, alloc);
+		auto taille = accede_membre_structure(contexte, alloc, TAILLE_TABLEAU);
 		stocke = new llvm::StoreInst(
 					 llvm::ConstantInt::get(
 						 llvm::Type::getInt64Ty(contexte.contexte),
@@ -1954,13 +1975,7 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 	globale->setAlignment(1);
 	globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
 
-	return llvm::GetElementPtrInst::CreateInBounds(
-				globale, {
-					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
-					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0)
-				},
-				"",
-				contexte.bloc_courant());
+	return accede_membre_structure(contexte, globale, 0);
 }
 
 bool NoeudChaineLitterale::est_constant() const
@@ -2155,10 +2170,10 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 		}
 
 		if (m_donnees_morceaux.chaine == "pointeur") {
-			return accede_pointeur_tableau(contexte, valeur);
+			return accede_membre_structure(contexte, valeur, POINTEUR_TABLEAU);
 		}
 
-		return accede_taille_tableau(contexte, valeur, true);
+		return accede_membre_structure(contexte, valeur, true, TAILLE_TABLEAU);
 	}
 
 	auto index_structure = size_t(type_structure.type_base() >> 8);
@@ -2182,14 +2197,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 		valeur = charge;
 	}
 
-	ret = llvm::GetElementPtrInst::CreateInBounds(
-			  valeur, {
-				  llvm::ConstantInt::get(llvm::Type::getInt64Ty(contexte.contexte), 0),
-				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), index_membre)
-			  },
-			  "",
-			  contexte.bloc_courant());
-
+	ret = accede_membre_structure(contexte, valeur, index_membre);
 
 	if (!expr_gauche) {
 		auto charge = new llvm::LoadInst(ret, "", contexte.bloc_courant());
@@ -2601,12 +2609,11 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 							 contexte.bloc_courant());
 			}
 			else {
-				valeur = llvm::GetElementPtrInst::CreateInBounds(
-							 converti_type(contexte, type2),
+				valeur = accede_element_tableau(
+							 contexte,
 							 valeur2,
-				{ llvm::ConstantInt::get(valeur1->getType(), 0), valeur1 },
-							 "",
-							 contexte.bloc_courant());
+							 converti_type(contexte, type2),
+							 valeur1);
 			}
 
 			/* Dans le cas d'une assignation, on n'a pas besoin de charger
@@ -3297,7 +3304,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 			}
 			else {
 				pointeur_tableau = enfant2->genere_code_llvm(contexte, true);
-				valeur_fin = accede_taille_tableau(contexte, pointeur_tableau, true);
+				valeur_fin = accede_membre_structure(contexte, pointeur_tableau, TAILLE_TABLEAU, true);
 			}
 
 			auto condition = llvm::ICmpInst::Create(
@@ -3359,15 +3366,14 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 		if (taille_tableau != 0) {
 			auto valeur_tableau = enfant2->genere_code_llvm(contexte, true);
 
-			valeur_arg = llvm::GetElementPtrInst::CreateInBounds(
-						 converti_type(contexte, type2),
+			valeur_arg = accede_element_tableau(
+						 contexte,
 						 valeur_tableau,
-			{ llvm::ConstantInt::get(noeud_phi->getType(), 0), noeud_phi },
-						 "",
-						 contexte.bloc_courant());
+						 converti_type(contexte, type2),
+						 noeud_phi);
 		}
 		else {
-			auto pointeur = accede_pointeur_tableau(contexte, pointeur_tableau);
+			auto pointeur = accede_membre_structure(contexte, pointeur_tableau, POINTEUR_TABLEAU);
 
 			pointeur = new llvm::LoadInst(pointeur, "", contexte.bloc_courant());
 
