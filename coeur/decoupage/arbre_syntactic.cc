@@ -2226,18 +2226,28 @@ void NoeudAccesMembre::perfome_validation_semantique(ContexteGenerationCode &con
 	}
 
 	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
-		if (membre->chaine() != "taille" && membre->chaine() != "pointeur") {
-			erreur::lance_erreur(
-						"Le tableau ne possède pas cette propriété !",
-						contexte,
-						membre->donnees_morceau(),
-						erreur::type_erreur::MEMBRE_INCONNU);
+		if (membre->chaine() == "pointeur") {
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::POINTEUR);
+			dt.pousse(type_structure.derefence());
+
+			this->donnees_type = contexte.magasin_types.ajoute_type(dt);
+			return;
 		}
 
-		auto dt = DonneesType{};
-		dt.pousse(id_morceau::N64);
+		if (membre->chaine() == "taille") {
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::N64);
 
-		this->donnees_type = contexte.magasin_types.ajoute_type(dt);
+			this->donnees_type = contexte.magasin_types.ajoute_type(dt);
+			return;
+		}
+
+		erreur::lance_erreur(
+					"Le tableau ne possède pas cette propriété !",
+					contexte,
+					membre->donnees_morceau(),
+					erreur::type_erreur::MEMBRE_INCONNU);
 	}
 	else if ((type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
 		auto const index_structure = size_t(type_structure.type_base() >> 8);
