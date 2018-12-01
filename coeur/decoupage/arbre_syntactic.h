@@ -264,6 +264,13 @@ public:
 	type_noeud type() const override;
 
 	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
+
+private:
+	   void verifie_compatibilite(
+			   ContexteGenerationCode &contexte,
+			   DonneesType const &type_arg,
+			   DonneesType const &type_enf,
+			   Noeud *enfant);
 };
 
 /* ************************************************************************** */

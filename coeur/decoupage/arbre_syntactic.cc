@@ -824,6 +824,54 @@ void NoeudAppelFonction::imprime_code(std::ostream &os, int tab)
 	}
 }
 
+void NoeudAppelFonction::verifie_compatibilite(
+		ContexteGenerationCode &contexte,
+		const DonneesType &type_arg,
+		const DonneesType &type_enf,
+		Noeud *enfant)
+{
+	auto compat = sont_compatibles(type_arg, type_enf);
+
+	if (compat == niveau_compat::aucune) {
+		erreur::lance_erreur_type_arguments(
+					type_arg,
+					type_enf,
+					contexte,
+					enfant->donnees_morceau(),
+					m_donnees_morceaux);
+	}
+	else if (compat == niveau_compat::converti_tableau) {
+		enfant->drapeaux |= CONVERTI_TABLEAU;
+	}
+}
+
+template <typename Conteneur>
+llvm::Value *cree_appel(
+		ContexteGenerationCode &contexte,
+		llvm::Value *fonction,
+		Conteneur const &conteneur)
+{
+	std::vector<llvm::Value *> parametres(conteneur.size());
+
+	std::transform(conteneur.begin(), conteneur.end(), parametres.begin(),
+				   [&](Noeud *noeud_enfant)
+	{
+		auto conversion = (noeud_enfant->drapeaux & CONVERTI_TABLEAU) != 0;
+		auto valeur_enfant = noeud_enfant->genere_code_llvm(contexte, conversion);
+
+		if (conversion) {
+			auto const &dt = contexte.magasin_types.donnees_types[noeud_enfant->donnees_type];
+			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt);
+		}
+
+		return valeur_enfant;
+	});
+
+	llvm::ArrayRef<llvm::Value *> args(parametres);
+
+	return llvm::CallInst::Create(fonction, args, "", contexte.bloc_courant());
+}
+
 llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	/* broyage du nom */
@@ -834,8 +882,6 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 	auto fonction = contexte.module_llvm->getFunction(nom_broye);
 	auto est_pointeur_fonction = (fonction == nullptr && contexte.locale_existe(m_donnees_morceaux.chaine));
-
-	std::vector<llvm::Value *> parametres;
 
 	/* Cherche la liste d'arguments */
 	if (est_pointeur_fonction) {
@@ -848,48 +894,17 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		/* Validation des types passés en paramètre. */
 		for (size_t i = 0; i < dt_params.size() - 1; ++i) {
 			auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->donnees_type];
-
-			auto compat = sont_compatibles(dt_params[i], type_enf);
-
-			if (compat == niveau_compat::aucune) {
-				erreur::lance_erreur_type_arguments(
-							dt_params[i],
-							type_enf,
-							contexte,
-							(*enfant)->donnees_morceau(),
-							m_donnees_morceaux);
-			}
-			else if (compat == niveau_compat::converti_tableau) {
-				(*enfant)->drapeaux |= CONVERTI_TABLEAU;
-			}
-
+			verifie_compatibilite(contexte, dt_params[i], type_enf, *enfant);
 			++enfant;
 		}
 
 		auto valeur = contexte.valeur_locale(m_donnees_morceaux.chaine);
-		parametres.resize(m_enfants.size());
-
-		std::transform(m_enfants.begin(), m_enfants.end(), parametres.begin(),
-					   [&](Noeud *noeud_enfant)
-		{
-			auto conversion = (noeud_enfant->drapeaux & CONVERTI_TABLEAU) != 0;
-			auto valeur_enfant = noeud_enfant->genere_code_llvm(contexte, conversion);
-
-			if (conversion) {
-				auto const &dt = contexte.magasin_types.donnees_types[noeud_enfant->donnees_type];
-				valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt);
-			}
-
-			return valeur_enfant;
-		});
-
-		llvm::ArrayRef<llvm::Value *> args(parametres);
 
 		auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
 		/* À FAIRE : alignement pointeur. */
 		charge->setAlignment(8);
 
-		return llvm::CallInst::Create(charge, args, "", contexte.bloc_courant());
+		return cree_appel(contexte, charge, m_enfants);
 	}
 
 	auto const &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
@@ -934,19 +949,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 
 		if (iter->second.est_variadic) {
 			if (!type_arg.est_invalide()) {
-				auto compat = sont_compatibles(type_arg, type_enf);
-
-				if (compat == niveau_compat::aucune) {
-					erreur::lance_erreur_type_arguments(
-								type_arg,
-								type_enf,
-								contexte,
-								(*enfant)->donnees_morceau(),
-								m_donnees_morceaux);
-				}
-				else if (compat == niveau_compat::converti_tableau) {
-					(*enfant)->drapeaux |= CONVERTI_TABLEAU;
-				}
+				verifie_compatibilite(contexte, type_arg, type_enf, *enfant);
 			}
 
 			/* Décale l'index selon le nombre d'arguments dans l'argument
@@ -957,19 +960,7 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 			++nombre_arg_variadic;
 		}
 		else {
-			auto compat = sont_compatibles(type_arg, type_enf);
-
-			if (compat == niveau_compat::aucune) {
-				erreur::lance_erreur_type_arguments(
-							type_arg,
-							type_enf,
-							contexte,
-							(*enfant)->donnees_morceau(),
-							m_donnees_morceaux);
-			}
-			else if (compat == niveau_compat::converti_tableau) {
-				(*enfant)->drapeaux |= CONVERTI_TABLEAU;
-			}
+			verifie_compatibilite(contexte, type_arg, type_enf, *enfant);
 		}
 
 		enfants[index_arg] = *enfant;
@@ -977,27 +968,11 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		++enfant;
 	}
 
-	parametres.resize(enfants.size());
-
-	std::transform(enfants.begin(), enfants.end(), parametres.begin(),
-				   [&](Noeud *noeud_enfant)
-	{
-		auto conversion = (noeud_enfant->drapeaux & CONVERTI_TABLEAU) != 0;
-		auto valeur_enfant = noeud_enfant->genere_code_llvm(contexte, conversion);
-
-		if (conversion) {
-			auto const &dt = contexte.magasin_types.donnees_types[noeud_enfant->donnees_type];
-			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt);
-		}
-
-		return valeur_enfant;
-	});
-
-	llvm::ArrayRef<llvm::Value *> args(parametres);
+	auto appel = cree_appel(contexte, fonction, enfants);
 
 	delete noeud_nombre_args;
 
-	return llvm::CallInst::Create(fonction, args, "", contexte.bloc_courant());
+	return appel;
 }
 
 void NoeudAppelFonction::ajoute_nom_argument(const std::string_view &nom)
