@@ -557,9 +557,16 @@ static llvm::FunctionType *obtiens_type_fonction(
 		auto const &argument = donnees_fonction.args.find(nom);
 
 		if (argument->second.est_variadic) {
-			/* ajout de l'argument implicite du compte d'arguments var_args */
+			/* les arguments variadics sont transformés en un tableau */
 			if (!donnees_fonction.est_externe) {
-				parametres.push_back(llvm::Type::getInt32Ty(contexte.contexte));
+				auto dt = DonneesType{};
+				dt.pousse(id_morceau::TABLEAU);
+				dt.pousse(contexte.magasin_types.donnees_types[argument->second.donnees_type]);
+
+				auto index = contexte.magasin_types.ajoute_type(dt);
+				auto &dt_mag = contexte.magasin_types.donnees_types[index];
+
+				parametres.push_back(converti_type(contexte, dt_mag));
 			}
 
 			break;
@@ -572,28 +579,13 @@ static llvm::FunctionType *obtiens_type_fonction(
 	return llvm::FunctionType::get(
 				converti_type(contexte, donnees_retour),
 				parametres,
-				est_variadique);
+				est_variadique && donnees_fonction.est_externe);
 }
 
 /* ************************************************************************** */
 
-static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte, int index_module)
+static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte)
 {
-	auto module = contexte.module(static_cast<size_t>(index_module));
-
-	/* insère un appel à va_end avant chaque instruction de retour */
-	if (contexte.fonction->isVarArg()) {
-		auto const &donnees_fonction = module->donnees_fonction(std::string(contexte.fonction->getName()));
-		auto const &nom_dernier_arg = donnees_fonction.nom_args.back();
-		auto valeur_varg = contexte.valeur_locale(nom_dernier_arg);
-
-		assert(valeur_varg != nullptr);
-
-		auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vaend);
-
-		llvm::CallInst::Create(fonc, valeur_varg, "", contexte.bloc_courant());
-	}
-
 	/* génère le code pour les blocs déférés */
 	auto pile_noeud = contexte.noeuds_deferes();
 
@@ -907,35 +899,45 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		return cree_appel(contexte, charge, m_enfants);
 	}
 
-	auto const &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
+	auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
-	auto fonction_variadique_interne = fonction->isVarArg() && !donnees_fonction.est_externe;
+	auto fonction_variadique_interne = donnees_fonction.est_variadique && !donnees_fonction.est_externe;
 
 	/* Réordonne les enfants selon l'apparition des arguments car LLVM est
 	 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
 	 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
 	 * code est généré. */
 	auto noms_arguments = std::any_cast<std::list<std::string_view>>(&valeur_calculee);
-	std::vector<Noeud *> enfants(noms_arguments->size() + fonction_variadique_interne);
-
-	auto noeud_nombre_args = static_cast<NoeudNombreEntier *>(nullptr);
+	std::vector<Noeud *> enfants;
 
 	if (fonction_variadique_interne) {
-		/* Pour les fonctions variadiques, il nous faut ajouter le nombre
-		 * d'arguments à l'appel de la fonction. */
+		enfants.resize(donnees_fonction.args.size());
+	}
+	else {
+		enfants.resize(noms_arguments->size());
+	}
+
+	auto noeud_tableau = static_cast<NoeudTableau *>(nullptr);
+
+	if (fonction_variadique_interne) {
+		/* Pour les fonctions variadiques interne, nous créons un tableau
+		 * correspondant au types des arguments. */
+
 		auto nombre_args = donnees_fonction.args.size();
 		auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
 		auto index_premier_var_arg = nombre_args - 1;
 
-		noeud_nombre_args = new NoeudNombreEntier(contexte, {});
-		noeud_nombre_args->valeur_calculee = static_cast<long>(nombre_args_var);
-		noeud_nombre_args->calcule = true;
+		noeud_tableau = new NoeudTableau(contexte, {});
+		noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
+		noeud_tableau->calcule = true;
+		auto nom_arg = donnees_fonction.nom_args.back();
+		noeud_tableau->donnees_type = donnees_fonction.args[nom_arg].donnees_type;
 
-		enfants[index_premier_var_arg] = noeud_nombre_args;
+		enfants[index_premier_var_arg] = noeud_tableau;
 	}
 
 	auto enfant = m_enfants.begin();
-	auto nombre_arg_variadic = 0ul + fonction_variadique_interne;
+	auto nombre_arg_variadic = 0ul;
 
 	for (auto const &nom : *noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
@@ -950,27 +952,32 @@ llvm::Value *NoeudAppelFonction::genere_code_llvm(ContexteGenerationCode &contex
 		if (iter->second.est_variadic) {
 			if (!type_arg.est_invalide()) {
 				verifie_compatibilite(contexte, type_arg, type_enf, *enfant);
+
+				if (noeud_tableau) {
+					noeud_tableau->ajoute_noeud(*enfant);
+				}
+				else {
+					enfants[index_arg + nombre_arg_variadic] = *enfant;
+					++nombre_arg_variadic;
+				}
 			}
-
-			/* Décale l'index selon le nombre d'arguments dans l'argument
-			 * variadique, car ici index_arg est l'index dans la déclaration et
-			 * la déclaration ne contient qu'un seul argument variadic. */
-			index_arg += nombre_arg_variadic;
-
-			++nombre_arg_variadic;
+			else {
+				enfants[index_arg + nombre_arg_variadic] = *enfant;
+				++nombre_arg_variadic;
+			}
 		}
 		else {
 			verifie_compatibilite(contexte, type_arg, type_enf, *enfant);
-		}
 
-		enfants[index_arg] = *enfant;
+			enfants[index_arg] = *enfant;
+		}
 
 		++enfant;
 	}
 
 	auto appel = cree_appel(contexte, fonction, enfants);
 
-	delete noeud_nombre_args;
+	delete noeud_tableau;
 
 	return appel;
 }
@@ -1151,13 +1158,13 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	auto module = contexte.module(static_cast<size_t>(m_donnees_morceaux.module));
 	auto &donnees_fonction = module->donnees_fonction(m_donnees_morceaux.chaine);
 
-	/* Pour les fonctions variadiques
-	 * - on ajoute manuellement un argument implicit correspondant au nombre
-	 *   d'args qui est appelé __compte_args
-	 * - lors de l'appel, puisque nous connaissons le nombre d'arguments, on le
-	 *   passe à la fonction
-	 * - les boucles n'ont plus qu'à utiliser le compte d'arguments comme valeur
-	 *   de fin de plage.
+	/* Pour les fonctions variadiques nous transformons la liste d'argument en
+	 * un tableau dynamique transmis à la fonction. La raison étant que les
+	 * instruction de LLVM pour les arguments variadiques ne fonctionnent
+	 * vraiment que pour les types simples et les pointeurs. Pour pouvoir passer
+	 * des structures, il faudrait manuellement gérer les instructions
+	 * d'incrémentation et d'extraction des arguments pour chaque plateforme.
+	 * Nos tableaux, quant à eux, sont portables.
 	 */
 
 	/* Crée le type de la fonction */
@@ -1196,47 +1203,19 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 	auto valeurs_args = fonction->arg_begin();
 
 	for (auto const &nom : donnees_fonction.nom_args) {
-		auto const &argument = donnees_fonction.args[nom];
+		auto &argument = donnees_fonction.args[nom];
+		auto index_type = argument.donnees_type;
 		auto align = unsigned{0};
 		auto type = static_cast<llvm::Type *>(nullptr);
 
 		if (argument.est_variadic) {
 			align = 8;
 
-			auto id = size_t{};
-
-			if (!contexte.structure_existe("va_list")) {
-				/* Crée la structure va_list pour Unix x84_64
-				 *  %struct.va_list = type { i32, i32, i8*, i8* }
-				 */
-
-				auto donnees_structure = DonneesStructure{};
-
-				auto dt = DonneesType{};
-				dt.pousse(id_morceau::Z32);
-
-				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
-				donnees_structure.donnees_types.push_back(contexte.magasin_types.ajoute_type(dt));
-				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
-				donnees_structure.donnees_types.push_back(contexte.magasin_types.ajoute_type(dt));
-
-				dt = DonneesType{};
-				dt.pousse(id_morceau::POINTEUR);
-				dt.pousse(id_morceau::Z8);
-
-				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
-				donnees_structure.donnees_types.push_back(contexte.magasin_types.ajoute_type(dt));
-				donnees_structure.index_membres.insert({"", donnees_structure.donnees_types.size()});
-				donnees_structure.donnees_types.push_back(contexte.magasin_types.ajoute_type(dt));
-
-				id = contexte.ajoute_donnees_structure("va_list", donnees_structure);
-			}
-			else {
-				id = contexte.donnees_structure("va_list").id;
-			}
-
 			auto dt = DonneesType{};
-			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(id) << 8));
+			dt.pousse(id_morceau::TABLEAU);
+			dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
+
+			index_type = contexte.magasin_types.ajoute_type(dt);
 
 			type = converti_type(contexte, dt);
 		}
@@ -1252,55 +1231,19 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 		auto const &nom_argument = "";
 #endif
 
-		if (argument.est_variadic) {
-			/* stockage de l'argument implicit de compte d'argument */
-			auto valeur = &(*valeurs_args++);
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::Z32);
-			auto index_dt = contexte.magasin_types.ajoute_type(dt);
+		auto valeur = &(*valeurs_args++);
+		valeur->setName(nom_argument);
 
-			auto alloc_compte = new llvm::AllocaInst(
-									llvm::Type::getInt32Ty(contexte.contexte),
-									"",
-									contexte.bloc_courant());
-			alloc_compte->setAlignment(4);
+		auto alloc = new llvm::AllocaInst(
+						 type,
+						 nom_argument,
+						 contexte.bloc_courant());
 
-			auto store = new llvm::StoreInst(valeur, alloc_compte, false, contexte.bloc_courant());
-			store->setAlignment(4);
+		alloc->setAlignment(align);
+		auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+		store->setAlignment(align);
 
-			contexte.pousse_locale("__compte_args", alloc_compte, index_dt, false, false);
-
-			valeur = &(*valeurs_args++);
-
-			auto alloc = new llvm::AllocaInst(
-							 type,
-							 nom_argument,
-							 contexte.bloc_courant());
-
-			alloc->setAlignment(align);
-			auto cast = new llvm::BitCastInst(alloc,
-											  llvm::Type::getInt8PtrTy(contexte.contexte),
-											  "",
-											  contexte.bloc_courant());
-
-			auto fonc = llvm::Intrinsic::getDeclaration(contexte.module_llvm, llvm::Intrinsic::vastart);
-			llvm::CallInst::Create(fonc, cast, "", contexte.bloc_courant());
-			contexte.pousse_locale(nom, cast, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
-		}
-		else {
-			auto valeur = &(*valeurs_args++);
-			valeur->setName(nom_argument);
-
-			auto alloc = new llvm::AllocaInst(
-							 type,
-							 nom_argument,
-							 contexte.bloc_courant());
-
-			alloc->setAlignment(align);
-			auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
-			store->setAlignment(align);
-			contexte.pousse_locale(nom, alloc, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
-		}
+		contexte.pousse_locale(nom, alloc, index_type, argument.est_dynamic, argument.est_variadic);
 	}
 
 	/* Crée code pour le bloc. */
@@ -1310,7 +1253,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 	/* Ajoute une instruction de retour si la dernière n'en est pas une. */
 	if ((ret != nullptr) && !llvm::isa<llvm::ReturnInst>(*ret)) {
-		genere_code_extra_pre_retour(contexte, m_donnees_morceaux.module);
+		genere_code_extra_pre_retour(contexte);
 
 		llvm::ReturnInst::Create(
 					contexte.contexte,
@@ -1350,12 +1293,12 @@ void NoeudDeclarationFonction::perfome_validation_semantique(ContexteGenerationC
 
 		if (argument.est_variadic) {
 			auto dt = DonneesType{};
-			dt.pousse(id_morceau::Z32);
+			dt.pousse(id_morceau::TABLEAU);
+			dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
 
 			auto index_dt = contexte.magasin_types.ajoute_type(dt);
 
-			contexte.pousse_locale("__compte_args", nullptr, index_dt, false, false);
-			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
+			contexte.pousse_locale(nom, nullptr, index_dt, argument.est_dynamic, argument.est_variadic);
 		}
 		else {
 			contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
@@ -1965,6 +1908,73 @@ type_noeud NoeudChaineLitterale::type() const
 
 /* ************************************************************************** */
 
+NoeudTableau::NoeudTableau(ContexteGenerationCode &contexte, const DonneesMorceaux &morceau)
+	: Noeud(contexte, morceau)
+{}
+
+void NoeudTableau::imprime_code(std::ostream &os, int tab)
+{
+	imprime_tab(os, tab);
+	os << "NoeudTableau\n";
+	for (auto enfant : m_enfants) {
+		enfant->imprime_code(os, tab + 1);
+	}
+}
+
+llvm::Value *NoeudTableau::genere_code_llvm(ContexteGenerationCode &contexte, const bool /*expr_gauche*/)
+{
+	auto taille_tableau = m_enfants.size();
+
+	if (this->calcule) {
+		assert(static_cast<long>(taille_tableau) == std::any_cast<long>(this->valeur_calculee));
+	}
+
+	auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
+
+	/* alloue un tableau fixe */
+	auto dt_tfixe = DonneesType{};
+	dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
+	dt_tfixe.pousse(type);
+
+	auto type_llvm = converti_type(contexte, dt_tfixe);
+
+	auto pointeur_tableau = new llvm::AllocaInst(
+								type_llvm,
+								nullptr,
+								"",
+								contexte.bloc_courant());
+
+	/* copie les valeurs dans le tableau fixe */
+	auto index = 0ul;
+
+	for (auto enfant : m_enfants) {
+		auto valeur_enfant = enfant->genere_code_llvm(contexte, false);
+
+		auto index_tableau = accede_element_tableau(
+								 contexte,
+								 pointeur_tableau,
+								 type_llvm,
+								 index++);
+
+		new llvm::StoreInst(valeur_enfant, index_tableau, contexte.bloc_courant());
+	}
+
+	/* alloue un tableau dynamique */
+	return converti_vers_tableau_dyn(contexte, pointeur_tableau, dt_tfixe);
+}
+
+bool NoeudTableau::est_constant() const
+{
+	return false;
+}
+
+type_noeud NoeudTableau::type() const
+{
+	return type_noeud::TABLEAU;
+}
+
+/* ************************************************************************** */
+
 NoeudVariable::NoeudVariable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
@@ -1993,22 +2003,12 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, b
 		}
 	}
 
-	if (expr_gauche || dynamic_cast<llvm::PHINode *>(valeur) || dynamic_cast<llvm::VAArgInst *>(valeur)) {
+	if (expr_gauche || dynamic_cast<llvm::PHINode *>(valeur)) {
 		return valeur;
 	}
 
 	auto const &index_type = this->donnees_type;
 	auto &type = contexte.magasin_types.donnees_types[index_type];
-
-	if (contexte.est_locale_variadique(m_donnees_morceaux.chaine)) {
-		auto inst = new llvm::VAArgInst(
-						valeur,
-						converti_type(contexte, type),
-						"",
-						contexte.bloc_courant());
-
-		return inst;
-	}
 
 	auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
 	charge->setAlignment(alignement(contexte, type));
@@ -2840,8 +2840,6 @@ void NoeudRetour::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
-	genere_code_extra_pre_retour(contexte, m_donnees_morceaux.module);
-
 	llvm::Value *valeur = nullptr;
 
 	if (!m_enfants.empty()) {
@@ -3288,38 +3286,6 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 								 contexte.bloc_courant());
 
 			noeud_phi->addIncoming(valeur_debut, bloc_pre);
-
-			llvm::BranchInst::Create(
-						bloc_corps,
-						(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
-						condition,
-						contexte.bloc_courant());
-		}
-		else {
-			auto arg = enfant2->genere_code_llvm(contexte);
-			contexte.pousse_locale(enfant1->chaine(), arg, index_type, false, false);
-
-			auto valeur_debut = llvm::ConstantInt::get(
-									llvm::Type::getInt32Ty(contexte.contexte),
-									static_cast<uint64_t>(0),
-									false);
-
-			auto valeur_fin = contexte.valeur_locale("__compte_args");
-
-			/* __compte_args est une AllocaInst (dans NoeudDeclarationFonction)
-			 * donc il faut le charger */
-			auto charge_valeur_fin = new llvm::LoadInst(
-										 valeur_fin, "", contexte.bloc_courant());
-
-			noeud_phi->addIncoming(valeur_debut, bloc_pre);
-
-			auto condition = llvm::ICmpInst::Create(
-								 llvm::Instruction::ICmp,
-								 llvm::CmpInst::Predicate::ICMP_SLT,
-								 noeud_phi,
-								 charge_valeur_fin,
-								 "",
-								 contexte.bloc_courant());
 
 			llvm::BranchInst::Create(
 						bloc_corps,

@@ -66,6 +66,7 @@ enum class type_noeud : char {
 	PLAGE,
 	DEFERE,
 	NONSUR,
+	TABLEAU,
 };
 
 /* ************************************************************************** */
@@ -400,6 +401,21 @@ public:
 class NoeudChaineLitterale final : public Noeud {
 public:
 	explicit NoeudChaineLitterale(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+
+	void imprime_code(std::ostream &os, int tab) override;
+
+	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
+
+	bool est_constant() const override;
+
+	type_noeud type() const override;
+};
+
+/* ************************************************************************** */
+
+class NoeudTableau final : public Noeud {
+public:
+	explicit NoeudTableau(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
