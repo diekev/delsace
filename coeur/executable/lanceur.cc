@@ -638,18 +638,18 @@ int main(int argc, char *argv[])
 		return pourcentage(x * 100.0 / total);
 	};
 
+	auto const mem_totale = metriques.memoire_tampons
+							+ metriques.memoire_morceaux
+							+ mem_arbre
+							+ mem_contexte;
+
 	os << "------------------------------------------------------------------\n";
 	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
 	os << "Temps aggrégé                : " << temps_seconde(temps_aggrege) << '\n';
 	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
 	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
 	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_aggrege << '\n';
-	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(metriques.nombre_lignes) / temps_aggrege)) << '\n';
-
-	auto const mem_totale = metriques.memoire_tampons
-							+ metriques.memoire_morceaux
-							+ mem_arbre
-							+ mem_contexte;
+	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(mem_totale) / temps_aggrege)) << '\n';
 
 	os << '\n';
 	os << "Métriques :\n";
