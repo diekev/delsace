@@ -8,7 +8,7 @@ if exists("b:current_syntax")
 endif
 
 " Keywords
-syn keyword mot_cles fonction retourne nul soit dyn gabarit employant défère externe
+syn keyword mot_cles fonction retourne nul soit dyn gabarit employant diffère externe
 syn keyword mot_cles_struct structure énum
 syn keyword mot_cles_cond si sinon associe nonsûr
 syn keyword mot_cles_boucle boucle pour dans arrête continue sansarrêt
