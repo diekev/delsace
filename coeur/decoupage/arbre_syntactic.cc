@@ -2847,6 +2847,11 @@ llvm::Value *NoeudRetour::genere_code_llvm(ContexteGenerationCode &contexte, boo
 		valeur = m_enfants.front()->genere_code_llvm(contexte);
 	}
 
+	/* NOTE : le code différé doit être crée après l'expression de retour, car
+	 * nous risquerions par exemple de déloger une variable utilisée dans
+	 * l'expression de retour. */
+	genere_code_extra_pre_retour(contexte);
+
 	return llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.bloc_courant());
 }
 
