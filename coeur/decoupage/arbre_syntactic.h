@@ -64,7 +64,7 @@ enum class type_noeud : char {
 	NUL,
 	TAILLE_DE,
 	PLAGE,
-	DEFERE,
+	DIFFERE,
 	NONSUR,
 	TABLEAU,
 };

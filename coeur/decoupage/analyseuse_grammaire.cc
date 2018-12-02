@@ -703,10 +703,10 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu un point virgule ';'");
 			}
 		}
-		else if (est_identifiant(id_morceau::DEFERE)) {
+		else if (est_identifiant(id_morceau::DIFFERE)) {
 			avance();
 
-			m_assembleuse->empile_noeud(type_noeud::DEFERE, m_contexte, m_identifiants[position()]);
+			m_assembleuse->empile_noeud(type_noeud::DIFFERE, m_contexte, m_identifiants[position()]);
 
 			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 				lance_erreur("Attendu une accolade ouvrante '{' après 'défère'");
@@ -720,7 +720,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'défère'");
 			}
 
-			m_assembleuse->depile_noeud(type_noeud::DEFERE);
+			m_assembleuse->depile_noeud(type_noeud::DIFFERE);
 		}
 		else if (est_identifiant(id_morceau::NONSUR)) {
 			avance();

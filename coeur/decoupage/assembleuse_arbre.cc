@@ -200,7 +200,7 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, ContexteGenerationCode &co
 			m_memoire_utilisee += sizeof(NoeudAccesMembrePoint);
 			noeud = new NoeudAccesMembrePoint(contexte, morceau);
 			break;
-		case type_noeud::DEFERE:
+		case type_noeud::DIFFERE:
 			m_memoire_utilisee += sizeof(NoeudDefere);
 			noeud = new NoeudDefere(contexte, morceau);
 			break;

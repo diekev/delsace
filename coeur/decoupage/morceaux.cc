@@ -36,8 +36,8 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "continue", id_morceau::CONTINUE },
 	{ "dans", id_morceau::DANS },
 	{ "de", id_morceau::DE },
+	{ "diffère", id_morceau::DIFFERE },
 	{ "dyn", id_morceau::DYN },
-	{ "défère", id_morceau::DEFERE },
 	{ "employant", id_morceau::EMPLOYANT },
 	{ "externe", id_morceau::EXTERNE },
 	{ "faux", id_morceau::FAUX },
@@ -201,10 +201,10 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::DANS";
 		case id_morceau::DE:
 			return "id_morceau::DE";
+		case id_morceau::DIFFERE:
+			return "id_morceau::DIFFERE";
 		case id_morceau::DYN:
 			return "id_morceau::DYN";
-		case id_morceau::DEFERE:
-			return "id_morceau::DEFERE";
 		case id_morceau::EMPLOYANT:
 			return "id_morceau::EMPLOYANT";
 		case id_morceau::EXTERNE:

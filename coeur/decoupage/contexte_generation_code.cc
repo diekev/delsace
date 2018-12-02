@@ -379,14 +379,14 @@ std::string ContexteGenerationCode::nom_struct(const size_t id) const
 
 /* ************************************************************************** */
 
-void ContexteGenerationCode::defere_noeud(Noeud *noeud)
+void ContexteGenerationCode::differe_noeud(Noeud *noeud)
 {
-	m_noeuds_deferes.push(noeud);
+	m_noeuds_differes.push(noeud);
 }
 
-const std::stack<Noeud *> &ContexteGenerationCode::noeuds_deferes() const
+const std::stack<Noeud *> &ContexteGenerationCode::noeuds_differes() const
 {
-	return m_noeuds_deferes;
+	return m_noeuds_differes;
 }
 
 /* ************************************************************************** */

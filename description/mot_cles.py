@@ -19,7 +19,7 @@ mot_cles = [
 	u'gabarit',
 	u'de',
 	u'retourne',
-	u'défère',
+	u'diffère',
 	u'transtype',
 	u'vrai',
 	u'faux',

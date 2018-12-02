@@ -587,7 +587,7 @@ static llvm::FunctionType *obtiens_type_fonction(
 static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte)
 {
 	/* génère le code pour les blocs déférés */
-	auto pile_noeud = contexte.noeuds_deferes();
+	auto pile_noeud = contexte.noeuds_differes();
 
 	while (!pile_noeud.empty()) {
 		auto noeud = pile_noeud.top();
@@ -3994,13 +3994,13 @@ llvm::Value *NoeudDefere::genere_code_llvm(ContexteGenerationCode &contexte, boo
 	 * bloc déféré n'en est aucun. */
 	noeud->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
 
-	contexte.defere_noeud(noeud);
+	contexte.differe_noeud(noeud);
 	return nullptr;
 }
 
 type_noeud NoeudDefere::type() const
 {
-	return type_noeud::DEFERE;
+	return type_noeud::DIFFERE;
 }
 
 /* ************************************************************************** */
