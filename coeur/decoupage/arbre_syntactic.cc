@@ -3980,18 +3980,18 @@ void NoeudAccesMembrePoint::perfome_validation_semantique(ContexteGenerationCode
 
 /* ************************************************************************** */
 
-NoeudDefere::NoeudDefere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
+NoeudDiffere::NoeudDiffere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {}
 
-void NoeudDefere::imprime_code(std::ostream &os, int tab)
+void NoeudDiffere::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
-	os << "NoeudDefere : \n";
+	os << "NoeudDiffere : \n";
 	m_enfants.front()->imprime_code(os, tab + 1);
 }
 
-llvm::Value *NoeudDefere::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
+llvm::Value *NoeudDiffere::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
 	auto noeud = m_enfants.front();
 
@@ -4003,7 +4003,7 @@ llvm::Value *NoeudDefere::genere_code_llvm(ContexteGenerationCode &contexte, boo
 	return nullptr;
 }
 
-type_noeud NoeudDefere::type() const
+type_noeud NoeudDiffere::type() const
 {
 	return type_noeud::DIFFERE;
 }

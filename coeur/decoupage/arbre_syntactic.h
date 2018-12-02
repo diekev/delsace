@@ -651,9 +651,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudDefere final : public Noeud {
+class NoeudDiffere final : public Noeud {
 public:
-	explicit NoeudDefere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+	explicit NoeudDiffere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	void imprime_code(std::ostream &os, int tab) override;
 
