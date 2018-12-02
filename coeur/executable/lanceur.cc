@@ -541,9 +541,8 @@ int main(int argc, char *argv[])
 
 		auto nom_module = chemin.stem();
 
-		auto assembleuse = assembleuse_arbre();
 		auto contexte_generation = ContexteGenerationCode{};
-		contexte_generation.assembleuse = &assembleuse;
+		auto assembleuse = assembleuse_arbre(contexte_generation);
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 		charge_module(os, nom_module, contexte_generation, {}, true);

@@ -60,7 +60,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 		decoupeuse_texte decoupeuse(module);
 		decoupeuse.genere_morceaux();
 
-		auto assembleuse = assembleuse_arbre();
+		auto assembleuse = assembleuse_arbre(contexte);
 		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module);
 
 		std::ostream os(nullptr);

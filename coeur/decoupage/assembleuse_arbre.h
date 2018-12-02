@@ -50,7 +50,7 @@ class assembleuse_arbre {
 	size_t m_memoire_utilisee = 0;
 
 public:
-	assembleuse_arbre() = default;
+	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre();
 
 	/**

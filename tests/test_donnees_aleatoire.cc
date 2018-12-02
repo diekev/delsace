@@ -67,7 +67,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		decoupeuse_texte decoupeuse(module);
 		decoupeuse.genere_morceaux();
 
-		auto assembleuse = assembleuse_arbre();
+		auto assembleuse = assembleuse_arbre(contexte);
 		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module);
 
 		std::ostream os(nullptr);
@@ -491,7 +491,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto contexte = ContexteGenerationCode{};
 		auto module = contexte.cree_module("");
 		module->tampon = TamponSource("texte_test");
-		auto assembleuse = assembleuse_arbre();
+		auto assembleuse = assembleuse_arbre(contexte);
 		auto analyseuse = analyseuse_grammaire(contexte, morceaux, &assembleuse, module);
 
 		std::ostream os(nullptr);

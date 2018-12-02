@@ -270,8 +270,6 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 		return;
 	}
 
-	m_assembleuse->empile_noeud(type_noeud::RACINE, m_contexte, m_identifiants[0]);
-
 	analyse_corps(os);
 }
 
