@@ -35,6 +35,7 @@
 #include <llvm/IR/TypeBuilder.h>
 #pragma GCC diagnostic pop
 
+#include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "morceaux.h"
 
@@ -446,4 +447,90 @@ unsigned alignement(
 	}
 
 	return 0;
+}
+
+/* ************************************************************************** */
+
+/* À FAIRE : déduplique ça. */
+static bool est_type_entier(id_morceau type)
+{
+	switch (type) {
+		case id_morceau::BOOL:
+		case id_morceau::N8:
+		case id_morceau::N16:
+		case id_morceau::N32:
+		case id_morceau::N64:
+		case id_morceau::Z8:
+		case id_morceau::Z16:
+		case id_morceau::Z32:
+		case id_morceau::Z64:
+		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool est_type_reel(id_morceau type)
+{
+	switch (type) {
+		case id_morceau::R16:
+		case id_morceau::R32:
+		case id_morceau::R64:
+			return true;
+		default:
+			return false;
+	}
+}
+
+niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type2, type_noeud type_droite)
+{
+	if (type1 == type2) {
+		return niveau_compat::ok;
+	}
+
+	if (type_droite == type_noeud::NOMBRE_ENTIER && est_type_entier(type1.type_base())) {
+		return niveau_compat::ok;
+	}
+
+	if (type_droite == type_noeud::NOMBRE_REEL && est_type_reel(type1.type_base())) {
+		return niveau_compat::ok;
+	}
+
+	/* Nous savons que les types sont différents, donc si l'un des deux est un
+	 * pointeur fonction, nous pouvons retourner faux. */
+	if (type1.type_base() == id_morceau::FONCTION) {
+		return niveau_compat::aucune;
+	}
+
+	if (type1.type_base() == id_morceau::TABLEAU) {
+		if ((type2.type_base() & 0xff) != id_morceau::TABLEAU) {
+			return niveau_compat::aucune;
+		}
+
+		if (type1.derefence() == type2.derefence()) {
+			return niveau_compat::converti_tableau;
+		}
+
+		return niveau_compat::aucune;
+	}
+
+	/* À FAIRE : C-strings */
+	if (type1.type_base() == id_morceau::POINTEUR) {
+		if (type1.derefence().type_base() != id_morceau::Z8) {
+			return niveau_compat::aucune;
+		}
+
+		if ((type2.type_base() & 0xff) == id_morceau::TABLEAU) {
+			if (size_t(type2.type_base() >> 8) == 0) {
+				return niveau_compat::aucune;
+			}
+		}
+
+		if (type2.derefence().type_base() == id_morceau::Z8) {
+			return niveau_compat::ok;
+		}
+	}
+
+	return niveau_compat::aucune;
 }

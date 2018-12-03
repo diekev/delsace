@@ -225,3 +225,21 @@ struct MagasinDonneesType {
 [[nodiscard]] unsigned alignement(
 		ContexteGenerationCode &contexte,
 		const DonneesType &donnees_type);
+
+/* ************************************************************************** */
+
+enum class type_noeud : char;
+
+enum class niveau_compat : char {
+	aucune,
+	ok,
+	converti_tableau,
+};
+
+/**
+ * Retourne le niveau de compatibilité entre les deux types spécifiés.
+ */
+niveau_compat sont_compatibles(
+		const DonneesType &type1,
+		const DonneesType &type2,
+		type_noeud type_droite);

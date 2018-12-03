@@ -66,62 +66,6 @@ static auto cree_bloc(ContexteGenerationCode &contexte, char const *nom)
 #endif
 }
 
-enum class niveau_compat : char {
-	aucune,
-	ok,
-	converti_tableau,
-};
-
-/**
- * Retourne vrai si les deux types peuvent être convertis silencieusement par le
- * compileur.
- */
-static niveau_compat sont_compatibles(
-		const DonneesType &type1,
-		const DonneesType &type2)
-{
-	if (type1 == type2) {
-		return niveau_compat::ok;
-	}
-
-	/* Nous savons que les types sont différents, donc si l'un des deux est un
-	 * pointeur fonction, nous pouvons retourner faux. */
-	if (type1.type_base() == id_morceau::FONCTION) {
-		return niveau_compat::aucune;
-	}
-
-	if (type1.type_base() == id_morceau::TABLEAU) {
-		if ((type2.type_base() & 0xff) != id_morceau::TABLEAU) {
-			return niveau_compat::aucune;
-		}
-
-		if (type1.derefence() == type2.derefence()) {
-			return niveau_compat::converti_tableau;
-		}
-
-		return niveau_compat::aucune;
-	}
-
-	/* À FAIRE : C-strings */
-	if (type1.type_base() == id_morceau::POINTEUR) {
-		if (type1.derefence().type_base() != id_morceau::Z8) {
-			return niveau_compat::aucune;
-		}
-
-		if ((type2.type_base() & 0xff) == id_morceau::TABLEAU) {
-			if (size_t(type2.type_base() >> 8) == 0) {
-				return niveau_compat::aucune;
-			}
-		}
-
-		if (type2.derefence().type_base() == id_morceau::Z8) {
-			return niveau_compat::ok;
-		}
-	}
-
-	return niveau_compat::aucune;
-}
-
 static bool est_type_entier(id_morceau type)
 {
 	switch (type) {
@@ -209,31 +153,6 @@ static bool est_type_reel(id_morceau type)
 		default:
 			return false;
 	}
-}
-
-/**
- * Retourne vrai si le type à droite peut-être assigné au type à gauche. Si les
- * types ne correspondent pas directement, on vérifie s'il est possible de
- * convertir silencieusement les types littéraux.
- */
-static bool peut_assigner(
-		const DonneesType &gauche,
-		const DonneesType &droite,
-		type_noeud type_droite)
-{
-	if (gauche == droite) {
-		return true;
-	}
-
-	if (type_droite == type_noeud::NOMBRE_ENTIER && est_type_entier(gauche.type_base())) {
-		return true;
-	}
-
-	if (type_droite == type_noeud::NOMBRE_REEL && est_type_reel(gauche.type_base())) {
-		return true;
-	}
-
-	return false;
 }
 
 /* ************************************************************************** */
@@ -563,7 +482,7 @@ void NoeudAppelFonction::verifie_compatibilite(
 		const DonneesType &type_enf,
 		Noeud *enfant)
 {
-	auto compat = sont_compatibles(type_arg, type_enf);
+	auto compat = sont_compatibles(type_arg, type_enf, enfant->type());
 
 	if (compat == niveau_compat::aucune) {
 		erreur::lance_erreur_type_arguments(
@@ -1187,8 +1106,9 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 	variable->perfome_validation_semantique(contexte);
 
 	auto const &type_gauche = contexte.magasin_types.donnees_types[variable->donnees_type];
+	auto const niveau_compat = sont_compatibles(type_gauche, dt, expression->type());
 
-	if (!peut_assigner(type_gauche, dt, expression->type())) {
+	if (niveau_compat == niveau_compat::aucune) {
 		erreur::lance_erreur_assignation_type_differents(
 					type_gauche,
 					dt,
