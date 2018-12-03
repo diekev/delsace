@@ -223,21 +223,17 @@ static llvm::FunctionType *obtiens_type_fonction(
 				dt.pousse(id_morceau::TABLEAU);
 				dt.pousse(contexte.magasin_types.donnees_types[argument->second.donnees_type]);
 
-				auto index = contexte.magasin_types.ajoute_type(dt);
-				auto &dt_mag = contexte.magasin_types.donnees_types[index];
-
-				parametres.push_back(converti_type(contexte, dt_mag));
+				parametres.push_back(contexte.magasin_types.converti_type(contexte, dt));
 			}
 
 			break;
 		}
 
-		auto &dt = contexte.magasin_types.donnees_types[argument->second.donnees_type];
-		parametres.push_back(converti_type(contexte, dt));
+		parametres.push_back(contexte.magasin_types.converti_type(contexte, argument->second.donnees_type));
 	}
 
 	return llvm::FunctionType::get(
-				converti_type(contexte, donnees_retour),
+				contexte.magasin_types.converti_type(contexte, donnees_retour),
 				parametres,
 				est_variadique && donnees_fonction.est_externe);
 }
@@ -418,7 +414,7 @@ enum {
 	dt.pousse(id_morceau::TABLEAU);
 	dt.pousse(deref);
 
-	auto type_llvm = converti_type(contexte, dt);
+	auto type_llvm = contexte.magasin_types.converti_type(contexte, dt);
 
 	/* alloue de l'espace pour ce type */
 	auto alloc = new llvm::AllocaInst(type_llvm, "", contexte.bloc_courant());
@@ -884,12 +880,12 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 			index_type = contexte.magasin_types.ajoute_type(dt);
 
-			type = converti_type(contexte, dt);
+			type = contexte.magasin_types.converti_type(contexte, index_type);
 		}
 		else {
 			auto dt = contexte.magasin_types.donnees_types[argument.donnees_type];
 			align = alignement(contexte, dt);
-			type = converti_type(contexte, dt);
+			type = contexte.magasin_types.converti_type(contexte, argument.donnees_type);
 		}
 
 #ifdef NOMME_IR
@@ -1146,8 +1142,8 @@ void NoeudDeclarationVariable::imprime_code(std::ostream &os, int tab)
 
 llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &contexte, bool const /*expr_gauche*/)
 {
-	auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
-	auto type_llvm = converti_type(contexte, type);
+	auto const &type = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto type_llvm = contexte.magasin_types.converti_type(contexte, this->donnees_type);
 
 	if ((this->drapeaux & GLOBAL) != 0) {
 		auto valeur = new llvm::GlobalVariable(
@@ -1272,8 +1268,7 @@ llvm::Value *NoeudConstante::genere_code_llvm(ContexteGenerationCode &contexte, 
 				 m_enfants.front()->chaine(),
 				 m_enfants.front()->identifiant());
 
-	auto &type = contexte.magasin_types.donnees_types[this->donnees_type];
-	auto type_llvm = converti_type(contexte, type);
+	auto type_llvm = contexte.magasin_types.converti_type(contexte, this->donnees_type);
 
 	auto constante = llvm::ConstantInt::get(
 						 type_llvm,
@@ -1555,8 +1550,7 @@ llvm::Value *NoeudChaineLitterale::genere_code_llvm(ContexteGenerationCode &cont
 						 contexte.contexte,
 						 chaine);
 
-	auto &this_type = contexte.magasin_types.donnees_types[this->donnees_type];
-	auto type = converti_type(contexte, this_type);
+	auto type = contexte.magasin_types.converti_type(contexte, this->donnees_type);
 
 	auto globale = new llvm::GlobalVariable(
 					   *contexte.module_llvm,
@@ -1612,7 +1606,7 @@ llvm::Value *NoeudTableau::genere_code_llvm(ContexteGenerationCode &contexte, co
 	dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
 	dt_tfixe.pousse(type);
 
-	auto type_llvm = converti_type(contexte, dt_tfixe);
+	auto type_llvm = contexte.magasin_types.converti_type(contexte, dt_tfixe);
 
 	auto pointeur_tableau = new llvm::AllocaInst(
 								type_llvm,
@@ -1806,7 +1800,7 @@ llvm::Value *NoeudAccesMembre::genere_code_llvm(ContexteGenerationCode &contexte
 
 		if (taille != 0) {
 			return llvm::ConstantInt::get(
-						converti_type(contexte, contexte.magasin_types.donnees_types[this->donnees_type]),
+						contexte.magasin_types.converti_type(contexte, this->donnees_type),
 						taille);
 		}
 
@@ -2263,7 +2257,7 @@ llvm::Value *NoeudOperationBinaire::genere_code_llvm(ContexteGenerationCode &con
 				valeur = accede_element_tableau(
 							 contexte,
 							 valeur2,
-							 converti_type(contexte, type2),
+							 contexte.magasin_types.converti_type(contexte, index_type2),
 							 valeur1);
 			}
 
@@ -2853,7 +2847,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 	auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
 	auto index_type = enfant2->donnees_type;
-	auto &type_debut = contexte.magasin_types.donnees_types[index_type];
+	auto const &type_debut = contexte.magasin_types.donnees_types[index_type];
 	auto const type = type_debut.type_base();
 
 	enfant1->donnees_type = index_type;
@@ -2902,7 +2896,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 
 	if (enfant2->type() == type_noeud::PLAGE) {
 		noeud_phi = llvm::PHINode::Create(
-						converti_type(contexte, type_debut),
+						contexte.magasin_types.converti_type(contexte, index_type),
 						2,
 						std::string(enfant1->chaine()),
 						contexte.bloc_courant());
@@ -2988,7 +2982,7 @@ llvm::Value *NoeudPour::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 			valeur_arg = accede_element_tableau(
 						 contexte,
 						 valeur_tableau,
-						 converti_type(contexte, type_debut),
+						 contexte.magasin_types.converti_type(contexte, index_type),
 						 noeud_phi);
 		}
 		else {
@@ -3331,9 +3325,9 @@ llvm::Value *NoeudTranstype::genere_code_llvm(ContexteGenerationCode &contexte, 
 	auto const &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
 
 	using CastOps = llvm::Instruction::CastOps;
-	auto &dt = contexte.magasin_types.donnees_types[this->donnees_type];
+	auto const &dt = contexte.magasin_types.donnees_types[this->donnees_type];
 
-	auto type = converti_type(contexte, dt);
+	auto type = contexte.magasin_types.converti_type(contexte, this->donnees_type);
 	auto bloc = contexte.bloc_courant();
 	auto type_de = donnees_type_de.type_base();
 	auto type_vers = dt.type_base();
@@ -3477,7 +3471,7 @@ llvm::Value *NoeudTailleDe::genere_code_llvm(
 {
 	auto dl = llvm::DataLayout(contexte.module_llvm);
 	auto donnees = std::any_cast<DonneesType>(this->valeur_calculee);
-	auto type = converti_type(contexte, donnees);
+	auto type = contexte.magasin_types.converti_type(contexte, donnees);
 	auto taille = dl.getTypeAllocSize(type);
 
 	return llvm::ConstantInt::get(

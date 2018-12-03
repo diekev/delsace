@@ -193,6 +193,23 @@ size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 	return index;
 }
 
+llvm::Type *MagasinDonneesType::converti_type(
+		ContexteGenerationCode &contexte,
+		const DonneesType &donnees)
+{
+	auto index = ajoute_type(donnees);
+	auto &dt = donnees_types[index];
+	return ::converti_type(contexte, dt);
+}
+
+llvm::Type *MagasinDonneesType::converti_type(
+		ContexteGenerationCode &contexte,
+		size_t index)
+{
+	auto &dt = donnees_types[index];
+	return ::converti_type(contexte, dt);
+}
+
 /* ************************************************************************** */
 
 llvm::Type *converti_type_simple(

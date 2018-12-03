@@ -206,6 +206,14 @@ struct MagasinDonneesType {
 	std::vector<DonneesType> donnees_types;
 
 	size_t ajoute_type(const DonneesType &donnees);
+
+	llvm::Type *converti_type(
+			ContexteGenerationCode &contexte,
+			DonneesType const &donnees);
+
+	llvm::Type *converti_type(
+			ContexteGenerationCode &contexte,
+			size_t donnees);
 };
 
 /* ************************************************************************** */
