@@ -458,6 +458,21 @@ enum {
 	return charge;
 }
 
+[[nodiscard]] static llvm::Value *genere_code_enfant(
+		ContexteGenerationCode &contexte,
+		Noeud *enfant)
+{
+	auto conversion = (enfant->drapeaux & CONVERTI_TABLEAU) != 0;
+	auto valeur_enfant = enfant->genere_code_llvm(contexte, conversion);
+
+	if (conversion) {
+		auto const &dt = contexte.magasin_types.donnees_types[enfant->donnees_type];
+		valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt);
+	}
+
+	return valeur_enfant;
+}
+
 NoeudAppelFonction::NoeudAppelFonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau)
 	: Noeud(contexte, morceau)
 {
@@ -508,15 +523,7 @@ llvm::Value *cree_appel(
 	std::transform(conteneur.begin(), conteneur.end(), parametres.begin(),
 				   [&](Noeud *noeud_enfant)
 	{
-		auto conversion = (noeud_enfant->drapeaux & CONVERTI_TABLEAU) != 0;
-		auto valeur_enfant = noeud_enfant->genere_code_llvm(contexte, conversion);
-
-		if (conversion) {
-			auto const &dt = contexte.magasin_types.donnees_types[noeud_enfant->donnees_type];
-			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt);
-		}
-
-		return valeur_enfant;
+		return genere_code_enfant(contexte, noeud_enfant);
 	});
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
@@ -1035,10 +1042,16 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 	auto variable = m_enfants.front();
 	auto expression = m_enfants.back();
 
+	auto compatibilite = std::any_cast<niveau_compat>(this->valeur_calculee);
+
+	if (compatibilite == niveau_compat::converti_tableau) {
+		expression->drapeaux |= CONVERTI_TABLEAU;
+	}
+
 	/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 	 * la variable sur la pile et celle de stockage de la valeur soit côte à
 	 * côte. */
-	auto valeur = expression->genere_code_llvm(contexte);
+	auto valeur = genere_code_enfant(contexte, expression);
 
 	auto alloc = variable->genere_code_llvm(contexte, true);
 
@@ -1107,6 +1120,8 @@ void NoeudAssignationVariable::perfome_validation_semantique(ContexteGenerationC
 
 	auto const &type_gauche = contexte.magasin_types.donnees_types[variable->donnees_type];
 	auto const niveau_compat = sont_compatibles(type_gauche, dt, expression->type());
+
+	this->valeur_calculee = niveau_compat;
 
 	if (niveau_compat == niveau_compat::aucune) {
 		erreur::lance_erreur_assignation_type_differents(
@@ -1609,7 +1624,7 @@ llvm::Value *NoeudTableau::genere_code_llvm(ContexteGenerationCode &contexte, co
 	auto index = 0ul;
 
 	for (auto enfant : m_enfants) {
-		auto valeur_enfant = enfant->genere_code_llvm(contexte, false);
+		auto valeur_enfant = genere_code_enfant(contexte, enfant);
 
 		auto index_tableau = accede_element_tableau(
 								 contexte,
