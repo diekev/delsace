@@ -43,6 +43,8 @@ namespace llvm {
 class Type;
 }
 
+struct ContexteGenerationCode;
+
 /**
  * Classe pour gérer les données du type d'une variable ou d'une constante. En
  * l'espèce, la classe contient un vecteur qui peut contenir un nombre variable
@@ -205,3 +207,21 @@ struct MagasinDonneesType {
 
 	size_t ajoute_type(const DonneesType &donnees);
 };
+
+/* ************************************************************************** */
+
+[[nodiscard]] auto donnees_types_parametres(
+		const DonneesType &donnees_type) noexcept(false) -> std::vector<DonneesType>;
+
+[[nodiscard]] llvm::Type *converti_type(
+		ContexteGenerationCode &contexte,
+		DonneesType &donnees_type);
+
+[[nodiscard]] llvm::Type *converti_type_simple(
+		ContexteGenerationCode &contexte,
+		const id_morceau &identifiant,
+		llvm::Type *type_entree);
+
+[[nodiscard]] unsigned alignement(
+		ContexteGenerationCode &contexte,
+		const DonneesType &donnees_type);
