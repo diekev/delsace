@@ -58,7 +58,7 @@ void RepondantBoutonTest::repond_clique(const std::string &valeur, const std::st
 	if (valeur == "redimension_image") {
 		danjo::Manipulable manipulable;
 
-		auto donnees = danjo::DonneesInterface();
+		auto donnees = danjo::DonneesInterface{};
 		donnees.manipulable = &manipulable;
 		donnees.repondant_bouton = this;
 		donnees.conteneur = nullptr;
@@ -103,7 +103,7 @@ FenetreTest::FenetreTest()
 
 	m_manipulable.ajoute_propriete_extra("prop_decimal", prop);
 
-	auto donnees = danjo::DonneesInterface();
+	auto donnees = danjo::DonneesInterface{};
 	donnees.manipulable = &m_manipulable;
 	donnees.repondant_bouton = &m_repondant;
 	donnees.conteneur = widget_test;

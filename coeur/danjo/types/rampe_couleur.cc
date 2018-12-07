@@ -122,8 +122,8 @@ couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 				hsv_vers_rvb(nh, ns, nv, &res[0], &res[1], &res[2]);
 			}
 			else {
-				for (int i = 0; i < 4; ++i) {
-					res[i] = (1.0f - fac) * c0[i] + fac * c1[i];
+				for (int j = 0; j < 4; ++j) {
+					res[j] = (1.0f - fac) * c0[j] + fac * c1[j];
 				}
 			}
 

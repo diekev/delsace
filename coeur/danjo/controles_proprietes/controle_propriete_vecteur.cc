@@ -80,10 +80,10 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	, m_echelle_z(new ControleEchelleDecimale())
 {
 	auto metriques = this->fontMetrics();
-	m_bouton_x->setFixedWidth(metriques.width("H") * 2.0f);
-	m_bouton_y->setFixedWidth(metriques.width("H") * 2.0f);
-	m_bouton_z->setFixedWidth(metriques.width("H") * 2.0f);
-	m_bouton_animation->setFixedWidth(metriques.width("C") * 2.0f);
+	m_bouton_x->setFixedWidth(metriques.width("H") * 2);
+	m_bouton_y->setFixedWidth(metriques.width("H") * 2);
+	m_bouton_z->setFixedWidth(metriques.width("H") * 2);
+	m_bouton_animation->setFixedWidth(metriques.width("C") * 2);
 
 	m_agencement->addWidget(m_bouton_animation);
 	m_agencement->addWidget(m_bouton_x);
@@ -140,12 +140,12 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 
 	if (donnees.initialisation) {
 		auto valeurs = decoupe(donnees.valeur_defaut, ',');
-		auto index = 0;
+		auto index = 0ul;
 
 		auto valeur_defaut = dls::math::vec3f();
 
 		for (auto v : valeurs) {
-			valeur_defaut[index++] = std::atof(v.c_str());
+			valeur_defaut[index++] = static_cast<float>(std::atof(v.c_str()));
 		}
 
 		m_propriete->valeur = valeur_defaut;

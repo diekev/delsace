@@ -26,10 +26,16 @@
 
 #include "couleur.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <QColor>
+#pragma GCC diagnostic pop
 
 template <typename T>
-static auto restreint(const T &a, const T &min, const T &max)
+auto restreint(const T &a, const T &min, const T &max)
 {
 	if (a < min) {
 		return min;

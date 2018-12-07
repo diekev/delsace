@@ -45,6 +45,9 @@ class Bouton : public QPushButton {
 public:
 	explicit Bouton(QWidget *parent = nullptr);
 
+	Bouton(Bouton const &) = default;
+	Bouton &operator=(Bouton const &) = default;
+
 	/**
 	 * Installe le RepondantBouton qui sera appelé lors d'un clique sur ce
 	 * bouton.

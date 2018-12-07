@@ -34,7 +34,7 @@ ControleNombreEntier::ControleNombreEntier(QWidget *parent)
 	: QWidget(parent)
 {
 	auto metriques = this->fontMetrics();
-	setFixedHeight(metriques.height() * 1.5f);
+	setFixedHeight(static_cast<int>(static_cast<float>(metriques.height()) * 1.5f));
 }
 
 void ControleNombreEntier::paintEvent(QPaintEvent *)
@@ -63,7 +63,7 @@ void ControleNombreEntier::paintEvent(QPaintEvent *)
 	auto rectangle = this->rect();
 
 	painter.drawText(DECALAGE_PIXEL,
-					 metriques.height() * 0.25f,
+					 static_cast<int>(static_cast<float>(metriques.height()) * 0.25f),
 					 rectangle.width() - 1,
 					 metriques.height(),
 					 0,
@@ -75,7 +75,7 @@ void ControleNombreEntier::paintEvent(QPaintEvent *)
 
 	if (m_edition) {
 		painter.drawLine(DECALAGE_PIXEL + largeur,
-						 metriques.height() * 0.25f,
+						 static_cast<int>(static_cast<float>(metriques.height()) * 0.25f),
 						 DECALAGE_PIXEL + largeur,
 						 hauteur);
 	}
@@ -83,9 +83,9 @@ void ControleNombreEntier::paintEvent(QPaintEvent *)
 	painter.setPen(QPen(QColor(255, 255, 255), 1, Qt::DotLine));
 
 	painter.drawLine(DECALAGE_PIXEL,
-					 hauteur * 1.25f,
+					 static_cast<int>(static_cast<float>(hauteur) * 1.25f),
 					 DECALAGE_PIXEL + largeur,
-					 hauteur * 1.25f);
+					 static_cast<int>(static_cast<float>(hauteur) * 1.25f));
 }
 
 void ControleNombreEntier::mousePressEvent(QMouseEvent *event)

@@ -32,7 +32,7 @@ struct PointBezier;
 class ControleCourbeCouleur : public QWidget {
 	Q_OBJECT
 
-	CourbeBezier *m_courbe;
+	CourbeBezier *m_courbe = nullptr;
 	PointBezier *m_point_courant = nullptr;
 	int m_type_point = 0;
 	int m_mode = 0;
@@ -40,6 +40,9 @@ class ControleCourbeCouleur : public QWidget {
 
 public:
 	explicit ControleCourbeCouleur(QWidget *parent = nullptr);
+
+	ControleCourbeCouleur(ControleCourbeCouleur const &) = default;
+	ControleCourbeCouleur &operator=(ControleCourbeCouleur const &) = default;
 
 	void change_mode(int mode);
 

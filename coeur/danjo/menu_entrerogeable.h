@@ -38,11 +38,14 @@
 class MenuEntrerogeable final : public QMenu {
 	Q_OBJECT
 
-	std::map<QString, QAction *> m_actions;
+	std::map<QString, QAction *> m_actions{};
 	QMenu *m_menu_auxiliaire = nullptr;
 
 public:
 	MenuEntrerogeable(const QString &titre, QWidget *parent = nullptr);
+
+	MenuEntrerogeable(MenuEntrerogeable const &) = default;
+	MenuEntrerogeable &operator=(MenuEntrerogeable const &) = default;
 
 protected:
 	void showEvent(QShowEvent *event) override;

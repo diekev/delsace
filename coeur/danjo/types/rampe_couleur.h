@@ -34,13 +34,13 @@ enum {
 };
 
 struct PointRampeCouleur {
-	float position;
-	couleur32 couleur;
+	float position{};
+	couleur32 couleur{};
 	bool selectionne = false;
 };
 
 struct RampeCouleur {
-	std::vector<PointRampeCouleur> points;
+	std::vector<PointRampeCouleur> points{};
 	char entrepolation = ENTREPOLATION_RVB;
 };
 

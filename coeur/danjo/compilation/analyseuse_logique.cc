@@ -286,8 +286,8 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 
 	os << "Expression (" << nom << ") : " ;
 
-	for (const Symbole &symbole : expression) {
-		imprime_valeur_symbole(symbole, os);
+	for (const Symbole &sym : expression) {
+		imprime_valeur_symbole(sym, os);
 	}
 
 	os << '\n';

@@ -43,32 +43,35 @@ class ControleProprieteCourbeCouleur final : public ControlePropriete {
 	Q_OBJECT
 
 	/* entreface */
-	QVBoxLayout *m_agencement_principal;
-	QHBoxLayout *m_agencement_nombre;
+	QVBoxLayout *m_agencement_principal{};
+	QHBoxLayout *m_agencement_nombre{};
 
 	/* courbe */
-	QComboBox *m_selection_mode;
-	QComboBox *m_selection_type;
-	QCheckBox *m_utilise_table;
-	ControleCourbeCouleur *m_controle_courbe;
+	QComboBox *m_selection_mode{};
+	QComboBox *m_selection_type{};
+	QCheckBox *m_utilise_table{};
+	ControleCourbeCouleur *m_controle_courbe{};
 
 	/* controle de la position X du point sélectionné */
-	QPushButton *m_bouton_echelle_x;
-	ControleEchelleDecimale *m_echelle_x;
-	ControleNombreDecimal *m_pos_x;
+	QPushButton *m_bouton_echelle_x{};
+	ControleEchelleDecimale *m_echelle_x{};
+	ControleNombreDecimal *m_pos_x{};
 
 	/* controle de la position Y du point sélectionné */
-	QPushButton *m_bouton_echelle_y;
-	ControleEchelleDecimale *m_echelle_y;
-	ControleNombreDecimal *m_pos_y;
+	QPushButton *m_bouton_echelle_y{};
+	ControleEchelleDecimale *m_echelle_y{};
+	ControleNombreDecimal *m_pos_y{};
 
 	/* connexion */
-	CourbeCouleur *m_courbe;
-	CourbeBezier *m_courbe_active;
+	CourbeCouleur *m_courbe{};
+	CourbeBezier *m_courbe_active{};
 
 public:
 	explicit ControleProprieteCourbeCouleur(QWidget *parent = nullptr);
-	~ControleProprieteCourbeCouleur();
+	~ControleProprieteCourbeCouleur() override;
+
+	ControleProprieteCourbeCouleur(ControleProprieteCourbeCouleur const &) = default;
+	ControleProprieteCourbeCouleur &operator=(ControleProprieteCourbeCouleur const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

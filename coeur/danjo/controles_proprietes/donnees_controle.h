@@ -55,6 +55,9 @@ struct DonneesControle {
 
 	DonneesControle() = default;
 	~DonneesControle() = default;
+
+	DonneesControle(DonneesControle const &) = default;
+	DonneesControle &operator=(DonneesControle const &) = default;
 };
 
 }  /* namespace danjo */

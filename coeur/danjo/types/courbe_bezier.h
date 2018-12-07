@@ -49,23 +49,24 @@ enum {
 struct PointBezier {
 	Point co[NOMBRE_POINT];
 	char type_controle = CONTROLE_CONTRAINT;
+	char pad[3];
 };
 
 struct CourbeBezier {
 	/* les points constituants cette courbe */
-	std::vector<PointBezier> points;
+	std::vector<PointBezier> points{};
 
 	/* le point courant de cette courbe */
 	PointBezier *point_courant = nullptr;
 
 	/* extension du point minimum en dehors des limites de la courbe */
-	PointBezier extension_min;
+	PointBezier extension_min{};
 
 	/* extension du point maximum en dehors des limites de la courbe */
-	PointBezier extension_max;
+	PointBezier extension_max{};
 
 	/* Pour le rendu et l'évaluation. */
-	std::vector<Point> table;
+	std::vector<Point> table{};
 
 	/* valeur minimale de la courbe pour l'évaluation */
 	float valeur_min = 0.0f;
@@ -77,11 +78,15 @@ struct CourbeBezier {
 	 * de la courbe */
 	bool utilise_table = true;
 
+	bool pad[7];
+
 	CourbeBezier() = default;
 	~CourbeBezier();
 
-	CourbeBezier(const CourbeBezier &autre);
+	CourbeBezier(CourbeBezier const &autre);
 	CourbeBezier(CourbeBezier &&autre) = default;
+
+	CourbeBezier &operator=(CourbeBezier const &autre) = default;
 };
 
 enum {

@@ -41,29 +41,32 @@ class ControleProprieteCourbeValeur final : public ControlePropriete {
 	Q_OBJECT
 
 	/* entreface */
-	QVBoxLayout *m_agencement_principal;
-	QHBoxLayout *m_agencement_nombre;
+	QVBoxLayout *m_agencement_principal{};
+	QHBoxLayout *m_agencement_nombre{};
 
 	/* courbe */
-	QCheckBox *m_utilise_table;
-	ControleCourbeCouleur *m_controle_courbe;
+	QCheckBox *m_utilise_table{};
+	ControleCourbeCouleur *m_controle_courbe{};
 
 	/* controle de la position X du point sélectionné */
-	QPushButton *m_bouton_echelle_x;
-	ControleEchelleDecimale *m_echelle_x;
-	ControleNombreDecimal *m_pos_x;
+	QPushButton *m_bouton_echelle_x{};
+	ControleEchelleDecimale *m_echelle_x{};
+	ControleNombreDecimal *m_pos_x{};
 
 	/* controle de la position Y du point sélectionné */
-	QPushButton *m_bouton_echelle_y;
-	ControleEchelleDecimale *m_echelle_y;
-	ControleNombreDecimal *m_pos_y;
+	QPushButton *m_bouton_echelle_y{};
+	ControleEchelleDecimale *m_echelle_y{};
+	ControleNombreDecimal *m_pos_y{};
 
 	/* connexion */
-	CourbeBezier *m_courbe;
+	CourbeBezier *m_courbe{};
 
 public:
 	explicit ControleProprieteCourbeValeur(QWidget *parent = nullptr);
-	~ControleProprieteCourbeValeur();
+	~ControleProprieteCourbeValeur() override;
+
+	ControleProprieteCourbeValeur(ControleProprieteCourbeValeur const &) = default;
+	ControleProprieteCourbeValeur &operator=(ControleProprieteCourbeValeur const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

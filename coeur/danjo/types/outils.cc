@@ -32,7 +32,10 @@ QColor converti_couleur(float r, float v, float b, float a)
 	b = restreint(b, 0.0f, 1.0f);
 	a = restreint(a, 0.0f, 1.0f);
 
-	return QColor(r * 255, v * 255, b * 255, a * 255);
+	return QColor(static_cast<int>(r * 255.0f),
+				  static_cast<int>(v * 255.0f),
+				  static_cast<int>(b * 255.0f),
+				  static_cast<int>(a * 255.0f));
 }
 
 QColor converti_couleur(const float *rvba)

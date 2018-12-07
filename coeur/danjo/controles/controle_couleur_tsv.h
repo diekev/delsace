@@ -35,10 +35,12 @@ namespace danjo {
 class ControleSatVal final : public QWidget {
 	Q_OBJECT
 
-	couleur32 m_hsv;
+	int pad0 = 0;
+	couleur32 m_hsv{};
 	bool m_souris_pressee = false;
-	int m_pos_x = 0;
-	int m_pos_y = 0;
+	char pad[3];
+	double m_pos_x = 0.0;
+	double m_pos_y = 0.0;
 
 public:
 	explicit ControleSatVal(QWidget *parent = nullptr);
@@ -66,9 +68,10 @@ Q_SIGNALS:
 class SelecteurTeinte final : public QWidget {
 	Q_OBJECT
 
-	float m_teinte = 0.0f;
 	bool m_souris_pressee = false;
-	int m_pos_x;
+	char pad[7];
+	double m_teinte = 0.0;
+	double m_pos_x = 0.0;
 
 public:
 	explicit SelecteurTeinte(QWidget *parent = nullptr);
@@ -94,9 +97,10 @@ Q_SIGNALS:
 class ControleValeurCouleur final : public QWidget {
 	Q_OBJECT
 
-	float m_valeur = 0.0f;
 	bool m_souris_pressee = false;
-	int m_pos_y;
+	char pad[7];
+	double m_valeur = 0.0;
+	double m_pos_y = 0.0;
 
 public:
 	explicit ControleValeurCouleur(QWidget *parent = nullptr);

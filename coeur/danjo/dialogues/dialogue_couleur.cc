@@ -48,7 +48,7 @@ public:
 		, m_couleur(c)
 	{
 		auto metriques = this->fontMetrics();
-		setFixedHeight(metriques.height() * 1.5f);
+		setFixedHeight(static_cast<int>(static_cast<float>(metriques.height()) * 1.5f));
 		setFixedWidth(metriques.width("#000000"));
 	}
 

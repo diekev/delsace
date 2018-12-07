@@ -36,22 +36,25 @@ namespace danjo {
 class ControleProprieteVec3 final : public ControlePropriete {
 	Q_OBJECT
 
-	QHBoxLayout *m_agencement;
-	ControleNombreDecimal *m_x;
-	ControleNombreDecimal *m_y;
-	ControleNombreDecimal *m_z;
+	QHBoxLayout *m_agencement{};
+	ControleNombreDecimal *m_x{};
+	ControleNombreDecimal *m_y{};
+	ControleNombreDecimal *m_z{};
 
-	QPushButton *m_bouton_animation;
-	QPushButton *m_bouton_x;
-	QPushButton *m_bouton_y;
-	QPushButton *m_bouton_z;
-	ControleEchelleDecimale *m_echelle_x;
-	ControleEchelleDecimale *m_echelle_y;
-	ControleEchelleDecimale *m_echelle_z;
+	QPushButton *m_bouton_animation{};
+	QPushButton *m_bouton_x{};
+	QPushButton *m_bouton_y{};
+	QPushButton *m_bouton_z{};
+	ControleEchelleDecimale *m_echelle_x{};
+	ControleEchelleDecimale *m_echelle_y{};
+	ControleEchelleDecimale *m_echelle_z{};
 
 public:
 	explicit ControleProprieteVec3(QWidget *parent = nullptr);
-	~ControleProprieteVec3();
+	~ControleProprieteVec3() override;
+
+	ControleProprieteVec3(ControleProprieteVec3 const &) = default;
+	ControleProprieteVec3 &operator=(ControleProprieteVec3 const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

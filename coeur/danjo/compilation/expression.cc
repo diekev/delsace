@@ -79,7 +79,7 @@ static id_morceau promeut(id_morceau id1, id_morceau id2)
 	{ \
 		Symbole ret; \
 		ret.valeur = std::experimental::any_cast<T1>(s1.valeur) \
-					  __op std::experimental::any_cast<T2>(s2.valeur); \
+					  __op static_cast<T1>(std::experimental::any_cast<T2>(s2.valeur)); \
 		ret.identifiant = promeut(s1.identifiant, s2.identifiant); \
 		return ret; \
 	}
@@ -169,7 +169,7 @@ auto evalue_operation_logique(const Symbole &s1, id_morceau identifiant)
 
 	switch (identifiant) {
 		case id_morceau::TILDE:
-			resultat.valeur = static_cast<int>(~static_cast<int>(op1));
+			resultat.valeur = ~op1;
 			break;
 		default:
 			break;

@@ -34,14 +34,17 @@ namespace danjo {
 class ControleProprieteChaineCaractere final : public ControlePropriete {
 	Q_OBJECT
 
-	QHBoxLayout *m_agencement;
-	QLineEdit *m_editeur_ligne;
+	QHBoxLayout *m_agencement{};
+	QLineEdit *m_editeur_ligne{};
 
-	std::string *m_pointeur;
+	std::string *m_pointeur{};
 
 public:
 	explicit ControleProprieteChaineCaractere(QWidget *parent = nullptr);
-	~ControleProprieteChaineCaractere() = default;
+	~ControleProprieteChaineCaractere() override = default;
+
+	ControleProprieteChaineCaractere(ControleProprieteChaineCaractere const &) = default;
+	ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

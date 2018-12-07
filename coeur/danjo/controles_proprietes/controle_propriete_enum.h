@@ -34,17 +34,22 @@ namespace danjo {
 class ControleProprieteEnum final : public ControlePropriete {
 	Q_OBJECT
 
-	QHBoxLayout *m_agencement;
-	QComboBox *m_liste_deroulante;
+	char pad[3];
 
-	std::string *m_pointeur;
-	std::string m_valeur_defaut;
-	int m_index_valeur_defaut;
-	int m_index_courant;
+	QHBoxLayout *m_agencement{};
+	QComboBox *m_liste_deroulante{};
+
+	std::string *m_pointeur{};
+	std::string m_valeur_defaut{};
+	int m_index_valeur_defaut{};
+	int m_index_courant{};
 
 public:
 	explicit ControleProprieteEnum(QWidget *parent = nullptr);
-	~ControleProprieteEnum() = default;
+	~ControleProprieteEnum() override = default;
+
+	ControleProprieteEnum(ControleProprieteEnum const &) = default;
+	ControleProprieteEnum &operator=(ControleProprieteEnum const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

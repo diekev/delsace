@@ -59,6 +59,9 @@ public:
 	 */
 	explicit Decoupeuse(const TamponSource &tampon);
 
+	Decoupeuse(Decoupeuse const &) = default;
+	Decoupeuse &operator=(Decoupeuse const &) = default;
+
 	/**
 	 * Lance la découpe de la chaîne de caractère spécifiée en paramètre du
 	 * constructeur.

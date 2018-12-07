@@ -69,8 +69,8 @@ bool Propriete::est_anime() const
 
 bool Propriete::possede_cle(int temps) const
 {
-	for (const auto &valeur : courbe) {
-		if (valeur.first == temps) {
+	for (const auto &val : courbe) {
+		if (val.first == temps) {
 			return true;
 		}
 	}
@@ -89,11 +89,11 @@ int Propriete::evalue_entier(int temps)
 	}
 
 	auto dt = t2 - t1;
-	auto fac = (temps - t1) / static_cast<float>(dt);
-	auto i1 = std::experimental::any_cast<int>(v1);
-	auto i2 = std::experimental::any_cast<int>(v2);
+	auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
+	auto i1 = static_cast<float>(std::experimental::any_cast<int>(v1));
+	auto i2 = static_cast<float>(std::experimental::any_cast<int>(v2));
 
-	return (1.0f - fac) * i1 + fac * i2;
+	return static_cast<int>((1.0f - fac) * i1 + fac * i2);
 }
 
 float Propriete::evalue_decimal(int temps)
@@ -107,7 +107,7 @@ float Propriete::evalue_decimal(int temps)
 	}
 
 	auto dt = t2 - t1;
-	auto fac = (temps - t1) / static_cast<float>(dt);
+	auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
 	auto i1 = std::experimental::any_cast<float>(v1);
 	auto i2 = std::experimental::any_cast<float>(v2);
 
@@ -125,7 +125,7 @@ dls::math::vec3f Propriete::evalue_vecteur(int temps)
 	}
 
 	auto dt = t2 - t1;
-	auto fac = (temps - t1) / static_cast<float>(dt);
+	auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
 	auto i1 = std::experimental::any_cast<dls::math::vec3f>(v1);
 	auto i2 = std::experimental::any_cast<dls::math::vec3f>(v2);
 
@@ -143,7 +143,7 @@ couleur32 Propriete::evalue_couleur(int temps)
 	}
 
 	auto dt = t2 - t1;
-	auto fac = (temps - t1) / static_cast<float>(dt);
+	auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
 	auto i1 = std::experimental::any_cast<couleur32>(v1);
 	auto i2 = std::experimental::any_cast<couleur32>(v2);
 
@@ -163,7 +163,7 @@ void Propriete::ajoute_cle_impl(const std::experimental::any &v, int temps)
 		}
 
 		if (courbe[i].first > temps) {
-			courbe.insert(courbe.begin() + i, std::make_pair(temps, v));
+			courbe.insert(courbe.begin() + static_cast<long>(i), std::make_pair(temps, v));
 			insere = true;
 			break;
 		}

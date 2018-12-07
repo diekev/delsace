@@ -37,16 +37,19 @@ class ControleProprieteEntier final : public ControlePropriete {
 	Q_OBJECT
 
 	/* entreface */
-	QHBoxLayout *m_agencement;
-	ControleNombreEntier *m_controle;
+	QHBoxLayout *m_agencement{};
+	ControleNombreEntier *m_controle{};
 
-	QPushButton *m_bouton;
-	QPushButton *m_bouton_animation;
-	ControleEchelleEntiere *m_echelle;
+	QPushButton *m_bouton{};
+	QPushButton *m_bouton_animation{};
+	ControleEchelleEntiere *m_echelle{};
 
 public:
 	explicit ControleProprieteEntier(QWidget *parent = nullptr);
-	~ControleProprieteEntier();
+	~ControleProprieteEntier() override;
+
+	ControleProprieteEntier(ControleProprieteEntier const &) = default;
+	ControleProprieteEntier &operator=(ControleProprieteEntier const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

@@ -55,10 +55,10 @@ class RepondantBouton;
  * contrôles et de leur conteneur.
  */
 class AssembleurDisposition {
-	std::stack<QBoxLayout *, std::vector<QBoxLayout *>> m_pile_dispositions;
-	std::stack<QMenu *, std::vector<QMenu *>> m_pile_menus;
+	std::stack<QBoxLayout *, std::vector<QBoxLayout *>> m_pile_dispositions{};
+	std::stack<QMenu *, std::vector<QMenu *>> m_pile_menus{};
 
-	std::vector<std::pair<std::string, QMenu *>> m_donnees_menus;
+	std::vector<std::pair<std::string, QMenu *>> m_donnees_menus{};
 
 	Action *m_derniere_action = nullptr;
 	ControlePropriete *m_dernier_controle = nullptr;
@@ -78,7 +78,7 @@ class AssembleurDisposition {
 	int m_temps = 0;
 	bool m_initialisation_seule = false;
 
-	DonneesControle m_donnees_controle;
+	DonneesControle m_donnees_controle{};
 
 public:
 	/**
@@ -98,6 +98,9 @@ public:
 			ConteneurControles *conteneur,
 			int temps = 0,
 			bool initialisation_seule = false);
+
+	AssembleurDisposition(AssembleurDisposition const &) = default;
+	AssembleurDisposition &operator=(AssembleurDisposition const &) = default;
 
 	/**
 	 * Ajoute une disposition (ligne ou colonne) à la pile de disposition.

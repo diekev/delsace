@@ -65,8 +65,8 @@ static void construit_table_cerce(CerceBezier &cerce)
 
 		cerce.table.push_back(Point{x1, y1});
 
-		for (int i = 1; i <= res_courbe; ++i) {
-			const auto fac_i = facteur * i;
+		for (int j = 1; j <= res_courbe; ++j) {
+			const auto fac_i = facteur * static_cast<float>(j);
 			const auto mfac_i = 1.0f - fac_i;
 
 			/* centre -> pt2 */
@@ -191,18 +191,20 @@ void ControleMasque::paintEvent(QPaintEvent *)
 
 	auto largeur = size().width();
 	auto hauteur = size().height();
+	auto hauteurf = static_cast<float>(hauteur);
+	auto largeurf = static_cast<float>(largeur);
 
 	if (m_cerce.ferme && m_point_courant == nullptr) {
 		QApplication::setOverrideCursor(Qt::WaitCursor);
 
 		auto stylo = QPen(Qt::white);
-		stylo.setWidthF(1.0f);
+		stylo.setWidthF(1.0);
 
 		painter.setPen(stylo);
 
 #if 1
-		auto hauteur_inv = 1.0f / hauteur;
-		auto largeur_inv = 1.0f / largeur;
+		auto hauteur_inv = 1.0f / hauteurf;
+		auto largeur_inv = 1.0f / largeurf;
 
 		constexpr auto TAILLE_CARREAU = 16;
 
@@ -216,32 +218,32 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				carreau.largeur = std::min(TAILLE_CARREAU, largeur - i);
 				carreau.hauteur = std::min(TAILLE_CARREAU, hauteur - j);
 
-				auto fx = i * largeur_inv;
-				auto fy = j * hauteur_inv;
+				auto fx = static_cast<float>(i) * largeur_inv;
+				auto fy = static_cast<float>(j) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
 					carreaux.push_back(carreau);
 					continue;
 				}
 
-				fx = (i + carreau.largeur) * largeur_inv;
-				fy = j * hauteur_inv;
+				fx = static_cast<float>(i + carreau.largeur) * largeur_inv;
+				fy = static_cast<float>(j) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
 					carreaux.push_back(carreau);
 					continue;
 				}
 
-				fx = i * largeur_inv;
-				fy = (j + carreau.hauteur) * hauteur_inv;
+				fx = static_cast<float>(i) * largeur_inv;
+				fy = static_cast<float>(j + carreau.hauteur) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
 					carreaux.push_back(carreau);
 					continue;
 				}
 
-				fx = (i + carreau.largeur) * largeur_inv;
-				fy = (j + carreau.hauteur) * hauteur_inv;
+				fx = static_cast<float>(i + carreau.largeur) * largeur_inv;
+				fy = static_cast<float>(j + carreau.hauteur) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
 					carreaux.push_back(carreau);
@@ -255,8 +257,8 @@ void ControleMasque::paintEvent(QPaintEvent *)
 		for (const Carreau &carreau : carreaux) {
 			for (int i = carreau.x; i < carreau.x + carreau.largeur; ++i) {
 				for (int j = carreau.y; j < carreau.y + carreau.hauteur; ++j) {
-					auto fx = i * hauteur_inv;
-					auto fy = j * largeur_inv;
+					auto fx = static_cast<float>(i) * hauteur_inv;
+					auto fy = static_cast<float>(j) * largeur_inv;
 
 					if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
 						painter.drawPoint(i, j);
@@ -285,37 +287,37 @@ void ControleMasque::paintEvent(QPaintEvent *)
 
 	/* dessine les points */
 	auto stylo = QPen(Qt::yellow);
-	stylo.setWidthF(5.0f);
+	stylo.setWidthF(5.0);
 
 	painter.setPen(stylo);
 
 	for (const PointBezier &point : m_cerce.points) {
-		painter.drawPoint(point.co[POINT_CONTROLE1].x * largeur,
-						  (1.0f - point.co[POINT_CONTROLE1].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CONTROLE1].x * largeurf),
+						  static_cast<int>((1.0f - point.co[POINT_CONTROLE1].y) * hauteurf));
 
-		painter.drawPoint(point.co[POINT_CENTRE].x * largeur,
-						  (1.0f - point.co[POINT_CENTRE].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						  static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf));
 
-		painter.drawPoint(point.co[POINT_CONTROLE2].x * largeur,
-						  (1.0f - point.co[POINT_CONTROLE2].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CONTROLE2].x * largeurf),
+						  static_cast<int>((1.0f - point.co[POINT_CONTROLE2].y) * hauteurf));
 	}
 
 	/* dessine les connexions entre points de controles et points centraux */
 	stylo = QPen(Qt::yellow);
-	stylo.setWidthF(1.0f);
+	stylo.setWidthF(1.0);
 
 	painter.setPen(stylo);
 
 	for (const PointBezier &point : m_cerce.points) {
-		painter.drawLine(point.co[POINT_CONTROLE1].x * largeur,
-						 (1.0f - point.co[POINT_CONTROLE1].y) * hauteur,
-						 point.co[POINT_CENTRE].x * largeur,
-						 (1.0f - point.co[POINT_CENTRE].y) * hauteur);
+		painter.drawLine(static_cast<int>(point.co[POINT_CONTROLE1].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CONTROLE1].y) * hauteurf),
+						 static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf));
 
-		painter.drawLine(point.co[POINT_CENTRE].x * largeur,
-						 (1.0f - point.co[POINT_CENTRE].y) * hauteur,
-						 point.co[POINT_CONTROLE2].x * largeur,
-						 (1.0f - point.co[POINT_CONTROLE2].y) * hauteur);
+		painter.drawLine(static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf),
+						 static_cast<int>(point.co[POINT_CONTROLE2].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CONTROLE2].y) * hauteurf));
 	}
 
 	if (m_cerce.points.size() <= 1) {
@@ -332,17 +334,17 @@ void ControleMasque::paintEvent(QPaintEvent *)
 		auto p1 = m_cerce.table[i];
 		auto p2 = m_cerce.table[i + 1];
 
-		painter.drawLine(p1.x * largeur,
-						 (1.0f - p1.y) * hauteur,
-						 p2.x * largeur,
-						 (1.0f - p2.y) * hauteur);
+		painter.drawLine(static_cast<int>(p1.x * largeurf),
+						 static_cast<int>((1.0f - p1.y) * hauteurf),
+						 static_cast<int>(p2.x * largeurf),
+						 static_cast<int>((1.0f - p2.y) * hauteurf));
 	}
 }
 
 void ControleMasque::mousePressEvent(QMouseEvent *event)
 {
-	const auto &x = event->pos().x() / static_cast<float>(size().width());
-	const auto &y = event->pos().y() / static_cast<float>(size().height());
+	const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+	const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 	/* fenêtre de 10 pixels */
 	const auto &taille_fenetre_x = 10.0f / static_cast<float>(size().width());
@@ -375,8 +377,8 @@ void ControleMasque::mouseMoveEvent(QMouseEvent *event)
 		return;
 	}
 
-	auto x = event->pos().x() / static_cast<float>(size().width());
-	auto y = event->pos().y() / static_cast<float>(size().height());
+	auto x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+	auto y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 	x = std::max(0.0f, std::min(1.0f, x));
 	y = std::max(0.0f, std::min(1.0f, 1.0f - y));
@@ -424,8 +426,8 @@ void ControleMasque::mouseDoubleClickEvent(QMouseEvent *event)
 		return;
 	}
 
-	const auto &x = event->pos().x() / static_cast<float>(size().width());
-	const auto &y = event->pos().y() / static_cast<float>(size().height());
+	const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+	const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 	ajoute_point_cerce(m_cerce, x, 1.0f - y);
 

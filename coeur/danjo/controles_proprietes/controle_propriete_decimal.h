@@ -37,16 +37,19 @@ class ControleProprieteDecimal final : public ControlePropriete {
 	Q_OBJECT
 
 	/* entreface */
-	QHBoxLayout *m_agencement;
-	ControleNombreDecimal *m_controle;
+	QHBoxLayout *m_agencement{};
+	ControleNombreDecimal *m_controle{};
 
-	QPushButton *m_bouton;
-	QPushButton *m_bouton_animation;
-	ControleEchelleDecimale *m_echelle;
+	QPushButton *m_bouton{};
+	QPushButton *m_bouton_animation{};
+	ControleEchelleDecimale *m_echelle{};
 
 public:
 	explicit ControleProprieteDecimal(QWidget *parent = nullptr);
-	~ControleProprieteDecimal();
+	~ControleProprieteDecimal() override;
+
+	ControleProprieteDecimal(ControleProprieteDecimal const &) = default;
+	ControleProprieteDecimal &operator=(ControleProprieteDecimal const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

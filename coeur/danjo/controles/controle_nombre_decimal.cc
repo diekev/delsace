@@ -34,7 +34,7 @@ ControleNombreDecimal::ControleNombreDecimal(QWidget *parent)
 	: QWidget(parent)
 {
 	auto metriques = this->fontMetrics();
-	setFixedHeight(metriques.height() * 1.5f);
+	setFixedHeight(static_cast<int>(static_cast<float>(metriques.height()) * 1.5f));
 }
 
 void ControleNombreDecimal::paintEvent(QPaintEvent *)
@@ -57,13 +57,15 @@ void ControleNombreDecimal::paintEvent(QPaintEvent *)
 
 	painter.setPen(QColor(255, 255, 255));
 
-	const auto &texte = ((m_edition && m_tampon != "") ? m_tampon : QString::number(m_valeur, 'g', 6)) + m_suffixe;
+	const auto &texte = ((m_edition && m_tampon != "")
+						 ? m_tampon
+						 : QString::number(static_cast<double>(m_valeur), 'g', 6)) + m_suffixe;
 
 	auto metriques = this->fontMetrics();
 	auto rectangle = this->rect();
 
 	painter.drawText(DECALAGE_PIXEL,
-					 metriques.height() * 0.25f,
+					 static_cast<int>(static_cast<float>(metriques.height()) * 0.25f),
 					 rectangle.width() - 1,
 					 metriques.height(),
 					 0,
@@ -75,7 +77,7 @@ void ControleNombreDecimal::paintEvent(QPaintEvent *)
 
 	if (m_edition) {
 		painter.drawLine(DECALAGE_PIXEL + largeur,
-						 metriques.height() * 0.25f,
+						 static_cast<int>(static_cast<float>(hauteur) * 0.25f),
 						 DECALAGE_PIXEL + largeur,
 						 hauteur);
 	}
@@ -83,9 +85,9 @@ void ControleNombreDecimal::paintEvent(QPaintEvent *)
 	painter.setPen(QPen(QColor(255, 255, 255), 1, Qt::DotLine));
 
 	painter.drawLine(DECALAGE_PIXEL,
-					 hauteur * 1.25f,
+					 static_cast<int>(static_cast<float>(hauteur) * 1.25f),
 					 DECALAGE_PIXEL + largeur,
-					 hauteur * 1.25f);
+					 static_cast<int>(static_cast<float>(hauteur) * 1.25f));
 }
 
 void ControleNombreDecimal::mousePressEvent(QMouseEvent *event)
@@ -113,7 +115,7 @@ void ControleNombreDecimal::mouseMoveEvent(QMouseEvent *event)
 	if (m_souris_pressee) {
 		const auto x = event->pos().x();
 
-		auto delta = (x - m_vieil_x) * m_inv_precision;
+		auto delta = static_cast<float>(x - m_vieil_x) * m_inv_precision;
 
 		/* protection contre -0.0f */
 		if (delta == 0.0f) {

@@ -215,9 +215,9 @@ static size_t genere_ligne(danjo::id_morceau *ptr_morceaux, size_t taille)
 void init(u_char *tampon, size_t taille)
 {
 	auto rd = std::random_device{};
-	auto dist = std::uniform_int_distribution<int>{
-				0,
-				static_cast<int>(danjo::id_morceau::INCONNU)};
+//	auto dist = std::uniform_int_distribution<int>{
+//				0,
+//				static_cast<int>(danjo::id_morceau::INCONNU)};
 
 	auto nombre_morceaux_max = taille / sizeof(danjo::id_morceau);
 

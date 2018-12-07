@@ -63,12 +63,12 @@ void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
 {
 	auto min = 0.0f;
 	if (donnees.valeur_min != "") {
-		min = std::atof(donnees.valeur_min.c_str());
+		min = static_cast<float>(std::atof(donnees.valeur_min.c_str()));
 	}
 
 	auto max = 1.0f;
 	if (donnees.valeur_max != "") {
-		max = std::atof(donnees.valeur_max.c_str());
+		max = static_cast<float>(std::atof(donnees.valeur_max.c_str()));
 	}
 
 	m_controle_couleur->ajourne_plage(min, max);
@@ -80,7 +80,7 @@ void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
 		couleur32 valeur_defaut(1.0f);
 
 		for (auto v : valeurs) {
-			valeur_defaut[index++] = std::atof(v.c_str());
+			valeur_defaut[index++] = static_cast<float>(std::atof(v.c_str()));
 		}
 
 		m_propriete->valeur = valeur_defaut;

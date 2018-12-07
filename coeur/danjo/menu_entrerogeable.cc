@@ -77,6 +77,9 @@ public:
 		, m_cible(cible)
 	{}
 
+	FiltreEditeurMenu(FiltreEditeurMenu const &) = default;
+	FiltreEditeurMenu &operator=(FiltreEditeurMenu const &) = default;
+
 protected:
 	bool eventFilter(QObject *watched, QEvent *event) override
 	{

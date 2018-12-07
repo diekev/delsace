@@ -47,7 +47,6 @@ qt5_wrap_cpp(
 	controles_proprietes/controle_propriete_decimal.h
 	controles_proprietes/controle_propriete_entier.h
 	controles_proprietes/controle_propriete_enum.h
-	controles_proprietes/controle_propriete_etiquette.h
 	controles_proprietes/controle_propriete_fichier.h
 	controles_proprietes/controle_propriete_rampe_couleur.h
 	controles_proprietes/controle_propriete_liste.h
@@ -58,6 +57,32 @@ qt5_wrap_cpp(
 	conteneur_controles.h
 	menu_entrerogeable.h
 )
+
+#NOTE: pour ici et plus bas (CMAKE_BUILD_TYPE MATCHES "Release"):
+# lors que nous compilons en mode Debug nous devons désactiver certains drapeaux
+# de compilation trop stricts pour Qt, donc nous utilisons une bibliothèque
+# extra afin de pouvoir isoler les drapeaux de compilation. Mais, lorsque nous
+# lions l'archive avec un autre logiciel, ld.gold se plaint que les tables
+# virtuelles sont absentes. Donc nous avons une configuration Debug pour faire
+# taire les erreurs de compilations, et une configuration Release où les
+# Metaobjets de Qt sont générés avec le code de la bibliothèque danjo pour que
+# les tables virtuelles soient correctement créées.
+if(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES "Profile")
+	add_library(qt_danjo_entreface ${moc_headers})
+	target_include_directories(qt_danjo_entreface PUBLIC "${INCLUSIONS}")
+	target_link_libraries(qt_danjo_entreface "${BIBLIOTHEQUES}")
+	get_target_property(EXTLIB_COMPILE_FLAGS qt_danjo_entreface COMPILE_OPTIONS)
+	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
+	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
+	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
+	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
+	set_target_properties(qt_danjo_entreface PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+
+	set(BIBLIOTHEQUES
+		${BIBLIOTHEQUES}
+		qt_danjo_entreface
+	)
+endif()
 
 set(ENTETES_TYPES
 	types/couleur.h
@@ -75,7 +100,7 @@ set(ENTETES
 	repondant_bouton.h
 )
 
-add_library(danjo STATIC
+set(SOURCES
 	controles/action.cc
 	controles/bouton.cc
 	controles/controle_couleur.cc
@@ -183,9 +208,16 @@ add_library(danjo STATIC
 
 	dialogue.h
 	${ENTETES}
-
-	${moc_headers}
 )
+
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+	set(SOURCES
+		${moc_headers}
+		${SOURCES}
+	)
+endif()
+
+add_library(danjo STATIC ${SOURCES})
 
 target_include_directories(danjo PUBLIC "${INCLUSIONS}")
 

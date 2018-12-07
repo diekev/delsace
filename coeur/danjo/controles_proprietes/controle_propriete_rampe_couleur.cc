@@ -57,7 +57,7 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(QWidget *parent)
 	m_agencement_principal->addWidget(m_controle_rampe);
 
 	auto metriques = this->fontMetrics();
-	m_bouton_echelle->setFixedWidth(metriques.width("H") * 2.0f);
+	m_bouton_echelle->setFixedWidth(metriques.width("H") * 2);
 
 	m_agencement_nombre->addWidget(m_bouton_echelle);
 	m_agencement_nombre->addWidget(m_pos);
@@ -142,7 +142,7 @@ void ControleProprieteRampeCouleur::ajourne_point_actif()
 
 void ControleProprieteRampeCouleur::ajourne_entrepolation(int i)
 {
-	m_rampe->entrepolation = i;
+	m_rampe->entrepolation = static_cast<char>(i);
 	m_controle_rampe->update();
 	Q_EMIT(controle_change());
 }

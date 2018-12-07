@@ -34,14 +34,18 @@ namespace danjo {
 class ControleProprieteBool final : public ControlePropriete {
 	Q_OBJECT
 
-	QHBoxLayout *m_agencement;
-	QCheckBox *m_case_a_cocher;
+	char pad[3];
+	QHBoxLayout *m_agencement{};
+	QCheckBox *m_case_a_cocher{};
 
-	bool *m_pointeur;
+	bool *m_pointeur{};
 
 public:
 	explicit ControleProprieteBool(QWidget *parent = nullptr);
-	~ControleProprieteBool() = default;
+	~ControleProprieteBool() override = default;
+
+	ControleProprieteBool(ControleProprieteBool const &) = default;
+	ControleProprieteBool &operator=(ControleProprieteBool const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

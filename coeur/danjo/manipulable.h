@@ -60,6 +60,8 @@ struct Propriete {
 
 	bool visible = true;
 
+	bool pad[2];
+
 	std::vector<std::pair<int, std::experimental::any>> courbe{};
 
 	void ajoute_cle(const int v, int temps);
@@ -101,6 +103,7 @@ private:
 class Manipulable {
 	std::unordered_map<std::string, Propriete> m_proprietes{};
 	bool m_initialise = false;
+	bool pad[7];
 
 public:
 	Manipulable() = default;

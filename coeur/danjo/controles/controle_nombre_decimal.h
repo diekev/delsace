@@ -32,15 +32,16 @@ class ControleNombreDecimal : public QWidget {
 	float m_valeur = 0.0f;
 	float m_min = -std::numeric_limits<float>::max();
 	float m_max = std::numeric_limits<float>::max();
-	int m_precision = 10;
+	float m_precision = 10.0f;
 	float m_inv_precision = 1.0f / m_precision;
 	bool m_souris_pressee = false;
 	bool m_edition = false;
-	int m_vieil_x = 0;
-	QString m_tampon = "";
-	QString m_suffixe = "";
 	bool m_anime = false;
 	bool m_temps_exacte = false;
+	int m_vieil_x = 0;
+	int pad = 0;
+	QString m_tampon = "";
+	QString m_suffixe = "";
 
 public:
 	explicit ControleNombreDecimal(QWidget *parent = nullptr);
@@ -55,7 +56,7 @@ public:
 
 	void mouseReleaseEvent(QMouseEvent *event) override;
 
-	void keyPressEvent(QKeyEvent *event);
+	void keyPressEvent(QKeyEvent *event) override;
 
 	void marque_anime(bool ouinon, bool temps_exacte);
 

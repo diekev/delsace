@@ -31,9 +31,9 @@
 namespace danjo {
 
 class AssembleuseLogique {
-	std::set<std::string> m_noms_variables;
+	std::set<std::string> m_noms_variables{};
 
-	graphe_contrainte m_graphe;
+	graphe_contrainte m_graphe{};
 
 public:
 

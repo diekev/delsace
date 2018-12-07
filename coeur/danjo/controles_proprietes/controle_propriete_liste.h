@@ -38,11 +38,13 @@ class ConteneurControles;
 class ControleProprieteListe final : public ControlePropriete {
 	Q_OBJECT
 
+	char pad[3];
+
 	/* entreface */
-	QHBoxLayout *m_agencement;
-	QLineEdit *m_editeur_texte;
-	QPushButton *m_bouton_liste;
-	QMenu *m_liste;
+	QHBoxLayout *m_agencement{};
+	QLineEdit *m_editeur_texte{};
+	QPushButton *m_bouton_liste{};
+	QMenu *m_liste{};
 
 	/* connexion */
 	ConteneurControles *m_conteneur = nullptr;
@@ -52,7 +54,10 @@ class ControleProprieteListe final : public ControlePropriete {
 public:
 	explicit ControleProprieteListe(QWidget *parent = nullptr);
 
-	~ControleProprieteListe() = default;
+	ControleProprieteListe(ControleProprieteListe const &) = default;
+	ControleProprieteListe &operator=(ControleProprieteListe const &) = default;
+
+	~ControleProprieteListe() override = default;
 
 	void attache(const std::string &attache);
 

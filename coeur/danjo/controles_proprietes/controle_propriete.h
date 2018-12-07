@@ -47,6 +47,9 @@ protected:
 public:
 	explicit ControlePropriete(QWidget *parent = nullptr);
 
+	ControlePropriete(ControlePropriete const &) = default;
+	ControlePropriete &operator=(ControlePropriete const &) = default;
+
 	/**
 	 * Finalise le contrôle. Cette fonction est appelée à la fin de la création
 	 * du contrôle par l'assembleur de contrôle.

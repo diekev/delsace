@@ -35,8 +35,8 @@ namespace danjo {
 class Manipulable;
 
 struct Symbole {
-	std::experimental::any valeur;
-	id_morceau identifiant;
+	std::experimental::any valeur{};
+	id_morceau identifiant{};
 };
 
 bool est_operateur(id_morceau identifiant);

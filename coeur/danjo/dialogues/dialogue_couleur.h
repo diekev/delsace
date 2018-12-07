@@ -44,36 +44,39 @@ class ControleValeurCouleur;
 class DialogueCouleur final : public QDialog {
 	Q_OBJECT
 
-	QVBoxLayout *m_disposition;
-	QVBoxLayout *m_disposition_sel_ct;
-	QHBoxLayout *m_disposition_sel_cv;
-	QHBoxLayout *m_disposition_horiz;
-	QGridLayout *m_disposition_rvba;
-	QHBoxLayout *m_disposition_boutons;
+	QVBoxLayout *m_disposition{};
+	QVBoxLayout *m_disposition_sel_ct{};
+	QHBoxLayout *m_disposition_sel_cv{};
+	QHBoxLayout *m_disposition_horiz{};
+	QGridLayout *m_disposition_rvba{};
+	QHBoxLayout *m_disposition_boutons{};
 
-	ControleSatVal *m_selecteur_sat_val;
-	SelecteurTeinte *m_selecteur_teinte;
-	ControleValeurCouleur *m_selecteur_valeur;
+	ControleSatVal *m_selecteur_sat_val{};
+	SelecteurTeinte *m_selecteur_teinte{};
+	ControleValeurCouleur *m_selecteur_valeur{};
 
-	ControleNombreDecimal *m_r;
-	ControleNombreDecimal *m_v;
-	ControleNombreDecimal *m_b;
-	ControleNombreDecimal *m_h;
-	ControleNombreDecimal *m_s;
-	ControleNombreDecimal *m_v0;
-	ControleNombreDecimal *m_a;
-	AffichageCouleur *m_affichage_couleur_nouvelle;
-	AffichageCouleur *m_affichage_couleur_originale;
+	ControleNombreDecimal *m_r{};
+	ControleNombreDecimal *m_v{};
+	ControleNombreDecimal *m_b{};
+	ControleNombreDecimal *m_h{};
+	ControleNombreDecimal *m_s{};
+	ControleNombreDecimal *m_v0{};
+	ControleNombreDecimal *m_a{};
+	AffichageCouleur *m_affichage_couleur_nouvelle{};
+	AffichageCouleur *m_affichage_couleur_originale{};
 
-	couleur32 m_couleur_origine;
-	couleur32 m_couleur_nouvelle;
+	couleur32 m_couleur_origine{};
+	couleur32 m_couleur_nouvelle{};
 
-	QLabel *m_contraste;
+	QLabel *m_contraste{};
 
 	void ajourne_label_contraste();
 
 public:
 	explicit DialogueCouleur(QWidget *parent = nullptr);
+
+	DialogueCouleur(DialogueCouleur const &) = default;
+	DialogueCouleur &operator=(DialogueCouleur const &) = default;
 
 	void couleur_originale(const couleur32 &c);
 	couleur32 couleur_originale();

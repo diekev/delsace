@@ -35,9 +35,13 @@ class ControleRampeCouleur : public QWidget {
 	RampeCouleur *m_rampe = nullptr;
 	PointRampeCouleur *m_point_courant = nullptr;
 	bool m_point_selectionne = false;
+	char pad[7];
 
 public:
 	explicit ControleRampeCouleur(QWidget *parent = nullptr);
+
+	ControleRampeCouleur(ControleRampeCouleur const &) = default;
+	ControleRampeCouleur &operator=(ControleRampeCouleur const &) = default;
 
 	void installe_rampe(RampeCouleur *rampe);
 

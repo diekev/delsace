@@ -47,6 +47,9 @@ public:
 			const TamponSource &tampon,
 			const std::vector<DonneesMorceaux> &identifiants);
 
+	AnalyseuseDisposition(AnalyseuseDisposition const &) = delete;
+	AnalyseuseDisposition &operator=(AnalyseuseDisposition const &) = delete;
+
 	/**
 	 * Installe l'assembleur à utiliser pour générer l'entreface.
 	 */

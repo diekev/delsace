@@ -47,8 +47,8 @@ public:
 };
 
 class FenetreTest : public QMainWindow {
-	danjo::Manipulable m_manipulable;
-	RepondantBoutonTest m_repondant;
+	danjo::Manipulable m_manipulable{};
+	RepondantBoutonTest m_repondant{};
 
 public:
 	FenetreTest();

@@ -68,6 +68,8 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 {
 	const auto hauteur = size().height();
 	const auto largeur = size().width();
+	auto const hauteurf = static_cast<float>(hauteur);
+	auto const largeurf = static_cast<float>(largeur);
 
 	QBrush pinceaux(QColor(40, 40, 40));
 	QPainter painter(this);
@@ -82,8 +84,8 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 	auto l = decalage_largeur;
 
 	for (int i = 0; i < 19; ++i) {
-		painter.drawLine(l, 0, l, hauteur);
-		painter.drawLine(0, h, largeur, h);
+		painter.drawLine(static_cast<int>(l), 0, static_cast<int>(l), hauteur);
+		painter.drawLine(0, static_cast<int>(h), largeur, static_cast<int>(h));
 
 		h += decalage_hauteur;
 		l += decalage_largeur;
@@ -98,8 +100,8 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 	l = decalage_largeur;
 
 	for (int i = 0; i < 4; ++i) {
-		painter.drawLine(l, 0, l, hauteur);
-		painter.drawLine(0, h, largeur, h);
+		painter.drawLine(static_cast<int>(l), 0, static_cast<int>(l), hauteur);
+		painter.drawLine(0, static_cast<int>(h), largeur, static_cast<int>(h));
 
 		h += decalage_hauteur;
 		l += decalage_largeur;
@@ -108,41 +110,41 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 	/* dessine la courbe */
 
 	auto stylo_colore = QPen(COULEURS_COURBES[m_mode]);
-	stylo_colore.setWidthF(1.0f);
+	stylo_colore.setWidthF(1.0);
 	painter.setPen(stylo_colore);
 
 	auto p1 = m_courbe->extension_min.co[POINT_CENTRE];
 	auto p2 = m_courbe->table[0];
 
-	painter.drawLine(p1.x * largeur,
-					 (1.0f - p1.y) * hauteur,
-					 p2.x * largeur,
-					 (1.0f - p2.y) * hauteur);
+	painter.drawLine(static_cast<int>(p1.x * largeurf),
+					 static_cast<int>((1.0f - p1.y) * hauteurf),
+					 static_cast<int>(p2.x * largeurf),
+					 static_cast<int>((1.0f - p2.y) * hauteurf));
 
 	for (size_t i = 0; i < m_courbe->table.size() - 1; ++i) {
 		p1 = m_courbe->table[i];
 		p2 = m_courbe->table[i + 1];
 
-		painter.drawLine(p1.x * largeur,
-						 (1.0f - p1.y) * hauteur,
-						 p2.x * largeur,
-						 (1.0f - p2.y) * hauteur);
+		painter.drawLine(static_cast<int>(p1.x * largeurf),
+						 static_cast<int>((1.0f - p1.y) * hauteurf),
+						 static_cast<int>(p2.x * largeurf),
+						 static_cast<int>((1.0f - p2.y) * hauteurf));
 	}
 
 	p1 = m_courbe->table[m_courbe->table.size() - 1];
 	p2 = m_courbe->extension_max.co[POINT_CENTRE];
 
-	painter.drawLine(p1.x * largeur,
-					 (1.0f - p1.y) * hauteur,
-					 p2.x * largeur,
-					 (1.0f - p2.y) * hauteur);
+	painter.drawLine(static_cast<int>(p1.x * largeurf),
+					 static_cast<int>((1.0f - p1.y) * hauteurf),
+					 static_cast<int>(p2.x * largeurf),
+					 static_cast<int>((1.0f - p2.y) * hauteurf));
 
 	/* dessine les points */
 	stylo_colore = QPen(COULEURS_COURBES[m_mode]);
-	stylo_colore.setWidthF(5.0f);
+	stylo_colore.setWidthF(5.0);
 
 	auto stylo_blanc = QPen(Qt::yellow);
-	stylo_blanc.setWidthF(5.0f);
+	stylo_blanc.setWidthF(5.0);
 
 	for (const PointBezier &point : m_courbe->points) {
 		if (&point == m_point_courant) {
@@ -152,15 +154,15 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 			painter.setPen(stylo_colore);
 		}
 
-		painter.drawPoint(point.co[POINT_CENTRE].x * largeur,
-						  (1.0f - point.co[POINT_CENTRE].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						  static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf));
 
 #ifdef DEBOGAGE_CONTROLES
-		painter.drawPoint(point.co[POINT_CONTROLE1].x * largeur,
-						  (1.0f - point.co[POINT_CONTROLE1].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CONTROLE1].x * largeurf),
+						  static_cast<int>((1.0f - point.co[POINT_CONTROLE1].y) * hauteurf));
 
-		painter.drawPoint(point.co[POINT_CONTROLE2].x * largeur,
-						  (1.0f - point.co[POINT_CONTROLE2].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CONTROLE2].x * largeurf),
+						  static_cast<int>((1.0f - point.co[POINT_CONTROLE2].y) * hauteurf));
 #endif
 	}
 
@@ -172,23 +174,23 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 	painter.setPen(stylo);
 
 	for (const PointBezier &point : m_courbe->points) {
-		painter.drawLine(point.co[POINT_CONTROLE1].x * largeur,
-						 (1.0f - point.co[POINT_CONTROLE1].y) * hauteur,
-						 point.co[POINT_CENTRE].x * largeur,
-						 (1.0f - point.co[POINT_CENTRE].y) * hauteur);
+		painter.drawLine(static_cast<int>(point.co[POINT_CONTROLE1].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CONTROLE1].y) * hauteurf),
+						 static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf));
 
-		painter.drawLine(point.co[POINT_CENTRE].x * largeur,
-						 (1.0f - point.co[POINT_CENTRE].y) * hauteur,
-						 point.co[POINT_CONTROLE2].x * largeur,
-						 (1.0f - point.co[POINT_CONTROLE2].y) * hauteur);
+		painter.drawLine(static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf),
+						 static_cast<int>(point.co[POINT_CONTROLE2].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CONTROLE2].y) * hauteurf));
 	}
 #endif
 }
 
 void ControleCourbeCouleur::mousePressEvent(QMouseEvent *event)
 {
-	const auto &x = event->pos().x() / static_cast<float>(size().width());
-	const auto &y = event->pos().y() / static_cast<float>(size().height());
+	const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+	const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 	/* fenêtre de 10 pixels */
 	const auto &taille_fenetre_x = 10.0f / static_cast<float>(size().width());
@@ -227,8 +229,8 @@ void ControleCourbeCouleur::mousePressEvent(QMouseEvent *event)
 void ControleCourbeCouleur::mouseMoveEvent(QMouseEvent *event)
 {
 	if (m_point_selectionne) {
-		const auto &x = event->pos().x() / static_cast<float>(size().width());
-		const auto &y = event->pos().y() / static_cast<float>(size().height());
+		const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+		const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 		m_point_courant->co[POINT_CENTRE].x = std::max(0.0f, std::min(1.0f, x));
 		m_point_courant->co[POINT_CENTRE].y = std::max(0.0f, std::min(1.0f, 1.0f - y));
@@ -249,8 +251,8 @@ void ControleCourbeCouleur::mouseReleaseEvent(QMouseEvent *)
 
 void ControleCourbeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
 {
-	const auto &x = event->pos().x() / static_cast<float>(size().width());
-	const auto &y = event->pos().y() / static_cast<float>(size().height());
+	const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+	const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 	ajoute_point_courbe(*m_courbe, x, 1.0f - y);
 	calcule_controles_courbe(*m_courbe);

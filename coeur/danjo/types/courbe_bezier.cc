@@ -160,8 +160,8 @@ void construit_table_courbe(CourbeBezier &courbe)
 
 		courbe.table.push_back(Point{x0, y0});
 
-		for (int i = 1; i <= res_courbe; ++i) {
-			const auto fac_i = facteur * i;
+		for (int j = 1; j <= res_courbe; ++j) {
+			const auto fac_i = facteur * static_cast<float>(j);
 			const auto mfac_i = 1.0f - fac_i;
 
 			const auto p0x = x0                         * std::pow(mfac_i, 3.0f);

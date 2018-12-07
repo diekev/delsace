@@ -33,7 +33,7 @@ static constexpr auto DEBUT_SPECTRE = 380.0;
 static constexpr auto FIN_SPECTRE = 700.0;
 static constexpr auto TAILLE_SPECTRE = FIN_SPECTRE - DEBUT_SPECTRE;
 
-constexpr auto position_spectre(const float spectre)
+constexpr auto position_spectre(const double spectre)
 {
 	return (spectre - DEBUT_SPECTRE) / TAILLE_SPECTRE;
 }
@@ -85,79 +85,81 @@ void ControleSpectreCouleur::paintEvent(QPaintEvent *)
 
 	/* dessine les points */
 	auto stylo = QPen(Qt::yellow);
-	stylo.setWidthF(5.0f);
+	stylo.setWidthF(5.0);
 
 	painter.setPen(stylo);
 
 	auto largeur = size().width();
 	auto hauteur = size().height();
+	auto const hauteurf = static_cast<float>(hauteur);
+	auto const largeurf = static_cast<float>(largeur);
 
 	for (const PointBezier &point : m_courbe.points) {
-		painter.drawPoint(point.co[POINT_CONTROLE1].x * largeur,
-						  (1.0f - point.co[POINT_CONTROLE1].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CONTROLE1].x),
+						  static_cast<int>(1.0f - point.co[POINT_CONTROLE1].y));
 
-		painter.drawPoint(point.co[POINT_CENTRE].x * largeur,
-						  (1.0f - point.co[POINT_CENTRE].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						  static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf));
 
-		painter.drawPoint(point.co[POINT_CONTROLE2].x * largeur,
-						  (1.0f - point.co[POINT_CONTROLE2].y) * hauteur);
+		painter.drawPoint(static_cast<int>(point.co[POINT_CONTROLE2].x * largeurf),
+						  static_cast<int>((1.0f - point.co[POINT_CONTROLE2].y) * hauteurf));
 	}
 
 	/* dessine les connexions entre points de controles et points centraux */
 	stylo = QPen(Qt::yellow);
-	stylo.setWidthF(1.0f);
+	stylo.setWidthF(1.0);
 
 	painter.setPen(stylo);
 
 	for (const PointBezier &point : m_courbe.points) {
-		painter.drawLine(point.co[POINT_CONTROLE1].x * largeur,
-						 (1.0f - point.co[POINT_CONTROLE1].y) * hauteur,
-						 point.co[POINT_CENTRE].x * largeur,
-						 (1.0f - point.co[POINT_CENTRE].y) * hauteur);
+		painter.drawLine(static_cast<int>(point.co[POINT_CONTROLE1].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CONTROLE1].y) * hauteurf),
+						 static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf));
 
-		painter.drawLine(point.co[POINT_CENTRE].x * largeur,
-						 (1.0f - point.co[POINT_CENTRE].y) * hauteur,
-						 point.co[POINT_CONTROLE2].x * largeur,
-						 (1.0f - point.co[POINT_CONTROLE2].y) * hauteur);
+		painter.drawLine(static_cast<int>(point.co[POINT_CENTRE].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CENTRE].y) * hauteurf),
+						 static_cast<int>(point.co[POINT_CONTROLE2].x * largeurf),
+						 static_cast<int>((1.0f - point.co[POINT_CONTROLE2].y) * hauteurf));
 	}
 
 	/* dessine la courbe */
 	stylo = QPen(Qt::yellow);
-	stylo.setWidthF(2.0f);
+	stylo.setWidthF(2.0);
 
 	painter.setPen(stylo);
 
 	auto p1 = m_courbe.extension_min.co[POINT_CENTRE];
 	auto p2 = m_courbe.table[0];
 
-	painter.drawLine(p1.x * largeur,
-					 (1.0f - p1.y) * hauteur,
-					 p2.x * largeur,
-					 (1.0f - p2.y) * hauteur);
+	painter.drawLine(static_cast<int>(p1.x * largeurf),
+					 static_cast<int>((1.0f - p1.y) * hauteurf),
+					 static_cast<int>(p2.x * largeurf),
+					 static_cast<int>((1.0f - p2.y) * hauteurf));
 
 	for (size_t i = 0; i < m_courbe.table.size() - 1; ++i) {
 		p1 = m_courbe.table[i];
 		p2 = m_courbe.table[i + 1];
 
-		painter.drawLine(p1.x * largeur,
-						 (1.0f - p1.y) * hauteur,
-						 p2.x * largeur,
-						 (1.0f - p2.y) * hauteur);
+		painter.drawLine(static_cast<int>(p1.x * largeurf),
+						 static_cast<int>((1.0f - p1.y) * hauteurf),
+						 static_cast<int>(p2.x * largeurf),
+						 static_cast<int>((1.0f - p2.y) * hauteurf));
 	}
 
 	p1 = m_courbe.table[m_courbe.table.size() - 1];
 	p2 = m_courbe.extension_max.co[POINT_CENTRE];
 
-	painter.drawLine(p1.x * largeur,
-					 (1.0f - p1.y) * hauteur,
-					 p2.x * largeur,
-					 (1.0f - p2.y) * hauteur);
+	painter.drawLine(static_cast<int>(p1.x * largeurf),
+					 static_cast<int>((1.0f - p1.y) * hauteurf),
+					 static_cast<int>(p2.x * largeurf),
+					 static_cast<int>((1.0f - p2.y) * hauteurf));
 }
 
 void ControleSpectreCouleur::mousePressEvent(QMouseEvent *event)
 {
-	const auto &x = event->pos().x() / static_cast<float>(size().width());
-	const auto &y = event->pos().y() / static_cast<float>(size().height());
+	const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+	const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 	/* fenêtre de 10 pixels */
 	const auto &taille_fenetre_x = 10.0f / static_cast<float>(size().width());
@@ -190,8 +192,8 @@ void ControleSpectreCouleur::mouseMoveEvent(QMouseEvent *event)
 		return;
 	}
 
-	auto x = event->pos().x() / static_cast<float>(size().width());
-	auto y = event->pos().y() / static_cast<float>(size().height());
+	auto x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+	auto y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 	x = std::max(0.0f, std::min(1.0f, x));
 	y = std::max(0.0f, std::min(1.0f, 1.0f - y));
@@ -241,8 +243,8 @@ void ControleSpectreCouleur::mouseReleaseEvent(QMouseEvent */*event*/)
 
 void ControleSpectreCouleur::mouseDoubleClickEvent(QMouseEvent *event)
 {
-	const auto &x = event->pos().x() / static_cast<float>(size().width());
-	const auto &y = event->pos().y() / static_cast<float>(size().height());
+	const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
+	const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
 
 	ajoute_point_courbe(m_courbe, x, 1.0f - y);
 

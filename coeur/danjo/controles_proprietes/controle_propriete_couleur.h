@@ -37,12 +37,16 @@ class ControleCouleur;
 class ControleProprieteCouleur final : public ControlePropriete {
 	Q_OBJECT
 
-	QHBoxLayout *m_agencement;
-	ControleCouleur *m_controle_couleur;
+	char pad[3];
+	QHBoxLayout *m_agencement{};
+	ControleCouleur *m_controle_couleur{};
 
 public:
 	explicit ControleProprieteCouleur(QWidget *parent = nullptr);
-	~ControleProprieteCouleur() = default;
+	~ControleProprieteCouleur() override = default;
+
+	ControleProprieteCouleur(ControleProprieteCouleur const &) = default;
+	ControleProprieteCouleur &operator=(ControleProprieteCouleur const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

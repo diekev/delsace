@@ -36,10 +36,13 @@ class ControleCouleur final : public QWidget {
 	Q_OBJECT
 
 	DialogueCouleur *m_dialogue;
-	couleur32 m_couleur;
+	couleur32 m_couleur{};
 
 public:
 	explicit ControleCouleur(QWidget *parent = nullptr);
+
+	ControleCouleur(ControleCouleur const &) = default;
+	ControleCouleur &operator=(ControleCouleur const &) = default;
 
 	couleur32 couleur();
 

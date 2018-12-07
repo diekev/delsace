@@ -48,8 +48,8 @@ ControleEchelleDecimale::ControleEchelleDecimale(QWidget *parent)
 	: QWidget(parent)
 {
 	auto metriques = this->fontMetrics();
-	setFixedHeight(metriques.height() * 3.0f * NOMBRE_PALIER);
-	setFixedWidth(metriques.width("1000.0") * 1.2f);
+	setFixedHeight(metriques.height() * 3 * NOMBRE_PALIER);
+	setFixedWidth(static_cast<int>(static_cast<float>(metriques.width("1000.0")) * 1.2f));
 }
 
 void ControleEchelleDecimale::paintEvent(QPaintEvent *event)
@@ -75,27 +75,27 @@ void ControleEchelleDecimale::paintEvent(QPaintEvent *event)
 	/* dessine les nombres */
 	for (int i = 0; i < NOMBRE_PALIER; ++i) {
 		if (m_souris_pressee && i == m_case) {
-			painter.drawText(largeur_palier * 0.1f,
-							 hauteur_palier * 0.083f + hauteur_palier * i,
-							 largeur_palier,
-							 hauteur_palier * 0.083f + hauteur_palier * (i + 1),
+			painter.drawText(QRectF(0.1 * largeur_palier,
+									(0.083 + i) * hauteur_palier,
+									1.0 * largeur_palier,
+									(0.083 + (i + 1)) * hauteur_palier),
 							 Qt::AlignLeft,
-							 QString::number(PALIERS[i]));
+							 QString::number(static_cast<double>(PALIERS[i])));
 
-			painter.drawText(largeur_palier * 0.1f,
-							 hauteur_palier * 0.583f + hauteur_palier * i,
-							 largeur_palier,
-							 hauteur_palier * 0.583f + hauteur_palier * (i + 1),
+			painter.drawText(QRectF(0.1 * largeur_palier,
+									(0.583 + i) * hauteur_palier,
+									1.0 * largeur_palier,
+									(0.583 + (i + 1)) * hauteur_palier),
 							 Qt::AlignLeft,
-							 QString::number(m_valeur));
+							 QString::number(static_cast<double>(m_valeur)));
 		}
 		else {
-			painter.drawText(largeur_palier * 0.1f,
-							 hauteur_palier * 1.0f / 3.0f + hauteur_palier * i,
-							 largeur_palier,
-							 hauteur_palier * 1.0f / 3.0f + hauteur_palier * (i + 1),
+			painter.drawText(QRectF(0.1 * largeur_palier,
+									(1.0 / 3.0 + i) * hauteur_palier,
+									1.0 * largeur_palier,
+									(1.0 / 3.0 + (i + 1)) * hauteur_palier),
 							 Qt::AlignLeft,
-							 QString::number(PALIERS[i]));
+							 QString::number(static_cast<double>(PALIERS[i])));
 		}
 	}
 }
@@ -121,7 +121,7 @@ void ControleEchelleDecimale::mouseMoveEvent(QMouseEvent *event)
 {
 	if (m_souris_pressee) {
 		const auto x = event->pos().x();
-		m_valeur += (x - m_vieil_x) * PALIERS[m_case];
+		m_valeur += static_cast<float>(x - m_vieil_x) * PALIERS[m_case];
 		m_vieil_x = x;
 
 		m_valeur = std::max(std::min(m_valeur, m_max), m_min);
@@ -166,8 +166,8 @@ ControleEchelleEntiere::ControleEchelleEntiere(QWidget *parent)
 	: QWidget(parent)
 {
 	auto metriques = this->fontMetrics();
-	setFixedHeight(metriques.height() * 3.0f * NOMBRE_PALIER_ENTIER);
-	setFixedWidth(metriques.width("1000.0") * 1.2f);
+	setFixedHeight(metriques.height() * 3 * NOMBRE_PALIER_ENTIER);
+	setFixedWidth(static_cast<int>(static_cast<float>(metriques.width("1000.0")) * 1.2f));
 }
 
 void ControleEchelleEntiere::paintEvent(QPaintEvent *event)
@@ -193,25 +193,25 @@ void ControleEchelleEntiere::paintEvent(QPaintEvent *event)
 	/* dessine les nombres */
 	for (int i = 0; i < NOMBRE_PALIER_ENTIER; ++i) {
 		if (m_souris_pressee && i == m_case) {
-			painter.drawText(largeur_palier * 0.1f,
-							 hauteur_palier * 0.083f + hauteur_palier * i,
-							 largeur_palier,
-							 hauteur_palier * 0.083f + hauteur_palier * (i + 1),
+			painter.drawText(QRectF(0.1 * largeur_palier,
+									(0.083 + i) * hauteur_palier,
+									1.0 * largeur_palier,
+									(0.083 + (i + 1)) * hauteur_palier),
 							 Qt::AlignLeft,
 							 QString::number(PALIERS_ENTIER[i]));
 
-			painter.drawText(largeur_palier * 0.1f,
-							 hauteur_palier * 0.583f + hauteur_palier * i,
-							 largeur_palier,
-							 hauteur_palier * 0.583f + hauteur_palier * (i + 1),
+			painter.drawText(QRectF(0.1 * largeur_palier,
+									(0.583 + i) * hauteur_palier,
+									1.0 * largeur_palier,
+									(0.583 + (i + 1)) * hauteur_palier),
 							 Qt::AlignLeft,
 							 QString::number(m_valeur));
 		}
 		else {
-			painter.drawText(largeur_palier * 0.1f,
-							 hauteur_palier * 1.0f / 3.0f + hauteur_palier * i,
-							 largeur_palier,
-							 hauteur_palier * 1.0f / 3.0f + hauteur_palier * (i + 1),
+			painter.drawText(QRectF(0.1 * largeur_palier,
+									(1.0 / 3.0 + i) * hauteur_palier,
+									1.0 * largeur_palier,
+									(1.0 / 3.0 + (i + 1)) * hauteur_palier),
 							 Qt::AlignLeft,
 							 QString::number(PALIERS_ENTIER[i]));
 		}

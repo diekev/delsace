@@ -35,23 +35,23 @@ class Variable;
 
 class contrainte {
 public:
-	std::vector<Variable *> m_variables;
-	std::vector<Symbole> m_expression;
-	Variable *m_sortie;
-	std::vector<Symbole> m_condition;
+	std::vector<Variable *> m_variables{};
+	std::vector<Symbole> m_expression{};
+	Variable *m_sortie{};
+	std::vector<Symbole> m_condition{};
 };
 
 class Variable {
 public:
-	std::vector<contrainte *> m_contraintes;
+	std::vector<contrainte *> m_contraintes{};
 
-	std::string nom; // nom de la propriété du manipulable
-	int degree;
+	std::string nom{}; // nom de la propriété du manipulable
+	int degree{};
 };
 
 class graphe_contrainte {
-	std::vector<contrainte *> m_contraintes;
-	std::vector<Variable *> m_variables;
+	std::vector<contrainte *> m_contraintes{};
+	std::vector<Variable *> m_variables{};
 
 public:
 	using iterateur_contrainte = std::vector<contrainte *>::iterator;

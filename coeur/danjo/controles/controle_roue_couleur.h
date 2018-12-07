@@ -27,13 +27,14 @@
 #include <QWidget>
 
 class ControleRoueCouleur : public QWidget {
-	float m_controle_x = 0.5f;
-	float m_controle_y = 0.5f;
+	double m_controle_x = 0.5;
+	double m_controle_y = 0.5;
 	double rayon_controle = 0.025;
 	double diametre_controle = rayon_controle * 2.0;
 	bool souris_pressee = false;
+	char pad[3];
 	int m_angle = 0;
-	float m_distance = 0.0f;
+	double m_distance = 0.0;
 
 public:
 	explicit ControleRoueCouleur(QWidget *parent = nullptr);

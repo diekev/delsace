@@ -29,21 +29,26 @@
 #include "types/courbe_bezier.h"
 
 struct CerceBezier {
-	std::vector<PointBezier> points;
-	std::vector<Point> table;
+	std::vector<PointBezier> points{};
+	std::vector<Point> table{};
 	bool ferme = false;
+	char pad[3];
 
 	Point min = {-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max()};
 	Point max = { std::numeric_limits<float>::max(),  std::numeric_limits<float>::max()};
 };
 
 class ControleMasque : public QWidget {
-	CerceBezier m_cerce;
+	CerceBezier m_cerce{};
 	PointBezier *m_point_courant = nullptr;
 	int m_type_point = 0;
+	int pad = 0;
 
 public:
 	explicit ControleMasque(QWidget *parent = nullptr);
+
+	ControleMasque(ControleMasque const &) = default;
+	ControleMasque &operator=(ControleMasque const &) = default;
 
 	void paintEvent(QPaintEvent *event) override;
 

@@ -31,50 +31,50 @@
 
 namespace danjo {
 
-static constexpr auto TAILLE_SELECTEUR_MAX = 256.0f;
-static constexpr auto TAILLE_SELECTEUR_MIN = 32.0f;
+static constexpr auto TAILLE_SELECTEUR_MAX = 256.0;
+static constexpr auto TAILLE_SELECTEUR_MIN = 32.0;
 
 /* ************************************************************************** */
 
 ControleSatVal::ControleSatVal(QWidget *parent)
 	: QWidget(parent)
 {
-	setFixedSize(TAILLE_SELECTEUR_MAX, TAILLE_SELECTEUR_MAX);
+	setFixedSize(static_cast<int>(TAILLE_SELECTEUR_MAX), static_cast<int>(TAILLE_SELECTEUR_MAX));
 }
 
 void ControleSatVal::couleur(const couleur32 &c)
 {
 	m_hsv = c;
-	m_pos_x = m_hsv.v * TAILLE_SELECTEUR_MAX;
-	m_pos_y = m_hsv.b * TAILLE_SELECTEUR_MAX;
+	m_pos_x = static_cast<double>(m_hsv.v) * TAILLE_SELECTEUR_MAX;
+	m_pos_y = static_cast<double>(m_hsv.b) * TAILLE_SELECTEUR_MAX;
 	update();
 }
 
 float ControleSatVal::saturation() const
 {
-	return m_pos_x / TAILLE_SELECTEUR_MAX;
+	return static_cast<float>(m_pos_x / TAILLE_SELECTEUR_MAX);
 }
 
 float ControleSatVal::valeur() const
 {
-	return m_pos_y / TAILLE_SELECTEUR_MAX;
+	return static_cast<float>(m_pos_y / TAILLE_SELECTEUR_MAX);
 }
 
 void ControleSatVal::paintEvent(QPaintEvent *)
 {
 	QPainter peintre(this);
 
-	for (int s = 0; s < TAILLE_SELECTEUR_MAX; ++s) {
-		for (int v = 0; v < TAILLE_SELECTEUR_MAX; ++v) {
-			peintre.setPen(QColor::fromHsvF(m_hsv.r, s / TAILLE_SELECTEUR_MAX, v / TAILLE_SELECTEUR_MAX));
-			peintre.drawPoint(s, TAILLE_SELECTEUR_MAX - v);
+	for (auto s = 0.0; s < TAILLE_SELECTEUR_MAX; s += 1.0) {
+		for (auto v = 0.0; v < TAILLE_SELECTEUR_MAX; v += 1.0) {
+			peintre.setPen(QColor::fromHsvF(static_cast<double>(m_hsv.r), s / TAILLE_SELECTEUR_MAX, v / TAILLE_SELECTEUR_MAX));
+			peintre.drawPoint(static_cast<int>(s), static_cast<int>(TAILLE_SELECTEUR_MAX - v));
 		}
 	}
 
 	peintre.setPen(Qt::white);
 
-	peintre.drawEllipse(m_pos_x - 4,
-						TAILLE_SELECTEUR_MAX - m_pos_y - 4,
+	peintre.drawEllipse(static_cast<int>(m_pos_x) - 4,
+						static_cast<int>(TAILLE_SELECTEUR_MAX - m_pos_y) - 4,
 						8,
 						8);
 }
@@ -127,29 +127,29 @@ void ControleSatVal::mouseReleaseEvent(QMouseEvent *)
 SelecteurTeinte::SelecteurTeinte(QWidget *parent)
 	: QWidget(parent)
 {
-	setFixedSize(TAILLE_SELECTEUR_MAX, TAILLE_SELECTEUR_MIN);
+	setFixedSize(static_cast<int>(TAILLE_SELECTEUR_MAX), static_cast<int>(TAILLE_SELECTEUR_MIN));
 }
 
 void SelecteurTeinte::teinte(float t)
 {
-	m_teinte = t;
+	m_teinte = static_cast<double>(t);
 	m_pos_x = TAILLE_SELECTEUR_MAX * m_teinte;
 	update();
 }
 
 float SelecteurTeinte::teinte() const
 {
-	return m_pos_x / TAILLE_SELECTEUR_MAX;
+	return static_cast<float>(m_pos_x / TAILLE_SELECTEUR_MAX);
 }
 
 void SelecteurTeinte::paintEvent(QPaintEvent *)
 {
 	QPainter peintre(this);
 
-	QLinearGradient degrade(QPoint(0, 0), QPoint(TAILLE_SELECTEUR_MAX, 0));
+	QLinearGradient degrade(QPoint(0, 0), QPoint(static_cast<int>(TAILLE_SELECTEUR_MAX), 0));
 
-	for (int i = 0; i <= 32; ++i) {
-		degrade.setColorAt(i / 32.0f, QColor::fromHsvF(i / 32.0f, 1.0f, 1.0f));
+	for (auto i = 0.0; i <= 32.0; i += 1.0) {
+		degrade.setColorAt(i / 32.0, QColor::fromHsvF(i / 32.0, 1.0, 1.0));
 	}
 
 	peintre.setBrush(QBrush(degrade));
@@ -157,8 +157,8 @@ void SelecteurTeinte::paintEvent(QPaintEvent *)
 
 	peintre.setPen(Qt::white);
 
-	peintre.drawEllipse(m_pos_x - 4,
-						TAILLE_SELECTEUR_MIN * 0.5f - 4,
+	peintre.drawEllipse(static_cast<int>(m_pos_x) - 4,
+						static_cast<int>(TAILLE_SELECTEUR_MIN * 0.5) - 4,
 						8,
 						8);
 }
@@ -196,30 +196,30 @@ void SelecteurTeinte::mouseReleaseEvent(QMouseEvent *)
 ControleValeurCouleur::ControleValeurCouleur(QWidget *parent)
 	: QWidget(parent)
 {
-	setFixedSize(TAILLE_SELECTEUR_MIN, TAILLE_SELECTEUR_MAX);
+	setFixedSize(static_cast<int>(TAILLE_SELECTEUR_MIN), static_cast<int>(TAILLE_SELECTEUR_MAX));
 }
 
 void ControleValeurCouleur::valeur(float t)
 {
-	m_valeur = t;
+	m_valeur = static_cast<double>(t);
 	m_pos_y = TAILLE_SELECTEUR_MAX * m_valeur;
 	update();
 }
 
 float ControleValeurCouleur::valeur() const
 {
-	return m_pos_y / TAILLE_SELECTEUR_MAX;
+	return static_cast<float>(m_pos_y / TAILLE_SELECTEUR_MAX);
 }
 
 void ControleValeurCouleur::paintEvent(QPaintEvent *)
 {
 	QPainter peintre(this);
 
-	QLinearGradient degrade(QPoint(0, 0), QPoint(0, TAILLE_SELECTEUR_MAX));
+	QLinearGradient degrade(QPoint(0, 0), QPoint(0, static_cast<int>(TAILLE_SELECTEUR_MAX)));
 
-	for (int i = 0; i <= 32; ++i) {
-		auto v = i / 32.0f;
-		degrade.setColorAt(1.0f - v, QColor::fromRgbF(v, v, v));
+	for (double i = 0.0; i <= 32.0; i += 1.0) {
+		auto v = i / 32.0;
+		degrade.setColorAt(1.0 - v, QColor::fromRgbF(v, v, v));
 	}
 
 	peintre.setBrush(QBrush(degrade));
@@ -227,8 +227,8 @@ void ControleValeurCouleur::paintEvent(QPaintEvent *)
 
 	peintre.setPen(Qt::white);
 
-	peintre.drawEllipse(TAILLE_SELECTEUR_MIN * 0.5f - 4,
-						TAILLE_SELECTEUR_MAX - m_pos_y - 4,
+	peintre.drawEllipse(static_cast<int>(TAILLE_SELECTEUR_MIN * 0.5) - 4,
+						static_cast<int>(TAILLE_SELECTEUR_MAX - m_pos_y) - 4,
 						8,
 						8);
 }

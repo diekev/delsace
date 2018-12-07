@@ -38,23 +38,29 @@ class Manipulable;
 class RepondantBouton;
 
 struct DonneesInterface {
-	Manipulable *manipulable;
-	RepondantBouton *repondant_bouton;
-	ConteneurControles *conteneur;
+	Manipulable *manipulable = nullptr;
+	RepondantBouton *repondant_bouton = nullptr;
+	ConteneurControles *conteneur = nullptr;
+
+	DonneesInterface(DonneesInterface const &) = default;
+	DonneesInterface &operator=(DonneesInterface const &) = default;
 };
 
 struct DonneesAction {
-	std::string nom;
-	std::string attache;
-	std::string metadonnee;
-	RepondantBouton *repondant_bouton;
+	std::string nom{};
+	std::string attache{};
+	std::string metadonnee{};
+	RepondantBouton *repondant_bouton = nullptr;
+
+	DonneesAction(DonneesAction const &) = default;
+	DonneesAction &operator=(DonneesAction const &) = default;
 };
 
 class GestionnaireInterface {
-	std::unordered_map<std::string, QMenu *> m_menus;
-	std::unordered_map<std::string, QMenu *> m_menus_entrerogeables;
-	std::unordered_map<std::string, QBoxLayout *> m_dispositions;
-	std::vector<QToolBar *> m_barres_outils;
+	std::unordered_map<std::string, QMenu *> m_menus{};
+	std::unordered_map<std::string, QMenu *> m_menus_entrerogeables{};
+	std::unordered_map<std::string, QBoxLayout *> m_dispositions{};
+	std::vector<QToolBar *> m_barres_outils{};
 
 public:
 	~GestionnaireInterface();

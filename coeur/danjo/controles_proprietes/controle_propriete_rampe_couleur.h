@@ -43,28 +43,31 @@ class ControleProprieteRampeCouleur final : public ControlePropriete {
 	Q_OBJECT
 
 	/* entreface */
-	QVBoxLayout *m_agencement_principal;
-	QHBoxLayout *m_agencement_nombre;
+	QVBoxLayout *m_agencement_principal{};
+	QHBoxLayout *m_agencement_nombre{};
 
-	QComboBox *m_entrepolation;
+	QComboBox *m_entrepolation{};
 
 	/* rampe */
-	ControleRampeCouleur *m_controle_rampe;
+	ControleRampeCouleur *m_controle_rampe{};
 
 	/* controle de la position du point sélectionné */
-	QPushButton *m_bouton_echelle;
-	ControleEchelleDecimale *m_echelle;
-	ControleNombreDecimal *m_pos;
+	QPushButton *m_bouton_echelle{};
+	ControleEchelleDecimale *m_echelle{};
+	ControleNombreDecimal *m_pos{};
 
 	/* controle de la couleur */
-	ControleCouleur *m_controle_couleur;
+	ControleCouleur *m_controle_couleur{};
 
 	/* connexion */
-	RampeCouleur *m_rampe;
+	RampeCouleur *m_rampe{};
 
 public:
 	explicit ControleProprieteRampeCouleur(QWidget *parent = nullptr);
-	~ControleProprieteRampeCouleur();
+	~ControleProprieteRampeCouleur() override;
+
+	ControleProprieteRampeCouleur(ControleProprieteRampeCouleur const &) = default;
+	ControleProprieteRampeCouleur &operator=(ControleProprieteRampeCouleur const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

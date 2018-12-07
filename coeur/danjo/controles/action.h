@@ -45,6 +45,9 @@ class Action : public QAction {
 public:
 	explicit Action(QWidget *parent = nullptr);
 
+	Action(Action const &) = default;
+	Action &operator=(Action const &) = default;
+
 	/**
 	 * Installe le RepondantBouton qui sera appelé lors d'un clique sur ce
 	 * bouton.

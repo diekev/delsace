@@ -33,9 +33,10 @@ class ControleEchelleDecimale : public QWidget {
 
 	int m_case = 0;
 	float m_valeur = 0.0f;
-	float m_min = -std::numeric_limits<int>::max();
-	float m_max = std::numeric_limits<int>::max();
+	float m_min = -std::numeric_limits<float>::max();
+	float m_max = std::numeric_limits<float>::max();
 	bool m_souris_pressee = false;
+	char pad[3];
 	int m_vieil_x = 0;
 
 public:
@@ -68,6 +69,7 @@ class ControleEchelleEntiere : public QWidget {
 	int m_min = std::numeric_limits<int>::min();
 	int m_max = std::numeric_limits<int>::max();
 	bool m_souris_pressee = false;
+	char pad[3];
 	int m_vieil_x = 0;
 
 public:

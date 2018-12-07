@@ -31,8 +31,8 @@ namespace danjo {
 Analyseuse::Analyseuse(
 		const TamponSource &tampon,
 		const std::vector<DonneesMorceaux> &identifiants)
-	: m_tampon(tampon)
-	, m_identifiants(identifiants)
+	: m_identifiants(identifiants)
+	, m_tampon(tampon)
 {}
 
 bool Analyseuse::requiers_identifiant(id_morceau identifiant)

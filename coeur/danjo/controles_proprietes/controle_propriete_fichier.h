@@ -35,15 +35,21 @@ namespace danjo {
 class SelecteurFichier : public ControlePropriete {
 	Q_OBJECT
 
-	QHBoxLayout *m_agencement;
-	QLineEdit *m_line_edit;
-	QPushButton *m_push_button;
+	char pad[3];
 
-	QString m_filtres;
-	bool m_input;
+	QHBoxLayout *m_agencement{};
+	QLineEdit *m_line_edit{};
+	QPushButton *m_push_button{};
+
+	QString m_filtres{};
+	bool m_input{};
+	char pad1[7];
 
 public:
 	explicit SelecteurFichier(bool input, QWidget *parent = nullptr);
+
+	SelecteurFichier(SelecteurFichier const &) = default;
+	SelecteurFichier &operator=(SelecteurFichier const &) = default;
 
 	~SelecteurFichier() = default;
 
@@ -61,11 +67,14 @@ Q_SIGNALS:
 class ControleProprieteFichier final : public SelecteurFichier {
 	Q_OBJECT
 
-	std::string *m_pointeur;
+	std::string *m_pointeur{};
 
 public:
 	explicit ControleProprieteFichier(bool input, QWidget *parent = nullptr);
-	~ControleProprieteFichier() = default;
+	~ControleProprieteFichier() override = default;
+
+	ControleProprieteFichier(ControleProprieteFichier const &) = default;
+	ControleProprieteFichier &operator=(ControleProprieteFichier const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 
