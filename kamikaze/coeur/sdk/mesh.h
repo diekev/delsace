@@ -35,7 +35,7 @@ class Mesh : public Primitive {
 public:
 	Mesh();
 	Mesh(const Mesh &other);
-	~Mesh();
+	~Mesh() override;
 
 	Mesh &operator=(const Mesh &other) = default;
 	/**

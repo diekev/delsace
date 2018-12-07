@@ -42,11 +42,13 @@ protected:
 	QFrame *m_frame;
 	QVBoxLayout *m_layout;
 	QHBoxLayout *m_main_layout;
-	QLineEdit *m_path_edit;
+	QLineEdit *m_path_edit{};
 
 public:
 	explicit BaseEditrice(Mikisa *mikisa, QWidget *parent = nullptr);
-	virtual ~BaseEditrice() = default;
+
+	BaseEditrice(BaseEditrice const &) = default;
+	BaseEditrice &operator=(BaseEditrice const &) = default;
 
 	void actif(bool ouinon);
 	void rend_actif();

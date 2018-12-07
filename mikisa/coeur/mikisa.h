@@ -80,6 +80,7 @@ public:
 
 	/* Les usines et le répondant commande peuvent et doivent être partagés. */
 	Mikisa(const Mikisa &autre) = default;
+	Mikisa &operator=(const Mikisa &autre) = default;
 
 	void initialise();
 

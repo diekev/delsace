@@ -73,15 +73,15 @@ struct Corps {
 	Corps() = default;
 	virtual ~Corps();
 
-	bool possede_attribut(const std::string &nom);
+	bool possede_attribut(const std::string &nom_attribut);
 
-	Attribut *ajoute_attribut(const std::string &nom, int type, int portee = 0, size_t taille = 0);
+	Attribut *ajoute_attribut(const std::string &nom_attribut, int type_, int portee = 0, size_t taille_ = 0);
 
-	void supprime_attribut(const std::string &nom);
+	void supprime_attribut(const std::string &nom_attribut);
 
-	Attribut *attribut(const std::string &nom) const;
+	Attribut *attribut(const std::string &nom_attribut) const;
 
-	GroupePolygone *ajoute_groupe_polygone(const std::string &nom);
+	GroupePolygone *ajoute_groupe_polygone(const std::string &nom_attribut);
 
 	size_t ajoute_point(float x, float y, float z);
 
@@ -108,10 +108,10 @@ struct Corps {
 	void copie_vers(Corps *corps) const;
 
 protected:
-	std::vector<Attribut *> m_attributs;
+	std::vector<Attribut *> m_attributs{};
 
 private:
-	ListePoints3D m_points;
-	ListePolygones m_polys;
-	std::unordered_map<std::string, GroupePolygone *> m_groupes_polygones;
+	ListePoints3D m_points{};
+	ListePolygones m_polys{};
+	std::unordered_map<std::string, GroupePolygone *> m_groupes_polygones{};
 };

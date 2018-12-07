@@ -24,7 +24,13 @@
 
 #include "commandes_noeuds.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QKeyEvent>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/outils/constantes.h"
@@ -218,8 +224,8 @@ public:
 		trouve_noeud_prise(graphe->noeuds(), donnees.x, donnees.y, noeud_selection, prise_entree, prise_sortie);
 
 		if (noeud_selection != nullptr) {
-			delta_x = donnees.x - noeud_selection->pos_x();
-			delta_y = donnees.y - noeud_selection->pos_y();
+			delta_x = donnees.x - static_cast<float>(noeud_selection->pos_x());
+			delta_y = donnees.y - static_cast<float>(noeud_selection->pos_y());
 		}
 
 		if (prise_entree || prise_sortie) {
@@ -468,7 +474,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
-		graphe->zoom *= (donnees.y > 0) ? PHI : PHI_INV;
+		graphe->zoom *= (donnees.y > 0) ? static_cast<float>(PHI) : static_cast<float>(PHI_INV);
 
 		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
 

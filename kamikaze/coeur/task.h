@@ -25,7 +25,15 @@
 #pragma once
 
 #include <memory>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QObject>
+#pragma GCC diagnostic pop
+
 #include <tbb/task.h>
 
 class Context;

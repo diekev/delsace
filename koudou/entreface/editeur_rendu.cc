@@ -24,11 +24,17 @@
 
 #include "editeur_rendu.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
@@ -42,7 +48,11 @@ EditriceRendu::EditriceRendu(Koudou &koudou, QWidget *parent)
     , m_widget(new QWidget())
     , m_scroll(new QScrollArea())
     , m_glayout(new QGridLayout(m_widget))
-    , m_assembleur_controles(m_glayout)
+	, m_assembleur_controles(m_glayout)
+	, m_info_temps_ecoule(new QLabel("0 s", this))
+	, m_info_temps_restant(new QLabel("0 s", this))
+	, m_info_temps_echantillon(new QLabel("0 s", this))
+	, m_info_echantillon(new QLabel("0 / 0", this))
 {
 	m_widget->setSizePolicy(m_cadre->sizePolicy());
 
@@ -70,7 +80,6 @@ EditriceRendu::EditriceRendu(Koudou &koudou, QWidget *parent)
 	auto label_echantillon = new QLabel("Échantillon", this);
 	m_glayout->addWidget(label_echantillon, 1, 0);
 
-	m_info_echantillon = new QLabel("0 / 0", this);
 	m_glayout->addWidget(m_info_echantillon, 1, 1);
 
 	/* Temps échantillon. */
@@ -78,7 +87,6 @@ EditriceRendu::EditriceRendu(Koudou &koudou, QWidget *parent)
 	auto label_temps_echantillon = new QLabel("Temps échantillon", this);
 	m_glayout->addWidget(label_temps_echantillon, 2, 0);
 
-	m_info_temps_echantillon = new QLabel("0 s", this);
 	m_glayout->addWidget(m_info_temps_echantillon, 2, 1);
 
 	/* Temps écoulé. */
@@ -86,7 +94,6 @@ EditriceRendu::EditriceRendu(Koudou &koudou, QWidget *parent)
 	auto label_temps_ecoule = new QLabel("Temps écoulé", this);
 	m_glayout->addWidget(label_temps_ecoule, 3, 0);
 
-	m_info_temps_ecoule = new QLabel("0 s", this);
 	m_glayout->addWidget(m_info_temps_ecoule, 3, 1);
 
 	/* Temps restant. */
@@ -94,7 +101,6 @@ EditriceRendu::EditriceRendu(Koudou &koudou, QWidget *parent)
 	auto label_temps_restant = new QLabel("Temps restant", this);
 	m_glayout->addWidget(label_temps_restant, 4, 0);
 
-	m_info_temps_restant = new QLabel("0 s", this);
 	m_glayout->addWidget(m_info_temps_restant, 4, 1);
 }
 

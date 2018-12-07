@@ -37,7 +37,10 @@ class RenduCourbes final : public RenduPrimitive {
 public:
 	explicit RenduCourbes(SegmentPrim *courbes);
 
-	~RenduCourbes();
+	RenduCourbes(RenduCourbes const &) = default;
+	RenduCourbes &operator=(RenduCourbes const &) = default;
+
+	~RenduCourbes() override;
 
 	void initialise() override;
 

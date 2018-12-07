@@ -24,8 +24,14 @@
 
 #include "editeur_arbre_scene.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGridLayout>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"

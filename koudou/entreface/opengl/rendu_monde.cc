@@ -30,62 +30,128 @@
 #include "bibliotheques/objets/adaptrice_creation.h"
 #include "bibliotheques/objets/creation.h"
 #include "bibliotheques/opengl/tampon_rendu.h"
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/texture/texture.h"
 
 #include "coeur/koudou.h"
 
 /* ************************************************************************** */
 
-class AdaptriceCreation : public objets::AdaptriceCreationObjet {
+class AdaptriceCreation final : public objets::AdaptriceCreationObjet {
 public:
-	std::vector<dls::math::vec3f> sommets;
-	std::vector<unsigned int> index;
+	std::vector<dls::math::vec3f> sommets{};
+	std::vector<unsigned int> index{};
 
-	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override
-	{
-		sommets.push_back(dls::math::vec3f(x, y, z));
-	}
+	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
 
-	void ajoute_normal(const float x, const float y, const float z) override
-	{}
+	void ajoute_normal(const float x, const float y, const float z) override;
 
-	void ajoute_coord_uv_sommet(const float u, const float v, const float w = 0.0f) override
-	{}
+	void ajoute_coord_uv_sommet(const float u, const float v, const float w = 0.0f) override;
 
-	void ajoute_parametres_sommet(const float x, const float y, const float z) override
-	{}
+	void ajoute_parametres_sommet(const float x, const float y, const float z) override;
 
-	void ajoute_polygone(const int *index_sommet, const int */*index_uv*/, const int */*index_normal*/, int nombre) override
-	{
-		index.push_back(index_sommet[0]);
-		index.push_back(index_sommet[1]);
-		index.push_back(index_sommet[2]);
+	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, size_t nombre) override;
 
-		if (nombre == 4) {
-			index.push_back(index_sommet[0]);
-			index.push_back(index_sommet[2]);
-			index.push_back(index_sommet[3]);
-		}
-	}
+	void ajoute_ligne(const int *idx, size_t nombre) override;
 
-	void ajoute_ligne(const int *index, int nombre) override
-	{}
+	void ajoute_objet(const std::string &nom) override;
 
-	void ajoute_objet(const std::string &nom) override
-	{}
+	void reserve_polygones(const size_t nombre) override;
 
-	void reserve_polygones(const size_t nombre) override {}
+	void reserve_sommets(const size_t nombre) override;
 
-	void reserve_sommets(const size_t nombre) override {}
+	void reserve_normaux(const size_t nombre) override;
 
-	void reserve_normaux(const size_t nombre) override {}
+	void reserve_uvs(const size_t nombre) override;
 
-	void reserve_uvs(const size_t nombre) override {}
+	void groupes(const std::vector<std::string> &noms) override;
 
-	void groupes(const std::vector<std::string> &noms) override {}
-
-	void groupe_nuancage(const int index) override {}
+	void groupe_nuancage(const int idx) override;
 };
+
+void AdaptriceCreation::ajoute_sommet(const float x, const float y, const float z, const float w)
+{
+	INUTILISE(w);
+	sommets.push_back(dls::math::vec3f(x, y, z));
+}
+
+void AdaptriceCreation::ajoute_normal(const float x, const float y, const float z)
+{
+	INUTILISE(x);
+	INUTILISE(y);
+	INUTILISE(z);
+}
+
+void AdaptriceCreation::ajoute_coord_uv_sommet(const float u, const float v, const float w)
+{
+	INUTILISE(u);
+	INUTILISE(v);
+	INUTILISE(w);
+}
+
+void AdaptriceCreation::ajoute_parametres_sommet(const float x, const float y, const float z)
+{
+	INUTILISE(x);
+	INUTILISE(y);
+	INUTILISE(z);
+}
+
+void AdaptriceCreation::ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, size_t nombre)
+{
+	INUTILISE(index_uv);
+	INUTILISE(index_normal);
+
+	index.push_back(static_cast<unsigned>(index_sommet[0]));
+	index.push_back(unsigned(index_sommet[1]));
+	index.push_back(unsigned(index_sommet[2]));
+
+	if (nombre == 4) {
+		index.push_back(unsigned(index_sommet[0]));
+		index.push_back(unsigned(index_sommet[2]));
+		index.push_back(unsigned(index_sommet[3]));
+	}
+}
+
+void AdaptriceCreation::ajoute_ligne(const int *idx, size_t nombre)
+{
+	INUTILISE(idx);
+	INUTILISE(nombre);
+}
+
+void AdaptriceCreation::ajoute_objet(const std::string &nom)
+{
+	INUTILISE(nom);
+}
+
+void AdaptriceCreation::reserve_polygones(const size_t nombre)
+{
+	INUTILISE(nombre);
+}
+
+void AdaptriceCreation::reserve_sommets(const size_t nombre)
+{
+	INUTILISE(nombre);
+}
+
+void AdaptriceCreation::reserve_normaux(const size_t nombre)
+{
+	INUTILISE(nombre);
+}
+
+void AdaptriceCreation::reserve_uvs(const size_t nombre)
+{
+	INUTILISE(nombre);
+}
+
+void AdaptriceCreation::groupes(const std::vector<std::string> &noms)
+{
+	INUTILISE(noms);
+}
+
+void AdaptriceCreation::groupe_nuancage(const int idx)
+{
+	INUTILISE(idx);
+}
 
 /* ************************************************************************** */
 

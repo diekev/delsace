@@ -40,8 +40,8 @@ class TamponRendu;
  * contient que des textures ayant les mêmes résolutions.
  */
 struct Page {
-	TamponRendu *tampon;
-	std::vector<uint> polys;
+	TamponRendu *tampon{};
+	std::vector<uint> polys{};
 };
 
 /**
@@ -54,13 +54,16 @@ class RenduMaillage {
 
 	Maillage *m_maillage = nullptr;
 
-	std::vector<Page> m_pages;
+	std::vector<Page> m_pages{};
 
 public:
 	/**
 	 * Construit une instance de RenduMaillage pour le maillage spécifié.
 	 */
 	explicit RenduMaillage(Maillage *maillage);
+
+	RenduMaillage(RenduMaillage const &) = default;
+	RenduMaillage &operator=(RenduMaillage const &) = default;
 
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et

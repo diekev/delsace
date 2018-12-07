@@ -28,7 +28,7 @@
 
 /* ************************************************************************** */
 
-size_t SegmentPrim::id = -1;
+size_t SegmentPrim::id = -1ul;
 
 SegmentPrim::SegmentPrim()
 {}

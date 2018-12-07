@@ -33,11 +33,17 @@
 #include <ego/outils.h>
 #include <iostream>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QComboBox>
 #include <QMouseEvent>
 #include <QScrollArea>
 #include <QVBoxLayout>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
@@ -102,10 +108,10 @@ void VueCanevas::resizeGL(int w, int h)
 void VueCanevas::mousePressEvent(QMouseEvent *e)
 {
 	auto donnees = DonneesCommande();
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
 	donnees.souris = e->button();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	if (m_mode_visionnage == VISIONNAGE_SCENE) {
 		m_kanba->repondant_commande->appele_commande("vue_3d", donnees);
@@ -125,8 +131,8 @@ void VueCanevas::mouseMoveEvent(QMouseEvent *e)
 	}
 
 	auto donnees = DonneesCommande();
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
 	donnees.souris = e->button();
 
 	m_kanba->repondant_commande->ajourne_commande_modale(donnees);
@@ -138,7 +144,7 @@ void VueCanevas::wheelEvent(QWheelEvent *e)
 	 * roulement de la molette de la souris, on prétend que le roulement est un
 	 * double clique de la molette. */
 	auto donnees = DonneesCommande();
-	donnees.x = e->delta();
+	donnees.x = static_cast<float>(e->delta());
 	donnees.souris = Qt::MidButton;
 	donnees.double_clique = true;
 
@@ -148,8 +154,8 @@ void VueCanevas::wheelEvent(QWheelEvent *e)
 void VueCanevas::mouseReleaseEvent(QMouseEvent *e)
 {
 	DonneesCommande donnees;
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
 
 	m_kanba->repondant_commande->acheve_commande_modale(donnees);
 }

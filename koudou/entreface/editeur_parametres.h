@@ -38,6 +38,9 @@ class VueParametres : public Persona {
 public:
 	explicit VueParametres(Koudou *koudou);
 
+	VueParametres(VueParametres const &) = default;
+	VueParametres &operator=(VueParametres const &) = default;
+
 	void ajourne_donnees();
 	bool ajourne_proprietes() override;
 };
@@ -55,7 +58,10 @@ class EditeurParametres final : public BaseEditrice {
 public:
 	EditeurParametres(Koudou *koudou, QWidget *parent = nullptr);
 
-	~EditeurParametres();
+	EditeurParametres(EditeurParametres const &) = default;
+	EditeurParametres &operator=(EditeurParametres const &) = default;
+
+	~EditeurParametres() override;
 
 	void ajourne_etat(int evenement) override;
 

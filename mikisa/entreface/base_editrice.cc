@@ -24,6 +24,11 @@
 
 #include "base_editrice.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFrame>
 #include <QLabel>
@@ -32,6 +37,7 @@
 #include <QPushButton>
 #include <QStyle>
 #include <QVariant>
+#pragma GCC diagnostic pop
 
 #include "coeur/composite.h"
 #include "coeur/mikisa.h"
@@ -41,6 +47,7 @@ BaseEditrice::BaseEditrice(Mikisa *mikisa, QWidget *parent)
 	, m_mikisa(mikisa)
     , m_frame(new QFrame(this))
     , m_layout(new QVBoxLayout())
+	, m_main_layout(new QHBoxLayout(m_frame))
 {
 	this->ecoute(m_mikisa);
 
@@ -60,7 +67,6 @@ BaseEditrice::BaseEditrice(Mikisa *mikisa, QWidget *parent)
 	m_layout->setMargin(0);
 	this->setLayout(m_layout);
 
-	m_main_layout = new QHBoxLayout(m_frame);
 	m_main_layout->setMargin(0);
 
 	this->actif(false);

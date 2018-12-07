@@ -67,6 +67,15 @@ qt5_wrap_cpp(
 	fenetre_principale.h
 )
 
+add_library(qt_koudou_entreface ${moc_headers})
+target_include_directories(qt_koudou_entreface PUBLIC "${INCLUSIONS}")
+get_target_property(EXTLIB_COMPILE_FLAGS qt_koudou_entreface COMPILE_OPTIONS)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
+set_target_properties(qt_koudou_entreface PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+
 set(NUANCEURS
 	opengl/nuanceurs/couleur.frag
 	opengl/nuanceurs/diffus.frag
@@ -101,8 +110,6 @@ add_library(${NOM_CIBLE} STATIC
 	fenetre_principale.h
 	outils.h
 
-	${moc_headers}
-
 	controles/assembleur_controles.cc
 	controles/base_controles.cc
 	controles/controles.cc
@@ -132,7 +139,7 @@ add_library(${NOM_CIBLE} STATIC
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}" qt_koudou_entreface)
 
 install(
 	FILES ${NUANCEURS}

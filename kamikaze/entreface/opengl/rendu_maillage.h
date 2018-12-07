@@ -37,7 +37,10 @@ class RenduMaillage final : public RenduPrimitive {
 public:
 	explicit RenduMaillage(Mesh *maillage);
 
-	~RenduMaillage();
+	RenduMaillage(RenduMaillage const &) = default;
+	RenduMaillage &operator=(RenduMaillage const &) = default;
+
+	~RenduMaillage() override;
 
 	void initialise() override;
 

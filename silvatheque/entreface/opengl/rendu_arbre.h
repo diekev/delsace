@@ -43,6 +43,9 @@ public:
 	 */
 	explicit RenduArbre(Arbre *arbre);
 
+	RenduArbre(RenduArbre const &) = default;
+	RenduArbre &operator=(RenduArbre const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.

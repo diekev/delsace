@@ -164,17 +164,17 @@ static void lis_groupe_nuancage(AdaptriceCreationObjet *adaptrice, std::istrings
 
 void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, const std::string &chemin)
 {
-	std::ifstream is;
-	is.open(chemin.c_str());
+	std::ifstream ifs;
+	ifs.open(chemin.c_str());
 
-	if (!is.is_open()) {
+	if (!ifs.is_open()) {
 		return;
 	}
 
 	std::string ligne;
 	std::string entete;
 
-	while (std::getline(is, ligne)) {
+	while (std::getline(ifs, ligne)) {
 		std::istringstream is(ligne);
 		is >> entete;
 

@@ -96,14 +96,14 @@ void RenduMaillage::initialise()
 	for (auto i = 0ul, ie = polys->size(); i < ie; ++i) {
 		const auto &quad = (*polys)[i];
 
-		indices.push_back(quad[0]);
-		indices.push_back(quad[1]);
-		indices.push_back(quad[2]);
+		indices.push_back(static_cast<unsigned>(quad[0]));
+		indices.push_back(static_cast<unsigned>(quad[1]));
+		indices.push_back(static_cast<unsigned>(quad[2]));
 
-		if (quad[3] != INVALID_INDEX) {
-			indices.push_back(quad[0]);
-			indices.push_back(quad[2]);
-			indices.push_back(quad[3]);
+		if (static_cast<unsigned>(quad[3]) != INVALID_INDEX) {
+			indices.push_back(static_cast<unsigned>(quad[0]));
+			indices.push_back(static_cast<unsigned>(quad[2]));
+			indices.push_back(static_cast<unsigned>(quad[3]));
 		}
 	}
 

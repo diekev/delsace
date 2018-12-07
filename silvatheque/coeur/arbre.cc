@@ -61,8 +61,8 @@ void Arbre::ajoute_sommet(const dls::math::vec3f &pos)
 void Arbre::ajoute_arrete(int s0, int s1)
 {
 	Arrete *a = new Arrete;
-	a->s[0] = m_sommets[s0];
-	a->s[1] = m_sommets[s1];
+	a->s[0] = m_sommets[static_cast<size_t>(s0)];
+	a->s[1] = m_sommets[static_cast<size_t>(s1)];
 
 	m_arretes.push_back(a);
 }

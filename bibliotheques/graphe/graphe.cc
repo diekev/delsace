@@ -161,7 +161,7 @@ Noeud *trouve_noeud(
 			continue;
 		}
 
-		noeud_res = const_cast<Noeud *>(pointeur_noeud);
+		noeud_res = pointeur_noeud;
 	}
 
 	return noeud_res;

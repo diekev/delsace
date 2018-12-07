@@ -50,6 +50,9 @@ public:
 	 */
 	RenduManipulatricePosition();
 
+	RenduManipulatricePosition(RenduManipulatricePosition const &) = default;
+	RenduManipulatricePosition &operator=(RenduManipulatricePosition const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.
@@ -86,6 +89,9 @@ public:
 	 */
 	RenduManipulatriceEchelle();
 
+	RenduManipulatriceEchelle(RenduManipulatriceEchelle const &) = default;
+	RenduManipulatriceEchelle &operator=(RenduManipulatriceEchelle const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.
@@ -120,6 +126,9 @@ public:
 	 * elle doit se faire dans un contexte OpenGL valide.
 	 */
 	RenduManipulatriceRotation();
+
+	RenduManipulatriceRotation(RenduManipulatriceRotation const &) = default;
+	RenduManipulatriceRotation &operator=(RenduManipulatriceRotation const &) = default;
 
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et

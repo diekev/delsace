@@ -73,7 +73,7 @@ void angles_euler_depuis_matrice(const dls::math::mat4x4f &matrice, dls::math::v
 Camera3D::Camera3D(int largeur, int hauteur)
 	: m_largeur(largeur)
 	, m_hauteur(hauteur)
-	, m_aspect(float(largeur) / hauteur)
+	, m_aspect(static_cast<float>(largeur) / static_cast<float>(hauteur))
 	, m_tete(30.0f)
 	, m_inclinaison(45.0f)
 	, m_proche(0.1f)
@@ -183,7 +183,7 @@ void Camera3D::redimensionne(int largeur, int hauteur)
 {
 	m_largeur = largeur;
 	m_hauteur = hauteur;
-	m_aspect = static_cast<float>(largeur) / hauteur;
+	m_aspect = static_cast<float>(largeur) / static_cast<float>(hauteur);
 
 	ajourne_projection();
 
@@ -261,18 +261,18 @@ dls::math::point2f Camera3D::pos_ecran(const dls::math::point3f &pos)
 							dls::math::vec3f(pos.x, pos.y, pos.z),
 							MV(),
 							P(),
-							dls::math::vec4f(0, 0, largeur(), hauteur()));
+							dls::math::vec4f(0.0f, 0.0f, static_cast<float>(largeur()), static_cast<float>(hauteur())));
 
-	return dls::math::point2f(point.x, hauteur() - point.y);
+	return dls::math::point2f(point.x, static_cast<float>(hauteur()) - point.y);
 }
 
 dls::math::point3f Camera3D::pos_monde(const dls::math::point3f &pos)
 {
 	return dls::math::deprojette(
-				dls::math::vec3f(pos.x * largeur(), pos.y * hauteur(), pos.z),
+				dls::math::vec3f(pos.x * static_cast<float>(largeur()), pos.y * static_cast<float>(hauteur()), pos.z),
 				MV(),
 				P(),
-				dls::math::vec4f(0, 0, largeur(), hauteur()));
+				dls::math::vec4f(0.0f, 0.0f, static_cast<float>(largeur()), static_cast<float>(hauteur())));
 }
 
 void Camera3D::projection(TypeProjection proj)
@@ -327,9 +327,9 @@ void Camera3D::ajourne_pour_operatrice()
 
 	m_camera_vers_monde = dls::math::mat4x4f(1.0);
 	m_camera_vers_monde = dls::math::translation(m_camera_vers_monde, m_position);
-	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.x, dls::math::vec3f(1.0, 0.0, 0.0));
-	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.y, dls::math::vec3f(0.0, 1.0, 0.0));
-	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.z, dls::math::vec3f(0.0, 0.0, 1.0));
+	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.x, dls::math::vec3f(1.0f, 0.0f, 0.0f));
+	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.y, dls::math::vec3f(0.0f, 1.0f, 0.0f));
+	m_camera_vers_monde = dls::math::rotation(m_camera_vers_monde, m_rotation.z, dls::math::vec3f(0.0f, 0.0f, 1.0f));
 
 	m_monde_vers_camera = dls::math::inverse(m_camera_vers_monde);
 

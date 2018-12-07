@@ -26,7 +26,7 @@
 
 #include <GL/glew.h>
 
-AtlasTexture::AtlasTexture(int nombre)
+AtlasTexture::AtlasTexture(unsigned int nombre)
 	: m_nombre(nombre)
 {
 	glGenTextures(1, &m_bindcode);
@@ -60,7 +60,7 @@ void AtlasTexture::detache() const
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
-void AtlasTexture::typage(int type, int format, int format_interne)
+void AtlasTexture::typage(unsigned int type, unsigned int format, int format_interne)
 {
 	m_type = type;
 	m_format = format;

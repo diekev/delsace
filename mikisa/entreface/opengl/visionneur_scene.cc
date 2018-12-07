@@ -274,6 +274,6 @@ void VisionneurScene::redimensionne(int largeur, int hauteur)
 
 void VisionneurScene::position_souris(int x, int y)
 {
-	m_pos_x = static_cast<float>(x) / m_camera->largeur() * 2.0 - 1.0;
-	m_pos_y = static_cast<float>(m_camera->hauteur() - y) / m_camera->hauteur() * 2.0 - 1.0;
+	m_pos_x = static_cast<float>(x) / static_cast<float>(m_camera->largeur()) * 2.0f - 1.0f;
+	m_pos_y = static_cast<float>(m_camera->hauteur() - y) / static_cast<float>(m_camera->hauteur()) * 2.0f - 1.0f;
 }

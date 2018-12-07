@@ -56,6 +56,9 @@ struct Poseidon : public Audite {
 	Poseidon();
 	~Poseidon();
 
+	Poseidon(const Poseidon &autre) = default;
+	Poseidon &operator=(const Poseidon &autre) = default;
+
 	void enregistre_commandes();
 };
 

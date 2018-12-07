@@ -30,10 +30,16 @@
 #include <ego/outils.h>
 #include <iostream>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QWheelEvent>
+#pragma GCC diagnostic pop
 
 #include <image/operations/operations.h>
 #include <image/pixel.h>
@@ -122,13 +128,13 @@ void Visionneuse2D::charge_image(const numero7::math::matrice<numero7::image::Pi
 	}
 
 	GLint size[2] = {
-		static_cast<GLint>(image.nombre_colonnes()),
-		static_cast<GLint>(image.nombre_lignes())
+		image.nombre_colonnes(),
+		image.nombre_lignes()
 	};
 
-	m_matrice_image = dls::math::mat4x4f(1.0);
-	m_matrice_image[0][0] = 1.0;
-	m_matrice_image[1][1] = static_cast<float>(size[1]) / size[0];
+	m_matrice_image = dls::math::mat4x4f(1.0f);
+	m_matrice_image[0][0] = 1.0f;
+	m_matrice_image[1][1] = static_cast<float>(size[1]) / static_cast<float>(size[0]);
 
 	/* À FAIRE : il y a des crashs lors du démarrage, il faudrait réviser la
 	 * manière d'initialiser les éditeurs quand ils sont ajoutés */
@@ -142,10 +148,10 @@ void Visionneuse2D::mousePressEvent(QMouseEvent *event)
 	m_base->rend_actif();
 
 	auto donnees = DonneesCommande();
-	donnees.x = (this->size().width() - event->pos().x());
-	donnees.y = event->pos().y();
-	donnees.souris = event->buttons();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(this->size().width() - event->pos().x());
+	donnees.y = static_cast<float>(event->pos().y());
+	donnees.souris = static_cast<int>(event->buttons());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->appele_commande("vue_2d", donnees);
 }
@@ -155,10 +161,10 @@ void Visionneuse2D::mouseMoveEvent(QMouseEvent *event)
 	m_base->rend_actif();
 
 	auto donnees = DonneesCommande();
-	donnees.x = (this->size().width() - event->pos().x());
-	donnees.y = event->pos().y();
-	donnees.souris = event->buttons();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(this->size().width() - event->pos().x());
+	donnees.y = static_cast<float>(event->pos().y());
+	donnees.souris = static_cast<int>(event->buttons());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	if (event->buttons() == 0) {
 		m_mikisa->repondant_commande()->appele_commande("vue_2d", donnees);
@@ -173,10 +179,10 @@ void Visionneuse2D::mouseReleaseEvent(QMouseEvent *event)
 	m_base->rend_actif();
 
 	auto donnees = DonneesCommande();
-	donnees.x = (this->size().width() - event->pos().x());
-	donnees.y = event->pos().y();
-	donnees.souris = event->buttons();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(this->size().width() - event->pos().x());
+	donnees.y = static_cast<float>(event->pos().y());
+	donnees.souris = static_cast<int>(event->buttons());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->acheve_commande_modale(donnees);
 }
@@ -189,11 +195,11 @@ void Visionneuse2D::wheelEvent(QWheelEvent *event)
 	 * roulement de la molette de la souris, on prétend que le roulement est un
 	 * double clique de la molette. */
 	auto donnees = DonneesCommande();
-	donnees.x = event->angleDelta().x();
-	donnees.y = event->angleDelta().y();
+	donnees.x = static_cast<float>(event->angleDelta().x());
+	donnees.y = static_cast<float>(event->angleDelta().y());
 	donnees.souris = Qt::MiddleButton;
 	donnees.double_clique = true;
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->appele_commande("vue_2d", donnees);
 }

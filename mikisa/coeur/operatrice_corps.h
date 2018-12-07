@@ -31,12 +31,10 @@ class Noeud;
 
 class OperatriceCorps : public OperatriceImage {
 protected:
-	Corps m_corps;
+	Corps m_corps{};
 
 public:
 	OperatriceCorps(Noeud *noeud);
-
-	virtual ~OperatriceCorps() = default;
 
 	int type() const override;
 

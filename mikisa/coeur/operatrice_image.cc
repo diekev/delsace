@@ -54,8 +54,8 @@ numero7::image::Pixel<float> Calque::echantillone(float x, float y) const
 	const auto entier_x = static_cast<int>(x);
 	const auto entier_y = static_cast<int>(y);
 
-	const auto fract_x = x - entier_x;
-	const auto fract_y = y - entier_y;
+	const auto fract_x = x - static_cast<float>(entier_x);
+	const auto fract_y = y - static_cast<float>(entier_y);
 
 	const auto x1 = std::max(0, std::min(entier_x, res_x - 1));
 	const auto y1 = std::max(0, std::min(entier_y, res_y - 1));
@@ -82,8 +82,8 @@ Calque *Image::ajoute_calque(const std::string &nom, const Rectangle &rectangle)
 {
 	auto tampon = new Calque();
 	tampon->nom = nom;
-	tampon->tampon = type_image(numero7::math::Hauteur(rectangle.hauteur),
-								numero7::math::Largeur(rectangle.largeur));
+	tampon->tampon = type_image(numero7::math::Hauteur(static_cast<int>(rectangle.hauteur)),
+								numero7::math::Largeur(static_cast<int>(rectangle.largeur)));
 
 	auto pixel = numero7::image::Pixel<float>(0.0f);
 	pixel.a = 1.0f;
@@ -265,13 +265,13 @@ int OperatriceImage::type() const
 	return OPERATRICE_IMAGE;
 }
 
-void OperatriceImage::inputs(int number)
+void OperatriceImage::inputs(size_t number)
 {
 	m_num_inputs = number;
 	m_input_data.resize(number);
 }
 
-int OperatriceImage::inputs() const
+size_t OperatriceImage::inputs() const
 {
 	return m_num_inputs;
 }
@@ -343,13 +343,13 @@ void OperatriceImage::set_output_data(size_t index, PriseSortie *prise)
 	m_sorties[index] = SortieOperatrice(prise);
 }
 
-void OperatriceImage::outputs(int number)
+void OperatriceImage::outputs(size_t number)
 {
 	m_num_outputs = number;
 	m_sorties.resize(number);
 }
 
-int OperatriceImage::outputs() const
+size_t OperatriceImage::outputs() const
 {
 	return m_num_outputs;
 }

@@ -29,13 +29,13 @@
 #include "primitive.h"
 
 class SegmentPrim : public Primitive {
-	PointList m_points;
-	EdgeList m_edges;
+	PointList m_points{};
+	EdgeList m_edges{};
 
 public:
 	SegmentPrim();
 	SegmentPrim(const SegmentPrim &other);
-	~SegmentPrim();
+	~SegmentPrim() override;
 
 	SegmentPrim &operator=(const SegmentPrim &other) = default;
 

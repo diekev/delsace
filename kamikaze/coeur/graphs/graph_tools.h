@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include <vector>
+#include <unordered_map>
+
 /* Perform a topological sort of the nodes in a directed acyclic graph.
  * This is templated over the node type and all of the functions called in here
  * are to be overloaded with the right node type. */
@@ -37,7 +40,7 @@ static void topology_sort(const std::vector<NodeType *> &nodes, std::vector<Node
 	std::vector<NodeType *> stack;
 	std::unordered_map<NodeType *, std::pair<int, bool>> node_degrees;
 
-	int degree;
+	size_t degree;
 
 	for (auto node : nodes) {
 		if (!is_linked(node)) {

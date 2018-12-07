@@ -54,7 +54,7 @@ struct ParametresRendu {
 	unsigned int hauteur_carreau = 32;
 	unsigned int largeur_carreau = 32;
 
-	Scene scene;
+	Scene scene{};
 #ifdef NOUVELLE_CAMERA
 	CameraPerspective *camera = nullptr;
 #else
@@ -68,6 +68,7 @@ struct ParametresRendu {
 
 	/* À FAIRE */
 	ParametresRendu(const ParametresRendu &) = delete;
+	ParametresRendu &operator=(const ParametresRendu &) = delete;
 };
 
 struct InformationsRendu {
@@ -86,12 +87,12 @@ struct InformationsRendu {
 
 struct Koudou : public Audite {
 	MoteurRendu *moteur_rendu;
-	ParametresRendu parametres_rendu;
+	ParametresRendu parametres_rendu{};
 
-	InformationsRendu informations_rendu;
+	InformationsRendu informations_rendu{};
 
 	/* Interface utilisateur. */
-	FenetrePrincipale *fenetre_principale;
+	FenetrePrincipale *fenetre_principale{};
 	BaseEditrice *widget_actif;
 
 	/* Préférences et paramètres. */
@@ -106,6 +107,7 @@ struct Koudou : public Audite {
 	Koudou();
 
 	Koudou(const Koudou &) = delete;
+	Koudou &operator=(const Koudou &) = delete;
 
 	~Koudou();
 

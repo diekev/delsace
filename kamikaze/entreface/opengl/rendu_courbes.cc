@@ -92,8 +92,8 @@ void RenduCourbes::initialise()
 
 	for (auto i = 0ul, ie = edgelist->size(); i < ie; ++i) {
 		const auto &edge = (*edgelist)[i];
-		indices.push_back(edge[0]);
-		indices.push_back(edge[1]);
+		indices.push_back(static_cast<unsigned>(edge[0]));
+		indices.push_back(static_cast<unsigned>(edge[1]));
 	}
 
 	ParametresTampon parametres;

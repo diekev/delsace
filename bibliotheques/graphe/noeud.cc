@@ -79,9 +79,9 @@ void Noeud::nom(const std::string &name)
 	m_nom = name;
 }
 
-float Noeud::pos_x() const
+double Noeud::pos_x() const
 {
-	return m_rectangle.x;
+	return static_cast<double>(m_rectangle.x);
 }
 
 void Noeud::pos_x(float x)
@@ -89,9 +89,9 @@ void Noeud::pos_x(float x)
 	m_rectangle.x = x;
 }
 
-float Noeud::pos_y() const
+double Noeud::pos_y() const
 {
-	return m_rectangle.y;
+	return static_cast<double>(m_rectangle.y);
 }
 
 void Noeud::pos_y(float y)
@@ -101,22 +101,22 @@ void Noeud::pos_y(float y)
 
 int Noeud::hauteur() const
 {
-	return m_rectangle.hauteur;
+	return static_cast<int>(m_rectangle.hauteur);
 }
 
 void Noeud::hauteur(int h)
 {
-	m_rectangle.hauteur = h;
+	m_rectangle.hauteur = static_cast<float>(h);
 }
 
 int Noeud::largeur() const
 {
-	return m_rectangle.largeur;
+	return static_cast<int>(m_rectangle.largeur);
 }
 
 void Noeud::largeur(int l)
 {
-	m_rectangle.largeur = l;
+	m_rectangle.largeur = static_cast<float>(l);
 }
 
 const Rectangle &Noeud::rectangle() const
@@ -142,7 +142,7 @@ void Noeud::ajoute_sortie(const std::string &name, const int type)
 	this->m_sorties.push_back(prise);
 }
 
-PriseEntree *Noeud::entree(int index)
+PriseEntree *Noeud::entree(size_t index)
 {
 	return m_entrees[index];
 }
@@ -158,7 +158,7 @@ PriseEntree *Noeud::entree(const std::string &nom)
 	return nullptr;
 }
 
-PriseSortie *Noeud::sortie(int index)
+PriseSortie *Noeud::sortie(size_t index)
 {
 	return m_sorties[index];
 }

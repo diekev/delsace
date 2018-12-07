@@ -26,7 +26,13 @@
 
 #include "base_editeur.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QTreeWidget>
+#pragma GCC diagnostic pop
 
 class Calque;
 class QGridLayout;
@@ -35,10 +41,13 @@ class QScrollArea;
 /* ************************************************************************** */
 
 class ItemArbreCalque : public QTreeWidgetItem {
-	const Calque *m_calque;
+	const Calque *m_calque{};
 
 public:
 	explicit ItemArbreCalque(const Calque *calque, QTreeWidgetItem *parent = nullptr);
+
+	ItemArbreCalque(ItemArbreCalque const &) = default;
+	ItemArbreCalque &operator=(ItemArbreCalque const &) = default;
 
 	const Calque *pointeur() const;
 };
@@ -50,6 +59,9 @@ class TreeWidget : public QTreeWidget {
 
 public:
 	explicit TreeWidget(QWidget *parent = nullptr);
+
+	TreeWidget(TreeWidget const &) = default;
+	TreeWidget &operator=(TreeWidget const &) = default;
 
 	void set_base(BaseEditrice *base);
 
@@ -70,7 +82,10 @@ class EditeurCalques final : public BaseEditrice {
 public:
 	EditeurCalques(Kanba *kanba, QWidget *parent = nullptr);
 
-	~EditeurCalques();
+	EditeurCalques(EditeurCalques const &) = default;
+	EditeurCalques &operator=(EditeurCalques const &) = default;
+
+	~EditeurCalques() override;
 
 	void ajourne_etat(int evenement) override;
 

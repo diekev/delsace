@@ -33,7 +33,7 @@ struct Brosse {
 	float opacite = 1.0f;
 	int rayon = 35;
 
-	TypeMelange mode_fusion;
+	TypeMelange mode_fusion{};
 
 	Brosse() = default;
 };

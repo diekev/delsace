@@ -38,19 +38,19 @@ class VueCanevas;
  * OpenGL dans une instance de VueCanevas.
  */
 class VisionneurImage {
-	VueCanevas *m_parent;
+	VueCanevas *m_parent{};
 
-	numero7::ego::Programme m_program;
-	numero7::ego::TamponObjet::Ptr m_buffer;
-	numero7::ego::Texture2D::Ptr m_texture_R;
-	numero7::ego::Texture2D::Ptr m_texture_G;
-	numero7::ego::Texture2D::Ptr m_texture_B;
-	numero7::ego::Texture2D::Ptr m_texture_A;
+	numero7::ego::Programme m_program{};
+	numero7::ego::TamponObjet::Ptr m_buffer{};
+	numero7::ego::Texture2D::Ptr m_texture_R{};
+	numero7::ego::Texture2D::Ptr m_texture_G{};
+	numero7::ego::Texture2D::Ptr m_texture_B{};
+	numero7::ego::Texture2D::Ptr m_texture_A{};
 
-	std::vector<float> m_donnees_r;
-	std::vector<float> m_donnees_g;
-	std::vector<float> m_donnees_b;
-	std::vector<float> m_donnees_a;
+	std::vector<float> m_donnees_r{};
+	std::vector<float> m_donnees_g{};
+	std::vector<float> m_donnees_b{};
+	std::vector<float> m_donnees_a{};
 
 	const float m_vertices[8] = {
 		0.0f, 0.0f,
@@ -69,6 +69,9 @@ public:
 	 * Empêche la construction d'un visionneur sans VueCanevas.
 	 */
 	VisionneurImage() = delete;
+
+	VisionneurImage(VisionneurImage const &) = default;
+	VisionneurImage &operator=(VisionneurImage const &) = default;
 
 	/**
 	 * Construit un visionneur avec un pointeur vers le VueCanevas parent.

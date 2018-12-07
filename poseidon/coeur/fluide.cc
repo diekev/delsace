@@ -48,7 +48,7 @@ Fluide::Fluide()
 	temps_precedent = 0;
 	source = new Maillage;
 	domaine = new Maillage;
-	res = dls::math::vec3i(32);
+	res = dls::math::vec3<size_t>(32ul);
 
 	AdaptriceCreationMaillage adaptrice;
 
@@ -74,7 +74,7 @@ void Fluide::ajourne_pour_nouveau_temps()
 	/* Réinitialise si nous sommes à la première image. */
 	if (temps_courant == temps_debut) {
 		initialise();
-		cree_particule(this, 8);
+		cree_particule(this, 8ul);
 		return;
 	}
 
@@ -155,11 +155,15 @@ void Fluide::construit_grille_particule()
 		pos_domaine.y /= taille_domaine.y;
 		pos_domaine.z /= taille_domaine.z;
 
-		pos_domaine.x *= res.x;
-		pos_domaine.y *= res.y;
-		pos_domaine.z *= res.z;
+		pos_domaine.x *= static_cast<float>(res.x);
+		pos_domaine.y *= static_cast<float>(res.y);
+		pos_domaine.z *= static_cast<float>(res.z);
 
-		grille_particules.ajoute_particule(pos_domaine.x, pos_domaine.y, pos_domaine.z, &p);
+		grille_particules.ajoute_particule(
+					static_cast<size_t>(pos_domaine.x),
+					static_cast<size_t>(pos_domaine.y),
+					static_cast<size_t>(pos_domaine.z),
+					&p);
 	}
 }
 
@@ -190,9 +194,9 @@ void Fluide::transfert_velocite()
 	{
 		size_t index = plage.begin() * res.x * res.y;
 
-		for (int z = plage.begin(); z < plage.end(); ++z) {
-			for (int y = 0; y < res.y; ++y) {
-				for (int x = 0; x < res.x; ++x, ++index) {
+		for (auto z = plage.begin(); z < plage.end(); ++z) {
+			for (size_t y = 0; y < res.y; ++y) {
+				for (size_t x = 0; x < res.x; ++x, ++index) {
 					const auto &parts = grille_particules.particule(x, y, z);
 
 					auto vel = dls::math::vec3f(0.0f);
@@ -231,9 +235,9 @@ void Fluide::ajoute_acceleration()
 	const auto &taille_domaine = domaine->taille();
 
 	dls::math::vec3f dh_domaine(
-		taille_domaine[0] / res.x,
-		taille_domaine[1] / res.y,
-		taille_domaine[2] / res.z
+		taille_domaine[0] / static_cast<float>(res.x),
+		taille_domaine[1] / static_cast<float>(res.y),
+		taille_domaine[2] / static_cast<float>(res.z)
 	);
 
 	auto dt = 1.0f / 24.0f;
@@ -244,9 +248,9 @@ void Fluide::ajoute_acceleration()
 	{
 		size_t index = plage.begin() * res.x * res.y;
 
-		for (int z = plage.begin(); z < plage.end(); ++z) {
-			for (int y = 0; y < res.y; ++y) {
-				for (int x = 0; x < res.x; ++x, ++index) {
+		for (size_t z = plage.begin(); z < plage.end(); ++z) {
+			for (size_t y = 0; y < res.y; ++y) {
+				for (size_t x = 0; x < res.x; ++x, ++index) {
 					if (drapeaux.valeur(index) != CELLULE_FLUIDE) {
 						continue;
 					}
@@ -278,8 +282,8 @@ void Fluide::conditions_bordure()
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.y),
 					 [&](const tbb::blocked_range<size_t> &plage)
 	{
-		for (int y = plage.begin(); y < plage.end(); ++y) {
-			for (int x = 0; x < res.x; ++x) {
+		for (size_t y = plage.begin(); y < plage.end(); ++y) {
+			for (size_t x = 0; x < res.x; ++x) {
 #ifdef VELOCITE_SEPAREE
 				velocite_z.valeur(x, y, 0, 0.0f);
 				velocite_z.valeur(x, y, res.z - 1, 0.0f);
@@ -294,8 +298,8 @@ void Fluide::conditions_bordure()
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
 					 [&](const tbb::blocked_range<size_t> &plage)
 	{
-		for (int z = plage.begin(); z < plage.end(); ++z) {
-			for (int x = 0; x < res.x; ++x) {
+		for (size_t z = plage.begin(); z < plage.end(); ++z) {
+			for (size_t x = 0; x < res.x; ++x) {
 #ifdef VELOCITE_SEPAREE
 				velocite_y.valeur(x, 0, z, 0.0f);
 				velocite_y.valeur(x, res.y - 1, z, 0.0f);
@@ -310,8 +314,8 @@ void Fluide::conditions_bordure()
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
 					 [&](const tbb::blocked_range<size_t> &plage)
 	{
-		for (int z = plage.begin(); z < plage.end(); ++z) {
-			for (int y = 0; y < res.y; ++y) {
+		for (size_t z = plage.begin(); z < plage.end(); ++z) {
+			for (size_t y = 0; y < res.y; ++y) {
 #ifdef VELOCITE_SEPAREE
 				velocite_x.valeur(0, y, z, 0.0f);
 				velocite_x.valeur(res.x - 1, y, z, 0.0f);
@@ -332,15 +336,15 @@ void Fluide::soustrait_velocite()
 	{
 		size_t index = plage.begin() * res.x * res.y;
 
-		for (int z = plage.begin(); z < plage.end(); ++z) {
-			for (int y = 0; y < res.y; ++y) {
-				for (int x = 0; x < res.x; ++x, ++index) {
+		for (size_t z = plage.begin(); z < plage.end(); ++z) {
+			for (size_t y = 0; y < res.y; ++y) {
+				for (size_t x = 0; x < res.x; ++x, ++index) {
 #ifdef VELOCITE_SEPAREE
 					auto vel_x = velocite_x.valeur(index + 1) - velocite_x_ancienne.valeur(index + 1);
 					auto vel_y = velocite_y.valeur(index + res.x) - velocite_y_ancienne.valeur(index + res.x);
 					auto vel_z = velocite_z.valeur(index + res.x * res.y) - velocite_z_ancienne.valeur(index + res.x * res.y);
 #else
-					auto vel = velocite.valeur(index) - ancienne_velocites.valeur(index);
+					//auto vel = velocite.valeur(index) - ancienne_velocites.valeur(index);
 #endif
 					/* Assigne la vélocité aux particules avoisinantes. */
 				}
@@ -375,7 +379,7 @@ static void calcule_distance(Grille<float> &phi, size_t x, size_t y, size_t z, f
 		xi = a + h;
 	}
 	else {
-		xi = 0.5f * (a + b + sqrt(2.0f * h * h - (a - b) * (a - b)));
+		xi = 0.5f * (a + b + std::sqrt(2.0f * h * h - (a - b) * (a - b)));
 
 		/* À FAIRE : trouver la généralisation. */
 //		if (xi > c) {
@@ -403,9 +407,9 @@ void Fluide::construit_champs_distance()
 	{
 		size_t index = plage.begin() * res.x * res.y;
 
-		for (int z = plage.begin(); z < plage.end(); ++z) {
-			for (int y = 0; y < res.y; ++y) {
-				for (int x = 0; x < res.x; ++x, ++index) {
+		for (size_t z = plage.begin(); z < plage.end(); ++z) {
+			for (size_t y = 0; y < res.y; ++y) {
+				for (size_t x = 0; x < res.x; ++x, ++index) {
 					auto valeur = 0.0f;
 
 					if (drapeaux.valeur(index) != CELLULE_FLUIDE) {
@@ -428,13 +432,13 @@ void Fluide::construit_champs_distance()
 	/* Sweep : x : X -> 0, y : Y -> 0, z : Z -> 0 */
 
 	/* À FAIRE : taille grille uniforme. */
-	auto h = 4.0f / (res.x);
+	auto h = 4.0f / static_cast<float>(res.x);
 
 	/* À FAIRE : différence sens unique près de bord du domaine. */
 
-	for (int z = 0; z < res.z; ++z) {
-		for (int y = 0; y < res.y; ++y) {
-			for (int x = 0; x < res.x; ++x) {
+	for (size_t z = 0; z < res.z; ++z) {
+		for (size_t y = 0; y < res.y; ++y) {
+			for (size_t x = 0; x < res.x; ++x) {
 				if (drapeaux.valeur(x, y, z) != CELLULE_FLUIDE) {
 					calcule_distance(phi, x, y, z, h);
 				}
@@ -442,9 +446,9 @@ void Fluide::construit_champs_distance()
 		}
 	}
 
-	for (int z = res.z - 1; z >= 0; --z) {
-		for (int y = 0; y < res.y; ++y) {
-			for (int x = 0; x < res.x; ++x) {
+	for (size_t z = res.z - 1; z < -1ul; --z) {
+		for (size_t y = 0; y < res.y; ++y) {
+			for (size_t x = 0; x < res.x; ++x) {
 				if (drapeaux.valeur(x, y, z) != CELLULE_FLUIDE) {
 					calcule_distance(phi, x, y, z, h);
 				}
@@ -452,9 +456,9 @@ void Fluide::construit_champs_distance()
 		}
 	}
 
-	for (int z = 0; z < res.z; ++z) {
-		for (int y = res.y - 1; y >= 0; --y) {
-			for (int x = 0; x < res.x; ++x) {
+	for (size_t z = 0; z < res.z; ++z) {
+		for (size_t y = res.y - 1; y < -1ul; --y) {
+			for (size_t x = 0; x < res.x; ++x) {
 				if (drapeaux.valeur(x, y, z) != CELLULE_FLUIDE) {
 					calcule_distance(phi, x, y, z, h);
 				}
@@ -462,9 +466,9 @@ void Fluide::construit_champs_distance()
 		}
 	}
 
-	for (int z = res.z - 1; z >= 0; --z) {
-		for (int y = res.y - 1; y >= 0; --y) {
-			for (int x = 0; x < res.x; ++x) {
+	for (size_t z = res.z - 1; z < -1ul; --z) {
+		for (size_t y = res.y - 1; y < -1ul; --y) {
+			for (size_t x = 0; x < res.x; ++x) {
 				if (drapeaux.valeur(x, y, z) != CELLULE_FLUIDE) {
 					calcule_distance(phi, x, y, z, h);
 				}
@@ -472,9 +476,9 @@ void Fluide::construit_champs_distance()
 		}
 	}
 
-	for (int z = 0; z < res.z; ++z) {
-		for (int y = 0; y < res.y; ++y) {
-			for (int x = res.x - 1; x >= 0; --x) {
+	for (size_t z = 0; z < res.z; ++z) {
+		for (size_t y = 0; y < res.y; ++y) {
+			for (size_t x = res.x - 1; x < -1ul; --x) {
 				if (drapeaux.valeur(x, y, z) != CELLULE_FLUIDE) {
 					calcule_distance(phi, x, y, z, h);
 				}
@@ -482,9 +486,9 @@ void Fluide::construit_champs_distance()
 		}
 	}
 
-	for (int z = res.z - 1; z >= 0; --z) {
-		for (int y = 0; y < res.y; ++y) {
-			for (int x = res.x - 1; x >= 0; --x) {
+	for (size_t z = res.z - 1; z < -1ul; --z) {
+		for (size_t y = 0; y < res.y; ++y) {
+			for (size_t x = res.x - 1; x < -1ul; --x) {
 				if (drapeaux.valeur(x, y, z) != CELLULE_FLUIDE) {
 					calcule_distance(phi, x, y, z, h);
 				}
@@ -492,9 +496,9 @@ void Fluide::construit_champs_distance()
 		}
 	}
 
-	for (int z = 0; z < res.z; ++z) {
-		for (int y = res.y - 1; y >= 0; --y) {
-			for (int x = res.x - 1; x >= 0; --x) {
+	for (size_t z = 0; z < res.z; ++z) {
+		for (size_t y = res.y - 1; y < -1ul; --y) {
+			for (size_t x = res.x - 1; x < -1ul; --x) {
 				if (drapeaux.valeur(x, y, z) != CELLULE_FLUIDE) {
 					calcule_distance(phi, x, y, z, h);
 				}
@@ -502,9 +506,9 @@ void Fluide::construit_champs_distance()
 		}
 	}
 
-	for (int z = res.z - 1; z >= 0; --z) {
-		for (int y = res.y - 1; y >= 0; --y) {
-			for (int x = res.x - 1; x >= 0; --x) {
+	for (size_t z = res.z - 1; z < -1ul; --z) {
+		for (size_t y = res.y - 1; y < -1ul; --y) {
+			for (size_t x = res.x - 1; x < -1ul; --x) {
 				if (drapeaux.valeur(x, y, z) != CELLULE_FLUIDE) {
 					calcule_distance(phi, x, y, z, h);
 				}
@@ -515,9 +519,9 @@ void Fluide::construit_champs_distance()
 #ifdef DEBOGAGE_CHAMPS_DISTANCE
 	auto dist_max = -1.0f;
 
-	for (int z = 0; z < res.z; ++z) {
-		for (int y = 0; y < res.y; ++y) {
-			for (int x = 0; x < res.x; ++x) {
+	for (size_t z = 0; z < res.z; ++z) {
+		for (size_t y = 0; y < res.y; ++y) {
+			for (size_t x = 0; x < res.x; ++x) {
 				dist_max = std::max(dist_max, phi.valeur(x, y, z));
 			}
 		}
@@ -531,7 +535,7 @@ void Fluide::construit_champs_distance()
 void Fluide::etend_champs_velocite()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
-	/* Extrapole le champs de vélocité en utilisant le point de surface le plus
+	/* Extrapole le champs de vélocité en utilisant le posize_t de surface le plus
 	 * proche.
 	 * Animation and Rendering of Complex Water Surfaces, Enright et al. 2002,
 	 * http://physbam.stanford.edu/~fedkiw/papers/stanford2002-03.pdf.
@@ -540,9 +544,9 @@ void Fluide::etend_champs_velocite()
 	const auto &taille_domaine = domaine->taille();
 
 	dls::math::vec3f dh(
-		taille_domaine[0] / res.x,
-		taille_domaine[1] / res.y,
-		taille_domaine[2] / res.z
+		taille_domaine[0] / static_cast<float>(res.x),
+		taille_domaine[1] / static_cast<float>(res.y),
+		taille_domaine[2] / static_cast<float>(res.z)
 	);
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
@@ -551,9 +555,9 @@ void Fluide::etend_champs_velocite()
 		const size_t decalage_z = res.x * res.y;
 		size_t index = plage.begin() * res.x * res.y;
 
-		for (int z = plage.begin(); z < plage.end(); ++z) {
-			for (int y = 0; y < res.y; ++y) {
-				for (int x = 0; x < res.x; ++x, ++index) {
+		for (size_t z = plage.begin(); z < plage.end(); ++z) {
+			for (size_t y = 0; y < res.y; ++y) {
+				for (size_t x = 0; x < res.x; ++x, ++index) {
 					if (drapeaux.valeur(index) == CELLULE_FLUIDE) {
 						continue;
 					}
@@ -596,7 +600,10 @@ void Fluide::etend_champs_velocite()
 					velocite_y.valeur(index + res.x, vel_y);
 					velocite_z.valeur(index + decalage_z, vel_z);
 #else
-					velocite.valeur(index, velocite.valeur(x - xi, y - xj, z - xk));
+					velocite.valeur(index, velocite.valeur(
+										x - static_cast<size_t>(xi),
+										y - static_cast<size_t>(xj),
+										z - static_cast<size_t>(xk)));
 #endif
 				}
 			}
@@ -621,9 +628,9 @@ void Fluide::sauvegarde_velocite_PIC()
 			pos_domaine.y /= taille_domaine.y;
 			pos_domaine.z /= taille_domaine.z;
 
-			pos_domaine.x *= res.x;
-			pos_domaine.y *= res.y;
-			pos_domaine.z *= res.z;
+			pos_domaine.x *= static_cast<float>(res.x);
+			pos_domaine.y *= static_cast<float>(res.y);
+			pos_domaine.z *= static_cast<float>(res.z);
 
 #ifdef VELOCITE_SEPAREE
 			auto index = pos_domaine.x + pos_domaine.y * res.x + pos_domaine.z * res.x * res.y;
@@ -632,7 +639,10 @@ void Fluide::sauvegarde_velocite_PIC()
 			auto vel_z = velocite_z.valeur(index + res.x * res.y);
 			p.vel_pic = dls::math::vec3f(vel_x, vel_y, vel_z);
 #else
-			p.vel_pic = velocite.valeur(pos_domaine.x, pos_domaine.y, pos_domaine.z);
+			p.vel_pic = velocite.valeur(
+							static_cast<size_t>(pos_domaine.x),
+							static_cast<size_t>(pos_domaine.y),
+							static_cast<size_t>(pos_domaine.z));
 #endif
 		}
 	});
@@ -661,9 +671,9 @@ void Fluide::advecte_particules()
 			pos_domaine.y /= taille_domaine.y;
 			pos_domaine.z /= taille_domaine.z;
 
-			pos_domaine.x *= res.x;
-			pos_domaine.y *= res.y;
-			pos_domaine.z *= res.z;
+			pos_domaine.x *= static_cast<float>(res.x);
+			pos_domaine.y *= static_cast<float>(res.y);
+			pos_domaine.z *= static_cast<float>(res.z);
 
 #ifdef VELOCITE_SEPAREE
 			auto index = pos_domaine.x + pos_domaine.y * res.x + pos_domaine.z * res.x * res.y;
@@ -673,7 +683,10 @@ void Fluide::advecte_particules()
 
 			pos_domaine = (p.pos - min_domaine) - dls::math::vec3f(vel_x, vel_y, vel_z);
 #else
-			auto vel = velocite.valeur(pos_domaine.x, pos_domaine.y, pos_domaine.z);
+			auto vel = velocite.valeur(
+						   static_cast<size_t>(pos_domaine.x),
+						   static_cast<size_t>(pos_domaine.y),
+						   static_cast<size_t>(pos_domaine.z));
 
 			pos_domaine = (p.pos - min_domaine) - vel;
 #endif
@@ -681,9 +694,9 @@ void Fluide::advecte_particules()
 			pos_domaine.y /= taille_domaine.y;
 			pos_domaine.z /= taille_domaine.z;
 
-			pos_domaine.x *= res.x;
-			pos_domaine.y *= res.y;
-			pos_domaine.z *= res.z;
+			pos_domaine.x *= static_cast<float>(res.x);
+			pos_domaine.y *= static_cast<float>(res.y);
+			pos_domaine.z *= static_cast<float>(res.z);
 
 #ifdef VELOCITE_SEPAREE
 			index = pos_domaine.x + pos_domaine.y * res.x + pos_domaine.z * res.x * res.y;
@@ -693,7 +706,10 @@ void Fluide::advecte_particules()
 
 			p.pos += dls::math::vec3f(vel_x, vel_y, vel_z);
 #else
-			vel = velocite.valeur(pos_domaine.x, pos_domaine.y, pos_domaine.z);
+			vel = velocite.valeur(
+					  static_cast<size_t>(pos_domaine.x),
+					  static_cast<size_t>(pos_domaine.y),
+					  static_cast<size_t>(pos_domaine.z));
 			p.pos += vel;
 #endif
 		}
@@ -704,7 +720,7 @@ bool contiens(const dls::math::vec3f &min,
 			  const dls::math::vec3f &max,
 			  const dls::math::vec3f &pos)
 {
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		if (pos[i] < min[i] || pos[i] >= max[i]) {
 			return false;
 		}
@@ -713,7 +729,7 @@ bool contiens(const dls::math::vec3f &min,
 	return true;
 }
 
-void cree_particule(Fluide *fluide, int nombre)
+void cree_particule(Fluide *fluide, size_t nombre)
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	fluide->particules.clear();
@@ -725,9 +741,9 @@ void cree_particule(Fluide *fluide, int nombre)
 	const auto &taille_domaine = fluide->domaine->taille();
 
 	dls::math::vec3f dh_domaine(
-		taille_domaine[0] / fluide->res.x,
-		taille_domaine[1] / fluide->res.y,
-		taille_domaine[2] / fluide->res.z
+		taille_domaine[0] / static_cast<float>(fluide->res.x),
+		taille_domaine[1] / static_cast<float>(fluide->res.y),
+		taille_domaine[2] / static_cast<float>(fluide->res.z)
 	);
 
 	auto dh_2 = dh_domaine * 0.50f;
@@ -753,13 +769,13 @@ void cree_particule(Fluide *fluide, int nombre)
 
 	/* trouve si les voxels entresectent la source, si oui, ajoute des
 	 * particules */
-	for (int z = 0; z < fluide->res.z; ++z) {
-		for (int y = 0; y < fluide->res.y; ++y) {
-			for (int x = 0; x < fluide->res.x; ++x) {
+	for (size_t z = 0; z < fluide->res.z; ++z) {
+		for (size_t y = 0; y < fluide->res.y; ++y) {
+			for (size_t x = 0; x < fluide->res.x; ++x) {
 				auto pos = min_domaine;
-				pos.x += x * dh_domaine[0];
-				pos.y += y * dh_domaine[1];
-				pos.z += z * dh_domaine[2];
+				pos.x += static_cast<float>(x) * dh_domaine[0];
+				pos.y += static_cast<float>(y) * dh_domaine[1];
+				pos.z += static_cast<float>(z) * dh_domaine[2];
 
 				if (!contiens(min_source, max_source, pos)) {
 					continue;
@@ -767,7 +783,7 @@ void cree_particule(Fluide *fluide, int nombre)
 
 				auto centre_voxel = pos + dh_2;
 
-				for (int i = 0; i < nombre; ++i) {
+				for (size_t i = 0; i < nombre; ++i) {
 					auto pos_p = centre_voxel + decalage[i];
 
 					p.pos.x = pos_p.x + dist_x(rng);

@@ -319,7 +319,7 @@ static void lecture_propriete(
 			const auto donnee_x = atof(element_donnees->Attribute("valeurx"));
 			const auto donnee_y = atof(element_donnees->Attribute("valeury"));
 			const auto donnee_z = atof(element_donnees->Attribute("valeurz"));
-			const auto donnees = dls::math::vec3f{donnee_x, donnee_y, donnee_z};
+			const auto donnees = dls::math::vec3f{static_cast<float>(donnee_x), static_cast<float>(donnee_y), static_cast<float>(donnee_z)};
 			manipulable->ajoute_propriete(nom_prop, danjo::TypePropriete::VECTEUR, donnees);
 
 			const auto element_animation = element_donnees->FirstChildElement("animation");
@@ -347,7 +347,10 @@ static void lecture_propriete(
 			const auto donnee_y = atof(element_donnees->Attribute("valeury"));
 			const auto donnee_z = atof(element_donnees->Attribute("valeurz"));
 			const auto donnee_w = atof(element_donnees->Attribute("valeurw"));
-			const auto donnees = couleur32(donnee_x, donnee_y, donnee_z, donnee_w);
+			const auto donnees = couleur32(static_cast<float>(donnee_x),
+										   static_cast<float>(donnee_y),
+										   static_cast<float>(donnee_z),
+										   static_cast<float>(donnee_w));
 			manipulable->ajoute_propriete(nom_prop, danjo::TypePropriete::COULEUR, donnees);
 			break;
 		}
@@ -399,10 +402,10 @@ struct DonneesConnexions {
 	/* Tableau faisant correspondre les ids des prises connectées entre elles.
 	 * La clé du tableau est l'id de la prise d'entrée, la valeur, celle de la
 	 * prise de sortie. */
-	std::unordered_map<std::string, std::string> tableau_connexion_id;
+	std::unordered_map<std::string, std::string> tableau_connexion_id{};
 
-	std::unordered_map<std::string, PriseEntree *> tableau_id_prise_entree;
-	std::unordered_map<std::string, PriseSortie *> tableau_id_prise_sortie;
+	std::unordered_map<std::string, PriseEntree *> tableau_id_prise_entree{};
+	std::unordered_map<std::string, PriseSortie *> tableau_id_prise_sortie{};
 };
 
 static void lecture_noeud(
@@ -431,8 +434,8 @@ static void lecture_noeud(
 		noeud->type(NOEUD_IMAGE_SORTIE);
 	}
 
-	noeud->pos_x(atoi(posx));
-	noeud->pos_y(atoi(posy));
+	noeud->pos_x(static_cast<float>(atoi(posx)));
+	noeud->pos_y(static_cast<float>(atoi(posy)));
 
 	const auto racine_prise_entree = element_noeud->FirstChildElement("prises_entree");
 	auto element_prise_entree = racine_prise_entree->FirstChildElement("entree");

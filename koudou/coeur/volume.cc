@@ -68,7 +68,7 @@ bool VolumeLoiBeers::integre(GNA &gna, const ParametresRendu &parametres, Spectr
 
 Spectre VolumeLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const dls::math::point3d &P0, const dls::math::point3d &P1)
 {
-	const auto distance = longueur(P0 - P1);
+	const auto distance = static_cast<float>(longueur(P0 - P1));
 
 	auto L = Spectre();
 	L[0] = std::exp(absorption[0] * -distance);
@@ -129,11 +129,11 @@ Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, const ParametresRendu 
 		auto P = P0 + t * dir;
 
 		/* Calcul l'absorption locale en évaluant le graphe de nuançage. À FAIRE. */
-		auto absorp = bruit(P.x, P.y, P.z);
+		auto absorp = bruit(static_cast<float>(P.x), static_cast<float>(P.y), static_cast<float>(P.z));
 
 		auto xi = gna.nombre_aleatoire();
 
-		if (xi < (absorp / absorption_max)) {
+		if (xi < (static_cast<double>(absorp) / absorption_max)) {
 			termine = true;
 		}
 	} while (termine == false);
@@ -178,10 +178,10 @@ bool VolumeDiffusionSimple::integre(
 	/* Calcul la position de l'échantillon de diffusion, basé sur la PDF
 	 * normalisée selon la transmittance. */
 	auto xi = gna.nombre_aleatoire();
-	auto distance_diffusion = -std::log(1.0 - xi * (1.0 - tr.y())) / extinction.y();
+	auto distance_diffusion = -std::log(1.0f - static_cast<float>(xi) * (1.0f - tr.y())) / extinction.y();
 
 	/* Initialise le nuançage au point de diffusion. */
-	auto P_diffusion = contexte.P + distance_diffusion * contexte.rayon.direction;
+	auto P_diffusion = contexte.P + static_cast<double>(distance_diffusion) * contexte.rayon.direction;
 	contexte.P = P_diffusion;
 
 	/* Calcul l'éclairage direct avec l'échantillonage de la lumière et du BSDF */
@@ -198,7 +198,7 @@ bool VolumeDiffusionSimple::integre(
 
 	bsdf_phase.evalue_echantillon(gna, parametres, dir_echantillon, L_bsdf, pdf_bsdf);
 
-	L += L_lumiere * L_bsdf * transmittance_rayon * poids_MIS / pdf_lumiere;
+	L += L_lumiere * L_bsdf * static_cast<float>(transmittance_rayon * poids_MIS / pdf_lumiere);
 
 	auto trd = Spectre::depuis_rgb(
 				   std::exp(extinction[0] * -distance_diffusion),
@@ -222,7 +222,7 @@ Spectre VolumeDiffusionSimple::transmittance(
 		const dls::math::point3d &P0,
 		const dls::math::point3d &P1)
 {
-	const auto distance = longueur(P0 - P1);
+	const auto distance = static_cast<float>(longueur(P0 - P1));
 
 	return Spectre::depuis_rgb(
 				 std::exp(extinction[0] * -distance),
@@ -274,15 +274,15 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 		}
 
 		// Ajourne le contexte de nuançage.
-		auto P = contexte.P + t * contexte.rayon.direction;
-		contexte.P = P;
+		auto nP = contexte.P + t * contexte.rayon.direction;
+		contexte.P = nP;
 
 		/* Calcul l'absorption locale en évaluant le graphe de nuançage. À FAIRE. */
-		auto extinct = Spectre(bruit(P.x, P.y, P.z));
+		auto extinct = Spectre(bruit(static_cast<float>(nP.x), static_cast<float>(nP.y), static_cast<float>(nP.z)));
 
 		auto xi = gna.nombre_aleatoire();
 
-		if (xi < (extinct.y() / extinction_max)) {
+		if (static_cast<float>(xi) < (extinct.y() / static_cast<float>(extinction_max))) {
 			termine = true;
 		}
 
@@ -307,12 +307,12 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 
 		bsdf_phase.evalue_echantillon(gna, parametres, dir_echantillon, L_bsdf, pdf_bsdf);
 
-		L += L_lumiere * L_bsdf * transmittance_rayon * poids_MIS / pdf_lumiere;
+		L += L_lumiere * L_bsdf * static_cast<float>(transmittance_rayon * poids_MIS / pdf_lumiere);
 
 		bsdf_phase.genere_echantillon(gna, parametres, dir_echantillon, L_bsdf, pdf_bsdf, 1);
 		//rs.EvaluateLightSample(m_ctx, sampleDirection, L_lumiere, pdf_lumiere, beamTransmittance);
 
-		L += L_lumiere * L_bsdf * beamTransmittance * albedo_diffusion * extinction * poids_MIS;
+		L += L_lumiere * L_bsdf * beamTransmittance * albedo_diffusion * extinction * static_cast<float>(poids_MIS);
 
 		tr = Spectre(0.0f);
 		Spectre pdf = extinction; // Should be extinction * Tr, but Tr is 1
@@ -335,7 +335,7 @@ Spectre VolumeHeterogeneDiffusionSimple::transmittance(
 		const dls::math::point3d &P0,
 		const dls::math::point3d &P1)
 {
-	const auto distance = longueur(P0 - P1);
+	const auto distance = static_cast<float>(longueur(P0 - P1));
 
 	return Spectre::depuis_rgb(
 				 std::exp(-distance),

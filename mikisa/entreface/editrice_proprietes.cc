@@ -25,10 +25,17 @@
 #include "editrice_proprietes.h"
 
 #include <danjo/danjo.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "coeur/composite.h"
 #include "coeur/evaluation.h"
@@ -128,7 +135,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = operatrice;
 	donnees.conteneur = this;
 

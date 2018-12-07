@@ -45,6 +45,9 @@ public:
 	 */
 	explicit RenduCorps(Corps *corps);
 
+	RenduCorps(RenduCorps const &) = default;
+	RenduCorps &operator=(RenduCorps const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.

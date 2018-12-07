@@ -40,6 +40,9 @@ public:
 	Scene() = default;
 	~Scene() = default;
 
+	Scene(Scene const &) = default;
+	Scene &operator=(Scene const &) = default;
+
 	void reinitialise();
 
 	void ajoute_objet(Objet *objet);

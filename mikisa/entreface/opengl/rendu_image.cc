@@ -192,8 +192,8 @@ RenduImage::~RenduImage()
 void RenduImage::charge_image(const numero7::math::matrice<numero7::image::Pixel<float> > &image)
 {
 	GLint size[2] = {
-		static_cast<GLint>(image.nombre_colonnes()),
-		static_cast<GLint>(image.nombre_lignes())
+		image.nombre_colonnes(),
+		image.nombre_lignes()
 	};
 
 	genere_texture(m_tampon_image->texture(), &image[0][0].r, size);

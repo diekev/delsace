@@ -38,6 +38,9 @@ class VueCamera final : public Persona {
 public:
 	explicit VueCamera(ProjectiveCamera *camera);
 
+	VueCamera(VueCamera const &) = default;
+	VueCamera &operator=(VueCamera const &) = default;
+
 	void ajourne_donnees();
 	bool ajourne_proprietes() override;
 };
@@ -45,7 +48,7 @@ public:
 class EditeurCamera final : public BaseEditrice {
 	Q_OBJECT
 
-	VueCamera *m_vue;
+	VueCamera *m_vue{};
 
 	QWidget *m_widget;
 	QScrollArea *m_scroll;
@@ -55,7 +58,10 @@ class EditeurCamera final : public BaseEditrice {
 public:
 	EditeurCamera(Koudou *koudou, QWidget *parent = nullptr);
 
-	~EditeurCamera();
+	EditeurCamera(EditeurCamera const &) = default;
+	EditeurCamera &operator=(EditeurCamera const &) = default;
+
+	~EditeurCamera() override;
 
 	void ajourne_etat(int /*evenement*/) override;
 

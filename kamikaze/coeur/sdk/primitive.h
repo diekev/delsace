@@ -223,6 +223,9 @@ public:
 
 	~PrimitiveCollection();
 
+	PrimitiveCollection(PrimitiveCollection const &) = default;
+	PrimitiveCollection &operator=(PrimitiveCollection const &) = default;
+
 	/**
 	 * @brief build Build a primitive in this collection.
 	 * @param key   The key of the primitive inside the PrimitiveFactory.
@@ -335,14 +338,14 @@ public:
 	 * @brief primitive_iterator Construct the begin iterator.
 	 * @param collection The PrimitiveCollection to traverse.
 	 */
-	explicit primitive_iterator(const PrimitiveCollection *collection);
+	explicit primitive_iterator(const PrimitiveCollection *coll);
 
 	/**
 	 * @brief primitive_iterator Construct the begin iterator.
 	 * @param collection The PrimitiveCollection to traverse.
 	 * @param type       The type ID of the primitive to consider for iteration.
 	 */
-	primitive_iterator(const PrimitiveCollection *collection, int type);
+	primitive_iterator(const PrimitiveCollection *coll, size_t type);
 
 	primitive_iterator(const primitive_iterator &other);
 	primitive_iterator(primitive_iterator &&other);

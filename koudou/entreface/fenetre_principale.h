@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QMainWindow>
+#pragma GCC diagnostic pop
 
 #include "coeur/koudou.h"
 
@@ -41,11 +47,14 @@ class FenetrePrincipale : public QMainWindow {
 
 	QProgressBar *m_progress_bar;
 
-	Koudou m_koudou;
+	Koudou m_koudou{};
 
 public:
 	explicit FenetrePrincipale(QWidget *parent = nullptr);
 	~FenetrePrincipale();
+
+	FenetrePrincipale(FenetrePrincipale const &) = default;
+	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
 
 	void ajoute_visionneur_image();
 	void ajoute_editeur_proprietes();

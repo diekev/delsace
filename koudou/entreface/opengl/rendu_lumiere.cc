@@ -78,22 +78,22 @@ void RenduLumiere::initialise()
 	if (m_lumiere->type == type_lumiere::POINT) {
 		sommets.resize(6);
 
-		sommets[0] = dls::math::vec3f(-1.0,  0.0,  0.0);
-		sommets[1] = dls::math::vec3f( 1.0,  0.0,  0.0);
-		sommets[2] = dls::math::vec3f( 0.0, -1.0,  0.0);
-		sommets[3] = dls::math::vec3f( 0.0,  1.0,  0.0);
-		sommets[4] = dls::math::vec3f( 0.0,  0.0, -1.0);
-		sommets[5] = dls::math::vec3f( 0.0,  0.0,  1.0);
+		sommets[0] = dls::math::vec3f(-1.0f,  0.0f,  0.0f);
+		sommets[1] = dls::math::vec3f( 1.0f,  0.0f,  0.0f);
+		sommets[2] = dls::math::vec3f( 0.0f, -1.0f,  0.0f);
+		sommets[3] = dls::math::vec3f( 0.0f,  1.0f,  0.0f);
+		sommets[4] = dls::math::vec3f( 0.0f,  0.0f, -1.0f);
+		sommets[5] = dls::math::vec3f( 0.0f,  0.0f,  1.0f);
 	}
 	else {
 		sommets.resize(6);
 
-		sommets[0] = dls::math::vec3f( 0.0,  0.1,  0.0);
-		sommets[1] = dls::math::vec3f( 0.0,  0.1, -1.0);
-		sommets[2] = dls::math::vec3f( 0.1, -0.1,  0.0);
-		sommets[3] = dls::math::vec3f( 0.1, -0.1, -1.0);
-		sommets[4] = dls::math::vec3f(-0.1, -0.1,  0.0);
-		sommets[5] = dls::math::vec3f(-0.1, -0.1, -1.0);
+		sommets[0] = dls::math::vec3f( 0.0f,  0.1f,  0.0f);
+		sommets[1] = dls::math::vec3f( 0.0f,  0.1f, -1.0f);
+		sommets[2] = dls::math::vec3f( 0.1f, -0.1f,  0.0f);
+		sommets[3] = dls::math::vec3f( 0.1f, -0.1f, -1.0f);
+		sommets[4] = dls::math::vec3f(-0.1f, -0.1f,  0.0f);
+		sommets[5] = dls::math::vec3f(-0.1f, -0.1f, -1.0f);
 	}
 
 	std::vector<unsigned int> indices(sommets.size());

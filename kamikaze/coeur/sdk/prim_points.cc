@@ -28,7 +28,7 @@
 
 /* ************************************************************************** */
 
-size_t PrimPoints::id = -1;
+size_t PrimPoints::id = -1ul;
 
 PrimPoints::PrimPoints()
 {}

@@ -117,10 +117,10 @@ struct BSDFPhaseAnisotropique : public BSDF {
 	Spectre sigma_a = Spectre(1.0);
 	Spectre sigma_s = Spectre(1.0);
 
-	double g;
-	double un_plus_g2;
-	double un_moins_g2;
-	double un_sur_2g;
+	double g{};
+	double un_plus_g2{};
+	double un_moins_g2{};
+	double un_sur_2g{};
 	bool isotropique = false;
 
 	BSDFPhaseAnisotropique(ContexteNuancage &ctx, double g_ = 1.0);

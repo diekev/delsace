@@ -49,7 +49,7 @@ void Persona::ajoute_propriete(std::string nom, std::string nom_entreface, TypeP
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::INT:
-			prop.donnee = std::experimental::any(int(0));
+			prop.donnee = std::experimental::any(0);
 			break;
 		case TypePropriete::FICHIER_ENTREE:
 		case TypePropriete::FICHIER_SORTIE:

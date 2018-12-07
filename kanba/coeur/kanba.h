@@ -64,6 +64,9 @@ struct Kanba : public Audite {
 	Kanba();
 	~Kanba();
 
+	Kanba(Kanba const &) = default;
+	Kanba &operator=(Kanba const &) = default;
+
 	void enregistre_commandes();
 
 	std::string requiers_dialogue(int type);

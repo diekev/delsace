@@ -35,17 +35,17 @@ Lumiere::~Lumiere()
 	delete nuanceur;
 }
 
-LumierePoint::LumierePoint(const math::transformation &transform, Spectre spectre, double intensite)
+LumierePoint::LumierePoint(const math::transformation &transform, Spectre spec, double intens)
 	: Lumiere(transform)
 {
 	this->type = type_lumiere::POINT;
-	this->spectre = spectre;
-	this->intensite = intensite;
+	this->spectre = spec;
+	this->intensite = intens;
 
 	transform(dls::math::point3d(0.0), &this->pos);
 }
 
-LumiereDistante::LumiereDistante(const math::transformation &transform, Spectre spectre, double intensite)
+LumiereDistante::LumiereDistante(const math::transformation &transform, Spectre spec, double intens)
 	: Lumiere(transform)
 {
 	this->type = type_lumiere::DISTANTE;

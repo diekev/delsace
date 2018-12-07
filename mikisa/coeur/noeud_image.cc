@@ -63,7 +63,7 @@ void execute_noeud(Noeud *noeud, const Rectangle &rectangle, const int temps)
 		}
 
 		noeud->incremente_compte_execution();
-		noeud->temps_execution(delta - temps_parent);
+		noeud->temps_execution(static_cast<float>(delta) - temps_parent);
 	}
 }
 
@@ -71,21 +71,21 @@ void synchronise_donnees_operatrice(Noeud *noeud)
 {
 	auto op = static_cast<OperatriceImage *>(noeud->donnees());
 
-	for (int i = 0; i < op->inputs(); ++i) {
-		noeud->ajoute_entree(op->nom_entree(i), op->type_entree(i));
+	for (size_t i = 0; i < op->inputs(); ++i) {
+		noeud->ajoute_entree(op->nom_entree(static_cast<int>(i)), op->type_entree(static_cast<int>(i)));
 	}
 
-	for (int i = 0; i < op->outputs(); ++i) {
-		noeud->ajoute_sortie(op->nom_sortie(i), op->type_sortie(i));
+	for (size_t i = 0; i < op->outputs(); ++i) {
+		noeud->ajoute_sortie(op->nom_sortie(static_cast<int>(i)), op->type_sortie(static_cast<int>(i)));
 	}
 
-	auto index = 0;
+	auto index = 0ul;
 
 	for (auto entree : noeud->entrees()) {
 		op->set_input_data(index++, entree);
 	}
 
-	index = 0;
+	index = 0ul;
 
 	for (auto sortie : noeud->sorties()) {
 		op->set_output_data(index++, sortie);

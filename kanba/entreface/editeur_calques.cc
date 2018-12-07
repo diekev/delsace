@@ -26,9 +26,15 @@
 
 #include <numero7/outils/iterateurs.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGridLayout>
 #include <QPushButton>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
@@ -55,6 +61,9 @@ public:
 		: QPushButton(texte, parent)
 		, m_calque(calque)
 	{}
+
+	BoutonItemCalque(BoutonItemCalque const &) = default;
+	BoutonItemCalque &operator=(BoutonItemCalque const &) = default;
 };
 
 /* ************************************************************************** */

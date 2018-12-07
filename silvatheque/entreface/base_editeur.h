@@ -41,10 +41,13 @@ protected:
 	Silvatheque *m_silvatheque;
 	QFrame *m_cadre;
 	QVBoxLayout *m_agencement;
-	QHBoxLayout *m_agencement_principal;
+	QHBoxLayout *m_agencement_principal{};
 
 public:
 	explicit BaseEditrice(Silvatheque &silvatheque, QWidget *parent = nullptr);
+
+	BaseEditrice(const BaseEditrice &autre) = default;
+	BaseEditrice &operator=(const BaseEditrice &autre) = default;
 
 	void actif(bool yesno);
 	void rend_actif();

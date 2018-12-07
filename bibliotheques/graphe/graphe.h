@@ -54,12 +54,12 @@ struct Connexion {
  * l'utilisateur.
  */
 struct InfoNoeud {
-	std::string informations;
+	std::string informations{};
 
 	/* coordonnées xy de la souris sur l'écran, c'est à cette position que
 	 * les informations seront dessinées. */
-	float x;
-	float y;
+	float x{};
+	float y{};
 };
 
 /* ************************************************************************** */
@@ -103,6 +103,10 @@ public:
 
 	Graphe() = default;
 	~Graphe() = default;
+
+	/* À FAIRE : considère l'utilisation de shared_ptr */
+	Graphe(Graphe const &) = default;
+	Graphe &operator=(Graphe const &) = default;
 
 	/**
 	 * Ajoute un noeud au graphe. Le noeud n'est pas connecté. Le nom du noeud
@@ -167,10 +171,10 @@ public:
 	void supprime_tout();
 
 private:
-	std::vector<std::shared_ptr<Noeud>> m_noeuds;
-	std::set<Noeud *> m_noeuds_selectionnes;
+	std::vector<std::shared_ptr<Noeud>> m_noeuds{};
+	std::set<Noeud *> m_noeuds_selectionnes{};
 
-	std::set<std::string> m_noms_noeuds;
+	std::set<std::string> m_noms_noeuds{};
 };
 
 /* ************************************************************************** */

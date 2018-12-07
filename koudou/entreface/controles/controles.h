@@ -24,11 +24,17 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
 #include <QWidget>
+#pragma GCC diagnostic pop
 
 #include "base_controles.h"
 
@@ -44,11 +50,14 @@ class QGridLayout;
 class ControleFloat final : public SelecteurFloat {
 	Q_OBJECT
 
-	float *m_pointeur;
+	float *m_pointeur{};
 
 public:
 	explicit ControleFloat(QWidget *parent = nullptr);
 	~ControleFloat() = default;
+
+	ControleFloat(ControleFloat const &) = default;
+	ControleFloat &operator=(ControleFloat const &) = default;
 
 	void pointeur(float *pointeur);
 
@@ -64,11 +73,14 @@ Q_SIGNALS:
 class ControleInt final : public SelecteurInt {
 	Q_OBJECT
 
-	int *m_pointeur;
+	int *m_pointeur{};
 
 public:
 	explicit ControleInt(QWidget *parent = nullptr);
 	~ControleInt() = default;
+
+	ControleInt(ControleInt const &) = default;
+	ControleInt &operator=(ControleInt const &) = default;
 
 	void pointeur(int *pointeur);
 
@@ -84,11 +96,14 @@ Q_SIGNALS:
 class ControleBool final : public QCheckBox {
 	Q_OBJECT
 
-	bool *m_pointeur;
+	bool *m_pointeur{};
 
 public:
 	explicit ControleBool(QWidget *parent = nullptr);
 	~ControleBool() = default;
+
+	ControleBool(ControleBool const &) = default;
+	ControleBool &operator=(ControleBool const &) = default;
 
 	void pointeur(bool *pointeur);
 
@@ -104,11 +119,14 @@ Q_SIGNALS:
 class ControleEnum final : public QComboBox {
 	Q_OBJECT
 
-	int *m_pointeur;
+	int *m_pointeur{};
 
 public:
 	explicit ControleEnum(QWidget *parent = nullptr);
 	~ControleEnum() = default;
+
+	ControleEnum(ControleEnum const &) = default;
+	ControleEnum &operator=(ControleEnum const &) = default;
 
 	void pointeur(int *pointeur);
 
@@ -124,11 +142,14 @@ Q_SIGNALS:
 class ControleChaineCaractere final : public QLineEdit {
 	Q_OBJECT
 
-	std::string *m_pointeur;
+	std::string *m_pointeur{};
 
 public:
 	explicit ControleChaineCaractere(QWidget *parent = nullptr);
 	~ControleChaineCaractere() = default;
+
+	ControleChaineCaractere(ControleChaineCaractere const &) = default;
+	ControleChaineCaractere &operator=(ControleChaineCaractere const &) = default;
 
 	void pointeur(std::string *pointeur);
 
@@ -144,11 +165,14 @@ Q_SIGNALS:
 class ControleVec3 final : public SelecteurVec3 {
 	Q_OBJECT
 
-	float *m_pointeur;
+	float *m_pointeur{};
 
 public:
 	explicit ControleVec3(QWidget *parent = nullptr);
 	~ControleVec3() = default;
+
+	ControleVec3(ControleVec3 const &) = default;
+	ControleVec3 &operator=(ControleVec3 const &) = default;
 
 	void pointeur(float pointeur[3]);
 
@@ -164,11 +188,14 @@ Q_SIGNALS:
 class ControleCouleur final : public SelecteurCouleur {
 	Q_OBJECT
 
-	float *m_pointeur;
+	float *m_pointeur{};
 
 public:
 	explicit ControleCouleur(QWidget *parent = nullptr);
 	~ControleCouleur() = default;
+
+	ControleCouleur(ControleCouleur const &) = default;
+	ControleCouleur &operator=(ControleCouleur const &) = default;
 
 	void pointeur(float pointeur[4]);
 
@@ -184,11 +211,14 @@ Q_SIGNALS:
 class ControleFichier final : public SelecteurFichier {
 	Q_OBJECT
 
-	std::string *m_pointeur;
+	std::string *m_pointeur{};
 
 public:
 	explicit ControleFichier(bool input, QWidget *parent = nullptr);
 	~ControleFichier() = default;
+
+	ControleFichier(ControleFichier const &) = default;
+	ControleFichier &operator=(ControleFichier const &) = default;
 
 	void pointeur(std::string *pointeur);
 
@@ -204,12 +234,15 @@ Q_SIGNALS:
 class ControleListe final : public SelecteurListe {
 	Q_OBJECT
 
-	std::string *m_pointeur;
+	std::string *m_pointeur{};
 
 public:
 	explicit ControleListe(QWidget *parent = nullptr);
 
 	~ControleListe() = default;
+
+	ControleListe(ControleListe const &) = default;
+	ControleListe &operator=(ControleListe const &) = default;
 
 	void pointeur(std::string *pointeur);
 

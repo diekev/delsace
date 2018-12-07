@@ -26,8 +26,14 @@
 
 #include <danjo/danjo.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDockWidget>
 #include <QMenuBar>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
@@ -87,7 +93,7 @@ FenetrePrincipale::~FenetrePrincipale()
 
 void FenetrePrincipale::genere_barre_menu()
 {
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = nullptr;
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_mikisa->repondant_commande();

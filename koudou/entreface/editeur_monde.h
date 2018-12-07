@@ -38,6 +38,9 @@ class VueMonde final : public Persona {
 public:
 	explicit VueMonde(Monde *monde);
 
+	VueMonde(VueMonde const &) = default;
+	VueMonde &operator=(VueMonde const &) = default;
+
 	void ajourne_donnees();
 	bool ajourne_proprietes() override;
 };
@@ -55,7 +58,10 @@ class EditeurMonde final : public BaseEditrice {
 public:
 	EditeurMonde(Koudou *koudou, QWidget *parent = nullptr);
 
-	~EditeurMonde();
+	EditeurMonde(EditeurMonde const &) = default;
+	EditeurMonde &operator=(EditeurMonde const &) = default;
+
+	~EditeurMonde() override;
 
 	void ajourne_etat(int /*evenement*/) override;
 

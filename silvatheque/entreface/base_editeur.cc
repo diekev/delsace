@@ -24,6 +24,11 @@
 
 #include "base_editeur.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFrame>
 #include <QLabel>
@@ -32,6 +37,7 @@
 #include <QPushButton>
 #include <QStyle>
 #include <QVariant>
+#pragma GCC diagnostic pop
 
 #include "coeur/silvatheque.h"
 

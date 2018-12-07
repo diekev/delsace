@@ -26,7 +26,13 @@
 
 #include "base_editeur.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QTreeWidget>
+#pragma GCC diagnostic pop
 
 class Objet;
 class QScrollArea;
@@ -40,6 +46,9 @@ class ItemObjet : public QTreeWidgetItem {
 public:
 	explicit ItemObjet(const Objet *pointeur, QTreeWidgetItem *parent = nullptr);
 
+	ItemObjet(ItemObjet const &) = default;
+	ItemObjet &operator=(ItemObjet const &) = default;
+
 	const Objet *pointeur() const;
 };
 
@@ -50,6 +59,9 @@ class WidgetArbre : public QTreeWidget {
 
 public:
 	explicit WidgetArbre(QWidget *parent = nullptr);
+
+	WidgetArbre(WidgetArbre const &) = default;
+	WidgetArbre &operator=(WidgetArbre const &) = default;
 
 	void set_base(BaseEditrice *base);
 
@@ -70,7 +82,10 @@ class EditeurArbreScene final : public BaseEditrice {
 public:
 	EditeurArbreScene(Koudou *koudou, QWidget *parent = nullptr);
 
-	~EditeurArbreScene();
+	EditeurArbreScene(EditeurArbreScene const &) = default;
+	EditeurArbreScene &operator=(EditeurArbreScene const &) = default;
+
+	~EditeurArbreScene() override;
 
 	void ajourne_etat(int evenement) override;
 

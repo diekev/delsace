@@ -38,11 +38,11 @@ class Rayon;
  * tridimensionel.
  */
 struct Triangle {
-	dls::math::vec3d v0;
-	dls::math::vec3d v1;
-	dls::math::vec3d v2;
+	dls::math::vec3d v0{};
+	dls::math::vec3d v1{};
+	dls::math::vec3d v2{};
 
-	dls::math::vec3d normal;
+	dls::math::vec3d normal{};
 };
 
 /**
@@ -52,8 +52,8 @@ struct Triangle {
 class Maillage {
 	std::vector<Triangle *> m_triangles{};
 
-	BoiteEnglobante m_boite_englobante;
-	math::transformation m_transformation;
+	BoiteEnglobante m_boite_englobante{};
+	math::transformation m_transformation{};
 
 	Nuanceur *m_nuanceur = nullptr;
 
@@ -63,6 +63,9 @@ class Maillage {
 
 public:
 	Maillage();
+
+	Maillage(const Maillage &autre) = default;
+	Maillage &operator=(const Maillage &autre) = default;
 
 	~Maillage();
 

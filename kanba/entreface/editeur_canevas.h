@@ -27,7 +27,14 @@
 #include <numero7/math/matrice/matrice.h>
 #include <delsace/math/vecteur.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGLWidget>
+#pragma GCC diagnostic pop
+
 #include "base_editeur.h"
 
 class QScrollArea;
@@ -52,11 +59,14 @@ class VueCanevas : public QGLWidget {
 
 public:
 	explicit VueCanevas(Kanba *kanba, QWidget *parent = nullptr);
-	~VueCanevas();
+	~VueCanevas() override;
 
-	void initializeGL();
-	void paintGL();
-	void resizeGL(int w, int h);
+	VueCanevas(VueCanevas const &) = default;
+	VueCanevas &operator=(VueCanevas const &) = default;
+
+	void initializeGL() override;
+	void paintGL() override;
+	void resizeGL(int w, int h) override;
 
 	void charge_image(const numero7::math::matrice<dls::math::vec4f> &image);
 
@@ -79,6 +89,9 @@ class EditeurCanevas : public BaseEditrice {
 
 public:
 	explicit EditeurCanevas(Kanba &kanba, QWidget *parent = nullptr);
+
+	EditeurCanevas(EditeurCanevas const &) = default;
+	EditeurCanevas &operator=(EditeurCanevas const &) = default;
 
 	void ajourne_etat(int evenement) override;
 

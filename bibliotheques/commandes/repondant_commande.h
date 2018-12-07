@@ -34,13 +34,18 @@ class DonneesCommande;
 class UsineCommande;
 
 class RepondantCommande : public danjo::RepondantBouton {
-	UsineCommande *m_usine_commande;
+	UsineCommande *m_usine_commande = nullptr;
 	std::any m_pointeur = nullptr;
 
 	Commande *m_commande_modale = nullptr;
 
+
 public:
 	RepondantCommande(UsineCommande *usine_commande, std::any const &pointeur);
+
+	/* À FAIRE : considère l'utilisation de shared_ptr */
+	RepondantCommande(RepondantCommande const &) = delete;
+	RepondantCommande &operator=(RepondantCommande const &) = delete;
 
 	bool appele_commande(const std::string &categorie, const DonneesCommande &donnees_commande);
 

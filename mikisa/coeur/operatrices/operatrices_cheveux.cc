@@ -60,20 +60,20 @@ static void min_max_vecteur(dls::math::vec3f &min, dls::math::vec3f &max, const 
 }
 
 struct Triangle {
-	dls::math::vec3f p0;
-	dls::math::vec3f p1;
-	dls::math::vec3f p2;
-	dls::math::vec3f min;
-	dls::math::vec3f max;
+	dls::math::vec3f p0{};
+	dls::math::vec3f p1{};
+	dls::math::vec3f p2{};
+	dls::math::vec3f min{};
+	dls::math::vec3f max{};
 };
 
 struct DonneesCollesion {
-	dls::math::vec3f normal;
-	Arrete *segment;
+	dls::math::vec3f normal{};
+	Arrete *segment{};
 };
 
 class ArbreOcternaire {
-	std::vector<Triangle *> m_triangles;
+	std::vector<Triangle *> m_triangles{};
 
 public:
 	struct Octant {
@@ -82,7 +82,7 @@ public:
 			nullptr, nullptr, nullptr, nullptr
 		};
 
-		dls::math::vec3f min, max;
+		dls::math::vec3f min{}, max{};
 
 		~Octant()
 		{
@@ -107,7 +107,7 @@ public:
 	}
 
 private:
-	Octant m_racine;
+	Octant m_racine{};
 };
 
 /* ************************************************************************** */
@@ -184,7 +184,7 @@ public:
 		const auto nombre_courbes = liste_points->taille();
 		INUTILISE(nombre_courbes);
 		const auto segments = evalue_entier("segments");
-		const auto inv_segments = 1.0f / segments;
+		const auto inv_segments = 1.0f / static_cast<float>(segments);
 		const auto taille_min = evalue_decimal("taille_min");
 		const auto taille_max = evalue_decimal("taille_max");
 		const auto multiplication_taille = evalue_decimal("multiplication_taille");

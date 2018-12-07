@@ -28,7 +28,14 @@
 #include <math/matrice/matrice.h>
 #include <delsace/math/vecteur.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGLWidget>
+#pragma GCC diagnostic pop
+
 #include "base_editeur.h"
 
 class QScrollArea;
@@ -44,11 +51,14 @@ class VueCanevas : public QGLWidget {
 
 public:
 	explicit VueCanevas(Koudou *koudou, QWidget *parent = nullptr);
-	~VueCanevas();
+	~VueCanevas() override;
 
-	void initializeGL();
-	void paintGL();
-	void resizeGL(int w, int h);
+	VueCanevas(VueCanevas const &) = default;
+	VueCanevas &operator=(VueCanevas const &) = default;
+
+	void initializeGL() override;
+	void paintGL() override;
+	void resizeGL(int w, int h) override;
 
 	void charge_image(const numero7::math::matrice<dls::math::vec3d> &image);
 
@@ -70,7 +80,10 @@ class EditeurCanevas : public BaseEditrice {
 public:
 	explicit EditeurCanevas(Koudou &koudou, QWidget *parent = nullptr);
 
-	~EditeurCanevas();
+	EditeurCanevas(EditeurCanevas const &) = default;
+	EditeurCanevas &operator=(EditeurCanevas const &) = default;
+
+	~EditeurCanevas() override;
 
 	void ajourne_etat(int event) override;
 };
@@ -84,13 +97,16 @@ class VueCanevas3D : public QGLWidget {
 public:
 	explicit VueCanevas3D(Koudou *koudou, QWidget *parent = nullptr);
 
-	~VueCanevas3D();
+	VueCanevas3D(VueCanevas3D const &) = default;
+	VueCanevas3D &operator=(VueCanevas3D const &) = default;
 
-	void initializeGL();
+	~VueCanevas3D() override;
 
-	void paintGL();
+	void initializeGL() override;
 
-	void resizeGL(int w, int h);
+	void paintGL() override;
+
+	void resizeGL(int w, int h) override;
 
 	void mousePressEvent(QMouseEvent *e) override;
 
@@ -112,6 +128,9 @@ class EditriceVue3D : public BaseEditrice {
 
 public:
 	explicit EditriceVue3D(Koudou &koudou, QWidget *parent = nullptr);
+
+	EditriceVue3D(EditriceVue3D const &) = default;
+	EditriceVue3D &operator=(EditriceVue3D const &) = default;
 
 	void ajourne_etat(int event) override;
 

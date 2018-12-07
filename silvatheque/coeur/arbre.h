@@ -36,8 +36,8 @@ struct Parametres;
  * Représentation d'un sommet dans l'espace tridimensionel.
  */
 struct Sommet {
-	dls::math::vec3f pos;
-	int index;
+	dls::math::vec3f pos{};
+	size_t index{};
 };
 
 /**
@@ -51,12 +51,12 @@ struct Arrete {
 };
 
 class Arbre {
-	std::vector<Sommet *> m_sommets;
-	std::vector<Arrete *> m_arretes;
+	std::vector<Sommet *> m_sommets{};
+	std::vector<Arrete *> m_arretes{};
 
-	math::transformation m_transformation;
+	math::transformation m_transformation{};
 
-	Parametres *m_parametres;
+	Parametres *m_parametres{};
 
 public:
 	using plage_sommets = plage_iterable<std::vector<Sommet *>::const_iterator>;

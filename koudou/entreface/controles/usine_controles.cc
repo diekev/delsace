@@ -24,7 +24,13 @@
 
 #include "usine_controles.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QStandardItemModel>
+#pragma GCC diagnostic pop
 
 #include "coeur/persona.h"
 
@@ -35,7 +41,7 @@ void controle_int(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleInt;
 	controle->pointeur(std::experimental::any_cast<int>(&prop->donnee));
-	controle->setRange(prop->min, prop->max);
+	controle->setRange(static_cast<int>(prop->min), static_cast<int>(prop->max));
 	controle->setValue(std::experimental::any_cast<int>(prop->donnee));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
@@ -70,7 +76,7 @@ void bitfield_controle(AssembleurControles &assembleur, Propriete *prop)
 	auto controle = new ControleEnum;
 	controle->pointeur(std::experimental::any_cast<int>(&prop->donnee));
 
-	auto model = new QStandardItemModel(prop->items_enumeration.paires.size(), 1);
+	auto model = new QStandardItemModel(static_cast<int>(prop->items_enumeration.paires.size()), 1);
 	auto index = 0;
 
 	for (const PaireNomValeur &enum_item : prop->items_enumeration.paires) {

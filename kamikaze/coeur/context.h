@@ -150,7 +150,7 @@ public:
 };
 
 class Listened {
-	std::vector<ContextListener *> m_listeners;
+	std::vector<ContextListener *> m_listeners{};
 
 public:
 	void add_listener(ContextListener *listener);

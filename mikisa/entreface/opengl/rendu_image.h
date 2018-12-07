@@ -31,8 +31,8 @@ class ContexteRendu;
 class TamponRendu;
 
 class RenduImage {
-	TamponRendu *m_tampon_image;
-	TamponRendu *m_tampon_bordure;
+	TamponRendu *m_tampon_image{};
+	TamponRendu *m_tampon_bordure{};
 
 public:
 	/**
@@ -41,6 +41,9 @@ public:
 	 * OpenGL valide.
 	 */
 	RenduImage();
+
+	RenduImage(RenduImage const &) = default;
+	RenduImage &operator=(RenduImage const &) = default;
 
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et

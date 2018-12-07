@@ -43,6 +43,9 @@ public:
 	 */
 	explicit RenduParticules(Fluide *fluide);
 
+	RenduParticules(RenduParticules const &) = default;
+	RenduParticules &operator=(RenduParticules const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.

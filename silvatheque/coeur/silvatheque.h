@@ -44,15 +44,18 @@ struct Silvatheque : public Audite {
 	FenetrePrincipale *fenetre_principale = nullptr;
 	BaseEditrice *widget_actif = nullptr;
 
-	UsineCommande *usine_commande;
+	UsineCommande *usine_commande{};
 
-	RepondantCommande *repondant_commande;
+	RepondantCommande *repondant_commande{};
 
-	vision::Camera3D *camera;
-	Arbre *arbre;
+	vision::Camera3D *camera{};
+	Arbre *arbre{};
 
 	Silvatheque();
 	~Silvatheque();
+
+	Silvatheque(Silvatheque const &) = default;
+	Silvatheque &operator=(Silvatheque const &) = default;
 
 	void enregistre_commandes();
 };

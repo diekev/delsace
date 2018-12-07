@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGLWidget>
+#pragma GCC diagnostic pop
 
 #include "base_editrice.h"
 
@@ -43,13 +49,16 @@ class VueCanevas3D : public QGLWidget {
 public:
 	explicit VueCanevas3D(Mikisa *mikisa, EditriceVue3D *base, QWidget *parent = nullptr);
 
-	~VueCanevas3D();
+	VueCanevas3D(VueCanevas3D const &) = default;
+	VueCanevas3D &operator=(VueCanevas3D const &) = default;
 
-	void initializeGL();
+	~VueCanevas3D() override;
 
-	void paintGL();
+	void initializeGL() override;
 
-	void resizeGL(int w, int h);
+	void paintGL() override;
+
+	void resizeGL(int w, int h) override;
 
 	void mousePressEvent(QMouseEvent *e) override;
 
@@ -67,14 +76,17 @@ public:
 class EditriceVue3D : public BaseEditrice {
 	Q_OBJECT
 
-	VueCanevas3D *m_vue;
-	QToolButton *m_bouton_position;
-	QToolButton *m_bouton_rotation;
-	QToolButton *m_bouton_echelle;
-	QToolButton *m_bouton_actif;
+	VueCanevas3D *m_vue{};
+	QToolButton *m_bouton_position{};
+	QToolButton *m_bouton_rotation{};
+	QToolButton *m_bouton_echelle{};
+	QToolButton *m_bouton_actif{};
 
 public:
 	explicit EditriceVue3D(Mikisa *mikisa, QWidget *parent = nullptr);
+
+	EditriceVue3D(EditriceVue3D const &) = default;
+	EditriceVue3D &operator=(EditriceVue3D const &) = default;
 
 	void ajourne_etat(int event) override;
 

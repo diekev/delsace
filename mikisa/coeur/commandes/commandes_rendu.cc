@@ -26,6 +26,10 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wconversion"
 #include <OpenEXR/ImathBox.h>
 #include <OpenEXR/ImfChannelList.h>
 #include <OpenEXR/ImfOutputFile.h>
@@ -48,7 +52,7 @@
 struct ParametresImage {
 	size_t hauteur;
 	size_t largeur;
-	char composant; // 1, 3, 4
+	unsigned char composant; // 1, 3, 4
 //	char profondeur; // 8, 16, 32
 	void *pointeur;
 };
@@ -61,7 +65,7 @@ static void ecris_exr(const char *chemin, const ParametresImage &parametres)
 	const auto &largeur = parametres.largeur;
 
 	/* À FAIRE : écriture selon le nombre de composant de l'image. */
-	openexr::Header en_tete(largeur, hauteur);
+	openexr::Header en_tete(static_cast<int>(largeur), static_cast<int>(hauteur));
 	en_tete.channels().insert("R", openexr::Channel(openexr::FLOAT));
 	en_tete.channels().insert("G", openexr::Channel(openexr::FLOAT));
 	en_tete.channels().insert("B", openexr::Channel(openexr::FLOAT));
@@ -74,37 +78,37 @@ static void ecris_exr(const char *chemin, const ParametresImage &parametres)
 	auto debut_B = static_cast<float *>(parametres.pointeur) + 2;
 	auto debut_A = static_cast<float *>(parametres.pointeur) + 3;
 
-	const auto decalage_x = sizeof(float) * parametres.composant;
-	const auto decalage_y = sizeof(float) * largeur * parametres.composant;
+	const auto decalage_x = sizeof(float) * static_cast<size_t>(parametres.composant);
+	const auto decalage_y = sizeof(float) * largeur * static_cast<size_t>(parametres.composant);
 
 	openexr::FrameBuffer tampon_image;
 
 	tampon_image.insert("R",
 						openexr::Slice(openexr::FLOAT,
-									   (char *)debut_R,
+									   reinterpret_cast<char *>(debut_R),
 									   decalage_x,
 									   decalage_y));
 
 	tampon_image.insert("G",
 						openexr::Slice(openexr::FLOAT,
-									   (char *)debut_G,
+									   reinterpret_cast<char *>(debut_G),
 									   decalage_x,
 									   decalage_y));
 
 	tampon_image.insert("B",
 						openexr::Slice(openexr::FLOAT,
-									   (char *)debut_B,
+									   reinterpret_cast<char *>(debut_B),
 									   decalage_x,
 									   decalage_y));
 
 	tampon_image.insert("A",
 						openexr::Slice(openexr::FLOAT,
-									   (char *)debut_A,
+									   reinterpret_cast<char *>(debut_A),
 									   decalage_x,
 									   decalage_y));
 
 	fichier.setFrameBuffer(tampon_image);
-	fichier.writePixels(hauteur);
+	fichier.writePixels(static_cast<int>(hauteur));
 }
 
 static void corrige_chemin_pour_ecriture(std::string &chemin, int temps)
@@ -152,8 +156,8 @@ static bool ecris_image(
 	if (chemin_image.find(".exr") != std::string::npos) {
 		ParametresImage parametres;
 		parametres.composant = 4;
-		parametres.hauteur = tampon->tampon.nombre_lignes();
-		parametres.largeur = tampon->tampon.nombre_colonnes();
+		parametres.hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
+		parametres.largeur = static_cast<size_t>(tampon->tampon.nombre_colonnes());
 		parametres.pointeur = &tampon->tampon[0][0].r;
 
 		ecris_exr(chemin_image.c_str(), parametres);

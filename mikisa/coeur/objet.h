@@ -40,7 +40,10 @@ struct Objet {
 	/* autres propriétés */
 	std::string nom = "objet";
 
-	Corps *corps;
+	Corps *corps{};
 
 	Objet() = default;
+
+	Objet(Objet const &) = default;
+	Objet &operator=(Objet const &) = default;
 };

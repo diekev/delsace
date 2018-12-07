@@ -35,24 +35,24 @@ void calcule_normales(
 		Attribute &normales,
 		bool flip)
 {
-	boucle_parallele(tbb::blocked_range<size_t>(0, polygones.size()),
+	boucle_parallele(tbb::blocked_range<size_t>(0ul, polygones.size()),
 				 [&](const tbb::blocked_range<size_t> &r)
 	{
 		for (auto i = r.begin(), ie = r.end(); i < ie ; ++i) {
 			const auto &quad = polygones[i];
 
-			const auto v0 = points[quad[0]];
-			const auto v1 = points[quad[1]];
-			const auto v2 = points[quad[2]];
+			const auto v0 = points[static_cast<size_t>(quad[0])];
+			const auto v1 = points[static_cast<size_t>(quad[1])];
+			const auto v2 = points[static_cast<size_t>(quad[2])];
 
 			const auto normal = normale_triangle(v0, v1, v2);
 
-			normales.vec3(quad[0], normales.vec3(quad[0]) + normal);
-			normales.vec3(quad[1], normales.vec3(quad[1]) + normal);
-			normales.vec3(quad[2], normales.vec3(quad[2]) + normal);
+			normales.vec3(static_cast<size_t>(quad[0]), normales.vec3(static_cast<size_t>(quad[0])) + normal);
+			normales.vec3(static_cast<size_t>(quad[1]), normales.vec3(static_cast<size_t>(quad[1])) + normal);
+			normales.vec3(static_cast<size_t>(quad[2]), normales.vec3(static_cast<size_t>(quad[2])) + normal);
 
-			if (quad[3] != INVALID_INDEX) {
-				normales.vec3(quad[3], normales.vec3(quad[3]) + normal);
+			if (quad[3] != static_cast<int>(INVALID_INDEX)) {
+				normales.vec3(static_cast<size_t>(quad[3]), normales.vec3(static_cast<size_t>(quad[3])) + normal);
 			}
 		}
 	});

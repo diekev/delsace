@@ -33,8 +33,8 @@ transformation::transformation(const dls::math::mat4x4d &matrice, const dls::mat
 
 transformation::transformation(const double matrice[4][4])
 {
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
+	for (size_t i = 0; i < 4; ++i) {
+		for (size_t j = 0; j < 4; ++j) {
 			m_matrice[i][j] = matrice[i][j];
 		}
 	}

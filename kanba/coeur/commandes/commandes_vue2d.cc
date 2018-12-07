@@ -25,7 +25,14 @@
 #include "commandes_vue2d.h"
 
 #include <iostream>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QKeyEvent>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 
@@ -58,7 +65,7 @@ public:
 
 		const auto rayon_brosse = 10;
 		const auto rayon_carre = rayon_brosse * rayon_brosse;
-		const auto couleur_brosse = dls::math::vec4f(1.0, 0.0, 1.0, 1.0);
+		const auto couleur_brosse = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
 
 		for (int i = -rayon_brosse; i < rayon_brosse; ++i) {
 			for (int j = -rayon_brosse; j < rayon_brosse; ++j) {

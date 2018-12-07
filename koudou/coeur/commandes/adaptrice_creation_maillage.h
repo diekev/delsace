@@ -33,7 +33,7 @@
 class Maillage;
 
 class AdaptriceChargementMaillage : public objets::AdaptriceCreationObjet {
-	std::vector<dls::math::vec3d> m_sommets;
+	std::vector<dls::math::vec3d> m_sommets{};
 
 public:
 	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
@@ -44,9 +44,9 @@ public:
 
 	void ajoute_parametres_sommet(const float x, const float y, const float z) override;
 
-	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, int nombre) override;
+	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, size_t nombre) override;
 
-	void ajoute_ligne(const int *index, int nombre) override;
+	void ajoute_ligne(const int *index, size_t nombre) override;
 
 	void ajoute_objet(const std::string &nom) override;
 
@@ -62,5 +62,5 @@ public:
 
 	void groupe_nuancage(const int index) override;
 
-	Maillage *maillage;
+	Maillage *maillage{};
 };

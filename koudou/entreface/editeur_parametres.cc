@@ -24,8 +24,14 @@
 
 #include "editeur_parametres.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGridLayout>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "coeur/koudou.h"
 #include "coeur/moteur_rendu.h"
@@ -88,12 +94,12 @@ VueParametres::VueParametres(Koudou *koudou)
 
 void VueParametres::ajourne_donnees()
 {
-	m_koudou->parametres_rendu.nombre_echantillons = evalue_int("echantillons");
-	m_koudou->parametres_rendu.nombre_rebonds = evalue_int("rebonds");
-	m_koudou->parametres_rendu.largeur_carreau = evalue_int("largeur_carreau");
-	m_koudou->parametres_rendu.hauteur_carreau = evalue_int("hauteur_carreau");
+	m_koudou->parametres_rendu.nombre_echantillons = static_cast<unsigned>(evalue_int("echantillons"));
+	m_koudou->parametres_rendu.nombre_rebonds = static_cast<unsigned>(evalue_int("rebonds"));
+	m_koudou->parametres_rendu.largeur_carreau = static_cast<unsigned>(evalue_int("largeur_carreau"));
+	m_koudou->parametres_rendu.hauteur_carreau = static_cast<unsigned>(evalue_int("hauteur_carreau"));
 
-	const auto resolution = evalue_enum("resolution");
+	const auto resolution = static_cast<unsigned>(evalue_enum("resolution"));
 
 	if (m_koudou->parametres_rendu.resolution != resolution) {
 		const auto largeur = numero7::math::Largeur(RESOLUTIONS[resolution][0]);
@@ -107,11 +113,11 @@ void VueParametres::ajourne_donnees()
 
 bool VueParametres::ajourne_proprietes()
 {
-	ajourne_valeur_int("echantillons", m_koudou->parametres_rendu.nombre_echantillons);
-	ajourne_valeur_int("rebonds", m_koudou->parametres_rendu.nombre_rebonds);
-	ajourne_valeur_int("resolution", m_koudou->parametres_rendu.resolution);
-	ajourne_valeur_int("largeur_carreau", m_koudou->parametres_rendu.largeur_carreau);
-	ajourne_valeur_int("hauteur_carreau", m_koudou->parametres_rendu.hauteur_carreau);
+	ajourne_valeur_int("echantillons", static_cast<int>(m_koudou->parametres_rendu.nombre_echantillons));
+	ajourne_valeur_int("rebonds", static_cast<int>(m_koudou->parametres_rendu.nombre_rebonds));
+	ajourne_valeur_int("resolution", static_cast<int>(m_koudou->parametres_rendu.resolution));
+	ajourne_valeur_int("largeur_carreau", static_cast<int>(m_koudou->parametres_rendu.largeur_carreau));
+	ajourne_valeur_int("hauteur_carreau", static_cast<int>(m_koudou->parametres_rendu.hauteur_carreau));
 
 	return true;
 }

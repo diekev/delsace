@@ -37,38 +37,38 @@ Corps::~Corps()
 	reinitialise();
 }
 
-bool Corps::possede_attribut(const std::string &nom)
+bool Corps::possede_attribut(const std::string &nom_attribut)
 {
-	return this->attribut(nom) != nullptr;
+	return this->attribut(nom_attribut) != nullptr;
 }
 
-Attribut *Corps::ajoute_attribut(const std::string &nom, int type, int portee, size_t taille)
+Attribut *Corps::ajoute_attribut(const std::string &nom_attribut, int type_, int portee, size_t taille_)
 {
-	auto attr = attribut(nom);
+	auto attr = attribut(nom_attribut);
 
 	if (attr == nullptr) {
-		attr = new Attribut(nom, static_cast<type_attribut>(type), portee, taille);
+		attr = new Attribut(nom_attribut, static_cast<type_attribut>(type_), portee, taille_);
 		m_attributs.push_back(attr);
 	}
 
 	return attr;
 }
 
-void Corps::supprime_attribut(const std::string &nom)
+void Corps::supprime_attribut(const std::string &nom_attribut)
 {
 	auto iter = std::find_if(m_attributs.begin(), m_attributs.end(),
 							 [&](Attribut *attr)
 	{
-		return attr->nom() == nom;
+		return attr->nom() == nom_attribut;
 	});
 
 	m_attributs.erase(iter);
 }
 
-Attribut *Corps::attribut(const std::string &nom) const
+Attribut *Corps::attribut(const std::string &nom_attribut) const
 {
 	for (const auto &attr : m_attributs) {
-		if (attr->nom() != nom) {
+		if (attr->nom() != nom_attribut) {
 			continue;
 		}
 
@@ -78,16 +78,16 @@ Attribut *Corps::attribut(const std::string &nom) const
 	return nullptr;
 }
 
-GroupePolygone *Corps::ajoute_groupe_polygone(const std::string &nom)
+GroupePolygone *Corps::ajoute_groupe_polygone(const std::string &nom_attribut)
 {
-	if (m_groupes_polygones.find(nom) != m_groupes_polygones.end()) {
+	if (m_groupes_polygones.find(nom_attribut) != m_groupes_polygones.end()) {
 		return nullptr;
 	}
 
 	auto groupe = new GroupePolygone;
-	groupe->nom = nom;
+	groupe->nom = nom_attribut;
 
-	m_groupes_polygones[nom] = groupe;
+	m_groupes_polygones[nom_attribut] = groupe;
 
 	return groupe;
 }

@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGraphicsView>
+#pragma GCC diagnostic pop
 
 class QMenu;
 class RepondantCommande;
@@ -47,6 +53,9 @@ public:
 			RepondantCommande *repondant,
 			danjo::GestionnaireInterface *gestionnaire,
 			QWidget *parent = nullptr);
+
+	VueEditeurNoeud(VueEditeurNoeud const &) = default;
+	VueEditeurNoeud &operator=(VueEditeurNoeud const &) = default;
 
 	explicit VueEditeurNoeud(QGraphicsScene *scene, QWidget *parent = nullptr);
 

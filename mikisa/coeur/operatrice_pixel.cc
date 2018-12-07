@@ -59,13 +59,13 @@ int OperatricePixel::execute(const Rectangle &rectangle, int temps)
 
 	this->evalue_entrees(temps);
 
-	boucle_parallele(tbb::blocked_range<size_t>(0, rectangle.hauteur),
+	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(rectangle.hauteur)),
 					 [&](const tbb::blocked_range<size_t> &plage)
 	{
 		for (size_t l = plage.begin(); l < plage.end(); ++l) {
-			for (size_t c = 0; c < rectangle.largeur; ++c) {
-				const auto x = c * largeur_inverse;
-				const auto y = l * hauteur_inverse;
+			for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {
+				const auto x = static_cast<float>(c) * largeur_inverse;
+				const auto y = static_cast<float>(l) * hauteur_inverse;
 
 				tampon->valeur(c, l, this->evalue_pixel(tampon->valeur(c, l), x, y));
 			}

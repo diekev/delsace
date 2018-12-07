@@ -24,6 +24,11 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QMainWindow>
 
 #include "coeur/sdk/context.h"
@@ -59,7 +64,10 @@ class FenetrePrincipale : public QMainWindow {
 
 public:
 	explicit FenetrePrincipale(Main *main, QWidget *parent = nullptr);
-	~FenetrePrincipale();
+	~FenetrePrincipale() override;
+
+	FenetrePrincipale(FenetrePrincipale const &) = default;
+	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
 
 public Q_SLOTS:
 	/* Progress Bar */

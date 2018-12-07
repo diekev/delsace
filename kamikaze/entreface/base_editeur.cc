@@ -24,16 +24,23 @@
 
 #include "base_editeur.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QStyle>
 #include <QVariant>
+#pragma GCC diagnostic pop
 
 BaseEditrice::BaseEditrice(QWidget *parent)
 	: danjo::ConteneurControles(parent)
     , m_frame(new QFrame(this))
     , m_layout(new QHBoxLayout())
+	, m_main_layout(new QHBoxLayout(m_frame))
 {
 	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	size_policy.setHorizontalStretch(0);
@@ -49,7 +56,6 @@ BaseEditrice::BaseEditrice(QWidget *parent)
 	m_layout->setMargin(0);
 	this->setLayout(m_layout);
 
-	m_main_layout = new QHBoxLayout(m_frame);
 	m_main_layout->setMargin(6);
 
 	this->active(false);

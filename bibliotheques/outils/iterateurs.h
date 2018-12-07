@@ -51,6 +51,6 @@ public:
 
 	size_t size() const
 	{
-		return fin - debut;
+		return static_cast<size_t>(fin - debut);
 	}
 };

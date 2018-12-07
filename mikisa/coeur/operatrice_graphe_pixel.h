@@ -32,15 +32,15 @@
 /* ************************************************************************** */
 
 class OperatriceGraphePixel : public OperatriceImage {
-	CompileuseGraphe m_compileuse;
-	Graphe m_graphe;
+	CompileuseGraphe m_compileuse{};
+	Graphe m_graphe{};
 
 public:
 	explicit OperatriceGraphePixel(Noeud *node);
 
-	virtual const char *class_name() const;
+	virtual const char *class_name() const override;
 
-	virtual const char *help_text() const;
+	virtual const char *help_text() const override;
 
 	const char *chemin_entreface() const override;
 

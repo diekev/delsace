@@ -73,15 +73,15 @@ void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float
 	INUTILISE(z);
 }
 
-void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int *index_uvs, const int *index_normaux, int nombre)
+void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int *index_uvs, const int *index_normaux, size_t nombre)
 {
 	INUTILISE(index_uvs);
 	INUTILISE(index_normaux);
 
-	auto poly = Polygone::construit(corps, POLYGONE_FERME, static_cast<size_t>(nombre));
+	auto poly = Polygone::construit(corps, POLYGONE_FERME, nombre);
 
-	for (int i = 0; i < nombre; ++i) {
-		poly->ajoute_sommet(index_sommet[i]);
+	for (size_t i = 0; i < nombre; ++i) {
+		poly->ajoute_sommet(static_cast<size_t>(index_sommet[i]));
 	}
 
 	for (GroupePolygone *groupe : groupes_courant) {
@@ -89,7 +89,7 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 	}
 }
 
-void AdaptriceCreationCorps::ajoute_ligne(const int *index, int nombre)
+void AdaptriceCreationCorps::ajoute_ligne(const int *index, size_t nombre)
 {
 	INUTILISE(index);
 	INUTILISE(nombre);

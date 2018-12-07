@@ -24,7 +24,13 @@
 
 #include "commandes_vue2d.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QKeyEvent>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/outils/constantes.h"
@@ -47,7 +53,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_2d;
 
-		camera->zoom *= (donnees.y < 0) ? PHI_INV : PHI;
+		camera->zoom *= static_cast<float>((donnees.y < 0) ? PHI_INV : PHI);
 		camera->ajourne_matrice();
 
 		mikisa->notifie_auditeurs(type_evenement::camera_2d | type_evenement::modifie);
@@ -78,8 +84,8 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_2d;
 
-		camera->pos_x += static_cast<float>(m_vieil_x - donnees.x) / camera->largeur;
-		camera->pos_y += static_cast<float>(m_vieil_y - donnees.y) / camera->hauteur;
+		camera->pos_x += (m_vieil_x - donnees.x) / static_cast<float>(camera->largeur);
+		camera->pos_y += (m_vieil_y - donnees.y) / static_cast<float>(camera->hauteur);
 		camera->ajourne_matrice();
 
 		m_vieil_x = donnees.x;

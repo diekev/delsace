@@ -24,7 +24,13 @@
 
 #include "koudou.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QFileDialog>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
@@ -52,14 +58,14 @@ ParametresRendu::~ParametresRendu()
 }
 
 Koudou::Koudou()
-	: camera(new vision::Camera3D(0, 0))
+	: moteur_rendu(new MoteurRendu)
+	, widget_actif(nullptr)
+	, configuration(new Configuration)
+	, parametres_projet(new ParametresProjet)
+	, camera(new vision::Camera3D(0, 0))
+	, usine_commande(new UsineCommande)
+	, repondant_commande(new RepondantCommande(usine_commande, this))
 {
-	moteur_rendu = new MoteurRendu;
-	configuration = new Configuration;
-	parametres_projet = new ParametresProjet;
-	widget_actif = nullptr;
-	usine_commande = new UsineCommande;
-	repondant_commande = new RepondantCommande(usine_commande, this);
 
 #ifdef NOUVELLE_CAMERA
 	double fenetre_ecran[4] = {

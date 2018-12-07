@@ -26,10 +26,16 @@
 
 #include "editrice_vue3d.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QToolButton>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
@@ -113,10 +119,10 @@ void VueCanevas3D::mousePressEvent(QMouseEvent *e)
 	m_base->rend_actif();
 
 	auto donnees = DonneesCommande();
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
-	donnees.souris = e->buttons();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
+	donnees.souris = static_cast<int>(e->buttons());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->appele_commande("vue_3d", donnees);
 }
@@ -124,9 +130,9 @@ void VueCanevas3D::mousePressEvent(QMouseEvent *e)
 void VueCanevas3D::mouseMoveEvent(QMouseEvent *e)
 {
 	auto donnees = DonneesCommande();
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
-	donnees.souris = e->buttons();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
+	donnees.souris = static_cast<int>(e->buttons());
 
 	if (e->buttons() == 0) {
 		m_mikisa->repondant_commande()->appele_commande("vue_3d", donnees);
@@ -144,8 +150,8 @@ void VueCanevas3D::wheelEvent(QWheelEvent *e)
 	 * roulement de la molette de la souris, on prétend que le roulement est un
 	 * double clique de la molette. */
 	auto donnees = DonneesCommande();
-	donnees.x = e->angleDelta().x();
-	donnees.y = e->angleDelta().y();
+	donnees.x = static_cast<float>(e->angleDelta().x());
+	donnees.y = static_cast<float>(e->angleDelta().y());
 	donnees.souris = Qt::MiddleButton;
 	donnees.double_clique = true;
 
@@ -157,8 +163,8 @@ void VueCanevas3D::mouseReleaseEvent(QMouseEvent *e)
 	m_base->rend_actif();
 
 	DonneesCommande donnees;
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
 
 	m_mikisa->repondant_commande()->acheve_commande_modale(donnees);
 }

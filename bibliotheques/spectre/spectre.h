@@ -45,16 +45,15 @@ inline void rgb_vers_xyz(const float rgb[3], float xyz[3])
 	xyz[2] = 0.019334f * rgb[0] + 0.119193f * rgb[1] + 0.950227f * rgb[2];
 }
 
-float moyenne_echantillons(const float *lambdas, const float *valeurs, int n, const float debut_lambda, const float fin_lambda);
+float moyenne_echantillons(const float *lambdas, const float *valeurs, size_t n, const float debut_lambda, const float fin_lambda);
 
-bool echantillons_spectre_trie(const float *lambdas, const float */*valeurs*/, int n);
+bool echantillons_spectre_trie(const float *lambdas, const float */*valeurs*/, size_t n);
 
-void trie_echantillons_spectre(float *lambdas, float *valeurs, int n);
+void trie_echantillons_spectre(float *lambdas, float *valeurs, size_t n);
 
-float entrepole_echantillons_spectre(
-		const float *lambdas,
+float entrepole_echantillons_spectre(const float *lambdas,
 		const float *valeurs,
-		int n,
+		size_t n,
 		float l);
 
 enum TypeSpectre {
@@ -94,15 +93,15 @@ extern const float RGBIllum2SpectBlue[nRGB2SpectSamples];
 /**
  * Représentation de l'élément de base pour définir le spectre lumineux.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 class SpectreCoefficient {
 protected:
 	float m_coefficients[NombreCoefficients];
 
 public:
-	explicit SpectreCoefficient(float coefficient = 0.0)
+	explicit SpectreCoefficient(float coefficient = 0.0f)
 	{
-		for (int i = 0; i < NombreCoefficients; ++i) {
+		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			m_coefficients[i] = coefficient;
 		}
 	}
@@ -122,7 +121,7 @@ public:
 	 */
 	SpectreCoefficient &operator+=(const SpectreCoefficient &spectre)
 	{
-		for (int i = 0; i < NombreCoefficients; ++i) {
+		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			m_coefficients[i] += spectre.m_coefficients[i];
 		}
 
@@ -134,7 +133,7 @@ public:
 	 */
 	SpectreCoefficient &operator-=(const SpectreCoefficient &spectre)
 	{
-		for (int i = 0; i < NombreCoefficients; ++i) {
+		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			m_coefficients[i] -= spectre.m_coefficients[i];
 		}
 
@@ -147,7 +146,7 @@ public:
 	 */
 	SpectreCoefficient &operator*=(const SpectreCoefficient &spectre)
 	{
-		for (int i = 0; i < NombreCoefficients; ++i) {
+		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			m_coefficients[i] *= spectre.m_coefficients[i];
 		}
 
@@ -160,7 +159,7 @@ public:
 	 */
 	SpectreCoefficient &operator*=(const float valeur)
 	{
-		for (int i = 0; i < NombreCoefficients; ++i) {
+		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			m_coefficients[i] *= valeur;
 		}
 
@@ -173,8 +172,8 @@ public:
 	 */
 	SpectreCoefficient &operator/=(const SpectreCoefficient &spectre)
 	{
-		for (int i = 0; i < NombreCoefficients; ++i) {
-			if (m_coefficients[i] == 0.0 || spectre.m_coefficients[i] == 0.0) {
+		for (unsigned i = 0; i < NombreCoefficients; ++i) {
+			if (m_coefficients[i] == 0.0f || spectre.m_coefficients[i] == 0.0f) {
 				continue;
 			}
 
@@ -190,8 +189,8 @@ public:
 	 */
 	SpectreCoefficient &operator/=(const float &valeur)
 	{
-		for (int i = 0; i < NombreCoefficients; ++i) {
-			if (m_coefficients[i] == 0.0 || valeur == 0.0) {
+		for (unsigned i = 0; i < NombreCoefficients; ++i) {
+			if (m_coefficients[i] == 0.0f || valeur == 0.0f) {
 				continue;
 			}
 
@@ -249,7 +248,7 @@ public:
  * Retourne un spectre dont les coefficients résultent de l'addition de ceux
  * des deux spectres spécifiés.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto operator+(
 		const SpectreCoefficient<NombreCoefficients> &a,
 		const SpectreCoefficient<NombreCoefficients> &b)
@@ -263,7 +262,7 @@ inline auto operator+(
  * Retourne un spectre dont les coefficients résultent de la soustraction de
  * ceux du deuxième spectre à ceux du premier spécifié.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto operator-(
 		const SpectreCoefficient<NombreCoefficients> &a,
 		const SpectreCoefficient<NombreCoefficients> &b)
@@ -277,7 +276,7 @@ inline auto operator-(
  * Retourne un spectre dont les coefficients résultent de la multiplication de
  * ceux de premier spectre par ceux du deuxième spectre spécifié.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto operator*(
 		const SpectreCoefficient<NombreCoefficients> &a,
 		const SpectreCoefficient<NombreCoefficients> &b)
@@ -291,7 +290,7 @@ inline auto operator*(
  * Retourne un spectre dont les coefficients résultent de la multiplication de
  * ceux de premier spectre par la valeur spécifiée.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto operator*(
 		const float a,
 		const SpectreCoefficient<NombreCoefficients> &b)
@@ -305,7 +304,7 @@ inline auto operator*(
  * Retourne un spectre dont les coefficients résultent de la multiplication de
  * ceux du spectre par la valeur spécifiée.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto operator*(
 		const SpectreCoefficient<NombreCoefficients> &a,
 		const float b)
@@ -319,7 +318,7 @@ inline auto operator*(
  * Retourne un spectre dont les coefficients résultent de la division de ceux
  * de premier spectre par ceux du deuxième spectre spécifié.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto operator/(
 		const SpectreCoefficient<NombreCoefficients> &a,
 		const SpectreCoefficient<NombreCoefficients> &b)
@@ -333,7 +332,7 @@ inline auto operator/(
  * Retourne un spectre dont les coefficients résultent de la division de ceux
  * de premier spectre par la valeur spécifié.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto operator/(
 		const SpectreCoefficient<NombreCoefficients> &a,
 		const float &b)
@@ -347,7 +346,7 @@ inline auto operator/(
  * Retourne un spectre dont les coefficients résultent de la réciproque de ceux
  * de premier spectre par la valeur spécifié.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto operator/(
 		const float &a,
 		const SpectreCoefficient<NombreCoefficients> &b)
@@ -361,7 +360,7 @@ inline auto operator/(
  * Retourne un spectre dont les coefficients sont égaux à la racine carré des
  * coefficients du spectre spécifié.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto racine_carre(const SpectreCoefficient<NombreCoefficients> &spectre)
 {
 	SpectreCoefficient<NombreCoefficients> resultat;
@@ -377,12 +376,12 @@ inline auto racine_carre(const SpectreCoefficient<NombreCoefficients> &spectre)
  * Retourne un spectre dont les coefficients sont égaux aux coefficients du
  * spectre spécifié élévés à la puissance exposant.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto puissance(const SpectreCoefficient<NombreCoefficients> &spectre, float exposant)
 {
 	SpectreCoefficient<NombreCoefficients> resultat;
 
-	for (int i = 0; i < NombreCoefficients; ++i) {
+	for (unsigned int i = 0; i < NombreCoefficients; ++i) {
 		resultat[i] = std::pow(spectre[i], exposant);
 	}
 
@@ -393,7 +392,7 @@ inline auto puissance(const SpectreCoefficient<NombreCoefficients> &spectre, flo
  * Retourne un spectre dont les coefficients sont égaux à l'exponentielle des
  * coefficients du spectre spécifié.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto exponentielle(const SpectreCoefficient<NombreCoefficients> &spectre)
 {
 	SpectreCoefficient<NombreCoefficients> resultat;
@@ -409,20 +408,20 @@ inline auto exponentielle(const SpectreCoefficient<NombreCoefficients> &spectre)
  * Retourne un spectre dont les coefficients résultent de l'entrepolation
  * linéaire des deux spectres spécifiés par le coefficient donné.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto entrepolation_lineaire(
 		const SpectreCoefficient<NombreCoefficients> &a,
 		const SpectreCoefficient<NombreCoefficients> &b,
 		float t)
 {
-	return (1.0 - t) * a + t * b;
+	return (1.0f - t) * a + t * b;
 }
 
 /**
  * Retourne un spectre dont les coefficients résultent de la restriction de
  * ceux du spectre spécifié entre les valeurs min et max données en paramètre.
  */
-template <int NombreCoefficients>
+template <unsigned int NombreCoefficients>
 inline auto restreint(
 		const SpectreCoefficient<NombreCoefficients> &spectre,
 		const float min = 0.0,
@@ -430,7 +429,7 @@ inline auto restreint(
 {
 	SpectreCoefficient resultat(spectre);
 
-	for (int i = 0; i < NombreCoefficients; ++i) {
+	for (unsigned i = 0; i < NombreCoefficients; ++i) {
 		if (resultat[i] < min) {
 			resultat[i] = min;
 		}
@@ -485,7 +484,7 @@ public:
 
 	SpectreEchantillon(const SpectreRGB &r, TypeSpectre t);
 
-	static SpectreEchantillon depuis_echantillons(const float *lambda, const float *v, int n);
+	static SpectreEchantillon depuis_echantillons(const float *lambda, const float *v, size_t n);
 
 	static SpectreEchantillon depuis_rgb(const float rgb[3], TypeSpectre type = TypeSpectre::SPECTRE_REFLECTANCE);
 
@@ -528,7 +527,7 @@ public:
 
 	SpectreRGB vers_spectre_rvb() const;
 
-	static SpectreRGB depuis_echantillons(const float *lambda, const float *v, int n);
+	static SpectreRGB depuis_echantillons(const float *lambda, const float *v, size_t n);
 
 	static SpectreRGB depuis_xyz(float *xyz);
 

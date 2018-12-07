@@ -311,7 +311,7 @@ TamponRendu *genere_tampon(Maillage *maillage, const std::vector<uint> &id_polys
 	std::vector<dls::math::vec3f> normaux;
 	normaux.reserve(nombre_elements);
 
-	auto index_poly = 0;
+	auto index_poly = 0.0f;
 
 	for (size_t	i : id_polys) {
 		const auto poly = maillage->polygone(i);
@@ -347,7 +347,7 @@ TamponRendu *genere_tampon(Maillage *maillage, const std::vector<uint> &id_polys
 			uvs.push_back(dls::math::vec3f(1.0f, 0.0f, index_poly));
 		}
 
-		++index_poly;
+		index_poly += 1.0f;
 	}
 
 	ParametresTampon parametres_tampon;
@@ -408,7 +408,7 @@ void RenduMaillage::initialise()
 
 		const auto &paire = std::make_pair(poly->res_u, poly->res_v);
 
-		vecteurs_polys[paire].push_back(i);
+		vecteurs_polys[paire].push_back(static_cast<uint>(i));
 	}
 
 	std::cout << "Nombre de seaux : " << vecteurs_polys.size() << '\n';
@@ -424,7 +424,7 @@ void RenduMaillage::initialise()
 
 	for (const auto &id_polys : vecteurs_polys) {
 		for (uint i : id_polys.second) {
-			if (page.polys.size() >= max_textures) {
+			if (static_cast<int>(page.polys.size()) >= max_textures) {
 				m_pages.push_back(page);
 				page.polys.clear();
 			}
@@ -522,21 +522,21 @@ void RenduMaillage::ajourne_texture()
 //				  << taille_texture[1] << "x"
 //				  << taille_texture[2] << '\n';
 
-		std::vector<dls::math::vec4f> image(taille_texture[0] * taille_texture[1] * taille_texture[2]);
+		std::vector<dls::math::vec4f> image(static_cast<size_t>(taille_texture[0] * taille_texture[1] * taille_texture[2]));
 		auto donnees = image.data();
 
 		/* Copie les texels dans l'atlas OpenGL. */
 		auto ip = 0;
 		for (size_t i : pages.polys) {
-			auto poly = m_maillage->polygone(i);
-			auto index_poly = (poly->x + poly->y * m_maillage->largeur_texture());
+			auto poly_page = m_maillage->polygone(i);
+			auto index_poly = (poly_page->x + poly_page->y * (m_maillage->largeur_texture()));
 			auto tampon_poly = tampon + index_poly;
 
 			auto donnees_image = &donnees[ip++ * taille_texture[0] * taille_texture[1]];
 
-			for (int j = 0; j < poly->res_u; ++j) {
-				for (int k = 0; k < poly->res_v; ++k) {
-					donnees_image[j + k * taille_texture[0]] = tampon_poly[j + k * largeur];
+			for (size_t j = 0; j < poly_page->res_u; ++j) {
+				for (size_t k = 0; k < poly_page->res_v; ++k) {
+					donnees_image[j + k * static_cast<size_t>(taille_texture[0])] = tampon_poly[j + k * static_cast<size_t>(largeur)];
 				}
 			}
 		}

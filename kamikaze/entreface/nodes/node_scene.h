@@ -20,8 +20,14 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#pragma GCC diagnostic pop
 
 /****************************************************************************
  * Subclass of a QGraphicsScene. This is needed to prevent that a right

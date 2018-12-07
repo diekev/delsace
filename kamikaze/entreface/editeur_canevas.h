@@ -25,7 +25,15 @@
 #pragma once
 
 #include <GL/glew.h>  /* needs to be included before QGLWidget (includes gl.h) */
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGLWidget>
+#pragma GCC diagnostic pop
+
 #include <stack>
 
 #include "../bibliotheques/opengl/contexte_rendu.h"
@@ -67,6 +75,9 @@ public:
 	explicit Canevas(RepondantCommande *repondant, QWidget *parent = nullptr);
 	~Canevas();
 
+	Canevas(Canevas const &) = default;
+	Canevas &operator=(Canevas const &) = default;
+
 	void initializeGL();
 	void paintGL();
 	void resizeGL(int largeur, int hauteur);
@@ -91,6 +102,9 @@ class EditeurCanvas : public BaseEditrice {
 
 public:
 	explicit EditeurCanvas(RepondantCommande *repondant, QWidget *parent = nullptr);
+
+	EditeurCanvas(EditeurCanvas const &) = default;
+	EditeurCanvas &operator=(EditeurCanvas const &) = default;
 
 	void update_state(type_evenement event) override;
 };

@@ -39,9 +39,9 @@ Polygone *Polygone::construit(Corps *corps, int type_polygone, size_t nombre_som
 	return p;
 }
 
-void Polygone::ajoute_sommet(size_t s)
+void Polygone::ajoute_sommet(size_t sommet)
 {
-	m_sommets.push_back(s);
+	m_sommets.push_back(sommet);
 }
 
 void Polygone::reserve_sommets(size_t nombre)

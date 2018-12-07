@@ -26,8 +26,14 @@
 
 #include <danjo/danjo.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QVBoxLayout>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "coeur/arbre.h"
 #include "coeur/creation_arbre.h"
@@ -339,7 +345,7 @@ void EditeurArbre::ajourne_etat(int evenement)
 
 	m_vue->ajourne_proprietes();
 
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.conteneur = this;
 	donnees.manipulable = m_vue;
 	donnees.repondant_bouton = nullptr;

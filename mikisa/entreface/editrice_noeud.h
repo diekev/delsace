@@ -40,7 +40,10 @@ class EditriceGraphe : public BaseEditrice {
 public:
 	explicit EditriceGraphe(Mikisa *mikisa, QWidget *parent = nullptr);
 
-	~EditriceGraphe();
+	EditriceGraphe(EditriceGraphe const &) = default;
+	EditriceGraphe &operator=(EditriceGraphe const &) = default;
+
+	~EditriceGraphe() override;
 
 	void ajourne_etat(int evenement) override;
 

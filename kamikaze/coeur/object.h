@@ -40,11 +40,14 @@ class Object : public SceneNode {
 	Graph m_graph;
 
 	Object *m_parent = nullptr;
-	std::vector<Object *> m_children;
+	std::vector<Object *> m_children{};
 
 public:
 	explicit Object(const Context &contexte);
 	~Object() = default;
+
+	Object(Object const &) = default;
+	Object &operator=(Object const &) = default;
 
 	PrimitiveCollection *collection() const;
 	void collection(PrimitiveCollection *coll);

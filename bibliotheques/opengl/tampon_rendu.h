@@ -170,14 +170,14 @@ public:
  */
 class TamponRendu {
 	numero7::ego::TamponObjet::Ptr m_donnees_tampon = nullptr;
-	numero7::ego::Programme m_programme;
+	numero7::ego::Programme m_programme{};
 	size_t m_elements = 0;
 
 	numero7::ego::Texture2D::Ptr m_texture = nullptr;
 
 	AtlasTexture *m_atlas = nullptr;
 
-	ParametresDessin m_paramatres_dessin;
+	ParametresDessin m_paramatres_dessin{};
 
 	bool m_requiers_normal = false;
 	bool m_peut_surligner = false;

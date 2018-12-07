@@ -28,12 +28,12 @@ class AtlasTexture {
 	unsigned int m_bindcode = 0;
 	int m_format_interne = 0;
 	int m_bordure = 0;
-	int m_nombre = 0;
+	unsigned int m_nombre = 0;
 	unsigned int m_format = 0;
 	unsigned int m_type = 0;
 
 public:
-	explicit AtlasTexture(int nombre);
+	explicit AtlasTexture(unsigned int nombre);
 
 	~AtlasTexture();
 
@@ -43,7 +43,7 @@ public:
 
 	void detache() const;
 
-	void typage(int type, int format, int format_interne);
+	void typage(unsigned int type, unsigned int format, int format_interne);
 
 	void filtre_min_mag(int min, int mag) const;
 

@@ -52,13 +52,13 @@ public:
 /* ************************************************************************** */
 
 class GroupePolygone {
-	std::vector<size_t> m_polygones;
+	std::vector<size_t> m_polygones{};
 
 public:
 	using plage_points = plage_iterable<std::vector<size_t>::iterator>;
 	using plage_points_const = plage_iterable<std::vector<size_t>::const_iterator>;
 
-	std::string nom;
+	std::string nom{};
 
 	void ajoute_primitive(size_t index_poly);
 

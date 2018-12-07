@@ -46,6 +46,15 @@ qt5_wrap_cpp(
 
 add_compile_options(-fPIC)
 
+add_library(qt_koudou_coeur ${moc_headers})
+target_include_directories(qt_koudou_coeur PUBLIC "${INCLUSIONS}")
+get_target_property(EXTLIB_COMPILE_FLAGS qt_koudou_coeur COMPILE_OPTIONS)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
+set_target_properties(qt_koudou_coeur PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+
 add_library(${NOM_CIBLE} STATIC
 	commandes/adaptrice_creation_maillage.h
 	commandes/commandes_fichier.h
@@ -71,8 +80,6 @@ add_library(${NOM_CIBLE} STATIC
 	tache.h
 	types.h
 	volume.h
-
-	${moc_headers}
 
 	commandes/adaptrice_creation_maillage.cc
 	commandes/commandes_fichier.cc
@@ -102,4 +109,4 @@ add_library(${NOM_CIBLE} STATIC
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}" qt_koudou_coeur)

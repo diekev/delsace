@@ -35,10 +35,10 @@ static constexpr auto NOM_SCENE = "Scène";
 static constexpr auto AIDE_SCENE = "Crée une scène.";
 
 class OperatriceScene final : public OperatriceImage {
-	Scene m_scene;
-	ContexteRendu m_contexte;
-	PileMatrice m_pile;
-	Graphe m_graphe;
+	Scene m_scene{};
+	ContexteRendu m_contexte{};
+	PileMatrice m_pile{};
+	Graphe m_graphe{};
 
 public:
 	explicit OperatriceScene(Noeud *node);

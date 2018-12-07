@@ -38,6 +38,9 @@ class VueBrosse : public danjo::Manipulable {
 public:
 	explicit VueBrosse(Kanba *kanba);
 
+	VueBrosse(VueBrosse const &) = default;
+	VueBrosse &operator=(VueBrosse const &) = default;
+
 	void ajourne_donnees();
 
 	bool ajourne_proprietes() override;
@@ -56,7 +59,10 @@ class EditeurBrosse final : public BaseEditrice {
 public:
 	EditeurBrosse(Kanba *kanba, QWidget *parent = nullptr);
 
-	~EditeurBrosse();
+	EditeurBrosse(EditeurBrosse const &) = default;
+	EditeurBrosse &operator=(EditeurBrosse const &) = default;
+
+	~EditeurBrosse() override;
 
 	void ajourne_etat(int evenement) override;
 

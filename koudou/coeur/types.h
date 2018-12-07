@@ -37,8 +37,8 @@ enum {
 };
 
 struct Entresection {
-	int id = 0;
-	int id_triangle = 0;
+	size_t id = 0;
+	size_t id_triangle = 0;
 	int type_objet = OBJET_TYPE_AUCUN;
 	double distance = 0.0;
 	const Maillage *maillage = nullptr;
@@ -57,9 +57,9 @@ struct Entresection {
 /* ************************************************************************** */
 
 struct Rayon {
-	dls::math::point3d origine;
-	dls::math::vec3d direction;
-	dls::math::vec3d inverse_direction;
+	dls::math::point3d origine{};
+	dls::math::vec3d direction{};
+	dls::math::vec3d inverse_direction{};
 
 	double distance_min = 0.0;
 	double distance_max = 0.0;

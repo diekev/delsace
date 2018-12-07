@@ -62,7 +62,7 @@ void execute_operatrice(Operatrice *operatrice, const Context &contexte, double 
 	 * d'exécution agrégé des noeuds en amont de celui du neoud courant. */
 	auto temps_agrege_parent = 0.0;
 
-	for (int i = 0; i < operatrice->entrees(); ++i) {
+	for (size_t i = 0; i < operatrice->entrees(); ++i) {
 		auto entree = operatrice->entree(i);
 
 		temps_agrege_parent += entree->temps_execution_parent();
@@ -160,7 +160,7 @@ void Operatrice::entrees(size_t nombre)
 	m_donnees_entree.resize(nombre);
 }
 
-int Operatrice::entrees() const
+size_t Operatrice::entrees() const
 {
 	return m_nombre_entrees;
 }
@@ -170,7 +170,7 @@ void Operatrice::sorties(size_t nombre)
 	m_nombre_sorties = nombre;
 }
 
-int Operatrice::sorties() const
+size_t Operatrice::sorties() const
 {
 	return m_nombre_sorties;
 }

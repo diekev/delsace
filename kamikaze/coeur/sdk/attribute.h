@@ -52,7 +52,7 @@ class Attribute {
 		std::vector<dls::math::vec4f> *vec4_list;
 		std::vector<dls::math::mat3x3f> *mat3_list;
 		std::vector<dls::math::mat4x4f> *mat4_list;
-	} m_data;
+	} m_data{};
 
 	std::string m_name;
 	AttributeType m_type;
@@ -95,7 +95,7 @@ public:
 	int integer(size_t n) const;
 
 	void float_(size_t n, float f);
-	int float_(size_t n) const;
+	float float_(size_t n) const;
 
 	void vec2(size_t n, const dls::math::vec2f &v);
 	const dls::math::vec2f &vec2(size_t n) const;

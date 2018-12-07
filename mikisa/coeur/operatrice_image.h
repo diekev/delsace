@@ -71,8 +71,8 @@ enum {
 /* ************************************************************************** */
 
 struct Calque {
-	std::string nom;
-	type_image tampon;
+	std::string nom{};
+	type_image tampon{};
 
 	/**
 	 * Retourne la valeur du tampon de ce calque à la position <x, y>.
@@ -95,8 +95,8 @@ struct Calque {
 /* ************************************************************************** */
 
 class Image {
-	std::list<Calque *> m_calques;
-	std::string m_nom_calque;
+	std::list<Calque *> m_calques{};
+	std::string m_nom_calque{};
 
 public:
 	using plage_calques = plage_iterable<std::list<Calque *>::iterator>;
@@ -165,6 +165,9 @@ public:
 	 * n'est pas à être utilisé autrement.
 	 */
 	EntreeOperatrice() = default;
+
+	EntreeOperatrice(const EntreeOperatrice &autre) = default;
+	EntreeOperatrice &operator=(const EntreeOperatrice &autre) = default;
 
 	/**
 	 * Crée une instance d'EntreeOperatrice pour la PriseEntree spécifiée.
@@ -253,16 +256,16 @@ public:
 /* ************************************************************************** */
 
 class OperatriceImage : public danjo::Manipulable {
-	int m_num_inputs = 2;
-	int m_num_outputs = 1;
+	size_t m_num_inputs = 2;
+	size_t m_num_outputs = 1;
 
-	std::vector<EntreeOperatrice> m_input_data;
-	std::vector<SortieOperatrice> m_sorties;
+	std::vector<EntreeOperatrice> m_input_data{};
+	std::vector<SortieOperatrice> m_sorties{};
 
-	std::vector<std::string> m_avertissements;
+	std::vector<std::string> m_avertissements{};
 
 protected:
-	Image m_image;
+	Image m_image{};
 
 public:
 	/* Prevent creating an operator without an accompanying node. */
@@ -276,9 +279,9 @@ public:
 
 	/* Input handling. */
 
-	void inputs(int number);
+	void inputs(size_t number);
 
-	int inputs() const;
+	size_t inputs() const;
 
 	virtual const char *nom_entree(int n);
 
@@ -296,9 +299,9 @@ public:
 
 	/* Output handling. */
 
-	void outputs(int number);
+	void outputs(size_t number);
 
-	int outputs() const;
+	size_t outputs() const;
 
 	virtual const char *nom_sortie(int n);
 

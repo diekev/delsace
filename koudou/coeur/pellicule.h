@@ -37,14 +37,14 @@ struct CarreauPellicule {
 };
 
 struct PixelPellicule {
-	dls::math::vec3d couleur;
-	double poids;
+	dls::math::vec3d couleur{};
+	double poids{};
 };
 
 class Pellicule {
 	numero7::math::matrice<dls::math::vec3d> m_matrice;
 
-	std::vector<PixelPellicule> m_pixels_pellicule;
+	std::vector<PixelPellicule> m_pixels_pellicule{};
 
 public:
 	Pellicule();

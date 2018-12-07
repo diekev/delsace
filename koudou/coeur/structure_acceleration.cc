@@ -24,6 +24,8 @@
 
 #include "structure_acceleration.h"
 
+#include "bibliotheques/outils/definitions.hh"
+
 #include "boite_englobante.h"
 #include "maillage.h"
 #include "scene.h"
@@ -33,12 +35,12 @@
 
 static void entresecte_triangles_maillage(
 		const Maillage &maillage,
-		int index,
+		size_t index,
 		double distance_maximale,
 		const Rayon &rayon,
 		Entresection &entresection)
 {
-	auto index_triangle = 0;
+	auto index_triangle = 0ul;
 
 	for (const Triangle *triangle : maillage) {
 #ifdef STATISTIQUES
@@ -68,7 +70,7 @@ Entresection StructureAcceleration::entresecte(
 		const Rayon &rayon,
 		double distance_maximale) const
 {
-	auto index = 0;
+	auto index = 0ul;
 	auto entresection = Entresection();
 	entresection.distance = distance_maximale;
 
@@ -102,10 +104,10 @@ const dls::math::vec3d VolumeEnglobant::NORMAUX_PLAN[VolumeEnglobant::NOMBRE_NOR
 	dls::math::vec3d(1, 0, 0),
 	dls::math::vec3d(0, 1, 0),
 	dls::math::vec3d(0, 0, 1),
-	dls::math::vec3d( std::sqrt(3) / 3.f,  std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
-	dls::math::vec3d(-std::sqrt(3) / 3.f,  std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
-	dls::math::vec3d(-std::sqrt(3) / 3.f, -std::sqrt(3) / 3.f, std::sqrt(3) / 3.f),
-	dls::math::vec3d( std::sqrt(3) / 3.f, -std::sqrt(3) / 3.f, std::sqrt(3) / 3.f)
+	dls::math::vec3d( std::sqrt(3) / 3.,  std::sqrt(3) / 3., std::sqrt(3) / 3.),
+	dls::math::vec3d(-std::sqrt(3) / 3.,  std::sqrt(3) / 3., std::sqrt(3) / 3.),
+	dls::math::vec3d(-std::sqrt(3) / 3., -std::sqrt(3) / 3., std::sqrt(3) / 3.),
+	dls::math::vec3d( std::sqrt(3) / 3., -std::sqrt(3) / 3., std::sqrt(3) / 3.)
 };
 
 VolumeEnglobant::Etendue::Etendue()
@@ -123,9 +125,11 @@ bool VolumeEnglobant::Etendue::entresecte(const Rayon &rayon,
 		double &d_eloigne,
 		uint8_t &index_plan) const
 {
+	INUTILISE(rayon);
+
 	for (uint8_t i = 0; i < NOMBRE_NORMAUX_PLAN; ++i) {
-		float tn = (d[i][0] - numerateur_precalcule[i]) / denominateur_precalcule[i];
-		float tf = (d[i][1] - numerateur_precalcule[i]) / denominateur_precalcule[i];
+		auto tn = (d[i][0] - numerateur_precalcule[i]) / denominateur_precalcule[i];
+		auto tf = (d[i][1] - numerateur_precalcule[i]) / denominateur_precalcule[i];
 
 		if (denominateur_precalcule[i] < 0) {
 			std::swap(tn, tf);
@@ -150,7 +154,7 @@ bool VolumeEnglobant::Etendue::entresecte(const Rayon &rayon,
 void VolumeEnglobant::construit(const Scene &scene)
 {
 	m_etendues.resize(scene.maillages.size());
-	auto i = 0;
+	auto i = 0ul;
 	for (Maillage *maillage : scene.maillages) {
 		for (uint8_t j = 0; j < NOMBRE_NORMAUX_PLAN; ++j) {
 			maillage->calcule_limites(NORMAUX_PLAN[j], m_etendues[i].d[j][0], m_etendues[i].d[j][1]);
@@ -173,7 +177,7 @@ Entresection VolumeEnglobant::entresecte(
 	rayon_local.distance_max = rayon.distance_max;
 	rayon_local.temps = rayon.temps;
 
-	auto index = 0;
+	auto index = 0ul;
 	auto entresection = Entresection();
 	entresection.distance = distance_maximale;
 

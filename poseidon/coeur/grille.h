@@ -31,7 +31,7 @@ template <typename T>
 class Grille {
 	std::vector<T> m_donnees = {};
 
-	dls::math::vec3i m_res = dls::math::vec3i(0, 0, 0);
+	dls::math::vec3<size_t> m_res = dls::math::vec3<size_t>(0ul, 0ul, 0ul);
 	size_t m_nombre_voxels = 0;
 
 	T m_arriere_plan = T(0);
@@ -73,7 +73,7 @@ public:
 		std::fill(m_donnees.begin(), m_donnees.end(), T(0));
 	}
 
-	dls::math::vec3i resolution() const
+	dls::math::vec3<size_t> resolution() const
 	{
 		return m_res;
 	}

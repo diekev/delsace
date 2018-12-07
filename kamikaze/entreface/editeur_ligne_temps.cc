@@ -28,6 +28,11 @@
 #include <danjo/danjo.h>
 #include <danjo/manipulable.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDoubleSpinBox>
 #include <QFrame>
 #include <QGridLayout>
@@ -36,17 +41,24 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QTimer>
+#pragma GCC diagnostic pop
 
 #include "coeur/scene.h"
 
 EditriceLigneTemps::EditriceLigneTemps(danjo::RepondantBouton *repondant, QWidget *parent)
 	: BaseEditrice(parent)
-    , m_timer(new QTimer(this))
+	, m_slider(new QSlider(m_frame))
+	, m_tc_layout(new QHBoxLayout())
+	, m_num_layout(new QHBoxLayout())
+	, m_vbox_layout(new QVBoxLayout())
+	, m_end_frame(new QSpinBox(m_frame))
+	, m_start_frame(new QSpinBox(m_frame))
+	, m_cur_frame(new QSpinBox(m_frame))
+	, m_fps(new QDoubleSpinBox(m_frame))
+	, m_timer(new QTimer(this))
 {
-	m_vbox_layout = new QVBoxLayout();
 	m_main_layout->addLayout(m_vbox_layout);
 
-	m_num_layout = new QHBoxLayout();
 	m_num_layout->setSizeConstraint(QLayout::SetMinimumSize);
 
 	/* ------------------------------ jog bar ------------------------------- */
@@ -59,13 +71,11 @@ EditriceLigneTemps::EditriceLigneTemps(danjo::RepondantBouton *repondant, QWidge
 	m_slider->setTickInterval(0);
 	m_slider->setMaximum(250);
 
-	m_start_frame = new QSpinBox(m_frame);
 	m_start_frame->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
 	m_start_frame->setMaximum(500000);
 	m_start_frame->setValue(0);
 	m_start_frame->setToolTip("Start Frame");
 
-	m_end_frame = new QSpinBox(m_frame);
 	m_end_frame->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
 	m_end_frame->setMaximum(500000);
 	m_end_frame->setValue(250);
@@ -79,9 +89,6 @@ EditriceLigneTemps::EditriceLigneTemps(danjo::RepondantBouton *repondant, QWidge
 
 	/* ------------------------- current selection -------------------------- */
 
-	m_tc_layout = new QHBoxLayout();
-
-	m_cur_frame = new QSpinBox(m_frame);
 	m_cur_frame->setAlignment(Qt::AlignCenter);
 	m_cur_frame->setReadOnly(true);
 	m_cur_frame->setButtonSymbols(QAbstractSpinBox::NoButtons);
@@ -97,7 +104,7 @@ EditriceLigneTemps::EditriceLigneTemps(danjo::RepondantBouton *repondant, QWidge
 
 	danjo::Manipulable dummy;
 
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.conteneur = nullptr;
 	donnees.manipulable = &dummy;
 	donnees.repondant_bouton = repondant;
@@ -111,7 +118,6 @@ EditriceLigneTemps::EditriceLigneTemps(danjo::RepondantBouton *repondant, QWidge
 
 	/* --------------------------------- fps -------------------------------- */
 
-	m_fps = new QDoubleSpinBox(m_frame);
 	m_fps->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
 	m_fps->setValue(24);
 	m_fps->setToolTip("Frame Rate");
@@ -150,11 +156,11 @@ void EditriceLigneTemps::update_state(type_evenement event)
 
 	m_slider->setValue(scene->currentFrame());
 
-	m_fps->setValue(scene->framesPerSecond());
+	m_fps->setValue(static_cast<double>(scene->framesPerSecond()));
 
 	/* Start or stop the animation. */
 	if (m_context->eval_ctx->animation) {
-		m_timer->start(1000 / m_fps->value());
+		m_timer->start(static_cast<int>(1000.0 / m_fps->value()));
 	}
 	else {
 		m_timer->stop();
@@ -187,7 +193,7 @@ void EditriceLigneTemps::setFPS(double value)
 {
 	this->set_active();
 	auto scene = m_context->scene;
-	scene->framesPerSecond(value);
+	scene->framesPerSecond(static_cast<float>(value));
 }
 
 void EditriceLigneTemps::updateFrame() const

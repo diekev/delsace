@@ -66,14 +66,14 @@ void Maillage::ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre)
 void Maillage::ajoute_quad(const int s0, const int s1, const int s2, const int s3)
 {
 	auto poly = new Polygone();
-	poly->s[0] = m_sommets[s0];
-	poly->s[1] = m_sommets[s1];
-	poly->s[2] = m_sommets[s2];
-	poly->s[3] = ((s3 == -1) ? nullptr : m_sommets[s3]);
+	poly->s[0] = m_sommets[static_cast<size_t>(s0)];
+	poly->s[1] = m_sommets[static_cast<size_t>(s1)];
+	poly->s[2] = m_sommets[static_cast<size_t>(s2)];
+	poly->s[3] = ((s3 == -1) ? nullptr : m_sommets[static_cast<size_t>(s3)]);
 
-	const auto nombre_sommet = ((s3 == -1) ? 3 : 4);
+	const auto nombre_sommet = ((s3 == -1) ? 3ul : 4ul);
 
-	for (int i = 0; i < nombre_sommet; ++i) {
+	for (size_t i = 0; i < nombre_sommet; ++i) {
 		auto arrete = new Arrete();
 		arrete->p = poly;
 
@@ -170,7 +170,7 @@ Polygone *Maillage::polygone(size_t i)
 
 static void min_max_vecteur(dls::math::vec3f &min, dls::math::vec3f &max, const dls::math::vec3f &v)
 {
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		if (v[i] < min[i]) {
 			min[i] = v[i];
 		}

@@ -30,7 +30,7 @@ void Camera2D::ajourne_matrice()
 {
 	matrice = dls::math::mat4x4f(1.0);
 	matrice[0][0] = zoom;
-	matrice[1][1] = static_cast<float>(largeur) / hauteur * zoom;
+	matrice[1][1] = static_cast<float>(largeur) / static_cast<float>(hauteur) * zoom;
 	matrice[3][0] = pos_x;
 	matrice[3][1] = pos_y;
 }

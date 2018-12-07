@@ -40,6 +40,9 @@ struct SceneOutputSocket {
 	    : parent(nullptr)
 	    , name(sname)
 	{}
+
+	SceneOutputSocket(SceneOutputSocket const &) = default;
+	SceneOutputSocket &operator=(SceneOutputSocket const &) = default;
 };
 
 using SceneOutputSocketPtr = std::unique_ptr<SceneOutputSocket>;
@@ -54,6 +57,9 @@ struct SceneInputSocket {
 	    , link(nullptr)
 	    , name(sname)
 	{}
+
+	SceneInputSocket(SceneInputSocket const &) = default;
+	SceneInputSocket &operator=(SceneInputSocket const &) = default;
 };
 
 using SceneInputSocketPtr = std::unique_ptr<SceneInputSocket>;

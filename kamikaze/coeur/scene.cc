@@ -74,7 +74,7 @@ void Scene::entresect(const Ray &/*ray*/)
 void Scene::selectObject(const dls::math::vec3f &pos)
 {
 	float min = 1000.0f;
-	int selected_object = -1, index = 0;
+	size_t selected_object = -1ul, index = 0;
 
 	for (auto &node : m_nodes) {
 		auto object = static_cast<Object *>(node.get());
@@ -95,7 +95,7 @@ void Scene::selectObject(const dls::math::vec3f &pos)
 		++index;
 	}
 
-	if (selected_object != -1 && m_active_node != (m_nodes[selected_object]).get()) {
+	if (selected_object != -1ul && m_active_node != (m_nodes[selected_object]).get()) {
 		m_active_node = (m_nodes[selected_object]).get();
 		notify_listeners(type_evenement::objet | type_evenement::selectione);
 	}

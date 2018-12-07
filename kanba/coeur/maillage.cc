@@ -73,9 +73,9 @@ void ajoute_calque_procedurale(Maillage *maillage)
 		const auto index_poly = poly->x + poly->y * largeur;
 		auto tampon_poly = tampon + index_poly;
 
-		for (int j = 0; j < poly->res_v; ++j) {
-			for (int k = 0; k < poly->res_u; ++k) {
-				auto index = j * largeur + k;
+		for (unsigned j = 0; j < poly->res_v; ++j) {
+			for (unsigned k = 0; k < poly->res_u; ++k) {
+				auto index = j * static_cast<unsigned>(largeur) + k;
 
 				auto coord = s0 + dU * static_cast<float>(j) + dV * static_cast<float>(k);
 
@@ -114,9 +114,9 @@ void ajoute_calque_echiquier(Maillage *maillage)
 		const auto index_poly = poly->x + poly->y * largeur;
 		auto tampon_poly = tampon + index_poly;
 
-		for (int j = 0; j < poly->res_v; ++j) {
-			for (int k = 0; k < poly->res_u; ++k) {
-				auto index = j * largeur + k;
+		for (size_t j = 0; j < poly->res_v; ++j) {
+			for (size_t k = 0; k < poly->res_u; ++k) {
+				auto index = j * static_cast<size_t>(largeur) + k;
 
 				if ((j + k) % 2 == 0) {
 					tampon_poly[index] = couleur1;
@@ -131,8 +131,8 @@ void ajoute_calque_echiquier(Maillage *maillage)
 
 auto echantillone_texture(TextureImage *texture_image, const dls::math::vec2f &uv)
 {
-	auto x = static_cast<int>(uv.x * texture_image->largeur());
-	auto y = static_cast<int>(uv.y * texture_image->hauteur());
+	auto x = static_cast<int>(uv.x) * texture_image->largeur();
+	auto y = static_cast<int>(uv.y) * texture_image->hauteur();
 
 	if (x >= texture_image->largeur()) {
 		x %= texture_image->largeur();
@@ -165,14 +165,14 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 	for (size_t i = 0; i < nombre_polygones; ++i) {
 		auto poly = maillage->polygone(i);
 
-		const auto angle_xy = abs(poly->nor.z);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 0.0, 1.0)));
-		const auto angle_xz = abs(poly->nor.y);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 1.0, 0.0)));
-		const auto angle_yz = abs(poly->nor.x);// abs(produit_scalaire(poly->nor, dls::math::vec3f(1.0, 0.0, 0.0)));
+		const auto angle_xy = std::abs(poly->nor.z);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 0.0, 1.0)));
+		const auto angle_xz = std::abs(poly->nor.y);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 1.0, 0.0)));
+		const auto angle_yz = std::abs(poly->nor.x);// abs(produit_scalaire(poly->nor, dls::math::vec3f(1.0, 0.0, 0.0)));
 
-		float poids = (angle_xy + angle_xz + angle_yz);
+		auto poids = (angle_xy + angle_xz + angle_yz);
 
-		if (poids == 0.0) {
-			poids = 1.0;
+		if (poids == 0.0f) {
+			poids = 1.0f;
 		}
 		else {
 			poids = 1.0f / poids;
@@ -191,9 +191,9 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 		const auto index_poly = poly->x + poly->y * largeur;
 		auto tampon_poly = tampon + index_poly;
 
-		for (int j = 0; j < poly->res_v; ++j) {
-			for (int k = 0; k < poly->res_u; ++k) {
-				auto index = j * largeur + k;
+		for (size_t j = 0; j < poly->res_v; ++j) {
+			for (size_t k = 0; k < poly->res_u; ++k) {
+				auto index = j * static_cast<size_t>(largeur) + k;
 
 				const auto &sommet = v0 + static_cast<float>(j) * dv + static_cast<float>(k) * du;
 
@@ -216,7 +216,7 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 
 #undef TAILLE_UNIFORME
 
-void assigne_texels_resolution(Maillage *maillage, int texels_par_cm)
+void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 {
 	texels_par_cm = texels_par_cm * 10;
 
@@ -234,8 +234,8 @@ void assigne_texels_resolution(Maillage *maillage, int texels_par_cm)
 		const auto cote0 = longueur(p->s[1]->pos - p->s[0]->pos);
 		const auto cote1 = longueur(p->s[2]->pos - p->s[1]->pos);
 
-		const auto res_u = static_cast<unsigned int>(cote0 * texels_par_cm);
-		const auto res_v = static_cast<unsigned int>(cote1 * texels_par_cm);
+		const auto res_u = static_cast<unsigned int>(cote0) * texels_par_cm;
+		const auto res_v = static_cast<unsigned int>(cote1) * texels_par_cm;
 
 		p->res_u = std::max(1u, prochain_multiple_de_2(res_u));
 		p->res_v = std::max(1u, prochain_multiple_de_2(res_v));
@@ -306,17 +306,17 @@ void Maillage::ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre)
 	}
 }
 
-void Maillage::ajoute_quad(const int s0, const int s1, const int s2, const int s3)
+void Maillage::ajoute_quad(const size_t s0, const size_t s1, const size_t s2, const size_t s3)
 {
 	auto poly = new Polygone();
 	poly->s[0] = m_sommets[s0];
 	poly->s[1] = m_sommets[s1];
 	poly->s[2] = m_sommets[s2];
-	poly->s[3] = ((s3 == -1) ? nullptr : m_sommets[s3]);
+	poly->s[3] = ((s3 == -1ul) ? nullptr : m_sommets[s3]);
 
-	const auto nombre_sommet = ((s3 == -1) ? 3 : 4);
+	const auto nombre_sommet = ((s3 == -1ul) ? 3ul : 4ul);
 
-	for (int i = 0; i < nombre_sommet; ++i) {
+	for (size_t i = 0; i < nombre_sommet; ++i) {
 		auto arrete = new Arrete();
 		arrete->p = poly;
 
@@ -376,8 +376,8 @@ void Maillage::cree_tampon()
 	paqueuse.empaquete(m_polys);
 
 	m_largeur_texture = paqueuse.largeur();
-	m_canaux.hauteur = paqueuse.hauteur();
-	m_canaux.largeur = paqueuse.largeur();
+	m_canaux.hauteur = static_cast<size_t>(paqueuse.hauteur());
+	m_canaux.largeur = static_cast<size_t>(paqueuse.largeur());
 	auto calque = ajoute_calque(m_canaux, TypeCanal::DIFFUSION);
 	calque_actif(calque);
 
@@ -428,7 +428,7 @@ void Maillage::marque_texture_surrannee(bool ouinon)
 	m_texture_surrannee = ouinon;
 }
 
-int Maillage::largeur_texture() const
+unsigned int Maillage::largeur_texture() const
 {
 	return m_largeur_texture;
 }

@@ -30,10 +30,10 @@ void copie(const Conteneur &de, Conteneur &vers)
 	std::copy(de->begin(), de->end(), vers->begin());
 }
 
-Attribut::Attribut(const std::string &name, type_attribut type, int portee, size_t size)
+Attribut::Attribut(const std::string &name, type_attribut type, int portee_, size_t size)
 	: m_nom(name)
 	, m_type(type)
-	, portee(portee)
+	, portee(portee_)
 {
 	switch (m_type) {
 		case ATTRIBUT_ENT8:

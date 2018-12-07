@@ -44,8 +44,8 @@ auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 {
 	dls::math::mat4x4<float> resultat;
 
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
+	for (size_t i = 0; i < 4; ++i) {
+		for (size_t j = 0; j < 4; ++j) {
 			resultat[i][j] = static_cast<float>(matrice[i][j]);
 		}
 	}
@@ -139,11 +139,11 @@ void VisionneurScene::peint_opengl()
 		m_stack.enleve_sommet();
 	}
 
-	const auto &diametre = m_kanba->brosse->rayon * 2.0f;
+	const auto &diametre = static_cast<float>(m_kanba->brosse->rayon) * 2.0f;
 
 	m_rendu_brosse->dessine(m_contexte,
-							diametre / m_camera->largeur(),
-							diametre / m_camera->hauteur(),
+							diametre / static_cast<float>(m_camera->largeur()),
+							diametre / static_cast<float>(m_camera->hauteur()),
 							m_pos_x,
 							m_pos_y);
 
@@ -173,6 +173,6 @@ void VisionneurScene::redimensionne(int largeur, int hauteur)
 
 void VisionneurScene::position_souris(int x, int y)
 {
-	m_pos_x = static_cast<float>(x) / m_camera->largeur() * 2.0 - 1.0;
-	m_pos_y = static_cast<float>(m_camera->hauteur() - y) / m_camera->hauteur() * 2.0 - 1.0;
+	m_pos_x = static_cast<float>(x) / static_cast<float>(m_camera->largeur()) * 2.0f - 1.0f;
+	m_pos_y = static_cast<float>(m_camera->hauteur() - y) / static_cast<float>(m_camera->hauteur()) * 2.0f - 1.0f;
 }

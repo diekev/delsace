@@ -82,7 +82,7 @@ enum {
  * tridimensionel.
  */
 class Polygone {
-	std::vector<size_t> m_sommets;
+	std::vector<size_t> m_sommets{};
 
 public:
 	/* Les sommets formant ce polygone. */
@@ -96,10 +96,13 @@ public:
 	int uvs[4] = { 0, 0, 0, 0 };
 
 	/* Le vecteur normal de ce polygone. */
-	dls::math::vec3f nor;
+	dls::math::vec3f nor{};
 
 	/* nouvelle entreface */
 	Polygone() = default;
+
+	Polygone(Polygone const &) = default;
+	Polygone &operator=(Polygone const &) = default;
 
 	/* Le type de ce polygone :
 	 * POLYGONE_FERME : un polygone avec une face
@@ -112,7 +115,7 @@ public:
 
 	static Polygone *construit(Corps *corps, int type_polygone = POLYGONE_FERME, size_t nombre_sommets = 0);
 
-	void ajoute_sommet(size_t s);
+	void ajoute_sommet(size_t sommet);
 
 	void reserve_sommets(size_t nombre);
 
@@ -126,7 +129,7 @@ public:
 /* ************************************************************************** */
 
 class ListePoints3D {
-	std::vector<Point3D *> m_sommets;
+	std::vector<Point3D *> m_sommets{};
 
 public:
 	using plage_sommets = plage_iterable<std::vector<Point3D *>::iterator>;
@@ -154,7 +157,7 @@ public:
 /* ************************************************************************** */
 
 class ListePoints {
-	std::vector<Sommet *> m_sommets;
+	std::vector<Sommet *> m_sommets{};
 
 public:
 	using plage_sommets = plage_iterable<std::vector<Sommet *>::iterator>;
@@ -180,7 +183,7 @@ public:
 /* ************************************************************************** */
 
 class ListeSegments {
-	std::vector<Arrete *> m_sommets;
+	std::vector<Arrete *> m_sommets{};
 
 public:
 	using plage_arretes = plage_iterable<std::vector<Arrete *>::iterator>;
@@ -206,7 +209,7 @@ public:
 /* ************************************************************************** */
 
 class ListePolygones {
-	std::vector<Polygone *> m_polygones;
+	std::vector<Polygone *> m_polygones{};
 
 public:
 	using plage_polys = plage_iterable<std::vector<Polygone *>::iterator>;

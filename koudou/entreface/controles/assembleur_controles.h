@@ -24,7 +24,14 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QObject>
+#pragma GCC diagnostic pop
+
 #include <unordered_map>
 
 class QGridLayout;
@@ -32,16 +39,19 @@ class QGridLayout;
 using widget_pair = std::pair<QWidget *, QWidget *>;
 
 class AssembleurControles {
-	QGridLayout *m_agencement;
-	QWidget *m_dernier_controle;
-	int m_compte_items;
+	QGridLayout *m_agencement{};
+	QWidget *m_dernier_controle{};
+	int m_compte_items{};
 
-	std::vector<QWidget *> m_controles;
-	std::unordered_map<std::string, widget_pair> m_tableau_controle;
+	std::vector<QWidget *> m_controles{};
+	std::unordered_map<std::string, widget_pair> m_tableau_controle{};
 
 public:
 	explicit AssembleurControles(QGridLayout *layout);
 	~AssembleurControles();
+
+	AssembleurControles(AssembleurControles const &) = default;
+	AssembleurControles &operator=(AssembleurControles const &) = default;
 
 	void addWarning(const QString &warning);
 	void addWidget(QWidget *widget, const QString &name);

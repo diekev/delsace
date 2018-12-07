@@ -40,9 +40,9 @@ static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 {
 	dls::math::mat4x4f resultat;
 
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			resultat[i][j] = matrice[i][j];
+	for (size_t i = 0; i < 4; ++i) {
+		for (size_t j = 0; j < 4; ++j) {
+			resultat[i][j] = static_cast<float>(matrice[i][j]);
 		}
 	}
 
@@ -123,12 +123,12 @@ int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 
 	glGenRenderbuffers(1 ,&render_buf);
 	glBindRenderbuffer(GL_RENDERBUFFER, render_buf);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, rectangle.largeur, rectangle.hauteur);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, static_cast<int>(rectangle.largeur), static_cast<int>(rectangle.hauteur));
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf);
 
 	glGenRenderbuffers(1 ,&tampon_prof);
 	glBindRenderbuffer(GL_RENDERBUFFER, tampon_prof);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, rectangle.largeur, rectangle.hauteur);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, static_cast<int>(rectangle.largeur), static_cast<int>(rectangle.hauteur));
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, tampon_prof);
 
 	/* ****************************************************************** */
@@ -136,7 +136,7 @@ int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 	int taille_original[4];
 	glGetIntegerv(GL_VIEWPORT, taille_original);
 
-	glViewport(0, 0, rectangle.largeur, rectangle.hauteur);
+	glViewport(0, 0, static_cast<int>(rectangle.largeur), static_cast<int>(rectangle.hauteur));
 
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthFunc(GL_LESS);
@@ -185,7 +185,7 @@ int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 	auto image_tampon = type_image(tampon->tampon.dimensions());
 
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	glReadPixels(0,0,rectangle.largeur,rectangle.hauteur,GL_RGBA,GL_FLOAT,&image_tampon[0][0][0]);
+	glReadPixels(0,0,static_cast<int>(rectangle.largeur),static_cast<int>(rectangle.hauteur),GL_RGBA,GL_FLOAT,&image_tampon[0][0][0]);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER,0);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
@@ -197,9 +197,9 @@ int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 	glViewport(taille_original[0], taille_original[1], taille_original[2], taille_original[3]);
 
 	/* Inverse la direction de l'image */
-	for (int y = 0; y < rectangle.hauteur; ++y) {
-		for (int x = 0; x < rectangle.largeur; ++x) {
-			tampon->valeur(x, y, image_tampon[rectangle.hauteur - y - 1][x]);
+	for (int y = 0; y < static_cast<int>(rectangle.hauteur); ++y) {
+		for (int x = 0; x < static_cast<int>(rectangle.largeur); ++x) {
+			tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y), image_tampon[static_cast<int>(rectangle.hauteur) - y - 1][x]);
 		}
 	}
 

@@ -24,8 +24,14 @@
 
 #include "base_dialogue.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDialogButtonBox>
 #include <QGridLayout>
+#pragma GCC diagnostic pop
 
 #include "coeur/configuration.h"
 #include "coeur/koudou.h"

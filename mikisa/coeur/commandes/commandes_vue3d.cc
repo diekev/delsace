@@ -25,7 +25,14 @@
 #include "commandes_vue3d.h"
 
 #include <iostream>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QKeyEvent>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/objets/creation.h"
@@ -159,8 +166,8 @@ public:
 		auto camera = mikisa->camera_3d;
 
 		auto pos = dls::math::point3f(
-					   donnees.x / camera->largeur(),
-					   1.0f - (donnees.y / camera->hauteur()),
+					   donnees.x / static_cast<float>(camera->largeur()),
+					   1.0f - (donnees.y / static_cast<float>(camera->hauteur())),
 					   0.0f);
 
 		const auto debut = camera->pos_monde(pos);
@@ -218,8 +225,8 @@ public:
 		auto camera = mikisa->camera_3d;
 
 		auto pos = dls::math::point3f(
-					   donnees.x / camera->largeur(),
-					   1.0f - (donnees.y / camera->hauteur()),
+					   donnees.x / static_cast<float>(camera->largeur()),
+					   1.0f - (donnees.y / static_cast<float>(camera->hauteur())),
 					   0.0f);
 
 		const auto debut = camera->pos_monde(pos);
@@ -263,8 +270,8 @@ public:
 		const auto &ok = entresecte_plan(plans[plan], orig, dir, t);
 
 		if (ok) {
-			const auto &pos = orig + t * dir;
-			m_delta = pos - manipulatrice->pos();
+			const auto &pos1 = orig + t * dir;
+			m_delta = pos1 - manipulatrice->pos();
 		}
 
 		/* ajourne la rotation et la taille originales */
@@ -276,7 +283,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees)
+	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
@@ -298,8 +305,8 @@ public:
 		auto camera = mikisa->camera_3d;
 
 		auto pos = dls::math::point3f(
-					   donnees.x / camera->largeur(),
-					   1.0f - (donnees.y / camera->hauteur()),
+					   donnees.x / static_cast<float>(camera->largeur()),
+					   1.0f - (donnees.y / static_cast<float>(camera->hauteur())),
 					   0.0f);
 
 		const auto debut = camera->pos_monde(pos);
@@ -334,8 +341,8 @@ public:
 		const auto &ok = entresecte_plan(plans[plan], orig, dir, t);
 
 		if (ok) {
-			const auto &pos = dls::math::vec3f(orig) + t * dir;
-			manipulatrice->repond_manipulation(pos - m_delta);
+			const auto &pos1 = dls::math::vec3f(orig) + t * dir;
+			manipulatrice->repond_manipulation(pos1 - m_delta);
 		}
 
 		/* ajourne l'opératrice */

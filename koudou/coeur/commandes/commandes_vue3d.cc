@@ -25,7 +25,14 @@
 #include "commandes_vue3d.h"
 
 #include <iostream>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QKeyEvent>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/outils/definitions.hh"
@@ -69,8 +76,8 @@ public:
 /* ************************************************************************** */
 
 class CommandeTourneCamera : public Commande {
-	float m_vieil_x;
-	float m_vieil_y;
+	float m_vieil_x = 0.0f;
+	float m_vieil_y = 0.0f;
 
 public:
 	CommandeTourneCamera() = default;
@@ -105,8 +112,8 @@ public:
 /* ************************************************************************** */
 
 class CommandePanCamera : public Commande {
-	float m_vieil_x;
-	float m_vieil_y;
+	float m_vieil_x = 0.0f;
+	float m_vieil_y = 0.0f;
 
 public:
 	CommandePanCamera() = default;

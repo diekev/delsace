@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QTreeWidget>
+#pragma GCC diagnostic pop
 
 #include "base_editeur.h"
 
@@ -41,6 +47,9 @@ class SceneTreeWidgetItem : public QWidget, public QTreeWidgetItem {
 public:
     explicit SceneTreeWidgetItem(Scene *scene, QWidget *parent = nullptr);
 
+	SceneTreeWidgetItem(SceneTreeWidgetItem const &) = default;
+	SceneTreeWidgetItem &operator=(SceneTreeWidgetItem const &) = default;
+
     Scene *getScene() const;
 
     bool visited() const;
@@ -56,6 +65,9 @@ class ObjectTreeWidgetItem : public QTreeWidgetItem {
 public:
     explicit ObjectTreeWidgetItem(SceneNode *scene_node, QTreeWidgetItem *parent = nullptr);
 
+	ObjectTreeWidgetItem(ObjectTreeWidgetItem const &) = default;
+	ObjectTreeWidgetItem &operator=(ObjectTreeWidgetItem const &) = default;
+
     SceneNode *getNode() const;
 
     bool visited() const;
@@ -70,6 +82,9 @@ class ObjectNodeTreeWidgetItem : public QTreeWidgetItem {
 public:
 	explicit ObjectNodeTreeWidgetItem(Noeud *noeud, QTreeWidgetItem *parent = nullptr);
 
+	ObjectNodeTreeWidgetItem(ObjectNodeTreeWidgetItem const &) = default;
+	ObjectNodeTreeWidgetItem &operator=(ObjectNodeTreeWidgetItem const &) = default;
+
 	Noeud *pointeur_noeud() const;
 };
 
@@ -80,6 +95,9 @@ class TreeWidget : public QTreeWidget {
 
 public:
 	explicit TreeWidget(QWidget *parent = nullptr);
+
+	TreeWidget(TreeWidget const &) = default;
+	TreeWidget &operator=(TreeWidget const &) = default;
 
 	void set_base(BaseEditrice *base);
 
@@ -99,6 +117,9 @@ class EditeurArborescence : public BaseEditrice {
 
 public:
 	explicit EditeurArborescence(QWidget *parent = nullptr);
+
+	EditeurArborescence(EditeurArborescence const &) = default;
+	EditeurArborescence &operator=(EditeurArborescence const &) = default;
 
 	void update_state(type_evenement event) override;
 

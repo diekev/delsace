@@ -29,9 +29,9 @@
 class Maillage;
 
 struct Particule {
-	dls::math::vec3f pos;
-	dls::math::vec3f vel;
-	dls::math::vec3f vel_pic;
+	dls::math::vec3f pos{};
+	dls::math::vec3f vel{};
+	dls::math::vec3f vel_pic{};
 };
 
 #if 0
@@ -68,7 +68,7 @@ public:
 #else
 class GrilleParticule {
 	std::vector<std::vector<Particule *>> m_donnees = {};
-	dls::math::vec3i m_res = dls::math::vec3i(0, 0, 0);
+	dls::math::vec3<size_t> m_res = dls::math::vec3<size_t>(0ul, 0ul, 0ul);
 	size_t m_nombre_voxels = 0;
 
 	std::vector<Particule *> m_arriere_plan = {};
@@ -136,35 +136,36 @@ enum {
 };
 
 struct Fluide {
-	Maillage *source;
-	Maillage *domaine;
+	Maillage *source{};
+	Maillage *domaine{};
 
-	dls::math::vec3i res;
+	dls::math::vec3<size_t> res{};
 
-	Grille<char> drapeaux;
-	Grille<float> phi;
-	Grille<float> velocite_x;
-	Grille<float> velocite_y;
-	Grille<float> velocite_z;
-	Grille<float> velocite_x_ancienne;
-	Grille<float> velocite_y_ancienne;
-	Grille<float> velocite_z_ancienne;
-	Grille<dls::math::vec3f> velocite;
-	Grille<dls::math::vec3f> ancienne_velocites;
-	GrilleParticule grille_particules;
+	Grille<char> drapeaux{};
+	Grille<float> phi{};
+	Grille<float> velocite_x{};
+	Grille<float> velocite_y{};
+	Grille<float> velocite_z{};
+	Grille<float> velocite_x_ancienne{};
+	Grille<float> velocite_y_ancienne{};
+	Grille<float> velocite_z_ancienne{};
+	Grille<dls::math::vec3f> velocite{};
+	Grille<dls::math::vec3f> ancienne_velocites{};
+	GrilleParticule grille_particules{};
 
-	std::vector<Particule> particules;
+	std::vector<Particule> particules{};
 
 	Fluide();
 	~Fluide();
 
 	/* pour faire taire cppcheck car source et domaine sont alloués dynamiquement */
 	Fluide(const Fluide &autre) = default;
+	Fluide &operator=(const Fluide &autre) = default;
 
-	int temps_courant;
-	int temps_debut;
-	int temps_fin;
-	int temps_precedent;
+	int temps_courant{};
+	int temps_debut{};
+	int temps_fin{};
+	int temps_precedent{};
 
 	void ajourne_pour_nouveau_temps();
 
@@ -181,4 +182,4 @@ private:
 	void etend_champs_velocite();
 };
 
-void cree_particule(Fluide *fluide, int nombre);
+void cree_particule(Fluide *fluide, size_t nombre);

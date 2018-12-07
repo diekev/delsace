@@ -29,8 +29,8 @@
 
 class Noeud;
 class Operatrice;
-class PriseEntree;
-class PriseSortie;
+struct PriseEntree;
+struct PriseSortie;
 
 /**
  * Une prise d'entrée d'un noeud.
@@ -44,6 +44,9 @@ struct PriseEntree {
 	 * Construit une prise d'entrée avec le nom passé en paramètre.
 	 */
 	explicit PriseEntree(const std::string &nom_prise);
+
+	PriseEntree(PriseEntree const &) = default;
+	PriseEntree &operator=(PriseEntree const &) = default;
 };
 
 /**
@@ -58,6 +61,9 @@ struct PriseSortie {
 	 * Construit une prise de sortie avec le nom passé en paramètre.
 	 */
 	explicit PriseSortie(const std::string &nom_prise);
+
+	PriseSortie(PriseSortie const &) = default;
+	PriseSortie &operator=(PriseSortie const &) = default;
 };
 
 /**
@@ -65,7 +71,7 @@ struct PriseSortie {
  * utilisateur et l'opérateur installé dans le noeud.
  */
 class Noeud {
-	Operatrice *m_operatrice;
+	Operatrice *m_operatrice{};
 	std::vector<PriseEntree *> m_entrees = {};
 	std::vector<PriseSortie *> m_sorties = {};
 
@@ -84,6 +90,9 @@ public:
 	 * Détruit ce noeud.
 	 */
 	~Noeud();
+
+	Noeud(Noeud const &) = default;
+	Noeud &operator=(Noeud const &) = default;
 
 	/**
 	 * Retourne le nom de ce noeud.
@@ -108,7 +117,7 @@ public:
 	/**
 	 * Retourn l'entrée correspondant à l'index donné
 	 */
-	PriseEntree *entree(int index);
+	PriseEntree *entree(size_t index);
 
 	/**
 	 * Retourn l'entrée correspondant au nom donné.
@@ -118,7 +127,7 @@ public:
 	/**
 	 * Retourn la sortie correspondant à l'index donné
 	 */
-	PriseSortie *sortie(int index);
+	PriseSortie *sortie(size_t index);
 
 	/**
 	 * Retourn la sortie correspondant au nom donné.

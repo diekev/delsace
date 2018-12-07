@@ -61,7 +61,7 @@ static std::unordered_map<int, int> table_uv_texte({
 
 static void rempli_uv(const std::string &chaine, std::vector<dls::math::vec2f> &uvs)
 {
-	const auto echelle_lettres = 1.0 / table_uv_texte.size();
+	const auto echelle_lettres = 1.0f / static_cast<float>(table_uv_texte.size());
 
 	for (size_t i = 0; i < chaine.size();) {
 		int valeur = -1;
@@ -92,7 +92,7 @@ static void rempli_uv(const std::string &chaine, std::vector<dls::math::vec2f> &
 			continue;
 		}
 
-		const auto decalage = table_uv_texte[valeur] * echelle_lettres;
+		const auto decalage = static_cast<float>(table_uv_texte[valeur]) * echelle_lettres;
 
 		uvs.push_back(dls::math::vec2f(decalage, 1.0f));
 		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
@@ -205,32 +205,32 @@ void RenduTexte::ajourne(const std::string &texte)
 	std::vector<unsigned int> index;
 
 	/* Calcul taille des lettres relativement à la fenêtre. */
-	const auto largeur_lettre = LARGEUR_PAR_LETTRE / static_cast<double>(m_largeur);
-	const auto hauteur_lettre = HAUTEUR_TEXTURE_POLICE / static_cast<double>(m_hauteur);
+	const auto largeur_lettre = LARGEUR_PAR_LETTRE / static_cast<float>(m_largeur);
+	const auto hauteur_lettre = HAUTEUR_TEXTURE_POLICE / static_cast<float>(m_hauteur);
 
 	/* Un quad par lettre du mot. */
 	for (size_t i = 0; i < texte.size(); ++i) {
-		const auto origine_x = i * largeur_lettre;
+		const auto origine_x = static_cast<float>(i) * largeur_lettre;
 
 		vertex.push_back(dls::math::vec2f(origine_x, hauteur_lettre));
 		vertex.push_back(dls::math::vec2f(origine_x + largeur_lettre, hauteur_lettre));
 		vertex.push_back(dls::math::vec2f(origine_x + largeur_lettre, 0.0f));
 		vertex.push_back(dls::math::vec2f(origine_x, 0.0f));
 
-		index.push_back(i * 4 + 0);
-		index.push_back(i * 4 + 1);
-		index.push_back(i * 4 + 2);
-		index.push_back(i * 4 + 0);
-		index.push_back(i * 4 + 2);
-		index.push_back(i * 4 + 3);
+		index.push_back(static_cast<unsigned>(i * 4 + 0));
+		index.push_back(static_cast<unsigned>(i * 4 + 1));
+		index.push_back(static_cast<unsigned>(i * 4 + 2));
+		index.push_back(static_cast<unsigned>(i * 4 + 0));
+		index.push_back(static_cast<unsigned>(i * 4 + 2));
+		index.push_back(static_cast<unsigned>(i * 4 + 3));
 	}
 
 	/* Placement en haut à gauche de l'écran. */
 	m_decalage += 1.0f;
 
 	const dls::math::vec2f decalage_vertex(
-				-1.0 + largeur_lettre,
-				1.0 - m_decalage * hauteur_lettre);
+				-1.0f + largeur_lettre,
+				1.0f - m_decalage * hauteur_lettre);
 
 	for (auto &v : vertex) {
 		v += decalage_vertex;

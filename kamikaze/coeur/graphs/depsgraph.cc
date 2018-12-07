@@ -179,6 +179,9 @@ class GraphEvalTask : public Task {
 public:
 	GraphEvalTask(Depsgraph *graph, const Context &context, DepsNode *root);
 
+	GraphEvalTask(GraphEvalTask const &) = default;
+	GraphEvalTask &operator=(GraphEvalTask const &) = default;
+
 	void start(const Context &context) override;
 };
 
@@ -442,7 +445,7 @@ static inline auto get_link_parent(DepsInputSocket *socket)
 
 static inline auto num_inputs(DepsNode */*node*/)
 {
-	return 1;
+	return 1ul;
 }
 
 static inline auto get_degree(DepsNode *node)

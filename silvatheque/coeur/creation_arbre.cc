@@ -37,11 +37,11 @@ void parametres_tremble(Parametres *parametres)
 	parametres->ZScale = 1;
 	parametres->ZScaleV = 0;
 	parametres->Levels = 3;
-	parametres->Ratio = 0.015;
-	parametres->RatioPower = 1.2;
+	parametres->Ratio = 0.015f;
+	parametres->RatioPower = 1.2f;
 	parametres->Lobes = 5;
-	parametres->LobeDepth = 0.07;
-	parametres->Flare = 0.6;
+	parametres->LobeDepth = 0.07f;
+	parametres->Flare = 0.6f;
 
 	parametres->_0Scale = 1;
 	parametres->_0ScaleV = 0;
@@ -61,7 +61,7 @@ void parametres_tremble(Parametres *parametres)
 	parametres->_1Rotate = 140;
 	parametres->_1RotateV = 0;
 	parametres->_1Branches = 50;
-	parametres->_1Length = 0.3;
+	parametres->_1Length = 0.3f;
 	parametres->_1LengthV = 0;
 	parametres->_1Taper = 1;
 	parametres->_1SegSplits = 0;
@@ -77,7 +77,7 @@ void parametres_tremble(Parametres *parametres)
 	parametres->_2Rotate = 140;
 	parametres->_2RotateV = 0;
 	parametres->_2Branches = 30;
-	parametres->_2Length = 0.6;
+	parametres->_2Length = 0.6f;
 	parametres->_2LengthV = 0;
 	parametres->_2Taper = 1;
 	parametres->_2SegSplits = 0;
@@ -106,25 +106,25 @@ void parametres_tremble(Parametres *parametres)
 
 	parametres->Leaves = 25;
 	parametres->LeafShape = 0;
-	parametres->LeafScale = 0.17;
+	parametres->LeafScale = 0.17f;
 	parametres->LeafScaleX = 1;
-	parametres->AttractionUp = 0.5;
+	parametres->AttractionUp = 0.5f;
 	parametres->PruneRatio = 0;
-	parametres->PruneWidth = 0.5;
-	parametres->PruneWidthPeak = 0.5;
-	parametres->PrunePowerLow = 0.5;
-	parametres->PrunePowerHigh = 0.5;
+	parametres->PruneWidth = 0.5f;
+	parametres->PruneWidthPeak = 0.5f;
+	parametres->PrunePowerLow = 0.5f;
+	parametres->PrunePowerHigh = 0.5f;
 }
 
 float ShapeRatio(int shape, float ratio)
 {
 	switch (shape) {
 		case FORME_CONIQUE:
-			return 0.2 + 0.8 * ratio;
+			return 0.2f + 0.8f * ratio;
 		case FORME_SPHERIQUE:
-			return 0.2 + 0.8 * std::sin(PI * ratio);
+			return 0.2f + 0.8f * std::sin(static_cast<float>(PI) * ratio);
 		case FORME_HEMISPHERIQUE:
-			return 0.2 + 0.8 * std::sin(0.5 * PI * ratio);
+			return 0.2f + 0.8f * std::sin(0.5f * static_cast<float>(PI) * ratio);
 		case FORME_CYLINDRIQUE:
 			return 1.0f;
 		case FORME_CYLINDRIQUE_TAPERED:
@@ -136,7 +136,7 @@ float ShapeRatio(int shape, float ratio)
 
 			return (1.0f - ratio) / 0.3f;
 		case FORME_CONIQUE_INVERSE:
-			return 1.0 - 0.8 * ratio;
+			return 1.0f - 0.8f * ratio;
 		case FORME_FLAME_TEND:
 			if (ratio <= 0.7f) {
 				return 0.5f + 0.5f * ratio / 0.7f;
@@ -162,12 +162,12 @@ void cree_arbre(Arbre *arbre)
 
 	auto origine = dls::math::vec3f(0.0f, 0.0f, 0.0f);
 
-	for (int i = 0; i < params->_0CurveRes; ++i) {
+	for (int i = 0; i < static_cast<int>(params->_0CurveRes); ++i) {
 		arbre->ajoute_sommet(origine);
 		origine.y += taille_segment;
 	}
 
-	for (int i = 0; i < params->_0CurveRes - 1; ++i) {
+	for (int i = 0; i < static_cast<int>(params->_0CurveRes) - 1; ++i) {
 		arbre->ajoute_arrete(i, i + 1);
 	}
 }

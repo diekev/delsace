@@ -55,17 +55,17 @@ public:
 
 	void ajoute_parametres_sommet(const float x, const float y, const float z) {}
 
-	void ajoute_polygone(const int *index_sommet, const int */*index_uv*/, const int */*index_normal*/, int nombre)
+	void ajoute_polygone(const int *index_sommet, const int */*index_uv*/, const int */*index_normal*/, size_t nombre)
 	{
 		if (nombre == 4) {
 			polys->push_back(dls::math::vec4i(index_sommet[0], index_sommet[1], index_sommet[2], index_sommet[3]));
 		}
 		else if (nombre == 3) {
-			polys->push_back(dls::math::vec4i(index_sommet[0], index_sommet[1], index_sommet[2], INVALID_INDEX));
+			polys->push_back(dls::math::vec4i(index_sommet[0], index_sommet[1], index_sommet[2], static_cast<int>(INVALID_INDEX)));
 		}
 	}
 
-	void ajoute_ligne(const int *index, int nombre) {}
+	void ajoute_ligne(const int *index, size_t nombre) {}
 
 	void ajoute_objet(const std::string &nom) {}
 
@@ -81,8 +81,8 @@ public:
 
 	void groupe_nuancage(const int index) override {}
 
-	PointList *points;
-	PolygonList *polys;
+	PointList *points{};
+	PolygonList *polys{};
 };
 
 /* ************************************************************************** */
@@ -243,7 +243,7 @@ public:
 		}
 
 		/* determine the rotatation order */
-		int rot_ord[6][3] = {
+		size_t rot_ord[6][3] = {
 			{ 0, 1, 2 }, // X Y Z
 			{ 0, 2, 1 }, // X Z Y
 			{ 1, 0, 2 }, // Y X Z
@@ -264,9 +264,9 @@ public:
 
 		for (auto &prim : primitive_iterator(this->m_collection)) {
 			auto matrix = dls::math::mat4x4d(1.0);
-			auto const angle_x = static_cast<double>(dls::math::degrees_vers_radians(rotate[X]));
-			auto const angle_y = static_cast<double>(dls::math::degrees_vers_radians(rotate[Y]));
-			auto const angle_z = static_cast<double>(dls::math::degrees_vers_radians(rotate[Z]));
+			auto const angle_x = dls::math::degrees_vers_radians(rotate[X]);
+			auto const angle_y = dls::math::degrees_vers_radians(rotate[Y]);
+			auto const angle_z = dls::math::degrees_vers_radians(rotate[Z]);
 
 			if (transform_type == "pre") {
 				matrix = dls::math::pre_translation(matrix, pivot);
@@ -319,7 +319,7 @@ public:
 		return "entreface/operatrice_creation_torus.jo";
 	}
 
-	const char *nom_sortie(size_t /*index*/)
+	const char *nom_sortie(size_t /*index*/) override
 	{
 		return "Sortie";
 	}
@@ -329,7 +329,7 @@ public:
 		return NOM_CREATION_TORUS;
 	}
 
-	void execute(const Context &/*contexte*/, double /*temps*/)
+	void execute(const Context &/*contexte*/, double /*temps*/) override
 	{
 		m_collection->free_all();
 
@@ -341,8 +341,8 @@ public:
 
 		const auto rayon_mineur = evalue_decimal("rayon_mineur") * echelle;
 		const auto rayon_majeur = evalue_decimal("rayon_majeur") * echelle;
-		const auto segment_mineur = evalue_entier("segments_mineurs");
-		const auto segment_majeur = evalue_entier("segments_majeurs");
+		const auto segment_mineur = static_cast<size_t>(evalue_entier("segments_mineurs"));
+		const auto segment_majeur = static_cast<size_t>(evalue_entier("segments_majeurs"));
 
 		AdaptriceCreationMaillage adaptrice;
 		adaptrice.points = mesh->points();
@@ -380,7 +380,7 @@ public:
 		return "entreface/operatrice_creation_grille.jo";
 	}
 
-	const char *nom_sortie(size_t /*index*/)
+	const char *nom_sortie(size_t /*index*/) override
 	{
 		return "Sortie";
 	}
@@ -390,7 +390,7 @@ public:
 		return NOM_CREATION_GRILLE;
 	}
 
-	void execute(const Context &/*contexte*/, double /*temps*/)
+	void execute(const Context &/*contexte*/, double /*temps*/) override
 	{
 		m_collection->free_all();
 
@@ -400,8 +400,8 @@ public:
 		const auto taille = evalue_vecteur("taille");
 		const auto centre = evalue_vecteur("centre");
 
-		const auto lignes = evalue_entier("lignes");
-		const auto colonnes = evalue_entier("colonnes");
+		const auto lignes = static_cast<size_t>(evalue_entier("lignes"));
+		const auto colonnes = static_cast<size_t>(evalue_entier("colonnes"));
 
 		AdaptriceCreationMaillage adaptrice;
 		adaptrice.points = mesh->points();
@@ -448,7 +448,7 @@ public:
 		return NOM_CREATION_CERCLE;
 	}
 
-	void execute(const Context &contexte, double /*temps*/)
+	void execute(const Context &contexte, double /*temps*/) override
 	{
 		if (m_collection == nullptr) {
 			m_collection = new PrimitiveCollection(contexte.primitive_factory);
@@ -457,7 +457,7 @@ public:
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto segments = evalue_entier("vertices");
+		const auto segments = static_cast<size_t>(evalue_entier("vertices"));
 		const auto rayon = evalue_decimal("rayon");
 
 		/* À FAIRE : centre */
@@ -504,14 +504,14 @@ public:
 		return NOM_CREATION_TUBE;
 	}
 
-	void execute(const Context &/*contexte*/, double /*temps*/)
+	void execute(const Context &/*contexte*/, double /*temps*/) override
 	{
 		m_collection->free_all();
 
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto segments = evalue_entier("vertices");
+		const auto segments = static_cast<size_t>(evalue_entier("vertices"));
 		const auto rayon = evalue_decimal("rayon");
 		const auto profondeur = evalue_decimal("profondeur");
 
@@ -560,14 +560,14 @@ public:
 		return NOM_CREATION_CONE;
 	}
 
-	void execute(const Context &/*contexte*/, double /*temps*/)
+	void execute(const Context &/*contexte*/, double /*temps*/) override
 	{
 		m_collection->free_all();
 
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto segments = evalue_entier("vertices");
+		const auto segments = static_cast<size_t>(evalue_entier("vertices"));
 		const auto rayon1 = evalue_decimal("rayon_mineur");
 		const auto rayon2 = evalue_decimal("rayon_majeur");
 		const auto profondeur = evalue_decimal("profondeur");
@@ -614,7 +614,7 @@ public:
 		return "Sortie";
 	}
 
-	void execute(const Context &contexte, double /*temps*/)
+	void execute(const Context &contexte, double /*temps*/) override
 	{
 		m_collection->free_all();
 
@@ -701,8 +701,8 @@ static const char *NOM_BRUIT = "Bruit";
 static const char *AIDE_BRUIT = "Ajouter du bruit.";
 
 class OperatriceBruitage : public Operatrice {
-	dls::math::BruitPerlin3D m_bruit_perlin;
-	dls::math::BruitFlux3D m_bruit_flux;
+	dls::math::BruitPerlin3D m_bruit_perlin{};
+	dls::math::BruitFlux3D m_bruit_flux{};
 
 public:
 	OperatriceBruitage(Noeud *noeud, const Context &contexte)
@@ -757,7 +757,7 @@ public:
 
 		const auto taille = evalue_decimal("taille");
 		const auto taille_inverse = (taille > 0.0f) ? 1.0f / taille : 0.0f;
-		const auto octaves = evalue_entier("octaves");
+		const auto octaves = static_cast<size_t>(evalue_entier("octaves"));
 		const auto lacunarity = evalue_decimal("lacunarité");
 		const auto persistence = evalue_decimal("persistence");
 		const auto ofrequency = evalue_decimal("frequence");
@@ -863,7 +863,7 @@ public:
 
 		ajoute_propriete("portée", danjo::TypePropriete::ENUM, std::string("vertices"));
 		ajoute_propriete("méthode", danjo::TypePropriete::ENUM, std::string("unique"));
-		ajoute_propriete("couleur", danjo::TypePropriete::COULEUR, dls::math::vec3f(0.5, 0.5, 0.5));
+		ajoute_propriete("couleur", danjo::TypePropriete::COULEUR, dls::math::vec3f(0.5f, 0.5f, 0.5f));
 		ajoute_propriete("graine", danjo::TypePropriete::ENTIER, 1);
 	}
 
@@ -911,7 +911,7 @@ public:
 		const auto &portee = evalue_enum("portée");
 		const auto &graine = evalue_entier("graine");
 
-		std::mt19937 rng(19937 + graine);
+		std::mt19937 rng(static_cast<size_t>(19937 + graine));
 		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
 		for (auto prim : primitive_iterator(this->m_collection)) {
@@ -1040,7 +1040,7 @@ public:
 		auto prim = m_collection->build("PrimPoints");
 		auto points = static_cast<PrimPoints *>(prim);
 
-		const auto &nombre_points = evalue_entier("nombre_points");
+		const auto &nombre_points = static_cast<size_t>(evalue_entier("nombre_points"));
 
 		auto point_list = points->points();
 		point_list->resize(nombre_points);
@@ -1349,7 +1349,7 @@ public:
 /* ************************************************************************** */
 
 struct Triangle {
-	dls::math::vec3f v0, v1, v2;
+	dls::math::vec3f v0{}, v1{}, v2{};
 };
 
 std::vector<Triangle> convertis_maillage_triangles(const Mesh *maillage_entree)
@@ -1364,7 +1364,7 @@ std::vector<Triangle> convertis_maillage_triangles(const Mesh *maillage_entree)
 	for (auto i = 0ul; i < polygones->size(); ++i) {
 		const auto polygone = (*polygones)[i];
 
-		nombre_triangles += ((polygone[3] == INVALID_INDEX) ? 1 : 2);
+		nombre_triangles += static_cast<size_t>((polygone[3] == static_cast<int>(INVALID_INDEX)) ? 1 : 2);
 	}
 
 	triangles.reserve(nombre_triangles);
@@ -1373,17 +1373,17 @@ std::vector<Triangle> convertis_maillage_triangles(const Mesh *maillage_entree)
 		const auto polygone = (*polygones)[i];
 
 		Triangle triangle;
-		triangle.v0 = (*points)[polygone[0]];
-		triangle.v1 = (*points)[polygone[1]];
-		triangle.v2 = (*points)[polygone[2]];
+		triangle.v0 = (*points)[static_cast<size_t>(polygone[0])];
+		triangle.v1 = (*points)[static_cast<size_t>(polygone[1])];
+		triangle.v2 = (*points)[static_cast<size_t>(polygone[2])];
 
 		triangles.push_back(triangle);
 
-		if (polygone[3] != INVALID_INDEX) {
+		if (polygone[3] != static_cast<int>(INVALID_INDEX)) {
 			Triangle triangle2;
-			triangle2.v0 = (*points)[polygone[0]];
-			triangle2.v1 = (*points)[polygone[2]];
-			triangle2.v2 = (*points)[polygone[3]];
+			triangle2.v0 = (*points)[static_cast<size_t>(polygone[0])];
+			triangle2.v1 = (*points)[static_cast<size_t>(polygone[2])];
+			triangle2.v2 = (*points)[static_cast<size_t>(polygone[3])];
 
 			triangles.push_back(triangle2);
 		}
@@ -1458,7 +1458,7 @@ public:
 		const auto input_mesh = static_cast<Mesh *>(iter.get());
 		const auto input_points = input_mesh->points();
 
-		const auto segment_number = evalue_entier("segments");
+		const auto segment_number = static_cast<size_t>(evalue_entier("segments"));
 		const auto segment_normal = evalue_vecteur("normal");
 		const auto segment_size = evalue_decimal("taille");
 		const auto methode = evalue_enum("méthode");
@@ -1499,7 +1499,7 @@ public:
 				output_points->push_back(point);
 				++num_points;
 
-				for (int j = 0; j < segment_number; ++j, ++num_points) {
+				for (size_t j = 0; j < segment_number; ++j, ++num_points) {
 					point += (segment_size * normale);
 					output_points->push_back(point);
 
@@ -1512,7 +1512,7 @@ public:
 		else if (methode == "polygones") {
 			auto triangles = convertis_maillage_triangles(input_mesh);
 
-			const auto nombre_courbes = evalue_entier("nombre_courbes");
+			const auto nombre_courbes = static_cast<size_t>(evalue_entier("nombre_courbes"));
 			const auto nombre_polys = triangles.size();
 
 			output_edges->reserve((nombre_courbes * segment_number) * nombre_polys);
@@ -1522,7 +1522,7 @@ public:
 
 			const auto graine = evalue_entier("graine");
 
-			std::mt19937 rng(19937 + graine);
+			std::mt19937 rng(static_cast<size_t>(19937 + graine));
 			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
 			auto head = 0;
@@ -1554,7 +1554,7 @@ public:
 					output_points->push_back(pos);
 					++num_points;
 
-					for (int k = 0; k < segment_number; ++k, ++num_points) {
+					for (size_t k = 0; k < segment_number; ++k, ++num_points) {
 						pos += (segment_size * normale);
 						output_points->push_back(pos);
 
@@ -1602,7 +1602,10 @@ public:
 		m_collecion_tampon = new PrimitiveCollection(contexte.primitive_factory);
 	}
 
-	~OperatriceTampon()
+	OperatriceTampon(OperatriceTampon const &) = default;
+	OperatriceTampon &operator=(OperatriceTampon const &) = default;
+
+	~OperatriceTampon() override
 	{
 		delete m_collecion_tampon;
 	}
@@ -1681,7 +1684,7 @@ public:
 
 	void execute(const Context &contexte, double temps) override
 	{
-		const auto prise = evalue_entier("prise");
+		const auto prise = static_cast<size_t>(evalue_entier("prise"));
 		entree(prise)->requiers_collection(m_collection, contexte, temps);
 	}
 };
@@ -1741,14 +1744,14 @@ public:
 		auto nuage_points = static_cast<PrimPoints *>(m_collection->build("PrimPoints"));
 		auto points_sorties = nuage_points->points();
 
-		const auto nombre_points_polys = evalue_entier("nombre_points_polys");
+		const auto nombre_points_polys = static_cast<size_t>(evalue_entier("nombre_points_polys"));
 		const auto nombre_points = triangles.size() * nombre_points_polys;
 
 		points_sorties->reserve(nombre_points);
 
 		const auto graine = evalue_entier("graine");
 
-		std::mt19937 rng(19937 + graine);
+		std::mt19937 rng(static_cast<size_t>(19937 + graine));
 		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
 		for (const Triangle &triangle : triangles) {

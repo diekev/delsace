@@ -107,11 +107,11 @@ void RenduMaillage::genere_tampon_surface()
 
 	/* OpenGL ne travaille qu'avec des floats. */
 	for (const Triangle *triangle : *m_maillage) {
-		sommets.push_back(dls::math::vec3f(triangle->v0.x, triangle->v0.y, triangle->v0.z));
-		sommets.push_back(dls::math::vec3f(triangle->v1.x, triangle->v1.y, triangle->v1.z));
-		sommets.push_back(dls::math::vec3f(triangle->v2.x, triangle->v2.y, triangle->v2.z));
+		sommets.push_back(dls::math::vec3f(static_cast<float>(triangle->v0.x), static_cast<float>(triangle->v0.y), static_cast<float>(triangle->v0.z)));
+		sommets.push_back(dls::math::vec3f(static_cast<float>(triangle->v1.x), static_cast<float>(triangle->v1.y), static_cast<float>(triangle->v1.z)));
+		sommets.push_back(dls::math::vec3f(static_cast<float>(triangle->v2.x), static_cast<float>(triangle->v2.y), static_cast<float>(triangle->v2.z)));
 
-		auto normal = dls::math::vec3f(triangle->normal.x, triangle->normal.y, triangle->normal.z);
+		auto normal = dls::math::vec3f(static_cast<float>(triangle->normal.x), static_cast<float>(triangle->normal.y), static_cast<float>(triangle->normal.z));
 
 		normaux.push_back(normal);
 		normaux.push_back(normal);
@@ -183,8 +183,8 @@ void RenduMaillage::genere_tampon_normal()
 
 		const auto &NV = V + N;
 
-		sommets.push_back(dls::math::vec3f(V.x, V.y, V.z));
-		sommets.push_back(dls::math::vec3f(NV.x, NV.y, NV.z));
+		sommets.push_back(dls::math::vec3f(static_cast<float>(V.x), static_cast<float>(V.y), static_cast<float>(V.z)));
+		sommets.push_back(dls::math::vec3f(static_cast<float>(NV.x), static_cast<float>(NV.y), static_cast<float>(NV.z)));
 	}
 
 	std::vector<unsigned int> indices(sommets.size());

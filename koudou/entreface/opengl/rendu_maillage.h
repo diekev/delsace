@@ -46,6 +46,9 @@ public:
 	 */
 	explicit RenduMaillage(Maillage *maillage);
 
+	RenduMaillage(RenduMaillage const &) = default;
+	RenduMaillage &operator=(RenduMaillage const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.

@@ -29,6 +29,11 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <OpenEXR/ImfRgbaFile.h>
 #include <OpenEXR/ImathBox.h>
 #pragma GCC diagnostic pop
@@ -173,7 +178,7 @@ enum class type_fichier : char {
 };
 
 struct DonneesFichier {
-	std::list<OperatriceImage *> operatrices;
+	std::list<OperatriceImage *> operatrices{};
 	type_fichier type = type_fichier::IMAGE;
 	bool entree = true;
 	char pad[6];
@@ -250,7 +255,7 @@ static constexpr auto NOM_LECTURE_JPEG = "Lecture Image";
 static constexpr auto AIDE_LECTURE_JPEG = "Charge une image depuis le disque.";
 
 class OperatriceLectureJPEG : public OperatriceImage {
-	type_image m_image_chargee;
+	type_image m_image_chargee{};
 	std::string m_dernier_chemin = "";
 
 public:

@@ -69,6 +69,9 @@ struct Calque {
 
 	Calque() = default;
 	~Calque();
+
+	Calque(const Calque &autre) = default;
+	Calque &operator=(const Calque &autre) = default;
 };
 
 enum TypeCanal {
@@ -89,15 +92,18 @@ struct CanauxTexture {
 	std::vector<Calque *> calques[TypeCanal::NOMBRE_CANAUX];
 
 	/* La hauteur initiale du tampon des calques. */
-	size_t hauteur;
+	size_t hauteur{};
 
 	/* La largeur initiale du tampon des calques. */
-	size_t largeur;
+	size_t largeur{};
 
 	dls::math::vec4f *tampon_diffusion = nullptr;
 
 	CanauxTexture() = default;
 	~CanauxTexture();
+
+	CanauxTexture(const CanauxTexture &autre) = default;
+	CanauxTexture &operator=(const CanauxTexture &autre) = default;
 };
 
 Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal);

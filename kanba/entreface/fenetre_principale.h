@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QMainWindow>
+#pragma GCC diagnostic pop
 
 #include "coeur/kanba.h"
 
@@ -37,13 +43,16 @@ class FenetrePrincipale : public QMainWindow {
 
 	QDockWidget *m_viewer_dock = nullptr;
 
-	QProgressBar *m_progress_bar;
+	QProgressBar *m_progress_bar{};
 
-	Kanba m_kanba;
+	Kanba m_kanba{};
 
 public:
 	explicit FenetrePrincipale(QWidget *parent = nullptr);
 	~FenetrePrincipale();
+
+	FenetrePrincipale(FenetrePrincipale const &) = default;
+	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
 
 	void ajoute_visionneur_image();
 	void ajoute_editeur_proprietes();

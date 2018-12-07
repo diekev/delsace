@@ -367,9 +367,9 @@ static constexpr auto NOM_BRUIT_PROC = "Bruit Procédurel";
 static constexpr auto AIDE_BRUIT_PROC = "";
 
 class OperatricePoint3DBruitProc final : public OperatricePoint3D {
-	dls::math::BruitFlux3D m_bruit_x;
-	dls::math::BruitFlux3D m_bruit_y;
-	dls::math::BruitFlux3D m_bruit_z;
+	dls::math::BruitFlux3D m_bruit_x{};
+	dls::math::BruitFlux3D m_bruit_y{};
+	dls::math::BruitFlux3D m_bruit_z{};
 
 public:
 	explicit OperatricePoint3DBruitProc(Noeud *noeud)
@@ -410,7 +410,7 @@ public:
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 
 		/* prépare le bruit */
-		const auto graine = evalue_entier("graine");
+		const auto graine = static_cast<unsigned>(evalue_entier("graine"));
 		m_bruit_x = dls::math::BruitFlux3D(graine);
 		m_bruit_x.change_temps(evalue_decimal("temps", temps));
 
@@ -424,11 +424,11 @@ public:
 		const auto lacunarite = evalue_decimal("lacunarité", temps);
 
 		if (dimension == "1D") {
-			compileuse.ajoute_noeud(1);
+			compileuse.ajoute_noeud(1ul);
 			compileuse.ajoute_noeud(gestionnaire.ajoute_bruit(&m_bruit_x));
 		}
 		else {
-			compileuse.ajoute_noeud(3);
+			compileuse.ajoute_noeud(3ul);
 
 			m_bruit_y = dls::math::BruitFlux3D(graine + 1);
 			m_bruit_y.change_temps(evalue_decimal("temps", temps));
@@ -441,10 +441,11 @@ public:
 									gestionnaire.ajoute_bruit(&m_bruit_z));
 		}
 
-		compileuse.ajoute_noeud(dur);
+		compileuse.ajoute_noeud(static_cast<float>(dur));
 		compileuse.ajoute_noeud(frequence.x, frequence.y, frequence.z);
 		compileuse.ajoute_noeud(decalage.x, decalage.y, decalage.z);
-		compileuse.ajoute_noeud(octaves, amplitude, persistence, lacunarite);
+		compileuse.ajoute_noeud(octaves);
+		compileuse.ajoute_noeud(amplitude, persistence, lacunarite);
 
 		compileuse.decalage_pile(output(0)->pointeur());
 	}

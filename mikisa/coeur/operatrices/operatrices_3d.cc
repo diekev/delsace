@@ -181,9 +181,9 @@ public:
 		auto transformation = math::transformation();
 		transformation *= math::translation(position.x, position.y, position.z);
 		transformation *= math::echelle(taille.x, taille.y, taille.z);
-		transformation *= math::rotation_x(rotation.x * POIDS_DEG_RAD);
-		transformation *= math::rotation_y(rotation.y * POIDS_DEG_RAD);
-		transformation *= math::rotation_z(rotation.z * POIDS_DEG_RAD);
+		transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
+		transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
+		transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
 
 		m_corps.transformation = transformation;
 
@@ -210,8 +210,8 @@ static constexpr auto AIDE_CAMERA = "Crée une caméra.";
 
 class OperatriceCamera final : public OperatriceImage {
 	vision::Camera3D m_camera;
-	ManipulatricePosition3D m_manipulatrice_position;
-	ManipulatriceRotation3D m_manipulatrice_rotation;
+	ManipulatricePosition3D m_manipulatrice_position{};
+	ManipulatriceRotation3D m_manipulatrice_rotation{};
 
 public:
 	explicit OperatriceCamera(Noeud *noeud)
@@ -322,7 +322,7 @@ public:
 		m_camera.largeur_senseur(largeur_senseur);
 		m_camera.profondeur(proche, eloigne);
 		m_camera.position(position);
-		m_camera.rotation(rotation * dls::math::vec3f(POIDS_DEG_RAD));
+		m_camera.rotation(rotation * dls::math::vec3f(static_cast<float>(POIDS_DEG_RAD)));
 		m_camera.ajourne_pour_operatrice();
 
 		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
@@ -339,7 +339,7 @@ static constexpr auto AIDE_TEXTURE = "Crée une texture.";
 
 class OperatriceTexture final : public OperatriceImage {
 	vision::Camera3D *m_camera = nullptr;
-	TextureImage m_texture;
+	TextureImage m_texture{};
 
 public:
 	explicit OperatriceTexture(Noeud *noeud)
@@ -348,6 +348,9 @@ public:
 		inputs(2);
 		outputs(1);
 	}
+
+	OperatriceTexture(OperatriceTexture const &) = default;
+	OperatriceTexture &operator=(OperatriceTexture const &) = default;
 
 	int type() const override
 	{
@@ -487,11 +490,11 @@ static constexpr auto AIDE_LECTURE_OBJET = "Charge un objet depuis un fichier ex
 
 class OperatriceLectureObjet final : public OperatriceCorps {
 	vision::Camera3D *m_camera = nullptr;
-	ManipulatricePosition3D m_manipulatrice_position;
-	ManipulatriceEchelle3D m_manipulatrice_echelle;
-	ManipulatriceRotation3D m_manipulatrice_rotation;
+	ManipulatricePosition3D m_manipulatrice_position{};
+	ManipulatriceEchelle3D m_manipulatrice_echelle{};
+	ManipulatriceRotation3D m_manipulatrice_rotation{};
 
-	math::transformation m_transformation;
+	math::transformation m_transformation{};
 
 	std::string m_dernier_chemin = "";
 
@@ -502,6 +505,9 @@ public:
 		inputs(1);
 		outputs(1);
 	}
+
+	OperatriceLectureObjet(OperatriceLectureObjet const &) = default;
+	OperatriceLectureObjet &operator=(OperatriceLectureObjet const &) = default;
 
 	int type_entree(int n) const override
 	{
@@ -642,9 +648,9 @@ public:
 		m_transformation *= math::echelle(taille.x * echelle_uniforme,
 										  taille.y * echelle_uniforme,
 										  taille.z * echelle_uniforme);
-		m_transformation *= math::rotation_x(rotation.x * POIDS_DEG_RAD);
-		m_transformation *= math::rotation_y(rotation.y * POIDS_DEG_RAD);
-		m_transformation *= math::rotation_z(rotation.z * POIDS_DEG_RAD);
+		m_transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
+		m_transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
+		m_transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
 
 		m_corps.transformation = m_transformation;
 
@@ -821,8 +827,17 @@ public:
 
 /* ************************************************************************** */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
 #include <opensubdiv/far/primvarRefiner.h>
 #include <opensubdiv/far/topologyDescriptor.h>
+#pragma GCC diagnostic pop
 
 static constexpr auto NOM_OPENSUBDIV = "OpenSubDiv";
 static constexpr auto AIDE_OPENSUBDIV = "Sousdivise les maillages d'entrée en utilisant la bibliothèque OpenSubDiv.";

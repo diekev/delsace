@@ -33,8 +33,8 @@
  * Représentation d'un sommet dans l'espace tridimensionel.
  */
 struct Sommet {
-	dls::math::vec3f pos;
-	int index;
+	dls::math::vec3f pos{};
+	size_t index{};
 };
 
 struct Polygone;
@@ -54,7 +54,7 @@ struct Arrete {
 	Arrete *opposee = nullptr;
 
 	/* L'index de l'arrête dans la boucle d'arrêtes du polygone. */
-	char index = 0;
+	size_t index = 0;
 
 	Arrete() = default;
 };
@@ -71,10 +71,10 @@ struct Polygone {
 	Arrete *a[4] = { nullptr, nullptr, nullptr, nullptr };
 
 	/* Le vecteur normal de ce polygone. */
-	dls::math::vec3f nor;
+	dls::math::vec3f nor{};
 
 	/* L'index de ce polygone. */
-	int index = 0;
+	size_t index = 0;
 
 	/* La résolution UV de ce polygone. */
 	unsigned int res_u = 0;
@@ -91,17 +91,19 @@ struct Polygone {
  * formant un objet dans l'espace tridimensionel.
  */
 class Maillage {
-	std::vector<Polygone *> m_polys;
-	std::vector<Sommet *> m_sommets;
-	std::vector<Arrete *> m_arretes;
+	std::vector<Polygone *> m_polys{};
+	std::vector<Sommet *> m_sommets{};
+	std::vector<Arrete *> m_arretes{};
 
-	std::map<std::pair<int, int>, Arrete *> m_tableau_arretes;
+	std::map<std::pair<int, int>, Arrete *> m_tableau_arretes{};
 
-	math::transformation m_transformation;
+	math::transformation m_transformation{};
 
-	std::string m_nom;
+	std::string m_nom{};
 
-	dls::math::vec3f m_min, m_max, m_taille;
+	dls::math::vec3f m_min{};
+	dls::math::vec3f m_max{};
+	dls::math::vec3f m_taille{};
 
 public:
 	Maillage();

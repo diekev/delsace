@@ -73,6 +73,9 @@ class GraphEvalTask {
 public:
 	explicit GraphEvalTask(const Mikisa *mikisa);
 
+	GraphEvalTask(GraphEvalTask const &) = default;
+	GraphEvalTask &operator=(GraphEvalTask const &) = default;
+
 #ifdef TACHE_TBB
 	tbb::task *execute() override;
 #else
@@ -113,8 +116,8 @@ tbb::task *GraphEvalTask::execute()
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = m_mikisa->project_settings->hauteur;
-	rectangle.largeur = m_mikisa->project_settings->largeur;
+	rectangle.hauteur = static_cast<float>(m_mikisa->project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(m_mikisa->project_settings->largeur);
 
 	execute_noeud(visionneuse, rectangle, m_mikisa->temps_courant);
 
@@ -154,8 +157,8 @@ static Objet *evalue_objet_ex(const Mikisa *mikisa, Noeud *noeud)
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = mikisa->project_settings->hauteur;
-	rectangle.largeur = mikisa->project_settings->largeur;
+	rectangle.hauteur = static_cast<float>(mikisa->project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(mikisa->project_settings->largeur);
 
 	const auto t0 = tbb::tick_count::now();
 
@@ -164,7 +167,7 @@ static Objet *evalue_objet_ex(const Mikisa *mikisa, Noeud *noeud)
 
 	const auto t1 = tbb::tick_count::now();
 	const auto delta = (t1 - t0).seconds();
-	noeud->temps_execution(delta);
+	noeud->temps_execution(static_cast<float>(delta));
 
 	return operatrice->objet();
 }
@@ -186,8 +189,8 @@ void evalue_scene(const Mikisa *mikisa)
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = mikisa->project_settings->hauteur;
-	rectangle.largeur = mikisa->project_settings->largeur;
+	rectangle.hauteur = static_cast<float>(mikisa->project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(mikisa->project_settings->largeur);
 
 	auto scene = operatrice->scene();
 	scene->reinitialise();
@@ -195,8 +198,8 @@ void evalue_scene(const Mikisa *mikisa)
 	auto operatrice_scene = dynamic_cast<OperatriceScene *>(operatrice);
 	auto graphe = operatrice_scene->graphe();
 
-	for (auto &noeud : graphe->noeuds()) {
-		auto objet = evalue_objet_ex(mikisa, noeud.get());
+	for (auto &noeud_graphe : graphe->noeuds()) {
+		auto objet = evalue_objet_ex(mikisa, noeud_graphe.get());
 
 		if (objet != nullptr) {
 			scene->ajoute_objet(objet);

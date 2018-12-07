@@ -38,6 +38,9 @@ class VueArbre : public danjo::Manipulable {
 public:
 	explicit VueArbre(Silvatheque *silvatheque);
 
+	VueArbre(VueArbre const &) = default;
+	VueArbre &operator=(VueArbre const &) = default;
+
 	void ajourne_donnees();
 
 	bool ajourne_proprietes() override;
@@ -56,7 +59,10 @@ class EditeurArbre final : public BaseEditrice {
 public:
 	EditeurArbre(Silvatheque *silvatheque, QWidget *parent = nullptr);
 
-	~EditeurArbre();
+	EditeurArbre(EditeurArbre const &) = default;
+	EditeurArbre &operator=(EditeurArbre const &) = default;
+
+	~EditeurArbre() override;
 
 	void ajourne_etat(int evenement) override;
 

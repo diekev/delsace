@@ -35,8 +35,8 @@
  * Représentation d'un sommet dans l'espace tridimensionel.
  */
 struct Sommet {
-	dls::math::vec3f pos;
-	int index;
+	dls::math::vec3f pos{};
+	size_t index{};
 };
 
 struct Polygone;
@@ -56,7 +56,7 @@ struct Arrete {
 	Arrete *opposee = nullptr;
 
 	/* L'index de l'arrête dans la boucle d'arrêtes du polygone. */
-	char index = 0;
+	size_t index = 0;
 
 	Arrete() = default;
 };
@@ -73,17 +73,17 @@ struct Polygone {
 	Arrete *a[4] = { nullptr, nullptr, nullptr, nullptr };
 
 	/* Le vecteur normal de ce polygone. */
-	dls::math::vec3f nor;
+	dls::math::vec3f nor{};
 
 	/* L'index de ce polygone. */
-	int index = 0;
+	size_t index = 0;
 
 	/* La résolution UV de ce polygone. */
 	unsigned int res_u = 0;
 	unsigned int res_v = 0;
 
-	int x = 0;
-	int y = 0;
+	unsigned int x = 0;
+	unsigned int y = 0;
 
 	Polygone() = default;
 };
@@ -93,23 +93,26 @@ struct Polygone {
  * formant un objet dans l'espace tridimensionel.
  */
 class Maillage {
-	std::vector<Polygone *> m_polys;
-	std::vector<Sommet *> m_sommets;
-	std::vector<Arrete *> m_arretes;
+	std::vector<Polygone *> m_polys{};
+	std::vector<Sommet *> m_sommets{};
+	std::vector<Arrete *> m_arretes{};
 
-	std::map<std::pair<int, int>, Arrete *> m_tableau_arretes;
+	std::map<std::pair<int, int>, Arrete *> m_tableau_arretes{};
 
-	math::transformation m_transformation;
+	math::transformation m_transformation{};
 
-	bool m_texture_surrannee;
+	bool m_texture_surrannee{};
 
-	CanauxTexture m_canaux;
+	CanauxTexture m_canaux{};
 
 	Calque *m_calque_actif = nullptr;
 
-	int m_largeur_texture;
+	unsigned int m_largeur_texture{};
 
-	std::string m_nom;
+	std::string m_nom{};
+
+	Maillage(const Maillage &autre) = default;
+	Maillage &operator=(const Maillage &autre) = default;
 
 public:
 	Maillage();
@@ -141,7 +144,7 @@ public:
 	 * Ajoute un quadrilatère à ce maillage. Les paramètres sont les index des
 	 * sommets déjà ajoutés à ce maillage.
 	 */
-	void ajoute_quad(const int s0, const int s1, const int s2, const int s3);
+	void ajoute_quad(const size_t s0, const size_t s1, const size_t s2, const size_t s3);
 
 	/**
 	 * Retourne le nombre de polygones de ce maillage.
@@ -208,7 +211,7 @@ public:
 	 * Retourne la largeur de la texture paquettée contenant les tampons de
 	 * chaque polygone.
 	 */
-	int largeur_texture() const;
+	unsigned int largeur_texture() const;
 
 	/**
 	 * Renseigne le calque actif de ce maillage.

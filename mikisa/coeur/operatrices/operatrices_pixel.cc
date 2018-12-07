@@ -377,11 +377,11 @@ public:
 			fusion = FUSION_XOR;
 		}
 
-		boucle_parallele(tbb::blocked_range<size_t>(0, rectangle.hauteur),
+		boucle_parallele(tbb::blocked_range<size_t>(0ul, static_cast<size_t>(rectangle.hauteur)),
 					 [&](const tbb::blocked_range<size_t> &plage)
 		{
 			for (size_t l = plage.begin(); l < plage.end(); ++l) {
-				for (size_t c = 0; c < rectangle.largeur; ++c) {
+				for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {
 					auto resultat = numero7::image::PixelFloat(0.0f);
 
 					switch (fusion) {
@@ -501,8 +501,8 @@ static constexpr auto NOM_BRUITAGE = "Bruitage";
 static constexpr auto AIDE_BRUITAGE = "Applique un bruit à l'image.";
 
 class OperatriceBruitage final : public OperatricePixel {
-	std::mt19937 m_rng;
-	std::uniform_real_distribution<float> m_dist;
+	std::mt19937 m_rng{};
+	std::uniform_real_distribution<float> m_dist{};
 
 public:
 	explicit OperatriceBruitage(Noeud *node)
@@ -550,7 +550,7 @@ static constexpr auto NOM_CONSTANTE = "Constante";
 static constexpr auto AIDE_CONSTANTE = "Applique une couleur constante à toute l'image.";
 
 class OperatriceConstante final : public OperatricePixel {
-	couleur32 m_couleur;
+	couleur32 m_couleur{};
 
 public:
 	explicit OperatriceConstante(Noeud *node)
@@ -617,7 +617,7 @@ class OperatriceDegrade final : public OperatricePixel {
 
 	int pad = 0;
 
-	RampeCouleur *m_rampe;
+	RampeCouleur *m_rampe{};
 
 public:
 	explicit OperatriceDegrade(Noeud *node)
@@ -625,6 +625,9 @@ public:
 	{
 		inputs(0);
 	}
+
+	OperatriceDegrade(OperatriceDegrade const &) = default;
+	OperatriceDegrade &operator=(OperatriceDegrade const &) = default;
 
 	const char *chemin_entreface() const override
 	{
@@ -699,7 +702,7 @@ static constexpr auto NOM_NUAGE = "Nuage";
 static constexpr auto AIDE_NUAGE = "Crée un bruit de nuage";
 
 class OperatriceNuage final : public OperatricePixel {
-	dls::math::BruitFlux2D m_bruit_flux;
+	dls::math::BruitFlux2D m_bruit_flux{};
 
 	dls::math::vec3f m_frequence = dls::math::vec3f(1.0f);
 	dls::math::vec3f m_decalage = dls::math::vec3f(0.0f);
@@ -782,7 +785,7 @@ public:
 
 			for (int i = 0; i <= m_octaves; i++, amplitude *= m_durete) {
 				auto tx = 0.5f + 0.5f * m_bruit_flux(frequence_x * x + m_decalage.x, frequence_x * y + m_decalage.y);
-				auto ty = 0.5f + 0.5f * m_bruit_flux(frequence_y * x + m_decalage.x + 1.0, frequence_y * y + m_decalage.y);
+				auto ty = 0.5f + 0.5f * m_bruit_flux(frequence_y * x + m_decalage.x + 1.0f, frequence_y * y + m_decalage.y);
 				auto tz = 0.5f + 0.5f * m_bruit_flux(frequence_z * x + m_decalage.x, frequence_z * y + 1.0f + m_decalage.y);
 
 				if (m_dur) {
@@ -899,19 +902,19 @@ class OperatriceEtalonnage final  : public OperatricePixel {
 	bool m_restreint_noir = false;
 	bool m_restreint_blanc = false;
 	bool m_entrepolation_lineaire = false;
-	int pad;
+	int pad{};
 
-	numero7::image::Pixel<float> m_point_noir;
-	numero7::image::Pixel<float> m_point_blanc;
-	numero7::image::Pixel<float> m_blanc;
-	numero7::image::Pixel<float> m_noir;
-	numero7::image::Pixel<float> m_multiple;
-	numero7::image::Pixel<float> m_ajoute;
+	numero7::image::Pixel<float> m_point_noir{};
+	numero7::image::Pixel<float> m_point_blanc{};
+	numero7::image::Pixel<float> m_blanc{};
+	numero7::image::Pixel<float> m_noir{};
+	numero7::image::Pixel<float> m_multiple{};
+	numero7::image::Pixel<float> m_ajoute{};
 
 	numero7::image::Pixel<float> m_delta_BN = m_point_blanc - m_point_noir;
 	numero7::image::Pixel<float> A1 = m_blanc - m_noir;
-	numero7::image::Pixel<float> B;
-	numero7::image::Pixel<float> m_gamma;
+	numero7::image::Pixel<float> B{};
+	numero7::image::Pixel<float> m_gamma{};
 
 public:
 	explicit OperatriceEtalonnage(Noeud *node)
@@ -1100,7 +1103,7 @@ static constexpr auto AIDE_CORRECTION_GAMMA = "Applique une correction gamma à 
 
 class OperatriceCorrectionGamma : public OperatricePixel {
 	float m_gamma = 1.0f;
-	int pad;
+	int pad{};
 
 public:
 	explicit OperatriceCorrectionGamma(Noeud *node)
@@ -1327,9 +1330,9 @@ static constexpr auto NOM_CORRECTION_COULEUR = "Correction Couleur";
 static constexpr auto AIDE_CORRECTION_COULEUR = "Corrige les couleur de l'image selon la formule de l'ASC CDL.";
 
 class OperatriceCorrectionCouleur final : public OperatricePixel {
-	couleur32 m_decalage;
-	couleur32 m_pente;
-	couleur32 m_puissance;
+	couleur32 m_decalage{};
+	couleur32 m_pente{};
+	couleur32 m_puissance{};
 
 public:
 	explicit OperatriceCorrectionCouleur(Noeud *node)
@@ -1631,8 +1634,8 @@ static constexpr auto NOM_CONTRASTE = "Contraste";
 static constexpr auto AIDE_CONTRASTE = "Ajuste le contraste de l'image.";
 
 class OperatriceContraste final : public OperatricePixel {
-	float m_pivot;
-	float m_contraste;
+	float m_pivot{};
+	float m_contraste{};
 
 public:
 	explicit OperatriceContraste(Noeud *node)
@@ -1691,7 +1694,7 @@ static constexpr auto NOM_COURBE_COULEUR = "Courbe Couleur";
 static constexpr auto AIDE_COURBE_COULEUR = "Modifie l'image selon une courbe de couleur.";
 
 class OperatriceCourbeCouleur final : public OperatricePixel {
-	CourbeCouleur *m_courbe;
+	CourbeCouleur *m_courbe{};
 
 public:
 	explicit OperatriceCourbeCouleur(Noeud *node)
@@ -1699,6 +1702,9 @@ public:
 	{
 		inputs(1);
 	}
+
+	OperatriceCourbeCouleur(OperatriceCourbeCouleur const &) = default;
+	OperatriceCourbeCouleur &operator=(OperatriceCourbeCouleur const &) = default;
 
 	const char *chemin_entreface() const override
 	{
@@ -1748,10 +1754,10 @@ static constexpr auto NOM_TRADUCTION = "Traduction";
 static constexpr auto AIDE_TRADUCTION = "Traduit les composants de l'image d'une plage à une autre.";
 
 class OperatriceTraduction final : public OperatricePixel {
-	couleur32 m_vieux_min;
-	couleur32 m_vieux_max;
-	couleur32 m_neuf_min;
-	couleur32 m_neuf_max;
+	couleur32 m_vieux_min{};
+	couleur32 m_vieux_max{};
+	couleur32 m_neuf_min{};
+	couleur32 m_neuf_max{};
 
 public:
 	explicit OperatriceTraduction(Noeud *node)
@@ -1806,8 +1812,8 @@ static constexpr auto NOM_MIN_MAX = "MinMax";
 static constexpr auto AIDE_MIN_MAX = "Change le point blanc et la point noir de l'image.";
 
 class OperatriceMinMax final : public OperatricePixel {
-	couleur32 m_neuf_min;
-	couleur32 m_neuf_max;
+	couleur32 m_neuf_min{};
+	couleur32 m_neuf_max{};
 
 public:
 	explicit OperatriceMinMax(Noeud *node)
@@ -1942,7 +1948,7 @@ auto operator*(const numero7::image::Pixel<float> &p, const dls::math::mat4x4f &
 }
 
 class OperatriceDaltonisme final : public OperatricePixel {
-	dls::math::mat4x4f m_matrice;
+	dls::math::mat4x4f m_matrice{};
 
 public:
 	explicit OperatriceDaltonisme(Noeud *node)

@@ -313,7 +313,7 @@ void ajoute_polygone_segment(
 		ListePoints3D *liste_points,
 		std::vector<dls::math::vec3f> &points)
 {
-	for (int i = 0; i < polygone->nombre_segments(); ++i) {
+	for (size_t i = 0; i < polygone->nombre_segments(); ++i) {
 		points.push_back(liste_points->point(polygone->index_point(i)));
 		points.push_back(liste_points->point(polygone->index_point(i + 1)));
 	}

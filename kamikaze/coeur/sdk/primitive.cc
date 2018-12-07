@@ -238,8 +238,8 @@ void PrimitiveCollection::add(Primitive *prim)
 
 	bool changed = ensure_unique_name(name, [&](const std::string &str)
 	{
-		for (const auto &prim : m_collection) {
-			if (prim->name() == str) {
+		for (const auto &prim_nom : m_collection) {
+			if (prim_nom->name() == str) {
 				return false;
 			}
 		}
@@ -342,30 +342,30 @@ primitive_iterator::primitive_iterator()
 	m_end = collection.primitives().end();
 }
 
-primitive_iterator::primitive_iterator(const PrimitiveCollection *collection)
-    : primitive_iterator(collection, -1)
+primitive_iterator::primitive_iterator(const PrimitiveCollection *coll)
+	: primitive_iterator(coll, -1ul)
 {}
 
-primitive_iterator::primitive_iterator(const PrimitiveCollection *collection, int type)
+primitive_iterator::primitive_iterator(const PrimitiveCollection *coll, size_t type)
     : m_type(type)
 {
-	if (!collection) {
+	if (!coll) {
 		this->collection.add(nullptr);
 		m_iter = this->collection.primitives().begin();
 		m_end = this->collection.primitives().end();
 		return;
 	}
 
-	m_iter = collection->primitives().begin();
-	m_end = collection->primitives().end();
+	m_iter = coll->primitives().begin();
+	m_end = coll->primitives().end();
 
 	/* Return if there is no type. */
-	if (type == -1) {
+	if (type == -1ul) {
 		return;
 	}
 
 	/* Make sure the first primitive is of the right type. */
-	for (const auto &primitive : collection->primitives()) {
+	for (const auto &primitive : coll->primitives()) {
 		if (primitive->typeID() == type) {
 			break;
 		}
@@ -382,7 +382,7 @@ primitive_iterator::primitive_iterator(const primitive_iterator &rhs)
 
 primitive_iterator &primitive_iterator::operator++()
 {
-	if (m_type == -1) {
+	if (m_type == -1ul) {
 		++m_iter;
 		return *this;
 	}
@@ -395,7 +395,7 @@ primitive_iterator &primitive_iterator::operator++()
 	return *this;
 }
 
-const primitive_iterator::reference primitive_iterator::operator*() const
+primitive_iterator::reference primitive_iterator::operator*() const
 {
 	return *m_iter;
 }

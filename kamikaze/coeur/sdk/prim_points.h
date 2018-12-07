@@ -29,12 +29,12 @@
 #include "primitive.h"
 
 class PrimPoints : public Primitive {
-	PointList m_points;
+	PointList m_points{};
 
 public:
 	PrimPoints();
 	PrimPoints(const PrimPoints &other);
-	~PrimPoints();
+	~PrimPoints() override;
 
 	PrimPoints &operator=(const PrimPoints &other) = default;
 

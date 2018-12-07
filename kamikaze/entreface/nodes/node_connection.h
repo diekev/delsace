@@ -20,7 +20,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGraphicsPathItem>
+#pragma GCC diagnostic pop
 
 #include "node_constants.h"
 
@@ -43,6 +49,9 @@ class QtConnexion : public QGraphicsPathItem {
 public:
 	explicit QtConnexion(QtPort *basePort, QGraphicsPathItem *parent = nullptr);
 	~QtConnexion() = default;
+
+	QtConnexion(QtConnexion const &) = default;
+	QtConnexion &operator=(QtConnexion const &) = default;
 
 	void setSelected(bool selected); /* TEST */
 

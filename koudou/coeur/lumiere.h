@@ -38,11 +38,14 @@ struct Lumiere {
 	math::transformation transformation;
 	Nuanceur *nuanceur = nullptr;
 	double intensite = 0.0;
-	Spectre spectre;
+	Spectre spectre{};
 	type_lumiere type = type_lumiere::POINT;
 	char pad[3];
 
 	Lumiere() = default;
+
+	Lumiere(Lumiere const &) = default;
+	Lumiere &operator=(Lumiere const &) = default;
 
 	explicit Lumiere(const math::transformation &transform);
 
@@ -54,9 +57,9 @@ struct Lumiere {
  * Dans ce cas, seule sa position dans la scène importe.
  */
 struct LumierePoint final : public Lumiere {
-	dls::math::point3d pos;
+	dls::math::point3d pos{};
 
-	LumierePoint(const math::transformation &transform, Spectre spectre = Spectre(1.0), double intensite = 1.0);
+	LumierePoint(const math::transformation &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
 };
 
 /**
@@ -64,7 +67,7 @@ struct LumierePoint final : public Lumiere {
  * Dans ce cas, la source est si loin que seule sa direction importe.
  */
 struct LumiereDistante final : public Lumiere {
-	dls::math::vec3d dir;
+	dls::math::vec3d dir{};
 
-	LumiereDistante(const math::transformation &transform, Spectre spectre = Spectre(1.0), double intensite = 1.0);
+	LumiereDistante(const math::transformation &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
 };

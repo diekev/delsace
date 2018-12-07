@@ -44,12 +44,12 @@ static bool verifie_collision(const PlanPhysique &plan, const dls::math::vec3d &
 	const auto &XPdotN = dls::math::produit_scalaire(pos - plan.pos, plan.nor);
 
 	/* Est-on à une distance epsilon du plan ? */
-	if (XPdotN >= std::numeric_limits<float>::epsilon()) {
+	if (XPdotN >= std::numeric_limits<double>::epsilon()) {
 		return false;
 	}
 
 	/* Va-t-on vers le plan ? */
-	if (dls::math::produit_scalaire(plan.nor, vel) >= 0.0f) {
+	if (dls::math::produit_scalaire(plan.nor, vel) >= 0.0) {
 		return false;
 	}
 
@@ -70,7 +70,10 @@ public:
 		sorties(1);
 	}
 
-	~OperatriceGravite()
+	OperatriceGravite(OperatriceGravite const &) = default;
+	OperatriceGravite &operator=(OperatriceGravite const &) = default;
+
+	~OperatriceGravite() override
 	{
 		delete m_collection_original;
 		delete m_derniere_collection;

@@ -24,10 +24,16 @@
 
 #include "editrice_noeud.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QToolTip>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
@@ -42,13 +48,13 @@ EditriceGraphe::EditriceGraphe(Mikisa *mikisa, QWidget *parent)
 	: BaseEditrice(mikisa, parent)
 	, m_scene(new QGraphicsScene(this))
 	, m_vue(new VueEditeurNoeud(mikisa, this, this))
+	, m_barre_chemin(new QLineEdit())
 {
 	m_vue->setScene(m_scene);
 
 	auto disposition_vert = new QVBoxLayout();
 	auto disposition_barre = new QHBoxLayout();
 
-	m_barre_chemin = new QLineEdit();
 	disposition_barre->addWidget(m_barre_chemin);
 
 	auto bouton_retour = new QPushButton("^");
@@ -91,8 +97,8 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	const auto largeur = rect_scene.width();
 	const auto hauteur = rect_scene.height();
 
-	rect_scene = QRectF(graphe->centre_x - largeur * 0.5f,
-						graphe->centre_y - hauteur * 0.5f,
+	rect_scene = QRectF(graphe->centre_x - static_cast<float>(largeur) * 0.5f,
+						graphe->centre_y - static_cast<float>(hauteur) * 0.5f,
 						largeur,
 						hauteur);
 
@@ -111,13 +117,13 @@ void EditriceGraphe::ajourne_etat(int evenement)
 				continue;
 			}
 
-			const auto x1 = prise->rectangle.x + prise->rectangle.largeur / 2;
-			const auto y1 = prise->rectangle.y + prise->rectangle.hauteur / 2;
-			const auto x2 = prise->lien->rectangle.x + prise->lien->rectangle.largeur / 2;
-			const auto y2 = prise->lien->rectangle.y + prise->lien->rectangle.hauteur / 2;
+			const auto x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
+			const auto y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
+			const auto x2 = prise->lien->rectangle.x + prise->lien->rectangle.largeur / 2.0f;
+			const auto y2 = prise->lien->rectangle.y + prise->lien->rectangle.hauteur / 2.0f;
 
 			auto ligne = new QGraphicsLineItem();
-			ligne->setPen(QPen(Qt::white, 2.0f));
+			ligne->setPen(QPen(Qt::white, 2.0));
 			ligne->setLine(x1, y1, x2, y2);
 
 			m_scene->addItem(ligne);
@@ -125,24 +131,24 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	}
 
 	if (graphe->connexion_active) {
-		int x1, y1;
+		float x1, y1;
 
 		if (graphe->connexion_active->prise_entree) {
 			auto prise_entree = graphe->connexion_active->prise_entree;
-			x1 = prise_entree->rectangle.x + prise_entree->rectangle.largeur / 2;
-			y1 = prise_entree->rectangle.y + prise_entree->rectangle.hauteur / 2;
+			x1 = prise_entree->rectangle.x + prise_entree->rectangle.largeur / 2.0f;
+			y1 = prise_entree->rectangle.y + prise_entree->rectangle.hauteur / 2.0f;
 		}
 		else {
 			auto prise_sortie = graphe->connexion_active->prise_sortie;
-			x1 = prise_sortie->rectangle.x + prise_sortie->rectangle.largeur / 2;
-			y1 = prise_sortie->rectangle.y + prise_sortie->rectangle.hauteur / 2;
+			x1 = prise_sortie->rectangle.x + prise_sortie->rectangle.largeur / 2.0f;
+			y1 = prise_sortie->rectangle.y + prise_sortie->rectangle.hauteur / 2.0f;
 		}
 
 		const auto x2 = graphe->connexion_active->x;
 		const auto y2 = graphe->connexion_active->y;
 
 		auto ligne = new QGraphicsLineItem();
-		ligne->setPen(QPen(Qt::white, 2.0f));
+		ligne->setPen(QPen(Qt::white, 2.0));
 		ligne->setLine(x1, y1, x2, y2);
 
 		m_scene->addItem(ligne);

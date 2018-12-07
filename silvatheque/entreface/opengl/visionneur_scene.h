@@ -50,7 +50,7 @@ class VisionneurScene {
 	RenduGrille *m_rendu_grille;
 	RenduTexte *m_rendu_texte;
 
-	ContexteRendu m_contexte;
+	ContexteRendu m_contexte{};
 
 	PileMatrice m_stack = {};
 
@@ -73,6 +73,7 @@ public:
 	 * Empêche la copie d'un visionneur.
 	 */
 	VisionneurScene(const VisionneurScene &visionneur) = delete;
+	VisionneurScene &operator=(VisionneurScene const &) = delete;
 
 	/**
 	 * Détruit le visionneur scène. Les tampons de rendus sont détruits, et

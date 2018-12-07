@@ -59,6 +59,9 @@ class EditriceLigneTemps : public BaseEditrice {
 public:
 	explicit EditriceLigneTemps(danjo::RepondantBouton *repondant, QWidget *parent = nullptr);
 
+	EditriceLigneTemps(EditriceLigneTemps const &) = default;
+	EditriceLigneTemps &operator=(EditriceLigneTemps const &) = default;
+
 	void update_state(type_evenement event) override;
 
 private Q_SLOTS:

@@ -26,8 +26,14 @@
 
 #include <danjo/danjo.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QKeyEvent>
 #include <QMenu>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
@@ -42,7 +48,7 @@ VueEditeurNoeud::VueEditeurNoeud(
 	, m_gestionnaire(gestionnaire)
 	, m_repondant_commande(repondant)
 {
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = nullptr;
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_repondant_commande;
@@ -94,8 +100,8 @@ void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
 
 	DonneesCommande donnees;
 	donnees.souris = Qt::LeftButton;
-	donnees.x = position.x();
-	donnees.y = position.y();
+	donnees.x = static_cast<float>(position.x());
+	donnees.y = static_cast<float>(position.y());
 
 	m_repondant_commande->ajourne_commande_modale(donnees);
 }
@@ -109,8 +115,8 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 
 			DonneesCommande donnees;
 			donnees.souris = Qt::LeftButton;
-			donnees.x = position.x();
-			donnees.y = position.y();
+			donnees.x = static_cast<float>(position.x());
+			donnees.y = static_cast<float>(position.y());
 
 			m_repondant_commande->appele_commande("graphe", donnees);
 			break;
@@ -138,8 +144,8 @@ void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 	DonneesCommande donnees;
 	donnees.double_clique = true;
 	donnees.souris = Qt::LeftButton;
-	donnees.x = position.x();
-	donnees.y = position.y();
+	donnees.x = static_cast<float>(position.x());
+	donnees.y = static_cast<float>(position.y());
 
 	m_repondant_commande->appele_commande("graphe", donnees);
 }
@@ -149,8 +155,8 @@ void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 	const auto position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
-	donnees.x = position.x();
-	donnees.y = position.y();
+	donnees.x = static_cast<float>(position.x());
+	donnees.y = static_cast<float>(position.y());
 
 	m_repondant_commande->acheve_commande_modale(donnees);
 }

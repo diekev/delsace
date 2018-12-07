@@ -65,6 +65,8 @@ enum {
 
 class Texture {
 public:
+	virtual ~Texture() = default;
+
 	virtual Spectre echantillone(const dls::math::vec3d &direction) const = 0;
 
 	virtual TypeTexture type() const = 0;
@@ -92,8 +94,8 @@ public:
 /* ************************************************************************** */
 
 class TextureImage final : public Texture {
-	numero7::math::matrice<Spectre> m_image;
-	std::experimental::filesystem::path m_chemin;
+	numero7::math::matrice<Spectre> m_image{};
+	std::experimental::filesystem::path m_chemin{};
 	vision::Camera3D *m_camera = nullptr;
 
 	int m_projection = PROJECTION_PLANAIRE;
@@ -104,6 +106,9 @@ class TextureImage final : public Texture {
 
 public:
 	TextureImage() = default;
+
+	TextureImage(TextureImage const &) = default;
+	TextureImage &operator=(TextureImage const &) = default;
 
 	Spectre echantillone(const dls::math::vec3d &direction) const override;
 

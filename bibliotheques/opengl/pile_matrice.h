@@ -37,7 +37,7 @@
  * pour dessiner l'objet courant.
  */
 class PileMatrice {
-	std::stack<dls::math::mat4x4d, std::vector<dls::math::mat4x4d>> m_pile;
+	std::stack<dls::math::mat4x4d, std::vector<dls::math::mat4x4d>> m_pile{};
 
 public:
 	/**

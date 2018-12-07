@@ -46,12 +46,12 @@ static LoggeuseEmpaquettage loggeuse_empaquettage;
 #	define LOG loggeuse_empaquettage
 #endif
 
-uint64_t empreinte_xy(int x, int y)
+uint64_t empreinte_xy(unsigned x, unsigned y)
 {
 	return uint64_t(x) << 32ul | uint64_t(y);
 }
 
-std::map<uint64_t, Polygone *> tableau_coord_polygones;
+static std::map<uint64_t, Polygone *> tableau_coord_polygones;
 
 PaqueuseTexture::Noeud::~Noeud()
 {
@@ -116,7 +116,7 @@ void PaqueuseTexture::empaquete(const std::vector<Polygone *> &polygones)
 			noeud = brise_noeud(noeud, polygone->res_u, polygone->res_v);
 		}
 		else {
-			noeud = elargi_noeud(largeur_max, hauteur_max);
+			noeud = elargi_noeud(static_cast<unsigned>(largeur_max), static_cast<unsigned>(hauteur_max));
 
 			if (!noeud) {
 				LOG << "N'arrive pas à élargir texture "
@@ -152,20 +152,20 @@ void PaqueuseTexture::empaquete(const std::vector<Polygone *> &polygones)
 		<< largeur() << 'x' << hauteur() << "...\n";
 }
 
-int PaqueuseTexture::largeur() const
+unsigned int PaqueuseTexture::largeur() const
 {
 	return max_x; //m_racine->largeur;
 }
 
-int PaqueuseTexture::hauteur() const
+unsigned int PaqueuseTexture::hauteur() const
 {
 	return max_y; //m_racine->hauteur;
 }
 
 PaqueuseTexture::Noeud *PaqueuseTexture::trouve_noeud(
 		Noeud *racine,
-		int largeur,
-		int hauteur)
+		unsigned largeur,
+		unsigned hauteur)
 {
 	//LOG << "Recherche d'un noeud de taille " << largeur << 'x' << hauteur << "...\n";
 
@@ -192,8 +192,8 @@ PaqueuseTexture::Noeud *PaqueuseTexture::trouve_noeud(
 
 PaqueuseTexture::Noeud *PaqueuseTexture::brise_noeud(
 		Noeud *noeud,
-		int largeur,
-		int hauteur)
+		unsigned largeur,
+		unsigned hauteur)
 {
 	noeud->utilise = true;
 
@@ -224,7 +224,7 @@ PaqueuseTexture::Noeud *PaqueuseTexture::brise_noeud(
 	return noeud;
 }
 
-PaqueuseTexture::Noeud *PaqueuseTexture::elargi_noeud(int largeur, int hauteur)
+PaqueuseTexture::Noeud *PaqueuseTexture::elargi_noeud(unsigned largeur, unsigned hauteur)
 {
 	LOG << __func__ << '\n';
 #if 1
@@ -268,7 +268,7 @@ PaqueuseTexture::Noeud *PaqueuseTexture::elargi_noeud(int largeur, int hauteur)
 #endif
 }
 
-PaqueuseTexture::Noeud *PaqueuseTexture::elargi_largeur(int largeur, int hauteur)
+PaqueuseTexture::Noeud *PaqueuseTexture::elargi_largeur(unsigned largeur, unsigned hauteur)
 {
 	LOG << __func__ << '\n';
 
@@ -296,7 +296,7 @@ PaqueuseTexture::Noeud *PaqueuseTexture::elargi_largeur(int largeur, int hauteur
 	return nullptr;
 }
 
-PaqueuseTexture::Noeud *PaqueuseTexture::elargi_hauteur(int largeur, int hauteur)
+PaqueuseTexture::Noeud *PaqueuseTexture::elargi_hauteur(unsigned largeur, unsigned hauteur)
 {
 	LOG << __func__ << '\n';
 

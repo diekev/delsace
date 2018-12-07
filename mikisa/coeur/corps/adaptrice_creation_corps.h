@@ -42,9 +42,9 @@ public:
 
 	void ajoute_parametres_sommet(const float x, const float y, const float z) override;
 
-	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, int nombre) override;
+	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, size_t nombre) override;
 
-	void ajoute_ligne(const int *index, int nombre) override;
+	void ajoute_ligne(const int *index, size_t nombre) override;
 
 	void ajoute_objet(const std::string &nom) override;
 
@@ -60,8 +60,8 @@ public:
 
 	void groupe_nuancage(const int index) override;
 
-	std::vector<GroupePolygone *> groupes_courant;
-	Corps *corps;
+	std::vector<GroupePolygone *> groupes_courant{};
+	Corps *corps{};
 	Attribut *attribut_normal = nullptr;
 	Attribut *attribut_uvs = nullptr;
 };

@@ -27,8 +27,14 @@
 #include "sdk/context.h"
 #include "sdk/noeud.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDropEvent>
 #include <QHBoxLayout>
+#pragma GCC diagnostic pop
 
 #include "coeur/graphs/object_graph.h"
 #include "coeur/object.h"

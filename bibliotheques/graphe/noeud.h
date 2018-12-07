@@ -56,12 +56,16 @@ struct PriseSortie {
 	int type = 0;
 
 	/* décalage dans la pile d'une CompileuseGraphe */
-	int decalage_pile = 0;
+	size_t decalage_pile = 0;
 
 	/* position et taille dans l'entreface */
-	Rectangle rectangle;
+	Rectangle rectangle{};
 
 	explicit PriseSortie(const std::string &nom_prise);
+
+	/* À FAIRE : considère l'utilisation de shared_ptr */
+	PriseSortie(PriseSortie const &) = default;
+	PriseSortie &operator=(PriseSortie const &) = default;
 };
 
 /* ************************************************************************** */
@@ -73,15 +77,19 @@ struct PriseEntree {
 	int type = 0;
 
 	/* position et taille dans l'entreface */
-	Rectangle rectangle;
+	Rectangle rectangle{};
 
 	explicit PriseEntree(const std::string &nom_prise);
+
+	/* À FAIRE : considère l'utilisation de shared_ptr */
+	PriseEntree(PriseEntree const &) = default;
+	PriseEntree &operator=(PriseEntree const &) = default;
 };
 
 /* ************************************************************************** */
 
 class Noeud {
-	void (*supprime_donnees)(void *);
+	void (*supprime_donnees)(void *) = nullptr;
 
 	std::vector<PriseEntree *> m_entrees = {};
 	std::vector<PriseSortie *> m_sorties = {};
@@ -91,7 +99,7 @@ class Noeud {
 	std::string m_nom = "";
 
 	/* Interface utilisateur. */
-	Rectangle m_rectangle;
+	Rectangle m_rectangle{};
 
 	int m_type = 0;
 	bool m_besoin_traitement = true;
@@ -107,6 +115,10 @@ public:
 	explicit Noeud(void (*suppression_donnees)(void *));
 	~Noeud();
 
+	/* À FAIRE : considère l'utilisation de shared_ptr */
+	Noeud(Noeud const &) = default;
+	Noeud &operator=(Noeud const &) = default;
+
 	using plage_entrees = plage_iterable<std::vector<PriseEntree *>::const_iterator>;
 	using plage_sorties = plage_iterable<std::vector<PriseSortie *>::const_iterator>;
 
@@ -119,7 +131,7 @@ public:
 	/**
 	 * Retourne la position horizontale du noeud dans l'éditeur.
 	 */
-	float pos_x() const;
+	double pos_x() const;
 
 	/**
 	 * Ajourne la position horizontale du noeud dans l'éditeur.
@@ -129,7 +141,7 @@ public:
 	/**
 	 * Retourne la position verticale du noeud dans l'éditeur.
 	 */
-	float pos_y() const;
+	double pos_y() const;
 
 	/**
 	 * Ajourne la position verticale du noeud dans l'éditeur.
@@ -174,7 +186,7 @@ public:
 	/**
 	 * Retourne l'entrée selon l'index spécifié.
 	 */
-	PriseEntree *entree(int index);
+	PriseEntree *entree(size_t index);
 
 	/**
 	 * Retourne l'entrée selon le nom spécifié.
@@ -184,7 +196,7 @@ public:
 	/**
 	 * Retourne la sortie selon l'index spécifié.
 	 */
-	PriseSortie *sortie(int index);
+	PriseSortie *sortie(size_t index);
 
 	/**
 	 * Retourne la sortie selon le nom spécifié.

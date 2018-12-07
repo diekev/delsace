@@ -40,6 +40,9 @@ class EditriceProprietes : public BaseEditrice {
 public:
 	explicit EditriceProprietes(Mikisa *mikisa, QWidget *parent = nullptr);
 
+	EditriceProprietes(EditriceProprietes const &) = default;
+	EditriceProprietes &operator=(EditriceProprietes const &) = default;
+
 	void ajourne_etat(int evenement) override;
 
 	void ajourne_manipulable() override;

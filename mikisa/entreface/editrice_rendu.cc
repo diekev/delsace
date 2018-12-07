@@ -26,8 +26,14 @@
 
 #include <danjo/danjo.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QHBoxLayout>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
@@ -67,7 +73,7 @@ void EditriceRendu::ajourne_etat(int evenement)
 		return;
 	}
 
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = &m_manipulable;
 	donnees.conteneur = this;
 	donnees.repondant_bouton = m_mikisa->repondant_commande();

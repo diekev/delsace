@@ -49,6 +49,9 @@ public:
 	 */
 	explicit RenduRayon(Kanba *kanba);
 
+	RenduRayon(RenduRayon const &) = default;
+	RenduRayon &operator=(RenduRayon const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.

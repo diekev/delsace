@@ -41,22 +41,22 @@ bool ensure_unique_name(std::string &name, const OpType &op)
 		++number;
 
 		if (number < 10) {
-			temp[temp_size - 1] = '0' + number;
+			temp[temp_size - 1] = static_cast<char>('0' + number);
 		}
 		else if (number < 100) {
-			temp[temp_size - 1] = '0' + (number % 10);
-			temp[temp_size - 2] = '0' + (number / 10);
+			temp[temp_size - 1] = static_cast<char>('0' + number % 10);
+			temp[temp_size - 2] = static_cast<char>('0' + number / 10);
 		}
 		else if (number < 1000) {
-			temp[temp_size - 1] = '0' + (number % 10);
-			temp[temp_size - 2] = '0' + ((number % 100) / 10);
-			temp[temp_size - 3] = '0' + (number / 100);
+			temp[temp_size - 1] = static_cast<char>('0' + number % 10);
+			temp[temp_size - 2] = static_cast<char>('0' + (number % 100) / 10);
+			temp[temp_size - 3] = static_cast<char>('0' + number / 100);
 		}
 		else {
-			temp[temp_size - 1] = '0' + (number % 10);
-			temp[temp_size - 2] = '0' + ((number % 100) / 10);
-			temp[temp_size - 3] = '0' + ((number % 1000) / 100);
-			temp[temp_size - 4] = '0' + (number / 1000);
+			temp[temp_size - 1] = static_cast<char>('0' + number % 10);
+			temp[temp_size - 2] = static_cast<char>('0' + (number % 100) / 10);
+			temp[temp_size - 3] = static_cast<char>('0' + (number % 1000) / 100);
+			temp[temp_size - 4] = static_cast<char>('0' + number / 1000);
 		}
 	} while (!op(temp));
 

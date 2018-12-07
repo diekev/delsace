@@ -53,6 +53,10 @@ class Audite {
 public:
 	Audite() = default;
 
+	/* l'auditeur_dialogue peut-être partagé */
+	Audite(Audite const &) = default;
+	Audite &operator=(Audite const &) = default;
+
 	void ajoute_auditeur(Auditeur *auditeur);
 
 	void enleve_auditeur(Auditeur *auditeur);

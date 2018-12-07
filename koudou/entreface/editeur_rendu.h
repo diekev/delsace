@@ -50,6 +50,9 @@ class EditriceRendu : public BaseEditrice {
 public:
 	explicit EditriceRendu(Koudou &koudou, QWidget *parent = nullptr);
 
+	EditriceRendu(EditriceRendu const &) = default;
+	EditriceRendu &operator=(EditriceRendu const &) = default;
+
 	void ajourne_etat(int event) override;
 
 private Q_SLOTS:

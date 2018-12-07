@@ -44,8 +44,8 @@ static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 {
 	dls::math::mat4x4<float> resultat;
 
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
+	for (size_t i = 0; i < 4; ++i) {
+		for (size_t j = 0; j < 4; ++j) {
 			/* Transpose la matrice pour convertir entre le format de Koudou et
 			 * celui du moteur de rendu OpenGL. */
 			resultat[i][j] = static_cast<float>(matrice[j][i]);

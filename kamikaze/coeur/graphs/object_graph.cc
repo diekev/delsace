@@ -170,7 +170,7 @@ Noeud *Graph::noeud_actif() const
 
 Noeud *Graph::sortie() const
 {
-	return static_cast<Noeud *>(m_noeuds.front().get());
+	return m_noeuds.front().get();
 }
 
 void Graph::ajoute_selection(Noeud *noeud)

@@ -105,7 +105,7 @@ public:
 	}
 
 private:
-	std::unordered_map<Key, factory_func> m_map;
+	std::unordered_map<Key, factory_func> m_map{};
 };
 
 #define REGISTER_TYPE(factory, key, base, type) \

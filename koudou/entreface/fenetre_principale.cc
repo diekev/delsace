@@ -24,6 +24,11 @@
 
 #include "fenetre_principale.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QAction>
 #include <QDockWidget>
 #include <QHelpEvent>
@@ -31,6 +36,7 @@
 #include <QProgressBar>
 #include <QStatusBar>
 #include <QToolTip>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
@@ -51,6 +57,7 @@ FenetrePrincipale::FenetrePrincipale(QWidget *parent)
     : QMainWindow(parent)
 	, m_dialogue_preferences(new BaseDialogue(m_koudou, this))
 	, m_dialogue_parametres_projet(new ProjectSettingsDialog(m_koudou, this))
+	, m_progress_bar(new QProgressBar(this))
 {
 	m_koudou.fenetre_principale = this;
 
@@ -62,7 +69,6 @@ FenetrePrincipale::FenetrePrincipale(QWidget *parent)
 
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
 
-	m_progress_bar = new QProgressBar(this);
 	statusBar()->addWidget(m_progress_bar);
 	m_progress_bar->setRange(0, 100);
 	m_progress_bar->setVisible(false);

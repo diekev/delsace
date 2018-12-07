@@ -24,10 +24,16 @@
 
 #include "fenetre_principale.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDockWidget>
 #include <QMenuBar>
 #include <QProgressBar>
 #include <QStatusBar>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
@@ -166,7 +172,7 @@ void FenetrePrincipale::tache_commence()
 
 void FenetrePrincipale::progres_avance(float progress)
 {
-	m_progress_bar->setValue(progress);
+	m_progress_bar->setValue(static_cast<int>(progress));
 }
 
 void FenetrePrincipale::progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant)

@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QWidget>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/audition/audition.h"
 
@@ -45,7 +51,9 @@ protected:
 
 public:
 	explicit BaseEditrice(Koudou &koudou, QWidget *parent = nullptr);
-	virtual ~BaseEditrice() = default;
+
+	BaseEditrice(BaseEditrice const &) = default;
+	BaseEditrice &operator=(BaseEditrice const &) = default;
 
 	void actif(bool yesno);
 	void rend_actif();

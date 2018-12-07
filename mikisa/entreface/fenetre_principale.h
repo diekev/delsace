@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QMainWindow>
+#pragma GCC diagnostic pop
 
 class Mikisa;
 
@@ -36,6 +42,9 @@ class FenetrePrincipale : public QMainWindow {
 public:
 	explicit FenetrePrincipale(Mikisa *mikisa, QWidget *parent = nullptr);
 	~FenetrePrincipale();
+
+	FenetrePrincipale(FenetrePrincipale const &) = default;
+	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
 
 public Q_SLOTS:
 	void image_traitee();

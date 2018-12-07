@@ -77,7 +77,7 @@ struct LienNoeud {
 	}
 
 private:
-	int m_drapeaux;
+	int m_drapeaux{};
 };
 
 class Graph {
@@ -96,6 +96,9 @@ class Graph {
 public:
 	explicit Graph(const Context &contexte);
 	~Graph();
+
+	Graph(Graph const &) = default;
+	Graph &operator=(Graph const &) = default;
 
 	void ajoute(Noeud *noeud);
 	void enleve(Noeud *noeud);

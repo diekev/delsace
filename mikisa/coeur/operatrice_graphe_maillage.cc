@@ -62,9 +62,9 @@ void execute_graphe(
 				pointeur = debut + decalage;
 				auto vec_b = pile_charge_vec3f(pointeur);
 
-				auto operation = pile_charge_entier(courant);
+				auto operation_math = pile_charge_entier(courant);
 
-				switch (operation) {
+				switch (operation_math) {
 					case OPERATION_MATH_ADDITION:
 						vec_a += vec_b;
 						break;
@@ -138,15 +138,15 @@ void execute_graphe(
 				dls::math::BruitPerlin3D *bruit_x, *bruit_y, *bruit_z;
 
 				if (dimension == 1) {
-					auto index_bruit = pile_charge_entier(courant);
+					auto index_bruit = static_cast<size_t>(pile_charge_entier(courant));
 					bruit_x = gestionnaire.bruit(index_bruit);
 				}
 				else {
-					auto index_bruit = pile_charge_entier(courant);
+					auto index_bruit = static_cast<size_t>(pile_charge_entier(courant));
 					bruit_x = gestionnaire.bruit(index_bruit);
-					index_bruit = pile_charge_entier(courant);
+					index_bruit = static_cast<size_t>(pile_charge_entier(courant));
 					bruit_y = gestionnaire.bruit(index_bruit);
-					index_bruit = pile_charge_entier(courant);
+					index_bruit = static_cast<size_t>(pile_charge_entier(courant));
 					bruit_z = gestionnaire.bruit(index_bruit);
 				}
 
@@ -213,9 +213,9 @@ void execute_graphe(
 					}
 				}
 
-				auto rx = somme_x * ((float)(1 << octaves) / (float)((1 << (octaves + 1)) - 1));
-				auto ry = somme_y * ((float)(1 << octaves) / (float)((1 << (octaves + 1)) - 1));
-				auto rz = somme_z * ((float)(1 << octaves) / (float)((1 << (octaves + 1)) - 1));
+				auto rx = somme_x * (static_cast<float>(1 << octaves) / static_cast<float>((1 << (octaves + 1)) - 1));
+				auto ry = somme_y * (static_cast<float>(1 << octaves) / static_cast<float>((1 << (octaves + 1)) - 1));
+				auto rz = somme_z * (static_cast<float>(1 << octaves) / static_cast<float>((1 << (octaves + 1)) - 1));
 
 				pile_stocke_vec3f(courant, dls::math::vec3f(rx, ry, rz));
 

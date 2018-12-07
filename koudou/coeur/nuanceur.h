@@ -32,10 +32,10 @@ struct BSDF;
 struct Volume;
 
 struct ContexteNuancage {
-	Rayon rayon;
-	dls::math::point3d P;
-	dls::math::vec3d N;
-	dls::math::vec3d V;
+	Rayon rayon{};
+	dls::math::point3d P{};
+	dls::math::vec3d N{};
+	dls::math::vec3d V{};
 };
 
 enum class TypeNuanceur {
@@ -48,7 +48,7 @@ enum class TypeNuanceur {
 };
 
 struct Nuanceur {
-	TypeNuanceur type;
+	TypeNuanceur type{};
 
 	virtual ~Nuanceur() = default;
 

@@ -24,8 +24,14 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGraphicsView>
 #include <QMenu>
+#pragma GCC diagnostic pop
 
 class EditriceGraphe;
 class Mikisa;
@@ -51,7 +57,10 @@ public:
 			EditriceGraphe *base,
 			QWidget *parent = nullptr);
 
-	~VueEditeurNoeud();
+	VueEditeurNoeud(VueEditeurNoeud const &) = default;
+	VueEditeurNoeud &operator=(VueEditeurNoeud const &) = default;
+
+	~VueEditeurNoeud() override;
 
 	void mousePressEvent(QMouseEvent *event) override;
 

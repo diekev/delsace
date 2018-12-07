@@ -231,26 +231,26 @@ void TamponRendu::dessine(const ContexteRendu &contexte)
 
 	numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après attache texture");
 
-	glUniformMatrix4fv(m_programme("matrice"), 1, GL_FALSE, &contexte.matrice_objet()[0][0]);
+	glUniformMatrix4fv(static_cast<int>(m_programme("matrice")), 1, GL_FALSE, &contexte.matrice_objet()[0][0]);
 	numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice objet");
-	glUniformMatrix4fv(m_programme("MVP"), 1, GL_FALSE, &contexte.MVP()[0][0]);
+	glUniformMatrix4fv(static_cast<int>(m_programme("MVP")), 1, GL_FALSE, &contexte.MVP()[0][0]);
 	numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice MVP");
 
 	if (m_requiers_normal) {
-		glUniformMatrix3fv(m_programme("N"), 1, GL_FALSE, &contexte.normal()[0][0]);
+		glUniformMatrix3fv(static_cast<int>(m_programme("N")), 1, GL_FALSE, &contexte.normal()[0][0]);
 		numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice N");
 	}
 
 	if (m_peut_surligner) {
-		glUniform1i(m_programme("pour_surlignage"), contexte.pour_surlignage());
+		glUniform1i(static_cast<int>(m_programme("pour_surlignage")), contexte.pour_surlignage());
 		numero7::ego::util::GPU_check_errors("Erreur lors du passage pour_surlignage");
 	}
 
 	if (m_dessin_indexe) {
-		glDrawElements(m_paramatres_dessin.type_dessin(), m_elements, m_paramatres_dessin.type_donnees(), nullptr);
+		glDrawElements(m_paramatres_dessin.type_dessin(), static_cast<int>(m_elements), m_paramatres_dessin.type_donnees(), nullptr);
 	}
 	else {
-		glDrawArrays(m_paramatres_dessin.type_dessin(), 0, m_elements);
+		glDrawArrays(m_paramatres_dessin.type_dessin(), 0, static_cast<int>(m_elements));
 	}
 
 	numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après dessin indexé");
@@ -303,8 +303,8 @@ AtlasTexture *TamponRendu::atlas()
 
 /* ************************************************************************** */
 
-tbb::concurrent_vector<TamponRendu *> poubelle_tampon;
-std::mutex mutex_poubelle;
+static tbb::concurrent_vector<TamponRendu *> poubelle_tampon;
+static std::mutex mutex_poubelle;
 
 void supprime_tampon_rendu(TamponRendu *tampon)
 {

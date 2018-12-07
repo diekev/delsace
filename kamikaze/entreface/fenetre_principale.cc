@@ -28,12 +28,18 @@
 #include <danjo/danjo.h>
 #include <danjo/repondant_bouton.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDockWidget>
 #include <QFileInfo>
 #include <QMenuBar>
 #include <QProgressBar>
 #include <QStatusBar>
 #include <QSettings>
+#pragma GCC diagnostic pop
 
 #include <iostream>
 
@@ -106,7 +112,7 @@ void FenetrePrincipale::taskStarted()
 
 void FenetrePrincipale::updateProgress(float progress)
 {
-	m_barre_progres->setValue(progress);
+	m_barre_progres->setValue(static_cast<int>(progress));
 }
 
 void FenetrePrincipale::taskEnded()
@@ -148,7 +154,7 @@ void FenetrePrincipale::genere_menu_fenetre()
 
 void FenetrePrincipale::genere_menu_fichier()
 {
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = nullptr;
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_repondant_commande;
@@ -199,7 +205,7 @@ void FenetrePrincipale::genere_menu_noeud()
 
 	ss << "}";
 
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = nullptr;
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_repondant_commande;
@@ -210,7 +216,7 @@ void FenetrePrincipale::genere_menu_noeud()
 
 void FenetrePrincipale::genere_menu_prereglages()
 {
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = nullptr;
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_repondant_commande;
@@ -367,7 +373,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 {
 	std::vector<danjo::DonneesAction> donnees_actions;
 
-	danjo::DonneesAction donnees;
+	danjo::DonneesAction donnees{};
 	donnees.attache = "ouvrir_fichier_recent";
 	donnees.repondant_bouton = m_repondant_commande;
 

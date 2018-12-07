@@ -62,8 +62,8 @@ public:
 struct DescriptionCommande {
 	typedef Commande *(*fonction_usine)();
 
-	std::string categorie;
-	std::string metadonnee;
+	std::string categorie{};
+	std::string metadonnee{};
 	int souris = 0;
 	int modificateur = 0;
 	int cle = 0;
@@ -129,7 +129,7 @@ inline auto description_commande(
 }
 
 class UsineCommande {
-	std::unordered_map<std::string, DescriptionCommande> m_tableau;
+	std::unordered_map<std::string, DescriptionCommande> m_tableau{};
 
 public:
 	void enregistre_type(const std::string &nom, const DescriptionCommande &description);

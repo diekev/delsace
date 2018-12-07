@@ -82,7 +82,7 @@ void Noeud::ajoute_sortie(const std::string &nom)
 	m_sorties.push_back(prise);
 }
 
-PriseEntree *Noeud::entree(int index)
+PriseEntree *Noeud::entree(size_t index)
 {
 	return m_entrees[index];
 }
@@ -98,7 +98,7 @@ PriseEntree *Noeud::entree(const std::string &nom)
 	return nullptr;
 }
 
-PriseSortie *Noeud::sortie(int index)
+PriseSortie *Noeud::sortie(size_t index)
 {
 	return m_sorties[index];
 }
@@ -161,15 +161,15 @@ void Noeud::synchronise_donnees()
 {
 	auto op = this->operatrice();
 
-	for (int i = 0; i < op->entrees(); ++i) {
+	for (size_t i = 0; i < op->entrees(); ++i) {
 		this->ajoute_entree(op->nom_entree(i));
 	}
 
-	for (int i = 0; i < op->sorties(); ++i) {
+	for (size_t i = 0; i < op->sorties(); ++i) {
 		this->ajoute_sortie(op->nom_sortie(i));
 	}
 
-	auto index = 0;
+	auto index = 0ul;
 
 	for (auto socket : this->entrees()) {
 		op->donnee_entree(index++, socket);

@@ -79,7 +79,7 @@ void ecris_fichier(std::ofstream &fichier, T valeur)
 void ecris_fichier(std::ofstream &fichier, const std::string &valeur)
 {
 	ecris_fichier(fichier, valeur.size());
-	fichier.write(valeur.c_str(), valeur.size());
+	fichier.write(valeur.c_str(), static_cast<long int>(valeur.size()));
 }
 
 template <typename T>
@@ -95,7 +95,7 @@ void lis_fichier(std::ifstream &fichier, std::string &valeur)
 
 	valeur.resize(taille);
 
-	fichier.read(&valeur[0], taille);
+	fichier.read(&valeur[0], static_cast<long int>(taille));
 }
 
 static bool lis_nombre_magic(std::ifstream &fichier)
@@ -252,7 +252,11 @@ static bool lis_maillage(std::ifstream &fichier, Maillage *maillage)
 		lis_fichier(fichier, poly.z);
 		lis_fichier(fichier, poly.w);
 
-		maillage->ajoute_quad(poly.x, poly.y, poly.z, poly.w);
+		maillage->ajoute_quad(
+					static_cast<size_t>(poly.x),
+					static_cast<size_t>(poly.y),
+					static_cast<size_t>(poly.z),
+					static_cast<size_t>(poly.w));
 
 		auto polygone = maillage->polygone(i);
 
@@ -354,7 +358,7 @@ static bool lis_calque(std::ifstream &fichier, Calque *calque, size_t resolution
 
 	std::cerr << "Lecture d'un calque de " << taille_tampon << " octets\n";
 
-	fichier.read(static_cast<char *>(calque->tampon), taille_tampon);
+	fichier.read(static_cast<char *>(calque->tampon), static_cast<long int>(taille_tampon));
 
 	return true;
 }
@@ -416,7 +420,7 @@ static void ecris_calque(std::ofstream &fichier, Calque *calque, size_t taille_t
 	ecris_fichier(fichier, calque->taille);
 	ecris_fichier(fichier, taille_tampon);
 
-	fichier.write(static_cast<char *>(calque->tampon), taille_tampon);
+	fichier.write(static_cast<char *>(calque->tampon), static_cast<long int>(taille_tampon));
 }
 
 static void ecris_canaux(std::ofstream &fichier, CanauxTexture &canaux)

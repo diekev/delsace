@@ -38,14 +38,14 @@ class TamponRendu;
  */
 class RenduMonde {
 	TamponRendu *m_tampon = nullptr;
-	Monde *m_monde;
+	Monde *m_monde{};
 
-	std::vector<dls::math::vec3f> m_sommets;
-	std::vector<unsigned int> m_index;
+	std::vector<dls::math::vec3f> m_sommets{};
+	std::vector<unsigned int> m_index{};
 
 	/* Mémorisation des anciennes données. */
-	int m_ancien_type;
-	std::experimental::filesystem::path m_ancien_chemin;
+	int m_ancien_type{};
+	std::experimental::filesystem::path m_ancien_chemin{};
 
 public:
 	/**
@@ -54,6 +54,9 @@ public:
 	 * OpenGL valide.
 	 */
 	explicit RenduMonde(Koudou *koudou);
+
+	RenduMonde(RenduMonde const &) = default;
+	RenduMonde &operator=(RenduMonde const &) = default;
 
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et

@@ -27,7 +27,13 @@
 #include <image/pixel.h>
 #include <math/matrice/matrice.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGLWidget>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/opengl/contexte_rendu.h"
 #include "bibliotheques/vision/camera_2d.h"
@@ -46,16 +52,19 @@ class Visionneuse2D : public QGLWidget {
 	Mikisa *m_mikisa;
 	EditriceVue2D *m_base;
 
-	ContexteRendu m_contexte;
-	dls::math::mat4x4f m_matrice_image;
+	ContexteRendu m_contexte{};
+	dls::math::mat4x4f m_matrice_image{};
 
 public:
 	explicit Visionneuse2D(Mikisa *mikisa, EditriceVue2D *base, QWidget *parent = nullptr);
-	~Visionneuse2D();
+	~Visionneuse2D() override;
 
-	void initializeGL();
-	void paintGL();
-	void resizeGL(int w, int h);
+	Visionneuse2D(Visionneuse2D const &) = default;
+	Visionneuse2D &operator=(Visionneuse2D const &) = default;
+
+	void initializeGL() override;
+	void paintGL() override;
+	void resizeGL(int w, int h) override;
 	void charge_image(const numero7::math::matrice<numero7::image::Pixel<float> > &image);
 	void wheelEvent(QWheelEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
@@ -72,6 +81,9 @@ class EditriceVue2D : public BaseEditrice {
 
 public:
 	explicit EditriceVue2D(Mikisa *mikisa, QWidget *parent = nullptr);
+
+	EditriceVue2D(EditriceVue2D const &) = default;
+	EditriceVue2D &operator=(EditriceVue2D const &) = default;
 
 	void ajourne_etat(int event) override;
 

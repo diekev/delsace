@@ -110,8 +110,8 @@ enum type_operatrice {
  * des noeuds se trouvant en son amont à travers la méthode virtuelle 'execute'.
  */
 class Operatrice : public danjo::Manipulable {
-	int m_nombre_entrees = 0;
-	int m_nombre_sorties = 0;
+	size_t m_nombre_entrees = 0;
+	size_t m_nombre_sorties = 0;
 	bool m_besoin_execution = true;
 	bool m_a_tampon = false;
 
@@ -133,6 +133,9 @@ protected:
 public:
 	/* Prévention de la création d'un opérateur sans un noeud. */
 	Operatrice() = delete;
+
+	Operatrice(Operatrice const &) = default;
+	Operatrice &operator=(Operatrice const &) = default;
 
 	/**
 	 * Constuit un opérateur dont le noeud passé en paramètre en est le parent.
@@ -163,7 +166,7 @@ public:
 	/**
 	 * Retourne le nombre d'entrées de cet opérateur.
 	 */
-	int entrees() const;
+	size_t entrees() const;
 
 	/**
 	 * Crée un certain nombre de sorties.
@@ -173,7 +176,7 @@ public:
 	/**
 	 * Retourne le nombre de sorties de cet opérateur.
 	 */
-	int sorties() const;
+	size_t sorties() const;
 
 	/**
 	 * Retourne le nom de l'entrée à l'index donné en paramètre.
@@ -351,9 +354,9 @@ struct DescOperatrice {
  *                  pour placer la description dans le bon menu.
  */
 template <typename T>
-static inline constexpr auto cree_description(const std::string &nom,
-											  const std::string &aide,
-											  const std::string &categorie)
+inline auto cree_description(const std::string &nom,
+							 const std::string &aide,
+							 const std::string &categorie)
 {
 	return DescOperatrice(nom, aide, categorie,
 						 [](Noeud *noeud, const Context &contexte) -> Operatrice*
@@ -366,8 +369,8 @@ static inline constexpr auto cree_description(const std::string &nom,
  * Une usine qui fabrique des opérateurs.
  */
 class UsineOperatrice final {
-	std::unordered_map<std::string, DescOperatrice> m_tableau;
-	std::set<std::string> m_categories;
+	std::unordered_map<std::string, DescOperatrice> m_tableau{};
+	std::set<std::string> m_categories{};
 
 public:
 	/**

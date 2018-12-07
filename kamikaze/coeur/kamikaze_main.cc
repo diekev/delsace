@@ -34,8 +34,14 @@
 #include <dlfcn.h>
 #include <iostream>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QFileDialog>
 #include <QMessageBox>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 
@@ -59,9 +65,9 @@ static constexpr auto MAX_FICHIER_RECENT = 10;
 
 Main::Main()
     : m_primitive_factory(new PrimitiveFactory)
-	, m_usine_operatrice(new UsineOperatrice)
+	, m_usine_operatrice(new UsineOperatrice{})
     , m_scene(new Scene)
-	, m_usine_commandes(new UsineCommande)
+	, m_usine_commandes(new UsineCommande{})
 	, contexte()
 {}
 

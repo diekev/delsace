@@ -33,57 +33,9 @@ CompileuseGraphe::CompileuseGraphe()
 	, m_decalage(0)
 {}
 
-void CompileuseGraphe::ajoute_noeud(float x)
-{
-	if (m_decalage + 1 >= TAILLE_PILE) {
-		throw "Il n'y a plus de place dans la pile !";
-	}
-
-	m_pile[m_decalage++] = x;
-}
-
-void CompileuseGraphe::ajoute_noeud(float x, float y)
-{
-	if (m_decalage + 2 >= TAILLE_PILE) {
-		throw "Il n'y a plus de place dans la pile !";
-	}
-
-	m_pile[m_decalage++] = x;
-	m_pile[m_decalage++] = y;
-}
-
-void CompileuseGraphe::ajoute_noeud(float x, float y, float z)
-{
-	if (m_decalage + 3 >= TAILLE_PILE) {
-		throw "Il n'y a plus de place dans la pile !";
-	}
-
-	m_pile[m_decalage++] = x;
-	m_pile[m_decalage++] = y;
-	m_pile[m_decalage++] = z;
-}
-
 void CompileuseGraphe::ajoute_noeud(const dls::math::vec3f &v)
 {
-	if (m_decalage + 3 >= TAILLE_PILE) {
-		throw "Il n'y a plus de place dans la pile !";
-	}
-
-	m_pile[m_decalage++] = v.x;
-	m_pile[m_decalage++] = v.y;
-	m_pile[m_decalage++] = v.z;
-}
-
-void CompileuseGraphe::ajoute_noeud(float x, float y, float z, float w)
-{
-	if (m_decalage + 4 >= TAILLE_PILE) {
-		throw "Il n'y a plus de place dans la pile !";
-	}
-
-	m_pile[m_decalage++] = x;
-	m_pile[m_decalage++] = y;
-	m_pile[m_decalage++] = z;
-	m_pile[m_decalage++] = w;
+	this->ajoute_noeud(v.x, v.y, v.z);
 }
 
 size_t CompileuseGraphe::decalage_pile(PriseSortie *prise)

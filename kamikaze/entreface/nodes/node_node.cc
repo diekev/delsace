@@ -24,10 +24,16 @@
 
 #include <memory>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QTextCursor>
+#pragma GCC diagnostic pop
 
 #include "editeur_graphe.h"
 
@@ -36,10 +42,10 @@
 #include "node_port.h"
 
 static constexpr auto NODE_HEADER_TITLE_FONT_SIZE = 12;
-static constexpr auto NODE_HEADER_ICON_SIZE = 20.0f;
-static constexpr auto NODE_WIDTH = 200.0f;
-static constexpr auto NODE_HEADER_HEIGHT = 30.0f;
-static constexpr auto NODE_BODY_HEIGHT = 32.0f;
+static constexpr auto NODE_HEADER_ICON_SIZE = 20.0;
+static constexpr auto NODE_WIDTH = 200.0;
+static constexpr auto NODE_HEADER_HEIGHT = 30.0;
+static constexpr auto NODE_BODY_HEIGHT = 32.0;
 
 static constexpr auto NODE_PEN_WIDTH_UNSELECTED = 1;
 static constexpr auto NODE_PEN_WIDTH_SELECTED = 1;
@@ -202,7 +208,7 @@ void QtNode::adjustWidthForTitle()
 {
 	m_font_header.setPointSize(NODE_HEADER_TITLE_FONT_SIZE);
 	m_title_label->setFont(m_font_header);
-	auto offset = 0.5f * (NODE_HEADER_HEIGHT - NODE_HEADER_ICON_SIZE);
+	auto offset = 0.5 * (NODE_HEADER_HEIGHT - NODE_HEADER_ICON_SIZE);
 	auto spaceLeft = m_normalized_width;
 
 	if (m_header_title_icon->isVisible()) {
@@ -225,8 +231,8 @@ void QtNode::adjustWidthForTitle()
 void QtNode::redraw()
 {
 	/* Redraw the node */
-	const auto halfWidth = 0.5f * m_width;
-	const auto offset = 0.5f * (NODE_HEADER_HEIGHT - NODE_HEADER_ICON_SIZE);
+	const auto halfWidth = 0.5 * m_width;
+	const auto offset = 0.5 * (NODE_HEADER_HEIGHT - NODE_HEADER_ICON_SIZE);
 
 	auto p = QPainterPath{};
 	p.addRoundedRect(-halfWidth, 0, m_width, m_header_height, 4, 5);
@@ -282,8 +288,8 @@ void QtNode::alignTitle(Alignment alignment)
 
 void QtNode::setTitlePosition()
 {
-	const auto halfWidth = 0.5f * m_width;
-	const auto offset = 0.5f * (m_header_height - m_icon_size);
+	const auto halfWidth = 0.5 * m_width;
+	const auto offset = 0.5 * (m_header_height - m_icon_size);
 
 	switch (m_title_alignment) {
 		case ALIGNED_LEFT:
@@ -589,7 +595,7 @@ QtPort *QtNode::createPort(const QString &portName,
 		m_body_height = m_normalized_body_height;
 
 		/* Adjust width of the node (if needed) to fit the port */
-		auto normalized = port->getNormalizedWidth() + 2.5f * NODE_PORT_OFFSET;
+		auto normalized = port->getNormalizedWidth() + 2.5 * NODE_PORT_OFFSET;
 		if (normalized > m_normalized_width)
 			m_normalized_width = normalized;
 		m_width = m_normalized_width;
@@ -604,7 +610,7 @@ QtPort *QtNode::createPort(const QString &portName,
 void QtNode::setPortAlignedPos(QtPort *port, qreal height)
 {
 	/* Position */
-	auto halfWidth = 0.5f * m_width;
+	auto halfWidth = 0.5 * m_width;
 	auto offset = NODE_PORT_OFFSET;
 	auto portWidth = port->getNormalizedWidth();
 

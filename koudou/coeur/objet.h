@@ -36,10 +36,10 @@ enum class TypeObjet {
 };
 
 struct Objet {
-	math::transformation transformation;
-	Nuanceur *nuanceur;
-	TypeObjet type;
-	std::string nom;
+	math::transformation transformation{};
+	Nuanceur *nuanceur{};
+	TypeObjet type{};
+	std::string nom{};
 
 	union {
 		Lumiere *lumiere;
@@ -48,6 +48,9 @@ struct Objet {
 
 	Objet() = default;
 	~Objet();
+
+	Objet(Objet const &) = default;
+	Objet &operator=(Objet const &) = default;
 
 	explicit Objet(Lumiere *lumiere);
 

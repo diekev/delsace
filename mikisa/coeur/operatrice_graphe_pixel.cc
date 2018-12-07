@@ -321,7 +321,7 @@ int OperatriceGraphePixel::execute(const Rectangle &rectangle, const int temps)
 
 	compile_graphe(temps);
 
-	boucle_parallele(tbb::blocked_range<size_t>(0, rectangle.hauteur),
+	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(rectangle.hauteur)),
 					 [&](const tbb::blocked_range<size_t> &plage)
 	{
 		/* fais une copie locale pour éviter les problèmes de concurrence
@@ -329,7 +329,7 @@ int OperatriceGraphePixel::execute(const Rectangle &rectangle, const int temps)
 		auto pile = m_compileuse.pile();
 
 		for (size_t l = plage.begin(); l < plage.end(); ++l) {
-			for (size_t c = 0; c < rectangle.largeur; ++c) {
+			for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {
 //				const auto x = c * largeur_inverse;
 //				const auto y = l * hauteur_inverse;
 

@@ -87,7 +87,7 @@ void VisionneurImage::initialise()
 		m_program.ajoute_attribut("vertex");
 		m_program.ajoute_uniforme("image");
 
-		glUniform1i(m_program("image"), m_texture->number());
+		glUniform1i(static_cast<int>(m_program("image")), static_cast<int>(m_texture->number()));
 	}
 	m_program.desactive();
 
@@ -134,8 +134,8 @@ void VisionneurImage::charge_image(const numero7::math::matrice<dls::math::vec4f
 	}
 
 	GLint size[] = {
-		static_cast<GLint>(image.nombre_colonnes()),
-		static_cast<GLint>(image.nombre_lignes())
+		image.nombre_colonnes(),
+		image.nombre_lignes()
 	};
 
 	if (m_largeur != size[0] || m_hauteur != size[1]) {

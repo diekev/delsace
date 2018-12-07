@@ -59,7 +59,7 @@ const numero7::math::matrice<dls::math::vec3d> &Pellicule::donnees()
 void Pellicule::reinitialise()
 {
 	m_matrice.remplie(dls::math::vec3d(0.0));
-	m_pixels_pellicule.resize(m_matrice.nombre_colonnes() * m_matrice.nombre_lignes());
+	m_pixels_pellicule.resize(static_cast<size_t>(m_matrice.nombre_colonnes() * m_matrice.nombre_lignes()));
 
 	for (auto &pixel_pellicule : m_pixels_pellicule) {
 		pixel_pellicule.couleur = dls::math::vec3d(0.0);
@@ -75,7 +75,7 @@ void Pellicule::creer_image()
 
 	const auto &hauteur = m_matrice.nombre_lignes();
 	const auto &largeur = m_matrice.nombre_colonnes();
-	auto index = 0;
+	auto index = 0ul;
 
 	for (int i = 0; i < hauteur; ++i) {
 		for (int j = 0; j < largeur; ++j, ++index) {

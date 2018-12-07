@@ -70,8 +70,8 @@ public:
 /* ************************************************************************** */
 
 class CommandeTourneCamera : public Commande {
-	float m_vieil_x;
-	float m_vieil_y;
+	float m_vieil_x = 0.0f;
+	float m_vieil_y = 0.0f;
 
 public:
 	CommandeTourneCamera() = default;
@@ -107,8 +107,8 @@ public:
 /* ************************************************************************** */
 
 class CommandePanCamera : public Commande {
-	float m_vieil_x;
-	float m_vieil_y;
+	float m_vieil_x = 0.0f;
+	float m_vieil_y = 0.0f;
 
 public:
 	CommandePanCamera() = default;
@@ -159,8 +159,23 @@ public:
 		const auto &P = camera->P();
 
 #if 1
-		const auto &debut = dls::math::deprojette(dls::math::vec3f(x, camera->hauteur() - y, 0.0f), MV, P, dls::math::vec4f(0, 0, camera->largeur(), camera->hauteur()));
-		const auto &fin   = dls::math::deprojette(dls::math::vec3f(x, camera->hauteur() - y, 1.0f), MV, P, dls::math::vec4f(0, 0, camera->largeur(), camera->hauteur()));
+		const auto &fenetre = dls::math::vec4f(
+								  0.0f,
+								  0.0f,
+								  static_cast<float>(camera->largeur()),
+								  static_cast<float>(camera->hauteur()));
+
+		const auto &debut = dls::math::deprojette(
+								dls::math::vec3f(x, static_cast<float>(camera->hauteur()) - y, 0.0f),
+								MV,
+								P,
+								fenetre);
+
+		const auto &fin   = dls::math::deprojette(
+								dls::math::vec3f(x, static_cast<float>(camera->hauteur()) - y, 1.0f),
+								MV,
+								P,
+								fenetre);
 
 		Ray ray;
 		ray.pos = camera->pos();

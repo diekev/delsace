@@ -40,14 +40,18 @@ void AdaptriceCreationMaillage::ajoute_coord_uv_sommet(const float u, const floa
 void AdaptriceCreationMaillage::ajoute_parametres_sommet(const float x, const float y, const float z)
 {}
 
-void AdaptriceCreationMaillage::ajoute_polygone(const int *index_sommet, const int *, const int *, int nombre)
+void AdaptriceCreationMaillage::ajoute_polygone(const int *index_sommet, const int *, const int *, size_t nombre)
 {
 	auto poly_3 = (nombre == 3) ? -1 : index_sommet[3];
 
-	maillage->ajoute_quad(index_sommet[0], index_sommet[1], index_sommet[2], poly_3);
+	maillage->ajoute_quad(
+				static_cast<size_t>(index_sommet[0]),
+			static_cast<size_t>(index_sommet[1]),
+			static_cast<size_t>(index_sommet[2]),
+			static_cast<size_t>(poly_3));
 }
 
-void AdaptriceCreationMaillage::ajoute_ligne(const int *index, int nombre)
+void AdaptriceCreationMaillage::ajoute_ligne(const int *index, size_t nombre)
 {}
 
 void AdaptriceCreationMaillage::ajoute_objet(const std::string &nom)

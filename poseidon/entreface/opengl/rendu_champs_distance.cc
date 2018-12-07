@@ -96,17 +96,17 @@ void RenduChampsDistance::initialise()
 	std::vector<dls::math::vec3f> sommets;
 	sommets.reserve(m_fluide->res.x * m_fluide->res.y * m_fluide->res.z);
 
-	for (int x = 0; x < m_fluide->res.x; ++x) {
-		for (int y = 0; y < m_fluide->res.y; ++y) {
-			for (int z = 0; z < m_fluide->res.z; ++z) {
+	for (size_t x = 0; x < m_fluide->res.x; ++x) {
+		for (size_t y = 0; y < m_fluide->res.y; ++y) {
+			for (size_t z = 0; z < m_fluide->res.z; ++z) {
 				if (m_fluide->phi.valeur(x, y, z) > 0.250f) {
 					continue;
 				}
 
 				auto pos = min_domaine;
-				pos.x += x * dh.x + dh2.x;
-				pos.y += y * dh.y + dh2.y;
-				pos.z += z * dh.z + dh2.z;
+				pos.x += static_cast<float>(x) * dh.x + dh2.x;
+				pos.y += static_cast<float>(y) * dh.y + dh2.y;
+				pos.z += static_cast<float>(z) * dh.z + dh2.z;
 
 				sommets.push_back(pos);
 			}

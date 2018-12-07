@@ -26,8 +26,14 @@
 
 #include <iostream>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QHBoxLayout>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "sdk/operatrice.h"
 
@@ -143,7 +149,7 @@ void EditriceProprietes::dessine_entreface(danjo::Manipulable *manipulable, cons
 		return;
 	}
 
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = manipulable;
 	donnees.conteneur = this;
 

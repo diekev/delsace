@@ -51,7 +51,7 @@ public:
 		}
 
 		danjo::Manipulable resultat;
-		danjo::DonneesInterface donnees_entreface;
+		danjo::DonneesInterface donnees_entreface{};
 		donnees_entreface.conteneur = nullptr;
 		donnees_entreface.repondant_bouton = mikisa->repondant_commande();
 		donnees_entreface.manipulable = &resultat;

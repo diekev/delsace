@@ -77,21 +77,21 @@ RenduGrille::RenduGrille(int largeur, int hauteur)
 
 	m_tampon_grille = cree_tampon(dls::math::vec4f(1.0f), 1.0f);
 
-	const auto nombre_sommets = ((largeur + 1) + (hauteur + 1)) * 2;
+	const auto nombre_sommets = static_cast<size_t>((largeur + 1) + (hauteur + 1)) * 2;
 	std::vector<dls::math::vec3f> sommets(nombre_sommets);
 
-	const auto moitie_largeur = (largeur / 2);
-	const auto moitie_hauteur = (hauteur / 2);
-	auto compte = 0;
+	const auto moitie_largeur = static_cast<float>(largeur) * 0.5f;
+	const auto moitie_hauteur = static_cast<float>(hauteur) * 0.5f;
+	auto compte = 0ul;
 
-	for (int i = -moitie_hauteur; i <= moitie_hauteur; ++i) {
+	for (auto i = -moitie_hauteur; i <= moitie_hauteur; i += 1.0f) {
 		sommets[compte++] = dls::math::vec3f(i, 0.0f, -moitie_hauteur);
 		sommets[compte++] = dls::math::vec3f(i, 0.0f,  moitie_hauteur);
 		sommets[compte++] = dls::math::vec3f(-moitie_largeur, 0.0f, i);
 		sommets[compte++] = dls::math::vec3f( moitie_largeur, 0.0f, i);
 	}
 
-	std::vector<unsigned int> index(largeur * hauteur);
+	std::vector<unsigned int> index(static_cast<size_t>(largeur * hauteur));
 	std::iota(index.begin(), index.end(), 0);
 
 	ParametresTampon parametres_tampon;

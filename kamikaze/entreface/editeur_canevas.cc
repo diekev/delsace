@@ -27,6 +27,11 @@
 #include <chronometrage/utilitaires.h>
 #include <iostream>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QCheckBox>
 #include <QColorDialog>
@@ -35,6 +40,7 @@
 #include <QKeyEvent>
 #include <QPushButton>
 #include <QTimer>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
@@ -108,7 +114,7 @@ void Canevas::initializeGL()
 
 void Canevas::resizeGL(int largeur, int hauteur)
 {
-	glViewport(0, 0, static_cast<GLsizei>(largeur), static_cast<GLsizei>(hauteur));
+	glViewport(0, 0, largeur, hauteur);
 	m_contexte->camera->redimensionne(largeur, hauteur);
 	m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
 }
@@ -253,10 +259,10 @@ void Canevas::paintGL()
 void Canevas::mousePressEvent(QMouseEvent *e)
 {
 	DonneesCommande donnees;
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
 	donnees.double_clique = false;
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 	donnees.souris = e->button();
 
 	m_base->set_active();
@@ -266,10 +272,10 @@ void Canevas::mousePressEvent(QMouseEvent *e)
 void Canevas::mouseMoveEvent(QMouseEvent *e)
 {
 	DonneesCommande donnees;
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
 	donnees.double_clique = false;
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 	donnees.souris = e->button();
 
 	m_repondant_commande->ajourne_commande_modale(donnees);
@@ -278,10 +284,10 @@ void Canevas::mouseMoveEvent(QMouseEvent *e)
 void Canevas::mouseReleaseEvent(QMouseEvent *e)
 {
 	DonneesCommande donnees;
-	donnees.x = e->pos().x();
-	donnees.y = e->pos().y();
+	donnees.x = static_cast<float>(e->pos().x());
+	donnees.y = static_cast<float>(e->pos().y());
 	donnees.double_clique = false;
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 	donnees.souris = e->button();
 
 	m_repondant_commande->acheve_commande_modale(donnees);
@@ -299,9 +305,9 @@ void Canevas::keyPressEvent(QKeyEvent *e)
 void Canevas::wheelEvent(QWheelEvent *e)
 {
 	DonneesCommande donnees;
-	donnees.x = e->delta();
+	donnees.x = static_cast<float>(e->delta());
 	donnees.double_clique = true;
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 	donnees.souris = Qt::MidButton;
 
 	m_base->set_active();
@@ -323,7 +329,12 @@ void Canevas::changeBackground()
 	const auto &color = QColorDialog::getColor();
 
 	if (color.isValid()) {
-		m_bg = dls::math::vec4f(color.redF(), color.greenF(), color.blueF(), 1.0f);
+		m_bg = dls::math::vec4f(
+				   static_cast<float>(color.redF()),
+				   static_cast<float>(color.greenF()),
+				   static_cast<float>(color.blueF()),
+				   1.0f);
+
 		glClearColor(m_bg.r, m_bg.g, m_bg.b, m_bg.a);
 		update();
 	}

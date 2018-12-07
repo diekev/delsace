@@ -66,20 +66,20 @@ static inline utf8::type_valeur extrait_caractere_simple(const char *c_str, cons
 
 static inline utf8::type_valeur extrait_caractere_double(const char *c_str, const size_t i)
 {
-	return ((static_cast<unsigned char>(c_str[i]) & 0x1f) << 6)
+	return static_cast<utf8::type_valeur>((static_cast<unsigned char>(c_str[i]) & 0x1f) << 6)
 			| (static_cast<unsigned char>(c_str[i + 1]) & 0x3f);
 }
 
 static inline utf8::type_valeur extrait_caractere_triple(const char *c_str, const size_t i)
 {
-	return ((static_cast<unsigned char>(c_str[i]) & 0x0f) << 12)
+	return static_cast<utf8::type_valeur>((static_cast<unsigned char>(c_str[i]) & 0x0f) << 12)
 			| ((static_cast<unsigned char>(c_str[i + 1]) & 0x1f) << 6)
 		   | (static_cast<unsigned char>(c_str[i + 2]) & 0x3f);
 }
 
 static inline utf8::type_valeur extrait_caractere_quadruple(const char *c_str, const size_t i)
 {
-	return ((static_cast<unsigned char>(c_str[i]) & 0x07) << 18)
+	return static_cast<utf8::type_valeur>((static_cast<unsigned char>(c_str[i]) & 0x07) << 18)
 			| ((static_cast<unsigned char>(c_str[i + 1]) & 0x0f) << 12)
 		   | ((static_cast<unsigned char>(c_str[i + 2]) & 0x1f) << 6)
 		   | (static_cast<unsigned char>(c_str[i + 3]) & 0x3f);
@@ -112,7 +112,7 @@ utf8::utf8(const char *c_str)
 	const auto longueur = std::strlen(c_str);
 
 	for (size_t i = 0; i < longueur;) {
-		auto valeur = 0;
+		auto valeur = static_cast<utf8::type_valeur>(0);
 
 		if (est_caractere_simple(c_str, i)) {
 			valeur = extrait_caractere_simple(c_str, i);

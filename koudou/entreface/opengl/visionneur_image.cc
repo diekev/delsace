@@ -40,16 +40,16 @@ static void extrait_canal(
 		for (int c = 0; c < image.nombre_colonnes(); ++c) {
 			switch (canal) {
 				case numero7::image::CANAL_R:
-					*donnees++ = image[l][c][0];
+					*donnees++ = static_cast<float>(image[l][c][0]);
 					break;
 				case numero7::image::CANAL_G:
-					*donnees++ = image[l][c][1];
+					*donnees++ = static_cast<float>(image[l][c][1]);
 					break;
 				case numero7::image::CANAL_B:
-					*donnees++ = image[l][c][2];
+					*donnees++ = static_cast<float>(image[l][c][2]);
 					break;
 				case numero7::image::CANAL_A:
-					*donnees++ = image[l][c][3];
+					*donnees++ = static_cast<float>(image[l][c][3]);
 					break;
 			}
 		}
@@ -128,10 +128,10 @@ void VisionneurImage::initialise()
 		m_program.ajoute_uniforme("blue_channel");
 		m_program.ajoute_uniforme("alpha_channel");
 
-		glUniform1i(m_program("red_channel"), m_texture_R->number());
-		glUniform1i(m_program("green_channel"), m_texture_G->number());
-		glUniform1i(m_program("blue_channel"), m_texture_B->number());
-		glUniform1i(m_program("alpha_channel"), m_texture_A->number());
+		glUniform1i(static_cast<int>(m_program("red_channel")), static_cast<int>(m_texture_R->number()));
+		glUniform1i(static_cast<int>(m_program("green_channel")), static_cast<int>(m_texture_G->number()));
+		glUniform1i(static_cast<int>(m_program("blue_channel")), static_cast<int>(m_texture_B->number()));
+		glUniform1i(static_cast<int>(m_program("alpha_channel")), static_cast<int>(m_texture_A->number()));
 	}
 	m_program.desactive();
 
@@ -175,11 +175,11 @@ void VisionneurImage::charge_image(const numero7::math::matrice<dls::math::vec3d
 	}
 
 	GLint size[] = {
-		static_cast<GLint>(image.nombre_colonnes()),
-		static_cast<GLint>(image.nombre_lignes())
+		image.nombre_colonnes(),
+		image.nombre_lignes()
 	};
 
-	const auto resolution = image.nombre_colonnes() * image.nombre_lignes();
+	const auto resolution = static_cast<size_t>(image.nombre_colonnes() * image.nombre_lignes());
 
 	m_donnees_r.resize(resolution);
 	m_donnees_g.resize(resolution);

@@ -35,8 +35,8 @@
 /* Adapted from Blender's BVM debug code. */
 
 static constexpr auto fontname = "helvetica";
-static constexpr auto fontsize = 20.0f;
-static constexpr auto node_label_size = 14.0f;
+static constexpr auto fontsize = 20.0;
+static constexpr auto node_label_size = 14.0;
 static constexpr auto color_value = "gold1";
 
 inline static std::string node_id(const Noeud *node, bool quoted = true)
@@ -54,9 +54,9 @@ inline static std::string node_id(const Noeud *node, bool quoted = true)
 	return ss.str();
 }
 
-inline int get_input_index(const PriseEntree *socket)
+inline size_t get_input_index(const PriseEntree *socket)
 {
-	auto i = 0;
+	auto i = 0ul;
 	for (const auto &input : socket->parent->entrees()) {
 		if (input->nom == socket->nom) {
 			return i;
@@ -65,12 +65,12 @@ inline int get_input_index(const PriseEntree *socket)
 		++i;
 	}
 
-	return -1;
+	return -1ul;
 }
 
-inline int get_output_index(const PriseSortie *socket)
+inline size_t get_output_index(const PriseSortie *socket)
 {
-	auto i = 0;
+	auto i = 0ul;
 	for (const auto &output : socket->parent->sorties()) {
 		if (output->nom == socket->nom) {
 			return i;
@@ -79,12 +79,12 @@ inline int get_output_index(const PriseSortie *socket)
 		++i;
 	}
 
-	return -1;
+	return -1ul;
 }
 
-inline static std::string input_id(const PriseEntree *socket, int index, bool quoted = true)
+inline static std::string input_id(const PriseEntree *socket, size_t index, bool quoted = true)
 {
-	if (index == -1) {
+	if (index == -1ul) {
 		index = get_input_index(socket);
 	}
 
@@ -101,9 +101,9 @@ inline static std::string input_id(const PriseEntree *socket, int index, bool qu
 	return ss.str();
 }
 
-inline static std::string output_id(const PriseSortie *socket, int index, bool quoted = true)
+inline static std::string output_id(const PriseSortie *socket, size_t index, bool quoted = true)
 {
-	if (index == -1) {
+	if (index == -1ul) {
 		index = get_output_index(socket);
 	}
 
@@ -126,7 +126,7 @@ inline void dump_node(numero7::systeme_fichier::File &file, Noeud *node)
 	constexpr auto style = "filled,rounded";
 	constexpr auto color = "black";
 	constexpr auto fillcolor = "gainsboro";
-	auto penwidth = 1.0f;
+	constexpr auto penwidth = 1.0;
 
 	file.print("// %s\n", node->nom().c_str());
 	file.print("%s", node_id(node).c_str());
@@ -191,16 +191,16 @@ inline void dump_node(numero7::systeme_fichier::File &file, Noeud *node)
 
 inline void dump_link(numero7::systeme_fichier::File &file, const PriseSortie *from, const PriseEntree *to)
 {
-	float penwidth = 2.0f;
+	auto penwidth = 2.0;
 
 	file.print("%s:%s -> %s:%s",
-	           node_id(from->parent).c_str(), output_id(from, -1).c_str(),
-	           node_id(to->parent).c_str(), input_id(to, -1).c_str());
+			   node_id(from->parent).c_str(), output_id(from, -1ul).c_str(),
+			   node_id(to->parent).c_str(), input_id(to, -1ul).c_str());
 
 	file.print("[");
 
 	/* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
-	file.print("id=\"VAL%s:%s\"", node_id(to->parent, false).c_str(), input_id(to, -1, false).c_str());
+	file.print("id=\"VAL%s:%s\"", node_id(to->parent, false).c_str(), input_id(to, -1ul, false).c_str());
 	file.print(",penwidth=\"%f\"", penwidth);
 
 	file.print("];\n");

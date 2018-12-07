@@ -37,6 +37,9 @@ class VueObjet final : public Persona {
 public:
 	VueObjet();
 
+	VueObjet(VueObjet const &) = default;
+	VueObjet &operator=(VueObjet const &) = default;
+
 	void objet(Objet *o);
 
 	void ajourne_donnees();
@@ -56,7 +59,10 @@ class EditeurObjet final : public BaseEditrice {
 public:
 	EditeurObjet(Koudou *koudou, QWidget *parent = nullptr);
 
-	~EditeurObjet();
+	EditeurObjet(EditeurObjet const &) = default;
+	EditeurObjet &operator=(EditeurObjet const &) = default;
+
+	~EditeurObjet() override;
 
 	void ajourne_etat(int evenement) override;
 

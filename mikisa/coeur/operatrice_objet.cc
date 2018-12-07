@@ -141,7 +141,7 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 		rotation = dls::math::vec3f(r.x, r.y, r.z);
 		taille = evalue_vecteur("taille", temps);
 
-		valeur_vecteur("rotation", dls::math::vec3f(rotation.x, rotation.y, rotation.z) * dls::math::vec3f(POIDS_RAD_DEG));
+		valeur_vecteur("rotation", dls::math::vec3f(rotation.x, rotation.y, rotation.z) * dls::math::vec3f(static_cast<float>(POIDS_RAD_DEG)));
 	}
 	else {
 		return;
@@ -174,9 +174,9 @@ int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
 	auto transformation = math::transformation();
 	transformation *= math::translation(position.x, position.y, position.z);
 	transformation *= math::echelle(taille.x, taille.y, taille.z);
-	transformation *= math::rotation_x(rotation.x * POIDS_DEG_RAD);
-	transformation *= math::rotation_y(rotation.y * POIDS_DEG_RAD);
-	transformation *= math::rotation_z(rotation.z * POIDS_DEG_RAD);
+	transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
+	transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
+	transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
 
 	m_objet.transformation = transformation;
 
@@ -202,7 +202,7 @@ int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
 
 	const auto t1 = tbb::tick_count::now();
 	const auto delta = (t1 - t0).seconds();
-	noeud_sortie->temps_execution(delta);
+	noeud_sortie->temps_execution(static_cast<float>(delta));
 
 //	operatrice->collection()->transfers_corps_a(m_objet.collection);
 

@@ -25,7 +25,14 @@
 #include "commandes_vue3d.h"
 
 #include <iostream>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QKeyEvent>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/objets/creation.h"
@@ -75,8 +82,8 @@ public:
 /* ************************************************************************** */
 
 class CommandeTourneCamera : public Commande {
-	float m_vieil_x;
-	float m_vieil_y;
+	float m_vieil_x = 0.0f;
+	float m_vieil_y = 0.0f;
 
 public:
 	CommandeTourneCamera() = default;
@@ -111,8 +118,8 @@ public:
 /* ************************************************************************** */
 
 class CommandePanCamera : public Commande {
-	float m_vieil_x;
-	float m_vieil_y;
+	float m_vieil_x = 0.0f;
+	float m_vieil_y = 0.0f;
 
 public:
 	CommandePanCamera() = default;
@@ -165,16 +172,16 @@ auto restreint(T a, T min, T max)
 
 struct TexelProjete {
 	/* La position du texel sur l'écran. */
-	dls::math::point2f pos;
+	dls::math::point2f pos{};
 
 	/* L'index du polygone possédant le texel. */
-	size_t index;
+	size_t index{};
 
 	/* La position u du texel. */
-	int u;
+	unsigned int u{};
 
 	/* La position v du texel. */
-	int v;
+	unsigned int v{};
 };
 
 struct Seau {
@@ -187,17 +194,17 @@ struct Seau {
 
 Seau *cherche_seau(std::vector<Seau> &seaux, const dls::math::point2f &pos, int seaux_x, int seaux_y, int largeur, int hauteur)
 {
-	auto x = pos.x / largeur;
-	auto y = pos.y / hauteur;
+	auto x = pos.x / static_cast<float>(largeur);
+	auto y = pos.y / static_cast<float>(hauteur);
 
-	auto sx = seaux_x * x;
-	auto sy = seaux_y * y;
+	auto sx = static_cast<float>(seaux_x) * x;
+	auto sy = static_cast<float>(seaux_y) * y;
 
-	auto index = static_cast<size_t>(sx + sy * seaux_y);
+	auto index = static_cast<size_t>(sx + sy * static_cast<float>(seaux_y));
 
 	index = restreint(index, 0ul, seaux.size() - 1);
 
-	return &seaux[sx + sy * seaux_y];
+	return &seaux[static_cast<size_t>(sx + sy * static_cast<float>(seaux_y))];
 }
 
 class CommandePeinture3D : public Commande {
@@ -234,7 +241,7 @@ public:
 		//		std::cerr << "Taille écran " << camera->largeur() << "x" << camera->hauteur() << "\n";
 		//		std::cerr << "Taille seaux " << seaux_x * diametre_brosse << "x" << seaux_y * diametre_brosse << "\n";
 
-		std::vector<Seau> seaux(seaux_x * seaux_y);
+		std::vector<Seau> seaux(static_cast<size_t>(seaux_x * seaux_y));
 
 		for (auto &seau : seaux) {
 			seau = Seau();
@@ -277,8 +284,8 @@ public:
 			const auto &dv = poly->dv;
 #endif
 
-			for (int j = 0; j < poly->res_u; ++j) {
-				for (int k = 0; k < poly->res_v; ++k) {
+			for (unsigned j = 0; j < poly->res_u; ++j) {
+				for (unsigned k = 0; k < poly->res_v; ++k) {
 					const auto &pos3d = v0 + static_cast<float>(j) * du + static_cast<float>(k) * dv;
 
 					// calcul position 2D du texel
@@ -302,7 +309,7 @@ public:
 
 		auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
-		const auto &rayon_inverse = 1.0f / brosse->rayon;
+		const auto &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
 
 		for (const auto &seau : seaux) {
 			if (seau.texels.empty()) {
@@ -314,7 +321,7 @@ public:
 			for (const auto &texel : seau.texels) {
 				auto dist = longueur(texel.pos - pos_brosse);
 
-				if (dist > brosse->rayon) {
+				if (dist > static_cast<float>(brosse->rayon)) {
 					continue;
 				}
 

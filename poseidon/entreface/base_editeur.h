@@ -46,6 +46,9 @@ protected:
 public:
 	explicit BaseEditrice(Poseidon &poseidon, QWidget *parent = nullptr);
 
+	BaseEditrice(BaseEditrice const &) = default;
+	BaseEditrice &operator=(BaseEditrice const &) = default;
+
 	void actif(bool yesno);
 	void rend_actif();
 

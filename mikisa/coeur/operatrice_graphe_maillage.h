@@ -31,7 +31,7 @@
 
 /* ************************************************************************** */
 
-enum {
+enum : size_t {
 	NOEUD_POINT3D_ENTREE,
 	NOEUD_POINT3D_SORTIE,
 	NOEUD_POINT3D_VALEUR,
@@ -43,7 +43,7 @@ enum {
 	NOEUD_POINT3D_TRAD_VEC,
 };
 
-enum {
+enum : size_t {
 	OPERATION_MATH_ADDITION,
 	OPERATION_MATH_SOUSTRACTION,
 	OPERATION_MATH_MULTIPLICATION,
@@ -59,7 +59,7 @@ class BruitPerlin3D;
 }  /* namespace numero7 */
 
 class GestionnaireDonneesGraphe {
-	std::vector<dls::math::BruitPerlin3D *> m_bruits;
+	std::vector<dls::math::BruitPerlin3D *> m_bruits{};
 
 public:
 	void reinitialise();
@@ -75,16 +75,16 @@ static constexpr auto NOM_GRAPHE_MAILLAGE = "Graphe Maillage";
 static constexpr auto AIDE_GRAPHE_MAILLAGE = "Graphe Maillage";
 
 class OperatriceGrapheMaillage : public OperatriceCorps {
-	GestionnaireDonneesGraphe m_gestionnaire;
-	CompileuseGraphe m_compileuse;
-	Graphe m_graphe;
+	GestionnaireDonneesGraphe m_gestionnaire{};
+	CompileuseGraphe m_compileuse{};
+	Graphe m_graphe{};
 
 public:
 	explicit OperatriceGrapheMaillage(Noeud *noeud);
 
-	virtual const char *class_name() const;
+	virtual const char *class_name() const override;
 
-	virtual const char *help_text() const;
+	virtual const char *help_text() const override;
 
 	const char *chemin_entreface() const override;
 

@@ -52,8 +52,8 @@ ObjectNodeItem::ObjectNodeItem(SceneNode *scene_node, const QString &title, QGra
 
 void ObjectNodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-	this->scene_node()->xpos(this->scenePos().x());
-	this->scene_node()->ypos(this->scenePos().y());
+	this->scene_node()->xpos(static_cast<float>(this->scenePos().x()));
+	this->scene_node()->ypos(static_cast<float>(this->scenePos().y()));
 	return QGraphicsPathItem::mouseMoveEvent(event);
 }
 

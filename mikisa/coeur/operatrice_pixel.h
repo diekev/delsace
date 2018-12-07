@@ -54,7 +54,7 @@ enum {
 };
 
 class OperatricePixel : public OperatriceImage {
-	std::vector<int> m_pile;
+	std::vector<int> m_pile{};
 
 public:
 	explicit OperatricePixel(Noeud *node);

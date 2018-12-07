@@ -26,9 +26,15 @@
 
 #include <danjo/danjo.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QKeyEvent>
 #include <QMenu>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
@@ -49,7 +55,7 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa *mikisa,
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.manipulable = nullptr;
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_mikisa->repondant_commande();
@@ -112,9 +118,9 @@ void VueEditeurNoeud::wheelEvent(QWheelEvent *event)
 	DonneesCommande donnees;
 	donnees.double_clique = true;
 	donnees.souris = Qt::MiddleButton;
-	donnees.x = event->angleDelta().x();
-	donnees.y = event->angleDelta().y();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(event->angleDelta().x());
+	donnees.y = static_cast<float>(event->angleDelta().y());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->appele_commande("graphe", donnees);
 }
@@ -129,9 +135,9 @@ void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
 
 	DonneesCommande donnees;
 	donnees.souris = Qt::LeftButton;
-	donnees.x = position.x();
-	donnees.y = position.y();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(position.x());
+	donnees.y = static_cast<float>(position.y());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->ajourne_commande_modale(donnees);
 }
@@ -148,9 +154,9 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 
 	DonneesCommande donnees;
 	donnees.souris = event->button();
-	donnees.x = position.x();
-	donnees.y = position.y();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(position.x());
+	donnees.y = static_cast<float>(position.y());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->appele_commande("graphe", donnees);
 }
@@ -164,9 +170,9 @@ void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 	DonneesCommande donnees;
 	donnees.double_clique = true;
 	donnees.souris = Qt::LeftButton;
-	donnees.x = position.x();
-	donnees.y = position.y();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(position.x());
+	donnees.y = static_cast<float>(position.y());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->appele_commande("graphe", donnees);
 }
@@ -178,9 +184,9 @@ void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 	const auto position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
-	donnees.x = position.x();
-	donnees.y = position.y();
-	donnees.modificateur = QApplication::keyboardModifiers();
+	donnees.x = static_cast<float>(position.x());
+	donnees.y = static_cast<float>(position.y());
+	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
 	m_mikisa->repondant_commande()->acheve_commande_modale(donnees);
 }

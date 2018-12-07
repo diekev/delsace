@@ -44,6 +44,9 @@ public:
 	 */
 	explicit RenduLumiere(Lumiere *lumiere);
 
+	RenduLumiere(RenduLumiere const &) = default;
+	RenduLumiere &operator=(RenduLumiere const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.

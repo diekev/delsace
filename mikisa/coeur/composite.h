@@ -29,8 +29,8 @@
 #include "operatrice_image.h"
 
 class Composite {
-	Graphe m_graph;
-	Image m_image;
+	Graphe m_graph{};
+	Image m_image{};
 
 public:
 	Composite() = default;

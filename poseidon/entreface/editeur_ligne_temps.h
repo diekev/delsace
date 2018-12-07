@@ -59,6 +59,9 @@ class EditriceLigneTemps : public BaseEditrice {
 public:
 	explicit EditriceLigneTemps(Poseidon *poseidon, QWidget *parent = nullptr);
 
+	EditriceLigneTemps(EditriceLigneTemps const &) = default;
+	EditriceLigneTemps &operator=(EditriceLigneTemps const &) = default;
+
 	void ajourne_etat(int event) override;
 
 	void ajourne_manipulable() override {}

@@ -41,7 +41,7 @@ class VueCanevas;
 class VisionneurImage {
 	VueCanevas *m_parent;
 
-	numero7::ego::Programme m_program;
+	numero7::ego::Programme m_program{};
 	numero7::ego::TamponObjet::Ptr m_buffer;
 	numero7::ego::Texture2D::Ptr m_texture;
 
@@ -64,6 +64,9 @@ public:
 	 * Empêche la construction d'un visionneur sans VueCanevas.
 	 */
 	VisionneurImage() = delete;
+
+	VisionneurImage(VisionneurImage const &) = default;
+	VisionneurImage &operator=(VisionneurImage const &) = default;
 
 	/**
 	 * Construit un visionneur avec un pointeur vers le VueCanevas parent.

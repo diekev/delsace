@@ -26,6 +26,6 @@
 #include <delsace/math/vecteur.hh>
 
 struct Ray {
-	dls::math::vec3f pos;
-	dls::math::vec3f dir;
+	dls::math::vec3f pos{};
+	dls::math::vec3f dir{};
 };

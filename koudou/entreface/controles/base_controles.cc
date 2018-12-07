@@ -24,6 +24,11 @@
 
 #include "base_controles.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QColorDialog>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
@@ -34,6 +39,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QVBoxLayout>
+#pragma GCC diagnostic pop
 
 enum {
 	AXIS_X = 0,
@@ -68,25 +74,25 @@ SelecteurFloat::SelecteurFloat(QWidget *parent)
 void SelecteurFloat::ValueChanged()
 {
 	const auto value = m_slider->value();
-	const float fvalue = value / m_scale;
+	const auto fvalue = static_cast<double>(static_cast<float>(value) / m_scale);
 	m_spin_box->setValue(fvalue);
 	Q_EMIT(valeur_changee(fvalue));
 }
 
 void SelecteurFloat::updateLabel(int value)
 {
-	m_spin_box->setValue(value / m_scale);
+	m_spin_box->setValue(static_cast<double>(static_cast<float>(value) / m_scale));
 }
 
 void SelecteurFloat::setValue(float value)
 {
-	m_spin_box->setValue(value);
-	m_slider->setValue(value * m_scale);
+	m_spin_box->setValue(static_cast<double>(value));
+	m_slider->setValue(static_cast<int>(value * m_scale));
 }
 
 float SelecteurFloat::value() const
 {
-	return m_spin_box->value();
+	return static_cast<float>(m_spin_box->value());
 }
 
 void SelecteurFloat::setRange(float min, float max)
@@ -98,8 +104,8 @@ void SelecteurFloat::setRange(float min, float max)
 		m_scale = 10000.0f;
 	}
 
-	m_slider->setRange(min * m_scale, max * m_scale);
-	m_spin_box->setRange(min * m_scale, max * m_scale);
+	m_slider->setRange(static_cast<int>(min * m_scale), static_cast<int>(max * m_scale));
+	m_spin_box->setRange(static_cast<double>(min * m_scale), static_cast<double>(max * m_scale));
 }
 
 /* ************************************************************************** */
@@ -329,21 +335,32 @@ void SelecteurCouleur::setMinMax(float /*min*/, float /*max*/) const
 
 }
 
+[[nodiscard]] auto converti_couleur(float couleur[4])
+{
+	auto resultat = QColor{};
+	resultat.setRed(static_cast<int>(couleur[0] * 255.0f));
+	resultat.setGreen(static_cast<int>(couleur[1] * 255.0f));
+	resultat.setBlue(static_cast<int>(couleur[2] * 255.0f));
+	resultat.setAlpha(static_cast<int>(couleur[3] * 255.0f));
+
+	return resultat;
+}
+
 void SelecteurCouleur::mouseReleaseEvent(QMouseEvent *e)
 {
 	if (QRect(QPoint(0, 0), this->size()).contains(e->pos())) {
 		Q_EMIT(clicked());
 
-		const auto &color = QColorDialog::getColor(QColor(m_color[0] * 255, m_color[1] * 255, m_color[2] * 255, m_color[3] * 255));
+		const auto &color = QColorDialog::getColor(converti_couleur(m_color));
 
 		if (color.isValid()) {
-			m_color[0] = color.redF();
-			m_color[1] = color.greenF();
-			m_color[2] = color.blueF();
-			m_color[3] = color.alphaF();
+			m_color[0] = static_cast<float>(color.redF());
+			m_color[1] = static_cast<float>(color.greenF());
+			m_color[2] = static_cast<float>(color.blueF());
+			m_color[3] = static_cast<float>(color.alphaF());
 
 			for (int i = 0; i < 4; ++i) {
-				Q_EMIT(valeur_changee(m_color[i], i));
+				Q_EMIT(valeur_changee(static_cast<double>(m_color[i]), i));
 			}
 		}
 	}
@@ -354,7 +371,7 @@ void SelecteurCouleur::paintEvent(QPaintEvent *)
 	QPainter painter(this);
 	const auto &rect = this->geometry();
 
-	QColor color(m_color[0] * 255, m_color[1] * 255, m_color[2] * 255, m_color[3] * 255);
+	auto color = converti_couleur(m_color);
 
 	const auto w = rect.width();
 	const auto h = rect.height();

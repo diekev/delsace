@@ -107,5 +107,5 @@ public:
 	bool registered(const std::string &key) const;
 
 private:
-	std::unordered_map<std::string, DescOperatrice> m_map;
+	std::unordered_map<std::string, DescOperatrice> m_map{};
 };

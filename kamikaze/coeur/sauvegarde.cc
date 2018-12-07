@@ -253,24 +253,24 @@ static void lecture_propriete(
 		case danjo::TypePropriete::DECIMAL:
 		{
 			const auto donnees = element_donnees->Attribute("valeur");
-			manipulable->valeur_decimal(nom_prop, atof(donnees));
+			manipulable->valeur_decimal(nom_prop, static_cast<float>(atof(donnees)));
 			break;
 		}
 		case danjo::TypePropriete::VECTEUR:
 		{
-			const auto donnee_x = atof(element_donnees->Attribute("valeurx"));
-			const auto donnee_y = atof(element_donnees->Attribute("valeury"));
-			const auto donnee_z = atof(element_donnees->Attribute("valeurz"));
+			const auto donnee_x = static_cast<float>(atof(element_donnees->Attribute("valeurx")));
+			const auto donnee_y = static_cast<float>(atof(element_donnees->Attribute("valeury")));
+			const auto donnee_z = static_cast<float>(atof(element_donnees->Attribute("valeurz")));
 			const auto donnees = dls::math::vec3f{donnee_x, donnee_y, donnee_z};
 			manipulable->valeur_vecteur(nom_prop, donnees);
 			break;
 		}
 		case danjo::TypePropriete::COULEUR:
 		{
-			const auto donnee_x = atof(element_donnees->Attribute("valeurx"));
-			const auto donnee_y = atof(element_donnees->Attribute("valeury"));
-			const auto donnee_z = atof(element_donnees->Attribute("valeurz"));
-			const auto donnee_w = atof(element_donnees->Attribute("valeurw"));
+			const auto donnee_x = static_cast<float>(atof(element_donnees->Attribute("valeurx")));
+			const auto donnee_y = static_cast<float>(atof(element_donnees->Attribute("valeury")));
+			const auto donnee_z = static_cast<float>(atof(element_donnees->Attribute("valeurz")));
+			const auto donnee_w = static_cast<float>(atof(element_donnees->Attribute("valeurw")));
 			const auto donnees = couleur32(donnee_x, donnee_y, donnee_z, donnee_w);
 			manipulable->valeur_couleur(nom_prop, donnees);
 			break;
@@ -308,10 +308,10 @@ struct DonneesConnexions {
 	/* Tableau faisant correspondre les ids des prises connectées entre elles.
 	 * La clé du tableau est l'id de la prise d'entrée, la valeur, celle de la
 	 * prise de sortie. */
-	std::unordered_map<std::string, std::string> tableau_connexion_id;
+	std::unordered_map<std::string, std::string> tableau_connexion_id{};
 
-	std::unordered_map<std::string, PriseEntree *> tableau_id_prise_entree;
-	std::unordered_map<std::string, PriseSortie *> tableau_id_prise_sortie;
+	std::unordered_map<std::string, PriseEntree *> tableau_id_prise_entree{};
+	std::unordered_map<std::string, PriseSortie *> tableau_id_prise_sortie{};
 };
 
 static void lecture_noeud(
@@ -434,7 +434,7 @@ erreur_fichier ouvre_projet(const filesystem::path &chemin, const Main &main, co
 	scene->currentFrame(atoi(image_courante));
 	scene->startFrame(atoi(image_depart));
 	scene->endFrame(atoi(image_fin));
-	scene->framesPerSecond(atof(ips));
+	scene->framesPerSecond(static_cast<float>(atof(ips)));
 
 	/* Lecture des objets. */
 	const auto racine_objets = racine_scene->FirstChildElement("objets");
@@ -448,8 +448,8 @@ erreur_fichier ouvre_projet(const filesystem::path &chemin, const Main &main, co
 
 		Object *objet = new Object(contexte);
 		objet->name(nom_objet);
-		objet->xpos(atoi(posx));
-		objet->ypos(atoi(posy));
+		objet->xpos(static_cast<float>(atoi(posx)));
+		objet->ypos(static_cast<float>(atoi(posy)));
 		objet->set_flags(atoi(drapeaux));
 
 		lecture_proprietes(element_objet, objet);

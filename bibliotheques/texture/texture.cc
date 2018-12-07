@@ -114,33 +114,33 @@ numero7::math::matrice<Spectre> ouvre_png(const std::experimental::filesystem::p
 
 	png_read_update_info(png, info);
 
-	png_bytep *row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
+	png_bytep *row_pointers = static_cast<png_bytep *>(malloc(sizeof(png_bytep) * height));
 
-	for (int y = 0; y < height; y++) {
-		row_pointers[y] = (png_byte*)malloc(png_get_rowbytes(png,info));
+	for (size_t y = 0; y < height; y++) {
+		row_pointers[y] = static_cast<png_byte *>(malloc(png_get_rowbytes(png,info)));
 	}
 
 	png_read_image(png, row_pointers);
 
 
 	auto image = numero7::math::matrice<Spectre>(
-					 numero7::math::Hauteur(height),
-					 numero7::math::Largeur(width));
+					 numero7::math::Hauteur(static_cast<int>(height)),
+					 numero7::math::Largeur(static_cast<int>(width)));
 
 
-	for (int y = 0; y < height; y++) {
-		png_bytep row = row_pointers[y];
+	for (size_t y = 0; y < height; y++) {
+		auto row = row_pointers[y];
 
-		for (int x = 0; x < width; x++) {
-			png_bytep px = &(row[x * 4]);
+		for (size_t x = 0; x < width; x++) {
+			auto px = &(row[x * 4]);
 
 			float rvb[3] = { px[0] / 255.0f, px[1] / 255.0f, px[2] / 255.0f };
 
-			image[y][x] = Spectre::depuis_rgb(rvb);
+			image[static_cast<int>(y)][x] = Spectre::depuis_rgb(rvb);
 		}
 	}
 
-	for(int y = 0; y < height; y++) {
+	for(size_t y = 0; y < height; y++) {
 		free(row_pointers[y]);
 	}
 	free(row_pointers);
@@ -187,10 +187,10 @@ numero7::math::matrice<Spectre> ouvre_jpeg(const std::experimental::filesystem::
 	const auto channels = info.output_components;
 
 	auto image = numero7::math::matrice<Spectre>(
-					 numero7::math::Hauteur(hauteur),
-					 numero7::math::Largeur(largeur));
+					 numero7::math::Hauteur(static_cast<int>(hauteur)),
+					 numero7::math::Largeur(static_cast<int>(largeur)));
 
-	const auto &stride = largeur * channels;
+	const auto &stride = largeur * static_cast<unsigned>(channels);
 
 	unsigned char *buffer = new unsigned char[stride];
 
@@ -201,7 +201,7 @@ numero7::math::matrice<Spectre> ouvre_jpeg(const std::experimental::filesystem::
 
 		for (size_t ct = 0, c = 0; c < largeur; ct += 3, ++c) {
 			convertie_float(buffer + ct, rgb);
-			image[l][c] = Spectre::depuis_rgb(rgb);
+			image[static_cast<int>(l)][c] = Spectre::depuis_rgb(rgb);
 		}
 	}
 
@@ -311,8 +311,8 @@ void TextureImage::charge_donnees(const numero7::math::matrice<numero7::image::P
 {
 	m_image = numero7::math::matrice<Spectre>(donnees.dimensions());
 
-	for (size_t l = 0; l < m_image.nombre_lignes(); ++l) {
-		for (size_t c = 0; c < m_image.nombre_colonnes(); ++c) {
+	for (int l = 0; l < m_image.nombre_lignes(); ++l) {
+		for (int c = 0; c < m_image.nombre_colonnes(); ++c) {
 			m_image[l][c][0] = donnees[l][c].r;
 			m_image[l][c][1] = donnees[l][c].g;
 			m_image[l][c][2] = donnees[l][c].b;

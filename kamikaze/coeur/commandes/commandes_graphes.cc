@@ -250,7 +250,7 @@ class CommandeGrapheSelection final : public Commande {
 
 			for (const auto &noeud : graphe->noeuds()) {
 				const auto rect = Rectangle::depuis_centre(
-									  noeud->posx(), noeud->posy(),
+									  static_cast<float>(noeud->posx()), static_cast<float>(noeud->posy()),
 									  200.0f, 32.0f);
 
 				if (rect.contiens(pos_x, pos_y)) {

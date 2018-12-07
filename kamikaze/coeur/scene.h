@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QString>
+#pragma GCC diagnostic pop
 
 #include "sdk/outils/rendu.h"
 
@@ -60,6 +66,9 @@ class Scene : public Listened {
 public:
 	Scene() = default;
 	~Scene() = default;
+
+	Scene(Scene const &) = default;
+	Scene &operator=(Scene const &) = default;
 
 	SceneNode *active_node();
 	void set_active_node(SceneNode *node);

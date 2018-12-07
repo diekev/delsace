@@ -55,7 +55,7 @@ class VolumeEnglobant final : public StructureAcceleration {
 		bool entresecte(const Rayon &rayon, double *numerateur_precalcule, double *denominateur_precalcule, double &d_proche, double &d_eloigne, uint8_t &index_plan) const;
 	};
 
-	std::vector<Etendue> m_etendues;
+	std::vector<Etendue> m_etendues{};
 
 public:
 	void construit(const Scene &scene);

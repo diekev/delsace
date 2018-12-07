@@ -46,6 +46,9 @@ struct DepsInputSocket {
 	std::vector<DepsOutputSocket *> links{};
 
 	DepsInputSocket() = default;
+
+	DepsInputSocket(DepsInputSocket const &) = default;
+	DepsInputSocket &operator=(DepsInputSocket const &) = default;
 };
 
 struct DepsOutputSocket {
@@ -53,13 +56,16 @@ struct DepsOutputSocket {
 	std::vector<DepsInputSocket *> links{};
 
 	DepsOutputSocket() = default;
+
+	DepsOutputSocket(DepsOutputSocket const &) = default;
+	DepsOutputSocket &operator=(DepsOutputSocket const &) = default;
 };
 
 /* ************************************************************************** */
 
 class DepsNode {
-	DepsInputSocket m_input;
-	DepsOutputSocket m_output;
+	DepsInputSocket m_input{};
+	DepsOutputSocket m_output{};
 
 public:
 	DepsNode();
@@ -87,6 +93,9 @@ public:
 	DepsObjectNode() = delete;
 	explicit DepsObjectNode(Object *object);
 
+	DepsObjectNode(DepsObjectNode const &) = default;
+	DepsObjectNode &operator=(DepsObjectNode const &) = default;
+
 	void pre_process() override;
 	void process(const Context &context, TaskNotifier *notifier) override;
 
@@ -104,6 +113,9 @@ class ObjectGraphDepsNode : public DepsNode {
 public:
 	ObjectGraphDepsNode() = delete;
 	explicit ObjectGraphDepsNode(Graph *graph);
+
+	ObjectGraphDepsNode(ObjectGraphDepsNode const &) = default;
+	ObjectGraphDepsNode &operator=(ObjectGraphDepsNode const &) = default;
 
 	void process(const Context &context, TaskNotifier *notifier) override;
 
@@ -133,10 +145,10 @@ enum {
 };
 
 class Depsgraph {
-	std::vector<std::unique_ptr<DepsNode>> m_nodes;
-	std::vector<DepsNode *> m_stack;
-	std::unordered_map<SceneNode *, DepsNode *> m_scene_node_map;
-	std::unordered_map<const Graph *, DepsNode *> m_object_graph_map;
+	std::vector<std::unique_ptr<DepsNode>> m_nodes{};
+	std::vector<DepsNode *> m_stack{};
+	std::unordered_map<SceneNode *, DepsNode *> m_scene_node_map{};
+	std::unordered_map<const Graph *, DepsNode *> m_object_graph_map{};
 
 	int m_state = DEG_STATE_NONE;
 	bool m_need_update = false;

@@ -27,6 +27,11 @@
 #include <danjo/danjo.h>
 #include <danjo/manipulable.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDoubleSpinBox>
 #include <QFrame>
 #include <QGridLayout>
@@ -35,6 +40,7 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QTimer>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
@@ -44,17 +50,23 @@
 
 EditriceLigneTemps::EditriceLigneTemps(Poseidon *poseidon, QWidget *parent)
 	: BaseEditrice(*poseidon, parent)
-    , m_timer(new QTimer(this))
-{
-	m_vbox_layout = new QVBoxLayout();
+	, m_slider(new QSlider(m_cadre))
+	, m_tc_layout(new QHBoxLayout())
+	, m_num_layout(new QHBoxLayout())
+	, m_vbox_layout(new QVBoxLayout())
+	, m_end_frame(new QSpinBox(m_cadre))
+	, m_start_frame(new QSpinBox(m_cadre))
+	, m_cur_frame(new QSpinBox(m_cadre))
+	, m_fps(new QDoubleSpinBox(m_cadre))
+	, m_timer(new QTimer(this))
+{;
+
 	m_agencement_principal->addLayout(m_vbox_layout);
 
-	m_num_layout = new QHBoxLayout();
 	m_num_layout->setSizeConstraint(QLayout::SetMinimumSize);
 
 	/* ------------------------------ jog bar ------------------------------- */
 
-	m_slider = new QSlider(m_cadre);
 	m_slider->setMouseTracking(false);
 	m_slider->setValue(0);
 	m_slider->setOrientation(Qt::Horizontal);
@@ -62,13 +74,11 @@ EditriceLigneTemps::EditriceLigneTemps(Poseidon *poseidon, QWidget *parent)
 	m_slider->setTickInterval(0);
 	m_slider->setMaximum(250);
 
-	m_start_frame = new QSpinBox(m_cadre);
 	m_start_frame->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
 	m_start_frame->setMaximum(500000);
 	m_start_frame->setValue(0);
 	m_start_frame->setToolTip("Start Frame");
 
-	m_end_frame = new QSpinBox(m_cadre);
 	m_end_frame->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
 	m_end_frame->setMaximum(500000);
 	m_end_frame->setValue(250);
@@ -82,9 +92,6 @@ EditriceLigneTemps::EditriceLigneTemps(Poseidon *poseidon, QWidget *parent)
 
 	/* ------------------------- current selection -------------------------- */
 
-	m_tc_layout = new QHBoxLayout();
-
-	m_cur_frame = new QSpinBox(m_cadre);
 	m_cur_frame->setAlignment(Qt::AlignCenter);
 	m_cur_frame->setReadOnly(true);
 	m_cur_frame->setButtonSymbols(QAbstractSpinBox::NoButtons);
@@ -100,7 +107,7 @@ EditriceLigneTemps::EditriceLigneTemps(Poseidon *poseidon, QWidget *parent)
 
 	danjo::Manipulable dummy;
 
-	danjo::DonneesInterface donnees;
+	danjo::DonneesInterface donnees{};
 	donnees.conteneur = nullptr;
 	donnees.manipulable = &dummy;
 	donnees.repondant_bouton = poseidon->repondant_commande;
@@ -114,7 +121,6 @@ EditriceLigneTemps::EditriceLigneTemps(Poseidon *poseidon, QWidget *parent)
 
 	/* --------------------------------- fps -------------------------------- */
 
-	m_fps = new QDoubleSpinBox(m_cadre);
 	m_fps->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
 	m_fps->setValue(24);
 	m_fps->setToolTip("Frame Rate");
@@ -157,7 +163,7 @@ void EditriceLigneTemps::ajourne_etat(int event)
 
 	/* Start or stop the animation. */
 	if (m_poseidon->animation) {
-		m_timer->start(1000 / m_fps->value());
+		m_timer->start(static_cast<int>(1000.0 / m_fps->value()));
 	}
 	else {
 		m_timer->stop();

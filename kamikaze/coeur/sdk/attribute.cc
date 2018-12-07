@@ -356,7 +356,7 @@ void Attribute::float_(size_t n, float f)
 	(*(m_data.float_list))[n] = f;
 }
 
-int Attribute::float_(size_t n) const
+float Attribute::float_(size_t n) const
 {
 	return (*(m_data.float_list))[n];
 }

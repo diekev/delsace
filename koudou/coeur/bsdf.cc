@@ -370,9 +370,9 @@ void BSDFVolume::genere_echantillon(GNA &gna, const ParametresRendu &parametres,
 	auto accumulation = Spectre(1.0);
 
 	while (n--) {
-		accumulation[0] *= std::exp(-densite * static_cast<double>(sigma_a[0] + sigma_s[0]) * 0.001);
-		accumulation[1] *= std::exp(-densite * static_cast<double>(sigma_a[1] + sigma_s[1]) * 0.001);
-		accumulation[2] *= std::exp(-densite * static_cast<double>(sigma_a[2] + sigma_s[2]) * 0.001);
+		accumulation[0] *= static_cast<float>(std::exp(-densite * static_cast<double>(sigma_a[0] + sigma_s[0]) * 0.001));
+		accumulation[1] *= static_cast<float>(std::exp(-densite * static_cast<double>(sigma_a[1] + sigma_s[1]) * 0.001));
+		accumulation[2] *= static_cast<float>(std::exp(-densite * static_cast<double>(sigma_a[2] + sigma_s[2]) * 0.001));
 	}
 
 	L = accumulation;

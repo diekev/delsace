@@ -36,7 +36,7 @@ class QScrollArea;
 class EditriceRendu : public BaseEditrice {
 	Q_OBJECT
 
-	danjo::Manipulable m_manipulable;
+	danjo::Manipulable m_manipulable{};
 
 	QWidget *m_widget;
 	QWidget *m_conteneur_disposition;
@@ -45,6 +45,9 @@ class EditriceRendu : public BaseEditrice {
 
 public:
 	explicit EditriceRendu(Mikisa *mikisa, QWidget *parent = nullptr);
+
+	EditriceRendu(EditriceRendu const &) = default;
+	EditriceRendu &operator=(EditriceRendu const &) = default;
 
 	void ajourne_etat(int evenement) override;
 

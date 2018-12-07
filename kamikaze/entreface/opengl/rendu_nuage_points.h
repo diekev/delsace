@@ -37,7 +37,10 @@ class RenduNuagePoints final : public RenduPrimitive {
 public:
 	explicit RenduNuagePoints(PrimPoints *nuage_points);
 
-	~RenduNuagePoints();
+	RenduNuagePoints(RenduNuagePoints const &) = default;
+	RenduNuagePoints &operator=(RenduNuagePoints const &) = default;
+
+	~RenduNuagePoints() override;
 
 	void initialise() override;
 

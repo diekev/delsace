@@ -50,11 +50,11 @@ void applique_fonction(type_image &image, TypeOperation &&op)
 	const auto res_x = image.nombre_colonnes();
 	const auto res_y = image.nombre_lignes();
 
-	boucle_parallele(tbb::blocked_range<size_t>(0, res_y),
-					 [&](const tbb::blocked_range<size_t> &plage)
+	boucle_parallele(tbb::blocked_range<int>(0, res_y),
+					 [&](const tbb::blocked_range<int> &plage)
 	{
-		for (size_t l = plage.begin(); l < plage.end(); ++l) {
-			for (size_t c = 0; c < res_x; ++c) {
+		for (int l = plage.begin(); l < plage.end(); ++l) {
+			for (int c = 0; c < res_x; ++c) {
 				image[l][c] = op(image[l][c]);
 			}
 		}
@@ -67,11 +67,11 @@ void applique_fonction_position(type_image &image, TypeOperation &&op)
 	const auto res_x = image.nombre_colonnes();
 	const auto res_y = image.nombre_lignes();
 
-	boucle_parallele(tbb::blocked_range<size_t>(0, res_y),
-					 [&](const tbb::blocked_range<size_t> &plage)
+	boucle_parallele(tbb::blocked_range<int>(0, res_y),
+					 [&](const tbb::blocked_range<int> &plage)
 	{
-		for (size_t l = plage.begin(); l < plage.end(); ++l) {
-			for (size_t c = 0; c < res_x; ++c) {
+		for (int l = plage.begin(); l < plage.end(); ++l) {
+			for (int c = 0; c < res_x; ++c) {
 				image[l][c] = op(image[l][c], l, c);
 			}
 		}
@@ -190,26 +190,26 @@ public:
 
 			if (filtre == ANALYSE_GRADIENT) {
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
+					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
+					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
 
 					resultat.r = (px1.r - px0.r);
 					resultat.g = (px1.g - px0.g);
 					resultat.b = (px1.b - px0.b);
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
+					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
 
 					resultat.r = (py1.r - py0.r);
 					resultat.g = (py1.g - py0.g);
 					resultat.b = (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
+					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
+					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
+					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
 
 					resultat.r = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f;
 					resultat.g = ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f;
@@ -220,23 +220,23 @@ public:
 				auto valeur = 0.0f;
 
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
+					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
+					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
 
 					valeur = (px1.r - px0.r) + (px1.g - px0.g) + (px1.b - px0.b);
 
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
+					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
 
 					valeur = (py1.r - py0.r) + (py1.g - py0.g) + (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
+					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
+					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
+					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
 
 					valeur = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f
 							 + ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f
@@ -248,28 +248,28 @@ public:
 				resultat.b = valeur;
 			}
 			else if (filtre == ANALYSE_LAPLACIEN) {
-				auto px  = tampon->valeur(c, l);
+				auto px  = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l));
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
+					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
+					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
 
 					resultat.r = px1.r + px0.r - px.r * 2.0f;
 					resultat.g = px1.g + px0.g - px.g * 2.0f;
 					resultat.b = px1.b + px0.b - px.b * 2.0f;
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
+					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
 
 					resultat.r = py1.r + py0.r - px.r * 2.0f;
 					resultat.g = py1.g + py0.g - px.g * 2.0f;
 					resultat.b = py1.b + py0.b - px.b * 2.0f;
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
+					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
+					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
+					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
 
 					resultat.r = px1.r + px0.r + py1.r + py0.r - px.r * 4.0f;
 					resultat.g = px1.g + px0.g + py1.g + py0.g - px.g * 4.0f;
@@ -277,30 +277,30 @@ public:
 				}
 			}
 			else if (filtre == ANALYSE_COURBE) {
-				auto px  = tampon->valeur(c, l);
+				auto px  = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l));
 				auto gradient = numero7::image::PixelFloat();
 
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
+					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
+					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
 
 					gradient.r = (px1.r - px0.r);
 					gradient.g = (px1.g - px0.g);
 					gradient.b = (px1.b - px0.b);
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
+					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
 
 					gradient.r = (py1.r - py0.r);
 					gradient.g = (py1.g - py0.g);
 					gradient.b = (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
+					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
+					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
+					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
 
 					gradient.r = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f;
 					gradient.g = ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f;
@@ -501,8 +501,8 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto largeur = tampon->tampon.nombre_colonnes();
-		const auto hauteur = tampon->tampon.nombre_lignes();
+		const auto largeur = static_cast<size_t>(tampon->tampon.nombre_colonnes());
+		const auto hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
 
 		numero7::math::matrice<numero7::image::Pixel<float>> image_tmp(tampon->tampon.dimensions());
 
@@ -519,17 +519,17 @@ public:
 		rayon = std::ceil(rayon);
 
 		auto poids = 0.0f;
-		std::vector<float> kernel(2 * rayon + 1);
+		std::vector<float> kernel(static_cast<size_t>(2.0f * rayon + 1.0f));
 
 		if (type_flou == "boîte") {
-			for (int i = -rayon, k = 0; i < rayon + 1; ++i, ++k) {
+			for (size_t i = static_cast<size_t>(-rayon), k = 0; i < static_cast<size_t>(rayon) + 1; ++i, ++k) {
 				kernel[k] = 1.0f;
 				poids += kernel[k];
 			}
 		}
 		else if (type_flou == "gaussien") {
-			for (int i = -rayon, k = 0; i < rayon + 1; ++i, ++k) {
-				kernel[k] = std::exp(-(i * i) / (2.0f * rayon_flou * rayon_flou)) / (TAU * rayon_flou * rayon_flou);
+			for (size_t i = static_cast<size_t>(-rayon), k = 0; i < static_cast<size_t>(rayon) + 1; ++i, ++k) {
+				kernel[k] = std::exp(-static_cast<float>(i * i) / (2.0f * rayon_flou * rayon_flou)) / (static_cast<float>(TAU) * rayon_flou * rayon_flou);
 				poids += kernel[k];
 			}
 		}
@@ -538,16 +538,18 @@ public:
 
 		/* flou horizontal */
 		applique_fonction_position(image_tmp,
-								   [&](const numero7::image::Pixel<float> &/*pixel*/, int y, int x)
+								   [&](const numero7::image::Pixel<float> &/*pixel*/, int ye, int xe)
 		{
+			auto x = static_cast<size_t>(xe);
+			auto y = static_cast<size_t>(ye);
 			numero7::image::Pixel<float> valeur;
 			valeur.r = 0.0f;
 			valeur.g = 0.0f;
 			valeur.b = 0.0f;
 			valeur.a = tampon->valeur(x, y).a;
 
-			for (int ix = x - rayon, k = 0; ix < x + rayon + 1; ix++, ++k) {
-				const auto xx = std::min(largeur - 1, std::max(0, ix));
+			for (size_t ix = x - static_cast<size_t>(rayon), k = 0; ix < x + static_cast<size_t>(rayon) + 1; ix++, ++k) {
+				const auto xx = std::min(largeur - 1, std::max(0ul, ix));
 				const auto &p = tampon->valeur(xx, y);
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
@@ -565,16 +567,18 @@ public:
 
 		/* flou vertical */
 		applique_fonction_position(image_tmp,
-								   [&](const numero7::image::Pixel<float> &/*pixel*/, int y, int x)
+								   [&](const numero7::image::Pixel<float> &/*pixel*/, int ye, int xe)
 		{
+			auto x = static_cast<size_t>(xe);
+			auto y = static_cast<size_t>(ye);
 			numero7::image::Pixel<float> valeur;
 			valeur.r = 0.0f;
 			valeur.g = 0.0f;
 			valeur.b = 0.0f;
 			valeur.a = tampon->valeur(x, y).a;
 
-			for (int iy = y - rayon, k = 0; iy < y + rayon + 1; iy++, ++k) {
-				const auto yy = std::min(hauteur - 1, std::max(0, iy));
+			for (size_t iy = y - static_cast<size_t>(rayon), k = 0; iy < y + static_cast<size_t>(rayon) + 1; iy++, ++k) {
+				const auto yy = std::min(hauteur - 1, std::max(0ul, iy));
 				const auto &p = tampon->valeur(x, yy);
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
@@ -636,8 +640,8 @@ public:
 
 		const auto &hauteur = tampon->tampon.nombre_lignes();
 		const auto &largeur = tampon->tampon.nombre_colonnes();
-		const auto &hauteur_inverse = 1.0f / hauteur;
-		const auto &largeur_inverse = 1.0f / largeur;
+		const auto &hauteur_inverse = 1.0f / static_cast<float>(hauteur);
+		const auto &largeur_inverse = 1.0f / static_cast<float>(largeur);
 
 		const auto decalage_x = evalue_decimal("décalage_x", temps);
 		const auto decalage_y = evalue_decimal("décalage_y", temps);
@@ -649,14 +653,14 @@ public:
 		applique_fonction_position(image_tampon,
 								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
 		{
-			const auto fc = c * largeur_inverse + decalage_x;
-			const auto fl = l * hauteur_inverse + decalage_y;
+			const auto fc = static_cast<float>(c) * largeur_inverse + decalage_x;
+			const auto fl = static_cast<float>(l) * hauteur_inverse + decalage_y;
 
-			const auto rayon = hypot(fc, fl) * taille;
+			const auto rayon = std::hypot(fc, fl) * taille;
 			const auto angle = std::atan2(fl, fc) * periodes + rayon;
 
-			auto nc = rayon * std::cos(angle) * largeur + 0.5f;
-			auto nl = rayon * std::sin(angle) * hauteur + 0.5f;
+			auto nc = rayon * std::cos(angle) * static_cast<float>(largeur) + 0.5f;
+			auto nl = rayon * std::sin(angle) * static_cast<float>(hauteur) + 0.5f;
 
 			return tampon->echantillone(nc, nl);
 		});
@@ -674,7 +678,7 @@ static constexpr auto AIDE_CHAMPS_DISTANCE = "Calcule le champs de distance de l
 
 static void calcule_distance(
 		numero7::math::matrice<float> &phi,
-		size_t x, size_t y, float h)
+		int x, int y, float h)
 {
 	auto a = std::min(phi[y][x - 1], phi[y][x + 1]);
 	auto b = std::min(phi[y - 1][x], phi[y + 1][x]);
@@ -684,7 +688,7 @@ static void calcule_distance(
 		xi = std::min(a, b) + h;
 	}
 	else {
-		xi =  0.5f * (a + b + sqrt(2.0f * h * h - (a - b) * (a - b)));
+		xi =  0.5f * (a + b + std::sqrt(2.0f * h * h - (a - b) * (a - b)));
 	}
 
 	phi[y][x] = std::min(phi[y][x], xi);
@@ -739,7 +743,7 @@ public:
 			int res_x = tampon->tampon.nombre_colonnes();
 			int res_y = tampon->tampon.nombre_lignes();
 
-			auto h = std::min(1.0f / res_x, 1.0f / res_y);
+			auto h = std::min(1.0f / static_cast<float>(res_x), 1.0f / static_cast<float>(res_y));
 
 			for (int y = 0; y < res_y; ++y) {
 				for (int x = 0; x < res_x; ++x) {
@@ -879,8 +883,8 @@ public:
 			const auto pos_x = x1 - x0;
 			const auto pos_y = y1 - y0;
 
-			const auto x = c + pos_x * res_x;
-			const auto y = l + pos_y * res_y;
+			const auto x = static_cast<float>(c) + pos_x * static_cast<float>(res_x);
+			const auto y = static_cast<float>(l) + pos_y * static_cast<float>(res_y);
 
 			return tampon->echantillone(x, y);
 		});
@@ -918,7 +922,7 @@ unsigned int poisson(const float u, const float lambda)
 	auto somme = prod;
 	auto x = 0u;
 
-	while ((u > somme) && (x < std::floor(10000.0f * lambda))) {
+	while ((u > somme) && (static_cast<float>(x) < std::floor(10000.0f * lambda))) {
 		x = x + 1u;
 		prod = prod * lambda / static_cast<float>(x);
 		somme = somme + prod;
@@ -933,11 +937,11 @@ static type_image_grise extrait_canal(const type_image &image, const int chaine)
 {
 	type_image_grise resultat(image.dimensions());
 
-	boucle_parallele(tbb::blocked_range<size_t>(0, image.nombre_lignes()),
-					 [&](const tbb::blocked_range<size_t> &plage)
+	boucle_parallele(tbb::blocked_range<int>(0, image.nombre_lignes()),
+					 [&](const tbb::blocked_range<int> &plage)
 	{
-		for (size_t l = plage.begin(); l < plage.end(); ++l) {
-			for (size_t c = 0; c < image.nombre_colonnes(); ++c) {
+		for (auto l = plage.begin(); l < plage.end(); ++l) {
+			for (auto c = 0; c < image.nombre_colonnes(); ++c) {
 				resultat[l][c] = image[l][c][chaine];
 			}
 		}
@@ -953,11 +957,11 @@ static void assemble_image(
 		const type_image_grise &canal_bleu)
 {
 
-	boucle_parallele(tbb::blocked_range<size_t>(0, image.nombre_lignes()),
-					 [&](const tbb::blocked_range<size_t> &plage)
+	boucle_parallele(tbb::blocked_range<int>(0, image.nombre_lignes()),
+					 [&](const tbb::blocked_range<int> &plage)
 	{
-		for (size_t l = plage.begin(); l < plage.end(); ++l) {
-			for (size_t c = 0; c < image.nombre_colonnes(); ++c) {
+		for (auto l = plage.begin(); l < plage.end(); ++l) {
+			for (auto c = 0; c < image.nombre_colonnes(); ++c) {
 				image[l][c].r = canal_rouge[l][c];
 				image[l][c].g = canal_vert[l][c];
 				image[l][c].b = canal_bleu[l][c];
@@ -1000,10 +1004,10 @@ static type_image_grise simule_grain_image(
 	/* précalcul des lambdas */
 	std::vector<float> lambdas(MAX_NIVEAU_GRIS);
 
-	for (int i = 0; i < MAX_NIVEAU_GRIS; ++i) {
+	for (size_t i = 0; i < MAX_NIVEAU_GRIS; ++i) {
 		const auto u = static_cast<float>(i) / static_cast<float>(MAX_NIVEAU_GRIS);
 		const auto ag = 1.0f / std::ceil(1.0f / rayon_max);
-		const auto lambda_tmp = -((ag * ag) / (PI * (rayon_max*rayon_max + sigma*sigma))) * std::log(1.0 - u);
+		const auto lambda_tmp = -((ag * ag) / (static_cast<float>(PI) * (rayon_max*rayon_max + sigma*sigma))) * std::log(1.0f - u);
 		lambdas[i] = lambda_tmp;
 	}
 
@@ -1015,16 +1019,16 @@ static type_image_grise simule_grain_image(
 
 	std::normal_distribution<float> dist_normal(0.0, sigma_filtre);
 
-	for (int i = 0; i < iter; ++i) {
+	for (size_t i = 0; i < iter; ++i) {
 		liste_gaussien_x[i] = dist_normal(rng);
 		liste_gaussien_y[i] = dist_normal(rng);
 	}
 
-	boucle_parallele(tbb::blocked_range<size_t>(0, res_y),
-					 [&](const tbb::blocked_range<size_t> &plage)
+	boucle_parallele(tbb::blocked_range<int>(0, res_y),
+					 [&](const tbb::blocked_range<int> &plage)
 	{
 		std::uniform_real_distribution<float> U(0.0f, 1.0f);
-		std::mt19937 rng_local(graine + plage.begin());
+		std::mt19937 rng_local(static_cast<size_t>(graine + plage.begin()));
 		auto rayon_courant = 0.0f;
 		auto rayon_courant2 = rayon_grain2;
 
@@ -1032,11 +1036,11 @@ static type_image_grise simule_grain_image(
 			for (int i = 0; i < res_x; ++i) {
 				resultat[j][i] = 0.0f;
 
-				for (int k = 0; k < iter; ++k) {
+				for (size_t k = 0; k < iter; ++k) {
 					bool va_suivant = false;
 					// décalage aléatoire d'une distribution gaussienne centrée de variance sigma^2
-					auto gaussien_x = i + sigma_filtre * liste_gaussien_x[k];
-					auto gaussien_y = j + sigma_filtre * liste_gaussien_y[k];
+					auto gaussien_x = static_cast<float>(i) + sigma_filtre * liste_gaussien_x[k];
+					auto gaussien_y = static_cast<float>(j) + sigma_filtre * liste_gaussien_y[k];
 
 					// obtiens la liste de cellule couvrant les balles (ig, jg)
 					const auto min_x = std::floor((gaussien_x - rayon_max) * delta_inv);
@@ -1044,19 +1048,19 @@ static type_image_grise simule_grain_image(
 					const auto min_y = std::floor((gaussien_y - rayon_max) * delta_inv);
 					const auto max_y = std::floor((gaussien_y + rayon_max) * delta_inv);
 
-					for (int jd = min_y; jd <= max_y; ++jd) {
-						for (int id = min_x; id <= max_x; ++id) {
+					for (int jd = static_cast<int>(min_y); jd <= static_cast<int>(max_y); ++jd) {
+						for (int id = static_cast<int>(min_x); id <= static_cast<int>(max_x); ++id) {
 							/* coins de la cellule en coordonnées pixel */
-							auto coin_x = delta*id;
-							auto coin_y = delta*jd;
+							auto coin_x = delta*static_cast<float>(id);
+							auto coin_y = delta*static_cast<float>(jd);
 
 							// échantillone image
 							const auto u = std::max(0.0f, std::min(1.0f, image[int(coin_y)][int(coin_x)]));
-							const auto index_u = static_cast<int>(u * MAX_NIVEAU_GRIS);
+							const auto index_u = static_cast<size_t>(u * MAX_NIVEAU_GRIS);
 							const auto lambda = lambdas[index_u];
 							const auto Q = poisson(U(rng_local), lambda);
 
-							for (int l = 1; l <= Q; ++l) {
+							for (unsigned l = 1; l <= Q; ++l) {
 								// prend un centre aléatoire d'une distribution uniforme dans un carré ([id, id+1), [jd, jd+1))
 								auto grain_x = coin_x + U(rng_local) * delta;
 								auto grain_y = coin_y + U(rng_local) * delta;
@@ -1209,8 +1213,8 @@ public:
 								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
 		{
 			/* À FAIRE : image carrée ? */
-			const auto r = l;
-			const auto theta = TAU * c / res_x;
+			const auto r = static_cast<float>(l);
+			const auto theta = static_cast<float>(TAU * c / res_x);
 			const auto x = r * std::cos(theta);
 			const auto y = r * std::sin(theta);
 			return tampon->echantillone(x, y);
@@ -1273,10 +1277,10 @@ public:
 		for (int i = 0; i < iterations; ++i) {
 			/* transformation verticale */
 			const auto taille_y = res_y / 2;
-			for (size_t y = 0; y < taille_y; ++y) {
-				for (size_t x = 0; x < res_x; ++x) {
-					const auto p0 = tampon->valeur(x, y * 2);
-					const auto p1 = tampon->valeur(x, y * 2 + 1);
+			for (int y = 0; y < taille_y; ++y) {
+				for (int x = 0; x < res_x; ++x) {
+					const auto p0 = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y) * 2);
+					const auto p1 = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y) * 2 + 1);
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
@@ -1292,10 +1296,10 @@ public:
 
 			/* transformation horizontale */
 			const auto taille_x = res_x / 2;
-			for (size_t y = 0; y < res_y; ++y) {
-				for (size_t x = 0; x < taille_x; ++x) {
-					const auto p0 = tampon->valeur(x * 2, y);
-					const auto p1 = tampon->valeur(x * 2 + 1, y);
+			for (int y = 0; y < res_y; ++y) {
+				for (int x = 0; x < taille_x; ++x) {
+					const auto p0 = tampon->valeur(static_cast<size_t>(x) * 2, static_cast<size_t>(y));
+					const auto p1 = tampon->valeur(static_cast<size_t>(x) * 2 + 1, static_cast<size_t>(y));
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
@@ -1376,9 +1380,9 @@ public:
 			const auto fin_x = std::min(res_x, x + rayon);
 			const auto fin_y = std::min(res_y, y + rayon);
 
-			for (size_t sy = debut_y; sy < fin_y; ++sy) {
-				for (size_t sx = debut_x; sx < fin_x; ++sx) {
-					const auto p1 = tampon->valeur(sx, sy);
+			for (int sy = debut_y; sy < fin_y; ++sy) {
+				for (int sx = debut_x; sx < fin_x; ++sx) {
+					const auto p1 = tampon->valeur(static_cast<size_t>(sx), static_cast<size_t>(sy));
 
 					p0.r = std::max(p0.r, p1.r);
 					p0.g = std::max(p0.g, p1.g);
@@ -1455,9 +1459,9 @@ public:
 			const auto fin_x = std::min(res_x, x + rayon);
 			const auto fin_y = std::min(res_y, y + rayon);
 
-			for (size_t sy = debut_y; sy < fin_y; ++sy) {
-				for (size_t sx = debut_x; sx < fin_x; ++sx) {
-					const auto p1 = tampon->valeur(sx, sy);
+			for (int sy = debut_y; sy < fin_y; ++sy) {
+				for (int sx = debut_x; sx < fin_x; ++sx) {
+					const auto p1 = tampon->valeur(static_cast<size_t>(sx), static_cast<size_t>(sy));
 
 					p0.r = std::min(p0.r, p1.r);
 					p0.g = std::min(p0.g, p1.g);

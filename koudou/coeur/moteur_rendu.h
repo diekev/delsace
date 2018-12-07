@@ -34,7 +34,7 @@ class ParametresRendu;
 class Rayon;
 
 class MoteurRendu {
-	Pellicule m_pellicule;
+	Pellicule m_pellicule{};
 	bool m_est_arrete = false;
 
 public:

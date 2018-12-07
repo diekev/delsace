@@ -24,8 +24,14 @@
 
 #include "editeur_objet.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGridLayout>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "bibliotheques/outils/constantes.h"
 
@@ -41,15 +47,15 @@ VueObjet::VueObjet()
 	: m_objet(nullptr)
 {
 	ajoute_propriete("position", "Position", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0));
+	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0f));
 	etablie_min_max(-10.0f, 10.0f);
 
 	ajoute_propriete("rotation", "Rotation", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0));
+	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0f));
 	etablie_min_max(0.0f, 360.0f);
 
 	ajoute_propriete("échelle", "Échelle", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(dls::math::vec3f(1.0));
+	etablie_valeur_vec3_defaut(dls::math::vec3f(1.0f));
 	etablie_min_max(0.0f, 10.0f);
 
 	/* Propriétés maillages */
@@ -74,9 +80,9 @@ void VueObjet::ajourne_donnees()
 
 	auto transformation = math::transformation();
 	transformation *= math::translation(pos.x, pos.y, pos.z);
-	transformation *= math::rotation_x(rot.x * POIDS_DEG_RAD);
-	transformation *= math::rotation_y(rot.y * POIDS_DEG_RAD);
-	transformation *= math::rotation_z(rot.z * POIDS_DEG_RAD);
+	transformation *= math::rotation_x(rot.x * static_cast<float>(POIDS_DEG_RAD));
+	transformation *= math::rotation_y(rot.y * static_cast<float>(POIDS_DEG_RAD));
+	transformation *= math::rotation_z(rot.z * static_cast<float>(POIDS_DEG_RAD));
 	transformation *= math::echelle(ech.x, ech.y, ech.z);
 
 	m_objet->transformation = transformation;

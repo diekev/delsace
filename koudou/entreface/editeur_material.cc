@@ -24,8 +24,14 @@
 
 #include "editeur_material.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGridLayout>
 #include <QScrollArea>
+#pragma GCC diagnostic pop
 
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"
@@ -39,34 +45,33 @@
 
 static auto converti_couleur(const Spectre &spectre)
 {
-	return dls::math::vec4f(spectre[0], spectre[1], spectre[2], 1.0);
+	return dls::math::vec4f(spectre[0], spectre[1], spectre[2], 1.0f);
 }
 
 VueMaterial::VueMaterial(Nuanceur *nuaceur)
-	: m_nuanceur(nuaceur)
+	: m_persona_diffus(new Persona)
+	, m_persona_angle_vue(new Persona)
+	, m_persona_reflection(new Persona)
+	, m_persona_refraction(new Persona)
+	, m_persona_volume(new Persona)
+	, m_persona_emission(new Persona)
+	, m_nuanceur(nuaceur)
 {
-	m_persona_diffus = new Persona;
 	m_persona_diffus->ajoute_propriete("spectre", "Spectre", TypePropriete::COULEUR);
 	m_persona_diffus->etablie_min_max(0.0f, 1.0f);
 
-	m_persona_angle_vue = new Persona;
 	m_persona_angle_vue->ajoute_propriete("spectre", "Spectre", TypePropriete::COULEUR);
 	m_persona_angle_vue->etablie_min_max(0.0f, 1.0f);
 
-	m_persona_reflection = new Persona;
-
-	m_persona_refraction = new Persona;
 	m_persona_refraction->ajoute_propriete("index", "Index de réfraction", TypePropriete::FLOAT);
 	m_persona_refraction->etablie_min_max(0.0f, 2.0f);
 	m_persona_refraction->etablie_valeur_float_defaut(1.45f);
 
-	m_persona_volume = new Persona;
 	m_persona_volume->ajoute_propriete("absorption", "Absorption", TypePropriete::COULEUR);
 	m_persona_volume->etablie_min_max(0.0f, 1.0f);
 	m_persona_volume->ajoute_propriete("diffusion", "Diffusion", TypePropriete::COULEUR);
 	m_persona_volume->etablie_min_max(0.0f, 1.0f);
 
-	m_persona_emission = new Persona;
 	m_persona_emission->ajoute_propriete("spectre", "Spectre", TypePropriete::COULEUR);
 	m_persona_emission->etablie_min_max(0.0f, 1.0f);
 	m_persona_emission->ajoute_propriete("exposition", "Exposition", TypePropriete::FLOAT);
@@ -158,7 +163,7 @@ bool VueMaterial::ajourne_proprietes()
 		case TypeNuanceur::REFRACTION:
 		{
 			auto nuanceur = static_cast<NuanceurRefraction *>(m_nuanceur);
-			m_persona_refraction->ajourne_valeur_float("index", nuanceur->index_refraction);
+			m_persona_refraction->ajourne_valeur_float("index", static_cast<float>(nuanceur->index_refraction));
 			break;
 		}
 		case TypeNuanceur::VOLUME:
@@ -172,7 +177,7 @@ bool VueMaterial::ajourne_proprietes()
 		{
 			auto nuanceur = static_cast<NuanceurEmission *>(m_nuanceur);
 			m_persona_emission->ajourne_valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
-			m_persona_emission->ajourne_valeur_float("exposition", nuanceur->exposition);
+			m_persona_emission->ajourne_valeur_float("exposition", static_cast<float>(nuanceur->exposition));
 			break;
 		}
 	}

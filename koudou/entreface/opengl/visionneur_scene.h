@@ -49,10 +49,10 @@ class VisionneurScene {
 	RenduMonde *m_rendu_monde;
 	RenduTexte *m_rendu_texte;
 
-	std::vector<RenduMaillage *> m_maillages;
-	std::vector<RenduLumiere *> m_lumieres;
+	std::vector<RenduMaillage *> m_maillages{};
+	std::vector<RenduLumiere *> m_lumieres{};
 
-	ContexteRendu m_contexte;
+	ContexteRendu m_contexte{};
 
 	PileMatrice m_stack = {};
 
@@ -74,6 +74,7 @@ public:
 	 * Empêche la copie d'un visionneur.
 	 */
 	VisionneurScene(const VisionneurScene &visionneur) = delete;
+	VisionneurScene &operator=(VisionneurScene const &) = default;
 
 	/**
 	 * Détruit le visionneur scène. Les tampons de rendus sont détruits, et

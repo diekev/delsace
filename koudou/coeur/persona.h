@@ -45,12 +45,12 @@ enum class TypePropriete {
 };
 
 struct PaireNomValeur {
-	std::string nom;
-	int valeur;
+	std::string nom{};
+	int valeur{};
 };
 
 struct ProprieteEnumerante {
-	std::vector<PaireNomValeur> paires;
+	std::vector<PaireNomValeur> paires{};
 
 	void ajoute(std::string nom, int valeur)
 	{
@@ -63,18 +63,18 @@ struct ProprieteEnumerante {
 };
 
 struct Propriete {
-	std::string nom;
-	std::string nom_entreface;
-	std::string infobulle;
-	TypePropriete type;
+	std::string nom{};
+	std::string nom_entreface{};
+	std::string infobulle{};
+	TypePropriete type{};
 
-	std::experimental::any donnee;
-	std::experimental::any valeur_defaut;
+	std::experimental::any donnee{};
+	std::experimental::any valeur_defaut{};
 
-	ProprieteEnumerante items_enumeration;
+	ProprieteEnumerante items_enumeration{};
 
-	float min, max;
-	bool visible;
+	float min{}, max{};
+	bool visible{};
 };
 
 /**
@@ -82,7 +82,7 @@ struct Propriete {
  * l'entreface utilisateur.
  */
 class Persona {
-	std::vector<Propriete> m_proprietes;
+	std::vector<Propriete> m_proprietes{};
 
 public:
 	virtual ~Persona() = default;
@@ -166,6 +166,6 @@ private:
 		}
 
 		const auto index = iter - m_proprietes.begin();
-		return &m_proprietes[index];
+		return &m_proprietes[static_cast<size_t>(index)];
 	}
 };

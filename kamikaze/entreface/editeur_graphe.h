@@ -20,7 +20,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGraphicsView>
+#pragma GCC diagnostic pop
 
 #include "base_editeur.h"
 
@@ -67,7 +73,10 @@ public:
 			danjo::GestionnaireInterface *gestionnaire,
 			QWidget *parent = nullptr);
 
-	virtual ~EditriceGraphe();
+	EditriceGraphe(EditriceGraphe const &) = default;
+	EditriceGraphe &operator=(EditriceGraphe const &) = default;
+
+	virtual ~EditriceGraphe() override;
 
 	/* Interface */
 

@@ -24,6 +24,11 @@
 
 #include "base_editeur.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFrame>
 #include <QLabel>
@@ -32,6 +37,7 @@
 #include <QPushButton>
 #include <QStyle>
 #include <QVariant>
+#pragma GCC diagnostic pop
 
 #include "coeur/koudou.h"
 
@@ -40,6 +46,7 @@ BaseEditrice::BaseEditrice(Koudou &koudou, QWidget *parent)
 	, m_koudou(&koudou)
 	, m_cadre(new QFrame(this))
 	, m_agencement(new QVBoxLayout())
+	, m_agencement_principal(new QHBoxLayout(m_cadre))
 {
 	this->ecoute(&koudou);
 
@@ -59,7 +66,6 @@ BaseEditrice::BaseEditrice(Koudou &koudou, QWidget *parent)
 	m_agencement->setMargin(0);
 	this->setLayout(m_agencement);
 
-	m_agencement_principal = new QHBoxLayout(m_cadre);
 	m_agencement_principal->setMargin(6);
 
 	this->actif(false);

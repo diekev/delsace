@@ -39,7 +39,9 @@ protected:
 
 public:
 	explicit BaseEditrice(QWidget *parent = nullptr);
-	virtual ~BaseEditrice() = default;
+
+	BaseEditrice(BaseEditrice const &) = default;
+	BaseEditrice &operator=(BaseEditrice const &) = default;
 
 	void active(bool yesno);
 	void set_active();

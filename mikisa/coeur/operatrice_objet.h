@@ -36,15 +36,18 @@ static constexpr auto AIDE_OBJET = "Crée un objet.";
 class OperatriceObjet final : public OperatriceImage {
 	vision::Camera3D *m_camera = nullptr;
 
-	ManipulatricePosition3D m_manipulatrice_position;
-	ManipulatriceEchelle3D m_manipulatrice_echelle;
-	ManipulatriceRotation3D m_manipulatrice_rotation;
+	ManipulatricePosition3D m_manipulatrice_position{};
+	ManipulatriceEchelle3D m_manipulatrice_echelle{};
+	ManipulatriceRotation3D m_manipulatrice_rotation{};
 
-	Objet m_objet;
-	Graphe m_graphe;
+	Objet m_objet{};
+	Graphe m_graphe{};
 
 public:
 	explicit OperatriceObjet(Noeud *noeud);
+
+	OperatriceObjet(OperatriceObjet const &) = default;
+	OperatriceObjet &operator=(OperatriceObjet const &) = default;
 
 	int type() const override;
 

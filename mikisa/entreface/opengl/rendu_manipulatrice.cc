@@ -125,13 +125,13 @@ static void ajoute_baton_axe(
 	};
 
 	for (size_t	 i = 0; i < 6; ++i) {
-		indices.push_back(decalage + polygones[i][0]);
-		indices.push_back(decalage + polygones[i][1]);
-		indices.push_back(decalage + polygones[i][2]);
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][1]));
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][2]));
 
-		indices.push_back(decalage + polygones[i][0]);
-		indices.push_back(decalage + polygones[i][2]);
-		indices.push_back(decalage + polygones[i][3]);
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][3]));
 	}
 }
 
@@ -170,13 +170,13 @@ static void ajoute_poignee_axe(
 	};
 
 	for (size_t	 i = 0; i < 6; ++i) {
-		indices.push_back(decalage + polygones[i][0]);
-		indices.push_back(decalage + polygones[i][1]);
-		indices.push_back(decalage + polygones[i][2]);
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][1]));
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][2]));
 
-		indices.push_back(decalage + polygones[i][0]);
-		indices.push_back(decalage + polygones[i][2]);
-		indices.push_back(decalage + polygones[i][3]);
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.push_back(static_cast<unsigned>(decalage + polygones[i][3]));
 	}
 }
 
@@ -499,7 +499,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 		}
 	}
 
-	for (auto i = 0ul; i < segments; ++i) {
+	for (auto i = 0u; i < segments; ++i) {
 		indices.push_back(i);
 		indices.push_back((i + 1) % segments);
 	}

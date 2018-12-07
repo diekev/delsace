@@ -40,9 +40,6 @@
 /* *************************** add object command *************************** */
 
 class CommandeAjoutObjet : public Commande {
-	Object *m_object = nullptr;
-	Scene *m_scene = nullptr;
-
 public:
 	CommandeAjoutObjet() = default;
 
@@ -51,6 +48,9 @@ public:
 
 int CommandeAjoutObjet::execute(std::any const &pointeur, const DonneesCommande &donnees)
 {
+	Object *m_object = nullptr;
+	Scene *m_scene = nullptr;
+
 	auto main = std::any_cast<Main *>(pointeur);
 	const auto &contexte = main->contexte;
 	m_scene = contexte.scene;
@@ -67,9 +67,6 @@ int CommandeAjoutObjet::execute(std::any const &pointeur, const DonneesCommande 
 /* **************************** add node command **************************** */
 
 class CommandeAjoutNoeud : public Commande {
-	Object *m_object = nullptr;
-	Scene *m_scene = nullptr;
-
 public:
 	CommandeAjoutNoeud() = default;
 
@@ -78,6 +75,9 @@ public:
 
 int CommandeAjoutNoeud::execute(std::any const &pointeur, const DonneesCommande &donnees)
 {
+	Object *m_object = nullptr;
+	Scene *m_scene = nullptr;
+
 	auto main = std::any_cast<Main *>(pointeur);
 	const auto &contexte = main->contexte;
 	m_scene = contexte.scene;
@@ -109,9 +109,6 @@ int CommandeAjoutNoeud::execute(std::any const &pointeur, const DonneesCommande 
 /* **************************** add torus command **************************** */
 
 class CommandeObjetPrereglage : public Commande {
-	Object *m_object = nullptr;
-	Scene *m_scene = nullptr;
-
 public:
 	CommandeObjetPrereglage() = default;
 
@@ -120,6 +117,9 @@ public:
 
 int CommandeObjetPrereglage::execute(std::any const &pointeur, const DonneesCommande &donnees)
 {
+	Object *m_object = nullptr;
+	Scene *m_scene = nullptr;
+
 	auto main = std::any_cast<Main *>(pointeur);
 	const auto &contexte = main->contexte;
 	m_scene = contexte.scene;

@@ -48,6 +48,9 @@ struct Monde {
 
 	Monde() = default;
 
+	Monde(Monde const &) = default;
+	Monde &operator=(Monde const &) = default;
+
 	~Monde();
 };
 
@@ -56,16 +59,19 @@ Spectre spectre_monde(const Monde &monde, const dls::math::vec3d &direction);
 /* ************************************************************************** */
 
 struct Scene {
-	Monde monde;
+	Monde monde{};
 
-	std::vector<Lumiere *> lumieres;
-	std::vector<Maillage *> maillages;
+	std::vector<Lumiere *> lumieres{};
+	std::vector<Maillage *> maillages{};
 
-	std::vector<Objet *> objets;
+	std::vector<Objet *> objets{};
 	Objet *objet_actif = nullptr;
 
 	Scene();
 	~Scene();
+
+	Scene(Scene const &) = default;
+	Scene &operator=(Scene const &) = default;
 
 	void ajoute_maillage(Maillage *maillage);
 	void ajoute_lumiere(Lumiere *lumiere);

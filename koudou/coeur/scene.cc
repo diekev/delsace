@@ -182,7 +182,7 @@ dls::math::vec3d normale_scene(const Scene &scene, const dls::math::point3d &pos
 		case OBJET_TYPE_TRIANGLE:
 		{
 			auto maillage = scene.maillages[entresection.id];
-			auto triangle = maillage->begin() + entresection.id_triangle;
+			auto triangle = maillage->begin() + static_cast<long int>(entresection.id_triangle);
 			return (*triangle)->normal;
 		}
 	}
@@ -236,7 +236,7 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 			const auto ombre = ombre_scene(parametres, scene, rayon, 1000.0);
 
 			if (ombre > 0.0) {
-				spectre += lumiere->spectre * lumiere->intensite * angle * ombre;
+				spectre += lumiere->spectre * static_cast<float>(lumiere->intensite * angle * ombre);
 			}
 		}
 
@@ -269,7 +269,9 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 			if (ombre > 0.0) {
 				/* La contribution d'une lumière point est proportionelle à
 				 * l'inverse de sa distance. */
-				spectre += ((lumiere->spectre * lumiere->intensite) * (1.0 / (4.0 * PI * dist))) * angle * ombre;
+				spectre += ((lumiere->spectre * static_cast<float>(lumiere->intensite))
+							* static_cast<float>(1.0 / (4.0 * PI * dist)))
+						   * static_cast<float>(angle * ombre);
 			}
 		}
 	}
@@ -282,7 +284,7 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 	for (size_t i = 0; i < 3; ++i) {
 		rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
 	}
-	spectre += spectre_monde(scene.monde, direction) * ombre_scene(parametres, scene, rayon, 1000.0);
+	spectre += spectre_monde(scene.monde, direction) * static_cast<float>(ombre_scene(parametres, scene, rayon, 1000.0));
 
 	return spectre;
 }

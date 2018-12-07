@@ -46,6 +46,9 @@ public:
 	 */
 	explicit RenduCamera(vision::Camera3D *camera);
 
+	RenduCamera(RenduCamera const &) = default;
+	RenduCamera &operator=(RenduCamera const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.

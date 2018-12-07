@@ -56,7 +56,7 @@ class VisionneurScene {
 	RenduManipulatriceRotation *m_rendu_manipulatrice_rot;
 	RenduManipulatriceEchelle *m_rendu_manipulatrice_ech;
 
-	ContexteRendu m_contexte;
+	ContexteRendu m_contexte{};
 
 	PileMatrice m_stack = {};
 
@@ -79,6 +79,7 @@ public:
 	 * Empêche la copie d'un visionneur.
 	 */
 	VisionneurScene(const VisionneurScene &visionneur) = delete;
+	VisionneurScene &operator=(VisionneurScene const &) = default;
 
 	/**
 	 * Détruit le visionneur scène. Les tampons de rendus sont détruits, et

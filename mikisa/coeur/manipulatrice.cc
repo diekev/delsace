@@ -40,7 +40,7 @@ static bool entresecte_min_max(
 	auto tmin = std::min(t1, t2);
 	auto tmax = std::max(t1, t2);
 
-	for (int i = 1; i < 3; ++i) {
+	for (size_t i = 1; i < 3; ++i) {
 		t1 = (min[i] - origine[i]) * inverse_direction[i];
 		t2 = (max[i] - origine[i]) * inverse_direction[i];
 
@@ -108,37 +108,30 @@ const dls::math::point3f &Manipulatrice3D::pos() const
 /* ************************************************************************** */
 
 ManipulatricePosition3D::ManipulatricePosition3D()
+	: m_min(dls::math::vec3f(-RAYON_POIGNEE))
+	, m_max(dls::math::vec3f(1.0f + RAYON_POIGNEE))
+	, m_min_baton_x(dls::math::vec3f(RAYON_POIGNEE * 2, -RAYON_BRANCHE, -RAYON_BRANCHE))
+	, m_max_baton_x(dls::math::vec3f(TAILLE,  RAYON_BRANCHE,  RAYON_BRANCHE))
+	, m_min_baton_y(dls::math::vec3f(-RAYON_BRANCHE, RAYON_POIGNEE * 2, -RAYON_BRANCHE))
+	, m_max_baton_y(dls::math::vec3f( RAYON_BRANCHE, TAILLE,  RAYON_BRANCHE))
+	, m_min_baton_z(dls::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE, RAYON_POIGNEE * 2))
+	, m_max_baton_z(dls::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, TAILLE))
+	, m_min_poignee_x(dls::math::vec3f(TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE))
+	, m_max_poignee_x(dls::math::vec3f(TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE))
+	, m_min_poignee_y(dls::math::vec3f(-RAYON_POIGNEE, TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE))
+	, m_max_poignee_y(dls::math::vec3f( RAYON_POIGNEE, TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE))
+	, m_min_poignee_z(dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, TAILLE - RAYON_POIGNEE))
+	, m_max_poignee_z(dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, TAILLE + RAYON_POIGNEE))
+	, m_min_poignee_xyz(dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE))
+	, m_max_poignee_xyz(dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE))
 {
-	m_min = dls::math::vec3f(-RAYON_POIGNEE);
-	m_max = dls::math::vec3f(1.0f + RAYON_POIGNEE);
-
-	m_min_baton_x = dls::math::vec3f(RAYON_POIGNEE * 2, -RAYON_BRANCHE, -RAYON_BRANCHE);
-	m_max_baton_x = dls::math::vec3f(TAILLE,  RAYON_BRANCHE,  RAYON_BRANCHE);
-
-	m_min_poignee_x = dls::math::vec3f(TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_x = dls::math::vec3f(TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
-
-	m_min_baton_y = dls::math::vec3f(-RAYON_BRANCHE, RAYON_POIGNEE * 2, -RAYON_BRANCHE);
-	m_max_baton_y = dls::math::vec3f( RAYON_BRANCHE, TAILLE,  RAYON_BRANCHE);
-
-	m_min_poignee_y = dls::math::vec3f(-RAYON_POIGNEE, TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_y = dls::math::vec3f( RAYON_POIGNEE, TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE);
-
-	m_min_baton_z = dls::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE, RAYON_POIGNEE * 2);
-	m_max_baton_z = dls::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, TAILLE);
-
-	m_min_poignee_z = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, TAILLE - RAYON_POIGNEE);
-	m_max_poignee_z = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, TAILLE + RAYON_POIGNEE);
-
-	m_min_poignee_xyz = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_xyz = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
 }
 
 bool ManipulatricePosition3D::entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir)
 {
 	auto dir_inverse = dls::math::vec3f(0.0f);
 
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		if (dir[i] != 0.0f) {
 			dir_inverse[i] = 1.0f / dir[i];
 		}
@@ -212,37 +205,30 @@ void ManipulatricePosition3D::repond_manipulation(const dls::math::vec3f &delta)
 /* ************************************************************************** */
 
 ManipulatriceEchelle3D::ManipulatriceEchelle3D()
+	: m_min(dls::math::vec3f(-RAYON_POIGNEE))
+	, m_max(dls::math::vec3f(1.0f + RAYON_POIGNEE))
+	, m_min_baton_x(dls::math::vec3f(  0.0f, -RAYON_BRANCHE, -RAYON_BRANCHE))
+	, m_max_baton_x(dls::math::vec3f(TAILLE,  RAYON_BRANCHE,  RAYON_BRANCHE))
+	, m_min_baton_y(dls::math::vec3f(-RAYON_BRANCHE,   0.0f, -RAYON_BRANCHE))
+	, m_max_baton_y(dls::math::vec3f( RAYON_BRANCHE, TAILLE,  RAYON_BRANCHE))
+	, m_min_baton_z(dls::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE,   0.0f))
+	, m_max_baton_z(dls::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, TAILLE))
+	, m_min_poignee_x(dls::math::vec3f(TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE))
+	, m_max_poignee_x(dls::math::vec3f(TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE))
+	, m_min_poignee_y(dls::math::vec3f(-RAYON_POIGNEE, TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE))
+	, m_max_poignee_y(dls::math::vec3f( RAYON_POIGNEE, TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE))
+	, m_min_poignee_z(dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, TAILLE - RAYON_POIGNEE))
+	, m_max_poignee_z(dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, TAILLE + RAYON_POIGNEE))
+	, m_min_poignee_xyz(dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE))
+	, m_max_poignee_xyz(dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE))
 {
-	m_min = dls::math::vec3f(-RAYON_POIGNEE);
-	m_max = dls::math::vec3f(1.0f + RAYON_POIGNEE);
-
-	m_min_baton_x = dls::math::vec3f(  0.0f, -RAYON_BRANCHE, -RAYON_BRANCHE);
-	m_max_baton_x = dls::math::vec3f(TAILLE,  RAYON_BRANCHE,  RAYON_BRANCHE);
-
-	m_min_poignee_x = dls::math::vec3f(TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_x = dls::math::vec3f(TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
-
-	m_min_baton_y = dls::math::vec3f(-RAYON_BRANCHE,   0.0f, -RAYON_BRANCHE);
-	m_max_baton_y = dls::math::vec3f( RAYON_BRANCHE, TAILLE,  RAYON_BRANCHE);
-
-	m_min_poignee_y = dls::math::vec3f(-RAYON_POIGNEE, TAILLE - RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_y = dls::math::vec3f( RAYON_POIGNEE, TAILLE + RAYON_POIGNEE,  RAYON_POIGNEE);
-
-	m_min_baton_z = dls::math::vec3f(-RAYON_BRANCHE, -RAYON_BRANCHE,   0.0f);
-	m_max_baton_z = dls::math::vec3f( RAYON_BRANCHE,  RAYON_BRANCHE, TAILLE);
-
-	m_min_poignee_z = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, TAILLE - RAYON_POIGNEE);
-	m_max_poignee_z = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE, TAILLE + RAYON_POIGNEE);
-
-	m_min_poignee_xyz = dls::math::vec3f(-RAYON_POIGNEE, -RAYON_POIGNEE, -RAYON_POIGNEE);
-	m_max_poignee_xyz = dls::math::vec3f( RAYON_POIGNEE,  RAYON_POIGNEE,  RAYON_POIGNEE);
 }
 
 bool ManipulatriceEchelle3D::entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir)
 {
 	auto dir_inverse = dls::math::vec3f(0.0f);
 
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		if (dir[i] != 0.0f) {
 			dir_inverse[i] = 1.0f / dir[i];
 		}
@@ -343,7 +329,7 @@ bool ManipulatriceRotation3D::entresecte(const dls::math::point3f &orig, const d
 {
 	auto dir_inverse = dls::math::vec3f(0.0f);
 
-	for (int i = 0; i < 3; ++i) {
+	for (size_t i = 0; i < 3; ++i) {
 		if (dir[i] != 0.0f) {
 			dir_inverse[i] = 1.0f / dir[i];
 		}

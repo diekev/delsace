@@ -24,7 +24,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QWidget>
+#pragma GCC diagnostic pop
 
 class QDoubleSpinBox;
 class QHBoxLayout;
@@ -50,6 +56,9 @@ public:
 	explicit SelecteurFloat(QWidget *parent = nullptr);
 	~SelecteurFloat() = default;
 
+	SelecteurFloat(SelecteurFloat const &) = default;
+	SelecteurFloat &operator=(SelecteurFloat const &) = default;
+
 	void setValue(float value);
 	float value() const;
 	void setRange(float min, float max);
@@ -74,6 +83,9 @@ class SelecteurInt : public QWidget {
 public:
 	explicit SelecteurInt(QWidget *parent = nullptr);
 	~SelecteurInt() = default;
+
+	SelecteurInt(SelecteurInt const &) = default;
+	SelecteurInt &operator=(SelecteurInt const &) = default;
 
 	void setValue(int value);
 	int value() const;
@@ -107,6 +119,9 @@ public:
 	explicit SelecteurVec3(QWidget *parent = nullptr);
 	~SelecteurVec3() = default;
 
+	SelecteurVec3(SelecteurVec3 const &) = default;
+	SelecteurVec3 &operator=(SelecteurVec3 const &) = default;
+
 	void setValue(float *value);
 	void getValue(float *value) const;
 	void setMinMax(float min, float max) const;
@@ -128,6 +143,9 @@ public:
 
 	~SelecteurFichier() = default;
 
+	SelecteurFichier(SelecteurFichier const &) = default;
+	SelecteurFichier &operator=(SelecteurFichier const &) = default;
+
 	void setValue(const QString &text);
 
 private Q_SLOTS:
@@ -147,12 +165,15 @@ class SelecteurListe : public QWidget {
 	QPushButton *m_push_button;
 	QMenu *m_list_widget;
 
-	bool m_input;
+	bool m_input{};
 
 public:
 	explicit SelecteurListe(QWidget *parent = nullptr);
 
 	~SelecteurListe();
+
+	SelecteurListe(SelecteurListe const &) = default;
+	SelecteurListe &operator=(SelecteurListe const &) = default;
 
 	void setValue(const QString &text);
 
@@ -178,6 +199,9 @@ public:
 	explicit SelecteurCouleur(QWidget *parent = nullptr);
 
 	~SelecteurCouleur() = default;
+
+	SelecteurCouleur(SelecteurCouleur const &) = default;
+	SelecteurCouleur &operator=(SelecteurCouleur const &) = default;
 
 	void setValue(float *value);
 	void setMinMax(float min, float max) const;

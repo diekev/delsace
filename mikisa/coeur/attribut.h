@@ -97,7 +97,7 @@ class Attribut {
 		std::vector<dls::math::vec4f> *liste_vec4;
 		std::vector<dls::math::mat3x3f> *liste_mat3;
 		std::vector<dls::math::mat4x4f> *liste_mat4;
-	} m_donnees;
+	} m_donnees{};
 
 	std::string m_nom;
 	type_attribut m_type;

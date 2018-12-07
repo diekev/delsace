@@ -41,12 +41,12 @@
  * différentes classes de rendu d'objet dans la scène 3D.
  */
 class ContexteRendu {
-	dls::math::mat4x4f m_modele_vue;
-	dls::math::mat4x4f m_projection;
-	dls::math::mat4x4f m_modele_vue_projection;
-	dls::math::vec3f m_vue;
-	dls::math::mat3x3f m_normal;
-	dls::math::mat4x4f m_matrice_objet;
+	dls::math::mat4x4f m_modele_vue{};
+	dls::math::mat4x4f m_projection{};
+	dls::math::mat4x4f m_modele_vue_projection{};
+	dls::math::vec3f m_vue{};
+	dls::math::mat3x3f m_normal{};
+	dls::math::mat4x4f m_matrice_objet{};
 	bool m_pour_surlignage = false;
 	bool m_dessine_arretes = false;
 	bool m_dessine_normaux = false;

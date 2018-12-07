@@ -55,8 +55,8 @@ vision::EchantillonCamera genere_echantillon(GNA &gna, unsigned int x, unsigned 
 static Rayon genere_rayon(vision::Camera3D *camera, const vision::EchantillonCamera &echantillon)
 {
 	auto pos = dls::math::point3f(
-				   echantillon.x / camera->largeur(),
-				   (camera->hauteur() - echantillon.y) / camera->hauteur(),
+				   static_cast<float>(echantillon.x / camera->largeur()),
+				   static_cast<float>((camera->hauteur() - echantillon.y) / camera->hauteur()),
 				   0.0f);
 
 	const auto &debut = camera->pos_monde(pos);
@@ -107,7 +107,7 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 		if (entresection.type_objet == OBJET_TYPE_AUCUN) {
 			if (i == 0) {
 				auto point = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
-				auto vecteur = dls::math::vec3d(point);
+				auto vecteur = point;
 				return spectre_monde(scene.monde, vecteur);
 			}
 
@@ -160,8 +160,8 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 			break;
 		}
 
-		for (size_t i = 0; i < 3; ++i) {
-			rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
+		for (size_t j = 0; j < 3; ++j) {
+			rayon_local.inverse_direction[j] = 1.0 / rayon_local.direction[j];
 		}
 	}
 
@@ -274,8 +274,8 @@ void TacheRendu::commence(const Koudou &koudou)
 	const auto hauteur_carreau = koudou.parametres_rendu.hauteur_carreau;
 	const auto largeur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_colonnes());
 	const auto hauteur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_lignes());
-	const auto carreaux_x = std::ceil(largeur_pellicule / static_cast<float>(largeur_carreau));
-	const auto carreaux_y = std::ceil(hauteur_pellicule / static_cast<float>(hauteur_carreau));
+	const auto carreaux_x = static_cast<unsigned>(std::ceil(static_cast<float>(largeur_pellicule) / static_cast<float>(largeur_carreau)));
+	const auto carreaux_y = static_cast<unsigned>(std::ceil(static_cast<float>(hauteur_pellicule) / static_cast<float>(hauteur_carreau)));
 
 	std::vector<CarreauPellicule> carreaux;
 	carreaux.reserve(static_cast<size_t>(carreaux_x * carreaux_y));
@@ -315,7 +315,7 @@ void TacheRendu::commence(const Koudou &koudou)
 		temps_restant = (temps_ecoule / (e + 1.0) * nombre_echantillons) - temps_ecoule;
 
 		m_notaire->signale_rendu_fini();
-		m_notaire->signale_progres_avance(((e + 1.0f) / nombre_echantillons) * 100);
+		m_notaire->signale_progres_avance(((static_cast<float>(e) + 1.0f) / static_cast<float>(nombre_echantillons)) * 100.0f);
 	}
 
 	/* Il est possible que le temps restant ne soit pas égal à 0.0 quand

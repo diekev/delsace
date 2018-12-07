@@ -41,9 +41,9 @@ public:
 
 	virtual void ajoute_parametres_sommet(const float x, const float y, const float z) = 0;
 
-	virtual void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, int nombre) = 0;
+	virtual void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, size_t nombre) = 0;
 
-	virtual void ajoute_ligne(const int *index, int nombre) = 0;
+	virtual void ajoute_ligne(const int *index, size_t nombre) = 0;
 
 	virtual void ajoute_objet(const std::string &nom) = 0;
 

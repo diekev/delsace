@@ -187,10 +187,10 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 
 	for (int i = 0; i < resolution_u; i++) {
 		for (int j = 0; j < resolution_v; j++) {
-			const auto u = i * taille_pas_u + debut_u;
-			const auto v = j * taille_pas_v + debut_v;
-			const auto un = (i + 1 == resolution_u) ? fin_u : (i + 1) * taille_pas_u + debut_u;
-			const auto vn = (j + 1 == resolution_v) ? fin_v : (j + 1) * taille_pas_v + debut_v;
+			const auto u = static_cast<float>(i) * taille_pas_u + debut_u;
+			const auto v = static_cast<float>(j) * taille_pas_v + debut_v;
+			const auto un = (i + 1 == resolution_u) ? fin_u : static_cast<float>(i + 1) * taille_pas_u + debut_u;
+			const auto vn = (j + 1 == resolution_v) ? fin_v : static_cast<float>(j + 1) * taille_pas_v + debut_v;
 
 			/* Trouve les quatre points de la grille en évaluant la fonction
 			 * paramétrique.
@@ -235,8 +235,8 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 void cree_torus(AdaptriceCreationObjet *adaptrice,
 				const float rayon_mineur,
 				const float rayon_majeur,
-				const float segment_mineur,
-				const float segment_majeur,
+				const unsigned long segment_mineur,
+				const unsigned long segment_majeur,
 				const float centre_x,
 				const float centre_y,
 				const float centre_z)
@@ -246,7 +246,7 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 	const auto vertical_angle_stride = tau / static_cast<float>(segment_majeur);
 	const auto horizontal_angle_stride = tau / static_cast<float>(segment_mineur);
 
-	int f1 = 0, f2, f3, f4;
+	unsigned long f1 = 0, f2, f3, f4;
 	const auto tot_verts = segment_majeur * segment_mineur;
 
 	adaptrice->reserve_sommets(tot_verts);
@@ -254,11 +254,11 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 
 	int poly[4];
 
-	for (int i = 0; i < segment_majeur; ++i) {
-		auto theta = vertical_angle_stride * i;
+	for (unsigned long i = 0; i < segment_majeur; ++i) {
+		auto theta = vertical_angle_stride * static_cast<float>(i);
 
-		for (int j = 0; j < segment_mineur; ++j) {
-			auto phi = horizontal_angle_stride * j;
+		for (unsigned long j = 0; j < segment_mineur; ++j) {
+			auto phi = horizontal_angle_stride * static_cast<float>(j);
 
 			auto x = std::cos(theta) * (rayon_majeur + rayon_mineur * std::cos(phi));
 			auto y = rayon_mineur * std::sin(phi);
@@ -288,16 +288,16 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 			}
 
 			if (f2 > 0) {
-				poly[0] = f1;
-				poly[1] = f3;
-				poly[2] = f4;
-				poly[3] = f2;
+				poly[0] = static_cast<int>(f1);
+				poly[1] = static_cast<int>(f3);
+				poly[2] = static_cast<int>(f4);
+				poly[3] = static_cast<int>(f2);
 			}
 			else {
-				poly[0] = f2;
-				poly[1] = f1;
-				poly[2] = f3;
-				poly[3] = f4;
+				poly[0] = static_cast<int>(f2);
+				poly[1] = static_cast<int>(f1);
+				poly[2] = static_cast<int>(f3);
+				poly[3] = static_cast<int>(f4);
 			}
 
 			adaptrice->ajoute_polygone(poly, nullptr, nullptr, 4);
@@ -312,8 +312,8 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 void cree_grille(AdaptriceCreationObjet *adaptrice,
 				 const float taille_x,
 				 const float taille_y,
-				 const int lignes,
-				 const int colonnes,
+				 const unsigned long lignes,
+				 const unsigned long colonnes,
 				 const float centre_x,
 				 const float centre_y,
 				 const float centre_z)
@@ -324,23 +324,23 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 
 	float point[3] = { 0.0f, centre_y, 0.0f };
 
-	const auto &increment_x = taille_x * 2.0f / (lignes - 1);
-	const auto &increment_y = taille_y * 2.0f / (colonnes - 1);
+	const auto &increment_x = taille_x * 2.0f / static_cast<float>(lignes - 1);
+	const auto &increment_y = taille_y * 2.0f / static_cast<float>(colonnes - 1);
 	const auto &debut_x = -taille_x + centre_x;
 	const auto &debut_y = -taille_y + centre_z;
 
-	const auto increment_x_uv = 1.0f / (lignes - 1);
-	const auto increment_y_uv = 1.0f / (colonnes - 1);
+	const auto increment_x_uv = 1.0f / static_cast<float>(lignes - 1);
+	const auto increment_y_uv = 1.0f / static_cast<float>(colonnes - 1);
 
 	float uv[2] = { 0.0f, 0.0f };
 
-	for (auto y = 0; y < colonnes; ++y) {
-		point[2] = debut_y + y * increment_y;
-		uv[1] = y * increment_y_uv;
+	for (auto y = 0ul; y < colonnes; ++y) {
+		point[2] = debut_y + static_cast<float>(y) * increment_y;
+		uv[1] = static_cast<float>(y) * increment_y_uv;
 
-		for (auto x = 0; x < lignes; ++x) {
-			point[0] = debut_x + x * increment_x;
-			uv[0] = x * increment_x_uv;
+		for (auto x = 0ul; x < lignes; ++x) {
+			point[0] = debut_x + static_cast<float>(x) * increment_x;
+			uv[0] = static_cast<float>(x) * increment_x_uv;
 
 			adaptrice->ajoute_coord_uv_sommet(uv[0], uv[1]);
 			adaptrice->ajoute_sommet(point[0], point[1], point[2]);
@@ -355,17 +355,17 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 	/* crée une copie pour le lambda */
 	const auto tot_x = lignes;
 
-	auto index = [&tot_x](const int x, const int y)
+	auto index = [&tot_x](unsigned long x, unsigned long y)
 	{
 		return x + y * tot_x;
 	};
 
-	for (auto y = 1; y < colonnes; ++y) {
-		for (auto x = 1; x < lignes; ++x) {
-			poly[0] = index(x - 1, y - 1);
-			poly[1] = index(x,     y - 1);
-			poly[2] = index(x,     y    );
-			poly[3] = index(x - 1, y    );
+	for (auto y = 1ul; y < colonnes; ++y) {
+		for (auto x = 1ul; x < lignes; ++x) {
+			poly[0] = static_cast<int>(index(x - 1, y - 1));
+			poly[1] = static_cast<int>(index(x,     y - 1));
+			poly[2] = static_cast<int>(index(x,     y    ));
+			poly[3] = static_cast<int>(index(x - 1, y    ));
 
 			adaptrice->ajoute_polygone(poly, poly, normaux, 4);
 		}
@@ -375,13 +375,13 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 /* ************************************************************************** */
 
 void cree_cercle(AdaptriceCreationObjet *adaptrice,
-				 const int segments,
+				 const unsigned long segments,
 				 const float rayon,
 				 const float centre_x,
 				 const float centre_y,
 				 const float centre_z)
 {
-	const auto phid = 2.0f * static_cast<float>(M_PI) / segments;
+	const auto phid = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
 	auto phi = 0.0f;
 
 	adaptrice->reserve_sommets(segments + 1);
@@ -391,7 +391,7 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 
 	adaptrice->ajoute_sommet(point[0], point[1], point[2]);
 
-	for (int a = 0; a < segments; ++a, phi += phid) {
+	for (unsigned long a = 0; a < segments; ++a, phi += phid) {
 		/* Going this way ends up with normal(s) upward */
 		point[0] = centre_x - rayon * std::sin(phi);
 		point[2] = centre_z + rayon * std::cos(phi);
@@ -406,8 +406,8 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 	int normaux[3] = { 0, 0, 0 };
 
 	for (auto i = 1ul; i <= segments; ++i) {
-		poly[1] = index;
-		poly[2] = i;
+		poly[1] = static_cast<int>(index);
+		poly[2] = static_cast<int>(i);
 
 		adaptrice->ajoute_polygone(poly, nullptr, normaux, 3);
 
@@ -418,7 +418,7 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 /* ************************************************************************** */
 
 void cree_cylindre(AdaptriceCreationObjet *adaptrice,
-				   const int segments,
+				   const unsigned long segments,
 				   const float rayon_mineur,
 				   const float rayon_majeur,
 				   const float profondeur,
@@ -426,7 +426,7 @@ void cree_cylindre(AdaptriceCreationObjet *adaptrice,
 				   const float centre_y,
 				   const float centre_z)
 {
-	const auto phid = 2.0f * static_cast<float>(M_PI) / segments;
+	const auto phid = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
 	auto phi = 0.0f;
 
 	adaptrice->reserve_sommets((rayon_majeur != 0.0f) ? segments * 2 + 2 : segments + 2);
@@ -451,7 +451,7 @@ void cree_cylindre(AdaptriceCreationObjet *adaptrice,
 	int nombre_points = 2;
 	int poly[4];
 
-	for (int a = 0; a < segments; ++a, phi += phid) {
+	for (auto a = 0ul; a < segments; ++a, phi += phid) {
 		/* Going this way ends up with normal(s) upward */
 		vec[0] = -rayon_mineur * std::sin(phi);
 		vec[1] = -profondeur;

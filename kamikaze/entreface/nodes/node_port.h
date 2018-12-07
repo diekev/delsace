@@ -20,7 +20,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QFont>
+#pragma GCC diagnostic pop
 
 #include "node_connection.h"
 #include "node_constants.h"
@@ -30,9 +36,9 @@ static constexpr auto NODE_PORT_TYPE_OUTPUT = 2; /* Reserved for output port */
 
 static constexpr auto NODE_PORT_FONT_SIZE = 10;
 static constexpr auto NODE_PORT_SHAPE_SIZE = 10;
-static constexpr auto NODE_PORT_OFFSET = 10.0f;
-static constexpr auto NODE_PORT_WIDTH_MARGIN = 10.0f; /* Margin in pixel value */
-static constexpr auto NODE_PORT_HEIGHT_MARGIN_FACTOR = 0.8f; /* Margin factor in fraction of text height */
+static constexpr auto NODE_PORT_OFFSET = 10.0;
+static constexpr auto NODE_PORT_WIDTH_MARGIN = 10.0; /* Margin in pixel value */
+static constexpr auto NODE_PORT_HEIGHT_MARGIN_FACTOR = 0.8; /* Margin factor in fraction of text height */
 
 /****************************************************************************
  * QtPort represents a Port-class which is visualised in a QtNode.
@@ -58,6 +64,9 @@ public:
 	       const QColor &connexionColour,
 	       Alignment alignment,
 	       QGraphicsItem *parent = nullptr);
+
+	QtPort(QtPort const &) = default;
+	QtPort &operator=(QtPort const &) = default;
 
 	~QtPort() = default;
 

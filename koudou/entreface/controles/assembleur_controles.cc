@@ -24,8 +24,14 @@
 
 #include "assembleur_controles.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGridLayout>
 #include <QLabel>
+#pragma GCC diagnostic pop
 
 #include "../outils.h"
 

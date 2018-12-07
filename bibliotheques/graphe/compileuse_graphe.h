@@ -45,13 +45,51 @@ public:
 
 	CompileuseGraphe();
 
-	void ajoute_noeud(float x);
+	template <typename T>
+	void ajoute_noeud(T x)
+	{
+		if (m_decalage + 1 >= TAILLE_PILE) {
+			throw "Il n'y a plus de place dans la pile !";
+		}
 
-	void ajoute_noeud(float x, float y);
+		m_pile[m_decalage++] = static_cast<float>(x);
+	}
 
-	void ajoute_noeud(float x, float y, float z);
+	template <typename T>
+	void ajoute_noeud(T x, T y)
+	{
+		if (m_decalage + 2 >= TAILLE_PILE) {
+			throw "Il n'y a plus de place dans la pile !";
+		}
 
-	void ajoute_noeud(float x, float y, float z, float w);
+		m_pile[m_decalage++] = static_cast<float>(x);
+		m_pile[m_decalage++] = static_cast<float>(y);
+	}
+
+	template <typename T>
+	void ajoute_noeud(T x, T y, T z)
+	{
+		if (m_decalage + 3 >= TAILLE_PILE) {
+			throw "Il n'y a plus de place dans la pile !";
+		}
+
+		m_pile[m_decalage++] = static_cast<float>(x);
+		m_pile[m_decalage++] = static_cast<float>(y);
+		m_pile[m_decalage++] = static_cast<float>(z);
+	}
+
+	template <typename T>
+	void ajoute_noeud(T x, T y, T z, T w)
+	{
+		if (m_decalage + 4 >= TAILLE_PILE) {
+			throw "Il n'y a plus de place dans la pile !";
+		}
+
+		m_pile[m_decalage++] = static_cast<float>(x);
+		m_pile[m_decalage++] = static_cast<float>(y);
+		m_pile[m_decalage++] = static_cast<float>(z);
+		m_pile[m_decalage++] = static_cast<float>(w);
+	}
 
 	void ajoute_noeud(const dls::math::vec3f &v);
 
@@ -106,7 +144,7 @@ inline couleur32 pile_charge_couleur(CompileuseGraphe::iterateur &pointeur)
 
 inline void pile_stocke_entier(CompileuseGraphe::iterateur &pointeur, const int e)
 {
-	*pointeur++ = e;
+	*pointeur++ = static_cast<float>(e);
 }
 
 inline void pile_stocke_decimal(CompileuseGraphe::iterateur &pointeur, const float d)

@@ -26,8 +26,15 @@
 
 #include <algorithm>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QFileDialog>
 #include <QMessageBox>
+#pragma GCC diagnostic pop
+
 #include <danjo/danjo.h>
 
 #include "bibliotheques/commandes/commande.h"

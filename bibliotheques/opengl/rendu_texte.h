@@ -56,6 +56,9 @@ public:
 	 */
 	RenduTexte() = default;
 
+	RenduTexte(RenduTexte const &) = default;
+	RenduTexte &operator=(RenduTexte const &) = default;
+
 	/**
 	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
 	 * utiliser l'instance crashera le programme.

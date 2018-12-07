@@ -22,7 +22,13 @@
  *
  */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDialog>
+#pragma GCC diagnostic pop
 
 #include "controles/assembleur_controles.h"
 
@@ -42,6 +48,9 @@ class BaseDialogue : public QDialog {
 public:
 	explicit BaseDialogue(Koudou &koudou, QWidget *parent = nullptr);
 
+	BaseDialogue(BaseDialogue const &) = default;
+	BaseDialogue &operator=(BaseDialogue const &) = default;
+
 	void montre();
 	void ajourne();
 };
@@ -58,6 +67,9 @@ class ProjectSettingsDialog : public QDialog {
 
 public:
 	explicit ProjectSettingsDialog(Koudou &koudou, QWidget *parent = nullptr);
+
+	ProjectSettingsDialog(ProjectSettingsDialog const &) = default;
+	ProjectSettingsDialog &operator=(ProjectSettingsDialog const &) = default;
 
 	void montre();
 	void ajourne();

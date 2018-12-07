@@ -50,6 +50,7 @@ public:
 
 	/* pour faire taire cppcheck */
 	VueMaterial(const VueMaterial &) = delete;
+	VueMaterial &operator=(VueMaterial const &) = delete;
 
 	void nuanceur(Nuanceur *nuanceur);
 
@@ -74,7 +75,10 @@ class EditeurMaterial final : public BaseEditrice {
 public:
 	EditeurMaterial(Koudou *koudou, QWidget *parent = nullptr);
 
-	~EditeurMaterial();
+	EditeurMaterial(EditeurMaterial const &) = default;
+	EditeurMaterial &operator=(EditeurMaterial const &) = default;
+
+	~EditeurMaterial() override;
 
 	void ajourne_etat(int /*evenement*/) override;
 

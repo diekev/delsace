@@ -32,7 +32,7 @@
  */
 
 template <typename TypePlage>
-inline int taille_plage(const TypePlage &plage)
+inline auto taille_plage(const TypePlage &plage)
 {
 	return plage.end() - plage.begin();
 }
@@ -44,7 +44,10 @@ inline void boucle_serie(TypePlage &&plage, TypeOp &&operation)
 }
 
 template <typename TypePlage, typename TypeOp>
-void boucle_parallele(TypePlage &&plage, TypeOp &&operation, int taille_grain = 1)
+void boucle_parallele(
+		TypePlage &&plage,
+		TypeOp &&operation,
+		typename TypePlage::const_iterator taille_grain = 1)
 {
 	const auto taille = taille_plage(plage);
 
@@ -58,7 +61,7 @@ void boucle_parallele(TypePlage &&plage, TypeOp &&operation, int taille_grain = 
 		return;
 	}
 
-	tbb::parallel_for(TypePlage(plage.begin(), plage.end(), taille_grain), operation);
+	tbb::parallel_for(TypePlage(plage.begin(), plage.end(), static_cast<typename TypePlage::size_type>(taille_grain)), operation);
 }
 
 template <typename TypePlage, typename TypeOp>
