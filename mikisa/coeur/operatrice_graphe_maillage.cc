@@ -340,7 +340,7 @@ void OperatriceGrapheMaillage::compile_graphe(int temps)
 			sortie->decalage_pile = 0;
 		}
 
-		auto operatrice = static_cast<OperatriceImage *>(pointeur->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(pointeur->donnees());
 		auto operatrice_p3d = dynamic_cast<OperatricePoint3D *>(operatrice);
 
 		if (operatrice_p3d == nullptr) {

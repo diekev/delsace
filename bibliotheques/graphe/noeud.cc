@@ -40,7 +40,7 @@ PriseEntree::PriseEntree(const std::string &nom_prise)
 
 /* ************************************************************************** */
 
-Noeud::Noeud(void (*suppression_donnees)(void *))
+Noeud::Noeud(void (*suppression_donnees)(std::any))
 	: Noeud()
 {
 	supprime_donnees = suppression_donnees;
@@ -59,12 +59,12 @@ Noeud::~Noeud()
 	}
 }
 
-void *Noeud::donnees() const
+std::any Noeud::donnees() const
 {
 	return this->m_donnees;
 }
 
-void Noeud::donnees(void *pointeur)
+void Noeud::donnees(std::any pointeur)
 {
 	this->m_donnees = pointeur;
 }

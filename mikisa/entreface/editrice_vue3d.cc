@@ -65,7 +65,7 @@ static void charge_manipulatrice(Mikisa *mikisa, int type_manipulation)
 		return;
 	}
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	if (!operatrice->possede_manipulatrice_3d(mikisa->type_manipulation_3d)) {
 		mikisa->manipulatrice_3d = nullptr;

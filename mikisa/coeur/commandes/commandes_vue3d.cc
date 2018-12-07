@@ -348,7 +348,7 @@ public:
 		/* ajourne l'opératrice */
 		auto graphe = mikisa->graphe;
 		auto noeud_actif = graphe->noeud_actif;
-		auto operatrice = static_cast<OperatriceImage *>(noeud_actif->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud_actif->donnees());
 		operatrice->ajourne_selon_manipulatrice_3d(mikisa->type_manipulation_3d, mikisa->temps_courant);
 
 		mikisa->notifie_auditeurs(type_evenement::objet | type_evenement::manipule);

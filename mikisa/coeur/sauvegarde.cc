@@ -251,7 +251,7 @@ static void ecris_graphe(
 		element_noeud->InsertEndChild(racine_prise_sortie);
 
 		/* Opératrice */
-		auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 		auto element_operatrice = doc.NewElement("operatrice");
 		element_operatrice->SetAttribute("nom", operatrice->class_name());
 

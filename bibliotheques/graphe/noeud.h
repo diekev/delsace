@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <any>
 #include <string>
 #include <vector>
 
@@ -89,12 +90,12 @@ struct PriseEntree {
 /* ************************************************************************** */
 
 class Noeud {
-	void (*supprime_donnees)(void *) = nullptr;
+	void (*supprime_donnees)(std::any) = nullptr;
 
 	std::vector<PriseEntree *> m_entrees = {};
 	std::vector<PriseSortie *> m_sorties = {};
 
-	void *m_donnees = nullptr;
+	std::any m_donnees = nullptr;
 
 	std::string m_nom = "";
 
@@ -112,7 +113,7 @@ class Noeud {
 
 public:
 	Noeud() = default;
-	explicit Noeud(void (*suppression_donnees)(void *));
+	explicit Noeud(void (*suppression_donnees)(std::any));
 	~Noeud();
 
 	/* À FAIRE : considère l'utilisation de shared_ptr */
@@ -122,8 +123,8 @@ public:
 	using plage_entrees = plage_iterable<std::vector<PriseEntree *>::const_iterator>;
 	using plage_sorties = plage_iterable<std::vector<PriseSortie *>::const_iterator>;
 
-	void *donnees() const;
-	void donnees(void *pointeur);
+	std::any donnees() const;
+	void donnees(std::any pointeur);
 
 	const std::string &nom() const;
 	void nom(const std::string &nom);

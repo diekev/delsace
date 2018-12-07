@@ -193,7 +193,7 @@ int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud_sortie->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud_sortie->donnees());
 
 	const auto t0 = tbb::tick_count::now();
 

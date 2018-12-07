@@ -373,7 +373,7 @@ void OperatriceGraphePixel::compile_graphe(int temps)
 			sortie->decalage_pile = 0;
 		}
 
-		auto operatrice = static_cast<OperatriceImage *>(pointeur->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(pointeur->donnees());
 		auto operatrice_pixel = dynamic_cast<OperatricePixel *>(operatrice);
 
 		if (operatrice_pixel == nullptr) {

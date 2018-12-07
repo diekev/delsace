@@ -29,6 +29,7 @@
 #include <image/pixel.h>
 #include <math/matrice/matrice.h>
 
+#include <any>
 #include <list>
 #include <vector>
 
@@ -368,4 +369,4 @@ public:
 
 /* ************************************************************************** */
 
-void supprime_operatrice_image(void *pointeur);
+void supprime_operatrice_image(std::any pointeur);

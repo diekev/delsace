@@ -93,7 +93,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	operatrice->ajourne_proprietes();
 
 	/* avertissements */
@@ -186,6 +186,6 @@ void EditriceProprietes::obtiens_liste(
 		return;
 	}
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	operatrice->obtiens_liste(attache, chaines);
 }

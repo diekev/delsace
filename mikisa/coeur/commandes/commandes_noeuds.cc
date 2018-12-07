@@ -87,7 +87,7 @@ static bool selectionne_noeud(Mikisa *mikisa, Noeud *noeud, Graphe &graphe)
 		return besoin_ajournement;
 	}
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	if (operatrice->type() == OPERATRICE_SCENE) {
 		mikisa->derniere_scene_selectionnee = graphe.noeud_actif;
@@ -354,7 +354,7 @@ public:
 			graphe->dernier_noeud_sortie = nullptr;
 		}
 
-		auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 		if (operatrice->manipulatrice_3d(mikisa->type_manipulation_3d) == mikisa->manipulatrice_3d) {
 			mikisa->manipulatrice_3d = nullptr;
@@ -497,7 +497,7 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 		if (operatrice->type() == OPERATRICE_GRAPHE_PIXEL) {
 			auto operatrice_graphe = dynamic_cast<OperatriceGraphePixel *>(operatrice);
@@ -556,7 +556,7 @@ public:
 
 		if (mikisa->contexte == GRAPHE_OBJET) {
 			auto noeud_scene = mikisa->derniere_scene_selectionnee;
-			auto operatrice = static_cast<OperatriceImage *>(noeud_scene->donnees());
+			auto operatrice = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
 			auto operatrice_scene = dynamic_cast<OperatriceScene *>(operatrice);
 
 			mikisa->graphe = operatrice_scene->graphe();
@@ -565,10 +565,10 @@ public:
 		}
 		else if (mikisa->contexte == GRAPHE_MAILLAGE) {
 			auto noeud_scene = mikisa->derniere_scene_selectionnee;
-			auto operatrice = static_cast<OperatriceImage *>(noeud_scene->donnees());
+			auto operatrice = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
 			auto operatrice_scene = dynamic_cast<OperatriceScene *>(operatrice);
 			auto noeud_objet = operatrice_scene->graphe()->noeud_actif;
-			operatrice = static_cast<OperatriceImage *>(noeud_objet->donnees());
+			operatrice = std::any_cast<OperatriceImage *>(noeud_objet->donnees());
 			auto operatrice_objet = dynamic_cast<OperatriceObjet *>(operatrice);
 
 			mikisa->graphe = operatrice_objet->graphe();

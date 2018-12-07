@@ -40,7 +40,7 @@ void execute_noeud(Noeud *noeud, const Rectangle &rectangle, const int temps)
 
 	const auto t0 = tbb::tick_count::now();
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	operatrice->reinitialise_avertisements();
 
 	const auto resultat = operatrice->execute(rectangle, temps);
@@ -69,7 +69,7 @@ void execute_noeud(Noeud *noeud, const Rectangle &rectangle, const int temps)
 
 void synchronise_donnees_operatrice(Noeud *noeud)
 {
-	auto op = static_cast<OperatriceImage *>(noeud->donnees());
+	auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	for (size_t i = 0; i < op->inputs(); ++i) {
 		noeud->ajoute_entree(op->nom_entree(static_cast<int>(i)), op->type_entree(static_cast<int>(i)));

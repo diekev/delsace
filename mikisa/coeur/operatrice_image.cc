@@ -161,7 +161,7 @@ void EntreeOperatrice::requiers_image(
 
 		execute_noeud(noeud, rectangle, temps);
 
-		auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 		operatrice->transfere_image(image);
 
 		for (const auto &calque : image.calques()) {
@@ -182,7 +182,7 @@ vision::Camera3D *EntreeOperatrice::requiers_camera(const Rectangle &rectangle, 
 
 	execute_noeud(noeud, rectangle, temps);
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	return operatrice->camera();
 }
 
@@ -198,7 +198,7 @@ Objet *EntreeOperatrice::requiers_objet(const Rectangle &rectangle, const int te
 
 	execute_noeud(noeud, rectangle, temps);
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	return operatrice->objet();
 }
 
@@ -214,7 +214,7 @@ TextureImage *EntreeOperatrice::requiers_texture(const Rectangle &rectangle, con
 
 	execute_noeud(noeud, rectangle, temps);
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	return operatrice->texture();
 }
 
@@ -230,7 +230,7 @@ const Corps *EntreeOperatrice::requiers_corps(const Rectangle &rectangle, const 
 
 	execute_noeud(noeud, rectangle, temps);
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	return operatrice->corps();
 }
@@ -449,7 +449,7 @@ void OperatriceImage::obtiens_liste(const std::string &/*attache*/, std::vector<
 
 /* ************************************************************************** */
 
-void supprime_operatrice_image(void *pointeur)
+void supprime_operatrice_image(std::any pointeur)
 {
-	delete static_cast<OperatriceImage *>(pointeur);
+	delete std::any_cast<OperatriceImage *>(pointeur);
 }

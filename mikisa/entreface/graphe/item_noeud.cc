@@ -66,7 +66,7 @@ static QBrush brosse_pour_type(int type)
 ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	: QGraphicsRectItem(parent)
 {
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	const auto pos_x = noeud->pos_x();
 	const auto pos_y = noeud->pos_y();

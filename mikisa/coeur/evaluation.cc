@@ -122,7 +122,7 @@ tbb::task *GraphEvalTask::execute()
 	execute_noeud(visionneuse, rectangle, m_mikisa->temps_courant);
 
 	Image image;
-	auto operatrice = static_cast<OperatriceImage *>(visionneuse->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(visionneuse->donnees());
 	operatrice->transfere_image(image);
 	composite->image(image);
 	image.reinitialise(true);
@@ -148,7 +148,7 @@ void evalue_graphe(const Mikisa *mikisa)
 
 static Objet *evalue_objet_ex(const Mikisa *mikisa, Noeud *noeud)
 {
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	if (operatrice->type() != OPERATRICE_OBJET) {
 		return nullptr;
@@ -180,7 +180,7 @@ void evalue_scene(const Mikisa *mikisa)
 		return;
 	}
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	if (operatrice->type() != OPERATRICE_SCENE) {
 		return;
@@ -219,7 +219,7 @@ void evalue_objet(const Mikisa *mikisa)
 		return;
 	}
 
-	auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	if (operatrice->type() != OPERATRICE_SCENE) {
 		return;

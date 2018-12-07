@@ -142,7 +142,7 @@ void VisionneurScene::peint_opengl()
 	auto noeud = m_mikisa->derniere_scene_selectionnee;
 
 	if (noeud != nullptr) {
-		auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 		auto scene = operatrice->scene();
 		auto camera = scene->camera();
 
@@ -233,7 +233,7 @@ void VisionneurScene::peint_opengl()
 	noeud = m_mikisa->graphe->noeud_actif;
 
 	if (noeud != nullptr) {
-		auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 		if (operatrice->type() == OPERATRICE_OBJET && operatrice->objet()) {
 			auto objet = operatrice->objet();

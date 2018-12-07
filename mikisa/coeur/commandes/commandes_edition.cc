@@ -64,7 +64,7 @@ public:
 		}
 
 		auto noeud = graphe->noeud_actif;
-		auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 		auto attache = resultat.evalue_chaine("attache_propriete");
 		auto type = resultat.evalue_enum("type_propriete");
