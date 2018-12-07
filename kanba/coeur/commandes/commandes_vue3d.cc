@@ -204,7 +204,7 @@ Seau *cherche_seau(std::vector<Seau> &seaux, const dls::math::point2f &pos, int 
 
 	index = restreint(index, 0ul, seaux.size() - 1);
 
-	return &seaux[static_cast<size_t>(sx + sy * static_cast<float>(seaux_y))];
+	return &seaux[index];
 }
 
 class CommandePeinture3D : public Commande {

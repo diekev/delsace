@@ -65,8 +65,6 @@ kanba
 - BUGS
 -- dessin
 ---- les textures ayant des dimensions différentes ne rendent pas bien
--- peinture
----- crash aléatoire, liste texels nulle
 -- chargements
 ---- texture n'est pas bonne
 ---- calque actif n'est pas peignable
