@@ -338,7 +338,6 @@ BUGS
 -- taper sur entrée pour confirmer l'édition d'une chaine dans un dialogue confirme et ferme le dialogue
 -- l'inversion de l'étalonnage ne fonctionne pas correctement
 -- crash lors de l'évaluation d'une courbe ou d'une rampe lue depuis un fichier de sauvegarde, car les données de ces types ne sont pas écrits dans les fichiers.
--- les graphes des scènes et des objets ne sont pas écrits dans les fichiers de sauvegardes.
 
 ########
 kamikaze

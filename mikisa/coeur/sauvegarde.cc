@@ -35,10 +35,44 @@
 #include "composite.h"
 #include "mikisa.h"
 #include "noeud_image.h"
+#include "operatrice_graphe_maillage.h"
+#include "operatrice_graphe_pixel.h"
 #include "operatrice_image.h"
+#include "operatrice_objet.h"
+#include "operatrice_scene.h"
 #include "usine_operatrice.h"
 
 namespace coeur {
+
+static Graphe *graphe_operatrice(OperatriceImage *operatrice)
+{
+	switch (operatrice->type()) {
+		default:
+		{
+			return nullptr;
+		}
+		case OPERATRICE_SCENE:
+		{
+			auto op_scene = dynamic_cast<OperatriceScene *>(operatrice);
+			return op_scene->graphe();
+		}
+		case OPERATRICE_OBJET:
+		{
+			auto op_objet = dynamic_cast<OperatriceObjet *>(operatrice);
+			return op_objet->graphe();
+		}
+		case OPERATRICE_GRAPHE_MAILLAGE:
+		{
+			auto op_maillage = dynamic_cast<OperatriceGrapheMaillage *>(operatrice);
+			return op_maillage->graphe();
+		}
+		case OPERATRICE_GRAPHE_PIXEL:
+		{
+			auto op_pixel = dynamic_cast<OperatriceGraphePixel *>(operatrice);
+			return op_pixel->graphe();
+		}
+	}
+}
 
 static std::string id_depuis_pointeur(void *pointeur)
 {
@@ -174,23 +208,12 @@ static void sauvegarde_proprietes(
 	}
 }
 
-erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Mikisa &mikisa)
+static void ecris_graphe(
+		tinyxml2::XMLDocument &doc,
+		tinyxml2::XMLElement *racine_graphe,
+		Graphe const &graphe)
 {
-	tinyxml2::XMLDocument doc;
-	doc.InsertFirstChild(doc.NewDeclaration());
-
-	auto racine_projet = doc.NewElement("projet");
-	doc.InsertEndChild(racine_projet);
-
-	/* Écriture du composite. */
-	tinyxml2::XMLElement *racine_composite = doc.NewElement("composite");
-	racine_projet->InsertEndChild(racine_composite);
-
-	/* Écriture du graphe. */
-	tinyxml2::XMLElement *racine_graphe = doc.NewElement("graphe");
-	racine_composite->InsertEndChild(racine_graphe);
-
-	for (const auto &noeud : mikisa.composite->graph().noeuds()) {
+	for (const auto &noeud : graphe.noeuds()) {
 		/* Noeud */
 		auto element_noeud = doc.NewElement("noeud");
 		element_noeud->SetAttribute("nom", noeud->nom().c_str());
@@ -227,16 +250,44 @@ erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Mikisa &m
 
 		element_noeud->InsertEndChild(racine_prise_sortie);
 
-		/* Opérateur */
+		/* Opératrice */
 		auto operatrice = static_cast<OperatriceImage *>(noeud->donnees());
 		auto element_operatrice = doc.NewElement("operatrice");
 		element_operatrice->SetAttribute("nom", operatrice->class_name());
 
 		sauvegarde_proprietes(doc, element_operatrice, operatrice);
 
+		/* Graphe */
+		auto graphe_op = graphe_operatrice(operatrice);
+
+		if (graphe_op != nullptr) {
+			auto racine_graphe_op = doc.NewElement("graphe");
+			element_operatrice->InsertEndChild(racine_graphe_op);
+			ecris_graphe(doc, racine_graphe_op, *graphe_op);
+		}
+
 		element_noeud->InsertEndChild(element_operatrice);
 		racine_graphe->InsertEndChild(element_noeud);
 	}
+}
+
+erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Mikisa &mikisa)
+{
+	tinyxml2::XMLDocument doc;
+	doc.InsertFirstChild(doc.NewDeclaration());
+
+	auto racine_projet = doc.NewElement("projet");
+	doc.InsertEndChild(racine_projet);
+
+	/* Écriture du composite. */
+	tinyxml2::XMLElement *racine_composite = doc.NewElement("composite");
+	racine_projet->InsertEndChild(racine_composite);
+
+	/* Écriture du graphe. */
+	tinyxml2::XMLElement *racine_graphe = doc.NewElement("graphe");
+	racine_composite->InsertEndChild(racine_graphe);
+
+	ecris_graphe(doc, racine_graphe, mikisa.composite->graph());
 
 	const auto resultat = doc.SaveFile(chemin.c_str());
 
@@ -408,17 +459,22 @@ struct DonneesConnexions {
 	std::unordered_map<std::string, PriseSortie *> tableau_id_prise_sortie{};
 };
 
+static void lecture_graphe(
+		tinyxml2::XMLElement *element_objet,
+		Mikisa *mikisa,
+		Graphe *graphe);
+
 static void lecture_noeud(
 		tinyxml2::XMLElement *element_noeud,
 		Mikisa *mikisa,
-		Composite *composite,
+		Graphe *graphe,
 		DonneesConnexions &donnees_connexion)
 {
 	const auto nom_noeud = element_noeud->Attribute("nom");
 	const auto posx = element_noeud->Attribute("posx");
 	const auto posy = element_noeud->Attribute("posy");
 
-	Noeud *noeud = new Noeud;
+	Noeud *noeud = new Noeud(supprime_operatrice_image);
 	noeud->nom(nom_noeud);
 
 	const auto element_operatrice = element_noeud->FirstChildElement("operatrice");
@@ -428,10 +484,15 @@ static void lecture_noeud(
 	lecture_proprietes(element_operatrice, operatrice);
 	synchronise_donnees_operatrice(noeud);
 
-	composite->graph().ajoute(noeud);
+	graphe->ajoute(noeud);
 
 	if (std::strcmp(nom_operatrice, "Visionneur") == 0) {
 		noeud->type(NOEUD_IMAGE_SORTIE);
+		graphe->dernier_noeud_sortie = noeud;
+	}
+	else if (std::strcmp(nom_operatrice, "Sortie Corps") == 0) {
+		noeud->type(NOEUD_OBJET_SORTIE);
+		graphe->dernier_noeud_sortie = noeud;
 	}
 
 	noeud->pos_x(static_cast<float>(atoi(posx)));
@@ -458,20 +519,28 @@ static void lecture_noeud(
 
 		donnees_connexion.tableau_id_prise_sortie[id_prise] = noeud->sortie(nom_prise);
 	}
+
+	auto element_graphe = element_operatrice->FirstChildElement("graphe");
+
+	if (element_graphe == nullptr) {
+		return;
+	}
+
+	auto graphe_op = graphe_operatrice(operatrice);
+	lecture_graphe(element_graphe, mikisa, graphe_op);
 }
 
-static void lecture_graphe(
-		tinyxml2::XMLElement *element_objet,
+void lecture_graphe(
+		tinyxml2::XMLElement *racine_graphe,
 		Mikisa *mikisa,
-		Composite *composite)
+		Graphe *graphe)
 {
-	auto racine_graphe = element_objet->FirstChildElement("graphe");
 	auto element_noeud = racine_graphe->FirstChildElement("noeud");
 
 	DonneesConnexions donnees_connexions;
 
 	for (; element_noeud != nullptr; element_noeud = element_noeud->NextSiblingElement("noeud")) {
-		lecture_noeud(element_noeud, mikisa, composite, donnees_connexions);
+		lecture_noeud(element_noeud, mikisa, graphe, donnees_connexions);
 	}
 
 	/* Création des connexions. */
@@ -483,7 +552,7 @@ static void lecture_graphe(
 		const auto &pointer_a = donnees_connexions.tableau_id_prise_entree[id_a];
 
 		if (pointer_de && pointer_a) {
-			composite->graph().connecte(pointer_de, pointer_a);
+			graphe->connecte(pointer_de, pointer_a);
 		}
 	}
 }
@@ -515,7 +584,8 @@ erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa *mikisa)
 	}
 
 	/* Lecture du graphe. */
-	lecture_graphe(racine_composite, mikisa, composite);
+	auto racine_graphe = racine_composite->FirstChildElement("graphe");
+	lecture_graphe(racine_graphe, mikisa, &composite->graph());
 
 	mikisa->notifie_auditeurs(type_evenement::rafraichissement);
 
