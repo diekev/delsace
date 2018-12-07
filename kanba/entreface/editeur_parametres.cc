@@ -138,7 +138,6 @@ EditeurParametres::~EditeurParametres()
 {
 	delete m_vue;
 	delete m_scroll;
-	delete m_glayout;
 }
 
 void EditeurParametres::ajourne_etat(int /*evenement*/)
