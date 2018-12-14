@@ -58,7 +58,7 @@ inline static std::string node_id(const Noeud *noeud, bool quoted = true)
 inline size_t get_input_index(const PriseEntree *prise)
 {
 	auto i = 0ul;
-	for (const auto &entree : prise->parent->entrees()) {
+	for (auto const &entree : prise->parent->entrees()) {
 		if (entree->nom == prise->nom) {
 			return i;
 		}
@@ -72,7 +72,7 @@ inline size_t get_input_index(const PriseEntree *prise)
 inline size_t get_output_index(const PriseSortie *prise)
 {
 	auto i = 0ul;
-	for (const auto &sortie : prise->parent->sorties()) {
+	for (auto const &sortie : prise->parent->sorties()) {
 		if (sortie->nom == prise->nom) {
 			return i;
 		}
@@ -136,15 +136,15 @@ inline void dump_node(numero7::systeme_fichier::File &file, Noeud *noeud)
 	file.print("label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">");
 	file.print("<TR><TD COLSPAN=\"2\">%s</TD></TR>", noeud->nom().c_str());
 
-	const auto numin = noeud->entrees().size();
-	const auto numout = noeud->sorties().size();
+	auto const numin = noeud->entrees().size();
+	auto const numout = noeud->sorties().size();
 
 	for (size_t i = 0; (i < numin) || (i < numout); ++i) {
 		file.print("<TR>");
 
 		if (i < numin) {
-			const auto &input = noeud->entree(i);
-			const auto &name_in = input->nom;
+			auto const &input = noeud->entree(i);
+			auto const &name_in = input->nom;
 
 			file.print("<TD");
 			file.print(" PORT=%s", input_id(input, i).c_str());
@@ -159,8 +159,8 @@ inline void dump_node(numero7::systeme_fichier::File &file, Noeud *noeud)
 		}
 
 		if (i < numout) {
-			const auto &output = noeud->sortie(i);
-			const auto &name_out = output->nom;
+			auto const &output = noeud->sortie(i);
+			auto const &name_out = output->nom;
 
 			file.print("<TD");
 			file.print(" PORT=%s", output_id(output, i).c_str());
@@ -210,7 +210,7 @@ inline void dump_link(numero7::systeme_fichier::File &file, const PriseSortie *d
 
 inline void dump_node_links(numero7::systeme_fichier::File &file, const Noeud *noeud)
 {
-	for (const auto &entree : noeud->entrees()) {
+	for (auto const &entree : noeud->entrees()) {
 		if (entree->lien) {
 			dump_link(file, entree->lien, entree);
 		}
@@ -238,11 +238,11 @@ void GraphDumper::operator()(const std::experimental::filesystem::path &path)
 	file.print("label=\"Object Graph\"");
 	file.print("]\n");
 
-	for (const auto &noeud : m_graph->noeuds()) {
+	for (auto const &noeud : m_graph->noeuds()) {
 		dump_node(file, noeud.get());
 	}
 
-	for (const auto &noeud : m_graph->noeuds()) {
+	for (auto const &noeud : m_graph->noeuds()) {
 		dump_node_links(file, noeud.get());
 	}
 
@@ -306,7 +306,7 @@ kmkz_inline void dump_node(numero7::systeme_fichier::File &file, DepsNode *node)
 	constexpr auto fillcolor = "gainsboro";
 	auto penwidth = 1.0;
 
-	const auto ob_name = node->name();
+	auto const ob_name = node->name();
 
 	file.print("// %s\n", ob_name);
 	file.print("%s", node_id(node).c_str());
@@ -317,8 +317,8 @@ kmkz_inline void dump_node(numero7::systeme_fichier::File &file, DepsNode *node)
 
 	file.print("<TR>");
 
-	const auto &input = node->input();
-	const auto &name_in = "Parent";
+	auto const &input = node->input();
+	auto const &name_in = "Parent";
 
 	file.print("<TD");
 	file.print(" PORT=%s", input_id(input).c_str());
@@ -328,8 +328,8 @@ kmkz_inline void dump_node(numero7::systeme_fichier::File &file, DepsNode *node)
 	file.print("%s", name_in);
 	file.print("</TD>");
 
-	const auto &output = node->output();
-	const auto &name_out = "Child";
+	auto const &output = node->output();
+	auto const &name_out = "Child";
 
 	file.print("<TD");
 	file.print(" PORT=%s", output_id(output).c_str());
@@ -376,7 +376,7 @@ kmkz_inline void dump_link(numero7::systeme_fichier::File &file,
 
 kmkz_inline void dump_node_links(numero7::systeme_fichier::File &file, const DepsNode *node)
 {
-	for (const auto &output : node->input()->links) {
+	for (auto const &output : node->input()->links) {
 		dump_link(file, output, node->input());
 	}
 }
@@ -402,11 +402,11 @@ void DepsGraphDumper::operator()(const std::experimental::filesystem::path &path
 	file.print("label=\"Dependency Graph\"");
 	file.print("]\n");
 
-	for (const auto &node : m_graph->nodes()) {
+	for (auto const &node : m_graph->nodes()) {
 		dump_node(file, node.get());
 	}
 
-	for (const auto &node : m_graph->nodes()) {
+	for (auto const &node : m_graph->nodes()) {
 		dump_node_links(file, node.get());
 	}
 

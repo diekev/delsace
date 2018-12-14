@@ -53,7 +53,7 @@ void Commande::termine_execution_modale(
 
 void UsineCommande::enregistre_type(const std::string &nom, const DescriptionCommande &description)
 {
-	const auto iter = m_tableau.find(nom);
+	auto const iter = m_tableau.find(nom);
 	assert(iter == m_tableau.end());
 
 	m_tableau[nom] = description;
@@ -61,7 +61,7 @@ void UsineCommande::enregistre_type(const std::string &nom, const DescriptionCom
 
 Commande *UsineCommande::operator()(const std::string &nom)
 {
-	const auto iter = m_tableau.find(nom);
+	auto const iter = m_tableau.find(nom);
 	assert(iter != m_tableau.end());
 
 	const DescriptionCommande &desc = iter->second;
@@ -71,7 +71,7 @@ Commande *UsineCommande::operator()(const std::string &nom)
 
 Commande *UsineCommande::trouve_commande(const std::string &categorie, DonneesCommande &donnees_commande)
 {
-	for (const auto &donnees : m_tableau) {
+	for (auto const &donnees : m_tableau) {
 		const DescriptionCommande &desc = donnees.second;
 
 		if (desc.categorie != categorie) {

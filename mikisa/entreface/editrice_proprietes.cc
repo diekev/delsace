@@ -100,9 +100,9 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	if (operatrice->avertissements().size() > 0) {
 		auto disposition_avertissements = new QGridLayout();
 		auto ligne = 0;
-		const auto &pixmap = QPixmap("icones/icone_avertissement.png");
+		auto const &pixmap = QPixmap("icones/icone_avertissement.png");
 
-		for (const auto &avertissement : operatrice->avertissements()) {
+		for (auto const &avertissement : operatrice->avertissements()) {
 			auto icone = new QLabel();
 			icone->setPixmap(pixmap);
 
@@ -129,7 +129,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	const auto &texte = danjo::contenu_fichier(operatrice->chemin_entreface());
+	auto const &texte = danjo::contenu_fichier(operatrice->chemin_entreface());
 
 	if (texte.empty()) {
 		return;

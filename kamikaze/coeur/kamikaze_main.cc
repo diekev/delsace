@@ -163,12 +163,12 @@ std::string Main::requiers_dialogue(int type)
 {
 	/* À FAIRE : sort ça de la classe. */
 	if (type == FICHIER_OUVERTURE) {
-		const auto chemin = QFileDialog::getOpenFileName();
+		auto const chemin = QFileDialog::getOpenFileName();
 		return chemin.toStdString();
 	}
 
 	if (type == FICHIER_SAUVEGARDE) {
-		const auto chemin = QFileDialog::getSaveFileName();
+		auto const chemin = QFileDialog::getSaveFileName();
 		return chemin.toStdString();
 	}
 

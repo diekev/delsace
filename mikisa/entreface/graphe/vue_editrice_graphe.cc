@@ -131,7 +131,7 @@ void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
 		m_base->rend_actif();
 	}
 
-	const auto position = mapToScene(event->pos());
+	auto const position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
 	donnees.souris = Qt::LeftButton;
@@ -150,7 +150,7 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 	//			m_gestionnaire->ajourne_menu("Éditeur Noeud");
 	//			m_menu_contexte->popup(event->globalPos());
 
-	const auto position = mapToScene(event->pos());
+	auto const position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
 	donnees.souris = event->button();
@@ -165,7 +165,7 @@ void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 {
 	m_base->rend_actif();
 
-	const auto position = mapToScene(event->pos());
+	auto const position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
 	donnees.double_clique = true;
@@ -181,7 +181,7 @@ void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 {
 	m_base->rend_actif();
 
-	const auto position = mapToScene(event->pos());
+	auto const position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
 	donnees.x = static_cast<float>(position.x());

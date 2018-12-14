@@ -165,9 +165,9 @@ void EditeurCalques::ajourne_etat(int evenement)
 	if (dessine_arbre) {
 		m_widget_arbre->clear();
 
-		const auto &canaux = maillage->canaux_texture();
+		auto const &canaux = maillage->canaux_texture();
 
-		for (const auto calque : numero7::outils::inverse_iterateur(canaux.calques[TypeCanal::DIFFUSION])) {
+		for (auto const calque : numero7::outils::inverse_iterateur(canaux.calques[TypeCanal::DIFFUSION])) {
 			auto item = new ItemArbreCalque(calque);
 			auto bouton_visible = new BoutonItemCalque(calque, "visible");
 			auto bouton_peinture = new BoutonItemCalque(calque, "peinture");

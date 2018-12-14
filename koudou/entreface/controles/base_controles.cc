@@ -73,8 +73,8 @@ SelecteurFloat::SelecteurFloat(QWidget *parent)
 
 void SelecteurFloat::ValueChanged()
 {
-	const auto value = m_slider->value();
-	const auto fvalue = static_cast<double>(static_cast<float>(value) / m_scale);
+	auto const value = m_slider->value();
+	auto const fvalue = static_cast<double>(static_cast<float>(value) / m_scale);
 	m_spin_box->setValue(fvalue);
 	Q_EMIT(valeur_changee(fvalue));
 }
@@ -133,7 +133,7 @@ SelecteurInt::SelecteurInt(QWidget *parent)
 
 void SelecteurInt::ValueChanged()
 {
-	const auto value = m_slider->value();
+	auto const value = m_slider->value();
 	m_spin_box->setValue(value);
 	Q_EMIT(valeur_changee(value));
 }
@@ -242,7 +242,7 @@ void SelecteurFichier::setValue(const QString &text)
 
 void SelecteurFichier::setChoosenFile()
 {
-	const auto filename = m_input ? QFileDialog::getOpenFileName(this)
+	auto const filename = m_input ? QFileDialog::getOpenFileName(this)
 	                              : QFileDialog::getSaveFileName(this);
 
 	if (!filename.isEmpty()) {
@@ -351,7 +351,7 @@ void SelecteurCouleur::mouseReleaseEvent(QMouseEvent *e)
 	if (QRect(QPoint(0, 0), this->size()).contains(e->pos())) {
 		Q_EMIT(clicked());
 
-		const auto &color = QColorDialog::getColor(converti_couleur(m_color));
+		auto const &color = QColorDialog::getColor(converti_couleur(m_color));
 
 		if (color.isValid()) {
 			m_color[0] = static_cast<float>(color.redF());
@@ -369,12 +369,12 @@ void SelecteurCouleur::mouseReleaseEvent(QMouseEvent *e)
 void SelecteurCouleur::paintEvent(QPaintEvent *)
 {
 	QPainter painter(this);
-	const auto &rect = this->geometry();
+	auto const &rect = this->geometry();
 
 	auto color = converti_couleur(m_color);
 
-	const auto w = rect.width();
-	const auto h = rect.height();
+	auto const w = rect.width();
+	auto const h = rect.height();
 
 	painter.fillRect(0, 0, w, h, color);
 }

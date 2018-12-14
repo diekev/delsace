@@ -64,8 +64,8 @@ int OperatricePixel::execute(const Rectangle &rectangle, int temps)
 	{
 		for (size_t l = plage.begin(); l < plage.end(); ++l) {
 			for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {
-				const auto x = static_cast<float>(c) * largeur_inverse;
-				const auto y = static_cast<float>(l) * hauteur_inverse;
+				auto const x = static_cast<float>(c) * largeur_inverse;
+				auto const y = static_cast<float>(l) * hauteur_inverse;
 
 				tampon->valeur(c, l, this->evalue_pixel(tampon->valeur(c, l), x, y));
 			}

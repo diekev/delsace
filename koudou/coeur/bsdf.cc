@@ -149,8 +149,8 @@ void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parame
 	dir = -contexte.V;
 	pdf = 1.0;
 
-	const auto &rayon = contexte.rayon;
-	const auto &R = reflechi(rayon.direction, contexte.N);
+	auto const &rayon = contexte.rayon;
+	auto const &R = reflechi(rayon.direction, contexte.N);
 
 	Rayon rayon_local;
 	rayon_local.direction = R;
@@ -251,7 +251,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, 
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
 	pdf = 1.0;
 
-	const auto &rayon = contexte.rayon;
+	auto const &rayon = contexte.rayon;
 
 #ifdef ROULETTE_RUSSE
 	/* Calcul le fresnel. */
@@ -436,9 +436,9 @@ static void cree_base_orthonormal(
 		dls::math::vec3<T> &b0,
 		dls::math::vec3<T> &b1)
 {
-	const auto sign = std::copysign(static_cast<T>(1.0), n.z);
-	const auto a = static_cast<T>(-1.0) / (sign + n.z);
-	const auto b = n.x * n.y * a;
+	auto const sign = std::copysign(static_cast<T>(1.0), n.z);
+	auto const a = static_cast<T>(-1.0) / (sign + n.z);
+	auto const b = n.x * n.y * a;
 	b0 = dls::math::vec3<T>(1.0 + sign * n.x * n.x * a, sign * b, -sign * n.x);
 	b1 = dls::math::vec3<T>(b, sign + n.y * n.y * a, -n.y);
 }
@@ -530,6 +530,6 @@ double BSDFPhaseAnisotropique::calcul_pdf(double cos_theta) const
 
 double BSDFPhaseAnisotropique::inverse_cdf(double xi) const
 {
-	const auto t = (un_moins_g2) / (1.0 - g + 2.0 * g * xi);
+	auto const t = (un_moins_g2) / (1.0 - g + 2.0 * g * xi);
 	return un_sur_2g * (un_plus_g2 - t * t);
 }

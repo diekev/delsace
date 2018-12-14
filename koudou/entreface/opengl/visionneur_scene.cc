@@ -108,9 +108,9 @@ void VisionneurScene::peint_opengl()
 	m_koudou->camera->ajourne();
 
 	/* Met en place le contexte. */
-	const auto &MV = m_koudou->camera->MV();
-	const auto &P = m_koudou->camera->P();
-	const auto &MVP = P * MV;
+	auto const &MV = m_koudou->camera->MV();
+	auto const &P = m_koudou->camera->P();
+	auto const &MVP = P * MV;
 
 	m_contexte.vue(m_koudou->camera->dir());
 	m_contexte.modele_vue(MV);
@@ -127,8 +127,8 @@ void VisionneurScene::peint_opengl()
 	m_rendu_grille->dessine(m_contexte);
 
 #ifdef NOUVELLE_CAMERA
-	const auto transform = m_koudou->parametres_rendu.camera->camera_vers_monde();
-	const auto matrice = converti_matrice_glm(transform.matrice());
+	auto const transform = m_koudou->parametres_rendu.camera->camera_vers_monde();
+	auto const matrice = converti_matrice_glm(transform.matrice());
 
 	m_stack.pousse(matrice);
 	m_contexte.matrice_objet(m_stack.sommet());
@@ -156,10 +156,10 @@ void VisionneurScene::peint_opengl()
 		m_stack.enleve_sommet();
 	}
 
-	const auto fin = numero7::chronometrage::maintenant();
+	auto const fin = numero7::chronometrage::maintenant();
 
-	const auto temps = fin - m_debut;
-	const auto fps = static_cast<int>(1.0 / temps);
+	auto const temps = fin - m_debut;
+	auto const fps = static_cast<int>(1.0 / temps);
 
 	std::stringstream ss;
 	ss << fps << " IPS";

@@ -123,9 +123,9 @@ void VisionneurScene::peint_opengl()
 	m_camera->ajourne();
 
 	/* Met en place le contexte. */
-	const auto &MV = m_camera->MV();
-	const auto &P = m_camera->P();
-	const auto &MVP = P * MV;
+	auto const &MV = m_camera->MV();
+	auto const &P = m_camera->P();
+	auto const &MVP = P * MV;
 
 	m_contexte.vue(m_camera->dir());
 	m_contexte.modele_vue(MV);
@@ -209,10 +209,10 @@ void VisionneurScene::peint_opengl()
 
 	glEnable(GL_DEPTH_TEST);
 
-	const auto fin = numero7::chronometrage::maintenant();
+	auto const fin = numero7::chronometrage::maintenant();
 
-	const auto temps = fin - m_debut;
-	const auto fps = static_cast<int>(1.0 / temps);
+	auto const temps = fin - m_debut;
+	auto const fps = static_cast<int>(1.0 / temps);
 
 	std::stringstream ss;
 	ss << fps << " IPS";

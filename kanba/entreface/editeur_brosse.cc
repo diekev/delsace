@@ -148,7 +148,7 @@ void EditeurBrosse::ajourne_etat(int evenement)
 	donnees.manipulable = m_vue;
 	donnees.repondant_bouton = nullptr;
 
-	const auto contenu_fichier = danjo::contenu_fichier("scripts/brosse.jo");
+	auto const contenu_fichier = danjo::contenu_fichier("scripts/brosse.jo");
 	auto disposition = danjo::compile_entreface(donnees, contenu_fichier.c_str());
 
 	if (m_conteneur_disposition->layout()) {

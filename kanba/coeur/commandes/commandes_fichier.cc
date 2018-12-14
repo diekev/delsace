@@ -44,7 +44,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
-		const auto chemin_projet = kanba->requiers_dialogue(FICHIER_OUVERTURE);
+		auto const chemin_projet = kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
 		if (chemin_projet.empty()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -436,7 +436,7 @@ static void ecris_canaux(std::ofstream &fichier, CanauxTexture &canaux)
 
 	auto resolution = canaux.hauteur * canaux.largeur;
 
-	for (const auto &calque : canaux.calques[TypeCanal::DIFFUSION]) {
+	for (auto const &calque : canaux.calques[TypeCanal::DIFFUSION]) {
 		size_t taille_tampon = resolution;
 
 		switch (calque->type_donnees) {
@@ -460,7 +460,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
-		const auto chemin_projet = "/home/kevin/test.cnvs" ;// kanba->requiers_dialogue(FICHIER_OUVERTURE);
+		auto const chemin_projet = "/home/kevin/test.cnvs" ;// kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
 //		if (chemin_projet.empty()) {
 //			return;
@@ -529,7 +529,7 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		const auto chemin_projet = "/home/kevin/test.cnvs" ;// kanba->requiers_dialogue(FICHIER_OUVERTURE);
+		auto const chemin_projet = "/home/kevin/test.cnvs" ;// kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
 //		if (chemin_projet.empty()) {
 //			return;

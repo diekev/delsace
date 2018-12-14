@@ -99,11 +99,11 @@ void VueParametres::ajourne_donnees()
 	m_koudou->parametres_rendu.largeur_carreau = static_cast<unsigned>(evalue_int("largeur_carreau"));
 	m_koudou->parametres_rendu.hauteur_carreau = static_cast<unsigned>(evalue_int("hauteur_carreau"));
 
-	const auto resolution = static_cast<unsigned>(evalue_enum("resolution"));
+	auto const resolution = static_cast<unsigned>(evalue_enum("resolution"));
 
 	if (m_koudou->parametres_rendu.resolution != resolution) {
-		const auto largeur = numero7::math::Largeur(RESOLUTIONS[resolution][0]);
-		const auto hauteur = numero7::math::Hauteur(RESOLUTIONS[resolution][1]);
+		auto const largeur = numero7::math::Largeur(RESOLUTIONS[resolution][0]);
+		auto const hauteur = numero7::math::Hauteur(RESOLUTIONS[resolution][1]);
 
 		m_koudou->moteur_rendu->pointeur_pellicule()->redimensionne(hauteur, largeur);
 	}

@@ -160,8 +160,8 @@ void FenetrePrincipale::genere_menu_fichier()
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_repondant_commande;
 
-	for (const auto &chemin : chemins_scripts) {
-		const auto texte_entree = danjo::contenu_fichier(chemin);
+	for (auto const &chemin : chemins_scripts) {
+		auto const texte_entree = danjo::contenu_fichier(chemin);
 		auto menu = m_gestionnaire->compile_menu(donnees, texte_entree.c_str());
 
 		if (menu == nullptr) {
@@ -184,7 +184,7 @@ void FenetrePrincipale::genere_menu_noeud()
 
 	ss << "menu \"Ajoute Noeud\" {\n";
 
-	for (const auto &categorie : categories) {
+	for (auto const &categorie : categories) {
 		ss << "\tmenu \"" << categorie << "\" {\n";
 
 		auto cles = m_main->usine_operatrice().cles(categorie);
@@ -195,7 +195,7 @@ void FenetrePrincipale::genere_menu_noeud()
 			return desc1.nom < desc2.nom;
 		});
 
-		for (const auto &description : cles) {
+		for (auto const &description : cles) {
 			ss << "\t\taction(valeur=\"" << description.nom
 			   << "\"; attache=ajouter_noeud; métadonnée=\""
 			   << description.nom << "\")\n";
@@ -222,7 +222,7 @@ void FenetrePrincipale::genere_menu_prereglages()
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_repondant_commande;
 
-	const auto texte_entree = danjo::contenu_fichier("entreface/menu_prereglage.jo");
+	auto const texte_entree = danjo::contenu_fichier("entreface/menu_prereglage.jo");
 
 	auto barre_outil = m_gestionnaire->compile_barre_outils(donnees, texte_entree.c_str());
 	addToolBar(Qt::TopToolBarArea, barre_outil);
@@ -232,9 +232,9 @@ void FenetrePrincipale::charge_reglages()
 {
 	QSettings settings;
 
-	const auto &recent_files = settings.value("projet_récents").toStringList();
+	auto const &recent_files = settings.value("projet_récents").toStringList();
 
-	for (const auto &file : recent_files) {
+	for (auto const &file : recent_files) {
 		if (QFile(file).exists()) {
 			m_main->ajoute_fichier_recent(file.toStdString());
 		}
@@ -246,7 +246,7 @@ void FenetrePrincipale::ecrit_reglages() const
 	QSettings settings;
 	QStringList recent;
 
-	for (const auto &fichier_recent : m_main->fichiers_recents()) {
+	for (auto const &fichier_recent : m_main->fichiers_recents()) {
 		recent.push_front(fichier_recent.c_str());
 	}
 
@@ -378,7 +378,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 	donnees.attache = "ouvrir_fichier_recent";
 	donnees.repondant_bouton = m_repondant_commande;
 
-	for (const auto &fichier_recent : m_main->fichiers_recents()) {
+	for (auto const &fichier_recent : m_main->fichiers_recents()) {
 		auto name = QFileInfo(fichier_recent.c_str()).fileName();
 
 		donnees.nom = name.toStdString();

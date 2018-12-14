@@ -49,7 +49,7 @@ void boucle_parallele(
 		TypeOp &&operation,
 		typename TypePlage::const_iterator taille_grain = 1)
 {
-	const auto taille = taille_plage(plage);
+	auto const taille = taille_plage(plage);
 
 	if (taille == 0) {
 		return;

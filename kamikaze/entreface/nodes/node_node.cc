@@ -231,8 +231,8 @@ void QtNode::adjustWidthForTitle()
 void QtNode::redraw()
 {
 	/* Redraw the node */
-	const auto halfWidth = 0.5 * m_width;
-	const auto offset = 0.5 * (NODE_HEADER_HEIGHT - NODE_HEADER_ICON_SIZE);
+	auto const halfWidth = 0.5 * m_width;
+	auto const offset = 0.5 * (NODE_HEADER_HEIGHT - NODE_HEADER_ICON_SIZE);
 
 	auto p = QPainterPath{};
 	p.addRoundedRect(-halfWidth, 0, m_width, m_header_height, 4, 5);
@@ -288,8 +288,8 @@ void QtNode::alignTitle(Alignment alignment)
 
 void QtNode::setTitlePosition()
 {
-	const auto halfWidth = 0.5 * m_width;
-	const auto offset = 0.5 * (m_header_height - m_icon_size);
+	auto const halfWidth = 0.5 * m_width;
+	auto const offset = 0.5 * (m_header_height - m_icon_size);
 
 	switch (m_title_alignment) {
 		case ALIGNED_LEFT:
@@ -534,7 +534,7 @@ void QtNode::pointeur_noeud(Noeud *noeud)
 {
 	m_data = noeud;
 
-	for (const auto &entree : noeud->entrees()) {
+	for (auto const &entree : noeud->entrees()) {
 		createPort(entree->nom.c_str(),
 		           NODE_PORT_TYPE_INPUT,
 		           QColor(95, 95, 95),
@@ -542,7 +542,7 @@ void QtNode::pointeur_noeud(Noeud *noeud)
 		           QColor(95, 95, 95));
 	}
 
-	for (const auto &sortie : noeud->sorties()) {
+	for (auto const &sortie : noeud->sorties()) {
 		createPort(sortie->nom.c_str(),
 		           NODE_PORT_TYPE_OUTPUT,
 		           QColor(95, 95, 95),
@@ -550,7 +550,7 @@ void QtNode::pointeur_noeud(Noeud *noeud)
 		           QColor(95, 95, 95));
 	}
 
-	const auto &path = noeud->operatrice()->chemin_icone();
+	auto const &path = noeud->operatrice()->chemin_icone();
 
 	if (path.empty()) {
 		return;

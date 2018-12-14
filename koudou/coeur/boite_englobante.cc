@@ -38,18 +38,18 @@ BoiteEnglobante::BoiteEnglobante(const dls::math::point3d &p1, const dls::math::
 
 bool BoiteEnglobante::chevauchement(const BoiteEnglobante &boite)
 {
-	const auto x = (max[0] >= boite.min[0]) && (min[0] <= boite.max[0]);
-	const auto y = (max[1] >= boite.min[1]) && (min[1] <= boite.max[1]);
-	const auto z = (max[2] >= boite.min[2]) && (min[2] <= boite.max[2]);
+	auto const x = (max[0] >= boite.min[0]) && (min[0] <= boite.max[0]);
+	auto const y = (max[1] >= boite.min[1]) && (min[1] <= boite.max[1]);
+	auto const z = (max[2] >= boite.min[2]) && (min[2] <= boite.max[2]);
 
 	return x && y && z;
 }
 
 bool BoiteEnglobante::contient(const dls::math::point3d &point)
 {
-	const auto x = (point[0] >= min[0]) && (point[0] <= max[0]);
-	const auto y = (point[1] >= min[1]) && (point[1] <= max[1]);
-	const auto z = (point[2] >= min[2]) && (point[2] <= max[2]);
+	auto const x = (point[0] >= min[0]) && (point[0] <= max[0]);
+	auto const y = (point[1] >= min[1]) && (point[1] <= max[1]);
+	auto const z = (point[2] >= min[2]) && (point[2] <= max[2]);
 
 	return x && y && z;
 }
@@ -64,19 +64,19 @@ void BoiteEnglobante::etend(double delta)
 
 double BoiteEnglobante::aire_surface() const
 {
-	const auto d = max - min;
+	auto const d = max - min;
 	return 2.0 * (d.x * d.y + d.x * d.z + d.y * d.z);
 }
 
 double BoiteEnglobante::volume() const
 {
-	const auto d = max - min;
+	auto const d = max - min;
 	return (d.x * d.y * d.z);
 }
 
 int BoiteEnglobante::ampleur_maximale() const
 {
-	const auto diagonale = max - min;
+	auto const diagonale = max - min;
 
 	if (diagonale.x > diagonale.y && diagonale.x > diagonale.z) {
 		return 0;

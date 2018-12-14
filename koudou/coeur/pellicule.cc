@@ -73,13 +73,13 @@ void Pellicule::creer_image()
 		return;
 	}
 
-	const auto &hauteur = m_matrice.nombre_lignes();
-	const auto &largeur = m_matrice.nombre_colonnes();
+	auto const &hauteur = m_matrice.nombre_lignes();
+	auto const &largeur = m_matrice.nombre_colonnes();
 	auto index = 0ul;
 
 	for (int i = 0; i < hauteur; ++i) {
 		for (int j = 0; j < largeur; ++j, ++index) {
-			const auto &pixel_pellicule = m_pixels_pellicule[index];
+			auto const &pixel_pellicule = m_pixels_pellicule[index];
 
 			if (pixel_pellicule.poids == 0.0) {
 				m_matrice[i][j] = dls::math::vec3d(0.0);

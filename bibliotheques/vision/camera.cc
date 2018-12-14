@@ -33,7 +33,7 @@ namespace vision {
 /* retourne deux solutions, pour pouvoir choisir la meilleure */
 void angles_euler_depuis_matrice(const dls::math::mat4x4f &matrice, dls::math::vec3f &angle1, dls::math::vec3f &angle2)
 {
-	const auto sy = std::hypot(matrice[0][0], matrice[0][1]);
+	auto const sy = std::hypot(matrice[0][0], matrice[0][1]);
 
 	if (sy > 1e-6f) {
 		angle1.x = std::atan2( matrice[1][2], matrice[2][2]);
@@ -57,8 +57,8 @@ void angles_euler_depuis_matrice(const dls::math::mat4x4f &matrice, dls::math::v
 	dls::math::vec3f angle2;
 	angles_euler_depuis_matrice(matrice, angle1, angle2);
 
-	const auto a = std::abs(angle1.x) + std::abs(angle1.y) + std::abs(angle1.z);
-	const auto b = std::abs(angle2.x) + std::abs(angle2.y) + std::abs(angle2.z);
+	auto const a = std::abs(angle1.x) + std::abs(angle1.y) + std::abs(angle1.z);
+	auto const b = std::abs(angle2.x) + std::abs(angle2.y) + std::abs(angle2.z);
 
 	/* retourne la meilleure, qui est celle avec les valeurs les plus basses */
 	if (a > b) {
@@ -257,7 +257,7 @@ dls::math::vec3f Camera3D::pos() const
 
 dls::math::point2f Camera3D::pos_ecran(const dls::math::point3f &pos)
 {
-	const auto &point = dls::math::projette(
+	auto const &point = dls::math::projette(
 							dls::math::vec3f(pos.x, pos.y, pos.z),
 							MV(),
 							P(),
@@ -309,14 +309,14 @@ void Camera3D::rotation(const dls::math::vec3f &r)
 void Camera3D::ajourne_projection()
 {
 	if (m_type_projection == TypeProjection::ORTHOGRAPHIQUE) {
-		const auto largeur = m_distance * 0.5f;
-		const auto hauteur = largeur / m_aspect;
+		auto const largeur = m_distance * 0.5f;
+		auto const hauteur = largeur / m_aspect;
 
 		m_projection = dls::math::ortho(-largeur, largeur, -hauteur, hauteur, m_proche, m_eloigne);
 	}
 	else {
 		/* À FAIRE : perspective prend des degrées mais devrait prendre des radians. */
-		const auto champs_de_vue = dls::math::radians_vers_degrees(2.0f * std::atan(0.5f * m_largeur_senseur / m_longueur_focale));
+		auto const champs_de_vue = dls::math::radians_vers_degrees(2.0f * std::atan(0.5f * m_largeur_senseur / m_longueur_focale));
 		m_projection = dls::math::perspective(champs_de_vue, m_aspect, m_proche, m_eloigne);
 	}
 }
@@ -360,20 +360,20 @@ float Camera3D::eloigne() const
 #else
 Rayon Camera3D::genere_rayon(const EchantillonCamera &echantillon) const
 {
-	const auto &start = dls::math::deprojette(
+	auto const &start = dls::math::deprojette(
 							dls::math::vec3f(echantillon.x, hauteur() - echantillon.y, 0.0f),
 							MV(),
 							P(),
 							dls::math::vec4f(0, 0, largeur(), hauteur()));
 
-	const auto &end = dls::math::deprojette(
+	auto const &end = dls::math::deprojette(
 						  dls::math::vec3f(echantillon.x, hauteur() - echantillon.y, 1.0f),
 						  MV(),
 						  P(),
 						  dls::math::vec4f(0, 0, largeur(), hauteur()));
 
-	const auto origine = m_position;
-	const auto direction = dls::math::normalise(end - start);
+	auto const origine = m_position;
+	auto const direction = dls::math::normalise(end - start);
 
 	Rayon r;
 	r.origine = dls::math::point3d(origine.x, origine.y, origine.z);
@@ -403,7 +403,7 @@ Transformation perspective(double fov, double n, double f)
 								  0.0, 0.0, f / (f - n), -f * n / (f - n),
 								  0.0, 0.0, 1.0, 0.0});
 
-	const auto tan_angle_inv = 1.0 / (std::tan(fov / 2.0));
+	auto const tan_angle_inv = 1.0 / (std::tan(fov / 2.0));
 	return echelle(tan_angle_inv, tan_angle_inv, 1.0) * Transformation(matrice);
 }
 

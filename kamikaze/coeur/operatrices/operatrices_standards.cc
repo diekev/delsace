@@ -151,9 +151,9 @@ public:
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto echelle = evalue_decimal("échelle");
-		const auto taille = evalue_vecteur("taille") * echelle;
-		const auto centre = evalue_vecteur("centre");
+		auto const echelle = evalue_decimal("échelle");
+		auto const taille = evalue_vecteur("taille") * echelle;
+		auto const centre = evalue_vecteur("centre");
 
 		AdaptriceCreationMaillage adaptrice;
 		adaptrice.points = mesh->points();
@@ -214,13 +214,13 @@ public:
 	{
 		entree(0)->requiers_collection(m_collection, contexte, temps);
 
-		const auto translate = dls::math::vec3d(evalue_vecteur("translation"));
-		const auto rotate = dls::math::vec3d(evalue_vecteur("rotation"));
-		const auto scale = dls::math::vec3d(evalue_vecteur("taille"));
-		const auto pivot = dls::math::vec3d(evalue_vecteur("pivot"));
-		const auto uniform_scale = static_cast<double>(evalue_decimal("échelle"));
-		const auto transform_type = evalue_enum("ordre_transformation");
-		const auto rot_order = evalue_enum("ordre_rotation");
+		auto const translate = dls::math::vec3d(evalue_vecteur("translation"));
+		auto const rotate = dls::math::vec3d(evalue_vecteur("rotation"));
+		auto const scale = dls::math::vec3d(evalue_vecteur("taille"));
+		auto const pivot = dls::math::vec3d(evalue_vecteur("pivot"));
+		auto const uniform_scale = static_cast<double>(evalue_decimal("échelle"));
+		auto const transform_type = evalue_enum("ordre_transformation");
+		auto const rot_order = evalue_enum("ordre_rotation");
 		auto index_ordre = -1;
 
 		if (rot_order == "xyz") {
@@ -258,9 +258,9 @@ public:
 			dls::math::vec3d(0.0f, 0.0f, 1.0f),
 		};
 
-		const auto X = rot_ord[index_ordre][0];
-		const auto Y = rot_ord[index_ordre][1];
-		const auto Z = rot_ord[index_ordre][2];
+		auto const X = rot_ord[index_ordre][0];
+		auto const Y = rot_ord[index_ordre][1];
+		auto const Z = rot_ord[index_ordre][2];
 
 		for (auto &prim : primitive_iterator(this->m_collection)) {
 			auto matrix = dls::math::mat4x4d(1.0);
@@ -336,13 +336,13 @@ public:
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto centre = evalue_vecteur("centre");
-		const auto echelle = evalue_decimal("échelle");
+		auto const centre = evalue_vecteur("centre");
+		auto const echelle = evalue_decimal("échelle");
 
-		const auto rayon_mineur = evalue_decimal("rayon_mineur") * echelle;
-		const auto rayon_majeur = evalue_decimal("rayon_majeur") * echelle;
-		const auto segment_mineur = static_cast<size_t>(evalue_entier("segments_mineurs"));
-		const auto segment_majeur = static_cast<size_t>(evalue_entier("segments_majeurs"));
+		auto const rayon_mineur = evalue_decimal("rayon_mineur") * echelle;
+		auto const rayon_majeur = evalue_decimal("rayon_majeur") * echelle;
+		auto const segment_mineur = static_cast<size_t>(evalue_entier("segments_mineurs"));
+		auto const segment_majeur = static_cast<size_t>(evalue_entier("segments_majeurs"));
 
 		AdaptriceCreationMaillage adaptrice;
 		adaptrice.points = mesh->points();
@@ -397,11 +397,11 @@ public:
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto taille = evalue_vecteur("taille");
-		const auto centre = evalue_vecteur("centre");
+		auto const taille = evalue_vecteur("taille");
+		auto const centre = evalue_vecteur("centre");
 
-		const auto lignes = static_cast<size_t>(evalue_entier("lignes"));
-		const auto colonnes = static_cast<size_t>(evalue_entier("colonnes"));
+		auto const lignes = static_cast<size_t>(evalue_entier("lignes"));
+		auto const colonnes = static_cast<size_t>(evalue_entier("colonnes"));
 
 		AdaptriceCreationMaillage adaptrice;
 		adaptrice.points = mesh->points();
@@ -457,8 +457,8 @@ public:
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto segments = static_cast<size_t>(evalue_entier("vertices"));
-		const auto rayon = evalue_decimal("rayon");
+		auto const segments = static_cast<size_t>(evalue_entier("vertices"));
+		auto const rayon = evalue_decimal("rayon");
 
 		/* À FAIRE : centre */
 
@@ -511,9 +511,9 @@ public:
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto segments = static_cast<size_t>(evalue_entier("vertices"));
-		const auto rayon = evalue_decimal("rayon");
-		const auto profondeur = evalue_decimal("profondeur");
+		auto const segments = static_cast<size_t>(evalue_entier("vertices"));
+		auto const rayon = evalue_decimal("rayon");
+		auto const profondeur = evalue_decimal("profondeur");
 
 		/* À FAIRE : centre */
 
@@ -567,10 +567,10 @@ public:
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto segments = static_cast<size_t>(evalue_entier("vertices"));
-		const auto rayon1 = evalue_decimal("rayon_mineur");
-		const auto rayon2 = evalue_decimal("rayon_majeur");
-		const auto profondeur = evalue_decimal("profondeur");
+		auto const segments = static_cast<size_t>(evalue_entier("vertices"));
+		auto const rayon1 = evalue_decimal("rayon_mineur");
+		auto const rayon2 = evalue_decimal("rayon_majeur");
+		auto const profondeur = evalue_decimal("profondeur");
 
 		/* À FAIRE : centre */
 
@@ -621,7 +621,7 @@ public:
 		auto prim = m_collection->build("Mesh");
 		auto mesh = static_cast<Mesh *>(prim);
 
-		const auto rayon = evalue_decimal("rayon");
+		auto const rayon = evalue_decimal("rayon");
 
 		/* À FAIRE : centre */
 
@@ -675,7 +675,7 @@ public:
 	{
 		entree(0)->requiers_collection(m_collection, contexte, temps);
 
-		const auto flip = evalue_bool("inverse");
+		auto const flip = evalue_bool("inverse");
 
 		for (auto &prim : primitive_iterator(this->m_collection, Mesh::id)) {
 			auto mesh = static_cast<Mesh *>(prim);
@@ -729,7 +729,7 @@ public:
 
 	bool ajourne_proprietes() override
 	{
-		const auto bruit = evalue_enum("bruit");
+		auto const bruit = evalue_enum("bruit");
 
 		rend_propriete_visible("temps", bruit == "flux");
 
@@ -755,18 +755,18 @@ public:
 	{
 		entree(0)->requiers_collection(m_collection, contexte, temps);
 
-		const auto taille = evalue_decimal("taille");
-		const auto taille_inverse = (taille > 0.0f) ? 1.0f / taille : 0.0f;
-		const auto octaves = static_cast<size_t>(evalue_entier("octaves"));
-		const auto lacunarity = evalue_decimal("lacunarité");
-		const auto persistence = evalue_decimal("persistence");
-		const auto ofrequency = evalue_decimal("frequence");
-		const auto oamplitude = evalue_decimal("amplitude");
-		const auto direction = evalue_enum("direction");
-		const auto bruit = evalue_enum("bruit");
+		auto const taille = evalue_decimal("taille");
+		auto const taille_inverse = (taille > 0.0f) ? 1.0f / taille : 0.0f;
+		auto const octaves = static_cast<size_t>(evalue_entier("octaves"));
+		auto const lacunarity = evalue_decimal("lacunarité");
+		auto const persistence = evalue_decimal("persistence");
+		auto const ofrequency = evalue_decimal("frequence");
+		auto const oamplitude = evalue_decimal("amplitude");
+		auto const direction = evalue_enum("direction");
+		auto const bruit = evalue_enum("bruit");
 
 		if (bruit == "flux") {
-			const auto temps_bruit = evalue_decimal("temps");
+			auto const temps_bruit = evalue_decimal("temps");
 			m_bruit_flux.change_temps(temps_bruit);
 		}
 
@@ -800,9 +800,9 @@ public:
 
 			for (size_t i = 0, e = points->size(); i < e; ++i) {
 				auto &point = (*points)[i];
-				const auto x = point.x * taille_inverse;
-				const auto y = point.y * taille_inverse;
-				const auto z = point.z * taille_inverse;
+				auto const x = point.x * taille_inverse;
+				auto const y = point.y * taille_inverse;
+				auto const z = point.z * taille_inverse;
 				auto valeur = 0.0f;
 
 				auto frequency = ofrequency;
@@ -838,7 +838,7 @@ public:
 					point.z += valeur;
 				}
 				else if (direction == "normal") {
-					const auto normale = normales->vec3(i);
+					auto const normale = normales->vec3(i);
 					point.x += valeur * normale.x;
 					point.y += valeur * normale.y;
 					point.z += valeur * normale.z;
@@ -907,9 +907,9 @@ public:
 	{
 		entree(0)->requiers_collection(m_collection, contexte, temps);
 
-		const auto &methode = evalue_enum("méthode");
-		const auto &portee = evalue_enum("portée");
-		const auto &graine = evalue_entier("graine");
+		auto const &methode = evalue_enum("méthode");
+		auto const &portee = evalue_enum("portée");
+		auto const &graine = evalue_entier("graine");
 
 		std::mt19937 rng(static_cast<size_t>(19937 + graine));
 		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
@@ -930,7 +930,7 @@ public:
 			}
 
 			if (methode == "unique") {
-				const auto &color = evalue_couleur("color");
+				auto const &color = evalue_couleur("color");
 
 				for (size_t i = 0, e = colors->size(); i < e; ++i) {
 					colors->vec4(i, dls::math::vec4f(color.r, color.v, color.b, color.a));
@@ -943,7 +943,7 @@ public:
 					}
 				}
 				else if (portee == "primitive") {
-					const auto &color = dls::math::vec4f{dist(rng), dist(rng), dist(rng), 1.0f};
+					auto const &color = dls::math::vec4f{dist(rng), dist(rng), dist(rng), 1.0f};
 
 					for (size_t i = 0, e = colors->size(); i < e; ++i) {
 						colors->vec4(i, color);
@@ -1040,13 +1040,13 @@ public:
 		auto prim = m_collection->build("PrimPoints");
 		auto points = static_cast<PrimPoints *>(prim);
 
-		const auto &nombre_points = static_cast<size_t>(evalue_entier("nombre_points"));
+		auto const &nombre_points = static_cast<size_t>(evalue_entier("nombre_points"));
 
 		auto point_list = points->points();
 		point_list->resize(nombre_points);
 
-		const auto &limite_min = evalue_vecteur("limite_min");
-		const auto &limite_max = evalue_vecteur("limite_max");
+		auto const &limite_min = evalue_vecteur("limite_min");
+		auto const &limite_max = evalue_vecteur("limite_max");
 
 		std::uniform_real_distribution<float> dist_x(limite_min[0], limite_max[0]);
 		std::uniform_real_distribution<float> dist_y(limite_min[1], limite_max[1]);
@@ -1056,7 +1056,7 @@ public:
 		std::mt19937 rng_z(19937 + 2);
 
 		for (size_t i = 0; i < nombre_points; ++i) {
-			const auto &point = dls::math::vec3f(dist_x(rng_x), dist_y(rng_y), dist_z(rng_z));
+			auto const &point = dls::math::vec3f(dist_x(rng_x), dist_y(rng_y), dist_z(rng_z));
 			(*point_list)[i] = point;
 		}
 
@@ -1275,7 +1275,7 @@ public:
 
 	bool ajourne_proprietes() override
 	{
-		const auto distribution = evalue_enum("distribution");
+		auto const distribution = evalue_enum("distribution");
 
 		rend_propriete_visible("valeur", distribution == "constante");
 		rend_propriete_visible("min_value", distribution == "uniforme");
@@ -1355,14 +1355,14 @@ struct Triangle {
 std::vector<Triangle> convertis_maillage_triangles(const Mesh *maillage_entree)
 {
 	std::vector<Triangle> triangles;
-	const auto points = maillage_entree->points();
-	const auto polygones = maillage_entree->polys();
+	auto const points = maillage_entree->points();
+	auto const polygones = maillage_entree->polys();
 
 	/* Convertis le maillage en triangles. */
 	auto nombre_triangles = 0ul;
 
 	for (auto i = 0ul; i < polygones->size(); ++i) {
-		const auto polygone = (*polygones)[i];
+		auto const polygone = (*polygones)[i];
 
 		nombre_triangles += static_cast<size_t>((polygone[3] == static_cast<int>(INVALID_INDEX)) ? 1 : 2);
 	}
@@ -1370,7 +1370,7 @@ std::vector<Triangle> convertis_maillage_triangles(const Mesh *maillage_entree)
 	triangles.reserve(nombre_triangles);
 
 	for (auto i = 0ul; i < polygones->size(); ++i) {
-		const auto polygone = (*polygones)[i];
+		auto const polygone = (*polygones)[i];
 
 		Triangle triangle;
 		triangle.v0 = (*points)[static_cast<size_t>(polygone[0])];
@@ -1423,7 +1423,7 @@ public:
 		rend_propriete_visible("graine", methode == "polygones");
 		rend_propriete_visible("nombre_courbes", methode == "polygones");
 
-		const auto direction = evalue_enum("direction");
+		auto const direction = evalue_enum("direction");
 		rend_propriete_visible("normale", direction == "personnalisée");
 
 		return true;
@@ -1455,14 +1455,14 @@ public:
 			return;
 		}
 
-		const auto input_mesh = static_cast<Mesh *>(iter.get());
-		const auto input_points = input_mesh->points();
+		auto const input_mesh = static_cast<Mesh *>(iter.get());
+		auto const input_points = input_mesh->points();
 
-		const auto segment_number = static_cast<size_t>(evalue_entier("segments"));
-		const auto segment_normal = evalue_vecteur("normal");
-		const auto segment_size = evalue_decimal("taille");
-		const auto methode = evalue_enum("méthode");
-		const auto direction = evalue_enum("direction");
+		auto const segment_number = static_cast<size_t>(evalue_entier("segments"));
+		auto const segment_normal = evalue_vecteur("normal");
+		auto const segment_size = evalue_decimal("taille");
+		auto const methode = evalue_enum("méthode");
+		auto const direction = evalue_enum("direction");
 
 		auto segment_prim = static_cast<SegmentPrim *>(m_collection->build("SegmentPrim"));
 		auto output_edges = segment_prim->edges();
@@ -1471,7 +1471,7 @@ public:
 		auto num_points = 0ul;
 		auto total_points = 0ul;
 
-		const auto direction_normal = (direction == "normal");
+		auto const direction_normal = (direction == "normal");
 
 		if (methode == "vertices") {
 			Attribute *normales = nullptr;
@@ -1512,15 +1512,15 @@ public:
 		else if (methode == "polygones") {
 			auto triangles = convertis_maillage_triangles(input_mesh);
 
-			const auto nombre_courbes = static_cast<size_t>(evalue_entier("nombre_courbes"));
-			const auto nombre_polys = triangles.size();
+			auto const nombre_courbes = static_cast<size_t>(evalue_entier("nombre_courbes"));
+			auto const nombre_polys = triangles.size();
 
 			output_edges->reserve((nombre_courbes * segment_number) * nombre_polys);
 			output_points->reserve(total_points);
 
 			total_points = nombre_polys * nombre_courbes * (segment_number + 1);
 
-			const auto graine = evalue_entier("graine");
+			auto const graine = evalue_entier("graine");
 
 			std::mt19937 rng(static_cast<size_t>(19937 + graine));
 			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
@@ -1530,12 +1530,12 @@ public:
 			dls::math::vec3f normale;
 
 			for (const Triangle &triangle : triangles) {
-				const auto v0 = triangle.v0;
-				const auto v1 = triangle.v1;
-				const auto v2 = triangle.v2;
+				auto const v0 = triangle.v0;
+				auto const v1 = triangle.v1;
+				auto const v2 = triangle.v2;
 
-				const auto e0 = v1 - v0;
-				const auto e1 = v2 - v0;
+				auto const e0 = v1 - v0;
+				auto const e1 = v2 - v0;
 
 				normale = (direction_normal) ? dls::math::normalise(normale_triangle(v0, v1, v2)) : segment_normal;
 
@@ -1684,7 +1684,7 @@ public:
 
 	void execute(const Context &contexte, double temps) override
 	{
-		const auto prise = static_cast<size_t>(evalue_entier("prise"));
+		auto const prise = static_cast<size_t>(evalue_entier("prise"));
 		entree(prise)->requiers_collection(m_collection, contexte, temps);
 	}
 };
@@ -1737,30 +1737,30 @@ public:
 			return;
 		}
 
-		const auto maillage_entree = static_cast<Mesh *>(iter.get());
+		auto const maillage_entree = static_cast<Mesh *>(iter.get());
 
 		auto triangles = convertis_maillage_triangles(maillage_entree);
 
 		auto nuage_points = static_cast<PrimPoints *>(m_collection->build("PrimPoints"));
 		auto points_sorties = nuage_points->points();
 
-		const auto nombre_points_polys = static_cast<size_t>(evalue_entier("nombre_points_polys"));
-		const auto nombre_points = triangles.size() * nombre_points_polys;
+		auto const nombre_points_polys = static_cast<size_t>(evalue_entier("nombre_points_polys"));
+		auto const nombre_points = triangles.size() * nombre_points_polys;
 
 		points_sorties->reserve(nombre_points);
 
-		const auto graine = evalue_entier("graine");
+		auto const graine = evalue_entier("graine");
 
 		std::mt19937 rng(static_cast<size_t>(19937 + graine));
 		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
 		for (const Triangle &triangle : triangles) {
-			const auto v0 = triangle.v0;
-			const auto v1 = triangle.v1;
-			const auto v2 = triangle.v2;
+			auto const v0 = triangle.v0;
+			auto const v1 = triangle.v1;
+			auto const v2 = triangle.v2;
 
-			const auto e0 = v1 - v0;
-			const auto e1 = v2 - v0;
+			auto const e0 = v1 - v0;
+			auto const e1 = v2 - v0;
 
 			for (size_t j = 0; j < nombre_points_polys; ++j) {
 				/* Génère des coordonnées barycentriques aléatoires. */

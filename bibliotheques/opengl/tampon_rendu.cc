@@ -112,11 +112,11 @@ void TamponRendu::parametres_programme(const ParametresProgramme &parametres)
 {
 	m_programme.active();
 
-	for (const auto &attribut : parametres.attributs()) {
+	for (auto const &attribut : parametres.attributs()) {
 		m_programme.ajoute_attribut(attribut);
 	}
 
-	for (const auto &uniform : parametres.uniformes()) {
+	for (auto const &uniform : parametres.uniformes()) {
 		m_programme.ajoute_uniforme(uniform);
 	}
 

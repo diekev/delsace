@@ -48,19 +48,19 @@ void Calque::valeur(size_t x, size_t y, const numero7::image::Pixel<float> &pixe
 
 numero7::image::Pixel<float> Calque::echantillone(float x, float y) const
 {
-	const auto res_x = tampon.nombre_colonnes();
-	const auto res_y = tampon.nombre_lignes();
+	auto const res_x = tampon.nombre_colonnes();
+	auto const res_y = tampon.nombre_lignes();
 
-	const auto entier_x = static_cast<int>(x);
-	const auto entier_y = static_cast<int>(y);
+	auto const entier_x = static_cast<int>(x);
+	auto const entier_y = static_cast<int>(y);
 
-	const auto fract_x = x - static_cast<float>(entier_x);
-	const auto fract_y = y - static_cast<float>(entier_y);
+	auto const fract_x = x - static_cast<float>(entier_x);
+	auto const fract_y = y - static_cast<float>(entier_y);
 
-	const auto x1 = std::max(0, std::min(entier_x, res_x - 1));
-	const auto y1 = std::max(0, std::min(entier_y, res_y - 1));
-	const auto x2 = std::max(0, std::min(entier_x + 1, res_x - 1));
-	const auto y2 = std::max(0, std::min(entier_y + 1, res_y - 1));
+	auto const x1 = std::max(0, std::min(entier_x, res_x - 1));
+	auto const y1 = std::max(0, std::min(entier_y, res_y - 1));
+	auto const x2 = std::max(0, std::min(entier_x + 1, res_x - 1));
+	auto const y2 = std::max(0, std::min(entier_y + 1, res_y - 1));
 
 	auto valeur = numero7::image::Pixel<float>(0.0f);
 	valeur += fract_x * fract_y * tampon[y1][x1];
@@ -164,7 +164,7 @@ void EntreeOperatrice::requiers_image(
 		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 		operatrice->transfere_image(image);
 
-		for (const auto &calque : image.calques()) {
+		for (auto const &calque : image.calques()) {
 			m_liste_noms_calques.push_back(calque->nom);
 		}
 	}

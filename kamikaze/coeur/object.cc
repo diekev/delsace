@@ -88,9 +88,9 @@ const Graph *Object::graph() const
 
 void Object::updateMatrix()
 {
-	const auto m_pos = evalue_vecteur("position");
-	const auto m_rotation = evalue_vecteur("rotation");
-	const auto m_scale = evalue_vecteur("taille");
+	auto const m_pos = evalue_vecteur("position");
+	auto const m_rotation = evalue_vecteur("rotation");
+	auto const m_scale = evalue_vecteur("taille");
 
 	auto const angle_x = static_cast<double>(dls::math::degrees_vers_radians(m_rotation.x));
 	auto const angle_y = static_cast<double>(dls::math::degrees_vers_radians(m_rotation.y));

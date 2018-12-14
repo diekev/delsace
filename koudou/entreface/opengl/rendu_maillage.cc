@@ -178,10 +178,10 @@ void RenduMaillage::genere_tampon_normal()
 	sommets.reserve(static_cast<size_t>(nombre_triangle * 2));
 
 	for (const Triangle *triangle : *m_maillage) {
-		const auto &N = normalise(triangle->normal);
-		const auto &V = moyenne(triangle->v0, triangle->v1, triangle->v2);
+		auto const &N = normalise(triangle->normal);
+		auto const &V = moyenne(triangle->v0, triangle->v1, triangle->v2);
 
-		const auto &NV = V + N;
+		auto const &NV = V + N;
 
 		sommets.push_back(dls::math::vec3f(static_cast<float>(V.x), static_cast<float>(V.y), static_cast<float>(V.z)));
 		sommets.push_back(dls::math::vec3f(static_cast<float>(NV.x), static_cast<float>(NV.y), static_cast<float>(NV.z)));
@@ -234,7 +234,7 @@ void RenduMaillage::dessine(const ContexteRendu &contexte, const Scene &scene)
 	programme->uniforme("couleur", spectre[0], spectre[1], spectre[2], 1.0f);
 
 	/* À FAIRE : trouve les lumières les plus proches. */
-	const auto nombre_lumiere = std::min(8ul, scene.lumieres.size());
+	auto const nombre_lumiere = std::min(8ul, scene.lumieres.size());
 
 	for (size_t i = 0; i < nombre_lumiere; ++i) {
 		auto lumiere = scene.lumieres[i];

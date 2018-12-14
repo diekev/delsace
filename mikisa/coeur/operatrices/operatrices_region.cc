@@ -47,8 +47,8 @@
 template <typename TypeOperation>
 void applique_fonction(type_image &image, TypeOperation &&op)
 {
-	const auto res_x = image.nombre_colonnes();
-	const auto res_y = image.nombre_lignes();
+	auto const res_x = image.nombre_colonnes();
+	auto const res_y = image.nombre_lignes();
 
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
 					 [&](const tbb::blocked_range<int> &plage)
@@ -64,8 +64,8 @@ void applique_fonction(type_image &image, TypeOperation &&op)
 template <typename TypeOperation>
 void applique_fonction_position(type_image &image, TypeOperation &&op)
 {
-	const auto res_x = image.nombre_colonnes();
-	const auto res_y = image.nombre_lignes();
+	auto const res_x = image.nombre_colonnes();
+	auto const res_y = image.nombre_lignes();
 
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
 					 [&](const tbb::blocked_range<int> &plage)
@@ -137,7 +137,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto operation = evalue_enum("operation");
+		auto const operation = evalue_enum("operation");
 		auto filtre = -1;
 
 		if (operation == "gradient") {
@@ -153,7 +153,7 @@ public:
 			filtre = ANALYSE_COURBE;
 		}
 
-		const auto direction = evalue_enum("direction");
+		auto const direction = evalue_enum("direction");
 		auto dir = -1;
 
 		if (direction == "dir_x") {
@@ -171,7 +171,7 @@ public:
 		auto dy0 = evalue_entier("dy0");
 		auto dy1 = evalue_entier("dy1");
 
-		const auto differentiation = evalue_enum("différentiation");
+		auto const differentiation = evalue_enum("différentiation");
 
 		if (differentiation == "arrière") {
 			dx0 = -dx0;
@@ -501,13 +501,13 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto largeur = static_cast<size_t>(tampon->tampon.nombre_colonnes());
-		const auto hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
+		auto const largeur = static_cast<size_t>(tampon->tampon.nombre_colonnes());
+		auto const hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
 
 		numero7::math::matrice<numero7::image::Pixel<float>> image_tmp(tampon->tampon.dimensions());
 
-		const auto rayon_flou = evalue_decimal("rayon", temps);
-		const auto type_flou = evalue_enum("type");
+		auto const rayon_flou = evalue_decimal("rayon", temps);
+		auto const type_flou = evalue_enum("type");
 
 		/* construit le kernel du flou */
 		auto rayon = rayon_flou;
@@ -549,8 +549,8 @@ public:
 			valeur.a = tampon->valeur(x, y).a;
 
 			for (size_t ix = x - static_cast<size_t>(rayon), k = 0; ix < x + static_cast<size_t>(rayon) + 1; ix++, ++k) {
-				const auto xx = std::min(largeur - 1, std::max(0ul, ix));
-				const auto &p = tampon->valeur(xx, y);
+				auto const xx = std::min(largeur - 1, std::max(0ul, ix));
+				auto const &p = tampon->valeur(xx, y);
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
 				valeur.b += p.b * kernel[k];
@@ -578,8 +578,8 @@ public:
 			valeur.a = tampon->valeur(x, y).a;
 
 			for (size_t iy = y - static_cast<size_t>(rayon), k = 0; iy < y + static_cast<size_t>(rayon) + 1; iy++, ++k) {
-				const auto yy = std::min(hauteur - 1, std::max(0ul, iy));
-				const auto &p = tampon->valeur(x, yy);
+				auto const yy = std::min(hauteur - 1, std::max(0ul, iy));
+				auto const &p = tampon->valeur(x, yy);
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
 				valeur.b += p.b * kernel[k];
@@ -638,26 +638,26 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto &hauteur = tampon->tampon.nombre_lignes();
-		const auto &largeur = tampon->tampon.nombre_colonnes();
-		const auto &hauteur_inverse = 1.0f / static_cast<float>(hauteur);
-		const auto &largeur_inverse = 1.0f / static_cast<float>(largeur);
+		auto const &hauteur = tampon->tampon.nombre_lignes();
+		auto const &largeur = tampon->tampon.nombre_colonnes();
+		auto const &hauteur_inverse = 1.0f / static_cast<float>(hauteur);
+		auto const &largeur_inverse = 1.0f / static_cast<float>(largeur);
 
-		const auto decalage_x = evalue_decimal("décalage_x", temps);
-		const auto decalage_y = evalue_decimal("décalage_y", temps);
-		const auto taille = evalue_decimal("taille", temps);
-		const auto periodes = evalue_decimal("périodes", temps);
+		auto const decalage_x = evalue_decimal("décalage_x", temps);
+		auto const decalage_y = evalue_decimal("décalage_y", temps);
+		auto const taille = evalue_decimal("taille", temps);
+		auto const periodes = evalue_decimal("périodes", temps);
 
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
 								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
 		{
-			const auto fc = static_cast<float>(c) * largeur_inverse + decalage_x;
-			const auto fl = static_cast<float>(l) * hauteur_inverse + decalage_y;
+			auto const fc = static_cast<float>(c) * largeur_inverse + decalage_x;
+			auto const fl = static_cast<float>(l) * hauteur_inverse + decalage_y;
 
-			const auto rayon = std::hypot(fc, fl) * taille;
-			const auto angle = std::atan2(fl, fc) * periodes + rayon;
+			auto const rayon = std::hypot(fc, fl) * taille;
+			auto const angle = std::atan2(fl, fc) * periodes + rayon;
 
 			auto nc = rayon * std::cos(angle) * static_cast<float>(largeur) + 0.5f;
 			auto nl = rayon * std::sin(angle) * static_cast<float>(hauteur) + 0.5f;
@@ -729,7 +729,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto methode = evalue_enum("méthode");
+		auto const methode = evalue_enum("méthode");
 		auto image_grise = numero7::image::operation::luminance(tampon->tampon);
 		auto image_tampon = numero7::math::matrice<float>(tampon->tampon.dimensions());
 		auto valeur_iso = evalue_decimal("valeur_iso", temps);
@@ -870,21 +870,21 @@ public:
 		applique_fonction_position(image_tampon,
 								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
 		{
-			const auto c0 = std::min(res_x - 1, std::max(0, c - 1));
-			const auto c1 = std::min(res_x - 1, std::max(0, c + 1));
-			const auto l0 = std::min(res_y - 1, std::max(0, l - 1));
-			const auto l1 = std::min(res_y - 1, std::max(0, l + 1));
+			auto const c0 = std::min(res_x - 1, std::max(0, c - 1));
+			auto const c1 = std::min(res_x - 1, std::max(0, c + 1));
+			auto const l0 = std::min(res_y - 1, std::max(0, l - 1));
+			auto const l1 = std::min(res_y - 1, std::max(0, l + 1));
 
-			const auto x0 = moyenne(tampon2->tampon[l][c0]);
-			const auto x1 = moyenne(tampon2->tampon[l][c1]);
-			const auto y0 = moyenne(tampon2->tampon[l0][c]);
-			const auto y1 = moyenne(tampon2->tampon[l1][c]);
+			auto const x0 = moyenne(tampon2->tampon[l][c0]);
+			auto const x1 = moyenne(tampon2->tampon[l][c1]);
+			auto const y0 = moyenne(tampon2->tampon[l0][c]);
+			auto const y1 = moyenne(tampon2->tampon[l1][c]);
 
-			const auto pos_x = x1 - x0;
-			const auto pos_y = y1 - y0;
+			auto const pos_x = x1 - x0;
+			auto const pos_y = y1 - y0;
 
-			const auto x = static_cast<float>(c) + pos_x * static_cast<float>(res_x);
-			const auto y = static_cast<float>(l) + pos_y * static_cast<float>(res_y);
+			auto const x = static_cast<float>(c) + pos_x * static_cast<float>(res_x);
+			auto const y = static_cast<float>(l) + pos_y * static_cast<float>(res_y);
 
 			return tampon->echantillone(x, y);
 		});
@@ -901,7 +901,7 @@ public:
  * https://hal.archives-ouvertes.fr/hal-01358392/file/Film_grain_rendering_preprint.pdf
  */
 
-static const auto MAX_NIVEAU_GRIS = 255;
+static auto const MAX_NIVEAU_GRIS = 255;
 
 unsigned int poisson(const float u, const float lambda)
 {
@@ -974,8 +974,8 @@ static type_image_grise simule_grain_image(
 		const float sigma_rayon,
 		const float sigma_filtre)
 {
-	const auto res_x = image.nombre_colonnes();
-	const auto res_y = image.nombre_lignes();
+	auto const res_x = image.nombre_colonnes();
+	auto const res_y = image.nombre_lignes();
 
 	type_image_grise resultat(image.dimensions());
 
@@ -987,14 +987,14 @@ static type_image_grise simule_grain_image(
 
 	if (sigma_rayon > 0.0f) {
 		sigma = std::sqrt(std::log1p((sigma_rayon / rayon_grain) * (sigma_rayon / rayon_grain)));
-		const auto sigma2 = sigma * sigma;
+		auto const sigma2 = sigma * sigma;
 		mu = std::log(rayon_grain) - sigma2 / 2.0f;
-		const auto log_normal_quantile = std::exp(mu + sigma * normal_quantile);
+		auto const log_normal_quantile = std::exp(mu + sigma * normal_quantile);
 		rayon_max = log_normal_quantile;
 	}
 
-	const auto delta = 1.0f / std::ceil(1.0f / rayon_max);
-	const auto delta_inv = 1.0f / delta;
+	auto const delta = 1.0f / std::ceil(1.0f / rayon_max);
+	auto const delta_inv = 1.0f / delta;
 
 	std::mt19937 rng(graine);
 
@@ -1002,14 +1002,14 @@ static type_image_grise simule_grain_image(
 	std::vector<float> lambdas(MAX_NIVEAU_GRIS);
 
 	for (size_t i = 0; i < MAX_NIVEAU_GRIS; ++i) {
-		const auto u = static_cast<float>(i) / static_cast<float>(MAX_NIVEAU_GRIS);
-		const auto ag = 1.0f / std::ceil(1.0f / rayon_max);
-		const auto lambda_tmp = -((ag * ag) / (static_cast<float>(PI) * (rayon_max*rayon_max + sigma*sigma))) * std::log(1.0f - u);
+		auto const u = static_cast<float>(i) / static_cast<float>(MAX_NIVEAU_GRIS);
+		auto const ag = 1.0f / std::ceil(1.0f / rayon_max);
+		auto const lambda_tmp = -((ag * ag) / (static_cast<float>(PI) * (rayon_max*rayon_max + sigma*sigma))) * std::log(1.0f - u);
 		lambdas[i] = lambda_tmp;
 	}
 
 	/* précalcul des gaussiens */
-	const auto iter = 1; // nombre d'itération de la simulation de Monte-Carlo
+	auto const iter = 1; // nombre d'itération de la simulation de Monte-Carlo
 
 	std::vector<float> liste_gaussien_x(iter);
 	std::vector<float> liste_gaussien_y(iter);
@@ -1040,10 +1040,10 @@ static type_image_grise simule_grain_image(
 					auto gaussien_y = static_cast<float>(j) + sigma_filtre * liste_gaussien_y[k];
 
 					// obtiens la liste de cellule couvrant les balles (ig, jg)
-					const auto min_x = std::floor((gaussien_x - rayon_max) * delta_inv);
-					const auto max_x = std::floor((gaussien_x + rayon_max) * delta_inv);
-					const auto min_y = std::floor((gaussien_y - rayon_max) * delta_inv);
-					const auto max_y = std::floor((gaussien_y + rayon_max) * delta_inv);
+					auto const min_x = std::floor((gaussien_x - rayon_max) * delta_inv);
+					auto const max_x = std::floor((gaussien_x + rayon_max) * delta_inv);
+					auto const min_y = std::floor((gaussien_y - rayon_max) * delta_inv);
+					auto const max_y = std::floor((gaussien_y + rayon_max) * delta_inv);
 
 					for (int jd = static_cast<int>(min_y); jd <= static_cast<int>(max_y); ++jd) {
 						for (int id = static_cast<int>(min_x); id <= static_cast<int>(max_x); ++id) {
@@ -1052,10 +1052,10 @@ static type_image_grise simule_grain_image(
 							auto coin_y = delta*static_cast<float>(jd);
 
 							// échantillone image
-							const auto u = std::max(0.0f, std::min(1.0f, image[int(coin_y)][int(coin_x)]));
-							const auto index_u = static_cast<size_t>(u * MAX_NIVEAU_GRIS);
-							const auto lambda = lambdas[index_u];
-							const auto Q = poisson(U(rng_local), lambda);
+							auto const u = std::max(0.0f, std::min(1.0f, image[int(coin_y)][int(coin_x)]));
+							auto const index_u = static_cast<size_t>(u * MAX_NIVEAU_GRIS);
+							auto const lambda = lambdas[index_u];
+							auto const Q = poisson(U(rng_local), lambda);
 
 							for (unsigned l = 1; l <= Q; ++l) {
 								// prend un centre aléatoire d'une distribution uniforme dans un carré ([id, id+1), [jd, jd+1))
@@ -1128,7 +1128,7 @@ public:
 	{
 		input(0)->requiers_image(m_image, rectangle, temps);
 
-		const auto &nom_calque = evalue_chaine("nom_calque");
+		auto const &nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
 
 		if (tampon == nullptr) {
@@ -1137,27 +1137,27 @@ public:
 		}
 
 		/* parametres utilisateurs */
-		const auto &graine = evalue_entier("graine", temps) + temps;
+		auto const &graine = evalue_entier("graine", temps) + temps;
 
-		const auto &rayon_grain_r = evalue_decimal("rayon_grain_r", temps);
-		const auto &sigma_rayon_r = evalue_decimal("sigma_rayon_r", temps);
-		const auto &sigma_filtre_r = evalue_decimal("sigma_filtre_r", temps);
+		auto const &rayon_grain_r = evalue_decimal("rayon_grain_r", temps);
+		auto const &sigma_rayon_r = evalue_decimal("sigma_rayon_r", temps);
+		auto const &sigma_filtre_r = evalue_decimal("sigma_filtre_r", temps);
 
-		const auto &rayon_grain_v = evalue_decimal("rayon_grain_v", temps);
-		const auto &sigma_rayon_v = evalue_decimal("sigma_rayon_v", temps);
-		const auto &sigma_filtre_v = evalue_decimal("sigma_filtre_v", temps);
+		auto const &rayon_grain_v = evalue_decimal("rayon_grain_v", temps);
+		auto const &sigma_rayon_v = evalue_decimal("sigma_rayon_v", temps);
+		auto const &sigma_filtre_v = evalue_decimal("sigma_filtre_v", temps);
 
-		const auto &rayon_grain_b = evalue_decimal("rayon_grain_b", temps);
-		const auto &sigma_rayon_b = evalue_decimal("sigma_rayon_b", temps);
-		const auto &sigma_filtre_b = evalue_decimal("sigma_filtre_b", temps);
+		auto const &rayon_grain_b = evalue_decimal("rayon_grain_b", temps);
+		auto const &sigma_rayon_b = evalue_decimal("sigma_rayon_b", temps);
+		auto const &sigma_filtre_b = evalue_decimal("sigma_filtre_b", temps);
 
-		const auto &canal_rouge = extrait_canal(tampon->tampon, 0);
-		const auto &canal_vert = extrait_canal(tampon->tampon, 1);
-		const auto &canal_bleu = extrait_canal(tampon->tampon, 2);
+		auto const &canal_rouge = extrait_canal(tampon->tampon, 0);
+		auto const &canal_vert = extrait_canal(tampon->tampon, 1);
+		auto const &canal_bleu = extrait_canal(tampon->tampon, 2);
 
-		const auto &bruit_rouge = simule_grain_image(canal_rouge, graine, rayon_grain_r, sigma_rayon_r, sigma_filtre_r);
-		const auto &bruit_vert = simule_grain_image(canal_vert, graine, rayon_grain_v, sigma_rayon_v, sigma_filtre_v);
-		const auto &bruit_bleu = simule_grain_image(canal_bleu, graine, rayon_grain_b, sigma_rayon_b, sigma_filtre_b);
+		auto const &bruit_rouge = simule_grain_image(canal_rouge, graine, rayon_grain_r, sigma_rayon_r, sigma_filtre_r);
+		auto const &bruit_vert = simule_grain_image(canal_vert, graine, rayon_grain_v, sigma_rayon_v, sigma_filtre_v);
+		auto const &bruit_bleu = simule_grain_image(canal_bleu, graine, rayon_grain_b, sigma_rayon_b, sigma_filtre_b);
 
 		assemble_image(tampon->tampon, bruit_rouge, bruit_vert, bruit_bleu);
 
@@ -1197,7 +1197,7 @@ public:
 	{
 		input(0)->requiers_image(m_image, rectangle, temps);
 
-		const auto nom_calque = evalue_chaine("nom_calque");
+		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
 
 		if (tampon == nullptr) {
@@ -1213,10 +1213,10 @@ public:
 								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
 		{
 			/* À FAIRE : image carrée ? */
-			const auto r = static_cast<float>(l);
-			const auto theta = static_cast<float>(TAU * c / res_x);
-			const auto x = r * std::cos(theta);
-			const auto y = r * std::sin(theta);
+			auto const r = static_cast<float>(l);
+			auto const theta = static_cast<float>(TAU * c / res_x);
+			auto const x = r * std::cos(theta);
+			auto const y = r * std::sin(theta);
 			return tampon->echantillone(x, y);
 		});
 
@@ -1258,7 +1258,7 @@ public:
 	{
 		input(0)->requiers_image(m_image, rectangle, temps);
 
-		const auto nom_calque = evalue_chaine("nom_calque");
+		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
 
 		if (tampon == nullptr) {
@@ -1266,21 +1266,21 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto iterations = evalue_entier("itérations");
+		auto const iterations = evalue_entier("itérations");
 		auto res_x = tampon->tampon.nombre_colonnes();
 		auto res_y = tampon->tampon.nombre_lignes();
 
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
-		const auto coeff = 1.0f / std::sqrt(2.0f);
+		auto const coeff = 1.0f / std::sqrt(2.0f);
 
 		for (int i = 0; i < iterations; ++i) {
 			/* transformation verticale */
-			const auto taille_y = res_y / 2;
+			auto const taille_y = res_y / 2;
 			for (int y = 0; y < taille_y; ++y) {
 				for (int x = 0; x < res_x; ++x) {
-					const auto p0 = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y) * 2);
-					const auto p1 = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y) * 2 + 1);
+					auto const p0 = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y) * 2);
+					auto const p1 = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y) * 2 + 1);
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
@@ -1295,11 +1295,11 @@ public:
 			tampon->tampon = image_tampon;
 
 			/* transformation horizontale */
-			const auto taille_x = res_x / 2;
+			auto const taille_x = res_x / 2;
 			for (int y = 0; y < res_y; ++y) {
 				for (int x = 0; x < taille_x; ++x) {
-					const auto p0 = tampon->valeur(static_cast<size_t>(x) * 2, static_cast<size_t>(y));
-					const auto p1 = tampon->valeur(static_cast<size_t>(x) * 2 + 1, static_cast<size_t>(y));
+					auto const p0 = tampon->valeur(static_cast<size_t>(x) * 2, static_cast<size_t>(y));
+					auto const p1 = tampon->valeur(static_cast<size_t>(x) * 2 + 1, static_cast<size_t>(y));
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
@@ -1353,7 +1353,7 @@ public:
 	{
 		input(0)->requiers_image(m_image, rectangle, temps);
 
-		const auto nom_calque = evalue_chaine("nom_calque");
+		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
 
 		if (tampon == nullptr) {
@@ -1361,11 +1361,11 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto res_x = tampon->tampon.nombre_colonnes();
-		const auto res_y = tampon->tampon.nombre_lignes();
+		auto const res_x = tampon->tampon.nombre_colonnes();
+		auto const res_y = tampon->tampon.nombre_lignes();
 
 		auto image_tampon = type_image(tampon->tampon.dimensions());
-		const auto rayon = evalue_entier("rayon");
+		auto const rayon = evalue_entier("rayon");
 
 		auto performe_dilation = [&](
 								 const numero7::image::Pixel<float> &/*pixel*/,
@@ -1375,14 +1375,14 @@ public:
 			numero7::image::Pixel<float> p0(0.0f);
 			p0.a = 1.0f;
 
-			const auto debut_x = std::max(0, x - rayon);
-			const auto debut_y = std::max(0, y - rayon);
-			const auto fin_x = std::min(res_x, x + rayon);
-			const auto fin_y = std::min(res_y, y + rayon);
+			auto const debut_x = std::max(0, x - rayon);
+			auto const debut_y = std::max(0, y - rayon);
+			auto const fin_x = std::min(res_x, x + rayon);
+			auto const fin_y = std::min(res_y, y + rayon);
 
 			for (int sy = debut_y; sy < fin_y; ++sy) {
 				for (int sx = debut_x; sx < fin_x; ++sx) {
-					const auto p1 = tampon->valeur(static_cast<size_t>(sx), static_cast<size_t>(sy));
+					auto const p1 = tampon->valeur(static_cast<size_t>(sx), static_cast<size_t>(sy));
 
 					p0.r = std::max(p0.r, p1.r);
 					p0.g = std::max(p0.g, p1.g);
@@ -1433,7 +1433,7 @@ public:
 	{
 		input(0)->requiers_image(m_image, rectangle, temps);
 
-		const auto nom_calque = evalue_chaine("nom_calque");
+		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
 
 		if (tampon == nullptr) {
@@ -1441,11 +1441,11 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto res_x = tampon->tampon.nombre_colonnes();
-		const auto res_y = tampon->tampon.nombre_lignes();
+		auto const res_x = tampon->tampon.nombre_colonnes();
+		auto const res_y = tampon->tampon.nombre_lignes();
 
 		auto image_tampon = type_image(tampon->tampon.dimensions());
-		const auto rayon = evalue_entier("rayon");
+		auto const rayon = evalue_entier("rayon");
 
 		auto performe_erosion = [&](
 								const numero7::image::Pixel<float> &/*pixel*/,
@@ -1454,14 +1454,14 @@ public:
 		{
 			numero7::image::Pixel<float> p0(1.0f);
 
-			const auto debut_x = std::max(0, x - rayon);
-			const auto debut_y = std::max(0, y - rayon);
-			const auto fin_x = std::min(res_x, x + rayon);
-			const auto fin_y = std::min(res_y, y + rayon);
+			auto const debut_x = std::max(0, x - rayon);
+			auto const debut_y = std::max(0, y - rayon);
+			auto const fin_x = std::min(res_x, x + rayon);
+			auto const fin_y = std::min(res_y, y + rayon);
 
 			for (int sy = debut_y; sy < fin_y; ++sy) {
 				for (int sx = debut_x; sx < fin_x; ++sx) {
-					const auto p1 = tampon->valeur(static_cast<size_t>(sx), static_cast<size_t>(sy));
+					auto const p1 = tampon->valeur(static_cast<size_t>(sx), static_cast<size_t>(sy));
 
 					p0.r = std::min(p0.r, p1.r);
 					p0.g = std::min(p0.g, p1.g);

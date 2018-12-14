@@ -28,7 +28,7 @@
 
 size_t UsineOperatrice::enregistre_type(const DescOperatrice &desc)
 {
-	const auto iter = m_map.find(desc.name);
+	auto const iter = m_map.find(desc.name);
 	assert(iter == m_map.end());
 
 	m_map[desc.name] = desc;
@@ -37,7 +37,7 @@ size_t UsineOperatrice::enregistre_type(const DescOperatrice &desc)
 
 OperatriceImage *UsineOperatrice::operator()(const std::string &name, Noeud *node)
 {
-	const auto iter = m_map.find(name);
+	auto const iter = m_map.find(name);
 	assert(iter != m_map.end());
 
 	const DescOperatrice &desc = iter->second;
@@ -50,7 +50,7 @@ std::vector<DescOperatrice> UsineOperatrice::keys() const
 	std::vector<DescOperatrice> v;
 	v.reserve(num_entries());
 
-	for (const auto &entry : m_map) {
+	for (auto const &entry : m_map) {
 		v.push_back(entry.second);
 	}
 

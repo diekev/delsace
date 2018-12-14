@@ -51,7 +51,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto silvatheque = std::any_cast<Silvatheque *>(pointeur);
-		const auto delta = donnees.x;
+		auto const delta = donnees.x;
 
 		auto camera = silvatheque->camera;
 

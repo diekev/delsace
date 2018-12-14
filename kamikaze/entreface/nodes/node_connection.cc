@@ -61,12 +61,12 @@ void QtConnexion::updatePath(const QPointF &altTargetPos)
 {
 	prepareGeometryChange();
 
-	const auto &basePos = m_base_port->scenePos();
-	const auto &targetPos = (m_target_port) ? m_target_port->scenePos() : altTargetPos;
-	const auto dx = targetPos.x() - basePos.x();
-	const auto dy = targetPos.y() - basePos.y();
-	const auto ctr1 = QPointF(basePos.x() + dx * 0.45, basePos.y() + dy * 0.1);
-	const auto ctr2 = QPointF(basePos.x() + dx * 0.55, basePos.y() + dy * 0.9);
+	auto const &basePos = m_base_port->scenePos();
+	auto const &targetPos = (m_target_port) ? m_target_port->scenePos() : altTargetPos;
+	auto const dx = targetPos.x() - basePos.x();
+	auto const dy = targetPos.y() - basePos.y();
+	auto const ctr1 = QPointF(basePos.x() + dx * 0.45, basePos.y() + dy * 0.1);
+	auto const ctr2 = QPointF(basePos.x() + dx * 0.55, basePos.y() + dy * 0.9);
 
 	QPainterPath p;
 	p.moveTo(basePos);

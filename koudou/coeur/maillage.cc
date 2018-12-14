@@ -194,7 +194,7 @@ void Maillage::calcule_limites(
 		double &d_proche,
 		double &d_eloigne) const
 {
-	for (const auto &tri : m_triangles) {
+	for (auto const &tri : m_triangles) {
 		auto d = dls::math::produit_scalaire(normal, tri->v0);
 
 		if (d < d_proche) {
@@ -250,29 +250,29 @@ bool entresecte_triangle(const Triangle &triangle, const Rayon &rayon, double &d
 {
 	constexpr auto epsilon = 0.000001;
 
-	const auto &vertex0 = triangle.v0;
-	const auto &vertex1 = triangle.v1;
-	const auto &vertex2 = triangle.v2;
+	auto const &vertex0 = triangle.v0;
+	auto const &vertex1 = triangle.v1;
+	auto const &vertex2 = triangle.v2;
 
-	const auto &cote1 = vertex1 - vertex0;
-	const auto &cote2 = vertex2 - vertex0;
-	const auto &h = dls::math::produit_croix(rayon.direction, cote2);
-	const auto angle = dls::math::produit_scalaire(cote1, h);
+	auto const &cote1 = vertex1 - vertex0;
+	auto const &cote2 = vertex2 - vertex0;
+	auto const &h = dls::math::produit_croix(rayon.direction, cote2);
+	auto const angle = dls::math::produit_scalaire(cote1, h);
 
 	if (angle > -epsilon && angle < epsilon) {
 		return false;
 	}
 
-	const auto f = 1 / angle;
-	const auto &s = dls::math::vec3d(rayon.origine) - vertex0;
-	const auto angle_u = f * dls::math::produit_scalaire(s, h);
+	auto const f = 1 / angle;
+	auto const &s = dls::math::vec3d(rayon.origine) - vertex0;
+	auto const angle_u = f * dls::math::produit_scalaire(s, h);
 
 	if (angle_u < 0.0 || angle_u > 1.0) {
 		return false;
 	}
 
-	const auto q = dls::math::produit_croix(s, cote1);
-	const auto angle_v = f * dls::math::produit_scalaire(rayon.direction, q);
+	auto const q = dls::math::produit_croix(s, cote1);
+	auto const angle_v = f * dls::math::produit_scalaire(rayon.direction, q);
 
 	if (angle_v < 0.0 || angle_u + angle_v > 1.0) {
 		return false;
@@ -280,7 +280,7 @@ bool entresecte_triangle(const Triangle &triangle, const Rayon &rayon, double &d
 
 	/* À cette étape on peut calculer t pour trouver le point d'entresection sur
 	 * la ligne. */
-	const auto t = f * dls::math::produit_scalaire(cote2, q);
+	auto const t = f * dls::math::produit_scalaire(cote2, q);
 
 	/* Entresection avec le rayon. */
 	if (t > epsilon) {

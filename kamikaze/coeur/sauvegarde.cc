@@ -94,7 +94,7 @@ static void sauvegarde_proprietes(
 			}
 			case danjo::TypePropriete::COULEUR:
 			{
-				const auto donnees = manipulable->evalue_couleur(nom);
+				auto const donnees = manipulable->evalue_couleur(nom);
 
 				element_donnees->SetAttribute("valeurx", donnees.r);
 				element_donnees->SetAttribute("valeury", donnees.v);
@@ -146,8 +146,8 @@ erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Main &mai
 	racine_scene->InsertEndChild(racine_objet);
 
 	/* Écriture des objets. */
-	for (const auto &noeud_scene : scene->nodes()) {
-		const auto objet = static_cast<Object *>(noeud_scene.get());
+	for (auto const &noeud_scene : scene->nodes()) {
+		auto const objet = static_cast<Object *>(noeud_scene.get());
 
 		auto element_objet = doc.NewElement("objet");
 		element_objet->SetAttribute("nom", objet->name().c_str());
@@ -160,7 +160,7 @@ erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Main &mai
 		tinyxml2::XMLElement *racine_graphe = doc.NewElement("graphe");
 		element_objet->InsertEndChild(racine_graphe);
 
-		for (const auto &noeud : objet->graph()->noeuds()) {
+		for (auto const &noeud : objet->graph()->noeuds()) {
 			/* Noeud */
 			auto element_noeud = doc.NewElement("noeud");
 			element_noeud->SetAttribute("nom", noeud->nom().c_str());
@@ -172,7 +172,7 @@ erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Main &mai
 			/* Prises d'entrée. */
 			auto racine_prise_entree = doc.NewElement("prises_entree");
 
-			for (const auto &prise : noeud->entrees()) {
+			for (auto const &prise : noeud->entrees()) {
 				auto element_prise = doc.NewElement("entree");
 				element_prise->SetAttribute("nom", prise->nom.c_str());
 				element_prise->SetAttribute("id", id_depuis_pointeur(prise).c_str());
@@ -186,7 +186,7 @@ erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Main &mai
 			/* Prises de sortie */
 			auto racine_prise_sortie = doc.NewElement("prises_sortie");
 
-			for (const auto &prise : noeud->sorties()) {
+			for (auto const &prise : noeud->sorties()) {
 				/* REMARQUE : par optimisation on ne sauvegarde que les
 				 * connexions depuis les prises d'entrées. */
 				auto element_prise = doc.NewElement("sortie");
@@ -212,7 +212,7 @@ erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Main &mai
 		racine_objet->InsertEndChild(element_objet);
 	}
 
-	const auto resultat = doc.SaveFile(chemin.c_str());
+	auto const resultat = doc.SaveFile(chemin.c_str());
 
 	if (resultat == tinyxml2::XML_ERROR_FILE_COULD_NOT_BE_OPENED) {
 		return erreur_fichier::NON_OUVERT;
@@ -232,46 +232,46 @@ static void lecture_propriete(
 		tinyxml2::XMLElement *element,
 		danjo::Manipulable *manipulable)
 {
-	const auto type_prop = element->Attribute("type");
-	const auto nom_prop = element->Attribute("nom");
+	auto const type_prop = element->Attribute("type");
+	auto const nom_prop = element->Attribute("nom");
 
-	const auto element_donnees = element->FirstChildElement("donnees");
+	auto const element_donnees = element->FirstChildElement("donnees");
 
 	switch (static_cast<danjo::TypePropriete>(atoi(type_prop))) {
 		case danjo::TypePropriete::BOOL:
 		{
-			const auto donnees = element_donnees->Attribute("valeur");
+			auto const donnees = element_donnees->Attribute("valeur");
 			manipulable->valeur_bool(nom_prop, atoi(donnees));
 			break;
 		}
 		case danjo::TypePropriete::ENTIER:
 		{
-			const auto donnees = element_donnees->Attribute("valeur");
+			auto const donnees = element_donnees->Attribute("valeur");
 			manipulable->valeur_entier(nom_prop, atoi(donnees));
 			break;
 		}
 		case danjo::TypePropriete::DECIMAL:
 		{
-			const auto donnees = element_donnees->Attribute("valeur");
+			auto const donnees = element_donnees->Attribute("valeur");
 			manipulable->valeur_decimal(nom_prop, static_cast<float>(atof(donnees)));
 			break;
 		}
 		case danjo::TypePropriete::VECTEUR:
 		{
-			const auto donnee_x = static_cast<float>(atof(element_donnees->Attribute("valeurx")));
-			const auto donnee_y = static_cast<float>(atof(element_donnees->Attribute("valeury")));
-			const auto donnee_z = static_cast<float>(atof(element_donnees->Attribute("valeurz")));
-			const auto donnees = dls::math::vec3f{donnee_x, donnee_y, donnee_z};
+			auto const donnee_x = static_cast<float>(atof(element_donnees->Attribute("valeurx")));
+			auto const donnee_y = static_cast<float>(atof(element_donnees->Attribute("valeury")));
+			auto const donnee_z = static_cast<float>(atof(element_donnees->Attribute("valeurz")));
+			auto const donnees = dls::math::vec3f{donnee_x, donnee_y, donnee_z};
 			manipulable->valeur_vecteur(nom_prop, donnees);
 			break;
 		}
 		case danjo::TypePropriete::COULEUR:
 		{
-			const auto donnee_x = static_cast<float>(atof(element_donnees->Attribute("valeurx")));
-			const auto donnee_y = static_cast<float>(atof(element_donnees->Attribute("valeury")));
-			const auto donnee_z = static_cast<float>(atof(element_donnees->Attribute("valeurz")));
-			const auto donnee_w = static_cast<float>(atof(element_donnees->Attribute("valeurw")));
-			const auto donnees = couleur32(donnee_x, donnee_y, donnee_z, donnee_w);
+			auto const donnee_x = static_cast<float>(atof(element_donnees->Attribute("valeurx")));
+			auto const donnee_y = static_cast<float>(atof(element_donnees->Attribute("valeury")));
+			auto const donnee_z = static_cast<float>(atof(element_donnees->Attribute("valeurz")));
+			auto const donnee_w = static_cast<float>(atof(element_donnees->Attribute("valeurw")));
+			auto const donnees = couleur32(donnee_x, donnee_y, donnee_z, donnee_w);
 			manipulable->valeur_couleur(nom_prop, donnees);
 			break;
 		}
@@ -280,7 +280,7 @@ static void lecture_propriete(
 		case danjo::TypePropriete::FICHIER_ENTREE:
 		case danjo::TypePropriete::CHAINE_CARACTERE:
 		{
-			const auto donnees = element_donnees->Attribute("valeur");
+			auto const donnees = element_donnees->Attribute("valeur");
 			manipulable->valeur_chaine(nom_prop, donnees);
 			break;
 		}
@@ -296,7 +296,7 @@ static void lecture_proprietes(
 		tinyxml2::XMLElement *element,
 		danjo::Manipulable *manipulable)
 {
-	const auto racine_propriete = element->FirstChildElement("proprietes");
+	auto const racine_propriete = element->FirstChildElement("proprietes");
 	auto element_propriete = racine_propriete->FirstChildElement("propriete");
 
 	for (; element_propriete != nullptr; element_propriete = element_propriete->NextSiblingElement("propriete")) {
@@ -320,11 +320,11 @@ static void lecture_noeud(
 		Object *objet,
 		DonneesConnexions &donnees_connexion)
 {
-	const auto nom_noeud = element_noeud->Attribute("nom");
-	const auto posx = element_noeud->Attribute("posx");
-	const auto posy = element_noeud->Attribute("posy");
-	const auto drapeaux = element_noeud->Attribute("drapeaux");
-	const auto est_sortie = element_noeud->Attribute("est_sortie");
+	auto const nom_noeud = element_noeud->Attribute("nom");
+	auto const posx = element_noeud->Attribute("posx");
+	auto const posy = element_noeud->Attribute("posy");
+	auto const drapeaux = element_noeud->Attribute("drapeaux");
+	auto const est_sortie = element_noeud->Attribute("est_sortie");
 
 	Noeud *noeud;
 
@@ -335,8 +335,8 @@ static void lecture_noeud(
 		noeud = new Noeud;
 		noeud->nom(nom_noeud);
 
-		const auto element_operatrice = element_noeud->FirstChildElement("operatrice");
-		const auto nom_operatrice = element_operatrice->Attribute("nom");
+		auto const element_operatrice = element_noeud->FirstChildElement("operatrice");
+		auto const nom_operatrice = element_operatrice->Attribute("nom");
 
 		Operatrice *operatrice = (contexte.usine_operatrice)(nom_operatrice, noeud, contexte);
 		lecture_proprietes(element_operatrice, operatrice);
@@ -349,24 +349,24 @@ static void lecture_noeud(
 	noeud->posy(atoi(posy));
 	noeud->ajoute_drapeau(atoi(drapeaux));
 
-	const auto racine_prise_entree = element_noeud->FirstChildElement("prises_entree");
+	auto const racine_prise_entree = element_noeud->FirstChildElement("prises_entree");
 	auto element_prise_entree = racine_prise_entree->FirstChildElement("entree");
 
 	for (; element_prise_entree != nullptr; element_prise_entree = element_prise_entree->NextSiblingElement("entree")) {
-		const auto nom_prise = element_prise_entree->Attribute("nom");
-		const auto id_prise = element_prise_entree->Attribute("id");
-		const auto connexion = element_prise_entree->Attribute("connexion");
+		auto const nom_prise = element_prise_entree->Attribute("nom");
+		auto const id_prise = element_prise_entree->Attribute("id");
+		auto const connexion = element_prise_entree->Attribute("connexion");
 
 		donnees_connexion.tableau_connexion_id[id_prise] = connexion;
 		donnees_connexion.tableau_id_prise_entree[id_prise] = noeud->entree(nom_prise);
 	}
 
-	const auto racine_prise_sortie = element_noeud->FirstChildElement("prises_sortie");
+	auto const racine_prise_sortie = element_noeud->FirstChildElement("prises_sortie");
 	auto element_prise_sortie = racine_prise_sortie->FirstChildElement("sortie");
 
 	for (; element_prise_sortie != nullptr; element_prise_sortie = element_prise_sortie->NextSiblingElement("sortie")) {
-		const auto nom_prise = element_prise_sortie->Attribute("nom");
-		const auto id_prise = element_prise_sortie->Attribute("id");
+		auto const nom_prise = element_prise_sortie->Attribute("nom");
+		auto const id_prise = element_prise_sortie->Attribute("id");
 
 		donnees_connexion.tableau_id_prise_sortie[id_prise] = noeud->sortie(nom_prise);
 	}
@@ -387,12 +387,12 @@ static void lecture_graphe(
 	}
 
 	/* Création des connexions. */
-	for (const auto &connexion : donnees_connexions.tableau_connexion_id) {
-		const auto &id_de = connexion.second;
-		const auto &id_a = connexion.first;
+	for (auto const &connexion : donnees_connexions.tableau_connexion_id) {
+		auto const &id_de = connexion.second;
+		auto const &id_a = connexion.first;
 
-		const auto &pointer_de = donnees_connexions.tableau_id_prise_sortie[id_de];
-		const auto &pointer_a = donnees_connexions.tableau_id_prise_entree[id_a];
+		auto const &pointer_de = donnees_connexions.tableau_id_prise_sortie[id_de];
+		auto const &pointer_a = donnees_connexions.tableau_id_prise_entree[id_a];
 
 		if (pointer_de && pointer_a) {
 			objet->graph()->connecte(pointer_de, pointer_a);
@@ -413,23 +413,23 @@ erreur_fichier ouvre_projet(const filesystem::path &chemin, const Main &main, co
 	scene->supprime_tout();
 
 	/* Lecture du projet. */
-	const auto racine_projet = doc.FirstChildElement("projet");
+	auto const racine_projet = doc.FirstChildElement("projet");
 
 	if (racine_projet == nullptr) {
 		return erreur_fichier::CORROMPU;
 	}
 
 	/* Lecture de la scène. */
-	const auto racine_scene = racine_projet->FirstChildElement("scene");
+	auto const racine_scene = racine_projet->FirstChildElement("scene");
 
 	if (racine_scene == nullptr) {
 		return erreur_fichier::CORROMPU;
 	}
 
-	const auto image_depart = racine_scene->Attribute("image_depart");
-	const auto image_fin = racine_scene->Attribute("image_fin");
-	const auto image_courante = racine_scene->Attribute("image_courante");
-	const auto ips = racine_scene->Attribute("ips");
+	auto const image_depart = racine_scene->Attribute("image_depart");
+	auto const image_fin = racine_scene->Attribute("image_fin");
+	auto const image_courante = racine_scene->Attribute("image_courante");
+	auto const ips = racine_scene->Attribute("ips");
 
 	scene->currentFrame(atoi(image_courante));
 	scene->startFrame(atoi(image_depart));
@@ -437,14 +437,14 @@ erreur_fichier ouvre_projet(const filesystem::path &chemin, const Main &main, co
 	scene->framesPerSecond(static_cast<float>(atof(ips)));
 
 	/* Lecture des objets. */
-	const auto racine_objets = racine_scene->FirstChildElement("objets");
+	auto const racine_objets = racine_scene->FirstChildElement("objets");
 	auto element_objet = racine_objets->FirstChildElement("objet");
 
 	for (; element_objet != nullptr; element_objet = element_objet->NextSiblingElement("objet")) {
-		const auto nom_objet = element_objet->Attribute("nom");
-		const auto posx = element_objet->Attribute("posx");
-		const auto posy = element_objet->Attribute("posy");
-		const auto drapeaux = element_objet->Attribute("drapeaux");
+		auto const nom_objet = element_objet->Attribute("nom");
+		auto const posx = element_objet->Attribute("posx");
+		auto const posy = element_objet->Attribute("posy");
+		auto const drapeaux = element_objet->Attribute("drapeaux");
 
 		Object *objet = new Object(contexte);
 		objet->name(nom_objet);

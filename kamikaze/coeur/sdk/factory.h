@@ -44,7 +44,7 @@ public:
 	 */
 	size_t register_type(const Key &name, factory_func func)
 	{
-		const auto iter = m_map.find(name);
+		auto const iter = m_map.find(name);
 		assert(iter == m_map.end());
 
 		m_map[name] = func;
@@ -59,7 +59,7 @@ public:
 	 */
 	Base *operator()(const Key &name)
 	{
-		const auto iter = m_map.find(name);
+		auto const iter = m_map.find(name);
 		assert(iter != m_map.end());
 
 		return iter->second();
@@ -85,7 +85,7 @@ public:
 		std::vector<std::string> v;
 		v.reserve(num_entries());
 
-		for (const auto &entry : m_map) {
+		for (auto const &entry : m_map) {
 			v.push_back(entry.first);
 		}
 

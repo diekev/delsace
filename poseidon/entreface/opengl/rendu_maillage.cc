@@ -67,8 +67,8 @@ TamponRendu *cree_tampon_arrete()
 
 TamponRendu *genere_tampon_arrete(Maillage *maillage)
 {
-	const auto nombre_arretes = maillage->nombre_arretes();
-	const auto nombre_elements = nombre_arretes * 2;
+	auto const nombre_arretes = maillage->nombre_arretes();
+	auto const nombre_elements = nombre_arretes * 2;
 	auto tampon = cree_tampon_arrete();
 
 	std::vector<dls::math::vec3f> sommets;
@@ -76,7 +76,7 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 
 	/* OpenGL ne travaille qu'avec des floats. */
 	for (size_t	i = 0; i < nombre_arretes; ++i) {
-		const auto arrete = maillage->arrete(i);
+		auto const arrete = maillage->arrete(i);
 
 		sommets.push_back(arrete->s[0]->pos);
 		sommets.push_back(arrete->s[1]->pos);

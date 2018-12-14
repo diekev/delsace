@@ -109,7 +109,7 @@ static inline bool est_caractere_quadruple(const utf8::type_valeur i)
 
 utf8::utf8(const char *c_str)
 {
-	const auto longueur = std::strlen(c_str);
+	auto const longueur = std::strlen(c_str);
 
 	for (size_t i = 0; i < longueur;) {
 		auto valeur = static_cast<utf8::type_valeur>(0);
@@ -200,7 +200,7 @@ std::string converti_en_std_string(const utf8 &chaine_utf8)
 
 std::ostream &operator<<(std::ostream &os, const utf8 &chaine_utf8)
 {
-	for (const auto &caractere : chaine_utf8.caracteres()) {
+	for (auto const &caractere : chaine_utf8.caracteres()) {
 		if (est_caractere_simple(caractere)) {
 			os << static_cast<char>(caractere);
 		}

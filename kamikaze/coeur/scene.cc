@@ -83,7 +83,7 @@ void Scene::selectObject(const dls::math::vec3f &pos)
 			continue;
 		}
 
-		for (const auto &prim : object->collection()->primitives()) {
+		for (auto const &prim : object->collection()->primitives()) {
 			float dist = dls::math::longueur(prim->pos() - pos);
 
 			if (/*dist < 1.0f &&*/ dist < min) {
@@ -138,7 +138,7 @@ bool Scene::ensureUniqueName(std::string &name) const
 {
 	return ensure_unique_name(name, [&](const std::string &str)
 	{
-		for (const auto &object : m_nodes) {
+		for (auto const &object : m_nodes) {
 			if (object->name() == str) {
 				return false;
 			}
@@ -223,7 +223,7 @@ bool Scene::has_flags(int flag)
 
 void Scene::supprime_tout()
 {
-	for (const auto &node : m_nodes) {
+	for (auto const &node : m_nodes) {
 		m_depsgraph.remove_node(node.get());
 	}
 

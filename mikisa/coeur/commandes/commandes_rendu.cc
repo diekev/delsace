@@ -61,8 +61,8 @@ static void ecris_exr(const char *chemin, const ParametresImage &parametres)
 {
 	namespace openexr = OPENEXR_IMF_NAMESPACE;
 
-	const auto &hauteur = parametres.hauteur;
-	const auto &largeur = parametres.largeur;
+	auto const &hauteur = parametres.hauteur;
+	auto const &largeur = parametres.largeur;
 
 	/* À FAIRE : écriture selon le nombre de composant de l'image. */
 	openexr::Header en_tete(static_cast<int>(largeur), static_cast<int>(hauteur));
@@ -78,8 +78,8 @@ static void ecris_exr(const char *chemin, const ParametresImage &parametres)
 	auto debut_B = static_cast<float *>(parametres.pointeur) + 2;
 	auto debut_A = static_cast<float *>(parametres.pointeur) + 3;
 
-	const auto decalage_x = sizeof(float) * static_cast<size_t>(parametres.composant);
-	const auto decalage_y = sizeof(float) * largeur * static_cast<size_t>(parametres.composant);
+	auto const decalage_x = sizeof(float) * static_cast<size_t>(parametres.composant);
+	auto const decalage_y = sizeof(float) * largeur * static_cast<size_t>(parametres.composant);
 
 	openexr::FrameBuffer tampon_image;
 
@@ -113,7 +113,7 @@ static void ecris_exr(const char *chemin, const ParametresImage &parametres)
 
 static void corrige_chemin_pour_ecriture(std::string &chemin, int temps)
 {
-	const auto pos_debut = chemin.find_first_of('#');
+	auto const pos_debut = chemin.find_first_of('#');
 
 	if (pos_debut == std::string::npos) {
 		return;
@@ -144,7 +144,7 @@ static bool ecris_image(
 	corrige_chemin_pour_ecriture(chemin_image, temps);
 
 	/* récupère les données */
-	const auto &image = composite->image();
+	auto const &image = composite->image();
 	auto tampon = image.calque(nom_calque);
 
 	if (tampon == nullptr) {
@@ -210,7 +210,7 @@ public:
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
-		const auto temps_originale = mikisa->temps_courant;
+		auto const temps_originale = mikisa->temps_courant;
 
 		if (mikisa->nom_calque_sortie == "") {
 			/* À FAIRE : erreur. */

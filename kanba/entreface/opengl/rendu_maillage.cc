@@ -110,8 +110,8 @@ TamponRendu *cree_tampon_arrete()
 
 TamponRendu *genere_tampon_arrete(Maillage *maillage)
 {
-	const auto nombre_arretes = maillage->nombre_arretes();
-	const auto nombre_elements = nombre_arretes * 2;
+	auto const nombre_arretes = maillage->nombre_arretes();
+	auto const nombre_elements = nombre_arretes * 2;
 	auto tampon = cree_tampon_arrete();
 
 	std::vector<dls::math::vec3f> sommets;
@@ -119,7 +119,7 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 
 	/* OpenGL ne travaille qu'avec des floats. */
 	for (size_t	i = 0; i < nombre_arretes; ++i) {
-		const auto arrete = maillage->arrete(i);
+		auto const arrete = maillage->arrete(i);
 
 		sommets.push_back(arrete->s[0]->pos);
 		sommets.push_back(arrete->s[1]->pos);
@@ -183,8 +183,8 @@ TamponRendu *cree_tampon_normal()
 
 TamponRendu *genere_tampon_normal(Maillage *maillage)
 {
-	const auto nombre_polygones = maillage->nombre_polygones();
-	const auto nombre_elements = nombre_polygones * 2;
+	auto const nombre_polygones = maillage->nombre_polygones();
+	auto const nombre_elements = nombre_polygones * 2;
 	auto tampon = cree_tampon_normal();
 
 	std::vector<dls::math::vec3f> sommets;
@@ -192,7 +192,7 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 
 	/* OpenGL ne travaille qu'avec des floats. */
 	for (size_t	i = 0; i < nombre_polygones; ++i) {
-		const auto polygone = maillage->polygone(i);
+		auto const polygone = maillage->polygone(i);
 		auto V = polygone->s[0]->pos;
 		V += polygone->s[1]->pos;
 		V += polygone->s[2]->pos;
@@ -205,7 +205,7 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 
 		V /= poids;
 
-		const auto N = normalise(polygone->nor);
+		auto const N = normalise(polygone->nor);
 
 		sommets.push_back(V);
 		sommets.push_back(V + 0.1f * N);
@@ -314,7 +314,7 @@ TamponRendu *genere_tampon(Maillage *maillage, const std::vector<uint> &id_polys
 	auto index_poly = 0.0f;
 
 	for (size_t	i : id_polys) {
-		const auto poly = maillage->polygone(i);
+		auto const poly = maillage->polygone(i);
 
 		sommets.push_back(poly->s[0]->pos);
 		sommets.push_back(poly->s[1]->pos);
@@ -403,10 +403,10 @@ void RenduMaillage::initialise()
 	std::map<std::pair<uint, uint>, std::vector<uint>> vecteurs_polys;
 
 	for (size_t	i = 0; i < nombre_polys; ++i) {
-		const auto poly = m_maillage->polygone(i);
+		auto const poly = m_maillage->polygone(i);
 		((poly->s[3] != nullptr) ? nombre_quads : nombre_tris) += 1;
 
-		const auto &paire = std::make_pair(poly->res_u, poly->res_v);
+		auto const &paire = std::make_pair(poly->res_u, poly->res_v);
 
 		vecteurs_polys[paire].push_back(static_cast<uint>(i));
 	}
@@ -422,7 +422,7 @@ void RenduMaillage::initialise()
 	GLint max_textures;
 	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS_EXT, &max_textures);
 
-	for (const auto &id_polys : vecteurs_polys) {
+	for (auto const &id_polys : vecteurs_polys) {
 		for (uint i : id_polys.second) {
 			if (static_cast<int>(page.polys.size()) >= max_textures) {
 				m_pages.push_back(page);
@@ -492,15 +492,15 @@ void RenduMaillage::ajourne_texture()
 
 	auto donnees = texture_image->donnees();
 
-	for (const auto &pages : m_pages) {
+	for (auto const &pages : m_pages) {
 		auto texture = pages.tampon->texture();
 		genere_texture(texture, donnees, taille_texture);
 	}
 
 	delete texture_image;
 #else
-	const auto largeur = m_maillage->largeur_texture();
-	const auto &canaux = m_maillage->canaux_texture();
+	auto const largeur = m_maillage->largeur_texture();
+	auto const &canaux = m_maillage->canaux_texture();
 
 	auto tampon = canaux.tampon_diffusion;
 
@@ -508,7 +508,7 @@ void RenduMaillage::ajourne_texture()
 		return;
 	}
 
-	for (const auto &pages : m_pages) {
+	for (auto const &pages : m_pages) {
 		auto poly = m_maillage->polygone(pages.polys[0]);
 
 		GLint taille_texture[3] = {
@@ -552,7 +552,7 @@ void RenduMaillage::ajourne_texture()
 
 void RenduMaillage::supprime_tampons()
 {
-	for (const auto &page : m_pages) {
+	for (auto const &page : m_pages) {
 		delete page.tampon;
 	}
 
@@ -566,7 +566,7 @@ void RenduMaillage::dessine(const ContexteRendu &contexte)
 		ajourne_texture();
 	}
 
-	for (const auto &page : m_pages) {
+	for (auto const &page : m_pages) {
 		page.tampon->dessine(contexte);
 	}
 

@@ -300,15 +300,15 @@ public:
 	{
 		INUTILISE(rectangle);
 
-		const auto largeur = evalue_entier("largeur");
-		const auto hauteur = evalue_entier("hauteur");
-		const auto longueur_focale = evalue_decimal("longueur_focale");
-		const auto largeur_senseur = evalue_decimal("largeur_senseur");
-		const auto proche = evalue_decimal("proche");
-		const auto eloigne = evalue_decimal("éloigné");
-		const auto projection = evalue_enum("projection");
-		const auto position = evalue_vecteur("position", temps);
-		const auto rotation = evalue_vecteur("rotation", temps);
+		auto const largeur = evalue_entier("largeur");
+		auto const hauteur = evalue_entier("hauteur");
+		auto const longueur_focale = evalue_decimal("longueur_focale");
+		auto const largeur_senseur = evalue_decimal("largeur_senseur");
+		auto const proche = evalue_decimal("proche");
+		auto const eloigne = evalue_decimal("éloigné");
+		auto const projection = evalue_enum("projection");
+		auto const position = evalue_vecteur("position", temps);
+		auto const rotation = evalue_vecteur("rotation", temps);
 
 		if (projection == "perspective") {
 			m_camera.projection(vision::TypeProjection::PERSPECTIVE);
@@ -743,14 +743,14 @@ public:
 					continue;
 				}
 
-				const auto &v0 = liste_points->point(poly->index_point(0));
-				const auto &v1 = liste_points->point(poly->index_point(1));
-				const auto &v2 = liste_points->point(poly->index_point(2));
+				auto const &v0 = liste_points->point(poly->index_point(0));
+				auto const &v1 = liste_points->point(poly->index_point(1));
+				auto const &v2 = liste_points->point(poly->index_point(2));
 
-				const auto e1 = v1 - v0;
-				const auto e2 = v2 - v0;
+				auto const e1 = v1 - v0;
+				auto const e2 = v2 - v0;
 
-				const auto nor = normalise(produit_croix(e1, e2));
+				auto const nor = normalise(produit_croix(e1, e2));
 
 				if (inverse_normaux) {
 					attr_normaux->pousse_vec3(-nor);
@@ -772,12 +772,12 @@ public:
 					continue;
 				}
 
-				const auto &v0 = liste_points->point(poly->index_point(0));
-				const auto &v1 = liste_points->point(poly->index_point(1));
-				const auto &v2 = liste_points->point(poly->index_point(2));
+				auto const &v0 = liste_points->point(poly->index_point(0));
+				auto const &v1 = liste_points->point(poly->index_point(1));
+				auto const &v2 = liste_points->point(poly->index_point(2));
 
-				const auto e1 = v1 - v0;
-				const auto e2 = v2 - v0;
+				auto const e1 = v1 - v0;
+				auto const e2 = v2 - v0;
 
 				poly->nor = normalise(produit_croix(e1, e2));
 			}
@@ -791,7 +791,7 @@ public:
 				}
 
 				for (size_t i = 0; i < poly->nombre_segments(); ++i) {
-					const auto index_sommet = poly->index_point(i);
+					auto const index_sommet = poly->index_point(i);
 
 					if (poids[index_sommet] != 0) {
 						auto nor = attr_normaux->vec3(index_sommet);
@@ -1064,7 +1064,7 @@ public:
 		}
 
 		{
-			const auto ref_der_niv = rafineur->GetLevel(niveau_max);
+			auto const ref_der_niv = rafineur->GetLevel(niveau_max);
 			nombre_sommets = static_cast<size_t>(ref_der_niv.GetNumVertices());
 			nombre_polygones = static_cast<size_t>(ref_der_niv.GetNumFaces());
 
@@ -1146,9 +1146,9 @@ public:
 		m_corps.reinitialise();
 		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
-		const auto nom_attribut = evalue_chaine("nom_attribut");
-		const auto chaine_type = evalue_enum("type_attribut");
-		const auto chaine_portee = evalue_enum("portee_attribut");
+		auto const nom_attribut = evalue_chaine("nom_attribut");
+		auto const chaine_type = evalue_enum("type_attribut");
+		auto const chaine_portee = evalue_enum("portee_attribut");
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
@@ -1292,7 +1292,7 @@ public:
 		m_corps.reinitialise();
 		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
-		const auto nom_attribut = evalue_chaine("nom_attribut");
+		auto const nom_attribut = evalue_chaine("nom_attribut");
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
@@ -1349,8 +1349,8 @@ public:
 		m_corps.reinitialise();
 		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
-		const auto nom_attribut = evalue_chaine("nom_attribut");
-		const auto graine = evalue_entier("graine");
+		auto const nom_attribut = evalue_chaine("nom_attribut");
+		auto const graine = evalue_entier("graine");
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
@@ -1559,7 +1559,7 @@ public:
 			}
 		}
 
-		const auto decalage_point = liste_point1->taille();
+		auto const decalage_point = liste_point1->taille();
 
 		for (Polygone *poly : liste_polys2->polys()) {
 			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());

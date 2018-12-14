@@ -84,7 +84,7 @@ Entresection StructureAcceleration::entresecte(
 			statistiques.test_entresections_boites.fetch_add(1, std::memory_order_relaxed);
 #endif
 		if (entresecte_boite(maillage->boite_englobante(), rayon)) {
-			const auto &transforme_inverse = inverse(maillage->transformation());
+			auto const &transforme_inverse = inverse(maillage->transformation());
 
 			transforme_inverse(rayon.origine, &rayon_local.origine);
 			transforme_inverse(rayon.direction, &rayon_local.direction);
@@ -189,7 +189,7 @@ Entresection VolumeEnglobant::entresecte(
 		auto d_proche = -INFINITE;
 		auto d_eloigne = INFINITE;
 		uint8_t index_plan;
-		const auto &transforme_inverse = inverse(maillage->transformation());
+		auto const &transforme_inverse = inverse(maillage->transformation());
 
 		transforme_inverse(rayon.origine, &rayon_local.origine);
 		transforme_inverse(rayon.direction, &rayon_local.direction);

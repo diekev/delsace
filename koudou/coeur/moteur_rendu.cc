@@ -59,14 +59,14 @@ static Rayon genere_rayon(vision::Camera3D *camera, const vision::EchantillonCam
 				   static_cast<float>((camera->hauteur() - echantillon.y) / camera->hauteur()),
 				   0.0f);
 
-	const auto &debut = camera->pos_monde(pos);
+	auto const &debut = camera->pos_monde(pos);
 
 	pos.z = 1.0f;
 
-	const auto &fin = camera->pos_monde(pos);
+	auto const &fin = camera->pos_monde(pos);
 
-	const auto origine = camera->pos();
-	const auto direction = normalise(fin - debut);
+	auto const origine = camera->pos();
+	auto const direction = normalise(fin - debut);
 
 	Rayon r;
 	r.origine = dls::math::point3d(origine.x, origine.y, origine.z);
@@ -99,7 +99,7 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 	ContexteNuancage contexte;
 
 	for (auto i = 0u; i < parametres.nombre_rebonds; ++i) {
-		const auto entresection = parametres.acceleratrice->entresecte(
+		auto const entresection = parametres.acceleratrice->entresecte(
 									  scene,
 									  rayon_local,
 									  1000.0);
@@ -190,7 +190,7 @@ void MoteurRendu::echantillone_scene(const ParametresRendu &parametres, const st
 		GNA gna(17771 + static_cast<unsigned int>(plage.begin()) * (echantillon + 1));
 
 		for (size_t j = plage.begin(); j < plage.end(); ++j) {
-			const auto &carreau = carreaux[j];
+			auto const &carreau = carreaux[j];
 
 			for (auto x = carreau.x; x < carreau.x + carreau.largeur; ++x) {
 				for (auto y = carreau.y; y < carreau.y + carreau.hauteur; ++y) {
@@ -270,12 +270,12 @@ void TacheRendu::commence(const Koudou &koudou)
 	}
 
 	/* Génère carreaux. */
-	const auto largeur_carreau = koudou.parametres_rendu.largeur_carreau;
-	const auto hauteur_carreau = koudou.parametres_rendu.hauteur_carreau;
-	const auto largeur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_colonnes());
-	const auto hauteur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_lignes());
-	const auto carreaux_x = static_cast<unsigned>(std::ceil(static_cast<float>(largeur_pellicule) / static_cast<float>(largeur_carreau)));
-	const auto carreaux_y = static_cast<unsigned>(std::ceil(static_cast<float>(hauteur_pellicule) / static_cast<float>(hauteur_carreau)));
+	auto const largeur_carreau = koudou.parametres_rendu.largeur_carreau;
+	auto const hauteur_carreau = koudou.parametres_rendu.hauteur_carreau;
+	auto const largeur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_colonnes());
+	auto const hauteur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_lignes());
+	auto const carreaux_x = static_cast<unsigned>(std::ceil(static_cast<float>(largeur_pellicule) / static_cast<float>(largeur_carreau)));
+	auto const carreaux_y = static_cast<unsigned>(std::ceil(static_cast<float>(hauteur_pellicule) / static_cast<float>(hauteur_carreau)));
 
 	std::vector<CarreauPellicule> carreaux;
 	carreaux.reserve(static_cast<size_t>(carreaux_x * carreaux_y));
@@ -304,11 +304,11 @@ void TacheRendu::commence(const Koudou &koudou)
 			break;
 		}
 
-		const auto debut_echantillon = numero7::chronometrage::maintenant();
+		auto const debut_echantillon = numero7::chronometrage::maintenant();
 
 		moteur_rendu->echantillone_scene(koudou.parametres_rendu, carreaux, e);
 
-		const auto fin_echantillon = numero7::chronometrage::maintenant();
+		auto const fin_echantillon = numero7::chronometrage::maintenant();
 
 		temps_echantillon = fin_echantillon - debut_echantillon;
 		temps_ecoule += temps_echantillon;

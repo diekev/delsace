@@ -67,7 +67,7 @@ void EditriceRendu::ajourne_etat(int evenement)
 		return;
 	}
 
-	const auto &texte = danjo::contenu_fichier("entreface/disposition_rendu.jo");
+	auto const &texte = danjo::contenu_fichier("entreface/disposition_rendu.jo");
 
 	if (texte.empty()) {
 		return;

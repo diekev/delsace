@@ -53,7 +53,7 @@ static bool entresecte_min_max(
 
 bool entresecte_plan(const Plan &plan, const dls::math::point3f &orig, const dls::math::vec3f &dir, float &t)
 {
-	const auto denom = produit_scalaire(plan.nor, dir);
+	auto const denom = produit_scalaire(plan.nor, dir);
 
 	if (std::abs(denom) > 0.0001f) {
 		t = produit_scalaire(plan.pos - orig, plan.nor) / denom;
@@ -353,9 +353,9 @@ bool ManipulatriceRotation3D::entresecte(const dls::math::point3f &orig, const d
 
 	if (entresecte_plan(plans_roues[PLAN_YZ], orig, dir, t)) {
 		if (t < dist_max) {
-			const auto pos = orig + t * dir;
-			const auto vec = m_position - pos;
-			const auto lon = (longueur(vec));
+			auto const pos = orig + t * dir;
+			auto const vec = m_position - pos;
+			auto const lon = (longueur(vec));
 
 			if (lon >= 0.95f && lon <= 1.05f) {
 				dist_max = t;
@@ -366,9 +366,9 @@ bool ManipulatriceRotation3D::entresecte(const dls::math::point3f &orig, const d
 
 	if (entresecte_plan(plans_roues[PLAN_XZ], orig, dir, t)) {
 		if (t < dist_max) {
-			const auto pos = orig + t * dir;
-			const auto vec = m_position - pos;
-			const auto lon = longueur(vec);
+			auto const pos = orig + t * dir;
+			auto const vec = m_position - pos;
+			auto const lon = longueur(vec);
 
 			if (lon >= 0.95f && lon <= 1.05f) {
 				dist_max = t;
@@ -379,9 +379,9 @@ bool ManipulatriceRotation3D::entresecte(const dls::math::point3f &orig, const d
 
 	if (entresecte_plan(plans_roues[PLAN_XY], orig, dir, t)) {
 		if (t < dist_max) {
-			const auto pos = orig + t * dir;
-			const auto vec = m_position - pos;
-			const auto lon = longueur(vec);
+			auto const pos = orig + t * dir;
+			auto const vec = m_position - pos;
+			auto const lon = longueur(vec);
 
 			if (lon >= 0.95f && lon <= 1.05f) {
 				m_etat = ETAT_INTERSECTION_Z;

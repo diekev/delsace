@@ -87,15 +87,15 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	m_scene->items().clear();
 	assert(m_scene->items().size() == 0);
 
-	const auto graphe = m_mikisa.graphe;
+	auto const graphe = m_mikisa.graphe;
 
 	m_vue->resetTransform();
 
 	/* m_vue->centerOn ne semble pas fonctionner donc on modifier le rectangle
 	 * de la scène */
 	auto rect_scene = m_scene->sceneRect();
-	const auto largeur = rect_scene.width();
-	const auto hauteur = rect_scene.height();
+	auto const largeur = rect_scene.width();
+	auto const hauteur = rect_scene.height();
 
 	rect_scene = QRectF(graphe->centre_x - static_cast<float>(largeur) * 0.5f,
 						graphe->centre_y - static_cast<float>(hauteur) * 0.5f,
@@ -117,10 +117,10 @@ void EditriceGraphe::ajourne_etat(int evenement)
 				continue;
 			}
 
-			const auto x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
-			const auto y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
-			const auto x2 = prise->lien->rectangle.x + prise->lien->rectangle.largeur / 2.0f;
-			const auto y2 = prise->lien->rectangle.y + prise->lien->rectangle.hauteur / 2.0f;
+			auto const x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
+			auto const y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
+			auto const x2 = prise->lien->rectangle.x + prise->lien->rectangle.largeur / 2.0f;
+			auto const y2 = prise->lien->rectangle.y + prise->lien->rectangle.hauteur / 2.0f;
 
 			auto ligne = new QGraphicsLineItem();
 			ligne->setPen(QPen(Qt::white, 2.0));
@@ -144,8 +144,8 @@ void EditriceGraphe::ajourne_etat(int evenement)
 			y1 = prise_sortie->rectangle.y + prise_sortie->rectangle.hauteur / 2.0f;
 		}
 
-		const auto x2 = graphe->connexion_active->x;
-		const auto y2 = graphe->connexion_active->y;
+		auto const x2 = graphe->connexion_active->x;
+		auto const y2 = graphe->connexion_active->y;
 
 		auto ligne = new QGraphicsLineItem();
 		ligne->setPen(QPen(Qt::white, 2.0));

@@ -56,7 +56,7 @@ public:
 		donnees_entreface.repondant_bouton = mikisa->repondant_commande();
 		donnees_entreface.manipulable = &resultat;
 
-		const auto texte_entree = danjo::contenu_fichier("entreface/ajouter_propriete.jo");
+		auto const texte_entree = danjo::contenu_fichier("entreface/ajouter_propriete.jo");
 		auto ok = gestionnaire->montre_dialogue(donnees_entreface, texte_entree.c_str());
 
 		if (!ok) {

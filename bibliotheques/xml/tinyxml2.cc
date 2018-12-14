@@ -485,7 +485,7 @@ const char* XMLUtil::GetCharacterRef( const char* p, char* value, size_t* length
                 }
                 TIXMLASSERT( digit >= 0 && digit < 16);
                 TIXMLASSERT( digit == 0 || mult <= UINT_MAX / digit );
-				const auto digitScaled = mult * digit;
+				auto const digitScaled = mult * digit;
                 TIXMLASSERT( ucs <= ULONG_MAX - digitScaled );
 				ucs += static_cast<unsigned long>(digitScaled);
                 TIXMLASSERT( mult <= UINT_MAX / 16 );
@@ -512,10 +512,10 @@ const char* XMLUtil::GetCharacterRef( const char* p, char* value, size_t* length
 
             while ( *q != '#' ) {
                 if ( *q >= '0' && *q <= '9' ) {
-					const auto digit = *q - '0';
+					auto const digit = *q - '0';
                     TIXMLASSERT( digit >= 0 && digit < 10);
                     TIXMLASSERT( digit == 0 || mult <= UINT_MAX / digit );
-					const auto digitScaled = mult * digit;
+					auto const digitScaled = mult * digit;
                     TIXMLASSERT( ucs <= ULONG_MAX - digitScaled );
 					ucs += static_cast<unsigned long>(digitScaled);
                 }
@@ -1960,7 +1960,7 @@ XMLError XMLDocument::LoadFile( FILE* fp )
     }
 
     fseek( fp, 0, SEEK_END );
-	const auto filelength = ftell( fp );
+	auto const filelength = ftell( fp );
     fseek( fp, 0, SEEK_SET );
     if ( filelength == -1L ) {
 		SetError( XML_ERROR_FILE_READ_ERROR, nullptr, nullptr );
@@ -1978,7 +1978,7 @@ XMLError XMLDocument::LoadFile( FILE* fp )
         return _errorID;
     }
 
-	const auto size = static_cast<size_t>(filelength);
+	auto const size = static_cast<size_t>(filelength);
     TIXMLASSERT( _charBuffer == 0 );
 	_charBuffer = new char[size + 1];
 	auto read = fread( _charBuffer, 1, size, fp );
@@ -2155,7 +2155,7 @@ void XMLPrinter::Print( const char* format, ... )
 #endif
     }
     else {
-		const auto len = TIXML_VSCPRINTF( format, va );
+		auto const len = TIXML_VSCPRINTF( format, va );
         // Close out and re-start the va-args
         va_end( va );
         TIXMLASSERT( len >= 0 );
@@ -2201,9 +2201,9 @@ void XMLPrinter::PrintString( const char* p, bool restricted )
                 // entity, and keep looking.
 				if ( flag[static_cast<unsigned char>(*q)] ) {
                     while ( p < q ) {
-						const auto delta = q - p;
+						auto const delta = q - p;
                         // %.*s accepts type int as "precision"
-						const auto toPrint = ( INT_MAX < delta ) ? INT_MAX : delta;
+						auto const toPrint = ( INT_MAX < delta ) ? INT_MAX : delta;
                         Print( "%.*s", toPrint, p );
                         p += toPrint;
                     }

@@ -99,7 +99,7 @@ void VueObjet::ajourne_donnees()
 
 bool VueObjet::ajourne_proprietes()
 {
-	const auto est_maillage = (m_objet->type == TypeObjet::MAILLAGE);
+	auto const est_maillage = (m_objet->type == TypeObjet::MAILLAGE);
 
 	if (est_maillage) {
 		ajourne_valeur_bool("dessine_normaux", m_objet->maillage->dessine_normaux());

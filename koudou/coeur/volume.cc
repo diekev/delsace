@@ -68,7 +68,7 @@ bool VolumeLoiBeers::integre(GNA &gna, const ParametresRendu &parametres, Spectr
 
 Spectre VolumeLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const dls::math::point3d &P0, const dls::math::point3d &P1)
 {
-	const auto distance = static_cast<float>(longueur(P0 - P1));
+	auto const distance = static_cast<float>(longueur(P0 - P1));
 
 	auto L = Spectre();
 	L[0] = std::exp(absorption[0] * -distance);
@@ -107,8 +107,8 @@ bool VolumeHeterogeneLoiBeers::integre(GNA &gna, const ParametresRendu &parametr
 
 Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const dls::math::point3d &P0, const dls::math::point3d &P1)
 {
-	const auto distance = longueur(P0 - P1);
-	const auto dir = (P1 - P0);
+	auto const distance = longueur(P0 - P1);
+	auto const dir = (P1 - P0);
 
 	auto termine = false;
 	auto t = 0.0;
@@ -222,7 +222,7 @@ Spectre VolumeDiffusionSimple::transmittance(
 		const dls::math::point3d &P0,
 		const dls::math::point3d &P1)
 {
-	const auto distance = static_cast<float>(longueur(P0 - P1));
+	auto const distance = static_cast<float>(longueur(P0 - P1));
 
 	return Spectre::depuis_rgb(
 				 std::exp(extinction[0] * -distance),
@@ -335,7 +335,7 @@ Spectre VolumeHeterogeneDiffusionSimple::transmittance(
 		const dls::math::point3d &P0,
 		const dls::math::point3d &P1)
 {
-	const auto distance = static_cast<float>(longueur(P0 - P1));
+	auto const distance = static_cast<float>(longueur(P0 - P1));
 
 	return Spectre::depuis_rgb(
 				 std::exp(-distance),

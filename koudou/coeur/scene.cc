@@ -202,7 +202,7 @@ double ombre_scene(const ParametresRendu &parametres, const Scene &scene, const 
 Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, GNA &gna, const dls::math::point3d &pos, const dls::math::vec3d &nor)
 {
 	/* Biais pour les rayons d'ombrage. À FAIRE : mettre dans les paramètres. */
-	const auto biais = 1e-4;
+	auto const biais = 1e-4;
 	auto spectre = Spectre(0.0);
 
 	Rayon rayon;
@@ -215,13 +215,13 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 		auto lumiere_distante = dynamic_cast<const LumiereDistante *>(lumiere);
 
 		if (lumiere_distante != nullptr) {
-			const auto direction = lumiere_distante->dir;
-			const auto direction_op = dls::math::vec3d(
+			auto const direction = lumiere_distante->dir;
+			auto const direction_op = dls::math::vec3d(
 										  -direction.x,
 										  -direction.y,
 										  -direction.z);
 
-			const auto angle = dls::math::produit_scalaire(direction_op, nor);
+			auto const angle = dls::math::produit_scalaire(direction_op, nor);
 
 			if (angle <= 0.0) {
 				continue;
@@ -233,7 +233,7 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 				rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
 			}
 
-			const auto ombre = ombre_scene(parametres, scene, rayon, 1000.0);
+			auto const ombre = ombre_scene(parametres, scene, rayon, 1000.0);
 
 			if (ombre > 0.0) {
 				spectre += lumiere->spectre * static_cast<float>(lumiere->intensite * angle * ombre);
@@ -243,16 +243,16 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 		auto lumiere_point = dynamic_cast<const LumierePoint *>(lumiere);
 
 		if (lumiere_point != nullptr) {
-			const auto direction = pos - lumiere_point->pos;
-			const auto dist2 = dls::math::longueur_carree(direction);
+			auto const direction = pos - lumiere_point->pos;
+			auto const dist2 = dls::math::longueur_carree(direction);
 			auto dist = sqrt(dist2);
 
-			const auto direction_op = dls::math::vec3d(
+			auto const direction_op = dls::math::vec3d(
 										  -direction.x / dist,
 										  -direction.y / dist,
 										  -direction.z / dist);
 
-			const auto angle = dls::math::produit_scalaire(direction_op, nor);
+			auto const angle = dls::math::produit_scalaire(direction_op, nor);
 
 			if (angle <= 0.0) {
 				continue;
@@ -264,7 +264,7 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 				rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
 			}
 
-			const auto ombre = ombre_scene(parametres, scene, rayon, dist2);
+			auto const ombre = ombre_scene(parametres, scene, rayon, dist2);
 
 			if (ombre > 0.0) {
 				/* La contribution d'une lumière point est proportionelle à
@@ -277,9 +277,9 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 	}
 
 	/* Échantillone ciel. */
-	const auto point = 1000.0 * cosine_direction(gna, nor);
-	const auto posv = dls::math::vec3d(pos.x, pos.y, pos.z); /* XXX - PAS BEAU. */
-	const auto direction = dls::math::normalise(point - posv);
+	auto const point = 1000.0 * cosine_direction(gna, nor);
+	auto const posv = dls::math::vec3d(pos.x, pos.y, pos.z); /* XXX - PAS BEAU. */
+	auto const direction = dls::math::normalise(point - posv);
 	rayon.direction = direction;
 	for (size_t i = 0; i < 3; ++i) {
 		rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
@@ -295,7 +295,7 @@ dls::math::vec3d get_brdf_ray(GNA &gna, const dls::math::vec3d &nor, const dls::
 		return cosine_direction(gna, nor);
 	}
 
-	const auto p = reflect(nor, rd);
+	auto const p = reflect(nor, rd);
 	return dls::math::normalise(p + cosine_direction(gna, p) * 0.1);
 }
 

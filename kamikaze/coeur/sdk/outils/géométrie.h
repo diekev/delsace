@@ -35,8 +35,8 @@ inline dls::math::vec3f normale_triangle(
 		const dls::math::vec3f &v1,
 		const dls::math::vec3f &v2)
 {
-	const auto n0 = v0 - v1;
-	const auto n1 = v2 - v1;
+	auto const n0 = v0 - v1;
+	auto const n1 = v2 - v1;
 
 	return dls::math::produit_croix(n1, n0);
 }

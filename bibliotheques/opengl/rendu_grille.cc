@@ -77,11 +77,11 @@ RenduGrille::RenduGrille(int largeur, int hauteur)
 
 	m_tampon_grille = cree_tampon(dls::math::vec4f(1.0f), 1.0f);
 
-	const auto nombre_sommets = static_cast<size_t>((largeur + 1) + (hauteur + 1)) * 2;
+	auto const nombre_sommets = static_cast<size_t>((largeur + 1) + (hauteur + 1)) * 2;
 	std::vector<dls::math::vec3f> sommets(nombre_sommets);
 
-	const auto moitie_largeur = static_cast<float>(largeur) * 0.5f;
-	const auto moitie_hauteur = static_cast<float>(hauteur) * 0.5f;
+	auto const moitie_largeur = static_cast<float>(largeur) * 0.5f;
+	auto const moitie_hauteur = static_cast<float>(hauteur) * 0.5f;
 	auto compte = 0ul;
 
 	for (auto i = -moitie_hauteur; i <= moitie_hauteur; i += 1.0f) {

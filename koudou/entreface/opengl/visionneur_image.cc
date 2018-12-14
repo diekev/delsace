@@ -179,7 +179,7 @@ void VisionneurImage::charge_image(const numero7::math::matrice<dls::math::vec3d
 		image.nombre_lignes()
 	};
 
-	const auto resolution = static_cast<size_t>(image.nombre_colonnes() * image.nombre_lignes());
+	auto const resolution = static_cast<size_t>(image.nombre_colonnes() * image.nombre_lignes());
 
 	m_donnees_r.resize(resolution);
 	m_donnees_g.resize(resolution);

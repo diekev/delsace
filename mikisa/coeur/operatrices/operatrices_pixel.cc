@@ -738,7 +738,7 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
-		const auto time = evalue_decimal("temps", temps);
+		auto const time = evalue_decimal("temps", temps);
 		m_bruit_flux.change_temps(time);
 
 		m_frequence = evalue_vecteur("fréquence", temps);
@@ -749,7 +749,7 @@ public:
 		m_durete = evalue_decimal("persistence", temps);
 		m_dur = evalue_bool("dur");
 
-		const auto dimensions = evalue_enum("dimension");
+		auto const dimensions = evalue_enum("dimension");
 		m_dimensions = (dimensions == "3D") ? 3 : 1;
 	}
 
@@ -827,7 +827,7 @@ public:
 		/* Evaluate quadratic B-spline basis functions */
 		for (int i = 0; i < 3; i++) {
 			mid[i] = std::ceil(p[i] - 0.5f);
-			const auto t = mid[i] - (p[i] - 0.5f);
+			auto const t = mid[i] - (p[i] - 0.5f);
 
 			w[i][0] = t * t / 2.0f;
 			w[i][2] = (1 - t) * (1 - t) / 2.0f;
@@ -1259,10 +1259,10 @@ public:
 			resultat.g *= m_exposition;
 			resultat.b *= m_exposition;
 
-			const auto ld = 0.002f;
-			const auto lin_reference = 0.18f;
-			const auto log_reference = 444.0f;
-			const auto logGamma = 0.455f;
+			auto const ld = 0.002f;
+			auto const lin_reference = 0.18f;
+			auto const log_reference = 444.0f;
+			auto const logGamma = 0.455f;
 
 			resultat.r = (std::log(0.4f * resultat.r / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
 			resultat.g = (std::log(0.4f * resultat.g / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
@@ -1277,31 +1277,31 @@ public:
 			resultat.g *= m_exposition;
 			resultat.b *= m_exposition;
 
-			const auto r = std::max(0.0f, resultat.r - 0.004f);
+			auto const r = std::max(0.0f, resultat.r - 0.004f);
 			resultat.r = (r * (6.2f * r + 0.5f)) / (r * (6.2f * r + 1.7f) + 0.06f);
 
-			const auto g = std::max(0.0f, resultat.g - 0.004f);
+			auto const g = std::max(0.0f, resultat.g - 0.004f);
 			resultat.g = (g * (6.2f * g + 0.5f)) / (g * (6.2f * g + 1.7f) + 0.06f);
 
-			const auto b = std::max(0.0f, resultat.b - 0.004f);
+			auto const b = std::max(0.0f, resultat.b - 0.004f);
 			resultat.b = (b * (6.2f * b + 0.5f)) / (b * (6.2f * b + 1.7f) + 0.06f);
 		}
 		else if (m_type == MAPPAGE_TONAL_UNCHARTED) {
-			const auto exposure_bias = 2.0f;
-			const auto white_scale = 1.0f / uncharted_tone_map(W);
+			auto const exposure_bias = 2.0f;
+			auto const white_scale = 1.0f / uncharted_tone_map(W);
 
 			/* Exposure adjustment. */
 			resultat.r *= m_exposition;
 			resultat.g *= m_exposition;
 			resultat.b *= m_exposition;
 
-			const auto r = uncharted_tone_map(exposure_bias * resultat.r);
+			auto const r = uncharted_tone_map(exposure_bias * resultat.r);
 			resultat.r = r * white_scale;
 
-			const auto g = uncharted_tone_map(exposure_bias * resultat.g);
+			auto const g = uncharted_tone_map(exposure_bias * resultat.g);
 			resultat.g = g * white_scale;
 
-			const auto b = uncharted_tone_map(exposure_bias * resultat.b);
+			auto const b = uncharted_tone_map(exposure_bias * resultat.b);
 			resultat.b = b * white_scale;
 		}
 		else if (m_type == MAPPAGE_TONAL_CUSTOM) {
@@ -1476,7 +1476,7 @@ public:
 		INUTILISE(x);
 		INUTILISE(y);
 #if 0
-		const auto cos_angle = pixel.r * m_couleur.r
+		auto const cos_angle = pixel.r * m_couleur.r
 							   + pixel.g * m_couleur.g
 							   + pixel.b * m_couleur.b;
 
@@ -1490,7 +1490,7 @@ public:
 		T.b = pixel.b - m_couleur.b;
 		T.a = pixel.a;
 
-		const auto facteur = std::sqrt(T.r * T.r + T.g * T.g + T.b * T.b);
+		auto const facteur = std::sqrt(T.r * T.r + T.g * T.g + T.b * T.b);
 
 		numero7::image::Pixel<float> resultat;
 		resultat.r = (1.0f - facteur) * T.r + facteur * pixel.r;

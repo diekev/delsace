@@ -33,7 +33,7 @@ ObjectNodeItem::ObjectNodeItem(SceneNode *scene_node, const QString &title, QGra
 {
 	setData(NODE_KEY_GRAPHIC_ITEM_SUBTYPE, QVariant(NODE_VALUE_SUBTYPE_OBJECT));
 
-	for (const auto &input : scene_node->inputs()) {
+	for (auto const &input : scene_node->inputs()) {
 		createPort(input->name.c_str(),
 		           NODE_PORT_TYPE_INPUT,
 		           QColor(95, 95, 95),
@@ -41,7 +41,7 @@ ObjectNodeItem::ObjectNodeItem(SceneNode *scene_node, const QString &title, QGra
 		           QColor(95, 95, 95));
 	}
 
-	for (const auto &output : scene_node->outputs()) {
+	for (auto const &output : scene_node->outputs()) {
 		createPort(output->name.c_str(),
 		           NODE_PORT_TYPE_OUTPUT,
 		           QColor(95, 95, 95),

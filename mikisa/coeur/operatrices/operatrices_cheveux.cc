@@ -170,7 +170,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		const auto liste_points = corps_particules->points();
+		auto const liste_points = corps_particules->points();
 
 		if (liste_points->taille() == 0ul) {
 			ajoute_avertissement("Aucune particule trouvée dans le nuage de points !");
@@ -181,18 +181,18 @@ public:
 
 		INUTILISE(courbes);
 
-		const auto nombre_courbes = liste_points->taille();
+		auto const nombre_courbes = liste_points->taille();
 		INUTILISE(nombre_courbes);
-		const auto segments = evalue_entier("segments");
-		const auto inv_segments = 1.0f / static_cast<float>(segments);
-		const auto taille_min = evalue_decimal("taille_min");
-		const auto taille_max = evalue_decimal("taille_max");
-		const auto multiplication_taille = evalue_decimal("multiplication_taille");
-		const auto chaine_style_creation = evalue_enum("style_création");
-		const auto longueur_segment = evalue_decimal("taille_segment");
-		const auto nor = evalue_vecteur("normal");
+		auto const segments = evalue_entier("segments");
+		auto const inv_segments = 1.0f / static_cast<float>(segments);
+		auto const taille_min = evalue_decimal("taille_min");
+		auto const taille_max = evalue_decimal("taille_max");
+		auto const multiplication_taille = evalue_decimal("multiplication_taille");
+		auto const chaine_style_creation = evalue_enum("style_création");
+		auto const longueur_segment = evalue_decimal("taille_segment");
+		auto const nor = evalue_vecteur("normal");
 		auto normal = normalise(dls::math::vec3f(nor.x, nor.y, nor.z));
-		const auto chaine_direction = evalue_enum("direction");
+		auto const chaine_direction = evalue_enum("direction");
 
 		/* À FAIRE : biais de longueur entre [-1.0, 1.0], où -1.0 = plus de
 		 * petites courbes que de grandes, et 1.0 = plus de grandes courbes que
@@ -235,7 +235,7 @@ public:
 
 		auto index_point = 0ul;
 		for (Point3D *point : liste_points->points()) {
-			const auto taille_courbe = dist_taille(rng) * multiplication_taille;
+			auto const taille_courbe = dist_taille(rng) * multiplication_taille;
 
 			size_t nombre_segment;
 			float taille_segment;

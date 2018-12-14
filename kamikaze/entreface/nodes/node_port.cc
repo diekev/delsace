@@ -68,7 +68,7 @@ void QtPort::redraw()
 	pen.setWidth(NODE_PORT_PEN_SIZE);
 	setPen(pen);
 
-	const auto &shapeSize = NODE_PORT_SHAPE_SIZE;
+	auto const &shapeSize = NODE_PORT_SHAPE_SIZE;
 
 	auto p = QPainterPath{};
 	p.addEllipse(-0.5f * shapeSize, -0.5f * shapeSize, shapeSize, shapeSize);
@@ -152,8 +152,8 @@ void QtPort::deleteConnexion(QtConnexion *connexion, bool erase)
 		return;
 	}
 
-	const auto &base = connexion->getBasePort();
-	const auto &target = connexion->getTargetPort();
+	auto const &base = connexion->getBasePort();
+	auto const &target = connexion->getTargetPort();
 
 	if (erase) {
 		auto iter = std::find(m_connexions.begin(), m_connexions.end(), connexion);

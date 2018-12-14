@@ -41,7 +41,7 @@ PlanPhysique plan_global;
 
 static bool verifie_collision(const PlanPhysique &plan, const dls::math::vec3d &pos, const dls::math::vec3d &vel)
 {
-	const auto &XPdotN = dls::math::produit_scalaire(pos - plan.pos, plan.nor);
+	auto const &XPdotN = dls::math::produit_scalaire(pos - plan.pos, plan.nor);
 
 	/* Est-on à une distance epsilon du plan ? */
 	if (XPdotN >= std::numeric_limits<double>::epsilon()) {
@@ -117,8 +117,8 @@ public:
 	void execute_algorithme(const Context &/*contexte*/, double /*temps*/)
 	{
 		/* À FAIRE : passe le temps par image en paramètre. */
-		const auto temps_par_image = 1.0f / 24.0f;
-		const auto gravite = m_gravite * temps_par_image;
+		auto const temps_par_image = 1.0f / 24.0f;
+		auto const gravite = m_gravite * temps_par_image;
 
 		for (Primitive *prim : primitive_iterator(m_collection, PrimPoints::id)) {
 			auto nuage_points = static_cast<PrimPoints *>(prim);
@@ -129,13 +129,13 @@ public:
 
 			for (auto i = 0ul; i < nombre_points; ++i) {
 				auto &point = (*points)[i];
-				const auto velocite = attr_vel->vec3(i) + gravite;
+				auto const velocite = attr_vel->vec3(i) + gravite;
 				attr_vel->vec3(i, velocite);
 
 				point += velocite;
 
 				/* Calcul la position en espace objet. */
-				const auto pos = nuage_points->matrix() * dls::math::vec3d(point);
+				auto const pos = nuage_points->matrix() * dls::math::vec3d(point);
 
 				/* Vérifie l'existence d'une collision avec le plan global. */
 				if (verifie_collision(plan_global, pos, dls::math::vec3d(velocite))) {
@@ -150,7 +150,7 @@ public:
 
 void enregistre_operatrices_physiques(UsineOperatrice &usine)
 {
-	const auto categorie = "Physique";
+	auto const categorie = "Physique";
 
 	usine.enregistre_type(
 				NOM_GRAVITE,

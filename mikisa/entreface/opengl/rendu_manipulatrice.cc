@@ -96,7 +96,7 @@ static void ajoute_baton_axe(
 		std::vector<dls::math::vec3f> &sommets,
 		std::vector<unsigned int> &indices)
 {
-	const auto decalage = sommets.size();
+	auto const decalage = sommets.size();
 
 	const dls::math::vec3f coins[8] = {
 		dls::math::vec3f(min[0], min[1], min[2]),
@@ -111,7 +111,7 @@ static void ajoute_baton_axe(
 
 	sommets.reserve(sommets.size() + 8);
 
-	for (const auto &coin : coins) {
+	for (auto const &coin : coins) {
 		sommets.push_back(coin);
 	}
 
@@ -141,7 +141,7 @@ static void ajoute_poignee_axe(
 		std::vector<dls::math::vec3f> &sommets,
 		std::vector<unsigned int> &indices)
 {
-	const auto decalage = sommets.size();
+	auto const decalage = sommets.size();
 
 	const dls::math::vec3f coins[8] = {
 		dls::math::vec3f(min[0], min[1], min[2]),
@@ -156,7 +156,7 @@ static void ajoute_poignee_axe(
 
 	sommets.reserve(sommets.size() + 8);
 
-	for (const auto &coin : coins) {
+	for (auto const &coin : coins) {
 		sommets.push_back(coin);
 	}
 
@@ -441,7 +441,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 {
 	auto tampon = cree_tampon_base(couleurs[axe]);
 
-	const auto segments = 64;
+	auto const segments = 64;
 	std::vector<dls::math::vec3f> sommets;
 	std::vector<unsigned int> indices;
 
@@ -451,7 +451,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 	switch (axe) {
 		case 0:
 		{
-			const auto phid = 2.0f * static_cast<float>(M_PI) / segments;
+			auto const phid = 2.0f * static_cast<float>(M_PI) / segments;
 			auto phi = 0.0f;
 
 			dls::math::vec3f point;
@@ -467,7 +467,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 		}
 		case 1:
 		{
-			const auto phid = 2.0f * static_cast<float>(M_PI) / segments;
+			auto const phid = 2.0f * static_cast<float>(M_PI) / segments;
 			auto phi = 0.0f;
 
 			dls::math::vec3f point;
@@ -483,7 +483,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 		}
 		case 2:
 		{
-			const auto phid = 2.0f * static_cast<float>(M_PI) / segments;
+			auto const phid = 2.0f * static_cast<float>(M_PI) / segments;
 			auto phi = 0.0f;
 
 			dls::math::vec3f point;

@@ -89,7 +89,7 @@ PriseEntree *Noeud::entree(size_t index)
 
 PriseEntree *Noeud::entree(const std::string &nom)
 {
-	for (const auto &entree : m_entrees) {
+	for (auto const &entree : m_entrees) {
 		if (entree->nom == nom) {
 			return entree;
 		}
@@ -105,7 +105,7 @@ PriseSortie *Noeud::sortie(size_t index)
 
 PriseSortie *Noeud::sortie(const std::string &nom)
 {
-	for (const auto &sortie : m_sorties) {
+	for (auto const &sortie : m_sorties) {
 		if (sortie->nom == nom) {
 			return sortie;
 		}
@@ -133,7 +133,7 @@ bool Noeud::a_entree_connectee() const
 {
 	auto entree_connectee = false;
 
-	for (const auto &entree : m_entrees) {
+	for (auto const &entree : m_entrees) {
 		if (entree->lien != nullptr) {
 			entree_connectee = true;
 			break;
@@ -147,7 +147,7 @@ bool Noeud::a_sortie_connectee() const
 {
 	auto sortie_connectee = false;
 
-	for (const auto &sortie : m_sorties) {
+	for (auto const &sortie : m_sorties) {
 		if (!sortie->liens.empty()) {
 			sortie_connectee = true;
 			break;

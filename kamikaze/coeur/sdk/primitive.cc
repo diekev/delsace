@@ -64,13 +64,13 @@ Primitive::~Primitive()
 
 bool Primitive::entresect(const Ray &ray, float &min) const
 {
-	const auto inv_dir = 1.0f / ray.dir;
-	const auto t_min = (m_min - ray.pos) * inv_dir;
-	const auto t_max = (m_max - ray.pos) * inv_dir;
-	const auto t1 = std::min(t_min, t_max);
-	const auto t2 = std::max(t_min, t_max);
-	const auto t_near = std::max(t1.x, std::max(t1.y, t1.z));
-	const auto t_far = std::min(t2.x, std::min(t2.y, t2.z));
+	auto const inv_dir = 1.0f / ray.dir;
+	auto const t_min = (m_min - ray.pos) * inv_dir;
+	auto const t_max = (m_max - ray.pos) * inv_dir;
+	auto const t1 = std::min(t_min, t_max);
+	auto const t2 = std::max(t_min, t_max);
+	auto const t_near = std::max(t1.x, std::max(t1.y, t1.z));
+	auto const t_far = std::min(t2.x, std::min(t2.y, t2.z));
 
 	if (t_near < t_far && t_near < min) {
 		min = t_near;
@@ -238,7 +238,7 @@ void PrimitiveCollection::add(Primitive *prim)
 
 	bool changed = ensure_unique_name(name, [&](const std::string &str)
 	{
-		for (const auto &prim_nom : m_collection) {
+		for (auto const &prim_nom : m_collection) {
 			if (prim_nom->name() == str) {
 				return false;
 			}
@@ -270,7 +270,7 @@ PrimitiveCollection *PrimitiveCollection::copy() const
 {
 	auto collection = new PrimitiveCollection(this->m_factory);
 
-	for (const auto &prim : this->m_collection) {
+	for (auto const &prim : this->m_collection) {
 		collection->add(prim->copy());
 	}
 
@@ -365,7 +365,7 @@ primitive_iterator::primitive_iterator(const PrimitiveCollection *coll, size_t t
 	}
 
 	/* Make sure the first primitive is of the right type. */
-	for (const auto &primitive : coll->primitives()) {
+	for (auto const &primitive : coll->primitives()) {
 		if (primitive->typeID() == type) {
 			break;
 		}

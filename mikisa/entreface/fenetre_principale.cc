@@ -98,8 +98,8 @@ void FenetrePrincipale::genere_barre_menu()
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	for (const auto &chemin : chemins_scripts) {
-		const auto texte_entree = danjo::contenu_fichier(chemin);
+	for (auto const &chemin : chemins_scripts) {
+		auto const texte_entree = danjo::contenu_fichier(chemin);
 		auto menu = m_mikisa.gestionnaire_entreface->compile_menu(donnees, texte_entree.c_str());
 
 		menuBar()->addMenu(menu);

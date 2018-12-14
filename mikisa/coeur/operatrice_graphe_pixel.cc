@@ -330,8 +330,8 @@ int OperatriceGraphePixel::execute(const Rectangle &rectangle, const int temps)
 
 		for (size_t l = plage.begin(); l < plage.end(); ++l) {
 			for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {
-//				const auto x = c * largeur_inverse;
-//				const auto y = l * hauteur_inverse;
+//				auto const x = c * largeur_inverse;
+//				auto const y = l * hauteur_inverse;
 
 				auto courante = tampon->valeur(c, l);
 

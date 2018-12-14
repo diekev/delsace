@@ -57,7 +57,7 @@ inline static std::string node_id(const Noeud *node, bool quoted = true)
 inline size_t get_input_index(const PriseEntree *socket)
 {
 	auto i = 0ul;
-	for (const auto &input : socket->parent->entrees()) {
+	for (auto const &input : socket->parent->entrees()) {
 		if (input->nom == socket->nom) {
 			return i;
 		}
@@ -71,7 +71,7 @@ inline size_t get_input_index(const PriseEntree *socket)
 inline size_t get_output_index(const PriseSortie *socket)
 {
 	auto i = 0ul;
-	for (const auto &output : socket->parent->sorties()) {
+	for (auto const &output : socket->parent->sorties()) {
 		if (output->nom == socket->nom) {
 			return i;
 		}
@@ -135,15 +135,15 @@ inline void dump_node(numero7::systeme_fichier::File &file, Noeud *node)
 	file.print("label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">");
 	file.print("<TR><TD COLSPAN=\"2\">%s</TD></TR>", node->nom().c_str());
 
-	const auto numin = node->entrees().size();
-	const auto numout = node->sorties().size();
+	auto const numin = node->entrees().size();
+	auto const numout = node->sorties().size();
 
 	for (size_t i = 0; (i < numin) || (i < numout); ++i) {
 		file.print("<TR>");
 
 		if (i < numin) {
-			const auto &input = node->entree(i);
-			const auto &name_in = input->nom;
+			auto const &input = node->entree(i);
+			auto const &name_in = input->nom;
 
 			file.print("<TD");
 			file.print(" PORT=%s", input_id(input, i).c_str());
@@ -158,8 +158,8 @@ inline void dump_node(numero7::systeme_fichier::File &file, Noeud *node)
 		}
 
 		if (i < numout) {
-			const auto &output = node->sortie(i);
-			const auto &name_out = output->nom;
+			auto const &output = node->sortie(i);
+			auto const &name_out = output->nom;
 
 			file.print("<TD");
 			file.print(" PORT=%s", output_id(output, i).c_str());
@@ -209,7 +209,7 @@ inline void dump_link(numero7::systeme_fichier::File &file, const PriseSortie *f
 
 inline void dump_node_links(numero7::systeme_fichier::File &file, const Noeud *node)
 {
-	for (const auto &input : node->entrees()) {
+	for (auto const &input : node->entrees()) {
 		if (input->lien) {
 			dump_link(file, input->lien, input);
 		}
@@ -237,11 +237,11 @@ void ImprimeuseGraphe::operator()(const filesystem::path &path)
 	file.print("label=\"Image Graph\"");
 	file.print("]\n");
 
-	for (const auto &node : m_graph->noeuds()) {
+	for (auto const &node : m_graph->noeuds()) {
 		dump_node(file, node.get());
 	}
 
-	for (const auto &node : m_graph->noeuds()) {
+	for (auto const &node : m_graph->noeuds()) {
 		dump_node_links(file, node.get());
 	}
 

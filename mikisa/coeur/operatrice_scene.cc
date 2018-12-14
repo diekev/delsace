@@ -147,9 +147,9 @@ int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 
 	if (camera) {
 		/* Met en place le contexte. */
-		const auto &MV = camera->MV();
-		const auto &P = camera->P();
-		const auto &MVP = P * MV;
+		auto const &MV = camera->MV();
+		auto const &P = camera->P();
+		auto const &MVP = P * MV;
 
 		m_contexte.vue(camera->dir());
 		m_contexte.modele_vue(MV);

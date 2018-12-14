@@ -42,7 +42,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto scene_node = scene->active_node();
 
@@ -71,7 +71,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 		DepsGraphDumper gd(scene->depsgraph());
 		gd("/tmp/depsgraph.gv");
@@ -121,7 +121,7 @@ class CommandeGrapheZoom final : public Commande {
 		}
 
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
 		auto graphe = objet->graph();
@@ -138,7 +138,7 @@ class CommandeGrapheSupprimeSelection final : public Commande {
 	{
 		/* À FAIRE : évenements */
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
 
@@ -164,7 +164,7 @@ class CommandeGrapheSupprimeSelection final : public Commande {
 	bool evalue_predicat(std::any const &pointeur, const std::string &/*metadonnee*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
 
@@ -189,7 +189,7 @@ class CommandeGrapheCentre final : public Commande {
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
 		auto graphe = objet->graph();
@@ -209,7 +209,7 @@ class CommandeGrapheBasculeExpansion final : public Commande {
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 		auto objet = static_cast<Object *>(scene->active_node());
 		auto graphe = objet->graph();
@@ -235,9 +235,9 @@ class CommandeGrapheSelection final : public Commande {
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
-		const auto pos_x = donnees.x;
-		const auto pos_y = donnees.y;
+		auto const &contexte = main->contexte;
+		auto const pos_x = donnees.x;
+		auto const pos_y = donnees.y;
 
 	//	std::cerr << "Sélection : x = " << pos_x << ", y = " << pos_y << '\n';
 
@@ -248,8 +248,8 @@ class CommandeGrapheSelection final : public Commande {
 			auto graphe = objet->graph();
 			graphe->deselectionne_tout();
 
-			for (const auto &noeud : graphe->noeuds()) {
-				const auto rect = Rectangle::depuis_centre(
+			for (auto const &noeud : graphe->noeuds()) {
+				auto const rect = Rectangle::depuis_centre(
 									  static_cast<float>(noeud->posx()), static_cast<float>(noeud->posy()),
 									  200.0f, 32.0f);
 
@@ -265,8 +265,8 @@ class CommandeGrapheSelection final : public Commande {
 		else {
 			scene->set_active_node(nullptr);
 
-			for (const auto &noeud : scene->nodes()) {
-				const auto rect = Rectangle::depuis_centre(
+			for (auto const &noeud : scene->nodes()) {
+				auto const rect = Rectangle::depuis_centre(
 									  noeud->xpos(), noeud->ypos(),
 									  200.0f, 32.0f);
 
@@ -286,7 +286,7 @@ class CommandeGrapheSelection final : public Commande {
 	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees)
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 
 		if (contexte.eval_ctx->edit_mode) {
@@ -325,9 +325,9 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
-		const auto pos_x = donnees.x;
-		const auto pos_y = donnees.y;
+		auto const &contexte = main->contexte;
+		auto const pos_x = donnees.x;
+		auto const pos_y = donnees.y;
 
 	//	std::cerr << "Double clique : x = " << pos_x << ", y = " << pos_y << '\n';
 

@@ -53,7 +53,7 @@ VueEditeurNoeud::VueEditeurNoeud(
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_repondant_commande;
 
-	const auto texte_entree = danjo::contenu_fichier("entreface/menu_editeur_noeud.jo");
+	auto const texte_entree = danjo::contenu_fichier("entreface/menu_editeur_noeud.jo");
 	m_menu_contexte = m_gestionnaire->compile_menu(donnees, texte_entree.c_str());
 
 	setDragMode(QGraphicsView::ScrollHandDrag);
@@ -88,15 +88,15 @@ void VueEditeurNoeud::wheelEvent(QWheelEvent *event)
 {
 	this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
-	const auto factor = 1.15f;
-	const auto zoom = ((event->delta() > 0) ? factor : 1.0f / factor);
+	auto const factor = 1.15f;
+	auto const zoom = ((event->delta() > 0) ? factor : 1.0f / factor);
 
 	this->scale(zoom, zoom);
 }
 
 void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
 {
-	const auto position = mapToScene(event->pos());
+	auto const position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
 	donnees.souris = Qt::LeftButton;
@@ -111,7 +111,7 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 	switch (event->button()) {
 		case Qt::LeftButton:
 		{
-			const auto position = mapToScene(event->pos());
+			auto const position = mapToScene(event->pos());
 
 			DonneesCommande donnees;
 			donnees.souris = Qt::LeftButton;
@@ -139,7 +139,7 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 
 void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 {
-	const auto position = mapToScene(event->pos());
+	auto const position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
 	donnees.double_clique = true;
@@ -152,7 +152,7 @@ void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 
 void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 {
-	const auto position = mapToScene(event->pos());
+	auto const position = mapToScene(event->pos());
 
 	DonneesCommande donnees;
 	donnees.x = static_cast<float>(position.x());

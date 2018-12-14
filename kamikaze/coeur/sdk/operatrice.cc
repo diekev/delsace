@@ -302,7 +302,7 @@ DescOperatrice::DescOperatrice(const std::string &opname, const std::string &oph
 
 size_t UsineOperatrice::enregistre_type(const std::string &nom, DescOperatrice desc)
 {
-	const auto iter = m_tableau.find(nom);
+	auto const iter = m_tableau.find(nom);
 	assert(iter == m_tableau.end());
 
 	m_categories.emplace(desc.categorie);
@@ -313,7 +313,7 @@ size_t UsineOperatrice::enregistre_type(const std::string &nom, DescOperatrice d
 
 Operatrice *UsineOperatrice::operator()(const std::string &nom, Noeud *noeud, const Context &contexte)
 {
-	const auto iter = m_tableau.find(nom);
+	auto const iter = m_tableau.find(nom);
 	assert(iter != m_tableau.end());
 
 	const DescOperatrice &desc = iter->second;
@@ -331,7 +331,7 @@ std::vector<DescOperatrice> UsineOperatrice::cles(const std::string &categorie) 
 	std::vector<DescOperatrice> v;
 	v.reserve(nombre_entrees());
 
-	for (const auto &entree : m_tableau) {
+	for (auto const &entree : m_tableau) {
 		DescOperatrice desc = entree.second;
 
 		if (desc.categorie == categorie) {

@@ -410,18 +410,18 @@ public:
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 
 		/* prépare le bruit */
-		const auto graine = static_cast<unsigned>(evalue_entier("graine"));
+		auto const graine = static_cast<unsigned>(evalue_entier("graine"));
 		m_bruit_x = dls::math::BruitFlux3D(graine);
 		m_bruit_x.change_temps(evalue_decimal("temps", temps));
 
-		const auto dimension = evalue_enum("dimension");
-		const auto dur = evalue_bool("dur");
-		const auto frequence = evalue_vecteur("fréquence", temps);
-		const auto decalage = evalue_vecteur("décalage", temps);
-		const auto octaves = evalue_entier("octaves", temps);
-		const auto amplitude = evalue_decimal("amplitude", temps);
-		const auto persistence = evalue_decimal("persistence", temps);
-		const auto lacunarite = evalue_decimal("lacunarité", temps);
+		auto const dimension = evalue_enum("dimension");
+		auto const dur = evalue_bool("dur");
+		auto const frequence = evalue_vecteur("fréquence", temps);
+		auto const decalage = evalue_vecteur("décalage", temps);
+		auto const octaves = evalue_entier("octaves", temps);
+		auto const amplitude = evalue_decimal("amplitude", temps);
+		auto const persistence = evalue_decimal("persistence", temps);
+		auto const lacunarite = evalue_decimal("lacunarité", temps);
 
 		if (dimension == "1D") {
 			compileuse.ajoute_noeud(1ul);
@@ -495,10 +495,10 @@ public:
 		compileuse.ajoute_noeud(NOEUD_POINT3D_TRAD_VEC);
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 
-		const auto vieux_min = evalue_decimal("vieux_min");
-		const auto vieux_max = evalue_decimal("vieux_max");
-		const auto neuf_min = evalue_decimal("neuf_min");
-		const auto neuf_max = evalue_decimal("neuf_max");
+		auto const vieux_min = evalue_decimal("vieux_min");
+		auto const vieux_max = evalue_decimal("vieux_max");
+		auto const neuf_min = evalue_decimal("neuf_min");
+		auto const neuf_max = evalue_decimal("neuf_max");
 
 		compileuse.ajoute_noeud(vieux_min, vieux_max, neuf_min, neuf_max);
 

@@ -37,7 +37,7 @@
 
 static void ouvre_fichier_implementation(Mikisa &mikisa, const std::string &chemin_projet)
 {
-	const auto erreur = coeur::ouvre_projet(chemin_projet, mikisa);
+	auto const erreur = coeur::ouvre_projet(chemin_projet, mikisa);
 
 	switch (erreur) {
 		case coeur::erreur_fichier::AUCUNE_ERREUR:
@@ -73,7 +73,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
-		const auto chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE);
+		auto const chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE);
 
 		if (chemin_projet.empty()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -102,7 +102,7 @@ public:
 
 static void sauve_fichier_sous(Mikisa &mikisa)
 {
-	const auto &chemin_projet = mikisa.requiers_dialogue(FICHIER_SAUVEGARDE);
+	auto const &chemin_projet = mikisa.requiers_dialogue(FICHIER_SAUVEGARDE);
 
 	mikisa.chemin_projet(chemin_projet);
 	mikisa.projet_ouvert(true);

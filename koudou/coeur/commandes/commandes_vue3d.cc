@@ -50,7 +50,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto koudou = std::any_cast<Koudou *>(pointeur);
-		const auto delta = donnees.x;
+		auto const delta = donnees.x;
 
 		auto camera = koudou->camera;
 

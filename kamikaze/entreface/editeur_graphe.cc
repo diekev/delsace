@@ -79,12 +79,12 @@ EditriceGraphe::~EditriceGraphe()
 
 QGraphicsItem *EditriceGraphe::itemAtExceptActiveConnexion(const QPointF &pos)
 {
-	const auto &items = m_graphics_scene->items(QRectF(pos - QPointF(1, 1), QSize(3, 3)));
-	const auto is_active = (m_active_connexion != nullptr);
+	auto const &items = m_graphics_scene->items(QRectF(pos - QPointF(1, 1), QSize(3, 3)));
+	auto const is_active = (m_active_connexion != nullptr);
 
 	/* If there is an active connexion, it is not returned as a selected item.
 	 * Finalized (established) connexions are returned. */
-	for (const auto &item : items) {
+	for (auto const &item : items) {
 		if (!item->isVisible()) {
 			continue;
 		}
@@ -114,18 +114,18 @@ QtConnexion *EditriceGraphe::nodeOverConnexion(QtNode *node)
 
 	auto check_hover = [&](QtNode *nitem, QtConnexion *citem)
 	{
-		const auto &bport_pos_x = citem->getBasePort()->scenePos().x();
-		const auto &bport_pos_y = citem->getBasePort()->scenePos().y();
-		const auto &tport_pos_x = citem->getTargetPort()->scenePos().x();
-		const auto &tport_pos_y = citem->getTargetPort()->scenePos().y();
+		auto const &bport_pos_x = citem->getBasePort()->scenePos().x();
+		auto const &bport_pos_y = citem->getBasePort()->scenePos().y();
+		auto const &tport_pos_x = citem->getTargetPort()->scenePos().x();
+		auto const &tport_pos_y = citem->getTargetPort()->scenePos().y();
 
-		const auto &min_x = std::min(bport_pos_x, tport_pos_x);
-		const auto &min_y = std::min(bport_pos_y, tport_pos_y);
-		const auto &max_x = std::max(bport_pos_x, tport_pos_x);
-		const auto &max_y = std::max(bport_pos_y, tport_pos_y);
+		auto const &min_x = std::min(bport_pos_x, tport_pos_x);
+		auto const &min_y = std::min(bport_pos_y, tport_pos_y);
+		auto const &max_x = std::max(bport_pos_x, tport_pos_x);
+		auto const &max_y = std::max(bport_pos_y, tport_pos_y);
 
-		const auto &pos_x = nitem->pos().x();
-		const auto &pos_y = nitem->pos().y();
+		auto const &pos_x = nitem->pos().x();
+		auto const &pos_y = nitem->pos().y();
 
 		return (min_x < pos_x && max_x > pos_x) && (min_y < pos_y && max_y > pos_y);
 	};
@@ -136,7 +136,7 @@ QtConnexion *EditriceGraphe::nodeOverConnexion(QtNode *node)
 
 	QtConnexion *connexion;
 
-	for (const auto &item : m_graphics_scene->items()) {
+	for (auto const &item : m_graphics_scene->items()) {
 		if (!is_connexion(item)) {
 			continue;
 		}
@@ -206,7 +206,7 @@ bool EditriceGraphe::mouseClickHandler(QGraphicsSceneMouseEvent *mouseEvent)
 		{
 			m_mouse_down = true;
 
-			const auto &item = itemAtExceptActiveConnexion(mouseEvent->scenePos());
+			auto const &item = itemAtExceptActiveConnexion(mouseEvent->scenePos());
 
 			if (!item) {
 				/* Left-click on the canvas, but no item clicked, so deselect nodes and connexions */
@@ -229,7 +229,7 @@ bool EditriceGraphe::mouseClickHandler(QGraphicsSceneMouseEvent *mouseEvent)
 			 * its children or a connexion.
 			 */
 
-			const auto type = item->data(NODE_KEY_GRAPHIC_ITEM_TYPE).toInt();
+			auto const type = item->data(NODE_KEY_GRAPHIC_ITEM_TYPE).toInt();
 
 			switch (type) {
 				case NODE_VALUE_TYPE_CONNECTION:
@@ -284,7 +284,7 @@ bool EditriceGraphe::mouseClickHandler(QGraphicsSceneMouseEvent *mouseEvent)
 		}
 		case Qt::MiddleButton:
 		{
-			const auto &item = itemAtExceptActiveConnexion(mouseEvent->scenePos());
+			auto const &item = itemAtExceptActiveConnexion(mouseEvent->scenePos());
 
 			if (!item) {
 				return true;
@@ -295,7 +295,7 @@ bool EditriceGraphe::mouseClickHandler(QGraphicsSceneMouseEvent *mouseEvent)
 				return true;
 			}
 
-			const auto type = item->data(NODE_KEY_GRAPHIC_ITEM_TYPE).toInt();
+			auto const type = item->data(NODE_KEY_GRAPHIC_ITEM_TYPE).toInt();
 
 			Noeud *noeud = nullptr;
 
@@ -353,7 +353,7 @@ bool EditriceGraphe::mouseDoubleClickHandler(QGraphicsSceneMouseEvent *mouseEven
 	switch (static_cast<int>(mouseEvent->button())) {
 		case Qt::LeftButton:
 		{
-			const auto &item = itemAtExceptActiveConnexion(mouseEvent->scenePos());
+			auto const &item = itemAtExceptActiveConnexion(mouseEvent->scenePos());
 
 			if (!item) {
 				/* Double-click on the canvas. */
@@ -370,7 +370,7 @@ bool EditriceGraphe::mouseDoubleClickHandler(QGraphicsSceneMouseEvent *mouseEven
 			 * its children or a connexion.
 			 */
 
-			const auto type = item->data(NODE_KEY_GRAPHIC_ITEM_TYPE).toInt();
+			auto const type = item->data(NODE_KEY_GRAPHIC_ITEM_TYPE).toInt();
 
 			switch (type) {
 				case NODE_VALUE_TYPE_NODE:
@@ -469,8 +469,8 @@ bool EditriceGraphe::mouseReleaseHandler(QGraphicsSceneMouseEvent *mouseEvent)
 			auto maxY = qMax(m_last_mouse_position.y(), mouseEvent->lastScenePos().y());
 
 			/* Select the items */
-			const auto &items = m_graphics_scene->items();
-			for (const auto &item : items) {
+			auto const &items = m_graphics_scene->items();
+			for (auto const &item : items) {
 				if (!item->isVisible()) {
 					continue;
 				}
@@ -481,8 +481,8 @@ bool EditriceGraphe::mouseReleaseHandler(QGraphicsSceneMouseEvent *mouseEvent)
 					auto prise_cible = connexion->getTargetPort();
 
 					if (prise_base && prise_cible) {
-						const auto &pos_prise_base = prise_base->scenePos();
-						const auto &pos_prise_cible = prise_cible->scenePos();
+						auto const &pos_prise_base = prise_base->scenePos();
+						auto const &pos_prise_cible = prise_cible->scenePos();
 
 						auto item_Min_X = qMin(pos_prise_base.x(), pos_prise_cible.x());
 						auto item_Max_X = qMax(pos_prise_base.x(), pos_prise_cible.x());
@@ -498,8 +498,8 @@ bool EditriceGraphe::mouseReleaseHandler(QGraphicsSceneMouseEvent *mouseEvent)
 				}
 				else if (is_node(item)) {
 					auto noeud = static_cast<QtNode *>(item);
-					const auto &pos_neoud = noeud->scenePos();
-					const auto &cadre_noeud = noeud->sceneBoundingRect();
+					auto const &pos_neoud = noeud->scenePos();
+					auto const &cadre_noeud = noeud->sceneBoundingRect();
 
 					auto item_Min_X = pos_neoud.x() - 0.5 * cadre_noeud.width() + 10;
 					auto item_Min_Y = pos_neoud.y() - 0.5 * cadre_noeud.height() + 10;
@@ -526,8 +526,8 @@ bool EditriceGraphe::mouseReleaseHandler(QGraphicsSceneMouseEvent *mouseEvent)
 void EditriceGraphe::rubberbandSelection(QGraphicsSceneMouseEvent *mouseEvent)
 {
 	/* Mouse is pressed and moves => draw rubberband */
-	const auto x = mouseEvent->lastScenePos().x();
-	const auto y = mouseEvent->lastScenePos().y();
+	auto const x = mouseEvent->lastScenePos().x();
+	auto const y = mouseEvent->lastScenePos().y();
 
 	if (!m_rubber_band) {
 		m_rubber_band = new QGraphicsRectItem(m_last_mouse_position.x(), m_last_mouse_position.y(), 0.0f, 0.0f);
@@ -540,10 +540,10 @@ void EditriceGraphe::rubberbandSelection(QGraphicsSceneMouseEvent *mouseEvent)
 
 	m_rubber_band->show();
 
-	const auto minX = std::min(static_cast<qreal>(m_last_mouse_position.x()), x);
-	const auto maxX = std::max(static_cast<qreal>(m_last_mouse_position.x()), x);
-	const auto minY = std::min(static_cast<qreal>(m_last_mouse_position.y()), y);
-	const auto maxY = std::max(static_cast<qreal>(m_last_mouse_position.y()), y);
+	auto const minX = std::min(static_cast<qreal>(m_last_mouse_position.x()), x);
+	auto const maxX = std::max(static_cast<qreal>(m_last_mouse_position.x()), x);
+	auto const minY = std::min(static_cast<qreal>(m_last_mouse_position.y()), y);
+	auto const maxY = std::max(static_cast<qreal>(m_last_mouse_position.y()), y);
 
 	m_rubber_band->setRect(minX, minY, maxX - minX, maxY - minY);
 }
@@ -593,10 +593,10 @@ void EditriceGraphe::deselectAll()
 
 void EditriceGraphe::deleteAllActiveConnexions()
 {
-	const auto &items = m_graphics_scene->items();
+	auto const &items = m_graphics_scene->items();
 	QtNode *node;
 
-	for (const auto &item : items) {
+	for (auto const &item : items) {
 		if (is_node(item) && item->isVisible()) {
 			node = static_cast<QtNode *>(item);
 			node->deleteActiveConnexion();
@@ -608,7 +608,7 @@ void EditriceGraphe::deleteAllActiveConnexions()
 
 void EditriceGraphe::deselectConnexions()
 {
-	for (const auto &connexion : m_selected_connexions) {
+	for (auto const &connexion : m_selected_connexions) {
 		if (connexion->isVisible()) {
 			connexion->setSelected(false);
 		}
@@ -623,7 +623,7 @@ void EditriceGraphe::deselectNodes()
 		auto object = static_cast<Object *>(m_context->scene->active_node());
 		auto graph = object->graph();
 
-		for (const auto &node : m_selected_nodes) {
+		for (auto const &node : m_selected_nodes) {
 			graph->enleve_selection(node->pointeur_noeud());
 		}
 	}
@@ -659,8 +659,8 @@ std::pair<node_port_pair, node_port_pair> get_base_target_pairs(QtConnexion *con
 		std::swap(base_port, target_port);
 	}
 
-	const auto &base_node = static_cast<QtNode *>(base_port->parentItem());
-	const auto &target_node = static_cast<QtNode *>(target_port->parentItem());
+	auto const &base_node = static_cast<QtNode *>(base_port->parentItem());
+	auto const &target_node = static_cast<QtNode *>(target_port->parentItem());
 
 	return {
 		{ base_node, base_port },
@@ -670,11 +670,11 @@ std::pair<node_port_pair, node_port_pair> get_base_target_pairs(QtConnexion *con
 
 void EditriceGraphe::splitConnexionWithNode(QtNode *node)
 {
-	const auto &connexion = m_hover_connexion;
+	auto const &connexion = m_hover_connexion;
 
-	const auto &pairs = get_base_target_pairs(connexion, true);
-	const auto &base = pairs.first;
-	const auto &target = pairs.second;
+	auto const &pairs = get_base_target_pairs(connexion, true);
+	auto const &base = pairs.first;
+	auto const &target = pairs.second;
 
 	auto scene = m_context->scene;
 	auto object = static_cast<Object *>(scene->active_node());
@@ -706,9 +706,9 @@ void EditriceGraphe::splitConnexionWithNode(QtNode *node)
 
 void EditriceGraphe::connexionEstablished(QtConnexion *connexion)
 {
-	const auto &pairs = get_base_target_pairs(connexion, false);
-	const auto &base = pairs.first;
-	const auto &target = pairs.second;
+	auto const &pairs = get_base_target_pairs(connexion, false);
+	auto const &base = pairs.first;
+	auto const &target = pairs.second;
 
 	nodesConnected(base.first, base.second->getPortName(),
 	               target.first, target.second->getPortName(), true);
@@ -734,22 +734,22 @@ void EditriceGraphe::toFront(QtNode *node)
 		return;
 	}
 
-	const auto &items = m_graphics_scene->items();
+	auto const &items = m_graphics_scene->items();
 
 	/* First set the node in front of all other nodes */
-	for (const auto &item : items) {
+	for (auto const &item : items) {
 		if (node != item && is_node(item) && item->isVisible()) {
 			item->stackBefore(node);
 		}
 	}
 
 	/* Put the connexions of the node in front of the node and the other connexions behind the node */
-	for (const auto &item : items) {
+	for (auto const &item : items) {
 		if (!is_node(item)) {
 			continue;
 		}
 
-		const auto &connexion = static_cast<QtConnexion *>(item);
+		auto const &connexion = static_cast<QtConnexion *>(item);
 
 		if (node->isConnexionConnectedToThisNode(connexion)) {
 			node->stackBefore(item);
@@ -766,10 +766,10 @@ void EditriceGraphe::toBack(QtNode *node)
 		return;
 	}
 
-	const auto &items = m_graphics_scene->items();
+	auto const &items = m_graphics_scene->items();
 
 	/* Set all other nodes in front of this node */
-	for (const auto &item : items) {
+	for (auto const &item : items) {
 		if (node != item && is_node(item) && item->isVisible()) {
 			node->stackBefore(item);
 		}
@@ -828,7 +828,7 @@ void EditriceGraphe::update_state(type_evenement event)
 		auto graph = object->graph();
 
 		/* Add the nodes. */
-		for (const auto &noeud : graph->noeuds()) {
+		for (auto const &noeud : graph->noeuds()) {
 			Noeud *pointeur_noeud = noeud.get();
 
 			auto node_item = new QtNode(pointeur_noeud->nom().c_str());
@@ -849,7 +849,7 @@ void EditriceGraphe::update_state(type_evenement event)
 		}
 
 		/* Add the connexions. */
-		for (const auto &lien : graph->liens()) {
+		for (auto const &lien : graph->liens()) {
 			PriseSortie *sortie = lien->sortie;
 			PriseEntree *entree = lien->entree;
 
@@ -877,7 +877,7 @@ void EditriceGraphe::update_state(type_evenement event)
 	}
 	/* Add the object nodes to the scene. */
 	else {
-		for (const auto &node : m_context->scene->nodes()) {
+		for (auto const &node : m_context->scene->nodes()) {
 			auto object = static_cast<Object *>(node.get());
 
 			if (!object) {

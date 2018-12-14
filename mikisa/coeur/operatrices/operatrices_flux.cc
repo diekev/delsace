@@ -309,7 +309,7 @@ public:
 				m_image_chargee = charge_exr(chemin.c_str());
 			}
 			else {
-				const auto image_char = numero7::image::flux::LecteurJPEG::ouvre(chemin.c_str());
+				auto const image_char = numero7::image::flux::LecteurJPEG::ouvre(chemin.c_str());
 				m_image_chargee = numero7::image::operation::converti_en_float(image_char);
 			}
 
@@ -376,7 +376,7 @@ public:
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		const auto value = evalue_entier("prise");
+		auto const value = evalue_entier("prise");
 		input(static_cast<size_t>(value))->requiers_image(m_image, rectangle, temps);
 		return EXECUTION_REUSSIE;
 	}

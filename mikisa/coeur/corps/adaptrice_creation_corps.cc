@@ -130,7 +130,7 @@ void AdaptriceCreationCorps::groupes(const std::vector<std::string> &noms)
 {
 	groupes_courant.clear();
 
-	for (const auto &nom : noms) {
+	for (auto const &nom : noms) {
 		auto groupe = corps->ajoute_groupe_polygone(nom);
 		groupes_courant.push_back(groupe);
 	}

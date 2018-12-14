@@ -87,8 +87,8 @@ void EditriceProprietes::update_state(type_evenement event)
 		return;
 	}
 
-	const auto &event_category = categorie_evenement(event);
-	const auto &event_action = action_evenement(event);
+	auto const &event_category = categorie_evenement(event);
+	auto const &event_action = action_evenement(event);
 
 	//std::vector<std::string> warnings;
 
@@ -143,7 +143,7 @@ void EditriceProprietes::dessine_entreface(danjo::Manipulable *manipulable, cons
 {
 	manipulable->ajourne_proprietes();
 
-	const auto &texte = danjo::contenu_fichier(chemin_entreface);
+	auto const &texte = danjo::contenu_fichier(chemin_entreface);
 
 	if (texte.empty()) {
 		return;

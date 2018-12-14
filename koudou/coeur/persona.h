@@ -152,7 +152,7 @@ public:
 private:
 	inline Propriete *trouve_propriete(const std::string &nom_propriete)
 	{
-		const auto &iter = std::find_if(
+		auto const &iter = std::find_if(
 							   m_proprietes.begin(), m_proprietes.end(),
 							   [&](const Propriete &prop)
 		{
@@ -165,7 +165,7 @@ private:
 			return nullptr;
 		}
 
-		const auto index = iter - m_proprietes.begin();
+		auto const index = iter - m_proprietes.begin();
 		return &m_proprietes[static_cast<size_t>(index)];
 	}
 };

@@ -144,8 +144,8 @@ void Fluide::initialise()
 void Fluide::construit_grille_particule()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
-	const auto &min_domaine = domaine->min();
-	const auto &taille_domaine = domaine->taille();
+	auto const &min_domaine = domaine->min();
+	auto const &taille_domaine = domaine->taille();
 
 	grille_particules.initialise(res.x, res.y, res.z);
 
@@ -171,8 +171,8 @@ void Fluide::transfert_velocite()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 #if 0
-	const auto &min_domaine = domaine->min();
-	const auto &taille_domaine = domaine->taille();
+	auto const &min_domaine = domaine->min();
+	auto const &taille_domaine = domaine->taille();
 
 	for (auto &p : particules) {
 		auto pos_domaine = p.pos - min_domaine;
@@ -197,7 +197,7 @@ void Fluide::transfert_velocite()
 		for (auto z = plage.begin(); z < plage.end(); ++z) {
 			for (size_t y = 0; y < res.y; ++y) {
 				for (size_t x = 0; x < res.x; ++x, ++index) {
-					const auto &parts = grille_particules.particule(x, y, z);
+					auto const &parts = grille_particules.particule(x, y, z);
 
 					auto vel = dls::math::vec3f(0.0f);
 					auto poids = 0.0f;
@@ -232,7 +232,7 @@ void Fluide::transfert_velocite()
 void Fluide::ajoute_acceleration()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
-	const auto &taille_domaine = domaine->taille();
+	auto const &taille_domaine = domaine->taille();
 
 	dls::math::vec3f dh_domaine(
 		taille_domaine[0] / static_cast<float>(res.x),
@@ -397,7 +397,7 @@ void Fluide::construit_champs_distance()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	/* Initialise phi selon les drapeaux. */
-	const auto &taille_domaine = domaine->taille();
+	auto const &taille_domaine = domaine->taille();
 	auto distance_max = dls::math::longueur(taille_domaine);
 
 	phi.arriere_plan(distance_max);
@@ -541,7 +541,7 @@ void Fluide::etend_champs_velocite()
 	 * http://physbam.stanford.edu/~fedkiw/papers/stanford2002-03.pdf.
 	 */
 
-	const auto &taille_domaine = domaine->taille();
+	auto const &taille_domaine = domaine->taille();
 
 	dls::math::vec3f dh(
 		taille_domaine[0] / static_cast<float>(res.x),
@@ -566,33 +566,33 @@ void Fluide::etend_champs_velocite()
 					 * le plus proche. */
 
 #if 1
-					const auto x0 = phi.valeur(index - 1);
-					const auto x1 = phi.valeur(index + 1);
-					const auto y0 = phi.valeur(index - res.x);
-					const auto y1 = phi.valeur(index + res.x);
-					const auto z0 = phi.valeur(index - decalage_z);
-					const auto z1 = phi.valeur(index + decalage_z);
+					auto const x0 = phi.valeur(index - 1);
+					auto const x1 = phi.valeur(index + 1);
+					auto const y0 = phi.valeur(index - res.x);
+					auto const y1 = phi.valeur(index + res.x);
+					auto const z0 = phi.valeur(index - decalage_z);
+					auto const z1 = phi.valeur(index + decalage_z);
 #else
-					const auto x0 = phi.valeur(x - 1, y, z);
-					const auto x1 = phi.valeur(x + 1, y, z);
-					const auto y0 = phi.valeur(x, y - 1, z);
-					const auto y1 = phi.valeur(x, y + 1, z);
-					const auto z0 = phi.valeur(x, y, z - 1);
-					const auto z1 = phi.valeur(x, y, z + 1);
+					auto const x0 = phi.valeur(x - 1, y, z);
+					auto const x1 = phi.valeur(x + 1, y, z);
+					auto const y0 = phi.valeur(x, y - 1, z);
+					auto const y1 = phi.valeur(x, y + 1, z);
+					auto const z0 = phi.valeur(x, y, z - 1);
+					auto const z1 = phi.valeur(x, y, z + 1);
 #endif
 
-					const auto i = x1 - x0;
-					const auto j = y1 - y0;
-					const auto k = z1 - z0;
+					auto const i = x1 - x0;
+					auto const j = y1 - y0;
+					auto const k = z1 - z0;
 
-					const auto xi = i / dh.x;
-					const auto xj = j / dh.y;
-					const auto xk = k / dh.z;
+					auto const xi = i / dh.x;
+					auto const xj = j / dh.y;
+					auto const xk = k / dh.z;
 
 #ifdef VELOCITE_SEPAREE
-					const auto vel_x = velocite_x.valeur((x + 1 - xi) + (y - xj) * res.x + (z - xk) * decalage_z);
-					const auto vel_y = velocite_y.valeur((x - xi) + (y + 1 - xj) * res.x + (z - xk) * decalage_z);
-					const auto vel_z = velocite_z.valeur((x - xi) + (y - xj) * res.x + (z + 1 - xk) * decalage_z);
+					auto const vel_x = velocite_x.valeur((x + 1 - xi) + (y - xj) * res.x + (z - xk) * decalage_z);
+					auto const vel_y = velocite_y.valeur((x - xi) + (y + 1 - xj) * res.x + (z - xk) * decalage_z);
+					auto const vel_z = velocite_z.valeur((x - xi) + (y - xj) * res.x + (z + 1 - xk) * decalage_z);
 //					velocite_x.valeur(x + 1, y, z, vel_x);
 //					velocite_y.valeur(x, y + 1, z, vel_y);
 //					velocite_z.valeur(x, y, z + 1, vel_z);
@@ -614,8 +614,8 @@ void Fluide::etend_champs_velocite()
 void Fluide::sauvegarde_velocite_PIC()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
-	const auto &min_domaine = domaine->min();
-	const auto &taille_domaine = domaine->taille();
+	auto const &min_domaine = domaine->min();
+	auto const &taille_domaine = domaine->taille();
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, particules.size()),
 					 [&](const tbb::blocked_range<size_t> &plage)
@@ -657,8 +657,8 @@ void Fluide::advecte_particules()
 //		particule.pos.y += gravite;
 //	}
 
-	const auto &min_domaine = domaine->min();
-	const auto &taille_domaine = domaine->taille();
+	auto const &min_domaine = domaine->min();
+	auto const &taille_domaine = domaine->taille();
 
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, particules.size()),
@@ -734,11 +734,11 @@ void cree_particule(Fluide *fluide, size_t nombre)
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	fluide->particules.clear();
 
-	const auto &min_source = fluide->source->min();
-	const auto &max_source = fluide->source->max();
+	auto const &min_source = fluide->source->min();
+	auto const &max_source = fluide->source->max();
 
-	const auto &min_domaine = fluide->domaine->min();
-	const auto &taille_domaine = fluide->domaine->taille();
+	auto const &min_domaine = fluide->domaine->min();
+	auto const &taille_domaine = fluide->domaine->taille();
 
 	dls::math::vec3f dh_domaine(
 		taille_domaine[0] / static_cast<float>(fluide->res.x),

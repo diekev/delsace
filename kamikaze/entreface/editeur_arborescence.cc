@@ -235,7 +235,7 @@ void EditeurArborescence::handleItemExpanded(QTreeWidgetItem *item)
 		Scene *scene = scene_item->getScene();
 		scene->set_flags(SCENE_OL_EXPANDED);
 
-		for (const auto &node : scene->nodes()) {
+		for (auto const &node : scene->nodes()) {
 			auto object = static_cast<Object *>(node.get());
 
 			if (object->parent() != nullptr) {
@@ -259,12 +259,12 @@ void EditeurArborescence::handleItemExpanded(QTreeWidgetItem *item)
 		scene_node->set_flags(SNODE_OL_EXPANDED);
 		auto object = static_cast<Object *>(scene_node);
 
-		for (const auto &noeud : object->graph()->noeuds()) {
+		for (auto const &noeud : object->graph()->noeuds()) {
 			auto node_item = new ObjectNodeTreeWidgetItem(noeud.get(), object_item);
 			object_item->addChild(node_item);
 		}
 
-		for (const auto &child : object->children()) {
+		for (auto const &child : object->children()) {
 			auto child_item = new ObjectTreeWidgetItem(child, object_item);
 			child_item->setSelected(child == m_context->scene->active_node());
 			object_item->addChild(child_item);

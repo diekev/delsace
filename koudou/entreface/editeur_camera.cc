@@ -75,8 +75,8 @@ VueCamera::VueCamera(ProjectiveCamera *camera)
 void VueCamera::ajourne_donnees()
 {
 #ifdef NOUVELLE_CAMERA
-	const auto position = evalue_vec3("position");
-	const auto rotation = evalue_vec3("rotation");
+	auto const position = evalue_vec3("position");
+	auto const rotation = evalue_vec3("rotation");
 
 	m_camera->position(dls::math::vec3d(position.x, position.y, position.z));
 	m_camera->rotation(dls::math::vec3d(rotation.x * POIDS_DEG_RAD, rotation.y * POIDS_DEG_RAD, rotation.z * POIDS_DEG_RAD));
@@ -99,8 +99,8 @@ bool VueCamera::ajourne_proprietes()
 	ajourne_valeur_float("ouverture", m_camera->ouverture_obturateur());
 	ajourne_valeur_float("fermeture", m_camera->fermeture_obturateur());
 
-	const auto position = m_camera->position();
-	const auto rotation = m_camera->rotation();
+	auto const position = m_camera->position();
+	auto const rotation = m_camera->rotation();
 
 	ajourne_valeur_vec3("position", dls::math::vec3f(position.x, position.y, position.z));
 	ajourne_valeur_vec3("rotation", dls::math::vec3f(rotation.x * POIDS_RAD_DEG, rotation.y * POIDS_RAD_DEG, rotation.z * POIDS_RAD_DEG));

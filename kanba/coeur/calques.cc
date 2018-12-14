@@ -107,7 +107,7 @@ void supprime_calque(CanauxTexture &canaux, Calque *calque)
 
 void fusionne_calques(CanauxTexture &canaux)
 {
-	const auto res = canaux.hauteur * canaux.largeur;
+	auto const res = canaux.hauteur * canaux.largeur;
 
 	if (canaux.tampon_diffusion == nullptr) {
 		canaux.tampon_diffusion = new dls::math::vec4f[res];
@@ -115,7 +115,7 @@ void fusionne_calques(CanauxTexture &canaux)
 
 	std::fill_n(canaux.tampon_diffusion, res, dls::math::vec4f(0.0f));
 
-	for (const auto &calque : canaux.calques[TypeCanal::DIFFUSION]) {
+	for (auto const &calque : canaux.calques[TypeCanal::DIFFUSION]) {
 		auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
 		for (size_t i = 0; i < res; ++i) {

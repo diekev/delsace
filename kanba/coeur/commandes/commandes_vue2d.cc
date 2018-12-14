@@ -63,14 +63,14 @@ public:
 
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 
-		const auto rayon_brosse = 10;
-		const auto rayon_carre = rayon_brosse * rayon_brosse;
-		const auto couleur_brosse = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
+		auto const rayon_brosse = 10;
+		auto const rayon_carre = rayon_brosse * rayon_brosse;
+		auto const couleur_brosse = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
 
 		for (int i = -rayon_brosse; i < rayon_brosse; ++i) {
 			for (int j = -rayon_brosse; j < rayon_brosse; ++j) {
-				const auto x = int(donnees.x) + i;
-				const auto y = int(donnees.y) + j;
+				auto const x = int(donnees.x) + i;
+				auto const y = int(donnees.y) + j;
 
 				if (x < 0 || x >= kanba->tampon.nombre_colonnes()) {
 					continue;

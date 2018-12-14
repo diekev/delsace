@@ -66,20 +66,20 @@ float calcul_divergence(
 		const Grille<float> &grille_z,
 		Grille<float> &d)
 {
-	const auto res = d.resolution();
+	auto const res = d.resolution();
 	float max_divergence = 0.0f;
 
 	for (size_t z = 0; z < res.z; ++z) {
 		for (size_t y = 0; y < res.y; ++y) {
 			for (size_t x = 0; x < res.x; ++x) {
-				const auto x0 = grille_x.valeur(x - 1, y, z);
-				const auto x1 = grille_x.valeur(x + 1, y, z);
-				const auto y0 = grille_y.valeur(x, y - 1, z);
-				const auto y1 = grille_y.valeur(x, y + 1, z);
-				const auto z0 = grille_z.valeur(x, y, z - 1);
-				const auto z1 = grille_z.valeur(x, y, z + 1);
+				auto const x0 = grille_x.valeur(x - 1, y, z);
+				auto const x1 = grille_x.valeur(x + 1, y, z);
+				auto const y0 = grille_y.valeur(x, y - 1, z);
+				auto const y1 = grille_y.valeur(x, y + 1, z);
+				auto const z0 = grille_z.valeur(x, y, z - 1);
+				auto const z1 = grille_z.valeur(x, y, z + 1);
 
-				const auto divergence = (x1 - x0) + (y1 - y0) + (z1 - z0);
+				auto const divergence = (x1 - x0) + (y1 - y0) + (z1 - z0);
 
 				max_divergence = std::max(max_divergence, divergence);
 
@@ -95,20 +95,20 @@ float calcul_divergence(
 		const Grille<dls::math::vec3f> &grille,
 		Grille<float> &d)
 {
-	const auto res = d.resolution();
+	auto const res = d.resolution();
 	float max_divergence = 0.0f;
 
 	for (size_t z = 0; z < res.z; ++z) {
 		for (size_t y = 0; y < res.y; ++y) {
 			for (size_t x = 0; x < res.x; ++x) {
-				const auto x0 = grille.valeur(x - 1, y, z);
-				const auto x1 = grille.valeur(x + 1, y, z);
-				const auto y0 = grille.valeur(x, y - 1, z);
-				const auto y1 = grille.valeur(x, y + 1, z);
-				const auto z0 = grille.valeur(x, y, z - 1);
-				const auto z1 = grille.valeur(x, y, z + 1);
+				auto const x0 = grille.valeur(x - 1, y, z);
+				auto const x1 = grille.valeur(x + 1, y, z);
+				auto const y0 = grille.valeur(x, y - 1, z);
+				auto const y1 = grille.valeur(x, y + 1, z);
+				auto const z0 = grille.valeur(x, y, z - 1);
+				auto const z1 = grille.valeur(x, y, z + 1);
 
-				const auto divergence = (x1.x - x0.x) + (y1.y - y0.y) + (z1.z - z0.z);
+				auto const divergence = (x1.x - x0.x) + (y1.y - y0.y) + (z1.z - z0.z);
 
 				max_divergence = std::max(max_divergence, divergence);
 
@@ -124,7 +124,7 @@ void construit_preconditionneur(
 		PCGSolver &pcg_solver,
 		const Grille<char> &drapeaux)
 {
-	const auto res = drapeaux.resolution();
+	auto const res = drapeaux.resolution();
 
 	constexpr auto T = 0.97f;
 
@@ -136,25 +136,25 @@ void construit_preconditionneur(
 					continue;
 				}
 
-				const auto pi = pcg_solver.M.valeur(x - 1, y, z);
-				const auto pj = pcg_solver.M.valeur(x, y - 1, z);
-				const auto pk = pcg_solver.M.valeur(x, y, z - 1);
+				auto const pi = pcg_solver.M.valeur(x - 1, y, z);
+				auto const pj = pcg_solver.M.valeur(x, y - 1, z);
+				auto const pk = pcg_solver.M.valeur(x, y, z - 1);
 
-				const auto Ad = pcg_solver.Adiag.valeur(x, y, z);
+				auto const Ad = pcg_solver.Adiag.valeur(x, y, z);
 
-				const auto Aii = pcg_solver.Aplusi.valeur(x - 1, y, z);
-				const auto Aij = pcg_solver.Aplusi.valeur(x, y - 1, z);
-				const auto Aik = pcg_solver.Aplusi.valeur(x, y, z - 1);
+				auto const Aii = pcg_solver.Aplusi.valeur(x - 1, y, z);
+				auto const Aij = pcg_solver.Aplusi.valeur(x, y - 1, z);
+				auto const Aik = pcg_solver.Aplusi.valeur(x, y, z - 1);
 
-				const auto Aji = pcg_solver.Aplusj.valeur(x - 1, y, z);
-				const auto Ajj = pcg_solver.Aplusj.valeur(x, y - 1, z);
-				const auto Ajk = pcg_solver.Aplusj.valeur(x, y, z - 1);
+				auto const Aji = pcg_solver.Aplusj.valeur(x - 1, y, z);
+				auto const Ajj = pcg_solver.Aplusj.valeur(x, y - 1, z);
+				auto const Ajk = pcg_solver.Aplusj.valeur(x, y, z - 1);
 
-				const auto Aki = pcg_solver.Aplusk.valeur(x - 1, y, z);
-				const auto Akj = pcg_solver.Aplusk.valeur(x, y - 1, z);
-				const auto Akk = pcg_solver.Aplusk.valeur(x, y, z - 1);
+				auto const Aki = pcg_solver.Aplusk.valeur(x - 1, y, z);
+				auto const Akj = pcg_solver.Aplusk.valeur(x, y - 1, z);
+				auto const Akk = pcg_solver.Aplusk.valeur(x, y, z - 1);
 
-				const auto e = Ad
+				auto const e = Ad
 							   - (Aii * pi)*(Aii * pi)
 							   - (Ajj * pj)*(Ajj * pj)
 							   - (Akk * pk)*(Akk * pk)
@@ -173,7 +173,7 @@ void applique_preconditionneur(
 		PCGSolver &pcg_solver,
 		const Grille<char> &drapeaux)
 {
-	const auto res = drapeaux.resolution();
+	auto const res = drapeaux.resolution();
 
 	Grille<float> q;
 	q.initialise(res.x, res.y, res.z);
@@ -187,22 +187,22 @@ void applique_preconditionneur(
 					continue;
 				}
 
-				const auto r_ijk = pcg_solver.r.valeur(x, y, z);
-				const auto M_ijk = pcg_solver.M.valeur(x, y, z);
+				auto const r_ijk = pcg_solver.r.valeur(x, y, z);
+				auto const M_ijk = pcg_solver.M.valeur(x, y, z);
 
-				const auto A_i0jk = pcg_solver.Aplusi.valeur(x - 1, y, z);
-				const auto A_ij0k = pcg_solver.Aplusj.valeur(x, y - 1, z);
-				const auto A_ijk0 = pcg_solver.Aplusk.valeur(x, y, z - 1);
+				auto const A_i0jk = pcg_solver.Aplusi.valeur(x - 1, y, z);
+				auto const A_ij0k = pcg_solver.Aplusj.valeur(x, y - 1, z);
+				auto const A_ijk0 = pcg_solver.Aplusk.valeur(x, y, z - 1);
 
-				const auto M_i0jk = pcg_solver.M.valeur(x - 1, y, z);
-				const auto M_ij0k = pcg_solver.M.valeur(x, y - 1, z);
-				const auto M_ijk0 = pcg_solver.M.valeur(x, y, z - 1);
+				auto const M_i0jk = pcg_solver.M.valeur(x - 1, y, z);
+				auto const M_ij0k = pcg_solver.M.valeur(x, y - 1, z);
+				auto const M_ijk0 = pcg_solver.M.valeur(x, y, z - 1);
 
-				const auto q_i0jk = q.valeur(x - 1, y, z);
-				const auto q_ij0k = q.valeur(x, y - 1, z);
-				const auto q_ijk0 = q.valeur(x, y, z - 1);
+				auto const q_i0jk = q.valeur(x - 1, y, z);
+				auto const q_ij0k = q.valeur(x, y - 1, z);
+				auto const q_ijk0 = q.valeur(x, y, z - 1);
 
-				const auto t = r_ijk
+				auto const t = r_ijk
 							   - A_i0jk*M_i0jk*q_i0jk
 							   - A_ij0k*M_ij0k*q_ij0k
 							   - A_ijk0*M_ijk0*q_ijk0;
@@ -222,18 +222,18 @@ void applique_preconditionneur(
 					continue;
 				}
 
-				const auto q_ijk = q.valeur(x, y, z);
-				const auto M_ijk = pcg_solver.M.valeur(x, y, z);
+				auto const q_ijk = q.valeur(x, y, z);
+				auto const M_ijk = pcg_solver.M.valeur(x, y, z);
 
-				const auto Ai_ijk = pcg_solver.Aplusi.valeur(x, y, z);
-				const auto Aj_ijk = pcg_solver.Aplusj.valeur(x, y, z);
-				const auto Ak_ijk = pcg_solver.Aplusk.valeur(x, y, z);
+				auto const Ai_ijk = pcg_solver.Aplusi.valeur(x, y, z);
+				auto const Aj_ijk = pcg_solver.Aplusj.valeur(x, y, z);
+				auto const Ak_ijk = pcg_solver.Aplusk.valeur(x, y, z);
 
-				const auto z_i1jk = pcg_solver.z.valeur(x + 1, y, z);
-				const auto z_ij1k = pcg_solver.z.valeur(x, y + 1, z);
-				const auto z_ijk1 = pcg_solver.z.valeur(x, y, z + 1);
+				auto const z_i1jk = pcg_solver.z.valeur(x + 1, y, z);
+				auto const z_ij1k = pcg_solver.z.valeur(x, y + 1, z);
+				auto const z_ijk1 = pcg_solver.z.valeur(x, y, z + 1);
 
-				const auto t = q_ijk
+				auto const t = q_ijk
 							   - Ai_ijk * M_ijk * z_i1jk
 							   - Aj_ijk * M_ijk * z_ij1k
 							   - Ak_ijk * M_ijk * z_ijk1;
@@ -247,9 +247,9 @@ void applique_preconditionneur(
 
 float produit_scalaire(const Grille<float> &a, const Grille<float> &b)
 {
-	const auto res_x = a.resolution().x;
-	const auto res_y = a.resolution().y;
-	const auto res_z = a.resolution().z;
+	auto const res_x = a.resolution().x;
+	auto const res_y = a.resolution().y;
+	auto const res_z = a.resolution().z;
 
 	auto valeur = 0.0f;
 
@@ -266,16 +266,16 @@ float produit_scalaire(const Grille<float> &a, const Grille<float> &b)
 
 float maximum(const Grille<float> &a)
 {
-	const auto res_x = a.resolution().x;
-	const auto res_y = a.resolution().y;
-	const auto res_z = a.resolution().z;
+	auto const res_x = a.resolution().x;
+	auto const res_y = a.resolution().y;
+	auto const res_z = a.resolution().z;
 
 	auto max = std::numeric_limits<float>::min();
 
 	for (size_t x = 0; x < res_x; ++x) {
 		for (size_t y = 0; y < res_y; ++y) {
 			for (size_t z = 0; z < res_z; ++z) {
-				const auto v = std::abs(a.valeur(x, y, z));
+				auto const v = std::abs(a.valeur(x, y, z));
 				if (v > max) {
 					max = v;
 				}
@@ -288,9 +288,9 @@ float maximum(const Grille<float> &a)
 
 void ajourne_pression_residus(const float alpha, Grille<float> &p, Grille<float> &r, const Grille<float> &a, const Grille<float> &b)
 {
-	const auto res_x = a.resolution().x;
-	const auto res_y = a.resolution().y;
-	const auto res_z = a.resolution().z;
+	auto const res_x = a.resolution().x;
+	auto const res_y = a.resolution().y;
+	auto const res_z = a.resolution().z;
 
 	for (size_t x = 0; x < res_x; ++x) {
 		for (size_t y = 0; y < res_y; ++y) {
@@ -309,9 +309,9 @@ void ajourne_pression_residus(const float alpha, Grille<float> &p, Grille<float>
 
 void ajourne_vecteur_recherche(Grille<float> &s, const Grille<float> &a, const float beta)
 {
-	const auto res_x = s.resolution().x;
-	const auto res_y = s.resolution().y;
-	const auto res_z = s.resolution().z;
+	auto const res_x = s.resolution().x;
+	auto const res_y = s.resolution().y;
+	auto const res_z = s.resolution().z;
 
 	for (size_t x = 0; x < res_x; ++x) {
 		for (size_t y = 0; y < res_y; ++y) {
@@ -328,28 +328,28 @@ void ajourne_vecteur_recherche(Grille<float> &s, const Grille<float> &a, const f
 /* z = A*s */
 void applique_A(PCGSolver &pcg_solver)
 {
-	const auto res = pcg_solver.M.resolution();
+	auto const res = pcg_solver.M.resolution();
 
 	for (size_t z = 0; z < res.z; ++z) {
 		for (size_t y = 0; y < res.y; ++y) {
 			for (size_t x = 0; x < res.x; ++x) {
-				const auto coef = pcg_solver.Adiag.valeur(x, y, z);
+				auto const coef = pcg_solver.Adiag.valeur(x, y, z);
 
-				const auto s_i0jk = pcg_solver.s.valeur(x - 1, y, z);
-				const auto s_i1jk = pcg_solver.s.valeur(x + 1, y, z);
-				const auto s_ij0k = pcg_solver.s.valeur(x, y - 1, z);
-				const auto s_ij1k = pcg_solver.s.valeur(x, y + 1, z);
-				const auto s_ijk0 = pcg_solver.s.valeur(x, y, z - 1);
-				const auto s_ijk1 = pcg_solver.s.valeur(x, y, z + 1);
+				auto const s_i0jk = pcg_solver.s.valeur(x - 1, y, z);
+				auto const s_i1jk = pcg_solver.s.valeur(x + 1, y, z);
+				auto const s_ij0k = pcg_solver.s.valeur(x, y - 1, z);
+				auto const s_ij1k = pcg_solver.s.valeur(x, y + 1, z);
+				auto const s_ijk0 = pcg_solver.s.valeur(x, y, z - 1);
+				auto const s_ijk1 = pcg_solver.s.valeur(x, y, z + 1);
 
-				const auto A_i0jk = pcg_solver.Aplusi.valeur(x - 1, y, z);
-				const auto A_i1jk = pcg_solver.Aplusi.valeur(x, y, z);
-				const auto A_ij0k = pcg_solver.Aplusj.valeur(x, y - 1, z);
-				const auto A_ij1k = pcg_solver.Aplusj.valeur(x, y, z);
-				const auto A_ijk0 = pcg_solver.Aplusk.valeur(x, y, z - 1);
-				const auto A_ijk1 = pcg_solver.Aplusk.valeur(x, y, z);
+				auto const A_i0jk = pcg_solver.Aplusi.valeur(x - 1, y, z);
+				auto const A_i1jk = pcg_solver.Aplusi.valeur(x, y, z);
+				auto const A_ij0k = pcg_solver.Aplusj.valeur(x, y - 1, z);
+				auto const A_ij1k = pcg_solver.Aplusj.valeur(x, y, z);
+				auto const A_ijk0 = pcg_solver.Aplusk.valeur(x, y, z - 1);
+				auto const A_ijk1 = pcg_solver.Aplusk.valeur(x, y, z);
 
-				const auto v = coef * (s_i0jk*A_i0jk+s_i1jk*A_i1jk+s_ij0k*A_ij0k+s_ij1k*A_ij1k+s_ijk0*A_ijk0+s_ijk1*A_ijk1);
+				auto const v = coef * (s_i0jk*A_i0jk+s_i1jk*A_i1jk+s_ij0k*A_ij0k+s_ij1k*A_ij1k+s_ijk0*A_ijk0+s_ijk1*A_ijk1);
 
 				pcg_solver.z.valeur(x, y, z, v);
 			}
@@ -367,9 +367,9 @@ void solve_pressure(PCGSolver &pcg_solver, const Grille<char> &drapeaux)
 
 	auto sigma = produit_scalaire(pcg_solver.z, pcg_solver.r);
 
-	const auto tol = 1e-6f;
-	const auto rho = 1.0f;
-	const auto max_iter = 100;
+	auto const tol = 1e-6f;
+	auto const rho = 1.0f;
+	auto const max_iter = 100;
 
 	size_t i = 0;
 	auto max_divergence = 0.0f;
@@ -410,20 +410,20 @@ void solve_pressure(PCGSolver &pcg_solver, const Grille<char> &drapeaux)
 
 void construit_A(PCGSolver &pcg_solver, const Grille<char> &drapeaux)
 {
-	const auto &res = drapeaux.resolution();
+	auto const &res = drapeaux.resolution();
 
 	for (size_t z = 0; z < res.z; ++z) {
 		for (size_t y = 0; y < res.y; ++y) {
 			for (size_t x = 0; x < res.x; ++x) {
-				//const auto p_i0jk = drapeaux.valeur(x - 1, y, z);
-				const auto p_i1jk = drapeaux.valeur(x + 1, y, z);
-				//const auto p_ij0k = drapeaux.valeur(x, y - 1, z);
-				const auto p_ij1k = drapeaux.valeur(x, y + 1, z);
-				//const auto p_ijk0 = drapeaux.valeur(x, y, z - 1);
-				const auto p_ijk1 = drapeaux.valeur(x, y, z + 1);
+				//auto const p_i0jk = drapeaux.valeur(x - 1, y, z);
+				auto const p_i1jk = drapeaux.valeur(x + 1, y, z);
+				//auto const p_ij0k = drapeaux.valeur(x, y - 1, z);
+				auto const p_ij1k = drapeaux.valeur(x, y + 1, z);
+				//auto const p_ijk0 = drapeaux.valeur(x, y, z - 1);
+				auto const p_ijk1 = drapeaux.valeur(x, y, z + 1);
 
 				/* À FAIRE : compte le nombre de cellule qui ne sont pas solide */
-				const auto coeff = 6.0f;
+				auto const coeff = 6.0f;
 
 				pcg_solver.Adiag.valeur(x, y, z, coeff);
 
@@ -437,25 +437,25 @@ void construit_A(PCGSolver &pcg_solver, const Grille<char> &drapeaux)
 
 void soustrait_gradient_pression(Grille<float> &grille, const PCGSolver &pcg_solver)
 {
-	const auto &res = grille.resolution();
+	auto const &res = grille.resolution();
 
 	for (size_t z = 0; z < res.z; ++z) {
 		for (size_t y = 0; y < res.y; ++y) {
 			for (size_t x = 0; x < res.x; ++x) {
-				const auto p_i0jk = pcg_solver.p.valeur(x - 1, y, z);
-				const auto p_i1jk = pcg_solver.p.valeur(x + 1, y, z);
-				const auto p_ij0k = pcg_solver.p.valeur(x, y - 1, z);
-				const auto p_ij1k = pcg_solver.p.valeur(x, y + 1, z);
-				const auto p_ijk0 = pcg_solver.p.valeur(x, y, z - 1);
-				const auto p_ijk1 = pcg_solver.p.valeur(x, y, z + 1);
+				auto const p_i0jk = pcg_solver.p.valeur(x - 1, y, z);
+				auto const p_i1jk = pcg_solver.p.valeur(x + 1, y, z);
+				auto const p_ij0k = pcg_solver.p.valeur(x, y - 1, z);
+				auto const p_ij1k = pcg_solver.p.valeur(x, y + 1, z);
+				auto const p_ijk0 = pcg_solver.p.valeur(x, y, z - 1);
+				auto const p_ijk1 = pcg_solver.p.valeur(x, y, z + 1);
 
-				const auto px = p_i1jk - p_i0jk;
-				const auto py = p_ij1k - p_ij0k;
-				const auto pz = p_ijk1 - p_ijk0;
+				auto const px = p_i1jk - p_i0jk;
+				auto const py = p_ij1k - p_ij0k;
+				auto const pz = p_ijk1 - p_ijk0;
 
-				const auto vx = grille.valeur(x + 1, y, z);
-				const auto vy = grille.valeur(x, y + 1, z);
-				const auto vz = grille.valeur(x, y, z + 1);
+				auto const vx = grille.valeur(x + 1, y, z);
+				auto const vy = grille.valeur(x, y + 1, z);
+				auto const vz = grille.valeur(x, y, z + 1);
 
 				grille.valeur(x + 1, y, z, vx - px);
 				grille.valeur(x, y + 1, z, vy - py);
@@ -467,7 +467,7 @@ void soustrait_gradient_pression(Grille<float> &grille, const PCGSolver &pcg_sol
 
 void rend_imcompressible(Grille<dls::math::vec3f> &grille, const Grille<char> &drapeaux)
 {
-	const auto &res = grille.resolution();
+	auto const &res = grille.resolution();
 
 	PCGSolver pcg_solver;
 	pcg_solver.initialise(res);
@@ -493,7 +493,7 @@ void rend_imcompressible(Grille<dls::math::vec3f> &grille, const Grille<char> &d
 
 void rend_imcompressible(Grille<float> &grille_x, Grille<float> &grille_y, Grille<float> &grille_z, const Grille<char> &drapeaux)
 {
-	const auto &res = grille_x.resolution();
+	auto const &res = grille_x.resolution();
 
 	PCGSolver pcg_solver;
 	pcg_solver.initialise(res);

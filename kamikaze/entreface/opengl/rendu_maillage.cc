@@ -94,7 +94,7 @@ void RenduMaillage::initialise()
 	indices.reserve(polys->size());
 
 	for (auto i = 0ul, ie = polys->size(); i < ie; ++i) {
-		const auto &quad = (*polys)[i];
+		auto const &quad = (*polys)[i];
 
 		indices.push_back(static_cast<unsigned>(quad[0]));
 		indices.push_back(static_cast<unsigned>(quad[1]));

@@ -66,8 +66,8 @@ TamponRendu *cree_tampon_arrete()
 
 TamponRendu *genere_tampon_arrete(Arbre *arbre)
 {
-	const auto nombre_arretes = arbre->arretes().size();
-	const auto nombre_elements = nombre_arretes * 2;
+	auto const nombre_arretes = arbre->arretes().size();
+	auto const nombre_elements = nombre_arretes * 2;
 	auto tampon = cree_tampon_arrete();
 
 	std::vector<dls::math::vec3f> sommets;

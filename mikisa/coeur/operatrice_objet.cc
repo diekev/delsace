@@ -195,13 +195,13 @@ int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud_sortie->donnees());
 
-	const auto t0 = tbb::tick_count::now();
+	auto const t0 = tbb::tick_count::now();
 
 	operatrice->reinitialise_avertisements();
 	operatrice->execute(rectangle, temps);
 
-	const auto t1 = tbb::tick_count::now();
-	const auto delta = (t1 - t0).seconds();
+	auto const t1 = tbb::tick_count::now();
+	auto const delta = (t1 - t0).seconds();
 	noeud_sortie->temps_execution(static_cast<float>(delta));
 
 //	operatrice->collection()->transfers_corps_a(m_objet.collection);

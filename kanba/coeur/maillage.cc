@@ -53,24 +53,24 @@ void ajoute_calque_procedurale(Maillage *maillage)
 {
 	dls::math::BruitPerlin3D bruit;
 
-	const auto nombre_polygones = maillage->nombre_polygones();
-	const auto largeur = maillage->largeur_texture();
+	auto const nombre_polygones = maillage->nombre_polygones();
+	auto const largeur = maillage->largeur_texture();
 	auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
 	for (size_t i = 0; i < nombre_polygones; ++i) {
 		auto poly = maillage->polygone(i);
 
-		const auto &s0 = poly->s[0]->pos;
-		const auto &s1 = poly->s[1]->pos;
-		const auto &s3 = poly->s[3]->pos;
+		auto const &s0 = poly->s[0]->pos;
+		auto const &s1 = poly->s[1]->pos;
+		auto const &s3 = poly->s[3]->pos;
 
-		const auto &cote0 = s1 - s0;
-		const auto &cote1 = s3 - s0;
+		auto const &cote0 = s1 - s0;
+		auto const &cote1 = s3 - s0;
 
-		const auto &dU = cote0 / static_cast<float>(poly->res_u);
-		const auto &dV = cote1 / static_cast<float>(poly->res_v);
+		auto const &dU = cote0 / static_cast<float>(poly->res_u);
+		auto const &dV = cote1 / static_cast<float>(poly->res_v);
 
-		const auto index_poly = poly->x + poly->y * largeur;
+		auto const index_poly = poly->x + poly->y * largeur;
 		auto tampon_poly = tampon + index_poly;
 
 		for (unsigned j = 0; j < poly->res_v; ++j) {
@@ -89,8 +89,8 @@ void ajoute_calque_procedurale(Maillage *maillage)
 
 void ajoute_calque_echiquier(Maillage *maillage)
 {
-	const auto nombre_polygones = maillage->nombre_polygones();
-	const auto largeur = maillage->largeur_texture();
+	auto const nombre_polygones = maillage->nombre_polygones();
+	auto const largeur = maillage->largeur_texture();
 	auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
 	std::mt19937 rng(19937);
@@ -111,7 +111,7 @@ void ajoute_calque_echiquier(Maillage *maillage)
 
 		//std::cerr << "Couleur " << couleur1 << '\n';
 
-		const auto index_poly = poly->x + poly->y * largeur;
+		auto const index_poly = poly->x + poly->y * largeur;
 		auto tampon_poly = tampon + index_poly;
 
 		for (size_t j = 0; j < poly->res_v; ++j) {
@@ -158,16 +158,16 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 {
 	TextureImage *texture_image = charge_texture("/home/kevin/Téléchargements/Tileable metal scratch rust texture (8).jpg");
 
-	const auto nombre_polygones = maillage->nombre_polygones();
-	const auto largeur = maillage->largeur_texture();
+	auto const nombre_polygones = maillage->nombre_polygones();
+	auto const largeur = maillage->largeur_texture();
 	auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
 	for (size_t i = 0; i < nombre_polygones; ++i) {
 		auto poly = maillage->polygone(i);
 
-		const auto angle_xy = std::abs(poly->nor.z);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 0.0, 1.0)));
-		const auto angle_xz = std::abs(poly->nor.y);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 1.0, 0.0)));
-		const auto angle_yz = std::abs(poly->nor.x);// abs(produit_scalaire(poly->nor, dls::math::vec3f(1.0, 0.0, 0.0)));
+		auto const angle_xy = std::abs(poly->nor.z);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 0.0, 1.0)));
+		auto const angle_xz = std::abs(poly->nor.y);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 1.0, 0.0)));
+		auto const angle_yz = std::abs(poly->nor.x);// abs(produit_scalaire(poly->nor, dls::math::vec3f(1.0, 0.0, 0.0)));
 
 		auto poids = (angle_xy + angle_xz + angle_yz);
 
@@ -178,34 +178,34 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 			poids = 1.0f / poids;
 		}
 
-		const auto &v0 = poly->s[0]->pos;
-		const auto &v1 = poly->s[1]->pos;
-		const auto &v3 = ((poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos);
+		auto const &v0 = poly->s[0]->pos;
+		auto const &v1 = poly->s[1]->pos;
+		auto const &v3 = ((poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos);
 
-		const auto &e1 = v1 - v0;
-		const auto &e2 = v3 - v0;
+		auto const &e1 = v1 - v0;
+		auto const &e2 = v3 - v0;
 
-		const auto &du = e1 / static_cast<float>(poly->res_u);
-		const auto &dv = e2 / static_cast<float>(poly->res_v);
+		auto const &du = e1 / static_cast<float>(poly->res_u);
+		auto const &dv = e2 / static_cast<float>(poly->res_v);
 
-		const auto index_poly = poly->x + poly->y * largeur;
+		auto const index_poly = poly->x + poly->y * largeur;
 		auto tampon_poly = tampon + index_poly;
 
 		for (size_t j = 0; j < poly->res_v; ++j) {
 			for (size_t k = 0; k < poly->res_u; ++k) {
 				auto index = j * static_cast<size_t>(largeur) + k;
 
-				const auto &sommet = v0 + static_cast<float>(j) * dv + static_cast<float>(k) * du;
+				auto const &sommet = v0 + static_cast<float>(j) * dv + static_cast<float>(k) * du;
 
-				const auto UV_xy = dls::math::vec2f(sommet.x, sommet.y);
-				const auto UV_xz = dls::math::vec2f(sommet.x, sommet.z);
-				const auto UV_yz = dls::math::vec2f(sommet.y, sommet.z);
+				auto const UV_xy = dls::math::vec2f(sommet.x, sommet.y);
+				auto const UV_xz = dls::math::vec2f(sommet.x, sommet.z);
+				auto const UV_yz = dls::math::vec2f(sommet.y, sommet.z);
 
-				const auto couleur_xy = echantillone_texture(texture_image, UV_xy);
-				const auto couleur_xz = echantillone_texture(texture_image, UV_xz);
-				const auto couleur_yz = echantillone_texture(texture_image, UV_yz);
+				auto const couleur_xy = echantillone_texture(texture_image, UV_xy);
+				auto const couleur_xz = echantillone_texture(texture_image, UV_xz);
+				auto const couleur_yz = echantillone_texture(texture_image, UV_yz);
 
-				const auto couleur = (couleur_xy * angle_xy + couleur_xz * angle_xz + couleur_yz * angle_yz) * poids;
+				auto const couleur = (couleur_xy * angle_xy + couleur_xz * angle_xz + couleur_yz * angle_yz) * poids;
 				tampon_poly[index] = couleur;
 			}
 		}
@@ -231,11 +231,11 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 		p->res_u = 16;
 		p->res_v = 16;
 #else
-		const auto cote0 = longueur(p->s[1]->pos - p->s[0]->pos);
-		const auto cote1 = longueur(p->s[2]->pos - p->s[1]->pos);
+		auto const cote0 = longueur(p->s[1]->pos - p->s[0]->pos);
+		auto const cote1 = longueur(p->s[2]->pos - p->s[1]->pos);
 
-		const auto res_u = static_cast<unsigned int>(cote0) * texels_par_cm;
-		const auto res_v = static_cast<unsigned int>(cote1) * texels_par_cm;
+		auto const res_u = static_cast<unsigned int>(cote0) * texels_par_cm;
+		auto const res_v = static_cast<unsigned int>(cote1) * texels_par_cm;
 
 		p->res_u = std::max(1u, prochain_multiple_de_2(res_u));
 		p->res_v = std::max(1u, prochain_multiple_de_2(res_v));
@@ -258,7 +258,7 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 		}
 	}
 
-	for (const auto &paire : tableau_compte_faces) {
+	for (auto const &paire : tableau_compte_faces) {
 		std::cerr << "Il y a " << paire.second << " polygones de " << paire.first.first << 'x' << paire.first.second << '\n';
 	}
 
@@ -314,7 +314,7 @@ void Maillage::ajoute_quad(const size_t s0, const size_t s1, const size_t s2, co
 	poly->s[2] = m_sommets[s2];
 	poly->s[3] = ((s3 == -1ul) ? nullptr : m_sommets[s3]);
 
-	const auto nombre_sommet = ((s3 == -1ul) ? 3ul : 4ul);
+	auto const nombre_sommet = ((s3 == -1ul) ? 3ul : 4ul);
 
 	for (size_t i = 0; i < nombre_sommet; ++i) {
 		auto arrete = new Arrete();

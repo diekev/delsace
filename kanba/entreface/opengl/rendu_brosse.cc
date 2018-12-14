@@ -108,14 +108,14 @@ void RenduBrosse::initialise()
 
 	m_tampon_contour = creer_tampon();
 
-	const auto &points = 64ul;
+	auto const &points = 64ul;
 
 	std::vector<dls::math::vec3f> sommets(points + 1);
 
 	for (auto i = 0ul; i <= points; i++){
-		const auto angle = static_cast<float>(TAU) * static_cast<float>(i) / static_cast<float>(points);
-		const auto x = std::cos(angle);
-		const auto y = std::sin(angle);
+		auto const angle = static_cast<float>(TAU) * static_cast<float>(i) / static_cast<float>(points);
+		auto const x = std::cos(angle);
+		auto const y = std::sin(angle);
 		sommets[i] = dls::math::vec3f(x, y, 0.0f);
 	}
 

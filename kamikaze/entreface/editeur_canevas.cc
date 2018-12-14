@@ -91,7 +91,7 @@ Canevas::~Canevas()
 void Canevas::initializeGL()
 {
 	glewExperimental = GL_TRUE;
-	const auto &erreur = glewInit();
+	auto const &erreur = glewInit();
 
 	if (erreur != GLEW_OK) {
 		std::cerr << "Erreur lors de l'initialisation du canevas OpenGL : "
@@ -131,9 +131,9 @@ void Canevas::paintGL()
 
 	m_contexte->camera->ajourne();
 
-	const auto &MV = m_contexte->camera->MV();
-	const auto &P = m_contexte->camera->P();
-	const auto &MVP = P * MV;
+	auto const &MV = m_contexte->camera->MV();
+	auto const &P = m_contexte->camera->P();
+	auto const &MVP = P * MV;
 
 	m_contexte_rendu.vue(m_contexte->camera->dir());
 	m_contexte_rendu.modele_vue(MV);
@@ -166,7 +166,7 @@ void Canevas::paintGL()
 
 			const bool active_object = (object == m_contexte->scene->active_node());
 
-			const auto collection = object->collection();
+			auto const collection = object->collection();
 
 			if (object->parent()) {
 				m_pile.pousse(object->parent()->matrix());
@@ -238,10 +238,10 @@ void Canevas::paintGL()
 		}
 	}
 
-	const auto fin = numero7::chronometrage::maintenant();
+	auto const fin = numero7::chronometrage::maintenant();
 
-	const auto temps = fin - m_debut;
-	const auto fps = static_cast<int>(1.0 / temps);
+	auto const temps = fin - m_debut;
+	auto const fps = static_cast<int>(1.0 / temps);
 
 	std::stringstream ss;
 	ss << fps << " IPS";
@@ -326,7 +326,7 @@ void Canevas::set_base(BaseEditrice *base)
 
 void Canevas::changeBackground()
 {
-	const auto &color = QColorDialog::getColor();
+	auto const &color = QColorDialog::getColor();
 
 	if (color.isValid()) {
 		m_bg = dls::math::vec4f(

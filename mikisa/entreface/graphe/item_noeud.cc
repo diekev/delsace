@@ -38,11 +38,11 @@
 #include "coeur/noeud_image.h"
 #include "coeur/operatrice_image.h"
 
-static const auto COULEUR_OBJET  = QColor::fromHsl(static_cast<int>( 90.0 / 255.0 * 359.0), 190, 79);
-static const auto COULEUR_IMAGE  = QColor::fromHsl(static_cast<int>(156.0 / 255.0 * 359.0), 190, 79);
-static const auto COULEUR_PIXEL  = QColor::fromHsl(static_cast<int>(176.0 / 255.0 * 359.0), 190, 79);
-static const auto COULEUR_CAMERA = QColor::fromHsl(static_cast<int>(211.0 / 255.0 * 359.0), 190, 79);
-static const auto COULEUR_SCENE  = QColor::fromHsl(static_cast<int>(249.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_OBJET  = QColor::fromHsl(static_cast<int>( 90.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_IMAGE  = QColor::fromHsl(static_cast<int>(156.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_PIXEL  = QColor::fromHsl(static_cast<int>(176.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_CAMERA = QColor::fromHsl(static_cast<int>(211.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_SCENE  = QColor::fromHsl(static_cast<int>(249.0 / 255.0 * 359.0), 190, 79);
 
 static QBrush brosse_pour_type(int type)
 {
@@ -68,30 +68,30 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 {
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
-	const auto pos_x = noeud->pos_x();
-	const auto pos_y = noeud->pos_y();
+	auto const pos_x = noeud->pos_x();
+	auto const pos_y = noeud->pos_y();
 
 	/* crée le texte en premier pour calculer sa taille */
-	const auto decalage_texte = 8;
+	auto const decalage_texte = 8;
 	auto texte = new QGraphicsTextItem(noeud->nom().c_str(), this);
 	auto police = QFont();
 	police.setPointSize(16);
 	texte->setFont(police);
 
-	const auto largeur_texte = texte->boundingRect().width() + decalage_texte * 2;
-	const auto hauteur_texte = texte->boundingRect().height();
+	auto const largeur_texte = texte->boundingRect().width() + decalage_texte * 2;
+	auto const hauteur_texte = texte->boundingRect().height();
 
 	auto hauteur_noeud = 0.0;
 	auto largeur_noeud = 0.0;
 
-	const auto hauteur_icone = 64.0;
-	const auto largeur_icone = 64.0;
+	auto const hauteur_icone = 64.0;
+	auto const largeur_icone = 64.0;
 
-	const auto hauteur_prise = 32.0;
-	const auto largeur_prise = 32.0;
+	auto const hauteur_prise = 32.0;
+	auto const largeur_prise = 32.0;
 
-	const auto nombre_entrees = noeud->entrees().size();
-	const auto nombre_sorties = noeud->sorties().size();
+	auto const nombre_entrees = noeud->entrees().size();
+	auto const nombre_sorties = noeud->sorties().size();
 
 	auto decalage_icone_y = pos_y;
 	auto decalage_texte_y = pos_y;
@@ -115,8 +115,8 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 
 	/* entrées du noeud */
 	if (nombre_entrees > 0) {
-		const auto etendue_entree = (largeur_noeud / static_cast<double>(nombre_entrees));
-		const auto pos_debut_entrees = etendue_entree * 0.5 - largeur_prise * 0.5;
+		auto const etendue_entree = (largeur_noeud / static_cast<double>(nombre_entrees));
+		auto const pos_debut_entrees = etendue_entree * 0.5 - largeur_prise * 0.5;
 		auto pos_entree = pos_x + pos_debut_entrees;
 
 		for (PriseEntree *prise : noeud->entrees()) {
@@ -155,8 +155,8 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 		ligne->setPen(QPen(Qt::white));
 		ligne->setLine(pos_x, decalage_icone_y + hauteur_icone, pos_x + largeur_noeud, decalage_icone_y + hauteur_icone);
 
-		const auto etendue_sortie = (largeur_noeud / static_cast<double>(nombre_sorties));
-		const auto pos_debut_sorties = etendue_sortie * 0.5 - largeur_prise * 0.5;
+		auto const etendue_sortie = (largeur_noeud / static_cast<double>(nombre_sorties));
+		auto const pos_debut_sorties = etendue_sortie * 0.5 - largeur_prise * 0.5;
 		auto pos_sortie = pos_x + pos_debut_sorties;
 
 		for (PriseSortie *prise : noeud->sorties()) {

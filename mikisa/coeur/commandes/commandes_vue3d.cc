@@ -54,17 +54,17 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
-		const auto delta = donnees.y;
+		auto const delta = donnees.y;
 
 		auto camera = mikisa->camera_3d;
 
 		if (delta >= 0) {
-			const auto distance = camera->distance() + camera->vitesse_zoom();
+			auto const distance = camera->distance() + camera->vitesse_zoom();
 			camera->distance(distance);
 		}
 		else {
-			const auto temp = camera->distance() - camera->vitesse_zoom();
-			const auto distance = std::max(0.0f, temp);
+			auto const temp = camera->distance() - camera->vitesse_zoom();
+			auto const distance = std::max(0.0f, temp);
 			camera->distance(distance);
 		}
 
@@ -170,17 +170,17 @@ public:
 					   1.0f - (donnees.y / static_cast<float>(camera->hauteur())),
 					   0.0f);
 
-		const auto debut = camera->pos_monde(pos);
+		auto const debut = camera->pos_monde(pos);
 
 		pos[2] = 1.0f;
-		const auto fin = camera->pos_monde(pos);
+		auto const fin = camera->pos_monde(pos);
 
-		const auto orig = dls::math::point3f(camera->pos());
+		auto const orig = dls::math::point3f(camera->pos());
 
-		const auto dir = normalise(fin - debut);
+		auto const dir = normalise(fin - debut);
 
 		/* entresecte la manipulatrice */
-		const auto etat = manipulatrice->etat();
+		auto const etat = manipulatrice->etat();
 
 		manipulatrice->entresecte(orig, dir);
 
@@ -229,14 +229,14 @@ public:
 					   1.0f - (donnees.y / static_cast<float>(camera->hauteur())),
 					   0.0f);
 
-		const auto debut = camera->pos_monde(pos);
+		auto const debut = camera->pos_monde(pos);
 
 		pos[2] = 1.0f;
-		const auto fin = camera->pos_monde(pos);
+		auto const fin = camera->pos_monde(pos);
 
-		const auto orig = dls::math::point3f(camera->pos());
+		auto const orig = dls::math::point3f(camera->pos());
 
-		const auto dir = normalise(fin - debut);
+		auto const dir = normalise(fin - debut);
 
 		/* entresecte la manipulatrice */
 		if (!manipulatrice->entresecte(orig, dir)) {
@@ -267,10 +267,10 @@ public:
 		float t;
 		plans[plan].pos = manipulatrice->pos();
 
-		const auto &ok = entresecte_plan(plans[plan], orig, dir, t);
+		auto const &ok = entresecte_plan(plans[plan], orig, dir, t);
 
 		if (ok) {
-			const auto &pos1 = orig + t * dir;
+			auto const &pos1 = orig + t * dir;
 			m_delta = pos1 - manipulatrice->pos();
 		}
 
@@ -309,14 +309,14 @@ public:
 					   1.0f - (donnees.y / static_cast<float>(camera->hauteur())),
 					   0.0f);
 
-		const auto debut = camera->pos_monde(pos);
+		auto const debut = camera->pos_monde(pos);
 
 		pos[2] = 1.0f;
-		const auto fin = camera->pos_monde(pos);
+		auto const fin = camera->pos_monde(pos);
 
-		const auto orig = dls::math::point3f(camera->pos());
+		auto const orig = dls::math::point3f(camera->pos());
 
-		const auto dir = normalise(fin - debut);
+		auto const dir = normalise(fin - debut);
 
 		int plan = -1;
 
@@ -338,10 +338,10 @@ public:
 		}
 
 		float t;
-		const auto &ok = entresecte_plan(plans[plan], orig, dir, t);
+		auto const &ok = entresecte_plan(plans[plan], orig, dir, t);
 
 		if (ok) {
-			const auto &pos1 = dls::math::vec3f(orig) + t * dir;
+			auto const &pos1 = dls::math::vec3f(orig) + t * dir;
 			manipulatrice->repond_manipulation(pos1 - m_delta);
 		}
 

@@ -76,10 +76,10 @@ numero7::math::matrice<Spectre> ouvre_png(const std::experimental::filesystem::p
 
 	png_read_info(png, info);
 
-	const auto width      = png_get_image_width(png, info);
-	const auto height     = png_get_image_height(png, info);
-	const auto color_type = png_get_color_type(png, info);
-	const auto bit_depth  = png_get_bit_depth(png, info);
+	auto const width      = png_get_image_width(png, info);
+	auto const height     = png_get_image_height(png, info);
+	auto const color_type = png_get_color_type(png, info);
+	auto const bit_depth  = png_get_bit_depth(png, info);
 
 	if (bit_depth == 16) {
 		png_set_strip_16(png);
@@ -182,15 +182,15 @@ numero7::math::matrice<Spectre> ouvre_jpeg(const std::experimental::filesystem::
 	jpeg_read_header(&info, TRUE);
 	jpeg_start_decompress(&info);
 
-	const auto largeur = info.output_width;
-	const auto hauteur = info.output_height;
-	const auto channels = info.output_components;
+	auto const largeur = info.output_width;
+	auto const hauteur = info.output_height;
+	auto const channels = info.output_components;
 
 	auto image = numero7::math::matrice<Spectre>(
 					 numero7::math::Hauteur(static_cast<int>(hauteur)),
 					 numero7::math::Largeur(static_cast<int>(largeur)));
 
-	const auto &stride = largeur * static_cast<unsigned>(channels);
+	auto const &stride = largeur * static_cast<unsigned>(channels);
 
 	unsigned char *buffer = new unsigned char[stride];
 

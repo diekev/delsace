@@ -35,7 +35,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 
 		if (donnees.metadonnee == "va_image_debut") {

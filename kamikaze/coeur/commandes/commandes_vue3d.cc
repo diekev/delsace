@@ -43,8 +43,8 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
-		const auto delta = donnees.x;
+		auto const &contexte = main->contexte;
+		auto const delta = donnees.x;
 
 		auto camera = contexte.camera;
 
@@ -87,7 +87,7 @@ public:
 	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto camera = contexte.camera;
 
 		const float dx = (donnees.x - m_vieil_x);
@@ -124,7 +124,7 @@ public:
 	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto camera = contexte.camera;
 
 		const float dx = (donnees.x - m_vieil_x);
@@ -150,28 +150,28 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
-		const auto x = donnees.x;
-		const auto y = donnees.y;
+		auto const &contexte = main->contexte;
+		auto const x = donnees.x;
+		auto const y = donnees.y;
 
 		auto camera = contexte.camera;
-		const auto &MV = camera->MV();
-		const auto &P = camera->P();
+		auto const &MV = camera->MV();
+		auto const &P = camera->P();
 
 #if 1
-		const auto &fenetre = dls::math::vec4f(
+		auto const &fenetre = dls::math::vec4f(
 								  0.0f,
 								  0.0f,
 								  static_cast<float>(camera->largeur()),
 								  static_cast<float>(camera->hauteur()));
 
-		const auto &debut = dls::math::deprojette(
+		auto const &debut = dls::math::deprojette(
 								dls::math::vec3f(x, static_cast<float>(camera->hauteur()) - y, 0.0f),
 								MV,
 								P,
 								fenetre);
 
-		const auto &fin   = dls::math::deprojette(
+		auto const &fin   = dls::math::deprojette(
 								dls::math::vec3f(x, static_cast<float>(camera->hauteur()) - y, 1.0f),
 								MV,
 								P,
@@ -186,7 +186,7 @@ public:
 		float z;
 		glReadPixels(x, m_hauteur - y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
 
-		const auto pos = dls::math::deprojette(dls::math::vec3f(x, camera->hauteur() - y, z), MV, P, dls::math::vec4f(0, 0, camera->largeur(), camera->hauteur()));
+		auto const pos = dls::math::deprojette(dls::math::vec3f(x, camera->hauteur() - y, z), MV, P, dls::math::vec4f(0, 0, camera->largeur(), camera->hauteur()));
 		contexte.scene->selectObject(pos);
 #endif
 
@@ -203,7 +203,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		auto scene = contexte.scene;
 
 		if (scene->active_node() == nullptr) {

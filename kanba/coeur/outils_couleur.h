@@ -29,10 +29,10 @@
 template <typename T>
 void converti_hsv_rvb(T &r, T &v, T &b, const T h, const T s, const T fV)
 {
-	const auto chroma = fV * s;
-	const auto fHPrime = std::fmod(h / static_cast<T>(60.0), 6);
-	const auto fX = chroma * static_cast<T>(1 - std::fabs(std::fmod(fHPrime, 2) - 1));
-	const auto fM = fV - chroma;
+	auto const chroma = fV * s;
+	auto const fHPrime = std::fmod(h / static_cast<T>(60.0), 6);
+	auto const fX = chroma * static_cast<T>(1 - std::fabs(std::fmod(fHPrime, 2) - 1));
+	auto const fM = fV - chroma;
 
 	if (0 <= fHPrime && fHPrime < 1) {
 		r = chroma;

@@ -33,7 +33,7 @@
 
 static void ouvre_fichier_implementation(Main *main, const Context &contexte, const std::string &chemin_projet)
 {
-	const auto erreur = kamikaze::ouvre_projet(chemin_projet, *main, contexte);
+	auto const erreur = kamikaze::ouvre_projet(chemin_projet, *main, contexte);
 
 	switch (erreur) {
 		case kamikaze::erreur_fichier::AUCUNE_ERREUR:
@@ -69,7 +69,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto chemin_projet = main->requiers_dialogue(FICHIER_OUVERTURE);
+		auto const chemin_projet = main->requiers_dialogue(FICHIER_OUVERTURE);
 
 		if (chemin_projet.empty()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -99,7 +99,7 @@ public:
 
 static void sauve_fichier_sous(Main *main, const Context &context)
 {
-	const auto &chemin_projet = main->requiers_dialogue(FICHIER_SAUVEGARDE);
+	auto const &chemin_projet = main->requiers_dialogue(FICHIER_SAUVEGARDE);
 
 	main->chemin_projet(chemin_projet);
 	main->projet_ouvert(true);

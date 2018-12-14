@@ -58,11 +58,11 @@ class GrilleParticule {
 public:
 	const std::list<Particule *> &particules(size_t x, size_t y, size_t z)
 	{
-		const auto x0 = x / VOXELS_DECALAGE;
-		const auto y0 = y / VOXELS_DECALAGE;
-		const auto z0 = z / VOXELS_DECALAGE;
+		auto const x0 = x / VOXELS_DECALAGE;
+		auto const y0 = y / VOXELS_DECALAGE;
+		auto const z0 = z / VOXELS_DECALAGE;
 
-		const auto index_niveau0 = x0 + (y0 + z0 * VOXELS_N0) * VOXELS_N0;
+		auto const index_niveau0 = x0 + (y0 + z0 * VOXELS_N0) * VOXELS_N0;
 	}
 };
 #else

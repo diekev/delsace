@@ -59,26 +59,26 @@ dls::math::mat4x4d transformation::inverse() const
 
 dls::math::vec3d transformation::operator()(const dls::math::vec3d &vecteur) const
 {
-	const auto x = vecteur[0];
-	const auto y = vecteur[1];
-	const auto z = vecteur[2];
+	auto const x = vecteur[0];
+	auto const y = vecteur[1];
+	auto const z = vecteur[2];
 
-	const auto px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z;
-	const auto py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z;
-	const auto pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z;
+	auto const px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z;
+	auto const py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z;
+	auto const pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z;
 
 	return dls::math::vec3d(px, py, pz);
 }
 
 void transformation::operator()(const dls::math::vec3d &vecteur, dls::math::vec3d *vecteur_retour) const
 {
-	const auto x = vecteur[0];
-	const auto y = vecteur[1];
-	const auto z = vecteur[2];
+	auto const x = vecteur[0];
+	auto const y = vecteur[1];
+	auto const z = vecteur[2];
 
-	const auto px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z;
-	const auto py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z;
-	const auto pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z;
+	auto const px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z;
+	auto const py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z;
+	auto const pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z;
 
 	vecteur_retour->x = px;
 	vecteur_retour->y = py;
@@ -87,14 +87,14 @@ void transformation::operator()(const dls::math::vec3d &vecteur, dls::math::vec3
 
 dls::math::point3d transformation::operator()(const dls::math::point3d &point) const
 {
-	const auto x = point[0];
-	const auto y = point[1];
-	const auto z = point[2];
+	auto const x = point[0];
+	auto const y = point[1];
+	auto const z = point[2];
 
-	const auto px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z + m_matrice[0][3];
-	const auto py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z + m_matrice[1][3];
-	const auto pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z + m_matrice[2][3];
-	const auto pw = m_matrice[3][0] * x + m_matrice[3][1] * y + m_matrice[3][2] * z + m_matrice[3][3];
+	auto const px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z + m_matrice[0][3];
+	auto const py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z + m_matrice[1][3];
+	auto const pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z + m_matrice[2][3];
+	auto const pw = m_matrice[3][0] * x + m_matrice[3][1] * y + m_matrice[3][2] * z + m_matrice[3][3];
 
 	if (pw == 1.0) {
 		return dls::math::point3d(px, py, pz);
@@ -105,14 +105,14 @@ dls::math::point3d transformation::operator()(const dls::math::point3d &point) c
 
 void transformation::operator()(const dls::math::point3d &point, dls::math::point3d *point_retour) const
 {
-	const auto x = point[0];
-	const auto y = point[1];
-	const auto z = point[2];
+	auto const x = point[0];
+	auto const y = point[1];
+	auto const z = point[2];
 
-	const auto px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z + m_matrice[0][3];
-	const auto py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z + m_matrice[1][3];
-	const auto pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z + m_matrice[2][3];
-	const auto pw = m_matrice[3][0] * x + m_matrice[3][1] * y + m_matrice[3][2] * z + m_matrice[3][3];
+	auto const px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z + m_matrice[0][3];
+	auto const py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z + m_matrice[1][3];
+	auto const pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z + m_matrice[2][3];
+	auto const pw = m_matrice[3][0] * x + m_matrice[3][1] * y + m_matrice[3][2] * z + m_matrice[3][3];
 
 	point_retour->x = px;
 	point_retour->y = py;
@@ -125,9 +125,9 @@ void transformation::operator()(const dls::math::point3d &point, dls::math::poin
 
 bool transformation::possede_echelle() const
 {
-	const auto a1 = dls::math::longueur((*this)(dls::math::vec3d(1.0, 0.0, 0.0)));
-	const auto a2 = dls::math::longueur((*this)(dls::math::vec3d(0.0, 1.0, 0.0)));
-	const auto a3 = dls::math::longueur((*this)(dls::math::vec3d(0.0, 0.0, 1.0)));
+	auto const a1 = dls::math::longueur((*this)(dls::math::vec3d(1.0, 0.0, 0.0)));
+	auto const a2 = dls::math::longueur((*this)(dls::math::vec3d(0.0, 1.0, 0.0)));
+	auto const a3 = dls::math::longueur((*this)(dls::math::vec3d(0.0, 0.0, 1.0)));
 
 	auto pas_un = [](const double valeur)
 	{
@@ -253,8 +253,8 @@ transformation echelle(const dls::math::vec3d &vecteur)
  */
 transformation rotation_x(const double angle)
 {
-	const auto sin_angle = std::sin(angle);
-	const auto cos_angle = std::cos(angle);
+	auto const sin_angle = std::sin(angle);
+	auto const cos_angle = std::cos(angle);
 
 	dls::math::mat4x4d matrice(
 		1.0,       0.0,        0.0, 0.0,
@@ -304,8 +304,8 @@ transformation rotation_x(const double angle)
  */
 transformation rotation_y(const double angle)
 {
-	const auto sin_angle = std::sin(angle);
-	const auto cos_angle = std::cos(angle);
+	auto const sin_angle = std::sin(angle);
+	auto const cos_angle = std::cos(angle);
 
 	dls::math::mat4x4d matrice(
 		cos_angle,  0.0, sin_angle, 0.0,
@@ -357,8 +357,8 @@ transformation rotation_y(const double angle)
  */
 transformation rotation_z(const double angle)
 {
-	const auto sin_angle = std::sin(angle);
-	const auto cos_angle = std::cos(angle);
+	auto const sin_angle = std::sin(angle);
+	auto const cos_angle = std::cos(angle);
 
 	dls::math::mat4x4d matrice(
 		 cos_angle, sin_angle, 0.0, 0.0,
@@ -372,9 +372,9 @@ transformation rotation_z(const double angle)
 
 transformation rotation(const double angle, const dls::math::vec3d &vecteur)
 {
-	const auto a = dls::math::normalise(vecteur);
-	const auto s = std::sin(angle);
-	const auto c = std::cos(angle);
+	auto const a = dls::math::normalise(vecteur);
+	auto const s = std::sin(angle);
+	auto const c = std::cos(angle);
 
 	dls::math::mat4x4d matrice;
 
@@ -412,9 +412,9 @@ transformation vise(
 	std::cout << "Mire : " << mire[0] << ", " << mire[1] << ", " << mire[2] << '\n';
 	std::cout << "Haut : " << haut[0] << ", " << haut[1] << ", " << haut[2] << '\n';
 
-	const auto direction = dls::math::normalise(mire - position);
-	const auto droite = dls::math::normalise(dls::math::produit_croix(dls::math::normalise(haut), direction));
-	const auto nouveau_haut = dls::math::produit_croix(direction, droite);
+	auto const direction = dls::math::normalise(mire - position);
+	auto const droite = dls::math::normalise(dls::math::produit_croix(dls::math::normalise(haut), direction));
+	auto const nouveau_haut = dls::math::produit_croix(direction, droite);
 
 	dls::math::mat4x4d matrice;
 

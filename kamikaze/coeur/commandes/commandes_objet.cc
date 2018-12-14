@@ -52,7 +52,7 @@ int CommandeAjoutObjet::execute(std::any const &pointeur, const DonneesCommande 
 	Scene *m_scene = nullptr;
 
 	auto main = std::any_cast<Main *>(pointeur);
-	const auto &contexte = main->contexte;
+	auto const &contexte = main->contexte;
 	m_scene = contexte.scene;
 
 	m_object = new Object(contexte);
@@ -79,7 +79,7 @@ int CommandeAjoutNoeud::execute(std::any const &pointeur, const DonneesCommande 
 	Scene *m_scene = nullptr;
 
 	auto main = std::any_cast<Main *>(pointeur);
-	const auto &contexte = main->contexte;
+	auto const &contexte = main->contexte;
 	m_scene = contexte.scene;
 	auto scene_node = m_scene->active_node();
 
@@ -121,7 +121,7 @@ int CommandeObjetPrereglage::execute(std::any const &pointeur, const DonneesComm
 	Scene *m_scene = nullptr;
 
 	auto main = std::any_cast<Main *>(pointeur);
-	const auto &contexte = main->contexte;
+	auto const &contexte = main->contexte;
 	m_scene = contexte.scene;
 
 	if (contexte.eval_ctx->edit_mode) {
@@ -175,7 +175,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		contexte.eval_ctx->edit_mode = true;
 		contexte.scene->notify_listeners(type_evenement::objet | type_evenement::selectione);
 
@@ -192,7 +192,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
-		const auto &contexte = main->contexte;
+		auto const &contexte = main->contexte;
 		contexte.eval_ctx->edit_mode = false;
 		contexte.scene->notify_listeners(type_evenement::objet | type_evenement::selectione);
 

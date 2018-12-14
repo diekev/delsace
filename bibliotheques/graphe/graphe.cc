@@ -154,7 +154,7 @@ Noeud *trouve_noeud(
 {
 	Noeud *noeud_res = nullptr;
 
-	for (const auto &noeud : noeuds) {
+	for (auto const &noeud : noeuds) {
 		Noeud *pointeur_noeud = noeud.get();
 
 		if (!pointeur_noeud->rectangle().contiens(x, y)) {
@@ -174,7 +174,7 @@ PriseEntree *trouve_prise_entree(
 {
 	PriseEntree *prise_entree = nullptr;
 
-	for (const auto &noeud : noeuds) {
+	for (auto const &noeud : noeuds) {
 		Noeud *pointeur_noeud = noeud.get();
 
 		if (!pointeur_noeud->rectangle().contiens(x, y)) {
@@ -202,7 +202,7 @@ PriseSortie *trouve_prise_sortie(
 {
 	PriseSortie *prise_sortie = nullptr;
 
-	for (const auto &noeud : noeuds) {
+	for (auto const &noeud : noeuds) {
 		Noeud *pointeur_noeud = noeud.get();
 
 		if (!pointeur_noeud->rectangle().contiens(x, y)) {
@@ -235,7 +235,7 @@ void trouve_noeud_prise(
 	prise_entree = nullptr;
 	prise_sortie = nullptr;
 
-	for (const auto &noeud : noeuds) {
+	for (auto const &noeud : noeuds) {
 		Noeud *pointeur_noeud = noeud.get();
 
 		if (!pointeur_noeud->rectangle().contiens(x, y)) {

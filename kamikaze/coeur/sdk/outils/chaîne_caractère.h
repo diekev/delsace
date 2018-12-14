@@ -34,7 +34,7 @@ bool ensure_unique_name(std::string &name, const OpType &op)
 	}
 
 	std::string temp = name + ".0000";
-	const auto temp_size = temp.size();
+	auto const temp_size = temp.size();
 	int number = 0;
 
 	do {

@@ -160,13 +160,13 @@ static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
 	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
 
-	const auto t0 = tbb::tick_count::now();
+	auto const t0 = tbb::tick_count::now();
 
 	operatrice->reinitialise_avertisements();
 	operatrice->execute(rectangle, mikisa.temps_courant);
 
-	const auto t1 = tbb::tick_count::now();
-	const auto delta = (t1 - t0).seconds();
+	auto const t1 = tbb::tick_count::now();
+	auto const delta = (t1 - t0).seconds();
 	noeud->temps_execution(static_cast<float>(delta));
 
 	return operatrice->objet();

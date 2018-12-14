@@ -44,7 +44,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto koudou = std::any_cast<Koudou *>(pointeur);
-		const auto chemin_projet = koudou->requiers_dialogue(FICHIER_OUVERTURE);
+		auto const chemin_projet = koudou->requiers_dialogue(FICHIER_OUVERTURE);
 
 		if (chemin_projet.empty()) {
 			return EXECUTION_COMMANDE_ECHOUEE;

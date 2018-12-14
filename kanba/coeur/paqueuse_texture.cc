@@ -77,8 +77,8 @@ void PaqueuseTexture::empaquete(const std::vector<Polygone *> &polygones)
 {
 	LOG << "Début de la création de la texture paquetée...\n";
 
-	const auto largeur_max = polygones[0]->res_u * polygones.size();
-	const auto hauteur_max = polygones[0]->res_v * polygones.size();
+	auto const largeur_max = polygones[0]->res_u * polygones.size();
+	auto const hauteur_max = polygones[0]->res_v * polygones.size();
 	m_racine->largeur = 16384;
 	m_racine->hauteur = 16384;
 
@@ -91,7 +91,7 @@ void PaqueuseTexture::empaquete(const std::vector<Polygone *> &polygones)
 
 	Noeud *noeud;
 
-	for (const auto &polygone : polygones) {
+	for (auto const &polygone : polygones) {
 #ifdef QUEUE_PRIORITE
 		while (!m_queue_priorite.empty()) {
 			noeud = m_queue_priorite.top();
@@ -129,7 +129,7 @@ void PaqueuseTexture::empaquete(const std::vector<Polygone *> &polygones)
 		polygone->x = noeud->x;
 		polygone->y = noeud->y;
 
-		const auto empreinte = empreinte_xy(polygone->x, polygone->y);
+		auto const empreinte = empreinte_xy(polygone->x, polygone->y);
 
 		if (tableau_coord_polygones.find(empreinte) != tableau_coord_polygones.end()) {
 			//std::cerr << "Plusieurs polygones ont les mêmes coordonnées !\n";
@@ -234,17 +234,17 @@ PaqueuseTexture::Noeud *PaqueuseTexture::elargi_noeud(unsigned largeur, unsigned
 
 	return elargi_hauteur(largeur, hauteur);
 #else
-	const auto peut_elargir_hauteur = largeur <= m_racine->largeur;
-	const auto peut_elargir_largeur = hauteur <= m_racine->hauteur;
+	auto const peut_elargir_hauteur = largeur <= m_racine->largeur;
+	auto const peut_elargir_largeur = hauteur <= m_racine->hauteur;
 
 	/* Essaie de rester carrée en élargissant la largeur quand la hauteur
 		 * est bien plus grande que la largeur. */
-	const auto doit_elargir_largeur = peut_elargir_largeur
+	auto const doit_elargir_largeur = peut_elargir_largeur
 									  && (m_racine->hauteur >= (m_racine->largeur + largeur));
 
 	/* Essaie de rester carrée en élargissant la hauteur quand la largeur
 		 * est bien plus grande que la hauteur. */
-	const auto doit_elargir_hauteur = peut_elargir_hauteur
+	auto const doit_elargir_hauteur = peut_elargir_hauteur
 									  && (m_racine->largeur >= (m_racine->hauteur + hauteur));
 
 	if (doit_elargir_largeur) {

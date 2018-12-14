@@ -38,19 +38,19 @@ void execute_noeud(Noeud *noeud, const Rectangle &rectangle, const int temps)
 
 	noeud->temps_execution(0.0f);
 
-	const auto t0 = tbb::tick_count::now();
+	auto const t0 = tbb::tick_count::now();
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	operatrice->reinitialise_avertisements();
 
-	const auto resultat = operatrice->execute(rectangle, temps);
+	auto const resultat = operatrice->execute(rectangle, temps);
 
 	/* Ne prend en compte que le temps des exécutions réussies pour éviter de se
 	 * retrouver avec un temps d'exécution minimum trop bas, proche de zéro, en
 	 * cas d'avortement prématuré de l'exécution. */
 	if (resultat == EXECUTION_REUSSIE) {
-		const auto t1 = tbb::tick_count::now();
-		const auto delta = (t1 - t0).seconds();
+		auto const t1 = tbb::tick_count::now();
+		auto const delta = (t1 - t0).seconds();
 
 		auto temps_parent = 0.0f;
 

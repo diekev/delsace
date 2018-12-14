@@ -57,7 +57,7 @@ VueMonde::VueMonde(Monde *monde)
 
 void VueMonde::ajourne_donnees()
 {
-	const auto type_texture = static_cast<TypeTexture>(evalue_enum("type_texture"));
+	auto const type_texture = static_cast<TypeTexture>(evalue_enum("type_texture"));
 
 	if (!m_monde->texture || m_monde->texture->type() != type_texture) {
 		supprime_texture(m_monde->texture);
@@ -97,7 +97,7 @@ void VueMonde::ajourne_donnees()
 
 bool VueMonde::ajourne_proprietes()
 {
-	const auto type_texture = static_cast<TypeTexture>(evalue_enum("type_texture"));
+	auto const type_texture = static_cast<TypeTexture>(evalue_enum("type_texture"));
 
 	rend_visible("image", type_texture == TypeTexture::IMAGE);
 	rend_visible("couleur", type_texture == TypeTexture::COULEUR);

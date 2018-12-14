@@ -88,7 +88,7 @@ void RenduParticules::initialise()
 	std::vector<dls::math::vec3f> points;
 	points.reserve(m_fluide->particules.size());
 
-	for (const auto &particule : m_fluide->particules) {
+	for (auto const &particule : m_fluide->particules) {
 		points.push_back(particule.pos);
 	}
 

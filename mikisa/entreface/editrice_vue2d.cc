@@ -219,7 +219,7 @@ void EditriceVue2D::ajourne_etat(int evenement)
 	chargement |= (evenement == (type_evenement::rafraichissement));
 
 	if (chargement) {
-		const auto &image = m_mikisa.composite->image();
+		auto const &image = m_mikisa.composite->image();
 		/* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
 		auto tampon = image.calque(image.nom_calque_actif());
 

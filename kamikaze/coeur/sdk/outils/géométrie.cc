@@ -39,13 +39,13 @@ void calcule_normales(
 				 [&](const tbb::blocked_range<size_t> &r)
 	{
 		for (auto i = r.begin(), ie = r.end(); i < ie ; ++i) {
-			const auto &quad = polygones[i];
+			auto const &quad = polygones[i];
 
-			const auto v0 = points[static_cast<size_t>(quad[0])];
-			const auto v1 = points[static_cast<size_t>(quad[1])];
-			const auto v2 = points[static_cast<size_t>(quad[2])];
+			auto const v0 = points[static_cast<size_t>(quad[0])];
+			auto const v1 = points[static_cast<size_t>(quad[1])];
+			auto const v2 = points[static_cast<size_t>(quad[2])];
 
-			const auto normal = normale_triangle(v0, v1, v2);
+			auto const normal = normale_triangle(v0, v1, v2);
 
 			normales.vec3(static_cast<size_t>(quad[0]), normales.vec3(static_cast<size_t>(quad[0])) + normal);
 			normales.vec3(static_cast<size_t>(quad[1]), normales.vec3(static_cast<size_t>(quad[1])) + normal);

@@ -117,7 +117,7 @@ void Koudou::enregistre_commandes()
 std::string Koudou::requiers_dialogue(int type)
 {
 	if (type == FICHIER_OUVERTURE) {
-		const auto chemin = QFileDialog::getOpenFileName();
+		auto const chemin = QFileDialog::getOpenFileName();
 		return chemin.toStdString();
 	}
 

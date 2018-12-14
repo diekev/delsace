@@ -56,7 +56,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
-		const auto delta = donnees.x;
+		auto const delta = donnees.x;
 
 		auto camera = kanba->camera;
 
@@ -229,7 +229,7 @@ public:
 		auto camera = kanba->camera;
 		auto brosse = kanba->brosse;
 
-		const auto &diametre_brosse = brosse->rayon * 2;
+		auto const &diametre_brosse = brosse->rayon * 2;
 
 		auto seaux_x = camera->largeur() / diametre_brosse + 1;
 		auto seaux_y = camera->hauteur() / diametre_brosse + 1;
@@ -249,14 +249,14 @@ public:
 
 		auto nombre_polys = maillage->nombre_polygones();
 
-		const auto &dir = dls::math::vec3f(
+		auto const &dir = dls::math::vec3f(
 							  -camera->dir().x,
 							  -camera->dir().y,
 							  -camera->dir().z);
 
 		for (size_t i = 0; i < nombre_polys; ++i) {
 			auto poly = maillage->polygone(i);
-			const auto &angle = produit_scalaire(poly->nor, dir);
+			auto const &angle = produit_scalaire(poly->nor, dir);
 
 			//std::cerr << "Angle : " << angle << '\n';
 
@@ -268,28 +268,28 @@ public:
 			//std::cerr << "Le polygone " << poly->index << " fait face à l'écran !\n";
 
 			// projette texel sur l'écran
-			const auto &v0 = poly->s[0]->pos;
+			auto const &v0 = poly->s[0]->pos;
 
 #if 1
-			const auto &v1 = poly->s[1]->pos;
-			const auto &v3 = ((poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos);
+			auto const &v1 = poly->s[1]->pos;
+			auto const &v3 = ((poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos);
 
-			const auto &e1 = v1 - v0;
-			const auto &e2 = v3 - v0;
+			auto const &e1 = v1 - v0;
+			auto const &e2 = v3 - v0;
 
-			const auto &du = e1 / static_cast<float>(poly->res_u);
-			const auto &dv = e2 / static_cast<float>(poly->res_v);
+			auto const &du = e1 / static_cast<float>(poly->res_u);
+			auto const &dv = e2 / static_cast<float>(poly->res_v);
 #else
-			const auto &du = poly->du;
-			const auto &dv = poly->dv;
+			auto const &du = poly->du;
+			auto const &dv = poly->dv;
 #endif
 
 			for (unsigned j = 0; j < poly->res_u; ++j) {
 				for (unsigned k = 0; k < poly->res_v; ++k) {
-					const auto &pos3d = v0 + static_cast<float>(j) * du + static_cast<float>(k) * dv;
+					auto const &pos3d = v0 + static_cast<float>(j) * du + static_cast<float>(k) * dv;
 
 					// calcul position 2D du texel
-					const auto &pos2d = camera->pos_ecran(dls::math::point3f(pos3d));
+					auto const &pos2d = camera->pos_ecran(dls::math::point3f(pos3d));
 
 					// cherche seau
 					auto seau = cherche_seau(seaux, pos2d, seaux_x, seaux_y, camera->largeur(), camera->hauteur());
@@ -309,16 +309,16 @@ public:
 
 		auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
-		const auto &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
+		auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
 
-		for (const auto &seau : seaux) {
+		for (auto const &seau : seaux) {
 			if (seau.texels.empty()) {
 				continue;
 			}
 
 			//std::cerr << "Il y a " << seau.texels.size() << " texels dans le seau !\n";
 
-			for (const auto &texel : seau.texels) {
+			for (auto const &texel : seau.texels) {
 				auto dist = longueur(texel.pos - pos_brosse);
 
 				if (dist > static_cast<float>(brosse->rayon)) {

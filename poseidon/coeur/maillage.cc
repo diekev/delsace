@@ -71,7 +71,7 @@ void Maillage::ajoute_quad(const int s0, const int s1, const int s2, const int s
 	poly->s[2] = m_sommets[static_cast<size_t>(s2)];
 	poly->s[3] = ((s3 == -1) ? nullptr : m_sommets[static_cast<size_t>(s3)]);
 
-	const auto nombre_sommet = ((s3 == -1) ? 3ul : 4ul);
+	auto const nombre_sommet = ((s3 == -1) ? 3ul : 4ul);
 
 	for (size_t i = 0; i < nombre_sommet; ++i) {
 		auto arrete = new Arrete();
@@ -185,7 +185,7 @@ void Maillage::calcule_boite_englobante()
 	m_min = dls::math::vec3f(std::numeric_limits<float>::max());
 	m_max = dls::math::vec3f(std::numeric_limits<float>::min());
 
-	for (const auto &s : m_sommets) {
+	for (auto const &s : m_sommets) {
 		min_max_vecteur(m_min, m_max, s->pos);
 	}
 

@@ -71,7 +71,7 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 	}
 
 	if (noeud->type() == NOEUD_IMAGE_SORTIE) {
-		const auto besoin_ajournement = (graphe.noeud_actif != mikisa.derniere_visionneuse_selectionnee);
+		auto const besoin_ajournement = (graphe.noeud_actif != mikisa.derniere_visionneuse_selectionnee);
 
 		mikisa.derniere_visionneuse_selectionnee = graphe.noeud_actif;
 		graphe.dernier_noeud_sortie = graphe.noeud_actif;
@@ -80,7 +80,7 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 	}
 
 	if (noeud->type() == NOEUD_OBJET_SORTIE) {
-		const auto besoin_ajournement = (graphe.noeud_actif != graphe.dernier_noeud_sortie);
+		auto const besoin_ajournement = (graphe.noeud_actif != graphe.dernier_noeud_sortie);
 
 		graphe.dernier_noeud_sortie = graphe.noeud_actif;
 
@@ -360,7 +360,7 @@ public:
 			mikisa->manipulatrice_3d = nullptr;
 		}
 
-		const auto besoin_execution = noeud_connecte_sortie(noeud, graphe->dernier_noeud_sortie);
+		auto const besoin_execution = noeud_connecte_sortie(noeud, graphe->dernier_noeud_sortie);
 
 		graphe->supprime(noeud);
 

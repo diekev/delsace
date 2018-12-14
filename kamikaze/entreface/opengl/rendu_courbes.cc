@@ -91,7 +91,7 @@ void RenduCourbes::initialise()
 	indices.reserve(edgelist->size());
 
 	for (auto i = 0ul, ie = edgelist->size(); i < ie; ++i) {
-		const auto &edge = (*edgelist)[i];
+		auto const &edge = (*edgelist)[i];
 		indices.push_back(static_cast<unsigned>(edge[0]));
 		indices.push_back(static_cast<unsigned>(edge[1]));
 	}

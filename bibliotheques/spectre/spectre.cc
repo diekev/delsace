@@ -150,9 +150,9 @@ float entrepole_echantillons_spectre(
 		return valeurs[n - 1];
 	}
 
-	const auto offset = trouve_entrevalle(n, [&](size_t index) { return lambdas[index] <= l; });
+	auto const offset = trouve_entrevalle(n, [&](size_t index) { return lambdas[index] <= l; });
 
-	const auto t = (l - lambdas[offset]) / (lambdas[offset + 1] - lambdas[offset]);
+	auto const t = (l - lambdas[offset]) / (lambdas[offset + 1] - lambdas[offset]);
 
 	return dls::math::entrepolation_lineaire(valeurs[offset], valeurs[offset + 1], t);
 }
@@ -321,9 +321,9 @@ void corps_noir(const float *lambda, int n, float T, float *Le)
 		return;
 	}
 
-	const auto c = 299792458.0f;
-	const auto h = 6.62606957e-34f;
-	const auto kb = 1.3806488e-23f;
+	auto const c = 299792458.0f;
+	auto const h = 6.62606957e-34f;
+	auto const kb = 1.3806488e-23f;
 
 	for (int i = 0; i < n; ++i) {
 		/* Calcule la radiance émise pour le corps noir à la longeur d'onde
@@ -401,8 +401,8 @@ SpectreEchantillon SpectreEchantillon::depuis_echantillons(const float *lambda, 
 	SpectreEchantillon resultat;
 
 	for (size_t i = 0; i < NOMBRE_ECHANTILLONS; ++i) {
-		const auto lambda0 = dls::math::entrepolation_lineaire(DEBUT_LAMBDA_SPECTRE, FIN_LAMBDA_SPECTRE, static_cast<float>(i) / static_cast<float>(NOMBRE_ECHANTILLONS));
-		const auto lambda1 = dls::math::entrepolation_lineaire(DEBUT_LAMBDA_SPECTRE, FIN_LAMBDA_SPECTRE, static_cast<float>(i + 1) / static_cast<float>(NOMBRE_ECHANTILLONS));
+		auto const lambda0 = dls::math::entrepolation_lineaire(DEBUT_LAMBDA_SPECTRE, FIN_LAMBDA_SPECTRE, static_cast<float>(i) / static_cast<float>(NOMBRE_ECHANTILLONS));
+		auto const lambda1 = dls::math::entrepolation_lineaire(DEBUT_LAMBDA_SPECTRE, FIN_LAMBDA_SPECTRE, static_cast<float>(i + 1) / static_cast<float>(NOMBRE_ECHANTILLONS));
 
 		resultat[i] = moyenne_echantillons(lambda, v, n, lambda0, lambda1);
 	}
@@ -557,12 +557,12 @@ void SpectreEchantillon::initialisation()
 {
 	// Compute XYZ matching functions for _SampledSpectrum_
 	for (int i = 0; i < NOMBRE_ECHANTILLONS; ++i) {
-		const auto wl0 = dls::math::entrepolation_lineaire(
+		auto const wl0 = dls::math::entrepolation_lineaire(
 							 DEBUT_LAMBDA_SPECTRE,
 							 FIN_LAMBDA_SPECTRE,
 							 float(i) / float(NOMBRE_ECHANTILLONS));
 
-		const auto wl1 = dls::math::entrepolation_lineaire(
+		auto const wl1 = dls::math::entrepolation_lineaire(
 							 DEBUT_LAMBDA_SPECTRE,
 							 FIN_LAMBDA_SPECTRE,
 							 float(i + 1) / float(NOMBRE_ECHANTILLONS));
@@ -579,12 +579,12 @@ void SpectreEchantillon::initialisation()
 
 	// Compute RGB to spectrum functions for _SampledSpectrum_
 	for (int i = 0; i < NOMBRE_ECHANTILLONS; ++i) {
-		const auto wl0 = dls::math::entrepolation_lineaire(
+		auto const wl0 = dls::math::entrepolation_lineaire(
 							 DEBUT_LAMBDA_SPECTRE,
 							 FIN_LAMBDA_SPECTRE,
 							 float(i) / float(NOMBRE_ECHANTILLONS));
 
-		const auto wl1 = dls::math::entrepolation_lineaire(
+		auto const wl1 = dls::math::entrepolation_lineaire(
 							 DEBUT_LAMBDA_SPECTRE,
 							 FIN_LAMBDA_SPECTRE,
 							 float(i + 1) / float(NOMBRE_ECHANTILLONS));

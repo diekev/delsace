@@ -42,19 +42,19 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 {
 #if 0
 	/* todo: expose this to the UI */
-	const auto &x_div = 2;
-	const auto &y_div = 2;
-	const auto &z_div = 2;
+	auto const &x_div = 2;
+	auto const &y_div = 2;
+	auto const &z_div = 2;
 
-	const auto size = dimension * uniform_scale;
+	auto const size = dimension * uniform_scale;
 
-	const auto &start_x = -(size.x / 2.0f) + center.x;
-	const auto &start_y = -(size.y / 2.0f) + center.y;
-	const auto &start_z = -(size.z / 2.0f) + center.z;
+	auto const &start_x = -(size.x / 2.0f) + center.x;
+	auto const &start_y = -(size.y / 2.0f) + center.y;
+	auto const &start_z = -(size.z / 2.0f) + center.z;
 
-	const auto &x_increment = size.x / (x_div - 1);
-	const auto &y_increment = size.y / (y_div - 1);
-	const auto &z_increment = size.z / (z_div - 1);
+	auto const &x_increment = size.x / (x_div - 1);
+	auto const &y_increment = size.y / (y_div - 1);
+	auto const &z_increment = size.z / (z_div - 1);
 
 	for (auto x = 0; x < x_div; ++x) {
 		vec[0] = start_x + x * x_increment;
@@ -87,7 +87,7 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 
 	adaptrice->reserve_sommets(8);
 
-	for (const auto &sommet : sommets) {
+	for (auto const &sommet : sommets) {
 		adaptrice->ajoute_sommet(sommet.x, sommet.y, sommet.z);
 	}
 
@@ -102,7 +102,7 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 
 	adaptrice->reserve_normaux(6);
 
-	for (const auto &normal : normaux) {
+	for (auto const &normal : normaux) {
 		adaptrice->ajoute_normal(normal.x, normal.y, normal.z);
 	}
 
@@ -115,7 +115,7 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 
 	adaptrice->reserve_uvs(4);
 
-	for (const auto &uv : uvs) {
+	for (auto const &uv : uvs) {
 		adaptrice->ajoute_coord_uv_sommet(uv.x, uv.y);
 	}
 
@@ -167,30 +167,30 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 {
 	/* Création d'une sphère UV à partir de son équation paramétrique.
 	 * U est la longitude, V la latitude. */
-	const auto resolution_u = 48;
-	const auto resolution_v = resolution_u / 2;
-	const auto debut_u = 0.0f;
-	const auto debut_v = 0.0f;
-	const auto fin_u = static_cast<float>(M_PI * 2);
-	const auto fin_v = static_cast<float>(M_PI);
+	auto const resolution_u = 48;
+	auto const resolution_v = resolution_u / 2;
+	auto const debut_u = 0.0f;
+	auto const debut_v = 0.0f;
+	auto const fin_u = static_cast<float>(M_PI * 2);
+	auto const fin_v = static_cast<float>(M_PI);
 
 	/* Taille entre deux points de longitude. */
-	const auto taille_pas_u = (fin_u - debut_u) / resolution_u;
+	auto const taille_pas_u = (fin_u - debut_u) / resolution_u;
 
 	/* Taille entre deux points de latitude. */
-	const auto taille_pas_v = (fin_v - debut_v) / resolution_v;
+	auto const taille_pas_v = (fin_v - debut_v) / resolution_v;
 
 	int poly[4] = { 0, 1, 2, 3 };
 	const int decalage = 4;
 
-	const auto &centre = dls::math::vec3f(centre_x, centre_y, centre_z);
+	auto const &centre = dls::math::vec3f(centre_x, centre_y, centre_z);
 
 	for (int i = 0; i < resolution_u; i++) {
 		for (int j = 0; j < resolution_v; j++) {
-			const auto u = static_cast<float>(i) * taille_pas_u + debut_u;
-			const auto v = static_cast<float>(j) * taille_pas_v + debut_v;
-			const auto un = (i + 1 == resolution_u) ? fin_u : static_cast<float>(i + 1) * taille_pas_u + debut_u;
-			const auto vn = (j + 1 == resolution_v) ? fin_v : static_cast<float>(j + 1) * taille_pas_v + debut_v;
+			auto const u = static_cast<float>(i) * taille_pas_u + debut_u;
+			auto const v = static_cast<float>(j) * taille_pas_v + debut_v;
+			auto const un = (i + 1 == resolution_u) ? fin_u : static_cast<float>(i + 1) * taille_pas_u + debut_u;
+			auto const vn = (j + 1 == resolution_v) ? fin_v : static_cast<float>(j + 1) * taille_pas_v + debut_v;
 
 			/* Trouve les quatre points de la grille en évaluant la fonction
 			 * paramétrique.
@@ -200,20 +200,20 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 			 * toutes les fonctions paramétriques.
 			 */
 
-			const auto p0 = sphere(u, v, rayon) + centre;
-			const auto p1 = sphere(un, v, rayon) + centre;
-			const auto p2 = sphere(un, vn, rayon) + centre;
-			const auto p3 = sphere(u, vn, rayon) + centre;
+			auto const p0 = sphere(u, v, rayon) + centre;
+			auto const p1 = sphere(un, v, rayon) + centre;
+			auto const p2 = sphere(un, vn, rayon) + centre;
+			auto const p3 = sphere(u, vn, rayon) + centre;
 
 			adaptrice->ajoute_sommet(p0.x, p0.y, p0.z);
 			adaptrice->ajoute_sommet(p1.x, p1.y, p1.z);
 			adaptrice->ajoute_sommet(p2.x, p2.y, p2.z);
 			adaptrice->ajoute_sommet(p3.x, p3.y, p3.z);
 
-			const auto n0 = normalise(p0);
-			const auto n1 = normalise(p1);
-			const auto n2 = normalise(p2);
-			const auto n3 = normalise(p3);
+			auto const n0 = normalise(p0);
+			auto const n1 = normalise(p1);
+			auto const n2 = normalise(p2);
+			auto const n3 = normalise(p3);
 
 			adaptrice->ajoute_normal(n0.x, n0.y, n0.z);
 			adaptrice->ajoute_normal(n1.x, n1.y, n1.z);
@@ -243,11 +243,11 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 {
 	constexpr auto tau = static_cast<float>(M_PI) * 2.0f;
 
-	const auto vertical_angle_stride = tau / static_cast<float>(segment_majeur);
-	const auto horizontal_angle_stride = tau / static_cast<float>(segment_mineur);
+	auto const vertical_angle_stride = tau / static_cast<float>(segment_majeur);
+	auto const horizontal_angle_stride = tau / static_cast<float>(segment_mineur);
 
 	unsigned long f1 = 0, f2, f3, f4;
-	const auto tot_verts = segment_majeur * segment_mineur;
+	auto const tot_verts = segment_majeur * segment_mineur;
 
 	adaptrice->reserve_sommets(tot_verts);
 	adaptrice->reserve_polygones(tot_verts);
@@ -324,13 +324,13 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 
 	float point[3] = { 0.0f, centre_y, 0.0f };
 
-	const auto &increment_x = taille_x * 2.0f / static_cast<float>(lignes - 1);
-	const auto &increment_y = taille_y * 2.0f / static_cast<float>(colonnes - 1);
-	const auto &debut_x = -taille_x + centre_x;
-	const auto &debut_y = -taille_y + centre_z;
+	auto const &increment_x = taille_x * 2.0f / static_cast<float>(lignes - 1);
+	auto const &increment_y = taille_y * 2.0f / static_cast<float>(colonnes - 1);
+	auto const &debut_x = -taille_x + centre_x;
+	auto const &debut_y = -taille_y + centre_z;
 
-	const auto increment_x_uv = 1.0f / static_cast<float>(lignes - 1);
-	const auto increment_y_uv = 1.0f / static_cast<float>(colonnes - 1);
+	auto const increment_x_uv = 1.0f / static_cast<float>(lignes - 1);
+	auto const increment_y_uv = 1.0f / static_cast<float>(colonnes - 1);
 
 	float uv[2] = { 0.0f, 0.0f };
 
@@ -353,7 +353,7 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 	int normaux[4] = { 0, 0, 0, 0 };
 
 	/* crée une copie pour le lambda */
-	const auto tot_x = lignes;
+	auto const tot_x = lignes;
 
 	auto index = [&tot_x](unsigned long x, unsigned long y)
 	{
@@ -381,7 +381,7 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 				 const float centre_y,
 				 const float centre_z)
 {
-	const auto phid = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
+	auto const phid = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
 	auto phi = 0.0f;
 
 	adaptrice->reserve_sommets(segments + 1);
@@ -426,18 +426,18 @@ void cree_cylindre(AdaptriceCreationObjet *adaptrice,
 				   const float centre_y,
 				   const float centre_z)
 {
-	const auto phid = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
+	auto const phid = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
 	auto phi = 0.0f;
 
 	adaptrice->reserve_sommets((rayon_majeur != 0.0f) ? segments * 2 + 2 : segments + 2);
 
 	float vec[3] = {0.0f, 0.0f, 0.0f};
 
-	const auto cent1 = 0;
+	auto const cent1 = 0;
 	vec[1] = -profondeur;
 	adaptrice->ajoute_sommet(vec[0] + centre_x, vec[1] + centre_y, vec[2] + centre_z);
 
-	const auto cent2 = 1;
+	auto const cent2 = 1;
 	vec[1] = profondeur;
 	adaptrice->ajoute_sommet(vec[0] + centre_x, vec[1] + centre_y, vec[2] + centre_z);
 
@@ -568,7 +568,7 @@ void cree_icosphere(AdaptriceCreationObjet *adaptrice,
 					const float centre_y,
 					const float centre_z)
 {
-	const auto rayon_div = rayon / 200.0f;
+	auto const rayon_div = rayon / 200.0f;
 
 	adaptrice->reserve_sommets(12);
 

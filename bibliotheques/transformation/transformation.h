@@ -67,8 +67,8 @@ bool operator!=(const transformation &a, const transformation &b);
 
 inline transformation operator*(const transformation &a, const transformation &b)
 {
-	const auto matrice = a.matrice() * b.matrice();
-	const auto inverse = b.inverse() * a.inverse();
+	auto const matrice = a.matrice() * b.matrice();
+	auto const inverse = b.inverse() * a.inverse();
 
 	return transformation(matrice, inverse);
 }

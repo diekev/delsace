@@ -137,7 +137,7 @@ void EditeurArbreScene::ajourne_etat(int evenement)
 	m_widget_arbre->addTopLevelItem(racine_lumieres);
 	racine_lumieres->setExpanded(true);
 
-	for (const auto &objet : scene.objets) {
+	for (auto const &objet : scene.objets) {
 		auto item = new ItemObjet(objet);
 		item->setSelected(objet == scene.objet_actif);
 

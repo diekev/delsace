@@ -83,8 +83,8 @@ RenduChampsDistance::~RenduChampsDistance()
 
 void RenduChampsDistance::initialise()
 {
-	const auto &min_domaine = m_fluide->domaine->min();
-	const auto &taille_domaine = m_fluide->domaine->taille();
+	auto const &min_domaine = m_fluide->domaine->min();
+	auto const &taille_domaine = m_fluide->domaine->taille();
 
 	auto dh = dls::math::vec3f(
 				  taille_domaine.x / float(m_fluide->res.x),

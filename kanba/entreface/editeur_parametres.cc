@@ -89,11 +89,11 @@ void VueParametres::ajourne_donnees()
 	m_kanba->parametres_rendu.nombre_echantillons = evalue_int("echantillons");
 	m_kanba->parametres_rendu.nombre_rebonds = evalue_int("rebonds");
 
-	const auto resolution = evalue_enum("resolution");
+	auto const resolution = evalue_enum("resolution");
 
 	if (m_kanba->parametres_rendu.resolution != resolution) {
-		const auto largeur = numero7::math::Largeur(RESOLUTIONS[resolution][0]);
-		const auto hauteur = numero7::math::Hauteur(RESOLUTIONS[resolution][1]);
+		auto const largeur = numero7::math::Largeur(RESOLUTIONS[resolution][0]);
+		auto const hauteur = numero7::math::Hauteur(RESOLUTIONS[resolution][1]);
 
 		m_kanba->moteur_rendu->pointeur_pellicule()->redimensionne(hauteur, largeur);
 	}

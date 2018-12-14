@@ -61,7 +61,7 @@ static std::unordered_map<int, int> table_uv_texte({
 
 static void rempli_uv(const std::string &chaine, std::vector<dls::math::vec2f> &uvs)
 {
-	const auto echelle_lettres = 1.0f / static_cast<float>(table_uv_texte.size());
+	auto const echelle_lettres = 1.0f / static_cast<float>(table_uv_texte.size());
 
 	for (size_t i = 0; i < chaine.size();) {
 		int valeur = -1;
@@ -92,7 +92,7 @@ static void rempli_uv(const std::string &chaine, std::vector<dls::math::vec2f> &
 			continue;
 		}
 
-		const auto decalage = static_cast<float>(table_uv_texte[valeur]) * echelle_lettres;
+		auto const decalage = static_cast<float>(table_uv_texte[valeur]) * echelle_lettres;
 
 		uvs.push_back(dls::math::vec2f(decalage, 1.0f));
 		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
@@ -205,12 +205,12 @@ void RenduTexte::ajourne(const std::string &texte)
 	std::vector<unsigned int> index;
 
 	/* Calcul taille des lettres relativement à la fenêtre. */
-	const auto largeur_lettre = LARGEUR_PAR_LETTRE / static_cast<float>(m_largeur);
-	const auto hauteur_lettre = HAUTEUR_TEXTURE_POLICE / static_cast<float>(m_hauteur);
+	auto const largeur_lettre = LARGEUR_PAR_LETTRE / static_cast<float>(m_largeur);
+	auto const hauteur_lettre = HAUTEUR_TEXTURE_POLICE / static_cast<float>(m_hauteur);
 
 	/* Un quad par lettre du mot. */
 	for (size_t i = 0; i < texte.size(); ++i) {
-		const auto origine_x = static_cast<float>(i) * largeur_lettre;
+		auto const origine_x = static_cast<float>(i) * largeur_lettre;
 
 		vertex.push_back(dls::math::vec2f(origine_x, hauteur_lettre));
 		vertex.push_back(dls::math::vec2f(origine_x + largeur_lettre, hauteur_lettre));
@@ -240,10 +240,10 @@ void RenduTexte::ajourne(const std::string &texte)
 	std::vector<dls::math::vec2f> uvs;
 
 #if 0
-	const auto echelle_lettres = 1.0 / table_uv_texte.size();
+	auto const echelle_lettres = 1.0 / table_uv_texte.size();
 
-	for (const auto &caractere : texte) {
-		const auto decalage = table_uv_texte[caractere] * echelle_lettres;
+	for (auto const &caractere : texte) {
+		auto const decalage = table_uv_texte[caractere] * echelle_lettres;
 
 		uvs.push_back(dls::math::vec2f(decalage, 1.0f));
 		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 1.0f));

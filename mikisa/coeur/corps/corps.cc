@@ -69,7 +69,7 @@ void Corps::supprime_attribut(const std::string &nom_attribut)
 
 Attribut *Corps::attribut(const std::string &nom_attribut) const
 {
-	for (const auto &attr : m_attributs) {
+	for (auto const &attr : m_attributs) {
 		if (attr->nom() != nom_attribut) {
 			continue;
 		}
