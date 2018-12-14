@@ -1578,35 +1578,35 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_operatrices_3d(UsineOperatrice *usine)
+void enregistre_operatrices_3d(UsineOperatrice &usine)
 {
-	usine->register_type(NOM_CAMERA, cree_desc<OperatriceCamera>(NOM_CAMERA, AIDE_CAMERA));
-	usine->register_type(NOM_SCENE, cree_desc<OperatriceScene>(NOM_SCENE, AIDE_SCENE));
-	usine->register_type(NOM_OBJET, cree_desc<OperatriceObjet>(NOM_OBJET, AIDE_OBJET));
-	usine->register_type(NOM_LECTURE_OBJET, cree_desc<OperatriceLectureObjet>(NOM_LECTURE_OBJET, AIDE_LECTURE_OBJET));
-	usine->register_type(NOM_TEXTURE, cree_desc<OperatriceTexture>(NOM_TEXTURE, AIDE_TEXTURE));
+	usine.register_type(NOM_CAMERA, cree_desc<OperatriceCamera>(NOM_CAMERA, AIDE_CAMERA));
+	usine.register_type(NOM_SCENE, cree_desc<OperatriceScene>(NOM_SCENE, AIDE_SCENE));
+	usine.register_type(NOM_OBJET, cree_desc<OperatriceObjet>(NOM_OBJET, AIDE_OBJET));
+	usine.register_type(NOM_LECTURE_OBJET, cree_desc<OperatriceLectureObjet>(NOM_LECTURE_OBJET, AIDE_LECTURE_OBJET));
+	usine.register_type(NOM_TEXTURE, cree_desc<OperatriceTexture>(NOM_TEXTURE, AIDE_TEXTURE));
 
-	usine->register_type(NOM_SORTIE_CORPS, cree_desc<OperatriceSortieCorps>(NOM_SORTIE_CORPS, AIDE_SORTIE_CORPS));
-	usine->register_type(NOM_CREATION_CORPS, cree_desc<OperatriceCreationCorps>(NOM_CREATION_CORPS, AIDE_CREATION_CORPS));
-	usine->register_type(NOM_CREATION_NORMAUX, cree_desc<OperatriceCreationNormaux>(NOM_CREATION_NORMAUX, AIDE_CREATION_NORMAUX));
-	usine->register_type(NOM_OPENSUBDIV, cree_desc<OperatriceOpenSubDiv>(NOM_OPENSUBDIV, AIDE_OPENSUBDIV));
+	usine.register_type(NOM_SORTIE_CORPS, cree_desc<OperatriceSortieCorps>(NOM_SORTIE_CORPS, AIDE_SORTIE_CORPS));
+	usine.register_type(NOM_CREATION_CORPS, cree_desc<OperatriceCreationCorps>(NOM_CREATION_CORPS, AIDE_CREATION_CORPS));
+	usine.register_type(NOM_CREATION_NORMAUX, cree_desc<OperatriceCreationNormaux>(NOM_CREATION_NORMAUX, AIDE_CREATION_NORMAUX));
+	usine.register_type(NOM_OPENSUBDIV, cree_desc<OperatriceOpenSubDiv>(NOM_OPENSUBDIV, AIDE_OPENSUBDIV));
 
-	usine->register_type(NOM_CREATION_ATTRIBUT,
+	usine.register_type(NOM_CREATION_ATTRIBUT,
 						 cree_desc<OperatriceCreationAttribut>(
 							 NOM_CREATION_ATTRIBUT,
 							 AIDE_CREATION_ATTRIBUT));
 
-	usine->register_type(NOM_SUPPRESSION_ATTRIBUT,
+	usine.register_type(NOM_SUPPRESSION_ATTRIBUT,
 						 cree_desc<OperatriceSuppressionAttribut>(
 							 NOM_SUPPRESSION_ATTRIBUT,
 							 AIDE_SUPPRESSION_ATTRIBUT));
 
-	usine->register_type(NOM_RANDOM_ATTRIBUT,
+	usine.register_type(NOM_RANDOM_ATTRIBUT,
 						 cree_desc<OperatriceRandomisationAttribut>(
 							 NOM_RANDOM_ATTRIBUT,
 							 AIDE_RANDOM_ATTRIBUT));
 
-	usine->register_type(NOM_FUSION_CORPS,
+	usine.register_type(NOM_FUSION_CORPS,
 						 cree_desc<OperatriceFusionnageCorps>(
 							 NOM_FUSION_CORPS,
 							 AIDE_FUSION_CORPS));

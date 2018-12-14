@@ -37,7 +37,6 @@
 
 #include <danjo/danjo.h>
 
-#include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
 #include "bibliotheques/vision/camera_2d.h"
 #include "bibliotheques/vision/camera.h"
@@ -47,7 +46,6 @@
 #include "evaluation.h"
 #include "manipulatrice.h"
 #include "noeud_image.h"
-#include "usine_operatrice.h"
 
 #include "commandes/commandes_edition.h"
 #include "commandes/commandes_noeuds.h"
@@ -68,8 +66,8 @@
 static constexpr auto MAX_FICHIER_RECENT = 10;
 
 Mikisa::Mikisa()
-	: m_usine_commande(new UsineCommande)
-	, m_usine_operatrices(new UsineOperatrice)
+	: m_usine_commande{}
+	, m_usine_operatrices{}
 	, m_repondant_commande(new RepondantCommande(m_usine_commande, this))
 	, composite(new Composite)
 	, fenetre_principale(nullptr)
@@ -92,8 +90,6 @@ Mikisa::~Mikisa()
 	delete composite;
 	delete project_settings;
 	delete m_repondant_commande;
-	delete m_usine_commande;
-	delete m_usine_operatrices;
 	delete gestionnaire_entreface;
 }
 
@@ -116,12 +112,12 @@ void Mikisa::initialise()
 	enregistre_commandes_vue3d(m_usine_commande);
 }
 
-UsineCommande *Mikisa::usine_commandes()
+UsineCommande &Mikisa::usine_commandes()
 {
 	return m_usine_commande;
 }
 
-UsineOperatrice *Mikisa::usine_operatrices()
+UsineOperatrice &Mikisa::usine_operatrices()
 {
 	return m_usine_operatrices;
 }

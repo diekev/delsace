@@ -26,4 +26,4 @@
 
 class UsineOperatrice;
 
-void enregistre_operatrices_physiques(UsineOperatrice *usine);
+void enregistre_operatrices_physiques(UsineOperatrice &usine);

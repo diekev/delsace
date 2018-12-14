@@ -43,8 +43,6 @@
 #include <QMessageBox>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
-
 #include "commandes/commandes_graphes.h"
 #include "commandes/commandes_objet.h"
 #include "commandes/commandes_projet.h"
@@ -65,15 +63,14 @@ static constexpr auto MAX_FICHIER_RECENT = 10;
 
 Main::Main()
     : m_primitive_factory(new PrimitiveFactory)
-	, m_usine_operatrice(new UsineOperatrice{})
+	, m_usine_operatrice{}
     , m_scene(new Scene)
-	, m_usine_commandes(new UsineCommande{})
-	, contexte()
+	, m_usine_commandes{}
+	, contexte(m_usine_operatrice)
 {}
 
 Main::~Main()
 {
-	delete m_usine_commandes;
 }
 
 void Main::fenetre_principale(FenetrePrincipale *fenetre)
@@ -110,9 +107,9 @@ PrimitiveFactory *Main::primitive_factory() const
 	return m_primitive_factory.get();
 }
 
-UsineOperatrice *Main::usine_operatrice() const
+UsineOperatrice &Main::usine_operatrice()
 {
-	return m_usine_operatrice.get();
+	return m_usine_operatrice;
 }
 
 Scene *Main::scene() const
@@ -187,7 +184,7 @@ void Main::affiche_erreur(const std::string &message)
 }
 
 
-UsineCommande *Main::usine_commandes() const
+UsineCommande &Main::usine_commandes()
 {
 	return m_usine_commandes;
 }

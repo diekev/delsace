@@ -28,7 +28,7 @@
 
 /* ************************************************************************** */
 
-void enregistre_operatrices_integres(UsineOperatrice *usine);
+void enregistre_operatrices_integres(UsineOperatrice &usine);
 
 /* ************************************************************************** */
 

@@ -32,7 +32,6 @@
 #include <QFileDialog>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
 #include "bibliotheques/vision/camera.h"
 
@@ -42,7 +41,7 @@
 #include "fluide.h"
 
 Poseidon::Poseidon()
-	: usine_commande(new UsineCommande)
+	: usine_commande{}
 	, repondant_commande(new RepondantCommande(usine_commande, this))
 	, animation(false)
 	, fluide(new Fluide)
@@ -54,7 +53,6 @@ Poseidon::~Poseidon()
 	delete fluide;
 	delete camera;
 	delete repondant_commande;
-	delete usine_commande;
 }
 
 void Poseidon::enregistre_commandes()

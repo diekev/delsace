@@ -148,17 +148,17 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_vue3d(UsineCommande *usine)
+void enregistre_commandes_vue3d(UsineCommande &usine)
 {
-	usine->enregistre_type("commande_zoom_camera",
+	usine.enregistre_type("commande_zoom_camera",
 						   description_commande<CommandeZoomCamera>(
 							   "vue_3d", Qt::MiddleButton, 0, 0, true));
 
-	usine->enregistre_type("commande_tourne_camera",
+	usine.enregistre_type("commande_tourne_camera",
 						   description_commande<CommandeTourneCamera>(
 							   "vue_3d", Qt::MiddleButton, 0, 0, false));
 
-	usine->enregistre_type("commande_pan_camera",
+	usine.enregistre_type("commande_pan_camera",
 						   description_commande<CommandePanCamera>(
 							   "vue_3d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 }

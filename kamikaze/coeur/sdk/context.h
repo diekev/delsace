@@ -57,8 +57,18 @@ struct Context {
 	EvaluationContext *eval_ctx;
 	Scene *scene;
 	PrimitiveFactory *primitive_factory;
-	UsineOperatrice *usine_operatrice;
+	UsineOperatrice &usine_operatrice;
 	FenetrePrincipale *main_window;
 	BaseEditrice *active_widget;
 	vision::Camera3D *camera;
+
+	Context(UsineOperatrice &usine)
+		: eval_ctx(nullptr)
+		, scene(nullptr)
+		, primitive_factory(nullptr)
+		, usine_operatrice(usine)
+		, main_window(nullptr)
+		, active_widget(nullptr)
+		, camera(nullptr)
+	{}
 };

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "bibliotheques/audition/audition.h"
+#include "bibliotheques/commandes/commande.h"
 
 #include "scene.h"
 
@@ -101,7 +102,7 @@ struct Koudou : public Audite {
 
 	vision::Camera3D *camera;
 
-	UsineCommande *usine_commande;
+	UsineCommande usine_commande;
 	RepondantCommande *repondant_commande;
 
 	Koudou();

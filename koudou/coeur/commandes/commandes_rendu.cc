@@ -62,13 +62,13 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_rendu(UsineCommande *usine)
+void enregistre_commandes_rendu(UsineCommande &usine)
 {
-	usine->enregistre_type("demarre_rendu",
+	usine.enregistre_type("demarre_rendu",
 						   description_commande<CommandeDemarreRendu>(
 							   "rendu", 0, 0, 0, false));
 
-	usine->enregistre_type("arrete_rendu",
+	usine.enregistre_type("arrete_rendu",
 						   description_commande<CommandeArreteRendu>(
 							   "rendu", 0, 0, 0, false));
 }

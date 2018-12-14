@@ -64,6 +64,7 @@ static const char *chemins_scripts[] = {
 FenetrePrincipale::FenetrePrincipale(Main *main, QWidget *parent)
     : QMainWindow(parent)
 	, m_main(main)
+	, m_contexte(m_main->usine_operatrice())
 	, m_repondant_commande(new RepondantCommande(main->usine_commandes(), main))
 	, m_gestionnaire(new danjo::GestionnaireInterface)
 	, m_barre_progres(new QProgressBar(this))
@@ -177,7 +178,7 @@ void FenetrePrincipale::genere_menu_fichier()
 
 void FenetrePrincipale::genere_menu_noeud()
 {
-	auto categories = m_main->usine_operatrice()->categories();
+	auto categories = m_main->usine_operatrice().categories();
 
 	std::stringstream ss;
 
@@ -186,7 +187,7 @@ void FenetrePrincipale::genere_menu_noeud()
 	for (const auto &categorie : categories) {
 		ss << "\tmenu \"" << categorie << "\" {\n";
 
-		auto cles = m_main->usine_operatrice()->cles(categorie);
+		auto cles = m_main->usine_operatrice().cles(categorie);
 
 		std::sort(cles.begin(), cles.end(),
 				  [](const DescOperatrice &desc1, const DescOperatrice &desc2)

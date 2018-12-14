@@ -88,13 +88,13 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_calques(UsineCommande *usine)
+void enregistre_commandes_calques(UsineCommande &usine)
 {
-	usine->enregistre_type("ajouter_calque",
+	usine.enregistre_type("ajouter_calque",
 						   description_commande<CommandeAjouterCalque>(
 							   "", 0, 0, 0, false));
 
-	usine->enregistre_type("supprimer_calque",
+	usine.enregistre_type("supprimer_calque",
 						   description_commande<CommandeSupprimerCalque>(
 							   "", 0, 0, 0, false));
 }

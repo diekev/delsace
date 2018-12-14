@@ -32,7 +32,6 @@
 #include <QFileDialog>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
 #include "bibliotheques/vision/camera.h"
 
@@ -63,7 +62,7 @@ Koudou::Koudou()
 	, configuration(new Configuration)
 	, parametres_projet(new ParametresProjet)
 	, camera(new vision::Camera3D(0, 0))
-	, usine_commande(new UsineCommande)
+	, usine_commande{}
 	, repondant_commande(new RepondantCommande(usine_commande, this))
 {
 
@@ -94,7 +93,6 @@ Koudou::Koudou()
 
 Koudou::~Koudou()
 {
-	delete usine_commande;
 	delete repondant_commande;
 	delete moteur_rendu;
 

@@ -1818,83 +1818,83 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_operatrices_integres(UsineOperatrice *usine)
+void enregistre_operatrices_integres(UsineOperatrice &usine)
 {
 	/* Opérateurs géométrie. */
 
 	auto categorie = "Géométrie";
 
-	usine->enregistre_type(NOM_CREATION_BOITE,
+	usine.enregistre_type(NOM_CREATION_BOITE,
 						   cree_description<OperatriceCreationBoite>(NOM_CREATION_BOITE,
 																	AIDE_CREATION_BOITE,
 																	categorie));
 
-	usine->enregistre_type(NOM_CREATION_TORUS,
+	usine.enregistre_type(NOM_CREATION_TORUS,
 						   cree_description<OperatriceCreationTorus>(NOM_CREATION_TORUS,
 																	AIDE_CREATION_TORUS,
 																	categorie));
 
-	usine->enregistre_type(NOM_CREATION_CERCLE,
+	usine.enregistre_type(NOM_CREATION_CERCLE,
 						   cree_description<OperatriceCreationCercle>(NOM_CREATION_CERCLE,
 																	 AIDE_CREATION_CERCLE,
 																	 categorie));
 
-	usine->enregistre_type(NOM_CREATION_GRILLE,
+	usine.enregistre_type(NOM_CREATION_GRILLE,
 						   cree_description<OperatriceCreationGrille>(NOM_CREATION_GRILLE,
 																	 AIDE_CREATION_GRILLE,
 																	 categorie));
 
-	usine->enregistre_type(NOM_CREATION_TUBE,
+	usine.enregistre_type(NOM_CREATION_TUBE,
 						   cree_description<OperatriceCreationTube>(NOM_CREATION_TUBE,
 																   AIDE_CREATION_TUBE,
 																   categorie));
 
-	usine->enregistre_type(NOM_CREATION_CONE,
+	usine.enregistre_type(NOM_CREATION_CONE,
 						   cree_description<OperatriceCreationCone>(NOM_CREATION_CONE,
 																   AIDE_CREATION_CONE,
 																   categorie));
 
-	usine->enregistre_type(NOM_CREATION_ICOSPHERE,
+	usine.enregistre_type(NOM_CREATION_ICOSPHERE,
 						   cree_description<OperatriceCreationIcoSphere>(NOM_CREATION_ICOSPHERE,
 																		AIDE_CREATION_ICOSPHERE,
 																		categorie));
 
-	usine->enregistre_type(NOM_TRANSFORMATION,
+	usine.enregistre_type(NOM_TRANSFORMATION,
 						   cree_description<OperatriceTransformation>(NOM_TRANSFORMATION,
 																	 AIDE_TRANSFORMATION,
 																	 categorie));
 
-	usine->enregistre_type(NOM_NORMAL,
+	usine.enregistre_type(NOM_NORMAL,
 						   cree_description<OperatriceNormal>(NOM_NORMAL,
 															 AIDE_NORMAL,
 															 categorie));
 
-	usine->enregistre_type(NOM_BRUIT,
+	usine.enregistre_type(NOM_BRUIT,
 						   cree_description<OperatriceBruitage>(NOM_BRUIT,
 															AIDE_BRUIT,
 															categorie));
 
-	usine->enregistre_type(NOM_COULEUR,
+	usine.enregistre_type(NOM_COULEUR,
 						   cree_description<OperatriceCouleur>(NOM_COULEUR,
 															  AIDE_COULEUR,
 															  categorie));
 
-	usine->enregistre_type(NOM_FUSION_COLLECTION,
+	usine.enregistre_type(NOM_FUSION_COLLECTION,
 						   cree_description<OperatriceFusionCollection>(NOM_FUSION_COLLECTION,
 																	   AIDE_FUSION_COLLECTION,
 																	   categorie));
 
-	usine->enregistre_type(NOM_CREATION_NUAGE_POINT,
+	usine.enregistre_type(NOM_CREATION_NUAGE_POINT,
 						   cree_description<OperatriceCreationNuagePoint>(NOM_CREATION_NUAGE_POINT,
 																		 AIDE_CREATION_NUAGE_POINT,
 																		 categorie));
 
-	usine->enregistre_type(NOM_CREATION_SEGMENTS,
+	usine.enregistre_type(NOM_CREATION_SEGMENTS,
 						   cree_description<OperatriceCreationCourbes>(NOM_CREATION_SEGMENTS,
 																	   AIDE_CREATION_SEGMENTS,
 																	   categorie));
 
-	usine->enregistre_type(NOM_DISPERSION_POINTS,
+	usine.enregistre_type(NOM_DISPERSION_POINTS,
 						   cree_description<OperatriceDispersionPoints>(NOM_DISPERSION_POINTS,
 																	   AIDE_DISPERSION_POINTS,
 																	   categorie));
@@ -1903,17 +1903,17 @@ void enregistre_operatrices_integres(UsineOperatrice *usine)
 
 	categorie = "Attributs";
 
-	usine->enregistre_type(NOM_CREATION_ATTRIBUT,
+	usine.enregistre_type(NOM_CREATION_ATTRIBUT,
 						   cree_description<OperatriceCreationAttribut>(NOM_CREATION_ATTRIBUT,
 																	   AIDE_CREATION_ATTRIBUT,
 																	   categorie));
 
-	usine->enregistre_type(NOM_SUPPRESSION_ATTRIBUT,
+	usine.enregistre_type(NOM_SUPPRESSION_ATTRIBUT,
 						   cree_description<OperatriceSuppressionAttribut>(NOM_SUPPRESSION_ATTRIBUT,
 																		  AIDE_SUPPRESSION_ATTRIBUT,
 																		  categorie));
 
-	usine->enregistre_type(NOM_RANDOMISATION_ATTRIBUT,
+	usine.enregistre_type(NOM_RANDOMISATION_ATTRIBUT,
 						   cree_description<OperatriceRandomisationAttribut>(NOM_RANDOMISATION_ATTRIBUT,
 																			AIDE_RANDOMISATION_ATTRIBUT,
 																			categorie));
@@ -1922,17 +1922,17 @@ void enregistre_operatrices_integres(UsineOperatrice *usine)
 
 	categorie = "Autre";
 
-	usine->enregistre_type(NOM_SORTIE,
+	usine.enregistre_type(NOM_SORTIE,
 						   cree_description<OperatriceSortie>(NOM_SORTIE,
 															 AIDE_SORTIE,
 															 categorie));
 
-	usine->enregistre_type(NOM_TAMPON,
+	usine.enregistre_type(NOM_TAMPON,
 						   cree_description<OperatriceTampon>(NOM_TAMPON,
 															 AIDE_TAMPON,
 															 categorie));
 
-	usine->enregistre_type(NOM_COMMUTATEUR,
+	usine.enregistre_type(NOM_COMMUTATEUR,
 						   cree_description<OperatriceCommutateur>(NOM_COMMUTATEUR,
 																  AIDE_COMMUTATEUR,
 																  categorie));

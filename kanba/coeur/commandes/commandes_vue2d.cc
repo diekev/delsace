@@ -106,9 +106,9 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_vue2d(UsineCommande *usine)
+void enregistre_commandes_vue2d(UsineCommande &usine)
 {
-	usine->enregistre_type("commande_peinture_2d",
+	usine.enregistre_type("commande_peinture_2d",
 						   description_commande<CommandePeinture2D>(
 							   "vue_2d", Qt::LeftButton, 0, 0, false));
 }

@@ -26,5 +26,5 @@
 
 class UsineCommande;
 
-void enregistre_commandes_vue3d(UsineCommande *usine);
+void enregistre_commandes_vue3d(UsineCommande &usine);
 

@@ -550,17 +550,17 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_fichier(UsineCommande *usine)
+void enregistre_commandes_fichier(UsineCommande &usine)
 {
-	usine->enregistre_type("ouvrir_fichier",
+	usine.enregistre_type("ouvrir_fichier",
 						   description_commande<CommandeOuvrirFichier>(
 							   "", 0, 0, 0, false));
 
-	usine->enregistre_type("ouvrir_projet",
+	usine.enregistre_type("ouvrir_projet",
 						   description_commande<CommandeOuvrirProjet>(
 							   "", 0, 0, 0, false));
 
-	usine->enregistre_type("sauvegarder_projet",
+	usine.enregistre_type("sauvegarder_projet",
 						   description_commande<CommandeSauvegarderProjet>(
 							   "", 0, 0, 0, false));
 }

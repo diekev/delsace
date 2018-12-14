@@ -45,7 +45,7 @@ extern "C" {
  *
  * @param usine L'usine dans laquelle enregistrer l'opérateur.
  */
-void nouvel_operatrice_kamikaze(UsineOperatrice *usine);
+void nouvel_operatrice_kamikaze(UsineOperatrice &usine);
 
 }
 

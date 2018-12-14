@@ -28,7 +28,7 @@
 
 #include "commande.h"
 
-RepondantCommande::RepondantCommande(UsineCommande *usine_commande, const std::any &pointeur)
+RepondantCommande::RepondantCommande(UsineCommande &usine_commande, const std::any &pointeur)
 	: m_usine_commande(usine_commande)
 	, m_pointeur(pointeur)
 {}
@@ -45,7 +45,7 @@ bool RepondantCommande::appele_commande(const std::string &categorie, const Donn
 #endif
 
 	auto donnees = donnees_commande;
-	auto commande = m_usine_commande->trouve_commande(categorie, donnees);
+	auto commande = m_usine_commande.trouve_commande(categorie, donnees);
 
 	if (commande == nullptr) {
 		return false;
@@ -87,7 +87,7 @@ void RepondantCommande::acheve_commande_modale(const DonneesCommande &donnees_co
 
 void RepondantCommande::repond_clique(const std::string &identifiant, const std::string &metadonnee)
 {
-	auto commande = (*m_usine_commande)(identifiant);
+	auto commande = m_usine_commande(identifiant);
 
 	DonneesCommande donnees;
 	donnees.metadonnee = metadonnee;
@@ -99,6 +99,6 @@ void RepondantCommande::repond_clique(const std::string &identifiant, const std:
 
 bool RepondantCommande::evalue_predicat(const std::string &identifiant, const std::string &metadonnee)
 {
-	auto commande = (*m_usine_commande)(identifiant);
+	auto commande = m_usine_commande(identifiant);
 	return commande->evalue_predicat(m_pointeur, metadonnee);
 }

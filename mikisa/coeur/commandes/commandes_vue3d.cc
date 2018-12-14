@@ -357,25 +357,25 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_vue3d(UsineCommande *usine)
+void enregistre_commandes_vue3d(UsineCommande &usine)
 {
-	usine->enregistre_type("commande_zoom_camera_3d",
+	usine.enregistre_type("commande_zoom_camera_3d",
 						   description_commande<CommandeZoomCamera3D>(
 							   "vue_3d", Qt::MiddleButton, 0, 0, true));
 
-	usine->enregistre_type("commande_tourne_camera_3d",
+	usine.enregistre_type("commande_tourne_camera_3d",
 						   description_commande<CommandeTourneCamera3D>(
 							   "vue_3d", Qt::MiddleButton, 0, 0, false));
 
-	usine->enregistre_type("commande_pan_camera_3d",
+	usine.enregistre_type("commande_pan_camera_3d",
 						   description_commande<CommandePanCamera3D>(
 							   "vue_3d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 
-	usine->enregistre_type("commande_survole_scene",
+	usine.enregistre_type("commande_survole_scene",
 						   description_commande<CommandeSurvoleScene>(
 							   "vue_3d", 0, 0, 0, false));
 
-	usine->enregistre_type("commande_deplace_manipulatrice_3d",
+	usine.enregistre_type("commande_deplace_manipulatrice_3d",
 						   description_commande<CommandeDeplaceManipulatrice>(
 							   "vue_3d", Qt::LeftButton, 0, 0, false));
 }

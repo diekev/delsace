@@ -480,7 +480,7 @@ static void lecture_noeud(
 	const auto element_operatrice = element_noeud->FirstChildElement("operatrice");
 	const auto nom_operatrice = element_operatrice->Attribute("nom");
 
-	OperatriceImage *operatrice = (*mikisa.usine_operatrices())(nom_operatrice, noeud);
+	OperatriceImage *operatrice = (mikisa.usine_operatrices())(nom_operatrice, noeud);
 	lecture_proprietes(element_operatrice, operatrice);
 	synchronise_donnees_operatrice(noeud);
 

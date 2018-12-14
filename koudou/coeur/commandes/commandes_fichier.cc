@@ -69,9 +69,9 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_fichier(UsineCommande *usine)
+void enregistre_commandes_fichier(UsineCommande &usine)
 {
-	usine->enregistre_type("ouvrir_fichier",
+	usine.enregistre_type("ouvrir_fichier",
 						   description_commande<CommandeOuvrirFichier>(
 							   "", 0, 0, 0, false));
 }

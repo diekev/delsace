@@ -384,11 +384,11 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_operatrices_flux(UsineOperatrice *usine)
+void enregistre_operatrices_flux(UsineOperatrice &usine)
 {
-	usine->register_type(NOM_COMMUTATION, cree_desc<OperatriceCommutation>(NOM_COMMUTATION, AIDE_COMMUTATION));
-	usine->register_type(NOM_VISIONNAGE, cree_desc<OperatriceVisionnage>(NOM_VISIONNAGE, AIDE_VISIONNAGE));
-	usine->register_type(NOM_LECTURE_JPEG, cree_desc<OperatriceLectureJPEG>(NOM_LECTURE_JPEG, AIDE_LECTURE_JPEG));
+	usine.register_type(NOM_COMMUTATION, cree_desc<OperatriceCommutation>(NOM_COMMUTATION, AIDE_COMMUTATION));
+	usine.register_type(NOM_VISIONNAGE, cree_desc<OperatriceVisionnage>(NOM_VISIONNAGE, AIDE_VISIONNAGE));
+	usine.register_type(NOM_LECTURE_JPEG, cree_desc<OperatriceLectureJPEG>(NOM_LECTURE_JPEG, AIDE_LECTURE_JPEG));
 }
 
 #pragma clang diagnostic pop

@@ -178,7 +178,7 @@ public:
 		auto noeud = new Noeud(supprime_operatrice_image);
 		auto nom = donnees.metadonnee;
 
-		auto op = (*mikisa->usine_operatrices())(nom, noeud);
+		auto op = (mikisa->usine_operatrices())(nom, noeud);
 		noeud->nom(op->class_name());
 		synchronise_donnees_operatrice(noeud);
 
@@ -591,49 +591,49 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_graphes(UsineCommande *usine)
+void enregistre_commandes_graphes(UsineCommande &usine)
 {
-	usine->enregistre_type("dessine_graphe_composite",
+	usine.enregistre_type("dessine_graphe_composite",
 						   description_commande<CommandeDessineGrapheComposite>(
 							   "graphe", 0, 0, 0, false));
 
-	usine->enregistre_type("ajouter_noeud",
+	usine.enregistre_type("ajouter_noeud",
 						   description_commande<CommandeAjoutNoeud>(
 							   "graphe", 0, 0, 0, false));
 
-	usine->enregistre_type("ajouter_noeud_vision",
+	usine.enregistre_type("ajouter_noeud_vision",
 						   description_commande<CommandeAjoutNoeud>(
 							   "graphe", 0, 0, Qt::Key_V, false, "Visionneur"));
 
-	usine->enregistre_type("ajouter_noeud_image",
+	usine.enregistre_type("ajouter_noeud_image",
 						   description_commande<CommandeAjoutNoeud>(
 							   "graphe", 0, 0, Qt::Key_I, false, "Lecture Image"));
 
-	usine->enregistre_type("selection_graphe",
+	usine.enregistre_type("selection_graphe",
 						   description_commande<CommandeSelectionGraphe>(
 							   "graphe", Qt::LeftButton, 0, 0, false));
 
-	usine->enregistre_type("supprime_selection",
+	usine.enregistre_type("supprime_selection",
 						   description_commande<CommandeSupprimeSelection>(
 							   "graphe", 0, 0, Qt::Key_Delete, false));
 
-	usine->enregistre_type("information_noeud",
+	usine.enregistre_type("information_noeud",
 						   description_commande<CommandeInfoNoeud>(
 							   "graphe", Qt::MiddleButton, 0, 0, false));
 
-	usine->enregistre_type("deplace_graphe",
+	usine.enregistre_type("deplace_graphe",
 						   description_commande<CommandeDeplaceGraphe>(
 							   "graphe", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 
-	usine->enregistre_type("zoom_graphe",
+	usine.enregistre_type("zoom_graphe",
 						   description_commande<CommandeZoomGraphe>(
 							   "graphe", Qt::MiddleButton, 0, 0, true));
 
-	usine->enregistre_type("entre_noeud",
+	usine.enregistre_type("entre_noeud",
 						   description_commande<CommandeEntreNoeud>(
 							   "graphe", Qt::LeftButton, 0, 0, true));
 
-	usine->enregistre_type("sors_noeud",
+	usine.enregistre_type("sors_noeud",
 						   description_commande<CommandeSorsNoeud>(
 							   "graphe", 0, 0, 0, false));
 }

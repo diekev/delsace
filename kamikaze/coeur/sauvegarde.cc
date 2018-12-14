@@ -338,7 +338,7 @@ static void lecture_noeud(
 		const auto element_operatrice = element_noeud->FirstChildElement("operatrice");
 		const auto nom_operatrice = element_operatrice->Attribute("nom");
 
-		Operatrice *operatrice = (*contexte.usine_operatrice)(nom_operatrice, noeud, contexte);
+		Operatrice *operatrice = (contexte.usine_operatrice)(nom_operatrice, noeud, contexte);
 		lecture_proprietes(element_operatrice, operatrice);
 		noeud->synchronise_donnees();
 

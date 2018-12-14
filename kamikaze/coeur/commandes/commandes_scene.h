@@ -26,4 +26,4 @@
 
 class UsineCommande;
 
-void enregistre_commandes_scene(UsineCommande *usine);
+void enregistre_commandes_scene(UsineCommande &usine);

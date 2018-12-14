@@ -28,6 +28,8 @@
 #include <vector>
 
 #include "bibliotheques/audition/audition.h"
+#include "bibliotheques/commandes/commande.h"
+#include "usine_operatrice.h"
 
 class BaseEditrice;
 class Composite;
@@ -39,8 +41,6 @@ class Manipulatrice2D;
 class Noeud;
 class ProjectSettings;
 class RepondantCommande;
-class UsineCommande;
-class UsineOperatrice;
 
 namespace vision {
 class Camera2D;
@@ -65,8 +65,8 @@ enum {
 };
 
 class Mikisa : public Audite {
-	UsineCommande *m_usine_commande = nullptr;
-	UsineOperatrice *m_usine_operatrices = nullptr;
+	UsineCommande m_usine_commande{};
+	UsineOperatrice m_usine_operatrices;
 	RepondantCommande *m_repondant_commande = nullptr;
 
 	std::vector<std::string> m_fichiers_recents{};
@@ -84,9 +84,9 @@ public:
 
 	void initialise();
 
-	UsineCommande *usine_commandes();
+	UsineCommande &usine_commandes();
 
-	UsineOperatrice *usine_operatrices();
+	UsineOperatrice &usine_operatrices();
 
 	std::string requiers_dialogue(int type);
 	void affiche_erreur(const std::string &message);

@@ -142,21 +142,21 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_projet(UsineCommande *usine)
+void enregistre_commandes_projet(UsineCommande &usine)
 {
-	usine->enregistre_type("ouvrir_fichier",
+	usine.enregistre_type("ouvrir_fichier",
 						   description_commande<CommandeOuvrir>(
 							   "projet", 0, 0, 0, false));
 
-	usine->enregistre_type("ouvrir_fichier_recent",
+	usine.enregistre_type("ouvrir_fichier_recent",
 						   description_commande<CommandeOuvrirRecent>(
 							   "projet", 0, 0, 0, false));
 
-	usine->enregistre_type("sauvegarder",
+	usine.enregistre_type("sauvegarder",
 						   description_commande<CommandeSauvegarder>(
 							   "projet", 0, 0, 0, false));
 
-	usine->enregistre_type("sauvegarder_sous",
+	usine.enregistre_type("sauvegarder_sous",
 						   description_commande<CommandeSauvegarderSous>(
 							   "projet", 0, 0, 0, false));
 }

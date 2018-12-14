@@ -94,7 +94,7 @@ int CommandeAjoutNoeud::execute(std::any const &pointeur, const DonneesCommande 
 	auto noeud = new Noeud();
 	noeud->nom(donnees.metadonnee);
 
-	auto operatrice = (*contexte.usine_operatrice)(donnees.metadonnee, noeud, contexte);
+	auto operatrice = (contexte.usine_operatrice)(donnees.metadonnee, noeud, contexte);
 	static_cast<void>(operatrice);
 
 	noeud->synchronise_donnees();
@@ -145,7 +145,7 @@ int CommandeObjetPrereglage::execute(std::any const &pointeur, const DonneesComm
 	noeud->posx(-300);
 	noeud->posy(-100);
 
-	(*contexte.usine_operatrice)(donnees.metadonnee, noeud, contexte);
+	(contexte.usine_operatrice)(donnees.metadonnee, noeud, contexte);
 
 	noeud->synchronise_donnees();
 
@@ -202,25 +202,25 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_objet(UsineCommande *usine)
+void enregistre_commandes_objet(UsineCommande &usine)
 {
-	usine->enregistre_type("ajouter_objet",
+	usine.enregistre_type("ajouter_objet",
 						   description_commande<CommandeAjoutObjet>(
 							   "objet", 0, 0, 0, false));
 
-	usine->enregistre_type("ajouter_noeud",
+	usine.enregistre_type("ajouter_noeud",
 						   description_commande<CommandeAjoutNoeud>(
 							   "objet", 0, 0, 0, false));
 
-	usine->enregistre_type("ajouter_prereglage",
+	usine.enregistre_type("ajouter_prereglage",
 						   description_commande<CommandeObjetPrereglage>(
 							   "objet", 0, 0, 0, false));
 
-	usine->enregistre_type("objet_entre",
+	usine.enregistre_type("objet_entre",
 						   description_commande<CommandeEntreObjet>(
 							   "objet", 0, 0, 0, false));
 
-	usine->enregistre_type("objet_sors",
+	usine.enregistre_type("objet_sors",
 						   description_commande<CommandeSorsObjet>(
 							   "objet", 0, 0, 0, false));
 }

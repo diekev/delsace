@@ -148,11 +148,11 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_operatrices_physiques(UsineOperatrice *usine)
+void enregistre_operatrices_physiques(UsineOperatrice &usine)
 {
 	const auto categorie = "Physique";
 
-	usine->enregistre_type(
+	usine.enregistre_type(
 				NOM_GRAVITE,
 				cree_description<OperatriceGravite>(
 					NOM_GRAVITE,

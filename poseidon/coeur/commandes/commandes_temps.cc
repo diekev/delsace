@@ -100,9 +100,9 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_temps(UsineCommande *usine)
+void enregistre_commandes_temps(UsineCommande &usine)
 {
-	usine->enregistre_type("changement_temps",
+	usine.enregistre_type("changement_temps",
 						   description_commande<CommandeChangementTemps>(
 							   "scene", 0, 0, 0, false));
 }

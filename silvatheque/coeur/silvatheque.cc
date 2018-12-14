@@ -32,7 +32,6 @@
 #include <QFileDialog>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/commandes/repondant_commande.h"
 #include "bibliotheques/vision/camera.h"
 
@@ -41,7 +40,7 @@
 #include "arbre.h"
 
 Silvatheque::Silvatheque()
-	: usine_commande(new UsineCommande)
+	: usine_commande{}
 	, repondant_commande(new RepondantCommande(usine_commande, this))
 	, camera(new vision::Camera3D(0, 0))
 	, arbre(new Arbre)
@@ -52,7 +51,6 @@ Silvatheque::~Silvatheque()
 	delete arbre;
 	delete camera;
 	delete repondant_commande;
-	delete usine_commande;
 }
 
 void Silvatheque::enregistre_commandes()

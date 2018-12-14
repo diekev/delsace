@@ -26,4 +26,4 @@
 
 class UsineOperatrice;
 
-void enregistre_operatrices_pixel(UsineOperatrice *usine);
+void enregistre_operatrices_pixel(UsineOperatrice &usine);

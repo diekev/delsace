@@ -250,13 +250,13 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_rendu(UsineCommande *usine)
+void enregistre_commandes_rendu(UsineCommande &usine)
 {
-	usine->enregistre_type("rendu_image",
+	usine.enregistre_type("rendu_image",
 						   description_commande<CommandeRenduImage>(
 							   "rendu", 0, 0, 0, false));
 
-	usine->enregistre_type("rendu_sequence",
+	usine.enregistre_type("rendu_sequence",
 						   description_commande<CommandeRenduSequence>(
 							   "rendu", 0, 0, 0, false));
 }

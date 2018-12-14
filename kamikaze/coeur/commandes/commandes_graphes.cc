@@ -373,37 +373,37 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_graphes(UsineCommande *usine)
+void enregistre_commandes_graphes(UsineCommande &usine)
 {
-	usine->enregistre_type("dessine_graphe_objet",
+	usine.enregistre_type("dessine_graphe_objet",
 						   description_commande<CommandeDessineGrapheObjet>(
 							   "graphe", 0, 0, 0, false));
 
-	usine->enregistre_type("dessine_graphe_dependance",
+	usine.enregistre_type("dessine_graphe_dependance",
 						   description_commande<CommandeDessineGrapheDependance>(
 							   "graphe", 0, 0, 0, false));
 
-	usine->enregistre_type("graphe_zoom",
+	usine.enregistre_type("graphe_zoom",
 						   description_commande<CommandeGrapheZoom>(
 							   "graphe", 0, 0, 0, false));
 
-	usine->enregistre_type("graphe_supprime_selection",
+	usine.enregistre_type("graphe_supprime_selection",
 						   description_commande<CommandeGrapheSupprimeSelection>(
 							   "graphe", 0, 0, Qt::Key_Delete, false));
 
-	usine->enregistre_type("graphe_centre",
+	usine.enregistre_type("graphe_centre",
 						   description_commande<CommandeGrapheCentre>(
 							   "graphe", 0, 0, 0, false));
 
-	usine->enregistre_type("graphe_bascule_expansion",
+	usine.enregistre_type("graphe_bascule_expansion",
 						   description_commande<CommandeGrapheBasculeExpansion>(
 							   "graphe", 0, 0, 0, false));
 
-	usine->enregistre_type("graphe_selection",
+	usine.enregistre_type("graphe_selection",
 						   description_commande<CommandeGrapheSelection>(
 							   "graphe", Qt::LeftButton, 0, 0, false));
 
-	usine->enregistre_type("graphe_entre_objet",
+	usine.enregistre_type("graphe_entre_objet",
 						   description_commande<CommandeGrapheEntreObjet>(
 							   "graphe", Qt::LeftButton, 0, 0, true));
 }

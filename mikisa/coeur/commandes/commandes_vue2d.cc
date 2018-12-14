@@ -97,13 +97,13 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_vue2d(UsineCommande *usine)
+void enregistre_commandes_vue2d(UsineCommande &usine)
 {
-	usine->enregistre_type("commande_zoom_camera_2d",
+	usine.enregistre_type("commande_zoom_camera_2d",
 						   description_commande<CommandeZoomCamera2D>(
 							   "vue_2d", Qt::MiddleButton, 0, 0, true));
 
-	usine->enregistre_type("commande_pan_camera_2d",
+	usine.enregistre_type("commande_pan_camera_2d",
 						   description_commande<CommandePanCamera2D>(
 							   "vue_2d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 }

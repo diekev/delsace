@@ -94,9 +94,9 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_commandes_edition(UsineCommande *usine)
+void enregistre_commandes_edition(UsineCommande &usine)
 {
-	usine->enregistre_type("ajouter_propriete",
+	usine.enregistre_type("ajouter_propriete",
 						   description_commande<CommandeAjouterPropriete>(
 							   "", 0, 0, 0, false));
 }

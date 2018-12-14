@@ -2016,30 +2016,30 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_operatrices_pixel(UsineOperatrice *usine)
+void enregistre_operatrices_pixel(UsineOperatrice &usine)
 {
-	usine->register_type("Graphe", cree_desc<OperatriceGraphePixel>("Graphe", "Ajoute un graphe travaillant sur les pixels de l'image de manière individuelle"));
+	usine.register_type("Graphe", cree_desc<OperatriceGraphePixel>("Graphe", "Ajoute un graphe travaillant sur les pixels de l'image de manière individuelle"));
 
-	usine->register_type(NOM_NUAGE, cree_desc<OperatriceNuage>(NOM_NUAGE, AIDE_NUAGE));
-	usine->register_type(NOM_CONSTANTE, cree_desc<OperatriceConstante>(NOM_CONSTANTE, AIDE_CONSTANTE));
-	usine->register_type(NOM_CORRECTION_GAMMA, cree_desc<OperatriceCorrectionGamma>(NOM_CORRECTION_GAMMA, AIDE_CORRECTION_GAMMA));
-	usine->register_type(NOM_ETALONNAGE, cree_desc<OperatriceEtalonnage>(NOM_ETALONNAGE, AIDE_ETALONNAGE));
-	usine->register_type(NOM_DEGRADE, cree_desc<OperatriceDegrade>(NOM_DEGRADE, AIDE_DEGRADE));
-	usine->register_type(NOM_MELANGE, cree_desc<OperatriceMelange>(NOM_MELANGE, AIDE_MELANGE));
-	usine->register_type(NOM_BRUITAGE, cree_desc<OperatriceBruitage>(NOM_BRUITAGE, AIDE_BRUITAGE));
-	usine->register_type(NOM_SATURATION, cree_desc<OperatriceSaturation>(NOM_SATURATION, AIDE_SATURATION));
-	usine->register_type(NOM_MAPPAGE_TONAL, cree_desc<OperatriceMappageTonal>(NOM_MAPPAGE_TONAL, AIDE_MAPPAGE_TONAL));
-	usine->register_type(NOM_CORRECTION_COULEUR, cree_desc<OperatriceCorrectionCouleur>(NOM_CORRECTION_COULEUR, AIDE_CORRECTION_COULEUR));
-	usine->register_type(NOM_INVERSEMENT, cree_desc<OperatriceInversement>(NOM_INVERSEMENT, AIDE_INVERSEMENT));
-	usine->register_type(NOM_INCRUSTATION, cree_desc<OperatriceIncrustation>(NOM_INCRUSTATION, AIDE_INCRUSTATION));
-	usine->register_type(NOM_FUSIONNAGE, cree_desc<OperatriceFusionnage>(NOM_FUSIONNAGE, AIDE_FUSIONNAGE));
-	usine->register_type(NOM_PREMULTIPLICATION, cree_desc<OperatricePremultiplication>(NOM_PREMULTIPLICATION, AIDE_PREMULTIPLICATION));
-	usine->register_type(NOM_NORMALISATION, cree_desc<OperatriceNormalisation>(NOM_NORMALISATION, AIDE_NORMALISATION));
-	usine->register_type(NOM_CONTRASTE, cree_desc<OperatriceContraste>(NOM_CONTRASTE, AIDE_CONTRASTE));
-	usine->register_type(NOM_COURBE_COULEUR, cree_desc<OperatriceCourbeCouleur>(NOM_COURBE_COULEUR, AIDE_COURBE_COULEUR));
-	usine->register_type(NOM_TRADUCTION, cree_desc<OperatriceTraduction>(NOM_TRADUCTION, AIDE_TRADUCTION));
-	usine->register_type(NOM_MIN_MAX, cree_desc<OperatriceMinMax>(NOM_MIN_MAX, AIDE_MIN_MAX));
-	usine->register_type(NOM_DALTONISME, cree_desc<OperatriceDaltonisme>(NOM_DALTONISME, AIDE_DALTONISME));
+	usine.register_type(NOM_NUAGE, cree_desc<OperatriceNuage>(NOM_NUAGE, AIDE_NUAGE));
+	usine.register_type(NOM_CONSTANTE, cree_desc<OperatriceConstante>(NOM_CONSTANTE, AIDE_CONSTANTE));
+	usine.register_type(NOM_CORRECTION_GAMMA, cree_desc<OperatriceCorrectionGamma>(NOM_CORRECTION_GAMMA, AIDE_CORRECTION_GAMMA));
+	usine.register_type(NOM_ETALONNAGE, cree_desc<OperatriceEtalonnage>(NOM_ETALONNAGE, AIDE_ETALONNAGE));
+	usine.register_type(NOM_DEGRADE, cree_desc<OperatriceDegrade>(NOM_DEGRADE, AIDE_DEGRADE));
+	usine.register_type(NOM_MELANGE, cree_desc<OperatriceMelange>(NOM_MELANGE, AIDE_MELANGE));
+	usine.register_type(NOM_BRUITAGE, cree_desc<OperatriceBruitage>(NOM_BRUITAGE, AIDE_BRUITAGE));
+	usine.register_type(NOM_SATURATION, cree_desc<OperatriceSaturation>(NOM_SATURATION, AIDE_SATURATION));
+	usine.register_type(NOM_MAPPAGE_TONAL, cree_desc<OperatriceMappageTonal>(NOM_MAPPAGE_TONAL, AIDE_MAPPAGE_TONAL));
+	usine.register_type(NOM_CORRECTION_COULEUR, cree_desc<OperatriceCorrectionCouleur>(NOM_CORRECTION_COULEUR, AIDE_CORRECTION_COULEUR));
+	usine.register_type(NOM_INVERSEMENT, cree_desc<OperatriceInversement>(NOM_INVERSEMENT, AIDE_INVERSEMENT));
+	usine.register_type(NOM_INCRUSTATION, cree_desc<OperatriceIncrustation>(NOM_INCRUSTATION, AIDE_INCRUSTATION));
+	usine.register_type(NOM_FUSIONNAGE, cree_desc<OperatriceFusionnage>(NOM_FUSIONNAGE, AIDE_FUSIONNAGE));
+	usine.register_type(NOM_PREMULTIPLICATION, cree_desc<OperatricePremultiplication>(NOM_PREMULTIPLICATION, AIDE_PREMULTIPLICATION));
+	usine.register_type(NOM_NORMALISATION, cree_desc<OperatriceNormalisation>(NOM_NORMALISATION, AIDE_NORMALISATION));
+	usine.register_type(NOM_CONTRASTE, cree_desc<OperatriceContraste>(NOM_CONTRASTE, AIDE_CONTRASTE));
+	usine.register_type(NOM_COURBE_COULEUR, cree_desc<OperatriceCourbeCouleur>(NOM_COURBE_COULEUR, AIDE_COURBE_COULEUR));
+	usine.register_type(NOM_TRADUCTION, cree_desc<OperatriceTraduction>(NOM_TRADUCTION, AIDE_TRADUCTION));
+	usine.register_type(NOM_MIN_MAX, cree_desc<OperatriceMinMax>(NOM_MIN_MAX, AIDE_MIN_MAX));
+	usine.register_type(NOM_DALTONISME, cree_desc<OperatriceDaltonisme>(NOM_DALTONISME, AIDE_DALTONISME));
 }
 
 #pragma clang diagnostic pop

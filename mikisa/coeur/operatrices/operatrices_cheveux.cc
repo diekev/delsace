@@ -388,9 +388,9 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_operatrices_cheveux(UsineOperatrice *usine)
+void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 {
-	usine->register_type(NOM_CREATION_COURBES,
+	usine.register_type(NOM_CREATION_COURBES,
 						 cree_desc<OperatriceCreationCourbes>(
 							 NOM_CREATION_COURBES,
 							 AIDE_CREATION_COURBES));

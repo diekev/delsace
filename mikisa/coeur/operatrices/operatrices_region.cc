@@ -1482,20 +1482,20 @@ public:
 
 /* ************************************************************************** */
 
-void enregistre_operatrices_region(UsineOperatrice *usine)
+void enregistre_operatrices_region(UsineOperatrice &usine)
 {
-	usine->register_type(NOM_ANALYSE, cree_desc<OperatriceAnalyse>(NOM_ANALYSE, AIDE_ANALYSE));
-	usine->register_type(NOM_FILTRAGE, cree_desc<OperatriceFiltrage>(NOM_FILTRAGE, AIDE_FILTRAGE));
-	usine->register_type(NOM_FLOU, cree_desc<OperatriceFloutage>(NOM_FLOU, AIDE_FLOU));
-	usine->register_type(NOM_CHAMPS_DISTANCE, cree_desc<OperatriceChampsDistance>(NOM_CHAMPS_DISTANCE, AIDE_CHAMPS_DISTANCE));
-	usine->register_type(NOM_NORMALISE, cree_desc<OperatriceNormalisation>(NOM_NORMALISE, AIDE_NORMALISE));
-	usine->register_type(NOM_TOURNOIEMENT, cree_desc<OperatriceTournoiement>(NOM_TOURNOIEMENT, AIDE_TOURNOIEMENT));
-	usine->register_type(NOM_DEFORMATION, cree_desc<OperatriceDeformation>(NOM_DEFORMATION, AIDE_DEFORMATION));
-	usine->register_type(NOM_SIMULATION_GRAIN, cree_desc<OperatriceSimulationGrain>(NOM_SIMULATION_GRAIN, AIDE_SIMULATION_GRAIN));
-	usine->register_type(NOM_COORD_POLAIRE, cree_desc<OperatriceCoordonneesPolaires>(NOM_COORD_POLAIRE, AIDE_COORD_POLAIRE));
-	usine->register_type(NOM_ONDELETTE_HAAR, cree_desc<OperatriceOndeletteHaar>(NOM_ONDELETTE_HAAR, AIDE_ONDELETTE_HAAR));
-	usine->register_type(NOM_DILATION, cree_desc<OperatriceDilation>(NOM_DILATION, AIDE_DILATION));
-	usine->register_type(NOM_EROSION, cree_desc<OperatriceErosion>(NOM_EROSION, AIDE_EROSION));
+	usine.register_type(NOM_ANALYSE, cree_desc<OperatriceAnalyse>(NOM_ANALYSE, AIDE_ANALYSE));
+	usine.register_type(NOM_FILTRAGE, cree_desc<OperatriceFiltrage>(NOM_FILTRAGE, AIDE_FILTRAGE));
+	usine.register_type(NOM_FLOU, cree_desc<OperatriceFloutage>(NOM_FLOU, AIDE_FLOU));
+	usine.register_type(NOM_CHAMPS_DISTANCE, cree_desc<OperatriceChampsDistance>(NOM_CHAMPS_DISTANCE, AIDE_CHAMPS_DISTANCE));
+	usine.register_type(NOM_NORMALISE, cree_desc<OperatriceNormalisation>(NOM_NORMALISE, AIDE_NORMALISE));
+	usine.register_type(NOM_TOURNOIEMENT, cree_desc<OperatriceTournoiement>(NOM_TOURNOIEMENT, AIDE_TOURNOIEMENT));
+	usine.register_type(NOM_DEFORMATION, cree_desc<OperatriceDeformation>(NOM_DEFORMATION, AIDE_DEFORMATION));
+	usine.register_type(NOM_SIMULATION_GRAIN, cree_desc<OperatriceSimulationGrain>(NOM_SIMULATION_GRAIN, AIDE_SIMULATION_GRAIN));
+	usine.register_type(NOM_COORD_POLAIRE, cree_desc<OperatriceCoordonneesPolaires>(NOM_COORD_POLAIRE, AIDE_COORD_POLAIRE));
+	usine.register_type(NOM_ONDELETTE_HAAR, cree_desc<OperatriceOndeletteHaar>(NOM_ONDELETTE_HAAR, AIDE_ONDELETTE_HAAR));
+	usine.register_type(NOM_DILATION, cree_desc<OperatriceDilation>(NOM_DILATION, AIDE_DILATION));
+	usine.register_type(NOM_EROSION, cree_desc<OperatriceErosion>(NOM_EROSION, AIDE_EROSION));
 }
 
 #pragma clang diagnostic pop

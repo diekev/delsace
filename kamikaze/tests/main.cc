@@ -35,10 +35,9 @@ void test_lecture_fichier(numero7::test_unitaire::ControleurUnitaire &controleur
 
 	auto scene = Scene();
 
-	auto contexte = Context();
+	auto contexte = Context(racine.usine_operatrice());
 	contexte.scene = &scene;
 	contexte.primitive_factory = racine.primitive_factory();
-	contexte.usine_operatrice = racine.usine_operatrice();
 
 	auto erreur = kamikaze::ouvre_projet("projets_tests/projet_1_objet.kmkz", racine, contexte);
 

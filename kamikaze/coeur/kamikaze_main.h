@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "bibliotheques/commandes/commande.h"
+
 #include "sdk/context.h"
 #include "sdk/operatrice.h"
 #include "sdk/primitive.h"
@@ -37,11 +39,10 @@ enum {
 
 class CommandManager;
 class FenetrePrincipale;
-class UsineCommande;
 
 class Main final {
 	std::unique_ptr<PrimitiveFactory> m_primitive_factory;
-	std::unique_ptr<UsineOperatrice> m_usine_operatrice;
+	UsineOperatrice m_usine_operatrice;
 	std::unique_ptr<Scene> m_scene;
 
 	std::vector<std::string> m_fichiers_recents{};
@@ -51,7 +52,7 @@ class Main final {
 
 	FenetrePrincipale *m_fenetre_principale = nullptr;
 
-	UsineCommande *m_usine_commandes = nullptr;
+	UsineCommande m_usine_commandes;
 
 public:
 	Main();
@@ -66,7 +67,7 @@ public:
 	void initialize();
 
 	PrimitiveFactory *primitive_factory() const;
-	UsineOperatrice *usine_operatrice() const;
+	UsineOperatrice &usine_operatrice();
 	Scene *scene() const;
 
 	std::string chemin_projet() const;
@@ -83,7 +84,7 @@ public:
 	std::string requiers_dialogue(int type);
 	void affiche_erreur(const std::string &message);
 
-	UsineCommande *usine_commandes() const;
+	UsineCommande &usine_commandes();
 
 	Context contexte;
 };

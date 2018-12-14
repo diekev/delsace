@@ -25,12 +25,12 @@
 #pragma once
 
 #include "bibliotheques/audition/audition.h"
+#include "bibliotheques/commandes/commande.h"
 
 class Arbre;
 class BaseEditrice;
 class FenetrePrincipale;
 class RepondantCommande;
-class UsineCommande;
 
 namespace vision {
 
@@ -44,7 +44,7 @@ struct Silvatheque : public Audite {
 	FenetrePrincipale *fenetre_principale = nullptr;
 	BaseEditrice *widget_actif = nullptr;
 
-	UsineCommande *usine_commande{};
+	UsineCommande usine_commande;
 
 	RepondantCommande *repondant_commande{};
 
