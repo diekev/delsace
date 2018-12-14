@@ -62,6 +62,8 @@ void Corps::supprime_attribut(const std::string &nom_attribut)
 		return attr->nom() == nom_attribut;
 	});
 
+	delete *iter;
+
 	m_attributs.erase(iter);
 }
 
