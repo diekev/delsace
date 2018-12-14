@@ -258,6 +258,7 @@ OperatriceImage::OperatriceImage(Noeud *node)
 {
 	node->donnees(this);
 	m_input_data.resize(m_num_inputs);
+	m_sorties.resize(m_num_outputs);
 }
 
 int OperatriceImage::type() const
