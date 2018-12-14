@@ -49,11 +49,11 @@
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_SORTIE_CORPS = "Sortie Corps";
-static constexpr auto AIDE_SORTIE_CORPS = "Crée une sortie d'un graphe de corps.";
-
 class OperatriceSortieCorps final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Sortie Corps";
+	static constexpr auto AIDE = "Crée une sortie d'un graphe de corps.";
+
 	explicit OperatriceSortieCorps(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -78,12 +78,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_SORTIE_CORPS;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_SORTIE_CORPS;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -111,11 +111,11 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 	}
 }
 
-static constexpr auto NOM_CREATION_CORPS = "Création Corps";
-static constexpr auto AIDE_CREATION_CORPS = "Crée un corps.";
-
 class OperatriceCreationCorps final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Création Corps";
+	static constexpr auto AIDE = "Crée un corps.";
+
 	explicit OperatriceCreationCorps(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -140,12 +140,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CREATION_CORPS;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CREATION_CORPS;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -205,15 +205,15 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CAMERA = "Caméra";
-static constexpr auto AIDE_CAMERA = "Crée une caméra.";
-
 class OperatriceCamera final : public OperatriceImage {
 	vision::Camera3D m_camera;
 	ManipulatricePosition3D m_manipulatrice_position{};
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
 
 public:
+	static constexpr auto NOM = "Caméra";
+	static constexpr auto AIDE = "Crée une caméra.";
+
 	explicit OperatriceCamera(Noeud *noeud)
 		: OperatriceImage(noeud)
 		, m_camera(0, 0)
@@ -244,12 +244,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CAMERA;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CAMERA;
+		return AIDE;
 	}
 
 	bool possede_manipulatrice_3d(int type) const override
@@ -334,14 +334,14 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_TEXTURE = "Texture";
-static constexpr auto AIDE_TEXTURE = "Crée une texture.";
-
 class OperatriceTexture final : public OperatriceImage {
 	vision::Camera3D *m_camera = nullptr;
 	TextureImage m_texture{};
 
 public:
+	static constexpr auto NOM = "Texture";
+	static constexpr auto AIDE = "Crée une texture.";
+
 	explicit OperatriceTexture(Noeud *noeud)
 		: OperatriceImage(noeud)
 	{
@@ -387,12 +387,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_TEXTURE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_TEXTURE;
+		return AIDE;
 	}
 
 	TextureImage *texture() override
@@ -485,9 +485,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_LECTURE_OBJET = "Lecture Objet";
-static constexpr auto AIDE_LECTURE_OBJET = "Charge un objet depuis un fichier externe.";
-
 class OperatriceLectureObjet final : public OperatriceCorps {
 	vision::Camera3D *m_camera = nullptr;
 	ManipulatricePosition3D m_manipulatrice_position{};
@@ -499,6 +496,9 @@ class OperatriceLectureObjet final : public OperatriceCorps {
 	std::string m_dernier_chemin = "";
 
 public:
+	static constexpr auto NOM = "Lecture Objet";
+	static constexpr auto AIDE = "Charge un objet depuis un fichier externe.";
+
 	explicit OperatriceLectureObjet(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -533,12 +533,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_LECTURE_OBJET;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_LECTURE_OBJET;
+		return AIDE;
 	}
 
 	bool possede_manipulatrice_3d(int type) const override
@@ -672,11 +672,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CREATION_NORMAUX = "Création Normaux";
-static constexpr auto AIDE_CREATION_NORMAUX = "Crée des normaux pour les maillages d'entrée.";
-
 class OperatriceCreationNormaux final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Création Normaux";
+	static constexpr auto AIDE = "Crée des normaux pour les maillages d'entrée.";
+
 	explicit OperatriceCreationNormaux(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -701,12 +701,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CREATION_NORMAUX;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CREATION_NORMAUX;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -839,9 +839,6 @@ public:
 #include <opensubdiv/far/topologyDescriptor.h>
 #pragma GCC diagnostic pop
 
-static constexpr auto NOM_OPENSUBDIV = "OpenSubDiv";
-static constexpr auto AIDE_OPENSUBDIV = "Sousdivise les maillages d'entrée en utilisant la bibliothèque OpenSubDiv.";
-
 struct SommetOSD {
 	SommetOSD() = default;
 
@@ -883,6 +880,9 @@ private:
 
 class OperatriceOpenSubDiv final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "OpenSubDiv";
+	static constexpr auto AIDE = "Sousdivise les maillages d'entrée en utilisant la bibliothèque OpenSubDiv.";
+
 	explicit OperatriceOpenSubDiv(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -907,12 +907,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_OPENSUBDIV;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_OPENSUBDIV;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1104,11 +1104,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CREATION_ATTRIBUT = "Création Attribut";
-static constexpr auto AIDE_CREATION_ATTRIBUT = "Crée un attribut.";
-
 class OperatriceCreationAttribut final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Création Attribut";
+	static constexpr auto AIDE = "Crée un attribut.";
+
 	explicit OperatriceCreationAttribut(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -1133,12 +1133,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CREATION_ATTRIBUT;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CREATION_ATTRIBUT;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1250,11 +1250,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_SUPPRESSION_ATTRIBUT = "Suppression Attribut";
-static constexpr auto AIDE_SUPPRESSION_ATTRIBUT = "Supprime un attribut.";
-
 class OperatriceSuppressionAttribut final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Suppression Attribut";
+	static constexpr auto AIDE = "Supprime un attribut.";
+
 	explicit OperatriceSuppressionAttribut(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -1279,12 +1279,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_SUPPRESSION_ATTRIBUT;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_SUPPRESSION_ATTRIBUT;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1307,11 +1307,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_RANDOM_ATTRIBUT = "Randomisation Attribut";
-static constexpr auto AIDE_RANDOM_ATTRIBUT = "Randomise un attribut.";
-
 class OperatriceRandomisationAttribut final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Randomisation Attribut";
+	static constexpr auto AIDE = "Randomise un attribut.";
+
 	explicit OperatriceRandomisationAttribut(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -1336,12 +1336,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_RANDOM_ATTRIBUT;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_RANDOM_ATTRIBUT;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1465,11 +1465,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_FUSION_CORPS = "Fusionnage Corps";
-static constexpr auto AIDE_FUSION_CORPS = "Fusionnage Corps.";
-
 class OperatriceFusionnageCorps final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Fusionnage Corps";
+	static constexpr auto AIDE = "Fusionnage Corps.";
+
 	explicit OperatriceFusionnageCorps(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -1494,12 +1494,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_FUSION_CORPS;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_FUSION_CORPS;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1580,36 +1580,22 @@ public:
 
 void enregistre_operatrices_3d(UsineOperatrice &usine)
 {
-	usine.register_type(NOM_CAMERA, cree_desc<OperatriceCamera>(NOM_CAMERA, AIDE_CAMERA));
-	usine.register_type(NOM_SCENE, cree_desc<OperatriceScene>(NOM_SCENE, AIDE_SCENE));
-	usine.register_type(NOM_OBJET, cree_desc<OperatriceObjet>(NOM_OBJET, AIDE_OBJET));
-	usine.register_type(NOM_LECTURE_OBJET, cree_desc<OperatriceLectureObjet>(NOM_LECTURE_OBJET, AIDE_LECTURE_OBJET));
-	usine.register_type(NOM_TEXTURE, cree_desc<OperatriceTexture>(NOM_TEXTURE, AIDE_TEXTURE));
+	usine.enregistre_type(cree_desc<OperatriceCamera>());
+	usine.enregistre_type(cree_desc<OperatriceScene>());
+	usine.enregistre_type(cree_desc<OperatriceObjet>());
+	usine.enregistre_type(cree_desc<OperatriceLectureObjet>());
+	usine.enregistre_type(cree_desc<OperatriceTexture>());
 
-	usine.register_type(NOM_SORTIE_CORPS, cree_desc<OperatriceSortieCorps>(NOM_SORTIE_CORPS, AIDE_SORTIE_CORPS));
-	usine.register_type(NOM_CREATION_CORPS, cree_desc<OperatriceCreationCorps>(NOM_CREATION_CORPS, AIDE_CREATION_CORPS));
-	usine.register_type(NOM_CREATION_NORMAUX, cree_desc<OperatriceCreationNormaux>(NOM_CREATION_NORMAUX, AIDE_CREATION_NORMAUX));
-	usine.register_type(NOM_OPENSUBDIV, cree_desc<OperatriceOpenSubDiv>(NOM_OPENSUBDIV, AIDE_OPENSUBDIV));
+	usine.enregistre_type(cree_desc<OperatriceSortieCorps>());
+	usine.enregistre_type(cree_desc<OperatriceCreationCorps>());
+	usine.enregistre_type(cree_desc<OperatriceCreationNormaux>());
+	usine.enregistre_type(cree_desc<OperatriceOpenSubDiv>());
 
-	usine.register_type(NOM_CREATION_ATTRIBUT,
-						 cree_desc<OperatriceCreationAttribut>(
-							 NOM_CREATION_ATTRIBUT,
-							 AIDE_CREATION_ATTRIBUT));
+	usine.enregistre_type(cree_desc<OperatriceCreationAttribut>());
+	usine.enregistre_type(cree_desc<OperatriceSuppressionAttribut>());
+	usine.enregistre_type(cree_desc<OperatriceRandomisationAttribut>());
 
-	usine.register_type(NOM_SUPPRESSION_ATTRIBUT,
-						 cree_desc<OperatriceSuppressionAttribut>(
-							 NOM_SUPPRESSION_ATTRIBUT,
-							 AIDE_SUPPRESSION_ATTRIBUT));
-
-	usine.register_type(NOM_RANDOM_ATTRIBUT,
-						 cree_desc<OperatriceRandomisationAttribut>(
-							 NOM_RANDOM_ATTRIBUT,
-							 AIDE_RANDOM_ATTRIBUT));
-
-	usine.register_type(NOM_FUSION_CORPS,
-						 cree_desc<OperatriceFusionnageCorps>(
-							 NOM_FUSION_CORPS,
-							 AIDE_FUSION_CORPS));
+	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());
 }
 
 #pragma clang diagnostic pop

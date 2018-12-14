@@ -262,12 +262,12 @@ OperatriceGrapheMaillage::OperatriceGrapheMaillage(Noeud *noeud)
 
 const char *OperatriceGrapheMaillage::class_name() const
 {
-	return NOM_GRAPHE_MAILLAGE;
+	return NOM;
 }
 
 const char *OperatriceGrapheMaillage::help_text() const
 {
-	return AIDE_GRAPHE_MAILLAGE;
+	return AIDE;
 }
 
 const char *OperatriceGrapheMaillage::chemin_entreface() const

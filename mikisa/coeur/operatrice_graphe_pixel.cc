@@ -278,12 +278,12 @@ OperatriceGraphePixel::OperatriceGraphePixel(Noeud *node)
 
 const char *OperatriceGraphePixel::class_name() const
 {
-	return "Graphe";
+	return NOM;
 }
 
 const char *OperatriceGraphePixel::help_text() const
 {
-	return "Graphe";
+	return AIDE;
 }
 
 const char *OperatriceGraphePixel::chemin_entreface() const

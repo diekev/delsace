@@ -30,9 +30,6 @@
 #include "objet.h"
 #include "operatrice_image.h"
 
-static constexpr auto NOM_OBJET = "Objet";
-static constexpr auto AIDE_OBJET = "Crée un objet.";
-
 class OperatriceObjet final : public OperatriceImage {
 	vision::Camera3D *m_camera = nullptr;
 
@@ -44,6 +41,9 @@ class OperatriceObjet final : public OperatriceImage {
 	Graphe m_graphe{};
 
 public:
+	static constexpr auto NOM = "Objet";
+	static constexpr auto AIDE = "Crée un objet.";
+
 	explicit OperatriceObjet(Noeud *noeud);
 
 	OperatriceObjet(OperatriceObjet const &) = default;

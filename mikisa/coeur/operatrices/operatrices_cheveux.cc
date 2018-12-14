@@ -112,9 +112,6 @@ private:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CREATION_COURBES = "Création Courbes";
-static constexpr auto AIDE_CREATION_COURBES = "Crée des courbes.";
-
 class OperatriceCreationCourbes final : public OperatriceCorps {
 	enum {
 		STYLE_CREATION_SEGMENT,
@@ -127,6 +124,9 @@ class OperatriceCreationCourbes final : public OperatriceCorps {
 	};
 
 public:
+	static constexpr auto NOM = "Création Courbes";
+	static constexpr auto AIDE = "Crée des courbes.";
+
 	explicit OperatriceCreationCourbes(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -151,12 +151,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CREATION_COURBES;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CREATION_COURBES;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -276,6 +276,9 @@ public:
 
 class OperatriceCollisionCheveux : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Collision Cheveux";
+	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
+
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		auto const courbes = charge_courbes(rectangle, temps);
@@ -390,10 +393,7 @@ public:
 
 void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 {
-	usine.register_type(NOM_CREATION_COURBES,
-						 cree_desc<OperatriceCreationCourbes>(
-							 NOM_CREATION_COURBES,
-							 AIDE_CREATION_COURBES));
+	usine.enregistre_type(cree_desc<OperatriceCreationCourbes>());
 }
 
 #pragma clang diagnostic pop

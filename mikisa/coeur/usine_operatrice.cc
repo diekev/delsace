@@ -26,12 +26,12 @@
 
 #include <cassert>
 
-size_t UsineOperatrice::register_type(const std::string &name, const DescOperatrice &desc)
+size_t UsineOperatrice::enregistre_type(const DescOperatrice &desc)
 {
-	const auto iter = m_map.find(name);
+	const auto iter = m_map.find(desc.name);
 	assert(iter == m_map.end());
 
-	m_map[name] = desc;
+	m_map[desc.name] = desc;
 	return num_entries();
 }
 

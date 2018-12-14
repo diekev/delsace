@@ -56,9 +56,6 @@
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_SATURATION = "Saturation";
-static constexpr auto AIDE_SATURATION = "Applique une saturation à l'image.";
-
 class OperatriceSaturation final : public OperatricePixel {
 	enum {
 		SATURATION_REC709,
@@ -73,6 +70,9 @@ class OperatriceSaturation final : public OperatricePixel {
 	float m_saturation = 1.0f;
 
 public:
+	static constexpr auto NOM = "Saturation";
+	static constexpr auto AIDE = "Applique une saturation à l'image.";
+
 	explicit OperatriceSaturation(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -86,12 +86,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_SATURATION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_SATURATION;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -170,11 +170,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_MELANGE = "Mélanger";
-static constexpr auto AIDE_MELANGE = "Mélange deux images.";
-
 class OperatriceMelange final : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Mélanger";
+	static constexpr auto AIDE = "Mélange deux images.";
+
 	explicit OperatriceMelange(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -192,12 +192,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_MELANGE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_MELANGE;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -261,9 +261,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_FUSIONNAGE = "Fusionnage";
-static constexpr auto AIDE_FUSIONNAGE = "Fusionne deux images selon les algorithmes de Porter & Duff.";
-
 /**
  * Implémentation basée sur https://keithp.com/~keithp/porterduff/p253-porter.pdf
  */
@@ -285,6 +282,9 @@ class OperatriceFusionnage final : public OperatriceImage {
 	};
 
 public:
+	static constexpr auto NOM = "Fusionnage";
+	static constexpr auto AIDE = "Fusionne deux images selon les algorithmes de Porter & Duff.";
+
 	explicit OperatriceFusionnage(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -302,12 +302,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_FUSIONNAGE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_FUSIONNAGE;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -497,14 +497,14 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_BRUITAGE = "Bruitage";
-static constexpr auto AIDE_BRUITAGE = "Applique un bruit à l'image.";
-
 class OperatriceBruitage final : public OperatricePixel {
 	std::mt19937 m_rng{};
 	std::uniform_real_distribution<float> m_dist{};
 
 public:
+	static constexpr auto NOM = "Bruitage";
+	static constexpr auto AIDE = "Applique un bruit à l'image.";
+
 	explicit OperatriceBruitage(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -514,12 +514,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_BRUITAGE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_BRUITAGE;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -546,13 +546,13 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CONSTANTE = "Constante";
-static constexpr auto AIDE_CONSTANTE = "Applique une couleur constante à toute l'image.";
-
 class OperatriceConstante final : public OperatricePixel {
 	couleur32 m_couleur{};
 
 public:
+	static constexpr auto NOM = "Constante";
+	static constexpr auto AIDE = "Applique une couleur constante à toute l'image.";
+
 	explicit OperatriceConstante(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -566,12 +566,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CONSTANTE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CONSTANTE;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -597,9 +597,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_DEGRADE = "Dégradé";
-static constexpr auto AIDE_DEGRADE = "Génère un dégradé sur l'image.";
-
 class OperatriceDegrade final : public OperatricePixel {
 	enum {
 		MASK_R = (1 << 0),
@@ -620,6 +617,9 @@ class OperatriceDegrade final : public OperatricePixel {
 	RampeCouleur *m_rampe{};
 
 public:
+	static constexpr auto NOM = "Dégradé";
+	static constexpr auto AIDE = "Génère un dégradé sur l'image.";
+
 	explicit OperatriceDegrade(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -636,12 +636,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_DEGRADE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_DEGRADE;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -698,9 +698,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_NUAGE = "Nuage";
-static constexpr auto AIDE_NUAGE = "Crée un bruit de nuage";
-
 class OperatriceNuage final : public OperatricePixel {
 	dls::math::BruitFlux2D m_bruit_flux{};
 
@@ -715,6 +712,9 @@ class OperatriceNuage final : public OperatricePixel {
 	char pad[3];
 
 public:
+	static constexpr auto NOM = "Nuage";
+	static constexpr auto AIDE = "Crée un bruit de nuage";
+
 	explicit OperatriceNuage(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -728,12 +728,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_NUAGE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_NUAGE;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -859,9 +859,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_ETALONNAGE = "Étalonnage";
-static constexpr auto AIDE_ETALONNAGE = "Étalonne l'image au moyen d'une rampe linéaire et d'une fonction gamma.";
-
 numero7::image::Pixel<float> converti_en_pixel(const couleur32 &v)
 {
 	numero7::image::Pixel<float> pixel;
@@ -917,6 +914,9 @@ class OperatriceEtalonnage final  : public OperatricePixel {
 	numero7::image::Pixel<float> m_gamma{};
 
 public:
+	static constexpr auto NOM = "Étalonnage";
+	static constexpr auto AIDE = "Étalonne l'image au moyen d'une rampe linéaire et d'une fonction gamma.";
+
 	explicit OperatriceEtalonnage(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -930,12 +930,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_ETALONNAGE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_ETALONNAGE;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1098,14 +1098,14 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CORRECTION_GAMMA = "Correction Gamma";
-static constexpr auto AIDE_CORRECTION_GAMMA = "Applique une correction gamma à l'image.";
-
 class OperatriceCorrectionGamma : public OperatricePixel {
 	float m_gamma = 1.0f;
 	int pad{};
 
 public:
+	static constexpr auto NOM = "Correction Gamma";
+	static constexpr auto AIDE = "Applique une correction gamma à l'image.";
+
 	explicit OperatriceCorrectionGamma(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1119,12 +1119,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CORRECTION_GAMMA;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CORRECTION_GAMMA;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1147,9 +1147,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-static constexpr auto NOM_MAPPAGE_TONAL = "Mappage Tonal";
-static constexpr auto AIDE_MAPPAGE_TONAL = "Applique un mappage tonal à l'image.";
 
 /**
  * Opérateurs de mappage tonal de
@@ -1178,6 +1175,9 @@ class OperatriceMappageTonal : public OperatricePixel {
 	float m_exposition = 0.0f;
 
 public:
+	static constexpr auto NOM = "Mappage Tonal";
+	static constexpr auto AIDE = "Applique un mappage tonal à l'image.";
+
 	explicit OperatriceMappageTonal(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1191,12 +1191,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_MAPPAGE_TONAL;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_MAPPAGE_TONAL;
+		return AIDE;
 	}
 
 	float uncharted_tone_map(float x)
@@ -1326,15 +1326,15 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CORRECTION_COULEUR = "Correction Couleur";
-static constexpr auto AIDE_CORRECTION_COULEUR = "Corrige les couleur de l'image selon la formule de l'ASC CDL.";
-
 class OperatriceCorrectionCouleur final : public OperatricePixel {
 	couleur32 m_decalage{};
 	couleur32 m_pente{};
 	couleur32 m_puissance{};
 
 public:
+	static constexpr auto NOM = "Correction Couleur";
+	static constexpr auto AIDE = "Corrige les couleur de l'image selon la formule de l'ASC CDL.";
+
 	explicit OperatriceCorrectionCouleur(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1348,12 +1348,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CORRECTION_COULEUR;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CORRECTION_COULEUR;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1383,11 +1383,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_INVERSEMENT = "Inversement";
-static constexpr auto AIDE_INVERSEMENT = "Inverse les couleurs de l'image.";
-
 class OperatriceInversement final : public OperatricePixel {
 public:
+	static constexpr auto NOM = "Inversement";
+	static constexpr auto AIDE = "Inverse les couleurs de l'image.";
+
 	explicit OperatriceInversement(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1401,12 +1401,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_INVERSEMENT;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_INVERSEMENT;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1430,9 +1430,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_INCRUSTATION = "Incrustation";
-static constexpr auto AIDE_INCRUSTATION = "Supprime les couleurs vertes d'une image.";
-
 class OperatriceIncrustation final : public OperatricePixel {
 	couleur32 m_couleur = couleur32(0.0f);
 	float m_angle = 0.0f;
@@ -1441,6 +1438,9 @@ class OperatriceIncrustation final : public OperatricePixel {
 	int pad = 0;
 
 public:
+	static constexpr auto NOM = "Incrustation";
+	static constexpr auto AIDE = "Supprime les couleurs vertes d'une image.";
+
 	explicit OperatriceIncrustation(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1454,12 +1454,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_INCRUSTATION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_INCRUSTATION;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1516,14 +1516,14 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_PREMULTIPLICATION = "Pré-multiplication";
-static constexpr auto AIDE_PREMULTIPLICATION = "Prémultiplie les couleurs des pixels par leurs valeurs alpha respectives.";
-
 class OperatricePremultiplication final : public OperatricePixel {
 	bool m_inverse = false;
 	bool pad[7];
 
 public:
+	static constexpr auto NOM = "Pré-multiplication";
+	static constexpr auto AIDE = "Prémultiplie les couleurs des pixels par leurs valeurs alpha respectives.";
+
 	explicit OperatricePremultiplication(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1537,12 +1537,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_PREMULTIPLICATION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_PREMULTIPLICATION;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1572,12 +1572,12 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_NORMALISATION = "Normalisation";
-static constexpr auto AIDE_NORMALISATION = "Normalise les couleurs des pixels.";
-
-class OperatriceNormalisation final : public OperatricePixel {
+class OperatriceNormalisationPixel final : public OperatricePixel {
 public:
-	explicit OperatriceNormalisation(Noeud *node)
+	static constexpr auto NOM = "Normalisation Pixel";
+	static constexpr auto AIDE = "Normalise les couleurs des pixels.";
+
+	explicit OperatriceNormalisationPixel(Noeud *node)
 		: OperatricePixel(node)
 	{
 		inputs(1);
@@ -1590,12 +1590,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_NORMALISATION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_NORMALISATION;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1630,14 +1630,14 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CONTRASTE = "Contraste";
-static constexpr auto AIDE_CONTRASTE = "Ajuste le contraste de l'image.";
-
 class OperatriceContraste final : public OperatricePixel {
 	float m_pivot{};
 	float m_contraste{};
 
 public:
+	static constexpr auto NOM = "Contraste";
+	static constexpr auto AIDE = "Ajuste le contraste de l'image.";
+
 	explicit OperatriceContraste(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1651,12 +1651,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CONTRASTE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CONTRASTE;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1690,13 +1690,13 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_COURBE_COULEUR = "Courbe Couleur";
-static constexpr auto AIDE_COURBE_COULEUR = "Modifie l'image selon une courbe de couleur.";
-
 class OperatriceCourbeCouleur final : public OperatricePixel {
 	CourbeCouleur *m_courbe{};
 
 public:
+	static constexpr auto NOM = "Courbe Couleur";
+	static constexpr auto AIDE = "Modifie l'image selon une courbe de couleur.";
+
 	explicit OperatriceCourbeCouleur(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1713,12 +1713,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_COURBE_COULEUR;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_COURBE_COULEUR;
+		return AIDE;
 	}
 
 	void evalue_entrees(int /*temps*/) override
@@ -1750,9 +1750,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_TRADUCTION = "Traduction";
-static constexpr auto AIDE_TRADUCTION = "Traduit les composants de l'image d'une plage à une autre.";
-
 class OperatriceTraduction final : public OperatricePixel {
 	couleur32 m_vieux_min{};
 	couleur32 m_vieux_max{};
@@ -1760,6 +1757,9 @@ class OperatriceTraduction final : public OperatricePixel {
 	couleur32 m_neuf_max{};
 
 public:
+	static constexpr auto NOM = "Traduction";
+	static constexpr auto AIDE = "Traduit les composants de l'image d'une plage à une autre.";
+
 	explicit OperatriceTraduction(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1773,12 +1773,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_TRADUCTION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_TRADUCTION;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1808,14 +1808,14 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_MIN_MAX = "MinMax";
-static constexpr auto AIDE_MIN_MAX = "Change le point blanc et la point noir de l'image.";
-
 class OperatriceMinMax final : public OperatricePixel {
 	couleur32 m_neuf_min{};
 	couleur32 m_neuf_max{};
 
 public:
+	static constexpr auto NOM = "MinMax";
+	static constexpr auto AIDE = "Change le point blanc et la point noir de l'image.";
+
 	explicit OperatriceMinMax(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1829,12 +1829,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_MIN_MAX;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_MIN_MAX;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -1859,9 +1859,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-static constexpr auto NOM_DALTONISME = "Daltonisme";
-static constexpr auto AIDE_DALTONISME = "Simule l'effet du daltonisme.";
 
 enum {
 	DALTONISME_AUCUN = 0,
@@ -1951,6 +1948,9 @@ class OperatriceDaltonisme final : public OperatricePixel {
 	dls::math::mat4x4f m_matrice{};
 
 public:
+	static constexpr auto NOM = "Daltonisme";
+	static constexpr auto AIDE = "Simule l'effet du daltonisme.";
+
 	explicit OperatriceDaltonisme(Noeud *node)
 		: OperatricePixel(node)
 	{
@@ -1964,12 +1964,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_DALTONISME;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_DALTONISME;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -2018,28 +2018,28 @@ public:
 
 void enregistre_operatrices_pixel(UsineOperatrice &usine)
 {
-	usine.register_type("Graphe", cree_desc<OperatriceGraphePixel>("Graphe", "Ajoute un graphe travaillant sur les pixels de l'image de manière individuelle"));
+	usine.enregistre_type(cree_desc<OperatriceGraphePixel>());
 
-	usine.register_type(NOM_NUAGE, cree_desc<OperatriceNuage>(NOM_NUAGE, AIDE_NUAGE));
-	usine.register_type(NOM_CONSTANTE, cree_desc<OperatriceConstante>(NOM_CONSTANTE, AIDE_CONSTANTE));
-	usine.register_type(NOM_CORRECTION_GAMMA, cree_desc<OperatriceCorrectionGamma>(NOM_CORRECTION_GAMMA, AIDE_CORRECTION_GAMMA));
-	usine.register_type(NOM_ETALONNAGE, cree_desc<OperatriceEtalonnage>(NOM_ETALONNAGE, AIDE_ETALONNAGE));
-	usine.register_type(NOM_DEGRADE, cree_desc<OperatriceDegrade>(NOM_DEGRADE, AIDE_DEGRADE));
-	usine.register_type(NOM_MELANGE, cree_desc<OperatriceMelange>(NOM_MELANGE, AIDE_MELANGE));
-	usine.register_type(NOM_BRUITAGE, cree_desc<OperatriceBruitage>(NOM_BRUITAGE, AIDE_BRUITAGE));
-	usine.register_type(NOM_SATURATION, cree_desc<OperatriceSaturation>(NOM_SATURATION, AIDE_SATURATION));
-	usine.register_type(NOM_MAPPAGE_TONAL, cree_desc<OperatriceMappageTonal>(NOM_MAPPAGE_TONAL, AIDE_MAPPAGE_TONAL));
-	usine.register_type(NOM_CORRECTION_COULEUR, cree_desc<OperatriceCorrectionCouleur>(NOM_CORRECTION_COULEUR, AIDE_CORRECTION_COULEUR));
-	usine.register_type(NOM_INVERSEMENT, cree_desc<OperatriceInversement>(NOM_INVERSEMENT, AIDE_INVERSEMENT));
-	usine.register_type(NOM_INCRUSTATION, cree_desc<OperatriceIncrustation>(NOM_INCRUSTATION, AIDE_INCRUSTATION));
-	usine.register_type(NOM_FUSIONNAGE, cree_desc<OperatriceFusionnage>(NOM_FUSIONNAGE, AIDE_FUSIONNAGE));
-	usine.register_type(NOM_PREMULTIPLICATION, cree_desc<OperatricePremultiplication>(NOM_PREMULTIPLICATION, AIDE_PREMULTIPLICATION));
-	usine.register_type(NOM_NORMALISATION, cree_desc<OperatriceNormalisation>(NOM_NORMALISATION, AIDE_NORMALISATION));
-	usine.register_type(NOM_CONTRASTE, cree_desc<OperatriceContraste>(NOM_CONTRASTE, AIDE_CONTRASTE));
-	usine.register_type(NOM_COURBE_COULEUR, cree_desc<OperatriceCourbeCouleur>(NOM_COURBE_COULEUR, AIDE_COURBE_COULEUR));
-	usine.register_type(NOM_TRADUCTION, cree_desc<OperatriceTraduction>(NOM_TRADUCTION, AIDE_TRADUCTION));
-	usine.register_type(NOM_MIN_MAX, cree_desc<OperatriceMinMax>(NOM_MIN_MAX, AIDE_MIN_MAX));
-	usine.register_type(NOM_DALTONISME, cree_desc<OperatriceDaltonisme>(NOM_DALTONISME, AIDE_DALTONISME));
+	usine.enregistre_type(cree_desc<OperatriceNuage>());
+	usine.enregistre_type(cree_desc<OperatriceConstante>());
+	usine.enregistre_type(cree_desc<OperatriceCorrectionGamma>());
+	usine.enregistre_type(cree_desc<OperatriceEtalonnage>());
+	usine.enregistre_type(cree_desc<OperatriceDegrade>());
+	usine.enregistre_type(cree_desc<OperatriceMelange>());
+	usine.enregistre_type(cree_desc<OperatriceBruitage>());
+	usine.enregistre_type(cree_desc<OperatriceSaturation>());
+	usine.enregistre_type(cree_desc<OperatriceMappageTonal>());
+	usine.enregistre_type(cree_desc<OperatriceCorrectionCouleur>());
+	usine.enregistre_type(cree_desc<OperatriceInversement>());
+	usine.enregistre_type(cree_desc<OperatriceIncrustation>());
+	usine.enregistre_type(cree_desc<OperatriceFusionnage>());
+	usine.enregistre_type(cree_desc<OperatricePremultiplication>());
+	usine.enregistre_type(cree_desc<OperatriceNormalisationPixel>());
+	usine.enregistre_type(cree_desc<OperatriceContraste>());
+	usine.enregistre_type(cree_desc<OperatriceCourbeCouleur>());
+	usine.enregistre_type(cree_desc<OperatriceTraduction>());
+	usine.enregistre_type(cree_desc<OperatriceMinMax>());
+	usine.enregistre_type(cree_desc<OperatriceDaltonisme>());
 }
 
 #pragma clang diagnostic pop

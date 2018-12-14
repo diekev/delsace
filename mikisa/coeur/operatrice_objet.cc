@@ -64,12 +64,12 @@ const char *OperatriceObjet::chemin_entreface() const
 
 const char *OperatriceObjet::class_name() const
 {
-	return NOM_OBJET;
+	return NOM;
 }
 
 const char *OperatriceObjet::help_text() const
 {
-	return AIDE_OBJET;
+	return AIDE;
 }
 
 Objet *OperatriceObjet::objet()

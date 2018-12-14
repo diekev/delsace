@@ -129,11 +129,11 @@ static type_image charge_exr(const char *chemin)
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_VISIONNAGE = "Visionneur";
-static constexpr auto AIDE_VISIONNAGE = "Visionner le résultat du graphe.";
-
 class OperatriceVisionnage : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Visionneur";
+	static constexpr auto AIDE = "Visionner le résultat du graphe.";
+
 	explicit OperatriceVisionnage(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -153,12 +153,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_VISIONNAGE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_VISIONNAGE;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -251,14 +251,14 @@ public:
 	}
 };
 
-static constexpr auto NOM_LECTURE_JPEG = "Lecture Image";
-static constexpr auto AIDE_LECTURE_JPEG = "Charge une image depuis le disque.";
-
 class OperatriceLectureJPEG : public OperatriceImage {
 	type_image m_image_chargee{};
 	std::string m_dernier_chemin = "";
 
 public:
+	static constexpr auto NOM = "Lecture Image";
+	static constexpr auto AIDE = "Charge une image depuis le disque.";
+
 	explicit OperatriceLectureJPEG(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -268,12 +268,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_LECTURE_JPEG;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_LECTURE_JPEG;
+		return AIDE;
 	}
 
 	const char *chemin_entreface() const override
@@ -349,11 +349,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_COMMUTATION = "Commutateur";
-static constexpr auto AIDE_COMMUTATION = "";
-
 class OperatriceCommutation : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Commutateur";
+	static constexpr auto AIDE = "";
+
 	explicit OperatriceCommutation(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -366,12 +366,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_COMMUTATION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_COMMUTATION;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -386,9 +386,9 @@ public:
 
 void enregistre_operatrices_flux(UsineOperatrice &usine)
 {
-	usine.register_type(NOM_COMMUTATION, cree_desc<OperatriceCommutation>(NOM_COMMUTATION, AIDE_COMMUTATION));
-	usine.register_type(NOM_VISIONNAGE, cree_desc<OperatriceVisionnage>(NOM_VISIONNAGE, AIDE_VISIONNAGE));
-	usine.register_type(NOM_LECTURE_JPEG, cree_desc<OperatriceLectureJPEG>(NOM_LECTURE_JPEG, AIDE_LECTURE_JPEG));
+	usine.enregistre_type(cree_desc<OperatriceCommutation>());
+	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
+	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
 }
 
 #pragma clang diagnostic pop

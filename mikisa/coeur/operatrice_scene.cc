@@ -85,12 +85,12 @@ const char *OperatriceScene::chemin_entreface() const
 
 const char *OperatriceScene::class_name() const
 {
-	return NOM_SCENE;
+	return NOM;
 }
 
 const char *OperatriceScene::help_text() const
 {
-	return AIDE_SCENE;
+	return AIDE;
 }
 
 Scene *OperatriceScene::scene()

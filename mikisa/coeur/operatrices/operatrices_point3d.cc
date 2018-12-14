@@ -34,11 +34,11 @@
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_ENTREE = "Entrée";
-static constexpr auto AIDE_ENTREE = "";
-
 class OperatricePoint3DEntree final : public OperatricePoint3D {
 public:
+	static constexpr auto NOM = "Entrée";
+	static constexpr auto AIDE = "";
+
 	explicit OperatricePoint3DEntree(Noeud *noeud)
 		: OperatricePoint3D(noeud)
 	{
@@ -58,12 +58,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_ENTREE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_ENTREE;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -75,11 +75,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_VALEUR = "Valeur";
-static constexpr auto AIDE_VALEUR = "";
-
 class OperatricePoint3DValeur final : public OperatricePoint3D {
 public:
+	static constexpr auto NOM = "Valeur";
+	static constexpr auto AIDE = "";
+
 	explicit OperatricePoint3DValeur(Noeud *noeud)
 		: OperatricePoint3D(noeud)
 	{
@@ -99,12 +99,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_VALEUR;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_VALEUR;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -117,11 +117,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_VECTEUR = "Vecteur";
-static constexpr auto AIDE_VECTEUR = "";
-
 class OperatricePoint3DVecteur final : public OperatricePoint3D {
 public:
+	static constexpr auto NOM = "Vecteur";
+	static constexpr auto AIDE = "";
+
 	explicit OperatricePoint3DVecteur(Noeud *noeud)
 		: OperatricePoint3D(noeud)
 	{
@@ -141,12 +141,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_VECTEUR;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_VECTEUR;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -160,11 +160,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_SORTIE = "Sortie";
-static constexpr auto AIDE_SORTIE = "";
-
 class OperatricePoint3DSortie final : public OperatricePoint3D {
 public:
+	static constexpr auto NOM = "Sortie";
+	static constexpr auto AIDE = "";
+
 	explicit OperatricePoint3DSortie(Noeud *noeud)
 		: OperatricePoint3D(noeud)
 	{
@@ -184,12 +184,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_SORTIE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_SORTIE;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -201,11 +201,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_MATH = "Mathématiques";
-static constexpr auto AIDE_MATH = "";
-
 class OperatricePoint3DMath final : public OperatricePoint3D {
 public:
+	static constexpr auto NOM = "Mathématiques";
+	static constexpr auto AIDE = "";
+
 	explicit OperatricePoint3DMath(Noeud *noeud)
 		: OperatricePoint3D(noeud)
 	{
@@ -230,12 +230,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_MATH;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_MATH;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -265,11 +265,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_SEPARE_VECTEUR = "Sépare Vecteur";
-static constexpr auto AIDE_SEPARE_VECTEUR = "";
-
 class OperatricePoint3DSepareVecteur final : public OperatricePoint3D {
 public:
+	static constexpr auto NOM = "Sépare Vecteur";
+	static constexpr auto AIDE = "";
+
 	explicit OperatricePoint3DSepareVecteur(Noeud *noeud)
 		: OperatricePoint3D(noeud)
 	{
@@ -294,12 +294,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_SEPARE_VECTEUR;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_SEPARE_VECTEUR;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -314,11 +314,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_COMBINE_VECTEUR = "Combine Vecteur";
-static constexpr auto AIDE_COMBINE_VECTEUR = "";
-
 class OperatricePoint3DCombineVecteur final : public OperatricePoint3D {
 public:
+	static constexpr auto NOM = "Combine Vecteur";
+	static constexpr auto AIDE = "";
+
 	explicit OperatricePoint3DCombineVecteur(Noeud *noeud)
 		: OperatricePoint3D(noeud)
 	{
@@ -343,12 +343,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_COMBINE_VECTEUR;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_COMBINE_VECTEUR;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -363,15 +363,15 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_BRUIT_PROC = "Bruit Procédurel";
-static constexpr auto AIDE_BRUIT_PROC = "";
-
 class OperatricePoint3DBruitProc final : public OperatricePoint3D {
 	dls::math::BruitFlux3D m_bruit_x{};
 	dls::math::BruitFlux3D m_bruit_y{};
 	dls::math::BruitFlux3D m_bruit_z{};
 
 public:
+	static constexpr auto NOM = "Bruit Procédurel";
+	static constexpr auto AIDE = "";
+
 	explicit OperatricePoint3DBruitProc(Noeud *noeud)
 		: OperatricePoint3D(noeud)
 	{
@@ -396,12 +396,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_BRUIT_PROC;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_BRUIT_PROC;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -453,11 +453,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_TRAD_VEC = "Traduction Vecteur";
-static constexpr auto AIDE_TRAD_VEC = "Traduit les composants du vecteur d'une plage à une autre.";
-
 class OperatriceTradVec final : public OperatricePoint3D {
 public:
+	static constexpr auto NOM = "Traduction Vecteur";
+	static constexpr auto AIDE = "Traduit les composants du vecteur d'une plage à une autre.";
+
 	explicit OperatriceTradVec(Noeud *node)
 		: OperatricePoint3D(node)
 	{
@@ -482,12 +482,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_TRAD_VEC;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_TRAD_VEC;
+		return AIDE;
 	}
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
@@ -510,45 +510,16 @@ public:
 
 void enregistre_operatrices_point3d(UsineOperatrice &usine)
 {
-	usine.register_type(NOM_GRAPHE_MAILLAGE,
-						 cree_desc<OperatriceGrapheMaillage>(
-							 NOM_GRAPHE_MAILLAGE, AIDE_GRAPHE_MAILLAGE));
-
-	usine.register_type(NOM_ENTREE,
-						 cree_desc<OperatricePoint3DEntree>(
-							 NOM_ENTREE, AIDE_ENTREE));
-
-	usine.register_type(NOM_SORTIE,
-						 cree_desc<OperatricePoint3DSortie>(
-							 NOM_SORTIE, AIDE_SORTIE));
-
-	usine.register_type(NOM_MATH,
-						 cree_desc<OperatricePoint3DMath>(
-							 NOM_MATH, AIDE_MATH));
-
-	usine.register_type(NOM_VALEUR,
-						 cree_desc<OperatricePoint3DValeur>(
-							 NOM_VALEUR, AIDE_VALEUR));
-
-	usine.register_type(NOM_VECTEUR,
-						 cree_desc<OperatricePoint3DVecteur>(
-							 NOM_VECTEUR, AIDE_VECTEUR));
-
-	usine.register_type(NOM_SEPARE_VECTEUR,
-						 cree_desc<OperatricePoint3DSepareVecteur>(
-							 NOM_SEPARE_VECTEUR, AIDE_SEPARE_VECTEUR));
-
-	usine.register_type(NOM_COMBINE_VECTEUR,
-						 cree_desc<OperatricePoint3DCombineVecteur>(
-							 NOM_COMBINE_VECTEUR, AIDE_COMBINE_VECTEUR));
-
-	usine.register_type(NOM_BRUIT_PROC,
-						 cree_desc<OperatricePoint3DBruitProc>(
-							 NOM_BRUIT_PROC, AIDE_BRUIT_PROC));
-
-	usine.register_type(NOM_TRAD_VEC,
-						 cree_desc<OperatriceTradVec>(
-							 NOM_TRAD_VEC, AIDE_TRAD_VEC));
+	usine.enregistre_type(cree_desc<OperatriceGrapheMaillage>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DEntree>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DSortie>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DMath>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DValeur>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DVecteur>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DSepareVecteur>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DCombineVecteur>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DBruitProc>());
+	usine.enregistre_type(cree_desc<OperatriceTradVec>());
 }
 
 #pragma clang diagnostic pop

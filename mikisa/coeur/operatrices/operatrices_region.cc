@@ -80,9 +80,6 @@ void applique_fonction_position(type_image &image, TypeOperation &&op)
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_ANALYSE = "Analyse";
-static constexpr auto AIDE_ANALYSE = "Analyse l'image.";
-
 class OperatriceAnalyse : public OperatriceImage {
 	enum {
 		ANALYSE_GRADIENT   = 0,
@@ -103,6 +100,9 @@ class OperatriceAnalyse : public OperatriceImage {
 	};
 
 public:
+	static constexpr auto NOM = "Analyse";
+	static constexpr auto AIDE = "Analyse l'image.";
+
 	explicit OperatriceAnalyse(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -116,12 +116,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_ANALYSE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_ANALYSE;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -323,11 +323,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_FILTRAGE = "Filtre";
-static constexpr auto AIDE_FILTRAGE = "Appliquer un filtre à une image.";
-
 class OperatriceFiltrage : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Filtre";
+	static constexpr auto AIDE = "Appliquer un filtre à une image.";
+
 	explicit OperatriceFiltrage(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -341,12 +341,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_FILTRAGE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_FILTRAGE;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -407,12 +407,12 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_NORMALISE = "Normalise";
-static constexpr auto AIDE_NORMALISE = "Normalise the image.";
-
-class OperatriceNormalisation : public OperatriceImage {
+class OperatriceNormalisationRegion : public OperatriceImage {
 public:
-	explicit OperatriceNormalisation(Noeud *node)
+	static constexpr auto NOM = "Normalisation Région";
+	static constexpr auto AIDE = "Normalise the image.";
+
+	explicit OperatriceNormalisationRegion(Noeud *node)
 		: OperatriceImage(node)
 	{
 		inputs(1);
@@ -425,12 +425,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_NORMALISE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_NORMALISE;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -463,11 +463,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_FLOU = "Flou";
-static constexpr auto AIDE_FLOU = "Applique un flou à l'image.";
-
 class OperatriceFloutage : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Flou";
+	static constexpr auto AIDE = "Applique un flou à l'image.";
+
 	explicit OperatriceFloutage(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -481,12 +481,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_FLOU;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_FLOU;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -600,11 +600,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_TOURNOIEMENT = "Tournoiement";
-static constexpr auto AIDE_TOURNOIEMENT = "Applique un tournoiement aux pixels de l'image.";
-
 class OperatriceTournoiement : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Tournoiement";
+	static constexpr auto AIDE = "Applique un tournoiement aux pixels de l'image.";
+
 	explicit OperatriceTournoiement(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -618,12 +618,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_TOURNOIEMENT;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_TOURNOIEMENT;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -673,9 +673,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CHAMPS_DISTANCE = "Champs distance";
-static constexpr auto AIDE_CHAMPS_DISTANCE = "Calcule le champs de distance de l'image d'entrée.";
-
 static void calcule_distance(
 		numero7::math::matrice<float> &phi,
 		int x, int y, float h)
@@ -696,6 +693,9 @@ static void calcule_distance(
 
 class OperatriceChampsDistance : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Champs distance";
+	static constexpr auto AIDE = "Calcule le champs de distance de l'image d'entrée.";
+
 	explicit OperatriceChampsDistance(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -709,12 +709,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CHAMPS_DISTANCE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CHAMPS_DISTANCE;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -808,9 +808,6 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_DEFORMATION = "Déformation";
-static constexpr auto AIDE_DEFORMATION = "Déforme une image de manière aléatoire.";
-
 static auto moyenne(const numero7::image::Pixel<float> &pixel)
 {
 	return (pixel.r + pixel.g + pixel.b) * 0.3333f;
@@ -818,6 +815,9 @@ static auto moyenne(const numero7::image::Pixel<float> &pixel)
 
 class OperatriceDeformation final : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Déformation";
+	static constexpr auto AIDE = "Déforme une image de manière aléatoire.";
+
 	explicit OperatriceDeformation(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -831,12 +831,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_DEFORMATION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_DEFORMATION;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -900,9 +900,6 @@ public:
 /**
  * https://hal.archives-ouvertes.fr/hal-01358392/file/Film_grain_rendering_preprint.pdf
  */
-
-static constexpr auto NOM_SIMULATION_GRAIN = "Simulation de grain";
-static constexpr auto AIDE_SIMULATION_GRAIN = "Calcul du grain selon l'image d'entrée.";
 
 static const auto MAX_NIVEAU_GRIS = 255;
 
@@ -1103,6 +1100,9 @@ static type_image_grise simule_grain_image(
 
 class OperatriceSimulationGrain final : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Simulation de grain";
+	static constexpr auto AIDE = "Calcul du grain selon l'image d'entrée.";
+
 	explicit OperatriceSimulationGrain(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -1116,12 +1116,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_SIMULATION_GRAIN;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_SIMULATION_GRAIN;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1167,11 +1167,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_COORD_POLAIRE = "Coordonnées Polaires";
-static constexpr auto AIDE_COORD_POLAIRE = "Transforme une image entre les coordonnées cartésiennes et les coordonnées polaires.";
-
 class OperatriceCoordonneesPolaires final : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Coordonnées Polaires";
+	static constexpr auto AIDE = "Transforme une image entre les coordonnées cartésiennes et les coordonnées polaires.";
+
 	explicit OperatriceCoordonneesPolaires(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -1185,12 +1185,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_COORD_POLAIRE;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_COORD_POLAIRE;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1228,11 +1228,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_ONDELETTE_HAAR = "Ondelette de Haar";
-static constexpr auto AIDE_ONDELETTE_HAAR = "Calcul l'ondelette de Haar d'une image.";
-
 class OperatriceOndeletteHaar final : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Ondelette de Haar";
+	static constexpr auto AIDE = "Calcul l'ondelette de Haar d'une image.";
+
 	explicit OperatriceOndeletteHaar(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -1246,12 +1246,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_ONDELETTE_HAAR;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_ONDELETTE_HAAR;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1323,11 +1323,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_DILATION = "Dilation";
-static constexpr auto AIDE_DILATION = "Dilate les pixels de l'image. Les parties les plus sombres de l'image rapetissent tandis que les plus claires grossissent.";
-
 class OperatriceDilation final : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Dilation";
+	static constexpr auto AIDE = "Dilate les pixels de l'image. Les parties les plus sombres de l'image rapetissent tandis que les plus claires grossissent.";
+
 	explicit OperatriceDilation(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -1341,12 +1341,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_DILATION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_DILATION;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1403,11 +1403,11 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_EROSION = "Érosion";
-static constexpr auto AIDE_EROSION = "Érode les pixels de l'image. Les parties les plus claires de l'image rapetissent tandis que les plus sombres grossissent.";
-
 class OperatriceErosion final : public OperatriceImage {
 public:
+	static constexpr auto NOM = "Érosion";
+	static constexpr auto AIDE = "Érode les pixels de l'image. Les parties les plus claires de l'image rapetissent tandis que les plus sombres grossissent.";
+
 	explicit OperatriceErosion(Noeud *node)
 		: OperatriceImage(node)
 	{
@@ -1421,12 +1421,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_EROSION;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_EROSION;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -1484,18 +1484,18 @@ public:
 
 void enregistre_operatrices_region(UsineOperatrice &usine)
 {
-	usine.register_type(NOM_ANALYSE, cree_desc<OperatriceAnalyse>(NOM_ANALYSE, AIDE_ANALYSE));
-	usine.register_type(NOM_FILTRAGE, cree_desc<OperatriceFiltrage>(NOM_FILTRAGE, AIDE_FILTRAGE));
-	usine.register_type(NOM_FLOU, cree_desc<OperatriceFloutage>(NOM_FLOU, AIDE_FLOU));
-	usine.register_type(NOM_CHAMPS_DISTANCE, cree_desc<OperatriceChampsDistance>(NOM_CHAMPS_DISTANCE, AIDE_CHAMPS_DISTANCE));
-	usine.register_type(NOM_NORMALISE, cree_desc<OperatriceNormalisation>(NOM_NORMALISE, AIDE_NORMALISE));
-	usine.register_type(NOM_TOURNOIEMENT, cree_desc<OperatriceTournoiement>(NOM_TOURNOIEMENT, AIDE_TOURNOIEMENT));
-	usine.register_type(NOM_DEFORMATION, cree_desc<OperatriceDeformation>(NOM_DEFORMATION, AIDE_DEFORMATION));
-	usine.register_type(NOM_SIMULATION_GRAIN, cree_desc<OperatriceSimulationGrain>(NOM_SIMULATION_GRAIN, AIDE_SIMULATION_GRAIN));
-	usine.register_type(NOM_COORD_POLAIRE, cree_desc<OperatriceCoordonneesPolaires>(NOM_COORD_POLAIRE, AIDE_COORD_POLAIRE));
-	usine.register_type(NOM_ONDELETTE_HAAR, cree_desc<OperatriceOndeletteHaar>(NOM_ONDELETTE_HAAR, AIDE_ONDELETTE_HAAR));
-	usine.register_type(NOM_DILATION, cree_desc<OperatriceDilation>(NOM_DILATION, AIDE_DILATION));
-	usine.register_type(NOM_EROSION, cree_desc<OperatriceErosion>(NOM_EROSION, AIDE_EROSION));
+	usine.enregistre_type(cree_desc<OperatriceAnalyse>());
+	usine.enregistre_type(cree_desc<OperatriceFiltrage>());
+	usine.enregistre_type(cree_desc<OperatriceFloutage>());
+	usine.enregistre_type(cree_desc<OperatriceChampsDistance>());
+	usine.enregistre_type(cree_desc<OperatriceNormalisationRegion>());
+	usine.enregistre_type(cree_desc<OperatriceTournoiement>());
+	usine.enregistre_type(cree_desc<OperatriceDeformation>());
+	usine.enregistre_type(cree_desc<OperatriceSimulationGrain>());
+	usine.enregistre_type(cree_desc<OperatriceCoordonneesPolaires>());
+	usine.enregistre_type(cree_desc<OperatriceOndeletteHaar>());
+	usine.enregistre_type(cree_desc<OperatriceDilation>());
+	usine.enregistre_type(cree_desc<OperatriceErosion>());
 }
 
 #pragma clang diagnostic pop

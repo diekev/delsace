@@ -48,13 +48,11 @@ struct DescOperatrice {
 };
 
 template <typename T>
-inline DescOperatrice cree_desc(
-        const std::string &nom,
-        const std::string &info_bulle)
+inline DescOperatrice cree_desc()
 {
 	return DescOperatrice(
-	            nom,
-	            info_bulle,
+				T::NOM,
+				T::AIDE,
 	            [](Noeud *noeud) -> OperatriceImage* { return new T(noeud); });
 }
 
@@ -70,7 +68,7 @@ public:
 	 *
 	 * @return The number of entries after registering the new element.
 	 */
-	size_t register_type(const std::string &name, const DescOperatrice &desc);
+	size_t enregistre_type(const DescOperatrice &desc);
 
 	/**
 	 * @brief operator() Create a ImageNode based on the given key.

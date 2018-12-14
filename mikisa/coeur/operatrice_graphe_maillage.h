@@ -71,15 +71,15 @@ public:
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_GRAPHE_MAILLAGE = "Graphe Maillage";
-static constexpr auto AIDE_GRAPHE_MAILLAGE = "Graphe Maillage";
-
 class OperatriceGrapheMaillage : public OperatriceCorps {
 	GestionnaireDonneesGraphe m_gestionnaire{};
 	CompileuseGraphe m_compileuse{};
 	Graphe m_graphe{};
 
 public:
+	static constexpr auto NOM = "Graphe Maillage";
+	static constexpr auto AIDE = "Graphe Maillage";
+
 	explicit OperatriceGrapheMaillage(Noeud *noeud);
 
 	virtual const char *class_name() const override;

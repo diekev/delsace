@@ -36,11 +36,11 @@
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_CREATION_POINTS = "Création Points";
-static constexpr auto AIDE_CREATION_POINTS = "Crée des points.";
-
 class OperatriceCreationPoints final : public OperatriceCorps {
 public:
+	static constexpr auto NOM = "Création Points";
+	static constexpr auto AIDE = "Crée des points.";
+
 	explicit OperatriceCreationPoints(Noeud *noeud)
 		: OperatriceCorps(noeud)
 	{
@@ -65,12 +65,12 @@ public:
 
 	const char *class_name() const override
 	{
-		return NOM_CREATION_POINTS;
+		return NOM;
 	}
 
 	const char *help_text() const override
 	{
-		return AIDE_CREATION_POINTS;
+		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -100,10 +100,7 @@ public:
 
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
-	usine.register_type(NOM_CREATION_POINTS,
-						 cree_desc<OperatriceCreationPoints>(
-							 NOM_CREATION_POINTS,
-							 AIDE_CREATION_POINTS));
+	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
 }
 
 #pragma clang diagnostic pop

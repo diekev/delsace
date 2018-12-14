@@ -36,6 +36,9 @@ class OperatriceGraphePixel : public OperatriceImage {
 	Graphe m_graphe{};
 
 public:
+    static constexpr auto NOM = "Graphe";
+    static constexpr auto AIDE = "Ajoute un graphe travaillant sur les pixels de l'image de manière individuelle";
+
 	explicit OperatriceGraphePixel(Noeud *node);
 
 	virtual const char *class_name() const override;

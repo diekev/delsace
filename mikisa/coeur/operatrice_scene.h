@@ -31,9 +31,6 @@
 #include "operatrice_image.h"
 #include "scene.h"
 
-static constexpr auto NOM_SCENE = "Scène";
-static constexpr auto AIDE_SCENE = "Crée une scène.";
-
 class OperatriceScene final : public OperatriceImage {
 	Scene m_scene{};
 	ContexteRendu m_contexte{};
@@ -41,6 +38,9 @@ class OperatriceScene final : public OperatriceImage {
 	Graphe m_graphe{};
 
 public:
+	static constexpr auto NOM = "Scène";
+	static constexpr auto AIDE = "Crée une scène.";
+
 	explicit OperatriceScene(Noeud *node);
 
 	int type() const override;
