@@ -50,15 +50,15 @@
 
 /* ************************************************************************** */
 
-static void charge_manipulatrice(Mikisa *mikisa, int type_manipulation)
+static void charge_manipulatrice(Mikisa &mikisa, int type_manipulation)
 {
-	mikisa->type_manipulation_3d = type_manipulation;
+	mikisa.type_manipulation_3d = type_manipulation;
 
-	if (mikisa->contexte != GRAPHE_COMPOSITE) {
+	if (mikisa.contexte != GRAPHE_COMPOSITE) {
 		return;
 	}
 
-	auto graphe = mikisa->graphe;
+	auto graphe = mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
 	if (noeud == nullptr) {
@@ -67,17 +67,17 @@ static void charge_manipulatrice(Mikisa *mikisa, int type_manipulation)
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
-	if (!operatrice->possede_manipulatrice_3d(mikisa->type_manipulation_3d)) {
-		mikisa->manipulatrice_3d = nullptr;
+	if (!operatrice->possede_manipulatrice_3d(mikisa.type_manipulation_3d)) {
+		mikisa.manipulatrice_3d = nullptr;
 		return;
 	}
 
-	mikisa->manipulatrice_3d = operatrice->manipulatrice_3d(mikisa->type_manipulation_3d);
+	mikisa.manipulatrice_3d = operatrice->manipulatrice_3d(mikisa.type_manipulation_3d);
 }
 
 /* ************************************************************************** */
 
-VueCanevas3D::VueCanevas3D(Mikisa *mikisa, EditriceVue3D *base, QWidget *parent)
+VueCanevas3D::VueCanevas3D(Mikisa &mikisa, EditriceVue3D *base, QWidget *parent)
 	: QGLWidget(parent)
 	, m_mikisa(mikisa)
 	, m_visionneur_scene(new VisionneurScene(this, mikisa))
@@ -124,7 +124,7 @@ void VueCanevas3D::mousePressEvent(QMouseEvent *e)
 	donnees.souris = static_cast<int>(e->buttons());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_mikisa->repondant_commande()->appele_commande("vue_3d", donnees);
+	m_mikisa.repondant_commande()->appele_commande("vue_3d", donnees);
 }
 
 void VueCanevas3D::mouseMoveEvent(QMouseEvent *e)
@@ -135,10 +135,10 @@ void VueCanevas3D::mouseMoveEvent(QMouseEvent *e)
 	donnees.souris = static_cast<int>(e->buttons());
 
 	if (e->buttons() == 0) {
-		m_mikisa->repondant_commande()->appele_commande("vue_3d", donnees);
+		m_mikisa.repondant_commande()->appele_commande("vue_3d", donnees);
 	}
 	else {
-		m_mikisa->repondant_commande()->ajourne_commande_modale(donnees);
+		m_mikisa.repondant_commande()->ajourne_commande_modale(donnees);
 	}
 }
 
@@ -155,7 +155,7 @@ void VueCanevas3D::wheelEvent(QWheelEvent *e)
 	donnees.souris = Qt::MiddleButton;
 	donnees.double_clique = true;
 
-	m_mikisa->repondant_commande()->appele_commande("vue_3d", donnees);
+	m_mikisa.repondant_commande()->appele_commande("vue_3d", donnees);
 }
 
 void VueCanevas3D::mouseReleaseEvent(QMouseEvent *e)
@@ -166,7 +166,7 @@ void VueCanevas3D::mouseReleaseEvent(QMouseEvent *e)
 	donnees.x = static_cast<float>(e->pos().x());
 	donnees.y = static_cast<float>(e->pos().y());
 
-	m_mikisa->repondant_commande()->acheve_commande_modale(donnees);
+	m_mikisa.repondant_commande()->acheve_commande_modale(donnees);
 }
 
 void VueCanevas3D::reconstruit_scene() const
@@ -176,7 +176,7 @@ void VueCanevas3D::reconstruit_scene() const
 
 /* ************************************************************************** */
 
-EditriceVue3D::EditriceVue3D(Mikisa *mikisa, QWidget *parent)
+EditriceVue3D::EditriceVue3D(Mikisa &mikisa, QWidget *parent)
 	: BaseEditrice(mikisa, parent)
 	, m_vue(new VueCanevas3D(mikisa, this, this))
 {
@@ -273,7 +273,7 @@ void EditriceVue3D::ajourne_etat(int evenement)
 
 void EditriceVue3D::bascule_manipulation()
 {
-	m_mikisa->manipulation_3d_activee = !m_mikisa->manipulation_3d_activee;
+	m_mikisa.manipulation_3d_activee = !m_mikisa.manipulation_3d_activee;
 	m_vue->update();
 }
 

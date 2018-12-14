@@ -271,7 +271,7 @@ static void ecris_graphe(
 	}
 }
 
-erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Mikisa &mikisa)
+erreur_fichier sauvegarde_projet(const filesystem::path &chemin, Mikisa const &mikisa)
 {
 	tinyxml2::XMLDocument doc;
 	doc.InsertFirstChild(doc.NewDeclaration());
@@ -461,12 +461,12 @@ struct DonneesConnexions {
 
 static void lecture_graphe(
 		tinyxml2::XMLElement *element_objet,
-		Mikisa *mikisa,
+		Mikisa &mikisa,
 		Graphe *graphe);
 
 static void lecture_noeud(
 		tinyxml2::XMLElement *element_noeud,
-		Mikisa *mikisa,
+		Mikisa &mikisa,
 		Graphe *graphe,
 		DonneesConnexions &donnees_connexion)
 {
@@ -480,7 +480,7 @@ static void lecture_noeud(
 	const auto element_operatrice = element_noeud->FirstChildElement("operatrice");
 	const auto nom_operatrice = element_operatrice->Attribute("nom");
 
-	OperatriceImage *operatrice = (*mikisa->usine_operatrices())(nom_operatrice, noeud);
+	OperatriceImage *operatrice = (*mikisa.usine_operatrices())(nom_operatrice, noeud);
 	lecture_proprietes(element_operatrice, operatrice);
 	synchronise_donnees_operatrice(noeud);
 
@@ -532,7 +532,7 @@ static void lecture_noeud(
 
 void lecture_graphe(
 		tinyxml2::XMLElement *racine_graphe,
-		Mikisa *mikisa,
+		Mikisa &mikisa,
 		Graphe *graphe)
 {
 	auto element_noeud = racine_graphe->FirstChildElement("noeud");
@@ -557,7 +557,7 @@ void lecture_graphe(
 	}
 }
 
-erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa *mikisa)
+erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa &mikisa)
 {
 	if (!std::experimental::filesystem::exists(chemin)) {
 		return erreur_fichier::NON_TROUVE;
@@ -566,7 +566,7 @@ erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa *mikisa)
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(chemin.c_str());
 
-	auto composite = mikisa->composite;
+	auto composite = mikisa.composite;
 	composite->graph().supprime_tout();
 
 	/* Lecture du projet. */
@@ -587,7 +587,7 @@ erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa *mikisa)
 	auto racine_graphe = racine_composite->FirstChildElement("graphe");
 	lecture_graphe(racine_graphe, mikisa, &composite->graph());
 
-	mikisa->notifie_auditeurs(type_evenement::rafraichissement);
+	mikisa.notifie_auditeurs(type_evenement::rafraichissement);
 
 	return erreur_fichier::AUCUNE_ERREUR;
 }

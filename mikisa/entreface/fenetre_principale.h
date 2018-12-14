@@ -37,10 +37,10 @@ class Mikisa;
 class FenetrePrincipale : public QMainWindow {
 	Q_OBJECT
 
-	Mikisa *m_mikisa = nullptr;
+	Mikisa &m_mikisa;
 
 public:
-	explicit FenetrePrincipale(Mikisa *mikisa, QWidget *parent = nullptr);
+	explicit FenetrePrincipale(Mikisa &mikisa, QWidget *parent = nullptr);
 	~FenetrePrincipale();
 
 	FenetrePrincipale(FenetrePrincipale const &) = default;

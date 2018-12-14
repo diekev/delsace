@@ -67,11 +67,11 @@ enum {
 	EDITRICE_VUE3D,
 };
 
-FenetrePrincipale::FenetrePrincipale(Mikisa *mikisa, QWidget *parent)
+FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 	: QMainWindow(parent)
 	, m_mikisa(mikisa)
 {
-	mikisa->fenetre_principale = this;
+	mikisa.fenetre_principale = this;
 
 	genere_barre_menu();
 
@@ -96,11 +96,11 @@ void FenetrePrincipale::genere_barre_menu()
 	danjo::DonneesInterface donnees{};
 	donnees.manipulable = nullptr;
 	donnees.conteneur = nullptr;
-	donnees.repondant_bouton = m_mikisa->repondant_commande();
+	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
 	for (const auto &chemin : chemins_scripts) {
 		const auto texte_entree = danjo::contenu_fichier(chemin);
-		auto menu = m_mikisa->gestionnaire_entreface->compile_menu(donnees, texte_entree.c_str());
+		auto menu = m_mikisa.gestionnaire_entreface->compile_menu(donnees, texte_entree.c_str());
 
 		menuBar()->addMenu(menu);
 	}
@@ -150,5 +150,5 @@ QDockWidget *FenetrePrincipale::ajoute_dock(const QString &nom, int type, int ai
 
 void FenetrePrincipale::image_traitee()
 {
-	m_mikisa->notifie_auditeurs(type_evenement::image | type_evenement::traite);
+	m_mikisa.notifie_auditeurs(type_evenement::image | type_evenement::traite);
 }

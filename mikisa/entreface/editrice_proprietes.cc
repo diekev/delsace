@@ -44,7 +44,7 @@
 #include "coeur/noeud_image.h"
 #include "coeur/operatrice_image.h"
 
-EditriceProprietes::EditriceProprietes(Mikisa *mikisa, QWidget *parent)
+EditriceProprietes::EditriceProprietes(Mikisa &mikisa, QWidget *parent)
 	: BaseEditrice(mikisa, parent)
     , m_widget(new QWidget())
 	, m_conteneur_avertissements(new QWidget())
@@ -86,7 +86,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 	reinitialise_entreface(creation_avert);
 
-	auto graphe = m_mikisa->graphe;
+	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
 	if (noeud == nullptr) {
@@ -139,7 +139,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	donnees.manipulable = operatrice;
 	donnees.conteneur = this;
 
-	auto disposition = m_mikisa->gestionnaire_entreface->compile_entreface(donnees, texte.c_str(), m_mikisa->temps_courant);
+	auto disposition = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, texte.c_str(), m_mikisa.temps_courant);
 	m_conteneur_disposition->setLayout(disposition);
 }
 
@@ -163,7 +163,7 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 
 void EditriceProprietes::ajourne_manipulable()
 {
-	auto graphe = m_mikisa->graphe;
+	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
 	if (noeud == nullptr) {
@@ -179,7 +179,7 @@ void EditriceProprietes::obtiens_liste(
 		const std::string &attache,
 		std::vector<std::string> &chaines)
 {
-	auto graphe = m_mikisa->graphe;
+	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
 	if (noeud == nullptr) {

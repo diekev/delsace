@@ -48,7 +48,7 @@
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 
-EditriceLigneTemps::EditriceLigneTemps(Mikisa *mikisa, QWidget *parent)
+EditriceLigneTemps::EditriceLigneTemps(Mikisa &mikisa, QWidget *parent)
 	: BaseEditrice(mikisa, parent)
 	, m_slider(new QSlider(m_frame))
 	, m_tc_layout(new QHBoxLayout())
@@ -109,10 +109,10 @@ EditriceLigneTemps::EditriceLigneTemps(Mikisa *mikisa, QWidget *parent)
 	danjo::DonneesInterface donnees{};
 	donnees.conteneur = nullptr;
 	donnees.manipulable = &dummy;
-	donnees.repondant_bouton = mikisa->repondant_commande();
+	donnees.repondant_bouton = mikisa.repondant_commande();
 
 	auto text_entree = danjo::contenu_fichier("entreface/disposition_ligne_temps.jo");
-	auto disp_controles = m_mikisa->gestionnaire_entreface->compile_entreface(donnees, text_entree.c_str());
+	auto disp_controles = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, text_entree.c_str());
 
 	m_tc_layout->addLayout(disp_controles);
 
@@ -149,19 +149,19 @@ void EditriceLigneTemps::ajourne_etat(int evenement)
 		return;
 	}
 
-	m_slider->setMinimum(m_mikisa->temps_debut);
-	m_start_frame->setValue(m_mikisa->temps_debut);
+	m_slider->setMinimum(m_mikisa.temps_debut);
+	m_start_frame->setValue(m_mikisa.temps_debut);
 
-	m_slider->setMaximum(m_mikisa->temps_fin);
-	m_end_frame->setValue(m_mikisa->temps_fin);
+	m_slider->setMaximum(m_mikisa.temps_fin);
+	m_end_frame->setValue(m_mikisa.temps_fin);
 
-	m_cur_frame->setValue(m_mikisa->temps_courant);
+	m_cur_frame->setValue(m_mikisa.temps_courant);
 
-	m_slider->setValue(m_mikisa->temps_courant);
+	m_slider->setValue(m_mikisa.temps_courant);
 
-	m_fps->setValue(m_mikisa->cadence);
+	m_fps->setValue(m_mikisa.cadence);
 
-	if (m_mikisa->animation) {
+	if (m_mikisa.animation) {
 		m_timer->start(static_cast<int>(1000.0 / m_fps->value()));
 	}
 	else {
@@ -172,42 +172,42 @@ void EditriceLigneTemps::ajourne_etat(int evenement)
 void EditriceLigneTemps::setStartFrame(int value)
 {
 	this->rend_actif();
-	m_mikisa->temps_debut = value;
+	m_mikisa.temps_debut = value;
 }
 
 void EditriceLigneTemps::setEndFrame(int value)
 {
 	this->rend_actif();
-	m_mikisa->temps_fin = value;
+	m_mikisa.temps_fin = value;
 }
 
 void EditriceLigneTemps::setCurrentFrame(int value)
 {
 	this->rend_actif();
-	m_mikisa->temps_courant = value;
-	m_mikisa->ajourne_pour_nouveau_temps();
+	m_mikisa.temps_courant = value;
+	m_mikisa.ajourne_pour_nouveau_temps();
 
-	m_mikisa->notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+	m_mikisa.notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
 }
 
 void EditriceLigneTemps::setFPS(double value)
 {
 	this->rend_actif();
-	m_mikisa->cadence = value;
+	m_mikisa.cadence = value;
 }
 
 void EditriceLigneTemps::updateFrame() const
 {
-	auto value = m_mikisa->temps_courant;
+	auto value = m_mikisa.temps_courant;
 
 	++value;
 
-	if (value > m_mikisa->temps_fin) {
-		value = m_mikisa->temps_debut;
+	if (value > m_mikisa.temps_fin) {
+		value = m_mikisa.temps_debut;
 	}
 
-	m_mikisa->temps_courant = value;
-	m_mikisa->ajourne_pour_nouveau_temps();
+	m_mikisa.temps_courant = value;
+	m_mikisa.ajourne_pour_nouveau_temps();
 
-	m_mikisa->notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+	m_mikisa.notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
 }

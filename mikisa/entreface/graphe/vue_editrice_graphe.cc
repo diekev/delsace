@@ -45,7 +45,7 @@
 
 /* ************************************************************************** */
 
-VueEditeurNoeud::VueEditeurNoeud(Mikisa *mikisa,
+VueEditeurNoeud::VueEditeurNoeud(Mikisa &mikisa,
 		EditriceGraphe *base,
 		QWidget *parent)
 	: QGraphicsView(parent)
@@ -58,9 +58,9 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa *mikisa,
 	danjo::DonneesInterface donnees{};
 	donnees.manipulable = nullptr;
 	donnees.conteneur = nullptr;
-	donnees.repondant_bouton = m_mikisa->repondant_commande();
+	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	auto gestionnaire = m_mikisa->gestionnaire_entreface;
+	auto gestionnaire = m_mikisa.gestionnaire_entreface;
 
 	auto texte_entree = danjo::contenu_fichier("entreface/menu_ajouter_noeud_composite.jo");
 	m_menu_ajout_noeud_composite = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
@@ -88,7 +88,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 	m_base->rend_actif();
 
 	if (event->key() == Qt::Key_Tab) {
-		switch (m_mikisa->contexte) {
+		switch (m_mikisa.contexte) {
 			case GRAPHE_COMPOSITE:
 				m_menu_ajout_noeud_composite->popup(QCursor::pos());
 				break;
@@ -107,7 +107,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 		DonneesCommande donnees;
 		donnees.cle = event->key();
 
-		m_mikisa->repondant_commande()->appele_commande("graphe", donnees);
+		m_mikisa.repondant_commande()->appele_commande("graphe", donnees);
 	}
 }
 
@@ -122,7 +122,7 @@ void VueEditeurNoeud::wheelEvent(QWheelEvent *event)
 	donnees.y = static_cast<float>(event->angleDelta().y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_mikisa->repondant_commande()->appele_commande("graphe", donnees);
+	m_mikisa.repondant_commande()->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
@@ -139,7 +139,7 @@ void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_mikisa->repondant_commande()->ajourne_commande_modale(donnees);
+	m_mikisa.repondant_commande()->ajourne_commande_modale(donnees);
 }
 
 void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
@@ -158,7 +158,7 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_mikisa->repondant_commande()->appele_commande("graphe", donnees);
+	m_mikisa.repondant_commande()->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
@@ -174,7 +174,7 @@ void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_mikisa->repondant_commande()->appele_commande("graphe", donnees);
+	m_mikisa.repondant_commande()->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
@@ -188,7 +188,7 @@ void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_mikisa->repondant_commande()->acheve_commande_modale(donnees);
+	m_mikisa.repondant_commande()->acheve_commande_modale(donnees);
 }
 
 bool VueEditeurNoeud::focusNextPrevChild(bool /*next*/)

@@ -42,9 +42,9 @@
 #include "tache.h"
 
 /* À FAIRE : évaluation asynchrone */
-void evalue_resultat(Mikisa *mikisa)
+void evalue_resultat(Mikisa &mikisa)
 {
-	switch (mikisa->contexte) {
+	switch (mikisa.contexte) {
 		case GRAPHE_SCENE:
 			evalue_scene(mikisa);
 			break;
@@ -68,10 +68,10 @@ class GraphEvalTask : public tbb::task {
 class GraphEvalTask {
 #endif
 	TaskNotifier notifier;
-	const Mikisa *m_mikisa;
+	Mikisa const &m_mikisa;
 
 public:
-	explicit GraphEvalTask(const Mikisa *mikisa);
+	explicit GraphEvalTask(Mikisa const &mikisa);
 
 	GraphEvalTask(GraphEvalTask const &) = default;
 	GraphEvalTask &operator=(GraphEvalTask const &) = default;
@@ -83,19 +83,19 @@ public:
 #endif
 };
 
-GraphEvalTask::GraphEvalTask(const Mikisa *mikisa)
-	: notifier(mikisa->fenetre_principale)
+GraphEvalTask::GraphEvalTask(Mikisa const &mikisa)
+	: notifier(mikisa.fenetre_principale)
 	, m_mikisa(mikisa)
 {}
 
 tbb::task *GraphEvalTask::execute()
 {
-	auto &composite = m_mikisa->composite;
+	auto &composite = m_mikisa.composite;
 	auto &graphe = composite->graph();
 
 	/* Essaie de trouver une visionneuse. */
 
-	Noeud *visionneuse = m_mikisa->derniere_visionneuse_selectionnee;
+	Noeud *visionneuse = m_mikisa.derniere_visionneuse_selectionnee;
 
 	if (visionneuse == nullptr) {
 		for (const std::shared_ptr<Noeud> &node : graphe.noeuds()) {
@@ -116,10 +116,10 @@ tbb::task *GraphEvalTask::execute()
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(m_mikisa->project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(m_mikisa->project_settings->largeur);
+	rectangle.hauteur = static_cast<float>(m_mikisa.project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(m_mikisa.project_settings->largeur);
 
-	execute_noeud(visionneuse, rectangle, m_mikisa->temps_courant);
+	execute_noeud(visionneuse, rectangle, m_mikisa.temps_courant);
 
 	Image image;
 	auto operatrice = std::any_cast<OperatriceImage *>(visionneuse->donnees());
@@ -132,7 +132,7 @@ tbb::task *GraphEvalTask::execute()
 	return nullptr;
 }
 
-void evalue_graphe(const Mikisa *mikisa)
+void evalue_graphe(Mikisa const &mikisa)
 {
 #ifdef TACHE_TBB
 	GraphEvalTask *t = new(tbb::task::allocate_root()) GraphEvalTask(mikisa);
@@ -146,7 +146,7 @@ void evalue_graphe(const Mikisa *mikisa)
 #endif
 }
 
-static Objet *evalue_objet_ex(const Mikisa *mikisa, Noeud *noeud)
+static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 {
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
@@ -157,13 +157,13 @@ static Objet *evalue_objet_ex(const Mikisa *mikisa, Noeud *noeud)
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(mikisa->project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(mikisa->project_settings->largeur);
+	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
 
 	const auto t0 = tbb::tick_count::now();
 
 	operatrice->reinitialise_avertisements();
-	operatrice->execute(rectangle, mikisa->temps_courant);
+	operatrice->execute(rectangle, mikisa.temps_courant);
 
 	const auto t1 = tbb::tick_count::now();
 	const auto delta = (t1 - t0).seconds();
@@ -172,9 +172,9 @@ static Objet *evalue_objet_ex(const Mikisa *mikisa, Noeud *noeud)
 	return operatrice->objet();
 }
 
-void evalue_scene(const Mikisa *mikisa)
+void evalue_scene(Mikisa const &mikisa)
 {
-	auto noeud = mikisa->derniere_scene_selectionnee;
+	auto noeud = mikisa.derniere_scene_selectionnee;
 
 	if (noeud == nullptr) {
 		return;
@@ -189,8 +189,8 @@ void evalue_scene(const Mikisa *mikisa)
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(mikisa->project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(mikisa->project_settings->largeur);
+	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
 
 	auto scene = operatrice->scene();
 	scene->reinitialise();
@@ -206,14 +206,14 @@ void evalue_scene(const Mikisa *mikisa)
 		}
 	}
 
-	mikisa->notifie_auditeurs(type_evenement::scene | type_evenement::traite);
+	mikisa.notifie_auditeurs(type_evenement::scene | type_evenement::traite);
 }
 
-void evalue_objet(const Mikisa *mikisa)
+void evalue_objet(Mikisa const &mikisa)
 {
 	/* l'objet courant doit être le noeud actif du graphe de la dernière scène
 	 * sélectionnée */
-	auto noeud = mikisa->derniere_scene_selectionnee;
+	auto noeud = mikisa.derniere_scene_selectionnee;
 
 	if (noeud == nullptr) {
 		return;
@@ -237,7 +237,7 @@ void evalue_objet(const Mikisa *mikisa)
 
 	evalue_objet_ex(mikisa, noeud);
 
-	mikisa->notifie_auditeurs(type_evenement::objet | type_evenement::traite);
+	mikisa.notifie_auditeurs(type_evenement::objet | type_evenement::traite);
 }
 
 #if 0

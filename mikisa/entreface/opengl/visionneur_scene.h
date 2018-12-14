@@ -47,7 +47,7 @@ class VueCanevas3D;
  */
 class VisionneurScene {
 	VueCanevas3D *m_parent;
-	Mikisa *m_mikisa;
+	Mikisa &m_mikisa;
 
 	vision::Camera3D *m_camera;
 	RenduGrille *m_rendu_grille;
@@ -73,7 +73,7 @@ public:
 	 * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
 	 * pointeur vers l'instance de Kanba du programme en cours.
 	 */
-	VisionneurScene(VueCanevas3D *parent, Mikisa *mikisa);
+	VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa);
 
 	/**
 	 * Empêche la copie d'un visionneur.

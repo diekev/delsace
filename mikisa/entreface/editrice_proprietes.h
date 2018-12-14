@@ -38,7 +38,7 @@ class EditriceProprietes : public BaseEditrice {
 	QVBoxLayout *m_disposition_widget;
 
 public:
-	explicit EditriceProprietes(Mikisa *mikisa, QWidget *parent = nullptr);
+	explicit EditriceProprietes(Mikisa &mikisa, QWidget *parent = nullptr);
 
 	EditriceProprietes(EditriceProprietes const &) = default;
 	EditriceProprietes &operator=(EditriceProprietes const &) = default;

@@ -38,14 +38,14 @@ class BaseEditrice : public danjo::ConteneurControles, public Auditeur {
 	Q_OBJECT
 
 protected:
-	Mikisa *m_mikisa;
+	Mikisa &m_mikisa;
 	QFrame *m_frame;
 	QVBoxLayout *m_layout;
 	QHBoxLayout *m_main_layout;
 	QLineEdit *m_path_edit{};
 
 public:
-	explicit BaseEditrice(Mikisa *mikisa, QWidget *parent = nullptr);
+	explicit BaseEditrice(Mikisa &mikisa, QWidget *parent = nullptr);
 
 	BaseEditrice(BaseEditrice const &) = default;
 	BaseEditrice &operator=(BaseEditrice const &) = default;

@@ -49,14 +49,14 @@ class RenduManipulatrice2D;
 class Visionneuse2D : public QGLWidget {
 	RenduImage *m_rendu_image = nullptr;
 	RenduManipulatrice2D *m_rendu_manipulatrice = nullptr;
-	Mikisa *m_mikisa;
+	Mikisa &m_mikisa;
 	EditriceVue2D *m_base;
 
 	ContexteRendu m_contexte{};
 	dls::math::mat4x4f m_matrice_image{};
 
 public:
-	explicit Visionneuse2D(Mikisa *mikisa, EditriceVue2D *base, QWidget *parent = nullptr);
+	explicit Visionneuse2D(Mikisa &mikisa, EditriceVue2D *base, QWidget *parent = nullptr);
 	~Visionneuse2D() override;
 
 	Visionneuse2D(Visionneuse2D const &) = default;
@@ -80,7 +80,7 @@ class EditriceVue2D : public BaseEditrice {
 	Visionneuse2D *m_vue;
 
 public:
-	explicit EditriceVue2D(Mikisa *mikisa, QWidget *parent = nullptr);
+	explicit EditriceVue2D(Mikisa &mikisa, QWidget *parent = nullptr);
 
 	EditriceVue2D(EditriceVue2D const &) = default;
 	EditriceVue2D &operator=(EditriceVue2D const &) = default;

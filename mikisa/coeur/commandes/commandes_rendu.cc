@@ -189,7 +189,7 @@ public:
 
 		/* À FAIRE : vérifie l'éligibilité du chemin de sortie. */
 
-		evalue_graphe(mikisa);
+		evalue_graphe(*mikisa);
 
 		ecris_image(mikisa->composite,
 					mikisa->nom_calque_sortie,

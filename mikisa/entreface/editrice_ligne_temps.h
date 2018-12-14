@@ -57,7 +57,7 @@ class EditriceLigneTemps : public BaseEditrice {
 	bool m_timer_has_started = false;
 
 public:
-	explicit EditriceLigneTemps(Mikisa *mikisa, QWidget *parent = nullptr);
+	explicit EditriceLigneTemps(Mikisa &mikisa, QWidget *parent = nullptr);
 
 	EditriceLigneTemps(EditriceLigneTemps const &) = default;
 	EditriceLigneTemps &operator=(EditriceLigneTemps const &) = default;

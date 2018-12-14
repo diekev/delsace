@@ -42,14 +42,14 @@
 #include "coeur/composite.h"
 #include "coeur/mikisa.h"
 
-BaseEditrice::BaseEditrice(Mikisa *mikisa, QWidget *parent)
+BaseEditrice::BaseEditrice(Mikisa &mikisa, QWidget *parent)
 	: danjo::ConteneurControles(parent)
 	, m_mikisa(mikisa)
     , m_frame(new QFrame(this))
     , m_layout(new QVBoxLayout())
 	, m_main_layout(new QHBoxLayout(m_frame))
 {
-	this->ecoute(m_mikisa);
+	this->ecoute(&m_mikisa);
 
 	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	size_policy.setHorizontalStretch(0);
@@ -80,11 +80,11 @@ void BaseEditrice::actif(bool ouinon)
 
 void BaseEditrice::rend_actif()
 {
-	if (m_mikisa->editrice_active) {
-		m_mikisa->editrice_active->actif(false);
+	if (m_mikisa.editrice_active) {
+		m_mikisa.editrice_active->actif(false);
 	}
 
-	m_mikisa->editrice_active = this;
+	m_mikisa.editrice_active = this;
 	this->actif(true);
 }
 

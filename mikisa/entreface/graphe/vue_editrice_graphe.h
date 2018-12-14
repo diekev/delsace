@@ -43,7 +43,7 @@ class GestionnaireInterface;
 }  /* namespace danjo */
 
 class VueEditeurNoeud : public QGraphicsView {
-	Mikisa *m_mikisa;
+	Mikisa &m_mikisa;
 	EditriceGraphe *m_base;
 
 	QMenu *m_menu_ajout_noeud_composite = nullptr;
@@ -53,7 +53,7 @@ class VueEditeurNoeud : public QGraphicsView {
 
 public:
 	VueEditeurNoeud(
-			Mikisa *mikisa,
+			Mikisa &mikisa,
 			EditriceGraphe *base,
 			QWidget *parent = nullptr);
 

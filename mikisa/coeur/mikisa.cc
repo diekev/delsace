@@ -199,5 +199,5 @@ RepondantCommande *Mikisa::repondant_commande() const
 
 void Mikisa::ajourne_pour_nouveau_temps()
 {
-	evalue_resultat(this);
+	evalue_resultat(*this);
 }

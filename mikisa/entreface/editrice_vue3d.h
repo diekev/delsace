@@ -42,12 +42,12 @@ class VisionneurScene;
 /* ************************************************************************** */
 
 class VueCanevas3D : public QGLWidget {
-	Mikisa *m_mikisa;
+	Mikisa &m_mikisa;
 	VisionneurScene *m_visionneur_scene;
 	EditriceVue3D *m_base;
 
 public:
-	explicit VueCanevas3D(Mikisa *mikisa, EditriceVue3D *base, QWidget *parent = nullptr);
+	explicit VueCanevas3D(Mikisa &mikisa, EditriceVue3D *base, QWidget *parent = nullptr);
 
 	VueCanevas3D(VueCanevas3D const &) = default;
 	VueCanevas3D &operator=(VueCanevas3D const &) = default;
@@ -83,7 +83,7 @@ class EditriceVue3D : public BaseEditrice {
 	QToolButton *m_bouton_actif{};
 
 public:
-	explicit EditriceVue3D(Mikisa *mikisa, QWidget *parent = nullptr);
+	explicit EditriceVue3D(Mikisa &mikisa, QWidget *parent = nullptr);
 
 	EditriceVue3D(EditriceVue3D const &) = default;
 	EditriceVue3D &operator=(EditriceVue3D const &) = default;

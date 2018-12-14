@@ -44,7 +44,7 @@
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 
-EditriceGraphe::EditriceGraphe(Mikisa *mikisa, QWidget *parent)
+EditriceGraphe::EditriceGraphe(Mikisa &mikisa, QWidget *parent)
 	: BaseEditrice(mikisa, parent)
 	, m_scene(new QGraphicsScene(this))
 	, m_vue(new VueEditeurNoeud(mikisa, this, this))
@@ -87,7 +87,7 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	m_scene->items().clear();
 	assert(m_scene->items().size() == 0);
 
-	const auto graphe = m_mikisa->graphe;
+	const auto graphe = m_mikisa.graphe;
 
 	m_vue->resetTransform();
 
@@ -160,10 +160,10 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		QToolTip::showText(point, graphe->info_noeud->informations.c_str());
 	}
 
-	m_barre_chemin->setText(m_mikisa->chemin_courant.c_str());
+	m_barre_chemin->setText(m_mikisa.chemin_courant.c_str());
 }
 
 void EditriceGraphe::sors_noeud()
 {
-	m_mikisa->repondant_commande()->repond_clique("sors_noeud", "");
+	m_mikisa.repondant_commande()->repond_clique("sors_noeud", "");
 }

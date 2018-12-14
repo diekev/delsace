@@ -40,7 +40,7 @@
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 
-EditriceRendu::EditriceRendu(Mikisa *mikisa, QWidget *parent)
+EditriceRendu::EditriceRendu(Mikisa &mikisa, QWidget *parent)
 	: BaseEditrice(mikisa, parent)
 	, m_widget(new QWidget())
 	, m_conteneur_disposition(new QWidget())
@@ -76,9 +76,9 @@ void EditriceRendu::ajourne_etat(int evenement)
 	danjo::DonneesInterface donnees{};
 	donnees.manipulable = &m_manipulable;
 	donnees.conteneur = this;
-	donnees.repondant_bouton = m_mikisa->repondant_commande();
+	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	auto disposition = m_mikisa->gestionnaire_entreface->compile_entreface(donnees, texte.c_str());
+	auto disposition = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, texte.c_str());
 
 	if (m_conteneur_disposition->layout()) {
 		/* Qt ne permet d'extrait la disposition d'un widget que si celle-ci est
@@ -94,8 +94,8 @@ void EditriceRendu::ajourne_etat(int evenement)
 
 void EditriceRendu::ajourne_manipulable()
 {
-	m_mikisa->nom_calque_sortie = m_manipulable.evalue_chaine("nom_calque");
-	m_mikisa->chemin_sortie = m_manipulable.evalue_chaine("chemin");
+	m_mikisa.nom_calque_sortie = m_manipulable.evalue_chaine("nom_calque");
+	m_mikisa.chemin_sortie = m_manipulable.evalue_chaine("chemin");
 }
 
 void EditriceRendu::obtiens_liste(

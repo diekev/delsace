@@ -41,7 +41,7 @@ enum erreur_fichier {
 	GREFFON_MANQUANT,
 };
 
-erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Mikisa &mikisa);
-erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa *mikisa);
+erreur_fichier sauvegarde_projet(const filesystem::path &chemin, Mikisa const &mikisa);
+erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa &mikisa);
 
 }  /* namespace coeur */

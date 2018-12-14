@@ -38,7 +38,7 @@ class EditriceGraphe : public BaseEditrice {
 	QLineEdit *m_barre_chemin;
 
 public:
-	explicit EditriceGraphe(Mikisa *mikisa, QWidget *parent = nullptr);
+	explicit EditriceGraphe(Mikisa &mikisa, QWidget *parent = nullptr);
 
 	EditriceGraphe(EditriceGraphe const &) = default;
 	EditriceGraphe &operator=(EditriceGraphe const &) = default;

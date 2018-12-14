@@ -35,7 +35,7 @@
 
 /* ************************************************************************** */
 
-static void ouvre_fichier_implementation(Mikisa *mikisa, const std::string &chemin_projet)
+static void ouvre_fichier_implementation(Mikisa &mikisa, const std::string &chemin_projet)
 {
 	const auto erreur = coeur::ouvre_projet(chemin_projet, mikisa);
 
@@ -43,25 +43,25 @@ static void ouvre_fichier_implementation(Mikisa *mikisa, const std::string &chem
 		case coeur::erreur_fichier::AUCUNE_ERREUR:
 			break;
 		case coeur::erreur_fichier::CORROMPU:
-			mikisa->affiche_erreur("Le fichier est corrompu !");
+			mikisa.affiche_erreur("Le fichier est corrompu !");
 			return;
 		case coeur::erreur_fichier::NON_OUVERT:
-			mikisa->affiche_erreur("Le fichier n'est pas ouvert !");
+			mikisa.affiche_erreur("Le fichier n'est pas ouvert !");
 			return;
 		case coeur::erreur_fichier::NON_TROUVE:
-			mikisa->affiche_erreur("Le fichier n'a pas été trouvé !");
+			mikisa.affiche_erreur("Le fichier n'a pas été trouvé !");
 			return;
 		case coeur::erreur_fichier::INCONNU:
-			mikisa->affiche_erreur("Erreur inconnu !");
+			mikisa.affiche_erreur("Erreur inconnu !");
 			return;
 		case coeur::erreur_fichier::GREFFON_MANQUANT:
-			mikisa->affiche_erreur("Le fichier ne pas être ouvert car il"
+			mikisa.affiche_erreur("Le fichier ne pas être ouvert car il"
 								 " y a un greffon manquant !");
 			return;
 	}
 
-	mikisa->chemin_projet(chemin_projet);
-	mikisa->projet_ouvert(true);
+	mikisa.chemin_projet(chemin_projet);
+	mikisa.projet_ouvert(true);
 
 #if 0
 	setWindowTitle(chemin_projet.c_str());
@@ -79,7 +79,7 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		ouvre_fichier_implementation(mikisa, chemin_projet);
+		ouvre_fichier_implementation(*mikisa, chemin_projet);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -92,7 +92,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
-		ouvre_fichier_implementation(mikisa, donnees.metadonnee);
+		ouvre_fichier_implementation(*mikisa, donnees.metadonnee);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -100,14 +100,14 @@ public:
 
 /* ************************************************************************** */
 
-static void sauve_fichier_sous(Mikisa *mikisa)
+static void sauve_fichier_sous(Mikisa &mikisa)
 {
-	const auto &chemin_projet = mikisa->requiers_dialogue(FICHIER_SAUVEGARDE);
+	const auto &chemin_projet = mikisa.requiers_dialogue(FICHIER_SAUVEGARDE);
 
-	mikisa->chemin_projet(chemin_projet);
-	mikisa->projet_ouvert(true);
+	mikisa.chemin_projet(chemin_projet);
+	mikisa.projet_ouvert(true);
 
-	coeur::sauvegarde_projet(chemin_projet, *mikisa);
+	coeur::sauvegarde_projet(chemin_projet, mikisa);
 }
 
 class CommandeSauvegarder final : public Commande {
@@ -120,7 +120,7 @@ public:
 			coeur::sauvegarde_projet(mikisa->chemin_projet(), *mikisa);
 		}
 		else {
-			sauve_fichier_sous(mikisa);
+			sauve_fichier_sous(*mikisa);
 		}
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -134,7 +134,7 @@ public:
 	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
-		sauve_fichier_sous(mikisa);
+		sauve_fichier_sous(*mikisa);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

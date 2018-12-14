@@ -62,7 +62,7 @@
  * derniere_scene_selectionnee de mikisa si le noeud est une visionneuse ou
  * une opératrice scène.
  */
-static bool selectionne_noeud(Mikisa *mikisa, Noeud *noeud, Graphe &graphe)
+static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 {
 	graphe.noeud_actif = noeud;
 
@@ -71,9 +71,9 @@ static bool selectionne_noeud(Mikisa *mikisa, Noeud *noeud, Graphe &graphe)
 	}
 
 	if (noeud->type() == NOEUD_IMAGE_SORTIE) {
-		const auto besoin_ajournement = (graphe.noeud_actif != mikisa->derniere_visionneuse_selectionnee);
+		const auto besoin_ajournement = (graphe.noeud_actif != mikisa.derniere_visionneuse_selectionnee);
 
-		mikisa->derniere_visionneuse_selectionnee = graphe.noeud_actif;
+		mikisa.derniere_visionneuse_selectionnee = graphe.noeud_actif;
 		graphe.dernier_noeud_sortie = graphe.noeud_actif;
 
 		return besoin_ajournement;
@@ -90,14 +90,14 @@ static bool selectionne_noeud(Mikisa *mikisa, Noeud *noeud, Graphe &graphe)
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	if (operatrice->type() == OPERATRICE_SCENE) {
-		mikisa->derniere_scene_selectionnee = graphe.noeud_actif;
+		mikisa.derniere_scene_selectionnee = graphe.noeud_actif;
 	}
 
-	if (operatrice->possede_manipulatrice_3d(mikisa->type_manipulation_3d)) {
-		mikisa->manipulatrice_3d = operatrice->manipulatrice_3d(mikisa->type_manipulation_3d);
+	if (operatrice->possede_manipulatrice_3d(mikisa.type_manipulation_3d)) {
+		mikisa.manipulatrice_3d = operatrice->manipulatrice_3d(mikisa.type_manipulation_3d);
 	}
 	else {
-		mikisa->manipulatrice_3d = nullptr;
+		mikisa.manipulatrice_3d = nullptr;
 	}
 
 	return false;
@@ -190,12 +190,12 @@ public:
 		}
 
 		mikisa->graphe->ajoute(noeud);
-		selectionne_noeud(mikisa, noeud, *mikisa->graphe);
+		selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
 
 		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::ajoute);
 
 		if (mikisa->contexte == GRAPHE_SCENE) {
-			evalue_resultat(mikisa);
+			evalue_resultat(*mikisa);
 		}
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -251,13 +251,13 @@ public:
 			graphe->connexion_active = connexion;
 		}
 
-		bool besoin_evaluation = selectionne_noeud(mikisa, noeud_selection, *graphe);
+		bool besoin_evaluation = selectionne_noeud(*mikisa, noeud_selection, *graphe);
 
 		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::selectionne);
 
 		/* évalue le graphe si un visionneur a été sélectionné */
 		if (besoin_evaluation) {
-			evalue_resultat(mikisa);
+			evalue_resultat(*mikisa);
 		}
 
 		return EXECUTION_COMMANDE_MODALE;
@@ -325,7 +325,7 @@ public:
 		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
 
 		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_MAILLAGE) {
-			evalue_resultat(mikisa);
+			evalue_resultat(*mikisa);
 		}
 	}
 };
@@ -369,7 +369,7 @@ public:
 		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::enleve);
 
 		if (besoin_execution || mikisa->contexte == GRAPHE_MAILLAGE) {
-			evalue_resultat(mikisa);
+			evalue_resultat(*mikisa);
 		}
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -412,7 +412,7 @@ public:
 			graphe->info_noeud = info_noeud;
 		}
 
-		selectionne_noeud(mikisa, noeud, *graphe);
+		selectionne_noeud(*mikisa, noeud, *graphe);
 
 		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::selectionne);
 
@@ -491,7 +491,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
-		selectionne_noeud(mikisa, noeud, *graphe);
+		selectionne_noeud(*mikisa, noeud, *graphe);
 
 		if (noeud == nullptr) {
 			return EXECUTION_COMMANDE_ECHOUEE;

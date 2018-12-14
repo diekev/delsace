@@ -74,10 +74,10 @@ public:
 };
 #endif
 
-VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa *mikisa)
+VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 	: m_parent(parent)
 	, m_mikisa(mikisa)
-	, m_camera(mikisa->camera_3d)
+	, m_camera(mikisa.camera_3d)
 	, m_rendu_grille(nullptr)
 	, m_rendu_texte(nullptr)
 	, m_rendu_manipulatrice_pos(nullptr)
@@ -139,7 +139,7 @@ void VisionneurScene::peint_opengl()
 	m_rendu_grille->dessine(m_contexte);
 
 	/* Peint le noeud 3D courant. */
-	auto noeud = m_mikisa->derniere_scene_selectionnee;
+	auto noeud = m_mikisa.derniere_scene_selectionnee;
 
 	if (noeud != nullptr) {
 		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
@@ -184,23 +184,23 @@ void VisionneurScene::peint_opengl()
 
 	glDisable(GL_DEPTH_TEST);
 
-	if (m_mikisa->manipulation_3d_activee && m_mikisa->manipulatrice_3d) {
-		auto pos = m_mikisa->manipulatrice_3d->pos();
+	if (m_mikisa.manipulation_3d_activee && m_mikisa.manipulatrice_3d) {
+		auto pos = m_mikisa.manipulatrice_3d->pos();
 		auto matrice = dls::math::mat4x4d(1.0);
 		matrice = dls::math::translation(matrice, dls::math::vec3d(pos.x, pos.y, pos.z));
 		m_stack.pousse(matrice);
 		m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
-		if (m_mikisa->type_manipulation_3d == MANIPULATION_ROTATION) {
-			m_rendu_manipulatrice_rot->manipulatrice(m_mikisa->manipulatrice_3d);
+		if (m_mikisa.type_manipulation_3d == MANIPULATION_ROTATION) {
+			m_rendu_manipulatrice_rot->manipulatrice(m_mikisa.manipulatrice_3d);
 			m_rendu_manipulatrice_rot->dessine(m_contexte);
 		}
-		else if (m_mikisa->type_manipulation_3d == MANIPULATION_ECHELLE) {
-			m_rendu_manipulatrice_ech->manipulatrice(m_mikisa->manipulatrice_3d);
+		else if (m_mikisa.type_manipulation_3d == MANIPULATION_ECHELLE) {
+			m_rendu_manipulatrice_ech->manipulatrice(m_mikisa.manipulatrice_3d);
 			m_rendu_manipulatrice_ech->dessine(m_contexte);
 		}
-		else if (m_mikisa->type_manipulation_3d == MANIPULATION_POSITION) {
-			m_rendu_manipulatrice_pos->manipulatrice(m_mikisa->manipulatrice_3d);
+		else if (m_mikisa.type_manipulation_3d == MANIPULATION_POSITION) {
+			m_rendu_manipulatrice_pos->manipulatrice(m_mikisa.manipulatrice_3d);
 			m_rendu_manipulatrice_pos->dessine(m_contexte);
 		}
 
@@ -230,7 +230,7 @@ void VisionneurScene::peint_opengl()
 	}
 
 #if 0
-	noeud = m_mikisa->graphe->noeud_actif;
+	noeud = m_mikisa.graphe->noeud_actif;
 
 	if (noeud != nullptr) {
 		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());

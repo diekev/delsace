@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	Mikisa mikisa;
 	mikisa.initialise();
 
-	FenetrePrincipale w(&mikisa);
+	FenetrePrincipale w(mikisa);
 	w.setWindowTitle(QCoreApplication::applicationName());
 	w.showMaximized();
 

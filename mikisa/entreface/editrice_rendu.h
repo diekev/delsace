@@ -44,7 +44,7 @@ class EditriceRendu : public BaseEditrice {
 	QVBoxLayout *m_disposition_widget;
 
 public:
-	explicit EditriceRendu(Mikisa *mikisa, QWidget *parent = nullptr);
+	explicit EditriceRendu(Mikisa &mikisa, QWidget *parent = nullptr);
 
 	EditriceRendu(EditriceRendu const &) = default;
 	EditriceRendu &operator=(EditriceRendu const &) = default;
