@@ -30,7 +30,6 @@ project(creatheque)
 # ------------------------------------------------------------------------------
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
-list(APPEND CMAKE_PREFIX_PATH "/home/kevin/src/lib/Qt/5.12.0/gcc_64/lib/cmake")
 
 # ------------------------------------------------------------------------------
 
