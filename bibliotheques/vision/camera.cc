@@ -200,7 +200,7 @@ void Camera3D::ajourne()
 		ajourne_projection();
 	}
 
-	const float tete = dls::math::degrees_vers_radians(m_tete);
+    const float tete = dls::math::degrees_vers_radians(m_tete);
 	const float inclinaison = dls::math::degrees_vers_radians(m_inclinaison);
 
 	m_position[0] = m_cible[0] + m_distance * std::cos(tete) * std::cos(inclinaison);
@@ -315,8 +315,7 @@ void Camera3D::ajourne_projection()
 		m_projection = dls::math::ortho(-largeur, largeur, -hauteur, hauteur, m_proche, m_eloigne);
 	}
 	else {
-		/* À FAIRE : perspective prend des degrées mais devrait prendre des radians. */
-		auto const champs_de_vue = dls::math::radians_vers_degrees(2.0f * std::atan(0.5f * m_largeur_senseur / m_longueur_focale));
+		auto const champs_de_vue = 2.0f * std::atan(0.5f * m_largeur_senseur / m_longueur_focale);
 		m_projection = dls::math::perspective(champs_de_vue, m_aspect, m_proche, m_eloigne);
 	}
 }
