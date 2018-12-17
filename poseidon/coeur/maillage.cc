@@ -168,25 +168,13 @@ Polygone *Maillage::polygone(size_t i)
 	return m_polys[i];
 }
 
-static void min_max_vecteur(dls::math::vec3f &min, dls::math::vec3f &max, const dls::math::vec3f &v)
-{
-	for (size_t i = 0; i < 3; ++i) {
-		if (v[i] < min[i]) {
-			min[i] = v[i];
-		}
-		if (v[i] > max[i]) {
-			max[i] = v[i];
-		}
-	}
-}
-
 void Maillage::calcule_boite_englobante()
 {
 	m_min = dls::math::vec3f(std::numeric_limits<float>::max());
 	m_max = dls::math::vec3f(std::numeric_limits<float>::min());
 
 	for (auto const &s : m_sommets) {
-		min_max_vecteur(m_min, m_max, s->pos);
+		dls::math::extrait_min_max(s->pos, m_min, m_max);
 	}
 
 	m_taille = m_max - m_min;

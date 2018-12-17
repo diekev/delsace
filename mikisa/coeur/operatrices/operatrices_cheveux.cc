@@ -351,9 +351,9 @@ public:
 			triangle->p2 = poly->s[2]->pos;
 
 			init_min_max(triangle->min, triangle->max);
-			min_max_vecteur(triangle->min, triangle->max, triangle->p0);
-			min_max_vecteur(triangle->min, triangle->max, triangle->p1);
-			min_max_vecteur(triangle->min, triangle->max, triangle->p2);
+			dls::math::extrait_min_max(triangle->p0, triangle->min, triangle->max);
+			dls::math::extrait_min_max(triangle->p1, triangle->min, triangle->max);
+			dls::math::extrait_min_max(triangle->p2, triangle->min, triangle->max);
 
 			arbre->ajoute_triangle(triangle);
 
@@ -364,9 +364,9 @@ public:
 				triangle->p2 = poly->s[3]->pos;
 
 				init_min_max(triangle->min, triangle->max);
-				min_max_vecteur(triangle->min, triangle->max, triangle->p0);
-				min_max_vecteur(triangle->min, triangle->max, triangle->p1);
-				min_max_vecteur(triangle->min, triangle->max, triangle->p2);
+				dls::math::extrait_min_max(triangle->p0, triangle->min, triangle->max);
+				dls::math::extrait_min_max(triangle->p1, triangle->min, triangle->max);
+				dls::math::extrait_min_max(triangle->p2, triangle->min, triangle->max);
 
 				arbre->ajoute_triangle(triangle);
 			}

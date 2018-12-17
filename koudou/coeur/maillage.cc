@@ -107,29 +107,20 @@ Nuanceur *Maillage::nuanceur() const
 	return m_nuanceur;
 }
 
-static void min_max_vecteur(
-		const dls::math::vec3d &vecteur,
-		dls::math::point3d &min,
-		dls::math::point3d &max)
-{
-	for (size_t i = 0; i < 3; ++i) {
-		min[i] = std::min(min[i], vecteur[i]);
-		max[i] = std::max(max[i], vecteur[i]);
-	}
-}
-
 void Maillage::calcule_boite_englobante()
 {
-	dls::math::point3d min(INFINITE);
-	dls::math::point3d max(-INFINITE);
+	dls::math::vec3d min(INFINITE);
+	dls::math::vec3d max(-INFINITE);
 
 	for (const Triangle *triangle : *this) {
-		min_max_vecteur(triangle->v0, min, max);
-		min_max_vecteur(triangle->v1, min, max);
-		min_max_vecteur(triangle->v2, min, max);
+		dls::math::extrait_min_max(triangle->v0, min, max);
+		dls::math::extrait_min_max(triangle->v1, min, max);
+		dls::math::extrait_min_max(triangle->v2, min, max);
 	}
 
-	m_boite_englobante = BoiteEnglobante(min, max);
+	m_boite_englobante = BoiteEnglobante(
+							 dls::math::point3d(min),
+							 dls::math::point3d(max));
 }
 
 Maillage *Maillage::cree_cube()
