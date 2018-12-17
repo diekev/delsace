@@ -170,8 +170,8 @@ Polygone *Maillage::polygone(size_t i)
 
 void Maillage::calcule_boite_englobante()
 {
-	m_min = dls::math::vec3f(std::numeric_limits<float>::max());
-	m_max = dls::math::vec3f(std::numeric_limits<float>::min());
+	m_min = dls::math::vec3f( std::numeric_limits<float>::max());
+	m_max = dls::math::vec3f(-std::numeric_limits<float>::max());
 
 	for (auto const &s : m_sommets) {
 		dls::math::extrait_min_max(s->pos, m_min, m_max);
