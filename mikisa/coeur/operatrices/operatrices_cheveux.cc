@@ -47,18 +47,6 @@ static void init_min_max(dls::math::vec3f &min, dls::math::vec3f &max)
 	}
 }
 
-static void min_max_vecteur(dls::math::vec3f &min, dls::math::vec3f &max, const dls::math::vec3f &v)
-{
-	for (size_t i = 0; i < 3; ++i) {
-		if (v[i] < min[i]) {
-			min[i] = v[i];
-		}
-		if (v[i] > max[i]) {
-			max[i] = v[i];
-		}
-	}
-}
-
 struct Triangle {
 	dls::math::vec3f p0{};
 	dls::math::vec3f p1{};
