@@ -275,25 +275,24 @@ public:
 		dls::math::vec3f position;
 
 		if (type == MANIPULATION_POSITION) {
-			auto p = m_manipulatrice_position.pos();
-			position = dls::math::vec3f(p.x, p.y, p.z);
-			m_camera.position(dls::math::vec3f(position.x, position.y, position.z));
+			position = dls::math::vec3f(m_manipulatrice_position.pos());
+			m_camera.position(position);
 			m_camera.ajourne_pour_operatrice();
 
-			valeur_vecteur("position", dls::math::vec3f(position.x, position.y, position.z));
+			valeur_vecteur("position", position);
 		}
 		else if (type == MANIPULATION_ROTATION) {
-			auto rotation = m_manipulatrice_rotation.rotation();
-			m_camera.rotation(dls::math::vec3f(rotation.x, rotation.y, rotation.z));
+			auto rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
+			m_camera.rotation(rotation);
 			m_camera.ajourne_pour_operatrice();
 
 			position = evalue_vecteur("position", temps);
 
-			valeur_vecteur("rotation", dls::math::vec3f(rotation.x, rotation.y, rotation.z) * static_cast<float>(POIDS_RAD_DEG));
+			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
 		}
 
-		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(dls::math::point3f(position));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position));
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -322,11 +321,11 @@ public:
 		m_camera.largeur_senseur(largeur_senseur);
 		m_camera.profondeur(proche, eloigne);
 		m_camera.position(position);
-		m_camera.rotation(rotation * dls::math::vec3f(static_cast<float>(POIDS_DEG_RAD)));
+		m_camera.rotation(rotation * static_cast<float>(POIDS_DEG_RAD));
 		m_camera.ajourne_pour_operatrice();
 
-		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(dls::math::point3f(position));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position));
 
 		return EXECUTION_REUSSIE;
 	}
@@ -570,28 +569,25 @@ public:
 		dls::math::vec3f position, rotation, taille;
 
 		if (type == MANIPULATION_POSITION) {
-			auto p = m_manipulatrice_position.pos();
-			position = dls::math::vec3f(p.x, p.y, p.z);
+			position = dls::math::vec3f(m_manipulatrice_position.pos());
 			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
 			taille = evalue_vecteur("taille", temps);
 
-			valeur_vecteur("position", dls::math::vec3f(position.x, position.y, position.z));
+			valeur_vecteur("position", position);
 		}
 		else if (type == MANIPULATION_ECHELLE) {
 			position = evalue_vecteur("position", temps);
 			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
-			auto t = m_manipulatrice_echelle.taille();
-			taille = dls::math::vec3f(t.x, t.y, t.z);
+			taille = dls::math::vec3f(m_manipulatrice_echelle.taille());
 
-			valeur_vecteur("taille", dls::math::vec3f(taille.x, taille.y, taille.z));
+			valeur_vecteur("taille", taille);
 		}
 		else if (type == MANIPULATION_ROTATION) {
 			position = evalue_vecteur("position", temps);
-			auto r = m_manipulatrice_rotation.rotation();
-			rotation = dls::math::vec3f(r.x, r.y, r.z);
+			rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
 			taille = evalue_vecteur("taille", temps);
 
-			valeur_vecteur("rotation", dls::math::vec3f(rotation.x, rotation.y, rotation.z) * static_cast<float>(POIDS_RAD_DEG));
+			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
 		}
 		else {
 			return;
@@ -604,9 +600,9 @@ public:
 		m_transformation *= math::rotation_y(rotation.y);
 		m_transformation *= math::rotation_z(rotation.z);
 
-		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(dls::math::point3f(position));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position));
+		m_manipulatrice_echelle.pos(dls::math::point3f(position));
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -638,7 +634,7 @@ public:
 			m_dernier_chemin = chemin;
 		}
 
-		auto position = evalue_vecteur("position", temps);
+		auto position = dls::math::point3f(evalue_vecteur("position", temps));
 		auto rotation = evalue_vecteur("rotation", temps);
 		auto taille = evalue_vecteur("taille", temps);
 		auto echelle_uniforme = evalue_decimal("echelle_uniforme", temps);
@@ -654,9 +650,9 @@ public:
 
 		m_corps.transformation = m_transformation;
 
-		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
-		m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(position);
+		m_manipulatrice_rotation.pos(position);
+		m_manipulatrice_echelle.pos(position);
 
 //		if (input(0)->connectee() == false) {
 //			ajoute_avertissement("Aucune texture connectée");

@@ -26,6 +26,8 @@
 
 #include <delsace/math/bruit.hh>
 
+#include "bibliotheques/outils/definitions.hh"
+
 #include "../operatrice_graphe_maillage.h"
 #include "../usine_operatrice.h"
 
@@ -68,6 +70,8 @@ public:
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_ENTREE);
 		compileuse.decalage_pile(output(0)->pointeur());
 	}
@@ -109,6 +113,7 @@ public:
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
+		INUTILISE(gestionnaire);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_VALEUR);
 		auto decalage = compileuse.decalage_pile(output(0)->pointeur());
 		compileuse.stocke_decimal(decalage, evalue_decimal("val", temps));
@@ -151,10 +156,10 @@ public:
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
+		INUTILISE(gestionnaire);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_VECTEUR);
 		auto decalage = compileuse.decalage_pile(output(0)->pointeur());
-		auto v = evalue_vecteur("vec", temps);
-		compileuse.stocke_vec3f(decalage, dls::math::vec3f(v.x, v.y, v.z));
+		compileuse.stocke_vec3f(decalage, evalue_vecteur("vec", temps));
 	}
 };
 
@@ -194,6 +199,8 @@ public:
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_SORTIE);
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 	}
@@ -240,6 +247,8 @@ public:
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_MATH);
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(1)->pointeur()->lien));
@@ -304,6 +313,8 @@ public:
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_SEPARE_VECTEUR);
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 		compileuse.decalage_pile(output(0)->pointeur());
@@ -353,6 +364,8 @@ public:
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_COMBINE_VECTEUR);
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(1)->pointeur()->lien));
@@ -442,8 +455,8 @@ public:
 		}
 
 		compileuse.ajoute_noeud(static_cast<float>(dur));
-		compileuse.ajoute_noeud(frequence.x, frequence.y, frequence.z);
-		compileuse.ajoute_noeud(decalage.x, decalage.y, decalage.z);
+		compileuse.ajoute_noeud(frequence);
+		compileuse.ajoute_noeud(decalage);
 		compileuse.ajoute_noeud(octaves);
 		compileuse.ajoute_noeud(amplitude, persistence, lacunarite);
 
@@ -492,6 +505,8 @@ public:
 
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_TRAD_VEC);
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 

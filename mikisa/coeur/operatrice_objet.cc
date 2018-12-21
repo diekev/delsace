@@ -117,31 +117,28 @@ Manipulatrice3D *OperatriceObjet::manipulatrice_3d(int type)
 
 void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 {
-	dls::math::vec3f position, rotation, taille;
+	dls::math::point3f position, rotation, taille;
 
 	if (type == MANIPULATION_POSITION) {
-		auto p = m_manipulatrice_position.pos();
-		position = dls::math::vec3f(p.x, p.y, p.z);
-		rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
-		taille = evalue_vecteur("taille", temps);
+		position = m_manipulatrice_position.pos();
+		rotation = dls::math::point3f(evalue_vecteur("rotation", temps)) * static_cast<float>(POIDS_DEG_RAD);
+		taille = dls::math::point3f(evalue_vecteur("taille", temps));
 
-		valeur_vecteur("position", dls::math::vec3f(position.x, position.y, position.z));
+		valeur_vecteur("position", dls::math::vec3f(position));
 	}
 	else if (type == MANIPULATION_ECHELLE) {
-		position = evalue_vecteur("position", temps);
-		rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
-		auto t = m_manipulatrice_echelle.taille();
-		taille = dls::math::vec3f(t.x, t.y, t.z);
+		position = dls::math::point3f(evalue_vecteur("position", temps));
+		rotation = dls::math::point3f(evalue_vecteur("rotation", temps)) * static_cast<float>(POIDS_DEG_RAD);
+		taille = m_manipulatrice_echelle.taille();
 
-		valeur_vecteur("taille", dls::math::vec3f(taille.x, taille.y, taille.z));
+		valeur_vecteur("taille", dls::math::vec3f(taille));
 	}
 	else if (type == MANIPULATION_ROTATION) {
-		position = evalue_vecteur("position", temps);
-		auto r = m_manipulatrice_rotation.rotation();
-		rotation = dls::math::vec3f(r.x, r.y, r.z);
-		taille = evalue_vecteur("taille", temps);
+		position = dls::math::point3f(evalue_vecteur("position", temps));
+		rotation = m_manipulatrice_rotation.rotation();
+		taille = dls::math::point3f(evalue_vecteur("taille", temps));
 
-		valeur_vecteur("rotation", dls::math::vec3f(rotation.x, rotation.y, rotation.z) * dls::math::vec3f(static_cast<float>(POIDS_RAD_DEG)));
+		valeur_vecteur("rotation", dls::math::vec3f(rotation) * static_cast<float>(POIDS_RAD_DEG));
 	}
 	else {
 		return;
@@ -156,9 +153,9 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 
 	m_objet.transformation = transformation;
 
-	m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
-	m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
-	m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
+	m_manipulatrice_position.pos(position);
+	m_manipulatrice_rotation.pos(position);
+	m_manipulatrice_echelle.pos(position);
 }
 
 int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
@@ -167,7 +164,7 @@ int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
 
 	/* transformation */
 
-	auto position = evalue_vecteur("position", temps);
+	auto position = dls::math::point3f(evalue_vecteur("position", temps));
 	auto rotation = evalue_vecteur("rotation", temps);
 	auto taille = evalue_vecteur("taille", temps);
 
@@ -180,9 +177,9 @@ int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
 
 	m_objet.transformation = transformation;
 
-	m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
-	m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
-	m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
+	m_manipulatrice_position.pos(position);
+	m_manipulatrice_rotation.pos(position);
+	m_manipulatrice_echelle.pos(position);
 
 	/* évaluation graphe */
 

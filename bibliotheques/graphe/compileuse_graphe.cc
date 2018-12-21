@@ -28,6 +28,21 @@
 
 /* *************************************************************************** */
 
+void imprime_pile(CompileuseGraphe const &compileur, std::ostream &os = std::cout)
+{
+	auto debut = compileur.debut();
+	auto fin = compileur.fin();
+
+	os << "Pile :\n";
+
+	while (debut != fin && static_cast<int>(*debut) != -1) {
+		os << *debut << '\n';
+		++debut;
+	}
+}
+
+/* *************************************************************************** */
+
 CompileuseGraphe::CompileuseGraphe()
 	: m_pile(TAILLE_PILE, -1)
 	, m_decalage(0)

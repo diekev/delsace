@@ -78,8 +78,8 @@ void VueCamera::ajourne_donnees()
 	auto const position = evalue_vec3("position");
 	auto const rotation = evalue_vec3("rotation");
 
-	m_camera->position(dls::math::vec3d(position.x, position.y, position.z));
-	m_camera->rotation(dls::math::vec3d(rotation.x * POIDS_DEG_RAD, rotation.y * POIDS_DEG_RAD, rotation.z * POIDS_DEG_RAD));
+	m_camera->position(dls::math::vec3d(position));
+	m_camera->rotation(dls::math::vec3d(rotation) * POIDS_DEG_RAD);
 	m_camera->distance_focale(evalue_float("distance"));
 	m_camera->champs_de_vue(evalue_float("champs_de_vue"));
 	m_camera->rayon_lentille(evalue_float("rayon"));
@@ -102,8 +102,8 @@ bool VueCamera::ajourne_proprietes()
 	auto const position = m_camera->position();
 	auto const rotation = m_camera->rotation();
 
-	ajourne_valeur_vec3("position", dls::math::vec3f(position.x, position.y, position.z));
-	ajourne_valeur_vec3("rotation", dls::math::vec3f(rotation.x * POIDS_RAD_DEG, rotation.y * POIDS_RAD_DEG, rotation.z * POIDS_RAD_DEG));
+	ajourne_valeur_vec3("position", dls::math::vec3f(position));
+	ajourne_valeur_vec3("rotation", dls::math::vec3f(rotation.x) * POIDS_RAD_DEG);
 #endif
 
 	return true;

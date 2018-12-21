@@ -24,11 +24,15 @@
 
 #include "operatrice_graphe_pixel.h"
 
+#include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
 #include "operatrice_pixel.h"
 
 #include "noeud_image.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 
@@ -61,15 +65,19 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		return pixel;
 	}
 
 	void compile(CompileuseGraphe &compileuse, int temps) override
 	{
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_ENTREE);
 		compileuse.decalage_pile(output(0)->pointeur());
 	}
@@ -104,15 +112,19 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		return pixel;
 	}
 
 	void compile(CompileuseGraphe &compileuse, int temps) override
 	{
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_SORTIE);
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 	}
@@ -147,15 +159,19 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 	}
 
 	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
 		return pixel;
 	}
 
 	void compile(CompileuseGraphe &compileuse, int temps) override
 	{
+		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_SATURATION);
 		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
 
@@ -224,19 +240,6 @@ void execute_graphe(
 				break;
 			}
 		}
-	}
-}
-
-void imprime_pile(const CompileuseGraphe &compileur, std::ostream &os = std::cout)
-{
-	auto debut = compileur.debut();
-	auto fin = compileur.fin();
-
-	os << "Pile :\n";
-
-	while (debut != fin && *debut != -1) {
-		os << *debut << '\n';
-		++debut;
 	}
 }
 
@@ -384,3 +387,5 @@ void OperatriceGraphePixel::compile_graphe(int temps)
 		operatrice_pixel->compile(m_compileuse, temps);
 	}
 }
+
+#pragma clang diagnostic pop
