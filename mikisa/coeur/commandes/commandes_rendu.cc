@@ -196,7 +196,7 @@ public:
 					mikisa->chemin_sortie,
 					mikisa->temps_courant);
 
-		mikisa->notifie_auditeurs(type_evenement::image | type_evenement::traite);
+		mikisa->notifie_observatrices(type_evenement::image | type_evenement::traite);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -234,7 +234,7 @@ public:
 						mikisa->chemin_sortie,
 						mikisa->temps_courant);
 
-			mikisa->notifie_auditeurs(
+			mikisa->notifie_observatrices(
 						type_evenement::image | type_evenement::traite);
 		}
 
@@ -242,7 +242,7 @@ public:
 
 		mikisa->ajourne_pour_nouveau_temps();
 
-		mikisa->notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

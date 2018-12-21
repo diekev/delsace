@@ -48,7 +48,7 @@ BaseEditrice::BaseEditrice(Poseidon &poseidon, QWidget *parent)
 	, m_agencement(new QVBoxLayout())
 	, m_agencement_principal(new QHBoxLayout(m_cadre))
 {
-	this->ecoute(&poseidon);
+	this->observe(&poseidon);
 
 	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	size_policy.setHorizontalStretch(0);

@@ -26,7 +26,7 @@
 
 #include <danjo/conteneur_controles.h>
 
-#include "bibliotheques/audition/audition.h"
+#include "bibliotheques/observation/observation.hh"
 
 class Kanba;
 class QFrame;
@@ -34,7 +34,7 @@ class QHBoxLayout;
 class QLineEdit;
 class QVBoxLayout;
 
-class BaseEditrice : public danjo::ConteneurControles, public Auditeur {
+class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
 	Q_OBJECT
 
 protected:

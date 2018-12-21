@@ -241,7 +241,7 @@ void FenetrePrincipale::ajoute_visionneur_image()
 
 void FenetrePrincipale::rendu_fini()
 {
-	m_koudou.notifie_auditeurs(type_evenement::rendu | type_evenement::fini);
+	m_koudou.notifie_observatrices(type_evenement::rendu | type_evenement::fini);
 }
 
 void FenetrePrincipale::tache_commence()
@@ -262,7 +262,7 @@ void FenetrePrincipale::progres_temps(unsigned int echantillon, double temps_ech
 	m_koudou.informations_rendu.temps_ecoule = temps_ecoule;
 	m_koudou.informations_rendu.temps_restant = temps_restant;
 
-	m_koudou.notifie_auditeurs(type_evenement::rafraichissement);
+	m_koudou.notifie_observatrices(type_evenement::rafraichissement);
 }
 
 void FenetrePrincipale::tache_fini()

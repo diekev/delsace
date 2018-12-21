@@ -47,7 +47,7 @@ BaseEditrice::BaseEditrice(Kanba &kanba, QWidget *parent)
 	, m_cadre(new QFrame(this))
 	, m_agencement(new QVBoxLayout())
 {
-	this->ecoute(&kanba);
+	this->observe(&kanba);
 
 	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	size_policy.setHorizontalStretch(0);

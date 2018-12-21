@@ -150,5 +150,5 @@ QDockWidget *FenetrePrincipale::ajoute_dock(const QString &nom, int type, int ai
 
 void FenetrePrincipale::image_traitee()
 {
-	m_mikisa.notifie_auditeurs(type_evenement::image | type_evenement::traite);
+	m_mikisa.notifie_observatrices(type_evenement::image | type_evenement::traite);
 }

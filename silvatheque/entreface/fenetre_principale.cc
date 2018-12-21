@@ -101,7 +101,7 @@ void FenetrePrincipale::ajoute_visionneur_image()
 void FenetrePrincipale::rendu_fini()
 {
 	//	auto moteur_rendu = m_silvatheque.moteur_rendu;
-	//	moteur_rendu->notifie_auditeurs(type_evenement::rendu | type_evenement::fini);
+	//	moteur_rendu->notifie_observatrices(type_evenement::rendu | type_evenement::fini);
 }
 
 void FenetrePrincipale::tache_commence()
@@ -118,7 +118,7 @@ void FenetrePrincipale::progres_avance(float progress)
 void FenetrePrincipale::progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant)
 {
 	//	auto moteur_rendu = m_silvatheque.moteur_rendu;
-	//	moteur_rendu->notifie_auditeurs(type_evenement::rafraichissement);
+	//	moteur_rendu->notifie_observatrices(type_evenement::rafraichissement);
 }
 
 void FenetrePrincipale::tache_fini()

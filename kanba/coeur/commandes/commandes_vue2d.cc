@@ -88,7 +88,7 @@ public:
 			}
 		}
 
-		kanba->notifie_auditeurs(type_evenement::dessin | type_evenement::fini);
+		kanba->notifie_observatrices(type_evenement::dessin | type_evenement::fini);
 
 		return EXECUTION_COMMANDE_MODALE;
 	}

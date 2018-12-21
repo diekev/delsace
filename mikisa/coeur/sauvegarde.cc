@@ -587,7 +587,7 @@ erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa &mikisa)
 	auto racine_graphe = racine_composite->FirstChildElement("graphe");
 	lecture_graphe(racine_graphe, mikisa, &composite->graph());
 
-	mikisa.notifie_auditeurs(type_evenement::rafraichissement);
+	mikisa.notifie_observatrices(type_evenement::rafraichissement);
 
 	return erreur_fichier::AUCUNE_ERREUR;
 }

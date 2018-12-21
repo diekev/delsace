@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/audition/audition.h"
+#include "bibliotheques/observation/observation.hh"
 #include "bibliotheques/commandes/commande.h"
 
 #include "scene.h"
@@ -86,7 +86,7 @@ struct InformationsRendu {
 	unsigned int echantillon = 0;
 };
 
-struct Koudou : public Audite {
+struct Koudou : public Sujette {
 	MoteurRendu *moteur_rendu;
 	ParametresRendu parametres_rendu{};
 

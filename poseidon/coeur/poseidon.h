@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/audition/audition.h"
+#include "bibliotheques/observation/observation.hh"
 #include "bibliotheques/commandes/commande.h"
 
 class BaseEditrice;
@@ -40,7 +40,7 @@ class Camera3D;
 
 struct Fluide;
 
-struct Poseidon : public Audite {
+struct Poseidon : public Sujette {
 	/* Interface utilisateur. */
 	FenetrePrincipale *fenetre_principale = nullptr;
 	BaseEditrice *widget_actif = nullptr;

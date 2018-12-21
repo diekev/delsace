@@ -19,12 +19,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(audition)
 add_subdirectory(commandes)
 add_subdirectory(chaine)
 add_subdirectory(geometrie)
 add_subdirectory(graphe)
 add_subdirectory(objets)
+add_subdirectory(observation)
 add_subdirectory(opengl)
 add_subdirectory(outils)
 add_subdirectory(spectre)

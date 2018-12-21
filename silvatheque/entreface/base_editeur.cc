@@ -47,7 +47,7 @@ BaseEditrice::BaseEditrice(Silvatheque &silvatheque, QWidget *parent)
 	, m_cadre(new QFrame(this))
 	, m_agencement(new QVBoxLayout())
 {
-	this->ecoute(&silvatheque);
+	this->observe(&silvatheque);
 
 	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	size_policy.setHorizontalStretch(0);

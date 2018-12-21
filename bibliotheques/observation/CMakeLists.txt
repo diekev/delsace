@@ -19,14 +19,14 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE bib_audition)
+set(NOM_CIBLE bib_observation)
 
 set(INCLUSIONS
 )
 
 add_library(${NOM_CIBLE} STATIC
-	audition.h
-	audition.cc
+	observation.cc
+	observation.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})

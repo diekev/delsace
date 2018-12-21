@@ -47,7 +47,7 @@ public:
 
 		ajoute_calque(canaux, TypeCanal::DIFFUSION);
 
-		kanba->notifie_auditeurs(type_evenement::calque | type_evenement::ajoute);
+		kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -80,7 +80,7 @@ public:
 
 		maillage->marque_texture_surrannee(true);
 
-		kanba->notifie_auditeurs(type_evenement::calque | type_evenement::supprime);
+		kanba->notifie_observatrices(type_evenement::calque | type_evenement::supprime);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

@@ -68,7 +68,7 @@ public:
 		camera->ajuste_vitesse();
 		camera->besoin_ajournement(true);
 
-		silvatheque->notifie_auditeurs(static_cast<type_evenement>(-1));
+		silvatheque->notifie_observatrices(static_cast<type_evenement>(-1));
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -106,7 +106,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		silvatheque->notifie_auditeurs(static_cast<type_evenement>(-1));
+		silvatheque->notifie_observatrices(static_cast<type_evenement>(-1));
 	}
 };
 
@@ -142,7 +142,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		silvatheque->notifie_auditeurs(static_cast<type_evenement>(-1));
+		silvatheque->notifie_observatrices(static_cast<type_evenement>(-1));
 	}
 };
 

@@ -164,5 +164,5 @@ void EditeurMonde::ajourne_etat(int evenement)
 void EditeurMonde::ajourne_monde()
 {
 	m_vue->ajourne_donnees();
-	m_koudou->notifie_auditeurs(type_evenement::rendu);
+	m_koudou->notifie_observatrices(type_evenement::rendu);
 }

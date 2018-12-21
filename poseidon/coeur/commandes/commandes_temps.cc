@@ -92,7 +92,7 @@ public:
 			fluide->ajourne_pour_nouveau_temps();
 		}
 
-		poseidon->notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+		poseidon->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

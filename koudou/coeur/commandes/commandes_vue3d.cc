@@ -67,7 +67,7 @@ public:
 		camera->ajuste_vitesse();
 		camera->besoin_ajournement(true);
 
-		koudou->notifie_auditeurs(type_evenement::camera | type_evenement::modifie);
+		koudou->notifie_observatrices(type_evenement::camera | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -105,7 +105,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		koudou->notifie_auditeurs(type_evenement::camera | type_evenement::modifie);
+		koudou->notifie_observatrices(type_evenement::camera | type_evenement::modifie);
 	}
 };
 
@@ -141,7 +141,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		koudou->notifie_auditeurs(type_evenement::camera | type_evenement::modifie);
+		koudou->notifie_observatrices(type_evenement::camera | type_evenement::modifie);
 	}
 };
 

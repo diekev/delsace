@@ -206,7 +206,7 @@ void evalue_scene(Mikisa const &mikisa)
 		}
 	}
 
-	mikisa.notifie_auditeurs(type_evenement::scene | type_evenement::traite);
+	mikisa.notifie_observatrices(type_evenement::scene | type_evenement::traite);
 }
 
 void evalue_objet(Mikisa const &mikisa)
@@ -237,7 +237,7 @@ void evalue_objet(Mikisa const &mikisa)
 
 	evalue_objet_ex(mikisa, noeud);
 
-	mikisa.notifie_auditeurs(type_evenement::objet | type_evenement::traite);
+	mikisa.notifie_observatrices(type_evenement::objet | type_evenement::traite);
 }
 
 #if 0

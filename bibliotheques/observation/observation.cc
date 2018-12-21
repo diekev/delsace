@@ -22,61 +22,60 @@
  *
  */
 
-#include "audition.h"
+#include "observation.hh"
+
+#include "../outils/definitions.hh"
 
 #include <algorithm>
 
 /* ************************************************************************** */
 
-Auditeur::~Auditeur()
+void Observatrice::observe(Sujette *sujette)
 {
+	m_sujette = sujette;
+	m_sujette->ajoute_observatrice(this);
 }
 
-void Auditeur::ecoute(Audite *audite)
+int Observatrice::montre_dialogue(int dialogue)
 {
-	m_audite = audite;
-	m_audite->ajoute_auditeur(this);
-}
-
-int Auditeur::montre_dialogue(int dialogue)
-{
+	INUTILISE(dialogue);
 	return 0;
 }
 
 /* ************************************************************************** */
 
-void Audite::ajoute_auditeur(Auditeur *auditeur)
+void Sujette::ajoute_observatrice(Observatrice *observatrice)
 {
-	m_auditeurs.push_back(auditeur);
+	m_observatrices.push_back(observatrice);
 }
 
-void Audite::enleve_auditeur(Auditeur *auditeur)
+void Sujette::enleve_observatrice(Observatrice *observatrice)
 {
-	auto iter = std::find(m_auditeurs.begin(), m_auditeurs.end(), auditeur);
-	m_auditeurs.erase(iter);
+	auto iter = std::find(m_observatrices.begin(), m_observatrices.end(), observatrice);
+	m_observatrices.erase(iter);
 
-	if (m_auditeur_dialogue == auditeur) {
-		m_auditeur_dialogue = nullptr;
+	if (m_observatrice_dialogue == observatrice) {
+		m_observatrice_dialogue = nullptr;
 	}
 }
 
-void Audite::notifie_auditeurs(int evenement) const
+void Sujette::notifie_observatrices(int evenement) const
 {
-	for (auto &auditeur : m_auditeurs) {
-		auditeur->ajourne_etat(evenement);
+	for (auto &observatrice : m_observatrices) {
+		observatrice->ajourne_etat(evenement);
 	}
 }
 
-void Audite::ajoute_auditeur_dialogue(Auditeur *auditeur)
+void Sujette::ajoute_observatrice_dialogue(Observatrice *observatrice)
 {
-	m_auditeur_dialogue = auditeur;
+	m_observatrice_dialogue = observatrice;
 }
 
-int Audite::requiers_dialogue(int dialogue)
+int Sujette::requiers_dialogue(int dialogue)
 {
-	if (m_auditeur_dialogue == nullptr) {
+	if (m_observatrice_dialogue == nullptr) {
 		return 0;
 	}
 
-	return m_auditeur_dialogue->montre_dialogue(dialogue);
+	return m_observatrice_dialogue->montre_dialogue(dialogue);
 }

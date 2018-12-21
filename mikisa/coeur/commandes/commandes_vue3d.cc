@@ -71,7 +71,7 @@ public:
 		camera->ajuste_vitesse();
 		camera->besoin_ajournement(true);
 
-		mikisa->notifie_auditeurs(type_evenement::camera_3d | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -109,7 +109,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		mikisa->notifie_auditeurs(type_evenement::camera_3d | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
 	}
 };
 
@@ -145,7 +145,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		mikisa->notifie_auditeurs(type_evenement::camera_3d | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
 	}
 };
 
@@ -185,7 +185,7 @@ public:
 		manipulatrice->entresecte(orig, dir);
 
 		if (etat != manipulatrice->etat()) {
-			mikisa->notifie_auditeurs(type_evenement::camera_3d | type_evenement::modifie);
+			mikisa->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
 		}
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -278,7 +278,7 @@ public:
 		mikisa->manipulatrice_3d->rotation(mikisa->manipulatrice_3d->rotation());
 		mikisa->manipulatrice_3d->taille(mikisa->manipulatrice_3d->taille());
 
-		mikisa->notifie_auditeurs(type_evenement::objet | type_evenement::manipule);
+		mikisa->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
 
 		return EXECUTION_COMMANDE_MODALE;
 	}
@@ -351,7 +351,7 @@ public:
 		auto operatrice = std::any_cast<OperatriceImage *>(noeud_actif->donnees());
 		operatrice->ajourne_selon_manipulatrice_3d(mikisa->type_manipulation_3d, mikisa->temps_courant);
 
-		mikisa->notifie_auditeurs(type_evenement::objet | type_evenement::manipule);
+		mikisa->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
 	}
 };
 

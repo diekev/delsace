@@ -192,7 +192,7 @@ void EditriceLigneTemps::setCurrentFrame(int value)
 	fluide->temps_courant = value;
 	fluide->ajourne_pour_nouveau_temps();
 
-	m_poseidon->notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+	m_poseidon->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 }
 
 void EditriceLigneTemps::setFPS(double value)
@@ -217,5 +217,5 @@ void EditriceLigneTemps::updateFrame() const
 	fluide->temps_courant = value;
 	fluide->ajourne_pour_nouveau_temps();
 
-	m_poseidon->notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+	m_poseidon->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 }

@@ -365,5 +365,5 @@ void EditeurArbre::ajourne_manipulable()
 {
 	m_vue->ajourne_donnees();
 	cree_arbre(m_silvatheque->arbre);
-	m_silvatheque->notifie_auditeurs(type_evenement::arbre | type_evenement::modifie);
+	m_silvatheque->notifie_observatrices(type_evenement::arbre | type_evenement::modifie);
 }

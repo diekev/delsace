@@ -26,18 +26,27 @@
 
 #include <vector>
 
-class Audite;
+/**
+ * Implémentation du patron de conception "Observateur".
+ * https://fr.wikipedia.org/wiki/Observateur_(patron_de_conception)
+ *
+ * NOTE : ceci n'est qu'un graphe de dépendance déguisé ; peut-être serait-ce
+ * intéressant de rendre le graphe explicite et d'utiliser la théorie des
+ * graphes pour résoudre ce problème.
+ */
+
+class Sujette;
 
 /* ************************************************************************** */
 
-class Auditeur {
+class Observatrice {
 protected:
-	Audite *m_audite = nullptr;
+	Sujette *m_sujette = nullptr;
 
 public:
-	virtual ~Auditeur();
+	virtual ~Observatrice() = default;
 
-	void ecoute(Audite *audite);
+	void observe(Sujette *sujette);
 
 	virtual int montre_dialogue(int dialogue);
 
@@ -46,24 +55,24 @@ public:
 
 /* ************************************************************************** */
 
-class Audite {
-	std::vector<Auditeur *> m_auditeurs{};
-	Auditeur *m_auditeur_dialogue = nullptr;
+class Sujette {
+	std::vector<Observatrice *> m_observatrices{};
+	Observatrice *m_observatrice_dialogue = nullptr;
 
 public:
-	Audite() = default;
+	Sujette() = default;
 
-	/* l'auditeur_dialogue peut-être partagé */
-	Audite(Audite const &) = default;
-	Audite &operator=(Audite const &) = default;
+	/* l'observatrice_dialogue peut être partagée */
+	Sujette(Sujette const &) = default;
+	Sujette &operator=(Sujette const &) = default;
 
-	void ajoute_auditeur(Auditeur *auditeur);
+	void ajoute_observatrice(Observatrice *observatrice);
 
-	void enleve_auditeur(Auditeur *auditeur);
+	void enleve_observatrice(Observatrice *observatrice);
 
-	void notifie_auditeurs(int evenement) const;
+	void notifie_observatrices(int evenement) const;
 
-	void ajoute_auditeur_dialogue(Auditeur *auditeur);
+	void ajoute_observatrice_dialogue(Observatrice *observatrice);
 
 	int requiers_dialogue(int dialogue);
 };

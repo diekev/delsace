@@ -96,7 +96,7 @@ Koudou::~Koudou()
 	delete repondant_commande;
 	delete moteur_rendu;
 
-	/* Le pointeur peut-être accédé par le destructeur des auditeurs lors de la
+	/* Le pointeur peut-être accédé par le destructeur des observatrices lors de la
 	 * fermeture du programme alors qu'il a déjà été détruit, donc on lui
 	 * assigne la valeur nullptr pour proprement vérifier s'il est disponible.
 	 */

@@ -31,7 +31,7 @@ set(INC_SYS
 set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_MATH}
 	${BIBLIOTHEQUES_IMAGE}
-	bib_audition
+	bib_observation
 	bib_commandes
 	bib_objets
 	bib_vision

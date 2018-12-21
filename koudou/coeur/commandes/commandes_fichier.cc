@@ -61,7 +61,7 @@ public:
 
 		koudou->parametres_rendu.scene.ajoute_maillage(maillage);
 
-		koudou->notifie_auditeurs(type_evenement::objet | type_evenement::ajoute);
+		koudou->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

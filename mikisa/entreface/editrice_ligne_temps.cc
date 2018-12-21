@@ -187,7 +187,7 @@ void EditriceLigneTemps::setCurrentFrame(int value)
 	m_mikisa.temps_courant = value;
 	m_mikisa.ajourne_pour_nouveau_temps();
 
-	m_mikisa.notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+	m_mikisa.notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 }
 
 void EditriceLigneTemps::setFPS(double value)
@@ -209,5 +209,5 @@ void EditriceLigneTemps::updateFrame() const
 	m_mikisa.temps_courant = value;
 	m_mikisa.ajourne_pour_nouveau_temps();
 
-	m_mikisa.notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+	m_mikisa.notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 }

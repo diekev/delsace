@@ -33,7 +33,7 @@ set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_IMAGE}
 	bib_commandes
 	bib_objets
-	bib_audition
+	bib_observation
 	bib_vision
 	bib_transformation
 )

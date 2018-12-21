@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/audition/audition.h"
+#include "bibliotheques/observation/observation.hh"
 #include "bibliotheques/commandes/commande.h"
 
 class Arbre;
@@ -39,7 +39,7 @@ class Camera3D;
 }  /* namespace vision */
 
 
-struct Silvatheque : public Audite {
+struct Silvatheque : public Sujette {
 	/* Interface utilisateur. */
 	FenetrePrincipale *fenetre_principale = nullptr;
 	BaseEditrice *widget_actif = nullptr;

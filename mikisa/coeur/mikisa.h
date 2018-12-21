@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-#include "bibliotheques/audition/audition.h"
+#include "bibliotheques/observation/observation.hh"
 #include "bibliotheques/commandes/commande.h"
 #include "usine_operatrice.h"
 
@@ -64,7 +64,7 @@ enum {
 	GRAPHE_MAILLAGE,
 };
 
-class Mikisa : public Audite {
+class Mikisa : public Sujette {
 	UsineCommande m_usine_commande{};
 	UsineOperatrice m_usine_operatrices;
 	RepondantCommande *m_repondant_commande = nullptr;

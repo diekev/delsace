@@ -49,7 +49,7 @@ BaseEditrice::BaseEditrice(Mikisa &mikisa, QWidget *parent)
     , m_layout(new QVBoxLayout())
 	, m_main_layout(new QHBoxLayout(m_frame))
 {
-	this->ecoute(&m_mikisa);
+	this->observe(&m_mikisa);
 
 	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	size_policy.setHorizontalStretch(0);

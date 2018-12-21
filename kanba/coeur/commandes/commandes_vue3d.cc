@@ -73,7 +73,7 @@ public:
 		camera->ajuste_vitesse();
 		camera->besoin_ajournement(true);
 
-		kanba->notifie_auditeurs(static_cast<type_evenement>(-1));
+		kanba->notifie_observatrices(static_cast<type_evenement>(-1));
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -111,7 +111,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		kanba->notifie_auditeurs(static_cast<type_evenement>(-1));
+		kanba->notifie_observatrices(static_cast<type_evenement>(-1));
 	}
 };
 
@@ -147,7 +147,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		kanba->notifie_auditeurs(static_cast<type_evenement>(-1));
+		kanba->notifie_observatrices(static_cast<type_evenement>(-1));
 	}
 };
 
@@ -342,7 +342,7 @@ public:
 		fusionne_calques(maillage->canaux_texture());
 
 		maillage->marque_texture_surrannee(true);
-		kanba->notifie_auditeurs(type_evenement::dessin | type_evenement::fini);
+		kanba->notifie_observatrices(type_evenement::dessin | type_evenement::fini);
 
 		return EXECUTION_COMMANDE_MODALE;
 	}
@@ -375,7 +375,7 @@ public:
 		kanba->maillage = adaptrice.maillage;
 		kanba->maillage->cree_tampon();
 
-		kanba->notifie_auditeurs(type_evenement::calque | type_evenement::ajoute);
+		kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -403,7 +403,7 @@ public:
 		kanba->maillage = adaptrice.maillage;
 		kanba->maillage->cree_tampon();
 
-		kanba->notifie_auditeurs(type_evenement::calque | type_evenement::ajoute);
+		kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

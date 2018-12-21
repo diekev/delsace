@@ -56,7 +56,7 @@ public:
 		camera->zoom *= static_cast<float>((donnees.y < 0) ? PHI_INV : PHI);
 		camera->ajourne_matrice();
 
-		mikisa->notifie_auditeurs(type_evenement::camera_2d | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::camera_2d | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -91,7 +91,7 @@ public:
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		mikisa->notifie_auditeurs(type_evenement::camera_2d | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::camera_2d | type_evenement::modifie);
 	}
 };
 

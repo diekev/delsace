@@ -192,7 +192,7 @@ public:
 		mikisa->graphe->ajoute(noeud);
 		selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::ajoute);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
 
 		if (mikisa->contexte == GRAPHE_SCENE) {
 			evalue_resultat(*mikisa);
@@ -253,7 +253,7 @@ public:
 
 		bool besoin_evaluation = selectionne_noeud(*mikisa, noeud_selection, *graphe);
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::selectionne);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::selectionne);
 
 		/* évalue le graphe si un visionneur a été sélectionné */
 		if (besoin_evaluation) {
@@ -283,7 +283,7 @@ public:
 			noeud_actif->pos_y(donnees.y - delta_y);
 		}
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 	}
 
 	void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
@@ -322,7 +322,7 @@ public:
 			graphe->connexion_active = nullptr;
 		}
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_MAILLAGE) {
 			evalue_resultat(*mikisa);
@@ -366,7 +366,7 @@ public:
 
 		graphe->noeud_actif = nullptr;
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::enleve);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
 		if (besoin_execution || mikisa->contexte == GRAPHE_MAILLAGE) {
 			evalue_resultat(*mikisa);
@@ -414,7 +414,7 @@ public:
 
 		selectionne_noeud(*mikisa, noeud, *graphe);
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::selectionne);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::selectionne);
 
 		return EXECUTION_COMMANDE_MODALE;
 	}
@@ -427,7 +427,7 @@ public:
 		delete graphe->info_noeud;
 		graphe->info_noeud = nullptr;
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 	}
 };
 
@@ -459,7 +459,7 @@ public:
 		graphe->centre_x += m_delta_x - donnees.x;
 		graphe->centre_y += m_delta_y - donnees.y;
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 	}
 };
 
@@ -476,7 +476,7 @@ public:
 
 		graphe->zoom *= (donnees.y > 0) ? static_cast<float>(PHI) : static_cast<float>(PHI_INV);
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -536,7 +536,7 @@ public:
 			mikisa->chemin_courant += noeud->nom() + "/";
 		}
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -583,7 +583,7 @@ public:
 			mikisa->chemin_courant = "/composite/";
 		}
 
-		mikisa->notifie_auditeurs(type_evenement::noeud | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

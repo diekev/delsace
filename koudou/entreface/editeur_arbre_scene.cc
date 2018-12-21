@@ -173,5 +173,5 @@ void EditeurArbreScene::repond_selection()
 
 	auto &scene = m_koudou->parametres_rendu.scene;
 	scene.objet_actif = const_cast<Objet *>(item_objet->pointeur());
-	m_koudou->notifie_auditeurs(type_evenement::objet | type_evenement::selectione);
+	m_koudou->notifie_observatrices(type_evenement::objet | type_evenement::selectione);
 }

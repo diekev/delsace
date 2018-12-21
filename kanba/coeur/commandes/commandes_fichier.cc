@@ -62,7 +62,7 @@ public:
 		delete kanba->maillage;
 		kanba->maillage = maillage;
 
-		kanba->notifie_auditeurs(static_cast<type_evenement>(-1));
+		kanba->notifie_observatrices(static_cast<type_evenement>(-1));
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -511,7 +511,7 @@ public:
 
 		fusionne_calques(maillage->canaux_texture());
 
-		kanba->notifie_auditeurs(type_evenement::projet | type_evenement::charge);
+		kanba->notifie_observatrices(type_evenement::projet | type_evenement::charge);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

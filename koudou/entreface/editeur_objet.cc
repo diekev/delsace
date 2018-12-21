@@ -168,5 +168,5 @@ void EditeurObjet::ajourne_etat(int evenement)
 void EditeurObjet::ajourne_maillage()
 {
 	m_vue->ajourne_donnees();
-	m_koudou->notifie_auditeurs(type_evenement::objet | type_evenement::modifie);
+	m_koudou->notifie_observatrices(type_evenement::objet | type_evenement::modifie);
 }

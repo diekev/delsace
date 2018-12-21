@@ -90,7 +90,7 @@ public:
 			mikisa->ajourne_pour_nouveau_temps();
 		}
 
-		mikisa->notifie_auditeurs(type_evenement::temps | type_evenement::modifie);
+		mikisa->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

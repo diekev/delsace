@@ -42,7 +42,7 @@ set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_SYSFICHIER}
 	${BIBLIOTHEQUES_TBB}
 	${BIBLIOTHEQUES_IMAGE}
-	bib_audition
+	bib_observation
 	bib_commandes
 	bib_xml
 	${BIBLIOTHEQUES_OPENCOLORIO}

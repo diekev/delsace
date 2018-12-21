@@ -157,5 +157,5 @@ void EditeurCamera::ajourne_etat(int evenement)
 void EditeurCamera::ajourne_camera()
 {
 	m_vue->ajourne_donnees();
-	m_koudou->notifie_auditeurs(type_evenement::camera | type_evenement::modifie);
+	m_koudou->notifie_observatrices(type_evenement::camera | type_evenement::modifie);
 }

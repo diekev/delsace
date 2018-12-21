@@ -32,7 +32,7 @@
 #include <QWidget>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/audition/audition.h"
+#include "bibliotheques/observation/observation.hh"
 
 class Koudou;
 class QFrame;
@@ -40,7 +40,7 @@ class QHBoxLayout;
 class QLineEdit;
 class QVBoxLayout;
 
-class BaseEditrice : public QWidget, public Auditeur {
+class BaseEditrice : public QWidget, public Observatrice {
 	Q_OBJECT
 
 protected:

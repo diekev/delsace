@@ -86,7 +86,7 @@ public:
 
 		operatrice->ajoute_propriete_extra(attache, prop);
 
-		mikisa->notifie_auditeurs(type_evenement::propriete | type_evenement::ajoute);
+		mikisa->notifie_observatrices(type_evenement::propriete | type_evenement::ajoute);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

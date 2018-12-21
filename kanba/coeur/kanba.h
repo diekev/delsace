@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/audition/audition.h"
+#include "bibliotheques/observation/observation.hh"
 #include "bibliotheques/commandes/commande.h"
 
 #include <numero7/math/matrice/matrice.h>
@@ -47,7 +47,7 @@ enum {
 	FICHIER_OUVERTURE,
 };
 
-struct Kanba : public Audite {
+struct Kanba : public Sujette {
 	numero7::math::matrice<dls::math::vec4f> tampon;
 
 	/* Interface utilisateur. */

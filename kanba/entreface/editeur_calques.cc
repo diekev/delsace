@@ -222,5 +222,5 @@ void EditeurCalques::repond_selection()
 
 	auto maillage = m_kanba->maillage;
 	maillage->calque_actif(const_cast<Calque *>(item_calque->pointeur()));
-	m_kanba->notifie_auditeurs(type_evenement::calque | type_evenement::selection);
+	m_kanba->notifie_observatrices(type_evenement::calque | type_evenement::selection);
 }
