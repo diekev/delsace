@@ -198,6 +198,14 @@ static void imprime_creation_schema(std::ostream &os, const Schema *schema)
 			if (colonne.type == ID_CLE) {
 				const auto &tab_ref = trouve_table(*schema, colonne.table);
 				const auto &col_ref = trouve_colonne(tab_ref, colonne.ref);
+
+				/* À FAIRE : TESTS. */
+				if (!col_ref.cle_primaire) {
+					std::cerr << "\nErreur lors de l'ajout d'une clé étrangère pour colonne '"<< colonne.nom  << "' de la table '" << table.nom << "' !\n";
+					std::cerr << "La colonne '" << col_ref.nom << "' de la table '" << tab_ref.nom << "' n'est pas une clé primaire !\n";
+					return;
+				}
+
 				imprime_type(os, col_ref, true);
 			}
 			else {
