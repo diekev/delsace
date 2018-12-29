@@ -1482,6 +1482,97 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceExtractionPalette final : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Extraction Palette";
+	static constexpr auto AIDE = "Extrait la palette d'une image.";
+
+	explicit OperatriceExtractionPalette(Noeud *node)
+		: OperatriceImage(node)
+	{
+		inputs(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_extraction_palette.jo";
+	}
+
+	const char *class_name() const override
+	{
+		return NOM;
+	}
+
+	const char *help_text() const override
+	{
+		return AIDE;
+	}
+
+	int execute(const Rectangle &rectangle, const int temps) override
+	{
+		input(0)->requiers_image(m_image, rectangle, temps);
+
+		auto const nom_calque = evalue_chaine("nom_calque");
+		auto tampon = m_image.calque(nom_calque);
+
+		if (tampon == nullptr) {
+			ajoute_avertissement("Calque introuvable !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto const res_x = tampon->tampon.nombre_colonnes();
+		auto const res_y = tampon->tampon.nombre_lignes();
+
+		auto image_tampon = type_image(tampon->tampon.dimensions());
+
+		using pixel_t = numero7::image::Pixel<float>;
+		using paire_pixel_t = std::pair<pixel_t, int>;
+
+		std::vector<paire_pixel_t> histogramme(360ul);
+
+		for (auto &paire : histogramme) {
+			paire.first = pixel_t(0.0f);
+			paire.second = 0;
+		}
+
+		for (int y = 0; y < res_y; ++y) {
+			for (int x = 0; x < res_x; ++x) {
+				auto const &pixel = tampon->tampon[y][x];
+				auto res = pixel_t();
+				res.a = 1;
+				rvb_vers_hsv(pixel.r, pixel.g, pixel.b, &res.r, &res.g, &res.b);
+
+				auto index = static_cast<size_t>(res.r * 360.0f);
+
+				if (histogramme[index].second == 0) {
+					histogramme[index].first = pixel;
+				}
+
+				histogramme[index].second += 1;
+			}
+		}
+
+		std::sort(histogramme.begin(), histogramme.end(),
+				  [](paire_pixel_t const &v1, paire_pixel_t const &v2)
+		{
+			return v1.second > v2.second;
+		});
+
+		for (int l = 0; l < res_y; ++l) {
+			for (int c = 0; c < res_x; ++c) {
+				auto index = static_cast<size_t>(l / 64) % 360;
+				image_tampon[l][c] = histogramme[index].first;
+			}
+		}
+
+		tampon->tampon = image_tampon;
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_region(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceAnalyse>());
@@ -1496,6 +1587,7 @@ void enregistre_operatrices_region(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceOndeletteHaar>());
 	usine.enregistre_type(cree_desc<OperatriceDilation>());
 	usine.enregistre_type(cree_desc<OperatriceErosion>());
+	usine.enregistre_type(cree_desc<OperatriceExtractionPalette>());
 }
 
 #pragma clang diagnostic pop

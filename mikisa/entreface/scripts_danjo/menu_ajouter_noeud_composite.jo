@@ -40,6 +40,7 @@ menu "Noeud Composite" {
 		action(valeur="Déformation"; attache=ajouter_noeud; métadonnée="Déformation")
 		action(valeur="Dilation"; attache=ajouter_noeud; métadonnée="Dilation")
 		action(valeur="Érosion"; attache=ajouter_noeud; métadonnée="Érosion")
+		action(valeur="Extraction Palette"; attache=ajouter_noeud; métadonnée="Extraction Palette")
 		action(valeur="Filtre"; attache=ajouter_noeud; métadonnée="Filtre")
 		action(valeur="Flou"; attache=ajouter_noeud; métadonnée="Flou")
 		action(valeur="Normalisation Région"; attache=ajouter_noeud; métadonnée="Normalisation Région")
