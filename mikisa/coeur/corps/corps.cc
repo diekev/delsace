@@ -183,6 +183,13 @@ Corps *Corps::copie() const
 
 void Corps::copie_vers(Corps *corps) const
 {
+	/* copie la transformation */
+	corps->transformation = this->transformation;
+	corps->pivot = this->pivot;
+	corps->echelle = this->echelle;
+	corps->position = this->position;
+	corps->rotation = this->rotation;
+
 	/* copie les points */
 	auto point_autre = corps->points();
 	point_autre->reserve(points()->taille());
