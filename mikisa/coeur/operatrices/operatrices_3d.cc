@@ -201,20 +201,6 @@ public:
 
 			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
 		}
-		else {
-			return;
-		}
-
-		m_corps.transformation = math::transformation();
-		m_corps.transformation *= math::translation(position.x, position.y, position.z);
-		m_corps.transformation *= math::echelle(taille.x, taille.y, taille.z);
-		m_corps.transformation *= math::rotation_x(rotation.x);
-		m_corps.transformation *= math::rotation_y(rotation.y);
-		m_corps.transformation *= math::rotation_z(rotation.z);
-
-		m_manipulatrice_position.pos(dls::math::point3f(position));
-		m_manipulatrice_rotation.pos(dls::math::point3f(position));
-		m_manipulatrice_echelle.pos(dls::math::point3f(position));
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -357,9 +343,6 @@ public:
 
 			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
 		}
-
-		m_manipulatrice_position.pos(dls::math::point3f(position));
-		m_manipulatrice_rotation.pos(dls::math::point3f(position));
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
@@ -656,20 +639,6 @@ public:
 
 			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
 		}
-		else {
-			return;
-		}
-
-		m_transformation = math::transformation();
-		m_transformation *= math::translation(position.x, position.y, position.z);
-		m_transformation *= math::echelle(taille.x, taille.y, taille.z);
-		m_transformation *= math::rotation_x(rotation.x);
-		m_transformation *= math::rotation_y(rotation.y);
-		m_transformation *= math::rotation_z(rotation.z);
-
-		m_manipulatrice_position.pos(dls::math::point3f(position));
-		m_manipulatrice_rotation.pos(dls::math::point3f(position));
-		m_manipulatrice_echelle.pos(dls::math::point3f(position));
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override

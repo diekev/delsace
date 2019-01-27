@@ -351,6 +351,10 @@ public:
 		auto operatrice = std::any_cast<OperatriceImage *>(noeud_actif->donnees());
 		operatrice->ajourne_selon_manipulatrice_3d(mikisa->type_manipulation_3d, mikisa->temps_courant);
 
+		/* Évalue tout le graphe pour ajourner proprement les données dépendants
+		 * de la transformation de l'objet. */
+		mikisa->ajourne_pour_nouveau_temps();
+
 		mikisa->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
 	}
 };
