@@ -201,8 +201,6 @@ int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
 	auto const delta = (t1 - t0).seconds();
 	noeud_sortie->temps_execution(static_cast<float>(delta));
 
-//	operatrice->collection()->transfers_corps_a(m_objet.collection);
-
 	m_objet.corps = operatrice->corps();
 
 	return EXECUTION_REUSSIE;
