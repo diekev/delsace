@@ -112,6 +112,10 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 }
 
 class OperatriceCreationCorps final : public OperatriceCorps {
+	ManipulatricePosition3D m_manipulatrice_position{};
+	ManipulatriceEchelle3D m_manipulatrice_echelle{};
+	ManipulatriceRotation3D m_manipulatrice_rotation{};
+
 public:
 	static constexpr auto NOM = "Création Corps";
 	static constexpr auto AIDE = "Crée un corps.";
@@ -148,6 +152,71 @@ public:
 		return AIDE;
 	}
 
+	bool possede_manipulatrice_3d(int type) const override
+	{
+		return type == MANIPULATION_POSITION
+				|| type == MANIPULATION_ECHELLE
+				|| type == MANIPULATION_ROTATION;
+	}
+
+	Manipulatrice3D *manipulatrice_3d(int type) override
+	{
+		if (type == MANIPULATION_POSITION) {
+			return &m_manipulatrice_position;
+		}
+
+		if (type == MANIPULATION_ECHELLE) {
+			return &m_manipulatrice_echelle;
+		}
+
+		if (type == MANIPULATION_ROTATION) {
+			return &m_manipulatrice_rotation;
+		}
+
+		return nullptr;
+	}
+
+	void ajourne_selon_manipulatrice_3d(int type, const int temps) override
+	{
+		dls::math::vec3f position, rotation, taille;
+
+		if (type == MANIPULATION_POSITION) {
+			position = dls::math::vec3f(m_manipulatrice_position.pos());
+			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
+			taille = evalue_vecteur("taille", temps);
+
+			valeur_vecteur("position", position);
+		}
+		else if (type == MANIPULATION_ECHELLE) {
+			position = evalue_vecteur("position", temps);
+			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
+			taille = dls::math::vec3f(m_manipulatrice_echelle.taille());
+
+			valeur_vecteur("taille", taille);
+		}
+		else if (type == MANIPULATION_ROTATION) {
+			position = evalue_vecteur("position", temps);
+			rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
+			taille = evalue_vecteur("taille", temps);
+
+			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
+		}
+		else {
+			return;
+		}
+
+		m_corps.transformation = math::transformation();
+		m_corps.transformation *= math::translation(position.x, position.y, position.z);
+		m_corps.transformation *= math::echelle(taille.x, taille.y, taille.z);
+		m_corps.transformation *= math::rotation_x(rotation.x);
+		m_corps.transformation *= math::rotation_y(rotation.y);
+		m_corps.transformation *= math::rotation_z(rotation.z);
+
+		m_manipulatrice_position.pos(dls::math::point3f(position));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position));
+		m_manipulatrice_echelle.pos(dls::math::point3f(position));
+	}
+
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		INUTILISE(rectangle);
@@ -178,18 +247,16 @@ public:
 		auto rotation = evalue_vecteur("rotation", temps);
 		auto taille = evalue_vecteur("taille", temps);
 
-		auto transformation = math::transformation();
-		transformation *= math::translation(position.x, position.y, position.z);
-		transformation *= math::echelle(taille.x, taille.y, taille.z);
-		transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
-		transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
-		transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
+		m_corps.transformation = math::transformation();
+		m_corps.transformation *= math::translation(position.x, position.y, position.z);
+		m_corps.transformation *= math::echelle(taille.x, taille.y, taille.z);
+		m_corps.transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
+		m_corps.transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
+		m_corps.transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
 
-		m_corps.transformation = transformation;
-
-//		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
-//		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
-//		m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
+		m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
 
 //		if (input(0)->connectee() == false) {
 //			ajoute_avertissement("Aucune texture connectée");
