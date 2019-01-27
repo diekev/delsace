@@ -30,7 +30,7 @@
 
 #include "bibliotheques/outils/iterateurs.h"
 
-class Corps;
+struct Corps;
 
 struct Point3D {
 	float x, y, z;
