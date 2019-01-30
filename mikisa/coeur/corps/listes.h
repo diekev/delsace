@@ -148,6 +148,7 @@ public:
 	void pousse(Point3D *p);
 
 	dls::math::vec3f point(size_t i) const;
+	void point(size_t i, const dls::math::vec3f &p) const;
 
 	plage_sommets points();
 

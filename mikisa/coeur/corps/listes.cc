@@ -110,6 +110,13 @@ dls::math::vec3f ListePoints3D::point(size_t i) const
 	return dls::math::vec3f(p->x, p->y, p->z);
 }
 
+void ListePoints3D::point(size_t i, dls::math::vec3f const &p) const
+{
+	m_sommets[i]->x = p.x;
+	m_sommets[i]->y = p.y;
+	m_sommets[i]->z = p.z;
+}
+
 ListePoints3D::plage_sommets ListePoints3D::points()
 {
 	return plage_sommets(m_sommets.begin(), m_sommets.end());
