@@ -209,6 +209,10 @@ void Corps::copie_vers(Corps *corps) const
 	for (Polygone *polygone : this->polys()->polys()) {
 		auto poly = Polygone::construit(corps, polygone->type, polygone->nombre_sommets());
 
+		/* Nous obtenons des crashs lors des copies car l'index devient
+		 * différent ou n'est pas correctement initialisé ? */
+		poly->index = polygone->index;
+
 		for (size_t i = 0; i < polygone->nombre_sommets(); ++i) {
 			poly->ajoute_sommet(polygone->index_point(i));
 		}
