@@ -239,6 +239,10 @@ Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, const Rectangle &rec
 {
 	auto corps_lien = this->requiers_corps(rectangle, temps);
 
+	if (corps_lien == nullptr) {
+		return nullptr;
+	}
+
 	if (corps != nullptr) {
 		corps_lien->copie_vers(corps);
 		return corps;
