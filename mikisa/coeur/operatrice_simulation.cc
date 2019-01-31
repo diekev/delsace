@@ -31,12 +31,12 @@ OperatriceSimulation::OperatriceSimulation(Graphe &graphe_parent, Noeud *noeud)
 {
 }
 
-const char *OperatriceSimulation::class_name() const
+const char *OperatriceSimulation::nom_classe() const
 {
 	return NOM;
 }
 
-const char *OperatriceSimulation::help_text() const
+const char *OperatriceSimulation::texte_aide() const
 {
 	return AIDE;
 }
@@ -78,7 +78,7 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 	/* Si nous sommes au début, réinitialise. */
 	if (temps == m_debut) {
 		/* copie l'état de base */
-		auto corps = input(0)->requiers_corps(rectangle, temps);
+		auto corps = entree(0)->requiers_corps(rectangle, temps);
 		m_corps.reinitialise();
 		corps->copie_vers(&m_corps);
 

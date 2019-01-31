@@ -76,7 +76,7 @@ public:
 	explicit OperatriceSaturation(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -84,12 +84,12 @@ public:
 		return "entreface/operatrice_saturation.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -190,12 +190,12 @@ public:
 		return "entreface/operatrice_melange.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -203,7 +203,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		/* Call node upstream. */
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
 		auto tampon = m_image.calque(nom_calque_a);
@@ -214,7 +214,7 @@ public:
 		}
 
 		Image image2;
-		input(1)->requiers_image(image2, rectangle, temps);
+		entree(1)->requiers_image(image2, rectangle, temps);
 
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
 		auto tampon2 = image2.calque(nom_calque_b);
@@ -300,12 +300,12 @@ public:
 		return "entreface/operatrice_fusion.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -313,7 +313,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		/* Call node upstream. */
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
 		auto tampon_a = m_image.calque(nom_calque_a);
@@ -324,7 +324,7 @@ public:
 		}
 
 		Image image2;
-		input(1)->requiers_image(image2, rectangle, temps);
+		entree(1)->requiers_image(image2, rectangle, temps);
 
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
 		auto tampon_b = image2.calque(nom_calque_b);
@@ -508,16 +508,16 @@ public:
 	explicit OperatriceBruitage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(0);
+		entrees(0);
 		m_dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -556,7 +556,7 @@ public:
 	explicit OperatriceConstante(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(0);
+		entrees(0);
 	}
 
 	const char *chemin_entreface() const override
@@ -564,12 +564,12 @@ public:
 		return "entreface/operatrice_constante.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -623,7 +623,7 @@ public:
 	explicit OperatriceDegrade(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(0);
+		entrees(0);
 	}
 
 	OperatriceDegrade(OperatriceDegrade const &) = default;
@@ -634,12 +634,12 @@ public:
 		return "entreface/operatrice_degrade.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -718,7 +718,7 @@ public:
 	explicit OperatriceNuage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(0);
+		entrees(0);
 	}
 
 	const char *chemin_entreface() const override
@@ -726,12 +726,12 @@ public:
 		return "entreface/operatrice_nuage.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -920,7 +920,7 @@ public:
 	explicit OperatriceEtalonnage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -928,12 +928,12 @@ public:
 		return "entreface/operatrice_grade.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1109,7 +1109,7 @@ public:
 	explicit OperatriceCorrectionGamma(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1117,12 +1117,12 @@ public:
 		return "entreface/operatrice_gamma.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1181,7 +1181,7 @@ public:
 	explicit OperatriceMappageTonal(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1189,12 +1189,12 @@ public:
 		return "entreface/operatrice_tonemap.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1338,7 +1338,7 @@ public:
 	explicit OperatriceCorrectionCouleur(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1346,12 +1346,12 @@ public:
 		return "entreface/operatrice_correction_couleur.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1391,7 +1391,7 @@ public:
 	explicit OperatriceInversement(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1399,12 +1399,12 @@ public:
 		return "entreface/operatrice_visionnage.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1444,7 +1444,7 @@ public:
 	explicit OperatriceIncrustation(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1452,12 +1452,12 @@ public:
 		return "entreface/operatrice_incrustation.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1527,7 +1527,7 @@ public:
 	explicit OperatricePremultiplication(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1535,12 +1535,12 @@ public:
 		return "entreface/operatrice_premultiplication.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1580,7 +1580,7 @@ public:
 	explicit OperatriceNormalisationPixel(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1588,12 +1588,12 @@ public:
 		return "entreface/operatrice_visionnage.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1641,7 +1641,7 @@ public:
 	explicit OperatriceContraste(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1649,12 +1649,12 @@ public:
 		return "entreface/operatrice_contraste.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1700,7 +1700,7 @@ public:
 	explicit OperatriceCourbeCouleur(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	OperatriceCourbeCouleur(OperatriceCourbeCouleur const &) = default;
@@ -1711,12 +1711,12 @@ public:
 		return "entreface/operatrice_courbe_couleur.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1763,7 +1763,7 @@ public:
 	explicit OperatriceTraduction(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1771,12 +1771,12 @@ public:
 		return "entreface/operatrice_traduction.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1819,7 +1819,7 @@ public:
 	explicit OperatriceMinMax(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1827,12 +1827,12 @@ public:
 		return "entreface/operatrice_min_max.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1954,7 +1954,7 @@ public:
 	explicit OperatriceDaltonisme(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1962,12 +1962,12 @@ public:
 		return "entreface/operatrice_daltonisme.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}

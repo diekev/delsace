@@ -259,7 +259,7 @@ static void ecris_graphe(
 		/* Opératrice */
 		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 		auto element_operatrice = doc.NewElement("operatrice");
-		element_operatrice->SetAttribute("nom", operatrice->class_name());
+		element_operatrice->SetAttribute("nom", operatrice->nom_classe());
 
 		sauvegarde_proprietes(doc, element_operatrice, operatrice);
 

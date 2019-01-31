@@ -44,8 +44,8 @@ public:
 	explicit OperatricePixelEntree(Graphe &graphe_parent, Noeud *node)
 		: OperatricePixel(graphe_parent, node)
 	{
-		inputs(0);
-		outputs(1);
+		entrees(0);
+		sorties(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -53,12 +53,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM_ENTREE;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE_ENTREE;
 	}
@@ -79,7 +79,7 @@ public:
 	{
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_ENTREE);
-		compileuse.decalage_pile(output(0)->pointeur());
+		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
 
@@ -91,8 +91,8 @@ public:
 	explicit OperatricePixelSortie(Graphe &graphe_parent, Noeud *node)
 		: OperatricePixel(graphe_parent, node)
 	{
-		inputs(1);
-		outputs(0);
+		entrees(1);
+		sorties(0);
 	}
 
 	const char *chemin_entreface() const override
@@ -100,12 +100,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM_SORTIE;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE_SORTIE;
 	}
@@ -126,7 +126,7 @@ public:
 	{
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_SORTIE);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
 	}
 };
 
@@ -138,8 +138,8 @@ public:
 	explicit OperatricePixelSaturation(Graphe &graphe_parent, Noeud *node)
 		: OperatricePixel(graphe_parent, node)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -147,12 +147,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM_SATURATION;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE_SATURATION;
 	}
@@ -173,7 +173,7 @@ public:
 	{
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_SATURATION);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
 
 		/* saturation */
 		compileuse.ajoute_noeud(0.5f);
@@ -181,7 +181,7 @@ public:
 		/* type */
 		compileuse.ajoute_noeud(1);
 
-		compileuse.decalage_pile(output(0)->pointeur());
+		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
 
@@ -248,12 +248,12 @@ void execute_graphe(
 OperatriceGraphePixel::OperatriceGraphePixel(Graphe &graphe_parent, Noeud *node)
 	: OperatriceImage(graphe_parent, node)
 {
-	inputs(1);
-	outputs(1);
+	entrees(1);
+	sorties(1);
 
 	auto noeud_entree = new Noeud(supprime_operatrice_image);
 	auto op_entree = new OperatricePixelEntree(m_graphe, noeud_entree);
-	noeud_entree->nom(op_entree->class_name());
+	noeud_entree->nom(op_entree->nom_classe());
 
 	synchronise_donnees_operatrice(noeud_entree);
 
@@ -261,7 +261,7 @@ OperatriceGraphePixel::OperatriceGraphePixel(Graphe &graphe_parent, Noeud *node)
 
 	auto noeud_sortie = new Noeud(supprime_operatrice_image);
 	auto op_sortie = new OperatricePixelSortie(m_graphe, noeud_sortie);
-	noeud_sortie->nom(op_sortie->class_name());
+	noeud_sortie->nom(op_sortie->nom_classe());
 
 	synchronise_donnees_operatrice(noeud_sortie);
 
@@ -269,7 +269,7 @@ OperatriceGraphePixel::OperatriceGraphePixel(Graphe &graphe_parent, Noeud *node)
 
 	auto noeud_saturation = new Noeud(supprime_operatrice_image);
 	auto op_saturation = new OperatricePixelSaturation(m_graphe, noeud_saturation);
-	noeud_saturation->nom(op_saturation->class_name());
+	noeud_saturation->nom(op_saturation->nom_classe());
 
 	synchronise_donnees_operatrice(noeud_saturation);
 
@@ -279,12 +279,12 @@ OperatriceGraphePixel::OperatriceGraphePixel(Graphe &graphe_parent, Noeud *node)
 	m_graphe.connecte(noeud_saturation->sortie(0), noeud_sortie->entree(0));
 }
 
-const char *OperatriceGraphePixel::class_name() const
+const char *OperatriceGraphePixel::nom_classe() const
 {
 	return NOM;
 }
 
-const char *OperatriceGraphePixel::help_text() const
+const char *OperatriceGraphePixel::texte_aide() const
 {
 	return AIDE;
 }
@@ -308,11 +308,11 @@ int OperatriceGraphePixel::execute(const Rectangle &rectangle, const int temps)
 {
 	Calque *tampon = nullptr;
 
-	if (!input(0)->connectee()) {
+	if (!entree(0)->connectee()) {
 		tampon = m_image.ajoute_calque("image", rectangle);
 	}
 	else {
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 		auto nom_calque = evalue_chaine("nom_calque");
 		tampon = m_image.calque(nom_calque);
 	}

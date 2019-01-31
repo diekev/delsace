@@ -82,9 +82,9 @@ public:
 
 	explicit OperatriceGrapheMaillage(Graphe &graphe_parent, Noeud *noeud);
 
-	virtual const char *class_name() const override;
+	virtual const char *nom_classe() const override;
 
-	virtual const char *help_text() const override;
+	virtual const char *texte_aide() const override;
 
 	const char *chemin_entreface() const override;
 

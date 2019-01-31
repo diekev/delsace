@@ -44,8 +44,8 @@ public:
 	explicit OperatriceCreationPoints(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -63,12 +63,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}

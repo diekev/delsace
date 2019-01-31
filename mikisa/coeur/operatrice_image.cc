@@ -271,13 +271,13 @@ int OperatriceImage::type() const
 	return OPERATRICE_IMAGE;
 }
 
-void OperatriceImage::inputs(size_t number)
+void OperatriceImage::entrees(size_t number)
 {
 	m_num_inputs = number;
 	m_input_data.resize(number);
 }
 
-size_t OperatriceImage::inputs() const
+size_t OperatriceImage::entrees() const
 {
 	return m_num_inputs;
 }
@@ -300,7 +300,7 @@ int OperatriceImage::type_entree(int n) const
 	}
 }
 
-EntreeOperatrice *OperatriceImage::input(size_t index)
+EntreeOperatrice *OperatriceImage::entree(size_t index)
 {
 	if (index >= m_num_inputs) {
 		return nullptr;
@@ -309,7 +309,7 @@ EntreeOperatrice *OperatriceImage::input(size_t index)
 	return &m_input_data[index];
 }
 
-const EntreeOperatrice *OperatriceImage::input(size_t index) const
+const EntreeOperatrice *OperatriceImage::entree(size_t index) const
 {
 	if (index >= m_num_inputs) {
 		return nullptr;
@@ -318,10 +318,10 @@ const EntreeOperatrice *OperatriceImage::input(size_t index) const
 	return &m_input_data[index];
 }
 
-void OperatriceImage::set_input_data(size_t index, PriseEntree *socket)
+void OperatriceImage::donnees_entree(size_t index, PriseEntree *socket)
 {
 	if (index >= m_input_data.size()) {
-		std::cerr << class_name() << " : Overflow while setting data (inputs: "
+		std::cerr << nom_classe() << " : Overflow while setting data (inputs: "
 				  << m_input_data.size() << ", index: " << index << ")\n";
 		return;
 	}
@@ -329,7 +329,7 @@ void OperatriceImage::set_input_data(size_t index, PriseEntree *socket)
 	m_input_data[index] = EntreeOperatrice(socket);
 }
 
-SortieOperatrice *OperatriceImage::output(size_t index)
+SortieOperatrice *OperatriceImage::sortie(size_t index)
 {
 	if (index >= m_num_outputs) {
 		return nullptr;
@@ -338,10 +338,10 @@ SortieOperatrice *OperatriceImage::output(size_t index)
 	return &m_sorties[index];
 }
 
-void OperatriceImage::set_output_data(size_t index, PriseSortie *prise)
+void OperatriceImage::donnees_sortie(size_t index, PriseSortie *prise)
 {
 	if (index >= m_sorties.size()) {
-		std::cerr << class_name() << " : Overflow while setting data (outputs: "
+		std::cerr << nom_classe() << " : Overflow while setting data (outputs: "
 				  << m_sorties.size() << ", index: " << index << ")\n";
 		return;
 	}
@@ -349,13 +349,13 @@ void OperatriceImage::set_output_data(size_t index, PriseSortie *prise)
 	m_sorties[index] = SortieOperatrice(prise);
 }
 
-void OperatriceImage::outputs(size_t number)
+void OperatriceImage::sorties(size_t number)
 {
 	m_num_outputs = number;
 	m_sorties.resize(number);
 }
 
-size_t OperatriceImage::outputs() const
+size_t OperatriceImage::sorties() const
 {
 	return m_num_outputs;
 }
@@ -444,13 +444,13 @@ void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*t
 
 void OperatriceImage::obtiens_liste(const std::string &/*attache*/, std::vector<std::string> &chaines) const
 {
-	if (inputs() == 0) {
+	if (entrees() == 0) {
 		chaines.clear();
 		return;
 	}
 
 	/* Par défaut, on utilise la liste de la première entrée. */
-	input(0)->obtiens_liste_calque(chaines);
+	entree(0)->obtiens_liste_calque(chaines);
 }
 
 /* ************************************************************************** */

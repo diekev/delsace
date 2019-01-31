@@ -40,7 +40,7 @@ public:
 	explicit OperatriceEntreeSimulation(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -48,12 +48,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -94,7 +94,7 @@ public:
 	explicit OperatriceGravite(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -112,12 +112,12 @@ public:
 		return OPERATRICE_CORPS;
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -125,7 +125,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
-		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();

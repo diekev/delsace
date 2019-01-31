@@ -118,8 +118,8 @@ public:
 	explicit OperatriceCreationCourbes(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -137,12 +137,12 @@ public:
 		return "entreface/operatrice_3d_creation_courbes.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -151,7 +151,7 @@ public:
 	{
 		m_corps.reinitialise();
 
-		auto corps_particules = input(0)->requiers_corps(rectangle, temps);
+		auto corps_particules = entree(0)->requiers_corps(rectangle, temps);
 
 		if (corps_particules == nullptr) {
 			ajoute_avertissement("Aucun corps trouvé en entrée !");
@@ -320,12 +320,12 @@ public:
 
 	Corps const *charge_maillage_collesion(const Rectangle &rectangle, const int temps)
 	{
-		return input(0)->requiers_corps(rectangle, temps);
+		return entree(0)->requiers_corps(rectangle, temps);
 	}
 
 	Corps const *charge_courbes(const Rectangle &rectangle, const int temps)
 	{
-		return input(1)->requiers_corps(rectangle, temps);
+		return entree(1)->requiers_corps(rectangle, temps);
 	}
 
 	ArbreOcternaire *construit_arbre(Corps const *maillage)

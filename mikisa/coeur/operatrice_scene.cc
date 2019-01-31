@@ -59,8 +59,8 @@ static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 OperatriceScene::OperatriceScene(Graphe &graphe_parent, Noeud *node)
 	: OperatriceImage(graphe_parent, node)
 {
-	inputs(1);
-	outputs(1);
+	entrees(1);
+	sorties(1);
 }
 
 int OperatriceScene::type() const
@@ -83,12 +83,12 @@ const char *OperatriceScene::chemin_entreface() const
 	return "";
 }
 
-const char *OperatriceScene::class_name() const
+const char *OperatriceScene::nom_classe() const
 {
 	return NOM;
 }
 
-const char *OperatriceScene::help_text() const
+const char *OperatriceScene::texte_aide() const
 {
 	return AIDE;
 }
@@ -105,7 +105,7 @@ Graphe *OperatriceScene::graphe()
 
 int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
 {
-	auto camera = input(0)->requiers_camera(rectangle, temps);
+	auto camera = entree(0)->requiers_camera(rectangle, temps);
 
 	if (camera == nullptr) {
 		ajoute_avertissement("Aucune caméra trouvée !");

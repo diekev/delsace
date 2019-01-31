@@ -39,12 +39,12 @@ int OperatricePixel::execute(const Rectangle &rectangle, int temps)
 {
 	Calque *tampon = nullptr;
 
-	if (inputs() == 0) {
+	if (entrees() == 0) {
 		m_image.reinitialise();
 		tampon = m_image.ajoute_calque("image", rectangle);
 	}
-	else if (inputs() >= 1) {
-		input(0)->requiers_image(m_image, rectangle, temps);
+	else if (entrees() >= 1) {
+		entree(0)->requiers_image(m_image, rectangle, temps);
 		auto nom_calque = evalue_chaine("nom_calque");
 		tampon = m_image.calque(nom_calque);
 	}

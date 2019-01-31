@@ -57,8 +57,8 @@ public:
 	explicit OperatriceSortieCorps(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(0);
+		entrees(1);
+		sorties(0);
 	}
 
 	int type() const override
@@ -76,12 +76,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -89,7 +89,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
-		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -123,8 +123,8 @@ public:
 	explicit OperatriceCreationCorps(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -142,12 +142,12 @@ public:
 		return "entreface/operatrice_objet.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -271,8 +271,8 @@ public:
 		: OperatriceImage(graphe_parent, noeud)
 		, m_camera(0, 0)
 	{
-		inputs(0);
-		outputs(1);
+		entrees(0);
+		sorties(1);
 	}
 
 	int type() const override
@@ -295,12 +295,12 @@ public:
 		return "entreface/operatrice_camera.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -394,8 +394,8 @@ public:
 	explicit OperatriceTexture(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(2);
-		outputs(1);
+		entrees(2);
+		sorties(1);
 	}
 
 	OperatriceTexture(OperatriceTexture const &) = default;
@@ -434,12 +434,12 @@ public:
 		return "entreface/operatrice_texture.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -456,12 +456,12 @@ public:
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		if (input(0)->connectee() == false) {
+		if (entree(0)->connectee() == false) {
 			ajoute_avertissement("Aucune image connectée pour la texture");
 			return EXECUTION_ECHOUEE;
 		}
 
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 		auto tampon = m_image.calque("image");
 
 		if (tampon == nullptr) {
@@ -502,7 +502,7 @@ public:
 		}
 		else if (projection == "caméra") {
 			m_texture.projection(PROJECTION_CAMERA);
-			m_camera = input(1)->requiers_camera(rectangle, temps);
+			m_camera = entree(1)->requiers_camera(rectangle, temps);
 
 			if (m_camera == nullptr) {
 				ajoute_avertissement("Aucune caméra trouvée pour la projection caméra !");
@@ -551,8 +551,8 @@ public:
 	explicit OperatriceLectureObjet(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	OperatriceLectureObjet(OperatriceLectureObjet const &) = default;
@@ -580,12 +580,12 @@ public:
 		return "entreface/operatrice_lecture_objet.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -712,8 +712,8 @@ public:
 	explicit OperatriceCreationNormaux(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -731,12 +731,12 @@ public:
 		return "entreface/operatrice_3d_normaux.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -744,7 +744,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
-		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 		auto type = evalue_enum("type_normaux");
 		auto inverse_normaux = evalue_bool("inverse_direction");
@@ -918,8 +918,8 @@ public:
 	explicit OperatriceOpenSubDiv(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -937,12 +937,12 @@ public:
 		return "entreface/operatrice_opensubdiv.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -950,7 +950,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
-		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 		/* peuple un descripteur avec nos données crues */
 		using Descripteur   = OpenSubdiv::Far::TopologyDescriptor;
@@ -1144,8 +1144,8 @@ public:
 	explicit OperatriceCreationAttribut(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -1163,12 +1163,12 @@ public:
 		return "entreface/operatrice_3d_creation_attribut.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1176,7 +1176,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
-		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 		auto const chaine_type = evalue_enum("type_attribut");
@@ -1288,8 +1288,8 @@ public:
 	explicit OperatriceSuppressionAttribut(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -1307,12 +1307,12 @@ public:
 		return "entreface/operatrice_3d_suppression_attribut.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1320,7 +1320,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
-		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 
@@ -1345,8 +1345,8 @@ public:
 	explicit OperatriceRandomisationAttribut(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -1364,12 +1364,12 @@ public:
 		return "entreface/operatrice_3d_randomisation_attribut.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1377,7 +1377,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
-		input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 		auto const graine = evalue_entier("graine");
@@ -1503,8 +1503,8 @@ public:
 	explicit OperatriceFusionnageCorps(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		inputs(2);
-		outputs(1);
+		entrees(2);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -1522,12 +1522,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -1536,14 +1536,14 @@ public:
 	{
 		m_corps.reinitialise();
 
-		auto corps1 = input(0)->requiers_corps(rectangle, temps);
+		auto corps1 = entree(0)->requiers_corps(rectangle, temps);
 
 		if (corps1 == nullptr) {
 			ajoute_avertissement("1er corps manquant !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto corps2 = input(1)->requiers_corps(rectangle, temps);
+		auto corps2 = entree(1)->requiers_corps(rectangle, temps);
 
 		if (corps2 == nullptr) {
 			ajoute_avertissement("2ème corps manquant !");

@@ -256,16 +256,16 @@ void execute_graphe(
 OperatriceGrapheMaillage::OperatriceGrapheMaillage(Graphe &graphe_parent, Noeud *noeud)
 	: OperatriceCorps(graphe_parent, noeud)
 {
-	inputs(1);
-	outputs(1);
+	entrees(1);
+	sorties(1);
 }
 
-const char *OperatriceGrapheMaillage::class_name() const
+const char *OperatriceGrapheMaillage::nom_classe() const
 {
 	return NOM;
 }
 
-const char *OperatriceGrapheMaillage::help_text() const
+const char *OperatriceGrapheMaillage::texte_aide() const
 {
 	return AIDE;
 }
@@ -297,13 +297,13 @@ int OperatriceGrapheMaillage::type() const
 
 int OperatriceGrapheMaillage::execute(const Rectangle &rectangle, const int temps)
 {
-	if (!this->input(0)->connectee()) {
+	if (!this->entree(0)->connectee()) {
 		ajoute_avertissement("L'entrée n'est pas connectée !");
 		return EXECUTION_ECHOUEE;
 	}
 
 	m_corps.reinitialise();
-	input(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+	entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 	compile_graphe(temps);
 

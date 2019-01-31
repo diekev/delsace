@@ -51,9 +51,9 @@ public:
 
 	const char *chemin_entreface() const override;
 
-	const char *class_name() const override;
+	const char *nom_classe() const override;
 
-	const char *help_text() const override;
+	const char *texte_aide() const override;
 
 	Scene *scene() override;
 

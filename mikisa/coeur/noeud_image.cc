@@ -71,23 +71,23 @@ void synchronise_donnees_operatrice(Noeud *noeud)
 {
 	auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
 
-	for (size_t i = 0; i < op->inputs(); ++i) {
+	for (size_t i = 0; i < op->entrees(); ++i) {
 		noeud->ajoute_entree(op->nom_entree(static_cast<int>(i)), op->type_entree(static_cast<int>(i)));
 	}
 
-	for (size_t i = 0; i < op->outputs(); ++i) {
+	for (size_t i = 0; i < op->sorties(); ++i) {
 		noeud->ajoute_sortie(op->nom_sortie(static_cast<int>(i)), op->type_sortie(static_cast<int>(i)));
 	}
 
 	auto index = 0ul;
 
 	for (auto entree : noeud->entrees()) {
-		op->set_input_data(index++, entree);
+		op->donnees_entree(index++, entree);
 	}
 
 	index = 0ul;
 
 	for (auto sortie : noeud->sorties()) {
-		op->set_output_data(index++, sortie);
+		op->donnees_sortie(index++, sortie);
 	}
 }

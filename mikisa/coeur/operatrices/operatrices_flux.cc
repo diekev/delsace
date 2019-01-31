@@ -137,8 +137,8 @@ public:
 	explicit OperatriceVisionnage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(0);
+		entrees(1);
+		sorties(0);
 	}
 
 	int type() const override
@@ -151,19 +151,19 @@ public:
 		return "entreface/operatrice_visionnage.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 		m_image.nom_calque_actif(evalue_chaine("nom_calque"));
 		return EXECUTION_REUSSIE;
 	}
@@ -262,16 +262,16 @@ public:
 	explicit OperatriceLectureJPEG(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(0);
-		outputs(1);
+		entrees(0);
+		sorties(1);
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -364,12 +364,12 @@ public:
 		return "entreface/operatrice_commutateur.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -377,7 +377,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		auto const value = evalue_entier("prise");
-		input(static_cast<size_t>(value))->requiers_image(m_image, rectangle, temps);
+		entree(static_cast<size_t>(value))->requiers_image(m_image, rectangle, temps);
 		return EXECUTION_REUSSIE;
 	}
 };

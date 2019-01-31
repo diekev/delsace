@@ -283,29 +283,29 @@ public:
 
 	/* Input handling. */
 
-	void inputs(size_t number);
+	void entrees(size_t number);
 
-	size_t inputs() const;
+	size_t entrees() const;
 
 	virtual const char *nom_entree(int n);
 
 	virtual int type_entree(int n) const;
 
-	EntreeOperatrice *input(size_t index);
+	EntreeOperatrice *entree(size_t index);
 
-	const EntreeOperatrice *input(size_t index) const;
+	const EntreeOperatrice *entree(size_t index) const;
 
-	void set_input_data(size_t index, PriseEntree *socket);
+	void donnees_entree(size_t index, PriseEntree *socket);
 
-	SortieOperatrice *output(size_t index);
+	SortieOperatrice *sortie(size_t index);
 
-	void set_output_data(size_t index, PriseSortie *prise);
+	void donnees_sortie(size_t index, PriseSortie *prise);
 
 	/* Output handling. */
 
-	void outputs(size_t number);
+	void sorties(size_t number);
 
-	size_t outputs() const;
+	size_t sorties() const;
 
 	virtual const char *nom_sortie(int n);
 
@@ -313,8 +313,8 @@ public:
 
 	/* Information about this operator. */
 
-	virtual const char *class_name() const = 0;
-	virtual const char *help_text() const = 0;
+	virtual const char *nom_classe() const = 0;
+	virtual const char *texte_aide() const = 0;
 	virtual const char *chemin_entreface() const;
 
 	/* The main processing logic of this operator. */

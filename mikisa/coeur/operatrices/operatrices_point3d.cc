@@ -44,8 +44,8 @@ public:
 	explicit OperatricePoint3DEntree(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(0);
-		outputs(1);
+		entrees(0);
+		sorties(1);
 	}
 
 	int type_sortie(int) const override
@@ -58,12 +58,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -73,7 +73,7 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_ENTREE);
-		compileuse.decalage_pile(output(0)->pointeur());
+		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
 
@@ -87,8 +87,8 @@ public:
 	explicit OperatricePoint3DValeur(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(0);
-		outputs(1);
+		entrees(0);
+		sorties(1);
 	}
 
 	int type_sortie(int) const override
@@ -101,12 +101,12 @@ public:
 		return "entreface/operatrice_point3d_valeur.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -115,7 +115,7 @@ public:
 	{
 		INUTILISE(gestionnaire);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_VALEUR);
-		auto decalage = compileuse.decalage_pile(output(0)->pointeur());
+		auto decalage = compileuse.decalage_pile(sortie(0)->pointeur());
 		compileuse.stocke_decimal(decalage, evalue_decimal("val", temps));
 	}
 };
@@ -130,8 +130,8 @@ public:
 	explicit OperatricePoint3DVecteur(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(0);
-		outputs(1);
+		entrees(0);
+		sorties(1);
 	}
 
 	int type_sortie(int) const override
@@ -144,12 +144,12 @@ public:
 		return "entreface/operatrice_point3d_vecteur.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -158,7 +158,7 @@ public:
 	{
 		INUTILISE(gestionnaire);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_VECTEUR);
-		auto decalage = compileuse.decalage_pile(output(0)->pointeur());
+		auto decalage = compileuse.decalage_pile(sortie(0)->pointeur());
 		compileuse.stocke_vec3f(decalage, evalue_vecteur("vec", temps));
 	}
 };
@@ -173,8 +173,8 @@ public:
 	explicit OperatricePoint3DSortie(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(0);
+		entrees(1);
+		sorties(0);
 	}
 
 	int type_entree(int) const override
@@ -187,12 +187,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -202,7 +202,7 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_SORTIE);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
 	}
 };
 
@@ -216,8 +216,8 @@ public:
 	explicit OperatricePoint3DMath(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(2);
-		outputs(1);
+		entrees(2);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -235,12 +235,12 @@ public:
 		return "entreface/operatrice_point3d_math.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -250,8 +250,8 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_MATH);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(1)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->lien));
 
 		auto operation = evalue_enum("opération");
 
@@ -268,7 +268,7 @@ public:
 			compileuse.ajoute_noeud(OPERATION_MATH_DIVISION);
 		}
 
-		compileuse.decalage_pile(output(0)->pointeur());
+		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
 
@@ -282,8 +282,8 @@ public:
 	explicit OperatricePoint3DSepareVecteur(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(3);
+		entrees(1);
+		sorties(3);
 	}
 
 	int type_entree(int) const override
@@ -301,12 +301,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -316,10 +316,10 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_SEPARE_VECTEUR);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
-		compileuse.decalage_pile(output(0)->pointeur());
-		compileuse.decalage_pile(output(1)->pointeur());
-		compileuse.decalage_pile(output(2)->pointeur());
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.decalage_pile(sortie(0)->pointeur());
+		compileuse.decalage_pile(sortie(1)->pointeur());
+		compileuse.decalage_pile(sortie(2)->pointeur());
 	}
 };
 
@@ -333,8 +333,8 @@ public:
 	explicit OperatricePoint3DCombineVecteur(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(3);
-		outputs(1);
+		entrees(3);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -352,12 +352,12 @@ public:
 		return "";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -367,10 +367,10 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_COMBINE_VECTEUR);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(1)->pointeur()->lien));
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(2)->pointeur()->lien));
-		compileuse.decalage_pile(output(0)->pointeur());
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(2)->pointeur()->lien));
+		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
 
@@ -388,8 +388,8 @@ public:
 	explicit OperatricePoint3DBruitProc(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -407,12 +407,12 @@ public:
 		return "entreface/operatrice_point3d_nuage.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -420,7 +420,7 @@ public:
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
 		compileuse.ajoute_noeud(NOEUD_POINT3D_BRUIT_PROC);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
 
 		/* prépare le bruit */
 		auto const graine = static_cast<unsigned>(evalue_entier("graine"));
@@ -460,7 +460,7 @@ public:
 		compileuse.ajoute_noeud(octaves);
 		compileuse.ajoute_noeud(amplitude, persistence, lacunarite);
 
-		compileuse.decalage_pile(output(0)->pointeur());
+		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
 
@@ -474,8 +474,8 @@ public:
 	explicit OperatriceTradVec(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePoint3D(graphe_parent, noeud)
 	{
-		inputs(1);
-		outputs(1);
+		entrees(1);
+		sorties(1);
 	}
 
 	int type_entree(int) const override
@@ -493,12 +493,12 @@ public:
 		return "entreface/operatrice_point3d_traduction.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -508,7 +508,7 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_TRAD_VEC);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(input(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
 
 		auto const vieux_min = evalue_decimal("vieux_min");
 		auto const vieux_max = evalue_decimal("vieux_max");
@@ -517,7 +517,7 @@ public:
 
 		compileuse.ajoute_noeud(vieux_min, vieux_max, neuf_min, neuf_max);
 
-		compileuse.decalage_pile(output(0)->pointeur());
+		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
 

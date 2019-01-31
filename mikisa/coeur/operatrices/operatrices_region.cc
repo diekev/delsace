@@ -106,7 +106,7 @@ public:
 	explicit OperatriceAnalyse(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -114,12 +114,12 @@ public:
 		return "entreface/operatrice_analyse.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -127,7 +127,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		/* Call node upstream; */
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -331,7 +331,7 @@ public:
 	explicit OperatriceFiltrage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -339,12 +339,12 @@ public:
 		return "entreface/operatrice_filtre.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
@@ -352,7 +352,7 @@ public:
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
 		/* Call node upstream. */
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -415,7 +415,7 @@ public:
 	explicit OperatriceNormalisationRegion(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -423,19 +423,19 @@ public:
 		return "entreface/operatrice_normalisation.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -471,7 +471,7 @@ public:
 	explicit OperatriceFloutage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -479,19 +479,19 @@ public:
 		return "entreface/operatrice_flou.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -608,7 +608,7 @@ public:
 	explicit OperatriceTournoiement(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -616,19 +616,19 @@ public:
 		return "entreface/operatrice_tournoiement.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -699,7 +699,7 @@ public:
 	explicit OperatriceChampsDistance(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -707,19 +707,19 @@ public:
 		return "entreface/operatrice_champs_distance.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -821,7 +821,7 @@ public:
 	explicit OperatriceDeformation(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(2);
+		entrees(2);
 	}
 
 	const char *chemin_entreface() const override
@@ -829,19 +829,19 @@ public:
 		return "entreface/operatrice_deformation.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
 		auto tampon = m_image.calque(nom_calque_a);
@@ -852,7 +852,7 @@ public:
 		}
 
 		Image image2;
-		input(1)->requiers_image(image2, rectangle, temps);
+		entree(1)->requiers_image(image2, rectangle, temps);
 
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
 		auto tampon2 = image2.calque(nom_calque_b);
@@ -1106,7 +1106,7 @@ public:
 	explicit OperatriceSimulationGrain(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1114,19 +1114,19 @@ public:
 		return "entreface/operatrice_simulation_grain.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto const &nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1175,7 +1175,7 @@ public:
 	explicit OperatriceCoordonneesPolaires(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1183,19 +1183,19 @@ public:
 		return "entreface/operatrice_coordonnees_polaires.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1236,7 +1236,7 @@ public:
 	explicit OperatriceOndeletteHaar(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1244,19 +1244,19 @@ public:
 		return "entreface/operatrice_ondelette_haar.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1331,7 +1331,7 @@ public:
 	explicit OperatriceDilation(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1339,19 +1339,19 @@ public:
 		return "entreface/operatrice_dilation_erosion.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1411,7 +1411,7 @@ public:
 	explicit OperatriceErosion(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1419,19 +1419,19 @@ public:
 		return "entreface/operatrice_dilation_erosion.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1490,7 +1490,7 @@ public:
 	explicit OperatriceExtractionPalette(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		inputs(1);
+		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -1498,19 +1498,19 @@ public:
 		return "entreface/operatrice_extraction_palette.jo";
 	}
 
-	const char *class_name() const override
+	const char *nom_classe() const override
 	{
 		return NOM;
 	}
 
-	const char *help_text() const override
+	const char *texte_aide() const override
 	{
 		return AIDE;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
-		input(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, rectangle, temps);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);

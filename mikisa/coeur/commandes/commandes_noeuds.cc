@@ -180,7 +180,7 @@ public:
 		auto nom = donnees.metadonnee;
 
 		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, noeud);
-		noeud->nom(op->class_name());
+		noeud->nom(op->nom_classe());
 		synchronise_donnees_operatrice(noeud);
 
 		if (op->type() == OPERATRICE_SORTIE_IMAGE) {
