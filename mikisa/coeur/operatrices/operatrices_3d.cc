@@ -770,7 +770,7 @@ public:
 			attr_normaux->portee = ATTR_PORTEE_POLYGONE;
 
 			for (Polygone *poly : liste_polys->polys()) {
-				if (poly->type != POLYGONE_FERME || poly->nombre_sommets() < 3) {
+				if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
 					attr_normaux->pousse_vec3(dls::math::vec3f(0.0f));
 					continue;
 				}
@@ -799,7 +799,7 @@ public:
 
 			/* calcul le normal de chaque polygone */
 			for (Polygone *poly : liste_polys->polys()) {
-				if (poly->type != POLYGONE_FERME || poly->nombre_sommets() < 3) {
+				if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
 					poly->nor = dls::math::vec3f(0.0f);
 					continue;
 				}
@@ -818,7 +818,7 @@ public:
 			std::vector<int> poids(nombre_sommets, 0);
 
 			for (Polygone *poly : liste_polys->polys()) {
-				if (poly->type == POLYGONE_OUVERT || poly->nombre_sommets() < 3) {
+				if (poly->type == type_polygone::OUVERT || poly->nombre_sommets() < 3) {
 					continue;
 				}
 
@@ -1120,7 +1120,7 @@ public:
 			for (size_t face = 0; face < nombre_polygones; ++face) {
 				auto fverts = ref_der_niv.GetFaceVertices(static_cast<int>(face));
 
-				auto poly = Polygone::construit(&m_corps, POLYGONE_FERME, static_cast<size_t>(fverts.size()));
+				auto poly = Polygone::construit(&m_corps, type_polygone::FERME, static_cast<size_t>(fverts.size()));
 
 				for (int i = 0; i < fverts.size(); ++i) {
 					poly->ajoute_sommet(static_cast<size_t>(fverts[i]));

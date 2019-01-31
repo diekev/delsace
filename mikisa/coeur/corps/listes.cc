@@ -28,10 +28,10 @@
 
 /* ************************************************************************** */
 
-Polygone *Polygone::construit(Corps *corps, int type_polygone, size_t nombre_sommets)
+Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, size_t nombre_sommets)
 {
 	Polygone *p = new Polygone;
-	p->type = type_polygone;
+	p->type = type_poly;
 	p->reserve_sommets(nombre_sommets);
 
 	corps->ajoute_polygone(p);
@@ -56,7 +56,7 @@ size_t Polygone::nombre_sommets() const
 
 size_t Polygone::nombre_segments() const
 {
-	if (this->type == POLYGONE_FERME) {
+	if (this->type == type_polygone::FERME) {
 		return this->nombre_sommets();
 	}
 

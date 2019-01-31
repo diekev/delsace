@@ -78,7 +78,7 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 	INUTILISE(index_uvs);
 	INUTILISE(index_normaux);
 
-	auto poly = Polygone::construit(corps, POLYGONE_FERME, nombre);
+	auto poly = Polygone::construit(corps, type_polygone::FERME, nombre);
 
 	for (size_t i = 0; i < nombre; ++i) {
 		poly->ajoute_sommet(static_cast<size_t>(index_sommet[i]));

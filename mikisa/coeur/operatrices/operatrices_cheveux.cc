@@ -245,7 +245,7 @@ public:
 
 			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 
-			auto polygone = Polygone::construit(&m_corps, POLYGONE_OUVERT, nombre_segment + 1);
+			auto polygone = Polygone::construit(&m_corps, type_polygone::OUVERT, nombre_segment + 1);
 			polygone->ajoute_sommet(index_npoint);
 
 			for (size_t j = 0; j < nombre_segment; ++j) {

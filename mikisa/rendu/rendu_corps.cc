@@ -383,10 +383,10 @@ void RenduCorps::initialise()
 		std::vector<dls::math::vec3f> normaux;
 
 		for (Polygone *polygone : liste_polys->polys()) {
-			if (polygone->type == POLYGONE_FERME) {
+			if (polygone->type == type_polygone::FERME) {
 				ajoute_polygone_surface(polygone, liste_points, attr_N, points_polys, normaux);
 			}
-			else if (polygone->type == POLYGONE_OUVERT) {
+			else if (polygone->type == type_polygone::OUVERT) {
 				ajoute_polygone_segment(polygone, liste_points, points_segment);
 			}
 		}

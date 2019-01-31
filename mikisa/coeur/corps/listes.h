@@ -72,9 +72,9 @@ struct Arrete {
 
 /* ************************************************************************** */
 
-enum {
-	POLYGONE_FERME,
-	POLYGONE_OUVERT,
+enum class type_polygone : char {
+	FERME,
+	OUVERT,
 };
 
 /**
@@ -92,10 +92,10 @@ public:
 	Polygone &operator=(Polygone const &) = default;
 
 	/* Le type de ce polygone :
-	 * POLYGONE_FERME : un polygone avec une face
-	 * POLYGONE_OUVERT : un polygone sans face, une courbe
+	 * type_polygone::FERME : un polygone avec une face
+	 * type_polygone::OUVERT : un polygone sans face, une courbe
 	 */
-	int type = POLYGONE_FERME;
+	type_polygone type = type_polygone::FERME;
 
 	/* L'index de ce polygone. */
 	size_t index = 0;
@@ -103,7 +103,7 @@ public:
 	/* Le vecteur normal de ce polygone. */
 	dls::math::vec3f nor{};
 
-	static Polygone *construit(Corps *corps, int type_polygone = POLYGONE_FERME, size_t nombre_sommets = 0);
+	static Polygone *construit(Corps *corps, type_polygone type_poly = type_polygone::FERME, size_t nombre_sommets = 0);
 
 	void ajoute_sommet(size_t sommet);
 
