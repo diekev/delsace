@@ -27,7 +27,7 @@
 #include "bibliotheques/objets/adaptrice_creation.h"
 
 class Corps;
-class GroupePolygone;
+class GroupePrimitive;
 class Attribut;
 
 /* ************************************************************************** */
@@ -60,7 +60,7 @@ public:
 
 	void groupe_nuancage(const int index) override;
 
-	std::vector<GroupePolygone *> groupes_courant{};
+	std::vector<GroupePrimitive *> groupes_courant{};
 	Corps *corps{};
 	Attribut *attribut_normal = nullptr;
 	Attribut *attribut_uvs = nullptr;

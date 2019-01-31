@@ -80,16 +80,16 @@ Attribut *Corps::attribut(const std::string &nom_attribut) const
 	return nullptr;
 }
 
-GroupePolygone *Corps::ajoute_groupe_polygone(const std::string &nom_attribut)
+GroupePrimitive *Corps::ajoute_groupe_primitive(const std::string &nom_attribut)
 {
-	if (m_groupes_polygones.find(nom_attribut) != m_groupes_polygones.end()) {
+	if (m_groupes_prims.find(nom_attribut) != m_groupes_prims.end()) {
 		return nullptr;
 	}
 
-	auto groupe = new GroupePolygone;
+	auto groupe = new GroupePrimitive;
 	groupe->nom = nom_attribut;
 
-	m_groupes_polygones[nom_attribut] = groupe;
+	m_groupes_prims[nom_attribut] = groupe;
 
 	return groupe;
 }
@@ -130,10 +130,10 @@ size_t Corps::index_point(float x, float y, float z)
 	return -1ul;
 }
 
-void Corps::ajoute_polygone(Polygone *p)
+void Corps::ajoute_primitive(Primitive *p)
 {
-	p->index = m_polys.taille();
-	m_polys.pousse(p);
+	p->index = m_prims.taille();
+	m_prims.pousse(p);
 }
 
 ListePoints3D *Corps::points()
@@ -146,20 +146,20 @@ const ListePoints3D *Corps::points() const
 	return &m_points;
 }
 
-ListePolygones *Corps::polys()
+ListePrimitives *Corps::prims()
 {
-	return &m_polys;
+	return &m_prims;
 }
 
-const ListePolygones *Corps::polys() const
+const ListePrimitives *Corps::prims() const
 {
-	return &m_polys;
+	return &m_prims;
 }
 
 void Corps::reinitialise()
 {
 	m_points.reinitialise();
-	m_polys.reinitialise();
+	m_prims.reinitialise();
 
 	for (auto &attribut : m_attributs) {
 		delete attribut;
@@ -167,11 +167,11 @@ void Corps::reinitialise()
 
 	m_attributs.clear();
 
-	for (auto paire : m_groupes_polygones) {
+	for (auto paire : m_groupes_prims) {
 		delete paire.second;
 	}
 
-	m_groupes_polygones.clear();
+	m_groupes_prims.clear();
 }
 
 Corps *Corps::copie() const
@@ -203,18 +203,21 @@ void Corps::copie_vers(Corps *corps) const
 	}
 
 	/* copie les polygones */
-	auto polys_autre = corps->polys();
-	polys_autre->reserve(this->polys()->taille());
+	auto prims_autre = corps->prims();
+	prims_autre->reserve(this->prims()->taille());
 
-	for (Polygone *polygone : this->polys()->polys()) {
-		auto poly = Polygone::construit(corps, polygone->type, polygone->nombre_sommets());
+	for (Primitive *prim : this->prims()->prims()) {
+		if (prim->type_prim() == type_primitive::POLYGONE) {
+			auto polygone = dynamic_cast<Polygone *>(prim);
+			auto poly = Polygone::construit(corps, polygone->type, polygone->nombre_sommets());
 
-		/* Nous obtenons des crashs lors des copies car l'index devient
-		 * différent ou n'est pas correctement initialisé ? */
-		poly->index = polygone->index;
+			/* Nous obtenons des crashs lors des copies car l'index devient
+			 * différent ou n'est pas correctement initialisé ? */
+			poly->index = polygone->index;
 
-		for (size_t i = 0; i < polygone->nombre_sommets(); ++i) {
-			poly->ajoute_sommet(polygone->index_point(i));
+			for (size_t i = 0; i < polygone->nombre_sommets(); ++i) {
+				poly->ajoute_sommet(polygone->index_point(i));
+			}
 		}
 	}
 

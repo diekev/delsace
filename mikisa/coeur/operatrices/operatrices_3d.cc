@@ -102,7 +102,7 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 	auto attr_normaux = corps->attribut("N");
 
 	if (attr_normaux != nullptr) {
-		if (attr_normaux->taille() == corps->polys()->taille()) {
+		if (attr_normaux->taille() == corps->prims()->taille()) {
 			attr_normaux->portee = portee_attr::POLYGONE;
 		}
 		else if (attr_normaux->taille() == corps->points()->taille()) {
@@ -755,10 +755,10 @@ public:
 			attr_normaux->reinitialise();
 		}
 
-		auto liste_polys = m_corps.polys();
-		auto nombre_polygones = liste_polys->taille();
+		auto liste_prims = m_corps.prims();
+		auto nombre_prims = liste_prims->taille();
 
-		if (nombre_polygones == 0ul) {
+		if (nombre_prims == 0ul) {
 			ajoute_avertissement("Aucun polygone trouvé pour calculer les vecteurs normaux");
 			return EXECUTION_ECHOUEE;
 		}
@@ -766,10 +766,16 @@ public:
 		auto liste_points = m_corps.points();
 
 		if (type == "plats") {
-			attr_normaux->reserve(nombre_polygones);
+			attr_normaux->reserve(nombre_prims);
 			attr_normaux->portee = portee_attr::POLYGONE;
 
-			for (Polygone *poly : liste_polys->polys()) {
+			for (Primitive *prim : liste_prims->prims()) {
+				if (prim->type_prim() != type_primitive::POLYGONE) {
+					continue;
+				}
+
+				auto poly = dynamic_cast<Polygone *>(prim);
+
 				if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
 					attr_normaux->pousse_vec3(dls::math::vec3f(0.0f));
 					continue;
@@ -798,7 +804,13 @@ public:
 			attr_normaux->portee = portee_attr::POINT;
 
 			/* calcul le normal de chaque polygone */
-			for (Polygone *poly : liste_polys->polys()) {
+			for (Primitive *prim : liste_prims->prims()) {
+				if (prim->type_prim() != type_primitive::POLYGONE) {
+					continue;
+				}
+
+				auto poly = dynamic_cast<Polygone *>(prim);
+
 				if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
 					poly->nor = dls::math::vec3f(0.0f);
 					continue;
@@ -817,7 +829,13 @@ public:
 			/* accumule les normaux pour chaque sommets */
 			std::vector<int> poids(nombre_sommets, 0);
 
-			for (Polygone *poly : liste_polys->polys()) {
+			for (Primitive *prim : liste_prims->prims()) {
+				if (prim->type_prim() != type_primitive::POLYGONE) {
+					continue;
+				}
+
+				auto poly = dynamic_cast<Polygone *>(prim);
+
 				if (poly->type == type_polygone::OUVERT || poly->nombre_sommets() < 3) {
 					continue;
 				}
@@ -1044,7 +1062,7 @@ public:
 		}
 
 		auto nombre_sommets = m_corps.points()->taille();
-		auto nombre_polygones = m_corps.polys()->taille();
+		auto nombre_polygones = m_corps.prims()->taille();
 
 		Descripteur desc;
 		desc.numVertices = static_cast<int>(nombre_sommets);
@@ -1056,7 +1074,13 @@ public:
 		std::vector<int> index_sommets_polys;
 		index_sommets_polys.reserve(nombre_sommets * nombre_polygones);
 
-		for (Polygone *poly : m_corps.polys()->polys()) {
+		auto const liste_prims = m_corps.prims();
+		for (Primitive *prim : liste_prims->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
 			nombre_sommets_par_poly.push_back(static_cast<int>(poly->nombre_sommets()));
 
 			for (size_t i = 0; i < poly->nombre_sommets(); ++i) {
@@ -1104,7 +1128,7 @@ public:
 
 			m_corps.reinitialise();
 			m_corps.points()->reserve(nombre_sommets);
-			m_corps.polys()->reserve(nombre_polygones);
+			m_corps.prims()->reserve(nombre_polygones);
 
 			auto liste_points = m_corps.points();
 
@@ -1244,7 +1268,7 @@ public:
 		}
 
 		auto liste_points = m_corps.points();
-		auto liste_polygones = m_corps.polys();
+		auto liste_prims = m_corps.prims();
 
 		size_t taille_attrib = 0ul;
 
@@ -1253,20 +1277,35 @@ public:
 				taille_attrib = liste_points->taille();
 				break;
 			case portee_attr::POLYGONE:
-				taille_attrib = liste_polygones->taille();
+				taille_attrib = liste_prims->taille();
 				break;
 			case portee_attr::POLYGONE_POINT:
-				for (Polygone *poly : liste_polygones->polys()) {
+				for (Primitive *prim : liste_prims->prims()) {
+					if (prim->type_prim() != type_primitive::POLYGONE) {
+						continue;
+					}
+
+					auto poly = dynamic_cast<Polygone *>(prim);
 					taille_attrib += poly->nombre_sommets();
 				}
 				break;
 			case portee_attr::SEGMENT:
-				for (Polygone *poly : liste_polygones->polys()) {
+				for (Primitive *prim : liste_prims->prims()) {
+					if (prim->type_prim() != type_primitive::POLYGONE) {
+						continue;
+					}
+
+					auto poly = dynamic_cast<Polygone *>(prim);
 					taille_attrib += poly->nombre_segments();
 				}
 				break;
 			case portee_attr::SEGMENT_POINT:
-				for (Polygone *poly : liste_polygones->polys()) {
+				for (Primitive *prim : liste_prims->prims()) {
+					if (prim->type_prim() != type_primitive::POLYGONE) {
+						continue;
+					}
+
+					auto poly = dynamic_cast<Polygone *>(prim);
 					taille_attrib += poly->nombre_segments() * 2;
 				}
 				break;
@@ -1575,13 +1614,18 @@ public:
 
 		/* fusionne les polygones */
 
-		auto liste_polys  = m_corps.polys();
-		auto liste_polys1 = corps1->polys();
-		auto liste_polys2 = corps2->polys();
+		auto liste_prims  = m_corps.prims();
+		auto liste_prims1 = corps1->prims();
+		auto liste_prims2 = corps2->prims();
 
-		liste_polys->reserve(liste_polys1->taille() + liste_polys2->taille());
+		liste_prims->reserve(liste_prims1->taille() + liste_prims2->taille());
 
-		for (Polygone *poly : liste_polys1->polys()) {
+		for (Primitive *prim : liste_prims->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
 			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
 			for (size_t i = 0; i < poly->nombre_sommets(); ++i) {
@@ -1591,7 +1635,12 @@ public:
 
 		auto const decalage_point = liste_point1->taille();
 
-		for (Polygone *poly : liste_polys2->polys()) {
+		for (Primitive *prim : liste_prims->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
 			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
 			for (size_t i = 0; i < poly->nombre_sommets(); ++i) {

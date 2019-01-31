@@ -84,7 +84,7 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 		poly->ajoute_sommet(static_cast<size_t>(index_sommet[i]));
 	}
 
-	for (GroupePolygone *groupe : groupes_courant) {
+	for (GroupePrimitive *groupe : groupes_courant) {
 		groupe->ajoute_primitive(poly->index);
 	}
 }
@@ -102,7 +102,7 @@ void AdaptriceCreationCorps::ajoute_objet(const std::string &nom)
 
 void AdaptriceCreationCorps::reserve_polygones(const size_t nombre)
 {
-	corps->polys()->reserve(nombre);
+	corps->prims()->reserve(nombre);
 }
 
 void AdaptriceCreationCorps::reserve_sommets(const size_t nombre)
@@ -131,7 +131,7 @@ void AdaptriceCreationCorps::groupes(const std::vector<std::string> &noms)
 	groupes_courant.clear();
 
 	for (auto const &nom : noms) {
-		auto groupe = corps->ajoute_groupe_polygone(nom);
+		auto groupe = corps->ajoute_groupe_primitive(nom);
 		groupes_courant.push_back(groupe);
 	}
 }

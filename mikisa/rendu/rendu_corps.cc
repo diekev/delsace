@@ -369,20 +369,24 @@ RenduCorps::~RenduCorps()
 void RenduCorps::initialise()
 {
 	auto liste_points = m_corps->points();
-	auto liste_polys = m_corps->polys();
+	auto liste_prims = m_corps->prims();
 
 	if (liste_points->taille() == 0ul) {
 		return;
 	}
 
-	if (liste_polys->taille() != 0ul) {
-
+	if (liste_prims->taille() != 0ul) {
 		auto attr_N = m_corps->attribut("N");
 		std::vector<dls::math::vec3f> points_polys;
 		std::vector<dls::math::vec3f> points_segment;
 		std::vector<dls::math::vec3f> normaux;
 
-		for (Polygone *polygone : liste_polys->polys()) {
+		for (Primitive *prim : liste_prims->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto polygone = dynamic_cast<Polygone *>(prim);
 			if (polygone->type == type_polygone::FERME) {
 				ajoute_polygone_surface(polygone, liste_points, attr_N, points_polys, normaux);
 			}

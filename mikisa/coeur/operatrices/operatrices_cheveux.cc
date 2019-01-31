@@ -333,9 +333,15 @@ public:
 		ArbreOcternaire *arbre = new ArbreOcternaire;
 
 		auto const points = maillage->points();
-		auto const polys  = maillage->polys();
+		auto const prims  = maillage->prims();
 
-		for (Polygone *poly : polys->polys()) {
+		for (Primitive *prim : prims->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
 			auto triangle = new Triangle();
 			triangle->p0 = points->point(poly->index_point(0));
 			triangle->p1 = points->point(poly->index_point(1));

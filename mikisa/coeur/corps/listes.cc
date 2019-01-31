@@ -34,7 +34,7 @@ Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, size_t nomb
 	p->type = type_poly;
 	p->reserve_sommets(nombre_sommets);
 
-	corps->ajoute_polygone(p);
+	corps->ajoute_primitive(p);
 
 	return p;
 }
@@ -221,46 +221,46 @@ ListeSegments::plage_const_arretes ListeSegments::arretes() const
 
 /* ************************************************************************** */
 
-ListePolygones::~ListePolygones()
+ListePrimitives::~ListePrimitives()
 {
 	reinitialise();
 }
 
-void ListePolygones::reinitialise()
+void ListePrimitives::reinitialise()
 {
-	for (auto s : m_polygones) {
+	for (auto s : m_primitives) {
 		delete s;
 	}
 
-	m_polygones.clear();
+	m_primitives.clear();
 }
 
-void ListePolygones::redimensionne(const size_t nombre)
+void ListePrimitives::redimensionne(const size_t nombre)
 {
-	m_polygones.resize(nombre);
+	m_primitives.resize(nombre);
 }
 
-void ListePolygones::reserve(const size_t nombre)
+void ListePrimitives::reserve(const size_t nombre)
 {
-	m_polygones.reserve(nombre);
+	m_primitives.reserve(nombre);
 }
 
-size_t ListePolygones::taille() const
+size_t ListePrimitives::taille() const
 {
-	return m_polygones.size();
+	return m_primitives.size();
 }
 
-void ListePolygones::pousse(Polygone *s)
+void ListePrimitives::pousse(Primitive *s)
 {
-	m_polygones.push_back(s);
+	m_primitives.push_back(s);
 }
 
-ListePolygones::plage_polys ListePolygones::polys()
+ListePrimitives::plage_prims ListePrimitives::prims()
 {
-	return plage_polys(m_polygones.begin(), m_polygones.end());
+	return plage_prims(m_primitives.begin(), m_primitives.end());
 }
 
-ListePolygones::plage_const_polys ListePolygones::polys() const
+ListePrimitives::plage_const_prims ListePrimitives::prims() const
 {
-	return plage_const_polys(m_polygones.cbegin(), m_polygones.cend());
+	return plage_const_prims(m_primitives.cbegin(), m_primitives.cend());
 }

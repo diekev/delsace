@@ -51,12 +51,12 @@ public:
 
 /* ************************************************************************** */
 
-class GroupePolygone {
-	std::vector<size_t> m_polygones{};
+class GroupePrimitive {
+	std::vector<size_t> m_primitives{};
 
 public:
-	using plage_points = plage_iterable<std::vector<size_t>::iterator>;
-	using plage_points_const = plage_iterable<std::vector<size_t>::const_iterator>;
+	using plage_prims = plage_iterable<std::vector<size_t>::iterator>;
+	using plage_prims_const = plage_iterable<std::vector<size_t>::const_iterator>;
 
 	std::string nom{};
 
@@ -64,7 +64,7 @@ public:
 
 	void reserve(const size_t nombre);
 
-	plage_points index();
+	plage_prims index();
 
-	plage_points_const index() const;
+	plage_prims_const index() const;
 };

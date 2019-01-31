@@ -44,7 +44,7 @@ enum {
 
 class Attribut;
 class GroupePoint;
-class GroupePolygone;
+class GroupePrimitive;
 
 /**
  * La structure Corps représente une partie constituante d'un objet. Le Corps
@@ -86,7 +86,7 @@ struct Corps {
 
 	Attribut *attribut(const std::string &nom_attribut) const;
 
-	GroupePolygone *ajoute_groupe_polygone(const std::string &nom_attribut);
+	GroupePrimitive *ajoute_groupe_primitive(const std::string &nom_attribut);
 
 	size_t ajoute_point(float x, float y, float z);
 
@@ -96,15 +96,15 @@ struct Corps {
 	 */
 	size_t index_point(float x, float y, float z);
 
-	void ajoute_polygone(Polygone *p);
+	void ajoute_primitive(Primitive *p);
 
 	ListePoints3D *points();
 
 	const ListePoints3D *points() const;
 
-	ListePolygones *polys();
+	ListePrimitives *prims();
 
-	const ListePolygones *polys() const;
+	const ListePrimitives *prims() const;
 
 	void reinitialise();
 
@@ -117,6 +117,6 @@ protected:
 
 private:
 	ListePoints3D m_points{};
-	ListePolygones m_polys{};
-	std::unordered_map<std::string, GroupePolygone *> m_groupes_polygones{};
+	ListePrimitives m_prims{};
+	std::unordered_map<std::string, GroupePrimitive *> m_groupes_prims{};
 };

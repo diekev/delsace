@@ -30,6 +30,8 @@
 
 #include "bibliotheques/outils/iterateurs.h"
 
+#include "primitive.hh"
+
 struct Corps;
 
 struct Point3D {
@@ -81,7 +83,7 @@ enum class type_polygone : char {
  * Représentation d'un quadrilatère et de son vecteur normal dans l'espace
  * tridimensionel.
  */
-class Polygone {
+class Polygone final : public Primitive {
 	std::vector<size_t> m_sommets{};
 
 public:
@@ -97,9 +99,6 @@ public:
 	 */
 	type_polygone type = type_polygone::FERME;
 
-	/* L'index de ce polygone. */
-	size_t index = 0;
-
 	/* Le vecteur normal de ce polygone. */
 	dls::math::vec3f nor{};
 
@@ -114,6 +113,11 @@ public:
 	size_t nombre_segments() const;
 
 	size_t index_point(size_t i);
+
+	type_primitive type_prim() const override
+	{
+		return type_primitive::POLYGONE;
+	}
 };
 
 /* ************************************************************************** */
@@ -199,14 +203,14 @@ public:
 
 /* ************************************************************************** */
 
-class ListePolygones {
-	std::vector<Polygone *> m_polygones{};
+class ListePrimitives {
+	std::vector<Primitive *> m_primitives{};
 
 public:
-	using plage_polys = plage_iterable<std::vector<Polygone *>::iterator>;
-	using plage_const_polys = plage_iterable<std::vector<Polygone *>::const_iterator>;
+	using plage_prims = plage_iterable<std::vector<Primitive *>::iterator>;
+	using plage_const_prims = plage_iterable<std::vector<Primitive *>::const_iterator>;
 
-	~ListePolygones();
+	~ListePrimitives();
 
 	void reinitialise();
 
@@ -216,9 +220,9 @@ public:
 
 	size_t taille() const;
 
-	void pousse(Polygone *s);
+	void pousse(Primitive *s);
 
-	plage_polys polys();
+	plage_prims prims();
 
-	plage_const_polys polys() const;
+	plage_const_prims prims() const;
 };

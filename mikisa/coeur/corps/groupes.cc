@@ -48,22 +48,22 @@ GroupePoint::plage_points_const GroupePoint::index() const
 
 /* ************************************************************************** */
 
-void GroupePolygone::ajoute_primitive(size_t index_poly)
+void GroupePrimitive::ajoute_primitive(size_t index_poly)
 {
-	this->m_polygones.push_back(index_poly);
+	this->m_primitives.push_back(index_poly);
 }
 
-void GroupePolygone::reserve(const size_t nombre)
+void GroupePrimitive::reserve(const size_t nombre)
 {
-	this->m_polygones.reserve(nombre);
+	this->m_primitives.reserve(nombre);
 }
 
-GroupePolygone::plage_points GroupePolygone::index()
+GroupePrimitive::plage_prims GroupePrimitive::index()
 {
-	return plage_points(m_polygones.begin(), m_polygones.end());
+	return plage_prims(m_primitives.begin(), m_primitives.end());
 }
 
-GroupePolygone::plage_points_const GroupePolygone::index() const
+GroupePrimitive::plage_prims_const GroupePrimitive::index() const
 {
-	return plage_points_const(m_polygones.cbegin(), m_polygones.cend());
+	return plage_prims_const(m_primitives.cbegin(), m_primitives.cend());
 }
