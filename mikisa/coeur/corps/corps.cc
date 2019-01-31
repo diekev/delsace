@@ -42,12 +42,12 @@ bool Corps::possede_attribut(const std::string &nom_attribut)
 	return this->attribut(nom_attribut) != nullptr;
 }
 
-Attribut *Corps::ajoute_attribut(const std::string &nom_attribut, int type_, int portee, size_t taille_)
+Attribut *Corps::ajoute_attribut(const std::string &nom_attribut, type_attribut type_, portee_attr portee, size_t taille_)
 {
 	auto attr = attribut(nom_attribut);
 
 	if (attr == nullptr) {
-		attr = new Attribut(nom_attribut, static_cast<type_attribut>(type_), portee, taille_);
+		attr = new Attribut(nom_attribut, type_, portee, taille_);
 		m_attributs.push_back(attr);
 	}
 

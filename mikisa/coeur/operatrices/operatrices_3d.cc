@@ -103,10 +103,10 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 
 	if (attr_normaux != nullptr) {
 		if (attr_normaux->taille() == corps->polys()->taille()) {
-			attr_normaux->portee = ATTR_PORTEE_POLYGONE;
+			attr_normaux->portee = portee_attr::POLYGONE;
 		}
 		else if (attr_normaux->taille() == corps->points()->taille()) {
-			attr_normaux->portee = ATTR_PORTEE_POINT;
+			attr_normaux->portee = portee_attr::POINT;
 		}
 	}
 }
@@ -749,7 +749,7 @@ public:
 		auto type = evalue_enum("type_normaux");
 		auto inverse_normaux = evalue_bool("inverse_direction");
 
-		auto attr_normaux = m_corps.ajoute_attribut("N", type_attribut::ATTRIBUT_VEC3, 0);
+		auto attr_normaux = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, 0ul);
 
 		if (attr_normaux->taille() != 0ul) {
 			attr_normaux->reinitialise();
@@ -767,7 +767,7 @@ public:
 
 		if (type == "plats") {
 			attr_normaux->reserve(nombre_polygones);
-			attr_normaux->portee = ATTR_PORTEE_POLYGONE;
+			attr_normaux->portee = portee_attr::POLYGONE;
 
 			for (Polygone *poly : liste_polys->polys()) {
 				if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
@@ -795,7 +795,7 @@ public:
 		else {
 			auto nombre_sommets = m_corps.points()->taille();
 			attr_normaux->redimensionne(nombre_sommets);
-			attr_normaux->portee = ATTR_PORTEE_POINT;
+			attr_normaux->portee = portee_attr::POINT;
 
 			/* calcul le normal de chaque polygone */
 			for (Polygone *poly : liste_polys->polys()) {
@@ -1190,53 +1190,53 @@ public:
 		type_attribut type;
 
 		if (chaine_type == "ent8") {
-			type = type_attribut::ATTRIBUT_ENT8;
+			type = type_attribut::ENT8;
 		}
 		else if (chaine_type == "ent32") {
-			type = type_attribut::ATTRIBUT_ENT32;
+			type = type_attribut::ENT32;
 		}
 		else if (chaine_type == "décimal") {
-			type = type_attribut::ATTRIBUT_DECIMAL;
+			type = type_attribut::DECIMAL;
 		}
 		else if (chaine_type == "chaine") {
-			type = type_attribut::ATTRIBUT_CHAINE;
+			type = type_attribut::CHAINE;
 		}
 		else if (chaine_type == "vec2") {
-			type = type_attribut::ATTRIBUT_VEC2;
+			type = type_attribut::VEC2;
 		}
 		else if (chaine_type == "vec3") {
-			type = type_attribut::ATTRIBUT_VEC3;
+			type = type_attribut::VEC3;
 		}
 		else if (chaine_type == "vec4") {
-			type = type_attribut::ATTRIBUT_VEC4;
+			type = type_attribut::VEC4;
 		}
 		else if (chaine_type == "mat3") {
-			type = type_attribut::ATTRIBUT_MAT3;
+			type = type_attribut::MAT3;
 		}
 		else if (chaine_type == "mat4") {
-			type = type_attribut::ATTRIBUT_MAT4;
+			type = type_attribut::MAT4;
 		}
 		else {
 			ajoute_avertissement("Type d'attribut invalide !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		int portee;
+		portee_attr portee;
 
 		if (chaine_portee == "point") {
-			portee = ATTR_PORTEE_POINT;
+			portee = portee_attr::POINT;
 		}
 		else if (chaine_portee == "polygone") {
-			portee = ATTR_PORTEE_POLYGONE;
+			portee = portee_attr::POLYGONE;
 		}
 		else if (chaine_portee == "poly_point") {
-			portee = ATTR_PORTEE_POLYGONE_POINT;
+			portee = portee_attr::POLYGONE_POINT;
 		}
 		else if (chaine_portee == "segment") {
-			portee = ATTR_PORTEE_SEGMENT;
+			portee = portee_attr::SEGMENT;
 		}
 		else if (chaine_portee == "segment_point") {
-			portee = ATTR_PORTEE_SEGMENT_POINT;
+			portee = portee_attr::SEGMENT_POINT;
 		}
 		else {
 			ajoute_avertissement("Portée d'attribut invalide !");
@@ -1249,23 +1249,23 @@ public:
 		size_t taille_attrib = 0ul;
 
 		switch (portee) {
-			case ATTR_PORTEE_POINT:
+			case portee_attr::POINT:
 				taille_attrib = liste_points->taille();
 				break;
-			case ATTR_PORTEE_POLYGONE:
+			case portee_attr::POLYGONE:
 				taille_attrib = liste_polygones->taille();
 				break;
-			case ATTR_PORTEE_POLYGONE_POINT:
+			case portee_attr::POLYGONE_POINT:
 				for (Polygone *poly : liste_polygones->polys()) {
 					taille_attrib += poly->nombre_sommets();
 				}
 				break;
-			case ATTR_PORTEE_SEGMENT:
+			case portee_attr::SEGMENT:
 				for (Polygone *poly : liste_polygones->polys()) {
 					taille_attrib += poly->nombre_segments();
 				}
 				break;
-			case ATTR_PORTEE_SEGMENT_POINT:
+			case portee_attr::SEGMENT_POINT:
 				for (Polygone *poly : liste_polygones->polys()) {
 					taille_attrib += poly->nombre_segments() * 2;
 				}
@@ -1397,7 +1397,7 @@ public:
 		}
 
 		switch (attrib->type()) {
-			case type_attribut::ATTRIBUT_ENT8:
+			case type_attribut::ENT8:
 			{
 				std::uniform_int_distribution<char> dist(-128, 127);
 				std::mt19937 rng(graine);
@@ -1408,7 +1408,7 @@ public:
 
 				break;
 			}
-			case type_attribut::ATTRIBUT_ENT32:
+			case type_attribut::ENT32:
 			{
 				std::uniform_int_distribution<int> dist(0, std::numeric_limits<int>::max() - 1);
 				std::mt19937 rng(graine);
@@ -1419,7 +1419,7 @@ public:
 
 				break;
 			}
-			case type_attribut::ATTRIBUT_DECIMAL:
+			case type_attribut::DECIMAL:
 			{
 				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 				std::mt19937 rng(graine);
@@ -1430,12 +1430,12 @@ public:
 
 				break;
 			}
-			case type_attribut::ATTRIBUT_CHAINE:
+			case type_attribut::CHAINE:
 			{
 				ajoute_avertissement("La randomisation d'attribut de type chaine n'est pas supportée !");
 				break;
 			}
-			case type_attribut::ATTRIBUT_VEC2:
+			case type_attribut::VEC2:
 			{
 				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 				std::mt19937 rng(graine);
@@ -1447,7 +1447,7 @@ public:
 
 				break;
 			}
-			case type_attribut::ATTRIBUT_VEC3:
+			case type_attribut::VEC3:
 			{
 				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 				std::mt19937 rng(graine);
@@ -1460,7 +1460,7 @@ public:
 
 				break;
 			}
-			case type_attribut::ATTRIBUT_VEC4:
+			case type_attribut::VEC4:
 			{
 				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 				std::mt19937 rng(graine);
@@ -1474,17 +1474,17 @@ public:
 
 				break;
 			}
-			case type_attribut::ATTRIBUT_MAT3:
+			case type_attribut::MAT3:
 			{
 				ajoute_avertissement("La randomisation d'attribut de type mat3 n'est pas supportée !");
 				break;
 			}
-			case type_attribut::ATTRIBUT_MAT4:
+			case type_attribut::MAT4:
 			{
 				ajoute_avertissement("La randomisation d'attribut de type mat4 n'est pas supportée !");
 				break;
 			}
-			case type_attribut::ATTRIBUT_INVALIDE:
+			case type_attribut::INVALIDE:
 			{
 				ajoute_avertissement("Type d'attribut invalide !");
 				break;

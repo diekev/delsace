@@ -49,7 +49,7 @@ void AdaptriceCreationCorps::ajoute_sommet(const float x, const float y, const f
 void AdaptriceCreationCorps::ajoute_normal(const float x, const float y, const float z)
 {
 	if (attribut_normal == nullptr) {
-		attribut_normal = corps->ajoute_attribut("N", type_attribut::ATTRIBUT_VEC3, ATTR_PORTEE_POINT, 0);
+		attribut_normal = corps->ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, 0);
 	}
 
 	attribut_normal->pousse_vec3(dls::math::vec3f(x, y, z));
@@ -60,7 +60,7 @@ void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v
 	INUTILISE(w);
 
 	if (attribut_uvs == nullptr) {
-		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::ATTRIBUT_VEC2, ATTR_PORTEE_POLYGONE_POINT, 0);
+		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::POLYGONE_POINT, 0);
 	}
 
 	attribut_uvs->pousse_vec2(dls::math::vec2f(u, v));
@@ -113,7 +113,7 @@ void AdaptriceCreationCorps::reserve_sommets(const size_t nombre)
 void AdaptriceCreationCorps::reserve_normaux(const size_t nombre)
 {
 	if (attribut_normal == nullptr) {
-		attribut_normal = corps->ajoute_attribut("N", type_attribut::ATTRIBUT_VEC3, ATTR_PORTEE_POINT, 0);
+		attribut_normal = corps->ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, 0);
 		attribut_normal->reserve(nombre);
 	}
 }
@@ -121,7 +121,7 @@ void AdaptriceCreationCorps::reserve_normaux(const size_t nombre)
 void AdaptriceCreationCorps::reserve_uvs(const size_t nombre)
 {
 	if (attribut_uvs == nullptr) {
-		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::ATTRIBUT_VEC2, ATTR_PORTEE_POLYGONE_POINT, 0);
+		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::POLYGONE_POINT, 0);
 		attribut_uvs->reserve(nombre);
 	}
 }

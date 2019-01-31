@@ -276,12 +276,12 @@ void ajoute_polygone_surface(
 	points.push_back(liste_points->point(polygone->index_point(2)));
 
 	if (attr_normaux) {
-		if (attr_normaux->portee == ATTR_PORTEE_POINT) {
+		if (attr_normaux->portee == portee_attr::POINT) {
 			normaux.push_back(attr_normaux->vec3(polygone->index_point(0)));
 			normaux.push_back(attr_normaux->vec3(polygone->index_point(1)));
 			normaux.push_back(attr_normaux->vec3(polygone->index_point(2)));
 		}
-		else if (attr_normaux->portee == ATTR_PORTEE_POLYGONE) {
+		else if (attr_normaux->portee == portee_attr::POLYGONE) {
 			normaux.push_back(attr_normaux->vec3(polygone->index));
 			normaux.push_back(attr_normaux->vec3(polygone->index));
 			normaux.push_back(attr_normaux->vec3(polygone->index));
@@ -294,12 +294,12 @@ void ajoute_polygone_surface(
 		points.push_back(liste_points->point(polygone->index_point(3)));
 
 		if (attr_normaux) {
-			if (attr_normaux->portee == ATTR_PORTEE_POINT) {
+			if (attr_normaux->portee == portee_attr::POINT) {
 				normaux.push_back(attr_normaux->vec3(polygone->index_point(0)));
 				normaux.push_back(attr_normaux->vec3(polygone->index_point(2)));
 				normaux.push_back(attr_normaux->vec3(polygone->index_point(3)));
 			}
-			else if (attr_normaux->portee == ATTR_PORTEE_POLYGONE) {
+			else if (attr_normaux->portee == portee_attr::POLYGONE) {
 				normaux.push_back(attr_normaux->vec3(polygone->index));
 				normaux.push_back(attr_normaux->vec3(polygone->index));
 				normaux.push_back(attr_normaux->vec3(polygone->index));

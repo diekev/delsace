@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../attribut.h"
 #include "listes.h"
 
 enum {
@@ -75,7 +76,11 @@ struct Corps {
 
 	bool possede_attribut(const std::string &nom_attribut);
 
-	Attribut *ajoute_attribut(const std::string &nom_attribut, int type_, int portee = 0, size_t taille_ = 0);
+	Attribut *ajoute_attribut(
+			const std::string &nom_attribut,
+			type_attribut type_,
+			portee_attr portee = portee_attr::POINT,
+			size_t taille_ = 0);
 
 	void supprime_attribut(const std::string &nom_attribut);
 

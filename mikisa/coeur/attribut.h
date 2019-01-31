@@ -30,30 +30,30 @@
 
 #include "bibliotheques/outils/iterateurs.h"
 
-enum type_attribut {
-	ATTRIBUT_INVALIDE = -1,
-	ATTRIBUT_ENT8 = 0,
-	ATTRIBUT_ENT32,
-	ATTRIBUT_DECIMAL,
-	ATTRIBUT_CHAINE,
-	ATTRIBUT_VEC2,
-	ATTRIBUT_VEC3,
-	ATTRIBUT_VEC4,
-	ATTRIBUT_MAT3,
-	ATTRIBUT_MAT4,
+enum class type_attribut : char {
+	INVALIDE = -1,
+	ENT8 = 0,
+	ENT32,
+	DECIMAL,
+	CHAINE,
+	VEC2,
+	VEC3,
+	VEC4,
+	MAT3,
+	MAT4,
 };
 
-enum {
+enum class portee_attr : char {
 	/* l'attribut varie pour chaque point */
-	ATTR_PORTEE_POINT,
+	POINT,
 	/* l'attribut varie pour chaque polygone */
-	ATTR_PORTEE_POLYGONE,
+	POLYGONE,
 	/* l'attribut varie pour chaque point pour chaque polygone */
-	ATTR_PORTEE_POLYGONE_POINT,
+	POLYGONE_POINT,
 	/* l'attribut varie pour chaque segment */
-	ATTR_PORTEE_SEGMENT,
+	SEGMENT,
 	/* l'attribut varie pour chaque point pour chaque segment */
-	ATTR_PORTEE_SEGMENT_POINT,
+	SEGMENT_POINT,
 };
 
 #define DEFINI_ITERATEURS(__nom, __type) \
@@ -113,10 +113,10 @@ public:
 	DEFINI_ITERATEURS(mat3, dls::math::mat3x3f);
 	DEFINI_ITERATEURS(mat4, dls::math::mat4x4f);
 
-	int portee;
+	portee_attr portee;
 
 	Attribut(const Attribut &rhs);
-	Attribut(const std::string &nom, type_attribut type, int portee = ATTR_PORTEE_POINT, size_t taille = 0);
+	Attribut(const std::string &nom, type_attribut type, portee_attr portee = portee_attr::POINT, size_t taille = 0);
 	~Attribut();
 
 	Attribut &operator=(const Attribut &rhs) = default;
