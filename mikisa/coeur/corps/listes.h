@@ -85,19 +85,6 @@ class Polygone {
 	std::vector<size_t> m_sommets{};
 
 public:
-	/* Les sommets formant ce polygone. */
-	Sommet *s[4] = { nullptr, nullptr, nullptr, nullptr };
-
-	/* Les arrêtes formant ce polygone. */
-	Arrete *a[4] = { nullptr, nullptr, nullptr, nullptr };
-
-	int normaux[4] = { 0, 0, 0, 0 };
-
-	int uvs[4] = { 0, 0, 0, 0 };
-
-	/* Le vecteur normal de ce polygone. */
-	dls::math::vec3f nor{};
-
 	/* nouvelle entreface */
 	Polygone() = default;
 
@@ -112,6 +99,9 @@ public:
 
 	/* L'index de ce polygone. */
 	size_t index = 0;
+
+	/* Le vecteur normal de ce polygone. */
+	dls::math::vec3f nor{};
 
 	static Polygone *construit(Corps *corps, int type_polygone = POLYGONE_FERME, size_t nombre_sommets = 0);
 

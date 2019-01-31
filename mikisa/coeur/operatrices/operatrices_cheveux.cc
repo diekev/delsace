@@ -332,11 +332,14 @@ public:
 	{
 		ArbreOcternaire *arbre = new ArbreOcternaire;
 
-		for (Polygone *poly : maillage->polys()->polys()) {
+		auto const points = maillage->points();
+		auto const polys  = maillage->polys();
+
+		for (Polygone *poly : polys->polys()) {
 			auto triangle = new Triangle();
-			triangle->p0 = poly->s[0]->pos;
-			triangle->p1 = poly->s[1]->pos;
-			triangle->p2 = poly->s[2]->pos;
+			triangle->p0 = points->point(poly->index_point(0));
+			triangle->p1 = points->point(poly->index_point(1));
+			triangle->p2 = points->point(poly->index_point(2));
 
 			init_min_max(triangle->min, triangle->max);
 			dls::math::extrait_min_max(triangle->p0, triangle->min, triangle->max);
@@ -345,11 +348,11 @@ public:
 
 			arbre->ajoute_triangle(triangle);
 
-			if (poly->s[3] != nullptr) {
+			if (poly->nombre_sommets() > 3) {
 				triangle = new Triangle();
-				triangle->p0 = poly->s[0]->pos;
-				triangle->p1 = poly->s[2]->pos;
-				triangle->p2 = poly->s[3]->pos;
+				triangle->p0 = points->point(poly->index_point(0));
+				triangle->p1 = points->point(poly->index_point(2));
+				triangle->p2 = points->point(poly->index_point(3));
 
 				init_min_max(triangle->min, triangle->max);
 				dls::math::extrait_min_max(triangle->p0, triangle->min, triangle->max);
