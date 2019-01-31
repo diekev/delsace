@@ -41,8 +41,8 @@ public:
 	static constexpr auto NOM = "Entrée";
 	static constexpr auto AIDE = "";
 
-	explicit OperatricePoint3DEntree(Noeud *noeud)
-		: OperatricePoint3D(noeud)
+	explicit OperatricePoint3DEntree(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(0);
 		outputs(1);
@@ -84,8 +84,8 @@ public:
 	static constexpr auto NOM = "Valeur";
 	static constexpr auto AIDE = "";
 
-	explicit OperatricePoint3DValeur(Noeud *noeud)
-		: OperatricePoint3D(noeud)
+	explicit OperatricePoint3DValeur(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(0);
 		outputs(1);
@@ -127,8 +127,8 @@ public:
 	static constexpr auto NOM = "Vecteur";
 	static constexpr auto AIDE = "";
 
-	explicit OperatricePoint3DVecteur(Noeud *noeud)
-		: OperatricePoint3D(noeud)
+	explicit OperatricePoint3DVecteur(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(0);
 		outputs(1);
@@ -170,8 +170,8 @@ public:
 	static constexpr auto NOM = "Sortie";
 	static constexpr auto AIDE = "";
 
-	explicit OperatricePoint3DSortie(Noeud *noeud)
-		: OperatricePoint3D(noeud)
+	explicit OperatricePoint3DSortie(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(0);
@@ -213,8 +213,8 @@ public:
 	static constexpr auto NOM = "Mathématiques";
 	static constexpr auto AIDE = "";
 
-	explicit OperatricePoint3DMath(Noeud *noeud)
-		: OperatricePoint3D(noeud)
+	explicit OperatricePoint3DMath(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(2);
 		outputs(1);
@@ -279,8 +279,8 @@ public:
 	static constexpr auto NOM = "Sépare Vecteur";
 	static constexpr auto AIDE = "";
 
-	explicit OperatricePoint3DSepareVecteur(Noeud *noeud)
-		: OperatricePoint3D(noeud)
+	explicit OperatricePoint3DSepareVecteur(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(3);
@@ -330,8 +330,8 @@ public:
 	static constexpr auto NOM = "Combine Vecteur";
 	static constexpr auto AIDE = "";
 
-	explicit OperatricePoint3DCombineVecteur(Noeud *noeud)
-		: OperatricePoint3D(noeud)
+	explicit OperatricePoint3DCombineVecteur(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(3);
 		outputs(1);
@@ -385,8 +385,8 @@ public:
 	static constexpr auto NOM = "Bruit Procédurel";
 	static constexpr auto AIDE = "";
 
-	explicit OperatricePoint3DBruitProc(Noeud *noeud)
-		: OperatricePoint3D(noeud)
+	explicit OperatricePoint3DBruitProc(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);
@@ -471,8 +471,8 @@ public:
 	static constexpr auto NOM = "Traduction Vecteur";
 	static constexpr auto AIDE = "Traduit les composants du vecteur d'une plage à une autre.";
 
-	explicit OperatriceTradVec(Noeud *node)
-		: OperatricePoint3D(node)
+	explicit OperatriceTradVec(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);

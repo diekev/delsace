@@ -28,11 +28,12 @@
 #include <unordered_map>
 #include <vector>
 
+class Graphe;
 class Noeud;
 class OperatriceImage;
 
 struct DescOperatrice {
-	typedef OperatriceImage *(*factory_func)(Noeud *);
+	typedef OperatriceImage *(*factory_func)(Graphe &, Noeud *);
 
 	DescOperatrice() = default;
 
@@ -53,12 +54,12 @@ inline DescOperatrice cree_desc()
 	return DescOperatrice(
 				T::NOM,
 				T::AIDE,
-	            [](Noeud *noeud) -> OperatriceImage* { return new T(noeud); });
+	            [](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage* { return new T(graphe_parent, noeud); });
 }
 
 class UsineOperatrice final {
 public:
-	typedef OperatriceImage *(*factory_func)(Noeud *);
+	typedef OperatriceImage *(*factory_func)(Graphe &, Noeud *);
 
 	/**
 	 * @brief register_type Register a new element in this factory.
@@ -76,7 +77,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return A new ImageNode object corresponding to the given key.
 	 */
-	OperatriceImage *operator()(const std::string &name, Noeud *node);
+	OperatriceImage *operator()(const std::string &name, Graphe &graphe_parent, Noeud *noeud);
 
 	/**
 	 * @brief num_entries The number of entries registered in this factory.

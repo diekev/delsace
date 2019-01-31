@@ -103,8 +103,8 @@ public:
 	static constexpr auto NOM = "Analyse";
 	static constexpr auto AIDE = "Analyse l'image.";
 
-	explicit OperatriceAnalyse(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceAnalyse(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -328,8 +328,8 @@ public:
 	static constexpr auto NOM = "Filtre";
 	static constexpr auto AIDE = "Appliquer un filtre à une image.";
 
-	explicit OperatriceFiltrage(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceFiltrage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -412,8 +412,8 @@ public:
 	static constexpr auto NOM = "Normalisation Région";
 	static constexpr auto AIDE = "Normalise the image.";
 
-	explicit OperatriceNormalisationRegion(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceNormalisationRegion(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -468,8 +468,8 @@ public:
 	static constexpr auto NOM = "Flou";
 	static constexpr auto AIDE = "Applique un flou à l'image.";
 
-	explicit OperatriceFloutage(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceFloutage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -605,8 +605,8 @@ public:
 	static constexpr auto NOM = "Tournoiement";
 	static constexpr auto AIDE = "Applique un tournoiement aux pixels de l'image.";
 
-	explicit OperatriceTournoiement(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceTournoiement(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -696,8 +696,8 @@ public:
 	static constexpr auto NOM = "Champs distance";
 	static constexpr auto AIDE = "Calcule le champs de distance de l'image d'entrée.";
 
-	explicit OperatriceChampsDistance(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceChampsDistance(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -818,8 +818,8 @@ public:
 	static constexpr auto NOM = "Déformation";
 	static constexpr auto AIDE = "Déforme une image de manière aléatoire.";
 
-	explicit OperatriceDeformation(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceDeformation(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(2);
 	}
@@ -1103,8 +1103,8 @@ public:
 	static constexpr auto NOM = "Simulation de grain";
 	static constexpr auto AIDE = "Calcul du grain selon l'image d'entrée.";
 
-	explicit OperatriceSimulationGrain(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceSimulationGrain(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1172,8 +1172,8 @@ public:
 	static constexpr auto NOM = "Coordonnées Polaires";
 	static constexpr auto AIDE = "Transforme une image entre les coordonnées cartésiennes et les coordonnées polaires.";
 
-	explicit OperatriceCoordonneesPolaires(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceCoordonneesPolaires(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1233,8 +1233,8 @@ public:
 	static constexpr auto NOM = "Ondelette de Haar";
 	static constexpr auto AIDE = "Calcul l'ondelette de Haar d'une image.";
 
-	explicit OperatriceOndeletteHaar(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceOndeletteHaar(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1328,8 +1328,8 @@ public:
 	static constexpr auto NOM = "Dilation";
 	static constexpr auto AIDE = "Dilate les pixels de l'image. Les parties les plus sombres de l'image rapetissent tandis que les plus claires grossissent.";
 
-	explicit OperatriceDilation(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceDilation(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1408,8 +1408,8 @@ public:
 	static constexpr auto NOM = "Érosion";
 	static constexpr auto AIDE = "Érode les pixels de l'image. Les parties les plus claires de l'image rapetissent tandis que les plus sombres grossissent.";
 
-	explicit OperatriceErosion(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceErosion(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1487,8 +1487,8 @@ public:
 	static constexpr auto NOM = "Extraction Palette";
 	static constexpr auto AIDE = "Extrait la palette d'une image.";
 
-	explicit OperatriceExtractionPalette(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceExtractionPalette(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 	}

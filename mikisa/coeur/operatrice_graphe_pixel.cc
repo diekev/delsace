@@ -41,8 +41,8 @@ static constexpr auto AIDE_ENTREE = "Applique une saturation à l'image.";
 
 class OperatricePixelEntree final : public OperatricePixel {
 public:
-	explicit OperatricePixelEntree(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatricePixelEntree(Graphe &graphe_parent, Noeud *node)
+		: OperatricePixel(graphe_parent, node)
 	{
 		inputs(0);
 		outputs(1);
@@ -88,8 +88,8 @@ static constexpr auto AIDE_SORTIE = "Applique une saturation à l'image.";
 
 class OperatricePixelSortie final : public OperatricePixel {
 public:
-	explicit OperatricePixelSortie(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatricePixelSortie(Graphe &graphe_parent, Noeud *node)
+		: OperatricePixel(graphe_parent, node)
 	{
 		inputs(1);
 		outputs(0);
@@ -135,8 +135,8 @@ static constexpr auto AIDE_SATURATION = "Applique une saturation à l'image.";
 
 class OperatricePixelSaturation final : public OperatricePixel {
 public:
-	explicit OperatricePixelSaturation(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatricePixelSaturation(Graphe &graphe_parent, Noeud *node)
+		: OperatricePixel(graphe_parent, node)
 	{
 		inputs(1);
 		outputs(1);
@@ -245,14 +245,14 @@ void execute_graphe(
 
 /* ************************************************************************** */
 
-OperatriceGraphePixel::OperatriceGraphePixel(Noeud *node)
-	: OperatriceImage(node)
+OperatriceGraphePixel::OperatriceGraphePixel(Graphe &graphe_parent, Noeud *node)
+	: OperatriceImage(graphe_parent, node)
 {
 	inputs(1);
 	outputs(1);
 
 	auto noeud_entree = new Noeud(supprime_operatrice_image);
-	auto op_entree = new OperatricePixelEntree(noeud_entree);
+	auto op_entree = new OperatricePixelEntree(m_graphe, noeud_entree);
 	noeud_entree->nom(op_entree->class_name());
 
 	synchronise_donnees_operatrice(noeud_entree);
@@ -260,7 +260,7 @@ OperatriceGraphePixel::OperatriceGraphePixel(Noeud *node)
 	m_graphe.ajoute(noeud_entree);
 
 	auto noeud_sortie = new Noeud(supprime_operatrice_image);
-	auto op_sortie = new OperatricePixelSortie(noeud_sortie);
+	auto op_sortie = new OperatricePixelSortie(m_graphe, noeud_sortie);
 	noeud_sortie->nom(op_sortie->class_name());
 
 	synchronise_donnees_operatrice(noeud_sortie);
@@ -268,7 +268,7 @@ OperatriceGraphePixel::OperatriceGraphePixel(Noeud *node)
 	m_graphe.ajoute(noeud_sortie);
 
 	auto noeud_saturation = new Noeud(supprime_operatrice_image);
-	auto op_saturation = new OperatricePixelSaturation(noeud_saturation);
+	auto op_saturation = new OperatricePixelSaturation(m_graphe, noeud_saturation);
 	noeud_saturation->nom(op_saturation->class_name());
 
 	synchronise_donnees_operatrice(noeud_saturation);

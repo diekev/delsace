@@ -93,6 +93,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_pixel.h
 	operatrices/operatrices_point3d.h
 	operatrices/operatrices_region.h
+	operatrices/operatrices_simulations.hh
 
 	attribut.h
 	composite.h
@@ -111,6 +112,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrice_objet.h
 	operatrice_pixel.h
 	operatrice_scene.h
+	operatrice_simulation.hh
 	sauvegarde.h
 	scene.h
 	tache.h
@@ -136,6 +138,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_pixel.cc
 	operatrices/operatrices_point3d.cc
 	operatrices/operatrices_region.cc
+	operatrices/operatrices_simulations.cc
 
 	attribut.cc
 	composite.cc
@@ -154,6 +157,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrice_objet.cc
 	operatrice_pixel.cc
 	operatrice_scene.cc
+	operatrice_simulation.cc
 	sauvegarde.cc
 	scene.cc
 	tache.cc

@@ -62,6 +62,7 @@
 #include "operatrices/operatrices_pixel.h"
 #include "operatrices/operatrices_point3d.h"
 #include "operatrices/operatrices_region.h"
+#include "operatrices/operatrices_simulations.hh"
 
 static constexpr auto MAX_FICHIER_RECENT = 10;
 
@@ -102,6 +103,7 @@ void Mikisa::initialise()
 	enregistre_operatrices_pixel(m_usine_operatrices);
 	enregistre_operatrices_point3d(m_usine_operatrices);
 	enregistre_operatrices_region(m_usine_operatrices);
+	enregistre_operatrices_simulations(m_usine_operatrices);
 
 	enregistre_commandes_graphes(m_usine_commande);
 	enregistre_commandes_projet(m_usine_commande);

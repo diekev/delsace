@@ -37,6 +37,7 @@
 #include "bibliotheques/outils/iterateurs.h"
 
 class Corps;
+class Graphe;
 class Manipulatrice3D;
 class Noeud;
 class PriseEntree;
@@ -67,6 +68,7 @@ enum {
 	OPERATRICE_CORPS,
 	OPERATRICE_SORTIE_CORPS,
 	OPERATRICE_GRAPHE_MAILLAGE,
+	OPERATRICE_SIMULATION,
 };
 
 /* ************************************************************************** */
@@ -266,13 +268,14 @@ class OperatriceImage : public danjo::Manipulable {
 	std::vector<std::string> m_avertissements{};
 
 protected:
+	Graphe &m_graphe_parent;
 	Image m_image{};
 
 public:
 	/* Prevent creating an operator without an accompanying node. */
 	OperatriceImage() = delete;
 
-	explicit OperatriceImage(Noeud *node);
+	explicit OperatriceImage(Graphe &graphe_parent, Noeud *node);
 
 	virtual ~OperatriceImage() = default;
 

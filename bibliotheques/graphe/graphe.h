@@ -93,6 +93,8 @@ public:
 	/* vrai si le graphe a été modifié */
 	bool besoin_ajournement = false;
 
+	std::vector<void const *> entrees{};
+
 	/* entreface de programmation */
 
 	using iterateur = std::vector<std::shared_ptr<Noeud>>::iterator;

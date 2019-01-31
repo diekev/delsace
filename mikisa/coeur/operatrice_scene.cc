@@ -56,8 +56,8 @@ static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
 
 /* ************************************************************************** */
 
-OperatriceScene::OperatriceScene(Noeud *node)
-	: OperatriceImage(node)
+OperatriceScene::OperatriceScene(Graphe &graphe_parent, Noeud *node)
+	: OperatriceImage(graphe_parent, node)
 {
 	inputs(1);
 	outputs(1);

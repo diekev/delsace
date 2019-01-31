@@ -26,8 +26,8 @@
 
 #include "bibliotheques/outils/parallelisme.h"
 
-OperatricePixel::OperatricePixel(Noeud *node)
-	: OperatriceImage(node)
+OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud *node)
+	: OperatriceImage(graphe_parent, node)
 {}
 
 int OperatricePixel::type() const

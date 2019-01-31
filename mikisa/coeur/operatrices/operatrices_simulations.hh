@@ -15,26 +15,15 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#include "operatrice_corps.h"
+#pragma once
 
-OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud *noeud)
-	: OperatriceImage(graphe_parent, noeud)
-{
-}
+class UsineOperatrice;
 
-int OperatriceCorps::type() const
-{
-	return OPERATRICE_CORPS;
-}
-
-Corps *OperatriceCorps::corps()
-{
-	return &m_corps;
-}
+void enregistre_operatrices_simulations(UsineOperatrice &usine);

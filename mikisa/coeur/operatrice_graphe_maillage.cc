@@ -253,8 +253,8 @@ void execute_graphe(
 
 /* ************************************************************************** */
 
-OperatriceGrapheMaillage::OperatriceGrapheMaillage(Noeud *noeud)
-	: OperatriceCorps(noeud)
+OperatriceGrapheMaillage::OperatriceGrapheMaillage(Graphe &graphe_parent, Noeud *noeud)
+	: OperatriceCorps(graphe_parent, noeud)
 {
 	inputs(1);
 	outputs(1);

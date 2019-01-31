@@ -73,6 +73,9 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa &mikisa,
 
 	texte_entree = danjo::contenu_fichier("entreface/menu_ajouter_noeud_scene.jo");
 	m_menu_ajout_noeud_scene = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
+
+	texte_entree = danjo::contenu_fichier("entreface/menu_ajouter_noeud_simulation.jo");
+	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 }
 
 VueEditeurNoeud::~VueEditeurNoeud()
@@ -81,6 +84,7 @@ VueEditeurNoeud::~VueEditeurNoeud()
 	delete m_menu_ajout_noeud_objet;
 	delete m_menu_ajout_noeud_point3d;
 	delete m_menu_ajout_noeud_scene;
+	delete m_menu_ajout_noeud_simulation;
 }
 
 void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
@@ -100,6 +104,9 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 				break;
 			case GRAPHE_MAILLAGE:
 				m_menu_ajout_noeud_point3d->popup(QCursor::pos());
+				break;
+			case GRAPHE_SIMULATION:
+				m_menu_ajout_noeud_simulation->popup(QCursor::pos());
 				break;
 		}
 	}

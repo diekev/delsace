@@ -134,8 +134,8 @@ public:
 	static constexpr auto NOM = "Visionneur";
 	static constexpr auto AIDE = "Visionner le résultat du graphe.";
 
-	explicit OperatriceVisionnage(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceVisionnage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(0);
@@ -259,8 +259,8 @@ public:
 	static constexpr auto NOM = "Lecture Image";
 	static constexpr auto AIDE = "Charge une image depuis le disque.";
 
-	explicit OperatriceLectureJPEG(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceLectureJPEG(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(0);
 		outputs(1);
@@ -354,8 +354,8 @@ public:
 	static constexpr auto NOM = "Commutateur";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceCommutation(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceCommutation(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 	}
 

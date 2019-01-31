@@ -34,7 +34,7 @@ protected:
 	Corps m_corps{};
 
 public:
-	OperatriceCorps(Noeud *noeud);
+	OperatriceCorps(Graphe &graphe_parent, Noeud *noeud);
 
 	int type() const override;
 

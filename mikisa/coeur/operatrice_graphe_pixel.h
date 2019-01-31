@@ -39,7 +39,7 @@ public:
     static constexpr auto NOM = "Graphe";
     static constexpr auto AIDE = "Ajoute un graphe travaillant sur les pixels de l'image de manière individuelle";
 
-	explicit OperatriceGraphePixel(Noeud *node);
+	explicit OperatriceGraphePixel(Graphe &graphe_parent, Noeud *node);
 
 	virtual const char *class_name() const override;
 

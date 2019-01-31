@@ -40,6 +40,7 @@
 #include "operatrice_image.h"
 #include "operatrice_objet.h"
 #include "operatrice_scene.h"
+#include "operatrice_simulation.hh"
 #include "usine_operatrice.h"
 
 namespace coeur {
@@ -70,6 +71,11 @@ static Graphe *graphe_operatrice(OperatriceImage *operatrice)
 		{
 			auto op_pixel = dynamic_cast<OperatriceGraphePixel *>(operatrice);
 			return op_pixel->graphe();
+		}
+		case OPERATRICE_SIMULATION:
+		{
+			auto op_simulation = dynamic_cast<OperatriceSimulation *>(operatrice);
+			return op_simulation->graphe();
 		}
 	}
 }
@@ -480,7 +486,7 @@ static void lecture_noeud(
 	auto const element_operatrice = element_noeud->FirstChildElement("operatrice");
 	auto const nom_operatrice = element_operatrice->Attribute("nom");
 
-	OperatriceImage *operatrice = (mikisa.usine_operatrices())(nom_operatrice, noeud);
+	OperatriceImage *operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, noeud);
 	lecture_proprietes(element_operatrice, operatrice);
 	synchronise_donnees_operatrice(noeud);
 

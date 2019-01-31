@@ -258,7 +258,8 @@ void EntreeOperatrice::obtiens_liste_calque(std::vector<std::string> &chaines) c
 
 /* ************************************************************************** */
 
-OperatriceImage::OperatriceImage(Noeud *node)
+OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud *node)
+	: m_graphe_parent(graphe_parent)
 {
 	node->donnees(this);
 	m_input_data.resize(m_num_inputs);

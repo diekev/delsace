@@ -115,8 +115,8 @@ public:
 	static constexpr auto NOM = "Création Courbes";
 	static constexpr auto AIDE = "Crée des courbes.";
 
-	explicit OperatriceCreationCourbes(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceCreationCourbes(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);

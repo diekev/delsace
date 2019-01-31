@@ -41,7 +41,7 @@ public:
 	static constexpr auto NOM = "Scène";
 	static constexpr auto AIDE = "Crée une scène.";
 
-	explicit OperatriceScene(Noeud *node);
+	explicit OperatriceScene(Graphe &graphe_parent, Noeud *node);
 
 	int type() const override;
 

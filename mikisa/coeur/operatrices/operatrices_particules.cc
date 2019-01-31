@@ -41,8 +41,8 @@ public:
 	static constexpr auto NOM = "Création Points";
 	static constexpr auto AIDE = "Crée des points.";
 
-	explicit OperatriceCreationPoints(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceCreationPoints(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);

@@ -80,7 +80,7 @@ public:
 	static constexpr auto NOM = "Graphe Maillage";
 	static constexpr auto AIDE = "Graphe Maillage";
 
-	explicit OperatriceGrapheMaillage(Noeud *noeud);
+	explicit OperatriceGrapheMaillage(Graphe &graphe_parent, Noeud *noeud);
 
 	virtual const char *class_name() const override;
 
@@ -105,8 +105,8 @@ public:
 
 class OperatricePoint3D : public OperatriceImage {
 public:
-	OperatricePoint3D(Noeud *noeud)
-		: OperatriceImage(noeud)
+	OperatricePoint3D(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{}
 
 	int execute(const Rectangle &rectangle, const int temps) override;

@@ -54,8 +54,8 @@ public:
 	static constexpr auto NOM = "Sortie Corps";
 	static constexpr auto AIDE = "Crée une sortie d'un graphe de corps.";
 
-	explicit OperatriceSortieCorps(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceSortieCorps(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(0);
@@ -120,8 +120,8 @@ public:
 	static constexpr auto NOM = "Création Corps";
 	static constexpr auto AIDE = "Crée un corps.";
 
-	explicit OperatriceCreationCorps(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceCreationCorps(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);
@@ -267,8 +267,8 @@ public:
 	static constexpr auto NOM = "Caméra";
 	static constexpr auto AIDE = "Crée une caméra.";
 
-	explicit OperatriceCamera(Noeud *noeud)
-		: OperatriceImage(noeud)
+	explicit OperatriceCamera(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 		, m_camera(0, 0)
 	{
 		inputs(0);
@@ -391,8 +391,8 @@ public:
 	static constexpr auto NOM = "Texture";
 	static constexpr auto AIDE = "Crée une texture.";
 
-	explicit OperatriceTexture(Noeud *noeud)
-		: OperatriceImage(noeud)
+	explicit OperatriceTexture(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 		inputs(2);
 		outputs(1);
@@ -548,8 +548,8 @@ public:
 	static constexpr auto NOM = "Lecture Objet";
 	static constexpr auto AIDE = "Charge un objet depuis un fichier externe.";
 
-	explicit OperatriceLectureObjet(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceLectureObjet(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);
@@ -709,8 +709,8 @@ public:
 	static constexpr auto NOM = "Création Normaux";
 	static constexpr auto AIDE = "Crée des normaux pour les maillages d'entrée.";
 
-	explicit OperatriceCreationNormaux(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceCreationNormaux(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);
@@ -915,8 +915,8 @@ public:
 	static constexpr auto NOM = "OpenSubDiv";
 	static constexpr auto AIDE = "Sousdivise les maillages d'entrée en utilisant la bibliothèque OpenSubDiv.";
 
-	explicit OperatriceOpenSubDiv(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceOpenSubDiv(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);
@@ -1141,8 +1141,8 @@ public:
 	static constexpr auto NOM = "Création Attribut";
 	static constexpr auto AIDE = "Crée un attribut.";
 
-	explicit OperatriceCreationAttribut(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceCreationAttribut(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);
@@ -1287,8 +1287,8 @@ public:
 	static constexpr auto NOM = "Suppression Attribut";
 	static constexpr auto AIDE = "Supprime un attribut.";
 
-	explicit OperatriceSuppressionAttribut(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceSuppressionAttribut(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);
@@ -1344,8 +1344,8 @@ public:
 	static constexpr auto NOM = "Randomisation Attribut";
 	static constexpr auto AIDE = "Randomise un attribut.";
 
-	explicit OperatriceRandomisationAttribut(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceRandomisationAttribut(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(1);
 		outputs(1);
@@ -1502,8 +1502,8 @@ public:
 	static constexpr auto NOM = "Fusionnage Corps";
 	static constexpr auto AIDE = "Fusionnage Corps.";
 
-	explicit OperatriceFusionnageCorps(Noeud *noeud)
-		: OperatriceCorps(noeud)
+	explicit OperatriceFusionnageCorps(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
 	{
 		inputs(2);
 		outputs(1);

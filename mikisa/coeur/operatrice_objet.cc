@@ -30,8 +30,8 @@
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/texture/texture.h"
 
-OperatriceObjet::OperatriceObjet(Noeud *noeud)
-	: OperatriceImage(noeud)
+OperatriceObjet::OperatriceObjet(Graphe &graphe_parent, Noeud *noeud)
+	: OperatriceImage(graphe_parent, noeud)
 {
 	inputs(1);
 	outputs(1);

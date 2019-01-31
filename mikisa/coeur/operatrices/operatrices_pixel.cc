@@ -73,8 +73,8 @@ public:
 	static constexpr auto NOM = "Saturation";
 	static constexpr auto AIDE = "Applique une saturation à l'image.";
 
-	explicit OperatriceSaturation(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceSaturation(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -175,8 +175,8 @@ public:
 	static constexpr auto NOM = "Mélanger";
 	static constexpr auto AIDE = "Mélange deux images.";
 
-	explicit OperatriceMelange(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceMelange(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 	}
 
@@ -285,8 +285,8 @@ public:
 	static constexpr auto NOM = "Fusionnage";
 	static constexpr auto AIDE = "Fusionne deux images selon les algorithmes de Porter & Duff.";
 
-	explicit OperatriceFusionnage(Noeud *node)
-		: OperatriceImage(node)
+	explicit OperatriceFusionnage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
 	{
 	}
 
@@ -505,8 +505,8 @@ public:
 	static constexpr auto NOM = "Bruitage";
 	static constexpr auto AIDE = "Applique un bruit à l'image.";
 
-	explicit OperatriceBruitage(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceBruitage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(0);
 		m_dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
@@ -553,8 +553,8 @@ public:
 	static constexpr auto NOM = "Constante";
 	static constexpr auto AIDE = "Applique une couleur constante à toute l'image.";
 
-	explicit OperatriceConstante(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceConstante(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(0);
 	}
@@ -620,8 +620,8 @@ public:
 	static constexpr auto NOM = "Dégradé";
 	static constexpr auto AIDE = "Génère un dégradé sur l'image.";
 
-	explicit OperatriceDegrade(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceDegrade(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(0);
 	}
@@ -715,8 +715,8 @@ public:
 	static constexpr auto NOM = "Nuage";
 	static constexpr auto AIDE = "Crée un bruit de nuage";
 
-	explicit OperatriceNuage(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceNuage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(0);
 	}
@@ -917,8 +917,8 @@ public:
 	static constexpr auto NOM = "Étalonnage";
 	static constexpr auto AIDE = "Étalonne l'image au moyen d'une rampe linéaire et d'une fonction gamma.";
 
-	explicit OperatriceEtalonnage(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceEtalonnage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1106,8 +1106,8 @@ public:
 	static constexpr auto NOM = "Correction Gamma";
 	static constexpr auto AIDE = "Applique une correction gamma à l'image.";
 
-	explicit OperatriceCorrectionGamma(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceCorrectionGamma(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1178,8 +1178,8 @@ public:
 	static constexpr auto NOM = "Mappage Tonal";
 	static constexpr auto AIDE = "Applique un mappage tonal à l'image.";
 
-	explicit OperatriceMappageTonal(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceMappageTonal(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1335,8 +1335,8 @@ public:
 	static constexpr auto NOM = "Correction Couleur";
 	static constexpr auto AIDE = "Corrige les couleur de l'image selon la formule de l'ASC CDL.";
 
-	explicit OperatriceCorrectionCouleur(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceCorrectionCouleur(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1388,8 +1388,8 @@ public:
 	static constexpr auto NOM = "Inversement";
 	static constexpr auto AIDE = "Inverse les couleurs de l'image.";
 
-	explicit OperatriceInversement(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceInversement(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1441,8 +1441,8 @@ public:
 	static constexpr auto NOM = "Incrustation";
 	static constexpr auto AIDE = "Supprime les couleurs vertes d'une image.";
 
-	explicit OperatriceIncrustation(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceIncrustation(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1524,8 +1524,8 @@ public:
 	static constexpr auto NOM = "Pré-multiplication";
 	static constexpr auto AIDE = "Prémultiplie les couleurs des pixels par leurs valeurs alpha respectives.";
 
-	explicit OperatricePremultiplication(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatricePremultiplication(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1577,8 +1577,8 @@ public:
 	static constexpr auto NOM = "Normalisation Pixel";
 	static constexpr auto AIDE = "Normalise les couleurs des pixels.";
 
-	explicit OperatriceNormalisationPixel(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceNormalisationPixel(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1638,8 +1638,8 @@ public:
 	static constexpr auto NOM = "Contraste";
 	static constexpr auto AIDE = "Ajuste le contraste de l'image.";
 
-	explicit OperatriceContraste(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceContraste(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1697,8 +1697,8 @@ public:
 	static constexpr auto NOM = "Courbe Couleur";
 	static constexpr auto AIDE = "Modifie l'image selon une courbe de couleur.";
 
-	explicit OperatriceCourbeCouleur(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceCourbeCouleur(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1760,8 +1760,8 @@ public:
 	static constexpr auto NOM = "Traduction";
 	static constexpr auto AIDE = "Traduit les composants de l'image d'une plage à une autre.";
 
-	explicit OperatriceTraduction(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceTraduction(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1816,8 +1816,8 @@ public:
 	static constexpr auto NOM = "MinMax";
 	static constexpr auto AIDE = "Change le point blanc et la point noir de l'image.";
 
-	explicit OperatriceMinMax(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceMinMax(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}
@@ -1951,8 +1951,8 @@ public:
 	static constexpr auto NOM = "Daltonisme";
 	static constexpr auto AIDE = "Simule l'effet du daltonisme.";
 
-	explicit OperatriceDaltonisme(Noeud *node)
-		: OperatricePixel(node)
+	explicit OperatriceDaltonisme(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
 	{
 		inputs(1);
 	}

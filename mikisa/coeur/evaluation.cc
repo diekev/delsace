@@ -48,6 +48,7 @@ void evalue_resultat(Mikisa &mikisa)
 		case GRAPHE_SCENE:
 			evalue_scene(mikisa);
 			break;
+		case GRAPHE_SIMULATION:
 		case GRAPHE_MAILLAGE:
 		case GRAPHE_OBJET:
 			evalue_objet(mikisa);

@@ -1,0 +1,11 @@
+menu "Noeud Simulation" {
+    menu "Entrée" {
+	    action(valeur="Entrée Simulation"; attache=ajouter_noeud; métadonnée="Entrée Simulation")
+	}
+	menu "Physique" {
+	    action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
+	}
+    menu "Sortie" {
+	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
+	}
+}
