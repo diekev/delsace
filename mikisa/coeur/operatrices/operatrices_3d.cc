@@ -1270,8 +1270,6 @@ public:
 					taille_attrib += poly->nombre_segments() * 2;
 				}
 				break;
-			default:
-				break;
 		}
 
 		m_corps.ajoute_attribut(nom_attribut, type, portee, taille_attrib);
