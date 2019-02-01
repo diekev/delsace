@@ -206,6 +206,7 @@ public:
 
 			if (attr_N == nullptr) {
 				ajoute_avertissement("Aucun attribut normal (N) trouvé sur les particules !");
+				return EXECUTION_ECHOUEE;
 			}
 		}
 		else {
