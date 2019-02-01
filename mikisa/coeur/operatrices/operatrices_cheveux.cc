@@ -388,9 +388,126 @@ public:
 
 /* ************************************************************************** */
 
+struct DonneesSysteme {
+	float masse = 0.0f;
+	float masse_inverse = 0.0f;
+	float rigidite = 0.0f;
+	float amortissement = 0.0f;
+	float temps_par_image = 0.0f;
+	dls::math::vec3f gravite = dls::math::vec3f(0.0f);
+
+	DonneesSysteme() = default;
+};
+
+
+class OperatriceMasseRessort : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Masse Ressort";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceMasseRessort(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(const Rectangle &rectangle, const int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		if (m_corps.prims()->taille() == 0ul) {
+			return EXECUTION_REUSSIE;
+		}
+
+		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::VEC3, portee_attr::POINT, m_corps.points()->taille());
+
+		auto donnees = DonneesSysteme{};
+		donnees.gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};
+		donnees.amortissement = 1.0f; //eval_float("amortissement");
+		donnees.masse = 5.0f;// eval_float("masse");
+		donnees.masse_inverse = 1.0f / donnees.masse;
+		donnees.rigidite = 10.0f;// eval_float("rigidité");
+		donnees.temps_par_image = 1.0f / 24.0f;
+
+		auto liste_points = m_corps.points();
+
+		for (Primitive *prim : m_corps.prims()->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto polygone = dynamic_cast<Polygone *>(prim);
+
+			if (polygone->type != type_polygone::OUVERT) {
+				continue;
+			}
+
+			/* le premier point est la racine */
+			for (size_t i = 1; i < polygone->nombre_sommets(); ++i) {
+				auto const pos_precedent = liste_points->point(polygone->index_point(i - 1));
+				auto pos = liste_points->point(polygone->index_point(i));
+				auto vel = attr_V->vec3(polygone->index_point(i));
+
+				/* force = masse * acceleration */
+				auto force = donnees.masse * donnees.gravite;
+
+				/* Ajout d'une force de ressort selon la loi de Hooke :
+				 * f = -k * déplacement */
+				auto force_ressort = -donnees.rigidite * (pos - pos_precedent);
+				force += force_ressort;
+
+				/* Amortissement : retrait de la vélocité selon le coefficient
+				 * d'amortissement. */
+				auto force_amortisseur = vel * donnees.amortissement;
+				force -= force_amortisseur;
+
+				/* acceleration = force / masse */
+				auto acceleration = force * donnees.masse_inverse;
+
+				vel = vel + acceleration * donnees.temps_par_image;
+				pos = pos + vel * donnees.temps_par_image;
+
+				liste_points->point(polygone->index_point(i), pos);
+				attr_V->vec3(polygone->index_point(i), vel);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationCourbes>());
+	usine.enregistre_type(cree_desc<OperatriceMasseRessort>());
 }
 
 #pragma clang diagnostic pop

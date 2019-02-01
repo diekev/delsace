@@ -2,6 +2,9 @@ menu "Noeud Simulation" {
     menu "Entrée" {
 	    action(valeur="Entrée Simulation"; attache=ajouter_noeud; métadonnée="Entrée Simulation")
 	}
+	menu "Cheveux" {
+	    action(valeur="Masse Ressort"; attache=ajouter_noeud; métadonnée="Masse Ressort")
+	}
 	menu "Physique" {
 	    action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
 	}
