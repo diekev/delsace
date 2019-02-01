@@ -202,7 +202,6 @@ public:
 	explicit OperatriceCollision(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		entrees(1);
 	}
 
 	const char *chemin_entreface() const override
@@ -232,6 +231,21 @@ public:
 
 	int execute(const Rectangle &rectangle, const int temps) override
 	{
+		auto corps_collision = entree(1)->requiers_corps(rectangle, temps);
+
+		if (corps_collision == nullptr) {
+			ajoute_avertissement("Aucun Corps pour la collision trouvé !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto const prims_collision = corps_collision->prims();
+		auto const points_collision = corps_collision->points();
+
+		if (prims_collision->taille() == 0ul) {
+			ajoute_avertissement("Aucune primitive trouvé dans le Corps collision !");
+			return EXECUTION_ECHOUEE;
+		}
+
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
@@ -250,10 +264,6 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		/* À FAIRE : utilisation des polygones d'un corps extra. */
-		auto pos_plan = dls::math::vec3f(0.0f);
-		auto nor_plan = dls::math::vec3f(0.0f, 1.0f, 0.0f);
-
 		for (size_t i = 0; i < nombre_points; ++i) {
 			auto pos = liste_points->point(i);
 			auto vel = attr_V->vec3(i);
@@ -265,20 +275,45 @@ public:
 								 static_cast<float>(pos_monde_d.y),
 								 static_cast<float>(pos_monde_d.z));
 
-			if (!verifie_collision(pos_plan, nor_plan, pos_monde, vel, rayon)) {
-				continue;
+			/* À FAIRE : collision particules
+			 * - structure accélération
+			 * - collision dans les limites des polygones.
+			 */
+			for (Primitive *prim : prims_collision->prims()) {
+				if (prim->type_prim() != type_primitive::POLYGONE) {
+					continue;
+				}
+
+				auto poly = dynamic_cast<Polygone *>(prim);
+
+				if (poly->type != type_polygone::FERME) {
+					continue;
+				}
+
+				auto const &v0 = points_collision->point(poly->index_point(0));
+				auto const &v1 = points_collision->point(poly->index_point(1));
+				auto const &v2 = points_collision->point(poly->index_point(2));
+
+				auto pos_poly = (v0 + v1 + v2) * 0.333f;
+				auto const e1 = v1 - v0;
+				auto const e2 = v2 - v0;
+				auto nor_poly = normalise(produit_croix(e1, e2));
+
+				if (!verifie_collision(pos_poly, nor_poly, pos_monde, vel, rayon)) {
+					continue;
+				}
+
+				/* Trouve le normal de la vélocité au point de collision. */
+				auto nv = dls::math::produit_scalaire(nor_poly, vel) * nor_poly;
+
+				/* Trouve la tangente de la vélocité. */
+				auto tv = vel - nv;
+
+				/* Le normal de la vélocité est multiplité par le coefficient
+				 * d'élasticité. */
+				vel = -elasticite * nv + tv;
+				attr_V->vec3(i, vel);
 			}
-
-			/* Trouve le normal de la vélocité au point de collision. */
-			auto nv = dls::math::produit_scalaire(nor_plan, vel) * nor_plan;
-
-			/* Trouve la tangente de la vélocité. */
-			auto tv = vel - nv;
-
-			/* Le normal de la vélocité est multiplité par le coefficient
-			 * d'élasticité. */
-			vel = -elasticite * nv + tv;
-			attr_V->vec3(i, vel);
 		}
 
 		return EXECUTION_REUSSIE;
