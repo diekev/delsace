@@ -259,7 +259,7 @@ public:
 			auto vel = attr_V->vec3(i);
 
 			/* Calcul la position en espace objet. */
-			auto pos_monde_d = m_corps.transformation(dls::math::vec3d(pos));
+			auto pos_monde_d = m_corps.transformation(dls::math::point3d(pos));
 			auto pos_monde = dls::math::vec3f(
 								 static_cast<float>(pos_monde_d.x),
 								 static_cast<float>(pos_monde_d.y),
