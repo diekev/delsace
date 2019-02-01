@@ -335,11 +335,11 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 	float uv[2] = { 0.0f, 0.0f };
 
 	for (auto y = 0ul; y < colonnes; ++y) {
-		point[2] = debut_y + static_cast<float>(y) * increment_y;
+		point[0] = debut_y + static_cast<float>(y) * increment_y;
 		uv[1] = static_cast<float>(y) * increment_y_uv;
 
 		for (auto x = 0ul; x < lignes; ++x) {
-			point[0] = debut_x + static_cast<float>(x) * increment_x;
+			point[2] = debut_x + static_cast<float>(x) * increment_x;
 			uv[0] = static_cast<float>(x) * increment_x_uv;
 
 			adaptrice->ajoute_coord_uv_sommet(uv[0], uv[1]);
