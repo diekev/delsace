@@ -130,15 +130,155 @@ public:
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
 
+		auto m_gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};
+		/* À FAIRE : passe le temps par image en paramètre. */
+		auto const temps_par_image = 1.0f / 24.0f;
+		/* À FAIRE : masse comme propriété des particules */
+		auto const masse = 1.0f; // eval_float("masse");
+		auto const masse_inverse = 1.0f / masse;
+
+		/* ajoute attribut vélocité */
+		auto attr_V = m_corps.ajoute_attribut("part_V", type_attribut::VEC3, portee_attr::POINT, nombre_points);
+
 		for (size_t i = 0; i < nombre_points; ++i) {
-			auto v1 = liste_points->point(i);
-			v1 += dls::math::vec3f(0.0f, 0.1f, 0.0f);
-			liste_points->point(i, v1);
+			auto pos = liste_points->point(i);
+
+			/* f = m * a */
+			auto const force = masse * m_gravite;
+
+			/* a = f / m */
+			auto const acceleration = force * masse_inverse;
+
+			/* velocite = acceleration * temp_par_image + velocite */
+			auto velocite = attr_V->vec3(i) + acceleration * temps_par_image;
+
+			/* position = velocite * temps_par_image + position */
+			pos += velocite * temps_par_image;
+
+			liste_points->point(i, pos);
+			attr_V->vec3(i, velocite);
 		}
 
 		return EXECUTION_REUSSIE;
 	}
 };
+
+/* ************************************************************************** */
+
+static auto verifie_collision(
+		dls::math::vec3f const &pos_plan,
+		dls::math::vec3f const &nor_plan,
+		dls::math::vec3f const &pos,
+		dls::math::vec3f const &vel,
+		float rayon)
+{
+	const auto &XPdotN = dls::math::produit_scalaire(pos - pos_plan, nor_plan);
+
+	/* Est-on à une distance epsilon du plan ? */
+	if (XPdotN >= rayon + std::numeric_limits<float>::epsilon()) {
+		return false;
+	}
+
+	/* Va-t-on vers le plan ? */
+	if (dls::math::produit_scalaire(nor_plan, vel) >= 0.0f) {
+		return false;
+	}
+
+	return true;
+}
+
+class OperatriceCollision : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Collision";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceCollision(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(const Rectangle &rectangle, const int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto liste_points = m_corps.points();
+		auto const nombre_points = liste_points->taille();
+
+		auto const elasticite = 1.0f;//eval_float("élasticité");
+		/* À FAIRE : rayon comme propriété des particules */
+		auto const rayon = 0.01f;// eval_float("rayon");
+
+		/* ajoute attribut vélocité */
+		auto attr_V = m_corps.attribut("part_V");
+
+		if (attr_V == nullptr) {
+			ajoute_avertissement("Aucune attribut de vélocité trouvé !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* À FAIRE : utilisation des polygones d'un corps extra. */
+		auto pos_plan = dls::math::vec3f(0.0f);
+		auto nor_plan = dls::math::vec3f(0.0f, 1.0f, 0.0f);
+
+		for (size_t i = 0; i < nombre_points; ++i) {
+			auto pos = liste_points->point(i);
+			auto vel = attr_V->vec3(i);
+
+			/* Calcul la position en espace objet. */
+			auto pos_monde_d = m_corps.transformation(dls::math::vec3d(pos));
+			auto pos_monde = dls::math::vec3f(
+								 static_cast<float>(pos_monde_d.x),
+								 static_cast<float>(pos_monde_d.y),
+								 static_cast<float>(pos_monde_d.z));
+
+			if (!verifie_collision(pos_plan, nor_plan, pos_monde, vel, rayon)) {
+				continue;
+			}
+
+			/* Trouve le normal de la vélocité au point de collision. */
+			auto nv = dls::math::produit_scalaire(nor_plan, vel) * nor_plan;
+
+			/* Trouve la tangente de la vélocité. */
+			auto tv = vel - nv;
+
+			/* Le normal de la vélocité est multiplité par le coefficient
+			 * d'élasticité. */
+			vel = -elasticite * nv + tv;
+			attr_V->vec3(i, vel);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
 
 void enregistre_operatrices_simulations(UsineOperatrice &usine)
 {
@@ -146,6 +286,7 @@ void enregistre_operatrices_simulations(UsineOperatrice &usine)
 
 	usine.enregistre_type(cree_desc<OperatriceEntreeSimulation>());
 	usine.enregistre_type(cree_desc<OperatriceGravite>());
+	usine.enregistre_type(cree_desc<OperatriceCollision>());
 }
 
 #pragma clang diagnostic pop

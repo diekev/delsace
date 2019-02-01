@@ -6,7 +6,8 @@ menu "Noeud Simulation" {
 	    action(valeur="Masse Ressort"; attache=ajouter_noeud; métadonnée="Masse Ressort")
 	}
 	menu "Physique" {
-	    action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
+	    action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
+		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
 	}
     menu "Sortie" {
 	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
