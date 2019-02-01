@@ -48,8 +48,12 @@ public:
 
 public Q_SLOTS:
 	void image_traitee();
+	void mis_a_jour_menu_fichier_recent();
 
 private:
 	QDockWidget *ajoute_dock(const QString &nom, int type, int aire, QDockWidget *premier = nullptr);
 	void genere_barre_menu();
+	void charge_reglages();
+	void ecrit_reglages() const;
+	void closeEvent(QCloseEvent *) override;
 };

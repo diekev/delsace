@@ -32,7 +32,10 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDockWidget>
+#include <QFile>
+#include <QFileInfo>
 #include <QMenuBar>
+#include <QSettings>
 #pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
@@ -85,11 +88,63 @@ FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 	ajoute_dock("Rendu", EDITRICE_RENDU, Qt::RightDockWidgetArea);
 	ajoute_dock("Ligne Temps", EDITRICE_LIGNE_TEMPS, Qt::RightDockWidgetArea);
 
+	charge_reglages();
+
 	setCentralWidget(nullptr);
 }
 
 FenetrePrincipale::~FenetrePrincipale()
 {
+}
+
+void FenetrePrincipale::charge_reglages()
+{
+	QSettings settings;
+
+	auto const &recent_files = settings.value("projet_récents").toStringList();
+
+	for (auto const &file : recent_files) {
+		if (QFile(file).exists()) {
+			m_mikisa.ajoute_fichier_recent(file.toStdString());
+		}
+	}
+}
+
+void FenetrePrincipale::ecrit_reglages() const
+{
+	QSettings settings;
+	QStringList recent;
+
+	for (auto const &fichier_recent : m_mikisa.fichiers_recents()) {
+		recent.push_front(fichier_recent.c_str());
+	}
+
+	settings.setValue("projet_récents", recent);
+}
+
+void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
+{
+	std::vector<danjo::DonneesAction> donnees_actions;
+
+	danjo::DonneesAction donnees{};
+	donnees.attache = "ouvrir_fichier_recent";
+	donnees.repondant_bouton = m_mikisa.repondant_commande();
+
+	for (auto const &fichier_recent : m_mikisa.fichiers_recents()) {
+		auto name = QFileInfo(fichier_recent.c_str()).fileName();
+
+		donnees.nom = name.toStdString();
+		donnees.metadonnee = fichier_recent;
+
+		donnees_actions.push_back(donnees);
+	}
+
+	m_mikisa.gestionnaire_entreface->recree_menu("Projets Récents", donnees_actions);
+}
+
+void FenetrePrincipale::closeEvent(QCloseEvent *)
+{
+	ecrit_reglages();
 }
 
 void FenetrePrincipale::genere_barre_menu()
@@ -105,6 +160,10 @@ void FenetrePrincipale::genere_barre_menu()
 
 		menuBar()->addMenu(menu);
 	}
+
+	auto menu_fichiers_recents = m_mikisa.gestionnaire_entreface->pointeur_menu("Projets Récents");
+	connect(menu_fichiers_recents, SIGNAL(aboutToShow()),
+			this, SLOT(mis_a_jour_menu_fichier_recent()));
 }
 
 QDockWidget *FenetrePrincipale::ajoute_dock(const QString &nom, int type, int aire, QDockWidget *premier)
