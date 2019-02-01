@@ -93,10 +93,6 @@ FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 	setCentralWidget(nullptr);
 }
 
-FenetrePrincipale::~FenetrePrincipale()
-{
-}
-
 void FenetrePrincipale::charge_reglages()
 {
 	QSettings settings;

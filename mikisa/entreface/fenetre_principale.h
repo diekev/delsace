@@ -41,7 +41,6 @@ class FenetrePrincipale : public QMainWindow {
 
 public:
 	explicit FenetrePrincipale(Mikisa &mikisa, QWidget *parent = nullptr);
-	~FenetrePrincipale();
 
 	FenetrePrincipale(FenetrePrincipale const &) = default;
 	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
