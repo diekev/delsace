@@ -88,6 +88,15 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 		m_graphe.entrees.clear();
 		m_graphe.entrees.push_back(&m_corps);
 
+		corps = entree(1)->requiers_corps(rectangle, temps);
+		m_corps2.reinitialise();
+
+		if (corps) {
+			corps->copie_vers(&m_corps2);
+		}
+
+		m_graphe.entrees.push_back(&m_corps2);
+
 		m_dernier_temps = m_debut;
 		return EXECUTION_REUSSIE;
 	}

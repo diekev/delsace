@@ -97,6 +97,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_deformation.jo
 	scripts_danjo/operatrice_degrade.jo
 	scripts_danjo/operatrice_dilation_erosion.jo
+	scripts_danjo/operatrice_entree_simulation.jo
 	scripts_danjo/operatrice_extraction_palette.jo
 	scripts_danjo/operatrice_filtre.jo
 	scripts_danjo/operatrice_flou.jo

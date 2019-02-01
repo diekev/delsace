@@ -45,7 +45,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_entree_simulation.jo";
 	}
 
 	const char *nom_classe() const override
@@ -79,7 +79,14 @@ public:
 			return EXECUTION_REUSSIE;
 		}
 
-		auto corps = static_cast<Corps const *>(m_graphe_parent.entrees[0]);
+		auto index_entree = static_cast<size_t>(evalue_entier("index_entrée"));
+
+		if (index_entree >= m_graphe_parent.entrees.size()) {
+			ajoute_avertissement("L'index de l'entrée est hors de portée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto corps = static_cast<Corps const *>(m_graphe_parent.entrees[index_entree]);
 		corps->copie_vers(&m_corps);
 
 		return EXECUTION_REUSSIE;

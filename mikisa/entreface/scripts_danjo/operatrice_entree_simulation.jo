@@ -1,0 +1,6 @@
+disposition "operatrice_entree_simulation" {
+    ligne {
+	    étiquette(valeur="Entrée")
+		entier(valeur=0; attache=index_entrée; infobulle="L'index de l'entrée à évaluer."; min=0; max=1)
+	}
+}

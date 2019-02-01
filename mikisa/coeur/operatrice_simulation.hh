@@ -39,6 +39,8 @@ class OperatriceSimulation final : public OperatriceCorps {
 	int m_dernier_temps = 0;
 	int pad = 0;
 
+	Corps m_corps2{};
+
 public:
 	static constexpr auto NOM = "Simulation";
 	static constexpr auto AIDE = "Ajoute un noeud de simulation physique";
