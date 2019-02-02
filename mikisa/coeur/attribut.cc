@@ -328,6 +328,32 @@ const void *Attribut::donnees() const
 	}
 }
 
+void *Attribut::donnees()
+{
+	switch (m_type) {
+		case type_attribut::ENT8:
+			return m_donnees.liste_ent8->data();
+		case type_attribut::ENT32:
+			return m_donnees.liste_ent32->data();
+		case type_attribut::DECIMAL:
+			return m_donnees.liste_decimal->data();
+		case type_attribut::CHAINE:
+			return m_donnees.liste_chaine->data();
+		case type_attribut::VEC2:
+			return m_donnees.liste_vec2->data();
+		case type_attribut::VEC3:
+			return m_donnees.liste_vec3->data();
+		case type_attribut::VEC4:
+			return m_donnees.liste_vec4->data();
+		case type_attribut::MAT3:
+			return m_donnees.liste_mat3->data();
+		case type_attribut::MAT4:
+			return m_donnees.liste_mat4->data();
+		default:
+			return nullptr;
+	}
+}
+
 long Attribut::taille_octets() const
 {
 	auto octets = 0ul;

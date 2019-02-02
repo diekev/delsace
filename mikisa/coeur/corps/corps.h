@@ -71,6 +71,9 @@ struct Corps {
 
 	int type = CORPS_NUL;
 
+	using plage_attributs = plage_iterable<std::vector<Attribut *>::iterator>;
+	using plage_const_attributs = plage_iterable<std::vector<Attribut *>::const_iterator>;
+
 	Corps() = default;
 	virtual ~Corps();
 
@@ -111,6 +114,10 @@ struct Corps {
 	Corps *copie() const;
 
 	void copie_vers(Corps *corps) const;
+
+	plage_attributs attributs();
+
+	plage_const_attributs attributs() const;
 
 protected:
 	std::vector<Attribut *> m_attributs{};

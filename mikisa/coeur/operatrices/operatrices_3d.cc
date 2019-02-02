@@ -1770,7 +1770,20 @@ public:
 			}
 		}
 
-		/* À FAIRE : fusionne les attributs */
+		/* À FAIRE : fusionne les attributs en utilisant une table de hachage */
+		for (auto attr1 : corps1->attributs()) {
+			auto attr = m_corps.ajoute_attribut(attr1->nom(), attr1->type(), attr1->portee, m_corps.points()->taille());
+
+			std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
+
+			for (auto attr2 : corps2->attributs()) {
+				if (attr1->nom() == attr2->nom()) {
+					auto ptr = static_cast<char *>(attr->donnees()) + attr1->taille_octets();
+					std::memcpy(ptr, attr2->donnees(), static_cast<size_t>(attr2->taille_octets()));
+				}
+			}
+		}
+
 		/* À FAIRE : fusionne les groupes */
 
 		return EXECUTION_REUSSIE;

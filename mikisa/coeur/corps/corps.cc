@@ -231,3 +231,13 @@ void Corps::copie_vers(Corps *corps) const
 	/* copie les groupes */
 	/* À FAIRE */
 }
+
+Corps::plage_attributs Corps::attributs()
+{
+	return plage_attributs(m_attributs.begin(), m_attributs.end());
+}
+
+Corps::plage_const_attributs Corps::attributs() const
+{
+	return plage_const_attributs(m_attributs.cbegin(), m_attributs.cend());
+}

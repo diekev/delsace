@@ -132,6 +132,7 @@ public:
 
 	void reinitialise();
 
+	void *donnees();
 	const void *donnees() const;
 
 	long taille_octets() const;
