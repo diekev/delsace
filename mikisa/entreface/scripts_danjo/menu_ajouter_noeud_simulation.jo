@@ -11,6 +11,9 @@ menu "Noeud Simulation" {
 	menu "Corps" {
 	    action(valeur="Fusionnage Corps"; attache=ajouter_noeud; métadonnée="Fusionnage Corps")
 	}
+	menu "Flux" {
+	    action(valeur="Commutation Corps"; attache=ajouter_noeud; métadonnée="Commutation Corps")
+	}
 	menu "Physique" {
 	    action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
 		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")

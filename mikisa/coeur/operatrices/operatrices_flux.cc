@@ -38,6 +38,7 @@
 #include <OpenEXR/ImathBox.h>
 #pragma GCC diagnostic pop
 
+#include "../operatrice_corps.h"
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
 
@@ -384,9 +385,65 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceCommutationCorps : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Commutation Corps";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceCommutationCorps(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_commutateur.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		//auto const value = evalue_entier("prise");
+		m_corps.reinitialise();
+
+		/* À FAIRE : expose des propriétés dans l'interface. */
+
+		if (temps > 1) {
+			entree(1)->requiers_copie_corps(&m_corps, rectangle, temps);
+		}
+		else {
+			entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_flux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCommutation>());
+	usine.enregistre_type(cree_desc<OperatriceCommutationCorps>());
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
 }
