@@ -9,6 +9,10 @@ menu "Noeud Simulation" {
 	    action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
 		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
 	}
+	menu "Particules" {
+	    action(valeur="Dispersion Points"; attache=ajouter_noeud; métadonnée="Dispersion Points")
+		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
+	}
     menu "Sortie" {
 	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
 	}
