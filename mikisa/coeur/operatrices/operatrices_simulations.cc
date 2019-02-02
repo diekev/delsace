@@ -218,6 +218,8 @@ public:
 
 /* ************************************************************************** */
 
+#if 0
+/* collision avec un plan infini */
 static auto verifie_collision(
 		dls::math::vec3f const &pos_plan,
 		dls::math::vec3f const &nor_plan,
@@ -238,6 +240,70 @@ static auto verifie_collision(
 	}
 
 	return true;
+}
+#endif
+
+struct Triangle {
+	using type_vec = dls::math::vec3f;
+	type_vec v0;
+	type_vec v1;
+	type_vec v2;
+};
+
+struct Rayon {
+	Triangle::type_vec direction;
+	Triangle::type_vec origine;
+};
+
+/**
+ * Algorithme de Möller-Trumbore.
+ * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_entresection_algorithm
+ */
+static bool entresecte_triangle(Triangle const &triangle, Rayon const &rayon, float &distance)
+{
+	constexpr auto epsilon = 0.000001f;
+
+	auto const &vertex0 = triangle.v0;
+	auto const &vertex1 = triangle.v1;
+	auto const &vertex2 = triangle.v2;
+
+	auto const &cote1 = vertex1 - vertex0;
+	auto const &cote2 = vertex2 - vertex0;
+	auto const &h = dls::math::produit_croix(rayon.direction, cote2);
+	auto const angle = dls::math::produit_scalaire(cote1, h);
+
+	if (angle > -epsilon && angle < epsilon) {
+		return false;
+	}
+
+	auto const f = 1.0f / angle;
+	auto const &s = Triangle::type_vec(rayon.origine) - vertex0;
+	auto const angle_u = f * dls::math::produit_scalaire(s, h);
+
+	if (angle_u < 0.0f || angle_u > 1.0f) {
+		return false;
+	}
+
+	auto const q = dls::math::produit_croix(s, cote1);
+	auto const angle_v = f * dls::math::produit_scalaire(rayon.direction, q);
+
+	if (angle_v < 0.0f || angle_u + angle_v > 1.0f) {
+		return false;
+	}
+
+	/* À cette étape on peut calculer t pour trouver le point d'entresection sur
+	 * la ligne. */
+	auto const t = f * dls::math::produit_scalaire(cote2, q);
+
+	/* Entresection avec le rayon. */
+	if (t > epsilon) {
+		distance = t;
+		return true;
+	}
+
+	/* Cela veut dire qu'il y a une entresection avec une ligne, mais pas avec
+	 * le rayon. */
+	return false;
 }
 
 class OperatriceCollision : public OperatriceCorps {
@@ -321,9 +387,12 @@ public:
 								 static_cast<float>(pos_monde_d.y),
 								 static_cast<float>(pos_monde_d.z));
 
+			auto rayon_part = Rayon{};
+			rayon_part.origine = pos_monde - vel;
+			rayon_part.direction = vel;
+
 			/* À FAIRE : collision particules
 			 * - structure accélération
-			 * - collision dans les limites des polygones.
 			 */
 			for (Primitive *prim : prims_collision->prims()) {
 				if (prim->type_prim() != type_primitive::POLYGONE) {
@@ -336,29 +405,51 @@ public:
 					continue;
 				}
 
-				auto const &v0 = points_collision->point(poly->index_point(0));
-				auto const &v1 = points_collision->point(poly->index_point(1));
-				auto const &v2 = points_collision->point(poly->index_point(2));
+				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
+					auto const &v0 = points_collision->point(poly->index_point(0));
+					auto const &v1 = points_collision->point(poly->index_point(j - 1));
+					auto const &v2 = points_collision->point(poly->index_point(j));
 
-				auto pos_poly = (v0 + v1 + v2) * 0.333f;
-				auto const e1 = v1 - v0;
-				auto const e2 = v2 - v0;
-				auto nor_poly = normalise(produit_croix(e1, e2));
+					auto const &v0_d = corps_collision->transformation(dls::math::point3d(v0));
+					auto const &v1_d = corps_collision->transformation(dls::math::point3d(v1));
+					auto const &v2_d = corps_collision->transformation(dls::math::point3d(v2));
 
-				if (!verifie_collision(pos_poly, nor_poly, pos_monde, vel, rayon)) {
-					continue;
+					auto triangle = Triangle{};
+					triangle.v0 = dls::math::vec3f(
+									  static_cast<float>(v0_d.x),
+									  static_cast<float>(v0_d.y),
+									  static_cast<float>(v0_d.z));
+					triangle.v1 = dls::math::vec3f(
+									  static_cast<float>(v1_d.x),
+									  static_cast<float>(v1_d.y),
+									  static_cast<float>(v1_d.z));
+					triangle.v2 = dls::math::vec3f(
+									  static_cast<float>(v2_d.x),
+									  static_cast<float>(v2_d.y),
+									  static_cast<float>(v2_d.z));
+
+					auto dist = 1000.0f;
+					if (!entresecte_triangle(triangle, rayon_part, dist)) {
+						continue;
+					}
+
+					auto const e1 = v1 - v0;
+					auto const e2 = v2 - v0;
+					auto nor_poly = normalise(produit_croix(e1, e2));
+
+					/* Trouve le normal de la vélocité au point de collision. */
+					auto nv = dls::math::produit_scalaire(nor_poly, vel) * nor_poly;
+
+					/* Trouve la tangente de la vélocité. */
+					auto tv = vel - nv;
+
+					/* Le normal de la vélocité est multiplité par le coefficient
+					 * d'élasticité. */
+					vel = -elasticite * nv + tv;
+					attr_V->vec3(i, vel);
+
+					break;
 				}
-
-				/* Trouve le normal de la vélocité au point de collision. */
-				auto nv = dls::math::produit_scalaire(nor_poly, vel) * nor_poly;
-
-				/* Trouve la tangente de la vélocité. */
-				auto tv = vel - nv;
-
-				/* Le normal de la vélocité est multiplité par le coefficient
-				 * d'élasticité. */
-				vel = -elasticite * nv + tv;
-				attr_V->vec3(i, vel);
 			}
 		}
 
