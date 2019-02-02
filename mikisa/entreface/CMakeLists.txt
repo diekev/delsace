@@ -124,6 +124,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_saturation.jo
 	scripts_danjo/operatrice_simulation_grain.jo
 	scripts_danjo/operatrice_texture.jo
+	scripts_danjo/operatrice_tirage_fleche.jo
 	scripts_danjo/operatrice_tonemap.jo
 	scripts_danjo/operatrice_tournoiement.jo
 	scripts_danjo/operatrice_traduction.jo

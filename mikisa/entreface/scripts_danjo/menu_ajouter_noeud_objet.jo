@@ -21,6 +21,7 @@ menu "Noeud Objet" {
 	menu "Particules" {
 	    action(valeur="Création Points"; attache=ajouter_noeud; métadonnée="Création Points")
 		action(valeur="Dispersion Points"; attache=ajouter_noeud; métadonnée="Dispersion Points")
+		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
 	}
 	menu "Simulation" {
 	    action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
