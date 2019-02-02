@@ -343,23 +343,15 @@ public:
 
 			auto poly = dynamic_cast<Polygone *>(prim);
 
-			auto triangle = new Triangle();
-			triangle->p0 = points->point(poly->index_point(0));
-			triangle->p1 = points->point(poly->index_point(1));
-			triangle->p2 = points->point(poly->index_point(2));
+			if (poly->type != type_polygone::FERME) {
+				continue;
+			}
 
-			init_min_max(triangle->min, triangle->max);
-			dls::math::extrait_min_max(triangle->p0, triangle->min, triangle->max);
-			dls::math::extrait_min_max(triangle->p1, triangle->min, triangle->max);
-			dls::math::extrait_min_max(triangle->p2, triangle->min, triangle->max);
-
-			arbre->ajoute_triangle(triangle);
-
-			if (poly->nombre_sommets() > 3) {
-				triangle = new Triangle();
+			for (size_t i = 2; i < poly->nombre_sommets(); ++i) {
+				auto triangle = new Triangle();
 				triangle->p0 = points->point(poly->index_point(0));
-				triangle->p1 = points->point(poly->index_point(2));
-				triangle->p2 = points->point(poly->index_point(3));
+				triangle->p1 = points->point(poly->index_point(i - 1));
+				triangle->p2 = points->point(poly->index_point(i));
 
 				init_min_max(triangle->min, triangle->max);
 				dls::math::extrait_min_max(triangle->p0, triangle->min, triangle->max);

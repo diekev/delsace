@@ -271,33 +271,16 @@ void ajoute_polygone_surface(
 		std::vector<dls::math::vec3f> &points,
 		std::vector<dls::math::vec3f> &normaux)
 {
-	points.push_back(liste_points->point(polygone->index_point(0)));
-	points.push_back(liste_points->point(polygone->index_point(1)));
-	points.push_back(liste_points->point(polygone->index_point(2)));
-
-	if (attr_normaux) {
-		if (attr_normaux->portee == portee_attr::POINT) {
-			normaux.push_back(attr_normaux->vec3(polygone->index_point(0)));
-			normaux.push_back(attr_normaux->vec3(polygone->index_point(1)));
-			normaux.push_back(attr_normaux->vec3(polygone->index_point(2)));
-		}
-		else if (attr_normaux->portee == portee_attr::POLYGONE) {
-			normaux.push_back(attr_normaux->vec3(polygone->index));
-			normaux.push_back(attr_normaux->vec3(polygone->index));
-			normaux.push_back(attr_normaux->vec3(polygone->index));
-		}
-	}
-
-	if (polygone->nombre_sommets() == 4) {
+	for (size_t i = 2; i < polygone->nombre_sommets(); ++i) {
 		points.push_back(liste_points->point(polygone->index_point(0)));
-		points.push_back(liste_points->point(polygone->index_point(2)));
-		points.push_back(liste_points->point(polygone->index_point(3)));
+		points.push_back(liste_points->point(polygone->index_point(i - 1)));
+		points.push_back(liste_points->point(polygone->index_point(i)));
 
 		if (attr_normaux) {
 			if (attr_normaux->portee == portee_attr::POINT) {
 				normaux.push_back(attr_normaux->vec3(polygone->index_point(0)));
-				normaux.push_back(attr_normaux->vec3(polygone->index_point(2)));
-				normaux.push_back(attr_normaux->vec3(polygone->index_point(3)));
+				normaux.push_back(attr_normaux->vec3(polygone->index_point(i - 1)));
+				normaux.push_back(attr_normaux->vec3(polygone->index_point(i)));
 			}
 			else if (attr_normaux->portee == portee_attr::POLYGONE) {
 				normaux.push_back(attr_normaux->vec3(polygone->index));
