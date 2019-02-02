@@ -246,9 +246,10 @@ public:
 
 		points_sorties->reserve(nombre_points);
 
-		auto const graine = evalue_entier("graine");
+		auto const anime_graine = evalue_bool("anime_graine");
+		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
 
-		std::mt19937 rng(static_cast<size_t>(19937 + graine));
+		std::mt19937 rng(static_cast<size_t>(graine));
 		std::uniform_real_distribution<double> dist(0.0, 1.0);
 
 		for (Triangle const &triangle : triangles) {
