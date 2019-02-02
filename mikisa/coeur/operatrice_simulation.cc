@@ -101,13 +101,9 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 		if (corps) {
 			corps->copie_vers(&m_corps2);
 		}
-
-		m_dernier_temps = m_debut;
-		return EXECUTION_REUSSIE;
 	}
-
 	/* Ne simule que si l'on a avancé d'une image. */
-	if (temps != m_dernier_temps + 1) {
+	else if (temps != m_dernier_temps + 1) {
 		return EXECUTION_REUSSIE;
 	}
 
