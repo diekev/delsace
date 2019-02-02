@@ -1,10 +1,39 @@
 disposition "operatrice_3d_randomisation_attribut" {
     ligne {
 	    étiquette(valeur="Nom")
-		chaine(valeur=""; attache=nom_attribut)
+		chaine(valeur=""; attache=nom_attribut; infobulle="Nom de l'attribut à randomiser.")
 	}
 	ligne {
 	    étiquette(valeur="Graine")
 		entier(valeur=1; attache=graine; min=1)
+	}
+	ligne {
+	    étiquette(valeur="Distribution")
+		énum(valeur="constante"; attache=distribution;
+		    items=[
+			    {nom="Constante", valeur="constante"},
+				{nom="Uniforme", valeur="uniforme"},
+				{nom="Gaussienne", valeur="gaussienne"}
+				])
+		}
+	ligne {
+	    étiquette(valeur="Valeur")
+		décimal(valeur=1.0; attache=constante; min=0; max=10)
+	}
+	ligne {
+	    étiquette(valeur="Valeur Minimum")
+		décimal(valeur=0.0; attache=valeur_min; min=0; max=10)
+	}
+	ligne {
+	    étiquette(valeur="Valeur Maximum")
+		décimal(valeur=1.0; attache=valeur_max; min=0; max=10)
+	}
+	ligne {
+	    étiquette(valeur="Moyenne")
+		décimal(valeur=1.0; attache=moyenne; min=0; max=10)
+	}
+	ligne {
+	    étiquette(valeur="Écart Type")
+		décimal(valeur=1.0; attache=écart_type; min=0; max=10)
 	}
 }

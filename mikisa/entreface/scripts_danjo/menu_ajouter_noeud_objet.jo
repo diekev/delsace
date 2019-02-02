@@ -20,11 +20,15 @@ menu "Noeud Objet" {
 	}
 	menu "Particules" {
 	    action(valeur="Création Points"; attache=ajouter_noeud; métadonnée="Création Points")
+		action(valeur="Dispersion Points"; attache=ajouter_noeud; métadonnée="Dispersion Points")
 	}
 	menu "Simulation" {
 	    action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
 	}
 	menu "Sortie" {
 	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
+	}
+	menu "Transformation" {
+	    action(valeur="Transformation"; attache=ajouter_noeud; métadonnée="Transformation")
 	}
 }

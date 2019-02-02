@@ -43,6 +43,7 @@ enum class type_attribut : char {
 	MAT4,
 };
 
+/* À FAIRE : portée par groupe. */
 enum class portee_attr : char {
 	/* l'attribut varie pour chaque point */
 	POINT,

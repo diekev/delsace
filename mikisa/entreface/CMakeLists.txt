@@ -97,6 +97,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_deformation.jo
 	scripts_danjo/operatrice_degrade.jo
 	scripts_danjo/operatrice_dilation_erosion.jo
+	scripts_danjo/operatrice_dispersion_points.jo
 	scripts_danjo/operatrice_entree_simulation.jo
 	scripts_danjo/operatrice_extraction_palette.jo
 	scripts_danjo/operatrice_filtre.jo
@@ -126,6 +127,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_tonemap.jo
 	scripts_danjo/operatrice_tournoiement.jo
 	scripts_danjo/operatrice_traduction.jo
+	scripts_danjo/operatrice_transformation.jo
 	scripts_danjo/operatrice_visionnage.jo
 	scripts_danjo/parametres_projet.jo
 	scripts_danjo/preferences.jo

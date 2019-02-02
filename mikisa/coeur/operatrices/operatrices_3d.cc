@@ -1376,6 +1376,7 @@ public:
 
 /* ************************************************************************** */
 
+/* À FAIRE : considère avoir un noeud spécial pour les couleurs. */
 class OperatriceRandomisationAttribut final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Randomisation Attribut";
@@ -1420,6 +1421,12 @@ public:
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 		auto const graine = evalue_entier("graine");
+		auto const distribution = evalue_enum("distribution");
+		auto const constante = evalue_decimal("constante");
+		auto const val_min = evalue_decimal("valeur_min");
+		auto const val_max = evalue_decimal("valeur_max");
+		auto const moyenne = evalue_decimal("moyenne");
+		auto const ecart_type = evalue_decimal("écart_type");
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
@@ -1436,33 +1443,77 @@ public:
 		switch (attrib->type()) {
 			case type_attribut::ENT8:
 			{
-				std::uniform_int_distribution<char> dist(-128, 127);
 				std::mt19937 rng(graine);
 
-				for (auto &v : attrib->ent8()) {
-					v = dist(rng);
+				if (distribution == "constante") {
+					for (auto &v : attrib->ent8()) {
+						v = static_cast<char>(constante);
+					}
+				}
+				else if (distribution == "uniforme") {
+					std::uniform_int_distribution<char> dist(-128, 127);
+
+					for (auto &v : attrib->ent8()) {
+						v = dist(rng);
+					}
+				}
+				else if (distribution == "gaussienne") {
+					std::normal_distribution<float> dist(moyenne, ecart_type);
+
+					for (auto &v : attrib->ent8()) {
+						v = static_cast<char>(dist(rng));
+					}
 				}
 
 				break;
 			}
 			case type_attribut::ENT32:
 			{
-				std::uniform_int_distribution<int> dist(0, std::numeric_limits<int>::max() - 1);
 				std::mt19937 rng(graine);
+				if (distribution == "constante") {
+					for (auto &v : attrib->ent32()) {
+						v = static_cast<int>(constante);
+					}
+				}
+				else if (distribution == "uniforme") {
+					std::uniform_int_distribution<int> dist(0, std::numeric_limits<int>::max() - 1);
 
-				for (auto &v : attrib->ent32()) {
-					v = dist(rng);
+					for (auto &v : attrib->ent32()) {
+						v = dist(rng);
+					}
+				}
+				else if (distribution == "gaussienne") {
+					std::normal_distribution<float> dist(moyenne, ecart_type);
+
+					for (auto &v : attrib->ent32()) {
+						v = static_cast<int>(dist(rng));
+					}
 				}
 
 				break;
 			}
 			case type_attribut::DECIMAL:
 			{
-				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 				std::mt19937 rng(graine);
 
-				for (auto &v : attrib->decimal()) {
-					v = dist(rng);
+				if (distribution == "constante") {
+					for (auto &v : attrib->decimal()) {
+						v = constante;
+					}
+				}
+				else if (distribution == "uniforme") {
+					std::uniform_real_distribution<float> dist(val_min, val_max);
+
+					for (auto &v : attrib->decimal()) {
+						v = dist(rng);
+					}
+				}
+				else if (distribution == "gaussienne") {
+					std::normal_distribution<float> dist(moyenne, ecart_type);
+
+					for (auto &v : attrib->decimal()) {
+						v = dist(rng);
+					}
 				}
 
 				break;
@@ -1474,39 +1525,96 @@ public:
 			}
 			case type_attribut::VEC2:
 			{
-				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 				std::mt19937 rng(graine);
 
-				for (auto &v : attrib->vec2()) {
-					v.x = dist(rng);
-					v.y = dist(rng);
+				if (distribution == "constante") {
+					for (auto &v : attrib->vec2()) {
+						v.x = constante;
+						v.y = constante;
+					}
+				}
+				else if (distribution == "uniforme") {
+					std::uniform_real_distribution<float> dist(val_min, val_max);
+
+					for (auto &v : attrib->vec2()) {
+						v.x = dist(rng);
+						v.y = dist(rng);
+					}
+				}
+				else if (distribution == "gaussienne") {
+					std::normal_distribution<float> dist(moyenne, ecart_type);
+
+					for (auto &v : attrib->vec2()) {
+						v.x = dist(rng);
+						v.y = dist(rng);
+					}
 				}
 
 				break;
 			}
 			case type_attribut::VEC3:
 			{
-				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 				std::mt19937 rng(graine);
 
-				for (auto &v : attrib->vec3()) {
-					v.x = dist(rng);
-					v.y = dist(rng);
-					v.z = dist(rng);
+				if (distribution == "constante") {
+					for (auto &v : attrib->vec3()) {
+						v.x = constante;
+						v.y = constante;
+						v.z = constante;
+					}
+				}
+				else if (distribution == "uniforme") {
+					std::uniform_real_distribution<float> dist(val_min, val_max);
+
+					for (auto &v : attrib->vec3()) {
+						v.x = dist(rng);
+						v.y = dist(rng);
+						v.z = dist(rng);
+					}
+				}
+				else if (distribution == "gaussienne") {
+					std::normal_distribution<float> dist(moyenne, ecart_type);
+
+					for (auto &v : attrib->vec3()) {
+						v.x = dist(rng);
+						v.y = dist(rng);
+						v.z = dist(rng);
+					}
 				}
 
 				break;
 			}
 			case type_attribut::VEC4:
 			{
-				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 				std::mt19937 rng(graine);
 
-				for (auto &v : attrib->vec4()) {
-					v.x = dist(rng);
-					v.y = dist(rng);
-					v.z = dist(rng);
-					v.y = dist(rng);
+				if (distribution == "constante") {
+					for (auto &v : attrib->vec4()) {
+						v.x = constante;
+						v.y = constante;
+						v.z = constante;
+						v.w = constante;
+					}
+				}
+				else if (distribution == "uniforme") {
+					std::uniform_real_distribution<float> dist(val_min, val_max);
+
+					for (auto &v : attrib->vec4()) {
+						v.x = dist(rng);
+						v.y = dist(rng);
+						v.z = dist(rng);
+						v.w = dist(rng);
+					}
+				}
+				else if (distribution == "gaussienne") {
+					std::normal_distribution<float> dist(moyenne, ecart_type);
+
+					for (auto &v : attrib->vec4()) {
+						v.x = dist(rng);
+						v.y = dist(rng);
+						v.z = dist(rng);
+						v.w = dist(rng);
+					}
 				}
 
 				break;
@@ -1529,6 +1637,20 @@ public:
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	bool ajourne_proprietes() override
+	{
+#if 0 /* À FAIRE : ajournement de l'entreface. */
+		auto const distribution = evalue_enum("distribution");
+
+		rend_propriete_visible("constante", distribution == "constante");
+		rend_propriete_visible("min_value", distribution == "uniforme");
+		rend_propriete_visible("max_value", distribution == "uniforme");
+		rend_propriete_visible("moyenne", distribution == "gaussienne");
+		rend_propriete_visible("ecart_type", distribution == "gaussienne");
+#endif
+		return true;
 	}
 };
 
@@ -1657,6 +1779,129 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceTransformation : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Transformation";
+	static constexpr auto AIDE = "Transformer les matrices des primitives d'entrées.";
+
+	OperatriceTransformation(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_transformation.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, int temps) override
+	{
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto const translate = dls::math::vec3d(evalue_vecteur("translation"));
+		auto const rotate = dls::math::vec3d(evalue_vecteur("rotation"));
+		auto const scale = dls::math::vec3d(evalue_vecteur("taille"));
+		auto const pivot = dls::math::vec3d(evalue_vecteur("pivot"));
+		auto const uniform_scale = static_cast<double>(evalue_decimal("échelle"));
+		auto const transform_type = evalue_enum("ordre_transformation");
+		auto const rot_order = evalue_enum("ordre_rotation");
+		auto index_ordre = -1;
+
+		if (rot_order == "xyz") {
+			index_ordre = 0;
+		}
+		else if (rot_order == "xzy") {
+			index_ordre = 1;
+		}
+		else if (rot_order == "yxz") {
+			index_ordre = 2;
+		}
+		else if (rot_order == "yzx") {
+			index_ordre = 3;
+		}
+		else if (rot_order == "zxy") {
+			index_ordre = 4;
+		}
+		else if (rot_order == "zyx") {
+			index_ordre = 5;
+		}
+
+		/* determine the rotatation order */
+		size_t rot_ord[6][3] = {
+			{ 0, 1, 2 }, // X Y Z
+			{ 0, 2, 1 }, // X Z Y
+			{ 1, 0, 2 }, // Y X Z
+			{ 1, 2, 0 }, // Y Z X
+			{ 2, 0, 1 }, // Z X Y
+			{ 2, 1, 0 }, // Z Y X
+		};
+
+		dls::math::vec3d axis[3] = {
+			dls::math::vec3d(1.0f, 0.0f, 0.0f),
+			dls::math::vec3d(0.0f, 1.0f, 0.0f),
+			dls::math::vec3d(0.0f, 0.0f, 1.0f),
+		};
+
+		auto const X = rot_ord[index_ordre][0];
+		auto const Y = rot_ord[index_ordre][1];
+		auto const Z = rot_ord[index_ordre][2];
+
+		auto matrice = dls::math::mat4x4d(1.0);
+		auto const angle_x = dls::math::degrees_vers_radians(rotate[X]);
+		auto const angle_y = dls::math::degrees_vers_radians(rotate[Y]);
+		auto const angle_z = dls::math::degrees_vers_radians(rotate[Z]);
+
+		if (transform_type == "pre") {
+			matrice = dls::math::pre_translation(matrice, pivot);
+			matrice = dls::math::pre_rotation(matrice, angle_x, axis[X]);
+			matrice = dls::math::pre_rotation(matrice, angle_y, axis[Y]);
+			matrice = dls::math::pre_rotation(matrice, angle_z, axis[Z]);
+			matrice = dls::math::pre_dimension(matrice, scale * uniform_scale);
+			matrice = dls::math::pre_translation(matrice, -pivot);
+			matrice = dls::math::pre_translation(matrice, translate);
+			matrice = matrice * m_corps.transformation.matrice();
+		}
+		else {
+			matrice = dls::math::post_translation(matrice, pivot);
+			matrice = dls::math::post_rotation(matrice, angle_x, axis[X]);
+			matrice = dls::math::post_rotation(matrice, angle_y, axis[Y]);
+			matrice = dls::math::post_rotation(matrice, angle_z, axis[Z]);
+			matrice = dls::math::post_dimension(matrice, scale * uniform_scale);
+			matrice = dls::math::post_translation(matrice, -pivot);
+			matrice = dls::math::post_translation(matrice, translate);
+			matrice = m_corps.transformation.matrice() * matrice;
+		}
+
+		m_corps.transformation = math::transformation(matrice);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_3d(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCamera>());
@@ -1675,6 +1920,8 @@ void enregistre_operatrices_3d(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceRandomisationAttribut>());
 
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());
+
+	usine.enregistre_type(cree_desc<OperatriceTransformation>());
 }
 
 #pragma clang diagnostic pop
