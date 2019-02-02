@@ -77,25 +77,30 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 
 	/* Si nous sommes au début, réinitialise. */
 	if (temps == m_debut) {
-		/* copie l'état de base */
-		auto corps = entree(0)->requiers_corps(rectangle, temps);
 		m_corps.reinitialise();
-		corps->copie_vers(&m_corps);
+		m_corps1.reinitialise();
+		m_corps2.reinitialise();
 
 		/* Le pointeur des entrées doit correspondre aux données de l'image
 		 * précédente, donc du corps de cette opératrice.
 		 * À FAIRE : considérer le stockage de plusieurs corps. */
 		m_graphe.entrees.clear();
 		m_graphe.entrees.push_back(&m_corps);
+		m_graphe.entrees.push_back(&m_corps1);
+		m_graphe.entrees.push_back(&m_corps2);
+
+		/* copie l'état de base */
+		auto corps = entree(0)->requiers_corps(rectangle, temps);
+
+		if (corps) {
+			corps->copie_vers(&m_corps1);
+		}
 
 		corps = entree(1)->requiers_corps(rectangle, temps);
-		m_corps2.reinitialise();
 
 		if (corps) {
 			corps->copie_vers(&m_corps2);
 		}
-
-		m_graphe.entrees.push_back(&m_corps2);
 
 		m_dernier_temps = m_debut;
 		return EXECUTION_REUSSIE;

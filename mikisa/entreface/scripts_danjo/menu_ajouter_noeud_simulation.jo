@@ -1,9 +1,15 @@
 menu "Noeud Simulation" {
     menu "Entrée" {
-	    action(valeur="Entrée Simulation"; attache=ajouter_noeud; métadonnée="Entrée Simulation")
+	    action(valeur="Création Corps"; attache=ajouter_noeud; métadonnée="Création Corps")
+		action(valeur="Entrée Graphe"; attache=ajouter_noeud; métadonnée="Entrée Graphe")
+		action(valeur="Entrée Simulation"; attache=ajouter_noeud; métadonnée="Entrée Simulation")
+		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
 	}
 	menu "Cheveux" {
 	    action(valeur="Masse Ressort"; attache=ajouter_noeud; métadonnée="Masse Ressort")
+	}
+	menu "Corps" {
+	    action(valeur="Fusionnage Corps"; attache=ajouter_noeud; métadonnée="Fusionnage Corps")
 	}
 	menu "Physique" {
 	    action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")

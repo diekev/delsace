@@ -39,6 +39,7 @@ class OperatriceSimulation final : public OperatriceCorps {
 	int m_dernier_temps = 0;
 	int pad = 0;
 
+	Corps m_corps1{};
 	Corps m_corps2{};
 
 public:
