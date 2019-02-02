@@ -249,12 +249,12 @@ public:
 		auto const graine = evalue_entier("graine");
 
 		std::mt19937 rng(static_cast<size_t>(19937 + graine));
-		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+		std::uniform_real_distribution<double> dist(0.0, 1.0);
 
 		for (Triangle const &triangle : triangles) {
-			auto const v0 = triangle.v0;
-			auto const v1 = triangle.v1;
-			auto const v2 = triangle.v2;
+			auto const v0 = corps_maillage->transformation(dls::math::point3d(triangle.v0));
+			auto const v1 = corps_maillage->transformation(dls::math::point3d(triangle.v1));
+			auto const v2 = corps_maillage->transformation(dls::math::point3d(triangle.v2));
 
 			auto const e0 = v1 - v0;
 			auto const e1 = v2 - v0;
@@ -264,14 +264,14 @@ public:
 				auto r = dist(rng);
 				auto s = dist(rng);
 
-				if (r + s >= 1.0f) {
-					r = 1.0f - r;
-					s = 1.0f - s;
+				if (r + s >= 1.0) {
+					r = 1.0 - r;
+					s = 1.0 - s;
 				}
 
 				auto pos = v0 + r * e0 + s * e1;
 
-				m_corps.ajoute_point(pos.x, pos.y, pos.z);
+				m_corps.ajoute_point(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
 			}
 		}
 
