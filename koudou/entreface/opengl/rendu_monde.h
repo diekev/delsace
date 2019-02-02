@@ -67,7 +67,7 @@ public:
 	/**
 	 * Dessine le monde dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte);
+	void dessine(ContexteRendu const &contexte);
 
 	/**
 	 * Ajourne les données du tampon.

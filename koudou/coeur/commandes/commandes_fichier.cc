@@ -41,7 +41,7 @@
 
 class CommandeOuvrirFichier : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto koudou = std::any_cast<Koudou *>(pointeur);
 		auto const chemin_projet = koudou->requiers_dialogue(FICHIER_OUVERTURE);

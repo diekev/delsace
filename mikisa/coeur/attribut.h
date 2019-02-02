@@ -77,14 +77,14 @@ enum class portee_attr : char {
 		assert(i >= 0); \
 		return (*m_donnees.liste_##__nom)[static_cast<size_t>(i)]; \
 	} \
-	void __nom(long const i, const __type &v) \
+	void __nom(long const i, __type const &v) \
 	{ \
 		assert(i >= 0); \
 		(*m_donnees.liste_##__nom)[static_cast<size_t>(i)] = v; \
 	}
 
 #define DEFINI_POUSSE_VALEUR(__nom, __type) \
-	void pousse_##__nom(const __type &v) \
+	void pousse_##__nom(__type const &v) \
 	{ \
 		m_donnees.liste_##__nom->push_back(v); \
 	}
@@ -118,11 +118,11 @@ public:
 
 	portee_attr portee;
 
-	Attribut(const Attribut &rhs);
-	Attribut(const std::string &nom, type_attribut type, portee_attr portee = portee_attr::POINT, long taille = 0);
+	Attribut(Attribut const &rhs);
+	Attribut(std::string const &nom, type_attribut type, portee_attr portee = portee_attr::POINT, long taille = 0);
 	~Attribut();
 
-	Attribut &operator=(const Attribut &rhs) = default;
+	Attribut &operator=(Attribut const &rhs) = default;
 
 	type_attribut type() const;
 	std::string nom() const;

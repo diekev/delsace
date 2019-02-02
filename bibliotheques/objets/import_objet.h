@@ -30,10 +30,10 @@ namespace objets {
 
 class AdaptriceCreationObjet;
 
-typedef void(* fonction_rappel)(const std::string &message);
+typedef void(* fonction_rappel)(std::string const &message);
 
-void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, const std::string &chemin);
+void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, std::string const &chemin);
 
-void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, const std::string &chemin);
+void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, std::string const &chemin);
 
 }  /* namespace objets */

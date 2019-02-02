@@ -27,10 +27,10 @@
 
 static constexpr auto NODE_PORT_PEN_SIZE = 1;
 
-QtPort::QtPort(const QString &portName,
+QtPort::QtPort(QString const &portName,
                int portType,
-               const QColor &portColour,
-               const QColor &connexionColour,
+               QColor const &portColour,
+               QColor const &connexionColour,
                Alignment alignment,
                QGraphicsItem *parent)
     : QGraphicsPathItem(parent)
@@ -54,7 +54,7 @@ void QtPort::setPortOpen(bool open)
 	setBrush(open ? QColor("#000000ff") : m_port_colour);
 }
 
-void QtPort::setNameColor(const QColor &color)
+void QtPort::setNameColor(QColor const &color)
 {
 	m_label->setDefaultTextColor(color);
 }
@@ -106,7 +106,7 @@ qreal QtPort::getNormalizedHeight()
 	return height;
 }
 
-void QtPort::setAlignedPos(const QPointF &pos)
+void QtPort::setAlignedPos(QPointF const &pos)
 {
 	if (m_alignment == ALIGNED_RIGHT) {
 		m_label->setPos(-m_label->boundingRect().width() - NODE_PORT_WIDTH_MARGIN, -0.5 * m_label->boundingRect().height());
@@ -199,7 +199,7 @@ void QtPort::deleteAllConnexions()
 	m_connexions.clear();
 }
 
-void QtPort::updateConnexion(const QPointF &altTargetPos)
+void QtPort::updateConnexion(QPointF const &altTargetPos)
 {
 	for (auto &connexion : m_connexions) {
 		connexion->updatePath(altTargetPos);
@@ -240,12 +240,12 @@ const QVector<QtConnexion *> &QtPort::getConnexions() const
 	return m_connexions;
 }
 
-const QString &QtPort::getPortName() const
+QString const &QtPort::getPortName() const
 {
 	return m_port_name;
 }
 
-const Alignment &QtPort::getAlignment() const
+Alignment const &QtPort::getAlignment() const
 {
 	return m_alignment;
 }

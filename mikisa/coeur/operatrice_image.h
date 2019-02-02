@@ -85,7 +85,7 @@ struct Calque {
 	/**
 	 * Ajourne la valeur du tampon de ce calque à la position <x, y>.
 	 */
-	void valeur(size_t x, size_t y, const numero7::image::Pixel<float> &pixel);
+	void valeur(size_t x, size_t y, numero7::image::Pixel<float> const &pixel);
 
 	/**
 	 * Échantillonne le tampon de ce calque à la position <x, y> en utilisant
@@ -112,13 +112,13 @@ public:
 	 * est définie par le rectangle passé en paramètre. Retourne un pointeur
 	 * vers le calque ajouté.
 	 */
-	Calque *ajoute_calque(const std::string &nom, const Rectangle &rectangle);
+	Calque *ajoute_calque(std::string const &nom, Rectangle const &rectangle);
 
 	/**
 	 * Retourne un pointeur vers le calque portant le nom passé en paramètre. Si
 	 * aucun calque ne portant ce nom est trouvé, retourne nullptr.
 	 */
-	Calque *calque(const std::string &nom) const;
+	Calque *calque(std::string const &nom) const;
 
 	/**
 	 * Retourne une plage itérable sur la liste de calques de cette Image.
@@ -140,12 +140,12 @@ public:
 	/**
 	 * Renseigne le nom du calque actif.
 	 */
-	void nom_calque_actif(const std::string &nom);
+	void nom_calque_actif(std::string const &nom);
 
 	/**
 	 * Retourne le nom du calque actif.
 	 */
-	const std::string &nom_calque_actif() const;
+	std::string const &nom_calque_actif() const;
 };
 
 /* ************************************************************************** */
@@ -169,8 +169,8 @@ public:
 	 */
 	EntreeOperatrice() = default;
 
-	EntreeOperatrice(const EntreeOperatrice &autre) = default;
-	EntreeOperatrice &operator=(const EntreeOperatrice &autre) = default;
+	EntreeOperatrice(EntreeOperatrice const &autre) = default;
+	EntreeOperatrice &operator=(EntreeOperatrice const &autre) = default;
 
 	/**
 	 * Crée une instance d'EntreeOperatrice pour la PriseEntree spécifiée.
@@ -189,7 +189,7 @@ public:
 	 */
 	void requiers_image(
 			Image &image,
-			const Rectangle &rectangle,
+			Rectangle const &rectangle,
 			const int temps);
 
 	/**
@@ -199,7 +199,7 @@ public:
 	 * nullptr.
 	 */
 	vision::Camera3D *requiers_camera(
-			const Rectangle &rectangle,
+			Rectangle const &rectangle,
 			const int temps);
 
 	/**
@@ -209,7 +209,7 @@ public:
 	 * nullptr.
 	 */
 	Objet *requiers_objet(
-			const Rectangle &rectangle,
+			Rectangle const &rectangle,
 			const int temps);
 
 	/**
@@ -218,11 +218,11 @@ public:
 	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
 	 * nullptr.
 	 */
-	TextureImage *requiers_texture(const Rectangle &rectangle, const int temps);
+	TextureImage *requiers_texture(Rectangle const &rectangle, const int temps);
 
-	const Corps *requiers_corps(const Rectangle &rectangle, const int temps);
+	const Corps *requiers_corps(Rectangle const &rectangle, const int temps);
 
-	Corps *requiers_copie_corps(Corps *corps, const Rectangle &rectangle, const int temps);
+	Corps *requiers_copie_corps(Corps *corps, Rectangle const &rectangle, const int temps);
 
 	/**
 	 * Place la liste de calque de l'image transitante par cette entrée dans le
@@ -248,7 +248,7 @@ public:
 		: m_ptr(prise)
 	{}
 
-	SortieOperatrice(const SortieOperatrice &autre) = default;
+	SortieOperatrice(SortieOperatrice const &autre) = default;
 
 	PriseSortie *pointeur()
 	{
@@ -319,15 +319,15 @@ public:
 
 	/* The main processing logic of this operator. */
 
-	virtual int execute(const Rectangle &rectangle, const int temps) = 0;
+	virtual int execute(Rectangle const &rectangle, const int temps) = 0;
 
 	void transfere_image(Image &image);
 
-	void ajoute_avertissement(const std::string &avertissement);
+	void ajoute_avertissement(std::string const &avertissement);
 
 	void reinitialise_avertisements();
 
-	const std::vector<std::string> &avertissements() const;
+	std::vector<std::string> const &avertissements() const;
 
 	virtual vision::Camera3D *camera();
 
@@ -366,7 +366,7 @@ public:
 	 * spécifiée.
 	 */
 	virtual void obtiens_liste(
-			const std::string &attache,
+			std::string const &attache,
 			std::vector<std::string> &chaines) const;
 };
 

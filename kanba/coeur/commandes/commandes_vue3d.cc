@@ -53,7 +53,7 @@ class CommandeZoomCamera : public Commande {
 public:
 	CommandeZoomCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto const delta = donnees.x;
@@ -88,7 +88,7 @@ class CommandeTourneCamera : public Commande {
 public:
 	CommandeTourneCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
@@ -96,7 +96,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto camera = kanba->camera;
@@ -124,7 +124,7 @@ class CommandePanCamera : public Commande {
 public:
 	CommandePanCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
@@ -132,7 +132,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto camera = kanba->camera;
@@ -192,7 +192,7 @@ struct Seau {
 	Seau() = default;
 };
 
-Seau *cherche_seau(std::vector<Seau> &seaux, const dls::math::point2f &pos, int seaux_x, int seaux_y, int largeur, int hauteur)
+Seau *cherche_seau(std::vector<Seau> &seaux, dls::math::point2f const &pos, int seaux_x, int seaux_y, int largeur, int hauteur)
 {
 	auto x = pos.x / static_cast<float>(largeur);
 	auto y = pos.y / static_cast<float>(hauteur);
@@ -211,7 +211,7 @@ class CommandePeinture3D : public Commande {
 public:
 	CommandePeinture3D() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 
@@ -347,7 +347,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		execute(pointeur, donnees);
 	}
@@ -359,7 +359,7 @@ class CommandeAjouteCube : public Commande {
 public:
 	CommandeAjouteCube() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 
@@ -387,7 +387,7 @@ class CommandeAjouteSphere : public Commande {
 public:
 	CommandeAjouteSphere() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 

@@ -45,13 +45,13 @@ class TextItem : public QGraphicsTextItem {
 public:
 	explicit TextItem(QGraphicsItem *parent = nullptr);
 
-    explicit TextItem(const QString &text, QGraphicsItem *parent = nullptr);
+    explicit TextItem(QString const &text, QGraphicsItem *parent = nullptr);
 
 	void setTextInteraction(bool on, bool select_all = false);
 
 	void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 
-	QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+	QVariant itemChange(QGraphicsItem::GraphicsItemChange change, QVariant const &value) override;
 };
 
 /****************************************************************************
@@ -88,7 +88,7 @@ class QtNode : public QGraphicsPathItem {
 public:
 	QtConnexion *m_active_connexion;
 
-	QtNode(const QString &title, QGraphicsItem *parent = nullptr);
+	QtNode(QString const &title, QGraphicsItem *parent = nullptr);
 	virtual ~QtNode();
 
 	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
@@ -113,7 +113,7 @@ public:
 	void restoreOriginalParentItem();
 
 	/* Set the color of the title in the header */
-	void setTitleColor(const QColor &color);
+	void setTitleColor(QColor const &color);
 
 	/* Align the text of the header (default is center) */
 	void alignTitle(Alignment alignment);
@@ -131,7 +131,7 @@ public:
 	 * connexionColor: If connecting is started from this port, it gets the color defined by 'connexionColor'.
 	 *                  The created port is in that case the 'base port' of the connexion.
 	 */
-	QtPort *createPort(const QString &portName,
+	QtPort *createPort(QString const &portName,
 	                   int type,
 	                   QColor portColour,
 	                   Alignment alignement,
@@ -172,10 +172,10 @@ public:
 	bool hasOutputs() const;
 
 	QtPort *input(int index) const;
-	QtPort *input(const QString &name) const;
+	QtPort *input(QString const &name) const;
 
 	QtPort *output(int index) const;
-	QtPort *output(const QString &name) const;
+	QtPort *output(QString const &name) const;
 
 	/* Propagate a notification from a child of this node (e.g. edited text). */
 	void notifyEditor() const;

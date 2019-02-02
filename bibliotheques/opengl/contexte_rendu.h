@@ -55,62 +55,62 @@ public:
 	/**
 	 * Retourne la matrice de modèle-vue.
 	 */
-	const dls::math::mat4x4f &modele_vue() const;
+	dls::math::mat4x4f const &modele_vue() const;
 
 	/**
 	 * Change la matrice de modèle-vue.
 	 */
-	void modele_vue(const dls::math::mat4x4f &matrice);
+	void modele_vue(dls::math::mat4x4f const &matrice);
 
 	/**
 	 * Retourne la matrice de projection.
 	 */
-	const dls::math::mat4x4f &projection() const;
+	dls::math::mat4x4f const &projection() const;
 
 	/**
 	 * Change la matrice de projection.
 	 */
-	void projection(const dls::math::mat4x4f &matrice);
+	void projection(dls::math::mat4x4f const &matrice);
 
 	/**
 	 * Retourne la direction vers laquelle la caméra pointe.
 	 */
-	const dls::math::vec3f &vue() const;
+	dls::math::vec3f const &vue() const;
 
 	/**
 	 * Change la direction vers laquelle la caméra pointe.
 	 */
-	void vue(const dls::math::vec3f &matrice);
+	void vue(dls::math::vec3f const &matrice);
 
 	/**
 	 * Retourne la matrice de normal.
 	 */
-	const dls::math::mat3x3f &normal() const;
+	dls::math::mat3x3f const &normal() const;
 
 	/**
 	 * Change la matrice de normal.
 	 */
-	void normal(const dls::math::mat3x3f &matrice);
+	void normal(dls::math::mat3x3f const &matrice);
 
 	/**
 	 * Retourne la matrice de modèle-vue-projection.
 	 */
-	const dls::math::mat4x4f &MVP() const;
+	dls::math::mat4x4f const &MVP() const;
 
 	/**
 	 * Change la matrice de modèle-vue-projection.
 	 */
-	void MVP(const dls::math::mat4x4f &matrice);
+	void MVP(dls::math::mat4x4f const &matrice);
 
 	/**
 	 * Retourne la matrice composée de l'objet courant.
 	 */
-	const dls::math::mat4x4f &matrice_objet() const;
+	dls::math::mat4x4f const &matrice_objet() const;
 
 	/**
 	 * Change la matrice composée de l'objet courant.
 	 */
-	void matrice_objet(const dls::math::mat4x4f &matrice);
+	void matrice_objet(dls::math::mat4x4f const &matrice);
 
 	/**
 	 * Retourne si oui ou non les données sont à utiliser pour surligner, ou

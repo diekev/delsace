@@ -59,10 +59,10 @@ protected:
 
 public:
 	Primitive() = default;
-	Primitive(const Primitive &other);
+	Primitive(Primitive const &other);
 	virtual ~Primitive();
 
-	Primitive &operator=(const Primitive &autre) = default;
+	Primitive &operator=(Primitive const &autre) = default;
 
 	/**
 	 * @brief entresect Intersect a ray against this primitive AABB.
@@ -70,7 +70,7 @@ public:
 	 * @param min       The minimum distance from the ray origin.
 	 * @return          True if the ray entresects this primitive.
 	 */
-	virtual bool entresect(const Ray &ray, float &min) const;
+	virtual bool entresect(Ray const &ray, float &min) const;
 
 	/**
 	 * @brief computeBBox Compute the bounding box of this primitive.
@@ -88,9 +88,9 @@ public:
 	dls::math::vec3f &rotation();
 
 	/* Return the object's matrix, mainly intended for rendering the active object */
-	const dls::math::mat4x4d &matrix() const;
+	dls::math::mat4x4d const &matrix() const;
 	dls::math::mat4x4d &matrix();
-	void matrix(const dls::math::mat4x4d &m);
+	void matrix(dls::math::mat4x4d const &m);
 
 	virtual void update();
 
@@ -100,7 +100,7 @@ public:
 	void tagUpdate();
 
 	std::string name() const;
-	void name(const std::string &name);
+	void name(std::string const &name);
 
 	/**
 	 * @brief copy Perform a deep copy of this primitive.
@@ -156,7 +156,7 @@ public:
 	 *         the given name and type in this primitive's attibute list,  it is
 	 *         returned, and no new attribute is created.
 	 */
-	Attribute *add_attribute(const std::string &name, const AttributeType type, size_t size);
+	Attribute *add_attribute(std::string const &name, const AttributeType type, size_t size);
 
 	/**
 	 * @brief attribute Return an attribute from this primitive's attibute list.
@@ -166,14 +166,14 @@ public:
 	 * @return The attribute corresponding to the given name and type, nullptr
 	 *         if no such attribute exists.
 	 */
-	Attribute *attribute(const std::string &name, const AttributeType type);
+	Attribute *attribute(std::string const &name, const AttributeType type);
 
 	/**
 	 * @brief remove_attribute Remove an attribute from this primitive's attibute list.
 	 * @param name The name of the attribute to remove.
 	 * @param type The type of the attribute to remove.
 	 */
-	void remove_attribute(const std::string &name, const AttributeType type);
+	void remove_attribute(std::string const &name, const AttributeType type);
 
 	/**
 	 * @brief has_attribute Return whether the given attribute exists in this
@@ -183,7 +183,7 @@ public:
 	 *
 	 * @return True if such attribute exists, false otherwise.
 	 */
-	bool has_attribute(const std::string &name, const AttributeType type);
+	bool has_attribute(std::string const &name, const AttributeType type);
 };
 
 /* ********************************************** */
@@ -231,7 +231,7 @@ public:
 	 * @param key   The key of the primitive inside the PrimitiveFactory.
 	 * @return      A pointer to the newly created primitive.
 	 */
-	Primitive *build(const std::string &key);
+	Primitive *build(std::string const &key);
 
 	/**
 	 * @brief add  Add a primitve to this collection.
@@ -282,7 +282,7 @@ public:
 	 * @brief copy_collection Copy the primitives from one collection to this.
 	 * @param coll The collection to copy the primitives from.
 	 */
-	void copy_collection(const PrimitiveCollection &coll);
+	void copy_collection(PrimitiveCollection const &coll);
 
 	/**
 	 * @brief merge_collection Merge the primitives from one collection into this
@@ -326,7 +326,7 @@ public:
 	using value_type = Primitive*;
 	using difference_type = std::ptrdiff_t;
 	using pointer = const value_type *;
-	using reference = const value_type &;
+	using reference = value_type const &;
 	using iterator_category = std::input_iterator_tag;
 
 	/**
@@ -347,12 +347,12 @@ public:
 	 */
 	primitive_iterator(const PrimitiveCollection *coll, size_t type);
 
-	primitive_iterator(const primitive_iterator &other);
+	primitive_iterator(primitive_iterator const &other);
 	primitive_iterator(primitive_iterator &&other);
 
 	~primitive_iterator() noexcept = default;
 
-	primitive_iterator &operator=(const primitive_iterator &other) = default;
+	primitive_iterator &operator=(primitive_iterator const &other) = default;
 	primitive_iterator &operator=(primitive_iterator &&other) = default;
 
 	primitive_iterator &operator++();
@@ -363,8 +363,8 @@ public:
 	value_type get() const;
 };
 
-bool operator==(const primitive_iterator &ita, const primitive_iterator &itb) noexcept;
-bool operator!=(const primitive_iterator &ita, const primitive_iterator &itb) noexcept;
+bool operator==(primitive_iterator const &ita, primitive_iterator const &itb) noexcept;
+bool operator!=(primitive_iterator const &ita, primitive_iterator const &itb) noexcept;
 
-primitive_iterator begin(const primitive_iterator &iter);
-primitive_iterator end(const primitive_iterator &);
+primitive_iterator begin(primitive_iterator const &iter);
+primitive_iterator end(primitive_iterator const &);

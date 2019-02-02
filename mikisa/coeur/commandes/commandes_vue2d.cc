@@ -48,7 +48,7 @@
 
 class CommandeZoomCamera2D final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_2d;
@@ -71,7 +71,7 @@ class CommandePanCamera2D final : public Commande {
 public:
 	CommandePanCamera2D() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
@@ -79,7 +79,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_2d;

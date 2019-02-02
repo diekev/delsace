@@ -46,15 +46,15 @@ public:
 
 	utf8() = default;
 
-	utf8(const utf8 &autre) = default;
+	utf8(utf8 const &autre) = default;
 	utf8(utf8 &&autre) = default;
 
-	utf8 &operator=(const utf8 &autre) = default;
+	utf8 &operator=(utf8 const &autre) = default;
 	utf8 &operator=(utf8 &&autre) = default;
 
 	explicit utf8(const char *c_str);
 
-	explicit utf8(const std::string &std_string);
+	explicit utf8(std::string const &std_string);
 
 	plage caracteres();
 
@@ -64,73 +64,73 @@ public:
 
 	type_valeur operator[](size_t i) const;
 
-	bool compare(const utf8 &autre) const;
+	bool compare(utf8 const &autre) const;
 
 	bool compare(const char *autre) const;
 
-	bool compare(const std::string &autre) const;
+	bool compare(std::string const &autre) const;
 };
 
 /* ********************************* égalité ******************************** */
 
-inline bool operator==(const utf8 &a, const utf8 &b)
+inline bool operator==(utf8 const &a, utf8 const &b)
 {
 	return a.compare(b);
 }
 
-inline bool operator==(const utf8 &a, const char *b)
+inline bool operator==(utf8 const &a, const char *b)
 {
 	return a.compare(b);
 }
 
-inline bool operator==(const char *a, const utf8 &b)
+inline bool operator==(const char *a, utf8 const &b)
 {
 	return b.compare(a);
 }
 
-inline bool operator==(const utf8 &a, const std::string &b)
+inline bool operator==(utf8 const &a, std::string const &b)
 {
 	return a.compare(b);
 }
 
-inline bool operator==(const std::string &a, const utf8 &b)
+inline bool operator==(std::string const &a, utf8 const &b)
 {
 	return b.compare(a);
 }
 
 /* ******************************** inégalité ******************************* */
 
-inline bool operator!=(const utf8 &a, const utf8 &b)
+inline bool operator!=(utf8 const &a, utf8 const &b)
 {
 	return !(a == b);
 }
 
-inline bool operator!=(const utf8 &a, const char *b)
+inline bool operator!=(utf8 const &a, const char *b)
 {
 	return !(a == b);
 }
 
-inline bool operator!=(const char *a, const utf8 &b)
+inline bool operator!=(const char *a, utf8 const &b)
 {
 	return !(a == b);
 }
 
-inline bool operator!=(const utf8 &a, const std::string &b)
+inline bool operator!=(utf8 const &a, std::string const &b)
 {
 	return !(a == b);
 }
 
-inline bool operator!=(const std::string &a, const utf8 &b)
+inline bool operator!=(std::string const &a, utf8 const &b)
 {
 	return !(a == b);
 }
 
 /* ******************************* conversion ******************************* */
 
-std::string converti_en_std_string(const utf8 &chaine_utf8);
+std::string converti_en_std_string(utf8 const &chaine_utf8);
 
 /* ******************************* impression ******************************* */
 
-std::ostream &operator<<(std::ostream &os, const utf8 &chaine_utf8);
+std::ostream &operator<<(std::ostream &os, utf8 const &chaine_utf8);
 
 }  /* namespace chaine */

@@ -58,10 +58,10 @@ class QtPort : public QGraphicsPathItem {
 	QVector<QtConnexion *> m_connexions;
 
 public:
-	QtPort(const QString &portName,
+	QtPort(QString const &portName,
 	       int portType,
-	       const QColor &portColour,
-	       const QColor &connexionColour,
+	       QColor const &portColour,
+	       QColor const &connexionColour,
 	       Alignment alignment,
 	       QGraphicsItem *parent = nullptr);
 
@@ -74,7 +74,7 @@ public:
 	void redraw();
 
 	/* Set the color of the portName */
-	void setNameColor(const QColor &color);
+	void setNameColor(QColor const &color);
 
 	/* Returns the width when the port is not zoomed */
 	qreal getNormalizedWidth();
@@ -83,7 +83,7 @@ public:
 	qreal getNormalizedHeight();
 
 	/* Set the position according to its */
-	void setAlignedPos(const QPointF &pos);
+	void setAlignedPos(QPointF const &pos);
 	void setAlignedPos(qreal x, qreal y);
 
 	/* Create a connexion on this port. The port acts as base or a target */
@@ -96,7 +96,7 @@ public:
 	void deleteAllConnexions();
 
 	/* Update the base connexion (redraw the connexion for which this port is base) */
-	void updateConnexion(const QPointF &altTargetPos = QPointF(0.0f, 0.0f));
+	void updateConnexion(QPointF const &altTargetPos = QPointF(0.0f, 0.0f));
 
 	/* Hide the port and move the endpoint of the connexion to the header of the node */
 	void collapse();
@@ -109,9 +109,9 @@ public:
 	QVector<QtConnexion *> &getConnexions();
 	const QVector<QtConnexion *> &getConnexions() const;
 
-	const QString &getPortName() const;
+	QString const &getPortName() const;
 
-	const Alignment &getAlignment() const;
+	Alignment const &getAlignment() const;
 
 	int getPortType() const;
 

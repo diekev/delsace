@@ -51,7 +51,7 @@ public:
 	 * à la matrice alors au sommet multipliée par la matrice passée en
 	 * paramètre.
 	 */
-	inline void pousse(const dls::math::mat4x4d &mat);
+	inline void pousse(dls::math::mat4x4d const &mat);
 
 	/**
 	 * Fais sauter le sommet de la pile de celle-ci.
@@ -61,12 +61,12 @@ public:
 	/**
 	 * Retourne la matrice se trouvant au sommet de la pile.
 	 */
-	inline const dls::math::mat4x4d &sommet() const;
+	inline dls::math::mat4x4d const &sommet() const;
 };
 
 /* Implémentation des méthodes inlignées. */
 
-inline void PileMatrice::pousse(const dls::math::mat4x4d &mat)
+inline void PileMatrice::pousse(dls::math::mat4x4d const &mat)
 {
 	m_pile.push(m_pile.top() * mat);
 }
@@ -76,7 +76,7 @@ inline void PileMatrice::enleve_sommet()
 	m_pile.pop();
 }
 
-inline const dls::math::mat4x4d &PileMatrice::sommet() const
+inline dls::math::mat4x4d const &PileMatrice::sommet() const
 {
 	return m_pile.top();
 }

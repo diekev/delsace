@@ -51,7 +51,7 @@ public:
 
 	virtual int type() const override;
 
-	int execute(const Rectangle &rectangle, const int temps) override;
+	int execute(Rectangle const &rectangle, const int temps) override;
 
 	void compile_graphe(int temps);
 };

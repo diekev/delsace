@@ -34,10 +34,10 @@ class Mesh : public Primitive {
 
 public:
 	Mesh();
-	Mesh(const Mesh &other);
+	Mesh(Mesh const &other);
 	~Mesh() override;
 
-	Mesh &operator=(const Mesh &other) = default;
+	Mesh &operator=(Mesh const &other) = default;
 	/**
 	 * @brief points The points (or vertices) of this mesh.
 	 * @return A pointer to the list of points contained in this mesh.
@@ -73,7 +73,7 @@ public:
 };
 
 template <typename CharT, typename CharTraits>
-std::basic_ostream<CharT, CharTraits> &operator<<(std::basic_ostream<CharT, CharTraits> &os, const Mesh &mesh)
+std::basic_ostream<CharT, CharTraits> &operator<<(std::basic_ostream<CharT, CharTraits> &os, Mesh const &mesh)
 {
 	os << "Mesh: " << mesh.name() << '\n'
 	   << "\tvertices: " << mesh.points()->size() << '\n'

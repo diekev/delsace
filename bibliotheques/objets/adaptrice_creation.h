@@ -45,7 +45,7 @@ public:
 
 	virtual void ajoute_ligne(const int *index, size_t nombre) = 0;
 
-	virtual void ajoute_objet(const std::string &nom) = 0;
+	virtual void ajoute_objet(std::string const &nom) = 0;
 
 	virtual void reserve_polygones(long const nombre) = 0;
 
@@ -55,7 +55,7 @@ public:
 
 	virtual void reserve_uvs(long const nombre) = 0;
 
-	virtual void groupes(const std::vector<std::string> &noms) = 0;
+	virtual void groupes(std::vector<std::string> const &noms) = 0;
 
 	virtual void groupe_nuancage(const int index) = 0;
 };

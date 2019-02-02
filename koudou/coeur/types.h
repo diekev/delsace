@@ -45,9 +45,9 @@ struct Entresection {
 
 	Entresection() = default;
 
-	Entresection(const Entresection &entresection);
+	Entresection(Entresection const &entresection);
 
-	Entresection &operator=(const Entresection &entresection);
+	Entresection &operator=(Entresection const &entresection);
 
 	Entresection(Entresection &&entresection);
 

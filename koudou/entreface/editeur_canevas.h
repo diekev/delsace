@@ -60,7 +60,7 @@ public:
 	void paintGL() override;
 	void resizeGL(int w, int h) override;
 
-	void charge_image(const numero7::math::matrice<dls::math::vec3d> &image);
+	void charge_image(numero7::math::matrice<dls::math::vec3d> const &image);
 
 	void mousePressEvent(QMouseEvent *e) override;
 	void mouseMoveEvent(QMouseEvent *e) override;

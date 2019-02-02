@@ -118,7 +118,7 @@ void Visionneuse2D::resizeGL(int w, int h)
 	m_matrice_image[1][1] = static_cast<float>(720) / 1280;
 }
 
-void Visionneuse2D::charge_image(const numero7::math::matrice<numero7::image::Pixel<float>> &image)
+void Visionneuse2D::charge_image(numero7::math::matrice<numero7::image::Pixel<float>> const &image)
 {
 	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
 		m_matrice_image = dls::math::mat4x4f(1.0);

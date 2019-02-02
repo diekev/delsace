@@ -37,7 +37,7 @@ Mesh::Mesh()
 	m_need_update = true;
 }
 
-Mesh::Mesh(const Mesh &other)
+Mesh::Mesh(Mesh const &other)
     : Primitive(other)
 {
 	/* Copy points. */

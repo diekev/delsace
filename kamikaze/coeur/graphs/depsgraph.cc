@@ -85,7 +85,7 @@ void DepsObjectNode::pre_process()
 	m_object->collection(nullptr);
 }
 
-void DepsObjectNode::process(const Context & /*context*/, TaskNotifier */*notifier*/)
+void DepsObjectNode::process(Context const & /*context*/, TaskNotifier */*notifier*/)
 {
 	/* The graph should already have been updated. */
 	auto graph = m_object->graph();
@@ -114,7 +114,7 @@ ObjectGraphDepsNode::ObjectGraphDepsNode(Graph *graph)
     : m_graph(graph)
 {}
 
-void ObjectGraphDepsNode::process(const Context &context, TaskNotifier */*notifier*/)
+void ObjectGraphDepsNode::process(Context const &context, TaskNotifier */*notifier*/)
 {
 	auto noeud_sortie = m_graph->sortie();
 
@@ -158,7 +158,7 @@ const char *ObjectGraphDepsNode::name() const
 
 /* ************************************************************************** */
 
-void TimeDepsNode::process(const Context & /*context*/, TaskNotifier */*notifier*/)
+void TimeDepsNode::process(Context const & /*context*/, TaskNotifier */*notifier*/)
 {
 	/* Pass. */
 }
@@ -177,21 +177,21 @@ class GraphEvalTask : public Task {
 	DepsNode *m_root;
 
 public:
-	GraphEvalTask(Depsgraph *graph, const Context &context, DepsNode *root);
+	GraphEvalTask(Depsgraph *graph, Context const &context, DepsNode *root);
 
 	GraphEvalTask(GraphEvalTask const &) = default;
 	GraphEvalTask &operator=(GraphEvalTask const &) = default;
 
-	void start(const Context &context) override;
+	void start(Context const &context) override;
 };
 
-GraphEvalTask::GraphEvalTask(Depsgraph *graph, const Context &context, DepsNode *root)
+GraphEvalTask::GraphEvalTask(Depsgraph *graph, Context const &context, DepsNode *root)
     : Task(context)
     , m_graph(graph)
     , m_root(root)
 {}
 
-void GraphEvalTask::start(const Context &context)
+void GraphEvalTask::start(Context const &context)
 {
 	m_graph->evaluate_ex(context, m_root, m_notifier.get());
 }
@@ -304,7 +304,7 @@ void Depsgraph::remove_node(SceneNode *scene_node)
 		DepsNode *node = iter->second;
 
 		auto node_iter = std::find_if(m_nodes.begin(), m_nodes.end(),
-		                              [&node](const std::unique_ptr<DepsNode> &node_ptr)
+		                              [&node](std::unique_ptr<DepsNode> const &node_ptr)
 		{
 			return node_ptr.get() == node;
 		});
@@ -332,7 +332,7 @@ void Depsgraph::remove_node(SceneNode *scene_node)
 		DepsNode *node = iter->second;
 
 		auto node_iter = std::find_if(m_nodes.begin(), m_nodes.end(),
-		                              [&node](const std::unique_ptr<DepsNode> &node_ptr)
+		                              [&node](std::unique_ptr<DepsNode> const &node_ptr)
 		{
 			return node_ptr.get() == node;
 		});
@@ -361,7 +361,7 @@ void Depsgraph::connect_to_time(SceneNode *scene_node)
 	connect(m_time_node->output(), node->input());
 }
 
-void Depsgraph::evaluate(const Context &context, SceneNode *scene_node)
+void Depsgraph::evaluate(Context const &context, SceneNode *scene_node)
 {
 	auto node = find_node(scene_node, true);
 
@@ -372,7 +372,7 @@ void Depsgraph::evaluate(const Context &context, SceneNode *scene_node)
 	tbb::task::enqueue(*t);
 }
 
-void Depsgraph::evaluate_for_time_change(const Context &context)
+void Depsgraph::evaluate_for_time_change(Context const &context)
 {
 	m_need_update |= (m_state != DEG_STATE_TIME);
 	m_state = DEG_STATE_TIME;
@@ -380,7 +380,7 @@ void Depsgraph::evaluate_for_time_change(const Context &context)
 	evaluate_ex(context, m_time_node, nullptr);
 }
 
-void Depsgraph::evaluate_ex(const Context &context, DepsNode *root, TaskNotifier *notifier)
+void Depsgraph::evaluate_ex(Context const &context, DepsNode *root, TaskNotifier *notifier)
 {
 	if (m_need_update) {
 		build(root);
@@ -405,7 +405,7 @@ void Depsgraph::evaluate_ex(const Context &context, DepsNode *root, TaskNotifier
 	context.scene->notify_listeners(static_cast<type_evenement>(-1));
 }
 
-const std::vector<std::unique_ptr<DepsNode>> &Depsgraph::nodes() const
+std::vector<std::unique_ptr<DepsNode>> const &Depsgraph::nodes() const
 {
 	return m_nodes;
 }
@@ -471,7 +471,7 @@ void Depsgraph::build(DepsNode *root)
 		std::vector<DepsNode *> nodes(m_nodes.size());
 
 		std::transform(m_nodes.begin(), m_nodes.end(), nodes.begin(),
-		               [](const std::unique_ptr<DepsNode> &node) -> DepsNode*
+		               [](std::unique_ptr<DepsNode> const &node) -> DepsNode*
 		{
 			return node.get();
 		});

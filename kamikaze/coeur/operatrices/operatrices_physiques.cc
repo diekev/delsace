@@ -39,7 +39,7 @@ struct PlanPhysique {
 
 PlanPhysique plan_global;
 
-static bool verifie_collision(const PlanPhysique &plan, const dls::math::vec3d &pos, const dls::math::vec3d &vel)
+static bool verifie_collision(PlanPhysique const &plan, dls::math::vec3d const &pos, dls::math::vec3d const &vel)
 {
 	auto const &XPdotN = dls::math::produit_scalaire(pos - plan.pos, plan.nor);
 
@@ -63,7 +63,7 @@ class OperatriceGravite : public Operatrice {
 	int m_image_debut = 0;
 
 public:
-	OperatriceGravite(Noeud *noeud, const Context &contexte)
+	OperatriceGravite(Noeud *noeud, Context const &contexte)
 		: Operatrice(noeud, contexte)
 	{
 		entrees(1);
@@ -94,7 +94,7 @@ public:
 		return NOM_GRAVITE;
 	}
 
-	void execute(const Context &contexte, double temps) override
+	void execute(Context const &contexte, double temps) override
 	{
 		if (temps == m_image_debut) {
 			m_collection->free_all();
@@ -114,7 +114,7 @@ public:
 		m_derniere_collection = m_collection->copy();
 	}
 
-	void execute_algorithme(const Context &/*contexte*/, double /*temps*/)
+	void execute_algorithme(Context const &/*contexte*/, double /*temps*/)
 	{
 		/* À FAIRE : passe le temps par image en paramètre. */
 		auto const temps_par_image = 1.0f / 24.0f;

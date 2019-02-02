@@ -28,7 +28,7 @@
 
 /* ************************************************************************** */
 
-PriseEntree::PriseEntree(const std::string &nom_prise)
+PriseEntree::PriseEntree(std::string const &nom_prise)
 	: parent(nullptr)
 	, lien(nullptr)
 	, nom(nom_prise)
@@ -36,7 +36,7 @@ PriseEntree::PriseEntree(const std::string &nom_prise)
 
 /* ************************************************************************** */
 
-PriseSortie::PriseSortie(const std::string &nom_prise)
+PriseSortie::PriseSortie(std::string const &nom_prise)
 	: parent(nullptr)
 	, nom(nom_prise)
 {}
@@ -66,7 +66,7 @@ void Noeud::nom(std::string nom)
 	m_nom = std::move(nom);
 }
 
-void Noeud::ajoute_entree(const std::string &nom)
+void Noeud::ajoute_entree(std::string const &nom)
 {
 	auto prise = new PriseEntree(nom);
 	prise->parent = this;
@@ -74,7 +74,7 @@ void Noeud::ajoute_entree(const std::string &nom)
 	m_entrees.push_back(prise);
 }
 
-void Noeud::ajoute_sortie(const std::string &nom)
+void Noeud::ajoute_sortie(std::string const &nom)
 {
 	auto prise = new PriseSortie(nom);
 	prise->parent = this;
@@ -87,7 +87,7 @@ PriseEntree *Noeud::entree(size_t index)
 	return m_entrees[index];
 }
 
-PriseEntree *Noeud::entree(const std::string &nom)
+PriseEntree *Noeud::entree(std::string const &nom)
 {
 	for (auto const &entree : m_entrees) {
 		if (entree->nom == nom) {
@@ -103,7 +103,7 @@ PriseSortie *Noeud::sortie(size_t index)
 	return m_sorties[index];
 }
 
-PriseSortie *Noeud::sortie(const std::string &nom)
+PriseSortie *Noeud::sortie(std::string const &nom)
 {
 	for (auto const &sortie : m_sorties) {
 		if (sortie->nom == nom) {

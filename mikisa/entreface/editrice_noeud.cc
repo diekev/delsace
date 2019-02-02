@@ -106,7 +106,7 @@ void EditriceGraphe::ajourne_etat(int evenement)
 
 	m_vue->scale(graphe->zoom, graphe->zoom);
 
-	for (const std::shared_ptr<Noeud> &node : graphe->noeuds()) {
+	for (std::shared_ptr<Noeud> const &node : graphe->noeuds()) {
 		Noeud *node_ptr = node.get();
 
 		auto item = new ItemNoeud(node_ptr, node_ptr == graphe->noeud_actif);

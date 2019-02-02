@@ -46,8 +46,8 @@ protected:
 public:
 	explicit BaseEditrice(Kanba &kanba, QWidget *parent = nullptr);
 
-	BaseEditrice(const BaseEditrice &autre) = default;
-	BaseEditrice &operator=(const BaseEditrice &autre) = default;
+	BaseEditrice(BaseEditrice const &autre) = default;
+	BaseEditrice &operator=(BaseEditrice const &autre) = default;
 
 	void actif(bool yesno);
 	void rend_actif();

@@ -190,7 +190,7 @@ void Fluide::transfert_velocite()
 #else
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		size_t index = plage.begin() * res.x * res.y;
 
@@ -244,7 +244,7 @@ void Fluide::ajoute_acceleration()
 	auto gravite = -9.81f * dh_domaine.x * dt;
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		size_t index = plage.begin() * res.x * res.y;
 
@@ -280,7 +280,7 @@ void Fluide::conditions_bordure()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.y),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		for (size_t y = plage.begin(); y < plage.end(); ++y) {
 			for (size_t x = 0; x < res.x; ++x) {
@@ -296,7 +296,7 @@ void Fluide::conditions_bordure()
 	});
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		for (size_t z = plage.begin(); z < plage.end(); ++z) {
 			for (size_t x = 0; x < res.x; ++x) {
@@ -312,7 +312,7 @@ void Fluide::conditions_bordure()
 	});
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		for (size_t z = plage.begin(); z < plage.end(); ++z) {
 			for (size_t y = 0; y < res.y; ++y) {
@@ -332,7 +332,7 @@ void Fluide::soustrait_velocite()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		size_t index = plage.begin() * res.x * res.y;
 
@@ -403,7 +403,7 @@ void Fluide::construit_champs_distance()
 	phi.arriere_plan(distance_max);
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		size_t index = plage.begin() * res.x * res.y;
 
@@ -550,7 +550,7 @@ void Fluide::etend_champs_velocite()
 	);
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, res.z),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		const size_t decalage_z = res.x * res.y;
 		size_t index = plage.begin() * res.x * res.y;
@@ -618,7 +618,7 @@ void Fluide::sauvegarde_velocite_PIC()
 	auto const &taille_domaine = domaine->taille();
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, particules.size()),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		for (size_t i = plage.begin(); i < plage.end(); ++i) {
 			auto &p = particules[i];
@@ -662,7 +662,7 @@ void Fluide::advecte_particules()
 
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, particules.size()),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		for (size_t i = plage.begin(); i < plage.end(); ++i) {
 			auto &p = particules[i];
@@ -716,9 +716,9 @@ void Fluide::advecte_particules()
 	});
 }
 
-bool contiens(const dls::math::vec3f &min,
-			  const dls::math::vec3f &max,
-			  const dls::math::vec3f &pos)
+bool contiens(dls::math::vec3f const &min,
+			  dls::math::vec3f const &max,
+			  dls::math::vec3f const &pos)
 {
 	for (size_t i = 0; i < 3; ++i) {
 		if (pos[i] < min[i] || pos[i] >= max[i]) {

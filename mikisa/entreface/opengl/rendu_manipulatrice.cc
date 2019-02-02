@@ -60,7 +60,7 @@ static const dls::math::vec4f couleurs[NOMBRE_TAMPON] = {
 	dls::math::vec4f{1.0f, 1.0f, 0.1f, 1.0f}, // TAMPON_SELECTION
 };
 
-static TamponRendu *cree_tampon_base(const dls::math::vec4f &couleur)
+static TamponRendu *cree_tampon_base(dls::math::vec4f const &couleur)
 {
 	auto tampon = new TamponRendu;
 
@@ -91,8 +91,8 @@ static TamponRendu *cree_tampon_base(const dls::math::vec4f &couleur)
 }
 
 static void ajoute_baton_axe(
-		const dls::math::vec3f &min,
-		const dls::math::vec3f &max,
+		dls::math::vec3f const &min,
+		dls::math::vec3f const &max,
 		std::vector<dls::math::vec3f> &sommets,
 		std::vector<unsigned int> &indices)
 {
@@ -136,8 +136,8 @@ static void ajoute_baton_axe(
 }
 
 static void ajoute_poignee_axe(
-		const dls::math::vec3f &min,
-		const dls::math::vec3f &max,
+		dls::math::vec3f const &min,
+		dls::math::vec3f const &max,
 		std::vector<dls::math::vec3f> &sommets,
 		std::vector<unsigned int> &indices)
 {
@@ -323,7 +323,7 @@ void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
 	programme->desactive();
 }
 
-void RenduManipulatricePosition::dessine(const ContexteRendu &contexte)
+void RenduManipulatricePosition::dessine(ContexteRendu const &contexte)
 {
 	if (m_pointeur == nullptr) {
 		return;
@@ -423,7 +423,7 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 	programme->desactive();
 }
 
-void RenduManipulatriceEchelle::dessine(const ContexteRendu &contexte)
+void RenduManipulatriceEchelle::dessine(ContexteRendu const &contexte)
 {
 	if (m_pointeur == nullptr) {
 		return;
@@ -587,7 +587,7 @@ void RenduManipulatriceRotation::manipulatrice(Manipulatrice3D *pointeur)
 	programme->desactive();
 }
 
-void RenduManipulatriceRotation::dessine(const ContexteRendu &contexte)
+void RenduManipulatriceRotation::dessine(ContexteRendu const &contexte)
 {
 	if (m_pointeur == nullptr) {
 		return;

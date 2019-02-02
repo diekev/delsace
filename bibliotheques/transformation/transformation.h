@@ -37,35 +37,35 @@ public:
 	transformation() = default;
 
 	transformation(
-			const dls::math::mat4x4d &matrice,
-			const dls::math::mat4x4d &inverse);
+			dls::math::mat4x4d const &matrice,
+			dls::math::mat4x4d const &inverse);
 
 	explicit transformation(const double matrice[4][4]);
 
-	explicit transformation(const dls::math::mat4x4d &matrice);
+	explicit transformation(dls::math::mat4x4d const &matrice);
 
 	dls::math::mat4x4d matrice() const;
 
 	dls::math::mat4x4d inverse() const;
 
-	dls::math::vec3d operator()(const dls::math::vec3d &vecteur) const;
+	dls::math::vec3d operator()(dls::math::vec3d const &vecteur) const;
 
-	void operator()(const dls::math::vec3d &vecteur, dls::math::vec3d *vecteur_retour) const;
+	void operator()(dls::math::vec3d const &vecteur, dls::math::vec3d *vecteur_retour) const;
 
-	dls::math::point3d operator()(const dls::math::point3d &point) const;
+	dls::math::point3d operator()(dls::math::point3d const &point) const;
 
-	void operator()(const dls::math::point3d &point, dls::math::point3d *point_retour) const;
+	void operator()(dls::math::point3d const &point, dls::math::point3d *point_retour) const;
 
 	bool possede_echelle() const;
 
-	transformation &operator*=(const transformation &transforme);
+	transformation &operator*=(transformation const &transforme);
 };
 
-bool operator==(const transformation &a, const transformation &b);
+bool operator==(transformation const &a, transformation const &b);
 
-bool operator!=(const transformation &a, const transformation &b);
+bool operator!=(transformation const &a, transformation const &b);
 
-inline transformation operator*(const transformation &a, const transformation &b)
+inline transformation operator*(transformation const &a, transformation const &b)
 {
 	auto const matrice = a.matrice() * b.matrice();
 	auto const inverse = b.inverse() * a.inverse();
@@ -73,15 +73,15 @@ inline transformation operator*(const transformation &a, const transformation &b
 	return transformation(matrice, inverse);
 }
 
-transformation inverse(const transformation &transforme);
+transformation inverse(transformation const &transforme);
 
 transformation translation(const double x, const double y, const double z);
 
-transformation translation(const dls::math::vec3d &vecteur);
+transformation translation(dls::math::vec3d const &vecteur);
 
 transformation echelle(const double x, const double y, const double z);
 
-transformation echelle(const dls::math::vec3d &vecteur);
+transformation echelle(dls::math::vec3d const &vecteur);
 
 transformation rotation_x(const double angle);
 
@@ -89,11 +89,11 @@ transformation rotation_y(const double angle);
 
 transformation rotation_z(const double angle);
 
-transformation rotation(const double angle, const dls::math::vec3d &vecteur);
+transformation rotation(const double angle, dls::math::vec3d const &vecteur);
 
 transformation vise(
-		const dls::math::vec3d &position,
-		const dls::math::vec3d &mire,
-		const dls::math::vec3d &haut);
+		dls::math::vec3d const &position,
+		dls::math::vec3d const &mire,
+		dls::math::vec3d const &haut);
 
 }  /* namespace math */

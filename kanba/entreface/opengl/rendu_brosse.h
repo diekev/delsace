@@ -58,7 +58,7 @@ public:
 	 * Dessine la grille dans le contexte spécifié.
 	 */
 	void dessine(
-			const ContexteRendu &contexte,
+			ContexteRendu const &contexte,
 			const float taille_x,
 			const float taille_y,
 			const float pos_x,

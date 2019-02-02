@@ -29,7 +29,7 @@ class ObjectNodeItem : public QtNode {
 	SceneNode *m_scene_node;
 
 public:
-	ObjectNodeItem(SceneNode *scene_node, const QString &title, QGraphicsItem *parent = nullptr);
+	ObjectNodeItem(SceneNode *scene_node, QString const &title, QGraphicsItem *parent = nullptr);
 
 	SceneNode *scene_node() const;
 

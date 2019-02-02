@@ -111,8 +111,8 @@ class Maillage {
 
 	std::string m_nom{};
 
-	Maillage(const Maillage &autre) = default;
-	Maillage &operator=(const Maillage &autre) = default;
+	Maillage(Maillage const &autre) = default;
+	Maillage &operator=(Maillage const &autre) = default;
 
 public:
 	Maillage();
@@ -122,7 +122,7 @@ public:
 	/**
 	 * Ajoute un sommet à ce maillage.
 	 */
-	void ajoute_sommet(const dls::math::vec3f &coord);
+	void ajoute_sommet(dls::math::vec3f const &coord);
 
 	/**
 	 * Ajoute une suite de sommets à ce maillage.
@@ -183,12 +183,12 @@ public:
 	/**
 	 * Renseigne la transformation de ce maillage.
 	 */
-	void transformation(const math::transformation &transforme);
+	void transformation(math::transformation const &transforme);
 
 	/**
 	 * Retourne la transformation de ce maillage.
 	 */
-	const math::transformation &transformation() const;
+	math::transformation const &transformation() const;
 
 	/**
 	 * Crée un tampon PTex par défaut. À FAIRE : supprimer.
@@ -226,7 +226,7 @@ public:
 	/**
 	 * Retourne une référence constante vers les données de canaux de ce maillage.
 	 */
-	const CanauxTexture &canaux_texture() const;
+	CanauxTexture const &canaux_texture() const;
 
 	/**
 	 * Retourne une référence vers les données de canaux de ce maillage.
@@ -236,10 +236,10 @@ public:
 	/**
 	 * Retourne le nom de ce maillage.
 	 */
-	const std::string &nom() const;
+	std::string const &nom() const;
 
 	/**
 	 * Renomme ce maillage.
 	 */
-	void nom(const std::string &nom);
+	void nom(std::string const &nom);
 };

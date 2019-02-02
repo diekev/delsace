@@ -111,7 +111,7 @@ void RenduNuagePoints::initialise()
 	}
 }
 
-void RenduNuagePoints::dessine(const ContexteRendu &contexte)
+void RenduNuagePoints::dessine(ContexteRendu const &contexte)
 {
 	m_tampon_points->dessine(contexte);
 }

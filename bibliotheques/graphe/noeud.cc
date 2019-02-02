@@ -28,13 +28,13 @@
 
 /* ************************************************************************** */
 
-PriseSortie::PriseSortie(const std::string &nom_prise)
+PriseSortie::PriseSortie(std::string const &nom_prise)
 	: nom(nom_prise)
 {}
 
 /* ************************************************************************** */
 
-PriseEntree::PriseEntree(const std::string &nom_prise)
+PriseEntree::PriseEntree(std::string const &nom_prise)
 	: nom(nom_prise)
 {}
 
@@ -69,12 +69,12 @@ void Noeud::donnees(std::any pointeur)
 	this->m_donnees = pointeur;
 }
 
-const std::string &Noeud::nom() const
+std::string const &Noeud::nom() const
 {
 	return m_nom;
 }
 
-void Noeud::nom(const std::string &name)
+void Noeud::nom(std::string const &name)
 {
 	m_nom = name;
 }
@@ -119,12 +119,12 @@ void Noeud::largeur(int l)
 	m_rectangle.largeur = static_cast<float>(l);
 }
 
-const Rectangle &Noeud::rectangle() const
+Rectangle const &Noeud::rectangle() const
 {
 	return m_rectangle;
 }
 
-void Noeud::ajoute_entree(const std::string &name, const int type)
+void Noeud::ajoute_entree(std::string const &name, const int type)
 {
 	auto prise = new PriseEntree(name);
 	prise->parent = this;
@@ -133,7 +133,7 @@ void Noeud::ajoute_entree(const std::string &name, const int type)
 	this->m_entrees.push_back(prise);
 }
 
-void Noeud::ajoute_sortie(const std::string &name, const int type)
+void Noeud::ajoute_sortie(std::string const &name, const int type)
 {
 	auto prise = new PriseSortie(name);
 	prise->parent = this;
@@ -147,7 +147,7 @@ PriseEntree *Noeud::entree(size_t index)
 	return m_entrees[index];
 }
 
-PriseEntree *Noeud::entree(const std::string &nom)
+PriseEntree *Noeud::entree(std::string const &nom)
 {
 	for (auto const &entree : m_entrees) {
 		if (entree->nom == nom) {
@@ -163,7 +163,7 @@ PriseSortie *Noeud::sortie(size_t index)
 	return m_sorties[index];
 }
 
-PriseSortie *Noeud::sortie(const std::string &nom)
+PriseSortie *Noeud::sortie(std::string const &nom)
 {
 	for (auto const &sortie : m_sorties) {
 		if (sortie->nom == nom) {

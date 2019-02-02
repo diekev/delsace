@@ -53,15 +53,15 @@ public:
 
 	int largeur() const;
 
-	void ajoute_echantillon(size_t i, size_t j, const dls::math::vec3d &couleur, const double poids = 1.0);
+	void ajoute_echantillon(size_t i, size_t j, dls::math::vec3d const &couleur, const double poids = 1.0);
 
-	const dls::math::vec3d &couleur(int i, int j);
+	dls::math::vec3d const &couleur(int i, int j);
 
-	const numero7::math::matrice<dls::math::vec3d> &donnees();
+	numero7::math::matrice<dls::math::vec3d> const &donnees();
 
 	void reinitialise();
 
-	void redimensionne(const numero7::math::Hauteur &hauteur, const numero7::math::Largeur &largeur);
+	void redimensionne(numero7::math::Hauteur const &hauteur, numero7::math::Largeur const &largeur);
 
 	void creer_image();
 };

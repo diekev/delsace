@@ -76,7 +76,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 
@@ -110,7 +110,7 @@ struct Triangle {
 
 	Triangle() = default;
 
-	Triangle(const dls::math::vec3f &v_0, const dls::math::vec3f &v_1, const dls::math::vec3f &v_2)
+	Triangle(dls::math::vec3f const &v_0, dls::math::vec3f const &v_1, dls::math::vec3f const &v_2)
 		: Triangle()
 	{
 		v0 = v_0;
@@ -221,7 +221,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 
@@ -251,7 +251,7 @@ public:
 		std::mt19937 rng(static_cast<size_t>(19937 + graine));
 		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
-		for (const Triangle &triangle : triangles) {
+		for (Triangle const &triangle : triangles) {
 			auto const v0 = triangle.v0;
 			auto const v1 = triangle.v1;
 			auto const v2 = triangle.v2;
@@ -317,19 +317,19 @@ struct HachageSpatial {
 	 * toutes les positions se trouvant entre <0, 0, 0> et
 	 * <0.99.., 0.99.., 0.99..> seront dans la même alvéole.
 	 */
-	std::size_t fonction_empreinte(const dls::math::vec3f &position);
+	std::size_t fonction_empreinte(dls::math::vec3f const &position);
 
 	/**
 	 * Ajoute la posistion spécifiée dans le vecteur des positions ayant la même
 	 * empreinte que celle-ci.
 	 */
-	void ajoute(const dls::math::vec3f &position);
+	void ajoute(dls::math::vec3f const &position);
 
 	/**
 	 * Retourne un vecteur contenant les positions ayant la même empreinte que
 	 * la position passée en paramètre.
 	 */
-	const std::vector<dls::math::vec3f> &particules(const dls::math::vec3f &position);
+	std::vector<dls::math::vec3f> const &particules(dls::math::vec3f const &position);
 
 	/**
 	 * Retourne le nombre d'alvéoles présentes dans la table de hachage.
@@ -337,7 +337,7 @@ struct HachageSpatial {
 	size_t taille() const;
 };
 
-std::size_t HachageSpatial::fonction_empreinte(const dls::math::vec3f &position)
+std::size_t HachageSpatial::fonction_empreinte(dls::math::vec3f const &position)
 {
 	return static_cast<std::size_t>(
 				static_cast<int>(position.x) * 73856093
@@ -345,13 +345,13 @@ std::size_t HachageSpatial::fonction_empreinte(const dls::math::vec3f &position)
 				^ static_cast<int>(position.z) * 83492791) % TAILLE_MAX;
 }
 
-void HachageSpatial::ajoute(const dls::math::vec3f &position)
+void HachageSpatial::ajoute(dls::math::vec3f const &position)
 {
 	auto const empreinte = fonction_empreinte(position);
 	m_tableau[empreinte].push_back(position);
 }
 
-const std::vector<dls::math::vec3f> &HachageSpatial::particules(const dls::math::vec3f &position)
+std::vector<dls::math::vec3f> const &HachageSpatial::particules(dls::math::vec3f const &position)
 {
 	auto const empreinte = fonction_empreinte(position);
 	return m_tableau[empreinte];
@@ -364,7 +364,7 @@ size_t HachageSpatial::taille() const
 
 /* ************************************************************************** */
 
-static float calcule_aire(const dls::math::vec3f &v0, const dls::math::vec3f &v1, const dls::math::vec3f &v2)
+static float calcule_aire(dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
 {
 	auto const c1 = v1 - v0;
 	auto const c2 = v2 - v0;
@@ -372,7 +372,7 @@ static float calcule_aire(const dls::math::vec3f &v0, const dls::math::vec3f &v1
 	return longueur(produit_croix(c1, c2)) * 0.5f;
 }
 
-static float calcule_aire(const Triangle &triangle)
+static float calcule_aire(Triangle const &triangle)
 {
 	return calcule_aire(triangle.v0, triangle.v1, triangle.v2);
 }
@@ -385,7 +385,7 @@ public:
 	ListeTriangle() = default;
 	~ListeTriangle() = default;
 
-	Triangle *ajoute(const dls::math::vec3f &v0, const dls::math::vec3f &v1, const dls::math::vec3f &v2)
+	Triangle *ajoute(dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
 	{
 		Triangle *triangle = new Triangle(v0, v1, v2);
 		triangle->aire = calcule_aire(*triangle);
@@ -454,7 +454,7 @@ struct BoiteTriangle {
 	ListeTriangle triangles{};
 };
 
-void ajoute_triangle_boite(BoiteTriangle *boite, const dls::math::vec3f &v0, const dls::math::vec3f &v1, const dls::math::vec3f &v2)
+void ajoute_triangle_boite(BoiteTriangle *boite, dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
 {
 	auto triangle = boite->triangles.ajoute(v0, v1, v2);
 	boite->aire_minimum = std::min(boite->aire_minimum, triangle->aire);
@@ -462,7 +462,7 @@ void ajoute_triangle_boite(BoiteTriangle *boite, const dls::math::vec3f &v0, con
 	boite->aire_totale += triangle->aire;
 }
 
-bool verifie_distance_minimal(HachageSpatial &hachage_spatial, const dls::math::vec3f &point, float distance)
+bool verifie_distance_minimal(HachageSpatial &hachage_spatial, dls::math::vec3f const &point, float distance)
 {
 	auto const points = hachage_spatial.particules(point);
 
@@ -475,7 +475,7 @@ bool verifie_distance_minimal(HachageSpatial &hachage_spatial, const dls::math::
 	return true;
 }
 
-bool triangle_couvert(const Triangle &triangle, HachageSpatial &hachage_spatial, const float radius)
+bool triangle_couvert(Triangle const &triangle, HachageSpatial &hachage_spatial, const float radius)
 {
 	auto const &v0 = triangle.v0;
 	auto const &v1 = triangle.v1;
@@ -534,7 +534,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 

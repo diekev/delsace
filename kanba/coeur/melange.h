@@ -36,9 +36,9 @@ enum class TypeMelange {
 
 template <typename T>
 dls::math::vec4<T> melange_normal(
-        const dls::math::vec4<T> &a,
-        const dls::math::vec4<T> &b,
-		const T &facteur)
+        dls::math::vec4<T> const &a,
+        dls::math::vec4<T> const &b,
+		T const &facteur)
 {
 	if (b[3] == static_cast<T>(0)) {
 		return a;
@@ -49,9 +49,9 @@ dls::math::vec4<T> melange_normal(
 
 template <typename T>
 dls::math::vec4<T> melange(
-        const dls::math::vec4<T> &a,
-        const dls::math::vec4<T> &b,
-		const T &facteur,
+        dls::math::vec4<T> const &a,
+        dls::math::vec4<T> const &b,
+		T const &facteur,
 		const TypeMelange type_melange)
 {
 	switch (type_melange) {

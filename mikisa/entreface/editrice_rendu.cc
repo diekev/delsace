@@ -99,7 +99,7 @@ void EditriceRendu::ajourne_manipulable()
 }
 
 void EditriceRendu::obtiens_liste(
-		const std::string &/*attache*/,
+		std::string const &/*attache*/,
 		std::vector<std::string> &chaines)
 {
 	/* À FAIRE */

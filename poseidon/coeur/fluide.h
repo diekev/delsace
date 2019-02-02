@@ -159,8 +159,8 @@ struct Fluide {
 	~Fluide();
 
 	/* pour faire taire cppcheck car source et domaine sont alloués dynamiquement */
-	Fluide(const Fluide &autre) = default;
-	Fluide &operator=(const Fluide &autre) = default;
+	Fluide(Fluide const &autre) = default;
+	Fluide &operator=(Fluide const &autre) = default;
 
 	int temps_courant{};
 	int temps_debut{};

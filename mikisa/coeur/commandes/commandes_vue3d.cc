@@ -51,7 +51,7 @@
 
 class CommandeZoomCamera3D : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto const delta = donnees.y;
@@ -86,7 +86,7 @@ class CommandeTourneCamera3D : public Commande {
 public:
 	CommandeTourneCamera3D() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
@@ -94,7 +94,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_3d;
@@ -122,7 +122,7 @@ class CommandePanCamera3D : public Commande {
 public:
 	CommandePanCamera3D() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
@@ -130,7 +130,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_3d;
@@ -153,7 +153,7 @@ public:
 
 class CommandeSurvoleScene : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto manipulatrice = mikisa->manipulatrice_3d;
@@ -207,7 +207,7 @@ class CommandeDeplaceManipulatrice : public Commande {
 public:
 	CommandeDeplaceManipulatrice() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
@@ -283,7 +283,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 

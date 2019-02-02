@@ -64,7 +64,7 @@ public:
 	/**
 	 * Dessine la manipulatrice dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte);
+	void dessine(ContexteRendu const &contexte);
 };
 
 /* ************************************************************************** */
@@ -103,7 +103,7 @@ public:
 	/**
 	 * Dessine la manipulatrice dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte);
+	void dessine(ContexteRendu const &contexte);
 };
 
 /* ************************************************************************** */
@@ -141,5 +141,5 @@ public:
 	/**
 	 * Dessine la manipulatrice dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte);
+	void dessine(ContexteRendu const &contexte);
 };

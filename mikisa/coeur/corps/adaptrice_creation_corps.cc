@@ -95,7 +95,7 @@ void AdaptriceCreationCorps::ajoute_ligne(const int *index, size_t nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreationCorps::ajoute_objet(const std::string &nom)
+void AdaptriceCreationCorps::ajoute_objet(std::string const &nom)
 {
 	corps->nom = nom;
 }
@@ -126,7 +126,7 @@ void AdaptriceCreationCorps::reserve_uvs(long const nombre)
 	}
 }
 
-void AdaptriceCreationCorps::groupes(const std::vector<std::string> &noms)
+void AdaptriceCreationCorps::groupes(std::vector<std::string> const &noms)
 {
 	groupes_courant.clear();
 

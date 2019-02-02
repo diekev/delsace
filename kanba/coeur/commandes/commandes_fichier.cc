@@ -41,7 +41,7 @@
 
 class CommandeOuvrirFichier : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto const chemin_projet = kanba->requiers_dialogue(FICHIER_OUVERTURE);
@@ -76,7 +76,7 @@ void ecris_fichier(std::ofstream &fichier, T valeur)
 	fichier.write(reinterpret_cast<char *>(&valeur), sizeof(T));
 }
 
-void ecris_fichier(std::ofstream &fichier, const std::string &valeur)
+void ecris_fichier(std::ofstream &fichier, std::string const &valeur)
 {
 	ecris_fichier(fichier, valeur.size());
 	fichier.write(valeur.c_str(), static_cast<long int>(valeur.size()));
@@ -457,7 +457,7 @@ static void ecris_canaux(std::ofstream &fichier, CanauxTexture &canaux)
 
 class CommandeOuvrirProjet : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto const chemin_projet = "/home/kevin/test.cnvs" ;// kanba->requiers_dialogue(FICHIER_OUVERTURE);
@@ -521,7 +521,7 @@ public:
 
 class CommandeSauvegarderProjet : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 

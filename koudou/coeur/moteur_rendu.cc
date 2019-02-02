@@ -52,7 +52,7 @@ vision::EchantillonCamera genere_echantillon(GNA &gna, unsigned int x, unsigned 
 	return echantillon;
 }
 
-static Rayon genere_rayon(vision::Camera3D *camera, const vision::EchantillonCamera &echantillon)
+static Rayon genere_rayon(vision::Camera3D *camera, vision::EchantillonCamera const &echantillon)
 {
 	auto pos = dls::math::point3f(
 				   static_cast<float>(echantillon.x / camera->largeur()),
@@ -82,9 +82,9 @@ static Rayon genere_rayon(vision::Camera3D *camera, const vision::EchantillonCam
 	return r;
 }
 
-Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon &rayon, uint profondeur)
+Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const &rayon, uint profondeur)
 {
-	const Scene &scene = parametres.scene;
+	Scene const &scene = parametres.scene;
 
 	if (profondeur > 5) {
 		auto point = rayon.origine + rayon.direction;
@@ -170,7 +170,7 @@ Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon 
 
 /* ************************************************************************** */
 
-void MoteurRendu::echantillone_scene(const ParametresRendu &parametres, const std::vector<CarreauPellicule> &carreaux, unsigned int echantillon)
+void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, std::vector<CarreauPellicule> const &carreaux, unsigned int echantillon)
 {
 	auto camera = parametres.camera;
 	/* À FAIRE : redimensionne la caméra et la pellicule selon la fenêtre
@@ -185,7 +185,7 @@ void MoteurRendu::echantillone_scene(const ParametresRendu &parametres, const st
 	//camera->ajourne();
 
 	tbb::parallel_for(tbb::blocked_range<size_t>(0, carreaux.size()),
-					  [&](const tbb::blocked_range<size_t> &plage)
+					  [&](tbb::blocked_range<size_t> const &plage)
 	{
 		GNA gna(17771 + static_cast<unsigned int>(plage.begin()) * (echantillon + 1));
 
@@ -230,7 +230,7 @@ Pellicule *MoteurRendu::pointeur_pellicule()
 	return &m_pellicule;
 }
 
-const numero7::math::matrice<dls::math::vec3d> &MoteurRendu::pellicule()
+numero7::math::matrice<dls::math::vec3d> const &MoteurRendu::pellicule()
 {
 	m_pellicule.creer_image();
 	return m_pellicule.donnees();
@@ -248,11 +248,11 @@ bool MoteurRendu::est_arrete() const
 
 /* ************************************************************************** */
 
-TacheRendu::TacheRendu(const Koudou &koudou)
+TacheRendu::TacheRendu(Koudou const &koudou)
 	: Tache(koudou)
 {}
 
-void TacheRendu::commence(const Koudou &koudou)
+void TacheRendu::commence(Koudou const &koudou)
 {
 	auto moteur_rendu = koudou.moteur_rendu;
 	auto nombre_echantillons = koudou.parametres_rendu.nombre_echantillons;

@@ -122,13 +122,13 @@ std::string Main::chemin_projet() const
 	return m_chemin_projet;
 }
 
-void Main::chemin_projet(const std::string &chemin)
+void Main::chemin_projet(std::string const &chemin)
 {
 	m_chemin_projet = chemin;
 	ajoute_fichier_recent(chemin);
 }
 
-void Main::ajoute_fichier_recent(const std::string &chemin)
+void Main::ajoute_fichier_recent(std::string const &chemin)
 {
 	auto index = std::find(m_fichiers_recents.begin(), m_fichiers_recents.end(), chemin);
 
@@ -144,7 +144,7 @@ void Main::ajoute_fichier_recent(const std::string &chemin)
 	}
 }
 
-const std::vector<std::string> &Main::fichiers_recents()
+std::vector<std::string> const &Main::fichiers_recents()
 {
 	return m_fichiers_recents;
 }
@@ -175,7 +175,7 @@ std::string Main::requiers_dialogue(int type)
 	return "";
 }
 
-void Main::affiche_erreur(const std::string &message)
+void Main::affiche_erreur(std::string const &message)
 {
 	/* À FAIRE : sort ça de la classe. */
 	QMessageBox boite_message;

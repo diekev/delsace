@@ -124,7 +124,7 @@ static void sauvegarde_proprietes(
 	}
 }
 
-erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Main &main, const Scene *scene)
+erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Main const &main, const Scene *scene)
 {
 	tinyxml2::XMLDocument doc;
 	doc.InsertFirstChild(doc.NewDeclaration());
@@ -316,7 +316,7 @@ struct DonneesConnexions {
 
 static void lecture_noeud(
 		tinyxml2::XMLElement *element_noeud,
-		const Context &contexte,
+		Context const &contexte,
 		Object *objet,
 		DonneesConnexions &donnees_connexion)
 {
@@ -374,7 +374,7 @@ static void lecture_noeud(
 
 static void lecture_graphe(
 		tinyxml2::XMLElement *element_objet,
-		const Context &contexte,
+		Context const &contexte,
 		Object *objet)
 {
 	auto racine_graphe = element_objet->FirstChildElement("graphe");
@@ -400,7 +400,7 @@ static void lecture_graphe(
 	}
 }
 
-erreur_fichier ouvre_projet(const filesystem::path &chemin, const Main &main, const Context &contexte)
+erreur_fichier ouvre_projet(filesystem::path const &chemin, Main const &main, Context const &contexte)
 {
 	if (!std::experimental::filesystem::exists(chemin)) {
 		return erreur_fichier::NON_TROUVE;

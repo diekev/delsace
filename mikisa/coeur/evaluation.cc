@@ -99,7 +99,7 @@ tbb::task *GraphEvalTask::execute()
 	Noeud *visionneuse = m_mikisa.derniere_visionneuse_selectionnee;
 
 	if (visionneuse == nullptr) {
-		for (const std::shared_ptr<Noeud> &node : graphe.noeuds()) {
+		for (std::shared_ptr<Noeud> const &node : graphe.noeuds()) {
 			Noeud *pointeur_noeud = node.get();
 
 			if (pointeur_noeud->type() == NOEUD_IMAGE_SORTIE) {

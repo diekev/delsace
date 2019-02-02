@@ -24,7 +24,7 @@
 
 #include "geomlists.h"
 
-void PointList::push_back(const dls::math::vec3f &point)
+void PointList::push_back(dls::math::vec3f const &point)
 {
 	m_points.push_back(point);
 }
@@ -68,14 +68,14 @@ dls::math::vec3f &PointList::operator[](size_t i)
 	return m_points[i];
 }
 
-const dls::math::vec3f &PointList::operator[](size_t i) const
+dls::math::vec3f const &PointList::operator[](size_t i) const
 {
 	return m_points[i];
 }
 
 /* ************************************************************************** */
 
-void EdgeList::push_back(const dls::math::vec2i &edge)
+void EdgeList::push_back(dls::math::vec2i const &edge)
 {
 	m_edge.push_back(edge);
 }
@@ -119,14 +119,14 @@ dls::math::vec2i &EdgeList::operator[](size_t i)
 	return m_edge[i];
 }
 
-const dls::math::vec2i &EdgeList::operator[](size_t i) const
+dls::math::vec2i const &EdgeList::operator[](size_t i) const
 {
 	return m_edge[i];
 }
 
 /* ************************************************************************** */
 
-void PolygonList::push_back(const dls::math::vec4i &poly)
+void PolygonList::push_back(dls::math::vec4i const &poly)
 {
 	m_polys.push_back(poly);
 }
@@ -170,7 +170,7 @@ dls::math::vec4i &PolygonList::operator[](size_t i)
 	return m_polys[i];
 }
 
-const dls::math::vec4i &PolygonList::operator[](size_t i) const
+dls::math::vec4i const &PolygonList::operator[](size_t i) const
 {
 	return m_polys[i];
 }

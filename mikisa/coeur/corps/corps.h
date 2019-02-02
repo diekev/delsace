@@ -74,19 +74,19 @@ struct Corps {
 	Corps() = default;
 	virtual ~Corps();
 
-	bool possede_attribut(const std::string &nom_attribut);
+	bool possede_attribut(std::string const &nom_attribut);
 
 	Attribut *ajoute_attribut(
-			const std::string &nom_attribut,
+			std::string const &nom_attribut,
 			type_attribut type_,
 			portee_attr portee = portee_attr::POINT,
 			long taille_ = 0);
 
-	void supprime_attribut(const std::string &nom_attribut);
+	void supprime_attribut(std::string const &nom_attribut);
 
-	Attribut *attribut(const std::string &nom_attribut) const;
+	Attribut *attribut(std::string const &nom_attribut) const;
 
-	GroupePrimitive *ajoute_groupe_primitive(const std::string &nom_attribut);
+	GroupePrimitive *ajoute_groupe_primitive(std::string const &nom_attribut);
 
 	size_t ajoute_point(float x, float y, float z);
 

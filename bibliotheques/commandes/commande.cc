@@ -28,7 +28,7 @@
 
 #include "../outils/definitions.hh"
 
-bool Commande::evalue_predicat(std::any const &pointeur, const std::string &metadonnee)
+bool Commande::evalue_predicat(std::any const &pointeur, std::string const &metadonnee)
 {
 	INUTILISE(pointeur);
 	INUTILISE(metadonnee);
@@ -37,7 +37,7 @@ bool Commande::evalue_predicat(std::any const &pointeur, const std::string &meta
 
 void Commande::ajourne_execution_modale(
 		std::any const &pointeur,
-		const DonneesCommande &donnees)
+		DonneesCommande const &donnees)
 {
 	INUTILISE(pointeur);
 	INUTILISE(donnees);
@@ -45,13 +45,13 @@ void Commande::ajourne_execution_modale(
 
 void Commande::termine_execution_modale(
 		std::any const &pointeur,
-		const DonneesCommande &donnees)
+		DonneesCommande const &donnees)
 {
 	INUTILISE(pointeur);
 	INUTILISE(donnees);
 }
 
-void UsineCommande::enregistre_type(const std::string &nom, const DescriptionCommande &description)
+void UsineCommande::enregistre_type(std::string const &nom, DescriptionCommande const &description)
 {
 	auto const iter = m_tableau.find(nom);
 	assert(iter == m_tableau.end());
@@ -59,20 +59,20 @@ void UsineCommande::enregistre_type(const std::string &nom, const DescriptionCom
 	m_tableau[nom] = description;
 }
 
-Commande *UsineCommande::operator()(const std::string &nom)
+Commande *UsineCommande::operator()(std::string const &nom)
 {
 	auto const iter = m_tableau.find(nom);
 	assert(iter != m_tableau.end());
 
-	const DescriptionCommande &desc = iter->second;
+	DescriptionCommande const &desc = iter->second;
 
 	return desc.construction_commande();
 }
 
-Commande *UsineCommande::trouve_commande(const std::string &categorie, DonneesCommande &donnees_commande)
+Commande *UsineCommande::trouve_commande(std::string const &categorie, DonneesCommande &donnees_commande)
 {
 	for (auto const &donnees : m_tableau) {
-		const DescriptionCommande &desc = donnees.second;
+		DescriptionCommande const &desc = donnees.second;
 
 		if (desc.categorie != categorie) {
 			continue;

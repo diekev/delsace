@@ -49,7 +49,7 @@ public:
 	~VueMaterial();
 
 	/* pour faire taire cppcheck */
-	VueMaterial(const VueMaterial &) = delete;
+	VueMaterial(VueMaterial const &) = delete;
 	VueMaterial &operator=(VueMaterial const &) = delete;
 
 	void nuanceur(Nuanceur *nuanceur);

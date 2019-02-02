@@ -27,7 +27,7 @@
 #include <string>
 
 template <typename OpType>
-bool ensure_unique_name(std::string &name, const OpType &op)
+bool ensure_unique_name(std::string &name, OpType const &op)
 {
 	if (op(name)) {
 		return false;

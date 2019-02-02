@@ -65,7 +65,7 @@ struct DonneesScripts {
 	std::vector<VariableGenerique> variables_sortie;
 };
 
-static void ajoute_variable_attribut(std::string &tampon, const std::string &nom, const int type)
+static void ajoute_variable_attribut(std::string &tampon, std::string const &nom, const int type)
 {
 	switch (type) {
 		case VARIABLE_TYPE_VEC2:
@@ -79,7 +79,7 @@ static void ajoute_variable_attribut(std::string &tampon, const std::string &nom
 	}
 }
 
-static void ajoute_variable_uniforme(std::string &tampon, const std::string &nom, const int type)
+static void ajoute_variable_uniforme(std::string &tampon, std::string const &nom, const int type)
 {
 	switch (type) {
 		case VARIABLE_TYPE_VEC2:
@@ -102,7 +102,7 @@ static void ajoute_variable_uniforme(std::string &tampon, const std::string &nom
 	}
 }
 
-static void ajoute_variable_sortie(std::string &tampon, const std::string &nom, const int type)
+static void ajoute_variable_sortie(std::string &tampon, std::string const &nom, const int type)
 {
 	switch (type) {
 		case VARIABLE_TYPE_VEC2:
@@ -125,7 +125,7 @@ static void ajoute_variable_sortie(std::string &tampon, const std::string &nom, 
 	}
 }
 
-static void ajoute_variable_entree(std::string &tampon, const std::string &nom, const int type)
+static void ajoute_variable_entree(std::string &tampon, std::string const &nom, const int type)
 {
 	switch (type) {
 		case VARIABLE_TYPE_VEC2:
@@ -443,7 +443,7 @@ void RenduCorps::initialise()
 	m_tampon_points->remplie_tampon(parametres_tampon);
 }
 
-void RenduCorps::dessine(const ContexteRendu &contexte)
+void RenduCorps::dessine(ContexteRendu const &contexte)
 {
 	if (m_tampon_points != nullptr) {
 		m_tampon_points->dessine(contexte);

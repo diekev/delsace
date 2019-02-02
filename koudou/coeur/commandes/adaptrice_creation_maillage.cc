@@ -76,7 +76,7 @@ void AdaptriceChargementMaillage::ajoute_ligne(const int *index, size_t nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceChargementMaillage::ajoute_objet(const std::string &nom)
+void AdaptriceChargementMaillage::ajoute_objet(std::string const &nom)
 {
 	INUTILISE(nom);
 }
@@ -101,7 +101,7 @@ void AdaptriceChargementMaillage::reserve_uvs(long const nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceChargementMaillage::groupes(const std::vector<std::string> &noms)
+void AdaptriceChargementMaillage::groupes(std::vector<std::string> const &noms)
 {
 	INUTILISE(noms);
 }

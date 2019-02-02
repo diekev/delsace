@@ -54,7 +54,7 @@ public:
 
 	void ajoute_ligne(const int *idx, size_t nombre) override;
 
-	void ajoute_objet(const std::string &nom) override;
+	void ajoute_objet(std::string const &nom) override;
 
 	void reserve_polygones(long const nombre) override;
 
@@ -64,7 +64,7 @@ public:
 
 	void reserve_uvs(long const nombre) override;
 
-	void groupes(const std::vector<std::string> &noms) override;
+	void groupes(std::vector<std::string> const &noms) override;
 
 	void groupe_nuancage(const int idx) override;
 };
@@ -118,7 +118,7 @@ void AdaptriceCreation::ajoute_ligne(const int *idx, size_t nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreation::ajoute_objet(const std::string &nom)
+void AdaptriceCreation::ajoute_objet(std::string const &nom)
 {
 	INUTILISE(nom);
 }
@@ -143,7 +143,7 @@ void AdaptriceCreation::reserve_uvs(long const nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreation::groupes(const std::vector<std::string> &noms)
+void AdaptriceCreation::groupes(std::vector<std::string> const &noms)
 {
 	INUTILISE(noms);
 }
@@ -306,7 +306,7 @@ void RenduMonde::ajourne()
 	}
 }
 
-void RenduMonde::dessine(const ContexteRendu &contexte)
+void RenduMonde::dessine(ContexteRendu const &contexte)
 {
 	m_tampon->dessine(contexte);
 }

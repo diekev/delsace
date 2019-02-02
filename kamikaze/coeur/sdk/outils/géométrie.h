@@ -31,9 +31,9 @@ class PointList;
 class PolygonList;
 
 inline dls::math::vec3f normale_triangle(
-		const dls::math::vec3f &v0,
-		const dls::math::vec3f &v1,
-		const dls::math::vec3f &v2)
+		dls::math::vec3f const &v0,
+		dls::math::vec3f const &v1,
+		dls::math::vec3f const &v2)
 {
 	auto const n0 = v0 - v1;
 	auto const n1 = v2 - v1;
@@ -42,12 +42,12 @@ inline dls::math::vec3f normale_triangle(
 }
 
 void calcule_normales(
-		const PointList &points,
-		const PolygonList &polygones,
+		PointList const &points,
+		PolygonList const &polygones,
 		Attribute &normales,
 		bool flip);
 
 void calcule_boite_delimitation(
-		const PointList &points,
+		PointList const &points,
 		dls::math::vec3f &min,
 		dls::math::vec3f &max);

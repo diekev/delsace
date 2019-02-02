@@ -7,7 +7,7 @@ class courbe {
 public:
     courbe();
 
-    void ajoute_point(const T &valeur)
+    void ajoute_point(T const &valeur)
     {
         m_valeurs.push_back(valeur);
     }

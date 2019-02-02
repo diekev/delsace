@@ -33,7 +33,7 @@
 
 namespace objets {
 
-static std::vector<std::string> brise(const std::string &chaine)
+static std::vector<std::string> brise(std::string const &chaine)
 {
 	std::stringstream ss(chaine);
 	std::vector<std::string> res;
@@ -162,7 +162,7 @@ static void lis_groupe_nuancage(AdaptriceCreationObjet *adaptrice, std::istrings
 	adaptrice->groupe_nuancage(index);
 }
 
-void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, const std::string &chemin)
+void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, std::string const &chemin)
 {
 	std::ifstream ifs;
 	ifs.open(chemin.c_str());
@@ -339,7 +339,7 @@ static void charge_STL_binaire(AdaptriceCreationObjet *adaptrice, std::ifstream 
 	}
 }
 
-void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, const std::string &chemin)
+void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, std::string const &chemin)
 {
 	std::ifstream fichier;
 	fichier.open(chemin.c_str());

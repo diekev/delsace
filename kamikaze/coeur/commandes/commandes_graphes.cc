@@ -39,7 +39,7 @@
 
 class CommandeDessineGrapheObjet final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;
@@ -68,7 +68,7 @@ public:
 
 class CommandeDessineGrapheDependance final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;
@@ -88,7 +88,7 @@ public:
 /* ************************************************************************** */
 
 class CommandeGrapheZoom final : public Commande {
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto zoom = 1.0f;
 
@@ -134,7 +134,7 @@ class CommandeGrapheZoom final : public Commande {
 /* ************************************************************************** */
 
 class CommandeGrapheSupprimeSelection final : public Commande {
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		/* À FAIRE : évenements */
 		auto main = std::any_cast<Main *>(pointeur);
@@ -161,7 +161,7 @@ class CommandeGrapheSupprimeSelection final : public Commande {
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 
-	bool evalue_predicat(std::any const &pointeur, const std::string &/*metadonnee*/) override
+	bool evalue_predicat(std::any const &pointeur, std::string const &/*metadonnee*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;
@@ -186,7 +186,7 @@ class CommandeGrapheSupprimeSelection final : public Commande {
 /* ************************************************************************** */
 
 class CommandeGrapheCentre final : public Commande {
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;
@@ -206,7 +206,7 @@ class CommandeGrapheCentre final : public Commande {
 /* ************************************************************************** */
 
 class CommandeGrapheBasculeExpansion final : public Commande {
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;
@@ -232,7 +232,7 @@ class CommandeGrapheBasculeExpansion final : public Commande {
 /* ************************************************************************** */
 
 class CommandeGrapheSelection final : public Commande {
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;
@@ -283,7 +283,7 @@ class CommandeGrapheSelection final : public Commande {
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees)
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees)
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;
@@ -322,7 +322,7 @@ class CommandeGrapheEntreObjet : public Commande {
 public:
 	CommandeGrapheEntreObjet() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;

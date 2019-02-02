@@ -34,10 +34,10 @@ class SegmentPrim : public Primitive {
 
 public:
 	SegmentPrim();
-	SegmentPrim(const SegmentPrim &other);
+	SegmentPrim(SegmentPrim const &other);
 	~SegmentPrim() override;
 
-	SegmentPrim &operator=(const SegmentPrim &other) = default;
+	SegmentPrim &operator=(SegmentPrim const &other) = default;
 
 	PointList *points();
 

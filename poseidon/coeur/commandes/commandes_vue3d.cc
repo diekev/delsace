@@ -48,7 +48,7 @@ class CommandeZoomCamera : public Commande {
 public:
 	CommandeZoomCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto poseidon = std::any_cast<Poseidon *>(pointeur);
 		auto const delta = donnees.x;
@@ -83,7 +83,7 @@ class CommandeTourneCamera : public Commande {
 public:
 	CommandeTourneCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 
@@ -92,7 +92,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto poseidon = std::any_cast<Poseidon *>(pointeur);
 		auto camera = poseidon->camera;
@@ -120,7 +120,7 @@ class CommandePanCamera : public Commande {
 public:
 	CommandePanCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 
@@ -129,7 +129,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto poseidon = std::any_cast<Poseidon *>(pointeur);
 		auto camera = poseidon->camera;

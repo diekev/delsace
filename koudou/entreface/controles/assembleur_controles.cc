@@ -46,7 +46,7 @@ AssembleurControles::~AssembleurControles()
 	clear();
 }
 
-void AssembleurControles::addWidget(QWidget *widget, const QString &name)
+void AssembleurControles::addWidget(QWidget *widget, QString const &name)
 {
 	auto label = new QLabel(name);
 	m_agencement->addWidget(label, m_compte_items, 0);
@@ -59,7 +59,7 @@ void AssembleurControles::addWidget(QWidget *widget, const QString &name)
 	++m_compte_items;
 }
 
-void AssembleurControles::setTooltip(const QString &tooltip)
+void AssembleurControles::setTooltip(QString const &tooltip)
 {
 	if (m_dernier_controle) {
 		m_dernier_controle->setToolTip(tooltip);
@@ -80,14 +80,14 @@ void AssembleurControles::setVisible(bool yesno)
 	}
 }
 
-void AssembleurControles::setVisible(const QString &name, bool yesno)
+void AssembleurControles::setVisible(QString const &name, bool yesno)
 {
 	widget_pair widgets = m_tableau_controle[name.toStdString()];
 	widgets.first->setVisible(yesno);
 	widgets.second->setVisible(yesno);
 }
 
-void AssembleurControles::addWarning(const QString &warning)
+void AssembleurControles::addWarning(QString const &warning)
 {
 	auto label = new QLabel("Warning");
 	label->setPixmap(QPixmap("icons/warning.png"));

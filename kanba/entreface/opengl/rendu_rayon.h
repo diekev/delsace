@@ -68,7 +68,7 @@ public:
 	/**
 	 * Dessine le texte passé en paramètre dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte);
+	void dessine(ContexteRendu const &contexte);
 };
 
 

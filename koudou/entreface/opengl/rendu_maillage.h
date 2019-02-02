@@ -60,7 +60,7 @@ public:
 	/**
 	 * Dessine le maillage dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte, const Scene &scene);
+	void dessine(ContexteRendu const &contexte, Scene const &scene);
 
 	/**
 	 * Retourne la matrice du maillage.

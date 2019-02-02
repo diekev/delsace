@@ -36,7 +36,7 @@
 #include "objet.h"
 
 template <typename T>
-static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
+static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
 {
 	dls::math::mat4x4f resultat;
 
@@ -103,7 +103,7 @@ Graphe *OperatriceScene::graphe()
 	return &m_graphe;
 }
 
-int OperatriceScene::execute(const Rectangle &rectangle, const int temps)
+int OperatriceScene::execute(Rectangle const &rectangle, const int temps)
 {
 	auto camera = entree(0)->requiers_camera(rectangle, temps);
 

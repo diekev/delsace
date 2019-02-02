@@ -58,7 +58,7 @@ enum {
 	PLAN_XYZ,
 };
 
-bool entresecte_plan(const Plan &plan, const dls::math::point3f &orig, const dls::math::vec3f &dir, float &t);
+bool entresecte_plan(Plan const &plan, dls::math::point3f const &orig, dls::math::vec3f const &dir, float &t);
 
 /* ************************************************************************** */
 
@@ -74,23 +74,23 @@ protected:
 public:
 	virtual ~Manipulatrice3D() = default;
 
-	const dls::math::point3f &pos() const;
+	dls::math::point3f const &pos() const;
 
-	void pos(const dls::math::point3f &pos);
+	void pos(dls::math::point3f const &pos);
 
-	const dls::math::point3f &taille() const;
+	dls::math::point3f const &taille() const;
 
-	void taille(const dls::math::point3f &t);
+	void taille(dls::math::point3f const &t);
 
-	const dls::math::point3f &rotation() const;
+	dls::math::point3f const &rotation() const;
 
-	void rotation(const dls::math::point3f &r);
+	void rotation(dls::math::point3f const &r);
 
 	int etat() const;
 
-	virtual	bool entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir) = 0;
+	virtual	bool entresecte(dls::math::point3f const &orig, dls::math::vec3f const &dir) = 0;
 
-	virtual	void repond_manipulation(const dls::math::vec3f &delta) = 0;
+	virtual	void repond_manipulation(dls::math::vec3f const &delta) = 0;
 };
 
 /* ************************************************************************** */
@@ -131,9 +131,9 @@ class ManipulatricePosition3D final : public Manipulatrice3D {
 public:
 	ManipulatricePosition3D();
 
-	bool entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir) override;
+	bool entresecte(dls::math::point3f const &orig, dls::math::vec3f const &dir) override;
 
-	void repond_manipulation(const dls::math::vec3f &delta) override;
+	void repond_manipulation(dls::math::vec3f const &delta) override;
 };
 
 /* ************************************************************************** */
@@ -174,9 +174,9 @@ class ManipulatriceEchelle3D final : public Manipulatrice3D {
 public:
 	ManipulatriceEchelle3D();
 
-	bool entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir) override;
+	bool entresecte(dls::math::point3f const &orig, dls::math::vec3f const &dir) override;
 
-	void repond_manipulation(const dls::math::vec3f &delta) override;
+	void repond_manipulation(dls::math::vec3f const &delta) override;
 };
 
 /* ************************************************************************** */
@@ -189,7 +189,7 @@ class ManipulatriceRotation3D final : public Manipulatrice3D {
 public:
 	ManipulatriceRotation3D();
 
-	bool entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir) override;
+	bool entresecte(dls::math::point3f const &orig, dls::math::vec3f const &dir) override;
 
-	void repond_manipulation(const dls::math::vec3f &delta) override;
+	void repond_manipulation(dls::math::vec3f const &delta) override;
 };

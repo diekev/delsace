@@ -62,7 +62,7 @@ void controle_enum(AssembleurControles &assembleur, Propriete *prop)
 	auto controle = new ControleEnum;
 	controle->pointeur(std::experimental::any_cast<int>(&prop->donnee));
 
-	for (const PaireNomValeur &item : prop->items_enumeration.paires) {
+	for (PaireNomValeur const &item : prop->items_enumeration.paires) {
 		controle->addItem(item.nom.c_str(), QVariant(item.valeur));
 	}
 
@@ -79,7 +79,7 @@ void bitfield_controle(AssembleurControles &assembleur, Propriete *prop)
 	auto model = new QStandardItemModel(static_cast<int>(prop->items_enumeration.paires.size()), 1);
 	auto index = 0;
 
-	for (const PaireNomValeur &enum_item : prop->items_enumeration.paires) {
+	for (PaireNomValeur const &enum_item : prop->items_enumeration.paires) {
 		//controle->addItem(item.name.c_str(), QVariant(item.value));
 		auto item = new QStandardItem(enum_item.nom.c_str());
 //		item->setText(enum_item.name.c_str());
@@ -173,7 +173,7 @@ void controle_liste(AssembleurControles &assembleur, Propriete *prop)
 	controle->pointeur(ptr);
 	controle->setValue(ptr->c_str());
 
-	for (const PaireNomValeur &item : prop->items_enumeration.paires) {
+	for (PaireNomValeur const &item : prop->items_enumeration.paires) {
 		controle->addField(item.nom.c_str());
 	}
 

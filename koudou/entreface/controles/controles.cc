@@ -191,7 +191,7 @@ void ControleFichier::pointeur(std::string *pointeur)
 	m_pointeur = pointeur;
 }
 
-void ControleFichier::ajourne_valeur_pointee(const QString &valeur)
+void ControleFichier::ajourne_valeur_pointee(QString const &valeur)
 {
 	*m_pointeur = valeur.toStdString();
 	Q_EMIT(controle_change());
@@ -210,7 +210,7 @@ void ControleListe::pointeur(std::string *pointeur)
 	m_pointeur = pointeur;
 }
 
-void ControleListe::ajourne_valeur_pointee(const QString &valeur)
+void ControleListe::ajourne_valeur_pointee(QString const &valeur)
 {
 	*m_pointeur = valeur.toStdString();
 	Q_EMIT(controle_change());

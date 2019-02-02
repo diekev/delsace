@@ -43,7 +43,7 @@ struct PriseEntree {
 	/**
 	 * Construit une prise d'entrée avec le nom passé en paramètre.
 	 */
-	explicit PriseEntree(const std::string &nom_prise);
+	explicit PriseEntree(std::string const &nom_prise);
 
 	PriseEntree(PriseEntree const &) = default;
 	PriseEntree &operator=(PriseEntree const &) = default;
@@ -60,7 +60,7 @@ struct PriseSortie {
 	/**
 	 * Construit une prise de sortie avec le nom passé en paramètre.
 	 */
-	explicit PriseSortie(const std::string &nom_prise);
+	explicit PriseSortie(std::string const &nom_prise);
 
 	PriseSortie(PriseSortie const &) = default;
 	PriseSortie &operator=(PriseSortie const &) = default;
@@ -107,12 +107,12 @@ public:
 	/**
 	 * Ajoute une entrée à ce noeud dont le nom sera le nom passé en paramètre.
 	 */
-	void ajoute_entree(const std::string &nom);
+	void ajoute_entree(std::string const &nom);
 
 	/**
 	 * Ajoute une sortie à ce noeud dont le nom sera le nom passé en paramètre.
 	 */
-	void ajoute_sortie(const std::string &nom);
+	void ajoute_sortie(std::string const &nom);
 
 	/**
 	 * Retourn l'entrée correspondant à l'index donné
@@ -122,7 +122,7 @@ public:
 	/**
 	 * Retourn l'entrée correspondant au nom donné.
 	 */
-	PriseEntree *entree(const std::string &nom);
+	PriseEntree *entree(std::string const &nom);
 
 	/**
 	 * Retourn la sortie correspondant à l'index donné
@@ -132,7 +132,7 @@ public:
 	/**
 	 * Retourn la sortie correspondant au nom donné.
 	 */
-	PriseSortie *sortie(const std::string &nom);
+	PriseSortie *sortie(std::string const &nom);
 
 	/**
 	 * Retourn le vecteur contenant les entrées de ce noeud.

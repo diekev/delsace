@@ -176,7 +176,7 @@ void EditriceProprietes::ajourne_manipulable()
 }
 
 void EditriceProprietes::obtiens_liste(
-		const std::string &attache,
+		std::string const &attache,
 		std::vector<std::string> &chaines)
 {
 	auto graphe = m_mikisa.graphe;

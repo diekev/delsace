@@ -76,9 +76,9 @@ public:
 	void addObject(SceneNode *node);
 	void removeObject(SceneNode *node);
 
-	void entresect(const Ray &ray);
+	void entresect(Ray const &ray);
 
-	void selectObject(const dls::math::vec3f &pos);
+	void selectObject(dls::math::vec3f const &pos);
 
 	Depsgraph *depsgraph();
 
@@ -96,16 +96,16 @@ public:
 	float framesPerSecond() const;
 	void framesPerSecond(float value);
 
-	void updateForNewFrame(const Context &context);
+	void updateForNewFrame(Context const &context);
 
-	const std::vector<SceneNodePtr> &nodes() const;
+	std::vector<SceneNodePtr> const &nodes() const;
 
 	void tagObjectUpdate();
 
-	void evalObjectDag(const Context &context, SceneNode *node);
+	void evalObjectDag(Context const &context, SceneNode *node);
 
-	void connect(const Context &context, SceneNode *node_from, SceneNode *node_to);
-	void disconnect(const Context &context, SceneNode *node_from, SceneNode *node_to);
+	void connect(Context const &context, SceneNode *node_from, SceneNode *node_to);
+	void disconnect(Context const &context, SceneNode *node_from, SceneNode *node_to);
 
 	int flags() const;
 	void set_flags(int flag);

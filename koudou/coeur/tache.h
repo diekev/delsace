@@ -68,12 +68,12 @@ Q_SIGNALS:
 class Tache : public tbb::task {
 protected:
 	std::unique_ptr<NotaireTache> m_notaire = nullptr;
-	const Koudou &m_koudou;
+	Koudou const &m_koudou;
 
 public:
-	explicit Tache(const Koudou &koudou);
+	explicit Tache(Koudou const &koudou);
 
 	tbb::task *execute() override;
 
-	virtual void commence(const Koudou &koudou) = 0;
+	virtual void commence(Koudou const &koudou) = 0;
 };

@@ -43,7 +43,7 @@ enum erreur_fichier {
 	GREFFON_MANQUANT,
 };
 
-erreur_fichier sauvegarde_projet(const filesystem::path &chemin, const Main &main, const Scene *scene);
-erreur_fichier ouvre_projet(const filesystem::path &chemin, const Main &main, const Context &contexte);
+erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Main const &main, const Scene *scene);
+erreur_fichier ouvre_projet(filesystem::path const &chemin, Main const &main, Context const &contexte);
 
 }

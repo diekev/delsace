@@ -48,7 +48,7 @@ class ScopeTimer {
 	std::string m_message;
 
 public:
-	explicit ScopeTimer(const std::string &message)
+	explicit ScopeTimer(std::string const &message)
 	    : m_start(time_dt())
 	    , m_message(message)
 	{}

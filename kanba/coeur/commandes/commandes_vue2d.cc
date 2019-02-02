@@ -54,7 +54,7 @@ class CommandePeinture2D : public Commande {
 public:
 	CommandePeinture2D() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 #if 0
 		std::cerr << __func__ << '\n';
@@ -93,12 +93,12 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		execute(pointeur, donnees);
 	}
 
-	void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		execute(pointeur, donnees);
 	}

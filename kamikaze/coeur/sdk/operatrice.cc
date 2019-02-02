@@ -34,7 +34,7 @@
 
 /* ************************************************************************** */
 
-void execute_operatrice(Operatrice *operatrice, const Context &contexte, double temps)
+void execute_operatrice(Operatrice *operatrice, Context const &contexte, double temps)
 {
 	if (operatrice->a_tampon() && !operatrice->besoin_execution()) {
 		return;
@@ -47,7 +47,7 @@ void execute_operatrice(Operatrice *operatrice, const Context &contexte, double 
 	try {
 		operatrice->execute(contexte, temps);
 	}
-	catch (const std::exception &e) {
+	catch (std::exception const &e) {
 		operatrice->ajoute_avertissement(e.what());
 	}
 
@@ -79,7 +79,7 @@ EntreeOperatrice::EntreeOperatrice(PriseEntree *prise)
 	: m_prise(prise)
 {}
 
-PrimitiveCollection *EntreeOperatrice::requiers_collection(PrimitiveCollection *collection, const Context &contexte, double temps)
+PrimitiveCollection *EntreeOperatrice::requiers_collection(PrimitiveCollection *collection, Context const &contexte, double temps)
 {
 	if (!est_connectee()) {
 		return nullptr;
@@ -129,7 +129,7 @@ bool EntreeOperatrice::est_connectee() const
 
 /* ************************************************************************** */
 
-Operatrice::Operatrice(Noeud *noeud, const Context &contexte)
+Operatrice::Operatrice(Noeud *noeud, Context const &contexte)
 {
 	noeud->operatrice(this);
 	m_collection = new PrimitiveCollection(contexte.primitive_factory);
@@ -244,12 +244,12 @@ void Operatrice::incremente_nombre_execution()
 	m_nombre_executions += 1;
 }
 
-void Operatrice::ajoute_avertissement(const std::string &avertissement)
+void Operatrice::ajoute_avertissement(std::string const &avertissement)
 {
 	m_avertissements.push_back(avertissement);
 }
 
-const std::vector<std::string> &Operatrice::avertissements() const
+std::vector<std::string> const &Operatrice::avertissements() const
 {
 	return m_avertissements;
 }
@@ -279,7 +279,7 @@ std::string Operatrice::chemin_icone() const
 	return m_chemin_icone;
 }
 
-void Operatrice::chemin_icone(const std::string &chemin)
+void Operatrice::chemin_icone(std::string const &chemin)
 {
 	m_chemin_icone = chemin;
 }
@@ -291,7 +291,7 @@ const char *Operatrice::chemin_entreface() const
 
 /* ************************************************************************** */
 
-DescOperatrice::DescOperatrice(const std::string &opname, const std::string &ophelp, const std::string &opcategorie, DescOperatrice::fonction_usine func)
+DescOperatrice::DescOperatrice(std::string const &opname, std::string const &ophelp, std::string const &opcategorie, DescOperatrice::fonction_usine func)
 	: nom(opname)
 	, categorie(opcategorie)
 	, text_aide(ophelp)
@@ -300,7 +300,7 @@ DescOperatrice::DescOperatrice(const std::string &opname, const std::string &oph
 
 /* ************************************************************************** */
 
-size_t UsineOperatrice::enregistre_type(const std::string &nom, DescOperatrice desc)
+size_t UsineOperatrice::enregistre_type(std::string const &nom, DescOperatrice desc)
 {
 	auto const iter = m_tableau.find(nom);
 	assert(iter == m_tableau.end());
@@ -311,22 +311,22 @@ size_t UsineOperatrice::enregistre_type(const std::string &nom, DescOperatrice d
 	return nombre_entrees();
 }
 
-Operatrice *UsineOperatrice::operator()(const std::string &nom, Noeud *noeud, const Context &contexte)
+Operatrice *UsineOperatrice::operator()(std::string const &nom, Noeud *noeud, Context const &contexte)
 {
 	auto const iter = m_tableau.find(nom);
 	assert(iter != m_tableau.end());
 
-	const DescOperatrice &desc = iter->second;
+	DescOperatrice const &desc = iter->second;
 
 	return desc.construction_operatrice(noeud, contexte);
 }
 
-const std::set<std::string> &UsineOperatrice::categories() const
+std::set<std::string> const &UsineOperatrice::categories() const
 {
 	return m_categories;
 }
 
-std::vector<DescOperatrice> UsineOperatrice::cles(const std::string &categorie) const
+std::vector<DescOperatrice> UsineOperatrice::cles(std::string const &categorie) const
 {
 	std::vector<DescOperatrice> v;
 	v.reserve(nombre_entrees());
@@ -342,7 +342,7 @@ std::vector<DescOperatrice> UsineOperatrice::cles(const std::string &categorie) 
 	return v;
 }
 
-bool UsineOperatrice::est_enregistre(const std::string &cle) const
+bool UsineOperatrice::est_enregistre(std::string const &cle) const
 {
 	return (m_tableau.find(cle) != m_tableau.end());
 }

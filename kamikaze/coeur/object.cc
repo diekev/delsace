@@ -32,7 +32,7 @@
 #include "scene.h"
 #include "task.h"
 
-Object::Object(const Context &contexte)
+Object::Object(Context const &contexte)
 	: m_graph(contexte)
 {
 	add_input("Parent");
@@ -55,12 +55,12 @@ void Object::collection(PrimitiveCollection *coll)
 	m_collection = coll;
 }
 
-void Object::matrix(const dls::math::mat4x4d &m)
+void Object::matrix(dls::math::mat4x4d const &m)
 {
 	m_matrix = m;
 }
 
-const dls::math::mat4x4d &Object::matrix() const
+dls::math::mat4x4d const &Object::matrix() const
 {
 	return m_matrix;
 }

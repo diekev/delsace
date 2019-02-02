@@ -44,6 +44,6 @@ public:
 
 	void initialise() override;
 
-	void dessine(const ContexteRendu &contexte) override;
+	void dessine(ContexteRendu const &contexte) override;
 };
 

@@ -39,7 +39,7 @@ numero7::image::Pixel<float> Calque::valeur(size_t x, size_t y) const
 	return tampon[static_cast<int>(y)][static_cast<int>(x)];
 }
 
-void Calque::valeur(size_t x, size_t y, const numero7::image::Pixel<float> &pixel)
+void Calque::valeur(size_t x, size_t y, numero7::image::Pixel<float> const &pixel)
 {
 	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
 	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
@@ -78,7 +78,7 @@ Image::~Image()
 	reinitialise();
 }
 
-Calque *Image::ajoute_calque(const std::string &nom, const Rectangle &rectangle)
+Calque *Image::ajoute_calque(std::string const &nom, Rectangle const &rectangle)
 {
 	auto tampon = new Calque();
 	tampon->nom = nom;
@@ -95,7 +95,7 @@ Calque *Image::ajoute_calque(const std::string &nom, const Rectangle &rectangle)
 	return tampon;
 }
 
-Calque *Image::calque(const std::string &nom) const
+Calque *Image::calque(std::string const &nom) const
 {
 	for (Calque *tampon : m_calques) {
 		if (tampon->nom == nom) {
@@ -127,12 +127,12 @@ void Image::reinitialise(bool garde_memoires)
 	m_calques.clear();
 }
 
-void Image::nom_calque_actif(const std::string &nom)
+void Image::nom_calque_actif(std::string const &nom)
 {
 	m_nom_calque = nom;
 }
 
-const std::string &Image::nom_calque_actif() const
+std::string const &Image::nom_calque_actif() const
 {
 	return m_nom_calque;
 }
@@ -150,7 +150,7 @@ bool EntreeOperatrice::connectee() const
 
 void EntreeOperatrice::requiers_image(
 		Image &image,
-		const Rectangle &rectangle,
+		Rectangle const &rectangle,
 		const int temps)
 {
 	auto lien = m_ptr->lien;
@@ -170,7 +170,7 @@ void EntreeOperatrice::requiers_image(
 	}
 }
 
-vision::Camera3D *EntreeOperatrice::requiers_camera(const Rectangle &rectangle, const int temps)
+vision::Camera3D *EntreeOperatrice::requiers_camera(Rectangle const &rectangle, const int temps)
 {
 	auto lien = m_ptr->lien;
 
@@ -186,7 +186,7 @@ vision::Camera3D *EntreeOperatrice::requiers_camera(const Rectangle &rectangle, 
 	return operatrice->camera();
 }
 
-Objet *EntreeOperatrice::requiers_objet(const Rectangle &rectangle, const int temps)
+Objet *EntreeOperatrice::requiers_objet(Rectangle const &rectangle, const int temps)
 {
 	auto lien = m_ptr->lien;
 
@@ -202,7 +202,7 @@ Objet *EntreeOperatrice::requiers_objet(const Rectangle &rectangle, const int te
 	return operatrice->objet();
 }
 
-TextureImage *EntreeOperatrice::requiers_texture(const Rectangle &rectangle, const int temps)
+TextureImage *EntreeOperatrice::requiers_texture(Rectangle const &rectangle, const int temps)
 {
 	auto lien = m_ptr->lien;
 
@@ -218,7 +218,7 @@ TextureImage *EntreeOperatrice::requiers_texture(const Rectangle &rectangle, con
 	return operatrice->texture();
 }
 
-const Corps *EntreeOperatrice::requiers_corps(const Rectangle &rectangle, const int temps)
+const Corps *EntreeOperatrice::requiers_corps(Rectangle const &rectangle, const int temps)
 {
 	auto lien = m_ptr->lien;
 
@@ -235,7 +235,7 @@ const Corps *EntreeOperatrice::requiers_corps(const Rectangle &rectangle, const 
 	return operatrice->corps();
 }
 
-Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, const Rectangle &rectangle, const int temps)
+Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, Rectangle const &rectangle, const int temps)
 {
 	auto corps_lien = this->requiers_corps(rectangle, temps);
 
@@ -387,7 +387,7 @@ void OperatriceImage::transfere_image(Image &image)
 	m_image.reinitialise(true);
 }
 
-void OperatriceImage::ajoute_avertissement(const std::string &avertissement)
+void OperatriceImage::ajoute_avertissement(std::string const &avertissement)
 {
 	m_avertissements.push_back(avertissement);
 }
@@ -397,7 +397,7 @@ void OperatriceImage::reinitialise_avertisements()
 	m_avertissements.clear();
 }
 
-const std::vector<std::string> &OperatriceImage::avertissements() const
+std::vector<std::string> const &OperatriceImage::avertissements() const
 {
 	return m_avertissements;
 }
@@ -442,7 +442,7 @@ void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*t
 	/* rien à faire par défaut */
 }
 
-void OperatriceImage::obtiens_liste(const std::string &/*attache*/, std::vector<std::string> &chaines) const
+void OperatriceImage::obtiens_liste(std::string const &/*attache*/, std::vector<std::string> &chaines) const
 {
 	if (entrees() == 0) {
 		chaines.clear();

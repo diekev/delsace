@@ -235,7 +235,7 @@ SelecteurFichier::SelecteurFichier(bool input, QWidget *parent)
 	connect(m_push_button, SIGNAL(clicked()), this, SLOT(setChoosenFile()));
 }
 
-void SelecteurFichier::setValue(const QString &text)
+void SelecteurFichier::setValue(QString const &text)
 {
 	m_line_edit->setText(text);
 }
@@ -273,13 +273,13 @@ SelecteurListe::~SelecteurListe()
 	delete m_list_widget;
 }
 
-void SelecteurListe::addField(const QString &text)
+void SelecteurListe::addField(QString const &text)
 {
 	auto action = m_list_widget->addAction(text);
 	connect(action, SIGNAL(triggered()), this, SLOT(handleClick()));
 }
 
-void SelecteurListe::setValue(const QString &text)
+void SelecteurListe::setValue(QString const &text)
 {
 	m_line_edit->setText(text);
 }

@@ -122,7 +122,7 @@ void RenduMaillage::initialise()
 	m_tampon_arrete = genere_tampon_arrete(m_maillage);
 }
 
-void RenduMaillage::dessine(const ContexteRendu &contexte)
+void RenduMaillage::dessine(ContexteRendu const &contexte)
 {
 	m_tampon_arrete->dessine(contexte);
 }

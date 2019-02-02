@@ -171,7 +171,7 @@ void RenduCamera::initialise()
 
 /* ************************************************************************** */
 
-static TamponRendu *cree_tampon(const dls::math::vec4f &couleur)
+static TamponRendu *cree_tampon(dls::math::vec4f const &couleur)
 {
 	auto tampon = new TamponRendu;
 
@@ -276,7 +276,7 @@ void RenduCamera::initialise()
 	m_tampon_polys->remplie_tampon(parametres_tampon);
 }
 
-void RenduCamera::dessine(const ContexteRendu &contexte)
+void RenduCamera::dessine(ContexteRendu const &contexte)
 {
 	glEnable(GL_BLEND);
 

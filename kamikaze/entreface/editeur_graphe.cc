@@ -77,7 +77,7 @@ EditriceGraphe::~EditriceGraphe()
 	delete m_graphics_scene;
 }
 
-QGraphicsItem *EditriceGraphe::itemAtExceptActiveConnexion(const QPointF &pos)
+QGraphicsItem *EditriceGraphe::itemAtExceptActiveConnexion(QPointF const &pos)
 {
 	auto const &items = m_graphics_scene->items(QRectF(pos - QPointF(1, 1), QSize(3, 3)));
 	auto const is_active = (m_active_connexion != nullptr);
@@ -925,7 +925,7 @@ void EditriceGraphe::setActiveObject(ObjectNodeItem *node)
 	m_context->scene->set_active_node(node->scene_node());
 }
 
-void EditriceGraphe::nodesConnected(QtNode *from, const QString &socket_from, QtNode *to, const QString &socket_to, bool notify)
+void EditriceGraphe::nodesConnected(QtNode *from, QString const &socket_from, QtNode *to, QString const &socket_to, bool notify)
 {
 	auto scene = m_context->scene;
 
@@ -959,7 +959,7 @@ void EditriceGraphe::nodesConnected(QtNode *from, const QString &socket_from, Qt
 	}
 }
 
-void EditriceGraphe::connexionRemoved(QtNode *from, const QString &socket_from, QtNode *to, const QString &socket_to, bool notify)
+void EditriceGraphe::connexionRemoved(QtNode *from, QString const &socket_from, QtNode *to, QString const &socket_to, bool notify)
 {
 	auto scene = m_context->scene;
 

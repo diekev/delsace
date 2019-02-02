@@ -102,7 +102,7 @@ void RenduParticules::initialise()
 	m_tampon->remplie_tampon(parametres);
 }
 
-void RenduParticules::dessine(const ContexteRendu &contexte)
+void RenduParticules::dessine(ContexteRendu const &contexte)
 {
 	m_tampon->dessine(contexte);
 }

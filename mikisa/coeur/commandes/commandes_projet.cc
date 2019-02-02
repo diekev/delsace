@@ -35,7 +35,7 @@
 
 /* ************************************************************************** */
 
-static void ouvre_fichier_implementation(Mikisa &mikisa, const std::string &chemin_projet)
+static void ouvre_fichier_implementation(Mikisa &mikisa, std::string const &chemin_projet)
 {
 	auto const erreur = coeur::ouvre_projet(chemin_projet, mikisa);
 
@@ -70,7 +70,7 @@ static void ouvre_fichier_implementation(Mikisa &mikisa, const std::string &chem
 
 class CommandeOuvrir final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto const chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE);
@@ -89,7 +89,7 @@ public:
 
 class CommandeOuvrirRecent final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		ouvre_fichier_implementation(*mikisa, donnees.metadonnee);
@@ -112,7 +112,7 @@ static void sauve_fichier_sous(Mikisa &mikisa)
 
 class CommandeSauvegarder final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
@@ -131,7 +131,7 @@ public:
 
 class CommandeSauvegarderSous final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		sauve_fichier_sous(*mikisa);

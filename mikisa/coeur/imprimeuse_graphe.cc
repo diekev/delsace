@@ -220,7 +220,7 @@ ImprimeuseGraphe::ImprimeuseGraphe(Graphe *graph)
     : m_graph(graph)
 {}
 
-void ImprimeuseGraphe::operator()(const filesystem::path &path)
+void ImprimeuseGraphe::operator()(filesystem::path const &path)
 {
 	numero7::systeme_fichier::File file(path, "w");
 

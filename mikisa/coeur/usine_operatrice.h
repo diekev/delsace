@@ -37,7 +37,7 @@ struct DescOperatrice {
 
 	DescOperatrice() = default;
 
-	DescOperatrice(const std::string &opname, const std::string &ophelp, factory_func func)
+	DescOperatrice(std::string const &opname, std::string const &ophelp, factory_func func)
 	    : name(opname)
 	    , tooltip(ophelp)
 	    , build_operator(func)
@@ -69,7 +69,7 @@ public:
 	 *
 	 * @return The number of entries after registering the new element.
 	 */
-	size_t enregistre_type(const DescOperatrice &desc);
+	size_t enregistre_type(DescOperatrice const &desc);
 
 	/**
 	 * @brief operator() Create a ImageNode based on the given key.
@@ -77,7 +77,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return A new ImageNode object corresponding to the given key.
 	 */
-	OperatriceImage *operator()(const std::string &name, Graphe &graphe_parent, Noeud *noeud);
+	OperatriceImage *operator()(std::string const &name, Graphe &graphe_parent, Noeud *noeud);
 
 	/**
 	 * @brief num_entries The number of entries registered in this factory.
@@ -103,7 +103,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return True if the key is found, false otherwise.
 	 */
-	bool registered(const std::string &key) const;
+	bool registered(std::string const &key) const;
 
 private:
 	std::unordered_map<std::string, DescOperatrice> m_map{};

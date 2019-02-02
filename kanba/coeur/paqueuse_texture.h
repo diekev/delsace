@@ -74,7 +74,7 @@ public:
 
 	~PaqueuseTexture();
 
-	PaqueuseTexture(const PaqueuseTexture &) = delete;
+	PaqueuseTexture(PaqueuseTexture const &) = delete;
 	PaqueuseTexture &operator=(PaqueuseTexture const &) = delete;
 
 	/**

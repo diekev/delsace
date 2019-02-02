@@ -36,4 +36,4 @@ enum {
 
 void synchronise_donnees_operatrice(Noeud *noeud);
 
-void execute_noeud(Noeud *noeud, const Rectangle &rectangle, const int temps);
+void execute_noeud(Noeud *noeud, Rectangle const &rectangle, const int temps);

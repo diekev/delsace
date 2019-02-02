@@ -119,7 +119,7 @@ public:
 	/**
 	 * Ajoute les valeurs des coefficients du spectre spécifié à celui-ci.
 	 */
-	SpectreCoefficient &operator+=(const SpectreCoefficient &spectre)
+	SpectreCoefficient &operator+=(SpectreCoefficient const &spectre)
 	{
 		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			m_coefficients[i] += spectre.m_coefficients[i];
@@ -131,7 +131,7 @@ public:
 	/**
 	 * Soustrait les valeurs des coefficients du spectre spécifié de celui-ci.
 	 */
-	SpectreCoefficient &operator-=(const SpectreCoefficient &spectre)
+	SpectreCoefficient &operator-=(SpectreCoefficient const &spectre)
 	{
 		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			m_coefficients[i] -= spectre.m_coefficients[i];
@@ -144,7 +144,7 @@ public:
 	 * Multiplie les valeurs des coefficients de ce spectre par celles du
 	 * spectre spécifié.
 	 */
-	SpectreCoefficient &operator*=(const SpectreCoefficient &spectre)
+	SpectreCoefficient &operator*=(SpectreCoefficient const &spectre)
 	{
 		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			m_coefficients[i] *= spectre.m_coefficients[i];
@@ -170,7 +170,7 @@ public:
 	 * Divise les valeurs des coefficients de ce spectre par celles du
 	 * spectre spécifié.
 	 */
-	SpectreCoefficient &operator/=(const SpectreCoefficient &spectre)
+	SpectreCoefficient &operator/=(SpectreCoefficient const &spectre)
 	{
 		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			if (m_coefficients[i] == 0.0f || spectre.m_coefficients[i] == 0.0f) {
@@ -187,7 +187,7 @@ public:
 	 * Divise les valeurs des coefficients de ce spectre par celles du
 	 * spectre spécifié.
 	 */
-	SpectreCoefficient &operator/=(const float &valeur)
+	SpectreCoefficient &operator/=(float const &valeur)
 	{
 		for (unsigned i = 0; i < NombreCoefficients; ++i) {
 			if (m_coefficients[i] == 0.0f || valeur == 0.0f) {
@@ -250,8 +250,8 @@ public:
  */
 template <unsigned int NombreCoefficients>
 inline auto operator+(
-		const SpectreCoefficient<NombreCoefficients> &a,
-		const SpectreCoefficient<NombreCoefficients> &b)
+		SpectreCoefficient<NombreCoefficients> const &a,
+		SpectreCoefficient<NombreCoefficients> const &b)
 {
 	SpectreCoefficient tmp(a);
 	tmp += b;
@@ -264,8 +264,8 @@ inline auto operator+(
  */
 template <unsigned int NombreCoefficients>
 inline auto operator-(
-		const SpectreCoefficient<NombreCoefficients> &a,
-		const SpectreCoefficient<NombreCoefficients> &b)
+		SpectreCoefficient<NombreCoefficients> const &a,
+		SpectreCoefficient<NombreCoefficients> const &b)
 {
 	SpectreCoefficient tmp(a);
 	tmp -= b;
@@ -278,8 +278,8 @@ inline auto operator-(
  */
 template <unsigned int NombreCoefficients>
 inline auto operator*(
-		const SpectreCoefficient<NombreCoefficients> &a,
-		const SpectreCoefficient<NombreCoefficients> &b)
+		SpectreCoefficient<NombreCoefficients> const &a,
+		SpectreCoefficient<NombreCoefficients> const &b)
 {
 	SpectreCoefficient tmp(a);
 	tmp *= b;
@@ -293,7 +293,7 @@ inline auto operator*(
 template <unsigned int NombreCoefficients>
 inline auto operator*(
 		const float a,
-		const SpectreCoefficient<NombreCoefficients> &b)
+		SpectreCoefficient<NombreCoefficients> const &b)
 {
 	SpectreCoefficient<NombreCoefficients> tmp(a);
 	tmp *= b;
@@ -306,7 +306,7 @@ inline auto operator*(
  */
 template <unsigned int NombreCoefficients>
 inline auto operator*(
-		const SpectreCoefficient<NombreCoefficients> &a,
+		SpectreCoefficient<NombreCoefficients> const &a,
 		const float b)
 {
 	SpectreCoefficient<NombreCoefficients> tmp(b);
@@ -320,8 +320,8 @@ inline auto operator*(
  */
 template <unsigned int NombreCoefficients>
 inline auto operator/(
-		const SpectreCoefficient<NombreCoefficients> &a,
-		const SpectreCoefficient<NombreCoefficients> &b)
+		SpectreCoefficient<NombreCoefficients> const &a,
+		SpectreCoefficient<NombreCoefficients> const &b)
 {
 	SpectreCoefficient tmp(a);
 	tmp /= b;
@@ -334,8 +334,8 @@ inline auto operator/(
  */
 template <unsigned int NombreCoefficients>
 inline auto operator/(
-		const SpectreCoefficient<NombreCoefficients> &a,
-		const float &b)
+		SpectreCoefficient<NombreCoefficients> const &a,
+		float const &b)
 {
 	SpectreCoefficient<NombreCoefficients> tmp(a);
 	tmp /= b;
@@ -348,8 +348,8 @@ inline auto operator/(
  */
 template <unsigned int NombreCoefficients>
 inline auto operator/(
-		const float &a,
-		const SpectreCoefficient<NombreCoefficients> &b)
+		float const &a,
+		SpectreCoefficient<NombreCoefficients> const &b)
 {
 	SpectreCoefficient<NombreCoefficients> tmp(a);
 	tmp /= b;
@@ -361,7 +361,7 @@ inline auto operator/(
  * coefficients du spectre spécifié.
  */
 template <unsigned int NombreCoefficients>
-inline auto racine_carre(const SpectreCoefficient<NombreCoefficients> &spectre)
+inline auto racine_carre(SpectreCoefficient<NombreCoefficients> const &spectre)
 {
 	SpectreCoefficient<NombreCoefficients> resultat;
 
@@ -377,7 +377,7 @@ inline auto racine_carre(const SpectreCoefficient<NombreCoefficients> &spectre)
  * spectre spécifié élévés à la puissance exposant.
  */
 template <unsigned int NombreCoefficients>
-inline auto puissance(const SpectreCoefficient<NombreCoefficients> &spectre, float exposant)
+inline auto puissance(SpectreCoefficient<NombreCoefficients> const &spectre, float exposant)
 {
 	SpectreCoefficient<NombreCoefficients> resultat;
 
@@ -393,7 +393,7 @@ inline auto puissance(const SpectreCoefficient<NombreCoefficients> &spectre, flo
  * coefficients du spectre spécifié.
  */
 template <unsigned int NombreCoefficients>
-inline auto exponentielle(const SpectreCoefficient<NombreCoefficients> &spectre)
+inline auto exponentielle(SpectreCoefficient<NombreCoefficients> const &spectre)
 {
 	SpectreCoefficient<NombreCoefficients> resultat;
 
@@ -410,8 +410,8 @@ inline auto exponentielle(const SpectreCoefficient<NombreCoefficients> &spectre)
  */
 template <unsigned int NombreCoefficients>
 inline auto entrepolation_lineaire(
-		const SpectreCoefficient<NombreCoefficients> &a,
-		const SpectreCoefficient<NombreCoefficients> &b,
+		SpectreCoefficient<NombreCoefficients> const &a,
+		SpectreCoefficient<NombreCoefficients> const &b,
 		float t)
 {
 	return (1.0f - t) * a + t * b;
@@ -423,7 +423,7 @@ inline auto entrepolation_lineaire(
  */
 template <unsigned int NombreCoefficients>
 inline auto restreint(
-		const SpectreCoefficient<NombreCoefficients> &spectre,
+		SpectreCoefficient<NombreCoefficients> const &spectre,
 		const float min = 0.0,
 		const float max = INFINITEF)
 {
@@ -480,9 +480,9 @@ public:
 	explicit SpectreEchantillon(const float coefficient = 0.0);
 
 	/* cppcheck-suppress noExplicitConstructor */
-	SpectreEchantillon(const SpectreCoefficient<NOMBRE_ECHANTILLONS> &spectre);
+	SpectreEchantillon(SpectreCoefficient<NOMBRE_ECHANTILLONS> const &spectre);
 
-	SpectreEchantillon(const SpectreRGB &r, TypeSpectre t);
+	SpectreEchantillon(SpectreRGB const &r, TypeSpectre t);
 
 	static SpectreEchantillon depuis_echantillons(const float *lambda, const float *v, size_t n);
 
@@ -501,7 +501,7 @@ public:
 	static void initialisation();
 };
 
-inline auto entrepolation_lineaire(const SpectreEchantillon &a, const SpectreEchantillon &b, const float t)
+inline auto entrepolation_lineaire(SpectreEchantillon const &a, SpectreEchantillon const &b, const float t)
 {
 	return (1.0f - t) * a + t * b;
 }
@@ -515,9 +515,9 @@ public:
 	explicit SpectreRGB(double valeur);
 
 	/* cppcheck-suppress noExplicitConstructor */
-	SpectreRGB(const SpectreCoefficient<3> &spectre);
+	SpectreRGB(SpectreCoefficient<3> const &spectre);
 
-	SpectreRGB(const SpectreRGB &spectre, TypeSpectre type = SPECTRE_REFLECTANCE);
+	SpectreRGB(SpectreRGB const &spectre, TypeSpectre type = SPECTRE_REFLECTANCE);
 
 	static SpectreRGB depuis_rgb(float rgb[3], TypeSpectre type = SPECTRE_REFLECTANCE);
 
@@ -536,12 +536,12 @@ public:
 	float y() const;
 };
 
-inline auto entrepolation_lineaire(const SpectreRGB &a, const SpectreRGB &b, const float t)
+inline auto entrepolation_lineaire(SpectreRGB const &a, SpectreRGB const &b, const float t)
 {
 	return (1.0f - t) * a + t * b;
 }
 
-inline bool operator==(const SpectreRGB &a, const SpectreRGB &b)
+inline bool operator==(SpectreRGB const &a, SpectreRGB const &b)
 {
 	for (size_t i = 0; i < 3; ++i) {
 		if (std::abs(a[i] - b[i]) > 1e-6f) {
@@ -552,12 +552,12 @@ inline bool operator==(const SpectreRGB &a, const SpectreRGB &b)
 	return true;
 }
 
-inline bool operator!=(const SpectreRGB &a, const SpectreRGB &b)
+inline bool operator!=(SpectreRGB const &a, SpectreRGB const &b)
 {
 	return !(a == b);
 }
 
-inline bool operator<(const SpectreRGB &a, const SpectreRGB &b)
+inline bool operator<(SpectreRGB const &a, SpectreRGB const &b)
 {
 	for (size_t i = 0; i < 3; ++i) {
 		if (a[i] > b[i]) {
@@ -568,12 +568,12 @@ inline bool operator<(const SpectreRGB &a, const SpectreRGB &b)
 	return true;
 }
 
-inline bool operator<=(const SpectreRGB &a, const SpectreRGB &b)
+inline bool operator<=(SpectreRGB const &a, SpectreRGB const &b)
 {
 	return (a == b) || (a < b);
 }
 
-inline bool operator>(const SpectreRGB &a, const SpectreRGB &b)
+inline bool operator>(SpectreRGB const &a, SpectreRGB const &b)
 {
 	for (size_t i = 0; i < 3; ++i) {
 		if (a[i] > b[i]) {
@@ -584,7 +584,7 @@ inline bool operator>(const SpectreRGB &a, const SpectreRGB &b)
 	return true;
 }
 
-inline bool operator>=(const SpectreRGB &a, const SpectreRGB &b)
+inline bool operator>=(SpectreRGB const &a, SpectreRGB const &b)
 {
 	return (a == b) || (a > b);
 }

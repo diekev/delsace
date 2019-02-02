@@ -48,7 +48,7 @@ CompileuseGraphe::CompileuseGraphe()
 	, m_decalage(0)
 {}
 
-void CompileuseGraphe::ajoute_noeud(const dls::math::vec3f &v)
+void CompileuseGraphe::ajoute_noeud(dls::math::vec3f const &v)
 {
 	this->ajoute_noeud(v.x, v.y, v.z);
 }
@@ -85,12 +85,12 @@ size_t CompileuseGraphe::decalage_pile(PriseSortie *prise)
 	return prise->decalage_pile;
 }
 
-void CompileuseGraphe::stocke_decimal(size_t decalage, const float &v)
+void CompileuseGraphe::stocke_decimal(size_t decalage, float const &v)
 {
 	m_pile[decalage++] = v;
 }
 
-void CompileuseGraphe::stocke_vec3f(size_t decalage, const dls::math::vec3f &v)
+void CompileuseGraphe::stocke_vec3f(size_t decalage, dls::math::vec3f const &v)
 {
 	m_pile[decalage++] = v.x;
 	m_pile[decalage++] = v.y;

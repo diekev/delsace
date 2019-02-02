@@ -46,7 +46,7 @@ Maillage::~Maillage()
 	}
 }
 
-void Maillage::ajoute_sommet(const dls::math::vec3f &coord)
+void Maillage::ajoute_sommet(dls::math::vec3f const &coord)
 {
 	auto sommet = new Sommet();
 	sommet->pos = coord;
@@ -108,22 +108,22 @@ void Maillage::ajoute_quad(const int s0, const int s1, const int s2, const int s
 	m_polys.push_back(poly);
 }
 
-const std::string &Maillage::nom() const
+std::string const &Maillage::nom() const
 {
 	return m_nom;
 }
 
-void Maillage::nom(const std::string &nom)
+void Maillage::nom(std::string const &nom)
 {
 	m_nom = nom;
 }
 
-void Maillage::transformation(const math::transformation &transforme)
+void Maillage::transformation(math::transformation const &transforme)
 {
 	m_transformation = transforme;
 }
 
-const math::transformation &Maillage::transformation() const
+math::transformation const &Maillage::transformation() const
 {
 	return m_transformation;
 }
@@ -180,17 +180,17 @@ void Maillage::calcule_boite_englobante()
 	m_taille = m_max - m_min;
 }
 
-const dls::math::vec3f &Maillage::min() const
+dls::math::vec3f const &Maillage::min() const
 {
 	return m_min;
 }
 
-const dls::math::vec3f &Maillage::max() const
+dls::math::vec3f const &Maillage::max() const
 {
 	return m_max;
 }
 
-const dls::math::vec3f &Maillage::taille() const
+dls::math::vec3f const &Maillage::taille() const
 {
 	return m_taille;
 }

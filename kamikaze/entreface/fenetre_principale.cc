@@ -190,7 +190,7 @@ void FenetrePrincipale::genere_menu_noeud()
 		auto cles = m_main->usine_operatrice().cles(categorie);
 
 		std::sort(cles.begin(), cles.end(),
-				  [](const DescOperatrice &desc1, const DescOperatrice &desc2)
+				  [](DescOperatrice const &desc1, DescOperatrice const &desc2)
 		{
 			return desc1.nom < desc2.nom;
 		});

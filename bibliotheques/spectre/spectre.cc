@@ -32,7 +32,7 @@
 /* ************************************************************************** */
 
 template <typename Predicate>
-auto trouve_entrevalle(size_t taille, const Predicate &predicat)
+auto trouve_entrevalle(size_t taille, Predicate const &predicat)
 {
 	auto debut = 0ul, longueur = taille;
 
@@ -376,11 +376,11 @@ SpectreEchantillon::SpectreEchantillon(const float coefficient)
 	: SpectreCoefficient<NOMBRE_ECHANTILLONS>(coefficient)
 {}
 
-SpectreEchantillon::SpectreEchantillon(const SpectreCoefficient<NOMBRE_ECHANTILLONS> &spectre)
+SpectreEchantillon::SpectreEchantillon(SpectreCoefficient<NOMBRE_ECHANTILLONS> const &spectre)
 	: SpectreCoefficient<NOMBRE_ECHANTILLONS>(spectre)
 {}
 
-SpectreEchantillon::SpectreEchantillon::SpectreEchantillon(const SpectreRGB &r, TypeSpectre t)
+SpectreEchantillon::SpectreEchantillon::SpectreEchantillon(SpectreRGB const &r, TypeSpectre t)
 {
 	float rgb[3];
 	r.vers_rvb(rgb);
@@ -644,11 +644,11 @@ SpectreRGB::SpectreRGB(double valeur)
 	: SpectreCoefficient<3>(static_cast<float>(valeur))
 {}
 
-SpectreRGB::SpectreRGB(const SpectreCoefficient<3> &spectre)
+SpectreRGB::SpectreRGB(SpectreCoefficient<3> const &spectre)
 	: SpectreCoefficient<3>(spectre)
 {}
 
-SpectreRGB::SpectreRGB(const SpectreRGB &spectre, TypeSpectre type)
+SpectreRGB::SpectreRGB(SpectreRGB const &spectre, TypeSpectre type)
 	: SpectreCoefficient<3>()
 {
 	INUTILISE(type);

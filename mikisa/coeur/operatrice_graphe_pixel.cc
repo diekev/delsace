@@ -68,7 +68,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -115,7 +115,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -162,7 +162,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -190,7 +190,7 @@ public:
 void execute_graphe(
 		CompileuseGraphe::iterateur debut,
 		CompileuseGraphe::iterateur fin,
-		const couleur32 &entree,
+		couleur32 const &entree,
 		couleur32 &sortie)
 {
 	auto courant = debut;
@@ -304,7 +304,7 @@ int OperatriceGraphePixel::type() const
 	return OPERATRICE_GRAPHE_PIXEL;
 }
 
-int OperatriceGraphePixel::execute(const Rectangle &rectangle, const int temps)
+int OperatriceGraphePixel::execute(Rectangle const &rectangle, const int temps)
 {
 	Calque *tampon = nullptr;
 
@@ -325,7 +325,7 @@ int OperatriceGraphePixel::execute(const Rectangle &rectangle, const int temps)
 	compile_graphe(temps);
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(rectangle.hauteur)),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		/* fais une copie locale pour éviter les problèmes de concurrence
 		 * critique */

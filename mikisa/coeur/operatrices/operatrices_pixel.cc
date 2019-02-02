@@ -120,7 +120,7 @@ public:
 		m_saturation = evalue_decimal("saturation", temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -200,7 +200,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		/* Call node upstream. */
 		entree(0)->requiers_image(m_image, rectangle, temps);
@@ -310,7 +310,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		/* Call node upstream. */
 		entree(0)->requiers_image(m_image, rectangle, temps);
@@ -378,7 +378,7 @@ public:
 		}
 
 		boucle_parallele(tbb::blocked_range<size_t>(0ul, static_cast<size_t>(rectangle.hauteur)),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 		{
 			for (size_t l = plage.begin(); l < plage.end(); ++l) {
 				for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {
@@ -529,7 +529,7 @@ public:
 		m_rng.seed(19937);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -580,7 +580,7 @@ public:
 		m_couleur = evalue_couleur("couleur_constante");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(pixel);
 		INUTILISE(x);
@@ -672,7 +672,7 @@ public:
 		m_rampe = evalue_rampe_couleur("degrade");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		numero7::image::Pixel<float> resultat = pixel;
 		float valeur = m_decalage;
@@ -753,7 +753,7 @@ public:
 		m_dimensions = (dimensions == "3D") ? 3 : 1;
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(pixel);
 		auto somme_x = 0.0f;
@@ -859,7 +859,7 @@ public:
 
 /* ************************************************************************** */
 
-numero7::image::Pixel<float> converti_en_pixel(const couleur32 &v)
+numero7::image::Pixel<float> converti_en_pixel(couleur32 const &v)
 {
 	numero7::image::Pixel<float> pixel;
 	pixel.r = v[0];
@@ -986,7 +986,7 @@ public:
 		m_entrepolation_lineaire |= (B != numero7::image::Pixel<float>(0.0f));
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1132,7 +1132,7 @@ public:
 		m_gamma = evalue_decimal("gamma", temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1230,7 +1230,7 @@ public:
 		m_exposition = std::pow(2.0f, evalue_decimal("exposition", temps));
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		auto resultat = pixel;
 		auto besoin_correction_gamma = true;
@@ -1363,7 +1363,7 @@ public:
 		m_puissance = evalue_couleur("puissance");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1414,7 +1414,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1471,7 +1471,7 @@ public:
 		m_b = evalue_decimal("b");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1551,7 +1551,7 @@ public:
 		m_inverse = evalue_bool("inverse");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1603,7 +1603,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1665,7 +1665,7 @@ public:
 		m_contraste = evalue_decimal("contraste", temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1726,7 +1726,7 @@ public:
 		m_courbe = evalue_courbe_couleur("courbe");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1790,7 +1790,7 @@ public:
 		m_neuf_max = evalue_couleur("neuf_max");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1844,7 +1844,7 @@ public:
 		m_neuf_max = evalue_couleur("neuf_max");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1933,7 +1933,7 @@ static dls::math::mat4x4f matrices_daltonisme[] = {
 	},
 };
 
-auto operator*(const numero7::image::Pixel<float> &p, const dls::math::mat4x4f &m)
+auto operator*(numero7::image::Pixel<float> const &p, dls::math::mat4x4f const &m)
 {
 	numero7::image::Pixel<float> r;
 	r.r = p.r * m[0][0] + p.g * m[0][1] + p.b * m[0][2] + p.a * m[0][3];
@@ -2006,7 +2006,7 @@ public:
 		}
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(const numero7::image::Pixel<float> &pixel, const float x, const float y) override
+	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);

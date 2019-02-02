@@ -33,7 +33,7 @@ size_t SegmentPrim::id = -1ul;
 SegmentPrim::SegmentPrim()
 {}
 
-SegmentPrim::SegmentPrim(const SegmentPrim &other)
+SegmentPrim::SegmentPrim(SegmentPrim const &other)
     : Primitive(other)
 {
 	/* Copy points. */

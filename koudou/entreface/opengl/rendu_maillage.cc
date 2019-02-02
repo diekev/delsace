@@ -39,9 +39,9 @@
 
 template <typename T>
 static auto moyenne(
-		const dls::math::vec3<T> &v0,
-		const dls::math::vec3<T> &v1,
-		const dls::math::vec3<T> &v2)
+		dls::math::vec3<T> const &v0,
+		dls::math::vec3<T> const &v1,
+		dls::math::vec3<T> const &v2)
 {
 	return (v0 + v1 + v2) / static_cast<T>(3);
 }
@@ -213,7 +213,7 @@ void RenduMaillage::initialise()
 	genere_tampon_normal();
 }
 
-void RenduMaillage::dessine(const ContexteRendu &contexte, const Scene &scene)
+void RenduMaillage::dessine(ContexteRendu const &contexte, Scene const &scene)
 {
 	Spectre spectre(1.0f);
 	auto nuanceur = m_maillage->nuanceur();

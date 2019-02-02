@@ -162,7 +162,7 @@ void FenetrePrincipale::genere_barre_menu()
 			this, SLOT(mis_a_jour_menu_fichier_recent()));
 }
 
-QDockWidget *FenetrePrincipale::ajoute_dock(const QString &nom, int type, int aire, QDockWidget *premier)
+QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier)
 {
 	BaseEditrice *editrice = nullptr;
 

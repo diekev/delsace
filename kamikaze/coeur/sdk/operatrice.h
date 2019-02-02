@@ -74,7 +74,7 @@ public:
 	 */
 	PrimitiveCollection *requiers_collection(
 			PrimitiveCollection *collection,
-			const Context &contexte,
+			Context const &contexte,
 			double temps);
 
 	/**
@@ -140,7 +140,7 @@ public:
 	/**
 	 * Constuit un opérateur dont le noeud passé en paramètre en est le parent.
 	 */
-	Operatrice(Noeud *noeud, const Context &contexte);
+	Operatrice(Noeud *noeud, Context const &contexte);
 
 	/**
 	 * Détruit l'opérateur. Le destruteur détruit également la collection
@@ -196,7 +196,7 @@ public:
 	/**
 	 * Exécute cet opérateur dans le contexte et au temps passés en paramètre.
 	 */
-	virtual void execute(const Context &contexte, double temps) = 0;
+	virtual void execute(Context const &contexte, double temps) = 0;
 
 	/**
 	 * Retourne la collection de cet opérateur.
@@ -261,12 +261,12 @@ public:
 	/**
 	 * Ajoute un avertissement à la liste d'avertissements de cet opérateur.
 	 */
-	void ajoute_avertissement(const std::string &avertissement);
+	void ajoute_avertissement(std::string const &avertissement);
 
 	/**
 	 * Retourne la liste d'avertissements de cet opérateur.
 	 */
-	const std::vector<std::string> &avertissements() const;
+	std::vector<std::string> const &avertissements() const;
 
 	/**
 	 * Retourne si oui ou non cet opérateur a des avertissements.
@@ -297,7 +297,7 @@ public:
 	/**
 	 * Modifie le chemin de l'icone de cet opérateur.
 	 */
-	void chemin_icone(const std::string &chemin);
+	void chemin_icone(std::string const &chemin);
 
 	/**
 	 * Retourne le nom de cet opérateur.
@@ -319,7 +319,7 @@ public:
  * seront exécutés de manière récursive, et les temps d'exécutions des noeuds
  * seront mis à jour.
  */
-void execute_operatrice(Operatrice *operatrice, const Context &contexte, double temps);
+void execute_operatrice(Operatrice *operatrice, Context const &contexte, double temps);
 
 /* ************************************************************************** */
 
@@ -327,7 +327,7 @@ void execute_operatrice(Operatrice *operatrice, const Context &contexte, double 
  * Cette classe contient les informations pour un opérateur.
  */
 struct DescOperatrice {
-	typedef Operatrice *(*fonction_usine)(Noeud *, const Context &);
+	typedef Operatrice *(*fonction_usine)(Noeud *, Context const &);
 
 	std::string nom = "";
 	std::string categorie = "";
@@ -337,9 +337,9 @@ struct DescOperatrice {
 	DescOperatrice() = default;
 
 	DescOperatrice(
-			const std::string &opnom,
-			const std::string &ophelp,
-			const std::string &opcategorie,
+			std::string const &opnom,
+			std::string const &ophelp,
+			std::string const &opcategorie,
 			fonction_usine func);
 };
 
@@ -354,12 +354,12 @@ struct DescOperatrice {
  *                  pour placer la description dans le bon menu.
  */
 template <typename T>
-inline auto cree_description(const std::string &nom,
-							 const std::string &aide,
-							 const std::string &categorie)
+inline auto cree_description(std::string const &nom,
+							 std::string const &aide,
+							 std::string const &categorie)
 {
 	return DescOperatrice(nom, aide, categorie,
-						 [](Noeud *noeud, const Context &contexte) -> Operatrice*
+						 [](Noeud *noeud, Context const &contexte) -> Operatrice*
 						 { return new T(noeud, contexte); });
 }
 
@@ -379,7 +379,7 @@ public:
 	 * @param nom  Le nom de l'opérateur.
 	 * @param desc La description de l'opération.
 	 */
-	size_t enregistre_type(const std::string &nom, DescOperatrice desc);
+	size_t enregistre_type(std::string const &nom, DescOperatrice desc);
 
 	/**
 	 * Retourne un pointeur vers un opérateur créé selon les paramètres. Le
@@ -391,7 +391,7 @@ public:
 	 * @param noeud    Le noeud qui contiendra l'opérateur.
 	 * @param contexte Le contexte dans lequel l'opérateur est créé.
 	 */
-	Operatrice *operator()(const std::string &nom, Noeud *noeud, const Context &contexte);
+	Operatrice *operator()(std::string const &nom, Noeud *noeud, Context const &contexte);
 
 	/**
 	 * Retourne le nombre d'entrées dans le tableau de l'usine.
@@ -404,7 +404,7 @@ public:
 	/**
 	 * Retourne l'ensemble de catégories connues de l'usine.
 	 */
-	const std::set<std::string> &categories() const;
+	std::set<std::string> const &categories() const;
 
 	/**
 	 * Retourne un vecteur contenant les descriptions présentent dans le tableau
@@ -412,11 +412,11 @@ public:
 	 * paramètre. Retourne un vecteur vide si aucune description n'a de
 	 * catégorie correspondante.
 	 */
-	std::vector<DescOperatrice> cles(const std::string &categorie) const;
+	std::vector<DescOperatrice> cles(std::string const &categorie) const;
 
 	/**
 	 * Retourne 'true' si la clé donnée en paramètre est enregistrée dans le
 	 * tableau de l'usine. Sinon, retourne 'false'.
 	 */
-	bool est_enregistre(const std::string &cle) const;
+	bool est_enregistre(std::string const &cle) const;
 };

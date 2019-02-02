@@ -166,13 +166,13 @@ public:
 
 	void tete(float x);
 
-	const dls::math::vec3f &cible() const;
+	dls::math::vec3f const &cible() const;
 
-	void cible(const dls::math::vec3f &x);
+	void cible(dls::math::vec3f const &x);
 
-	const dls::math::vec3f &haut() const;
+	dls::math::vec3f const &haut() const;
 
-	const dls::math::vec3f &droite() const;
+	dls::math::vec3f const &droite() const;
 
 	void besoin_ajournement(bool ouinon);
 
@@ -180,8 +180,8 @@ public:
 
 	int largeur() const;
 
-	dls::math::point2f pos_ecran(const dls::math::point3f &pos);
-	dls::math::point3f pos_monde(const dls::math::point3f &pos);
+	dls::math::point2f pos_ecran(dls::math::point3f const &pos);
+	dls::math::point3f pos_monde(dls::math::point3f const &pos);
 
 	void projection(TypeProjection proj);
 
@@ -191,9 +191,9 @@ public:
 
 	void profondeur(float proche, float eloigne);
 
-	void position(const dls::math::vec3f &p);
+	void position(dls::math::vec3f const &p);
 
-	void rotation(const dls::math::vec3f &r);
+	void rotation(dls::math::vec3f const &r);
 
 	void ajourne_pour_operatrice();
 
@@ -225,7 +225,7 @@ public:
 
 	Rayon genere_rayon(EchantillonCamera echantillon) const;
 
-	virtual Rayon genere_rayon(const EchantillonCamera &echantillon) const = 0;
+	virtual Rayon genere_rayon(EchantillonCamera const &echantillon) const = 0;
 
 	void ouverture_obturateur(double valeur);
 	double ouverture_obturateur();
@@ -233,17 +233,17 @@ public:
 	void fermeture_obturateur(double valeur);
 	double fermeture_obturateur();
 
-	void position(const dls::math::vec3d &valeur);
+	void position(dls::math::vec3d const &valeur);
 	dls::math::vec3d position();
 
-	void rotation(const dls::math::vec3d &valeur);
+	void rotation(dls::math::vec3d const &valeur);
 	dls::math::vec3d rotation();
 
 	virtual void ajourne();
 
 	void pellicule(Pellicule *pellicule);
 
-	const Transformation &camera_vers_monde() const;
+	Transformation const &camera_vers_monde() const;
 };
 
 /* ************************************************************************** */
@@ -298,7 +298,7 @@ private:
 public:
 	CameraOrthographique();
 
-	Rayon genere_rayon(const EchantillonCamera &echantillon) const override;
+	Rayon genere_rayon(EchantillonCamera const &echantillon) const override;
 
 	void ajourne() override;
 };
@@ -315,7 +315,7 @@ private:
 public:
 	CameraPerspective();
 
-	Rayon genere_rayon(const EchantillonCamera &echantillon) const override;
+	Rayon genere_rayon(EchantillonCamera const &echantillon) const override;
 
 	void ajourne() override;
 };

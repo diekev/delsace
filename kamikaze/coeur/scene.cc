@@ -32,7 +32,7 @@
 void Scene::removeObject(SceneNode *node)
 {
 	auto iter = std::find_if(m_nodes.begin(), m_nodes.end(),
-	                         [node](const SceneNodePtr &node_ptr)
+	                         [node](SceneNodePtr const &node_ptr)
 	{
 		return node_ptr.get() == node;
 	});
@@ -66,12 +66,12 @@ void Scene::addObject(SceneNode *node)
 	notify_listeners(type_evenement::objet | type_evenement::ajoute);
 }
 
-void Scene::entresect(const Ray &/*ray*/)
+void Scene::entresect(Ray const &/*ray*/)
 {
 }
 
 /* Select the object which is closest to pos. */
-void Scene::selectObject(const dls::math::vec3f &pos)
+void Scene::selectObject(dls::math::vec3f const &pos)
 {
 	float min = 1000.0f;
 	size_t selected_object = -1ul, index = 0;
@@ -136,7 +136,7 @@ void Scene::tagObjectUpdate()
 
 bool Scene::ensureUniqueName(std::string &name) const
 {
-	return ensure_unique_name(name, [&](const std::string &str)
+	return ensure_unique_name(name, [&](std::string const &str)
 	{
 		for (auto const &object : m_nodes) {
 			if (object->name() == str) {
@@ -154,17 +154,17 @@ void Scene::set_active_node(SceneNode *node)
 	notify_listeners(type_evenement::objet | type_evenement::selectione);
 }
 
-void Scene::updateForNewFrame(const Context &context)
+void Scene::updateForNewFrame(Context const &context)
 {
 	m_depsgraph.evaluate_for_time_change(context);
 }
 
-void Scene::evalObjectDag(const Context &context, SceneNode *node)
+void Scene::evalObjectDag(Context const &context, SceneNode *node)
 {
 	m_depsgraph.evaluate(context, node);
 }
 
-void Scene::connect(const Context &context, SceneNode *node_from, SceneNode *node_to)
+void Scene::connect(Context const &context, SceneNode *node_from, SceneNode *node_to)
 {
 	auto from_ob = static_cast<Object *>(node_from);
 	auto to_ob = static_cast<Object *>(node_to);
@@ -178,7 +178,7 @@ void Scene::connect(const Context &context, SceneNode *node_from, SceneNode *nod
 	m_depsgraph.evaluate(context, node_from);
 }
 
-void Scene::disconnect(const Context &context, SceneNode *node_from, SceneNode *node_to)
+void Scene::disconnect(Context const &context, SceneNode *node_from, SceneNode *node_to)
 {
 	auto from_ob = static_cast<Object *>(node_from);
 	auto to_ob = static_cast<Object *>(node_to);
@@ -274,7 +274,7 @@ void Scene::framesPerSecond(float value)
 	notify_listeners(type_evenement::temps | type_evenement::modifie);
 }
 
-const std::vector<SceneNodePtr> &Scene::nodes() const
+std::vector<SceneNodePtr> const &Scene::nodes() const
 {
 	return m_nodes;
 }

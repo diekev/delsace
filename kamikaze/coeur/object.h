@@ -43,7 +43,7 @@ class Object : public SceneNode {
 	std::vector<Object *> m_children{};
 
 public:
-	explicit Object(const Context &contexte);
+	explicit Object(Context const &contexte);
 	~Object() = default;
 
 	Object(Object const &) = default;
@@ -53,8 +53,8 @@ public:
 	void collection(PrimitiveCollection *coll);
 
 	/* Return the object's matrix. */
-	void matrix(const dls::math::mat4x4d &m);
-	const dls::math::mat4x4d &matrix() const;
+	void matrix(dls::math::mat4x4d const &m);
+	dls::math::mat4x4d const &matrix() const;
 
 	/* Noeuds. */
 	void ajoute_noeud(Noeud *noeud);

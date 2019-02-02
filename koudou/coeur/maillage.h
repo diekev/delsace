@@ -64,8 +64,8 @@ class Maillage {
 public:
 	Maillage();
 
-	Maillage(const Maillage &autre) = default;
-	Maillage &operator=(const Maillage &autre) = default;
+	Maillage(Maillage const &autre) = default;
+	Maillage &operator=(Maillage const &autre) = default;
 
 	~Maillage();
 
@@ -101,21 +101,21 @@ public:
 	 * normal du triangle est calculé en fonction de ces trois points.
 	 */
 	void ajoute_triangle(
-			const dls::math::vec3d &v0,
-			const dls::math::vec3d &v1,
-			const dls::math::vec3d &v2);
+			dls::math::vec3d const &v0,
+			dls::math::vec3d const &v1,
+			dls::math::vec3d const &v2);
 
-	void transformation(const math::transformation &transforme);
+	void transformation(math::transformation const &transforme);
 
 	/**
 	 * Retourne la transformation de ce maillage.
 	 */
-	const math::transformation &transformation() const;
+	math::transformation const &transformation() const;
 
 	/**
 	 * Retourne la boîte englobante de ce maillage.
 	 */
-	const BoiteEnglobante &boite_englobante() const;
+	BoiteEnglobante const &boite_englobante() const;
 
 	void nuanceur(Nuanceur *n);
 
@@ -145,17 +145,17 @@ public:
 	/**
 	 * Calcul les limites de l'objet selon l'algorithme des volumes englobants.
 	 */
-	void calcule_limites(const dls::math::vec3d &normal, double &d_proche, double &d_eloigne) const;
+	void calcule_limites(dls::math::vec3d const &normal, double &d_proche, double &d_eloigne) const;
 
 	/**
 	 * Modifie le nom de ce maillage en fonction de celui passé en paramètre.
 	 */
-	void nom(const std::string &nom);
+	void nom(std::string const &nom);
 
 	/**
 	 * Retourne le nom de ce maillage.
 	 */
-	const std::string &nom() const;
+	std::string const &nom() const;
 
 	/**
 	 * Défini si oui ou non il faut dessiner les vecteurs normaux de ce maillage.
@@ -177,13 +177,13 @@ public:
 /**
  * Calcul et retourne le normal du triangle spécifié.
  */
-dls::math::vec3d calcul_normal(const Triangle &triangle);
+dls::math::vec3d calcul_normal(Triangle const &triangle);
 
 /**
  * Retourne vrai s'il y a entresection entre le triangle et le rayon spécifiés.
  * Si oui, la distance spécifiée est mise à jour.
  */
 bool entresecte_triangle(
-		const Triangle &triangle,
-		const Rayon &rayon,
+		Triangle const &triangle,
+		Rayon const &rayon,
 		double &distance);

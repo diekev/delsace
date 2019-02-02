@@ -149,7 +149,7 @@ void RenduMaillage::initialise()
 	}
 }
 
-void RenduMaillage::dessine(const ContexteRendu &contexte)
+void RenduMaillage::dessine(ContexteRendu const &contexte)
 {
 	/* Dessine sommets. */
 	{

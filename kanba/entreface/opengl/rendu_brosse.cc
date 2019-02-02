@@ -140,7 +140,7 @@ void RenduBrosse::initialise()
 }
 
 void RenduBrosse::dessine(
-		const ContexteRendu &contexte,
+		ContexteRendu const &contexte,
 		const float taille_x,
 		const float taille_y,
 		const float pos_x,

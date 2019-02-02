@@ -26,7 +26,7 @@
 
 namespace math {
 
-transformation::transformation(const dls::math::mat4x4d &matrice, const dls::math::mat4x4d &inverse)
+transformation::transformation(dls::math::mat4x4d const &matrice, dls::math::mat4x4d const &inverse)
 	: m_matrice(matrice)
 	, m_inverse(inverse)
 {}
@@ -42,7 +42,7 @@ transformation::transformation(const double matrice[4][4])
 	m_inverse = dls::math::inverse(m_matrice);
 }
 
-transformation::transformation(const dls::math::mat4x4d &matrice)
+transformation::transformation(dls::math::mat4x4d const &matrice)
 	: m_matrice(matrice)
 	, m_inverse(dls::math::inverse(m_matrice))
 {}
@@ -57,7 +57,7 @@ dls::math::mat4x4d transformation::inverse() const
 	return m_inverse;
 }
 
-dls::math::vec3d transformation::operator()(const dls::math::vec3d &vecteur) const
+dls::math::vec3d transformation::operator()(dls::math::vec3d const &vecteur) const
 {
 	auto const x = vecteur[0];
 	auto const y = vecteur[1];
@@ -70,7 +70,7 @@ dls::math::vec3d transformation::operator()(const dls::math::vec3d &vecteur) con
 	return dls::math::vec3d(px, py, pz);
 }
 
-void transformation::operator()(const dls::math::vec3d &vecteur, dls::math::vec3d *vecteur_retour) const
+void transformation::operator()(dls::math::vec3d const &vecteur, dls::math::vec3d *vecteur_retour) const
 {
 	auto const x = vecteur[0];
 	auto const y = vecteur[1];
@@ -85,7 +85,7 @@ void transformation::operator()(const dls::math::vec3d &vecteur, dls::math::vec3
 	vecteur_retour->z = pz;
 }
 
-dls::math::point3d transformation::operator()(const dls::math::point3d &point) const
+dls::math::point3d transformation::operator()(dls::math::point3d const &point) const
 {
 	auto const x = point[0];
 	auto const y = point[1];
@@ -103,7 +103,7 @@ dls::math::point3d transformation::operator()(const dls::math::point3d &point) c
 	return dls::math::point3d(px, py, pz) / pw;
 }
 
-void transformation::operator()(const dls::math::point3d &point, dls::math::point3d *point_retour) const
+void transformation::operator()(dls::math::point3d const &point, dls::math::point3d *point_retour) const
 {
 	auto const x = point[0];
 	auto const y = point[1];
@@ -137,7 +137,7 @@ bool transformation::possede_echelle() const
 	return pas_un(a1) || pas_un(a2) || pas_un(a3);
 }
 
-transformation &transformation::operator*=(const transformation &transforme)
+transformation &transformation::operator*=(transformation const &transforme)
 {
 //	std::cout << "===========================\n";
 //	std::cout << "operator transformation::*=\n";
@@ -161,17 +161,17 @@ transformation &transformation::operator*=(const transformation &transforme)
 	return *this;
 }
 
-bool operator==(const transformation &a, const transformation &b)
+bool operator==(transformation const &a, transformation const &b)
 {
 	return a.matrice() == b.matrice();
 }
 
-bool operator!=(const transformation &a, const transformation &b)
+bool operator!=(transformation const &a, transformation const &b)
 {
 	return !(a == b);
 }
 
-transformation inverse(const transformation &transforme)
+transformation inverse(transformation const &transforme)
 {
 	return transformation(transforme.inverse(), transforme.matrice());
 }
@@ -192,7 +192,7 @@ transformation translation(const double x, const double y, const double z)
 	return transformation(matrice, matrice_inverse);
 }
 
-transformation translation(const dls::math::vec3d &vecteur)
+transformation translation(dls::math::vec3d const &vecteur)
 {
 	return translation(vecteur[0], vecteur[1], vecteur[2]);
 }
@@ -213,7 +213,7 @@ transformation echelle(const double x, const double y, const double z)
 	return transformation(matrice, matrice_inverse);
 }
 
-transformation echelle(const dls::math::vec3d &vecteur)
+transformation echelle(dls::math::vec3d const &vecteur)
 {
 	return echelle(vecteur[0], vecteur[1], vecteur[2]);
 }
@@ -370,7 +370,7 @@ transformation rotation_z(const double angle)
 	return transformation(matrice, dls::math::transpose(matrice));
 }
 
-transformation rotation(const double angle, const dls::math::vec3d &vecteur)
+transformation rotation(const double angle, dls::math::vec3d const &vecteur)
 {
 	auto const a = dls::math::normalise(vecteur);
 	auto const s = std::sin(angle);
@@ -402,9 +402,9 @@ transformation rotation(const double angle, const dls::math::vec3d &vecteur)
 }
 
 transformation vise(
-		const dls::math::vec3d &position,
-		const dls::math::vec3d &mire,
-		const dls::math::vec3d &haut)
+		dls::math::vec3d const &position,
+		dls::math::vec3d const &mire,
+		dls::math::vec3d const &haut)
 {
 	std::cout << "============================\n";
 	std::cout << "LookAt\n";

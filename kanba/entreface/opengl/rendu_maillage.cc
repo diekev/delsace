@@ -297,7 +297,7 @@ TamponRendu *creer_tampon()
 	return tampon;
 }
 
-TamponRendu *genere_tampon(Maillage *maillage, const std::vector<uint> &id_polys)
+TamponRendu *genere_tampon(Maillage *maillage, std::vector<uint> const &id_polys)
 {
 	auto nombre_elements = id_polys.size() * 6;
 	auto tampon = creer_tampon();
@@ -560,7 +560,7 @@ void RenduMaillage::supprime_tampons()
 	delete m_tampon_normal;
 }
 
-void RenduMaillage::dessine(const ContexteRendu &contexte)
+void RenduMaillage::dessine(ContexteRendu const &contexte)
 {
 	if (m_maillage->texture_surrannee()) {
 		ajourne_texture();

@@ -80,7 +80,7 @@ struct Parametres {
 	float PrunePowerLow,PrunePowerHigh;
 
 	Parametres() = default;
-	Parametres(const Parametres &autre) = default;
+	Parametres(Parametres const &autre) = default;
 };
 
 void parametres_tremble(Parametres *parametres);

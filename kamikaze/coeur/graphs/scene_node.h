@@ -36,7 +36,7 @@ struct SceneOutputSocket {
 	std::vector<SceneInputSocket *> links{};
 	std::string name = "";
 
-	explicit SceneOutputSocket(const std::string &sname)
+	explicit SceneOutputSocket(std::string const &sname)
 	    : parent(nullptr)
 	    , name(sname)
 	{}
@@ -52,7 +52,7 @@ struct SceneInputSocket {
 	SceneOutputSocket *link = nullptr;
 	std::string name = "";
 
-	explicit SceneInputSocket(const std::string &sname)
+	explicit SceneInputSocket(std::string const &sname)
 	    : parent(nullptr)
 	    , link(nullptr)
 	    , name(sname)
@@ -82,14 +82,14 @@ protected:
 public:
 	virtual ~SceneNode() = default;
 
-	void add_input(const std::string &name);
-	const std::vector<SceneInputSocketPtr> &inputs();
+	void add_input(std::string const &name);
+	std::vector<SceneInputSocketPtr> const &inputs();
 
-	void add_output(const std::string &name);
-	const std::vector<SceneOutputSocketPtr> &outputs();
+	void add_output(std::string const &name);
+	std::vector<SceneOutputSocketPtr> const &outputs();
 
-	void name(const std::string &name);
-	const std::string &name() const;
+	void name(std::string const &name);
+	std::string const &name() const;
 
 	float xpos() const;
 	void xpos(float x);

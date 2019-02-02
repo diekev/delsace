@@ -27,7 +27,7 @@
 #include "node_port.h"
 #include "node_scene.h"
 
-ObjectNodeItem::ObjectNodeItem(SceneNode *scene_node, const QString &title, QGraphicsItem *parent)
+ObjectNodeItem::ObjectNodeItem(SceneNode *scene_node, QString const &title, QGraphicsItem *parent)
     : QtNode(title, parent)
     , m_scene_node(scene_node)
 {

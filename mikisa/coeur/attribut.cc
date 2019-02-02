@@ -25,12 +25,12 @@
 #include "attribut.h"
 
 template <typename Conteneur>
-void copie(const Conteneur &de, Conteneur &vers)
+void copie(Conteneur const &de, Conteneur &vers)
 {
 	std::copy(de->begin(), de->end(), vers->begin());
 }
 
-Attribut::Attribut(const std::string &name, type_attribut type, portee_attr portee_, long taille)
+Attribut::Attribut(std::string const &name, type_attribut type, portee_attr portee_, long taille)
 	: m_nom(name)
 	, m_type(type)
 	, portee(portee_)
@@ -71,7 +71,7 @@ Attribut::Attribut(const std::string &name, type_attribut type, portee_attr port
 	}
 }
 
-Attribut::Attribut(const Attribut &rhs)
+Attribut::Attribut(Attribut const &rhs)
 	: Attribut(rhs.nom(), rhs.type(), rhs.portee, rhs.taille())
 {
 	switch (m_type) {

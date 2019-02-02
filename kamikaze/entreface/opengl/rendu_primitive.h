@@ -34,6 +34,6 @@ public:
 
 	virtual void initialise() = 0;
 
-	virtual void dessine(const ContexteRendu &contexte) = 0;
+	virtual void dessine(ContexteRendu const &contexte) = 0;
 };
 

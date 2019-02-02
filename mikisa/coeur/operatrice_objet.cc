@@ -158,7 +158,7 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 	m_manipulatrice_echelle.pos(position);
 }
 
-int OperatriceObjet::execute(const Rectangle &rectangle, const int temps)
+int OperatriceObjet::execute(Rectangle const &rectangle, const int temps)
 {
 	m_objet.corps = nullptr;
 

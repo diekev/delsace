@@ -38,9 +38,9 @@ class MoteurRendu {
 	bool m_est_arrete = false;
 
 public:
-	void echantillone_scene(const ParametresRendu &parametres, const std::vector<CarreauPellicule> &carreaux, unsigned int echantillon);
+	void echantillone_scene(ParametresRendu const &parametres, std::vector<CarreauPellicule> const &carreaux, unsigned int echantillon);
 
-	const numero7::math::matrice<dls::math::vec3d> &pellicule();
+	numero7::math::matrice<dls::math::vec3d> const &pellicule();
 
 	void reinitialise();
 
@@ -50,13 +50,13 @@ public:
 	void arrete();
 };
 
-Spectre calcul_spectre(GNA &gna, const ParametresRendu &parametres, const Rayon &rayon, uint profondeur = 0);
+Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const &rayon, uint profondeur = 0);
 
 /* ************************************************************************** */
 
 class TacheRendu : public Tache {
 public:
-	explicit TacheRendu(const Koudou &koudou);
+	explicit TacheRendu(Koudou const &koudou);
 
-	void commence(const Koudou &koudou) override;
+	void commence(Koudou const &koudou) override;
 };

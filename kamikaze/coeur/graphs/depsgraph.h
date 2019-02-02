@@ -72,7 +72,7 @@ public:
 
 	virtual ~DepsNode() = default;
 	virtual void pre_process() {}
-	virtual void process(const Context &context, TaskNotifier *notifier) = 0;
+	virtual void process(Context const &context, TaskNotifier *notifier) = 0;
 
 	DepsInputSocket *input();
 	const DepsInputSocket *input() const;
@@ -97,7 +97,7 @@ public:
 	DepsObjectNode &operator=(DepsObjectNode const &) = default;
 
 	void pre_process() override;
-	void process(const Context &context, TaskNotifier *notifier) override;
+	void process(Context const &context, TaskNotifier *notifier) override;
 
 	Object *object();
 	const Object *object() const;
@@ -117,7 +117,7 @@ public:
 	ObjectGraphDepsNode(ObjectGraphDepsNode const &) = default;
 	ObjectGraphDepsNode &operator=(ObjectGraphDepsNode const &) = default;
 
-	void process(const Context &context, TaskNotifier *notifier) override;
+	void process(Context const &context, TaskNotifier *notifier) override;
 
 	Graph *graph();
 	const Graph *graph() const;
@@ -131,7 +131,7 @@ class TimeDepsNode : public DepsNode {
 public:
 	TimeDepsNode() = default;
 
-	void process(const Context &context, TaskNotifier *notifier) override;
+	void process(Context const &context, TaskNotifier *notifier) override;
 
 	const char *name() const override;
 };
@@ -162,8 +162,8 @@ public:
 	~Depsgraph() = default;
 
 	/* Disallow copy. */
-	Depsgraph(const Depsgraph &other) = delete;
-	Depsgraph &operator=(const Depsgraph &other) = delete;
+	Depsgraph(Depsgraph const &other) = delete;
+	Depsgraph &operator=(Depsgraph const &other) = delete;
 
 	void connect(SceneNode *from, SceneNode *to);
 	void disconnect(SceneNode *from, SceneNode *to);
@@ -176,14 +176,14 @@ public:
 
 	void connect_to_time(SceneNode *scene_node);
 
-	void evaluate(const Context &context, SceneNode *scene_node);
-	void evaluate_for_time_change(const Context &context);
+	void evaluate(Context const &context, SceneNode *scene_node);
+	void evaluate_for_time_change(Context const &context);
 
 	const std::vector<std::unique_ptr<DepsNode> > &nodes() const;
 
 private:
 	void build(DepsNode *root);
 
-	void evaluate_ex(const Context &context, DepsNode *root, TaskNotifier *notifier);
+	void evaluate_ex(Context const &context, DepsNode *root, TaskNotifier *notifier);
 	DepsNode *find_node(SceneNode *scene_node, bool graph);
 };

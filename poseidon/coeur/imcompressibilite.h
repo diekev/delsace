@@ -26,5 +26,5 @@
 
 #include "grille.h"
 
-void rend_imcompressible(Grille<dls::math::vec3f> &grille, const Grille<char> &drapeaux);
-void rend_imcompressible(Grille<float> &grille_x, Grille<float> &grille_y, Grille<float> &grille_z, const Grille<char> &drapeaux);
+void rend_imcompressible(Grille<dls::math::vec3f> &grille, Grille<char> const &drapeaux);
+void rend_imcompressible(Grille<float> &grille_x, Grille<float> &grille_y, Grille<float> &grille_z, Grille<char> const &drapeaux);

@@ -36,10 +36,10 @@ public:
 	Composite() = default;
 	~Composite() = default;
 
-	const Image &image() const;
+	Image const &image() const;
 
-	void image(const Image &img);
+	void image(Image const &img);
 
-	const Graphe &graph() const;
+	Graphe const &graph() const;
 	Graphe &graph();
 };

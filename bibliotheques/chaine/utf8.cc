@@ -138,7 +138,7 @@ utf8::utf8(const char *c_str)
 	}
 }
 
-utf8::utf8(const std::string &std_string)
+utf8::utf8(std::string const &std_string)
 	: utf8(std_string.c_str())
 {}
 
@@ -162,7 +162,7 @@ utf8::type_valeur utf8::operator[](size_t i) const
 	return m_donnees[i];
 }
 
-bool utf8::compare(const utf8 &autre) const
+bool utf8::compare(utf8 const &autre) const
 {
 	if (this->taille() != autre.taille()) {
 		return false;
@@ -182,14 +182,14 @@ bool utf8::compare(const char *autre) const
 	return this->compare(utf8(autre));
 }
 
-bool utf8::compare(const std::string &autre) const
+bool utf8::compare(std::string const &autre) const
 {
 	return this->compare(utf8(autre));
 }
 
 /* ************************************************************************** */
 
-std::string converti_en_std_string(const utf8 &chaine_utf8)
+std::string converti_en_std_string(utf8 const &chaine_utf8)
 {
 	std::ostringstream os;
 	os << chaine_utf8;
@@ -198,7 +198,7 @@ std::string converti_en_std_string(const utf8 &chaine_utf8)
 
 /* ************************************************************************** */
 
-std::ostream &operator<<(std::ostream &os, const utf8 &chaine_utf8)
+std::ostream &operator<<(std::ostream &os, utf8 const &chaine_utf8)
 {
 	for (auto const &caractere : chaine_utf8.caracteres()) {
 		if (est_caractere_simple(caractere)) {

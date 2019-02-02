@@ -40,7 +40,7 @@
 
 class CommandeAjouterPropriete final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto gestionnaire = mikisa->gestionnaire_entreface;

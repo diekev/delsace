@@ -57,7 +57,7 @@ struct ParametresImage {
 	void *pointeur;
 };
 
-static void ecris_exr(const char *chemin, const ParametresImage &parametres)
+static void ecris_exr(const char *chemin, ParametresImage const &parametres)
 {
 	namespace openexr = OPENEXR_IMF_NAMESPACE;
 
@@ -135,8 +135,8 @@ static void corrige_chemin_pour_ecriture(std::string &chemin, int temps)
 
 static bool ecris_image(
 		Composite *composite,
-		const std::string &nom_calque,
-		const std::string &chemin,
+		std::string const &nom_calque,
+		std::string const &chemin,
 		int temps)
 {
 	/* calcul le chemin */
@@ -173,7 +173,7 @@ static bool ecris_image(
 
 class CommandeRenduImage final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
@@ -206,7 +206,7 @@ public:
 
 class CommandeRenduSequence final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 

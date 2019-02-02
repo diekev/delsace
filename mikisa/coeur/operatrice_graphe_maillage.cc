@@ -33,8 +33,8 @@
 void execute_graphe(
 		CompileuseGraphe::iterateur debut,
 		CompileuseGraphe::iterateur fin,
-		const GestionnaireDonneesGraphe &gestionnaire,
-		const dls::math::vec3f &entree,
+		GestionnaireDonneesGraphe const &gestionnaire,
+		dls::math::vec3f const &entree,
 		dls::math::vec3f &sortie)
 {
 	auto courant = debut;
@@ -295,7 +295,7 @@ int OperatriceGrapheMaillage::type() const
 	return OPERATRICE_GRAPHE_MAILLAGE;
 }
 
-int OperatriceGrapheMaillage::execute(const Rectangle &rectangle, const int temps)
+int OperatriceGrapheMaillage::execute(Rectangle const &rectangle, const int temps)
 {
 	if (!this->entree(0)->connectee()) {
 		ajoute_avertissement("L'entrée n'est pas connectée !");
@@ -354,7 +354,7 @@ void OperatriceGrapheMaillage::compile_graphe(int temps)
 
 /* ************************************************************************** */
 
-int OperatricePoint3D::execute(const Rectangle &rectangle, const int temps)
+int OperatricePoint3D::execute(Rectangle const &rectangle, const int temps)
 {
 	return EXECUTION_REUSSIE;
 }

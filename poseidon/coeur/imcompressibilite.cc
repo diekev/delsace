@@ -43,7 +43,7 @@ struct PCGSolver {
 	/* Vecteur de recherche */
 	Grille<float> s{};
 
-	void initialise(const dls::math::vec3<size_t> &res)
+	void initialise(dls::math::vec3<size_t> const &res)
 	{
 		M.initialise(res.x, res.y, res.z);
 
@@ -61,9 +61,9 @@ struct PCGSolver {
 };
 
 float calcul_divergence(
-		const Grille<float> &grille_x,
-		const Grille<float> &grille_y,
-		const Grille<float> &grille_z,
+		Grille<float> const &grille_x,
+		Grille<float> const &grille_y,
+		Grille<float> const &grille_z,
 		Grille<float> &d)
 {
 	auto const res = d.resolution();
@@ -92,7 +92,7 @@ float calcul_divergence(
 }
 
 float calcul_divergence(
-		const Grille<dls::math::vec3f> &grille,
+		Grille<dls::math::vec3f> const &grille,
 		Grille<float> &d)
 {
 	auto const res = d.resolution();
@@ -122,7 +122,7 @@ float calcul_divergence(
 
 void construit_preconditionneur(
 		PCGSolver &pcg_solver,
-		const Grille<char> &drapeaux)
+		Grille<char> const &drapeaux)
 {
 	auto const res = drapeaux.resolution();
 
@@ -171,7 +171,7 @@ void construit_preconditionneur(
 
 void applique_preconditionneur(
 		PCGSolver &pcg_solver,
-		const Grille<char> &drapeaux)
+		Grille<char> const &drapeaux)
 {
 	auto const res = drapeaux.resolution();
 
@@ -245,7 +245,7 @@ void applique_preconditionneur(
 	}
 }
 
-float produit_scalaire(const Grille<float> &a, const Grille<float> &b)
+float produit_scalaire(Grille<float> const &a, Grille<float> const &b)
 {
 	auto const res_x = a.resolution().x;
 	auto const res_y = a.resolution().y;
@@ -264,7 +264,7 @@ float produit_scalaire(const Grille<float> &a, const Grille<float> &b)
 	return valeur;
 }
 
-float maximum(const Grille<float> &a)
+float maximum(Grille<float> const &a)
 {
 	auto const res_x = a.resolution().x;
 	auto const res_y = a.resolution().y;
@@ -286,7 +286,7 @@ float maximum(const Grille<float> &a)
 	return max;
 }
 
-void ajourne_pression_residus(const float alpha, Grille<float> &p, Grille<float> &r, const Grille<float> &a, const Grille<float> &b)
+void ajourne_pression_residus(const float alpha, Grille<float> &p, Grille<float> &r, Grille<float> const &a, Grille<float> const &b)
 {
 	auto const res_x = a.resolution().x;
 	auto const res_y = a.resolution().y;
@@ -307,7 +307,7 @@ void ajourne_pression_residus(const float alpha, Grille<float> &p, Grille<float>
 	}
 }
 
-void ajourne_vecteur_recherche(Grille<float> &s, const Grille<float> &a, const float beta)
+void ajourne_vecteur_recherche(Grille<float> &s, Grille<float> const &a, const float beta)
 {
 	auto const res_x = s.resolution().x;
 	auto const res_y = s.resolution().y;
@@ -358,7 +358,7 @@ void applique_A(PCGSolver &pcg_solver)
 }
 
 // https://www.cs.ubc.ca/~rbridson/fluidsimulation/fluids_notes.pdf page 34
-void solve_pressure(PCGSolver &pcg_solver, const Grille<char> &drapeaux)
+void solve_pressure(PCGSolver &pcg_solver, Grille<char> const &drapeaux)
 {
 	construit_preconditionneur(pcg_solver, drapeaux);
 	applique_preconditionneur(pcg_solver, drapeaux);
@@ -408,7 +408,7 @@ void solve_pressure(PCGSolver &pcg_solver, const Grille<char> &drapeaux)
 	std::cerr << "Nombre d'itération : " << i << ", max_divergence " << max_divergence << '\n';
 }
 
-void construit_A(PCGSolver &pcg_solver, const Grille<char> &drapeaux)
+void construit_A(PCGSolver &pcg_solver, Grille<char> const &drapeaux)
 {
 	auto const &res = drapeaux.resolution();
 
@@ -435,7 +435,7 @@ void construit_A(PCGSolver &pcg_solver, const Grille<char> &drapeaux)
 	}
 }
 
-void soustrait_gradient_pression(Grille<float> &grille, const PCGSolver &pcg_solver)
+void soustrait_gradient_pression(Grille<float> &grille, PCGSolver const &pcg_solver)
 {
 	auto const &res = grille.resolution();
 
@@ -465,7 +465,7 @@ void soustrait_gradient_pression(Grille<float> &grille, const PCGSolver &pcg_sol
 	}
 }
 
-void rend_imcompressible(Grille<dls::math::vec3f> &grille, const Grille<char> &drapeaux)
+void rend_imcompressible(Grille<dls::math::vec3f> &grille, Grille<char> const &drapeaux)
 {
 	auto const &res = grille.resolution();
 
@@ -491,7 +491,7 @@ void rend_imcompressible(Grille<dls::math::vec3f> &grille, const Grille<char> &d
 	//soustrait_gradient_pression(grille, pcg_solver);
 }
 
-void rend_imcompressible(Grille<float> &grille_x, Grille<float> &grille_y, Grille<float> &grille_z, const Grille<char> &drapeaux)
+void rend_imcompressible(Grille<float> &grille_x, Grille<float> &grille_y, Grille<float> &grille_z, Grille<char> const &drapeaux)
 {
 	auto const &res = grille_x.resolution();
 

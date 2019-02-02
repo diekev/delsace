@@ -277,7 +277,7 @@ static void ecris_graphe(
 	}
 }
 
-erreur_fichier sauvegarde_projet(const filesystem::path &chemin, Mikisa const &mikisa)
+erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &mikisa)
 {
 	tinyxml2::XMLDocument doc;
 	doc.InsertFirstChild(doc.NewDeclaration());
@@ -563,7 +563,7 @@ void lecture_graphe(
 	}
 }
 
-erreur_fichier ouvre_projet(const filesystem::path &chemin, Mikisa &mikisa)
+erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 {
 	if (!std::experimental::filesystem::exists(chemin)) {
 		return erreur_fichier::NON_TROUVE;

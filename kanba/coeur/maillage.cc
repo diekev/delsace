@@ -129,7 +129,7 @@ void ajoute_calque_echiquier(Maillage *maillage)
 	}
 }
 
-auto echantillone_texture(TextureImage *texture_image, const dls::math::vec2f &uv)
+auto echantillone_texture(TextureImage *texture_image, dls::math::vec2f const &uv)
 {
 	auto x = static_cast<int>(uv.x) * texture_image->largeur();
 	auto y = static_cast<int>(uv.y) * texture_image->hauteur();
@@ -289,7 +289,7 @@ Maillage::~Maillage()
 	}
 }
 
-void Maillage::ajoute_sommet(const dls::math::vec3f &coord)
+void Maillage::ajoute_sommet(dls::math::vec3f const &coord)
 {
 	auto sommet = new Sommet();
 	sommet->pos = coord;
@@ -398,7 +398,7 @@ Calque *Maillage::calque_actif()
 	return m_calque_actif;
 }
 
-const CanauxTexture &Maillage::canaux_texture() const
+CanauxTexture const &Maillage::canaux_texture() const
 {
 	return m_canaux;
 }
@@ -408,12 +408,12 @@ CanauxTexture &Maillage::canaux_texture()
 	return m_canaux;
 }
 
-const std::string &Maillage::nom() const
+std::string const &Maillage::nom() const
 {
 	return m_nom;
 }
 
-void Maillage::nom(const std::string &nom)
+void Maillage::nom(std::string const &nom)
 {
 	m_nom = nom;
 }
@@ -446,12 +446,12 @@ void Maillage::calque_actif(Calque *calque)
 	}
 }
 
-void Maillage::transformation(const math::transformation &transforme)
+void Maillage::transformation(math::transformation const &transforme)
 {
 	m_transformation = transforme;
 }
 
-const math::transformation &Maillage::transformation() const
+math::transformation const &Maillage::transformation() const
 {
 	return m_transformation;
 }

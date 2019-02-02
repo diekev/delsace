@@ -119,7 +119,7 @@ void RenduArbre::initialise()
 	m_tampon_arrete = genere_tampon_arrete(m_arbre);
 }
 
-void RenduArbre::dessine(const ContexteRendu &contexte)
+void RenduArbre::dessine(ContexteRendu const &contexte)
 {
 	m_tampon_arrete->dessine(contexte);
 }

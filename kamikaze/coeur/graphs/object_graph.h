@@ -94,7 +94,7 @@ class Graph {
 	float m_zoom = 0.0f;
 
 public:
-	explicit Graph(const Context &contexte);
+	explicit Graph(Context const &contexte);
 	~Graph();
 
 	Graph(Graph const &) = default;
@@ -106,7 +106,7 @@ public:
 	void connecte(PriseSortie *de, PriseEntree *a);
 	void deconnecte(PriseSortie *de, PriseEntree *a);
 
-	const std::vector<std::unique_ptr<Noeud>> &noeuds() const;
+	std::vector<std::unique_ptr<Noeud>> const &noeuds() const;
 
 	const std::vector<LienNoeud *> &liens() const;
 

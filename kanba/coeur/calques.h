@@ -70,8 +70,8 @@ struct Calque {
 	Calque() = default;
 	~Calque();
 
-	Calque(const Calque &autre) = default;
-	Calque &operator=(const Calque &autre) = default;
+	Calque(Calque const &autre) = default;
+	Calque &operator=(Calque const &autre) = default;
 };
 
 enum TypeCanal {
@@ -102,8 +102,8 @@ struct CanauxTexture {
 	CanauxTexture() = default;
 	~CanauxTexture();
 
-	CanauxTexture(const CanauxTexture &autre) = default;
-	CanauxTexture &operator=(const CanauxTexture &autre) = default;
+	CanauxTexture(CanauxTexture const &autre) = default;
+	CanauxTexture &operator=(CanauxTexture const &autre) = default;
 };
 
 Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal);

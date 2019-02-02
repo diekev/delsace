@@ -113,7 +113,7 @@ public:
 	/**
 	 * Ajoute un sommet à ce maillage.
 	 */
-	void ajoute_sommet(const dls::math::vec3f &coord);
+	void ajoute_sommet(dls::math::vec3f const &coord);
 
 	/**
 	 * Ajoute une suite de sommets à ce maillage.
@@ -174,28 +174,28 @@ public:
 	/**
 	 * Renseigne la transformation de ce maillage.
 	 */
-	void transformation(const math::transformation &transforme);
+	void transformation(math::transformation const &transforme);
 
 	/**
 	 * Retourne la transformation de ce maillage.
 	 */
-	const math::transformation &transformation() const;
+	math::transformation const &transformation() const;
 
 	/**
 	 * Retourne le nom de ce maillage.
 	 */
-	const std::string &nom() const;
+	std::string const &nom() const;
 
 	/**
 	 * Renomme ce maillage.
 	 */
-	void nom(const std::string &nom);
+	void nom(std::string const &nom);
 
 	void calcule_boite_englobante();
 
-	const dls::math::vec3f &min() const;
+	dls::math::vec3f const &min() const;
 
-	const dls::math::vec3f &max() const;
+	dls::math::vec3f const &max() const;
 
-	const dls::math::vec3f &taille() const;
+	dls::math::vec3f const &taille() const;
 };

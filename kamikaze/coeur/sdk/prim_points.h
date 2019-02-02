@@ -33,10 +33,10 @@ class PrimPoints : public Primitive {
 
 public:
 	PrimPoints();
-	PrimPoints(const PrimPoints &other);
+	PrimPoints(PrimPoints const &other);
 	~PrimPoints() override;
 
-	PrimPoints &operator=(const PrimPoints &other) = default;
+	PrimPoints &operator=(PrimPoints const &other) = default;
 
 	PointList *points();
 

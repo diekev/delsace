@@ -38,7 +38,7 @@ int Pellicule::largeur() const
 	return m_matrice.dimensions().largeur;
 }
 
-void Pellicule::ajoute_echantillon(size_t i, size_t j, const dls::math::vec3d &couleur, const double poids)
+void Pellicule::ajoute_echantillon(size_t i, size_t j, dls::math::vec3d const &couleur, const double poids)
 {
 	auto index = i + static_cast<size_t>(m_matrice.nombre_colonnes()) * j;
 	auto &pixel_pellicule = m_pixels_pellicule[index];
@@ -46,12 +46,12 @@ void Pellicule::ajoute_echantillon(size_t i, size_t j, const dls::math::vec3d &c
 	pixel_pellicule.poids += poids;
 }
 
-const dls::math::vec3d &Pellicule::couleur(int i, int j)
+dls::math::vec3d const &Pellicule::couleur(int i, int j)
 {
 	return m_matrice[i][j];
 }
 
-const numero7::math::matrice<dls::math::vec3d> &Pellicule::donnees()
+numero7::math::matrice<dls::math::vec3d> const &Pellicule::donnees()
 {
 	return m_matrice;
 }
@@ -91,7 +91,7 @@ void Pellicule::creer_image()
 	}
 }
 
-void Pellicule::redimensionne(const numero7::math::Hauteur &hauteur, const numero7::math::Largeur &largeur)
+void Pellicule::redimensionne(numero7::math::Hauteur const &hauteur, numero7::math::Largeur const &largeur)
 {
 	m_matrice = numero7::math::matrice<dls::math::vec3d>(hauteur, largeur);
 }

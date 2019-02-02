@@ -33,7 +33,7 @@ class PointList {
 public:
 	PointList() = default;
 
-	void push_back(const dls::math::vec3f &point);
+	void push_back(dls::math::vec3f const &point);
 	void push_back(dls::math::vec3f &&point);
 
 	void reserve(size_t n);
@@ -47,7 +47,7 @@ public:
 	const void *data() const;
 
 	dls::math::vec3f &operator[](size_t i);
-	const dls::math::vec3f &operator[](size_t i) const;
+	dls::math::vec3f const &operator[](size_t i) const;
 };
 
 /* ************************************************************************** */
@@ -58,7 +58,7 @@ class EdgeList {
 public:
 	EdgeList() = default;
 
-	void push_back(const dls::math::vec2i &edge);
+	void push_back(dls::math::vec2i const &edge);
 	void push_back(dls::math::vec2i &&edge);
 
 	void reserve(size_t n);
@@ -72,7 +72,7 @@ public:
 	const void *data() const;
 
 	dls::math::vec2i &operator[](size_t i);
-	const dls::math::vec2i &operator[](size_t i) const;
+	dls::math::vec2i const &operator[](size_t i) const;
 };
 
 /* ************************************************************************** */
@@ -89,7 +89,7 @@ class PolygonList {
 public:
 	PolygonList() = default;
 
-	void push_back(const dls::math::vec4i &poly);
+	void push_back(dls::math::vec4i const &poly);
 
 	void push_back(dls::math::vec4i &&poly);
 
@@ -105,5 +105,5 @@ public:
 
 	dls::math::vec4i &operator[](size_t i);
 
-	const dls::math::vec4i &operator[](size_t i) const;
+	dls::math::vec4i const &operator[](size_t i) const;
 };

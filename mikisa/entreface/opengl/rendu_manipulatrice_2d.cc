@@ -90,7 +90,7 @@ RenduManipulatrice2D::~RenduManipulatrice2D()
 	delete m_tampon;
 }
 
-void RenduManipulatrice2D::dessine(const ContexteRendu &contexte)
+void RenduManipulatrice2D::dessine(ContexteRendu const &contexte)
 {
 	m_tampon->dessine(contexte);
 }

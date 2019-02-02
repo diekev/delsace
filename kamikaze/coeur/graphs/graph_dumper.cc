@@ -221,7 +221,7 @@ GraphDumper::GraphDumper(Graph *graph)
     : m_graph(graph)
 {}
 
-void GraphDumper::operator()(const std::experimental::filesystem::path &path)
+void GraphDumper::operator()(std::experimental::filesystem::path const &path)
 {
 	numero7::systeme_fichier::File file(path, "w");
 
@@ -385,7 +385,7 @@ DepsGraphDumper::DepsGraphDumper(Depsgraph *graph)
     : m_graph(graph)
 {}
 
-void DepsGraphDumper::operator()(const std::experimental::filesystem::path &path)
+void DepsGraphDumper::operator()(std::experimental::filesystem::path const &path)
 {
 	numero7::systeme_fichier::File file(path, "w");
 

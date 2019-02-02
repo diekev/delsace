@@ -57,8 +57,8 @@ struct Poseidon : public Sujette {
 	Poseidon();
 	~Poseidon();
 
-	Poseidon(const Poseidon &autre) = default;
-	Poseidon &operator=(const Poseidon &autre) = default;
+	Poseidon(Poseidon const &autre) = default;
+	Poseidon &operator=(Poseidon const &autre) = default;
 
 	void enregistre_commandes();
 };

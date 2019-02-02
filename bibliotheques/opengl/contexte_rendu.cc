@@ -24,52 +24,52 @@
 
 #include "contexte_rendu.h"
 
-const dls::math::mat4x4f &ContexteRendu::projection() const
+dls::math::mat4x4f const &ContexteRendu::projection() const
 {
 	return m_projection;
 }
 
-void ContexteRendu::projection(const dls::math::mat4x4f &matrice)
+void ContexteRendu::projection(dls::math::mat4x4f const &matrice)
 {
 	m_projection = matrice;
 }
 
-const dls::math::vec3f &ContexteRendu::vue() const
+dls::math::vec3f const &ContexteRendu::vue() const
 {
 	return m_vue;
 }
 
-void ContexteRendu::vue(const dls::math::vec3f &matrice)
+void ContexteRendu::vue(dls::math::vec3f const &matrice)
 {
 	m_vue = matrice;
 }
 
-const dls::math::mat3x3f &ContexteRendu::normal() const
+dls::math::mat3x3f const &ContexteRendu::normal() const
 {
 	return m_normal;
 }
 
-void ContexteRendu::normal(const dls::math::mat3x3f &matrice)
+void ContexteRendu::normal(dls::math::mat3x3f const &matrice)
 {
 	m_normal = matrice;
 }
 
-const dls::math::mat4x4f &ContexteRendu::MVP() const
+dls::math::mat4x4f const &ContexteRendu::MVP() const
 {
 	return m_modele_vue_projection;
 }
 
-void ContexteRendu::MVP(const dls::math::mat4x4f &matrice)
+void ContexteRendu::MVP(dls::math::mat4x4f const &matrice)
 {
 	m_modele_vue_projection = matrice;
 }
 
-const dls::math::mat4x4f &ContexteRendu::matrice_objet() const
+dls::math::mat4x4f const &ContexteRendu::matrice_objet() const
 {
 	return m_matrice_objet;
 }
 
-void ContexteRendu::matrice_objet(const dls::math::mat4x4f &matrice)
+void ContexteRendu::matrice_objet(dls::math::mat4x4f const &matrice)
 {
 	m_matrice_objet = matrice;
 }
@@ -104,12 +104,12 @@ void ContexteRendu::dessine_normaux(bool ouinon)
 	m_dessine_normaux = ouinon;
 }
 
-const dls::math::mat4x4f &ContexteRendu::modele_vue() const
+dls::math::mat4x4f const &ContexteRendu::modele_vue() const
 {
 	return m_modele_vue;
 }
 
-void ContexteRendu::modele_vue(const dls::math::mat4x4f &matrice)
+void ContexteRendu::modele_vue(dls::math::mat4x4f const &matrice)
 {
 	m_modele_vue = matrice;
 }

@@ -146,13 +146,13 @@ public:
 	SelecteurFichier(SelecteurFichier const &) = default;
 	SelecteurFichier &operator=(SelecteurFichier const &) = default;
 
-	void setValue(const QString &text);
+	void setValue(QString const &text);
 
 private Q_SLOTS:
 	void setChoosenFile();
 
 Q_SIGNALS:
-	void valeur_changee(const QString &text);
+	void valeur_changee(QString const &text);
 };
 
 /* ************************************************************************** */
@@ -175,9 +175,9 @@ public:
 	SelecteurListe(SelecteurListe const &) = default;
 	SelecteurListe &operator=(SelecteurListe const &) = default;
 
-	void setValue(const QString &text);
+	void setValue(QString const &text);
 
-	void addField(const QString &text);
+	void addField(QString const &text);
 
 private Q_SLOTS:
 	void showList();
@@ -185,7 +185,7 @@ private Q_SLOTS:
 	void updateText();
 
 Q_SIGNALS:
-	void valeur_changee(const QString &text);
+	void valeur_changee(QString const &text);
 };
 
 /* ************************************************************************** */

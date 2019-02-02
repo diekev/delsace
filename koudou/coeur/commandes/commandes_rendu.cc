@@ -35,7 +35,7 @@ class CommandeDemarreRendu : public Commande {
 public:
 	CommandeDemarreRendu() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto koudou = std::any_cast<Koudou *>(pointeur);
 		auto tache_rendu = new(tbb::task::allocate_root()) TacheRendu(*koudou);
@@ -51,7 +51,7 @@ class CommandeArreteRendu : public Commande {
 public:
 	CommandeArreteRendu() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto koudou = std::any_cast<Koudou *>(pointeur);
 		koudou->moteur_rendu->arrete();

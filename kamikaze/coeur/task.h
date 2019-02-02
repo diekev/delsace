@@ -64,12 +64,12 @@ Q_SIGNALS:
 class Task : public tbb::task {
 protected:
 	std::unique_ptr<TaskNotifier> m_notifier = nullptr;
-	const Context &m_context;
+	Context const &m_context;
 
 public:
-	explicit Task(const Context &context);
+	explicit Task(Context const &context);
 
 	tbb::task *execute() override;
 
-	virtual void start(const Context &context) = 0;
+	virtual void start(Context const &context) = 0;
 };

@@ -43,7 +43,7 @@
 
 /* ************************************************************************** */
 
-static auto converti_couleur(const Spectre &spectre)
+static auto converti_couleur(Spectre const &spectre)
 {
 	return dls::math::vec4f(spectre[0], spectre[1], spectre[2], 1.0f);
 }

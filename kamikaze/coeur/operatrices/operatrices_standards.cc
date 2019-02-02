@@ -40,7 +40,7 @@
 #include <random>
 #include <sstream>
 
-OperatriceSortie::OperatriceSortie(Noeud *noeud, const Context &contexte)
+OperatriceSortie::OperatriceSortie(Noeud *noeud, Context const &contexte)
 	: Operatrice(noeud, contexte)
 {}
 
@@ -49,7 +49,7 @@ const char *OperatriceSortie::nom_entree(size_t)
 	return "entrée";
 }
 
-void OperatriceSortie::execute(const Context &contexte, double temps)
+void OperatriceSortie::execute(Context const &contexte, double temps)
 {
 	return;
 }

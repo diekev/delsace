@@ -114,14 +114,14 @@ public:
 		m_donnees[calcul_index(x, y, z)] = v;
 	}
 
-	void copie(const Grille<T> &grille)
+	void copie(Grille<T> const &grille)
 	{
 		for (size_t i = 0; i < m_nombre_voxels; ++i) {
 			m_donnees[i] = grille.m_donnees[i];
 		}
 	}
 
-	void arriere_plan(const T &v)
+	void arriere_plan(T const &v)
 	{
 		m_arriere_plan = v;
 	}

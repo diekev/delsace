@@ -56,7 +56,7 @@ public:
 	void setSelected(bool selected); /* TEST */
 
 	/* Redraw the path of the spline */
-	void updatePath(const QPointF &altTargetPos = QPointF(0.0f, 0.0f));
+	void updatePath(QPointF const &altTargetPos = QPointF(0.0f, 0.0f));
 
 	/* Set the base port (needed when the connexion is attached to another base port) */
 	void setBasePort(QtPort *basePort);
@@ -67,7 +67,7 @@ public:
 	QtPort *getTargetPort() const;
 
 	/* Set the color of the line */
-	void setColor(const QColor &color);
+	void setColor(QColor const &color);
 
 	/* Determines whether a given node is connected to this connexion */
 	bool isNodeConnectedToThisConnexion(QtNode *node);

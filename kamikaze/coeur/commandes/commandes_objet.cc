@@ -43,10 +43,10 @@ class CommandeAjoutObjet : public Commande {
 public:
 	CommandeAjoutObjet() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override;
 };
 
-int CommandeAjoutObjet::execute(std::any const &pointeur, const DonneesCommande &donnees)
+int CommandeAjoutObjet::execute(std::any const &pointeur, DonneesCommande const &donnees)
 {
 	Object *m_object = nullptr;
 	Scene *m_scene = nullptr;
@@ -70,10 +70,10 @@ class CommandeAjoutNoeud : public Commande {
 public:
 	CommandeAjoutNoeud() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override;
 };
 
-int CommandeAjoutNoeud::execute(std::any const &pointeur, const DonneesCommande &donnees)
+int CommandeAjoutNoeud::execute(std::any const &pointeur, DonneesCommande const &donnees)
 {
 	Object *m_object = nullptr;
 	Scene *m_scene = nullptr;
@@ -112,10 +112,10 @@ class CommandeObjetPrereglage : public Commande {
 public:
 	CommandeObjetPrereglage() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override;
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override;
 };
 
-int CommandeObjetPrereglage::execute(std::any const &pointeur, const DonneesCommande &donnees)
+int CommandeObjetPrereglage::execute(std::any const &pointeur, DonneesCommande const &donnees)
 {
 	Object *m_object = nullptr;
 	Scene *m_scene = nullptr;
@@ -172,7 +172,7 @@ class CommandeEntreObjet : public Commande {
 public:
 	CommandeEntreObjet() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;
@@ -189,7 +189,7 @@ class CommandeSorsObjet : public Commande {
 public:
 	CommandeSorsObjet() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const &contexte = main->contexte;

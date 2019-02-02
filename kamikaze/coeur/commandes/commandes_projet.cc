@@ -31,7 +31,7 @@
 
 /* ************************************************************************** */
 
-static void ouvre_fichier_implementation(Main *main, const Context &contexte, const std::string &chemin_projet)
+static void ouvre_fichier_implementation(Main *main, Context const &contexte, std::string const &chemin_projet)
 {
 	auto const erreur = kamikaze::ouvre_projet(chemin_projet, *main, contexte);
 
@@ -66,7 +66,7 @@ static void ouvre_fichier_implementation(Main *main, const Context &contexte, co
 
 class CommandeOuvrir final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		auto const chemin_projet = main->requiers_dialogue(FICHIER_OUVERTURE);
@@ -85,7 +85,7 @@ public:
 
 class CommandeOuvrirRecent final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 
@@ -97,7 +97,7 @@ public:
 
 /* ************************************************************************** */
 
-static void sauve_fichier_sous(Main *main, const Context &context)
+static void sauve_fichier_sous(Main *main, Context const &context)
 {
 	auto const &chemin_projet = main->requiers_dialogue(FICHIER_SAUVEGARDE);
 
@@ -109,7 +109,7 @@ static void sauve_fichier_sous(Main *main, const Context &context)
 
 class CommandeSauvegarder final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 
@@ -128,7 +128,7 @@ public:
 
 class CommandeSauvegarderSous final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto main = std::any_cast<Main *>(pointeur);
 		sauve_fichier_sous(main, main->contexte);
@@ -141,7 +141,7 @@ public:
 
 class CommandeDefaire final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		/* À FAIRE */
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -152,7 +152,7 @@ public:
 
 class CommandeRefaire final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		/* À FAIRE */
 		return EXECUTION_COMMANDE_REUSSIE;

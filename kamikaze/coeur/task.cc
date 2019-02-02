@@ -61,7 +61,7 @@ void TaskNotifier::signalNodeProcessed()
 
 /* ************************ */
 
-Task::Task(const Context &context)
+Task::Task(Context const &context)
     : m_notifier(new TaskNotifier(context.main_window))
     , m_context(context)
 {}

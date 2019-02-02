@@ -86,7 +86,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
@@ -203,7 +203,7 @@ public:
 		}
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		INUTILISE(rectangle);
 
@@ -345,7 +345,7 @@ public:
 		}
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		INUTILISE(rectangle);
 
@@ -454,7 +454,7 @@ public:
 		return m_camera;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		if (entree(0)->connectee() == false) {
 			ajoute_avertissement("Aucune image connectée pour la texture");
@@ -641,7 +641,7 @@ public:
 		}
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		INUTILISE(rectangle);
 
@@ -741,7 +741,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
@@ -965,7 +965,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
@@ -1197,7 +1197,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
@@ -1356,7 +1356,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
@@ -1414,7 +1414,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
@@ -1693,7 +1693,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 

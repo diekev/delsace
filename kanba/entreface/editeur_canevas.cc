@@ -160,7 +160,7 @@ void VueCanevas::mouseReleaseEvent(QMouseEvent *e)
 	m_kanba->repondant_commande->acheve_commande_modale(donnees);
 }
 
-void VueCanevas::charge_image(const numero7::math::matrice<dls::math::vec4f> &image)
+void VueCanevas::charge_image(numero7::math::matrice<dls::math::vec4f> const &image)
 {
 	m_visionneur_image->charge_image(image);
 }

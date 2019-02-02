@@ -116,7 +116,7 @@ void RenduLumiere::initialise()
 	m_tampon->parametres_dessin(parametres_dessin);
 }
 
-void RenduLumiere::dessine(const ContexteRendu &contexte)
+void RenduLumiere::dessine(ContexteRendu const &contexte)
 {
 	m_tampon->dessine(contexte);
 }

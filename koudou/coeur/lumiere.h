@@ -47,7 +47,7 @@ struct Lumiere {
 	Lumiere(Lumiere const &) = default;
 	Lumiere &operator=(Lumiere const &) = default;
 
-	explicit Lumiere(const math::transformation &transform);
+	explicit Lumiere(math::transformation const &transform);
 
 	virtual ~Lumiere();
 };
@@ -59,7 +59,7 @@ struct Lumiere {
 struct LumierePoint final : public Lumiere {
 	dls::math::point3d pos{};
 
-	LumierePoint(const math::transformation &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
+	LumierePoint(math::transformation const &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
 };
 
 /**
@@ -69,5 +69,5 @@ struct LumierePoint final : public Lumiere {
 struct LumiereDistante final : public Lumiere {
 	dls::math::vec3d dir{};
 
-	LumiereDistante(const math::transformation &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
+	LumiereDistante(math::transformation const &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
 };

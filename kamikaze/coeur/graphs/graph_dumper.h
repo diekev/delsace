@@ -35,7 +35,7 @@ class GraphDumper {
 public:
 	explicit GraphDumper(Graph *graph);
 
-	void operator()(const std::experimental::filesystem::path &path);
+	void operator()(std::experimental::filesystem::path const &path);
 };
 
 class DepsGraphDumper {
@@ -44,5 +44,5 @@ class DepsGraphDumper {
 public:
 	explicit DepsGraphDumper(Depsgraph *graph);
 
-	void operator()(const std::experimental::filesystem::path &path);
+	void operator()(std::experimental::filesystem::path const &path);
 };

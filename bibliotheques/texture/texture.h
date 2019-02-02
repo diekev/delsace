@@ -67,7 +67,7 @@ class Texture {
 public:
 	virtual ~Texture() = default;
 
-	virtual Spectre echantillone(const dls::math::vec3d &direction) const = 0;
+	virtual Spectre echantillone(dls::math::vec3d const &direction) const = 0;
 
 	virtual TypeTexture type() const = 0;
 };
@@ -82,11 +82,11 @@ class TextureCouleur final : public Texture {
 public:
 	TextureCouleur() = default;
 
-	void etablie_spectre(const Spectre &spectre);
+	void etablie_spectre(Spectre const &spectre);
 
 	Spectre spectre() const;
 
-	Spectre echantillone(const dls::math::vec3d &direction) const override;
+	Spectre echantillone(dls::math::vec3d const &direction) const override;
 
 	TypeTexture type() const override;
 };
@@ -110,9 +110,9 @@ public:
 	TextureImage(TextureImage const &) = default;
 	TextureImage &operator=(TextureImage const &) = default;
 
-	Spectre echantillone(const dls::math::vec3d &direction) const override;
+	Spectre echantillone(dls::math::vec3d const &direction) const override;
 
-	void etablie_image(const numero7::math::matrice<Spectre> &image);
+	void etablie_image(numero7::math::matrice<Spectre> const &image);
 
 	SpectreRGB *donnees();
 	int largeur();
@@ -134,19 +134,19 @@ public:
 
 	dls::math::vec3f taille() const;
 
-	void taille(const dls::math::vec3f &taille);
+	void taille(dls::math::vec3f const &taille);
 
 	vision::Camera3D *camera() const;
 
-	void etablie_chemin(const std::experimental::filesystem::path &chemin);
+	void etablie_chemin(std::experimental::filesystem::path const &chemin);
 
-	const std::experimental::filesystem::path &chemin() const;
+	std::experimental::filesystem::path const &chemin() const;
 
 	TypeTexture type() const override;
 
 	Spectre echantillone_uv(int x, int y);
 
-	void charge_donnees(const numero7::math::matrice<numero7::image::PixelFloat> &donnees);
+	void charge_donnees(numero7::math::matrice<numero7::image::PixelFloat> const &donnees);
 };
 
-TextureImage *charge_texture(const std::experimental::filesystem::path &chemin);
+TextureImage *charge_texture(std::experimental::filesystem::path const &chemin);

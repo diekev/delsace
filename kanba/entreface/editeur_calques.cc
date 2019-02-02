@@ -57,7 +57,7 @@ class BoutonItemCalque : public QPushButton {
 	Calque *m_calque;
 
 public:
-	BoutonItemCalque(Calque *calque, const QString &texte, QWidget *parent = nullptr)
+	BoutonItemCalque(Calque *calque, QString const &texte, QWidget *parent = nullptr)
 		: QPushButton(texte, parent)
 		, m_calque(calque)
 	{}

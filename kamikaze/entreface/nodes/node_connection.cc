@@ -57,7 +57,7 @@ QtPort *QtConnexion::getTargetPort() const
 	return m_target_port;
 }
 
-void QtConnexion::updatePath(const QPointF &altTargetPos)
+void QtConnexion::updatePath(QPointF const &altTargetPos)
 {
 	prepareGeometryChange();
 
@@ -75,7 +75,7 @@ void QtConnexion::updatePath(const QPointF &altTargetPos)
 	setPath(p);
 }
 
-void QtConnexion::setColor(const QColor &color)
+void QtConnexion::setColor(QColor const &color)
 {
 	m_color = color;
 	setPen(QPen(m_color, 3));

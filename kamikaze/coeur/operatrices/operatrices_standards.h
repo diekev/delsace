@@ -34,10 +34,10 @@ void enregistre_operatrices_integres(UsineOperatrice &usine);
 
 class OperatriceSortie : public Operatrice {
 public:
-	OperatriceSortie(Noeud *noeud, const Context &contexte);
+	OperatriceSortie(Noeud *noeud, Context const &contexte);
 
 	const char *nom_entree(size_t /*index*/);
 
-	void execute(const Context &contexte, double temps);
+	void execute(Context const &contexte, double temps);
 	const char *nom() override;
 };

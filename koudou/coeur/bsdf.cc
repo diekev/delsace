@@ -47,7 +47,7 @@ BSDFTrivial::BSDFTrivial(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFTrivial::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFTrivial::evalue_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d const &dir, Spectre &L, double &pdf)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -57,7 +57,7 @@ void BSDFTrivial::evalue_echantillon(GNA &gna, const ParametresRendu &parametres
 	L = Spectre(0.0);
 }
 
-void BSDFTrivial::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
+void BSDFTrivial::genere_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -74,7 +74,7 @@ BSDFAngleVue::BSDFAngleVue(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFAngleVue::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFAngleVue::evalue_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d const &dir, Spectre &L, double &pdf)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -84,7 +84,7 @@ void BSDFAngleVue::evalue_echantillon(GNA &gna, const ParametresRendu &parametre
 	L = Spectre(0.0);
 }
 
-void BSDFAngleVue::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
+void BSDFAngleVue::genere_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	INUTILISE(profondeur);
 
@@ -102,7 +102,7 @@ BSDFDiffus::BSDFDiffus(ContexteNuancage &ctx, Spectre s)
 	, spectre(s)
 {}
 
-void BSDFDiffus::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFDiffus::evalue_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d const &dir, Spectre &L, double &pdf)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -112,7 +112,7 @@ void BSDFDiffus::evalue_echantillon(GNA &gna, const ParametresRendu &parametres,
 	L = Spectre(0.0);
 }
 
-void BSDFDiffus::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
+void BSDFDiffus::genere_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	INUTILISE(profondeur);
 
@@ -124,8 +124,8 @@ void BSDFDiffus::genere_echantillon(GNA &gna, const ParametresRendu &parametres,
 /* ************************************************************************** */
 
 inline auto reflechi(
-		const dls::math::vec3d &I,
-		const dls::math::vec3d &N)
+		dls::math::vec3d const &I,
+		dls::math::vec3d const &N)
 {
 	return I - 2.0 * produit_scalaire(I, N) * N;
 }
@@ -134,7 +134,7 @@ BSDFReflectance::BSDFReflectance(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFReflectance::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFReflectance::evalue_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d const &dir, Spectre &L, double &pdf)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -144,7 +144,7 @@ void BSDFReflectance::evalue_echantillon(GNA &gna, const ParametresRendu &parame
 	L = Spectre(0.0);
 }
 
-void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
+void BSDFReflectance::genere_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	dir = -contexte.V;
 	pdf = 1.0;
@@ -168,8 +168,8 @@ void BSDFReflectance::genere_echantillon(GNA &gna, const ParametresRendu &parame
 /* ************************************************************************** */
 
 auto refracte0(
-		const dls::math::vec3d &I,
-		const dls::math::vec3d &N,
+		dls::math::vec3d const &I,
+		dls::math::vec3d const &N,
 		const double idr)
 {
 	auto Nrefr = N;
@@ -201,9 +201,9 @@ auto refracte0(
 }
 
 auto fresnel0(
-		const dls::math::vec3d &I,
-		const dls::math::vec3d &N,
-		const double &idr,
+		dls::math::vec3d const &I,
+		dls::math::vec3d const &N,
+		double const &idr,
 		double &kr)
 {
 	auto cosi = produit_scalaire(I, N);
@@ -237,7 +237,7 @@ BSDFVerre::BSDFVerre(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFVerre::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFVerre::evalue_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d const &dir, Spectre &L, double &pdf)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -246,7 +246,7 @@ void BSDFVerre::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, 
 	L = Spectre(0.0);
 }
 
-void BSDFVerre::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
+void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
 	pdf = 1.0;
@@ -335,7 +335,7 @@ BSDFVolume::BSDFVolume(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFVolume::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFVolume::evalue_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d const &dir, Spectre &L, double &pdf)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -344,7 +344,7 @@ void BSDFVolume::evalue_echantillon(GNA &gna, const ParametresRendu &parametres,
 	L = Spectre(0.0);
 }
 
-void BSDFVolume::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
+void BSDFVolume::genere_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	INUTILISE(gna);
 	INUTILISE(profondeur);
@@ -387,7 +387,7 @@ BSDFPhaseIsotropique::BSDFPhaseIsotropique(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
 
-void BSDFPhaseIsotropique::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFPhaseIsotropique::evalue_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d const &dir, Spectre &L, double &pdf)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -397,7 +397,7 @@ void BSDFPhaseIsotropique::evalue_echantillon(GNA &gna, const ParametresRendu &p
 	L = Spectre(pdf);
 }
 
-void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
+void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	INUTILISE(parametres);
 	INUTILISE(profondeur);
@@ -432,7 +432,7 @@ void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, const ParametresRendu &p
  */
 template <typename T>
 static void cree_base_orthonormal(
-		const dls::math::vec3<T> &n,
+		dls::math::vec3<T> const &n,
 		dls::math::vec3<T> &b0,
 		dls::math::vec3<T> &b1)
 {
@@ -463,7 +463,7 @@ BSDFPhaseAnisotropique::BSDFPhaseAnisotropique(ContexteNuancage &ctx, double g_)
 	}
 }
 
-void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, const ParametresRendu &parametres, const dls::math::vec3d &dir, Spectre &L, double &pdf)
+void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d const &dir, Spectre &L, double &pdf)
 {
 	INUTILISE(gna);
 	INUTILISE(parametres);
@@ -480,7 +480,7 @@ void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, const ParametresRendu 
 	L = Spectre(pdf);
 }
 
-void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, const ParametresRendu &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
+void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, ParametresRendu const &parametres, dls::math::vec3d &dir, Spectre &L, double &pdf, uint profondeur)
 {
 	INUTILISE(parametres);
 	INUTILISE(profondeur);

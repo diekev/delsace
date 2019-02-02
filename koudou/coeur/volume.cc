@@ -45,7 +45,7 @@ VolumeLoiBeers::VolumeLoiBeers(ContexteNuancage &ctx)
 	: Volume(ctx)
 {}
 
-bool VolumeLoiBeers::integre(GNA &gna, const ParametresRendu &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo)
+bool VolumeLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo)
 {
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
@@ -66,7 +66,7 @@ bool VolumeLoiBeers::integre(GNA &gna, const ParametresRendu &parametres, Spectr
 	return true;
 }
 
-Spectre VolumeLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const dls::math::point3d &P0, const dls::math::point3d &P1)
+Spectre VolumeLoiBeers::transmittance(GNA &gna, ParametresRendu const &/*parametres*/, dls::math::point3d const &P0, dls::math::point3d const &P1)
 {
 	auto const distance = static_cast<float>(longueur(P0 - P1));
 
@@ -84,7 +84,7 @@ VolumeHeterogeneLoiBeers::VolumeHeterogeneLoiBeers(ContexteNuancage &ctx)
 	: Volume(ctx)
 {}
 
-bool VolumeHeterogeneLoiBeers::integre(GNA &gna, const ParametresRendu &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo)
+bool VolumeHeterogeneLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo)
 {
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
@@ -105,7 +105,7 @@ bool VolumeHeterogeneLoiBeers::integre(GNA &gna, const ParametresRendu &parametr
 	return true;
 }
 
-Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, const ParametresRendu &/*parametres*/, const dls::math::point3d &P0, const dls::math::point3d &P1)
+Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, ParametresRendu const &/*parametres*/, dls::math::point3d const &P0, dls::math::point3d const &P1)
 {
 	auto const distance = longueur(P0 - P1);
 	auto const dir = (P1 - P0);
@@ -155,7 +155,7 @@ VolumeDiffusionSimple::VolumeDiffusionSimple(ContexteNuancage &ctx)
 
 bool VolumeDiffusionSimple::integre(
 		GNA &gna,
-		const ParametresRendu &parametres,
+		ParametresRendu const &parametres,
 		Spectre &L,
 		Spectre &tr,
 		Spectre &poids,
@@ -218,9 +218,9 @@ bool VolumeDiffusionSimple::integre(
 
 Spectre VolumeDiffusionSimple::transmittance(
 		GNA &gna,
-		const ParametresRendu &parametres,
-		const dls::math::point3d &P0,
-		const dls::math::point3d &P1)
+		ParametresRendu const &parametres,
+		dls::math::point3d const &P0,
+		dls::math::point3d const &P1)
 {
 	auto const distance = static_cast<float>(longueur(P0 - P1));
 
@@ -240,7 +240,7 @@ VolumeHeterogeneDiffusionSimple::VolumeHeterogeneDiffusionSimple(ContexteNuancag
 
 bool VolumeHeterogeneDiffusionSimple::integre(
 		GNA &gna,
-		const ParametresRendu &parametres,
+		ParametresRendu const &parametres,
 		Spectre &L,
 		Spectre &tr,
 		Spectre &poids,
@@ -331,9 +331,9 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 
 Spectre VolumeHeterogeneDiffusionSimple::transmittance(
 		GNA &gna,
-		const ParametresRendu &parametres,
-		const dls::math::point3d &P0,
-		const dls::math::point3d &P1)
+		ParametresRendu const &parametres,
+		dls::math::point3d const &P0,
+		dls::math::point3d const &P1)
 {
 	auto const distance = static_cast<float>(longueur(P0 - P1));
 

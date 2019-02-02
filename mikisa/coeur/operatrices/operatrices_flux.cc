@@ -161,7 +161,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 		m_image.nom_calque_actif(evalue_chaine("nom_calque"));
@@ -193,7 +193,7 @@ public:
 	using plage = plage_iterable<std::unordered_map<std::string, DonneesFichier>::iterator>;
 	using plage_const = plage_iterable<std::unordered_map<std::string, DonneesFichier>::const_iterator>;
 
-	void ajoute_chemin(OperatriceImage *operatrice, const std::string &chemin, type_fichier type_fichier, bool entree)
+	void ajoute_chemin(OperatriceImage *operatrice, std::string const &chemin, type_fichier type_fichier, bool entree)
 	{
 		auto iter = m_tableau.find(chemin);
 
@@ -219,7 +219,7 @@ public:
 		m_tableau.insert(std::make_pair(chemin, donnees));
 	}
 
-	void supprime_chemin(OperatriceImage *operatrice, const std::string &chemin)
+	void supprime_chemin(OperatriceImage *operatrice, std::string const &chemin)
 	{
 		auto iter = m_tableau.find(chemin);
 
@@ -281,7 +281,7 @@ public:
 		return "entreface/operatrice_lecture_fichier.jo";
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_image.reinitialise();
 
@@ -374,7 +374,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		auto const value = evalue_entier("prise");
 		entree(static_cast<size_t>(value))->requiers_image(m_image, rectangle, temps);

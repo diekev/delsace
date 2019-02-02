@@ -91,13 +91,13 @@ public:
 		m_pile[m_decalage++] = static_cast<float>(w);
 	}
 
-	void ajoute_noeud(const dls::math::vec3f &v);
+	void ajoute_noeud(dls::math::vec3f const &v);
 
 	size_t decalage_pile(PriseSortie *prise);
 
-	void stocke_decimal(size_t decalage, const float &v);
+	void stocke_decimal(size_t decalage, float const &v);
 
-	void stocke_vec3f(size_t decalage, const dls::math::vec3f &v);
+	void stocke_vec3f(size_t decalage, dls::math::vec3f const &v);
 
 	iterateur debut();
 
@@ -152,14 +152,14 @@ inline void pile_stocke_decimal(CompileuseGraphe::iterateur &pointeur, const flo
 	*pointeur++ = d;
 }
 
-inline void pile_stocke_vec3f(CompileuseGraphe::iterateur &pointeur, const dls::math::vec3f &v)
+inline void pile_stocke_vec3f(CompileuseGraphe::iterateur &pointeur, dls::math::vec3f const &v)
 {
 	*pointeur++ = v.x;
 	*pointeur++ = v.y;
 	*pointeur++ = v.z;
 }
 
-inline void pile_stocke_couleur(CompileuseGraphe::iterateur &pointeur, const couleur32 &c)
+inline void pile_stocke_couleur(CompileuseGraphe::iterateur &pointeur, couleur32 const &c)
 {
 	*pointeur++ = c.r;
 	*pointeur++ = c.v;

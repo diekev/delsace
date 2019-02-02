@@ -66,17 +66,17 @@ public:
 
 	~Arbre();
 
-	Arbre(const Arbre &autre);
+	Arbre(Arbre const &autre);
 
-	Arbre &operator=(const Arbre &autre) = default;
+	Arbre &operator=(Arbre const &autre) = default;
 
-	void ajoute_sommet(const dls::math::vec3f &pos);
+	void ajoute_sommet(dls::math::vec3f const &pos);
 
 	void ajoute_arrete(int s0, int s1);
 
 	void reinitialise();
 
-	const math::transformation &transformation() const;
+	math::transformation const &transformation() const;
 
 	plage_sommets sommets() const;
 

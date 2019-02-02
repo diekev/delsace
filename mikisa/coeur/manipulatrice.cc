@@ -29,10 +29,10 @@ static constexpr auto RAYON_POIGNEE = 0.10f;
 static constexpr auto TAILLE = 1.0f;
 
 static bool entresecte_min_max(
-		const dls::math::vec3f &min,
-		const dls::math::vec3f &max,
-		const dls::math::point3f &origine,
-		const dls::math::vec3f &inverse_direction)
+		dls::math::vec3f const &min,
+		dls::math::vec3f const &max,
+		dls::math::point3f const &origine,
+		dls::math::vec3f const &inverse_direction)
 {
 	auto t1 = (min[0] - origine[0]) * inverse_direction[0];
 	auto t2 = (max[0] - origine[0]) * inverse_direction[0];
@@ -51,7 +51,7 @@ static bool entresecte_min_max(
 	return tmax > std::max(tmin, 0.0f);
 }
 
-bool entresecte_plan(const Plan &plan, const dls::math::point3f &orig, const dls::math::vec3f &dir, float &t)
+bool entresecte_plan(Plan const &plan, dls::math::point3f const &orig, dls::math::vec3f const &dir, float &t)
 {
 	auto const denom = produit_scalaire(plan.nor, dir);
 
@@ -73,34 +73,34 @@ int Manipulatrice3D::etat() const
 	return m_etat;
 }
 
-void Manipulatrice3D::pos(const dls::math::point3f &pos)
+void Manipulatrice3D::pos(dls::math::point3f const &pos)
 {
 	m_position = pos;
 }
 
-const dls::math::point3f &Manipulatrice3D::taille() const
+dls::math::point3f const &Manipulatrice3D::taille() const
 {
 	return m_taille;
 }
 
-void Manipulatrice3D::taille(const dls::math::point3f &t)
+void Manipulatrice3D::taille(dls::math::point3f const &t)
 {
 	m_taille = t;
 	m_taille_originale = t;
 }
 
-const dls::math::point3f &Manipulatrice3D::rotation() const
+dls::math::point3f const &Manipulatrice3D::rotation() const
 {
 	return m_rotation;
 }
 
-void Manipulatrice3D::rotation(const dls::math::point3f &r)
+void Manipulatrice3D::rotation(dls::math::point3f const &r)
 {
 	m_rotation_originale = r;
 	m_rotation = r;
 }
 
-const dls::math::point3f &Manipulatrice3D::pos() const
+dls::math::point3f const &Manipulatrice3D::pos() const
 {
 	return m_position;
 }
@@ -127,7 +127,7 @@ ManipulatricePosition3D::ManipulatricePosition3D()
 {
 }
 
-bool ManipulatricePosition3D::entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir)
+bool ManipulatricePosition3D::entresecte(dls::math::point3f const &orig, dls::math::vec3f const &dir)
 {
 	auto dir_inverse = dls::math::vec3f(0.0f);
 
@@ -184,7 +184,7 @@ bool ManipulatricePosition3D::entresecte(const dls::math::point3f &orig, const d
 	return false;
 }
 
-void ManipulatricePosition3D::repond_manipulation(const dls::math::vec3f &delta)
+void ManipulatricePosition3D::repond_manipulation(dls::math::vec3f const &delta)
 {
 	if (m_etat == ETAT_INTERSECTION_X) {
 		m_position.x = delta.x;
@@ -224,7 +224,7 @@ ManipulatriceEchelle3D::ManipulatriceEchelle3D()
 {
 }
 
-bool ManipulatriceEchelle3D::entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir)
+bool ManipulatriceEchelle3D::entresecte(dls::math::point3f const &orig, dls::math::vec3f const &dir)
 {
 	auto dir_inverse = dls::math::vec3f(0.0f);
 
@@ -281,7 +281,7 @@ bool ManipulatriceEchelle3D::entresecte(const dls::math::point3f &orig, const dl
 	return false;
 }
 
-void ManipulatriceEchelle3D::repond_manipulation(const dls::math::vec3f &delta)
+void ManipulatriceEchelle3D::repond_manipulation(dls::math::vec3f const &delta)
 {
 	if (m_etat == ETAT_INTERSECTION_X) {
 //		m_max.x = delta.x;
@@ -325,7 +325,7 @@ ManipulatriceRotation3D::ManipulatriceRotation3D()
 	m_max = dls::math::vec3f( 1.0f + RAYON_POIGNEE);
 }
 
-bool ManipulatriceRotation3D::entresecte(const dls::math::point3f &orig, const dls::math::vec3f &dir)
+bool ManipulatriceRotation3D::entresecte(dls::math::point3f const &orig, dls::math::vec3f const &dir)
 {
 	auto dir_inverse = dls::math::vec3f(0.0f);
 
@@ -392,7 +392,7 @@ bool ManipulatriceRotation3D::entresecte(const dls::math::point3f &orig, const d
 	return m_etat != ETAT_DEFAUT;
 }
 
-void ManipulatriceRotation3D::repond_manipulation(const dls::math::vec3f &delta)
+void ManipulatriceRotation3D::repond_manipulation(dls::math::vec3f const &delta)
 {
 	if (m_etat == ETAT_INTERSECTION_X) {
 		m_rotation.x = m_rotation_originale.x + delta.x;

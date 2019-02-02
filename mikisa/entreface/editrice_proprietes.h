@@ -47,7 +47,7 @@ public:
 
 	void ajourne_manipulable() override;
 
-	void obtiens_liste(const std::string &attache, std::vector<std::string> &chaines) override;
+	void obtiens_liste(std::string const &attache, std::vector<std::string> &chaines) override;
 
 	void reinitialise_entreface(bool creation_avert);
 };

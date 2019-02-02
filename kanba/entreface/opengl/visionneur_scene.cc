@@ -40,7 +40,7 @@
 #include "rendu_rayon.h"
 
 template <typename T>
-auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
+auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
 {
 	dls::math::mat4x4<float> resultat;
 

@@ -56,7 +56,7 @@ static std::string nom_mode_fusion(TypeMelange type_melange)
 	}
 }
 
-static TypeMelange mode_fusion_depuis_nom(const std::string &nom)
+static TypeMelange mode_fusion_depuis_nom(std::string const &nom)
 {
 	if (nom == "normal") {
 		return TypeMelange::NORMAL;

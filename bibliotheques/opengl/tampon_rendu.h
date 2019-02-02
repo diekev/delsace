@@ -88,22 +88,22 @@ public:
 	/**
 	 * Ajoute le nom d'un nouvel attribut dans la liste des attributs.
 	 */
-	void ajoute_attribut(const std::string &nom);
+	void ajoute_attribut(std::string const &nom);
 
 	/**
 	 * Ajoute le nom d'une nouvelle valeur uniforme dans la liste des uniformes.
 	 */
-	void ajoute_uniforme(const std::string &nom);
+	void ajoute_uniforme(std::string const &nom);
 
 	/**
 	 * Retourne la liste des attributs.
 	 */
-	const std::vector<std::string> &attributs() const;
+	std::vector<std::string> const &attributs() const;
 
 	/**
 	 * Retourne la liste des uniformes.
 	 */
-	const std::vector<std::string> &uniformes() const;
+	std::vector<std::string> const &uniformes() const;
 };
 
 /* ************************************************************************** */
@@ -196,18 +196,18 @@ public:
 	 */
 	void charge_source_programme(
 			numero7::ego::Nuanceur type_programme,
-			const std::string &source,
+			std::string const &source,
 			std::ostream &os = std::cerr);
 
 	/**
 	 * Mets en place les paramètres du programme de ce tampon.
 	 */
-	void parametres_programme(const ParametresProgramme &parametres);
+	void parametres_programme(ParametresProgramme const &parametres);
 
 	/**
 	 * Mets en place les paramètres du dessin.
 	 */
-	void parametres_dessin(const ParametresDessin &parametres);
+	void parametres_dessin(ParametresDessin const &parametres);
 
 	/**
 	 * Finalise la construction du programme. Cette fonction doit
@@ -226,17 +226,17 @@ public:
 	/**
 	 * Remplie le tampon des sommets selon les paramètres spécifiés.
 	 */
-	void remplie_tampon(const ParametresTampon &parametres);
+	void remplie_tampon(ParametresTampon const &parametres);
 
 	/**
 	 * Remplie un tampon extra selon les paramètres spécifiés.
 	 */
-	void remplie_tampon_extra(const ParametresTampon &parametres);
+	void remplie_tampon_extra(ParametresTampon const &parametres);
 
 	/**
 	 * Dessine ce tampon selon le dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte);
+	void dessine(ContexteRendu const &contexte);
 
 	/**
 	 * Retourne un pointeur vers le programme de ce tampon.

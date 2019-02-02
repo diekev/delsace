@@ -32,7 +32,7 @@
 
 #include "bibliotheques/opengl/tampon_rendu.h"
 
-static TamponRendu *cree_tampon(const dls::math::vec4f &couleur, float taille_ligne)
+static TamponRendu *cree_tampon(dls::math::vec4f const &couleur, float taille_ligne)
 {
 	auto tampon = new TamponRendu;
 
@@ -147,7 +147,7 @@ RenduGrille::~RenduGrille()
 	delete m_tampon_axe_z;
 }
 
-void RenduGrille::dessine(const ContexteRendu &contexte)
+void RenduGrille::dessine(ContexteRendu const &contexte)
 {
 	m_tampon_grille->dessine(contexte);
 	m_tampon_axe_x->dessine(contexte);

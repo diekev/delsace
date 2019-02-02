@@ -152,7 +152,7 @@ static bool peut_connecter(PriseEntree *entree, PriseSortie *sortie)
 
 class CommandeDessineGrapheComposite final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto composite = mikisa->composite;
@@ -173,7 +173,7 @@ public:
 
 class CommandeAjoutNoeud final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto noeud = new Noeud(supprime_operatrice_image);
@@ -213,7 +213,7 @@ class CommandeSelectionGraphe final : public Commande {
 public:
 	CommandeSelectionGraphe() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -264,7 +264,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -287,7 +287,7 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 	}
 
-	void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -335,7 +335,7 @@ public:
 
 class CommandeSupprimeSelection final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -381,7 +381,7 @@ public:
 
 class CommandeInfoNoeud final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
@@ -420,7 +420,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -441,7 +441,7 @@ class CommandeDeplaceGraphe final : public Commande {
 public:
 	CommandeDeplaceGraphe() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -452,7 +452,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -470,7 +470,7 @@ class CommandeZoomGraphe final : public Commande {
 public:
 	CommandeZoomGraphe() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -487,7 +487,7 @@ public:
 
 class CommandeEntreNoeud final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
@@ -557,7 +557,7 @@ public:
 
 class CommandeSorsNoeud final : public Commande {
 public:
-	int execute(std::any const &pointeur, const DonneesCommande &/*donnees*/) override
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 

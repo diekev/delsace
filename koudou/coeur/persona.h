@@ -91,13 +91,13 @@ public:
 
 	/* Modification des propriétés. */
 
-	void rend_visible(const std::string &nom_propriete, bool visible);
+	void rend_visible(std::string const &nom_propriete, bool visible);
 
 	void etablie_infobulle(std::string tooltip);
 
 	void etablie_min_max(const float min, const float max);
 
-	void etablie_valeur_enum(const ProprieteEnumerante &enum_prop);
+	void etablie_valeur_enum(ProprieteEnumerante const &enum_prop);
 
 	void etablie_valeur_int_defaut(int valeur);
 
@@ -105,41 +105,41 @@ public:
 
 	void etablie_valeur_bool_defaut(bool valeur);
 
-	void etablie_valeur_string_defaut(const std::string &valeur);
+	void etablie_valeur_string_defaut(std::string const &valeur);
 
-	void etablie_valeur_vec3_defaut(const dls::math::vec3f &valeur);
+	void etablie_valeur_vec3_defaut(dls::math::vec3f const &valeur);
 
-	void etablie_valeur_couleur_defaut(const dls::math::vec4f &valeur);
+	void etablie_valeur_couleur_defaut(dls::math::vec4f const &valeur);
 
-	void ajourne_valeur_float(const std::string &nom_propriete, float valeur);
+	void ajourne_valeur_float(std::string const &nom_propriete, float valeur);
 
-	void ajourne_valeur_int(const std::string &nom_propriete, int valeur);
+	void ajourne_valeur_int(std::string const &nom_propriete, int valeur);
 
-	void ajourne_valeur_bool(const std::string &nom_propriete, bool valeur);
+	void ajourne_valeur_bool(std::string const &nom_propriete, bool valeur);
 
-	void ajourne_valeur_string(const std::string &nom_propriete, const std::string &valeur);
+	void ajourne_valeur_string(std::string const &nom_propriete, std::string const &valeur);
 
-	void ajourne_valeur_couleur(const std::string &nom_propriete, const dls::math::vec4f &valeur);
+	void ajourne_valeur_couleur(std::string const &nom_propriete, dls::math::vec4f const &valeur);
 
-	void ajourne_valeur_vec3(const std::string &nom_propriete, const dls::math::vec3f &valeur);
+	void ajourne_valeur_vec3(std::string const &nom_propriete, dls::math::vec3f const &valeur);
 
-	void ajourne_valeur_enum(const std::string &nom_propriete, const ProprieteEnumerante &propriete);
+	void ajourne_valeur_enum(std::string const &nom_propriete, ProprieteEnumerante const &propriete);
 
 	/* Évaluation. */
 
-	int evalue_int(const std::string &nom_propriete);
+	int evalue_int(std::string const &nom_propriete);
 
-	float evalue_float(const std::string &nom_propriete);
+	float evalue_float(std::string const &nom_propriete);
 
-	int evalue_enum(const std::string &nom_propriete);
+	int evalue_enum(std::string const &nom_propriete);
 
-	int evalue_bool(const std::string &nom_propriete);
+	int evalue_bool(std::string const &nom_propriete);
 
-	dls::math::vec3f evalue_vec3(const std::string &nom_propriete);
+	dls::math::vec3f evalue_vec3(std::string const &nom_propriete);
 
-	dls::math::vec4f evalue_couleur(const std::string &nom_propriete);
+	dls::math::vec4f evalue_couleur(std::string const &nom_propriete);
 
-	std::string evalue_string(const std::string &nom_propriete);
+	std::string evalue_string(std::string const &nom_propriete);
 
 	/* Accès. */
 
@@ -150,11 +150,11 @@ public:
 	virtual bool ajourne_proprietes();
 
 private:
-	inline Propriete *trouve_propriete(const std::string &nom_propriete)
+	inline Propriete *trouve_propriete(std::string const &nom_propriete)
 	{
 		auto const &iter = std::find_if(
 							   m_proprietes.begin(), m_proprietes.end(),
-							   [&](const Propriete &prop)
+							   [&](Propriete const &prop)
 		{
 			return prop.nom == nom_propriete;
 		});

@@ -59,7 +59,7 @@ TextItem::TextItem(QGraphicsItem *parent)
     : TextItem("", parent)
 {}
 
-TextItem::TextItem(const QString &text, QGraphicsItem *parent)
+TextItem::TextItem(QString const &text, QGraphicsItem *parent)
     : QGraphicsTextItem(text, parent)
 {
 	this->setFlags(ItemIsSelectable | ItemIsFocusable);
@@ -138,7 +138,7 @@ void TextItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 	QGraphicsTextItem::mousePressEvent(click.get());
 }
 
-QVariant TextItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+QVariant TextItem::itemChange(QGraphicsItem::GraphicsItemChange change, QVariant const &value)
 {
 	if (   (change == QGraphicsItem::ItemSelectedChange)
 	       && (textInteractionFlags() != Qt::NoTextInteraction)
@@ -153,7 +153,7 @@ QVariant TextItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
 
 /* ************************************************************************** */
 
-QtNode::QtNode(const QString &title, QGraphicsItem *parent)
+QtNode::QtNode(QString const &title, QGraphicsItem *parent)
     : QGraphicsPathItem(parent)
     , m_data(nullptr)
     , m_auto_size(true)
@@ -275,7 +275,7 @@ void QtNode::redraw()
 	}
 }
 
-void QtNode::setTitleColor(const QColor &color)
+void QtNode::setTitleColor(QColor const &color)
 {
 	m_title_label->setDefaultTextColor(color);
 }
@@ -435,7 +435,7 @@ QtPort *QtNode::input(int index) const
 	return m_input_ports[index];
 }
 
-QtPort *QtNode::input(const QString &name) const
+QtPort *QtNode::input(QString const &name) const
 {
 	for (QtPort *port : m_input_ports) {
 		if (port->getPortName() == name) {
@@ -451,7 +451,7 @@ QtPort *QtNode::output(int index) const
 	return m_output_ports[index];
 }
 
-QtPort *QtNode::output(const QString &name) const
+QtPort *QtNode::output(QString const &name) const
 {
 	for (QtPort *port : m_output_ports) {
 		if (port->getPortName() == name) {
@@ -572,7 +572,7 @@ Noeud *QtNode::pointeur_noeud() const
 	return m_data;
 }
 
-QtPort *QtNode::createPort(const QString &portName,
+QtPort *QtNode::createPort(QString const &portName,
                            int type,
                            QColor portColour,
                            Alignment alignement,

@@ -30,7 +30,7 @@
 
 #include "operatrice_image.h"
 
-void execute_noeud(Noeud *noeud, const Rectangle &rectangle, const int temps)
+void execute_noeud(Noeud *noeud, Rectangle const &rectangle, const int temps)
 {
 	if (!noeud->besoin_execution()) {
 		return;

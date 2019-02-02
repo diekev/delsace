@@ -68,7 +68,7 @@ public:
 	void paintGL() override;
 	void resizeGL(int w, int h) override;
 
-	void charge_image(const numero7::math::matrice<dls::math::vec4f> &image);
+	void charge_image(numero7::math::matrice<dls::math::vec4f> const &image);
 
 	void mode_visionnage(int mode);
 

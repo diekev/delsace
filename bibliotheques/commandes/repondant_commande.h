@@ -47,13 +47,13 @@ public:
 	RepondantCommande(RepondantCommande const &) = delete;
 	RepondantCommande &operator=(RepondantCommande const &) = delete;
 
-	bool appele_commande(const std::string &categorie, const DonneesCommande &donnees_commande);
+	bool appele_commande(std::string const &categorie, DonneesCommande const &donnees_commande);
 
-	void ajourne_commande_modale(const DonneesCommande &donnees_commande);
+	void ajourne_commande_modale(DonneesCommande const &donnees_commande);
 
-	void acheve_commande_modale(const DonneesCommande &donnees_commande);
+	void acheve_commande_modale(DonneesCommande const &donnees_commande);
 
-	bool evalue_predicat(const std::string &identifiant, const std::string &metadonnee) override;
+	bool evalue_predicat(std::string const &identifiant, std::string const &metadonnee) override;
 
-	void repond_clique(const std::string &identifiant, const std::string &metadonnee) override;
+	void repond_clique(std::string const &identifiant, std::string const &metadonnee) override;
 };

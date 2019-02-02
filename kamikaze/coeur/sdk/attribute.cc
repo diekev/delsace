@@ -25,12 +25,12 @@
 #include "attribute.h"
 
 template <typename Container>
-void copy(const Container &from, Container &to)
+void copy(Container const &from, Container &to)
 {
 	std::copy(from->begin(), from->end(), to->begin());
 }
 
-Attribute::Attribute(const std::string &name, AttributeType type, size_t size)
+Attribute::Attribute(std::string const &name, AttributeType type, size_t size)
     : m_name(name)
     , m_type(type)
 {
@@ -67,7 +67,7 @@ Attribute::Attribute(const std::string &name, AttributeType type, size_t size)
 	}
 }
 
-Attribute::Attribute(const Attribute &rhs)
+Attribute::Attribute(Attribute const &rhs)
     : Attribute(rhs.name(), rhs.type(), rhs.size())
 {
 	switch (m_type) {
@@ -361,62 +361,62 @@ float Attribute::float_(size_t n) const
 	return (*(m_data.float_list))[n];
 }
 
-void Attribute::vec2(size_t n, const dls::math::vec2f &v)
+void Attribute::vec2(size_t n, dls::math::vec2f const &v)
 {
 	(*(m_data.vec2_list))[n] = v;
 }
 
-const dls::math::vec2f &Attribute::vec2(size_t n) const
+dls::math::vec2f const &Attribute::vec2(size_t n) const
 {
 	return (*(m_data.vec2_list))[n];
 }
 
-void Attribute::vec3(size_t n, const dls::math::vec3f &v)
+void Attribute::vec3(size_t n, dls::math::vec3f const &v)
 {
 	(*(m_data.vec3_list))[n] = v;
 }
 
-const dls::math::vec3f &Attribute::vec3(size_t n) const
+dls::math::vec3f const &Attribute::vec3(size_t n) const
 {
 	return (*(m_data.vec3_list))[n];
 }
 
-void Attribute::vec4(size_t n, const dls::math::vec4f &v)
+void Attribute::vec4(size_t n, dls::math::vec4f const &v)
 {
 	(*(m_data.vec4_list))[n] = v;
 }
 
-const dls::math::vec4f &Attribute::vec4(size_t n) const
+dls::math::vec4f const &Attribute::vec4(size_t n) const
 {
 	return (*(m_data.vec4_list))[n];
 }
 
-void Attribute::mat3(size_t n, const dls::math::mat3x3f &m)
+void Attribute::mat3(size_t n, dls::math::mat3x3f const &m)
 {
 	(*(m_data.mat3_list))[n] = m;
 }
 
-const dls::math::mat3x3f &Attribute::mat3(size_t n) const
+dls::math::mat3x3f const &Attribute::mat3(size_t n) const
 {
 	return (*(m_data.mat3_list))[n];
 }
 
-void Attribute::mat4(size_t n, const dls::math::mat4x4f &m)
+void Attribute::mat4(size_t n, dls::math::mat4x4f const &m)
 {
 	(*(m_data.mat4_list))[n] = m;
 }
 
-const dls::math::mat4x4f &Attribute::mat4(size_t n) const
+dls::math::mat4x4f const &Attribute::mat4(size_t n) const
 {
 	return (*(m_data.mat4_list))[n];
 }
 
-void Attribute::stdstring(size_t n, const std::string &str)
+void Attribute::stdstring(size_t n, std::string const &str)
 {
 	(*(m_data.string_list))[n] = str;
 }
 
-const std::string &Attribute::stdstring(size_t n) const
+std::string const &Attribute::stdstring(size_t n) const
 {
 	return (*(m_data.string_list))[n];
 }

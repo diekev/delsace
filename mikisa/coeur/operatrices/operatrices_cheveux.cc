@@ -147,7 +147,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 
@@ -268,7 +268,7 @@ public:
 	static constexpr auto NOM = "Collision Cheveux";
 	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		auto const courbes = charge_courbes(rectangle, temps);
 
@@ -319,12 +319,12 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	Corps const *charge_maillage_collesion(const Rectangle &rectangle, const int temps)
+	Corps const *charge_maillage_collesion(Rectangle const &rectangle, const int temps)
 	{
 		return entree(0)->requiers_corps(rectangle, temps);
 	}
 
-	Corps const *charge_courbes(const Rectangle &rectangle, const int temps)
+	Corps const *charge_courbes(Rectangle const &rectangle, const int temps)
 	{
 		return entree(1)->requiers_corps(rectangle, temps);
 	}
@@ -429,7 +429,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);

@@ -201,7 +201,7 @@ void RenduImage::charge_image(const numero7::math::matrice<numero7::image::Pixel
 	numero7::ego::util::GPU_check_errors("Unable to create image texture");
 }
 
-void RenduImage::dessine(const ContexteRendu &contexte)
+void RenduImage::dessine(ContexteRendu const &contexte)
 {
 	m_tampon_image->dessine(contexte);
 	m_tampon_bordure->dessine(contexte);

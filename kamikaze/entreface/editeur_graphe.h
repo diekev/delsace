@@ -118,10 +118,10 @@ private:
 	void setActiveObject(ObjectNodeItem *node);
 
 	/* Called when nodes are connected. */
-	void nodesConnected(QtNode *from, const QString &socket_from, QtNode *to, const QString &socket_to, bool notify);
+	void nodesConnected(QtNode *from, QString const &socket_from, QtNode *to, QString const &socket_to, bool notify);
 
 	/* Called when nodes are disconnected. */
-	void connexionRemoved(QtNode *from, const QString &socket_from, QtNode *to, const QString &socket_to, bool notify);
+	void connexionRemoved(QtNode *from, QString const &socket_from, QtNode *to, QString const &socket_to, bool notify);
 
 	void enterObjectNode(QAction *action);
 
@@ -136,7 +136,7 @@ protected:
 
 	bool ctrlPressed();
 
-	QGraphicsItem *itemAtExceptActiveConnexion(const QPointF &pos);
+	QGraphicsItem *itemAtExceptActiveConnexion(QPointF const &pos);
 
 	void rubberbandSelection(QGraphicsSceneMouseEvent *mouseEvent);
 	void deselectAll();

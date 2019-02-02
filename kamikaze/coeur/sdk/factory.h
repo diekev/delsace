@@ -42,7 +42,7 @@ public:
 	 *
 	 * @return The number of entries after registering the new element.
 	 */
-	size_t register_type(const Key &name, factory_func func)
+	size_t register_type(Key const &name, factory_func func)
 	{
 		auto const iter = m_map.find(name);
 		assert(iter == m_map.end());
@@ -57,7 +57,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return A new Base object corresponding to the given key.
 	 */
-	Base *operator()(const Key &name)
+	Base *operator()(Key const &name)
 	{
 		auto const iter = m_map.find(name);
 		assert(iter != m_map.end());
@@ -99,7 +99,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return True if the key is found, false otherwise.
 	 */
-	bool registered(const std::string &key) const
+	bool registered(std::string const &key) const
 	{
 		return (m_map.find(key) != m_map.end());
 	}

@@ -36,5 +36,5 @@ class ImprimeuseGraphe {
 public:
 	explicit ImprimeuseGraphe(Graphe *graph);
 
-	void operator()(const filesystem::path &path);
+	void operator()(filesystem::path const &path);
 };

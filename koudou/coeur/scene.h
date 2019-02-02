@@ -54,7 +54,7 @@ struct Monde {
 	~Monde();
 };
 
-Spectre spectre_monde(const Monde &monde, const dls::math::vec3d &direction);
+Spectre spectre_monde(Monde const &monde, dls::math::vec3d const &direction);
 
 /* ************************************************************************** */
 
@@ -79,17 +79,17 @@ struct Scene {
 
 /* ************************************************************************** */
 
-dls::math::vec3d normale_scene(const Scene &scene, const dls::math::point3d &position, const Entresection &entresection);
+dls::math::vec3d normale_scene(Scene const &scene, dls::math::point3d const &position, Entresection const &entresection);
 
-double ombre_scene(const ParametresRendu &parametres, const Scene &scene, const Rayon &rayon, double distance_maximale);
+double ombre_scene(ParametresRendu const &parametres, Scene const &scene, Rayon const &rayon, double distance_maximale);
 
-Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, GNA &gna, const dls::math::point3d &pos, const dls::math::vec3d &nor);
+Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, GNA &gna, dls::math::point3d const &pos, dls::math::vec3d const &nor);
 
 /* ************************************************************************** */
 
-dls::math::vec3d reflect(const dls::math::vec3d &nor, const dls::math::vec3d &dir);
+dls::math::vec3d reflect(dls::math::vec3d const &nor, dls::math::vec3d const &dir);
 
 // return a random direction on the hemisphere
-dls::math::vec3d cosine_direction(GNA &gna, const dls::math::vec3d &nor);
+dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor);
 
-dls::math::vec3d get_brdf_ray(GNA &gna, const dls::math::vec3d &nor, const dls::math::vec3d &rd);
+dls::math::vec3d get_brdf_ray(GNA &gna, dls::math::vec3d const &nor, dls::math::vec3d const &rd);

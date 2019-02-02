@@ -30,13 +30,13 @@
 #include "bibliotheques/outils/parallelisme.h"
 
 void calcule_normales(
-		const PointList &points,
-		const PolygonList &polygones,
+		PointList const &points,
+		PolygonList const &polygones,
 		Attribute &normales,
 		bool flip)
 {
 	boucle_parallele(tbb::blocked_range<size_t>(0ul, polygones.size()),
-				 [&](const tbb::blocked_range<size_t> &r)
+				 [&](tbb::blocked_range<size_t> const &r)
 	{
 		for (auto i = r.begin(), ie = r.end(); i < ie ; ++i) {
 			auto const &quad = polygones[i];
@@ -70,7 +70,7 @@ void calcule_normales(
 }
 
 void calcule_boite_delimitation(
-		const PointList &points,
+		PointList const &points,
 		dls::math::vec3f &min,
 		dls::math::vec3f &max)
 {

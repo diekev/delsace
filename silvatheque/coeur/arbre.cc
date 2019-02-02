@@ -42,14 +42,14 @@ Arbre::~Arbre()
 	reinitialise();
 }
 
-Arbre::Arbre(const Arbre &autre)
+Arbre::Arbre(Arbre const &autre)
 	: m_transformation(dls::math::mat4x4d(1.0))
 	, m_parametres(new Parametres(*autre.m_parametres))
 {
 	cree_arbre(this);
 }
 
-void Arbre::ajoute_sommet(const dls::math::vec3f &pos)
+void Arbre::ajoute_sommet(dls::math::vec3f const &pos)
 {
 	Sommet *s = new Sommet;
 	s->pos = pos;
@@ -82,7 +82,7 @@ void Arbre::reinitialise()
 	m_arretes.clear();
 }
 
-const math::transformation &Arbre::transformation() const
+math::transformation const &Arbre::transformation() const
 {
 	return m_transformation;
 }

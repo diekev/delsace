@@ -53,7 +53,7 @@ void Graphe::ajoute(Noeud *noeud)
 void Graphe::supprime(Noeud *node)
 {
 	auto iter = std::find_if(m_noeuds.begin(), m_noeuds.end(),
-							 [node](const std::shared_ptr<Noeud> &node_ptr)
+							 [node](std::shared_ptr<Noeud> const &node_ptr)
 	{
 		return node_ptr.get() == node;
 	});
@@ -298,7 +298,7 @@ void tri_topologique(Graphe &graphe)
 	auto debut = graphe.noeuds().begin();
 	auto fin = graphe.noeuds().end();
 
-	auto predicat = [](const std::shared_ptr<Noeud> &noeud)
+	auto predicat = [](std::shared_ptr<Noeud> const &noeud)
 	{
 		if (noeud->degre != 0) {
 			return false;

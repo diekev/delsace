@@ -24,12 +24,12 @@
 
 #include "composite.h"
 
-const Image &Composite::image() const
+Image const &Composite::image() const
 {
 	return m_image;
 }
 
-void Composite::image(const Image &img)
+void Composite::image(Image const &img)
 {
 	m_image = img;
 }
@@ -39,7 +39,7 @@ Graphe &Composite::graph()
 	return m_graph;
 }
 
-const Graphe &Composite::graph() const
+Graphe const &Composite::graph() const
 {
 	return m_graph;
 }

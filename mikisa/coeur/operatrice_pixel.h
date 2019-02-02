@@ -64,11 +64,11 @@ public:
 	virtual void evalue_entrees(int temps) = 0;
 
 	virtual numero7::image::Pixel<float> evalue_pixel(
-			const numero7::image::Pixel<float> &pixel,
+			numero7::image::Pixel<float> const &pixel,
 			const float x,
 			const float y) = 0;
 
-	int execute(const Rectangle &rectangle, int temps) override;
+	int execute(Rectangle const &rectangle, int temps) override;
 
 	virtual void compile(CompileuseGraphe &compileuse, int temps);
 };

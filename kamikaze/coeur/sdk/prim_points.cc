@@ -33,7 +33,7 @@ size_t PrimPoints::id = -1ul;
 PrimPoints::PrimPoints()
 {}
 
-PrimPoints::PrimPoints(const PrimPoints &other)
+PrimPoints::PrimPoints(PrimPoints const &other)
     : Primitive(other)
 {
 	/* Copy points. */

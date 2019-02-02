@@ -34,22 +34,22 @@
 
 /* ************************************************************************** */
 
-void ParametresProgramme::ajoute_attribut(const std::string &nom)
+void ParametresProgramme::ajoute_attribut(std::string const &nom)
 {
 	m_attributs.push_back(nom);
 }
 
-void ParametresProgramme::ajoute_uniforme(const std::string &nom)
+void ParametresProgramme::ajoute_uniforme(std::string const &nom)
 {
 	m_uniformes.push_back(nom);
 }
 
-const std::vector<std::string> &ParametresProgramme::attributs() const
+std::vector<std::string> const &ParametresProgramme::attributs() const
 {
 	return m_attributs;
 }
 
-const std::vector<std::string> &ParametresProgramme::uniformes() const
+std::vector<std::string> const &ParametresProgramme::uniformes() const
 {
 	return m_uniformes;
 }
@@ -103,12 +103,12 @@ TamponRendu::~TamponRendu()
 	delete m_atlas;
 }
 
-void TamponRendu::charge_source_programme(numero7::ego::Nuanceur type_programme, const std::string &source, std::ostream &os)
+void TamponRendu::charge_source_programme(numero7::ego::Nuanceur type_programme, std::string const &source, std::ostream &os)
 {
 	m_programme.charge(type_programme, source, os);
 }
 
-void TamponRendu::parametres_programme(const ParametresProgramme &parametres)
+void TamponRendu::parametres_programme(ParametresProgramme const &parametres)
 {
 	m_programme.active();
 
@@ -123,7 +123,7 @@ void TamponRendu::parametres_programme(const ParametresProgramme &parametres)
 	m_programme.desactive();
 }
 
-void TamponRendu::parametres_dessin(const ParametresDessin &parametres)
+void TamponRendu::parametres_dessin(ParametresDessin const &parametres)
 {
 	m_paramatres_dessin = parametres;
 }
@@ -145,7 +145,7 @@ void TamponRendu::initialise_tampon()
 	}
 }
 
-void TamponRendu::remplie_tampon(const ParametresTampon &parametres)
+void TamponRendu::remplie_tampon(ParametresTampon const &parametres)
 {
 	initialise_tampon();
 
@@ -178,7 +178,7 @@ void TamponRendu::remplie_tampon(const ParametresTampon &parametres)
 	m_donnees_tampon->unbind();
 }
 
-void TamponRendu::remplie_tampon_extra(const ParametresTampon &parametres)
+void TamponRendu::remplie_tampon_extra(ParametresTampon const &parametres)
 {
 	initialise_tampon();
 
@@ -202,7 +202,7 @@ void TamponRendu::remplie_tampon_extra(const ParametresTampon &parametres)
 	}
 }
 
-void TamponRendu::dessine(const ContexteRendu &contexte)
+void TamponRendu::dessine(ContexteRendu const &contexte)
 {
 	if (!m_programme.est_valide()) {
 		std::cerr << "Programme invalide !\n";

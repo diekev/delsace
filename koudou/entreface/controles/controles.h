@@ -223,7 +223,7 @@ public:
 	void pointeur(std::string *pointeur);
 
 private Q_SLOTS:
-	void ajourne_valeur_pointee(const QString &valeur);
+	void ajourne_valeur_pointee(QString const &valeur);
 
 Q_SIGNALS:
 	void controle_change();
@@ -247,7 +247,7 @@ public:
 	void pointeur(std::string *pointeur);
 
 private Q_SLOTS:
-	void ajourne_valeur_pointee(const QString &valeur);
+	void ajourne_valeur_pointee(QString const &valeur);
 
 Q_SIGNALS:
 	void controle_change();

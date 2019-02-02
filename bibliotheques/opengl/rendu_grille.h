@@ -57,5 +57,5 @@ public:
 	/**
 	 * Dessine la grille dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte);
+	void dessine(ContexteRendu const &contexte);
 };

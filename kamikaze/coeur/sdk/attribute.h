@@ -58,11 +58,11 @@ class Attribute {
 	AttributeType m_type;
 
 public:
-	Attribute(const Attribute &rhs);
-	Attribute(const std::string &name, AttributeType type, size_t size = 0);
+	Attribute(Attribute const &rhs);
+	Attribute(std::string const &name, AttributeType type, size_t size = 0);
 	~Attribute();
 
-	Attribute &operator=(const Attribute &rhs) = default;
+	Attribute &operator=(Attribute const &rhs) = default;
 
 	AttributeType type() const;
 	std::string name() const;
@@ -97,21 +97,21 @@ public:
 	void float_(size_t n, float f);
 	float float_(size_t n) const;
 
-	void vec2(size_t n, const dls::math::vec2f &v);
-	const dls::math::vec2f &vec2(size_t n) const;
+	void vec2(size_t n, dls::math::vec2f const &v);
+	dls::math::vec2f const &vec2(size_t n) const;
 
-	void vec3(size_t n, const dls::math::vec3f &v);
-	const dls::math::vec3f &vec3(size_t n) const;
+	void vec3(size_t n, dls::math::vec3f const &v);
+	dls::math::vec3f const &vec3(size_t n) const;
 
-	void vec4(size_t n, const dls::math::vec4f &v);
-	const dls::math::vec4f &vec4(size_t n) const;
+	void vec4(size_t n, dls::math::vec4f const &v);
+	dls::math::vec4f const &vec4(size_t n) const;
 
-	void mat3(size_t n, const dls::math::mat3x3f &m);
-	const dls::math::mat3x3f &mat3(size_t n) const;
+	void mat3(size_t n, dls::math::mat3x3f const &m);
+	dls::math::mat3x3f const &mat3(size_t n) const;
 
-	void mat4(size_t n, const dls::math::mat4x4f &m);
-	const dls::math::mat4x4f &mat4(size_t n) const;
+	void mat4(size_t n, dls::math::mat4x4f const &m);
+	dls::math::mat4x4f const &mat4(size_t n) const;
 
-	void stdstring(size_t n, const std::string &str);
-	const std::string &stdstring(size_t n) const;
+	void stdstring(size_t n, std::string const &str);
+	std::string const &stdstring(size_t n) const;
 };

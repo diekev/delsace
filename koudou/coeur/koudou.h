@@ -68,8 +68,8 @@ struct ParametresRendu {
 	~ParametresRendu();
 
 	/* À FAIRE */
-	ParametresRendu(const ParametresRendu &) = delete;
-	ParametresRendu &operator=(const ParametresRendu &) = delete;
+	ParametresRendu(ParametresRendu const &) = delete;
+	ParametresRendu &operator=(ParametresRendu const &) = delete;
 };
 
 struct InformationsRendu {
@@ -107,8 +107,8 @@ struct Koudou : public Sujette {
 
 	Koudou();
 
-	Koudou(const Koudou &) = delete;
-	Koudou &operator=(const Koudou &) = delete;
+	Koudou(Koudou const &) = delete;
+	Koudou &operator=(Koudou const &) = delete;
 
 	~Koudou();
 

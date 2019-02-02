@@ -35,7 +35,7 @@ int OperatricePixel::type() const
 	return OPERATRICE_PIXEL;
 }
 
-int OperatricePixel::execute(const Rectangle &rectangle, int temps)
+int OperatricePixel::execute(Rectangle const &rectangle, int temps)
 {
 	Calque *tampon = nullptr;
 
@@ -60,7 +60,7 @@ int OperatricePixel::execute(const Rectangle &rectangle, int temps)
 	this->evalue_entrees(temps);
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(rectangle.hauteur)),
-					 [&](const tbb::blocked_range<size_t> &plage)
+					 [&](tbb::blocked_range<size_t> const &plage)
 	{
 		for (size_t l = plage.begin(); l < plage.end(); ++l) {
 			for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {

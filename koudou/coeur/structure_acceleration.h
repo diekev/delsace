@@ -36,7 +36,7 @@ class StructureAcceleration {
 public:
 	virtual ~StructureAcceleration() = default;
 
-	virtual Entresection entresecte(const Scene &scene, const Rayon &rayon, double distance_maximale) const;
+	virtual Entresection entresecte(Scene const &scene, Rayon const &rayon, double distance_maximale) const;
 };
 
 /* ************************************************************************** */
@@ -52,13 +52,13 @@ class VolumeEnglobant final : public StructureAcceleration {
 
 		double d[NOMBRE_NORMAUX_PLAN][2];
 
-		bool entresecte(const Rayon &rayon, double *numerateur_precalcule, double *denominateur_precalcule, double &d_proche, double &d_eloigne, uint8_t &index_plan) const;
+		bool entresecte(Rayon const &rayon, double *numerateur_precalcule, double *denominateur_precalcule, double &d_proche, double &d_eloigne, uint8_t &index_plan) const;
 	};
 
 	std::vector<Etendue> m_etendues{};
 
 public:
-	void construit(const Scene &scene);
+	void construit(Scene const &scene);
 
-	Entresection entresecte(const Scene &scene, const Rayon &rayon, double distance_maximale) const override;
+	Entresection entresecte(Scene const &scene, Rayon const &rayon, double distance_maximale) const override;
 };

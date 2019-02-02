@@ -59,8 +59,8 @@ public:
 	~Main();
 
 	/* Disallow copy. */
-	Main(const Main &other) = delete;
-	Main &operator=(const Main &other) = delete;
+	Main(Main const &other) = delete;
+	Main &operator=(Main const &other) = delete;
 
 	void fenetre_principale(FenetrePrincipale *fenetre);
 
@@ -72,17 +72,17 @@ public:
 
 	std::string chemin_projet() const;
 
-	void chemin_projet(const std::string &chemin);
+	void chemin_projet(std::string const &chemin);
 
-	const std::vector<std::string> &fichiers_recents();
-	void ajoute_fichier_recent(const std::string &chemin);
+	std::vector<std::string> const &fichiers_recents();
+	void ajoute_fichier_recent(std::string const &chemin);
 
 	bool projet_ouvert() const;
 
 	void projet_ouvert(bool ouinon);
 
 	std::string requiers_dialogue(int type);
-	void affiche_erreur(const std::string &message);
+	void affiche_erreur(std::string const &message);
 
 	UsineCommande &usine_commandes();
 

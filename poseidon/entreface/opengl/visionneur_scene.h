@@ -72,7 +72,7 @@ public:
 	/**
 	 * Empêche la copie d'un visionneur.
 	 */
-	VisionneurScene(const VisionneurScene &visionneur) = delete;
+	VisionneurScene(VisionneurScene const &visionneur) = delete;
 	VisionneurScene &operator=(VisionneurScene &autre) = delete;
 
 	/**

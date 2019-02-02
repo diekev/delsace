@@ -47,7 +47,7 @@ class CommandeZoomCamera : public Commande {
 public:
 	CommandeZoomCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto koudou = std::any_cast<Koudou *>(pointeur);
 		auto const delta = donnees.x;
@@ -82,7 +82,7 @@ class CommandeTourneCamera : public Commande {
 public:
 	CommandeTourneCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
@@ -90,7 +90,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto koudou = std::any_cast<Koudou *>(pointeur);
 		auto camera = koudou->camera;
@@ -118,7 +118,7 @@ class CommandePanCamera : public Commande {
 public:
 	CommandePanCamera() = default;
 
-	int execute(std::any const &pointeur, const DonneesCommande &donnees) override
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
@@ -126,7 +126,7 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees) override
+	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto koudou = std::any_cast<Koudou *>(pointeur);
 		auto camera = koudou->camera;

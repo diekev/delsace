@@ -96,7 +96,7 @@ public:
 
 	virtual int type() const override;
 
-	int execute(const Rectangle &rectangle, const int temps) override;
+	int execute(Rectangle const &rectangle, const int temps) override;
 
 	void compile_graphe(int temps);
 };
@@ -109,7 +109,7 @@ public:
 		: OperatriceImage(graphe_parent, noeud)
 	{}
 
-	int execute(const Rectangle &rectangle, const int temps) override;
+	int execute(Rectangle const &rectangle, const int temps) override;
 
 	virtual void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, const int temps) = 0;
 };

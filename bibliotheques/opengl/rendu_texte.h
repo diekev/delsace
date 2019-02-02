@@ -70,12 +70,12 @@ public:
 	 * fonction créé un nombre de polygones égal à la taille du texte et
 	 * génère les coordonnées de projection UV de chaque lettre.
 	 */
-	void ajourne(const std::string &texte);
+	void ajourne(std::string const &texte);
 
 	/**
 	 * Dessine le texte passé en paramètre dans le contexte spécifié.
 	 */
-	void dessine(const ContexteRendu &contexte, const std::string &texte);
+	void dessine(ContexteRendu const &contexte, std::string const &texte);
 
 	/**
 	 * Établie les dimensions de la fenêtre où est dessinée le texte. Les

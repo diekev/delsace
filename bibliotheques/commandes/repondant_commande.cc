@@ -28,12 +28,12 @@
 
 #include "commande.h"
 
-RepondantCommande::RepondantCommande(UsineCommande &usine_commande, const std::any &pointeur)
+RepondantCommande::RepondantCommande(UsineCommande &usine_commande, std::any const &pointeur)
 	: m_usine_commande(usine_commande)
 	, m_pointeur(pointeur)
 {}
 
-bool RepondantCommande::appele_commande(const std::string &categorie, const DonneesCommande &donnees_commande)
+bool RepondantCommande::appele_commande(std::string const &categorie, DonneesCommande const &donnees_commande)
 {
 #if 0
 	std::cerr << "Appele commande pour catégorie : " << categorie << " :\n";
@@ -64,7 +64,7 @@ bool RepondantCommande::appele_commande(const std::string &categorie, const Donn
 	return true;
 }
 
-void RepondantCommande::ajourne_commande_modale(const DonneesCommande &donnees_commande)
+void RepondantCommande::ajourne_commande_modale(DonneesCommande const &donnees_commande)
 {
 	if (!m_commande_modale) {
 		return;
@@ -73,7 +73,7 @@ void RepondantCommande::ajourne_commande_modale(const DonneesCommande &donnees_c
 	m_commande_modale->ajourne_execution_modale(m_pointeur, donnees_commande);
 }
 
-void RepondantCommande::acheve_commande_modale(const DonneesCommande &donnees_commande)
+void RepondantCommande::acheve_commande_modale(DonneesCommande const &donnees_commande)
 {
 	if (!m_commande_modale) {
 		return;
@@ -85,7 +85,7 @@ void RepondantCommande::acheve_commande_modale(const DonneesCommande &donnees_co
 	m_commande_modale = nullptr;
 }
 
-void RepondantCommande::repond_clique(const std::string &identifiant, const std::string &metadonnee)
+void RepondantCommande::repond_clique(std::string const &identifiant, std::string const &metadonnee)
 {
 	auto commande = m_usine_commande(identifiant);
 
@@ -97,7 +97,7 @@ void RepondantCommande::repond_clique(const std::string &identifiant, const std:
 	delete commande;
 }
 
-bool RepondantCommande::evalue_predicat(const std::string &identifiant, const std::string &metadonnee)
+bool RepondantCommande::evalue_predicat(std::string const &identifiant, std::string const &metadonnee)
 {
 	auto commande = m_usine_commande(identifiant);
 	return commande->evalue_predicat(m_pointeur, metadonnee);

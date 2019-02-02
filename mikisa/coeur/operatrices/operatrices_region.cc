@@ -51,7 +51,7 @@ void applique_fonction(type_image &image, TypeOperation &&op)
 	auto const res_y = image.nombre_lignes();
 
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
-					 [&](const tbb::blocked_range<int> &plage)
+					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (int l = plage.begin(); l < plage.end(); ++l) {
 			for (int c = 0; c < res_x; ++c) {
@@ -68,7 +68,7 @@ void applique_fonction_position(type_image &image, TypeOperation &&op)
 	auto const res_y = image.nombre_lignes();
 
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
-					 [&](const tbb::blocked_range<int> &plage)
+					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (int l = plage.begin(); l < plage.end(); ++l) {
 			for (int c = 0; c < res_x; ++c) {
@@ -124,7 +124,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		/* Call node upstream; */
 		entree(0)->requiers_image(m_image, rectangle, temps);
@@ -183,7 +183,7 @@ public:
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
-								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
+								   [&](numero7::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			auto resultat = numero7::image::PixelFloat();
 			resultat.a = 1.0f;
@@ -349,7 +349,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		/* Call node upstream. */
 		entree(0)->requiers_image(m_image, rectangle, temps);
@@ -433,7 +433,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -452,7 +452,7 @@ public:
 		maximum.a = (maximum.a > 0.0f) ? (1.0f / maximum.a) : 0.0f;
 
 		applique_fonction(tampon->tampon,
-						  [&](const numero7::image::Pixel<float> &pixel)
+						  [&](numero7::image::Pixel<float> const &pixel)
 		{
 			return maximum * pixel;
 		});
@@ -489,7 +489,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -538,7 +538,7 @@ public:
 
 		/* flou horizontal */
 		applique_fonction_position(image_tmp,
-								   [&](const numero7::image::Pixel<float> &/*pixel*/, int ye, int xe)
+								   [&](numero7::image::Pixel<float> const &/*pixel*/, int ye, int xe)
 		{
 			auto x = static_cast<size_t>(xe);
 			auto y = static_cast<size_t>(ye);
@@ -567,7 +567,7 @@ public:
 
 		/* flou vertical */
 		applique_fonction_position(image_tmp,
-								   [&](const numero7::image::Pixel<float> &/*pixel*/, int ye, int xe)
+								   [&](numero7::image::Pixel<float> const &/*pixel*/, int ye, int xe)
 		{
 			auto x = static_cast<size_t>(xe);
 			auto y = static_cast<size_t>(ye);
@@ -626,7 +626,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -651,7 +651,7 @@ public:
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
-								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
+								   [&](numero7::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			auto const fc = static_cast<float>(c) * largeur_inverse + decalage_x;
 			auto const fl = static_cast<float>(l) * hauteur_inverse + decalage_y;
@@ -717,7 +717,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -808,7 +808,7 @@ public:
 
 /* ************************************************************************** */
 
-static auto moyenne(const numero7::image::Pixel<float> &pixel)
+static auto moyenne(numero7::image::Pixel<float> const &pixel)
 {
 	return (pixel.r + pixel.g + pixel.b) * 0.3333f;
 }
@@ -839,7 +839,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -868,7 +868,7 @@ public:
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
-								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
+								   [&](numero7::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			auto const c0 = std::min(res_x - 1, std::max(0, c - 1));
 			auto const c1 = std::min(res_x - 1, std::max(0, c + 1));
@@ -930,12 +930,12 @@ unsigned int poisson(const float u, const float lambda)
 
 using type_image_grise = numero7::math::matrice<float>;
 
-static type_image_grise extrait_canal(const type_image &image, const int chaine)
+static type_image_grise extrait_canal(type_image const &image, const int chaine)
 {
 	type_image_grise resultat(image.dimensions());
 
 	boucle_parallele(tbb::blocked_range<int>(0, image.nombre_lignes()),
-					 [&](const tbb::blocked_range<int> &plage)
+					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
 			for (auto c = 0; c < image.nombre_colonnes(); ++c) {
@@ -949,13 +949,13 @@ static type_image_grise extrait_canal(const type_image &image, const int chaine)
 
 static void assemble_image(
 		type_image &image,
-		const type_image_grise &canal_rouge,
-		const type_image_grise &canal_vert,
-		const type_image_grise &canal_bleu)
+		type_image_grise const &canal_rouge,
+		type_image_grise const &canal_vert,
+		type_image_grise const &canal_bleu)
 {
 
 	boucle_parallele(tbb::blocked_range<int>(0, image.nombre_lignes()),
-					 [&](const tbb::blocked_range<int> &plage)
+					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
 			for (auto c = 0; c < image.nombre_colonnes(); ++c) {
@@ -968,7 +968,7 @@ static void assemble_image(
 }
 
 static type_image_grise simule_grain_image(
-		const type_image_grise &image,
+		type_image_grise const &image,
 		const int graine,
 		const float rayon_grain,
 		const float sigma_rayon,
@@ -1022,7 +1022,7 @@ static type_image_grise simule_grain_image(
 	}
 
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
-					 [&](const tbb::blocked_range<int> &plage)
+					 [&](tbb::blocked_range<int> const &plage)
 	{
 		std::uniform_real_distribution<float> U(0.0f, 1.0f);
 		std::mt19937 rng_local(static_cast<size_t>(graine + plage.begin()));
@@ -1124,7 +1124,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -1193,7 +1193,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -1210,7 +1210,7 @@ public:
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
-								   [&](const numero7::image::PixelFloat &/*pixel*/, int l, int c)
+								   [&](numero7::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			/* À FAIRE : image carrée ? */
 			auto const r = static_cast<float>(l);
@@ -1254,7 +1254,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -1349,7 +1349,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -1368,7 +1368,7 @@ public:
 		auto const rayon = evalue_entier("rayon");
 
 		auto performe_dilation = [&](
-								 const numero7::image::Pixel<float> &/*pixel*/,
+								 numero7::image::Pixel<float> const &/*pixel*/,
 								 int y,
 								 int x)
 		{
@@ -1429,7 +1429,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 
@@ -1448,7 +1448,7 @@ public:
 		auto const rayon = evalue_entier("rayon");
 
 		auto performe_erosion = [&](
-								const numero7::image::Pixel<float> &/*pixel*/,
+								numero7::image::Pixel<float> const &/*pixel*/,
 								int y,
 								int x)
 		{
@@ -1508,7 +1508,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		entree(0)->requiers_image(m_image, rectangle, temps);
 

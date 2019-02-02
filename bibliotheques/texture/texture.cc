@@ -48,7 +48,7 @@ numero7::math::matrice<Spectre> image_nulle()
 	return image;
 }
 
-numero7::math::matrice<Spectre> ouvre_png(const std::experimental::filesystem::path &chemin)
+numero7::math::matrice<Spectre> ouvre_png(std::experimental::filesystem::path const &chemin)
 {
 	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 
@@ -152,7 +152,7 @@ numero7::math::matrice<Spectre> ouvre_png(const std::experimental::filesystem::p
 	return image;
 }
 
-numero7::math::matrice<Spectre> ouvre_jpeg(const std::experimental::filesystem::path &chemin)
+numero7::math::matrice<Spectre> ouvre_jpeg(std::experimental::filesystem::path const &chemin)
 {
 	FILE *file = std::fopen(chemin.c_str(), "rb");
 
@@ -228,12 +228,12 @@ double restreint(double valeur, double min, double max)
 	return valeur;
 }
 
-double theta_spherique(const dls::math::vec3d &vecteur)
+double theta_spherique(dls::math::vec3d const &vecteur)
 {
 	return std::acos(restreint(vecteur.y, -1.0, 1.0));
 }
 
-double phi_spherique(const dls::math::vec3d &vecteur)
+double phi_spherique(dls::math::vec3d const &vecteur)
 {
 	auto p = std::atan2(vecteur.z, vecteur.x);
 	return (p < 0.0) ? p + TAU : p;
@@ -260,7 +260,7 @@ void supprime_texture(Texture *&texture)
 
 /* ************************************************************************** */
 
-void TextureCouleur::etablie_spectre(const Spectre &spectre)
+void TextureCouleur::etablie_spectre(Spectre const &spectre)
 {
 	m_spectre = spectre;
 }
@@ -270,7 +270,7 @@ Spectre TextureCouleur::spectre() const
 	return m_spectre;
 }
 
-Spectre TextureCouleur::echantillone(const dls::math::vec3d &direction) const
+Spectre TextureCouleur::echantillone(dls::math::vec3d const &direction) const
 {
 	return m_spectre;
 }
@@ -282,7 +282,7 @@ TypeTexture TextureCouleur::type() const
 
 /* ************************************************************************** */
 
-Spectre TextureImage::echantillone(const dls::math::vec3d &direction) const
+Spectre TextureImage::echantillone(dls::math::vec3d const &direction) const
 {
 	/* Mappage sphérique. */
 	auto vec = dls::math::normalise(direction - dls::math::vec3d(0.0, 0.0, 0.0));
@@ -307,7 +307,7 @@ Spectre TextureImage::echantillone_uv(int x, int y)
 	return m_image[y][x];
 }
 
-void TextureImage::charge_donnees(const numero7::math::matrice<numero7::image::PixelFloat> &donnees)
+void TextureImage::charge_donnees(numero7::math::matrice<numero7::image::PixelFloat> const &donnees)
 {
 	m_image = numero7::math::matrice<Spectre>(donnees.dimensions());
 
@@ -320,7 +320,7 @@ void TextureImage::charge_donnees(const numero7::math::matrice<numero7::image::P
 	}
 }
 
-void TextureImage::etablie_image(const numero7::math::matrice<Spectre> &image)
+void TextureImage::etablie_image(numero7::math::matrice<Spectre> const &image)
 {
 	m_image = image;
 }
@@ -380,7 +380,7 @@ dls::math::vec3f TextureImage::taille() const
 	return m_taille;
 }
 
-void TextureImage::taille(const dls::math::vec3f &taille)
+void TextureImage::taille(dls::math::vec3f const &taille)
 {
 	m_taille = taille;
 }
@@ -390,12 +390,12 @@ vision::Camera3D *TextureImage::camera() const
 	return m_camera;
 }
 
-void TextureImage::etablie_chemin(const std::experimental::filesystem::path &chemin)
+void TextureImage::etablie_chemin(std::experimental::filesystem::path const &chemin)
 {
 	m_chemin = chemin;
 }
 
-const std::experimental::filesystem::path &TextureImage::chemin() const
+std::experimental::filesystem::path const &TextureImage::chemin() const
 {
 	return m_chemin;
 }
@@ -405,7 +405,7 @@ TypeTexture TextureImage::type() const
 	return TypeTexture::IMAGE;
 }
 
-TextureImage *charge_texture(const std::experimental::filesystem::path &chemin)
+TextureImage *charge_texture(std::experimental::filesystem::path const &chemin)
 {
 	auto texture = new TextureImage();
 

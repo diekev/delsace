@@ -32,7 +32,7 @@
  */
 
 template <typename TypePlage>
-inline auto taille_plage(const TypePlage &plage)
+inline auto taille_plage(TypePlage const &plage)
 {
 	return plage.end() - plage.begin();
 }

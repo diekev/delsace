@@ -31,7 +31,7 @@
 namespace vision {
 
 /* retourne deux solutions, pour pouvoir choisir la meilleure */
-void angles_euler_depuis_matrice(const dls::math::mat4x4f &matrice, dls::math::vec3f &angle1, dls::math::vec3f &angle2)
+void angles_euler_depuis_matrice(dls::math::mat4x4f const &matrice, dls::math::vec3f &angle1, dls::math::vec3f &angle2)
 {
 	auto const sy = std::hypot(matrice[0][0], matrice[0][1]);
 
@@ -51,7 +51,7 @@ void angles_euler_depuis_matrice(const dls::math::mat4x4f &matrice, dls::math::v
 	}
 }
 
-void angles_euler_depuis_matrice(const dls::math::mat4x4f &matrice, dls::math::vec3f &angle)
+void angles_euler_depuis_matrice(dls::math::mat4x4f const &matrice, dls::math::vec3f &angle)
 {
 	dls::math::vec3f angle1;
 	dls::math::vec3f angle2;
@@ -144,22 +144,22 @@ void Camera3D::tete(float x)
 	m_tete = x;
 }
 
-const dls::math::vec3f &Camera3D::cible() const
+dls::math::vec3f const &Camera3D::cible() const
 {
 	return m_cible;
 }
 
-void Camera3D::cible(const dls::math::vec3f &x)
+void Camera3D::cible(dls::math::vec3f const &x)
 {
 	m_cible = x;
 }
 
-const dls::math::vec3f &Camera3D::haut() const
+dls::math::vec3f const &Camera3D::haut() const
 {
 	return m_haut;
 }
 
-const dls::math::vec3f &Camera3D::droite() const
+dls::math::vec3f const &Camera3D::droite() const
 {
 	return m_droite;
 }
@@ -255,7 +255,7 @@ dls::math::vec3f Camera3D::pos() const
 	return m_position;
 }
 
-dls::math::point2f Camera3D::pos_ecran(const dls::math::point3f &pos)
+dls::math::point2f Camera3D::pos_ecran(dls::math::point3f const &pos)
 {
 	auto const &point = dls::math::projette(
 							dls::math::vec3f(pos.x, pos.y, pos.z),
@@ -266,7 +266,7 @@ dls::math::point2f Camera3D::pos_ecran(const dls::math::point3f &pos)
 	return dls::math::point2f(point.x, static_cast<float>(hauteur()) - point.y);
 }
 
-dls::math::point3f Camera3D::pos_monde(const dls::math::point3f &pos)
+dls::math::point3f Camera3D::pos_monde(dls::math::point3f const &pos)
 {
 	return dls::math::deprojette(
 				dls::math::vec3f(pos.x * static_cast<float>(largeur()), pos.y * static_cast<float>(hauteur()), pos.z),
@@ -296,12 +296,12 @@ void Camera3D::profondeur(float proche, float eloigne)
 	m_eloigne = eloigne;
 }
 
-void Camera3D::position(const dls::math::vec3f &p)
+void Camera3D::position(dls::math::vec3f const &p)
 {
 	m_position = p;
 }
 
-void Camera3D::rotation(const dls::math::vec3f &r)
+void Camera3D::rotation(dls::math::vec3f const &r)
 {
 	m_rotation = r;
 }
@@ -357,7 +357,7 @@ float Camera3D::eloigne() const
 	return m_eloigne;
 }
 #else
-Rayon Camera3D::genere_rayon(const EchantillonCamera &echantillon) const
+Rayon Camera3D::genere_rayon(EchantillonCamera const &echantillon) const
 {
 	auto const &start = dls::math::deprojette(
 							dls::math::vec3f(echantillon.x, hauteur() - echantillon.y, 0.0f),
@@ -428,7 +428,7 @@ double Camera::fermeture_obturateur()
 	return m_obturateur_ferme;
 }
 
-void Camera::position(const dls::math::vec3d &valeur)
+void Camera::position(dls::math::vec3d const &valeur)
 {
 	m_position = valeur;
 }
@@ -438,7 +438,7 @@ dls::math::vec3d Camera::position()
 	return m_position;
 }
 
-void Camera::rotation(const dls::math::vec3d &valeur)
+void Camera::rotation(dls::math::vec3d const &valeur)
 {
 	m_rotation = valeur;
 }
@@ -463,7 +463,7 @@ void Camera::pellicule(Pellicule *pellicule)
 	m_pellicule = pellicule;
 }
 
-const Transformation &Camera::camera_vers_monde() const
+Transformation const &Camera::camera_vers_monde() const
 {
 	return m_camera_vers_monde;
 }
@@ -531,7 +531,7 @@ CameraOrthographique::CameraOrthographique()
 	: ProjectiveCamera()
 {}
 
-Rayon CameraOrthographique::genere_rayon(const EchantillonCamera &echantillon) const
+Rayon CameraOrthographique::genere_rayon(EchantillonCamera const &echantillon) const
 {
 	auto point_rateau = dls::math::point3d(echantillon.x, echantillon.y, 0.0);
 	dls::math::point3d point_camera;
@@ -568,7 +568,7 @@ CameraPerspective::CameraPerspective()
 	: ProjectiveCamera()
 {}
 
-Rayon CameraPerspective::genere_rayon(const EchantillonCamera &echantillon) const
+Rayon CameraPerspective::genere_rayon(EchantillonCamera const &echantillon) const
 {
 	auto point_rateau = dls::math::point3d(echantillon.x, echantillon.y, 0.0);
 	dls::math::point3d point_camera;

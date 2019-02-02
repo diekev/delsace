@@ -62,7 +62,7 @@ struct PriseSortie {
 	/* position et taille dans l'entreface */
 	Rectangle rectangle{};
 
-	explicit PriseSortie(const std::string &nom_prise);
+	explicit PriseSortie(std::string const &nom_prise);
 
 	/* À FAIRE : considère l'utilisation de shared_ptr */
 	PriseSortie(PriseSortie const &) = default;
@@ -80,7 +80,7 @@ struct PriseEntree {
 	/* position et taille dans l'entreface */
 	Rectangle rectangle{};
 
-	explicit PriseEntree(const std::string &nom_prise);
+	explicit PriseEntree(std::string const &nom_prise);
 
 	/* À FAIRE : considère l'utilisation de shared_ptr */
 	PriseEntree(PriseEntree const &) = default;
@@ -126,8 +126,8 @@ public:
 	std::any donnees() const;
 	void donnees(std::any pointeur);
 
-	const std::string &nom() const;
-	void nom(const std::string &nom);
+	std::string const &nom() const;
+	void nom(std::string const &nom);
 
 	/**
 	 * Retourne la position horizontale du noeud dans l'éditeur.
@@ -172,17 +172,17 @@ public:
 	/**
 	 * Retroune le rectangle englobant ce noeud.
 	 */
-	const Rectangle &rectangle() const;
+	Rectangle const &rectangle() const;
 
 	/**
 	 * Ajoute une prise d'entrée au noeud.
 	 */
-	void ajoute_entree(const std::string &nom, const int type);
+	void ajoute_entree(std::string const &nom, const int type);
 
 	/**
 	 * Ajoute une prise de sortie au noeud.
 	 */
-	void ajoute_sortie(const std::string &nom, const int type);
+	void ajoute_sortie(std::string const &nom, const int type);
 
 	/**
 	 * Retourne l'entrée selon l'index spécifié.
@@ -192,7 +192,7 @@ public:
 	/**
 	 * Retourne l'entrée selon le nom spécifié.
 	 */
-	PriseEntree *entree(const std::string &nom);
+	PriseEntree *entree(std::string const &nom);
 
 	/**
 	 * Retourne la sortie selon l'index spécifié.
@@ -202,7 +202,7 @@ public:
 	/**
 	 * Retourne la sortie selon le nom spécifié.
 	 */
-	PriseSortie *sortie(const std::string &nom);
+	PriseSortie *sortie(std::string const &nom);
 
 	/**
 	 * Retourne une plage itérable sur les entrées de ce noeud.

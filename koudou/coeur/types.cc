@@ -26,13 +26,13 @@
 
 /* ************************************************************************** */
 
-Entresection::Entresection(const Entresection &entresection)
+Entresection::Entresection(Entresection const &entresection)
 	: id(entresection.id)
 	, type_objet(entresection.type_objet)
 	, distance(entresection.distance)
 {}
 
-Entresection &Entresection::operator=(const Entresection &entresection)
+Entresection &Entresection::operator=(Entresection const &entresection)
 {
 	id = entresection.id;
 	type_objet = entresection.type_objet;

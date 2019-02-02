@@ -29,7 +29,7 @@
 #include "outils/chaîne_caractère.h"
 #include "outils/rendu.h"
 
-Primitive::Primitive(const Primitive &other)
+Primitive::Primitive(Primitive const &other)
     : m_dimensions(other.m_dimensions)
     , m_scale(other.m_scale)
     , m_inv_size(other.m_inv_size)
@@ -62,7 +62,7 @@ Primitive::~Primitive()
 	}
 }
 
-bool Primitive::entresect(const Ray &ray, float &min) const
+bool Primitive::entresect(Ray const &ray, float &min) const
 {
 	auto const inv_dir = 1.0f / ray.dir;
 	auto const t_min = (m_min - ray.pos) * inv_dir;
@@ -113,7 +113,7 @@ dls::math::vec3f &Primitive::rotation()
 	return m_rotation;
 }
 
-const dls::math::mat4x4d &Primitive::matrix() const
+dls::math::mat4x4d const &Primitive::matrix() const
 {
 	return m_matrix;
 }
@@ -123,7 +123,7 @@ dls::math::mat4x4d &Primitive::matrix()
 	return m_matrix;
 }
 
-void Primitive::matrix(const dls::math::mat4x4d &m)
+void Primitive::matrix(dls::math::mat4x4d const &m)
 {
 	m_matrix = m;
 	m_inv_matrix = dls::math::inverse(m);
@@ -144,7 +144,7 @@ std::string Primitive::name() const
 	return m_name;
 }
 
-void Primitive::name(const std::string &name)
+void Primitive::name(std::string const &name)
 {
 	m_name = name;
 }
@@ -156,7 +156,7 @@ void Primitive::add_attribute(Attribute *attr)
 	}
 }
 
-Attribute *Primitive::add_attribute(const std::string &name, const AttributeType type, size_t size)
+Attribute *Primitive::add_attribute(std::string const &name, const AttributeType type, size_t size)
 {
 	auto attr = attribute(name, type);
 
@@ -168,7 +168,7 @@ Attribute *Primitive::add_attribute(const std::string &name, const AttributeType
 	return attr;
 }
 
-Attribute *Primitive::attribute(const std::string &name, const AttributeType type)
+Attribute *Primitive::attribute(std::string const &name, const AttributeType type)
 {
 	auto iter = std::find_if(m_attributes.begin(), m_attributes.end(),
 	                         [&](Attribute *attr)
@@ -183,7 +183,7 @@ Attribute *Primitive::attribute(const std::string &name, const AttributeType typ
 	return *iter;
 }
 
-void Primitive::remove_attribute(const std::string &name, const AttributeType type)
+void Primitive::remove_attribute(std::string const &name, const AttributeType type)
 {
 	auto iter = std::find_if(m_attributes.begin(), m_attributes.end(),
 	                         [&](Attribute *attr)
@@ -198,7 +198,7 @@ void Primitive::remove_attribute(const std::string &name, const AttributeType ty
 	m_attributes.erase(iter);
 }
 
-bool Primitive::has_attribute(const std::string &name, const AttributeType type)
+bool Primitive::has_attribute(std::string const &name, const AttributeType type)
 {
 	return (attribute(name, type) != nullptr);
 }
@@ -216,7 +216,7 @@ PrimitiveCollection::~PrimitiveCollection()
 	free_all();
 }
 
-Primitive *PrimitiveCollection::build(const std::string &key)
+Primitive *PrimitiveCollection::build(std::string const &key)
 {
 	assert(m_factory->registered(key));
 	auto prim = (*m_factory)(key);
@@ -236,7 +236,7 @@ void PrimitiveCollection::add(Primitive *prim)
 
 	auto name = prim->name();
 
-	bool changed = ensure_unique_name(name, [&](const std::string &str)
+	bool changed = ensure_unique_name(name, [&](std::string const &str)
 	{
 		for (auto const &prim_nom : m_collection) {
 			if (prim_nom->name() == str) {
@@ -300,7 +300,7 @@ void PrimitiveCollection::destroy(const std::vector<Primitive *> &prims)
 	}
 }
 
-void PrimitiveCollection::copy_collection(const PrimitiveCollection &coll)
+void PrimitiveCollection::copy_collection(PrimitiveCollection const &coll)
 {
 	for (auto prim : primitive_iterator(&coll)) {
 		this->add(prim);
@@ -374,7 +374,7 @@ primitive_iterator::primitive_iterator(const PrimitiveCollection *coll, size_t t
 	}
 }
 
-primitive_iterator::primitive_iterator(const primitive_iterator &rhs)
+primitive_iterator::primitive_iterator(primitive_iterator const &rhs)
     : m_iter(rhs.m_iter)
     , m_end(rhs.m_end)
     , m_type(rhs.m_type)
@@ -410,24 +410,24 @@ primitive_iterator::value_type primitive_iterator::get() const
 	return (m_iter != m_end) ? *m_iter : nullptr;
 }
 
-bool operator==(const primitive_iterator &ita, const primitive_iterator &itb) noexcept
+bool operator==(primitive_iterator const &ita, primitive_iterator const &itb) noexcept
 {
 	Primitive *a = ita.get();
 	Primitive *b = itb.get();
 	return a == b;
 }
 
-bool operator!=(const primitive_iterator &ita, const primitive_iterator &itb) noexcept
+bool operator!=(primitive_iterator const &ita, primitive_iterator const &itb) noexcept
 {
 	return !(ita == itb);
 }
 
-primitive_iterator begin(const primitive_iterator &iter)
+primitive_iterator begin(primitive_iterator const &iter)
 {
 	return iter;
 }
 
-primitive_iterator end(const primitive_iterator &)
+primitive_iterator end(primitive_iterator const &)
 {
 	return primitive_iterator();
 }

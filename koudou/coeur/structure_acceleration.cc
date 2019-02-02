@@ -34,10 +34,10 @@
 /* ************************************************************************** */
 
 static void entresecte_triangles_maillage(
-		const Maillage &maillage,
+		Maillage const &maillage,
 		size_t index,
 		double distance_maximale,
-		const Rayon &rayon,
+		Rayon const &rayon,
 		Entresection &entresection)
 {
 	auto index_triangle = 0ul;
@@ -66,8 +66,8 @@ static void entresecte_triangles_maillage(
 }
 
 Entresection StructureAcceleration::entresecte(
-		const Scene &scene,
-		const Rayon &rayon,
+		Scene const &scene,
+		Rayon const &rayon,
 		double distance_maximale) const
 {
 	auto index = 0ul;
@@ -118,7 +118,7 @@ VolumeEnglobant::Etendue::Etendue()
 	}
 }
 
-bool VolumeEnglobant::Etendue::entresecte(const Rayon &rayon,
+bool VolumeEnglobant::Etendue::entresecte(Rayon const &rayon,
 		double *numerateur_precalcule,
 		double *denominateur_precalcule,
 		double &d_proche,
@@ -151,7 +151,7 @@ bool VolumeEnglobant::Etendue::entresecte(const Rayon &rayon,
 }
 
 
-void VolumeEnglobant::construit(const Scene &scene)
+void VolumeEnglobant::construit(Scene const &scene)
 {
 	m_etendues.resize(scene.maillages.size());
 	auto i = 0ul;
@@ -165,8 +165,8 @@ void VolumeEnglobant::construit(const Scene &scene)
 }
 
 Entresection VolumeEnglobant::entresecte(
-		const Scene &scene,
-		const Rayon &rayon,
+		Scene const &scene,
+		Rayon const &rayon,
 		double distance_maximale) const
 {
 	double numerateur_precalcule[NOMBRE_NORMAUX_PLAN];

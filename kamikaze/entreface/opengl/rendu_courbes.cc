@@ -119,7 +119,7 @@ void RenduCourbes::initialise()
 	}
 }
 
-void RenduCourbes::dessine(const ContexteRendu &contexte)
+void RenduCourbes::dessine(ContexteRendu const &contexte)
 {
 	/* Dessine sommets. */
 	{

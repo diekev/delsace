@@ -37,12 +37,12 @@ Corps::~Corps()
 	reinitialise();
 }
 
-bool Corps::possede_attribut(const std::string &nom_attribut)
+bool Corps::possede_attribut(std::string const &nom_attribut)
 {
 	return this->attribut(nom_attribut) != nullptr;
 }
 
-Attribut *Corps::ajoute_attribut(const std::string &nom_attribut, type_attribut type_, portee_attr portee, long taille_)
+Attribut *Corps::ajoute_attribut(std::string const &nom_attribut, type_attribut type_, portee_attr portee, long taille_)
 {
 	auto attr = attribut(nom_attribut);
 
@@ -54,7 +54,7 @@ Attribut *Corps::ajoute_attribut(const std::string &nom_attribut, type_attribut 
 	return attr;
 }
 
-void Corps::supprime_attribut(const std::string &nom_attribut)
+void Corps::supprime_attribut(std::string const &nom_attribut)
 {
 	auto iter = std::find_if(m_attributs.begin(), m_attributs.end(),
 							 [&](Attribut *attr)
@@ -67,7 +67,7 @@ void Corps::supprime_attribut(const std::string &nom_attribut)
 	m_attributs.erase(iter);
 }
 
-Attribut *Corps::attribut(const std::string &nom_attribut) const
+Attribut *Corps::attribut(std::string const &nom_attribut) const
 {
 	for (auto const &attr : m_attributs) {
 		if (attr->nom() != nom_attribut) {
@@ -80,7 +80,7 @@ Attribut *Corps::attribut(const std::string &nom_attribut) const
 	return nullptr;
 }
 
-GroupePrimitive *Corps::ajoute_groupe_primitive(const std::string &nom_attribut)
+GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_attribut)
 {
 	if (m_groupes_prims.find(nom_attribut) != m_groupes_prims.end()) {
 		return nullptr;

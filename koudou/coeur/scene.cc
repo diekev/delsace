@@ -45,7 +45,7 @@ Monde::~Monde()
 	supprime_texture(texture);
 }
 
-Spectre spectre_monde(const Monde &monde, const dls::math::vec3d &direction)
+Spectre spectre_monde(Monde const &monde, dls::math::vec3d const &direction)
 {
 	if (monde.texture) {
 		return monde.texture->echantillone(direction);
@@ -170,7 +170,7 @@ void Scene::ajoute_lumiere(Lumiere *lumiere)
 
 /* ************************************************************************** */
 
-dls::math::vec3d normale_scene(const Scene &scene, const dls::math::point3d &position, const Entresection &entresection)
+dls::math::vec3d normale_scene(Scene const &scene, dls::math::point3d const &position, Entresection const &entresection)
 {
 	switch (entresection.type_objet) {
 		default:
@@ -188,7 +188,7 @@ dls::math::vec3d normale_scene(const Scene &scene, const dls::math::point3d &pos
 	}
 }
 
-double ombre_scene(const ParametresRendu &parametres, const Scene &scene, const Rayon &rayon, double distance_maximale)
+double ombre_scene(ParametresRendu const &parametres, Scene const &scene, Rayon const &rayon, double distance_maximale)
 {
 	auto entresection = parametres.acceleratrice->entresecte(scene, rayon, distance_maximale);
 
@@ -199,7 +199,7 @@ double ombre_scene(const ParametresRendu &parametres, const Scene &scene, const 
 	return 0.0;
 }
 
-Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, GNA &gna, const dls::math::point3d &pos, const dls::math::vec3d &nor)
+Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, GNA &gna, dls::math::point3d const &pos, dls::math::vec3d const &nor)
 {
 	/* Biais pour les rayons d'ombrage. À FAIRE : mettre dans les paramètres. */
 	auto const biais = 1e-4;
@@ -289,7 +289,7 @@ Spectre spectre_lumiere(const ParametresRendu &parametres, const Scene &scene, G
 	return spectre;
 }
 
-dls::math::vec3d get_brdf_ray(GNA &gna, const dls::math::vec3d &nor, const dls::math::vec3d &rd)
+dls::math::vec3d get_brdf_ray(GNA &gna, dls::math::vec3d const &nor, dls::math::vec3d const &rd)
 {
 	if (gna.nombre_aleatoire() < 0.793) {
 		return cosine_direction(gna, nor);
@@ -299,7 +299,7 @@ dls::math::vec3d get_brdf_ray(GNA &gna, const dls::math::vec3d &nor, const dls::
 	return dls::math::normalise(p + cosine_direction(gna, p) * 0.1);
 }
 
-dls::math::vec3d cosine_direction(GNA &gna, const dls::math::vec3d &nor)
+dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor)
 {
 	auto r = dls::math::vec2d(gna.nombre_aleatoire() * TAU, gna.nombre_aleatoire() * TAU);
 	auto sin_r = sin(r[0]);
@@ -312,7 +312,7 @@ dls::math::vec3d cosine_direction(GNA &gna, const dls::math::vec3d &nor)
 	return dr;
 }
 
-dls::math::vec3d reflect(const dls::math::vec3d &nor, const dls::math::vec3d &dir)
+dls::math::vec3d reflect(dls::math::vec3d const &nor, dls::math::vec3d const &dir)
 {
 	return dir - (2.0 * produit_scalaire(dir, nor) * nor);
 }

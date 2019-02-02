@@ -26,17 +26,17 @@
 
 #include "types.h"
 
-BoiteEnglobante::BoiteEnglobante(const dls::math::point3d &point)
+BoiteEnglobante::BoiteEnglobante(dls::math::point3d const &point)
 	: min(point)
 	, max(point)
 {}
 
-BoiteEnglobante::BoiteEnglobante(const dls::math::point3d &p1, const dls::math::point3d &p2)
+BoiteEnglobante::BoiteEnglobante(dls::math::point3d const &p1, dls::math::point3d const &p2)
 	: min(std::min(p1.x, p2.x), std::min(p1.y, p2.y), std::min(p1.z, p2.z))
 	, max(std::max(p1.x, p2.x), std::max(p1.y, p2.y), std::max(p1.z, p2.z))
 {}
 
-bool BoiteEnglobante::chevauchement(const BoiteEnglobante &boite)
+bool BoiteEnglobante::chevauchement(BoiteEnglobante const &boite)
 {
 	auto const x = (max[0] >= boite.min[0]) && (min[0] <= boite.max[0]);
 	auto const y = (max[1] >= boite.min[1]) && (min[1] <= boite.max[1]);
@@ -45,7 +45,7 @@ bool BoiteEnglobante::chevauchement(const BoiteEnglobante &boite)
 	return x && y && z;
 }
 
-bool BoiteEnglobante::contient(const dls::math::point3d &point)
+bool BoiteEnglobante::contient(dls::math::point3d const &point)
 {
 	auto const x = (point[0] >= min[0]) && (point[0] <= max[0]);
 	auto const y = (point[1] >= min[1]) && (point[1] <= max[1]);
@@ -89,7 +89,7 @@ int BoiteEnglobante::ampleur_maximale() const
 	return 2;
 }
 
-dls::math::vec3d BoiteEnglobante::decalage(const dls::math::point3d &point)
+dls::math::vec3d BoiteEnglobante::decalage(dls::math::point3d const &point)
 {
 	return dls::math::vec3d(
 				(point[0] - min[0]) / (max[0] - min[0]),
@@ -97,7 +97,7 @@ dls::math::vec3d BoiteEnglobante::decalage(const dls::math::point3d &point)
 			(point[2] - min[2]) / (max[2] - min[2]));
 }
 
-BoiteEnglobante unie(const BoiteEnglobante &boite, const dls::math::point3d &point)
+BoiteEnglobante unie(BoiteEnglobante const &boite, dls::math::point3d const &point)
 {
 	BoiteEnglobante resultat;
 
@@ -109,7 +109,7 @@ BoiteEnglobante unie(const BoiteEnglobante &boite, const dls::math::point3d &poi
 	return resultat;
 }
 
-BoiteEnglobante unie(const BoiteEnglobante &boite1, const BoiteEnglobante &boite2)
+BoiteEnglobante unie(BoiteEnglobante const &boite1, BoiteEnglobante const &boite2)
 {
 	BoiteEnglobante resultat;
 
@@ -124,7 +124,7 @@ BoiteEnglobante unie(const BoiteEnglobante &boite1, const BoiteEnglobante &boite
 /* Algorithme issu de
  * https://tavianator.com/fast-branchless-raybounding-box-entresections-part-2-nans/
  */
-bool entresecte_boite(const BoiteEnglobante &boite, const Rayon &rayon)
+bool entresecte_boite(BoiteEnglobante const &boite, Rayon const &rayon)
 {
 	auto t1 = (boite.min[0] - rayon.origine[0]) * rayon.inverse_direction[0];
 	auto t2 = (boite.max[0] - rayon.origine[0]) * rayon.inverse_direction[0];

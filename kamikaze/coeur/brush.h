@@ -46,7 +46,7 @@ public:
 	~Brush() = default;
 
 #if 0
-	inline float influence(const Coord &center, const Coord &pos)
+	inline float influence(Coord const &center, Coord const &pos)
 	{
 		return 1.0f - (center - pos).asVec3d().length() * m_inv_radius + 0.001f;
 	}

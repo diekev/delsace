@@ -53,14 +53,14 @@ public:
 	AssembleurControles(AssembleurControles const &) = default;
 	AssembleurControles &operator=(AssembleurControles const &) = default;
 
-	void addWarning(const QString &warning);
-	void addWidget(QWidget *widget, const QString &name);
-	void setTooltip(const QString &tooltip);
+	void addWarning(QString const &warning);
+	void addWidget(QWidget *widget, QString const &name);
+	void setTooltip(QString const &tooltip);
 
 	void clear();
 
 	void setVisible(bool yesno);
-	void setVisible(const QString &name, bool yesno);
+	void setVisible(QString const &name, bool yesno);
 
 	template <typename SlotType>
 	void setContext(QObject *context, SlotType slot)

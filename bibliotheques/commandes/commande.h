@@ -50,13 +50,13 @@ class Commande {
 public:
 	virtual ~Commande() = default;
 
-	virtual bool evalue_predicat(std::any const &pointeur, const std::string &metadonnee);
+	virtual bool evalue_predicat(std::any const &pointeur, std::string const &metadonnee);
 
-	virtual int execute(std::any const &pointeur, const DonneesCommande &donnees) = 0;
+	virtual int execute(std::any const &pointeur, DonneesCommande const &donnees) = 0;
 
-	virtual void ajourne_execution_modale(std::any const &pointeur, const DonneesCommande &donnees);
+	virtual void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees);
 
-	virtual void termine_execution_modale(std::any const &pointeur, const DonneesCommande &donnees);
+	virtual void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees);
 };
 
 struct DescriptionCommande {
@@ -75,12 +75,12 @@ struct DescriptionCommande {
 
 template <typename T>
 inline auto description_commande(
-		const std::string &categorie,
+		std::string const &categorie,
 		int souris,
 		int modificateur,
 		int cle,
 		bool double_clique,
-		const std::string &metadonnee = "")
+		std::string const &metadonnee = "")
 {
 	DescriptionCommande description;
 	description.cle = cle;
@@ -132,9 +132,9 @@ class UsineCommande {
 	std::unordered_map<std::string, DescriptionCommande> m_tableau{};
 
 public:
-	void enregistre_type(const std::string &nom, const DescriptionCommande &description);
+	void enregistre_type(std::string const &nom, DescriptionCommande const &description);
 
-	Commande *operator()(const std::string &nom);
+	Commande *operator()(std::string const &nom);
 
-	Commande *trouve_commande(const std::string &categorie, DonneesCommande &donnees_commande);
+	Commande *trouve_commande(std::string const &categorie, DonneesCommande &donnees_commande);
 };

@@ -125,7 +125,7 @@ void RenduChampsDistance::initialise()
 	m_tampon->remplie_tampon(parametres);
 }
 
-void RenduChampsDistance::dessine(const ContexteRendu &contexte)
+void RenduChampsDistance::dessine(ContexteRendu const &contexte)
 {
 	m_tampon->dessine(contexte);
 }

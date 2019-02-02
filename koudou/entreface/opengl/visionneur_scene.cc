@@ -40,7 +40,7 @@
 #include "rendu_monde.h"
 
 template <typename T>
-static auto converti_matrice_glm(const dls::math::mat4x4<T> &matrice)
+static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
 {
 	dls::math::mat4x4<float> resultat;
 

@@ -64,7 +64,7 @@ void Persona::ajoute_propriete(std::string nom, std::string nom_entreface, TypeP
 	m_proprietes.push_back(std::move(prop));
 }
 
-void Persona::rend_visible(const std::string &nom_propriete, bool visible)
+void Persona::rend_visible(std::string const &nom_propriete, bool visible)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -78,7 +78,7 @@ bool Persona::ajourne_proprietes()
 	return false;
 }
 
-int Persona::evalue_int(const std::string &nom_propriete)
+int Persona::evalue_int(std::string const &nom_propriete)
 {
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -89,7 +89,7 @@ int Persona::evalue_int(const std::string &nom_propriete)
 	return 0;
 }
 
-float Persona::evalue_float(const std::string &nom_propriete)
+float Persona::evalue_float(std::string const &nom_propriete)
 {
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -100,12 +100,12 @@ float Persona::evalue_float(const std::string &nom_propriete)
 	return 0.0f;
 }
 
-int Persona::evalue_enum(const std::string &nom_propriete)
+int Persona::evalue_enum(std::string const &nom_propriete)
 {
 	return evalue_int(nom_propriete);
 }
 
-int Persona::evalue_bool(const std::string &nom_propriete)
+int Persona::evalue_bool(std::string const &nom_propriete)
 {
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -116,7 +116,7 @@ int Persona::evalue_bool(const std::string &nom_propriete)
 	return false;
 }
 
-dls::math::vec3f Persona::evalue_vec3(const std::string &nom_propriete)
+dls::math::vec3f Persona::evalue_vec3(std::string const &nom_propriete)
 {
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -127,7 +127,7 @@ dls::math::vec3f Persona::evalue_vec3(const std::string &nom_propriete)
 	return dls::math::vec3f(0.0f, 0.0f, 0.0f);
 }
 
-dls::math::vec4f Persona::evalue_couleur(const std::string &nom_propriete)
+dls::math::vec4f Persona::evalue_couleur(std::string const &nom_propriete)
 {
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -138,7 +138,7 @@ dls::math::vec4f Persona::evalue_couleur(const std::string &nom_propriete)
 	return dls::math::vec4f(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-std::string Persona::evalue_string(const std::string &nom_propriete)
+std::string Persona::evalue_string(std::string const &nom_propriete)
 {
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -156,7 +156,7 @@ void Persona::etablie_min_max(const float min, const float max)
 	prop.max = max;
 }
 
-void Persona::etablie_valeur_enum(const ProprieteEnumerante &enum_prop)
+void Persona::etablie_valeur_enum(ProprieteEnumerante const &enum_prop)
 {
 	Propriete &prop = this->m_proprietes.back();
 
@@ -192,7 +192,7 @@ void Persona::etablie_valeur_bool_defaut(bool valeur)
 	prop.donnee = std::experimental::any(valeur);
 }
 
-void Persona::etablie_valeur_string_defaut(const std::string &valeur)
+void Persona::etablie_valeur_string_defaut(std::string const &valeur)
 {
 	Propriete &prop = this->m_proprietes.back();
 
@@ -204,7 +204,7 @@ void Persona::etablie_valeur_string_defaut(const std::string &valeur)
 	prop.donnee = std::experimental::any(valeur);
 }
 
-void Persona::etablie_valeur_vec3_defaut(const dls::math::vec3f &valeur)
+void Persona::etablie_valeur_vec3_defaut(dls::math::vec3f const &valeur)
 {
 	Propriete &prop = this->m_proprietes.back();
 
@@ -213,7 +213,7 @@ void Persona::etablie_valeur_vec3_defaut(const dls::math::vec3f &valeur)
 	prop.donnee = std::experimental::any(valeur);
 }
 
-void Persona::etablie_valeur_couleur_defaut(const dls::math::vec4f &valeur)
+void Persona::etablie_valeur_couleur_defaut(dls::math::vec4f const &valeur)
 {
 	Propriete &prop = this->m_proprietes.back();
 
@@ -222,7 +222,7 @@ void Persona::etablie_valeur_couleur_defaut(const dls::math::vec4f &valeur)
 	prop.donnee = std::experimental::any(valeur);
 }
 
-void Persona::ajourne_valeur_float(const std::string &nom_propriete, float valeur)
+void Persona::ajourne_valeur_float(std::string const &nom_propriete, float valeur)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -234,7 +234,7 @@ void Persona::ajourne_valeur_float(const std::string &nom_propriete, float valeu
 	(*donnees) = valeur;
 }
 
-void Persona::ajourne_valeur_int(const std::string &nom_propriete, int valeur)
+void Persona::ajourne_valeur_int(std::string const &nom_propriete, int valeur)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -246,7 +246,7 @@ void Persona::ajourne_valeur_int(const std::string &nom_propriete, int valeur)
 	(*donnees) = valeur;
 }
 
-void Persona::ajourne_valeur_bool(const std::string &nom_propriete, bool valeur)
+void Persona::ajourne_valeur_bool(std::string const &nom_propriete, bool valeur)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -258,7 +258,7 @@ void Persona::ajourne_valeur_bool(const std::string &nom_propriete, bool valeur)
 	(*donnees) = valeur;
 }
 
-void Persona::ajourne_valeur_couleur(const std::string &nom_propriete, const dls::math::vec4f &valeur)
+void Persona::ajourne_valeur_couleur(std::string const &nom_propriete, dls::math::vec4f const &valeur)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -270,7 +270,7 @@ void Persona::ajourne_valeur_couleur(const std::string &nom_propriete, const dls
 	(*donnees) = valeur;
 }
 
-void Persona::ajourne_valeur_string(const std::string &nom_propriete, const std::string &valeur)
+void Persona::ajourne_valeur_string(std::string const &nom_propriete, std::string const &valeur)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -282,7 +282,7 @@ void Persona::ajourne_valeur_string(const std::string &nom_propriete, const std:
 	(*donnees) = valeur;
 }
 
-void Persona::ajourne_valeur_enum(const std::string &nom_propriete, const ProprieteEnumerante &propriete)
+void Persona::ajourne_valeur_enum(std::string const &nom_propriete, ProprieteEnumerante const &propriete)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 
@@ -295,7 +295,7 @@ void Persona::ajourne_valeur_enum(const std::string &nom_propriete, const Propri
 	prop->items_enumeration = propriete;
 }
 
-void Persona::ajourne_valeur_vec3(const std::string &nom_propriete, const dls::math::vec3f &valeur)
+void Persona::ajourne_valeur_vec3(std::string const &nom_propriete, dls::math::vec3f const &valeur)
 {
 	Propriete *prop = trouve_propriete(nom_propriete);
 

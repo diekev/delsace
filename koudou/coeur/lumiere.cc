@@ -26,7 +26,7 @@
 
 #include "nuanceur.h"
 
-Lumiere::Lumiere(const math::transformation &transform)
+Lumiere::Lumiere(math::transformation const &transform)
 	: transformation(transform)
 {}
 
@@ -35,7 +35,7 @@ Lumiere::~Lumiere()
 	delete nuanceur;
 }
 
-LumierePoint::LumierePoint(const math::transformation &transform, Spectre spec, double intens)
+LumierePoint::LumierePoint(math::transformation const &transform, Spectre spec, double intens)
 	: Lumiere(transform)
 {
 	this->type = type_lumiere::POINT;
@@ -45,7 +45,7 @@ LumierePoint::LumierePoint(const math::transformation &transform, Spectre spec, 
 	transform(dls::math::point3d(0.0), &this->pos);
 }
 
-LumiereDistante::LumiereDistante(const math::transformation &transform, Spectre spec, double intens)
+LumiereDistante::LumiereDistante(math::transformation const &transform, Spectre spec, double intens)
 	: Lumiere(transform)
 {
 	this->type = type_lumiere::DISTANTE;

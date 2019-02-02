@@ -29,7 +29,7 @@
 
 #include "operatrices/operatrices_standards.h"
 
-Graph::Graph(const Context &contexte)
+Graph::Graph(Context const &contexte)
 	: m_besoin_actualisation(false)
 {
 	auto noeud_sortie = new Noeud();
@@ -58,7 +58,7 @@ void Graph::ajoute(Noeud *noeud)
 void Graph::enleve(Noeud *noeud)
 {
 	auto iter = std::find_if(m_noeuds.begin(), m_noeuds.end(),
-							 [noeud](const std::unique_ptr<Noeud> &node_ptr)
+							 [noeud](std::unique_ptr<Noeud> const &node_ptr)
 	{
 		return node_ptr.get() == noeud;
 	});

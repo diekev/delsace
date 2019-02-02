@@ -66,9 +66,9 @@ Maillage::const_iterateur Maillage::end() const
 }
 
 void Maillage::ajoute_triangle(
-		const dls::math::vec3d &v0,
-		const dls::math::vec3d &v1,
-		const dls::math::vec3d &v2)
+		dls::math::vec3d const &v0,
+		dls::math::vec3d const &v1,
+		dls::math::vec3d const &v2)
 {
 	auto triangle = new Triangle;
 	triangle->v0 = v0;
@@ -79,7 +79,7 @@ void Maillage::ajoute_triangle(
 	m_triangles.push_back(triangle);
 }
 
-void Maillage::transformation(const math::transformation &transforme)
+void Maillage::transformation(math::transformation const &transforme)
 {
 	m_transformation = transforme;
 
@@ -87,12 +87,12 @@ void Maillage::transformation(const math::transformation &transforme)
 	m_transformation(m_boite_englobante.max, &m_boite_englobante.max);
 }
 
-const math::transformation &Maillage::transformation() const
+math::transformation const &Maillage::transformation() const
 {
 	return m_transformation;
 }
 
-const BoiteEnglobante &Maillage::boite_englobante() const
+BoiteEnglobante const &Maillage::boite_englobante() const
 {
 	return m_boite_englobante;
 }
@@ -181,7 +181,7 @@ Maillage *Maillage::cree_plan()
 }
 
 void Maillage::calcule_limites(
-		const dls::math::vec3d &normal,
+		dls::math::vec3d const &normal,
 		double &d_proche,
 		double &d_eloigne) const
 {
@@ -215,17 +215,17 @@ void Maillage::calcule_limites(
 	}
 }
 
-void Maillage::nom(const std::string &nom)
+void Maillage::nom(std::string const &nom)
 {
 	m_nom = nom;
 }
 
-const std::string &Maillage::nom() const
+std::string const &Maillage::nom() const
 {
 	return m_nom;
 }
 
-dls::math::vec3d calcul_normal(const Triangle &triangle)
+dls::math::vec3d calcul_normal(Triangle const &triangle)
 {
 	auto c1 = triangle.v1 - triangle.v0;
 	auto c2 = triangle.v2 - triangle.v0;
@@ -237,7 +237,7 @@ dls::math::vec3d calcul_normal(const Triangle &triangle)
  * Algorithme de Möller-Trumbore.
  * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_entresection_algorithm
  */
-bool entresecte_triangle(const Triangle &triangle, const Rayon &rayon, double &distance)
+bool entresecte_triangle(Triangle const &triangle, Rayon const &rayon, double &distance)
 {
 	constexpr auto epsilon = 0.000001;
 
