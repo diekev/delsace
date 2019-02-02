@@ -751,14 +751,14 @@ public:
 
 		auto attr_normaux = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, 0ul);
 
-		if (attr_normaux->taille() != 0ul) {
+		if (attr_normaux->taille() != 0l) {
 			attr_normaux->reinitialise();
 		}
 
 		auto liste_prims = m_corps.prims();
 		auto nombre_prims = liste_prims->taille();
 
-		if (nombre_prims == 0ul) {
+		if (nombre_prims == 0l) {
 			ajoute_avertissement("Aucun polygone trouvé pour calculer les vecteurs normaux");
 			return EXECUTION_ECHOUEE;
 		}
@@ -827,7 +827,7 @@ public:
 			}
 
 			/* accumule les normaux pour chaque sommets */
-			std::vector<int> poids(nombre_sommets, 0);
+			std::vector<int> poids(static_cast<size_t>(nombre_sommets), 0);
 
 			for (Primitive *prim : liste_prims->prims()) {
 				if (prim->type_prim() != type_primitive::POLYGONE) {
@@ -840,10 +840,10 @@ public:
 					continue;
 				}
 
-				for (size_t i = 0; i < poly->nombre_segments(); ++i) {
+				for (long i = 0; i < poly->nombre_segments(); ++i) {
 					auto const index_sommet = poly->index_point(i);
 
-					if (poids[index_sommet] != 0) {
+					if (poids[static_cast<size_t>(index_sommet)] != 0) {
 						auto nor = attr_normaux->vec3(index_sommet);
 						nor += poly->nor;
 						attr_normaux->vec3(index_sommet, nor);
@@ -852,14 +852,14 @@ public:
 						attr_normaux->vec3(index_sommet, poly->nor);
 					}
 
-					poids[index_sommet] += 1;
+					poids[static_cast<size_t>(index_sommet)] += 1;
 				}
 			}
 
 			/* normalise les normaux */
-			for (size_t n = 0; n < nombre_sommets; ++n) {
+			for (long n = 0; n < nombre_sommets; ++n) {
 				auto nor = attr_normaux->vec3(n);
-				nor /= static_cast<float>(poids[n]);
+				nor /= static_cast<float>(poids[static_cast<size_t>(n)]);
 				nor = normalise(nor);
 
 				if (inverse_normaux) {
@@ -1069,10 +1069,10 @@ public:
 		desc.numFaces    = static_cast<int>(nombre_polygones);
 
 		std::vector<int> nombre_sommets_par_poly;
-		nombre_sommets_par_poly.reserve(nombre_polygones);
+		nombre_sommets_par_poly.reserve(static_cast<size_t>(nombre_polygones));
 
 		std::vector<int> index_sommets_polys;
-		index_sommets_polys.reserve(nombre_sommets * nombre_polygones);
+		index_sommets_polys.reserve(static_cast<size_t>(nombre_sommets * nombre_polygones));
 
 		auto const liste_prims = m_corps.prims();
 		for (Primitive *prim : liste_prims->prims()) {
@@ -1083,7 +1083,7 @@ public:
 			auto poly = dynamic_cast<Polygone *>(prim);
 			nombre_sommets_par_poly.push_back(static_cast<int>(poly->nombre_sommets()));
 
-			for (size_t i = 0; i < poly->nombre_sommets(); ++i) {
+			for (long i = 0; i < poly->nombre_sommets(); ++i) {
 				index_sommets_polys.push_back(static_cast<int>(poly->index_point(i)));
 			}
 		}
@@ -1121,10 +1121,10 @@ public:
 
 		{
 			auto const ref_der_niv = rafineur->GetLevel(niveau_max);
-			nombre_sommets = static_cast<size_t>(ref_der_niv.GetNumVertices());
-			nombre_polygones = static_cast<size_t>(ref_der_niv.GetNumFaces());
+			nombre_sommets = ref_der_niv.GetNumVertices();
+			nombre_polygones = ref_der_niv.GetNumFaces();
 
-			auto premier_sommet = static_cast<size_t>(rafineur->GetNumVerticesTotal()) - nombre_sommets;
+			auto premier_sommet = rafineur->GetNumVerticesTotal() - nombre_sommets;
 
 			m_corps.reinitialise();
 			m_corps.points()->reserve(nombre_sommets);
@@ -1132,7 +1132,7 @@ public:
 
 			auto liste_points = m_corps.points();
 
-			for (size_t vert = 0; vert < nombre_sommets; ++vert) {
+			for (long vert = 0; vert < nombre_sommets; ++vert) {
 				float const * pos = sommets[premier_sommet + vert].GetPosition();
 				auto p3d = new Point3D;
 				p3d->x = pos[0];
@@ -1141,7 +1141,7 @@ public:
 				liste_points->pousse(p3d);
 			}
 
-			for (size_t face = 0; face < nombre_polygones; ++face) {
+			for (long face = 0; face < nombre_polygones; ++face) {
 				auto fverts = ref_der_niv.GetFaceVertices(static_cast<int>(face));
 
 				auto poly = Polygone::construit(&m_corps, type_polygone::FERME, static_cast<size_t>(fverts.size()));
@@ -1270,7 +1270,7 @@ public:
 		auto liste_points = m_corps.points();
 		auto liste_prims = m_corps.prims();
 
-		size_t taille_attrib = 0ul;
+		auto taille_attrib = 0l;
 
 		switch (portee) {
 			case portee_attr::POINT:
@@ -1750,7 +1750,7 @@ public:
 			auto poly = dynamic_cast<Polygone *>(prim);
 			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
-			for (size_t i = 0; i < poly->nombre_sommets(); ++i) {
+			for (long i = 0; i < poly->nombre_sommets(); ++i) {
 				polygone->ajoute_sommet(poly->index_point(i));
 			}
 		}
@@ -1765,7 +1765,7 @@ public:
 			auto poly = dynamic_cast<Polygone *>(prim);
 			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
-			for (size_t i = 0; i < poly->nombre_sommets(); ++i) {
+			for (long i = 0; i < poly->nombre_sommets(); ++i) {
 				polygone->ajoute_sommet(decalage_point + poly->index_point(i));
 			}
 		}

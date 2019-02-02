@@ -72,13 +72,15 @@ enum class portee_attr : char {
 	}
 
 #define DEFINI_ACESSEURS_POSITION(__nom, __type) \
-	__type __nom(const size_t i) \
+	__type __nom(long const i) \
 	{ \
-		return (*m_donnees.liste_##__nom)[i]; \
+		assert(i >= 0); \
+		return (*m_donnees.liste_##__nom)[static_cast<size_t>(i)]; \
 	} \
-	void __nom(const size_t i, const __type &v) \
+	void __nom(long const i, const __type &v) \
 	{ \
-		(*m_donnees.liste_##__nom)[i] = v; \
+		assert(i >= 0); \
+		(*m_donnees.liste_##__nom)[static_cast<size_t>(i)] = v; \
 	}
 
 #define DEFINI_POUSSE_VALEUR(__nom, __type) \
@@ -117,7 +119,7 @@ public:
 	portee_attr portee;
 
 	Attribut(const Attribut &rhs);
-	Attribut(const std::string &nom, type_attribut type, portee_attr portee = portee_attr::POINT, size_t taille = 0);
+	Attribut(const std::string &nom, type_attribut type, portee_attr portee = portee_attr::POINT, long taille = 0);
 	~Attribut();
 
 	Attribut &operator=(const Attribut &rhs) = default;
@@ -125,15 +127,15 @@ public:
 	type_attribut type() const;
 	std::string nom() const;
 
-	void reserve(size_t n);
-	void redimensionne(size_t n);
+	void reserve(long n);
+	void redimensionne(long n);
 
 	void reinitialise();
 
 	const void *donnees() const;
 
-	size_t taille_octets() const;
-	size_t taille() const;
+	long taille_octets() const;
+	long taille() const;
 
 	DEFINI_ACCESSEURS_PLAGE(ent8)
 	DEFINI_ACCESSEURS_PLAGE(ent32)

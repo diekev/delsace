@@ -73,15 +73,15 @@ void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float
 	INUTILISE(z);
 }
 
-void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int *index_uvs, const int *index_normaux, size_t nombre)
+void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int *index_uvs, const int *index_normaux, long nombre)
 {
 	INUTILISE(index_uvs);
 	INUTILISE(index_normaux);
 
 	auto poly = Polygone::construit(corps, type_polygone::FERME, nombre);
 
-	for (size_t i = 0; i < nombre; ++i) {
-		poly->ajoute_sommet(static_cast<size_t>(index_sommet[i]));
+	for (long i = 0; i < nombre; ++i) {
+		poly->ajoute_sommet(index_sommet[i]);
 	}
 
 	for (GroupePrimitive *groupe : groupes_courant) {
@@ -100,17 +100,17 @@ void AdaptriceCreationCorps::ajoute_objet(const std::string &nom)
 	corps->nom = nom;
 }
 
-void AdaptriceCreationCorps::reserve_polygones(const size_t nombre)
+void AdaptriceCreationCorps::reserve_polygones(long const nombre)
 {
 	corps->prims()->reserve(nombre);
 }
 
-void AdaptriceCreationCorps::reserve_sommets(const size_t nombre)
+void AdaptriceCreationCorps::reserve_sommets(long const nombre)
 {
 	corps->points()->reserve(nombre);
 }
 
-void AdaptriceCreationCorps::reserve_normaux(const size_t nombre)
+void AdaptriceCreationCorps::reserve_normaux(long const nombre)
 {
 	if (attribut_normal == nullptr) {
 		attribut_normal = corps->ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, 0);
@@ -118,7 +118,7 @@ void AdaptriceCreationCorps::reserve_normaux(const size_t nombre)
 	}
 }
 
-void AdaptriceCreationCorps::reserve_uvs(const size_t nombre)
+void AdaptriceCreationCorps::reserve_uvs(long const nombre)
 {
 	if (attribut_uvs == nullptr) {
 		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::POLYGONE_POINT, 0);

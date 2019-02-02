@@ -42,7 +42,7 @@ bool Corps::possede_attribut(const std::string &nom_attribut)
 	return this->attribut(nom_attribut) != nullptr;
 }
 
-Attribut *Corps::ajoute_attribut(const std::string &nom_attribut, type_attribut type_, portee_attr portee, size_t taille_)
+Attribut *Corps::ajoute_attribut(const std::string &nom_attribut, type_attribut type_, portee_attr portee, long taille_)
 {
 	auto attr = attribut(nom_attribut);
 
@@ -109,7 +109,7 @@ size_t Corps::ajoute_point(float x, float y, float z)
 
 	m_points.pousse(point);
 
-	return m_points.taille() - 1;
+	return static_cast<size_t>(m_points.taille()) - 1;
 }
 
 size_t Corps::index_point(float x, float y, float z)
@@ -132,7 +132,7 @@ size_t Corps::index_point(float x, float y, float z)
 
 void Corps::ajoute_primitive(Primitive *p)
 {
-	p->index = m_prims.taille();
+	p->index = static_cast<size_t>(m_prims.taille());
 	m_prims.pousse(p);
 }
 
@@ -215,7 +215,7 @@ void Corps::copie_vers(Corps *corps) const
 			 * différent ou n'est pas correctement initialisé ? */
 			poly->index = polygone->index;
 
-			for (size_t i = 0; i < polygone->nombre_sommets(); ++i) {
+			for (long i = 0; i < polygone->nombre_sommets(); ++i) {
 				poly->ajoute_sommet(polygone->index_point(i));
 			}
 		}

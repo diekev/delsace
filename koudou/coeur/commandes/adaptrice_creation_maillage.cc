@@ -55,7 +55,7 @@ void AdaptriceChargementMaillage::ajoute_parametres_sommet(const float x, const 
 	INUTILISE(z);
 }
 
-void AdaptriceChargementMaillage::ajoute_polygone(const int *index_sommet, const int *, const int *, size_t nombre)
+void AdaptriceChargementMaillage::ajoute_polygone(const int *index_sommet, const int *, const int *, long nombre)
 {
 	maillage->ajoute_triangle(
 				m_sommets[static_cast<size_t>(index_sommet[0])],
@@ -81,22 +81,22 @@ void AdaptriceChargementMaillage::ajoute_objet(const std::string &nom)
 	INUTILISE(nom);
 }
 
-void AdaptriceChargementMaillage::reserve_polygones(const size_t nombre)
+void AdaptriceChargementMaillage::reserve_polygones(long const nombre)
 {
 	INUTILISE(nombre);
 }
 
-void AdaptriceChargementMaillage::reserve_sommets(const size_t nombre)
+void AdaptriceChargementMaillage::reserve_sommets(long const nombre)
 {
 	INUTILISE(nombre);
 }
 
-void AdaptriceChargementMaillage::reserve_normaux(const size_t nombre)
+void AdaptriceChargementMaillage::reserve_normaux(long const nombre)
 {
 	INUTILISE(nombre);
 }
 
-void AdaptriceChargementMaillage::reserve_uvs(const size_t nombre)
+void AdaptriceChargementMaillage::reserve_uvs(long const nombre)
 {
 	INUTILISE(nombre);
 }

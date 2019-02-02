@@ -126,7 +126,7 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree)
 	auto const prims  = corps_entree->prims();
 
 	/* Convertis le maillage en triangles. */
-	auto nombre_triangles = 0ul;
+	auto nombre_triangles = 0l;
 
 	for (auto prim : prims->prims()) {
 		if (prim->type_prim() != type_primitive::POLYGONE) {
@@ -153,7 +153,7 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree)
 		nombre_triangles += poly->nombre_sommets() - 2;
 	}
 
-	triangles.reserve(nombre_triangles);
+	triangles.reserve(static_cast<size_t>(nombre_triangles));
 
 	for (auto prim : prims->prims()) {
 		if (prim->type_prim() != type_primitive::POLYGONE) {
@@ -166,7 +166,7 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree)
 			continue;
 		}
 
-		for (size_t i = 2; i < poly->nombre_sommets(); ++i) {
+		for (long i = 2; i < poly->nombre_sommets(); ++i) {
 			Triangle triangle;
 
 			triangle.v0 = points->point(poly->index_point(0));
@@ -241,8 +241,8 @@ public:
 
 		auto points_sorties = m_corps.points();
 
-		auto const nombre_points_polys = static_cast<size_t>(evalue_entier("nombre_points_polys"));
-		auto const nombre_points = triangles.size() * nombre_points_polys;
+		auto const nombre_points_polys = evalue_entier("nombre_points_polys");
+		auto const nombre_points = static_cast<long>(triangles.size()) * nombre_points_polys;
 
 		points_sorties->reserve(nombre_points);
 
@@ -259,7 +259,7 @@ public:
 			auto const e0 = v1 - v0;
 			auto const e1 = v2 - v0;
 
-			for (size_t j = 0; j < nombre_points_polys; ++j) {
+			for (long j = 0; j < nombre_points_polys; ++j) {
 				/* Génère des coordonnées barycentriques aléatoires. */
 				auto r = dist(rng);
 				auto s = dist(rng);
@@ -571,7 +571,7 @@ public:
 				continue;
 			}
 
-			for (size_t i = 2; i < polygone->nombre_sommets(); ++i) {
+			for (long i = 2; i < polygone->nombre_sommets(); ++i) {
 				auto const v0 = points->point(polygone->index_point(0));
 				auto const v1 = points->point(polygone->index_point(i - 1));
 				auto const v2 = points->point(polygone->index_point(i));
@@ -597,7 +597,7 @@ public:
 				continue;
 			}
 
-			for (size_t i = 2; i < polygone->nombre_sommets(); ++i) {
+			for (long i = 2; i < polygone->nombre_sommets(); ++i) {
 				auto const v0 = points->point(polygone->index_point(0));
 				auto const v1 = points->point(polygone->index_point(i - 1));
 				auto const v2 = points->point(polygone->index_point(i));
@@ -626,7 +626,7 @@ public:
 
 		/* Calcule le nombre maximum de point. */
 		auto const aire_cercle = static_cast<float>(M_PI) * (distance * 0.5f) * (distance * 0.5f);
-		auto const nombre_points = static_cast<size_t>((aire_totale * DENSITE_CERCLE) / aire_cercle);
+		auto const nombre_points = static_cast<long>((aire_totale * DENSITE_CERCLE) / aire_cercle);
 		std::cerr << "Nombre points prédits : " << nombre_points << '\n';
 
 		auto points_nuage = m_corps.points();

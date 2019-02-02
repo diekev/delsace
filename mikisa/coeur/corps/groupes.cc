@@ -24,6 +24,8 @@
 
 #include "groupes.h"
 
+#include <cassert>
+
 /* ************************************************************************** */
 
 void GroupePoint::ajoute_point(size_t index_point)
@@ -31,9 +33,10 @@ void GroupePoint::ajoute_point(size_t index_point)
 	this->m_points.push_back(index_point);
 }
 
-void GroupePoint::reserve(const size_t nombre)
+void GroupePoint::reserve(long const nombre)
 {
-	this->m_points.reserve(nombre);
+	assert(nombre >= 0);
+	this->m_points.reserve(static_cast<size_t>(nombre));
 }
 
 GroupePoint::plage_points GroupePoint::index()
@@ -53,9 +56,10 @@ void GroupePrimitive::ajoute_primitive(size_t index_poly)
 	this->m_primitives.push_back(index_poly);
 }
 
-void GroupePrimitive::reserve(const size_t nombre)
+void GroupePrimitive::reserve(long const nombre)
 {
-	this->m_primitives.reserve(nombre);
+	assert(nombre >= 0);
+	this->m_primitives.reserve(static_cast<size_t>(nombre));
 }
 
 GroupePrimitive::plage_prims GroupePrimitive::index()

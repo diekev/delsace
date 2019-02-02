@@ -40,19 +40,19 @@ public:
 
 	void ajoute_parametres_sommet(const float x, const float y, const float z) override;
 
-	void ajoute_polygone(const int *index_sommet, const int */*index_uv*/, const int */*index_normal*/, size_t nombre) override;
+	void ajoute_polygone(const int *index_sommet, const int */*index_uv*/, const int */*index_normal*/, long nombre) override;
 
 	void ajoute_ligne(const int *index, size_t nombre) override;
 
 	void ajoute_objet(const std::string &nom) override;
 
-	void reserve_polygones(const size_t nombre) override {}
+	void reserve_polygones(long const nombre) override {}
 
-	void reserve_sommets(const size_t nombre) override {}
+	void reserve_sommets(long const nombre) override {}
 
-	void reserve_normaux(const size_t nombre) override {}
+	void reserve_normaux(long const nombre) override {}
 
-	void reserve_uvs(const size_t nombre) override {}
+	void reserve_uvs(long const nombre) override {}
 
 	void groupes(const std::vector<std::string> &noms) override {}
 

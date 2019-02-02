@@ -50,19 +50,19 @@ public:
 
 	void ajoute_parametres_sommet(const float x, const float y, const float z) override;
 
-	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, size_t nombre) override;
+	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, long nombre) override;
 
 	void ajoute_ligne(const int *idx, size_t nombre) override;
 
 	void ajoute_objet(const std::string &nom) override;
 
-	void reserve_polygones(const size_t nombre) override;
+	void reserve_polygones(long const nombre) override;
 
-	void reserve_sommets(const size_t nombre) override;
+	void reserve_sommets(long const nombre) override;
 
-	void reserve_normaux(const size_t nombre) override;
+	void reserve_normaux(long const nombre) override;
 
-	void reserve_uvs(const size_t nombre) override;
+	void reserve_uvs(long const nombre) override;
 
 	void groupes(const std::vector<std::string> &noms) override;
 
@@ -96,7 +96,7 @@ void AdaptriceCreation::ajoute_parametres_sommet(const float x, const float y, c
 	INUTILISE(z);
 }
 
-void AdaptriceCreation::ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, size_t nombre)
+void AdaptriceCreation::ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, long nombre)
 {
 	INUTILISE(index_uv);
 	INUTILISE(index_normal);
@@ -123,22 +123,22 @@ void AdaptriceCreation::ajoute_objet(const std::string &nom)
 	INUTILISE(nom);
 }
 
-void AdaptriceCreation::reserve_polygones(const size_t nombre)
+void AdaptriceCreation::reserve_polygones(long const nombre)
 {
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreation::reserve_sommets(const size_t nombre)
+void AdaptriceCreation::reserve_sommets(long const nombre)
 {
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreation::reserve_normaux(const size_t nombre)
+void AdaptriceCreation::reserve_normaux(long const nombre)
 {
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreation::reserve_uvs(const size_t nombre)
+void AdaptriceCreation::reserve_uvs(long const nombre)
 {
 	INUTILISE(nombre);
 }

@@ -235,8 +235,8 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 void cree_torus(AdaptriceCreationObjet *adaptrice,
 				const float rayon_mineur,
 				const float rayon_majeur,
-				const unsigned long segment_mineur,
-				const unsigned long segment_majeur,
+				const long segment_mineur,
+				const long segment_majeur,
 				const float centre_x,
 				const float centre_y,
 				const float centre_z)
@@ -246,7 +246,7 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 	auto const vertical_angle_stride = tau / static_cast<float>(segment_majeur);
 	auto const horizontal_angle_stride = tau / static_cast<float>(segment_mineur);
 
-	unsigned long f1 = 0, f2, f3, f4;
+	long f1 = 0, f2, f3, f4;
 	auto const tot_verts = segment_majeur * segment_mineur;
 
 	adaptrice->reserve_sommets(tot_verts);
@@ -254,10 +254,10 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 
 	int poly[4];
 
-	for (unsigned long i = 0; i < segment_majeur; ++i) {
+	for (long i = 0; i < segment_majeur; ++i) {
 		auto theta = vertical_angle_stride * static_cast<float>(i);
 
-		for (unsigned long j = 0; j < segment_mineur; ++j) {
+		for (long j = 0; j < segment_mineur; ++j) {
 			auto phi = horizontal_angle_stride * static_cast<float>(j);
 
 			auto x = std::cos(theta) * (rayon_majeur + rayon_mineur * std::cos(phi));
@@ -312,8 +312,8 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 void cree_grille(AdaptriceCreationObjet *adaptrice,
 				 const float taille_x,
 				 const float taille_y,
-				 const unsigned long lignes,
-				 const unsigned long colonnes,
+				 const long lignes,
+				 const long colonnes,
 				 const float centre_x,
 				 const float centre_y,
 				 const float centre_z)
@@ -334,11 +334,11 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 
 	float uv[2] = { 0.0f, 0.0f };
 
-	for (auto y = 0ul; y < colonnes; ++y) {
+	for (auto y = 0l; y < colonnes; ++y) {
 		point[0] = debut_y + static_cast<float>(y) * increment_y;
 		uv[1] = static_cast<float>(y) * increment_y_uv;
 
-		for (auto x = 0ul; x < lignes; ++x) {
+		for (auto x = 0l; x < lignes; ++x) {
 			point[2] = debut_x + static_cast<float>(x) * increment_x;
 			uv[0] = static_cast<float>(x) * increment_x_uv;
 
@@ -355,13 +355,13 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 	/* crée une copie pour le lambda */
 	auto const tot_x = lignes;
 
-	auto index = [&tot_x](unsigned long x, unsigned long y)
+	auto index = [&tot_x](long x, long y)
 	{
 		return x + y * tot_x;
 	};
 
-	for (auto y = 1ul; y < colonnes; ++y) {
-		for (auto x = 1ul; x < lignes; ++x) {
+	for (auto y = 1l; y < colonnes; ++y) {
+		for (auto x = 1l; x < lignes; ++x) {
 			poly[0] = static_cast<int>(index(x - 1, y - 1));
 			poly[1] = static_cast<int>(index(x,     y - 1));
 			poly[2] = static_cast<int>(index(x,     y    ));
@@ -375,7 +375,7 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 /* ************************************************************************** */
 
 void cree_cercle(AdaptriceCreationObjet *adaptrice,
-				 const unsigned long segments,
+				 const long segments,
 				 const float rayon,
 				 const float centre_x,
 				 const float centre_y,
@@ -391,7 +391,7 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 
 	adaptrice->ajoute_sommet(point[0], point[1], point[2]);
 
-	for (unsigned long a = 0; a < segments; ++a, phi += phid) {
+	for (long a = 0; a < segments; ++a, phi += phid) {
 		/* Going this way ends up with normal(s) upward */
 		point[0] = centre_x - rayon * std::sin(phi);
 		point[2] = centre_z + rayon * std::cos(phi);
@@ -405,7 +405,7 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 	int poly[3] = { 0, 0, 0 };
 	int normaux[3] = { 0, 0, 0 };
 
-	for (auto i = 1ul; i <= segments; ++i) {
+	for (auto i = 1l; i <= segments; ++i) {
 		poly[1] = static_cast<int>(index);
 		poly[2] = static_cast<int>(i);
 
@@ -418,7 +418,7 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 /* ************************************************************************** */
 
 void cree_cylindre(AdaptriceCreationObjet *adaptrice,
-				   const unsigned long segments,
+				   const long segments,
 				   const float rayon_mineur,
 				   const float rayon_majeur,
 				   const float profondeur,
@@ -451,7 +451,7 @@ void cree_cylindre(AdaptriceCreationObjet *adaptrice,
 	int nombre_points = 2;
 	int poly[4];
 
-	for (auto a = 0ul; a < segments; ++a, phi += phid) {
+	for (auto a = 0l; a < segments; ++a, phi += phid) {
 		/* Going this way ends up with normal(s) upward */
 		vec[0] = -rayon_mineur * std::sin(phi);
 		vec[1] = -profondeur;

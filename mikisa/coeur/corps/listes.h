@@ -102,17 +102,17 @@ public:
 	/* Le vecteur normal de ce polygone. */
 	dls::math::vec3f nor{};
 
-	static Polygone *construit(Corps *corps, type_polygone type_poly = type_polygone::FERME, size_t nombre_sommets = 0);
+	static Polygone *construit(Corps *corps, type_polygone type_poly = type_polygone::FERME, long nombre_sommets = 0);
 
-	void ajoute_sommet(size_t sommet);
+	void ajoute_sommet(long sommet);
 
-	void reserve_sommets(size_t nombre);
+	void reserve_sommets(long nombre);
 
-	size_t nombre_sommets() const;
+	long nombre_sommets() const;
 
-	size_t nombre_segments() const;
+	long nombre_segments() const;
 
-	size_t index_point(size_t i);
+	long index_point(long i);
 
 	type_primitive type_prim() const override
 	{
@@ -133,16 +133,16 @@ public:
 
 	void reinitialise();
 
-	void redimensionne(const size_t nombre);
+	void redimensionne(long const nombre);
 
-	void reserve(const size_t nombre);
+	void reserve(long const nombre);
 
-	size_t taille() const;
+	long taille() const;
 
 	void pousse(Point3D *p);
 
-	dls::math::vec3f point(size_t i) const;
-	void point(size_t i, const dls::math::vec3f &p) const;
+	dls::math::vec3f point(long i) const;
+	void point(long i, const dls::math::vec3f &p) const;
 
 	plage_sommets points();
 
@@ -162,11 +162,11 @@ public:
 
 	void reinitialise();
 
-	void redimensionne(const size_t nombre);
+	void redimensionne(long const nombre);
 
-	void reserve(const size_t nombre);
+	void reserve(long const nombre);
 
-	size_t taille() const;
+	long taille() const;
 
 	void pousse(Sommet *s);
 
@@ -188,11 +188,11 @@ public:
 
 	void reinitialise();
 
-	void redimensionne(const size_t nombre);
+	void redimensionne(long const nombre);
 
-	void reserve(const size_t nombre);
+	void reserve(long const nombre);
 
-	size_t taille() const;
+	long taille() const;
 
 	void pousse(Arrete *s);
 
@@ -214,11 +214,11 @@ public:
 
 	void reinitialise();
 
-	void redimensionne(const size_t nombre);
+	void redimensionne(long const nombre);
 
-	void reserve(const size_t nombre);
+	void reserve(long const nombre);
 
-	size_t taille() const;
+	long taille() const;
 
 	void pousse(Primitive *s);
 

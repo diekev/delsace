@@ -28,7 +28,7 @@
 
 /* ************************************************************************** */
 
-Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, size_t nombre_sommets)
+Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, long nombre_sommets)
 {
 	Polygone *p = new Polygone;
 	p->type = type_poly;
@@ -39,22 +39,24 @@ Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, size_t nomb
 	return p;
 }
 
-void Polygone::ajoute_sommet(size_t sommet)
+void Polygone::ajoute_sommet(long sommet)
 {
-	m_sommets.push_back(sommet);
+	assert(sommet >= 0);
+	m_sommets.push_back(static_cast<size_t>(sommet));
 }
 
-void Polygone::reserve_sommets(size_t nombre)
+void Polygone::reserve_sommets(long nombre)
 {
-	m_sommets.reserve(nombre);
+	assert(nombre >= 0);
+	m_sommets.reserve(static_cast<size_t>(nombre));
 }
 
-size_t Polygone::nombre_sommets() const
+long Polygone::nombre_sommets() const
 {
-	return m_sommets.size();
+	return static_cast<long>(m_sommets.size());
 }
 
-size_t Polygone::nombre_segments() const
+long Polygone::nombre_segments() const
 {
 	if (this->type == type_polygone::FERME) {
 		return this->nombre_sommets();
@@ -63,9 +65,10 @@ size_t Polygone::nombre_segments() const
 	return this->nombre_sommets() - 1;
 }
 
-size_t Polygone::index_point(size_t i)
+long Polygone::index_point(long i)
 {
-	return m_sommets[i];
+	assert(i >= 0);
+	return static_cast<long>(m_sommets[static_cast<size_t>(i)]);
 }
 
 /* ************************************************************************** */
@@ -84,19 +87,21 @@ void ListePoints3D::reinitialise()
 	m_sommets.clear();
 }
 
-void ListePoints3D::redimensionne(const size_t nombre)
+void ListePoints3D::redimensionne(const long nombre)
 {
-	m_sommets.resize(nombre);
+	assert(nombre >= 0);
+	m_sommets.resize(static_cast<size_t>(nombre));
 }
 
-void ListePoints3D::reserve(const size_t nombre)
+void ListePoints3D::reserve(long const nombre)
 {
-	m_sommets.reserve(nombre);
+	assert(nombre >= 0);
+	m_sommets.reserve(static_cast<size_t>(nombre));
 }
 
-size_t ListePoints3D::taille() const
+long ListePoints3D::taille() const
 {
-	return m_sommets.size();
+	return static_cast<long>(m_sommets.size());
 }
 
 void ListePoints3D::pousse(Point3D *s)
@@ -104,17 +109,20 @@ void ListePoints3D::pousse(Point3D *s)
 	m_sommets.push_back(s);
 }
 
-dls::math::vec3f ListePoints3D::point(size_t i) const
+dls::math::vec3f ListePoints3D::point(long i) const
 {
-	auto p = m_sommets[i];
+	assert(i >= 0);
+	auto p = m_sommets[static_cast<size_t>(i)];
 	return dls::math::vec3f(p->x, p->y, p->z);
 }
 
-void ListePoints3D::point(size_t i, dls::math::vec3f const &p) const
+void ListePoints3D::point(long i, dls::math::vec3f const &p) const
 {
-	m_sommets[i]->x = p.x;
-	m_sommets[i]->y = p.y;
-	m_sommets[i]->z = p.z;
+	assert(i >= 0);
+	auto s = m_sommets[static_cast<size_t>(i)];
+	s->x = p.x;
+	s->y = p.y;
+	s->z = p.z;
 }
 
 ListePoints3D::plage_sommets ListePoints3D::points()
@@ -143,19 +151,21 @@ void ListePoints::reinitialise()
 	m_sommets.clear();
 }
 
-void ListePoints::redimensionne(const size_t nombre)
+void ListePoints::redimensionne(long const nombre)
 {
-	m_sommets.resize(nombre);
+	assert(nombre >= 0);
+	m_sommets.resize(static_cast<size_t>(nombre));
 }
 
-void ListePoints::reserve(const size_t nombre)
+void ListePoints::reserve(long const nombre)
 {
-	m_sommets.reserve(nombre);
+	assert(nombre >= 0);
+	m_sommets.reserve(static_cast<size_t>(nombre));
 }
 
-size_t ListePoints::taille() const
+long ListePoints::taille() const
 {
-	return m_sommets.size();
+	return static_cast<long>(m_sommets.size());
 }
 
 void ListePoints::pousse(Sommet *s)
@@ -189,19 +199,21 @@ void ListeSegments::reinitialise()
 	m_sommets.clear();
 }
 
-void ListeSegments::redimensionne(const size_t nombre)
+void ListeSegments::redimensionne(long const nombre)
 {
-	m_sommets.resize(nombre);
+	assert(nombre >= 0);
+	m_sommets.resize(static_cast<size_t>(nombre));
 }
 
-void ListeSegments::reserve(const size_t nombre)
+void ListeSegments::reserve(long const nombre)
 {
-	m_sommets.reserve(nombre);
+	assert(nombre >= 0);
+	m_sommets.reserve(static_cast<size_t>(nombre));
 }
 
-size_t ListeSegments::taille() const
+long ListeSegments::taille() const
 {
-	return m_sommets.size();
+	return static_cast<long>(m_sommets.size());
 }
 
 void ListeSegments::pousse(Arrete *s)
@@ -235,19 +247,21 @@ void ListePrimitives::reinitialise()
 	m_primitives.clear();
 }
 
-void ListePrimitives::redimensionne(const size_t nombre)
+void ListePrimitives::redimensionne(long const nombre)
 {
-	m_primitives.resize(nombre);
+	assert(nombre >= 0);
+	m_primitives.resize(static_cast<size_t>(nombre));
 }
 
-void ListePrimitives::reserve(const size_t nombre)
+void ListePrimitives::reserve(long const nombre)
 {
-	m_primitives.reserve(nombre);
+	assert(nombre >= 0);
+	m_primitives.reserve(static_cast<size_t>(nombre));
 }
 
-size_t ListePrimitives::taille() const
+long ListePrimitives::taille() const
 {
-	return m_primitives.size();
+	return static_cast<long>(m_primitives.size());
 }
 
 void ListePrimitives::pousse(Primitive *s)

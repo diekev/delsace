@@ -42,7 +42,7 @@ public:
 
 	void ajoute_point(size_t index_point);
 
-	void reserve(const size_t nombre);
+	void reserve(long const nombre);
 
 	plage_points index();
 
@@ -62,7 +62,7 @@ public:
 
 	void ajoute_primitive(size_t index_poly);
 
-	void reserve(const size_t nombre);
+	void reserve(long const nombre);
 
 	plage_prims index();
 

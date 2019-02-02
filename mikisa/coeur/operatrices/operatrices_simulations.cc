@@ -147,7 +147,7 @@ public:
 		/* ajoute attribut vélocité */
 		auto attr_V = m_corps.ajoute_attribut("part_V", type_attribut::VEC3, portee_attr::POINT, nombre_points);
 
-		for (size_t i = 0; i < nombre_points; ++i) {
+		for (long i = 0; i < nombre_points; ++i) {
 			auto pos = liste_points->point(i);
 
 			/* f = m * a */
@@ -241,7 +241,7 @@ public:
 		auto const prims_collision = corps_collision->prims();
 		auto const points_collision = corps_collision->points();
 
-		if (prims_collision->taille() == 0ul) {
+		if (prims_collision->taille() == 0l) {
 			ajoute_avertissement("Aucune primitive trouvé dans le Corps collision !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -264,7 +264,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		for (size_t i = 0; i < nombre_points; ++i) {
+		for (long i = 0; i < nombre_points; ++i) {
 			auto pos = liste_points->point(i);
 			auto vel = attr_V->vec3(i);
 

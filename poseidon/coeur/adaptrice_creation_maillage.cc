@@ -40,7 +40,7 @@ void AdaptriceCreationMaillage::ajoute_coord_uv_sommet(const float u, const floa
 void AdaptriceCreationMaillage::ajoute_parametres_sommet(const float x, const float y, const float z)
 {}
 
-void AdaptriceCreationMaillage::ajoute_polygone(const int *index_sommet, const int *, const int *, size_t nombre)
+void AdaptriceCreationMaillage::ajoute_polygone(const int *index_sommet, const int *, const int *, long nombre)
 {
 	auto poly_3 = (nombre == 3) ? -1 : index_sommet[3];
 

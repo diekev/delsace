@@ -30,38 +30,41 @@ void copie(const Conteneur &de, Conteneur &vers)
 	std::copy(de->begin(), de->end(), vers->begin());
 }
 
-Attribut::Attribut(const std::string &name, type_attribut type, portee_attr portee_, size_t size)
+Attribut::Attribut(const std::string &name, type_attribut type, portee_attr portee_, long taille)
 	: m_nom(name)
 	, m_type(type)
 	, portee(portee_)
 {
+	assert(taille >= 0);
+	auto taille_ns = static_cast<size_t>(taille);
+
 	switch (m_type) {
 		case type_attribut::ENT8:
-			m_donnees.liste_ent8 = new std::vector<char>(size);
+			m_donnees.liste_ent8 = new std::vector<char>(taille_ns);
 			break;
 		case type_attribut::ENT32:
-			m_donnees.liste_ent32 = new std::vector<int>(size);
+			m_donnees.liste_ent32 = new std::vector<int>(taille_ns);
 			break;
 		case type_attribut::DECIMAL:
-			m_donnees.liste_decimal = new std::vector<float>(size);
+			m_donnees.liste_decimal = new std::vector<float>(taille_ns);
 			break;
 		case type_attribut::CHAINE:
-			m_donnees.liste_chaine = new std::vector<std::string>(size);
+			m_donnees.liste_chaine = new std::vector<std::string>(taille_ns);
 			break;
 		case type_attribut::VEC2:
-			m_donnees.liste_vec2 = new std::vector<dls::math::vec2f>(size);
+			m_donnees.liste_vec2 = new std::vector<dls::math::vec2f>(taille_ns);
 			break;
 		case type_attribut::VEC3:
-			m_donnees.liste_vec3 = new std::vector<dls::math::vec3f>(size);
+			m_donnees.liste_vec3 = new std::vector<dls::math::vec3f>(taille_ns);
 			break;
 		case type_attribut::VEC4:
-			m_donnees.liste_vec4 = new std::vector<dls::math::vec4f>(size);
+			m_donnees.liste_vec4 = new std::vector<dls::math::vec4f>(taille_ns);
 			break;
 		case type_attribut::MAT3:
-			m_donnees.liste_mat3 = new std::vector<dls::math::mat3x3f>(size);
+			m_donnees.liste_mat3 = new std::vector<dls::math::mat3x3f>(taille_ns);
 			break;
 		case type_attribut::MAT4:
-			m_donnees.liste_mat4 = new std::vector<dls::math::mat4x4f>(size);
+			m_donnees.liste_mat4 = new std::vector<dls::math::mat4x4f>(taille_ns);
 			break;
 		default:
 			break;
@@ -149,100 +152,119 @@ std::string Attribut::nom() const
 	return m_nom;
 }
 
-void Attribut::reserve(size_t n)
+void Attribut::reserve(long n)
 {
+	assert(n >= 0);
+	auto nt = static_cast<size_t>(n);
+
 	switch (m_type) {
 		case type_attribut::ENT8:
-			m_donnees.liste_ent8->reserve(n);
+			m_donnees.liste_ent8->reserve(nt);
 			break;
 		case type_attribut::ENT32:
-			m_donnees.liste_ent32->reserve(n);
+			m_donnees.liste_ent32->reserve(nt);
 			break;
 		case type_attribut::DECIMAL:
-			m_donnees.liste_decimal->reserve(n);
+			m_donnees.liste_decimal->reserve(nt);
 			break;
 		case type_attribut::CHAINE:
-			m_donnees.liste_chaine->reserve(n);
+			m_donnees.liste_chaine->reserve(nt);
 			break;
 		case type_attribut::VEC2:
-			m_donnees.liste_vec2->reserve(n);
+			m_donnees.liste_vec2->reserve(nt);
 			break;
 		case type_attribut::VEC3:
-			m_donnees.liste_vec3->reserve(n);
+			m_donnees.liste_vec3->reserve(nt);
 			break;
 		case type_attribut::VEC4:
-			m_donnees.liste_vec4->reserve(n);
+			m_donnees.liste_vec4->reserve(nt);
 			break;
 		case type_attribut::MAT3:
-			m_donnees.liste_mat3->reserve(n);
+			m_donnees.liste_mat3->reserve(nt);
 			break;
 		case type_attribut::MAT4:
-			m_donnees.liste_mat4->reserve(n);
+			m_donnees.liste_mat4->reserve(nt);
 			break;
 		default:
 			break;
 	}
 }
 
-void Attribut::redimensionne(size_t n)
+void Attribut::redimensionne(long n)
 {
+	assert(n >= 0);
+	auto nt = static_cast<size_t>(n);
+
 	switch (m_type) {
 		case type_attribut::ENT8:
-			m_donnees.liste_ent8->resize(n);
+			m_donnees.liste_ent8->resize(nt);
 			break;
 		case type_attribut::ENT32:
-			m_donnees.liste_ent32->resize(n);
+			m_donnees.liste_ent32->resize(nt);
 			break;
 		case type_attribut::DECIMAL:
-			m_donnees.liste_decimal->resize(n);
+			m_donnees.liste_decimal->resize(nt);
 			break;
 		case type_attribut::CHAINE:
-			m_donnees.liste_chaine->resize(n);
+			m_donnees.liste_chaine->resize(nt);
 			break;
 		case type_attribut::VEC2:
-			m_donnees.liste_vec2->resize(n);
+			m_donnees.liste_vec2->resize(nt);
 			break;
 		case type_attribut::VEC3:
-			m_donnees.liste_vec3->resize(n);
+			m_donnees.liste_vec3->resize(nt);
 			break;
 		case type_attribut::VEC4:
-			m_donnees.liste_vec4->resize(n);
+			m_donnees.liste_vec4->resize(nt);
 			break;
 		case type_attribut::MAT3:
-			m_donnees.liste_mat3->resize(n);
+			m_donnees.liste_mat3->resize(nt);
 			break;
 		case type_attribut::MAT4:
-			m_donnees.liste_mat4->resize(n);
+			m_donnees.liste_mat4->resize(nt);
 			break;
 		default:
 			break;
 	}
 }
 
-size_t Attribut::taille() const
+long Attribut::taille() const
 {
+	auto octets = 0ul;
+
 	switch (m_type) {
 		case type_attribut::ENT8:
-			return m_donnees.liste_ent8->size();
+			octets = m_donnees.liste_ent8->size();
+			break;
 		case type_attribut::ENT32:
-			return m_donnees.liste_ent32->size();
+			octets = m_donnees.liste_ent32->size();
+			break;
 		case type_attribut::DECIMAL:
-			return m_donnees.liste_decimal->size();
+			octets = m_donnees.liste_decimal->size();
+			break;
 		case type_attribut::CHAINE:
-			return m_donnees.liste_chaine->size();
+			octets = m_donnees.liste_chaine->size();
+			break;
 		case type_attribut::VEC2:
-			return m_donnees.liste_vec2->size();
+			octets = m_donnees.liste_vec2->size();
+			break;
 		case type_attribut::VEC3:
-			return m_donnees.liste_vec3->size();
+			octets = m_donnees.liste_vec3->size();
+			break;
 		case type_attribut::VEC4:
-			return m_donnees.liste_vec4->size();
+			octets = m_donnees.liste_vec4->size();
+			break;
 		case type_attribut::MAT3:
-			return m_donnees.liste_mat3->size();
+			octets = m_donnees.liste_mat3->size();
+			break;
 		case type_attribut::MAT4:
-			return m_donnees.liste_mat4->size();
+			octets = m_donnees.liste_mat4->size();
+			break;
 		default:
-			return 0;
+			break;
 	}
+
+	return static_cast<long>(octets);
 }
 
 void Attribut::reinitialise()
@@ -306,28 +328,41 @@ const void *Attribut::donnees() const
 	}
 }
 
-size_t Attribut::taille_octets() const
+long Attribut::taille_octets() const
 {
+	auto octets = 0ul;
+
 	switch (m_type) {
 		case type_attribut::ENT8:
-			return m_donnees.liste_ent8->size() * sizeof(char);
+			octets = m_donnees.liste_ent8->size() * sizeof(char);
+			break;
 		case type_attribut::ENT32:
-			return m_donnees.liste_ent32->size() * sizeof(int);
+			octets = m_donnees.liste_ent32->size() * sizeof(int);
+			break;
 		case type_attribut::DECIMAL:
-			return m_donnees.liste_decimal->size() * sizeof(float);
+			octets = m_donnees.liste_decimal->size() * sizeof(float);
+			break;
 		case type_attribut::CHAINE:
-			return m_donnees.liste_chaine->size() * sizeof(std::string);
+			octets = m_donnees.liste_chaine->size() * sizeof(std::string);
+			break;
 		case type_attribut::VEC2:
-			return m_donnees.liste_vec2->size() * sizeof(dls::math::vec2f);
+			octets = m_donnees.liste_vec2->size() * sizeof(dls::math::vec2f);
+			break;
 		case type_attribut::VEC3:
-			return m_donnees.liste_vec3->size() * sizeof(dls::math::vec3f);
+			octets = m_donnees.liste_vec3->size() * sizeof(dls::math::vec3f);
+			break;
 		case type_attribut::VEC4:
-			return m_donnees.liste_vec4->size() * sizeof(dls::math::vec4f);
+			octets = m_donnees.liste_vec4->size() * sizeof(dls::math::vec4f);
+			break;
 		case type_attribut::MAT3:
-			return m_donnees.liste_mat3->size() * sizeof(dls::math::mat3x3f);
+			octets = m_donnees.liste_mat3->size() * sizeof(dls::math::mat3x3f);
+			break;
 		case type_attribut::MAT4:
-			return m_donnees.liste_mat4->size() * sizeof(dls::math::mat4x4f);
+			octets = m_donnees.liste_mat4->size() * sizeof(dls::math::mat4x4f);
+			break;
 		default:
-			return 0;
+			break;
 	}
+
+	return static_cast<long>(octets);
 }

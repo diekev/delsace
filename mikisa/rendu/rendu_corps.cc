@@ -271,7 +271,7 @@ void ajoute_polygone_surface(
 		std::vector<dls::math::vec3f> &points,
 		std::vector<dls::math::vec3f> &normaux)
 {
-	for (size_t i = 2; i < polygone->nombre_sommets(); ++i) {
+	for (long i = 2; i < polygone->nombre_sommets(); ++i) {
 		points.push_back(liste_points->point(polygone->index_point(0)));
 		points.push_back(liste_points->point(polygone->index_point(i - 1)));
 		points.push_back(liste_points->point(polygone->index_point(i)));
@@ -283,9 +283,9 @@ void ajoute_polygone_surface(
 				normaux.push_back(attr_normaux->vec3(polygone->index_point(i)));
 			}
 			else if (attr_normaux->portee == portee_attr::POLYGONE) {
-				normaux.push_back(attr_normaux->vec3(polygone->index));
-				normaux.push_back(attr_normaux->vec3(polygone->index));
-				normaux.push_back(attr_normaux->vec3(polygone->index));
+				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
+				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
+				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
 			}
 		}
 	}
@@ -296,7 +296,7 @@ void ajoute_polygone_segment(
 		ListePoints3D *liste_points,
 		std::vector<dls::math::vec3f> &points)
 {
-	for (size_t i = 0; i < polygone->nombre_segments(); ++i) {
+	for (long i = 0; i < polygone->nombre_segments(); ++i) {
 		points.push_back(liste_points->point(polygone->index_point(i)));
 		points.push_back(liste_points->point(polygone->index_point(i + 1)));
 	}
@@ -354,11 +354,11 @@ void RenduCorps::initialise()
 	auto liste_points = m_corps->points();
 	auto liste_prims = m_corps->prims();
 
-	if (liste_points->taille() == 0ul) {
+	if (liste_points->taille() == 0l) {
 		return;
 	}
 
-	if (liste_prims->taille() != 0ul) {
+	if (liste_prims->taille() != 0l) {
 		auto attr_N = m_corps->attribut("N");
 		std::vector<dls::math::vec3f> points_polys;
 		std::vector<dls::math::vec3f> points_segment;
@@ -420,7 +420,7 @@ void RenduCorps::initialise()
 	}
 
 	std::vector<dls::math::vec3f> points;
-	points.reserve(liste_points->taille());
+	points.reserve(static_cast<size_t>(liste_points->taille()));
 
 	for (Point3D *point : liste_points->points()) {
 		points.push_back(dls::math::vec3f(point->x, point->y, point->z));

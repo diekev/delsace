@@ -113,7 +113,7 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 				index_polygones.data(),
 				index_coords_uv.data(),
 				index_normaux.data(),
-				index_polygones.size());
+				static_cast<long>(index_polygones.size()));
 }
 
 static void lis_objet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)

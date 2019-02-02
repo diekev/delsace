@@ -160,7 +160,7 @@ public:
 
 		auto const liste_points = corps_particules->points();
 
-		if (liste_points->taille() == 0ul) {
+		if (liste_points->taille() == 0l) {
 			ajoute_avertissement("Aucune particule trouvée dans le nuage de points !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -222,20 +222,20 @@ public:
 		std::uniform_real_distribution<float> dist_taille(taille_min, taille_max);
 		std::mt19937 rng(19937);
 
-		auto index_point = 0ul;
+		auto index_point = 0l;
 		for (Point3D *point : liste_points->points()) {
 			auto const taille_courbe = dist_taille(rng) * multiplication_taille;
 
-			size_t nombre_segment;
+			long nombre_segment;
 			float taille_segment;
 
 			if (style_creation == STYLE_CREATION_SEGMENT) {
-				nombre_segment = static_cast<size_t>(segments);
+				nombre_segment = segments;
 				taille_segment = taille_courbe * inv_segments;
 			}
 			else {
 				taille_segment = longueur_segment * multiplication_taille;
-				nombre_segment = static_cast<size_t>(taille_courbe / taille_segment);
+				nombre_segment = static_cast<long>(taille_courbe / taille_segment);
 			}
 
 			if (direction == DIRECTION_NORMAL) {
@@ -247,13 +247,13 @@ public:
 			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 
 			auto polygone = Polygone::construit(&m_corps, type_polygone::OUVERT, nombre_segment + 1);
-			polygone->ajoute_sommet(index_npoint);
+			polygone->ajoute_sommet(static_cast<long>(index_npoint));
 
-			for (size_t j = 0; j < nombre_segment; ++j) {
+			for (long j = 0; j < nombre_segment; ++j) {
 				pos += (taille_segment * normal);
 
 				index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
-				polygone->ajoute_sommet(index_npoint);
+				polygone->ajoute_sommet(static_cast<long>(index_npoint));
 			}
 		}
 
@@ -347,7 +347,7 @@ public:
 				continue;
 			}
 
-			for (size_t i = 2; i < poly->nombre_sommets(); ++i) {
+			for (long i = 2; i < poly->nombre_sommets(); ++i) {
 				auto triangle = new Triangle();
 				triangle->p0 = points->point(poly->index_point(0));
 				triangle->p1 = points->point(poly->index_point(i - 1));
@@ -434,7 +434,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
-		if (m_corps.prims()->taille() == 0ul) {
+		if (m_corps.prims()->taille() == 0l) {
 			return EXECUTION_REUSSIE;
 		}
 
@@ -462,7 +462,7 @@ public:
 			}
 
 			/* le premier point est la racine */
-			for (size_t i = 1; i < polygone->nombre_sommets(); ++i) {
+			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
 				auto const pos_precedent = liste_points->point(polygone->index_point(i - 1));
 				auto pos = liste_points->point(polygone->index_point(i));
 				auto vel = attr_V->vec3(polygone->index_point(i));

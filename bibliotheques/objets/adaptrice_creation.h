@@ -41,19 +41,19 @@ public:
 
 	virtual void ajoute_parametres_sommet(const float x, const float y, const float z) = 0;
 
-	virtual void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, size_t nombre) = 0;
+	virtual void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, long nombre) = 0;
 
 	virtual void ajoute_ligne(const int *index, size_t nombre) = 0;
 
 	virtual void ajoute_objet(const std::string &nom) = 0;
 
-	virtual void reserve_polygones(const size_t nombre) = 0;
+	virtual void reserve_polygones(long const nombre) = 0;
 
-	virtual void reserve_sommets(const size_t nombre) = 0;
+	virtual void reserve_sommets(long const nombre) = 0;
 
-	virtual void reserve_normaux(const size_t nombre) = 0;
+	virtual void reserve_normaux(long const nombre) = 0;
 
-	virtual void reserve_uvs(const size_t nombre) = 0;
+	virtual void reserve_uvs(long const nombre) = 0;
 
 	virtual void groupes(const std::vector<std::string> &noms) = 0;
 
