@@ -142,6 +142,13 @@ mikisa
 -- Surface (NURBS)
 -- Points (Particules)
 
+- SIMULATION :
+-- Particules
+---- Collision à l'intérieur des bornes des polygones
+---- Durée de vie des particules
+-- Cheveux
+---- Contrainte de longueur
+
 struct DonneesGenerationPoints {
     int points_par_secondes;
     float duree_de_vie;
