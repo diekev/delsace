@@ -392,7 +392,12 @@ struct DonneesSysteme {
 	DonneesSysteme() = default;
 };
 
-
+/**
+ * Sources :
+ * - Khan Academy, Pixar in a Box
+ * - http://roxlu.com/2013/006/hair-simulation
+ * - http://matthias-mueller-fischer.ch/publications/FTLHairFur.pdf
+ */
 class OperatriceMasseRessort : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Masse Ressort";
@@ -439,6 +444,8 @@ public:
 		}
 
 		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::VEC3, portee_attr::POINT, m_corps.points()->taille());
+		auto attr_P = m_corps.ajoute_attribut("mr_P", type_attribut::VEC3, portee_attr::POINT, m_corps.points()->taille());
+		auto attr_D = m_corps.ajoute_attribut("mr_D", type_attribut::VEC3, portee_attr::POINT, m_corps.points()->taille());
 
 		auto donnees = DonneesSysteme{};
 		donnees.gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};
@@ -450,6 +457,10 @@ public:
 
 		auto liste_points = m_corps.points();
 
+		auto longueur_segment = 0.5f;
+		auto dt = 0.1f;
+
+		/* ajourne vélocités */
 		for (Primitive *prim : m_corps.prims()->prims()) {
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
@@ -462,6 +473,8 @@ public:
 			}
 
 			/* le premier point est la racine */
+			attr_P->vec3(polygone->index_point(0), liste_points->point(polygone->index_point(0)));
+
 			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
 				auto const pos_precedent = liste_points->point(polygone->index_point(i - 1));
 				auto pos = liste_points->point(polygone->index_point(i));
@@ -486,9 +499,62 @@ public:
 				vel = vel + acceleration * donnees.temps_par_image;
 				pos = pos + vel * donnees.temps_par_image;
 
-				liste_points->point(polygone->index_point(i), pos);
+				attr_P->vec3(polygone->index_point(i), pos);
 				attr_V->vec3(polygone->index_point(i), vel);
 			}
+		}
+
+		/* résolution des contraintes */
+		for (Primitive *prim : m_corps.prims()->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto polygone = dynamic_cast<Polygone *>(prim);
+
+			if (polygone->type != type_polygone::OUVERT) {
+				continue;
+			}
+
+			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
+				auto pa = polygone->index_point(i - 1);
+				auto pb = polygone->index_point(i);
+
+				auto const pos_precedent = attr_P->vec3(pa);
+				auto cur_pos = attr_P->vec3(pb);
+				auto dir = normalise(cur_pos - pos_precedent);
+				auto tmp_pos = pos_precedent + dir * longueur_segment;
+				attr_P->vec3(pb, tmp_pos);
+				attr_D->vec3(pb, cur_pos - tmp_pos);
+			}
+		}
+
+		/* calcul des nouvelles positions et vélocités */
+		for (Primitive *prim : m_corps.prims()->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto polygone = dynamic_cast<Polygone *>(prim);
+
+			if (polygone->type != type_polygone::OUVERT) {
+				continue;
+			}
+
+			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
+				auto pa = polygone->index_point(i - 1);
+				auto pb = polygone->index_point(i);
+
+				auto pos_pa = attr_P->vec3(pa);
+				auto vel_pa = ((pos_pa - liste_points->point(pa)) / dt) + 0.9f * (attr_D->vec3(pb) / dt);
+
+				liste_points->point(pa, pos_pa);
+				attr_V->vec3(pa, vel_pa);
+			}
+
+			/* ajourne le dernier point */
+			auto pa = polygone->index_point(polygone->nombre_sommets() - 1);
+			liste_points->point(pa, attr_P->vec3(pa));
 		}
 
 		return EXECUTION_REUSSIE;
