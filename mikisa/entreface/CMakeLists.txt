@@ -87,7 +87,9 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_camera.jo
 	scripts_danjo/operatrice_champs_distance.jo
+	scripts_danjo/operatrice_collision.jo
 	scripts_danjo/operatrice_commutateur.jo
+	scripts_danjo/operatrice_commutation_corps.jo
 	scripts_danjo/operatrice_constante.jo
 	scripts_danjo/operatrice_contraste.jo
 	scripts_danjo/operatrice_coordonnees_polaires.jo
@@ -122,6 +124,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_point3d_valeur.jo
 	scripts_danjo/operatrice_point3d_vecteur.jo
 	scripts_danjo/operatrice_saturation.jo
+	scripts_danjo/operatrice_simulation.jo
 	scripts_danjo/operatrice_simulation_grain.jo
 	scripts_danjo/operatrice_texture.jo
 	scripts_danjo/operatrice_tirage_fleche.jo

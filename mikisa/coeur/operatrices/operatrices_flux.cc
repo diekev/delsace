@@ -397,7 +397,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_commutateur.jo";
+		return "entreface/operatrice_commutation_corps.jo";
 	}
 
 	const char *nom_classe() const override
@@ -422,16 +422,31 @@ public:
 
 	int execute(Rectangle const &rectangle, const int temps) override
 	{
-		//auto const value = evalue_entier("prise");
 		m_corps.reinitialise();
 
-		/* À FAIRE : expose des propriétés dans l'interface. */
+		auto const condition = evalue_enum("condition");
+		auto const valeur = evalue_entier("valeur_condition");
+		auto resultat = false;
 
-		if (temps > 1) {
-			entree(1)->requiers_copie_corps(&m_corps, rectangle, temps);
+		if (condition == "tps_scn_egl") {
+			resultat = (temps == valeur);
+		}
+		else if (condition == "tps_scn_sup") {
+			resultat = (temps > valeur);
+		}
+		else if (condition == "tps_scn_inf") {
+			resultat = (temps < valeur);
 		}
 		else {
+			ajoute_avertissement("Condition invalide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (resultat) {
 			entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		}
+		else {
+			entree(1)->requiers_copie_corps(&m_corps, rectangle, temps);
 		}
 
 		return EXECUTION_REUSSIE;

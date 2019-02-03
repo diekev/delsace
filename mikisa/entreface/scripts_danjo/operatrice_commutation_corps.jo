@@ -1,0 +1,14 @@
+disposition "operatrice_commutation_corps" {
+	ligne {
+	    étiquette(valeur="Condition")
+		énum(valeur="tps_scn_egl"; attache=condition;
+            items=[{nom="Temps scène égale à", valeur="tps_scn_egl"},
+                   {nom="Temps scène supérieur à", valeur="tps_scn_sup"},
+                   {nom="Temps scène inférieur à", valeur="tps_scn_inf"}
+            ])
+	}
+	ligne {
+	    étiquette(valeur="Valeur")
+		entier(valeur=1; attache=valeur_condition)
+	}
+}

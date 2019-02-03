@@ -1,0 +1,10 @@
+disposition "operatrice_collision" {
+	ligne {
+	    étiquette(valeur="Élasticité")
+		décimal(valeur=1.0; attache=élasticité; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Rayon")
+		décimal(valeur=0.1; attache=rayon; min=0.0)
+	}
+}

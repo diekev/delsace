@@ -53,7 +53,7 @@ int OperatriceSimulation::type_sortie(int) const
 
 const char *OperatriceSimulation::chemin_entreface() const
 {
-	return "";
+	return "entreface/operatrice_simulation.jo";
 }
 
 Graphe *OperatriceSimulation::graphe()
@@ -75,8 +75,11 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 		return EXECUTION_ECHOUEE;
 	}
 
+	auto const temps_debut = evalue_entier("temps_début");
+	auto const temps_fin   = evalue_entier("temps_fin");
+
 	/* Si nous sommes au début, réinitialise. */
-	if (temps == m_debut) {
+	if (temps == temps_debut) {
 		m_corps.reinitialise();
 		m_corps1.reinitialise();
 		m_corps2.reinitialise();
@@ -104,6 +107,9 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 	}
 	/* Ne simule que si l'on a avancé d'une image. */
 	else if (temps != m_dernier_temps + 1) {
+		return EXECUTION_REUSSIE;
+	}
+	else if (temps > temps_fin) {
 		return EXECUTION_REUSSIE;
 	}
 

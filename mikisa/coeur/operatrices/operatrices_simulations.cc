@@ -318,7 +318,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_collision.jo";
 	}
 
 	int type_entree(int) const override
@@ -364,9 +364,9 @@ public:
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
 
-		auto const elasticite = 1.0f;//eval_float("élasticité");
+		auto const elasticite = evalue_decimal("élasticité", temps);
 		/* À FAIRE : rayon comme propriété des particules */
-		auto const rayon = 0.01f;// eval_float("rayon");
+		auto const rayon = evalue_decimal("rayon", temps);
 
 		/* ajoute attribut vélocité */
 		auto attr_V = m_corps.attribut("part_V");

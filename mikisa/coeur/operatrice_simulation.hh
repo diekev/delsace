@@ -33,9 +33,6 @@
 class OperatriceSimulation final : public OperatriceCorps {
 	Graphe m_graphe{};
 
-	/* À FAIRE : interface ou passe contexte global ? */
-	int m_debut = 1;
-	int m_fin = 250;
 	int m_dernier_temps = 0;
 	int pad = 0;
 
