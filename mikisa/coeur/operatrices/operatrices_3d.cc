@@ -1770,17 +1770,82 @@ public:
 			}
 		}
 
-		/* À FAIRE : fusionne les attributs en utilisant une table de hachage */
-		for (auto attr1 : corps1->attributs()) {
-			auto attr = m_corps.ajoute_attribut(attr1->nom(), attr1->type(), attr1->portee, m_corps.points()->taille());
+		/* rassemble les attributs dans un tableau */
+		using paire_attribut = std::pair<Attribut *, Attribut *>;
+		using tableau_attribut = std::unordered_map<std::string, paire_attribut>;
 
-			std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
+		auto tableau = tableau_attribut{};
 
-			for (auto attr2 : corps2->attributs()) {
-				if (attr1->nom() == attr2->nom()) {
-					auto ptr = static_cast<char *>(attr->donnees()) + attr1->taille_octets();
-					std::memcpy(ptr, attr2->donnees(), static_cast<size_t>(attr2->taille_octets()));
+		for (auto attr : corps1->attributs()) {
+			tableau.insert({attr->nom(), std::make_pair(attr, nullptr)});
+		}
+
+		for (auto attr : corps2->attributs()) {
+			auto iter = tableau.find(attr->nom());
+
+			if (iter == tableau.end()) {
+				tableau.insert({attr->nom(), std::make_pair(nullptr, attr)});
+			}
+			else {
+				tableau[attr->nom()].second = attr;
+			}
+		}
+
+		for (auto const &alveole : tableau) {
+			auto const &paire_attr = alveole.second;
+
+			if (paire_attr.first != nullptr && paire_attr.second != nullptr) {
+				auto attr1 = paire_attr.first;
+				auto attr2 = paire_attr.second;
+
+				if (attr1->type() != attr2->type()) {
+					std::stringstream ss;
+					ss << "Les types des attributs '" << attr1->nom() << "' sont différents !";
+					ajoute_avertissement(ss.str());
+					continue;
 				}
+
+				if (attr1->portee != attr2->portee) {
+					std::stringstream ss;
+					ss << "Les portées des attributs '" << attr1->nom() << "' sont différentes !";
+					ajoute_avertissement(ss.str());
+					continue;
+				}
+
+				auto attr = m_corps.ajoute_attribut(
+								attr1->nom(),
+								attr1->type(),
+								attr1->portee,
+								attr1->taille() + attr2->taille());
+
+				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
+				auto ptr = static_cast<char *>(attr->donnees()) + attr1->taille_octets();
+				std::memcpy(ptr, attr2->donnees(), static_cast<size_t>(attr2->taille_octets()));
+			}
+			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
+				auto attr1 = paire_attr.first;
+
+				/* À FAIRE : taille attribut */
+				auto attr = m_corps.ajoute_attribut(
+								attr1->nom(),
+								attr1->type(),
+								attr1->portee,
+								m_corps.points()->taille());
+
+				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
+			}
+			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
+				auto attr2 = paire_attr.second;
+
+				/* À FAIRE : taille attribut */
+				auto attr = m_corps.ajoute_attribut(
+								attr2->nom(),
+								attr2->type(),
+								attr2->portee,
+								m_corps.points()->taille());
+
+				/* À FAIRE : décalage */
+				std::memcpy(attr->donnees(), attr2->donnees(), static_cast<size_t>(attr2->taille_octets()));
 			}
 		}
 
