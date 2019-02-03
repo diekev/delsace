@@ -42,12 +42,48 @@ bool Corps::possede_attribut(std::string const &nom_attribut)
 	return this->attribut(nom_attribut) != nullptr;
 }
 
-Attribut *Corps::ajoute_attribut(std::string const &nom_attribut, type_attribut type_, portee_attr portee, long taille_)
+Attribut *Corps::ajoute_attribut(
+		std::string const &nom_attribut,
+		type_attribut type_,
+		portee_attr portee,
+		bool force_vide)
 {
 	auto attr = attribut(nom_attribut);
 
 	if (attr == nullptr) {
-		attr = new Attribut(nom_attribut, type_, portee, taille_);
+		auto taille_attrib = 0l;
+
+		if (!force_vide) {
+			auto liste_points = this->points();
+			auto liste_prims = this->prims();
+
+			switch (portee) {
+				case portee_attr::POINT:
+					taille_attrib = liste_points->taille();
+					break;
+				case portee_attr::PRIMITIVE:
+					taille_attrib = liste_prims->taille();
+					break;
+				case portee_attr::VERTEX:
+					for (Primitive *prim : liste_prims->prims()) {
+						if (prim->type_prim() != type_primitive::POLYGONE) {
+							continue;
+						}
+
+						auto poly = dynamic_cast<Polygone *>(prim);
+						taille_attrib += poly->nombre_sommets();
+					}
+					break;
+				case portee_attr::GROUPE:
+					taille_attrib = static_cast<long>(this->m_groupes_prims.size());
+					break;
+				case portee_attr::CORPS:
+					taille_attrib = 1;
+					break;
+			}
+		}
+
+		attr = new Attribut(nom_attribut, type_, portee, taille_attrib);
 		m_attributs.push_back(attr);
 	}
 

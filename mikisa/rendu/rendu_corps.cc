@@ -282,7 +282,7 @@ void ajoute_polygone_surface(
 				normaux.push_back(attr_normaux->vec3(polygone->index_point(i - 1)));
 				normaux.push_back(attr_normaux->vec3(polygone->index_point(i)));
 			}
-			else if (attr_normaux->portee == portee_attr::POLYGONE) {
+			else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
 				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
 				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
 				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));

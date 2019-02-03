@@ -20,11 +20,11 @@ disposition "operatrice_3d_creation_attribut" {
 	ligne {
 	    étiquette(valeur="Portée")
 		énum(valeur="point"; attache=portee_attribut; items=[
-		     {nom="Points", valeur="point"},
-			 {nom="Polygones", valeur="polygone"},
-			 {nom="Points Polygones", valeur="poly_point"},
-			 {nom="Segments", valeur="segment"},
-			 {nom="Points Segments", valeur="segment_point"}
+		     {nom="Points", valeur="points"},
+			 {nom="Primitives", valeur="primitives"},
+			 {nom="Vertex", valeur="vertex"},
+			 {nom="Groupe", valeur="groupe"},
+			 {nom="Corps", valeur="corps"}
 			 ])
 	}
 }

@@ -103,7 +103,7 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 
 	if (attr_normaux != nullptr) {
 		if (attr_normaux->taille() == corps->prims()->taille()) {
-			attr_normaux->portee = portee_attr::POLYGONE;
+			attr_normaux->portee = portee_attr::PRIMITIVE;
 		}
 		else if (attr_normaux->taille() == corps->points()->taille()) {
 			attr_normaux->portee = portee_attr::POINT;
@@ -749,7 +749,7 @@ public:
 		auto type = evalue_enum("type_normaux");
 		auto inverse_normaux = evalue_bool("inverse_direction");
 
-		auto attr_normaux = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, 0ul);
+		auto attr_normaux = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, true);
 
 		if (attr_normaux->taille() != 0l) {
 			attr_normaux->reinitialise();
@@ -767,7 +767,7 @@ public:
 
 		if (type == "plats") {
 			attr_normaux->reserve(nombre_prims);
-			attr_normaux->portee = portee_attr::POLYGONE;
+			attr_normaux->portee = portee_attr::PRIMITIVE;
 
 			for (Primitive *prim : liste_prims->prims()) {
 				if (prim->type_prim() != type_primitive::POLYGONE) {
@@ -1247,71 +1247,27 @@ public:
 
 		portee_attr portee;
 
-		if (chaine_portee == "point") {
+		if (chaine_portee == "points") {
 			portee = portee_attr::POINT;
 		}
-		else if (chaine_portee == "polygone") {
-			portee = portee_attr::POLYGONE;
+		else if (chaine_portee == "primitives") {
+			portee = portee_attr::PRIMITIVE;
 		}
-		else if (chaine_portee == "poly_point") {
-			portee = portee_attr::POLYGONE_POINT;
+		else if (chaine_portee == "vertex") {
+			portee = portee_attr::VERTEX;
 		}
-		else if (chaine_portee == "segment") {
-			portee = portee_attr::SEGMENT;
+		else if (chaine_portee == "groupe") {
+			portee = portee_attr::GROUPE;
 		}
-		else if (chaine_portee == "segment_point") {
-			portee = portee_attr::SEGMENT_POINT;
+		else if (chaine_portee == "corps") {
+			portee = portee_attr::CORPS;
 		}
 		else {
 			ajoute_avertissement("Portée d'attribut invalide !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto liste_points = m_corps.points();
-		auto liste_prims = m_corps.prims();
-
-		auto taille_attrib = 0l;
-
-		switch (portee) {
-			case portee_attr::POINT:
-				taille_attrib = liste_points->taille();
-				break;
-			case portee_attr::POLYGONE:
-				taille_attrib = liste_prims->taille();
-				break;
-			case portee_attr::POLYGONE_POINT:
-				for (Primitive *prim : liste_prims->prims()) {
-					if (prim->type_prim() != type_primitive::POLYGONE) {
-						continue;
-					}
-
-					auto poly = dynamic_cast<Polygone *>(prim);
-					taille_attrib += poly->nombre_sommets();
-				}
-				break;
-			case portee_attr::SEGMENT:
-				for (Primitive *prim : liste_prims->prims()) {
-					if (prim->type_prim() != type_primitive::POLYGONE) {
-						continue;
-					}
-
-					auto poly = dynamic_cast<Polygone *>(prim);
-					taille_attrib += poly->nombre_segments();
-				}
-				break;
-			case portee_attr::SEGMENT_POINT:
-				for (Primitive *prim : liste_prims->prims()) {
-					if (prim->type_prim() != type_primitive::POLYGONE) {
-						continue;
-					}
-
-					auto poly = dynamic_cast<Polygone *>(prim);
-					taille_attrib += poly->nombre_segments() * 2;
-				}
-				break;
-		}
-
-		m_corps.ajoute_attribut(nom_attribut, type, portee, taille_attrib);
+		m_corps.ajoute_attribut(nom_attribut, type, portee);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1815,8 +1771,7 @@ public:
 				auto attr = m_corps.ajoute_attribut(
 								attr1->nom(),
 								attr1->type(),
-								attr1->portee,
-								attr1->taille() + attr2->taille());
+								attr1->portee);
 
 				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
 				auto ptr = static_cast<char *>(attr->donnees()) + attr1->taille_octets();
@@ -1825,24 +1780,20 @@ public:
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
 				auto attr1 = paire_attr.first;
 
-				/* À FAIRE : taille attribut */
 				auto attr = m_corps.ajoute_attribut(
 								attr1->nom(),
 								attr1->type(),
-								attr1->portee,
-								m_corps.points()->taille());
+								attr1->portee);
 
 				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
 			}
 			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
 				auto attr2 = paire_attr.second;
 
-				/* À FAIRE : taille attribut */
 				auto attr = m_corps.ajoute_attribut(
 								attr2->nom(),
 								attr2->type(),
-								attr2->portee,
-								m_corps.points()->taille());
+								attr2->portee);
 
 				/* À FAIRE : décalage */
 				std::memcpy(attr->donnees(), attr2->donnees(), static_cast<size_t>(attr2->taille_octets()));

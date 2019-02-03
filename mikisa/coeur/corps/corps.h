@@ -83,7 +83,7 @@ struct Corps {
 			std::string const &nom_attribut,
 			type_attribut type_,
 			portee_attr portee = portee_attr::POINT,
-			long taille_ = 0);
+			bool force_vide = false);
 
 	void supprime_attribut(std::string const &nom_attribut);
 

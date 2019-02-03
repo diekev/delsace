@@ -191,7 +191,7 @@ public:
 		auto const masse_inverse = 1.0f / masse;
 
 		/* ajoute attribut vélocité */
-		auto attr_V = m_corps.ajoute_attribut("part_V", type_attribut::VEC3, portee_attr::POINT, nombre_points);
+		auto attr_V = m_corps.ajoute_attribut("part_V", type_attribut::VEC3, portee_attr::POINT);
 
 		for (long i = 0; i < nombre_points; ++i) {
 			auto pos = liste_points->point(i);

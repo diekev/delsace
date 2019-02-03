@@ -443,9 +443,9 @@ public:
 			return EXECUTION_REUSSIE;
 		}
 
-		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::VEC3, portee_attr::POINT, m_corps.points()->taille());
-		auto attr_P = m_corps.ajoute_attribut("mr_P", type_attribut::VEC3, portee_attr::POINT, m_corps.points()->taille());
-		auto attr_D = m_corps.ajoute_attribut("mr_D", type_attribut::VEC3, portee_attr::POINT, m_corps.points()->taille());
+		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_P = m_corps.ajoute_attribut("mr_P", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_D = m_corps.ajoute_attribut("mr_D", type_attribut::VEC3, portee_attr::POINT);
 
 		auto donnees = DonneesSysteme{};
 		donnees.gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};

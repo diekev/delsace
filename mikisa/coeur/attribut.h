@@ -43,18 +43,17 @@ enum class type_attribut : char {
 	MAT4,
 };
 
-/* À FAIRE : portée par groupe. */
 enum class portee_attr : char {
 	/* l'attribut varie pour chaque point */
 	POINT,
-	/* l'attribut varie pour chaque polygone */
-	POLYGONE,
-	/* l'attribut varie pour chaque point pour chaque polygone */
-	POLYGONE_POINT,
-	/* l'attribut varie pour chaque segment */
-	SEGMENT,
-	/* l'attribut varie pour chaque point pour chaque segment */
-	SEGMENT_POINT,
+	/* l'attribut varie pour chaque primitive */
+	PRIMITIVE,
+	/* l'attribut varie pour chaque vertex de chaque primitive */
+	VERTEX,
+	/* l'attribut est unique pour le corps */
+	CORPS,
+	/* l'attribut varie pour chaque groupe */
+	GROUPE,
 };
 
 #define DEFINI_ITERATEURS(__nom, __type) \
