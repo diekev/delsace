@@ -1795,8 +1795,9 @@ public:
 								attr2->type(),
 								attr2->portee);
 
-				/* À FAIRE : décalage */
-				std::memcpy(attr->donnees(), attr2->donnees(), static_cast<size_t>(attr2->taille_octets()));
+				auto decalage = attr->taille_octets() - attr2->taille_octets();
+				auto ptr = static_cast<char *>(attr->donnees()) + decalage;
+				std::memcpy(ptr, attr2->donnees(), static_cast<size_t>(attr2->taille_octets()));
 			}
 		}
 
