@@ -415,6 +415,8 @@ public:
 					continue;
 				}
 
+				auto collision_trouvee = false;
+
 				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
 					auto const &v0 = points_collision->point(poly->index_point(0));
 					auto const &v1 = points_collision->point(poly->index_point(j - 1));
@@ -462,6 +464,11 @@ public:
 					vel = -elasticite * nv + tv;
 					attr_V->vec3(i, vel);
 
+					collision_trouvee = true;
+					break;
+				}
+
+				if (collision_trouvee) {
 					break;
 				}
 			}
