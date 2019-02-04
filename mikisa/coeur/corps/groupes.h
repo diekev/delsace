@@ -32,13 +32,13 @@
 /* ************************************************************************** */
 
 class GroupePoint {
-	std::vector<size_t> m_points;
+	std::vector<size_t> m_points{};
 
 public:
 	using plage_points = plage_iterable<std::vector<size_t>::iterator>;
 	using plage_points_const = plage_iterable<std::vector<size_t>::const_iterator>;
 
-	std::string nom;
+	std::string nom{};
 
 	void ajoute_point(size_t index_point);
 
