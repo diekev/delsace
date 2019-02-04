@@ -184,6 +184,9 @@ public:
 		noeud->nom(op->nom_classe());
 		synchronise_donnees_operatrice(noeud);
 
+		noeud->pos_x(mikisa->graphe->centre_x);
+		noeud->pos_y(mikisa->graphe->centre_y);
+
 		if (op->type() == OPERATRICE_SORTIE_IMAGE) {
 			noeud->type(NOEUD_IMAGE_SORTIE);
 		}
