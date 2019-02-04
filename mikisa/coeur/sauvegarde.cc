@@ -572,8 +572,25 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(chemin.c_str());
 
+	/* À FAIRE : suppression du composite car son graphe maintient une liste des
+	 * noms utilisé et l'ouverture des fichiers change les noms des noeuds lors
+	 * des conflits. */
+	delete mikisa.composite;
+	mikisa.composite = new Composite;
+
 	auto composite = mikisa.composite;
-	composite->graph().supprime_tout();
+
+	/* À FAIRE : sauvegarde et restauration de l'état du logiciel. */
+	mikisa.graphe = &composite->graph();
+	mikisa.derniere_scene_selectionnee = nullptr;
+	mikisa.derniere_visionneuse_selectionnee = nullptr;
+	mikisa.manipulation_2d_activee = false;
+	mikisa.type_manipulation_2d = 0;
+	mikisa.manipulatrice_2d = nullptr;
+	mikisa.manipulation_3d_activee = false;
+	mikisa.type_manipulation_3d = 0;
+	mikisa.manipulatrice_3d = nullptr;
+	mikisa.chemin_courant = "/composite/";
 
 	/* Lecture du projet. */
 	auto const racine_projet = doc.FirstChildElement("projet");
