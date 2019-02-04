@@ -207,7 +207,12 @@ void Corps::reinitialise()
 		delete paire.second;
 	}
 
+	for (auto paire : m_groupes_points) {
+		delete paire.second;
+	}
+
 	m_groupes_prims.clear();
+	m_groupes_points.clear();
 }
 
 Corps *Corps::copie() const
@@ -276,4 +281,18 @@ Corps::plage_attributs Corps::attributs()
 Corps::plage_const_attributs Corps::attributs() const
 {
 	return plage_const_attributs(m_attributs.cbegin(), m_attributs.cend());
+}
+
+GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_attribut)
+{
+	if (m_groupes_points.find(nom_attribut) != m_groupes_points.end()) {
+		return nullptr;
+	}
+
+	auto groupe = new GroupePoint;
+	groupe->nom = nom_attribut;
+
+	m_groupes_points[nom_attribut] = groupe;
+
+	return groupe;
 }

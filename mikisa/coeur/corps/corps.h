@@ -119,11 +119,16 @@ struct Corps {
 
 	plage_const_attributs attributs() const;
 
+	/* Groupes. */
+
+	GroupePoint *ajoute_groupe_point(std::string const &nom_attribut);
+
 protected:
 	std::vector<Attribut *> m_attributs{};
 
 private:
 	ListePoints3D m_points{};
 	ListePrimitives m_prims{};
+	std::unordered_map<std::string, GroupePoint *> m_groupes_points{};
 	std::unordered_map<std::string, GroupePrimitive *> m_groupes_prims{};
 };
