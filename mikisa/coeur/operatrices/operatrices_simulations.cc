@@ -182,6 +182,7 @@ public:
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
+		auto attr_P = m_corps.ajoute_attribut("pos_pre", type_attribut::VEC3, portee_attr::POINT);
 
 		auto m_gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};
 		/* À FAIRE : passe le temps par image en paramètre. */
@@ -206,10 +207,11 @@ public:
 			auto velocite = attr_V->vec3(i) + acceleration * temps_par_image;
 
 			/* position = velocite * temps_par_image + position */
-			pos += velocite * temps_par_image;
+			auto npos = pos + velocite * temps_par_image;
 
-			liste_points->point(i, pos);
+			liste_points->point(i, npos);
 			attr_V->vec3(i, velocite);
+			attr_P->vec3(i, pos);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -376,20 +378,28 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto attr_P = m_corps.attribut("pos_pre");
+
+		if (attr_P == nullptr) {
+			ajoute_avertissement("Aucune attribut de position trouvé !");
+			return EXECUTION_ECHOUEE;
+		}
+
 		for (long i = 0; i < nombre_points; ++i) {
-			auto pos = liste_points->point(i);
+			auto pos_cou = liste_points->point(i);
 			auto vel = attr_V->vec3(i);
+			auto pos_pre = attr_P->vec3(i);
 
 			/* Calcul la position en espace objet. */
-			auto pos_monde_d = m_corps.transformation(dls::math::point3d(pos));
+			auto pos_monde_d = m_corps.transformation(dls::math::point3d(pos_pre));
 			auto pos_monde = dls::math::vec3f(
 								 static_cast<float>(pos_monde_d.x),
 								 static_cast<float>(pos_monde_d.y),
 								 static_cast<float>(pos_monde_d.z));
 
 			auto rayon_part = Rayon{};
-			rayon_part.origine = pos_monde - vel;
-			rayon_part.direction = vel;
+			rayon_part.origine = pos_monde;
+			rayon_part.direction = normalise(pos_cou - pos_pre);
 
 			/* À FAIRE : collision particules
 			 * - structure accélération
@@ -430,6 +440,10 @@ public:
 
 					auto dist = 1000.0f;
 					if (!entresecte_triangle(triangle, rayon_part, dist)) {
+						continue;
+					}
+
+					if (dist > rayon) {
 						continue;
 					}
 
