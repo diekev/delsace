@@ -26,6 +26,8 @@
 
 #include "bibliotheques/outils/definitions.hh"
 
+#include "../corps/groupes.h"
+
 #include "../operatrice_simulation.hh"
 #include "../usine_operatrice.h"
 
@@ -385,6 +387,8 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto groupe = m_corps.ajoute_groupe_point("collision");
+
 		for (long i = 0; i < nombre_points; ++i) {
 			auto pos_cou = liste_points->point(i);
 			auto vel = attr_V->vec3(i);
@@ -448,6 +452,8 @@ public:
 					if (dist > rayon) {
 						continue;
 					}
+
+					groupe->ajoute_point(static_cast<size_t>(i));
 
 					auto const e1 = v1 - v0;
 					auto const e2 = v2 - v0;
