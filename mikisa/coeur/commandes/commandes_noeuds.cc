@@ -34,6 +34,7 @@
 
 #include "bibliotheques/commandes/commande.h"
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/definitions.hh"
 
 #include "../composite.h"
 #include "../evaluation.h"
@@ -435,19 +436,18 @@ public:
 /* ************************************************************************** */
 
 class CommandeDeplaceGraphe final : public Commande {
-	float m_delta_x = 0.0f;
-	float m_delta_y = 0.0f;
+	float m_orig_x = 0.0f;
+	float m_orig_y = 0.0f;
 
 public:
 	CommandeDeplaceGraphe() = default;
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
-		auto graphe = mikisa->graphe;
+		INUTILISE(pointeur);
 
-		m_delta_x = donnees.x - graphe->centre_x;
-		m_delta_y = donnees.y - graphe->centre_y;
+		m_orig_x = donnees.x;
+		m_orig_y = donnees.y;
 
 		return EXECUTION_COMMANDE_MODALE;
 	}
@@ -457,8 +457,8 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
-		graphe->centre_x += m_delta_x - donnees.x;
-		graphe->centre_y += m_delta_y - donnees.y;
+		graphe->centre_x += m_orig_x - donnees.x;
+		graphe->centre_y += m_orig_y - donnees.y;
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 	}
