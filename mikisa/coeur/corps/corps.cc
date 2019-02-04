@@ -296,3 +296,14 @@ GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_attribut)
 
 	return groupe;
 }
+
+GroupePoint *Corps::groupe_point(const std::string &nom_attribut) const
+{
+	auto iter = m_groupes_points.find(nom_attribut);
+
+	if (iter != m_groupes_points.end()) {
+		return iter->second;
+	}
+
+	return nullptr;
+}

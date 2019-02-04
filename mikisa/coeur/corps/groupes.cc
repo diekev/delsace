@@ -39,6 +39,22 @@ void GroupePoint::reserve(long const nombre)
 	this->m_points.reserve(static_cast<size_t>(nombre));
 }
 
+long GroupePoint::taille() const
+{
+	return static_cast<long>(m_points.size());
+}
+
+bool GroupePoint::contiens(size_t index_point) const
+{
+	for (auto const i : m_points) {
+		if (i == index_point) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 GroupePoint::plage_points GroupePoint::index()
 {
 	return plage_points(m_points.begin(), m_points.end());

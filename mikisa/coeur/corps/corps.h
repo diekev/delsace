@@ -93,6 +93,8 @@ struct Corps {
 
 	size_t ajoute_point(float x, float y, float z);
 
+	void enleve_point(size_t i);
+
 	/**
 	 * Retourne l'index du point se trouvant aux coordonnées x, y, z spécifiée.
 	 * Si aucun point ne s'y trouve, retourne -1.
@@ -122,6 +124,7 @@ struct Corps {
 	/* Groupes. */
 
 	GroupePoint *ajoute_groupe_point(std::string const &nom_attribut);
+	GroupePoint *groupe_point(const std::string &nom_attribut) const;
 
 protected:
 	std::vector<Attribut *> m_attributs{};

@@ -30,6 +30,7 @@
 #include <stack>
 
 #include "../corps/corps.h"
+#include "../corps/groupes.h"
 
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -93,6 +94,136 @@ public:
 			point->z = dist(rng);
 
 			liste_points->pousse(point);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OperatriceSuppressionPoints final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Suppression Points";
+	static constexpr auto AIDE = "Supprime des points.";
+
+	explicit OperatriceSuppressionPoints(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_suppression_point.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		m_corps.reinitialise();
+		auto corps = entree(0)->requiers_corps(rectangle, temps);
+
+		if (corps == nullptr) {
+			ajoute_avertissement("Aucun corps connecté !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* À FAIRE : utilisation d'une 'liste' pour choisir le nom du groupe. */
+		auto nom_groupe = evalue_chaine("nom_groupe");
+
+		if (nom_groupe.empty()) {
+			ajoute_avertissement("Le nom du groupe est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto points_corps = corps->points();
+		auto groupe = corps->groupe_point(nom_groupe);
+
+		if (groupe == nullptr) {
+			ajoute_avertissement("Aucun groupe trouvé !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		std::vector<std::pair<Attribut *, Attribut *>> paires_attrs;
+		paires_attrs.reserve(corps->attributs().size());
+
+		for (auto attr : corps->attributs()) {
+			auto attr2 = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
+
+			if (attr->portee == portee_attr::POINT) {
+				paires_attrs.push_back({ attr, attr2 });
+			}
+
+			/* À FAIRE : copie attributs restants. */
+		}
+
+		m_corps.points()->reserve(points_corps->taille() - groupe->taille());
+
+		for (auto i = 0l; i < points_corps->taille(); ++i) {
+			if (groupe->contiens(static_cast<size_t>(i))) {
+				continue;
+			}
+
+			auto const point = points_corps->point(i);
+			m_corps.ajoute_point(point.x, point.y, point.z);
+
+			for (auto &paire : paires_attrs) {
+				auto attr_Vorig = paire.first;
+				auto attr_Vdest = paire.second;
+
+				switch (attr_Vorig->type()) {
+					case type_attribut::ENT8:
+						attr_Vdest->pousse_ent8(attr_Vorig->ent8(i));
+						break;
+					case type_attribut::ENT32:
+						attr_Vdest->pousse_ent32(attr_Vorig->ent32(i));
+						break;
+					case type_attribut::DECIMAL:
+						attr_Vdest->pousse_decimal(attr_Vorig->decimal(i));
+						break;
+					case type_attribut::CHAINE:
+						attr_Vdest->pousse_chaine(attr_Vorig->chaine(i));
+						break;
+					case type_attribut::VEC2:
+						attr_Vdest->pousse_vec2(attr_Vorig->vec2(i));
+						break;
+					case type_attribut::VEC3:
+						attr_Vdest->pousse_vec3(attr_Vorig->vec3(i));
+						break;
+					case type_attribut::VEC4:
+						attr_Vdest->pousse_vec4(attr_Vorig->vec4(i));
+						break;
+					case type_attribut::MAT3:
+						attr_Vdest->pousse_mat3(attr_Vorig->mat3(i));
+						break;
+					case type_attribut::MAT4:
+						attr_Vdest->pousse_mat4(attr_Vorig->mat4(i));
+						break;
+					default:
+						break;
+				}
+			}
 		}
 
 		return EXECUTION_REUSSIE;
@@ -792,6 +923,7 @@ public:
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
+	usine.enregistre_type(cree_desc<OperatriceSuppressionPoints>());
 	usine.enregistre_type(cree_desc<OperatriceDispersionPoints>());
 	usine.enregistre_type(cree_desc<OperatriceTirageFleche>());
 }

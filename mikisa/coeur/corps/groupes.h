@@ -44,6 +44,10 @@ public:
 
 	void reserve(long const nombre);
 
+	long taille() const;
+
+	bool contiens(size_t index_point) const;
+
 	plage_points index();
 
 	plage_points_const index() const;
