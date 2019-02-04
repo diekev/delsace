@@ -210,9 +210,14 @@ class CommandeSelectionGraphe final : public Commande {
 	float delta_x = 0.0f;
 	float delta_y = 0.0f;
 	bool m_prise_entree_deconnectee = false;
+	char m_pad[7];
 
 public:
-	CommandeSelectionGraphe() = default;
+	CommandeSelectionGraphe()
+		: Commande()
+	{
+		INUTILISE(m_pad); /* Pour faire taire les avertissements. */
+	}
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
@@ -423,6 +428,8 @@ public:
 
 	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
+		INUTILISE(donnees);
+
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
