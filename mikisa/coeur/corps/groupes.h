@@ -68,6 +68,8 @@ public:
 
 	void reserve(long const nombre);
 
+	long taille() const;
+
 	plage_prims index();
 
 	plage_prims_const index() const;

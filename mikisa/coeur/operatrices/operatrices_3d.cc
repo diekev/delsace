@@ -34,6 +34,7 @@
 #include "bibliotheques/vision/camera.h"
 
 #include "../corps/adaptrice_creation_corps.h"
+#include "../corps/groupes.h"
 
 #include "../attribut.h"
 #include "../manipulatrice.h"
@@ -1667,7 +1668,17 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		/* fusionne les points */
+		fusionne_points(corps1, corps2);
+		fusionne_primitives(corps1, corps2);
+		fusionne_attributs(corps1, corps2);
+		fusionne_groupe_points(corps1, corps2);
+		fusionne_groupe_prims(corps1, corps2);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void fusionne_points(Corps const *corps1, Corps const *corps2)
+	{
 		auto liste_point  = m_corps.points();
 		auto liste_point1 = corps1->points();
 		auto liste_point2 = corps2->points();
@@ -1689,9 +1700,10 @@ public:
 			p->z = point->z;
 			liste_point->pousse(p);
 		}
+	}
 
-		/* fusionne les polygones */
-
+	void fusionne_primitives(Corps const *corps1, Corps const *corps2)
+	{
 		auto liste_prims  = m_corps.prims();
 		auto liste_prims1 = corps1->prims();
 		auto liste_prims2 = corps2->prims();
@@ -1711,7 +1723,7 @@ public:
 			}
 		}
 
-		auto const decalage_point = liste_point1->taille();
+		auto const decalage_point = corps1->points()->taille();
 
 		for (Primitive *prim : liste_prims->prims()) {
 			if (prim->type_prim() != type_primitive::POLYGONE) {
@@ -1725,8 +1737,10 @@ public:
 				polygone->ajoute_sommet(decalage_point + poly->index_point(i));
 			}
 		}
+	}
 
-		/* rassemble les attributs dans un tableau */
+	void fusionne_attributs(Corps const *corps1, Corps const *corps2)
+	{
 		using paire_attribut = std::pair<Attribut *, Attribut *>;
 		using tableau_attribut = std::unordered_map<std::string, paire_attribut>;
 
@@ -1800,10 +1814,134 @@ public:
 				std::memcpy(ptr, attr2->donnees(), static_cast<size_t>(attr2->taille_octets()));
 			}
 		}
+	}
 
-		/* À FAIRE : fusionne les groupes */
+	void fusionne_groupe_points(Corps const *corps1, Corps const *corps2)
+	{
+		using paire_groupe = std::pair<GroupePoint *, GroupePoint *>;
+		using tableau_groupe = std::unordered_map<std::string, paire_groupe>;
 
-		return EXECUTION_REUSSIE;
+		auto tableau = tableau_groupe{};
+
+		for (auto groupe : corps1->groupes_points()) {
+			tableau.insert({groupe->nom, std::make_pair(groupe, nullptr)});
+		}
+
+		for (auto groupe : corps2->groupes_points()) {
+			auto iter = tableau.find(groupe->nom);
+
+			if (iter == tableau.end()) {
+				tableau.insert({groupe->nom, std::make_pair(nullptr, groupe)});
+			}
+			else {
+				tableau[groupe->nom].second = groupe;
+			}
+		}
+
+		auto const decalage_points = corps1->points()->taille();
+
+		for (auto const &alveole : tableau) {
+			auto const &paire_attr = alveole.second;
+
+			auto groupe = m_corps.ajoute_groupe_point(alveole.first);
+
+			if (paire_attr.first != nullptr && paire_attr.second != nullptr) {
+				auto groupe1 = paire_attr.first;
+				auto groupe2 = paire_attr.second;
+
+				groupe->reserve(groupe1->taille() + groupe2->taille());
+
+				for (auto index : groupe1->index()) {
+					groupe->ajoute_point(index);
+				}
+
+				for (auto index : groupe2->index()) {
+					groupe->ajoute_point(static_cast<size_t>(decalage_points) + index);
+				}
+			}
+			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
+				auto groupe1 = paire_attr.first;
+
+				groupe->reserve(groupe1->taille());
+
+				for (auto index : groupe1->index()) {
+					groupe->ajoute_point(index);
+				}
+			}
+			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
+				auto groupe2 = paire_attr.second;
+
+				groupe->reserve(groupe2->taille());
+
+				for (auto index : groupe2->index()) {
+					groupe->ajoute_point(static_cast<size_t>(decalage_points) + index);
+				}
+			}
+		}
+	}
+
+	void fusionne_groupe_prims(Corps const *corps1, Corps const *corps2)
+	{
+		using paire_groupe = std::pair<GroupePrimitive *, GroupePrimitive *>;
+		using tableau_groupe = std::unordered_map<std::string, paire_groupe>;
+
+		auto tableau = tableau_groupe{};
+
+		for (auto groupe : corps1->groupes_prims()) {
+			tableau.insert({groupe->nom, std::make_pair(groupe, nullptr)});
+		}
+
+		for (auto groupe : corps2->groupes_prims()) {
+			auto iter = tableau.find(groupe->nom);
+
+			if (iter == tableau.end()) {
+				tableau.insert({groupe->nom, std::make_pair(nullptr, groupe)});
+			}
+			else {
+				tableau[groupe->nom].second = groupe;
+			}
+		}
+
+		auto const decalage_prims = corps1->prims()->taille();
+
+		for (auto const &alveole : tableau) {
+			auto const &paire_attr = alveole.second;
+
+			auto groupe = m_corps.ajoute_groupe_point(alveole.first);
+
+			if (paire_attr.first != nullptr && paire_attr.second != nullptr) {
+				auto groupe1 = paire_attr.first;
+				auto groupe2 = paire_attr.second;
+
+				groupe->reserve(groupe1->taille() + groupe2->taille());
+
+				for (auto index : groupe1->index()) {
+					groupe->ajoute_point(index);
+				}
+
+				for (auto index : groupe2->index()) {
+					groupe->ajoute_point(static_cast<size_t>(decalage_prims) + index);
+				}
+			}
+			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
+				auto groupe1 = paire_attr.first;
+
+				groupe->reserve(groupe1->taille());
+
+				for (auto index : groupe1->index()) {
+					groupe->ajoute_point(index);
+				}
+			}
+			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
+				auto groupe2 = paire_attr.second;
+
+				groupe->reserve(groupe2->taille());
+
+				for (auto index : groupe2->index()) {
+					groupe->ajoute_point(static_cast<size_t>(decalage_prims) + index);
+				}
+			}
+		}
 	}
 };
 

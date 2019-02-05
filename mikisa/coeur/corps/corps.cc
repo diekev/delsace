@@ -116,20 +116,6 @@ Attribut *Corps::attribut(std::string const &nom_attribut) const
 	return nullptr;
 }
 
-GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_attribut)
-{
-	if (m_groupes_prims.find(nom_attribut) != m_groupes_prims.end()) {
-		return nullptr;
-	}
-
-	auto groupe = new GroupePrimitive;
-	groupe->nom = nom_attribut;
-
-	m_groupes_prims[nom_attribut] = groupe;
-
-	return groupe;
-}
-
 size_t Corps::ajoute_point(float x, float y, float z)
 {
 	auto index = index_point(x, y, z);
@@ -203,12 +189,12 @@ void Corps::reinitialise()
 
 	m_attributs.clear();
 
-	for (auto paire : m_groupes_prims) {
-		delete paire.second;
+	for (auto groupe : m_groupes_prims) {
+		delete groupe;
 	}
 
-	for (auto paire : m_groupes_points) {
-		delete paire.second;
+	for (auto groupe : m_groupes_points) {
+		delete groupe;
 	}
 
 	m_groupes_prims.clear();
@@ -283,27 +269,75 @@ Corps::plage_const_attributs Corps::attributs() const
 	return plage_const_attributs(m_attributs.cbegin(), m_attributs.cend());
 }
 
-GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_attribut)
+/* ************************************************************************** */
+
+GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_groupe)
 {
-	if (m_groupes_points.find(nom_attribut) != m_groupes_points.end()) {
+	if (groupe_point(nom_groupe) != nullptr) {
 		return nullptr;
 	}
 
 	auto groupe = new GroupePoint;
-	groupe->nom = nom_attribut;
+	groupe->nom = nom_groupe;
 
-	m_groupes_points[nom_attribut] = groupe;
+	m_groupes_points.push_back(groupe);
 
 	return groupe;
 }
 
-GroupePoint *Corps::groupe_point(const std::string &nom_attribut) const
+GroupePoint *Corps::groupe_point(const std::string &nom_groupe) const
 {
-	auto iter = m_groupes_points.find(nom_attribut);
+	auto iter = std::find_if(m_groupes_points.begin(), m_groupes_points.end(),
+							 [&](GroupePoint *groupe)
+	{
+				return groupe->nom == nom_groupe;
+	});
 
 	if (iter != m_groupes_points.end()) {
-		return iter->second;
+		return *iter;
 	}
 
 	return nullptr;
+}
+
+Corps::plage_grp_pnts Corps::groupes_points()
+{
+	return plage_grp_pnts(m_groupes_points.begin(), m_groupes_points.end());
+}
+
+Corps::plage_const_grp_pnts Corps::groupes_points() const
+{
+	return plage_const_grp_pnts(m_groupes_points.cbegin(), m_groupes_points.cend());
+}
+
+/* ************************************************************************** */
+
+GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_groupe)
+{
+	auto iter = std::find_if(m_groupes_prims.begin(), m_groupes_prims.end(),
+							 [&](GroupePrimitive *groupe)
+	{
+				return groupe->nom == nom_groupe;
+	});
+
+	if (iter != m_groupes_prims.end()) {
+		return nullptr;
+	}
+
+	auto groupe = new GroupePrimitive;
+	groupe->nom = nom_groupe;
+
+	m_groupes_prims.push_back(groupe);
+
+	return groupe;
+}
+
+Corps::plage_grp_prims Corps::groupes_prims()
+{
+	return plage_grp_prims(m_groupes_prims.begin(), m_groupes_prims.end());
+}
+
+Corps::plage_const_grp_prims Corps::groupes_prims() const
+{
+	return plage_const_grp_prims(m_groupes_prims.cbegin(), m_groupes_prims.cend());
 }

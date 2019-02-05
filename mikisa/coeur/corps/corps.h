@@ -89,8 +89,6 @@ struct Corps {
 
 	Attribut *attribut(std::string const &nom_attribut) const;
 
-	GroupePrimitive *ajoute_groupe_primitive(std::string const &nom_attribut);
-
 	size_t ajoute_point(float x, float y, float z);
 
 	void enleve_point(size_t i);
@@ -121,10 +119,30 @@ struct Corps {
 
 	plage_const_attributs attributs() const;
 
-	/* Groupes. */
+	/* Groupes points. */
 
-	GroupePoint *ajoute_groupe_point(std::string const &nom_attribut);
-	GroupePoint *groupe_point(const std::string &nom_attribut) const;
+	using plage_grp_pnts = plage_iterable<std::vector<GroupePoint *>::iterator>;
+	using plage_const_grp_pnts = plage_iterable<std::vector<GroupePoint *>::const_iterator>;
+
+	GroupePoint *ajoute_groupe_point(std::string const &nom_groupe);
+
+	GroupePoint *groupe_point(const std::string &nom_groupe) const;
+
+	plage_grp_pnts groupes_points();
+
+	plage_const_grp_pnts groupes_points() const;
+
+	/* Groupes primitives. */
+
+	using plage_grp_prims = plage_iterable<std::vector<GroupePrimitive *>::iterator>;
+	using plage_const_grp_prims = plage_iterable<std::vector<GroupePrimitive *>::const_iterator>;
+
+	GroupePrimitive *ajoute_groupe_primitive(std::string const &nom_groupe);
+
+	plage_grp_prims groupes_prims();
+
+	plage_const_grp_prims groupes_prims() const;
+
 
 protected:
 	std::vector<Attribut *> m_attributs{};
@@ -132,6 +150,7 @@ protected:
 private:
 	ListePoints3D m_points{};
 	ListePrimitives m_prims{};
-	std::unordered_map<std::string, GroupePoint *> m_groupes_points{};
-	std::unordered_map<std::string, GroupePrimitive *> m_groupes_prims{};
+
+	std::vector<GroupePoint *> m_groupes_points{};
+	std::vector<GroupePrimitive *> m_groupes_prims{};
 };

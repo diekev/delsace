@@ -78,6 +78,11 @@ void GroupePrimitive::reserve(long const nombre)
 	this->m_primitives.reserve(static_cast<size_t>(nombre));
 }
 
+long GroupePrimitive::taille() const
+{
+	return static_cast<long>(m_primitives.size());
+}
+
 GroupePrimitive::plage_prims GroupePrimitive::index()
 {
 	return plage_prims(m_primitives.begin(), m_primitives.end());
