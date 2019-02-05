@@ -84,13 +84,12 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 		m_corps1.reinitialise();
 		m_corps2.reinitialise();
 
-		/* Le pointeur des entrées doit correspondre aux données de l'image
-		 * précédente, donc du corps de cette opératrice.
-		 * À FAIRE : considérer le stockage de plusieurs corps. */
 		m_graphe.entrees.clear();
-		m_graphe.entrees.push_back(&m_corps);
 		m_graphe.entrees.push_back(&m_corps1);
 		m_graphe.entrees.push_back(&m_corps2);
+
+		m_graphe.donnees.clear();
+		m_graphe.donnees.push_back(&m_corps);
 
 		/* copie l'état de base */
 		auto corps = entree(0)->requiers_corps(rectangle, temps);

@@ -38,6 +38,9 @@
 #include <OpenEXR/ImathBox.h>
 #pragma GCC diagnostic pop
 
+#include "bibliotheques/graphe/graphe.h"
+#include "bibliotheques/outils/definitions.hh"
+
 #include "../operatrice_corps.h"
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
@@ -455,12 +458,72 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceEntreeGraphe : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Entrée Graphe";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceEntreeGraphe(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(0);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_entree_simulation.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int execute(const Rectangle &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+		INUTILISE(temps);
+
+		m_corps.reinitialise();
+
+		if (m_graphe_parent.entrees.empty()) {
+			ajoute_avertissement("Le graphe n'a aucune entrée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto index_entree = static_cast<size_t>(evalue_entier("index_entrée"));
+
+		if (index_entree >= m_graphe_parent.entrees.size()) {
+			ajoute_avertissement("L'index de l'entrée est hors de portée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto corps = std::any_cast<Corps *>(m_graphe_parent.entrees[index_entree]);
+		corps->copie_vers(&m_corps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_flux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCommutation>());
 	usine.enregistre_type(cree_desc<OperatriceCommutationCorps>());
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
+	usine.enregistre_type(cree_desc<OperatriceEntreeGraphe>());
 }
 
 #pragma clang diagnostic pop

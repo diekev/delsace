@@ -93,7 +93,11 @@ public:
 	/* vrai si le graphe a été modifié */
 	bool besoin_ajournement = false;
 
-	std::vector<void const *> entrees{};
+	/* Données personnalisables pour les sur-entrées de ce graphe. */
+	std::vector<std::any> entrees{};
+
+	/* Données extras personnalisables de ce graphe. */
+	std::vector<std::any> donnees{};
 
 	/* entreface de programmation */
 
