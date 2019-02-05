@@ -1,5 +1,12 @@
 disposition "operatrice_dispersion_points" {
     ligne {
+	    étiquette(valeur="Origine")
+		énum(valeur="points"; attache=origine; items=[
+		     {nom="Points", valeur="points"},
+			 {nom="Primivites", valeur="primitives"}
+			 ])
+	}
+    ligne {
 	    étiquette(valeur="Anime graine")
 		case(valeur=faux; attache=anime_graine)
 	}
@@ -8,7 +15,7 @@ disposition "operatrice_dispersion_points" {
 		entier(valeur=1; attache=graine; min=1; max=100000)
     }
     ligne {
-        étiquette(valeur="Nombre Points Par Polygones")
-		entier(valeur=100; attache=nombre_points_polys; min=1; max=1000)
+	    étiquette(valeur="Nombre Points Émission")
+		entier(valeur=100; attache=nombre_points; min=1; max=1000)
 	}
 }

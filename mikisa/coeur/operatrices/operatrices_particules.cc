@@ -322,9 +322,6 @@ public:
 	{
 		entrees(1);
 		sorties(1);
-
-		ajoute_propriete("graine", danjo::TypePropriete::ENTIER, 1);
-		ajoute_propriete("nombre_points_polys", danjo::TypePropriete::ENTIER, 100);
 	}
 
 	const char *chemin_entreface() const override
@@ -356,26 +353,73 @@ public:
 	{
 		m_corps.reinitialise();
 
-		auto corps_maillage = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
 
-		if (corps_maillage == nullptr) {
+		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Il n'y a pas de corps connecté !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto triangles = convertis_maillage_triangles(corps_maillage);
+		auto origine = evalue_enum("origine");
+
+		if (origine == "points") {
+			return genere_points_depuis_points(corps_entree, temps);
+		}
+
+		if (origine == "primitives") {
+			return genere_points_depuis_primitives(corps_entree, temps);
+		}
+
+		ajoute_avertissement("Erreur : origine inconnue !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	int genere_points_depuis_points(Corps const *corps_entree, int temps)
+	{
+		auto points_entree = corps_entree->points();
+
+		if (points_entree->taille() == 0) {
+			this->ajoute_avertissement("Il n'y a pas de points dans le corps d'entrée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto points_sorties = m_corps.points();
+
+		auto const nombre_points_emis = evalue_entier("nombre_points", temps);
+		points_sorties->reserve(nombre_points_emis);
+
+		auto const nombre_points_par_points = nombre_points_emis / points_entree->taille();
+
+		for (auto const &point : points_entree->points()) {
+			auto const p_monde = corps_entree->transformation(
+								dls::math::point3d(point->x, point->y, point->z));
+
+			for (long j = 0; j < nombre_points_par_points; ++j) {
+				m_corps.ajoute_point(
+							static_cast<float>(p_monde.x),
+							static_cast<float>(p_monde.y),
+							static_cast<float>(p_monde.z));
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	int genere_points_depuis_primitives(Corps const *corps_entree, int temps)
+	{
+		auto triangles = convertis_maillage_triangles(corps_entree);
 
 		if (triangles.empty()) {
 			this->ajoute_avertissement("Il n'y a pas de primitives dans le corps d'entrée !");
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto const nombre_points = evalue_entier("nombre_points", temps);
+
 		auto points_sorties = m_corps.points();
-
-		auto const nombre_points_polys = evalue_entier("nombre_points_polys");
-		auto const nombre_points = static_cast<long>(triangles.size()) * nombre_points_polys;
-
 		points_sorties->reserve(nombre_points);
+
+		auto const nombre_points_triangle = nombre_points / static_cast<long>(triangles.size());
 
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
@@ -384,14 +428,14 @@ public:
 		std::uniform_real_distribution<double> dist(0.0, 1.0);
 
 		for (Triangle const &triangle : triangles) {
-			auto const v0 = corps_maillage->transformation(dls::math::point3d(triangle.v0));
-			auto const v1 = corps_maillage->transformation(dls::math::point3d(triangle.v1));
-			auto const v2 = corps_maillage->transformation(dls::math::point3d(triangle.v2));
+			auto const v0 = corps_entree->transformation(dls::math::point3d(triangle.v0));
+			auto const v1 = corps_entree->transformation(dls::math::point3d(triangle.v1));
+			auto const v2 = corps_entree->transformation(dls::math::point3d(triangle.v2));
 
 			auto const e0 = v1 - v0;
 			auto const e1 = v2 - v0;
 
-			for (long j = 0; j < nombre_points_polys; ++j) {
+			for (long j = 0; j < nombre_points_triangle; ++j) {
 				/* Génère des coordonnées barycentriques aléatoires. */
 				auto r = dist(rng);
 				auto s = dist(rng);
@@ -403,7 +447,10 @@ public:
 
 				auto pos = v0 + r * e0 + s * e1;
 
-				m_corps.ajoute_point(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
+				m_corps.ajoute_point(
+							static_cast<float>(pos.x),
+							static_cast<float>(pos.y),
+							static_cast<float>(pos.z));
 			}
 		}
 
