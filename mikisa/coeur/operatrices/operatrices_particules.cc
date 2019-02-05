@@ -40,68 +40,6 @@
 
 /* ************************************************************************** */
 
-class OperatriceCreationPoints final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Création Points";
-	static constexpr auto AIDE = "Crée des points.";
-
-	explicit OperatriceCreationPoints(Graphe &graphe_parent, Noeud *noeud)
-		: OperatriceCorps(graphe_parent, noeud)
-	{
-		entrees(1);
-		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_IMAGE;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(Rectangle const &rectangle, const int temps) override
-	{
-		m_corps.reinitialise();
-
-		auto liste_points = m_corps.points();
-		liste_points->reserve(2000);
-
-		std::uniform_real_distribution<float> dist(-10.0f, 10.0f);
-		std::mt19937 rng(19937);
-
-		for (size_t i = 0; i < 2000; ++i) {
-			auto point = new Point3D();
-			point->x = dist(rng);
-			point->y = 0.0f;
-			point->z = dist(rng);
-
-			liste_points->pousse(point);
-		}
-
-		return EXECUTION_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
 class OperatriceSuppressionPoints final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Suppression Points";
@@ -312,12 +250,12 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree)
 }
 
 /* À FAIRE : transfère attribut. */
-class OperatriceDispersionPoints : public OperatriceCorps {
+class OperatriceCreationPoints : public OperatriceCorps {
 public:
-	static constexpr auto NOM = "Dispersion Points";
-	static constexpr auto AIDE = "Disperse des points sur une surface.";
+	static constexpr auto NOM = "Création Points";
+	static constexpr auto AIDE = "Crée des points à partir des points ou des primitives d'un autre corps.";
 
-	OperatriceDispersionPoints(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCreationPoints(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -971,7 +909,6 @@ void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
 	usine.enregistre_type(cree_desc<OperatriceSuppressionPoints>());
-	usine.enregistre_type(cree_desc<OperatriceDispersionPoints>());
 	usine.enregistre_type(cree_desc<OperatriceTirageFleche>());
 }
 
