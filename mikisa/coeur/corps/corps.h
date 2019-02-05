@@ -139,6 +139,8 @@ struct Corps {
 
 	GroupePrimitive *ajoute_groupe_primitive(std::string const &nom_groupe);
 
+	GroupePrimitive *groupe_primitive(std::string const &nom_groupe) const;
+
 	plage_grp_prims groupes_prims();
 
 	plage_const_grp_prims groupes_prims() const;

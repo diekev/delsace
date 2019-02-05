@@ -188,61 +188,107 @@ struct Triangle {
 	}
 };
 
-std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree)
+std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree, GroupePrimitive *groupe)
 {
 	std::vector<Triangle> triangles;
 	auto const points = corps_entree->points();
 	auto const prims  = corps_entree->prims();
 
-	/* Convertis le maillage en triangles. */
+	/* Convertis le maillage en triangles.
+	 * Petit tableau pour comprendre le calcul du nombre de triangles.
+	 * +----------------+------------------+
+	 * | nombre sommets | nombre triangles |
+	 * +----------------+------------------+
+	 * | 3              | 1                |
+	 * | 4              | 2                |
+	 * | 5              | 3                |
+	 * | 6              | 4                |
+	 * | 7              | 5                |
+	 * +----------------+------------------+
+	 */
+
 	auto nombre_triangles = 0l;
 
-	for (auto prim : prims->prims()) {
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
+	if (groupe) {
+		for (auto index : groupe->index()) {
+			auto prim = prims->prim(index);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
+			if (poly->type != type_polygone::FERME) {
+				continue;
+			}
+
+			nombre_triangles += poly->nombre_sommets() - 2;
 		}
 
-		auto poly = dynamic_cast<Polygone *>(prim);
+		triangles.reserve(static_cast<size_t>(nombre_triangles));
 
-		if (poly->type != type_polygone::FERME) {
-			continue;
+		for (auto index : groupe->index()) {
+			auto prim = prims->prim(index);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
+			if (poly->type != type_polygone::FERME) {
+				continue;
+			}
+
+			for (long i = 2; i < poly->nombre_sommets(); ++i) {
+				Triangle triangle;
+
+				triangle.v0 = points->point(poly->index_point(0));
+				triangle.v1 = points->point(poly->index_point(i - 1));
+				triangle.v2 = points->point(poly->index_point(i));
+
+				triangles.push_back(triangle);
+			}
 		}
-
-		/* Petit tableau pour comprendre le calcul du nombre de triangles.
-		 * +----------------+------------------+
-		 * | nombre sommets | nombre triangles |
-		 * +----------------+------------------+
-		 * | 3              | 1                |
-		 * | 4              | 2                |
-		 * | 5              | 3                |
-		 * | 6              | 4                |
-		 * | 7              | 5                |
-		 * +----------------+------------------+
-		 */
-		nombre_triangles += poly->nombre_sommets() - 2;
 	}
+	else {
+		for (auto prim : prims->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
 
-	triangles.reserve(static_cast<size_t>(nombre_triangles));
+			auto poly = dynamic_cast<Polygone *>(prim);
 
-	for (auto prim : prims->prims()) {
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
+			if (poly->type != type_polygone::FERME) {
+				continue;
+			}
+
+			nombre_triangles += poly->nombre_sommets() - 2;
 		}
 
-		auto poly = dynamic_cast<Polygone *>(prim);
+		triangles.reserve(static_cast<size_t>(nombre_triangles));
 
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
+		for (auto prim : prims->prims()) {
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
 
-		for (long i = 2; i < poly->nombre_sommets(); ++i) {
-			Triangle triangle;
+			auto poly = dynamic_cast<Polygone *>(prim);
 
-			triangle.v0 = points->point(poly->index_point(0));
-			triangle.v1 = points->point(poly->index_point(i - 1));
-			triangle.v2 = points->point(poly->index_point(i));
+			if (poly->type != type_polygone::FERME) {
+				continue;
+			}
 
-			triangles.push_back(triangle);
+			for (long i = 2; i < poly->nombre_sommets(); ++i) {
+				Triangle triangle;
+
+				triangle.v0 = points->point(poly->index_point(0));
+				triangle.v1 = points->point(poly->index_point(i - 1));
+				triangle.v2 = points->point(poly->index_point(i));
+
+				triangles.push_back(triangle);
+			}
 		}
 	}
 
@@ -321,6 +367,32 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto nom_groupe_origine = evalue_chaine("groupe_origine");
+		auto groupe_entree = static_cast<GroupePoint *>(nullptr);
+
+		if (!nom_groupe_origine.empty()) {
+			groupe_entree = m_corps.groupe_point(nom_groupe_origine);
+
+			if (groupe_entree == nullptr) {
+				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
+				return EXECUTION_ECHOUEE;
+			}
+		}
+
+		auto grouper_points = evalue_bool("grouper_points");
+		auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
+
+		if (grouper_points) {
+			auto nom_groupe = evalue_chaine("nom_groupe");
+
+			if (nom_groupe.empty()) {
+				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
+				return EXECUTION_ECHOUEE;
+			}
+
+			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
+		}
+
 		auto points_sorties = m_corps.points();
 
 		auto const nombre_points_emis = evalue_entier("nombre_points", temps);
@@ -328,15 +400,40 @@ public:
 
 		auto const nombre_points_par_points = nombre_points_emis / points_entree->taille();
 
-		for (auto const &point : points_entree->points()) {
-			auto const p_monde = corps_entree->transformation(
-								dls::math::point3d(point->x, point->y, point->z));
+		if (groupe_entree) {
+			for (auto const &index_point : groupe_entree->index()) {
+				auto const &point = points_entree->point(static_cast<long>(index_point));
 
-			for (long j = 0; j < nombre_points_par_points; ++j) {
-				m_corps.ajoute_point(
-							static_cast<float>(p_monde.x),
-							static_cast<float>(p_monde.y),
-							static_cast<float>(p_monde.z));
+				auto const p_monde = corps_entree->transformation(
+									dls::math::point3d(point));
+
+				for (long j = 0; j < nombre_points_par_points; ++j) {
+					auto index = m_corps.ajoute_point(
+								static_cast<float>(p_monde.x),
+								static_cast<float>(p_monde.y),
+								static_cast<float>(p_monde.z));
+
+					if (groupe_sortie) {
+						groupe_sortie->ajoute_point(index);
+					}
+				}
+			}
+		}
+		else {
+			for (auto const &point : points_entree->points()) {
+				auto const p_monde = corps_entree->transformation(
+									dls::math::point3d(point->x, point->y, point->z));
+
+				for (long j = 0; j < nombre_points_par_points; ++j) {
+					auto index = m_corps.ajoute_point(
+								static_cast<float>(p_monde.x),
+								static_cast<float>(p_monde.y),
+								static_cast<float>(p_monde.z));
+
+					if (groupe_sortie) {
+						groupe_sortie->ajoute_point(index);
+					}
+				}
 			}
 		}
 
@@ -345,11 +442,37 @@ public:
 
 	int genere_points_depuis_primitives(Corps const *corps_entree, int temps)
 	{
-		auto triangles = convertis_maillage_triangles(corps_entree);
+		auto nom_groupe_origine = evalue_chaine("groupe_origine");
+		auto groupe_entree = static_cast<GroupePrimitive *>(nullptr);
+
+		if (!nom_groupe_origine.empty()) {
+			groupe_entree = m_corps.groupe_primitive(nom_groupe_origine);
+
+			if (groupe_entree == nullptr) {
+				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
+				return EXECUTION_ECHOUEE;
+			}
+		}
+
+		auto triangles = convertis_maillage_triangles(corps_entree, groupe_entree);
 
 		if (triangles.empty()) {
 			this->ajoute_avertissement("Il n'y a pas de primitives dans le corps d'entrée !");
 			return EXECUTION_ECHOUEE;
+		}
+
+		auto grouper_points = evalue_bool("grouper_points");
+		auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
+
+		if (grouper_points) {
+			auto nom_groupe = evalue_chaine("nom_groupe");
+
+			if (nom_groupe.empty()) {
+				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
+				return EXECUTION_ECHOUEE;
+			}
+
+			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
 		}
 
 		auto const nombre_points = evalue_entier("nombre_points", temps);
@@ -385,10 +508,14 @@ public:
 
 				auto pos = v0 + r * e0 + s * e1;
 
-				m_corps.ajoute_point(
+				auto index = m_corps.ajoute_point(
 							static_cast<float>(pos.x),
 							static_cast<float>(pos.y),
 							static_cast<float>(pos.z));
+
+				if (groupe_sortie) {
+					groupe_sortie->ajoute_point(index);
+				}
 			}
 		}
 

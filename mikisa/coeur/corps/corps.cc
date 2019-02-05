@@ -342,6 +342,22 @@ Corps::plage_const_grp_pnts Corps::groupes_points() const
 
 GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_groupe)
 {
+	auto groupe = groupe_primitive(nom_groupe);
+
+	if (groupe != nullptr) {
+		return groupe;
+	}
+
+	groupe = new GroupePrimitive;
+	groupe->nom = nom_groupe;
+
+	m_groupes_prims.push_back(groupe);
+
+	return groupe;
+}
+
+GroupePrimitive *Corps::groupe_primitive(const std::string &nom_groupe) const
+{
 	auto iter = std::find_if(m_groupes_prims.begin(), m_groupes_prims.end(),
 							 [&](GroupePrimitive *groupe)
 	{
@@ -352,12 +368,7 @@ GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_groupe)
 		return *iter;
 	}
 
-	auto groupe = new GroupePrimitive;
-	groupe->nom = nom_groupe;
-
-	m_groupes_prims.push_back(groupe);
-
-	return groupe;
+	return nullptr;
 }
 
 Corps::plage_grp_prims Corps::groupes_prims()

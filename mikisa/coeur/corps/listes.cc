@@ -269,6 +269,11 @@ void ListePrimitives::pousse(Primitive *s)
 	m_primitives.push_back(s);
 }
 
+Primitive *ListePrimitives::prim(size_t index) const
+{
+	return m_primitives[index];
+}
+
 ListePrimitives::plage_prims ListePrimitives::prims()
 {
 	return plage_prims(m_primitives.begin(), m_primitives.end());

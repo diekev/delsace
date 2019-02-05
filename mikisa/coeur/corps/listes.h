@@ -222,6 +222,8 @@ public:
 
 	void pousse(Primitive *s);
 
+	Primitive *prim(size_t index) const;
+
 	plage_prims prims();
 
 	plage_const_prims prims() const;

@@ -6,6 +6,10 @@ disposition "operatrice_dispersion_points" {
 			 {nom="Primivites", valeur="primitives"}
 			 ])
 	}
+	ligne {
+	    étiquette(valeur="Groupe Origine")
+		chaine(valeur=""; attache=groupe_origine; infobulle="Le groupe à utiliser pour émettre les points")
+	}
     ligne {
 	    étiquette(valeur="Anime graine")
 		case(valeur=faux; attache=anime_graine)
@@ -17,5 +21,13 @@ disposition "operatrice_dispersion_points" {
     ligne {
 	    étiquette(valeur="Nombre Points Émission")
 		entier(valeur=100; attache=nombre_points; min=1; max=1000)
+	}
+	ligne {
+	    étiquette(valeur="Grouper les Points")
+		case(valeur=faux; attache=grouper_points; infobulle="Le groupe dans lequel émettre les points")
+	}
+	ligne {
+	    étiquette(valeur="Nom Groupe")
+		chaine(valeur=""; attache=nom_groupe; infobulle="Le nom du groupe des points émis")
 	}
 }
