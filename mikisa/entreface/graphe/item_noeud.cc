@@ -48,6 +48,7 @@ static QBrush brosse_pour_type(int type)
 {
 	switch (type) {
 		default:
+		case OPERATRICE_SORTIE_IMAGE:
 		case OPERATRICE_IMAGE:
 			return QBrush(COULEUR_IMAGE);
 		case OPERATRICE_GRAPHE_PIXEL:
@@ -55,7 +56,9 @@ static QBrush brosse_pour_type(int type)
 			return QBrush(COULEUR_PIXEL);
 		case OPERATRICE_SCENE:
 			return QBrush(COULEUR_SCENE);
+		case OPERATRICE_SIMULATION:
 		case OPERATRICE_CORPS:
+		case OPERATRICE_SORTIE_CORPS:
 		case OPERATRICE_OBJET:
 			return QBrush(COULEUR_OBJET);
 		case OPERATRICE_CAMERA:

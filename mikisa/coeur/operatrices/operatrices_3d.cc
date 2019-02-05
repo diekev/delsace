@@ -124,13 +124,8 @@ public:
 	explicit OperatriceCreationCorps(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		entrees(1);
+		entrees(0);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_IMAGE;
 	}
 
 	int type_sortie(int) const override

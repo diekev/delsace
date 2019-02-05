@@ -51,12 +51,6 @@ public:
 
 	int type() const override;
 
-	int type_entree(int n) const override;
-
-	const char *nom_entree(int n) override;
-
-	int type_sortie(int) const override;
-
 	const char *chemin_entreface() const override;
 
 	const char *nom_classe() const override;

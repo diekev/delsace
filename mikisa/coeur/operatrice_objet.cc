@@ -33,26 +33,11 @@
 OperatriceObjet::OperatriceObjet(Graphe &graphe_parent, Noeud *noeud)
 	: OperatriceImage(graphe_parent, noeud)
 {
-	entrees(1);
-	sorties(1);
+	entrees(0);
+	sorties(0);
 }
 
 int OperatriceObjet::type() const
-{
-	return OPERATRICE_OBJET;
-}
-
-int OperatriceObjet::type_entree(int n) const
-{
-	return OPERATRICE_IMAGE;
-}
-
-const char *OperatriceObjet::nom_entree(int n)
-{
-	return "image";
-}
-
-int OperatriceObjet::type_sortie(int) const
 {
 	return OPERATRICE_OBJET;
 }
