@@ -39,6 +39,11 @@ void GroupePoint::reserve(long const nombre)
 	this->m_points.reserve(static_cast<size_t>(nombre));
 }
 
+void GroupePoint::reinitialise()
+{
+	m_points.clear();
+}
+
 long GroupePoint::taille() const
 {
 	return static_cast<long>(m_points.size());
@@ -76,6 +81,11 @@ void GroupePrimitive::reserve(long const nombre)
 {
 	assert(nombre >= 0);
 	this->m_primitives.reserve(static_cast<size_t>(nombre));
+}
+
+void GroupePrimitive::reinitialise()
+{
+	m_primitives.clear();
 }
 
 long GroupePrimitive::taille() const

@@ -256,7 +256,33 @@ void Corps::copie_vers(Corps *corps) const
 	}
 
 	/* copie les groupes */
-	/* À FAIRE */
+	corps->m_groupes_points.reserve(this->m_groupes_points.size());
+
+	for (auto groupe : this->m_groupes_points) {
+		auto groupe_corps = new GroupePoint();
+		groupe_corps->nom = groupe->nom;
+		groupe_corps->reserve(groupe->taille());
+
+		for (auto index : groupe->index()) {
+			groupe_corps->ajoute_point(index);
+		}
+
+		corps->m_groupes_points.push_back(groupe_corps);
+	}
+
+	corps->m_groupes_prims.reserve(this->m_groupes_prims.size());
+
+	for (auto groupe : this->m_groupes_prims) {
+		auto groupe_corps = new GroupePrimitive();
+		groupe_corps->nom = groupe->nom;
+		groupe_corps->reserve(groupe->taille());
+
+		for (auto index : groupe->index()) {
+			groupe_corps->ajoute_primitive(index);
+		}
+
+		corps->m_groupes_prims.push_back(groupe_corps);
+	}
 }
 
 Corps::plage_attributs Corps::attributs()
@@ -273,11 +299,13 @@ Corps::plage_const_attributs Corps::attributs() const
 
 GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_groupe)
 {
-	if (groupe_point(nom_groupe) != nullptr) {
-		return nullptr;
+	auto groupe = groupe_point(nom_groupe);
+
+	if (groupe != nullptr) {
+		return groupe;
 	}
 
-	auto groupe = new GroupePoint;
+	groupe = new GroupePoint;
 	groupe->nom = nom_groupe;
 
 	m_groupes_points.push_back(groupe);
@@ -321,7 +349,7 @@ GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_groupe)
 	});
 
 	if (iter != m_groupes_prims.end()) {
-		return nullptr;
+		return *iter;
 	}
 
 	auto groupe = new GroupePrimitive;

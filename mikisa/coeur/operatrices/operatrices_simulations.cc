@@ -388,6 +388,7 @@ public:
 		}
 
 		auto groupe = m_corps.ajoute_groupe_point("collision");
+		groupe->reinitialise();
 
 		for (long i = 0; i < nombre_points; ++i) {
 			auto pos_cou = liste_points->point(i);

@@ -44,6 +44,8 @@ public:
 
 	void reserve(long const nombre);
 
+	void reinitialise();
+
 	long taille() const;
 
 	bool contiens(size_t index_point) const;
@@ -67,6 +69,8 @@ public:
 	void ajoute_primitive(size_t index_poly);
 
 	void reserve(long const nombre);
+
+	void reinitialise();
 
 	long taille() const;
 
