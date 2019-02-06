@@ -7,6 +7,7 @@ layout(location = 3) in vec3 couleurs;
 
 uniform mat4 MVP;
 uniform mat4 matrice;
+uniform mat3 N;
 
 smooth out vec3 normal;
 smooth out vec3 sommet;
@@ -18,7 +19,7 @@ void main()
 {
 	vec4 s = vec4(sommets.xyz, 1.0);
 	gl_Position = MVP * matrice * s;
-	normal = normaux;
+	normal = (N * normaux);
 	sommet = s.xyz;
 	UV = uvs;
 	mat = matrice;

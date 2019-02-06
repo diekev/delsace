@@ -197,7 +197,7 @@ void TamponRendu::remplie_tampon_extra(ParametresTampon const &parametres)
 
 	m_donnees_tampon->unbind();
 
-	if (parametres.attribut == "normal") {
+	if (parametres.attribut == "normal" || parametres.attribut == "normaux") {
 		m_requiers_normal = true;
 	}
 }

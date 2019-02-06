@@ -247,6 +247,7 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs)
 	parametre_programme.ajoute_uniforme("MVP");
 	parametre_programme.ajoute_uniforme("MV");
 	parametre_programme.ajoute_uniforme("P");
+	parametre_programme.ajoute_uniforme("N");
 	parametre_programme.ajoute_uniforme("image");
 	parametre_programme.ajoute_uniforme("direction_camera");
 	parametre_programme.ajoute_uniforme("methode");
@@ -305,9 +306,9 @@ void ajoute_polygone_surface(
 			}
 		}
 		else {
-			couleurs.push_back(dls::math::vec3f(0.5f));
-			couleurs.push_back(dls::math::vec3f(0.5f));
-			couleurs.push_back(dls::math::vec3f(0.5f));
+			couleurs.push_back(dls::math::vec3f(0.8f));
+			couleurs.push_back(dls::math::vec3f(0.8f));
+			couleurs.push_back(dls::math::vec3f(0.8f));
 		}
 	}
 }
@@ -334,8 +335,8 @@ void ajoute_polygone_segment(
 			}
 		}
 		else {
-			couleurs.push_back(dls::math::vec3f(0.5f));
-			couleurs.push_back(dls::math::vec3f(0.5f));
+			couleurs.push_back(dls::math::vec3f(0.8f));
+			couleurs.push_back(dls::math::vec3f(0.8f));
 		}
 	}
 }

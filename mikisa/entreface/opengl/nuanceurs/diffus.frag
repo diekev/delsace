@@ -163,6 +163,9 @@ void main()
 		couleur_sortie = projection_uv(sommet);
 	}
 	else {
-		couleur_sortie = vec4(couleur, 1.0);
+		vec3 normal_normalise = normalize(normal);
+		float w = 0.5 * (1.0 + dot(normal_normalise, vec3(0.0, 1.0, 0.0)));
+		vec3 couleur_diffuse = w * couleur + (1.0 - w) * (couleur * 0.3);
+		couleur_sortie = vec4(couleur_diffuse, 1.0);
 	}
 }
