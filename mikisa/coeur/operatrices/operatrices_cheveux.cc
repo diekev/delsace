@@ -208,6 +208,11 @@ public:
 				ajoute_avertissement("Aucun attribut normal (N) trouvé sur les particules !");
 				return EXECUTION_ECHOUEE;
 			}
+
+			if (attr_N->portee != portee_attr::POINT) {
+				ajoute_avertissement("L'attribut normal (N) n'est pas sur les points !");
+				return EXECUTION_ECHOUEE;
+			}
 		}
 		else {
 			direction = DIRECTION_PERSONALISEE;
