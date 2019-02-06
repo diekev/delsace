@@ -1717,18 +1717,39 @@ public:
 		auto const couleur_ = evalue_couleur("couleur_");
 		auto const methode = evalue_enum("méthode");
 		auto const portee = evalue_enum("portée");
+		auto const nom_groupe = evalue_chaine("nom_groupe");
 
 		auto attrib = static_cast<Attribut *>(nullptr);
+		auto groupe_points = static_cast<GroupePoint *>(nullptr);
+		auto groupe_prims  = static_cast<GroupePrimitive *>(nullptr);
 
 		if (portee == "points") {
 			attrib = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
-			attrib->reinitialise();
-			attrib->redimensionne(m_corps.points()->taille());
+
+			if (nom_groupe != "") {
+				groupe_points = m_corps.groupe_point(nom_groupe);
+
+				if (groupe_points == nullptr) {
+					std::stringstream ss;
+					ss << "Groupe '" << nom_groupe << "' inconnu !";
+					ajoute_avertissement(ss.str());
+					return EXECUTION_ECHOUEE;
+				}
+			}
 		}
 		else if (portee == "primitives") {
 			attrib = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
-			attrib->reinitialise();
-			attrib->redimensionne(m_corps.prims()->taille());
+
+			if (nom_groupe != "") {
+				groupe_prims = m_corps.groupe_primitive(nom_groupe);
+
+				if (groupe_prims == nullptr) {
+					std::stringstream ss;
+					ss << "Groupe '" << nom_groupe << "' inconnu !";
+					ajoute_avertissement(ss.str());
+					return EXECUTION_ECHOUEE;
+				}
+			}
 		}
 		else {
 			std::stringstream ss;
@@ -1737,17 +1758,51 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		if (methode == "unique") {
-			for (auto i = 0; i < attrib->taille(); ++i) {
-				attrib->vec3(i, dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
+		if (groupe_points == nullptr && groupe_prims == nullptr) {
+			if (methode == "unique") {
+				for (auto i = 0; i < attrib->taille(); ++i) {
+					attrib->vec3(i, dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
+				}
+			}
+			else if (methode == "aléatoire") {
+				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+				std::mt19937 rng(graine);
+
+				for (auto i = 0; i < attrib->taille(); ++i) {
+					attrib->vec3(i, dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
+				}
 			}
 		}
-		else if (methode == "aléatoire") {
-			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-			std::mt19937 rng(graine);
+		else {
+			if (groupe_points != nullptr) {
+				if (methode == "unique") {
+					for (auto index : groupe_points->index()) {
+						attrib->vec3(static_cast<long>(index), dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
+					}
+				}
+				else if (methode == "aléatoire") {
+					std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+					std::mt19937 rng(graine);
 
-			for (auto i = 0; i < attrib->taille(); ++i) {
-				attrib->vec3(i, dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
+					for (auto index : groupe_points->index()) {
+						attrib->vec3(static_cast<long>(index), dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
+					}
+				}
+			}
+			else if (groupe_prims != nullptr) {
+				if (methode == "unique") {
+					for (auto index : groupe_prims->index()) {
+						attrib->vec3(static_cast<long>(index), dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
+					}
+				}
+				else if (methode == "aléatoire") {
+					std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+					std::mt19937 rng(graine);
+
+					for (auto index : groupe_prims->index()) {
+						attrib->vec3(static_cast<long>(index), dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
+					}
+				}
 			}
 		}
 
