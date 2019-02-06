@@ -20,6 +20,9 @@ menu "Noeud Simulation" {
 	menu "Flux" {
 	    action(valeur="Commutation Corps"; attache=ajouter_noeud; métadonnée="Commutation Corps")
 	}
+	menu "Groupe" {
+	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")
+	}
 	menu "Physique" {
 	    action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
 		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")

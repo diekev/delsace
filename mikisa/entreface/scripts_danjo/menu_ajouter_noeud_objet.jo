@@ -9,6 +9,9 @@ menu "Noeud Objet" {
 		action(valeur="Randomisation Attribut"; attache=ajouter_noeud; métadonnée="Randomisation Attribut")
 		action(valeur="Suppression Attribut"; attache=ajouter_noeud; métadonnée="Suppression Attribut")
 	}
+	menu "Groupe" {
+	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")
+	}
 	menu "Cheveux" {
 	    action(valeur="Création Courbes"; attache=ajouter_noeud; métadonnée="Création Courbes")
 	}

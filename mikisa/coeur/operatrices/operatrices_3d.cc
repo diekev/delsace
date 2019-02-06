@@ -2283,6 +2283,143 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceCreationGroupe : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Création Groupe";
+	static constexpr auto AIDE = "";
+
+	OperatriceCreationGroupe(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_creation_groupe.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto const nom_groupe = evalue_chaine("nom_groupe");
+		auto const contenu = evalue_enum("contenu");
+		auto const chaine_methode = evalue_enum("méthode");
+		auto const probabilite = evalue_decimal("probabilité", temps);
+		auto const graine = evalue_entier("graine", temps);
+
+		if (nom_groupe.empty()) {
+			ajoute_avertissement("Le nom du groupe est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto depart = 0l;
+		auto decalage = 1l;
+		auto mult = 1.0f;
+
+		if (chaine_methode == "tout") {
+			depart = 0l;
+			decalage = 1l;
+			mult *= probabilite;
+		}
+		else if (chaine_methode == "pair") {
+			depart = 0l;
+			decalage = 2l;
+			mult *= probabilite * 0.5f;
+		}
+		else if (chaine_methode == "impair") {
+			depart = 1l;
+			decalage = 2l;
+			mult *= probabilite * 0.5f;
+		}
+		else {
+			std::stringstream ss;
+			ss << "La méthode '" << chaine_methode << "' est invalide !";
+			ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		std::mt19937 rng(graine);
+		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+		if (contenu == "points") {
+			auto groupe = m_corps.groupe_point(nom_groupe);
+
+			if (groupe != nullptr) {
+				std::stringstream ss;
+				ss << "Le groupe '" << nom_groupe << "' existe déjà !";
+				ajoute_avertissement(ss.str());
+				return EXECUTION_ECHOUEE;
+			}
+
+			groupe = m_corps.ajoute_groupe_point(nom_groupe);
+			groupe->reserve(static_cast<long>(static_cast<float>(m_corps.points()->taille()) * mult));
+
+			for (auto i = depart; i < m_corps.points()->taille(); i += decalage) {
+				if (dist(rng) > probabilite) {
+					continue;
+				}
+
+				groupe->ajoute_point(static_cast<size_t>(i));
+			}
+		}
+		else if (contenu == "primitives") {
+			auto groupe = m_corps.groupe_primitive(nom_groupe);
+
+			if (groupe != nullptr) {
+				std::stringstream ss;
+				ss << "Le groupe '" << nom_groupe << "' existe déjà !";
+				ajoute_avertissement(ss.str());
+				return EXECUTION_ECHOUEE;
+			}
+
+			groupe = m_corps.ajoute_groupe_primitive(nom_groupe);
+			groupe->reserve(static_cast<long>(static_cast<float>(m_corps.prims()->taille()) * mult));
+
+			for (auto i = depart; i < m_corps.prims()->taille(); i += decalage) {
+				if (dist(rng) > probabilite) {
+					continue;
+				}
+
+				groupe->ajoute_primitive(static_cast<size_t>(i));
+			}
+		}
+		else {
+			std::stringstream ss;
+			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
+			ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_3d(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCamera>());
@@ -2304,6 +2441,8 @@ void enregistre_operatrices_3d(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());
 
 	usine.enregistre_type(cree_desc<OperatriceTransformation>());
+
+	usine.enregistre_type(cree_desc<OperatriceCreationGroupe>());
 }
 
 #pragma clang diagnostic pop
