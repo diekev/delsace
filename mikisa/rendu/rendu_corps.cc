@@ -339,9 +339,11 @@ static TamponRendu *cree_tampon_segments()
 
 	ParametresProgramme parametre_programme;
 	parametre_programme.ajoute_attribut("sommets");
+	parametre_programme.ajoute_attribut("couleur_sommet");
 	parametre_programme.ajoute_uniforme("matrice");
 	parametre_programme.ajoute_uniforme("MVP");
 	parametre_programme.ajoute_uniforme("couleur");
+	parametre_programme.ajoute_uniforme("possede_couleur_sommet");
 
 	tampon->parametres_programme(parametre_programme);
 
@@ -453,6 +455,7 @@ void RenduCorps::initialise()
 	}
 
 	std::vector<dls::math::vec3f> points;
+	std::vector<dls::math::vec3f> couleurs;
 	points.reserve(static_cast<size_t>(liste_points->taille()));
 
 	for (Point3D *point : liste_points->points()) {
@@ -474,6 +477,22 @@ void RenduCorps::initialise()
 	m_tampon_points->parametres_dessin(parametres_dessin);
 
 	m_tampon_points->remplie_tampon(parametres_tampon);
+
+	auto attr_C = m_corps->attribut("C");
+
+	if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
+		parametres_tampon.attribut = "couleur_sommet";
+		parametres_tampon.dimension_attribut = 3;
+		parametres_tampon.pointeur_donnees_extra = attr_C->donnees();
+		parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(attr_C->taille_octets());
+		parametres_tampon.elements = static_cast<size_t>(attr_C->taille());
+
+		m_tampon_points->remplie_tampon_extra(parametres_tampon);
+		auto programme = m_tampon_points->programme();
+		programme->active();
+		programme->uniforme("possede_couleur_sommet", 1);
+		programme->desactive();
+	}
 }
 
 void RenduCorps::dessine(ContexteRendu const &contexte)
