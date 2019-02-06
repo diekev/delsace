@@ -30,7 +30,7 @@ menu "Noeud Simulation" {
 		action(valeur="Vent"; attache=ajouter_noeud; métadonnée="Vent")
 	}
 	menu "Particules" {
-	    action(valeur="Dispersion Points"; attache=ajouter_noeud; métadonnée="Dispersion Points")
+	    action(valeur="Création Points"; attache=ajouter_noeud; métadonnée="Création Points")
 		action(valeur="Suppression Points"; attache=ajouter_noeud; métadonnée="Suppression Points")
 		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
 	}
