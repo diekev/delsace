@@ -146,6 +146,78 @@ public:
 
 /* ************************************************************************** */
 
+/* À FAIRE : manipulatrice dédiée pour la position/orientation. */
+class OperatriceVent : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Vent";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceVent(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_vent.jo";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(const Rectangle &rectangle, const int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto liste_points = m_corps.points();
+		auto const nombre_points = liste_points->taille();
+		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+
+		auto direction = evalue_vecteur("direction", temps);
+		auto amplitude = evalue_decimal("amplitude", temps);
+
+		auto force_max = direction * amplitude;
+
+		/* À FAIRE : vent
+		 * - intégration des forces dans le désordre (gravité après vent) par
+		 *   exemple en utilisant un attribut extra.
+		 * - turbulence
+		 */
+		for (long i = 0; i < nombre_points; ++i) {
+			auto force = attr_F->vec3(i);
+
+			for (size_t j = 0; j < 3; ++j) {
+				force[j] = std::min(force_max[j], force[j] + force_max[j]);
+			}
+
+			attr_F->vec3(i, force);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 class OperatriceSolveurParticules : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Solveur Particules";
@@ -235,6 +307,7 @@ public:
 			liste_points->point(i, npos);
 			attr_V->vec3(i, velocite);
 			attr_P->vec3(i, pos);
+			attr_F->vec3(i, dls::math::vec3f(0.0f));
 		}
 
 		return EXECUTION_REUSSIE;
@@ -582,6 +655,7 @@ void enregistre_operatrices_simulations(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceGravite>());
 	usine.enregistre_type(cree_desc<OperatriceSolveurParticules>());
 	usine.enregistre_type(cree_desc<OperatriceCollision>());
+	usine.enregistre_type(cree_desc<OperatriceVent>());
 }
 
 #pragma clang diagnostic pop

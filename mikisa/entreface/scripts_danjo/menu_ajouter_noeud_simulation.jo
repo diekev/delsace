@@ -24,6 +24,7 @@ menu "Noeud Simulation" {
 	    action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
 		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
 		action(valeur="Solveur Particules"; attache=ajouter_noeud; métadonnée="Solveur Particules")
+		action(valeur="Vent"; attache=ajouter_noeud; métadonnée="Vent")
 	}
 	menu "Particules" {
 	    action(valeur="Dispersion Points"; attache=ajouter_noeud; métadonnée="Dispersion Points")

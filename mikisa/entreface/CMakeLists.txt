@@ -135,6 +135,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_tournoiement.jo
 	scripts_danjo/operatrice_traduction.jo
 	scripts_danjo/operatrice_transformation.jo
+	scripts_danjo/operatrice_vent.jo
 	scripts_danjo/operatrice_visionnage.jo
 	scripts_danjo/parametres_projet.jo
 	scripts_danjo/preferences.jo

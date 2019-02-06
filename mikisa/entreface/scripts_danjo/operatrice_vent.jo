@@ -1,0 +1,10 @@
+disposition "operatrice_vent" {
+    ligne {
+	    étiquette(valeur="Direction")
+		vecteur(valeur="0.0, 0.0, 0.0"; attache=direction)
+	}
+	ligne {
+	    étiquette(valeur="Amplitude")
+		décimal(valeur=1.0; attache=amplitude; min=0)
+	}
+}
