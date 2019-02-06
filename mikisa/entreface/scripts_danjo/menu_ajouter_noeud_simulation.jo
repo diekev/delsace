@@ -5,6 +5,12 @@ menu "Noeud Simulation" {
 		action(valeur="Entrée Simulation"; attache=ajouter_noeud; métadonnée="Entrée Simulation")
 		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
 	}
+	menu "Attribut" {
+	    action(valeur="Couleur"; attache=ajouter_noeud; métadonnée="Couleur")
+		action(valeur="Création Attribut"; attache=ajouter_noeud; métadonnée="Création Attribut")
+		action(valeur="Randomisation Attribut"; attache=ajouter_noeud; métadonnée="Randomisation Attribut")
+		action(valeur="Suppression Attribut"; attache=ajouter_noeud; métadonnée="Suppression Attribut")
+	}
 	menu "Cheveux" {
 	    action(valeur="Masse Ressort"; attache=ajouter_noeud; métadonnée="Masse Ressort")
 	}
