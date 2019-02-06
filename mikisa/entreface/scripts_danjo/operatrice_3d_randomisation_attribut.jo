@@ -8,6 +8,17 @@ disposition "operatrice_3d_randomisation_attribut" {
 		entier(valeur=1; attache=graine; min=1)
 	}
 	ligne {
+	    étiquette(valeur="Opération")
+		énum(valeur="remplace"; attache=opération;
+		    items=[
+			    {nom="Ajoute", valeur="ajoute"},
+				{nom="Remplace", valeur="remplace"},
+				{nom="Maximum", valeur="maximum"},
+				{nom="Minimum", valeur="minimum"},
+				{nom="Multiplie", valeur="multiplie"}
+				])
+		}
+	ligne {
 	    étiquette(valeur="Distribution")
 		énum(valeur="constante"; attache=distribution;
 		    items=[

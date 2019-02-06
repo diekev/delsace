@@ -1328,6 +1328,43 @@ public:
 
 /* ************************************************************************** */
 
+enum class op_rand_attr {
+	REMPLACE,
+	AJOUTE,
+	MULTIPLIE,
+	MINIMUM,
+	MAXIMUM,
+};
+
+template <typename T>
+auto applique_op(op_rand_attr op, T const &a, T const &b)
+{
+	switch (op) {
+		case op_rand_attr::REMPLACE:
+		{
+			return b;
+		}
+		case op_rand_attr::AJOUTE:
+		{
+			/* L'addition de 'char' convertie en 'int'. */
+			return static_cast<T>(a + b);
+		}
+		case op_rand_attr::MULTIPLIE:
+		{
+			/* La multiplication de 'char' convertie en 'int'. */
+			return static_cast<T>(a * b);
+		}
+		case op_rand_attr::MINIMUM:
+		{
+			return (a < b) ? a : b;
+		}
+		case op_rand_attr::MAXIMUM:
+		{
+			return (a > b) ? a : b;
+		}
+	}
+}
+
 /* À FAIRE : considère avoir un noeud spécial pour les couleurs. */
 class OperatriceRandomisationAttribut final : public OperatriceCorps {
 public:
@@ -1379,6 +1416,7 @@ public:
 		auto const val_max = evalue_decimal("valeur_max");
 		auto const moyenne = evalue_decimal("moyenne");
 		auto const ecart_type = evalue_decimal("écart_type");
+		auto const enum_operation = evalue_enum("opération");
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
@@ -1392,6 +1430,30 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		op_rand_attr operation;
+
+		if (enum_operation == "remplace") {
+			operation = op_rand_attr::REMPLACE;
+		}
+		else if (enum_operation == "ajoute") {
+			operation = op_rand_attr::AJOUTE;
+		}
+		else if (enum_operation == "multiplie") {
+			operation = op_rand_attr::MULTIPLIE;
+		}
+		else if (enum_operation == "minimum") {
+			operation = op_rand_attr::MINIMUM;
+		}
+		else if (enum_operation == "maximum") {
+			operation = op_rand_attr::MAXIMUM;
+		}
+		else {
+			std::stringstream ss;
+			ss << "Opération '" << enum_operation << "' inconnue !";
+			ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
 		switch (attrib->type()) {
 			case type_attribut::ENT8:
 			{
@@ -1399,21 +1461,21 @@ public:
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->ent8()) {
-						v = static_cast<char>(constante);
+						v = applique_op(operation, v, static_cast<char>(constante));
 					}
 				}
 				else if (distribution == "uniforme") {
 					std::uniform_int_distribution<char> dist(-128, 127);
 
 					for (auto &v : attrib->ent8()) {
-						v = dist(rng);
+						v = applique_op(operation, v, dist(rng));
 					}
 				}
 				else if (distribution == "gaussienne") {
 					std::normal_distribution<float> dist(moyenne, ecart_type);
 
 					for (auto &v : attrib->ent8()) {
-						v = static_cast<char>(dist(rng));
+						v = applique_op(operation, v, static_cast<char>(dist(rng)));
 					}
 				}
 
@@ -1424,21 +1486,21 @@ public:
 				std::mt19937 rng(graine);
 				if (distribution == "constante") {
 					for (auto &v : attrib->ent32()) {
-						v = static_cast<int>(constante);
+						v = applique_op(operation, v, static_cast<int>(constante));
 					}
 				}
 				else if (distribution == "uniforme") {
 					std::uniform_int_distribution<int> dist(0, std::numeric_limits<int>::max() - 1);
 
 					for (auto &v : attrib->ent32()) {
-						v = dist(rng);
+						v = applique_op(operation, v, dist(rng));
 					}
 				}
 				else if (distribution == "gaussienne") {
 					std::normal_distribution<float> dist(moyenne, ecart_type);
 
 					for (auto &v : attrib->ent32()) {
-						v = static_cast<int>(dist(rng));
+						v = applique_op(operation, v, static_cast<int>(dist(rng)));
 					}
 				}
 
@@ -1450,21 +1512,21 @@ public:
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->decimal()) {
-						v = constante;
+						v = applique_op(operation, v, constante);
 					}
 				}
 				else if (distribution == "uniforme") {
 					std::uniform_real_distribution<float> dist(val_min, val_max);
 
 					for (auto &v : attrib->decimal()) {
-						v = dist(rng);
+						v = applique_op(operation, v, dist(rng));
 					}
 				}
 				else if (distribution == "gaussienne") {
 					std::normal_distribution<float> dist(moyenne, ecart_type);
 
 					for (auto &v : attrib->decimal()) {
-						v = dist(rng);
+						v = applique_op(operation, v, dist(rng));
 					}
 				}
 
@@ -1481,24 +1543,24 @@ public:
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->vec2()) {
-						v.x = constante;
-						v.y = constante;
+						v.x = applique_op(operation, v.x, constante);
+						v.y = applique_op(operation, v.y, constante);
 					}
 				}
 				else if (distribution == "uniforme") {
 					std::uniform_real_distribution<float> dist(val_min, val_max);
 
 					for (auto &v : attrib->vec2()) {
-						v.x = dist(rng);
-						v.y = dist(rng);
+						v.x = applique_op(operation, v.x, dist(rng));
+						v.y = applique_op(operation, v.y, dist(rng));
 					}
 				}
 				else if (distribution == "gaussienne") {
 					std::normal_distribution<float> dist(moyenne, ecart_type);
 
 					for (auto &v : attrib->vec2()) {
-						v.x = dist(rng);
-						v.y = dist(rng);
+						v.x = applique_op(operation, v.x, dist(rng));
+						v.y = applique_op(operation, v.y, dist(rng));
 					}
 				}
 
@@ -1510,27 +1572,27 @@ public:
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->vec3()) {
-						v.x = constante;
-						v.y = constante;
-						v.z = constante;
+						v.x = applique_op(operation, v.x, constante);
+						v.y = applique_op(operation, v.y, constante);
+						v.z = applique_op(operation, v.z, constante);
 					}
 				}
 				else if (distribution == "uniforme") {
 					std::uniform_real_distribution<float> dist(val_min, val_max);
 
 					for (auto &v : attrib->vec3()) {
-						v.x = dist(rng);
-						v.y = dist(rng);
-						v.z = dist(rng);
+						v.x = applique_op(operation, v.x, dist(rng));
+						v.y = applique_op(operation, v.y, dist(rng));
+						v.z = applique_op(operation, v.z, dist(rng));
 					}
 				}
 				else if (distribution == "gaussienne") {
 					std::normal_distribution<float> dist(moyenne, ecart_type);
 
 					for (auto &v : attrib->vec3()) {
-						v.x = dist(rng);
-						v.y = dist(rng);
-						v.z = dist(rng);
+						v.x = applique_op(operation, v.x, dist(rng));
+						v.y = applique_op(operation, v.y, dist(rng));
+						v.z = applique_op(operation, v.z, dist(rng));
 					}
 				}
 
@@ -1542,30 +1604,30 @@ public:
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->vec4()) {
-						v.x = constante;
-						v.y = constante;
-						v.z = constante;
-						v.w = constante;
+						v.x = applique_op(operation, v.x, constante);
+						v.y = applique_op(operation, v.y, constante);
+						v.z = applique_op(operation, v.z, constante);
+						v.w = applique_op(operation, v.w, constante);
 					}
 				}
 				else if (distribution == "uniforme") {
 					std::uniform_real_distribution<float> dist(val_min, val_max);
 
 					for (auto &v : attrib->vec4()) {
-						v.x = dist(rng);
-						v.y = dist(rng);
-						v.z = dist(rng);
-						v.w = dist(rng);
+						v.x = applique_op(operation, v.x, dist(rng));
+						v.y = applique_op(operation, v.y, dist(rng));
+						v.z = applique_op(operation, v.z, dist(rng));
+						v.w = applique_op(operation, v.w, dist(rng));
 					}
 				}
 				else if (distribution == "gaussienne") {
 					std::normal_distribution<float> dist(moyenne, ecart_type);
 
 					for (auto &v : attrib->vec4()) {
-						v.x = dist(rng);
-						v.y = dist(rng);
-						v.z = dist(rng);
-						v.w = dist(rng);
+						v.x = applique_op(operation, v.x, dist(rng));
+						v.y = applique_op(operation, v.y, dist(rng));
+						v.z = applique_op(operation, v.z, dist(rng));
+						v.w = applique_op(operation, v.w, dist(rng));
 					}
 				}
 
