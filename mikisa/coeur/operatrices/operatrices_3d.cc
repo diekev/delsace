@@ -1713,7 +1713,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
-		auto const graine = evalue_entier("graine");
+		auto const graine = evalue_entier("graine", temps);
 		auto const couleur_ = evalue_couleur("couleur_");
 		auto const methode = evalue_enum("méthode");
 		auto const portee = evalue_enum("portée");
