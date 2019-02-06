@@ -1,0 +1,6 @@
+disposition "operatrice_gravite" {
+    ligne {
+	    étiquette(valeur="Gravité")
+		vecteur(valeur="0.0, -9.80665, 0.0"; attache=gravité)
+	}
+}

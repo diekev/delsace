@@ -101,6 +101,64 @@ public:
 
 	const char *chemin_entreface() const override
 	{
+		return "entreface/operatrice_gravite.jo";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(const Rectangle &rectangle, const int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto liste_points = m_corps.points();
+		auto const nombre_points = liste_points->taille();
+		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+
+		auto gravite = evalue_vecteur("gravité", temps);
+
+		/* À FAIRE : f = m * a => multiplier par la masse? */
+		for (long i = 0; i < nombre_points; ++i) {
+			attr_F->vec3(i, gravite);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OperatriceSolveurParticules : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Solveur Particules";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceSolveurParticules(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
 		return "";
 	}
 
@@ -132,8 +190,8 @@ public:
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
 		auto attr_P = m_corps.ajoute_attribut("pos_pre", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
 
-		auto m_gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};
 		/* À FAIRE : passe le temps par image en paramètre. */
 		auto const temps_par_image = 1.0f / 24.0f;
 		/* À FAIRE : masse comme propriété des particules */
@@ -141,16 +199,22 @@ public:
 		auto const masse_inverse = 1.0f / masse;
 
 		/* ajoute attribut vélocité */
-		auto attr_V = m_corps.ajoute_attribut("part_V", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_V = m_corps.ajoute_attribut("V", type_attribut::VEC3, portee_attr::POINT);
+
+		/* Ajourne la position des particules selon les équations :
+		 * v(t) = F(t)dt
+		 * x(t) = v(t)dt
+		 *
+		 * Voir :
+		 * Physically Based Modeling: Principles and Practice
+		 * https://www.cs.cmu.edu/~baraff/sigcourse/
+		 */
 
 		for (long i = 0; i < nombre_points; ++i) {
 			auto pos = liste_points->point(i);
 
-			/* f = m * a */
-			auto const force = masse * m_gravite;
-
 			/* a = f / m */
-			auto const acceleration = force * masse_inverse;
+			auto const acceleration = attr_F->vec3(i) * masse_inverse;
 
 			/* velocite = acceleration * temp_par_image + velocite */
 			auto velocite = attr_V->vec3(i) + acceleration * temps_par_image;
@@ -320,7 +384,7 @@ public:
 		auto const rayon = evalue_decimal("rayon", temps);
 
 		/* ajoute attribut vélocité */
-		auto attr_V = m_corps.attribut("part_V");
+		auto attr_V = m_corps.attribut("V");
 
 		if (attr_V == nullptr) {
 			ajoute_avertissement("Aucune attribut de vélocité trouvé !");
@@ -440,6 +504,7 @@ void enregistre_operatrices_simulations(UsineOperatrice &usine)
 
 	usine.enregistre_type(cree_desc<OperatriceEntreeSimulation>());
 	usine.enregistre_type(cree_desc<OperatriceGravite>());
+	usine.enregistre_type(cree_desc<OperatriceSolveurParticules>());
 	usine.enregistre_type(cree_desc<OperatriceCollision>());
 }
 
