@@ -210,7 +210,17 @@ public:
 		 * https://www.cs.cmu.edu/~baraff/sigcourse/
 		 */
 
+		auto attr_desactiv = m_corps.ajoute_attribut("part_desactiv",
+												  type_attribut::ENT8,
+												  portee_attr::POINT);
+
 		for (long i = 0; i < nombre_points; ++i) {
+			auto desactivee = attr_desactiv->ent8(i);
+
+			if (desactivee == 1) {
+				continue;
+			}
+
 			auto pos = liste_points->point(i);
 
 			/* a = f / m */
@@ -321,6 +331,66 @@ static bool entresecte_triangle(Triangle const &triangle, Rayon const &rayon, fl
 	return false;
 }
 
+static long cherche_collision(
+		Corps const *corps_collision,
+		Rayon const &rayon_part,
+		float &dist)
+{
+	auto const prims_collision = corps_collision->prims();
+	auto const points_collision = corps_collision->points();
+
+	/* À FAIRE : collision particules
+	 * - structure accélération
+	 */
+	for (Primitive *prim : prims_collision->prims()) {
+		if (prim->type_prim() != type_primitive::POLYGONE) {
+			continue;
+		}
+
+		auto poly = dynamic_cast<Polygone *>(prim);
+
+		if (poly->type != type_polygone::FERME) {
+			continue;
+		}
+
+		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
+			auto const &v0 = points_collision->point(poly->index_point(0));
+			auto const &v1 = points_collision->point(poly->index_point(j - 1));
+			auto const &v2 = points_collision->point(poly->index_point(j));
+
+			auto const &v0_d = corps_collision->transformation(dls::math::point3d(v0));
+			auto const &v1_d = corps_collision->transformation(dls::math::point3d(v1));
+			auto const &v2_d = corps_collision->transformation(dls::math::point3d(v2));
+
+			auto triangle = Triangle{};
+			triangle.v0 = dls::math::vec3f(
+							  static_cast<float>(v0_d.x),
+							  static_cast<float>(v0_d.y),
+							  static_cast<float>(v0_d.z));
+			triangle.v1 = dls::math::vec3f(
+							  static_cast<float>(v1_d.x),
+							  static_cast<float>(v1_d.y),
+							  static_cast<float>(v1_d.z));
+			triangle.v2 = dls::math::vec3f(
+							  static_cast<float>(v2_d.x),
+							  static_cast<float>(v2_d.y),
+							  static_cast<float>(v2_d.z));
+
+			if (entresecte_triangle(triangle, rayon_part, dist)) {
+				return static_cast<long>(prim->index);
+			}
+		}
+	}
+
+	return -1;
+}
+
+enum rep_collision {
+	RIEN,
+	REBONDIS,
+	COLLE,
+};
+
 class OperatriceCollision : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Collision";
@@ -398,13 +468,41 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto const chaine_reponse = evalue_enum("réponse_collision");
+		rep_collision reponse;
+
+		if (chaine_reponse == "rien") {
+			reponse = rep_collision::RIEN;
+		}
+		else if (chaine_reponse == "rebondis") {
+			reponse = rep_collision::REBONDIS;
+		}
+		else if (chaine_reponse == "colle") {
+			reponse = rep_collision::COLLE;
+		}
+		else {
+			std::stringstream ss;
+			ss << "Opération '" << chaine_reponse << "' inconnue\n";
+			this->ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto groupe = m_corps.ajoute_groupe_point("collision");
 		groupe->reinitialise();
+
+		auto attr_desactiv = m_corps.ajoute_attribut("part_desactiv",
+												  type_attribut::ENT8,
+												  portee_attr::POINT);
 
 		for (long i = 0; i < nombre_points; ++i) {
 			auto pos_cou = liste_points->point(i);
 			auto vel = attr_V->vec3(i);
 			auto pos_pre = attr_P->vec3(i);
+			auto desactivee = attr_desactiv->ent8(i);
+
+			if (desactivee == 1) {
+				continue;
+			}
 
 			/* Calcul la position en espace objet. */
 			auto pos_monde_d = m_corps.transformation(dls::math::point3d(pos_pre));
@@ -417,55 +515,31 @@ public:
 			rayon_part.origine = pos_monde;
 			rayon_part.direction = normalise(pos_cou - pos_pre);
 
-			/* À FAIRE : collision particules
-			 * - structure accélération
-			 */
-			for (Primitive *prim : prims_collision->prims()) {
-				if (prim->type_prim() != type_primitive::POLYGONE) {
-					continue;
+			auto dist = 1000.0f;
+			auto index_prim = cherche_collision(corps_collision, rayon_part, dist);
+
+			if (index_prim < 0) {
+				continue;
+			}
+
+			if (dist > rayon) {
+				continue;
+			}
+
+			groupe->ajoute_point(static_cast<size_t>(i));
+
+			switch (reponse) {
+				case rep_collision::RIEN:
+				{
+					break;
 				}
-
-				auto poly = dynamic_cast<Polygone *>(prim);
-
-				if (poly->type != type_polygone::FERME) {
-					continue;
-				}
-
-				auto collision_trouvee = false;
-
-				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
+				case rep_collision::REBONDIS:
+				{
+					auto prim = prims_collision->prim(static_cast<size_t>(index_prim));
+					auto poly = dynamic_cast<Polygone *>(prim);
 					auto const &v0 = points_collision->point(poly->index_point(0));
-					auto const &v1 = points_collision->point(poly->index_point(j - 1));
-					auto const &v2 = points_collision->point(poly->index_point(j));
-
-					auto const &v0_d = corps_collision->transformation(dls::math::point3d(v0));
-					auto const &v1_d = corps_collision->transformation(dls::math::point3d(v1));
-					auto const &v2_d = corps_collision->transformation(dls::math::point3d(v2));
-
-					auto triangle = Triangle{};
-					triangle.v0 = dls::math::vec3f(
-									  static_cast<float>(v0_d.x),
-									  static_cast<float>(v0_d.y),
-									  static_cast<float>(v0_d.z));
-					triangle.v1 = dls::math::vec3f(
-									  static_cast<float>(v1_d.x),
-									  static_cast<float>(v1_d.y),
-									  static_cast<float>(v1_d.z));
-					triangle.v2 = dls::math::vec3f(
-									  static_cast<float>(v2_d.x),
-									  static_cast<float>(v2_d.y),
-									  static_cast<float>(v2_d.z));
-
-					auto dist = 1000.0f;
-					if (!entresecte_triangle(triangle, rayon_part, dist)) {
-						continue;
-					}
-
-					if (dist > rayon) {
-						continue;
-					}
-
-					groupe->ajoute_point(static_cast<size_t>(i));
+					auto const &v1 = points_collision->point(poly->index_point(1));
+					auto const &v2 = points_collision->point(poly->index_point(2));
 
 					auto const e1 = v1 - v0;
 					auto const e2 = v2 - v0;
@@ -481,12 +555,14 @@ public:
 					 * d'élasticité. */
 					vel = -elasticite * nv + tv;
 					attr_V->vec3(i, vel);
-
-					collision_trouvee = true;
 					break;
 				}
-
-				if (collision_trouvee) {
+				case rep_collision::COLLE:
+				{
+					pos_cou = pos_pre + dist * rayon_part.direction;
+					liste_points->point(i, pos_cou);
+					attr_V->vec3(i, dls::math::vec3f(0.0f));
+					attr_desactiv->ent8(i, 1);
 					break;
 				}
 			}
