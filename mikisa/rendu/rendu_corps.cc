@@ -242,6 +242,7 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs)
 	parametre_programme.ajoute_attribut("sommets");
 	parametre_programme.ajoute_attribut("normaux");
 	parametre_programme.ajoute_attribut("uvs");
+	parametre_programme.ajoute_attribut("couleurs");
 	parametre_programme.ajoute_uniforme("matrice");
 	parametre_programme.ajoute_uniforme("MVP");
 	parametre_programme.ajoute_uniforme("MV");
@@ -268,8 +269,10 @@ void ajoute_polygone_surface(
 		Polygone *polygone,
 		ListePoints3D *liste_points,
 		Attribut *attr_normaux,
+		Attribut *attr_couleurs,
 		std::vector<dls::math::vec3f> &points,
-		std::vector<dls::math::vec3f> &normaux)
+		std::vector<dls::math::vec3f> &normaux,
+		std::vector<dls::math::vec3f> &couleurs)
 {
 	for (long i = 2; i < polygone->nombre_sommets(); ++i) {
 		points.push_back(liste_points->point(polygone->index_point(0)));
@@ -287,6 +290,24 @@ void ajoute_polygone_surface(
 				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
 				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
 			}
+		}
+
+		if (attr_couleurs) {
+			if (attr_couleurs->portee == portee_attr::POINT) {
+				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(0)));
+				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(i - 1)));
+				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(i)));
+			}
+			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+			}
+		}
+		else {
+			couleurs.push_back(dls::math::vec3f(0.5f));
+			couleurs.push_back(dls::math::vec3f(0.5f));
+			couleurs.push_back(dls::math::vec3f(0.5f));
 		}
 	}
 }
@@ -360,9 +381,11 @@ void RenduCorps::initialise()
 
 	if (liste_prims->taille() != 0l) {
 		auto attr_N = m_corps->attribut("N");
+		auto attr_C = m_corps->attribut("C");
 		std::vector<dls::math::vec3f> points_polys;
 		std::vector<dls::math::vec3f> points_segment;
 		std::vector<dls::math::vec3f> normaux;
+		std::vector<dls::math::vec3f> couleurs;
 
 		for (Primitive *prim : liste_prims->prims()) {
 			if (prim->type_prim() != type_primitive::POLYGONE) {
@@ -371,7 +394,7 @@ void RenduCorps::initialise()
 
 			auto polygone = dynamic_cast<Polygone *>(prim);
 			if (polygone->type == type_polygone::FERME) {
-				ajoute_polygone_surface(polygone, liste_points, attr_N, points_polys, normaux);
+				ajoute_polygone_surface(polygone, liste_points, attr_N, attr_C, points_polys, normaux, couleurs);
 			}
 			else if (polygone->type == type_polygone::OUVERT) {
 				ajoute_polygone_segment(polygone, liste_points, points_segment);
@@ -396,6 +419,16 @@ void RenduCorps::initialise()
 				parametres_tampon.pointeur_donnees_extra = normaux.data();
 				parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
 				parametres_tampon.elements = normaux.size();
+
+				m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
+			}
+
+			if (couleurs.size() != 0) {
+				parametres_tampon.attribut = "couleurs";
+				parametres_tampon.dimension_attribut = 3;
+				parametres_tampon.pointeur_donnees_extra = couleurs.data();
+				parametres_tampon.taille_octet_donnees_extra = couleurs.size() * sizeof(dls::math::vec3f);
+				parametres_tampon.elements = couleurs.size();
 
 				m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
 			}

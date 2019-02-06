@@ -4,6 +4,7 @@ layout(location = 0) out vec4 couleur_sortie;
 
 smooth in vec3 normal;
 smooth in vec3 sommet;
+smooth in vec3 couleur;
 smooth in vec2 UV;
 smooth in mat4 mat;
 
@@ -162,6 +163,6 @@ void main()
 		couleur_sortie = projection_uv(sommet);
 	}
 	else {
-		couleur_sortie = vec4((normal + 1.0) * 0.5, 1.0);
+		couleur_sortie = vec4(couleur, 1.0);
 	}
 }
