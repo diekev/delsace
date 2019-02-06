@@ -315,11 +315,28 @@ void ajoute_polygone_surface(
 void ajoute_polygone_segment(
 		Polygone *polygone,
 		ListePoints3D *liste_points,
-		std::vector<dls::math::vec3f> &points)
+		Attribut *attr_couleurs,
+		std::vector<dls::math::vec3f> &points,
+		std::vector<dls::math::vec3f> &couleurs)
 {
 	for (long i = 0; i < polygone->nombre_segments(); ++i) {
 		points.push_back(liste_points->point(polygone->index_point(i)));
 		points.push_back(liste_points->point(polygone->index_point(i + 1)));
+
+		if (attr_couleurs) {
+			if (attr_couleurs->portee == portee_attr::POINT) {
+				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(0)));
+				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(i + 1)));
+			}
+			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+			}
+		}
+		else {
+			couleurs.push_back(dls::math::vec3f(0.5f));
+			couleurs.push_back(dls::math::vec3f(0.5f));
+		}
 	}
 }
 
@@ -387,7 +404,8 @@ void RenduCorps::initialise()
 		std::vector<dls::math::vec3f> points_polys;
 		std::vector<dls::math::vec3f> points_segment;
 		std::vector<dls::math::vec3f> normaux;
-		std::vector<dls::math::vec3f> couleurs;
+		std::vector<dls::math::vec3f> couleurs_polys;
+		std::vector<dls::math::vec3f> couleurs_segment;
 
 		for (Primitive *prim : liste_prims->prims()) {
 			if (prim->type_prim() != type_primitive::POLYGONE) {
@@ -396,10 +414,10 @@ void RenduCorps::initialise()
 
 			auto polygone = dynamic_cast<Polygone *>(prim);
 			if (polygone->type == type_polygone::FERME) {
-				ajoute_polygone_surface(polygone, liste_points, attr_N, attr_C, points_polys, normaux, couleurs);
+				ajoute_polygone_surface(polygone, liste_points, attr_N, attr_C, points_polys, normaux, couleurs_polys);
 			}
 			else if (polygone->type == type_polygone::OUVERT) {
-				ajoute_polygone_segment(polygone, liste_points, points_segment);
+				ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment, couleurs_segment);
 			}
 		}
 
@@ -425,12 +443,12 @@ void RenduCorps::initialise()
 				m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
 			}
 
-			if (couleurs.size() != 0) {
+			if (couleurs_polys.size() != 0) {
 				parametres_tampon.attribut = "couleurs";
 				parametres_tampon.dimension_attribut = 3;
-				parametres_tampon.pointeur_donnees_extra = couleurs.data();
-				parametres_tampon.taille_octet_donnees_extra = couleurs.size() * sizeof(dls::math::vec3f);
-				parametres_tampon.elements = couleurs.size();
+				parametres_tampon.pointeur_donnees_extra = couleurs_polys.data();
+				parametres_tampon.taille_octet_donnees_extra = couleurs_polys.size() * sizeof(dls::math::vec3f);
+				parametres_tampon.elements = couleurs_polys.size();
 
 				m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
 			}
@@ -447,6 +465,21 @@ void RenduCorps::initialise()
 			parametres_tampon.elements = points_segment.size();
 
 			m_tampon_segments->remplie_tampon(parametres_tampon);
+
+			if (couleurs_segment.size() != 0) {
+				parametres_tampon.attribut = "couleur_sommet";
+				parametres_tampon.dimension_attribut = 3;
+				parametres_tampon.pointeur_donnees_extra = couleurs_segment.data();
+				parametres_tampon.taille_octet_donnees_extra = couleurs_segment.size() * sizeof(dls::math::vec3f);
+				parametres_tampon.elements = couleurs_segment.size();
+
+				m_tampon_segments->remplie_tampon_extra(parametres_tampon);
+
+				auto programme = m_tampon_segments->programme();
+				programme->active();
+				programme->uniforme("possede_couleur_sommet", 1);
+				programme->desactive();
+			}
 		}
 	}
 
