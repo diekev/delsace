@@ -85,6 +85,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_3d_randomisation_attribut.jo
 	scripts_danjo/operatrice_3d_suppression_attribut.jo
 	scripts_danjo/operatrice_analyse.jo
+	scripts_danjo/operatrice_attr_couleur.jo
 	scripts_danjo/operatrice_camera.jo
 	scripts_danjo/operatrice_champs_distance.jo
 	scripts_danjo/operatrice_collision.jo

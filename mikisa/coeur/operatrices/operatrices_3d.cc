@@ -1363,9 +1363,10 @@ auto applique_op(op_rand_attr op, T const &a, T const &b)
 			return (a > b) ? a : b;
 		}
 	}
+
+	return b;
 }
 
-/* À FAIRE : considère avoir un noeud spécial pour les couleurs. */
 class OperatriceRandomisationAttribut final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Randomisation Attribut";
@@ -1647,6 +1648,106 @@ public:
 			{
 				ajoute_avertissement("Type d'attribut invalide !");
 				break;
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool ajourne_proprietes() override
+	{
+#if 0 /* À FAIRE : ajournement de l'entreface. */
+		auto const distribution = evalue_enum("distribution");
+
+		rend_propriete_visible("constante", distribution == "constante");
+		rend_propriete_visible("min_value", distribution == "uniforme");
+		rend_propriete_visible("max_value", distribution == "uniforme");
+		rend_propriete_visible("moyenne", distribution == "gaussienne");
+		rend_propriete_visible("ecart_type", distribution == "gaussienne");
+#endif
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
+class OperatriceAjoutCouleur final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Couleur";
+	static constexpr auto AIDE = "Ajoute un attribut de couleur à la géométrie entrante.";
+
+	explicit OperatriceAjoutCouleur(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_attr_couleur.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto const graine = evalue_entier("graine");
+		auto const couleur_ = evalue_couleur("couleur_");
+		auto const methode = evalue_enum("méthode");
+		auto const portee = evalue_enum("portée");
+
+		auto attrib = static_cast<Attribut *>(nullptr);
+
+		if (portee == "points") {
+			attrib = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+			attrib->reinitialise();
+			attrib->redimensionne(m_corps.points()->taille());
+		}
+		else if (portee == "primitives") {
+			attrib = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+			attrib->reinitialise();
+			attrib->redimensionne(m_corps.prims()->taille());
+		}
+		else {
+			std::stringstream ss;
+			ss << "Portée '" << portee << "' non-supportée !";
+			ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (methode == "unique") {
+			for (auto i = 0; i < attrib->taille(); ++i) {
+				attrib->vec3(i, dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
+			}
+		}
+		else if (methode == "aléatoire") {
+			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+			std::mt19937 rng(graine);
+
+			for (auto i = 0; i < attrib->taille(); ++i) {
+				attrib->vec3(i, dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
 			}
 		}
 
@@ -2141,6 +2242,7 @@ void enregistre_operatrices_3d(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceOpenSubDiv>());
 
 	usine.enregistre_type(cree_desc<OperatriceCreationAttribut>());
+	usine.enregistre_type(cree_desc<OperatriceAjoutCouleur>());
 	usine.enregistre_type(cree_desc<OperatriceSuppressionAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceRandomisationAttribut>());
 
