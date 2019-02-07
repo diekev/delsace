@@ -10,7 +10,7 @@ disposition "operatrice_bruit" {
 	}
 	ligne {
 	    étiquette(valeur="Fréquence")
-		vecteur(valeur="1,1,1"; attache=fréquence; min=0; max=10)
+		vecteur(valeur="1,1,1"; attache=fréquence; min=0)
 	}
 	ligne {
 	    étiquette(valeur="Décalage")
