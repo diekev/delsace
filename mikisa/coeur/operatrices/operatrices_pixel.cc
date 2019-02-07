@@ -497,6 +497,7 @@ public:
 
 /* ************************************************************************** */
 
+/* À FAIRE : problème de concurrence critique, RNG. */
 class OperatriceBruitage final : public OperatricePixel {
 	std::mt19937 m_rng{};
 	std::uniform_real_distribution<float> m_dist{};
