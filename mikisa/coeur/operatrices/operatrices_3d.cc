@@ -1140,10 +1140,10 @@ public:
 			for (long face = 0; face < nombre_polygones; ++face) {
 				auto fverts = ref_der_niv.GetFaceVertices(static_cast<int>(face));
 
-				auto poly = Polygone::construit(&m_corps, type_polygone::FERME, static_cast<size_t>(fverts.size()));
+				auto poly = Polygone::construit(&m_corps, type_polygone::FERME, fverts.size());
 
 				for (int i = 0; i < fverts.size(); ++i) {
-					poly->ajoute_sommet(static_cast<size_t>(fverts[i]));
+					poly->ajoute_sommet(fverts[i]);
 				}
 			}
 		}
