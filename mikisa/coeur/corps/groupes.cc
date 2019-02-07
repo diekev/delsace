@@ -102,3 +102,83 @@ GroupePrimitive::plage_prims_const GroupePrimitive::index() const
 {
 	return plage_prims_const(m_primitives.cbegin(), m_primitives.cend());
 }
+
+/* ************************************************************************** */
+
+iteratrice_index::iteratrice::iteratrice(long nombre)
+	: m_est_groupe(false)
+	, m_etat_nombre(nombre)
+{}
+
+iteratrice_index::iteratrice::iteratrice(std::vector<size_t>::iterator iter)
+	: m_est_groupe(true)
+	, m_etat_iter(iter)
+{}
+
+long iteratrice_index::iteratrice::operator*()
+{
+	if (m_est_groupe) {
+		return static_cast<long>(*m_etat_iter);
+	}
+
+	return m_etat_nombre;
+}
+
+iteratrice_index::iteratrice &iteratrice_index::iteratrice::operator++()
+{
+	if (m_est_groupe) {
+		++m_etat_iter;
+	}
+	else {
+		++m_etat_nombre;
+	}
+
+	return *this;
+}
+
+bool iteratrice_index::iteratrice::est_egal(iteratrice_index::iteratrice it)
+{
+	if (m_est_groupe) {
+		return this->m_etat_iter == it.m_etat_iter;
+	}
+
+	return this->m_etat_nombre == it.m_etat_nombre;
+}
+
+/* ************************************************************************** */
+
+iteratrice_index::iteratrice_index(long nombre)
+	: m_nombre(nombre)
+	, m_courant(0)
+	, m_est_groupe(false)
+{}
+
+iteratrice_index::iteratrice_index(GroupePoint *groupe_point)
+	: m_iter_groupe(groupe_point->index().begin())
+	, m_iter_fin(groupe_point->index().end())
+	, m_est_groupe(true)
+{}
+
+iteratrice_index::iteratrice_index(GroupePrimitive *groupe_primitive)
+	: m_iter_groupe(groupe_primitive->index().begin())
+	, m_iter_fin(groupe_primitive->index().end())
+	, m_est_groupe(true)
+{}
+
+iteratrice_index::iteratrice iteratrice_index::begin()
+{
+	if (m_est_groupe) {
+		return iteratrice(m_iter_groupe);
+	}
+
+	return iteratrice(m_courant);
+}
+
+iteratrice_index::iteratrice iteratrice_index::end()
+{
+	if (m_est_groupe) {
+		return iteratrice(m_iter_fin);
+	}
+
+	return iteratrice(m_nombre);
+}

@@ -1758,51 +1758,29 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		if (groupe_points == nullptr && groupe_prims == nullptr) {
-			if (methode == "unique") {
-				for (auto i = 0; i < attrib->taille(); ++i) {
-					attrib->vec3(i, dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
-				}
-			}
-			else if (methode == "aléatoire") {
-				std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-				std::mt19937 rng(graine);
+		iteratrice_index iter;
 
-				for (auto i = 0; i < attrib->taille(); ++i) {
-					attrib->vec3(i, dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
-				}
-			}
+		if (groupe_points != nullptr) {
+			iter = iteratrice_index(groupe_points);
+		}
+		else if (groupe_prims != nullptr) {
+			iter = iteratrice_index(groupe_prims);
 		}
 		else {
-			if (groupe_points != nullptr) {
-				if (methode == "unique") {
-					for (auto index : groupe_points->index()) {
-						attrib->vec3(static_cast<long>(index), dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
-					}
-				}
-				else if (methode == "aléatoire") {
-					std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-					std::mt19937 rng(graine);
+			iter = iteratrice_index(attrib->taille());
+		}
 
-					for (auto index : groupe_points->index()) {
-						attrib->vec3(static_cast<long>(index), dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
-					}
-				}
+		if (methode == "unique") {
+			for (auto index : iter) {
+				attrib->vec3(index, dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
 			}
-			else if (groupe_prims != nullptr) {
-				if (methode == "unique") {
-					for (auto index : groupe_prims->index()) {
-						attrib->vec3(static_cast<long>(index), dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
-					}
-				}
-				else if (methode == "aléatoire") {
-					std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-					std::mt19937 rng(graine);
+		}
+		else if (methode == "aléatoire") {
+			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+			std::mt19937 rng(graine);
 
-					for (auto index : groupe_prims->index()) {
-						attrib->vec3(static_cast<long>(index), dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
-					}
-				}
+			for (auto index : iter) {
+				attrib->vec3(index, dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
 			}
 		}
 

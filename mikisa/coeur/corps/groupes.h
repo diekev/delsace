@@ -78,3 +78,86 @@ public:
 
 	plage_prims_const index() const;
 };
+
+/* ************************************************************************** */
+
+/**
+ * Classe servant à itérer sur les index des points ou des primitives contenus
+ * dans un groupe ou sur les index de l'ensemble des points ou primitives d'un
+ * corps.
+ *
+ * Le problème que l'on essaie de régler est de pouvoir avoir des algorithmes
+ * fonctionnant soit sur tout le corps, soit un groupe sans avoir à avoir une
+ * duplication des boucles. Un autre solution serait d'avoir des groupes par
+ * défaut contenant les index de tous les points ou toutes les primitives, mais
+ * cela augmenterait la consommation de mémoire.
+ */
+class iteratrice_index {
+	long m_nombre = 0;
+	long m_courant = 0;
+	std::vector<size_t>::iterator m_iter_groupe{};
+	std::vector<size_t>::iterator m_iter_fin{};
+	bool m_est_groupe = false;
+	bool m_pad[7];
+
+public:
+	/**
+	 * Classe implémentant l'incrémentation, la déréférence, et l'égalité des
+	 * iteratrices.
+	 */
+	class iteratrice {
+		bool m_est_groupe = false;
+		long m_etat_nombre = 0;
+		std::vector<size_t>::iterator m_etat_iter{};
+
+	public:
+		iteratrice(long nombre);
+
+		iteratrice(std::vector<size_t>::iterator iter);
+
+		long operator*();
+
+		iteratrice &operator++();
+
+		bool est_egal(iteratrice it);
+	};
+
+	iteratrice_index() = default;
+
+	/**
+	 * Construction à partir d'un nombre d'index, cela est pour itérer sur tout
+	 * le corps.
+	 *
+	 * L'itération se fait sur l'ensemble [0, 1, 2, ..., nombre - 1], où nombre
+	 * est soit le nombre de points, soit le nombre de primitives.
+	 */
+	explicit iteratrice_index(long nombre);
+
+	/**
+	 * Construction à partir d'un groupe de points.
+	 *
+	 * L'itération se fait sur les index contenu dans le groupe.
+	 */
+	explicit iteratrice_index(GroupePoint *groupe_point);
+
+	/**
+	 * Construction à partir d'un groupe de primitive.
+	 *
+	 * L'itération se fait sur les index contenu dans le groupe.
+	 */
+	explicit iteratrice_index(GroupePrimitive *groupe_primitive);
+
+	iteratrice begin();
+
+	iteratrice end();
+};
+
+inline bool operator==(iteratrice_index::iteratrice ita, iteratrice_index::iteratrice itb)
+{
+	return ita.est_egal(itb);
+}
+
+inline bool operator!=(iteratrice_index::iteratrice ita, iteratrice_index::iteratrice itb)
+{
+	return !(ita == itb);
+}
