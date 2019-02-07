@@ -6,7 +6,11 @@ disposition "operatrice_attr_couleur" {
     ligne {
         étiquette(valeur="Portée")
 		énum(valeur="points"; attache=portée;
-		        items=[{nom="Points", valeur="points"}, {nom="Primitive", valeur="primitives"}])
+		        items=[
+				{nom="Points", valeur="points"},
+				{nom="Primitive", valeur="primitives"},
+				{nom="Devine depuis groupe", valeur="devine_groupe"}
+				])
     }
     ligne {
         étiquette(valeur="Méthode remplissage")

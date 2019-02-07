@@ -1716,15 +1716,16 @@ public:
 		auto const graine = evalue_entier("graine", temps);
 		auto const couleur_ = evalue_couleur("couleur_");
 		auto const methode = evalue_enum("méthode");
-		auto const portee = evalue_enum("portée");
+		auto const chaine_portee = evalue_enum("portée");
 		auto const nom_groupe = evalue_chaine("nom_groupe");
 
 		auto attrib = static_cast<Attribut *>(nullptr);
 		auto groupe_points = static_cast<GroupePoint *>(nullptr);
 		auto groupe_prims  = static_cast<GroupePrimitive *>(nullptr);
+		portee_attr portee;
 
-		if (portee == "points") {
-			attrib = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		if (chaine_portee == "points") {
+			portee = portee_attr::POINT;
 
 			if (nom_groupe != "") {
 				groupe_points = m_corps.groupe_point(nom_groupe);
@@ -1737,8 +1738,8 @@ public:
 				}
 			}
 		}
-		else if (portee == "primitives") {
-			attrib = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+		else if (chaine_portee == "primitives") {
+			portee = portee_attr::PRIMITIVE;
 
 			if (nom_groupe != "") {
 				groupe_prims = m_corps.groupe_primitive(nom_groupe);
@@ -1751,12 +1752,38 @@ public:
 				}
 			}
 		}
+		else if (chaine_portee == "devine_groupe") {
+			if (nom_groupe == "") {
+				ajoute_avertissement("Le nom du groupe est vide !");
+				return EXECUTION_ECHOUEE;
+			}
+
+			groupe_points = m_corps.groupe_point(nom_groupe);
+
+			if (groupe_points == nullptr) {
+				groupe_prims = m_corps.groupe_primitive(nom_groupe);
+
+				if (groupe_prims == nullptr) {
+					std::stringstream ss;
+					ss << "Groupe '" << nom_groupe << "' inconnu !";
+					ajoute_avertissement(ss.str());
+					return EXECUTION_ECHOUEE;
+				}
+
+				portee = portee_attr::PRIMITIVE;
+			}
+			else {
+				portee = portee_attr::POINT;
+			}
+		}
 		else {
 			std::stringstream ss;
-			ss << "Portée '" << portee << "' non-supportée !";
+			ss << "Portée '" << chaine_portee << "' non-supportée !";
 			ajoute_avertissement(ss.str());
 			return EXECUTION_ECHOUEE;
 		}
+
+		attrib = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee);
 
 		iteratrice_index iter;
 
