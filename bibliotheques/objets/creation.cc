@@ -150,6 +150,9 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 
 /* ************************************************************************** */
 
+/* utilisé pour déboguer les algorithmes de déduplications de doublons */
+#undef GENERE_DOUBLONS
+
 template <typename T>
 auto sphere(const T u, const T v, const T rayon)
 {
@@ -180,10 +183,11 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 	/* Taille entre deux points de latitude. */
 	auto const taille_pas_v = (fin_v - debut_v) / resolution_v;
 
+	auto const &centre = dls::math::vec3f(centre_x, centre_y, centre_z);
+
+#ifdef GENERE_DOUBLONS
 	int poly[4] = { 0, 1, 2, 3 };
 	const int decalage = 4;
-
-	auto const &centre = dls::math::vec3f(centre_x, centre_y, centre_z);
 
 	for (int i = 0; i < resolution_u; i++) {
 		for (int j = 0; j < resolution_v; j++) {
@@ -228,6 +232,93 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 			poly[3] += decalage;
 		}
 	}
+#else
+	auto const p0 = sphere(debut_u, debut_v, rayon) + centre;
+	adaptrice->ajoute_sommet(p0.x, p0.y, p0.z);
+
+	auto const n0 = normalise(p0);
+	adaptrice->ajoute_normal(n0.x, n0.y, n0.z);
+
+	for (int i = 0; i < resolution_u; i++) {
+		for (int j = 1; j < resolution_v; j++) {
+			auto const u = static_cast<float>(i) * taille_pas_u + debut_u;
+			auto const v = static_cast<float>(j) * taille_pas_v + debut_v;
+
+			/* Trouve les quatre points de la grille en évaluant la fonction
+			 * paramétrique.
+			 *
+			 * REMARQUE : pour les sphères, le normal est simplement la version
+			 * normalisée du sommet. Ce n'est généralement pas le cas pour
+			 * toutes les fonctions paramétriques.
+			 */
+
+			auto const pn = sphere(u, v, rayon) + centre;
+			adaptrice->ajoute_sommet(pn.x, pn.y, pn.z);
+
+			auto const nn = normalise(pn);
+			adaptrice->ajoute_normal(nn.x, nn.y, nn.z);
+		}
+	}
+
+	auto const p1 = sphere(fin_u, fin_v, rayon) + centre;
+	adaptrice->ajoute_sommet(p1.x, p1.y, p1.z);
+
+	auto const n1 = normalise(p1);
+	adaptrice->ajoute_normal(n1.x, n1.y, n1.z);
+
+	/* Ajout des polygones. */
+
+	auto nombre_points = resolution_u * (resolution_v - 1);
+
+	int poly[4];
+
+	/* triangles du haut */
+	poly[0] = 0;
+	poly[1] = 1;
+	poly[2] = poly[1] + resolution_u - 2;
+
+	for (auto i = 0; i < resolution_v; ++i) {
+		poly[1] %= nombre_points;
+		poly[2] %= nombre_points;
+
+		adaptrice->ajoute_polygone(poly, nullptr, poly, 3);
+
+		poly[1] = poly[2];
+		poly[2] = poly[1] + resolution_u - 2;
+	}
+
+	/* quads du centre */
+	for (int i = 0; i < resolution_u - 2; i++) {
+		for (int j = 0; j < resolution_v - 2; j++) {
+			poly[0] = 1 + i       * (resolution_u - 2) + j;
+			poly[1] = 1 + i       * (resolution_u - 2) + j + 1;
+			poly[2] = 1 + (i + 1) * (resolution_u - 2) + j + 1;
+			poly[3] = 1 + (i + 1) * (resolution_u - 2) + j;
+
+			poly[0] %= nombre_points;
+			poly[1] %= nombre_points;
+			poly[2] %= nombre_points;
+			poly[3] %= nombre_points;
+
+			adaptrice->ajoute_polygone(poly, nullptr, poly, 4);
+		}
+	}
+
+	/* triangles du bas */
+	poly[0] = nombre_points + 1;
+	poly[1] = 1 + resolution_v - 2;
+	poly[2] = poly[1] + resolution_u - 2;
+
+	for (auto i = 0; i < resolution_v; ++i) {
+		poly[1] %= nombre_points;
+		poly[2] %= nombre_points;
+
+		adaptrice->ajoute_polygone(poly, nullptr, poly, 3);
+
+		poly[1] = poly[2];
+		poly[2] = poly[1] + resolution_u - 2;
+	}
+#endif
 }
 
 /* ************************************************************************** */
