@@ -712,7 +712,7 @@ class OperatriceNuage final : public OperatricePixel {
 	bool m_dur = false;
 	char pad[3];
 
-	float *noiseTileData;
+//	float *noiseTileData;
 	int noiseTileSize = 128;
 	std::mt19937 m_rng;
 	std::normal_distribution<float> m_dist;
