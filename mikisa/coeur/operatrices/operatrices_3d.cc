@@ -1914,19 +1914,25 @@ public:
 
 		for (auto i = 0; i < liste_point1->taille(); ++i) {
 			auto point = liste_point1->point(i);
+			auto const p_monde = corps1->transformation(
+								dls::math::point3d(point));
+
 			auto p = new Point3D;
-			p->x = point.x;
-			p->y = point.y;
-			p->z = point.z;
+			p->x = static_cast<float>(p_monde.x);
+			p->y = static_cast<float>(p_monde.y);
+			p->z = static_cast<float>(p_monde.z);
 			liste_point->pousse(p);
 		}
 
 		for (auto i = 0; i < liste_point2->taille(); ++i) {
 			auto point = liste_point2->point(i);
+			auto const p_monde = corps2->transformation(
+								dls::math::point3d(point));
+
 			auto p = new Point3D;
-			p->x = point.x;
-			p->y = point.y;
-			p->z = point.z;
+			p->x = static_cast<float>(p_monde.x);
+			p->y = static_cast<float>(p_monde.y);
+			p->z = static_cast<float>(p_monde.z);
 			liste_point->pousse(p);
 		}
 	}
