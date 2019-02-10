@@ -408,7 +408,9 @@ void RenduCorps::initialise()
 		std::vector<dls::math::vec3f> couleurs_polys;
 		std::vector<dls::math::vec3f> couleurs_segment;
 
-		for (Primitive *prim : liste_prims->prims()) {
+		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
+			auto prim = liste_prims->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -492,8 +494,8 @@ void RenduCorps::initialise()
 	std::vector<dls::math::vec3f> couleurs;
 	points.reserve(static_cast<size_t>(liste_points->taille()));
 
-	for (Point3D *point : liste_points->points()) {
-		points.push_back(dls::math::vec3f(point->x, point->y, point->z));
+	for (auto i = 0; i < liste_points->taille(); ++i) {
+		points.push_back(liste_points->point(i));
 	}
 
 	m_tampon_points = cree_tampon_segments();

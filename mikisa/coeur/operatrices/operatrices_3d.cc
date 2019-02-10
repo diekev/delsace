@@ -765,7 +765,9 @@ public:
 			attr_normaux->reserve(nombre_prims);
 			attr_normaux->portee = portee_attr::PRIMITIVE;
 
-			for (Primitive *prim : liste_prims->prims()) {
+			for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
+				auto prim = liste_prims->prim(ip);
+
 				if (prim->type_prim() != type_primitive::POLYGONE) {
 					continue;
 				}
@@ -800,7 +802,9 @@ public:
 			attr_normaux->portee = portee_attr::POINT;
 
 			/* calcul le normal de chaque polygone */
-			for (Primitive *prim : liste_prims->prims()) {
+			for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
+				auto prim = liste_prims->prim(ip);
+
 				if (prim->type_prim() != type_primitive::POLYGONE) {
 					continue;
 				}
@@ -825,7 +829,9 @@ public:
 			/* accumule les normaux pour chaque sommets */
 			std::vector<int> poids(static_cast<size_t>(nombre_sommets), 0);
 
-			for (Primitive *prim : liste_prims->prims()) {
+			for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
+				auto prim = liste_prims->prim(ip);
+
 				if (prim->type_prim() != type_primitive::POLYGONE) {
 					continue;
 				}
@@ -1071,7 +1077,9 @@ public:
 		index_sommets_polys.reserve(static_cast<size_t>(nombre_sommets * nombre_polygones));
 
 		auto const liste_prims = m_corps.prims();
-		for (Primitive *prim : liste_prims->prims()) {
+		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
+			auto prim = liste_prims->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -1101,8 +1109,9 @@ public:
 
 		/* Initialise les positions du maillage grossier. */
 		auto index_point = 0;
-		for (Point3D *point : m_corps.points()->points()) {
-			sommets[index_point++].SetPosition(point->x, point->y, point->z);
+		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
+			auto point = m_corps.points()->point(i);
+			sommets[index_point++].SetPosition(point.x, point.y, point.z);
 		}
 
 		/* Entrepole les sommets */
@@ -1903,19 +1912,21 @@ public:
 
 		liste_point->reserve(liste_point1->taille() + liste_point2->taille());
 
-		for (Point3D *point : liste_point1->points()) {
+		for (auto i = 0; i < liste_point1->taille(); ++i) {
+			auto point = liste_point1->point(i);
 			auto p = new Point3D;
-			p->x = point->x;
-			p->y = point->y;
-			p->z = point->z;
+			p->x = point.x;
+			p->y = point.y;
+			p->z = point.z;
 			liste_point->pousse(p);
 		}
 
-		for (Point3D *point : liste_point2->points()) {
+		for (auto i = 0; i < liste_point2->taille(); ++i) {
+			auto point = liste_point2->point(i);
 			auto p = new Point3D;
-			p->x = point->x;
-			p->y = point->y;
-			p->z = point->z;
+			p->x = point.x;
+			p->y = point.y;
+			p->z = point.z;
 			liste_point->pousse(p);
 		}
 	}
@@ -1928,7 +1939,9 @@ public:
 
 		liste_prims->reserve(liste_prims1->taille() + liste_prims2->taille());
 
-		for (Primitive *prim : liste_prims->prims()) {
+		for (auto ip = 0; ip < liste_prims1->taille(); ++ip) {
+			auto prim = liste_prims1->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -1943,7 +1956,9 @@ public:
 
 		auto const decalage_point = corps1->points()->taille();
 
-		for (Primitive *prim : liste_prims->prims()) {
+		for (auto ip = 0; ip < liste_prims2->taille(); ++ip) {
+			auto prim = liste_prims2->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -2036,23 +2051,23 @@ public:
 
 	void fusionne_groupe_points(Corps const *corps1, Corps const *corps2)
 	{
-		using paire_groupe = std::pair<GroupePoint *, GroupePoint *>;
+		using paire_groupe = std::pair<GroupePoint const *, GroupePoint const *>;
 		using tableau_groupe = std::unordered_map<std::string, paire_groupe>;
 
 		auto tableau = tableau_groupe{};
 
-		for (auto groupe : corps1->groupes_points()) {
-			tableau.insert({groupe->nom, std::make_pair(groupe, nullptr)});
+		for (auto const &groupe : corps1->groupes_points()) {
+			tableau.insert({groupe.nom, {&groupe, nullptr}});
 		}
 
-		for (auto groupe : corps2->groupes_points()) {
-			auto iter = tableau.find(groupe->nom);
+		for (auto const &groupe : corps2->groupes_points()) {
+			auto iter = tableau.find(groupe.nom);
 
 			if (iter == tableau.end()) {
-				tableau.insert({groupe->nom, std::make_pair(nullptr, groupe)});
+				tableau.insert({groupe.nom, std::make_pair(nullptr, &groupe)});
 			}
 			else {
-				tableau[groupe->nom].second = groupe;
+				tableau[groupe.nom].second = &groupe;
 			}
 		}
 
@@ -2069,12 +2084,12 @@ public:
 
 				groupe->reserve(groupe1->taille() + groupe2->taille());
 
-				for (auto index : groupe1->index()) {
-					groupe->ajoute_point(index);
+				for (auto i = 0; i < groupe1->taille(); ++i) {
+					groupe->ajoute_point(groupe1->index(i));
 				}
 
-				for (auto index : groupe2->index()) {
-					groupe->ajoute_point(static_cast<size_t>(decalage_points) + index);
+				for (auto i = 0; i < groupe2->taille(); ++i) {
+					groupe->ajoute_point(static_cast<size_t>(decalage_points) + groupe2->index(i));
 				}
 			}
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
@@ -2082,8 +2097,8 @@ public:
 
 				groupe->reserve(groupe1->taille());
 
-				for (auto index : groupe1->index()) {
-					groupe->ajoute_point(index);
+				for (auto i = 0; i < groupe1->taille(); ++i) {
+					groupe->ajoute_point(groupe1->index(i));
 				}
 			}
 			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
@@ -2091,8 +2106,8 @@ public:
 
 				groupe->reserve(groupe2->taille());
 
-				for (auto index : groupe2->index()) {
-					groupe->ajoute_point(static_cast<size_t>(decalage_points) + index);
+				for (auto i = 0; i < groupe2->taille(); ++i) {
+					groupe->ajoute_point(static_cast<size_t>(decalage_points) + groupe2->index(i));
 				}
 			}
 		}
@@ -2100,23 +2115,23 @@ public:
 
 	void fusionne_groupe_prims(Corps const *corps1, Corps const *corps2)
 	{
-		using paire_groupe = std::pair<GroupePrimitive *, GroupePrimitive *>;
+		using paire_groupe = std::pair<GroupePrimitive const *, GroupePrimitive const *>;
 		using tableau_groupe = std::unordered_map<std::string, paire_groupe>;
 
 		auto tableau = tableau_groupe{};
 
-		for (auto groupe : corps1->groupes_prims()) {
-			tableau.insert({groupe->nom, std::make_pair(groupe, nullptr)});
+		for (auto const &groupe : corps1->groupes_prims()) {
+			tableau.insert({groupe.nom, std::make_pair(&groupe, nullptr)});
 		}
 
-		for (auto groupe : corps2->groupes_prims()) {
-			auto iter = tableau.find(groupe->nom);
+		for (auto const &groupe : corps2->groupes_prims()) {
+			auto iter = tableau.find(groupe.nom);
 
 			if (iter == tableau.end()) {
-				tableau.insert({groupe->nom, std::make_pair(nullptr, groupe)});
+				tableau.insert({groupe.nom, std::make_pair(nullptr, &groupe)});
 			}
 			else {
-				tableau[groupe->nom].second = groupe;
+				tableau[groupe.nom].second = &groupe;
 			}
 		}
 
@@ -2125,7 +2140,7 @@ public:
 		for (auto const &alveole : tableau) {
 			auto const &paire_attr = alveole.second;
 
-			auto groupe = m_corps.ajoute_groupe_point(alveole.first);
+			auto groupe = m_corps.ajoute_groupe_primitive(alveole.first);
 
 			if (paire_attr.first != nullptr && paire_attr.second != nullptr) {
 				auto groupe1 = paire_attr.first;
@@ -2133,12 +2148,12 @@ public:
 
 				groupe->reserve(groupe1->taille() + groupe2->taille());
 
-				for (auto index : groupe1->index()) {
-					groupe->ajoute_point(index);
+				for (auto i = 0; i < groupe1->taille(); ++i) {
+					groupe->ajoute_primitive(groupe1->index(i));
 				}
 
-				for (auto index : groupe2->index()) {
-					groupe->ajoute_point(static_cast<size_t>(decalage_prims) + index);
+				for (auto i = 0; i < groupe2->taille(); ++i) {
+					groupe->ajoute_primitive(static_cast<size_t>(decalage_prims) + groupe2->index(i));
 				}
 			}
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
@@ -2146,8 +2161,8 @@ public:
 
 				groupe->reserve(groupe1->taille());
 
-				for (auto index : groupe1->index()) {
-					groupe->ajoute_point(index);
+				for (auto i = 0; i < groupe1->taille(); ++i) {
+					groupe->ajoute_primitive(groupe1->index(i));
 				}
 			}
 			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
@@ -2155,8 +2170,8 @@ public:
 
 				groupe->reserve(groupe2->taille());
 
-				for (auto index : groupe2->index()) {
-					groupe->ajoute_point(static_cast<size_t>(decalage_prims) + index);
+				for (auto i = 0; i < groupe2->taille(); ++i) {
+					groupe->ajoute_primitive(static_cast<size_t>(decalage_prims) + groupe2->index(i));
 				}
 			}
 		}

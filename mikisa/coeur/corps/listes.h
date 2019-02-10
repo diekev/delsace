@@ -122,13 +122,15 @@ public:
 
 /* ************************************************************************** */
 
+#include <memory>
+
 class ListePoints3D {
-	std::vector<Point3D *> m_sommets{};
+	using type_liste = std::vector<Point3D *>;
+	typedef std::shared_ptr<type_liste> RefPtr;
+
+	RefPtr m_sommets{};
 
 public:
-	using plage_sommets = plage_iterable<std::vector<Point3D *>::iterator>;
-	using plage_const_sommets = plage_iterable<std::vector<Point3D *>::const_iterator>;
-
 	~ListePoints3D();
 
 	void reinitialise();
@@ -142,74 +144,21 @@ public:
 	void pousse(Point3D *p);
 
 	dls::math::vec3f point(long i) const;
-	void point(long i, dls::math::vec3f const &p) const;
 
-	plage_sommets points();
+	void point(long i, dls::math::vec3f const &p);
 
-	plage_const_sommets points() const;
-};
-
-/* ************************************************************************** */
-
-class ListePoints {
-	std::vector<Sommet *> m_sommets{};
-
-public:
-	using plage_sommets = plage_iterable<std::vector<Sommet *>::iterator>;
-	using plage_const_sommets = plage_iterable<std::vector<Sommet *>::const_iterator>;
-
-	~ListePoints();
-
-	void reinitialise();
-
-	void redimensionne(long const nombre);
-
-	void reserve(long const nombre);
-
-	long taille() const;
-
-	void pousse(Sommet *s);
-
-	plage_sommets sommets();
-
-	plage_const_sommets sommets() const;
-};
-
-/* ************************************************************************** */
-
-class ListeSegments {
-	std::vector<Arrete *> m_sommets{};
-
-public:
-	using plage_arretes = plage_iterable<std::vector<Arrete *>::iterator>;
-	using plage_const_arretes = plage_iterable<std::vector<Arrete *>::const_iterator>;
-
-	~ListeSegments();
-
-	void reinitialise();
-
-	void redimensionne(long const nombre);
-
-	void reserve(long const nombre);
-
-	long taille() const;
-
-	void pousse(Arrete *s);
-
-	plage_arretes arretes();
-
-	plage_const_arretes arretes() const;
+private:
+	void detache();
 };
 
 /* ************************************************************************** */
 
 class ListePrimitives {
-	std::vector<Primitive *> m_primitives{};
+	using type_liste = std::vector<Primitive *>;
+	typedef std::shared_ptr<type_liste> RefPtr;
+	RefPtr m_primitives{};
 
 public:
-	using plage_prims = plage_iterable<std::vector<Primitive *>::iterator>;
-	using plage_const_prims = plage_iterable<std::vector<Primitive *>::const_iterator>;
-
 	~ListePrimitives();
 
 	void reinitialise();
@@ -222,9 +171,10 @@ public:
 
 	void pousse(Primitive *s);
 
-	Primitive *prim(size_t index) const;
+	Primitive *prim(long index) const;
 
-	plage_prims prims();
+	void prim(long i, Primitive *p);
 
-	plage_const_prims prims() const;
+private:
+	void detache();
 };

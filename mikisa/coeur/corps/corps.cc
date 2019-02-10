@@ -65,7 +65,8 @@ Attribut *Corps::ajoute_attribut(
 					taille_attrib = liste_prims->taille();
 					break;
 				case portee_attr::VERTEX:
-					for (Primitive *prim : liste_prims->prims()) {
+					for (auto i = 0; i < liste_prims->taille(); ++i) {
+						auto prim = liste_prims->prim(i);
 						if (prim->type_prim() != type_primitive::POLYGONE) {
 							continue;
 						}
@@ -189,14 +190,6 @@ void Corps::reinitialise()
 
 	m_attributs.clear();
 
-	for (auto groupe : m_groupes_prims) {
-		delete groupe;
-	}
-
-	for (auto groupe : m_groupes_points) {
-		delete groupe;
-	}
-
 	m_groupes_prims.clear();
 	m_groupes_points.clear();
 }
@@ -218,35 +211,10 @@ void Corps::copie_vers(Corps *corps) const
 	corps->rotation = this->rotation;
 
 	/* copie les points */
-	auto point_autre = corps->points();
-	point_autre->reserve(points()->taille());
+	corps->m_points = this->m_points;
 
-	for (Point3D *point : this->points()->points()) {
-		auto p3d = new Point3D;
-		p3d->x = point->x;
-		p3d->y = point->y;
-		p3d->z = point->z;
-		point_autre->pousse(p3d);
-	}
-
-	/* copie les polygones */
-	auto prims_autre = corps->prims();
-	prims_autre->reserve(this->prims()->taille());
-
-	for (Primitive *prim : this->prims()->prims()) {
-		if (prim->type_prim() == type_primitive::POLYGONE) {
-			auto polygone = dynamic_cast<Polygone *>(prim);
-			auto poly = Polygone::construit(corps, polygone->type, polygone->nombre_sommets());
-
-			/* Nous obtenons des crashs lors des copies car l'index devient
-			 * différent ou n'est pas correctement initialisé ? */
-			poly->index = polygone->index;
-
-			for (long i = 0; i < polygone->nombre_sommets(); ++i) {
-				poly->ajoute_sommet(polygone->index_point(i));
-			}
-		}
-	}
+	/* copie les primitives */
+	corps->m_prims = this->m_prims;
 
 	/* copie les attributs */
 	for (Attribut *attr : this->m_attributs) {
@@ -259,29 +227,13 @@ void Corps::copie_vers(Corps *corps) const
 	corps->m_groupes_points.reserve(this->m_groupes_points.size());
 
 	for (auto groupe : this->m_groupes_points) {
-		auto groupe_corps = new GroupePoint();
-		groupe_corps->nom = groupe->nom;
-		groupe_corps->reserve(groupe->taille());
-
-		for (auto index : groupe->index()) {
-			groupe_corps->ajoute_point(index);
-		}
-
-		corps->m_groupes_points.push_back(groupe_corps);
+		corps->m_groupes_points.push_back(groupe);
 	}
 
 	corps->m_groupes_prims.reserve(this->m_groupes_prims.size());
 
 	for (auto groupe : this->m_groupes_prims) {
-		auto groupe_corps = new GroupePrimitive();
-		groupe_corps->nom = groupe->nom;
-		groupe_corps->reserve(groupe->taille());
-
-		for (auto index : groupe->index()) {
-			groupe_corps->ajoute_primitive(index);
-		}
-
-		corps->m_groupes_prims.push_back(groupe_corps);
+		corps->m_groupes_prims.push_back(groupe);
 	}
 }
 
@@ -299,30 +251,31 @@ Corps::plage_const_attributs Corps::attributs() const
 
 GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_groupe)
 {
-	auto groupe = groupe_point(nom_groupe);
+	auto ptr_groupe = groupe_point(nom_groupe);
 
-	if (groupe != nullptr) {
-		return groupe;
+	if (ptr_groupe != nullptr) {
+		return ptr_groupe;
 	}
 
-	groupe = new GroupePoint;
-	groupe->nom = nom_groupe;
+	auto groupe = GroupePoint{};
+	groupe.nom = nom_groupe;
 
 	m_groupes_points.push_back(groupe);
 
-	return groupe;
+	return &m_groupes_points.back();
 }
 
 GroupePoint *Corps::groupe_point(const std::string &nom_groupe) const
 {
 	auto iter = std::find_if(m_groupes_points.begin(), m_groupes_points.end(),
-							 [&](GroupePoint *groupe)
+							 [&](GroupePoint const &groupe)
 	{
-				return groupe->nom == nom_groupe;
+				return groupe.nom == nom_groupe;
 	});
 
 	if (iter != m_groupes_points.end()) {
-		return *iter;
+		auto index = static_cast<size_t>(std::distance(m_groupes_points.begin(), iter));
+		return const_cast<GroupePoint *>(&m_groupes_points[index]);
 	}
 
 	return nullptr;
@@ -342,30 +295,31 @@ Corps::plage_const_grp_pnts Corps::groupes_points() const
 
 GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_groupe)
 {
-	auto groupe = groupe_primitive(nom_groupe);
+	auto ptr_groupe = groupe_primitive(nom_groupe);
 
-	if (groupe != nullptr) {
-		return groupe;
+	if (ptr_groupe != nullptr) {
+		return ptr_groupe;
 	}
 
-	groupe = new GroupePrimitive;
-	groupe->nom = nom_groupe;
+	auto groupe = GroupePrimitive{};
+	groupe.nom = nom_groupe;
 
 	m_groupes_prims.push_back(groupe);
 
-	return groupe;
+	return &m_groupes_prims.back();
 }
 
 GroupePrimitive *Corps::groupe_primitive(const std::string &nom_groupe) const
 {
 	auto iter = std::find_if(m_groupes_prims.begin(), m_groupes_prims.end(),
-							 [&](GroupePrimitive *groupe)
+							 [&](GroupePrimitive const &groupe)
 	{
-				return groupe->nom == nom_groupe;
+				return groupe.nom == nom_groupe;
 	});
 
 	if (iter != m_groupes_prims.end()) {
-		return *iter;
+		auto index = static_cast<size_t>(std::distance(m_groupes_prims.begin(), iter));
+		return const_cast<GroupePrimitive *>(&m_groupes_prims[index]);
 	}
 
 	return nullptr;

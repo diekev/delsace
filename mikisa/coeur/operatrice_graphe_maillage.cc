@@ -310,14 +310,12 @@ int OperatriceGrapheMaillage::execute(Rectangle const &rectangle, const int temp
 	/* fais une copie locale pour éviter les problèmes de concurrence critique */
 	auto pile = m_compileuse.pile();
 
-	for (Point3D *point : m_corps.points()->points()) {
-		dls::math::vec3f pos = dls::math::vec3f(point->x, point->y, point->z);
+	for (auto i = 0; i < m_corps.points()->taille(); ++i) {
+		auto pos = m_corps.points()->point(i);
 
 		execute_graphe(pile.begin(), pile.end(), m_gestionnaire, pos, pos);
 
-		point->x = pos.x;
-		point->y = pos.y;
-		point->z = pos.z;
+		m_corps.points()->point(i, pos);
 	}
 
 	return EXECUTION_REUSSIE;

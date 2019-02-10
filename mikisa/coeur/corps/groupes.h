@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -32,12 +33,12 @@
 /* ************************************************************************** */
 
 class GroupePoint {
-	std::vector<size_t> m_points{};
+	using type_liste = std::vector<size_t>;
+	using ptr_liste = std::shared_ptr<type_liste>;
+
+	ptr_liste m_points{};
 
 public:
-	using plage_points = plage_iterable<std::vector<size_t>::iterator>;
-	using plage_points_const = plage_iterable<std::vector<size_t>::const_iterator>;
-
 	std::string nom{};
 
 	void ajoute_point(size_t index_point);
@@ -50,20 +51,21 @@ public:
 
 	bool contiens(size_t index_point) const;
 
-	plage_points index();
+	size_t index(long i) const;
 
-	plage_points_const index() const;
+private:
+	void detache();
 };
 
 /* ************************************************************************** */
 
 class GroupePrimitive {
-	std::vector<size_t> m_primitives{};
+	using type_liste = std::vector<size_t>;
+	using ptr_liste = std::shared_ptr<type_liste>;
+
+	ptr_liste m_primitives{};
 
 public:
-	using plage_prims = plage_iterable<std::vector<size_t>::iterator>;
-	using plage_prims_const = plage_iterable<std::vector<size_t>::const_iterator>;
-
 	std::string nom{};
 
 	void ajoute_primitive(size_t index_poly);
@@ -74,9 +76,10 @@ public:
 
 	long taille() const;
 
-	plage_prims index();
+	size_t index(long i) const;
 
-	plage_prims_const index() const;
+private:
+	void detache();
 };
 
 /* ************************************************************************** */
@@ -95,10 +98,10 @@ public:
 class iteratrice_index {
 	long m_nombre = 0;
 	long m_courant = 0;
-	std::vector<size_t>::iterator m_iter_groupe{};
-	std::vector<size_t>::iterator m_iter_fin{};
 	bool m_est_groupe = false;
 	bool m_pad[7];
+	GroupePoint *gpnt = nullptr;
+	GroupePrimitive *gprm = nullptr;
 
 public:
 	/**
@@ -108,12 +111,15 @@ public:
 	class iteratrice {
 		bool m_est_groupe = false;
 		long m_etat_nombre = 0;
-		std::vector<size_t>::iterator m_etat_iter{};
+		GroupePoint *gpnt = nullptr;
+		GroupePrimitive *gprm = nullptr;
 
 	public:
 		iteratrice(long nombre);
 
-		iteratrice(std::vector<size_t>::iterator iter);
+		iteratrice(GroupePoint *groupe_point);
+
+		iteratrice(GroupePrimitive *groupe_primitive);
 
 		long operator*();
 

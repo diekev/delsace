@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "../attribut.h"
+#include "groupes.h"
 #include "listes.h"
 
 enum {
@@ -43,8 +44,6 @@ enum {
 };
 
 class Attribut;
-class GroupePoint;
-class GroupePrimitive;
 
 /**
  * La structure Corps représente une partie constituante d'un objet. Le Corps
@@ -121,8 +120,8 @@ struct Corps {
 
 	/* Groupes points. */
 
-	using plage_grp_pnts = plage_iterable<std::vector<GroupePoint *>::iterator>;
-	using plage_const_grp_pnts = plage_iterable<std::vector<GroupePoint *>::const_iterator>;
+	using plage_grp_pnts = plage_iterable<std::vector<GroupePoint>::iterator>;
+	using plage_const_grp_pnts = plage_iterable<std::vector<GroupePoint>::const_iterator>;
 
 	GroupePoint *ajoute_groupe_point(std::string const &nom_groupe);
 
@@ -134,8 +133,8 @@ struct Corps {
 
 	/* Groupes primitives. */
 
-	using plage_grp_prims = plage_iterable<std::vector<GroupePrimitive *>::iterator>;
-	using plage_const_grp_prims = plage_iterable<std::vector<GroupePrimitive *>::const_iterator>;
+	using plage_grp_prims = plage_iterable<std::vector<GroupePrimitive>::iterator>;
+	using plage_const_grp_prims = plage_iterable<std::vector<GroupePrimitive>::const_iterator>;
 
 	GroupePrimitive *ajoute_groupe_primitive(std::string const &nom_groupe);
 
@@ -153,6 +152,6 @@ private:
 	ListePoints3D m_points{};
 	ListePrimitives m_prims{};
 
-	std::vector<GroupePoint *> m_groupes_points{};
-	std::vector<GroupePrimitive *> m_groupes_prims{};
+	std::vector<GroupePoint> m_groupes_points{};
+	std::vector<GroupePrimitive> m_groupes_prims{};
 };

@@ -228,7 +228,7 @@ public:
 		std::mt19937 rng(19937);
 
 		auto index_point = 0l;
-		for (Point3D *point : liste_points->points()) {
+		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
 			auto const taille_courbe = dist_taille(rng) * multiplication_taille;
 
 			long nombre_segment;
@@ -247,7 +247,7 @@ public:
 				normal = attr_N->vec3(index_point++);
 			}
 
-			auto pos = dls::math::vec3f(point->x, point->y, point->z);
+			auto pos = m_corps.points()->point(i);
 
 			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 
@@ -341,7 +341,9 @@ public:
 		auto const points = maillage->points();
 		auto const prims  = maillage->prims();
 
-		for (Primitive *prim : prims->prims()) {
+		for (auto ip = 0; ip < prims->taille(); ++ip) {
+			auto prim = prims->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -466,7 +468,9 @@ public:
 		auto dt = 0.1f;
 
 		/* ajourne vélocités */
-		for (Primitive *prim : m_corps.prims()->prims()) {
+		for (auto ip = 0; ip < m_corps.prims()->taille(); ++ip) {
+			auto prim = m_corps.prims()->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -510,7 +514,9 @@ public:
 		}
 
 		/* résolution des contraintes */
-		for (Primitive *prim : m_corps.prims()->prims()) {
+		for (auto ip = 0; ip < m_corps.prims()->taille(); ++ip) {
+			auto prim = m_corps.prims()->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -535,7 +541,9 @@ public:
 		}
 
 		/* calcul des nouvelles positions et vélocités */
-		for (Primitive *prim : m_corps.prims()->prims()) {
+		for (auto ip = 0; ip < m_corps.prims()->taille(); ++ip) {
+			auto prim = m_corps.prims()->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}

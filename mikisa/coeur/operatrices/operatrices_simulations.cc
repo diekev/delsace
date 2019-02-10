@@ -415,7 +415,9 @@ static long cherche_collision(
 	/* À FAIRE : collision particules
 	 * - structure accélération
 	 */
-	for (Primitive *prim : prims_collision->prims()) {
+	for (auto ip = 0; ip < prims_collision->taille(); ++ip) {
+		auto prim = prims_collision->prim(ip);
+
 		if (prim->type_prim() != type_primitive::POLYGONE) {
 			continue;
 		}
@@ -608,7 +610,7 @@ public:
 				}
 				case rep_collision::REBONDIS:
 				{
-					auto prim = prims_collision->prim(static_cast<size_t>(index_prim));
+					auto prim = prims_collision->prim(index_prim);
 					auto poly = dynamic_cast<Polygone *>(prim);
 					auto const &v0 = points_collision->point(poly->index_point(0));
 					auto const &v1 = points_collision->point(poly->index_point(1));

@@ -210,8 +210,8 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree, Gr
 	auto nombre_triangles = 0l;
 
 	if (groupe) {
-		for (auto index : groupe->index()) {
-			auto prim = prims->prim(index);
+		for (auto i = 0; i < groupe->taille(); ++i) {
+			auto prim = prims->prim(static_cast<long>(groupe->index(i)));
 
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
@@ -228,8 +228,8 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree, Gr
 
 		triangles.reserve(static_cast<size_t>(nombre_triangles));
 
-		for (auto index : groupe->index()) {
-			auto prim = prims->prim(index);
+		for (auto ig = 0; ig < groupe->taille(); ++ig) {
+			auto prim = prims->prim(static_cast<long>(groupe->index(ig)));
 
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
@@ -253,7 +253,9 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree, Gr
 		}
 	}
 	else {
-		for (auto prim : prims->prims()) {
+		for (auto ip = 0; ip < prims->taille(); ++ip) {
+			auto prim = prims->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -269,7 +271,9 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree, Gr
 
 		triangles.reserve(static_cast<size_t>(nombre_triangles));
 
-		for (auto prim : prims->prims()) {
+		for (auto ip = 0; ip < prims->taille(); ++ip) {
+			auto prim = prims->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -401,7 +405,8 @@ public:
 		auto const nombre_points_par_points = nombre_points_emis / points_entree->taille();
 
 		if (groupe_entree) {
-			for (auto const &index_point : groupe_entree->index()) {
+			for (auto i = 0; i < groupe_entree->taille(); ++i) {
+				auto const index_point = groupe_entree->index(i);
 				auto const &point = points_entree->point(static_cast<long>(index_point));
 
 				auto const p_monde = corps_entree->transformation(
@@ -420,9 +425,10 @@ public:
 			}
 		}
 		else {
-			for (auto const &point : points_entree->points()) {
+			for (auto i = 0; i < points_entree->taille(); ++i) {
+				auto point = points_entree->point(i);
 				auto const p_monde = corps_entree->transformation(
-									dls::math::point3d(point->x, point->y, point->z));
+									dls::math::point3d(point.x, point.y, point.z));
 
 				for (long j = 0; j < nombre_points_par_points; ++j) {
 					auto index = m_corps.ajoute_point(
@@ -804,7 +810,9 @@ public:
 		auto aire_totale = 0.0f;
 
 		/* Calcule les informations sur les aires. */
-		for (auto prim : prims_maillage->prims()) {
+		for (auto ip = 0; ip < prims_maillage->taille(); ++ip) {
+			auto prim = prims_maillage->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
@@ -830,7 +838,9 @@ public:
 		/* Place les triangles dans les boites. */
 		BoiteTriangle boites[NOMBRE_BOITE];
 
-		for (auto prim : prims_maillage->prims()) {
+		for (auto ip = 0; ip < prims_maillage->taille(); ++ip) {
+			auto prim = prims_maillage->prim(ip);
+
 			if (prim->type_prim() != type_primitive::POLYGONE) {
 				continue;
 			}
