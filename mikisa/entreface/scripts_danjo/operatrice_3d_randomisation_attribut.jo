@@ -29,22 +29,22 @@ disposition "operatrice_3d_randomisation_attribut" {
 		}
 	ligne {
 	    étiquette(valeur="Valeur")
-		décimal(valeur=1.0; attache=constante; min=0; max=10)
+		décimal(valeur=1.0; attache=constante)
 	}
 	ligne {
 	    étiquette(valeur="Valeur Minimum")
-		décimal(valeur=0.0; attache=valeur_min; min=0; max=10)
+		décimal(valeur=0.0; attache=valeur_min)
 	}
 	ligne {
 	    étiquette(valeur="Valeur Maximum")
-		décimal(valeur=1.0; attache=valeur_max; min=0; max=10)
+		décimal(valeur=1.0; attache=valeur_max)
 	}
 	ligne {
 	    étiquette(valeur="Moyenne")
-		décimal(valeur=1.0; attache=moyenne; min=0; max=10)
+		décimal(valeur=1.0; attache=moyenne)
 	}
 	ligne {
 	    étiquette(valeur="Écart Type")
-		décimal(valeur=1.0; attache=écart_type; min=0; max=10)
+		décimal(valeur=1.0; attache=écart_type)
 	}
 }

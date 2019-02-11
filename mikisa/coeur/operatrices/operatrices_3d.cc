@@ -1754,13 +1754,13 @@ public:
 		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
-		auto const graine = evalue_entier("graine");
+		auto const graine = evalue_entier("graine", temps);
 		auto const distribution = evalue_enum("distribution");
 		auto const constante = evalue_decimal("constante");
-		auto const val_min = evalue_decimal("valeur_min");
-		auto const val_max = evalue_decimal("valeur_max");
-		auto const moyenne = evalue_decimal("moyenne");
-		auto const ecart_type = evalue_decimal("écart_type");
+		auto const val_min = evalue_decimal("valeur_min", temps);
+		auto const val_max = evalue_decimal("valeur_max", temps);
+		auto const moyenne = evalue_decimal("moyenne", temps);
+		auto const ecart_type = evalue_decimal("écart_type", temps);
 		auto const enum_operation = evalue_enum("opération");
 
 		if (nom_attribut == "") {
