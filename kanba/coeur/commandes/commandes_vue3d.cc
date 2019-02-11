@@ -398,7 +398,7 @@ public:
 		auto adaptrice = AdaptriceCreationMaillage();
 		adaptrice.maillage = new Maillage;
 
-		objets::cree_sphere_uv(&adaptrice, 1.0f);
+		objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
 		kanba->maillage = adaptrice.maillage;
 		kanba->maillage->cree_tampon();

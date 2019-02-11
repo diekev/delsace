@@ -235,7 +235,7 @@ RenduMonde::RenduMonde(Koudou *koudou)
 	adaptrice.sommets.reserve(48 * 24 * 4);
 	adaptrice.index.reserve(48 * 24 * 12);
 
-	objets::cree_sphere_uv(&adaptrice, 100.0f);
+	objets::cree_sphere_uv(&adaptrice, 100.0f, 48, 24);
 
 	m_sommets = adaptrice.sommets;
 	m_index = adaptrice.index;

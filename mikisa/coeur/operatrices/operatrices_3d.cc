@@ -112,7 +112,7 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 	}
 }
 
-class OperatriceCreationCorps final : public OperatriceCorps {
+class OperatriceCreationCorps : public OperatriceCorps {
 	ManipulatricePosition3D m_manipulatrice_position{};
 	ManipulatriceEchelle3D m_manipulatrice_echelle{};
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
@@ -131,11 +131,6 @@ public:
 	int type_sortie(int) const override
 	{
 		return OPERATRICE_CORPS;
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_objet.jo";
 	}
 
 	const char *nom_classe() const override
@@ -199,32 +194,8 @@ public:
 		}
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	void ajourne_transforme(int const temps)
 	{
-		INUTILISE(rectangle);
-
-		m_corps.reinitialise();
-
-		AdaptriceCreationCorps adaptrice;
-		adaptrice.corps = &m_corps;
-
-		auto forme = evalue_enum("forme");
-
-		if (forme == "plan") {
-			objets::cree_grille(&adaptrice, 1.0f, 1.0f, 2, 2);
-		}
-		else if (forme == "cylindre") {
-			objets::cree_cylindre(&adaptrice, 32, 1.0f, 1.0f, 1.0f);
-		}
-		else if (forme == "cube") {
-			objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
-		}
-		else if (forme == "sphère") {
-			objets::cree_sphere_uv(&adaptrice, 1.0f);
-		}
-
-		ajourne_portee_attr_normaux(&m_corps);
-
 		auto position = evalue_vecteur("position", temps);
 		auto rotation = evalue_vecteur("rotation", temps);
 		auto taille = evalue_vecteur("taille", temps);
@@ -239,14 +210,378 @@ public:
 		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
 		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
 		m_manipulatrice_echelle.pos(dls::math::point3f(position.x, position.y, position.z));
+	}
+};
 
-//		if (input(0)->connectee() == false) {
-//			ajoute_avertissement("Aucune texture connectée");
-//		}
+class OperatriceCreationCube final : public OperatriceCreationCorps {
+public:
+	static constexpr auto NOM = "Création Cube";
+	static constexpr auto AIDE = "Crée un cube.";
 
-//		auto texture = input(0)->requiers_texture(rectangle, temps);
+	explicit OperatriceCreationCube(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCreationCorps(graphe_parent, noeud)
+	{}
 
-//		maillage->texture(texture);
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_cube.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto rayon = evalue_vecteur("rayon", temps);
+
+		objets::cree_boite(&adaptrice, rayon.x, rayon.y, rayon.z);
+
+		ajourne_portee_attr_normaux(&m_corps);
+
+		ajourne_transforme(temps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+class OperatriceCreationSphereUV final : public OperatriceCreationCorps {
+public:
+	static constexpr auto NOM = "Création Sphère UV";
+	static constexpr auto AIDE = "Crée une sphère UV.";
+
+	explicit OperatriceCreationSphereUV(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCreationCorps(graphe_parent, noeud)
+	{}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_sphere_uv.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto const rayon = evalue_decimal("rayon", temps);
+		auto const res_u = evalue_entier("res_u", temps);
+		auto const res_v = evalue_entier("res_v", temps);
+
+		objets::cree_sphere_uv(&adaptrice, rayon, res_u, res_v);
+
+		ajourne_portee_attr_normaux(&m_corps);
+
+		ajourne_transforme(temps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+class OperatriceCreationCylindre final : public OperatriceCreationCorps {
+public:
+	static constexpr auto NOM = "Création Cylindre";
+	static constexpr auto AIDE = "Crée un cylindre.";
+
+	explicit OperatriceCreationCylindre(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCreationCorps(graphe_parent, noeud)
+	{}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_cylindre.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto const segments = evalue_entier("segments", temps);
+		auto const rayon_mineur = evalue_decimal("rayon_mineur", temps);
+		auto const rayon_majeur = evalue_decimal("rayon_majeur", temps);
+		auto const profondeur = evalue_decimal("profondeur", temps);
+
+		objets::cree_cylindre(&adaptrice, segments, rayon_mineur, rayon_majeur, profondeur);
+
+		ajourne_portee_attr_normaux(&m_corps);
+
+		ajourne_transforme(temps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+class OperatriceCreationCone final : public OperatriceCreationCorps {
+public:
+	static constexpr auto NOM = "Création Cone";
+	static constexpr auto AIDE = "Crée un cone.";
+
+	explicit OperatriceCreationCone(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCreationCorps(graphe_parent, noeud)
+	{}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_cone.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto const segments = evalue_entier("segments", temps);
+		auto const rayon_majeur = evalue_decimal("rayon_majeur", temps);
+		auto const profondeur = evalue_decimal("profondeur", temps);
+
+		objets::cree_cylindre(&adaptrice, segments, 0.0f, rayon_majeur, profondeur);
+
+		ajourne_portee_attr_normaux(&m_corps);
+
+		ajourne_transforme(temps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+class OperatriceCreationGrille final : public OperatriceCreationCorps {
+public:
+	static constexpr auto NOM = "Création Grille";
+	static constexpr auto AIDE = "Crée une grille.";
+
+	explicit OperatriceCreationGrille(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCreationCorps(graphe_parent, noeud)
+	{}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_grille.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto const lignes   = evalue_entier("lignes", temps);
+		auto const colonnes = evalue_entier("colonnes", temps);
+		auto const taille_x = evalue_decimal("taille_x", temps);
+		auto const taille_y = evalue_decimal("taille_y", temps);
+
+		objets::cree_grille(&adaptrice, taille_x, taille_y, lignes, colonnes);
+
+		ajourne_portee_attr_normaux(&m_corps);
+
+		ajourne_transforme(temps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+class OperatriceCreationSphereIco final : public OperatriceCreationCorps {
+public:
+	static constexpr auto NOM = "Création Sphère Ico";
+	static constexpr auto AIDE = "Crée une sphère ico.";
+
+	explicit OperatriceCreationSphereIco(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCreationCorps(graphe_parent, noeud)
+	{}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_sphere_ico.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto const rayon = evalue_decimal("rayon", temps);
+
+		objets::cree_icosphere(&adaptrice, rayon);
+
+		ajourne_portee_attr_normaux(&m_corps);
+
+		ajourne_transforme(temps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+class OperatriceCreationTorus final : public OperatriceCreationCorps {
+public:
+	static constexpr auto NOM = "Création Torus";
+	static constexpr auto AIDE = "Crée un torus.";
+
+	explicit OperatriceCreationTorus(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCreationCorps(graphe_parent, noeud)
+	{}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_torus.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto const rayon_mineur = evalue_decimal("rayon_mineur", temps);
+		auto const rayon_majeur = evalue_decimal("rayon_majeur", temps);
+		auto const segment_mineur = evalue_entier("segment_mineur", temps);
+		auto const segment_majeur = evalue_entier("segment_majeur", temps);
+
+		objets::cree_torus(&adaptrice, rayon_mineur, rayon_majeur, segment_mineur, segment_majeur);
+
+		ajourne_portee_attr_normaux(&m_corps);
+
+		ajourne_transforme(temps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+class OperatriceCreationCercle final : public OperatriceCreationCorps {
+public:
+	static constexpr auto NOM = "Création Cercle";
+	static constexpr auto AIDE = "Crée un cercle.";
+
+	explicit OperatriceCreationCercle(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCreationCorps(graphe_parent, noeud)
+	{}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_cercle.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto const segment = evalue_entier("segment", temps);
+		auto const rayon   = evalue_decimal("rayon", temps);
+
+		objets::cree_cercle(&adaptrice, segment, rayon);
+
+		ajourne_portee_attr_normaux(&m_corps);
+
+		ajourne_transforme(temps);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -2454,8 +2789,16 @@ void enregistre_operatrices_3d(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceLectureObjet>());
 	usine.enregistre_type(cree_desc<OperatriceTexture>());
 
+	usine.enregistre_type(cree_desc<OperatriceCreationGrille>());
+	usine.enregistre_type(cree_desc<OperatriceCreationSphereUV>());
+	usine.enregistre_type(cree_desc<OperatriceCreationSphereIco>());
+	usine.enregistre_type(cree_desc<OperatriceCreationCube>());
+	usine.enregistre_type(cree_desc<OperatriceCreationCylindre>());
+	usine.enregistre_type(cree_desc<OperatriceCreationCone>());
+	usine.enregistre_type(cree_desc<OperatriceCreationCercle>());
+	usine.enregistre_type(cree_desc<OperatriceCreationTorus>());
+
 	usine.enregistre_type(cree_desc<OperatriceSortieCorps>());
-	usine.enregistre_type(cree_desc<OperatriceCreationCorps>());
 	usine.enregistre_type(cree_desc<OperatriceCreationNormaux>());
 	usine.enregistre_type(cree_desc<OperatriceOpenSubDiv>());
 

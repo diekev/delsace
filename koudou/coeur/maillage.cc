@@ -145,7 +145,7 @@ Maillage *Maillage::cree_sphere_uv()
 	AdaptriceChargementMaillage adaptrice;
 	adaptrice.maillage = maillage;
 
-	objets::cree_sphere_uv(&adaptrice, 1.0f);
+	objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
 	maillage->calcule_boite_englobante();
 	maillage->nom("Sphère");

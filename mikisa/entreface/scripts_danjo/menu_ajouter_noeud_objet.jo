@@ -1,6 +1,13 @@
 menu "Noeud Objet" {
     menu "Entrée" {
-	    action(valeur="Création Corps"; attache=ajouter_noeud; métadonnée="Création Corps")
+	    action(valeur="Création Cercle"; attache=ajouter_noeud; métadonnée="Création Cercle")
+		action(valeur="Création Cone"; attache=ajouter_noeud; métadonnée="Création Cone")
+		action(valeur="Création Cube"; attache=ajouter_noeud; métadonnée="Création Cube")
+		action(valeur="Création Cylindre"; attache=ajouter_noeud; métadonnée="Création Cylindre")
+		action(valeur="Création Grille"; attache=ajouter_noeud; métadonnée="Création Grille")
+		action(valeur="Création Sphère Ico"; attache=ajouter_noeud; métadonnée="Création Sphère Ico")
+		action(valeur="Création Sphère UV"; attache=ajouter_noeud; métadonnée="Création Sphère UV")
+		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
 		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
 	}
 	menu "Attribut" {

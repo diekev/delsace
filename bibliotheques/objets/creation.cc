@@ -164,24 +164,24 @@ auto sphere(const T u, const T v, const T rayon)
 
 void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 					const float rayon,
+					int const resolution_u,
+					int const resolution_v,
 					const float centre_x,
 					const float centre_y,
 					const float centre_z)
 {
 	/* Création d'une sphère UV à partir de son équation paramétrique.
 	 * U est la longitude, V la latitude. */
-	auto const resolution_u = 48;
-	auto const resolution_v = resolution_u / 2;
 	auto const debut_u = 0.0f;
 	auto const debut_v = 0.0f;
 	auto const fin_u = static_cast<float>(M_PI * 2);
 	auto const fin_v = static_cast<float>(M_PI);
 
 	/* Taille entre deux points de longitude. */
-	auto const taille_pas_u = (fin_u - debut_u) / resolution_u;
+	auto const taille_pas_u = (fin_u - debut_u) / static_cast<float>(resolution_u);
 
 	/* Taille entre deux points de latitude. */
-	auto const taille_pas_v = (fin_v - debut_v) / resolution_v;
+	auto const taille_pas_v = (fin_v - debut_v) / static_cast<float>(resolution_v);
 
 	auto const &centre = dls::math::vec3f(centre_x, centre_y, centre_z);
 
@@ -438,8 +438,6 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 		}
 	}
 
-	adaptrice->ajoute_normal(0.0f, 1.0f, 0.0f);
-
 	int poly[4] = { 0, 0, 0, 0 };
 	int normaux[4] = { 0, 0, 0, 0 };
 
@@ -459,6 +457,7 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 			poly[3] = static_cast<int>(index(x - 1, y    ));
 
 			adaptrice->ajoute_polygone(poly, poly, normaux, 4);
+			adaptrice->ajoute_normal(0.0f, 1.0f, 0.0f);
 		}
 	}
 }
@@ -490,8 +489,6 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 		adaptrice->ajoute_sommet(point[0], point[1], point[2]);
 	}
 
-	adaptrice->ajoute_normal(0.0f, 1.0f, 0.0f);
-
 	auto index = segments;
 	int poly[3] = { 0, 0, 0 };
 	int normaux[3] = { 0, 0, 0 };
@@ -501,6 +498,7 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 		poly[2] = static_cast<int>(i);
 
 		adaptrice->ajoute_polygone(poly, nullptr, normaux, 3);
+		adaptrice->ajoute_normal(0.0f, 1.0f, 0.0f);
 
 		index = i;
 	}
@@ -544,16 +542,16 @@ void cree_cylindre(AdaptriceCreationObjet *adaptrice,
 
 	for (auto a = 0l; a < segments; ++a, phi += phid) {
 		/* Going this way ends up with normal(s) upward */
-		vec[0] = -rayon_mineur * std::sin(phi);
+		vec[0] = -rayon_majeur * std::sin(phi);
 		vec[1] = -profondeur;
-		vec[2] = rayon_mineur * std::cos(phi);
+		vec[2] = rayon_majeur * std::cos(phi);
 
 		v1 = nombre_points++;
 		adaptrice->ajoute_sommet(vec[0] + centre_x, vec[1] + centre_y, vec[2] + centre_z);
 
-		vec[0] = -rayon_majeur * std::sin(phi);
+		vec[0] = -rayon_mineur * std::sin(phi);
 		vec[1] = profondeur;
-		vec[2] = rayon_majeur * std::cos(phi);
+		vec[2] = rayon_mineur * std::cos(phi);
 
 		v2 = nombre_points++;
 		adaptrice->ajoute_sommet(vec[0] + centre_x, vec[1] + centre_y, vec[2] + centre_z);

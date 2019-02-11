@@ -79,11 +79,19 @@ set(FICHIERS_DANJO
 	scripts_danjo/menu_debogage.jo
 	scripts_danjo/menu_edition.jo
 	scripts_danjo/menu_fichier.jo
+	scripts_danjo/operatrice_3d_cercle.jo
+	scripts_danjo/operatrice_3d_cone.jo
 	scripts_danjo/operatrice_3d_creation_attribut.jo
 	scripts_danjo/operatrice_3d_creation_courbes.jo
+	scripts_danjo/operatrice_3d_cube.jo
+	scripts_danjo/operatrice_3d_cylindre.jo
+	scripts_danjo/operatrice_3d_grille.jo
 	scripts_danjo/operatrice_3d_normaux.jo
 	scripts_danjo/operatrice_3d_randomisation_attribut.jo
+	scripts_danjo/operatrice_3d_sphere_ico.jo
+	scripts_danjo/operatrice_3d_sphere_uv.jo
 	scripts_danjo/operatrice_3d_suppression_attribut.jo
+	scripts_danjo/operatrice_3d_torus.jo
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_attr_couleur.jo
 	scripts_danjo/operatrice_camera.jo
@@ -117,7 +125,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_min_max.jo
 	scripts_danjo/operatrice_normalisation.jo
 	scripts_danjo/operatrice_nuage.jo
-	scripts_danjo/operatrice_objet.jo
 	scripts_danjo/operatrice_ondelette_haar.jo
 	scripts_danjo/operatrice_opensubdiv.jo
 	scripts_danjo/operatrice_premultiplication.jo

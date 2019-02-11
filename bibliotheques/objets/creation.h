@@ -44,6 +44,8 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
  */
 void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 					const float rayon,
+					int const resolution_u,
+					int const resolution_v,
 					const float centre_x = 0.0f,
 					const float centre_y = 0.0f,
 					const float centre_z = 0.0f);

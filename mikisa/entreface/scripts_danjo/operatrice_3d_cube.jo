@@ -1,13 +1,7 @@
-disposition "operatrice_objet" {
+disposition "operatrice_3d_cube" {
     ligne {
-	    étiquette(valeur="Forme")
-		énum(valeur="cube"; attache=forme;
-		      items=[
-			  {nom="Plan", valeur="plan"},
-			  {nom="Cube", valeur="cube"},
-			  {nom="Cylindre", valeur="cylindre"},
-			  {nom="Sphère", valeur="sphère"}
-			  ])
+	    étiquette(valeur="Rayon")
+		vecteur(valeur="1,1,1"; attache=rayon)
 	}
 	ligne {
 	    étiquette(valeur="Position")

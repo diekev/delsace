@@ -1,0 +1,26 @@
+disposition "operatrice_3d_cone" {
+    ligne {
+	    étiquette(valeur="Segments")
+		entier(valeur=32; attache=segments; min=3)
+	}
+	ligne {
+	    étiquette(valeur="Rayon majeur")
+		décimal(valeur=1.0; attache=rayon_majeur; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Profondeur")
+		décimal(valeur=1.0; attache=profondeur; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Position")
+		vecteur(valeur="0,0,0"; attache=position)
+	}
+	ligne {
+	    étiquette(valeur="Rotation")
+		vecteur(valeur="0,0,0"; attache=rotation)
+	}
+	ligne {
+	    étiquette(valeur="Taille")
+		vecteur(valeur="1,1,1"; attache=taille)
+	}
+}
