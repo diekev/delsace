@@ -572,6 +572,227 @@ public:
 
 /* ************************************************************************** */
 
+class OperatricePoint3DComplement final : public OperatricePoint3D {
+public:
+	static constexpr auto NOM = "Complément";
+	static constexpr auto AIDE = "Retourne le complément de la valeur d'entrée 'x', à savoir 1 - x.";
+
+	explicit OperatricePoint3DComplement(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return type_prise::DECIMAL;
+	}
+
+	int type_sortie(int) const override
+	{
+		return type_prise::DECIMAL;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
+	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
+		compileuse.ajoute_noeud(NOEUD_POINT3D_COMPLEMENT);
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.decalage_pile(sortie(0)->pointeur());
+	}
+};
+
+/* ************************************************************************** */
+
+class OperatricePoint3DEPFluide final : public OperatricePoint3D {
+public:
+	static constexpr auto NOM = "EP Fluide";
+	static constexpr auto AIDE = "Performe une entrepolation fluide de la valeur d'entrée.";
+
+	explicit OperatricePoint3DEPFluide(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return type_prise::DECIMAL;
+	}
+
+	int type_sortie(int) const override
+	{
+		return type_prise::DECIMAL;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_p3d_ep_fluide.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
+	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
+
+		auto ordre = evalue_entier("ordre");
+		switch (ordre) {
+			default:
+			case 1:
+				compileuse.ajoute_noeud(NOEUD_POINT3D_EP_FLUIDE_O1);
+				break;
+			case 2:
+				compileuse.ajoute_noeud(NOEUD_POINT3D_EP_FLUIDE_O2);
+				break;
+			case 3:
+				compileuse.ajoute_noeud(NOEUD_POINT3D_EP_FLUIDE_O3);
+				break;
+			case 4:
+				compileuse.ajoute_noeud(NOEUD_POINT3D_EP_FLUIDE_O4);
+				break;
+			case 5:
+				compileuse.ajoute_noeud(NOEUD_POINT3D_EP_FLUIDE_O5);
+				break;
+			case 6:
+				compileuse.ajoute_noeud(NOEUD_POINT3D_EP_FLUIDE_O6);
+				break;
+		}
+
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.decalage_pile(sortie(0)->pointeur());
+	}
+};
+
+/* ************************************************************************** */
+
+class OperatricePoint3DProduitScalaire final : public OperatricePoint3D {
+public:
+	static constexpr auto NOM = "Produit Scalaire";
+	static constexpr auto AIDE = "Retourne le produit scalaire de deux vecteurs.";
+
+	explicit OperatricePoint3DProduitScalaire(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
+	{
+		entrees(2);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return type_prise::VECTEUR;
+	}
+
+	int type_sortie(int) const override
+	{
+		return type_prise::DECIMAL;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
+	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
+		compileuse.ajoute_noeud(NOEUD_POINT3D_PRODUIT_SCALAIRE);
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->lien));
+		compileuse.decalage_pile(sortie(0)->pointeur());
+	}
+};
+
+/* ************************************************************************** */
+
+class OperatricePoint3DProduitCroix final : public OperatricePoint3D {
+public:
+	static constexpr auto NOM = "Produit Croix";
+	static constexpr auto AIDE = "Retourne le produit en croix de deux vecteurs.";
+
+	explicit OperatricePoint3DProduitCroix(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePoint3D(graphe_parent, noeud)
+	{
+		entrees(2);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return type_prise::VECTEUR;
+	}
+
+	int type_sortie(int) const override
+	{
+		return type_prise::VECTEUR;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
+	{
+		INUTILISE(gestionnaire);
+		INUTILISE(temps);
+		compileuse.ajoute_noeud(NOEUD_POINT3D_PRODUIT_CROIX);
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->lien));
+		compileuse.decalage_pile(sortie(0)->pointeur());
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_point3d(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceGrapheMaillage>());
@@ -585,6 +806,10 @@ void enregistre_operatrices_point3d(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatricePoint3DBruitProc>());
 	usine.enregistre_type(cree_desc<OperatriceTradVec>());
 	usine.enregistre_type(cree_desc<OperatricePoint3DNormalise>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DComplement>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DEPFluide>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DProduitScalaire>());
+	usine.enregistre_type(cree_desc<OperatricePoint3DProduitCroix>());
 }
 
 #pragma clang diagnostic pop

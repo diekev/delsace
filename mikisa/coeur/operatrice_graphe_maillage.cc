@@ -25,6 +25,7 @@
 #include "operatrice_graphe_maillage.h"
 
 #include <delsace/math/bruit.hh>
+#include <delsace/math/entrepolation.hh>
 
 #include "corps/corps.h"
 
@@ -250,6 +251,96 @@ void execute_graphe(
 
 				pile_stocke_vec3f(courant, vec);
 
+				break;
+			}
+			case NOEUD_POINT3D_COMPLEMENT:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto val = 1.0f - pile_charge_decimal(pointeur);
+				pile_stocke_decimal(courant, val);
+				break;
+			}
+			case NOEUD_POINT3D_EP_FLUIDE_O1:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto val = pile_charge_decimal(pointeur);
+				val = dls::math::entrepolation_fluide<1>(val);
+				pile_stocke_decimal(courant, val);
+				break;
+			}
+			case NOEUD_POINT3D_EP_FLUIDE_O2:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto val = pile_charge_decimal(pointeur);
+				val = dls::math::entrepolation_fluide<2>(val);
+				pile_stocke_decimal(courant, val);
+				break;
+			}
+			case NOEUD_POINT3D_EP_FLUIDE_O3:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto val = pile_charge_decimal(pointeur);
+				val = dls::math::entrepolation_fluide<3>(val);
+				pile_stocke_decimal(courant, val);
+				break;
+			}
+			case NOEUD_POINT3D_EP_FLUIDE_O4:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto val = pile_charge_decimal(pointeur);
+				val = dls::math::entrepolation_fluide<4>(val);
+				pile_stocke_decimal(courant, val);
+				break;
+			}
+			case NOEUD_POINT3D_EP_FLUIDE_O5:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto val = pile_charge_decimal(pointeur);
+				val = dls::math::entrepolation_fluide<5>(val);
+				pile_stocke_decimal(courant, val);
+				break;
+			}
+			case NOEUD_POINT3D_EP_FLUIDE_O6:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto val = pile_charge_decimal(pointeur);
+				val = dls::math::entrepolation_fluide<6>(val);
+				pile_stocke_decimal(courant, val);
+				break;
+			}
+			case NOEUD_POINT3D_PRODUIT_SCALAIRE:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto vec1 = pile_charge_vec3f(pointeur);
+
+				decalage = pile_charge_entier(courant);
+				pointeur = debut + decalage;
+				auto vec2 = pile_charge_vec3f(pointeur);
+
+				auto val = dls::math::produit_scalaire(vec1, vec2);
+				pile_stocke_decimal(courant, val);
+				break;
+			}
+			case NOEUD_POINT3D_PRODUIT_CROIX:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto vec1 = pile_charge_vec3f(pointeur);
+
+				decalage = pile_charge_entier(courant);
+				pointeur = debut + decalage;
+				auto vec2 = pile_charge_vec3f(pointeur);
+
+				auto val = dls::math::produit_croix(vec1, vec2);
+				pile_stocke_vec3f(courant, val);
 				break;
 			}
 			case NOEUD_POINT3D_SORTIE:
