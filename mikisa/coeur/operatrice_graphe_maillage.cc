@@ -240,6 +240,18 @@ void execute_graphe(
 
 				break;
 			}
+			case NOEUD_POINT3D_NORMALISE:
+			{
+				auto decalage = pile_charge_entier(courant);
+				auto pointeur = debut + decalage;
+				auto vec = pile_charge_vec3f(pointeur);
+
+				vec = normalise(vec);
+
+				pile_stocke_vec3f(courant, vec);
+
+				break;
+			}
 			case NOEUD_POINT3D_SORTIE:
 			{
 				auto decalage = pile_charge_entier(courant);

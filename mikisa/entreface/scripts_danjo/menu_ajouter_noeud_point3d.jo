@@ -8,6 +8,7 @@ menu "Noeud Détail" {
 	    action(valeur="Bruit Procédurel"; attache=ajouter_noeud; métadonnée="Bruit Procédurel")
 		action(valeur="Combine Vecteur"; attache=ajouter_noeud; métadonnée="Combine Vecteur")
 		action(valeur="Mathématiques"; attache=ajouter_noeud; métadonnée="Mathématiques")
+		action(valeur="Normalise Vecteur"; attache=ajouter_noeud; métadonnée="Normalise Vecteur")
 		action(valeur="Sépare Vecteur"; attache=ajouter_noeud; métadonnée="Sépare Vecteur")
 		action(valeur="Traduction Vecteur"; attache=ajouter_noeud; métadonnée="Traduction Vecteur")
 	}
