@@ -125,7 +125,8 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_min_max.jo
 	scripts_danjo/operatrice_normalisation.jo
 	scripts_danjo/operatrice_nuage.jo
-	scripts_danjo/operatrice_ondelette_haar.jo
+        scripts_danjo/operatrice_objet.jo
+        scripts_danjo/operatrice_ondelette_haar.jo
 	scripts_danjo/operatrice_opensubdiv.jo
 	scripts_danjo/operatrice_premultiplication.jo
 	scripts_danjo/operatrice_point3d_math.jo
