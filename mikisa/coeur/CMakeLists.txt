@@ -52,6 +52,7 @@ set(BIBLIOTHEQUES
 	bib_transformation
 	bib_geometrie
 	bib_graphe
+	bib_voro
 	${BIBLIOTHEQUES_OPENSUBDIV}
 )
 

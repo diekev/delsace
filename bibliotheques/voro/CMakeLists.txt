@@ -14,23 +14,43 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2019 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(commandes)
-add_subdirectory(chaine)
-add_subdirectory(geometrie)
-add_subdirectory(graphe)
-add_subdirectory(objets)
-add_subdirectory(observation)
-add_subdirectory(opengl)
-add_subdirectory(outils)
-add_subdirectory(spectre)
-add_subdirectory(tests)
-add_subdirectory(texture)
-add_subdirectory(transformation)
-add_subdirectory(vision)
-add_subdirectory(voro)
-add_subdirectory(xml)
+set(NOM_CIBLE bib_voro)
+
+set(INCLUSIONS
+)
+
+add_library(${NOM_CIBLE} STATIC
+    cell.cc
+    c_loops.cc
+    cmd_line.cc
+    common.cc
+    container.cc
+    container_prd.cc
+    pre_container.cc
+    unitcell.cc
+    v_base.cc
+    v_compute.cc
+    wall.cc
+
+    cell.hh
+    c_loops.hh
+    common.hh
+    config.hh
+    container.hh
+    container_prd.hh
+    pre_container.hh
+    rad_option.hh
+    unitcell.hh
+    v_base.hh
+    v_compute.hh
+    voro++.hh
+    wall.hh
+    worklist.hh
+)
+
+target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
