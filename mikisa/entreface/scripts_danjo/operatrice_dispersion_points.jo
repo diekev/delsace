@@ -3,7 +3,8 @@ disposition "operatrice_dispersion_points" {
 	    étiquette(valeur="Origine")
 		énum(valeur="points"; attache=origine; items=[
 		     {nom="Points", valeur="points"},
-			 {nom="Primivites", valeur="primitives"}
+			 {nom="Primivites", valeur="primitives"},
+			 {nom="Volume", valeur="volume"}
 			 ])
 	}
 	ligne {

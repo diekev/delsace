@@ -358,6 +358,10 @@ public:
 			return genere_points_depuis_primitives(corps_entree, temps);
 		}
 
+		if (origine == "volume") {
+			return genere_points_depuis_volume(corps_entree, temps);
+		}
+
 		ajoute_avertissement("Erreur : origine inconnue !");
 		return EXECUTION_ECHOUEE;
 	}
@@ -441,6 +445,69 @@ public:
 					}
 				}
 			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	int genere_points_depuis_volume(Corps const *corps_entree, int temps)
+	{
+		/* création du conteneur */
+		auto min = dls::math::vec3d( std::numeric_limits<double>::max());
+		auto max = dls::math::vec3d(-std::numeric_limits<double>::max());
+
+		auto points_maillage = corps_entree->points();
+
+		for (auto i = 0; i < points_maillage->taille(); ++i) {
+			auto point = points_maillage->point(i);
+			auto point_monde = corps_entree->transformation(dls::math::point3d(point.x, point.y, point.z));
+
+			for (size_t j = 0; j < 3; ++j) {
+				if (point_monde[j] < min[j]) {
+					min[j] = point_monde[j];
+				}
+				else if (point_monde[j] > max[j]) {
+					max[j] = point_monde[j];
+				}
+			}
+		}
+
+		auto grouper_points = evalue_bool("grouper_points");
+		auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
+
+		if (grouper_points) {
+			auto nom_groupe = evalue_chaine("nom_groupe");
+
+			if (nom_groupe.empty()) {
+				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
+				return EXECUTION_ECHOUEE;
+			}
+
+			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
+		}
+
+		auto const nombre_points = evalue_entier("nombre_points", temps);
+
+		auto points_sorties = m_corps.points();
+		points_sorties->reserve(nombre_points);
+
+		auto const anime_graine = evalue_bool("anime_graine");
+		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
+
+		std::mt19937 rng(static_cast<size_t>(graine));
+		std::uniform_real_distribution<double> dist_x(min.x, max.x);
+		std::uniform_real_distribution<double> dist_y(min.y, max.y);
+		std::uniform_real_distribution<double> dist_z(min.z, max.z);
+
+		for (auto i = 0; i < nombre_points; ++i) {
+			auto pos_x = dist_x(rng);
+			auto pos_y = dist_y(rng);
+			auto pos_z = dist_z(rng);
+
+			m_corps.ajoute_point(
+						static_cast<float>(pos_x),
+						static_cast<float>(pos_y),
+						static_cast<float>(pos_z));
 		}
 
 		return EXECUTION_REUSSIE;
