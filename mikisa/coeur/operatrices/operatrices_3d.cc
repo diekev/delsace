@@ -1582,7 +1582,9 @@ public:
 			type = type_attribut::MAT4;
 		}
 		else {
-			ajoute_avertissement("Type d'attribut invalide !");
+			std::stringstream ss;
+			ss << "Type d'attribut '" << chaine_type << "' invalide !";
+			ajoute_avertissement(ss.str());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1604,7 +1606,9 @@ public:
 			portee = portee_attr::CORPS;
 		}
 		else {
-			ajoute_avertissement("Portée d'attribut invalide !");
+			std::stringstream ss;
+			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
+			ajoute_avertissement(ss.str());
 			return EXECUTION_ECHOUEE;
 		}
 

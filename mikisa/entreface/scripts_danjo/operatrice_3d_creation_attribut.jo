@@ -19,7 +19,7 @@ disposition "operatrice_3d_creation_attribut" {
 	}
 	ligne {
 	    étiquette(valeur="Portée")
-		énum(valeur="point"; attache=portee_attribut; items=[
+		énum(valeur="points"; attache=portee_attribut; items=[
 		     {nom="Points", valeur="points"},
 			 {nom="Primitives", valeur="primitives"},
 			 {nom="Vertex", valeur="vertex"},
