@@ -36,7 +36,7 @@ inline void voro_fatal_error(const char *p,int status) {
 inline void voro_print_positions(std::vector<double> &v,FILE *fp=stdout) {
 	if(v.size()>0) {
 		fprintf(fp,"(%g,%g,%g)",v[0],v[1],v[2]);
-		for(int k=3;(unsigned int) k<v.size();k+=3) {
+		for(size_t k=3; k<v.size();k+=3) {
 			fprintf(fp," (%g,%g,%g)",v[k],v[k+1],v[k+2]);
 		}
 	}

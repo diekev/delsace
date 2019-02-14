@@ -129,14 +129,14 @@ void cmd_line_output(c_loop &vl,c_class &con,const char* format,FILE* outfile,FI
 		voronoicell_neighbor c;
 		if(vl.start()) do if(con.compute_cell(c,vl)) {
 			vl.pos(pid,x,y,z,r);
-			if(outfile!=NULL) c.output_custom(format,pid,x,y,z,r,outfile);
-			if(gnu_file!=NULL) c.draw_gnuplot(x,y,z,gnu_file);
-			if(povp_file!=NULL) {
+			if(outfile!=nullptr) c.output_custom(format,pid,x,y,z,r,outfile);
+			if(gnu_file!=nullptr) c.draw_gnuplot(x,y,z,gnu_file);
+			if(povp_file!=nullptr) {
 				fprintf(povp_file,"// id %d\n",pid);
 				if(ps==4) fprintf(povp_file,"sphere{<%g,%g,%g>,%g}\n",x,y,z,r);
 				else fprintf(povp_file,"sphere{<%g,%g,%g>,s}\n",x,y,z);
 			}
-			if(povv_file!=NULL) {
+			if(povv_file!=nullptr) {
 				fprintf(povv_file,"// cell %d\n",pid);
 				c.draw_pov(x,y,z,povv_file);
 			}
@@ -146,14 +146,14 @@ void cmd_line_output(c_loop &vl,c_class &con,const char* format,FILE* outfile,FI
 		voronoicell c;
 		if(vl.start()) do if(con.compute_cell(c,vl)) {
 			vl.pos(pid,x,y,z,r);
-			if(outfile!=NULL) c.output_custom(format,pid,x,y,z,r,outfile);
-			if(gnu_file!=NULL) c.draw_gnuplot(x,y,z,gnu_file);
-			if(povp_file!=NULL) {
+			if(outfile!=nullptr) c.output_custom(format,pid,x,y,z,r,outfile);
+			if(gnu_file!=nullptr) c.draw_gnuplot(x,y,z,gnu_file);
+			if(povp_file!=nullptr) {
 				fprintf(povp_file,"// id %d\n",pid);
 				if(ps==4) fprintf(povp_file,"sphere{<%g,%g,%g>,%g}\n",x,y,z,r);
 				else fprintf(povp_file,"sphere{<%g,%g,%g>,s}\n",x,y,z);
 			}
-			if(povv_file!=NULL) {
+			if(povv_file!=nullptr) {
 				fprintf(povv_file,"// cell %d\n",pid);
 				c.draw_pov(x,y,z,povv_file);
 			}
@@ -169,7 +169,7 @@ int main(int argc,char **argv) {
 	blocks_mode bm=none;
 	bool gnuplot_output=false,povp_output=false,povv_output=false,polydisperse=false;
 	bool xperiodic=false,yperiodic=false,zperiodic=false,ordered=false,verbose=false;
-	pre_container *pcon=NULL;pre_container_poly *pconp=NULL;
+	pre_container *pcon=nullptr;pre_container_poly *pconp=nullptr;
 	wall_list wl;
 
 	// If there's one argument, check to see if it's requesting help.
@@ -398,7 +398,7 @@ int main(int argc,char **argv) {
 	}
 
 	// Check that the output filename is a sensible length
-	int flen=strlen(argv[i+6]);
+	auto flen=strlen(argv[i+6]);
 	if(flen>4096) {
 		fputs("voro++: Filename too long\n",stderr);
 		wl.deallocate();
@@ -412,15 +412,15 @@ int main(int argc,char **argv) {
 	if(gnuplot_output) {
 		sprintf(buffer,"%s.gnu",argv[i+6]);
 		gnu_file=safe_fopen(buffer,"w");
-	} else gnu_file=NULL;
+	} else gnu_file=nullptr;
 	if(povp_output) {
 		sprintf(buffer,"%s_p.pov",argv[i+6]);
 		povp_file=safe_fopen(buffer,"w");
-	} else povp_file=NULL;
+	} else povp_file=nullptr;
 	if(povv_output) {
 		sprintf(buffer,"%s_v.pov",argv[i+6]);
 		povv_file=safe_fopen(buffer,"w");
-	} else povv_file=NULL;
+	} else povv_file=nullptr;
 	delete [] buffer;
 
 	const char *c_str=(custom_output==0?(polydisperse?"%i %q %v %r":"%i %q %v"):argv[custom_output]);
@@ -484,15 +484,15 @@ int main(int argc,char **argv) {
 		printf("Total imported particles  : %d (%.2g per grid block)\n"
 		       "Total V. cells computed   : %d\n"
 		       "Total container volume    : %g\n"
-		       "Total V. cell volume      : %g\n",tp,((double) tp)/(nx*ny*nz),
+			   "Total V. cell volume      : %g\n",tp,(static_cast<double>(tp))/(nx*ny*nz),
 		       vcc,(bx-ax)*(by-ay)*(bz-az),vol);
 	}
 			   
 	// Close output files
 	fclose(outfile);
-	if(gnu_file!=NULL) fclose(gnu_file);
-	if(povp_file!=NULL) fclose(povp_file);
-	if(povv_file!=NULL) fclose(povv_file);
+	if(gnu_file!=nullptr) fclose(gnu_file);
+	if(povp_file!=nullptr) fclose(povp_file);
+	if(povv_file!=nullptr) fclose(povv_file);
 	return 0;
 }
 
