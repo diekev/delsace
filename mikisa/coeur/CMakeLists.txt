@@ -54,6 +54,7 @@ set(BIBLIOTHEQUES
 	bib_graphe
 	bib_voro
 	${BIBLIOTHEQUES_OPENSUBDIV}
+	fftw3
 )
 
 qt5_wrap_cpp(
@@ -88,6 +89,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/listes.h
 	corps/primitive.hh
 
+	operatrices/ocean.hh
 	operatrices/operatrices_3d.h
 	operatrices/operatrices_cheveux.h
 	operatrices/operatrices_flux.h
@@ -134,6 +136,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/listes.cc
 	corps/primitive.cc
 
+	operatrices/ocean.cc
 	operatrices/operatrices_3d.cc
 	operatrices/operatrices_cheveux.cc
 	operatrices/operatrices_flux.cc

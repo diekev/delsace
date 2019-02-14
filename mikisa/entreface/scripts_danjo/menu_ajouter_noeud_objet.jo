@@ -35,7 +35,8 @@ menu "Noeud Objet" {
 		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
 	}
 	menu "Simulation" {
-	    action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
+	    action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
+		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
 	}
 	menu "Sortie" {
 	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")

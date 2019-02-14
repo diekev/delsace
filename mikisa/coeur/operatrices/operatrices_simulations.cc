@@ -1074,6 +1074,237 @@ public:
 
 /* ************************************************************************** */
 
+#include "ocean.hh"
+
+class OperatriceSimulationOcean : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Océan";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceSimulationOcean(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_ocean.jo";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+	void simulate_ocean_modifier(struct OceanModifierData *omd)
+	{
+		BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount);
+	}
+
+	int execute(const Rectangle &rectangle, const int temps) override
+	{
+		INUTILISE(rectangle);
+		INUTILISE(temps);
+		m_corps.reinitialise();
+		//entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		OceanModifierData omd;
+		omd.resolution = evalue_entier("résolution");
+		omd.spatial_size = evalue_entier("taille_spaciale");
+
+		omd.wave_alignment = evalue_decimal("alignement_vague");
+		omd.wind_velocity = evalue_decimal("vélocité_vent");
+
+		omd.damp = evalue_decimal("damping");
+		omd.smallest_wave = evalue_decimal("plus_petite_vague");
+		omd.wave_direction = evalue_decimal("direction_vague");
+		omd.depth = evalue_decimal("profondeur");
+
+		omd.wave_scale = evalue_decimal("échelle_vague");
+
+		omd.chop_amount = evalue_decimal("quantité_chop");
+
+		omd.foam_coverage = evalue_decimal("couverture_foam");
+
+		omd.seed = evalue_entier("graine");
+		omd.time = static_cast<size_t>(temps) / 10.0f; //evalue_decimal("temps");
+
+		omd.size = evalue_decimal("taille");
+		omd.repeat_x = evalue_entier("répétition_x");
+		omd.repeat_y = evalue_entier("répétition_y");
+
+		omd.cached = 0;
+		omd.bakestart = 1;
+		omd.bakeend = 250;
+		omd.oceancache = nullptr;
+		omd.foam_fade = 0.98f;
+		omd.foamlayername[0] = '\0';   /* layer name empty by default */
+
+		omd.ocean = BKE_ocean_add();
+		BKE_ocean_init_from_modifier(omd.ocean, &omd);
+		simulate_ocean_modifier(&omd);
+
+		doOcean(&omd);
+
+		BKE_ocean_free(omd.ocean);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	struct GenerateOceanGeometryData {
+		Corps *corps;
+
+		int res_x, res_y;
+		int rx, ry;
+		float ox, oy;
+		float sx, sy;
+		float ix, iy;
+	};
+
+	void generate_ocean_geometry_vertices(GenerateOceanGeometryData *gogd)
+	{
+		for (int y = 0; y <= gogd->res_y; ++y){
+			for (int x = 0; x <= gogd->res_x; x++) {
+				float co[3];
+				co[0] = gogd->ox + (static_cast<float>(x) * gogd->sx);
+				co[1] = 0.0f;
+				co[2] = gogd->oy + (static_cast<float>(y) * gogd->sy);
+
+				gogd->corps->ajoute_point(co[0], co[1], co[2]);
+			}
+		}
+	}
+
+	void generate_ocean_geometry_polygons(GenerateOceanGeometryData *gogd)
+	{
+		for (int y = 0; y < gogd->res_y; ++y) {
+			for (int x = 0; x < gogd->res_x; x++) {
+				const int vi = y * (gogd->res_x + 1) + x;
+
+				auto poly = Polygone::construit(gogd->corps, type_polygone::FERME, 4);
+				poly->ajoute_sommet(vi);
+				poly->ajoute_sommet(vi + 1);
+				poly->ajoute_sommet(vi + 1 + gogd->res_x + 1);
+				poly->ajoute_sommet(vi + gogd->res_x + 1);
+			}
+		}
+	}
+
+	void generate_ocean_geometry_uvs(GenerateOceanGeometryData *gogd)
+	{
+		gogd->ix = 1.0f / static_cast<float>(gogd->rx);
+		gogd->iy = 1.0f / static_cast<float>(gogd->ry);
+
+		auto attr_UV = gogd->corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::VERTEX);
+
+		for (int y = 0; y < gogd->res_y; ++y) {
+			for (int x = 0; x < gogd->res_x; x++) {
+				const int i = (y * gogd->res_x + x) * 4;
+
+				auto const x0 = static_cast<float>(x);
+				auto const x1 = static_cast<float>(x + 1);
+				auto const y0 = static_cast<float>(y);
+				auto const y1 = static_cast<float>(y + 1);
+
+				attr_UV->vec2(i + 0, dls::math::vec2f(x0 * gogd->ix, y0 * gogd->iy));
+				attr_UV->vec2(i + 1, dls::math::vec2f(x1 * gogd->ix, y0 * gogd->iy));
+				attr_UV->vec2(i + 2, dls::math::vec2f(x1 * gogd->ix, y1 * gogd->iy));
+				attr_UV->vec2(i + 3, dls::math::vec2f(x0 * gogd->ix, y1 * gogd->iy));
+			}
+		}
+	}
+
+	void generate_ocean_geometry(OceanModifierData *omd, bool ajoute_uvs)
+	{
+		GenerateOceanGeometryData gogd;
+		gogd.corps = &m_corps;
+		gogd.rx = omd->resolution * omd->resolution;
+		gogd.ry = omd->resolution * omd->resolution;
+		gogd.res_x = gogd.rx * omd->repeat_x;
+		gogd.res_y = gogd.ry * omd->repeat_y;
+
+		auto num_verts = (gogd.res_x + 1) * (gogd.res_y + 1);
+		auto num_polys = gogd.res_x * gogd.res_y;
+
+		m_corps.points()->reserve(num_verts);
+		m_corps.prims()->reserve(num_polys);
+
+		gogd.sx = omd->size * static_cast<float>(omd->spatial_size);
+		gogd.sy = omd->size * static_cast<float>(omd->spatial_size);
+		gogd.ox = -gogd.sx / 2.0f;
+		gogd.oy = -gogd.sy / 2.0f;
+
+		gogd.sx /= static_cast<float>(gogd.rx);
+		gogd.sy /= static_cast<float>(gogd.ry);
+
+		generate_ocean_geometry_vertices(&gogd);
+		generate_ocean_geometry_polygons(&gogd);
+
+		if (ajoute_uvs) {
+			generate_ocean_geometry_uvs(&gogd);
+		}
+	}
+
+	void doOcean(OceanModifierData *omd)
+	{
+		const float size_co_inv = 1.0f / (omd->size * static_cast<float>(omd->spatial_size));
+
+		if (!std::isfinite(size_co_inv)) {
+			this->ajoute_avertissement("La taille inverse n'est pas finie");
+			return;
+		}
+
+		generate_ocean_geometry(omd, false);
+
+		/* À FAIRE : foam */
+
+		/* displace the geometry */
+		{
+			OceanResult ocr;
+
+			auto rx = omd->resolution * omd->resolution;
+			auto ry = omd->resolution * omd->resolution;
+			auto res_x = rx * omd->repeat_x;
+			auto res_y = ry * omd->repeat_y;
+
+			auto i = 0;
+
+			for (int y = 0; y <= res_y; ++y){
+				for (int x = 0; x <= res_x; x++) {
+
+					BKE_ocean_eval_ij(omd->ocean, &ocr, x, y);
+
+					auto pos = m_corps.points()->point(i);
+					pos[0] += ocr.disp[0];
+					pos[1] += ocr.disp[1];
+					pos[2] += ocr.disp[2];
+
+					m_corps.points()->point(i, pos);
+
+					++i;
+				}
+			}
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_simulations(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceSimulation>());
@@ -1084,6 +1315,7 @@ void enregistre_operatrices_simulations(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCollision>());
 	usine.enregistre_type(cree_desc<OperatriceVent>());
 	usine.enregistre_type(cree_desc<OperatriceSolveurNCorps>());
+	usine.enregistre_type(cree_desc<OperatriceSimulationOcean>());
 }
 
 #pragma clang diagnostic pop

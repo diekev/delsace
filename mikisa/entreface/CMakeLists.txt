@@ -126,6 +126,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_normalisation.jo
 	scripts_danjo/operatrice_nuage.jo
         scripts_danjo/operatrice_objet.jo
+	scripts_danjo/operatrice_ocean.jo
         scripts_danjo/operatrice_ondelette_haar.jo
 	scripts_danjo/operatrice_opensubdiv.jo
 	scripts_danjo/operatrice_premultiplication.jo
