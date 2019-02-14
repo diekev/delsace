@@ -47,6 +47,8 @@ public:
 
 	void ajoute_objet(Objet *objet);
 
+	void enleve_objet(Objet *objet);
+
 	const std::vector<Objet *> &objets();
 
 	void camera(vision::Camera3D *camera);

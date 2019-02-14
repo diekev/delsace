@@ -354,6 +354,20 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
+		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+
+		/* À FAIRE : meilleure gestion des objets, suppression nom objet
+		 * ensemble noms possibles. */
+		if (op->type() == OPERATRICE_OBJET) {
+			auto op_objet = dynamic_cast<OperatriceObjet *>(op);
+
+			auto noeud_scene = mikisa->derniere_scene_selectionnee;
+			auto op_noeud = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
+			auto op_scene = dynamic_cast<OperatriceScene *>(op_noeud);
+			auto scene = op_scene->scene();
+			scene->enleve_objet(op_objet->objet());
+		}
+
 		if (noeud == mikisa->derniere_scene_selectionnee) {
 			mikisa->derniere_scene_selectionnee = nullptr;
 		}

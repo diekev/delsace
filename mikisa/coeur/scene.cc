@@ -24,6 +24,7 @@
 
 #include "scene.h"
 
+#include <algorithm>
 
 void Scene::reinitialise()
 {
@@ -34,6 +35,12 @@ void Scene::reinitialise()
 void Scene::ajoute_objet(Objet *objet)
 {
 	m_objets.push_back(objet);
+}
+
+void Scene::enleve_objet(Objet *objet)
+{
+	auto iter = std::find(m_objets.begin(), m_objets.end(), objet);
+	m_objets.erase(iter);
 }
 
 const std::vector<Objet *> &Scene::objets()
