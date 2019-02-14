@@ -673,9 +673,9 @@ public:
 
 		Particule() = default;
 
-		Particule(dls::math::vec3f const &position, float mass)
-			: position(position)
-			, mass(mass)
+		Particule(dls::math::vec3f const &pos, float m)
+			: position(pos)
+			, mass(m)
 		{}
 
 		Particule operator+(const Particule &o) const
@@ -710,13 +710,14 @@ protected:
 		}
 	};
 
-	float resolution, inv_resolution;
-	int total_levels;
-	int margin;
+	float resolution = 0.0f;
+	float inv_resolution = 0.0f;
+	int total_levels = 0;
+	int margin = 0;
 
-	std::vector<Node> nodes;
-	int node_end;
-	dls::math::vec3f lower_corner;
+	std::vector<Node> nodes{};
+	int node_end = 0;
+	dls::math::vec3f lower_corner{};
 
 	dls::math::vec3i coordonnees_grille(const dls::math::vec3f &position)
 	{
@@ -798,12 +799,12 @@ protected:
 public:
 	// We do not evaluate the weighted average of position and mass on the fly
 	// for efficiency and accuracy
-	void initialise(float resolution,
+	void initialise(float res,
 					float marginfloat,
 					const std::vector<Particule> &particles)
 	{
-		this->resolution = resolution;
-		this->inv_resolution = 1.0f / resolution;
+		this->resolution = res;
+		this->inv_resolution = 1.0f / res;
 		this->margin = static_cast<int>(std::ceil(marginfloat * inv_resolution));
 		assert(particles.size() != 0);
 		dls::math::vec3f lower(1e30f);
@@ -818,7 +819,7 @@ public:
 		}
 
 		lower_corner = lower;
-		int intervals = static_cast<int>(std::ceil(max(upper - lower) / resolution));
+		int intervals = static_cast<int>(std::ceil(max(upper - lower) / res));
 		total_levels = 0;
 		for (int i = 1; i < intervals; i *= 2, total_levels++)
 			;
@@ -1063,7 +1064,7 @@ public:
 
 		auto const gravitation = evalue_decimal("gravitation");
 
-		for (auto i = 0; i < nb_etape; ++i) {
+		for (auto i = 0; i < static_cast<int>(nb_etape); ++i) {
 			sous_etape(gravitation, dt_simulation / nb_etape);
 		}
 
