@@ -131,13 +131,13 @@ public:
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
-		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
 
 		auto gravite = evalue_vecteur("gravité", temps);
 
 		/* À FAIRE : f = m * a => multiplier par la masse? */
 		for (long i = 0; i < nombre_points; ++i) {
-			attr_F->vec3(i, gravite);
+			attrf->vec3(i, gravite);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -190,7 +190,7 @@ public:
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
-		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
 
 		auto direction = evalue_vecteur("direction", temps);
 		auto amplitude = evalue_decimal("amplitude", temps);
@@ -203,13 +203,13 @@ public:
 		 * - turbulence
 		 */
 		for (long i = 0; i < nombre_points; ++i) {
-			auto force = attr_F->vec3(i);
+			auto force = attrf->vec3(i);
 
 			for (size_t j = 0; j < 3; ++j) {
 				force[j] = std::min(force_max[j], force[j] + force_max[j]);
 			}
 
-			attr_F->vec3(i, force);
+			attrf->vec3(i, force);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -262,12 +262,12 @@ public:
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
 		auto attr_P = m_corps.ajoute_attribut("pos_pre", type_attribut::VEC3, portee_attr::POINT);
-		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
 
 		/* À FAIRE : passe le temps par image en paramètre. */
 		auto const temps_par_image = 1.0f / 24.0f;
 		/* À FAIRE : masse comme propriété des particules */
-		auto const masse = 1.0f; // eval_float("masse");
+		auto const masse = 1.0f; // evalfloat("masse");
 		auto const masse_inverse = 1.0f / masse;
 
 		/* ajoute attribut vélocité */
@@ -296,7 +296,7 @@ public:
 			auto pos = liste_points->point(i);
 
 			/* a = f / m */
-			auto const acceleration = attr_F->vec3(i) * masse_inverse;
+			auto const acceleration = attrf->vec3(i) * masse_inverse;
 
 			/* velocite = acceleration * temp_par_image + velocite */
 			auto velocite = attr_V->vec3(i) + acceleration * temps_par_image;
@@ -307,7 +307,7 @@ public:
 			liste_points->point(i, npos);
 			attr_V->vec3(i, velocite);
 			attr_P->vec3(i, pos);
-			attr_F->vec3(i, dls::math::vec3f(0.0f));
+			attrf->vec3(i, dls::math::vec3f(0.0f));
 		}
 
 		return EXECUTION_REUSSIE;
@@ -649,6 +649,430 @@ public:
 
 /* ************************************************************************** */
 
+namespace dls::math {
+
+template <int O, typename T, int... Ns>
+[[nodiscard]] constexpr auto max(const vecteur<O, T, Ns...> &v)
+{
+	auto ret = v[0];
+
+	for (size_t i = 1; i < sizeof...(Ns); ++i) {
+		ret = std::max(ret, v[i]);
+	}
+
+	return ret;
+}
+
+}
+
+class BarnesHutSummation {
+public:
+	struct Particule {
+		dls::math::vec3f position = dls::math::vec3f(0.0f);
+		float mass = 0.0f;
+
+		Particule() = default;
+
+		Particule(dls::math::vec3f const &position, float mass)
+			: position(position)
+			, mass(mass)
+		{}
+
+		Particule operator+(const Particule &o) const
+		{
+			Particule ret;
+			ret.mass = mass + o.mass;
+			ret.position =
+					(position * mass + o.position * o.mass) * (1.0f / ret.mass);
+			return ret;
+		}
+	};
+
+protected:
+	struct Node {
+		Particule p{};
+		int children[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // We do not use pointer here to save memory bandwidth(64
+		// bit v.s. 32 bit)
+		// There are so many ways to optimize and I'll consider them later...
+		dls::math::vec3i bounds[2];  // TODO: this is quite brute-force...
+
+		Node() = default;
+
+		bool is_leaf()
+		{
+			for (int i = 0; i < 8; i++) {
+				if (children[i] != 0) {
+					return false;
+				}
+			}
+
+			return p.mass > 0;
+		}
+	};
+
+	float resolution, inv_resolution;
+	int total_levels;
+	int margin;
+
+	std::vector<Node> nodes;
+	int node_end;
+	dls::math::vec3f lower_corner;
+
+	dls::math::vec3i coordonnees_grille(const dls::math::vec3f &position)
+	{
+		dls::math::vec3i u;
+		dls::math::vec3f t = (position - lower_corner) * inv_resolution;
+		for (size_t i = 0; i < 3; i++) {
+			u[i] = int(t[i]);
+		}
+		return u;
+	}
+
+	int calcul_index_enfant(const dls::math::vec3i &u, int level)
+	{
+		int ret = 0;
+		for (size_t i = 0; i < 3; i++) {
+			ret += ((u[i] >> (total_levels - level - 1)) & 1) << i;
+		}
+		return ret;
+	}
+
+	void sommarise(int t)
+	{
+		auto &node = nodes[static_cast<size_t>(t)];
+
+		if (node.is_leaf()) {
+			auto u = coordonnees_grille(node.p.position);
+			node.bounds[0] = u - dls::math::vec3i(margin);
+			node.bounds[1] = u + dls::math::vec3i(margin);
+			return;
+		}
+
+		float mass = 0.0f;
+		dls::math::vec3f total_position(0.0f);
+		node.bounds[0] = dls::math::vec3i(std::numeric_limits<int>::max());
+		node.bounds[1] = dls::math::vec3i(std::numeric_limits<int>::min());
+
+		for (int c = 0; c < 8; c++) {
+			if (node.children[c]) {
+				sommarise(nodes[static_cast<size_t>(t)].children[c]);
+				auto const &ch = nodes[static_cast<size_t>(node.children[c])];
+				mass += ch.p.mass;
+				total_position += ch.p.mass * ch.p.position;
+
+				for (size_t i = 0; i < 3; i++) {
+					node.bounds[0][i] = std::min(node.bounds[0][i], ch.bounds[0][i]);
+					node.bounds[1][i] = std::max(node.bounds[1][i], ch.bounds[1][i]);
+				}
+			}
+		}
+
+		total_position *= dls::math::vec3f(1.0f / mass);
+
+		if (!dls::math::est_fini(total_position)) {
+			/* sérialise les données */
+		}
+
+		node.p = Particule(total_position, mass);
+	}
+
+	int cree_enfant(int t, int child_index)
+	{
+		return cree_enfant(t, child_index, Particule(dls::math::vec3f(0.0f), 0.0f));
+	}
+
+	int cree_enfant(int t, int child_index, const Particule &p)
+	{
+		int nt = cree_nouveau_noeud();
+		nodes[static_cast<size_t>(t)].children[child_index] = nt;
+		nodes[static_cast<size_t>(nt)].p = p;
+		return nt;
+	}
+
+	int cree_nouveau_noeud()
+	{
+		nodes[static_cast<size_t>(node_end)] = Node();
+		return node_end++;
+	}
+
+public:
+	// We do not evaluate the weighted average of position and mass on the fly
+	// for efficiency and accuracy
+	void initialise(float resolution,
+					float marginfloat,
+					const std::vector<Particule> &particles)
+	{
+		this->resolution = resolution;
+		this->inv_resolution = 1.0f / resolution;
+		this->margin = static_cast<int>(std::ceil(marginfloat * inv_resolution));
+		assert(particles.size() != 0);
+		dls::math::vec3f lower(1e30f);
+		dls::math::vec3f upper(-1e30f);
+
+		for (auto &p : particles) {
+			for (size_t k = 0; k < 3; k++) {
+				lower[k] = std::min(lower[k], p.position[k]);
+				upper[k] = std::max(upper[k], p.position[k]);
+			}
+			// TC_P(p.position);
+		}
+
+		lower_corner = lower;
+		int intervals = static_cast<int>(std::ceil(max(upper - lower) / resolution));
+		total_levels = 0;
+		for (int i = 1; i < intervals; i *= 2, total_levels++)
+			;
+		// We do not use the 0th node...
+		node_end = 1;
+		nodes.clear();
+		nodes.resize(particles.size() * 2);
+		int root = cree_nouveau_noeud();
+		// Make sure that one leaf node contains only one particle.
+		// Unless particles are too close and thereby merged.
+		for (auto &p : particles) {
+			if (p.mass == 0.0f) {
+				continue;
+			}
+
+			dls::math::vec3i u = coordonnees_grille(p.position);
+			auto t = static_cast<size_t>(root);
+
+			if (nodes[t].is_leaf()) {
+				// First node
+				nodes[t].p = p;
+				continue;
+			}
+
+			// Traverse down until there's no way...
+			int k = 0;
+			//TC_ERROR("cp maybe originally used without initialization");
+			int cp = -1;
+			for (; k < total_levels; k++) {
+				cp = calcul_index_enfant(u, k);
+				if (nodes[t].children[cp] != 0) {
+					t = static_cast<size_t>(nodes[t].children[cp]);
+				} else {
+					break;
+				}
+			}
+			if (nodes[t].is_leaf()) {
+				// Leaf node, containing one particle q
+				// Split the node until p and q belong to different children.
+				Particule q = nodes[t].p;
+				nodes[t].p = Particule();
+				dls::math::vec3i v = coordonnees_grille(q.position);
+				int cq = calcul_index_enfant(v, k);
+				while (cp == cq && k < total_levels) {
+					t = static_cast<size_t>(cree_enfant(static_cast<int>(t), cp));
+					k++;
+					cp = calcul_index_enfant(u, k);
+					cq = calcul_index_enfant(v, k);
+				}
+				if (k == total_levels) {
+					// We have to merge two particles since they are too close...
+					q = p + q;
+					cree_enfant(static_cast<int>(t), cp, q);
+				} else {
+					nodes[t].p = Particule();
+					cree_enfant(static_cast<int>(t), cp, p);
+					cree_enfant(static_cast<int>(t), cq, q);
+				}
+			} else {
+				// Non-leaf node, simply create a child.
+				cree_enfant(static_cast<int>(t), cp, p);
+			}
+		}
+		//TC_P(node_end);
+		sommarise(root);
+	}
+
+	/*
+  template<typename T>
+  dls::math::vec3f summation(const Particle &p, const T &func) {
+	  // TODO: fine level
+	  // TODO: only one particle?
+	  int t = 1;
+	  dls::math::vec3f ret(0.0f);
+	  dls::math::vec3f u = get_coord(p.position);
+	  for (int k = 0; k < total_levels; k++) {
+		  int cp = get_child_index(u, k);
+		  for (int c = 0; c < 8; c++) {
+			  if (c != cp && nodes[t].children[c]) {
+				  const Node &n = nodes[nodes[t].children[c]];
+				  auto tmp = func(p, n.p);
+				  ret += tmp;
+			  }
+		  }
+		  t = nodes[t].children[cp];
+		  if (t == 0) {
+			  break;
+		  }
+	  }
+	  return ret;
+  }
+  */
+
+	template <typename T>
+	dls::math::vec3f summation(int t, const Particule &p, const T &func)
+	{
+		const Node &node = nodes[static_cast<size_t>(t)];
+		if (nodes[static_cast<size_t>(t)].is_leaf()) {
+			return func(p, node.p);
+		}
+
+		dls::math::vec3f ret(0.0f);
+		dls::math::vec3i u = coordonnees_grille(p.position);
+
+		for (size_t c = 0; c < 8; c++) {
+			if (node.children[c]) {
+				const Node &ch = nodes[static_cast<size_t>(node.children[c])];
+				if (ch.bounds[0][0] <= u[0] && u[0] <= ch.bounds[1][0] &&
+						ch.bounds[0][1] <= u[1] && u[1] <= ch.bounds[1][1] &&
+						ch.bounds[0][2] <= u[2] && u[2] <= ch.bounds[1][2]) {
+					ret += summation(node.children[c], p, func);
+				} else {
+					// Coarse summation
+					ret += func(p, ch.p);
+				}
+			}
+		}
+
+		return ret;
+	}
+};
+
+class OperatriceSolveurNCorps : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Solveur N-Corps";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceSolveurNCorps(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_solveur_n_corps.jo";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	void initialise_attributs()
+	{
+		auto liste_points = m_corps.points();
+		auto const nombre_points = liste_points->taille();
+
+		auto attr_V = m_corps.attribut("V");
+		auto mult_vel = evalue_decimal("mult_vel");
+
+		if (attr_V == nullptr) {
+			attr_V = m_corps.ajoute_attribut("V", type_attribut::VEC3, portee_attr::POINT);
+
+			for (auto i = 0; i < nombre_points; ++i) {
+				auto pos = liste_points->point(i);
+				attr_V->vec3(i, (pos - dls::math::vec3f(0.5f)) * mult_vel);
+			}
+		}
+
+		m_corps.ajoute_attribut("pos_pre", type_attribut::VEC3, portee_attr::POINT);
+	}
+
+	void sous_etape(float gravitation, float dt)
+	{
+		auto liste_points = m_corps.points();
+		auto const nombre_points = liste_points->taille();
+		auto attr_V = m_corps.attribut("V");
+		auto attr_P = m_corps.attribut("pos_pre");
+
+		using BHP = BarnesHutSummation::Particule;
+
+		std::vector<BHP> bhps;
+		bhps.reserve(static_cast<size_t>(nombre_points));
+
+		for (auto i = 0; i < nombre_points; ++i) {
+			auto pos = liste_points->point(i);
+			bhps.push_back(BHP(pos, 1.0f));
+		}
+
+		BarnesHutSummation bhs;
+		bhs.initialise(1e-4f, 1e-3f, bhps);
+
+		auto f = [](const BHP &p, const BHP &q) {
+			dls::math::vec3f d = p.position - q.position;
+			float dist2 = produit_scalaire(d, d);
+			dist2 += 1e-4f;
+			d *= dls::math::vec3f(p.mass * q.mass / (dist2 * std::sqrt(dist2)));
+			return d;
+		};
+
+		if (gravitation != 0.0f) {
+			/* À FAIRE : multithreading. */
+			for (auto i = 0; i < nombre_points; ++i) {
+				auto pos = liste_points->point(i);
+				dls::math::vec3f totalf_bhs = bhs.summation(1, BHP(pos, 1.0f), f);
+
+				attr_V->vec3(i, attr_V->vec3(i) + totalf_bhs * gravitation * dt);
+			}
+		}
+
+		for (auto i = 0; i < nombre_points; ++i) {
+			auto pos = liste_points->point(i);
+
+			liste_points->point(i, pos + dt * attr_V->vec3(i));
+			attr_P->vec3(i, pos);
+		}
+	}
+
+	int execute(const Rectangle &rectangle, const int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto liste_points = m_corps.points();
+		auto const nombre_points = liste_points->taille();
+
+		if (nombre_points == 0) {
+			return EXECUTION_REUSSIE;
+		}
+
+		initialise_attributs();
+
+		auto const dt_config = 0.1f; // evalue_decimal("dt");
+		auto const dt_simulation = evalue_decimal("dt_simulation");
+		auto nb_etape = dt_config / dt_simulation;
+
+		auto const gravitation = evalue_decimal("gravitation");
+
+		for (auto i = 0; i < nb_etape; ++i) {
+			sous_etape(gravitation, dt_simulation / nb_etape);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_simulations(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceSimulation>());
@@ -658,6 +1082,7 @@ void enregistre_operatrices_simulations(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSolveurParticules>());
 	usine.enregistre_type(cree_desc<OperatriceCollision>());
 	usine.enregistre_type(cree_desc<OperatriceVent>());
+	usine.enregistre_type(cree_desc<OperatriceSolveurNCorps>());
 }
 
 #pragma clang diagnostic pop
