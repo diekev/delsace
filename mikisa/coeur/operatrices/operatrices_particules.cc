@@ -504,10 +504,14 @@ public:
 			auto pos_y = dist_y(rng);
 			auto pos_z = dist_z(rng);
 
-			m_corps.ajoute_point(
+			auto index = m_corps.ajoute_point(
 						static_cast<float>(pos_x),
 						static_cast<float>(pos_y),
 						static_cast<float>(pos_z));
+
+			if (groupe_sortie) {
+				groupe_sortie->ajoute_point(index);
+			}
 		}
 
 		return EXECUTION_REUSSIE;
