@@ -1139,10 +1139,10 @@ public:
 
 		omd.chop_amount = evalue_decimal("quantité_chop");
 
-		omd.foam_coverage = evalue_decimal("couverture_foam");
+		omd.foam_coverage = evalue_decimal("couverture_écume");
 
 		omd.seed = evalue_entier("graine");
-		omd.time = static_cast<size_t>(temps) / 10.0f; //evalue_decimal("temps");
+		omd.time = static_cast<float>(temps) / 10.0f; //evalue_decimal("temps");
 
 		omd.size = evalue_decimal("taille");
 		omd.repeat_x = evalue_entier("répétition_x");
@@ -1152,7 +1152,7 @@ public:
 		omd.bakestart = 1;
 		omd.bakeend = 250;
 		omd.oceancache = nullptr;
-		omd.foam_fade = 0.98f;
+		omd.foam_fade = evalue_decimal("atténuation_écume");
 		omd.foamlayername[0] = '\0';   /* layer name empty by default */
 
 		omd.ocean = BKE_ocean_add();

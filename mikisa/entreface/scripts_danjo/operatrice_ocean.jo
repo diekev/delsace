@@ -49,12 +49,12 @@ disposition "operatrice_ocean" {
 		décimal(valeur=200.0; attache=profondeur)
 	}
 	ligne {
-	    étiquette(valeur="Couverture foam")
-		décimal(valeur=0.0; attache=couverture_foam)
+	    étiquette(valeur="Couverture écume")
+		décimal(valeur=0.0; attache=couverture_écume)
 	}
 	ligne {
-	    étiquette(valeur="Fade foam")
-		décimal(valeur=0.98; attache=fade_foam)
+	    étiquette(valeur="Atténuation écume")
+		décimal(valeur=0.98; attache=atténuation_écume)
 	}
 	ligne {
 	    étiquette(valeur="Quantité chop")
