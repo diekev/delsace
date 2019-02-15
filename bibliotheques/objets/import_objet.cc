@@ -86,33 +86,55 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 	std::vector<int> index_normaux;
 	std::vector<int> index_coords_uv;
 
+	auto ptr_index = static_cast<int *>(nullptr);
+	auto ptr_normaux = static_cast<int *>(nullptr);
+	auto ptr_coords = static_cast<int *>(nullptr);
+
 	while (is >> info_poly) {
 		auto morceaux = brise(info_poly);
 
 		switch (morceaux.size()) {
 			case 1:
+			{
 				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
+
+				ptr_index = index_polygones.data();
+
 				break;
+			}
 			case 2:
+			{
 				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
 				index_coords_uv.push_back(std::stoi(morceaux[1]) - 1);
+
+				ptr_index = index_polygones.data();
+				ptr_coords = index_coords_uv.data();
+
 				break;
+			}
 			case 3:
+			{
 				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
 
 				if (!morceaux[1].empty()) {
 					index_coords_uv.push_back(std::stoi(morceaux[1]) - 1);
+					ptr_coords = index_coords_uv.data();
 				}
 
 				index_normaux.push_back(std::stoi(morceaux[2]) - 1);
+
+				ptr_index = index_polygones.data();
+				ptr_normaux = index_normaux.data();
+
 				break;
+			}
 		}
 	}
 
 	adaptrice->ajoute_polygone(
-				index_polygones.data(),
-				index_coords_uv.data(),
-				index_normaux.data(),
+				ptr_index,
+				ptr_coords,
+				ptr_normaux,
 				static_cast<long>(index_polygones.size()));
 }
 

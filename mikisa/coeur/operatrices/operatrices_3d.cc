@@ -104,12 +104,22 @@ public:
 static void ajourne_portee_attr_normaux(Corps *corps)
 {
 	auto attr_normaux = corps->attribut("N");
+	auto attr_normaux_polys = corps->attribut("N_polys");
+
+	if (attr_normaux_polys != nullptr) {
+		if (attr_normaux != nullptr) {
+			corps->supprime_attribut("N");
+		}
+
+		attr_normaux_polys->nom("N");
+		return;
+	}
 
 	if (attr_normaux != nullptr) {
 		if (attr_normaux->taille() == corps->prims()->taille()) {
 			attr_normaux->portee = portee_attr::PRIMITIVE;
 		}
-		else if (attr_normaux->taille() == corps->points()->taille()) {
+		else  if (attr_normaux->taille() == corps->points()->taille()) {
 			attr_normaux->portee = portee_attr::POINT;
 		}
 	}

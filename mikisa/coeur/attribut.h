@@ -125,6 +125,7 @@ public:
 
 	type_attribut type() const;
 	std::string nom() const;
+	void nom(const std::string &n);
 
 	void reserve(long n);
 	void redimensionne(long n);

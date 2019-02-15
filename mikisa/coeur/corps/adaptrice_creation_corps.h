@@ -63,5 +63,6 @@ public:
 	std::vector<GroupePrimitive *> groupes_courant{};
 	Corps *corps{};
 	Attribut *attribut_normal = nullptr;
+	Attribut *attribut_normal_polys = nullptr;
 	Attribut *attribut_uvs = nullptr;
 };

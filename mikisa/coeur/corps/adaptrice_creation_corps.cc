@@ -76,12 +76,29 @@ void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float
 void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int *index_uvs, const int *index_normaux, long nombre)
 {
 	INUTILISE(index_uvs);
-	INUTILISE(index_normaux);
 
 	auto poly = Polygone::construit(corps, type_polygone::FERME, nombre);
 
 	for (long i = 0; i < nombre; ++i) {
 		poly->ajoute_sommet(index_sommet[i]);
+	}
+
+	if (index_normaux != nullptr) {
+		auto normaux_polys = true;
+
+		for (auto i = 1; i < nombre; ++i) {
+			if (index_normaux[i - 1] != index_normaux[i]) {
+				normaux_polys = false;
+			}
+		}
+
+		if (normaux_polys) {
+			if (attribut_normal_polys == nullptr) {
+				attribut_normal_polys = corps->ajoute_attribut("N_polys", type_attribut::VEC3, portee_attr::PRIMITIVE, true);
+			}
+
+			attribut_normal_polys->pousse_vec3(attribut_normal->vec3(index_normaux[0]));
+		}
 	}
 
 	for (GroupePrimitive *groupe : groupes_courant) {

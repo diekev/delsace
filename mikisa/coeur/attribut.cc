@@ -152,6 +152,11 @@ std::string Attribut::nom() const
 	return m_nom;
 }
 
+void Attribut::nom(std::string const &n)
+{
+	m_nom = n;
+}
+
 void Attribut::reserve(long n)
 {
 	assert(n >= 0);

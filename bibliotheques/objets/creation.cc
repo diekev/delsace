@@ -438,6 +438,8 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 		}
 	}
 
+	adaptrice->ajoute_normal(0.0f, 1.0f, 0.0f);
+
 	int poly[4] = { 0, 0, 0, 0 };
 	int normaux[4] = { 0, 0, 0, 0 };
 
@@ -457,7 +459,6 @@ void cree_grille(AdaptriceCreationObjet *adaptrice,
 			poly[3] = static_cast<int>(index(x - 1, y    ));
 
 			adaptrice->ajoute_polygone(poly, poly, normaux, 4);
-			adaptrice->ajoute_normal(0.0f, 1.0f, 0.0f);
 		}
 	}
 }
@@ -489,6 +490,8 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 		adaptrice->ajoute_sommet(point[0], point[1], point[2]);
 	}
 
+	adaptrice->ajoute_normal(0.0f, 1.0f, 0.0f);
+
 	auto index = segments;
 	int poly[3] = { 0, 0, 0 };
 	int normaux[3] = { 0, 0, 0 };
@@ -498,7 +501,6 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 		poly[2] = static_cast<int>(i);
 
 		adaptrice->ajoute_polygone(poly, nullptr, normaux, 3);
-		adaptrice->ajoute_normal(0.0f, 1.0f, 0.0f);
 
 		index = i;
 	}
