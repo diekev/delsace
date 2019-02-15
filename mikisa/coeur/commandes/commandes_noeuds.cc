@@ -402,6 +402,52 @@ public:
 
 /* ************************************************************************** */
 
+static const char *chaine_attribut(type_attribut type)
+{
+	switch (type) {
+		case type_attribut::ENT8:
+			return "ent8";
+		case type_attribut::ENT32:
+			return "ent32";
+		case type_attribut::DECIMAL:
+			return "décimal";
+		case type_attribut::VEC2:
+			return "vec2";
+		case type_attribut::VEC3:
+			return "vec3";
+		case type_attribut::VEC4:
+			return "vec4";
+		case type_attribut::MAT3:
+			return "mat3";
+		case type_attribut::MAT4:
+			return "mat4";
+		case type_attribut::INVALIDE:
+			return "invalide";
+		case type_attribut::CHAINE:
+			return "chaine";
+	}
+
+	return "quelque chose va mal";
+}
+
+static const char *chaine_portee(portee_attr portee)
+{
+	switch (portee) {
+		case portee_attr::CORPS:
+			return "corps";
+		case portee_attr::POINT:
+			return "point";
+		case portee_attr::PRIMITIVE:
+			return "primitive";
+		case portee_attr::VERTEX:
+			return "vertex";
+		case portee_attr::GROUPE:
+			return "groupe";
+	}
+
+	return "quelque chose va mal";
+}
+
 class CommandeInfoNoeud final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
@@ -424,6 +470,37 @@ public:
 			std::stringstream ss;
 			ss << "<p>Opératrice : " << noeud->nom() << "</p>";
 			ss << "<hr/>";
+
+			auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+
+			if (op->type() == OPERATRICE_CORPS || op->type() == OPERATRICE_SORTIE_CORPS) {
+				auto op_objet = dynamic_cast<OperatriceCorps *>(op);
+				auto corps = op_objet->corps();
+
+				ss << "<p>Points         : " << corps->points()->taille() << "</p>";
+				ss << "<p>Prims          : " << corps->prims()->taille() << "</p>";
+
+				ss << "<hr/>";
+
+				ss << "<p>Groupes points : " << corps->groupes_points().size() << "</p>";
+				ss << "<p>Groupes prims  : " << corps->groupes_prims().size() << "</p>";
+
+				ss << "<hr/>";
+
+				ss << "<p>Attributs : " << corps->attributs().size() << "</p>";
+
+				for (auto attr : corps->attributs()) {
+					ss << "<p>"
+					   << attr->nom()
+					   << " : "
+					   << chaine_attribut(attr->type())
+					   << " (" << chaine_portee(attr->portee) << ")"
+					   << "</p>";
+				}
+
+				ss << "<hr/>";
+			}
+
 			ss << "<p>Temps d'exécution :";
 			ss << "<p>- dernière : " << noeud->temps_execution() << " secondes.</p>";
 			ss << "<p>- minimum : " << noeud->temps_execution_minimum() << " secondes.</p>";
