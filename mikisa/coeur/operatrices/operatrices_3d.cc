@@ -53,6 +53,122 @@
 
 /* ************************************************************************** */
 
+static auto calcul_normaux(Corps &corps, bool plats, bool inverse_normaux)
+{
+	auto attr_normaux = corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, true);
+
+	if (attr_normaux->taille() != 0l) {
+		attr_normaux->reinitialise();
+	}
+
+	auto liste_points = corps.points();
+	auto liste_prims = corps.prims();
+	auto nombre_prims = liste_prims->taille();
+
+	if (plats) {
+		attr_normaux->reserve(nombre_prims);
+		attr_normaux->portee = portee_attr::PRIMITIVE;
+
+		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
+			auto prim = liste_prims->prim(ip);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
+			if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
+				attr_normaux->pousse_vec3(dls::math::vec3f(0.0f));
+				continue;
+			}
+
+			auto const &v0 = liste_points->point(poly->index_point(0));
+			auto const &v1 = liste_points->point(poly->index_point(1));
+			auto const &v2 = liste_points->point(poly->index_point(2));
+
+			auto const e1 = v1 - v0;
+			auto const e2 = v2 - v0;
+
+			auto const nor = normalise(produit_croix(e1, e2));
+
+			if (inverse_normaux) {
+				attr_normaux->pousse_vec3(-nor);
+			}
+			else {
+				attr_normaux->pousse_vec3(nor);
+			}
+		}
+	}
+	else {
+		auto nombre_sommets = liste_points->taille();
+		attr_normaux->redimensionne(nombre_sommets);
+		attr_normaux->portee = portee_attr::POINT;
+
+		/* calcul le normal de chaque polygone */
+		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
+			auto prim = liste_prims->prim(ip);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
+			if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
+				poly->nor = dls::math::vec3f(0.0f);
+				continue;
+			}
+
+			auto const &v0 = liste_points->point(poly->index_point(0));
+			auto const &v1 = liste_points->point(poly->index_point(1));
+			auto const &v2 = liste_points->point(poly->index_point(2));
+
+			auto const e1 = v1 - v0;
+			auto const e2 = v2 - v0;
+
+			poly->nor = normalise(produit_croix(e1, e2));
+		}
+
+		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
+			auto prim = liste_prims->prim(ip);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
+			if (poly->type == type_polygone::OUVERT || poly->nombre_sommets() < 3) {
+				continue;
+			}
+
+			for (long i = 0; i < poly->nombre_segments(); ++i) {
+				auto const index_sommet = poly->index_point(i);
+
+				auto nor = attr_normaux->vec3(index_sommet);
+				nor += poly->nor;
+				attr_normaux->vec3(index_sommet, nor);
+			}
+		}
+
+		/* normalise les normaux */
+		for (long n = 0; n < nombre_sommets; ++n) {
+			auto nor = attr_normaux->vec3(n);
+			nor = normalise(nor);
+
+			if (inverse_normaux) {
+				attr_normaux->vec3(n, -nor);
+			}
+			else {
+				attr_normaux->vec3(n, nor);
+			}
+		}
+	}
+}
+
+/* ************************************************************************** */
+
 class OperatriceSortieCorps final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Sortie Corps";
@@ -358,7 +474,7 @@ public:
 
 		objets::cree_cylindre(&adaptrice, segments, rayon_mineur, rayon_majeur, profondeur);
 
-		ajourne_portee_attr_normaux(&m_corps);
+		calcul_normaux(m_corps, true, false);
 
 		ajourne_transforme(temps);
 
@@ -405,7 +521,7 @@ public:
 
 		objets::cree_cylindre(&adaptrice, segments, 0.0f, rayon_majeur, profondeur);
 
-		ajourne_portee_attr_normaux(&m_corps);
+		calcul_normaux(m_corps, true, false);
 
 		ajourne_transforme(temps);
 
@@ -546,7 +662,7 @@ public:
 
 		objets::cree_torus(&adaptrice, rayon_mineur, rayon_majeur, segment_mineur, segment_majeur);
 
-		ajourne_portee_attr_normaux(&m_corps);
+		calcul_normaux(m_corps, true, true);
 
 		ajourne_transforme(temps);
 
@@ -1093,12 +1209,6 @@ public:
 		auto type = evalue_enum("type_normaux");
 		auto inverse_normaux = evalue_bool("inverse_direction");
 
-		auto attr_normaux = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, true);
-
-		if (attr_normaux->taille() != 0l) {
-			attr_normaux->reinitialise();
-		}
-
 		auto liste_prims = m_corps.prims();
 		auto nombre_prims = liste_prims->taille();
 
@@ -1107,119 +1217,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto liste_points = m_corps.points();
-
-		if (type == "plats") {
-			attr_normaux->reserve(nombre_prims);
-			attr_normaux->portee = portee_attr::PRIMITIVE;
-
-			for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
-				auto prim = liste_prims->prim(ip);
-
-				if (prim->type_prim() != type_primitive::POLYGONE) {
-					continue;
-				}
-
-				auto poly = dynamic_cast<Polygone *>(prim);
-
-				if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
-					attr_normaux->pousse_vec3(dls::math::vec3f(0.0f));
-					continue;
-				}
-
-				auto const &v0 = liste_points->point(poly->index_point(0));
-				auto const &v1 = liste_points->point(poly->index_point(1));
-				auto const &v2 = liste_points->point(poly->index_point(2));
-
-				auto const e1 = v1 - v0;
-				auto const e2 = v2 - v0;
-
-				auto const nor = normalise(produit_croix(e1, e2));
-
-				if (inverse_normaux) {
-					attr_normaux->pousse_vec3(-nor);
-				}
-				else {
-					attr_normaux->pousse_vec3(nor);
-				}
-			}
-		}
-		else {
-			auto nombre_sommets = m_corps.points()->taille();
-			attr_normaux->redimensionne(nombre_sommets);
-			attr_normaux->portee = portee_attr::POINT;
-
-			/* calcul le normal de chaque polygone */
-			for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
-				auto prim = liste_prims->prim(ip);
-
-				if (prim->type_prim() != type_primitive::POLYGONE) {
-					continue;
-				}
-
-				auto poly = dynamic_cast<Polygone *>(prim);
-
-				if (poly->type != type_polygone::FERME || poly->nombre_sommets() < 3) {
-					poly->nor = dls::math::vec3f(0.0f);
-					continue;
-				}
-
-				auto const &v0 = liste_points->point(poly->index_point(0));
-				auto const &v1 = liste_points->point(poly->index_point(1));
-				auto const &v2 = liste_points->point(poly->index_point(2));
-
-				auto const e1 = v1 - v0;
-				auto const e2 = v2 - v0;
-
-				poly->nor = normalise(produit_croix(e1, e2));
-			}
-
-			/* accumule les normaux pour chaque sommets */
-			std::vector<int> poids(static_cast<size_t>(nombre_sommets), 0);
-
-			for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
-				auto prim = liste_prims->prim(ip);
-
-				if (prim->type_prim() != type_primitive::POLYGONE) {
-					continue;
-				}
-
-				auto poly = dynamic_cast<Polygone *>(prim);
-
-				if (poly->type == type_polygone::OUVERT || poly->nombre_sommets() < 3) {
-					continue;
-				}
-
-				for (long i = 0; i < poly->nombre_segments(); ++i) {
-					auto const index_sommet = poly->index_point(i);
-
-					if (poids[static_cast<size_t>(index_sommet)] != 0) {
-						auto nor = attr_normaux->vec3(index_sommet);
-						nor += poly->nor;
-						attr_normaux->vec3(index_sommet, nor);
-					}
-					else {
-						attr_normaux->vec3(index_sommet, poly->nor);
-					}
-
-					poids[static_cast<size_t>(index_sommet)] += 1;
-				}
-			}
-
-			/* normalise les normaux */
-			for (long n = 0; n < nombre_sommets; ++n) {
-				auto nor = attr_normaux->vec3(n);
-				nor /= static_cast<float>(poids[static_cast<size_t>(n)]);
-				nor = normalise(nor);
-
-				if (inverse_normaux) {
-					attr_normaux->vec3(n, -nor);
-				}
-				else {
-					attr_normaux->vec3(n, nor);
-				}
-			}
-		}
+		calcul_normaux(m_corps, type == "plats", inverse_normaux);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1318,7 +1316,12 @@ public:
 	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("Aucun corps connecté !");
+			return EXECUTION_ECHOUEE;
+		}
 
 		/* peuple un descripteur avec nos données crues */
 		using Descripteur   = OpenSubdiv::Far::TopologyDescriptor;
@@ -1411,8 +1414,8 @@ public:
 			ajoute_avertissement("Type de sousdivision triangulaire invalide !");
 		}
 
-		auto nombre_sommets = m_corps.points()->taille();
-		auto nombre_polygones = m_corps.prims()->taille();
+		auto nombre_sommets = corps_entree->points()->taille();
+		auto nombre_polygones = corps_entree->prims()->taille();
 
 		Descripteur desc;
 		desc.numVertices = static_cast<int>(nombre_sommets);
@@ -1424,7 +1427,7 @@ public:
 		std::vector<int> index_sommets_polys;
 		index_sommets_polys.reserve(static_cast<size_t>(nombre_sommets * nombre_polygones));
 
-		auto const liste_prims = m_corps.prims();
+		auto const liste_prims = corps_entree->prims();
 		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
 			auto prim = liste_prims->prim(ip);
 
@@ -1457,8 +1460,8 @@ public:
 
 		/* Initialise les positions du maillage grossier. */
 		auto index_point = 0;
-		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
-			auto point = m_corps.points()->point(i);
+		for (auto i = 0; i < corps_entree->points()->taille(); ++i) {
+			auto point = corps_entree->points()->point(i);
 			sommets[index_point++].SetPosition(point.x, point.y, point.z);
 		}
 
@@ -1479,7 +1482,8 @@ public:
 
 			auto premier_sommet = rafineur->GetNumVerticesTotal() - nombre_sommets;
 
-			m_corps.reinitialise();
+			auto attr_N = corps_entree->attribut("N");
+
 			m_corps.points()->reserve(nombre_sommets);
 			m_corps.prims()->reserve(nombre_polygones);
 
@@ -1502,6 +1506,11 @@ public:
 				for (int i = 0; i < fverts.size(); ++i) {
 					poly->ajoute_sommet(fverts[i]);
 				}
+			}
+
+			if (attr_N != nullptr) {
+				/* À FAIRE : savoir si les normaux ont été inversé. */
+				calcul_normaux(m_corps, attr_N->portee == portee_attr::PRIMITIVE, false);
 			}
 		}
 
