@@ -46,6 +46,8 @@
 #include "../operatrice_scene.h"
 #include "../usine_operatrice.h"
 
+#include "courbure.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
@@ -3081,6 +3083,85 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceCourbureMaillage : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Courbure Maillage";
+	static constexpr auto AIDE = "Calcul la courbure du maillage d'entrée";
+
+	OperatriceCourbureMaillage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_courbure_maillage.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto points_entree = m_corps.points();
+
+		if (points_entree->taille() == 0) {
+			this->ajoute_avertissement("Le Corps d'entrée est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto relatif = evalue_bool("relatif");
+		auto courbure_max = evalue_decimal("courbure_max");
+		auto rayon = evalue_decimal("rayon");
+
+		auto donnees_ret = calcule_courbure(
+					m_corps,
+					relatif,
+					static_cast<double>(rayon),
+					static_cast<double>(courbure_max));
+
+		if (donnees_ret.nombre_instable > 0) {
+			std::stringstream ss;
+			ss << "Il y a " << donnees_ret.nombre_instable
+			   << " points instables. Veuillez modifier le rayon pour stabiliser l'algorithme.";
+			this->ajoute_avertissement(ss.str());
+		}
+
+		if (donnees_ret.nombre_impossible > 0) {
+			std::stringstream ss;
+			ss << "Il y a " << donnees_ret.nombre_impossible
+			   << " points impossibles à calculer. Veuillez modifier le rayon pour stabiliser l'algorithme.";
+			this->ajoute_avertissement(ss.str());
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_3d(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCamera>());
@@ -3114,6 +3195,8 @@ void enregistre_operatrices_3d(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCreationGroupe>());
 
 	usine.enregistre_type(cree_desc<OperatriceFractureVoronoi>());
+
+	usine.enregistre_type(cree_desc<OperatriceCourbureMaillage>());
 }
 
 #pragma clang diagnostic pop

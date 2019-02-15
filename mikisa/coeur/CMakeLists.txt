@@ -89,6 +89,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/listes.h
 	corps/primitive.hh
 
+	operatrices/courbure.hh
 	operatrices/ocean.hh
 	operatrices/operatrices_3d.h
 	operatrices/operatrices_cheveux.h
@@ -136,6 +137,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/listes.cc
 	corps/primitive.cc
 
+	operatrices/courbure.cc
 	operatrices/ocean.cc
 	operatrices/operatrices_3d.cc
 	operatrices/operatrices_cheveux.cc
