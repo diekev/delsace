@@ -217,7 +217,6 @@ public:
 		auto attr_L = m_corps.ajoute_attribut("longueur", type_attribut::DECIMAL, portee_attr::PRIMITIVE, true);
 		attr_L->reserve(liste_points->taille());
 
-		auto index_point = 0l;
 		for (auto i = 0; i < liste_points->taille(); ++i) {
 			auto const taille_courbe = dist_taille(rng) * multiplication_taille;
 
@@ -234,7 +233,7 @@ public:
 			}
 
 			if (direction == DIRECTION_NORMAL) {
-				normal = attr_N->vec3(index_point++);
+				normal = attr_N->vec3(i);
 			}
 
 			auto pos = liste_points->point(i);
