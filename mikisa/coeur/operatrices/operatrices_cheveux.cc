@@ -165,12 +165,6 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto courbes = nullptr;
-
-		INUTILISE(courbes);
-
-		auto const nombre_courbes = liste_points->taille();
-		INUTILISE(nombre_courbes);
 		auto const segments = evalue_entier("segments");
 		auto const inv_segments = 1.0f / static_cast<float>(segments);
 		auto const taille_min = evalue_decimal("taille_min");
@@ -218,17 +212,14 @@ public:
 			direction = DIRECTION_PERSONALISEE;
 		}
 
-//		courbes->nombre_courbes = nombre_courbes;
-//		courbes->segments_par_courbe = segments;
-
-//		courbes->liste_points()->reserve(nombre_courbes * (segments + 1));
-//		courbes->liste_segments()->reserve(nombre_courbes * segments);
-
 		std::uniform_real_distribution<float> dist_taille(taille_min, taille_max);
 		std::mt19937 rng(19937);
 
+		auto attr_L = m_corps.ajoute_attribut("longueur", type_attribut::DECIMAL, portee_attr::PRIMITIVE, true);
+		attr_L->reserve(liste_points->taille());
+
 		auto index_point = 0l;
-		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
+		for (auto i = 0; i < liste_points->taille(); ++i) {
 			auto const taille_courbe = dist_taille(rng) * multiplication_taille;
 
 			long nombre_segment;
@@ -247,7 +238,7 @@ public:
 				normal = attr_N->vec3(index_point++);
 			}
 
-			auto pos = m_corps.points()->point(i);
+			auto pos = liste_points->point(i);
 
 			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 
@@ -260,6 +251,8 @@ public:
 				index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 				polygone->ajoute_sommet(static_cast<long>(index_npoint));
 			}
+
+			attr_L->pousse_decimal(taille_segment);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -450,6 +443,13 @@ public:
 			return EXECUTION_REUSSIE;
 		}
 
+		auto attr_L = m_corps.attribut("longueur");
+
+		if (attr_L == nullptr) {
+			ajoute_avertissement("Aucun attribut de longueur trouvé !");
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::VEC3, portee_attr::POINT);
 		auto attr_P = m_corps.ajoute_attribut("mr_P", type_attribut::VEC3, portee_attr::POINT);
 		auto attr_D = m_corps.ajoute_attribut("mr_D", type_attribut::VEC3, portee_attr::POINT);
@@ -464,7 +464,6 @@ public:
 
 		auto liste_points = m_corps.points();
 
-		auto longueur_segment = 0.5f;
 		auto dt = 0.1f;
 
 		/* ajourne vélocités */
@@ -534,7 +533,7 @@ public:
 				auto const pos_precedent = attr_P->vec3(pa);
 				auto cur_pos = attr_P->vec3(pb);
 				auto dir = normalise(cur_pos - pos_precedent);
-				auto tmp_pos = pos_precedent + dir * longueur_segment;
+				auto tmp_pos = pos_precedent + dir * attr_L->decimal(static_cast<long>(prim->index));
 				attr_P->vec3(pb, tmp_pos);
 				attr_D->vec3(pb, cur_pos - tmp_pos);
 			}
