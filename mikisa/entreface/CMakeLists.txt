@@ -124,6 +124,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_incrustation.jo
 	scripts_danjo/operatrice_lecture_fichier.jo
 	scripts_danjo/operatrice_lecture_objet.jo
+	scripts_danjo/operatrice_maillage_vers_volume.jo
 	scripts_danjo/operatrice_melange.jo
 	scripts_danjo/operatrice_min_max.jo
 	scripts_danjo/operatrice_normalisation.jo

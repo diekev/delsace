@@ -391,7 +391,12 @@ static auto axis_dominant_v3_single(dls::math::vec3f const &vec)
 	return ((x > y) ? ((x > z) ? 0ul : 2ul) : ((y > z) ? 1ul : 2ul));
 }
 
-static auto slice(dls::math::vec3f const &view_dir, size_t m_axis, TamponRendu *m_renderbuffer)
+static auto slice(
+		dls::math::vec3f const &view_dir,
+		size_t m_axis,
+		TamponRendu *m_renderbuffer,
+		dls::math::vec3f const &m_min,
+		dls::math::vec3f const &m_max)
 {
 	auto axis = axis_dominant_v3_single(view_dir);
 
@@ -399,8 +404,6 @@ static auto slice(dls::math::vec3f const &view_dir, size_t m_axis, TamponRendu *
 		return;
 	}
 
-	auto m_min = dls::math::vec3f(-1.0f);
-	auto m_max = dls::math::vec3f( 1.0f);
 	auto m_dimensions = m_max - m_min;
 	auto m_num_slices = 256ul;
 	auto m_elements = m_num_slices * 6;
@@ -485,6 +488,8 @@ static auto slice(dls::math::vec3f const &view_dir, size_t m_axis, TamponRendu *
 
 static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 {
+	auto grille = volume->grille;
+
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
@@ -520,12 +525,12 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	auto programme = tampon->programme();
 	programme->active();
 	programme->uniforme("volume", texture->number());
-	programme->uniforme("offset", -1.0f, -1.0f, -1.0f);
-	programme->uniforme("dimension", 2.0f, 2.0f, 2.0f);
+	programme->uniforme("offset", grille->min.x, grille->min.y, grille->min.z);
+	programme->uniforme("dimension", grille->dim.x, grille->dim.y, grille->dim.z);
 	programme->desactive();
 
 	/* crée vertices */
-	slice(view_dir, -1ul, tampon);
+	slice(view_dir, -1ul, tampon, grille->min, grille->max);
 
 	/* crée texture 3d */
 
@@ -534,7 +539,7 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	texture->setMinMagFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	texture->setWrapping(GL_CLAMP_TO_BORDER);
 
-	auto res_grille = volume->grille->resolution();
+	auto res_grille = grille->resolution();
 	int res[3] = {
 		static_cast<int>(res_grille[0]),
 		static_cast<int>(res_grille[1]),

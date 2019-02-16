@@ -53,6 +53,10 @@ public:
 
 	virtual BaseGrille *copie() const = 0;
 	virtual type_volume type() const = 0;
+
+	dls::math::vec3f min{};
+	dls::math::vec3f max{};
+	dls::math::vec3f dim{};
 };
 
 /* ************************************************************************** */
