@@ -28,8 +28,8 @@ class Mikisa;
 
 void evalue_resultat(Mikisa &mikisa);
 
-void evalue_graphe(Mikisa const &mikisa);
+void evalue_graphe(Mikisa &mikisa);
 
-void evalue_objet(Mikisa const &mikisa);
+void evalue_objet(Mikisa &mikisa);
 
-void evalue_scene(Mikisa const &mikisa);
+void evalue_scene(Mikisa &mikisa);

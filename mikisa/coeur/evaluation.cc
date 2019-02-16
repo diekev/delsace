@@ -41,7 +41,44 @@
 #include "operatrice_scene.h"
 #include "tache.h"
 
-/* À FAIRE : évaluation asynchrone */
+/* À FAIRE, évaluation asynchrone :
+ * - TBB semblerait avoir du mal avec les tâches trop rapides, il arrive qu'au
+ *   bout d'un moment les tâches ne sont plus exécutées, car les threads n'ont
+ *   pas eu le temps de se joindre.
+ * - si une tâche est en cours, ajout des nouvelles tâches dans une queue et
+ *   retourne la première de celles-ci dans tbb::task::execute().
+ * - une tâche est lancée au démarrage, pourquoi ?
+ */
+
+/* ************************************************************************** */
+
+class TacheMikisa : public tbb::task {
+protected:
+	TaskNotifier notifier;
+	Mikisa &m_mikisa;
+
+public:
+	explicit TacheMikisa(Mikisa &mikisa);
+
+	virtual void evalue() = 0;
+
+	tbb::task *execute() override;
+};
+
+TacheMikisa::TacheMikisa(Mikisa &mikisa)
+	: notifier(mikisa.fenetre_principale)
+	, m_mikisa(mikisa)
+{}
+
+tbb::task *TacheMikisa::execute()
+{
+	evalue();
+	m_mikisa.tache_en_cours = false;
+	return nullptr;
+}
+
+/* ************************************************************************** */
+
 void evalue_resultat(Mikisa &mikisa)
 {
 	switch (mikisa.contexte) {
@@ -61,35 +98,21 @@ void evalue_resultat(Mikisa &mikisa)
 	}
 }
 
-#undef TACHE_TBB
-
-#ifdef TACHE_TBB
-class GraphEvalTask : public tbb::task {
-#else
-class GraphEvalTask {
-#endif
-	TaskNotifier notifier;
-	Mikisa const &m_mikisa;
-
+class GraphEvalTask : public TacheMikisa {
 public:
-	explicit GraphEvalTask(Mikisa const &mikisa);
+	explicit GraphEvalTask(Mikisa &mikisa);
 
 	GraphEvalTask(GraphEvalTask const &) = default;
 	GraphEvalTask &operator=(GraphEvalTask const &) = default;
 
-#ifdef TACHE_TBB
-	tbb::task *execute() override;
-#else
-	tbb::task *execute();
-#endif
+	void evalue() override;
 };
 
-GraphEvalTask::GraphEvalTask(Mikisa const &mikisa)
-	: notifier(mikisa.fenetre_principale)
-	, m_mikisa(mikisa)
+GraphEvalTask::GraphEvalTask(Mikisa &mikisa)
+	: TacheMikisa(mikisa)
 {}
 
-tbb::task *GraphEvalTask::execute()
+void GraphEvalTask::evalue()
 {
 	auto &composite = m_mikisa.composite;
 	auto &graphe = composite->graph();
@@ -111,7 +134,7 @@ tbb::task *GraphEvalTask::execute()
 
 	/* Quitte si aucune visionneuse. */
 	if (visionneuse == nullptr) {
-		return nullptr;
+		return;
 	}
 
 	Rectangle rectangle;
@@ -129,23 +152,21 @@ tbb::task *GraphEvalTask::execute()
 	image.reinitialise(true);
 
 	notifier.signalImageProcessed();
-
-	return nullptr;
 }
 
-void evalue_graphe(Mikisa const &mikisa)
+void evalue_graphe(Mikisa &mikisa)
 {
-#ifdef TACHE_TBB
-	GraphEvalTask *t = new(tbb::task::allocate_root()) GraphEvalTask(mikisa);
+	if (mikisa.tache_en_cours) {
+		return;
+	}
+
+	mikisa.tache_en_cours = true;
+
+	auto t = new(tbb::task::allocate_root()) GraphEvalTask(mikisa);
 	tbb::task::enqueue(*t);
-#else
-	/* À FAIRE : il semblerait que TBB a du mal avec certaines tâches qui
-	 * finisse trop vite, il arrive qu'au boût d'un moment les tâches ne sont
-	 * plus exécutés, car les threads n'ont pas eu le temps de se joindre. */
-	GraphEvalTask t(mikisa);
-	t.execute();
-#endif
 }
+
+/* ************************************************************************** */
 
 static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 {
@@ -173,9 +194,22 @@ static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 	return operatrice->objet();
 }
 
-void evalue_scene(Mikisa const &mikisa)
+/* ************************************************************************** */
+
+class TacheEvaluationScene : public TacheMikisa {
+public:
+	explicit TacheEvaluationScene(Mikisa &mikisa);
+
+	void evalue() override;
+};
+
+TacheEvaluationScene::TacheEvaluationScene(Mikisa &mikisa)
+	: TacheMikisa(mikisa)
+{}
+
+void TacheEvaluationScene::evalue()
 {
-	auto noeud = mikisa.derniere_scene_selectionnee;
+	auto noeud = m_mikisa.derniere_scene_selectionnee;
 
 	if (noeud == nullptr) {
 		return;
@@ -190,8 +224,8 @@ void evalue_scene(Mikisa const &mikisa)
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
+	rectangle.hauteur = static_cast<float>(m_mikisa.project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(m_mikisa.project_settings->largeur);
 
 	auto scene = operatrice->scene();
 	scene->reinitialise();
@@ -200,21 +234,46 @@ void evalue_scene(Mikisa const &mikisa)
 	auto graphe = operatrice_scene->graphe();
 
 	for (auto &noeud_graphe : graphe->noeuds()) {
-		auto objet = evalue_objet_ex(mikisa, noeud_graphe.get());
+		auto objet = evalue_objet_ex(m_mikisa, noeud_graphe.get());
 
 		if (objet != nullptr) {
 			scene->ajoute_objet(objet);
 		}
 	}
 
-	mikisa.notifie_observatrices(type_evenement::scene | type_evenement::traite);
+	m_mikisa.notifie_observatrices(type_evenement::scene | type_evenement::traite);
 }
 
-void evalue_objet(Mikisa const &mikisa)
+void evalue_scene(Mikisa &mikisa)
+{
+	if (mikisa.tache_en_cours) {
+		return;
+	}
+
+	mikisa.tache_en_cours = true;
+
+	auto t = new(tbb::task::allocate_root()) TacheEvaluationScene(mikisa);
+	tbb::task::enqueue(*t);
+}
+
+/* ************************************************************************** */
+
+class TacheEvaluationObjet : public TacheMikisa {
+public:
+	explicit TacheEvaluationObjet(Mikisa &mikisa);
+
+	void evalue() override;
+};
+
+TacheEvaluationObjet::TacheEvaluationObjet(Mikisa &mikisa)
+	: TacheMikisa(mikisa)
+{}
+
+void TacheEvaluationObjet::evalue()
 {
 	/* l'objet courant doit être le noeud actif du graphe de la dernière scène
-	 * sélectionnée */
-	auto noeud = mikisa.derniere_scene_selectionnee;
+		 * sélectionnée */
+	auto noeud = m_mikisa.derniere_scene_selectionnee;
 
 	if (noeud == nullptr) {
 		return;
@@ -233,13 +292,28 @@ void evalue_objet(Mikisa const &mikisa)
 	noeud = graphe->noeud_actif;
 
 	if (noeud == nullptr) {
+		m_mikisa.tache_en_cours = false;
 		return;
 	}
 
-	evalue_objet_ex(mikisa, noeud);
+	evalue_objet_ex(m_mikisa, noeud);
 
-	mikisa.notifie_observatrices(type_evenement::objet | type_evenement::traite);
+	m_mikisa.notifie_observatrices(type_evenement::objet | type_evenement::traite);
 }
+
+void evalue_objet(Mikisa &mikisa)
+{
+	if (mikisa.tache_en_cours) {
+		return;
+	}
+
+	mikisa.tache_en_cours = true;
+
+	auto t = new(tbb::task::allocate_root()) TacheEvaluationObjet(mikisa);
+	tbb::task::enqueue(*t);
+}
+
+/* ************************************************************************** */
 
 #if 0
 class InterruptriceTache {

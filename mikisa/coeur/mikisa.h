@@ -152,5 +152,8 @@ public:
 	/* chemin du graphe courant */
 	std::string chemin_courant = "";
 
+	/* pour les tâches */
+	bool tache_en_cours = false;
+
 	void ajourne_pour_nouveau_temps();
 };
