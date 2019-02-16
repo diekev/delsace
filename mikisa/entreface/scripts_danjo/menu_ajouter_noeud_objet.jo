@@ -39,6 +39,10 @@ menu "Noeud Objet" {
 	    action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
 		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
 	}
+	menu "Volume" {
+	    action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")
+		action(valeur="Maillage vers Volume"; attache=ajouter_noeud; métadonnée="Maillage vers Volume")
+	}
 	menu "Sortie" {
 	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
 	}

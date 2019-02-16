@@ -225,6 +225,10 @@ void TamponRendu::dessine(ContexteRendu const &contexte)
 		m_texture->bind();
 	}
 
+	if (m_texture_3d) {
+		m_texture_3d->bind();
+	}
+
 	if (m_atlas) {
 		m_atlas->attache();
 	}
@@ -263,6 +267,10 @@ void TamponRendu::dessine(ContexteRendu const &contexte)
 		m_texture->unbind();
 	}
 
+	if (m_texture_3d) {
+		m_texture_3d->unbind();
+	}
+
 	m_donnees_tampon->unbind();
 	m_programme.desactive();
 
@@ -291,9 +299,19 @@ void TamponRendu::ajoute_texture()
 	m_texture = numero7::ego::Texture2D::create(0);
 }
 
+void TamponRendu::ajoute_texture_3d()
+{
+	m_texture_3d = numero7::ego::Texture3D::create(0);
+}
+
 numero7::ego::Texture2D *TamponRendu::texture()
 {
 	return m_texture.get();
+}
+
+numero7::ego::Texture3D *TamponRendu::texture_3d()
+{
+	return m_texture_3d.get();
 }
 
 AtlasTexture *TamponRendu::atlas()

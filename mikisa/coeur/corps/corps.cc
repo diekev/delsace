@@ -31,6 +31,7 @@
 #include "../attribut.h"
 
 #include "groupes.h"
+#include "volume.hh"
 
 Corps::~Corps()
 {

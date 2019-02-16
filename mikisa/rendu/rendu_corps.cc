@@ -33,6 +33,7 @@
 #include "bibliotheques/vision/camera.h"
 
 #include "coeur/corps/corps.h"
+#include "coeur/corps/volume.hh"
 
 #include "coeur/attribut.h"
 
@@ -379,6 +380,180 @@ static TamponRendu *cree_tampon_segments()
 	return tampon;
 }
 
+/* ************************************************************************** */
+
+static auto axis_dominant_v3_single(dls::math::vec3f const &vec)
+{
+	const float x = std::abs(vec[0]);
+	const float y = std::abs(vec[1]);
+	const float z = std::abs(vec[2]);
+
+	return ((x > y) ? ((x > z) ? 0ul : 2ul) : ((y > z) ? 1ul : 2ul));
+}
+
+static auto slice(dls::math::vec3f const &view_dir, size_t m_axis, TamponRendu *m_renderbuffer)
+{
+	auto axis = axis_dominant_v3_single(view_dir);
+
+	if (m_axis == axis) {
+		return;
+	}
+
+	auto m_min = dls::math::vec3f(-1.0f);
+	auto m_max = dls::math::vec3f( 1.0f);
+	auto m_dimensions = m_max - m_min;
+	auto m_num_slices = 256ul;
+	auto m_elements = m_num_slices * 6;
+
+	m_axis = axis;
+	auto depth = m_min[m_axis];
+	auto slice_size = m_dimensions[m_axis] / static_cast<float>(m_num_slices);
+
+	/* always process slices in back to front order! */
+	if (view_dir[m_axis] > 0.0f) {
+		depth = m_max[m_axis];
+		slice_size = -slice_size;
+	}
+
+	const dls::math::vec3f vertices[3][4] = {
+		{
+			dls::math::vec3f(0.0f, m_min[1], m_min[2]),
+			dls::math::vec3f(0.0f, m_max[1], m_min[2]),
+			dls::math::vec3f(0.0f, m_max[1], m_max[2]),
+			dls::math::vec3f(0.0f, m_min[1], m_max[2])
+		},
+		{
+			dls::math::vec3f(m_min[0], 0.0f, m_min[2]),
+			dls::math::vec3f(m_min[0], 0.0f, m_max[2]),
+			dls::math::vec3f(m_max[0], 0.0f, m_max[2]),
+			dls::math::vec3f(m_max[0], 0.0f, m_min[2])
+		},
+		{
+			dls::math::vec3f(m_min[0], m_min[1], 0.0f),
+			dls::math::vec3f(m_min[0], m_max[1], 0.0f),
+			dls::math::vec3f(m_max[0], m_max[1], 0.0f),
+			dls::math::vec3f(m_max[0], m_min[1], 0.0f)
+		}
+	};
+
+
+	std::vector<GLuint> indices(m_elements);
+	unsigned idx = 0;
+	size_t idx_count = 0;
+
+	std::vector<dls::math::vec3f> points;
+	points.reserve(m_num_slices * 4);
+
+	for (auto slice(0ul); slice < m_num_slices; slice++) {
+		dls::math::vec3f v0 = vertices[m_axis][0];
+		dls::math::vec3f v1 = vertices[m_axis][1];
+		dls::math::vec3f v2 = vertices[m_axis][2];
+		dls::math::vec3f v3 = vertices[m_axis][3];
+
+		v0[m_axis] = depth;
+		v1[m_axis] = depth;
+		v2[m_axis] = depth;
+		v3[m_axis] = depth;
+
+		points.push_back(v0); //  * glm::mat3(m_inv_matrix)
+		points.push_back(v1);
+		points.push_back(v2);
+		points.push_back(v3);
+
+		indices[idx_count++] = idx + 0;
+		indices[idx_count++] = idx + 1;
+		indices[idx_count++] = idx + 2;
+		indices[idx_count++] = idx + 0;
+		indices[idx_count++] = idx + 2;
+		indices[idx_count++] = idx + 3;
+
+		depth += slice_size;
+		idx += 4;
+	}
+
+	ParametresTampon parametres_tampon;
+	parametres_tampon.attribut = "sommets";
+	parametres_tampon.dimension_attribut = 3;
+	parametres_tampon.pointeur_sommets = points.data();
+	parametres_tampon.taille_octet_sommets = points.size() * sizeof(dls::math::vec3f);
+	parametres_tampon.elements = idx_count;
+	parametres_tampon.pointeur_index = indices.data();
+	parametres_tampon.taille_octet_index = idx_count * sizeof(GLuint);
+
+	m_renderbuffer->remplie_tampon(parametres_tampon);
+}
+
+static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
+{
+	auto tampon = new TamponRendu;
+
+	tampon->charge_source_programme(
+				numero7::ego::Nuanceur::VERTEX,
+				numero7::ego::util::str_from_file("nuanceurs/volume.vert"));
+
+	tampon->charge_source_programme(
+				numero7::ego::Nuanceur::FRAGMENT,
+				numero7::ego::util::str_from_file("nuanceurs/volume.frag"));
+
+	tampon->finalise_programme();
+
+	ParametresProgramme parametre_programme;
+	parametre_programme.ajoute_attribut("vertex");
+	parametre_programme.ajoute_uniforme("sommets");
+	parametre_programme.ajoute_uniforme("offset");
+	parametre_programme.ajoute_uniforme("dimension");
+	parametre_programme.ajoute_uniforme("volume");
+	parametre_programme.ajoute_uniforme("matrice");
+	parametre_programme.ajoute_uniforme("MVP");
+
+	tampon->parametres_programme(parametre_programme);
+
+	ParametresDessin parametres_dessin;
+	parametres_dessin.type_dessin(GL_LINES);
+	parametres_dessin.taille_ligne(1.0);
+
+	tampon->parametres_dessin(parametres_dessin);
+
+	tampon->ajoute_texture_3d();
+	auto texture = tampon->texture_3d();
+
+	auto programme = tampon->programme();
+	programme->active();
+	programme->uniforme("volume", texture->number());
+	programme->uniforme("offset", -1.0f, -1.0f, -1.0f);
+	programme->uniforme("dimension", 2.0f, 2.0f, 2.0f);
+	programme->desactive();
+
+	/* crée vertices */
+	slice(view_dir, -1ul, tampon);
+
+	/* crée texture 3d */
+
+	texture->bind();
+	texture->setType(GL_FLOAT, GL_RED, GL_RED);
+	texture->setMinMagFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	texture->setWrapping(GL_CLAMP_TO_BORDER);
+
+	auto res_grille = volume->grille->resolution();
+	int res[3] = {
+		static_cast<int>(res_grille[0]),
+		static_cast<int>(res_grille[1]),
+		static_cast<int>(res_grille[2])
+	};
+
+	if (volume->grille->type() == type_volume::SCALAIRE) {
+		auto grille_scalaire = dynamic_cast<Grille<float> *>(volume->grille);
+		texture->fill(grille_scalaire->donnees(), res);
+	}
+
+	texture->generateMipMap(0, 4);
+	texture->unbind();
+
+	return tampon;
+}
+
+/* ************************************************************************** */
+
 RenduCorps::RenduCorps(Corps *corps)
 	: m_corps(corps)
 {}
@@ -388,14 +563,15 @@ RenduCorps::~RenduCorps()
 	delete m_tampon_points;
 	delete m_tampon_polygones;
 	delete m_tampon_segments;
+	delete m_tampon_volume;
 }
 
-void RenduCorps::initialise()
+void RenduCorps::initialise(ContexteRendu const &contexte)
 {
 	auto liste_points = m_corps->points();
 	auto liste_prims = m_corps->prims();
 
-	if (liste_points->taille() == 0l) {
+	if (liste_points->taille() == 0l && liste_prims->taille() == 0l) {
 		return;
 	}
 
@@ -410,17 +586,19 @@ void RenduCorps::initialise()
 
 		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
 			auto prim = liste_prims->prim(ip);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
+			if (prim->type_prim() == type_primitive::POLYGONE) {
+				auto polygone = dynamic_cast<Polygone *>(prim);
+				if (polygone->type == type_polygone::FERME) {
+					ajoute_polygone_surface(polygone, liste_points, attr_N, attr_C, points_polys, normaux, couleurs_polys);
+				}
+				else if (polygone->type == type_polygone::OUVERT) {
+					ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment, couleurs_segment);
+				}
 			}
-
-			auto polygone = dynamic_cast<Polygone *>(prim);
-			if (polygone->type == type_polygone::FERME) {
-				ajoute_polygone_surface(polygone, liste_points, attr_N, attr_C, points_polys, normaux, couleurs_polys);
-			}
-			else if (polygone->type == type_polygone::OUVERT) {
-				ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment, couleurs_segment);
+			else if (prim->type_prim() == type_primitive::VOLUME) {
+				if (m_tampon_volume == nullptr) {
+					m_tampon_volume = cree_tampon_volume(dynamic_cast<Volume *>(prim), contexte.vue());
+				}
 			}
 		}
 
@@ -559,5 +737,18 @@ void RenduCorps::dessine(ContexteRendu const &contexte)
 		m_tampon_segments->parametres_dessin(parametres_dessin);
 
 		m_tampon_segments->dessine(contexte);
+	}
+
+	if (m_tampon_volume != nullptr) {
+		ParametresDessin parametres_dessin;
+		parametres_dessin.taille_point(2.0);
+		parametres_dessin.type_dessin(GL_TRIANGLES);
+		m_tampon_volume->parametres_dessin(parametres_dessin);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		m_tampon_volume->dessine(contexte);
+		glDisable(GL_BLEND);
 	}
 }

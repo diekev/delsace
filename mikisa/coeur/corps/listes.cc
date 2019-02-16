@@ -25,6 +25,7 @@
 #include "listes.h"
 
 #include "corps.h"
+#include "volume.hh"
 
 /* ************************************************************************** */
 
@@ -250,6 +251,17 @@ void ListePrimitives::detache()
 				}
 
 				m_primitives->push_back(p);
+			}
+			else if (prim->type_prim() == type_primitive::VOLUME) {
+				auto volume = dynamic_cast<Volume *>(prim);
+				auto nouveau_volume = new Volume{};
+
+				if (volume->grille) {
+					nouveau_volume->grille = volume->grille->copie();
+				}
+
+				nouveau_volume->index = volume->index;
+				m_primitives->push_back(nouveau_volume);
 			}
 		}
 	}

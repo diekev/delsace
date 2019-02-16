@@ -65,6 +65,8 @@ set(NUANCEURS
 	opengl/nuanceurs/simple.frag
 	opengl/nuanceurs/simple.vert
 	opengl/nuanceurs/texture.frag
+	opengl/nuanceurs/volume.frag
+	opengl/nuanceurs/volume.vert
 )
 
 set(FICHIERS_DANJO

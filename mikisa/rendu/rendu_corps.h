@@ -36,6 +36,7 @@ class RenduCorps {
 	TamponRendu *m_tampon_points = nullptr;
 	TamponRendu *m_tampon_polygones = nullptr;
 	TamponRendu *m_tampon_segments = nullptr;
+	TamponRendu *m_tampon_volume = nullptr;
 
 	Corps *m_corps = nullptr;
 
@@ -54,7 +55,7 @@ public:
 	 */
 	~RenduCorps();
 
-	void initialise();
+	void initialise(ContexteRendu const &contexte);
 
 	/**
 	 * Dessine le maillage dans le contexte spécifié.

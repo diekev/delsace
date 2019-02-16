@@ -174,6 +174,7 @@ class TamponRendu {
 	size_t m_elements = 0;
 
 	numero7::ego::Texture2D::Ptr m_texture = nullptr;
+	numero7::ego::Texture3D::Ptr m_texture_3d = nullptr;
 
 	AtlasTexture *m_atlas = nullptr;
 
@@ -249,6 +250,11 @@ public:
 	void ajoute_texture();
 
 	/**
+	 * Ajoute une texture dans ce tampon.
+	 */
+	void ajoute_texture_3d();
+
+	/**
 	 * Ajoute un atlas texture dans ce tampon.
 	 */
 	void ajoute_atlas();
@@ -257,6 +263,11 @@ public:
 	 * Retourne un pointeur vers la texture de ce tampon.
 	 */
 	numero7::ego::Texture2D *texture();
+
+	/**
+	 * Retourne un pointeur vers la texture de ce tampon.
+	 */
+	numero7::ego::Texture3D *texture_3d();
 
 	/**
 	 * Retourne un pointeur vers l'atlas texture de ce tampon.

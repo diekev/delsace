@@ -166,7 +166,7 @@ int OperatriceScene::execute(Rectangle const &rectangle, const int temps)
 				m_contexte.matrice_objet(converti_matrice_glm(m_pile.sommet()));
 
 				RenduCorps rendu_corps(objet->corps);
-				rendu_corps.initialise();
+				rendu_corps.initialise(m_contexte);
 				rendu_corps.dessine(m_contexte);
 
 				m_pile.enleve_sommet();

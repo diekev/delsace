@@ -22,19 +22,45 @@
  *
  */
 
-#pragma once
+#include "volume.hh"
 
-enum class type_primitive : char {
-	POLYGONE = 0,
-	VOLUME   = 1,
-};
+/* ************************************************************************** */
 
-class Primitive {
-public:
-	/* L'index de cette primitive. */
-	unsigned long index = 0;
+type_primitive Volume::type_prim() const
+{
+	return type_primitive::VOLUME;
+}
 
-	virtual ~Primitive() = default;
+size_t BaseGrille::calcul_index(size_t x, size_t y, size_t z) const
+{
+	return x + (y + z * m_res[1]) * m_res[0];
+}
 
-	virtual type_primitive type_prim() const = 0;
-};
+bool BaseGrille::hors_des_limites(size_t x, size_t y, size_t z) const
+{
+	if (x >= m_res[0]) {
+		return true;
+	}
+
+	if (y >= m_res[1]) {
+		return true;
+	}
+
+	if (z >= m_res[2]) {
+		return true;
+	}
+
+	return false;
+}
+
+dls::math::vec3<size_t> BaseGrille::resolution() const
+{
+	return m_res;
+}
+
+/* ************************************************************************** */
+
+Volume::~Volume()
+{
+	delete grille;
+}

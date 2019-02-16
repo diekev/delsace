@@ -88,6 +88,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/groupes.h
 	corps/listes.h
 	corps/primitive.hh
+	corps/volume.hh
 
 	operatrices/courbure.hh
 	operatrices/ocean.hh
@@ -99,6 +100,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_point3d.h
 	operatrices/operatrices_region.h
 	operatrices/operatrices_simulations.hh
+	operatrices/operatrices_volume.hh
 
 	attribut.h
 	composite.h
@@ -136,6 +138,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/groupes.cc
 	corps/listes.cc
 	corps/primitive.cc
+	corps/volume.cc
 
 	operatrices/courbure.cc
 	operatrices/ocean.cc
@@ -147,6 +150,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_point3d.cc
 	operatrices/operatrices_region.cc
 	operatrices/operatrices_simulations.cc
+	operatrices/operatrices_volume.cc
 
 	attribut.cc
 	composite.cc
