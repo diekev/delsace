@@ -274,8 +274,8 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 
 	/* triangles du haut */
 	poly[0] = 0;
-	poly[1] = 1;
-	poly[2] = poly[1] + resolution_u - 2;
+	poly[1] = 1 + resolution_u - 2;
+	poly[2] = 1;
 
 	for (auto i = 0; i < resolution_v; ++i) {
 		poly[1] %= nombre_points;
@@ -283,17 +283,17 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 
 		adaptrice->ajoute_polygone(poly, nullptr, poly, 3);
 
-		poly[1] = poly[2];
-		poly[2] = poly[1] + resolution_u - 2;
+		poly[2] = poly[1];
+		poly[1] = poly[2] + resolution_u - 2;
 	}
 
 	/* quads du centre */
 	for (int i = 0; i < resolution_u - 2; i++) {
 		for (int j = 0; j < resolution_v - 2; j++) {
 			poly[0] = 1 + i       * (resolution_u - 2) + j;
-			poly[1] = 1 + i       * (resolution_u - 2) + j + 1;
+			poly[1] = 1 + (i + 1) * (resolution_u - 2) + j;
 			poly[2] = 1 + (i + 1) * (resolution_u - 2) + j + 1;
-			poly[3] = 1 + (i + 1) * (resolution_u - 2) + j;
+			poly[3] = 1 + i       * (resolution_u - 2) + j + 1;
 
 			poly[0] %= nombre_points;
 			poly[1] %= nombre_points;
@@ -380,15 +380,15 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 
 			if (f2 > 0) {
 				poly[0] = static_cast<int>(f1);
-				poly[1] = static_cast<int>(f3);
+				poly[1] = static_cast<int>(f2);
 				poly[2] = static_cast<int>(f4);
-				poly[3] = static_cast<int>(f2);
+				poly[3] = static_cast<int>(f3);
 			}
 			else {
 				poly[0] = static_cast<int>(f2);
-				poly[1] = static_cast<int>(f1);
+				poly[1] = static_cast<int>(f4);
 				poly[2] = static_cast<int>(f3);
-				poly[3] = static_cast<int>(f4);
+				poly[3] = static_cast<int>(f1);
 			}
 
 			adaptrice->ajoute_polygone(poly, nullptr, nullptr, 4);
@@ -631,26 +631,26 @@ static const float icovert[12][3] = {
 };
 
 static const int icoface[20][3] = {
-	{ 0,  1,  2},
-	{ 1,  0,  5},
-	{ 0,  2,  3},
-	{ 0,  3,  4},
-	{ 0,  4,  5},
-	{ 1,  5, 10},
-	{ 2,  1,  6},
-	{ 3,  2,  7},
-	{ 4,  3,  8},
-	{ 5,  4,  9},
-	{ 1, 10,  6},
-	{ 2,  6,  7},
-	{ 3,  7,  8},
-	{ 4,  8,  9},
-	{ 5,  9, 10},
-	{ 6, 10, 11},
-	{ 7,  6, 11},
-	{ 8,  7, 11},
-	{ 9,  8, 11},
-	{10,  9, 11}
+	{ 0,  2,  1},
+	{ 1,  5,  0},
+	{ 0,  3,  2},
+	{ 0,  4,  3},
+	{ 0,  5,  4},
+	{ 1, 10,  5},
+	{ 2,  6,  1},
+	{ 3,  7,  2},
+	{ 4,  8,  3},
+	{ 5,  9,  4},
+	{ 1,  6, 10},
+	{ 2,  7,  6},
+	{ 3,  8,  7},
+	{ 4,  9,  8},
+	{ 5, 10,  9},
+	{ 6, 11, 10},
+	{ 7, 11,  6},
+	{ 8, 11,  7},
+	{ 9, 11,  8},
+	{10, 11,  9}
 };
 
 void cree_icosphere(AdaptriceCreationObjet *adaptrice,

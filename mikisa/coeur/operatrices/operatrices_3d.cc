@@ -662,7 +662,7 @@ public:
 
 		objets::cree_torus(&adaptrice, rayon_mineur, rayon_majeur, segment_mineur, segment_majeur);
 
-		calcul_normaux(m_corps, true, true);
+		calcul_normaux(m_corps, true, false);
 
 		ajourne_transforme(temps);
 
