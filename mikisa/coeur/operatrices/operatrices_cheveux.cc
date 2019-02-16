@@ -172,8 +172,7 @@ public:
 		auto const multiplication_taille = evalue_decimal("multiplication_taille");
 		auto const chaine_style_creation = evalue_enum("style_création");
 		auto const longueur_segment = evalue_decimal("taille_segment");
-		auto const nor = evalue_vecteur("normal");
-		auto normal = normalise(dls::math::vec3f(nor.x, nor.y, nor.z));
+		auto normal = normalise(evalue_vecteur("normal"));
 		auto const chaine_direction = evalue_enum("direction");
 
 		/* À FAIRE : biais de longueur entre [-1.0, 1.0], où -1.0 = plus de
