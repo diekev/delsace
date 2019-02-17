@@ -25,6 +25,7 @@
 #include "operatrices_simulations.hh"
 
 #include "bibliotheques/outils/definitions.hh"
+#include "bibliotheques/outils/parallelisme.h"
 
 #include "../corps/groupes.h"
 
@@ -1027,13 +1028,17 @@ public:
 		};
 
 		if (gravitation != 0.0f) {
-			/* À FAIRE : multithreading. */
-			for (auto i = 0; i < nombre_points; ++i) {
-				auto pos = liste_points->point(i);
-				dls::math::vec3f totalf_bhs = bhs.summation(1, BHP(pos, 1.0f), f);
+			boucle_parallele(
+						tbb::blocked_range<long>(0, nombre_points),
+						[&](tbb::blocked_range<long> const &plage)
+			{
+				for (auto i = plage.begin(); i < plage.end(); ++i) {
+					auto pos = liste_points->point(i);
+					dls::math::vec3f totalf_bhs = bhs.summation(1, BHP(pos, 1.0f), f);
 
-				attr_V->vec3(i, attr_V->vec3(i) + totalf_bhs * gravitation * dt);
-			}
+					attr_V->vec3(i, attr_V->vec3(i) + totalf_bhs * gravitation * dt);
+				}
+			});
 		}
 
 		for (auto i = 0; i < nombre_points; ++i) {
