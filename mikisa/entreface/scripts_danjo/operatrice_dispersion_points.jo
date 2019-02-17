@@ -21,7 +21,7 @@ disposition "operatrice_dispersion_points" {
     }
     ligne {
 	    étiquette(valeur="Nombre Points Émission")
-		entier(valeur=100; attache=nombre_points; min=1; max=1000)
+		entier(valeur=100; attache=nombre_points; min=1)
 	}
 	ligne {
 	    étiquette(valeur="Grouper les Points")
