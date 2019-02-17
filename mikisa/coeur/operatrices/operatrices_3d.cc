@@ -1462,7 +1462,9 @@ public:
 		auto index_point = 0;
 		for (auto i = 0; i < corps_entree->points()->taille(); ++i) {
 			auto point = corps_entree->points()->point(i);
-			sommets[index_point++].SetPosition(point.x, point.y, point.z);
+			auto const v0 = corps_entree->transformation(dls::math::point3d(point));
+
+			sommets[index_point++].SetPosition(static_cast<float>(v0.x), static_cast<float>(v0.y), static_cast<float>(v0.z));
 		}
 
 		/* Entrepole les sommets */
