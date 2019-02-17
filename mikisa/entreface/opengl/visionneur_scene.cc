@@ -57,11 +57,6 @@ static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
 		}
 	}
 
-	/* La taille et la position sont transposées entre OpenGL et Kanba. */
-	std::swap(resultat[0][3], resultat[3][0]);
-	std::swap(resultat[1][3], resultat[3][1]);
-	std::swap(resultat[2][3], resultat[3][2]);
-
 	return resultat;
 }
 

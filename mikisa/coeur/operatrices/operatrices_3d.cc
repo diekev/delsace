@@ -331,10 +331,10 @@ public:
 
 		m_corps.transformation = math::transformation();
 		m_corps.transformation *= math::translation(position.x, position.y, position.z);
-		m_corps.transformation *= math::echelle(taille.x, taille.y, taille.z);
 		m_corps.transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
 		m_corps.transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
 		m_corps.transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
+		m_corps.transformation *= math::echelle(taille.x, taille.y, taille.z);
 
 		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
 		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
@@ -1137,12 +1137,12 @@ public:
 
 		m_transformation = math::transformation();
 		m_transformation *= math::translation(position.x, position.y, position.z);
-		m_transformation *= math::echelle(taille.x * echelle_uniforme,
-										  taille.y * echelle_uniforme,
-										  taille.z * echelle_uniforme);
 		m_transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
 		m_transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
 		m_transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
+		m_transformation *= math::echelle(taille.x * echelle_uniforme,
+										  taille.y * echelle_uniforme,
+										  taille.z * echelle_uniforme);
 
 		m_corps.transformation = m_transformation;
 

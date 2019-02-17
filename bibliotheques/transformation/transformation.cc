@@ -63,9 +63,9 @@ dls::math::vec3d transformation::operator()(dls::math::vec3d const &vecteur) con
 	auto const y = vecteur[1];
 	auto const z = vecteur[2];
 
-	auto const px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z;
-	auto const py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z;
-	auto const pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z;
+	auto const px = m_matrice[0][0] * x + m_matrice[1][0] * y + m_matrice[2][0] * z;
+	auto const py = m_matrice[0][1] * x + m_matrice[1][1] * y + m_matrice[2][1] * z;
+	auto const pz = m_matrice[0][2] * x + m_matrice[1][2] * y + m_matrice[2][2] * z;
 
 	return dls::math::vec3d(px, py, pz);
 }
@@ -76,9 +76,9 @@ void transformation::operator()(dls::math::vec3d const &vecteur, dls::math::vec3
 	auto const y = vecteur[1];
 	auto const z = vecteur[2];
 
-	auto const px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z;
-	auto const py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z;
-	auto const pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z;
+	auto const px = m_matrice[0][0] * x + m_matrice[1][0] * y + m_matrice[2][0] * z;
+	auto const py = m_matrice[0][1] * x + m_matrice[1][1] * y + m_matrice[2][1] * z;
+	auto const pz = m_matrice[0][2] * x + m_matrice[1][2] * y + m_matrice[2][2] * z;
 
 	vecteur_retour->x = px;
 	vecteur_retour->y = py;
@@ -91,10 +91,10 @@ dls::math::point3d transformation::operator()(dls::math::point3d const &point) c
 	auto const y = point[1];
 	auto const z = point[2];
 
-	auto const px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z + m_matrice[0][3];
-	auto const py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z + m_matrice[1][3];
-	auto const pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z + m_matrice[2][3];
-	auto const pw = m_matrice[3][0] * x + m_matrice[3][1] * y + m_matrice[3][2] * z + m_matrice[3][3];
+	auto const px = m_matrice[0][0] * x + m_matrice[1][0] * y + m_matrice[2][0] * z + m_matrice[3][0];
+	auto const py = m_matrice[0][1] * x + m_matrice[1][1] * y + m_matrice[2][1] * z + m_matrice[3][1];
+	auto const pz = m_matrice[0][2] * x + m_matrice[1][2] * y + m_matrice[2][2] * z + m_matrice[3][2];
+	auto const pw = m_matrice[0][3] * x + m_matrice[1][3] * y + m_matrice[2][3] * z + m_matrice[3][3];
 
 	if (pw == 1.0) {
 		return dls::math::point3d(px, py, pz);
@@ -109,10 +109,10 @@ void transformation::operator()(dls::math::point3d const &point, dls::math::poin
 	auto const y = point[1];
 	auto const z = point[2];
 
-	auto const px = m_matrice[0][0] * x + m_matrice[0][1] * y + m_matrice[0][2] * z + m_matrice[0][3];
-	auto const py = m_matrice[1][0] * x + m_matrice[1][1] * y + m_matrice[1][2] * z + m_matrice[1][3];
-	auto const pz = m_matrice[2][0] * x + m_matrice[2][1] * y + m_matrice[2][2] * z + m_matrice[2][3];
-	auto const pw = m_matrice[3][0] * x + m_matrice[3][1] * y + m_matrice[3][2] * z + m_matrice[3][3];
+	auto const px = m_matrice[0][0] * x + m_matrice[1][0] * y + m_matrice[2][0] * z + m_matrice[3][0];
+	auto const py = m_matrice[0][1] * x + m_matrice[1][1] * y + m_matrice[2][1] * z + m_matrice[3][1];
+	auto const pz = m_matrice[0][2] * x + m_matrice[1][2] * y + m_matrice[2][2] * z + m_matrice[3][2];
+	auto const pw = m_matrice[0][3] * x + m_matrice[1][3] * y + m_matrice[2][3] * z + m_matrice[3][3];
 
 	point_retour->x = px;
 	point_retour->y = py;
@@ -139,24 +139,11 @@ bool transformation::possede_echelle() const
 
 transformation &transformation::operator*=(transformation const &transforme)
 {
-//	std::cout << "===========================\n";
-//	std::cout << "operator transformation::*=\n";
-
-//	std::cout << "matrice A :\n";
-//	std::cout << m_matrice << '\n';
-//	std::cout << "matrice B :\n";
-//	std::cout << transforme.matrice() << '\n';
-
 	m_matrice *= transforme.matrice();
-
-//	std::cout << "résultat :\n";
-//	std::cout << m_matrice << '\n';
 
 	auto inv2 = transforme.inverse();
 	auto inv1 = m_inverse;
 	m_inverse = inv2 * inv1;
-
-//	std::cout << "===========================\n";
 
 	return *this;
 }
@@ -181,13 +168,13 @@ transformation translation(const double x, const double y, const double z)
 	auto matrice = dls::math::mat4x4d(1.0);
 	auto matrice_inverse = dls::math::mat4x4d(1.0);
 
-	matrice[0][3] = x;
-	matrice[1][3] = y;
-	matrice[2][3] = z;
+	matrice[3][0] = x;
+	matrice[3][1] = y;
+	matrice[3][2] = z;
 
-	matrice_inverse[0][3] = -x;
-	matrice_inverse[1][3] = -y;
-	matrice_inverse[2][3] = -z;
+	matrice_inverse[3][0] = -x;
+	matrice_inverse[3][1] = -y;
+	matrice_inverse[3][2] = -z;
 
 	return transformation(matrice, matrice_inverse);
 }

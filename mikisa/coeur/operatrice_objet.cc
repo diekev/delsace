@@ -131,10 +131,10 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 
 	auto transformation = math::transformation();
 	transformation *= math::translation(position.x, position.y, position.z);
-	transformation *= math::echelle(taille.x, taille.y, taille.z);
 	transformation *= math::rotation_x(rotation.x);
 	transformation *= math::rotation_y(rotation.y);
 	transformation *= math::rotation_z(rotation.z);
+	transformation *= math::echelle(taille.x, taille.y, taille.z);
 
 	m_objet.transformation = transformation;
 
@@ -155,10 +155,10 @@ int OperatriceObjet::execute(Rectangle const &rectangle, const int temps)
 
 	auto transformation = math::transformation();
 	transformation *= math::translation(position.x, position.y, position.z);
-	transformation *= math::echelle(taille.x, taille.y, taille.z);
 	transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
 	transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
 	transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
+	transformation *= math::echelle(taille.x, taille.y, taille.z);
 
 	m_objet.transformation = transformation;
 
