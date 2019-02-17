@@ -666,7 +666,7 @@ public:
 			m_canaux |= MASK_A;
 		}
 
-		m_angle = evalue_decimal("angle") * static_cast<float>(POIDS_DEG_RAD);
+		m_angle = evalue_decimal("angle") * constantes<float>::POIDS_DEG_RAD;
 		m_cos_angle = std::cos(m_angle);
 		m_sin_angle = std::sin(m_angle);
 
@@ -1588,7 +1588,7 @@ public:
 	{
 		INUTILISE(temps);
 		m_couleur = evalue_couleur("masque");
-		m_angle = std::cos(evalue_decimal("angle") * static_cast<float>(POIDS_DEG_RAD));
+		m_angle = std::cos(evalue_decimal("angle") * constantes<float>::POIDS_DEG_RAD);
 		m_a = evalue_decimal("a");
 		m_b = evalue_decimal("b");
 	}

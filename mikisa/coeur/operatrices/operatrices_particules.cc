@@ -29,6 +29,8 @@
 #include <sstream>
 #include <stack>
 
+#include "bibliotheques/outils/constantes.h"
+
 #include "../corps/corps.h"
 #include "../corps/groupes.h"
 
@@ -915,7 +917,7 @@ public:
 		auto const distance = evalue_decimal("distance");
 
 		/* Calcule le nombre maximum de point. */
-		auto const aire_cercle = static_cast<float>(M_PI) * (distance * 0.5f) * (distance * 0.5f);
+		auto const aire_cercle = constantes<float>::PI * (distance * 0.5f) * (distance * 0.5f);
 		auto const nombre_points = static_cast<long>((aire_totale * DENSITE_CERCLE) / aire_cercle);
 		std::cerr << "Nombre points prédits : " << nombre_points << '\n';
 

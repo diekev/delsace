@@ -576,7 +576,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
-		graphe->zoom *= (donnees.y > 0) ? static_cast<float>(PHI) : static_cast<float>(PHI_INV);
+		graphe->zoom *= (donnees.y > 0) ? constantes<float>::PHI : constantes<float>::PHI_INV;
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 

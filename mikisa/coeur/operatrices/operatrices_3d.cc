@@ -302,14 +302,14 @@ public:
 
 		if (type == MANIPULATION_POSITION) {
 			position = dls::math::vec3f(m_manipulatrice_position.pos());
-			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
+			rotation = evalue_vecteur("rotation", temps) * constantes<float>::POIDS_DEG_RAD;
 			taille = evalue_vecteur("taille", temps);
 
 			valeur_vecteur("position", position);
 		}
 		else if (type == MANIPULATION_ECHELLE) {
 			position = evalue_vecteur("position", temps);
-			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
+			rotation = evalue_vecteur("rotation", temps) * constantes<float>::POIDS_DEG_RAD;
 			taille = dls::math::vec3f(m_manipulatrice_echelle.taille());
 
 			valeur_vecteur("taille", taille);
@@ -319,7 +319,7 @@ public:
 			rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
 			taille = evalue_vecteur("taille", temps);
 
-			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
+			valeur_vecteur("rotation", rotation * constantes<float>::POIDS_RAD_DEG);
 		}
 	}
 
@@ -331,9 +331,9 @@ public:
 
 		m_corps.transformation = math::transformation();
 		m_corps.transformation *= math::translation(position.x, position.y, position.z);
-		m_corps.transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
-		m_corps.transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
-		m_corps.transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
+		m_corps.transformation *= math::rotation_x(rotation.x * constantes<float>::POIDS_DEG_RAD);
+		m_corps.transformation *= math::rotation_y(rotation.y * constantes<float>::POIDS_DEG_RAD);
+		m_corps.transformation *= math::rotation_z(rotation.z * constantes<float>::POIDS_DEG_RAD);
 		m_corps.transformation *= math::echelle(taille.x, taille.y, taille.z);
 
 		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
@@ -801,7 +801,7 @@ public:
 
 			position = evalue_vecteur("position", temps);
 
-			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
+			valeur_vecteur("rotation", rotation * constantes<float>::POIDS_RAD_DEG);
 		}
 	}
 
@@ -831,7 +831,7 @@ public:
 		m_camera.largeur_senseur(largeur_senseur);
 		m_camera.profondeur(proche, eloigne);
 		m_camera.position(position);
-		m_camera.rotation(rotation * static_cast<float>(POIDS_DEG_RAD));
+		m_camera.rotation(rotation * constantes<float>::POIDS_DEG_RAD);
 		m_camera.ajourne_pour_operatrice();
 
 		m_manipulatrice_position.pos(dls::math::point3f(position));
@@ -1080,14 +1080,14 @@ public:
 
 		if (type == MANIPULATION_POSITION) {
 			position = dls::math::vec3f(m_manipulatrice_position.pos());
-			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
+			rotation = evalue_vecteur("rotation", temps) * constantes<float>::POIDS_DEG_RAD;
 			taille = evalue_vecteur("taille", temps);
 
 			valeur_vecteur("position", position);
 		}
 		else if (type == MANIPULATION_ECHELLE) {
 			position = evalue_vecteur("position", temps);
-			rotation = evalue_vecteur("rotation", temps) * static_cast<float>(POIDS_DEG_RAD);
+			rotation = evalue_vecteur("rotation", temps) * constantes<float>::POIDS_DEG_RAD;
 			taille = dls::math::vec3f(m_manipulatrice_echelle.taille());
 
 			valeur_vecteur("taille", taille);
@@ -1097,7 +1097,7 @@ public:
 			rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
 			taille = evalue_vecteur("taille", temps);
 
-			valeur_vecteur("rotation", rotation * static_cast<float>(POIDS_RAD_DEG));
+			valeur_vecteur("rotation", rotation * constantes<float>::POIDS_RAD_DEG);
 		}
 	}
 
@@ -1137,9 +1137,9 @@ public:
 
 		m_transformation = math::transformation();
 		m_transformation *= math::translation(position.x, position.y, position.z);
-		m_transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
-		m_transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
-		m_transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
+		m_transformation *= math::rotation_x(rotation.x * constantes<float>::POIDS_DEG_RAD);
+		m_transformation *= math::rotation_y(rotation.y * constantes<float>::POIDS_DEG_RAD);
+		m_transformation *= math::rotation_z(rotation.z * constantes<float>::POIDS_DEG_RAD);
 		m_transformation *= math::echelle(taille.x * echelle_uniforme,
 										  taille.y * echelle_uniforme,
 										  taille.z * echelle_uniforme);

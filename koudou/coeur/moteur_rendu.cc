@@ -77,7 +77,7 @@ static Rayon genere_rayon(vision::Camera3D *camera, vision::EchantillonCamera co
 	}
 
 	r.distance_min = 0.0;
-	r.distance_max = INFINITE;
+	r.distance_max = constantes<double>::INFINITE;
 
 	return r;
 }

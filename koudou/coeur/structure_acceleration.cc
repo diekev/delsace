@@ -113,8 +113,8 @@ const dls::math::vec3d VolumeEnglobant::NORMAUX_PLAN[VolumeEnglobant::NOMBRE_NOR
 VolumeEnglobant::Etendue::Etendue()
 {
 	for (int i = 0; i < NOMBRE_NORMAUX_PLAN; ++i) {
-		d[i][0] =  INFINITE;
-		d[i][1] = -INFINITE;
+		d[i][0] =  constantes<double>::INFINITE;
+		d[i][1] = -constantes<double>::INFINITE;
 	}
 }
 
@@ -186,8 +186,8 @@ Entresection VolumeEnglobant::entresecte(
 		statistiques.test_entresections_volumes.fetch_add(1, std::memory_order_relaxed);
 #endif
 
-		auto d_proche = -INFINITE;
-		auto d_eloigne = INFINITE;
+		auto d_proche = -constantes<double>::INFINITE;
+		auto d_eloigne = constantes<double>::INFINITE;
 		uint8_t index_plan;
 		auto const &transforme_inverse = inverse(maillage->transformation());
 

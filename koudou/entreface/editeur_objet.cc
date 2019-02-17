@@ -80,9 +80,9 @@ void VueObjet::ajourne_donnees()
 
 	auto transformation = math::transformation();
 	transformation *= math::translation(pos.x, pos.y, pos.z);
-	transformation *= math::rotation_x(rot.x * static_cast<float>(POIDS_DEG_RAD));
-	transformation *= math::rotation_y(rot.y * static_cast<float>(POIDS_DEG_RAD));
-	transformation *= math::rotation_z(rot.z * static_cast<float>(POIDS_DEG_RAD));
+	transformation *= math::rotation_x(rot.x * constantes<float>::POIDS_DEG_RAD);
+	transformation *= math::rotation_y(rot.y * constantes<float>::POIDS_DEG_RAD);
+	transformation *= math::rotation_z(rot.z * constantes<float>::POIDS_DEG_RAD);
 	transformation *= math::echelle(ech.x, ech.y, ech.z);
 
 	m_objet->transformation = transformation;

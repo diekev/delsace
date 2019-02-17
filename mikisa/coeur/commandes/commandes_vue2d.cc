@@ -53,7 +53,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto camera = mikisa->camera_2d;
 
-		camera->zoom *= static_cast<float>((donnees.y < 0) ? PHI_INV : PHI);
+		camera->zoom *= (donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI;
 		camera->ajourne_matrice();
 
 		mikisa->notifie_observatrices(type_evenement::camera_2d | type_evenement::modifie);

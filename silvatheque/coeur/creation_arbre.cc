@@ -122,9 +122,9 @@ float ShapeRatio(int shape, float ratio)
 		case FORME_CONIQUE:
 			return 0.2f + 0.8f * ratio;
 		case FORME_SPHERIQUE:
-			return 0.2f + 0.8f * std::sin(static_cast<float>(PI) * ratio);
+			return 0.2f + 0.8f * std::sin(constantes<float>::PI * ratio);
 		case FORME_HEMISPHERIQUE:
-			return 0.2f + 0.8f * std::sin(0.5f * static_cast<float>(PI) * ratio);
+			return 0.2f + 0.8f * std::sin(0.5f * constantes<float>::PI * ratio);
 		case FORME_CYLINDRIQUE:
 			return 1.0f;
 		case FORME_CYLINDRIQUE_TAPERED:

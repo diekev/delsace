@@ -113,7 +113,7 @@ void RenduBrosse::initialise()
 	std::vector<dls::math::vec3f> sommets(points + 1);
 
 	for (auto i = 0ul; i <= points; i++){
-		auto const angle = static_cast<float>(TAU) * static_cast<float>(i) / static_cast<float>(points);
+		auto const angle = constantes<float>::TAU * static_cast<float>(i) / static_cast<float>(points);
 		auto const x = std::cos(angle);
 		auto const y = std::sin(angle);
 		sommets[i] = dls::math::vec3f(x, y, 0.0f);

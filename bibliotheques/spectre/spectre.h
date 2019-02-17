@@ -425,7 +425,7 @@ template <unsigned int NombreCoefficients>
 inline auto restreint(
 		SpectreCoefficient<NombreCoefficients> const &spectre,
 		const float min = 0.0,
-		const float max = INFINITEF)
+		const float max = constantes<float>::INFINITE)
 {
 	SpectreCoefficient resultat(spectre);
 

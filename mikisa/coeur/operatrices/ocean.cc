@@ -30,6 +30,7 @@
 #include <delsace/math/entrepolation.hh>
 #include <delsace/math/outils.hh>
 
+#include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/definitions.hh"
 
 static constexpr auto GRAVITE = 9.81f;
@@ -785,19 +786,19 @@ void BKE_ocean_init(Ocean *o, int M, int N, float Lx, float Lz, float V, float l
 
 	/* the +ve components and DC */
 	for (i = 0; i <= o->_M / 2; ++i)
-		o->_kx[i] = 2.0f * static_cast<float>(M_PI) * static_cast<float>(i) / o->_Lx;
+		o->_kx[i] = constantes<float>::TAU * static_cast<float>(i) / o->_Lx;
 
 	/* the -ve components */
 	for (i = o->_M - 1, ii = 0; i > o->_M / 2; --i, ++ii)
-		o->_kx[i] = -2.0f * static_cast<float>(M_PI) * static_cast<float>(ii) / o->_Lx;
+		o->_kx[i] = -constantes<float>::TAU * static_cast<float>(ii) / o->_Lx;
 
 	/* the +ve components and DC */
 	for (i = 0; i <= o->_N / 2; ++i)
-		o->_kz[i] = 2.0f * static_cast<float>(M_PI) * static_cast<float>(i) / o->_Lz;
+		o->_kz[i] = constantes<float>::TAU * static_cast<float>(i) / o->_Lz;
 
 	/* the -ve components */
 	for (i = o->_N - 1, ii = 0; i > o->_N / 2; --i, ++ii)
-		o->_kz[i] = -2.0f * static_cast<float>(M_PI) * static_cast<float>(ii) / o->_Lz;
+		o->_kz[i] = -constantes<float>::TAU * static_cast<float>(ii) / o->_Lz;
 
 	/* pre-calculate the k matrix */
 	for (i = 0; i < o->_M; ++i)

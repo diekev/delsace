@@ -89,7 +89,7 @@ void BSDFAngleVue::genere_echantillon(GNA &gna, ParametresRendu const &parametre
 	INUTILISE(profondeur);
 
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
-	pdf = PI;
+	pdf = constantes<double>::PI;
 
 	auto couleur = std::max(0.0, produit_scalaire(contexte.N, contexte.V));
 	L = Spectre(couleur) * spectre_lumiere(parametres, parametres.scene, gna, contexte.P, contexte.N);
@@ -117,7 +117,7 @@ void BSDFDiffus::genere_echantillon(GNA &gna, ParametresRendu const &parametres,
 	INUTILISE(profondeur);
 
 	dir = get_brdf_ray(gna, contexte.N, -contexte.V);
-	pdf = PI;
+	pdf = constantes<double>::PI;
 	L = spectre * spectre_lumiere(parametres, parametres.scene, gna, contexte.P, contexte.N);
 }
 
@@ -393,7 +393,7 @@ void BSDFPhaseIsotropique::evalue_echantillon(GNA &gna, ParametresRendu const &p
 	INUTILISE(parametres);
 	INUTILISE(dir);
 
-	pdf = 0.25 * PI_INV;
+	pdf = 0.25 * constantes<double>::PI_INV;
 	L = Spectre(pdf);
 }
 
@@ -411,7 +411,7 @@ void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, ParametresRendu const &p
 		sin_theta = std::sqrt(sin_theta);
 		xi = gna.nombre_aleatoire();
 
-		auto phi = xi * TAU;
+		auto phi = xi * constantes<double>::TAU;
 		dir.x = sin_theta * std::cos(phi);
 		dir.y = sin_theta * std::sin(phi);
 	}
@@ -420,7 +420,7 @@ void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, ParametresRendu const &p
 		dir.y = 0.0;
 	}
 
-	pdf = 0.25 * PI_INV;
+	pdf = 0.25 * constantes<double>::PI_INV;
 	L = Spectre(pdf);
 }
 
@@ -470,7 +470,7 @@ void BSDFPhaseAnisotropique::evalue_echantillon(GNA &gna, ParametresRendu const 
 	INUTILISE(dir);
 
 	if (isotropique) {
-		pdf = 0.25 * PI_INV;
+		pdf = 0.25 * constantes<double>::PI_INV;
 	}
 	else {
 		auto cos_theta = produit_scalaire(-contexte.V, dir);
@@ -496,7 +496,7 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, ParametresRendu const 
 			sin_theta = std::sqrt(sin_theta);
 			xi = gna.nombre_aleatoire();
 
-			auto phi = xi * TAU;
+			auto phi = xi * constantes<double>::TAU;
 			dir.x = sin_theta * std::cos(phi);
 			dir.y = sin_theta * std::sin(phi);
 		}
@@ -505,10 +505,10 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, ParametresRendu const 
 			dir.y = 0.0;
 		}
 
-		pdf = 0.25 * PI_INV;
+		pdf = 0.25 * constantes<double>::PI_INV;
 	}
 	else {
-		auto phi = gna.nombre_aleatoire() * TAU;
+		auto phi = gna.nombre_aleatoire() * constantes<double>::TAU;
 		auto cos_theta = inverse_cdf(gna.nombre_aleatoire());
 		auto sin_theta = std::sqrt(1.0 - cos_theta * cos_theta); // carré de sin_theta
 		auto in = -contexte.V;
@@ -525,7 +525,7 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, ParametresRendu const 
 
 double BSDFPhaseAnisotropique::calcul_pdf(double cos_theta) const
 {
-	return 0.25 * un_moins_g2 / (M_PI * std::pow(un_plus_g2 - 2.0 * g * cos_theta, 1.5f));
+	return 0.25 * un_moins_g2 / (constantes<double>::PI * std::pow(un_plus_g2 - 2.0 * g * cos_theta, 1.5f));
 }
 
 double BSDFPhaseAnisotropique::inverse_cdf(double xi) const

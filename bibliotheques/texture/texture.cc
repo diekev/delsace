@@ -236,7 +236,7 @@ double theta_spherique(dls::math::vec3d const &vecteur)
 double phi_spherique(dls::math::vec3d const &vecteur)
 {
 	auto p = std::atan2(vecteur.z, vecteur.x);
-	return (p < 0.0) ? p + TAU : p;
+	return (p < 0.0) ? p + constantes<double>::TAU : p;
 }
 
 /* ************************************************************************** */
@@ -290,8 +290,8 @@ Spectre TextureImage::echantillone(dls::math::vec3d const &direction) const
 	auto theta = theta_spherique(vec);
 	auto phi = phi_spherique(vec);
 
-	auto t = theta * PI_INV;
-	auto s = phi * TAU_INV;
+	auto t = theta * constantes<double>::PI_INV;
+	auto s = phi * constantes<double>::TAU_INV;
 
 	auto x = static_cast<int>(s * m_image.nombre_colonnes());
 	auto y = static_cast<int>(t * m_image.nombre_lignes());

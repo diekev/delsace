@@ -27,6 +27,7 @@
 #include <ego/outils.h>
 
 #include "bibliotheques/opengl/tampon_rendu.h"
+#include "bibliotheques/outils/constantes.h"
 
 #include "coeur/manipulatrice.h"
 
@@ -451,7 +452,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 	switch (axe) {
 		case 0:
 		{
-			auto const phid = 2.0f * static_cast<float>(M_PI) / segments;
+			auto const phid = constantes<float>::TAU / segments;
 			auto phi = 0.0f;
 
 			dls::math::vec3f point;
@@ -467,7 +468,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 		}
 		case 1:
 		{
-			auto const phid = 2.0f * static_cast<float>(M_PI) / segments;
+			auto const phid = constantes<float>::TAU / segments;
 			auto phi = 0.0f;
 
 			dls::math::vec3f point;
@@ -483,7 +484,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 		}
 		case 2:
 		{
-			auto const phid = 2.0f * static_cast<float>(M_PI) / segments;
+			auto const phid = constantes<float>::TAU / segments;
 			auto phi = 0.0f;
 
 			dls::math::vec3f point;

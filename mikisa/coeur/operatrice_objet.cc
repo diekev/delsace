@@ -106,14 +106,14 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 
 	if (type == MANIPULATION_POSITION) {
 		position = m_manipulatrice_position.pos();
-		rotation = dls::math::point3f(evalue_vecteur("rotation", temps)) * static_cast<float>(POIDS_DEG_RAD);
+		rotation = dls::math::point3f(evalue_vecteur("rotation", temps)) * constantes<float>::POIDS_DEG_RAD;
 		taille = dls::math::point3f(evalue_vecteur("taille", temps));
 
 		valeur_vecteur("position", dls::math::vec3f(position));
 	}
 	else if (type == MANIPULATION_ECHELLE) {
 		position = dls::math::point3f(evalue_vecteur("position", temps));
-		rotation = dls::math::point3f(evalue_vecteur("rotation", temps)) * static_cast<float>(POIDS_DEG_RAD);
+		rotation = dls::math::point3f(evalue_vecteur("rotation", temps)) * constantes<float>::POIDS_DEG_RAD;
 		taille = m_manipulatrice_echelle.taille();
 
 		valeur_vecteur("taille", dls::math::vec3f(taille));
@@ -123,7 +123,7 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 		rotation = m_manipulatrice_rotation.rotation();
 		taille = dls::math::point3f(evalue_vecteur("taille", temps));
 
-		valeur_vecteur("rotation", dls::math::vec3f(rotation) * static_cast<float>(POIDS_RAD_DEG));
+		valeur_vecteur("rotation", dls::math::vec3f(rotation) * constantes<float>::POIDS_RAD_DEG);
 	}
 	else {
 		return;
@@ -155,9 +155,9 @@ int OperatriceObjet::execute(Rectangle const &rectangle, const int temps)
 
 	auto transformation = math::transformation();
 	transformation *= math::translation(position.x, position.y, position.z);
-	transformation *= math::rotation_x(rotation.x * static_cast<float>(POIDS_DEG_RAD));
-	transformation *= math::rotation_y(rotation.y * static_cast<float>(POIDS_DEG_RAD));
-	transformation *= math::rotation_z(rotation.z * static_cast<float>(POIDS_DEG_RAD));
+	transformation *= math::rotation_x(rotation.x * constantes<float>::POIDS_DEG_RAD);
+	transformation *= math::rotation_y(rotation.y * constantes<float>::POIDS_DEG_RAD);
+	transformation *= math::rotation_z(rotation.z * constantes<float>::POIDS_DEG_RAD);
 	transformation *= math::echelle(taille.x, taille.y, taille.z);
 
 	m_objet.transformation = transformation;

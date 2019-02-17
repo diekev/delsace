@@ -109,8 +109,8 @@ Nuanceur *Maillage::nuanceur() const
 
 void Maillage::calcule_boite_englobante()
 {
-	dls::math::vec3d min(INFINITE);
-	dls::math::vec3d max(-INFINITE);
+	dls::math::vec3d min(constantes<double>::INFINITE);
+	dls::math::vec3d max(-constantes<double>::INFINITE);
 
 	for (const Triangle *triangle : *this) {
 		dls::math::extrait_min_max(triangle->v0, min, max);

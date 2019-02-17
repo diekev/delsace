@@ -529,7 +529,7 @@ public:
 		}
 		else if (type_flou == "gaussien") {
 			for (size_t i = static_cast<size_t>(-rayon), k = 0; i < static_cast<size_t>(rayon) + 1; ++i, ++k) {
-				kernel[k] = std::exp(-static_cast<float>(i * i) / (2.0f * rayon_flou * rayon_flou)) / (static_cast<float>(TAU) * rayon_flou * rayon_flou);
+				kernel[k] = std::exp(-static_cast<float>(i * i) / (2.0f * rayon_flou * rayon_flou)) / (constantes<float>::TAU * rayon_flou * rayon_flou);
 				poids += kernel[k];
 			}
 		}
@@ -1004,7 +1004,7 @@ static type_image_grise simule_grain_image(
 	for (size_t i = 0; i < MAX_NIVEAU_GRIS; ++i) {
 		auto const u = static_cast<float>(i) / static_cast<float>(MAX_NIVEAU_GRIS);
 		auto const ag = 1.0f / std::ceil(1.0f / rayon_max);
-		auto const lambda_tmp = -((ag * ag) / (static_cast<float>(PI) * (rayon_max*rayon_max + sigma*sigma))) * std::log(1.0f - u);
+		auto const lambda_tmp = -((ag * ag) / (constantes<float>::PI * (rayon_max*rayon_max + sigma*sigma))) * std::log(1.0f - u);
 		lambdas[i] = lambda_tmp;
 	}
 
@@ -1206,6 +1206,7 @@ public:
 		}
 
 		int res_x = tampon->tampon.nombre_colonnes();
+		auto inv_res_x = 1.0f / static_cast<float>(res_x);
 
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
@@ -1214,7 +1215,7 @@ public:
 		{
 			/* À FAIRE : image carrée ? */
 			auto const r = static_cast<float>(l);
-			auto const theta = static_cast<float>(TAU * c / res_x);
+			auto const theta = constantes<float>::TAU * static_cast<float>(c) * inv_res_x;
 			auto const x = r * std::cos(theta);
 			auto const y = r * std::sin(theta);
 			return tampon->echantillone(x, y);

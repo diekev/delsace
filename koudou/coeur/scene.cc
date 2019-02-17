@@ -270,7 +270,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 				/* La contribution d'une lumière point est proportionelle à
 				 * l'inverse de sa distance. */
 				spectre += ((lumiere->spectre * static_cast<float>(lumiere->intensite))
-							* static_cast<float>(1.0 / (4.0 * PI * dist)))
+							* static_cast<float>(1.0 / (4.0 * constantes<double>::PI * dist)))
 						   * static_cast<float>(angle * ombre);
 			}
 		}
@@ -301,7 +301,7 @@ dls::math::vec3d get_brdf_ray(GNA &gna, dls::math::vec3d const &nor, dls::math::
 
 dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor)
 {
-	auto r = dls::math::vec2d(gna.nombre_aleatoire() * TAU, gna.nombre_aleatoire() * TAU);
+	auto r = dls::math::vec2d(gna.nombre_aleatoire() * constantes<double>::TAU, gna.nombre_aleatoire() * constantes<double>::TAU);
 	auto sin_r = sin(r[0]);
 	auto dr = dls::math::vec3d(sin_r * sin(r[1]), sin_r * cos(r[1]), cos(r[0]));
 
