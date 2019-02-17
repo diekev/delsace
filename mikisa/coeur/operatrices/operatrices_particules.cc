@@ -343,7 +343,7 @@ public:
 		auto groupe_entree = static_cast<GroupePoint *>(nullptr);
 
 		if (!nom_groupe_origine.empty()) {
-			groupe_entree = m_corps.groupe_point(nom_groupe_origine);
+			groupe_entree = corps_entree->groupe_point(nom_groupe_origine);
 
 			if (groupe_entree == nullptr) {
 				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
@@ -471,7 +471,7 @@ public:
 		auto groupe_entree = static_cast<GroupePrimitive *>(nullptr);
 
 		if (!nom_groupe_origine.empty()) {
-			groupe_entree = m_corps.groupe_primitive(nom_groupe_origine);
+			groupe_entree = corps_entree->groupe_primitive(nom_groupe_origine);
 
 			if (groupe_entree == nullptr) {
 				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
