@@ -209,90 +209,54 @@ std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree, Gr
 
 	auto nombre_triangles = 0l;
 
+	iteratrice_index iter;
+
 	if (groupe) {
-		for (auto i = 0; i < groupe->taille(); ++i) {
-			auto prim = prims->prim(static_cast<long>(groupe->index(i)));
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
-
-			if (poly->type != type_polygone::FERME) {
-				continue;
-			}
-
-			nombre_triangles += poly->nombre_sommets() - 2;
-		}
-
-		triangles.reserve(static_cast<size_t>(nombre_triangles));
-
-		for (auto ig = 0; ig < groupe->taille(); ++ig) {
-			auto prim = prims->prim(static_cast<long>(groupe->index(ig)));
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
-
-			if (poly->type != type_polygone::FERME) {
-				continue;
-			}
-
-			for (long i = 2; i < poly->nombre_sommets(); ++i) {
-				Triangle triangle;
-
-				triangle.v0 = points->point(poly->index_point(0));
-				triangle.v1 = points->point(poly->index_point(i - 1));
-				triangle.v2 = points->point(poly->index_point(i));
-
-				triangles.push_back(triangle);
-			}
-		}
+		iter = iteratrice_index(groupe);
 	}
 	else {
-		for (auto ip = 0; ip < prims->taille(); ++ip) {
-			auto prim = prims->prim(ip);
+		iter = iteratrice_index(prims->taille());
+	}
 
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
+	for (auto i : iter) {
+		auto prim = prims->prim(i);
 
-			auto poly = dynamic_cast<Polygone *>(prim);
-
-			if (poly->type != type_polygone::FERME) {
-				continue;
-			}
-
-			nombre_triangles += poly->nombre_sommets() - 2;
+		if (prim->type_prim() != type_primitive::POLYGONE) {
+			continue;
 		}
 
-		triangles.reserve(static_cast<size_t>(nombre_triangles));
+		auto poly = dynamic_cast<Polygone *>(prim);
 
-		for (auto ip = 0; ip < prims->taille(); ++ip) {
-			auto prim = prims->prim(ip);
+		if (poly->type != type_polygone::FERME) {
+			continue;
+		}
 
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
+		nombre_triangles += poly->nombre_sommets() - 2;
+	}
 
-			auto poly = dynamic_cast<Polygone *>(prim);
+	triangles.reserve(static_cast<size_t>(nombre_triangles));
 
-			if (poly->type != type_polygone::FERME) {
-				continue;
-			}
+	for (auto ig : iter) {
+		auto prim = prims->prim(ig);
 
-			for (long i = 2; i < poly->nombre_sommets(); ++i) {
-				Triangle triangle;
+		if (prim->type_prim() != type_primitive::POLYGONE) {
+			continue;
+		}
 
-				triangle.v0 = points->point(poly->index_point(0));
-				triangle.v1 = points->point(poly->index_point(i - 1));
-				triangle.v2 = points->point(poly->index_point(i));
+		auto poly = dynamic_cast<Polygone *>(prim);
 
-				triangles.push_back(triangle);
-			}
+		if (poly->type != type_polygone::FERME) {
+			continue;
+		}
+
+		for (long i = 2; i < poly->nombre_sommets(); ++i) {
+			Triangle triangle;
+
+			triangle.v0 = points->point(poly->index_point(0));
+			triangle.v1 = points->point(poly->index_point(i - 1));
+			triangle.v2 = points->point(poly->index_point(i));
+
+			triangles.push_back(triangle);
 		}
 	}
 
@@ -406,43 +370,27 @@ public:
 		auto const nombre_points_emis = evalue_entier("nombre_points", temps);
 		points_sorties->reserve(nombre_points_emis);
 
-		auto const nombre_points_par_points = nombre_points_emis / points_entree->taille();
+		auto iter = (groupe_entree != nullptr)
+				? iteratrice_index(groupe_entree)
+				: iteratrice_index(points_entree->taille());
 
-		if (groupe_entree) {
-			for (auto i = 0; i < groupe_entree->taille(); ++i) {
-				auto const index_point = groupe_entree->index(i);
-				auto const &point = points_entree->point(static_cast<long>(index_point));
+		auto const nombre_points_par_points = (groupe_entree != nullptr)
+				? nombre_points_emis / groupe_entree->taille()
+				: nombre_points_emis / points_entree->taille();
 
-				auto const p_monde = corps_entree->transformation(
-									dls::math::point3d(point));
+		for (auto i : iter) {
+			auto point = points_entree->point(i);
+			auto const p_monde = corps_entree->transformation(
+								dls::math::point3d(point.x, point.y, point.z));
 
-				for (long j = 0; j < nombre_points_par_points; ++j) {
-					auto index = m_corps.ajoute_point(
-								static_cast<float>(p_monde.x),
-								static_cast<float>(p_monde.y),
-								static_cast<float>(p_monde.z));
+			for (long j = 0; j < nombre_points_par_points; ++j) {
+				auto index = m_corps.ajoute_point(
+							static_cast<float>(p_monde.x),
+							static_cast<float>(p_monde.y),
+							static_cast<float>(p_monde.z));
 
-					if (groupe_sortie) {
-						groupe_sortie->ajoute_point(index);
-					}
-				}
-			}
-		}
-		else {
-			for (auto i = 0; i < points_entree->taille(); ++i) {
-				auto point = points_entree->point(i);
-				auto const p_monde = corps_entree->transformation(
-									dls::math::point3d(point.x, point.y, point.z));
-
-				for (long j = 0; j < nombre_points_par_points; ++j) {
-					auto index = m_corps.ajoute_point(
-								static_cast<float>(p_monde.x),
-								static_cast<float>(p_monde.y),
-								static_cast<float>(p_monde.z));
-
-					if (groupe_sortie) {
-						groupe_sortie->ajoute_point(index);
-					}
+				if (groupe_sortie) {
+					groupe_sortie->ajoute_point(index);
 				}
 			}
 		}
@@ -557,7 +505,11 @@ public:
 		auto points_sorties = m_corps.points();
 		points_sorties->reserve(nombre_points);
 
-		auto const nombre_points_triangle = nombre_points / static_cast<long>(triangles.size());
+		/* À FAIRE : il faudrait un meilleur algorithme pour mieux distribuer
+		 *  les points sur les maillages, avec nombre_points = max nombre
+		 *  points. En ce moment, l'algorithme peut en mettre plus que prévu. */
+		auto const nombre_points_triangle = static_cast<long>(std::ceil(
+					static_cast<double>(nombre_points) / static_cast<double>(triangles.size())));
 
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
@@ -685,12 +637,16 @@ size_t HachageSpatial::taille() const
 
 /* ************************************************************************** */
 
-static float calcule_aire(dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
+template <int O, typename T, int... Ns>
+static auto calcule_aire(
+		dls::math::vecteur<O, T, Ns...> const &v0,
+		dls::math::vecteur<O, T, Ns...> const &v1,
+		dls::math::vecteur<O, T, Ns...> const &v2)
 {
 	auto const c1 = v1 - v0;
 	auto const c2 = v2 - v0;
 
-	return longueur(produit_croix(c1, c2)) * 0.5f;
+	return longueur(produit_croix(c1, c2)) * static_cast<T>(0.5);
 }
 
 static float calcule_aire(Triangle const &triangle)
@@ -898,8 +854,11 @@ public:
 				auto const v0 = points->point(polygone->index_point(0));
 				auto const v1 = points->point(polygone->index_point(i - 1));
 				auto const v2 = points->point(polygone->index_point(i));
+				auto const v0_m = corps_maillage->transformation(dls::math::point3d(v0));
+				auto const v1_m = corps_maillage->transformation(dls::math::point3d(v1));
+				auto const v2_m = corps_maillage->transformation(dls::math::point3d(v2));
 
-				auto aire = calcule_aire(v0, v1, v2);
+				auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
 				aire_minimum = std::min(aire_minimum, aire);
 				aire_maximum = std::max(aire_maximum, aire);
 				aire_totale += aire;
@@ -926,8 +885,11 @@ public:
 				auto const v0 = points->point(polygone->index_point(0));
 				auto const v1 = points->point(polygone->index_point(i - 1));
 				auto const v2 = points->point(polygone->index_point(i));
+				auto const v0_m = corps_maillage->transformation(dls::math::point3d(v0));
+				auto const v1_m = corps_maillage->transformation(dls::math::point3d(v1));
+				auto const v2_m = corps_maillage->transformation(dls::math::point3d(v2));
 
-				auto aire = calcule_aire(v0, v1, v2);
+				auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
 
 				auto const index_boite = static_cast<int>(std::log2(aire_maximum / aire));
 
@@ -941,7 +903,10 @@ public:
 					continue;
 				}
 
-				ajoute_triangle_boite(&boites[index_boite], v0, v1, v2);
+				ajoute_triangle_boite(&boites[index_boite],
+									  dls::math::vec3f(static_cast<float>(v0_m.x), static_cast<float>(v0_m.y), static_cast<float>(v0_m.z)),
+									  dls::math::vec3f(static_cast<float>(v1_m.x), static_cast<float>(v1_m.y), static_cast<float>(v1_m.z)),
+									  dls::math::vec3f(static_cast<float>(v2_m.x), static_cast<float>(v2_m.y), static_cast<float>(v2_m.z)));
 			}
 		}
 
