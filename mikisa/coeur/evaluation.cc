@@ -98,28 +98,14 @@ void evalue_resultat(Mikisa &mikisa)
 	}
 }
 
-class GraphEvalTask : public TacheMikisa {
-public:
-	explicit GraphEvalTask(Mikisa &mikisa);
-
-	GraphEvalTask(GraphEvalTask const &) = default;
-	GraphEvalTask &operator=(GraphEvalTask const &) = default;
-
-	void evalue() override;
-};
-
-GraphEvalTask::GraphEvalTask(Mikisa &mikisa)
-	: TacheMikisa(mikisa)
-{}
-
-void GraphEvalTask::evalue()
+static void evalue_composite(Mikisa &mikisa)
 {
-	auto &composite = m_mikisa.composite;
+	auto &composite = mikisa.composite;
 	auto &graphe = composite->graph();
 
 	/* Essaie de trouver une visionneuse. */
 
-	Noeud *visionneuse = m_mikisa.derniere_visionneuse_selectionnee;
+	Noeud *visionneuse = mikisa.derniere_visionneuse_selectionnee;
 
 	if (visionneuse == nullptr) {
 		for (std::shared_ptr<Noeud> const &node : graphe.noeuds()) {
@@ -140,22 +126,41 @@ void GraphEvalTask::evalue()
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(m_mikisa.project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(m_mikisa.project_settings->largeur);
+	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
 
-	execute_noeud(visionneuse, rectangle, m_mikisa.temps_courant);
+	execute_noeud(visionneuse, rectangle, mikisa.temps_courant);
 
 	Image image;
 	auto operatrice = std::any_cast<OperatriceImage *>(visionneuse->donnees());
 	operatrice->transfere_image(image);
 	composite->image(image);
 	image.reinitialise(true);
+}
 
+class GraphEvalTask : public TacheMikisa {
+public:
+	explicit GraphEvalTask(Mikisa &mikisa);
+
+	GraphEvalTask(GraphEvalTask const &) = default;
+	GraphEvalTask &operator=(GraphEvalTask const &) = default;
+
+	void evalue() override;
+};
+
+GraphEvalTask::GraphEvalTask(Mikisa &mikisa)
+	: TacheMikisa(mikisa)
+{}
+
+void GraphEvalTask::evalue()
+{
+	evalue_composite(m_mikisa);
 	notifier.signalImageProcessed();
 }
 
 void evalue_graphe(Mikisa &mikisa)
 {
+#if 0
 	if (mikisa.tache_en_cours) {
 		return;
 	}
@@ -164,6 +169,11 @@ void evalue_graphe(Mikisa &mikisa)
 
 	auto t = new(tbb::task::allocate_root()) GraphEvalTask(mikisa);
 	tbb::task::enqueue(*t);
+#else
+	/* À FAIRE : le rendu OpenGL pour les noeuds scènes ne peut se faire dans un
+	 * thread séparé... */
+	evalue_composite(mikisa);
+#endif
 }
 
 /* ************************************************************************** */
