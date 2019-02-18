@@ -28,6 +28,7 @@ menu "Noeud Objet" {
 		action(valeur="Fracture Voronoi"; attache=ajouter_noeud; métadonnée="Fracture Voronoi")
 		action(valeur="Fusionnage Corps"; attache=ajouter_noeud; métadonnée="Fusionnage Corps")
 		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe Maillage")
+		action(valeur="Lissage Laplacien"; attache=ajouter_noeud; métadonnée="Lissage Laplacien")
 		action(valeur="OpenSubDiv"; attache=ajouter_noeud; métadonnée="OpenSubDiv")
 		action(valeur="Texture"; attache=ajouter_noeud; métadonnée="Texture")
 	}
