@@ -639,18 +639,6 @@ size_t HachageSpatial::taille() const
 
 /* ************************************************************************** */
 
-template <int O, typename T, int... Ns>
-static auto calcule_aire(
-		dls::math::vecteur<O, T, Ns...> const &v0,
-		dls::math::vecteur<O, T, Ns...> const &v1,
-		dls::math::vecteur<O, T, Ns...> const &v2)
-{
-	auto const c1 = v1 - v0;
-	auto const c2 = v2 - v0;
-
-	return longueur(produit_croix(c1, c2)) * static_cast<T>(0.5);
-}
-
 static float calcule_aire(Triangle const &triangle)
 {
 	return calcule_aire(triangle.v0, triangle.v1, triangle.v2);

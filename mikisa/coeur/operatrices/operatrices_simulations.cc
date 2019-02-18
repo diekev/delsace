@@ -650,22 +650,6 @@ public:
 
 /* ************************************************************************** */
 
-namespace dls::math {
-
-template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto max(const vecteur<O, T, Ns...> &v)
-{
-	auto ret = v[0];
-
-	for (size_t i = 1; i < sizeof...(Ns); ++i) {
-		ret = std::max(ret, v[i]);
-	}
-
-	return ret;
-}
-
-}
-
 class BarnesHutSummation {
 public:
 	struct Particule {

@@ -230,15 +230,6 @@ static long cherche_collision(Corps const *corps_collision,
 	return -1;
 }
 
-static auto axis_dominant_v3_single(dls::math::vec3f const &vec)
-{
-	const float x = std::abs(vec[0]);
-	const float y = std::abs(vec[1]);
-	const float z = std::abs(vec[2]);
-
-	return ((x > y) ? ((x > z) ? 0ul : 2ul) : ((y > z) ? 1ul : 2ul));
-}
-
 class OperatriceMaillageVersVolume : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Maillage vers Volume";
@@ -348,7 +339,7 @@ public:
 						auto rayon = Rayon{};
 						rayon.origine = dls::math::vec3f(x_mond, y_mond, z_mond);
 
-						auto axis = axis_dominant_v3_single(rayon.origine);
+						auto axis = axe_dominant_abs(rayon.origine);
 
 						rayon.direction = dls::math::vec3f(0.0f, 0.0f, 0.0f);
 						rayon.direction[axis] = 1.0f;

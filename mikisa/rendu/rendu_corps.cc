@@ -382,15 +382,6 @@ static TamponRendu *cree_tampon_segments()
 
 /* ************************************************************************** */
 
-static auto axis_dominant_v3_single(dls::math::vec3f const &vec)
-{
-	const float x = std::abs(vec[0]);
-	const float y = std::abs(vec[1]);
-	const float z = std::abs(vec[2]);
-
-	return ((x > y) ? ((x > z) ? 0ul : 2ul) : ((y > z) ? 1ul : 2ul));
-}
-
 static auto slice(
 		dls::math::vec3f const &view_dir,
 		size_t m_axis,
@@ -398,7 +389,7 @@ static auto slice(
 		dls::math::vec3f const &m_min,
 		dls::math::vec3f const &m_max)
 {
-	auto axis = axis_dominant_v3_single(view_dir);
+	auto axis = axe_dominant_abs(view_dir);
 
 	if (m_axis == axis) {
 		return;
