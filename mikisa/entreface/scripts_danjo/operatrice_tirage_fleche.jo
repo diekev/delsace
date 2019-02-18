@@ -1,5 +1,9 @@
 disposition "operatrice_3d_randomisation_attribut" {
     ligne {
+	    étiquette(valeur="Groupe")
+		chaine(valeur=""; attache=nom_groupe; infobulle="Le groupe de primitives sur lequel générer les points.")
+	}
+    ligne {
 	    étiquette(valeur="Graine")
 		entier(valeur=1; attache=graine; min=1)
 	}

@@ -722,85 +722,72 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto nom_groupe = evalue_chaine("nom_groupe");
+		auto groupe_prim = static_cast<GroupePrimitive *>(nullptr);
+
+		if (!nom_groupe.empty()) {
+			groupe_prim = corps_maillage->groupe_primitive(nom_groupe);
+
+			if (groupe_prim == nullptr) {
+				std::stringstream ss;
+				ss << "Aucun groupe de primitives nommé '" << nom_groupe
+				   << "' trouvé sur le corps d'entrée !";
+
+				this->ajoute_avertissement(ss.str());
+				return EXECUTION_ECHOUEE;
+			}
+		}
+
 		/* Convertis le maillage en triangles. */
-		auto const points = corps_maillage->points();
+		auto triangles_entree = convertis_maillage_triangles(corps_maillage, groupe_prim);
+
+		if (triangles_entree.empty()) {
+			this->ajoute_avertissement("Il n'y pas de polygones dans le corps d'entrée !");
+			return EXECUTION_ECHOUEE;
+		}
 
 		auto aire_minimum = std::numeric_limits<float>::max();
 		auto aire_maximum = 0.0f;
 		auto aire_totale = 0.0f;
 
 		/* Calcule les informations sur les aires. */
-		for (auto ip = 0; ip < prims_maillage->taille(); ++ip) {
-			auto prim = prims_maillage->prim(ip);
+		for (auto const &triangle : triangles_entree) {
+			auto const v0_m = corps_maillage->transformation(dls::math::point3d(triangle.v0));
+			auto const v1_m = corps_maillage->transformation(dls::math::point3d(triangle.v1));
+			auto const v2_m = corps_maillage->transformation(dls::math::point3d(triangle.v2));
 
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto polygone = dynamic_cast<Polygone *>(prim);
-
-			if (polygone->type != type_polygone::FERME) {
-				continue;
-			}
-
-			for (long i = 2; i < polygone->nombre_sommets(); ++i) {
-				auto const v0 = points->point(polygone->index_point(0));
-				auto const v1 = points->point(polygone->index_point(i - 1));
-				auto const v2 = points->point(polygone->index_point(i));
-				auto const v0_m = corps_maillage->transformation(dls::math::point3d(v0));
-				auto const v1_m = corps_maillage->transformation(dls::math::point3d(v1));
-				auto const v2_m = corps_maillage->transformation(dls::math::point3d(v2));
-
-				auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
-				aire_minimum = std::min(aire_minimum, aire);
-				aire_maximum = std::max(aire_maximum, aire);
-				aire_totale += aire;
-			}
+			auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
+			aire_minimum = std::min(aire_minimum, aire);
+			aire_maximum = std::max(aire_maximum, aire);
+			aire_totale += aire;
 		}
 
 		/* Place les triangles dans les boites. */
 		BoiteTriangle boites[NOMBRE_BOITE];
 
-		for (auto ip = 0; ip < prims_maillage->taille(); ++ip) {
-			auto prim = prims_maillage->prim(ip);
+		for (auto const &triangle : triangles_entree) {
+			auto const v0_m = corps_maillage->transformation(dls::math::point3d(triangle.v0));
+			auto const v1_m = corps_maillage->transformation(dls::math::point3d(triangle.v1));
+			auto const v2_m = corps_maillage->transformation(dls::math::point3d(triangle.v2));
 
-			if (prim->type_prim() != type_primitive::POLYGONE) {
+			auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
+
+			auto const index_boite = static_cast<int>(std::log2(aire_maximum / aire));
+
+			if (index_boite < 0 || index_boite >= 64) {
+				std::stringstream ss;
+				ss << "Erreur lors de la génération de l'index d'une boîte !";
+				ss << "\n   Index : " << index_boite;
+				ss << "\n   Aire triangle : " << aire;
+				ss << "\n   Aire totale : " << aire_maximum;
+				this->ajoute_avertissement(ss.str());
 				continue;
 			}
 
-			auto polygone = dynamic_cast<Polygone *>(prim);
-
-			if (polygone->type != type_polygone::FERME) {
-				continue;
-			}
-
-			for (long i = 2; i < polygone->nombre_sommets(); ++i) {
-				auto const v0 = points->point(polygone->index_point(0));
-				auto const v1 = points->point(polygone->index_point(i - 1));
-				auto const v2 = points->point(polygone->index_point(i));
-				auto const v0_m = corps_maillage->transformation(dls::math::point3d(v0));
-				auto const v1_m = corps_maillage->transformation(dls::math::point3d(v1));
-				auto const v2_m = corps_maillage->transformation(dls::math::point3d(v2));
-
-				auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
-
-				auto const index_boite = static_cast<int>(std::log2(aire_maximum / aire));
-
-				if (index_boite < 0 || index_boite >= 64) {
-					std::stringstream ss;
-					ss << "Erreur lors de la génération de l'index d'une boîte !";
-					ss << "\n   Index : " << index_boite;
-					ss << "\n   Aire triangle : " << aire;
-					ss << "\n   Aire totale : " << aire_maximum;
-					this->ajoute_avertissement(ss.str());
-					continue;
-				}
-
-				ajoute_triangle_boite(&boites[index_boite],
-									  dls::math::vec3f(static_cast<float>(v0_m.x), static_cast<float>(v0_m.y), static_cast<float>(v0_m.z)),
-									  dls::math::vec3f(static_cast<float>(v1_m.x), static_cast<float>(v1_m.y), static_cast<float>(v1_m.z)),
-									  dls::math::vec3f(static_cast<float>(v2_m.x), static_cast<float>(v2_m.y), static_cast<float>(v2_m.z)));
-			}
+			ajoute_triangle_boite(&boites[index_boite],
+								  dls::math::vec3f(static_cast<float>(v0_m.x), static_cast<float>(v0_m.y), static_cast<float>(v0_m.z)),
+								  dls::math::vec3f(static_cast<float>(v1_m.x), static_cast<float>(v1_m.y), static_cast<float>(v1_m.z)),
+								  dls::math::vec3f(static_cast<float>(v2_m.x), static_cast<float>(v2_m.y), static_cast<float>(v2_m.z)));
 		}
 
 		/* Ne considère que les triangles dont l'aire est supérieure à ce seuil. */
