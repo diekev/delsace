@@ -33,6 +33,7 @@
 
 #include "../corps/corps.h"
 #include "../corps/groupes.h"
+#include "../corps/triangulation.hh"
 
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -171,99 +172,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-struct Triangle {
-	dls::math::vec3f v0 = dls::math::vec3f(0.0f, 0.0f, 0.0f);
-	dls::math::vec3f v1 = dls::math::vec3f(0.0f, 0.0f, 0.0f);
-	dls::math::vec3f v2 = dls::math::vec3f(0.0f, 0.0f, 0.0f);
-	float aire = 0.0f;
-	Triangle *precedent = nullptr, *suivant = nullptr;
-
-	Triangle() = default;
-
-	Triangle(dls::math::vec3f const &v_0, dls::math::vec3f const &v_1, dls::math::vec3f const &v_2)
-		: Triangle()
-	{
-		v0 = v_0;
-		v1 = v_1;
-		v2 = v_2;
-	}
-};
-
-std::vector<Triangle> convertis_maillage_triangles(Corps const *corps_entree, GroupePrimitive *groupe)
-{
-	std::vector<Triangle> triangles;
-	auto const points = corps_entree->points();
-	auto const prims  = corps_entree->prims();
-
-	/* Convertis le maillage en triangles.
-	 * Petit tableau pour comprendre le calcul du nombre de triangles.
-	 * +----------------+------------------+
-	 * | nombre sommets | nombre triangles |
-	 * +----------------+------------------+
-	 * | 3              | 1                |
-	 * | 4              | 2                |
-	 * | 5              | 3                |
-	 * | 6              | 4                |
-	 * | 7              | 5                |
-	 * +----------------+------------------+
-	 */
-
-	auto nombre_triangles = 0l;
-
-	iteratrice_index iter;
-
-	if (groupe) {
-		iter = iteratrice_index(groupe);
-	}
-	else {
-		iter = iteratrice_index(prims->taille());
-	}
-
-	for (auto i : iter) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
-
-		nombre_triangles += poly->nombre_sommets() - 2;
-	}
-
-	triangles.reserve(static_cast<size_t>(nombre_triangles));
-
-	for (auto ig : iter) {
-		auto prim = prims->prim(ig);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
-
-		for (long i = 2; i < poly->nombre_sommets(); ++i) {
-			Triangle triangle;
-
-			triangle.v0 = points->point(poly->index_point(0));
-			triangle.v1 = points->point(poly->index_point(i - 1));
-			triangle.v2 = points->point(poly->index_point(i));
-
-			triangles.push_back(triangle);
-		}
-	}
-
-	return triangles;
-}
 
 /* À FAIRE : transfère attribut. */
 class OperatriceCreationPoints : public OperatriceCorps {
@@ -638,11 +546,6 @@ size_t HachageSpatial::taille() const
 }
 
 /* ************************************************************************** */
-
-static float calcule_aire(Triangle const &triangle)
-{
-	return calcule_aire(triangle.v0, triangle.v1, triangle.v2);
-}
 
 class ListeTriangle {
 	Triangle *m_premier_triangle = nullptr;

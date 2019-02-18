@@ -84,10 +84,12 @@ add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_vue3d.h
 
 	corps/adaptrice_creation_corps.h
+	corps/collision.hh
 	corps/corps.h
 	corps/groupes.h
 	corps/listes.h
 	corps/primitive.hh
+	corps/triangulation.hh
 	corps/volume.hh
 
 	operatrices/courbure.hh
@@ -134,10 +136,12 @@ add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_vue3d.cc
 
 	corps/adaptrice_creation_corps.cc
+	corps/collision.cc
 	corps/corps.cc
 	corps/groupes.cc
 	corps/listes.cc
 	corps/primitive.cc
+	corps/triangulation.cc
 	corps/volume.cc
 
 	operatrices/courbure.cc
