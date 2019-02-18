@@ -958,11 +958,217 @@ public:
 
 /* ************************************************************************** */
 
+/**
+ * Implémentation partielle de l'algorithme de génération de maillage alpha de
+ * "Enhancing Particle Methods for Fluid Simulation in Computer Graphics",
+ * Hagit Schechter, 2013
+ */
+
+static bool construit_sphere(
+		dls::math::vec3f const &x0,
+		dls::math::vec3f const &x1,
+		dls::math::vec3f const &x2,
+		float const rayon,
+		dls::math::vec3f &centre)
+{
+	auto const x0x1 = x0 - x1;
+	auto const lx0x1 = longueur(x0x1);
+
+	auto const x1x2 = x1 - x2;
+	auto const lx1x2 = longueur(x1x2);
+
+	auto const x2x0 = x2 - x0;
+	auto const lx2x0 = longueur(x2x0);
+
+	auto n = produit_croix(x0x1, x1x2);
+	auto ln = longueur(n);
+
+	auto radius_x = (lx0x1 * lx1x2 * lx2x0) / (2.0f * ln);
+
+	if (radius_x > rayon) {
+		return false;
+	}
+
+	auto const abs_n_sqr = (ln * ln);
+	auto const inv_abs_n_sqr = 1.0f / abs_n_sqr;
+	auto const inv_abs_n_sqr2 = 1.0f / (2.0f * abs_n_sqr);
+
+	auto alpha = (longueur_carree(x1x2) * produit_scalaire(x0x1, x0 - x2)) * inv_abs_n_sqr2;
+	auto beta = (longueur_carree(x0 - x2) * produit_scalaire(x1 - x0, x1x2)) * inv_abs_n_sqr2;
+	auto gamma = (longueur_carree(x0x1) * produit_scalaire(x2x0, x2 - x1)) * inv_abs_n_sqr2;
+
+	auto l = alpha * x0 + beta * x1 + gamma * x2;
+
+	/* NOTE : selon le papier, c'est censé être
+	 * (radius_x * radius_x - radius * radius)
+	 * mais cela donne un nombre négatif, résultant en un NaN... */
+	auto t = std::sqrt((radius_x - rayon) * (radius_x - rayon) * inv_abs_n_sqr);
+
+	centre = l + t * n;
+
+	if (est_nan(centre)) {
+		return false;
+	}
+
+	return true;
+}
+
+static void trouve_points_voisins(
+		ListePoints3D const &points,
+		ListePoints3D &rpoints,
+		dls::math::vec3f const &point,
+		const float radius)
+{
+	for (auto i = 0; i < points.taille(); ++i) {
+		const auto &pi = points.point(i);
+
+		if (pi == point) {
+			continue;
+		}
+
+		if (longueur(point - pi) < radius) {
+			auto p3d = new Point3D;
+			p3d->x = pi.x;
+			p3d->y = pi.y;
+			p3d->z = pi.z;
+
+			rpoints.pousse(p3d);
+		}
+	}
+}
+
+static void construit_triangle(
+		Corps &corps,
+		int &tri_offset,
+		float const radius,
+		ListePoints3D const &N1,
+		dls::math::vec3f const &pi)
+{
+	for (auto j = 0; j < N1.taille() - 1; ++j) {
+		auto pj = N1.point(j), pk = N1.point(j + 1);
+		dls::math::vec3f center;
+
+		if (!construit_sphere(pi, pj, pk, radius, center)) {
+			continue;
+		}
+
+		bool clear = true;
+
+		for (auto k(0); k < N1.taille(); ++k) {
+			if (k == j || k == (j + 1)) {
+				continue;
+			}
+
+			if (longueur(N1.point(k) - center) < radius) {
+				clear = false;
+				break;
+			}
+		}
+
+		if (!clear) {
+			continue;
+		}
+
+		corps.ajoute_point(pi.x, pi.y, pi.z);
+		corps.ajoute_point(pj.x, pj.y, pj.z);
+		corps.ajoute_point(pk.x, pk.y, pk.z);
+
+		auto poly = Polygone::construit(&corps, type_polygone::FERME, 3);
+		poly->ajoute_sommet(tri_offset + 0);
+		poly->ajoute_sommet(tri_offset + 1);
+		poly->ajoute_sommet(tri_offset + 2);
+
+		tri_offset += 3;
+	}
+}
+
+static void construit_maillage_alpha(
+		Corps const &corps_entree,
+		float const radius,
+		Corps &sortie)
+{
+	auto points_entree = corps_entree.points();
+	auto tri_offset = 0;
+
+	for (auto i = 0; i < points_entree->taille(); ++i) {
+		auto point = points_entree->point(i);
+
+		ListePoints3D N1;
+		trouve_points_voisins(*points_entree, N1, point, 2.0f * radius);
+		construit_triangle(sortie, tri_offset, radius, N1, point);
+	}
+}
+
+class OperatriceMaillageAlpha : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Maillage Alpha";
+	static constexpr auto AIDE =
+			"Crée une surface à partir de points.";
+
+	OperatriceMaillageAlpha(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, const int temps) override
+	{
+		m_corps.reinitialise();
+
+		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("L'entrée n'est pas connectée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto points_entree = corps_entree->points();
+
+		if (points_entree->taille() == 0) {
+			this->ajoute_avertissement("Il n'y pas de points dans le corps d'entrée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		construit_maillage_alpha(*corps_entree, 0.1f, m_corps);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
 	usine.enregistre_type(cree_desc<OperatriceSuppressionPoints>());
 	usine.enregistre_type(cree_desc<OperatriceTirageFleche>());
+	usine.enregistre_type(cree_desc<OperatriceMaillageAlpha>());
 }
 
 #pragma clang diagnostic pop
