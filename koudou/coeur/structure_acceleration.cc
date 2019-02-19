@@ -24,9 +24,9 @@
 
 #include "structure_acceleration.h"
 
+#include "bibliotheques/geometrie/boite_englobante.hh"
 #include "bibliotheques/outils/definitions.hh"
 
-#include "boite_englobante.h"
 #include "maillage.h"
 #include "scene.h"
 #include "statistiques.h"
@@ -63,6 +63,28 @@ static void entresecte_triangles_maillage(
 
 		++index_triangle;
 	}
+}
+
+/* Algorithme issu de
+ * https://tavianator.com/fast-branchless-raybounding-box-entresections-part-2-nans/
+ */
+static bool entresecte_boite(BoiteEnglobante const &boite, Rayon const &rayon)
+{
+	auto t1 = (boite.min[0] - rayon.origine[0]) * rayon.inverse_direction[0];
+	auto t2 = (boite.max[0] - rayon.origine[0]) * rayon.inverse_direction[0];
+
+	auto tmin = std::min(t1, t2);
+	auto tmax = std::max(t1, t2);
+
+	for (size_t i = 1; i < 3; ++i) {
+		t1 = (boite.min[i] - rayon.origine[i]) * rayon.inverse_direction[i];
+		t2 = (boite.max[i] - rayon.origine[i]) * rayon.inverse_direction[i];
+
+		tmin = std::max(tmin, std::min(t1, t2));
+		tmax = std::min(tmax, std::max(t1, t2));
+	}
+
+	return tmax > std::max(tmin, 0.0);
 }
 
 Entresection StructureAcceleration::entresecte(

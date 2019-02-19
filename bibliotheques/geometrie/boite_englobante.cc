@@ -22,9 +22,7 @@
  *
  */
 
-#include "boite_englobante.h"
-
-#include "types.h"
+#include "boite_englobante.hh"
 
 BoiteEnglobante::BoiteEnglobante(dls::math::point3d const &point)
 	: min(point)
@@ -119,26 +117,4 @@ BoiteEnglobante unie(BoiteEnglobante const &boite1, BoiteEnglobante const &boite
 	}
 
 	return resultat;
-}
-
-/* Algorithme issu de
- * https://tavianator.com/fast-branchless-raybounding-box-entresections-part-2-nans/
- */
-bool entresecte_boite(BoiteEnglobante const &boite, Rayon const &rayon)
-{
-	auto t1 = (boite.min[0] - rayon.origine[0]) * rayon.inverse_direction[0];
-	auto t2 = (boite.max[0] - rayon.origine[0]) * rayon.inverse_direction[0];
-
-	auto tmin = std::min(t1, t2);
-	auto tmax = std::max(t1, t2);
-
-	for (size_t i = 1; i < 3; ++i) {
-		t1 = (boite.min[i] - rayon.origine[i]) * rayon.inverse_direction[i];
-		t2 = (boite.max[i] - rayon.origine[i]) * rayon.inverse_direction[i];
-
-		tmin = std::max(tmin, std::min(t1, t2));
-		tmax = std::min(tmax, std::max(t1, t2));
-	}
-
-	return tmax > std::max(tmin, 0.0);
 }

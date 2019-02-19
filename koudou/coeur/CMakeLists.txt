@@ -32,6 +32,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_IMAGE}
 	bib_commandes
+	bib_geometrie
 	bib_objets
 	bib_observation
 	bib_vision
@@ -61,7 +62,6 @@ add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_rendu.h
 	commandes/commandes_vue3d.h
 
-	boite_englobante.h
 	bsdf.h
 	configuration.h
 	evenement.h
@@ -86,7 +86,6 @@ add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_rendu.cc
 	commandes/commandes_vue3d.cc
 
-	boite_englobante.cc
 	bsdf.cc
 	configuration.cc
 	evenement.cc

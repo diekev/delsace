@@ -22,10 +22,14 @@
 set(NOM_CIBLE bib_geometrie)
 
 set(INCLUSIONS
+	${INCLUSIONS_DELSACE_MATH}
 )
 
 add_library(${NOM_CIBLE} STATIC
+	boite_englobante.cc
 	rectangle.cc
+
+	boite_englobante.hh
 	rectangle.h
 )
 

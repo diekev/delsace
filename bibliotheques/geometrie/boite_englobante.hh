@@ -26,7 +26,7 @@
 
 #include <delsace/math/vecteur.hh>
 
-class Rayon;
+#include "../outils/constantes.h"
 
 /**
  * La classe BoiteEnglobante représente le volume englobant un objet dans
@@ -34,8 +34,8 @@ class Rayon;
  */
 class BoiteEnglobante {
 public:
-	dls::math::point3d min = dls::math::point3d(INFINITY);
-	dls::math::point3d max = dls::math::point3d(-INFINITY);
+	dls::math::point3d min = dls::math::point3d( constantes<double>::INFINITE);
+	dls::math::point3d max = dls::math::point3d(-constantes<double>::INFINITE);
 
 	/**
 	 * Construit une instance de BoiteEnglobante avec des valeurs par défaut.
@@ -113,8 +113,3 @@ BoiteEnglobante unie(
 BoiteEnglobante unie(
 		BoiteEnglobante const &boite1,
 		BoiteEnglobante const &boite2);
-
-/**
- * Retourne vrai si le rayon a entresecté la boîte spécifiée.
- */
-bool entresecte_boite(BoiteEnglobante const &boite, Rayon const &rayon);
