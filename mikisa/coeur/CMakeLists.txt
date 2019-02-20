@@ -103,6 +103,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_point3d.h
 	operatrices/operatrices_region.h
 	operatrices/operatrices_simulations.hh
+	operatrices/operatrices_vetements.hh
 	operatrices/operatrices_visualisation.hh
 	operatrices/operatrices_volume.hh
 
@@ -157,6 +158,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_point3d.cc
 	operatrices/operatrices_region.cc
 	operatrices/operatrices_simulations.cc
+	operatrices/operatrices_vetements.cc
 	operatrices/operatrices_visualisation.cc
 	operatrices/operatrices_volume.cc
 
