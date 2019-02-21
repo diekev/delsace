@@ -248,7 +248,7 @@ EditriceVue3D::EditriceVue3D(Mikisa &mikisa, QWidget *parent)
 
 void EditriceVue3D::ajourne_etat(int evenement)
 {
-	auto const reconstruit_scene = evenement == (type_evenement::objet | type_evenement::ajoute);
+	auto reconstruit_scene = evenement == (type_evenement::objet | type_evenement::ajoute);
 	auto const camera_modifie = evenement == (type_evenement::camera_3d | type_evenement::modifie);
 
 	auto ajourne = camera_modifie | reconstruit_scene;
@@ -258,6 +258,7 @@ void EditriceVue3D::ajourne_etat(int evenement)
 	ajourne |= evenement == (type_evenement::objet | type_evenement::manipule);
 	ajourne |= evenement == (type_evenement::objet | type_evenement::traite);
 	ajourne |= evenement == (type_evenement::scene | type_evenement::traite);
+	ajourne |= evenement == (type_evenement::temps | type_evenement::modifie);
 	ajourne |= evenement == (type_evenement::rafraichissement);
 
 	if (!ajourne) {

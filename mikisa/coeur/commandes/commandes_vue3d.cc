@@ -353,7 +353,7 @@ public:
 
 		/* Évalue tout le graphe pour ajourner proprement les données dépendants
 		 * de la transformation de l'objet. */
-		mikisa->ajourne_pour_nouveau_temps();
+		mikisa->ajourne_pour_nouveau_temps("fin manipulation déplacement");
 
 		mikisa->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
 	}

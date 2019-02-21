@@ -49,6 +49,8 @@ public Q_SLOTS:
 	void image_traitee();
 	void mis_a_jour_menu_fichier_recent();
 
+	void signale_proces(int quoi);
+
 private:
 	QDockWidget *ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier = nullptr);
 	void genere_barre_menu();

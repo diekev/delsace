@@ -189,7 +189,7 @@ public:
 
 		/* À FAIRE : vérifie l'éligibilité du chemin de sortie. */
 
-		evalue_graphe(*mikisa);
+		evalue_graphe(*mikisa, "commande rendu image");
 
 		ecris_image(mikisa->composite,
 					mikisa->nom_calque_sortie,
@@ -227,7 +227,7 @@ public:
 		for (int i = mikisa->temps_debut; i <= mikisa->temps_fin; ++i) {
 			mikisa->temps_courant = i;
 
-			mikisa->ajourne_pour_nouveau_temps();
+			mikisa->ajourne_pour_nouveau_temps("commande rendu séquence");
 
 			ecris_image(mikisa->composite,
 						mikisa->nom_calque_sortie,
@@ -240,7 +240,7 @@ public:
 
 		mikisa->temps_courant = temps_originale;
 
-		mikisa->ajourne_pour_nouveau_temps();
+		mikisa->ajourne_pour_nouveau_temps("fin commande rendu séquence");
 
 		mikisa->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 

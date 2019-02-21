@@ -208,3 +208,8 @@ void FenetrePrincipale::image_traitee()
 {
 	m_mikisa.notifie_observatrices(type_evenement::image | type_evenement::traite);
 }
+
+void FenetrePrincipale::signale_proces(int quoi)
+{
+	m_mikisa.notifie_observatrices(quoi);
+}

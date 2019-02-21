@@ -47,7 +47,10 @@ public:
 	explicit TaskNotifier(FenetrePrincipale *window);
 
 	void signalImageProcessed();
+	void signalise_proces(int quoi);
 
 Q_SIGNALS:
 	void image_traitee();
+
+	void signal_proces(int quoi);
 };

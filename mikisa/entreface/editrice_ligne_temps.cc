@@ -58,7 +58,6 @@ EditriceLigneTemps::EditriceLigneTemps(Mikisa &mikisa, QWidget *parent)
 	, m_start_frame(new QSpinBox(m_frame))
 	, m_cur_frame(new QSpinBox(m_frame))
 	, m_fps(new QDoubleSpinBox(m_frame))
-	, m_timer(new QTimer(this))
 {
 	m_main_layout->addLayout(m_vbox_layout);
 
@@ -136,8 +135,6 @@ EditriceLigneTemps::EditriceLigneTemps(Mikisa &mikisa, QWidget *parent)
 	connect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
 	connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
 	connect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
-
-	connect(m_timer, SIGNAL(timeout()), this, SLOT(updateFrame()));
 }
 
 void EditriceLigneTemps::ajourne_etat(int evenement)
@@ -148,6 +145,18 @@ void EditriceLigneTemps::ajourne_etat(int evenement)
 	if (!creation) {
 		return;
 	}
+
+	/* déconnexion pour deux raison :
+	 * - on peut se retrouver dans une boucle infinie à cause de setCurrentFrame
+	 *   étant appelé par m_slider qui cause une notification de toutes les
+	 *   observatrices
+	 * - lors des animations, ajourner l'état lance tout un tas de signaux qui
+	 *   dans les slots ci-dessous changent quelle éditrice est active
+	 */
+	disconnect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
+	disconnect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
+	disconnect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
+	disconnect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 
 	m_slider->setMinimum(m_mikisa.temps_debut);
 	m_start_frame->setValue(m_mikisa.temps_debut);
@@ -161,12 +170,10 @@ void EditriceLigneTemps::ajourne_etat(int evenement)
 
 	m_fps->setValue(m_mikisa.cadence);
 
-	if (m_mikisa.animation) {
-		m_timer->start(static_cast<int>(1000.0 / m_fps->value()));
-	}
-	else {
-		m_timer->stop();
-	}
+	connect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
+	connect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
+	connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
+	connect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 }
 
 void EditriceLigneTemps::setStartFrame(int value)
@@ -185,7 +192,7 @@ void EditriceLigneTemps::setCurrentFrame(int value)
 {
 	this->rend_actif();
 	m_mikisa.temps_courant = value;
-	m_mikisa.ajourne_pour_nouveau_temps();
+	m_mikisa.ajourne_pour_nouveau_temps("éditrice temps");
 
 	m_mikisa.notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 }
@@ -194,20 +201,4 @@ void EditriceLigneTemps::setFPS(double value)
 {
 	this->rend_actif();
 	m_mikisa.cadence = value;
-}
-
-void EditriceLigneTemps::updateFrame() const
-{
-	auto value = m_mikisa.temps_courant;
-
-	++value;
-
-	if (value > m_mikisa.temps_fin) {
-		value = m_mikisa.temps_debut;
-	}
-
-	m_mikisa.temps_courant = value;
-	m_mikisa.ajourne_pour_nouveau_temps();
-
-	m_mikisa.notifie_observatrices(type_evenement::temps | type_evenement::modifie);
 }

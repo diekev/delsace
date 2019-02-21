@@ -145,8 +145,6 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 
 int OperatriceObjet::execute(Rectangle const &rectangle, const int temps)
 {
-	m_objet.corps = nullptr;
-
 	/* transformation */
 
 	auto position = dls::math::point3f(evalue_vecteur("position", temps));
@@ -186,7 +184,11 @@ int OperatriceObjet::execute(Rectangle const &rectangle, const int temps)
 	auto const delta = (t1 - t0).seconds();
 	noeud_sortie->temps_execution(static_cast<float>(delta));
 
-	m_objet.corps = operatrice->corps();
+	/* À FAIRE? :- on garde une copie pour l'évaluation dans des threads
+	 * séparés, copie nécessaire pour pouvoir rendre l'objet dans la vue quand
+	 * le rendu prend plus de temps que l'évaluation asynchrone. */
+	m_objet.corps.reinitialise();
+	operatrice->corps()->copie_vers(&m_objet.corps);
 
 	return EXECUTION_REUSSIE;
 }

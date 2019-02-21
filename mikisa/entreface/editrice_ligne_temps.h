@@ -52,10 +52,6 @@ class EditriceLigneTemps : public BaseEditrice {
 	QSpinBox *m_end_frame, *m_start_frame, *m_cur_frame;
 	QDoubleSpinBox *m_fps;
 
-	QTimer *m_timer;
-
-	bool m_timer_has_started = false;
-
 public:
 	explicit EditriceLigneTemps(Mikisa &mikisa, QWidget *parent = nullptr);
 
@@ -71,6 +67,4 @@ private Q_SLOTS:
 	void setCurrentFrame(int value);
 	void setEndFrame(int value);
 	void setFPS(double value);
-
-	void updateFrame() const;
 };

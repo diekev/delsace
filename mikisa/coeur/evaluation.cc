@@ -41,6 +41,17 @@
 #include "operatrice_scene.h"
 #include "tache.h"
 
+#undef LOG_EVALUATION
+
+#ifdef LOG_EVALUATION
+static bool GV_log_evaluation = true;
+#else
+static bool GV_log_evaluation = false;
+#endif
+
+#define DEBUT_LOG_EVALUATION if (GV_log_evaluation) { std::cerr
+#define FIN_LOG_EVALUATION  '\n'; }
+
 /* À FAIRE, évaluation asynchrone :
  * - TBB semblerait avoir du mal avec les tâches trop rapides, il arrive qu'au
  *   bout d'un moment les tâches ne sont plus exécutées, car les threads n'ont
@@ -79,21 +90,21 @@ tbb::task *TacheMikisa::execute()
 
 /* ************************************************************************** */
 
-void evalue_resultat(Mikisa &mikisa)
+void evalue_resultat(Mikisa &mikisa, const char *message)
 {
 	switch (mikisa.contexte) {
 		case GRAPHE_SCENE:
-			evalue_scene(mikisa);
+			evalue_scene(mikisa, message);
 			break;
 		case GRAPHE_SIMULATION:
 		case GRAPHE_MAILLAGE:
 		case GRAPHE_OBJET:
-			evalue_objet(mikisa);
+			evalue_objet(mikisa, message);
 			break;
 		case GRAPHE_PIXEL:
 		case GRAPHE_COMPOSITE:
 		default:
-			evalue_graphe(mikisa);
+			evalue_graphe(mikisa, message);
 			break;
 	}
 }
@@ -158,8 +169,13 @@ void GraphEvalTask::evalue()
 	notifier.signalImageProcessed();
 }
 
-void evalue_graphe(Mikisa &mikisa)
+void evalue_graphe(Mikisa &mikisa, const char *message)
 {
+	DEBUT_LOG_EVALUATION << "Évaluation composite pour '"
+						 << message
+						 << "' ..."
+						 << FIN_LOG_EVALUATION;
+
 #if 0
 	if (mikisa.tache_en_cours) {
 		return;
@@ -206,20 +222,9 @@ static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 
 /* ************************************************************************** */
 
-class TacheEvaluationScene : public TacheMikisa {
-public:
-	explicit TacheEvaluationScene(Mikisa &mikisa);
-
-	void evalue() override;
-};
-
-TacheEvaluationScene::TacheEvaluationScene(Mikisa &mikisa)
-	: TacheMikisa(mikisa)
-{}
-
-void TacheEvaluationScene::evalue()
+static auto evalue_scene_ex(Mikisa const &mikisa)
 {
-	auto noeud = m_mikisa.derniere_scene_selectionnee;
+	auto noeud = mikisa.derniere_scene_selectionnee;
 
 	if (noeud == nullptr) {
 		return;
@@ -234,56 +239,81 @@ void TacheEvaluationScene::evalue()
 	Rectangle rectangle;
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(m_mikisa.project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(m_mikisa.project_settings->largeur);
+	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
 
-	auto scene = operatrice->scene();
-	scene->reinitialise();
+//	auto scene = operatrice->scene();
 
 	auto operatrice_scene = dynamic_cast<OperatriceScene *>(operatrice);
 	auto graphe = operatrice_scene->graphe();
 
 	for (auto &noeud_graphe : graphe->noeuds()) {
-		auto objet = evalue_objet_ex(m_mikisa, noeud_graphe.get());
+		/*auto objet = */evalue_objet_ex(mikisa, noeud_graphe.get());
 
-		if (objet != nullptr) {
-			scene->ajoute_objet(objet);
-		}
+		/* À FAIRE : base de données d'objets. */
+//		if (objet != nullptr) {
+//			scene->ajoute_objet(objet);
+//		}
 	}
-
-	m_mikisa.notifie_observatrices(type_evenement::scene | type_evenement::traite);
 }
 
-void evalue_scene(Mikisa &mikisa)
-{
-	if (mikisa.tache_en_cours) {
-		return;
-	}
-
-	mikisa.tache_en_cours = true;
-
-	auto t = new(tbb::task::allocate_root()) TacheEvaluationScene(mikisa);
-	tbb::task::enqueue(*t);
-}
-
-/* ************************************************************************** */
-
-class TacheEvaluationObjet : public TacheMikisa {
+class TacheEvaluationScene : public TacheMikisa {
 public:
-	explicit TacheEvaluationObjet(Mikisa &mikisa);
+	explicit TacheEvaluationScene(Mikisa &mikisa);
 
 	void evalue() override;
 };
 
-TacheEvaluationObjet::TacheEvaluationObjet(Mikisa &mikisa)
+TacheEvaluationScene::TacheEvaluationScene(Mikisa &mikisa)
 	: TacheMikisa(mikisa)
 {}
 
-void TacheEvaluationObjet::evalue()
+void TacheEvaluationScene::evalue()
+{
+	evalue_scene_ex(m_mikisa);
+	m_mikisa.notifie_observatrices(type_evenement::scene | type_evenement::traite);
+}
+
+void evalue_scene(Mikisa &mikisa, const char *message)
+{
+	if (mikisa.animation) {
+		DEBUT_LOG_EVALUATION << "Évaluation scène synchrone pour '"
+							 << message
+							 << "' ..."
+							 << FIN_LOG_EVALUATION;
+
+		/* Nous sommes dans une animation, donc pas la peine de lancer une tâche
+		 * asynchone. */
+		evalue_scene_ex(mikisa);
+
+		DEBUT_LOG_EVALUATION << "Fin évaluation scène synchrone...." << FIN_LOG_EVALUATION;
+	}
+	else {
+		DEBUT_LOG_EVALUATION << "Évaluation scène asynchrone pour '"
+							 << message
+							 << "' ..."
+							 << FIN_LOG_EVALUATION;
+
+		if (mikisa.tache_en_cours) {
+			DEBUT_LOG_EVALUATION << "--- Tâche en cours.... abandon"
+								 << FIN_LOG_EVALUATION;
+			return;
+		}
+
+		mikisa.tache_en_cours = true;
+
+		auto t = new(tbb::task::allocate_root()) TacheEvaluationScene(mikisa);
+		tbb::task::enqueue(*t);
+	}
+}
+
+/* ************************************************************************** */
+
+static auto evalue_objet_simple_ex(Mikisa &mikisa)
 {
 	/* l'objet courant doit être le noeud actif du graphe de la dernière scène
-		 * sélectionnée */
-	auto noeud = m_mikisa.derniere_scene_selectionnee;
+	 * sélectionnée */
+	auto noeud = mikisa.derniere_scene_selectionnee;
 
 	if (noeud == nullptr) {
 		return;
@@ -302,25 +332,61 @@ void TacheEvaluationObjet::evalue()
 	noeud = graphe->noeud_actif;
 
 	if (noeud == nullptr) {
-		m_mikisa.tache_en_cours = false;
 		return;
 	}
 
-	evalue_objet_ex(m_mikisa, noeud);
+	evalue_objet_ex(mikisa, noeud);
+}
 
+class TacheEvaluationObjet : public TacheMikisa {
+public:
+	explicit TacheEvaluationObjet(Mikisa &mikisa);
+
+	void evalue() override;
+};
+
+TacheEvaluationObjet::TacheEvaluationObjet(Mikisa &mikisa)
+	: TacheMikisa(mikisa)
+{}
+
+void TacheEvaluationObjet::evalue()
+{
+	evalue_objet_simple_ex(m_mikisa);
 	m_mikisa.notifie_observatrices(type_evenement::objet | type_evenement::traite);
 }
 
-void evalue_objet(Mikisa &mikisa)
+void evalue_objet(Mikisa &mikisa, const char *message)
 {
-	if (mikisa.tache_en_cours) {
-		return;
+	if (mikisa.animation) {
+		DEBUT_LOG_EVALUATION << "Évaluation objet synchrone pour '"
+							 << message
+							 << "' ..."
+							 << FIN_LOG_EVALUATION;
+
+		/* Nous sommes dans une animation, donc pas la peine de lancer une tâche
+		 * asynchone. */
+		evalue_objet_simple_ex(mikisa);
+
+		DEBUT_LOG_EVALUATION << "Fin évaluation objet synchrone...."
+							 << FIN_LOG_EVALUATION;
 	}
+	else {
+		DEBUT_LOG_EVALUATION << "Évaluation objet asynchrone pour '"
+							 << message
+							 << "' ..."
+							 << FIN_LOG_EVALUATION;
 
-	mikisa.tache_en_cours = true;
+		if (mikisa.tache_en_cours) {
+			DEBUT_LOG_EVALUATION << "--- Tâche en cours.... abandon"
+								 << FIN_LOG_EVALUATION;
+			return;
+		}
 
-	auto t = new(tbb::task::allocate_root()) TacheEvaluationObjet(mikisa);
-	tbb::task::enqueue(*t);
+		mikisa.tache_en_cours = true;
+
+		auto t = new(tbb::task::allocate_root()) TacheEvaluationObjet(mikisa);
+		tbb::task::enqueue(*t);
+	}
 }
 
 /* ************************************************************************** */

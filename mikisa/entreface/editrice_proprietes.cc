@@ -172,7 +172,7 @@ void EditriceProprietes::ajourne_manipulable()
 
 	/* Marque le noeud courant et ceux en son aval surannées. */
 	marque_surannee(noeud);
-	evalue_resultat(m_mikisa);
+	evalue_resultat(m_mikisa, "réponse modification propriété manipulable");
 }
 
 void EditriceProprietes::obtiens_liste(

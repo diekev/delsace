@@ -55,6 +55,7 @@ set(BIBLIOTHEQUES
 	bib_voro
 	${BIBLIOTHEQUES_OPENSUBDIV}
 	fftw3
+	pthread
 )
 
 qt5_wrap_cpp(

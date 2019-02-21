@@ -468,12 +468,14 @@ struct DonneesConnexions {
 static void lecture_graphe(
 		tinyxml2::XMLElement *element_objet,
 		Mikisa &mikisa,
-		Graphe *graphe);
+		Graphe *graphe,
+		Scene *scene);
 
 static void lecture_noeud(
 		tinyxml2::XMLElement *element_noeud,
 		Mikisa &mikisa,
 		Graphe *graphe,
+		Scene *scene,
 		DonneesConnexions &donnees_connexion)
 {
 	auto const nom_noeud = element_noeud->Attribute("nom");
@@ -489,6 +491,12 @@ static void lecture_noeud(
 	OperatriceImage *operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, noeud);
 	lecture_proprietes(element_operatrice, operatrice);
 	synchronise_donnees_operatrice(noeud);
+
+	/* À FAIRE : meilleure gestion des objets */
+	if (operatrice->type() == OPERATRICE_OBJET) {
+		auto op_objet = dynamic_cast<OperatriceObjet *>(operatrice);
+		scene->ajoute_objet(op_objet->objet());
+	}
 
 	graphe->ajoute(noeud);
 
@@ -533,20 +541,27 @@ static void lecture_noeud(
 	}
 
 	auto graphe_op = graphe_operatrice(operatrice);
-	lecture_graphe(element_graphe, mikisa, graphe_op);
+	auto scene_op = static_cast<Scene *>(nullptr);
+
+	if (operatrice->type() == OPERATRICE_SCENE) {
+		scene_op = operatrice->scene();
+	}
+
+	lecture_graphe(element_graphe, mikisa, graphe_op, scene_op);
 }
 
 void lecture_graphe(
 		tinyxml2::XMLElement *racine_graphe,
 		Mikisa &mikisa,
-		Graphe *graphe)
+		Graphe *graphe,
+		Scene *scene)
 {
 	auto element_noeud = racine_graphe->FirstChildElement("noeud");
 
 	DonneesConnexions donnees_connexions;
 
 	for (; element_noeud != nullptr; element_noeud = element_noeud->NextSiblingElement("noeud")) {
-		lecture_noeud(element_noeud, mikisa, graphe, donnees_connexions);
+		lecture_noeud(element_noeud, mikisa, graphe, scene, donnees_connexions);
 	}
 
 	/* Création des connexions. */
@@ -608,7 +623,7 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 
 	/* Lecture du graphe. */
 	auto racine_graphe = racine_composite->FirstChildElement("graphe");
-	lecture_graphe(racine_graphe, mikisa, &composite->graph());
+	lecture_graphe(racine_graphe, mikisa, &composite->graph(), nullptr);
 
 	mikisa.notifie_observatrices(type_evenement::rafraichissement);
 

@@ -156,16 +156,16 @@ int OperatriceScene::execute(Rectangle const &rectangle, const int temps)
 		for (auto objet : m_scene.objets()) {
 			m_pile.pousse(objet->transformation.matrice());
 
-			if (objet->corps != nullptr) {
-				m_pile.pousse(objet->corps->transformation.matrice());
+	//		if (objet->corps != nullptr) {
+				m_pile.pousse(objet->corps.transformation.matrice());
 				m_contexte.matrice_objet(converti_matrice_glm(m_pile.sommet()));
 
-				RenduCorps rendu_corps(objet->corps);
+				RenduCorps rendu_corps(&objet->corps);
 				rendu_corps.initialise(m_contexte);
 				rendu_corps.dessine(m_contexte);
 
 				m_pile.enleve_sommet();
-			}
+	//		}
 
 			m_pile.enleve_sommet();
 		}

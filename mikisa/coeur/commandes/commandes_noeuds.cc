@@ -187,6 +187,17 @@ public:
 		noeud->pos_x(mikisa->graphe->centre_x);
 		noeud->pos_y(mikisa->graphe->centre_y);
 
+		/* À FAIRE : meilleure gestion des objets */
+		if (op->type() == OPERATRICE_OBJET) {
+			auto op_objet = dynamic_cast<OperatriceObjet *>(op);
+
+			auto noeud_scene = mikisa->derniere_scene_selectionnee;
+			auto op_noeud = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
+			auto op_scene = dynamic_cast<OperatriceScene *>(op_noeud);
+			auto scene = op_scene->scene();
+			scene->ajoute_objet(op_objet->objet());
+		}
+
 		if (op->type() == OPERATRICE_SORTIE_IMAGE) {
 			noeud->type(NOEUD_IMAGE_SORTIE);
 		}
@@ -200,7 +211,7 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
 
 		if (mikisa->contexte == GRAPHE_SCENE) {
-			evalue_resultat(*mikisa);
+			evalue_resultat(*mikisa, "noeud ajouté");
 		}
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -267,7 +278,7 @@ public:
 
 		/* évalue le graphe si un visionneur a été sélectionné */
 		if (besoin_evaluation) {
-			evalue_resultat(*mikisa);
+			evalue_resultat(*mikisa, "noeud sélectionné");
 		}
 
 		return EXECUTION_COMMANDE_MODALE;
@@ -335,7 +346,7 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
-			evalue_resultat(*mikisa);
+			evalue_resultat(*mikisa, "graphe modifié");
 		}
 	}
 };
@@ -393,7 +404,7 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
 		if (besoin_execution || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
-			evalue_resultat(*mikisa);
+			evalue_resultat(*mikisa, "noeud supprimé");
 		}
 
 		return EXECUTION_COMMANDE_REUSSIE;

@@ -25,6 +25,7 @@
 #pragma once
 
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "bibliotheques/observation/observation.hh"
@@ -41,6 +42,7 @@ class Manipulatrice2D;
 class Noeud;
 class ProjectSettings;
 class RepondantCommande;
+class TaskNotifier;
 
 namespace vision {
 class Camera2D;
@@ -155,5 +157,12 @@ public:
 	/* pour les tâches */
 	bool tache_en_cours = false;
 
-	void ajourne_pour_nouveau_temps();
+	/* thread utilisé pour jouer des animations */
+	std::thread *thread_animation{};
+
+	TaskNotifier *notifiant_thread{};
+
+	void ajourne_pour_nouveau_temps(const char *message);
+
+	void copie_objets_pour_rendu();
 };

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@
 #include "evaluation.h"
 #include "manipulatrice.h"
 #include "noeud_image.h"
+#include "tache.h"
 
 #include "commandes/commandes_edition.h"
 #include "commandes/commandes_noeuds.h"
@@ -83,12 +84,14 @@ Mikisa::Mikisa()
 	, graphe(&composite->graph())
 	, type_manipulation_3d(MANIPULATION_POSITION)
 	, chemin_courant("/composite/")
+	, notifiant_thread(nullptr)
 {
 	camera_3d->projection(vision::TypeProjection::PERSPECTIVE);
 }
 
 Mikisa::~Mikisa()
 {
+	delete notifiant_thread;
 	delete camera_2d;
 	delete camera_3d;
 	delete composite;
@@ -201,7 +204,20 @@ RepondantCommande *Mikisa::repondant_commande() const
 	return m_repondant_commande;
 }
 
-void Mikisa::ajourne_pour_nouveau_temps()
+void Mikisa::ajourne_pour_nouveau_temps(const char *message)
 {
-	evalue_resultat(*this);
+	evalue_resultat(*this, message);
+}
+
+#include "scene.h"
+
+void Mikisa::copie_objets_pour_rendu()
+{
+//	auto noeud = this->derniere_scene_selectionnee;
+
+//	if (noeud != nullptr) {
+//		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+//	//	auto scene = operatrice->scene();
+//		//scene->copie_objet();
+//	}
 }

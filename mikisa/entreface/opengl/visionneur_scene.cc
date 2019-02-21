@@ -162,16 +162,16 @@ void VisionneurScene::peint_opengl()
 		for (auto objet : scene->objets()) {
 			m_stack.pousse(objet->transformation.matrice());
 
-			if (objet->corps != nullptr) {
-				m_stack.pousse(objet->corps->transformation.matrice());
+	//		if (objet->corps != nullptr) {
+				m_stack.pousse(objet->corps.transformation.matrice());
 				m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
-				RenduCorps rendu_corps(objet->corps);
+				RenduCorps rendu_corps(&objet->corps);
 				rendu_corps.initialise(m_contexte);
 				rendu_corps.dessine(m_contexte);
 
 				m_stack.enleve_sommet();
-			}
+		//	}
 
 			m_stack.enleve_sommet();
 		}

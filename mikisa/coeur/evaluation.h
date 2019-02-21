@@ -26,10 +26,10 @@
 
 class Mikisa;
 
-void evalue_resultat(Mikisa &mikisa);
+void evalue_resultat(Mikisa &mikisa, const char *message);
 
-void evalue_graphe(Mikisa &mikisa);
+void evalue_graphe(Mikisa &mikisa, const char *message);
 
-void evalue_objet(Mikisa &mikisa);
+void evalue_objet(Mikisa &mikisa, const char *message);
 
-void evalue_scene(Mikisa &mikisa);
+void evalue_scene(Mikisa &mikisa, const char *message);

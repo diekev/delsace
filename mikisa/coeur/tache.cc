@@ -33,9 +33,15 @@ TaskNotifier::TaskNotifier(FenetrePrincipale *window)
 	}
 
 	connect(this, SIGNAL(image_traitee()), window, SLOT(image_traitee()));
+	connect(this, SIGNAL(signal_proces(int)), window, SLOT(signale_proces(int)));
 }
 
 void TaskNotifier::signalImageProcessed()
 {
 	Q_EMIT(image_traitee());
+}
+
+void TaskNotifier::signalise_proces(int quoi)
+{
+	Q_EMIT(signal_proces(quoi));
 }

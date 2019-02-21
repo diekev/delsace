@@ -26,7 +26,7 @@
 
 #include "bibliotheques/transformation/transformation.h"
 
-class Corps;
+#include "corps/corps.h"
 
 struct Objet {
 	/* transformation */
@@ -40,7 +40,7 @@ struct Objet {
 	/* autres propriétés */
 	std::string nom = "objet";
 
-	Corps *corps{};
+	Corps corps{};
 
 	Objet() = default;
 

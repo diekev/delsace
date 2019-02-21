@@ -24,9 +24,6 @@
 
 #include "commandes_temps.h"
 
-#include <unistd.h>
-#include <chrono>
-
 #include "bibliotheques/commandes/commande.h"
 
 #include "../composite.h"
@@ -39,6 +36,9 @@
 
 /* ************************************************************************** */
 
+#include <unistd.h>
+#include <chrono>
+
 static auto compte_tick_ms()
 {
 	auto const maintenant = std::chrono::system_clock::now();
@@ -48,19 +48,36 @@ static auto compte_tick_ms()
 
 static void anime_image(Mikisa *m_mikisa)
 {
+#if 0
+	auto value = m_mikisa->temps_courant;
+
+	++value;
+
+	if (value > m_mikisa->temps_fin) {
+		value = m_mikisa->temps_debut;
+	}
+
+	std::cerr << "Animation updateFrame : " << value << '\n';
+	m_mikisa->temps_courant = value;
+
+	m_mikisa->ajourne_pour_nouveau_temps();
+
+//	m_mikisa->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
+#else
 	auto const IMAGE_PAR_SECONDES = m_mikisa->cadence;
 	auto const TICKS_PAR_IMAGE = static_cast<int>(1000.0 / IMAGE_PAR_SECONDES);
 
 	auto ticks_courant = compte_tick_ms();
 
 	while (m_mikisa->animation) {
-		m_mikisa->ajourne_pour_nouveau_temps("thread animation");
-		m_mikisa->copie_objets_pour_rendu();
+		std::cerr << "Animation image " << m_mikisa->temps_courant << '\n';
+		m_mikisa->ajourne_pour_nouveau_temps();
 
 		ticks_courant += TICKS_PAR_IMAGE;
 		auto temps_sommeil = (ticks_courant - compte_tick_ms());
 
 		if (temps_sommeil > 0) {
+			std::cerr << "Sommeil... " << temps_sommeil * 1000 << '\n';
 			usleep(static_cast<unsigned>(temps_sommeil * 1000));
 		}
 
@@ -77,6 +94,8 @@ static void anime_image(Mikisa *m_mikisa)
 
 		m_mikisa->temps_courant = value;
 	}
+	std::cerr << "Animation fût brisée...\n";
+#endif
 }
 
 class CommandeChangementTemps final : public Commande {
@@ -88,7 +107,7 @@ public:
 		if (donnees.metadonnee == "va_image_debut") {
 			mikisa->temps_courant = mikisa->temps_debut;
 
-			mikisa->ajourne_pour_nouveau_temps("controle image début");
+			mikisa->ajourne_pour_nouveau_temps();
 		}
 		else if (donnees.metadonnee == "joue_en_arriere") {
 			//poseidon->animation = true;
@@ -101,7 +120,7 @@ public:
 				mikisa->temps_courant = mikisa->temps_fin;
 			}
 
-			mikisa->ajourne_pour_nouveau_temps("controle pas en arrière");
+			mikisa->ajourne_pour_nouveau_temps();
 		}
 		else if (donnees.metadonnee == "arrete_animation") {
 			/* Évite d'envoyer des évènements inutiles. */
@@ -121,7 +140,7 @@ public:
 				mikisa->temps_courant = mikisa->temps_debut;
 			}
 
-			mikisa->ajourne_pour_nouveau_temps("controle pas en avant");
+			mikisa->ajourne_pour_nouveau_temps();
 		}
 		else if (donnees.metadonnee == "joue_en_avant") {
 			/* Évite d'envoyer des évènements inutiles. */
@@ -140,7 +159,7 @@ public:
 		else if (donnees.metadonnee == "va_image_fin") {
 			mikisa->temps_courant = mikisa->temps_fin;
 
-			mikisa->ajourne_pour_nouveau_temps("controle va image fin");
+			mikisa->ajourne_pour_nouveau_temps();
 		}
 
 		mikisa->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
