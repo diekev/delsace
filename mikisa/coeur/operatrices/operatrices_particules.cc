@@ -121,8 +121,23 @@ public:
 
 		m_corps.points()->reserve(points_corps->taille() - groupe->taille());
 
+		/* Utilisation d'un tableau pour définir plus rapidement si un point est
+		 * à garder ou non. Ceci donne une accélération de 10x avec des
+		 * centaines de miliers de points à traverser. Peut-être pourrions nous
+		 * également trier les groupes et utiliser une recherche binaire pour
+		 * chercher plus rapidement les points, mais si dans le futur nous
+		 * supporterons également la suppression des primitives, alors les
+		 * points des primitives ne seront pas dans un groupe, et il faudra une
+		 * structure de données séparée pour étiquetter les points à retirer.
+		 * D'où l'utilisation d'un vecteur booléen. */
+		std::vector<bool> dans_le_groupe(static_cast<size_t>(points_corps->taille()), false);
+
+		for (auto i = 0; i < groupe->taille(); ++i) {
+			dans_le_groupe[groupe->index(i)] = true;
+		}
+
 		for (auto i = 0l; i < points_corps->taille(); ++i) {
-			if (groupe->contiens(static_cast<size_t>(i))) {
+			if (dans_le_groupe[static_cast<size_t>(i)]) {
 				continue;
 			}
 
