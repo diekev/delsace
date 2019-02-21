@@ -106,6 +106,11 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		if (groupe->taille() == 0) {
+			corps->copie_vers(&m_corps);
+			return EXECUTION_REUSSIE;
+		}
+
 		std::vector<std::pair<Attribut *, Attribut *>> paires_attrs;
 		paires_attrs.reserve(corps->attributs().size());
 
