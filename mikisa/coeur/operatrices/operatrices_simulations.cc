@@ -33,6 +33,8 @@
 #include "../operatrice_simulation.hh"
 #include "../usine_operatrice.h"
 
+#include "ocean.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
@@ -961,8 +963,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-#include "ocean.hh"
 
 class OperatriceSimulationOcean : public OperatriceCorps {
 public:
