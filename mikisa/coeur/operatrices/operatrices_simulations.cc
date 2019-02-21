@@ -138,9 +138,14 @@ public:
 		auto gravite = evalue_vecteur("gravité", temps);
 
 		/* À FAIRE : f = m * a => multiplier par la masse? */
-		for (long i = 0; i < nombre_points; ++i) {
-			attrf->vec3(i, gravite);
-		}
+		boucle_parallele(
+					tbb::blocked_range<long>(0, nombre_points),
+					[&](tbb::blocked_range<long> const &plage)
+		{
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				attrf->vec3(i, gravite);
+			}
+		});
 
 		return EXECUTION_REUSSIE;
 	}
@@ -204,15 +209,20 @@ public:
 		 *   exemple en utilisant un attribut extra.
 		 * - turbulence
 		 */
-		for (long i = 0; i < nombre_points; ++i) {
-			auto force = attrf->vec3(i);
+		boucle_parallele(
+					tbb::blocked_range<long>(0, nombre_points),
+					[&](tbb::blocked_range<long> const &plage)
+		{
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				auto force = attrf->vec3(i);
 
-			for (size_t j = 0; j < 3; ++j) {
-				force[j] = std::min(force_max[j], force[j] + force_max[j]);
+				for (size_t j = 0; j < 3; ++j) {
+					force[j] = std::min(force_max[j], force[j] + force_max[j]);
+				}
+
+				attrf->vec3(i, force);
 			}
-
-			attrf->vec3(i, force);
-		}
+		});
 
 		return EXECUTION_REUSSIE;
 	}
@@ -288,29 +298,36 @@ public:
 												  type_attribut::ENT8,
 												  portee_attr::POINT);
 
-		for (long i = 0; i < nombre_points; ++i) {
-			auto desactivee = attr_desactiv->ent8(i);
+		liste_points->detache();
 
-			if (desactivee == 1) {
-				continue;
+		boucle_parallele(
+					tbb::blocked_range<long>(0, nombre_points),
+					[&](tbb::blocked_range<long> const &plage)
+		{
+			for (long i = plage.begin(); i < plage.end(); ++i) {
+				auto desactivee = attr_desactiv->ent8(i);
+
+				if (desactivee == 1) {
+					continue;
+				}
+
+				auto pos = liste_points->point(i);
+
+				/* a = f / m */
+				auto const acceleration = attrf->vec3(i) * masse_inverse;
+
+				/* velocite = acceleration * temp_par_image + velocite */
+				auto velocite = attr_V->vec3(i) + acceleration * temps_par_image;
+
+				/* position = velocite * temps_par_image + position */
+				auto npos = pos + velocite * temps_par_image;
+
+				liste_points->point(i, npos);
+				attr_V->vec3(i, velocite);
+				attr_P->vec3(i, pos);
+				attrf->vec3(i, dls::math::vec3f(0.0f));
 			}
-
-			auto pos = liste_points->point(i);
-
-			/* a = f / m */
-			auto const acceleration = attrf->vec3(i) * masse_inverse;
-
-			/* velocite = acceleration * temp_par_image + velocite */
-			auto velocite = attr_V->vec3(i) + acceleration * temps_par_image;
-
-			/* position = velocite * temps_par_image + position */
-			auto npos = pos + velocite * temps_par_image;
-
-			liste_points->point(i, npos);
-			attr_V->vec3(i, velocite);
-			attr_P->vec3(i, pos);
-			attrf->vec3(i, dls::math::vec3f(0.0f));
-		}
+		});
 
 		return EXECUTION_REUSSIE;
 	}

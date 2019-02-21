@@ -147,7 +147,7 @@ public:
 
 	void point(long i, dls::math::vec3f const &p);
 
-private:
+	/* public pour pouvoir détacher avant de modifier dans des threads */
 	void detache();
 };
 
@@ -175,6 +175,6 @@ public:
 
 	void prim(long i, Primitive *p);
 
-private:
+	/* public pour pouvoir détacher avant de modifier dans des threads */
 	void detache();
 };
