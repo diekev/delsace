@@ -186,16 +186,6 @@ public:
 		return OPERATRICE_SORTIE_CORPS;
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "";
-	}
-
 	const char *nom_classe() const override
 	{
 		return NOM;
@@ -255,11 +245,6 @@ public:
 	{
 		entrees(0);
 		sorties(1);
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *nom_classe() const override
@@ -995,7 +980,6 @@ public:
 /* ************************************************************************** */
 
 class OperatriceLectureObjet final : public OperatriceCorps {
-	vision::Camera3D *m_camera = nullptr;
 	ManipulatricePosition3D m_manipulatrice_position{};
 	ManipulatriceEchelle3D m_manipulatrice_echelle{};
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
@@ -1011,28 +995,8 @@ public:
 	explicit OperatriceLectureObjet(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		entrees(1);
+		entrees(0);
 		sorties(1);
-	}
-
-	OperatriceLectureObjet(OperatriceLectureObjet const &) = default;
-	OperatriceLectureObjet &operator=(OperatriceLectureObjet const &) = default;
-
-	int type_entree(int n) const override
-	{
-		INUTILISE(n);
-		return OPERATRICE_IMAGE;
-	}
-
-	const char *nom_entree(int n) override
-	{
-		INUTILISE(n);
-		return "image";
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *chemin_entreface() const override
@@ -1150,14 +1114,6 @@ public:
 		m_manipulatrice_rotation.pos(position);
 		m_manipulatrice_echelle.pos(position);
 
-//		if (input(0)->connectee() == false) {
-//			ajoute_avertissement("Aucune texture connectée");
-//		}
-
-//		auto texture = input(0)->requiers_texture(rectangle, temps);
-
-//		maillage->texture(texture);
-
 		return EXECUTION_REUSSIE;
 	}
 };
@@ -1174,16 +1130,6 @@ public:
 	{
 		entrees(1);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *chemin_entreface() const override
@@ -1286,16 +1232,6 @@ public:
 	{
 		entrees(1);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *chemin_entreface() const override
@@ -1536,16 +1472,6 @@ public:
 		sorties(1);
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_3d_creation_attribut.jo";
@@ -1655,16 +1581,6 @@ public:
 		sorties(1);
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_3d_suppression_attribut.jo";
@@ -1749,16 +1665,6 @@ public:
 	{
 		entrees(1);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *chemin_entreface() const override
@@ -2055,16 +1961,6 @@ public:
 		sorties(1);
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_attr_couleur.jo";
@@ -2213,21 +2109,6 @@ public:
 	{
 		entrees(2);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "";
 	}
 
 	const char *nom_classe() const override
@@ -2561,16 +2442,6 @@ public:
 		sorties(1);
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_transformation.jo";
@@ -2682,16 +2553,6 @@ public:
 	{
 		entrees(1);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *chemin_entreface() const override
@@ -2851,16 +2712,6 @@ public:
 	{
 		entrees(2);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *chemin_entreface() const override
@@ -3116,16 +2967,6 @@ public:
 		sorties(1);
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_courbure_maillage.jo";
@@ -3193,16 +3034,6 @@ public:
 	{
 		entrees(1);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *chemin_entreface() const override

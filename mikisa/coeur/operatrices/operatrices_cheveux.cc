@@ -122,16 +122,6 @@ public:
 		sorties(1);
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_3d_creation_courbes.jo";
@@ -405,21 +395,6 @@ public:
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "";
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *nom_classe() const override

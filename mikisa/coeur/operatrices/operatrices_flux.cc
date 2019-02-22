@@ -413,16 +413,6 @@ public:
 		return AIDE;
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	int execute(Rectangle const &rectangle, const int temps) override
 	{
 		m_corps.reinitialise();
@@ -482,11 +472,6 @@ public:
 	const char *texte_aide() const override
 	{
 		return AIDE;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	int execute(const Rectangle &rectangle, const int temps) override

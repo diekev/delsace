@@ -34,6 +34,16 @@ int OperatriceCorps::type() const
 	return OPERATRICE_CORPS;
 }
 
+int OperatriceCorps::type_entree(int) const
+{
+	return OPERATRICE_CORPS;
+}
+
+int OperatriceCorps::type_sortie(int) const
+{
+	return OPERATRICE_CORPS;
+}
+
 Corps *OperatriceCorps::corps()
 {
 	return &m_corps;
