@@ -73,12 +73,12 @@ enum class portee_attr : char {
 #define DEFINI_ACESSEURS_POSITION(__nom, __type) \
 	__type __nom(long const i) \
 	{ \
-		assert(i >= 0); \
+		assert(i >= 0 && static_cast<size_t>(i) < (m_donnees.liste_##__nom)->size()); \
 		return (*m_donnees.liste_##__nom)[static_cast<size_t>(i)]; \
 	} \
 	void __nom(long const i, __type const &v) \
 	{ \
-		assert(i >= 0); \
+		assert(i >= 0 && static_cast<size_t>(i) < (m_donnees.liste_##__nom)->size()); \
 		(*m_donnees.liste_##__nom)[static_cast<size_t>(i)] = v; \
 	}
 

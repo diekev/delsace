@@ -34,6 +34,12 @@ void GroupePoint::ajoute_point(size_t index_point)
 	this->m_points->push_back(index_point);
 }
 
+void GroupePoint::remplace_index(size_t i, size_t j)
+{
+	detache();
+	(*this->m_points)[i] = j;
+}
+
 void GroupePoint::reserve(long const nombre)
 {
 	assert(nombre >= 0);
@@ -94,6 +100,11 @@ void GroupePrimitive::ajoute_primitive(size_t index_poly)
 {
 	detache();
 	this->m_primitives->push_back(index_poly);
+}
+
+void GroupePrimitive::remplace_index(size_t i, size_t j)
+{
+	(*this->m_primitives)[i] = j;
 }
 
 void GroupePrimitive::reserve(long const nombre)

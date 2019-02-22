@@ -2588,22 +2588,19 @@ public:
 
 		auto depart = 0l;
 		auto decalage = 1l;
-		auto mult = 1.0f;
+		auto mult = probabilite;
 
 		if (chaine_methode == "tout") {
 			depart = 0l;
 			decalage = 1l;
-			mult *= probabilite;
 		}
 		else if (chaine_methode == "pair") {
 			depart = 0l;
 			decalage = 2l;
-			mult *= probabilite * 0.5f;
 		}
 		else if (chaine_methode == "impair") {
 			depart = 1l;
 			decalage = 2l;
-			mult *= probabilite * 0.5f;
 		}
 		else {
 			std::stringstream ss;
@@ -2614,6 +2611,30 @@ public:
 
 		std::mt19937 rng(graine);
 		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+		auto const echantillonage_reservoir = false; // À FAIRE : CRASH
+		auto n = 0l;
+
+		/* création de tous les index possibles */
+		if (contenu == "points") {
+			n = m_corps.points()->taille();
+		}
+		else if (contenu == "primitives") {
+			n = m_corps.prims()->taille();
+		}
+		else {
+			std::stringstream ss;
+			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
+			ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		std::vector<size_t> index_possibles;
+		index_possibles.reserve(static_cast<size_t>(n));
+
+		for (auto i = depart; i < n; i += decalage) {
+			index_possibles.push_back(static_cast<size_t>(i));
+		}
 
 		if (contenu == "points") {
 			auto groupe = m_corps.groupe_point(nom_groupe);
@@ -2626,14 +2647,34 @@ public:
 			}
 
 			groupe = m_corps.ajoute_groupe_point(nom_groupe);
-			groupe->reserve(static_cast<long>(static_cast<float>(m_corps.points()->taille()) * mult));
 
-			for (auto i = depart; i < m_corps.points()->taille(); i += decalage) {
-				if (dist(rng) > probabilite) {
-					continue;
+			auto const k = static_cast<long>(static_cast<float>(n) * mult);
+			groupe->reserve(k);
+
+			if (echantillonage_reservoir) {
+				// Rempli le réservoir
+				for (auto i = 0; i < k; ++i) {
+					groupe->ajoute_point(index_possibles[static_cast<size_t>(i)]);
 				}
 
-				groupe->ajoute_point(static_cast<size_t>(i));
+				// Remplace les éléments avec une probabilité descendante
+				for (auto i = k; i < n; ++i) {
+					auto distj = std::uniform_int_distribution<long> (0, i);
+					auto j = distj(rng);
+
+					if (j < k) {
+						groupe->remplace_index(static_cast<size_t>(j), index_possibles[static_cast<size_t>(i)]);
+					}
+				}
+			}
+			else {
+				for (auto i = depart; i < n; i += decalage) {
+					if (dist(rng) > probabilite) {
+						continue;
+					}
+
+					groupe->ajoute_point(static_cast<size_t>(i));
+				}
 			}
 		}
 		else if (contenu == "primitives") {
@@ -2647,14 +2688,34 @@ public:
 			}
 
 			groupe = m_corps.ajoute_groupe_primitive(nom_groupe);
-			groupe->reserve(static_cast<long>(static_cast<float>(m_corps.prims()->taille()) * mult));
 
-			for (auto i = depart; i < m_corps.prims()->taille(); i += decalage) {
-				if (dist(rng) > probabilite) {
-					continue;
+			auto const k = static_cast<long>(static_cast<float>(n) * mult);
+			groupe->reserve(k);
+
+			if (echantillonage_reservoir) {
+				// Rempli le réservoir
+				for (auto i = 0; i < k; ++i) {
+					groupe->ajoute_primitive(index_possibles[static_cast<size_t>(i)]);
 				}
 
-				groupe->ajoute_primitive(static_cast<size_t>(i));
+				// Remplace les éléments avec une probabilité descendante
+				for (auto i = k; i < n; ++i) {
+					auto distj = std::uniform_int_distribution<long> (0, i);
+					auto j = distj(rng);
+
+					if (j < k) {
+						groupe->remplace_index(static_cast<size_t>(j), index_possibles[static_cast<size_t>(i)]);
+					}
+				}
+			}
+			else {
+				for (auto i = depart; i < n; i += decalage) {
+					if (dist(rng) > probabilite) {
+						continue;
+					}
+
+					groupe->ajoute_primitive(static_cast<size_t>(i));
+				}
 			}
 		}
 		else {

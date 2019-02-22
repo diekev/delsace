@@ -53,6 +53,8 @@ public:
 
 	size_t index(long i) const;
 
+	void remplace_index(size_t i, size_t j);
+
 private:
 	void detache();
 };
@@ -69,6 +71,8 @@ public:
 	std::string nom{};
 
 	void ajoute_primitive(size_t index_poly);
+
+	void remplace_index(size_t i, size_t j);
 
 	void reserve(long const nombre);
 
