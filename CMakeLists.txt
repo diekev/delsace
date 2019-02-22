@@ -146,6 +146,7 @@ find_package(PTex REQUIRED)
 find_package(TestUnitaire REQUIRED)
 
 if(AVEC_MIKISA)
+	find_package(Bullet)
 	find_package(OpenColorIO)
 	find_package(OpenEXR)
 	find_package(OpenSubDiv)

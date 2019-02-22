@@ -34,6 +34,7 @@ set(INCLUSIONS
 	${INCLUSIONS_OPENEXR}
 	${INCLUSIONS_OPENSUBDIV}
 	${INCLUSIONS_DELSACE_MATH}
+	${INCLUSIONS_BULLET}
 )
 
 set(BIBLIOTHEQUES
@@ -56,6 +57,7 @@ set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_OPENSUBDIV}
 	fftw3
 	pthread
+	${BIBLIOTHEQUES_BULLET}
 )
 
 qt5_wrap_cpp(
@@ -97,6 +99,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/courbure.hh
 	operatrices/ocean.hh
 	operatrices/operatrices_3d.h
+	operatrices/operatrices_bullet.hh
 	operatrices/operatrices_cheveux.h
 	operatrices/operatrices_flux.h
 	operatrices/operatrices_particules.h
@@ -152,6 +155,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/courbure.cc
 	operatrices/ocean.cc
 	operatrices/operatrices_3d.cc
+	operatrices/operatrices_bullet.cc
 	operatrices/operatrices_cheveux.cc
 	operatrices/operatrices_flux.cc
 	operatrices/operatrices_particules.cc
