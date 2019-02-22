@@ -57,9 +57,15 @@
 #include "commandes/commandes_vue3d.h"
 
 #include "operatrices/operatrices_3d.h"
+#include "operatrices/operatrices_attributs.hh"
 #include "operatrices/operatrices_bullet.hh"
 #include "operatrices/operatrices_cheveux.h"
+#include "operatrices/operatrices_corps.hh"
 #include "operatrices/operatrices_flux.h"
+#include "operatrices/operatrices_fracture.hh"
+#include "operatrices/operatrices_groupes.hh"
+#include "operatrices/operatrices_maillage.hh"
+#include "operatrices/operatrices_opensubdiv.hh"
 #include "operatrices/operatrices_particules.h"
 #include "operatrices/operatrices_pixel.h"
 #include "operatrices/operatrices_point3d.h"
@@ -104,9 +110,15 @@ Mikisa::~Mikisa()
 void Mikisa::initialise()
 {
 	enregistre_operatrices_3d(m_usine_operatrices);
+	enregistre_operatrices_attributs(m_usine_operatrices);
 	enregistre_operatrices_bullet(m_usine_operatrices);
 	enregistre_operatrices_cheveux(m_usine_operatrices);
+	enregistre_operatrices_corps(m_usine_operatrices);
 	enregistre_operatrices_flux(m_usine_operatrices);
+	enregistre_operatrices_fracture(m_usine_operatrices);
+	enregistre_operatrices_groupes(m_usine_operatrices);
+	enregistre_operatrices_maillage(m_usine_operatrices);
+	enregistre_operatrices_opensubdiv(m_usine_operatrices);
 	enregistre_operatrices_particules(m_usine_operatrices);
 	enregistre_operatrices_pixel(m_usine_operatrices);
 	enregistre_operatrices_point3d(m_usine_operatrices);

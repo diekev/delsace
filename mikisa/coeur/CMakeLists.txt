@@ -99,11 +99,18 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/arbre_bvh.hh
 	operatrices/arbre_octernaire.hh
 	operatrices/courbure.hh
+	operatrices/normaux.hh
 	operatrices/ocean.hh
 	operatrices/operatrices_3d.h
+	operatrices/operatrices_attributs.hh
 	operatrices/operatrices_bullet.hh
 	operatrices/operatrices_cheveux.h
+	operatrices/operatrices_corps.hh
 	operatrices/operatrices_flux.h
+	operatrices/operatrices_fracture.hh
+	operatrices/operatrices_groupes.hh
+	operatrices/operatrices_maillage.hh
+	operatrices/operatrices_opensubdiv.hh
 	operatrices/operatrices_particules.h
 	operatrices/operatrices_pixel.h
 	operatrices/operatrices_point3d.h
@@ -157,10 +164,17 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/arbre_octernaire.cc
 	operatrices/courbure.cc
 	operatrices/ocean.cc
+	operatrices/normaux.cc
 	operatrices/operatrices_3d.cc
+	operatrices/operatrices_attributs.cc
 	operatrices/operatrices_bullet.cc
 	operatrices/operatrices_cheveux.cc
+	operatrices/operatrices_corps.cc
 	operatrices/operatrices_flux.cc
+	operatrices/operatrices_fracture.cc
+	operatrices/operatrices_groupes.cc
+	operatrices/operatrices_maillage.cc
+	operatrices/operatrices_opensubdiv.cc
 	operatrices/operatrices_particules.cc
 	operatrices/operatrices_pixel.cc
 	operatrices/operatrices_point3d.cc

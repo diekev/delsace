@@ -30,6 +30,7 @@
 #include <stack>
 
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/structures/arbre_kd.hh"
 
 #include "../corps/corps.h"
 #include "../corps/groupes.h"
@@ -1138,12 +1139,119 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceEnleveDoublons : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Enlève Doublons";
+	static constexpr auto AIDE = "";
+
+	OperatriceEnleveDoublons(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, int temps) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+
+		auto dist = 0.001f;
+#if 0
+		auto arbre = ArbreKD(m_corps.points()->taille());
+		std::vector<int> doublons(static_cast<size_t>(m_corps.points()->taille()));
+
+		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
+			arbre.insert(i, m_corps.points()->point(i));
+			/* À FAIRE : liste de points à garder : doublons[i] = i. */
+			doublons[static_cast<size_t>(i)] = -1;
+		}
+
+		arbre.balance();
+
+		auto doublons_trouves = arbre.calc_doublons_rapide(dist, false, doublons);
+
+		if (doublons_trouves != 0) {
+			for (auto i = 0; i < m_corps.points()->taille(); ++i) {
+				if (doublons[static_cast<size_t>(i)] == -1) {
+					continue;
+				}
+
+				if (doublons[static_cast<size_t>(i)] == i) {
+					continue;
+				}
+
+				/* remplace dans les groupes, les prims, et les attrib : i -> doublons[i] */
+			}
+		}
+#else
+		std::vector<int> doublons(static_cast<size_t>(m_corps.points()->taille()));
+		auto doublons_trouves = 0;
+
+		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
+			doublons[static_cast<size_t>(i)] = -1;
+		}
+
+		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
+			auto const &p1 = m_corps.points()->point(i);
+
+			for (auto j = i + 1; j < m_corps.points()->taille(); ++j) {
+				auto const &p2 = m_corps.points()->point(j);
+
+				auto v = p1 - p2;
+				auto d = produit_scalaire(v, v);
+
+				if (d <= dist && doublons[static_cast<size_t>(j)] == -1) {
+					++doublons_trouves;
+					doublons[static_cast<size_t>(j)] = i;
+				}
+			}
+		}
+#endif
+
+		if (doublons_trouves != 0) {
+			for (auto i = 0; i < m_corps.prims()->taille(); ++i) {
+				auto prim = m_corps.prims()->prim(i);
+
+				if (prim->type_prim() == type_primitive::POLYGONE) {
+					auto poly = dynamic_cast<Polygone *>(prim);
+
+					for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+						auto index = static_cast<size_t>(poly->index_point(j));
+
+						if (doublons[index] != -1) {
+							poly->ajourne_index(j, doublons[index]);
+						}
+					}
+
+				}
+			}
+		}
+		std::cerr << "Il y a " << m_corps.points()->taille() << " points.\n";
+		std::cerr << "Il y a " << doublons_trouves << " doublons.\n";
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
 	usine.enregistre_type(cree_desc<OperatriceSuppressionPoints>());
 	usine.enregistre_type(cree_desc<OperatriceTirageFleche>());
 	usine.enregistre_type(cree_desc<OperatriceMaillageAlpha>());
+	usine.enregistre_type(cree_desc<OperatriceEnleveDoublons>());
 }
 
 #pragma clang diagnostic pop
