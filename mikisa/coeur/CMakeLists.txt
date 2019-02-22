@@ -95,6 +95,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/triangulation.hh
 	corps/volume.hh
 
+	operatrices/arbre_bvh.hh
 	operatrices/arbre_octernaire.hh
 	operatrices/courbure.hh
 	operatrices/ocean.hh
@@ -151,6 +152,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/triangulation.cc
 	corps/volume.cc
 
+	operatrices/arbre_bvh.cc
 	operatrices/arbre_octernaire.cc
 	operatrices/courbure.cc
 	operatrices/ocean.cc
