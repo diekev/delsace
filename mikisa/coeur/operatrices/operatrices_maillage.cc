@@ -30,6 +30,7 @@
 #include "../usine_operatrice.h"
 
 #include "courbure.hh"
+#include "normaux.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -238,11 +239,105 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceTriangulation : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Triangulation";
+	static constexpr auto AIDE = "Performe une triangulation des polygones du corps d'entrée.";
+
+	OperatriceTriangulation(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(Rectangle const &rectangle, int temps) override
+	{
+		m_corps.reinitialise();
+		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("Aucun corps trouvé en entrée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto prims = corps_entree->prims();
+
+		if (prims->taille() == 0) {
+			this->ajoute_avertissement("Aucune primitves en entrée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* copie les points, À FAIRE : partage */
+		auto points_entree = corps_entree->points();
+		m_corps.points()->reserve(points_entree->taille());
+		m_corps.transformation = corps_entree->transformation;
+
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			auto point = points_entree->point(i);
+			m_corps.ajoute_point(point.x, point.y, point.z);
+		}
+
+		/* À FAIRE : attributs, groupes */
+
+		for (auto i = 0; i < prims->taille(); ++i) {
+			auto prim = prims->prim(i);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				/* À FAIRE : copie primitive */
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
+			if (poly->type == type_polygone::OUVERT) {
+				auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+
+				for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+					npoly->ajoute_sommet(poly->index_point(j));
+				}
+			}
+			else {
+				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
+					auto npoly = Polygone::construit(&m_corps, poly->type, 3);
+					npoly->ajoute_sommet(poly->index_point(0));
+					npoly->ajoute_sommet(poly->index_point(j - 1));
+					npoly->ajoute_sommet(poly->index_point(j));
+				}
+			}
+		}
+
+		/* À FAIRE : recrée les normaux au bon endroit */
+		if (corps_entree->attribut("N") != nullptr) {
+			calcul_normaux(m_corps, true, false);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_maillage(UsineOperatrice &usine)
 {
-
 	usine.enregistre_type(cree_desc<OperatriceCourbureMaillage>());
 	usine.enregistre_type(cree_desc<OperatriceLissageLaplacien>());
+	usine.enregistre_type(cree_desc<OperatriceTriangulation>());
 }
 
 #pragma clang diagnostic pop
