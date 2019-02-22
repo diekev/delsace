@@ -187,8 +187,10 @@ int OperatriceObjet::execute(Rectangle const &rectangle, const int temps)
 	/* À FAIRE? :- on garde une copie pour l'évaluation dans des threads
 	 * séparés, copie nécessaire pour pouvoir rendre l'objet dans la vue quand
 	 * le rendu prend plus de temps que l'évaluation asynchrone. */
+	m_objet.mutex_corps.lock();
 	m_objet.corps.reinitialise();
 	operatrice->corps()->copie_vers(&m_objet.corps);
+	m_objet.mutex_corps.unlock();
 
 	return EXECUTION_REUSSIE;
 }

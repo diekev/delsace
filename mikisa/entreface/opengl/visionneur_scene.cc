@@ -166,8 +166,10 @@ void VisionneurScene::peint_opengl()
 				m_stack.pousse(objet->corps.transformation.matrice());
 				m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
 
+				objet->mutex_corps.lock();
 				RenduCorps rendu_corps(&objet->corps);
 				rendu_corps.initialise(m_contexte);
+				objet->mutex_corps.unlock();
 				rendu_corps.dessine(m_contexte);
 
 				m_stack.enleve_sommet();

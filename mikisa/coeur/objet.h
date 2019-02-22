@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "bibliotheques/transformation/transformation.h"
 
 #include "corps/corps.h"
@@ -40,6 +42,7 @@ struct Objet {
 	/* autres propriétés */
 	std::string nom = "objet";
 
+	std::mutex mutex_corps{};
 	Corps corps{};
 
 	Objet() = default;
