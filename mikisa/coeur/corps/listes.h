@@ -118,6 +118,8 @@ public:
 	{
 		return type_primitive::POLYGONE;
 	}
+
+	void ajourne_index(long i, long j);
 };
 
 /* ************************************************************************** */

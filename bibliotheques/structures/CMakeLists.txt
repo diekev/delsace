@@ -14,25 +14,22 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2019 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(commandes)
-add_subdirectory(chaine)
-add_subdirectory(geometrie)
-add_subdirectory(graphe)
-add_subdirectory(objets)
-add_subdirectory(observation)
-add_subdirectory(opengl)
-add_subdirectory(outils)
-add_subdirectory(Patate)
-add_subdirectory(spectre)
-add_subdirectory(structures)
-add_subdirectory(tests)
-add_subdirectory(texture)
-add_subdirectory(transformation)
-add_subdirectory(vision)
-add_subdirectory(voro)
-add_subdirectory(xml)
+set(NOM_CIBLE bib_structures)
+
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${INCLUSIONS_DELSACE_MATH}
+)
+
+add_library(${NOM_CIBLE} STATIC
+	arbre_kd.cc
+
+	arbre_kd.hh
+)
+
+target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})

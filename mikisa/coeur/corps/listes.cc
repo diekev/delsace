@@ -72,6 +72,13 @@ long Polygone::index_point(long i)
 	return static_cast<long>(m_sommets[static_cast<size_t>(i)]);
 }
 
+void Polygone::ajourne_index(long i, long j)
+{
+	assert(i >= 0);
+	assert(j >= 0);
+	m_sommets[static_cast<size_t>(i)] = static_cast<size_t>(j);
+}
+
 /* ************************************************************************** */
 
 ListePoints3D::~ListePoints3D()

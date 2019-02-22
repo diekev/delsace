@@ -25,6 +25,7 @@ menu "Noeud Objet" {
 	menu "Maillage" {
 	    action(valeur="Courbure Maillage"; attache=ajouter_noeud; métadonnée="Courbure Maillage")
 	    action(valeur="Création Normaux"; attache=ajouter_noeud; métadonnée="Création Normaux")
+		action(valeur="Enlève Doublons"; attache=ajouter_noeud; métadonnée="Enlève Doublons")
 		action(valeur="Fracture Voronoi"; attache=ajouter_noeud; métadonnée="Fracture Voronoi")
 		action(valeur="Fusionnage Corps"; attache=ajouter_noeud; métadonnée="Fusionnage Corps")
 		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe Maillage")

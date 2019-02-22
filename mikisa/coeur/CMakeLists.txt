@@ -54,6 +54,7 @@ set(BIBLIOTHEQUES
 	bib_geometrie
 	bib_graphe
 	bib_voro
+	bib_structures
 	${BIBLIOTHEQUES_OPENSUBDIV}
 	fftw3
 	pthread

@@ -1,0 +1,59 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#pragma once
+
+#include <math/vecteur.hh>
+
+class ArbreKD {
+public:
+	struct Noeud {
+		long gauche = 0;
+		long droite = 0;
+		dls::math::vec3f co{};
+		long index = 0;
+		long d = 0;
+	};
+
+private:
+	std::vector<Noeud> m_noeuds;
+	long m_noeuds_totaux;
+	long m_racine;
+
+public:
+	ArbreKD() = delete;
+
+	explicit ArbreKD(long taille_max);
+
+	~ArbreKD() = default;
+
+	void insert(long index, dls::math::vec3f const &co);
+
+	void balance();
+
+	int calc_doublons_rapide(float const dist, bool utilise_ordre_index, std::vector<int> &doublons);
+
+private:
+	long balance(Noeud *noeuds, long noeuds_totaux, int axe, int decalage);
+};
