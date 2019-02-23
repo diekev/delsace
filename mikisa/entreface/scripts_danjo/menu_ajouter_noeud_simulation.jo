@@ -32,6 +32,7 @@ menu "Noeud Simulation" {
 	}
 	menu "Physique" {
 	    action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
+		action(valeur="Ajout Corps Rigide"; attache=ajouter_noeud; métadonnée="Ajout Corps Rigide")
 		action(valeur="Dynamiques Corps Rigides"; attache=ajouter_noeud; métadonnée="Dynamiques Corps Rigides")
 		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
