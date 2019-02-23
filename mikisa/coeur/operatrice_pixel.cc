@@ -26,6 +26,8 @@
 
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "contexte_evaluation.hh"
+
 OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud *node)
 	: OperatriceImage(graphe_parent, node)
 {}
@@ -35,16 +37,18 @@ int OperatricePixel::type() const
 	return OPERATRICE_PIXEL;
 }
 
-int OperatricePixel::execute(Rectangle const &rectangle, int temps)
+int OperatricePixel::execute(ContexteEvaluation const &contexte)
 {
 	Calque *tampon = nullptr;
+
+	auto const &rectangle = contexte.resolution_rendu;
 
 	if (entrees() == 0) {
 		m_image.reinitialise();
 		tampon = m_image.ajoute_calque("image", rectangle);
 	}
 	else if (entrees() >= 1) {
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 		auto nom_calque = evalue_chaine("nom_calque");
 		tampon = m_image.calque(nom_calque);
 	}
@@ -57,7 +61,7 @@ int OperatricePixel::execute(Rectangle const &rectangle, int temps)
 	auto largeur_inverse = 1.0f / rectangle.largeur;
 	auto hauteur_inverse = 1.0f / rectangle.hauteur;
 
-	this->evalue_entrees(temps);
+	this->evalue_entrees(contexte.temps_courant);
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(rectangle.hauteur)),
 					 [&](tbb::blocked_range<size_t> const &plage)

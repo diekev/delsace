@@ -26,6 +26,7 @@
 
 #include <random>
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -63,10 +64,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 		auto const chaine_type = evalue_enum("type_attribut");
@@ -172,10 +173,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 
@@ -258,19 +259,19 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
-		auto const graine = evalue_entier("graine", temps);
+		auto const graine = evalue_entier("graine", contexte.temps_courant);
 		auto const distribution = evalue_enum("distribution");
 		auto const constante = evalue_decimal("constante");
-		auto const val_min = evalue_decimal("valeur_min", temps);
-		auto const val_max = evalue_decimal("valeur_max", temps);
-		auto const moyenne = evalue_decimal("moyenne", temps);
-		auto const ecart_type = evalue_decimal("écart_type", temps);
+		auto const val_min = evalue_decimal("valeur_min", contexte.temps_courant);
+		auto const val_max = evalue_decimal("valeur_max", contexte.temps_courant);
+		auto const moyenne = evalue_decimal("moyenne", contexte.temps_courant);
+		auto const ecart_type = evalue_decimal("écart_type", contexte.temps_courant);
 		auto const enum_operation = evalue_enum("opération");
 
 		if (nom_attribut == "") {
@@ -552,12 +553,12 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
-		auto const graine = evalue_entier("graine", temps);
+		auto const graine = evalue_entier("graine", contexte.temps_courant);
 		auto const couleur_ = evalue_couleur("couleur_");
 		auto const methode = evalue_enum("méthode");
 		auto const chaine_portee = evalue_enum("portée");
@@ -702,10 +703,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto type = evalue_enum("type_normaux");
 		auto inverse_normaux = evalue_bool("inverse_direction");

@@ -40,6 +40,7 @@
 #include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_graphe_pixel.h"
 #include "../operatrice_image.h"
 #include "../operatrice_pixel.h"
@@ -200,10 +201,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		/* Call node upstream. */
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
 		auto tampon = m_image.calque(nom_calque_a);
@@ -214,7 +215,7 @@ public:
 		}
 
 		Image image2;
-		entree(1)->requiers_image(image2, rectangle, temps);
+		entree(1)->requiers_image(image2, contexte);
 
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
 		auto tampon2 = image2.calque(nom_calque_b);
@@ -225,7 +226,7 @@ public:
 		}
 
 		auto operation = evalue_enum("operation");
-		auto facteur = evalue_decimal("facteur", temps);
+		auto facteur = evalue_decimal("facteur", contexte.temps_courant);
 		auto melange = 0;
 
 		if (operation == "mélanger") {
@@ -310,10 +311,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		/* Call node upstream. */
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
 		auto tampon_a = m_image.calque(nom_calque_a);
@@ -324,7 +325,7 @@ public:
 		}
 
 		Image image2;
-		entree(1)->requiers_image(image2, rectangle, temps);
+		entree(1)->requiers_image(image2, contexte);
 
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
 		auto tampon_b = image2.calque(nom_calque_b);
@@ -376,6 +377,8 @@ public:
 		else if (operation == "xor") {
 			fusion = FUSION_XOR;
 		}
+
+		auto const &rectangle = contexte.resolution_rendu;
 
 		boucle_parallele(tbb::blocked_range<size_t>(0ul, static_cast<size_t>(rectangle.hauteur)),
 					 [&](tbb::blocked_range<size_t> const &plage)

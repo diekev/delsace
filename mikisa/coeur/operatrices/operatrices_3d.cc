@@ -28,6 +28,7 @@
 #include "bibliotheques/texture/texture.h"
 #include "bibliotheques/vision/camera.h"
 
+#include "../contexte_evaluation.hh"
 #include "../manipulatrice.h"
 #include "../operatrice_corps.h"
 #include "../operatrice_objet.h"  /* enregistrement dans l'usine */
@@ -126,10 +127,8 @@ public:
 		}
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		auto const largeur = evalue_entier("largeur");
 		auto const hauteur = evalue_entier("hauteur");
 		auto const longueur_focale = evalue_decimal("longueur_focale");
@@ -137,8 +136,8 @@ public:
 		auto const proche = evalue_decimal("proche");
 		auto const eloigne = evalue_decimal("éloigné");
 		auto const projection = evalue_enum("projection");
-		auto const position = evalue_vecteur("position", temps);
-		auto const rotation = evalue_vecteur("rotation", temps);
+		auto const position = evalue_vecteur("position", contexte.temps_courant);
+		auto const rotation = evalue_vecteur("rotation", contexte.temps_courant);
 
 		if (projection == "perspective") {
 			m_camera.projection(vision::TypeProjection::PERSPECTIVE);
@@ -235,14 +234,14 @@ public:
 		return m_camera;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		if (entree(0)->connectee() == false) {
 			ajoute_avertissement("Aucune image connectée pour la texture");
 			return EXECUTION_ECHOUEE;
 		}
 
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 		auto tampon = m_image.calque("image");
 
 		if (tampon == nullptr) {
@@ -283,7 +282,7 @@ public:
 		}
 		else if (projection == "caméra") {
 			m_texture.projection(PROJECTION_CAMERA);
-			m_camera = entree(1)->requiers_camera(rectangle, temps);
+			m_camera = entree(1)->requiers_camera(contexte);
 
 			if (m_camera == nullptr) {
 				ajoute_avertissement("Aucune caméra trouvée pour la projection caméra !");
@@ -304,7 +303,7 @@ public:
 			m_texture.projection(PROJECTION_UV);
 		}
 
-		auto taille_texture = evalue_vecteur("taille_texture", temps);
+		auto taille_texture = evalue_vecteur("taille_texture", contexte.temps_courant);
 
 		m_texture.taille(dls::math::vec3f(taille_texture.x,
 										  taille_texture.y,

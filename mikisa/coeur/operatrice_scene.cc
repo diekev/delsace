@@ -33,6 +33,7 @@
 
 #include "corps/corps.h"
 
+#include "contexte_evaluation.hh"
 #include "objet.h"
 
 template <typename T>
@@ -98,9 +99,9 @@ Graphe *OperatriceScene::graphe()
 	return &m_graphe;
 }
 
-int OperatriceScene::execute(Rectangle const &rectangle, const int temps)
+int OperatriceScene::execute(ContexteEvaluation const &contexte)
 {
-	auto camera = entree(0)->requiers_camera(rectangle, temps);
+	auto camera = entree(0)->requiers_camera(contexte);
 
 	if (camera == nullptr) {
 		ajoute_avertissement("Aucune caméra trouvée !");
@@ -108,6 +109,8 @@ int OperatriceScene::execute(Rectangle const &rectangle, const int temps)
 	}
 
 	m_scene.camera(camera);
+
+	auto const &rectangle = contexte.resolution_rendu;
 
 	m_image.reinitialise();
 	auto tampon = m_image.ajoute_calque("image", rectangle);

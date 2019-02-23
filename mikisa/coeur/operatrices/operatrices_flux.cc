@@ -41,6 +41,7 @@
 #include "bibliotheques/graphe/graphe.h"
 #include "bibliotheques/outils/definitions.hh"
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
@@ -165,9 +166,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 		m_image.nom_calque_actif(evalue_chaine("nom_calque"));
 		return EXECUTION_REUSSIE;
 	}
@@ -285,7 +286,7 @@ public:
 		return "entreface/operatrice_lecture_fichier.jo";
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_image.reinitialise();
 
@@ -295,6 +296,7 @@ public:
 			nom_calque = "image";
 		}
 
+		auto const &rectangle = contexte.resolution_rendu;
 		auto tampon = m_image.ajoute_calque(nom_calque, rectangle);
 
 		std::string chemin = evalue_chaine("chemin");
@@ -305,7 +307,7 @@ public:
 		}
 
 		if (evalue_bool("est_animation")) {
-			corrige_chemin_pour_temps(chemin, temps);
+			corrige_chemin_pour_temps(chemin, contexte.temps_courant);
 		}
 
 		if (m_dernier_chemin != chemin) {
@@ -378,10 +380,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		auto const value = evalue_entier("prise");
-		entree(static_cast<size_t>(value))->requiers_image(m_image, rectangle, temps);
+		entree(static_cast<size_t>(value))->requiers_image(m_image, contexte);
 		return EXECUTION_REUSSIE;
 	}
 };
@@ -413,7 +415,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
 
@@ -422,13 +424,13 @@ public:
 		auto resultat = false;
 
 		if (condition == "tps_scn_egl") {
-			resultat = (temps == valeur);
+			resultat = (contexte.temps_courant == valeur);
 		}
 		else if (condition == "tps_scn_sup") {
-			resultat = (temps > valeur);
+			resultat = (contexte.temps_courant > valeur);
 		}
 		else if (condition == "tps_scn_inf") {
-			resultat = (temps < valeur);
+			resultat = (contexte.temps_courant < valeur);
 		}
 		else {
 			ajoute_avertissement("Condition invalide !");
@@ -436,10 +438,10 @@ public:
 		}
 
 		if (resultat) {
-			entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+			entree(0)->requiers_copie_corps(&m_corps, contexte);
 		}
 		else {
-			entree(1)->requiers_copie_corps(&m_corps, rectangle, temps);
+			entree(1)->requiers_copie_corps(&m_corps, contexte);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -474,10 +476,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-		INUTILISE(temps);
+		INUTILISE(contexte);
 
 		m_corps.reinitialise();
 

@@ -123,6 +123,7 @@ add_library(${NOM_CIBLE} STATIC
 	attribut.h
 	composite.h
 	configuration.h
+	contexte_evaluation.hh
 	evaluation.h
 	evenement.h
 	imprimeuse_graphe.h
@@ -187,6 +188,7 @@ add_library(${NOM_CIBLE} STATIC
 	attribut.cc
 	composite.cc
 	configuration.cc
+	contexte_evaluation.cc
 	evaluation.cc
 	evenement.cc
 	imprimeuse_graphe.cc

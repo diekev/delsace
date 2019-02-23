@@ -26,6 +26,7 @@
 
 #include <set>
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -469,10 +470,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto points_entree = m_corps.points();
 
@@ -491,10 +492,10 @@ public:
 		auto integration = evalue_enum("intégration");
 
 		if (integration == "verlet") {
-			simule_verlet(temps);
+			simule_verlet(contexte.temps_courant);
 		}
 		else {
-			simule_dbp(temps);
+			simule_dbp(contexte.temps_courant);
 		}
 
 		return EXECUTION_REUSSIE;

@@ -96,21 +96,21 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		/* À FAIRE : booléens, groupes. */
 		this->ajoute_avertissement("Seuls les cubes sont supportés pour le moment !");
 
 		m_corps.reinitialise();
 
-		auto corps_maillage = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_maillage = entree(0)->requiers_corps(contexte);
 
 		if (corps_maillage == nullptr) {
 			this->ajoute_avertissement("Aucun maillage connecté !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto corps_points = entree(1)->requiers_corps(rectangle, temps);
+		auto corps_points = entree(1)->requiers_corps(contexte);
 
 		if (corps_points == nullptr) {
 			this->ajoute_avertissement("Aucun points connecté !");

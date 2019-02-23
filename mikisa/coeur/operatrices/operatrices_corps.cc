@@ -31,6 +31,7 @@
 
 #include "../corps/adaptrice_creation_corps.h"
 
+#include "../contexte_evaluation.hh"
 #include "../manipulatrice.h"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -188,22 +189,20 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
 		adaptrice.corps = &m_corps;
 
-		auto rayon = evalue_vecteur("rayon", temps);
+		auto rayon = evalue_vecteur("rayon", contexte.temps_courant);
 
 		objets::cree_boite(&adaptrice, rayon.x, rayon.y, rayon.z);
 
 		ajourne_portee_attr_normaux(&m_corps);
 
-		ajourne_transforme(temps);
+		ajourne_transforme(contexte.temps_courant);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -233,24 +232,22 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
 		adaptrice.corps = &m_corps;
 
-		auto const rayon = evalue_decimal("rayon", temps);
-		auto const res_u = evalue_entier("res_u", temps);
-		auto const res_v = evalue_entier("res_v", temps);
+		auto const rayon = evalue_decimal("rayon", contexte.temps_courant);
+		auto const res_u = evalue_entier("res_u", contexte.temps_courant);
+		auto const res_v = evalue_entier("res_v", contexte.temps_courant);
 
 		objets::cree_sphere_uv(&adaptrice, rayon, res_u, res_v);
 
 		ajourne_portee_attr_normaux(&m_corps);
 
-		ajourne_transforme(temps);
+		ajourne_transforme(contexte.temps_courant);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -280,25 +277,23 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
 		adaptrice.corps = &m_corps;
 
-		auto const segments = evalue_entier("segments", temps);
-		auto const rayon_mineur = evalue_decimal("rayon_mineur", temps);
-		auto const rayon_majeur = evalue_decimal("rayon_majeur", temps);
-		auto const profondeur = evalue_decimal("profondeur", temps);
+		auto const segments = evalue_entier("segments", contexte.temps_courant);
+		auto const rayon_mineur = evalue_decimal("rayon_mineur", contexte.temps_courant);
+		auto const rayon_majeur = evalue_decimal("rayon_majeur", contexte.temps_courant);
+		auto const profondeur = evalue_decimal("profondeur", contexte.temps_courant);
 
 		objets::cree_cylindre(&adaptrice, segments, rayon_mineur, rayon_majeur, profondeur);
 
 		calcul_normaux(m_corps, true, false);
 
-		ajourne_transforme(temps);
+		ajourne_transforme(contexte.temps_courant);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -328,24 +323,22 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
 		adaptrice.corps = &m_corps;
 
-		auto const segments = evalue_entier("segments", temps);
-		auto const rayon_majeur = evalue_decimal("rayon_majeur", temps);
-		auto const profondeur = evalue_decimal("profondeur", temps);
+		auto const segments = evalue_entier("segments", contexte.temps_courant);
+		auto const rayon_majeur = evalue_decimal("rayon_majeur", contexte.temps_courant);
+		auto const profondeur = evalue_decimal("profondeur", contexte.temps_courant);
 
 		objets::cree_cylindre(&adaptrice, segments, 0.0f, rayon_majeur, profondeur);
 
 		calcul_normaux(m_corps, true, false);
 
-		ajourne_transforme(temps);
+		ajourne_transforme(contexte.temps_courant);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -375,25 +368,23 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
 		adaptrice.corps = &m_corps;
 
-		auto const lignes   = evalue_entier("lignes", temps);
-		auto const colonnes = evalue_entier("colonnes", temps);
-		auto const taille_x = evalue_decimal("taille_x", temps);
-		auto const taille_y = evalue_decimal("taille_y", temps);
+		auto const lignes   = evalue_entier("lignes", contexte.temps_courant);
+		auto const colonnes = evalue_entier("colonnes", contexte.temps_courant);
+		auto const taille_x = evalue_decimal("taille_x", contexte.temps_courant);
+		auto const taille_y = evalue_decimal("taille_y", contexte.temps_courant);
 
 		objets::cree_grille(&adaptrice, taille_x, taille_y, lignes, colonnes);
 
 		ajourne_portee_attr_normaux(&m_corps);
 
-		ajourne_transforme(temps);
+		ajourne_transforme(contexte.temps_courant);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -423,22 +414,20 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
 		adaptrice.corps = &m_corps;
 
-		auto const rayon = evalue_decimal("rayon", temps);
+		auto const rayon = evalue_decimal("rayon", contexte.temps_courant);
 
 		objets::cree_icosphere(&adaptrice, rayon);
 
 		ajourne_portee_attr_normaux(&m_corps);
 
-		ajourne_transforme(temps);
+		ajourne_transforme(contexte.temps_courant);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -468,25 +457,23 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
 		adaptrice.corps = &m_corps;
 
-		auto const rayon_mineur = evalue_decimal("rayon_mineur", temps);
-		auto const rayon_majeur = evalue_decimal("rayon_majeur", temps);
-		auto const segment_mineur = evalue_entier("segment_mineur", temps);
-		auto const segment_majeur = evalue_entier("segment_majeur", temps);
+		auto const rayon_mineur = evalue_decimal("rayon_mineur", contexte.temps_courant);
+		auto const rayon_majeur = evalue_decimal("rayon_majeur", contexte.temps_courant);
+		auto const segment_mineur = evalue_entier("segment_mineur", contexte.temps_courant);
+		auto const segment_majeur = evalue_entier("segment_majeur", contexte.temps_courant);
 
 		objets::cree_torus(&adaptrice, rayon_mineur, rayon_majeur, segment_mineur, segment_majeur);
 
 		calcul_normaux(m_corps, true, false);
 
-		ajourne_transforme(temps);
+		ajourne_transforme(contexte.temps_courant);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -516,23 +503,21 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
 		adaptrice.corps = &m_corps;
 
-		auto const segment = evalue_entier("segment", temps);
-		auto const rayon   = evalue_decimal("rayon", temps);
+		auto const segment = evalue_entier("segment", contexte.temps_courant);
+		auto const rayon   = evalue_decimal("rayon", contexte.temps_courant);
 
 		objets::cree_cercle(&adaptrice, segment, rayon);
 
 		ajourne_portee_attr_normaux(&m_corps);
 
-		ajourne_transforme(temps);
+		ajourne_transforme(contexte.temps_courant);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -626,10 +611,8 @@ public:
 		}
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-
 		auto chemin = evalue_fichier_entree("chemin");
 
 		if (chemin == "") {
@@ -655,10 +638,10 @@ public:
 			m_dernier_chemin = chemin;
 		}
 
-		auto position = dls::math::point3f(evalue_vecteur("position", temps));
-		auto rotation = evalue_vecteur("rotation", temps);
-		auto taille = evalue_vecteur("taille", temps);
-		auto echelle_uniforme = evalue_decimal("echelle_uniforme", temps);
+		auto position = dls::math::point3f(evalue_vecteur("position", contexte.temps_courant));
+		auto rotation = evalue_vecteur("rotation", contexte.temps_courant);
+		auto taille = evalue_vecteur("taille", contexte.temps_courant);
+		auto echelle_uniforme = evalue_decimal("echelle_uniforme", contexte.temps_courant);
 
 		m_transformation = math::transformation();
 		m_transformation *= math::translation(position.x, position.y, position.z);
@@ -703,18 +686,18 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
 
-		auto corps1 = entree(0)->requiers_corps(rectangle, temps);
+		auto corps1 = entree(0)->requiers_corps(contexte);
 
 		if (corps1 == nullptr) {
 			ajoute_avertissement("1er corps manquant !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto corps2 = entree(1)->requiers_corps(rectangle, temps);
+		auto corps2 = entree(1)->requiers_corps(contexte);
 
 		if (corps2 == nullptr) {
 			ajoute_avertissement("2ème corps manquant !");
@@ -1039,9 +1022,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto const translate = dls::math::vec3d(evalue_vecteur("translation"));
 		auto const rotate = dls::math::vec3d(evalue_vecteur("rotation"));
@@ -1152,10 +1135,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		return EXECUTION_REUSSIE;
 	}

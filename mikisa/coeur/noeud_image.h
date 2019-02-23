@@ -26,7 +26,7 @@
 
 class Noeud;
 
-struct Rectangle;
+struct ContexteEvaluation;
 
 enum {
 	NOEUD_IMAGE_DEFAUT = 0,
@@ -36,4 +36,4 @@ enum {
 
 void synchronise_donnees_operatrice(Noeud *noeud);
 
-void execute_noeud(Noeud *noeud, Rectangle const &rectangle, const int temps);
+void execute_noeud(Noeud *noeud, const ContexteEvaluation &contexte);

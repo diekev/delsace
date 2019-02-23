@@ -36,6 +36,7 @@
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
 
@@ -124,10 +125,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		/* Call node upstream; */
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -349,10 +350,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		/* Call node upstream. */
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -433,9 +434,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -489,9 +490,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -506,7 +507,7 @@ public:
 
 		numero7::math::matrice<numero7::image::Pixel<float>> image_tmp(tampon->tampon.dimensions());
 
-		auto const rayon_flou = evalue_decimal("rayon", temps);
+		auto const rayon_flou = evalue_decimal("rayon", contexte.temps_courant);
 		auto const type_flou = evalue_enum("type");
 
 		/* construit le kernel du flou */
@@ -626,9 +627,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -643,10 +644,10 @@ public:
 		auto const &hauteur_inverse = 1.0f / static_cast<float>(hauteur);
 		auto const &largeur_inverse = 1.0f / static_cast<float>(largeur);
 
-		auto const decalage_x = evalue_decimal("décalage_x", temps);
-		auto const decalage_y = evalue_decimal("décalage_y", temps);
-		auto const taille = evalue_decimal("taille", temps);
-		auto const periodes = evalue_decimal("périodes", temps);
+		auto const decalage_x = evalue_decimal("décalage_x", contexte.temps_courant);
+		auto const decalage_y = evalue_decimal("décalage_y", contexte.temps_courant);
+		auto const taille = evalue_decimal("taille", contexte.temps_courant);
+		auto const periodes = evalue_decimal("périodes", contexte.temps_courant);
 
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
@@ -717,9 +718,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -732,7 +733,7 @@ public:
 		auto const methode = evalue_enum("méthode");
 		auto image_grise = numero7::image::operation::luminance(tampon->tampon);
 		auto image_tampon = numero7::math::matrice<float>(tampon->tampon.dimensions());
-		auto valeur_iso = evalue_decimal("valeur_iso", temps);
+		auto valeur_iso = evalue_decimal("valeur_iso", contexte.temps_courant);
 
 		/* À FAIRE :  deux versions de chaque algorithme : signée et non-signée.
 		 * cela demandrait de garder trace de deux grilles pour la version
@@ -839,9 +840,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
 		auto tampon = m_image.calque(nom_calque_a);
@@ -852,7 +853,7 @@ public:
 		}
 
 		Image image2;
-		entree(1)->requiers_image(image2, rectangle, temps);
+		entree(1)->requiers_image(image2, contexte);
 
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
 		auto tampon2 = image2.calque(nom_calque_b);
@@ -1124,9 +1125,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto const &nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1137,19 +1138,19 @@ public:
 		}
 
 		/* parametres utilisateurs */
-		auto const &graine = evalue_entier("graine", temps) + temps;
+		auto const &graine = evalue_entier("graine", contexte.temps_courant) + contexte.temps_courant;
 
-		auto const &rayon_grain_r = evalue_decimal("rayon_grain_r", temps);
-		auto const &sigma_rayon_r = evalue_decimal("sigma_rayon_r", temps);
-		auto const &sigma_filtre_r = evalue_decimal("sigma_filtre_r", temps);
+		auto const &rayon_grain_r = evalue_decimal("rayon_grain_r", contexte.temps_courant);
+		auto const &sigma_rayon_r = evalue_decimal("sigma_rayon_r", contexte.temps_courant);
+		auto const &sigma_filtre_r = evalue_decimal("sigma_filtre_r", contexte.temps_courant);
 
-		auto const &rayon_grain_v = evalue_decimal("rayon_grain_v", temps);
-		auto const &sigma_rayon_v = evalue_decimal("sigma_rayon_v", temps);
-		auto const &sigma_filtre_v = evalue_decimal("sigma_filtre_v", temps);
+		auto const &rayon_grain_v = evalue_decimal("rayon_grain_v", contexte.temps_courant);
+		auto const &sigma_rayon_v = evalue_decimal("sigma_rayon_v", contexte.temps_courant);
+		auto const &sigma_filtre_v = evalue_decimal("sigma_filtre_v", contexte.temps_courant);
 
-		auto const &rayon_grain_b = evalue_decimal("rayon_grain_b", temps);
-		auto const &sigma_rayon_b = evalue_decimal("sigma_rayon_b", temps);
-		auto const &sigma_filtre_b = evalue_decimal("sigma_filtre_b", temps);
+		auto const &rayon_grain_b = evalue_decimal("rayon_grain_b", contexte.temps_courant);
+		auto const &sigma_rayon_b = evalue_decimal("sigma_rayon_b", contexte.temps_courant);
+		auto const &sigma_filtre_b = evalue_decimal("sigma_filtre_b", contexte.temps_courant);
 
 		auto const &canal_rouge = extrait_canal(tampon->tampon, 0);
 		auto const &canal_vert = extrait_canal(tampon->tampon, 1);
@@ -1193,9 +1194,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1255,9 +1256,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1350,9 +1351,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1430,9 +1431,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1509,9 +1510,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);

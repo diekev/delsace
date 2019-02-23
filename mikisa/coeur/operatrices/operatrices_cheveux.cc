@@ -31,6 +31,7 @@
 #include "../corps/corps.h"
 
 #include "../attribut.h"
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -137,11 +138,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
 
-		auto corps_particules = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_particules = entree(0)->requiers_corps(contexte);
 
 		if (corps_particules == nullptr) {
 			ajoute_avertissement("Aucun corps trouvé en entrée !");
@@ -254,9 +255,9 @@ public:
 	static constexpr auto NOM = "Collision Cheveux";
 	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		auto const courbes = charge_courbes(rectangle, temps);
+		auto const courbes = charge_courbes(contexte);
 
 		if (courbes == nullptr) {
 			ajoute_avertissement("Aucune courbe n'a été trouvée !");
@@ -264,7 +265,7 @@ public:
 		}
 
 		/* obtiens le maillage de collision */
-		auto const maillage_collision = charge_maillage_collesion(rectangle, temps);
+		auto const maillage_collision = charge_maillage_collesion(contexte);
 
 		if (maillage_collision == nullptr) {
 			ajoute_avertissement("Aucun maillage de collision n'a été trouvé !");
@@ -305,14 +306,14 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	Corps const *charge_maillage_collesion(Rectangle const &rectangle, const int temps)
+	Corps const *charge_maillage_collesion(ContexteEvaluation const &contexte)
 	{
-		return entree(0)->requiers_corps(rectangle, temps);
+		return entree(0)->requiers_corps(contexte);
 	}
 
-	Corps const *charge_courbes(Rectangle const &rectangle, const int temps)
+	Corps const *charge_courbes(ContexteEvaluation const &contexte)
 	{
-		return entree(1)->requiers_corps(rectangle, temps);
+		return entree(1)->requiers_corps(contexte);
 	}
 
 	ArbreOcternaire *construit_arbre(Corps const *maillage)
@@ -407,10 +408,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		if (m_corps.prims()->taille() == 0l) {
 			return EXECUTION_REUSSIE;

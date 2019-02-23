@@ -33,6 +33,7 @@
 
 #include "composite.h"
 #include "configuration.h"
+#include "contexte_evaluation.hh"
 #include "evenement.h"
 #include "mikisa.h"
 #include "noeud_image.h"
@@ -140,7 +141,14 @@ static void evalue_composite(Mikisa &mikisa)
 	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
 	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
 
-	execute_noeud(visionneuse, rectangle, mikisa.temps_courant);
+	auto contexte = ContexteEvaluation{};
+	contexte.cadence = mikisa.cadence;
+	contexte.temps_debut = mikisa.temps_debut;
+	contexte.temps_fin = mikisa.temps_fin;
+	contexte.temps_courant = mikisa.temps_courant;
+	contexte.resolution_rendu = rectangle;
+
+	execute_noeud(visionneuse, contexte);
 
 	Image image;
 	auto operatrice = std::any_cast<OperatriceImage *>(visionneuse->donnees());
@@ -208,10 +216,17 @@ static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
 	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
 
+	auto contexte = ContexteEvaluation{};
+	contexte.cadence = mikisa.cadence;
+	contexte.temps_debut = mikisa.temps_debut;
+	contexte.temps_fin = mikisa.temps_fin;
+	contexte.temps_courant = mikisa.temps_courant;
+	contexte.resolution_rendu = rectangle;
+
 	auto const t0 = tbb::tick_count::now();
 
 	operatrice->reinitialise_avertisements();
-	operatrice->execute(rectangle, mikisa.temps_courant);
+	operatrice->execute(contexte);
 
 	auto const t1 = tbb::tick_count::now();
 	auto const delta = (t1 - t0).seconds();

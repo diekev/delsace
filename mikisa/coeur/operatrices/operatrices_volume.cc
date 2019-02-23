@@ -68,10 +68,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-		INUTILISE(temps);
+		INUTILISE(contexte);
 
 		m_corps.reinitialise();
 
@@ -125,11 +124,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
 
-		auto corps = entree(0)->requiers_corps(rectangle, temps);
+		auto corps = entree(0)->requiers_corps(contexte);
 
 		if (corps == nullptr) {
 			ajoute_avertissement("Aucun corps connecté !");

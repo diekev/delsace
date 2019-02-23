@@ -30,6 +30,7 @@
 #include "../corps/collision.hh"
 #include "../corps/groupes.h"
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_simulation.hh"
 #include "../usine_operatrice.h"
 
@@ -61,10 +62,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-		INUTILISE(temps);
+		INUTILISE(contexte);
 
 		m_corps.reinitialise();
 
@@ -108,16 +108,16 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
 		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
 
-		auto gravite = evalue_vecteur("gravité", temps);
+		auto gravite = evalue_vecteur("gravité", contexte.temps_courant);
 
 		/* À FAIRE : f = m * a => multiplier par la masse? */
 		boucle_parallele(
@@ -162,17 +162,17 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
 		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
 
-		auto direction = evalue_vecteur("direction", temps);
-		auto amplitude = evalue_decimal("amplitude", temps);
+		auto direction = evalue_vecteur("direction", contexte.temps_courant);
+		auto amplitude = evalue_decimal("amplitude", contexte.temps_courant);
 
 		auto force_max = direction * amplitude;
 
@@ -228,10 +228,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
@@ -353,9 +353,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		auto corps_collision = entree(1)->requiers_corps(rectangle, temps);
+		auto corps_collision = entree(1)->requiers_corps(contexte);
 
 		if (corps_collision == nullptr) {
 			ajoute_avertissement("Aucun Corps pour la collision trouvé !");
@@ -371,14 +371,14 @@ public:
 		}
 
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
 
-		auto const elasticite = evalue_decimal("élasticité", temps);
+		auto const elasticite = evalue_decimal("élasticité", contexte.temps_courant);
 		/* À FAIRE : rayon comme propriété des particules */
-		auto const rayon = evalue_decimal("rayon", temps);
+		auto const rayon = evalue_decimal("rayon", contexte.temps_courant);
 
 		/* ajoute attribut vélocité */
 		auto attr_V = m_corps.attribut("V");
@@ -874,10 +874,10 @@ public:
 		}
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
@@ -934,12 +934,12 @@ public:
 		BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount);
 	}
 
-	int execute(const Rectangle &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
-		INUTILISE(rectangle);
-		INUTILISE(temps);
+		INUTILISE(contexte);
+
 		m_corps.reinitialise();
-		//entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		//entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		OceanModifierData omd;
 		omd.resolution = evalue_entier("résolution");
@@ -960,7 +960,7 @@ public:
 		omd.foam_coverage = evalue_decimal("couverture_écume");
 
 		omd.seed = evalue_entier("graine");
-		omd.time = static_cast<float>(temps) / 10.0f; //evalue_decimal("temps");
+		omd.time = static_cast<float>(contexte.temps_courant) / 10.0f; //evalue_decimal("temps");
 
 		omd.size = evalue_decimal("taille");
 		omd.repeat_x = evalue_entier("répétition_x");

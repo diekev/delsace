@@ -48,6 +48,7 @@ namespace vision {
 class Camera3D;
 }  /* namespace vision */
 
+struct ContexteEvaluation;
 struct Objet;
 
 using type_image = numero7::math::matrice<numero7::image::Pixel<float>>;
@@ -187,10 +188,7 @@ public:
 	 * avant de lui prendre son image. La liste de nom de calque est mise à jour
 	 * selon l'image obtenue.
 	 */
-	void requiers_image(
-			Image &image,
-			Rectangle const &rectangle,
-			const int temps);
+	void requiers_image(Image &image, ContexteEvaluation const &contexte);
 
 	/**
 	 * Requiers la caméra du noeud connecté à cette prise en exécutant ledit
@@ -198,9 +196,7 @@ public:
 	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
 	 * nullptr.
 	 */
-	vision::Camera3D *requiers_camera(
-			Rectangle const &rectangle,
-			const int temps);
+	vision::Camera3D *requiers_camera(ContexteEvaluation const &contexte);
 
 	/**
 	 * Requiers l'objet du noeud connecté à cette prise en exécutant ledit
@@ -208,9 +204,7 @@ public:
 	 * n'est créé par le noeud, ou si aucune connexion n'existe, retourne
 	 * nullptr.
 	 */
-	Objet *requiers_objet(
-			Rectangle const &rectangle,
-			const int temps);
+	Objet *requiers_objet(ContexteEvaluation const &contexte);
 
 	/**
 	 * Requiers la texture du noeud connecté à cette prise en exécutant ledit
@@ -218,11 +212,11 @@ public:
 	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
 	 * nullptr.
 	 */
-	TextureImage *requiers_texture(Rectangle const &rectangle, const int temps);
+	TextureImage *requiers_texture(ContexteEvaluation const &contexte);
 
-	const Corps *requiers_corps(Rectangle const &rectangle, const int temps);
+	const Corps *requiers_corps(ContexteEvaluation const &contexte);
 
-	Corps *requiers_copie_corps(Corps *corps, Rectangle const &rectangle, const int temps);
+	Corps *requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte);
 
 	/**
 	 * Place la liste de calque de l'image transitante par cette entrée dans le
@@ -319,7 +313,7 @@ public:
 
 	/* The main processing logic of this operator. */
 
-	virtual int execute(Rectangle const &rectangle, const int temps) = 0;
+	virtual int execute(ContexteEvaluation const &contexte) = 0;
 
 	void transfere_image(Image &image);
 

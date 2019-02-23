@@ -30,6 +30,8 @@
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/texture/texture.h"
 
+#include "contexte_evaluation.hh"
+
 OperatriceObjet::OperatriceObjet(Graphe &graphe_parent, Noeud *noeud)
 	: OperatriceImage(graphe_parent, noeud)
 {
@@ -143,13 +145,13 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 	m_manipulatrice_echelle.pos(position);
 }
 
-int OperatriceObjet::execute(Rectangle const &rectangle, const int temps)
+int OperatriceObjet::execute(ContexteEvaluation const &contexte)
 {
 	/* transformation */
 
-	auto position = dls::math::point3f(evalue_vecteur("position", temps));
-	auto rotation = evalue_vecteur("rotation", temps);
-	auto taille = evalue_vecteur("taille", temps);
+	auto position = dls::math::point3f(evalue_vecteur("position", contexte.temps_courant));
+	auto rotation = evalue_vecteur("rotation", contexte.temps_courant);
+	auto taille = evalue_vecteur("taille", contexte.temps_courant);
 
 	auto transformation = math::transformation();
 	transformation *= math::translation(position.x, position.y, position.z);
@@ -178,7 +180,7 @@ int OperatriceObjet::execute(Rectangle const &rectangle, const int temps)
 	auto const t0 = tbb::tick_count::now();
 
 	operatrice->reinitialise_avertisements();
-	operatrice->execute(rectangle, temps);
+	operatrice->execute(contexte);
 
 	auto const t1 = tbb::tick_count::now();
 	auto const delta = (t1 - t0).seconds();

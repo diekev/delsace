@@ -24,6 +24,7 @@
 
 #include "operatrice_simulation.hh"
 
+#include "contexte_evaluation.hh"
 #include "noeud_image.h"
 
 OperatriceSimulation::OperatriceSimulation(Graphe &graphe_parent, Noeud *noeud)
@@ -66,7 +67,7 @@ int OperatriceSimulation::type() const
 	return OPERATRICE_SIMULATION;
 }
 
-int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
+int OperatriceSimulation::execute(ContexteEvaluation const &contexte)
 {
 	auto sortie_graphe = m_graphe.dernier_noeud_sortie;
 
@@ -79,7 +80,7 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 	auto const temps_fin   = evalue_entier("temps_fin");
 
 	/* Si nous sommes au début, réinitialise. */
-	if (temps == temps_debut) {
+	if (contexte.temps_courant == temps_debut) {
 		m_corps.reinitialise();
 		m_corps1.reinitialise();
 		m_corps2.reinitialise();
@@ -92,29 +93,29 @@ int OperatriceSimulation::execute(const Rectangle &rectangle, const int temps)
 		m_graphe.donnees.push_back(&m_corps);
 
 		/* copie l'état de base */
-		auto corps = entree(0)->requiers_corps(rectangle, temps);
+		auto corps = entree(0)->requiers_corps(contexte);
 
 		if (corps) {
 			corps->copie_vers(&m_corps1);
 		}
 
-		corps = entree(1)->requiers_corps(rectangle, temps);
+		corps = entree(1)->requiers_corps(contexte);
 
 		if (corps) {
 			corps->copie_vers(&m_corps2);
 		}
 	}
 	/* Ne simule que si l'on a avancé d'une image. */
-	else if (temps != m_dernier_temps + 1) {
+	else if (contexte.temps_courant != m_dernier_temps + 1) {
 		return EXECUTION_REUSSIE;
 	}
-	else if (temps > temps_fin) {
+	else if (contexte.temps_courant > temps_fin) {
 		return EXECUTION_REUSSIE;
 	}
 
-	m_dernier_temps = temps;
+	m_dernier_temps = contexte.temps_courant;
 
-	execute_noeud(sortie_graphe, rectangle, temps);
+	execute_noeud(sortie_graphe, contexte);
 
 	/* exécute graphe */
 	auto op_sortie = std::any_cast<OperatriceImage *>(sortie_graphe->donnees());

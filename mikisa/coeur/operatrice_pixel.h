@@ -68,7 +68,7 @@ public:
 			const float x,
 			const float y) = 0;
 
-	int execute(Rectangle const &rectangle, int temps) override;
+	int execute(ContexteEvaluation const &contexte) override;
 
 	virtual void compile(CompileuseGraphe &compileuse, int temps);
 };

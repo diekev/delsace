@@ -64,10 +64,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto points_entree = m_corps.points();
 
@@ -133,10 +133,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_entree = entree(0)->requiers_corps(contexte);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Aucun corps n'est connecté !");
@@ -266,10 +266,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_entree = entree(0)->requiers_corps(contexte);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Aucun corps trouvé en entrée !");

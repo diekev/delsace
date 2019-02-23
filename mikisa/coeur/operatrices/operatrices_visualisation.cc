@@ -54,10 +54,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_entree = entree(0)->requiers_corps(contexte);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Aucun corps n'est connecté !");
@@ -207,10 +207,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_entree = entree(0)->requiers_corps(contexte);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Aucun corps n'est connecté !");

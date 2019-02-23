@@ -44,6 +44,7 @@
 
 #include "bibliotheques/outils/definitions.hh"
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -149,13 +150,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		/* À FAIRE : réinitialisation. */
-		if (m_monde_dynamics == nullptr || temps == 1) {
+		if (m_monde_dynamics == nullptr || contexte.temps_courant == 1) {
 			initialise_monde();
 
 			auto forme = cree_forme_pour_corps(m_corps);
@@ -167,7 +168,7 @@ public:
 			cree_corps_rigide(masse, tranformation, forme);
 		}
 
-		if (temps > 1) {
+		if (contexte.temps_courant > 1) {
 			m_monde_dynamics->stepSimulation(1.0 / 24.0);
 		}
 

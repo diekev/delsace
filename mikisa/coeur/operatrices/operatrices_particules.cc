@@ -36,6 +36,7 @@
 #include "../corps/groupes.h"
 #include "../corps/triangulation.hh"
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -71,10 +72,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		auto corps = entree(0)->requiers_corps(rectangle, temps);
+		auto corps = entree(0)->requiers_corps(contexte);
 
 		if (corps == nullptr) {
 			ajoute_avertissement("Aucun corps connecté !");
@@ -212,11 +213,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
 
-		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_entree = entree(0)->requiers_corps(contexte);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Il n'y a pas de corps connecté !");
@@ -226,15 +227,15 @@ public:
 		auto origine = evalue_enum("origine");
 
 		if (origine == "points") {
-			return genere_points_depuis_points(corps_entree, temps);
+			return genere_points_depuis_points(corps_entree, contexte.temps_courant);
 		}
 
 		if (origine == "primitives") {
-			return genere_points_depuis_primitives(corps_entree, temps);
+			return genere_points_depuis_primitives(corps_entree, contexte.temps_courant);
 		}
 
 		if (origine == "volume") {
-			return genere_points_depuis_volume(corps_entree, temps);
+			return genere_points_depuis_volume(corps_entree, contexte.temps_courant);
 		}
 
 		ajoute_avertissement("Erreur : origine inconnue !");
@@ -695,11 +696,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
 
-		auto corps_maillage = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_maillage = entree(0)->requiers_corps(contexte);
 
 		if (corps_maillage == nullptr) {
 			this->ajoute_avertissement("Il n'y pas de corps en entrée !");
@@ -1113,11 +1114,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
 
-		auto corps_entree = entree(0)->requiers_corps(rectangle, temps);
+		auto corps_entree = entree(0)->requiers_corps(contexte);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("L'entrée n'est pas connectée !");
@@ -1161,10 +1162,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto dist = 0.001f;
 #if 0

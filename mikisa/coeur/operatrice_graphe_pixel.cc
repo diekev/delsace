@@ -27,8 +27,8 @@
 #include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "contexte_evaluation.hh"
 #include "operatrice_pixel.h"
-
 #include "noeud_image.h"
 
 #pragma clang diagnostic push
@@ -304,15 +304,17 @@ int OperatriceGraphePixel::type() const
 	return OPERATRICE_GRAPHE_PIXEL;
 }
 
-int OperatriceGraphePixel::execute(Rectangle const &rectangle, const int temps)
+int OperatriceGraphePixel::execute(ContexteEvaluation const &contexte)
 {
 	Calque *tampon = nullptr;
+
+	auto const &rectangle = contexte.resolution_rendu;
 
 	if (!entree(0)->connectee()) {
 		tampon = m_image.ajoute_calque("image", rectangle);
 	}
 	else {
-		entree(0)->requiers_image(m_image, rectangle, temps);
+		entree(0)->requiers_image(m_image, contexte);
 		auto nom_calque = evalue_chaine("nom_calque");
 		tampon = m_image.calque(nom_calque);
 	}
@@ -322,7 +324,7 @@ int OperatriceGraphePixel::execute(Rectangle const &rectangle, const int temps)
 		return EXECUTION_ECHOUEE;
 	}
 
-	compile_graphe(temps);
+	compile_graphe(contexte.temps_courant);
 
 	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(rectangle.hauteur)),
 					 [&](tbb::blocked_range<size_t> const &plage)

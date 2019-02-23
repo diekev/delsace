@@ -29,6 +29,8 @@
 
 #include "corps/corps.h"
 
+#include "contexte_evaluation.hh"
+
 /* ************************************************************************** */
 
 void execute_graphe(
@@ -398,7 +400,7 @@ int OperatriceGrapheMaillage::type() const
 	return OPERATRICE_GRAPHE_MAILLAGE;
 }
 
-int OperatriceGrapheMaillage::execute(Rectangle const &rectangle, const int temps)
+int OperatriceGrapheMaillage::execute(ContexteEvaluation const &contexte)
 {
 	if (!this->entree(0)->connectee()) {
 		ajoute_avertissement("L'entrée n'est pas connectée !");
@@ -406,9 +408,9 @@ int OperatriceGrapheMaillage::execute(Rectangle const &rectangle, const int temp
 	}
 
 	m_corps.reinitialise();
-	entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+	entree(0)->requiers_copie_corps(&m_corps, contexte);
 
-	compile_graphe(temps);
+	compile_graphe(contexte.temps_courant);
 
 	/* fais une copie locale pour éviter les problèmes de concurrence critique */
 	auto pile = m_compileuse.pile();
@@ -455,7 +457,7 @@ void OperatriceGrapheMaillage::compile_graphe(int temps)
 
 /* ************************************************************************** */
 
-int OperatricePoint3D::execute(Rectangle const &rectangle, const int temps)
+int OperatricePoint3D::execute(ContexteEvaluation const &contexte)
 {
 	return EXECUTION_REUSSIE;
 }

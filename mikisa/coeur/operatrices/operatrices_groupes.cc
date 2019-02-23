@@ -26,6 +26,7 @@
 
 #include <random>
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -61,16 +62,16 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, int temps) override
+	int execute(ContexteEvaluation const &contexte) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, rectangle, temps);
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
 
 		auto const nom_groupe = evalue_chaine("nom_groupe");
 		auto const contenu = evalue_enum("contenu");
 		auto const chaine_methode = evalue_enum("méthode");
-		auto const probabilite = evalue_decimal("probabilité", temps);
-		auto const graine = evalue_entier("graine", temps);
+		auto const probabilite = evalue_decimal("probabilité", contexte.temps_courant);
+		auto const graine = evalue_entier("graine", contexte.temps_courant);
 
 		if (nom_groupe.empty()) {
 			ajoute_avertissement("Le nom du groupe est vide !");
