@@ -28,13 +28,18 @@
 #include "operatrice_image.h"
 
 class Noeud;
+struct DonneesSimulation;
 
 class OperatriceCorps : public OperatriceImage {
 protected:
 	Corps m_corps{};
+	DonneesSimulation *m_donnees_simulation = nullptr;
 
 public:
 	OperatriceCorps(Graphe &graphe_parent, Noeud *noeud);
+
+	OperatriceCorps(OperatriceCorps const &) = default;
+	OperatriceCorps &operator=(OperatriceCorps const &) = default;
 
 	int type() const override;
 
@@ -43,4 +48,6 @@ public:
 	int type_sortie(int) const override;
 
 	Corps *corps() override;
+
+	void donnees_simulation(DonneesSimulation *donnees);
 };

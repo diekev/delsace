@@ -25,6 +25,7 @@
 #include "operatrice_simulation.hh"
 
 #include "contexte_evaluation.hh"
+#include "donnees_simulation.hh"
 #include "noeud_image.h"
 
 OperatriceSimulation::OperatriceSimulation(Graphe &graphe_parent, Noeud *noeud)
@@ -115,9 +116,27 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte)
 
 	m_dernier_temps = contexte.temps_courant;
 
-	execute_noeud(sortie_graphe, contexte);
+	/* Renseigne les données de simulation aux noeuds du graphe. */
+	auto donnees_sim = DonneesSimulation{};
+	donnees_sim.dt = 0.1; //static_cast<double>(evalue_decimal("dt"));
+	donnees_sim.temps_fin = temps_fin;
+	donnees_sim.temps_debut = temps_debut;
+	donnees_sim.sous_etape = 0;
+	donnees_sim.dernier_temps = m_dernier_temps;
+
+	for (auto &noeud : m_graphe.noeuds()) {
+		auto ptr = noeud.get();
+		auto op = std::any_cast<OperatriceImage *>(ptr->donnees());
+
+		if (op->type() == OPERATRICE_CORPS) {
+			auto op_corps = dynamic_cast<OperatriceCorps *>(op);
+			op_corps->donnees_simulation(&donnees_sim);
+		}
+	}
 
 	/* exécute graphe */
+	execute_noeud(sortie_graphe, contexte);
+
 	auto op_sortie = std::any_cast<OperatriceImage *>(sortie_graphe->donnees());
 
 	m_corps.reinitialise();
