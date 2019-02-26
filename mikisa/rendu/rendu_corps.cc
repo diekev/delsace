@@ -571,6 +571,8 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 		return;
 	}
 
+	std::vector<bool> point_utilise(static_cast<size_t>(liste_points->taille()), false);
+
 	if (liste_prims->taille() != 0l) {
 		auto attr_N = m_corps->attribut("N");
 		auto attr_C = m_corps->attribut("C");
@@ -589,6 +591,10 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 				}
 				else if (polygone->type == type_polygone::OUVERT) {
 					ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment, couleurs_segment);
+				}
+
+				for (auto i = 0; i < polygone->nombre_sommets(); ++i) {
+					point_utilise[static_cast<size_t>(polygone->index_point(i))] = true;
 				}
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
@@ -660,16 +666,31 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 		}
 	}
 
-	if (m_tampon_segments || m_tampon_polygones) {
-		return;
-	}
+//	if (m_tampon_segments || m_tampon_polygones) {
+//		return;
+//	}
 
 	std::vector<dls::math::vec3f> points;
 	std::vector<dls::math::vec3f> couleurs;
 	points.reserve(static_cast<size_t>(liste_points->taille()));
+	couleurs.reserve(static_cast<size_t>(liste_points->taille()));
+
+	auto attr_C = m_corps->attribut("C");
 
 	for (auto i = 0; i < liste_points->taille(); ++i) {
+		if (point_utilise[static_cast<size_t>(i)]) {
+			continue;
+		}
+
 		points.push_back(liste_points->point(i));
+
+		if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
+			couleurs.push_back(attr_C->vec3(i));
+		}
+	}
+
+	if (points.empty()) {
+		return;
 	}
 
 	m_tampon_points = cree_tampon_segments();
@@ -688,14 +709,12 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 
 	m_tampon_points->remplie_tampon(parametres_tampon);
 
-	auto attr_C = m_corps->attribut("C");
-
-	if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
+	if (couleurs.size() != 0ul) {
 		parametres_tampon.attribut = "couleur_sommet";
 		parametres_tampon.dimension_attribut = 3;
-		parametres_tampon.pointeur_donnees_extra = attr_C->donnees();
-		parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(attr_C->taille_octets());
-		parametres_tampon.elements = static_cast<size_t>(attr_C->taille());
+		parametres_tampon.pointeur_donnees_extra = couleurs.data();
+		parametres_tampon.taille_octet_donnees_extra = couleurs.size() * sizeof(dls::math::vec3f);
+		parametres_tampon.elements = static_cast<size_t>(couleurs.size());
 
 		m_tampon_points->remplie_tampon_extra(parametres_tampon);
 		auto programme = m_tampon_points->programme();
