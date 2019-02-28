@@ -1,0 +1,6 @@
+disposition "operatrice_trainee_points" {
+    ligne {
+	    étiquette(valeur="Taille")
+		décimal(valeur=1.0; attache=taille; min=0)
+	}
+}

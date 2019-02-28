@@ -42,6 +42,7 @@ menu "Noeud Objet" {
 		action(valeur="Gigue Points"; attache=ajouter_noeud; métadonnée="Gigue Points")
 		action(valeur="Maillage Alpha"; attache=ajouter_noeud; métadonnée="Maillage Alpha")
 		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
+		action(valeur="Trainée"; attache=ajouter_noeud; métadonnée="Trainée")
 	}
 	menu "Simulation" {
 	    action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")

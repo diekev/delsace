@@ -1310,6 +1310,84 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceCreationTrainee final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Trainée";
+	static constexpr auto AIDE = "Crée une trainée derrière des particules selon leurs vélocités.";
+
+	explicit OperatriceCreationTrainee(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_trainee_points.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		m_corps.reinitialise();
+		auto corps_entree = entree(0)->requiers_corps(contexte);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("Aucun corps connecté !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto points_entree = corps_entree->points();
+
+		if (points_entree->taille() == 0) {
+			this->ajoute_avertissement("Il n'y a pas de points en entrée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto attr_V = corps_entree->attribut("V");
+
+		if (attr_V == nullptr) {
+			this->ajoute_avertissement("Aucun attribut de vélocité trouvé sur le corps !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* À FAIRE : transfère d'attributs */
+
+		m_corps.points()->reserve(points_entree->taille() * 2);
+
+		auto dt = static_cast<float>(1.0 / contexte.cadence);
+		auto const taille = evalue_decimal("taille");
+
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			auto p = points_entree->point(i);
+			auto v = attr_V->vec3(i);
+
+			m_corps.ajoute_point(p.x, p.y, p.z);
+
+			p -= v * dt * taille;
+
+			m_corps.ajoute_point(p.x, p.y, p.z);
+
+			auto seg = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
+			seg->ajoute_sommet(i * 2);
+			seg->ajoute_sommet(i * 2 + 1);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
@@ -1318,6 +1396,7 @@ void enregistre_operatrices_particules(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceMaillageAlpha>());
 	usine.enregistre_type(cree_desc<OperatriceEnleveDoublons>());
 	usine.enregistre_type(cree_desc<OperatriceGiguePoints>());
+	usine.enregistre_type(cree_desc<OperatriceCreationTrainee>());
 }
 
 #pragma clang diagnostic pop
