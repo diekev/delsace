@@ -122,6 +122,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_flou.jo
 	scripts_danjo/operatrice_fusion.jo
 	scripts_danjo/operatrice_gamma.jo
+	scripts_danjo/operatrice_gigue_points.jo
 	scripts_danjo/operatrice_grade.jo
 	scripts_danjo/operatrice_gravite.jo
 	scripts_danjo/operatrice_incrustation.jo

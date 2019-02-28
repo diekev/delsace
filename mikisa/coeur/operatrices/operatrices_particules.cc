@@ -1246,6 +1246,70 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceGiguePoints final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Gigue Points";
+	static constexpr auto AIDE = "Gigue les points d'entrée.";
+
+	explicit OperatriceGiguePoints(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_gigue_points.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
+
+		auto points_entree = m_corps.points();
+
+		if (points_entree->taille() == 0) {
+			this->ajoute_avertissement("Il n'y a pas de points en entrée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto const graine = evalue_entier("graine");
+		auto const taille = evalue_decimal("taille");
+		auto const taille_par_axe = evalue_vecteur("taille_par_axe");
+
+		/* À FAIRE : pondérer selon un attribut, genre taille de point d'une
+		 * opératrice de création de points. */
+
+		auto rng = std::mt19937{graine};
+		auto dist = std::uniform_real_distribution<float>(-0.5f * taille, 0.5f * taille);
+
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			auto p = points_entree->point(i);
+
+			p.x += dist(rng) * taille_par_axe.x;
+			p.y += dist(rng) * taille_par_axe.y;
+			p.z += dist(rng) * taille_par_axe.z;
+
+			points_entree->point(i, p);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
@@ -1253,6 +1317,7 @@ void enregistre_operatrices_particules(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceTirageFleche>());
 	usine.enregistre_type(cree_desc<OperatriceMaillageAlpha>());
 	usine.enregistre_type(cree_desc<OperatriceEnleveDoublons>());
+	usine.enregistre_type(cree_desc<OperatriceGiguePoints>());
 }
 
 #pragma clang diagnostic pop

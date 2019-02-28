@@ -1,0 +1,14 @@
+disposition "operatrice_gigue_points" {
+    ligne {
+	    étiquette(valeur="Taille")
+		décimal(valeur=1.0; attache=taille; min=0)
+	}
+	ligne {
+	    étiquette(valeur="Taille Par Axe")
+		vecteur(valeur="1,1,1"; attache=taille_par_axe)
+	}
+	ligne {
+	    étiquette(valeur="Graine")
+		entier(valeur=1; attache=graine; min=1)
+	}
+}
