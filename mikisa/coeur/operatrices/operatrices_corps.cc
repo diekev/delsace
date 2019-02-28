@@ -525,6 +525,66 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceCreationLigne final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Création Ligne";
+	static constexpr auto AIDE = "Crée une ligne.";
+
+	explicit OperatriceCreationLigne(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(0);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_ligne.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		INUTILISE(contexte);
+		m_corps.reinitialise();
+
+		auto const segments = evalue_entier("segments");
+		auto const taille = evalue_decimal("taille");
+		auto const direction = normalise(evalue_vecteur("direction"));
+		auto const origine = evalue_vecteur("origine");
+
+		auto const taille_segment = taille / static_cast<float>(segments);
+
+		auto t = 0.0f;
+
+		for (auto i = 0; i <= segments; ++i) {
+			auto p = origine + t * direction;
+
+			m_corps.ajoute_point(p.x, p.y, p.z);
+
+			t += taille_segment;
+		}
+
+		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, segments + 1);
+
+		for (auto i = 0; i <= segments; ++i) {
+			poly->ajoute_sommet(i);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 class OperatriceLectureObjet final : public OperatriceCorps {
 	ManipulatricePosition3D m_manipulatrice_position{};
 	ManipulatriceEchelle3D m_manipulatrice_echelle{};
@@ -1156,6 +1216,7 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCreationCone>());
 	usine.enregistre_type(cree_desc<OperatriceCreationCercle>());
 	usine.enregistre_type(cree_desc<OperatriceCreationTorus>());
+	usine.enregistre_type(cree_desc<OperatriceCreationLigne>());
 	usine.enregistre_type(cree_desc<OperatriceLectureObjet>());
 	usine.enregistre_type(cree_desc<OperatriceSortieCorps>());
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());

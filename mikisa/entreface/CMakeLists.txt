@@ -88,6 +88,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_3d_cube.jo
 	scripts_danjo/operatrice_3d_cylindre.jo
 	scripts_danjo/operatrice_3d_grille.jo
+	scripts_danjo/operatrice_3d_ligne.jo
 	scripts_danjo/operatrice_3d_lissage_laplacien.jo
 	scripts_danjo/operatrice_3d_normaux.jo
 	scripts_danjo/operatrice_3d_randomisation_attribut.jo
