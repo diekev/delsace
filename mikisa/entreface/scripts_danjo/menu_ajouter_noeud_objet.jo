@@ -45,7 +45,8 @@ menu "Noeud Objet" {
 		action(valeur="Trainée"; attache=ajouter_noeud; métadonnée="Trainée")
 	}
 	menu "Simulation" {
-	    action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
+	    action(valeur="Kelvinlet"; attache=ajouter_noeud; métadonnée="Kelvinlet")
+		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
 		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
 	}
 	menu "Volume" {

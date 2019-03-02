@@ -1,0 +1,36 @@
+disposition "operatrice_kelvinlet" {
+    ligne {
+	    étiquette(valeur="Temps")
+		décimal(valeur=1.0; min=1; attache=temps)
+	}
+	ligne {
+		étiquette(valeur="Itérations")
+		entier(valeur=5; min=1; attache=itérations)
+	}
+	ligne {
+		étiquette(valeur="Action")
+		énum(valeur="grab"; attache=action_;
+			 items=[
+				{nom="Grab", valeur="grab"},
+				{nom="Twist", valeur="twist"},
+				{nom="Scale", valeur="scale"},
+				{nom="Pinch", valeur="pinch"}
+			 ])
+	}
+	ligne {
+		étiquette(valeur="Pousse")
+		case(valeur=vrai; attache=pousse; infobulle="Utilise une poussée si vrai, une impulsion si faux")
+	}
+	ligne {
+	    étiquette(valeur="Vitesse")
+		décimal(valeur=5.0; min=0; attache=vitesse)
+	}
+	ligne {
+	    étiquette(valeur="Incompressibilité")
+		décimal(valeur=0.45; max=0.5; attache=incompressibilité)
+	}
+	ligne {
+	    étiquette(valeur="Échelle Régularisation")
+		décimal(valeur=1.5; min=0; attache=échelle)
+	}
+}

@@ -59,6 +59,7 @@ set(BIBLIOTHEQUES
 	fftw3
 	pthread
 	${BIBLIOTHEQUES_BULLET}
+	bib_kelvinlet
 )
 
 qt5_wrap_cpp(

@@ -24,6 +24,7 @@
 
 #include "operatrices_corps.hh"
 
+#include "bibliotheques/kelvinlet/kelvinlet.hh"
 #include "bibliotheques/objets/creation.h"
 #include "bibliotheques/objets/import_objet.h"
 #include "bibliotheques/outils/constantes.h"
@@ -1206,6 +1207,162 @@ public:
 
 /* ************************************************************************** */
 
+using Scalar   = Kelvinlet::Scalar;
+using Vector3  = Kelvinlet::Vector3;
+using Matrix33 = Kelvinlet::Matrix33;
+using Deformer = std::vector<Kelvinlet::DynaBase::Ptr>;
+
+template <class DynaType>
+static auto ajoute_deformeur(
+		Deformer &deformeurs,
+		typename DynaType::Force const &force,
+		Scalar nu,
+		Scalar mu,
+		Scalar eps)
+{
+	auto def = DynaType{};
+	def.SetEps(eps);
+	def.SetMaterial(mu, nu);
+	def.SetForce(force);
+	def.Calibrate();
+
+	Kelvinlet::DynaBase::Ptr ptr;
+	ptr.reset(new DynaType(def));
+
+	deformeurs.push_back(ptr);
+}
+
+static auto deforme_kelvinlet(
+		const Vector3& p,
+		const Scalar&  t,
+		const Deformer& deformer)
+{
+	Vector3 u = Vector3::Zero();
+
+	for (const auto& def : deformer) {
+		u += def->EvalDispRK4(p, t);
+	}
+
+	return u;
+}
+
+class OpKelvinlet final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Kelvinlet";
+	static constexpr auto AIDE = "";
+
+	explicit OpKelvinlet(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_kelvinlet.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
+
+		if (m_corps.points()->taille() == 0) {
+			this->ajoute_avertissement("Le corps d'entrée est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto temps = static_cast<double>(evalue_decimal("temps"));
+		/* À FAIRE : composition et paramétrage des déformeurs,
+		 * Il faut pouvoir choisir le point de départ, la rotation, l'échelle,
+		 * l'activation, etc. voir vidéo de démonstration.
+		 * Il est également possible de définir le temps d'activation, donc il
+		 * faut peut-être stocker les déformeurs. */
+		auto incompressibilite = static_cast<double>(evalue_decimal("incompressibilité"));
+		auto vitesse = static_cast<double>(evalue_decimal("vitesse"));
+		auto echelle = static_cast<double>(evalue_decimal("échelle"));
+		auto pousse = evalue_bool("pousse");
+		//auto iterations = evalue_entier("itérations");
+		auto action = evalue_enum("action_");
+
+		incompressibilite = std::min(incompressibilite, 0.5);
+		vitesse = std::max(vitesse, 0.00001);
+		echelle = std::max(echelle, 0.00001);
+
+		Deformer deformeur;
+
+		if (action == "grab") {
+			Vector3 f = 2.0 * Vector3::UnitY();
+
+			if (pousse) {
+				using DynaType = Kelvinlet::DynaPushGrab;
+				ajoute_deformeur<DynaType>(deformeur, f, incompressibilite, vitesse, echelle);
+			}
+			else {
+				using DynaType = Kelvinlet::DynaPulseGrab;
+				ajoute_deformeur<DynaType>(deformeur, f, incompressibilite, vitesse, echelle);
+			}
+		}
+		/* affine */
+		else {
+			Matrix33 F = Matrix33::Zero();
+
+			if (action == "twist") {
+				Vector3 axisAngle = 0.25 * M_PI * Vector3::UnitZ();
+				F = Kelvinlet::AssembleSkewSymMatrix(axisAngle);
+			}
+			else if (action == "scale") {
+				F = Matrix33::Identity();
+			}
+			else if (action == "pinch") {
+				F(0, 0) =  1.0;
+				F(1, 1) = -1.0;
+			}
+
+			if (pousse) {
+				using DynaType = Kelvinlet::DynaPushAffine;
+				ajoute_deformeur<DynaType>(deformeur, F, incompressibilite, vitesse, echelle);
+			}
+			else {
+				using DynaType = Kelvinlet::DynaPulseAffine;
+				ajoute_deformeur<DynaType>(deformeur, F, incompressibilite, vitesse, echelle);
+			}
+		}
+
+		/* calcule la déformation */
+		auto points_entree = m_corps.points();
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			auto p = points_entree->point(i);
+
+			auto point_eigen = Vector3();
+			point_eigen << static_cast<double>(p.x), static_cast<double>(p.y), static_cast<double>(p.z);
+
+			auto dist = deforme_kelvinlet(point_eigen, temps, deformeur);
+
+			p.x += static_cast<float>(dist[0]);
+			p.y += static_cast<float>(dist[1]);
+			p.z += static_cast<float>(dist[2]);
+
+			points_entree->point(i, p);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_corps(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationGrille>());
@@ -1221,6 +1378,7 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSortieCorps>());
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());
 	usine.enregistre_type(cree_desc<OperatriceTransformation>());
+	usine.enregistre_type(cree_desc<OpKelvinlet>());
 }
 
 #pragma clang diagnostic pop

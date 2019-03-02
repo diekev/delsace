@@ -714,7 +714,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 		parametres_tampon.dimension_attribut = 3;
 		parametres_tampon.pointeur_donnees_extra = couleurs.data();
 		parametres_tampon.taille_octet_donnees_extra = couleurs.size() * sizeof(dls::math::vec3f);
-		parametres_tampon.elements = static_cast<size_t>(couleurs.size());
+		parametres_tampon.elements = couleurs.size();
 
 		m_tampon_points->remplie_tampon_extra(parametres_tampon);
 		auto programme = m_tampon_points->programme();
