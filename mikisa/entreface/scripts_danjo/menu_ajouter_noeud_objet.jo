@@ -32,6 +32,7 @@ menu "Noeud Objet" {
 		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe Maillage")
 		action(valeur="Lissage Laplacien"; attache=ajouter_noeud; métadonnée="Lissage Laplacien")
 		action(valeur="OpenSubDiv"; attache=ajouter_noeud; métadonnée="OpenSubDiv")
+		action(valeur="Séparation Primitives"; attache=ajouter_noeud; métadonnée="Séparation Primitives")
 		action(valeur="Texture"; attache=ajouter_noeud; métadonnée="Texture")
 		action(valeur="Triangulation"; attache=ajouter_noeud; métadonnée="Triangulation")
 		action(valeur="Visualiation Arbre BVH"; attache=ajouter_noeud; métadonnée="Visualiation Arbre BVH")

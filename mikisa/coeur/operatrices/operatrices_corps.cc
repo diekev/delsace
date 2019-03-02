@@ -1207,6 +1207,76 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceSeparationPrims final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Séparation Primitives";
+	static constexpr auto AIDE = "Sépare les primitives du corps d'entrée de sorte que chaque primitive du corps de sortie n'ait que des points uniques.";
+
+	explicit OperatriceSeparationPrims(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		m_corps.reinitialise();
+		auto corps_entree = entree(0)->requiers_corps(contexte);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("Aucun corps en entrée.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto prims_entree = corps_entree->prims();
+		auto points_entree = corps_entree->points();
+
+		for (auto i = 0; i < prims_entree->taille(); ++i) {
+			auto prim = prims_entree->prim(i);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
+			auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+
+			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+				/* À FAIRE : transforme pos monde ? */
+				auto point = points_entree->point(poly->index_point(j));
+
+				auto index = m_corps.ajoute_point(point.x, point.y, point.z);
+
+				npoly->ajoute_sommet(static_cast<long>(index));
+			}
+		}
+
+		m_corps.transformation = corps_entree->transformation;
+
+		/* À FAIRE : transfère attribut */
+		if (corps_entree->attribut("N") != nullptr) {
+			/* Les normaux sont forcément plats, car les primitives ont été
+			 *  séparées. */
+			calcul_normaux(m_corps, true, false);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 using Scalar   = Kelvinlet::Scalar;
 using Vector3  = Kelvinlet::Vector3;
 using Matrix33 = Kelvinlet::Matrix33;
@@ -1378,6 +1448,7 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSortieCorps>());
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());
 	usine.enregistre_type(cree_desc<OperatriceTransformation>());
+	usine.enregistre_type(cree_desc<OperatriceSeparationPrims>());
 	usine.enregistre_type(cree_desc<OpKelvinlet>());
 }
 
