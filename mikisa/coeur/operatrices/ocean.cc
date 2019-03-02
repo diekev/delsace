@@ -33,8 +33,6 @@
 #include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/gna.hh"
 
-static constexpr auto GRAVITE = 9.81f;
-
 /* ************************************************************************** */
 
 /* À FAIRE : fonction similaire dans dls::math pour la 3D */
@@ -68,9 +66,10 @@ auto catrom(T p0, T p1, T p2, T p3, T f)
 				   (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * f * f * f);
 }
 
-float omega(float k, float depth)
+template <typename T>
+auto omega(T k, T depth, T gravite)
 {
-	return sqrtf(GRAVITE * k * tanhf(k * depth));
+	return std::sqrt(gravite * k * std::tanh(k * depth));
 }
 
 /* modified Phillips spectrum */
@@ -390,7 +389,7 @@ struct OceanSimulateData {
 	float pad;
 };
 
-static void ocean_compute_htilda(OceanSimulateData *osd)
+static void ocean_compute_htilda(OceanSimulateData *osd, float gravite)
 {
 	const Ocean *o = osd->o;
 	const float scale = osd->scale;
@@ -403,8 +402,8 @@ static void ocean_compute_htilda(OceanSimulateData *osd)
 			fftw_complex exp_param2;
 			fftw_complex conj_param;
 
-			init_complex(exp_param1, 0.0, omega(o->_k[i * (1 + o->_N / 2) + j], o->_depth) * t);
-			init_complex(exp_param2, 0.0, -omega(o->_k[i * (1 + o->_N / 2) + j], o->_depth) * t);
+			init_complex(exp_param1, 0.0, omega(o->_k[i * (1 + o->_N / 2) + j], o->_depth, gravite) * t);
+			init_complex(exp_param2, 0.0, -omega(o->_k[i * (1 + o->_N / 2) + j], o->_depth, gravite) * t);
 			exp_complex(exp_param1, exp_param1);
 			exp_complex(exp_param2, exp_param2);
 			conj_complex(conj_param, o->_h0_minus[i * o->_N + j]);
@@ -602,7 +601,7 @@ static void ocean_compute_normal_z(OceanSimulateData *osd)
 	fftw_execute(o->_N_z_plan);
 }
 
-void BKE_ocean_simulate(Ocean *o, float t, float scale, float chop_amount)
+void BKE_ocean_simulate(Ocean *o, float t, float scale, float chop_amount, float gravite)
 {
 	OceanSimulateData osd;
 
@@ -623,7 +622,7 @@ void BKE_ocean_simulate(Ocean *o, float t, float scale, float chop_amount)
 
 	/* compute a new htilda */
 
-	ocean_compute_htilda(&osd);
+	ocean_compute_htilda(&osd, gravite);
 
 	if (o->_do_disp_y) {
 		ocean_compute_displacement_y(&osd);
@@ -649,7 +648,7 @@ void BKE_ocean_simulate(Ocean *o, float t, float scale, float chop_amount)
 //	BLI_rw_mutex_unlock(&o->oceanmutex);
 }
 
-static void set_height_normalize_factor(Ocean *oc)
+static void set_height_normalize_factor(Ocean *oc, float gravite)
 {
 	auto res = 1.0;
 	auto max_h = 0.0;
@@ -660,7 +659,7 @@ static void set_height_normalize_factor(Ocean *oc)
 
 	oc->normalize_factor = 1.0;
 
-	BKE_ocean_simulate(oc, 0.0, 1.0, 0);
+	BKE_ocean_simulate(oc, 0.0, 1.0, 0, gravite);
 
 //	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
 
@@ -718,12 +717,12 @@ void BKE_ocean_init_from_modifier(Ocean *ocean, OceanModifierData const *omd)
 				   omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
 				   omd->depth, omd->time,
 				   do_heightfield, do_chop, do_normals, do_jacobian,
-				   omd->seed);
+				   omd->seed, omd->gravite);
 }
 
 void BKE_ocean_init(Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
 					float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals,
-					short do_jacobian, int seed)
+					short do_jacobian, int seed, float gravite)
 {
 	int i, j, ii;
 
@@ -742,7 +741,7 @@ void BKE_ocean_init(Ocean *o, int M, int N, float Lx, float Lz, float V, float l
 	o->_Lz = Lz;
 	o->_wx = std::cos(w);
 	o->_wz = -std::sin(w); /* wave direction */
-	o->_L = V * V / GRAVITE;  /* largest wave for a given velocity V */
+	o->_L = V * V / gravite;  /* largest wave for a given velocity V */
 	o->time = time;
 
 	o->_do_disp_y = do_height_field;
@@ -851,7 +850,7 @@ void BKE_ocean_init(Ocean *o, int M, int N, float Lx, float Lz, float V, float l
 
 	//BLI_rw_mutex_unlock(&o->oceanmutex);
 
-	set_height_normalize_factor(o);
+	set_height_normalize_factor(o, gravite);
 }
 
 void BKE_ocean_free_data(Ocean *oc)

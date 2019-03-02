@@ -931,7 +931,7 @@ public:
 	}
 	void simulate_ocean_modifier(struct OceanModifierData *omd)
 	{
-		BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount);
+		BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount, omd->gravite);
 	}
 
 	int execute(ContexteEvaluation const &contexte) override
@@ -965,6 +965,8 @@ public:
 		omd.size = evalue_decimal("taille");
 		omd.repeat_x = evalue_entier("répétition_x");
 		omd.repeat_y = evalue_entier("répétition_y");
+
+		omd.gravite = evalue_decimal("gravité");
 
 		omd.cached = 0;
 		omd.bakestart = 1;

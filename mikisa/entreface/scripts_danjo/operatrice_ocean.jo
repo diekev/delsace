@@ -21,6 +21,10 @@ disposition "operatrice_ocean" {
 		entier(valeur=50; min=1; max=512; attache=taille_spaciale)
 	}
 	ligne {
+	    étiquette(valeur="Gravité")
+		décimal(valeur=9.81; attache=gravité; min=0)
+	}
+	ligne {
 	    étiquette(valeur="Vélocité vent")
 		décimal(valeur=30.0; attache=vélocité_vent)
 	}

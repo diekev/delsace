@@ -156,10 +156,9 @@ void BKE_ocean_free(struct Ocean *oc);
 bool BKE_ocean_ensure(struct OceanModifierData *omd);
 void BKE_ocean_init_from_modifier(struct Ocean *ocean, struct OceanModifierData const *omd);
 
-void BKE_ocean_init(
-		struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
-		float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals, short do_jacobian, int seed);
-void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount);
+void BKE_ocean_init(struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
+		float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals, short do_jacobian, int seed, float gravite);
+void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount, float gravite);
 
 /* sampling the ocean surface */
 float BKE_ocean_jminus_to_foam(float jminus, float coverage);
@@ -227,7 +226,7 @@ typedef struct OceanModifierData {
 
 	float foam_fade;
 
-	int pad;
+	float gravite;
 } OceanModifierData;
 
 enum {
