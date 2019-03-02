@@ -26,15 +26,31 @@
 
 #include <random>
 
+#include <delsace/math/vecteur.hh>
+
 class GNA {
 	std::mt19937 m_gna;
 
 public:
 	explicit GNA(int graine = 1);
 
+	/* distribution uniforme */
+
 	int uniforme(int min, int max);
+
+	long uniforme(long min, long max);
 
 	float uniforme(float min, float max);
 
 	double uniforme(double min, double max);
+
+	dls::math::vec3f uniforme_vec3(float min, float max);
+
+	/* distribution normale */
+
+	float normale(float moyenne, float ecart);
+
+	double normale(double moyenne, double ecart);
+
+	dls::math::vec3f normale_vec3(float moyenne, float ecart);
 };

@@ -24,7 +24,7 @@
 
 #include "operatrices_groupes.hh"
 
-#include <random>
+#include "bibliotheques/outils/gna.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
@@ -101,8 +101,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		std::mt19937 rng(graine);
-		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+		auto gna = GNA(graine);
 
 		auto const echantillonage_reservoir = false; // À FAIRE : CRASH
 		auto n = 0l;
@@ -151,8 +150,7 @@ public:
 
 				// Remplace les éléments avec une probabilité descendante
 				for (auto i = k; i < n; ++i) {
-					auto distj = std::uniform_int_distribution<long> (0, i);
-					auto j = distj(rng);
+					auto j = gna.uniforme(0l, i);
 
 					if (j < k) {
 						groupe->remplace_index(static_cast<size_t>(j), index_possibles[static_cast<size_t>(i)]);
@@ -161,7 +159,7 @@ public:
 			}
 			else {
 				for (auto i = depart; i < n; i += decalage) {
-					if (dist(rng) > probabilite) {
+					if (gna.uniforme(0.0f, 1.0f) > probabilite) {
 						continue;
 					}
 
@@ -192,8 +190,7 @@ public:
 
 				// Remplace les éléments avec une probabilité descendante
 				for (auto i = k; i < n; ++i) {
-					auto distj = std::uniform_int_distribution<long> (0, i);
-					auto j = distj(rng);
+					auto j = gna.uniforme(0l, i);
 
 					if (j < k) {
 						groupe->remplace_index(static_cast<size_t>(j), index_possibles[static_cast<size_t>(i)]);
@@ -202,7 +199,7 @@ public:
 			}
 			else {
 				for (auto i = depart; i < n; i += decalage) {
-					if (dist(rng) > probabilite) {
+					if (gna.uniforme(0.0f, 1.0f) > probabilite) {
 						continue;
 					}
 

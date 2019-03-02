@@ -22,6 +22,7 @@
 set(NOM_CIBLE bib_outils)
 
 set(INCLUSIONS
+	${INCLUSIONS_DELSACE_MATH}
 )
 
 add_library(${NOM_CIBLE} STATIC

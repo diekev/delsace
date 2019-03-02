@@ -24,9 +24,8 @@
 
 #include "operatrices_volume.hh"
 
-#include <random>
-
 #include "bibliotheques/outils/definitions.hh"
+#include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
 #include "../corps/collision.hh"
@@ -74,8 +73,7 @@ public:
 
 		m_corps.reinitialise();
 
-		std::mt19937 rng(19937);
-		std::uniform_real_distribution dist(0.0f, 1.0f);
+		auto gna = GNA();
 
 		auto volume = new Volume();
 		auto grille_scalaire = new Grille<float>;
@@ -84,7 +82,7 @@ public:
 		for (size_t x = 0; x < 32; ++x) {
 			for (size_t y = 0; y < 32; ++y) {
 				for (size_t z = 0; z < 32; ++z) {
-					grille_scalaire->valeur(x, y, z, dist(rng));
+					grille_scalaire->valeur(x, y, z, gna.uniforme(0.0f, 1.0f));
 				}
 			}
 		}

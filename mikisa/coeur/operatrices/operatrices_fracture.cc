@@ -24,8 +24,7 @@
 
 #include "operatrices_fracture.hh"
 
-#include <random>
-
+#include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/voro/voro++.hh"
 
 #include "../operatrice_corps.h"
@@ -171,8 +170,7 @@ public:
 
 		/* conversion des données */
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
-		auto dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
-		auto rng = std::mt19937(30102807);
+		auto gna = GNA();
 
 		auto poly_index_offset = 0;
 
@@ -185,7 +183,7 @@ public:
 				m_corps.ajoute_point(c.verts[i][0], c.verts[i][1], c.verts[i][2]);
 			}
 
-			auto couleur = dls::math::vec3f(dist(rng), dist(rng), dist(rng));
+			auto couleur = gna.uniforme_vec3(0.0f, 1.0f);
 
 			for (size_t i = 0; i < static_cast<size_t>(c.totpoly); ++i) {
 				auto nombre_verts = c.poly_totvert[i];

@@ -24,8 +24,6 @@
 
 #include "operatrices_region.h"
 
-#include <random>
-
 #include <numero7/image/operations/champs_distance.h>
 #include <numero7/image/operations/conversion.h>
 #include <numero7/image/operations/convolution.h>
@@ -34,6 +32,7 @@
 #include <numero7/math/matrice/operations.h>
 
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
 #include "../contexte_evaluation.hh"
@@ -997,7 +996,7 @@ static type_image_grise simule_grain_image(
 	auto const delta = 1.0f / std::ceil(1.0f / rayon_max);
 	auto const delta_inv = 1.0f / delta;
 
-	std::mt19937 rng(graine);
+	auto gna = GNA(graine);
 
 	/* précalcul des lambdas */
 	std::vector<float> lambdas(MAX_NIVEAU_GRIS);
@@ -1015,18 +1014,16 @@ static type_image_grise simule_grain_image(
 	std::vector<float> liste_gaussien_x(iter);
 	std::vector<float> liste_gaussien_y(iter);
 
-	std::normal_distribution<float> dist_normal(0.0, sigma_filtre);
-
 	for (size_t i = 0; i < iter; ++i) {
-		liste_gaussien_x[i] = dist_normal(rng);
-		liste_gaussien_y[i] = dist_normal(rng);
+		liste_gaussien_x[i] = gna.normale(0.0f, sigma_filtre);
+		liste_gaussien_y[i] = gna.normale(0.0f, sigma_filtre);
 	}
 
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
-		std::uniform_real_distribution<float> U(0.0f, 1.0f);
-		std::mt19937 rng_local(static_cast<size_t>(graine + plage.begin()));
+		auto gna_local = GNA(graine + plage.begin());
+
 		auto rayon_courant = 0.0f;
 		auto rayon_courant2 = rayon_grain2;
 
@@ -1056,17 +1053,17 @@ static type_image_grise simule_grain_image(
 							auto const u = std::max(0.0f, std::min(1.0f, image[int(coin_y)][int(coin_x)]));
 							auto const index_u = static_cast<size_t>(u * MAX_NIVEAU_GRIS);
 							auto const lambda = lambdas[index_u];
-							auto const Q = poisson(U(rng_local), lambda);
+							auto const Q = poisson(gna_local.uniforme(0.0f, 1.0f), lambda);
 
 							for (unsigned l = 1; l <= Q; ++l) {
 								// prend un centre aléatoire d'une distribution uniforme dans un carré ([id, id+1), [jd, jd+1))
-								auto grain_x = coin_x + U(rng_local) * delta;
-								auto grain_y = coin_y + U(rng_local) * delta;
+								auto grain_x = coin_x + gna_local.uniforme(0.0f, 1.0f) * delta;
+								auto grain_y = coin_y + gna_local.uniforme(0.0f, 1.0f) * delta;
 								auto dx = grain_x - gaussien_x;
 								auto dy = grain_y - gaussien_y;
 
 								if (sigma_rayon > 0.0f) {
-									rayon_courant = std::min(std::exp(mu + sigma * U(rng_local)), rayon_max);
+									rayon_courant = std::min(std::exp(mu + sigma * gna_local.uniforme(0.0f, 1.0f)), rayon_max);
 									rayon_courant2 = rayon_courant * rayon_courant;
 								}
 								else if (sigma_rayon == 0.0f) {

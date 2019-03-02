@@ -25,41 +25,20 @@
 #include "ocean.hh"
 
 #include <cmath>
-#include <random>
 
 #include <delsace/math/entrepolation.hh>
 #include <delsace/math/outils.hh>
 
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/definitions.hh"
+#include "bibliotheques/outils/gna.hh"
 
 static constexpr auto GRAVITE = 9.81f;
 
-class RNG {
-	std::mt19937 m_rng;
-	std::uniform_real_distribution<float> m_dist;
-
-public:
-	RNG(int graine = 1, float min = 0.0f, float max = 1.0f)
-		: m_rng(graine)
-		, m_dist(min, max)
-	{}
-
-	float get_float()
-	{
-		return m_dist(m_rng);
-	}
-};
-
 /* ************************************************************************** */
 
-static float nextfr(RNG &rng, float min, float max)
-{
-	return rng.get_float() * (min - max) + max;
-}
-
 /* À FAIRE : fonction similaire dans dls::math pour la 3D */
-static float gaussRand(RNG &rng)
+static float gaussRand(GNA &gna)
 {
 	/* Note: to avoid numerical problems with very small numbers, we make these variables singe-precision floats,
 	 * but later we call the double-precision log() and sqrt() functions instead of logf() and sqrtf().
@@ -69,8 +48,8 @@ static float gaussRand(RNG &rng)
 	float length2;
 
 	do {
-		x = nextfr(rng, -1.0f, 1.0f);
-		y = nextfr(rng, -1.0f, 1.0f);
+		x = gna.uniforme(-1.0f, 1.0f);
+		y = gna.uniforme(-1.0f, 1.0f);
 		length2 = x * x + y * y;
 	} while (length2 >= 1.0f || length2 == 0.0f);
 
@@ -805,13 +784,12 @@ void BKE_ocean_init(Ocean *o, int M, int N, float Lx, float Lz, float V, float l
 		for (j = 0; j <= o->_N / 2; ++j)
 			o->_k[i * (1 + o->_N / 2) + j] = std::sqrt(o->_kx[i] * o->_kx[i] + o->_kz[j] * o->_kz[j]);
 
-	/*srand(seed);*/
-	auto rng = RNG(seed);
+	auto gna = GNA(seed);
 
 	for (i = 0; i < o->_M; ++i) {
 		for (j = 0; j < o->_N; ++j) {
-			float r1 = gaussRand(rng);
-			float r2 = gaussRand(rng);
+			float r1 = gaussRand(gna);
+			float r2 = gaussRand(gna);
 
 			fftw_complex r1r2;
 			init_complex(r1r2, r1, r2);

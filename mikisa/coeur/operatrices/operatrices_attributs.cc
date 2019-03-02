@@ -24,7 +24,7 @@
 
 #include "operatrices_attributs.hh"
 
-#include <random>
+#include "bibliotheques/outils/gna.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
@@ -313,7 +313,7 @@ public:
 		switch (attrib->type()) {
 			case type_attribut::ENT8:
 			{
-				std::mt19937 rng(graine);
+				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->ent8()) {
@@ -321,17 +321,13 @@ public:
 					}
 				}
 				else if (distribution == "uniforme") {
-					std::uniform_int_distribution<char> dist(-128, 127);
-
 					for (auto &v : attrib->ent8()) {
-						v = applique_op(operation, v, dist(rng));
+						v = applique_op(operation, v, static_cast<char>(gna.uniforme(-128, 127)));
 					}
 				}
 				else if (distribution == "gaussienne") {
-					std::normal_distribution<float> dist(moyenne, ecart_type);
-
 					for (auto &v : attrib->ent8()) {
-						v = applique_op(operation, v, static_cast<char>(dist(rng)));
+						v = applique_op(operation, v, static_cast<char>(gna.normale(moyenne, ecart_type)));
 					}
 				}
 
@@ -339,24 +335,21 @@ public:
 			}
 			case type_attribut::ENT32:
 			{
-				std::mt19937 rng(graine);
+				auto gna = GNA(graine);
+
 				if (distribution == "constante") {
 					for (auto &v : attrib->ent32()) {
 						v = applique_op(operation, v, static_cast<int>(constante));
 					}
 				}
 				else if (distribution == "uniforme") {
-					std::uniform_int_distribution<int> dist(0, std::numeric_limits<int>::max() - 1);
-
 					for (auto &v : attrib->ent32()) {
-						v = applique_op(operation, v, dist(rng));
+						v = applique_op(operation, v, gna.uniforme(0, std::numeric_limits<int>::max() - 1));
 					}
 				}
 				else if (distribution == "gaussienne") {
-					std::normal_distribution<float> dist(moyenne, ecart_type);
-
 					for (auto &v : attrib->ent32()) {
-						v = applique_op(operation, v, static_cast<int>(dist(rng)));
+						v = applique_op(operation, v, static_cast<int>(gna.normale(moyenne, ecart_type)));
 					}
 				}
 
@@ -364,7 +357,7 @@ public:
 			}
 			case type_attribut::DECIMAL:
 			{
-				std::mt19937 rng(graine);
+				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->decimal()) {
@@ -372,17 +365,13 @@ public:
 					}
 				}
 				else if (distribution == "uniforme") {
-					std::uniform_real_distribution<float> dist(val_min, val_max);
-
 					for (auto &v : attrib->decimal()) {
-						v = applique_op(operation, v, dist(rng));
+						v = applique_op(operation, v, gna.uniforme(val_min, val_max));
 					}
 				}
 				else if (distribution == "gaussienne") {
-					std::normal_distribution<float> dist(moyenne, ecart_type);
-
 					for (auto &v : attrib->decimal()) {
-						v = applique_op(operation, v, dist(rng));
+						v = applique_op(operation, v, gna.normale(moyenne, ecart_type));
 					}
 				}
 
@@ -395,7 +384,7 @@ public:
 			}
 			case type_attribut::VEC2:
 			{
-				std::mt19937 rng(graine);
+				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->vec2()) {
@@ -404,19 +393,15 @@ public:
 					}
 				}
 				else if (distribution == "uniforme") {
-					std::uniform_real_distribution<float> dist(val_min, val_max);
-
 					for (auto &v : attrib->vec2()) {
-						v.x = applique_op(operation, v.x, dist(rng));
-						v.y = applique_op(operation, v.y, dist(rng));
+						v.x = applique_op(operation, v.x, gna.uniforme(val_min, val_max));
+						v.y = applique_op(operation, v.y, gna.uniforme(val_min, val_max));
 					}
 				}
 				else if (distribution == "gaussienne") {
-					std::normal_distribution<float> dist(moyenne, ecart_type);
-
 					for (auto &v : attrib->vec2()) {
-						v.x = applique_op(operation, v.x, dist(rng));
-						v.y = applique_op(operation, v.y, dist(rng));
+						v.x = applique_op(operation, v.x, gna.normale(moyenne, ecart_type));
+						v.y = applique_op(operation, v.y, gna.normale(moyenne, ecart_type));
 					}
 				}
 
@@ -424,7 +409,7 @@ public:
 			}
 			case type_attribut::VEC3:
 			{
-				std::mt19937 rng(graine);
+				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->vec3()) {
@@ -434,21 +419,17 @@ public:
 					}
 				}
 				else if (distribution == "uniforme") {
-					std::uniform_real_distribution<float> dist(val_min, val_max);
-
 					for (auto &v : attrib->vec3()) {
-						v.x = applique_op(operation, v.x, dist(rng));
-						v.y = applique_op(operation, v.y, dist(rng));
-						v.z = applique_op(operation, v.z, dist(rng));
+						v.x = applique_op(operation, v.x, gna.uniforme(val_min, val_max));
+						v.y = applique_op(operation, v.y, gna.uniforme(val_min, val_max));
+						v.z = applique_op(operation, v.z, gna.uniforme(val_min, val_max));
 					}
 				}
 				else if (distribution == "gaussienne") {
-					std::normal_distribution<float> dist(moyenne, ecart_type);
-
 					for (auto &v : attrib->vec3()) {
-						v.x = applique_op(operation, v.x, dist(rng));
-						v.y = applique_op(operation, v.y, dist(rng));
-						v.z = applique_op(operation, v.z, dist(rng));
+						v.x = applique_op(operation, v.x, gna.normale(moyenne, ecart_type));
+						v.y = applique_op(operation, v.y, gna.normale(moyenne, ecart_type));
+						v.z = applique_op(operation, v.z, gna.normale(moyenne, ecart_type));
 					}
 				}
 
@@ -456,7 +437,7 @@ public:
 			}
 			case type_attribut::VEC4:
 			{
-				std::mt19937 rng(graine);
+				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
 					for (auto &v : attrib->vec4()) {
@@ -467,23 +448,19 @@ public:
 					}
 				}
 				else if (distribution == "uniforme") {
-					std::uniform_real_distribution<float> dist(val_min, val_max);
-
 					for (auto &v : attrib->vec4()) {
-						v.x = applique_op(operation, v.x, dist(rng));
-						v.y = applique_op(operation, v.y, dist(rng));
-						v.z = applique_op(operation, v.z, dist(rng));
-						v.w = applique_op(operation, v.w, dist(rng));
+						v.x = applique_op(operation, v.x, gna.uniforme(val_min, val_max));
+						v.y = applique_op(operation, v.y, gna.uniforme(val_min, val_max));
+						v.z = applique_op(operation, v.z, gna.uniforme(val_min, val_max));
+						v.w = applique_op(operation, v.w, gna.uniforme(val_min, val_max));
 					}
 				}
 				else if (distribution == "gaussienne") {
-					std::normal_distribution<float> dist(moyenne, ecart_type);
-
 					for (auto &v : attrib->vec4()) {
-						v.x = applique_op(operation, v.x, dist(rng));
-						v.y = applique_op(operation, v.y, dist(rng));
-						v.z = applique_op(operation, v.z, dist(rng));
-						v.w = applique_op(operation, v.w, dist(rng));
+						v.x = applique_op(operation, v.x, gna.normale(moyenne, ecart_type));
+						v.y = applique_op(operation, v.y, gna.normale(moyenne, ecart_type));
+						v.z = applique_op(operation, v.z, gna.normale(moyenne, ecart_type));
+						v.w = applique_op(operation, v.w, gna.normale(moyenne, ecart_type));
 					}
 				}
 
@@ -648,11 +625,10 @@ public:
 			}
 		}
 		else if (methode == "aléatoire") {
-			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-			std::mt19937 rng(graine);
+			auto gna = GNA(graine);
 
 			for (auto index : iter) {
-				attrib->vec3(index, dls::math::vec3f(dist(rng), dist(rng), dist(rng)));
+				attrib->vec3(index, gna.uniforme_vec3(0.0f, 1.0f));
 			}
 		}
 

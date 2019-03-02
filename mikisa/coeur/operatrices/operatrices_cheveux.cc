@@ -24,9 +24,8 @@
 
 #include "operatrices_cheveux.h"
 
-#include <random>
-
 #include "bibliotheques/outils/definitions.hh"
+#include "bibliotheques/outils/gna.hh"
 
 #include "../corps/corps.h"
 
@@ -202,14 +201,13 @@ public:
 			direction = DIRECTION_PERSONALISEE;
 		}
 
-		std::uniform_real_distribution<float> dist_taille(taille_min, taille_max);
-		std::mt19937 rng(19937);
+		auto gna = GNA();
 
 		auto attr_L = m_corps.ajoute_attribut("longueur", type_attribut::DECIMAL, portee_attr::PRIMITIVE, true);
 		attr_L->reserve(liste_points->taille());
 
 		for (auto i = 0; i < liste_points->taille(); ++i) {
-			auto const taille_courbe = dist_taille(rng) * multiplication_taille;
+			auto const taille_courbe = gna.uniforme(taille_min, taille_max) * multiplication_taille;
 
 			long nombre_segment;
 			float taille_segment;

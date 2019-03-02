@@ -34,6 +34,12 @@ int GNA::uniforme(int min, int max)
 	return dist(m_gna);
 }
 
+long GNA::uniforme(long min, long max)
+{
+	auto dist = std::uniform_int_distribution<long>(min, max);
+	return dist(m_gna);
+}
+
 float GNA::uniforme(float min, float max)
 {
 	auto dist = std::uniform_real_distribution<float>(min, max);
@@ -44,4 +50,28 @@ double GNA::uniforme(double min, double max)
 {
 	auto dist = std::uniform_real_distribution<double>(min, max);
 	return dist(m_gna);
+}
+
+dls::math::vec3f GNA::uniforme_vec3(float min, float max)
+{
+	auto dist = std::uniform_real_distribution<float>(min, max);
+	return dls::math::vec3f(dist(m_gna), dist(m_gna), dist(m_gna));
+}
+
+float GNA::normale(float moyenne, float ecart)
+{
+	auto dist = std::normal_distribution<float>(moyenne, ecart);
+	return dist(m_gna);
+}
+
+double GNA::normale(double moyenne, double ecart)
+{
+	auto dist = std::normal_distribution<double>(moyenne, ecart);
+	return dist(m_gna);
+}
+
+dls::math::vec3f GNA::normale_vec3(float moyenne, float ecart)
+{
+	auto dist = std::normal_distribution<float>(moyenne, ecart);
+	return dls::math::vec3f(dist(m_gna), dist(m_gna), dist(m_gna));
 }
