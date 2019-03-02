@@ -24,14 +24,12 @@
 
 #include "operatrices_particules.h"
 
-#include <map>
-#include <random>
-#include <sstream>
-#include <stack>
-
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
+#include "bibliotheques/outils/temps.hh"
 #include "bibliotheques/structures/arbre_kd.hh"
+#include "bibliotheques/structures/grille_particules.hh"
 
 #include "../corps/corps.h"
 #include "../corps/groupes.h"
@@ -355,15 +353,12 @@ public:
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
 
-		std::mt19937 rng(static_cast<size_t>(graine));
-		std::uniform_real_distribution<double> dist_x(min.x, max.x);
-		std::uniform_real_distribution<double> dist_y(min.y, max.y);
-		std::uniform_real_distribution<double> dist_z(min.z, max.z);
+		auto gna = GNA(graine);
 
 		for (auto i = 0; i < nombre_points; ++i) {
-			auto pos_x = dist_x(rng);
-			auto pos_y = dist_y(rng);
-			auto pos_z = dist_z(rng);
+			auto pos_x = gna.uniforme(min.x, max.x);
+			auto pos_y = gna.uniforme(min.y, max.y);
+			auto pos_z = gna.uniforme(min.z, max.z);
 
 			auto index = m_corps.ajoute_point(
 						static_cast<float>(pos_x),
@@ -418,6 +413,8 @@ public:
 		auto points_sorties = m_corps.points();
 		points_sorties->reserve(nombre_points);
 
+		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
+
 		/* À FAIRE : il faudrait un meilleur algorithme pour mieux distribuer
 		 *  les points sur les maillages, avec nombre_points = max nombre
 		 *  points. En ce moment, l'algorithme peut en mettre plus que prévu. */
@@ -427,8 +424,7 @@ public:
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
 
-		std::mt19937 rng(static_cast<size_t>(graine));
-		std::uniform_real_distribution<double> dist(0.0, 1.0);
+		auto gna = GNA(graine);
 
 		for (Triangle const &triangle : triangles) {
 			auto const v0 = corps_entree->transformation(dls::math::point3d(triangle.v0));
@@ -438,10 +434,16 @@ public:
 			auto const e0 = v1 - v0;
 			auto const e1 = v2 - v0;
 
+			auto const nor_triangle_d = normalise(produit_croix(e0, e1));
+			auto const nor_triangle = dls::math::vec3f(
+						static_cast<float>(nor_triangle_d.x),
+						static_cast<float>(nor_triangle_d.y),
+						static_cast<float>(nor_triangle_d.z));
+
 			for (long j = 0; j < nombre_points_triangle; ++j) {
 				/* Génère des coordonnées barycentriques aléatoires. */
-				auto r = dist(rng);
-				auto s = dist(rng);
+				auto r = gna.uniforme(0.0, 1.0);
+				auto s = gna.uniforme(0.0, 1.0);
 
 				if (r + s >= 1.0) {
 					r = 1.0 - r;
@@ -454,6 +456,9 @@ public:
 							static_cast<float>(pos.x),
 							static_cast<float>(pos.y),
 							static_cast<float>(pos.z));
+
+				/* À FAIRE : échantillone proprement selon le type de normaux */
+				attr_N->pousse_vec3(nor_triangle);
 
 				if (groupe_sortie) {
 					groupe_sortie->ajoute_point(index);
@@ -478,75 +483,6 @@ public:
 static constexpr auto DENSITE_CERCLE = 0.9068996821171089f;
 
 static constexpr auto NOMBRE_BOITE = 64;
-
-/* ************************************************************************** */
-
-struct HachageSpatial {
-	std::unordered_map<std::size_t, std::vector<dls::math::vec3f>> m_tableau{};
-
-	/**
-	 * La taille maximum recommandée par la publication de Cline et al. est de
-	 * 20 000. Cependant, les fonctions de hachage marche mieux quand la taille
-	 * est un nombre premier ("Introduction to Algorithms", ISBN 0-262-03141-8),
-	 * donc nous prenons le nombre premier le plus proche de 20 000.
-	 */
-	static constexpr auto TAILLE_MAX = 19997;
-
-	/**
-	 * Fonction de hachage repris de "Optimized Spatial Hashing for Collision
-	 * Detection of Deformable Objects"
-	 * http://www.beosil.com/download/CollisionDetectionHashing_VMV03.pdf
-	 *
-	 * Pour calculer l'empreinte d'une position, nous considérons la partie
-	 * entière de celle-ci. Par exemple, le vecteur position <0.1, 0.2, 0.3>
-	 * deviendra <0, 0, 0> ; de même pour le vecteur <0.4, 0.5, 0.6>. Ainsi,
-	 * toutes les positions se trouvant entre <0, 0, 0> et
-	 * <0.99.., 0.99.., 0.99..> seront dans la même alvéole.
-	 */
-	std::size_t fonction_empreinte(dls::math::vec3f const &position);
-
-	/**
-	 * Ajoute la posistion spécifiée dans le vecteur des positions ayant la même
-	 * empreinte que celle-ci.
-	 */
-	void ajoute(dls::math::vec3f const &position);
-
-	/**
-	 * Retourne un vecteur contenant les positions ayant la même empreinte que
-	 * la position passée en paramètre.
-	 */
-	std::vector<dls::math::vec3f> const &particules(dls::math::vec3f const &position);
-
-	/**
-	 * Retourne le nombre d'alvéoles présentes dans la table de hachage.
-	 */
-	size_t taille() const;
-};
-
-std::size_t HachageSpatial::fonction_empreinte(dls::math::vec3f const &position)
-{
-	return static_cast<std::size_t>(
-				static_cast<int>(position.x) * 73856093
-				^ static_cast<int>(position.y) * 19349663
-				^ static_cast<int>(position.z) * 83492791) % TAILLE_MAX;
-}
-
-void HachageSpatial::ajoute(dls::math::vec3f const &position)
-{
-	auto const empreinte = fonction_empreinte(position);
-	m_tableau[empreinte].push_back(position);
-}
-
-std::vector<dls::math::vec3f> const &HachageSpatial::particules(dls::math::vec3f const &position)
-{
-	auto const empreinte = fonction_empreinte(position);
-	return m_tableau[empreinte];
-}
-
-size_t HachageSpatial::taille() const
-{
-	return m_tableau.size();
-}
 
 /* ************************************************************************** */
 
@@ -627,7 +563,7 @@ struct BoiteTriangle {
 	ListeTriangle triangles{};
 };
 
-void ajoute_triangle_boite(BoiteTriangle *boite, dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
+static void ajoute_triangle_boite(BoiteTriangle *boite, dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
 {
 	auto triangle = boite->triangles.ajoute(v0, v1, v2);
 	boite->aire_minimum = std::min(boite->aire_minimum, triangle->aire);
@@ -635,38 +571,87 @@ void ajoute_triangle_boite(BoiteTriangle *boite, dls::math::vec3f const &v0, dls
 	boite->aire_totale += triangle->aire;
 }
 
-bool verifie_distance_minimal(HachageSpatial &hachage_spatial, dls::math::vec3f const &point, float distance)
+static BoiteTriangle *choisis_boite(BoiteTriangle boites[], GNA &gna)
 {
-	auto const points = hachage_spatial.particules(point);
+	auto aire_totale_boites = 0.0f;
 
-	for (auto p = 0ul; p < points.size(); ++p) {
-		if (longueur(point - points[p]) < distance) {
-			return false;
+	auto nombre_boite_vide = 0;
+	for (auto i = 0; i < NOMBRE_BOITE; ++i) {
+		if (boites[i].triangles.vide()) {
+			++nombre_boite_vide;
+			continue;
+		}
+
+		aire_totale_boites += boites[i].aire_totale;
+	}
+
+	if (nombre_boite_vide == NOMBRE_BOITE) {
+		return nullptr;
+	}
+
+	auto debut = compte_tick_ms();
+
+	while (true) {
+		for (auto i = 0; i < NOMBRE_BOITE; ++i) {
+			if (boites[i].triangles.vide()) {
+				continue;
+			}
+
+			auto const probabilite_boite = boites[i].aire_totale / aire_totale_boites;
+
+			if (gna.uniforme(0.0f, 1.0f) <= probabilite_boite) {
+				return &boites[i];
+			}
+		}
+
+		/* Évite les boucles infinies. */
+		if ((compte_tick_ms() - debut) > 1000) {
+			break;
 		}
 	}
 
-	return true;
+	return nullptr;
 }
 
-bool triangle_couvert(Triangle const &triangle, HachageSpatial &hachage_spatial, const float radius)
+static Triangle *choisis_triangle(BoiteTriangle *boite, GNA &gna)
 {
-	auto const &v0 = triangle.v0;
-	auto const &v1 = triangle.v1;
-	auto const &v2 = triangle.v2;
+#if 1
+	static_cast<void>(gna);
+	return boite->triangles.premier_triangle();
+#else
+	if (false) { // cause un crash
+		auto tri = boite->triangles.premier_triangle();
+		boite->aire_totale = 0.0f;
 
-	auto const centre_triangle = (v0 + v1 + v2) / 3.0f;
-	auto const points = hachage_spatial.particules(centre_triangle);
-
-	for (auto p = 0ul; p < points.size(); ++p) {
-		if (longueur(v0 - points[p]) <= radius
-			&& longueur(v1 - points[p]) <= radius
-			&& longueur(v2 - points[p]) <= radius)
-		{
-			return true;
+		while (tri != nullptr) {
+			boite->aire_totale += tri->aire;
+			tri = tri->suivant;
 		}
 	}
 
-	return false;
+	auto debut = compte_tick_ms();
+
+	while (true) {
+		auto tri = boite->triangles.premier_triangle();
+
+		while (tri != nullptr) {
+			auto const probabilite_triangle = tri->aire / boite->aire_totale;
+
+			if (gna.uniforme(0.0f, 1.0f) <= probabilite_triangle) {
+				return tri;
+			}
+
+			tri = tri->suivant;
+		}
+
+		/* Évite les boucles infinies. */
+		if ((compte_tick_ms() - debut) > 1000) {
+			break;
+		}
+	}
+
+	return boite->triangles.premier_triangle();
+#endif
 }
 
 class OperatriceTirageFleche : public OperatriceCorps {
@@ -743,6 +728,9 @@ public:
 		auto aire_maximum = 0.0f;
 		auto aire_totale = 0.0f;
 
+		auto limites_min = dls::math::point3d( std::numeric_limits<double>::max());
+		auto limites_max = dls::math::point3d(-std::numeric_limits<double>::max());
+
 		/* Calcule les informations sur les aires. */
 		for (auto const &triangle : triangles_entree) {
 			auto const v0_m = corps_maillage->transformation(dls::math::point3d(triangle.v0));
@@ -753,6 +741,10 @@ public:
 			aire_minimum = std::min(aire_minimum, aire);
 			aire_maximum = std::max(aire_maximum, aire);
 			aire_totale += aire;
+
+			extrait_min_max(v0_m, limites_min, limites_max);
+			extrait_min_max(v1_m, limites_min, limites_max);
+			extrait_min_max(v2_m, limites_min, limites_max);
 		}
 
 		/* Place les triangles dans les boites. */
@@ -796,70 +788,28 @@ public:
 		points_nuage->reserve(nombre_points);
 
 		auto const graine = evalue_entier("graine");
-		std::mt19937 rng(graine);
-		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
-		HachageSpatial hachage_spatial;
+		auto gna = GNA(graine);
+
+		auto grille_particule = GrilleParticules(limites_min, limites_max, distance);
+
+		auto debut = compte_tick_ms();
+
+		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
 
 		/* Tant qu'il reste des triangles à remplir... */
 		while (true) {
 			/* Choisis une boîte avec une probabilité proportionnelle à l'aire
 			 * total des fragments de la boîte. À FAIRE. */
-			BoiteTriangle *boite = nullptr;
-			auto boite_trouvee = false;
-//			auto index_boite = 0;
-
-			for (auto i = 0; i < NOMBRE_BOITE; ++i) {
-				if (boites[i].triangles.vide()) {
-					continue;
-				}
-
-				boite = &boites[i];
-				boite_trouvee = true;
-//				index_boite = i;
-				break;
-
-//				auto const probabilite_boite = boite->aire_totale / aire_totale;
-
-//				if (dist(rng) <= probabilite_boite) {
-//					boite_trouvee = true;
-//					break;
-//				}
-			}
+			BoiteTriangle *boite = choisis_boite(boites, gna);
 
 			/* Toutes les boites sont vides, arrêt de l'algorithme. */
-			if (!boite_trouvee) {
+			if (boite == nullptr) {
 				break;
 			}
 
 			/* Sélectionne un triangle proportionellement à son aire. */
-			Triangle *triangle = boite->triangles.premier_triangle();
-//			bool triangle_trouve = false;
-
-//			for (auto tri : boite->triangles.triangles()) {
-//				if (tri->jete) {
-//					continue;
-//				}
-
-//				triangle = tri;
-//				triangle_trouve = true;
-//				break;
-
-////				auto const probabilite_triangle = tri.aire / boite->aire_maximum;
-
-////				if (dist(rng) <= probabilite_triangle) {
-////					triangle = &tri;
-////					triangle_trouve = true;
-////					break;
-////				}
-//			}
-
-//			if (!triangle_trouve) {
-//				std::cerr << "Ne trouve pas de triangles !\n";
-//				std::cerr << "Boîte : " << index_boite << '\n';
-//				std::cerr << "Taille : " << boite->triangles.taille() << '\n';
-//				continue;
-//			}
+			auto triangle = choisis_triangle(boite, gna);
 
 			/* Choisis un point aléatoire p sur le triangle en prenant une
 			 * coordonnée barycentrique aléatoire. */
@@ -869,8 +819,8 @@ public:
 			auto const e0 = v1 - v0;
 			auto const e1 = v2 - v0;
 
-			auto r = dist(rng);
-			auto s = dist(rng);
+			auto r = gna.uniforme(0.0f, 1.0f);
+			auto s = gna.uniforme(0.0f, 1.0f);
 
 			if (r + s >= 1.0f) {
 				r = 1.0f - r;
@@ -880,16 +830,26 @@ public:
 			auto point = v0 + r * e0 + s * e1;
 
 			/* Vérifie que le point respecte la condition de distance minimal */
-			auto ok = verifie_distance_minimal(hachage_spatial, point, distance);
+			//auto ok = verifie_distance_minimal(hachage_spatial, point, distance);
+			auto ok = grille_particule.verifie_distance_minimal(point, distance);
 
 			if (ok) {
-				hachage_spatial.ajoute(point);
+				//chage_spatial.ajoute(point);
+				grille_particule.ajoute(point);
 				m_corps.ajoute_point(point.x, point.y, point.z);
+				/* À FAIRE : échantillone proprement selon le type de normaux */
+				auto nor = normalise(produit_croix(e0, e1));
+				attr_N->pousse_vec3(nor);
+				debut = compte_tick_ms();
 			}
 
 			/* Vérifie si le triangle est complétement couvert par un point de
 			 * l'ensemble. */
-			auto couvert = triangle_couvert(*triangle, hachage_spatial, distance);
+			auto couvert = grille_particule.triangle_couvert(
+						triangle->v0,
+						triangle->v1,
+						triangle->v2,
+						distance);
 
 			if (couvert) {
 				/* Si couvert, jète le triangle. */
@@ -915,7 +875,6 @@ public:
 				};
 
 				for (auto i = 0; i < 4; ++i) {
-
 					auto const aire = calcule_aire(triangle_fils[i]);
 
 					if (std::abs(aire - seuil_aire) <= std::numeric_limits<float>::epsilon()) {
@@ -923,7 +882,11 @@ public:
 						continue;
 					}
 
-					couvert = triangle_couvert(triangle_fils[i], hachage_spatial, distance);
+					couvert = grille_particule.triangle_couvert(
+								triangle_fils[i].v0,
+								triangle_fils[i].v1,
+								triangle_fils[i].v2,
+								distance);
 
 					if (couvert) {
 						continue;
@@ -941,10 +904,15 @@ public:
 
 				boite->triangles.enleve(triangle);
 			}
+
+			/* Évite les boucles infinies. */
+			if ((compte_tick_ms() - debut) > 1000) {
+				break;
+			}
 		}
 
 		std::cerr << "Nombre de points : " << points_nuage->taille() << "\n";
-		std::cerr << "Nombre d'alvéoles : " << hachage_spatial.taille() << '\n';
+
 		return EXECUTION_REUSSIE;
 	}
 };
@@ -1292,15 +1260,16 @@ public:
 		/* À FAIRE : pondérer selon un attribut, genre taille de point d'une
 		 * opératrice de création de points. */
 
-		auto rng = std::mt19937{graine};
-		auto dist = std::uniform_real_distribution<float>(-0.5f * taille, 0.5f * taille);
+		auto gna = GNA(graine);
+		auto min = -0.5f * taille;
+		auto max =  0.5f * taille;
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
 			auto p = points_entree->point(i);
 
-			p.x += dist(rng) * taille_par_axe.x;
-			p.y += dist(rng) * taille_par_axe.y;
-			p.z += dist(rng) * taille_par_axe.z;
+			p.x += gna.uniforme(min, max) * taille_par_axe.x;
+			p.y += gna.uniforme(min, max) * taille_par_axe.y;
+			p.z += gna.uniforme(min, max) * taille_par_axe.z;
 
 			points_entree->point(i, p);
 		}

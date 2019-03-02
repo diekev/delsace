@@ -25,12 +25,16 @@ set(INCLUSIONS
 )
 
 add_library(${NOM_CIBLE} STATIC
+	gna.cc
 	iterateurs.cc
+	temps.cc
 
     constantes.h
 	definitions.hh
+	gna.hh
 	iterateurs.h
     parallelisme.h
+	temps.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})

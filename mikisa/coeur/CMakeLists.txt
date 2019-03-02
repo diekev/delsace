@@ -60,6 +60,7 @@ set(BIBLIOTHEQUES
 	pthread
 	${BIBLIOTHEQUES_BULLET}
 	bib_kelvinlet
+	bib_outils
 )
 
 qt5_wrap_cpp(
