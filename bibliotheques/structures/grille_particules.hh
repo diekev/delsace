@@ -38,7 +38,7 @@ class GrilleParticules {
 	size_t m_res_z{};
 	double m_distance{};
 
-	std::vector<std::vector<dls::math::vec3f>> m_grille;
+	std::vector<std::vector<dls::math::vec3f>> m_grille{};
 
 public:
 	explicit GrilleParticules(dls::math::point3d const &min, dls::math::point3d const &max, float distance);
