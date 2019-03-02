@@ -30,6 +30,7 @@
 #include <stack>
 
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/parallelisme.h"
 #include "bibliotheques/structures/arbre_kd.hh"
 
 #include "../corps/corps.h"
@@ -1388,6 +1389,318 @@ public:
 
 /* ************************************************************************** */
 
+#include <eigen3/Eigen/Eigenvalues>
+
+static auto calcul_centre_masse(
+	std::vector<dls::math::vec3f> const &points)
+{
+#if 0
+		/* calcul la masse totale */
+		auto attr_M = m_corps.attribut("M");
+		auto masse_totale = 0.0f;
+
+		if (attr_M != nullptr) {
+			/* À FAIRE : fonction pour accumuler les valeurs des attributs */
+			for (auto i = 0; i < points_entree->taille(); ++i) {
+				masse_totale += attr_M->decimal(i);
+			}
+		}
+		else {
+			masse_totale = static_cast<float>(points_entree->taille());
+		}
+#endif
+
+	auto centre = dls::math::vec3f(0.0f);
+
+	for (auto const &pi : points) {
+		centre += pi; // * attr_M->decimal(i);
+	}
+
+	centre /= static_cast<float>(points.size());
+	//centre_masse /= masse_totale;
+
+	return centre;
+}
+
+static auto calcul_covariance(
+	std::vector<dls::math::vec3f> const &points,
+	dls::math::vec3f const &centre)
+{
+	auto mat_covariance = dls::math::mat3x3f(0.0f);
+
+	for (auto const &pi : points) {
+		//auto mi = (attr_M != nullptr) ? attr_M->decimal(i) : 1.0f;
+		auto vi = pi - centre;
+
+		/* | x*x x*y x*z |
+		 * | x*y y*y y*z |
+		 * | x*z z*y z*z |
+		 */
+		mat_covariance[0][0] += vi.x * vi.x;// * mi;
+		mat_covariance[0][1] += vi.x * vi.y;// * mi;
+		mat_covariance[0][2] += vi.x * vi.z;// * mi;
+
+		mat_covariance[1][0] += vi.y * vi.x;// * mi;
+		mat_covariance[1][1] += vi.y * vi.y;// * mi;
+		mat_covariance[1][2] += vi.y * vi.z;// * mi;
+
+		mat_covariance[2][0] += vi.z * vi.x;// * mi;
+		mat_covariance[2][1] += vi.z * vi.y;// * mi;
+		mat_covariance[2][2] += vi.z * vi.z;// * mi;
+	}
+
+	//mat_covariance /= masse_totale;
+	mat_covariance[0] /= static_cast<float>(points.size());
+	mat_covariance[1] /= static_cast<float>(points.size());
+	mat_covariance[2] /= static_cast<float>(points.size());
+
+	return mat_covariance;
+}
+
+/* calcul la force pour faire tourner point autour de l'axe */
+static auto force_rotation(
+		dls::math::vec3f const &point,
+		dls::math::vec3f const &centre_masse,
+		dls::math::vec3f const &normal,
+		float const poids)
+{
+	auto dir = point - centre_masse;
+
+	auto temp = produit_croix(normal, dir);
+	temp *= poids;
+
+	auto f = produit_croix(normal, temp);
+	f *= poids;
+
+	return f + temp;
+}
+
+/* calcul la force pour attirer point vers un axe */
+static auto force_attirance(
+		dls::math::vec3f const &point,
+		dls::math::vec3f const &axe,
+		float const poids)
+{
+	auto proj = produit_scalaire(point, axe) * axe;
+	return (proj - point) * poids;
+}
+
+/**
+ * https://research.dreamworks.com/wp-content/uploads/2018/07/talk_flow_field_revised-Edited.pdf
+ * http://number-none.com/product/My%20Friend,%20the%20Covariance%20Body/
+ */
+class OpForceInteraction final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Force d'Interaction";
+	static constexpr auto AIDE = "Influence les particules selon une distribution locale de particules voisines.";
+
+	explicit OpForceInteraction(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_force_interaction.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
+
+		auto points_entree = m_corps.points();
+
+		if (points_entree->taille() == 0) {
+			this->ajoute_avertissement("Il n'y a pas de points en entrée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* À FAIRE :
+		 * - calcul selon les particules se trouvant dans un rayon de la
+		 *   particule courante (kd-tree).
+		 * - fusion des particules se trouvant dans une fraction du rayon
+		 *   afin d'optimiser le calcul des corps de covariance
+		 */
+
+		/* pousse ou tire la particule le long des axes locaux */
+		auto const force_dir = evalue_vecteur("force_dir");
+		/* attire la particule vers les axes locaux */
+		auto const force_axe = evalue_vecteur("force_axe");
+		/* rotationne la particule autour des axes locaux */
+		auto const force_rot = evalue_vecteur("force_rot");
+		/* attire la particule vers le centre de masse */
+		auto const force_centre = evalue_decimal("force_centre");
+
+		auto rayon = evalue_decimal("rayon");
+		auto poids = evalue_decimal("poids");
+
+		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+
+		/* À FAIRE : il y a un effet yo-yo. */
+
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+						 [&](tbb::blocked_range<long> const &plage)
+		{
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				auto p = points_entree->point(i);
+
+#if 0
+				auto force = attr_F->vec3(i);
+				auto centre_masse = dls::math::vec3f(0.0f);
+				auto vpx = dls::math::vec3f(1.0f, 0.0f, 0.0f);
+				auto vpy = dls::math::vec3f(0.0f, 1.0f, 0.0f);
+				auto vpz = dls::math::vec3f(0.0f, 0.0f, 1.0f);
+
+				force += force_dir.x * vpx;
+				force += force_dir.y * vpy;
+				force += force_dir.z * vpz;
+
+				/* attire la particule vers les axes locaux */
+				if (force_axe.x != 0.0f) {
+					force += force_attirance(p, vpx, force_axe.x);
+				}
+
+				if (force_axe.y != 0.0f) {
+					force += force_attirance(p, vpy, force_axe.y);
+				}
+
+				if (force_axe.z != 0.0f) {
+					force += force_attirance(p, vpz, force_axe.z);
+				}
+
+				/* rotationne la particule autour des axes locaux */
+				if (force_rot.x != 0.0f) {
+					force += force_rotation(p, centre_masse, normalise(vpx), force_rot.x);
+				}
+
+				if (force_rot.y != 0.0f) {
+					force += force_rotation(p, centre_masse, normalise(vpy), force_rot.y);
+				}
+
+				if (force_rot.z != 0.0f) {
+					force += force_rotation(p, centre_masse, normalise(vpz), force_rot.z);
+				}
+
+				/* attire la particule vers le centre de masse */
+				force += (centre_masse - p) * force_centre;
+
+#else
+				// À FAIRE : arbre k-d, simplifie points
+				auto points_voisins = points_autour(p, i, rayon);
+
+				if (points_voisins.empty()) {
+					continue;
+				}
+
+				auto centre_masse = calcul_centre_masse(points_voisins);
+
+				auto MC = calcul_covariance(points_voisins, centre_masse);
+
+				/* calcul des vecteurs propres à la matrice */
+				auto A = Eigen::Matrix<float, 3, 3>();
+				A(0, 0) = MC[0][0];
+				A(0, 1) = MC[0][1];
+				A(0, 2) = MC[0][2];
+				A(1, 0) = MC[1][0];
+				A(1, 1) = MC[1][1];
+				A(1, 2) = MC[1][2];
+				A(2, 0) = MC[2][0];
+				A(2, 1) = MC[2][1];
+				A(2, 2) = MC[2][2];
+
+				auto s = Eigen::SelfAdjointEigenSolver<Eigen::Matrix<float, 3, 3>>(A);
+
+				auto vpx_e = s.eigenvectors().col(0) * s.eigenvalues()(0);
+				auto vpy_e = s.eigenvectors().col(1) * s.eigenvalues()(1);
+				auto vpz_e = s.eigenvectors().col(2) * s.eigenvalues()(2);
+
+				auto vpx = dls::math::vec3f(vpx_e[0], vpx_e[1], vpx_e[2]);
+				auto vpy = dls::math::vec3f(vpy_e[0], vpy_e[1], vpy_e[2]);
+				auto vpz = dls::math::vec3f(vpz_e[0], vpz_e[1], vpz_e[2]);
+
+				/* calcul la force pour la particule */
+				auto force = attr_F->vec3(i);
+
+				/* pousse ou tire la particule le long des axes locaux */
+				force += force_dir.x * vpx;
+				force += force_dir.y * vpy;
+				force += force_dir.z * vpz;
+
+				/* attire la particule vers les axes locaux */
+				if (force_axe.x != 0.0f) {
+					force += force_attirance(p, vpx, force_axe.x);
+				}
+
+				if (force_axe.y != 0.0f) {
+					force += force_attirance(p, vpy, force_axe.y);
+				}
+
+				if (force_axe.z != 0.0f) {
+					force += force_attirance(p, vpz, force_axe.z);
+				}
+
+				/* rotationne la particule autour des axes locaux */
+				if (force_rot.x != 0.0f) {
+					force += force_rotation(p, centre_masse, normalise(vpx), force_rot.x);
+				}
+
+				if (force_rot.y != 0.0f) {
+					force += force_rotation(p, centre_masse, normalise(vpy), force_rot.y);
+				}
+
+				if (force_rot.z != 0.0f) {
+					force += force_rotation(p, centre_masse, normalise(vpz), force_rot.z);
+				}
+
+				/* attire la particule vers le centre de masse */
+				force += (centre_masse - p) * force_centre;
+#endif
+
+				attr_F->vec3(i, force * poids);
+			}
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+
+	std::vector<dls::math::vec3f> points_autour(
+		dls::math::vec3f const &centre,
+		long index,
+		float rayon)
+	{
+		std::vector<dls::math::vec3f> res;
+		auto points_entree = m_corps.points();
+
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			if (i == index) {
+				continue;
+			}
+
+			auto p = points_entree->point(i);
+
+			if (longueur(p - centre) <= rayon) {
+				res.push_back(p);
+			}
+		}
+
+		return res;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
@@ -1397,6 +1710,7 @@ void enregistre_operatrices_particules(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceEnleveDoublons>());
 	usine.enregistre_type(cree_desc<OperatriceGiguePoints>());
 	usine.enregistre_type(cree_desc<OperatriceCreationTrainee>());
+	usine.enregistre_type(cree_desc<OpForceInteraction>());
 }
 
 #pragma clang diagnostic pop

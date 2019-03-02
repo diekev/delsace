@@ -119,6 +119,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_entree_simulation.jo
 	scripts_danjo/operatrice_extraction_palette.jo
 	scripts_danjo/operatrice_filtre.jo
+	scripts_danjo/operatrice_force_interaction.jo
 	scripts_danjo/operatrice_flou.jo
 	scripts_danjo/operatrice_fusion.jo
 	scripts_danjo/operatrice_gamma.jo
