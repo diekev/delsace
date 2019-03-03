@@ -104,6 +104,13 @@ struct Corps {
 
 	const ListePoints3D *points() const;
 
+	/**
+	 * Retourne le point à l'index précisé transformé pour être dans l'espace
+	 * mondiale. Aucune vérification de limite n'est effectuée sur l'index. Si
+	 * l'index est hors de limite, le programme crashera sans doute.
+	 */
+	dls::math::vec3f point_transforme(long i) const;
+
 	ListePrimitives *prims();
 
 	const ListePrimitives *prims() const;

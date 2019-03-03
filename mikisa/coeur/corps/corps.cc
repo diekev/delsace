@@ -170,6 +170,16 @@ const ListePoints3D *Corps::points() const
 	return &m_points;
 }
 
+dls::math::vec3f Corps::point_transforme(long i) const
+{
+	auto p = m_points.point(i);
+	auto pos_monde_d = this->transformation(dls::math::point3d(p));
+	return dls::math::vec3f(
+						 static_cast<float>(pos_monde_d.x),
+						 static_cast<float>(pos_monde_d.y),
+						 static_cast<float>(pos_monde_d.z));
+}
+
 ListePrimitives *Corps::prims()
 {
 	return &m_prims;
