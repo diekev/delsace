@@ -37,7 +37,7 @@ int OperatricePixel::type() const
 	return OPERATRICE_PIXEL;
 }
 
-int OperatricePixel::execute(ContexteEvaluation const &contexte)
+int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	Calque *tampon = nullptr;
 
@@ -48,7 +48,7 @@ int OperatricePixel::execute(ContexteEvaluation const &contexte)
 		tampon = m_image.ajoute_calque("image", rectangle);
 	}
 	else if (entrees() >= 1) {
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
 		tampon = m_image.calque(nom_calque);
 	}

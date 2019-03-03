@@ -148,7 +148,7 @@ bool EntreeOperatrice::connectee() const
 	return m_ptr->lien != nullptr;
 }
 
-void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &contexte)
+void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	auto lien = m_ptr->lien;
 	m_liste_noms_calques.clear();
@@ -156,7 +156,7 @@ void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &co
 	if (lien != nullptr) {
 		auto noeud = lien->parent;
 
-		execute_noeud(noeud, contexte);
+		execute_noeud(noeud, contexte, donnees_aval);
 
 		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 		operatrice->transfere_image(image);
@@ -167,7 +167,7 @@ void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &co
 	}
 }
 
-vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &contexte)
+vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	auto lien = m_ptr->lien;
 
@@ -177,13 +177,13 @@ vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &co
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte);
+	execute_noeud(noeud, contexte, donnees_aval);
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	return operatrice->camera();
 }
 
-Objet *EntreeOperatrice::requiers_objet(ContexteEvaluation const &contexte)
+Objet *EntreeOperatrice::requiers_objet(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	auto lien = m_ptr->lien;
 
@@ -193,13 +193,13 @@ Objet *EntreeOperatrice::requiers_objet(ContexteEvaluation const &contexte)
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte);
+	execute_noeud(noeud, contexte, donnees_aval);
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	return operatrice->objet();
 }
 
-TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &contexte)
+TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	auto lien = m_ptr->lien;
 
@@ -209,13 +209,13 @@ TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &conte
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte);
+	execute_noeud(noeud, contexte, donnees_aval);
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	return operatrice->texture();
 }
 
-const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte)
+const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	auto lien = m_ptr->lien;
 
@@ -225,16 +225,16 @@ const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte);
+	execute_noeud(noeud, contexte, donnees_aval);
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 	return operatrice->corps();
 }
 
-Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte)
+Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	auto corps_lien = this->requiers_corps(contexte);
+	auto corps_lien = this->requiers_corps(contexte, donnees_aval);
 
 	if (corps_lien == nullptr) {
 		return nullptr;

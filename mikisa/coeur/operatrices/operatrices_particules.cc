@@ -71,10 +71,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		auto corps = entree(0)->requiers_corps(contexte);
+		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps == nullptr) {
 			ajoute_avertissement("Aucun corps connecté !");
@@ -212,11 +212,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
-		auto corps_entree = entree(0)->requiers_corps(contexte);
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Il n'y a pas de corps connecté !");
@@ -682,11 +682,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
-		auto corps_maillage = entree(0)->requiers_corps(contexte);
+		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_maillage == nullptr) {
 			this->ajoute_avertissement("Il n'y pas de corps en entrée !");
@@ -1083,11 +1083,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
-		auto corps_entree = entree(0)->requiers_corps(contexte);
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("L'entrée n'est pas connectée !");
@@ -1131,10 +1131,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto dist = 0.001f;
 #if 0
@@ -1241,10 +1241,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto points_entree = m_corps.points();
 
@@ -1306,10 +1306,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(contexte);
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Aucun corps connecté !");
@@ -1484,10 +1484,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto points_entree = m_corps.points();
 

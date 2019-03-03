@@ -64,10 +64,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 		auto const chaine_type = evalue_enum("type_attribut");
@@ -173,10 +173,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 
@@ -259,10 +259,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 		auto const graine = evalue_entier("graine", contexte.temps_courant);
@@ -530,10 +530,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto const graine = evalue_entier("graine", contexte.temps_courant);
 		auto const couleur_ = evalue_couleur("couleur_");
@@ -679,10 +679,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto type = evalue_enum("type_normaux");
 		auto inverse_normaux = evalue_bool("inverse_direction");

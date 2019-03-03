@@ -124,10 +124,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		/* Call node upstream; */
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -349,10 +349,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		/* Call node upstream. */
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -433,9 +433,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -489,9 +489,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -626,9 +626,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -717,9 +717,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -839,9 +839,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
 		auto tampon = m_image.calque(nom_calque_a);
@@ -852,7 +852,7 @@ public:
 		}
 
 		Image image2;
-		entree(1)->requiers_image(image2, contexte);
+		entree(1)->requiers_image(image2, contexte, donnees_aval);
 
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
 		auto tampon2 = image2.calque(nom_calque_b);
@@ -1122,9 +1122,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto const &nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1191,9 +1191,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1253,9 +1253,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1348,9 +1348,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1428,9 +1428,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);
@@ -1507,9 +1507,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto tampon = m_image.calque(nom_calque);

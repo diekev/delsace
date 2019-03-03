@@ -145,7 +145,7 @@ void OperatriceObjet::ajourne_selon_manipulatrice_3d(int type, const int temps)
 	m_manipulatrice_echelle.pos(position);
 }
 
-int OperatriceObjet::execute(ContexteEvaluation const &contexte)
+int OperatriceObjet::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	/* transformation */
 
@@ -180,7 +180,7 @@ int OperatriceObjet::execute(ContexteEvaluation const &contexte)
 	auto const t0 = tbb::tick_count::now();
 
 	operatrice->reinitialise_avertisements();
-	operatrice->execute(contexte);
+	operatrice->execute(contexte, donnees_aval);
 
 	auto const t1 = tbb::tick_count::now();
 	auto const delta = (t1 - t0).seconds();

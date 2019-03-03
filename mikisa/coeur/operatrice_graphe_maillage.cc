@@ -400,7 +400,7 @@ int OperatriceGrapheMaillage::type() const
 	return OPERATRICE_GRAPHE_MAILLAGE;
 }
 
-int OperatriceGrapheMaillage::execute(ContexteEvaluation const &contexte)
+int OperatriceGrapheMaillage::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	if (!this->entree(0)->connectee()) {
 		ajoute_avertissement("L'entrée n'est pas connectée !");
@@ -408,7 +408,7 @@ int OperatriceGrapheMaillage::execute(ContexteEvaluation const &contexte)
 	}
 
 	m_corps.reinitialise();
-	entree(0)->requiers_copie_corps(&m_corps, contexte);
+	entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 	compile_graphe(contexte.temps_courant);
 
@@ -457,7 +457,7 @@ void OperatriceGrapheMaillage::compile_graphe(int temps)
 
 /* ************************************************************************** */
 
-int OperatricePoint3D::execute(ContexteEvaluation const &contexte)
+int OperatricePoint3D::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	return EXECUTION_REUSSIE;
 }

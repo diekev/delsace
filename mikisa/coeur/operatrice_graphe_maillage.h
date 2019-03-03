@@ -106,7 +106,7 @@ public:
 
 	virtual int type() const override;
 
-	int execute(ContexteEvaluation const &contexte) override;
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	void compile_graphe(int temps);
 };
@@ -119,7 +119,7 @@ public:
 		: OperatriceImage(graphe_parent, noeud)
 	{}
 
-	int execute(ContexteEvaluation const &contexte) override;
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	virtual void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, const int temps) = 0;
 };

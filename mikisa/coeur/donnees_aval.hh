@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,20 +24,14 @@
 
 #pragma once
 
-class Noeud;
+#include <any>
+#include <unordered_map>
 
-struct ContexteEvaluation;
-struct DonneesAval;
+struct DonneesAval {
+	std::unordered_map<std::string, std::any> table;
 
-enum {
-	NOEUD_IMAGE_DEFAUT = 0,
-	NOEUD_IMAGE_SORTIE = 1,
-	NOEUD_OBJET_SORTIE = 2,
+	bool possede(std::string const &cle)
+	{
+		return this->table.find(cle) != table.end();
+	}
 };
-
-void synchronise_donnees_operatrice(Noeud *noeud);
-
-void execute_noeud(
-		Noeud *noeud,
-		ContexteEvaluation const &contexte,
-		DonneesAval *donnees_aval);

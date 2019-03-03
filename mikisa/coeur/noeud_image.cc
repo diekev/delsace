@@ -30,7 +30,10 @@
 
 #include "operatrice_image.h"
 
-void execute_noeud(Noeud *noeud, ContexteEvaluation const &contexte)
+void execute_noeud(
+		Noeud *noeud,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
 {
 	if (!noeud->besoin_execution()) {
 		return;
@@ -43,7 +46,7 @@ void execute_noeud(Noeud *noeud, ContexteEvaluation const &contexte)
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	operatrice->reinitialise_avertisements();
 
-	auto const resultat = operatrice->execute(contexte);
+	auto const resultat = operatrice->execute(contexte, donnees_aval);
 
 	/* Ne prend en compte que le temps des exécutions réussies pour éviter de se
 	 * retrouver avec un temps d'exécution minimum trop bas, proche de zéro, en

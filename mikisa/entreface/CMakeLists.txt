@@ -111,12 +111,14 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_courbe_couleur.jo
 	scripts_danjo/operatrice_courbure_maillage.jo
 	scripts_danjo/operatrice_creation_groupe.jo
+	scripts_danjo/operatrice_creation_kelvinlet.jo
 	scripts_danjo/operatrice_daltonisme.jo
 	scripts_danjo/operatrice_deformation.jo
 	scripts_danjo/operatrice_degrade.jo
 	scripts_danjo/operatrice_dilation_erosion.jo
 	scripts_danjo/operatrice_dispersion_points.jo
 	scripts_danjo/operatrice_entree_simulation.jo
+	scripts_danjo/operatrice_evaluation_kelvinlet.jo
 	scripts_danjo/operatrice_extraction_palette.jo
 	scripts_danjo/operatrice_filtre.jo
 	scripts_danjo/operatrice_force_interaction.jo
@@ -127,7 +129,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_grade.jo
 	scripts_danjo/operatrice_gravite.jo
 	scripts_danjo/operatrice_incrustation.jo
-	scripts_danjo/operatrice_kelvinlet.jo
 	scripts_danjo/operatrice_lecture_fichier.jo
 	scripts_danjo/operatrice_lecture_objet.jo
 	scripts_danjo/operatrice_maillage_vers_volume.jo

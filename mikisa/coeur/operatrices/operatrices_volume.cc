@@ -67,9 +67,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
+		INUTILISE(donnees_aval);
 
 		m_corps.reinitialise();
 
@@ -122,11 +123,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
-		auto corps = entree(0)->requiers_corps(contexte);
+		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps == nullptr) {
 			ajoute_avertissement("Aucun corps connecté !");

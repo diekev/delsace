@@ -49,6 +49,7 @@ class Camera3D;
 }  /* namespace vision */
 
 struct ContexteEvaluation;
+struct DonneesAval;
 struct Objet;
 
 using type_image = numero7::math::matrice<numero7::image::Pixel<float>>;
@@ -188,7 +189,7 @@ public:
 	 * avant de lui prendre son image. La liste de nom de calque est mise à jour
 	 * selon l'image obtenue.
 	 */
-	void requiers_image(Image &image, ContexteEvaluation const &contexte);
+	void requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
 	/**
 	 * Requiers la caméra du noeud connecté à cette prise en exécutant ledit
@@ -196,7 +197,7 @@ public:
 	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
 	 * nullptr.
 	 */
-	vision::Camera3D *requiers_camera(ContexteEvaluation const &contexte);
+	vision::Camera3D *requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
 	/**
 	 * Requiers l'objet du noeud connecté à cette prise en exécutant ledit
@@ -204,7 +205,7 @@ public:
 	 * n'est créé par le noeud, ou si aucune connexion n'existe, retourne
 	 * nullptr.
 	 */
-	Objet *requiers_objet(ContexteEvaluation const &contexte);
+	Objet *requiers_objet(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
 	/**
 	 * Requiers la texture du noeud connecté à cette prise en exécutant ledit
@@ -212,11 +213,11 @@ public:
 	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
 	 * nullptr.
 	 */
-	TextureImage *requiers_texture(ContexteEvaluation const &contexte);
+	TextureImage *requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
-	const Corps *requiers_corps(ContexteEvaluation const &contexte);
+	const Corps *requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
-	Corps *requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte);
+	Corps *requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
 	/**
 	 * Place la liste de calque de l'image transitante par cette entrée dans le
@@ -313,7 +314,7 @@ public:
 
 	/* The main processing logic of this operator. */
 
-	virtual int execute(ContexteEvaluation const &contexte) = 0;
+	virtual int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) = 0;
 
 	void transfere_image(Image &image);
 

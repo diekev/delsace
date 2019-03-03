@@ -166,9 +166,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 		m_image.nom_calque_actif(evalue_chaine("nom_calque"));
 		return EXECUTION_REUSSIE;
 	}
@@ -286,8 +286,9 @@ public:
 		return "entreface/operatrice_lecture_fichier.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_image.reinitialise();
 
 		auto nom_calque = evalue_chaine("nom_calque");
@@ -380,10 +381,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto const value = evalue_entier("prise");
-		entree(static_cast<size_t>(value))->requiers_image(m_image, contexte);
+		entree(static_cast<size_t>(value))->requiers_image(m_image, contexte, donnees_aval);
 		return EXECUTION_REUSSIE;
 	}
 };
@@ -415,7 +416,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
@@ -438,10 +439,10 @@ public:
 		}
 
 		if (resultat) {
-			entree(0)->requiers_copie_corps(&m_corps, contexte);
+			entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 		}
 		else {
-			entree(1)->requiers_copie_corps(&m_corps, contexte);
+			entree(1)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -476,9 +477,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
+		INUTILISE(donnees_aval);
 
 		m_corps.reinitialise();
 

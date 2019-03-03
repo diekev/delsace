@@ -1,0 +1,16 @@
+disposition "operatrice_evaluation_kelvinlet" {
+    ligne {
+	    étiquette(valeur="Temps")
+		décimal(valeur=1.0; min=1; attache=temps)
+	}
+	ligne {
+		étiquette(valeur="Début")
+		entier(valeur=1; attache=début)
+	}
+	ligne {
+		étiquette(valeur="Intégration")
+		énum(valeur="rk4"; attache=intégration;
+		     items=[{nom="1er-ordre", valeur="euler"},
+			        {nom="Runge-Kutta 4", valeur="rk4"}])
+	}
+}

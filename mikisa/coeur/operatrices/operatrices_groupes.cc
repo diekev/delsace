@@ -62,10 +62,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto const nom_groupe = evalue_chaine("nom_groupe");
 		auto const contenu = evalue_enum("contenu");

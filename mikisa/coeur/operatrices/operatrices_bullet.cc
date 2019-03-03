@@ -233,14 +233,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		/* L'entrée 0 est pour le corps. */
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		/* L'entrée 1 est pour accumuler les corps. */
-		entree(1)->requiers_corps(contexte);
+		entree(1)->requiers_corps(contexte, donnees_aval);
 
 		auto monde = std::any_cast<MondePhysique *>(m_donnees_simulation->table["monde_physique"]);
 
@@ -340,7 +340,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_donnees_simulation->table.insert({ "monde_physique", &m_monde });
 
@@ -350,7 +350,7 @@ public:
 
 			/* il faut exécuter les noeuds en amont après avoir initialisé la table */
 			m_corps.reinitialise();
-			entree(0)->requiers_copie_corps(&m_corps, contexte);
+			entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 		}
 
 		if (contexte.temps_courant > m_donnees_simulation->temps_debut) {

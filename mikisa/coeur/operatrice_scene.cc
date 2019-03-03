@@ -99,9 +99,9 @@ Graphe *OperatriceScene::graphe()
 	return &m_graphe;
 }
 
-int OperatriceScene::execute(ContexteEvaluation const &contexte)
+int OperatriceScene::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	auto camera = entree(0)->requiers_camera(contexte);
+	auto camera = entree(0)->requiers_camera(contexte, donnees_aval);
 
 	if (camera == nullptr) {
 		ajoute_avertissement("Aucune caméra trouvée !");

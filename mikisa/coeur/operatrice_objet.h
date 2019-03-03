@@ -69,5 +69,5 @@ public:
 
 	void ajourne_selon_manipulatrice_3d(int type, const int temps) override;
 
-	int execute(ContexteEvaluation const &contexte) override;
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };

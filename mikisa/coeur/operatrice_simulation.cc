@@ -68,7 +68,7 @@ int OperatriceSimulation::type() const
 	return OPERATRICE_SIMULATION;
 }
 
-int OperatriceSimulation::execute(ContexteEvaluation const &contexte)
+int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	auto sortie_graphe = m_graphe.dernier_noeud_sortie;
 
@@ -94,13 +94,13 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte)
 		m_graphe.donnees.push_back(&m_corps);
 
 		/* copie l'état de base */
-		auto corps = entree(0)->requiers_corps(contexte);
+		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps) {
 			corps->copie_vers(&m_corps1);
 		}
 
-		corps = entree(1)->requiers_corps(contexte);
+		corps = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (corps) {
 			corps->copie_vers(&m_corps2);
@@ -135,7 +135,7 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte)
 	}
 
 	/* exécute graphe */
-	execute_noeud(sortie_graphe, contexte);
+	execute_noeud(sortie_graphe, contexte, donnees_aval);
 
 	auto op_sortie = std::any_cast<OperatriceImage *>(sortie_graphe->donnees());
 

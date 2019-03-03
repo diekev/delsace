@@ -29,10 +29,12 @@
 #include "bibliotheques/objets/import_objet.h"
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/definitions.hh"
+#include "bibliotheques/outils/parallelisme.h"
 
 #include "../corps/adaptrice_creation_corps.h"
 
 #include "../contexte_evaluation.hh"
+#include "../donnees_aval.hh"
 #include "../manipulatrice.h"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -190,8 +192,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -233,8 +236,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -278,8 +282,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -324,8 +329,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -369,8 +375,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -415,8 +422,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -458,8 +466,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -504,8 +513,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		AdaptriceCreationCorps adaptrice;
@@ -552,9 +562,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		auto const segments = evalue_entier("segments");
@@ -672,8 +683,9 @@ public:
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		auto chemin = evalue_fichier_entree("chemin");
 
 		if (chemin == "") {
@@ -747,18 +759,18 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
-		auto corps1 = entree(0)->requiers_corps(contexte);
+		auto corps1 = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps1 == nullptr) {
 			ajoute_avertissement("1er corps manquant !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto corps2 = entree(1)->requiers_corps(contexte);
+		auto corps2 = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (corps2 == nullptr) {
 			ajoute_avertissement("2ème corps manquant !");
@@ -785,7 +797,7 @@ public:
 		for (auto i = 0; i < liste_point1->taille(); ++i) {
 			auto point = liste_point1->point(i);
 			auto const p_monde = corps1->transformation(
-								dls::math::point3d(point));
+						dls::math::point3d(point));
 
 			auto p = new Point3D;
 			p->x = static_cast<float>(p_monde.x);
@@ -797,7 +809,7 @@ public:
 		for (auto i = 0; i < liste_point2->taille(); ++i) {
 			auto point = liste_point2->point(i);
 			auto const p_monde = corps2->transformation(
-								dls::math::point3d(point));
+						dls::math::point3d(point));
 
 			auto p = new Point3D;
 			p->x = static_cast<float>(p_monde.x);
@@ -892,9 +904,9 @@ public:
 				}
 
 				auto attr = m_corps.ajoute_attribut(
-								attr1->nom(),
-								attr1->type(),
-								attr1->portee);
+							attr1->nom(),
+							attr1->type(),
+							attr1->portee);
 
 				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
 				auto ptr = static_cast<char *>(attr->donnees()) + attr1->taille_octets();
@@ -904,9 +916,9 @@ public:
 				auto attr1 = paire_attr.first;
 
 				auto attr = m_corps.ajoute_attribut(
-								attr1->nom(),
-								attr1->type(),
-								attr1->portee);
+							attr1->nom(),
+							attr1->type(),
+							attr1->portee);
 
 				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
 			}
@@ -914,9 +926,9 @@ public:
 				auto attr2 = paire_attr.second;
 
 				auto attr = m_corps.ajoute_attribut(
-								attr2->nom(),
-								attr2->type(),
-								attr2->portee);
+							attr2->nom(),
+							attr2->type(),
+							attr2->portee);
 
 				auto decalage = attr->taille_octets() - attr2->taille_octets();
 				auto ptr = static_cast<char *>(attr->donnees()) + decalage;
@@ -1083,9 +1095,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto const translate = dls::math::vec3d(evalue_vecteur("translation"));
 		auto const rotate = dls::math::vec3d(evalue_vecteur("rotation"));
@@ -1196,10 +1208,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1228,10 +1240,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(contexte);
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Aucun corps en entrée.");
@@ -1277,6 +1289,14 @@ public:
 
 /* ************************************************************************** */
 
+/**
+ * Kelvinlets dynamiques.
+ * Pour l'instant nous utilisons le code de Pixar. Dans le future il
+ * serait bien d'utiliser un code orienté données, avec un tableau de
+ * déformeur par type de déformation, et en ne considérant que ceux qui
+ * sont actifs, (temps_courant - temps_activation) > 0
+ */
+
 using Scalar   = Kelvinlet::Scalar;
 using Vector3  = Kelvinlet::Vector3;
 using Matrix33 = Kelvinlet::Matrix33;
@@ -1285,12 +1305,19 @@ using Deformer = std::vector<Kelvinlet::DynaBase::Ptr>;
 template <class DynaType>
 static auto ajoute_deformeur(
 		Deformer &deformeurs,
+		dls::math::vec3f const &pos,
 		typename DynaType::Force const &force,
 		Scalar nu,
 		Scalar mu,
-		Scalar eps)
+		Scalar eps,
+		Scalar time)
 {
+	auto pos_eigen = Vector3();
+	pos_eigen << static_cast<double>(pos.x), static_cast<double>(pos.y), static_cast<double>(pos.z);
+
 	auto def = DynaType{};
+	def.SetPoint(pos_eigen);
+	def.SetTime(time);
 	def.SetEps(eps);
 	def.SetMaterial(mu, nu);
 	def.SetForce(force);
@@ -1305,32 +1332,89 @@ static auto ajoute_deformeur(
 static auto deforme_kelvinlet(
 		const Vector3& p,
 		const Scalar&  t,
-		const Deformer& deformer)
+		const Deformer& deformer,
+		bool rk4)
 {
 	Vector3 u = Vector3::Zero();
 
-	for (const auto& def : deformer) {
-		u += def->EvalDispRK4(p, t);
+	if (rk4) {
+		for (const auto& def : deformer) {
+			u += def->EvalDispRK4(p, t);
+		}
+	}
+	else {
+		for (const auto& def : deformer) {
+			u += def->EvalDisp(p, t);
+		}
 	}
 
 	return u;
 }
 
-class OpKelvinlet final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Kelvinlet";
-	static constexpr auto AIDE = "";
+static void ajoute_deformeur(
+		Deformer &deformeur,
+		dls::math::vec3f const &pos,
+		bool pousse,
+		std::string const &action,
+		double echelle,
+		double vitesse,
+		double incompressibilite,
+		double temps)
+{
+	if (action == "grab") {
+		Vector3 f = 0.01 * Vector3::UnitY();
 
-	explicit OpKelvinlet(Graphe &graphe_parent, Noeud *noeud)
+		if (pousse) {
+			using DynaType = Kelvinlet::DynaPushGrab;
+			ajoute_deformeur<DynaType>(deformeur, pos, f, incompressibilite, vitesse, echelle, temps);
+		}
+		else {
+			using DynaType = Kelvinlet::DynaPulseGrab;
+			ajoute_deformeur<DynaType>(deformeur, pos, f, incompressibilite, vitesse, echelle, temps);
+		}
+	}
+	/* affine */
+	else {
+		Matrix33 F = Matrix33::Zero();
+
+		if (action == "twist") {
+			Vector3 axisAngle = 0.25 * M_PI * Vector3::UnitZ();
+			F = Kelvinlet::AssembleSkewSymMatrix(axisAngle);
+		}
+		else if (action == "scale") {
+			F = Matrix33::Identity();
+		}
+		else if (action == "pinch") {
+			F(0, 0) =  1.0;
+			F(1, 1) = -1.0;
+		}
+
+		if (pousse) {
+			using DynaType = Kelvinlet::DynaPushAffine;
+			ajoute_deformeur<DynaType>(deformeur, pos, F, incompressibilite, vitesse, echelle, temps);
+		}
+		else {
+			using DynaType = Kelvinlet::DynaPulseAffine;
+			ajoute_deformeur<DynaType>(deformeur, pos, F, incompressibilite, vitesse, echelle, temps);
+		}
+	}
+}
+
+class OpCreationKelvinlet final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Création Kelvinlet";
+	static constexpr auto AIDE = "Ajout un ou plusieurs déformeurs pour calculer les dynamiques de Kelvinlets.";
+
+	explicit OpCreationKelvinlet(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		entrees(1);
-		sorties(1);
+		entrees(2);
+		sorties(1); // À FAIRE : une seule connexion de sortie
 	}
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_kelvinlet.jo";
+		return "entreface/operatrice_creation_kelvinlet.jo";
 	}
 
 	const char *nom_classe() const override
@@ -1343,17 +1427,15 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
-
-		if (m_corps.points()->taille() == 0) {
-			this->ajoute_avertissement("Le corps d'entrée est vide !");
+		if (donnees_aval == nullptr || !donnees_aval->possede("déformeurs_kelvinlet")) {
+			this->ajoute_avertissement("Aucune opératrice d'évaluation de kelvinlets en aval");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto temps = static_cast<double>(evalue_decimal("temps"));
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+
 		/* À FAIRE : composition et paramétrage des déformeurs,
 		 * Il faut pouvoir choisir le point de départ, la rotation, l'échelle,
 		 * l'activation, etc. voir vidéo de démonstration.
@@ -1363,69 +1445,143 @@ public:
 		auto vitesse = static_cast<double>(evalue_decimal("vitesse"));
 		auto echelle = static_cast<double>(evalue_decimal("échelle"));
 		auto pousse = evalue_bool("pousse");
-		//auto iterations = evalue_entier("itérations");
 		auto action = evalue_enum("action_");
 
 		incompressibilite = std::min(incompressibilite, 0.5);
 		vitesse = std::max(vitesse, 0.00001);
 		echelle = std::max(echelle, 0.00001);
 
-		Deformer deformeur;
+		auto deformeur = std::any_cast<Deformer *>(donnees_aval->table["déformeurs_kelvinlet"]);
 
-		if (action == "grab") {
-			Vector3 f = 2.0 * Vector3::UnitY();
+		if (!deformeur) {
+			this->ajoute_avertissement("Le deformeur est nul");
+			return EXECUTION_ECHOUEE;
+		}
 
-			if (pousse) {
-				using DynaType = Kelvinlet::DynaPushGrab;
-				ajoute_deformeur<DynaType>(deformeur, f, incompressibilite, vitesse, echelle);
-			}
-			else {
-				using DynaType = Kelvinlet::DynaPulseGrab;
-				ajoute_deformeur<DynaType>(deformeur, f, incompressibilite, vitesse, echelle);
+		/* À FAIRE : réinitialisation, trouver quand créer les déformeurs. */
+		deformeur->clear();
+
+		/* À FAIRE :
+		 * - contrainte par groupe
+		 * - temps d'activation + aléa
+		 */
+
+		if (corps_entree != nullptr) {
+			// ajoute un déformeur pour chaque points de l'entrée
+			auto points = corps_entree->points();
+
+			for (auto i = 0; i < points->taille(); ++i) {
+				auto point = corps_entree->point_transforme(i);
+
+				ajoute_deformeur(
+							*deformeur,
+							point,
+							pousse,
+							action,
+							echelle,
+							vitesse,
+							incompressibilite,
+							contexte.temps_courant);
 			}
 		}
-		/* affine */
 		else {
-			Matrix33 F = Matrix33::Zero();
-
-			if (action == "twist") {
-				Vector3 axisAngle = 0.25 * M_PI * Vector3::UnitZ();
-				F = Kelvinlet::AssembleSkewSymMatrix(axisAngle);
-			}
-			else if (action == "scale") {
-				F = Matrix33::Identity();
-			}
-			else if (action == "pinch") {
-				F(0, 0) =  1.0;
-				F(1, 1) = -1.0;
-			}
-
-			if (pousse) {
-				using DynaType = Kelvinlet::DynaPushAffine;
-				ajoute_deformeur<DynaType>(deformeur, F, incompressibilite, vitesse, echelle);
-			}
-			else {
-				using DynaType = Kelvinlet::DynaPulseAffine;
-				ajoute_deformeur<DynaType>(deformeur, F, incompressibilite, vitesse, echelle);
-			}
+			ajoute_deformeur(
+						*deformeur,
+						dls::math::vec3f(0.0f),
+						pousse,
+						action,
+						echelle,
+						vitesse,
+						incompressibilite,
+						contexte.temps_courant);
 		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpEvaluationKelvinlet final : public OperatriceCorps {
+	Deformer m_deformeurs{};
+
+public:
+	static constexpr auto NOM = "Évaluation Kelvinlet";
+	static constexpr auto AIDE = "";
+
+	explicit OpEvaluationKelvinlet(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(2);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_evaluation_kelvinlet.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		if (m_corps.points()->taille() == 0) {
+			this->ajoute_avertissement("Le corps d'entrée est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto temps = static_cast<double>(evalue_decimal("temps", contexte.temps_courant));
+		auto integration = evalue_enum("intégration");
+		auto debut = evalue_entier("début");
+
+		if (contexte.temps_courant <= debut) {
+			m_deformeurs.clear();
+			return EXECUTION_REUSSIE;
+		}
+
+		/* À FAIRE : définit quand les déformeurs sont ajoutés, accumule les
+		 *  déformeurs */
+		auto mes_donnnes = DonneesAval{};
+		mes_donnnes.table.insert({"déformeurs_kelvinlet", &m_deformeurs});
+
+		entree(1)->requiers_corps(contexte, &mes_donnnes);
 
 		/* calcule la déformation */
 		auto points_entree = m_corps.points();
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto p = points_entree->point(i);
 
-			auto point_eigen = Vector3();
-			point_eigen << static_cast<double>(p.x), static_cast<double>(p.y), static_cast<double>(p.z);
+		auto const rk4 = integration == "rk4";
 
-			auto dist = deforme_kelvinlet(point_eigen, temps, deformeur);
+		points_entree->detache();
 
-			p.x += static_cast<float>(dist[0]);
-			p.y += static_cast<float>(dist[1]);
-			p.z += static_cast<float>(dist[2]);
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+						 [&](tbb::blocked_range<long> const &plage)
+		{
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				auto p = m_corps.point_transforme(i);
 
-			points_entree->point(i, p);
-		}
+				auto point_eigen = Vector3();
+				point_eigen << static_cast<double>(p.x), static_cast<double>(p.y), static_cast<double>(p.z);
+
+				auto dist = deforme_kelvinlet(point_eigen, temps, m_deformeurs, rk4);
+
+				p.x += static_cast<float>(dist[0]);
+				p.y += static_cast<float>(dist[1]);
+				p.z += static_cast<float>(dist[2]);
+
+				points_entree->point(i, p);
+			}
+		});
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1449,7 +1605,8 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());
 	usine.enregistre_type(cree_desc<OperatriceTransformation>());
 	usine.enregistre_type(cree_desc<OperatriceSeparationPrims>());
-	usine.enregistre_type(cree_desc<OpKelvinlet>());
+	usine.enregistre_type(cree_desc<OpEvaluationKelvinlet>());
+	usine.enregistre_type(cree_desc<OpCreationKelvinlet>());
 }
 
 #pragma clang diagnostic pop

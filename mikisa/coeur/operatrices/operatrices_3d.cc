@@ -127,8 +127,10 @@ public:
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
+
 		auto const largeur = evalue_entier("largeur");
 		auto const hauteur = evalue_entier("hauteur");
 		auto const longueur_focale = evalue_decimal("longueur_focale");
@@ -234,14 +236,14 @@ public:
 		return m_camera;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (entree(0)->connectee() == false) {
 			ajoute_avertissement("Aucune image connectée pour la texture");
 			return EXECUTION_ECHOUEE;
 		}
 
-		entree(0)->requiers_image(m_image, contexte);
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
 		auto tampon = m_image.calque("image");
 
 		if (tampon == nullptr) {
@@ -282,7 +284,7 @@ public:
 		}
 		else if (projection == "caméra") {
 			m_texture.projection(PROJECTION_CAMERA);
-			m_camera = entree(1)->requiers_camera(contexte);
+			m_camera = entree(1)->requiers_camera(contexte, donnees_aval);
 
 			if (m_camera == nullptr) {
 				ajoute_avertissement("Aucune caméra trouvée pour la projection caméra !");

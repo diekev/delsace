@@ -137,11 +137,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
-		auto corps_particules = entree(0)->requiers_corps(contexte);
+		auto corps_particules = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_particules == nullptr) {
 			ajoute_avertissement("Aucun corps trouvé en entrée !");
@@ -253,9 +253,9 @@ public:
 	static constexpr auto NOM = "Collision Cheveux";
 	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		auto const courbes = charge_courbes(contexte);
+		auto const courbes = charge_courbes(contexte, donnees_aval);
 
 		if (courbes == nullptr) {
 			ajoute_avertissement("Aucune courbe n'a été trouvée !");
@@ -263,7 +263,7 @@ public:
 		}
 
 		/* obtiens le maillage de collision */
-		auto const maillage_collision = charge_maillage_collesion(contexte);
+		auto const maillage_collision = charge_maillage_collesion(contexte, donnees_aval);
 
 		if (maillage_collision == nullptr) {
 			ajoute_avertissement("Aucun maillage de collision n'a été trouvé !");
@@ -304,14 +304,14 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	Corps const *charge_maillage_collesion(ContexteEvaluation const &contexte)
+	Corps const *charge_maillage_collesion(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 	{
-		return entree(0)->requiers_corps(contexte);
+		return entree(0)->requiers_corps(contexte, donnees_aval);
 	}
 
-	Corps const *charge_courbes(ContexteEvaluation const &contexte)
+	Corps const *charge_courbes(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 	{
-		return entree(1)->requiers_corps(contexte);
+		return entree(1)->requiers_corps(contexte, donnees_aval);
 	}
 
 	ArbreOcternaire *construit_arbre(Corps const *maillage)
@@ -406,10 +406,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (m_corps.prims()->taille() == 0l) {
 			return EXECUTION_REUSSIE;

@@ -62,9 +62,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
+		INUTILISE(donnees_aval);
 
 		m_corps.reinitialise();
 
@@ -108,10 +109,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
@@ -162,10 +163,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
@@ -228,10 +229,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
@@ -353,9 +354,9 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		auto corps_collision = entree(1)->requiers_corps(contexte);
+		auto corps_collision = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_collision == nullptr) {
 			ajoute_avertissement("Aucun Corps pour la collision trouvé !");
@@ -371,7 +372,7 @@ public:
 		}
 
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
@@ -874,10 +875,10 @@ public:
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points();
 		auto const nombre_points = liste_points->taille();
@@ -934,12 +935,13 @@ public:
 		BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount, omd->gravite);
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
+		INUTILISE(donnees_aval);
 
 		m_corps.reinitialise();
-		//entree(0)->requiers_copie_corps(&m_corps, contexte);
+		//entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		OceanModifierData omd;
 		omd.resolution = evalue_entier("résolution");

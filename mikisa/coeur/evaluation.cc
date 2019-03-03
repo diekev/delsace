@@ -148,7 +148,7 @@ static void evalue_composite(Mikisa &mikisa)
 	contexte.temps_courant = mikisa.temps_courant;
 	contexte.resolution_rendu = rectangle;
 
-	execute_noeud(visionneuse, contexte);
+	execute_noeud(visionneuse, contexte, nullptr);
 
 	Image image;
 	auto operatrice = std::any_cast<OperatriceImage *>(visionneuse->donnees());
@@ -226,7 +226,7 @@ static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 	auto const t0 = tbb::tick_count::now();
 
 	operatrice->reinitialise_avertisements();
-	operatrice->execute(contexte);
+	operatrice->execute(contexte, nullptr);
 
 	auto const t1 = tbb::tick_count::now();
 	auto const delta = (t1 - t0).seconds();
