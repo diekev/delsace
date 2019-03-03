@@ -42,6 +42,7 @@
 #include "bibliotheques/outils/definitions.hh"
 
 #include "../contexte_evaluation.hh"
+#include "../gestionnaire_fichier.hh"
 #include "../operatrice_corps.h"
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
@@ -96,7 +97,7 @@ static void corrige_chemin_pour_temps(std::string &chemin, const int image)
 
 /* ************************************************************************** */
 
-static type_image charge_exr(const char *chemin)
+static auto charge_exr(const char *chemin, std::any const &donnees)
 {
 	namespace openexr = OPENEXR_IMF_NAMESPACE;
 
@@ -129,7 +130,15 @@ static type_image charge_exr(const char *chemin)
 		}
 	}
 
-	return img;
+	auto ptr = std::any_cast<type_image *>(donnees);
+	*ptr = img;
+}
+
+static auto charge_jpeg(const char *chemin, std::any const &donnees)
+{
+	auto const image_char = numero7::image::flux::LecteurJPEG::ouvre(chemin);
+	auto ptr = std::any_cast<type_image *>(donnees);
+	*ptr = numero7::image::operation::converti_en_float(image_char);
 }
 
 /* ************************************************************************** */
@@ -176,89 +185,10 @@ public:
 
 /* ************************************************************************** */
 
-enum class type_fichier : char {
-	IMAGE,
-	FILM,
-	OBJET
-};
-
-struct DonneesFichier {
-	std::list<OperatriceImage *> operatrices{};
-	type_fichier type = type_fichier::IMAGE;
-	bool entree = true;
-	char pad[6];
-};
-
-#include <algorithm>
-
-class GestionnaireFichier {
-	std::unordered_map<std::string, DonneesFichier> m_tableau;
-
-public:
-	using plage = plage_iterable<std::unordered_map<std::string, DonneesFichier>::iterator>;
-	using plage_const = plage_iterable<std::unordered_map<std::string, DonneesFichier>::const_iterator>;
-
-	void ajoute_chemin(OperatriceImage *operatrice, std::string const &chemin, type_fichier type_fichier, bool entree)
-	{
-		auto iter = m_tableau.find(chemin);
-
-		if (iter != m_tableau.end()) {
-			DonneesFichier &donnees = iter->second;
-
-			auto iter_operatrice = std::find(donnees.operatrices.begin(),
-											 donnees.operatrices.end(),
-											 operatrice);
-
-			if (iter_operatrice == donnees.operatrices.end()) {
-				donnees.operatrices.push_back(operatrice);
-			}
-
-			return;
-		}
-
-		DonneesFichier donnees;
-		donnees.entree = entree;
-		donnees.type = type_fichier;
-		donnees.operatrices.push_back(operatrice);
-
-		m_tableau.insert(std::make_pair(chemin, donnees));
-	}
-
-	void supprime_chemin(OperatriceImage *operatrice, std::string const &chemin)
-	{
-		auto iter = m_tableau.find(chemin);
-
-		if (iter != m_tableau.end()) {
-			DonneesFichier &donnees = iter->second;
-
-			auto iter_operatrice = std::find(donnees.operatrices.begin(),
-											 donnees.operatrices.end(),
-											 operatrice);
-
-			if (iter_operatrice == donnees.operatrices.end()) {
-				donnees.operatrices.erase(iter_operatrice);
-			}
-
-			if (donnees.operatrices.empty()) {
-				m_tableau.erase(iter);
-			}
-		}
-	}
-
-	plage donnees_fichiers()
-	{
-		return { m_tableau.begin(), m_tableau.end() };
-	}
-
-	plage_const donnees_fichiers() const
-	{
-		return { m_tableau.cbegin(), m_tableau.cend() };
-	}
-};
-
 class OperatriceLectureJPEG : public OperatriceImage {
 	type_image m_image_chargee{};
 	std::string m_dernier_chemin = "";
+	PoigneeFichier *m_poignee_fichier = nullptr;
 
 public:
 	static constexpr auto NOM = "Lecture Image";
@@ -270,6 +200,9 @@ public:
 		entrees(0);
 		sorties(1);
 	}
+
+	OperatriceLectureJPEG(OperatriceLectureJPEG const &) = default;
+	OperatriceLectureJPEG &operator=(OperatriceLectureJPEG const &) = default;
 
 	const char *nom_classe() const override
 	{
@@ -312,12 +245,14 @@ public:
 		}
 
 		if (m_dernier_chemin != chemin) {
+			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
+			auto donnees = std::any(&m_image_chargee);
+
 			if (chemin.find(".exr") != std::string::npos) {
-				m_image_chargee = charge_exr(chemin.c_str());
+				m_poignee_fichier->lecture_chemin(charge_exr, donnees);
 			}
 			else {
-				auto const image_char = numero7::image::flux::LecteurJPEG::ouvre(chemin.c_str());
-				m_image_chargee = numero7::image::operation::converti_en_float(image_char);
+				m_poignee_fichier->lecture_chemin(charge_jpeg, donnees);
 			}
 
 			m_dernier_chemin = chemin;

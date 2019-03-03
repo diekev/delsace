@@ -30,6 +30,8 @@
 
 #include "bibliotheques/observation/observation.hh"
 #include "bibliotheques/commandes/commande.h"
+
+#include "gestionnaire_fichier.hh"
 #include "usine_operatrice.h"
 
 class BaseEditrice;
@@ -161,6 +163,8 @@ public:
 	std::thread *thread_animation{};
 
 	TaskNotifier *notifiant_thread{};
+
+	GestionnaireFichier gestionnaire_fichier{};
 
 	void ajourne_pour_nouveau_temps(const char *message);
 

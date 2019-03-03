@@ -26,9 +26,13 @@
 
 #include "bibliotheques/geometrie/rectangle.h"
 
+struct GestionnaireFichier;
+
 struct ContexteEvaluation {
 	/* Le rectangle définissant l'aire de rendu. */
 	Rectangle resolution_rendu{};
+
+	GestionnaireFichier *gestionnaire_fichier = nullptr;
 
 	/* données sur le temps */
 	int temps_debut = 0;

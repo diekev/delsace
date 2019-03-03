@@ -35,6 +35,7 @@
 
 #include "../contexte_evaluation.hh"
 #include "../donnees_aval.hh"
+#include "../gestionnaire_fichier.hh"
 #include "../manipulatrice.h"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -606,6 +607,8 @@ class OperatriceLectureObjet final : public OperatriceCorps {
 
 	std::string m_dernier_chemin = "";
 
+	PoigneeFichier *m_poignee_fichier = nullptr;
+
 public:
 	static constexpr auto NOM = "Lecture Objet";
 	static constexpr auto AIDE = "Charge un objet depuis un fichier externe.";
@@ -616,6 +619,9 @@ public:
 		entrees(0);
 		sorties(1);
 	}
+
+	OperatriceLectureObjet(OperatriceLectureObjet const &) = default;
+	OperatriceLectureObjet &operator=(OperatriceLectureObjet const &) = default;
 
 	const char *chemin_entreface() const override
 	{
@@ -699,11 +705,25 @@ public:
 			AdaptriceCreationCorps adaptrice;
 			adaptrice.corps = &m_corps;
 
+			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
+			auto donnees = std::any(&adaptrice);
+
 			if (chemin.find(".obj") != std::string::npos) {
-				objets::charge_fichier_OBJ(&adaptrice, chemin);
+				m_poignee_fichier->lecture_chemin(
+							[](const char *chemin_, std::any const &donnees_)
+				{
+					objets::charge_fichier_OBJ(std::any_cast<AdaptriceCreationCorps *>(donnees_), chemin_);
+				},
+				donnees);
+
 			}
 			else if (chemin.find(".stl") != std::string::npos) {
-				objets::charge_fichier_STL(&adaptrice, chemin);
+				m_poignee_fichier->lecture_chemin(
+							[](const char *chemin_, std::any const &donnees_)
+				{
+					objets::charge_fichier_STL(std::any_cast<AdaptriceCreationCorps *>(donnees_), chemin_);
+				},
+				donnees);
 			}
 
 			ajourne_portee_attr_normaux(&m_corps);

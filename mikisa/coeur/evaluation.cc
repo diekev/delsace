@@ -147,6 +147,7 @@ static void evalue_composite(Mikisa &mikisa)
 	contexte.temps_fin = mikisa.temps_fin;
 	contexte.temps_courant = mikisa.temps_courant;
 	contexte.resolution_rendu = rectangle;
+	contexte.gestionnaire_fichier = &mikisa.gestionnaire_fichier;
 
 	execute_noeud(visionneuse, contexte, nullptr);
 
@@ -222,6 +223,7 @@ static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 	contexte.temps_fin = mikisa.temps_fin;
 	contexte.temps_courant = mikisa.temps_courant;
 	contexte.resolution_rendu = rectangle;
+	contexte.gestionnaire_fichier = const_cast<GestionnaireFichier *>(&mikisa.gestionnaire_fichier);
 
 	auto const t0 = tbb::tick_count::now();
 

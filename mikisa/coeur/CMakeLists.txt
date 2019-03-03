@@ -130,6 +130,7 @@ add_library(${NOM_CIBLE} STATIC
 	donnees_simulation.hh
 	evaluation.h
 	evenement.h
+	gestionnaire_fichier.hh
 	imprimeuse_graphe.h
 	manipulatrice.h
 	mikisa.h
@@ -197,6 +198,7 @@ add_library(${NOM_CIBLE} STATIC
 	donnees_simulation.cc
 	evaluation.cc
 	evenement.cc
+	gestionnaire_fichier.cc
 	imprimeuse_graphe.cc
 	manipulatrice.cc
 	mikisa.cc
