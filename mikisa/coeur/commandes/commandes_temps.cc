@@ -46,16 +46,15 @@ static auto compte_tick_ms()
 	return std::chrono::duration_cast<std::chrono::milliseconds>(duree).count();
 }
 
-static void anime_image(Mikisa *m_mikisa)
+static void anime_image(Mikisa *mikisa)
 {
-	auto const IMAGE_PAR_SECONDES = m_mikisa->cadence;
+	auto const IMAGE_PAR_SECONDES = mikisa->cadence;
 	auto const TICKS_PAR_IMAGE = static_cast<int>(1000.0 / IMAGE_PAR_SECONDES);
 
 	auto ticks_courant = compte_tick_ms();
 
-	while (m_mikisa->animation) {
-		m_mikisa->ajourne_pour_nouveau_temps("thread animation");
-		//m_mikisa->copie_objets_pour_rendu();
+	while (mikisa->animation) {
+		mikisa->ajourne_pour_nouveau_temps("thread animation");
 
 		ticks_courant += TICKS_PAR_IMAGE;
 		auto temps_sommeil = (ticks_courant - compte_tick_ms());
@@ -65,17 +64,16 @@ static void anime_image(Mikisa *m_mikisa)
 		}
 
 		/* notifie depuis le thread principal. */
-		//m_mikisa->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
-		m_mikisa->notifiant_thread->signal_proces(type_evenement::temps | type_evenement::modifie);
+		mikisa->notifiant_thread->signal_proces(type_evenement::temps | type_evenement::modifie);
 
-		auto value = m_mikisa->temps_courant;
+		auto value = mikisa->temps_courant;
 		++value;
 
-		if (value > m_mikisa->temps_fin) {
-			value = m_mikisa->temps_debut;
+		if (value > mikisa->temps_fin) {
+			value = mikisa->temps_debut;
 		}
 
-		m_mikisa->temps_courant = value;
+		mikisa->temps_courant = value;
 	}
 }
 
