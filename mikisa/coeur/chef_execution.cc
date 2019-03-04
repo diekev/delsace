@@ -22,26 +22,26 @@
  *
  */
 
-#pragma once
+#include "chef_execution.hh"
 
-#include "bibliotheques/geometrie/rectangle.h"
+#include "mikisa.h"
+#include "tache.h"
 
-class ChefExecution;
-struct GestionnaireFichier;
+ChefExecution::ChefExecution(Mikisa &mikisa)
+	: m_mikisa(mikisa)
+{}
 
-struct ContexteEvaluation {
-	/* Le rectangle définissant l'aire de rendu. */
-	Rectangle resolution_rendu{};
+bool ChefExecution::interrompu() const
+{
+	return m_mikisa.interrompu;
+}
 
-	GestionnaireFichier *gestionnaire_fichier = nullptr;
+void ChefExecution::indique_progression(float progression)
+{
+	m_mikisa.notifiant_thread->signale_ajournement_progres(progression);
+}
 
-	/* Enveloppe la logique de notification de progression et d'arrêt
-	 * des tâches. */
-	ChefExecution *chef = nullptr;
-
-	/* données sur le temps */
-	int temps_debut = 0;
-	int temps_fin = 250;
-	int temps_courant = 0;
-	double cadence = 0.0;
-};
+void ChefExecution::demarre_evaluation(const char *message)
+{
+	m_mikisa.notifiant_thread->signale_debut_evaluation(message);
+}

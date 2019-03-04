@@ -32,12 +32,15 @@
 #include <QMainWindow>
 #pragma GCC diagnostic pop
 
+class BarreDeProgres;
 class Mikisa;
 
 class FenetrePrincipale : public QMainWindow {
 	Q_OBJECT
 
 	Mikisa &m_mikisa;
+
+	BarreDeProgres *m_barre_progres = nullptr;
 
 public:
 	explicit FenetrePrincipale(Mikisa &mikisa, QWidget *parent = nullptr);
@@ -50,6 +53,12 @@ public Q_SLOTS:
 	void mis_a_jour_menu_fichier_recent();
 
 	void signale_proces(int quoi);
+
+	/* barre de progrès */
+	void tache_demarree();
+	void ajourne_progres(float progres);
+	void tache_terminee();
+	void evaluation_debutee(const char *message);
 
 private:
 	QDockWidget *ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier = nullptr);

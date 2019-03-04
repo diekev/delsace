@@ -41,6 +41,7 @@
 #include "bibliotheques/graphe/graphe.h"
 #include "bibliotheques/outils/definitions.hh"
 
+#include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
 #include "../gestionnaire_fichier.hh"
 #include "../operatrice_corps.h"
@@ -440,6 +441,69 @@ public:
 
 /* ************************************************************************** */
 
+#undef OP_INFINIE
+
+#ifdef OP_INFINIE
+/* utilisée pour tester le chef d'exécution */
+class OperatriceInfinie : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Infinie";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceInfinie(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+
+		m_corps.reinitialise();
+
+		auto chef = contexte.chef;
+
+		chef->demarre_evaluation("Infinie");
+
+		auto i = 0.0f;
+
+		while (true) {
+			if (chef->interrompu()) {
+				break;
+			}
+
+			chef->indique_progression((i + 1.0f) / 1000.0f);
+
+			i += 1.0f;
+
+			if (i >= 100000.0f) {
+				i = 0.0f;
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+#endif
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_flux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCommutation>());
@@ -447,6 +511,10 @@ void enregistre_operatrices_flux(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
 	usine.enregistre_type(cree_desc<OperatriceEntreeGraphe>());
+
+#ifdef OP_INFINIE
+	usine.enregistre_type(cree_desc<OperatriceInfinie>());
+#endif
 }
 
 #pragma clang diagnostic pop

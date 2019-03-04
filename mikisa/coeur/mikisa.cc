@@ -92,6 +92,7 @@ Mikisa::Mikisa()
 	, type_manipulation_3d(MANIPULATION_POSITION)
 	, chemin_courant("/composite/")
 	, notifiant_thread(nullptr)
+	, chef_execution(*this)
 {
 	camera_3d->projection(vision::TypeProjection::PERSPECTIVE);
 }

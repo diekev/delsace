@@ -31,6 +31,7 @@
 #include "bibliotheques/observation/observation.hh"
 #include "bibliotheques/commandes/commande.h"
 
+#include "chef_execution.hh"
 #include "gestionnaire_fichier.hh"
 #include "usine_operatrice.h"
 
@@ -158,6 +159,7 @@ public:
 
 	/* pour les tâches */
 	bool tache_en_cours = false;
+	bool interrompu = false;
 
 	/* thread utilisé pour jouer des animations */
 	std::thread *thread_animation{};
@@ -165,6 +167,8 @@ public:
 	TaskNotifier *notifiant_thread{};
 
 	GestionnaireFichier gestionnaire_fichier{};
+
+	ChefExecution chef_execution;
 
 	void ajourne_pour_nouveau_temps(const char *message);
 };

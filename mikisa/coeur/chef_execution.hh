@@ -24,24 +24,17 @@
 
 #pragma once
 
-#include "bibliotheques/geometrie/rectangle.h"
+class Mikisa;
 
-class ChefExecution;
-struct GestionnaireFichier;
+class ChefExecution {
+	Mikisa &m_mikisa;
 
-struct ContexteEvaluation {
-	/* Le rectangle définissant l'aire de rendu. */
-	Rectangle resolution_rendu{};
+public:
+	explicit ChefExecution(Mikisa &mikisa);
 
-	GestionnaireFichier *gestionnaire_fichier = nullptr;
+	bool interrompu() const;
 
-	/* Enveloppe la logique de notification de progression et d'arrêt
-	 * des tâches. */
-	ChefExecution *chef = nullptr;
+	void indique_progression(float progression);
 
-	/* données sur le temps */
-	int temps_debut = 0;
-	int temps_fin = 250;
-	int temps_courant = 0;
-	double cadence = 0.0;
+	void demarre_evaluation(const char *message);
 };

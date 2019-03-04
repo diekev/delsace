@@ -55,7 +55,7 @@ static void anime_image(Mikisa *m_mikisa)
 
 	while (m_mikisa->animation) {
 		m_mikisa->ajourne_pour_nouveau_temps("thread animation");
-		m_mikisa->copie_objets_pour_rendu();
+		//m_mikisa->copie_objets_pour_rendu();
 
 		ticks_courant += TICKS_PAR_IMAGE;
 		auto temps_sommeil = (ticks_courant - compte_tick_ms());
@@ -127,10 +127,6 @@ public:
 			/* Évite d'envoyer des évènements inutiles. */
 			if (mikisa->animation == true) {
 				return EXECUTION_COMMANDE_REUSSIE;
-			}
-
-			if (mikisa->notifiant_thread == nullptr) {
-				mikisa->notifiant_thread = new TaskNotifier(mikisa->fenetre_principale);
 			}
 
 			mikisa->thread_animation = new std::thread(anime_image, mikisa);

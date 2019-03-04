@@ -49,6 +49,7 @@ add_compile_options(-fPIC)
 qt5_wrap_cpp(
 	moc_headers
 
+	barre_progres.hh
 	base_editrice.h
 	editrice_ligne_temps.h
 	editrice_noeud.h
@@ -177,6 +178,7 @@ add_library(${NOM_CIBLE} STATIC
 	opengl/rendu_manipulatrice.h
 	opengl/visionneur_scene.h
 
+	barre_progres.hh
 	base_editrice.h
 	editrice_ligne_temps.h
 	editrice_noeud.h
@@ -196,6 +198,7 @@ add_library(${NOM_CIBLE} STATIC
 	opengl/rendu_manipulatrice.cc
 	opengl/visionneur_scene.cc
 
+	barre_progres.cc
 	base_editrice.cc
 	editrice_ligne_temps.cc
 	editrice_noeud.cc

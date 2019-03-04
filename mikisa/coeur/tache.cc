@@ -34,6 +34,11 @@ TaskNotifier::TaskNotifier(FenetrePrincipale *window)
 
 	connect(this, SIGNAL(image_traitee()), window, SLOT(image_traitee()));
 	connect(this, SIGNAL(signal_proces(int)), window, SLOT(signale_proces(int)));
+
+	connect(this, &TaskNotifier::debut_tache, window, &FenetrePrincipale::tache_demarree);
+	connect(this, &TaskNotifier::ajourne_progres, window, &FenetrePrincipale::ajourne_progres);
+	connect(this, &TaskNotifier::fin_tache, window, &FenetrePrincipale::tache_terminee);
+	connect(this, &TaskNotifier::debut_evaluation, window, &FenetrePrincipale::evaluation_debutee);
 }
 
 void TaskNotifier::signalImageProcessed()
@@ -44,4 +49,24 @@ void TaskNotifier::signalImageProcessed()
 void TaskNotifier::signalise_proces(int quoi)
 {
 	Q_EMIT(signal_proces(quoi));
+}
+
+void TaskNotifier::signale_debut_tache()
+{
+	Q_EMIT(debut_tache());
+}
+
+void TaskNotifier::signale_ajournement_progres(float progres)
+{
+	Q_EMIT(ajourne_progres(progres));
+}
+
+void TaskNotifier::signale_fin_tache()
+{
+	Q_EMIT(fin_tache());
+}
+
+void TaskNotifier::signale_debut_evaluation(const char *message)
+{
+	Q_EMIT(debut_evaluation(message));
 }

@@ -84,7 +84,11 @@ TacheMikisa::TacheMikisa(Mikisa &mikisa)
 
 tbb::task *TacheMikisa::execute()
 {
+	m_mikisa.interrompu = false;
+	notifier.signale_debut_tache();
 	evalue();
+	notifier.signale_fin_tache();
+
 	m_mikisa.tache_en_cours = false;
 	return nullptr;
 }
@@ -148,6 +152,7 @@ static void evalue_composite(Mikisa &mikisa)
 	contexte.temps_courant = mikisa.temps_courant;
 	contexte.resolution_rendu = rectangle;
 	contexte.gestionnaire_fichier = &mikisa.gestionnaire_fichier;
+	contexte.chef = &mikisa.chef_execution;
 
 	execute_noeud(visionneuse, contexte, nullptr);
 
@@ -224,6 +229,7 @@ static Objet *evalue_objet_ex(Mikisa const &mikisa, Noeud *noeud)
 	contexte.temps_courant = mikisa.temps_courant;
 	contexte.resolution_rendu = rectangle;
 	contexte.gestionnaire_fichier = const_cast<GestionnaireFichier *>(&mikisa.gestionnaire_fichier);
+	contexte.chef = const_cast<ChefExecution *>(&mikisa.chef_execution);
 
 	auto const t0 = tbb::tick_count::now();
 

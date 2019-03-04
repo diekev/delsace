@@ -24,24 +24,36 @@
 
 #pragma once
 
-#include "bibliotheques/geometrie/rectangle.h"
+#include <QWidget>
 
-class ChefExecution;
-struct GestionnaireFichier;
+class QLabel;
+class QHBoxLayout;
+class QProgressBar;
+class QPushButton;
 
-struct ContexteEvaluation {
-	/* Le rectangle définissant l'aire de rendu. */
-	Rectangle resolution_rendu{};
+struct Mikisa;
 
-	GestionnaireFichier *gestionnaire_fichier = nullptr;
+class BarreDeProgres : public QWidget {
+	Q_OBJECT
 
-	/* Enveloppe la logique de notification de progression et d'arrêt
-	 * des tâches. */
-	ChefExecution *chef = nullptr;
+	Mikisa &m_mikisa;
 
-	/* données sur le temps */
-	int temps_debut = 0;
-	int temps_fin = 250;
-	int temps_courant = 0;
-	double cadence = 0.0;
+	QProgressBar *m_barre_progres;
+	QLabel *m_label;
+	QPushButton *m_bouton_stop;
+
+	QHBoxLayout *m_disposition;
+
+public:
+	explicit BarreDeProgres(Mikisa &mikisa, QWidget *parent = nullptr);
+
+	BarreDeProgres(BarreDeProgres const &) = default;
+	BarreDeProgres &operator=(BarreDeProgres const &) = default;
+
+	void ajourne_valeur(int valeur);
+
+	void ajourne_message(const char *message);
+
+private Q_SLOTS:
+	void signal_stop();
 };

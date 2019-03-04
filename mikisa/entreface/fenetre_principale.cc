@@ -36,6 +36,7 @@
 #include <QFileInfo>
 #include <QMenuBar>
 #include <QSettings>
+#include <QStatusBar>
 #pragma GCC diagnostic pop
 
 #include "bibliotheques/commandes/repondant_commande.h"
@@ -43,7 +44,9 @@
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
+#include "coeur/tache.h"
 
+#include "barre_progres.hh"
 #include "editrice_ligne_temps.h"
 #include "editrice_noeud.h"
 #include "editrice_proprietes.h"
@@ -74,10 +77,15 @@ enum {
 FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 	: QMainWindow(parent)
 	, m_mikisa(mikisa)
+	, m_barre_progres(new BarreDeProgres(m_mikisa, this))
 {
 	mikisa.fenetre_principale = this;
+	mikisa.notifiant_thread = new TaskNotifier(this);
 
 	genere_barre_menu();
+
+	statusBar()->addWidget(m_barre_progres);
+	m_barre_progres->setVisible(false);
 
 	auto dock_vue2D = ajoute_dock("Vue 2D", EDITRICE_VUE2D, Qt::LeftDockWidgetArea);
 	ajoute_dock("Vue 3D", EDITRICE_VUE3D, Qt::LeftDockWidgetArea, dock_vue2D);
@@ -212,4 +220,26 @@ void FenetrePrincipale::image_traitee()
 void FenetrePrincipale::signale_proces(int quoi)
 {
 	m_mikisa.notifie_observatrices(quoi);
+}
+
+void FenetrePrincipale::tache_demarree()
+{
+	m_barre_progres->ajourne_valeur(0);
+	m_barre_progres->setVisible(true);
+}
+
+void FenetrePrincipale::ajourne_progres(float progres)
+{
+	m_barre_progres->ajourne_valeur(static_cast<int>(progres));
+}
+
+void FenetrePrincipale::tache_terminee()
+{
+	m_barre_progres->setVisible(false);
+}
+
+void FenetrePrincipale::evaluation_debutee(const char *message)
+{
+	m_barre_progres->ajourne_valeur(0);
+	m_barre_progres->ajourne_message(message);
 }

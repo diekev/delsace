@@ -123,6 +123,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_volume.hh
 
 	attribut.h
+	chef_execution.hh
 	composite.h
 	configuration.h
 	contexte_evaluation.hh
@@ -191,6 +192,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_volume.cc
 
 	attribut.cc
+	chef_execution.cc
 	composite.cc
 	configuration.cc
 	contexte_evaluation.cc
