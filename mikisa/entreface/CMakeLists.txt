@@ -99,6 +99,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_ajout_corps_rigide.jo
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_attr_couleur.jo
+	scripts_danjo/operatrice_bruit_topologique.jo
 	scripts_danjo/operatrice_camera.jo
 	scripts_danjo/operatrice_champs_distance.jo
 	scripts_danjo/operatrice_collision.jo
@@ -135,6 +136,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_melange.jo
 	scripts_danjo/operatrice_min_max.jo
 	scripts_danjo/operatrice_normalisation.jo
+	scripts_danjo/operatrice_normalise_covariance.jo
 	scripts_danjo/operatrice_nuage.jo
         scripts_danjo/operatrice_objet.jo
 	scripts_danjo/operatrice_ocean.jo
