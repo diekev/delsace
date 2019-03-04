@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include <delsace/math/vecteur.hh>
@@ -123,8 +124,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-#include <memory>
 
 class ListePoints3D {
 	using type_liste = std::vector<Point3D *>;

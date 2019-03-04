@@ -222,16 +222,3 @@ void Mikisa::ajourne_pour_nouveau_temps(const char *message)
 {
 	evalue_resultat(*this, message);
 }
-
-#include "scene.h"
-
-void Mikisa::copie_objets_pour_rendu()
-{
-//	auto noeud = this->derniere_scene_selectionnee;
-
-//	if (noeud != nullptr) {
-//		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-//	//	auto scene = operatrice->scene();
-//		//scene->copie_objet();
-//	}
-}

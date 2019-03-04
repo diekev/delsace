@@ -24,6 +24,8 @@
 
 #include "operatrices_particules.h"
 
+#include <eigen3/Eigen/Eigenvalues>
+
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
@@ -1357,8 +1359,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-#include <eigen3/Eigen/Eigenvalues>
 
 static auto calcul_centre_masse(
 	std::vector<dls::math::vec3f> const &points)

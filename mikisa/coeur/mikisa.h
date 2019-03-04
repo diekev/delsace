@@ -167,6 +167,4 @@ public:
 	GestionnaireFichier gestionnaire_fichier{};
 
 	void ajourne_pour_nouveau_temps(const char *message);
-
-	void copie_objets_pour_rendu();
 };
