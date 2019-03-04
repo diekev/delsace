@@ -937,15 +937,18 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		INUTILISE(contexte);
-		INUTILISE(donnees_aval);
-
 		m_corps.reinitialise();
-		//entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		if (m_corps.points()->taille() == 0) {
+			this->ajoute_avertissement("Le corps d'entrée est vide");
+			return EXECUTION_ECHOUEE;
+		}
 
 		OceanModifierData omd;
+
+		/* paramètres simulations */
 		omd.resolution = evalue_entier("résolution");
-		omd.spatial_size = evalue_entier("taille_spaciale");
 
 		omd.wave_alignment = evalue_decimal("alignement_vague");
 		omd.wind_velocity = evalue_decimal("vélocité_vent");
@@ -964,164 +967,69 @@ public:
 		omd.seed = evalue_entier("graine");
 		omd.time = static_cast<float>(contexte.temps_courant) / 10.0f; //evalue_decimal("temps");
 
-		omd.size = evalue_decimal("taille");
-		omd.repeat_x = evalue_entier("répétition_x");
-		omd.repeat_y = evalue_entier("répétition_y");
-
 		omd.gravite = evalue_decimal("gravité");
 
-		omd.cached = 0;
-		omd.bakestart = 1;
-		omd.bakeend = 250;
-		omd.oceancache = nullptr;
 		omd.foam_fade = evalue_decimal("atténuation_écume");
-		omd.foamlayername[0] = '\0';   /* layer name empty by default */
+
+		/* paramètres déplacements */
+		auto taille = evalue_decimal("taille");
+		omd.spatial_size = static_cast<float>(evalue_entier("taille_spaciale"));
+
+		omd.oceancache = nullptr;
+
+		const float size_co_inv = 1.0f / (taille * omd.spatial_size);
+
+		if (!std::isfinite(size_co_inv)) {
+			this->ajoute_avertissement("La taille inverse n'est pas finie");
+			return EXECUTION_ECHOUEE;
+		}
 
 		omd.ocean = BKE_ocean_add();
 		BKE_ocean_init_from_modifier(omd.ocean, &omd);
+
 		simulate_ocean_modifier(&omd);
 
-		doOcean(&omd);
+		/* À FAIRE : foam */
+
+		/* applique les déplacements à la géométrie d'entrée */
+		auto points = m_corps.points();
+		auto res_x = omd.resolution * omd.resolution;
+		auto res_y = omd.resolution * omd.resolution;
+
+		OceanResult ocr;
+
+		for (auto i = 0; i < points->taille(); ++i) {
+			auto p = points->point(i);
+
+			/* converti la position du point en espace grille */
+			auto u = std::fmod(p.x * size_co_inv + 0.5f, 1.0f);
+			auto v = std::fmod(p.z * size_co_inv + 0.5f, 1.0f);
+
+			if (u < 0.0f) {
+				u += 1.0f;
+			}
+
+			if (v < 0.0f) {
+				v += 1.0f;
+			}
+
+			/* À FAIRE : échantillonage bilinéaire. */
+			BKE_ocean_eval_ij(
+						omd.ocean,
+						&ocr,
+						static_cast<int>(u * (static_cast<float>(res_x))),
+						static_cast<int>(v * (static_cast<float>(res_y))));
+
+			p[0] += ocr.disp[0];
+			p[1] += ocr.disp[1];
+			p[2] += ocr.disp[2];
+
+			points->point(i, p);
+		}
 
 		BKE_ocean_free(omd.ocean);
 
 		return EXECUTION_REUSSIE;
-	}
-
-	struct GenerateOceanGeometryData {
-		Corps *corps;
-
-		int res_x, res_y;
-		int rx, ry;
-		float ox, oy;
-		float sx, sy;
-		float ix, iy;
-	};
-
-	void generate_ocean_geometry_vertices(GenerateOceanGeometryData *gogd)
-	{
-		for (int y = 0; y <= gogd->res_y; ++y){
-			for (int x = 0; x <= gogd->res_x; x++) {
-				float co[3];
-				co[0] = gogd->ox + (static_cast<float>(x) * gogd->sx);
-				co[1] = 0.0f;
-				co[2] = gogd->oy + (static_cast<float>(y) * gogd->sy);
-
-				gogd->corps->ajoute_point(co[0], co[1], co[2]);
-			}
-		}
-	}
-
-	void generate_ocean_geometry_polygons(GenerateOceanGeometryData *gogd)
-	{
-		for (int y = 0; y < gogd->res_y; ++y) {
-			for (int x = 0; x < gogd->res_x; x++) {
-				const int vi = y * (gogd->res_x + 1) + x;
-
-				auto poly = Polygone::construit(gogd->corps, type_polygone::FERME, 4);
-				poly->ajoute_sommet(vi);
-				poly->ajoute_sommet(vi + 1);
-				poly->ajoute_sommet(vi + 1 + gogd->res_x + 1);
-				poly->ajoute_sommet(vi + gogd->res_x + 1);
-			}
-		}
-	}
-
-	void generate_ocean_geometry_uvs(GenerateOceanGeometryData *gogd)
-	{
-		gogd->ix = 1.0f / static_cast<float>(gogd->rx);
-		gogd->iy = 1.0f / static_cast<float>(gogd->ry);
-
-		auto attr_UV = gogd->corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::VERTEX);
-
-		for (int y = 0; y < gogd->res_y; ++y) {
-			for (int x = 0; x < gogd->res_x; x++) {
-				const int i = (y * gogd->res_x + x) * 4;
-
-				auto const x0 = static_cast<float>(x);
-				auto const x1 = static_cast<float>(x + 1);
-				auto const y0 = static_cast<float>(y);
-				auto const y1 = static_cast<float>(y + 1);
-
-				attr_UV->vec2(i + 0, dls::math::vec2f(x0 * gogd->ix, y0 * gogd->iy));
-				attr_UV->vec2(i + 1, dls::math::vec2f(x1 * gogd->ix, y0 * gogd->iy));
-				attr_UV->vec2(i + 2, dls::math::vec2f(x1 * gogd->ix, y1 * gogd->iy));
-				attr_UV->vec2(i + 3, dls::math::vec2f(x0 * gogd->ix, y1 * gogd->iy));
-			}
-		}
-	}
-
-	void generate_ocean_geometry(OceanModifierData *omd, bool ajoute_uvs)
-	{
-		GenerateOceanGeometryData gogd;
-		gogd.corps = &m_corps;
-		gogd.rx = omd->resolution * omd->resolution;
-		gogd.ry = omd->resolution * omd->resolution;
-		gogd.res_x = gogd.rx * omd->repeat_x;
-		gogd.res_y = gogd.ry * omd->repeat_y;
-
-		auto num_verts = (gogd.res_x + 1) * (gogd.res_y + 1);
-		auto num_polys = gogd.res_x * gogd.res_y;
-
-		m_corps.points()->reserve(num_verts);
-		m_corps.prims()->reserve(num_polys);
-
-		gogd.sx = omd->size * static_cast<float>(omd->spatial_size);
-		gogd.sy = omd->size * static_cast<float>(omd->spatial_size);
-		gogd.ox = -gogd.sx / 2.0f;
-		gogd.oy = -gogd.sy / 2.0f;
-
-		gogd.sx /= static_cast<float>(gogd.rx);
-		gogd.sy /= static_cast<float>(gogd.ry);
-
-		generate_ocean_geometry_vertices(&gogd);
-		generate_ocean_geometry_polygons(&gogd);
-
-		if (ajoute_uvs) {
-			generate_ocean_geometry_uvs(&gogd);
-		}
-	}
-
-	void doOcean(OceanModifierData *omd)
-	{
-		const float size_co_inv = 1.0f / (omd->size * static_cast<float>(omd->spatial_size));
-
-		if (!std::isfinite(size_co_inv)) {
-			this->ajoute_avertissement("La taille inverse n'est pas finie");
-			return;
-		}
-
-		generate_ocean_geometry(omd, false);
-
-		/* À FAIRE : foam */
-
-		/* displace the geometry */
-		{
-			OceanResult ocr;
-
-			auto rx = omd->resolution * omd->resolution;
-			auto ry = omd->resolution * omd->resolution;
-			auto res_x = rx * omd->repeat_x;
-			auto res_y = ry * omd->repeat_y;
-
-			auto i = 0;
-
-			for (int y = 0; y <= res_y; ++y){
-				for (int x = 0; x <= res_x; x++) {
-
-					BKE_ocean_eval_ij(omd->ocean, &ocr, x, y);
-
-					auto pos = m_corps.points()->point(i);
-					pos[0] += ocr.disp[0];
-					pos[1] += ocr.disp[1];
-					pos[2] += ocr.disp[2];
-
-					m_corps.points()->point(i, pos);
-
-					++i;
-				}
-			}
-		}
 	}
 };
 

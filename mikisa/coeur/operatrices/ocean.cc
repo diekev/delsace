@@ -35,23 +35,40 @@
 
 /* ************************************************************************** */
 
-/* À FAIRE : fonction similaire dans dls::math pour la 3D */
-static float gaussRand(GNA &gna)
+template <typename T>
+static auto est_zero(T v)
 {
-	/* Note: to avoid numerical problems with very small numbers, we make these variables singe-precision floats,
-	 * but later we call the double-precision log() and sqrt() functions instead of logf() and sqrtf().
+	if constexpr (std::is_floating_point<T>::value) {
+		return std::abs(v) <= std::numeric_limits<T>::epsilon();
+	}
+
+	return v == 0;
+}
+
+/* Retourne un nombre aléatoire avec une distribution normale (Gaussienne),
+ * avec le sigma spécifié. Ceci utilise la forme polaire de Marsaglia de la
+ * méthode de Box-Muller */
+/* À FAIRE : fonction similaire dans dls::math pour la 3D */
+template <typename T>
+static auto gaussRand(GNA &gna, T moyenne = 0,  T sigma = 1)
+{
+	/* NOTE : pour éviter les problèmes numériques avec des nombres très petit,
+	 * on pourrait utiliser des floats pour le calcul de x et y et des doubles
+	 * pour le calcul de g.
 	 */
-	float x;
-	float y;
-	float length2;
+	T x;
+	T y;
+	T longueur_carree;
 
 	do {
-		x = gna.uniforme(-1.0f, 1.0f);
-		y = gna.uniforme(-1.0f, 1.0f);
-		length2 = x * x + y * y;
-	} while (length2 >= 1.0f || length2 == 0.0f);
+		x = gna.uniforme(static_cast<T>(-1), static_cast<T>(1));
+		y = gna.uniforme(static_cast<T>(-1), static_cast<T>(1));
+		longueur_carree = x * x + y * y;
+	} while (longueur_carree >= static_cast<T>(1) || est_zero(longueur_carree));
 
-	return x * std::sqrt(-2.0f * std::log(length2) / length2);
+	auto g = std::sqrt(static_cast<T>(-2) * std::log(longueur_carree) / longueur_carree);
+
+	return dls::math::vec2<T>(sigma * x * g + moyenne, sigma * y * g + moyenne);
 }
 
 /**
@@ -61,9 +78,9 @@ template <typename T>
 auto catrom(T p0, T p1, T p2, T p3, T f)
 {
 	return 0.5 * ((2.0 * p1) +
-				   (-p0 + p2) * f +
-				   (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * f * f +
-				   (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * f * f * f);
+				  (-p0 + p2) * f +
+				  (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * f * f +
+				  (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * f * f * f);
 }
 
 template <typename T>
@@ -89,7 +106,7 @@ static float Ph(Ocean *o, float kx, float kz)
 	}
 
 	return o->_A * expf(-1.0f / (k2 * (o->_L * o->_L))) * expf(-k2 * (o->_l * o->_l)) *
-		   powf(fabsf(tmp), o->_wind_alignment) / (k2 * k2);
+			powf(fabsf(tmp), o->_wind_alignment) / (k2 * k2);
 }
 
 static void compute_eigenstuff(OceanResult *ocr, float jxx, float jzz, float jxz)
@@ -216,10 +233,10 @@ void BKE_ocean_eval_uv(Ocean *oc, OceanResult *ocr, float u, float v)
 	auto bilerp = [&](double *m)
 	{
 		return static_cast<float>(dls::math::entrepolation_bilineaire(
-								m[i1 * oc->_N + j1],
-							m[i0 * oc->_N + j1],
-							m[i1 * oc->_N + j0],
-							m[i0 * oc->_N + j0], static_cast<double>(frac_x), static_cast<double>(frac_z)));
+									  m[i1 * oc->_N + j1],
+								  m[i0 * oc->_N + j1],
+				m[i1 * oc->_N + j0],
+				m[i0 * oc->_N + j0], static_cast<double>(frac_x), static_cast<double>(frac_z)));
 	};
 
 	{
@@ -297,14 +314,14 @@ void BKE_ocean_eval_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v)
 	auto interp = [&](double *m)
 	{
 		return static_cast<float>(catrom(catrom(m[i0 * oc->_N + j0], m[i1 * oc->_N + j0], \
-					m[i2 * oc->_N + j0], m[i3 * oc->_N + j0], static_cast<double>(frac_x)), \
-					  catrom(m[i0 * oc->_N + j1], m[i1 * oc->_N + j1], \
-					m[i2 * oc->_N + j1], m[i3 * oc->_N + j1], static_cast<double>(frac_x)), \
-					  catrom(m[i0 * oc->_N + j2], m[i1 * oc->_N + j2], \
-					m[i2 * oc->_N + j2], m[i3 * oc->_N + j2], static_cast<double>(frac_x)), \
-					  catrom(m[i0 * oc->_N + j3], m[i1 * oc->_N + j3], \
-					m[i2 * oc->_N + j3], m[i3 * oc->_N + j3], static_cast<double>(frac_x)), \
-					static_cast<double>(frac_z)));
+								  m[i2 * oc->_N + j0], m[i3 * oc->_N + j0], static_cast<double>(frac_x)), \
+				catrom(m[i0 * oc->_N + j1], m[i1 * oc->_N + j1], \
+				m[i2 * oc->_N + j1], m[i3 * oc->_N + j1], static_cast<double>(frac_x)), \
+				catrom(m[i0 * oc->_N + j2], m[i1 * oc->_N + j2], \
+				m[i2 * oc->_N + j2], m[i3 * oc->_N + j2], static_cast<double>(frac_x)), \
+				catrom(m[i0 * oc->_N + j3], m[i1 * oc->_N + j3], \
+				m[i2 * oc->_N + j3], m[i3 * oc->_N + j3], static_cast<double>(frac_x)), \
+				static_cast<double>(frac_z)));
 	};
 
 	{
@@ -348,7 +365,7 @@ void BKE_ocean_eval_xz_catrom(Ocean *oc, OceanResult *ocr, float x, float z)
  */
 void BKE_ocean_eval_ij(Ocean *oc, OceanResult *ocr, int i, int j)
 {
-//	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
+	//	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
 
 	i = abs(i) % oc->_M;
 	j = abs(j) % oc->_N;
@@ -443,8 +460,8 @@ static void ocean_compute_displacement_x(OceanSimulateData *osd)
 			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
 			mul_complex_f(mul_param, mul_param,
 						  ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						   0.0f :
-						   o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
+							  0.0f :
+							  o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
 			init_complex(o->_fft_in_x[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 		}
 	}
@@ -470,8 +487,8 @@ static void ocean_compute_displacement_z(OceanSimulateData *osd)
 			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
 			mul_complex_f(mul_param, mul_param,
 						  ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						   0.0f :
-						   o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
+							  0.0f :
+							  o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
 			init_complex(o->_fft_in_z[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 		}
 	}
@@ -495,8 +512,8 @@ static void ocean_compute_jacobian_jxx(OceanSimulateData *osd)
 			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
 			mul_complex_f(mul_param, mul_param,
 						  ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						   0.0f :
-						   o->_kx[i] * o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
+							  0.0f :
+							  o->_kx[i] * o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
 			init_complex(o->_fft_in_jxx[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 		}
 	}
@@ -526,8 +543,8 @@ static void ocean_compute_jacobian_jzz(OceanSimulateData *osd)
 			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
 			mul_complex_f(mul_param, mul_param,
 						  ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						   0.0f :
-						   o->_kz[j] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
+							  0.0f :
+							  o->_kz[j] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
 			init_complex(o->_fft_in_jzz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 		}
 	}
@@ -557,8 +574,8 @@ static void ocean_compute_jacobian_jxz(OceanSimulateData *osd)
 			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
 			mul_complex_f(mul_param, mul_param,
 						  ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						   0.0f :
-						   o->_kx[i] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
+							  0.0f :
+							  o->_kx[i] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
 			init_complex(o->_fft_in_jxz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 		}
 	}
@@ -612,7 +629,7 @@ void BKE_ocean_simulate(Ocean *o, float t, float scale, float chop_amount, float
 	osd.scale = scale;
 	osd.chop_amount = chop_amount;
 
-//	BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
+	//	BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
 
 	/* Note about multi-threading here: we have to run a first set of computations (htilda one) before we can run
 	 * all others, since they all depend on it.
@@ -645,7 +662,7 @@ void BKE_ocean_simulate(Ocean *o, float t, float scale, float chop_amount, float
 		o->_N_y = 1.0 / static_cast<double>(scale);
 	}
 
-//	BLI_rw_mutex_unlock(&o->oceanmutex);
+	//	BLI_rw_mutex_unlock(&o->oceanmutex);
 }
 
 static void set_height_normalize_factor(Ocean *oc, float gravite)
@@ -661,7 +678,7 @@ static void set_height_normalize_factor(Ocean *oc, float gravite)
 
 	BKE_ocean_simulate(oc, 0.0, 1.0, 0, gravite);
 
-//	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
+	//	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
 
 	for (int i = 0; i < oc->_M; ++i) {
 		for (int j = 0; j < oc->_N; ++j) {
@@ -671,7 +688,7 @@ static void set_height_normalize_factor(Ocean *oc, float gravite)
 		}
 	}
 
-//	BLI_rw_mutex_unlock(&oc->oceanmutex);
+	//	BLI_rw_mutex_unlock(&oc->oceanmutex);
 
 	if (max_h == 0.0) {
 		max_h = 0.00001;  /* just in case ... */
@@ -686,7 +703,7 @@ Ocean *BKE_ocean_add(void)
 {
 	Ocean *oc = new Ocean{};
 
-//	BLI_rw_mutex_init(&oc->oceanmutex);
+	//	BLI_rw_mutex_init(&oc->oceanmutex);
 
 	return oc;
 }
@@ -712,17 +729,48 @@ void BKE_ocean_init_from_modifier(Ocean *ocean, OceanModifierData const *omd)
 	do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
 
 	BKE_ocean_free_data(ocean);
-	BKE_ocean_init(ocean, omd->resolution * omd->resolution, omd->resolution * omd->resolution,
-				   static_cast<float>(omd->spatial_size), static_cast<float>(omd->spatial_size),
-				   omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
-				   omd->depth, omd->time,
-				   do_heightfield, do_chop, do_normals, do_jacobian,
-				   omd->seed, omd->gravite);
+	BKE_ocean_init(
+				ocean,
+				omd->resolution * omd->resolution,
+				omd->resolution * omd->resolution,
+				omd->spatial_size,
+				omd->spatial_size,
+				omd->wind_velocity,
+				omd->smallest_wave,
+				1.0,
+				omd->wave_direction,
+				omd->damp,
+				omd->wave_alignment,
+				omd->depth,
+				omd->time,
+				do_heightfield,
+				do_chop,
+				do_normals,
+				do_jacobian,
+				omd->seed,
+				omd->gravite);
 }
 
-void BKE_ocean_init(Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
-					float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals,
-					short do_jacobian, int seed, float gravite)
+void BKE_ocean_init(
+		Ocean *o,
+		int M,
+		int N,
+		float Lx,
+		float Lz,
+		float V,
+		float l,
+		float A,
+		float w,
+		float damp,
+		float alignment,
+		float depth,
+		float time,
+		short do_height_field,
+		short do_chop,
+		short do_normals,
+		short do_jacobian,
+		int seed,
+		float gravite)
 {
 	int i, j, ii;
 
@@ -787,11 +835,10 @@ void BKE_ocean_init(Ocean *o, int M, int N, float Lx, float Lz, float V, float l
 
 	for (i = 0; i < o->_M; ++i) {
 		for (j = 0; j < o->_N; ++j) {
-			float r1 = gaussRand(gna);
-			float r2 = gaussRand(gna);
+			auto r1 = gaussRand(gna, 0.0f, 1.0f);
 
 			fftw_complex r1r2;
-			init_complex(r1r2, r1, r2);
+			init_complex(r1r2, r1.x, r1.y);
 			mul_complex_f(o->_h0[i * o->_N + j], r1r2, std::sqrt(Ph(o, o->_kx[i], o->_kz[j]) / 2.0f));
 			mul_complex_f(o->_h0_minus[i * o->_N + j], r1r2, std::sqrt(Ph(o, -o->_kx[i], -o->_kz[j]) / 2.0f));
 		}
@@ -859,9 +906,9 @@ void BKE_ocean_free_data(Ocean *oc)
 		return;
 	}
 
-//	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_WRITE);
+	//	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_WRITE);
 
-//	BLI_thread_lock(LOCK_FFTW);
+	//	BLI_thread_lock(LOCK_FFTW);
 
 	if (oc->_do_disp_y) {
 		fftw_destroy_plan(oc->_disp_y_plan);
@@ -899,7 +946,7 @@ void BKE_ocean_free_data(Ocean *oc)
 		delete [] oc->_Jxz;
 	}
 
-//	BLI_thread_unlock(LOCK_FFTW);
+	//	BLI_thread_unlock(LOCK_FFTW);
 
 	if (oc->_fft_in) {
 		delete [] oc->_fft_in;
@@ -915,7 +962,7 @@ void BKE_ocean_free_data(Ocean *oc)
 		delete [] oc->_kz;
 	}
 
-//	BLI_rw_mutex_unlock(&oc->oceanmutex);
+	//	BLI_rw_mutex_unlock(&oc->oceanmutex);
 }
 
 void BKE_ocean_free(Ocean *oc)
@@ -1080,7 +1127,7 @@ void BKE_ocean_cache_eval_ij(OceanCache *och, OceanResult *ocr, int f, int i, in
 #endif
 
 OceanCache *BKE_ocean_init_cache(const char *bakepath, const char *relbase, int start, int end, float wave_scale,
-										float chop_amount, float foam_coverage, float foam_fade, int resolution)
+								 float chop_amount, float foam_coverage, float foam_fade, int resolution)
 {
 	OceanCache *och = new OceanCache;
 
@@ -1109,7 +1156,7 @@ OceanCache *BKE_ocean_init_cache(const char *bakepath, const char *relbase, int 
 
 void BKE_ocean_simulate_cache(OceanCache *och, int frame)
 {
-//	char string[FILE_MAX];
+	//	char string[FILE_MAX];
 
 	/* ibufs array is zero based, but filenames are based on frame numbers */
 	/* still need to clamp frame numbers to valid range of images on disk though */
@@ -1122,14 +1169,14 @@ void BKE_ocean_simulate_cache(OceanCache *och, int frame)
 
 	/* use default color spaces since we know for sure cache files were saved with default settings too */
 
-//	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
-//	och->ibufs_disp[f] = IMB_loadiffname(string, 0, nullptr);
+	//	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
+	//	och->ibufs_disp[f] = IMB_loadiffname(string, 0, nullptr);
 
-//	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
-//	och->ibufs_foam[f] = IMB_loadiffname(string, 0, nullptr);
+	//	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
+	//	och->ibufs_foam[f] = IMB_loadiffname(string, 0, nullptr);
 
-//	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
-//	och->ibufs_norm[f] = IMB_loadiffname(string, 0, nullptr);
+	//	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
+	//	och->ibufs_norm[f] = IMB_loadiffname(string, 0, nullptr);
 }
 
 #if 0
@@ -1141,7 +1188,7 @@ void BKE_ocean_bake(Ocean *o, OceanCache *och, void (*update_cb)(void *, float p
 	 * before use - campbell */
 	OceanResult ocr;
 
-//	ImageFormatData imf = {0};
+	//	ImageFormatData imf = {0};
 
 	int f, i = 0, x, y, cancel = 0;
 	float progress;
@@ -1273,6 +1320,4 @@ void BKE_ocean_bake(Ocean *o, OceanCache *och, void (*update_cb)(void *, float p
 void BKE_ocean_free_modifier_cache(OceanModifierData *omd)
 {
 	BKE_ocean_free_cache(omd->oceancache);
-	omd->oceancache = nullptr;
-	omd->cached = false;
 }

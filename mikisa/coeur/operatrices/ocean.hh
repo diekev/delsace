@@ -188,7 +188,7 @@ typedef struct OceanModifierData {
 	struct OceanCache *oceancache;
 
 	int resolution;
-	int spatial_size;
+	float spatial_size;
 
 	float wind_velocity;
 
@@ -204,25 +204,10 @@ typedef struct OceanModifierData {
 	float foam_coverage;
 	float time;
 
-	int bakestart;
-	int bakeend;
-
-	/** FILE_MAX. */
-	char cachepath[1024];
-	/** MAX_CUSTOMDATA_LAYER_NAME. */
-	char foamlayername[64];
-	char cached;
-	char geometry_mode;
-
 	char flag;
 	char pad2;
 
-	int repeat_x;
-	int repeat_y;
-
 	int seed;
-
-	float size;
 
 	float foam_fade;
 
