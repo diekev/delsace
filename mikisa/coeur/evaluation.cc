@@ -203,6 +203,7 @@ void evalue_graphe(Mikisa &mikisa, const char *message)
 	/* À FAIRE : le rendu OpenGL pour les noeuds scènes ne peut se faire dans un
 	 * thread séparé... */
 	evalue_composite(mikisa);
+	mikisa.notifie_observatrices(type_evenement::image | type_evenement::traite);
 #endif
 }
 
