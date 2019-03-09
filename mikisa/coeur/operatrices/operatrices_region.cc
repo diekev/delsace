@@ -1572,6 +1572,146 @@ public:
 
 /* ************************************************************************** */
 
+/* Calcul d'un préfiltre pour améliorer les interpolations cubiques.
+ * Voir :
+ * https://www.youtube.com/watch?v=nfhTET86kdE
+ * https://developer.blender.org/D2984
+ */
+
+static void initialise_causal_prefiltre(
+		numero7::image::Pixel<float> *pixel,
+		numero7::image::Pixel<float> &somme,
+		int longueur)
+{
+	auto const Zp = std::sqrt(3.0f) - 2.0f;
+	auto const lambda = (1.0f - Zp) * (1.0f - 1.0f / Zp);
+	auto horizon = std::min(12, longueur);
+	auto Zn = Zp;
+
+	somme.r = pixel[0].r;
+	somme.g = pixel[0].g;
+	somme.b = pixel[0].b;
+	somme.a = pixel[0].a;
+
+	for (auto compte = 0; compte < horizon; ++compte) {
+		somme.r += Zn * pixel[compte].r;
+		somme.g += Zn * pixel[compte].g;
+		somme.b += Zn * pixel[compte].b;
+		somme.a += Zn * pixel[compte].a;
+
+		Zn *= Zp;
+	}
+
+	pixel[0].r = lambda * somme.r;
+	pixel[0].g = lambda * somme.g;
+	pixel[0].b = lambda * somme.b;
+	pixel[0].a = lambda * somme.a;
+}
+
+static void initialise_anticausal_prefiltre(
+		numero7::image::Pixel<float> *pixel)
+{
+	auto const Zp  = std::sqrt(3.0f) - 2.0f;
+	auto const iZp = (Zp / (Zp - 1.0f));
+
+	pixel[0].r = iZp * pixel[0].r;
+	pixel[0].g = iZp * pixel[0].g;
+	pixel[0].b = iZp * pixel[0].b;
+	pixel[0].a = iZp * pixel[0].a;
+}
+
+static void recursion_prefiltre(numero7::image::Pixel<float> *pixel, int longueur, int stride)
+{
+	auto const Zp = std::sqrt(3.0f) - 2.0f;
+	auto const lambda = (1.0f - Zp) * (1.0f - 1.0f / Zp);
+	auto somme = numero7::image::Pixel<float>{};
+	auto compte = 0;
+
+	initialise_causal_prefiltre(pixel, somme, longueur);
+
+	auto prev_coeff = pixel[0];
+
+	for (compte = stride; compte < longueur; ++compte) {
+		pixel[compte].r = prev_coeff.r = (lambda * pixel[compte].r) + (Zp * prev_coeff.r);
+		pixel[compte].g = prev_coeff.g = (lambda * pixel[compte].g) + (Zp * prev_coeff.g);
+		pixel[compte].b = prev_coeff.b = (lambda * pixel[compte].b) + (Zp * prev_coeff.b);
+		pixel[compte].a = prev_coeff.a = (lambda * pixel[compte].a) + (Zp * prev_coeff.a);
+	}
+
+	compte -= stride;
+
+	initialise_anticausal_prefiltre(&pixel[compte]);
+
+	prev_coeff = pixel[compte];
+
+	for (compte -= stride; compte >= 0; compte -= stride) {
+		pixel[compte].r = prev_coeff.r = Zp * (prev_coeff.r - pixel[compte].r);
+		pixel[compte].g = prev_coeff.g = Zp * (prev_coeff.g - pixel[compte].g);
+		pixel[compte].b = prev_coeff.b = Zp * (prev_coeff.b - pixel[compte].b);
+		pixel[compte].a = prev_coeff.a = Zp * (prev_coeff.a - pixel[compte].a);
+	}
+}
+
+class OperatricePrefiltreCubic final : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Préfiltre Cubic B-Spline";
+	static constexpr auto AIDE = "Créer un préfiltre cubic B-spline.";
+
+	explicit OperatricePrefiltreCubic(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_extraction_palette.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+
+		auto const nom_calque = evalue_chaine("nom_calque");
+		auto tampon = m_image.calque(nom_calque);
+
+		if (tampon == nullptr) {
+			ajoute_avertissement("Calque introuvable !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto const res_x = tampon->tampon.nombre_colonnes();
+		auto const res_y = tampon->tampon.nombre_lignes();
+
+		if (res_x <= 2 || res_y <= 2) {
+			this->ajoute_avertissement("L'image d'entrée est trop petite");
+			return EXECUTION_ECHOUEE;
+		}
+
+		for (auto y = 0; y < res_y; ++y) {
+			recursion_prefiltre(tampon->tampon[y], res_x, 1);
+		}
+
+		for (auto x = 0; x < res_x; ++x) {
+			recursion_prefiltre(&tampon->tampon[0][x], res_y, res_x);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_region(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceAnalyse>());
@@ -1587,6 +1727,7 @@ void enregistre_operatrices_region(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceDilation>());
 	usine.enregistre_type(cree_desc<OperatriceErosion>());
 	usine.enregistre_type(cree_desc<OperatriceExtractionPalette>());
+	usine.enregistre_type(cree_desc<OperatricePrefiltreCubic>());
 }
 
 #pragma clang diagnostic pop
