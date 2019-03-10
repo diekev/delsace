@@ -226,13 +226,15 @@ public:
 
 	void container_compute_cells(voro::container* cn, voro::particle_order* po, cell* cells)
 	{
-		int i = 0, v = 0, fo = 0, fv = 0, n = 0;
 		voro::voronoicell_neighbor vc;
 		voro::c_loop_order vl(*cn, *po);
-		cell c;
-		if(!vl.start()) {
+
+		if (!vl.start()) {
 			return;
 		}
+
+		int i = 0;
+		cell c;
 
 		do {
 			if (cn->compute_cell(vc,vl)) {
@@ -251,7 +253,7 @@ public:
 				vc.vertices(*pp, pp[1], pp[2], verts);
 				c.totvert = vc.p;
 				c.verts = new float[static_cast<size_t>(c.totvert)][3];
-				for (v = 0; v < c.totvert; v++) {
+				for (auto v = 0; v < c.totvert; v++) {
 					c.verts[v][0] = static_cast<float>(verts[static_cast<size_t>(v * 3)]);
 					c.verts[v][1] = static_cast<float>(verts[static_cast<size_t>(v * 3 + 1)]);
 					c.verts[v][2] = static_cast<float>(verts[static_cast<size_t>(v * 3 + 2)]);
@@ -262,17 +264,17 @@ public:
 				vc.face_orders(face_orders);
 				c.poly_totvert = new int[static_cast<size_t>(c.totpoly)];
 
-				for (fo = 0; fo < c.totpoly; fo++) {
+				for (auto fo = 0; fo < c.totpoly; fo++) {
 					c.poly_totvert[fo] = face_orders[static_cast<size_t>(fo)];
 				}
 
 				vc.face_vertices(face_verts);
 				c.poly_indices = new int*[static_cast<size_t>(c.totpoly)];
 				int skip = 0;
-				for (fo = 0; fo < c.totpoly; fo++) {
+				for (auto fo = 0; fo < c.totpoly; fo++) {
 					int num_verts = c.poly_totvert[fo];
 					c.poly_indices[fo] = new int[static_cast<size_t>(num_verts)];
-					for (fv = 0; fv < num_verts; fv++) {
+					for (auto fv = 0; fv < num_verts; fv++) {
 						c.poly_indices[fo][fv] = face_verts[static_cast<size_t>(skip + 1 + fv)];
 					}
 					skip += (num_verts+1);
@@ -282,7 +284,7 @@ public:
 				vc.neighbors(neighbors);
 				c.neighbors = new int[static_cast<size_t>(c.totpoly)];
 
-				for (n = 0; n < c.totpoly; n++) {
+				for (auto n = 0; n < c.totpoly; n++) {
 					c.neighbors[n] = neighbors[static_cast<size_t>(n)];
 				}
 

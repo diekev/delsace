@@ -79,24 +79,11 @@ class OperatriceCreationCorps : public OperatriceCorps {
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
 
 public:
-	static constexpr auto NOM = "Création Corps";
-	static constexpr auto AIDE = "Crée un corps.";
-
 	explicit OperatriceCreationCorps(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
 		sorties(1);
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
 	}
 
 	bool possede_manipulatrice_3d(int type) const override
@@ -125,29 +112,21 @@ public:
 
 	void ajourne_selon_manipulatrice_3d(int type, const int temps) override
 	{
-		dls::math::vec3f position, rotation, taille;
-
+		INUTILISE(temps); /* À FAIRE : animation */
 		if (type == MANIPULATION_POSITION) {
-			position = dls::math::vec3f(m_manipulatrice_position.pos());
-			rotation = evalue_vecteur("rotation", temps) * constantes<float>::POIDS_DEG_RAD;
-			taille = evalue_vecteur("taille", temps);
-
+			auto position = dls::math::vec3f(m_manipulatrice_position.pos());
 			valeur_vecteur("position", position);
 		}
 		else if (type == MANIPULATION_ECHELLE) {
-			position = evalue_vecteur("position", temps);
-			rotation = evalue_vecteur("rotation", temps) * constantes<float>::POIDS_DEG_RAD;
-			taille = dls::math::vec3f(m_manipulatrice_echelle.taille());
-
+			auto taille = dls::math::vec3f(m_manipulatrice_echelle.taille());
 			valeur_vecteur("taille", taille);
 		}
 		else if (type == MANIPULATION_ROTATION) {
-			position = evalue_vecteur("position", temps);
-			rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
-			taille = evalue_vecteur("taille", temps);
-
+			auto rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
 			valeur_vecteur("rotation", rotation * constantes<float>::POIDS_RAD_DEG);
 		}
+
+		ajourne_transforme(temps);
 	}
 
 	void ajourne_transforme(int const temps)
@@ -664,27 +643,17 @@ public:
 
 	void ajourne_selon_manipulatrice_3d(int type, const int temps) override
 	{
-		dls::math::vec3f position, rotation, taille;
-
+		INUTILISE(temps); /* À FAIRE : animation */
 		if (type == MANIPULATION_POSITION) {
-			position = dls::math::vec3f(m_manipulatrice_position.pos());
-			rotation = evalue_vecteur("rotation", temps) * constantes<float>::POIDS_DEG_RAD;
-			taille = evalue_vecteur("taille", temps);
-
+			auto position = dls::math::vec3f(m_manipulatrice_position.pos());
 			valeur_vecteur("position", position);
 		}
 		else if (type == MANIPULATION_ECHELLE) {
-			position = evalue_vecteur("position", temps);
-			rotation = evalue_vecteur("rotation", temps) * constantes<float>::POIDS_DEG_RAD;
-			taille = dls::math::vec3f(m_manipulatrice_echelle.taille());
-
+			auto taille = dls::math::vec3f(m_manipulatrice_echelle.taille());
 			valeur_vecteur("taille", taille);
 		}
 		else if (type == MANIPULATION_ROTATION) {
-			position = evalue_vecteur("position", temps);
-			rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
-			taille = evalue_vecteur("taille", temps);
-
+			auto rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
 			valeur_vecteur("rotation", rotation * constantes<float>::POIDS_RAD_DEG);
 		}
 	}
@@ -1349,6 +1318,8 @@ static auto ajoute_deformeur(
 	deformeurs.push_back(ptr);
 }
 
+#include <numeric>
+
 static auto deforme_kelvinlet(
 		const Vector3& p,
 		const Scalar&  t,
@@ -1358,17 +1329,20 @@ static auto deforme_kelvinlet(
 	Vector3 u = Vector3::Zero();
 
 	if (rk4) {
-		for (const auto& def : deformer) {
-			u += def->EvalDispRK4(p, t);
-		}
-	}
-	else {
-		for (const auto& def : deformer) {
-			u += def->EvalDisp(p, t);
-		}
+		auto op = [&](Vector3 const &a, Kelvinlet::DynaBase::Ptr def)
+		{
+			return a + def->EvalDispRK4(p, t);
+		};
+
+		return std::accumulate(deformer.begin(), deformer.end(), u, op);
 	}
 
-	return u;
+	auto op = [&](Vector3 const &a, Kelvinlet::DynaBase::Ptr def)
+	{
+		return a + def->EvalDisp(p, t);
+	};
+
+	return std::accumulate(deformer.begin(), deformer.end(), u, op);
 }
 
 static void ajoute_deformeur(

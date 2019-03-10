@@ -167,6 +167,28 @@ Noeud *trouve_noeud(
 	return noeud_res;
 }
 
+PriseEntree *trouve_prise_entree_pos(
+		Noeud *noeud,
+		const float x,
+		const float y)
+{
+	auto pred = [&](PriseEntree *prise)
+	{
+		return prise->rectangle.contiens(x, y);
+	};
+
+	auto iter = std::find_if(
+				noeud->entrees().begin(),
+				noeud->entrees().end(),
+				pred);
+
+	if (iter != noeud->entrees().end()) {
+		return *iter;
+	}
+
+	return nullptr;
+}
+
 PriseEntree *trouve_prise_entree(
 		Graphe::plage_noeud noeuds,
 		const float x,
@@ -181,18 +203,32 @@ PriseEntree *trouve_prise_entree(
 			continue;
 		}
 
-		prise_entree = nullptr;
-
-		/* vérifie si oui ou non on a cliqué sur une prise */
-		for (PriseEntree *prise : pointeur_noeud->entrees()) {
-			if (prise->rectangle.contiens(x, y)) {
-				prise_entree = prise;
-				break;
-			}
-		}
+		prise_entree = trouve_prise_entree_pos(noeud.get(), x, y);
 	}
 
 	return prise_entree;
+}
+
+PriseSortie *trouve_prise_sortie_pos(
+		Noeud *noeud,
+		const float x,
+		const float y)
+{
+	auto pred = [&](PriseSortie *prise)
+	{
+		return prise->rectangle.contiens(x, y);
+	};
+
+	auto iter = std::find_if(
+				noeud->sorties().begin(),
+				noeud->sorties().end(),
+				pred);
+
+	if (iter != noeud->sorties().end()) {
+		return *iter;
+	}
+
+	return nullptr;
 }
 
 PriseSortie *trouve_prise_sortie(
@@ -202,6 +238,7 @@ PriseSortie *trouve_prise_sortie(
 {
 	PriseSortie *prise_sortie = nullptr;
 
+
 	for (auto const &noeud : noeuds) {
 		Noeud *pointeur_noeud = noeud.get();
 
@@ -209,15 +246,7 @@ PriseSortie *trouve_prise_sortie(
 			continue;
 		}
 
-		prise_sortie = nullptr;
-
-		/* vérifie si oui ou non on a cliqué sur une prise */
-		for (PriseSortie *prise : pointeur_noeud->sorties()) {
-			if (prise->rectangle.contiens(x, y)) {
-				prise_sortie = prise;
-				break;
-			}
-		}
+		prise_sortie = trouve_prise_sortie_pos(noeud.get(), x, y);
 	}
 
 	return prise_sortie;
@@ -243,24 +272,12 @@ void trouve_noeud_prise(
 		}
 
 		noeud_r = pointeur_noeud;
-		prise_entree = nullptr;
-		prise_sortie = nullptr;
 
 		/* vérifie si oui ou non on a cliqué sur une prise d'entrée */
-		for (PriseEntree *prise : pointeur_noeud->entrees()) {
-			if (prise->rectangle.contiens(x, y)) {
-				prise_entree = prise;
-				break;
-			}
-		}
+		prise_entree = trouve_prise_entree_pos(pointeur_noeud, x, y);
 
 		/* vérifie si oui ou non on a cliqué sur une prise de sortie */
-		for (PriseSortie *prise : pointeur_noeud->sorties()) {
-			if (prise->rectangle.contiens(x, y)) {
-				prise_sortie = prise;
-				break;
-			}
-		}
+		prise_sortie = trouve_prise_sortie_pos(pointeur_noeud, x, y);
 	}
 }
 
