@@ -26,6 +26,8 @@
 
 #include <set>
 
+#include "bibliotheques/outils/parallelisme.h"
+
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -336,21 +338,24 @@ static void integre_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 	auto attr_F = corps.attribut("F");
 	auto points = corps.points();
 
-	/* À FAIRE : multithreading */
-	for (auto i = 0; i < points->taille(); ++i) {
-		auto pos_cour = points->point(i);
-		auto pos_prev = attr_P->vec3(i);
-		auto force = attr_F->vec3(i);
-		auto drag = 1.0f - donnees_sim.drag;
+	boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+					 [&](tbb::blocked_range<long> const &plage)
+	{
+		for (auto i = plage.begin(); i < plage.end(); ++i) {
+			auto pos_cour = points->point(i);
+			auto pos_prev = attr_P->vec3(i);
+			auto force = attr_F->vec3(i);
+			auto drag = 1.0f - donnees_sim.drag;
 
-		/* integration */
-		auto vel = (pos_cour - pos_prev) + force * donnees_sim.dt;
-		auto pos_nouv = (pos_cour + vel * donnees_sim.dt * drag);
+			/* integration */
+			auto vel = (pos_cour - pos_prev) + force * donnees_sim.dt;
+			auto pos_nouv = (pos_cour + vel * donnees_sim.dt * drag);
 
-		//update solverData
-		attr_P->vec3(i, pos_cour);
-		points->point(i, pos_nouv);
-	}
+			/* ajourne données solveur */
+			attr_P->vec3(i, pos_cour);
+			points->point(i, pos_nouv);
+		}
+	});
 }
 
 static void contraintes_distance_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
@@ -380,12 +385,15 @@ static void contraintes_position_verlet(Corps &corps, DonneesSimVerlet const &/*
 	auto attr_W = corps.attribut("W");
 	auto points = corps.points();
 
-	/* À FAIRE : multithreading */
-	for (auto i = 0; i < points->taille(); ++i) {
-		if (attr_W->decimal(i) <= 0.0f) {
-			points->point(i, attr_P->vec3(i));
+	boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+					 [&](tbb::blocked_range<long> const &plage)
+	{
+		for (auto i = plage.begin(); i < plage.end(); ++i) {
+			if (attr_W->decimal(i) <= 0.0f) {
+				points->point(i, attr_P->vec3(i));
+			}
 		}
-	}
+	});
 }
 
 static void applique_contraintes_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
