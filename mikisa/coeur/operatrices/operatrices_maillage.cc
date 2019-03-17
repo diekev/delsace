@@ -1359,9 +1359,10 @@ static auto restreint_attribut_max(Attribut *attr, float const valeur_max)
  * | PÉRIMÈTRE     | MAILLAGE | FAIT    | périmètre de chaque polygone          |
  * | VALENCE       | MAILLAGE | À FAIRE | nombre de voisins pour chaque sommets |
  * | ANGLE         | MAILLAGE | À FAIRE | angle de chaque vertex                |
- * | ANGLE DIEDRE  | MAILLAGE | À FAIRE | angle dièdre de chaque vertex         |
+ * | ANGLE DIEDRE  | MAILLAGE | À FAIRE | angle dièdre de chaque arrête         |
  * | LONGUEUR COTE | MAILLAGE | À FAIRE | longueur de chaque coté               |
- * | CENTROIDE     | MAILLAGE | À FAIRE | centre de masse de chaque polygone    |
+ * | CENTROIDE     | MAILLAGE | FAIT    | centre de masse de chaque polygone    |
+ * | BARYCENTRE    | MAILLAGE | FAIT    | barycentre de chaque polygone         |
  * | COURBURE      | MAILLAGE | FAIT    | courbures du maillage                 |
  * | GAUSSIEN      | MAILLAGE | FAIT    | produit des courbures principales     |
  * | MOYENNE       | MAILLAGE | FAIT    | moyenne des courbures principales     |
