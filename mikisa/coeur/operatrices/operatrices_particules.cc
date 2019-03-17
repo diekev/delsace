@@ -1325,10 +1325,17 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto attr_V = corps_entree->attribut("V");
+		auto nom_attribut = evalue_enum("nom_attribut");
 
-		if (attr_V == nullptr) {
-			this->ajoute_avertissement("Aucun attribut de vélocité trouvé sur le corps !");
+		if (nom_attribut == "") {
+			this->ajoute_avertissement("L'attribut n'est pas nommé !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto attr_V = corps_entree->attribut(nom_attribut);
+
+		if (attr_V == nullptr || attr_V->type() != type_attribut::VEC3 || attr_V->portee != portee_attr::POINT) {
+			this->ajoute_avertissement("Aucun attribut vecteur trouvé sur les points !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1336,16 +1343,24 @@ public:
 
 		m_corps.points()->reserve(points_entree->taille() * 2);
 
-		auto dt = static_cast<float>(1.0 / contexte.cadence);
-		auto const taille = evalue_decimal("taille");
+		auto const dt = evalue_decimal("dt", contexte.temps_courant);
+		auto const taille = evalue_decimal("taille", contexte.temps_courant) * dt;
+		auto const inverse_direction = evalue_bool("inverse_direction");
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
 			auto p = points_entree->point(i);
-			auto v = attr_V->vec3(i);
+			auto v = attr_V->vec3(i) * taille;
 
 			m_corps.ajoute_point(p.x, p.y, p.z);
 
-			p -= v * dt * taille;
+			/* Par défaut nous utilisons la vélocité, donc la direction normale
+			 * est celle d'où nous venons. */
+			if (inverse_direction) {
+				p += v;
+			}
+			else {
+				p -= v;
+			}
 
 			m_corps.ajoute_point(p.x, p.y, p.z);
 
