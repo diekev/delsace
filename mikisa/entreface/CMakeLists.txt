@@ -111,7 +111,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_coordonnees_polaires.jo
 	scripts_danjo/operatrice_correction_couleur.jo
 	scripts_danjo/operatrice_courbe_couleur.jo
-	scripts_danjo/operatrice_courbure_maillage.jo
 	scripts_danjo/operatrice_creation_groupe.jo
 	scripts_danjo/operatrice_creation_kelvinlet.jo
 	scripts_danjo/operatrice_daltonisme.jo
@@ -127,6 +126,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_flou.jo
 	scripts_danjo/operatrice_fusion.jo
 	scripts_danjo/operatrice_gamma.jo
+	scripts_danjo/operatrice_geometrie_maillage.jo
 	scripts_danjo/operatrice_gigue_points.jo
 	scripts_danjo/operatrice_grade.jo
 	scripts_danjo/operatrice_gravite.jo

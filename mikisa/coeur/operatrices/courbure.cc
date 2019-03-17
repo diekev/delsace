@@ -24,152 +24,43 @@
 
 #include "courbure.hh"
 
-#include "bibliotheques/Patate/common/surface_mesh/surfaceMesh.h"
+#include <mutex>
+
+#include "bibliotheques/outils/parallelisme.h"
 #include "bibliotheques/Patate/grenaille.h"
 
 #include "../corps/corps.h"
+
+#include "../chef_execution.hh"
 
 using namespace Grenaille;
 
 using Scalaire = double;
 using Vecteur = Eigen::Matrix<Scalaire, 3, 1>;
 
-class MaillagePatate : public PatateCommon::SurfaceMesh {
-public:
-	using Scalaire = ::Scalaire;
-	using Vecteur  = ::Vecteur;
+/* ************************************************************************** */
 
-private:
-	using PropScalaire = PatateCommon::SurfaceMesh::VertexProperty<Scalaire>;
-	using PropVecteur  = PatateCommon::SurfaceMesh::VertexProperty<Vecteur>;
-
-	PropVecteur m_positions{};
-	PropVecteur m_normals{};
-	PropVecteur m_minDirection{};
-	PropVecteur m_maxDirection{};
-	PropScalaire m_minCurvature{};
-	PropScalaire m_maxCurvature{};
-	PropScalaire m_geomVar{};
-
-public:
-	MaillagePatate()
-	{
-		m_positions    = addVertexProperty<Vecteur>("v:position",     Vecteur::Zero());
-		m_normals      = addVertexProperty<Vecteur>("v:normals",      Vecteur::Zero());
-		m_minDirection = addVertexProperty<Vecteur>("v:minDirection", Vecteur::Zero());
-		m_maxDirection = addVertexProperty<Vecteur>("v:maxDirection", Vecteur::Zero());
-
-		m_minCurvature = addVertexProperty<Scalaire>("v:minCurvature", 0);
-		m_maxCurvature = addVertexProperty<Scalaire>("v:maxCurvature", 0);
-		m_geomVar      = addVertexProperty<Scalaire>("v:geomVar",      0);
-	}
-
-	template <typename Derived>
-	inline Vertex addVertex(const Eigen::DenseBase<Derived>& pos)
-	{
-		Vertex vx = PatateCommon::SurfaceMesh::addVertex();
-		m_positions[vx] = pos;
-		return vx;
-	}
-
-	inline const Vecteur& position(Vertex vx) const
-	{
-		return m_positions[vx];
-	}
-
-	inline Vecteur& position(Vertex vx)
-	{
-		return m_positions[vx];
-	}
-
-	inline const Vecteur& normal(Vertex vx) const
-	{
-		return m_normals[vx];
-	}
-
-	inline Vecteur& normal(Vertex vx)
-	{
-		return m_normals[vx];
-	}
-
-	inline const Vecteur& minDirection(Vertex vx) const
-	{
-		return m_minDirection[vx];
-	}
-
-	inline Vecteur& minDirection(Vertex vx)
-	{
-		return m_minDirection[vx];
-	}
-
-	inline const Vecteur& maxDirection(Vertex vx) const
-	{
-		return m_maxDirection[vx];
-	}
-
-	inline Vecteur& maxDirection(Vertex vx)
-	{
-		return m_maxDirection[vx];
-	}
-
-	inline Scalaire minCurvature(Vertex vx) const
-	{
-		return m_minCurvature[vx];
-	}
-
-	inline Scalaire& minCurvature(Vertex vx)
-	{
-		return m_minCurvature[vx];
-	}
-
-	inline Scalaire maxCurvature(Vertex vx) const
-	{
-		return m_maxCurvature[vx];
-	}
-
-	inline Scalaire& maxCurvature(Vertex vx)
-	{
-		return m_maxCurvature[vx];
-	}
-
-	inline Scalaire geomVar(Vertex vx) const
-	{
-		return m_geomVar[vx];
-	}
-
-	inline Scalaire& geomVar(Vertex vx)
-	{
-		return m_geomVar[vx];
-	}
-
-	void computeNormals()
-	{
-		for (auto vit = verticesBegin(); vit != verticesEnd(); ++vit) {
-			normal(*vit) = Vecteur::Zero();
-		}
-
-		for (auto fit = facesBegin(); fit != facesEnd(); ++fit) {
-			auto vit = vertices(*fit);
-			auto const &p0 = position(*(++vit));
-			auto const &p1 = position(*(++vit));
-			auto const &p2 = position(*(++vit));
-
-			auto n = (p1 - p0).cross(p2 - p0);
-
-			auto vEnd = vit;
-			do {
-				normal(*vit) += n;
-				++vit;
-			} while (vit != vEnd);
-		}
-
-		for (auto vit = verticesBegin(); vit != verticesEnd(); ++vit) {
-			normal(*vit).normalize();
-		}
-	}
+struct DonneesMaillage {
+	ListePoints3D *points{};
+	Attribut *normaux{};
+	Attribut *courbure_min{};
+	Attribut *courbure_max{};
+	Attribut *direction_min{};
+	Attribut *direction_max{};
+	Attribut *var_geom{};
 };
 
-using Vertex = MaillagePatate::Vertex;
+static auto converti_eigen(dls::math::vec3f const &v)
+{
+	return Vecteur(static_cast<double>(v.x), static_cast<double>(v.y), static_cast<double>(v.z));
+}
+
+static auto converti_depuis_eigen(Vecteur const &v)
+{
+	return dls::math::vec3f(static_cast<float>(v(0)), static_cast<float>(v(1)), static_cast<float>(v(2)));
+}
+
+/* ************************************************************************** */
 
 /* Cette classe définie le format des données d'entrées. */
 class GLSPoint {
@@ -187,9 +78,9 @@ public:
 
 	MULTIARCH inline GLSPoint() = default;
 
-	MULTIARCH inline GLSPoint(MaillagePatate const &mesh, Vertex vx)
-		: m_pos(mesh.position(vx))
-		, m_norm(mesh.normal(vx))
+	MULTIARCH inline GLSPoint(DonneesMaillage const &mesh, long vx)
+		: m_pos(converti_eigen(mesh.points->point(vx)))
+		, m_norm(converti_eigen(mesh.normaux->vec3(vx)))
 	{}
 
 	MULTIARCH inline const VectorType &pos()    const
@@ -203,11 +94,14 @@ public:
 	}
 };
 
+/* ************************************************************************** */
+
 using WeightFunc = Grenaille::DistWeightFunc<GLSPoint, Grenaille::SmoothWeightKernel<Scalaire> >;
 
 using Fit = Basket<GLSPoint, WeightFunc, OrientedSphereFit, GLSParam,
 			   OrientedSphereScaleSpaceDer, GLSDer, GLSCurvatureHelper, GLSGeomVar>;
 
+/* À FAIRE : utilisation d'un arbre KD, réutilisation de cette structure. */
 class Grid {
 public:
 	using Cell = Eigen::Array3i;
@@ -223,7 +117,7 @@ private:
 	PointVecteur _points{};
 
 public:
-	Grid(MaillagePatate const &maillage, Scalaire taille_cellule)
+	Grid(DonneesMaillage const &maillage, Scalaire taille_cellule)
 		: _cellSize(taille_cellule)
 		, _gridSize()
 		, _gridBase()
@@ -232,20 +126,20 @@ public:
 		using BoundingBox = Eigen::AlignedBox<Scalaire, 3>;
 
 		BoundingBox bb;
-		for (auto vit = maillage.verticesBegin(); vit != maillage.verticesEnd(); ++vit) {
-			bb.extend(maillage.position(*vit));
+		for (auto i = 0; i < maillage.points->taille(); ++i) {
+			bb.extend(converti_eigen(maillage.points->point(i)));
 		}
 
 		_gridBase = bb.min();
 		_gridSize = gridCoord(bb.max()) + Cell::Constant(1);
 
-		std::cout << "GridSize: " << _gridSize.transpose()
-				  << " (" << nCells() << ")\n";
+		//std::cout << "GridSize: " << _gridSize.transpose() << " (" << nCells() << ")\n";
 
 		// Compute cells size (number of points in each cell)
 		_cellsIndex.resize(nCells() + 1, 0);
-		for (auto vit = maillage.verticesBegin(); vit != maillage.verticesEnd(); ++vit) {
-			auto i = static_cast<unsigned>(cellIndex(maillage.position(*vit)));
+
+		for (auto vit = 0; vit < maillage.points->taille(); ++vit) {
+			auto i = static_cast<unsigned>(cellIndex(converti_eigen(maillage.points->point(vit))));
 			++_cellsIndex[i + 1];
 		}
 
@@ -257,9 +151,9 @@ public:
 		// Fill the point array
 		IndexVecteur pointCount(nCells(), 0);
 		_points.resize(_cellsIndex.back());
-		for (auto vit = maillage.verticesBegin(); vit != maillage.verticesEnd(); ++vit) {
-			auto i = static_cast<unsigned>(cellIndex(maillage.position(*vit)));
-			*(_pointsBegin(i) + pointCount[i]) = GLSPoint(maillage, *vit);
+		for (auto vit = 0; vit < maillage.points->taille(); ++vit) {
+			auto i = static_cast<unsigned>(cellIndex(converti_eigen(maillage.points->point(vit))));
+			*(_pointsBegin(i) + pointCount[i]) = GLSPoint(maillage, vit);
 			++pointCount[i];
 		}
 
@@ -319,219 +213,116 @@ private:
 	}
 };
 
-static auto calcul_courbure(MaillagePatate &maillage, Scalaire radius)
+/* ************************************************************************** */
+
+static auto calcul_courbure(
+		ChefExecution *chef,
+		DonneesMaillage &donnees_maillage,
+		Scalaire radius)
 {
+	chef->demarre_evaluation("courbure, calcul");
+
 	auto donnees_ret = DonneesCalculCourbure{};
 
 	auto const r = Scalaire(2) * radius;
 	auto const r2 = r * r;
-	auto const nombre_sommets = maillage.verticesSize();
+	auto const nombre_sommets = donnees_maillage.points->taille();
 
-	auto courbure_max = Scalaire(0);
+	auto grid = Grid(donnees_maillage, r);
 
-	auto grid = Grid(maillage, r);
+	auto progression = 0.0f;
+	auto mutex_progression = std::mutex{}; /* XXX - À FAIRE */
 
-	/* À FAIRE : multithreading, courbure_max -> reduction parallèle. */
-	for (unsigned i = 0; i < nombre_sommets; ++i) {
-		auto v0 = Vertex(static_cast<int>(i));
+	boucle_parallele(tbb::blocked_range<long>(0, nombre_sommets),
+					 [&](tbb::blocked_range<long> const &plage)
+	{
+		for (auto i = plage.begin(); i < plage.end(); ++i) {
+			if (chef->interrompu()) {
+				break;
+			}
 
-		if (maillage.isDeleted(v0)) {
-			continue;
-		}
+			auto p0 = converti_eigen(donnees_maillage.points->point(i));
 
-		auto p0 = maillage.position(v0);
+			Fit fit;
+			fit.init(p0);
+			fit.setWeightFunc(WeightFunc(r));
 
-		Fit fit;
-		fit.init(p0);
-		fit.setWeightFunc(WeightFunc(r));
+			auto nb_voisins = 0;
 
-		auto nb_voisins = 0;
+			auto cells = grid.cellsAround(p0, r);
+			Grid::Cell c = cells.min().array();
 
-		auto cells = grid.cellsAround(p0, r);
-		Grid::Cell c = cells.min().array();
+			for (c(2) = cells.min()(2); c(2) < cells.max()(2); ++c(2)) {
+				for (c(1) = cells.min()(1); c(1) < cells.max()(1); ++c(1)) {
+					for (c(0) = cells.min()(0); c(0) < cells.max()(0); ++c(0)) {
+						auto p = grid.pointsBegin(static_cast<unsigned>(grid.cellIndex(c)));
+						auto end = grid.pointsEnd(static_cast<unsigned>(grid.cellIndex(c)));
 
-		for (c(2) = cells.min()(2); c(2) < cells.max()(2); ++c(2)) {
-			for (c(1) = cells.min()(1); c(1) < cells.max()(1); ++c(1)) {
-				for (c(0) = cells.min()(0); c(0) < cells.max()(0); ++c(0)) {
-					auto p = grid.pointsBegin(static_cast<unsigned>(grid.cellIndex(c)));
-					auto end = grid.pointsEnd(static_cast<unsigned>(grid.cellIndex(c)));
-
-					for (; p != end; ++p) {
-						if ((p->pos() - p0).squaredNorm() < r2) {
-							fit.addNeighbor(*p);
-							++nb_voisins;
+						for (; p != end; ++p) {
+							if ((p->pos() - p0).squaredNorm() < r2) {
+								fit.addNeighbor(*p);
+								++nb_voisins;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		fit.finalize();
+			fit.finalize();
 
-		if (fit.isReady()) {
-			if (!fit.isStable()) {
-				++donnees_ret.nombre_instable;
+			if (fit.isReady()) {
+				if (!fit.isStable()) {
+					++donnees_ret.nombre_instable;
+				}
+
+				donnees_maillage.direction_max->vec3(i, converti_depuis_eigen(fit.GLSk1Direction()));
+				donnees_maillage.direction_min->vec3(i, converti_depuis_eigen(fit.GLSk2Direction()));
+				donnees_maillage.courbure_max->decimal(i, static_cast<float>(fit.GLSk1()));
+				donnees_maillage.courbure_min->decimal(i, static_cast<float>(fit.GLSk2()));
+				donnees_maillage.var_geom->decimal(i, static_cast<float>(fit.geomVar()));
 			}
+			else {
+				++donnees_ret.nombre_impossible;
 
-			maillage.maxDirection(v0) = fit.GLSk1Direction();
-			maillage.minDirection(v0) = fit.GLSk2Direction();
-			maillage.maxCurvature(v0) = fit.GLSk1();
-			maillage.minCurvature(v0) = fit.GLSk2();
-			maillage.geomVar(v0)      = fit.geomVar();
-
-			auto courbure = std::abs(fit.GLSGaussianCurvature());
-
-			if (courbure > courbure_max) {
-				courbure_max = courbure;
+				donnees_maillage.direction_max->vec3(i, dls::math::vec3f(0.0f));
+				donnees_maillage.direction_min->vec3(i, dls::math::vec3f(0.0f));
+				donnees_maillage.courbure_max->decimal(i, std::numeric_limits<float>::quiet_NaN());
+				donnees_maillage.courbure_min->decimal(i, std::numeric_limits<float>::quiet_NaN());
+				donnees_maillage.var_geom->decimal(i, std::numeric_limits<float>::quiet_NaN());
 			}
 		}
-		else {
-			++donnees_ret.nombre_impossible;
 
-			maillage.maxDirection(v0) = Vecteur::Zero();
-			maillage.minDirection(v0) = Vecteur::Zero();
-			maillage.maxCurvature(v0) = std::numeric_limits<Scalaire>::quiet_NaN();
-			maillage.minCurvature(v0) = std::numeric_limits<Scalaire>::quiet_NaN();
-			maillage.geomVar(v0)      = std::numeric_limits<Scalaire>::quiet_NaN();
-		}
-	}
+		mutex_progression.lock();
+		auto delta = plage.end() - plage.begin();
+		progression += static_cast<float>(delta) / static_cast<float>(nombre_sommets);
 
-	donnees_ret.courbure_max = courbure_max;
+		chef->indique_progression(progression * 100.0f);
+		mutex_progression.unlock();
+
+	});
 
 	return donnees_ret;
-}
-
-Vecteur getColor(Scalaire valeur, Scalaire valeur_min, Scalaire valeur_max)
-{
-	auto c = Vecteur(1.0, 1.0, 1.0);
-
-	if (valeur == 0.) {
-		return c;
-	}
-
-	if (std::isnan(valeur)) {
-		return Vecteur(0.0, 1.0, 0.0);
-	}
-
-	if (valeur < valeur_min) {
-		valeur = valeur_min;
-	}
-
-	if (valeur > valeur_max) {
-		valeur = valeur_max;
-	}
-
-	auto dv = valeur_max - valeur_min;
-
-	if (valeur < (valeur_min + 0.5 * dv)) {
-		c(0) = 2 * (valeur - valeur_min) / dv;
-		c(1) = 2 * (valeur - valeur_min) / dv;
-		c(2) = 1;
-	}
-	else {
-		c(2) = 2 - 2 * (valeur - valeur_min) / dv;
-		c(1) = 2 - 2 * (valeur - valeur_min) / dv;
-		c(0) = 1;
-	}
-
-	return c;
-}
-
-Vecteur getColor2(Scalaire value, Scalaire p)
-{
-	auto sign = value < 0;
-	value = 2 * std::min(std::max(std::pow(std::abs(value), p), Scalaire(0)), Scalaire(1));
-	return Vecteur(std::abs(1 - value),
-				  std::min(2 - value, Scalaire(1)),
-				  Scalaire(sign));
 }
 
 DonneesCalculCourbure calcule_courbure(
+		ChefExecution *chef,
 		Corps &corps,
-		bool relatif,
-		double rayon,
-		double courbure_max)
+		double rayon)
 {
 	auto points_entree = corps.points();
-	auto prims_entree = corps.prims();
 
-	/* Conversion du maillage en représentation Grenaille */
-	auto maillage = MaillagePatate{};
+	chef->demarre_evaluation("courbure, préparation attributs");
 
-	for (auto i = 0; i < points_entree->taille(); ++i) {
-		auto point = points_entree->point(i);
-		maillage.addVertex(Vecteur(static_cast<double>(point.x), static_cast<double>(point.y), static_cast<double>(point.z)));
-	}
+	auto donnees_maillage = DonneesMaillage{};
+	donnees_maillage.points = points_entree;
+	donnees_maillage.normaux = corps.attribut("N");
+	donnees_maillage.courbure_min = corps.ajoute_attribut("courbure_min", type_attribut::DECIMAL, portee_attr::POINT);
+	donnees_maillage.courbure_max = corps.ajoute_attribut("courbure_max", type_attribut::DECIMAL, portee_attr::POINT);
+	donnees_maillage.direction_min = corps.ajoute_attribut("direction_min", type_attribut::VEC3, portee_attr::POINT);
+	donnees_maillage.direction_max = corps.ajoute_attribut("direction_max", type_attribut::VEC3, portee_attr::POINT);
+	donnees_maillage.var_geom = corps.ajoute_attribut("var_geom", type_attribut::DECIMAL, portee_attr::POINT);
 
-	auto sommets_face = std::vector<Vertex>{};
+	chef->indique_progression(100.0f);
 
-	for (auto i = 0; i < prims_entree->taille(); ++i) {
-		auto prim = prims_entree->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
-
-		sommets_face.clear();
-
-		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-			sommets_face.push_back(Vertex(static_cast<int>(poly->index_point(j))));
-		}
-
-		maillage.addFace(sommets_face);
-	}
-
-	maillage.triangulate();
-	maillage.computeNormals(); /* À FAIRE : déplace du coté de Mikisa. */
-
-	if (relatif) {
-		auto barycentre_maillage = Vecteur(0.0, 0.0, 0.0);
-		auto rayon_maillage = 0.0;
-
-		auto vend = maillage.verticesEnd();
-		for (auto vit = maillage.verticesBegin(); vit != vend; ++vit) {
-			barycentre_maillage += maillage.position(*vit);
-		}
-
-		barycentre_maillage /= maillage.nVertices();
-
-		for (auto vit = maillage.verticesBegin(); vit != vend; ++vit) {
-			auto dist = (maillage.position(*vit) - barycentre_maillage).norm();
-
-			if (dist > rayon_maillage) {
-				rayon_maillage = dist;
-			}
-		}
-
-		rayon *= rayon_maillage;
-	}
-
-	auto donnees_ret = calcul_courbure(maillage, rayon);
-
-	if (courbure_max == 0.0) {
-		courbure_max = donnees_ret.courbure_max;
-	}
-
-	/* transfère de la courbure sous forme de couleur */
-
-	maillage.garbageCollection();
-
-	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
-	attr_C->redimensionne(points_entree->taille());
-
-	for (auto vit = maillage.verticesBegin(); vit != maillage.verticesEnd(); ++vit) {
-		Scalaire curv = maillage.minCurvature(*vit) * maillage.maxCurvature(*vit);
-		//            Vecteur color = getColor(curv, -maxCurv, maxCurv);
-		Vecteur color = getColor2(curv / courbure_max, .5);
-
-		attr_C->vec3((*vit).idx(), dls::math::vec3f(static_cast<float>(color[0]), static_cast<float>(color[1]), static_cast<float>(color[2])));
-	}
-
-	return donnees_ret;
+	return calcul_courbure(chef, donnees_maillage, rayon);
 }
