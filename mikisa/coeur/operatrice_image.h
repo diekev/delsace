@@ -225,6 +225,24 @@ public:
 	 */
 	void obtiens_liste_calque(std::vector<std::string> &chaines) const;
 
+	/**
+	 * Place la liste d'attributs du corps transitant par cette entrée dans le
+	 * vecteur de chaines spécifié.
+	 */
+	void obtiens_liste_attributs(std::vector<std::string> &chaines) const;
+
+	/**
+	 * Place la liste de groupes de primitives du corps transitant par cette
+	 * entrée dans le vecteur de chaines spécifié.
+	 */
+	void obtiens_liste_groupes_prims(std::vector<std::string> &chaines) const;
+
+	/**
+	 * Place la liste de groupes de points du corps transitant par cette entrée
+	 * dans le vecteur de chaines spécifié.
+	 */
+	void obtiens_liste_groupes_points(std::vector<std::string> &chaines) const;
+
 	PriseEntree *pointeur()
 	{
 		return m_ptr;
@@ -362,7 +380,7 @@ public:
 	 */
 	virtual void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) const;
+			std::vector<std::string> &chaines);
 };
 
 /* ************************************************************************** */

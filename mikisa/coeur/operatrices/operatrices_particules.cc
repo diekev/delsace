@@ -83,7 +83,6 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		/* À FAIRE : utilisation d'une 'liste' pour choisir le nom du groupe. */
 		auto nom_groupe = evalue_chaine("nom_groupe");
 
 		if (nom_groupe.empty()) {
@@ -181,6 +180,15 @@ public:
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void obtiens_liste(
+			std::string const &attache,
+			std::vector<std::string> &chaines) override
+	{
+		if (attache == "nom_groupe") {
+			entree(0)->obtiens_liste_groupes_points(chaines);
+		}
 	}
 };
 
@@ -469,6 +477,22 @@ public:
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void obtiens_liste(
+			std::string const &attache,
+			std::vector<std::string> &chaines) override
+	{
+		if (attache == "groupe_origine") {
+			auto origine = evalue_enum("origine");
+
+			if (origine == "points") {
+				entree(0)->obtiens_liste_groupes_points(chaines);
+			}
+			else if (origine == "primitives") {
+				entree(0)->obtiens_liste_groupes_prims(chaines);
+			}
+		}
 	}
 };
 
@@ -917,6 +941,15 @@ public:
 
 		return EXECUTION_REUSSIE;
 	}
+
+	void obtiens_liste(
+			std::string const &attache,
+			std::vector<std::string> &chaines) override
+	{
+		if (attache == "nom_groupe") {
+			entree(0)->obtiens_liste_groupes_prims(chaines);
+		}
+	}
 };
 
 /* ************************************************************************** */
@@ -1325,7 +1358,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto nom_attribut = evalue_enum("nom_attribut");
+		auto nom_attribut = evalue_chaine("nom_attribut");
 
 		if (nom_attribut == "") {
 			this->ajoute_avertissement("L'attribut n'est pas nommé !");
@@ -1370,6 +1403,15 @@ public:
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void obtiens_liste(
+			std::string const &attache,
+			std::vector<std::string> &chaines) override
+	{
+		if (attache == "nom_attribut") {
+			entree(0)->obtiens_liste_attributs(chaines);
+		}
 	}
 };
 

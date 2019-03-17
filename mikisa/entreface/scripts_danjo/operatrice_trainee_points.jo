@@ -1,7 +1,7 @@
 disposition "operatrice_trainee_points" {
     ligne {
 	    étiquette(valeur="Attribut")
-		chaine(valeur="V"; attache=nom_attribut)
+		liste(valeur="V"; attache=nom_attribut)
 	}
 	ligne {
 	    étiquette(valeur="Taille")

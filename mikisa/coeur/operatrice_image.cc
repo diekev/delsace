@@ -253,6 +253,69 @@ void EntreeOperatrice::obtiens_liste_calque(std::vector<std::string> &chaines) c
 	chaines = m_liste_noms_calques;
 }
 
+void EntreeOperatrice::obtiens_liste_attributs(std::vector<std::string> &chaines) const
+{
+	auto lien = m_ptr->lien;
+
+	if (lien == nullptr) {
+		return;
+	}
+
+	auto noeud = lien->parent;
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto corps = operatrice->corps();
+
+	if (corps == nullptr) {
+		return;
+	}
+
+	for (auto attributs : corps->attributs()) {
+		chaines.push_back(attributs->nom());
+	}
+}
+
+void EntreeOperatrice::obtiens_liste_groupes_prims(std::vector<std::string> &chaines) const
+{
+	auto lien = m_ptr->lien;
+
+	if (lien == nullptr) {
+		return;
+	}
+
+	auto noeud = lien->parent;
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto corps = operatrice->corps();
+
+	if (corps == nullptr) {
+		return;
+	}
+
+	for (auto const &groupe : corps->groupes_prims()) {
+		chaines.push_back(groupe.nom);
+	}
+}
+
+void EntreeOperatrice::obtiens_liste_groupes_points(std::vector<std::string> &chaines) const
+{
+	auto lien = m_ptr->lien;
+
+	if (lien == nullptr) {
+		return;
+	}
+
+	auto noeud = lien->parent;
+	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto corps = operatrice->corps();
+
+	if (corps == nullptr) {
+		return;
+	}
+
+	for (auto const &groupe : corps->groupes_points()) {
+		chaines.push_back(groupe.nom);
+	}
+}
+
 /* ************************************************************************** */
 
 OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud *node)
@@ -439,7 +502,7 @@ void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*t
 	/* rien à faire par défaut */
 }
 
-void OperatriceImage::obtiens_liste(std::string const &/*attache*/, std::vector<std::string> &chaines) const
+void OperatriceImage::obtiens_liste(std::string const &/*attache*/, std::vector<std::string> &chaines)
 {
 	if (entrees() == 0) {
 		chaines.clear();

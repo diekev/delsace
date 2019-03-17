@@ -189,6 +189,15 @@ public:
 
 		return EXECUTION_REUSSIE;
 	}
+
+	void obtiens_liste(
+			std::string const &attache,
+			std::vector<std::string> &chaines) override
+	{
+		if (attache == "nom_attribut") {
+			entree(0)->obtiens_liste_attributs(chaines);
+		}
+	}
 };
 
 /* ************************************************************************** */
@@ -498,6 +507,15 @@ public:
 		rend_propriete_visible("ecart_type", distribution == "gaussienne");
 #endif
 		return true;
+	}
+
+	void obtiens_liste(
+			std::string const &attache,
+			std::vector<std::string> &chaines) override
+	{
+		if (attache == "nom_attribut") {
+			entree(0)->obtiens_liste_attributs(chaines);
+		}
 	}
 };
 

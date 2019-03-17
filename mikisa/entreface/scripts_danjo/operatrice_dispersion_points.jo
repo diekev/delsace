@@ -9,7 +9,7 @@ disposition "operatrice_dispersion_points" {
 	}
 	ligne {
 	    étiquette(valeur="Groupe Origine")
-		chaine(valeur=""; attache=groupe_origine; infobulle="Le groupe à utiliser pour émettre les points")
+		liste(valeur=""; attache=groupe_origine; infobulle="Le groupe à utiliser pour émettre les points")
 	}
     ligne {
 	    étiquette(valeur="Anime graine")
