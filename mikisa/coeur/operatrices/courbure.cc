@@ -24,8 +24,6 @@
 
 #include "courbure.hh"
 
-#include <mutex>
-
 #include "bibliotheques/outils/parallelisme.h"
 #include "bibliotheques/Patate/grenaille.h"
 
@@ -230,9 +228,6 @@ static auto calcul_courbure(
 
 	auto grid = Grid(donnees_maillage, r);
 
-	auto progression = 0.0f;
-	auto mutex_progression = std::mutex{}; /* XXX - À FAIRE */
-
 	boucle_parallele(tbb::blocked_range<long>(0, nombre_sommets),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
@@ -292,13 +287,8 @@ static auto calcul_courbure(
 			}
 		}
 
-		mutex_progression.lock();
-		auto delta = plage.end() - plage.begin();
-		progression += static_cast<float>(delta) / static_cast<float>(nombre_sommets);
-
-		chef->indique_progression(progression * 100.0f);
-		mutex_progression.unlock();
-
+		auto delta = static_cast<float>(plage.end() - plage.begin()) * 100.0f;
+		chef->indique_progression_parallele(delta / static_cast<float>(nombre_sommets));
 	});
 
 	return donnees_ret;

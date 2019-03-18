@@ -41,7 +41,16 @@ void ChefExecution::indique_progression(float progression)
 	m_mikisa.notifiant_thread->signale_ajournement_progres(progression);
 }
 
+void ChefExecution::indique_progression_parallele(float delta)
+{
+	m_mutex_progression.lock();
+	m_progression_parallele += delta;
+	indique_progression(m_progression_parallele);
+	m_mutex_progression.unlock();
+}
+
 void ChefExecution::demarre_evaluation(const char *message)
 {
+	m_progression_parallele = 0.0f;
 	m_mikisa.notifiant_thread->signale_debut_evaluation(message);
 }

@@ -24,17 +24,33 @@
 
 #pragma once
 
+#include <mutex>
+
 class Mikisa;
 
 class ChefExecution {
 	Mikisa &m_mikisa;
+	float m_progression_parallele = 0.0f;
+	std::mutex m_mutex_progression{};
 
 public:
 	explicit ChefExecution(Mikisa &mikisa);
 
 	bool interrompu() const;
 
+	/**
+	 * Indique la progression d'un algorithme en série, dans un seul thread.
+	 */
 	void indique_progression(float progression);
+
+	/**
+	 * Indique la progression depuis le corps d'une boucle parallèle. Le delta
+	 * est la quantité de travail effectuée dans le thread du corps.
+	 *
+	 * Un mutex est verrouillé à chaque appel, et le delta est ajouté à une
+	 * progression globale mise à zéro à chaque appel à demarre_evaluation().
+	 */
+	void indique_progression_parallele(float delta);
 
 	void demarre_evaluation(const char *message);
 };
