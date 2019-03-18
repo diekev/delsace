@@ -140,6 +140,7 @@ long ArbreKD::balance(ArbreKD::Noeud *noeuds, long noeuds_totaux, int axe, int d
 		return 0 + decalage;
 	}
 
+	/* sorte de triage rapide autour de la médiane */
 	auto gauche = 0;
 	auto droite = noeuds_totaux - 1;
 	auto mediane = noeuds_totaux / 2;
@@ -158,9 +159,13 @@ long ArbreKD::balance(ArbreKD::Noeud *noeuds, long noeuds_totaux, int axe, int d
 			}
 
 			std::swap(noeuds[i], noeuds[j]);
+			/* N'échange pas l'axe. */
+			std::swap(noeuds[i].d, noeuds[j].d);
 		}
 
 		std::swap(noeuds[i], noeuds[droite]);
+		/* N'échange pas l'axe. */
+		std::swap(noeuds[i].d, noeuds[droite].d);
 
 		if (i >= mediane) {
 			droite = i - 1;
@@ -175,6 +180,6 @@ long ArbreKD::balance(ArbreKD::Noeud *noeuds, long noeuds_totaux, int axe, int d
 	noeud->d = axe;
 	axe = (axe + 1) % 3;
 	noeud->gauche = balance(noeuds, mediane, axe, decalage);
-	noeud->droite = balance(noeuds + mediane + 1, noeuds_totaux - (mediane + 1), axe, decalage);
+	noeud->droite = balance(noeuds + mediane + 1, noeuds_totaux - (mediane + 1), axe, static_cast<int>(mediane + 1) + decalage);
 	return mediane + decalage;
 }
