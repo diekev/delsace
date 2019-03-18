@@ -43,6 +43,11 @@ bool Corps::possede_attribut(std::string const &nom_attribut)
 	return this->attribut(nom_attribut) != nullptr;
 }
 
+void Corps::ajoute_attribut(Attribut *attr)
+{
+	this->m_attributs.push_back(attr);
+}
+
 Attribut *Corps::ajoute_attribut(
 		std::string const &nom_attribut,
 		type_attribut type_,

@@ -1144,6 +1144,45 @@ public:
 
 /* ************************************************************************** */
 
+static auto copie_attribut(
+		Attribut *attr_orig,
+		long idx_orig,
+		Attribut *attr_dest,
+		long idx_dest)
+{
+	switch (attr_orig->type()) {
+		case type_attribut::ENT8:
+			attr_dest->ent8(idx_dest, attr_orig->ent8(idx_orig));
+			break;
+		case type_attribut::ENT32:
+			attr_dest->ent32(idx_dest, attr_orig->ent32(idx_orig));
+			break;
+		case type_attribut::DECIMAL:
+			attr_dest->decimal(idx_dest, attr_orig->decimal(idx_orig));
+			break;
+		case type_attribut::VEC2:
+			attr_dest->vec2(idx_dest, attr_orig->vec2(idx_orig));
+			break;
+		case type_attribut::VEC3:
+			attr_dest->vec3(idx_dest, attr_orig->vec3(idx_orig));
+			break;
+		case type_attribut::VEC4:
+			attr_dest->vec4(idx_dest, attr_orig->vec4(idx_orig));
+			break;
+		case type_attribut::MAT3:
+			attr_dest->mat3(idx_dest, attr_orig->mat3(idx_orig));
+			break;
+		case type_attribut::MAT4:
+			attr_dest->mat4(idx_dest, attr_orig->mat4(idx_orig));
+			break;
+		case type_attribut::CHAINE:
+			attr_dest->chaine(idx_dest, attr_orig->chaine(idx_orig));
+			break;
+		case type_attribut::INVALIDE:
+			break;
+	}
+}
+
 class OperatriceEnleveDoublons : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Enlève Doublons";
@@ -1154,6 +1193,11 @@ public:
 	{
 		entrees(1);
 		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_enleve_doublons.jo";
 	}
 
 	const char *nom_classe() const override
@@ -1169,81 +1213,157 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		auto dist = 0.001f;
-#if 0
-		auto arbre = ArbreKD(m_corps.points()->taille());
-		std::vector<int> doublons(static_cast<size_t>(m_corps.points()->taille()));
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("Aucun corps connecté !");
+			return EXECUTION_ECHOUEE;
+		}
 
-		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
-			arbre.insert(i, m_corps.points()->point(i));
-			/* À FAIRE : liste de points à garder : doublons[i] = i. */
-			doublons[static_cast<size_t>(i)] = -1;
+		auto points_entree = corps_entree->points();
+
+		auto dist = evalue_decimal("distance", contexte.temps_courant);
+
+		/* À FAIRE : liste de points à garder : doublons[i] = i. */
+		auto doublons = std::vector<int>(static_cast<size_t>(points_entree->taille()), -1);
+
+#if 1
+		auto arbre = ArbreKD(points_entree->taille());
+
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			arbre.insert(i, points_entree->point(i));
 		}
 
 		arbre.balance();
 
 		auto doublons_trouves = arbre.calc_doublons_rapide(dist, false, doublons);
-
-		if (doublons_trouves != 0) {
-			for (auto i = 0; i < m_corps.points()->taille(); ++i) {
-				if (doublons[static_cast<size_t>(i)] == -1) {
-					continue;
-				}
-
-				if (doublons[static_cast<size_t>(i)] == i) {
-					continue;
-				}
-
-				/* remplace dans les groupes, les prims, et les attrib : i -> doublons[i] */
-			}
-		}
 #else
-		std::vector<int> doublons(static_cast<size_t>(m_corps.points()->taille()));
 		auto doublons_trouves = 0;
 
-		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
-			doublons[static_cast<size_t>(i)] = -1;
-		}
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			auto const &p1 = points_entree->point(i);
 
-		for (auto i = 0; i < m_corps.points()->taille(); ++i) {
-			auto const &p1 = m_corps.points()->point(i);
+			for (auto j = i + 1; j < points_entree->taille(); ++j) {
+				auto const &p2 = points_entree->point(j);
 
-			for (auto j = i + 1; j < m_corps.points()->taille(); ++j) {
-				auto const &p2 = m_corps.points()->point(j);
+				auto d = longueur(p1 - p2);
 
-				auto v = p1 - p2;
-				auto d = produit_scalaire(v, v);
-
-				if (d <= dist && doublons[static_cast<size_t>(j)] == -1) {
+				if (d <= dist && doublons[static_cast<size_t>(i)] == -1) {
 					++doublons_trouves;
-					doublons[static_cast<size_t>(j)] = i;
+					doublons[static_cast<size_t>(i)] = j;
 				}
 			}
 		}
 #endif
 
-		if (doublons_trouves != 0) {
-			for (auto i = 0; i < m_corps.prims()->taille(); ++i) {
-				auto prim = m_corps.prims()->prim(i);
+		std::cerr << "Il y a " << points_entree->taille() << " points.\n";
+		std::cerr << "Il y a " << doublons_trouves << " doublons.\n";
 
-				if (prim->type_prim() == type_primitive::POLYGONE) {
-					auto poly = dynamic_cast<Polygone *>(prim);
+		if (doublons_trouves == 0) {
+			corps_entree->copie_vers(&m_corps);
+			return EXECUTION_REUSSIE;
+		}
 
-					for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-						auto index = static_cast<size_t>(poly->index_point(j));
+#if 1
+		corps_entree->copie_vers(&m_corps);
 
-						if (doublons[index] != -1) {
-							poly->ajourne_index(j, doublons[index]);
-						}
+		for (auto i = 0; i < m_corps.prims()->taille(); ++i) {
+			auto prim = m_corps.prims()->prim(i);
+
+			if (prim->type_prim() == type_primitive::POLYGONE) {
+				auto poly = dynamic_cast<Polygone *>(prim);
+
+				for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+					auto index = static_cast<size_t>(poly->index_point(j));
+
+					if (doublons[index] != -1) {
+						poly->ajourne_index(j, doublons[index]);
 					}
-
 				}
 			}
 		}
-		std::cerr << "Il y a " << m_corps.points()->taille() << " points.\n";
-		std::cerr << "Il y a " << doublons_trouves << " doublons.\n";
+#else	/* À FAIRE : le réindexage n'est pas correcte. */
+		/* Supprime les points */
+
+		auto tamis_point = std::vector<bool>(doublons.size(), false);
+		auto reindexage = std::vector<long>(doublons.size(), -1);
+		auto nouvel_index = 0;
+
+		std::cerr << "Calcul tamis, reindexage\n";
+
+		for (auto i = 0ul; i < doublons.size(); ++i) {
+			auto supprime = (doublons[i] != -1) && (doublons[i] != static_cast<int>(i));
+			tamis_point[i] = supprime;
+
+			if (supprime) {
+				reindexage[i] = std::min(static_cast<int>(i), doublons[i]);
+			}
+			else {
+				reindexage[i] = nouvel_index++;
+			}
+		}
+
+		std::cerr << "Copie des points non supprimés\n";
+		m_corps.points()->reserve(points_entree->taille() - doublons_trouves);
+
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			if (tamis_point[static_cast<size_t>(i)]) {
+				continue;
+			}
+
+			auto p = corps_entree->point_transforme(i);
+
+			m_corps.ajoute_point(p.x, p.y, p.z);
+		}
+
+		std::cerr << "Il y a '" << m_corps.points()->taille() << "' points de créés !\n";
+
+		/* Copie les primitives. */
+		auto prims_entree = corps_entree->prims();
+
+		std::cerr << "Création des primitives\n";
+		for (auto i = 0; i < prims_entree->taille(); ++i) {
+			auto prim = prims_entree->prim(i);
+
+			if (prim->type_prim() == type_primitive::POLYGONE) {
+				auto poly = dynamic_cast<Polygone *>(prim);
+				auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+
+				for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+					auto index = static_cast<size_t>(poly->index_point(j));
+
+					if (reindexage[index] == -1 || reindexage[index] > m_corps.points()->taille()) {
+						//std::cerr << "Ajout d'un index invalide !!!\n";
+					}
+
+					npoly->ajoute_sommet(reindexage[index]);
+				}
+			}
+		}
+
+		std::cerr << "Copie des attributs\n";
+		/* Copie les attributs */
+		for (auto const attr : corps_entree->attributs()) {
+			if (attr->portee != portee_attr::POINT) {
+				auto copie_attr = new Attribut(*attr);
+				m_corps.ajoute_attribut(copie_attr);
+				continue;
+			}
+
+			auto attr_point = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
+
+			for (auto i = 0, j = 0; i < points_entree->taille(); ++i) {
+				if (tamis_point[static_cast<size_t>(i)] == true) {
+					continue;
+				}
+
+				copie_attribut(attr, i, attr_point, j++);
+			}
+		}
+
+		std::cerr << "Fin de l'algorithme\n";
+#endif
+
 		return EXECUTION_REUSSIE;
 	}
 };

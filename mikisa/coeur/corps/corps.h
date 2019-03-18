@@ -78,6 +78,8 @@ struct Corps {
 
 	bool possede_attribut(std::string const &nom_attribut);
 
+	void ajoute_attribut(Attribut *attr);
+
 	Attribut *ajoute_attribut(
 			std::string const &nom_attribut,
 			type_attribut type_,
