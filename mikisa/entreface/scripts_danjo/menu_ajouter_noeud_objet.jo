@@ -16,6 +16,7 @@ menu "Noeud Objet" {
 		action(valeur="Création Attribut"; attache=ajouter_noeud; métadonnée="Création Attribut")
 		action(valeur="Randomisation Attribut"; attache=ajouter_noeud; métadonnée="Randomisation Attribut")
 		action(valeur="Suppression Attribut"; attache=ajouter_noeud; métadonnée="Suppression Attribut")
+		action(valeur="Transfère Attributs"; attache=ajouter_noeud; métadonnée="Transfère Attributs")
 	}
 	menu "Groupe" {
 	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")

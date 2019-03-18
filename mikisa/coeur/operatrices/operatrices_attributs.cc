@@ -26,6 +26,7 @@
 
 #include "bibliotheques/outils/gna.hh"
 
+#include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -721,6 +722,174 @@ public:
 
 /* ************************************************************************** */
 
+static auto copie_attribut(
+		Attribut *attr_orig,
+		long idx_orig,
+		Attribut *attr_dest,
+		long idx_dest)
+{
+	switch (attr_orig->type()) {
+		case type_attribut::ENT8:
+			attr_dest->ent8(idx_dest, attr_orig->ent8(idx_orig));
+			break;
+		case type_attribut::ENT32:
+			attr_dest->ent32(idx_dest, attr_orig->ent32(idx_orig));
+			break;
+		case type_attribut::DECIMAL:
+			attr_dest->decimal(idx_dest, attr_orig->decimal(idx_orig));
+			break;
+		case type_attribut::VEC2:
+			attr_dest->vec2(idx_dest, attr_orig->vec2(idx_orig));
+			break;
+		case type_attribut::VEC3:
+			attr_dest->vec3(idx_dest, attr_orig->vec3(idx_orig));
+			break;
+		case type_attribut::VEC4:
+			attr_dest->vec4(idx_dest, attr_orig->vec4(idx_orig));
+			break;
+		case type_attribut::MAT3:
+			attr_dest->mat3(idx_dest, attr_orig->mat3(idx_orig));
+			break;
+		case type_attribut::MAT4:
+			attr_dest->mat4(idx_dest, attr_orig->mat4(idx_orig));
+			break;
+		case type_attribut::CHAINE:
+			attr_dest->chaine(idx_dest, attr_orig->chaine(idx_orig));
+			break;
+		case type_attribut::INVALIDE:
+			break;
+	}
+}
+
+#include <mutex>
+#include "bibliotheques/outils/parallelisme.h"
+
+class OpTransfereAttributs final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Transfère Attributs";
+	static constexpr auto AIDE = "";
+
+	explicit OpTransfereAttributs(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(2);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_transfere_attribut.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto corps_orig = entree(1)->requiers_corps(contexte, donnees_aval);
+
+		if (corps_orig == nullptr) {
+			this->ajoute_avertissement("Aucun corps d'origine trouvé");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto points = m_corps.points();
+		auto points_orig = corps_orig->points();
+
+		if (points_orig->taille() == 0) {
+			this->ajoute_avertissement("Aucun point dans le corps d'origine");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (points->taille() == 0) {
+			this->ajoute_avertissement("Aucun point dans le corps de destination");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto const nom_attribut = evalue_chaine("nom_attribut");
+		auto const distance = evalue_decimal("distance", contexte.temps_courant);
+
+		auto attr_orig = corps_orig->attribut(nom_attribut);
+
+		if (attr_orig == nullptr) {
+			std::stringstream ss;
+			ss << "Le corps d'origine ne possède pas l'attribut '"
+			   << nom_attribut << "'";
+			this->ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (attr_orig->portee != portee_attr::POINT) {
+			std::stringstream ss;
+			ss << "L'attribut '"
+			   << nom_attribut << "' n'est pas sur les points\n";
+			this->ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("transfère attribut");
+
+		/* À FAIRE : collision attribut. */
+		auto attr_dest = m_corps.ajoute_attribut(
+					nom_attribut,
+					attr_orig->type(),
+					attr_orig->portee);
+
+		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+						 [&](tbb::blocked_range<long> const &plage)
+		{
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				auto const point = m_corps.point_transforme(i);
+				auto dist_locale = distance;
+				auto idx_point_plus_pres = -1;
+
+				/* À FAIRE : structure accéleration. */
+				/* Trouve l'index point le plus proche, À FAIRE : n-points. */
+				for (auto j = 0; j < points_orig->taille(); ++j) {
+					auto p0 = corps_orig->point_transforme(j);
+					auto l = longueur(point - p0);
+
+					if (l < dist_locale) {
+						dist_locale = l;
+						idx_point_plus_pres = j;
+					}
+				}
+
+				if (idx_point_plus_pres >= 0) {
+					copie_attribut(attr_orig, idx_point_plus_pres, attr_dest, i);
+				}
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin()) * 100.0f;
+			chef->indique_progression_parallele(delta / static_cast<float>(points->taille()));
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void obtiens_liste(
+			std::string const &attache,
+			std::vector<std::string> &chaines) override
+	{
+		if (attache == "nom_attribut") {
+			entree(1)->obtiens_liste_attributs(chaines);
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_attributs(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationAttribut>());
@@ -728,6 +897,7 @@ void enregistre_operatrices_attributs(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSuppressionAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceRandomisationAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceCreationNormaux>());
+	usine.enregistre_type(cree_desc<OpTransfereAttributs>());
 }
 
 #pragma clang diagnostic pop

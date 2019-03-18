@@ -162,6 +162,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_tournoiement.jo
 	scripts_danjo/operatrice_traduction.jo
 	scripts_danjo/operatrice_trainee_points.jo
+	scripts_danjo/operatrice_transfere_attribut.jo
 	scripts_danjo/operatrice_transformation.jo
 	scripts_danjo/operatrice_vent.jo
 	scripts_danjo/operatrice_visionnage.jo
