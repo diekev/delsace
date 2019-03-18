@@ -4,12 +4,17 @@ disposition "operatrice_dispersion_points" {
 		énum(valeur="points"; attache=origine; items=[
 		     {nom="Points", valeur="points"},
 			 {nom="Primivites", valeur="primitives"},
-			 {nom="Volume", valeur="volume"}
+			 {nom="Volume", valeur="volume"},
+			 {nom="Attribut", valeur="attribut"}
 			 ])
 	}
 	ligne {
 	    étiquette(valeur="Groupe Origine")
 		liste(valeur=""; attache=groupe_origine; infobulle="Le groupe à utiliser pour émettre les points")
+	}
+	ligne {
+	    étiquette(valeur="Attribut Origine")
+		liste(valeur=""; attache=nom_attribut; infobulle="L'attribut à utiliser pour émettre les points")
 	}
     ligne {
 	    étiquette(valeur="Anime graine")

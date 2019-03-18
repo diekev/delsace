@@ -247,6 +247,10 @@ public:
 			return genere_points_depuis_volume(corps_entree, contexte.temps_courant);
 		}
 
+		if (origine == "attribut") {
+			return genere_points_depuis_attribut(corps_entree);
+		}
+
 		ajoute_avertissement("Erreur : origine inconnue !");
 		return EXECUTION_ECHOUEE;
 	}
@@ -479,6 +483,57 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
+	int genere_points_depuis_attribut(Corps const *corps_entree)
+	{
+		auto nom_attribut = evalue_chaine("nom_attribut");
+
+		if (nom_attribut.empty()) {
+			this->ajoute_avertissement("L'attribut n'est pas spécifié");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto attr_source = corps_entree->attribut(nom_attribut);
+
+		if (attr_source == nullptr) {
+			std::stringstream ss;
+			ss << "L'attribut '" << nom_attribut << "' n'existe pas !";
+			this->ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (attr_source->type() != type_attribut::VEC3) {
+			std::stringstream ss;
+			ss << "L'attribut '" << nom_attribut << "' n'est pas de type vecteur !";
+			this->ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto grouper_points = evalue_bool("grouper_points");
+		auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
+
+		if (grouper_points) {
+			auto nom_groupe = evalue_chaine("nom_groupe");
+
+			if (nom_groupe.empty()) {
+				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
+				return EXECUTION_ECHOUEE;
+			}
+
+			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
+		}
+
+		for (auto i = 0; i < attr_source->taille(); ++i) {
+			auto p = attr_source->vec3(i);
+			auto index = m_corps.ajoute_point(p.x, p.y, p.z);
+
+			if (groupe_sortie) {
+				groupe_sortie->ajoute_point(index);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
 	void obtiens_liste(
 			std::string const &attache,
 			std::vector<std::string> &chaines) override
@@ -492,6 +547,9 @@ public:
 			else if (origine == "primitives") {
 				entree(0)->obtiens_liste_groupes_prims(chaines);
 			}
+		}
+		else if (attache == "nom_attribut") {
+			entree(0)->obtiens_liste_attributs(chaines);
 		}
 	}
 };
