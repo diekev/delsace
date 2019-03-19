@@ -123,6 +123,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_evaluation_kelvinlet.jo
 	scripts_danjo/operatrice_extraction_palette.jo
 	scripts_danjo/operatrice_filtre.jo
+	scripts_danjo/operatrice_fonte_maillage.jo
 	scripts_danjo/operatrice_force_interaction.jo
 	scripts_danjo/operatrice_flou.jo
 	scripts_danjo/operatrice_fusion.jo

@@ -24,12 +24,15 @@
 
 #include "operatrices_maillage.hh"
 
+#include <delsace/math/bruit.hh>
 #include <eigen3/Eigen/Eigenvalues>
 #include <set>
 
 #include "bibliotheques/outils/gna.hh"
+#include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -1567,6 +1570,157 @@ public:
 
 /* ************************************************************************** */
 
+/* À FAIRE : bibliothèque de bruit. */
+static auto bruit(dls::math::vec3f const &p)
+{
+	return dls::math::bruit_simplex_3d(p.x, p.y, p.z);
+}
+
+class OpFonteMaillage : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Fonte Maillage";
+	static constexpr auto AIDE = "Simule un effet de fonte du maillage d'entrée";
+
+	OpFonteMaillage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_fonte_maillage.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto points = m_corps.points();
+
+		if (points->taille() == 0) {
+			this->ajoute_avertissement("Le Corps d'entrée n'a pas de points !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto prims = m_corps.prims();
+
+		if (prims->taille() == 0) {
+			this->ajoute_avertissement("Le Corps d'entrée n'a pas de primitives !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto quantite = evalue_decimal("quantité", contexte.temps_courant);
+		auto etalement = evalue_decimal("étalement", contexte.temps_courant);
+		auto epaisseur = evalue_decimal("épaisseur", contexte.temps_courant);
+		auto direction = evalue_enum("direction");
+		auto amplitude_bruit = evalue_decimal("amplitude", contexte.temps_courant);
+		auto frequence_bruit = evalue_vecteur("fréquence", contexte.temps_courant);
+		auto decalage_bruit = evalue_vecteur("décalage", contexte.temps_courant);
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("fonte maillage");
+
+		/* calcul la boîte englobante */
+		auto min = dls::math::vec3f(constantes<float>::INFINITE);
+		auto max = dls::math::vec3f(-constantes<float>::INFINITE);
+
+		for (auto i = 0; i < points->taille(); ++i) {
+			extrait_min_max(points->point(i), min, max);
+		}
+
+		auto attr_N = static_cast<Attribut *>(nullptr);
+
+		auto centroide = dls::math::vec3f(0.0f);
+
+		if (direction == "normal") {
+			attr_N = m_corps.attribut("N");
+
+			if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {
+				calcul_normaux(m_corps, false, false);
+			}
+
+			/* Au cas où il n'y avait pas de normaux à l'origine. */
+			attr_N = m_corps.attribut("N");
+		}
+		else {
+			centroide = centre_masse_maillage(m_corps);
+		}
+
+		auto distance = (max.y - min.y);
+
+		points->detache();
+
+		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+						 [&](tbb::blocked_range<long> const &plage)
+		{
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				if (chef->interrompu()) {
+					break;
+				}
+
+				auto p = points->point(i);
+
+				p.y -= distance * quantite;
+
+				if (p.y < min.y) {
+					auto fraction_depassement = (min.y - p.y) / (max.y - min.y);
+
+					auto poussee = dls::math::vec3f(0.0f);
+
+					if (direction == "normal") {
+						auto Nn = attr_N->vec3(i);
+						poussee.x = Nn.x;
+						poussee.z = Nn.z;
+					}
+					else if (direction == "radial") {
+						poussee = p - centroide;
+						poussee.y = 0.0f;
+					}
+
+					/* Éjecte le point avec un peu de bruit si besoin est. */
+					float n = 0.0f;
+
+					if (amplitude_bruit != 0.0f) {
+						n = amplitude_bruit * bruit(p * frequence_bruit + decalage_bruit);
+					}
+
+					p += ((quantite * etalement) + n) * fraction_depassement * poussee;
+
+					p.y = min.y;
+
+					/* Donne une épaisseur au point. */
+					p.y -= fraction_depassement * epaisseur;
+				}
+
+				/* Pousse le point pour compenser le décalage descendant du pool */
+				p.y += quantite * epaisseur;
+
+				points->point(i, p);
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			chef->indique_progression_parallele(delta / static_cast<float>(points->taille()) * 100.0f);
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_maillage(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceLissageLaplacien>());
@@ -1576,6 +1730,7 @@ void enregistre_operatrices_maillage(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceBruitTopologique>());
 	usine.enregistre_type(cree_desc<OperatriceErosionMaillage>());
 	usine.enregistre_type(cree_desc<OpGeometrieMaillage>());
+	usine.enregistre_type(cree_desc<OpFonteMaillage>());
 }
 
 #pragma clang diagnostic pop
