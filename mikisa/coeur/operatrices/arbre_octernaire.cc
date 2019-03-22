@@ -26,6 +26,15 @@
 
 #include "../corps/corps.h"
 
+#include "../logeuse_memoire.hh"
+
+ArbreOcternaire::Noeud::~Noeud()
+{
+	for (int i = 0; i < 8; ++i) {
+		memoire::deloge(enfants[i]);
+	}
+}
+
 ArbreOcternaire::ArbreOcternaire(const BoiteEnglobante &boite)
 	: m_racine()
 {
@@ -92,7 +101,7 @@ void ArbreOcternaire::construit_enfants(ArbreOcternaire::Noeud *noeud)
 	};
 
 	for (auto i = 0; i < 8; ++i) {
-		auto enfant = new Noeud{};
+		auto enfant = memoire::loge<Noeud>();
 		enfant->boite = boites[i];
 		enfant->profondeur = noeud->profondeur + 1;
 		enfant->est_feuille = (enfant->profondeur == m_profondeur_max);

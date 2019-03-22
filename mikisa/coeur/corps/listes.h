@@ -126,7 +126,10 @@ public:
 /* ************************************************************************** */
 
 class ListePoints3D {
+public:
 	using type_liste = std::vector<Point3D *>;
+
+private:
 	typedef std::shared_ptr<type_liste> RefPtr;
 
 	RefPtr m_sommets{};
@@ -155,7 +158,10 @@ public:
 /* ************************************************************************** */
 
 class ListePrimitives {
+public:
 	using type_liste = std::vector<Primitive *>;
+
+private:
 	typedef std::shared_ptr<type_liste> RefPtr;
 	RefPtr m_primitives{};
 

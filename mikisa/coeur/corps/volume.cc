@@ -24,6 +24,8 @@
 
 #include "volume.hh"
 
+#include "../logeuse_memoire.hh"
+
 /* ************************************************************************** */
 
 type_primitive Volume::type_prim() const
@@ -62,5 +64,5 @@ dls::math::vec3<size_t> BaseGrille::resolution() const
 
 Volume::~Volume()
 {
-	delete grille;
+	memoire::deloge(grille);
 }

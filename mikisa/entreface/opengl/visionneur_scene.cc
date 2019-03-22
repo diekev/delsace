@@ -37,6 +37,7 @@
 #include "coeur/corps/corps.h"
 
 #include "coeur/composite.h"
+#include "coeur/logeuse_memoire.hh"
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
 #include "coeur/objet.h"
@@ -225,6 +226,26 @@ void VisionneurScene::peint_opengl()
 
 		m_rendu_texte->dessine(m_contexte, ss.str());
 	}
+
+	ss.str("");
+	ss << "Mémoire : ";
+
+	auto memoire_allouee = memoire::allouee();
+
+	if (memoire_allouee < 1024) {
+		ss << memoire_allouee << " o";
+	}
+	else if (memoire_allouee < (1024 * 1024)) {
+		ss << memoire_allouee / (1024) << " Ko";
+	}
+	else if (memoire_allouee < (1024 * 1024 * 1024)) {
+		ss << memoire_allouee / (1024 * 1024) << " Mo";
+	}
+	else {
+		ss << memoire_allouee / (1024 * 1024 * 1024) << " Go";
+	}
+
+	m_rendu_texte->dessine(m_contexte, ss.str());
 
 #if 0
 	noeud = m_mikisa.graphe->noeud_actif;

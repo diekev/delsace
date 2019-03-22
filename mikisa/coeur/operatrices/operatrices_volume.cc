@@ -31,6 +31,7 @@
 #include "../corps/collision.hh"
 #include "../corps/volume.hh"
 
+#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -76,8 +77,8 @@ public:
 
 		auto gna = GNA();
 
-		auto volume = new Volume();
-		auto grille_scalaire = new Grille<float>;
+		auto volume = memoire::loge<Volume>();
+		auto grille_scalaire = memoire::loge<Grille<float>>();
 		grille_scalaire->initialise(32, 32, 32);
 
 		for (size_t x = 0; x < 32; ++x) {
@@ -170,8 +171,8 @@ public:
 		auto res_y = static_cast<size_t>(dim_d.y / static_cast<double>(taille_voxel));
 		auto res_z = static_cast<size_t>(dim_d.z / static_cast<double>(taille_voxel));
 
-		auto volume = new Volume();
-		auto grille_scalaire = new Grille<float>;
+		auto volume = memoire::loge<Volume>();
+		auto grille_scalaire = memoire::loge<Grille<float>>();
 		grille_scalaire->initialise(res_x, res_y, res_z);
 		grille_scalaire->min = min;
 		grille_scalaire->max = max;

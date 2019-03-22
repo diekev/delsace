@@ -238,11 +238,11 @@ void ImprimeuseGraphe::operator()(filesystem::path const &path)
 	file.print("]\n");
 
 	for (auto const &node : m_graph->noeuds()) {
-		dump_node(file, node.get());
+		dump_node(file, node);
 	}
 
 	for (auto const &node : m_graph->noeuds()) {
-		dump_node_links(file, node.get());
+		dump_node_links(file, node);
 	}
 
 	file.print("}\n");

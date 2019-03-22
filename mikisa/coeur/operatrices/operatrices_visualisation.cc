@@ -269,7 +269,7 @@ public:
 
 		rassemble_topologie(arbre, m_corps);
 
-		delete arbre;
+		memoire::deloge(arbre);
 
 		return EXECUTION_REUSSIE;
 	}

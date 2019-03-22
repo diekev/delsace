@@ -28,6 +28,7 @@
 #include "bibliotheques/outils/parallelisme.h"
 
 #include "contexte_evaluation.hh"
+#include "logeuse_memoire.hh"
 #include "operatrice_pixel.h"
 #include "noeud_image.h"
 
@@ -36,11 +37,11 @@
 
 /* ************************************************************************** */
 
-static constexpr auto NOM_ENTREE = "Entrée";
-static constexpr auto AIDE_ENTREE = "Applique une saturation à l'image.";
-
 class OperatricePixelEntree final : public OperatricePixel {
 public:
+	static constexpr auto NOM = "Entrée";
+	static constexpr auto AIDE = "Applique une saturation à l'image.";
+
 	explicit OperatricePixelEntree(Graphe &graphe_parent, Noeud *node)
 		: OperatricePixel(graphe_parent, node)
 	{
@@ -55,12 +56,12 @@ public:
 
 	const char *nom_classe() const override
 	{
-		return NOM_ENTREE;
+		return NOM;
 	}
 
 	const char *texte_aide() const override
 	{
-		return AIDE_ENTREE;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -83,11 +84,11 @@ public:
 	}
 };
 
-static constexpr auto NOM_SORTIE = "Sortie";
-static constexpr auto AIDE_SORTIE = "Applique une saturation à l'image.";
-
 class OperatricePixelSortie final : public OperatricePixel {
 public:
+	static constexpr auto NOM = "Sortie";
+	static constexpr auto AIDE = "Applique une saturation à l'image.";
+
 	explicit OperatricePixelSortie(Graphe &graphe_parent, Noeud *node)
 		: OperatricePixel(graphe_parent, node)
 	{
@@ -102,12 +103,12 @@ public:
 
 	const char *nom_classe() const override
 	{
-		return NOM_SORTIE;
+		return NOM;
 	}
 
 	const char *texte_aide() const override
 	{
-		return AIDE_SORTIE;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -130,11 +131,11 @@ public:
 	}
 };
 
-static constexpr auto NOM_SATURATION = "SATURATION";
-static constexpr auto AIDE_SATURATION = "Applique une saturation à l'image.";
-
 class OperatricePixelSaturation final : public OperatricePixel {
 public:
+	static constexpr auto NOM = "SATURATION";
+	static constexpr auto AIDE = "Applique une saturation à l'image.";
+
 	explicit OperatricePixelSaturation(Graphe &graphe_parent, Noeud *node)
 		: OperatricePixel(graphe_parent, node)
 	{
@@ -149,12 +150,12 @@ public:
 
 	const char *nom_classe() const override
 	{
-		return NOM_SATURATION;
+		return NOM;
 	}
 
 	const char *texte_aide() const override
 	{
-		return AIDE_SATURATION;
+		return AIDE;
 	}
 
 	void evalue_entrees(int temps) override
@@ -247,33 +248,28 @@ void execute_graphe(
 
 OperatriceGraphePixel::OperatriceGraphePixel(Graphe &graphe_parent, Noeud *node)
 	: OperatriceImage(graphe_parent, node)
+	, m_graphe(cree_noeud_image, supprime_noeud_image)
 {
 	entrees(1);
 	sorties(1);
 
-	auto noeud_entree = new Noeud(supprime_operatrice_image);
-	auto op_entree = new OperatricePixelEntree(m_graphe, noeud_entree);
-	noeud_entree->nom(op_entree->nom_classe());
+	auto noeud_entree = m_graphe.cree_noeud(OperatricePixelEntree::NOM);
+	auto op_entree = memoire::loge<OperatricePixelEntree>(m_graphe, noeud_entree);
+	INUTILISE(op_entree);
 
 	synchronise_donnees_operatrice(noeud_entree);
 
-	m_graphe.ajoute(noeud_entree);
-
-	auto noeud_sortie = new Noeud(supprime_operatrice_image);
-	auto op_sortie = new OperatricePixelSortie(m_graphe, noeud_sortie);
-	noeud_sortie->nom(op_sortie->nom_classe());
+	auto noeud_sortie = m_graphe.cree_noeud(OperatricePixelSortie::NOM);
+	auto op_sortie = memoire::loge<OperatricePixelSortie>(m_graphe, noeud_sortie);
+	INUTILISE(op_sortie);
 
 	synchronise_donnees_operatrice(noeud_sortie);
 
-	m_graphe.ajoute(noeud_sortie);
-
-	auto noeud_saturation = new Noeud(supprime_operatrice_image);
-	auto op_saturation = new OperatricePixelSaturation(m_graphe, noeud_saturation);
-	noeud_saturation->nom(op_saturation->nom_classe());
+	auto noeud_saturation = m_graphe.cree_noeud(OperatricePixelSaturation::NOM);
+	auto op_saturation = memoire::loge<OperatricePixelSaturation>(m_graphe, noeud_saturation);
+	INUTILISE(op_saturation);
 
 	synchronise_donnees_operatrice(noeud_saturation);
-
-	m_graphe.ajoute(noeud_saturation);
 
 	m_graphe.connecte(noeud_entree->sortie(0), noeud_saturation->entree(0));
 	m_graphe.connecte(noeud_saturation->sortie(0), noeud_sortie->entree(0));
@@ -372,13 +368,11 @@ void OperatriceGraphePixel::compile_graphe(int temps)
 	}
 
 	for (auto &noeud : m_graphe.noeuds()) {
-		auto pointeur = noeud.get();
-
-		for (auto &sortie : pointeur->sorties()) {
+		for (auto &sortie : noeud->sorties()) {
 			sortie->decalage_pile = 0;
 		}
 
-		auto operatrice = std::any_cast<OperatriceImage *>(pointeur->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 		auto operatrice_pixel = dynamic_cast<OperatricePixel *>(operatrice);
 
 		if (operatrice_pixel == nullptr) {

@@ -43,12 +43,7 @@ public:
 
 		std::vector<Triangle> triangles{};
 
-		~Noeud()
-		{
-			for (int i = 0; i < 8; ++i) {
-				delete enfants[i];
-			}
-		}
+		~Noeud();
 	};
 
 private:

@@ -360,6 +360,7 @@ void execute_graphe(
 
 OperatriceGrapheMaillage::OperatriceGrapheMaillage(Graphe &graphe_parent, Noeud *noeud)
 	: OperatriceCorps(graphe_parent, noeud)
+	, m_graphe(cree_noeud_image, supprime_noeud_image)
 {
 	entrees(1);
 	sorties(1);
@@ -437,13 +438,11 @@ void OperatriceGrapheMaillage::compile_graphe(int temps)
 	}
 
 	for (auto &noeud : m_graphe.noeuds()) {
-		auto pointeur = noeud.get();
-
-		for (auto &sortie : pointeur->sorties()) {
+		for (auto &sortie : noeud->sorties()) {
 			sortie->decalage_pile = 0;
 		}
 
-		auto operatrice = std::any_cast<OperatriceImage *>(pointeur->donnees());
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 		auto operatrice_p3d = dynamic_cast<OperatricePoint3D *>(operatrice);
 
 		if (operatrice_p3d == nullptr) {

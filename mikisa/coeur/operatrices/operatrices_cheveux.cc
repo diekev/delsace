@@ -32,6 +32,7 @@
 
 #include "../attribut.h"
 #include "../contexte_evaluation.hh"
+#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -76,7 +77,7 @@ public:
 		~Octant()
 		{
 			for (auto enfant : enfants) {
-				delete enfant;
+				memoire::deloge(enfant);
 			}
 		}
 	};
@@ -84,7 +85,7 @@ public:
 	~ArbreOcternaire()
 	{
 		for (auto tri : m_triangles) {
-			delete tri;
+			memoire::deloge(tri);
 		}
 
 		m_triangles.clear();
@@ -300,7 +301,7 @@ public:
 		 * le normal au point de collésion, et le segment collésé sont stocké
 		 */
 
-		delete arbre;
+		memoire::deloge(arbre);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -317,13 +318,13 @@ public:
 
 	ArbreOcternaire *construit_arbre(Corps const *maillage)
 	{
-		ArbreOcternaire *arbre = new ArbreOcternaire;
+		auto arbre = memoire::loge<ArbreOcternaire>();
 
 		pour_chaque_polygone_ferme(*maillage,
 								   [&](Corps const &corps, Polygone *poly)
 		{
 			for (long i = 2; i < poly->nombre_sommets(); ++i) {
-				auto triangle = new Triangle();
+				auto triangle = memoire::loge<Triangle>();
 				triangle->p0 = corps.point_transforme(poly->index_point(0));
 				triangle->p1 = corps.point_transforme(poly->index_point(i - 1));
 				triangle->p2 = corps.point_transforme(poly->index_point(i));

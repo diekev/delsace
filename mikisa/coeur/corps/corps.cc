@@ -29,6 +29,7 @@
 #include "bibliotheques/outils/definitions.hh"
 
 #include "../attribut.h"
+#include "../logeuse_memoire.hh"
 
 #include "groupes.h"
 #include "volume.hh"
@@ -90,7 +91,7 @@ Attribut *Corps::ajoute_attribut(
 			}
 		}
 
-		attr = new Attribut(nom_attribut, type_, portee, taille_attrib);
+		attr = memoire::loge<Attribut>(nom_attribut, type_, portee, taille_attrib);
 		m_attributs.push_back(attr);
 	}
 
@@ -109,7 +110,7 @@ void Corps::supprime_attribut(std::string const &nom_attribut)
 		return;
 	}
 
-	delete *iter;
+	memoire::deloge(*iter);
 
 	m_attributs.erase(iter);
 }
@@ -135,7 +136,7 @@ size_t Corps::ajoute_point(float x, float y, float z)
 		return index;
 	}
 
-	auto point = new Point3D();
+	auto point = memoire::loge<Point3D>();
 	point->x = x;
 	point->y = y;
 	point->z = z;
@@ -205,7 +206,7 @@ void Corps::reinitialise()
 	m_prims.reinitialise();
 
 	for (auto &attribut : m_attributs) {
-		delete attribut;
+		memoire::deloge(attribut);
 	}
 
 	m_attributs.clear();
@@ -216,7 +217,7 @@ void Corps::reinitialise()
 
 Corps *Corps::copie() const
 {
-	auto corps = new Corps();
+	auto corps = memoire::loge<Corps>();
 	this->copie_vers(corps);
 	return corps;
 }
@@ -238,7 +239,7 @@ void Corps::copie_vers(Corps *corps) const
 
 	/* copie les attributs */
 	for (Attribut *attr : this->m_attributs) {
-		Attribut *attr_corps = new Attribut(*attr);
+		auto attr_corps = memoire::loge<Attribut>(*attr);
 
 		corps->m_attributs.push_back(attr_corps);
 	}

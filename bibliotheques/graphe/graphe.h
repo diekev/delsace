@@ -26,6 +26,7 @@
 
 #include "noeud.h"
 
+#include <functional>
 #include <memory>
 #include <set>
 
@@ -64,7 +65,13 @@ struct InfoNoeud {
 
 /* ************************************************************************** */
 
+using type_function_creation_noeud = std::function<Noeud *()>;
+using type_function_destruction_noeud = std::function<void(Noeud *)>;
+
 class Graphe {
+	type_function_creation_noeud m_fonction_creation{};
+	type_function_destruction_noeud m_fonction_suppression{};
+
 public:
 	/* données pour l'entreface utilisateur */
 
@@ -101,26 +108,22 @@ public:
 
 	/* entreface de programmation */
 
-	using iterateur = std::vector<std::shared_ptr<Noeud>>::iterator;
-	using iterateur_const = std::vector<std::shared_ptr<Noeud>>::const_iterator;
+	using iterateur = std::vector<Noeud *>::iterator;
+	using iterateur_const = std::vector<Noeud *>::const_iterator;
 
 	using plage_noeud = plage_iterable<iterateur>;
 	using plage_noeud_const = plage_iterable<iterateur_const>;
 
-	Graphe() = default;
-	~Graphe() = default;
+	Graphe(type_function_creation_noeud fonction_creation,
+		   type_function_destruction_noeud fonction_destruction);
+
+	~Graphe();
 
 	/* À FAIRE : considère l'utilisation de shared_ptr */
 	Graphe(Graphe const &) = default;
 	Graphe &operator=(Graphe const &) = default;
 
-	/**
-	 * Ajoute un noeud au graphe. Le noeud n'est pas connecté. Le nom du noeud
-	 * est ajourné pour être unique : le nom est suffixé selon le nombre de
-	 * noeuds qui ont déjà le même nom. Finalement, le noeud est ajouté à la
-	 * sélection après avoir vidé celle-ci.
-	 */
-	void ajoute(Noeud *noeud);
+	Noeud *cree_noeud(std::string const &nom_noeud);
 
 	/**
 	 * Supprime un noeud du graphe. Le noeud est deconnecté de tous les noeuds
@@ -177,7 +180,17 @@ public:
 	void supprime_tout();
 
 private:
-	std::vector<std::shared_ptr<Noeud>> m_noeuds{};
+	/**
+	 * Ajoute un noeud au graphe. Le noeud n'est pas connecté. Le nom du noeud
+	 * est ajourné pour être unique : le nom est suffixé selon le nombre de
+	 * noeuds qui ont déjà le même nom. Finalement, le noeud est ajouté à la
+	 * sélection après avoir vidé celle-ci.
+	 */
+	void ajoute(Noeud *noeud);
+
+	void supprime_noeud(Noeud *noeud);
+
+	std::vector<Noeud *> m_noeuds{};
 	std::set<Noeud *> m_noeuds_selectionnes{};
 
 	std::set<std::string> m_noms_noeuds{};

@@ -43,6 +43,7 @@
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
+#include "coeur/logeuse_memoire.hh"
 #include "coeur/mikisa.h"
 #include "coeur/tache.h"
 
@@ -80,7 +81,7 @@ FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 	, m_barre_progres(new BarreDeProgres(m_mikisa, this))
 {
 	mikisa.fenetre_principale = this;
-	mikisa.notifiant_thread = new TaskNotifier(this);
+	mikisa.notifiant_thread = memoire::loge<TaskNotifier>(this);
 
 	genere_barre_menu();
 

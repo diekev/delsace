@@ -33,6 +33,7 @@
 
 #include "evenement.h"
 #include "composite.h"
+#include "logeuse_memoire.hh"
 #include "mikisa.h"
 #include "noeud_image.h"
 #include "operatrice_graphe_maillage.h"
@@ -482,8 +483,7 @@ static void lecture_noeud(
 	auto const posx = element_noeud->Attribute("posx");
 	auto const posy = element_noeud->Attribute("posy");
 
-	Noeud *noeud = new Noeud(supprime_operatrice_image);
-	noeud->nom(nom_noeud);
+	auto noeud = graphe->cree_noeud(nom_noeud);
 
 	auto const element_operatrice = element_noeud->FirstChildElement("operatrice");
 	auto const nom_operatrice = element_operatrice->Attribute("nom");
@@ -497,8 +497,6 @@ static void lecture_noeud(
 		auto op_objet = dynamic_cast<OperatriceObjet *>(operatrice);
 		scene->ajoute_objet(op_objet->objet());
 	}
-
-	graphe->ajoute(noeud);
 
 	if (std::strcmp(nom_operatrice, "Visionneur") == 0) {
 		noeud->type(NOEUD_IMAGE_SORTIE);
@@ -590,8 +588,8 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	/* À FAIRE : suppression du composite car son graphe maintient une liste des
 	 * noms utilisé et l'ouverture des fichiers change les noms des noeuds lors
 	 * des conflits. */
-	delete mikisa.composite;
-	mikisa.composite = new Composite;
+	memoire::deloge(mikisa.composite);
+	mikisa.composite = memoire::loge<Composite>();
 
 	auto composite = mikisa.composite;
 

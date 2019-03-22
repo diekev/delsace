@@ -34,6 +34,7 @@
 
 OperatriceObjet::OperatriceObjet(Graphe &graphe_parent, Noeud *noeud)
 	: OperatriceImage(graphe_parent, noeud)
+	, m_graphe(cree_noeud_image, supprime_noeud_image)
 {
 	entrees(0);
 	sorties(0);

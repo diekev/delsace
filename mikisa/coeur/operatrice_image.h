@@ -43,6 +43,7 @@ class Noeud;
 class PriseEntree;
 class Scene;
 class TextureImage;
+class UsineOperatrice;
 
 namespace vision {
 class Camera3D;
@@ -280,6 +281,8 @@ class OperatriceImage : public danjo::Manipulable {
 
 	std::vector<std::string> m_avertissements{};
 
+	UsineOperatrice *m_usine = nullptr;
+
 protected:
 	Graphe &m_graphe_parent;
 	Image m_image{};
@@ -290,7 +293,15 @@ public:
 
 	explicit OperatriceImage(Graphe &graphe_parent, Noeud *node);
 
+	OperatriceImage(OperatriceImage const &) = default;
+	OperatriceImage &operator=(OperatriceImage const &) = default;
+
 	virtual ~OperatriceImage() = default;
+
+	/* L'usine est utilisé pour pouvoir supprimer correctement l'opératrice.
+	 * Voir supprime_operatrice_image. */
+	void usine(UsineOperatrice *usine_op);
+	UsineOperatrice *usine() const;
 
 	virtual int type() const;
 
@@ -385,4 +396,6 @@ public:
 
 /* ************************************************************************** */
 
-void supprime_operatrice_image(std::any pointeur);
+Noeud *cree_noeud_image();
+
+void supprime_noeud_image(Noeud *noeud);

@@ -29,11 +29,12 @@
 #include "operatrice_image.h"
 
 class Composite {
-	Graphe m_graph{};
+	Graphe m_graph;
 	Image m_image{};
 
 public:
-	Composite() = default;
+	Composite();
+
 	~Composite() = default;
 
 	Image const &image() const;

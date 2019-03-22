@@ -30,6 +30,7 @@
 
 OperatriceSimulation::OperatriceSimulation(Graphe &graphe_parent, Noeud *noeud)
 	: OperatriceCorps(graphe_parent, noeud)
+	, m_graphe(cree_noeud_image, supprime_noeud_image)
 {
 }
 
@@ -125,8 +126,7 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	donnees_sim.dernier_temps = m_dernier_temps;
 
 	for (auto &noeud : m_graphe.noeuds()) {
-		auto ptr = noeud.get();
-		auto op = std::any_cast<OperatriceImage *>(ptr->donnees());
+		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 		if (op->type() == OPERATRICE_CORPS) {
 			auto op_corps = dynamic_cast<OperatriceCorps *>(op);

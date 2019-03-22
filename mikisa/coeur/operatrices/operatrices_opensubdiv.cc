@@ -38,6 +38,7 @@
 
 #include "../corps/iteration_corps.hh"
 
+#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -288,7 +289,7 @@ public:
 
 			for (long vert = 0; vert < nombre_sommets; ++vert) {
 				float const * pos = sommets[premier_sommet + vert].GetPosition();
-				auto p3d = new Point3D;
+				auto p3d = memoire::loge<Point3D>();
 				p3d->x = pos[0];
 				p3d->y = pos[1];
 				p3d->z = pos[2];

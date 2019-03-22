@@ -30,6 +30,8 @@
 
 #include "../corps/triangulation.hh"
 
+#include "../logeuse_memoire.hh"
+
 static constexpr auto MAX_TREETYPE = 32;
 
 static auto implicit_needed_branches(int tree_type, int leafs)
@@ -524,7 +526,7 @@ ArbreBVH *nouvelle_arbre_bvh(int maxsize, float epsilon, unsigned char tree_type
 {
 	assert(tree_type >= 2 && tree_type <= MAX_TREETYPE);
 
-	auto arbre = new ArbreBVH{};
+	auto arbre = memoire::loge<ArbreBVH>();
 
 	/* tree epsilon must be >= FLT_EPSILON
 	 * so that tangent rays can still hit a bounding volume..
@@ -562,7 +564,7 @@ ArbreBVH *nouvelle_arbre_bvh(int maxsize, float epsilon, unsigned char tree_type
 	}
 	else {
 		/* should never happen! */
-		delete arbre;
+		memoire::deloge(arbre);
 		assert(false);
 		return static_cast<ArbreBVH *>(nullptr);
 	}

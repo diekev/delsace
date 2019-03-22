@@ -24,6 +24,10 @@
 
 #include "composite.h"
 
+Composite::Composite()
+	: m_graph(Graphe(cree_noeud_image, supprime_noeud_image))
+{}
+
 Image const &Composite::image() const
 {
 	return m_image;

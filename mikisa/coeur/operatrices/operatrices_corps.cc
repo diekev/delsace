@@ -37,6 +37,7 @@
 #include "../contexte_evaluation.hh"
 #include "../donnees_aval.hh"
 #include "../gestionnaire_fichier.hh"
+#include "../logeuse_memoire.hh"
 #include "../manipulatrice.h"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -789,7 +790,7 @@ public:
 			auto const p_monde = corps1->transformation(
 						dls::math::point3d(point));
 
-			auto p = new Point3D;
+			auto p = memoire::loge<Point3D>();
 			p->x = static_cast<float>(p_monde.x);
 			p->y = static_cast<float>(p_monde.y);
 			p->z = static_cast<float>(p_monde.z);
@@ -801,7 +802,7 @@ public:
 			auto const p_monde = corps2->transformation(
 						dls::math::point3d(point));
 
-			auto p = new Point3D;
+			auto p = memoire::loge<Point3D>();
 			p->x = static_cast<float>(p_monde.x);
 			p->y = static_cast<float>(p_monde.y);
 			p->z = static_cast<float>(p_monde.z);

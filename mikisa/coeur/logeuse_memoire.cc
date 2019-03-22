@@ -22,42 +22,27 @@
  *
  */
 
-#pragma once
+#include "logeuse_memoire.hh"
 
-#include "bibliotheques/graphe/graphe.h"
+namespace memoire {
 
-#include "corps/corps.h"
+logeuse_memoire logeuse_memoire::m_instance = logeuse_memoire{};
 
-#include "operatrice_corps.h"
+logeuse_memoire &logeuse_memoire::instance()
+{
+	return m_instance;
+}
 
-class OperatriceSimulation final : public OperatriceCorps {
-	Graphe m_graphe;
+size_t allouee()
+{
+	auto &logeuse = logeuse_memoire::instance();
+	return logeuse.memoire_allouee;
+}
 
-	int m_dernier_temps = 0;
-	int pad = 0;
+size_t consommee()
+{
+	auto &logeuse = logeuse_memoire::instance();
+	return logeuse.memoire_consommee;
+}
 
-	Corps m_corps1{};
-	Corps m_corps2{};
-
-public:
-	static constexpr auto NOM = "Simulation";
-	static constexpr auto AIDE = "Ajoute un noeud de simulation physique";
-
-	explicit OperatriceSimulation(Graphe &graphe_parent, Noeud *noeud);
-
-	virtual const char *nom_classe() const override;
-
-	virtual const char *texte_aide() const override;
-
-	int type_entree(int n) const override;
-
-	int type_sortie(int) const override;
-
-	const char *chemin_entreface() const override;
-
-	Graphe *graphe();
-
-	int type() const override;
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
-};
+}  /* namespace memoire */

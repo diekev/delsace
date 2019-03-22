@@ -84,7 +84,7 @@ public:
 class OperatriceGrapheMaillage : public OperatriceCorps {
 	GestionnaireDonneesGraphe m_gestionnaire{};
 	CompileuseGraphe m_compileuse{};
-	Graphe m_graphe{};
+	Graphe m_graphe;
 
 public:
 	static constexpr auto NOM = "Graphe Maillage";

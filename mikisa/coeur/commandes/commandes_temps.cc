@@ -31,6 +31,7 @@
 
 #include "../composite.h"
 #include "../evenement.h"
+#include "../logeuse_memoire.hh"
 #include "../mikisa.h"
 #include "../tache.h"
 
@@ -109,8 +110,7 @@ public:
 
 			mikisa->animation = false;
 			mikisa->thread_animation->join();
-			delete mikisa->thread_animation;
-			mikisa->thread_animation = nullptr;
+			memoire::deloge(mikisa->thread_animation);
 		}
 		else if (donnees.metadonnee == "pas_en_avant") {
 			mikisa->temps_courant = mikisa->temps_courant + 1;
@@ -127,7 +127,7 @@ public:
 				return EXECUTION_COMMANDE_REUSSIE;
 			}
 
-			mikisa->thread_animation = new std::thread(anime_image, mikisa);
+			mikisa->thread_animation = memoire::loge<std::thread>(anime_image, mikisa);
 			mikisa->animation = true;
 			return EXECUTION_COMMANDE_REUSSIE;
 		}

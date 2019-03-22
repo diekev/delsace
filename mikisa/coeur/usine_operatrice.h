@@ -28,24 +28,33 @@
 #include <unordered_map>
 #include <vector>
 
+#include "logeuse_memoire.hh"
+
 class Graphe;
 class Noeud;
 class OperatriceImage;
 
 struct DescOperatrice {
 	typedef OperatriceImage *(*factory_func)(Graphe &, Noeud *);
+	typedef void (*fonc_suppression)(OperatriceImage *);
 
 	DescOperatrice() = default;
 
-	DescOperatrice(std::string const &opname, std::string const &ophelp, factory_func func)
+	DescOperatrice(
+			std::string const &opname,
+			std::string const &ophelp,
+			factory_func func,
+			fonc_suppression func_supp)
 	    : name(opname)
 	    , tooltip(ophelp)
 	    , build_operator(func)
+		, supprime_operatrice(func_supp)
 	{}
 
 	std::string name = "";
 	std::string tooltip = "";
 	factory_func build_operator = nullptr;
+	fonc_suppression supprime_operatrice = nullptr;
 };
 
 template <typename T>
@@ -54,7 +63,15 @@ inline DescOperatrice cree_desc()
 	return DescOperatrice(
 				T::NOM,
 				T::AIDE,
-	            [](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage* { return new T(graphe_parent, noeud); });
+				[](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage*
+	{
+		return memoire::loge<T>(graphe_parent, noeud);
+	},
+	[](OperatriceImage *operatrice) -> void
+	{
+		auto derivee = dynamic_cast<T *>(operatrice);
+		memoire::deloge(derivee);
+	});
 }
 
 class UsineOperatrice final {
@@ -78,6 +95,8 @@ public:
 	 * @return A new ImageNode object corresponding to the given key.
 	 */
 	OperatriceImage *operator()(std::string const &name, Graphe &graphe_parent, Noeud *noeud);
+
+	void deloge(OperatriceImage *operatrice);
 
 	/**
 	 * @brief num_entries The number of entries registered in this factory.

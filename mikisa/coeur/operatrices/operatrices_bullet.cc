@@ -46,6 +46,7 @@
 
 #include "../contexte_evaluation.hh"
 #include "../donnees_simulation.hh"
+#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -66,7 +67,7 @@ static btCollisionShape *cree_forme_pour_corps(Corps &corps)
 	}
 
 	auto taille = max - min;
-	auto colShape = new btBoxShape(btVector3(
+	auto colShape = memoire::loge<btBoxShape>(btVector3(
 									   static_cast<double>(taille.x * 0.5f),
 									   static_cast<double>(taille.y * 0.5f),
 									   static_cast<double>(taille.z * 0.5f)));
@@ -84,9 +85,9 @@ static btCollisionShape *cree_forme_pour_corps(Corps &corps)
 //		hull_computer.compute(verts_ptr, stride, count, 0.0, 0.0);
 //	}
 
-//	auto hull_shape = new btConvexHullShape(&(hull_computer.vertices[0].getX()), hull_computer.vertices.size());
+//	auto hull_shape = memoire::loge<btConvexHullShape>(&(hull_computer.vertices[0].getX()), hull_computer.vertices.size());
 
-//	auto forme = new rbCollisionShape();
+//	auto forme = memoire::loge<rbCollisionShape>();
 //	forme->cshape = hull_shape;
 //	forme->cshape->setMargin(hull_margin);
 //	forme->mesh = nullptr;
@@ -152,22 +153,22 @@ public:
 
 		/* La configuration de collision contiens les réglages de base pour la
 		 * mémoire, et configuration de collision. */
-		m_configuration_collision = new btDefaultCollisionConfiguration();
+		m_configuration_collision = memoire::loge<btDefaultCollisionConfiguration>();
 		//m_configuration_collision->setConvexConvexMultipointIterations();
 
 		/* Utilisation de la répartitrice par défaut.
 		 * Pour les procès parallèles, on peut utiliser une autre répartitrice.
 		 * Voir Extras/BulletMultiThreaded. */
-		m_repartitrice = new btCollisionDispatcher(m_configuration_collision);
+		m_repartitrice = memoire::loge<btCollisionDispatcher>(m_configuration_collision);
 
-		m_tampon_paires = new btDbvtBroadphase();
+		m_tampon_paires = memoire::loge<btDbvtBroadphase>();
 
 		/* Utilisation du solveur par défaut.
 		 * Pour les procès parallèles, on peut utiliser un autre solveur.
 		 * Voir Extras/BulletMultiThreaded. */
-		m_solveur_constraintes = new btSequentialImpulseConstraintSolver();
+		m_solveur_constraintes = memoire::loge<btSequentialImpulseConstraintSolver>();
 
-		m_monde_dynamics = new btDiscreteDynamicsWorld(
+		m_monde_dynamics = memoire::loge<btDiscreteDynamicsWorld>(
 					m_repartitrice,
 					m_tampon_paires,
 					m_solveur_constraintes,
@@ -181,26 +182,27 @@ public:
 			auto body = btRigidBody::upcast(obj);
 
 			if (body && body->getMotionState()) {
-				delete body->getMotionState();
+				auto corps_ = body->getMotionState();
+				memoire::deloge(corps_);
 			}
 
 			m_monde_dynamics->removeCollisionObject(obj);
-			delete obj;
+			memoire::deloge(obj);
 		}
 
 		for (int j = 0; j < m_formes_collisions.size(); j++) {
 			auto shape = m_formes_collisions[j];
-			delete shape;
+			memoire::deloge(shape);
 		}
 
 		m_formes_collisions.clear();
 
 		/* supprime données monde */
-		delete m_solveur_constraintes;
-		delete m_tampon_paires;
-		delete m_repartitrice;
-		delete m_configuration_collision;
-		delete m_monde_dynamics;
+		memoire::deloge(m_solveur_constraintes);
+		memoire::deloge(m_tampon_paires);
+		memoire::deloge(m_repartitrice);
+		memoire::deloge(m_configuration_collision);
+		memoire::deloge(m_monde_dynamics);
 	}
 };
 
@@ -273,7 +275,7 @@ public:
 		/* L'utilisation de btDefaultMotionState est recommandée, car cela
 		 * permet des interpolations, et synchronsie uniquement les objets
 		 * 'actifs'. */
-		auto etat_mouvement = new btDefaultMotionState(transforme_initiale);
+		auto etat_mouvement = memoire::loge<btDefaultMotionState>(transforme_initiale);
 
 		auto infos = btRigidBody::btRigidBodyConstructionInfo(
 					masse,
@@ -288,7 +290,7 @@ public:
 		auto const seuil_lin = evalue_decimal("seuil_lin");
 		auto const seuil_ang = evalue_decimal("seuil_ang");
 
-		auto corps_rigide = new btRigidBody(infos);
+		auto corps_rigide = memoire::loge<btRigidBody>(infos);
 		corps_rigide->setUserIndex(-1);
 		//corps_rigide->setContactProcessingThreshold(m_defaultContactProcessingThreshold);
 		corps_rigide->setFriction(static_cast<double>(friction));

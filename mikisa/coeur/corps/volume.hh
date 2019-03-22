@@ -29,6 +29,8 @@
 #include <delsace/math/vecteur.hh>
 #include <vector>
 
+#include "../logeuse_memoire.hh"
+
 enum class type_volume : char {
 	SCALAIRE,
 	VECTOR,
@@ -143,7 +145,7 @@ public:
 
 	BaseGrille *copie() const override
 	{
-		auto grille = new Grille<T>();
+		auto grille = memoire::loge<Grille<T>>();
 		grille->m_res = this->m_res;
 		grille->m_nombre_voxels = this->m_nombre_voxels;
 		grille->m_arriere_plan = this->m_arriere_plan;

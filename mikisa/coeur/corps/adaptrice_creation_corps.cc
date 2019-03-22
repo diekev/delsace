@@ -27,6 +27,7 @@
 #include "bibliotheques/outils/definitions.hh"
 
 #include "../attribut.h"
+#include "../logeuse_memoire.hh"
 
 #include "corps.h"
 #include "groupes.h"
@@ -38,7 +39,7 @@ void AdaptriceCreationCorps::ajoute_sommet(const float x, const float y, const f
 {
 	INUTILISE(w);
 
-	auto point = new Point3D;
+	auto point = memoire::loge<Point3D>();
 	point->x = x;
 	point->y = y;
 	point->z = z;

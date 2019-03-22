@@ -35,7 +35,7 @@ class OperatriceScene final : public OperatriceImage {
 	Scene m_scene{};
 	ContexteRendu m_contexte{};
 	PileMatrice m_pile{};
-	Graphe m_graphe{};
+	Graphe m_graphe;
 
 public:
 	static constexpr auto NOM = "Scène";

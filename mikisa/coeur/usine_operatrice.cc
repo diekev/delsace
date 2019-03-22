@@ -26,6 +26,8 @@
 
 #include <cassert>
 
+#include "operatrice_image.h"
+
 size_t UsineOperatrice::enregistre_type(DescOperatrice const &desc)
 {
 	auto const iter = m_map.find(desc.name);
@@ -42,7 +44,19 @@ OperatriceImage *UsineOperatrice::operator()(std::string const &name, Graphe &gr
 
 	DescOperatrice const &desc = iter->second;
 
-	return desc.build_operator(graphe_parent, noeud);
+	auto operatrice = desc.build_operator(graphe_parent, noeud);
+	operatrice->usine(this);
+
+	return operatrice;
+}
+
+void UsineOperatrice::deloge(OperatriceImage *operatrice)
+{
+	auto const iter = m_map.find(operatrice->nom_classe());
+	assert(iter != m_map.end());
+
+	DescOperatrice &desc = iter->second;
+	desc.supprime_operatrice(operatrice);
 }
 
 std::vector<DescOperatrice> UsineOperatrice::keys() const

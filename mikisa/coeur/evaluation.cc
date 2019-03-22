@@ -124,9 +124,7 @@ static void evalue_composite(Mikisa &mikisa)
 	Noeud *visionneuse = mikisa.derniere_visionneuse_selectionnee;
 
 	if (visionneuse == nullptr) {
-		for (std::shared_ptr<Noeud> const &node : graphe.noeuds()) {
-			Noeud *pointeur_noeud = node.get();
-
+		for (auto pointeur_noeud : graphe.noeuds()) {
 			if (pointeur_noeud->type() == NOEUD_IMAGE_SORTIE) {
 				visionneuse = pointeur_noeud;
 				break;
@@ -272,7 +270,7 @@ static auto evalue_scene_ex(Mikisa const &mikisa)
 	auto graphe = operatrice_scene->graphe();
 
 	for (auto &noeud_graphe : graphe->noeuds()) {
-		/*auto objet = */evalue_objet_ex(mikisa, noeud_graphe.get());
+		/*auto objet = */evalue_objet_ex(mikisa, noeud_graphe);
 
 		/* À FAIRE : base de données d'objets. */
 //		if (objet != nullptr) {

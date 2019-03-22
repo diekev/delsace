@@ -27,6 +27,34 @@
 #include <algorithm>
 #include <iostream>
 
+Graphe::Graphe(type_function_creation_noeud fonction_creation, type_function_destruction_noeud fonction_destruction)
+	: m_fonction_creation(fonction_creation)
+	, m_fonction_suppression(fonction_destruction)
+{
+}
+
+Graphe::~Graphe()
+{
+	supprime_tout();
+}
+
+Noeud *Graphe::cree_noeud(const std::string &nom_noeud)
+{
+	auto n = static_cast<Noeud *>(nullptr);
+
+	if (m_fonction_creation) {
+		n = m_fonction_creation();
+	}
+	else {
+		n = new Noeud();
+	}
+
+	n->nom(nom_noeud);
+	ajoute(n);
+
+	return n;
+}
+
 void Graphe::ajoute(Noeud *noeud)
 {
 	/* vérifie que le nom du noeud est unique */
@@ -42,7 +70,7 @@ void Graphe::ajoute(Noeud *noeud)
 
 	m_noms_noeuds.insert(nom_temp);
 
-	m_noeuds.push_back(std::shared_ptr<Noeud>(noeud));
+	m_noeuds.push_back(noeud);
 
 	this->vide_selection();
 	this->ajoute_selection(noeud);
@@ -50,12 +78,22 @@ void Graphe::ajoute(Noeud *noeud)
 	besoin_ajournement = true;
 }
 
+void Graphe::supprime_noeud(Noeud *noeud)
+{
+	if (m_fonction_suppression) {
+		m_fonction_suppression(noeud);
+	}
+	else {
+		delete noeud;
+	}
+}
+
 void Graphe::supprime(Noeud *node)
 {
 	auto iter = std::find_if(m_noeuds.begin(), m_noeuds.end(),
-							 [node](std::shared_ptr<Noeud> const &node_ptr)
+							 [node](Noeud *node_ptr)
 	{
-		return node_ptr.get() == node;
+		return node_ptr == node;
 	});
 
 	if (iter == m_noeuds.end()) {
@@ -77,6 +115,8 @@ void Graphe::supprime(Noeud *node)
 			deconnecte(sortie, entree);
 		}
 	}
+
+	supprime_noeud(*iter);
 
 	m_noeuds.erase(iter);
 
@@ -141,6 +181,10 @@ void Graphe::vide_selection()
 
 void Graphe::supprime_tout()
 {
+	for (auto &noeud : m_noeuds) {
+		supprime_noeud(noeud);
+	}
+
 	m_noeuds_selectionnes.clear();
 	m_noeuds.clear();
 }
@@ -155,13 +199,11 @@ Noeud *trouve_noeud(
 	Noeud *noeud_res = nullptr;
 
 	for (auto const &noeud : noeuds) {
-		Noeud *pointeur_noeud = noeud.get();
-
-		if (!pointeur_noeud->rectangle().contiens(x, y)) {
+		if (!noeud->rectangle().contiens(x, y)) {
 			continue;
 		}
 
-		noeud_res = pointeur_noeud;
+		noeud_res = noeud;
 	}
 
 	return noeud_res;
@@ -197,13 +239,11 @@ PriseEntree *trouve_prise_entree(
 	PriseEntree *prise_entree = nullptr;
 
 	for (auto const &noeud : noeuds) {
-		Noeud *pointeur_noeud = noeud.get();
-
-		if (!pointeur_noeud->rectangle().contiens(x, y)) {
+		if (!noeud->rectangle().contiens(x, y)) {
 			continue;
 		}
 
-		prise_entree = trouve_prise_entree_pos(noeud.get(), x, y);
+		prise_entree = trouve_prise_entree_pos(noeud, x, y);
 	}
 
 	return prise_entree;
@@ -240,13 +280,11 @@ PriseSortie *trouve_prise_sortie(
 
 
 	for (auto const &noeud : noeuds) {
-		Noeud *pointeur_noeud = noeud.get();
-
-		if (!pointeur_noeud->rectangle().contiens(x, y)) {
+		if (!noeud->rectangle().contiens(x, y)) {
 			continue;
 		}
 
-		prise_sortie = trouve_prise_sortie_pos(noeud.get(), x, y);
+		prise_sortie = trouve_prise_sortie_pos(noeud, x, y);
 	}
 
 	return prise_sortie;
@@ -265,19 +303,17 @@ void trouve_noeud_prise(
 	prise_sortie = nullptr;
 
 	for (auto const &noeud : noeuds) {
-		Noeud *pointeur_noeud = noeud.get();
-
-		if (!pointeur_noeud->rectangle().contiens(x, y)) {
+		if (!noeud->rectangle().contiens(x, y)) {
 			continue;
 		}
 
-		noeud_r = pointeur_noeud;
+		noeud_r = noeud;
 
 		/* vérifie si oui ou non on a cliqué sur une prise d'entrée */
-		prise_entree = trouve_prise_entree_pos(pointeur_noeud, x, y);
+		prise_entree = trouve_prise_entree_pos(noeud, x, y);
 
 		/* vérifie si oui ou non on a cliqué sur une prise de sortie */
-		prise_sortie = trouve_prise_sortie_pos(pointeur_noeud, x, y);
+		prise_sortie = trouve_prise_sortie_pos(noeud, x, y);
 	}
 }
 
@@ -309,13 +345,13 @@ void tri_topologique(I debut, I fin, P predicat)
 void tri_topologique(Graphe &graphe)
 {
 	for (auto &noeud : graphe.noeuds()) {
-		calcule_degree(noeud.get());
+		calcule_degree(noeud);
 	}
 
 	auto debut = graphe.noeuds().begin();
 	auto fin = graphe.noeuds().end();
 
-	auto predicat = [](std::shared_ptr<Noeud> const &noeud)
+	auto predicat = [](Noeud *noeud)
 	{
 		if (noeud->degre != 0) {
 			return false;

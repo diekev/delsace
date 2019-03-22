@@ -28,7 +28,9 @@
 
 #include "corps/corps.h"
 
+#include "logeuse_memoire.hh"
 #include "noeud_image.h"
+#include "usine_operatrice.h"
 
 /* ************************************************************************** */
 
@@ -80,7 +82,7 @@ Image::~Image()
 
 Calque *Image::ajoute_calque(std::string const &nom, Rectangle const &rectangle)
 {
-	auto tampon = new Calque();
+	auto tampon = memoire::loge<Calque>();
 	tampon->nom = nom;
 	tampon->tampon = type_image(numero7::math::Hauteur(static_cast<int>(rectangle.hauteur)),
 								numero7::math::Largeur(static_cast<int>(rectangle.largeur)));
@@ -120,7 +122,7 @@ void Image::reinitialise(bool garde_memoires)
 {
 	if (!garde_memoires) {
 		for (Calque *tampon : m_calques) {
-			delete tampon;
+			memoire::deloge(tampon);
 		}
 	}
 
@@ -326,6 +328,16 @@ OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud *node)
 	m_sorties.resize(m_num_outputs);
 }
 
+void OperatriceImage::usine(UsineOperatrice *usine_op)
+{
+	m_usine = usine_op;
+}
+
+UsineOperatrice *OperatriceImage::usine() const
+{
+	return m_usine;
+}
+
 int OperatriceImage::type() const
 {
 	return OPERATRICE_IMAGE;
@@ -515,7 +527,26 @@ void OperatriceImage::obtiens_liste(std::string const &/*attache*/, std::vector<
 
 /* ************************************************************************** */
 
-void supprime_operatrice_image(std::any pointeur)
+static void supprime_operatrice_image(std::any pointeur)
 {
-	delete std::any_cast<OperatriceImage *>(pointeur);
+	auto ptr = std::any_cast<OperatriceImage *>(pointeur);
+
+	/* Lorsque nous logeons un pointeur nous utilisons la taille de la classe
+	 * dérivée pour estimer la quantité de mémoire allouée. Donc pour déloger
+	 * proprement l'opératrice, en prenant en compte la taille de la classe
+	 * dériviée, il faut transtyper le pointeur vers le bon type dérivée. Pour
+	 * ce faire, nous devons utiliser l'usine pour avoir accès aux descriptions
+	 * des opératrices. */
+	auto usine = ptr->usine();
+	usine->deloge(ptr);
+}
+
+Noeud *cree_noeud_image()
+{
+	return memoire::loge<Noeud>(supprime_operatrice_image);
+}
+
+void supprime_noeud_image(Noeud *noeud)
+{
+	memoire::deloge(noeud);
 }

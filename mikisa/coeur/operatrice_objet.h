@@ -38,7 +38,7 @@ class OperatriceObjet final : public OperatriceImage {
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
 
 	Objet m_objet{};
-	Graphe m_graphe{};
+	Graphe m_graphe;
 
 public:
 	static constexpr auto NOM = "Objet";

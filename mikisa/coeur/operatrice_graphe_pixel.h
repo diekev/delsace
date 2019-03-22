@@ -33,7 +33,7 @@
 
 class OperatriceGraphePixel : public OperatriceImage {
 	CompileuseGraphe m_compileuse{};
-	Graphe m_graphe{};
+	Graphe m_graphe;
 
 public:
     static constexpr auto NOM = "Graphe";

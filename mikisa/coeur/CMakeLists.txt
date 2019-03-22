@@ -134,6 +134,7 @@ add_library(${NOM_CIBLE} STATIC
 	evenement.h
 	gestionnaire_fichier.hh
 	imprimeuse_graphe.h
+	logeuse_memoire.hh
 	manipulatrice.h
 	mikisa.h
 	noeud_image.h
@@ -204,6 +205,7 @@ add_library(${NOM_CIBLE} STATIC
 	evenement.cc
 	gestionnaire_fichier.cc
 	imprimeuse_graphe.cc
+	logeuse_memoire.cc
 	manipulatrice.cc
 	mikisa.cc
 	noeud_image.cc

@@ -40,6 +40,7 @@
 #include "../evaluation.h"
 #include "../evenement.h"
 #include "../imprimeuse_graphe.h"
+#include "../logeuse_memoire.hh"
 #include "../manipulatrice.h"
 #include "../mikisa.h"
 #include "../noeud_image.h"
@@ -177,11 +178,11 @@ public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
-		auto noeud = new Noeud(supprime_operatrice_image);
+
 		auto nom = donnees.metadonnee;
+		auto noeud = mikisa->graphe->cree_noeud(nom);
 
 		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, noeud);
-		noeud->nom(op->nom_classe());
 		synchronise_donnees_operatrice(noeud);
 
 		noeud->pos_x(mikisa->graphe->centre_x);
@@ -205,7 +206,6 @@ public:
 			noeud->type(NOEUD_OBJET_SORTIE);
 		}
 
-		mikisa->graphe->ajoute(noeud);
 		selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
@@ -250,7 +250,7 @@ public:
 		}
 
 		if (prise_entree || prise_sortie) {
-			auto connexion = new Connexion;
+			auto connexion = memoire::loge<Connexion>();
 			connexion->x = donnees.x;
 			connexion->y = donnees.y;
 
@@ -339,8 +339,7 @@ public:
 								graphe->dernier_noeud_sortie);
 			}
 
-			delete graphe->connexion_active;
-			graphe->connexion_active = nullptr;
+			memoire::deloge(graphe->connexion_active);
 		}
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
@@ -474,7 +473,7 @@ public:
 		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
 
 		if (noeud != nullptr) {
-			auto info_noeud = new InfoNoeud();
+			auto info_noeud = memoire::loge<InfoNoeud>();
 			info_noeud->x = donnees.x;
 			info_noeud->y = donnees.y;
 
@@ -538,8 +537,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
-		delete graphe->info_noeud;
-		graphe->info_noeud = nullptr;
+		memoire::deloge(graphe->info_noeud);
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 	}

@@ -39,6 +39,7 @@
 #include "../corps/triangulation.hh"
 
 #include "../contexte_evaluation.hh"
+#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -581,7 +582,7 @@ public:
 
 	Triangle *ajoute(dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
 	{
-		Triangle *triangle = new Triangle(v0, v1, v2);
+		auto triangle = memoire::loge<Triangle>(v0, v1, v2);
 		triangle->aire = calcule_aire(*triangle);
 		triangle->precedent = nullptr;
 		triangle->suivant = nullptr;
@@ -625,7 +626,7 @@ public:
 			}
 		}
 
-		delete triangle;
+		memoire::deloge(triangle);
 	}
 
 	Triangle *premier_triangle()
@@ -1082,7 +1083,7 @@ static void trouve_points_voisins(
 		}
 
 		if (longueur(point - pi) < radius) {
-			auto p3d = new Point3D;
+			auto p3d = memoire::loge<Point3D>();
 			p3d->x = pi.x;
 			p3d->y = pi.y;
 			p3d->z = pi.z;
@@ -1358,7 +1359,7 @@ public:
 		/* Copie les attributs */
 		for (auto const attr : corps_entree->attributs()) {
 			if (attr->portee != portee_attr::POINT) {
-				auto copie_attr = new Attribut(*attr);
+				auto copie_attr = memoire::loge<Attribut>(*attr);
 				m_corps.ajoute_attribut(copie_attr);
 				continue;
 			}

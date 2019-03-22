@@ -44,6 +44,7 @@
 #include "composite.h"
 #include "configuration.h"
 #include "evaluation.h"
+#include "logeuse_memoire.hh"
 #include "manipulatrice.h"
 #include "noeud_image.h"
 #include "tache.h"
@@ -80,14 +81,14 @@ static constexpr auto MAX_FICHIER_RECENT = 10;
 Mikisa::Mikisa()
 	: m_usine_commande{}
 	, m_usine_operatrices{}
-	, m_repondant_commande(new RepondantCommande(m_usine_commande, this))
-	, composite(new Composite)
+	, m_repondant_commande(memoire::loge<RepondantCommande>(m_usine_commande, this))
+	, composite(memoire::loge<Composite>())
 	, fenetre_principale(nullptr)
 	, editrice_active(nullptr)
-	, gestionnaire_entreface(new danjo::GestionnaireInterface)
-	, project_settings(new ProjectSettings)
-	, camera_2d(new vision::Camera2D())
-	, camera_3d(new vision::Camera3D(0, 0))
+	, gestionnaire_entreface(memoire::loge<danjo::GestionnaireInterface>())
+	, project_settings(memoire::loge<ProjectSettings>())
+	, camera_2d(memoire::loge<vision::Camera2D>())
+	, camera_3d(memoire::loge<vision::Camera3D>(0, 0))
 	, graphe(&composite->graph())
 	, type_manipulation_3d(MANIPULATION_POSITION)
 	, chemin_courant("/composite/")
@@ -99,13 +100,17 @@ Mikisa::Mikisa()
 
 Mikisa::~Mikisa()
 {
-	delete notifiant_thread;
-	delete camera_2d;
-	delete camera_3d;
-	delete composite;
-	delete project_settings;
-	delete m_repondant_commande;
-	delete gestionnaire_entreface;
+	memoire::deloge(notifiant_thread);
+	memoire::deloge(camera_2d);
+	memoire::deloge(camera_3d);
+	memoire::deloge(composite);
+	memoire::deloge(project_settings);
+	memoire::deloge(m_repondant_commande);
+	memoire::deloge(gestionnaire_entreface);
+
+	if (memoire::allouee() != 0) {
+		std::cerr << "Fuit de mémoire ou désynchronisation : " << memoire::allouee() << '\n';
+	}
 }
 
 void Mikisa::initialise()

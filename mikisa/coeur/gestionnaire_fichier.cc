@@ -1,6 +1,7 @@
 
 #include "gestionnaire_fichier.hh"
 
+#include "logeuse_memoire.hh"
 
 PoigneeFichier::PoigneeFichier(const std::string &chemin)
 	: m_chemin(chemin)
@@ -51,7 +52,7 @@ void PoigneeFichier::ecriture_chemin(type_fonction_lecture_chemin &&fonction, co
 GestionnaireFichier::~GestionnaireFichier()
 {
 	for (auto paire : m_table) {
-		delete paire.second;
+		memoire::deloge(paire.second);
 	}
 }
 
@@ -63,7 +64,7 @@ PoigneeFichier *GestionnaireFichier::poignee_fichier(const std::string &chemin)
 		return iter->second;
 	}
 
-	auto poignee = new PoigneeFichier(chemin);
+	auto poignee = memoire::loge<PoigneeFichier>(chemin);
 	m_table.insert({chemin, poignee});
 
 	return poignee;
