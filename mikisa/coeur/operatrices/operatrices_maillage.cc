@@ -322,6 +322,7 @@ public:
 		if (tangeante) {
 			if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {
 				calcul_normaux(m_corps, false, false);
+				attr_N = m_corps.attribut("N");
 			}
 		}
 
@@ -788,6 +789,7 @@ public:
 
 		if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {
 			calcul_normaux(m_corps, false, false);
+			attr_N = m_corps.attribut("N");
 		}
 
 		auto graine = evalue_entier("graine");
@@ -1366,6 +1368,7 @@ public:
 
 			if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {
 				calcul_normaux(m_corps, false, false);
+				attr_N = m_corps.attribut("N");
 			}
 
 			auto rayon = evalue_decimal("rayon");
@@ -1565,10 +1568,8 @@ public:
 
 			if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {
 				calcul_normaux(m_corps, false, false);
+				attr_N = m_corps.attribut("N");
 			}
-
-			/* Au cas où il n'y avait pas de normaux à l'origine. */
-			attr_N = m_corps.attribut("N");
 		}
 		else {
 			centroide = centre_masse_maillage(m_corps);
