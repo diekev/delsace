@@ -168,3 +168,55 @@ public:
 	DEFINI_POUSSE_VALEUR(mat3, dls::math::mat3x3f)
 	DEFINI_POUSSE_VALEUR(mat4, dls::math::mat4x4f)
 };
+
+#define TRANSFORME_ATTRIBUT(__nom, __type, __type_attr) \
+	inline void transforme_attr_##__nom(Attribut &attr, std::function<__type(__type const&)> fonction_rappel) \
+	{ \
+		assert(attr.type() == __type_attr); \
+		for (auto &v : attr.__nom()) { \
+			v = fonction_rappel(v); \
+		} \
+	}
+
+TRANSFORME_ATTRIBUT(ent8, char, type_attribut::ENT8)
+TRANSFORME_ATTRIBUT(ent32, int, type_attribut::ENT32)
+TRANSFORME_ATTRIBUT(decimal, float, type_attribut::DECIMAL)
+TRANSFORME_ATTRIBUT(chaine, std::string, type_attribut::CHAINE)
+TRANSFORME_ATTRIBUT(vec2, dls::math::vec2f, type_attribut::VEC2)
+TRANSFORME_ATTRIBUT(vec3, dls::math::vec3f, type_attribut::VEC3)
+TRANSFORME_ATTRIBUT(vec4, dls::math::vec4f, type_attribut::VEC4)
+TRANSFORME_ATTRIBUT(mat3, dls::math::mat3x3f, type_attribut::MAT3)
+TRANSFORME_ATTRIBUT(mat4, dls::math::mat4x4f, type_attribut::MAT4)
+
+#define ACCUMULE_ATTRIBUT(__nom, __type, __type_attr) \
+	inline __type accumule_attr_##__nom(Attribut &attr) \
+	{ \
+		assert(attr.type() == __type_attr); \
+		auto depart = __type{}; \
+		for (auto &v : attr.__nom()) { \
+			depart += v; \
+		} \
+		return depart;\
+	}
+
+/* déclaration explicite car C++ converti les char vers des int pour les
+ * additions, et ce genre de conversion silencieuse ne sont pas autorisées avec
+ * nos drapeaux strictes de compilation */
+inline auto accumule_attr_char(Attribut &attr)
+{
+	assert(attr.type() == type_attribut::ENT8);
+	auto depart = char(0);
+	for (auto &v : attr.ent8()) {
+		depart = static_cast<char>(depart + v);
+	}
+	return depart;
+}
+
+ACCUMULE_ATTRIBUT(ent32, int, type_attribut::ENT32)
+ACCUMULE_ATTRIBUT(decimal, float, type_attribut::DECIMAL)
+ACCUMULE_ATTRIBUT(chaine, std::string, type_attribut::CHAINE)
+ACCUMULE_ATTRIBUT(vec2, dls::math::vec2f, type_attribut::VEC2)
+ACCUMULE_ATTRIBUT(vec3, dls::math::vec3f, type_attribut::VEC3)
+ACCUMULE_ATTRIBUT(vec4, dls::math::vec4f, type_attribut::VEC4)
+ACCUMULE_ATTRIBUT(mat3, dls::math::mat3x3f, type_attribut::MAT3)
+ACCUMULE_ATTRIBUT(mat4, dls::math::mat4x4f, type_attribut::MAT4)
