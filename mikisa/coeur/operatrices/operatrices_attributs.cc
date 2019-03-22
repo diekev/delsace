@@ -703,7 +703,8 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto type = evalue_enum("type_normaux");
+		auto chaine_location = evalue_chaine("location");
+		auto chaine_pesee = evalue_enum("pesée");
 		auto inverse_normaux = evalue_bool("inverse_direction");
 
 		auto liste_prims = m_corps.prims();
@@ -714,7 +715,40 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		calcul_normaux(m_corps, type == "plats", inverse_normaux);
+		auto location = location_normal::POINT;
+
+		if (chaine_location == "primitive") {
+			location = location_normal::PRIMITIVE;
+		}
+		else if (chaine_location == "corps") {
+			location = location_normal::CORPS;
+		}
+		else if (chaine_location != "point") {
+			std::stringstream ss;
+			ss << "Méthode de location '" << chaine_location << "' inconnue";
+			ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto pesee = pesee_normal::AIRE;
+
+		if (chaine_pesee == "angle") {
+			pesee = pesee_normal::ANGLE;
+		}
+		else if (chaine_pesee == "max") {
+			pesee = pesee_normal::MAX;
+		}
+		else if (chaine_pesee == "moyenne") {
+			pesee = pesee_normal::MOYENNE;
+		}
+		else if (chaine_pesee != "aire") {
+			std::stringstream ss;
+			ss << "Méthode de pesée '" << chaine_location << "' inconnue";
+			ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		calcul_normaux(m_corps, location, pesee, inverse_normaux);
 
 		return EXECUTION_REUSSIE;
 	}

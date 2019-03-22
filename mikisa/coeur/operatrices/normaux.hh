@@ -27,3 +27,19 @@
 struct Corps;
 
 void calcul_normaux(Corps &corps, bool plats, bool inverse_normaux);
+
+
+enum class location_normal : char {
+	POINT,
+	PRIMITIVE,
+	CORPS,
+};
+
+enum class pesee_normal : char {
+	AIRE,
+	ANGLE,
+	MOYENNE,
+	MAX,
+};
+
+void calcul_normaux(Corps &corps, location_normal location, pesee_normal pesee, bool inverse_normaux);

@@ -292,6 +292,11 @@ void ajoute_polygone_surface(
 				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
 				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
 			}
+			else if (attr_normaux->portee == portee_attr::CORPS) {
+				normaux.push_back(attr_normaux->vec3(0));
+				normaux.push_back(attr_normaux->vec3(0));
+				normaux.push_back(attr_normaux->vec3(0));
+			}
 		}
 
 		if (attr_couleurs) {
