@@ -71,7 +71,7 @@ enum class portee_attr : char {
 	}
 
 #define DEFINI_ACESSEURS_POSITION(__nom, __type) \
-	__type __nom(long const i) \
+	__type __nom(long const i) const \
 	{ \
 		assert(i >= 0 && static_cast<size_t>(i) < (m_donnees.liste_##__nom)->size()); \
 		return (*m_donnees.liste_##__nom)[static_cast<size_t>(i)]; \
