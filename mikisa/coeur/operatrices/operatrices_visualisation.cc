@@ -144,7 +144,7 @@ static auto cree_cube(
 
 	for (int i = 0; i < 8; ++i) {
 		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
-		attr_C->pousse_vec3(couleur);
+		attr_C->pousse(couleur);
 	}
 
 	for (int i = 0; i < 12; ++i) {

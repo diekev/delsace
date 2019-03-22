@@ -148,31 +148,31 @@ public:
 
 				switch (attr_Vorig->type()) {
 					case type_attribut::ENT8:
-						attr_Vdest->pousse_ent8(attr_Vorig->ent8(i));
+						attr_Vdest->pousse(attr_Vorig->ent8(i));
 						break;
 					case type_attribut::ENT32:
-						attr_Vdest->pousse_ent32(attr_Vorig->ent32(i));
+						attr_Vdest->pousse(attr_Vorig->ent32(i));
 						break;
 					case type_attribut::DECIMAL:
-						attr_Vdest->pousse_decimal(attr_Vorig->decimal(i));
+						attr_Vdest->pousse(attr_Vorig->decimal(i));
 						break;
 					case type_attribut::CHAINE:
-						attr_Vdest->pousse_chaine(attr_Vorig->chaine(i));
+						attr_Vdest->pousse(attr_Vorig->chaine(i));
 						break;
 					case type_attribut::VEC2:
-						attr_Vdest->pousse_vec2(attr_Vorig->vec2(i));
+						attr_Vdest->pousse(attr_Vorig->vec2(i));
 						break;
 					case type_attribut::VEC3:
-						attr_Vdest->pousse_vec3(attr_Vorig->vec3(i));
+						attr_Vdest->pousse(attr_Vorig->vec3(i));
 						break;
 					case type_attribut::VEC4:
-						attr_Vdest->pousse_vec4(attr_Vorig->vec4(i));
+						attr_Vdest->pousse(attr_Vorig->vec4(i));
 						break;
 					case type_attribut::MAT3:
-						attr_Vdest->pousse_mat3(attr_Vorig->mat3(i));
+						attr_Vdest->pousse(attr_Vorig->mat3(i));
 						break;
 					case type_attribut::MAT4:
-						attr_Vdest->pousse_mat4(attr_Vorig->mat4(i));
+						attr_Vdest->pousse(attr_Vorig->mat4(i));
 						break;
 					default:
 						break;
@@ -473,7 +473,7 @@ public:
 							static_cast<float>(pos.z));
 
 				/* À FAIRE : échantillone proprement selon le type de normaux */
-				attr_N->pousse_vec3(nor_triangle);
+				attr_N->pousse(nor_triangle);
 
 				if (groupe_sortie) {
 					groupe_sortie->ajoute_point(index);
@@ -924,7 +924,7 @@ public:
 				m_corps.ajoute_point(point.x, point.y, point.z);
 				/* À FAIRE : échantillone proprement selon le type de normaux */
 				auto nor = normalise(produit_croix(e0, e1));
-				attr_N->pousse_vec3(nor);
+				attr_N->pousse(nor);
 				debut = compte_tick_ms();
 			}
 
@@ -1202,45 +1202,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-static auto copie_attribut(
-		Attribut *attr_orig,
-		long idx_orig,
-		Attribut *attr_dest,
-		long idx_dest)
-{
-	switch (attr_orig->type()) {
-		case type_attribut::ENT8:
-			attr_dest->ent8(idx_dest, attr_orig->ent8(idx_orig));
-			break;
-		case type_attribut::ENT32:
-			attr_dest->ent32(idx_dest, attr_orig->ent32(idx_orig));
-			break;
-		case type_attribut::DECIMAL:
-			attr_dest->decimal(idx_dest, attr_orig->decimal(idx_orig));
-			break;
-		case type_attribut::VEC2:
-			attr_dest->vec2(idx_dest, attr_orig->vec2(idx_orig));
-			break;
-		case type_attribut::VEC3:
-			attr_dest->vec3(idx_dest, attr_orig->vec3(idx_orig));
-			break;
-		case type_attribut::VEC4:
-			attr_dest->vec4(idx_dest, attr_orig->vec4(idx_orig));
-			break;
-		case type_attribut::MAT3:
-			attr_dest->mat3(idx_dest, attr_orig->mat3(idx_orig));
-			break;
-		case type_attribut::MAT4:
-			attr_dest->mat4(idx_dest, attr_orig->mat4(idx_orig));
-			break;
-		case type_attribut::CHAINE:
-			attr_dest->chaine(idx_dest, attr_orig->chaine(idx_orig));
-			break;
-		case type_attribut::INVALIDE:
-			break;
-	}
-}
 
 class OperatriceEnleveDoublons : public OperatriceCorps {
 public:
@@ -1600,7 +1561,7 @@ static auto calcul_centre_masse(
 		if (attr_M != nullptr) {
 			/* À FAIRE : fonction pour accumuler les valeurs des attributs */
 			for (auto i = 0; i < points_entree->taille(); ++i) {
-				masse_totale += attr_M->decimal(i);
+				masse_totale += attr_M->valeur(i);
 			}
 		}
 		else {
@@ -1611,7 +1572,7 @@ static auto calcul_centre_masse(
 	auto centre = dls::math::vec3f(0.0f);
 
 	for (auto const &pi : points) {
-		centre += pi; // * attr_M->decimal(i);
+		centre += pi; // * attr_M->valeur(i);
 	}
 
 	centre /= static_cast<float>(points.size());
@@ -1627,7 +1588,7 @@ static auto calcul_covariance(
 	auto mat_covariance = dls::math::mat3x3f(0.0f);
 
 	for (auto const &pi : points) {
-		//auto mi = (attr_M != nullptr) ? attr_M->decimal(i) : 1.0f;
+		//auto mi = (attr_M != nullptr) ? attr_M->valeur(i) : 1.0f;
 		auto vi = pi - centre;
 
 		/* | x*x x*y x*z |
@@ -1755,7 +1716,7 @@ public:
 				auto p = points_entree->point(i);
 
 #if 0
-				auto force = attr_F->vec3(i);
+				auto force = attr_F->valeur(i);
 				auto centre_masse = dls::math::vec3f(0.0f);
 				auto vpx = dls::math::vec3f(1.0f, 0.0f, 0.0f);
 				auto vpy = dls::math::vec3f(0.0f, 1.0f, 0.0f);
@@ -1866,7 +1827,7 @@ public:
 				force += (centre_masse - p) * force_centre;
 #endif
 
-				attr_F->vec3(i, force * poids);
+				attr_F->valeur(i, force * poids);
 			}
 		});
 

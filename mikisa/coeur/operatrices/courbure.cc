@@ -270,20 +270,20 @@ static auto calcul_courbure(
 					++donnees_ret.nombre_instable;
 				}
 
-				donnees_maillage.direction_max->vec3(i, converti_depuis_eigen(fit.GLSk1Direction()));
-				donnees_maillage.direction_min->vec3(i, converti_depuis_eigen(fit.GLSk2Direction()));
-				donnees_maillage.courbure_max->decimal(i, static_cast<float>(fit.GLSk1()));
-				donnees_maillage.courbure_min->decimal(i, static_cast<float>(fit.GLSk2()));
-				donnees_maillage.var_geom->decimal(i, static_cast<float>(fit.geomVar()));
+				donnees_maillage.direction_max->valeur(i, converti_depuis_eigen(fit.GLSk1Direction()));
+				donnees_maillage.direction_min->valeur(i, converti_depuis_eigen(fit.GLSk2Direction()));
+				donnees_maillage.courbure_max->valeur(i, static_cast<float>(fit.GLSk1()));
+				donnees_maillage.courbure_min->valeur(i, static_cast<float>(fit.GLSk2()));
+				donnees_maillage.var_geom->valeur(i, static_cast<float>(fit.geomVar()));
 			}
 			else {
 				++donnees_ret.nombre_impossible;
 
-				donnees_maillage.direction_max->vec3(i, dls::math::vec3f(0.0f));
-				donnees_maillage.direction_min->vec3(i, dls::math::vec3f(0.0f));
-				donnees_maillage.courbure_max->decimal(i, std::numeric_limits<float>::quiet_NaN());
-				donnees_maillage.courbure_min->decimal(i, std::numeric_limits<float>::quiet_NaN());
-				donnees_maillage.var_geom->decimal(i, std::numeric_limits<float>::quiet_NaN());
+				donnees_maillage.direction_max->valeur(i, dls::math::vec3f(0.0f));
+				donnees_maillage.direction_min->valeur(i, dls::math::vec3f(0.0f));
+				donnees_maillage.courbure_max->valeur(i, std::numeric_limits<float>::quiet_NaN());
+				donnees_maillage.courbure_min->valeur(i, std::numeric_limits<float>::quiet_NaN());
+				donnees_maillage.var_geom->valeur(i, std::numeric_limits<float>::quiet_NaN());
 			}
 		}
 

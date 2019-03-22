@@ -240,7 +240,7 @@ public:
 				polygone->ajoute_sommet(static_cast<long>(index_npoint));
 			}
 
-			attr_L->pousse_decimal(taille_segment);
+			attr_L->pousse(taille_segment);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -431,7 +431,7 @@ public:
 									[&](Corps const &, Polygone *polygone)
 		{
 			/* le premier point est la racine */
-			attr_P->vec3(polygone->index_point(0), liste_points->point(polygone->index_point(0)));
+			attr_P->valeur(polygone->index_point(0), liste_points->point(polygone->index_point(0)));
 
 			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
 				auto const pos_precedent = liste_points->point(polygone->index_point(i - 1));
@@ -457,8 +457,8 @@ public:
 				vel = vel + acceleration * donnees.temps_par_image;
 				pos = pos + vel * donnees.temps_par_image;
 
-				attr_P->vec3(polygone->index_point(i), pos);
-				attr_V->vec3(polygone->index_point(i), vel);
+				attr_P->valeur(polygone->index_point(i), pos);
+				attr_V->valeur(polygone->index_point(i), vel);
 			}
 		});
 
@@ -474,8 +474,8 @@ public:
 				auto cur_pos = attr_P->vec3(pb);
 				auto dir = normalise(cur_pos - pos_precedent);
 				auto tmp_pos = pos_precedent + dir * attr_L->decimal(static_cast<long>(polygone->index));
-				attr_P->vec3(pb, tmp_pos);
-				attr_D->vec3(pb, cur_pos - tmp_pos);
+				attr_P->valeur(pb, tmp_pos);
+				attr_D->valeur(pb, cur_pos - tmp_pos);
 			}
 		});
 
@@ -491,7 +491,7 @@ public:
 				auto vel_pa = ((pos_pa - liste_points->point(pa)) / dt) + 0.9f * (attr_D->vec3(pb) / dt);
 
 				liste_points->point(pa, pos_pa);
-				attr_V->vec3(pa, vel_pa);
+				attr_V->valeur(pa, vel_pa);
 			}
 
 			/* ajourne le dernier point */

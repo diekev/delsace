@@ -1036,7 +1036,7 @@ static auto calcul_donnees_aire(Corps &corps)
 			aire_poly += aire_tri;
 		}
 
-		aires->decimal(static_cast<long>(poly->index), aire_poly);
+		aires->valeur(static_cast<long>(poly->index), aire_poly);
 	});
 
 	return aires;
@@ -1065,7 +1065,7 @@ static auto calcul_donnees_perimetres(Corps &corps)
 			k = idx;
 		}
 
-		perimetres->decimal(static_cast<long>(poly->index), peri_poly);
+		perimetres->valeur(static_cast<long>(poly->index), peri_poly);
 	});
 
 	return perimetres;
@@ -1090,7 +1090,7 @@ static auto calcul_barycentre_poly(Corps &corps)
 
 		barycentre /= static_cast<float>(poly->nombre_sommets());
 
-		barycentres->vec3(static_cast<long>(poly->index), barycentre);
+		barycentres->valeur(static_cast<long>(poly->index), barycentre);
 	});
 
 	return barycentres;
@@ -1139,7 +1139,7 @@ static auto calcul_centroide_poly(Corps &corps)
 			centroide /= poids;
 		}
 
-		centroides->vec3(static_cast<long>(poly->index), centroide);
+		centroides->valeur(static_cast<long>(poly->index), centroide);
 	});
 
 	return centroides;
@@ -1196,7 +1196,7 @@ static auto calcul_tangeantes(Corps &corps)
 			tangeante /= poids_total;
 		}
 
-		tangeantes->vec3(i, tangeante);
+		tangeantes->valeur(i, tangeante);
 	}
 
 	return tangeantes;
@@ -1211,7 +1211,7 @@ static auto calcul_donnees_dist_point(Corps &corps, dls::math::vec3f const &cent
 	for (auto i = 0; i < points->taille(); ++i) {
 		auto d = longueur(points->point(i) - centre);
 
-		dist->decimal(i, d);
+		dist->valeur(i, d);
 	}
 
 	return dist;
@@ -1267,7 +1267,7 @@ static auto restreint_attribut_max(Attribut *attr, float const valeur_max)
 		auto v = attr->decimal(i);
 
 		if (v > valeur_max) {
-			attr->decimal(i, valeur_max);
+			attr->valeur(i, valeur_max);
 		}
 	}
 }
@@ -1423,7 +1423,7 @@ public:
 				attr_sortie = m_corps.ajoute_attribut("gaussien", type_attribut::DECIMAL, portee_attr::POINT);
 
 				for (auto i = 0; i < points->taille(); ++i) {
-					attr_sortie->decimal(i, attr_courbure_min->decimal(i) * attr_courbure_max->decimal(i));
+					attr_sortie->valeur(i, attr_courbure_min->decimal(i) * attr_courbure_max->decimal(i));
 				}
 			}
 			else if (type_metrie == "moyenne") {
@@ -1432,7 +1432,7 @@ public:
 				attr_sortie = m_corps.ajoute_attribut("moyenne", type_attribut::DECIMAL, portee_attr::POINT);
 
 				for (auto i = 0; i < points->taille(); ++i) {
-					attr_sortie->decimal(i, (attr_courbure_min->decimal(i) + attr_courbure_max->decimal(i)) * 0.5f);
+					attr_sortie->valeur(i, (attr_courbure_min->decimal(i) + attr_courbure_max->decimal(i)) * 0.5f);
 				}
 			}
 			else if (type_metrie == "courbure_min") {
@@ -1472,12 +1472,12 @@ public:
 			min_max_attribut(attr, min_donnees, max_donnees);
 
 			for (auto i = 0; i < attr->taille(); ++i) {
-				attr_C->pousse_vec3(couleur_min_max(attr->decimal(i), min_donnees, max_donnees));
+				attr_C->pousse(couleur_min_max(attr->decimal(i), min_donnees, max_donnees));
 			}
 		}
 		else if (attr->type() == type_attribut::VEC3) {
 			for (auto i = 0; i < attr->taille(); ++i) {
-				attr_C->pousse_vec3(attr->vec3(i));
+				attr_C->pousse(attr->vec3(i));
 			}
 		}
 	}

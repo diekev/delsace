@@ -190,7 +190,7 @@ public:
 
 				auto poly = Polygone::construit(&m_corps, type_polygone::FERME, nombre_verts);
 
-				attr_C->pousse_vec3(couleur);
+				attr_C->pousse(couleur);
 				for (auto j = 0; j < nombre_verts; ++j) {
 					poly->ajoute_sommet(poly_index_offset + c.poly_indices[i][j]);
 				}

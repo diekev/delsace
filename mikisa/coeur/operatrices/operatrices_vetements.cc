@@ -128,10 +128,10 @@ static void calcul_forces(
 		dls::math::vec3f const &gravity)
 {
 	for (auto i = 0; i < F->taille(); i++) {
-		F->vec3(i, dls::math::vec3f(0.0f));
+		F->valeur(i, dls::math::vec3f(0.0f));
 
 		if (W->decimal(i) > 0.0f) {
-			F->vec3(i, gravity);
+			F->valeur(i, gravity);
 		}
 	}
 }
@@ -154,7 +154,7 @@ static void integre_explicitement_avec_attenuation(
 
 	for (auto i = 0; i < X->taille(); ++i) {
 		auto Vi = (V->vec3(i) * global_dampening) + (F->vec3(i) * deltaTime) * W->decimal(i);
-		V->vec3(i, Vi);
+		V->valeur(i, Vi);
 
 		/* calcul la position et la vélocité du centre de masse pour l'atténuation */
 		Xcm += (X->point(i) * mass);
@@ -173,7 +173,7 @@ static void integre_explicitement_avec_attenuation(
 
 	for (auto i = 0; i < X->taille(); ++i) {
 		auto Ri_i = (X->point(i) - Xcm);
-		Ri->vec3(i, Ri_i);
+		Ri->valeur(i, Ri_i);
 
 		L += produit_croix(Ri_i, mass*V->vec3(i));
 
@@ -198,17 +198,17 @@ static void integre_explicitement_avec_attenuation(
 
 	/* applique l'atténuation du centre de masse */
 	for (auto i = 0; i < X->taille(); ++i) {
-		dls::math::vec3f delVi = Vcm + produit_croix(w,Ri->vec3(i)) - V->vec3(i);
-		V->vec3(i, V->vec3(i) + kDamp*delVi);
+		auto delVi = Vcm + produit_croix(w, Ri->vec3(i)) - V->vec3(i);
+		V->valeur(i, V->vec3(i) + kDamp * delVi);
 	}
 
 	/* calcul position prédite */
 	for (auto i = 0; i < X->taille(); ++i) {
 		if (W->decimal(i) <= 0.0f) {
-			tmp_X->vec3(i, X->point(i)); //fixed points
+			tmp_X->valeur(i, X->point(i)); //fixed points
 		}
 		else {
-			tmp_X->vec3(i, X->point(i) + V->vec3(i) * deltaTime);
+			tmp_X->valeur(i, X->point(i) + V->vec3(i) * deltaTime);
 		}
 	}
 }
@@ -222,7 +222,7 @@ static void integre(
 	auto const inv_dt = 1.0f / deltaTime;
 
 	for (auto i = 0; i < X->taille(); i++) {
-		V->vec3(i, (tmp_X->vec3(i) - X->point(i)) * inv_dt);
+		V->valeur(i, (tmp_X->vec3(i) - X->point(i)) * inv_dt);
 		X->point(i, tmp_X->vec3(i));
 	}
 }
@@ -252,11 +252,11 @@ static void ajourne_contraintes_distance(
 	auto const dP = (1.0f / invMass) * (len-c.longueur_repos ) * (dir / len) * c.k_prime;
 
 	if (w1 > 0.0f) {
-		tmp_X->vec3(c.p1, tmp_X->vec3(c.p1) - dP * w1);
+		tmp_X->valeur(c.p1, tmp_X->vec3(c.p1) - dP * w1);
 	}
 
 	if (w2 > 0.0f) {
-		tmp_X->vec3(c.p2, tmp_X->vec3(c.p2) + dP * w2);
+		tmp_X->valeur(c.p2, tmp_X->vec3(c.p2) + dP * w2);
 	}
 }
 
@@ -286,15 +286,15 @@ static void ajourne_contraintes_courbures(
 	auto const fc = -c.k_prime * ((4.0f * W->decimal(c.p3)) / c.w) * dir_force;
 
 	if (W->decimal(c.p1) > 0.0f)  {
-		tmp_X->vec3(c.p1, tmp_X->vec3(c.p1) + fa);
+		tmp_X->valeur(c.p1, tmp_X->vec3(c.p1) + fa);
 	}
 
 	if (W->decimal(c.p2) > 0.0f) {
-		tmp_X->vec3(c.p2, tmp_X->vec3(c.p2) + fb);
+		tmp_X->valeur(c.p2, tmp_X->vec3(c.p2) + fb);
 	}
 
 	if (W->decimal(c.p3) > 0.0f) {
-		tmp_X->vec3(c.p3, tmp_X->vec3(c.p3) + fc);
+		tmp_X->valeur(c.p3, tmp_X->vec3(c.p3) + fc);
 	}
 }
 
@@ -354,7 +354,7 @@ static void integre_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 			auto pos_nouv = (pos_cour + vel * donnees_sim.dt * drag);
 
 			/* ajourne données solveur */
-			attr_P->vec3(i, pos_cour);
+			attr_P->valeur(i, pos_cour);
 			points->point(i, pos_nouv);
 		}
 	});
@@ -518,17 +518,17 @@ public:
 		/* À FAIRE : réinitialisation */
 		if (temps == 1) {
 			for (auto i = 0; i < points_entree->taille(); ++i) {
-				P->vec3(i, points_entree->point(i));
+				P->valeur(i, points_entree->point(i));
 			}
 		}
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
-			W->decimal(i, 1.0f / mass);
+			W->valeur(i, 1.0f / mass);
 		}
 
 		/* points fixes, À FAIRE : groupe ou attribut. */
 		for (auto i = 0; i < 20; ++i) {
-			W->decimal(i, 0.0f);
+			W->valeur(i, 0.0f);
 		}
 
 		m_donnees_verlet.drag = evalue_decimal("atténuation", temps);
@@ -592,12 +592,12 @@ public:
 		/* prépare données */
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
-			W->decimal(i, 1.0f / mass);
+			W->valeur(i, 1.0f / mass);
 		}
 
 		/* points fixes, À FAIRE : groupe ou attribut. */
 		for (auto i = 0; i < 20; ++i) {
-			W->decimal(i, 0.0f);
+			W->valeur(i, 0.0f);
 		}
 
 		if (d_constraints.empty()) {

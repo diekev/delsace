@@ -126,7 +126,7 @@ public:
 					[&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				attrf->vec3(i, gravite);
+				attrf->valeur(i, gravite);
 			}
 		});
 
@@ -193,7 +193,7 @@ public:
 					force[j] = std::min(force_max[j], force[j] + force_max[j]);
 				}
 
-				attrf->vec3(i, force);
+				attrf->valeur(i, force);
 			}
 		});
 
@@ -286,9 +286,9 @@ public:
 				auto npos = pos + velocite * temps_par_image;
 
 				liste_points->point(i, npos);
-				attr_V->vec3(i, velocite);
-				attr_P->vec3(i, pos);
-				attrf->vec3(i, dls::math::vec3f(0.0f));
+				attr_V->valeur(i, velocite);
+				attr_P->valeur(i, pos);
+				attrf->valeur(i, dls::math::vec3f(0.0f));
 			}
 		});
 
@@ -482,15 +482,15 @@ public:
 					/* Le normal de la vélocité est multiplité par le coefficient
 					 * d'élasticité. */
 					vel = -elasticite * nv + tv;
-					attr_V->vec3(i, vel);
+					attr_V->valeur(i, vel);
 					break;
 				}
 				case rep_collision::COLLE:
 				{
 					pos_cou = pos_pre + dist * rayon_part.direction;
 					liste_points->point(i, pos_cou);
-					attr_V->vec3(i, dls::math::vec3f(0.0f));
-					attr_desactiv->ent8(i, 1);
+					attr_V->valeur(i, dls::math::vec3f(0.0f));
+					attr_desactiv->valeur(i, char(1));
 					break;
 				}
 			}
@@ -818,7 +818,7 @@ public:
 
 			for (auto i = 0; i < nombre_points; ++i) {
 				auto pos = liste_points->point(i);
-				attr_V->vec3(i, (pos - dls::math::vec3f(0.5f)) * mult_vel);
+				attr_V->valeur(i, (pos - dls::math::vec3f(0.5f)) * mult_vel);
 			}
 		}
 
@@ -862,7 +862,7 @@ public:
 					auto pos = liste_points->point(i);
 					dls::math::vec3f totalf_bhs = bhs.summation(1, BHP(pos, 1.0f), f);
 
-					attr_V->vec3(i, attr_V->vec3(i) + totalf_bhs * gravitation * dt);
+					attr_V->valeur(i, attr_V->vec3(i) + totalf_bhs * gravitation * dt);
 				}
 			});
 		}
@@ -871,7 +871,7 @@ public:
 			auto pos = liste_points->point(i);
 
 			liste_points->point(i, pos + dt * attr_V->vec3(i));
-			attr_P->vec3(i, pos);
+			attr_P->valeur(i, pos);
 		}
 	}
 

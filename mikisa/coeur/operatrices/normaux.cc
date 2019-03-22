@@ -62,7 +62,7 @@ static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
 			auto const c1 = p2 - p0;
 
 			auto nor = produit_croix(c0, c1);
-			attr_N->vec3(static_cast<long>(poly->index), nor);
+			attr_N->valeur(static_cast<long>(poly->index), nor);
 
 			break;
 		}
@@ -79,7 +79,7 @@ static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
 			auto const c1 = p1 - p3;
 
 			auto nor = produit_croix(c0, c1);
-			attr_N->vec3(static_cast<long>(poly->index), nor);
+			attr_N->valeur(static_cast<long>(poly->index), nor);
 
 			break;
 		}
@@ -107,7 +107,7 @@ static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
 				i1 = (i1 + 1) % poly->nombre_sommets();
 			}
 
-			attr_N->vec3(static_cast<long>(poly->index), nor);
+			attr_N->valeur(static_cast<long>(poly->index), nor);
 
 			break;
 		}
@@ -125,7 +125,7 @@ static auto rappel_pesee_normal_aire(Corps const &corps, Polygone *poly)
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
 		auto idx_s = poly->index_point(i);
 		auto nor_s = attr_N->vec3(idx_s);
-		attr_N->vec3(idx_s, nor_s + nor);
+		attr_N->valeur(idx_s, nor_s + nor);
 	}
 }
 
@@ -160,7 +160,7 @@ static auto rappel_pesee_normal_angle(Corps const &corps, Polygone *poly)
 		auto poids = acos(cos_angle);
 
 		auto nor_s = attr_N->vec3(idx_cour);
-		attr_N->vec3(idx_cour, nor_s + nor * poids);
+		attr_N->valeur(idx_cour, nor_s + nor * poids);
 
 		i0 = i1;
 		i1 = i2;
@@ -179,7 +179,7 @@ static auto rappel_pesee_normal_moyenne(Corps const &corps, Polygone *poly)
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
 		auto idx_s = poly->index_point(i);
 		auto nor_s = attr_N->vec3(idx_s);
-		attr_N->vec3(idx_s, nor_s + nor);
+		attr_N->valeur(idx_s, nor_s + nor);
 	}
 }
 
@@ -212,7 +212,7 @@ static auto rappel_pesee_normal_max(Corps const &corps, Polygone *poly)
 
 		if (l0 != 0.0f && l1 != 0.0f) {
 			auto nor_s = attr_N->vec3(idx_cour);
-			attr_N->vec3(idx_cour, nor_s + nor * (1.0f / (l0 * l1)));
+			attr_N->valeur(idx_cour, nor_s + nor * (1.0f / (l0 * l1)));
 		}
 
 		i0 = i1;
@@ -273,15 +273,15 @@ void calcul_normaux(Corps &corps, location_normal location, pesee_normal pesee, 
 			attr_N = corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::CORPS);
 
 			/* accumule les normaux de tous les polygones */
-			auto nor = accumule_attr_vec3(*attr_N_poly);
-			attr_N->vec3(0, nor);
+			auto nor = accumule_attr<dls::math::vec3f>(*attr_N_poly);
+			attr_N->valeur(0, nor);
 
 			break;
 		}
 	}
 
 	/* normalise et inverse au besoin */
-	transforme_attr_vec3(*attr_N, [&](dls::math::vec3f const &v)
+	transforme_attr<dls::math::vec3f>(*attr_N, [&](dls::math::vec3f const &v)
 	{
 		auto res = normalise(v);
 

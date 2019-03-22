@@ -326,19 +326,22 @@ public:
 				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
-					for (auto &v : attrib->ent8()) {
-						v = applique_op(operation, v, static_cast<char>(constante));
-					}
+					transforme_attr<char>(*attrib, [&](char const &v)
+					{
+						return applique_op(operation, v, static_cast<char>(constante));
+					});
 				}
 				else if (distribution == "uniforme") {
-					for (auto &v : attrib->ent8()) {
-						v = applique_op(operation, v, static_cast<char>(gna.uniforme(-128, 127)));
-					}
+					transforme_attr<char>(*attrib, [&](char const &v)
+					{
+						return applique_op(operation, v, static_cast<char>(gna.uniforme(-128, 127)));
+					});
 				}
 				else if (distribution == "gaussienne") {
-					for (auto &v : attrib->ent8()) {
-						v = applique_op(operation, v, static_cast<char>(gna.normale(moyenne, ecart_type)));
-					}
+					transforme_attr<char>(*attrib, [&](char const &v)
+					{
+						return applique_op(operation, v, static_cast<char>(gna.normale(moyenne, ecart_type)));
+					});
 				}
 
 				break;
@@ -348,19 +351,22 @@ public:
 				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
-					for (auto &v : attrib->ent32()) {
-						v = applique_op(operation, v, static_cast<int>(constante));
-					}
+					transforme_attr<int>(*attrib, [&](int const &v)
+					{
+						return applique_op(operation, v, static_cast<int>(constante));
+					});
 				}
 				else if (distribution == "uniforme") {
-					for (auto &v : attrib->ent32()) {
-						v = applique_op(operation, v, gna.uniforme(0, std::numeric_limits<int>::max() - 1));
-					}
+					transforme_attr<int>(*attrib, [&](int const &v)
+					{
+						return applique_op(operation, v, gna.uniforme(static_cast<int>(val_min), static_cast<int>(val_max)));
+					});
 				}
 				else if (distribution == "gaussienne") {
-					for (auto &v : attrib->ent32()) {
-						v = applique_op(operation, v, static_cast<int>(gna.normale(moyenne, ecart_type)));
-					}
+					transforme_attr<int>(*attrib, [&](int const &v)
+					{
+						return applique_op(operation, v, static_cast<int>(gna.normale(moyenne, ecart_type)));
+					});
 				}
 
 				break;
@@ -370,19 +376,22 @@ public:
 				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
-					for (auto &v : attrib->decimal()) {
-						v = applique_op(operation, v, constante);
-					}
+					transforme_attr<float>(*attrib, [&](float const &v)
+					{
+						return applique_op(operation, v, constante);
+					});
 				}
 				else if (distribution == "uniforme") {
-					for (auto &v : attrib->decimal()) {
-						v = applique_op(operation, v, gna.uniforme(val_min, val_max));
-					}
+					transforme_attr<float>(*attrib, [&](float const &v)
+					{
+						return applique_op(operation, v, gna.uniforme(val_min, val_max));
+					});
 				}
 				else if (distribution == "gaussienne") {
-					for (auto &v : attrib->decimal()) {
-						v = applique_op(operation, v, gna.normale(moyenne, ecart_type));
-					}
+					transforme_attr<float>(*attrib, [&](float const &v)
+					{
+						return applique_op(operation, v, gna.normale(moyenne, ecart_type));
+					});
 				}
 
 				break;
@@ -397,22 +406,28 @@ public:
 				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
-					for (auto &v : attrib->vec2()) {
-						v.x = applique_op(operation, v.x, constante);
-						v.y = applique_op(operation, v.y, constante);
-					}
+					transforme_attr<dls::math::vec2f>(*attrib, [&](dls::math::vec2f const &v)
+					{
+						return dls::math::vec2f(
+									applique_op(operation, v.x, constante),
+									applique_op(operation, v.y, constante));
+					});
 				}
 				else if (distribution == "uniforme") {
-					for (auto &v : attrib->vec2()) {
-						v.x = applique_op(operation, v.x, gna.uniforme(val_min, val_max));
-						v.y = applique_op(operation, v.y, gna.uniforme(val_min, val_max));
-					}
+					transforme_attr<dls::math::vec2f>(*attrib, [&](dls::math::vec2f const &v)
+					{
+						return dls::math::vec2f(
+									applique_op(operation, v.x, gna.uniforme(val_min, val_max)),
+									applique_op(operation, v.y, gna.uniforme(val_min, val_max)));
+					});
 				}
 				else if (distribution == "gaussienne") {
-					for (auto &v : attrib->vec2()) {
-						v.x = applique_op(operation, v.x, gna.normale(moyenne, ecart_type));
-						v.y = applique_op(operation, v.y, gna.normale(moyenne, ecart_type));
-					}
+					transforme_attr<dls::math::vec2f>(*attrib, [&](dls::math::vec2f const &v)
+					{
+						return dls::math::vec2f(
+									applique_op(operation, v.x, gna.normale(moyenne, ecart_type)),
+									applique_op(operation, v.y, gna.normale(moyenne, ecart_type)));
+					});
 				}
 
 				break;
@@ -422,25 +437,31 @@ public:
 				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
-					for (auto &v : attrib->vec3()) {
-						v.x = applique_op(operation, v.x, constante);
-						v.y = applique_op(operation, v.y, constante);
-						v.z = applique_op(operation, v.z, constante);
-					}
+					transforme_attr<dls::math::vec3f>(*attrib, [&](dls::math::vec3f const &v)
+					{
+						return dls::math::vec3f(
+									applique_op(operation, v.x, constante),
+									applique_op(operation, v.y, constante),
+									applique_op(operation, v.z, constante));
+					});
 				}
 				else if (distribution == "uniforme") {
-					for (auto &v : attrib->vec3()) {
-						v.x = applique_op(operation, v.x, gna.uniforme(val_min, val_max));
-						v.y = applique_op(operation, v.y, gna.uniforme(val_min, val_max));
-						v.z = applique_op(operation, v.z, gna.uniforme(val_min, val_max));
-					}
+					transforme_attr<dls::math::vec3f>(*attrib, [&](dls::math::vec3f const &v)
+					{
+						return dls::math::vec3f(
+									applique_op(operation, v.x, gna.uniforme(val_min, val_max)),
+									applique_op(operation, v.y, gna.uniforme(val_min, val_max)),
+									applique_op(operation, v.z, gna.uniforme(val_min, val_max)));
+					});
 				}
 				else if (distribution == "gaussienne") {
-					for (auto &v : attrib->vec3()) {
-						v.x = applique_op(operation, v.x, gna.normale(moyenne, ecart_type));
-						v.y = applique_op(operation, v.y, gna.normale(moyenne, ecart_type));
-						v.z = applique_op(operation, v.z, gna.normale(moyenne, ecart_type));
-					}
+					transforme_attr<dls::math::vec3f>(*attrib, [&](dls::math::vec3f const &v)
+					{
+						return dls::math::vec3f(
+									applique_op(operation, v.x, gna.normale(moyenne, ecart_type)),
+									applique_op(operation, v.y, gna.normale(moyenne, ecart_type)),
+									applique_op(operation, v.z, gna.normale(moyenne, ecart_type)));
+					});
 				}
 
 				break;
@@ -450,28 +471,34 @@ public:
 				auto gna = GNA(graine);
 
 				if (distribution == "constante") {
-					for (auto &v : attrib->vec4()) {
-						v.x = applique_op(operation, v.x, constante);
-						v.y = applique_op(operation, v.y, constante);
-						v.z = applique_op(operation, v.z, constante);
-						v.w = applique_op(operation, v.w, constante);
-					}
+					transforme_attr<dls::math::vec4f>(*attrib, [&](dls::math::vec4f const &v)
+					{
+						return dls::math::vec4f(
+									applique_op(operation, v.x, constante),
+									applique_op(operation, v.y, constante),
+									applique_op(operation, v.z, constante),
+									applique_op(operation, v.w, constante));
+					});
 				}
 				else if (distribution == "uniforme") {
-					for (auto &v : attrib->vec4()) {
-						v.x = applique_op(operation, v.x, gna.uniforme(val_min, val_max));
-						v.y = applique_op(operation, v.y, gna.uniforme(val_min, val_max));
-						v.z = applique_op(operation, v.z, gna.uniforme(val_min, val_max));
-						v.w = applique_op(operation, v.w, gna.uniforme(val_min, val_max));
-					}
+					transforme_attr<dls::math::vec4f>(*attrib, [&](dls::math::vec4f const &v)
+					{
+						return dls::math::vec4f(
+									applique_op(operation, v.x, gna.uniforme(val_min, val_max)),
+									applique_op(operation, v.y, gna.uniforme(val_min, val_max)),
+									applique_op(operation, v.z, gna.uniforme(val_min, val_max)),
+									applique_op(operation, v.w, gna.uniforme(val_min, val_max)));
+					});
 				}
 				else if (distribution == "gaussienne") {
-					for (auto &v : attrib->vec4()) {
-						v.x = applique_op(operation, v.x, gna.normale(moyenne, ecart_type));
-						v.y = applique_op(operation, v.y, gna.normale(moyenne, ecart_type));
-						v.z = applique_op(operation, v.z, gna.normale(moyenne, ecart_type));
-						v.w = applique_op(operation, v.w, gna.normale(moyenne, ecart_type));
-					}
+					transforme_attr<dls::math::vec4f>(*attrib, [&](dls::math::vec4f const &v)
+					{
+						return dls::math::vec4f(
+									applique_op(operation, v.x, gna.normale(moyenne, ecart_type)),
+									applique_op(operation, v.y, gna.normale(moyenne, ecart_type)),
+									applique_op(operation, v.z, gna.normale(moyenne, ecart_type)),
+									applique_op(operation, v.w, gna.normale(moyenne, ecart_type)));
+					});
 				}
 
 				break;
@@ -640,14 +667,14 @@ public:
 
 		if (methode == "unique") {
 			for (auto index : iter) {
-				attrib->vec3(index, dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
+				attrib->valeur(index, dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
 			}
 		}
 		else if (methode == "aléatoire") {
 			auto gna = GNA(graine);
 
 			for (auto index : iter) {
-				attrib->vec3(index, gna.uniforme_vec3(0.0f, 1.0f));
+				attrib->valeur(index, gna.uniforme_vec3(0.0f, 1.0f));
 			}
 		}
 
@@ -755,45 +782,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-static auto copie_attribut(
-		Attribut *attr_orig,
-		long idx_orig,
-		Attribut *attr_dest,
-		long idx_dest)
-{
-	switch (attr_orig->type()) {
-		case type_attribut::ENT8:
-			attr_dest->ent8(idx_dest, attr_orig->ent8(idx_orig));
-			break;
-		case type_attribut::ENT32:
-			attr_dest->ent32(idx_dest, attr_orig->ent32(idx_orig));
-			break;
-		case type_attribut::DECIMAL:
-			attr_dest->decimal(idx_dest, attr_orig->decimal(idx_orig));
-			break;
-		case type_attribut::VEC2:
-			attr_dest->vec2(idx_dest, attr_orig->vec2(idx_orig));
-			break;
-		case type_attribut::VEC3:
-			attr_dest->vec3(idx_dest, attr_orig->vec3(idx_orig));
-			break;
-		case type_attribut::VEC4:
-			attr_dest->vec4(idx_dest, attr_orig->vec4(idx_orig));
-			break;
-		case type_attribut::MAT3:
-			attr_dest->mat3(idx_dest, attr_orig->mat3(idx_orig));
-			break;
-		case type_attribut::MAT4:
-			attr_dest->mat4(idx_dest, attr_orig->mat4(idx_orig));
-			break;
-		case type_attribut::CHAINE:
-			attr_dest->chaine(idx_dest, attr_orig->chaine(idx_orig));
-			break;
-		case type_attribut::INVALIDE:
-			break;
-	}
-}
 
 #include <mutex>
 #include "bibliotheques/outils/parallelisme.h"

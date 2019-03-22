@@ -52,7 +52,7 @@ void AdaptriceCreationCorps::ajoute_normal(const float x, const float y, const f
 		attribut_normal = corps->ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, true);
 	}
 
-	attribut_normal->pousse_vec3(dls::math::vec3f(x, y, z));
+	attribut_normal->pousse(dls::math::vec3f(x, y, z));
 }
 
 void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v, const float w)
@@ -63,7 +63,7 @@ void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v
 		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::VERTEX, true);
 	}
 
-	attribut_uvs->pousse_vec2(dls::math::vec2f(u, v));
+	attribut_uvs->pousse(dls::math::vec2f(u, v));
 }
 
 void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float y, const float z)
@@ -97,7 +97,7 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 				attribut_normal_polys = corps->ajoute_attribut("N_polys", type_attribut::VEC3, portee_attr::PRIMITIVE, true);
 			}
 
-			attribut_normal_polys->pousse_vec3(attribut_normal->vec3(index_normaux[0]));
+			attribut_normal_polys->pousse(attribut_normal->vec3(index_normaux[0]));
 		}
 	}
 
