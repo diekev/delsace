@@ -24,6 +24,8 @@
 
 #include "operatrices_visualisation.hh"
 
+#include "../corps/iteration_corps.hh"
+
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -241,47 +243,27 @@ public:
 
 		auto nombre_triangles = 0;
 
-		for (auto i = 0; i < prims_entree->taille(); ++i) {
-			auto prim = prims_entree->prim(i);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
-
-			if (poly->type != type_polygone::FERME) {
-				continue;
-			}
-
+		pour_chaque_polygone_ferme(*corps_entree,
+								   [&](Corps const &, Polygone *poly)
+		{
 			nombre_triangles += static_cast<int>(poly->nombre_sommets()) - 2;
-		}
+		});
 
 		auto const epsilon = 1e-6f * 2.0f * 10.0f;
 		auto arbre = nouvelle_arbre_bvh(nombre_triangles, epsilon, 8, 8);
 
-		for (auto i = 0; i < prims_entree->taille(); ++i) {
-			auto prim = prims_entree->prim(i);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
-
-			if (poly->type != type_polygone::FERME) {
-				continue;
-			}
-
+		pour_chaque_polygone_ferme(*corps_entree,
+								   [&](Corps const &, Polygone *poly)
+		{
 			for (auto j = 2; j < poly->nombre_sommets(); ++j) {
 				auto triangle = Triangle{};
 				triangle.v0 = points_entree->point(poly->index_point(0));
 				triangle.v1 = points_entree->point(poly->index_point(j - 1));
 				triangle.v2 = points_entree->point(poly->index_point(j));
 
-				arbre->insert_triangle(i, triangle);
+				arbre->insert_triangle(static_cast<int>(poly->index), triangle);
 			}
-		}
+		});
 
 		arbre->balance();
 

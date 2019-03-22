@@ -28,6 +28,7 @@
 #include "bibliotheques/outils/gna.hh"
 
 #include "../corps/corps.h"
+#include "../corps/iteration_corps.hh"
 
 #include "../attribut.h"
 #include "../contexte_evaluation.hh"
@@ -318,27 +319,14 @@ public:
 	{
 		ArbreOcternaire *arbre = new ArbreOcternaire;
 
-		auto const points = maillage->points();
-		auto const prims  = maillage->prims();
-
-		for (auto ip = 0; ip < prims->taille(); ++ip) {
-			auto prim = prims->prim(ip);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
-
-			if (poly->type != type_polygone::FERME) {
-				continue;
-			}
-
+		pour_chaque_polygone_ferme(*maillage,
+								   [&](Corps const &corps, Polygone *poly)
+		{
 			for (long i = 2; i < poly->nombre_sommets(); ++i) {
 				auto triangle = new Triangle();
-				triangle->p0 = points->point(poly->index_point(0));
-				triangle->p1 = points->point(poly->index_point(i - 1));
-				triangle->p2 = points->point(poly->index_point(i));
+				triangle->p0 = corps.point_transforme(poly->index_point(0));
+				triangle->p1 = corps.point_transforme(poly->index_point(i - 1));
+				triangle->p2 = corps.point_transforme(poly->index_point(i));
 
 				init_min_max(triangle->min, triangle->max);
 				dls::math::extrait_min_max(triangle->p0, triangle->min, triangle->max);
@@ -347,7 +335,7 @@ public:
 
 				arbre->ajoute_triangle(triangle);
 			}
-		}
+		});
 
 		return arbre;
 	}
@@ -439,19 +427,9 @@ public:
 		auto dt = 0.1f;
 
 		/* ajourne vélocités */
-		for (auto ip = 0; ip < m_corps.prims()->taille(); ++ip) {
-			auto prim = m_corps.prims()->prim(ip);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto polygone = dynamic_cast<Polygone *>(prim);
-
-			if (polygone->type != type_polygone::OUVERT) {
-				continue;
-			}
-
+		pour_chaque_polygone_ouvert(m_corps,
+									[&](Corps const &, Polygone *polygone)
+		{
 			/* le premier point est la racine */
 			attr_P->vec3(polygone->index_point(0), liste_points->point(polygone->index_point(0)));
 
@@ -482,22 +460,12 @@ public:
 				attr_P->vec3(polygone->index_point(i), pos);
 				attr_V->vec3(polygone->index_point(i), vel);
 			}
-		}
+		});
 
 		/* résolution des contraintes */
-		for (auto ip = 0; ip < m_corps.prims()->taille(); ++ip) {
-			auto prim = m_corps.prims()->prim(ip);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto polygone = dynamic_cast<Polygone *>(prim);
-
-			if (polygone->type != type_polygone::OUVERT) {
-				continue;
-			}
-
+		pour_chaque_polygone_ouvert(m_corps,
+									[&](Corps const &, Polygone *polygone)
+		{
 			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
 				auto pa = polygone->index_point(i - 1);
 				auto pb = polygone->index_point(i);
@@ -505,26 +473,16 @@ public:
 				auto const pos_precedent = attr_P->vec3(pa);
 				auto cur_pos = attr_P->vec3(pb);
 				auto dir = normalise(cur_pos - pos_precedent);
-				auto tmp_pos = pos_precedent + dir * attr_L->decimal(static_cast<long>(prim->index));
+				auto tmp_pos = pos_precedent + dir * attr_L->decimal(static_cast<long>(polygone->index));
 				attr_P->vec3(pb, tmp_pos);
 				attr_D->vec3(pb, cur_pos - tmp_pos);
 			}
-		}
+		});
 
 		/* calcul des nouvelles positions et vélocités */
-		for (auto ip = 0; ip < m_corps.prims()->taille(); ++ip) {
-			auto prim = m_corps.prims()->prim(ip);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto polygone = dynamic_cast<Polygone *>(prim);
-
-			if (polygone->type != type_polygone::OUVERT) {
-				continue;
-			}
-
+		pour_chaque_polygone_ouvert(m_corps,
+									[&](Corps const &, Polygone *polygone)
+		{
 			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
 				auto pa = polygone->index_point(i - 1);
 				auto pb = polygone->index_point(i);
@@ -539,7 +497,7 @@ public:
 			/* ajourne le dernier point */
 			auto pa = polygone->index_point(polygone->nombre_sommets() - 1);
 			liste_points->point(pa, attr_P->vec3(pa));
-		}
+		});
 
 		return EXECUTION_REUSSIE;
 	}

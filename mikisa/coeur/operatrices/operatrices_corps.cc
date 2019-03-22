@@ -32,6 +32,7 @@
 #include "bibliotheques/outils/parallelisme.h"
 
 #include "../corps/adaptrice_creation_corps.h"
+#include "../corps/iteration_corps.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../donnees_aval.hh"
@@ -816,37 +817,27 @@ public:
 
 		liste_prims->reserve(liste_prims1->taille() + liste_prims2->taille());
 
-		for (auto ip = 0; ip < liste_prims1->taille(); ++ip) {
-			auto prim = liste_prims1->prim(ip);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
+		pour_chaque_polygone(*corps1,
+							 [&](Corps const &, Polygone *poly)
+		{
 			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
 				polygone->ajoute_sommet(poly->index_point(i));
 			}
-		}
+		});
 
 		auto const decalage_point = corps1->points()->taille();
 
-		for (auto ip = 0; ip < liste_prims2->taille(); ++ip) {
-			auto prim = liste_prims2->prim(ip);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
+		pour_chaque_polygone(*corps2,
+							 [&](Corps const &, Polygone *poly)
+		{
 			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
 				polygone->ajoute_sommet(decalage_point + poly->index_point(i));
 			}
-		}
+		});
 	}
 
 	void fusionne_attributs(Corps const *corps1, Corps const *corps2)
@@ -1239,18 +1230,11 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto prims_entree = corps_entree->prims();
 		auto points_entree = corps_entree->points();
 
-		for (auto i = 0; i < prims_entree->taille(); ++i) {
-			auto prim = prims_entree->prim(i);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
-
+		pour_chaque_polygone(*corps_entree,
+							 [&](Corps const &, Polygone *poly)
+		{
 			auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
@@ -1261,7 +1245,7 @@ public:
 
 				npoly->ajoute_sommet(static_cast<long>(index));
 			}
-		}
+		});
 
 		m_corps.transformation = corps_entree->transformation;
 

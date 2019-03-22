@@ -28,9 +28,12 @@
 #include <eigen3/Eigen/Eigenvalues>
 #include <set>
 
-#include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/definitions.hh"
+#include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
+
+#include "../corps/iteration_corps.hh"
 
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
@@ -48,37 +51,28 @@
 static auto cherche_index_voisins(Corps const &corps)
 {
 	auto points_entree = corps.points();
-	auto prims_entree = corps.prims();
 
 	std::vector<std::set<long>> voisins(static_cast<size_t>(points_entree->taille()));
 
-	for (auto i = 0; i < prims_entree->taille(); ++i) {
-		auto prim = prims_entree->prim(i);
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
 
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto polygone = dynamic_cast<Polygone *>(prim);
-
-		if (polygone->type != type_polygone::FERME) {
-			continue;
-		}
-
-		for (auto j = 0; j < polygone->nombre_sommets() - 1; ++j) {
-			auto i0 = polygone->index_point(j);
-			auto i1 = polygone->index_point(j + 1);
+		for (auto j = 0; j < poly->nombre_sommets() - 1; ++j) {
+			auto i0 = poly->index_point(j);
+			auto i1 = poly->index_point(j + 1);
 
 			voisins[static_cast<size_t>(i0)].insert(i1);
 			voisins[static_cast<size_t>(i1)].insert(i0);
 		}
 
-		auto dernier = polygone->index_point(polygone->nombre_sommets() - 1);
-		auto premier = polygone->index_point(0);
+		auto dernier = poly->index_point(poly->nombre_sommets() - 1);
+		auto premier = poly->index_point(0);
 
 		voisins[static_cast<size_t>(premier)].insert(dernier);
 		voisins[static_cast<size_t>(dernier)].insert(premier);
-	}
+	});
 
 	return voisins;
 }
@@ -86,29 +80,20 @@ static auto cherche_index_voisins(Corps const &corps)
 static auto cherche_index_adjacents(Corps const &corps)
 {
 	auto points_entree = corps.points();
-	auto prims_entree = corps.prims();
 
 	std::vector<std::set<long>> adjacents(static_cast<size_t>(points_entree->taille()));
 
-	for (auto i = 0; i < prims_entree->taille(); ++i) {
-		auto prim = prims_entree->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto polygone = dynamic_cast<Polygone *>(prim);
-
-		if (polygone->type != type_polygone::FERME) {
-			continue;
-		}
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *polygone)
+	{
+		INUTILISE(corps_entree);
 
 		for (auto j = 0; j < polygone->nombre_sommets(); ++j) {
 			auto i0 = polygone->index_point(j);
 
-			adjacents[static_cast<size_t>(i0)].insert(i);
+			adjacents[static_cast<size_t>(i0)].insert(static_cast<long>(polygone->index));
 		}
-	}
+	});
 
 	return adjacents;
 }
@@ -421,16 +406,10 @@ public:
 		}
 
 		/* À FAIRE : attributs, groupes */
-
-		for (auto i = 0; i < prims->taille(); ++i) {
-			auto prim = prims->prim(i);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				/* À FAIRE : copie primitive */
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
+		pour_chaque_polygone(*corps_entree,
+							 [&](Corps const &corps_entree_, Polygone *poly)
+		{
+			INUTILISE(corps_entree_);
 
 			if (poly->type == type_polygone::OUVERT) {
 				auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
@@ -447,7 +426,7 @@ public:
 					npoly->ajoute_sommet(poly->index_point(j));
 				}
 			}
-		}
+		});
 
 		/* À FAIRE : recrée les normaux au bon endroit */
 		if (corps_entree->attribut("N") != nullptr) {
@@ -462,23 +441,14 @@ public:
 
 static auto centre_masse_maillage(Corps const &corps)
 {
-	auto prims = corps.prims();
 	auto points = corps.points();
 	auto centre_masse = dls::math::vec3f(0.0f);
 	auto masse_totale = 0.0f;
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
 
 		auto aire_poly = 0.0f;
 
@@ -494,7 +464,7 @@ static auto centre_masse_maillage(Corps const &corps)
 
 			aire_poly += aire_tri;
 		}
-	}
+	});
 
 	if (masse_totale != 0.0f) {
 		centre_masse /= masse_totale;
@@ -505,24 +475,15 @@ static auto centre_masse_maillage(Corps const &corps)
 
 static auto covariance_maillage(Corps const &corps)
 {
-	auto prims = corps.prims();
 	auto points = corps.points();
 
 	auto MC = dls::math::mat3x3f(0.0f);
 	auto aire_totale = 0.0f;
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
 
 		auto aire_poly = 0.0f;
 
@@ -563,7 +524,7 @@ static auto covariance_maillage(Corps const &corps)
 				MC[ii][jj] += aire_poly * centroid[ii] * centroid[jj];
 			}
 		}
-	}
+	});
 
 	for (auto ii = 0ul; ii < 3; ++ii) {
 		for (auto jj = 0ul; jj < 3; ++jj) {
@@ -1054,23 +1015,14 @@ static auto couleur_min_max(float valeur, float valeur_min, float valeur_max)
 
 static auto calcul_donnees_aire(Corps &corps)
 {
-	auto prims = corps.prims();
 	auto points = corps.points();
 
 	auto aires = corps.ajoute_attribut("aire", type_attribut::DECIMAL, portee_attr::PRIMITIVE);
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
 
 		auto aire_poly = 0.0f;
 
@@ -1084,31 +1036,22 @@ static auto calcul_donnees_aire(Corps &corps)
 			aire_poly += aire_tri;
 		}
 
-		aires->decimal(i, aire_poly);
-	}
+		aires->decimal(static_cast<long>(poly->index), aire_poly);
+	});
 
 	return aires;
 }
 
 static auto calcul_donnees_perimetres(Corps &corps)
 {
-	auto prims = corps.prims();
 	auto points = corps.points();
 
 	auto perimetres = corps.ajoute_attribut("aire", type_attribut::DECIMAL, portee_attr::PRIMITIVE);
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
 
 		auto peri_poly = 0.0f;
 		auto k = poly->index_point(poly->nombre_sommets() - 1);
@@ -1122,31 +1065,22 @@ static auto calcul_donnees_perimetres(Corps &corps)
 			k = idx;
 		}
 
-		perimetres->decimal(i, peri_poly);
-	}
+		perimetres->decimal(static_cast<long>(poly->index), peri_poly);
+	});
 
 	return perimetres;
 }
 
 static auto calcul_barycentre_poly(Corps &corps)
 {
-	auto prims = corps.prims();
 	auto points = corps.points();
 
 	auto barycentres = corps.ajoute_attribut("barycentre", type_attribut::VEC3, portee_attr::PRIMITIVE);
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
 
 		auto barycentre = dls::math::vec3f(0.0f);
 
@@ -1156,8 +1090,8 @@ static auto calcul_barycentre_poly(Corps &corps)
 
 		barycentre /= static_cast<float>(poly->nombre_sommets());
 
-		barycentres->vec3(i, barycentre);
-	}
+		barycentres->vec3(static_cast<long>(poly->index), barycentre);
+	});
 
 	return barycentres;
 }
@@ -1166,7 +1100,6 @@ static auto calcul_barycentre_poly(Corps &corps)
  * polygones les entourants. */
 static auto calcul_centroide_poly(Corps &corps)
 {
-	auto prims = corps.prims();
 	auto points = corps.points();
 
 	auto idx_voisins = cherche_index_adjacents(corps);
@@ -1186,18 +1119,10 @@ static auto calcul_centroide_poly(Corps &corps)
 
 	auto centroides = corps.ajoute_attribut("centroide", type_attribut::VEC3, portee_attr::PRIMITIVE);
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
 
 		auto centroide = dls::math::vec3f(0.0f);
 		auto poids = 0.0f;
@@ -1214,31 +1139,21 @@ static auto calcul_centroide_poly(Corps &corps)
 			centroide /= poids;
 		}
 
-		centroides->vec3(i, centroide);
-	}
+		centroides->vec3(static_cast<long>(poly->index), centroide);
+	});
 
 	return centroides;
 }
 
 static auto calcul_arrete_plus_longues(Corps &corps)
 {
-	auto prims = corps.prims();
 	auto points = corps.points();
-
 	auto longueur_max = 0.0f;
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		if (poly->type != type_polygone::FERME) {
-			continue;
-		}
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
 
 		for (auto j = 1; j < poly->nombre_sommets(); ++j) {
 			auto v0 = points->point(poly->index_point(j - 1));
@@ -1250,7 +1165,7 @@ static auto calcul_arrete_plus_longues(Corps &corps)
 				longueur_max = l;
 			}
 		}
-	}
+	});
 
 	return longueur_max;
 }

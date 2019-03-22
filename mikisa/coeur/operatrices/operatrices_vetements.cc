@@ -28,6 +28,8 @@
 
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "../corps/iteration_corps.hh"
+
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -407,18 +409,11 @@ static void applique_contraintes_verlet(Corps &corps, DonneesSimVerlet const &do
 
 static std::set<std::pair<long, long>> calcul_cote_unique(Corps &corps)
 {
-	auto prims_entree = corps.prims();
 	std::set<std::pair<long, long>> ensemble_cote;
 
-	for (auto i = 0; i < prims_entree->taille(); ++i) {
-		auto prim = prims_entree->prim(i);
-
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
-
-		auto poly = dynamic_cast<Polygone *>(prim);
-
+	pour_chaque_polygone(corps,
+						 [&](Corps const &, Polygone *poly)
+	{
 		for (auto j = 1; j < poly->nombre_sommets(); ++j) {
 			auto j0 = poly->index_point(j - 1);
 			auto j1 = poly->index_point(j);
@@ -440,7 +435,7 @@ static std::set<std::pair<long, long>> calcul_cote_unique(Corps &corps)
 
 			ensemble_cote.insert(std::make_pair(j0, j1));
 		}
-	}
+	});
 
 	return ensemble_cote;
 }
@@ -624,15 +619,9 @@ public:
 		if (b_constraints.empty()) {
 			b_constraints.reserve(static_cast<size_t>(prims_entree->taille()));
 
-			for (auto i = 0; i < prims_entree->taille(); ++i) {
-				auto prim = prims_entree->prim(i);
-
-				if (prim->type_prim() != type_primitive::POLYGONE) {
-					continue;
-				}
-
-				auto poly = dynamic_cast<Polygone *>(prim);
-
+			pour_chaque_polygone(m_corps,
+								 [&](Corps const &, Polygone *poly)
+			{
 				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
 					auto c = ajoute_contrainte_courbure(
 								X,
@@ -645,7 +634,7 @@ public:
 
 					b_constraints.push_back(c);
 				}
-			}
+			});
 		}
 
 		if (d_constraints.empty() || b_constraints.empty()) {

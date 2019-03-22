@@ -36,6 +36,8 @@
 #include <opensubdiv/far/topologyDescriptor.h>
 #pragma GCC diagnostic pop
 
+#include "../corps/iteration_corps.hh"
+
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -226,21 +228,15 @@ public:
 		std::vector<int> index_sommets_polys;
 		index_sommets_polys.reserve(static_cast<size_t>(nombre_sommets * nombre_polygones));
 
-		auto const liste_prims = corps_entree->prims();
-		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
-			auto prim = liste_prims->prim(ip);
-
-			if (prim->type_prim() != type_primitive::POLYGONE) {
-				continue;
-			}
-
-			auto poly = dynamic_cast<Polygone *>(prim);
+		pour_chaque_polygone_ferme(*corps_entree,
+								   [&](Corps const &, Polygone *poly)
+		{
 			nombre_sommets_par_poly.push_back(static_cast<int>(poly->nombre_sommets()));
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
 				index_sommets_polys.push_back(static_cast<int>(poly->index_point(i)));
 			}
-		}
+		});
 
 		desc.numVertsPerFace = &nombre_sommets_par_poly[0];
 		desc.vertIndicesPerFace = &index_sommets_polys[0];

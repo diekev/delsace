@@ -35,6 +35,7 @@
 
 #include "../corps/corps.h"
 #include "../corps/groupes.h"
+#include "../corps/iteration_corps.hh"
 #include "../corps/triangulation.hh"
 
 #include "../contexte_evaluation.hh"
@@ -1325,21 +1326,18 @@ public:
 #if 1
 		corps_entree->copie_vers(&m_corps);
 
-		for (auto i = 0; i < m_corps.prims()->taille(); ++i) {
-			auto prim = m_corps.prims()->prim(i);
+		pour_chaque_polygone(m_corps,
+							 [&](Corps const &, Polygone *poly)
+		{
+			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+				auto index = static_cast<size_t>(poly->index_point(j));
 
-			if (prim->type_prim() == type_primitive::POLYGONE) {
-				auto poly = dynamic_cast<Polygone *>(prim);
-
-				for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-					auto index = static_cast<size_t>(poly->index_point(j));
-
-					if (doublons[index] != -1) {
-						poly->ajourne_index(j, doublons[index]);
-					}
+				if (doublons[index] != -1) {
+					poly->ajourne_index(j, doublons[index]);
 				}
 			}
-		}
+		});
+
 #else	/* À FAIRE : le réindexage n'est pas correcte. */
 		/* Supprime les points */
 
@@ -1377,27 +1375,23 @@ public:
 		std::cerr << "Il y a '" << m_corps.points()->taille() << "' points de créés !\n";
 
 		/* Copie les primitives. */
-		auto prims_entree = corps_entree->prims();
 
 		std::cerr << "Création des primitives\n";
-		for (auto i = 0; i < prims_entree->taille(); ++i) {
-			auto prim = prims_entree->prim(i);
+		pour_chaque_polygone(*corps_entree,
+							 [&](Corps const &, Polygone *poly)
+		{
+			auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
-			if (prim->type_prim() == type_primitive::POLYGONE) {
-				auto poly = dynamic_cast<Polygone *>(prim);
-				auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+				auto index = static_cast<size_t>(poly->index_point(j));
 
-				for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-					auto index = static_cast<size_t>(poly->index_point(j));
-
-					if (reindexage[index] == -1 || reindexage[index] > m_corps.points()->taille()) {
-						//std::cerr << "Ajout d'un index invalide !!!\n";
-					}
-
-					npoly->ajoute_sommet(reindexage[index]);
+				if (reindexage[index] == -1 || reindexage[index] > m_corps.points()->taille()) {
+					//std::cerr << "Ajout d'un index invalide !!!\n";
 				}
+
+				npoly->ajoute_sommet(reindexage[index]);
 			}
-		}
+		});
 
 		std::cerr << "Copie des attributs\n";
 		/* Copie les attributs */

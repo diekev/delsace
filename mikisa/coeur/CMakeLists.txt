@@ -93,6 +93,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/collision.hh
 	corps/corps.h
 	corps/groupes.h
+	corps/iteration_corps.hh
 	corps/listes.h
 	corps/primitive.hh
 	corps/triangulation.hh
@@ -162,6 +163,7 @@ add_library(${NOM_CIBLE} STATIC
 	corps/collision.cc
 	corps/corps.cc
 	corps/groupes.cc
+	corps/iteration_corps.cc
 	corps/listes.cc
 	corps/primitive.cc
 	corps/triangulation.cc
