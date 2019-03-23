@@ -103,6 +103,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/arbre_bvh.hh
 	operatrices/arbre_octernaire.hh
 	operatrices/courbure.hh
+	operatrices/limites_corps.hh
 	operatrices/normaux.hh
 	operatrices/ocean.hh
 	operatrices/operatrices_3d.h
@@ -173,6 +174,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/arbre_bvh.cc
 	operatrices/arbre_octernaire.cc
 	operatrices/courbure.cc
+	operatrices/limites_corps.cc
 	operatrices/ocean.cc
 	operatrices/normaux.cc
 	operatrices/operatrices_3d.cc

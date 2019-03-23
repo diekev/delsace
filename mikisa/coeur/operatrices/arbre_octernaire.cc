@@ -24,6 +24,8 @@
 
 #include "arbre_octernaire.hh"
 
+#include "bibliotheques/outils/constantes.h"
+
 #include "bibloc/logeuse_memoire.hh"
 
 #include "../corps/corps.h"
@@ -35,10 +37,10 @@ ArbreOcternaire::Noeud::~Noeud()
 	}
 }
 
-ArbreOcternaire::ArbreOcternaire(const BoiteEnglobante &boite)
+ArbreOcternaire::ArbreOcternaire(limites3f const &limites)
 	: m_racine()
 {
-	m_racine.boite = boite;
+	m_racine.limites = limites;
 	m_racine.profondeur = 0;
 	m_racine.est_feuille = false;
 
@@ -47,19 +49,21 @@ ArbreOcternaire::ArbreOcternaire(const BoiteEnglobante &boite)
 
 void ArbreOcternaire::ajoute_triangle(const Triangle &triangle)
 {
-	auto min_triangle = dls::math::vec3f(constantes<float>::INFINITE);
-	auto max_triangle = dls::math::vec3f(-constantes<float>::INFINITE);
+	auto limites = limites3f(
+				dls::math::vec3f( constantes<float>::INFINITE),
+				dls::math::vec3f(-constantes<float>::INFINITE));
 
-	extrait_min_max(triangle.v0, min_triangle, max_triangle);
-	extrait_min_max(triangle.v1, min_triangle, max_triangle);
-	extrait_min_max(triangle.v2, min_triangle, max_triangle);
+	extrait_min_max(triangle.v0, limites.min, limites.max);
+	extrait_min_max(triangle.v1, limites.min, limites.max);
+	extrait_min_max(triangle.v2, limites.min, limites.max);
 
-	auto boite_triangle = BoiteEnglobante(dls::math::point3d(min_triangle), dls::math::point3d(max_triangle));
-
-	insert_triangle(&m_racine, triangle, boite_triangle);
+	insert_triangle(&m_racine, triangle, limites);
 }
 
-void ArbreOcternaire::insert_triangle(ArbreOcternaire::Noeud *noeud, const Triangle &triangle, const BoiteEnglobante &boite_enfant)
+void ArbreOcternaire::insert_triangle(
+		ArbreOcternaire::Noeud *noeud,
+		Triangle const &triangle,
+		limites3f const &limites_enfant)
 {
 	if (noeud->est_feuille) {
 		noeud->triangles.push_back(triangle);
@@ -70,7 +74,7 @@ void ArbreOcternaire::insert_triangle(ArbreOcternaire::Noeud *noeud, const Trian
 	for (auto i = 0; i < 8; ++i) {
 		auto enfant = noeud->enfants[i];
 
-		if (!enfant->boite.chevauchement(boite_enfant)) {
+		if (!enfant->limites.chevauchent(limites_enfant)) {
 			continue;
 		}
 
@@ -78,31 +82,31 @@ void ArbreOcternaire::insert_triangle(ArbreOcternaire::Noeud *noeud, const Trian
 			construit_enfants(enfant);
 		}
 
-		insert_triangle(enfant, triangle, boite_enfant);
+		insert_triangle(enfant, triangle, limites_enfant);
 	}
 }
 
 void ArbreOcternaire::construit_enfants(ArbreOcternaire::Noeud *noeud)
 {
-	auto const &min = noeud->boite.min;
-	auto const &max = noeud->boite.max;
+	auto const &min = noeud->limites.min;
+	auto const &max = noeud->limites.max;
 
-	auto centre = min + (max - min) * 0.5;
+	auto centre = min + (max - min) * 0.5f;
 
-	BoiteEnglobante boites[8] = {
-		BoiteEnglobante(min, centre),
-		BoiteEnglobante(dls::math::point3d(centre.x, min.y, min.z), dls::math::point3d(max.x, centre.y, centre.z)),
-		BoiteEnglobante(dls::math::point3d(centre.x, min.y, centre.z), dls::math::point3d(max.x, centre.y, max.z)),
-		BoiteEnglobante(dls::math::point3d(min.x, min.y, centre.z), dls::math::point3d(centre.x, centre.y, max.z)),
-		BoiteEnglobante(dls::math::point3d(min.x, centre.y, min.z), dls::math::point3d(centre.x, max.y, centre.z)),
-		BoiteEnglobante(dls::math::point3d(centre.x, centre.y, min.z), dls::math::point3d(max.x, max.y, centre.z)),
-		BoiteEnglobante(centre, max),
-		BoiteEnglobante(dls::math::point3d(min.x, centre.y, centre.z), dls::math::point3d(centre.x, max.y, max.z)),
+	limites3f limites[8] = {
+		limites3f(min, centre),
+		limites3f(dls::math::vec3f(centre.x, min.y, min.z), dls::math::vec3f(max.x, centre.y, centre.z)),
+		limites3f(dls::math::vec3f(centre.x, min.y, centre.z), dls::math::vec3f(max.x, centre.y, max.z)),
+		limites3f(dls::math::vec3f(min.x, min.y, centre.z), dls::math::vec3f(centre.x, centre.y, max.z)),
+		limites3f(dls::math::vec3f(min.x, centre.y, min.z), dls::math::vec3f(centre.x, max.y, centre.z)),
+		limites3f(dls::math::vec3f(centre.x, centre.y, min.z), dls::math::vec3f(max.x, max.y, centre.z)),
+		limites3f(centre, max),
+		limites3f(dls::math::vec3f(min.x, centre.y, centre.z), dls::math::vec3f(centre.x, max.y, max.z)),
 	};
 
 	for (auto i = 0; i < 8; ++i) {
 		auto enfant = memoire::loge<Noeud>();
-		enfant->boite = boites[i];
+		enfant->limites = limites[i];
 		enfant->profondeur = noeud->profondeur + 1;
 		enfant->est_feuille = (enfant->profondeur == m_profondeur_max);
 
@@ -121,11 +125,8 @@ void rassemble_topologie(ArbreOcternaire::Noeud *noeud, Corps &corps)
 		return;
 	}
 
-	auto const &min_d = noeud->boite.min;
-	auto const &max_d = noeud->boite.max;
-
-	auto const &min = dls::math::vec3f(static_cast<float>(min_d.x), static_cast<float>(min_d.y), static_cast<float>(min_d.z));
-	auto const &max = dls::math::vec3f(static_cast<float>(max_d.x), static_cast<float>(max_d.y), static_cast<float>(max_d.z));
+	auto const &min = noeud->limites.min;
+	auto const &max = noeud->limites.max;
 
 	dls::math::vec3f sommets[8] = {
 		dls::math::vec3f(min.x, min.y, min.z),

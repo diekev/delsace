@@ -24,42 +24,38 @@
 
 #pragma once
 
-#include "bibliotheques/geometrie/limites.hh"
-#include "../corps/triangulation.hh"
+#include <delsace/math/vecteur.hh>
 
-class ArbreOcternaire {
-public:
-	struct Noeud {
-		limites3f limites{};
+/* Généralisation d'une boîte englobante 3D, pour définir des limites pour
+ * différents types, différentes dimensions. */
+template <typename T>
+struct limites {
+	T min{};
+	T max{};
 
-		int profondeur = 0;
-		bool est_feuille = false;
-		bool pad[3];
+	limites() = default;
 
-		Noeud *enfants[8] = {
-			nullptr, nullptr, nullptr, nullptr,
-			nullptr, nullptr, nullptr, nullptr
-		};
+	limites(T const &init_min, T const &init_max)
+		: min(init_min)
+		, max(init_max)
+	{}
 
-		std::vector<Triangle> triangles{};
+	T taille() const
+	{
+		return max - min;
+	}
 
-		~Noeud();
-	};
+	void etends(T const &delta)
+	{
+		this->min -= delta;
+		this->max += delta;
+	}
 
-private:
-	int m_profondeur_max = 4;
-	Noeud m_racine;
-
-public:
-	ArbreOcternaire(limites3f const &limites);
-
-	void ajoute_triangle(Triangle const &triangle);
-
-	void insert_triangle(Noeud *noeud, Triangle const &triangle, limites3f const &limites_enfant);
-
-	void construit_enfants(Noeud *noeud);
-
-	Noeud *racine();
+	bool chevauchent(limites const &autres) const
+	{
+		return (this->max >= autres.min) && (this->min <= autres.max);
+	}
 };
 
-void rassemble_topologie(ArbreOcternaire::Noeud *noeud, Corps &corps);
+using limites3f = limites<dls::math::vec3f>;
+using limites3i = limites<dls::math::vec3i>;

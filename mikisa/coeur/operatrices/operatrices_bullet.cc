@@ -52,23 +52,23 @@
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
+#include "limites_corps.hh"
+
 /* ************************************************************************** */
 
 static btCollisionShape *cree_forme_pour_corps(Corps &corps)
 {
 	/* calcul de la boite englobante du corps */
-	auto verts = dls::tableau<dls::math::vec3f>{};
-	verts.reserve(corps.points()->taille());
+//	auto verts = dls::tableau<dls::math::vec3f>{};
+//	verts.reserve(corps.points()->taille());
 
-	auto min = dls::math::vec3f( std::numeric_limits<float>::max());
-	auto max = dls::math::vec3f(-std::numeric_limits<float>::min());
-	for (auto i = 0; i < corps.points()->taille(); ++i) {
-		auto point = corps.points()->point(i);
-		extrait_min_max(point, min, max);
-		verts.pousse(point);
-	}
+//	for (auto i = 0; i < corps.points()->taille(); ++i) {
+//		verts.pousse(point);
+//	}
 
-	auto taille = max - min;
+	auto limites = calcule_limites_mondiales_corps(corps);
+
+	auto taille = limites.taille();
 	auto colShape = memoire::loge<btBoxShape>(btVector3(
 									   static_cast<double>(taille.x * 0.5f),
 									   static_cast<double>(taille.y * 0.5f),

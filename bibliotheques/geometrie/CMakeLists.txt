@@ -27,9 +27,11 @@ set(INCLUSIONS
 
 add_library(${NOM_CIBLE} STATIC
 	boite_englobante.cc
+	limites.cc
 	rectangle.cc
 
 	boite_englobante.hh
+	limites.hh
 	rectangle.h
 )
 

@@ -22,44 +22,5 @@
  *
  */
 
-#pragma once
+#include "limites.hh"
 
-#include "bibliotheques/geometrie/limites.hh"
-#include "../corps/triangulation.hh"
-
-class ArbreOcternaire {
-public:
-	struct Noeud {
-		limites3f limites{};
-
-		int profondeur = 0;
-		bool est_feuille = false;
-		bool pad[3];
-
-		Noeud *enfants[8] = {
-			nullptr, nullptr, nullptr, nullptr,
-			nullptr, nullptr, nullptr, nullptr
-		};
-
-		std::vector<Triangle> triangles{};
-
-		~Noeud();
-	};
-
-private:
-	int m_profondeur_max = 4;
-	Noeud m_racine;
-
-public:
-	ArbreOcternaire(limites3f const &limites);
-
-	void ajoute_triangle(Triangle const &triangle);
-
-	void insert_triangle(Noeud *noeud, Triangle const &triangle, limites3f const &limites_enfant);
-
-	void construit_enfants(Noeud *noeud);
-
-	Noeud *racine();
-};
-
-void rassemble_topologie(ArbreOcternaire::Noeud *noeud, Corps &corps);

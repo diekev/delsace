@@ -25,41 +25,11 @@
 #pragma once
 
 #include "bibliotheques/geometrie/limites.hh"
-#include "../corps/triangulation.hh"
 
-class ArbreOcternaire {
-public:
-	struct Noeud {
-		limites3f limites{};
+class Corps;
 
-		int profondeur = 0;
-		bool est_feuille = false;
-		bool pad[3];
+/* Retourne les limites en espace globale des points du corps. */
+limites3f calcule_limites_mondiales_corps(Corps const &corps);
 
-		Noeud *enfants[8] = {
-			nullptr, nullptr, nullptr, nullptr,
-			nullptr, nullptr, nullptr, nullptr
-		};
-
-		std::vector<Triangle> triangles{};
-
-		~Noeud();
-	};
-
-private:
-	int m_profondeur_max = 4;
-	Noeud m_racine;
-
-public:
-	ArbreOcternaire(limites3f const &limites);
-
-	void ajoute_triangle(Triangle const &triangle);
-
-	void insert_triangle(Noeud *noeud, Triangle const &triangle, limites3f const &limites_enfant);
-
-	void construit_enfants(Noeud *noeud);
-
-	Noeud *racine();
-};
-
-void rassemble_topologie(ArbreOcternaire::Noeud *noeud, Corps &corps);
+/* Retourne les limites en espace globale des points du corps. */
+limites3f calcule_limites_locales_corps(Corps const &corps);

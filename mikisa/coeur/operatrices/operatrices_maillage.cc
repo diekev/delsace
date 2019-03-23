@@ -43,6 +43,7 @@
 #include "../usine_operatrice.h"
 
 #include "courbure.hh"
+#include "limites_corps.hh"
 #include "normaux.hh"
 
 #pragma clang diagnostic push
@@ -1554,12 +1555,9 @@ public:
 		chef->demarre_evaluation("fonte maillage");
 
 		/* calcul la boîte englobante */
-		auto min = dls::math::vec3f(constantes<float>::INFINITE);
-		auto max = dls::math::vec3f(-constantes<float>::INFINITE);
-
-		for (auto i = 0; i < points->taille(); ++i) {
-			extrait_min_max(points->point(i), min, max);
-		}
+		auto limites = calcule_limites_locales_corps(m_corps);
+		auto const &min = limites.min;
+		auto const &max = limites.max;
 
 		auto attr_N = static_cast<Attribut *>(nullptr);
 

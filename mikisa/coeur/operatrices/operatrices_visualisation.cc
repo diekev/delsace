@@ -31,6 +31,7 @@
 
 #include "arbre_bvh.hh"
 #include "arbre_octernaire.hh"
+#include "limites_corps.hh"
 
 /* ************************************************************************** */
 
@@ -80,17 +81,10 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto min = dls::math::point3d( constantes<double>::INFINITE);
-		auto max = dls::math::point3d(-constantes<double>::INFINITE);
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto point = corps_entree->transformation(dls::math::point3d(points_entree->point(i)));
-			extrait_min_max(point, min, max);
-		}
+		auto limites = calcule_limites_mondiales_corps(*corps_entree);
 
-		auto boite = BoiteEnglobante(min, max);
-
-		auto arbre = ArbreOcternaire(boite);
+		auto arbre = ArbreOcternaire(limites);
 
 		auto triangles = convertis_maillage_triangles(corps_entree, nullptr);
 
@@ -231,14 +225,6 @@ public:
 		if (prims_entree->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");
 			return EXECUTION_ECHOUEE;
-		}
-
-		auto min = dls::math::point3d( constantes<double>::INFINITE);
-		auto max = dls::math::point3d(-constantes<double>::INFINITE);
-
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto point = corps_entree->transformation(dls::math::point3d(points_entree->point(i)));
-			extrait_min_max(point, min, max);
 		}
 
 		auto nombre_triangles = 0;
