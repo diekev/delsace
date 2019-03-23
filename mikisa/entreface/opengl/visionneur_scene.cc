@@ -228,23 +228,11 @@ void VisionneurScene::peint_opengl()
 	}
 
 	ss.str("");
-	ss << "Mémoire : ";
+	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
+	m_rendu_texte->dessine(m_contexte, ss.str());
 
-	auto memoire_allouee = memoire::allouee();
-
-	if (memoire_allouee < 1024) {
-		ss << memoire_allouee << " o";
-	}
-	else if (memoire_allouee < (1024 * 1024)) {
-		ss << memoire_allouee / (1024) << " Ko";
-	}
-	else if (memoire_allouee < (1024 * 1024 * 1024)) {
-		ss << memoire_allouee / (1024 * 1024) << " Mo";
-	}
-	else {
-		ss << memoire_allouee / (1024 * 1024 * 1024) << " Go";
-	}
-
+	ss.str("");
+	ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
 	m_rendu_texte->dessine(m_contexte, ss.str());
 
 #if 0

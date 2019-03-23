@@ -26,12 +26,15 @@
 
 #include <algorithm>
 #include <cassert>
+#include <string>
 
 namespace memoire {
 
 struct logeuse_memoire {
 	size_t memoire_consommee = 0;
 	size_t memoire_allouee = 0;
+
+	~logeuse_memoire();
 
 	logeuse_memoire(logeuse_memoire const &) = delete;
 	logeuse_memoire(logeuse_memoire &&) = delete;
@@ -98,6 +101,19 @@ private:
  * Retourne la quantité en octets de mémoire consommée au moment de l'appel.
  */
 [[nodiscard]] size_t consommee();
+
+/**
+ * Convertit le nombre d'octet passé en paramètre en une chaine contenant :
+ * - si la taille est inférieure à 1 Ko : la taille en octets + " o"
+ * - si la taille est inférieure à 1 Mo : la taille en kiloctets + " Ko"
+ * - si la taille est inférieure à 1 Go : la taille en mégaoctets + " Mo"
+ * - sinon, rétourne la taille en gigaoctets + " Go"
+ *
+ * par exemple:
+ * 8564 -> "8 Ko"
+ * 16789432158 -> "15 Go"
+ */
+[[nodiscard]] std::string formate_taille(size_t octets);
 
 template <typename T, typename... Args>
 [[nodiscard]] T *loge(Args &&...args)

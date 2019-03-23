@@ -24,9 +24,20 @@
 
 #include "logeuse_memoire.hh"
 
+#include <iostream>
+#include <sstream>
+
 namespace memoire {
 
 logeuse_memoire logeuse_memoire::m_instance = logeuse_memoire{};
+
+logeuse_memoire::~logeuse_memoire()
+{
+	if (memoire_allouee != 0) {
+		std::cerr << "Fuite de mémoire ou désynchronisation : "
+				  << formate_taille(memoire_allouee) << '\n';
+	}
+}
 
 logeuse_memoire &logeuse_memoire::instance()
 {
@@ -43,6 +54,26 @@ size_t consommee()
 {
 	auto &logeuse = logeuse_memoire::instance();
 	return logeuse.memoire_consommee;
+}
+
+std::string formate_taille(size_t octets)
+{
+	std::stringstream ss;
+
+	if (octets < 1024) {
+		ss << octets << " o";
+	}
+	else if (octets < (1024 * 1024)) {
+		ss << octets / (1024) << " Ko";
+	}
+	else if (octets < (1024 * 1024 * 1024)) {
+		ss << octets / (1024 * 1024) << " Mo";
+	}
+	else {
+		ss << octets / (1024 * 1024 * 1024) << " Go";
+	}
+
+	return ss.str();
 }
 
 }  /* namespace memoire */

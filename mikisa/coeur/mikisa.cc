@@ -107,10 +107,6 @@ Mikisa::~Mikisa()
 	memoire::deloge(project_settings);
 	memoire::deloge(m_repondant_commande);
 	memoire::deloge(gestionnaire_entreface);
-
-	if (memoire::allouee() != 0) {
-		std::cerr << "Fuit de mémoire ou désynchronisation : " << memoire::allouee() << '\n';
-	}
 }
 
 void Mikisa::initialise()
