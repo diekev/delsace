@@ -33,13 +33,15 @@
 #include "bibliotheques/structures/arbre_kd.hh"
 #include "bibliotheques/structures/grille_particules.hh"
 
+#include "bibloc/logeuse_memoire.hh"
+#include "bibloc/tableau.hh"
+
 #include "../corps/corps.h"
 #include "../corps/groupes.h"
 #include "../corps/iteration_corps.hh"
 #include "../corps/triangulation.hh"
 
 #include "../contexte_evaluation.hh"
-#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -105,14 +107,14 @@ public:
 			return EXECUTION_REUSSIE;
 		}
 
-		std::vector<std::pair<Attribut *, Attribut *>> paires_attrs;
-		paires_attrs.reserve(corps->attributs().size());
+		dls::tableau<std::pair<Attribut *, Attribut *>> paires_attrs;
+		paires_attrs.reserve(static_cast<long>(corps->attributs().size()));
 
 		for (auto attr : corps->attributs()) {
 			auto attr2 = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
 
 			if (attr->portee == portee_attr::POINT) {
-				paires_attrs.push_back({ attr, attr2 });
+				paires_attrs.pousse({ attr, attr2 });
 			}
 
 			/* À FAIRE : copie attributs restants. */
@@ -129,14 +131,14 @@ public:
 		 * points des primitives ne seront pas dans un groupe, et il faudra une
 		 * structure de données séparée pour étiquetter les points à retirer.
 		 * D'où l'utilisation d'un vecteur booléen. */
-		std::vector<bool> dans_le_groupe(static_cast<size_t>(points_corps->taille()), false);
+		dls::tableau<char> dans_le_groupe(points_corps->taille(), 0);
 
 		for (auto i = 0; i < groupe->taille(); ++i) {
-			dans_le_groupe[groupe->index(i)] = true;
+			dans_le_groupe[static_cast<long>(groupe->index(i))] = 1;
 		}
 
 		for (auto i = 0l; i < points_corps->taille(); ++i) {
-			if (dans_le_groupe[static_cast<size_t>(i)]) {
+			if (dans_le_groupe[i]) {
 				continue;
 			}
 
@@ -405,7 +407,7 @@ public:
 
 		auto triangles = convertis_maillage_triangles(corps_entree, groupe_entree);
 
-		if (triangles.empty()) {
+		if (triangles.est_vide()) {
 			this->ajoute_avertissement("Il n'y a pas de primitives dans le corps d'entrée !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -435,7 +437,7 @@ public:
 		 *  les points sur les maillages, avec nombre_points = max nombre
 		 *  points. En ce moment, l'algorithme peut en mettre plus que prévu. */
 		auto const nombre_points_triangle = static_cast<long>(std::ceil(
-					static_cast<double>(nombre_points) / static_cast<double>(triangles.size())));
+					static_cast<double>(nombre_points) / static_cast<double>(triangles.taille())));
 
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
@@ -805,7 +807,7 @@ public:
 		/* Convertis le maillage en triangles. */
 		auto triangles_entree = convertis_maillage_triangles(corps_maillage, groupe_prim);
 
-		if (triangles_entree.empty()) {
+		if (triangles_entree.est_vide()) {
 			this->ajoute_avertissement("Il n'y pas de polygones dans le corps d'entrée !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -1303,8 +1305,8 @@ public:
 #else	/* À FAIRE : le réindexage n'est pas correcte. */
 		/* Supprime les points */
 
-		auto tamis_point = std::vector<bool>(doublons.size(), false);
-		auto reindexage = std::vector<long>(doublons.size(), -1);
+		auto tamis_point = dls::tableau<bool>(doublons.size(), false);
+		auto reindexage = dls::tableau<long>(doublons.size(), -1);
 		auto nouvel_index = 0;
 
 		std::cerr << "Calcul tamis, reindexage\n";
@@ -1552,7 +1554,7 @@ public:
 /* ************************************************************************** */
 
 static auto calcul_centre_masse(
-	std::vector<dls::math::vec3f> const &points)
+	dls::tableau<dls::math::vec3f> const &points)
 {
 #if 0
 		/* calcul la masse totale */
@@ -1576,14 +1578,14 @@ static auto calcul_centre_masse(
 		centre += pi; // * attr_M->valeur(i);
 	}
 
-	centre /= static_cast<float>(points.size());
+	centre /= static_cast<float>(points.taille());
 	//centre_masse /= masse_totale;
 
 	return centre;
 }
 
 static auto calcul_covariance(
-	std::vector<dls::math::vec3f> const &points,
+	dls::tableau<dls::math::vec3f> const &points,
 	dls::math::vec3f const &centre)
 {
 	auto mat_covariance = dls::math::mat3x3f(0.0f);
@@ -1610,9 +1612,9 @@ static auto calcul_covariance(
 	}
 
 	//mat_covariance /= masse_totale;
-	mat_covariance[0] /= static_cast<float>(points.size());
-	mat_covariance[1] /= static_cast<float>(points.size());
-	mat_covariance[2] /= static_cast<float>(points.size());
+	mat_covariance[0] /= static_cast<float>(points.taille());
+	mat_covariance[1] /= static_cast<float>(points.taille());
+	mat_covariance[2] /= static_cast<float>(points.taille());
 
 	return mat_covariance;
 }
@@ -1760,7 +1762,7 @@ public:
 				// À FAIRE : arbre k-d, simplifie points
 				auto points_voisins = points_autour(p, i, rayon);
 
-				if (points_voisins.empty()) {
+				if (points_voisins.est_vide()) {
 					continue;
 				}
 
@@ -1835,12 +1837,12 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	std::vector<dls::math::vec3f> points_autour(
+	dls::tableau<dls::math::vec3f> points_autour(
 		dls::math::vec3f const &centre,
 		long index,
 		float rayon)
 	{
-		std::vector<dls::math::vec3f> res;
+		dls::tableau<dls::math::vec3f> res;
 		auto points_entree = m_corps.points();
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
@@ -1851,7 +1853,7 @@ public:
 			auto p = points_entree->point(i);
 
 			if (longueur(p - centre) <= rayon) {
-				res.push_back(p);
+				res.pousse(p);
 			}
 		}
 

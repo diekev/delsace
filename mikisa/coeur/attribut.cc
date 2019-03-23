@@ -30,25 +30,25 @@ static auto taille_octet_type_attribut(type_attribut type)
 {
 	switch (type) {
 		case type_attribut::ENT8:
-			return sizeof(char);
+			return static_cast<long>(sizeof(char));
 		case type_attribut::ENT32:
-			return sizeof(int);
+			return static_cast<long>(sizeof(int));
 		case type_attribut::DECIMAL:
-			return sizeof(float);
+			return static_cast<long>(sizeof(float));
 		case type_attribut::CHAINE:
-			return sizeof(std::string);
+			return static_cast<long>(sizeof(std::string));
 		case type_attribut::VEC2:
-			return sizeof(dls::math::vec2f);
+			return static_cast<long>(sizeof(dls::math::vec2f));
 		case type_attribut::VEC3:
-			return sizeof(dls::math::vec3f);
+			return static_cast<long>(sizeof(dls::math::vec3f));
 		case type_attribut::VEC4:
-			return sizeof(dls::math::vec4f);
+			return static_cast<long>(sizeof(dls::math::vec4f));
 		case type_attribut::MAT3:
-			return sizeof(dls::math::mat3x3f);
+			return static_cast<long>(sizeof(dls::math::mat3x3f));
 		case type_attribut::MAT4:
-			return sizeof(dls::math::mat4x4f);
+			return static_cast<long>(sizeof(dls::math::mat4x4f));
 		default:
-			return 0ul;
+			return 0l;
 	}
 }
 
@@ -60,15 +60,14 @@ Attribut::Attribut(std::string const &name, type_attribut type, portee_attr port
 	, portee(portee_)
 {
 	assert(taille >= 0);
-	auto taille_ns = static_cast<size_t>(taille);
 
-	m_tampon.resize(taille_ns * taille_octet_type_attribut(m_type));
+	m_tampon.redimensionne(taille * taille_octet_type_attribut(m_type));
 }
 
 Attribut::Attribut(Attribut const &rhs)
 	: Attribut(rhs.nom(), rhs.type(), rhs.portee, rhs.taille())
 {
-	std::copy(rhs.m_tampon.begin(), rhs.m_tampon.end(), m_tampon.begin());
+	std::copy(rhs.m_tampon.debut(), rhs.m_tampon.fin(), m_tampon.debut());
 }
 
 type_attribut Attribut::type() const
@@ -89,20 +88,18 @@ void Attribut::nom(std::string const &n)
 void Attribut::reserve(long n)
 {
 	assert(n >= 0);
-	auto nt = static_cast<size_t>(n);
-	m_tampon.reserve(nt * taille_octet_type_attribut(m_type));
+	m_tampon.reserve(n * taille_octet_type_attribut(m_type));
 }
 
 void Attribut::redimensionne(long n)
 {
 	assert(n >= 0);
-	auto nt = static_cast<size_t>(n);
-	m_tampon.resize(nt * taille_octet_type_attribut(m_type));
+	m_tampon.redimensionne(n * taille_octet_type_attribut(m_type));
 }
 
 long Attribut::taille() const
 {
-	return static_cast<long>(m_tampon.size() / taille_octet_type_attribut(m_type));
+	return m_tampon.taille() / taille_octet_type_attribut(m_type);
 }
 
 void Attribut::reinitialise()
@@ -112,17 +109,17 @@ void Attribut::reinitialise()
 
 const void *Attribut::donnees() const
 {
-	return m_tampon.data();
+	return m_tampon.donnees();
 }
 
 void *Attribut::donnees()
 {
-	return m_tampon.data();
+	return m_tampon.donnees();
 }
 
 long Attribut::taille_octets() const
 {
-	return static_cast<long>(m_tampon.size());
+	return m_tampon.taille();
 }
 
 /* ************************************************************************** */

@@ -26,9 +26,10 @@
 
 #include "bibliotheques/graphe/noeud.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "corps/corps.h"
 
-#include "logeuse_memoire.hh"
 #include "noeud_image.h"
 #include "usine_operatrice.h"
 

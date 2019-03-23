@@ -22,30 +22,4 @@
  *
  */
 
-#pragma once
-
-#include <delsace/math/vecteur.hh>
-
-#include "bibloc/tableau.hh"
-
-class Corps;
-class GroupePrimitive;
-
-struct Triangle {
-	using type_vec = dls::math::vec3f;
-
-	type_vec v0 = type_vec(0.0f, 0.0f, 0.0f);
-	type_vec v1 = type_vec(0.0f, 0.0f, 0.0f);
-	type_vec v2 = type_vec(0.0f, 0.0f, 0.0f);
-
-	float aire = 0.0f;
-	Triangle *precedent = nullptr, *suivant = nullptr;
-
-	Triangle() = default;
-
-	Triangle(type_vec const &v_0, type_vec const &v_1, type_vec const &v_2);
-};
-
-float calcule_aire(Triangle const &triangle);
-
-dls::tableau<Triangle> convertis_maillage_triangles(Corps const *corps_entree, GroupePrimitive *groupe);
+#include "tableau.hh"

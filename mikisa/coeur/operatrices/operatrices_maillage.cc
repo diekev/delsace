@@ -33,6 +33,8 @@
 #include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "bibloc/tableau.hh"
+
 #include "../corps/iteration_corps.hh"
 
 #include "../chef_execution.hh"
@@ -52,7 +54,7 @@ static auto cherche_index_voisins(Corps const &corps)
 {
 	auto points_entree = corps.points();
 
-	std::vector<std::set<long>> voisins(static_cast<size_t>(points_entree->taille()));
+	dls::tableau<std::set<long>> voisins(points_entree->taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -63,15 +65,15 @@ static auto cherche_index_voisins(Corps const &corps)
 			auto i0 = poly->index_point(j);
 			auto i1 = poly->index_point(j + 1);
 
-			voisins[static_cast<size_t>(i0)].insert(i1);
-			voisins[static_cast<size_t>(i1)].insert(i0);
+			voisins[i0].insert(i1);
+			voisins[i1].insert(i0);
 		}
 
 		auto dernier = poly->index_point(poly->nombre_sommets() - 1);
 		auto premier = poly->index_point(0);
 
-		voisins[static_cast<size_t>(premier)].insert(dernier);
-		voisins[static_cast<size_t>(dernier)].insert(premier);
+		voisins[premier].insert(dernier);
+		voisins[dernier].insert(premier);
 	});
 
 	return voisins;
@@ -81,7 +83,7 @@ static auto cherche_index_adjacents(Corps const &corps)
 {
 	auto points_entree = corps.points();
 
-	std::vector<std::set<long>> adjacents(static_cast<size_t>(points_entree->taille()));
+	dls::tableau<std::set<long>> adjacents(points_entree->taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *polygone)
@@ -91,7 +93,7 @@ static auto cherche_index_adjacents(Corps const &corps)
 		for (auto j = 0; j < polygone->nombre_sommets(); ++j) {
 			auto i0 = polygone->index_point(j);
 
-			adjacents[static_cast<size_t>(i0)].insert(static_cast<long>(polygone->index));
+			adjacents[i0].insert(static_cast<long>(polygone->index));
 		}
 	});
 
@@ -99,12 +101,12 @@ static auto cherche_index_adjacents(Corps const &corps)
 }
 
 static auto cherche_index_bordures(
-		std::vector<std::set<long>> const &voisins,
-		std::vector<std::set<long>> const &adjacents)
+		dls::tableau<std::set<long>> const &voisins,
+		dls::tableau<std::set<long>> const &adjacents)
 {
-	std::vector<bool> bordures(voisins.size());
+	dls::tableau<char> bordures(voisins.taille());
 
-	for (auto i = 0ul; i < voisins.size(); ++i) {
+	for (auto i = 0; i < voisins.taille(); ++i) {
 		bordures[i] = voisins[i].size() != adjacents[i].size();
 	}
 
@@ -115,13 +117,13 @@ static auto cherche_index_bordures(
 
 static auto calcule_lissage_normal(
 		ListePoints3D const *points_entree,
-		std::vector<bool> const &bordures,
-		std::vector<std::set<long>> const &voisins,
-		std::vector<dls::math::vec3f> &deplacement,
+		dls::tableau<char> const &bordures,
+		dls::tableau<std::set<long>> const &voisins,
+		dls::tableau<dls::math::vec3f> &deplacement,
 		bool preserve_bordures)
 {
-	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(points_entree->taille())),
-					 [&](tbb::blocked_range<size_t> const &plage)
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); i++) {
 			if (bordures[i]) {
@@ -137,7 +139,7 @@ static auto calcule_lissage_normal(
 					int nnused = 0;
 
 					for (auto j : voisins[i]) {
-						if (bordures[static_cast<size_t>(j)]) {
+						if (bordures[j]) {
 							continue;
 						}
 
@@ -146,7 +148,7 @@ static auto calcule_lissage_normal(
 					}
 
 					deplacement[i] /= static_cast<float>(nnused);
-					deplacement[i] -= points_entree->point(static_cast<long>(i));
+					deplacement[i] -= points_entree->point(i);
 				}
 			}
 			else {
@@ -161,7 +163,7 @@ static auto calcule_lissage_normal(
 				}
 
 				deplacement[i] /= static_cast<float>(nn);
-				deplacement[i] -= points_entree->point(static_cast<long>(i));
+				deplacement[i] -= points_entree->point(i);
 			}
 		}
 	});
@@ -169,13 +171,13 @@ static auto calcule_lissage_normal(
 
 static auto calcule_lissage_pondere(
 		ListePoints3D const *points_entree,
-		std::vector<bool> const &bordures,
-		std::vector<std::set<long>> const &voisins,
-		std::vector<dls::math::vec3f> &deplacement,
+		dls::tableau<char> const &bordures,
+		dls::tableau<std::set<long>> const &voisins,
+		dls::tableau<dls::math::vec3f> &deplacement,
 		bool preserve_bordures)
 {
-	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(points_entree->taille())),
-					 [&](tbb::blocked_range<size_t> const &plage)
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); i++) {
 			if (bordures[i]) {
@@ -189,11 +191,11 @@ static auto calcule_lissage_pondere(
 					}
 
 					auto p = dls::math::vec3f(0.0f);
-					auto const &xi = points_entree->point(static_cast<long>(i));
+					auto const &xi = points_entree->point(i);
 					auto poids = 1.0f;
 
 					for (auto j : voisins[i]) {
-						if (bordures[static_cast<size_t>(j)]) {
+						if (bordures[j]) {
 							continue;
 						}
 
@@ -216,7 +218,7 @@ static auto calcule_lissage_pondere(
 				}
 
 				auto p = dls::math::vec3f(0.0f);
-				auto const &xi = points_entree->point(static_cast<long>(i));
+				auto const &xi = points_entree->point(i);
 				auto poids = 1.0f;
 
 				for (auto j : voisins[i]) {
@@ -237,7 +239,7 @@ static auto calcule_lissage_pondere(
 static auto applique_lissage(
 		ListePoints3D *points_entree,
 		Attribut *attr_N,
-		std::vector<dls::math::vec3f> const &deplacement,
+		dls::tableau<dls::math::vec3f> const &deplacement,
 		float poids_lissage,
 		bool tangeante)
 {
@@ -249,11 +251,11 @@ static auto applique_lissage(
 
 			if (tangeante) {
 				auto const &n = attr_N->vec3(i);
-				auto const &d = deplacement[static_cast<size_t>(i)];
+				auto const &d = deplacement[i];
 				p += poids_lissage * (d - n * produit_scalaire(d, n));
 			}
 			else {
-				p += poids_lissage * deplacement[static_cast<size_t>(i)];
+				p += poids_lissage * deplacement[i];
 			}
 
 			points_entree->point(i, p);
@@ -326,7 +328,7 @@ public:
 			}
 		}
 
-		std::vector<dls::math::vec3f> deplacement(static_cast<size_t>(points_entree->taille()));
+		dls::tableau<dls::math::vec3f> deplacement(points_entree->taille());
 
 		points_entree->detache();
 
@@ -801,33 +803,33 @@ public:
 
 		auto gna = GNA(graine);
 
-		auto deplacement = std::vector<dls::math::vec3f>(
-					static_cast<size_t>(points->taille()),
+		auto deplacement = dls::tableau<dls::math::vec3f>(
+					points->taille(),
 					dls::math::vec3f(0.0f));
 
 		for (auto i = 0; i < points->taille(); ++i) {
 			auto point = points->point(i);
 
 			/* tangeante */
-			auto const &voisins = index_voisins[static_cast<size_t>(i)];
+			auto const &voisins = index_voisins[i];
 
 			for (auto voisin : voisins) {
 				auto const pv = points->point(voisin);
 				auto echelle = poids_tangeantes / (poids_tangeantes + longueur(pv - point));
-				deplacement[static_cast<size_t>(i)] += gna.uniforme(0.0f, echelle) * (pv - point);
+				deplacement[i] += gna.uniforme(0.0f, echelle) * (pv - point);
 			}
 
 			if (voisins.size() != 0) {
-				deplacement[static_cast<size_t>(i)] /= static_cast<float>(voisins.size());
+				deplacement[i] /= static_cast<float>(voisins.size());
 			}
 
 			/* normal */
-			deplacement[static_cast<size_t>(i)] += gna.uniforme(0.0f, poids_normaux) * attr_N->vec3(i);
+			deplacement[i] += gna.uniforme(0.0f, poids_normaux) * attr_N->vec3(i);
 		}
 
 		for (auto i = 0; i < points->taille(); ++i) {
 			auto point = points->point(i);
-			point += poids * deplacement[static_cast<size_t>(i)];
+			point += poids * deplacement[i];
 			points->point(i, point);
 		}
 
@@ -888,16 +890,16 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_elimines = std::vector<bool>(static_cast<size_t>(points->taille()), false);
+		auto points_elimines = dls::tableau<char>(points->taille(), 0);
 		auto index_voisins = cherche_index_voisins(*corps_entree);
 		auto index_adjacents = cherche_index_adjacents(*corps_entree);
 
 		/* Un point est sur une bordure si le nombre de points voisins est
 		 * différents du nombre des primitives voisins. */
 		auto nombre_elimines = 0;
-		for (auto i = 0ul; i < points_elimines.size(); ++i) {
+		for (auto i = 0; i < points_elimines.taille(); ++i) {
 			if (index_voisins[i].size() != index_adjacents[i].size()) {
-				points_elimines[i] = true;
+				points_elimines[i] = 1;
 				++nombre_elimines;
 			}
 		}
@@ -907,15 +909,15 @@ public:
 		}
 
 		/* trouve les primitives à supprimer */
-		auto prims_eliminees = std::vector<bool>(static_cast<size_t>(prims->taille()), false);
+		auto prims_eliminees = dls::tableau<char>(prims->taille(), 0);
 
-		for (auto i = 0ul; i < points_elimines.size(); ++i) {
-			if (points_elimines[i] == false) {
+		for (auto i = 0; i < points_elimines.taille(); ++i) {
+			if (points_elimines[i] == 0) {
 				continue;
 			}
 
 			for (auto j : index_adjacents[i]) {
-				prims_eliminees[static_cast<size_t>(j)] = true;
+				prims_eliminees[j] = 1;
 			}
 		}
 
@@ -925,32 +927,32 @@ public:
 
 		/* les nouveaux index des points, puisque certains sont supprimés, il
 		 * faut réindexer */
-		auto nouveaux_index = std::vector<long>(static_cast<size_t>(points->taille()), -1);
+		auto nouveaux_index = dls::tableau<long>(points->taille(), -1);
 		auto index = 0;
 
-		for (auto i = 0ul; i < points_elimines.size(); ++i) {
+		for (auto i = 0; i < points_elimines.taille(); ++i) {
 			if (points_elimines[i]) {
 				continue;
 			}
 
 			nouveaux_index[i] = index++;
 
-			auto point = points->point(static_cast<long>(i));
+			auto point = points->point(i);
 			m_corps.ajoute_point(point.x, point.y, point.z);
 		}
 
-		for (auto i = 0ul; i < prims_eliminees.size(); ++i) {
+		for (auto i = 0; i < prims_eliminees.taille(); ++i) {
 			if (prims_eliminees[i]) {
 				continue;
 			}
 
-			auto prim = prims->prim(static_cast<long>(i));
+			auto prim = prims->prim(i);
 			auto poly = dynamic_cast<Polygone *>(prim);
 
 			auto nprim = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
 
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-				nprim->ajoute_sommet(nouveaux_index[static_cast<size_t>(poly->index_point(j))]);
+				nprim->ajoute_sommet(nouveaux_index[poly->index_point(j)]);
 			}
 		}
 
@@ -1107,16 +1109,16 @@ static auto calcul_centroide_poly(Corps &corps)
 	auto idx_voisins = cherche_index_adjacents(corps);
 	auto aires_poly = calcul_donnees_aire(corps);
 
-	auto aires_sommets = std::vector<float>(static_cast<size_t>(points->taille()));
+	auto aires_sommets = dls::tableau<float>(points->taille());
 
 	for (auto i = 0; i < points->taille(); ++i) {
 		auto aire = 0.0f;
 
-		for (auto const &voisin : idx_voisins[static_cast<size_t>(i)]) {
+		for (auto const &voisin : idx_voisins[i]) {
 			aire += aires_poly->decimal(voisin);
 		}
 
-		aires_sommets[static_cast<size_t>(i)] = aire;
+		aires_sommets[i] = aire;
 	}
 
 	auto centroides = corps.ajoute_attribut("centroide", type_attribut::VEC3, portee_attr::PRIMITIVE);
@@ -1133,8 +1135,8 @@ static auto calcul_centroide_poly(Corps &corps)
 			auto idx = poly->index_point(j);
 			auto v1 = points->point(idx);
 
-			centroide += v1 * aires_sommets[static_cast<size_t>(idx)];
-			poids += aires_sommets[static_cast<size_t>(idx)];
+			centroide += v1 * aires_sommets[idx];
+			poids += aires_sommets[idx];
 		}
 
 		if (poids != 0.0f) {
@@ -1180,7 +1182,7 @@ static auto calcul_tangeantes(Corps &corps)
 	auto index_voisins = cherche_index_voisins(corps);
 
 	for (auto i = 0; i < points->taille(); ++i) {
-		auto const &voisins = index_voisins[static_cast<size_t>(i)];
+		auto const &voisins = index_voisins[i];
 
 		auto tangeante = dls::math::vec3f(0.0f);
 		auto p0 = points->point(i);

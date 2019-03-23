@@ -24,9 +24,9 @@
 
 #include "arbre_octernaire.hh"
 
-#include "../corps/corps.h"
+#include "bibloc/logeuse_memoire.hh"
 
-#include "../logeuse_memoire.hh"
+#include "../corps/corps.h"
 
 ArbreOcternaire::Noeud::~Noeud()
 {

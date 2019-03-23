@@ -24,7 +24,7 @@
 
 #include "listes.h"
 
-#include "../logeuse_memoire.hh"
+#include "bibloc/logeuse_memoire.hh"
 
 #include "corps.h"
 #include "volume.hh"
@@ -45,18 +45,18 @@ Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, long nombre
 void Polygone::ajoute_sommet(long sommet)
 {
 	assert(sommet >= 0);
-	m_sommets.push_back(static_cast<size_t>(sommet));
+	m_sommets.pousse(static_cast<size_t>(sommet));
 }
 
 void Polygone::reserve_sommets(long nombre)
 {
 	assert(nombre >= 0);
-	m_sommets.reserve(static_cast<size_t>(nombre));
+	m_sommets.reserve(nombre);
 }
 
 long Polygone::nombre_sommets() const
 {
-	return static_cast<long>(m_sommets.size());
+	return m_sommets.taille();
 }
 
 long Polygone::nombre_segments() const
@@ -71,14 +71,14 @@ long Polygone::nombre_segments() const
 long Polygone::index_point(long i)
 {
 	assert(i >= 0);
-	return static_cast<long>(m_sommets[static_cast<size_t>(i)]);
+	return static_cast<long>(m_sommets[i]);
 }
 
 void Polygone::ajourne_index(long i, long j)
 {
 	assert(i >= 0);
 	assert(j >= 0);
-	m_sommets[static_cast<size_t>(i)] = static_cast<size_t>(j);
+	m_sommets[i] = static_cast<size_t>(j);
 }
 
 /* ************************************************************************** */
@@ -113,14 +113,14 @@ void ListePoints3D::redimensionne(const long nombre)
 {
 	assert(nombre >= 0);
 	detache();
-	m_sommets->resize(static_cast<size_t>(nombre));
+	m_sommets->redimensionne(nombre);
 }
 
 void ListePoints3D::reserve(long const nombre)
 {
 	assert(nombre >= 0);
 	detache();
-	m_sommets->reserve(static_cast<size_t>(nombre));
+	m_sommets->reserve(nombre);
 }
 
 long ListePoints3D::taille() const
@@ -129,19 +129,19 @@ long ListePoints3D::taille() const
 		return 0;
 	}
 
-	return static_cast<long>(m_sommets->size());
+	return m_sommets->taille();
 }
 
 void ListePoints3D::pousse(Point3D *s)
 {
 	detache();
-	m_sommets->push_back(s);
+	m_sommets->pousse(s);
 }
 
 dls::math::vec3f ListePoints3D::point(long i) const
 {
 	assert(i >= 0);
-	auto ref = m_sommets->at(static_cast<size_t>(i));
+	auto ref = m_sommets->a(i);
 	return dls::math::vec3f(ref->x, ref->y, ref->z);
 }
 
@@ -150,7 +150,7 @@ void ListePoints3D::point(long i, dls::math::vec3f const &p)
 	assert(i >= 0);
 	detache();
 
-	auto ref = m_sommets->at(static_cast<size_t>(i));
+	auto ref = m_sommets->a(i);
 	ref->x = p.x;
 	ref->y = p.y;
 	ref->z = p.z;
@@ -162,7 +162,7 @@ void ListePoints3D::detache()
 
 	if (tmp != nullptr && !m_sommets.unique()) {
 		m_sommets = RefPtr(memoire::loge<type_liste>(), supprime_liste_points);
-		m_sommets->reserve(tmp->size());
+		m_sommets->reserve(tmp->taille());
 
 		for (auto sommet : (*tmp)) {
 			auto p3d = memoire::loge<Point3D>();
@@ -170,7 +170,7 @@ void ListePoints3D::detache()
 			p3d->y = sommet->y;
 			p3d->z = sommet->z;
 
-			m_sommets->push_back(p3d);
+			m_sommets->pousse(p3d);
 		}
 	}
 	else if (tmp == nullptr) {
@@ -221,14 +221,14 @@ void ListePrimitives::reinitialise()
 void ListePrimitives::redimensionne(long const nombre)
 {
 	assert(nombre >= 0);
-	m_primitives->resize(static_cast<size_t>(nombre));
+	m_primitives->redimensionne(nombre);
 }
 
 void ListePrimitives::reserve(long const nombre)
 {
 	assert(nombre >= 0);
 	detache();
-	m_primitives->reserve(static_cast<size_t>(nombre));
+	m_primitives->reserve(nombre);
 }
 
 long ListePrimitives::taille() const
@@ -237,24 +237,24 @@ long ListePrimitives::taille() const
 		return 0;
 	}
 
-	return static_cast<long>(m_primitives->size());
+	return m_primitives->taille();
 }
 
 void ListePrimitives::pousse(Primitive *s)
 {
 	detache();
-	m_primitives->push_back(s);
+	m_primitives->pousse(s);
 }
 
 Primitive *ListePrimitives::prim(long index) const
 {
-	return m_primitives->at(static_cast<size_t>(index));
+	return m_primitives->a(index);
 }
 
 void ListePrimitives::prim(long i, Primitive *p)
 {
 	detache();
-	(*m_primitives)[static_cast<size_t>(i)] = p;
+	(*m_primitives)[i] = p;
 }
 
 void ListePrimitives::detache()
@@ -263,7 +263,7 @@ void ListePrimitives::detache()
 
 	if (tmp != nullptr && !m_primitives.unique()) {
 		m_primitives = RefPtr(memoire::loge<type_liste>(), supprime_liste_prims);
-		m_primitives->reserve(tmp->size());
+		m_primitives->reserve(tmp->taille());
 
 		for (auto prim : (*tmp)) {
 			if (prim->type_prim() == type_primitive::POLYGONE) {
@@ -281,7 +281,7 @@ void ListePrimitives::detache()
 					p->ajoute_sommet(polygone->index_point(i));
 				}
 
-				m_primitives->push_back(p);
+				m_primitives->pousse(p);
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				auto volume = dynamic_cast<Volume *>(prim);
@@ -292,7 +292,7 @@ void ListePrimitives::detache()
 				}
 
 				nouveau_volume->index = volume->index;
-				m_primitives->push_back(nouveau_volume);
+				m_primitives->pousse(nouveau_volume);
 			}
 		}
 	}

@@ -44,9 +44,11 @@
 
 #include "bibliotheques/outils/definitions.hh"
 
+#include "bibloc/logeuse_memoire.hh"
+#include "bibloc/tableau.hh"
+
 #include "../contexte_evaluation.hh"
 #include "../donnees_simulation.hh"
-#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -55,15 +57,15 @@
 static btCollisionShape *cree_forme_pour_corps(Corps &corps)
 {
 	/* calcul de la boite englobante du corps */
-	auto verts = std::vector<dls::math::vec3f>{};
-	verts.reserve(static_cast<size_t>(corps.points()->taille()));
+	auto verts = dls::tableau<dls::math::vec3f>{};
+	verts.reserve(corps.points()->taille());
 
 	auto min = dls::math::vec3f( std::numeric_limits<float>::max());
 	auto max = dls::math::vec3f(-std::numeric_limits<float>::min());
 	for (auto i = 0; i < corps.points()->taille(); ++i) {
 		auto point = corps.points()->point(i);
 		extrait_min_max(point, min, max);
-		verts.push_back(point);
+		verts.pousse(point);
 	}
 
 	auto taille = max - min;

@@ -31,13 +31,15 @@
 #include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "bibloc/logeuse_memoire.hh"
+#include "bibloc/tableau.hh"
+
 #include "../corps/adaptrice_creation_corps.h"
 #include "../corps/iteration_corps.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../donnees_aval.hh"
 #include "../gestionnaire_fichier.hh"
-#include "../logeuse_memoire.hh"
 #include "../manipulatrice.h"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -1274,7 +1276,7 @@ public:
 using Scalar   = Kelvinlet::Scalar;
 using Vector3  = Kelvinlet::Vector3;
 using Matrix33 = Kelvinlet::Matrix33;
-using Deformer = std::vector<Kelvinlet::DynaBase::Ptr>;
+using Deformer = dls::tableau<Kelvinlet::DynaBase::Ptr>;
 
 template <class DynaType>
 static auto ajoute_deformeur(
@@ -1300,7 +1302,7 @@ static auto ajoute_deformeur(
 	Kelvinlet::DynaBase::Ptr ptr;
 	ptr.reset(new DynaType(def));
 
-	deformeurs.push_back(ptr);
+	deformeurs.pousse(ptr);
 }
 
 #include <numeric>
@@ -1319,7 +1321,7 @@ static auto deforme_kelvinlet(
 			return a + def->EvalDispRK4(p, t);
 		};
 
-		return std::accumulate(deformer.begin(), deformer.end(), u, op);
+		return std::accumulate(deformer.debut(), deformer.fin(), u, op);
 	}
 
 	auto op = [&](Vector3 const &a, Kelvinlet::DynaBase::Ptr def)
@@ -1327,7 +1329,7 @@ static auto deforme_kelvinlet(
 		return a + def->EvalDisp(p, t);
 	};
 
-	return std::accumulate(deformer.begin(), deformer.end(), u, op);
+	return std::accumulate(deformer.debut(), deformer.fin(), u, op);
 }
 
 static void ajoute_deformeur(

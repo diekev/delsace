@@ -35,6 +35,8 @@
 #include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "bibloc/tableau.hh"
+
 #include "../contexte_evaluation.hh"
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
@@ -519,16 +521,16 @@ public:
 		rayon = std::ceil(rayon);
 
 		auto poids = 0.0f;
-		std::vector<float> kernel(static_cast<size_t>(2.0f * rayon + 1.0f));
+		dls::tableau<float> kernel(static_cast<long>(2.0f * rayon + 1.0f));
 
 		if (type_flou == "boîte") {
-			for (size_t i = static_cast<size_t>(-rayon), k = 0; i < static_cast<size_t>(rayon) + 1; ++i, ++k) {
+			for (auto i = static_cast<long>(-rayon), k = 0l; i < static_cast<long>(rayon) + 1; ++i, ++k) {
 				kernel[k] = 1.0f;
 				poids += kernel[k];
 			}
 		}
 		else if (type_flou == "gaussien") {
-			for (size_t i = static_cast<size_t>(-rayon), k = 0; i < static_cast<size_t>(rayon) + 1; ++i, ++k) {
+			for (auto i = static_cast<long>(-rayon), k = 0l; i < static_cast<long>(rayon) + 1; ++i, ++k) {
 				kernel[k] = std::exp(-static_cast<float>(i * i) / (2.0f * rayon_flou * rayon_flou)) / (constantes<float>::TAU * rayon_flou * rayon_flou);
 				poids += kernel[k];
 			}
@@ -540,17 +542,17 @@ public:
 		applique_fonction_position(image_tmp,
 								   [&](numero7::image::Pixel<float> const &/*pixel*/, int ye, int xe)
 		{
-			auto x = static_cast<size_t>(xe);
-			auto y = static_cast<size_t>(ye);
+			auto x = static_cast<long>(xe);
+			auto y = static_cast<long>(ye);
 			numero7::image::Pixel<float> valeur;
 			valeur.r = 0.0f;
 			valeur.g = 0.0f;
 			valeur.b = 0.0f;
-			valeur.a = tampon->valeur(x, y).a;
+			valeur.a = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y)).a;
 
-			for (size_t ix = x - static_cast<size_t>(rayon), k = 0; ix < x + static_cast<size_t>(rayon) + 1; ix++, ++k) {
-				auto const xx = std::min(largeur - 1, std::max(0ul, ix));
-				auto const &p = tampon->valeur(xx, y);
+			for (auto ix = x - static_cast<long>(rayon), k = 0l; ix < x + static_cast<long>(rayon) + 1; ix++, ++k) {
+				auto const xx = std::min(static_cast<long>(largeur - 1), std::max(0l, ix));
+				auto const &p = tampon->valeur(static_cast<size_t>(xx), static_cast<size_t>(y));
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
 				valeur.b += p.b * kernel[k];
@@ -569,17 +571,17 @@ public:
 		applique_fonction_position(image_tmp,
 								   [&](numero7::image::Pixel<float> const &/*pixel*/, int ye, int xe)
 		{
-			auto x = static_cast<size_t>(xe);
-			auto y = static_cast<size_t>(ye);
+			auto x = static_cast<long>(xe);
+			auto y = static_cast<long>(ye);
 			numero7::image::Pixel<float> valeur;
 			valeur.r = 0.0f;
 			valeur.g = 0.0f;
 			valeur.b = 0.0f;
-			valeur.a = tampon->valeur(x, y).a;
+			valeur.a = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y)).a;
 
-			for (size_t iy = y - static_cast<size_t>(rayon), k = 0; iy < y + static_cast<size_t>(rayon) + 1; iy++, ++k) {
-				auto const yy = std::min(hauteur - 1, std::max(0ul, iy));
-				auto const &p = tampon->valeur(x, yy);
+			for (auto iy = y - static_cast<long>(rayon), k = 0l; iy < y + static_cast<long>(rayon) + 1; iy++, ++k) {
+				auto const yy = std::min(static_cast<long>(hauteur - 1), std::max(0l, iy));
+				auto const &p = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(yy));
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
 				valeur.b += p.b * kernel[k];
@@ -999,9 +1001,9 @@ static type_image_grise simule_grain_image(
 	auto gna = GNA(graine);
 
 	/* précalcul des lambdas */
-	std::vector<float> lambdas(MAX_NIVEAU_GRIS);
+	dls::tableau<float> lambdas(MAX_NIVEAU_GRIS);
 
-	for (size_t i = 0; i < MAX_NIVEAU_GRIS; ++i) {
+	for (auto i = 0; i < MAX_NIVEAU_GRIS; ++i) {
 		auto const u = static_cast<float>(i) / static_cast<float>(MAX_NIVEAU_GRIS);
 		auto const ag = 1.0f / std::ceil(1.0f / rayon_max);
 		auto const lambda_tmp = -((ag * ag) / (constantes<float>::PI * (rayon_max*rayon_max + sigma*sigma))) * std::log(1.0f - u);
@@ -1011,10 +1013,10 @@ static type_image_grise simule_grain_image(
 	/* précalcul des gaussiens */
 	auto const iter = 1; // nombre d'itération de la simulation de Monte-Carlo
 
-	std::vector<float> liste_gaussien_x(iter);
-	std::vector<float> liste_gaussien_y(iter);
+	dls::tableau<float> liste_gaussien_x(iter);
+	dls::tableau<float> liste_gaussien_y(iter);
 
-	for (size_t i = 0; i < iter; ++i) {
+	for (auto i = 0; i < iter; ++i) {
 		liste_gaussien_x[i] = gna.normale(0.0f, sigma_filtre);
 		liste_gaussien_y[i] = gna.normale(0.0f, sigma_filtre);
 	}
@@ -1031,7 +1033,7 @@ static type_image_grise simule_grain_image(
 			for (int i = 0; i < res_x; ++i) {
 				resultat[j][i] = 0.0f;
 
-				for (size_t k = 0; k < iter; ++k) {
+				for (auto k = 0; k < iter; ++k) {
 					bool va_suivant = false;
 					// décalage aléatoire d'une distribution gaussienne centrée de variance sigma^2
 					auto gaussien_x = static_cast<float>(i) + sigma_filtre * liste_gaussien_x[k];
@@ -1051,7 +1053,7 @@ static type_image_grise simule_grain_image(
 
 							// échantillone image
 							auto const u = std::max(0.0f, std::min(1.0f, image[int(coin_y)][int(coin_x)]));
-							auto const index_u = static_cast<size_t>(u * MAX_NIVEAU_GRIS);
+							auto const index_u = static_cast<long>(u * MAX_NIVEAU_GRIS);
 							auto const lambda = lambdas[index_u];
 							auto const Q = poisson(gna_local.uniforme(0.0f, 1.0f), lambda);
 
@@ -1527,7 +1529,7 @@ public:
 		using pixel_t = numero7::image::Pixel<float>;
 		using paire_pixel_t = std::pair<pixel_t, int>;
 
-		std::vector<paire_pixel_t> histogramme(360ul);
+		dls::tableau<paire_pixel_t> histogramme(360ul);
 
 		for (auto &paire : histogramme) {
 			paire.first = pixel_t(0.0f);
@@ -1541,7 +1543,7 @@ public:
 				res.a = 1;
 				rvb_vers_hsv(pixel.r, pixel.g, pixel.b, &res.r, &res.g, &res.b);
 
-				auto index = static_cast<size_t>(res.r * 360.0f);
+				auto index = static_cast<long>(res.r * 360.0f);
 
 				if (histogramme[index].second == 0) {
 					histogramme[index].first = pixel;
@@ -1551,7 +1553,7 @@ public:
 			}
 		}
 
-		std::sort(histogramme.begin(), histogramme.end(),
+		std::sort(histogramme.debut(), histogramme.fin(),
 				  [](paire_pixel_t const &v1, paire_pixel_t const &v2)
 		{
 			return v1.second > v2.second;
@@ -1559,7 +1561,7 @@ public:
 
 		for (int l = 0; l < res_y; ++l) {
 			for (int c = 0; c < res_x; ++c) {
-				auto index = static_cast<size_t>(l / 64) % 360;
+				auto index = static_cast<long>(l / 64) % 360;
 				image_tampon[l][c] = histogramme[index].first;
 			}
 		}

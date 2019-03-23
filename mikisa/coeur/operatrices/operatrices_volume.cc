@@ -28,10 +28,11 @@
 #include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "../corps/collision.hh"
 #include "../corps/volume.hh"
 
-#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 

@@ -59,13 +59,13 @@ void UsineOperatrice::deloge(OperatriceImage *operatrice)
 	desc.supprime_operatrice(operatrice);
 }
 
-std::vector<DescOperatrice> UsineOperatrice::keys() const
+dls::tableau<DescOperatrice> UsineOperatrice::keys() const
 {
-	std::vector<DescOperatrice> v;
-	v.reserve(num_entries());
+	dls::tableau<DescOperatrice> v;
+	v.reserve(static_cast<long>(num_entries()));
 
 	for (auto const &entry : m_map) {
-		v.push_back(entry.second);
+		v.pousse(entry.second);
 	}
 
 	return v;

@@ -26,11 +26,11 @@
 
 #include <cassert>
 
-#include "../logeuse_memoire.hh"
+#include "bibloc/logeuse_memoire.hh"
 
 /* ************************************************************************** */
 
-static void supprime_liste(std::vector<size_t> *liste)
+static void supprime_liste(dls::tableau<size_t> *liste)
 {
 	memoire::deloge(liste);
 }
@@ -40,10 +40,10 @@ static void supprime_liste(std::vector<size_t> *liste)
 void GroupePoint::ajoute_point(size_t index_point)
 {
 	detache();
-	this->m_points->push_back(index_point);
+	this->m_points->pousse(index_point);
 }
 
-void GroupePoint::remplace_index(size_t i, size_t j)
+void GroupePoint::remplace_index(long i, size_t j)
 {
 	detache();
 	(*this->m_points)[i] = j;
@@ -53,7 +53,7 @@ void GroupePoint::reserve(long const nombre)
 {
 	assert(nombre >= 0);
 	detache();
-	this->m_points->reserve(static_cast<size_t>(nombre));
+	this->m_points->reserve(nombre);
 }
 
 void GroupePoint::reinitialise()
@@ -68,7 +68,7 @@ long GroupePoint::taille() const
 		return 0;
 	}
 
-	return static_cast<long>(m_points->size());
+	return m_points->taille();
 }
 
 bool GroupePoint::contiens(size_t index_point) const
@@ -88,7 +88,7 @@ bool GroupePoint::contiens(size_t index_point) const
 
 size_t GroupePoint::index(long i) const
 {
-	return m_points->at(static_cast<size_t>(i));
+	return m_points->a(i);
 }
 
 void GroupePoint::detache()
@@ -108,10 +108,10 @@ void GroupePoint::detache()
 void GroupePrimitive::ajoute_primitive(size_t index_poly)
 {
 	detache();
-	this->m_primitives->push_back(index_poly);
+	this->m_primitives->pousse(index_poly);
 }
 
-void GroupePrimitive::remplace_index(size_t i, size_t j)
+void GroupePrimitive::remplace_index(long i, size_t j)
 {
 	(*this->m_primitives)[i] = j;
 }
@@ -120,7 +120,7 @@ void GroupePrimitive::reserve(long const nombre)
 {
 	detache();
 	assert(nombre >= 0);
-	this->m_primitives->reserve(static_cast<size_t>(nombre));
+	this->m_primitives->reserve(nombre);
 }
 
 void GroupePrimitive::reinitialise()
@@ -135,12 +135,12 @@ long GroupePrimitive::taille() const
 		return 0;
 	}
 
-	return static_cast<long>(m_primitives->size());
+	return m_primitives->taille();
 }
 
 size_t GroupePrimitive::index(long i) const
 {
-	return m_primitives->at(static_cast<size_t>(i));
+	return m_primitives->a(i);
 }
 
 void GroupePrimitive::detache()

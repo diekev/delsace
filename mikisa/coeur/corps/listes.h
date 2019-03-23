@@ -25,11 +25,12 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include <delsace/math/vecteur.hh>
 
 #include "bibliotheques/outils/iterateurs.h"
+
+#include "bibloc/tableau.hh"
 
 #include "primitive.hh"
 
@@ -85,7 +86,7 @@ enum class type_polygone : char {
  * tridimensionel.
  */
 class Polygone final : public Primitive {
-	std::vector<size_t> m_sommets{};
+	dls::tableau<size_t> m_sommets{};
 
 public:
 	/* nouvelle entreface */
@@ -127,7 +128,7 @@ public:
 
 class ListePoints3D {
 public:
-	using type_liste = std::vector<Point3D *>;
+	using type_liste = dls::tableau<Point3D *>;
 
 private:
 	typedef std::shared_ptr<type_liste> RefPtr;
@@ -159,7 +160,7 @@ public:
 
 class ListePrimitives {
 public:
-	using type_liste = std::vector<Primitive *>;
+	using type_liste = dls::tableau<Primitive *>;
 
 private:
 	typedef std::shared_ptr<type_liste> RefPtr;

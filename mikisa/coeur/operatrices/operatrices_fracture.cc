@@ -27,7 +27,9 @@
 #include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/voro/voro++.hh"
 
-#include "../logeuse_memoire.hh"
+#include "bibloc/logeuse_memoire.hh"
+#include "bibloc/tableau.hh"
+
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -163,11 +165,11 @@ public:
 		}
 
 		/* création des cellules */
-		auto cellules = std::vector<cell>(static_cast<size_t>(points_entree->taille()));
+		auto cellules = dls::tableau<cell>(points_entree->taille());
 
 		/* calcul des cellules */
 
-		container_compute_cells(cont_voro, ordre_parts, cellules.data());
+		container_compute_cells(cont_voro, ordre_parts, cellules.donnees());
 
 		/* conversion des données */
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);

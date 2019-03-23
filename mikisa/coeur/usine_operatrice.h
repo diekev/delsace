@@ -26,9 +26,9 @@
 
 #include <string>
 #include <unordered_map>
-#include <vector>
 
-#include "logeuse_memoire.hh"
+#include "bibloc/logeuse_memoire.hh"
+#include "bibloc/tableau.hh"
 
 class Graphe;
 class Noeud;
@@ -113,7 +113,7 @@ public:
 	 *
 	 * @return An unsorted vector containing the keys registered in this factory.
 	 */
-	std::vector<DescOperatrice> keys() const;
+	dls::tableau<DescOperatrice> keys() const;
 
 	/**
 	 * @brief registered Check whether or not a key has been registered in this

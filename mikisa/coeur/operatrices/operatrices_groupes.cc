@@ -26,6 +26,8 @@
 
 #include "bibliotheques/outils/gna.hh"
 
+#include "bibloc/tableau.hh"
+
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -120,11 +122,11 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		std::vector<size_t> index_possibles;
-		index_possibles.reserve(static_cast<size_t>(n));
+		dls::tableau<size_t> index_possibles;
+		index_possibles.reserve(n);
 
 		for (auto i = depart; i < n; i += decalage) {
-			index_possibles.push_back(static_cast<size_t>(i));
+			index_possibles.pousse(static_cast<size_t>(i));
 		}
 
 		if (contenu == "points") {
@@ -145,7 +147,7 @@ public:
 			if (echantillonage_reservoir) {
 				// Rempli le réservoir
 				for (auto i = 0; i < k; ++i) {
-					groupe->ajoute_point(index_possibles[static_cast<size_t>(i)]);
+					groupe->ajoute_point(index_possibles[i]);
 				}
 
 				// Remplace les éléments avec une probabilité descendante
@@ -153,7 +155,7 @@ public:
 					auto j = gna.uniforme(0l, i);
 
 					if (j < k) {
-						groupe->remplace_index(static_cast<size_t>(j), index_possibles[static_cast<size_t>(i)]);
+						groupe->remplace_index(j, index_possibles[i]);
 					}
 				}
 			}
@@ -185,7 +187,7 @@ public:
 			if (echantillonage_reservoir) {
 				// Rempli le réservoir
 				for (auto i = 0; i < k; ++i) {
-					groupe->ajoute_primitive(index_possibles[static_cast<size_t>(i)]);
+					groupe->ajoute_primitive(index_possibles[i]);
 				}
 
 				// Remplace les éléments avec une probabilité descendante
@@ -193,7 +195,7 @@ public:
 					auto j = gna.uniforme(0l, i);
 
 					if (j < k) {
-						groupe->remplace_index(static_cast<size_t>(j), index_possibles[static_cast<size_t>(i)]);
+						groupe->remplace_index(j, index_possibles[i]);
 					}
 				}
 			}

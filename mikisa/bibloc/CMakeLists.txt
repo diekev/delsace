@@ -19,12 +19,23 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# ------------------------------------------------------------------------------
+set(NOM_CIBLE bibloc_mikisa)
 
-set(NOM_PROJET mikisa)
+set(INCLUSIONS
+)
 
-add_subdirectory(bibloc)
-add_subdirectory(coeur)
-add_subdirectory(entreface)
-add_subdirectory(lanceur)
-add_subdirectory(rendu)
+set(BIBLIOTHEQUES
+)
+
+add_library(${NOM_CIBLE} STATIC
+    logeuse_memoire.cc
+	tableau.cc
+
+    logeuse_memoire.hh
+	tableau.hh
+)
+
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
+

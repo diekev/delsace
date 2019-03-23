@@ -34,6 +34,8 @@
 #include "coeur/mikisa.h"
 #include "entreface/fenetre_principale.h"
 
+#include <iostream>
+
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);

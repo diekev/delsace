@@ -27,12 +27,14 @@
 #include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/gna.hh"
 
+#include "bibloc/logeuse_memoire.hh"
+#include "bibloc/tableau.hh"
+
 #include "../corps/corps.h"
 #include "../corps/iteration_corps.hh"
 
 #include "../attribut.h"
 #include "../contexte_evaluation.hh"
-#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -63,7 +65,7 @@ struct DonneesCollesion {
 };
 
 class ArbreOcternaire {
-	std::vector<Triangle *> m_triangles{};
+	dls::tableau<Triangle *> m_triangles{};
 
 public:
 	struct Octant {
@@ -93,7 +95,7 @@ public:
 
 	void ajoute_triangle(Triangle *tri)
 	{
-		m_triangles.push_back(tri);
+		m_triangles.pousse(tri);
 	}
 
 private:

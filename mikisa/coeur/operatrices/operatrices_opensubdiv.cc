@@ -36,9 +36,11 @@
 #include <opensubdiv/far/topologyDescriptor.h>
 #pragma GCC diagnostic pop
 
+#include "bibloc/logeuse_memoire.hh"
+#include "bibloc/tableau.hh"
+
 #include "../corps/iteration_corps.hh"
 
-#include "../logeuse_memoire.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -223,19 +225,19 @@ public:
 		desc.numVertices = static_cast<int>(nombre_sommets);
 		desc.numFaces    = static_cast<int>(nombre_polygones);
 
-		std::vector<int> nombre_sommets_par_poly;
-		nombre_sommets_par_poly.reserve(static_cast<size_t>(nombre_polygones));
+		dls::tableau<int> nombre_sommets_par_poly;
+		nombre_sommets_par_poly.reserve(nombre_polygones);
 
-		std::vector<int> index_sommets_polys;
-		index_sommets_polys.reserve(static_cast<size_t>(nombre_sommets * nombre_polygones));
+		dls::tableau<int> index_sommets_polys;
+		index_sommets_polys.reserve(nombre_sommets * nombre_polygones);
 
 		pour_chaque_polygone_ferme(*corps_entree,
 								   [&](Corps const &, Polygone *poly)
 		{
-			nombre_sommets_par_poly.push_back(static_cast<int>(poly->nombre_sommets()));
+			nombre_sommets_par_poly.pousse(static_cast<int>(poly->nombre_sommets()));
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
-				index_sommets_polys.push_back(static_cast<int>(poly->index_point(i)));
+				index_sommets_polys.pousse(static_cast<int>(poly->index_point(i)));
 			}
 		});
 
@@ -251,7 +253,7 @@ public:
 
 		/* Alloue un tampon pouvant contenir le nombre total de sommets à
 			 * 'niveau_max' de rafinement. */
-		std::vector<SommetOSD> sommets_osd(static_cast<size_t>(rafineur->GetNumVerticesTotal()));
+		dls::tableau<SommetOSD> sommets_osd(rafineur->GetNumVerticesTotal());
 		SommetOSD *sommets = &sommets_osd[0];
 
 		/* Initialise les positions du maillage grossier. */

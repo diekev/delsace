@@ -27,6 +27,8 @@
 #include "bibliotheques/outils/parallelisme.h"
 #include "bibliotheques/Patate/grenaille.h"
 
+#include "bibloc/tableau.hh"
+
 #include "../corps/corps.h"
 
 #include "../chef_execution.hh"
@@ -104,8 +106,8 @@ class Grid {
 public:
 	using Cell = Eigen::Array3i;
 	using CellBlock = Eigen::AlignedBox3i;
-	using IndexVecteur = std::vector<unsigned>;
-	using PointVecteur = std::vector<GLSPoint, Eigen::aligned_allocator<GLSPoint> >;
+	using IndexVecteur = dls::tableau<unsigned>;
+	using PointVecteur = dls::tableau<GLSPoint>;
 
 private:
 	Scalaire      _cellSize{};
@@ -134,7 +136,7 @@ public:
 		//std::cout << "GridSize: " << _gridSize.transpose() << " (" << nCells() << ")\n";
 
 		// Compute cells size (number of points in each cell)
-		_cellsIndex.resize(nCells() + 1, 0);
+		_cellsIndex.redimensionne(nCells() + 1, 0);
 
 		for (auto vit = 0; vit < maillage.points->taille(); ++vit) {
 			auto i = static_cast<unsigned>(cellIndex(converti_eigen(maillage.points->point(vit))));
@@ -148,7 +150,7 @@ public:
 
 		// Fill the point array
 		IndexVecteur pointCount(nCells(), 0);
-		_points.resize(_cellsIndex.back());
+		_points.redimensionne(_cellsIndex.back());
 		for (auto vit = 0; vit < maillage.points->taille(); ++vit) {
 			auto i = static_cast<unsigned>(cellIndex(converti_eigen(maillage.points->point(vit))));
 			*(_pointsBegin(i) + pointCount[i]) = GLSPoint(maillage, vit);

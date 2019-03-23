@@ -36,11 +36,12 @@
 #include "bibliotheques/outils/constantes.h"
 #include "bibliotheques/outils/definitions.hh"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "../composite.h"
 #include "../evaluation.h"
 #include "../evenement.h"
 #include "../imprimeuse_graphe.h"
-#include "../logeuse_memoire.hh"
 #include "../manipulatrice.h"
 #include "../mikisa.h"
 #include "../noeud_image.h"

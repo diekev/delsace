@@ -39,9 +39,9 @@ float calcule_aire(const Triangle &triangle)
 	return calcule_aire(triangle.v0, triangle.v1, triangle.v2);
 }
 
-std::vector<Triangle> convertis_maillage_triangles(const Corps *corps_entree, GroupePrimitive *groupe)
+dls::tableau<Triangle> convertis_maillage_triangles(const Corps *corps_entree, GroupePrimitive *groupe)
 {
-	std::vector<Triangle> triangles;
+	dls::tableau<Triangle> triangles;
 	auto const points = corps_entree->points();
 	auto const prims  = corps_entree->prims();
 
@@ -85,7 +85,7 @@ std::vector<Triangle> convertis_maillage_triangles(const Corps *corps_entree, Gr
 		nombre_triangles += poly->nombre_sommets() - 2;
 	}
 
-	triangles.reserve(static_cast<size_t>(nombre_triangles));
+	triangles.reserve(nombre_triangles);
 
 	for (auto ig : iter) {
 		auto prim = prims->prim(ig);
@@ -107,7 +107,7 @@ std::vector<Triangle> convertis_maillage_triangles(const Corps *corps_entree, Gr
 			triangle.v1 = points->point(poly->index_point(i - 1));
 			triangle.v2 = points->point(poly->index_point(i));
 
-			triangles.push_back(triangle);
+			triangles.pousse(triangle);
 		}
 	}
 

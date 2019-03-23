@@ -29,9 +29,10 @@
 
 #include "bibliotheques/commandes/commande.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "../composite.h"
 #include "../evenement.h"
-#include "../logeuse_memoire.hh"
 #include "../mikisa.h"
 #include "../tache.h"
 

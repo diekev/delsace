@@ -27,9 +27,9 @@
 #include "primitive.hh"
 
 #include <delsace/math/vecteur.hh>
-#include <vector>
 
-#include "../logeuse_memoire.hh"
+#include "bibloc/logeuse_memoire.hh"
+#include "bibloc/tableau.hh"
 
 enum class type_volume : char {
 	SCALAIRE,
@@ -43,7 +43,7 @@ protected:
 	dls::math::vec3<size_t> m_res = dls::math::vec3<size_t>(0ul, 0ul, 0ul);
 	size_t m_nombre_voxels = 0;
 
-	size_t calcul_index(size_t x, size_t y, size_t z) const;
+	long calcul_index(size_t x, size_t y, size_t z) const;
 
 	bool hors_des_limites(size_t x, size_t y, size_t z) const;
 
@@ -65,7 +65,7 @@ public:
 
 template <typename T>
 class Grille : public BaseGrille {
-	std::vector<T> m_donnees = {};
+	dls::tableau<T> m_donnees = {};
 
 	T m_arriere_plan = T(0);
 	T pad{};
@@ -81,8 +81,7 @@ public:
 
 		m_nombre_voxels = res_x * res_y * res_z;
 
-		m_donnees.resize(m_nombre_voxels);
-		std::fill(m_donnees.begin(), m_donnees.end(), T(0));
+		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels), T(0));
 	}
 
 	T valeur(size_t index) const
@@ -135,7 +134,7 @@ public:
 
 	void const *donnees() const
 	{
-		return m_donnees.data();
+		return m_donnees.donnees();
 	}
 
 	size_t taille_octet() const

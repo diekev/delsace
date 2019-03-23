@@ -31,9 +31,10 @@
 
 #include "bibliotheques/xml/tinyxml2.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "evenement.h"
 #include "composite.h"
-#include "logeuse_memoire.hh"
 #include "mikisa.h"
 #include "noeud_image.h"
 #include "operatrice_graphe_maillage.h"

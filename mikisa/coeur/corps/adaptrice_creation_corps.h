@@ -26,6 +26,8 @@
 
 #include "bibliotheques/objets/adaptrice_creation.h"
 
+#include "bibloc/tableau.hh"
+
 class Corps;
 class GroupePrimitive;
 class Attribut;
@@ -60,7 +62,7 @@ public:
 
 	void groupe_nuancage(const int index) override;
 
-	std::vector<GroupePrimitive *> groupes_courant{};
+	dls::tableau<GroupePrimitive *> groupes_courant{};
 	Corps *corps{};
 	Attribut *attribut_normal = nullptr;
 	Attribut *attribut_normal_polys = nullptr;

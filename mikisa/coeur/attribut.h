@@ -26,9 +26,10 @@
 
 #include <delsace/math/matrice.hh>
 #include <string>
-#include <vector>
 
 #include "bibliotheques/outils/iterateurs.h"
+
+#include "bibloc/tableau.hh"
 
 /* ************************************************************************** */
 
@@ -126,7 +127,7 @@ class Attribut {
 	std::string m_nom;
 	type_attribut m_type;
 
-	std::vector<char> m_tampon{};
+	dls::tableau<char> m_tampon{};
 
 public:
 	portee_attr portee;
@@ -159,7 +160,7 @@ public:
 		assert(idx >= 0);
 		assert(idx < taille());
 		assert(this->type() == type_attribut_depuis_type<T>::type);
-		return *reinterpret_cast<T *>(&m_tampon[static_cast<size_t>(idx) * sizeof(T)]);
+		return *reinterpret_cast<T *>(&m_tampon[idx * static_cast<long>(sizeof(T))]);
 	}
 
 	template <typename T>
@@ -168,7 +169,7 @@ public:
 		assert(idx >= 0);
 		assert(idx < taille());
 		assert(this->type() == type_attribut_depuis_type<T>::type);
-		return *reinterpret_cast<T const *>(&m_tampon[static_cast<size_t>(idx) * sizeof(T)]);
+		return *reinterpret_cast<T const *>(&m_tampon[idx * static_cast<long>(sizeof(T))]);
 	}
 
 	template <typename T>

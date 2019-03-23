@@ -470,12 +470,12 @@ void GestionnaireDonneesGraphe::reinitialise()
 
 size_t GestionnaireDonneesGraphe::ajoute_bruit(dls::math::BruitPerlin3D *bruit)
 {
-	m_bruits.push_back(bruit);
-	return m_bruits.size() - 1;
+	m_bruits.pousse(bruit);
+	return static_cast<size_t>(m_bruits.taille() - 1);
 }
 
 dls::math::BruitPerlin3D *GestionnaireDonneesGraphe::bruit(size_t index) const
 {
-	assert(index < m_bruits.size());
-	return m_bruits[index];
+	assert(static_cast<long>(index) < m_bruits.taille());
+	return m_bruits[static_cast<long>(index)];
 }

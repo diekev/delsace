@@ -29,6 +29,8 @@
 #include "bibliotheques/graphe/compileuse_graphe.h"
 #include "bibliotheques/graphe/graphe.h"
 
+#include "bibloc/tableau.hh"
+
 /* ************************************************************************** */
 
 enum : size_t {
@@ -69,7 +71,7 @@ class BruitPerlin3D;
 }  /* namespace numero7 */
 
 class GestionnaireDonneesGraphe {
-	std::vector<dls::math::BruitPerlin3D *> m_bruits{};
+	dls::tableau<dls::math::BruitPerlin3D *> m_bruits{};
 
 public:
 	void reinitialise();

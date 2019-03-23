@@ -58,12 +58,36 @@ struct logeuse_memoire {
 	{
 		assert(nombre >= 0);
 
-		auto ptr = new T[nombre];
+		auto ptr = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nombre)));
 
 		this->memoire_allouee += sizeof(T) * static_cast<size_t>(nombre);
 		this->memoire_consommee = std::max(this->memoire_allouee, this->memoire_consommee);
 
 		return ptr;
+	}
+
+	template <typename T>
+	void reloge_tableau(T *&ptr, long ancienne_taille, long nouvelle_taille)
+	{
+		assert(ancienne_taille >= 0);
+		assert(nouvelle_taille >= 0);
+
+		if constexpr (std::is_trivially_copyable_v<T>) {
+			ptr = static_cast<T *>(realloc(ptr, static_cast<size_t>(nouvelle_taille)));
+		}
+		else {
+			auto res = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nouvelle_taille)));
+
+			for (auto i = 0; i < ancienne_taille; ++i) {
+				res[i] = ptr[i];
+			}
+
+			free(ptr);
+			ptr = res;
+		}
+
+		this->memoire_allouee += sizeof(T) * static_cast<size_t>(nouvelle_taille - ancienne_taille);
+		this->memoire_consommee = std::max(this->memoire_allouee, this->memoire_consommee);
 	}
 
 	template <typename T>
@@ -80,7 +104,7 @@ struct logeuse_memoire {
 	{
 		assert(nombre >= 0);
 
-		delete [] ptr;
+		free(ptr);
 		ptr = nullptr;
 
 		this->memoire_allouee -= sizeof(T) * static_cast<size_t>(nombre);
@@ -120,6 +144,13 @@ template <typename T, typename... Args>
 {
 	auto &logeuse = logeuse_memoire::instance();
 	return logeuse.loge<T>(args...);
+}
+
+template <typename T>
+void reloge_tableau(T *&ptr, long ancienne_taille, long nouvelle_taille)
+{
+	auto &logeuse = logeuse_memoire::instance();
+	logeuse.reloge_tableau(ptr, ancienne_taille, nouvelle_taille);
 }
 
 template <typename T>

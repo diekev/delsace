@@ -26,8 +26,9 @@
 
 #include "bibliotheques/outils/definitions.hh"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "../attribut.h"
-#include "../logeuse_memoire.hh"
 
 #include "corps.h"
 #include "groupes.h"
@@ -150,7 +151,7 @@ void AdaptriceCreationCorps::groupes(std::vector<std::string> const &noms)
 
 	for (auto const &nom : noms) {
 		auto groupe = corps->ajoute_groupe_primitive(nom);
-		groupes_courant.push_back(groupe);
+		groupes_courant.pousse(groupe);
 	}
 }
 

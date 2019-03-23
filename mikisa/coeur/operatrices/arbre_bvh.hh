@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "bibloc/tableau.hh"
 
 struct Triangle;
 
@@ -46,10 +46,10 @@ struct ArbreBVH {
 		int totnode = 0;
 	};
 
-	std::vector<ArbreBVH::Noeud *> nodes{};
-	std::vector<float> nodebv{};
-	std::vector<ArbreBVH::Noeud *> nodechild{};
-	std::vector<ArbreBVH::Noeud> nodearray{};
+	dls::tableau<ArbreBVH::Noeud *> nodes{};
+	dls::tableau<float> nodebv{};
+	dls::tableau<ArbreBVH::Noeud *> nodechild{};
+	dls::tableau<ArbreBVH::Noeud> nodearray{};
 
 	void insert_triangle(int index, Triangle const &tri);
 

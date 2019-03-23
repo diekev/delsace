@@ -41,6 +41,8 @@
 #include "bibliotheques/graphe/graphe.h"
 #include "bibliotheques/outils/definitions.hh"
 
+#include "bibloc/tableau.hh"
+
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
 #include "../gestionnaire_fichier.hh"
@@ -106,28 +108,32 @@ static auto charge_exr(const char *chemin, std::any const &donnees)
 
 	Imath::Box2i dw = file.dataWindow();
 
-	auto width = static_cast<size_t>(dw.max.x - dw.min.x + 1);
-	auto height = static_cast<size_t>(dw.max.y - dw.min.y + 1);
+	auto width = static_cast<long>(dw.max.x - dw.min.x + 1);
+	auto height = static_cast<long>(dw.max.y - dw.min.y + 1);
 
-	std::vector<openexr::Rgba> pixels(width * height);
+	dls::tableau<openexr::Rgba> pixels(width * height);
 
-	file.setFrameBuffer(&pixels[0] - static_cast<size_t>(dw.min.x - dw.min.y) * width, 1, width);
+	file.setFrameBuffer(
+				&pixels.front() - static_cast<size_t>(dw.min.x - dw.min.y) * static_cast<size_t>(width),
+				1,
+				static_cast<size_t>(width));
+
 	file.readPixels(dw.min.y, dw.max.y);
 
 	type_image img = type_image(
 						 numero7::math::Largeur(static_cast<int>(width)),
 						 numero7::math::Hauteur(static_cast<int>(height)));
 
-	size_t idx(0);
-	for (size_t y(0); y < height; ++y) {
-		for (size_t x(0), xe(width); x < xe; ++x, ++idx) {
+	long idx(0);
+	for (auto y(0); y < height; ++y) {
+		for (auto x(0l), xe(width); x < xe; ++x, ++idx) {
 			auto pixel = numero7::image::PixelFloat();
 			pixel.r = pixels[idx].r;
 			pixel.g = pixels[idx].g;
 			pixel.b = pixels[idx].b;
 			pixel.a = pixels[idx].a;
 
-			img[static_cast<int>(y)][x] = pixel;
+			img[y][x] = pixel;
 		}
 	}
 

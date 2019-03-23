@@ -28,8 +28,9 @@
 
 #include "bibliotheques/outils/definitions.hh"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "../attribut.h"
-#include "../logeuse_memoire.hh"
 
 #include "groupes.h"
 #include "volume.hh"
@@ -46,7 +47,7 @@ bool Corps::possede_attribut(std::string const &nom_attribut)
 
 void Corps::ajoute_attribut(Attribut *attr)
 {
-	this->m_attributs.push_back(attr);
+	this->m_attributs.pousse(attr);
 }
 
 Attribut *Corps::ajoute_attribut(
@@ -83,7 +84,7 @@ Attribut *Corps::ajoute_attribut(
 					}
 					break;
 				case portee_attr::GROUPE:
-					taille_attrib = static_cast<long>(this->m_groupes_prims.size());
+					taille_attrib = this->m_groupes_prims.taille();
 					break;
 				case portee_attr::CORPS:
 					taille_attrib = 1;
@@ -92,7 +93,7 @@ Attribut *Corps::ajoute_attribut(
 		}
 
 		attr = memoire::loge<Attribut>(nom_attribut, type_, portee, taille_attrib);
-		m_attributs.push_back(attr);
+		m_attributs.pousse(attr);
 	}
 
 	return attr;
@@ -100,13 +101,13 @@ Attribut *Corps::ajoute_attribut(
 
 void Corps::supprime_attribut(std::string const &nom_attribut)
 {
-	auto iter = std::find_if(m_attributs.begin(), m_attributs.end(),
+	auto iter = std::find_if(m_attributs.debut(), m_attributs.fin(),
 							 [&](Attribut *attr)
 	{
 		return attr->nom() == nom_attribut;
 	});
 
-	if (iter == m_attributs.end()) {
+	if (iter == m_attributs.fin()) {
 		return;
 	}
 
@@ -241,31 +242,31 @@ void Corps::copie_vers(Corps *corps) const
 	for (Attribut *attr : this->m_attributs) {
 		auto attr_corps = memoire::loge<Attribut>(*attr);
 
-		corps->m_attributs.push_back(attr_corps);
+		corps->m_attributs.pousse(attr_corps);
 	}
 
 	/* copie les groupes */
-	corps->m_groupes_points.reserve(this->m_groupes_points.size());
+	corps->m_groupes_points.reserve(this->m_groupes_points.taille());
 
 	for (auto groupe : this->m_groupes_points) {
-		corps->m_groupes_points.push_back(groupe);
+		corps->m_groupes_points.pousse(groupe);
 	}
 
-	corps->m_groupes_prims.reserve(this->m_groupes_prims.size());
+	corps->m_groupes_prims.reserve(this->m_groupes_prims.taille());
 
 	for (auto groupe : this->m_groupes_prims) {
-		corps->m_groupes_prims.push_back(groupe);
+		corps->m_groupes_prims.pousse(groupe);
 	}
 }
 
 Corps::plage_attributs Corps::attributs()
 {
-	return plage_attributs(m_attributs.begin(), m_attributs.end());
+	return plage_attributs(m_attributs.debut(), m_attributs.fin());
 }
 
 Corps::plage_const_attributs Corps::attributs() const
 {
-	return plage_const_attributs(m_attributs.cbegin(), m_attributs.cend());
+	return plage_const_attributs(m_attributs.debut(), m_attributs.fin());
 }
 
 /* ************************************************************************** */
@@ -281,21 +282,21 @@ GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_groupe)
 	auto groupe = GroupePoint{};
 	groupe.nom = nom_groupe;
 
-	m_groupes_points.push_back(groupe);
+	m_groupes_points.pousse(groupe);
 
 	return &m_groupes_points.back();
 }
 
 GroupePoint *Corps::groupe_point(const std::string &nom_groupe) const
 {
-	auto iter = std::find_if(m_groupes_points.begin(), m_groupes_points.end(),
+	auto iter = std::find_if(m_groupes_points.debut(), m_groupes_points.fin(),
 							 [&](GroupePoint const &groupe)
 	{
 				return groupe.nom == nom_groupe;
 	});
 
-	if (iter != m_groupes_points.end()) {
-		auto index = static_cast<size_t>(std::distance(m_groupes_points.begin(), iter));
+	if (iter != m_groupes_points.fin()) {
+		auto index = std::distance(m_groupes_points.debut(), iter);
 		return const_cast<GroupePoint *>(&m_groupes_points[index]);
 	}
 
@@ -304,12 +305,12 @@ GroupePoint *Corps::groupe_point(const std::string &nom_groupe) const
 
 Corps::plage_grp_pnts Corps::groupes_points()
 {
-	return plage_grp_pnts(m_groupes_points.begin(), m_groupes_points.end());
+	return plage_grp_pnts(m_groupes_points.debut(), m_groupes_points.fin());
 }
 
 Corps::plage_const_grp_pnts Corps::groupes_points() const
 {
-	return plage_const_grp_pnts(m_groupes_points.cbegin(), m_groupes_points.cend());
+	return plage_const_grp_pnts(m_groupes_points.debut(), m_groupes_points.fin());
 }
 
 /* ************************************************************************** */
@@ -325,21 +326,21 @@ GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_groupe)
 	auto groupe = GroupePrimitive{};
 	groupe.nom = nom_groupe;
 
-	m_groupes_prims.push_back(groupe);
+	m_groupes_prims.pousse(groupe);
 
 	return &m_groupes_prims.back();
 }
 
 GroupePrimitive *Corps::groupe_primitive(const std::string &nom_groupe) const
 {
-	auto iter = std::find_if(m_groupes_prims.begin(), m_groupes_prims.end(),
+	auto iter = std::find_if(m_groupes_prims.debut(), m_groupes_prims.fin(),
 							 [&](GroupePrimitive const &groupe)
 	{
 				return groupe.nom == nom_groupe;
 	});
 
-	if (iter != m_groupes_prims.end()) {
-		auto index = static_cast<size_t>(std::distance(m_groupes_prims.begin(), iter));
+	if (iter != m_groupes_prims.fin()) {
+		auto index = std::distance(m_groupes_prims.debut(), iter);
 		return const_cast<GroupePrimitive *>(&m_groupes_prims[index]);
 	}
 
@@ -348,10 +349,10 @@ GroupePrimitive *Corps::groupe_primitive(const std::string &nom_groupe) const
 
 Corps::plage_grp_prims Corps::groupes_prims()
 {
-	return plage_grp_prims(m_groupes_prims.begin(), m_groupes_prims.end());
+	return plage_grp_prims(m_groupes_prims.debut(), m_groupes_prims.fin());
 }
 
 Corps::plage_const_grp_prims Corps::groupes_prims() const
 {
-	return plage_const_grp_prims(m_groupes_prims.cbegin(), m_groupes_prims.cend());
+	return plage_const_grp_prims(m_groupes_prims.debut(), m_groupes_prims.fin());
 }

@@ -28,9 +28,9 @@
 
 #include <delsace/math/vecteur.hh>
 
-#include "../corps/triangulation.hh"
+#include "bibloc/logeuse_memoire.hh"
 
-#include "../logeuse_memoire.hh"
+#include "../corps/triangulation.hh"
 
 static constexpr auto MAX_TREETYPE = 32;
 
@@ -96,13 +96,13 @@ static void refit_kdop_hull(const ArbreBVH *tree, ArbreBVH::Noeud *node, int sta
 	for (auto j = start; j < end; j++) {
 		/* for all Axes. */
 		for (auto axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
-			auto newmin = tree->nodes[static_cast<size_t>(j)]->bv[(2 * axis_iter)];
+			auto newmin = tree->nodes[j]->bv[(2 * axis_iter)];
 
 			if ((newmin < bv[(2 * axis_iter)])) {
 				bv[(2 * axis_iter)] = newmin;
 			}
 
-			auto newmax = tree->nodes[static_cast<size_t>(j)]->bv[(2 * axis_iter) + 1];
+			auto newmax = tree->nodes[j]->bv[(2 * axis_iter) + 1];
 			if ((newmax > bv[(2 * axis_iter) + 1])) {
 				bv[(2 * axis_iter) + 1] = newmax;
 			}
@@ -437,9 +437,9 @@ void ArbreBVH::insert_triangle(int index, Triangle const &tri)
 {
 	/* insert should only possible as long as tree->totbranch is 0 */
 	assert(this->totbranch <= 0);
-	assert(static_cast<size_t>(this->totleaf) < this->nodes.size());
+	assert(this->totleaf < this->nodes.taille());
 
-	auto node = this->nodes[static_cast<size_t>(this->totleaf)] = &(this->nodearray[static_cast<size_t>(this->totleaf)]);
+	auto node = this->nodes[this->totleaf] = &(this->nodearray[this->totleaf]);
 	this->totleaf++;
 
 	create_kdop_hull(this, node, tri, false);
@@ -500,20 +500,20 @@ static void bvhtree_verify(ArbreBVH *tree)
 
 void ArbreBVH::balance()
 {
-	auto leafs_array = this->nodes.data();
+	auto leafs_array = this->nodes.donnees();
 
 	/* This function should only be called once
 		 * (some big bug goes here if its being called more than once per tree) */
 	assert(this->totbranch == 0);
 
 	/* Build the implicit tree */
-	non_recursive_bvh_div_nodes(this, this->nodearray.data() + (this->totleaf - 1), leafs_array, this->totleaf);
+	non_recursive_bvh_div_nodes(this, this->nodearray.donnees() + (this->totleaf - 1), leafs_array, this->totleaf);
 
 	/* current code expects the branches to be linked to the nodes array
 		 * we perform that linkage here */
 	this->totbranch = implicit_needed_branches(this->tree_type, this->totleaf);
 	for (int i = 0; i < this->totbranch; i++) {
-		this->nodes[static_cast<size_t>(this->totleaf + i)] = &this->nodearray[static_cast<size_t>(this->totleaf + i)];
+		this->nodes[this->totleaf + i] = &this->nodearray[this->totleaf + i];
 	}
 
 	/* À FAIRE : info, skip tree */
@@ -571,17 +571,17 @@ ArbreBVH *nouvelle_arbre_bvh(int maxsize, float epsilon, unsigned char tree_type
 
 
 	/* Allocate arrays */
-	auto numnodes = static_cast<size_t>(maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type);
+	auto numnodes = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
 
-	arbre->nodes.resize(numnodes);
-	arbre->nodebv.resize(static_cast<size_t>(axis) * numnodes);
-	arbre->nodechild.resize(static_cast<size_t>(tree_type) * numnodes);
-	arbre->nodearray.resize(numnodes);
+	arbre->nodes.redimensionne(numnodes);
+	arbre->nodebv.redimensionne(axis * numnodes);
+	arbre->nodechild.redimensionne(tree_type * numnodes);
+	arbre->nodearray.redimensionne(numnodes);
 
 	/* link the dynamic bv and child links */
-	for (auto i = 0ul; i < numnodes; i++) {
-		arbre->nodearray[i].bv = &arbre->nodebv[i * static_cast<size_t>(axis)];
-		arbre->nodearray[i].children = &arbre->nodechild[i * static_cast<size_t>(tree_type)];
+	for (auto i = 0; i < numnodes; i++) {
+		arbre->nodearray[i].bv = &arbre->nodebv[i * axis];
+		arbre->nodearray[i].children = &arbre->nodechild[i * tree_type];
 	}
 
 	return arbre;

@@ -26,10 +26,11 @@
 
 #include <string>
 #include <thread>
-#include <vector>
 
 #include "bibliotheques/observation/observation.hh"
 #include "bibliotheques/commandes/commande.h"
+
+#include "bibloc/tableau.hh"
 
 #include "chef_execution.hh"
 #include "gestionnaire_fichier.hh"
@@ -75,7 +76,7 @@ class Mikisa : public Sujette {
 	UsineOperatrice m_usine_operatrices;
 	RepondantCommande *m_repondant_commande = nullptr;
 
-	std::vector<std::string> m_fichiers_recents{};
+	dls::tableau<std::string> m_fichiers_recents{};
 	std::string m_chemin_projet{};
 
 	bool m_projet_ouvert = false;
@@ -101,7 +102,7 @@ public:
 
 	void chemin_projet(std::string const &chemin);
 
-	std::vector<std::string> const &fichiers_recents();
+	dls::tableau<std::string> const &fichiers_recents();
 	void ajoute_fichier_recent(std::string const &chemin);
 
 	bool projet_ouvert() const;

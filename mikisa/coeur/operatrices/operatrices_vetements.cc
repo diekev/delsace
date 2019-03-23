@@ -28,6 +28,8 @@
 
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "bibloc/tableau.hh"
+
 #include "../corps/iteration_corps.hh"
 
 #include "../contexte_evaluation.hh"
@@ -229,11 +231,11 @@ static void integre(
 
 static void ajourne_contraintes_distance(
 		int i,
-		std::vector<DistanceConstraint> const &d_constraints,
+		dls::tableau<DistanceConstraint> const &d_constraints,
 		Attribut *tmp_X,
 		Attribut *W)
 {
-	auto const &c = d_constraints[static_cast<size_t>(i)];
+	auto const &c = d_constraints[i];
 	auto const dir = tmp_X->vec3(c.p1) - tmp_X->vec3(c.p2);
 	auto const len = longueur(dir);
 
@@ -262,12 +264,12 @@ static void ajourne_contraintes_distance(
 
 static void ajourne_contraintes_courbures(
 		int index,
-		std::vector<BendingConstraint> const &b_constraints,
+		dls::tableau<BendingConstraint> const &b_constraints,
 		Attribut *tmp_X,
 		Attribut *W,
 		float global_dampening)
 {
-	auto const &c = b_constraints[static_cast<size_t>(index)];
+	auto const &c = b_constraints[index];
 
 	/* Utilisation de l'algorithme tiré du papier
 	 * 'A Triangle Bending Constraint Model for Position-Based Dynamics'
@@ -300,19 +302,19 @@ static void ajourne_contraintes_courbures(
 
 static void ajourne_contraintes_internes(
 		Attribut *tmp_X,
-		std::vector<DistanceConstraint> const &d_constraints,
-		std::vector<BendingConstraint> const &b_constraints,
+		dls::tableau<DistanceConstraint> const &d_constraints,
+		dls::tableau<BendingConstraint> const &b_constraints,
 		Attribut *W,
 		int solver_iterations,
 		float global_dampening)
 {
 	for (auto si=0;si<solver_iterations;++si) {
-		for (size_t i=0;i<d_constraints.size();i++) {
-			ajourne_contraintes_distance(static_cast<int>(i), d_constraints, tmp_X, W);
+		for (auto i=0;i<d_constraints.taille();i++) {
+			ajourne_contraintes_distance(i, d_constraints, tmp_X, W);
 		}
 
-		for (size_t i=0;i<b_constraints.size();i++) {
-			ajourne_contraintes_courbures(static_cast<int>(i), b_constraints, tmp_X, W, global_dampening);
+		for (auto i=0;i<b_constraints.taille();i++) {
+			ajourne_contraintes_courbures(i, b_constraints, tmp_X, W, global_dampening);
 		}
 	}
 }
@@ -327,7 +329,7 @@ struct ContrainteDistance {
 };
 
 struct DonneesSimVerlet {
-	std::vector<ContrainteDistance> contrainte_distance;
+	dls::tableau<ContrainteDistance> contrainte_distance;
 	float drag;
 	int repetitions;
 	float dt;
@@ -441,9 +443,9 @@ static std::set<std::pair<long, long>> calcul_cote_unique(Corps &corps)
 }
 
 class OperatriceSimVetement final : public OperatriceCorps {
-	std::vector<DistanceConstraint> d_constraints{};
+	dls::tableau<DistanceConstraint> d_constraints{};
 
-	std::vector<BendingConstraint> b_constraints{};
+	dls::tableau<BendingConstraint> b_constraints{};
 
 	DonneesSimVerlet m_donnees_verlet{};
 
@@ -535,9 +537,9 @@ public:
 		m_donnees_verlet.repetitions = evalue_entier("itérations");
 		m_donnees_verlet.dt = evalue_decimal("dt", temps);
 
-		if (m_donnees_verlet.contrainte_distance.empty()) {
+		if (m_donnees_verlet.contrainte_distance.est_vide()) {
 			auto ensemble_cote = calcul_cote_unique(m_corps);
-			m_donnees_verlet.contrainte_distance.reserve(ensemble_cote.size());
+			m_donnees_verlet.contrainte_distance.reserve(static_cast<long>(ensemble_cote.size()));
 
 			for (auto &cote : ensemble_cote) {
 				auto c = ContrainteDistance{};
@@ -546,7 +548,7 @@ public:
 
 				c.longueur_repos = longueur(points_entree->point(c.v0) - points_entree->point(c.v1));
 
-				m_donnees_verlet.contrainte_distance.push_back(c);
+				m_donnees_verlet.contrainte_distance.pousse(c);
 			}
 		}
 
@@ -569,8 +571,8 @@ public:
 
 		auto total_points = static_cast<size_t>(points_entree->taille());
 
-		std::vector<unsigned short> indices;
-		std::vector<float> phi0; //initial dihedral angle between adjacent triangles
+		dls::tableau<unsigned short> indices;
+		dls::tableau<float> phi0; //initial dihedral angle between adjacent triangles
 
 		auto X = points_entree;
 		auto tmp_X = m_corps.ajoute_attribut("tmp_X", type_attribut::VEC3, portee_attr::POINT);
@@ -600,9 +602,9 @@ public:
 			W->valeur(i, 0.0f);
 		}
 
-		if (d_constraints.empty()) {
+		if (d_constraints.est_vide()) {
 			auto ensemble_cote = calcul_cote_unique(m_corps);
-			d_constraints.reserve(ensemble_cote.size());
+			d_constraints.reserve(static_cast<long>(ensemble_cote.size()));
 
 			for (auto &cote : ensemble_cote) {
 				auto c = ajoute_contrainte_distance(
@@ -612,12 +614,12 @@ public:
 							etirement,
 							iterations);
 
-				d_constraints.push_back(c);
+				d_constraints.pousse(c);
 			}
 		}
 
-		if (b_constraints.empty()) {
-			b_constraints.reserve(static_cast<size_t>(prims_entree->taille()));
+		if (b_constraints.est_vide()) {
+			b_constraints.reserve(prims_entree->taille());
 
 			pour_chaque_polygone(m_corps,
 								 [&](Corps const &, Polygone *poly)
@@ -632,12 +634,12 @@ public:
 								courbe,
 								iterations);
 
-					b_constraints.push_back(c);
+					b_constraints.pousse(c);
 				}
 			});
 		}
 
-		if (d_constraints.empty() || b_constraints.empty()) {
+		if (d_constraints.est_vide() || b_constraints.est_vide()) {
 			this->ajoute_avertissement("Aucune contrainte n'a pu être ajoutée, aucun polygone trouvé !");
 			return EXECUTION_ECHOUEE;
 		}

@@ -41,10 +41,11 @@
 #include "bibliotheques/vision/camera_2d.h"
 #include "bibliotheques/vision/camera.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "composite.h"
 #include "configuration.h"
 #include "evaluation.h"
-#include "logeuse_memoire.hh"
 #include "manipulatrice.h"
 #include "noeud_image.h"
 #include "tache.h"
@@ -186,21 +187,21 @@ void Mikisa::chemin_projet(std::string const &chemin)
 
 void Mikisa::ajoute_fichier_recent(std::string const &chemin)
 {
-	auto index = std::find(m_fichiers_recents.begin(), m_fichiers_recents.end(), chemin);
+	auto index = std::find(m_fichiers_recents.debut(), m_fichiers_recents.fin(), chemin);
 
-	if (index != m_fichiers_recents.end()) {
-		std::rotate(m_fichiers_recents.begin(), index, index + 1);
+	if (index != m_fichiers_recents.fin()) {
+		std::rotate(m_fichiers_recents.debut(), index, index + 1);
 	}
 	else {
-		m_fichiers_recents.insert(m_fichiers_recents.begin(), chemin);
+		m_fichiers_recents.insere(m_fichiers_recents.debut(), chemin);
 
-		if (m_fichiers_recents.size() > MAX_FICHIER_RECENT) {
-			m_fichiers_recents.resize(MAX_FICHIER_RECENT);
+		if (m_fichiers_recents.taille() > MAX_FICHIER_RECENT) {
+			m_fichiers_recents.redimensionne(MAX_FICHIER_RECENT);
 		}
 	}
 }
 
-std::vector<std::string> const &Mikisa::fichiers_recents()
+dls::tableau<std::string> const &Mikisa::fichiers_recents()
 {
 	return m_fichiers_recents;
 }

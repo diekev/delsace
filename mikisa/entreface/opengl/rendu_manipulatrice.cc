@@ -29,6 +29,8 @@
 #include "bibliotheques/opengl/tampon_rendu.h"
 #include "bibliotheques/outils/constantes.h"
 
+#include "bibloc/tableau.hh"
+
 #include "coeur/manipulatrice.h"
 
 /* ************************************************************************** */
@@ -94,10 +96,10 @@ static TamponRendu *cree_tampon_base(dls::math::vec4f const &couleur)
 static void ajoute_baton_axe(
 		dls::math::vec3f const &min,
 		dls::math::vec3f const &max,
-		std::vector<dls::math::vec3f> &sommets,
-		std::vector<unsigned int> &indices)
+		dls::tableau<dls::math::vec3f> &sommets,
+		dls::tableau<unsigned int> &indices)
 {
-	auto const decalage = sommets.size();
+	auto const decalage = sommets.taille();
 
 	const dls::math::vec3f coins[8] = {
 		dls::math::vec3f(min[0], min[1], min[2]),
@@ -110,10 +112,10 @@ static void ajoute_baton_axe(
 		dls::math::vec3f(min[0], max[1], max[2])
 	};
 
-	sommets.reserve(sommets.size() + 8);
+	sommets.reserve(sommets.taille() + 8);
 
 	for (auto const &coin : coins) {
-		sommets.push_back(coin);
+		sommets.pousse(coin);
 	}
 
 	const unsigned int polygones[6][4] = {
@@ -125,24 +127,26 @@ static void ajoute_baton_axe(
 		{4, 5, 6, 7}, // max z
 	};
 
-	for (size_t	 i = 0; i < 6; ++i) {
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][0]));
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][1]));
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][2]));
+	indices.reserve(indices.taille() + 36);
 
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][0]));
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][2]));
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][3]));
+	for (size_t	 i = 0; i < 6; ++i) {
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][1]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][2]));
+
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][3]));
 	}
 }
 
 static void ajoute_poignee_axe(
 		dls::math::vec3f const &min,
 		dls::math::vec3f const &max,
-		std::vector<dls::math::vec3f> &sommets,
-		std::vector<unsigned int> &indices)
+		dls::tableau<dls::math::vec3f> &sommets,
+		dls::tableau<unsigned int> &indices)
 {
-	auto const decalage = sommets.size();
+	auto const decalage = sommets.taille();
 
 	const dls::math::vec3f coins[8] = {
 		dls::math::vec3f(min[0], min[1], min[2]),
@@ -155,10 +159,10 @@ static void ajoute_poignee_axe(
 		dls::math::vec3f(min[0], max[1], max[2])
 	};
 
-	sommets.reserve(sommets.size() + 8);
+	sommets.reserve(sommets.taille() + 8);
 
 	for (auto const &coin : coins) {
-		sommets.push_back(coin);
+		sommets.pousse(coin);
 	}
 
 	const unsigned int polygones[6][4] = {
@@ -171,13 +175,13 @@ static void ajoute_poignee_axe(
 	};
 
 	for (size_t	 i = 0; i < 6; ++i) {
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][0]));
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][1]));
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][1]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][2]));
 
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][0]));
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][2]));
-		indices.push_back(static_cast<unsigned>(decalage + polygones[i][3]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.pousse(static_cast<unsigned>(decalage + polygones[i][3]));
 	}
 }
 
@@ -185,8 +189,8 @@ static TamponRendu *cree_tampon_axe(int axe, float taille)
 {
 	auto tampon = cree_tampon_base(couleurs[axe]);
 
-	std::vector<dls::math::vec3f> sommets;
-	std::vector<unsigned int> indices;
+	dls::tableau<dls::math::vec3f> sommets;
+	dls::tableau<unsigned int> indices;
 
 	switch (axe) {
 		case TAMPON_X:
@@ -235,11 +239,11 @@ static TamponRendu *cree_tampon_axe(int axe, float taille)
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.data();
-	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
-	parametres_tampon.elements = indices.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = indices.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(indices.taille());
 
 	tampon->remplie_tampon(parametres_tampon);
 
@@ -443,8 +447,8 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 	auto tampon = cree_tampon_base(couleurs[axe]);
 
 	auto const segments = 64;
-	std::vector<dls::math::vec3f> sommets;
-	std::vector<unsigned int> indices;
+	dls::tableau<dls::math::vec3f> sommets;
+	dls::tableau<unsigned int> indices;
 
 	sommets.reserve(segments + 1);
 	indices.reserve(segments * 2 + 1);
@@ -462,7 +466,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 				point[1] = std::sin(phi);
 				point[2] = std::cos(phi);
 
-				sommets.push_back(point);
+				sommets.pousse(point);
 			}
 			break;
 		}
@@ -478,7 +482,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 				point[1] = 0.0f;
 				point[2] = std::cos(phi);
 
-				sommets.push_back(point);
+				sommets.pousse(point);
 			}
 			break;
 		}
@@ -494,25 +498,25 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 				point[1] = std::cos(phi);
 				point[2] = 0.0f;
 
-				sommets.push_back(point);
+				sommets.pousse(point);
 			}
 			break;
 		}
 	}
 
 	for (auto i = 0u; i < segments; ++i) {
-		indices.push_back(i);
-		indices.push_back((i + 1) % segments);
+		indices.pousse(i);
+		indices.pousse((i + 1) % segments);
 	}
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.data();
-	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
-	parametres_tampon.elements = indices.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = indices.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(indices.taille());
 
 	tampon->remplie_tampon(parametres_tampon);
 

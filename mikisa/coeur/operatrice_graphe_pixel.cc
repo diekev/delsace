@@ -27,8 +27,9 @@
 #include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "contexte_evaluation.hh"
-#include "logeuse_memoire.hh"
 #include "operatrice_pixel.h"
 #include "noeud_image.h"
 

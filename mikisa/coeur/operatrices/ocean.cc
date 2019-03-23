@@ -33,7 +33,7 @@
 #include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/gna.hh"
 
-#include "../logeuse_memoire.hh"
+#include "bibloc/logeuse_memoire.hh"
 
 /* ************************************************************************** */
 

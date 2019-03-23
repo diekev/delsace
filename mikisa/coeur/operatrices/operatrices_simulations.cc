@@ -27,6 +27,8 @@
 #include "bibliotheques/outils/definitions.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
+#include "bibloc/tableau.hh"
+
 #include "../corps/collision.hh"
 #include "../corps/groupes.h"
 
@@ -552,7 +554,7 @@ protected:
 	int total_levels = 0;
 	int margin = 0;
 
-	std::vector<Node> nodes{};
+	dls::tableau<Node> nodes{};
 	int node_end = 0;
 	dls::math::vec3f lower_corner{};
 
@@ -577,7 +579,7 @@ protected:
 
 	void sommarise(int t)
 	{
-		auto &node = nodes[static_cast<size_t>(t)];
+		auto &node = nodes[t];
 
 		if (node.is_leaf()) {
 			auto u = coordonnees_grille(node.p.position);
@@ -593,8 +595,8 @@ protected:
 
 		for (int c = 0; c < 8; c++) {
 			if (node.children[c]) {
-				sommarise(nodes[static_cast<size_t>(t)].children[c]);
-				auto const &ch = nodes[static_cast<size_t>(node.children[c])];
+				sommarise(nodes[t].children[c]);
+				auto const &ch = nodes[node.children[c]];
 				mass += ch.p.mass;
 				total_position += ch.p.mass * ch.p.position;
 
@@ -622,14 +624,14 @@ protected:
 	int cree_enfant(int t, int child_index, const Particule &p)
 	{
 		int nt = cree_nouveau_noeud();
-		nodes[static_cast<size_t>(t)].children[child_index] = nt;
-		nodes[static_cast<size_t>(nt)].p = p;
+		nodes[t].children[child_index] = nt;
+		nodes[nt].p = p;
 		return nt;
 	}
 
 	int cree_nouveau_noeud()
 	{
-		nodes[static_cast<size_t>(node_end)] = Node();
+		nodes[node_end] = Node();
 		return node_end++;
 	}
 
@@ -638,12 +640,12 @@ public:
 	// for efficiency and accuracy
 	void initialise(float res,
 					float marginfloat,
-					const std::vector<Particule> &particles)
+					const dls::tableau<Particule> &particles)
 	{
 		this->resolution = res;
 		this->inv_resolution = 1.0f / res;
 		this->margin = static_cast<int>(std::ceil(marginfloat * inv_resolution));
-		assert(particles.size() != 0);
+		assert(particles.taille() != 0);
 		dls::math::vec3f lower(1e30f);
 		dls::math::vec3f upper(-1e30f);
 
@@ -663,7 +665,7 @@ public:
 		// We do not use the 0th node...
 		node_end = 1;
 		nodes.clear();
-		nodes.resize(particles.size() * 2);
+		nodes.redimensionne(particles.taille() * 2);
 		int root = cree_nouveau_noeud();
 		// Make sure that one leaf node contains only one particle.
 		// Unless particles are too close and thereby merged.
@@ -673,7 +675,7 @@ public:
 			}
 
 			dls::math::vec3i u = coordonnees_grille(p.position);
-			auto t = static_cast<size_t>(root);
+			auto t = root;
 
 			if (nodes[t].is_leaf()) {
 				// First node
@@ -688,7 +690,7 @@ public:
 			for (; k < total_levels; k++) {
 				cp = calcul_index_enfant(u, k);
 				if (nodes[t].children[cp] != 0) {
-					t = static_cast<size_t>(nodes[t].children[cp]);
+					t = nodes[t].children[cp];
 				} else {
 					break;
 				}
@@ -701,7 +703,7 @@ public:
 				dls::math::vec3i v = coordonnees_grille(q.position);
 				int cq = calcul_index_enfant(v, k);
 				while (cp == cq && k < total_levels) {
-					t = static_cast<size_t>(cree_enfant(static_cast<int>(t), cp));
+					t = cree_enfant(t, cp);
 					k++;
 					cp = calcul_index_enfant(u, k);
 					cq = calcul_index_enfant(v, k);
@@ -709,15 +711,15 @@ public:
 				if (k == total_levels) {
 					// We have to merge two particles since they are too close...
 					q = p + q;
-					cree_enfant(static_cast<int>(t), cp, q);
+					cree_enfant(t, cp, q);
 				} else {
 					nodes[t].p = Particule();
-					cree_enfant(static_cast<int>(t), cp, p);
-					cree_enfant(static_cast<int>(t), cq, q);
+					cree_enfant(t, cp, p);
+					cree_enfant(t, cq, q);
 				}
 			} else {
 				// Non-leaf node, simply create a child.
-				cree_enfant(static_cast<int>(t), cp, p);
+				cree_enfant(t, cp, p);
 			}
 		}
 		//TC_P(node_end);
@@ -753,8 +755,8 @@ public:
 	template <typename T>
 	dls::math::vec3f summation(int t, const Particule &p, const T &func)
 	{
-		const Node &node = nodes[static_cast<size_t>(t)];
-		if (nodes[static_cast<size_t>(t)].is_leaf()) {
+		const Node &node = nodes[t];
+		if (nodes[t].is_leaf()) {
 			return func(p, node.p);
 		}
 
@@ -763,7 +765,7 @@ public:
 
 		for (size_t c = 0; c < 8; c++) {
 			if (node.children[c]) {
-				const Node &ch = nodes[static_cast<size_t>(node.children[c])];
+				const Node &ch = nodes[node.children[c]];
 				if (ch.bounds[0][0] <= u[0] && u[0] <= ch.bounds[1][0] &&
 						ch.bounds[0][1] <= u[1] && u[1] <= ch.bounds[1][1] &&
 						ch.bounds[0][2] <= u[2] && u[2] <= ch.bounds[1][2]) {
@@ -834,12 +836,12 @@ public:
 
 		using BHP = BarnesHutSummation::Particule;
 
-		std::vector<BHP> bhps;
-		bhps.reserve(static_cast<size_t>(nombre_points));
+		dls::tableau<BHP> bhps;
+		bhps.reserve(nombre_points);
 
 		for (auto i = 0; i < nombre_points; ++i) {
 			auto pos = liste_points->point(i);
-			bhps.push_back(BHP(pos, 1.0f));
+			bhps.pousse(BHP(pos, 1.0f));
 		}
 
 		BarnesHutSummation bhs;

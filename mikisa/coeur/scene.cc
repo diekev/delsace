@@ -34,16 +34,16 @@ void Scene::reinitialise()
 
 void Scene::ajoute_objet(Objet *objet)
 {
-	m_objets.push_back(objet);
+	m_objets.pousse(objet);
 }
 
 void Scene::enleve_objet(Objet *objet)
 {
-	auto iter = std::find(m_objets.begin(), m_objets.end(), objet);
+	auto iter = std::find(m_objets.debut(), m_objets.fin(), objet);
 	m_objets.erase(iter);
 }
 
-const std::vector<Objet *> &Scene::objets()
+const dls::tableau<Objet *> &Scene::objets()
 {
 	return m_objets;
 }

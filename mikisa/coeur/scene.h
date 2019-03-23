@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "bibloc/tableau.hh"
 
 struct Objet;
 
@@ -33,7 +33,7 @@ class Camera3D;
 }  /* namespace vision */
 
 class Scene {
-	std::vector<Objet *> m_objets{};
+	dls::tableau<Objet *> m_objets{};
 	vision::Camera3D *m_camera = nullptr;
 
 public:
@@ -49,7 +49,7 @@ public:
 
 	void enleve_objet(Objet *objet);
 
-	const std::vector<Objet *> &objets();
+	const dls::tableau<Objet *> &objets();
 
 	void camera(vision::Camera3D *camera);
 

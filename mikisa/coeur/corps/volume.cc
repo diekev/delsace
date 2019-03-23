@@ -24,7 +24,7 @@
 
 #include "volume.hh"
 
-#include "../logeuse_memoire.hh"
+#include "bibloc/logeuse_memoire.hh"
 
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ type_primitive Volume::type_prim() const
 	return type_primitive::VOLUME;
 }
 
-size_t BaseGrille::calcul_index(size_t x, size_t y, size_t z) const
+long BaseGrille::calcul_index(size_t x, size_t y, size_t z) const
 {
-	return x + (y + z * m_res[1]) * m_res[0];
+	return static_cast<long>(x + (y + z * m_res[1]) * m_res[0]);
 }
 
 bool BaseGrille::hors_des_limites(size_t x, size_t y, size_t z) const

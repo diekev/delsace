@@ -34,10 +34,11 @@
 #include "bibliotheques/texture/texture.h"
 #include "bibliotheques/vision/camera.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "coeur/corps/corps.h"
 
 #include "coeur/composite.h"
-#include "coeur/logeuse_memoire.hh"
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
 #include "coeur/objet.h"

@@ -32,6 +32,8 @@
 #include "bibliotheques/texture/texture.h"
 #include "bibliotheques/vision/camera.h"
 
+#include "bibloc/tableau.hh"
+
 #include "coeur/corps/corps.h"
 #include "coeur/corps/volume.hh"
 
@@ -60,10 +62,10 @@ struct VariableGenerique {
 };
 
 struct DonneesScripts {
-	std::vector<VariableAttribut> variables_attribut;
-	std::vector<VariableGenerique> variables_uniforme;
-	std::vector<VariableGenerique> variables_entree;
-	std::vector<VariableGenerique> variables_sortie;
+	dls::tableau<VariableAttribut> variables_attribut;
+	dls::tableau<VariableGenerique> variables_uniforme;
+	dls::tableau<VariableGenerique> variables_entree;
+	dls::tableau<VariableGenerique> variables_sortie;
 };
 
 static void ajoute_variable_attribut(std::string &tampon, std::string const &nom, const int type)
@@ -272,49 +274,49 @@ void ajoute_polygone_surface(
 		ListePoints3D *liste_points,
 		Attribut *attr_normaux,
 		Attribut *attr_couleurs,
-		std::vector<dls::math::vec3f> &points,
-		std::vector<dls::math::vec3f> &normaux,
-		std::vector<dls::math::vec3f> &couleurs)
+		dls::tableau<dls::math::vec3f> &points,
+		dls::tableau<dls::math::vec3f> &normaux,
+		dls::tableau<dls::math::vec3f> &couleurs)
 {
 	for (long i = 2; i < polygone->nombre_sommets(); ++i) {
-		points.push_back(liste_points->point(polygone->index_point(0)));
-		points.push_back(liste_points->point(polygone->index_point(i - 1)));
-		points.push_back(liste_points->point(polygone->index_point(i)));
+		points.pousse(liste_points->point(polygone->index_point(0)));
+		points.pousse(liste_points->point(polygone->index_point(i - 1)));
+		points.pousse(liste_points->point(polygone->index_point(i)));
 
 		if (attr_normaux) {
 			if (attr_normaux->portee == portee_attr::POINT) {
-				normaux.push_back(attr_normaux->vec3(polygone->index_point(0)));
-				normaux.push_back(attr_normaux->vec3(polygone->index_point(i - 1)));
-				normaux.push_back(attr_normaux->vec3(polygone->index_point(i)));
+				normaux.pousse(attr_normaux->vec3(polygone->index_point(0)));
+				normaux.pousse(attr_normaux->vec3(polygone->index_point(i - 1)));
+				normaux.pousse(attr_normaux->vec3(polygone->index_point(i)));
 			}
 			else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
-				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
-				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
-				normaux.push_back(attr_normaux->vec3(static_cast<long>(polygone->index)));
+				normaux.pousse(attr_normaux->vec3(static_cast<long>(polygone->index)));
+				normaux.pousse(attr_normaux->vec3(static_cast<long>(polygone->index)));
+				normaux.pousse(attr_normaux->vec3(static_cast<long>(polygone->index)));
 			}
 			else if (attr_normaux->portee == portee_attr::CORPS) {
-				normaux.push_back(attr_normaux->vec3(0));
-				normaux.push_back(attr_normaux->vec3(0));
-				normaux.push_back(attr_normaux->vec3(0));
+				normaux.pousse(attr_normaux->vec3(0));
+				normaux.pousse(attr_normaux->vec3(0));
+				normaux.pousse(attr_normaux->vec3(0));
 			}
 		}
 
 		if (attr_couleurs) {
 			if (attr_couleurs->portee == portee_attr::POINT) {
-				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(0)));
-				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(i - 1)));
-				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(i)));
+				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(0)));
+				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i - 1)));
+				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i)));
 			}
 			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
 			}
 		}
 		else {
-			couleurs.push_back(dls::math::vec3f(0.8f));
-			couleurs.push_back(dls::math::vec3f(0.8f));
-			couleurs.push_back(dls::math::vec3f(0.8f));
+			couleurs.pousse(dls::math::vec3f(0.8f));
+			couleurs.pousse(dls::math::vec3f(0.8f));
+			couleurs.pousse(dls::math::vec3f(0.8f));
 		}
 	}
 }
@@ -323,26 +325,26 @@ void ajoute_polygone_segment(
 		Polygone *polygone,
 		ListePoints3D *liste_points,
 		Attribut *attr_couleurs,
-		std::vector<dls::math::vec3f> &points,
-		std::vector<dls::math::vec3f> &couleurs)
+		dls::tableau<dls::math::vec3f> &points,
+		dls::tableau<dls::math::vec3f> &couleurs)
 {
 	for (long i = 0; i < polygone->nombre_segments(); ++i) {
-		points.push_back(liste_points->point(polygone->index_point(i)));
-		points.push_back(liste_points->point(polygone->index_point(i + 1)));
+		points.pousse(liste_points->point(polygone->index_point(i)));
+		points.pousse(liste_points->point(polygone->index_point(i + 1)));
 
 		if (attr_couleurs) {
 			if (attr_couleurs->portee == portee_attr::POINT) {
-				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(0)));
-				couleurs.push_back(attr_couleurs->vec3(polygone->index_point(i + 1)));
+				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(0)));
+				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i + 1)));
 			}
 			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-				couleurs.push_back(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
 			}
 		}
 		else {
-			couleurs.push_back(dls::math::vec3f(0.8f));
-			couleurs.push_back(dls::math::vec3f(0.8f));
+			couleurs.pousse(dls::math::vec3f(0.8f));
+			couleurs.pousse(dls::math::vec3f(0.8f));
 		}
 	}
 }
@@ -401,7 +403,7 @@ static auto slice(
 	}
 
 	auto m_dimensions = m_max - m_min;
-	auto m_num_slices = 256ul;
+	auto m_num_slices = 256l;
 	auto m_elements = m_num_slices * 6;
 
 	m_axis = axis;
@@ -436,14 +438,14 @@ static auto slice(
 	};
 
 
-	std::vector<GLuint> indices(m_elements);
+	dls::tableau<GLuint> indices(m_elements);
 	unsigned idx = 0;
-	size_t idx_count = 0;
+	auto idx_count = 0;
 
-	std::vector<dls::math::vec3f> points;
+	dls::tableau<dls::math::vec3f> points;
 	points.reserve(m_num_slices * 4);
 
-	for (auto slice(0ul); slice < m_num_slices; slice++) {
+	for (auto slice(0l); slice < m_num_slices; slice++) {
 		dls::math::vec3f v0 = vertices[m_axis][0];
 		dls::math::vec3f v1 = vertices[m_axis][1];
 		dls::math::vec3f v2 = vertices[m_axis][2];
@@ -454,10 +456,10 @@ static auto slice(
 		v2[m_axis] = depth;
 		v3[m_axis] = depth;
 
-		points.push_back(v0); //  * glm::mat3(m_inv_matrix)
-		points.push_back(v1);
-		points.push_back(v2);
-		points.push_back(v3);
+		points.pousse(v0); //  * glm::mat3(m_inv_matrix)
+		points.pousse(v1);
+		points.pousse(v2);
+		points.pousse(v3);
 
 		indices[idx_count++] = idx + 0;
 		indices[idx_count++] = idx + 1;
@@ -473,11 +475,11 @@ static auto slice(
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = points.data();
-	parametres_tampon.taille_octet_sommets = points.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.elements = idx_count;
-	parametres_tampon.pointeur_index = indices.data();
-	parametres_tampon.taille_octet_index = idx_count * sizeof(GLuint);
+	parametres_tampon.pointeur_sommets = points.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(points.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.elements = static_cast<size_t>(idx_count);
+	parametres_tampon.pointeur_index = indices.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(idx_count) * sizeof(GLuint);
 
 	m_renderbuffer->remplie_tampon(parametres_tampon);
 }
@@ -576,16 +578,16 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 		return;
 	}
 
-	std::vector<bool> point_utilise(static_cast<size_t>(liste_points->taille()), false);
+	dls::tableau<char> point_utilise(liste_points->taille(), 0);
 
 	if (liste_prims->taille() != 0l) {
 		auto attr_N = m_corps->attribut("N");
 		auto attr_C = m_corps->attribut("C");
-		std::vector<dls::math::vec3f> points_polys;
-		std::vector<dls::math::vec3f> points_segment;
-		std::vector<dls::math::vec3f> normaux;
-		std::vector<dls::math::vec3f> couleurs_polys;
-		std::vector<dls::math::vec3f> couleurs_segment;
+		dls::tableau<dls::math::vec3f> points_polys;
+		dls::tableau<dls::math::vec3f> points_segment;
+		dls::tableau<dls::math::vec3f> normaux;
+		dls::tableau<dls::math::vec3f> couleurs_polys;
+		dls::tableau<dls::math::vec3f> couleurs_segment;
 
 		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
 			auto prim = liste_prims->prim(ip);
@@ -599,7 +601,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 				}
 
 				for (auto i = 0; i < polygone->nombre_sommets(); ++i) {
-					point_utilise[static_cast<size_t>(polygone->index_point(i))] = true;
+					point_utilise[polygone->index_point(i)] = 1;
 				}
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
@@ -609,57 +611,57 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 			}
 		}
 
-		if (points_polys.size() != 0) {
+		if (points_polys.taille() != 0) {
 			m_tampon_polygones = cree_tampon_surface(false);
 
 			ParametresTampon parametres_tampon;
 			parametres_tampon.attribut = "sommets";
 			parametres_tampon.dimension_attribut = 3;
-			parametres_tampon.pointeur_sommets = points_polys.data();
-			parametres_tampon.taille_octet_sommets = points_polys.size() * sizeof(dls::math::vec3f);
-			parametres_tampon.elements = points_polys.size();
+			parametres_tampon.pointeur_sommets = points_polys.donnees();
+			parametres_tampon.taille_octet_sommets = static_cast<size_t>(points_polys.taille()) * sizeof(dls::math::vec3f);
+			parametres_tampon.elements = static_cast<size_t>(points_polys.taille());
 
 			m_tampon_polygones->remplie_tampon(parametres_tampon);
 
-			if (normaux.size() != 0) {
+			if (normaux.taille() != 0) {
 				parametres_tampon.attribut = "normaux";
 				parametres_tampon.dimension_attribut = 3;
-				parametres_tampon.pointeur_donnees_extra = normaux.data();
-				parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
-				parametres_tampon.elements = normaux.size();
+				parametres_tampon.pointeur_donnees_extra = normaux.donnees();
+				parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(normaux.taille()) * sizeof(dls::math::vec3f);
+				parametres_tampon.elements = static_cast<size_t>(normaux.taille());
 
 				m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
 			}
 
-			if (couleurs_polys.size() != 0) {
+			if (couleurs_polys.taille() != 0) {
 				parametres_tampon.attribut = "couleurs";
 				parametres_tampon.dimension_attribut = 3;
-				parametres_tampon.pointeur_donnees_extra = couleurs_polys.data();
-				parametres_tampon.taille_octet_donnees_extra = couleurs_polys.size() * sizeof(dls::math::vec3f);
-				parametres_tampon.elements = couleurs_polys.size();
+				parametres_tampon.pointeur_donnees_extra = couleurs_polys.donnees();
+				parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(couleurs_polys.taille()) * sizeof(dls::math::vec3f);
+				parametres_tampon.elements = static_cast<size_t>(couleurs_polys.taille());
 
 				m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
 			}
 		}
 
-		if (points_segment.size() != 0) {
+		if (points_segment.taille() != 0) {
 			m_tampon_segments = cree_tampon_segments();
 
 			ParametresTampon parametres_tampon;
 			parametres_tampon.attribut = "sommets";
 			parametres_tampon.dimension_attribut = 3;
-			parametres_tampon.pointeur_sommets = points_segment.data();
-			parametres_tampon.taille_octet_sommets = points_segment.size() * sizeof(dls::math::vec3f);
-			parametres_tampon.elements = points_segment.size();
+			parametres_tampon.pointeur_sommets = points_segment.donnees();
+			parametres_tampon.taille_octet_sommets = static_cast<size_t>(points_segment.taille()) * sizeof(dls::math::vec3f);
+			parametres_tampon.elements = static_cast<size_t>(points_segment.taille());
 
 			m_tampon_segments->remplie_tampon(parametres_tampon);
 
-			if (couleurs_segment.size() != 0) {
+			if (couleurs_segment.taille() != 0) {
 				parametres_tampon.attribut = "couleur_sommet";
 				parametres_tampon.dimension_attribut = 3;
-				parametres_tampon.pointeur_donnees_extra = couleurs_segment.data();
-				parametres_tampon.taille_octet_donnees_extra = couleurs_segment.size() * sizeof(dls::math::vec3f);
-				parametres_tampon.elements = couleurs_segment.size();
+				parametres_tampon.pointeur_donnees_extra = couleurs_segment.donnees();
+				parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(couleurs_segment.taille()) * sizeof(dls::math::vec3f);
+				parametres_tampon.elements = static_cast<size_t>(couleurs_segment.taille());
 
 				m_tampon_segments->remplie_tampon_extra(parametres_tampon);
 
@@ -675,26 +677,26 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 //		return;
 //	}
 
-	std::vector<dls::math::vec3f> points;
-	std::vector<dls::math::vec3f> couleurs;
-	points.reserve(static_cast<size_t>(liste_points->taille()));
-	couleurs.reserve(static_cast<size_t>(liste_points->taille()));
+	dls::tableau<dls::math::vec3f> points;
+	dls::tableau<dls::math::vec3f> couleurs;
+	points.reserve(liste_points->taille());
+	couleurs.reserve(liste_points->taille());
 
 	auto attr_C = m_corps->attribut("C");
 
 	for (auto i = 0; i < liste_points->taille(); ++i) {
-		if (point_utilise[static_cast<size_t>(i)]) {
+		if (point_utilise[i]) {
 			continue;
 		}
 
-		points.push_back(liste_points->point(i));
+		points.pousse(liste_points->point(i));
 
 		if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
-			couleurs.push_back(attr_C->vec3(i));
+			couleurs.pousse(attr_C->vec3(i));
 		}
 	}
 
-	if (points.empty()) {
+	if (points.est_vide()) {
 		return;
 	}
 
@@ -703,9 +705,9 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = points.data();
-	parametres_tampon.taille_octet_sommets = points.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.elements = points.size();
+	parametres_tampon.pointeur_sommets = points.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(points.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.elements = static_cast<size_t>(points.taille());
 
 	ParametresDessin parametres_dessin;
 	parametres_dessin.taille_point(2.0);
@@ -714,12 +716,12 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 
 	m_tampon_points->remplie_tampon(parametres_tampon);
 
-	if (couleurs.size() != 0ul) {
+	if (couleurs.taille() != 0l) {
 		parametres_tampon.attribut = "couleur_sommet";
 		parametres_tampon.dimension_attribut = 3;
-		parametres_tampon.pointeur_donnees_extra = couleurs.data();
-		parametres_tampon.taille_octet_donnees_extra = couleurs.size() * sizeof(dls::math::vec3f);
-		parametres_tampon.elements = couleurs.size();
+		parametres_tampon.pointeur_donnees_extra = couleurs.donnees();
+		parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(couleurs.taille()) * sizeof(dls::math::vec3f);
+		parametres_tampon.elements = static_cast<size_t>(couleurs.taille());
 
 		m_tampon_points->remplie_tampon_extra(parametres_tampon);
 		auto programme = m_tampon_points->programme();

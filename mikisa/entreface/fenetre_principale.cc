@@ -41,9 +41,10 @@
 
 #include "bibliotheques/commandes/repondant_commande.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
-#include "coeur/logeuse_memoire.hh"
 #include "coeur/mikisa.h"
 #include "coeur/tache.h"
 

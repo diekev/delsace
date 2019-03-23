@@ -26,14 +26,15 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "bibliotheques/outils/iterateurs.h"
+
+#include "bibloc/tableau.hh"
 
 /* ************************************************************************** */
 
 class GroupePoint {
-	using type_liste = std::vector<size_t>;
+	using type_liste = dls::tableau<size_t>;
 	using ptr_liste = std::shared_ptr<type_liste>;
 
 	ptr_liste m_points{};
@@ -53,7 +54,7 @@ public:
 
 	size_t index(long i) const;
 
-	void remplace_index(size_t i, size_t j);
+	void remplace_index(long i, size_t j);
 
 private:
 	void detache();
@@ -62,7 +63,7 @@ private:
 /* ************************************************************************** */
 
 class GroupePrimitive {
-	using type_liste = std::vector<size_t>;
+	using type_liste = dls::tableau<size_t>;
 	using ptr_liste = std::shared_ptr<type_liste>;
 
 	ptr_liste m_primitives{};
@@ -72,7 +73,7 @@ public:
 
 	void ajoute_primitive(size_t index_poly);
 
-	void remplace_index(size_t i, size_t j);
+	void remplace_index(long i, size_t j);
 
 	void reserve(long const nombre);
 
