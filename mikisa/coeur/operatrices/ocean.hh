@@ -28,6 +28,70 @@
 
 #include <delsace/math/vecteur.hh>
 
+#if 0
+#include "bibloc/logeuse_memoire.hh"
+
+struct champs_simulation {
+	fftw_complex *entrees = nullptr;
+	double *sorties = nullptr;
+	fftw_plan_s *plan = nullptr;
+	long taille = 0;
+	long taille_complexe = 0;
+
+	champs_simulation() = default;
+
+	champs_simulation(int M, int N)
+		: taille(M * N)
+		, taille_complexe(M * (1 + N / 2))
+	{
+		entrees = memoire::loge_tableau<fftw_complex>(taille_complexe);
+		sorties = memoire::loge_tableau<double>(taille);
+		plan = fftw_plan_dft_c2r_2d(M, N, entrees, sorties, FFTW_ESTIMATE);
+	}
+
+	~champs_simulation()
+	{
+		memoire::deloge_tableau(entrees, taille_complexe);
+		fftw_destroy_plan(this->plan);
+		memoire::deloge_tableau(sorties, taille);
+	}
+
+	champs_simulation(champs_simulation const &) = default;
+	champs_simulation &operator=(champs_simulation const &) = default;
+};
+
+struct ocean {
+	/* déplacment */
+	champs_simulation disp_y{};
+
+	/* normaux */
+	champs_simulation norm_x{};
+	champs_simulation norm_z{};
+
+	/* chop */
+	champs_simulation chop_x{};
+	champs_simulation chop_z{};
+
+	/* jacobien */
+	champs_simulation jxx{};
+	champs_simulation jzz{};
+	champs_simulation jxz{};
+
+	/* autres données */
+	fftw_complex *_htilda = nullptr;          /* init w	sim w (only once) */
+	/* one dimensional float array */
+	float *_kx = nullptr;                     /* init w	sim r */
+	float *_kz = nullptr;                     /* init w	sim r */
+
+	/* two dimensional complex array */
+	fftw_complex *_h0 = nullptr;              /* init w	sim r */
+	fftw_complex *_h0_minus = nullptr;        /* init w	sim r */
+
+	/* two dimensional float array */
+	float *_k = nullptr;                      /* init w	sim r */
+};
+#endif
+
 typedef struct Ocean {
 	/* ********* input parameters to the sim ********* */
 	float _V = 0.0f;
