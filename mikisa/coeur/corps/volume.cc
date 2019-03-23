@@ -64,5 +64,18 @@ dls::math::vec3<size_t> BaseGrille::resolution() const
 
 Volume::~Volume()
 {
-	memoire::deloge(grille);
+	switch (grille->type()) {
+		case type_volume::SCALAIRE:
+		{
+			auto ptr = dynamic_cast<Grille<float> *>(grille);
+			memoire::deloge(ptr);
+			break;
+		}
+		case type_volume::VECTOR:
+		{
+			auto ptr = dynamic_cast<Grille<dls::math::vec3f> *>(grille);
+			memoire::deloge(ptr);
+			break;
+		}
+	}
 }
