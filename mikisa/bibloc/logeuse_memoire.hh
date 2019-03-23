@@ -93,6 +93,10 @@ struct logeuse_memoire {
 	template <typename T>
 	void deloge(T *&ptr)
 	{
+		if (ptr == nullptr) {
+			return;
+		}
+
 		delete ptr;
 		ptr = nullptr;
 
@@ -103,6 +107,10 @@ struct logeuse_memoire {
 	void deloge_tableau(T *&ptr, long nombre)
 	{
 		assert(nombre >= 0);
+
+		if (ptr == nullptr) {
+			return;
+		}
 
 		free(ptr);
 		ptr = nullptr;
