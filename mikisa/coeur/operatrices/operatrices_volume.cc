@@ -33,6 +33,8 @@
 #include "../corps/collision.hh"
 #include "../corps/volume.hh"
 
+#include "../chef_execution.hh"
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -143,6 +145,9 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("maillage vers volume");
+
 		/* calcul boite englobante */
 		auto min = dls::math::vec3f(std::numeric_limits<float>::max());
 		auto max = dls::math::vec3f(std::numeric_limits<float>::min());
@@ -182,9 +187,17 @@ public:
 		boucle_parallele(tbb::blocked_range<size_t>(0, res_x),
 						 [&](tbb::blocked_range<size_t> const &plage)
 		{
+			if (chef->interrompu()) {
+				return;
+			}
+
 			for (size_t x = plage.begin(); x < plage.end(); ++x) {
 				for (size_t y = 0; y < res_y; ++y) {
 					for (size_t z = 0; z < res_z; ++z) {
+						if (chef->interrompu()) {
+							break;
+						}
+
 						/* coordonnées objet */
 						auto const x_obj = static_cast<float>(x) / static_cast<float>(res_x);
 						auto const y_obj = static_cast<float>(y) / static_cast<float>(res_y);
@@ -237,7 +250,14 @@ public:
 					}
 				}
 			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			auto total = static_cast<float>(res_x);
+
+			chef->indique_progression_parallele(delta / total * 100.0f);
 		});
+
+		chef->indique_progression(100.0f);
 
 		volume->grille = grille_scalaire;
 		m_corps.prims()->pousse(volume);
