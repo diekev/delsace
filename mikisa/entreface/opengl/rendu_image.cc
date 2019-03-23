@@ -28,6 +28,8 @@
 
 #include "bibliotheques/opengl/tampon_rendu.h"
 
+#include "bibloc/logeuse_memoire.hh"
+
 /* ************************************************************************** */
 
 static const char *source_vertex =
@@ -53,9 +55,9 @@ static const char *source_fragment =
 		"	fragment_color = texture(image, flipped);\n"
 		"}\n";
 
-static TamponRendu *cree_tampon_image()
+TamponRendu *cree_tampon_image()
 {
-	auto tampon = new TamponRendu();
+	auto tampon = memoire::loge<TamponRendu>();
 
 	tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex);
 	tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment);
@@ -100,8 +102,9 @@ static TamponRendu *cree_tampon_image()
 	return tampon;
 }
 
-static void genere_texture(numero7::ego::Texture2D  *texture, const float *data, GLint size[2])
+void genere_texture_image(TamponRendu *tampon, const float *data, int size[])
 {
+	auto texture = tampon->texture();
 	texture->free(true);
 	texture->bind();
 	texture->setType(GL_FLOAT, GL_RGBA, GL_RGBA);
@@ -133,7 +136,7 @@ static const char *source_fragment_bordure =
 
 static TamponRendu *cree_tampon_bordure()
 {
-	auto tampon = new TamponRendu();
+	auto tampon = memoire::loge<TamponRendu>();
 
 	tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex_bordure);
 	tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
@@ -185,8 +188,8 @@ RenduImage::RenduImage()
 
 RenduImage::~RenduImage()
 {
-	delete m_tampon_image;
-	delete m_tampon_bordure;
+	memoire::deloge(m_tampon_image);
+	memoire::deloge(m_tampon_bordure);
 }
 
 void RenduImage::charge_image(const numero7::math::matrice<numero7::image::Pixel<float> > &image)
@@ -196,7 +199,7 @@ void RenduImage::charge_image(const numero7::math::matrice<numero7::image::Pixel
 		image.nombre_lignes()
 	};
 
-	genere_texture(m_tampon_image->texture(), &image[0][0].r, size);
+	genere_texture_image(m_tampon_image, &image[0][0].r, size);
 
 	numero7::ego::util::GPU_check_errors("Unable to create image texture");
 }

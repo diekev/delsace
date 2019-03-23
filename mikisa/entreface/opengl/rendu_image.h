@@ -58,3 +58,7 @@ public:
 	 */
 	void dessine(ContexteRendu const &contexte);
 };
+
+TamponRendu *cree_tampon_image();
+
+void genere_texture_image(TamponRendu *tampon, const float *data, int size[2]);

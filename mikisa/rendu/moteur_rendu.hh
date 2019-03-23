@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,39 +24,29 @@
 
 #pragma once
 
-#include "bibliotheques/graphe/graphe.h"
+namespace vision {
+class Camera3D;
+}
 
-#include "operatrice_image.h"
-#include "scene.h"
+class RenduGrille;
+class Scene;
 
-class MoteurRendu;
-
-class OperatriceScene final : public OperatriceImage {
-	Scene m_scene{};
-	MoteurRendu *m_moteur_rendu = nullptr;
-	Graphe m_graphe;
+class MoteurRendu {
+	vision::Camera3D *m_camera = nullptr;
+	Scene *m_scene = nullptr;
+	RenduGrille *m_rendu_grille = nullptr;
 
 public:
-	static constexpr auto NOM = "Scène";
-	static constexpr auto AIDE = "Crée une scène.";
+	MoteurRendu() = default;
 
-	explicit OperatriceScene(Graphe &graphe_parent, Noeud *node);
+	~MoteurRendu();
 
-	int type() const override;
+	MoteurRendu(MoteurRendu const &) = default;
+	MoteurRendu &operator=(MoteurRendu const &) = default;
 
-	int type_entree(int n) const override;
+	void camera(vision::Camera3D *camera);
 
-	int type_sortie(int) const override;
+	void scene(Scene *scene);
 
-	const char *chemin_entreface() const override;
-
-	const char *nom_classe() const override;
-
-	const char *texte_aide() const override;
-
-	Scene *scene() override;
-
-	Graphe *graphe();
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	void calcule_rendu(float *tampon, int hauteur, int largeur, bool rendu_final);
 };

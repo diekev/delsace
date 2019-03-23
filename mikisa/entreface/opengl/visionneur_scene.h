@@ -34,11 +34,12 @@ class Camera3D;
 }  /* namespace VisionneurScene */
 
 class Mikisa;
-class RenduGrille;
+class MoteurRendu;
 class RenduManipulatriceEchelle;
 class RenduManipulatricePosition;
 class RenduManipulatriceRotation;
 class RenduTexte;
+class TamponRendu;
 class VueCanevas3D;
 
 /**
@@ -50,7 +51,6 @@ class VisionneurScene {
 	Mikisa &m_mikisa;
 
 	vision::Camera3D *m_camera;
-	RenduGrille *m_rendu_grille;
 	RenduTexte *m_rendu_texte;
 	RenduManipulatricePosition *m_rendu_manipulatrice_pos;
 	RenduManipulatriceRotation *m_rendu_manipulatrice_rot;
@@ -59,6 +59,10 @@ class VisionneurScene {
 	ContexteRendu m_contexte{};
 
 	PileMatrice m_stack = {};
+
+	TamponRendu *m_tampon_image = nullptr;
+	MoteurRendu *m_moteur_rendu = nullptr;
+	float *m_tampon = nullptr;
 
 	float m_pos_x, m_pos_y;
 	double m_debut;

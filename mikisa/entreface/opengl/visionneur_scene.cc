@@ -24,29 +24,25 @@
 
 #include "visionneur_scene.h"
 
-#include <GL/glew.h>
 #include <chronometrage/utilitaires.h>
 #include <sstream>
 
-#include "bibliotheques/opengl/rendu_camera.h"
-#include "bibliotheques/opengl/rendu_grille.h"
 #include "bibliotheques/opengl/rendu_texte.h"
-#include "bibliotheques/texture/texture.h"
+#include "bibliotheques/opengl/tampon_rendu.h"
 #include "bibliotheques/vision/camera.h"
 
 #include "bibloc/logeuse_memoire.hh"
 
-#include "coeur/corps/corps.h"
-
 #include "coeur/composite.h"
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
-#include "coeur/objet.h"
-#include "coeur/scene.h"
 
-#include "rendu/rendu_corps.h"
+#include "rendu/moteur_rendu.hh"
 
+#include "rendu_image.h"
 #include "rendu_manipulatrice.h"
+
+/* ************************************************************************** */
 
 template <typename T>
 static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
@@ -62,24 +58,17 @@ static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
 	return resultat;
 }
 
-#if 0
-class MoteurRendu {
-public:
-	void ajoute_camera(Camera *camera, math::transformation matrice);
-
-	void ajoute_maillage(Maillage *maillage, math::transformation matrice);
-};
-#endif
+/* ************************************************************************** */
 
 VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 	: m_parent(parent)
 	, m_mikisa(mikisa)
 	, m_camera(mikisa.camera_3d)
-	, m_rendu_grille(nullptr)
 	, m_rendu_texte(nullptr)
 	, m_rendu_manipulatrice_pos(nullptr)
 	, m_rendu_manipulatrice_rot(nullptr)
 	, m_rendu_manipulatrice_ech(nullptr)
+	, m_moteur_rendu(memoire::loge<MoteurRendu>())
 	, m_pos_x(0)
 	, m_pos_y(0)
 	, m_debut(0)
@@ -87,39 +76,71 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 
 VisionneurScene::~VisionneurScene()
 {
-	delete m_rendu_grille;
-	delete m_rendu_texte;
-	delete m_rendu_manipulatrice_pos;
-	delete m_rendu_manipulatrice_rot;
-	delete m_rendu_manipulatrice_ech;
+	memoire::deloge(m_rendu_texte);
+	memoire::deloge(m_rendu_manipulatrice_pos);
+	memoire::deloge(m_rendu_manipulatrice_rot);
+	memoire::deloge(m_rendu_manipulatrice_ech);
+	memoire::deloge(m_moteur_rendu);
+	memoire::deloge(m_tampon_image);
 }
 
 void VisionneurScene::initialise()
 {
-	glClearColor(0.5, 0.5, 0.5, 1.0);
-
-	glEnable(GL_DEPTH_TEST);
-
-	m_rendu_grille = new RenduGrille(20, 20);
-	m_rendu_texte = new RenduTexte();
-	m_rendu_manipulatrice_pos = new RenduManipulatricePosition();
-	m_rendu_manipulatrice_rot = new RenduManipulatriceRotation();
-	m_rendu_manipulatrice_ech = new RenduManipulatriceEchelle();
+	m_tampon_image = cree_tampon_image();
+	m_rendu_texte = memoire::loge<RenduTexte>();
+	m_rendu_manipulatrice_pos = memoire::loge<RenduManipulatricePosition>();
+	m_rendu_manipulatrice_rot = memoire::loge<RenduManipulatriceRotation>();
+	m_rendu_manipulatrice_ech = memoire::loge<RenduManipulatriceEchelle>();
 
 	m_camera->ajourne();
 
 	m_debut = numero7::chronometrage::maintenant();
+
+	m_moteur_rendu->camera(m_camera);
 }
 
 void VisionneurScene::peint_opengl()
 {
+	/* dessine la scène dans le tampon */
+
+	auto noeud = m_mikisa.derniere_scene_selectionnee;
+
+	if (noeud != nullptr) {
+		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+		auto scene = operatrice->scene();
+		m_moteur_rendu->scene(scene);
+	}
+	else {
+		m_moteur_rendu->scene(nullptr);
+	}
+
+	m_moteur_rendu->calcule_rendu(
+				m_tampon,
+				m_camera->hauteur(),
+				m_camera->largeur(),
+				false);
+
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glClearColor(0.5, 0.5, 0.5, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
 
-	m_camera->ajourne();
+	/* dessine le tampon */
 
-	/* Met en place le contexte. */
+	int taille[2] = {
+		m_camera->largeur(),
+		m_camera->hauteur()
+	};
+
+	genere_texture_image(m_tampon_image, m_tampon, taille);
+
+	m_contexte.MVP(dls::math::mat4x4f(1.0f));
+	m_contexte.matrice_objet(dls::math::mat4x4f(1.0f));
+
+	m_tampon_image->dessine(m_contexte);
+
+	/* dessine les surperpositions */
+
 	auto const &MV = m_camera->MV();
 	auto const &P = m_camera->P();
 	auto const &MVP = P * MV;
@@ -129,59 +150,6 @@ void VisionneurScene::peint_opengl()
 	m_contexte.projection(P);
 	m_contexte.MVP(MVP);
 	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
-	m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
-	m_contexte.pour_surlignage(false);
-
-	/* Peint la grille. */
-	m_rendu_grille->dessine(m_contexte);
-
-	/* Peint le noeud 3D courant. */
-	auto noeud = m_mikisa.derniere_scene_selectionnee;
-
-	if (noeud != nullptr) {
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-		auto scene = operatrice->scene();
-		auto camera = scene->camera();
-
-		if (camera) {
-			/* la rotation de la caméra est appliquée aux points dans
-			 * RenduCamera, donc on recrée une matrice sans rotation, et dont
-			 * la taille dans la scène est de 1.0 (en mettant à l'échelle
-			 * avec un facteur de 1.0 / distance éloignée. */
-			auto matrice = dls::math::mat4x4d(1.0);
-			matrice = dls::math::translation(matrice, dls::math::vec3d(camera->pos()));
-			matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera->eloigne())));
-			m_stack.pousse(matrice);
-			m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
-
-			RenduCamera rendu_camera(camera);
-			rendu_camera.initialise();
-			rendu_camera.dessine(m_contexte);
-
-			m_stack.enleve_sommet();
-		}
-
-		for (auto objet : scene->objets()) {
-			m_stack.pousse(objet->transformation.matrice());
-
-	//		if (objet->corps != nullptr) {
-				m_stack.pousse(objet->corps.transformation.matrice());
-				m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
-
-				objet->mutex_corps.lock();
-				RenduCorps rendu_corps(&objet->corps);
-				rendu_corps.initialise(m_contexte);
-				objet->mutex_corps.unlock();
-				rendu_corps.dessine(m_contexte);
-
-				m_stack.enleve_sommet();
-		//	}
-
-			m_stack.enleve_sommet();
-		}
-	}
-
-	glDisable(GL_DEPTH_TEST);
 
 	if (m_mikisa.manipulation_3d_activee && m_mikisa.manipulatrice_3d) {
 		auto pos = m_mikisa.manipulatrice_3d->pos();
@@ -206,19 +174,17 @@ void VisionneurScene::peint_opengl()
 		m_stack.enleve_sommet();
 	}
 
-	glEnable(GL_DEPTH_TEST);
-
 	auto const fin = numero7::chronometrage::maintenant();
 
 	auto const temps = fin - m_debut;
 	auto const fps = static_cast<int>(1.0 / temps);
 
-	std::stringstream ss;
-	ss << fps << " IPS";
-
 	glEnable(GL_BLEND);
 
 	m_rendu_texte->reinitialise();
+
+	std::stringstream ss;
+	ss << fps << " IPS";
 	m_rendu_texte->dessine(m_contexte, ss.str());
 
 	if (noeud != nullptr) {
@@ -277,6 +243,12 @@ void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
 	m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
 	m_camera->redimensionne(largeur, hauteur);
+
+	if (m_tampon != nullptr) {
+		memoire::deloge_tableau(m_tampon, hauteur * largeur * 4);
+	}
+
+	m_tampon = memoire::loge_tableau<float>(hauteur * largeur * 4);
 }
 
 void VisionneurScene::position_souris(int x, int y)
