@@ -119,6 +119,7 @@ enum class id_morceau : unsigned int {
 	SORTIE,
 	SUFFIXE,
 	SEPARATEUR,
+	TEXTE,
 	VALEUR,
 	VECTEUR,
 	VRAI,

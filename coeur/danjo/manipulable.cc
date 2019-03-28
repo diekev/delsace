@@ -233,7 +233,6 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 	std::experimental::any valeur;
 
 	switch (type) {
-		default:
 		case TypePropriete::ENTIER:
 			valeur = std::experimental::any(0);
 			break;
@@ -250,6 +249,7 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 		case TypePropriete::FICHIER_ENTREE:
 		case TypePropriete::FICHIER_SORTIE:
 		case TypePropriete::CHAINE_CARACTERE:
+		case TypePropriete::TEXTE:
 			valeur = std::experimental::any(std::string(""));
 			break;
 		case TypePropriete::BOOL:
@@ -435,6 +435,7 @@ void *Manipulable::operator[](const std::string &nom)
 		case TypePropriete::FICHIER_ENTREE:
 		case TypePropriete::FICHIER_SORTIE:
 		case TypePropriete::CHAINE_CARACTERE:
+		case TypePropriete::TEXTE:
 			pointeur = std::experimental::any_cast<std::string>(&propriete.valeur);
 			break;
 		case TypePropriete::BOOL:

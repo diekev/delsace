@@ -67,13 +67,14 @@ GestionnaireInterface::~GestionnaireInterface()
 		delete menu;
 	}
 
-	for (auto &barre_outils : m_barres_outils) {
-		for (auto &action : barre_outils->actions()) {
-			delete action;
-		}
+	/* crash lors de la sortie des programmes */
+//	for (auto &barre_outils : m_barres_outils) {
+//		for (auto &action : barre_outils->actions()) {
+//			delete action;
+//		}
 
-		delete barre_outils;
-	}
+//		delete barre_outils;
+//	}
 }
 
 void GestionnaireInterface::ajourne_menu(const std::string &nom)

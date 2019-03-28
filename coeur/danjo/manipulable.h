@@ -50,6 +50,7 @@ enum TypePropriete {
 	COURBE_COULEUR,
 	COURBE_VALEUR,
 	RAMPE_COULEUR,
+	TEXTE,
 };
 
 struct Propriete {

@@ -28,6 +28,9 @@
 
 class QHBoxLayout;
 class QLineEdit;
+class QPushButton;
+class QTextEdit;
+class QVBoxLayout;
 
 namespace danjo {
 
@@ -45,6 +48,28 @@ public:
 
 	ControleProprieteChaineCaractere(ControleProprieteChaineCaractere const &) = default;
 	ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) = default;
+
+	void finalise(const DonneesControle &donnees) override;
+
+private Q_SLOTS:
+	void ajourne_valeur_pointee();
+};
+
+class ControleProprieteEditeurTexte final : public ControlePropriete {
+	Q_OBJECT
+
+	QVBoxLayout *m_agencement{};
+	QTextEdit *m_editeur_ligne{};
+	QPushButton *m_bouton{};
+
+	std::string *m_pointeur{};
+
+public:
+	explicit ControleProprieteEditeurTexte(QWidget *parent = nullptr);
+	~ControleProprieteEditeurTexte() override = default;
+
+	ControleProprieteEditeurTexte(ControleProprieteEditeurTexte const &) = default;
+	ControleProprieteEditeurTexte &operator=(ControleProprieteEditeurTexte const &) = default;
 
 	void finalise(const DonneesControle &donnees) override;
 

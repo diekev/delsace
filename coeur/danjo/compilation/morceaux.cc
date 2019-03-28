@@ -73,6 +73,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "sortie", id_morceau::SORTIE },
 	{ "suffixe", id_morceau::SUFFIXE },
 	{ "séparateur", id_morceau::SEPARATEUR },
+	{ "texte", id_morceau::TEXTE },
 	{ "valeur", id_morceau::VALEUR },
 	{ "vecteur", id_morceau::VECTEUR },
 	{ "vrai", id_morceau::VRAI },
@@ -311,6 +312,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::SUFFIXE";
 		case id_morceau::SEPARATEUR:
 			return "id_morceau::SEPARATEUR";
+		case id_morceau::TEXTE:
+			return "id_morceau::TEXTE";
 		case id_morceau::VALEUR:
 			return "id_morceau::VALEUR";
 		case id_morceau::VECTEUR:

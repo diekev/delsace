@@ -51,6 +51,7 @@ bool est_identifiant_controle(id_morceau identifiant)
 		case id_morceau::COURBE_COULEUR:
 		case id_morceau::COURBE_VALEUR:
 		case id_morceau::RAMPE_COULEUR:
+		case id_morceau::TEXTE:
 			return true;
 		default:
 			return false;
@@ -486,6 +487,7 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 					case id_morceau::FICHIER_ENTREE:
 					case id_morceau::FICHIER_SORTIE:
 					case id_morceau::CHAINE:
+					case id_morceau::TEXTE:
 					case id_morceau::ETIQUETTE:
 					case id_morceau::ENUM:
 					case id_morceau::LISTE:

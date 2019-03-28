@@ -18,6 +18,10 @@ disposition "1disposition_début" {
 		vecteur(valeur="0, 1, 0"; attache=direction)
 	}
 	dossier {
+		onglet "Texte" {
+			étiquette(valeur="Texte")
+			texte(attache=qlskjhdqlskjdhf; valeur="fqsdf")
+		}
 		onglet "Onglet Test" {
 			étiquette(valeur="Youpi !")
 			ligne {

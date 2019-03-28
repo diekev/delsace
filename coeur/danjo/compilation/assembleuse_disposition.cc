@@ -153,6 +153,10 @@ void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
 			controle = new ControleProprieteRampeCouleur;
 			m_donnees_controle.type = TypePropriete::RAMPE_COULEUR;
 			break;
+		case id_morceau::TEXTE:
+			controle = new ControleProprieteEditeurTexte;
+			m_donnees_controle.type = TypePropriete::TEXTE;
+			break;
 		default:
 			break;
 	}

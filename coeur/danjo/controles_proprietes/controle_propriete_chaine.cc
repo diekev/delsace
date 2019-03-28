@@ -26,6 +26,8 @@
 
 #include <QHBoxLayout>
 #include <QLineEdit>
+#include <QPushButton>
+#include <QTextEdit>
 
 #include "donnees_controle.h"
 
@@ -60,6 +62,40 @@ void ControleProprieteChaineCaractere::finalise(const DonneesControle &donnees)
 void ControleProprieteChaineCaractere::ajourne_valeur_pointee()
 {
 	*m_pointeur = m_editeur_ligne->text().toStdString();
+	Q_EMIT(controle_change());
+}
+
+ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(QWidget *parent)
+	: ControlePropriete(parent)
+	, m_agencement(new QVBoxLayout)
+	, m_editeur_ligne(new QTextEdit(this))
+	, m_bouton(new QPushButton("Rafraîchis", this))
+	, m_pointeur(nullptr)
+{
+	m_agencement->addWidget(m_editeur_ligne);
+	m_agencement->addWidget(m_bouton);
+	this->setLayout(m_agencement);
+
+	connect(m_bouton, &QPushButton::pressed,
+			this, &ControleProprieteEditeurTexte::ajourne_valeur_pointee);
+}
+
+void ControleProprieteEditeurTexte::finalise(const DonneesControle &donnees)
+{
+	m_pointeur = static_cast<std::string *>(donnees.pointeur);
+
+	if (donnees.initialisation) {
+		*m_pointeur = donnees.valeur_defaut;
+	}
+
+	m_editeur_ligne->setText(m_pointeur->c_str());
+
+	setToolTip(donnees.infobulle.c_str());
+}
+
+void ControleProprieteEditeurTexte::ajourne_valeur_pointee()
+{
+	*m_pointeur = m_editeur_ligne->toPlainText().toStdString();
 	Q_EMIT(controle_change());
 }
 

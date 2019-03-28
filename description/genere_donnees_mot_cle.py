@@ -52,6 +52,7 @@ mot_cles = [
 	u"courbe_couleur",
 	u"courbe_valeur",
 	u"rampe_couleur",
+	u"texte",
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
