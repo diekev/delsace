@@ -82,6 +82,10 @@ VisionneurScene::~VisionneurScene()
 	memoire::deloge(m_rendu_manipulatrice_ech);
 	memoire::deloge(m_moteur_rendu);
 	memoire::deloge(m_tampon_image);
+
+	if (m_tampon != nullptr) {
+		memoire::deloge_tableau(m_tampon, m_camera->hauteur() * m_camera->largeur() * 4);
+	}
 }
 
 void VisionneurScene::initialise()
@@ -241,12 +245,12 @@ void VisionneurScene::peint_opengl()
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
+	if (m_tampon != nullptr) {
+		memoire::deloge_tableau(m_tampon, m_camera->largeur() * m_camera->hauteur() * 4);
+	}
+
 	m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
 	m_camera->redimensionne(largeur, hauteur);
-
-	if (m_tampon != nullptr) {
-		memoire::deloge_tableau(m_tampon, hauteur * largeur * 4);
-	}
 
 	m_tampon = memoire::loge_tableau<float>(hauteur * largeur * 4);
 }
