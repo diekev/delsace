@@ -198,6 +198,7 @@ static void sauvegarde_proprietes(
 			case danjo::TypePropriete::FICHIER_SORTIE:
 			case danjo::TypePropriete::FICHIER_ENTREE:
 			case danjo::TypePropriete::CHAINE_CARACTERE:
+			case danjo::TypePropriete::TEXTE:
 			{
 				std::string donnees = manipulable->evalue_chaine(nom);
 				element_donnees->SetAttribute("valeur", donnees.c_str());
@@ -431,6 +432,7 @@ static void lecture_propriete(
 			manipulable->ajoute_propriete(nom_prop, danjo::TypePropriete::FICHIER_ENTREE, donnees);
 			break;
 		}
+		case danjo::TypePropriete::TEXTE:
 		case danjo::TypePropriete::CHAINE_CARACTERE:
 		{
 			auto const donnees = std::string(element_donnees->Attribute("valeur"));

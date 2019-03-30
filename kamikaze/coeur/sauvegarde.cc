@@ -102,6 +102,7 @@ static void sauvegarde_proprietes(
 				element_donnees->SetAttribute("valeurw", donnees.a);
 				break;
 			}
+			case danjo::TypePropriete::TEXTE:
 			case danjo::TypePropriete::ENUM:
 			case danjo::TypePropriete::FICHIER_SORTIE:
 			case danjo::TypePropriete::FICHIER_ENTREE:
@@ -275,6 +276,7 @@ static void lecture_propriete(
 			manipulable->valeur_couleur(nom_prop, donnees);
 			break;
 		}
+		case danjo::TypePropriete::TEXTE:
 		case danjo::TypePropriete::ENUM:
 		case danjo::TypePropriete::FICHIER_SORTIE:
 		case danjo::TypePropriete::FICHIER_ENTREE:
