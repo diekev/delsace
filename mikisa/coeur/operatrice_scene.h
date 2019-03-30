@@ -42,6 +42,9 @@ public:
 
 	explicit OperatriceScene(Graphe &graphe_parent, Noeud *node);
 
+	OperatriceScene(OperatriceScene const &) = default;
+	OperatriceScene &operator=(OperatriceScene const &) = default;
+
 	int type() const override;
 
 	int type_entree(int n) const override;
