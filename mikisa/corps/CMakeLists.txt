@@ -19,13 +19,43 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# ------------------------------------------------------------------------------
+set(NOM_CIBLE bib_corps)
 
-set(NOM_PROJET mikisa)
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${INCLUSIONS_DELSACE_MATH}
+)
 
-add_subdirectory(bibloc)
-add_subdirectory(corps)
-add_subdirectory(coeur)
-add_subdirectory(entreface)
-add_subdirectory(lanceur)
-add_subdirectory(rendu)
+set(BIBLIOTHEQUES
+	bibloc_mikisa
+)
+
+add_library(${NOM_CIBLE} STATIC
+    adaptrice_creation_corps.cc
+	attribut.cc
+    collision.cc
+    corps.cc
+    groupes.cc
+    iteration_corps.cc
+    listes.cc
+    primitive.cc
+    triangulation.cc
+    volume.cc
+
+    adaptrice_creation_corps.h
+	attribut.h
+    collision.hh
+    corps.h
+    groupes.h
+    iteration_corps.hh
+    listes.h
+    primitive.hh
+    triangulation.hh
+    volume.hh
+)
+
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
+

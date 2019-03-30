@@ -62,6 +62,7 @@ set(BIBLIOTHEQUES
 	bib_kelvinlet
 	bib_outils
 	bibloc_mikisa
+	bib_corps
 )
 
 qt5_wrap_cpp(
@@ -90,16 +91,6 @@ add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_vue2d.h
 	commandes/commandes_vue3d.h
 
-	corps/adaptrice_creation_corps.h
-	corps/collision.hh
-	corps/corps.h
-	corps/groupes.h
-	corps/iteration_corps.hh
-	corps/listes.h
-	corps/primitive.hh
-	corps/triangulation.hh
-	corps/volume.hh
-
 	operatrices/arbre_bvh.hh
 	operatrices/arbre_octernaire.hh
 	operatrices/courbure.hh
@@ -125,7 +116,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_visualisation.hh
 	operatrices/operatrices_volume.hh
 
-	attribut.h
 	chef_execution.hh
 	composite.h
 	configuration.h
@@ -161,16 +151,6 @@ add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_vue2d.cc
 	commandes/commandes_vue3d.cc
 
-	corps/adaptrice_creation_corps.cc
-	corps/collision.cc
-	corps/corps.cc
-	corps/groupes.cc
-	corps/iteration_corps.cc
-	corps/listes.cc
-	corps/primitive.cc
-	corps/triangulation.cc
-	corps/volume.cc
-
 	operatrices/arbre_bvh.cc
 	operatrices/arbre_octernaire.cc
 	operatrices/courbure.cc
@@ -196,7 +176,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_visualisation.cc
 	operatrices/operatrices_volume.cc
 
-	attribut.cc
 	chef_execution.cc
 	composite.cc
 	configuration.cc

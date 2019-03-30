@@ -30,7 +30,7 @@
 
 #include "bibloc/logeuse_memoire.hh"
 
-#include "../corps/triangulation.hh"
+#include "corps/triangulation.hh"
 
 static constexpr auto MAX_TREETYPE = 32;
 

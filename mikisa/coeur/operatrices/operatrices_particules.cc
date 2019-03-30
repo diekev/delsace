@@ -36,10 +36,10 @@
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"
 
-#include "../corps/corps.h"
-#include "../corps/groupes.h"
-#include "../corps/iteration_corps.hh"
-#include "../corps/triangulation.hh"
+#include "corps/corps.h"
+#include "corps/groupes.h"
+#include "corps/iteration_corps.hh"
+#include "corps/triangulation.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"

@@ -29,8 +29,8 @@
 
 #include "bibloc/tableau.hh"
 
-#include "../corps/collision.hh"
-#include "../corps/groupes.h"
+#include "corps/collision.hh"
+#include "corps/groupes.h"
 
 #include "../contexte_evaluation.hh"
 #include "../operatrice_simulation.hh"

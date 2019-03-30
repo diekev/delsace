@@ -28,7 +28,7 @@
 
 #include "bibloc/logeuse_memoire.hh"
 
-#include "../corps/corps.h"
+#include "corps/corps.h"
 
 ArbreOcternaire::Noeud::~Noeud()
 {

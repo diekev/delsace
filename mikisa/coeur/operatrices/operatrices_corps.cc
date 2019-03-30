@@ -34,8 +34,8 @@
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"
 
-#include "../corps/adaptrice_creation_corps.h"
-#include "../corps/iteration_corps.hh"
+#include "corps/adaptrice_creation_corps.h"
+#include "corps/iteration_corps.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../donnees_aval.hh"

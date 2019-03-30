@@ -30,8 +30,8 @@
 
 #include "bibloc/logeuse_memoire.hh"
 
-#include "../corps/collision.hh"
-#include "../corps/volume.hh"
+#include "corps/collision.hh"
+#include "corps/volume.hh"
 
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"

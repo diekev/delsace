@@ -30,7 +30,7 @@
 
 #include "bibloc/tableau.hh"
 
-#include "../corps/iteration_corps.hh"
+#include "corps/iteration_corps.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"

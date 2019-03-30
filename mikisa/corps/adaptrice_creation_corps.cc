@@ -28,8 +28,7 @@
 
 #include "bibloc/logeuse_memoire.hh"
 
-#include "../attribut.h"
-
+#include "attribut.h"
 #include "corps.h"
 #include "groupes.h"
 #include "listes.h"

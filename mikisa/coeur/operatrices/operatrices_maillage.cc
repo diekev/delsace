@@ -35,7 +35,7 @@
 
 #include "bibloc/tableau.hh"
 
-#include "../corps/iteration_corps.hh"
+#include "corps/iteration_corps.hh"
 
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"

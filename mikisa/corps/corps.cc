@@ -30,8 +30,6 @@
 
 #include "bibloc/logeuse_memoire.hh"
 
-#include "../attribut.h"
-
 #include "groupes.h"
 #include "volume.hh"
 

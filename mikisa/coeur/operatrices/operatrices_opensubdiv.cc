@@ -39,7 +39,7 @@
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"
 
-#include "../corps/iteration_corps.hh"
+#include "corps/iteration_corps.hh"
 
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"

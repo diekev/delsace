@@ -24,7 +24,7 @@
 
 #include "operatrices_visualisation.hh"
 
-#include "../corps/iteration_corps.hh"
+#include "corps/iteration_corps.hh"
 
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"

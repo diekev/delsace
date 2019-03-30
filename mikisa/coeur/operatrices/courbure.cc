@@ -29,7 +29,7 @@
 
 #include "bibloc/tableau.hh"
 
-#include "../corps/corps.h"
+#include "corps/corps.h"
 
 #include "../chef_execution.hh"
 

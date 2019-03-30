@@ -30,10 +30,10 @@
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"
 
-#include "../corps/corps.h"
-#include "../corps/iteration_corps.hh"
+#include "corps/attribut.h"
+#include "corps/corps.h"
+#include "corps/iteration_corps.hh"
 
-#include "../attribut.h"
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"

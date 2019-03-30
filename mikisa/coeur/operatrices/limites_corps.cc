@@ -26,7 +26,7 @@
 
 #include "bibliotheques/outils/constantes.h"
 
-#include "../corps/corps.h"
+#include "corps/corps.h"
 
 static auto initialise_limites3f()
 {

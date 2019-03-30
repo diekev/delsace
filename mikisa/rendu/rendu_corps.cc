@@ -34,10 +34,9 @@
 
 #include "bibloc/tableau.hh"
 
-#include "coeur/corps/corps.h"
-#include "coeur/corps/volume.hh"
-
-#include "coeur/attribut.h"
+#include "corps/attribut.h"
+#include "corps/corps.h"
+#include "corps/volume.hh"
 
 /* ************************************************************************** */
 

@@ -26,8 +26,8 @@
 
 #include "bibliotheques/outils/constantes.h"
 
-#include "../corps/corps.h"
-#include "../corps/iteration_corps.hh"
+#include "corps/corps.h"
+#include "corps/iteration_corps.hh"
 
 template <typename T>
 static auto acos(T fac)

@@ -30,7 +30,7 @@
 
 #include "bibloc/tableau.hh"
 
-#include "../attribut.h"
+#include "attribut.h"
 #include "groupes.h"
 #include "listes.h"
 
