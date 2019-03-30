@@ -15,37 +15,12 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#pragma once
+#include "synchronise.hh"
 
-#include "bibliotheques/transformation/transformation.h"
-
-#include "corps/corps.h"
-
-#include "bibloc/synchronise.hh"
-
-struct Objet {
-	/* transformation */
-	math::transformation transformation = math::transformation();
-	dls::math::point3f pivot        = dls::math::point3f(0.0f);
-	dls::math::point3f position     = dls::math::point3f(0.0f);
-	dls::math::point3f echelle      = dls::math::point3f(1.0f);
-	dls::math::point3f rotation     = dls::math::point3f(0.0f);
-	float echelle_uniforme              = 1.0f;
-
-	/* autres propriétés */
-	std::string nom = "objet";
-
-	dls::synchronise<Corps> corps{};
-
-	Objet() = default;
-
-	Objet(Objet const &) = default;
-	Objet &operator=(Objet const &) = default;
-};

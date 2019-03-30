@@ -190,10 +190,12 @@ int OperatriceObjet::execute(ContexteEvaluation const &contexte, DonneesAval *do
 	/* À FAIRE? :- on garde une copie pour l'évaluation dans des threads
 	 * séparés, copie nécessaire pour pouvoir rendre l'objet dans la vue quand
 	 * le rendu prend plus de temps que l'évaluation asynchrone. */
-	m_objet.mutex_corps.lock();
-	m_objet.corps.reinitialise();
-	operatrice->corps()->copie_vers(&m_objet.corps);
-	m_objet.mutex_corps.unlock();
+	m_objet.corps.accede_ecriture([&operatrice](Corps &corps)
+	{
+		corps.reinitialise();
+		operatrice->corps()->copie_vers(&corps);
+	});
+
 
 	return EXECUTION_REUSSIE;
 }

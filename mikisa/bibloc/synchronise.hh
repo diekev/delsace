@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,28 +24,32 @@
 
 #pragma once
 
-#include "bibliotheques/transformation/transformation.h"
+#include <functional>
+#include <mutex>
 
-#include "corps/corps.h"
+namespace dls {
 
-#include "bibloc/synchronise.hh"
+template <typename T>
+struct synchronise {
+	std::mutex m_mutex{};
+	T m_ptr{};
 
-struct Objet {
-	/* transformation */
-	math::transformation transformation = math::transformation();
-	dls::math::point3f pivot        = dls::math::point3f(0.0f);
-	dls::math::point3f position     = dls::math::point3f(0.0f);
-	dls::math::point3f echelle      = dls::math::point3f(1.0f);
-	dls::math::point3f rotation     = dls::math::point3f(0.0f);
-	float echelle_uniforme              = 1.0f;
+public:
+	synchronise() = default;
 
-	/* autres propriétés */
-	std::string nom = "objet";
+	void accede_ecriture(std::function<void(T&)> &&op)
+	{
+		m_mutex.lock();
+		op(m_ptr);
+		m_mutex.unlock();
+	}
 
-	dls::synchronise<Corps> corps{};
-
-	Objet() = default;
-
-	Objet(Objet const &) = default;
-	Objet &operator=(Objet const &) = default;
+	void accede_lecture(std::function<void(T const&)> &&op)
+	{
+		m_mutex.lock();
+		op(m_ptr);
+		m_mutex.unlock();
+	}
 };
+
+}  /* namespace dls */

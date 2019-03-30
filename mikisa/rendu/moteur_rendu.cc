@@ -159,18 +159,20 @@ void MoteurRendu::calcule_rendu(
 
 		for (auto objet : m_scene->objets()) {
 			pile.pousse(objet->transformation.matrice());
-			pile.pousse(objet->corps.transformation.matrice());
 
-			contexte.matrice_objet(converti_matrice_glm(pile.sommet()));
+			objet->corps.accede_lecture([&pile, &contexte](Corps const &corps)
+			{
+				pile.pousse(corps.transformation.matrice());
 
-			objet->mutex_corps.lock();
-			RenduCorps rendu_corps(&objet->corps);
-			rendu_corps.initialise(contexte);
-			objet->mutex_corps.unlock();
+				contexte.matrice_objet(converti_matrice_glm(pile.sommet()));
 
-			rendu_corps.dessine(contexte);
+				RenduCorps rendu_corps(&corps);
+				rendu_corps.initialise(contexte);
+				rendu_corps.dessine(contexte);
 
-			pile.enleve_sommet();
+				pile.enleve_sommet();
+			});
+
 			pile.enleve_sommet();
 		}
 	}

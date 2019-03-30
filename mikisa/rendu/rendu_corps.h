@@ -38,13 +38,13 @@ class RenduCorps {
 	TamponRendu *m_tampon_segments = nullptr;
 	TamponRendu *m_tampon_volume = nullptr;
 
-	Corps *m_corps = nullptr;
+	Corps const *m_corps = nullptr;
 
 public:
 	/**
 	 * RenduCorps une instance de RenduMaillage pour le maillage spécifié.
 	 */
-	explicit RenduCorps(Corps *corps);
+	explicit RenduCorps(Corps const *corps);
 
 	RenduCorps(RenduCorps const &) = default;
 	RenduCorps &operator=(RenduCorps const &) = default;

@@ -271,7 +271,7 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs)
 
 void ajoute_polygone_surface(
 		Polygone *polygone,
-		ListePoints3D *liste_points,
+		ListePoints3D const *liste_points,
 		Attribut *attr_normaux,
 		Attribut *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
@@ -323,7 +323,7 @@ void ajoute_polygone_surface(
 
 void ajoute_polygone_segment(
 		Polygone *polygone,
-		ListePoints3D *liste_points,
+		ListePoints3D const *liste_points,
 		Attribut *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
 		dls::tableau<dls::math::vec3f> &couleurs)
@@ -557,7 +557,7 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 
 /* ************************************************************************** */
 
-RenduCorps::RenduCorps(Corps *corps)
+RenduCorps::RenduCorps(Corps const *corps)
 	: m_corps(corps)
 {}
 

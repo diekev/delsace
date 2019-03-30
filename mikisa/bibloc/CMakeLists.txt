@@ -29,9 +29,11 @@ set(BIBLIOTHEQUES
 
 add_library(${NOM_CIBLE} STATIC
     logeuse_memoire.cc
+	synchronise.cc
 	tableau.cc
 
     logeuse_memoire.hh
+	synchronise.hh
 	tableau.hh
 )
 
