@@ -22,21 +22,49 @@
  *
  */
 
-#include "test_uri.hh"
+namespace dls::math {
 
-#include "math/tests_matrice.hh"
-#include "math/tests_quaternion.hh"
-#include "math/tests_vecteur.hh"
+template <typename type_vecteur, typename T, unsigned long N, int... index>
+struct swizzler {
+	static constexpr auto nombre_composants = sizeof...(index);
 
-int main()
-{
-	dls::test_unitaire::Controleuse controleuse;
-	controleuse.ajoute_fonction(test_uri);
-	controleuse.ajoute_fonction(tests_matrice);
-	controleuse.ajoute_fonction(tests_quaternion);
-	controleuse.ajoute_fonction(tests_vecteur);
+	T donnees[N];
 
-	controleuse.performe_controles();
+	type_vecteur dechoie()
+	{
+		auto vec = type_vecteur{};
+		copie_vers(vec, 0, index...);
+		return vec;
+	}
 
-	controleuse.imprime_resultat();
-}
+	operator type_vecteur() const
+	{
+		return dechoie();
+	}
+
+	operator type_vecteur()
+	{
+		return dechoie();
+	}
+
+	swizzler &operator=(const type_vecteur &vec)
+	{
+		copie_depuis(vec, 0, index...);
+		return *this;
+	}
+
+private:
+	template <typename... Index>
+	void copie_vers(type_vecteur &vec, int i, Index... s_index) const
+	{
+		((vec[i++] = donnees[s_index]), ...);
+	}
+
+	template <typename... Index>
+	void copie_depuis(const type_vecteur &vec, int i, Index... s_index) const
+	{
+		((donnees[s_index] = vec[i++]), ...);
+	}
+};
+
+}  /* namespace dls::math */

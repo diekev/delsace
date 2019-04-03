@@ -22,21 +22,8 @@
  *
  */
 
-#include "test_uri.hh"
+#include "matrice.hh"
 
-#include "math/tests_matrice.hh"
-#include "math/tests_quaternion.hh"
-#include "math/tests_vecteur.hh"
+namespace dls::math {
 
-int main()
-{
-	dls::test_unitaire::Controleuse controleuse;
-	controleuse.ajoute_fonction(test_uri);
-	controleuse.ajoute_fonction(tests_matrice);
-	controleuse.ajoute_fonction(tests_quaternion);
-	controleuse.ajoute_fonction(tests_vecteur);
-
-	controleuse.performe_controles();
-
-	controleuse.imprime_resultat();
-}
+}  /* namespace dls::math */

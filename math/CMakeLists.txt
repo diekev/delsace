@@ -19,55 +19,46 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_PROJET tests_unitaire_delsace)
+set(NOM_BIBLIOTHEQUE math)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 set(BIBLIOTHEQUES
-	tests
-	base64
-	reseau
-	sha256
 )
 
-set(SOURCES
-	math/tests_matrice.cc
-	math/tests_quaternion.cc
-	math/tests_vecteur.cc
-
-	tests.cc
-	test_uri.cc
-
-	math/tests_matrice.hh
-	math/tests_quaternion.hh
-	math/tests_vecteur.hh
-
-	test_uri.hh
+set(ENTETES
+	base_vecteur.hh
+	bruit.hh
+	concepts.hh
+	entrepolation.hh
+	matrice.hh
+	outils.hh
+	swizzler.hh
+	quaternion.hh
+	vecteur.hh
 )
 
-add_executable(${NOM_PROJET} ${SOURCES})
+add_library(${NOM_BIBLIOTHEQUE} STATIC
+	bruit.cc
+	concepts.cc
+	entrepolation.cc
+	matrice.cc
+	outils.cc
+	quaternion.cc
+	vecteur.cc
 
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-add_test(tests ${NOM_PROJET})
-
-install(TARGETS ${NOM_PROJET} RUNTIME DESTINATION .)
-
-set(NOM_PROJET tests_aleatoire_delsace)
-
-set(SOURCES
-	tests_aleatoire.cc
+	${ENTETES}
 )
 
-add_executable(${NOM_PROJET} ${SOURCES})
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
 
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
 
+install(
+	TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib
+)
 
-add_test(tests ${NOM_PROJET})
-
-install(TARGETS ${NOM_PROJET} RUNTIME DESTINATION .)
+install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
