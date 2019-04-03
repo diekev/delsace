@@ -82,14 +82,14 @@ static constexpr auto MAX_FICHIER_RECENT = 10;
 Mikisa::Mikisa()
 	: m_usine_commande{}
 	, m_usine_operatrices{}
-	, m_repondant_commande(memoire::loge<RepondantCommande>(m_usine_commande, this))
-	, composite(memoire::loge<Composite>())
+	, m_repondant_commande(memoire::loge<RepondantCommande>("RepondantCommande", m_usine_commande, this))
+	, composite(memoire::loge<Composite>("Composite"))
 	, fenetre_principale(nullptr)
 	, editrice_active(nullptr)
-	, gestionnaire_entreface(memoire::loge<danjo::GestionnaireInterface>())
-	, project_settings(memoire::loge<ProjectSettings>())
-	, camera_2d(memoire::loge<vision::Camera2D>())
-	, camera_3d(memoire::loge<vision::Camera3D>(0, 0))
+	, gestionnaire_entreface(memoire::loge<danjo::GestionnaireInterface>("danjo::GestionnaireInterface"))
+	, project_settings(memoire::loge<ProjectSettings>("ProjectSettings"))
+	, camera_2d(memoire::loge<vision::Camera2D>("vision::Camera2D"))
+	, camera_3d(memoire::loge<vision::Camera3D>("vision::Camera3D", 0, 0))
 	, graphe(&composite->graph())
 	, type_manipulation_3d(MANIPULATION_POSITION)
 	, chemin_courant("/composite/")
@@ -101,13 +101,13 @@ Mikisa::Mikisa()
 
 Mikisa::~Mikisa()
 {
-	memoire::deloge(notifiant_thread);
-	memoire::deloge(camera_2d);
-	memoire::deloge(camera_3d);
-	memoire::deloge(composite);
-	memoire::deloge(project_settings);
-	memoire::deloge(m_repondant_commande);
-	memoire::deloge(gestionnaire_entreface);
+	memoire::deloge("TaskNotifier", notifiant_thread);
+	memoire::deloge("vision::Camera2D", camera_2d);
+	memoire::deloge("vision::Camera3D", camera_3d);
+	memoire::deloge("Composite", composite);
+	memoire::deloge("ProjectSettings", project_settings);
+	memoire::deloge("RepondantCommande", m_repondant_commande);
+	memoire::deloge("danjo::GestionnaireInterface", gestionnaire_entreface);
 }
 
 void Mikisa::initialise()

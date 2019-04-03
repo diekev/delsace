@@ -526,7 +526,7 @@ ArbreBVH *nouvelle_arbre_bvh(int maxsize, float epsilon, unsigned char tree_type
 {
 	assert(tree_type >= 2 && tree_type <= MAX_TREETYPE);
 
-	auto arbre = memoire::loge<ArbreBVH>();
+	auto arbre = memoire::loge<ArbreBVH>("ArbreBVH");
 
 	/* tree epsilon must be >= FLT_EPSILON
 	 * so that tangent rays can still hit a bounding volume..
@@ -564,7 +564,7 @@ ArbreBVH *nouvelle_arbre_bvh(int maxsize, float epsilon, unsigned char tree_type
 	}
 	else {
 		/* should never happen! */
-		memoire::deloge(arbre);
+		memoire::deloge("ArbreBVH", arbre);
 		assert(false);
 		return static_cast<ArbreBVH *>(nullptr);
 	}

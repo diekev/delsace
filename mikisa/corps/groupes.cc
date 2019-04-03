@@ -32,7 +32,7 @@
 
 static void supprime_liste(dls::tableau<size_t> *liste)
 {
-	memoire::deloge(liste);
+	memoire::deloge("groupe", liste);
 }
 
 /* ************************************************************************** */
@@ -94,12 +94,12 @@ size_t GroupePoint::index(long i) const
 void GroupePoint::detache()
 {
 	if (m_points == nullptr) {
-		m_points = ptr_liste(memoire::loge<type_liste>(), supprime_liste);
+		m_points = ptr_liste(memoire::loge<type_liste>("groupe"), supprime_liste);
 		return;
 	}
 
 	if (!m_points.unique()) {
-		m_points = ptr_liste(memoire::loge<type_liste>(*(m_points.get())), supprime_liste);
+		m_points = ptr_liste(memoire::loge<type_liste>("groupe", *(m_points.get())), supprime_liste);
 	}
 }
 
@@ -146,12 +146,12 @@ size_t GroupePrimitive::index(long i) const
 void GroupePrimitive::detache()
 {
 	if (m_primitives == nullptr) {
-		m_primitives = ptr_liste(memoire::loge<type_liste>(), supprime_liste);
+		m_primitives = ptr_liste(memoire::loge<type_liste>("groupe"), supprime_liste);
 		return;
 	}
 
 	if (!m_primitives.unique()) {
-		m_primitives = ptr_liste(memoire::loge<type_liste>(*(m_primitives.get())), supprime_liste);
+		m_primitives = ptr_liste(memoire::loge<type_liste>("groupe", *(m_primitives.get())), supprime_liste);
 	}
 }
 

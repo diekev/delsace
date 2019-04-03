@@ -79,7 +79,7 @@ public:
 		~Octant()
 		{
 			for (auto enfant : enfants) {
-				memoire::deloge(enfant);
+				memoire::deloge("ArbreOcternaire::Octant", enfant);
 			}
 		}
 	};
@@ -87,7 +87,7 @@ public:
 	~ArbreOcternaire()
 	{
 		for (auto tri : m_triangles) {
-			memoire::deloge(tri);
+			memoire::deloge("Triangle", tri);
 		}
 
 		m_triangles.clear();
@@ -303,7 +303,7 @@ public:
 		 * le normal au point de collésion, et le segment collésé sont stocké
 		 */
 
-		memoire::deloge(arbre);
+		memoire::deloge("ArbreOcternaire", arbre);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -320,13 +320,13 @@ public:
 
 	ArbreOcternaire *construit_arbre(Corps const *maillage)
 	{
-		auto arbre = memoire::loge<ArbreOcternaire>();
+		auto arbre = memoire::loge<ArbreOcternaire>("ArbreOcternaire");
 
 		pour_chaque_polygone_ferme(*maillage,
 								   [&](Corps const &corps, Polygone *poly)
 		{
 			for (long i = 2; i < poly->nombre_sommets(); ++i) {
-				auto triangle = memoire::loge<Triangle>();
+				auto triangle = memoire::loge<Triangle>("Triangle");
 				triangle->p0 = corps.point_transforme(poly->index_point(0));
 				triangle->p1 = corps.point_transforme(poly->index_point(i - 1));
 				triangle->p2 = corps.point_transforme(poly->index_point(i));

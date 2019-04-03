@@ -149,12 +149,13 @@ public:
 
 		/* À FAIRE : rayon de particules : container_poly. */
 		auto cont_voro = memoire::loge<voro::container>(
+					"voro::container",
 					min.x, max.x, min.y, max.y, min.z, max.z,
 					nombre_block.x, nombre_block.y, nombre_block.z,
 					periode.x, periode.y, periode.z,
 					static_cast<int>(points_entree->taille()));
 
-		auto ordre_parts = memoire::loge<voro::particle_order>();
+		auto ordre_parts = memoire::loge<voro::particle_order>("voro::particle_order");
 
 		/* ajout des particules */
 
@@ -206,28 +207,28 @@ public:
 
 		for (auto &c : cellules) {
 			if (c.verts) {
-				memoire::deloge_tableau(c.verts, c.totvert);
+				memoire::deloge_tableau("c.verts", c.verts, c.totvert);
 			}
 
 			if (c.neighbors) {
-				memoire::deloge_tableau(c.neighbors, c.totpoly);
+				memoire::deloge_tableau("c.neighbors", c.neighbors, c.totpoly);
 			}
 
 			if (c.poly_indices) {
 				for (size_t j = 0; j < static_cast<size_t>(c.totpoly); j++) {
-					memoire::deloge_tableau(c.poly_indices[j], c.poly_totvert[j]);
+					memoire::deloge_tableau("c.poly_indices", c.poly_indices[j], c.poly_totvert[j]);
 				}
 
-				memoire::deloge_tableau(c.poly_indices, c.totpoly);
+				memoire::deloge_tableau("c.poly_indices", c.poly_indices, c.totpoly);
 			}
 
 			if (c.poly_totvert) {
-				memoire::deloge_tableau(c.poly_totvert, c.totpoly);
+				memoire::deloge_tableau("c.poly_totvert", c.poly_totvert, c.totpoly);
 			}
 		}
 
-		memoire::deloge(cont_voro);
-		memoire::deloge(ordre_parts);
+		memoire::deloge("voro::container", cont_voro);
+		memoire::deloge("voro::particle_order", ordre_parts);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -260,7 +261,7 @@ public:
 				// verts
 				vc.vertices(*pp, pp[1], pp[2], verts);
 				c.totvert = vc.p;
-				c.verts = memoire::loge_tableau<float[3]>(c.totvert);
+				c.verts = memoire::loge_tableau<float[3]>("c.verts", c.totvert);
 
 				for (auto v = 0; v < c.totvert; v++) {
 					c.verts[v][0] = static_cast<float>(verts[static_cast<size_t>(v * 3)]);
@@ -271,19 +272,19 @@ public:
 				// faces
 				c.totpoly = vc.number_of_faces();
 				vc.face_orders(face_orders);
-				c.poly_totvert = memoire::loge_tableau<int>(c.totpoly);
+				c.poly_totvert = memoire::loge_tableau<int>("c.poly_totvert", c.totpoly);
 
 				for (auto fo = 0; fo < c.totpoly; fo++) {
 					c.poly_totvert[fo] = face_orders[static_cast<size_t>(fo)];
 				}
 
 				vc.face_vertices(face_verts);
-				c.poly_indices = memoire::loge_tableau<int *>(c.totpoly);
+				c.poly_indices = memoire::loge_tableau<int *>("c.poly_indices", c.totpoly);
 
 				int skip = 0;
 				for (auto fo = 0; fo < c.totpoly; fo++) {
 					int num_verts = c.poly_totvert[fo];
-					c.poly_indices[fo] = memoire::loge_tableau<int>(num_verts);
+					c.poly_indices[fo] = memoire::loge_tableau<int>("c.poly_indices", num_verts);
 
 					for (auto fv = 0; fv < num_verts; fv++) {
 						c.poly_indices[fo][fv] = face_verts[static_cast<size_t>(skip + 1 + fv)];
@@ -294,7 +295,7 @@ public:
 
 				// neighbors
 				vc.neighbors(neighbors);
-				c.neighbors = memoire::loge_tableau<int>(c.totpoly);
+				c.neighbors = memoire::loge_tableau<int>("c.neighbors", c.totpoly);
 
 				for (auto n = 0; n < c.totpoly; n++) {
 					c.neighbors[n] = neighbors[static_cast<size_t>(n)];

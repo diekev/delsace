@@ -83,7 +83,7 @@ Image::~Image()
 
 Calque *Image::ajoute_calque(std::string const &nom, Rectangle const &rectangle)
 {
-	auto tampon = memoire::loge<Calque>();
+	auto tampon = memoire::loge<Calque>("Calque");
 	tampon->nom = nom;
 	tampon->tampon = type_image(numero7::math::Hauteur(static_cast<int>(rectangle.hauteur)),
 								numero7::math::Largeur(static_cast<int>(rectangle.largeur)));
@@ -123,7 +123,7 @@ void Image::reinitialise(bool garde_memoires)
 {
 	if (!garde_memoires) {
 		for (Calque *tampon : m_calques) {
-			memoire::deloge(tampon);
+			memoire::deloge("Calque", tampon);
 		}
 	}
 
@@ -544,10 +544,10 @@ static void supprime_operatrice_image(std::any pointeur)
 
 Noeud *cree_noeud_image()
 {
-	return memoire::loge<Noeud>(supprime_operatrice_image);
+	return memoire::loge<Noeud>("Noeud", supprime_operatrice_image);
 }
 
 void supprime_noeud_image(Noeud *noeud)
 {
-	memoire::deloge(noeud);
+	memoire::deloge("Noeud", noeud);
 }

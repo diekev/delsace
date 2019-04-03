@@ -703,7 +703,7 @@ static void set_height_normalize_factor(Ocean *oc, float gravite)
 
 Ocean *BKE_ocean_add(void)
 {
-	Ocean *oc = memoire::loge<Ocean>();
+	Ocean *oc = memoire::loge<Ocean>("Ocean");
 
 	//	BLI_rw_mutex_init(&oc->oceanmutex);
 
@@ -802,11 +802,11 @@ void BKE_ocean_init(
 	auto taille = (o->_M * o->_N);
 	auto taille_complex = (o->_M * (1 + o->_N / 2));
 
-	o->_k = memoire::loge_tableau<float>(taille_complex);
-	o->_h0 = memoire::loge_tableau<fftw_complex>(taille);
-	o->_h0_minus = memoire::loge_tableau<fftw_complex>(taille);
-	o->_kx = memoire::loge_tableau<float>(o->_M);
-	o->_kz = memoire::loge_tableau<float>(o->_N);
+	o->_k = memoire::loge_tableau<float>("_k", taille_complex);
+	o->_h0 = memoire::loge_tableau<fftw_complex>("_h0", taille);
+	o->_h0_minus = memoire::loge_tableau<fftw_complex>("_h0_minus", taille);
+	o->_kx = memoire::loge_tableau<float>("_kx", o->_M);
+	o->_kz = memoire::loge_tableau<float>("_kz", o->_N);
 
 	/* make this robust in the face of erroneous usage */
 	if (o->_Lx == 0.0f)
@@ -849,47 +849,47 @@ void BKE_ocean_init(
 		}
 	}
 
-	o->_fft_in = memoire::loge_tableau<fftw_complex>(taille_complex);
-	o->_htilda = memoire::loge_tableau<fftw_complex>(taille_complex);
+	o->_fft_in = memoire::loge_tableau<fftw_complex>("_fft_in", taille_complex);
+	o->_htilda = memoire::loge_tableau<fftw_complex>("_htilda", taille_complex);
 
 	//BLI_thread_lock(LOCK_FFTW);
 
 	if (o->_do_disp_y) {
-		o->_disp_y = memoire::loge_tableau<double>(taille);
+		o->_disp_y = memoire::loge_tableau<double>("_disp_y", taille);
 		o->_disp_y_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in, o->_disp_y, FFTW_ESTIMATE);
 	}
 
 	if (o->_do_normals) {
-		o->_fft_in_nx = memoire::loge_tableau<fftw_complex>(taille_complex);
-		o->_fft_in_nz = memoire::loge_tableau<fftw_complex>(taille_complex);
+		o->_fft_in_nx = memoire::loge_tableau<fftw_complex>("_fft_in_nx", taille_complex);
+		o->_fft_in_nz = memoire::loge_tableau<fftw_complex>("_fft_in_nz", taille_complex);
 
-		o->_N_x = memoire::loge_tableau<double>(taille);
+		o->_N_x = memoire::loge_tableau<double>("_N_x", taille);
 		/* o->_N_y = (float *) fftwf_malloc(o->_M * o->_N * sizeof(float)); (MEM01) */
-		o->_N_z = memoire::loge_tableau<double>(taille);
+		o->_N_z = memoire::loge_tableau<double>("_N_z", taille);
 
 		o->_N_x_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_nx, o->_N_x, FFTW_ESTIMATE);
 		o->_N_z_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_nz, o->_N_z, FFTW_ESTIMATE);
 	}
 
 	if (o->_do_chop) {
-		o->_fft_in_x = memoire::loge_tableau<fftw_complex>(taille_complex);
-		o->_fft_in_z = memoire::loge_tableau<fftw_complex>(taille_complex);
+		o->_fft_in_x = memoire::loge_tableau<fftw_complex>("_fft_in_x", taille_complex);
+		o->_fft_in_z = memoire::loge_tableau<fftw_complex>("_fft_in_z", taille_complex);
 
-		o->_disp_x = memoire::loge_tableau<double>(taille);
-		o->_disp_z = memoire::loge_tableau<double>(taille);
+		o->_disp_x = memoire::loge_tableau<double>("_disp_x", taille);
+		o->_disp_z = memoire::loge_tableau<double>("_disp_z", taille);
 
 		o->_disp_x_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_x, o->_disp_x, FFTW_ESTIMATE);
 		o->_disp_z_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_z, o->_disp_z, FFTW_ESTIMATE);
 	}
 
 	if (o->_do_jacobian) {
-		o->_fft_in_jxx = memoire::loge_tableau<fftw_complex>(taille_complex);
-		o->_fft_in_jzz = memoire::loge_tableau<fftw_complex>(taille_complex);
-		o->_fft_in_jxz = memoire::loge_tableau<fftw_complex>(taille_complex);
+		o->_fft_in_jxx = memoire::loge_tableau<fftw_complex>("_fft_in_jxx", taille_complex);
+		o->_fft_in_jzz = memoire::loge_tableau<fftw_complex>("_fft_in_jzz", taille_complex);
+		o->_fft_in_jxz = memoire::loge_tableau<fftw_complex>("_fft_in_jxz", taille_complex);
 
-		o->_Jxx = memoire::loge_tableau<double>(taille);
-		o->_Jzz = memoire::loge_tableau<double>(taille);
-		o->_Jxz = memoire::loge_tableau<double>(taille);
+		o->_Jxx = memoire::loge_tableau<double>("_Jxx", taille);
+		o->_Jzz = memoire::loge_tableau<double>("_Jzz", taille);
+		o->_Jxz = memoire::loge_tableau<double>("_Jxz", taille);
 
 		o->_Jxx_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_jxx, o->_Jxx, FFTW_ESTIMATE);
 		o->_Jzz_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_jzz, o->_Jzz, FFTW_ESTIMATE);
@@ -919,54 +919,54 @@ void BKE_ocean_free_data(Ocean *oc)
 
 	if (oc->_do_disp_y) {
 		fftw_destroy_plan(oc->_disp_y_plan);
-		memoire::deloge_tableau(oc->_disp_y, taille);
+		memoire::deloge_tableau("_disp_y", oc->_disp_y, taille);
 	}
 
 	if (oc->_do_normals) {
-		memoire::deloge_tableau(oc->_fft_in_nx, taille_complex);
-		memoire::deloge_tableau(oc->_fft_in_nz, taille_complex);
+		memoire::deloge_tableau("_fft_in_nx", oc->_fft_in_nx, taille_complex);
+		memoire::deloge_tableau("_fft_in_nz", oc->_fft_in_nz, taille_complex);
 		fftw_destroy_plan(oc->_N_x_plan);
 		fftw_destroy_plan(oc->_N_z_plan);
-		memoire::deloge_tableau(oc->_N_x, taille);
+		memoire::deloge_tableau("_N_x", oc->_N_x, taille);
 		/*fftwf_free(oc->_N_y); (MEM01)*/
-		memoire::deloge_tableau(oc->_N_z, taille);
+		memoire::deloge_tableau("_N_z", oc->_N_z, taille);
 	}
 
 	if (oc->_do_chop) {
-		memoire::deloge_tableau(oc->_fft_in_x, taille_complex);
-		memoire::deloge_tableau(oc->_fft_in_z, taille_complex);
+		memoire::deloge_tableau("_fft_in_x", oc->_fft_in_x, taille_complex);
+		memoire::deloge_tableau("_fft_in_z", oc->_fft_in_z, taille_complex);
 		fftw_destroy_plan(oc->_disp_x_plan);
 		fftw_destroy_plan(oc->_disp_z_plan);
-		memoire::deloge_tableau(oc->_disp_x, taille);
-		memoire::deloge_tableau(oc->_disp_z, taille);
+		memoire::deloge_tableau("_disp_x", oc->_disp_x, taille);
+		memoire::deloge_tableau("_disp_z", oc->_disp_z, taille);
 	}
 
 	if (oc->_do_jacobian) {
-		memoire::deloge_tableau(oc->_fft_in_jxx, taille_complex);
-		memoire::deloge_tableau(oc->_fft_in_jzz, taille_complex);
-		memoire::deloge_tableau(oc->_fft_in_jxz, taille_complex);
+		memoire::deloge_tableau("_fft_in_jxx", oc->_fft_in_jxx, taille_complex);
+		memoire::deloge_tableau("_fft_in_jzz", oc->_fft_in_jzz, taille_complex);
+		memoire::deloge_tableau("_fft_in_jxz", oc->_fft_in_jxz, taille_complex);
 		fftw_destroy_plan(oc->_Jxx_plan);
 		fftw_destroy_plan(oc->_Jzz_plan);
 		fftw_destroy_plan(oc->_Jxz_plan);
-		memoire::deloge_tableau(oc->_Jxx, taille);
-		memoire::deloge_tableau(oc->_Jzz, taille);
-		memoire::deloge_tableau(oc->_Jxz, taille);
+		memoire::deloge_tableau("_Jxx", oc->_Jxx, taille);
+		memoire::deloge_tableau("_Jzz,", oc->_Jzz, taille);
+		memoire::deloge_tableau("_Jxz", oc->_Jxz, taille);
 	}
 
 	//	BLI_thread_unlock(LOCK_FFTW);
 
 	if (oc->_fft_in) {
-		memoire::deloge_tableau(oc->_fft_in, taille_complex);
+		memoire::deloge_tableau("oc->_fft_in", oc->_fft_in, taille_complex);
 	}
 
 	/* check that ocean data has been initialized */
 	if (oc->_htilda) {
-		memoire::deloge_tableau(oc->_htilda, taille_complex);
-		memoire::deloge_tableau(oc->_k, taille_complex);
-		memoire::deloge_tableau(oc->_h0, taille);
-		memoire::deloge_tableau(oc->_h0_minus, taille);
-		memoire::deloge_tableau(oc->_kx, oc->_M);
-		memoire::deloge_tableau(oc->_kz, oc->_N);
+		memoire::deloge_tableau("_htilda", oc->_htilda, taille_complex);
+		memoire::deloge_tableau("_k", oc->_k, taille_complex);
+		memoire::deloge_tableau("_h0", oc->_h0, taille);
+		memoire::deloge_tableau("_h0_minus", oc->_h0_minus, taille);
+		memoire::deloge_tableau("_kx", oc->_kx, oc->_M);
+		memoire::deloge_tableau("_kz", oc->_kz, oc->_N);
 	}
 
 	//	BLI_rw_mutex_unlock(&oc->oceanmutex);
@@ -979,7 +979,7 @@ void BKE_ocean_free(Ocean *oc)
 	BKE_ocean_free_data(oc);
 	//BLI_rw_mutex_end(&oc->oceanmutex);
 
-	memoire::deloge(oc);
+	memoire::deloge("Ocean", oc);
 }
 
 /* ********* Baking/Caching ********* */
@@ -1049,7 +1049,7 @@ void BKE_ocean_free_cache(OceanCache *och)
 			}
 		}
 
-		memoire::deloge_tableau(och->ibufs_disp, 0);
+		memoire::deloge_tableau("ibufs_disp", och->ibufs_disp, 0);
 	}
 
 	if (och->ibufs_foam) {
@@ -1059,7 +1059,7 @@ void BKE_ocean_free_cache(OceanCache *och)
 			}
 		}
 
-		memoire::deloge_tableau(och->ibufs_foam, 0);
+		memoire::deloge_tableau("ibufs_foam", och->ibufs_foam, 0);
 	}
 
 	if (och->ibufs_norm) {
@@ -1069,14 +1069,14 @@ void BKE_ocean_free_cache(OceanCache *och)
 			}
 		}
 
-		memoire::deloge_tableau(och->ibufs_norm, 0);
+		memoire::deloge_tableau("ibufs_norm", och->ibufs_norm, 0);
 	}
 
 	if (och->time) {
-		memoire::deloge(och->time);
+		memoire::deloge("time", och->time);
 	}
 
-	memoire::deloge(och);
+	memoire::deloge("OceanCache", och);
 }
 
 #if 0

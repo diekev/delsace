@@ -57,7 +57,7 @@ static const char *source_fragment =
 
 TamponRendu *cree_tampon_image()
 {
-	auto tampon = memoire::loge<TamponRendu>();
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex);
 	tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment);
@@ -136,7 +136,7 @@ static const char *source_fragment_bordure =
 
 static TamponRendu *cree_tampon_bordure()
 {
-	auto tampon = memoire::loge<TamponRendu>();
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex_bordure);
 	tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
@@ -188,8 +188,8 @@ RenduImage::RenduImage()
 
 RenduImage::~RenduImage()
 {
-	memoire::deloge(m_tampon_image);
-	memoire::deloge(m_tampon_bordure);
+	memoire::deloge("TamponRendu", m_tampon_image);
+	memoire::deloge("TamponRendu", m_tampon_bordure);
 }
 
 void RenduImage::charge_image(const numero7::math::matrice<numero7::image::Pixel<float> > &image)

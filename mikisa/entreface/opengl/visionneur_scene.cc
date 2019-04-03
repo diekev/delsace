@@ -68,7 +68,7 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 	, m_rendu_manipulatrice_pos(nullptr)
 	, m_rendu_manipulatrice_rot(nullptr)
 	, m_rendu_manipulatrice_ech(nullptr)
-	, m_moteur_rendu(memoire::loge<MoteurRendu>())
+	, m_moteur_rendu(memoire::loge<MoteurRendu>("MoteurRendu"))
 	, m_pos_x(0)
 	, m_pos_y(0)
 	, m_debut(0)
@@ -76,25 +76,25 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 
 VisionneurScene::~VisionneurScene()
 {
-	memoire::deloge(m_rendu_texte);
-	memoire::deloge(m_rendu_manipulatrice_pos);
-	memoire::deloge(m_rendu_manipulatrice_rot);
-	memoire::deloge(m_rendu_manipulatrice_ech);
-	memoire::deloge(m_moteur_rendu);
-	memoire::deloge(m_tampon_image);
+	memoire::deloge("RenduTexte", m_rendu_texte);
+	memoire::deloge("RenduManipulatricePosition", m_rendu_manipulatrice_pos);
+	memoire::deloge("RenduManipulatriceRotation", m_rendu_manipulatrice_rot);
+	memoire::deloge("RenduManipulatriceEchelle", m_rendu_manipulatrice_ech);
+	memoire::deloge("MoteurRendu", m_moteur_rendu);
+	memoire::deloge("TamponRendu", m_tampon_image);
 
 	if (m_tampon != nullptr) {
-		memoire::deloge_tableau(m_tampon, m_camera->hauteur() * m_camera->largeur() * 4);
+		memoire::deloge_tableau("tampon_vue3d", m_tampon, m_camera->hauteur() * m_camera->largeur() * 4);
 	}
 }
 
 void VisionneurScene::initialise()
 {
 	m_tampon_image = cree_tampon_image();
-	m_rendu_texte = memoire::loge<RenduTexte>();
-	m_rendu_manipulatrice_pos = memoire::loge<RenduManipulatricePosition>();
-	m_rendu_manipulatrice_rot = memoire::loge<RenduManipulatriceRotation>();
-	m_rendu_manipulatrice_ech = memoire::loge<RenduManipulatriceEchelle>();
+	m_rendu_texte = memoire::loge<RenduTexte>("RenduTexte");
+	m_rendu_manipulatrice_pos = memoire::loge<RenduManipulatricePosition>("RenduManipulatricePosition");
+	m_rendu_manipulatrice_rot = memoire::loge<RenduManipulatriceRotation>("RenduManipulatriceRotation");
+	m_rendu_manipulatrice_ech = memoire::loge<RenduManipulatriceEchelle>("RenduManipulatriceEchelle");
 
 	m_camera->ajourne();
 
@@ -246,13 +246,13 @@ void VisionneurScene::peint_opengl()
 void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
 	if (m_tampon != nullptr) {
-		memoire::deloge_tableau(m_tampon, m_camera->largeur() * m_camera->hauteur() * 4);
+		memoire::deloge_tableau("tampon_vue3d", m_tampon, m_camera->largeur() * m_camera->hauteur() * 4);
 	}
 
 	m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
 	m_camera->redimensionne(largeur, hauteur);
 
-	m_tampon = memoire::loge_tableau<float>(hauteur * largeur * 4);
+	m_tampon = memoire::loge_tableau<float>("tampon_vue3d", hauteur * largeur * 4);
 }
 
 void VisionneurScene::position_souris(int x, int y)

@@ -251,7 +251,7 @@ public:
 		}
 
 		if (prise_entree || prise_sortie) {
-			auto connexion = memoire::loge<Connexion>();
+			auto connexion = memoire::loge<Connexion>("Connexion");
 			connexion->x = donnees.x;
 			connexion->y = donnees.y;
 
@@ -340,7 +340,7 @@ public:
 								graphe->dernier_noeud_sortie);
 			}
 
-			memoire::deloge(graphe->connexion_active);
+			memoire::deloge("Connexion", graphe->connexion_active);
 		}
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
@@ -474,7 +474,7 @@ public:
 		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
 
 		if (noeud != nullptr) {
-			auto info_noeud = memoire::loge<InfoNoeud>();
+			auto info_noeud = memoire::loge<InfoNoeud>("InfoNoeud");
 			info_noeud->x = donnees.x;
 			info_noeud->y = donnees.y;
 
@@ -538,7 +538,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto graphe = mikisa->graphe;
 
-		memoire::deloge(graphe->info_noeud);
+		memoire::deloge("InfoNoeud", graphe->info_noeud);
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 	}

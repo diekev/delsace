@@ -42,6 +42,8 @@ public:
 
 	explicit OperatriceScene(Graphe &graphe_parent, Noeud *node);
 
+	~OperatriceScene();
+
 	OperatriceScene(OperatriceScene const &) = default;
 	OperatriceScene &operator=(OperatriceScene const &) = default;
 

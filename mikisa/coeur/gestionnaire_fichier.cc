@@ -52,7 +52,7 @@ void PoigneeFichier::ecriture_chemin(type_fonction_lecture_chemin &&fonction, co
 GestionnaireFichier::~GestionnaireFichier()
 {
 	for (auto paire : m_table) {
-		memoire::deloge(paire.second);
+		memoire::deloge("PoigneeFichier", paire.second);
 	}
 }
 
@@ -64,7 +64,7 @@ PoigneeFichier *GestionnaireFichier::poignee_fichier(const std::string &chemin)
 		return iter->second;
 	}
 
-	auto poignee = memoire::loge<PoigneeFichier>(chemin);
+	auto poignee = memoire::loge<PoigneeFichier>("PoigneeFichier", chemin);
 	m_table.insert({chemin, poignee});
 
 	return poignee;

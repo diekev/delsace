@@ -584,7 +584,7 @@ public:
 
 	Triangle *ajoute(dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
 	{
-		auto triangle = memoire::loge<Triangle>(v0, v1, v2);
+		auto triangle = memoire::loge<Triangle>("Triangle", v0, v1, v2);
 		triangle->aire = calcule_aire(*triangle);
 		triangle->precedent = nullptr;
 		triangle->suivant = nullptr;
@@ -628,7 +628,7 @@ public:
 			}
 		}
 
-		memoire::deloge(triangle);
+		memoire::deloge("Triangle", triangle);
 	}
 
 	Triangle *premier_triangle()
@@ -1085,7 +1085,7 @@ static void trouve_points_voisins(
 		}
 
 		if (longueur(point - pi) < radius) {
-			auto p3d = memoire::loge<Point3D>();
+			auto p3d = memoire::loge<Point3D>("Point3D");
 			p3d->x = pi.x;
 			p3d->y = pi.y;
 			p3d->z = pi.z;

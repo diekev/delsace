@@ -80,8 +80,8 @@ public:
 
 		auto gna = GNA();
 
-		auto volume = memoire::loge<Volume>();
-		auto grille_scalaire = memoire::loge<Grille<float>>();
+		auto volume = memoire::loge<Volume>("Volume");
+		auto grille_scalaire = memoire::loge<Grille<float>>("grille");
 		grille_scalaire->initialise(32, 32, 32);
 
 		for (size_t x = 0; x < 32; ++x) {
@@ -177,8 +177,8 @@ public:
 		auto res_y = static_cast<size_t>(dim_d.y / static_cast<double>(taille_voxel));
 		auto res_z = static_cast<size_t>(dim_d.z / static_cast<double>(taille_voxel));
 
-		auto volume = memoire::loge<Volume>();
-		auto grille_scalaire = memoire::loge<Grille<float>>();
+		auto volume = memoire::loge<Volume>("Volume");
+		auto grille_scalaire = memoire::loge<Grille<float>>("grille");
 		grille_scalaire->initialise(res_x, res_y, res_z);
 		grille_scalaire->min = min;
 		grille_scalaire->max = max;

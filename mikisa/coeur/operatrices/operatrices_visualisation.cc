@@ -255,7 +255,7 @@ public:
 
 		rassemble_topologie(arbre, m_corps);
 
-		memoire::deloge(arbre);
+		memoire::deloge("ArbreBVH", arbre);
 
 		return EXECUTION_REUSSIE;
 	}

@@ -57,6 +57,11 @@ OperatriceScene::OperatriceScene(Graphe &graphe_parent, Noeud *node)
 	sorties(1);
 }
 
+OperatriceScene::~OperatriceScene()
+{
+	memoire::deloge("MoteurRendu", m_moteur_rendu);
+}
+
 int OperatriceScene::type() const
 {
 	return OPERATRICE_SCENE;
@@ -114,7 +119,7 @@ int OperatriceScene::execute(ContexteEvaluation const &contexte, DonneesAval *do
 	auto tampon = m_image.ajoute_calque("image", rectangle);
 
 	if (m_moteur_rendu == nullptr) {
-		m_moteur_rendu = memoire::loge<MoteurRendu>();
+		m_moteur_rendu = memoire::loge<MoteurRendu>("MoteurRendu");
 	}
 
 	m_moteur_rendu->camera(camera);

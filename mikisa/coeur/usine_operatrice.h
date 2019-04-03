@@ -65,12 +65,12 @@ inline DescOperatrice cree_desc()
 				T::AIDE,
 				[](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage*
 	{
-		return memoire::loge<T>(graphe_parent, noeud);
+		return memoire::loge<T>(T::NOM, graphe_parent, noeud);
 	},
 	[](OperatriceImage *operatrice) -> void
 	{
 		auto derivee = dynamic_cast<T *>(operatrice);
-		memoire::deloge(derivee);
+		memoire::deloge(T::NOM, derivee);
 	});
 }
 

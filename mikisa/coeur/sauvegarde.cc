@@ -591,8 +591,8 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	/* À FAIRE : suppression du composite car son graphe maintient une liste des
 	 * noms utilisé et l'ouverture des fichiers change les noms des noeuds lors
 	 * des conflits. */
-	memoire::deloge(mikisa.composite);
-	mikisa.composite = memoire::loge<Composite>();
+	memoire::deloge("Composite", mikisa.composite);
+	mikisa.composite = memoire::loge<Composite>("Composite");
 
 	auto composite = mikisa.composite;
 

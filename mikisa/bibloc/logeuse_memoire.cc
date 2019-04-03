@@ -36,6 +36,14 @@ logeuse_memoire::~logeuse_memoire()
 	if (memoire_allouee != 0) {
 		std::cerr << "Fuite de mémoire ou désynchronisation : "
 				  << formate_taille(memoire_allouee) << '\n';
+
+#ifdef DEBOGUE_MEMOIRE
+		for (auto &alveole : tableau_allocation) {
+			if (alveole.second != 0) {
+				std::cerr << '\t' << alveole.first << " : " << formate_taille(alveole.second) << '\n';
+			}
+		}
+#endif
 	}
 }
 

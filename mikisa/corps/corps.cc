@@ -90,7 +90,7 @@ Attribut *Corps::ajoute_attribut(
 			}
 		}
 
-		attr = memoire::loge<Attribut>(nom_attribut, type_, portee, taille_attrib);
+		attr = memoire::loge<Attribut>("Attribut", nom_attribut, type_, portee, taille_attrib);
 		m_attributs.pousse(attr);
 	}
 
@@ -109,7 +109,7 @@ void Corps::supprime_attribut(std::string const &nom_attribut)
 		return;
 	}
 
-	memoire::deloge(*iter);
+	memoire::deloge("Attribut", *iter);
 
 	m_attributs.erase(iter);
 }
@@ -135,7 +135,7 @@ size_t Corps::ajoute_point(float x, float y, float z)
 		return index;
 	}
 
-	auto point = memoire::loge<Point3D>();
+	auto point = memoire::loge<Point3D>("Point3D");
 	point->x = x;
 	point->y = y;
 	point->z = z;
@@ -205,7 +205,7 @@ void Corps::reinitialise()
 	m_prims.reinitialise();
 
 	for (auto &attribut : m_attributs) {
-		memoire::deloge(attribut);
+		memoire::deloge("Attribut", attribut);
 	}
 
 	m_attributs.clear();
@@ -216,7 +216,7 @@ void Corps::reinitialise()
 
 Corps *Corps::copie() const
 {
-	auto corps = memoire::loge<Corps>();
+	auto corps = memoire::loge<Corps>("Corps");
 	this->copie_vers(corps);
 	return corps;
 }
@@ -238,7 +238,7 @@ void Corps::copie_vers(Corps *corps) const
 
 	/* copie les attributs */
 	for (Attribut *attr : this->m_attributs) {
-		auto attr_corps = memoire::loge<Attribut>(*attr);
+		auto attr_corps = memoire::loge<Attribut>("Attribut", *attr);
 
 		corps->m_attributs.pousse(attr_corps);
 	}

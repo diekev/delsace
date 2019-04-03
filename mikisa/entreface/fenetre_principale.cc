@@ -82,7 +82,7 @@ FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 	, m_barre_progres(new BarreDeProgres(m_mikisa, this))
 {
 	mikisa.fenetre_principale = this;
-	mikisa.notifiant_thread = memoire::loge<TaskNotifier>(this);
+	mikisa.notifiant_thread = memoire::loge<TaskNotifier>("TaskNotifier", this);
 
 	genere_barre_menu();
 

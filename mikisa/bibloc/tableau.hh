@@ -53,7 +53,7 @@ struct logeuse_guardee {
 	{
 		static_cast<void>(hint);
 
-		auto p = memoire::loge_tableau<T>(static_cast<long>(n));
+		auto p = memoire::loge_tableau<T>("dls::tableau", static_cast<long>(n));
 
 		if (p == nullptr) {
 			throw std::bad_alloc();
@@ -65,7 +65,7 @@ struct logeuse_guardee {
 	void deallocate(T *p, size_t n)
 	{
 		if (p != nullptr) {
-			memoire::deloge_tableau(p, static_cast<long>(n));
+			memoire::deloge_tableau("dls::tableau", p, static_cast<long>(n));
 		}
 	}
 

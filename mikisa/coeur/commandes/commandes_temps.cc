@@ -111,7 +111,7 @@ public:
 
 			mikisa->animation = false;
 			mikisa->thread_animation->join();
-			memoire::deloge(mikisa->thread_animation);
+			memoire::deloge("thread_animation", mikisa->thread_animation);
 		}
 		else if (donnees.metadonnee == "pas_en_avant") {
 			mikisa->temps_courant = mikisa->temps_courant + 1;
@@ -128,7 +128,7 @@ public:
 				return EXECUTION_COMMANDE_REUSSIE;
 			}
 
-			mikisa->thread_animation = memoire::loge<std::thread>(anime_image, mikisa);
+			mikisa->thread_animation = memoire::loge<std::thread>("thread_animation", anime_image, mikisa);
 			mikisa->animation = true;
 			return EXECUTION_COMMANDE_REUSSIE;
 		}

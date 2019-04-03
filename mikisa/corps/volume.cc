@@ -68,13 +68,13 @@ Volume::~Volume()
 		case type_volume::SCALAIRE:
 		{
 			auto ptr = dynamic_cast<Grille<float> *>(grille);
-			memoire::deloge(ptr);
+			memoire::deloge("grille", ptr);
 			break;
 		}
 		case type_volume::VECTOR:
 		{
 			auto ptr = dynamic_cast<Grille<dls::math::vec3f> *>(grille);
-			memoire::deloge(ptr);
+			memoire::deloge("grille", ptr);
 			break;
 		}
 	}

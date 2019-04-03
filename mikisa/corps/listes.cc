@@ -33,7 +33,7 @@
 
 Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, long nombre_sommets)
 {
-	auto p = memoire::loge<Polygone>();
+	auto p = memoire::loge<Polygone>("Polygone");
 	p->type = type_poly;
 	p->reserve_sommets(nombre_sommets);
 
@@ -85,7 +85,7 @@ void Polygone::ajourne_index(long i, long j)
 
 static void supprime_liste_points(ListePoints3D::type_liste *ptr)
 {
-	memoire::deloge(ptr);
+	memoire::deloge("liste_point3d", ptr);
 }
 
 ListePoints3D::~ListePoints3D()
@@ -97,11 +97,11 @@ void ListePoints3D::reinitialise()
 {
 	if (m_sommets != nullptr) {
 		if (!m_sommets.unique()) {
-			m_sommets = RefPtr(memoire::loge<type_liste>(), supprime_liste_points);
+			m_sommets = RefPtr(memoire::loge<type_liste>("liste_point3d"), supprime_liste_points);
 		}
 		else {
 			for (auto s : (*m_sommets)) {
-				memoire::deloge(s);
+				memoire::deloge("Point3D", s);
 			}
 
 			m_sommets->clear();
@@ -161,11 +161,11 @@ void ListePoints3D::detache()
 	auto tmp = m_sommets.get();
 
 	if (tmp != nullptr && !m_sommets.unique()) {
-		m_sommets = RefPtr(memoire::loge<type_liste>(), supprime_liste_points);
+		m_sommets = RefPtr(memoire::loge<type_liste>("liste_point3d"), supprime_liste_points);
 		m_sommets->reserve(tmp->taille());
 
 		for (auto sommet : (*tmp)) {
-			auto p3d = memoire::loge<Point3D>();
+			auto p3d = memoire::loge<Point3D>("Point3D");
 			p3d->x = sommet->x;
 			p3d->y = sommet->y;
 			p3d->z = sommet->z;
@@ -174,7 +174,7 @@ void ListePoints3D::detache()
 		}
 	}
 	else if (tmp == nullptr) {
-		m_sommets = RefPtr(memoire::loge<type_liste>(), supprime_liste_points);
+		m_sommets = RefPtr(memoire::loge<type_liste>("liste_point3d"), supprime_liste_points);
 	}
 }
 
@@ -182,7 +182,7 @@ void ListePoints3D::detache()
 
 static void supprime_liste_prims(ListePrimitives::type_liste *ptr)
 {
-	memoire::deloge(ptr);
+	memoire::deloge("liste_prims", ptr);
 }
 
 ListePrimitives::~ListePrimitives()
@@ -194,22 +194,22 @@ void ListePrimitives::reinitialise()
 {
 	if (m_primitives != nullptr) {
 		if (!m_primitives.unique()) {
-			m_primitives = RefPtr(memoire::loge<type_liste>(), supprime_liste_prims);
+			m_primitives = RefPtr(memoire::loge<type_liste>("liste_prims"), supprime_liste_prims);
 		}
 		else {
 			for (auto s : (*m_primitives)) {
 				/* transtype pour pouvoir estimer la mémoire correctement */
 				if (s->type_prim() == type_primitive::POLYGONE) {
 					auto derivee = dynamic_cast<Polygone *>(s);
-					memoire::deloge(derivee);
+					memoire::deloge("Polygone", derivee);
 				}
 				else if (s->type_prim() == type_primitive::VOLUME) {
 					auto derivee = dynamic_cast<Volume *>(s);
-					memoire::deloge(derivee);
+					memoire::deloge("Volume", derivee);
 				}
 				else {
 					/* au cas où */
-					memoire::deloge(s);
+					memoire::deloge("liste_prims", s);
 				}
 			}
 
@@ -262,14 +262,14 @@ void ListePrimitives::detache()
 	auto tmp = m_primitives.get();
 
 	if (tmp != nullptr && !m_primitives.unique()) {
-		m_primitives = RefPtr(memoire::loge<type_liste>(), supprime_liste_prims);
+		m_primitives = RefPtr(memoire::loge<type_liste>("liste_prims"), supprime_liste_prims);
 		m_primitives->reserve(tmp->taille());
 
 		for (auto prim : (*tmp)) {
 			if (prim->type_prim() == type_primitive::POLYGONE) {
 				auto polygone = dynamic_cast<Polygone *>(prim);
 
-				auto p = memoire::loge<Polygone>();
+				auto p = memoire::loge<Polygone>("Polygone");
 				p->type = polygone->type;
 				p->reserve_sommets(polygone->nombre_sommets());
 
@@ -285,7 +285,7 @@ void ListePrimitives::detache()
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				auto volume = dynamic_cast<Volume *>(prim);
-				auto nouveau_volume = memoire::loge<Volume>();
+				auto nouveau_volume = memoire::loge<Volume>("Volume");
 
 				if (volume->grille) {
 					nouveau_volume->grille = volume->grille->copie();
@@ -297,6 +297,6 @@ void ListePrimitives::detache()
 		}
 	}
 	else if (tmp == nullptr) {
-		m_primitives = RefPtr(memoire::loge<type_liste>(), supprime_liste_prims);
+		m_primitives = RefPtr(memoire::loge<type_liste>("liste_prims"), supprime_liste_prims);
 	}
 }

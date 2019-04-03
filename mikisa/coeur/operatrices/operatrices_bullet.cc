@@ -69,7 +69,7 @@ static btCollisionShape *cree_forme_pour_corps(Corps &corps)
 	auto limites = calcule_limites_mondiales_corps(corps);
 
 	auto taille = limites.taille();
-	auto colShape = memoire::loge<btBoxShape>(btVector3(
+	auto colShape = memoire::loge<btBoxShape>("btBoxShape", btVector3(
 									   static_cast<double>(taille.x * 0.5f),
 									   static_cast<double>(taille.y * 0.5f),
 									   static_cast<double>(taille.z * 0.5f)));
@@ -155,22 +155,23 @@ public:
 
 		/* La configuration de collision contiens les réglages de base pour la
 		 * mémoire, et configuration de collision. */
-		m_configuration_collision = memoire::loge<btDefaultCollisionConfiguration>();
+		m_configuration_collision = memoire::loge<btDefaultCollisionConfiguration>("btDefaultCollisionConfiguration");
 		//m_configuration_collision->setConvexConvexMultipointIterations();
 
 		/* Utilisation de la répartitrice par défaut.
 		 * Pour les procès parallèles, on peut utiliser une autre répartitrice.
 		 * Voir Extras/BulletMultiThreaded. */
-		m_repartitrice = memoire::loge<btCollisionDispatcher>(m_configuration_collision);
+		m_repartitrice = memoire::loge<btCollisionDispatcher>("btCollisionDispatcher", m_configuration_collision);
 
-		m_tampon_paires = memoire::loge<btDbvtBroadphase>();
+		m_tampon_paires = memoire::loge<btDbvtBroadphase>("btDbvtBroadphase");
 
 		/* Utilisation du solveur par défaut.
 		 * Pour les procès parallèles, on peut utiliser un autre solveur.
 		 * Voir Extras/BulletMultiThreaded. */
-		m_solveur_constraintes = memoire::loge<btSequentialImpulseConstraintSolver>();
+		m_solveur_constraintes = memoire::loge<btSequentialImpulseConstraintSolver>("btSequentialImpulseConstraintSolver");
 
 		m_monde_dynamics = memoire::loge<btDiscreteDynamicsWorld>(
+					"btDiscreteDynamicsWorld",
 					m_repartitrice,
 					m_tampon_paires,
 					m_solveur_constraintes,
@@ -185,26 +186,26 @@ public:
 
 			if (body && body->getMotionState()) {
 				auto corps_ = body->getMotionState();
-				memoire::deloge(corps_);
+				memoire::deloge("btDefaultMotionState", corps_);
 			}
 
 			m_monde_dynamics->removeCollisionObject(obj);
-			memoire::deloge(obj);
+			memoire::deloge("btCollisionObject", obj);
 		}
 
 		for (int j = 0; j < m_formes_collisions.size(); j++) {
 			auto shape = m_formes_collisions[j];
-			memoire::deloge(shape);
+			memoire::deloge("btCollisionShape", shape);
 		}
 
 		m_formes_collisions.clear();
 
 		/* supprime données monde */
-		memoire::deloge(m_solveur_constraintes);
-		memoire::deloge(m_tampon_paires);
-		memoire::deloge(m_repartitrice);
-		memoire::deloge(m_configuration_collision);
-		memoire::deloge(m_monde_dynamics);
+		memoire::deloge("btSequentialImpulseConstraintSolver", m_solveur_constraintes);
+		memoire::deloge("btDbvtBroadphase", m_tampon_paires);
+		memoire::deloge("btCollisionDispatcher", m_repartitrice);
+		memoire::deloge("btDefaultCollisionConfiguration", m_configuration_collision);
+		memoire::deloge("btDiscreteDynamicsWorld", m_monde_dynamics);
 	}
 };
 
@@ -277,7 +278,7 @@ public:
 		/* L'utilisation de btDefaultMotionState est recommandée, car cela
 		 * permet des interpolations, et synchronsie uniquement les objets
 		 * 'actifs'. */
-		auto etat_mouvement = memoire::loge<btDefaultMotionState>(transforme_initiale);
+		auto etat_mouvement = memoire::loge<btDefaultMotionState>("btDefaultMotionState", transforme_initiale);
 
 		auto infos = btRigidBody::btRigidBodyConstructionInfo(
 					masse,
@@ -292,7 +293,7 @@ public:
 		auto const seuil_lin = evalue_decimal("seuil_lin");
 		auto const seuil_ang = evalue_decimal("seuil_ang");
 
-		auto corps_rigide = memoire::loge<btRigidBody>(infos);
+		auto corps_rigide = memoire::loge<btRigidBody>("btRigidBody", infos);
 		corps_rigide->setUserIndex(-1);
 		//corps_rigide->setContactProcessingThreshold(m_defaultContactProcessingThreshold);
 		corps_rigide->setFriction(static_cast<double>(friction));

@@ -33,7 +33,7 @@
 ArbreOcternaire::Noeud::~Noeud()
 {
 	for (int i = 0; i < 8; ++i) {
-		memoire::deloge(enfants[i]);
+		memoire::deloge("ArbreOcternaire::Noeud", enfants[i]);
 	}
 }
 
@@ -105,7 +105,7 @@ void ArbreOcternaire::construit_enfants(ArbreOcternaire::Noeud *noeud)
 	};
 
 	for (auto i = 0; i < 8; ++i) {
-		auto enfant = memoire::loge<Noeud>();
+		auto enfant = memoire::loge<Noeud>("ArbreOcternaire::Noeud");
 		enfant->limites = limites[i];
 		enfant->profondeur = noeud->profondeur + 1;
 		enfant->est_feuille = (enfant->profondeur == m_profondeur_max);

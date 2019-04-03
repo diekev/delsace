@@ -58,7 +58,7 @@ static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
 
 MoteurRendu::~MoteurRendu()
 {
-	memoire::deloge(m_rendu_grille);
+	memoire::deloge("RenduGrille", m_rendu_grille);
 }
 
 void MoteurRendu::camera(vision::Camera3D *camera)
@@ -130,7 +130,7 @@ void MoteurRendu::calcule_rendu(
 	/* Peint la grille. */
 	if (!rendu_final) {
 		if (m_rendu_grille == nullptr) {
-			m_rendu_grille = memoire::loge<RenduGrille>(20, 20);
+			m_rendu_grille = memoire::loge<RenduGrille>("RenduGrille", 20, 20);
 		}
 
 		m_rendu_grille->dessine(contexte);

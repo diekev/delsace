@@ -255,19 +255,19 @@ OperatriceGraphePixel::OperatriceGraphePixel(Graphe &graphe_parent, Noeud *node)
 	sorties(1);
 
 	auto noeud_entree = m_graphe.cree_noeud(OperatricePixelEntree::NOM);
-	auto op_entree = memoire::loge<OperatricePixelEntree>(m_graphe, noeud_entree);
+	auto op_entree = memoire::loge<OperatricePixelEntree>(OperatricePixelEntree::NOM, m_graphe, noeud_entree);
 	INUTILISE(op_entree);
 
 	synchronise_donnees_operatrice(noeud_entree);
 
 	auto noeud_sortie = m_graphe.cree_noeud(OperatricePixelSortie::NOM);
-	auto op_sortie = memoire::loge<OperatricePixelSortie>(m_graphe, noeud_sortie);
+	auto op_sortie = memoire::loge<OperatricePixelSortie>(OperatricePixelSortie::NOM, m_graphe, noeud_sortie);
 	INUTILISE(op_sortie);
 
 	synchronise_donnees_operatrice(noeud_sortie);
 
 	auto noeud_saturation = m_graphe.cree_noeud(OperatricePixelSaturation::NOM);
-	auto op_saturation = memoire::loge<OperatricePixelSaturation>(m_graphe, noeud_saturation);
+	auto op_saturation = memoire::loge<OperatricePixelSaturation>(OperatricePixelSaturation::NOM, m_graphe, noeud_saturation);
 	INUTILISE(op_saturation);
 
 	synchronise_donnees_operatrice(noeud_saturation);

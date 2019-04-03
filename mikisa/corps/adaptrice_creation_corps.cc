@@ -39,7 +39,7 @@ void AdaptriceCreationCorps::ajoute_sommet(const float x, const float y, const f
 {
 	INUTILISE(w);
 
-	auto point = memoire::loge<Point3D>();
+	auto point = memoire::loge<Point3D>("Point3D");
 	point->x = x;
 	point->y = y;
 	point->z = z;
