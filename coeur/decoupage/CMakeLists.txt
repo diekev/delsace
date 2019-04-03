@@ -26,7 +26,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	${LLVM_LIBRARY}
+	/usr/lib/llvm-6.0/lib/libLLVM.so # À FAIRE
 	stdc++fs
 )
 

@@ -417,7 +417,7 @@ enum {
 	auto type_llvm = contexte.magasin_types.converti_type(contexte, dt);
 
 	/* alloue de l'espace pour ce type */
-	auto alloc = new llvm::AllocaInst(type_llvm, "", contexte.bloc_courant());
+	auto alloc = new llvm::AllocaInst(type_llvm, 0, "", contexte.bloc_courant());
 	alloc->setAlignment(8);
 
 	/* copie le pointeur du début du tableau */
@@ -899,6 +899,7 @@ llvm::Value *NoeudDeclarationFonction::genere_code_llvm(ContexteGenerationCode &
 
 		auto alloc = new llvm::AllocaInst(
 						 type,
+						 0,
 						 nom_argument,
 						 contexte.bloc_courant());
 
@@ -1053,8 +1054,8 @@ llvm::Value *NoeudAssignationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	if (variable->type() == type_noeud::DECLARATION_VARIABLE && (variable->drapeaux & GLOBAL) != 0) {
 		assert(expression->est_constant());
-		auto vg = dynamic_cast<llvm::GlobalVariable *>(alloc);
-		vg->setInitializer(dynamic_cast<llvm::Constant *>(valeur));
+		auto vg = llvm::dyn_cast<llvm::GlobalVariable>(alloc);
+		vg->setInitializer(llvm::dyn_cast<llvm::Constant>(valeur));
 		return vg;
 	}
 
@@ -1162,6 +1163,7 @@ llvm::Value *NoeudDeclarationVariable::genere_code_llvm(ContexteGenerationCode &
 
 	auto alloc = new llvm::AllocaInst(
 					 type_llvm,
+					 0,
 #ifdef NOMME_IR
 					 std::string(m_donnees_morceaux.chaine),
 #else
@@ -1610,6 +1612,7 @@ llvm::Value *NoeudTableau::genere_code_llvm(ContexteGenerationCode &contexte, co
 
 	auto pointeur_tableau = new llvm::AllocaInst(
 								type_llvm,
+								0,
 								nullptr,
 								"",
 								contexte.bloc_courant());
@@ -1673,7 +1676,7 @@ llvm::Value *NoeudVariable::genere_code_llvm(ContexteGenerationCode &contexte, b
 		}
 	}
 
-	if (expr_gauche || dynamic_cast<llvm::PHINode *>(valeur)) {
+	if (expr_gauche || llvm::dyn_cast<llvm::PHINode>(valeur)) {
 		return valeur;
 	}
 
@@ -2405,7 +2408,7 @@ llvm::Value *NoeudOperationUnaire::genere_code_llvm(ContexteGenerationCode &cont
 		}
 		case id_morceau::AROBASE:
 		{
-			auto inst_load = dynamic_cast<llvm::LoadInst *>(valeur1);
+			auto inst_load = llvm::dyn_cast<llvm::LoadInst>(valeur1);
 
 			if (inst_load == nullptr) {
 				/* Ne devrais pas arriver. */

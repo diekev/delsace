@@ -586,7 +586,7 @@ int main(int argc, char *argv[])
 
 		if (ops.emet_code_intermediaire) {
 			std::cerr <<  "------------------------------------------------------------------\n";
-			module.dump();
+			module.print(llvm::errs(), nullptr);
 			std::cerr <<  "------------------------------------------------------------------\n";
 		}
 
