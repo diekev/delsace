@@ -29,8 +29,6 @@
 #include "assembleuse_arbre.h"
 
 class DonneesType;
-class NoeudAppelFonction;
-class NoeudDeclarationFonction;
 
 struct ContexteGenerationCode;
 struct DonneesFonction;
@@ -46,7 +44,7 @@ class analyseuse_grammaire : public Analyseuse {
 	 * appel vers 'analyse_expression_droite()', mais cela rend la classe peu
 	 * sûre niveau multi-threading.
 	 */
-	using paire_vecteurs = std::pair<std::vector<Noeud *>, std::vector<Noeud *>>;
+	using paire_vecteurs = std::pair<std::vector<noeud::base *>, std::vector<noeud::base *>>;
 	std::vector<paire_vecteurs> m_paires_vecteurs;
 	size_t m_profondeur = 0;
 
@@ -69,10 +67,10 @@ public:
 private:
 	void analyse_corps(std::ostream &os);
 	void analyse_declaration_fonction();
-	void analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees, DonneesType *donnees_type_fonction);
+	void analyse_parametres_fonction(noeud::declaration_fonction *noeud, DonneesFonction &donnees, DonneesType *donnees_type_fonction);
 	void analyse_corps_fonction();
 	void analyse_expression_droite(id_morceau identifiant_final, bool const calcul_expression = false, bool const assignation = false);
-	void analyse_appel_fonction(NoeudAppelFonction *noeud);
+	void analyse_appel_fonction(noeud::appel_fonction *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_variable(char drapeaux);
 	void analyse_declaration_enum();

@@ -69,6 +69,8 @@ enum class type_noeud : char {
 	TABLEAU,
 };
 
+const char *chaine_type_noeud(type_noeud type);
+
 /* ************************************************************************** */
 
 /* Idée pour un réusinage du code pour supprimer les tables virtuelles des
@@ -154,12 +156,14 @@ enum {
 	CONVERTI_TABLEAU = (1 << 3),
 };
 
+namespace noeud {
+
 /**
  * Classe de base représentant un noeud dans l'arbre.
  */
-class Noeud {
+class base {
 protected:
-	std::list<Noeud *> m_enfants{};
+	std::list<base *> m_enfants{};
 	DonneesMorceaux const &m_donnees_morceaux;
 
 public:
@@ -173,21 +177,21 @@ public:
 	char pad{};
 	int module_appel{}; // module pour les appels de fonctions importées
 
-	explicit Noeud(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+	explicit base(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
-	virtual ~Noeud() = default;
+	virtual ~base() = default;
 
 	/**
 	 * Ajoute un noeud à la liste des noeuds du noeud.
 	 */
-	void ajoute_noeud(Noeud *noeud);
+	void ajoute_noeud(base *noeud);
 
 	/**
 	 * Imprime le 'code' de ce noeud dans le flux de sortie 'os' précisé. C'est
 	 * attendu que le noeud demande à ces enfants d'imprimer leurs 'codes' dans
 	 * le bon ordre.
 	 */
-	virtual void imprime_code(std::ostream &os, int tab) = 0;
+	void imprime_code(std::ostream &os, int tab);
 
 	/**
 	 * Génère le code pour LLVM.
@@ -229,7 +233,7 @@ public:
 	 * Retourne un pointeur vers le dernier enfant de ce noeud. Si le noeud n'a
 	 * aucun enfant, retourne nullptr.
 	 */
-	Noeud *dernier_enfant() const;
+	base *dernier_enfant() const;
 
 	/**
 	 * Performe la validation sémantique du noeud et de ses enfants.
@@ -239,11 +243,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudRacine final : public Noeud {
+class racine final : public base {
 public:
-	explicit NoeudRacine(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit racine(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -252,11 +254,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudAppelFonction final : public Noeud {
+class appel_fonction final : public base {
 public:
-	explicit NoeudAppelFonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit appel_fonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -271,16 +271,14 @@ private:
 			   ContexteGenerationCode &contexte,
 			   DonneesType const &type_arg,
 			   DonneesType const &type_enf,
-			   Noeud *enfant);
+			   base *enfant);
 };
 
 /* ************************************************************************** */
 
-class NoeudDeclarationFonction final : public Noeud {
+class declaration_fonction final : public base {
 public:
-	explicit NoeudDeclarationFonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit declaration_fonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -291,11 +289,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudAssignationVariable final : public Noeud {
+class assignation_variable final : public base {
 public:
-	explicit NoeudAssignationVariable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit assignation_variable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -306,11 +302,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudDeclarationVariable final : public Noeud {
+class declaration_variable final : public base {
 public:
-	explicit NoeudDeclarationVariable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit declaration_variable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -323,11 +317,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudConstante final : public Noeud {
+class constante final : public base {
 public:
-	explicit NoeudConstante(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit constante(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -338,11 +330,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudNombreEntier final : public Noeud {
+class nombre_entier final : public base {
 public:
-	explicit NoeudNombreEntier(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit nombre_entier(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -353,11 +343,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudBooleen final : public Noeud {
+class booleen final : public base {
 public:
-	explicit NoeudBooleen(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit booleen(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -368,11 +356,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudCaractere final : public Noeud {
+class caractere final : public base {
 public:
-	explicit NoeudCaractere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit caractere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -383,11 +369,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudNombreReel final : public Noeud {
+class nombre_reel final : public base {
 public:
-	explicit NoeudNombreReel(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit nombre_reel(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -398,11 +382,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudChaineLitterale final : public Noeud {
+class chaine_litterale final : public base {
 public:
-	explicit NoeudChaineLitterale(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit chaine_litterale(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -413,11 +395,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudTableau final : public Noeud {
+class tableau final : public base {
 public:
-	explicit NoeudTableau(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit tableau(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -428,11 +408,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudVariable final : public Noeud {
+class variable final : public base {
 public:
-	explicit NoeudVariable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit variable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -445,11 +423,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudAccesMembre final : public Noeud {
+class acces_membre_de final : public base {
 public:
-	explicit NoeudAccesMembre(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit acces_membre_de(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -462,11 +438,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudOperationBinaire final : public Noeud {
+class operation_binaire final : public base {
 public:
-	explicit NoeudOperationBinaire(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit operation_binaire(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -479,11 +453,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudOperationUnaire final : public Noeud {
+class operation_unaire final : public base {
 public:
-	explicit NoeudOperationUnaire(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit operation_unaire(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -494,11 +466,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudRetour final : public Noeud {
+class retourne final : public base {
 public:
-	explicit NoeudRetour(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit retourne(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -509,11 +479,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudSi final : public Noeud {
+class si final : public base {
 public:
-	explicit NoeudSi(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit si(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -524,11 +492,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudBloc final : public Noeud {
+class bloc final : public base {
 public:
-	explicit NoeudBloc(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit bloc(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -539,11 +505,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudPour final : public Noeud {
+class pour final : public base {
 public:
-	explicit NoeudPour(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit pour(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -554,11 +518,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudContArr final : public Noeud {
+class cont_arr final : public base {
 public:
-	explicit NoeudContArr(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit cont_arr(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -567,11 +529,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudBoucle final : public Noeud {
+class boucle final : public base {
 public:
-	explicit NoeudBoucle(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit boucle(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -580,11 +540,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudTranstype final : public Noeud {
+class transtype final : public base {
 public:
-	explicit NoeudTranstype(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit transtype(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -595,11 +553,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudNul final : public Noeud {
+class nul final : public base {
 public:
-	explicit NoeudNul(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit nul(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -608,11 +564,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudTailleDe final : public Noeud {
+class taille_de final : public base {
 public:
-	explicit NoeudTailleDe(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit taille_de(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -621,11 +575,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudPlage final : public Noeud {
+class plage final : public base {
 public:
-	explicit NoeudPlage(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit plage(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -636,11 +588,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudAccesMembrePoint final : public Noeud {
+class acces_membre_point final : public base {
 public:
-	explicit NoeudAccesMembrePoint(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit acces_membre_point(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -651,11 +601,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudDiffere final : public Noeud {
+class differe final : public base {
 public:
-	explicit NoeudDiffere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit differe(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -664,11 +612,9 @@ public:
 
 /* ************************************************************************** */
 
-class NoeudNonSur final : public Noeud {
+class non_sur final : public base {
 public:
-	explicit NoeudNonSur(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	void imprime_code(std::ostream &os, int tab) override;
+	explicit non_sur(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
 
@@ -676,3 +622,5 @@ public:
 
 	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
 };
+
+}  /* namespace noeud */

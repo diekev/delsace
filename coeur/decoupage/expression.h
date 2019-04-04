@@ -26,13 +26,24 @@
 
 #include "morceaux.h"
 
+namespace noeud {
+class base;
+}
+
 class assembleuse_arbre;
-class Noeud;
 
 struct ContexteGenerationCode;
 
 bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2);
 
-Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerationCode &contexte, Noeud *op, Noeud *n1, Noeud *n2);
+noeud::base *calcul_expression_double(
+		assembleuse_arbre &assembleuse,
+		ContexteGenerationCode &contexte,
+		noeud::base *op,
+		noeud::base *n1,
+		noeud::base *n2);
 
-Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1);
+noeud::base *calcul_expression_simple(
+		assembleuse_arbre &assembleuse,
+		noeud::base *op,
+		noeud::base *n1);

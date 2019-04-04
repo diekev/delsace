@@ -92,7 +92,7 @@ static const char *tabulations[PROFONDEUR_EXPRESSION_MAX] = {
  * ouvrante dans l'arbre syntactic. Ce noeud n'est pas insérer dans l'arbre,
  * mais simplement utilisé pour compiler les arbres syntactics des expressions.
  */
-static auto NOEUD_PARENTHESE = reinterpret_cast<Noeud *>(id_morceau::PARENTHESE_OUVRANTE);
+static auto NOEUD_PARENTHESE = reinterpret_cast<noeud::base *>(id_morceau::PARENTHESE_OUVRANTE);
 
 static bool est_specifiant_type(id_morceau identifiant)
 {
@@ -338,7 +338,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	m_module->fonctions_exportees.insert(nom_fonction);
 
 	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_contexte, m_identifiants[position()]);
-	auto noeud_declaration = dynamic_cast<NoeudDeclarationFonction *>(noeud);
+	auto noeud_declaration = dynamic_cast<noeud::declaration_fonction *>(noeud);
 	noeud_declaration->est_externe = externe;
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
@@ -389,7 +389,10 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_FONCTION);
 }
 
-void analyseuse_grammaire::analyse_parametres_fonction(NoeudDeclarationFonction *noeud, DonneesFonction &donnees, DonneesType *donnees_type_fonction)
+void analyseuse_grammaire::analyse_parametres_fonction(
+		noeud::declaration_fonction *noeud,
+		DonneesFonction &donnees,
+		DonneesType *donnees_type_fonction)
 {
 	if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		/* La liste est vide. */
@@ -777,10 +780,10 @@ void analyseuse_grammaire::analyse_expression_droite(
 		lance_erreur("Excès de la pile d'expression autorisée");
 	}
 
-	std::vector<Noeud *> &expression = m_paires_vecteurs[m_profondeur].first;
+	auto &expression = m_paires_vecteurs[m_profondeur].first;
 	expression.clear();
 
-	std::vector<Noeud *> &pile = m_paires_vecteurs[m_profondeur].second;
+	auto &pile = m_paires_vecteurs[m_profondeur].second;
 	pile.clear();
 
 	auto vide_pile_operateur = [&](id_morceau id_operateur)
@@ -820,7 +823,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, m_contexte, morceau, false);
 
-					analyse_appel_fonction(dynamic_cast<NoeudAppelFonction *>(noeud));
+					analyse_appel_fonction(dynamic_cast<noeud::appel_fonction *>(noeud));
 
 					m_assembleuse->depile_noeud(type_noeud::APPEL_FONCTION);
 
@@ -957,7 +960,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::MOINS:
 			{
 				auto id_operateur = morceau.identifiant;
-				auto noeud = static_cast<Noeud *>(nullptr);
+				auto noeud = static_cast<noeud::base *>(nullptr);
 
 				if (precede_unaire_valide(dernier_identifiant)) {
 					if (id_operateur == id_morceau::PLUS) {
@@ -1100,7 +1103,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 	DEB_LOG_EXPRESSION << tabulations[m_profondeur] << "Expression :" << FIN_LOG_EXPRESSION;
 
-	for (Noeud *noeud : expression) {
+	for (auto noeud : expression) {
 		DEB_LOG_EXPRESSION << tabulations[m_profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
 		if (est_operateur_binaire(noeud->identifiant())) {
@@ -1216,7 +1219,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 }
 
 /* f(g(5, 6 + 3 * (2 - 5)), h()); */
-void analyseuse_grammaire::analyse_appel_fonction(NoeudAppelFonction *noeud)
+void analyseuse_grammaire::analyse_appel_fonction(noeud::appel_fonction *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
 

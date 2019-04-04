@@ -261,27 +261,32 @@ static bool sont_compatibles(id_morceau id1, id_morceau id2)
 	return id1 == id2;
 }
 
-static inline long extrait_nombre_entier(Noeud *n)
+static inline long extrait_nombre_entier(noeud::base *n)
 {
 	return n->calcule ? std::any_cast<long>(n->valeur_calculee) : converti_chaine_nombre_entier(n->chaine(), n->identifiant());
 }
 
-static inline double extrait_nombre_reel(Noeud *n)
+static inline double extrait_nombre_reel(noeud::base *n)
 {
 	return n->calcule ? std::any_cast<double>(n->valeur_calculee) : converti_chaine_nombre_reel(n->chaine(), n->identifiant());
 }
 
-static inline bool extrait_valeur_bool(Noeud *n)
+static inline bool extrait_valeur_bool(noeud::base *n)
 {
 	return n->calcule ? std::any_cast<bool>(n->valeur_calculee) : (n->chaine() == "vrai");
 }
 
-static inline std::string extrait_chaine(Noeud *n)
+static inline std::string extrait_chaine(noeud::base *n)
 {
 	return std::any_cast<std::string>(n->valeur_calculee);
 }
 
-Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerationCode &contexte, Noeud *op, Noeud *n1, Noeud *n2)
+noeud::base *calcul_expression_double(
+		assembleuse_arbre &assembleuse,
+		ContexteGenerationCode &contexte,
+		noeud::base *op,
+		noeud::base *n1,
+		noeud::base *n2)
 {
 	if (!sont_compatibles(n1->identifiant(), n2->identifiant())) {
 		return nullptr;
@@ -413,7 +418,10 @@ Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerati
 
 /* ************************************************************************** */
 
-Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1)
+noeud::base *calcul_expression_simple(
+		assembleuse_arbre &assembleuse,
+		noeud::base *op,
+		noeud::base *n1)
 {
 	if (n1->identifiant() == id_morceau::NOMBRE_ENTIER) {
 		if (op->identifiant() == id_morceau::TILDE) {

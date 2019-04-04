@@ -31,21 +31,16 @@
 
 #include "arbre_syntactic.h"
 
-class Noeud;
-class NoeudNombreEntier;
-class NoeudNombreReel;
-class NoeudOperationBinaire;
-
 struct ContexteGenerationCode;
 struct DonneesMorceaux;
 
 class assembleuse_arbre {
-	std::stack<Noeud *> m_pile{};
-	std::vector<Noeud *> m_noeuds{};
+	std::stack<noeud::base *> m_pile{};
+	std::vector<noeud::base *> m_noeuds{};
 
-	std::list<NoeudOperationBinaire *> noeuds_op_libres{};
-	std::list<NoeudNombreEntier *> noeuds_entier_libres{};
-	std::list<NoeudNombreReel *> noeuds_reel_libres{};
+	std::list<noeud::operation_binaire *> noeuds_op_libres{};
+	std::list<noeud::nombre_entier *> noeuds_entier_libres{};
+	std::list<noeud::nombre_reel *> noeuds_reel_libres{};
 
 	size_t m_memoire_utilisee = 0;
 
@@ -61,18 +56,18 @@ public:
 	 *
 	 * Retourne un pointeur vers le noeud ajouté.
 	 */
-	Noeud *empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau, bool ajoute = true);
+	noeud::base *empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau, bool ajoute = true);
 
 	/**
 	 * Ajoute le noeud spécifié au noeud courant.
 	 */
-	void ajoute_noeud(Noeud *noeud);
+	void ajoute_noeud(noeud::base *noeud);
 
 	/**
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	Noeud *cree_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+	noeud::base *cree_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	/**
 	 * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et
@@ -100,7 +95,7 @@ public:
 	 * pouvoir réutiliser sa mémoire en cas de besoin, évitant d'avoir à
 	 * réallouer de la mémoire pour un noeud du même type.
 	 */
-	void supprime_noeud(Noeud *noeud);
+	void supprime_noeud(noeud::base *noeud);
 
 	/**
 	 * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds

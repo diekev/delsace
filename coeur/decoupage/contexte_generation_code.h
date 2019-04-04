@@ -42,7 +42,10 @@
 #include "tampon_source.h"
 
 class assembleuse_arbre;
-class Noeud;
+
+namespace noeud {
+class base;
+}
 
 struct DonneesModule;
 
@@ -342,12 +345,12 @@ struct ContexteGenerationCode {
 	/**
 	 * Ajoute un noeud à la pile des noeuds différés.
 	 */
-	void differe_noeud(Noeud *noeud);
+	void differe_noeud(noeud::base *noeud);
 
 	/**
 	 * Retourne une référence vers la pile constante de noeuds différés.
 	 */
-	const std::stack<Noeud *> &noeuds_differes() const;
+	const std::stack<noeud::base *> &noeuds_differes() const;
 
 	/* ********************************************************************** */
 
@@ -388,7 +391,7 @@ private:
 	std::vector<paire_bloc> m_pile_continue{};
 	std::vector<paire_bloc> m_pile_arrete{};
 
-	std::stack<Noeud *> m_noeuds_differes{};
+	std::stack<noeud::base *> m_noeuds_differes{};
 
 	bool m_non_sur = false;
 
