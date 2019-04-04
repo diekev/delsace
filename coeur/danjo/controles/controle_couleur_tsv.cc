@@ -42,7 +42,7 @@ ControleSatVal::ControleSatVal(QWidget *parent)
 	setFixedSize(static_cast<int>(TAILLE_SELECTEUR_MAX), static_cast<int>(TAILLE_SELECTEUR_MAX));
 }
 
-void ControleSatVal::couleur(const couleur32 &c)
+void ControleSatVal::couleur(const dls::phys::couleur32 &c)
 {
 	m_hsv = c;
 	m_pos_x = static_cast<double>(m_hsv.v) * TAILLE_SELECTEUR_MAX;

@@ -26,7 +26,7 @@
 
 #include <QWidget>
 
-#include "types/couleur.h"
+#include <delsace/phys/couleur.hh>
 
 namespace danjo {
 
@@ -36,7 +36,7 @@ class ControleSatVal final : public QWidget {
 	Q_OBJECT
 
 	int pad0 = 0;
-	couleur32 m_hsv{};
+	dls::phys::couleur32 m_hsv{};
 	bool m_souris_pressee = false;
 	char pad[3];
 	double m_pos_x = 0.0;
@@ -45,7 +45,7 @@ class ControleSatVal final : public QWidget {
 public:
 	explicit ControleSatVal(QWidget *parent = nullptr);
 
-	void couleur(const couleur32 &c);
+	void couleur(const dls::phys::couleur32 &c);
 
 	float saturation() const;
 

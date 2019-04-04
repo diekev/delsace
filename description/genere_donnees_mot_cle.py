@@ -140,6 +140,8 @@ def enleve_accent(mot):
 def construit_structures():
 	structures = u''
 	structures += u'\nstruct DonneesMorceaux {\n'
+	structures += u'\tusing type = id_morceau;\n'
+	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n\n'
 	structures += u'\tstd::string_view chaine;\n'
 	structures += u'\tsize_t ligne_pos;\n'
 	structures += u'\tid_morceau identifiant;\n'

@@ -43,7 +43,7 @@ QColor converti_couleur(const float *rvba)
 	return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
 }
 
-QColor converti_couleur(const couleur32 &rvba)
+QColor converti_couleur(const dls::phys::couleur32 &rvba)
 {
 	return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
 }

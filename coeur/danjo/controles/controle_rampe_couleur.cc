@@ -184,7 +184,7 @@ void ControleRampeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
 {
 	const auto &x = position_degrade(static_cast<float>(event->pos().x()));
 
-	auto couleur = couleur32{1.0f, 0.0f, 1.0f, 1.0f};
+	auto couleur = dls::phys::couleur32{1.0f, 0.0f, 1.0f, 1.0f};
 	ajoute_point_rampe(*m_rampe, x, couleur);
 	update();
 

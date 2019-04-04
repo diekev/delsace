@@ -30,9 +30,9 @@
 
 void cree_rampe_defaut(RampeCouleur &rampe)
 {
-	ajoute_point_rampe(rampe, 0.0f, couleur32{0.0f, 0.0f, 0.0f, 1.0f});
-	ajoute_point_rampe(rampe, 0.5f, couleur32{0.0f, 1.0f, 0.0f, 1.0f});
-	ajoute_point_rampe(rampe, 1.0f, couleur32{1.0f, 1.0f, 1.0f, 1.0f});
+	ajoute_point_rampe(rampe, 0.0f, dls::phys::couleur32{0.0f, 0.0f, 0.0f, 1.0f});
+	ajoute_point_rampe(rampe, 0.5f, dls::phys::couleur32{0.0f, 1.0f, 0.0f, 1.0f});
+	ajoute_point_rampe(rampe, 1.0f, dls::phys::couleur32{1.0f, 1.0f, 1.0f, 1.0f});
 }
 
 void tri_points_rampe(RampeCouleur &rampe)
@@ -44,7 +44,7 @@ void tri_points_rampe(RampeCouleur &rampe)
 	});
 }
 
-void ajoute_point_rampe(RampeCouleur &rampe, float x, const couleur32 &couleur)
+void ajoute_point_rampe(RampeCouleur &rampe, float x, const dls::phys::couleur32 &couleur)
 {
 	PointRampeCouleur p;
 	p.position = x;
@@ -66,7 +66,7 @@ PointRampeCouleur *trouve_point_selectionne(const RampeCouleur &rampe)
 	return nullptr;
 }
 
-couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
+dls::phys::couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 {
 	auto v = restreint(valeur, 0.0f, 1.0f);
 
@@ -82,7 +82,7 @@ couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 		return rampe.points[rampe.points.size() - 1].couleur;
 	}
 
-	couleur32 res;
+	dls::phys::couleur32 res;
 
 	for (size_t i = 0; i < rampe.points.size() - 1; ++i) {
 		const auto &p0 = rampe.points[i];
@@ -95,8 +95,8 @@ couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 
 			if (rampe.entrepolation == ENTREPOLATION_HSV) {
 				float h0, s0, v0, h1, s1, v1;
-				rvb_vers_hsv(c0[0], c0[1], c0[2], &h0, &s0, &v0);
-				rvb_vers_hsv(c1[0], c1[1], c1[2], &h1, &s1, &v1);
+				dls::phys::rvb_vers_hsv(c0[0], c0[1], c0[2], &h0, &s0, &v0);
+				dls::phys::rvb_vers_hsv(c1[0], c1[1], c1[2], &h1, &s1, &v1);
 
 				/* Les teintes doivent être entrepolées selon leurs angles, donc
 				 * on doit définir la distance entre les angles et leur
@@ -119,7 +119,7 @@ couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 				auto nv = (1.0f - fac) * v0 + fac * v1;
 				res[3] = (1.0f - fac) * c0.a + fac * c1.a;
 
-				hsv_vers_rvb(nh, ns, nv, &res[0], &res[1], &res[2]);
+				dls::phys::hsv_vers_rvb(nh, ns, nv, &res[0], &res[1], &res[2]);
 			}
 			else {
 				for (int j = 0; j < 4; ++j) {
@@ -132,5 +132,5 @@ couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 	}
 
 	/* ne devrait pas arriver */
-	return couleur32(0.0f);
+	return dls::phys::couleur32(0.0f);
 }

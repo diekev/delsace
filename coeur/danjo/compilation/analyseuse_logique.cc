@@ -58,10 +58,10 @@ enum {
 
 AnalyseuseLogique::AnalyseuseLogique(
 		Manipulable *manipulable,
-		const TamponSource &tampon,
-		const std::vector<DonneesMorceaux> &identifiants,
+		lng::tampon_source const &tampon,
+		std::vector<DonneesMorceaux> &identifiants,
 		bool initialise_manipulable)
-	: Analyseuse(tampon, identifiants)
+	: base_analyseuse(tampon, identifiants)
 	, m_manipulable(manipulable)
 	, m_initialise_manipulable(initialise_manipulable)
 {}
@@ -148,7 +148,7 @@ void AnalyseuseLogique::analyse_declaration(const int type)
 		return;
 	}
 
-	const auto nom = m_identifiants[position()].chaine;
+	const auto nom = donnees().chaine;
 
 	if (!requiers_identifiant(id_morceau::EGAL)) {
 		lance_erreur("Attendu '=' !");
@@ -198,7 +198,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 
 	while (!est_identifiant(id_morceau::POINT_VIRGULE)) {
 		symbole.identifiant = identifiant_courant();
-		valeur = m_identifiants[position() + 1].chaine;
+		valeur = m_identifiants[static_cast<size_t>(position() + 1)].chaine;
 
 		if (est_identifiant(id_morceau::NOMBRE)) {
 			symbole.valeur = std::experimental::any(std::stoi(valeur));

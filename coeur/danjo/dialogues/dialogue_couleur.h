@@ -26,7 +26,7 @@
 
 #include <QDialog>
 
-#include "types/couleur.h"
+#include <delsace/phys/couleur.hh>
 
 class ControleNombreDecimal;
 class QGridLayout;
@@ -65,8 +65,8 @@ class DialogueCouleur final : public QDialog {
 	AffichageCouleur *m_affichage_couleur_nouvelle{};
 	AffichageCouleur *m_affichage_couleur_originale{};
 
-	couleur32 m_couleur_origine{};
-	couleur32 m_couleur_nouvelle{};
+	dls::phys::couleur32 m_couleur_origine{};
+	dls::phys::couleur32 m_couleur_nouvelle{};
 
 	QLabel *m_contraste{};
 
@@ -78,16 +78,16 @@ public:
 	DialogueCouleur(DialogueCouleur const &) = default;
 	DialogueCouleur &operator=(DialogueCouleur const &) = default;
 
-	void couleur_originale(const couleur32 &c);
-	couleur32 couleur_originale();
+	void couleur_originale(const dls::phys::couleur32 &c);
+	dls::phys::couleur32 couleur_originale();
 
-	couleur32 couleur_nouvelle();
+	dls::phys::couleur32 couleur_nouvelle();
 
-	couleur32 couleur();
+	dls::phys::couleur32 couleur();
 
 	void ajourne_plage(float min, float max);
 
-	static couleur32 requiers_couleur(const couleur32 &couleur_origine);
+	static dls::phys::couleur32 requiers_couleur(const dls::phys::couleur32 &couleur_origine);
 
 public Q_SLOTS:
 	void ajourne_couleur();

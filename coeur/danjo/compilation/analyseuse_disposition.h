@@ -39,13 +39,13 @@ class AssembleurDisposition;
  * Si une erreur de syntaxe est repérée, une exception de type ErreurSyntactique
  * est lancée.
  */
-class AnalyseuseDisposition : public Analyseuse {
+class AnalyseuseDisposition : public base_analyseuse {
 	AssembleurDisposition *m_assembleur = nullptr;
 
 public:
 	explicit AnalyseuseDisposition(
-			const TamponSource &tampon,
-			const std::vector<DonneesMorceaux> &identifiants);
+			lng::tampon_source const &tampon,
+			std::vector<DonneesMorceaux> &identifiants);
 
 	AnalyseuseDisposition(AnalyseuseDisposition const &) = delete;
 	AnalyseuseDisposition &operator=(AnalyseuseDisposition const &) = delete;

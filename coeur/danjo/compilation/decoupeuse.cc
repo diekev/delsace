@@ -27,10 +27,12 @@
 #include <algorithm>
 #include <iostream>
 
+#include <delsace/langage/tampon_source.hh>
+#include <delsace/langage/unicode.hh>
+
 #include "erreur.h"
 #include "morceaux.h"
 #include "nombres.h"
-#include "unicode.h"
 
 namespace danjo {
 
@@ -102,7 +104,7 @@ constexpr auto converti_utf32(const char *sequence, int n)
 
 /* ************************************************************************** */
 
-Decoupeuse::Decoupeuse(const TamponSource &tampon)
+Decoupeuse::Decoupeuse(lng::tampon_source const &tampon)
 	: m_debut(tampon.debut())
 	, m_debut_mot(tampon.debut())
 	, m_fin(tampon.fin())
@@ -143,7 +145,7 @@ void Decoupeuse::decoupe()
 	m_taille_mot_courant = 0;
 
 	while (!this->fini()) {
-		auto nombre_octet = nombre_octets(m_debut);
+		auto nombre_octet = lng::nombre_octets(m_debut);
 
 		switch (nombre_octet) {
 			case 1:
@@ -200,7 +202,7 @@ void Decoupeuse::decoupe()
 						this->enregistre_pos_mot();
 
 						while (!this->fini()) {
-							nombre_octet = nombre_octets(m_debut);
+							nombre_octet = lng::nombre_octets(m_debut);
 							c = converti_utf32(m_debut, nombre_octet);
 
 							if (c == GUILLEMET_FERMANT) {
@@ -410,7 +412,7 @@ void Decoupeuse::ajoute_identifiant(id_morceau identifiant, const std::string_vi
 	m_identifiants.push_back({contenu, m_ligne | m_position_ligne, identifiant});
 }
 
-const std::vector<DonneesMorceaux> &Decoupeuse::morceaux() const
+std::vector<DonneesMorceaux> &Decoupeuse::morceaux()
 {
 	return m_identifiants;
 }

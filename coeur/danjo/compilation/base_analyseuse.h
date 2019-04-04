@@ -26,71 +26,32 @@
 
 #include <vector>
 
+#include <delsace/langage/analyseuse.hh>
+
 #include "morceaux.h"
-#include "tampon_source.h"
+
+namespace lng {
+class tampon_source;
+}
 
 namespace danjo {
 
 /**
- * Classe de base pour définir des analyseurs syntactique.
+ * Classe de base pour définir des analyseuses syntactique.
  */
-class Analyseuse {
-protected:
-	const std::vector<DonneesMorceaux> &m_identifiants;
-	const TamponSource &m_tampon;
-	size_t m_position = 0;
+class base_analyseuse : public lng::analyseuse<DonneesMorceaux> {
+	lng::tampon_source const &m_tampon;
 
 public:
-	explicit Analyseuse(const TamponSource &tampon, const std::vector<DonneesMorceaux> &identifiants);
-
-	virtual ~Analyseuse() = default;
-
-	/**
-	 * Lance l'analyse syntactique du vecteur d'identifiants spécifié.
-	 *
-	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
-	 * une exception est lancée.
-	 */
-	virtual void lance_analyse() = 0;
+	base_analyseuse(lng::tampon_source const &tampon, std::vector<DonneesMorceaux> &identifiants);
 
 protected:
-	/**
-	 * Vérifie que l'identifiant courant est égal à celui spécifié puis avance
-	 * la position de l'analyseur sur le vecteur d'identifiant.
-	 */
-	bool requiers_identifiant(id_morceau identifiant);
-
-	/**
-	 * Retourne vrai si l'identifiant courant est égal à celui spécifié.
-	 */
-	bool est_identifiant(id_morceau identifiant);
-
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
 	[[noreturn]] void lance_erreur(const std::string &quoi);
-
-	/**
-	 * Avance l'analyseur d'un cran sur le vecteur d'identifiants.
-	 */
-	void avance();
-
-	/**
-	 * Recule l'analyseur d'un cran sur le vecteur d'identifiants.
-	 */
-	void recule();
-
-	/**
-	 * Retourne la position courante sur le vecteur d'identifiants.
-	 */
-	size_t position();
-
-	/**
-	 * Retourne l'identifiant courant.
-	 */
-	id_morceau identifiant_courant() const;
 };
 
 } /* namespace danjo */

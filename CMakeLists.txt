@@ -123,7 +123,7 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-find_package(Delsace COMPONENTS math tests REQUIRED)
+find_package(Delsace COMPONENTS langage math phys tests REQUIRED)
 
 find_package(Qt5Core REQUIRED)
 set(INCLUSIONS_QT5_CORE ${Qt5Core_INCLUDE_DIRS})

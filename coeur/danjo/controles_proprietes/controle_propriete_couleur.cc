@@ -77,7 +77,7 @@ void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
 		auto valeurs = decoupe(donnees.valeur_defaut, ',');
 		auto index = 0;
 
-		couleur32 valeur_defaut(1.0f);
+		dls::phys::couleur32 valeur_defaut(1.0f);
 
 		for (auto v : valeurs) {
 			valeur_defaut[index++] = static_cast<float>(std::atof(v.c_str()));
@@ -86,7 +86,7 @@ void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
 		m_propriete->valeur = valeur_defaut;
 	}
 
-	m_controle_couleur->couleur(std::experimental::any_cast<couleur32>(m_propriete->valeur));
+	m_controle_couleur->couleur(std::experimental::any_cast<dls::phys::couleur32>(m_propriete->valeur));
 
 	setToolTip(donnees.infobulle.c_str());
 }

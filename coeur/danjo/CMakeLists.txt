@@ -84,8 +84,13 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES "Profile")
 	)
 endif()
 
+set(BIBLIOTHEQUES
+	${BIBLIOTHEQUES}
+	${BIBLIOTHEQUE_DELSACE_PHYS}
+	${BIBLIOTHEQUE_DELSACE_LANGAGE}
+)
+
 set(ENTETES_TYPES
-	types/couleur.h
 	types/courbe_bezier.h
 	types/outils.h
 	types/rampe_couleur.h
@@ -141,12 +146,9 @@ set(SOURCES
 	compilation/graphe_contrainte.cc
 	compilation/morceaux.cc
 	compilation/nombres.cc
-	compilation/tampon_source.cc
-	compilation/unicode.cc
 
 	dialogues/dialogue_couleur.cc
 
-	types/couleur.cc
 	types/courbe_bezier.cc
 	types/outils.cc
 	types/rampe_couleur.cc
@@ -199,8 +201,6 @@ set(SOURCES
 	compilation/graphe_contrainte.h
 	compilation/morceaux.h
 	compilation/nombres.h
-	compilation/tampon_source.h
-	compilation/unicode.h
 
 	dialogues/dialogue_couleur.h
 

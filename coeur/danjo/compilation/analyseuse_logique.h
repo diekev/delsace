@@ -31,7 +31,7 @@ namespace danjo {
 
 class Manipulable;
 
-class AnalyseuseLogique : public Analyseuse {
+class AnalyseuseLogique : public base_analyseuse {
 	AssembleuseLogique m_assembleuse{};
 	Manipulable *m_manipulable{};
 	bool m_initialise_manipulable{};
@@ -40,8 +40,8 @@ class AnalyseuseLogique : public Analyseuse {
 public:
 	explicit AnalyseuseLogique(
 			Manipulable *manipulable,
-			const TamponSource &tampon,
-			const std::vector<DonneesMorceaux> &identifiants,
+			lng::tampon_source const &tampon,
+			std::vector<DonneesMorceaux> &identifiants,
 			bool initialise_manipulable = false);
 
 	AnalyseuseLogique(AnalyseuseLogique const &) = default;

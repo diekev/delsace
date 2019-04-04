@@ -68,9 +68,9 @@ int main(int argc, char *argv[])
 //	controle.show();
 
 	RampeCouleur rampe;
-	ajoute_point_rampe(rampe, 0.0f, couleur32{0.0f, 0.0f, 0.0f, 1.0f});
-	ajoute_point_rampe(rampe, 0.5f, couleur32{0.0f, 1.0f, 0.0f, 1.0f});
-	ajoute_point_rampe(rampe, 1.0f, couleur32{1.0f, 1.0f, 1.0f, 1.0f});
+	ajoute_point_rampe(rampe, 0.0f, dls::phys::couleur32{0.0f, 0.0f, 0.0f, 1.0f});
+	ajoute_point_rampe(rampe, 0.5f, dls::phys::couleur32{0.0f, 1.0f, 0.0f, 1.0f});
+	ajoute_point_rampe(rampe, 1.0f, dls::phys::couleur32{1.0f, 1.0f, 1.0f, 1.0f});
 
 	danjo::DonneesControle donnees;
 	donnees.pointeur = &rampe;

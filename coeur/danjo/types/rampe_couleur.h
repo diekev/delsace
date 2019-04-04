@@ -26,7 +26,7 @@
 
 #include <vector>
 
-#include "couleur.h"
+#include <delsace/phys/couleur.hh>
 
 enum {
 	ENTREPOLATION_RVB = 0,
@@ -35,7 +35,7 @@ enum {
 
 struct PointRampeCouleur {
 	float position{};
-	couleur32 couleur{};
+	dls::phys::couleur32 couleur{};
 	bool selectionne = false;
 };
 
@@ -48,8 +48,8 @@ void cree_rampe_defaut(RampeCouleur &rampe);
 
 void tri_points_rampe(RampeCouleur &rampe);
 
-void ajoute_point_rampe(RampeCouleur &rampe, float x, const couleur32 &couleur);
+void ajoute_point_rampe(RampeCouleur &rampe, float x, const dls::phys::couleur32 &couleur);
 
 PointRampeCouleur *trouve_point_selectionne(const RampeCouleur &rampe);
 
-couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur);
+dls::phys::couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur);

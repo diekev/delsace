@@ -24,65 +24,23 @@
 
 #include "base_analyseuse.h"
 
+#include <delsace/langage/tampon_source.hh>
+
 #include "erreur.h"
 
 namespace danjo {
 
-Analyseuse::Analyseuse(
-		const TamponSource &tampon,
-		const std::vector<DonneesMorceaux> &identifiants)
-	: m_identifiants(identifiants)
+base_analyseuse::base_analyseuse(lng::tampon_source const &tampon, std::vector<DonneesMorceaux> &identifiants)
+	: lng::analyseuse<DonneesMorceaux>(identifiants)
 	, m_tampon(tampon)
 {}
 
-bool Analyseuse::requiers_identifiant(id_morceau identifiant)
+void base_analyseuse::lance_erreur(const std::string &quoi)
 {
-	if (m_position >= m_identifiants.size()) {
-		return false;
-	}
-
-	const auto est_bon = this->est_identifiant(identifiant);
-
-	avance();
-
-	return est_bon;
-}
-
-void Analyseuse::avance()
-{
-	++m_position;
-}
-
-void Analyseuse::recule()
-{
-	m_position -= 1;
-}
-
-size_t Analyseuse::position()
-{
-	return m_position - 1;
-}
-
-bool Analyseuse::est_identifiant(id_morceau identifiant)
-{
-	return identifiant == this->identifiant_courant();
-}
-
-id_morceau Analyseuse::identifiant_courant() const
-{
-	if (m_position >= m_identifiants.size()) {
-		return id_morceau::NUL;
-	}
-
-	return m_identifiants[m_position].identifiant;
-}
-
-void Analyseuse::lance_erreur(const std::string &quoi)
-{
-	const auto numero_ligne = (m_identifiants[position()].ligne_pos >> 32);
-	const auto position_ligne = m_identifiants[position()].ligne_pos & 0xffffffff;
+	const auto numero_ligne = (donnees().ligne_pos >> 32);
+	const auto position_ligne = donnees().ligne_pos & 0xffffffff;
 	const auto ligne = m_tampon[numero_ligne];
-	const auto contenu = m_identifiants[position()].chaine;
+	const auto contenu = donnees().chaine;
 
 	throw ErreurSyntactique(ligne, numero_ligne + 1, position_ligne, quoi, contenu);
 }

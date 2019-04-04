@@ -26,7 +26,7 @@
 
 #include <vector>
 
-#include "couleur.h"
+#include <delsace/phys/couleur.hh>
 
 struct Point {
 	float x;
@@ -127,4 +127,4 @@ void calcule_controles_courbe(CourbeBezier &courbe);
 
 float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur);
 
-couleur32 evalue_courbe_couleur(const CourbeCouleur &courbe, const couleur32 &valeur);
+dls::phys::couleur32 evalue_courbe_couleur(const CourbeCouleur &courbe, const dls::phys::couleur32 &valeur);

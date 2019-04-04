@@ -26,7 +26,7 @@
 
 #include <QWidget>
 
-#include "types/couleur.h"
+#include <delsace/phys/couleur.hh>
 
 namespace danjo {
 
@@ -36,7 +36,7 @@ class ControleCouleur final : public QWidget {
 	Q_OBJECT
 
 	DialogueCouleur *m_dialogue;
-	couleur32 m_couleur{};
+	dls::phys::couleur32 m_couleur{};
 
 public:
 	explicit ControleCouleur(QWidget *parent = nullptr);
@@ -44,9 +44,9 @@ public:
 	ControleCouleur(ControleCouleur const &) = default;
 	ControleCouleur &operator=(ControleCouleur const &) = default;
 
-	couleur32 couleur();
+	dls::phys::couleur32 couleur();
 
-	void couleur(const couleur32 &c);
+	void couleur(const dls::phys::couleur32 &c);
 
 	void ajourne_plage(const float min, const float max);
 

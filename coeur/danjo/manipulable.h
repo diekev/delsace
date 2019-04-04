@@ -26,10 +26,9 @@
 
 #include <experimental/any>
 #include <delsace/math/vecteur.hh>
+#include <delsace/phys/couleur.hh>
 #include <unordered_map>
 #include <vector>
-
-#include "types/couleur.h"
 
 struct CourbeBezier;
 struct CourbeCouleur;
@@ -71,7 +70,7 @@ struct Propriete {
 
 	void ajoute_cle(const dls::math::vec3f &v, int temps);
 
-	void ajoute_cle(const couleur32 &v, int temps);
+	void ajoute_cle(const dls::phys::couleur32 &v, int temps);
 
 	void supprime_animation();
 
@@ -85,7 +84,7 @@ struct Propriete {
 
 	dls::math::vec3f evalue_vecteur(int temps);
 
-	couleur32 evalue_couleur(int temps);
+	dls::phys::couleur32 evalue_couleur(int temps);
 
 private:
 	void ajoute_cle_impl(const std::experimental::any &v, int temps);
@@ -160,7 +159,7 @@ public:
 	/**
 	 * Évalue la valeur d'une propriété de type 'couleur' du nom spécifié.
 	 */
-	couleur32 evalue_couleur(const std::string &nom, int temps = 0);
+	dls::phys::couleur32 evalue_couleur(const std::string &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_entrée' du nom spécifié.
@@ -241,7 +240,7 @@ public:
 	/**
 	 * Établie la valeur de la propriété de type couleur spécifiée.
 	 */
-	void valeur_couleur(const std::string &nom, const couleur32 &valeur);
+	void valeur_couleur(const std::string &nom, const dls::phys::couleur32 &valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type chaine, fichier, ou liste

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "couleur.h"
+#include <delsace/phys/couleur.hh>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -52,4 +52,4 @@ QColor converti_couleur(float r, float v, float b, float a);
 
 QColor converti_couleur(const float *rvba);
 
-QColor converti_couleur(const couleur32 &rvba);
+QColor converti_couleur(const dls::phys::couleur32 &rvba);

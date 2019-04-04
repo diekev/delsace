@@ -82,9 +82,9 @@ static bool est_identifiant_propriete(id_morceau identifiant)
 /* ************************************************************************** */
 
 AnalyseuseDisposition::AnalyseuseDisposition(
-		const TamponSource &tampon,
-		const std::vector<DonneesMorceaux> &identifiants)
-	: Analyseuse(tampon, identifiants)
+		lng::tampon_source const &tampon,
+		std::vector<DonneesMorceaux> &identifiants)
+	: base_analyseuse(tampon, identifiants)
 {}
 
 void AnalyseuseDisposition::installe_assembleur(AssembleurDisposition *assembleur)
@@ -135,7 +135,7 @@ void AnalyseuseDisposition::analyse_script_disposition()
 		lance_erreur("Attendu le nom de la disposition après 'disposition' !");
 	}
 
-	m_assembleur->nom_disposition(std::string{m_identifiants[position()].chaine});
+	m_assembleur->nom_disposition(std::string{donnees().chaine});
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom de la disposition !");
@@ -167,7 +167,7 @@ void AnalyseuseDisposition::analyse_script_menu()
 		lance_erreur("Attendu le nom du menu après 'menu' !");
 	}
 
-	const auto nom = m_identifiants[position()].chaine;
+	const auto nom = donnees().chaine;
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom du menu !");
@@ -369,7 +369,7 @@ void AnalyseuseDisposition::analyse_onglet()
 		lance_erreur("Attendu une chaîne de caractère après 'onglet' !");
 	}
 
-	const auto &nom = m_identifiants[position()].chaine;
+	const auto &nom = donnees().chaine;
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom de 'onglet' !");
@@ -558,17 +558,17 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 		if (type_controle == id_morceau::BOUTON) {
 			m_assembleur->propriete_bouton(
 						identifiant_propriete,
-						std::string{m_identifiants[position()].chaine});
+						std::string{donnees().chaine});
 		}
 		else if (type_controle == id_morceau::ACTION) {
 			m_assembleur->propriete_action(
 						identifiant_propriete,
-			std::string{m_identifiants[position()].chaine});
+			std::string{donnees().chaine});
 		}
 		else {
 			const auto valeur = valeur_negative ?
-									"-" + std::string{m_identifiants[position()].chaine}
-								  : std::string{m_identifiants[position()].chaine};
+									"-" + std::string{donnees().chaine}
+								  : std::string{donnees().chaine};
 
 			m_assembleur->propriete_controle(
 						identifiant_propriete,
@@ -617,7 +617,7 @@ void AnalyseuseDisposition::analyse_item()
 		lance_erreur("Attendu une chaîne de caractère après '=' !");
 	}
 
-	const auto nom = m_identifiants[position()].chaine;
+	const auto nom = donnees().chaine;
 
 	if (!requiers_identifiant(id_morceau::VIRGULE)) {
 		lance_erreur("Attendu une virgule !");
@@ -635,7 +635,7 @@ void AnalyseuseDisposition::analyse_item()
 		lance_erreur("Attendu une chaîne de caractère après '=' !");
 	}
 
-	const auto valeur = m_identifiants[position()].chaine;
+	const auto valeur = donnees().chaine;
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermée !");

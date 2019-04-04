@@ -25,6 +25,7 @@
 #include "test_decoupage.h"
 
 #include <cstring>
+#include <delsace/langage/tampon_source.hh>
 
 #include "compilation/decoupeuse.h"
 
@@ -120,7 +121,7 @@ bool test_decoupage_texte1()
 		{ "}", 0, danjo::id_morceau::ACCOLADE_FERMANTE },
 	};
 
-	auto tampon = TamponSource(texte);
+	auto tampon = lng::tampon_source(texte);
 	auto decoupeuse = danjo::Decoupeuse(tampon);
 	decoupeuse.decoupe();
 

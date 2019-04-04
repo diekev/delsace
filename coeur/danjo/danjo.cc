@@ -31,6 +31,8 @@
 #include <QMenu>
 #include <QToolBar>
 
+#include <delsace/langage/tampon_source.hh>
+
 #include "controles/action.h"
 
 #include "compilation/analyseuse_disposition.h"
@@ -127,7 +129,7 @@ QMenu *GestionnaireInterface::compile_menu(
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	auto tampon = TamponSource(texte_entree);
+	auto tampon = lng::tampon_source(texte_entree);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -162,7 +164,7 @@ QMenu *GestionnaireInterface::compile_menu_entrerogeable(
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	auto tampon = TamponSource(texte_entree);
+	auto tampon = lng::tampon_source(texte_entree);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -208,7 +210,7 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 				donnees.conteneur,
 				temps);
 
-	auto tampon = TamponSource(texte_entree);
+	auto tampon = lng::tampon_source(texte_entree);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -250,7 +252,7 @@ void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const
 				0,
 				true);
 
-	auto tampon = TamponSource(texte_entree);
+	auto tampon = lng::tampon_source(texte_entree);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -287,7 +289,7 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees,
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	auto tampon = TamponSource(texte_entree);
+	auto tampon = lng::tampon_source(texte_entree);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -379,7 +381,7 @@ QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_e
 
 void compile_feuille_logique(const char *texte_entree)
 {
-	auto tampon = TamponSource(texte_entree);
+	auto tampon = lng::tampon_source(texte_entree);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {

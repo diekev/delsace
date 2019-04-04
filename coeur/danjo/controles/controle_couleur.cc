@@ -45,12 +45,12 @@ ControleCouleur::ControleCouleur(QWidget *parent)
 	setFixedWidth(metriques.width("#000000"));
 }
 
-couleur32 ControleCouleur::couleur()
+dls::phys::couleur32 ControleCouleur::couleur()
 {
 	return m_couleur;
 }
 
-void ControleCouleur::couleur(const couleur32 &c)
+void ControleCouleur::couleur(const dls::phys::couleur32 &c)
 {
 	m_couleur = c;
 	update();

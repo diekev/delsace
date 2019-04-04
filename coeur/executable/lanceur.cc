@@ -26,6 +26,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <delsace/langage/tampon_source.hh>
+
 #include "danjo/compilation/decoupeuse.h"
 #include "danjo/compilation/analyseuse_disposition.h"
 
@@ -45,7 +47,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 	try {
 		auto texte = danjo::contenu_fichier(chemin);
 
-		auto tampon = TamponSource(texte.c_str());
+		auto tampon = lng::tampon_source(texte.c_str());
 		auto decoupeuse = danjo::Decoupeuse(tampon);
 		decoupeuse.decoupe();
 

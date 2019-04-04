@@ -27,7 +27,10 @@
 #include <vector>
 
 #include "morceaux.h"
-#include "tampon_source.h"
+
+namespace lng {
+class tampon_source;
+}
 
 namespace danjo {
 
@@ -48,7 +51,7 @@ class Decoupeuse {
 	const char *m_fin = nullptr;
 
 	std::vector<DonneesMorceaux> m_identifiants{};
-	const TamponSource &m_tampon;
+	lng::tampon_source const &m_tampon;
 
 public:
 	using iterateur = std::vector<DonneesMorceaux>::iterator;
@@ -57,7 +60,7 @@ public:
 	/**
 	 * Construit une instance de Decoupeuse pour la chaîne spécifiée.
 	 */
-	explicit Decoupeuse(const TamponSource &tampon);
+	explicit Decoupeuse(lng::tampon_source const &tampon);
 
 	Decoupeuse(Decoupeuse const &) = default;
 	Decoupeuse &operator=(Decoupeuse const &) = default;
@@ -83,7 +86,7 @@ public:
 	/**
 	 * Retourne la liste de morceaux découpés.
 	 */
-	const std::vector<DonneesMorceaux> &morceaux() const;
+	std::vector<DonneesMorceaux> &morceaux();
 
 	/**
 	 * Retourne un itérateur pointant vers le début de la liste d'identifiants.

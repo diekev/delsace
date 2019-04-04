@@ -360,7 +360,7 @@ enum {
 	V_S_B_S_R,
 };
 
-static int ordre_triage_canal(const couleur32 &c)
+static int ordre_triage_canal(const dls::phys::couleur32 &c)
 {
 	const auto r = c[0];
 	const auto g = c[1];
@@ -403,9 +403,11 @@ static const int index_canaux_tries[7][3] = {
 	{1, 2, 0},
 };
 
-couleur32 evalue_courbe_couleur(const CourbeCouleur &courbe, const couleur32 &valeur)
+dls::phys::couleur32 evalue_courbe_couleur(
+		const CourbeCouleur &courbe,
+		const dls::phys::couleur32 &valeur)
 {
-	couleur32 res;
+	dls::phys::couleur32 res;
 
 	/* applique la courbe maitresse, sauf pour l'alpha */
 	res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_MAITRESSE], valeur[0]);

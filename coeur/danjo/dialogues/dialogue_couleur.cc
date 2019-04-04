@@ -145,7 +145,7 @@ DialogueCouleur::DialogueCouleur(QWidget *parent)
 	setLayout(m_disposition);
 }
 
-void DialogueCouleur::couleur_originale(const couleur32 &c)
+void DialogueCouleur::couleur_originale(const dls::phys::couleur32 &c)
 {
 	for (int i = 0; i < 4; ++i) {
 		m_couleur_origine[i] = c[i];
@@ -156,7 +156,7 @@ void DialogueCouleur::couleur_originale(const couleur32 &c)
 	m_affichage_couleur_nouvelle->couleur(converti_couleur(m_couleur_nouvelle));
 	m_affichage_couleur_originale->couleur(converti_couleur(m_couleur_origine));
 
-	couleur32 hsv;
+	dls::phys::couleur32 hsv;
 	rvb_vers_hsv(m_couleur_nouvelle, hsv);
 
 	m_selecteur_sat_val->couleur(hsv);
@@ -174,12 +174,12 @@ void DialogueCouleur::couleur_originale(const couleur32 &c)
 	ajourne_label_contraste();
 }
 
-couleur32 DialogueCouleur::couleur_originale()
+dls::phys::couleur32 DialogueCouleur::couleur_originale()
 {
 	return m_couleur_origine;
 }
 
-couleur32 DialogueCouleur::couleur_nouvelle()
+dls::phys::couleur32 DialogueCouleur::couleur_nouvelle()
 {
 	return m_couleur_nouvelle;
 }
@@ -195,7 +195,7 @@ void DialogueCouleur::ajourne_plage(float min, float max)
 	m_a->ajourne_plage(0.0f, 1.0f);
 }
 
-couleur32 DialogueCouleur::requiers_couleur(const couleur32 &couleur_origine)
+dls::phys::couleur32 DialogueCouleur::requiers_couleur(const dls::phys::couleur32 &couleur_origine)
 {
 	DialogueCouleur dialogue;
 	dialogue.couleur_originale(couleur_origine);
@@ -219,7 +219,7 @@ void DialogueCouleur::ajourne_couleur()
 
 	m_affichage_couleur_nouvelle->couleur(converti_couleur(m_couleur_nouvelle));
 
-	couleur32 hsv;
+	dls::phys::couleur32 hsv;
 	rvb_vers_hsv(m_couleur_nouvelle, hsv);
 
 	m_selecteur_sat_val->couleur(hsv);
@@ -237,7 +237,7 @@ void DialogueCouleur::ajourne_couleur()
 
 void DialogueCouleur::ajourne_couleur_hsv()
 {
-	couleur32 hsv;
+	dls::phys::couleur32 hsv;
 	hsv.r = m_h->valeur();
 	hsv.v = m_s->valeur();
 	hsv.b = m_v0->valeur();
@@ -262,7 +262,7 @@ void DialogueCouleur::ajourne_couleur_hsv()
 
 void DialogueCouleur::ajourne_couleur_sat_val()
 {
-	couleur32 hsv;
+	dls::phys::couleur32 hsv;
 	hsv.r = m_h->valeur();
 	hsv.v = m_selecteur_sat_val->saturation();
 	hsv.b = m_selecteur_sat_val->valeur();
@@ -287,7 +287,7 @@ void DialogueCouleur::ajourne_couleur_sat_val()
 
 void DialogueCouleur::ajourne_couleur_teinte()
 {
-	couleur32 hsv;
+	dls::phys::couleur32 hsv;
 	hsv.r = m_selecteur_teinte->teinte();
 	hsv.v = m_s->valeur();
 	hsv.b = m_v0->valeur();
@@ -312,7 +312,7 @@ void DialogueCouleur::ajourne_couleur_teinte()
 
 void DialogueCouleur::ajourne_couleur_valeur()
 {
-	couleur32 hsv;
+	dls::phys::couleur32 hsv;
 	hsv.r = m_h->valeur();
 	hsv.v = m_s->valeur();
 	hsv.b = m_selecteur_valeur->valeur();

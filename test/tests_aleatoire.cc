@@ -26,9 +26,10 @@
 #include <iostream>
 #include <random>
 
+#include <delsace/langage/tampon_source.hh>
+
 #include "coeur/danjo/compilation/analyseuse_disposition.h"
 #include "coeur/danjo/compilation/morceaux.h"
-#include "coeur/danjo/compilation/tampon_source.h"
 
 namespace analyse_aleatoire {
 
@@ -63,7 +64,7 @@ int test(const u_char *tampon, size_t taille)
 		dm.identifiant = *ptr_morceaux++;
 	}
 
-	auto tampon_donnees = TamponSource{"analyse_aleatoire"};
+	auto tampon_donnees = lng::tampon_source{"analyse_aleatoire"};
 
 	auto analyseuse = danjo::AnalyseuseDisposition(tampon_donnees, donnees_morceaux);
 
