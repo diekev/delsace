@@ -35,11 +35,12 @@
 /* ************************************************************************** */
 
 analyseuse_grammaire::analyseuse_grammaire(
-		std::vector<DonneesMorceaux> const &identifiants,
-		TamponSource const &tampon,
+		std::vector<DonneesMorceaux> &identifiants,
+		lng::tampon_source const &tampon,
 		assembleuse_arbre &assembleuse)
-	: Analyseuse(identifiants, tampon)
+	: lng::analyseuse<DonneesMorceaux>(identifiants)
 	, m_assembleuse(assembleuse)
+	, m_tampon(tampon)
 {}
 
 void analyseuse_grammaire::lance_analyse()
@@ -59,10 +60,10 @@ void analyseuse_grammaire::lance_analyse()
 
 void analyseuse_grammaire::analyse_page()
 {
-	while ((m_position != m_identifiants.size())) {
+	while (fini()) {
 		if (est_identifiant(ID_CHAINE_CARACTERE)) {
 			avance();
-			m_assembleuse.ajoute_noeud(type_noeud::CHAINE_CARACTERE, m_identifiants[position()]);
+			m_assembleuse.ajoute_noeud(type_noeud::CHAINE_CARACTERE, donnees());
 		}
 		else if (est_identifiant(ID_DEBUT_EXPRESSION)) {
 			analyse_expression();
@@ -74,7 +75,7 @@ void analyseuse_grammaire::analyse_page()
 				lance_erreur("Attendu identifiant de la variable après '{{'");
 			}
 
-			m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
+			m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, donnees());
 
 			if (!requiers_identifiant(ID_FIN_VARIABLE)) {
 				lance_erreur("Attendu '}}' à la fin de la déclaration d'une variable");
@@ -107,7 +108,7 @@ void analyseuse_grammaire::analyse_expression()
 
 		m_assembleuse.escompte_type(type_noeud::SI);
 
-		m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+		m_assembleuse.empile_noeud(type_noeud::BLOC, donnees());
 
 		analyse_page();
 	}
@@ -144,19 +145,19 @@ void analyseuse_grammaire::analyse_si()
 		lance_erreur("Attendu 'si'");
 	}
 
-	m_assembleuse.empile_noeud(type_noeud::SI, m_identifiants[position()]);
+	m_assembleuse.empile_noeud(type_noeud::SI, donnees());
 
 	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'si'");
 	}
 
-	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
+	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, donnees());
 
 	if (!requiers_identifiant(ID_FIN_EXPRESSION)) {
 		lance_erreur("Attendu '%}'");
 	}
 
-	m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+	m_assembleuse.empile_noeud(type_noeud::BLOC, donnees());
 
 	analyse_page();
 }
@@ -167,13 +168,13 @@ void analyseuse_grammaire::analyse_pour()
 		lance_erreur("Attendu 'pour'");
 	}
 
-	m_assembleuse.empile_noeud(type_noeud::POUR, m_identifiants[position()]);
+	m_assembleuse.empile_noeud(type_noeud::POUR, donnees());
 
 	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaîne de caractère après 'pour'");
 	}
 
-	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
+	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, donnees());
 
 	if (!requiers_identifiant(ID_DANS)) {
 		lance_erreur("Attendu 'dans'");
@@ -183,13 +184,18 @@ void analyseuse_grammaire::analyse_pour()
 		lance_erreur("Attendu une chaîne de caractère après 'dans'");
 	}
 
-	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, m_identifiants[position()]);
+	m_assembleuse.ajoute_noeud(type_noeud::VARIABLE, donnees());
 
 	if (!requiers_identifiant(ID_FIN_EXPRESSION)) {
 		lance_erreur("Attendu '%}'");
 	}
 
-	m_assembleuse.empile_noeud(type_noeud::BLOC, m_identifiants[position()]);
+	m_assembleuse.empile_noeud(type_noeud::BLOC, donnees());
 
 	analyse_page();
+}
+
+void analyseuse_grammaire::lance_erreur(const std::string &quoi, int type)
+{
+	erreur::lance_erreur(quoi, m_tampon, donnees(), type);
 }

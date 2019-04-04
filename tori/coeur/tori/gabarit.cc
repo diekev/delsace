@@ -32,7 +32,7 @@ namespace tori {
 
 std::string calcul_gabarit(std::string const &gabarit, ObjetDictionnaire &objet)
 {
-	auto const tampon = TamponSource{gabarit};
+	auto const tampon = lng::tampon_source{gabarit};
 
 	auto decoupeuse = decoupeuse_texte(tampon);
 	decoupeuse.genere_morceaux();

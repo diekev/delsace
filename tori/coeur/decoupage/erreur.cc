@@ -27,7 +27,7 @@
 #include <sstream>
 
 #include "morceaux.hh"
-#include "tampon_source.hh"
+#include "../../../langage/tampon_source.hh"
 
 namespace erreur {
 
@@ -67,7 +67,7 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 	}
 }
 
-void lance_erreur(const std::string &quoi, const TamponSource &tampon, const DonneesMorceaux &morceau, int type)
+void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, const DonneesMorceaux &morceau, int type)
 {
 	const auto ligne = morceau.ligne_pos >> 32;
 	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
@@ -94,7 +94,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 [[noreturn]] void lance_erreur_nombre_arguments(
 		const size_t nombre_arguments,
 		const size_t nombre_recus,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
@@ -121,7 +121,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 		const int type_arg,
 		const int type_enf,
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
@@ -146,7 +146,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 
 [[noreturn]] void lance_erreur_argument_inconnu(
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;
@@ -170,7 +170,7 @@ void lance_erreur(const std::string &quoi, const TamponSource &tampon, const Don
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)
 {
 	const auto numero_ligne = morceau.ligne_pos >> 32;

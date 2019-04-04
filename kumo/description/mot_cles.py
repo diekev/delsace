@@ -71,11 +71,13 @@ def enleve_accent(mot):
 def construit_structures():
 	structures = u''
 
-	structures += u'struct DonneesMorceaux {\n'
+	structures += u'\nstruct DonneesMorceaux {\n'
+	structures += u'\tusing type = int;\n'
+	structures += u'\tstatic constexpr type INCONNU = ID_INCONNU;\n\n'
 	structures += u'\tstd::string_view chaine;\n'
 	structures += u'\tsize_t ligne_pos;\n'
 	structures += u'\tsize_t identifiant;\n'
-	structures += u'};\n\n'
+	structures += u'};\n'
 
 	return structures
 
@@ -239,8 +241,8 @@ with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'#include <string>\n\n')
-	entete.write(structures)
 	entete.write(enumeration)
+	entete.write(structures)
 	entete.write(declaration_fonctions)
 
 

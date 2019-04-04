@@ -22,11 +22,4 @@
  *
  */
 
-#pragma once
-
-/**
- * Retourne le nombre d'octets Unicode (entre 1 et 4) qui composent le début la
- * séquence précisée. Retourne 0 si la sequence d'octets n'est pas valide en
- * Unicode (UTF-8).
- */
-int nombre_octets(const char *sequence);
+#include "analyseuse.hh"

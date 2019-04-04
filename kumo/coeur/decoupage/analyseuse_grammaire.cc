@@ -32,7 +32,7 @@
 
 /* ************************************************************************** */
 
-static bool est_drapeaux(size_t identifiant)
+static bool est_drapeaux(int identifiant)
 {
 	switch (identifiant) {
 		case ID_VARIABLE:
@@ -69,8 +69,9 @@ static void initialise_colonne(Colonne &colonne)
 
 /* ************************************************************************** */
 
-analyseuse_grammaire::analyseuse_grammaire(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon)
-	: Analyseuse(identifiants, tampon)
+analyseuse_grammaire::analyseuse_grammaire(std::vector<DonneesMorceaux> &identifiants, lng::tampon_source const &tampon)
+	: lng::analyseuse<DonneesMorceaux>(identifiants)
+	, m_tampon(tampon)
 {}
 
 void analyseuse_grammaire::lance_analyse()
@@ -95,7 +96,7 @@ void analyseuse_grammaire::analyse_schema()
 		lance_erreur("Le script doit commencer par le nom de la base de données");
 	}
 
-	m_schema.nom = m_identifiants[position()].chaine;
+	m_schema.nom = donnees().chaine;
 
 	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante '{' après le nom de la base de données");
@@ -119,7 +120,7 @@ void analyseuse_grammaire::analyse_declaration_table()
 	}
 
 	auto table = Table{};
-	table.nom = m_identifiants[position()].chaine;
+	table.nom = donnees().chaine;
 
 	for (const auto &t : m_schema.tables) {
 		if (t.nom == table.nom) {
@@ -152,7 +153,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 	}
 
 	/* À FAIRE : vérifie que la colonne est unique. */
-	colonne.nom = m_identifiants[position()].chaine;
+	colonne.nom = donnees().chaine;
 
 	for (const auto &c : table.colonnes) {
 		if (c.nom == colonne.nom) {
@@ -169,7 +170,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 		lance_erreur("Attendu la déclaration d'un type après ':");
 	}
 
-	colonne.type = m_identifiants[position()].identifiant;
+	colonne.type = donnees().identifiant;
 	initialise_colonne(colonne);
 
 	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
@@ -192,7 +193,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 	}
 }
 
-bool analyseuse_grammaire::requiers_type(size_t identifiant)
+bool analyseuse_grammaire::requiers_type(int identifiant)
 {
 	avance();
 
@@ -268,7 +269,7 @@ void analyseuse_grammaire::analyse_propriete_colonne(Colonne &colonne)
 			lance_erreur("Attendu la déclaration d'une propriété");
 		}
 
-		auto id_propriete = m_identifiants[position()].identifiant;
+		auto id_propriete = donnees().identifiant;
 
 		if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
 			lance_erreur("Attendu un double point ':' après la propriété");
@@ -278,7 +279,7 @@ void analyseuse_grammaire::analyse_propriete_colonne(Colonne &colonne)
 			lance_erreur("Attendu une valeur après le double point ':'");
 		}
 
-		initialise_propriete(colonne, id_propriete, m_identifiants[position()]);
+		initialise_propriete(colonne, id_propriete, donnees());
 	}
 
 	if (est_identifiant(ID_VIRGULE)) {
@@ -286,7 +287,7 @@ void analyseuse_grammaire::analyse_propriete_colonne(Colonne &colonne)
 	}
 }
 
-bool analyseuse_grammaire::requiers_propriete(size_t identifiant)
+bool analyseuse_grammaire::requiers_propriete(int identifiant)
 {
 	avance();
 
@@ -305,7 +306,7 @@ bool analyseuse_grammaire::requiers_propriete(size_t identifiant)
 	}
 }
 
-bool analyseuse_grammaire::requiers_valeur(size_t identifiant)
+bool analyseuse_grammaire::requiers_valeur(int identifiant)
 {
 	avance();
 
@@ -324,4 +325,9 @@ bool analyseuse_grammaire::requiers_valeur(size_t identifiant)
 		default:
 			return false;
 	}
+}
+
+void analyseuse_grammaire::lance_erreur(const std::string &quoi, int type)
+{
+	erreur::lance_erreur(quoi, m_tampon, donnees(), type);
 }

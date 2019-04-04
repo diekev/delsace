@@ -24,10 +24,16 @@
 
 #pragma once
 
-#include "analyseuse.hh"
+#include "../../../langage/analyseuse.hh"
 
 #include <experimental/any>
 #include <vector>
+
+#include "morceaux.hh"
+
+namespace lng {
+class tampon_source;
+}
 
 struct Colonne {
 	std::string nom = "";
@@ -58,23 +64,31 @@ struct Schema {
 	std::string_view nom{};
 };
 
-class analyseuse_grammaire : public Analyseuse {
+class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 	Schema m_schema{};
+	lng::tampon_source const &m_tampon;
 
 public:
-	analyseuse_grammaire(const std::vector<DonneesMorceaux> &identifiants, const TamponSource &tampon);
+	analyseuse_grammaire(std::vector<DonneesMorceaux> &identifiants, lng::tampon_source const &tampon);
 
 	void lance_analyse() override;
 
 	const Schema *schema() const;
 
 private:
+	/**
+	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
+	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
+	 * contenues dans l'instance DonneesMorceaux lui correspondant.
+	 */
+	[[noreturn]] void lance_erreur(const std::string &quoi, int type = 0);
+
 	void analyse_schema();
 	void analyse_declaration_table();
 	void analyse_declaration_colonne(Table &table);
 	void analyse_propriete_colonne(Colonne &colonne);
 
-	bool requiers_type(size_t identifiant);
-	bool requiers_propriete(size_t identifiant);
-	bool requiers_valeur(size_t identifiant);
+	bool requiers_type(int identifiant);
+	bool requiers_propriete(int identifiant);
+	bool requiers_valeur(int identifiant);
 };

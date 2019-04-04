@@ -26,26 +26,21 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	langage
 )
 
 set(SOURCES
-	analyseuse.cc
 	analyseuse_grammaire.cc
 	decoupeuse.cc
 	erreur.cc
 	morceaux.cc
 	nombres.cc
-	tampon_source.cc
-	unicode.cc
 
-	analyseuse.hh
 	analyseuse_grammaire.hh
 	decoupeuse.hh
 	erreur.hh
 	morceaux.hh
 	nombres.hh
-	tampon_source.hh
-	unicode.hh
 )
 
 add_library(${NOM_PROJET} STATIC "${SOURCES}")

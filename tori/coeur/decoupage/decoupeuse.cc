@@ -28,6 +28,8 @@
 #include <cstring>
 #include <sstream>
 
+#include "../../../langage/tampon_source.hh"
+
 #include "erreur.hh"
 
 /* ************************************************************************** */
@@ -50,7 +52,7 @@ enum {
 	ETAT_HTML,
 };
 
-decoupeuse_texte::decoupeuse_texte(const TamponSource &tampon)
+decoupeuse_texte::decoupeuse_texte(lng::tampon_source const &tampon)
 	: m_tampon(tampon)
 	, m_debut_mot(m_tampon.debut())
 	, m_debut(m_tampon.debut())
@@ -144,7 +146,7 @@ size_t decoupeuse_texte::memoire_morceaux() const
 	return m_morceaux.size() * sizeof(DonneesMorceaux);
 }
 
-const std::vector<DonneesMorceaux> &decoupeuse_texte::morceaux() const
+std::vector<DonneesMorceaux> &decoupeuse_texte::morceaux()
 {
 	return m_morceaux;
 }

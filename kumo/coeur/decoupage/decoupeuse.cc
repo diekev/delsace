@@ -28,9 +28,11 @@
 #include <cstring>
 #include <sstream>
 
+#include "../../../langage/tampon_source.hh"
+#include "../../../langage/unicode.hh"
+
 #include "erreur.hh"
 #include "nombres.hh"
-#include "unicode.hh"
 
 /* ************************************************************************** */
 
@@ -41,7 +43,7 @@ bool est_espace_blanc(char c)
 
 /* ************************************************************************** */
 
-decoupeuse_texte::decoupeuse_texte(const TamponSource &tampon)
+decoupeuse_texte::decoupeuse_texte(lng::tampon_source const &tampon)
 	: m_tampon(tampon)
 	, m_debut_mot(m_tampon.debut())
 	, m_debut(m_tampon.debut())
@@ -55,7 +57,7 @@ void decoupeuse_texte::genere_morceaux()
 	m_taille_mot_courant = 0;
 
 	while (!this->fini()) {
-		const auto nombre_octet = nombre_octets(m_debut);
+		const auto nombre_octet = lng::nombre_octets(m_debut);
 
 		if (nombre_octet == 1) {
 			analyse_caractere_simple();
@@ -87,7 +89,7 @@ size_t decoupeuse_texte::memoire_morceaux() const
 	return m_morceaux.size() * sizeof(DonneesMorceaux);
 }
 
-const std::vector<DonneesMorceaux> &decoupeuse_texte::morceaux() const
+std::vector<DonneesMorceaux> &decoupeuse_texte::morceaux()
 {
 	return m_morceaux;
 }
@@ -147,7 +149,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 
 	/* La position ligne est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < m_position_ligne; i += static_cast<size_t>(nombre_octets(&ligne_courante[i]))) {
+	for (size_t i = 0; i < m_position_ligne; i += static_cast<size_t>(lng::nombre_octets(&ligne_courante[i]))) {
 		if (ligne_courante[i] == '\t') {
 			ss << '\t';
 		}

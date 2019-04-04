@@ -19,35 +19,33 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_PROJET decoupage_tori)
+set(NOM_PROJET langage)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set(BIBLIOTHEQUES
-	coeur_tori
-	langage
+)
+
+set(ENTETES
+	analyseuse.hh
+	tampon_source.hh
+	unicode.hh
 )
 
 set(SOURCES
-	analyseuse_grammaire.cc
-	arbre_syntactic.cc
-	assembleuse_arbre.cc
-	decoupeuse.cc
-	erreur.cc
-	morceaux.cc
+	analyseuse.cc
+	tampon_source.cc
+	unicode.cc
 
-	analyseuse_grammaire.hh
-	arbre_syntactic.hh
-	assembleuse_arbre.hh
-	decoupeuse.hh
-	erreur.hh
-	morceaux.hh
+	${ENTETES}
 )
 
 add_library(${NOM_PROJET} STATIC "${SOURCES}")
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
 target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+
+install(TARGETS ${NOM_PROJET} ARCHIVE DESTINATION lib)
+install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_PROJET})

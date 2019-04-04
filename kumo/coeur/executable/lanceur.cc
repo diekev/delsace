@@ -27,12 +27,13 @@
 #include <fstream>
 #include <iostream>
 
+#include "../../langage/tampon_source.hh"
+
 #include "decoupage/analyseuse_grammaire.hh"
 #include "decoupage/decoupeuse.hh"
 #include "decoupage/erreur.hh"
-#include "decoupage/tampon_source.hh"
 
-static TamponSource charge_fichier(const char *chemin_fichier)
+static lng::tampon_source charge_fichier(const char *chemin_fichier)
 {
 	std::ifstream fichier;
 	fichier.open(chemin_fichier);
@@ -45,7 +46,7 @@ static TamponSource charge_fichier(const char *chemin_fichier)
 		tampon.append(1, '\n');
 	}
 
-	return TamponSource{tampon};
+	return lng::tampon_source{tampon};
 }
 
 struct OptionsCompilation {

@@ -24,25 +24,33 @@
 
 #pragma once
 
-#include "analyseuse.hh"
+#include "../../../langage/analyseuse.hh"
+#include "../../../langage/tampon_source.hh"
 
-#include <experimental/any>
-#include <vector>
+#include "morceaux.hh"
 
 class assembleuse_arbre;
 
-class analyseuse_grammaire : public Analyseuse {
+class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 	assembleuse_arbre &m_assembleuse;
+	lng::tampon_source const &m_tampon;
 
 public:
 	analyseuse_grammaire(
-	        std::vector<DonneesMorceaux> const &identifiants,
-	        TamponSource const &tampon,
+			std::vector<DonneesMorceaux> &identifiants,
+			lng::tampon_source const &tampon,
 	        assembleuse_arbre &assembleuse);
 
 	void lance_analyse() override;
 
 private:
+	/**
+	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
+	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
+	 * contenues dans l'instance DonneesMorceaux lui correspondant.
+	 */
+	[[noreturn]] void lance_erreur(const std::string &quoi, int type = 0);
+
 	void analyse_page();
 	void analyse_expression();
 	void analyse_si();

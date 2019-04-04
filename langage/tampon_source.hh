@@ -27,23 +27,25 @@
 #include <string>
 #include <vector>
 
-class TamponSource {
+namespace lng {
+
+class tampon_source {
 	std::string m_tampon{};
 	std::vector<std::string_view> m_lignes{};
 
 public:
 	/**
-	 * Construit une instance de TamponSource à partir d'une chaîne C
+	 * Construit une instance de tampon_source à partir d'une chaîne C
 	 * terminée par zéro.
 	 */
-	explicit TamponSource(const char *chaine);
+	explicit tampon_source(const char *chaine);
 
 	/**
-	 * Construit une instance de TamponSource avec une std::string qui
+	 * Construit une instance de tampon_source avec une std::string qui
 	 * est 'bougée' dans la tampon. Après cette opération la std::string
 	 * passée en paramètre sera vide.
 	 */
-	explicit TamponSource(std::string chaine) noexcept;
+	explicit tampon_source(std::string chaine) noexcept;
 
 	/**
 	 * Retourne un pointeur vers le début du tampon.
@@ -79,3 +81,5 @@ private:
 	 */
 	void construit_lignes();
 };
+
+}  /* namespace lng */

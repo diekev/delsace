@@ -28,10 +28,13 @@
 #include <vector>
 
 #include "morceaux.hh"
-#include "tampon_source.hh"
+
+namespace lng {
+class tampon_source;
+}
 
 class decoupeuse_texte {
-	const TamponSource &m_tampon;
+	lng::tampon_source const &m_tampon;
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
@@ -46,7 +49,7 @@ class decoupeuse_texte {
 public:
 	using iterateur = std::vector<DonneesMorceaux>::iterator;
 
-	explicit decoupeuse_texte(const TamponSource &tampon);
+	explicit decoupeuse_texte(lng::tampon_source const &tampon);
 
 	/* désactivation de la copie */
 	decoupeuse_texte(const decoupeuse_texte &) = delete;
@@ -59,7 +62,7 @@ public:
 	 */
 	size_t memoire_morceaux() const;
 
-	const std::vector<DonneesMorceaux> &morceaux() const;
+	std::vector<DonneesMorceaux> &morceaux();
 
 	iterateur begin();
 

@@ -22,39 +22,15 @@
  *
  */
 
- /* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
- 
 #pragma once
 
-#include <string>
+namespace lng {
 
-enum {
-	ID_DANS,
-	ID_FINPOUR,
-	ID_FINSI,
-	ID_POUR,
-	ID_SI,
-	ID_SINON,
-	ID_ETEND,
-	ID_DEBUT_VARIABLE,
-	ID_DEBUT_EXPRESSION,
-	ID_FIN_VARIABLE,
-	ID_FIN_EXPRESSION,
-	ID_CHAINE_CARACTERE,
-	ID_INCONNU,
-};
+/**
+ * Retourne le nombre d'octets Unicode (entre 1 et 4) qui composent le début la
+ * séquence précisée. Retourne 0 si la sequence d'octets n'est pas valide en
+ * Unicode (UTF-8).
+ */
+int nombre_octets(const char *sequence);
 
-struct DonneesMorceaux {
-	using type = int;
-	static constexpr type INCONNU = ID_INCONNU;
-
-	std::string_view chaine;
-	size_t ligne_pos;
-	size_t identifiant;
-};
-
-const char *chaine_identifiant(int id);
-
-void construit_tables_caractere_speciaux();
-
-int id_chaine(const std::string_view &chaine);
+}  /* namespace lng */

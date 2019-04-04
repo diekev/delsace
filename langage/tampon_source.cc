@@ -49,44 +49,46 @@ static size_t trouve_fin_ligne(const char *debut, const char *fin)
 
 /* ************************************************************************** */
 
-TamponSource::TamponSource(const char *chaine)
+namespace lng {
+
+tampon_source::tampon_source(const char *chaine)
 	: m_tampon(chaine)
 {
 	construit_lignes();
 }
 
-TamponSource::TamponSource(std::string chaine) noexcept
+tampon_source::tampon_source(std::string chaine) noexcept
 	: m_tampon(std::move(chaine))
 {
 	construit_lignes();
 }
 
-const char *TamponSource::debut() const noexcept
+const char *tampon_source::debut() const noexcept
 {
 	return &m_tampon[0];
 }
 
-const char *TamponSource::fin() const noexcept
+const char *tampon_source::fin() const noexcept
 {
 	return &m_tampon[m_tampon.size()];
 }
 
-std::string_view TamponSource::operator[](size_t i) const noexcept
+std::string_view tampon_source::operator[](size_t i) const noexcept
 {
 	return m_lignes[i];
 }
 
-size_t TamponSource::nombre_lignes() const noexcept
+size_t tampon_source::nombre_lignes() const noexcept
 {
 	return m_lignes.size();
 }
 
-size_t TamponSource::taille_donnees() const noexcept
+size_t tampon_source::taille_donnees() const noexcept
 {
 	return m_tampon.size() * sizeof(std::string_view::value_type);
 }
 
-void TamponSource::construit_lignes()
+void tampon_source::construit_lignes()
 {
 	for (size_t i = 0; i < m_tampon.size();) {
 		auto d = &m_tampon[i];
@@ -97,3 +99,5 @@ void TamponSource::construit_lignes()
 		i += taille;
 	}
 }
+
+}  /* namespace lng */

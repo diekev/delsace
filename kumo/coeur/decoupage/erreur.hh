@@ -27,7 +27,10 @@
 #include <string>
 
 struct DonneesMorceaux;
-struct TamponSource;
+
+namespace lng {
+class tampon_source;
+}
 
 namespace erreur {
 
@@ -65,31 +68,31 @@ public:
 
 [[noreturn]] void lance_erreur(
 		const std::string &quoi,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau,
 		int type = NORMAL);
 
 [[noreturn]] void lance_erreur_nombre_arguments(
 		const size_t nombre_arguments,
 		const size_t nombre_recus,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_type_arguments(
 		const int type_arg,
 		const int type_enf,
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_argument_inconnu(
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
 		const std::string_view &nom_arg,
-		const TamponSource &tampon,
+		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau);
 
 }

@@ -28,12 +28,6 @@
 
 #include <string>
 
-struct DonneesMorceaux {
-	std::string_view chaine;
-	size_t ligne_pos;
-	size_t identifiant;
-};
-
 enum {
 	ID_PARENTHESE_OUVRANTE,
 	ID_PARENTHESE_FERMANTE,
@@ -76,6 +70,15 @@ enum {
 	ID_NOMBRE_OCTAL,
 	ID_NOMBRE_HEXADECIMAL,
 	ID_INCONNU,
+};
+
+struct DonneesMorceaux {
+	using type = int;
+	static constexpr type INCONNU = ID_INCONNU;
+
+	std::string_view chaine;
+	size_t ligne_pos;
+	size_t identifiant;
 };
 
 const char *chaine_identifiant(int id);

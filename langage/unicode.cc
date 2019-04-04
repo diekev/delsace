@@ -24,6 +24,8 @@
 
 #include "unicode.hh"
 
+namespace lng {
+
 inline bool entre(unsigned char c, unsigned char a, unsigned char b)
 {
 	return c >= a && c <= b;
@@ -99,3 +101,5 @@ int nombre_octets(const char *sequence)
 
 	return 0;
 }
+
+}  /* namespace lng */
