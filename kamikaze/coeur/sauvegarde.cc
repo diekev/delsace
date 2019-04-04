@@ -272,7 +272,7 @@ static void lecture_propriete(
 			auto const donnee_y = static_cast<float>(atof(element_donnees->Attribute("valeury")));
 			auto const donnee_z = static_cast<float>(atof(element_donnees->Attribute("valeurz")));
 			auto const donnee_w = static_cast<float>(atof(element_donnees->Attribute("valeurw")));
-			auto const donnees = couleur32(donnee_x, donnee_y, donnee_z, donnee_w);
+			auto const donnees = dls::phys::couleur32(donnee_x, donnee_y, donnee_z, donnee_w);
 			manipulable->valeur_couleur(nom_prop, donnees);
 			break;
 		}

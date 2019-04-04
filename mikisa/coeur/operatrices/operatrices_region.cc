@@ -1541,7 +1541,7 @@ public:
 				auto const &pixel = tampon->tampon[y][x];
 				auto res = pixel_t();
 				res.a = 1;
-				rvb_vers_hsv(pixel.r, pixel.g, pixel.b, &res.r, &res.g, &res.b);
+				dls::phys::rvb_vers_hsv(pixel.r, pixel.g, pixel.b, &res.r, &res.g, &res.b);
 
 				auto index = static_cast<long>(res.r * 360.0f);
 

@@ -102,7 +102,7 @@ void VueBrosse::ajourne_donnees()
 bool VueBrosse::ajourne_proprietes()
 {
 	auto couleur = m_kanba->brosse->couleur;
-	valeur_couleur("couleur_brosse", couleur32(couleur.x, couleur.y, couleur.z, couleur.w));
+	valeur_couleur("couleur_brosse", dls::phys::couleur32(couleur.x, couleur.y, couleur.z, couleur.w));
 	valeur_decimal("opacité", m_kanba->brosse->opacite);
 	valeur_entier("rayon", m_kanba->brosse->rayon);
 	valeur_chaine("mode_fusion", nom_mode_fusion(m_kanba->brosse->mode_fusion));

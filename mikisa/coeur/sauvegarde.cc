@@ -407,7 +407,7 @@ static void lecture_propriete(
 			auto const donnee_y = atof(element_donnees->Attribute("valeury"));
 			auto const donnee_z = atof(element_donnees->Attribute("valeurz"));
 			auto const donnee_w = atof(element_donnees->Attribute("valeurw"));
-			auto const donnees = couleur32(static_cast<float>(donnee_x),
+			auto const donnees = dls::phys::couleur32(static_cast<float>(donnee_x),
 										   static_cast<float>(donnee_y),
 										   static_cast<float>(donnee_z),
 										   static_cast<float>(donnee_w));

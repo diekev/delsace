@@ -26,7 +26,7 @@
 
 #include <vector>
 
-#include <danjo/types/couleur.h>
+#include <delsace/phys/couleur.hh>
 #include <delsace/math/vecteur.hh>
 
 struct PriseSortie;
@@ -132,9 +132,9 @@ inline dls::math::vec3f pile_charge_vec3f(CompileuseGraphe::iterateur &pointeur)
 	return v;
 }
 
-inline couleur32 pile_charge_couleur(CompileuseGraphe::iterateur &pointeur)
+inline dls::phys::couleur32 pile_charge_couleur(CompileuseGraphe::iterateur &pointeur)
 {
-	couleur32 c;
+	dls::phys::couleur32 c;
 	c.r = *pointeur++;
 	c.v = *pointeur++;
 	c.b = *pointeur++;
@@ -159,7 +159,7 @@ inline void pile_stocke_vec3f(CompileuseGraphe::iterateur &pointeur, dls::math::
 	*pointeur++ = v.z;
 }
 
-inline void pile_stocke_couleur(CompileuseGraphe::iterateur &pointeur, couleur32 const &c)
+inline void pile_stocke_couleur(CompileuseGraphe::iterateur &pointeur, dls::phys::couleur32 const &c)
 {
 	*pointeur++ = c.r;
 	*pointeur++ = c.v;

@@ -136,7 +136,7 @@ option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèq
 
 # ------------------------------------------------------------------------------
 
-find_package(Delsace COMPONENTS math REQUIRED)
+find_package(Delsace COMPONENTS math phys langage REQUIRED)
 find_package(Danjo REQUIRED)
 find_package(Ego REQUIRED)
 find_package(FileSystem REQUIRED)
@@ -171,6 +171,8 @@ set(BIBLIOTHEQUES_QT5_WIDGETS Qt5::Widgets)
 set(BIBLIOTHEQUES_OPENGL GLEW GLU GL glut)
 set(BIBLIOTHEQUES_TBB tbb)
 set(BIBLIOTHEQUES_IMAGE ${BIBLIOTHEQUES_IMAGE} jpeg png)
+
+set(BIBLIOTHEQUES_DANJO ${BIBLIOTHEQUES_DANJO} ${BIBLIOTHEQUE_DELSACE_PHYS} ${BIBLIOTHEQUE_DELSACE_LANGAGE})
 
 # ------------------------------------------------------------------------------
 

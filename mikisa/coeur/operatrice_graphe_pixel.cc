@@ -192,8 +192,8 @@ public:
 void execute_graphe(
 		CompileuseGraphe::iterateur debut,
 		CompileuseGraphe::iterateur fin,
-		couleur32 const &entree,
-		couleur32 &sortie)
+		dls::phys::couleur32 const &entree,
+		dls::phys::couleur32 &sortie)
 {
 	auto courant = debut;
 
@@ -219,13 +219,13 @@ void execute_graphe(
 			{
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
-				couleur32 c = pile_charge_couleur(pointeur);
+				auto c = pile_charge_couleur(pointeur);
 
 				auto saturation = pile_charge_decimal(courant);
 				auto type = pile_charge_entier(courant);
 
 				auto s = luminance(c);
-				couleur32 r(s, s, s, c.a);
+				auto r = dls::phys::couleur32(s, s, s, c.a);
 
 				if ((saturation != 0.0f) && (type == 1)) {
 					r = (1.0f - saturation) * r + c * saturation;
@@ -337,13 +337,13 @@ int OperatriceGraphePixel::execute(ContexteEvaluation const &contexte, DonneesAv
 
 				auto courante = tampon->valeur(c, l);
 
-				couleur32 entree;
+				dls::phys::couleur32 entree;
 				entree.r = courante.r;
 				entree.v = courante.g;
 				entree.b = courante.b;
 				entree.a = courante.a;
 
-				couleur32 sortie;
+				dls::phys::couleur32 sortie;
 				execute_graphe(pile.begin(), pile.end(), entree, sortie);
 
 				courante.r = sortie.r;

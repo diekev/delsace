@@ -551,7 +551,7 @@ public:
 /* ************************************************************************** */
 
 class OperatriceConstante final : public OperatricePixel {
-	couleur32 m_couleur{};
+	dls::phys::couleur32 m_couleur{};
 
 public:
 	static constexpr auto NOM = "Constante";
@@ -984,7 +984,7 @@ public:
 
 /* ************************************************************************** */
 
-numero7::image::Pixel<float> converti_en_pixel(couleur32 const &v)
+numero7::image::Pixel<float> converti_en_pixel(dls::phys::couleur32 const &v)
 {
 	numero7::image::Pixel<float> pixel;
 	pixel.r = v[0];
@@ -1452,9 +1452,9 @@ public:
 /* ************************************************************************** */
 
 class OperatriceCorrectionCouleur final : public OperatricePixel {
-	couleur32 m_decalage{};
-	couleur32 m_pente{};
-	couleur32 m_puissance{};
+	dls::phys::couleur32 m_decalage{};
+	dls::phys::couleur32 m_pente{};
+	dls::phys::couleur32 m_puissance{};
 
 public:
 	static constexpr auto NOM = "Correction Couleur";
@@ -1556,7 +1556,7 @@ public:
 /* ************************************************************************** */
 
 class OperatriceIncrustation final : public OperatricePixel {
-	couleur32 m_couleur = couleur32(0.0f);
+	dls::phys::couleur32 m_couleur = dls::phys::couleur32(0.0f);
 	float m_angle = 0.0f;
 	float m_a = 0.0f;
 	float m_b = 0.0f;
@@ -1855,7 +1855,7 @@ public:
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		couleur32 temp;
+		dls::phys::couleur32 temp;
 		temp.r = pixel.r;
 		temp.v = pixel.g;
 		temp.b = pixel.b;
@@ -1876,10 +1876,10 @@ public:
 /* ************************************************************************** */
 
 class OperatriceTraduction final : public OperatricePixel {
-	couleur32 m_vieux_min{};
-	couleur32 m_vieux_max{};
-	couleur32 m_neuf_min{};
-	couleur32 m_neuf_max{};
+	dls::phys::couleur32 m_vieux_min{};
+	dls::phys::couleur32 m_vieux_max{};
+	dls::phys::couleur32 m_neuf_min{};
+	dls::phys::couleur32 m_neuf_max{};
 
 public:
 	static constexpr auto NOM = "Traduction";
@@ -1934,8 +1934,8 @@ public:
 /* ************************************************************************** */
 
 class OperatriceMinMax final : public OperatricePixel {
-	couleur32 m_neuf_min{};
-	couleur32 m_neuf_max{};
+	dls::phys::couleur32 m_neuf_min{};
+	dls::phys::couleur32 m_neuf_max{};
 
 public:
 	static constexpr auto NOM = "MinMax";
