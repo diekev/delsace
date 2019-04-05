@@ -150,7 +150,7 @@ void charge_module(
 	module->temps_chargement = dls::chrono::delta(debut_chargement);
 
 	auto debut_tampon = dls::chrono::maintenant();
-	module->tampon = TamponSource(tampon);
+	module->tampon = lng::tampon_source(tampon);
 	module->temps_tampon = dls::chrono::delta(debut_tampon);
 
 	auto decoupeuse = decoupeuse_texte(module);

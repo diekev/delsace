@@ -24,7 +24,7 @@
 
 #include "test_unicode.h"
 
-#include "../coeur/decoupage/unicode.h"
+#include <delsace/langage/unicode.hh>
 
 void test_unicode(dls::test_unitaire::Controleuse &controleuse)
 {
@@ -32,10 +32,10 @@ void test_unicode(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"Des séquences UTF-8 peuvent prendre entre 1 et 4 octets");
 	{
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("a"), 1);
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("é"), 2);
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("ア"), 3);
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("𠮟"), 4);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("a"), 1);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("é"), 2);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("ア"), 3);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("𠮟"), 4);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 
@@ -43,8 +43,8 @@ void test_unicode(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"Aucune séquence UTF-8 ne peut commencer par les valeurs hexadécimales 0xC0 ou 0xC1");
 	{
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xC0"), 0);
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xC1"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xC0"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xC1"), 0);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 
@@ -52,8 +52,8 @@ void test_unicode(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"Les points allant de u+D800 à u+DFFF sont interdits");
 	{
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xD8\x00"), 0);
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xDF\xFF"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xD8\x00"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xDF\xFF"), 0);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 
@@ -61,8 +61,8 @@ void test_unicode(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"Si le premier octet est 0xED, les suivants ne peuvent être en 0xA0 et 0xBF");
 	{
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xED\xA0"), 0);
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xED\xBF"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xED\xA0"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xED\xBF"), 0);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 
@@ -70,8 +70,8 @@ void test_unicode(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"Si le premier octet est 0xF4, les suivants ne peuvent être en 0x90 et 0xBF");
 	{
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xF4\x90"), 0);
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xF4\xBF"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xF4\x90"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xF4\xBF"), 0);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 
@@ -79,8 +79,8 @@ void test_unicode(dls::test_unitaire::Controleuse &controleuse)
 				controleuse,
 				"Une séquence ne peut commencer par des octets allant de 0xF5 à 0xFF");
 	{
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xF5"), 0);
-		CU_VERIFIE_EGALITE(controleuse, nombre_octets("\xFF"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xF5"), 0);
+		CU_VERIFIE_EGALITE(controleuse, lng::nombre_octets("\xFF"), 0);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 }

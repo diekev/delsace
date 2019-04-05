@@ -50,7 +50,6 @@
 #include "modules.hh"
 #include "morceaux.h"
 #include "nombres.h"
-#include "tampon_source.h"
 
 #undef NOMME_IR
 
@@ -371,7 +370,7 @@ void base::imprime_code(std::ostream &os, int tab)
 	else if (this->type() == type_noeud::TAILLE_DE) {
 		os << this->donnees_type;
 	}
-	else {
+	else if (this->type() != type_noeud::RACINE) {
 		os << m_donnees_morceaux.chaine;
 	}
 
@@ -1297,7 +1296,7 @@ llvm::Value *constante::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 
 	auto type_llvm = contexte.magasin_types.converti_type(contexte, this->donnees_type);
 
-	auto constante = llvm::ConstantInt::get(
+	auto val_constante = llvm::ConstantInt::get(
 						 type_llvm,
 						 static_cast<uint64_t>(n));
 
@@ -1306,7 +1305,7 @@ llvm::Value *constante::genere_code_llvm(ContexteGenerationCode &contexte, bool 
 					  type_llvm,
 					  true,
 					  llvm::GlobalValue::InternalLinkage,
-					  constante);
+					  val_constante);
 
 	contexte.pousse_globale(m_donnees_morceaux.chaine, valeur, this->donnees_type, false);
 

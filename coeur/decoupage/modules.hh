@@ -28,8 +28,9 @@
 #include <string>
 #include <unordered_map>
 
+#include <delsace/langage/tampon_source.hh>
+
 #include "morceaux.h"
-#include "tampon_source.h"
 
 namespace llvm {
 class Type;
@@ -56,7 +57,7 @@ struct DonneesFonction {
 };
 
 struct DonneesModule {
-	TamponSource tampon{""};
+	lng::tampon_source tampon{""};
 	std::vector<DonneesMorceaux> morceaux{};
 	std::set<std::string_view> modules_importes{};
 	std::set<std::string_view> fonctions_exportees{};

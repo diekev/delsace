@@ -56,7 +56,6 @@
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
 #include "decoupage/modules.hh"
-#include "decoupage/tampon_source.h"
 
 #include <chrono/outils.hh>
 

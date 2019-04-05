@@ -28,11 +28,12 @@
 #include <cstring>
 #include <sstream>
 
+#include <delsace/langage/unicode.hh>
+
 #include "contexte_generation_code.h"  // pour DonneesModule
 #include "erreur.h"
 #include "modules.hh"
 #include "nombres.h"
-#include "unicode.h"
 
 /* ************************************************************************** */
 
@@ -116,7 +117,7 @@ void decoupeuse_texte::genere_morceaux()
 	m_taille_mot_courant = 0;
 
 	while (!this->fini()) {
-		auto nombre_octet = nombre_octets(m_debut);
+		auto nombre_octet = lng::nombre_octets(m_debut);
 
 		switch (nombre_octet) {
 			case 1:
@@ -173,7 +174,7 @@ void decoupeuse_texte::genere_morceaux()
 						this->enregistre_pos_mot();
 
 						while (!this->fini()) {
-							nombre_octet = nombre_octets(m_debut);
+							nombre_octet = lng::nombre_octets(m_debut);
 							c = converti_utf32(m_debut, nombre_octet);
 
 							if (c == GUILLEMET_FERMANT) {
@@ -281,7 +282,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 		/* il est possible que l'on reçoive un caractère unicode invalide, donc
 		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
 		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, nombre_octets(&ligne_courante[i]));
+		auto n = std::max(1, lng::nombre_octets(&ligne_courante[i]));
 		i += static_cast<size_t>(n);
 	}
 

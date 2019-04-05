@@ -205,7 +205,7 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 	}
 	{
 		auto module = DonneesModule{};
-		module.tampon = TamponSource("0xff38ce");
+		module.tampon = lng::tampon_source("0xff38ce");
 
 		decoupeuse_texte decoupeuse(&module);
 		decoupeuse.genere_morceaux();

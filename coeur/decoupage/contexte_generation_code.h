@@ -39,7 +39,6 @@
 #include <unordered_map>
 
 #include "donnees_type.h"
-#include "tampon_source.h"
 
 class assembleuse_arbre;
 

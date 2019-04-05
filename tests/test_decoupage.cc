@@ -145,7 +145,7 @@ decoupeuse_texte decoupeuse(str, str + len);
 	};
 
 	auto module = DonneesModule{};
-	module.tampon = TamponSource(texte);
+	module.tampon = lng::tampon_source(texte);
 
 	decoupeuse_texte decoupeuse(&module);
 	decoupeuse.genere_morceaux();

@@ -26,12 +26,12 @@
 
 #include <sstream>
 
+#include <delsace/langage/unicode.hh>
+
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
 #include "modules.hh"
 #include "morceaux.h"
-#include "tampon_source.h"
-#include "unicode.h"
 
 namespace erreur {
 
@@ -65,7 +65,7 @@ static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const 
 		/* il est possible que l'on reçoive un caractère unicode invalide, donc
 		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
 		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, nombre_octets(&chaine[i]));
+		auto n = std::max(1, lng::nombre_octets(&chaine[i]));
 		i += static_cast<size_t>(n);
 	}
 }
@@ -78,7 +78,7 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 		/* il est possible que l'on reçoive un caractère unicode invalide, donc
 		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
 		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, nombre_octets(&chaine[i]));
+		auto n = std::max(1, lng::nombre_octets(&chaine[i]));
 		i += static_cast<size_t>(n);
 	}
 }
@@ -91,7 +91,7 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine, size
 		/* il est possible que l'on reçoive un caractère unicode invalide, donc
 		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
 		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, nombre_octets(&chaine[i]));
+		auto n = std::max(1, lng::nombre_octets(&chaine[i]));
 		i += static_cast<size_t>(n);
 	}
 }

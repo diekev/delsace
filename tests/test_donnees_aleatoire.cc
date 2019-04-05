@@ -62,7 +62,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 		auto contexte = ContexteGenerationCode{};
 		auto module = contexte.cree_module("");
-		module->tampon = TamponSource(texte);
+		module->tampon = lng::tampon_source(texte);
 
 		decoupeuse_texte decoupeuse(module);
 		decoupeuse.genere_morceaux();
@@ -490,7 +490,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	try {
 		auto contexte = ContexteGenerationCode{};
 		auto module = contexte.cree_module("");
-		module->tampon = TamponSource("texte_test");
+		module->tampon = lng::tampon_source("texte_test");
 		auto assembleuse = assembleuse_arbre(contexte);
 		auto analyseuse = analyseuse_grammaire(contexte, morceaux, &assembleuse, module);
 

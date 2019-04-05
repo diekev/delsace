@@ -28,7 +28,6 @@
 #include <vector>
 
 #include "morceaux.h"
-#include "tampon_source.h"
 
 struct DonneesModule;
 

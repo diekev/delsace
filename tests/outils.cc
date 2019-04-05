@@ -51,7 +51,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 	auto contexte = ContexteGenerationCode{};
 	/* Ne nomme pas le module, car c'est le module racine. */
 	auto module = contexte.cree_module("");
-	module->tampon = TamponSource(texte);
+	module->tampon = lng::tampon_source(texte);
 
 	auto erreur_lancee = false;
 	auto type_correcte = false;

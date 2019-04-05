@@ -22,16 +22,17 @@
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${INCLUSIONS_DELSACE_CHRONO}
+	${INCLUSIONS_DELSACE_LANGAGE}
 	${LLVM_INCLUDE_DIR}
 )
 
 set(BIBLIOTHEQUES
 	/usr/lib/llvm-6.0/lib/libLLVM.so # À FAIRE
 	stdc++fs
+	${BIBLIOTHEQUE_DELSACE_LANGAGE}
 )
 
 set(SOURCES
-	analyseuse.h
 	analyseuse_grammaire.h
 	arbre_syntactic.h
 	assembleuse_arbre.h
@@ -43,10 +44,7 @@ set(SOURCES
 	modules.hh
 	morceaux.h
 	nombres.h
-	tampon_source.h
-	unicode.h
 
-	analyseuse.cc
 	analyseuse_grammaire.cc
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
@@ -58,8 +56,6 @@ set(SOURCES
 	modules.cc
 	morceaux.cc
 	nombres.cc
-	tampon_source.cc
-	unicode.cc
 )
 
 add_library(decoupage STATIC "${SOURCES}")

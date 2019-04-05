@@ -149,6 +149,9 @@ inline id_morceau operator>>(id_morceau id1, int id2)
 }
 
 struct DonneesMorceaux {
+	using type = id_morceau;
+	static constexpr type INCONNU = id_morceau::INCONNU;
+
 	std::string_view chaine;
 	size_t ligne_pos;
 	id_morceau identifiant;
