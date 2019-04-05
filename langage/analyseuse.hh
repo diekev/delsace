@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <ostream>
 #include <vector>
 
 namespace lng {
@@ -52,14 +53,14 @@ public:
 	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
 	 * une exception est lancée.
 	 */
-	virtual void lance_analyse() = 0;
+	virtual void lance_analyse(std::ostream &os) = 0;
 
 protected:
 	/**
 	 * Vérifie que l'identifiant courant est égal à celui spécifié puis avance
 	 * la position de l'analyseur sur le tableau d'identifiant.
 	 */
-	bool requiers_identifiant(int identifiant)
+	bool requiers_identifiant(type_id identifiant)
 	{
 		if (m_position >= static_cast<long>(m_identifiants.size())) {
 			return false;
@@ -114,8 +115,8 @@ protected:
 			return false;
 		}
 
-		return m_identifiants[m_position].identifiant == id1
-				&& m_identifiants[m_position + 1].identifiant == id2;
+		return m_identifiants[static_cast<size_t>(m_position)].identifiant == id1
+				&& m_identifiants[static_cast<size_t>(m_position + 1)].identifiant == id2;
 	}
 
 	/**
@@ -128,9 +129,9 @@ protected:
 			return false;
 		}
 
-		return m_identifiants[m_position].identifiant == id1
-				&& m_identifiants[m_position + 1].identifiant == id2
-				&& m_identifiants[m_position + 2].identifiant == id3;
+		return m_identifiants[static_cast<size_t>(m_position)].identifiant == id1
+				&& m_identifiants[static_cast<size_t>(m_position + 1)].identifiant == id2
+				&& m_identifiants[static_cast<size_t>(m_position + 2)].identifiant == id3;
 	}
 
 	/**
@@ -142,12 +143,17 @@ protected:
 			return TypeIdentifiant::INCONNU;
 		}
 
-		return m_identifiants[m_position].identifiant;
+		return m_identifiants[static_cast<size_t>(m_position)].identifiant;
 	}
 
 	bool fini() const
 	{
-		return m_position != static_cast<long>(m_identifiants.size());
+		return m_position == static_cast<long>(m_identifiants.size());
+	}
+
+	TypeIdentifiant &donnees()
+	{
+		return m_identifiants[static_cast<size_t>(position())];
 	}
 
 	TypeIdentifiant const &donnees() const
