@@ -37,6 +37,15 @@ struct synchronise {
 public:
 	synchronise() = default;
 
+	synchronise &operator=(T ptr)
+	{
+		m_mutex.lock();
+		m_ptr = ptr;
+		m_mutex.unlock();
+
+		return *this;
+	}
+
 	void accede_ecriture(std::function<void(T&)> &&op)
 	{
 		m_mutex.lock();
