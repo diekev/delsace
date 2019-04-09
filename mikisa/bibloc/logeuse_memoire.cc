@@ -52,21 +52,51 @@ logeuse_memoire &logeuse_memoire::instance()
 	return m_instance;
 }
 
-size_t allouee()
+void logeuse_memoire::ajoute_memoire(const char *message, long taille)
 {
-	auto &logeuse = logeuse_memoire::instance();
-	return logeuse.memoire_allouee;
+#ifdef DEBOGUE_MEMOIRE
+	tableau_allocation[message] += taille;
+#else
+	static_cast<void>(message);
+#endif
+
+	this->memoire_allouee += taille;
+	this->memoire_consommee = std::max(this->memoire_allouee.load(), this->memoire_consommee.load());
 }
 
-size_t consommee()
+void logeuse_memoire::enleve_memoire(const char *message, long taille)
 {
-	auto &logeuse = logeuse_memoire::instance();
-	return logeuse.memoire_consommee;
+#ifdef DEBOGUE_MEMOIRE
+	tableau_allocation[message] -= taille;
+#else
+	static_cast<void>(message);
+#endif
+
+	this->memoire_allouee -= taille;
 }
 
-std::string formate_taille(size_t octets)
+/* ************************************************************************** */
+
+long allouee()
+{
+	auto &logeuse = logeuse_memoire::instance();
+	return logeuse.memoire_allouee.load();
+}
+
+long consommee()
+{
+	auto &logeuse = logeuse_memoire::instance();
+	return logeuse.memoire_consommee.load();
+}
+
+std::string formate_taille(long octets)
 {
 	std::stringstream ss;
+
+	if (octets < 0) {
+		octets = -octets;
+		ss << "-";
+	}
 
 	if (octets < 1024) {
 		ss << octets << " o";

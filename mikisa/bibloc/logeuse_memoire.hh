@@ -25,8 +25,11 @@
 #pragma once
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <string>
+
+#undef DEBOGUE_MEMOIRE
 
 #ifdef DEBOGUE_MEMOIRE
 #	include <map>
@@ -35,11 +38,12 @@
 namespace memoire {
 
 struct logeuse_memoire {
-	size_t memoire_consommee = 0;
-	size_t memoire_allouee = 0;
+	std::atomic_long memoire_consommee = 0;
+	std::atomic_long memoire_allouee = 0;
 
 #ifdef DEBOGUE_MEMOIRE
-	std::map<const char *, size_t> tableau_allocation;
+	/* XXX - il est possible d'avoir une situation de concurence sur la table */
+	std::map<const char *, std::atomic_long> tableau_allocation;
 #endif
 
 	~logeuse_memoire();
@@ -50,19 +54,20 @@ struct logeuse_memoire {
 	logeuse_memoire &operator=(logeuse_memoire const &) = delete;
 	logeuse_memoire &operator=(logeuse_memoire &&) = delete;
 
+	void ajoute_memoire(const char *message, long taille);
+
+	void enleve_memoire(const char *message, long taille);
+
 	template <typename T, typename... Args>
 	[[nodiscard]] T *loge(const char *message, Args &&... args)
 	{
 		auto ptr = new T(args...);
 
-#ifdef DEBOGUE_MEMOIRE
-		tableau_allocation[message] += sizeof(T);
-#else
-		static_cast<void>(message);
-#endif
+		if (ptr == nullptr) {
+			throw std::bad_alloc();
+		}
 
-		this->memoire_allouee += sizeof(T);
-		this->memoire_consommee = std::max(this->memoire_allouee, this->memoire_consommee);
+		ajoute_memoire(message, static_cast<long>(sizeof(T)));
 
 		return ptr;
 	}
@@ -74,14 +79,11 @@ struct logeuse_memoire {
 
 		auto ptr = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nombre)));
 
-#ifdef DEBOGUE_MEMOIRE
-		tableau_allocation[message] += sizeof(T) * static_cast<size_t>(nombre);
-#else
-		static_cast<void>(message);
-#endif
+		if (ptr == nullptr) {
+			throw std::bad_alloc();
+		}
 
-		this->memoire_allouee += sizeof(T) * static_cast<size_t>(nombre);
-		this->memoire_consommee = std::max(this->memoire_allouee, this->memoire_consommee);
+		ajoute_memoire(message, static_cast<long>(sizeof(T)) * nombre);
 
 		return ptr;
 	}
@@ -106,13 +108,7 @@ struct logeuse_memoire {
 			ptr = res;
 		}
 
-#ifdef DEBOGUE_MEMOIRE
-		tableau_allocation[message] += sizeof(T) * static_cast<size_t>(nouvelle_taille - ancienne_taille);
-#else
-		static_cast<void>(message);
-#endif
-		this->memoire_allouee += sizeof(T) * static_cast<size_t>(nouvelle_taille - ancienne_taille);
-		this->memoire_consommee = std::max(this->memoire_allouee, this->memoire_consommee);
+		ajoute_memoire(message, static_cast<long>(sizeof(T)) * (nouvelle_taille - ancienne_taille));
 	}
 
 	template <typename T>
@@ -125,13 +121,7 @@ struct logeuse_memoire {
 		delete ptr;
 		ptr = nullptr;
 
-		this->memoire_allouee -= sizeof(T);
-
-#ifdef DEBOGUE_MEMOIRE
-		tableau_allocation[message] -= sizeof(T);
-#else
-		static_cast<void>(message);
-#endif
+		enleve_memoire(message, static_cast<long>(sizeof(T)));
 	}
 
 	template <typename T>
@@ -146,13 +136,7 @@ struct logeuse_memoire {
 		free(ptr);
 		ptr = nullptr;
 
-		this->memoire_allouee -= sizeof(T) * static_cast<size_t>(nombre);
-
-#ifdef DEBOGUE_MEMOIRE
-		tableau_allocation[message] -= sizeof(T) * static_cast<size_t>(nombre);
-#else
-		static_cast<void>(message);
-#endif
+		enleve_memoire(message, static_cast<long>(sizeof(T)) * nombre);
 	}
 
 	static logeuse_memoire &instance();
@@ -164,12 +148,12 @@ private:
 /**
  * Retourne la quantité en octets de mémoire allouée au moment de l'appel.
  */
-[[nodiscard]] size_t allouee();
+[[nodiscard]] long allouee();
 
 /**
  * Retourne la quantité en octets de mémoire consommée au moment de l'appel.
  */
-[[nodiscard]] size_t consommee();
+[[nodiscard]] long consommee();
 
 /**
  * Convertit le nombre d'octet passé en paramètre en une chaine contenant :
@@ -182,7 +166,7 @@ private:
  * 8564 -> "8 Ko"
  * 16789432158 -> "15 Go"
  */
-[[nodiscard]] std::string formate_taille(size_t octets);
+[[nodiscard]] std::string formate_taille(long octets);
 
 template <typename T, typename... Args>
 [[nodiscard]] T *loge(const char *message, Args &&...args)
