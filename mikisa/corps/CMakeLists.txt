@@ -28,6 +28,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	bib_transformation
 	bibloc_mikisa
 )
 
