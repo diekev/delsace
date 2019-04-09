@@ -27,7 +27,10 @@
 #include <vector>
 
 #include <delsace/phys/couleur.hh>
+#include <delsace/math/matrice.hh>
 #include <delsace/math/vecteur.hh>
+
+#include "noeud.h"
 
 struct PriseSortie;
 
@@ -95,6 +98,10 @@ public:
 
 	size_t decalage_pile(PriseSortie *prise);
 
+	size_t decalage_pile(type_prise tprise);
+
+	int decalage_pile(int taille);
+
 	void stocke_decimal(size_t decalage, float const &v);
 
 	void stocke_vec3f(size_t decalage, dls::math::vec3f const &v);
@@ -123,12 +130,56 @@ inline float pile_charge_decimal(CompileuseGraphe::iterateur &pointeur)
 	return *pointeur++;
 }
 
-inline dls::math::vec3f pile_charge_vec3f(CompileuseGraphe::iterateur &pointeur)
+inline auto pile_charge_vec2(CompileuseGraphe::iterateur &pointeur)
+{
+	dls::math::vec2f v;
+	v.x = *pointeur++;
+	v.y = *pointeur++;
+	return v;
+}
+
+inline auto pile_charge_vec3(CompileuseGraphe::iterateur &pointeur)
 {
 	dls::math::vec3f v;
 	v.x = *pointeur++;
 	v.y = *pointeur++;
 	v.z = *pointeur++;
+	return v;
+}
+
+inline auto pile_charge_vec4(CompileuseGraphe::iterateur &pointeur)
+{
+	dls::math::vec4f v;
+	v.x = *pointeur++;
+	v.y = *pointeur++;
+	v.z = *pointeur++;
+	v.w = *pointeur++;
+	return v;
+}
+
+inline auto pile_charge_mat3(CompileuseGraphe::iterateur &pointeur)
+{
+	dls::math::mat3x3f v;
+
+	for (auto i = 0ul; i < 3; ++i) {
+		for (auto j = 0ul; j < 3; ++j) {
+			v[i][j] = *pointeur++;
+		}
+	}
+
+	return v;
+}
+
+inline auto pile_charge_mat4(CompileuseGraphe::iterateur &pointeur)
+{
+	dls::math::mat4x4f v;
+
+	for (auto i = 0ul; i < 4; ++i) {
+		for (auto j = 0ul; j < 4; ++j) {
+			v[i][j] = *pointeur++;
+		}
+	}
+
 	return v;
 }
 
@@ -142,24 +193,135 @@ inline dls::phys::couleur32 pile_charge_couleur(CompileuseGraphe::iterateur &poi
 	return c;
 }
 
-inline void pile_stocke_entier(CompileuseGraphe::iterateur &pointeur, const int e)
+inline auto pile_charge_decimal_pointeur(
+        CompileuseGraphe::iterateur const &debut,
+        CompileuseGraphe::iterateur &courant)
+{
+	auto decalage = pile_charge_entier(courant);
+	auto pointeur = debut + decalage;
+	return pile_charge_decimal(pointeur);
+}
+
+inline auto pile_charge_entier_pointeur(
+        CompileuseGraphe::iterateur const &debut,
+        CompileuseGraphe::iterateur &courant)
+{
+	auto decalage = pile_charge_entier(courant);
+	auto pointeur = debut + decalage;
+	return pile_charge_entier(pointeur);
+}
+
+inline auto pile_charge_vec2_pointeur(
+		CompileuseGraphe::iterateur const &debut,
+		CompileuseGraphe::iterateur &courant)
+{
+	auto decalage = pile_charge_entier(courant);
+	auto pointeur = debut + decalage;
+	return pile_charge_vec2(pointeur);
+}
+
+inline auto pile_charge_vec3_pointeur(
+        CompileuseGraphe::iterateur const &debut,
+        CompileuseGraphe::iterateur &courant)
+{
+	auto decalage = pile_charge_entier(courant);
+	auto pointeur = debut + decalage;
+	return pile_charge_vec3(pointeur);
+}
+
+inline auto pile_charge_vec4_pointeur(
+		CompileuseGraphe::iterateur const &debut,
+		CompileuseGraphe::iterateur &courant)
+{
+	auto decalage = pile_charge_entier(courant);
+	auto pointeur = debut + decalage;
+	return pile_charge_vec4(pointeur);
+}
+
+inline auto pile_charge_mat3_pointeur(
+		CompileuseGraphe::iterateur const &debut,
+		CompileuseGraphe::iterateur &courant)
+{
+	auto decalage = pile_charge_entier(courant);
+	auto pointeur = debut + decalage;
+	return pile_charge_mat3(pointeur);
+}
+
+inline auto pile_charge_mat4_pointeur(
+		CompileuseGraphe::iterateur const &debut,
+		CompileuseGraphe::iterateur &courant)
+{
+	auto decalage = pile_charge_entier(courant);
+	auto pointeur = debut + decalage;
+	return pile_charge_mat4(pointeur);
+}
+
+inline void pile_stocke_entier(
+		CompileuseGraphe::iterateur &pointeur,
+		const int e)
 {
 	*pointeur++ = static_cast<float>(e);
 }
 
-inline void pile_stocke_decimal(CompileuseGraphe::iterateur &pointeur, const float d)
+inline void pile_stocke_decimal(
+		CompileuseGraphe::iterateur &pointeur,
+		const float d)
 {
 	*pointeur++ = d;
 }
 
-inline void pile_stocke_vec3f(CompileuseGraphe::iterateur &pointeur, dls::math::vec3f const &v)
+inline void pile_stocke_vec2(
+		CompileuseGraphe::iterateur &pointeur,
+		dls::math::vec2f const &v)
+{
+	*pointeur++ = v.x;
+	*pointeur++ = v.y;
+}
+
+inline void pile_stocke_vec3(
+		CompileuseGraphe::iterateur &pointeur,
+		dls::math::vec3f const &v)
 {
 	*pointeur++ = v.x;
 	*pointeur++ = v.y;
 	*pointeur++ = v.z;
 }
 
-inline void pile_stocke_couleur(CompileuseGraphe::iterateur &pointeur, dls::phys::couleur32 const &c)
+inline void pile_stocke_vec4(
+		CompileuseGraphe::iterateur &pointeur,
+		dls::math::vec4f const &v)
+{
+	*pointeur++ = v.x;
+	*pointeur++ = v.y;
+	*pointeur++ = v.z;
+	*pointeur++ = v.w;
+}
+
+inline void pile_stocke_mat3(
+		CompileuseGraphe::iterateur &pointeur,
+		dls::math::mat3x3f const &v)
+{
+	for (auto i = 0ul; i < 3; ++i) {
+		for (auto j = 0ul; j < 3; ++j) {
+			*pointeur++ = v[i][j];
+		}
+	}
+}
+
+inline void pile_stocke_mat4(
+		CompileuseGraphe::iterateur &pointeur,
+		dls::math::mat4x4f const &v)
+{
+	for (auto i = 0ul; i < 4; ++i) {
+		for (auto j = 0ul; j < 4; ++j) {
+			*pointeur++ = v[i][j];
+		}
+	}
+}
+
+inline void pile_stocke_couleur(
+		CompileuseGraphe::iterateur &pointeur,
+		dls::phys::couleur32 const &c)
 {
 	*pointeur++ = c.r;
 	*pointeur++ = c.v;

@@ -85,6 +85,43 @@ size_t CompileuseGraphe::decalage_pile(PriseSortie *prise)
 	return prise->decalage_pile;
 }
 
+size_t CompileuseGraphe::decalage_pile(type_prise tprise)
+{
+	auto d = m_decalage;
+
+	switch (tprise) {
+		default:
+		case type_prise::DECIMAL:
+		case type_prise::ENTIER:
+			m_pile[m_decalage++] = 0;
+			break;
+		case type_prise::VECTEUR:
+			m_pile[m_decalage++] = 0;
+			m_pile[m_decalage++] = 0;
+			m_pile[m_decalage++] = 0;
+			break;
+		case type_prise::COULEUR:
+			m_pile[m_decalage++] = 0;
+			m_pile[m_decalage++] = 0;
+			m_pile[m_decalage++] = 0;
+			m_pile[m_decalage++] = 0;
+			break;
+	}
+
+	return d;
+}
+
+int CompileuseGraphe::decalage_pile(int taille)
+{
+	auto d = m_decalage;
+
+	for (auto i = 0; i < taille; ++i) {
+		m_pile[m_decalage++] = 0;
+	}
+
+	return static_cast<int>(d);
+}
+
 void CompileuseGraphe::stocke_decimal(size_t decalage, float const &v)
 {
 	m_pile[decalage++] = v;

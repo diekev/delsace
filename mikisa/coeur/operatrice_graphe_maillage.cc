@@ -52,18 +52,18 @@ void execute_graphe(
 		switch (operation) {
 			case NOEUD_POINT3D_ENTREE:
 			{
-				pile_stocke_vec3f(courant, entree);
+				pile_stocke_vec3(courant, entree);
 				break;
 			}
 			case NOEUD_POINT3D_MATH:
 			{
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
-				auto vec_a = pile_charge_vec3f(pointeur);
+				auto vec_a = pile_charge_vec3(pointeur);
 
 				decalage = pile_charge_entier(courant);
 				pointeur = debut + decalage;
-				auto vec_b = pile_charge_vec3f(pointeur);
+				auto vec_b = pile_charge_vec3(pointeur);
 
 				auto operation_math = pile_charge_entier(courant);
 
@@ -84,7 +84,7 @@ void execute_graphe(
 						break;
 				}
 
-				pile_stocke_vec3f(courant, vec_a);
+				pile_stocke_vec3(courant, vec_a);
 				break;
 			}
 			case NOEUD_POINT3D_VALEUR:
@@ -103,10 +103,10 @@ void execute_graphe(
 			{
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
-				auto vec = pile_charge_vec3f(pointeur);
+				auto vec = pile_charge_vec3(pointeur);
 				/* les trois sorties sont l'une après l'autre donc on peut
 				 * simplement stocker le vecteur directement */
-				pile_stocke_vec3f(courant, vec);
+				pile_stocke_vec3(courant, vec);
 				break;
 			}
 			case NOEUD_POINT3D_COMBINE_VECTEUR:
@@ -125,7 +125,7 @@ void execute_graphe(
 				pointeur = debut + decalage;
 				vec.z = pile_charge_decimal(pointeur);
 
-				pile_stocke_vec3f(courant, vec);
+				pile_stocke_vec3(courant, vec);
 
 				break;
 			}
@@ -133,7 +133,7 @@ void execute_graphe(
 			{
 				/* charge position entrée */
 				auto pointeur = debut + pile_charge_entier(courant);
-				auto pos = pile_charge_vec3f(pointeur);
+				auto pos = pile_charge_vec3(pointeur);
 
 				/* charge bruit */
 				auto dimension = pile_charge_entier(courant);
@@ -154,8 +154,8 @@ void execute_graphe(
 				}
 
 				auto dur = pile_charge_entier(courant);
-				auto frequence = pile_charge_vec3f(courant);
-				auto decalage = pile_charge_vec3f(courant);
+				auto frequence = pile_charge_vec3(courant);
+				auto decalage = pile_charge_vec3(courant);
 				auto octaves = pile_charge_entier(courant);
 				auto amplitude = pile_charge_decimal(courant);
 				auto persistence = pile_charge_decimal(courant);
@@ -220,7 +220,7 @@ void execute_graphe(
 				auto ry = somme_y * (static_cast<float>(1 << octaves) / static_cast<float>((1 << (octaves + 1)) - 1));
 				auto rz = somme_z * (static_cast<float>(1 << octaves) / static_cast<float>((1 << (octaves + 1)) - 1));
 
-				pile_stocke_vec3f(courant, dls::math::vec3f(rx, ry, rz));
+				pile_stocke_vec3(courant, dls::math::vec3f(rx, ry, rz));
 
 				break;
 			}
@@ -228,7 +228,7 @@ void execute_graphe(
 			{
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
-				auto vec = pile_charge_vec3f(pointeur);
+				auto vec = pile_charge_vec3(pointeur);
 
 				auto vieux_min = pile_charge_decimal(courant);
 				auto vieux_max = pile_charge_decimal(courant);
@@ -239,7 +239,7 @@ void execute_graphe(
 				vec.y = dls::math::traduit(vec.y, vieux_min, vieux_max, neuf_min, neuf_max);
 				vec.z = dls::math::traduit(vec.z, vieux_min, vieux_max, neuf_min, neuf_max);
 
-				pile_stocke_vec3f(courant, vec);
+				pile_stocke_vec3(courant, vec);
 
 				break;
 			}
@@ -247,11 +247,11 @@ void execute_graphe(
 			{
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
-				auto vec = pile_charge_vec3f(pointeur);
+				auto vec = pile_charge_vec3(pointeur);
 
 				vec = normalise(vec);
 
-				pile_stocke_vec3f(courant, vec);
+				pile_stocke_vec3(courant, vec);
 
 				break;
 			}
@@ -321,11 +321,11 @@ void execute_graphe(
 			{
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
-				auto vec1 = pile_charge_vec3f(pointeur);
+				auto vec1 = pile_charge_vec3(pointeur);
 
 				decalage = pile_charge_entier(courant);
 				pointeur = debut + decalage;
-				auto vec2 = pile_charge_vec3f(pointeur);
+				auto vec2 = pile_charge_vec3(pointeur);
 
 				auto val = dls::math::produit_scalaire(vec1, vec2);
 				pile_stocke_decimal(courant, val);
@@ -335,21 +335,21 @@ void execute_graphe(
 			{
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
-				auto vec1 = pile_charge_vec3f(pointeur);
+				auto vec1 = pile_charge_vec3(pointeur);
 
 				decalage = pile_charge_entier(courant);
 				pointeur = debut + decalage;
-				auto vec2 = pile_charge_vec3f(pointeur);
+				auto vec2 = pile_charge_vec3(pointeur);
 
 				auto val = dls::math::produit_croix(vec1, vec2);
-				pile_stocke_vec3f(courant, val);
+				pile_stocke_vec3(courant, val);
 				break;
 			}
 			case NOEUD_POINT3D_SORTIE:
 			{
 				auto decalage = pile_charge_entier(courant);
 				auto pointeur = debut + decalage;
-				sortie = pile_charge_vec3f(pointeur);
+				sortie = pile_charge_vec3(pointeur);
 				break;
 			}
 		}
