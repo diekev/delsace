@@ -127,6 +127,11 @@ Attribut *Corps::attribut(std::string const &nom_attribut) const
 	return nullptr;
 }
 
+long Corps::ajoute_point(const dls::math::vec3f &pos)
+{
+	return static_cast<long>(ajoute_point(pos.x, pos.y, pos.z));
+}
+
 size_t Corps::ajoute_point(float x, float y, float z)
 {
 	auto index = index_point(x, y, z);

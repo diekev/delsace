@@ -91,6 +91,8 @@ struct Corps {
 
 	Attribut *attribut(std::string const &nom_attribut) const;
 
+	long ajoute_point(dls::math::vec3f const &pos);
+
 	size_t ajoute_point(float x, float y, float z);
 
 	void enleve_point(size_t i);
