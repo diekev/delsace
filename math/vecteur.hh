@@ -241,7 +241,7 @@ template <int O1, int O2, typename T, int... Ns>
  * 'TYPE_VECTEUR'.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] auto operator-(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] auto operator-(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	auto tmp(v1);
 	tmp -= v2;
@@ -259,7 +259,7 @@ template <int O, typename T, int... Ns>
  * valeur spécifiée aux valeurs de vecteur donné.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] auto operator-(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] auto operator-(vecteur<O, T, Ns...> const &v)
 {
 	auto tmp(v);
 	((tmp[Ns] = -tmp[Ns]), ...);
@@ -271,7 +271,7 @@ template <int O, typename T, int... Ns>
  * valeurs des deux vecteurs spécifiés.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] auto operator*(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] auto operator*(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	auto tmp(v1);
 	tmp *= v2;
@@ -283,7 +283,7 @@ template <int O, typename T, int... Ns>
  * valeurs du vecteur spécifié avec la valeur donnée.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] auto operator*(const vecteur<O, T, Ns...> &v, const T valeur)
+[[nodiscard]] auto operator*(vecteur<O, T, Ns...> const &v, const T valeur)
 {
 	auto tmp(v);
 	tmp *= valeur;
@@ -295,7 +295,7 @@ template <int O, typename T, int... Ns>
  * valeurs du vecteur spécifié avec la valeur donnée.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] auto operator*(const T valeur, const vecteur<O, T, Ns...> &v)
+[[nodiscard]] auto operator*(const T valeur, vecteur<O, T, Ns...> const &v)
 {
 	auto tmp(v);
 	tmp *= valeur;
@@ -307,7 +307,7 @@ template <int O, typename T, int... Ns>
  * premier vecteur par celles du deuxième.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] auto operator/(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] auto operator/(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	auto tmp(v1);
 	tmp /= v2;
@@ -319,7 +319,7 @@ template <int O, typename T, int... Ns>
  * du vecteur spécifié avec la valeur donnée.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] auto operator/(const vecteur<O, T, Ns...> &v, const T valeur)
+[[nodiscard]] auto operator/(vecteur<O, T, Ns...> const &v, const T valeur)
 {
 	if (valeur == static_cast<T>(0)) {
 		return vecteur<O, T, Ns...>();
@@ -335,7 +335,7 @@ template <int O, typename T, int... Ns>
  * des valeurs du vecteur spécifié avec la valeur donnée.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] auto operator/(const T valeur, const vecteur<O, T, Ns...> &v)
+[[nodiscard]] auto operator/(const T valeur, vecteur<O, T, Ns...> const &v)
 {
 	auto tmp(v);
 	tmp /= valeur;
@@ -350,7 +350,7 @@ template <int O, typename T, int... Ns>
  * Retourne vrai si les valeurs des deux vecteurs sont égales entre elles.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto operator==(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] constexpr auto operator==(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	return ((v1[Ns] == v2[Ns]) && ...);
 }
@@ -359,7 +359,7 @@ template <int O, typename T, int... Ns>
  * Retourne vrai si les valeurs des deux vecteurs diffèrent.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto operator!=(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] constexpr auto operator!=(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	return !(v1 == v2);
 }
@@ -369,7 +369,7 @@ template <int O, typename T, int... Ns>
  * deuxième.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto operator<(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] constexpr auto operator<(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	return ((v1[Ns] < v2[Ns]) || ...);
 }
@@ -379,7 +379,7 @@ template <int O, typename T, int... Ns>
  * à celles du deuxième.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto operator<=(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] constexpr auto operator<=(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	return ((v1[Ns] <= v2[Ns]) && ...);
 }
@@ -389,7 +389,7 @@ template <int O, typename T, int... Ns>
  * deuxième.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto operator>(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] constexpr auto operator>(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	return ((v1[Ns] > v2[Ns]) || ...);
 }
@@ -399,7 +399,7 @@ template <int O, typename T, int... Ns>
  * à celles du deuxième.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto operator>=(const vecteur<O, T, Ns...> &v1, const vecteur<O, T, Ns...> &v2)
+[[nodiscard]] constexpr auto operator>=(vecteur<O, T, Ns...> const &v1, vecteur<O, T, Ns...> const &v2)
 {
 	return ((v1[Ns] >= v2[Ns]) && ...);
 }
@@ -413,7 +413,7 @@ template <int O, typename T, int... Ns>
  * l'angle entre eux.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto produit_scalaire(const vecteur<O, T, Ns...> &u, const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto produit_scalaire(vecteur<O, T, Ns...> const &u, vecteur<O, T, Ns...> const &v)
 {
 	return ((u[Ns] * v[Ns]) + ...);
 }
@@ -423,7 +423,7 @@ template <int O, typename T, int... Ns>
  * cosinus de l'angle entre eux.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto produit_scalaire_abs(const vecteur<O, T, Ns...> &u, const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto produit_scalaire_abs(vecteur<O, T, Ns...> const &u, vecteur<O, T, Ns...> const &v)
 {
 	return std::abs(((u[Ns] * v[Ns]) + ...));
 }
@@ -432,7 +432,7 @@ template <int O, typename T, int... Ns>
  * Retourne la longueur du vecteur.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto longueur(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto longueur(vecteur<O, T, Ns...> const &v)
 {
 	auto produit_interne = ((v[Ns] * v[Ns]) + ...);
 	return std::sqrt(produit_interne);
@@ -442,7 +442,7 @@ template <int O, typename T, int... Ns>
  * Retourne la longueur carrée du vecteur.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto longueur_carree(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto longueur_carree(vecteur<O, T, Ns...> const &v)
 {
 	return ((v[Ns] * v[Ns]) + ...);
 }
@@ -452,7 +452,7 @@ template <int O, typename T, int... Ns>
  * deux vecteurs spécifiés.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto produit_vectorielle(const vecteur<O, T, Ns...> &u, const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto produit_vectorielle(vecteur<O, T, Ns...> const &u, vecteur<O, T, Ns...> const &v)
 {
 	constexpr auto N = sizeof...(Ns);
 
@@ -467,7 +467,7 @@ template <int O, typename T, int... Ns>
  * deux vecteurs spécifiés.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto produit_croix(const vecteur<O, T, Ns...> &u, const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto produit_croix(vecteur<O, T, Ns...> const &u, vecteur<O, T, Ns...> const &v)
 {
 	return produit_vectorielle(u, v);
 }
@@ -477,7 +477,7 @@ template <int O, typename T, int... Ns>
  * spécifié mais ayant une longueur égale à un.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto normalise(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto normalise(vecteur<O, T, Ns...> const &v)
 {
 	auto l = longueur(v);
 
@@ -493,7 +493,23 @@ template <int O, typename T, int... Ns>
  * spécifié mais ayant une longueur égale à un.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto vecteur_unitaire(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto normalise(vecteur<O, T, Ns...> const &v, T &l)
+{
+	l = longueur(v);
+
+	if (l == static_cast<T>(0)) {
+		return vecteur<O, T, Ns...>(static_cast<T>(0));
+	}
+
+	return v / l;
+}
+
+/**
+ * Retourne un vecteur dont les valeurs correspondent à celles du vecteur
+ * spécifié mais ayant une longueur égale à un.
+ */
+template <int O, typename T, int... Ns>
+[[nodiscard]] constexpr auto vecteur_unitaire(vecteur<O, T, Ns...> const &v)
 {
 	return normalise(v);
 }
@@ -502,7 +518,7 @@ template <int O, typename T, int... Ns>
  * Retourne vrai si le vecteur contient des NANs.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto est_nan(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto est_nan(vecteur<O, T, Ns...> const &v)
 {
 	return ((std::isnan(v[Ns])) || ...);
 }
@@ -511,7 +527,7 @@ template <int O, typename T, int... Ns>
  * Retourne vrai si le vecteur contient des valeurs infinies.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto est_infini(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto est_infini(vecteur<O, T, Ns...> const &v)
 {
 	return ((std::isinf(v[Ns])) || ...);
 }
@@ -520,7 +536,7 @@ template <int O, typename T, int... Ns>
  * Retourne vrai si le vecteur ne contient que des valeurs finies.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto est_fini(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto est_fini(vecteur<O, T, Ns...> const &v)
 {
 	return ((std::isfinite(v[Ns])) && ...);
 }
@@ -529,7 +545,7 @@ template <int O, typename T, int... Ns>
  * Retourne un vecteur contenant les valeurs absolues du vecteur spécifié.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto absolu(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto absolu(vecteur<O, T, Ns...> const &v)
 {
 	auto tmp = vecteur<O, T, Ns...>();
 	((tmp[Ns] = std::abs(v[Ns])), ...);
@@ -540,7 +556,7 @@ template <int O, typename T, int... Ns>
  * Retourne un vecteur contenant les valeurs exponentielles du vecteur spécifié.
  */
 template <int O, typename T, int... Ns>
-[[nodiscard]] constexpr auto exponentiel(const vecteur<O, T, Ns...> &v)
+[[nodiscard]] constexpr auto exponentiel(vecteur<O, T, Ns...> const &v)
 {
 	auto tmp = vecteur<O, T, Ns...>();
 	((tmp[Ns] = std::exp(v[Ns])), ...);
@@ -622,14 +638,99 @@ template <int O, typename T, int... Ns>
  */
 template <int O, typename T, int... Ns>
 auto calcule_aire(
-		dls::math::vecteur<O, T, Ns...> const &v0,
-		dls::math::vecteur<O, T, Ns...> const &v1,
-		dls::math::vecteur<O, T, Ns...> const &v2)
+        vecteur<O, T, Ns...> const &v0,
+        vecteur<O, T, Ns...> const &v1,
+        vecteur<O, T, Ns...> const &v2)
 {
 	auto const c1 = v1 - v0;
 	auto const c2 = v2 - v0;
 
 	return longueur(produit_croix(c1, c2)) * static_cast<T>(0.5);
+}
+
+/**
+ * Retourne un vecteur correspondant à la réfraction du vecteur 'I' dans la
+ * surface avec 'N' comme vecteur normal selon l'index de réfraction fourni.
+ */
+template <int O, typename T, int... Ns>
+auto refracte(
+        vecteur<O, T, Ns...> const &I,
+        vecteur<O, T, Ns...> const &N,
+        T const idr)
+{
+	auto Nrefr = N;
+	auto cos_theta = produit_scalaire(Nrefr, I);
+	auto eta_dehors = static_cast<T>(1);
+	auto eta_dedans = idr;
+
+	if (cos_theta < static_cast<T>(0)) {
+		/* Nous sommes hors de la surface, nous voulons cos(theta) positif. */
+		cos_theta = -cos_theta;
+	}
+	else {
+		/* Nous sommes dans la surface, cos(theta) est déjà positif, mais nie le
+		 * normal. */
+		Nrefr = -N;
+
+		std::swap(eta_dehors, eta_dedans);
+	}
+
+	auto eta = eta_dehors / eta_dedans;
+	auto k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - cos_theta * cos_theta);
+
+	if (k < static_cast<T>(0)) {
+		return vecteur<O, T, Ns...>(static_cast<T>(0));
+	}
+
+	return eta * I + (eta * cos_theta - std::sqrt(k)) * Nrefr;
+}
+
+/**
+ * Calcul le coefficient de fresnel avec l'index de réfraction fourni.
+ */
+template <int O, typename T, int... Ns>
+auto fresnel(
+        vecteur<O, T, Ns...> const &I,
+        vecteur<O, T, Ns...> const &N,
+        T const &idr)
+{
+	auto cosi = produit_scalaire(I, N);
+	auto eta_dehors = static_cast<T>(1);
+	auto eta_dedans = idr;
+
+	if (cosi > 0) {
+		std::swap(eta_dehors, eta_dedans);
+	}
+
+	/* Calcul sin_i selon la loi de Snell. */
+	auto sint = eta_dehors / eta_dedans * std::sqrt(std::max(static_cast<T>(0), static_cast<T>(1) - cosi * cosi));
+
+	/* Réflection interne totale. */
+	if (sint >= static_cast<T>(1)) {
+		return static_cast<T>(1);
+	}
+
+	auto cost = std::sqrt(std::max(static_cast<T>(0), static_cast<T>(1) - sint * sint));
+	cosi = std::abs(cosi);
+	auto Rs = ((eta_dedans * cosi) - (eta_dehors * cost)) / ((eta_dedans * cosi) + (eta_dehors * cost));
+	auto Rp = ((eta_dehors * cosi) - (eta_dedans * cost)) / ((eta_dehors * cosi) + (eta_dedans * cost));
+	auto kr = (Rs * Rs + Rp * Rp) / static_cast<T>(2);
+
+	/* En conséquence de la conservation d'énergie, la transmittance est donnée
+	 * par kt = 1 - kr. */
+	return kr;
+}
+
+/**
+ * Retourne un vecteur correspondant à la réfléction du vecteur 'I' sur la
+ * surface dont le vecteur normal est 'N'.
+ */
+template <int O, typename T, int... Ns>
+auto reflechi(
+        vecteur<O, T, Ns...> const &I,
+        vecteur<O, T, Ns...> const &N)
+{
+	return I - static_cast<T>(2) * produit_scalaire(I, N) * N;
 }
 
 /* ***************************** opérateurs flux **************************** */
@@ -638,7 +739,7 @@ auto calcule_aire(
  * Passe le vecteur au basic_ostream spécifié au format (x,...,).
  */
 template <int O, typename T, int... Ns, typename CharT, typename Traits>
-auto &operator<<(std::basic_ostream<CharT, Traits> &os, const vecteur<O, T, Ns...> &v)
+auto &operator<<(std::basic_ostream<CharT, Traits> &os, vecteur<O, T, Ns...> const &v)
 {
 	std::basic_ostringstream<CharT, Traits> s;
 	s.flags(os.flags());
@@ -737,5 +838,22 @@ using norm4f = norm4<float>;
 using norm4d = norm4<double>;
 
 static_assert(sizeof(vec4f) == (4 * sizeof(float)), "");
+
+/**
+ * "Building an orthonormal basis, revisited"
+ * http://graphics.pixar.com/library/OrthonormalB/paper.pdf
+ */
+template <typename T>
+void cree_base_orthonormale(
+        vec3<T> const &n,
+        vec3<T> &b0,
+        vec3<T> &b1)
+{
+	auto const sign = std::copysign(static_cast<T>(1.0), n.z);
+	auto const a = static_cast<T>(-1.0) / (sign + n.z);
+	auto const b = n.x * n.y * a;
+	b0 = vec3<T>(static_cast<T>(1.0) + sign * n.x * n.x * a, sign * b, -sign * n.x);
+	b1 = vec3<T>(b, sign + n.y * n.y * a, -n.y);
+}
 
 }  /* namespace dls::math */
