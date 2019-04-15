@@ -209,4 +209,67 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On peut modifier les propriétés d'un tableau dans un bloc 'nonsûr'.");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					dyn tabl : [3]z32;
+
+					nonsûr {
+						taille de tabl = 3;
+					}
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On ne peut pas modifier les propriétés d'un tableau hors d'un bloc 'nonsûr'.");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					dyn tabl : [3]z32;
+					taille de tabl = 3;
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::ASSIGNATION_INVALIDE);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On peut construire un tableau dans une expression.");
+	{
+		const char *texte =
+				R"(
+				fonction foo() : rien
+				{
+					dyn tabl = [1, 2, 3];
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
 }

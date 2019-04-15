@@ -245,10 +245,86 @@ static void test_membre_unique(dls::test_unitaire::Controleuse &controleuse)
 	CU_TERMINE_PROPOSITION(controleuse);
 }
 
+static void test_expression_defaut(dls::test_unitaire::Controleuse &controleuse)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Il est possible de fournir des valeurs par défaut aux membres des structures.");
+	{
+		const char *texte =
+				R"(
+				structure Vecteur2D {
+					x : n32 = 0;
+					y : n32 = 1;
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+}
+
+static void test_construction(dls::test_unitaire::Controleuse &controleuse)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Il est possible de construire les structures dans une expression en fournisant le nom des variables.");
+	{
+		const char *texte =
+				R"(
+				structure Vecteur2D {
+					x : n32 = 0;
+					y : n32 = 1;
+				}
+
+				void foo()
+				{
+					soit v = Vecteur2D{x = 0, y = 1};
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"Le constructeur des structures doit avoir le nom de ces membres.");
+	{
+		const char *texte =
+				R"(
+				structure Vecteur2D {
+					x : n32;
+					y : n32;
+				}
+
+				void foo()
+				{
+					soit v = Vecteur2D{0, 1};
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::MEMBRE_INCONNU);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+}
+
 void test_structures(dls::test_unitaire::Controleuse &controleuse)
 {
 	test_structure_redefinie(controleuse);
 	test_structure_inconnue(controleuse);
 	test_acces_membre(controleuse);
 	test_membre_unique(controleuse);
+	test_expression_defaut(controleuse);
+	test_construction(controleuse);
 }

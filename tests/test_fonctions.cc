@@ -27,6 +27,108 @@
 #include "erreur.h"
 #include "outils.h"
 
+static auto test_appel_fonction_nonsure(
+		dls::test_unitaire::Controleuse &controleuse)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On ne peut appeler une fonction 'externe' hors d'un bloc 'nonsûr'.");
+	{
+		const char *texte =
+				R"(
+				fonction externe foo() : rien;
+
+				fonction bar() : rien
+				{
+					foo();
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::APPEL_INVALIDE);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On peut appeler une fonction 'externe' dans un bloc 'nonsûr'.");
+	{
+		const char *texte =
+				R"(
+				fonction externe foo() : rien;
+
+				fonction bar() : rien
+				{
+					nonsûr {
+						foo();
+					}
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On ne peut appeler une fonction prenant un pointeur hors d'un bloc 'nonsûr'.");
+	{
+		const char *texte =
+				R"(
+				fonction foo(a : *z32) : rien
+				{
+					retourne;
+				}
+
+				fonction bar() : rien
+				{
+					soit x = 5;
+					foo(@x);
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::APPEL_INVALIDE);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On peut appeler une fonction prenant un pointeur dans un bloc 'nonsûr'.");
+	{
+		const char *texte =
+				R"(
+				fonction foo(a : *z32) : rien
+				{
+					retourne;
+				}
+
+				fonction bar() : rien
+				{
+					soit x = 5;
+					nonsûr {
+						foo(@x);
+					}
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+}
+
 static void test_pointeur_fonction(
 		dls::test_unitaire::Controleuse &controleuse)
 {
@@ -207,7 +309,9 @@ static void test_appel_fonction_variadique_args_nommes(
 
 				fonction bar() : rien
 				{
-					foo(0, 1, 2, 3, 4, 5);
+					nonsûr {
+						foo(0, 1, 2, 3, 4, 5);
+					}
 				}
 				)";
 
@@ -228,7 +332,9 @@ static void test_appel_fonction_variadique_args_nommes(
 
 				fonction bar() : rien
 				{
-					foo(a=0, b=1, c=2, c=3, c=4, c=5);
+					nonsûr {
+						foo(a=0, b=1, c=2, c=3, c=4, c=5);
+					}
 				}
 				)";
 
@@ -249,7 +355,9 @@ static void test_appel_fonction_variadique_args_nommes(
 
 				fonction bar() : rien
 				{
-					foo(a=0, b=1, c=2, 3, 4, 5);
+					nonsûr {
+						foo(a=0, b=1, c=2, 3, 4, 5);
+					}
 				}
 				)";
 
@@ -270,7 +378,9 @@ static void test_appel_fonction_variadique_args_nommes(
 
 				fonction bar() : rien
 				{
-					foo(a=0, c=1, 2, 3, 4, b=5);
+					nonsûr {
+						foo(a=0, c=1, 2, 3, 4, b=5);
+					}
 				}
 				)";
 
@@ -296,7 +406,9 @@ static void test_appel_fonction_variadique(
 
 				fonction foo() : rien
 				{
-					printf(0, 'z', 2.5, "chaine");
+					nonsûr {
+						printf(0, 'z', 2.5, "chaine");
+					}
 				}
 				)";
 
@@ -318,7 +430,9 @@ static void test_appel_fonction_variadique(
 
 				fonction foo() : rien
 				{
-					printf(0, 'z', 2.5, "chaine");
+					nonsûr {
+						printf(0, 'z', 2.5, "chaine");
+					}
 				}
 				)";
 
@@ -341,7 +455,9 @@ static void test_appel_fonction_variadique(
 
 				fonction foo() : rien
 				{
-					printf(0, 1, 2, 3, 4);
+					nonsûr {
+						printf(0, 1, 2, 3, 4);
+					}
 				}
 				)";
 
@@ -767,8 +883,71 @@ static void test_fonction_redinie(
 	CU_TERMINE_PROPOSITION(controleuse);
 }
 
+static auto test_syntaxe_appel_uniforme(
+				dls::test_unitaire::Controleuse &controleuse)
+{
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On peut appeler une fonction en utilisant son premier argument comme objet.");
+	{
+		const char *texte =
+				R"(
+				fonction foo(a : z32) : rien
+				{
+					retourne;
+				}
+
+				fonction bar() : rien
+				{
+					soit a = 5;
+					a.foo();
+
+					retourne;
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(
+				controleuse,
+				"On ne peut appeler une fonction en utilisant un autre argument que le premier comme objet.");
+	{
+		const char *texte =
+				R"(
+				fonction foo(a : z32, b : r64) : rien
+				{
+					retourne;
+				}
+
+				fonction bar() : rien
+				{
+					soit a = 0.0;
+					soit b = 5;
+					a.foo(5);
+
+					retourne;
+				}
+				)";
+
+		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
+				texte, false, erreur::type_erreur::APPEL_INVALIDE);
+
+		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
+		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	// À FAIRE : arguments nommés, fonctions variadiques
+}
+
 void test_fonctions(dls::test_unitaire::Controleuse &controleuse)
 {
+	test_appel_fonction_nonsure(controleuse);
 	test_fonction_general(controleuse);
 	test_fonction_inconnue(controleuse);
 	test_argument_nomme_succes(controleuse);
@@ -781,4 +960,5 @@ void test_fonctions(dls::test_unitaire::Controleuse &controleuse)
 	test_appel_fonction_variadique(controleuse);
 	test_appel_fonction_variadique_args_nommes(controleuse);
 	test_pointeur_fonction(controleuse);
+	test_syntaxe_appel_uniforme(controleuse);
 }
