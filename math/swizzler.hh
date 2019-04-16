@@ -57,13 +57,13 @@ private:
 	template <typename... Index>
 	void copie_vers(type_vecteur &vec, int i, Index... s_index) const
 	{
-		((vec[i++] = donnees[s_index]), ...);
+		((vec[static_cast<unsigned long>(i++)] = donnees[s_index]), ...);
 	}
 
 	template <typename... Index>
 	void copie_depuis(const type_vecteur &vec, int i, Index... s_index) const
 	{
-		((donnees[s_index] = vec[i++]), ...);
+		((donnees[s_index] = vec[static_cast<unsigned long>(i++)]), ...);
 	}
 };
 
