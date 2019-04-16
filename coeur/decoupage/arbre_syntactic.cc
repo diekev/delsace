@@ -795,6 +795,14 @@ void appel_fonction::perfome_validation_semantique(ContexteGenerationCode &conte
 					m_donnees_morceaux);
 	}
 
+	if (donnees_fonction.est_externe && !contexte.non_sur()) {
+		erreur::lance_erreur(
+					"Ne peut appeler une fonction externe hors d'un bloc 'nonsûr'",
+					contexte,
+					m_donnees_morceaux,
+					erreur::type_erreur::APPEL_INVALIDE);
+	}
+
 	if (this->donnees_type == -1ul) {
 		this->donnees_type = donnees_fonction.index_type_retour;
 	}
