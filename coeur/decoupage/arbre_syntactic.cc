@@ -2382,8 +2382,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
-			b->module_appel = b->morceau.module;
-
 			/* broyage du nom */
 			auto module = contexte.module(static_cast<size_t>(b->module_appel));
 			auto nom_module = module->nom;

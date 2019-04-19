@@ -74,6 +74,10 @@ noeud::base *assembleuse_arbre::cree_noeud(
 			/* requis pour pouvoir renseigner le noms de arguments depuis
 			 * l'analyse. */
 			noeud->valeur_calculee = std::list<std::string_view>{};
+
+			/* requis pour déterminer le module dans le noeud d'accès point
+			 * À FAIRE : trouver mieux pour accéder à cette information */
+			noeud->module_appel = noeud->morceau.module;
 		}
 
 		m_noeuds.push_back(noeud);
