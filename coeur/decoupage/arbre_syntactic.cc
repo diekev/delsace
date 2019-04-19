@@ -1120,6 +1120,14 @@ llvm::Value *genere_code_llvm(
 			}
 
 			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+				if (!contexte.non_sur() && expr_gauche) {
+					erreur::lance_erreur(
+								"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
+								contexte,
+								b->morceau,
+								erreur::type_erreur::ASSIGNATION_INVALIDE);
+				}
+
 				auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
 
 				if (taille != 0) {
@@ -2247,7 +2255,10 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::NONSUR:
 		{
-			return genere_code_llvm(b->enfants.front(), contexte, false);
+			contexte.non_sur(true);
+			genere_code_llvm(b->enfants.front(), contexte, false);
+			contexte.non_sur(false);
+			return nullptr;
 		}
 		case type_noeud::TABLEAU:
 		{
@@ -2494,12 +2505,23 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									b->donnees_morceau());
 					}
 
-					if ((args.find(nom_arg) != args.end()) && !iter->second.est_variadic) {
+					auto &donnees = iter->second;
+
+					if ((args.find(nom_arg) != args.end()) && !donnees.est_variadic) {
 						/* À FAIRE : trouve le morceau correspondant à l'argument. */
 						erreur::lance_erreur("Argument déjà nommé",
 											 contexte,
 											 b->donnees_morceau(),
 											 erreur::type_erreur::ARGUMENT_REDEFINI);
+					}
+
+					auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
+
+					if (dt.type_base() == id_morceau::POINTEUR && !contexte.non_sur()) {
+						erreur::lance_erreur("Ne peut appeler une fonction hors d'un bloc 'nonsûr'",
+											 contexte,
+											 b->morceau,
+											 erreur::type_erreur::APPEL_INVALIDE);
 					}
 
 					dernier_arg_variadique = iter->second.est_variadic;
@@ -2517,6 +2539,23 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					if (nombre_args != 0) {
 						auto nom_argument = donnees_fonction.nom_args[index];
+
+						/* À FAIRE : meilleur stockage, ceci est redondant */
+						auto iter = donnees_fonction.args.find(nom_argument);
+						auto &donnees = iter->second;
+
+						/* il est possible que le type soit non-spécifié (variadic) */
+						if (donnees.donnees_type != -1ul) {
+							auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
+
+							if (dt.type_base() == id_morceau::POINTEUR && !contexte.non_sur()) {
+								erreur::lance_erreur("Ne peut appeler une fonction hors d'un bloc 'nonsûr'",
+													 contexte,
+													 b->morceau,
+													 erreur::type_erreur::APPEL_INVALIDE);
+							}
+						}
+
 						args.insert(nom_argument);
 						nom_arg = nom_argument;
 					}

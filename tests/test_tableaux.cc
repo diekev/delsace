@@ -88,31 +88,9 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 				fonction foo() : rien
 				{
 					dyn tabl : []z32;
-					passe_pointeur(tabl);
-				}
-				)";
-
-		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
-				texte, false, erreur::type_erreur::TYPE_ARGUMENT);
-
-		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
-	}
-	CU_TERMINE_PROPOSITION(controleuse);
-
-	CU_DEBUTE_PROPOSITION(
-				controleuse,
-				"On ne peut pas passer un tableau dynamic à une fonction attendant un pointeur.");
-	{
-		const char *texte =
-				R"(
-				fonction passe_pointeur(tabl : *z32) : rien
-				{
-				}
-				fonction foo() : rien
-				{
-					dyn tabl : []z32;
-					passe_pointeur(tabl);
+					nonsûr {
+						passe_pointeur(tabl);
+					}
 				}
 				)";
 
