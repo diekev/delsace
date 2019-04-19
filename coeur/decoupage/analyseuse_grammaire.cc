@@ -339,8 +339,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	m_module->fonctions_exportees.insert(nom_fonction);
 
 	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_contexte, donnees());
-	auto noeud_declaration = dynamic_cast<noeud::declaration_fonction *>(noeud);
-	noeud_declaration->est_externe = externe;
+	noeud->est_externe = externe;
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
@@ -353,7 +352,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	auto donnees_fonctions = DonneesFonction{};
 	donnees_fonctions.est_externe = externe;
 
-	analyse_parametres_fonction(noeud_declaration, donnees_fonctions, &donnees_type_fonction);
+	analyse_parametres_fonction(noeud, donnees_fonctions, &donnees_type_fonction);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
@@ -362,8 +361,8 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	donnees_type_fonction.pousse(id_morceau::PARENTHESE_FERMANTE);
 
 	/* À FAIRE : inférence de type retour. */
-	noeud_declaration->donnees_type = analyse_declaration_type(&donnees_type_fonction);
-	donnees_fonctions.index_type_retour = noeud_declaration->donnees_type;
+	noeud->donnees_type = analyse_declaration_type(&donnees_type_fonction);
+	donnees_fonctions.index_type_retour = noeud->donnees_type;
 	donnees_fonctions.index_type = m_contexte.magasin_types.ajoute_type(donnees_type_fonction);
 
 	m_module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
@@ -391,7 +390,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 }
 
 void analyseuse_grammaire::analyse_parametres_fonction(
-		noeud::declaration_fonction *noeud,
+		noeud::base *noeud,
 		DonneesFonction &donnees_fonction,
 		DonneesType *donnees_type_fonction)
 {
@@ -824,7 +823,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, m_contexte, morceau, false);
 
-					analyse_appel_fonction(dynamic_cast<noeud::appel_fonction *>(noeud));
+					analyse_appel_fonction(noeud);
 
 					m_assembleuse->depile_noeud(type_noeud::APPEL_FONCTION);
 
@@ -1122,7 +1121,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			auto n1 = pile.back();
 			pile.pop_back();
 
-			if (n1->est_constant() && n2->est_constant()) {
+			if (est_constant(n1) && est_constant(n2)) {
 				if (est_operateur_constant(noeud->identifiant())) {
 					noeud = calcul_expression_double(*m_assembleuse, m_contexte, noeud, n1, n2);
 
@@ -1160,7 +1159,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			auto n1 = pile.back();
 			pile.pop_back();
 
-			if (n1->est_constant()) {
+			if (est_constant(n1)) {
 				if (est_operateur_constant(noeud->identifiant())) {
 					noeud = calcul_expression_simple(*m_assembleuse, noeud, n1);
 
@@ -1220,7 +1219,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 }
 
 /* f(g(5, 6 + 3 * (2 - 5)), h()); */
-void analyseuse_grammaire::analyse_appel_fonction(noeud::appel_fonction *noeud)
+void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
 
@@ -1235,12 +1234,12 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::appel_fonction *noeud)
 			avance();
 
 			auto nom_argument = donnees().chaine;
-			noeud->ajoute_nom_argument(nom_argument);
+			ajoute_nom_argument(noeud, nom_argument);
 
 			avance();
 		}
 		else {
-			noeud->ajoute_nom_argument("");
+			ajoute_nom_argument(noeud, "");
 		}
 
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.

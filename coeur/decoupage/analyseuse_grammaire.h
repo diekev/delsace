@@ -78,10 +78,10 @@ private:
 
 	void analyse_corps(std::ostream &os);
 	void analyse_declaration_fonction();
-	void analyse_parametres_fonction(noeud::declaration_fonction *noeud, DonneesFonction &donnees_fonction, DonneesType *donnees_type_fonction);
+	void analyse_parametres_fonction(noeud::base *noeud, DonneesFonction &donnees_fonction, DonneesType *donnees_type_fonction);
 	void analyse_corps_fonction();
 	void analyse_expression_droite(id_morceau identifiant_final, bool const calcul_expression = false, bool const assignation = false);
-	void analyse_appel_fonction(noeud::appel_fonction *noeud);
+	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_variable(char drapeaux);
 	void analyse_declaration_enum();

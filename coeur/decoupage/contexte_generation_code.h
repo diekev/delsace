@@ -43,7 +43,7 @@
 class assembleuse_arbre;
 
 namespace noeud {
-class base;
+struct base;
 }
 
 struct DonneesModule;

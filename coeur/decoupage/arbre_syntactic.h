@@ -73,10 +73,8 @@ const char *chaine_type_noeud(type_noeud type);
 
 /* ************************************************************************** */
 
-/* Idée pour un réusinage du code pour supprimer les tables virtuelles des
- * noeuds. Ces tables virtuelles doivent à chaque fois être résolues ce qui
- * nous fait perdre du temps. Au lieu d'avoir un système d'héritage, nous
- * pourrions avoir un système plus manuel selon les observations suivantes :
+/* Notes pour supprimer le std::list de la structure noeud et n'utiliser de la
+ * mémoire que quand nécessaire.
  *
  * noeud racine : multiples enfants pouvant être dans des tableaux différents
  * -- noeud déclaration fonction
@@ -142,9 +140,6 @@ const char *chaine_type_noeud(type_noeud type);
  * fonction. Tous les autres types de noeuds ont des enfants bien défini, donc
  * nous pourrions peut-être supprimer l'héritage, tout en forçant une interface
  * commune à tous les noeuds.
- *
- * Mais pour tester ce réusinage, ce vaudrait bien essayer d'attendre que le
- * langage soit un peu mieux défini.
  */
 
 /* ************************************************************************** */
@@ -161,12 +156,10 @@ namespace noeud {
 /**
  * Classe de base représentant un noeud dans l'arbre.
  */
-class base {
-protected:
-	std::list<base *> m_enfants{};
-	DonneesMorceaux const &m_donnees_morceaux;
+struct base {
+	std::list<base *> enfants{};
+	DonneesMorceaux const &morceau;
 
-public:
 	std::any valeur_calculee{};
 
 	size_t donnees_type = -1ul;
@@ -174,12 +167,10 @@ public:
 	bool calcule = false;
 	char drapeaux = false;
 	bool est_externe = false;
-	char pad{};
+	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées
 
 	explicit base(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	virtual ~base() = default;
 
 	/**
 	 * Ajoute un noeud à la liste des noeuds du noeud.
@@ -194,35 +185,14 @@ public:
 	void imprime_code(std::ostream &os, int tab);
 
 	/**
-	 * Génère le code pour LLVM.
-	 */
-	virtual llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) = 0;
-
-	/**
 	 * Retourne l'identifiant du morceau de ce noeud.
 	 */
 	id_morceau identifiant() const;
 
 	/**
-	 * Retourne vrai si le résultat du noeud peut-être évalué durant la
-	 * compilation.
-	 */
-	virtual bool est_constant() const;
-
-	/**
 	 * Retourne une référence constante vers la chaine du morceau de ce noeud.
 	 */
 	std::string_view const &chaine() const;
-
-	/**
-	 * Retourne le type syntactic de noeud.
-	 */
-	virtual type_noeud type() const = 0;
-
-	/**
-	 * Retourne vrai si le noeud peut se trouver à gauche d'un opérateur '='.
-	 */
-	virtual bool peut_etre_assigne(ContexteGenerationCode &contexte) const;
 
 	/**
 	 * Retourne une référence constante vers les données du morceau de ce neoud.
@@ -234,393 +204,15 @@ public:
 	 * aucun enfant, retourne nullptr.
 	 */
 	base *dernier_enfant() const;
-
-	/**
-	 * Performe la validation sémantique du noeud et de ses enfants.
-	 */
-	virtual void perfome_validation_semantique(ContexteGenerationCode &contexte);
 };
 
-/* ************************************************************************** */
+bool est_constant(base *b);
 
-class racine final : public base {
-public:
-	explicit racine(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+llvm::Value *genere_code_llvm(base *b, ContexteGenerationCode &contexte, bool expr_gauche);
 
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
+void performe_validation_semantique(base *b, ContexteGenerationCode &contexte);
 
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class appel_fonction final : public base {
-public:
-	explicit appel_fonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	void ajoute_nom_argument(const std::string_view &nom);
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-
-private:
-	   void verifie_compatibilite(
-			   ContexteGenerationCode &contexte,
-			   DonneesType const &type_arg,
-			   DonneesType const &type_enf,
-			   base *enfant);
-};
-
-/* ************************************************************************** */
-
-class declaration_fonction final : public base {
-public:
-	explicit declaration_fonction(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class assignation_variable final : public base {
-public:
-	explicit assignation_variable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class declaration_variable final : public base {
-public:
-	explicit declaration_variable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class constante final : public base {
-public:
-	explicit constante(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class nombre_entier final : public base {
-public:
-	explicit nombre_entier(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	bool est_constant() const override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class booleen final : public base {
-public:
-	explicit booleen(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	bool est_constant() const override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class caractere final : public base {
-public:
-	explicit caractere(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	bool est_constant() const override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class nombre_reel final : public base {
-public:
-	explicit nombre_reel(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	bool est_constant() const override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class chaine_litterale final : public base {
-public:
-	explicit chaine_litterale(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	bool est_constant() const override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class tableau final : public base {
-public:
-	explicit tableau(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	bool est_constant() const override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class variable final : public base {
-public:
-	explicit variable(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class acces_membre_de final : public base {
-public:
-	explicit acces_membre_de(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class operation_binaire final : public base {
-public:
-	explicit operation_binaire(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	bool peut_etre_assigne(ContexteGenerationCode &contexte) const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class operation_unaire final : public base {
-public:
-	explicit operation_unaire(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class retourne final : public base {
-public:
-	explicit retourne(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class si final : public base {
-public:
-	explicit si(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class bloc final : public base {
-public:
-	explicit bloc(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class pour final : public base {
-public:
-	explicit pour(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class cont_arr final : public base {
-public:
-	explicit cont_arr(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class boucle final : public base {
-public:
-	explicit boucle(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class transtype final : public base {
-public:
-	explicit transtype(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class nul final : public base {
-public:
-	explicit nul(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class taille_de final : public base {
-public:
-	explicit taille_de(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class plage final : public base {
-public:
-	explicit plage(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class acces_membre_point final : public base {
-public:
-	explicit acces_membre_point(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
-
-/* ************************************************************************** */
-
-class differe final : public base {
-public:
-	explicit differe(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-};
-
-/* ************************************************************************** */
-
-class non_sur final : public base {
-public:
-	explicit non_sur(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
-
-	llvm::Value *genere_code_llvm(ContexteGenerationCode &contexte, bool const expr_gauche = false) override;
-
-	type_noeud type() const override;
-
-	void perfome_validation_semantique(ContexteGenerationCode &contexte) override;
-};
+/* Ajout le nom d'un argument à la liste des noms d'un noeud d'appel */
+void ajoute_nom_argument(base *b, const std::string_view &nom);
 
 }  /* namespace noeud */

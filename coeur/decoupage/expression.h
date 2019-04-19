@@ -27,7 +27,7 @@
 #include "morceaux.h"
 
 namespace noeud {
-class base;
+struct base;
 }
 
 class assembleuse_arbre;

@@ -37,10 +37,7 @@ struct DonneesMorceaux;
 class assembleuse_arbre {
 	std::stack<noeud::base *> m_pile{};
 	std::vector<noeud::base *> m_noeuds{};
-
-	std::list<noeud::operation_binaire *> noeuds_op_libres{};
-	std::list<noeud::nombre_entier *> noeuds_entier_libres{};
-	std::list<noeud::nombre_reel *> noeuds_reel_libres{};
+	std::list<noeud::base *> noeuds_libres{};
 
 	size_t m_memoire_utilisee = 0;
 
