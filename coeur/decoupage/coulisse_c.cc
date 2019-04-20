@@ -50,7 +50,7 @@ static void cree_appel(
 
 			os << "Tableau_";
 			auto &dt = contexte.magasin_types.donnees_types[enf->donnees_type];
-			contexte.magasin_types.converti_type_C("", dt.derefence(), os);
+			contexte.magasin_types.converti_type_C(contexte, "", dt.derefence(), os);
 
 			os << ' ' << nom_tableau << ";\n";
 			os << nom_tableau << ".taille = " << static_cast<size_t>(dt.type_base() >> 8) << ";\n";
@@ -77,6 +77,44 @@ static void cree_appel(
 	os << ')';
 }
 
+static void declare_structures_C(
+		ContexteGenerationCode &contexte,
+		std::ostream &os)
+{
+	for (auto const &paire : contexte.structures) {
+		os << "typedef struct " << paire.first << "{\n";
+
+		auto const &donnees = paire.second;
+
+		for (auto i = 0ul; i < donnees.donnees_types.size(); ++i) {
+			auto index_dt = donnees.donnees_types[i];
+			auto &dt = contexte.magasin_types.donnees_types[index_dt];
+
+			for (auto paire_idx_mb : donnees.index_membres) {
+				if (paire_idx_mb.second == i) {
+					auto nom = paire_idx_mb.first;
+
+					auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
+								nom,
+								dt,
+								os);
+
+					if (!est_tableau) {
+						os << ' ' << nom;
+					}
+
+					os << ";\n";
+					break;
+				}
+			}
+		}
+
+		os << "} " << paire.first << ";\n\n";
+	}
+
+	contexte.magasin_types.declare_structures_C(contexte, os);
+}
+
 void genere_code_C(
 		base *b,
 		ContexteGenerationCode &contexte,
@@ -95,7 +133,7 @@ void genere_code_C(
 				temps_validation += dls::chrono::delta(debut_validation);
 			}
 
-			contexte.magasin_types.declare_structures_C(os);
+			declare_structures_C(contexte, os);
 
 			for (auto noeud : b->enfants) {
 				auto debut_generation = dls::chrono::maintenant();
@@ -140,7 +178,7 @@ void genere_code_C(
 
 			/* Crée fonction */
 
-			auto est_tableau = contexte.magasin_types.converti_type_C(
+			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
 						nom_broye,
 						contexte.magasin_types.donnees_types[b->donnees_type],
 					os);
@@ -172,7 +210,7 @@ void genere_code_C(
 				//					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
 				//				}
 
-				est_tableau = contexte.magasin_types.converti_type_C(
+				est_tableau = contexte.magasin_types.converti_type_C(contexte,
 							nom,
 							contexte.magasin_types.donnees_types[argument.donnees_type],
 						os);
@@ -377,7 +415,7 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_VARIABLE:
 		{
-			auto est_tableau = contexte.magasin_types.converti_type_C(
+			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
 						b->chaine(),
 						contexte.magasin_types.donnees_types[b->donnees_type],
 					os);
@@ -671,12 +709,12 @@ void genere_code_C(
 
 				if (taille_tableau != 0) {
 					os << "\nfor (int __i = 0; __i <= " << taille_tableau << "-1; ++__i) {\n";
-					contexte.magasin_types.converti_type_C("", type_debut.derefence(), os);
+					contexte.magasin_types.converti_type_C(contexte, "", type_debut.derefence(), os);
 					os << " *" << enfant1->chaine() << " = &" << enfant2->chaine() << "[__i];\n";
 				}
 				else {
 					os << "\nfor (int __i = 0; __i <= " << enfant2->chaine() << ".taille - 1; ++__i) {\n";
-					contexte.magasin_types.converti_type_C("", type_debut.derefence(), os);
+					contexte.magasin_types.converti_type_C(contexte, "", type_debut.derefence(), os);
 					os << " *" << enfant1->chaine() << " = &" << enfant2->chaine() << ".pointeur[__i];\n";
 				}
 
@@ -777,7 +815,7 @@ void genere_code_C(
 			auto index_dt = std::any_cast<size_t>(b->valeur_calculee);
 			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
 			os << "sizeof(";
-			contexte.magasin_types.converti_type_C("", donnees, os);
+			contexte.magasin_types.converti_type_C(contexte, "", donnees, os);
 			os << ")";
 			break;
 		}
@@ -842,6 +880,46 @@ void genere_code_C(
 
 			//			/* alloue un tableau dynamique */
 			//			return converti_vers_tableau_dyn(contexte, pointeur_tableau, dt_tfixe);
+			break;
+		}
+		case type_noeud::CONSTRUIT_STRUCTURE:
+		{
+			auto liste_params = std::any_cast<std::vector<std::string_view>>(&b->valeur_calculee);
+
+			auto enfant = b->enfants.begin();
+			auto nom_param = liste_params->begin();
+			auto virgule = '{';
+
+			for (auto i = 0ul; i < liste_params->size(); ++i) {
+				os << virgule;
+
+				os << '.' << *nom_param << '=';
+				genere_code_C(*enfant, contexte, expr_gauche, os);
+				++enfant;
+				++nom_param;
+
+				virgule = ',';
+			}
+
+			os << '}';
+
+			break;
+		}
+		case type_noeud::CONSTRUIT_TABLEAU:
+		{
+			std::vector<base *> feuilles;
+			rassemble_feuilles(b, feuilles);
+
+			auto virgule = '{';
+
+			for (auto f : feuilles) {
+				os << virgule;
+				genere_code_C(f, contexte, false, os);
+				virgule = ',';
+			}
+
+			os << '}';
+
 			break;
 		}
 	}

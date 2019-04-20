@@ -69,6 +69,8 @@ enum class type_noeud : char {
 	DIFFERE,
 	NONSUR,
 	TABLEAU,
+	CONSTRUIT_TABLEAU,
+	CONSTRUIT_STRUCTURE,
 };
 
 const char *chaine_type_noeud(type_noeud type);
@@ -207,6 +209,10 @@ struct base {
 	 */
 	base *dernier_enfant() const;
 };
+
+void rassemble_feuilles(
+		base *noeud_base,
+		std::vector<base *> &feuilles);
 
 bool est_constant(base *b);
 

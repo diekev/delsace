@@ -276,18 +276,18 @@ static void test_construction(dls::test_unitaire::Controleuse &controleuse)
 		const char *texte =
 				R"(
 				structure Vecteur2D {
-					x : n32 = 0;
-					y : n32 = 1;
+					x : n32;
+					y : n32;
 				}
 
-				void foo()
+				fonction foo() : rien
 				{
 					soit v = Vecteur2D{x = 0, y = 1};
 				}
 				)";
 
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
-				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR, false);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
@@ -304,7 +304,7 @@ static void test_construction(dls::test_unitaire::Controleuse &controleuse)
 					y : n32;
 				}
 
-				void foo()
+				fonction foo() : rien
 				{
 					soit v = Vecteur2D{0, 1};
 				}

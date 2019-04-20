@@ -245,7 +245,7 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 				)";
 
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
-				texte, false, erreur::type_erreur::AUCUNE_ERREUR);
+				texte, false, erreur::type_erreur::AUCUNE_ERREUR, false);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}

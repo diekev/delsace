@@ -270,7 +270,6 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::NOMBRE_REEL)
 		CAS_TYPE(type_noeud::NOMBRE_ENTIER)
 		CAS_TYPE(type_noeud::OPERATION_BINAIRE)
-
 		CAS_TYPE(type_noeud::OPERATION_UNAIRE)
 		CAS_TYPE(type_noeud::RETOUR)
 		CAS_TYPE(type_noeud::CHAINE_LITTERALE)
@@ -283,12 +282,13 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::BOUCLE)
 		CAS_TYPE(type_noeud::TRANSTYPE)
 		CAS_TYPE(type_noeud::NUL)
-
 		CAS_TYPE(type_noeud::TAILLE_DE)
 		CAS_TYPE(type_noeud::PLAGE)
 		CAS_TYPE(type_noeud::DIFFERE)
 		CAS_TYPE(type_noeud::NONSUR)
 		CAS_TYPE(type_noeud::TABLEAU)
+		CAS_TYPE(type_noeud::CONSTRUIT_TABLEAU)
+		CAS_TYPE(type_noeud::CONSTRUIT_STRUCTURE)
 	}
 
 	return "erreur : type_noeud inconnu";
@@ -367,6 +367,22 @@ void base::imprime_code(std::ostream &os, int tab)
 id_morceau base::identifiant() const
 {
 	return morceau.identifiant;
+}
+
+/* ************************************************************************** */
+
+void rassemble_feuilles(
+		base *noeud_base,
+		std::vector<base *> &feuilles)
+{
+	for (auto enfant : noeud_base->enfants) {
+		if (enfant->identifiant() == id_morceau::VIRGULE) {
+			rassemble_feuilles(enfant, feuilles);
+		}
+		else {
+			feuilles.push_back(enfant);
+		}
+	}
 }
 
 /* ************************************************************************** */
@@ -2302,6 +2318,47 @@ llvm::Value *genere_code_llvm(
 			/* alloue un tableau dynamique */
 			return converti_vers_tableau_dyn(contexte, pointeur_tableau, dt_tfixe);
 		}
+		case type_noeud::CONSTRUIT_TABLEAU:
+		{
+			/* À FAIRE : le stockage n'a pas l'air de fonctionner. */
+			std::vector<base *> feuilles;
+			rassemble_feuilles(b, feuilles);
+
+			/* alloue de la place pour le tableau */
+			auto dt = contexte.magasin_types.donnees_types[b->donnees_type];
+			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt);
+
+			auto pointeur_tableau = new llvm::AllocaInst(
+										type_llvm,
+										0,
+										nullptr,
+										"",
+										contexte.bloc_courant());
+			pointeur_tableau->setAlignment(4); /* À FAIRE : nombre magic pour les z32 */
+
+			/* stocke les valeurs des feuilles */
+			auto index = 0ul;
+
+			for (auto f : feuilles) {
+				auto valeur = genere_code_enfant(contexte, f);
+
+				auto index_tableau = accede_element_tableau(
+										 contexte,
+										 pointeur_tableau,
+										 type_llvm,
+										 index++);
+
+				auto stocke = new llvm::StoreInst(valeur, index_tableau, contexte.bloc_courant());
+				stocke->setAlignment(4); /* À FAIRE : nombre magic pour les z32 */
+			}
+
+			return pointeur_tableau;
+		}
+		case type_noeud::CONSTRUIT_STRUCTURE:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
 	}
 
 	return nullptr;
@@ -3284,6 +3341,64 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.non_sur(true);
 			performe_validation_semantique(b->enfants.front(), contexte);
 			contexte.non_sur(false);
+
+			break;
+		}
+		case type_noeud::CONSTRUIT_TABLEAU:
+		{
+			std::vector<base *> feuilles;
+			rassemble_feuilles(b, feuilles);
+
+			for (auto f : feuilles) {
+				performe_validation_semantique(f, contexte);
+			}
+
+			if (feuilles.empty()) {
+				return;
+			}
+
+			auto premiere_feuille = feuilles.front();
+
+			auto type_feuille = premiere_feuille->donnees_type;
+
+			for (auto f : feuilles) {
+				/* À FAIRE : test */
+				if (f->donnees_type != type_feuille) {
+					auto dt_feuille0 = contexte.magasin_types.donnees_types[type_feuille];
+					auto dt_feuille1 = contexte.magasin_types.donnees_types[f->donnees_type];
+
+					erreur::lance_erreur_assignation_type_differents(
+								dt_feuille0,
+								dt_feuille1,
+								contexte,
+								f->morceau);
+				}
+			}
+
+			DonneesType dt;
+			dt.pousse(id_morceau::TABLEAU | static_cast<int>(feuilles.size() << 8));
+			dt.pousse(contexte.magasin_types.donnees_types[type_feuille]);
+
+			b->donnees_type = contexte.magasin_types.ajoute_type(dt);
+			break;
+		}
+		case type_noeud::CONSTRUIT_STRUCTURE:
+		{
+			/* cherche la structure dans le tableau de structure */
+			if (!contexte.structure_existe(b->chaine())) {
+				erreur::lance_erreur(
+							"Structure inconnue",
+							contexte,
+							b->morceau,
+							erreur::type_erreur::STRUCTURE_INCONNUE);
+			}
+
+			auto &donnees_struct = contexte.donnees_structure(b->chaine());
+
+			DonneesType dt;
+			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(donnees_struct.id) << 8));
+
+			b->donnees_type = contexte.magasin_types.ajoute_type(dt);
 
 			break;
 		}

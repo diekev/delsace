@@ -208,6 +208,7 @@ struct MagasinDonneesType {
 	size_t ajoute_type(const DonneesType &donnees);
 
 	bool converti_type_C(
+			ContexteGenerationCode &contexte,
 			std::string_view const &nom_variable,
 			DonneesType const &donnees,
 			std::ostream &os);
@@ -220,7 +221,9 @@ struct MagasinDonneesType {
 			ContexteGenerationCode &contexte,
 			size_t donnees);
 
-	void declare_structures_C(std::ostream &os);
+	void declare_structures_C(
+			ContexteGenerationCode &contexte,
+			std::ostream &os);
 };
 
 /* ************************************************************************** */

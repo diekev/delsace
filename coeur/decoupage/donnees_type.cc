@@ -193,21 +193,23 @@ size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 	return index;
 }
 
-void MagasinDonneesType::declare_structures_C(std::ostream &os)
+void MagasinDonneesType::declare_structures_C(
+		ContexteGenerationCode &contexte,
+		std::ostream &os)
 {
 	for (auto &donnees : donnees_types) {
 		if (donnees.type_base() == id_morceau::TABLEAU) {
 			os << "typedef struct Tableau_";
 
-			converti_type_C("", donnees.derefence(), os);
+			converti_type_C(contexte, "", donnees.derefence(), os);
 
 			os << "{\n\t";
 
-			converti_type_C("", donnees.derefence(), os);
+			converti_type_C(contexte, "", donnees.derefence(), os);
 
 			os << " *pointeur;\n\tint taille;\n} Tableau_";
 
-			converti_type_C("", donnees.derefence(), os);
+			converti_type_C(contexte, "", donnees.derefence(), os);
 
 			os << ";\n\n";
 		}
@@ -215,8 +217,9 @@ void MagasinDonneesType::declare_structures_C(std::ostream &os)
 }
 
 bool MagasinDonneesType::converti_type_C(
-		const std::string_view &nom_variable,
-		const DonneesType &donnees,
+		ContexteGenerationCode &contexte,
+		std::string_view const &nom_variable,
+		DonneesType const &donnees,
 		std::ostream &os)
 {
 	if (donnees.est_invalide()) {
@@ -225,7 +228,7 @@ bool MagasinDonneesType::converti_type_C(
 
 	if (donnees.type_base() == id_morceau::TABLEAU) {
 		os << "Tableau_";
-		return this->converti_type_C(nom_variable, donnees.derefence(), os);
+		return this->converti_type_C(contexte, nom_variable, donnees.derefence(), os);
 	}
 
 	auto debut = donnees.begin();
@@ -335,6 +338,13 @@ bool MagasinDonneesType::converti_type_C(
 			case id_morceau::RIEN:
 			{
 				os << "void";
+				break;
+			}
+			case id_morceau::CHAINE_CARACTERE:
+			{
+				auto id = static_cast<size_t>(donnee >> 8);
+				auto nom_structure = contexte.nom_struct(id);
+				os << nom_structure;
 				break;
 			}
 			default:

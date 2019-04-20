@@ -387,10 +387,11 @@ struct ContexteGenerationCode {
 	 */
 	bool non_sur() const;
 
+	std::unordered_map<std::string_view, DonneesStructure> structures{};
+
 private:
 	llvm::BasicBlock *m_bloc_courant = nullptr;
 	conteneur_globales globales{};
-	std::unordered_map<std::string_view, DonneesStructure> structures{};
 	std::vector<std::string_view> nom_structures{};
 
 	conteneur_locales m_locales{};

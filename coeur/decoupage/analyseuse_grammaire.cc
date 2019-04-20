@@ -187,6 +187,7 @@ static bool est_operateur_binaire(id_morceau identifiant)
 		case id_morceau::POINT:
 		case id_morceau::EGAL:
 		case id_morceau::TROIS_POINTS:
+		case id_morceau::VIRGULE:
 			return true;
 		default:
 			return false;
@@ -470,7 +471,7 @@ void analyseuse_grammaire::analyse_controle_si()
 
 	m_assembleuse->empile_noeud(type_noeud::SI, m_contexte, donnees());
 
-	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
+	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE, id_morceau::SI);
 
 	m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
 
@@ -548,7 +549,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 
 	/* enfant 2 : expr */
 
-	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE);
+	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE, id_morceau::POUR);
 
 	recule();
 
@@ -633,7 +634,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 			if (!est_identifiant(id_morceau::POINT_VIRGULE)) {
-				analyse_expression_droite(id_morceau::POINT_VIRGULE);
+				analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::RETOURNE);
 			}
 			else {
 				avance();
@@ -746,10 +747,10 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		}
 		/* appel : fais_quelque_chose(); */
 		else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
-			analyse_expression_droite(id_morceau::POINT_VIRGULE);
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::PARENTHESE_OUVRANTE);
 		}
 		else {
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, false, true);
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL, false, true);
 		}
 
 		/* Dans les fuzz-tests, c'est possible d'être bloqué dans une boucle
@@ -771,6 +772,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 void analyseuse_grammaire::analyse_expression_droite(
 		id_morceau identifiant_final,
+		id_morceau racine_expr,
 		bool const calcul_expression,
 		bool const assignation)
 {
@@ -826,6 +828,18 @@ void analyseuse_grammaire::analyse_expression_droite(
 					analyse_appel_fonction(noeud);
 
 					m_assembleuse->depile_noeud(type_noeud::APPEL_FONCTION);
+
+					expression.push_back(noeud);
+				}
+				/* construction structure : chaine + { */
+				else if (racine_expr == id_morceau::EGAL && est_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_STRUCTURE, m_contexte, morceau, false);
+
+					avance();
+
+					analyse_construction_structure(noeud);
+
+					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_STRUCTURE);
 
 					expression.push_back(noeud);
 				}
@@ -907,7 +921,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, m_contexte, morceau, false);
 
 				++m_profondeur;
-				analyse_expression_droite(id_morceau::DOUBLE_POINTS);
+				analyse_expression_droite(id_morceau::DOUBLE_POINTS, id_morceau::TRANSTYPE);
 				--m_profondeur;
 
 				noeud->donnees_type = analyse_declaration_type(nullptr, false);
@@ -999,6 +1013,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::BARRE_BARRE:
 			case id_morceau::BARRE:
 			case id_morceau::CHAPEAU:
+			case id_morceau::VIRGULE:
 			{
 				/* Correction de crash d'aléatest, improbable dans la vrai vie. */
 				if (expression.empty() && est_operateur_binaire(morceau.identifiant)) {
@@ -1046,16 +1061,32 @@ void analyseuse_grammaire::analyse_expression_droite(
 			}
 			case id_morceau::CROCHET_OUVRANT:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				/* l'accès à un élément d'un tableau est chaine[index] */
+				if (dernier_identifiant == id_morceau::CHAINE_CARACTERE) {
+					vide_pile_operateur(morceau.identifiant);
 
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
-				pile.push_back(noeud);
+					auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
+					pile.push_back(noeud);
 
-				++m_profondeur;
-				analyse_expression_droite(id_morceau::CROCHET_FERMANT);
-				--m_profondeur;
+					++m_profondeur;
+					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
+					--m_profondeur;
 
-				m_assembleuse->depile_noeud(type_noeud::OPERATION_BINAIRE);
+					m_assembleuse->depile_noeud(type_noeud::OPERATION_BINAIRE);
+				}
+				else {
+					/* change l'identifiant pour ne pas le confondre avec l'opérateur binaire [] */
+					morceau.identifiant = id_morceau::TABLEAU;
+					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_TABLEAU, m_contexte, morceau, false);
+
+					++m_profondeur;
+					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
+					--m_profondeur;
+
+					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_TABLEAU);
+
+					expression.push_back(noeud);
+				}
 
 				break;
 			}
@@ -1069,6 +1100,16 @@ void analyseuse_grammaire::analyse_expression_droite(
 				vide_pile_operateur(morceau.identifiant);
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, m_contexte, morceau);
 				pile.push_back(noeud);
+				break;
+			}
+			case id_morceau::ACCOLADE_FERMANTE:
+			{
+				/* une accolade fermante marque généralement la fin de la
+				 * construction d'une structure */
+				termine_boucle = true;
+				/* recule pour être synchroniser avec la sortie dans
+				 * analyse_construction_structure() */
+				recule();
 				break;
 			}
 			default:
@@ -1246,7 +1287,7 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
 		++m_profondeur;
-		analyse_expression_droite(id_morceau::VIRGULE);
+		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
 		--m_profondeur;
 	}
 }
@@ -1300,7 +1341,7 @@ void analyseuse_grammaire::analyse_declaration_variable(char drapeaux)
 		noeud_decl->drapeaux = drapeaux;
 		noeud->ajoute_noeud(noeud_decl);
 
-		analyse_expression_droite(id_morceau::POINT_VIRGULE);
+		analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
 
 		m_assembleuse->depile_noeud(type_noeud::ASSIGNATION_VARIABLE);
 	}
@@ -1383,7 +1424,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 
 		if (est_identifiant(id_morceau::EGAL)) {
 			avance();
-			analyse_expression_droite(id_morceau::VIRGULE, true);
+			analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL, true);
 
 			/* recule pour tester la virgule après */
 			recule();
@@ -1467,7 +1508,7 @@ size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_ty
 			if (this->identifiant_courant() != id_morceau::CROCHET_FERMANT) {
 				/* À FAIRE */
 #if 0
-				analyse_expression_droite(id_morceau::CROCHET_FERMANT, true);
+				analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT, true);
 #else
 				if (!requiers_nombre_entier()) {
 					lance_erreur("Attendu un nombre entier après [");
@@ -1516,6 +1557,38 @@ size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_ty
 	}
 
 	return m_contexte.magasin_types.ajoute_type(donnees_type);
+}
+
+void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
+{
+	auto liste_param = std::vector<std::string_view>{};
+
+	/* ici nous devons être au niveau du premier paramètre */
+	while (true) {
+		if (est_identifiant(type_id::ACCOLADE_FERMANTE)) {
+			avance();
+			noeud->calcule = true;
+			noeud->valeur_calculee = liste_param;
+			return;
+		}
+
+		if (!sont_2_identifiants(type_id::CHAINE_CARACTERE, type_id::EGAL)) {
+			lance_erreur(
+						"Le nom des membres est requis pour la construction de la structure",
+						erreur::type_erreur::MEMBRE_INCONNU);
+		}
+
+		avance();
+
+		auto nom = donnees().chaine;
+		liste_param.push_back(nom);
+
+		avance();
+
+		++m_profondeur;
+		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
+		--m_profondeur;
+	}
 }
 
 bool analyseuse_grammaire::requiers_identifiant_type()
