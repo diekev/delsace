@@ -25,6 +25,7 @@
 #include "assembleuse_arbre.h"
 
 #include "contexte_generation_code.h"
+#include "coulisse_c.hh"
 
 assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 {
@@ -107,6 +108,22 @@ void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_genera
 	}
 
 	noeud::genere_code_llvm(m_pile.top(), contexte_generation, false);
+}
+
+void assembleuse_arbre::genere_code_C(
+		ContexteGenerationCode &contexte_generation,
+		std::ostream &os)
+{
+	if (m_pile.empty()) {
+		return;
+	}
+
+	/* À FAIRE : évité d'inclure tout ça si non nécessaire */
+	os << "#include <stdio.h>\n\n";
+
+	noeud::genere_code_C(m_pile.top(), contexte_generation, false, os);
+
+	os << "\nint main(int argc, char **argv)\n{\nreturn principale(argc, argv);\n}\n";
 }
 
 void assembleuse_arbre::supprime_noeud(noeud::base *noeud)

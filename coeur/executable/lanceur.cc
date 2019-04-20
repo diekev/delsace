@@ -550,57 +550,78 @@ int main(int argc, char *argv[])
 			assembleuse.imprime_code(os);
 		}
 
-		auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
+		auto coulisse_LLVM = false;
+		if (coulisse_LLVM) {
+			auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
-		initialise_llvm();
+			initialise_llvm();
 
-		auto erreur = std::string{""};
-		auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
+			auto erreur = std::string{""};
+			auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
 
-		if (!cible) {
-			std::cerr << erreur << '\n';
-			return 1;
-		}
-
-		auto CPU = "generic";
-		auto feature = "";
-		auto options_cible = llvm::TargetOptions{};
-		auto RM = llvm::Optional<llvm::Reloc::Model>();
-		auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
-								 cible->createTargetMachine(
-									 triplet_cible, CPU, feature, options_cible, RM));
-
-		auto module = llvm::Module(nom_module.c_str(), contexte_generation.contexte);
-		module.setDataLayout(machine_cible->createDataLayout());
-		module.setTargetTriple(triplet_cible);
-
-		contexte_generation.module_llvm = &module;
-
-		initialise_optimisation(ops.optimisation, contexte_generation);
-
-		os << "Génération du code..." << std::endl;
-		assembleuse.genere_code_llvm(contexte_generation);
-		mem_arbre = assembleuse.memoire_utilisee();
-		nombre_noeuds = assembleuse.nombre_noeuds();
-
-		if (ops.emet_code_intermediaire) {
-			std::cerr <<  "------------------------------------------------------------------\n";
-			module.print(llvm::errs(), nullptr);
-			std::cerr <<  "------------------------------------------------------------------\n";
-		}
-
-		/* définition du fichier de sortie */
-		if (ops.emet_fichier_objet) {
-			os << "Écriture du code dans un fichier..." << std::endl;
-			auto debut_fichier_objet = dls::chrono::maintenant();
-			if (!ecris_fichier_objet(machine_cible.get(), module)) {
-				resultat = 1;
+			if (!cible) {
+				std::cerr << erreur << '\n';
+				return 1;
 			}
-			temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
 
-			auto debut_executable = dls::chrono::maintenant();
-			cree_executable(ops.chemin_sortie, chemin_racine_kuri);
-			temps_executable = dls::chrono::delta(debut_executable);
+			auto CPU = "generic";
+			auto feature = "";
+			auto options_cible = llvm::TargetOptions{};
+			auto RM = llvm::Optional<llvm::Reloc::Model>();
+			auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
+									 cible->createTargetMachine(
+										 triplet_cible, CPU, feature, options_cible, RM));
+
+			auto module = llvm::Module(nom_module.c_str(), contexte_generation.contexte);
+			module.setDataLayout(machine_cible->createDataLayout());
+			module.setTargetTriple(triplet_cible);
+
+			contexte_generation.module_llvm = &module;
+
+			initialise_optimisation(ops.optimisation, contexte_generation);
+
+			os << "Génération du code..." << std::endl;
+			assembleuse.genere_code_llvm(contexte_generation);
+			mem_arbre = assembleuse.memoire_utilisee();
+			nombre_noeuds = assembleuse.nombre_noeuds();
+
+			if (ops.emet_code_intermediaire) {
+				std::cerr <<  "------------------------------------------------------------------\n";
+				module.print(llvm::errs(), nullptr);
+				std::cerr <<  "------------------------------------------------------------------\n";
+			}
+
+			/* définition du fichier de sortie */
+			if (ops.emet_fichier_objet) {
+				os << "Écriture du code dans un fichier..." << std::endl;
+				auto debut_fichier_objet = dls::chrono::maintenant();
+				if (!ecris_fichier_objet(machine_cible.get(), module)) {
+					resultat = 1;
+				}
+				temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
+
+				auto debut_executable = dls::chrono::maintenant();
+				cree_executable(ops.chemin_sortie, chemin_racine_kuri);
+				temps_executable = dls::chrono::delta(debut_executable);
+			}
+		}
+		else {
+			os << "Génération du code..." << std::endl;
+
+			std::ofstream of;
+			of.open("/tmp/compilation_kuri.c");
+
+			assembleuse.genere_code_C(contexte_generation, of);
+
+			of.close();
+
+			auto commande = std::string("gcc /tmp/compilation_kuri.c -o ") + ops.chemin_sortie;
+
+			auto err = system(commande.c_str());
+
+			if (err != 0) {
+				std::cerr << "Ne peut pas créer l'executable !\n";
+			}
 		}
 
 		/* restore le dossier d'origine */

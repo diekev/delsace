@@ -37,6 +37,7 @@ set(SOURCES
 	arbre_syntactic.h
 	assembleuse_arbre.h
 	contexte_generation_code.h
+	coulisse_c.hh
     decoupeuse.h
 	donnees_type.h
 	erreur.h
@@ -49,6 +50,7 @@ set(SOURCES
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
 	contexte_generation_code.cc
+	coulisse_c.cc
     decoupeuse.cc
 	donnees_type.cc
 	erreur.cc

@@ -214,13 +214,45 @@ void ContexteGenerationCode::pousse_locale(
 		const bool est_variadique)
 {
 	if (m_locales.size() > m_nombre_locales) {
-		m_locales[m_nombre_locales] = {nom, {valeur, index_type, est_variable, est_variadique, {}}};
+		m_locales[m_nombre_locales] = {nom, {valeur, index_type, est_variable, est_variadique, 0, {}}};
 	}
 	else {
-		m_locales.push_back({nom, {valeur, index_type, est_variable, est_variadique, {}}});
+		m_locales.push_back({nom, {valeur, index_type, est_variable, est_variadique, 0, {}}});
 	}
 
 	++m_nombre_locales;
+}
+
+void ContexteGenerationCode::pousse_locale(
+		std::string_view const &nom,
+		size_t const &index_type,
+		char drapeaux)
+{
+	if (m_locales.size() > m_nombre_locales) {
+		m_locales[m_nombre_locales] = {nom, {nullptr, index_type, false, false, drapeaux, {}}};
+	}
+	else {
+		m_locales.push_back({nom, {nullptr, index_type, false, false, drapeaux, {}}});
+	}
+
+	++m_nombre_locales;
+}
+
+char ContexteGenerationCode::drapeaux_variable(std::string_view const &nom)
+{
+	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
+
+	auto iter = std::find_if(m_locales.begin(), iter_fin,
+							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+	{
+		return paire.first == nom;
+	});
+
+	if (iter == iter_fin) {
+		return 0;
+	}
+
+	return iter->second.drapeaux;
 }
 
 llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)

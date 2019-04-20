@@ -193,6 +193,158 @@ size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 	return index;
 }
 
+void MagasinDonneesType::declare_structures_C(std::ostream &os)
+{
+	for (auto &donnees : donnees_types) {
+		if (donnees.type_base() == id_morceau::TABLEAU) {
+			os << "typedef struct Tableau_";
+
+			converti_type_C("", donnees.derefence(), os);
+
+			os << "{\n\t";
+
+			converti_type_C("", donnees.derefence(), os);
+
+			os << " *pointeur;\n\tint taille;\n} Tableau_";
+
+			converti_type_C("", donnees.derefence(), os);
+
+			os << ";\n\n";
+		}
+	}
+}
+
+bool MagasinDonneesType::converti_type_C(
+		const std::string_view &nom_variable,
+		const DonneesType &donnees,
+		std::ostream &os)
+{
+	if (donnees.est_invalide()) {
+		return false;
+	}
+
+	if (donnees.type_base() == id_morceau::TABLEAU) {
+		os << "Tableau_";
+		return this->converti_type_C(nom_variable, donnees.derefence(), os);
+	}
+
+	auto debut = donnees.begin();
+	auto fin = donnees.end();
+
+	bool est_tableau = false;
+
+	for (;debut != fin; ++debut) {
+		auto donnee = *debut;
+		switch (donnee & 0xff) {
+			case id_morceau::POINTEUR:
+			{
+				os << '*';
+				break;
+			}
+			case id_morceau::TABLEAU:
+			{
+				auto taille = static_cast<size_t>(donnee >> 8);
+				if (!est_tableau) {
+					os << " " << nom_variable;
+				}
+
+				est_tableau = true;
+
+				os << '[' << taille << ']';
+
+				break;
+			}
+			case id_morceau::N8:
+			{
+				os << "unsigned char";
+				break;
+			}
+			case id_morceau::N16:
+			{
+				os << "unsigned short";
+				break;
+			}
+			case id_morceau::N32:
+				os << "unsigned int";
+				break;
+			case id_morceau::N64:
+			{
+				os << "unsigned long";
+				break;
+			}
+			case id_morceau::R16:
+			{
+				os << "float16";
+				break;
+			}
+			case id_morceau::R32:
+			{
+				os << "float";
+				break;
+			}
+			case id_morceau::R64:
+			{
+				os << "double";
+				break;
+			}
+			case id_morceau::Z8:
+			{
+				os << "char";
+				break;
+			}
+			case id_morceau::Z16:
+			{
+				os << "short";
+				break;
+			}
+			case id_morceau::Z32:
+			{
+				os << "int";
+				break;
+			}
+			case id_morceau::Z64:
+			{
+				os << "long";
+				break;
+			}
+			case id_morceau::BOOL:
+			{
+				os << "bool";
+				break;
+			}
+			case id_morceau::FONCTION:
+			{
+				/* À FAIRE */;
+				break;
+			}
+			case id_morceau::PARENTHESE_OUVRANTE:
+			{
+				os << '(';
+				break;
+			}
+			case id_morceau::PARENTHESE_FERMANTE:
+			{
+				os << ')';
+				break;
+			}
+			case id_morceau::VIRGULE:
+			{
+				os << ',';
+				break;
+			}
+			case id_morceau::RIEN:
+			{
+				os << "void";
+				break;
+			}
+			default:
+				break;
+		}
+	}
+
+	return est_tableau;
+}
+
 llvm::Type *MagasinDonneesType::converti_type(
 		ContexteGenerationCode &contexte,
 		const DonneesType &donnees)

@@ -30,6 +30,8 @@
 #include "donnees_type.h"
 #include "morceaux.h"
 
+char caractere_echape(char const *sequence);
+
 namespace llvm {
 class BasicBlock;
 class Value;
@@ -214,5 +216,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte);
 
 /* Ajout le nom d'un argument à la liste des noms d'un noeud d'appel */
 void ajoute_nom_argument(base *b, const std::string_view &nom);
+
+void verifie_compatibilite(
+		base *b,
+		ContexteGenerationCode &contexte,
+		const DonneesType &type_arg,
+		const DonneesType &type_enf,
+		base *enfant);
+
+bool peut_operer(
+		const DonneesType &type1,
+		const DonneesType &type2,
+		type_noeud type_gauche,
+		type_noeud type_droite);
 
 }  /* namespace noeud */

@@ -493,7 +493,7 @@ enum {
 	return valeur_enfant;
 }
 
-static void verifie_compatibilite(
+void verifie_compatibilite(
 		base *b,
 		ContexteGenerationCode &contexte,
 		const DonneesType &type_arg,
@@ -542,7 +542,7 @@ void ajoute_nom_argument(base *b, const std::string_view &nom)
 
 /* ************************************************************************** */
 
-static bool peut_operer(
+bool peut_operer(
 		const DonneesType &type1,
 		const DonneesType &type2,
 		type_noeud type_gauche,

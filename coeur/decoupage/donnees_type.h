@@ -207,6 +207,11 @@ struct MagasinDonneesType {
 
 	size_t ajoute_type(const DonneesType &donnees);
 
+	bool converti_type_C(
+			std::string_view const &nom_variable,
+			DonneesType const &donnees,
+			std::ostream &os);
+
 	llvm::Type *converti_type(
 			ContexteGenerationCode &contexte,
 			DonneesType const &donnees);
@@ -214,6 +219,8 @@ struct MagasinDonneesType {
 	llvm::Type *converti_type(
 			ContexteGenerationCode &contexte,
 			size_t donnees);
+
+	void declare_structures_C(std::ostream &os);
 };
 
 /* ************************************************************************** */

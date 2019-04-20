@@ -72,12 +72,17 @@ struct Metriques {
 	double temps_generation = 0.0;
 };
 
+enum {
+	BESOIN_DEREF = (1 << 0),
+};
+
 struct DonneesVariable {
 	llvm::Value *valeur{nullptr};
 	size_t donnees_type{-1ul};
 	bool est_dynamique = false;
 	bool est_variadic = false;
-	char pad[6] = {};
+	char drapeaux = 0;
+	char pad[5] = {};
 };
 
 struct DonneesStructure {
@@ -229,6 +234,13 @@ struct ContexteGenerationCode {
 			const size_t &index_type,
 			const bool est_variable,
 			const bool est_variadique);
+
+	void pousse_locale(
+			std::string_view const &nom,
+			size_t const &index_type,
+			char drapeaux);
+
+	char drapeaux_variable(std::string_view const &nom);
 
 	/**
 	 * Retourne un pointeur vers la valeur LLVM de la locale dont le nom est
