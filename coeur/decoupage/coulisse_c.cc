@@ -1672,6 +1672,16 @@ void genere_code_C(
 		case type_noeud::RELOGE:
 		{
 			/* À FAIRE */
+			// reloge [taille]z32 tabl;
+
+			// reloge chaine(taille) chn;
+			auto enfant = b->enfants.front();
+
+			os << "ptr = (type *)(realloc(ptr, nouvelle_taille);\n";
+			os << enfant->chaine() << ".pointeur = (char *)(realloc("
+			   << enfant->chaine() << ".pointeur, nouvelle_taille);\n";
+
+			os << enfant->chaine() << ".taille = 0;\n";
 			break;
 		}
 	}
