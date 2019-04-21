@@ -995,6 +995,9 @@ void genere_code_C(
 				os << nouvelle_expr;
 			}
 
+			/* pour les globales */
+			os << ";\n";
+
 			break;
 		}
 		case type_noeud::NOMBRE_REEL:
