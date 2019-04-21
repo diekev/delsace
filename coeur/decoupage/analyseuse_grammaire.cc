@@ -1156,6 +1156,65 @@ void analyseuse_grammaire::analyse_expression_droite(
 				recule();
 				break;
 			}
+			case id_morceau::LOGE:
+			{
+				if (est_identifiant(id_morceau::CHAINE)) {
+					auto noeud = m_assembleuse->empile_noeud(
+								type_noeud::LOGE,
+								m_contexte,
+								morceau,
+								false);
+
+					noeud->donnees_type = analyse_declaration_type(nullptr, false);
+
+					avance();
+
+					++m_profondeur;
+					analyse_expression_droite(type_id::POINT_VIRGULE, type_id::LOGE);
+					--m_profondeur;
+
+					if (!requiers_identifiant(type_id::PARENTHESE_FERMANTE)) {
+						lance_erreur("Attendu une paranthèse fermante ')");
+					}
+
+					m_assembleuse->depile_noeud(type_noeud::LOGE);
+
+					expression.push_back(noeud);
+				}
+				else {
+					auto noeud = m_assembleuse->cree_noeud(
+								type_noeud::LOGE,
+								m_contexte,
+								morceau);
+
+					noeud->donnees_type = analyse_declaration_type(nullptr, false);
+
+					expression.push_back(noeud);
+				}
+
+				break;
+			}
+			case id_morceau::DELOGE:
+			{
+				auto noeud = m_assembleuse->cree_noeud(
+							type_noeud::DELOGE,
+							m_contexte,
+							morceau);
+
+				if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+					lance_erreur("Attendu une chaîne de caractère après 'déloge'");
+				}
+
+				auto noeud_fils = m_assembleuse->cree_noeud(
+							type_noeud::VARIABLE,
+							m_contexte,
+							donnees());
+
+				noeud->ajoute_noeud(noeud_fils);
+
+				expression.push_back(noeud);
+				break;
+			}
 			default:
 			{
 				lance_erreur("Identifiant inattendu dans l'expression");
@@ -1336,7 +1395,7 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_variable(char drapeaux)
+void analyseuse_grammaire::analyse_declaration_variable(unsigned char drapeaux)
 {
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		if ((drapeaux & DYNAMIC) != 0) {

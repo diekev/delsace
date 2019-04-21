@@ -39,6 +39,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "de", id_morceau::DE },
 	{ "diffère", id_morceau::DIFFERE },
 	{ "dyn", id_morceau::DYN },
+	{ "déloge", id_morceau::DELOGE },
 	{ "eini", id_morceau::EINI },
 	{ "employant", id_morceau::EMPLOYANT },
 	{ "externe", id_morceau::EXTERNE },
@@ -46,6 +47,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "fonction", id_morceau::FONCTION },
 	{ "gabarit", id_morceau::GABARIT },
 	{ "importe", id_morceau::IMPORTE },
+	{ "loge", id_morceau::LOGE },
 	{ "mémoire", id_morceau::MEMOIRE },
 	{ "n16", id_morceau::N16 },
 	{ "n32", id_morceau::N32 },
@@ -57,6 +59,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "r16", id_morceau::R16 },
 	{ "r32", id_morceau::R32 },
 	{ "r64", id_morceau::R64 },
+	{ "reloge", id_morceau::RELOGE },
 	{ "retourne", id_morceau::RETOURNE },
 	{ "rien", id_morceau::RIEN },
 	{ "sansarrêt", id_morceau::SANSARRET },
@@ -210,6 +213,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::DIFFERE";
 		case id_morceau::DYN:
 			return "id_morceau::DYN";
+		case id_morceau::DELOGE:
+			return "id_morceau::DELOGE";
 		case id_morceau::EINI:
 			return "id_morceau::EINI";
 		case id_morceau::EMPLOYANT:
@@ -224,6 +229,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::GABARIT";
 		case id_morceau::IMPORTE:
 			return "id_morceau::IMPORTE";
+		case id_morceau::LOGE:
+			return "id_morceau::LOGE";
 		case id_morceau::MEMOIRE:
 			return "id_morceau::MEMOIRE";
 		case id_morceau::N16:
@@ -246,6 +253,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::R32";
 		case id_morceau::R64:
 			return "id_morceau::R64";
+		case id_morceau::RELOGE:
+			return "id_morceau::RELOGE";
 		case id_morceau::RETOURNE:
 			return "id_morceau::RETOURNE";
 		case id_morceau::RIEN:

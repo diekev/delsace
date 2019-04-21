@@ -119,7 +119,8 @@ void assembleuse_arbre::genere_code_C(
 	}
 
 	/* À FAIRE : évité d'inclure tout ça si non nécessaire */
-	os << "#include <stdio.h>\n\n";
+	os << "#include <stdio.h>\n";
+	os << "#include <stdlib.h>\n\n";
 
 	noeud::genere_code_C(m_pile.top(), contexte_generation, false, os);
 

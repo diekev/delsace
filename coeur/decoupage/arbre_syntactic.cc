@@ -58,6 +58,7 @@
  * - type 'chaîne'
  * - noeud 'mémoire'
  * - infos types
+ * - loge, déloge, reloge
  */
 
 /* ************************************************************************** */
@@ -298,6 +299,9 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::CONSTRUIT_TABLEAU)
 		CAS_TYPE(type_noeud::CONSTRUIT_STRUCTURE)
 		CAS_TYPE(type_noeud::TYPE_DE)
+		CAS_TYPE(type_noeud::LOGE)
+		CAS_TYPE(type_noeud::DELOGE)
+		CAS_TYPE(type_noeud::RELOGE)
 	}
 
 	return "erreur : type_noeud inconnu";
@@ -2512,6 +2516,21 @@ llvm::Value *genere_code_llvm(
 			/* À FAIRE */
 			return nullptr;
 		}
+		case type_noeud::LOGE:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
+		case type_noeud::DELOGE:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
+		case type_noeud::RELOGE:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
 	}
 
 	return nullptr;
@@ -3369,6 +3388,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
 					/* ok. */
 				}
+				else if (type.type_base() == id_morceau::CHAINE) {
+					/* ok. */
+				}
 				else {
 					auto valeur = contexte.est_locale_variadique(enfant2->chaine());
 
@@ -3394,6 +3416,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
 				index_type = contexte.magasin_types.ajoute_type(type.derefence());
+			}
+			else if (type.type_base() == id_morceau::CHAINE) {
+				auto dt = DonneesType{};
+				dt.pousse(id_morceau::Z8);
+
+				index_type = contexte.magasin_types.ajoute_type(dt);
+				enfant1->donnees_type = index_type;
 			}
 
 			auto est_dynamique = false;
@@ -3625,6 +3654,40 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto &dt_enfant = contexte.magasin_types.donnees_types[enfant->donnees_type];
 			b->donnees_type = contexte.magasin_types.ajoute_type(dt_enfant.derefence());
+			break;
+		}
+		case type_noeud::LOGE:
+		{
+			auto &dt = contexte.magasin_types.donnees_types[b->donnees_type];
+
+			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
+				/* transforme en type tableau dynamic */
+				auto taille = (static_cast<int>(dt.type_base() >> 8));
+				b->calcule = true;
+				b->valeur_calculee = taille;
+
+				auto ndt = DonneesType{};
+				ndt.pousse(id_morceau::TABLEAU);
+				ndt.pousse(dt.derefence());
+
+				b->donnees_type = contexte.magasin_types.ajoute_type(ndt);
+			}
+			else if (dt.type_base() == id_morceau::CHAINE) {
+				auto enfant = b->enfants.front();
+				performe_validation_semantique(enfant, contexte);
+			}
+
+			break;
+		}
+		case type_noeud::DELOGE:
+		{
+			auto enfant = b->enfants.front();
+			performe_validation_semantique(enfant, contexte);
+			break;
+		}
+		case type_noeud::RELOGE:
+		{
+			/* À FAIRE */
 			break;
 		}
 	}

@@ -83,7 +83,7 @@ private:
 	void analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool const calcul_expression = false, bool const assignation = false);
 	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure();
-	void analyse_declaration_variable(char drapeaux);
+	void analyse_declaration_variable(unsigned char drapeaux);
 	void analyse_declaration_enum();
 	size_t analyse_declaration_type(DonneesType *donnees_type_fonction = nullptr, bool double_point = true);
 	size_t analyse_declaration_type_ex(DonneesType *donnees_type_fonction = nullptr);

@@ -73,6 +73,9 @@ enum class type_noeud : char {
 	CONSTRUIT_TABLEAU,
 	CONSTRUIT_STRUCTURE,
 	TYPE_DE,
+	LOGE,
+	DELOGE,
+	RELOGE,
 };
 
 const char *chaine_type_noeud(type_noeud type);
@@ -158,6 +161,7 @@ enum {
 	CONVERTI_EINI    = (1 << 4),
 	EXTRAIT_EINI     = (1 << 5),
 	EXTRAIT_CHAINE_C = (1 << 6),
+	INDIRECTION_APPEL = (1 << 7),
 
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C,
 };
@@ -176,7 +180,7 @@ struct base {
 	size_t donnees_type = -1ul;
 
 	bool calcule = false;
-	char drapeaux = false;
+	unsigned char drapeaux = false;
 	bool est_externe = false;
 	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées
