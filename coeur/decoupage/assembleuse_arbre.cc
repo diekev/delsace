@@ -126,9 +126,13 @@ void assembleuse_arbre::genere_code_C(
 	os << "#include <unistd.h>\n";
 	os << "\n";
 
+	os << "#include <GL/glew.h>\n";
+	os << "#include <GLFW/glfw3.h>\n";
+	os << "\n";
+
 	noeud::genere_code_C(m_pile.top(), contexte_generation, false, os);
 
-	os << "\nint main(int argc, char **argv)\n{\nreturn principale(argc, argv);\n}\n";
+	os << "\nint main(int argc, char **argv)\n{\nglewExperimental = GL_TRUE;\nreturn principale(argc, argv);\n}\n";
 }
 
 void assembleuse_arbre::supprime_noeud(noeud::base *noeud)
