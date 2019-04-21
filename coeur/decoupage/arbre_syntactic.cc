@@ -2373,7 +2373,7 @@ llvm::Value *genere_code_llvm(
 		case type_noeud::TAILLE_DE:
 		{
 			auto dl = llvm::DataLayout(contexte.module_llvm);
-			auto donnees = std::any_cast<DonneesType>(b->valeur_calculee);
+			auto donnees = std::any_cast<size_t>(b->valeur_calculee);
 			auto type = contexte.magasin_types.converti_type(contexte, donnees);
 			auto taille = dl.getTypeAllocSize(type);
 
