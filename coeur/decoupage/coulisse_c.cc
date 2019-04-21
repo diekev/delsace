@@ -274,7 +274,7 @@ static std::string cree_info_type_C(
 			os << nom_info_type << ".id = TYPE_STRUCTURE;\n";
 			os << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
-			/* À FAIRE : crée un tableau fixe puis converti le en tableau dyn */
+			/* crée un tableau fixe puis converti le en tableau dyn */
 			auto nombre_membres = donnees_structure.donnees_types.size();
 
 			/* crée des structures pour chaque membre, et rassemble les pointeurs */
@@ -442,7 +442,7 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 
 	os << "eini " << nom_eini << ";\n";
 	os << nom_eini << ".pointeur = &" << nom_var << ";\n";
-	os << nom_eini << ".info = (InfoType *)(&" << nom_info_type << ");\n"; // À FAIRE
+	os << nom_eini << ".info = (InfoType *)(&" << nom_info_type << ");\n";
 
 	return nom_eini;
 }
@@ -719,7 +719,6 @@ void genere_code_C(
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
-			/* À FAIRE */
 			/* broyage du nom */
 			auto module = contexte.module(static_cast<size_t>(b->module_appel));
 			auto nom_module = module->nom;
