@@ -63,6 +63,7 @@ enum class type_noeud : char {
 	CONTINUE_ARRETE,
 	BOUCLE,
 	TRANSTYPE,
+	MEMOIRE,
 	NUL,
 	TAILLE_DE,
 	PLAGE,
@@ -71,6 +72,7 @@ enum class type_noeud : char {
 	TABLEAU,
 	CONSTRUIT_TABLEAU,
 	CONSTRUIT_STRUCTURE,
+	TYPE_DE,
 };
 
 const char *chaine_type_noeud(type_noeud type);
@@ -153,6 +155,11 @@ enum {
 	VARIADIC         = (1 << 1),
 	GLOBAL           = (1 << 2),
 	CONVERTI_TABLEAU = (1 << 3),
+	CONVERTI_EINI    = (1 << 4),
+	EXTRAIT_EINI     = (1 << 5),
+	EXTRAIT_CHAINE_C = (1 << 6),
+
+	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C,
 };
 
 namespace noeud {

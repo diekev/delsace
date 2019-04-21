@@ -131,3 +131,12 @@ find_package(Delsace COMPONENTS chrono langage tests REQUIRED)
 add_subdirectory(coeur)
 add_subdirectory(exemples)
 add_subdirectory(tests)
+
+set(FICHIERS_BIBLIOTHEQUES
+	bibliotheques/info_type.kuri
+)
+
+install(
+	FILES ${FICHIERS_BIBLIOTHEQUES}
+	DESTINATION bibliotheques
+)

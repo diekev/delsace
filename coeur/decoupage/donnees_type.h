@@ -211,7 +211,9 @@ struct MagasinDonneesType {
 			ContexteGenerationCode &contexte,
 			std::string_view const &nom_variable,
 			DonneesType const &donnees,
-			std::ostream &os);
+			std::ostream &os,
+			bool echappe = false,
+			bool echappe_struct = false);
 
 	llvm::Type *converti_type(
 			ContexteGenerationCode &contexte,
@@ -249,10 +251,23 @@ struct MagasinDonneesType {
 enum class type_noeud : char;
 
 enum class niveau_compat : char {
-	aucune,
-	ok,
-	converti_tableau,
+	aucune           = (     0),
+	ok               = (1 << 0),
+	converti_tableau = (1 << 1),
+	converti_eini    = (1 << 2),
+	extrait_eini     = (1 << 3),
+	extrait_chaine_c = (1 << 4),
 };
+
+inline niveau_compat operator&(niveau_compat id1, niveau_compat id2)
+{
+	return static_cast<niveau_compat>(static_cast<int>(id1) & static_cast<int>(id2));
+}
+
+inline niveau_compat operator|(niveau_compat id1, niveau_compat id2)
+{
+	return static_cast<niveau_compat>(static_cast<int>(id1) | static_cast<int>(id2));
+}
 
 /**
  * Retourne le niveau de compatibilité entre les deux types spécifiés.

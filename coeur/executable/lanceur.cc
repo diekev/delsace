@@ -535,15 +535,20 @@ int main(int argc, char *argv[])
 			chemin = std::filesystem::absolute(chemin);
 		}
 
-		auto dossier = chemin.parent_path();
-		std::filesystem::current_path(dossier);
-
 		auto nom_module = chemin.stem();
 
 		auto contexte_generation = ContexteGenerationCode{};
 		auto assembleuse = assembleuse_arbre(contexte_generation);
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
+
+		/* Charge d'abord le module d'informations de type */
+		charge_module(os, "bibliotheques/info_type", contexte_generation, {}, true);
+
+		/* Change le dossier courant et lance la compilation. */
+		auto dossier = chemin.parent_path();
+		std::filesystem::current_path(dossier);
+
 		charge_module(os, nom_module, contexte_generation, {}, true);
 
 		if (ops.emet_arbre) {

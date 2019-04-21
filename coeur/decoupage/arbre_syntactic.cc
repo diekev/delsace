@@ -46,12 +46,19 @@
 
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
+#include "info_type.hh"
 #include "erreur.h"
 #include "modules.hh"
 #include "morceaux.h"
 #include "nombres.h"
 
 #undef NOMME_IR
+
+/* À FAIRE (coulisse LLVM)
+ * - type 'chaîne'
+ * - noeud 'mémoire'
+ * - infos types
+ */
 
 /* ************************************************************************** */
 
@@ -281,6 +288,7 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::CONTINUE_ARRETE)
 		CAS_TYPE(type_noeud::BOUCLE)
 		CAS_TYPE(type_noeud::TRANSTYPE)
+		CAS_TYPE(type_noeud::MEMOIRE)
 		CAS_TYPE(type_noeud::NUL)
 		CAS_TYPE(type_noeud::TAILLE_DE)
 		CAS_TYPE(type_noeud::PLAGE)
@@ -289,6 +297,7 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::TABLEAU)
 		CAS_TYPE(type_noeud::CONSTRUIT_TABLEAU)
 		CAS_TYPE(type_noeud::CONSTRUIT_STRUCTURE)
+		CAS_TYPE(type_noeud::TYPE_DE)
 	}
 
 	return "erreur : type_noeud inconnu";
@@ -391,6 +400,10 @@ enum {
 	/* TABLEAUX */
 	POINTEUR_TABLEAU = 0,
 	TAILLE_TABLEAU = 1,
+
+	/* EINI */
+	POINTEUR_EINI = 0,
+	TYPE_EINI = 1,
 };
 
 [[nodiscard]] static llvm::Value *accede_membre_structure(
@@ -443,10 +456,11 @@ enum {
 				llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), index));
 }
 
-[[nodiscard]] static auto converti_vers_tableau_dyn(
+[[nodiscard]] static llvm::Value *converti_vers_tableau_dyn(
 		ContexteGenerationCode &contexte,
 		llvm::Value *tableau,
-		DonneesType const &donnees_type)
+		DonneesType const &donnees_type,
+		bool charge_ = true)
 {
 	/* trouve le type de la structure tableau */
 	auto deref = donnees_type.derefence();
@@ -489,21 +503,106 @@ enum {
 	stocke = new llvm::StoreInst(constante, ptr_taille, contexte.bloc_courant());
 	stocke->setAlignment(8);
 
-	charge = new llvm::LoadInst(alloc, "", contexte.bloc_courant());
-	charge->setAlignment(8);
-	return charge;
+	if (charge_) {
+		charge = new llvm::LoadInst(alloc, "", contexte.bloc_courant());
+		charge->setAlignment(8);
+		return charge;
+	}
+
+	return alloc;
+}
+
+[[nodiscard]] static llvm::Value *converti_vers_eini(
+		ContexteGenerationCode &contexte,
+		llvm::Value *valeur,
+		DonneesType &donnees_type,
+		bool charge_)
+{
+	/* alloue de l'espace pour un eini */
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::EINI);
+
+	auto type_eini_llvm = contexte.magasin_types.converti_type(contexte, dt);
+
+	auto alloc_eini = new llvm::AllocaInst(type_eini_llvm, 0, "", contexte.bloc_courant());
+	alloc_eini->setAlignment(8);
+
+	/* copie le pointeur de la valeur vers le type eini */
+	auto ptr_eini = accede_membre_structure(contexte, alloc_eini, POINTEUR_EINI);
+
+	/* Dans le cas des constantes, nous pouvons directement utiliser la valeur,
+	 * car il s'agit de l'adresse où elle est stockée. */
+	if (llvm::isa<llvm::Constant>(valeur) == false) {
+		auto charge_valeur = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+		valeur = charge_valeur->getPointerOperand();
+	}
+
+	auto transtype = new llvm::BitCastInst(
+						 valeur,
+						 llvm::Type::getInt8PtrTy(contexte.contexte),
+						 "",
+						 contexte.bloc_courant());
+
+	auto stocke = new llvm::StoreInst(transtype, ptr_eini, contexte.bloc_courant());
+	stocke->setAlignment(8);
+
+	/* copie le pointeur vers les infos du type du eini */
+	auto tpe_eini = accede_membre_structure(contexte, alloc_eini, TYPE_EINI);
+
+	auto ptr_info_type = cree_info_type(contexte, donnees_type);
+
+	stocke = new llvm::StoreInst(ptr_info_type, tpe_eini, contexte.bloc_courant());
+	stocke->setAlignment(8);
+
+	/* charge et retourne */
+	if (charge_) {
+		auto charge = new llvm::LoadInst(alloc_eini, "", contexte.bloc_courant());
+		charge->setAlignment(8);
+		return charge;
+	}
+
+	return alloc_eini;
 }
 
 [[nodiscard]] static llvm::Value *genere_code_enfant(
 		ContexteGenerationCode &contexte,
 		base *enfant)
 {
-	auto conversion = (enfant->drapeaux & CONVERTI_TABLEAU) != 0;
+	auto conversion = (enfant->drapeaux & MASQUE_CONVERSION) != 0;
 	auto valeur_enfant = genere_code_llvm(enfant, contexte, conversion);
 
 	if (conversion) {
-		auto const &dt = contexte.magasin_types.donnees_types[enfant->donnees_type];
-		valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt);
+		auto &dt = contexte.magasin_types.donnees_types[enfant->donnees_type];
+
+		if ((enfant->drapeaux & CONVERTI_TABLEAU) != 0) {
+			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt, false);
+		}
+
+		if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
+			valeur_enfant = converti_vers_eini(contexte, valeur_enfant, dt, false);
+		}
+
+		if ((enfant->drapeaux & EXTRAIT_EINI) != 0) {
+			auto ptr_valeur = accede_membre_structure(contexte, valeur_enfant, POINTEUR_EINI);
+
+			/* déréfence ce pointeur */
+			auto charge = new llvm::LoadInst(ptr_valeur, "", false, contexte.bloc_courant());
+			charge->setAlignment(8);
+
+			/* transtype le pointeur vers le bon type */
+			auto dt_vers = DonneesType{};
+			dt_vers.pousse(id_morceau::POINTEUR);
+			dt_vers.pousse(contexte.magasin_types.donnees_types[enfant->donnees_type]);
+
+			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt_vers);
+			valeur_enfant = new llvm::BitCastInst(charge, type_llvm, "", contexte.bloc_courant());
+
+			/* déréfence ce pointeur : après la portée */
+		}
+
+		auto charge = new llvm::LoadInst(valeur_enfant, "", contexte.bloc_courant());
+		//charge->setAlignment(8);
+		valeur_enfant = charge;
 	}
 
 	return valeur_enfant;
@@ -526,8 +625,17 @@ void verifie_compatibilite(
 					enfant->donnees_morceau(),
 					b->morceau);
 	}
-	else if (compat == niveau_compat::converti_tableau) {
+
+	if ((compat & niveau_compat::converti_tableau) != niveau_compat::aucune) {
 		enfant->drapeaux |= CONVERTI_TABLEAU;
+	}
+
+	if ((compat & niveau_compat::converti_eini) != niveau_compat::aucune) {
+		enfant->drapeaux |= CONVERTI_EINI;
+	}
+
+	if ((compat & niveau_compat::extrait_chaine_c) != niveau_compat::aucune) {
+		enfant->drapeaux |= EXTRAIT_CHAINE_C;
 	}
 }
 
@@ -1135,6 +1243,22 @@ llvm::Value *genere_code_llvm(
 				type_structure = type_structure.derefence();
 			}
 
+			if (type_structure.type_base() == id_morceau::EINI) {
+				auto valeur = genere_code_llvm(structure, contexte, true);
+
+				if (est_pointeur) {
+					valeur = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+				}
+
+				if (membre->chaine() == "pointeur") {
+					return accede_membre_structure(contexte, valeur, POINTEUR_EINI, true);
+				}
+
+				return accede_membre_structure(contexte, valeur, TYPE_EINI, true);
+			}
+
+			/* À FAIRE : chaine */
+
 			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
 				if (!contexte.non_sur() && expr_gauche) {
 					erreur::lance_erreur(
@@ -1183,7 +1307,9 @@ llvm::Value *genere_code_llvm(
 
 			llvm::Value *ret;
 
-			if (est_pointeur) {
+			/* À FAIRE : le pointeur vers l'InfoType (index = 0) d'un eini n'est pas
+			 * vraiment un pointeur, donc on ne devrait pas le déréférencé. */
+			if (est_pointeur && index_structure != 0) {
 				/* déréférence le pointeur en le chargeant */
 				auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
 				charge->setAlignment(8);
@@ -1301,8 +1427,17 @@ llvm::Value *genere_code_llvm(
 
 			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
 
-			if (compatibilite == niveau_compat::converti_tableau) {
+			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
 				expression->drapeaux |= CONVERTI_TABLEAU;
+			}
+
+			if ((compatibilite & niveau_compat::converti_eini) != niveau_compat::aucune) {
+				expression->drapeaux |= CONVERTI_EINI;
+			}
+
+			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
+				expression->drapeaux |= EXTRAIT_EINI;
+				expression->donnees_type = variable->donnees_type;
 			}
 
 			/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
@@ -2359,6 +2494,24 @@ llvm::Value *genere_code_llvm(
 			/* À FAIRE */
 			return nullptr;
 		}
+		case type_noeud::TYPE_DE:
+		{
+			auto enfant = b->enfants.front();
+
+			genere_code_llvm(enfant, contexte, false);
+
+			auto valeur = llvm::ConstantInt::get(
+							  llvm::Type::getInt64Ty(contexte.contexte),
+							  enfant->donnees_type,
+							  false);
+
+			return valeur;
+		}
+		case type_noeud::MEMOIRE:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
 	}
 
 	return nullptr;
@@ -2671,6 +2824,57 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if (type_structure.type_base() == id_morceau::POINTEUR) {
 				type_structure = type_structure.derefence();
+			}
+
+			if (type_structure.type_base() == id_morceau::CHAINE) {
+				if (membre->chaine() == "taille") {
+					auto dt = DonneesType{};
+					dt.pousse(id_morceau::Z64);
+					b->donnees_type = contexte.magasin_types.ajoute_type(dt);
+					return;
+				}
+
+				if (membre->chaine() == "pointeur") {
+					auto dt = DonneesType{};
+					dt.pousse(id_morceau::POINTEUR);
+					dt.pousse(id_morceau::Z8);
+					b->donnees_type = contexte.magasin_types.ajoute_type(dt);
+					return;
+				}
+
+				erreur::lance_erreur(
+							"'chaîne' ne possède pas cette propriété !",
+							contexte,
+							membre->donnees_morceau(),
+							erreur::type_erreur::MEMBRE_INCONNU);
+			}
+
+			if (type_structure.type_base() == id_morceau::EINI) {
+				if (membre->chaine() == "info") {
+					auto id_info_type = contexte.donnees_structure("InfoType").id;
+
+					auto dt = DonneesType{};
+					dt.pousse(id_morceau::POINTEUR);
+					dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(id_info_type << 8));
+
+					b->donnees_type = contexte.magasin_types.ajoute_type(dt);
+					return;
+				}
+
+				if (membre->chaine() == "pointeur") {
+					auto dt = DonneesType{};
+					dt.pousse(id_morceau::POINTEUR);
+					dt.pousse(id_morceau::Z8);
+
+					b->donnees_type = contexte.magasin_types.ajoute_type(dt);
+					return;
+				}
+
+				erreur::lance_erreur(
+							"'eini' ne possède pas cette propriété !",
+							contexte,
+							membre->donnees_morceau(),
+							erreur::type_erreur::MEMBRE_INCONNU);
 			}
 
 			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
@@ -3048,8 +3252,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			b->valeur_calculee = corrigee;
 
 			auto dt = DonneesType{};
-			dt.pousse(id_morceau::TABLEAU | static_cast<int>((corrigee.size() + 1) << 8));
-			dt.pousse(id_morceau::Z8);
+			dt.pousse(id_morceau::CHAINE);
 
 			b->donnees_type = contexte.magasin_types.ajoute_type(dt);
 
@@ -3156,6 +3359,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			performe_validation_semantique(enfant2, contexte);
 
+			/* À FAIRE : accès membre */
 			if (enfant2->type == type_noeud::PLAGE) {
 			}
 			else if (enfant2->type == type_noeud::VARIABLE) {
@@ -3399,7 +3603,28 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(donnees_struct.id) << 8));
 
 			b->donnees_type = contexte.magasin_types.ajoute_type(dt);
+			break;
+		}
+		case type_noeud::TYPE_DE:
+		{
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::N64);
+			//	/* À FAIRE : structure InfoType */
+			//	dt.pousse(id_morceau::CHAINE_CARACTERE);
 
+			b->donnees_type = contexte.magasin_types.ajoute_type(dt);
+			performe_validation_semantique(b->enfants.front(), contexte);
+			break;
+		}
+		case type_noeud::MEMOIRE:
+		{
+			/* À FAIRE : assert type est pointeur. */
+
+			auto enfant = b->enfants.front();
+			performe_validation_semantique(enfant, contexte);
+
+			auto &dt_enfant = contexte.magasin_types.donnees_types[enfant->donnees_type];
+			b->donnees_type = contexte.magasin_types.ajoute_type(dt_enfant.derefence());
 			break;
 		}
 	}

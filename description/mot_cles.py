@@ -24,6 +24,7 @@ mot_cles = [
 	u'vrai',
 	u'faux',
 	u'taille_de',
+	u'type_de',
 	u'mémoire',
 	u'type',
 	u'employant',
@@ -45,6 +46,8 @@ mot_cles = [
 	u'externe',
 	u'importe',
 	u'nonsûr',
+	u'eini',
+	u'chaîne',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -122,6 +125,7 @@ def enleve_accent(mot):
 	mot = mot.replace(u'ê', 'e')
 	mot = mot.replace(u'ô', 'o')
 	mot = mot.replace(u'û', 'u')
+	mot = mot.replace(u'î', 'i')
 
 	return mot
 
@@ -129,6 +133,8 @@ def enleve_accent(mot):
 def construit_structures():
 	structures = u''
 	structures += u'\nstruct DonneesMorceaux {\n'
+	structures += u'\tusing type = id_morceau;\n'
+	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n'
 	structures += u'\tstd::string_view chaine;\n'
 	structures += u'\tsize_t ligne_pos;\n'
 	structures += u'\tid_morceau identifiant;\n'

@@ -122,6 +122,8 @@ static bool est_identifiant_type(id_morceau identifiant)
 		case id_morceau::Z64:
 		case id_morceau::BOOL:
 		case id_morceau::RIEN:
+		case id_morceau::EINI:
+		case id_morceau::CHAINE:
 		case id_morceau::CHAINE_CARACTERE:
 			return true;
 		default:
@@ -903,6 +905,28 @@ void analyseuse_grammaire::analyse_expression_droite(
 				expression.push_back(noeud);
 				break;
 			}
+			case id_morceau::TYPE_DE:
+			{
+				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+					lance_erreur("Attendu '(' après 'type_de'");
+				}
+
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::TYPE_DE, m_contexte, morceau, false);
+
+				++m_profondeur;
+				analyse_expression_droite(id_morceau::INCONNU, id_morceau::TYPE_DE);
+				--m_profondeur;
+
+				m_assembleuse->depile_noeud(type_noeud::TYPE_DE);
+
+				/* vérifie mais n'avance pas */
+				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+					lance_erreur("Attendu ')' après l'expression de 'taille_de'");
+				}
+
+				expression.push_back(noeud);
+				break;
+			}
 			case id_morceau::VRAI:
 			case id_morceau::FAUX:
 			{
@@ -931,6 +955,26 @@ void analyseuse_grammaire::analyse_expression_droite(
 				}
 
 				m_assembleuse->depile_noeud(type_noeud::TRANSTYPE);
+				expression.push_back(noeud);
+				break;
+			}
+			case id_morceau::MEMOIRE:
+			{
+				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+					lance_erreur("Attendu '(' après 'mémoire'");
+				}
+
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::MEMOIRE, m_contexte, morceau, false);
+
+				++m_profondeur;
+				analyse_expression_droite(id_morceau::INCONNU, id_morceau::MEMOIRE);
+				--m_profondeur;
+
+				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+					lance_erreur("Attendu ')' après l'expression");
+				}
+
+				m_assembleuse->depile_noeud(type_noeud::MEMOIRE);
 				expression.push_back(noeud);
 				break;
 			}

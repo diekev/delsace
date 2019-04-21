@@ -26,6 +26,8 @@
 
 #include <delsace/chrono/chronometrage.hh>
 
+#include <iostream>
+
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "erreur.h"
@@ -35,6 +37,415 @@
 namespace noeud {
 
 /* ************************************************************************** */
+
+/* À FAIRE : trouve une bonne manière de générer des noms uniques. */
+/* À FAIRE : variables globales pour les info types. */
+static int index = 0;
+
+static auto cree_info_type_defaul_C(
+		std::ostream &os,
+		std::string const &id_type,
+		int nombre_base,
+		int profondeur)
+{
+	auto nom_info_type = "__info_type"
+			+ id_type
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur)
+			+ std::to_string(index++);
+
+	os << "InfoTypeEntier " << nom_info_type << ";\n";
+	os << nom_info_type << ".id = " << id_type << ";\n";
+
+	return nom_info_type;
+}
+
+static auto cree_info_type_entier_C(
+		std::ostream &os,
+		int taille_en_octet,
+		bool est_signe,
+		int nombre_base,
+		int profondeur)
+{
+	auto nom_info_type = "__info_type_entier"
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur)
+			+ std::to_string(index++);
+
+	os << "InfoTypeEntier " << nom_info_type << ";\n";
+	os << nom_info_type << ".id = TYPE_ENTIER;\n";
+	os << nom_info_type << ".est_signe = " << est_signe << ";\n";
+	os << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
+
+	return nom_info_type;
+}
+
+static auto cree_info_type_reel_C(
+		std::ostream &os,
+		int taille_en_octet,
+		int nombre_base,
+		int profondeur)
+{
+	auto nom_info_type = "__info_type_reel"
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur)
+			+ std::to_string(index++);
+
+	os << "InfoTypeReel " << nom_info_type << ";\n";
+	os << nom_info_type << ".id = TYPE_REEL;\n";
+	os << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
+
+	return nom_info_type;
+}
+
+static int taille_type_octet(DonneesType const &donnees_type)
+{
+	switch (donnees_type.type_base() & 0xff) {
+		default:
+		{
+			assert(false);
+			break;
+		}
+		case id_morceau::BOOL:
+		case id_morceau::N8:
+		case id_morceau::Z8:
+		{
+			return 1;
+		}
+		case id_morceau::N16:
+		case id_morceau::Z16:
+		{
+			return 2;
+		}
+		case id_morceau::R16:
+		{
+			/* À FAIRE : type r16 */
+			return 4;
+		}
+		case id_morceau::N32:
+		case id_morceau::Z32:
+		case id_morceau::R32:
+		{
+			return 4;
+		}
+		case id_morceau::N64:
+		case id_morceau::Z64:
+		case id_morceau::R64:
+		{
+			return 8;
+		}
+		case id_morceau::CHAINE_CARACTERE:
+		{
+			/* À FAIRE */
+			return 0;
+		}
+		case id_morceau::POINTEUR:
+		case id_morceau::FONCTION:
+		{
+			/* À FAIRE : pointeur 32-bit/64-bit */
+			return 8;
+		}
+		case id_morceau::TABLEAU:
+		case id_morceau::EINI:
+		case id_morceau::CHAINE:
+		{
+			return 16;
+		}
+		case id_morceau::RIEN:
+		{
+			return 0;
+		}
+	}
+}
+
+static std::string cree_info_type_C(
+		ContexteGenerationCode &contexte,
+		std::ostream &os,
+		DonneesType const &donnees_type,
+		int nombre_base,
+		int profondeur)
+{
+	auto valeur = std::string("");
+
+	switch (donnees_type.type_base() & 0xff) {
+		default:
+		{
+			assert(false);
+			break;
+		}
+		case id_morceau::BOOL:
+		{
+			valeur = cree_info_type_defaul_C(os, "TYPE_BOOLEEN", nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::N8:
+		{
+			valeur = cree_info_type_entier_C(os, 8, false, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::Z8:
+		{
+			valeur = cree_info_type_entier_C(os, 8, true, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::N16:
+		{
+			valeur = cree_info_type_entier_C(os, 16, false, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::Z16:
+		{
+			valeur = cree_info_type_entier_C(os, 16, true, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::N32:
+		{
+			valeur = cree_info_type_entier_C(os, 32, false, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::Z32:
+		{
+			valeur = cree_info_type_entier_C(os, 32, true, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::N64:
+		{
+			valeur = cree_info_type_entier_C(os, 64, false, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::Z64:
+		{
+			valeur = cree_info_type_entier_C(os, 64, true, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::R16:
+		{
+			/* À FAIRE : type r16 */
+			valeur = cree_info_type_reel_C(os, 32, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::R32:
+		{
+			valeur = cree_info_type_reel_C(os, 32, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::R64:
+		{
+			valeur = cree_info_type_reel_C(os, 64, nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::POINTEUR:
+		{
+			auto deref = donnees_type.derefence();
+			auto valeur_pointee = cree_info_type_C(contexte, os, deref, nombre_base, profondeur + 1);
+
+			auto nom_info_type = "__info_type_tableau"
+					+ std::to_string(nombre_base)
+					+ std::to_string(profondeur);
+
+			os << "InfoTypePointeur " << nom_info_type << ";\n";
+			os << nom_info_type << ".id = TYPE_POINTEUR;\n";
+			os << nom_info_type << ".type_pointe = (InfoType *)(&" << valeur_pointee << ");\n";
+
+			valeur = nom_info_type;
+			break;
+		}
+		case id_morceau::CHAINE_CARACTERE:
+		{
+			auto id_structure = static_cast<size_t>(donnees_type.type_base() >> 8);
+			auto donnees_structure = contexte.donnees_structure(id_structure);
+
+			auto nom_info_type = "__info_type_struct"
+					+ std::to_string(nombre_base)
+					+ std::to_string(profondeur);
+
+			/* crée la chaîne pour le nom */
+			auto nom_struct = contexte.nom_struct(id_structure);
+			auto nom_chaine = "__nom_"
+					+ nom_struct
+					+ std::to_string(nombre_base)
+					+ std::to_string(profondeur);
+
+			os << "chaine " << nom_chaine << " = ";
+			os << "{.pointeur = \"" << nom_struct << "\""
+			   << ", .taille = " << nom_struct.size() << "};\n";
+
+			os << "InfoTypeStructure " << nom_info_type << ";\n";
+			os << nom_info_type << ".id = TYPE_STRUCTURE;\n";
+			os << nom_info_type << ".nom = " << nom_chaine << ";\n";
+
+			/* À FAIRE : crée un tableau fixe puis converti le en tableau dyn */
+			auto nombre_membres = donnees_structure.donnees_types.size();
+
+			/* crée des structures pour chaque membre, et rassemble les pointeurs */
+			std::vector<std::string> pointeurs;
+			pointeurs.reserve(nombre_membres);
+
+			auto decalage = 0;
+
+			for (auto i = 0ul; i < donnees_structure.donnees_types.size(); ++i) {
+				auto index_dt = donnees_structure.donnees_types[i];
+				auto &dt = contexte.magasin_types.donnees_types[index_dt];
+
+				for (auto paire_idx_mb : donnees_structure.index_membres) {
+					if (paire_idx_mb.second != i) {
+						continue;
+					}
+
+					auto suffixe = std::to_string(i)
+							+ std::to_string(nombre_base)
+							+ std::to_string(profondeur);
+
+					auto nom_info_type_membre = "__info_type_membre" + suffixe;
+
+					auto struct_info_type_membre = cree_info_type_C(
+								contexte, os, dt, nombre_base + static_cast<int>(i), profondeur + 1);
+
+					os << "InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
+					os << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
+					os << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.size()  << ";\n";
+					os << nom_info_type_membre << ".decalage = " << decalage  << ";\n";
+					os << nom_info_type_membre << ".id = (InfoType *)(&" << struct_info_type_membre  << ");\n";
+
+					decalage += taille_type_octet(dt);
+
+					pointeurs.push_back(nom_info_type_membre);
+					break;
+				}
+			}
+
+			/* alloue un tableau fixe pour stocker les pointeurs */
+			auto idx_type_tabl = contexte.donnees_structure("InfoTypeMembreStructure").id;
+			auto type_struct_membre = DonneesType{};
+			type_struct_membre.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(idx_type_tabl << 8));
+
+			auto dt_tfixe = DonneesType{};
+			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(nombre_membres << 8));
+			dt_tfixe.pousse(type_struct_membre);
+
+			auto nom_tableau_fixe = std::string("__tabl_fix_membres")
+					+ std::to_string(nombre_base)
+					+ std::to_string(profondeur);
+
+			contexte.magasin_types.converti_type_C(
+						contexte, nom_tableau_fixe, dt_tfixe, os);
+
+			os << " = ";
+
+			auto virgule = '{';
+
+			for (auto const &ptr : pointeurs) {
+				os << virgule;
+				os << ptr;
+				virgule = ',';
+			}
+
+			os << "};\n";
+
+			/* alloue un tableau dynamique */
+			auto dt_tdyn = DonneesType{};
+			dt_tdyn.pousse(id_morceau::TABLEAU);
+			dt_tdyn.pousse(type_struct_membre);
+
+			auto nom_tableau_dyn = std::string("__tabl_dyn_membres")
+					+ std::to_string(nombre_base)
+					+ std::to_string(profondeur);
+
+			contexte.magasin_types.converti_type_C(
+						contexte, nom_tableau_fixe, dt_tdyn, os);
+
+			os << ' ' << nom_tableau_dyn << ";\n";
+			os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
+			os << nom_tableau_dyn << ".taille = " << nombre_membres << ";\n";
+
+			os << nom_info_type << ".membres = " << nom_tableau_dyn << ";\n";
+
+			valeur = nom_info_type;
+			break;
+		}
+		case id_morceau::TABLEAU:
+		{
+			auto deref = donnees_type.derefence();
+			auto valeur_pointee = cree_info_type_C(contexte, os, deref, nombre_base, profondeur + 1);
+
+			auto nom_info_type = "__info_type_tableau"
+					+ std::to_string(nombre_base)
+					+ std::to_string(profondeur);
+
+			os << "InfoTypeTableau " << nom_info_type << ";\n";
+			os << nom_info_type << ".id = TYPE_TABLEAU;\n";
+			os << nom_info_type << ".type_pointe = (InfoType *)(&" << valeur_pointee << ");\n";
+
+			valeur = nom_info_type;
+			break;
+		}
+		case id_morceau::FONCTION:
+		{
+			/* À FAIRE : type params */
+			valeur = cree_info_type_defaul_C(os, "TYPE_FONCTION", nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::EINI:
+		{
+			valeur = cree_info_type_defaul_C(os, "TYPE_EINI", nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::RIEN:
+		{
+			valeur = cree_info_type_defaul_C(os, "TYPE_RIEN", nombre_base, profondeur);
+			break;
+		}
+		case id_morceau::CHAINE:
+		{
+			valeur = cree_info_type_defaul_C(os, "TYPE_CHAINE", nombre_base, profondeur);
+			break;
+		}
+	}
+
+	return valeur;
+}
+
+static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *b)
+{
+	auto nom_eini = std::string("__eini_")
+			.append(std::to_string(b->morceau.ligne_pos));
+
+	auto nom_var = std::string(b->chaine());
+
+	auto &dt = contexte.magasin_types.donnees_types[b->donnees_type];
+
+	/* dans le cas d'un nombre ou d'un tableau, etc. */
+	if (b->type != type_noeud::VARIABLE) {
+		nom_var = std::string("__var_").append(nom_eini);
+
+		auto est_tableau = contexte.magasin_types.converti_type_C(
+					contexte,
+					nom_var,
+					dt,
+					os);
+
+		if (!est_tableau) {
+			os << " " << nom_var;
+		}
+
+		os << " = ";
+		genere_code_C(b, contexte, false, os);
+		os << ";\n";
+	}
+
+	auto nom_info_type = cree_info_type_C(
+				contexte,
+				os,
+				dt,
+				static_cast<int>(b->morceau.ligne_pos >> 32),
+				0);
+
+	os << "eini " << nom_eini << ";\n";
+	os << nom_eini << ".pointeur = &" << nom_var << ";\n";
+	os << nom_eini << ".info = (InfoType *)(&" << nom_info_type << ");\n"; // À FAIRE
+
+	return nom_eini;
+}
 
 template <typename Conteneur>
 static void cree_appel(
@@ -56,6 +467,33 @@ static void cree_appel(
 			os << nom_tableau << ".taille = " << static_cast<size_t>(dt.type_base() >> 8) << ";\n";
 			os << nom_tableau << ".pointeur = " << enf->chaine() << ";\n";
 		}
+		else if ((enf->drapeaux & CONVERTI_EINI) != 0) {
+			enf->valeur_calculee = cree_eini(contexte, os, enf);
+		}
+		else if ((enf->drapeaux & EXTRAIT_CHAINE_C) != 0) {
+			auto nom_var_chaine = std::string("");
+
+			if (enf->type != type_noeud::VARIABLE) {
+				nom_var_chaine = "__chaine" + std::to_string(enf->morceau.ligne_pos);
+
+				os << "chaine " << nom_var_chaine << " = ";
+				genere_code_C(enf, contexte, false, os);
+				os << ";\n";
+			}
+			else {
+				nom_var_chaine = enf->chaine();
+			}
+
+			auto nom_var = "__pointeur" + std::to_string(enf->morceau.ligne_pos);
+
+			os << "const char *" + nom_var;
+			os << " = " << nom_var_chaine << ".pointeur;\n";
+
+			enf->valeur_calculee = nom_var;
+		}
+		else if (enf->type == type_noeud::TABLEAU) {
+			genere_code_C(enf, contexte, false, os);
+		}
 	}
 
 	os << nom_broye;
@@ -65,6 +503,15 @@ static void cree_appel(
 		os << virgule;
 
 		if ((enf->drapeaux & CONVERTI_TABLEAU) != 0) {
+			os << std::any_cast<std::string>(enf->valeur_calculee);
+		}
+		else if ((enf->drapeaux & CONVERTI_EINI) != 0) {
+			os << std::any_cast<std::string>(enf->valeur_calculee);
+		}
+		else if ((enf->drapeaux & EXTRAIT_CHAINE_C) != 0) {
+			os << std::any_cast<std::string>(enf->valeur_calculee);
+		}
+		else if (enf->type == type_noeud::TABLEAU) {
 			os << std::any_cast<std::string>(enf->valeur_calculee);
 		}
 		else {
@@ -81,10 +528,14 @@ static void declare_structures_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os)
 {
-	for (auto const &paire : contexte.structures) {
-		os << "typedef struct " << paire.first << "{\n";
+	contexte.magasin_types.declare_structures_C(contexte, os);
 
-		auto const &donnees = paire.second;
+	/* À FAIRE : optimise. */
+	for (auto is = 0ul; is < contexte.structures.size(); ++is) {
+		auto const &nom_struct = contexte.nom_struct(is);
+		os << "typedef struct " << contexte.nom_struct(is) << "{\n";
+
+		auto const &donnees = contexte.donnees_structure(is);
 
 		for (auto i = 0ul; i < donnees.donnees_types.size(); ++i) {
 			auto index_dt = donnees.donnees_types[i];
@@ -94,10 +545,13 @@ static void declare_structures_C(
 				if (paire_idx_mb.second == i) {
 					auto nom = paire_idx_mb.first;
 
-					auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
+					auto est_tableau = contexte.magasin_types.converti_type_C(
+								contexte,
 								nom,
 								dt,
-								os);
+								os,
+								false,
+								true);
 
 					if (!est_tableau) {
 						os << ' ' << nom;
@@ -109,10 +563,8 @@ static void declare_structures_C(
 			}
 		}
 
-		os << "} " << paire.first << ";\n\n";
+		os << "} " << nom_struct << ";\n\n";
 	}
-
-	contexte.magasin_types.declare_structures_C(contexte, os);
 }
 
 void genere_code_C(
@@ -199,21 +651,23 @@ void genere_code_C(
 				auto &argument = donnees_fonction.args[nom];
 				auto index_type = argument.donnees_type;
 
-				/* à faire : type */
-				//				if (argument.est_variadic) {
-				//					auto dt = DonneesType{};
-				//					dt.pousse(id_morceau::TABLEAU);
-				//					dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
+				auto dt = DonneesType{};
 
-				//				}
-				//				else {
-				//					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
-				//				}
+				if (argument.est_variadic) {
+					dt.pousse(id_morceau::TABLEAU);
+					dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
 
-				est_tableau = contexte.magasin_types.converti_type_C(contexte,
+					contexte.magasin_types.ajoute_type(dt);
+				}
+				else {
+					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
+				}
+
+				est_tableau = contexte.magasin_types.converti_type_C(
+							contexte,
 							nom,
-							contexte.magasin_types.donnees_types[argument.donnees_type],
-						os);
+							dt,
+							os);
 
 				if (!est_tableau) {
 					os << " " << nom;
@@ -294,7 +748,8 @@ void genere_code_C(
 				auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
 				auto index_premier_var_arg = nombre_args - 1;
 
-				noeud_tableau = new base(contexte, {});
+				noeud_tableau = new base(contexte, b->morceau);
+				noeud_tableau->type = type_noeud::TABLEAU;
 				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
 				noeud_tableau->calcule = true;
 				auto nom_arg = donnees_fonction.nom_args.back();
@@ -353,10 +808,12 @@ void genere_code_C(
 			auto drapeaux = contexte.drapeaux_variable(b->morceau.chaine);
 
 			if ((drapeaux & BESOIN_DEREF) != 0) {
-				os << '*';
+				os << "(*" << b->chaine() << ")";
+			}
+			else {
+				os << b->chaine();
 			}
 
-			os << b->morceau.chaine;
 			break;
 		}
 		case type_noeud::ACCES_MEMBRE:
@@ -390,7 +847,9 @@ void genere_code_C(
 				}
 			}
 
-			os << structure->chaine() << ((est_pointeur) ? "->" : ".") << membre->chaine();
+			genere_code_C(structure, contexte, true, os);
+			os << ((est_pointeur) ? "->" : ".") << membre->chaine();
+
 			break;
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
@@ -408,7 +867,7 @@ void genere_code_C(
 						b->enfants.front()->chaine(),
 						b->enfants.front()->identifiant());
 
-			os << "int " << b->morceau.chaine << '=' << n << ';';
+			os << "int " << b->morceau.chaine << '=' << n << ";\n";
 
 			contexte.pousse_globale(b->morceau.chaine, nullptr, b->donnees_type, false);
 			break;
@@ -448,15 +907,53 @@ void genere_code_C(
 			auto expression = b->enfants.back();
 
 			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
+			auto expression_modifiee = false;
+			auto nouvelle_expr = std::string();
 
 			/* À FAIRE */
-			if (compatibilite == niveau_compat::converti_tableau) {
+			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
 				expression->drapeaux |= CONVERTI_TABLEAU;
+			}
+
+			if ((compatibilite & niveau_compat::converti_eini) != niveau_compat::aucune) {
+				expression->drapeaux |= CONVERTI_EINI;
+				expression_modifiee = true;
+
+				nouvelle_expr = cree_eini(contexte, os, expression);
+			}
+
+			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
+				expression->drapeaux |= EXTRAIT_EINI;
+				expression->donnees_type = variable->donnees_type;
+				expression_modifiee = true;
+
+				auto nom_eini = std::string("__eini_ext_")
+						.append(std::to_string(expression->morceau.ligne_pos >> 32));
+
+				auto &dt = contexte.magasin_types.donnees_types[expression->donnees_type];
+
+				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+
+				os << " " << nom_eini << " = *(";
+
+				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+
+				os << " *)(";
+				genere_code_C(expression, contexte, false, os);
+				os << ".pointeur);\n";
+
+				nouvelle_expr = nom_eini;
 			}
 
 			genere_code_C(variable, contexte, true, os);
 			os << " = ";
-			genere_code_C(expression, contexte, false, os);
+
+			if (!expression_modifiee) {
+				genere_code_C(expression, contexte, false, os);
+			}
+			else {
+				os << nouvelle_expr;
+			}
 
 			break;
 		}
@@ -524,7 +1021,7 @@ void genere_code_C(
 									erreur::type_erreur::TYPE_DIFFERENTS);
 					}
 
-					os << enfant2->chaine();
+					genere_code_C(enfant2, contexte, valeur2_brut, os);
 					os << '[';
 					genere_code_C(enfant1, contexte, valeur2_brut, os);
 					os << ']';
@@ -593,6 +1090,8 @@ void genere_code_C(
 		case type_noeud::CHAINE_LITTERALE:
 		{
 			auto chaine = std::any_cast<std::string>(b->valeur_calculee);
+
+			os << "{.pointeur=";
 			os << '"';
 
 			for (auto c : chaine) {
@@ -608,6 +1107,7 @@ void genere_code_C(
 			}
 
 			os << '"';
+			os << ", .taille=" << chaine.size() << "}";
 			break;
 		}
 		case type_noeud::BOOLEEN:
@@ -619,8 +1119,17 @@ void genere_code_C(
 		}
 		case type_noeud::CARACTERE:
 		{
-			auto valeur = caractere_echape(&b->morceau.chaine[0]);
-			os << '\'' << valeur << '\'';
+			auto c = b->morceau.chaine[0];
+
+			os << '\'';
+			if (c == '\\') {
+				os << c << b->morceau.chaine[1];
+			}
+			else {
+				os << c;
+			}
+
+			os << '\'';
 			break;
 		}
 		case type_noeud::SI:
@@ -784,7 +1293,7 @@ void genere_code_C(
 			//	contexte.empile_bloc_continue("", bloc_boucle);
 			//contexte.empile_bloc_arrete("", (enfant2 != nullptr) ? bloc_sinon : bloc_apres);
 
-			os << "while true {\n";
+			os << "while (1) {\n";
 
 			/* on crée une branche explicite dans le bloc */
 			genere_code_C(enfant1, contexte, false, os);
@@ -802,8 +1311,37 @@ void genere_code_C(
 		}
 		case type_noeud::TRANSTYPE:
 		{
-			/* À FAIRE */
-			break;
+			auto enfant = b->enfants.front();
+			auto const &index_type_de = enfant->donnees_type;
+
+			if (index_type_de == b->donnees_type) {
+				genere_code_C(enfant, contexte, false, os);
+				return;
+			}
+
+			auto const &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
+
+			auto const &dt = contexte.magasin_types.donnees_types[b->donnees_type];
+
+			auto type_de = donnees_type_de.type_base();
+			auto type_vers = dt.type_base();
+
+			/* À FAIRE : vérifie compatibilité */
+			if (type_de == id_morceau::POINTEUR && type_vers == id_morceau::POINTEUR) {
+				os << "(";
+				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+				os << ")(";
+				genere_code_C(enfant, contexte, false, os);
+				os << ")";
+				return;
+			}
+
+			/* À FAIRE : BitCast (Type Cast) */
+			erreur::lance_erreur_type_operation(
+						donnees_type_de,
+						dt,
+						contexte,
+						b->donnees_morceau());
 		}
 		case type_noeud::NUL:
 		{
@@ -839,47 +1377,69 @@ void genere_code_C(
 		}
 		case type_noeud::TABLEAU:
 		{
-			/* converti un tableau fixe un en tableau dynamic */
+			/* utilisé principalement pour convertir les listes d'arguments
+			 * variadics en un tableau */
 
-			//			auto taille_tableau = b->enfants.size();
+			auto taille_tableau = b->enfants.size();
 
-			//			if (b->calcule) {
-			//				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
-			//			}
+			if (b->calcule) {
+				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
+			}
 
-			//			auto &type = contexte.magasin_types.donnees_types[b->donnees_type];
+			auto &type = contexte.magasin_types.donnees_types[b->donnees_type];
 
-			//			/* alloue un tableau fixe */
-			//			auto dt_tfixe = DonneesType{};
-			//			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
-			//			dt_tfixe.pousse(type);
+			/* cherche si une conversion est requise */
+			for (auto enfant : b->enfants) {
+				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
+					enfant->valeur_calculee = cree_eini(contexte, os, enfant);
+				}
+			}
 
-			//			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt_tfixe);
+			/* alloue un tableau fixe */
+			auto dt_tfixe = DonneesType{};
+			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
+			dt_tfixe.pousse(type);
 
-			//			auto pointeur_tableau = new llvm::AllocaInst(
-			//										type_llvm,
-			//										0,
-			//										nullptr,
-			//										"",
-			//										contexte.bloc_courant());
+			auto nom_tableau_fixe = std::string("__tabl_fix")
+					.append(std::to_string(b->morceau.ligne_pos >> 32));
 
-			//			/* copie les valeurs dans le tableau fixe */
-			//			auto index = 0ul;
+			contexte.magasin_types.converti_type_C(
+						contexte, nom_tableau_fixe, dt_tfixe, os);
 
-			//			for (auto enfant : b->enfants) {
-			//				auto valeur_enfant = genere_code_enfant(contexte, enfant);
+			os << " = ";
 
-			//				auto index_tableau = accede_element_tableau(
-			//										 contexte,
-			//										 pointeur_tableau,
-			//										 type_llvm,
-			//										 index++);
+			auto virgule = '{';
 
-			//				new llvm::StoreInst(valeur_enfant, index_tableau, contexte.bloc_courant());
-			//			}
+			for (auto enfant : b->enfants) {
+				os << virgule;
+				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
+					os << std::any_cast<std::string>(enfant->valeur_calculee);
+				}
+				else {
+					genere_code_C(enfant, contexte, false, os);
+				}
 
-			//			/* alloue un tableau dynamique */
-			//			return converti_vers_tableau_dyn(contexte, pointeur_tableau, dt_tfixe);
+				virgule = ',';
+			}
+
+			os << "};\n";
+
+			/* alloue un tableau dynamique */
+			auto dt_tdyn = DonneesType{};
+			dt_tdyn.pousse(id_morceau::TABLEAU);
+			dt_tdyn.pousse(type);
+
+			auto nom_tableau_dyn = std::string("__tabl_dyn")
+					.append(std::to_string(b->morceau.ligne_pos >> 32));
+
+			contexte.magasin_types.converti_type_C(
+						contexte, nom_tableau_fixe, dt_tdyn, os);
+
+			os << ' ' << nom_tableau_dyn << ";\n";
+			os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
+			os << nom_tableau_dyn << ".taille = " << taille_tableau << ";\n";
+
+			b->valeur_calculee = nom_tableau_dyn;
 			break;
 		}
 		case type_noeud::CONSTRUIT_STRUCTURE:
@@ -920,6 +1480,19 @@ void genere_code_C(
 
 			os << '}';
 
+			break;
+		}
+		case type_noeud::TYPE_DE:
+		{
+			auto enfant = b->enfants.front();
+			os << enfant->donnees_type;
+			break;
+		}
+		case type_noeud::MEMOIRE:
+		{
+			os << "*(";
+			genere_code_C(b->enfants.front(), contexte, false, os);
+			os << ")";
 			break;
 		}
 	}

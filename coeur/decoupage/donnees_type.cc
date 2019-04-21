@@ -153,6 +153,9 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				case id_morceau::BOOL:
 					os << "bool";
 					break;
+				case id_morceau::CHAINE:
+					os << "chaîne";
+					break;
 				case id_morceau::FONCTION:
 					os << "fonction";
 					break;
@@ -164,6 +167,9 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 					break;
 				case id_morceau::VIRGULE:
 					os << ',';
+					break;
+				case id_morceau::EINI:
+					os << "eini";
 					break;
 				default:
 					os << chaine_identifiant(donnee & 0xff);
@@ -197,19 +203,22 @@ void MagasinDonneesType::declare_structures_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os)
 {
+	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n\n";
+	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n\n";
+
 	for (auto &donnees : donnees_types) {
 		if (donnees.type_base() == id_morceau::TABLEAU) {
 			os << "typedef struct Tableau_";
 
-			converti_type_C(contexte, "", donnees.derefence(), os);
+			converti_type_C(contexte, "", donnees.derefence(), os, true);
 
 			os << "{\n\t";
 
-			converti_type_C(contexte, "", donnees.derefence(), os);
+			converti_type_C(contexte, "", donnees.derefence(), os, false, true);
 
 			os << " *pointeur;\n\tint taille;\n} Tableau_";
 
-			converti_type_C(contexte, "", donnees.derefence(), os);
+			converti_type_C(contexte, "", donnees.derefence(), os, true);
 
 			os << ";\n\n";
 		}
@@ -220,13 +229,19 @@ bool MagasinDonneesType::converti_type_C(
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom_variable,
 		DonneesType const &donnees,
-		std::ostream &os)
+		std::ostream &os,
+		bool echappe,
+		bool echappe_struct)
 {
 	if (donnees.est_invalide()) {
 		return false;
 	}
 
 	if (donnees.type_base() == id_morceau::TABLEAU) {
+		if (echappe_struct) {
+			os << "struct ";
+		}
+
 		os << "Tableau_";
 		return this->converti_type_C(contexte, nom_variable, donnees.derefence(), os);
 	}
@@ -241,7 +256,13 @@ bool MagasinDonneesType::converti_type_C(
 		switch (donnee & 0xff) {
 			case id_morceau::POINTEUR:
 			{
-				os << '*';
+				if (echappe) {
+					os << "_ptr_";
+				}
+				else {
+					os << '*';
+				}
+
 				break;
 			}
 			case id_morceau::TABLEAU:
@@ -257,6 +278,7 @@ bool MagasinDonneesType::converti_type_C(
 
 				break;
 			}
+			case id_morceau::BOOL:
 			case id_morceau::N8:
 			{
 				os << "unsigned char";
@@ -277,7 +299,7 @@ bool MagasinDonneesType::converti_type_C(
 			}
 			case id_morceau::R16:
 			{
-				os << "float16";
+				os << "float";
 				break;
 			}
 			case id_morceau::R32:
@@ -310,9 +332,9 @@ bool MagasinDonneesType::converti_type_C(
 				os << "long";
 				break;
 			}
-			case id_morceau::BOOL:
+			case id_morceau::CHAINE:
 			{
-				os << "bool";
+				os << "chaine";
 				break;
 			}
 			case id_morceau::FONCTION:
@@ -344,7 +366,15 @@ bool MagasinDonneesType::converti_type_C(
 			{
 				auto id = static_cast<size_t>(donnee >> 8);
 				auto nom_structure = contexte.nom_struct(id);
+				if (echappe_struct) {
+					os << "struct ";
+				}
 				os << nom_structure;
+				break;
+			}
+			case id_morceau::EINI:
+			{
+				os << "eini";
 				break;
 			}
 			default:
@@ -468,6 +498,44 @@ llvm::Type *converti_type_simple(
 						   false);
 			}
 
+			break;
+		}
+		case id_morceau::EINI:
+		{
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::EINI);
+
+			auto index_eini = contexte.magasin_types.ajoute_type(dt);
+			auto &type_eini = contexte.magasin_types.donnees_types[index_eini];
+
+			if (type_eini.type_llvm() == nullptr) {
+				/* type = structure { *z8, *InfoType } */
+
+				auto index_struct_info = contexte.donnees_structure("InfoType").id;
+
+				auto dt_info = DonneesType{};
+				dt_info.pousse(id_morceau::POINTEUR);
+				dt_info.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
+
+				index_struct_info = contexte.magasin_types.ajoute_type(dt_info);
+				auto &ref_dt_info = contexte.magasin_types.donnees_types[index_struct_info];
+
+				auto type_struct_info = converti_type(contexte, ref_dt_info);
+
+				std::vector<llvm::Type *> types_membres(2ul);
+				types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
+				types_membres[1] = type_struct_info;
+
+				type = llvm::StructType::create(
+						   contexte.contexte,
+						   types_membres,
+						   "struct.eini",
+						   false);
+
+				type_eini.type_llvm(type);
+			}
+
+			type = type_eini.type_llvm();
 			break;
 		}
 		default:
@@ -603,6 +671,7 @@ unsigned alignement(
 		}
 		case id_morceau::FONCTION:
 		case id_morceau::POINTEUR:
+		case id_morceau::EINI:
 		case id_morceau::R64:
 		case id_morceau::N64:
 		case id_morceau::Z64:
@@ -676,6 +745,18 @@ niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type
 		return niveau_compat::ok;
 	}
 
+	if (type1.type_base() == id_morceau::EINI) {
+		if ((type2.type_base() & 0xff) == id_morceau::TABLEAU && (type2.type_base() != id_morceau::TABLEAU)) {
+			return niveau_compat::converti_eini | niveau_compat::converti_tableau;
+		}
+
+		return niveau_compat::converti_eini;
+	}
+
+	if (type2.type_base() == id_morceau::EINI) {
+		return niveau_compat::extrait_eini;
+	}
+
 	/* Nous savons que les types sont différents, donc si l'un des deux est un
 	 * pointeur fonction, nous pouvons retourner faux. */
 	if (type1.type_base() == id_morceau::FONCTION) {
@@ -700,14 +781,8 @@ niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type
 			return niveau_compat::aucune;
 		}
 
-		if ((type2.type_base() & 0xff) == id_morceau::TABLEAU) {
-			if (size_t(type2.type_base() >> 8) == 0) {
-				return niveau_compat::aucune;
-			}
-		}
-
-		if (type2.derefence().type_base() == id_morceau::Z8) {
-			return niveau_compat::ok;
+		if (type2.type_base() == id_morceau::CHAINE) {
+			return niveau_compat::extrait_chaine_c;
 		}
 	}
 

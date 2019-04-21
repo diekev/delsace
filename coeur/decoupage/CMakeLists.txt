@@ -42,6 +42,7 @@ set(SOURCES
 	donnees_type.h
 	erreur.h
 	expression.h
+	info_type.hh
 	modules.hh
 	morceaux.h
 	nombres.h
@@ -55,6 +56,7 @@ set(SOURCES
 	donnees_type.cc
 	erreur.cc
 	expression.cc
+	info_type.cc
 	modules.cc
 	morceaux.cc
 	nombres.cc

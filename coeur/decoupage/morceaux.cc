@@ -33,11 +33,13 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "associe", id_morceau::ASSOCIE },
 	{ "bool", id_morceau::BOOL },
 	{ "boucle", id_morceau::BOUCLE },
+	{ "chaîne", id_morceau::CHAINE },
 	{ "continue", id_morceau::CONTINUE },
 	{ "dans", id_morceau::DANS },
 	{ "de", id_morceau::DE },
 	{ "diffère", id_morceau::DIFFERE },
 	{ "dyn", id_morceau::DYN },
+	{ "eini", id_morceau::EINI },
 	{ "employant", id_morceau::EMPLOYANT },
 	{ "externe", id_morceau::EXTERNE },
 	{ "faux", id_morceau::FAUX },
@@ -65,6 +67,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "taille_de", id_morceau::TAILLE_DE },
 	{ "transtype", id_morceau::TRANSTYPE },
 	{ "type", id_morceau::TYPE },
+	{ "type_de", id_morceau::TYPE_DE },
 	{ "vrai", id_morceau::VRAI },
 	{ "z16", id_morceau::Z16 },
 	{ "z32", id_morceau::Z32 },
@@ -195,6 +198,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::BOOL";
 		case id_morceau::BOUCLE:
 			return "id_morceau::BOUCLE";
+		case id_morceau::CHAINE:
+			return "id_morceau::CHAINE";
 		case id_morceau::CONTINUE:
 			return "id_morceau::CONTINUE";
 		case id_morceau::DANS:
@@ -205,6 +210,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::DIFFERE";
 		case id_morceau::DYN:
 			return "id_morceau::DYN";
+		case id_morceau::EINI:
+			return "id_morceau::EINI";
 		case id_morceau::EMPLOYANT:
 			return "id_morceau::EMPLOYANT";
 		case id_morceau::EXTERNE:
@@ -259,6 +266,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::TRANSTYPE";
 		case id_morceau::TYPE:
 			return "id_morceau::TYPE";
+		case id_morceau::TYPE_DE:
+			return "id_morceau::TYPE_DE";
 		case id_morceau::VRAI:
 			return "id_morceau::VRAI";
 		case id_morceau::Z16:

@@ -1,0 +1,60 @@
+# 1. crée une structure selon le type sur la pile
+# 2. prend un pointeur vers la structure de type InfoType
+# NOTE : les accents ont été enlevé sur les noms à cause de la coulisse C.
+
+énum {
+	TYPE_ENTIER    = 0,
+	TYPE_REEL      = 1,
+	TYPE_BOOLEEN   = 2,
+	TYPE_CHAINE    = 3,
+	TYPE_POINTEUR  = 4,
+	TYPE_STRUCTURE = 5,
+	TYPE_FONCTION  = 6,
+	TYPE_TABLEAU   = 7,
+	TYPE_EINI      = 8,
+	TYPE_RIEN      = 9,
+}
+
+structure InfoType {
+	id : n32;
+}
+
+structure InfoTypeEntier {
+	id : n32; # employant InfoType
+	est_signe : bool;
+	taille_en_octet : n32;
+}
+
+structure InfoTypeReel {
+	id : n32; # employant InfoType
+	taille_en_octet : n32;
+}
+
+structure InfoTypePointeur {
+	id : n32; # employant InfoType
+	type_pointe : *InfoType;
+}
+
+structure InfoTypeTableau {
+	id : n32; # employant InfoType
+	type_pointe : *InfoType;
+}
+
+structure InfoTypeMembreStructure {
+	nom : chaîne;
+	id : *InfoType;
+	decalage : z64; # décalage en octets dans la structure
+	#drapeaux : n32;
+}
+
+structure InfoTypeStructure {
+	id : n32; # employant InfoType
+	nom : chaîne;
+	membres : []InfoTypeMembreStructure;
+}
+
+structure InfoTypeFonction {
+	id : n32; # employant InfoType
+	type_retour : *InfoType;
+	type_arguments : []*InfoType;
+}

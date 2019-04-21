@@ -68,11 +68,13 @@ enum class id_morceau : unsigned int {
 	ASSOCIE,
 	BOOL,
 	BOUCLE,
+	CHAINE,
 	CONTINUE,
 	DANS,
 	DE,
 	DIFFERE,
 	DYN,
+	EINI,
 	EMPLOYANT,
 	EXTERNE,
 	FAUX,
@@ -100,6 +102,7 @@ enum class id_morceau : unsigned int {
 	TAILLE_DE,
 	TRANSTYPE,
 	TYPE,
+	TYPE_DE,
 	VRAI,
 	Z16,
 	Z32,
@@ -151,7 +154,6 @@ inline id_morceau operator>>(id_morceau id1, int id2)
 struct DonneesMorceaux {
 	using type = id_morceau;
 	static constexpr type INCONNU = id_morceau::INCONNU;
-
 	std::string_view chaine;
 	size_t ligne_pos;
 	id_morceau identifiant;
