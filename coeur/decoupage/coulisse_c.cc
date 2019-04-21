@@ -1220,7 +1220,7 @@ void genere_code_C(
 		}
 		case type_noeud::POUR:
 		{
-			//auto nombre_enfants = b->enfants.size();
+			auto nombre_enfants = b->enfants.size();
 			auto iter = b->enfants.begin();
 
 			/* on génère d'abord le type de la variable */
@@ -1229,12 +1229,11 @@ void genere_code_C(
 			auto enfant3 = *iter++;
 
 			/* À FAIRE */
-			//auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
-			//auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
+			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
+			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
 
-
-			//auto enfant_sans_arret = enfant4;
-			//auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
+			auto enfant_sans_arret = enfant4;
+			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
 			auto index_type = enfant2->donnees_type;
 			auto const &type_debut = contexte.magasin_types.donnees_types[index_type];
@@ -1295,9 +1294,32 @@ void genere_code_C(
 				contexte.pousse_locale(enfant1->chaine(), index_type, BESOIN_DEREF);
 			}
 
+			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+			auto goto_brise = "__boucle_pour_brise" + std::to_string(b->morceau.ligne_pos);
+
+			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
+			contexte.empile_goto_arrete(enfant1->chaine(), (enfant_sinon != nullptr) ? goto_brise : goto_apres);
+
 			genere_code_C(enfant3, contexte, false, os);
 
+			os << goto_continue << ":;\n";
 			os << "}\n";
+
+			if (enfant_sans_arret) {
+				genere_code_C(enfant_sans_arret, contexte, false, os);
+				os << "goto " << goto_apres << ";";
+			}
+
+			if (enfant_sinon) {
+				os << goto_brise << ":;\n";
+				genere_code_C(enfant_sinon, contexte, false, os);
+			}
+
+			os << goto_apres << ":;\n";
+
+			contexte.depile_goto_arrete();
+			contexte.depile_goto_continue();
 
 			contexte.depile_nombre_locales();
 
@@ -1305,36 +1327,30 @@ void genere_code_C(
 		}
 		case type_noeud::CONTINUE_ARRETE:
 		{
-			//			auto chaine_var = b->enfants.empty() ? std::string_view{""} : b->enfants.front()->chaine();
+			auto chaine_var = b->enfants.empty() ? std::string_view{""} : b->enfants.front()->chaine();
 
-			//			auto bloc = (b->morceau.identifiant == id_morceau::CONTINUE)
-			//						? contexte.bloc_continue(chaine_var)
-			//						: contexte.bloc_arrete(chaine_var);
+			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
+					? contexte.goto_continue(chaine_var)
+					: contexte.goto_arrete(chaine_var);
 
-			//			if (bloc == nullptr) {
-			//				if (chaine_var.empty()) {
-			//					erreur::lance_erreur(
-			//								"'continue' ou 'arrête' en dehors d'une boucle",
-			//								contexte,
-			//								b->morceau,
-			//								erreur::type_erreur::CONTROLE_INVALIDE);
-			//				}
-			//				else {
-			//					erreur::lance_erreur(
-			//								"Variable inconnue",
-			//								contexte,
-			//								b->enfants.front()->donnees_morceau(),
-			//								erreur::type_erreur::VARIABLE_INCONNUE);
-			//				}
-			//			}
-
-			/* À FAIRE : variable de continuation ou d'arrête. */
-			if (b->morceau.identifiant == id_morceau::ARRETE) {
-				os << " break ";
+			if (label_goto.empty()) {
+				if (chaine_var.empty()) {
+					erreur::lance_erreur(
+								"'continue' ou 'arrête' en dehors d'une boucle",
+								contexte,
+								b->morceau,
+								erreur::type_erreur::CONTROLE_INVALIDE);
+				}
+				else {
+					erreur::lance_erreur(
+								"Variable inconnue",
+								contexte,
+								b->enfants.front()->donnees_morceau(),
+								erreur::type_erreur::VARIABLE_INCONNUE);
+				}
 			}
-			else {
-				os << " continue ";
-			}
+
+			os << "goto " << label_goto;
 			break;
 		}
 		case type_noeud::BOUCLE:
@@ -1355,22 +1371,27 @@ void genere_code_C(
 
 			/* création des blocs */
 
-			//	contexte.empile_bloc_continue("", bloc_boucle);
-			//contexte.empile_bloc_arrete("", (enfant2 != nullptr) ? bloc_sinon : bloc_apres);
+			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+
+			contexte.empile_goto_continue("", goto_continue);
+			contexte.empile_goto_arrete("", goto_apres);
 
 			os << "while (1) {\n";
 
 			/* on crée une branche explicite dans le bloc */
 			genere_code_C(enfant1, contexte, false, os);
 
+			os << goto_continue << ":;\n";
 			os << "}\n";
+			os << goto_apres << ":;\n";
 
-			//			if (false) {
-			//				genere_code_C(enfant2, contexte, false, os);
-			//			}
+			//if (false) {
+			//	genere_code_C(enfant2, contexte, false, os);
+			//}
 
-			contexte.depile_bloc_continue();
-			contexte.depile_bloc_arrete();
+			contexte.depile_goto_continue();
+			contexte.depile_goto_arrete();
 
 			break;
 		}

@@ -152,6 +152,64 @@ llvm::BasicBlock *ContexteGenerationCode::bloc_arrete(std::string_view chaine)
 	return nullptr;
 }
 
+void ContexteGenerationCode::empile_goto_continue(std::string_view chaine, std::string const &bloc)
+{
+	m_pile_goto_continue.push_back({chaine, bloc});
+}
+
+void ContexteGenerationCode::depile_goto_continue()
+{
+	m_pile_goto_continue.pop_back();
+}
+
+std::string ContexteGenerationCode::goto_continue(std::string_view chaine)
+{
+	if (m_pile_goto_continue.empty()) {
+		return "";
+	}
+
+	if (chaine.empty()) {
+		return m_pile_goto_continue.back().second;
+	}
+
+	for (auto const &paire : m_pile_goto_continue) {
+		if (paire.first == chaine) {
+			return paire.second;
+		}
+	}
+
+	return "";
+}
+
+void ContexteGenerationCode::empile_goto_arrete(std::string_view chaine, std::string const &bloc)
+{
+	m_pile_goto_arrete.push_back({chaine, bloc});
+}
+
+void ContexteGenerationCode::depile_goto_arrete()
+{
+	m_pile_goto_arrete.pop_back();
+}
+
+std::string ContexteGenerationCode::goto_arrete(std::string_view chaine)
+{
+	if (m_pile_goto_arrete.empty()) {
+		return "";
+	}
+
+	if (chaine.empty()) {
+		return m_pile_goto_arrete.back().second;
+	}
+
+	for (auto const &paire : m_pile_goto_arrete) {
+		if (paire.first == chaine) {
+			return paire.second;
+		}
+	}
+
+	return "";
+}
+
 void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type, bool est_dynamique)
 {
 	/* Nous utilisons ça plutôt que 'insert' car la valeur est poussée deux fois :

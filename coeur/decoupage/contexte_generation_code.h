@@ -191,6 +191,40 @@ struct ContexteGenerationCode {
 	/* ********************************************************************** */
 
 	/**
+	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
+	 */
+	void empile_goto_continue(std::string_view chaine, std::string const &bloc);
+
+	/**
+	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
+	 */
+	void depile_goto_continue();
+
+	/**
+	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
+	 * de boucle. Si la pile est vide, retourne un pointeur nul.
+	 */
+	std::string goto_continue(std::string_view chaine);
+
+	/**
+	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
+	 */
+	void empile_goto_arrete(std::string_view chaine, std::string const &bloc);
+
+	/**
+	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
+	 */
+	void depile_goto_arrete();
+
+	/**
+	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
+	 * de boucle. Si la pile est vide, retourne un pointeur nul.
+	 */
+	std::string goto_arrete(std::string_view chaine);
+
+	/* ********************************************************************** */
+
+	/**
 	 * Ajoute les données de la globale dont le nom est spécifié en paramètres
 	 * à la table de globales de ce contexte.
 	 */
@@ -402,6 +436,11 @@ private:
 
 	std::vector<paire_bloc> m_pile_continue{};
 	std::vector<paire_bloc> m_pile_arrete{};
+
+	using paire_goto = std::pair<std::string_view, std::string>;
+
+	std::vector<paire_goto> m_pile_goto_continue{};
+	std::vector<paire_goto> m_pile_goto_arrete{};
 
 	std::stack<noeud::base *> m_noeuds_differes{};
 
