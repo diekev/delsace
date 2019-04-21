@@ -617,16 +617,20 @@ int main(int argc, char *argv[])
 			of.open("/tmp/compilation_kuri.c");
 
 			assembleuse.genere_code_C(contexte_generation, of);
+			mem_arbre = assembleuse.memoire_utilisee();
+			nombre_noeuds = assembleuse.nombre_noeuds();
 
 			of.close();
 
-			auto commande = std::string("gcc /tmp/compilation_kuri.c -o ") + ops.chemin_sortie;
+			auto debut_executable = dls::chrono::maintenant();
+			auto commande = std::string("gcc /tmp/compilation_kuri.c -lglfw -lGL -lGLEW -o ") + ops.chemin_sortie;
 
 			auto err = system(commande.c_str());
 
 			if (err != 0) {
 				std::cerr << "Ne peut pas créer l'executable !\n";
 			}
+			temps_executable = dls::chrono::delta(debut_executable);
 		}
 
 		/* restore le dossier d'origine */
