@@ -98,6 +98,11 @@ caracteres_double = [
 	[u'||', u'BARRE_BARRE'],
 	[u'<<', u'DECALAGE_GAUCHE'],
 	[u'>>', u'DECALAGE_DROITE'],
+	[u'+=', u'PLUS_EGAL'],
+	[u'-=', u'MOINS_EGAL'],
+	[u'/=', u'DIVSE_EGAL'],
+	[u'*=', u'MULTIPLIE_EGAL'],
+	[u'%=', u'MODULO_EGAL'],
 ]
 
 caracteres_double = sorted(caracteres_double)

@@ -81,7 +81,12 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 
 static std::map<std::string_view, id_morceau> paires_caracteres_double = {
 	{ "!=", id_morceau::DIFFERENCE },
+	{ "%=", id_morceau::MODULO_EGAL },
 	{ "&&", id_morceau::ESP_ESP },
+	{ "*=", id_morceau::MULTIPLIE_EGAL },
+	{ "+=", id_morceau::PLUS_EGAL },
+	{ "-=", id_morceau::MOINS_EGAL },
+	{ "/=", id_morceau::DIVSE_EGAL },
 	{ "<<", id_morceau::DECALAGE_GAUCHE },
 	{ "<=", id_morceau::INFERIEUR_EGAL },
 	{ "==", id_morceau::EGALITE },
@@ -179,8 +184,18 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::TILDE";
 		case id_morceau::DIFFERENCE:
 			return "id_morceau::DIFFERENCE";
+		case id_morceau::MODULO_EGAL:
+			return "id_morceau::MODULO_EGAL";
 		case id_morceau::ESP_ESP:
 			return "id_morceau::ESP_ESP";
+		case id_morceau::MULTIPLIE_EGAL:
+			return "id_morceau::MULTIPLIE_EGAL";
+		case id_morceau::PLUS_EGAL:
+			return "id_morceau::PLUS_EGAL";
+		case id_morceau::MOINS_EGAL:
+			return "id_morceau::MOINS_EGAL";
+		case id_morceau::DIVSE_EGAL:
+			return "id_morceau::DIVSE_EGAL";
 		case id_morceau::DECALAGE_GAUCHE:
 			return "id_morceau::DECALAGE_GAUCHE";
 		case id_morceau::INFERIEUR_EGAL:

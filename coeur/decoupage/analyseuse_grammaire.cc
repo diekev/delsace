@@ -171,6 +171,11 @@ static bool est_operateur_binaire(id_morceau identifiant)
 		case id_morceau::MOINS:
 		case id_morceau::FOIS:
 		case id_morceau::DIVISE:
+		case id_morceau::PLUS_EGAL:
+		case id_morceau::MOINS_EGAL:
+		case id_morceau::DIVSE_EGAL:
+		case id_morceau::MULTIPLIE_EGAL:
+		case id_morceau::MODULO_EGAL:
 		case id_morceau::ESPERLUETTE:
 		case id_morceau::POURCENT:
 		case id_morceau::INFERIEUR:
@@ -1057,6 +1062,11 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::BARRE_BARRE:
 			case id_morceau::BARRE:
 			case id_morceau::CHAPEAU:
+			case id_morceau::PLUS_EGAL:
+			case id_morceau::MOINS_EGAL:
+			case id_morceau::DIVSE_EGAL:
+			case id_morceau::MULTIPLIE_EGAL:
+			case id_morceau::MODULO_EGAL:
 			case id_morceau::VIRGULE:
 			{
 				/* Correction de crash d'aléatest, improbable dans la vrai vie. */

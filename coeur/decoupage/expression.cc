@@ -46,6 +46,11 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 		case id_morceau::TROIS_POINTS:
 			return { dir_associativite::GAUCHE, 0 };
 		case id_morceau::EGAL:
+		case id_morceau::PLUS_EGAL:
+		case id_morceau::MOINS_EGAL:
+		case id_morceau::DIVSE_EGAL:
+		case id_morceau::MULTIPLIE_EGAL:
+		case id_morceau::MODULO_EGAL:
 			return { dir_associativite::GAUCHE, 1 };
 		case id_morceau::VIRGULE:
 			return { dir_associativite::GAUCHE, 2 };
