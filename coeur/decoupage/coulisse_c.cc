@@ -1078,27 +1078,27 @@ void genere_code_C(
 			switch (b->morceau.identifiant) {
 				case id_morceau::EXCLAMATION:
 				{
-					os << "!" << enfant->morceau.chaine;
+					os << "!(";
 					break;
 				}
 				case id_morceau::TILDE:
 				{
-					os << "~" << enfant->morceau.chaine;
+					os << "~(";
 					break;
 				}
 				case id_morceau::AROBASE:
 				{
-					os << "&" << enfant->morceau.chaine;
+					os << "&(";
 					break;
 				}
 				case id_morceau::PLUS_UNAIRE:
 				{
-					os << enfant->morceau.chaine;
+					os << "(";
 					break;
 				}
 				case id_morceau::MOINS_UNAIRE:
 				{
-					os << "-" << enfant->morceau.chaine;
+					os << "-(";
 					break;
 				}
 				default:
@@ -1106,6 +1106,9 @@ void genere_code_C(
 					break;
 				}
 			}
+
+			genere_code_C(enfant, contexte, expr_gauche, os);
+			os << ")";
 
 			break;
 		}
@@ -1394,6 +1397,13 @@ void genere_code_C(
 				os << ")";
 				return;
 			}
+
+			os << "(";
+			contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+			os << ")(";
+			genere_code_C(enfant, contexte, false, os);
+			os << ")";
+			return;
 
 			/* À FAIRE : BitCast (Type Cast) */
 			erreur::lance_erreur_type_operation(
