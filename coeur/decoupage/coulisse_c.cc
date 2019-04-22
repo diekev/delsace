@@ -934,7 +934,7 @@ void genere_code_C(
 						b->enfants.front()->chaine(),
 						b->enfants.front()->identifiant());
 
-			os << "int " << b->morceau.chaine << '=' << n << ";\n";
+			os << "static int " << b->morceau.chaine << '=' << n << ";\n";
 
 			contexte.pousse_globale(b->morceau.chaine, nullptr, b->donnees_type, false);
 			break;
