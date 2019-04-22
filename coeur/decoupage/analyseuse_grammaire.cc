@@ -369,8 +369,8 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	donnees_type_fonction.pousse(id_morceau::PARENTHESE_FERMANTE);
 
 	/* À FAIRE : inférence de type retour. */
-	noeud->donnees_type = analyse_declaration_type(&donnees_type_fonction);
-	donnees_fonctions.index_type_retour = noeud->donnees_type;
+	noeud->index_type = analyse_declaration_type(&donnees_type_fonction);
+	donnees_fonctions.index_type_retour = noeud->index_type;
 	donnees_fonctions.index_type = m_contexte.magasin_types.ajoute_type(donnees_type_fonction);
 
 	m_module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
@@ -953,7 +953,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 				analyse_expression_droite(id_morceau::DOUBLE_POINTS, id_morceau::TRANSTYPE);
 				--m_profondeur;
 
-				noeud->donnees_type = analyse_declaration_type(nullptr, false);
+				noeud->index_type = analyse_declaration_type(nullptr, false);
 
 				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 					lance_erreur("Attendu ')' après la déclaration du type");
@@ -1175,7 +1175,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 								morceau,
 								false);
 
-					noeud->donnees_type = analyse_declaration_type(nullptr, false);
+					noeud->index_type = analyse_declaration_type(nullptr, false);
 
 					avance();
 
@@ -1197,7 +1197,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 								m_contexte,
 								morceau);
 
-					noeud->donnees_type = analyse_declaration_type(nullptr, false);
+					noeud->index_type = analyse_declaration_type(nullptr, false);
 
 					expression.push_back(noeud);
 				}
@@ -1433,7 +1433,7 @@ void analyseuse_grammaire::analyse_declaration_variable(unsigned char drapeaux)
 		}
 
 		auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
-		noeud_decl->donnees_type = donnees_type;
+		noeud_decl->index_type = donnees_type;
 		noeud_decl->drapeaux = drapeaux;
 		m_assembleuse->depile_noeud(type_noeud::DECLARATION_VARIABLE);
 
@@ -1447,10 +1447,10 @@ void analyseuse_grammaire::analyse_declaration_variable(unsigned char drapeaux)
 		auto const &morceau_egal = donnees();
 
 		auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, m_contexte, morceau_egal);
-		noeud->donnees_type = donnees_type;
+		noeud->index_type = donnees_type;
 
 		auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
-		noeud_decl->donnees_type = donnees_type;
+		noeud_decl->index_type = donnees_type;
 		noeud_decl->drapeaux = drapeaux;
 		noeud->ajoute_noeud(noeud_decl);
 
@@ -1533,7 +1533,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 		auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTANTE, m_contexte, donnees());
 		auto dt = DonneesType{};
 		dt.pousse(id_morceau::N32);
-		noeud->donnees_type = m_contexte.magasin_types.ajoute_type(dt);
+		noeud->index_type = m_contexte.magasin_types.ajoute_type(dt);
 
 		if (est_identifiant(id_morceau::EGAL)) {
 			avance();

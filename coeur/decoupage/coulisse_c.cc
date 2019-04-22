@@ -453,7 +453,7 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 
 	auto nom_var = std::string(b->chaine());
 
-	auto &dt = contexte.magasin_types.donnees_types[b->donnees_type];
+	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 	/* dans le cas d'un nombre ou d'un tableau, etc. */
 	if (b->type != type_noeud::VARIABLE) {
@@ -502,7 +502,7 @@ static void cree_appel(
 			enf->valeur_calculee = nom_tableau;
 
 			os << "Tableau_";
-			auto &dt = contexte.magasin_types.donnees_types[enf->donnees_type];
+			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
 			contexte.magasin_types.converti_type_C(contexte, "", dt.derefence(), os);
 
 			os << ' ' << nom_tableau << ";\n";
@@ -540,7 +540,7 @@ static void cree_appel(
 
 	if ((b->drapeaux & INDIRECTION_APPEL) != 0) {
 		auto nom_indirection = "__ret_" + nom_broye + std::to_string(b->morceau.ligne_pos);
-		auto &dt = contexte.magasin_types.donnees_types[b->donnees_type];
+		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 		auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 
 		if (!est_tableau) {
@@ -696,7 +696,7 @@ void genere_code_C(
 
 			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
 						nom_broye,
-						contexte.magasin_types.donnees_types[b->donnees_type],
+						contexte.magasin_types.donnees_types[b->index_type],
 					os);
 
 			if (!est_tableau) {
@@ -778,7 +778,7 @@ void genere_code_C(
 
 				/* Validation des types passés en paramètre. */
 				for (size_t i = 0; i < dt_params.size() - 1; ++i) {
-					auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->donnees_type];
+					auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
 					verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
 					++enfant;
 				}
@@ -820,7 +820,7 @@ void genere_code_C(
 				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
 				noeud_tableau->calcule = true;
 				auto nom_arg = donnees_fonction.nom_args.back();
-				noeud_tableau->donnees_type = donnees_fonction.args[nom_arg].donnees_type;
+				noeud_tableau->index_type = donnees_fonction.args[nom_arg].donnees_type;
 
 				enfants[index_premier_var_arg] = noeud_tableau;
 			}
@@ -834,7 +834,7 @@ void genere_code_C(
 				auto const iter = donnees_fonction.args.find(nom);
 				auto index_arg = iter->second.index;
 				auto const index_type_arg = iter->second.donnees_type;
-				auto const index_type_enf = (*enfant)->donnees_type;
+				auto const index_type_enf = (*enfant)->index_type;
 				auto const &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
 				auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
 
@@ -888,7 +888,7 @@ void genere_code_C(
 			auto structure = b->enfants.back();
 			auto membre = b->enfants.front();
 
-			auto const &index_type = structure->donnees_type;
+			auto const &index_type = structure->index_type;
 			auto type_structure = contexte.magasin_types.donnees_types[index_type];
 
 			auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
@@ -936,14 +936,14 @@ void genere_code_C(
 
 			os << "static int " << b->morceau.chaine << '=' << n << ";\n";
 
-			contexte.pousse_globale(b->morceau.chaine, nullptr, b->donnees_type, false);
+			contexte.pousse_globale(b->morceau.chaine, nullptr, b->index_type, false);
 			break;
 		}
 		case type_noeud::DECLARATION_VARIABLE:
 		{
 			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
 						b->chaine(),
-						contexte.magasin_types.donnees_types[b->donnees_type],
+						contexte.magasin_types.donnees_types[b->index_type],
 					os);
 
 			if (!est_tableau) {
@@ -951,7 +951,7 @@ void genere_code_C(
 			}
 
 			if ((b->drapeaux & GLOBAL) != 0) {
-				contexte.pousse_globale(b->chaine(), nullptr, b->donnees_type, (b->drapeaux & DYNAMIC) != 0);
+				contexte.pousse_globale(b->chaine(), nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0);
 				return;
 			}
 
@@ -962,7 +962,7 @@ void genere_code_C(
 			//				os << b->chaine() << ".taille = 0;";
 			//			}
 
-			contexte.pousse_locale(b->morceau.chaine, nullptr, b->donnees_type, (b->drapeaux & DYNAMIC) != 0, false);
+			contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
 
 			break;
 		}
@@ -991,13 +991,13 @@ void genere_code_C(
 
 			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
 				expression->drapeaux |= EXTRAIT_EINI;
-				expression->donnees_type = variable->donnees_type;
+				expression->index_type = variable->index_type;
 				expression_modifiee = true;
 
 				auto nom_eini = std::string("__eini_ext_")
 						.append(std::to_string(expression->morceau.ligne_pos >> 32));
 
-				auto &dt = contexte.magasin_types.donnees_types[expression->donnees_type];
+				auto &dt = contexte.magasin_types.donnees_types[expression->index_type];
 
 				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
 
@@ -1065,8 +1065,8 @@ void genere_code_C(
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
-			auto const index_type1 = enfant1->donnees_type;
-			auto const index_type2 = enfant2->donnees_type;
+			auto const index_type1 = enfant1->index_type;
+			auto const index_type2 = enfant2->index_type;
 
 			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
 			auto &type2 = contexte.magasin_types.donnees_types[index_type2];
@@ -1275,11 +1275,11 @@ void genere_code_C(
 			auto enfant_sans_arret = enfant4;
 			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
-			auto index_type = enfant2->donnees_type;
+			auto index_type = enfant2->index_type;
 			auto const &type_debut = contexte.magasin_types.donnees_types[index_type];
 			auto const type = type_debut.type_base();
 
-			enfant1->donnees_type = index_type;
+			enfant1->index_type = index_type;
 
 			contexte.empile_nombre_locales();
 
@@ -1324,7 +1324,7 @@ void genere_code_C(
 					dt.pousse(id_morceau::Z8);
 
 					index_type = contexte.magasin_types.ajoute_type(dt);
-					enfant1->donnees_type = index_type;
+					enfant1->index_type = index_type;
 
 					os << "\nfor (int __i = 0; __i <= " << enfant2->chaine() << ".taille - 1; ++__i) {\n";
 					contexte.magasin_types.converti_type_C(contexte, "", dt, os);
@@ -1438,16 +1438,16 @@ void genere_code_C(
 		case type_noeud::TRANSTYPE:
 		{
 			auto enfant = b->enfants.front();
-			auto const &index_type_de = enfant->donnees_type;
+			auto const &index_type_de = enfant->index_type;
 
-			if (index_type_de == b->donnees_type) {
+			if (index_type_de == b->index_type) {
 				genere_code_C(enfant, contexte, false, os);
 				return;
 			}
 
 			auto const &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
 
-			auto const &dt = contexte.magasin_types.donnees_types[b->donnees_type];
+			auto const &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			auto type_de = donnees_type_de.type_base();
 			auto type_vers = dt.type_base();
@@ -1519,7 +1519,7 @@ void genere_code_C(
 				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
 			}
 
-			auto &type = contexte.magasin_types.donnees_types[b->donnees_type];
+			auto &type = contexte.magasin_types.donnees_types[b->index_type];
 
 			/* cherche si une conversion est requise */
 			for (auto enfant : b->enfants) {
@@ -1618,7 +1618,7 @@ void genere_code_C(
 		case type_noeud::TYPE_DE:
 		{
 			auto enfant = b->enfants.front();
-			os << enfant->donnees_type;
+			os << enfant->index_type;
 			break;
 		}
 		case type_noeud::MEMOIRE:
@@ -1631,7 +1631,7 @@ void genere_code_C(
 		case type_noeud::LOGE:
 		{
 			/* À FAIRE */
-			auto &dt = contexte.magasin_types.donnees_types[b->donnees_type];
+			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			if (dt.type_base() == id_morceau::TABLEAU) {
 				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);

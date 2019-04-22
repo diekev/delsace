@@ -177,7 +177,7 @@ struct base {
 
 	std::any valeur_calculee{};
 
-	size_t donnees_type = -1ul;
+	size_t index_type = -1ul;
 
 	bool calcule = false;
 	unsigned char drapeaux = false;

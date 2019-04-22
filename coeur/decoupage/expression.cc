@@ -314,7 +314,7 @@ noeud::base *calcul_expression_double(
 			auto dt = DonneesType{};
 			dt.pousse(id_morceau::TABLEAU | static_cast<int>(v.size() << 8));
 			dt.pousse(id_morceau::Z8);
-			n1->donnees_type = contexte.magasin_types.ajoute_type(dt);
+			n1->index_type = contexte.magasin_types.ajoute_type(dt);
 
 			assembleuse.supprime_noeud(op);
 			assembleuse.supprime_noeud(n2);
