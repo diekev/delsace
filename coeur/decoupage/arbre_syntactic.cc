@@ -3677,6 +3677,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto enfant = b->enfants.front();
 				performe_validation_semantique(enfant, contexte);
 			}
+			else if ((dt.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+				auto dt_loge = DonneesType{};
+				dt_loge.pousse(id_morceau::POINTEUR);
+				dt_loge.pousse(dt);
+
+				b->index_type = contexte.magasin_types.ajoute_type(dt_loge);
+			}
 
 			break;
 		}

@@ -1206,23 +1206,24 @@ void analyseuse_grammaire::analyse_expression_droite(
 			}
 			case id_morceau::DELOGE:
 			{
-				auto noeud = m_assembleuse->cree_noeud(
+				auto noeud = m_assembleuse->empile_noeud(
 							type_noeud::DELOGE,
 							m_contexte,
-							morceau);
+							morceau,
+							false);
 
-				if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-					lance_erreur("Attendu une chaîne de caractère après 'déloge'");
-				}
+				++m_profondeur;
+				analyse_expression_droite(type_id::POINT_VIRGULE, type_id::DELOGE);
+				--m_profondeur;
 
-				auto noeud_fils = m_assembleuse->cree_noeud(
-							type_noeud::VARIABLE,
-							m_contexte,
-							donnees());
+				/* besoin de reculer car l'analyse va jusqu'au point-virgule, ce
+				 * qui nous fait absorber le code de l'expression suivante */
+				recule();
 
-				noeud->ajoute_noeud(noeud_fils);
+				m_assembleuse->depile_noeud(type_noeud::DELOGE);
 
 				expression.push_back(noeud);
+
 				break;
 			}
 			default:

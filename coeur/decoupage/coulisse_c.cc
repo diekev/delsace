@@ -1089,9 +1089,11 @@ void genere_code_C(
 			switch (b->morceau.identifiant) {
 				default:
 				{
+					os << '(';
 					genere_code_C(enfant1, contexte, false, os);
 					os << b->morceau.chaine;
 					genere_code_C(enfant2, contexte, valeur2_brut, os);
+					os << ')';
 					break;
 				}
 				case id_morceau::CROCHET_OUVRANT:
@@ -1630,7 +1632,6 @@ void genere_code_C(
 		}
 		case type_noeud::LOGE:
 		{
-			/* À FAIRE */
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			if (dt.type_base() == id_morceau::TABLEAU) {
@@ -1696,17 +1697,60 @@ void genere_code_C(
 
 				b->valeur_calculee = nom_chaine;
 			}
+			else {
+				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
+
+				auto &dt_pointeur = contexte.magasin_types.donnees_types[b->index_type];
+
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_pointeur,
+							os);
+
+				os << " " << nom_ptr << " = (";
+
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_pointeur,
+							os);
+
+				os << ")(malloc(sizeof(";
+
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_pointeur.derefence(),
+							os);
+				os << ")));\n";
+
+				b->valeur_calculee = nom_ptr;
+			}
 
 			break;
 		}
 		case type_noeud::DELOGE:
 		{
-			/* À FAIRE */
 			auto enfant = b->enfants.front();
+			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
 
-			os << "free(" << enfant->chaine() << ".pointeur);\n";
-			os << enfant->chaine() << ".pointeur = 0;\n";
-			os << enfant->chaine() << ".taille = 0;\n";
+			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
+				os << "free(";
+				genere_code_C(enfant, contexte, false, os);
+				os << ".pointeur);\n";
+				genere_code_C(enfant, contexte, false, os);
+				os << ".pointeur = 0;\n";
+				genere_code_C(enfant, contexte, false, os);
+				os << ".taille = 0;\n";
+			}
+			else {
+				os << "free(";
+				genere_code_C(enfant, contexte, false, os);
+				os << ");\n";
+				genere_code_C(enfant, contexte, false, os);
+				os << " = 0;\n";
+			}
 
 			break;
 		}
