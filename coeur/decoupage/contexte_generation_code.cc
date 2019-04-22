@@ -436,6 +436,10 @@ void ContexteGenerationCode::termine_fonction()
 	m_bloc_courant = nullptr;
 	m_nombre_locales = 0;
 	m_locales.clear();
+
+	while (!m_noeuds_differes.empty()) {
+		m_noeuds_differes.pop();
+	}
 }
 
 bool ContexteGenerationCode::structure_existe(const std::string_view &nom)
