@@ -79,6 +79,24 @@ static auto imprime(
 }
 #endif
 
+/* ************************************************************************** */
+
+static void genere_code_extra_pre_retour(
+		ContexteGenerationCode &contexte,
+		std::ostream &os)
+{
+	/* génère le code pour les blocs déférés */
+	auto pile_noeud = contexte.noeuds_differes();
+
+	while (!pile_noeud.empty()) {
+		auto noeud = pile_noeud.top();
+		genere_code_C(noeud, contexte, true, os);
+		pile_noeud.pop();
+	}
+}
+
+/* ************************************************************************** */
+
 /* À FAIRE : trouve une bonne manière de générer des noms uniques. */
 /* À FAIRE : variables globales pour les info types. */
 static int index = 0;
@@ -753,6 +771,25 @@ void genere_code_C(
 			auto bloc = b->enfants.front();
 			os << "{\n";
 			genere_code_C(bloc, contexte, false, os);
+
+			auto enfant_bloc = bloc->dernier_enfant();
+
+			if (enfant_bloc != nullptr) {
+				if (enfant_bloc->type == type_noeud::RETOUR) {
+					/* RAF */
+				}
+				else if (enfant_bloc->type == type_noeud::NONSUR) {
+					enfant_bloc = enfant_bloc->dernier_enfant();
+
+					if (enfant_bloc != nullptr || enfant_bloc->type != type_noeud::RETOUR) {
+						genere_code_extra_pre_retour(contexte, os);
+					}
+				}
+				else {
+					genere_code_extra_pre_retour(contexte, os);
+				}
+			}
+
 			os << "}\n";
 
 			contexte.termine_fonction();
@@ -1160,19 +1197,39 @@ void genere_code_C(
 		}
 		case type_noeud::RETOUR:
 		{
-			/* À FAIRE : différé. */
-
-			os << "return ";
+			auto nom_variable = std::string("");
 
 			if (!b->enfants.empty()) {
 				assert(b->enfants.size() == 1);
-				genere_code_C(b->enfants.front(), contexte, false, os);
+
+				nom_variable = "__ret" + std::to_string(b->morceau.ligne_pos);
+
+				auto enfant = b->enfants.front();
+				auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
+
+				auto est_tableau = contexte.magasin_types.converti_type_C(
+							contexte,
+							nom_variable,
+							dt,
+							os);
+
+				if (!est_tableau) {
+					os << ' ' << nom_variable;
+				}
+
+				os << " = ";
+
+				genere_code_C(enfant, contexte, false, os);
+
+				os << ";\n";
 			}
 
 			/* NOTE : le code différé doit être crée après l'expression de retour, car
 			 * nous risquerions par exemple de déloger une variable utilisée dans
 			 * l'expression de retour. */
-			//genere_code_extra_pre_retour(contexte);
+			genere_code_extra_pre_retour(contexte, os);
+
+			os << "return " << nom_variable;
 
 			break;
 		}
