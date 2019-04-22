@@ -171,6 +171,9 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				case id_morceau::EINI:
 					os << "eini";
 					break;
+				case id_morceau::RIEN:
+					os << "rien";
+					break;
 				default:
 					os << chaine_identifiant(donnee & 0xff);
 					break;
