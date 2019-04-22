@@ -132,7 +132,18 @@ void assembleuse_arbre::genere_code_C(
 
 	noeud::genere_code_C(m_pile.top(), contexte_generation, false, os);
 
-	os << "\nint main(int argc, char **argv)\n{\nglewExperimental = GL_TRUE;\nreturn principale(argc, argv);\n}\n";
+	auto __main__ =
+R"(
+int main(int argc, char **argv)
+{
+	Tableau_char_ptr_ tabl_args;
+	tabl_args.pointeur = argv;
+	tabl_args.taille = argc;
+	return principale(tabl_args);
+}
+)";
+
+	os << __main__;
 }
 
 void assembleuse_arbre::supprime_noeud(noeud::base *noeud)

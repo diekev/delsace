@@ -60,6 +60,7 @@
  * - infos types
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
+ * - converti paramètres fonction principale en un tableau
  */
 
 /* ************************************************************************** */
