@@ -280,9 +280,10 @@ static std::string cree_info_type_C(
 			auto deref = donnees_type.derefence();
 			auto valeur_pointee = cree_info_type_C(contexte, os, deref, nombre_base, profondeur + 1);
 
-			auto nom_info_type = "__info_type_tableau"
+			auto nom_info_type = "__info_type_pointeur"
 					+ std::to_string(nombre_base)
-					+ std::to_string(profondeur);
+					+ std::to_string(profondeur)
+					+ std::to_string(index++);
 
 			os << "InfoTypePointeur " << nom_info_type << ";\n";
 			os << nom_info_type << ".id = TYPE_POINTEUR;\n";
@@ -1286,7 +1287,13 @@ void genere_code_C(
 			contexte.empile_nombre_locales();
 
 			if (enfant2->type == type_noeud::PLAGE) {
-				os << "\nfor (int " << enfant1->chaine() << " = ";
+				os << "\nfor (";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							type_debut,
+							os);
+				os << " " << enfant1->chaine() << " = ";
 				genere_code_C(enfant2->enfants.front(), contexte, false, os);
 
 				os << "; "
