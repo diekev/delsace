@@ -246,7 +246,21 @@ bool MagasinDonneesType::converti_type_C(
 		}
 
 		os << "Tableau_";
-		return this->converti_type_C(contexte, nom_variable, donnees.derefence(), os);
+		return this->converti_type_C(contexte, nom_variable, donnees.derefence(), os, true);
+	}
+
+	/* cas spécial pour convertir les types complexes comme []*z8 */
+	if (donnees.type_base() == id_morceau::POINTEUR) {
+		auto tabl = this->converti_type_C(contexte, nom_variable, donnees.derefence(), os, echappe, echappe_struct);
+
+		if (echappe) {
+			os << "_ptr_";
+		}
+		else {
+			os << '*';
+		}
+
+		return tabl;
 	}
 
 	auto debut = donnees.begin();
