@@ -62,6 +62,7 @@ enum class type_noeud : char {
 	POUR,
 	CONTINUE_ARRETE,
 	BOUCLE,
+	TANTQUE,
 	TRANSTYPE,
 	MEMOIRE,
 	NUL,

@@ -61,6 +61,7 @@
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
  * - converti paramètres fonction principale en un tableau
+ * - boucle 'tantque'
  */
 
 /* ************************************************************************** */
@@ -290,6 +291,7 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::POUR)
 		CAS_TYPE(type_noeud::CONTINUE_ARRETE)
 		CAS_TYPE(type_noeud::BOUCLE)
+		CAS_TYPE(type_noeud::TANTQUE)
 		CAS_TYPE(type_noeud::TRANSTYPE)
 		CAS_TYPE(type_noeud::MEMOIRE)
 		CAS_TYPE(type_noeud::NUL)
@@ -2254,39 +2256,33 @@ llvm::Value *genere_code_llvm(
 			 *	...
 			 */
 
-			auto iter = b->enfants.begin();
-			auto enfant1 = *iter++;
-			auto enfant2 = (b->enfants.size() == 2) ? *iter++ : nullptr;
+			auto enfant = b->enfants.front();
 
 			/* création des blocs */
 			auto bloc_boucle = cree_bloc(contexte, "boucle");
-			auto bloc_sinon = (enfant2 != nullptr) ? cree_bloc(contexte, "sinon_boucle") : nullptr;
 			auto bloc_apres = cree_bloc(contexte, "apres_boucle");
 
 			contexte.empile_bloc_continue("", bloc_boucle);
-			contexte.empile_bloc_arrete("", (enfant2 != nullptr) ? bloc_sinon : bloc_apres);
+			contexte.empile_bloc_arrete("", bloc_apres);
 
 			/* on crée une branche explicite dans le bloc */
 			llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
 
 			contexte.bloc_courant(bloc_boucle);
 
-			enfant1->valeur_calculee = bloc_boucle;
-			auto ret = genere_code_llvm(enfant1, contexte, false);
-
-			if (bloc_sinon != nullptr) {
-				contexte.bloc_courant(bloc_sinon);
-
-				/* génère le code du bloc */
-				enfant2->valeur_calculee = bloc_apres;
-				ret = genere_code_llvm(enfant2, contexte, false);
-			}
+			enfant->valeur_calculee = bloc_boucle;
+			auto ret = genere_code_llvm(enfant, contexte, false);
 
 			contexte.depile_bloc_continue();
 			contexte.depile_bloc_arrete();
 			contexte.bloc_courant(bloc_apres);
 
 			return ret;
+		}
+		case type_noeud::TANTQUE:
+		{
+			/* À FAIRE */
+			return nullptr;
 		}
 		case type_noeud::TRANSTYPE:
 		{
@@ -3567,6 +3563,29 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			for (auto enfant : b->enfants) {
 				performe_validation_semantique(enfant, contexte);
+			}
+
+			break;
+		}
+		case type_noeud::TANTQUE:
+		{
+			assert(b->enfants.size() == 2);
+			auto iter = b->enfants.begin();
+			auto enfant1 = *iter++;
+			auto enfant2 = *iter++;
+
+			performe_validation_semantique(enfant1, contexte);
+			performe_validation_semantique(enfant2, contexte);
+
+			auto &dt = contexte.magasin_types.donnees_types[enfant1->index_type];
+
+			/* À FAIRE : tests */
+			if (dt.type_base() != id_morceau::BOOL) {
+				erreur::lance_erreur(
+							"Une expression booléenne est requise pour la boucle 'tantque'",
+							contexte,
+							enfant1->morceau,
+							erreur::type_erreur::TYPE_ARGUMENT);
 			}
 
 			break;

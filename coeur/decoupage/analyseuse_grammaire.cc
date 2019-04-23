@@ -676,26 +676,32 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'boucle'");
 			}
 
-			/* enfant 2 : bloc sinon (optionel) */
-			if (est_identifiant(id_morceau::SINON)) {
-				avance();
+			m_assembleuse->depile_noeud(type_noeud::BOUCLE);
+		}
+		else if (est_identifiant(id_morceau::TANTQUE)) {
+			avance();
+			m_assembleuse->empile_noeud(type_noeud::TANTQUE, m_contexte, donnees());
 
-				if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-					lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
-				}
+			++m_profondeur;
+			analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::TANTQUE);
+			--m_profondeur;
 
-				m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
+			/* recule pour être de nouveau synchronisé */
+			recule();
 
-				analyse_corps_fonction();
-
-				m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-				if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-					lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'sinon'");
-				}
+			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+				lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
 			}
 
-			m_assembleuse->depile_noeud(type_noeud::BOUCLE);
+			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
+			analyse_corps_fonction();
+			m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'boucle'");
+			}
+
+			m_assembleuse->depile_noeud(type_noeud::TANTQUE);
 		}
 		else if (est_identifiant(id_morceau::ARRETE) || est_identifiant(id_morceau::CONTINUE)) {
 			avance();

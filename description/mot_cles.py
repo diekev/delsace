@@ -51,6 +51,7 @@ mot_cles = [
 	u'loge',
 	u'déloge',
 	u'reloge',
+	u'tantque',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)

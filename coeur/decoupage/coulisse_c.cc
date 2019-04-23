@@ -1473,7 +1473,6 @@ void genere_code_C(
 
 			auto iter = b->enfants.begin();
 			auto enfant1 = *iter++;
-			//	auto enfant2 = (b->enfants.size() == 2) ? *iter++ : nullptr;
 
 			/* création des blocs */
 
@@ -1485,16 +1484,39 @@ void genere_code_C(
 
 			os << "while (1) {\n";
 
-			/* on crée une branche explicite dans le bloc */
 			genere_code_C(enfant1, contexte, false, os);
 
 			os << goto_continue << ":;\n";
 			os << "}\n";
 			os << goto_apres << ":;\n";
 
-			//if (false) {
-			//	genere_code_C(enfant2, contexte, false, os);
-			//}
+			contexte.depile_goto_continue();
+			contexte.depile_goto_arrete();
+
+			break;
+		}
+		case type_noeud::TANTQUE:
+		{
+			assert(b->enfants.size() == 2);
+			auto iter = b->enfants.begin();
+			auto enfant1 = *iter++;
+			auto enfant2 = *iter++;
+
+			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+
+			contexte.empile_goto_continue("", goto_continue);
+			contexte.empile_goto_arrete("", goto_apres);
+
+			os << "while (";
+			genere_code_C(enfant1, contexte, false, os);
+			os << ") {\n";
+
+			genere_code_C(enfant2, contexte, false, os);
+
+			os << goto_continue << ":;\n";
+			os << "}\n";
+			os << goto_apres << ":;\n";
 
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
