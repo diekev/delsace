@@ -702,14 +702,16 @@ void genere_code_C(
 			 * Nos tableaux, quant à eux, sont portables.
 			 */
 
-			if (b->est_externe) {
+			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
+
+			if (est_externe) {
 				return;
 			}
 
 			/* broyage du nom */
 			auto nom_module = contexte.module(static_cast<size_t>(b->morceau.module))->nom;
 			auto nom_fonction = std::string(b->morceau.chaine);
-			auto nom_broye = (b->est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
+			auto nom_broye = (est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
 
 			/* Crée fonction */
 
@@ -856,7 +858,7 @@ void genere_code_C(
 				noeud_tableau = new base(contexte, b->morceau);
 				noeud_tableau->type = type_noeud::TABLEAU;
 				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
-				noeud_tableau->calcule = true;
+				noeud_tableau->drapeaux |= EST_CALCULE;
 				auto nom_arg = donnees_fonction.nom_args.back();
 				noeud_tableau->index_type = donnees_fonction.args[nom_arg].donnees_type;
 
@@ -1080,7 +1082,8 @@ void genere_code_C(
 		}
 		case type_noeud::NOMBRE_REEL:
 		{
-			auto const valeur = b->calcule ? std::any_cast<double>(b->valeur_calculee) :
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
 											 converti_chaine_nombre_reel(
 												 b->morceau.chaine,
 												 b->morceau.identifiant);
@@ -1090,7 +1093,8 @@ void genere_code_C(
 		}
 		case type_noeud::NOMBRE_ENTIER:
 		{
-			auto const valeur = b->calcule ? std::any_cast<long>(b->valeur_calculee) :
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
 											 converti_chaine_nombre_entier(
 												 b->morceau.chaine,
 												 b->morceau.identifiant);
@@ -1258,7 +1262,8 @@ void genere_code_C(
 		}
 		case type_noeud::BOOLEEN:
 		{
-			auto const valeur = b->calcule ? std::any_cast<bool>(b->valeur_calculee)
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const valeur = est_calcule ? std::any_cast<bool>(b->valeur_calculee)
 										   : (b->chaine() == "vrai");
 			os << valeur;
 			break;
@@ -1602,8 +1607,9 @@ void genere_code_C(
 			 * variadics en un tableau */
 
 			auto taille_tableau = b->enfants.size();
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 
-			if (b->calcule) {
+			if (est_calcule) {
 				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
 			}
 

@@ -154,18 +154,25 @@ const char *chaine_type_noeud(type_noeud type);
 
 /* ************************************************************************** */
 
-enum {
-	DYNAMIC          = (1 << 0),
-	VARIADIC         = (1 << 1),
-	GLOBAL           = (1 << 2),
-	CONVERTI_TABLEAU = (1 << 3),
-	CONVERTI_EINI    = (1 << 4),
-	EXTRAIT_EINI     = (1 << 5),
-	EXTRAIT_CHAINE_C = (1 << 6),
+enum : unsigned short {
+	DYNAMIC           = (1 << 0),
+	VARIADIC          = (1 << 1),
+	GLOBAL            = (1 << 2),
+	CONVERTI_TABLEAU  = (1 << 3),
+	CONVERTI_EINI     = (1 << 4),
+	EXTRAIT_EINI      = (1 << 5),
+	EXTRAIT_CHAINE_C  = (1 << 6),
 	INDIRECTION_APPEL = (1 << 7),
+	EST_EXTERNE       = (1 << 8),
+	EST_CALCULE       = (1 << 9),
 
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C,
 };
+
+inline bool possede_drapeau(unsigned short drapeau, unsigned short valeur)
+{
+	return (drapeau & valeur) != 0;
+}
 
 namespace noeud {
 
@@ -180,9 +187,8 @@ struct base {
 
 	size_t index_type = -1ul;
 
-	bool calcule = false;
-	unsigned char drapeaux = false;
-	bool est_externe = false;
+	bool pad = false;
+	unsigned short drapeaux = 0;
 	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées
 

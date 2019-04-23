@@ -350,7 +350,7 @@ void base::imprime_code(std::ostream &os, int tab)
 
 	os << chaine_type_noeud(this->type) << ' ';
 
-	if (this->calcule) {
+	if (possede_drapeau(this->drapeaux, EST_CALCULE)) {
 		if (this->type == type_noeud::NOMBRE_ENTIER) {
 			os << std::any_cast<long>(this->valeur_calculee);
 		}
@@ -1002,9 +1002,10 @@ llvm::Value *genere_code_llvm(
 			contexte.magasin_types.donnees_types[donnees_fonction.index_type].type_llvm(type_fonction);
 
 			/* broyage du nom */
+			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 			auto nom_module = contexte.module(static_cast<size_t>(b->morceau.module))->nom;
 			auto nom_fonction = std::string(b->morceau.chaine);
-			auto nom_broye = (b->est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
+			auto nom_broye = (est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
 
 			/* Crée fonction */
 			auto fonction = llvm::Function::Create(
@@ -1013,7 +1014,7 @@ llvm::Value *genere_code_llvm(
 								nom_broye,
 								contexte.module_llvm);
 
-			if (b->est_externe) {
+			if (est_externe) {
 				return fonction;
 			}
 
@@ -1160,7 +1161,7 @@ llvm::Value *genere_code_llvm(
 
 				noeud_tableau = new base(contexte, {});
 				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
-				noeud_tableau->calcule = true;
+				noeud_tableau->drapeaux |= EST_CALCULE;
 				auto nom_arg = donnees_fonction.nom_args.back();
 				noeud_tableau->index_type = donnees_fonction.args[nom_arg].donnees_type;
 
@@ -1471,7 +1472,8 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::NOMBRE_REEL:
 		{
-			auto const valeur = b->calcule ? std::any_cast<double>(b->valeur_calculee) :
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
 												converti_chaine_nombre_reel(
 													b->morceau.chaine,
 													b->morceau.identifiant);
@@ -1482,7 +1484,8 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::NOMBRE_ENTIER:
 		{
-			auto const valeur = b->calcule ? std::any_cast<long>(b->valeur_calculee) :
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
 												converti_chaine_nombre_entier(
 													b->morceau.chaine,
 													b->morceau.identifiant);
@@ -1882,7 +1885,8 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::BOOLEEN:
 		{
-			auto const valeur = b->calcule ? std::any_cast<bool>(b->valeur_calculee)
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const valeur = est_calcule ? std::any_cast<bool>(b->valeur_calculee)
 											  : (b->chaine() == "vrai");
 			return llvm::ConstantInt::get(
 						llvm::Type::getInt1Ty(contexte.contexte),
@@ -2417,7 +2421,8 @@ llvm::Value *genere_code_llvm(
 		{
 			auto taille_tableau = b->enfants.size();
 
-			if (b->calcule) {
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			if (est_calcule) {
 				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
 			}
 
@@ -2545,7 +2550,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::DECLARATION_FONCTION:
 		{
-			if (b->est_externe) {
+			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
+
+			if (est_externe) {
 				return;
 			}
 
@@ -3684,7 +3691,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
 				/* transforme en type tableau dynamic */
 				auto taille = (static_cast<int>(dt.type_base() >> 8));
-				b->calcule = true;
+				b->drapeaux |= EST_CALCULE;
 				b->valeur_calculee = taille;
 
 				auto ndt = DonneesType{};

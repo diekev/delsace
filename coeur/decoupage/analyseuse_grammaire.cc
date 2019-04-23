@@ -347,7 +347,10 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	m_module->fonctions_exportees.insert(nom_fonction);
 
 	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_contexte, donnees());
-	noeud->est_externe = externe;
+
+	if (externe) {
+		noeud->drapeaux |= EST_EXTERNE;
+	}
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
@@ -431,9 +434,9 @@ void analyseuse_grammaire::analyse_parametres_fonction(
 	if (est_identifiant(id_morceau::TROIS_POINTS)) {
 		avance();
 
-		noeud->drapeaux = VARIADIC;
+		noeud->drapeaux |= VARIADIC;
 
-		if (!noeud->est_externe && est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+		if (!possede_drapeau(noeud->drapeaux, EST_EXTERNE) && est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 			lance_erreur("La déclaration de fonction variadique sans type n'est"
 						 " implémentée que pour les fonctions externes");
 		}
@@ -441,10 +444,9 @@ void analyseuse_grammaire::analyse_parametres_fonction(
 
 	auto donnees_type = size_t{-1ul};
 
-	if (((noeud->drapeaux & VARIADIC) == 0) || !est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+	if (!possede_drapeau(noeud->drapeaux, VARIADIC) || !est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		donnees_type = analyse_declaration_type(donnees_type_fonction, false);
 	}
-
 
 	DonneesArgument donnees_arg;
 	donnees_arg.index = donnees_fonction.args.size();
@@ -1412,7 +1414,7 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_variable(unsigned char drapeaux)
+void analyseuse_grammaire::analyse_declaration_variable(unsigned short drapeaux)
 {
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		if ((drapeaux & DYNAMIC) != 0) {
@@ -1441,7 +1443,7 @@ void analyseuse_grammaire::analyse_declaration_variable(unsigned char drapeaux)
 
 		auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
 		noeud_decl->index_type = donnees_type;
-		noeud_decl->drapeaux = drapeaux;
+		noeud_decl->drapeaux |= drapeaux;
 		m_assembleuse->depile_noeud(type_noeud::DECLARATION_VARIABLE);
 
 		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
@@ -1458,7 +1460,7 @@ void analyseuse_grammaire::analyse_declaration_variable(unsigned char drapeaux)
 
 		auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
 		noeud_decl->index_type = donnees_type;
-		noeud_decl->drapeaux = drapeaux;
+		noeud_decl->drapeaux |= drapeaux;
 		noeud->ajoute_noeud(noeud_decl);
 
 		analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
@@ -1687,7 +1689,7 @@ void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
 	while (true) {
 		if (est_identifiant(type_id::ACCOLADE_FERMANTE)) {
 			avance();
-			noeud->calcule = true;
+			noeud->drapeaux |= EST_CALCULE;
 			noeud->valeur_calculee = liste_param;
 			return;
 		}
