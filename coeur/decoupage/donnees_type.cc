@@ -555,6 +555,32 @@ llvm::Type *converti_type_simple(
 			type = type_eini.type_llvm();
 			break;
 		}
+		case id_morceau::CHAINE:
+		{
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::CHAINE);
+
+			auto index_chaine = contexte.magasin_types.ajoute_type(dt);
+			auto &type_chaine = contexte.magasin_types.donnees_types[index_chaine];
+
+			if (type_chaine.type_llvm() == nullptr) {
+				/* type = structure { *z8, z64 } */
+				std::vector<llvm::Type *> types_membres(2ul);
+				types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
+				types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
+
+				type = llvm::StructType::create(
+						   contexte.contexte,
+						   types_membres,
+						   "struct.chaine",
+						   false);
+
+				type_chaine.type_llvm(type);
+			}
+
+			type = type_chaine.type_llvm();
+			break;
+		}
 		default:
 			assert(false);
 	}
