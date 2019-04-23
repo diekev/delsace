@@ -27,6 +27,7 @@
 #include "erreur.h"
 #include "outils.h"
 
+#ifdef NONSUR
 static auto test_appel_fonction_nonsure(
 		dls::test_unitaire::Controleuse &controleuse)
 {
@@ -128,6 +129,7 @@ static auto test_appel_fonction_nonsure(
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 }
+#endif
 
 static void test_pointeur_fonction(
 		dls::test_unitaire::Controleuse &controleuse)
@@ -947,7 +949,9 @@ static auto test_syntaxe_appel_uniforme(
 
 void test_fonctions(dls::test_unitaire::Controleuse &controleuse)
 {
+#ifdef NONSUR
 	test_appel_fonction_nonsure(controleuse);
+#endif
 	test_fonction_general(controleuse);
 	test_fonction_inconnue(controleuse);
 	test_argument_nomme_succes(controleuse);

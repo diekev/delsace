@@ -938,6 +938,7 @@ void genere_code_C(
 			}
 
 			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+#ifdef NONSUR
 				if (!contexte.non_sur() && expr_gauche) {
 					erreur::lance_erreur(
 								"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
@@ -945,6 +946,7 @@ void genere_code_C(
 								b->morceau,
 								erreur::type_erreur::ASSIGNATION_INVALIDE);
 				}
+#endif
 
 				auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
 

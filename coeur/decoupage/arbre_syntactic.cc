@@ -2705,6 +2705,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							b->morceau);
 			}
 
+#ifdef NONSUR
 			if (donnees_fonction.est_externe && !contexte.non_sur()) {
 				erreur::lance_erreur(
 							"Ne peut appeler une fonction externe hors d'un bloc 'nonsûr'",
@@ -2712,6 +2713,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							b->morceau,
 							erreur::type_erreur::APPEL_INVALIDE);
 			}
+#endif
 
 			if (b->index_type == -1ul) {
 				b->index_type = donnees_fonction.index_type_retour;
@@ -2749,6 +2751,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 											 erreur::type_erreur::ARGUMENT_REDEFINI);
 					}
 
+#ifdef NONSUR
 					auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
 
 					if (dt.type_base() == id_morceau::POINTEUR && !contexte.non_sur()) {
@@ -2757,6 +2760,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 											 b->morceau,
 											 erreur::type_erreur::APPEL_INVALIDE);
 					}
+#endif
 
 					dernier_arg_variadique = iter->second.est_variadic;
 
@@ -2774,6 +2778,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					if (nombre_args != 0) {
 						auto nom_argument = donnees_fonction.nom_args[index];
 
+#ifdef NONSUR
 						/* À FAIRE : meilleur stockage, ceci est redondant */
 						auto iter = donnees_fonction.args.find(nom_argument);
 						auto &donnees = iter->second;
@@ -2789,6 +2794,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 													 erreur::type_erreur::APPEL_INVALIDE);
 							}
 						}
+#endif
 
 						args.insert(nom_argument);
 						nom_arg = nom_argument;
