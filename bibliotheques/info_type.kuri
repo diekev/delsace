@@ -1,6 +1,7 @@
-# 1. crée une structure selon le type sur la pile
-# 2. prend un pointeur vers la structure de type InfoType
+# Bibliothèque d'introspection.
 # NOTE : les accents ont été enlevé sur les noms à cause de la coulisse C.
+
+importe "chaine"
 
 énum {
 	TYPE_ENTIER    = 0,
@@ -57,4 +58,25 @@ structure InfoTypeFonction {
 	id : n32; # employant InfoType
 	type_retour : *InfoType;
 	type_arguments : []*InfoType;
+}
+
+fonction possede_membre(arg : eini, nom : chaîne) : bool
+{
+    soit info = info de arg;
+
+    si id de info de arg != TYPE_STRUCTURE {
+        retourne faux;
+    }
+
+    soit info_arg = transtype(info : *InfoTypeStructure); 
+    
+    soit membres = membres de info_arg;
+
+    pour membre dans membres {
+        si compare_chaines(nom de membre, nom) {
+            retourne vrai;
+        }
+    }
+
+    retourne faux;
 }

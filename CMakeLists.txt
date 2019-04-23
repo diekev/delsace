@@ -133,6 +133,8 @@ add_subdirectory(exemples)
 add_subdirectory(tests)
 
 set(FICHIERS_BIBLIOTHEQUES
+	bibliotheques/chaine.kuri
+	bibliotheques/flux.kuri
 	bibliotheques/info_type.kuri
 )
 

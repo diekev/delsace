@@ -1,0 +1,8 @@
+# Bibliothèque de manipulation de la mémoire contenue dans des tampon
+
+fonction copie_mem(src : *z8, dyn dst : *z8, taille : z64) : rien
+{
+    pour i dans transtype(0 : z64)...taille - 1 {
+        dst[i] = src[i];
+    }
+}

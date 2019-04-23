@@ -127,11 +127,16 @@ void charge_module(
 	auto chemin = nom + ".kuri";
 
 	if (!std::filesystem::exists(chemin)) {
-		erreur::lance_erreur(
-					"Impossible de trouver le fichier correspondant au module",
-					contexte,
-					morceau,
-					erreur::type_erreur::MODULE_INCONNU);
+		// essaie dans la racine kuri
+		chemin = "/opt/bin/kuri/bibliotheques/" + chemin;
+
+		if (!std::filesystem::exists(chemin)) {
+			erreur::lance_erreur(
+						"Impossible de trouver le fichier correspondant au module",
+						contexte,
+						morceau,
+						erreur::type_erreur::MODULE_INCONNU);
+		}
 	}
 
 	if (!std::filesystem::is_regular_file(chemin)) {
