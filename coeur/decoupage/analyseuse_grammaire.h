@@ -50,6 +50,8 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 	std::vector<paire_vecteurs> m_paires_vecteurs;
 	size_t m_profondeur = 0;
 
+	std::string m_racine_kuri{};
+
 	DonneesModule *m_module;
 
 public:
@@ -57,7 +59,8 @@ public:
 			ContexteGenerationCode &contexte,
 			std::vector<DonneesMorceaux> &identifiants,
 			assembleuse_arbre *assembleuse,
-			DonneesModule *module);
+			DonneesModule *module,
+			std::string const &racine_kuri);
 
 	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
 	 * module. */

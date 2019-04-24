@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1131,9 +1131,13 @@ llvm::Value *genere_code_llvm(
 				return cree_appel(contexte, charge, b->enfants);
 			}
 
-			auto &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
+			auto donnees_fonction = cherche_donnees_fonction(
+						contexte,
+						b->morceau.chaine,
+						static_cast<size_t>(b->morceau.module),
+						static_cast<size_t>(b->module_appel));
 
-			auto fonction_variadique_interne = donnees_fonction.est_variadique && !donnees_fonction.est_externe;
+			auto fonction_variadique_interne = donnees_fonction->est_variadique && !donnees_fonction->est_externe;
 
 			/* Réordonne les enfants selon l'apparition des arguments car LLVM est
 			 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
@@ -1143,7 +1147,7 @@ llvm::Value *genere_code_llvm(
 			std::vector<base *> enfants;
 
 			if (fonction_variadique_interne) {
-				enfants.resize(donnees_fonction.args.size());
+				enfants.resize(donnees_fonction->args.size());
 			}
 			else {
 				enfants.resize(noms_arguments->size());
@@ -1155,15 +1159,15 @@ llvm::Value *genere_code_llvm(
 				/* Pour les fonctions variadiques interne, nous créons un tableau
 				 * correspondant au types des arguments. */
 
-				auto nombre_args = donnees_fonction.args.size();
+				auto nombre_args = donnees_fonction->args.size();
 				auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
 				auto index_premier_var_arg = nombre_args - 1;
 
 				noeud_tableau = new base(contexte, {});
 				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
 				noeud_tableau->drapeaux |= EST_CALCULE;
-				auto nom_arg = donnees_fonction.nom_args.back();
-				noeud_tableau->index_type = donnees_fonction.args[nom_arg].donnees_type;
+				auto nom_arg = donnees_fonction->nom_args.back();
+				noeud_tableau->index_type = donnees_fonction->args[nom_arg].donnees_type;
 
 				enfants[index_premier_var_arg] = noeud_tableau;
 			}
@@ -1174,7 +1178,7 @@ llvm::Value *genere_code_llvm(
 			for (auto const &nom : *noms_arguments) {
 				/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
 				 * car ça a déjà été fait dans l'analyse grammaticale. */
-				auto const iter = donnees_fonction.args.find(nom);
+				auto const iter = donnees_fonction->args.find(nom);
 				auto index_arg = iter->second.index;
 				auto const index_type_arg = iter->second.donnees_type;
 				auto const index_type_enf = (*enfant)->index_type;
@@ -2631,11 +2635,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto module = contexte.module(static_cast<size_t>(b->module_appel));
 			auto nom_module = module->nom;
 			auto nom_fonction = std::string(b->morceau.chaine);
+
+			auto donnees_fonction = cherche_donnees_fonction(
+						contexte,
+						nom_fonction,
+						static_cast<size_t>(b->morceau.module),
+						static_cast<size_t>(b->module_appel));
+
 			auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
 
 			auto noms_arguments = std::any_cast<std::list<std::string_view>>(&b->valeur_calculee);
 
-			if (!module->possede_fonction(b->morceau.chaine)) {
+			if (donnees_fonction == nullptr) {
 				/* Nous avons un pointeur vers une fonction. */
 				if (contexte.locale_existe(b->morceau.chaine)) {
 					for (auto const &nom : *noms_arguments) {
@@ -2695,18 +2706,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							erreur::type_erreur::FONCTION_INCONNUE);
 			}
 
-			auto const &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
+			auto const nombre_args = donnees_fonction->args.size();
 
-			if (!donnees_fonction.est_variadique && (b->enfants.size() != donnees_fonction.args.size())) {
+			if (!donnees_fonction->est_variadique && (b->enfants.size() != nombre_args)) {
 				erreur::lance_erreur_nombre_arguments(
-							donnees_fonction.args.size(),
+							nombre_args,
 							b->enfants.size(),
 							contexte,
 							b->morceau);
 			}
 
 #ifdef NONSUR
-			if (donnees_fonction.est_externe && !contexte.non_sur()) {
+			if (donnees_fonction->est_externe && !contexte.non_sur()) {
 				erreur::lance_erreur(
 							"Ne peut appeler une fonction externe hors d'un bloc 'nonsûr'",
 							contexte,
@@ -2716,25 +2727,24 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 #endif
 
 			if (b->index_type == -1ul) {
-				b->index_type = donnees_fonction.index_type_retour;
+				b->index_type = donnees_fonction->index_type_retour;
 			}
 
 			/* vérifie que les arguments soient proprement nommés */
 			auto arguments_nommes = false;
 			std::set<std::string_view> args;
 			auto dernier_arg_variadique = false;
-			auto const nombre_args = donnees_fonction.args.size();
 
 			auto index = 0ul;
-			auto const index_max = nombre_args - donnees_fonction.est_variadique;
+			auto const index_max = nombre_args - donnees_fonction->est_variadique;
 
 			for (auto &nom_arg : *noms_arguments) {
 				if (nom_arg != "") {
 					arguments_nommes = true;
 
-					auto iter = donnees_fonction.args.find(nom_arg);
+					auto iter = donnees_fonction->args.find(nom_arg);
 
-					if (iter == donnees_fonction.args.end()) {
+					if (iter == donnees_fonction->args.end()) {
 						erreur::lance_erreur_argument_inconnu(
 									nom_arg,
 									contexte,
@@ -2776,11 +2786,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					}
 
 					if (nombre_args != 0) {
-						auto nom_argument = donnees_fonction.nom_args[index];
+						auto nom_argument = donnees_fonction->nom_args[index];
 
 #ifdef NONSUR
 						/* À FAIRE : meilleur stockage, ceci est redondant */
-						auto iter = donnees_fonction.args.find(nom_argument);
+						auto iter = donnees_fonction->args.find(nom_argument);
 						auto &donnees = iter->second;
 
 						/* il est possible que le type soit non-spécifié (variadic) */

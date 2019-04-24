@@ -263,11 +263,13 @@ analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
 		std::vector<DonneesMorceaux> &identifiants,
 		assembleuse_arbre *assembleuse,
-		DonneesModule *module)
+		DonneesModule *module,
+		std::string const &racine_kuri)
 	: lng::analyseuse<DonneesMorceaux>(identifiants)
 	, m_contexte(contexte)
 	, m_assembleuse(assembleuse)
 	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
+	, m_racine_kuri(racine_kuri)
 	, m_module(module)
 {}
 
@@ -311,7 +313,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 
 			auto const nom_module = donnees().chaine;
 			m_module->modules_importes.insert(nom_module);
-			charge_module(os, std::string(nom_module), m_contexte, donnees());
+			charge_module(os, m_racine_kuri, std::string(nom_module), m_contexte, donnees());
 		}
 		else {
 			avance();

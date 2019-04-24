@@ -711,17 +711,17 @@ void genere_code_C(
 			/* broyage du nom */
 			auto nom_module = contexte.module(static_cast<size_t>(b->morceau.module))->nom;
 			auto nom_fonction = std::string(b->morceau.chaine);
-			auto nom_broye = (est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
+			//auto nom_broye = (est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
 
 			/* Crée fonction */
 
 			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
-						nom_broye,
+						nom_fonction,
 						contexte.magasin_types.donnees_types[b->index_type],
 					os);
 
 			if (!est_tableau) {
-				os << " " << nom_broye;
+				os << " " << nom_fonction;
 			}
 
 			contexte.commence_fonction(nullptr);
@@ -804,7 +804,7 @@ void genere_code_C(
 			auto module = contexte.module(static_cast<size_t>(b->module_appel));
 			auto nom_module = module->nom;
 			auto nom_fonction = std::string(b->morceau.chaine);
-			auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
+		//	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
 
 			auto est_pointeur_fonction = (contexte.locale_existe(b->morceau.chaine));
 
@@ -823,13 +823,17 @@ void genere_code_C(
 					++enfant;
 				}
 
-				cree_appel(b, os, contexte, nom_broye, b->enfants);
+				cree_appel(b, os, contexte, nom_fonction, b->enfants);
 				return;
 			}
 
-			auto &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
+			auto donnees_fonction = cherche_donnees_fonction(
+						contexte,
+						nom_fonction,
+						static_cast<size_t>(b->morceau.module),
+						static_cast<size_t>(b->module_appel));
 
-			auto fonction_variadique_interne = donnees_fonction.est_variadique && !donnees_fonction.est_externe;
+			auto fonction_variadique_interne = donnees_fonction->est_variadique && !donnees_fonction->est_externe;
 
 			/* Réordonne les enfants selon l'apparition des arguments car LLVM est
 			 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
@@ -839,7 +843,7 @@ void genere_code_C(
 			std::vector<base *> enfants;
 
 			if (fonction_variadique_interne) {
-				enfants.resize(donnees_fonction.args.size());
+				enfants.resize(donnees_fonction->args.size());
 			}
 			else {
 				enfants.resize(noms_arguments->size());
@@ -851,7 +855,7 @@ void genere_code_C(
 				/* Pour les fonctions variadiques interne, nous créons un tableau
 				 * correspondant au types des arguments. */
 
-				auto nombre_args = donnees_fonction.args.size();
+				auto nombre_args = donnees_fonction->args.size();
 				auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
 				auto index_premier_var_arg = nombre_args - 1;
 
@@ -859,8 +863,8 @@ void genere_code_C(
 				noeud_tableau->type = type_noeud::TABLEAU;
 				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
 				noeud_tableau->drapeaux |= EST_CALCULE;
-				auto nom_arg = donnees_fonction.nom_args.back();
-				noeud_tableau->index_type = donnees_fonction.args[nom_arg].donnees_type;
+				auto nom_arg = donnees_fonction->nom_args.back();
+				noeud_tableau->index_type = donnees_fonction->args[nom_arg].donnees_type;
 
 				enfants[index_premier_var_arg] = noeud_tableau;
 			}
@@ -871,7 +875,7 @@ void genere_code_C(
 			for (auto const &nom : *noms_arguments) {
 				/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
 				 * car ça a déjà été fait dans l'analyse grammaticale. */
-				auto const iter = donnees_fonction.args.find(nom);
+				auto const iter = donnees_fonction->args.find(nom);
 				auto index_arg = iter->second.index;
 				auto const index_type_arg = iter->second.donnees_type;
 				auto const index_type_enf = (*enfant)->index_type;
@@ -904,7 +908,7 @@ void genere_code_C(
 				++enfant;
 			}
 
-			cree_appel(b, os, contexte, nom_broye, enfants);
+			cree_appel(b, os, contexte, nom_fonction, enfants);
 
 			delete noeud_tableau;
 

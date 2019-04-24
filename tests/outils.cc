@@ -50,7 +50,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 {
 	auto contexte = ContexteGenerationCode{};
 	/* Ne nomme pas le module, car c'est le module racine. */
-	auto module = contexte.cree_module("");
+	auto module = contexte.cree_module("", "");
 	module->tampon = lng::tampon_source(texte);
 
 	auto erreur_lancee = false;
@@ -61,7 +61,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 		decoupeuse.genere_morceaux();
 
 		auto assembleuse = assembleuse_arbre(contexte);
-		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module);
+		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

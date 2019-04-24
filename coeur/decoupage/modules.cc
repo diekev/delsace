@@ -117,18 +117,17 @@ static auto charge_fichier(
 
 void charge_module(
 		std::ostream &os,
+		std::string const &racine_kuri,
 		std::string const &nom,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau,
 		bool est_racine)
 {
-	os << "Chargement du module : " << nom << std::endl;
-
 	auto chemin = nom + ".kuri";
 
 	if (!std::filesystem::exists(chemin)) {
-		// essaie dans la racine kuri
-		chemin = "/opt/bin/kuri/bibliotheques/" + chemin;
+		/* essaie dans la racine kuri */
+		chemin = racine_kuri + "/bibliotheques/" + chemin;
 
 		if (!std::filesystem::exists(chemin)) {
 			erreur::lance_erreur(
@@ -147,9 +146,20 @@ void charge_module(
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
+	/* trouve le chemin absolu du module */
+	auto chemin_absolu = std::filesystem::absolute(chemin);
+
 	/* Le module racine n'a pas de nom, afin que les noms de ses fonctions ne
 	 * soient pas broyés. */
-	auto module = contexte.cree_module(est_racine ? "" : nom);
+	auto module = contexte.cree_module(est_racine ? "" : nom, chemin_absolu);
+
+	if (module == nullptr) {
+		/* le module a déjà été chargé */
+		return;
+	}
+
+	os << "Chargement du module : " << nom << " (" << chemin_absolu << ")" << std::endl;
+
 	auto debut_chargement = dls::chrono::maintenant();
 	auto tampon = charge_fichier(chemin, contexte, morceau);
 	module->temps_chargement = dls::chrono::delta(debut_chargement);
@@ -167,9 +177,45 @@ void charge_module(
 						  contexte,
 						  module->morceaux,
 						  contexte.assembleuse,
-						  module);
+						  module,
+						  racine_kuri);
 
 	auto debut_analyse = dls::chrono::maintenant();
 	analyseuse.lance_analyse(os);
 	module->temps_analyse = dls::chrono::delta(debut_analyse);
+}
+
+DonneesFonction *cherche_donnees_fonction(
+		ContexteGenerationCode &contexte,
+		std::string_view const &nom,
+		size_t index_module,
+		size_t index_module_appel)
+{
+	if (index_module != index_module_appel) {
+		/* l'appel est qualifié (À FAIRE, méthode plus robuste) */
+		auto module = contexte.module(index_module_appel);
+
+		if (!module->possede_fonction(nom)) {
+			return nullptr;
+		}
+
+		return &module->donnees_fonction(nom);
+	}
+
+	auto module = contexte.module(index_module);
+
+	if (module->possede_fonction(nom)) {
+		return &module->donnees_fonction(nom);
+	}
+
+	/* cherche dans les modules importés */
+	for (auto &nom_module : module->modules_importes) {
+		module = contexte.module(nom_module);
+
+		if (module->possede_fonction(nom)) {
+			return &module->donnees_fonction(nom);
+		}
+	}
+
+	return nullptr;
 }

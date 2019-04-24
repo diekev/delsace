@@ -543,13 +543,13 @@ int main(int argc, char *argv[])
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
 		/* Charge d'abord le module d'informations de type */
-		charge_module(os, "bibliotheques/info_type", contexte_generation, {}, true);
+		charge_module(os, chemin_racine_kuri, "info_type", contexte_generation, {}, true);
 
 		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
-		charge_module(os, nom_module, contexte_generation, {}, true);
+		charge_module(os, chemin_racine_kuri, nom_module, contexte_generation, {}, true);
 
 		if (ops.emet_arbre) {
 			assembleuse.imprime_code(os);

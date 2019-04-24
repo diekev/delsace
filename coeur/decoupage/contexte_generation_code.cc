@@ -44,11 +44,20 @@ ContexteGenerationCode::~ContexteGenerationCode()
 
 /* ************************************************************************** */
 
-DonneesModule *ContexteGenerationCode::cree_module(const std::string &nom)
+DonneesModule *ContexteGenerationCode::cree_module(
+		std::string const &nom,
+		std::string const &chemin)
 {
+	for (auto module : modules) {
+		if (module->chemin == chemin) {
+			return nullptr;
+		}
+	}
+
 	auto module = new DonneesModule;
 	module->id = modules.size();
 	module->nom = nom;
+	module->chemin = chemin;
 
 	modules.push_back(module);
 

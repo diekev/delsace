@@ -61,14 +61,14 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		}
 
 		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_module("");
+		auto module = contexte.cree_module("", "");
 		module->tampon = lng::tampon_source(texte);
 
 		decoupeuse_texte decoupeuse(module);
 		decoupeuse.genere_morceaux();
 
 		auto assembleuse = assembleuse_arbre(contexte);
-		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module);
+		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);
@@ -489,10 +489,10 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 	try {
 		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_module("");
+		auto module = contexte.cree_module("", "");
 		module->tampon = lng::tampon_source("texte_test");
 		auto assembleuse = assembleuse_arbre(contexte);
-		auto analyseuse = analyseuse_grammaire(contexte, morceaux, &assembleuse, module);
+		auto analyseuse = analyseuse_grammaire(contexte, morceaux, &assembleuse, module, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

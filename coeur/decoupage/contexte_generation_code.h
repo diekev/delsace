@@ -124,7 +124,7 @@ struct ContexteGenerationCode {
 	 * module ainsi créé. Aucune vérification n'est faite quant à la présence
 	 * d'un module avec un nom similaire pour l'instant.
 	 */
-	DonneesModule *cree_module(const std::string &nom);
+	DonneesModule *cree_module(std::string const &nom, std::string const &chemin);
 
 	/**
 	 * Retourne un pointeur vers le module à l'index indiqué. Si l'index est

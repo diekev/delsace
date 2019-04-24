@@ -64,7 +64,7 @@ static std::pair<bool, bool> retourne_erreur_module_lancee(
 		auto assembleuse = assembleuse_arbre(contexte_generation);
 
 		std::ostream os(nullptr);
-		charge_module(os, nom_module, contexte_generation, {}, true);
+		charge_module(os, "", nom_module, contexte_generation, {}, true);
 
 		if (genere_code) {
 			auto module_llvm = llvm::Module("test", contexte_generation.contexte);

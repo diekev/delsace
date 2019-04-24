@@ -64,6 +64,7 @@ struct DonneesModule {
 	std::unordered_map<std::string_view, DonneesFonction> fonctions{};
 	size_t id = 0ul;
 	std::string nom{""};
+	std::string chemin{""};
 	double temps_chargement = 0.0;
 	double temps_analyse = 0.0;
 	double temps_tampon = 0.0;
@@ -133,7 +134,14 @@ private:
  */
 void charge_module(
 		std::ostream &os,
+		std::string const &racine_kuri,
 		std::string const &nom,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau,
 		bool est_racine = false);
+
+DonneesFonction *cherche_donnees_fonction(
+		ContexteGenerationCode &contexte,
+		std::string_view const &nom,
+		size_t index_module,
+		size_t index_module_appel);
