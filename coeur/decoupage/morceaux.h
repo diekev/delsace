@@ -95,6 +95,7 @@ enum class id_morceau : unsigned int {
 	N8,
 	NONSUR,
 	NUL,
+	OCTET,
 	POUR,
 	R16,
 	R32,

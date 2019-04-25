@@ -552,6 +552,83 @@ static void cree_appel(
 
 			enf->valeur_calculee = nom_var;
 		}
+		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
+			auto nom_var_tableau = "__tableau_octet" + std::to_string(enf->morceau.ligne_pos);
+
+			os << "Tableau_unsigned_char " << nom_var_tableau << ";\n";
+
+			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
+			auto type_base = dt.type_base();
+
+			switch (type_base & 0xff) {
+				default:
+				{
+					os << nom_var_tableau << ".pointeur = (unsigned char*)(&";
+					genere_code_C(enf, contexte, false, os);
+					os << ".pointeur);\n";
+
+					os << nom_var_tableau << ".taille = ";
+					genere_code_C(enf, contexte, false, os);
+					os << ".sizeof(";
+					contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+					os << ");\n";
+					break;
+				}
+				case id_morceau::POINTEUR:
+				{
+					os << nom_var_tableau << ".pointeur = (unsigned char*)(";
+					genere_code_C(enf, contexte, false, os);
+					os << ".pointeur);\n";
+
+					os << nom_var_tableau << ".taille = ";
+					genere_code_C(enf, contexte, false, os);
+					os << ".sizeof(";
+					contexte.magasin_types.converti_type_C(contexte, "", dt.derefence(), os);
+					os << ");\n";
+					break;
+				}
+				case id_morceau::CHAINE:
+				{
+					os << nom_var_tableau << ".pointeur = ";
+					genere_code_C(enf, contexte, false, os);
+					os << ".pointeur;\n";
+
+					os << nom_var_tableau << ".taille = ";
+					genere_code_C(enf, contexte, false, os);
+					os << ".taille;\n";
+					break;
+				}
+				case id_morceau::TABLEAU:
+				{
+					auto taille = static_cast<int>(type_base >> 8);
+
+					if (taille == 0) {
+						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
+						genere_code_C(enf, contexte, false, os);
+						os << ".pointeur);\n";
+
+						os << nom_var_tableau << ".taille = ";
+						genere_code_C(enf, contexte, false, os);
+						os << ".taille * sizeof(";
+						contexte.magasin_types.converti_type_C(contexte, "", dt.derefence(), os);
+						os << ");\n";
+					}
+					else {
+						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
+						genere_code_C(enf, contexte, false, os);
+						os << ");\n";
+
+						os << nom_var_tableau << ".taille = " << taille << " * sizeof(";
+						contexte.magasin_types.converti_type_C(contexte, "", dt.derefence(), os);
+						os << ");\n";
+					}
+
+					break;
+				}
+			}
+
+			enf->valeur_calculee = nom_var_tableau;
+		}
 		else if (enf->type == type_noeud::TABLEAU) {
 			genere_code_C(enf, contexte, false, os);
 		}
@@ -588,6 +665,9 @@ static void cree_appel(
 			os << std::any_cast<std::string>(enf->valeur_calculee);
 		}
 		else if ((enf->drapeaux & EXTRAIT_CHAINE_C) != 0) {
+			os << std::any_cast<std::string>(enf->valeur_calculee);
+		}
+		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
 			os << std::any_cast<std::string>(enf->valeur_calculee);
 		}
 		else if (enf->type == type_noeud::TABLEAU) {

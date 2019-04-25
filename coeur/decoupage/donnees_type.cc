@@ -174,6 +174,9 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				case id_morceau::RIEN:
 					os << "rien";
 					break;
+				case id_morceau::OCTET:
+					os << "octet";
+					break;
 				default:
 					os << chaine_identifiant(donnee & 0xff);
 					break;
@@ -295,10 +298,17 @@ bool MagasinDonneesType::converti_type_C(
 
 				break;
 			}
+			case id_morceau::OCTET:
 			case id_morceau::BOOL:
 			case id_morceau::N8:
 			{
-				os << "unsigned char";
+				if (echappe) {
+					os << "unsigned_char";
+				}
+				else {
+					os << "unsigned char";
+				}
+
 				break;
 			}
 			case id_morceau::N16:
@@ -307,8 +317,10 @@ bool MagasinDonneesType::converti_type_C(
 				break;
 			}
 			case id_morceau::N32:
+			{
 				os << "unsigned int";
 				break;
+			}
 			case id_morceau::N64:
 			{
 				os << "unsigned long";
@@ -807,6 +819,10 @@ niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type
 	}
 
 	if (type1.type_base() == id_morceau::TABLEAU) {
+		if (type1.derefence().type_base() == id_morceau::OCTET) {
+			return niveau_compat::converti_tableau_octet;
+		}
+
 		if ((type2.type_base() & 0xff) != id_morceau::TABLEAU) {
 			return niveau_compat::aucune;
 		}

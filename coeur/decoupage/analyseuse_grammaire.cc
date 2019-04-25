@@ -125,6 +125,7 @@ static bool est_identifiant_type(id_morceau identifiant)
 		case id_morceau::EINI:
 		case id_morceau::CHAINE:
 		case id_morceau::CHAINE_CARACTERE:
+		case id_morceau::OCTET:
 			return true;
 		default:
 			return false;
@@ -251,6 +252,11 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 	}
 
 	if (est_nombre(dernier_identifiant)) {
+		return false;
+	}
+
+	/* À FAIRE : ceci mélange a[-i] et a[i] - b[i] */
+	if (dernier_identifiant == id_morceau::CROCHET_OUVRANT) {
 		return false;
 	}
 

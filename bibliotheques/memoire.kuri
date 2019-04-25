@@ -1,8 +1,135 @@
-# Bibliothèque de manipulation de la mémoire contenue dans des tampon
+# Bibliothèque de manipulation de la mémoire contenue dans des tampon
+# Ces fonctions sont leurs pendantes de celles de la bibliothèque standard de C
+# (memcmp, memcpy, memmove, memchr), à la différence que nous utilisons des
+# tableaux d'octets pour s'assurer que nous ne dépassons jamais les limites des
+# blocs de mémoires à manipuler.
 
-fonction copie_mem(src : *z8, dyn dst : *z8, taille : z64) : rien
+fonction comp_mem_ordre(a : []octet, b : []octet, taille : z64) : z32
+{
+    si taille de a < taille {
+	    retourne -1;
+	}
+
+    si taille de b < taille {
+	    retourne 1;
+	}
+
+    pour i dans transtype(0 : z64)...taille - 1 {
+	    soit v = a[i] - b[i];
+
+        si v != 0 {
+		    retourne v;
+		}
+	}
+
+    retourne 0;
+}
+
+fonction comp_mem(a : []octet, b : []octet, taille : z64) : bool
+{
+    si taille de a < taille {
+	    retourne faux;
+	}
+
+    si taille de b < taille {
+	    retourne faux;
+	}
+
+    si taille de a != taille de b {
+	    retourne faux;
+	}
+
+    pour i dans transtype(0 : z64)...taille - 1 {
+	    si a[i] != b[i] {
+		    retourne faux;
+		}
+	}
+
+    retourne vrai;
+}
+
+fonction copie_mem_nonsur(src : *z8, dyn dst : *z8, taille : z64) : rien
 {
     pour i dans transtype(0 : z64)...taille - 1 {
-        dst[i] = src[i];
-    }
+	    dst[i] = src[i];
+	}
+}
+
+fonction copie_mem(source : []octet, dyn destination : []octet, taille : z64) : rien
+{
+    si taille de source < taille {
+	    retourne;
+	}
+
+    si taille de destination < taille {
+	    retourne;
+	}
+
+    pour i dans transtype(0 : z64)...taille - 1 {
+	    destination[i] = source[i];
+	}
+}
+
+# Copie 'taille' octets depuis la source vers la destination
+# La copie se fait comme si un tampon intermédiaire a été utilisé,
+# permettant à la source et à la destination de se surposer.
+fonction bouge_mem(source : []octet, dyn destination : []octet, taille : z64) : rien
+{
+    si taille de source < taille {
+	    retourne;
+	}
+
+    si taille de destination < taille {
+	    retourne;
+	}
+
+    soit debut = pointeur de source;
+	soit fin   = debut + taille de source;
+
+    si debut <= pointeur de destination <= fin {
+	    # il y a surposition, utilise un tampon
+		# À FAIRE : expression pour les tailles des tableaux dynamics
+		dyn tampon = loge chaîne(taille);
+		diffère { déloge tampon; }
+
+        copie_mem(source, tampon, taille);
+		copie_mem(tampon, destination, taille);
+	}
+	sinon {
+	    copie_mem(source, destination, taille);
+	}
+}
+
+fonction init_mem(dyn destination : []octet, valeur : z8, taille : z64) : rien
+{
+    dyn t = taille;
+	si taille de destination < taille {
+	    t = transtype(taille de destination : z64);
+	}
+
+    pour o dans destination {
+	    o = transtype(valeur : octet);
+	}
+}
+
+fonction cherche_mem(source : []octet, valeur : z8, taille : z64) : []octet
+{
+    dyn t = taille;
+	si taille de source < taille {
+	    t = transtype(taille de source : z64);
+	}
+
+    dyn ret : []octet;
+	pointeur de ret = transtype(nul : *octet);
+	taille de ret = 0;
+
+    pour i dans transtype(0 : z64)...t - 1 {
+	    si source[i] == valeur {
+		    pointeur de ret = @source[i];
+			taille de ret = transtype(t - i : n64);
+			arrête;
+		}
+	}
+
+    retourne ret;
 }

@@ -65,6 +65,7 @@
  * - boucle 'tantque'
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
+ * - conversion tableau octet
  */
 
 /* ************************************************************************** */
@@ -92,6 +93,7 @@ static bool est_type_entier(id_morceau type)
 		case id_morceau::Z32:
 		case id_morceau::Z64:
 		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
+		case id_morceau::OCTET:
 			return true;
 		default:
 			return false;
@@ -647,6 +649,10 @@ void verifie_compatibilite(
 
 	if ((compat & niveau_compat::extrait_chaine_c) != niveau_compat::aucune) {
 		enfant->drapeaux |= EXTRAIT_CHAINE_C;
+	}
+
+	if ((compat & niveau_compat::converti_tableau_octet) != niveau_compat::aucune) {
+		enfant->drapeaux |= CONVERTI_TABLEAU_OCTET;
 	}
 }
 

@@ -251,12 +251,13 @@ struct MagasinDonneesType {
 enum class type_noeud : char;
 
 enum class niveau_compat : char {
-	aucune           = (     0),
-	ok               = (1 << 0),
-	converti_tableau = (1 << 1),
-	converti_eini    = (1 << 2),
-	extrait_eini     = (1 << 3),
-	extrait_chaine_c = (1 << 4),
+	aucune                 = (     0),
+	ok                     = (1 << 0),
+	converti_tableau       = (1 << 1),
+	converti_eini          = (1 << 2),
+	extrait_eini           = (1 << 3),
+	extrait_chaine_c       = (1 << 4),
+	converti_tableau_octet = (1 << 5),
 };
 
 inline niveau_compat operator&(niveau_compat id1, niveau_compat id2)
