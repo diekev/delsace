@@ -120,7 +120,7 @@ fonction cherche_mem(source : []octet, valeur : z8, taille : z64) : []octet
 	}
 
     dyn ret : []octet;
-	pointeur de ret = transtype(nul : *octet);
+	pointeur de ret = nul;
 	taille de ret = 0;
 
     pour i dans transtype(0 : z64)...t - 1 {

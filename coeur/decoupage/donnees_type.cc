@@ -177,6 +177,9 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				case id_morceau::OCTET:
 					os << "octet";
 					break;
+				case id_morceau::NUL:
+					os << "nul";
+					break;
 				default:
 					os << chaine_identifiant(donnee & 0xff);
 					break;
@@ -386,6 +389,7 @@ bool MagasinDonneesType::converti_type_C(
 				os << ',';
 				break;
 			}
+			case id_morceau::NUL: /* pour par exemple quand on retourne nul */
 			case id_morceau::RIEN:
 			{
 				os << "void";
@@ -834,14 +838,23 @@ niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type
 		return niveau_compat::aucune;
 	}
 
-	/* À FAIRE : C-strings */
 	if (type1.type_base() == id_morceau::POINTEUR) {
-		if (type1.derefence().type_base() != id_morceau::Z8) {
-			return niveau_compat::aucune;
+		if (type2.type_base() == id_morceau::POINTEUR) {
+			/* x = nul; */
+			if (type2.derefence().type_base() == id_morceau::NUL) {
+				return niveau_compat::ok;
+			}
+
+			/* x : *rien = y; */
+			if (type1.derefence().type_base() == id_morceau::RIEN) {
+				return niveau_compat::ok;
+			}
 		}
 
-		if (type2.type_base() == id_morceau::CHAINE) {
-			return niveau_compat::extrait_chaine_c;
+		if (type1.derefence().type_base() == id_morceau::Z8) {
+			if (type2.type_base() == id_morceau::CHAINE) {
+				return niveau_compat::extrait_chaine_c;
+			}
 		}
 	}
 
