@@ -395,7 +395,12 @@ struct ContexteGenerationCode {
 	/**
 	 * Retourne une référence vers la pile constante de noeuds différés.
 	 */
-	const std::stack<noeud::base *> &noeuds_differes() const;
+	std::vector<noeud::base *> const &noeuds_differes() const;
+
+	/**
+	 * Retourne une liste des noeuds différés du bloc courant.
+	 */
+	std::vector<noeud::base *> noeuds_differes_bloc() const;
 
 	/* ********************************************************************** */
 
@@ -432,6 +437,9 @@ private:
 	std::stack<size_t> m_pile_nombre_locales{};
 	size_t m_nombre_locales = 0;
 
+	std::stack<size_t> m_pile_nombre_differes{};
+	size_t m_nombre_differes = 0;
+
 	using paire_bloc = std::pair<std::string_view, llvm::BasicBlock *>;
 
 	std::vector<paire_bloc> m_pile_continue{};
@@ -442,7 +450,7 @@ private:
 	std::vector<paire_goto> m_pile_goto_continue{};
 	std::vector<paire_goto> m_pile_goto_arrete{};
 
-	std::stack<noeud::base *> m_noeuds_differes{};
+	std::vector<noeud::base *> m_noeuds_differes{};
 
 	bool m_non_sur = false;
 

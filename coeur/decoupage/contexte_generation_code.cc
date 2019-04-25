@@ -386,6 +386,7 @@ bool ContexteGenerationCode::peut_etre_assigne(const std::string_view &nom)
 void ContexteGenerationCode::empile_nombre_locales()
 {
 	m_pile_nombre_locales.push(m_nombre_locales);
+	m_pile_nombre_differes.push(m_nombre_differes);
 }
 
 void ContexteGenerationCode::depile_nombre_locales()
@@ -395,6 +396,16 @@ void ContexteGenerationCode::depile_nombre_locales()
 	assert(nombre_locales <= m_nombre_locales);
 	m_nombre_locales = nombre_locales;
 	m_pile_nombre_locales.pop();
+
+	auto nombre_differes = m_pile_nombre_differes.top();
+	/* nous ne pouvons pas avoir moins de noeuds différés en sortant du bloc */
+	assert(nombre_differes <= m_nombre_differes);
+	m_nombre_differes = nombre_differes;
+	m_pile_nombre_differes.pop();
+
+	while (m_noeuds_differes.size() > nombre_differes) {
+		m_noeuds_differes.pop_back();
+	}
 }
 
 void ContexteGenerationCode::imprime_locales(std::ostream &os)
@@ -447,7 +458,7 @@ void ContexteGenerationCode::termine_fonction()
 	m_locales.clear();
 
 	while (!m_noeuds_differes.empty()) {
-		m_noeuds_differes.pop();
+		m_noeuds_differes.pop_back();
 	}
 }
 
@@ -484,12 +495,32 @@ std::string ContexteGenerationCode::nom_struct(const size_t id) const
 
 void ContexteGenerationCode::differe_noeud(noeud::base *noeud)
 {
-	m_noeuds_differes.push(noeud);
+	m_noeuds_differes.push_back(noeud);
+	++m_nombre_differes;
 }
 
-const std::stack<noeud::base *> &ContexteGenerationCode::noeuds_differes() const
+std::vector<noeud::base *> const &ContexteGenerationCode::noeuds_differes() const
 {
 	return m_noeuds_differes;
+}
+
+std::vector<noeud::base *> ContexteGenerationCode::noeuds_differes_bloc() const
+{
+	auto idx_debut = m_pile_nombre_differes.top();
+	auto idx_fin = m_nombre_differes;
+
+	if (idx_debut == idx_fin) {
+		return {};
+	}
+
+	auto liste = std::vector<noeud::base *>{};
+	liste.reserve(idx_fin - idx_debut);
+
+	for (auto i = idx_debut; i < idx_fin; ++i) {
+		liste.push_back(m_noeuds_differes[i]);
+	}
+
+	return liste;
 }
 
 /* ************************************************************************** */

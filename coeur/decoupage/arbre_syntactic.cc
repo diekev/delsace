@@ -64,6 +64,7 @@
  * - converti paramètres fonction principale en un tableau
  * - boucle 'tantque'
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
+ * - prend en compte la portée des blocs pour générer le code des noeuds différés
  */
 
 /* ************************************************************************** */
@@ -258,9 +259,9 @@ static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte)
 	auto pile_noeud = contexte.noeuds_differes();
 
 	while (!pile_noeud.empty()) {
-		auto noeud = pile_noeud.top();
+		auto noeud = pile_noeud.back();
 		genere_code_llvm(noeud, contexte, true);
-		pile_noeud.pop();
+		pile_noeud.pop_back();
 	}
 }
 

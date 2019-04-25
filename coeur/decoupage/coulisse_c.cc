@@ -89,9 +89,9 @@ static void genere_code_extra_pre_retour(
 	auto pile_noeud = contexte.noeuds_differes();
 
 	while (!pile_noeud.empty()) {
-		auto noeud = pile_noeud.top();
+		auto noeud = pile_noeud.back();
 		genere_code_C(noeud, contexte, true, os);
-		pile_noeud.pop();
+		pile_noeud.pop_back();
 	}
 }
 
@@ -1401,6 +1401,21 @@ void genere_code_C(
 			for (auto enfant : b->enfants) {
 				genere_code_C(enfant, contexte, true, os);
 				os << ";\n";
+			}
+
+			if (b->enfants.size() != 0) {
+				auto dernier_enfant = b->enfants.back();
+
+				if (dernier_enfant->type != type_noeud::RETOUR) {
+					/* génère le code pour tous les noeuds différés de ce bloc */
+					auto noeuds = contexte.noeuds_differes_bloc();
+
+					while (!noeuds.empty()) {
+						auto n = noeuds.back();
+						genere_code_C(n, contexte, false, os);
+						noeuds.pop_back();
+					}
+				}
 			}
 
 			contexte.depile_nombre_locales();
