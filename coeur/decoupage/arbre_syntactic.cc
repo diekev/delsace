@@ -60,6 +60,7 @@
  * - infos types
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
+ * - ajourne opérateur [] pour les chaînes
  * - converti paramètres fonction principale en un tableau
  * - boucle 'tantque'
  */
@@ -3188,10 +3189,33 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				case id_morceau::CROCHET_OUVRANT:
 				{
 					auto donnees_enfant = b->enfants.back()->index_type;
-
 					auto const &type = contexte.magasin_types.donnees_types[donnees_enfant];
-					auto dt = type.derefence();
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
+					auto type_base = type.type_base();
+
+					switch (type_base & 0xff) {
+						case id_morceau::TABLEAU:
+						case id_morceau::POINTEUR:
+						{
+							b->index_type = contexte.magasin_types.ajoute_type(type.derefence());
+							break;
+						}
+						case id_morceau::CHAINE:
+						{
+							auto dt = DonneesType{};
+							dt.pousse(id_morceau::Z8);
+							b->index_type = contexte.magasin_types.ajoute_type(dt);
+							break;
+						}
+						default:
+						{
+							erreur::lance_erreur(
+										"Le type ne peut être déréférencé par opérateur[] !",
+										contexte,
+										b->morceau,
+										erreur::type_erreur::TYPE_DIFFERENTS);
+						}
+					}
+
 					break;
 				}
 				case id_morceau::EGALITE:

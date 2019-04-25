@@ -1146,18 +1146,48 @@ void genere_code_C(
 				}
 				case id_morceau::CROCHET_OUVRANT:
 				{
-					if (type2.type_base() != id_morceau::POINTEUR && (type2.type_base() & 0xff) != id_morceau::TABLEAU) {
-						erreur::lance_erreur(
-									"Le type ne peut être déréférencé !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
+					auto type_base = type2.type_base();
+
+					switch (type_base & 0xff) {
+						case id_morceau::POINTEUR:
+						{
+							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							os << '[';
+							genere_code_C(enfant1, contexte, valeur2_brut, os);
+							os << ']';
+							break;
+						}
+						case id_morceau::CHAINE:
+						{
+							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							os << ".pointeur";
+							os << '[';
+							genere_code_C(enfant1, contexte, valeur2_brut, os);
+							os << ']';
+							break;
+						}
+						case id_morceau::TABLEAU:
+						{
+							auto taille_tableau = static_cast<int>(type_base >> 8);
+
+							genere_code_C(enfant2, contexte, valeur2_brut, os);
+
+							if (taille_tableau == 0) {
+								os << ".pointeur";
+							}
+
+							os << '[';
+							genere_code_C(enfant1, contexte, valeur2_brut, os);
+							os << ']';
+							break;
+						}
+						default:
+						{
+							assert(false);
+							break;
+						}
 					}
 
-					genere_code_C(enfant2, contexte, valeur2_brut, os);
-					os << '[';
-					genere_code_C(enfant1, contexte, valeur2_brut, os);
-					os << ']';
 					break;
 				}
 			}

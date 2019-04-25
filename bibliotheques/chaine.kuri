@@ -7,13 +7,11 @@ fonction compare_chaines(ch1 : chaîne, ch2 : chaîne) : bool
         retourne faux;
     }
 
-    soit p0 = pointeur de ch1;
-    soit p1 = pointeur de ch2;
     soit taille = taille de ch1;
     soit debut : z64 = 0;
 
     pour i dans debut...(taille - 1) {
-        si p0[i] != p1[i] {
+        si ch1[i] != ch2[i] {
             retourne faux;
         }
     }
@@ -37,7 +35,7 @@ fonction concatene(chns : ...chaîne) : chaîne
     pour chn dans chns {
         soit c = chn; # À FAIRE : le compileur se plaind d'un pointeur
         pour v dans c {
-            pointeur[coureur] de res = v;
+		    res[coureur] = v;
             coureur += 1;
         }
     }
