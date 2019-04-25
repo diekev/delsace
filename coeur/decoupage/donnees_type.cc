@@ -234,6 +234,157 @@ void MagasinDonneesType::declare_structures_C(
 	}
 }
 
+static bool converti_type_simple_C(
+		ContexteGenerationCode const &contexte,
+		std::ostream &os,
+		std::string_view const &nom_variable,
+		id_morceau id,
+		bool echappe,
+		bool echappe_struct)
+{
+	bool est_tableau = false;
+
+	switch (id & 0xff) {
+		case id_morceau::POINTEUR:
+		{
+			if (echappe) {
+				os << "_ptr_";
+			}
+			else {
+				os << '*';
+			}
+
+			break;
+		}
+		case id_morceau::TABLEAU:
+		{
+			auto taille = static_cast<size_t>(id >> 8);
+			if (!est_tableau) {
+				os << " " << nom_variable;
+			}
+
+			est_tableau = true;
+
+			os << '[' << taille << ']';
+
+			break;
+		}
+		case id_morceau::OCTET:
+		case id_morceau::BOOL:
+		case id_morceau::N8:
+		{
+			if (echappe) {
+				os << "unsigned_char";
+			}
+			else {
+				os << "unsigned char";
+			}
+
+			break;
+		}
+		case id_morceau::N16:
+		{
+			os << "unsigned short";
+			break;
+		}
+		case id_morceau::N32:
+		{
+			os << "unsigned int";
+			break;
+		}
+		case id_morceau::N64:
+		{
+			os << "unsigned long";
+			break;
+		}
+		case id_morceau::R16:
+		{
+			os << "float";
+			break;
+		}
+		case id_morceau::R32:
+		{
+			os << "float";
+			break;
+		}
+		case id_morceau::R64:
+		{
+			os << "double";
+			break;
+		}
+		case id_morceau::Z8:
+		{
+			os << "char";
+			break;
+		}
+		case id_morceau::Z16:
+		{
+			os << "short";
+			break;
+		}
+		case id_morceau::Z32:
+		{
+			os << "int";
+			break;
+		}
+		case id_morceau::Z64:
+		{
+			os << "long";
+			break;
+		}
+		case id_morceau::CHAINE:
+		{
+			os << "chaine";
+			break;
+		}
+		case id_morceau::FONCTION:
+		{
+			/* À FAIRE */;
+			break;
+		}
+		case id_morceau::PARENTHESE_OUVRANTE:
+		{
+			os << '(';
+			break;
+		}
+		case id_morceau::PARENTHESE_FERMANTE:
+		{
+			os << ')';
+			break;
+		}
+		case id_morceau::VIRGULE:
+		{
+			os << ',';
+			break;
+		}
+		case id_morceau::NUL: /* pour par exemple quand on retourne nul */
+		case id_morceau::RIEN:
+		{
+			os << "void";
+			break;
+		}
+		case id_morceau::CHAINE_CARACTERE:
+		{
+			auto id_struct = static_cast<size_t>(id >> 8);
+			auto nom_structure = contexte.nom_struct(id_struct);
+			if (echappe_struct) {
+				os << "struct ";
+			}
+			os << nom_structure;
+			break;
+		}
+		case id_morceau::EINI:
+		{
+			os << "eini";
+			break;
+		}
+		default:
+			break;
+	}
+
+	return est_tableau;
+}
+
 bool MagasinDonneesType::converti_type_C(
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom_variable,
@@ -269,6 +420,81 @@ bool MagasinDonneesType::converti_type_C(
 		return tabl;
 	}
 
+	if (donnees.type_base() == id_morceau::FONCTION) {
+		std::vector<std::stack<id_morceau>> liste_pile_type;
+
+		auto debut = donnees.end() - 1;
+		auto fin = donnees.begin() - 1;
+
+		/* saute l'id fonction */
+		--debut;
+
+		std::stack<id_morceau> pile;
+
+		for (; debut != fin; --debut) {
+			if (*debut == id_morceau::PARENTHESE_OUVRANTE) {
+				/* rien à faire */
+			}
+			else if (*debut == id_morceau::PARENTHESE_FERMANTE) {
+				liste_pile_type.push_back(pile);
+				pile = std::stack<id_morceau>{};
+			}
+			else if (*debut == id_morceau::VIRGULE) {
+				liste_pile_type.push_back(pile);
+				pile = std::stack<id_morceau>{};
+			}
+			else {
+				pile.push(*debut);
+			}
+		}
+
+		/* la pile contient le type retour */
+		while (!pile.empty()) {
+			converti_type_simple_C(
+						contexte,
+						os,
+						"",
+						pile.top(),
+						echappe,
+						echappe_struct);
+
+			pile.pop();
+		}
+
+		os << "(*" << nom_variable << ")";
+
+		auto virgule = '(';
+
+		if (liste_pile_type.size() == 1) {
+			os << virgule;
+		}
+		else {
+			for (auto i = 0ul; i < liste_pile_type.size(); ++i) {
+				os << virgule;
+
+				auto &pile_type = liste_pile_type[i];
+
+				while (!pile_type.empty()) {
+					converti_type_simple_C(
+								contexte,
+								os,
+								"",
+								pile_type.top(),
+								echappe,
+								echappe_struct);
+
+					pile_type.pop();
+				}
+
+				virgule = ',';
+			}
+
+			os << ')';
+		}
+
+		return true;
+	}
+
 	auto debut = donnees.begin();
 	auto fin = donnees.end();
 
@@ -276,143 +502,7 @@ bool MagasinDonneesType::converti_type_C(
 
 	for (;debut != fin; ++debut) {
 		auto donnee = *debut;
-		switch (donnee & 0xff) {
-			case id_morceau::POINTEUR:
-			{
-				if (echappe) {
-					os << "_ptr_";
-				}
-				else {
-					os << '*';
-				}
-
-				break;
-			}
-			case id_morceau::TABLEAU:
-			{
-				auto taille = static_cast<size_t>(donnee >> 8);
-				if (!est_tableau) {
-					os << " " << nom_variable;
-				}
-
-				est_tableau = true;
-
-				os << '[' << taille << ']';
-
-				break;
-			}
-			case id_morceau::OCTET:
-			case id_morceau::BOOL:
-			case id_morceau::N8:
-			{
-				if (echappe) {
-					os << "unsigned_char";
-				}
-				else {
-					os << "unsigned char";
-				}
-
-				break;
-			}
-			case id_morceau::N16:
-			{
-				os << "unsigned short";
-				break;
-			}
-			case id_morceau::N32:
-			{
-				os << "unsigned int";
-				break;
-			}
-			case id_morceau::N64:
-			{
-				os << "unsigned long";
-				break;
-			}
-			case id_morceau::R16:
-			{
-				os << "float";
-				break;
-			}
-			case id_morceau::R32:
-			{
-				os << "float";
-				break;
-			}
-			case id_morceau::R64:
-			{
-				os << "double";
-				break;
-			}
-			case id_morceau::Z8:
-			{
-				os << "char";
-				break;
-			}
-			case id_morceau::Z16:
-			{
-				os << "short";
-				break;
-			}
-			case id_morceau::Z32:
-			{
-				os << "int";
-				break;
-			}
-			case id_morceau::Z64:
-			{
-				os << "long";
-				break;
-			}
-			case id_morceau::CHAINE:
-			{
-				os << "chaine";
-				break;
-			}
-			case id_morceau::FONCTION:
-			{
-				/* À FAIRE */;
-				break;
-			}
-			case id_morceau::PARENTHESE_OUVRANTE:
-			{
-				os << '(';
-				break;
-			}
-			case id_morceau::PARENTHESE_FERMANTE:
-			{
-				os << ')';
-				break;
-			}
-			case id_morceau::VIRGULE:
-			{
-				os << ',';
-				break;
-			}
-			case id_morceau::NUL: /* pour par exemple quand on retourne nul */
-			case id_morceau::RIEN:
-			{
-				os << "void";
-				break;
-			}
-			case id_morceau::CHAINE_CARACTERE:
-			{
-				auto id = static_cast<size_t>(donnee >> 8);
-				auto nom_structure = contexte.nom_struct(id);
-				if (echappe_struct) {
-					os << "struct ";
-				}
-				os << nom_structure;
-				break;
-			}
-			case id_morceau::EINI:
-			{
-				os << "eini";
-				break;
-			}
-			default:
-				break;
-		}
+		est_tableau = converti_type_simple_C(contexte, os, nom_variable, donnee, echappe, echappe_struct);
 	}
 
 	return est_tableau;
