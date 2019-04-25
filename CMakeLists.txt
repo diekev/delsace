@@ -137,6 +137,7 @@ set(FICHIERS_BIBLIOTHEQUES
 	bibliotheques/flux.kuri
 	bibliotheques/info_type.kuri
 	bibliotheques/memoire.kuri
+	bibliotheques/structures.kuri
 )
 
 install(
