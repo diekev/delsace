@@ -63,6 +63,7 @@
  * - ajourne opérateur [] pour les chaînes
  * - converti paramètres fonction principale en un tableau
  * - boucle 'tantque'
+ * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  */
 
 /* ************************************************************************** */

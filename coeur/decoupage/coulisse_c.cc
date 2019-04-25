@@ -1134,14 +1134,62 @@ void genere_code_C(
 			/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
 			auto const valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
 
+			/* À FAIRE : tests */
+			auto est_operateur_comp = [](id_morceau id)
+			{
+				switch (id) {
+					default:
+					{
+						return false;
+					}
+					case id_morceau::INFERIEUR:
+					case id_morceau::INFERIEUR_EGAL:
+					case id_morceau::SUPERIEUR:
+					case id_morceau::SUPERIEUR_EGAL:
+					case id_morceau::EGALITE:
+					case id_morceau::DIFFERENCE:
+					{
+						return true;
+					}
+				}
+			};
+
 			switch (b->morceau.identifiant) {
 				default:
 				{
-					os << '(';
-					genere_code_C(enfant1, contexte, false, os);
-					os << b->morceau.chaine;
-					genere_code_C(enfant2, contexte, valeur2_brut, os);
-					os << ')';
+					/* vérifie (a comp b comp c), transforme ((a comp b) && (b comp c)) */
+					if (est_operateur_comp(b->morceau.identifiant)) {
+						if (enfant1->morceau.identifiant == b->morceau.identifiant) {
+							/* (a comp b) */
+							os << '(';
+							genere_code_C(enfant1, contexte, false, os);
+							os << ')';
+
+							os << "&&";
+
+							/* (b comp c) */
+							os << '(';
+							genere_code_C(enfant1->enfants.back(), contexte, valeur2_brut, os);
+							os << b->morceau.chaine;
+							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							os << ')';
+						}
+						else {
+							os << '(';
+							genere_code_C(enfant1, contexte, false, os);
+							os << b->morceau.chaine;
+							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							os << ')';
+						}
+					}
+					else {
+						os << '(';
+						genere_code_C(enfant1, contexte, false, os);
+						os << b->morceau.chaine;
+						genere_code_C(enfant2, contexte, valeur2_brut, os);
+						os << ')';
+					}
+
 					break;
 				}
 				case id_morceau::CROCHET_OUVRANT:
