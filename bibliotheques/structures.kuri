@@ -1,6 +1,6 @@
 # Bibliothèque de structures de données.
-# Les structures utilisent des pointeurs vers 'rien', et la taille des données
-# en octet pour avoir un semblant de généricité.
+# Les structures utilisent des pointeurs vers 'rien', et la taille des données
+# en octet pour avoir un semblant de généricité.
 
 importe "memoire"
 
@@ -21,6 +21,8 @@ fonction cree_pile(taille_elem : z64) : *pile
     taille_elem de p = taille_elem;
     taille de p = 0;
     capacite de p = 0;
+    pointeur de tampon de p = nul;
+    taille de tampon de p = 0;
 
     retourne p;
 }
@@ -37,21 +39,20 @@ fonction decree_pile(dyn p : *pile) : rien
 fonction empile(dyn p : *pile, d : *rien) : rien
 {
     si taille de p == capacite de p {
-        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
+        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
         dyn tabl_tmp = loge chaîne((taille de p + 1) * taille_elem de p);
 
         copie_mem(tampon de p, tabl_tmp, (taille de p) * taille_elem de p);
 
         déloge tampon de p;
-        pointeur de tampon de p = pointeur de tabl_tmp;
-        taille de tampon de p = taille de tabl_tmp;
+		tampon de p = tabl_tmp;
 
         capacite de p += 1;
     }
 
     soit ptr = @pointeur[taille de p * taille_elem de p] de tampon de p;
 
-    # À FAIRE : transtype automatic
+    # À FAIRE : transtype automatic
     copie_mem_nonsur(transtype(d : *z8), ptr, taille_elem de p);
 
     taille de p += 1;
@@ -93,6 +94,8 @@ fonction cree_file(taille_elem : z64) : *file
     taille_elem de q = taille_elem;
     taille de q = 0;
     capacite de q = 0;
+    pointeur de tampon de q = nul;
+    taille de tampon de q = 0;
 
     retourne q;
 }
@@ -109,21 +112,20 @@ fonction decree_file(dyn q : *file) : rien
 fonction enfile(dyn q : *file, d : *rien) : rien
 {
     si taille de q == capacite de q {
-        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
+        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
         dyn tabl_tmp = loge chaîne((taille de q + 1) * taille_elem de q);
 
         copie_mem(tampon de q, tabl_tmp, (taille de q) * taille_elem de q);
 
         déloge tampon de q;
-        pointeur de tampon de q = pointeur de tabl_tmp;
-        taille de tampon de q = taille de tabl_tmp;
+        tampon de q = tabl_tmp;
 
         capacite de q += 1;
     }
 
     soit ptr = @pointeur[taille de q * taille_elem de q] de tampon de q;
 
-    # À FAIRE : transtype automatic
+    # À FAIRE : transtype automatic
     copie_mem_nonsur(transtype(d : *z8), ptr, taille_elem de q);
 
     taille de q += 1;
@@ -145,7 +147,7 @@ fonction defile(dyn q : *file, d : *rien) : rien
         copie_mem_nonsur(ptr, transtype(d : *z8), taille_elem de q);
     }
 
-    # réajuste la file en décalant les données
+    # réajuste la file en décalant les données
 
     si taille de q > 1 {
         soit ptr_dst = @pointeur[0] de tampon de q;
@@ -173,6 +175,8 @@ fonction cree_tableau(taille_elem : z64) : *tableau
     taille_elem de t = taille_elem;
     taille de t = 0;
     capacite de t = 0;
+    pointeur de tampon de t = nul;
+    taille de tampon de t = 0;
 
     retourne t;
 }
@@ -189,21 +193,20 @@ fonction decree_tableau(dyn t : *tableau) : rien
 fonction pousse_tableau(dyn t : *tableau, d : *rien) : rien
 {
     si taille de t == capacite de t {
-        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
+        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
         dyn tabl_tmp = loge chaîne((taille de t + 1) * taille_elem de t);
 
         copie_mem(tampon de t, tabl_tmp, (taille de t) * taille_elem de t);
 
         déloge tampon de t;
-        pointeur de tampon de t = pointeur de tabl_tmp;
-        taille de tampon de t = taille de tabl_tmp;
+		tampon de t = tabl_tmp;
 
         capacite de t += 1;
     }
 
     soit ptr = @pointeur[taille de t * taille_elem de t] de tampon de t;
 
-    # À FAIRE : transtype automatic
+    # À FAIRE : transtype automatic
     copie_mem_nonsur(transtype(d : *z8), ptr, taille_elem de t);
 
     taille de t += 1;
@@ -232,7 +235,7 @@ fonction fin_tableau(t : *tableau) : *rien
 
     # NOTE : contrairement à C++, nous ne retournons pas un pointeur après la fin,
     # mais la fin elle-même car les boucles utilisant des plages vont jusqu'au dernier
-    # élément (<=)
+    # élément (<=)
     soit ptr = @pointeur[(taille de t - 1) * taille_elem de t] de tampon de t;
     retourne transtype(ptr : *rien);
 }
