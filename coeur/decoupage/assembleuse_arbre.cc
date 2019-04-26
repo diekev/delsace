@@ -124,6 +124,7 @@ void assembleuse_arbre::genere_code_C(
 	os << "#include <sys/stat.h>\n";
 	os << "#include <fcntl.h>\n";
 	os << "#include <unistd.h>\n";
+	os << "#include <math.h>\n";
 	os << "\n";
 
 	os << "#include <GL/glew.h>\n";
