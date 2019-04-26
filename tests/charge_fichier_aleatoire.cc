@@ -71,8 +71,10 @@ int main(int argc, char *argv[])
 		auto contexte = ContexteGenerationCode{};
 		auto module = contexte.cree_module("", "");
 		module->tampon = lng::tampon_source("texte_test");
+		module->morceaux = morceaux;
 		auto assembleuse = assembleuse_arbre(contexte);
-		auto analyseuse = analyseuse_grammaire(contexte, morceaux, &assembleuse, module, "");
+		contexte.assembleuse = &assembleuse;
+		auto analyseuse = analyseuse_grammaire(contexte, module, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

@@ -61,7 +61,8 @@ std::pair<bool, bool> retourne_erreur_lancee(
 		decoupeuse.genere_morceaux();
 
 		auto assembleuse = assembleuse_arbre(contexte);
-		auto analyseuse = analyseuse_grammaire(contexte, module->morceaux, &assembleuse, module, "");
+		contexte.assembleuse = &assembleuse;
+		auto analyseuse = analyseuse_grammaire(contexte, module, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

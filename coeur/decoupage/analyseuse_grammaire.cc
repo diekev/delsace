@@ -267,13 +267,11 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 
 analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
-		std::vector<DonneesMorceaux> &identifiants,
-		assembleuse_arbre *assembleuse,
 		DonneesModule *module,
 		std::string const &racine_kuri)
-	: lng::analyseuse<DonneesMorceaux>(identifiants)
+	: lng::analyseuse<DonneesMorceaux>(module->morceaux)
 	, m_contexte(contexte)
-	, m_assembleuse(assembleuse)
+	, m_assembleuse(contexte.assembleuse)
 	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
 	, m_racine_kuri(racine_kuri)
 	, m_module(module)

@@ -175,8 +175,6 @@ void charge_module(
 
 	auto analyseuse = analyseuse_grammaire(
 						  contexte,
-						  module->morceaux,
-						  contexte.assembleuse,
 						  module,
 						  racine_kuri);
 

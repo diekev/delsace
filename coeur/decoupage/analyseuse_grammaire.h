@@ -57,8 +57,6 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 public:
 	analyseuse_grammaire(
 			ContexteGenerationCode &contexte,
-			std::vector<DonneesMorceaux> &identifiants,
-			assembleuse_arbre *assembleuse,
 			DonneesModule *module,
 			std::string const &racine_kuri);
 
