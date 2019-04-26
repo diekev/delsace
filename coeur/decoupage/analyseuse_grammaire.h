@@ -54,6 +54,8 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 
 	DonneesModule *m_module;
 
+	double m_debut_analyse = 0.0;
+
 public:
 	analyseuse_grammaire(
 			ContexteGenerationCode &contexte,

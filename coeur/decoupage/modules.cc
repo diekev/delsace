@@ -178,9 +178,7 @@ void charge_module(
 						  module,
 						  racine_kuri);
 
-	auto debut_analyse = dls::chrono::maintenant();
 	analyseuse.lance_analyse(os);
-	module->temps_analyse = dls::chrono::delta(debut_analyse);
 }
 
 DonneesFonction *cherche_donnees_fonction(
