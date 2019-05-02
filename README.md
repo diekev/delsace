@@ -14,20 +14,10 @@ Voir https://delsace.fr/technologie/kuri/ pour plus d'informations.
 | C++                         | 17      |
 | CMake                       | 3.2     |
 | Bibliothèque C++ de Delsace | 1.0     |
-| LLVM                        | 6.0     |
+| LLVM (optionel)             | 6.0     |
 
 Branches
 --------
-
-### introspection
-
-Implémentation d'outils pour inspecter les types de variables lors de l'exécution des programmes. Introduction d'un type générique 'eini', similaire à std::any, mais permettant de connaître les données du type de la variable contenu, avec un dévelopement automatique du type envelopé.
-
-Requiers de travailler sur, réparer, les chaînes de caractères.
-
-### nommage_enum
-
-Force la déclaration des énumaration à avoir un nom, similairement à une structure, pour enforcer un typage stricte des variables.
 
 ### suppression_point_virgule
 
@@ -47,7 +37,7 @@ Recherche pour les mot-clés.
 | loop         | boucle       | sans condition                   |
 | for...in     | pour...dans  |                                  |
 | for...not in | pour...hors  | À FAIRE                          |
-| while        | ?            | À FAIRE                          |
+| while        | tantque      | avec condition                   |
 | continue     | continue     |                                  |
 | break        | arrête       | ou cesse                         |
 | N/A          | sansarrêt    | si la boucle n'a pas été arrêtée |
@@ -65,5 +55,5 @@ Recherche pour les mot-clés.
 | any          | eini         | 's Elsàss                        |
 | new/malloc   | loge         | donne une adresse                |
 | realloc      | reloge       | donne une nouvelle adresse       |
-| delete/free  | déloge       | porc de capitaliste              |
+| delete/free  | déloge       | libère l'adress                  |
 

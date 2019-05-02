@@ -22,6 +22,18 @@ Faitures
 - utilisation des fonctions de la bibliothèque standard de C
 - utilisation de modules pour séparer le code en composant
 - manipulation de pointeurs vers fonction
+- initialisation de tableaux dans la déclaration
+- initialisation de structures dans la déclaration
+- nommage et typage explicite des énums pour éviter les problèmes de transtypage ou autre
+- déréférencement de pointeur (via 'mémoire')
+- initialisation explicite des membres des structures lors de leur définition
+- type chaîne caractère par défaut
+- modules
+- introspection
+- mot clé pour déférer l'exécution d'un bloc lors du retour d'une fonction
+- type 'octet' pour ne pas confondre avec un 'char'
+- type de tableau par défaut, le compilateur s'occupant de préserver la taille du tableau pour faire des vérifications en place
+- loge/déloge/reloge pour les loyers dynamics de mémoire
 
 
 À faire
@@ -35,18 +47,12 @@ Faitures
 ---- entier + caractere    -> caractère  # À FAIRE
 ---- chaîne + caractere    -> chaîne     # À FAIRE
 ---- caractere + chaîne    -> chaîne     # À FAIRE
-- initialisation de tableaux dans la déclaration
-- initialisation de structures dans la déclaration
 - fonctions gabarit/génériques avec contrats/concepts
 - structures gabarit/génériques
 - association/switch
-- type chaîne caractère par défaut
 - type nombre réel sur 16-bit
-- nommage et typage explicite des énums pour éviter les problèmes de transtypage ou autre
-- déréférencement de pointeur (via 'mémoire')
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries
-- initialisation explicite des membres des structures lors de leur définition
 - type de tableau par défaut ([]z32 -> structure __Tableau_z32 { données :  *z32, compte : z32 })
 ---- ainsi on pourrait faire en sorte que le compileur connaisse à tout moment la taille du tableau pour éviter les dépassements de tampon
 ---- boucle 'pour v dans tableau', considération modification en ayant un pointeur vers la valeur 'pour @v dans tableau' ?
@@ -70,10 +76,12 @@ Faitures
 - test mélanges types/nombres littéraux
 - test @var[0]
 - test chaine littérale, déclaration, assignement de pointeur et tableau
+- test énumération
+- test initialisation de structures lors des déclarations
 
 
-Bugs
-----
+Bugs (coulisse LLVM)
+--------------------
 - crash lors de la compilation de boucle contenant un 'arrête' après des blocs si/sinon
 - passer un tableau à un paramètre de type pointeur ne semble pas prendre l'ardresse du tableau (@tableau[0])
 - addition de pointeur ne retourne pas forcément de pointeur ? (Les opérateurs doivent être mieux gérer)
@@ -83,11 +91,8 @@ Idées
 -----
 - opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
 - mot clés pour le nom du fichier courant, la ligne, la colonne, et le temps où la ligne a été rencontré pour la première foix (__fichier__, __ligne__, __colonne__, __temps__)
-- réflection, données sur les structures lors de la compilation
-- sérialisation automatique des structures, notamment pour l'impression
 - utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++)
-- mot clé pour déférer l'exécution d'un bloc lors du retour d'une fonction
-- multiple valeurs de retour, notamment en remplacement des exceptions
+- multiple valeurs de retour, notamment pour gérer les erreurs sans passer par des exceptions (on pourrait transformer les fonction pour avoir les valeurs retournées en paramètres pointés x = foo() -> foo(&x))
 - héritage/polymorphisme par enlignage de structures dans d'autres
 - surcharges des opérateurs
 - déclarations de nouveaux types par alias d'un type connu (comme typedef en C/C++, mais avec typage strict) (mot-clé 'entredit', pour empêcher qu'un opérateur soit hérité)
@@ -101,8 +106,8 @@ Idées
 - transformer les messages d'erreur en tutoriaux
 - valeur par défaut des arguments
 - plusieurs valeurs de retour, avec nom et valeur par défaut
-- type de tableau par défaut, le compilateur s'occupant de préserver la taille du tableau pour faire des vérifications en place
-- loge/déloge/reloge pour les loyers dynamics de mémoire
+- contexte (modifiable par l'utilisateur) implicit passé en paramètre de toutes les fonctions internes pour pouvoir faciliter la gestion de la mémoire et d'autres données du programme
+- compte de la mémoire utilisée avec rapport en fin d'exécution du programme sur ce qui a utilisé le plus de mémoire, et s'il y a fuite de mémoire
 
 
 Sécurité/évitement des bugs
