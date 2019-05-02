@@ -116,6 +116,8 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::RELOGE)
 		CAS_TYPE(type_noeud::DECLARATION_STRUCTURE)
 		CAS_TYPE(type_noeud::DECLARATION_ENUM)
+		CAS_TYPE(type_noeud::ASSOCIE)
+		CAS_TYPE(type_noeud::PAIRE_ASSOCIATION)
 	}
 
 	return "erreur : type_noeud inconnu";
@@ -1716,6 +1718,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::DECLARATION_ENUM:
 		{
 			/* À FAIRE : vérification nom unique, valeur unique + test */
+			break;
+		}
+		case type_noeud::ASSOCIE:
+		case type_noeud::PAIRE_ASSOCIATION:
+		{
+			/* TESTS : si énum -> vérifie que toutes les valeurs soient prises
+			 * en compte, sauf s'il y a un bloc sinon après. */
+			/* À FAIRE : déduplique */
+			for (auto enfant : b->enfants) {
+				performe_validation_semantique(enfant, contexte);
+			}
+
 			break;
 		}
 	}

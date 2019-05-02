@@ -2287,6 +2287,46 @@ void genere_code_C(
 
 			break;
 		}
+		case type_noeud::ASSOCIE:
+		{
+			/* le premier enfant est l'expression, les suivants les paires */
+
+			auto nombre_enfants = b->enfants.size();
+			auto iter_enfant = b->enfants.begin();
+			auto expression = *iter_enfant++;
+
+			auto condition = "if";
+
+			for (auto i = 1ul; i < nombre_enfants; ++i) {
+				auto paire = *iter_enfant++;
+				auto enf0 = paire->enfants.front();
+				auto enf1 = paire->enfants.back();
+
+				// (else) if (expr == enf0) {
+				//     enf1
+				// }
+
+				os << condition << "(";
+				genere_code_C(expression, contexte, false, os);
+				os << " == ";
+				genere_code_C(enf0, contexte, false, os);
+				os << ") {\n";
+				genere_code_C(enf1, contexte, false, os);
+				os << "}\n";
+
+				condition = "else if";
+			}
+
+			break;
+		}
+		case type_noeud::PAIRE_ASSOCIATION:
+		{
+			/* RAF : pris en charge dans type_noeud::ASSOCIE, ce noeud n'est que
+			 * pour ajouter un niveau d'indirection et faciliter la compilation
+			 * des associations. */
+			assert(false);
+			break;
+		}
 	}
 }
 

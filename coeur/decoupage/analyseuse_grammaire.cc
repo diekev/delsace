@@ -776,6 +776,58 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::NONSUR);
 		}
+		else if (est_identifiant(id_morceau::ASSOCIE)) {
+			avance();
+
+			m_assembleuse->empile_noeud(type_noeud::ASSOCIE, m_contexte, donnees());
+
+			++m_profondeur;
+			analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::ASSOCIE);
+			--m_profondeur;
+
+			/* recule pour être de nouveau synchronisé */
+			recule();
+
+			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+				lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'associe'");
+			}
+
+			while (true) {
+				if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+					/* nous avons terminé */
+					break;
+				}
+
+				m_assembleuse->empile_noeud(type_noeud::PAIRE_ASSOCIATION, m_contexte, donnees());
+
+				++m_profondeur;
+				analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::ASSOCIE);
+				--m_profondeur;
+
+				/* recule pour être de nouveau synchronisé */
+				recule();
+
+				if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+					lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'associe'");
+				}
+
+				m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
+				analyse_corps_fonction();
+				m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+				if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+					lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'associe'");
+				}
+
+				m_assembleuse->depile_noeud(type_noeud::PAIRE_ASSOCIATION);
+			}
+
+			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'associe'");
+			}
+
+			m_assembleuse->depile_noeud(type_noeud::ASSOCIE);
+		}
 		/* appel : fais_quelque_chose(); */
 		else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::PARENTHESE_OUVRANTE);

@@ -64,6 +64,8 @@
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - conversion tableau octet
  * - union accès membre par '.' et par 'de'
+ * - déclaration structure/énum
+ * - associe
  */
 
 /* ************************************************************************** */
@@ -2122,6 +2124,19 @@ llvm::Value *genere_code_llvm(
 		case type_noeud::DECLARATION_ENUM:
 		{
 			/* À FAIRE */
+			return nullptr;
+		}
+		case type_noeud::ASSOCIE:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
+		case type_noeud::PAIRE_ASSOCIATION:
+		{
+			/* RAF : pris en charge dans type_noeud::ASSOCIE, ce noeud n'est que
+			 * pour ajouter un niveau d'indirection et faciliter la compilation
+			 * des associations. */
+			assert(false);
 			return nullptr;
 		}
 	}

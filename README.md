@@ -56,4 +56,5 @@ Recherche pour les mot-clés.
 | new/malloc   | loge         | donne une adresse                |
 | realloc      | reloge       | donne une nouvelle adresse       |
 | delete/free  | déloge       | libère l'adress                  |
+| switch       | associe      |                                  |
 

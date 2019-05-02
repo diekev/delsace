@@ -34,6 +34,7 @@ Faitures
 - type 'octet' pour ne pas confondre avec un 'char'
 - type de tableau par défaut, le compilateur s'occupant de préserver la taille du tableau pour faire des vérifications en place
 - loge/déloge/reloge pour les loyers dynamics de mémoire
+- association/switch
 
 
 À faire
@@ -49,7 +50,6 @@ Faitures
 ---- caractere + chaîne    -> chaîne     # À FAIRE
 - fonctions gabarit/génériques avec contrats/concepts
 - structures gabarit/génériques
-- association/switch
 - type nombre réel sur 16-bit
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries

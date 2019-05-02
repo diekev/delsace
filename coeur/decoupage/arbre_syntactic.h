@@ -74,6 +74,8 @@ enum class type_noeud : char {
 	RELOGE,
 	DECLARATION_STRUCTURE,
 	DECLARATION_ENUM,
+	ASSOCIE,
+	PAIRE_ASSOCIATION,
 };
 
 const char *chaine_type_noeud(type_noeud type);
