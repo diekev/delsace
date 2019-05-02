@@ -111,7 +111,6 @@ enum class id_morceau : unsigned int {
 	TAILLE_DE,
 	TANTQUE,
 	TRANSTYPE,
-	TYPE,
 	TYPE_DE,
 	VRAI,
 	Z16,

@@ -26,7 +26,6 @@ mot_cles = [
 	u'taille_de',
 	u'type_de',
 	u'mémoire',
-	u'type',
 	u'employant',
 	u'n8',
 	u'n16',
