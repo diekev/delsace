@@ -32,11 +32,6 @@
 
 char caractere_echape(char const *sequence);
 
-namespace llvm {
-class BasicBlock;
-class Value;
-}  /* namespace llvm */
-
 struct ContexteGenerationCode;
 
 enum class type_noeud : char {
@@ -237,8 +232,6 @@ void rassemble_feuilles(
 		std::vector<base *> &feuilles);
 
 bool est_constant(base *b);
-
-llvm::Value *genere_code_llvm(base *b, ContexteGenerationCode &contexte, bool expr_gauche);
 
 void performe_validation_semantique(base *b, ContexteGenerationCode &contexte);
 

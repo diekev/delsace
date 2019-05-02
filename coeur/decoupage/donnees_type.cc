@@ -858,8 +858,7 @@ unsigned alignement(
 
 /* ************************************************************************** */
 
-/* À FAIRE : déduplique ça. */
-static bool est_type_entier(id_morceau type)
+bool est_type_entier(id_morceau type)
 {
 	switch (type) {
 		case id_morceau::BOOL:
@@ -872,13 +871,41 @@ static bool est_type_entier(id_morceau type)
 		case id_morceau::Z32:
 		case id_morceau::Z64:
 		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
+		case id_morceau::OCTET:
 			return true;
 		default:
 			return false;
 	}
 }
 
-static bool est_type_reel(id_morceau type)
+bool est_type_entier_naturel(id_morceau type)
+{
+	switch (type) {
+		case id_morceau::N8:
+		case id_morceau::N16:
+		case id_morceau::N32:
+		case id_morceau::N64:
+		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool est_type_entier_relatif(id_morceau type)
+{
+	switch (type) {
+		case id_morceau::Z8:
+		case id_morceau::Z16:
+		case id_morceau::Z32:
+		case id_morceau::Z64:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool est_type_reel(id_morceau type)
 {
 	switch (type) {
 		case id_morceau::R16:

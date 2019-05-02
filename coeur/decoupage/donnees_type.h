@@ -277,3 +277,13 @@ niveau_compat sont_compatibles(
 		const DonneesType &type1,
 		const DonneesType &type2,
 		type_noeud type_droite);
+
+/* ************************************************************************** */
+
+bool est_type_entier(id_morceau type);
+
+bool est_type_entier_naturel(id_morceau type);
+
+bool est_type_entier_relatif(id_morceau type);
+
+bool est_type_reel(id_morceau type);

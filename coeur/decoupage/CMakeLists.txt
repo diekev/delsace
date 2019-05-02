@@ -38,6 +38,7 @@ set(SOURCES
 	assembleuse_arbre.h
 	contexte_generation_code.h
 	coulisse_c.hh
+	coulisse_llvm.hh
     decoupeuse.h
 	donnees_type.h
 	erreur.h
@@ -52,6 +53,7 @@ set(SOURCES
 	assembleuse_arbre.cc
 	contexte_generation_code.cc
 	coulisse_c.cc
+	coulisse_llvm.cc
     decoupeuse.cc
 	donnees_type.cc
 	erreur.cc

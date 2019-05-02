@@ -26,6 +26,7 @@
 
 #include "contexte_generation_code.h"
 #include "coulisse_c.hh"
+#include "coulisse_llvm.hh"
 
 assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 {
