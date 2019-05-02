@@ -53,19 +53,11 @@ Faitures
 - type nombre réel sur 16-bit
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries
-- type de tableau par défaut ([]z32 -> structure __Tableau_z32 { données :  *z32, compte : z32 })
----- ainsi on pourrait faire en sorte que le compileur connaisse à tout moment la taille du tableau pour éviter les dépassements de tampon
----- boucle 'pour v dans tableau', considération modification en ayant un pointeur vers la valeur 'pour @v dans tableau' ?
----- pour les tableaux dynamics :
--------- x = loge [1024] z32;
--------- x = reloge [2048] z32;
--------- déloge [2048] x; # vérifie taille ?
 - modules
 ---- préfixe les structures et les énumérations du nom du module
 ---- stocke les données des fonctions par module
 ---- ne charge les modules que s'il n'ont pas déjà été chargés
 - réusinage du système de vérification sémantique du code notamment pour dédupliquer ce code et prendre en compte l'analyse de fonctions dans des modules externes dont nous ne pouvons savoir le type avant l'analyse sémantique
-- ajout d'un nom aux énums
 - unification du code d'accès au membre avec 'de' et '.'
 
 
