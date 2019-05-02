@@ -87,27 +87,6 @@ static void test_variable_redefinie(dls::test_unitaire::Controleuse &controleuse
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
-
-	CU_DEBUTE_PROPOSITION(
-				controleuse,
-				"Une variable ne peut prendre le nom d'une valeur énumérée");
-	{
-		const char *texte =
-				R"(
-				énum {
-					LUMIÈRE_DISTANTE = 0,
-				}
-				fonction principale() : rien
-				{
-					soit LUMIÈRE_DISTANTE = 0;
-				}
-				)";
-
-		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::VARIABLE_REDEFINIE);
-		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
-		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
-	}
-	CU_TERMINE_PROPOSITION(controleuse);
 }
 
 static void test_variable_indefinie(dls::test_unitaire::Controleuse &controleuse)

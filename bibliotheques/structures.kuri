@@ -19,11 +19,6 @@ fonction cree_pile(taille_elem : z64) : *pile
 {
     dyn p = loge pile;
     taille_elem de p = taille_elem;
-    taille de p = 0;
-    capacite de p = 0;
-    pointeur de tampon de p = nul;
-    taille de tampon de p = 0;
-
     retourne p;
 }
 
@@ -92,11 +87,6 @@ fonction cree_file(taille_elem : z64) : *file
 {
     dyn q = loge file;
     taille_elem de q = taille_elem;
-    taille de q = 0;
-    capacite de q = 0;
-    pointeur de tampon de q = nul;
-    taille de tampon de q = 0;
-
     retourne q;
 }
 
@@ -173,11 +163,6 @@ fonction cree_tableau(taille_elem : z64) : *tableau
 {
     dyn t = loge tableau;
     taille_elem de t = taille_elem;
-    taille de t = 0;
-    capacite de t = 0;
-    pointeur de tampon de t = nul;
-    taille de tampon de t = 0;
-
     retourne t;
 }
 

@@ -16,8 +16,8 @@ syn keyword operateurs de mémoire transtype taille_de type_de
 syn keyword booleen vrai faux
 
 " Matches
-syn match commentaire "#.*$"
-syn match identifiant "[a-zA-Z_âàéèêîïöôûü][a-zA-Z_0-9âàéèêîïôûüç]*"
+syn match commentaire "#.\+"
+syn match identifiant "[a-zA-Z_][a-zA-Z_0-9]\+"
 syn match trois_point "\.\.\."
 syn match operateur_simple "[\[\]!+\-\*/@=<>\|&~]"
 syn match chaine_litterale "\".*\""
@@ -49,3 +49,5 @@ hi def link nombre_decimal Number
 hi def link nombre_reel Float
 hi def link caractere Character
 hi def link identifiant Identifier
+
+let b:current_syntax = "kuri"

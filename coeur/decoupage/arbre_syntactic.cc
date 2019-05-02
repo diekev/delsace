@@ -56,7 +56,7 @@
 
 /* À FAIRE (coulisse LLVM)
  * - type 'chaîne'
- * - noeud 'mémoire'
+ * - noeud 'mémoire', 'déclaration structure/énum'
  * - infos types
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
@@ -66,6 +66,7 @@
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - conversion tableau octet
+ * - union accès membre par '.' et par 'de'
  */
 
 /* ************************************************************************** */
@@ -311,6 +312,8 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::LOGE)
 		CAS_TYPE(type_noeud::DELOGE)
 		CAS_TYPE(type_noeud::RELOGE)
+		CAS_TYPE(type_noeud::DECLARATION_STRUCTURE)
+		CAS_TYPE(type_noeud::DECLARATION_ENUM)
 	}
 
 	return "erreur : type_noeud inconnu";
@@ -689,6 +692,11 @@ bool peut_operer(
 		type_noeud type_gauche,
 		type_noeud type_droite)
 {
+	/* À FAIRE : cas spécial pour les énums */
+	if (type1.type_base() == type2.type_base()) {
+		return true;
+	}
+
 	if (est_type_entier(type1.type_base())) {
 		if (est_type_entier(type2.type_base())) {
 			return true;
@@ -1321,9 +1329,10 @@ llvm::Value *genere_code_llvm(
 
 			auto &donnees_structure = contexte.donnees_structure(index_structure);
 
-			auto const iter = donnees_structure.index_membres.find(nom_membre);
+			auto const iter = donnees_structure.donnees_membres.find(nom_membre);
 
-			auto const index_membre = iter->second;
+			auto const &donnees_membres = iter->second;
+			auto const index_membre = donnees_membres.index_membre;
 
 			auto valeur = genere_code_llvm(structure, contexte, true);
 
@@ -2547,6 +2556,16 @@ llvm::Value *genere_code_llvm(
 			/* À FAIRE */
 			return nullptr;
 		}
+		case type_noeud::DECLARATION_STRUCTURE:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
+		case type_noeud::DECLARATION_ENUM:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
 	}
 
 	return nullptr;
@@ -2855,6 +2874,16 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				return;
 			}
 
+			/* Nous avons peut-être une énumération. */
+			if (contexte.structure_existe(b->morceau.chaine)) {
+				auto &donnees_structure = contexte.donnees_structure(b->morceau.chaine);
+
+				if (donnees_structure.est_enum) {
+					b->index_type = donnees_structure.index_type;
+					return;
+				}
+			}
+
 			erreur::lance_erreur(
 						"Variable inconnue",
 						contexte,
@@ -2950,37 +2979,42 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							membre->donnees_morceau(),
 							erreur::type_erreur::MEMBRE_INCONNU);
 			}
-			else if ((type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+
+			if ((type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
 				auto const index_structure = size_t(type_structure.type_base() >> 8);
 
 				auto const &nom_membre = membre->chaine();
 
 				auto &donnees_structure = contexte.donnees_structure(index_structure);
 
-				auto const iter = donnees_structure.index_membres.find(nom_membre);
+				if (donnees_structure.est_enum) {
+					b->index_type = donnees_structure.index_type;
+					return;
+				}
 
-				if (iter == donnees_structure.index_membres.end()) {
+				auto const iter = donnees_structure.donnees_membres.find(nom_membre);
+
+				if (iter == donnees_structure.donnees_membres.end()) {
 					/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
 					erreur::lance_erreur(
 								"Membre inconnu",
 								contexte,
-								b->morceau,
+								membre->morceau,
 								erreur::type_erreur::MEMBRE_INCONNU);
 				}
 
-				auto const index_membre = iter->second;
+				auto const &donnees_membres = iter->second;
 
-				b->index_type = donnees_structure.donnees_types[index_membre];
-			}
-			else {
-				erreur::lance_erreur(
-							"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-							contexte,
-							structure->donnees_morceau(),
-							erreur::type_erreur::TYPE_DIFFERENTS);
+				b->index_type = donnees_structure.donnees_types[donnees_membres.index_membre];
+
+				return;
 			}
 
-			break;
+			erreur::lance_erreur(
+						"Impossible d'accéder au membre d'un objet n'étant pas une structure",
+						contexte,
+						structure->donnees_morceau(),
+						erreur::type_erreur::TYPE_DIFFERENTS);
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{
@@ -3771,6 +3805,82 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::RELOGE:
 		{
 			/* À FAIRE */
+			break;
+		}
+		case type_noeud::DECLARATION_STRUCTURE:
+		{
+			auto &ds = contexte.donnees_structure(b->chaine());
+
+			for (auto enfant : b->enfants) {
+				if (enfant->type == type_noeud::ASSIGNATION_VARIABLE) {
+					if (enfant->morceau.identifiant != id_morceau::EGAL) {
+						erreur::lance_erreur(
+									"Déclaration impossible dans la déclaration du membre",
+									contexte,
+									enfant->morceau,
+									erreur::type_erreur::NORMAL);
+					}
+
+					auto decl_membre = enfant->enfants.front();
+					auto decl_expr = enfant->enfants.back();
+					auto nom_membre = decl_membre->chaine();
+
+					if (ds.donnees_membres.find(nom_membre) != ds.donnees_membres.end()) {
+						erreur::lance_erreur(
+									"Redéfinition du membre",
+									contexte,
+									enfant->morceau,
+									erreur::type_erreur::MEMBRE_REDEFINI);
+					}
+
+					performe_validation_semantique(decl_expr, contexte);
+
+					if (decl_membre->index_type != decl_expr->index_type) {
+						if (decl_membre->index_type == -1ul) {
+							decl_membre->index_type = decl_expr->index_type;
+						}
+						else {
+							auto &dt_enf = contexte.magasin_types.donnees_types[decl_membre->index_type];
+							auto &dt_exp = contexte.magasin_types.donnees_types[decl_expr->index_type];
+
+							auto compat = sont_compatibles(
+										dt_enf,
+										dt_exp,
+										decl_expr->type);
+
+							if (compat != niveau_compat::ok) {
+								erreur::lance_erreur_type_arguments(
+											dt_enf,
+											dt_exp,
+											contexte,
+											decl_membre->morceau,
+											decl_expr->morceau);
+							}
+						}
+					}
+
+					ds.donnees_membres.insert({nom_membre, { ds.donnees_types.size(), decl_expr }});
+					ds.donnees_types.push_back(decl_membre->index_type);
+				}
+				else if (enfant->type == type_noeud::VARIABLE) {
+					if (ds.donnees_membres.find(enfant->chaine()) != ds.donnees_membres.end()) {
+						erreur::lance_erreur(
+									"Redéfinition du membre",
+									contexte,
+									enfant->morceau,
+									erreur::type_erreur::MEMBRE_REDEFINI);
+					}
+
+					ds.donnees_membres.insert({enfant->chaine(), { ds.donnees_types.size(), nullptr }});
+					ds.donnees_types.push_back(enfant->index_type);
+				}
+			}
+
+			break;
+		}
+		case type_noeud::DECLARATION_ENUM:
+		{
+			/* À FAIRE : vérification nom unique, valeur unique + test */
 			break;
 		}
 	}

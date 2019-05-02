@@ -132,7 +132,7 @@ static auto cree_info_type_entier_C(
 			+ std::to_string(index++);
 
 	os << "InfoTypeEntier " << nom_info_type << ";\n";
-	os << nom_info_type << ".id = TYPE_ENTIER;\n";
+	os << nom_info_type << ".id = id_info_ENTIER;\n";
 	os << nom_info_type << ".est_signe = " << est_signe << ";\n";
 	os << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
 
@@ -151,11 +151,18 @@ static auto cree_info_type_reel_C(
 			+ std::to_string(index++);
 
 	os << "InfoTypeReel " << nom_info_type << ";\n";
-	os << nom_info_type << ".id = TYPE_REEL;\n";
+	os << nom_info_type << ".id = id_info_REEL;\n";
 	os << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
 
 	return nom_info_type;
 }
+
+static std::string cree_info_type_C(
+		ContexteGenerationCode &contexte,
+		std::ostream &os,
+		DonneesType const &donnees_type,
+		int nombre_base,
+		int profondeur);
 
 static int taille_type_octet(DonneesType const &donnees_type)
 {
@@ -217,6 +224,205 @@ static int taille_type_octet(DonneesType const &donnees_type)
 	}
 }
 
+static auto cree_info_type_structure_C(
+		std::ostream &os,
+		ContexteGenerationCode &contexte,
+		std::string_view const &nom_struct,
+		DonneesStructure const &donnees_structure,
+		int nombre_base,
+		int profondeur)
+{
+	auto nom_info_type = "__info_type_struct"
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur);
+
+	/* crée la chaîne pour le nom */
+	auto nom_chaine = "__nom_"
+			+ std::string(nom_struct)
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur);
+
+	os << "chaine " << nom_chaine << " = ";
+	os << "{.pointeur = \"" << nom_struct << "\""
+	   << ", .taille = " << nom_struct.size() << "};\n";
+
+	os << "InfoTypeStructure " << nom_info_type << ";\n";
+	os << nom_info_type << ".id = id_info_STRUCTURE;\n";
+	os << nom_info_type << ".nom = " << nom_chaine << ";\n";
+
+	/* crée un tableau fixe puis converti le en tableau dyn */
+	auto nombre_membres = donnees_structure.donnees_types.size();
+
+	/* crée des structures pour chaque membre, et rassemble les pointeurs */
+	std::vector<std::string> pointeurs;
+	pointeurs.reserve(nombre_membres);
+
+	auto decalage = 0;
+
+	for (auto i = 0ul; i < donnees_structure.donnees_types.size(); ++i) {
+		auto index_dt = donnees_structure.donnees_types[i];
+		auto &dt = contexte.magasin_types.donnees_types[index_dt];
+
+		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
+			if (paire_idx_mb.second.index_membre != i) {
+				continue;
+			}
+
+			auto suffixe = std::to_string(i)
+					+ std::to_string(nombre_base)
+					+ std::to_string(profondeur);
+
+			auto nom_info_type_membre = "__info_type_membre" + suffixe;
+
+			auto struct_info_type_membre = cree_info_type_C(
+						contexte, os, dt, nombre_base + static_cast<int>(i), profondeur + 1);
+
+			os << "InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
+			os << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
+			os << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.size()  << ";\n";
+			os << nom_info_type_membre << ".decalage = " << decalage  << ";\n";
+			os << nom_info_type_membre << ".id = (InfoType *)(&" << struct_info_type_membre  << ");\n";
+
+			decalage += taille_type_octet(dt);
+
+			pointeurs.push_back(nom_info_type_membre);
+			break;
+		}
+	}
+
+	/* alloue un tableau fixe pour stocker les pointeurs */
+	auto idx_type_tabl = contexte.donnees_structure("InfoTypeMembreStructure").id;
+	auto type_struct_membre = DonneesType{};
+	type_struct_membre.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(idx_type_tabl << 8));
+
+	auto dt_tfixe = DonneesType{};
+	dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(nombre_membres << 8));
+	dt_tfixe.pousse(type_struct_membre);
+
+	auto nom_tableau_fixe = std::string("__tabl_fix_membres")
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur);
+
+	contexte.magasin_types.converti_type_C(
+				contexte, nom_tableau_fixe, dt_tfixe, os);
+
+	os << " = ";
+
+	auto virgule = '{';
+
+	for (auto const &ptr : pointeurs) {
+		os << virgule;
+		os << ptr;
+		virgule = ',';
+	}
+
+	os << "};\n";
+
+	/* alloue un tableau dynamique */
+	auto dt_tdyn = DonneesType{};
+	dt_tdyn.pousse(id_morceau::TABLEAU);
+	dt_tdyn.pousse(type_struct_membre);
+
+	auto nom_tableau_dyn = std::string("__tabl_dyn_membres")
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur);
+
+	contexte.magasin_types.converti_type_C(
+				contexte, nom_tableau_fixe, dt_tdyn, os);
+
+	os << ' ' << nom_tableau_dyn << ";\n";
+	os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
+	os << nom_tableau_dyn << ".taille = " << nombre_membres << ";\n";
+
+	os << nom_info_type << ".membres = " << nom_tableau_dyn << ";\n";
+
+	return nom_info_type;
+}
+
+static auto cree_info_type_enum_C(
+		std::ostream &os,
+		ContexteGenerationCode &contexte,
+		std::string_view const &nom_struct,
+		DonneesStructure const &donnees_structure,
+		int nombre_base,
+		int profondeur)
+{
+	auto nom_info_type = "__info_type_struct"
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur);
+
+	/* crée la chaîne pour le nom */
+	auto nom_chaine = "__nom_"
+			+ std::string(nom_struct)
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur)
+			+ std::to_string(index++);
+
+	os << "chaine " << nom_chaine << " = ";
+	os << "{.pointeur = \"" << nom_struct << "\""
+	   << ", .taille = " << nom_struct.size() << "};\n";
+
+	os << "InfoTypeEnum " << nom_info_type << ";\n";
+	os << nom_info_type << ".id = id_info_ENUM;\n";
+	os << nom_info_type << ".nom = " << nom_chaine << ";\n";
+
+	auto noeud_decl = donnees_structure.noeud_decl;
+	auto nombre_enfants = noeud_decl->enfants.size();
+
+	/* crée un tableau pour les noms des énumérations */
+
+	auto nom_tabl_fixe = "__noms_membres_"
+			+ std::string(nom_struct)
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur)
+			+ std::to_string(index++);
+
+	os << "chaine " << nom_tabl_fixe << "[" << nombre_enfants << "] = {\n";
+
+	for (auto enfant : noeud_decl->enfants) {
+		auto enf0 = enfant->enfants.front();
+		os << "{.pointeur=\"" << enf0->chaine() << "\", .taille=" << enf0->chaine().size() << "},";
+	}
+
+	os << "};\n";
+
+	os << nom_info_type << ".noms.pointeur = " << nom_tabl_fixe << ";\n";
+	os << nom_info_type << ".noms.taille = " << nombre_enfants << ";\n";
+
+
+	/* crée un tableau pour les noms des énumérations */
+	auto nom_tabl_fixe_vals = "__valeurs_membres_"
+			+ std::string(nom_struct)
+			+ std::to_string(nombre_base)
+			+ std::to_string(profondeur)
+			+ std::to_string(index++);
+
+	auto &dt = contexte.magasin_types.donnees_types[noeud_decl->index_type];
+
+	contexte.magasin_types.converti_type_C(
+				contexte,
+				"",
+				dt,
+				os);
+
+	os << " " << nom_tabl_fixe_vals << "[" << nombre_enfants << "] = {\n";
+
+	for (auto enfant : noeud_decl->enfants) {
+		auto enf1 = enfant->enfants.back();
+
+		genere_code_C(enf1, contexte, false, os);
+
+		os << ',';
+	}
+
+	os << "};\n";
+
+	os << nom_info_type << ".valeurs.pointeur = " << nom_tabl_fixe_vals << ";\n";
+	os << nom_info_type << ".valeurs.taille = " << nombre_enfants << ";\n";
+
+	return nom_info_type;
+}
+
 static std::string cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os,
@@ -234,7 +440,7 @@ static std::string cree_info_type_C(
 		}
 		case id_morceau::BOOL:
 		{
-			valeur = cree_info_type_defaul_C(os, "TYPE_BOOLEEN", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os, "id_info_BOOLEEN", nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::N8:
@@ -304,7 +510,7 @@ static std::string cree_info_type_C(
 					+ std::to_string(index++);
 
 			os << "InfoTypePointeur " << nom_info_type << ";\n";
-			os << nom_info_type << ".id = TYPE_POINTEUR;\n";
+			os << nom_info_type << ".id = id_info_POINTEUR;\n";
 			os << nom_info_type << ".type_pointe = (InfoType *)(&" << valeur_pointee << ");\n";
 
 			valeur = nom_info_type;
@@ -315,112 +521,25 @@ static std::string cree_info_type_C(
 			auto id_structure = static_cast<size_t>(donnees_type.type_base() >> 8);
 			auto donnees_structure = contexte.donnees_structure(id_structure);
 
-			auto nom_info_type = "__info_type_struct"
-					+ std::to_string(nombre_base)
-					+ std::to_string(profondeur);
-
-			/* crée la chaîne pour le nom */
-			auto nom_struct = contexte.nom_struct(id_structure);
-			auto nom_chaine = "__nom_"
-					+ nom_struct
-					+ std::to_string(nombre_base)
-					+ std::to_string(profondeur);
-
-			os << "chaine " << nom_chaine << " = ";
-			os << "{.pointeur = \"" << nom_struct << "\""
-			   << ", .taille = " << nom_struct.size() << "};\n";
-
-			os << "InfoTypeStructure " << nom_info_type << ";\n";
-			os << nom_info_type << ".id = TYPE_STRUCTURE;\n";
-			os << nom_info_type << ".nom = " << nom_chaine << ";\n";
-
-			/* crée un tableau fixe puis converti le en tableau dyn */
-			auto nombre_membres = donnees_structure.donnees_types.size();
-
-			/* crée des structures pour chaque membre, et rassemble les pointeurs */
-			std::vector<std::string> pointeurs;
-			pointeurs.reserve(nombre_membres);
-
-			auto decalage = 0;
-
-			for (auto i = 0ul; i < donnees_structure.donnees_types.size(); ++i) {
-				auto index_dt = donnees_structure.donnees_types[i];
-				auto &dt = contexte.magasin_types.donnees_types[index_dt];
-
-				for (auto paire_idx_mb : donnees_structure.index_membres) {
-					if (paire_idx_mb.second != i) {
-						continue;
-					}
-
-					auto suffixe = std::to_string(i)
-							+ std::to_string(nombre_base)
-							+ std::to_string(profondeur);
-
-					auto nom_info_type_membre = "__info_type_membre" + suffixe;
-
-					auto struct_info_type_membre = cree_info_type_C(
-								contexte, os, dt, nombre_base + static_cast<int>(i), profondeur + 1);
-
-					os << "InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
-					os << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
-					os << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.size()  << ";\n";
-					os << nom_info_type_membre << ".decalage = " << decalage  << ";\n";
-					os << nom_info_type_membre << ".id = (InfoType *)(&" << struct_info_type_membre  << ");\n";
-
-					decalage += taille_type_octet(dt);
-
-					pointeurs.push_back(nom_info_type_membre);
-					break;
-				}
+			if (donnees_structure.est_enum) {
+				valeur = cree_info_type_enum_C(
+							os,
+							contexte,
+							contexte.nom_struct(id_structure),
+							donnees_structure,
+							nombre_base,
+							profondeur);
+			}
+			else {
+				valeur = cree_info_type_structure_C(
+							os,
+							contexte,
+							contexte.nom_struct(id_structure),
+							donnees_structure,
+							nombre_base,
+							profondeur);
 			}
 
-			/* alloue un tableau fixe pour stocker les pointeurs */
-			auto idx_type_tabl = contexte.donnees_structure("InfoTypeMembreStructure").id;
-			auto type_struct_membre = DonneesType{};
-			type_struct_membre.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(idx_type_tabl << 8));
-
-			auto dt_tfixe = DonneesType{};
-			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(nombre_membres << 8));
-			dt_tfixe.pousse(type_struct_membre);
-
-			auto nom_tableau_fixe = std::string("__tabl_fix_membres")
-					+ std::to_string(nombre_base)
-					+ std::to_string(profondeur);
-
-			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_fixe, dt_tfixe, os);
-
-			os << " = ";
-
-			auto virgule = '{';
-
-			for (auto const &ptr : pointeurs) {
-				os << virgule;
-				os << ptr;
-				virgule = ',';
-			}
-
-			os << "};\n";
-
-			/* alloue un tableau dynamique */
-			auto dt_tdyn = DonneesType{};
-			dt_tdyn.pousse(id_morceau::TABLEAU);
-			dt_tdyn.pousse(type_struct_membre);
-
-			auto nom_tableau_dyn = std::string("__tabl_dyn_membres")
-					+ std::to_string(nombre_base)
-					+ std::to_string(profondeur);
-
-			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_fixe, dt_tdyn, os);
-
-			os << ' ' << nom_tableau_dyn << ";\n";
-			os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
-			os << nom_tableau_dyn << ".taille = " << nombre_membres << ";\n";
-
-			os << nom_info_type << ".membres = " << nom_tableau_dyn << ";\n";
-
-			valeur = nom_info_type;
 			break;
 		}
 		case id_morceau::TABLEAU:
@@ -433,7 +552,7 @@ static std::string cree_info_type_C(
 					+ std::to_string(profondeur);
 
 			os << "InfoTypeTableau " << nom_info_type << ";\n";
-			os << nom_info_type << ".id = TYPE_TABLEAU;\n";
+			os << nom_info_type << ".id = id_info_TABLEAU;\n";
 			os << nom_info_type << ".type_pointe = (InfoType *)(&" << valeur_pointee << ");\n";
 
 			valeur = nom_info_type;
@@ -442,22 +561,22 @@ static std::string cree_info_type_C(
 		case id_morceau::FONCTION:
 		{
 			/* À FAIRE : type params */
-			valeur = cree_info_type_defaul_C(os, "TYPE_FONCTION", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os, "id_info_FONCTION", nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::EINI:
 		{
-			valeur = cree_info_type_defaul_C(os, "TYPE_EINI", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os, "id_info_EINI", nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::RIEN:
 		{
-			valeur = cree_info_type_defaul_C(os, "TYPE_RIEN", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os, "id_info_RIEN", nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::CHAINE:
 		{
-			valeur = cree_info_type_defaul_C(os, "TYPE_CHAINE", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os, "id_info_CHAINE", nombre_base, profondeur);
 			break;
 		}
 	}
@@ -704,8 +823,8 @@ static void declare_structures_C(
 			auto index_dt = donnees.donnees_types[i];
 			auto &dt = contexte.magasin_types.donnees_types[index_dt];
 
-			for (auto paire_idx_mb : donnees.index_membres) {
-				if (paire_idx_mb.second == i) {
+			for (auto paire_idx_mb : donnees.donnees_membres) {
+				if (paire_idx_mb.second.index_membre == i) {
 					auto nom = paire_idx_mb.first;
 
 					auto est_tableau = contexte.magasin_types.converti_type_C(
@@ -727,6 +846,116 @@ static void declare_structures_C(
 		}
 
 		os << "} " << nom_struct << ";\n\n";
+	}
+}
+
+static auto genere_code_acces_membre(
+		base *structure,
+		base *membre,
+		ContexteGenerationCode &contexte,
+		std::ostream &os)
+{
+	auto const &index_type = structure->index_type;
+	auto type_structure = contexte.magasin_types.donnees_types[index_type];
+
+	auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
+
+	if (est_pointeur) {
+		type_structure = type_structure.derefence();
+	}
+
+	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+#ifdef NONSUR
+		if (!contexte.non_sur() && expr_gauche) {
+			erreur::lance_erreur(
+						"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
+						contexte,
+						b->morceau,
+						erreur::type_erreur::ASSIGNATION_INVALIDE);
+		}
+#endif
+
+		auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
+
+		if (taille != 0) {
+			os << taille;
+			return;
+		}
+	}
+
+	/* vérifie si nous avons une énumération */
+	if (contexte.structure_existe(structure->chaine())) {
+		auto &ds = contexte.donnees_structure(structure->chaine());
+
+		if (ds.est_enum) {
+			os << structure->chaine() << '_' << membre->chaine();
+			return;
+		}
+	}
+
+	genere_code_C(structure, contexte, true, os);
+	os << ((est_pointeur) ? "->" : ".") << membre->chaine();
+}
+
+static void cree_initialisation(
+		ContexteGenerationCode &contexte,
+		DonneesType const &dt_parent,
+		std::string const &chaine_parent,
+		std::string_view const &accesseur,
+		std::ostream &os)
+{
+	if (dt_parent.type_base() == id_morceau::CHAINE || dt_parent.type_base() == id_morceau::TABLEAU) {
+		os << chaine_parent << accesseur << "pointeur = 0;\n";
+		os << chaine_parent << accesseur << "taille = 0;\n";
+	}
+	else if ((dt_parent.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+		auto const index_structure = static_cast<size_t>(dt_parent.type_base() >> 8);
+		auto const &ds = contexte.donnees_structure(index_structure);
+
+		for (auto i = 0ul; i < ds.donnees_types.size(); ++i) {
+			auto index_dt = ds.donnees_types[i];
+			auto &dt_enf = contexte.magasin_types.donnees_types[index_dt];
+
+			for (auto paire_idx_mb : ds.donnees_membres) {
+				auto const &donnees_membre = paire_idx_mb.second;
+
+				if (donnees_membre.index_membre != i) {
+					continue;
+				}
+
+				auto nom = paire_idx_mb.first;
+				auto decl_nom = chaine_parent + std::string(accesseur) + std::string(nom);
+
+				if (donnees_membre.noeud_decl != nullptr) {
+					/* besoin de créer une indirection */
+					if (dt_enf.type_base() == id_morceau::CHAINE) {
+						os << "chaine __chn_tmp" << index << " = ";
+						genere_code_C(donnees_membre.noeud_decl, contexte, false, os);
+						os << ";\n";
+						os << decl_nom << " = __chn_tmp" << index ++ << ";\n";
+					}
+					else {
+						os << decl_nom << " = ";
+						genere_code_C(donnees_membre.noeud_decl, contexte, false, os);
+						os << ";\n";
+					}
+				}
+				else {
+					cree_initialisation(
+								contexte,
+								dt_enf,
+								decl_nom,
+								".",
+								os);
+				}
+			}
+		}
+	}
+	else if ((dt_parent.type_base() & 0xff) == id_morceau::TABLEAU) {
+		/* À FAIRE */
+	}
+	else {
+		os << chaine_parent << " = 0;\n";
 	}
 }
 
@@ -1011,43 +1240,14 @@ void genere_code_C(
 		{
 			auto structure = b->enfants.back();
 			auto membre = b->enfants.front();
-
-			auto const &index_type = structure->index_type;
-			auto type_structure = contexte.magasin_types.donnees_types[index_type];
-
-			auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
-
-			if (est_pointeur) {
-				type_structure = type_structure.derefence();
-			}
-
-			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
-#ifdef NONSUR
-				if (!contexte.non_sur() && expr_gauche) {
-					erreur::lance_erreur(
-								"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::ASSIGNATION_INVALIDE);
-				}
-#endif
-
-				auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
-
-				if (taille != 0) {
-					os << taille;
-					return;
-				}
-			}
-
-			genere_code_C(structure, contexte, true, os);
-			os << ((est_pointeur) ? "->" : ".") << membre->chaine();
-
+			genere_code_acces_membre(structure, membre, contexte, os);
 			break;
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{
-			/* À FAIRE */
+			auto structure = b->enfants.front();
+			auto membre = b->enfants.back();
+			genere_code_acces_membre(structure, membre, contexte, os);
 			break;
 		}
 		case type_noeud::CONSTANTE:
@@ -1067,10 +1267,12 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_VARIABLE:
 		{
-			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
+			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto est_tableau = contexte.magasin_types.converti_type_C(
+						contexte,
 						b->chaine(),
-						contexte.magasin_types.donnees_types[b->index_type],
-					os);
+						dt,
+						os);
 
 			if (!est_tableau) {
 				os << " " << b->chaine();
@@ -1081,12 +1283,16 @@ void genere_code_C(
 				return;
 			}
 
-			/* À FAIRE : déplace ça */
-			/* Mets à zéro les valeurs des tableaux dynamics. */
-			//			if (type.type_base() == id_morceau::TABLEAU) {
-			//				os << b->chaine() << ".pointeur = 0;";
-			//				os << b->chaine() << ".taille = 0;";
-			//			}
+			/* nous avons une déclaration, initialise à zéro */
+			if (!possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
+				os << ";\n";
+				cree_initialisation(
+							contexte,
+							dt,
+							std::string(b->chaine()),
+							".",
+							os);
+			}
 
 			contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
 
@@ -1151,6 +1357,7 @@ void genere_code_C(
 				nouvelle_expr = std::any_cast<std::string>(expression->valeur_calculee);
 			}
 
+			variable->drapeaux |= POUR_ASSIGNATION;
 			genere_code_C(variable, contexte, true, os);
 			os << " = ";
 
@@ -1989,12 +2196,24 @@ void genere_code_C(
 
 				os << ")(malloc(sizeof(";
 
+				auto const dt_deref = dt_pointeur.derefence();
+
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt_pointeur.derefence(),
+							dt_deref,
 							os);
 				os << ")));\n";
+
+				/* initialise la structure */
+				if ((dt_deref.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+					cree_initialisation(
+								contexte,
+								dt_deref,
+								nom_ptr,
+								"->",
+								os);
+				}
 
 				b->valeur_calculee = nom_ptr;
 			}
@@ -2038,6 +2257,34 @@ void genere_code_C(
 			   << enfant->chaine() << ".pointeur, nouvelle_taille);\n";
 
 			os << enfant->chaine() << ".taille = 0;\n";
+			break;
+		}
+		case type_noeud::DECLARATION_STRUCTURE:
+		{
+			/* RAF, puisque le code est généré pour toutes les structures avant
+			 * les fonctions. */
+			break;
+		}
+		case type_noeud::DECLARATION_ENUM:
+		{
+			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+
+			for (auto enfant : b->enfants) {
+				os << "static const ";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt,
+							os);
+
+				auto enf0 = enfant->enfants.front();
+				auto enf1 = enfant->enfants.back();
+
+				os << ' ' << b->chaine() << '_' << enf0->chaine() << " = ";
+				genere_code_C(enf1, contexte, false, os);
+				os << ";\n";
+			}
+
 			break;
 		}
 	}

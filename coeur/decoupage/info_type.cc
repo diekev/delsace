@@ -280,9 +280,9 @@ llvm::Value *cree_info_type(
 
 			std::vector<llvm::Constant *> structes_membres;
 
-			for (auto &arg : donnees_structure.index_membres) {
+			for (auto &arg : donnees_structure.donnees_membres) {
 				/* { nom : []z8, info : *InfoType } */
-				auto id_dt = donnees_structure.donnees_types[arg.second];
+				auto id_dt = donnees_structure.donnees_types[arg.second.index_membre];
 				auto &ref_membre = contexte.magasin_types.donnees_types[id_dt];
 
 				auto info_type = cree_info_type(contexte, ref_membre);

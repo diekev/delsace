@@ -878,6 +878,11 @@ void analyseuse_grammaire::analyse_expression_droite(
 				else {
 					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
 					expression.push_back(noeud);
+
+					/* nous avons la déclaration d'un type dans la structure */
+					if (racine_expr == id_morceau::STRUCTURE && est_identifiant(id_morceau::DOUBLE_POINTS)) {
+						noeud->index_type = analyse_declaration_type();
+					}
 				}
 
 				break;
@@ -1495,6 +1500,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 		lance_erreur("Attendu une chaîne de caractères après 'structure'");
 	}
 
+	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_STRUCTURE, m_contexte, donnees());
 	auto nom_structure = donnees().chaine;
 
 	if (m_contexte.structure_existe(nom_structure)) {
@@ -1506,29 +1512,16 @@ void analyseuse_grammaire::analyse_declaration_structure()
 	}
 
 	auto donnees_structure = DonneesStructure{};
+	donnees_structure.noeud_decl = noeud_decl;
+	donnees_structure.est_enum = false;
 
-	/* chaine : type ; */
 	while (true) {
-		if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+		if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 			/* nous avons terminé */
-			recule();
 			break;
 		}
 
-		auto nom_membre = donnees().chaine;
-
-		if (donnees_structure.index_membres.find(nom_membre) != donnees_structure.index_membres.end()) {
-			lance_erreur("Redéfinition du membre", erreur::type_erreur::MEMBRE_REDEFINI);
-		}
-
-		auto donnees_type = analyse_declaration_type();
-
-		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
-			lance_erreur("Attendu ';'");
-		}
-
-		donnees_structure.index_membres.insert({nom_membre, donnees_structure.donnees_types.size()});
-		donnees_structure.donnees_types.push_back(donnees_type);
+		analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCTURE, false, true);
 	}
 
 	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
@@ -1536,6 +1529,8 @@ void analyseuse_grammaire::analyse_declaration_structure()
 	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu '}' à la fin de la déclaration de la structure");
 	}
+
+	m_assembleuse->depile_noeud(type_noeud::DECLARATION_STRUCTURE);
 }
 
 void analyseuse_grammaire::analyse_declaration_enum()
@@ -1544,42 +1539,40 @@ void analyseuse_grammaire::analyse_declaration_enum()
 		lance_erreur("Attendu la déclaration 'énum'");
 	}
 
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+		lance_erreur("Attendu un nom après 'énum'");
+	}
+
+	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_ENUM, m_contexte, donnees());
+	auto nom = noeud_decl->morceau.chaine;
+
+	auto donnees_structure = DonneesStructure{};
+	donnees_structure.est_enum = true;
+	donnees_structure.noeud_decl = noeud_decl;
+
+	m_contexte.ajoute_donnees_structure(nom, donnees_structure);
+
+	noeud_decl->index_type = analyse_declaration_type();
+
 	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu '{' après 'énum'");
 	}
 
 	while (true) {
-		if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+		if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 			/* nous avons terminé */
-			recule();
 			break;
 		}
 
-		auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTANTE, m_contexte, donnees());
-		auto dt = DonneesType{};
-		dt.pousse(id_morceau::N32);
-		noeud->index_type = m_contexte.magasin_types.ajoute_type(dt);
-
-		if (est_identifiant(id_morceau::EGAL)) {
-			avance();
-			analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL, true);
-
-			/* recule pour tester la virgule après */
-			recule();
-		}
-
-		m_assembleuse->depile_noeud(type_noeud::CONSTANTE);
-
-		if (!requiers_identifiant(id_morceau::VIRGULE)) {
-			lance_erreur("Attendu ',' à la fin de la déclaration");
-		}
+		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL, false, true);
 	}
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu '}' à la fin de la déclaration de l'énum");
 	}
-}
 
+	m_assembleuse->depile_noeud(type_noeud::DECLARATION_ENUM);
+}
 
 size_t analyseuse_grammaire::analyse_declaration_type(DonneesType *donnees_type_fonction, bool double_point)
 {

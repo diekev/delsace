@@ -235,7 +235,7 @@ void MagasinDonneesType::declare_structures_C(
 }
 
 static bool converti_type_simple_C(
-		ContexteGenerationCode const &contexte,
+		ContexteGenerationCode &contexte,
 		std::ostream &os,
 		std::string_view const &nom_variable,
 		id_morceau id,
@@ -366,11 +366,21 @@ static bool converti_type_simple_C(
 		case id_morceau::CHAINE_CARACTERE:
 		{
 			auto id_struct = static_cast<size_t>(id >> 8);
+			auto &donnees_struct = contexte.donnees_structure(id_struct);
 			auto nom_structure = contexte.nom_struct(id_struct);
-			if (echappe_struct) {
-				os << "struct ";
+
+			if (donnees_struct.est_enum) {
+				auto &dt = contexte.magasin_types.donnees_types[donnees_struct.noeud_decl->index_type];
+				converti_type_simple_C(contexte, os, "", dt.type_base(), false, false);
 			}
-			os << nom_structure;
+			else {
+				if (echappe_struct) {
+					os << "struct ";
+				}
+
+				os << nom_structure;
+			}
+
 			break;
 		}
 		case id_morceau::EINI:

@@ -77,6 +77,8 @@ enum class type_noeud : char {
 	LOGE,
 	DELOGE,
 	RELOGE,
+	DECLARATION_STRUCTURE,
+	DECLARATION_ENUM,
 };
 
 const char *chaine_type_noeud(type_noeud type);
@@ -166,6 +168,7 @@ enum : unsigned short {
 	EST_EXTERNE            = (1 << 8),
 	EST_CALCULE            = (1 << 9),
 	CONVERTI_TABLEAU_OCTET = (1 << 10),
+	POUR_ASSIGNATION       = (1 << 11),
 
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
 };

@@ -85,11 +85,20 @@ struct DonneesVariable {
 	char pad[5] = {};
 };
 
+struct DonneesMembre {
+	size_t index_membre{};
+	noeud::base *noeud_decl = nullptr;
+};
+
 struct DonneesStructure {
-	std::unordered_map<std::string_view, size_t> index_membres{};
+	std::unordered_map<std::string_view, DonneesMembre> donnees_membres{};
 	std::vector<size_t> donnees_types{};
 	llvm::Type *type_llvm{nullptr};
 	size_t id{0ul};
+	size_t index_type{-1ul};
+	noeud::base *noeud_decl = nullptr;
+	bool est_enum = false;
+	char pad[7] = {};
 };
 
 using conteneur_globales = std::unordered_map<std::string_view, DonneesVariable>;

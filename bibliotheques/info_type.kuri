@@ -3,41 +3,42 @@
 
 importe "chaine"
 
-énum {
-	TYPE_ENTIER    = 0,
-	TYPE_REEL      = 1,
-	TYPE_BOOLEEN   = 2,
-	TYPE_CHAINE    = 3,
-	TYPE_POINTEUR  = 4,
-	TYPE_STRUCTURE = 5,
-	TYPE_FONCTION  = 6,
-	TYPE_TABLEAU   = 7,
-	TYPE_EINI      = 8,
-	TYPE_RIEN      = 9,
+énum id_info : z32 {
+    ENTIER    = 0,
+	REEL      = 1,
+	BOOLEEN   = 2,
+	CHAINE    = 3,
+	POINTEUR  = 4,
+	STRUCTURE = 5,
+	FONCTION  = 6,
+	TABLEAU   = 7,
+	EINI      = 8,
+	RIEN      = 9,
+	ENUM      = 10,
 }
 
 structure InfoType {
-	id : n32;
+    id : id_info;
 }
 
 structure InfoTypeEntier {
-	id : n32; # employant InfoType
+    id : id_info; # employant InfoType
 	est_signe : bool;
 	taille_en_octet : n32;
 }
 
 structure InfoTypeReel {
-	id : n32; # employant InfoType
+    id : id_info; # employant InfoType
 	taille_en_octet : n32;
 }
 
 structure InfoTypePointeur {
-	id : n32; # employant InfoType
+    id : id_info; # employant InfoType
 	type_pointe : *InfoType;
 }
 
 structure InfoTypeTableau {
-	id : n32; # employant InfoType
+    id : id_info; # employant InfoType
 	type_pointe : *InfoType;
 }
 
@@ -49,22 +50,29 @@ structure InfoTypeMembreStructure {
 }
 
 structure InfoTypeStructure {
-	id : n32; # employant InfoType
+    id : id_info; # employant InfoType
 	nom : chaîne;
 	membres : []InfoTypeMembreStructure;
 }
 
 structure InfoTypeFonction {
-	id : n32; # employant InfoType
+    id : id_info; # employant InfoType
 	type_retour : *InfoType;
 	type_arguments : []*InfoType;
+}
+
+structure InfoTypeEnum {
+    id : id_info; # employant InfoType
+	nom : chaîne;
+	valeurs : []z32; # À FAIRE typage selon énum
+	noms : []chaîne;
 }
 
 fonction possede_membre(arg : eini, nom : chaîne) : bool
 {
     soit info = info de arg;
 
-    si id de info de arg != TYPE_STRUCTURE {
+    si id de info de arg != STRUCTURE de id_info {
         retourne faux;
     }
 

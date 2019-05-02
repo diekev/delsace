@@ -471,8 +471,15 @@ size_t ContexteGenerationCode::ajoute_donnees_structure(const std::string_view &
 {
 	donnees.id = nom_structures.size();
 	donnees.type_llvm = nullptr;
+
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
+
+	donnees.index_type = magasin_types.ajoute_type(dt);
+
 	structures.insert({nom, donnees});
 	nom_structures.push_back(nom);
+
 	return donnees.id;
 }
 
@@ -538,7 +545,7 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	memoire += structures.size() * sizeof(DonneesStructure);
 
 	for (auto const &structure : structures) {
-		memoire += structure.second.index_membres.size() * (sizeof(size_t) + sizeof(std::string_view));
+		memoire += structure.second.donnees_membres.size() * (sizeof(DonneesMembre) + sizeof(std::string_view));
 		memoire += structure.second.donnees_types.size() * sizeof(DonneesType);
 	}
 
