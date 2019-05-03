@@ -746,17 +746,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if (type_structure.type_base() == id_morceau::CHAINE) {
 				if (membre->chaine() == "taille") {
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::Z64);
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
+					b->index_type = contexte.magasin_types[TYPE_Z64];
 					return;
 				}
 
 				if (membre->chaine() == "pointeur") {
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::POINTEUR);
-					dt.pousse(id_morceau::Z8);
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
+					b->index_type = contexte.magasin_types[TYPE_PTR_Z8];
 					return;
 				}
 
@@ -780,11 +775,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 
 				if (membre->chaine() == "pointeur") {
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::POINTEUR);
-					dt.pousse(id_morceau::Z8);
-
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
+					b->index_type = contexte.magasin_types[TYPE_PTR_Z8];
 					return;
 				}
 
@@ -806,10 +797,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 
 				if (membre->chaine() == "taille") {
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::N64);
-
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
+					b->index_type = contexte.magasin_types[TYPE_N64];
 					return;
 				}
 
@@ -994,18 +982,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::NOMBRE_REEL:
 		{
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::R64);
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.magasin_types[TYPE_R64];
 			break;
 		}
 		case type_noeud::NOMBRE_ENTIER:
 		{
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::Z32);
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.magasin_types[TYPE_Z32];
 			break;
 		}
 		case type_noeud::OPERATION_BINAIRE:
@@ -1053,9 +1035,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						}
 						case id_morceau::CHAINE:
 						{
-							auto dt = DonneesType{};
-							dt.pousse(id_morceau::Z8);
-							b->index_type = contexte.magasin_types.ajoute_type(dt);
+							b->index_type = contexte.magasin_types[TYPE_Z8];
 							break;
 						}
 						default:
@@ -1079,10 +1059,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				case id_morceau::ESP_ESP:
 				case id_morceau::BARRE_BARRE:
 				{
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::BOOL);
-
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
+					b->index_type = contexte.magasin_types[TYPE_BOOL];
 					break;
 				}
 			}
@@ -1122,9 +1099,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 										erreur::type_erreur::TYPE_DIFFERENTS);
 						}
 
-						auto dt = DonneesType{};
-						dt.pousse(id_morceau::BOOL);
-						b->index_type = contexte.magasin_types.ajoute_type(dt);
+						b->index_type = contexte.magasin_types[TYPE_BOOL];
 						break;
 					}
 				}
@@ -1135,9 +1110,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::RETOUR:
 		{
 			if (b->enfants.empty()) {
-				auto dt = DonneesType{};
-				dt.pousse(id_morceau::RIEN);
-				b->index_type = contexte.magasin_types.ajoute_type(dt);
+				b->index_type = contexte.magasin_types[TYPE_RIEN];
 				return;
 			}
 
@@ -1166,28 +1139,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			b->valeur_calculee = corrigee;
-
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::CHAINE);
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.magasin_types[TYPE_CHAINE];
 
 			break;
 		}
 		case type_noeud::BOOLEEN:
 		{
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::BOOL);
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.magasin_types[TYPE_BOOL];
 			break;
 		}
 		case type_noeud::CARACTERE:
 		{
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::Z8);
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.magasin_types[TYPE_Z8];
 			break;
 		}
 		case type_noeud::SI:
@@ -1233,9 +1196,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			if (b->enfants.empty()) {
-				auto dt = DonneesType{};
-				dt.pousse(id_morceau::RIEN);
-				b->index_type = contexte.magasin_types.ajoute_type(dt);
+				b->index_type = contexte.magasin_types[TYPE_RIEN];
 			}
 			else {
 				b->index_type = b->enfants.back()->index_type;
@@ -1343,10 +1304,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				index_type = contexte.magasin_types.ajoute_type(type.derefence());
 			}
 			else if (type.type_base() == id_morceau::CHAINE) {
-				auto dt = DonneesType{};
-				dt.pousse(id_morceau::Z8);
-
-				index_type = contexte.magasin_types.ajoute_type(dt);
+				index_type = contexte.magasin_types[TYPE_Z8];
 				enfant1->index_type = index_type;
 			}
 
@@ -1367,11 +1325,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			if (requiers_index) {
 				auto var = enfant1->enfants.front();
 				auto idx = enfant1->enfants.back();
+				var->index_type = index_type;
 				contexte.pousse_locale(var->chaine(), nullptr, index_type, est_dynamique, false);
 
-				auto dt = DonneesType{};
-				dt.pousse(id_morceau::Z32);
-				index_type = contexte.magasin_types.ajoute_type(dt);
+				index_type = contexte.magasin_types[TYPE_Z32];
+				idx->index_type = index_type;
 				contexte.pousse_locale(idx->chaine(), nullptr, index_type, est_dynamique, false);
 			}
 			else {
@@ -1417,20 +1375,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::NUL:
 		{
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::POINTEUR);
-			dt.pousse(id_morceau::NUL);
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
-
+			b->index_type = contexte.magasin_types[TYPE_PTR_NUL];
 			break;
 		}
 		case type_noeud::TAILLE_DE:
 		{
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::N32);
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.magasin_types[TYPE_N32];
 
 			for (auto enfant : b->enfants) {
 				performe_validation_semantique(enfant, contexte);
@@ -1596,12 +1546,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::TYPE_DE:
 		{
-			auto dt = DonneesType{};
-			dt.pousse(id_morceau::N64);
-			//	/* À FAIRE : structure InfoType */
-			//	dt.pousse(id_morceau::CHAINE_CARACTERE);
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			/* À FAIRE : retourne une structure InfoType */
+			b->index_type = contexte.magasin_types[TYPE_N64];
 			performe_validation_semantique(b->enfants.front(), contexte);
 			break;
 		}

@@ -1833,26 +1833,16 @@ void genere_code_C(
 						}
 					}
 					else if (type == id_morceau::CHAINE) {
-
-						auto dt = DonneesType{};
-						dt.pousse(id_morceau::Z8);
-
-						index_type = contexte.magasin_types.ajoute_type(dt);
-
+						auto dt = DonneesType(id_morceau::Z8);
+						index_type = contexte.magasin_types[TYPE_Z8];
 						genere_code_tableau_chaine(os, contexte, enfant1, enfant2, dt, nom_var);
 					}
 
 					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
 						auto var = enfant1->enfants.front();
 						auto idx = enfant1->enfants.back();
-
-						contexte.pousse_locale(var->chaine(), index_type, BESOIN_DEREF);
-
-						auto dt = DonneesType{};
-						dt.pousse(id_morceau::Z32);
-						index_type = contexte.magasin_types.ajoute_type(dt);
-
-						contexte.pousse_locale(idx->chaine(), index_type, 0);
+						contexte.pousse_locale(var->chaine(), var->index_type, BESOIN_DEREF);
+						contexte.pousse_locale(idx->chaine(), idx->index_type, 0);
 					}
 					else {
 						contexte.pousse_locale(enfant1->chaine(), index_type, BESOIN_DEREF);

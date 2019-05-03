@@ -62,6 +62,10 @@ public:
 
 	DonneesType() = default;
 
+	DonneesType(id_morceau i0);
+
+	DonneesType(id_morceau i0, id_morceau i1);
+
 	DonneesType(const DonneesType &) = default;
 	DonneesType &operator=(const DonneesType &) = default;
 
@@ -201,9 +205,65 @@ struct hash<DonneesType> {
 
 /* ************************************************************************** */
 
+enum {
+	TYPE_N8,
+	TYPE_N16,
+	TYPE_N32,
+	TYPE_N64,
+	TYPE_Z8,
+	TYPE_Z16,
+	TYPE_Z32,
+	TYPE_Z64,
+	TYPE_R16,
+	TYPE_R32,
+	TYPE_R64,
+	TYPE_EINI,
+	TYPE_CHAINE,
+	TYPE_RIEN,
+	TYPE_BOOL,
+	TYPE_OCTET,
+
+	TYPE_PTR_N8,
+	TYPE_PTR_N16,
+	TYPE_PTR_N32,
+	TYPE_PTR_N64,
+	TYPE_PTR_Z8,
+	TYPE_PTR_Z16,
+	TYPE_PTR_Z32,
+	TYPE_PTR_Z64,
+	TYPE_PTR_R16,
+	TYPE_PTR_R32,
+	TYPE_PTR_R64,
+	TYPE_PTR_EINI,
+	TYPE_PTR_CHAINE,
+	TYPE_PTR_RIEN,
+	TYPE_PTR_NUL,
+	TYPE_PTR_BOOL,
+
+	TYPE_TABL_N8,
+	TYPE_TABL_N16,
+	TYPE_TABL_N32,
+	TYPE_TABL_N64,
+	TYPE_TABL_Z8,
+	TYPE_TABL_Z16,
+	TYPE_TABL_Z32,
+	TYPE_TABL_Z64,
+	TYPE_TABL_R16,
+	TYPE_TABL_R32,
+	TYPE_TABL_R64,
+	TYPE_TABL_EINI,
+	TYPE_TABL_CHAINE,
+	TYPE_TABL_BOOL,
+	TYPE_TABL_OCTET,
+
+	TYPES_TOTAUX,
+};
+
 struct MagasinDonneesType {
 	std::unordered_map<DonneesType, size_t> donnees_type_index;
 	std::vector<DonneesType> donnees_types;
+
+	MagasinDonneesType();
 
 	size_t ajoute_type(const DonneesType &donnees);
 
@@ -226,6 +286,11 @@ struct MagasinDonneesType {
 	void declare_structures_C(
 			ContexteGenerationCode &contexte,
 			std::ostream &os);
+
+	size_t operator[](int type);
+
+private:
+	std::vector<size_t> index_types_communs;
 };
 
 /* ************************************************************************** */

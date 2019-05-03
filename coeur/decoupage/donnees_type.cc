@@ -39,6 +39,17 @@
 #include "contexte_generation_code.h"
 #include "morceaux.h"
 
+DonneesType::DonneesType(id_morceau i0)
+{
+	m_donnees.push_back(i0);
+}
+
+DonneesType::DonneesType(id_morceau i0, id_morceau i1)
+{
+	m_donnees.push_back(i0);
+	m_donnees.push_back(i1);
+}
+
 void DonneesType::pousse(id_morceau identifiant)
 {
 	m_donnees.push_back(identifiant);
@@ -192,6 +203,76 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 
 /* ************************************************************************** */
 
+struct DonneesTypeCommun {
+	int val_enum;
+	DonneesType dt;
+};
+
+static const DonneesTypeCommun donnees_types_communs[] = {
+	{ TYPE_N8, DonneesType(id_morceau::N8) },
+	{ TYPE_N16, DonneesType(id_morceau::N16) },
+	{ TYPE_N32, DonneesType(id_morceau::N32) },
+	{ TYPE_N64, DonneesType(id_morceau::N64) },
+	{ TYPE_Z8, DonneesType(id_morceau::Z8) },
+	{ TYPE_Z16, DonneesType(id_morceau::Z16) },
+	{ TYPE_Z32, DonneesType(id_morceau::Z32) },
+	{ TYPE_Z64, DonneesType(id_morceau::Z64) },
+	{ TYPE_R16, DonneesType(id_morceau::R16) },
+	{ TYPE_R32, DonneesType(id_morceau::R32) },
+	{ TYPE_R64, DonneesType(id_morceau::R64) },
+	{ TYPE_EINI, DonneesType(id_morceau::EINI) },
+	{ TYPE_CHAINE, DonneesType(id_morceau::CHAINE) },
+	{ TYPE_RIEN, DonneesType(id_morceau::RIEN) },
+	{ TYPE_BOOL, DonneesType(id_morceau::BOOL) },
+	{ TYPE_OCTET, DonneesType(id_morceau::OCTET) },
+
+	{ TYPE_PTR_N8, DonneesType(id_morceau::POINTEUR, id_morceau::N8) },
+	{ TYPE_PTR_N16, DonneesType(id_morceau::POINTEUR, id_morceau::N16) },
+	{ TYPE_PTR_N32, DonneesType(id_morceau::POINTEUR, id_morceau::N32) },
+	{ TYPE_PTR_N64, DonneesType(id_morceau::POINTEUR, id_morceau::N64) },
+	{ TYPE_PTR_Z8, DonneesType(id_morceau::POINTEUR, id_morceau::Z8) },
+	{ TYPE_PTR_Z16, DonneesType(id_morceau::POINTEUR, id_morceau::Z16) },
+	{ TYPE_PTR_Z32, DonneesType(id_morceau::POINTEUR, id_morceau::Z32) },
+	{ TYPE_PTR_Z64, DonneesType(id_morceau::POINTEUR, id_morceau::Z64) },
+	/* À FAIRE : type R16 */
+	{ TYPE_PTR_R16, DonneesType(id_morceau::POINTEUR, id_morceau::R32) },
+	{ TYPE_PTR_R32, DonneesType(id_morceau::POINTEUR, id_morceau::R32) },
+	{ TYPE_PTR_R64, DonneesType(id_morceau::POINTEUR, id_morceau::R64) },
+	{ TYPE_PTR_EINI, DonneesType(id_morceau::POINTEUR, id_morceau::EINI) },
+	{ TYPE_PTR_CHAINE, DonneesType(id_morceau::POINTEUR, id_morceau::CHAINE) },
+	{ TYPE_PTR_RIEN, DonneesType(id_morceau::POINTEUR, id_morceau::RIEN) },
+	{ TYPE_PTR_NUL, DonneesType(id_morceau::POINTEUR, id_morceau::NUL) },
+	{ TYPE_PTR_BOOL, DonneesType(id_morceau::POINTEUR, id_morceau::BOOL) },
+
+	{ TYPE_TABL_N8, DonneesType(id_morceau::TABLEAU, id_morceau::N8) },
+	{ TYPE_TABL_N16, DonneesType(id_morceau::TABLEAU, id_morceau::N16) },
+	{ TYPE_TABL_N32, DonneesType(id_morceau::TABLEAU, id_morceau::N32) },
+	{ TYPE_TABL_N64, DonneesType(id_morceau::TABLEAU, id_morceau::N64) },
+	{ TYPE_TABL_Z8, DonneesType(id_morceau::TABLEAU, id_morceau::Z8) },
+	{ TYPE_TABL_Z16, DonneesType(id_morceau::TABLEAU, id_morceau::Z16) },
+	{ TYPE_TABL_Z32, DonneesType(id_morceau::TABLEAU, id_morceau::Z32) },
+	{ TYPE_TABL_Z64, DonneesType(id_morceau::TABLEAU, id_morceau::Z64) },
+	/* À FAIRE : type R16 */
+	{ TYPE_TABL_R16, DonneesType(id_morceau::TABLEAU, id_morceau::R32) },
+	{ TYPE_TABL_R32, DonneesType(id_morceau::TABLEAU, id_morceau::R32) },
+	{ TYPE_TABL_R64, DonneesType(id_morceau::TABLEAU, id_morceau::R64) },
+	{ TYPE_TABL_EINI, DonneesType(id_morceau::TABLEAU, id_morceau::EINI) },
+	{ TYPE_TABL_CHAINE, DonneesType(id_morceau::TABLEAU, id_morceau::CHAINE) },
+	{ TYPE_TABL_BOOL, DonneesType(id_morceau::TABLEAU, id_morceau::BOOL) },
+	{ TYPE_TABL_OCTET, DonneesType(id_morceau::TABLEAU, id_morceau::OCTET) },
+};
+
+MagasinDonneesType::MagasinDonneesType()
+{
+	/* initialise les types communs */
+	index_types_communs.resize(TYPES_TOTAUX);
+
+	for (auto donnees : donnees_types_communs) {
+		auto const idx = static_cast<size_t>(donnees.val_enum);
+		index_types_communs[idx] = ajoute_type(donnees.dt);
+	}
+}
+
 size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 {
 	auto iter = donnees_type_index.find(donnees);
@@ -214,6 +295,8 @@ void MagasinDonneesType::declare_structures_C(
 {
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n\n";
 	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n\n";
+	os << "typedef unsigned char bool;\n\n";
+	os << "typedef unsigned char octet;\n\n";
 
 	for (auto &donnees : donnees_types) {
 		if (donnees.type_base() == id_morceau::TABLEAU) {
@@ -232,6 +315,11 @@ void MagasinDonneesType::declare_structures_C(
 			os << ";\n\n";
 		}
 	}
+}
+
+size_t MagasinDonneesType::operator[](int type)
+{
+	return index_types_communs[static_cast<size_t>(type)];
 }
 
 static bool converti_type_simple_C(
@@ -270,7 +358,15 @@ static bool converti_type_simple_C(
 			break;
 		}
 		case id_morceau::OCTET:
+		{
+			os << "octet";
+			break;
+		}
 		case id_morceau::BOOL:
+		{
+			os << "bool";
+			break;
+		}
 		case id_morceau::N8:
 		{
 			if (echappe) {
@@ -284,17 +380,35 @@ static bool converti_type_simple_C(
 		}
 		case id_morceau::N16:
 		{
-			os << "unsigned short";
+			if (echappe) {
+				os << "unsigned_short";
+			}
+			else {
+				os << "unsigned short";
+			}
+
 			break;
 		}
 		case id_morceau::N32:
 		{
-			os << "unsigned int";
+			if (echappe) {
+				os << "unsigned_int";
+			}
+			else {
+				os << "unsigned int";
+			}
+
 			break;
 		}
 		case id_morceau::N64:
 		{
-			os << "unsigned long";
+			if (echappe) {
+				os << "unsigned_long";
+			}
+			else {
+				os << "unsigned long";
+			}
+
 			break;
 		}
 		case id_morceau::R16:
