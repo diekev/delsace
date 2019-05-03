@@ -589,7 +589,7 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 	auto nom_eini = std::string("__eini_")
 			.append(std::to_string(b->morceau.ligne_pos));
 
-	auto nom_var = std::string(b->chaine());
+	auto nom_var = std::string{};
 
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
@@ -620,7 +620,16 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 				0);
 
 	os << "eini " << nom_eini << ";\n";
-	os << nom_eini << ".pointeur = &" << nom_var << ";\n";
+	os << nom_eini << ".pointeur = &";
+
+	if (!nom_var.empty()) {
+		os << nom_var;
+	}
+	else {
+		genere_code_C(b, contexte, false, os);
+	}
+
+	os << ";\n";
 	os << nom_eini << ".info = (InfoType *)(&" << nom_info_type << ");\n";
 
 	return nom_eini;
@@ -1734,61 +1743,131 @@ void genere_code_C(
 
 			contexte.empile_nombre_locales();
 
-			if (enfant2->type == type_noeud::PLAGE) {
-				os << "\nfor (";
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							type_debut,
-							os);
-				os << " " << enfant1->chaine() << " = ";
-				genere_code_C(enfant2->enfants.front(), contexte, false, os);
+			auto genere_code_tableau_chaine = [](
+					std::ostream &os,
+					ContexteGenerationCode &contexte,
+					base *enfant1,
+					base *enfant2,
+					DonneesType const &dt,
+					std::string const &nom_var)
+			{
+				auto var = enfant1;
+				auto idx = static_cast<noeud::base *>(nullptr);
 
-				os << "; "
-				   << enfant1->chaine() << " <= ";
+				if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
+					var = enfant1->enfants.front();
+					idx = enfant1->enfants.back();
+				}
 
-				genere_code_C(enfant2->enfants.back(), contexte, false, os);
-				os <<"; ++" << enfant1->chaine()
-				  << ") {\n";
+				os << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
+				genere_code_C(enfant2, contexte, false, os);
+				os << ".taille - 1; ++"<< nom_var <<") {\n";
+				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+				os << " *" << var->chaine() << " = &";
+				genere_code_C(enfant2, contexte, false, os);
+				os << ".pointeur["<< nom_var <<"];\n";
 
-				contexte.pousse_locale(enfant1->chaine(), index_type, 0);
-			}
-			else if (enfant2->type == type_noeud::VARIABLE) {
+				if (idx) {
+					os << "int " << idx->chaine() << " = " << nom_var << ";\n";
+				}
+			};
 
-				/* À FAIRE: nom unique pour les boucles dans les boucles */
-				if ((type & 0xff) == id_morceau::TABLEAU) {
-					const auto taille_tableau = static_cast<uint64_t>(type >> 8);
+			auto genere_code_tableau_fixe = [](
+					std::ostream &os,
+					ContexteGenerationCode &contexte,
+					base *enfant1,
+					base *enfant2,
+					DonneesType const &dt,
+					std::string const &nom_var,
+					uint64_t taille_tableau)
+			{
+				auto var = enfant1;
+				auto idx = static_cast<noeud::base *>(nullptr);
 
-					if (taille_tableau != 0) {
-						os << "\nfor (int __i = 0; __i <= " << taille_tableau << "-1; ++__i) {\n";
-						contexte.magasin_types.converti_type_C(contexte, "", type_debut.derefence(), os);
-						os << " *" << enfant1->chaine() << " = &" << enfant2->chaine() << "[__i];\n";
+				if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
+					var = enfant1->enfants.front();
+					idx = enfant1->enfants.back();
+				}
+
+				os << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= "
+				   << taille_tableau << "-1; ++"<< nom_var <<") {\n";
+				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+				os << " *" << var->chaine() << " = &";
+				genere_code_C(enfant2, contexte, false, os);
+				os << "["<< nom_var <<"];\n";
+
+				if (idx) {
+					os << "int " << idx->chaine() << " = " << nom_var << ";\n";
+				}
+			};
+
+			switch (b->aide_generation_code) {
+				case GENERE_BOUCLE_PLAGE:
+				{
+					os << "\nfor (";
+					contexte.magasin_types.converti_type_C(
+								contexte,
+								"",
+								type_debut,
+								os);
+					os << " " << enfant1->chaine() << " = ";
+					genere_code_C(enfant2->enfants.front(), contexte, false, os);
+
+					os << "; "
+					   << enfant1->chaine() << " <= ";
+
+					genere_code_C(enfant2->enfants.back(), contexte, false, os);
+					os <<"; ++" << enfant1->chaine()
+					  << ") {\n";
+
+					contexte.pousse_locale(enfant1->chaine(), index_type, 0);
+
+					break;
+				}
+				case GENERE_BOUCLE_TABLEAU:
+				case GENERE_BOUCLE_TABLEAU_INDEX:
+				{
+					auto nom_var = "__i" + std::to_string(b->morceau.ligne_pos);
+
+					/* À FAIRE: nom unique pour les boucles dans les boucles */
+					if ((type & 0xff) == id_morceau::TABLEAU) {
+						auto const taille_tableau = static_cast<uint64_t>(type >> 8);
+
+						if (taille_tableau != 0) {
+							genere_code_tableau_fixe(os, contexte, enfant1, enfant2, type_debut.derefence(), nom_var, taille_tableau);
+						}
+						else {
+							genere_code_tableau_chaine(os, contexte, enfant1, enfant2, type_debut.derefence(), nom_var);
+						}
+					}
+					else if (type == id_morceau::CHAINE) {
+
+						auto dt = DonneesType{};
+						dt.pousse(id_morceau::Z8);
+
+						index_type = contexte.magasin_types.ajoute_type(dt);
+
+						genere_code_tableau_chaine(os, contexte, enfant1, enfant2, dt, nom_var);
+					}
+
+					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
+						auto var = enfant1->enfants.front();
+						auto idx = enfant1->enfants.back();
+
+						contexte.pousse_locale(var->chaine(), index_type, BESOIN_DEREF);
+
+						auto dt = DonneesType{};
+						dt.pousse(id_morceau::Z32);
+						index_type = contexte.magasin_types.ajoute_type(dt);
+
+						contexte.pousse_locale(idx->chaine(), index_type, 0);
 					}
 					else {
-						auto nom_var = "__i" + std::to_string(b->morceau.ligne_pos);
-
-						os << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
-						genere_code_C(enfant2, contexte, false, os);
-						os << ".taille - 1; ++"<< nom_var <<") {\n";
-						contexte.magasin_types.converti_type_C(contexte, "", type_debut.derefence(), os);
-						os << " *" << enfant1->chaine() << " = &";
-						genere_code_C(enfant2, contexte, false, os);
-						os << ".pointeur["<< nom_var <<"];\n";
+						contexte.pousse_locale(enfant1->chaine(), index_type, BESOIN_DEREF);
 					}
+
+					break;
 				}
-				else if (type == id_morceau::CHAINE) {
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::Z8);
-
-					index_type = contexte.magasin_types.ajoute_type(dt);
-					enfant1->index_type = index_type;
-
-					os << "\nfor (int __i = 0; __i <= " << enfant2->chaine() << ".taille - 1; ++__i) {\n";
-					contexte.magasin_types.converti_type_C(contexte, "", dt, os);
-					os << " *" << enfant1->chaine() << " = &" << enfant2->chaine() << ".pointeur[__i];\n";
-				}
-
-				contexte.pousse_locale(enfant1->chaine(), index_type, BESOIN_DEREF);
 			}
 
 			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);

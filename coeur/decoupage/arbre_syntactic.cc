@@ -1284,36 +1284,70 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
 			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
 
-			if (contexte.locale_existe(enfant1->chaine())) {
-				erreur::lance_erreur(
-							"Rédéfinition de la variable",
-							contexte,
-							enfant1->donnees_morceau(),
-							erreur::type_erreur::VARIABLE_REDEFINIE);
-			}
+			auto verifie_redefinition_variable = [](base *b, ContexteGenerationCode &contexte)
+			{
+				if (contexte.locale_existe(b->chaine())) {
+					erreur::lance_erreur(
+								"(Boucle pour) rédéfinition de la variable",
+								contexte,
+								b->donnees_morceau(),
+								erreur::type_erreur::VARIABLE_REDEFINIE);
+				}
 
-			if (contexte.globale_existe(enfant1->chaine())) {
-				erreur::lance_erreur(
-							"Rédéfinition de la variable globale",
-							contexte,
-							enfant1->donnees_morceau(),
-							erreur::type_erreur::VARIABLE_REDEFINIE);
+				if (contexte.globale_existe(b->chaine())) {
+					erreur::lance_erreur(
+								"(Boucle pour) rédéfinition de la variable globale",
+								contexte,
+								b->donnees_morceau(),
+								erreur::type_erreur::VARIABLE_REDEFINIE);
+				}
+			};
+
+			auto const requiers_index = enfant1->morceau.identifiant == id_morceau::VIRGULE;
+
+			if (requiers_index) {
+				auto var = enfant1->enfants.front();
+				auto idx = enfant1->enfants.back();
+				verifie_redefinition_variable(var, contexte);
+				verifie_redefinition_variable(idx, contexte);
+			}
+			else {
+				verifie_redefinition_variable(enfant1, contexte);
 			}
 
 			performe_validation_semantique(enfant2, contexte);
 
 			/* À FAIRE : accès membre */
 			if (enfant2->type == type_noeud::PLAGE) {
+				/* À FAIRE : tests */
+				if (requiers_index) {
+					erreur::lance_erreur(
+								"Ne peut pas extraire un index depuis la variable",
+								contexte,
+								enfant2->donnees_morceau());
+				}
+
+				b->aide_generation_code = GENERE_BOUCLE_PLAGE;
 			}
-			else if (enfant2->type == type_noeud::VARIABLE) {
+			else {
 				auto index_type = enfant2->index_type;
 				auto &type = contexte.magasin_types.donnees_types[index_type];
 
 				if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
-					/* ok. */
+					if (requiers_index) {
+						b->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
+					}
+					else {
+						b->aide_generation_code = GENERE_BOUCLE_TABLEAU;
+					}
 				}
 				else if (type.type_base() == id_morceau::CHAINE) {
-					/* ok. */
+					if (requiers_index) {
+						b->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
+					}
+					else {
+						b->aide_generation_code = GENERE_BOUCLE_TABLEAU;
+					}
 				}
 				else {
 					auto valeur = contexte.est_locale_variadique(enfant2->chaine());
@@ -1325,12 +1359,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									enfant2->donnees_morceau());
 					}
 				}
-			}
-			else {
-				erreur::lance_erreur(
-							"Expression inattendu dans la boucle 'pour'",
-							contexte,
-							b->morceau);
 			}
 
 			contexte.empile_nombre_locales();
@@ -1363,7 +1391,19 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			}
 
-			contexte.pousse_locale(enfant1->chaine(), nullptr, index_type, est_dynamique, false);
+			if (requiers_index) {
+				auto var = enfant1->enfants.front();
+				auto idx = enfant1->enfants.back();
+				contexte.pousse_locale(var->chaine(), nullptr, index_type, est_dynamique, false);
+
+				auto dt = DonneesType{};
+				dt.pousse(id_morceau::Z32);
+				index_type = contexte.magasin_types.ajoute_type(dt);
+				contexte.pousse_locale(idx->chaine(), nullptr, index_type, est_dynamique, false);
+			}
+			else {
+				contexte.pousse_locale(enfant1->chaine(), nullptr, index_type, est_dynamique, false);
+			}
 
 			performe_validation_semantique(enfant3, contexte);
 

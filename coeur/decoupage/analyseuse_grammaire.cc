@@ -559,22 +559,13 @@ void analyseuse_grammaire::analyse_controle_pour()
 
 	m_assembleuse->empile_noeud(type_noeud::POUR, m_contexte, donnees());
 
-	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-		lance_erreur("Attendu une chaîne de caractère après 'pour'");
-	}
-
 	/* enfant 1 : déclaration variable */
 
-	auto noeud = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, donnees());
-	m_assembleuse->ajoute_noeud(noeud);
-
-	if (!requiers_identifiant(id_morceau::DANS)) {
-		lance_erreur("Attendu le mot 'dans' après la chaîne de caractère");
-	}
+	analyse_expression_droite(id_morceau::DANS, id_morceau::POUR);
 
 	/* enfant 2 : expr */
 
-	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE, id_morceau::POUR);
+	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE, id_morceau::DANS);
 
 	recule();
 

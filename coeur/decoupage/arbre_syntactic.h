@@ -175,6 +175,12 @@ inline bool possede_drapeau(unsigned short drapeau, unsigned short valeur)
 	return (drapeau & valeur) != 0;
 }
 
+enum {
+	GENERE_BOUCLE_PLAGE,
+	GENERE_BOUCLE_TABLEAU,
+	GENERE_BOUCLE_TABLEAU_INDEX,
+};
+
 namespace noeud {
 
 /**
@@ -188,7 +194,7 @@ struct base {
 
 	size_t index_type = -1ul;
 
-	bool pad = false;
+	char aide_generation_code = 0;
 	unsigned short drapeaux = 0;
 	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées

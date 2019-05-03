@@ -66,6 +66,7 @@
  * - union accès membre par '.' et par 'de'
  * - déclaration structure/énum
  * - associe
+ * - ajourne la génération de code pour les boucles 'pour'
  */
 
 /* ************************************************************************** */
