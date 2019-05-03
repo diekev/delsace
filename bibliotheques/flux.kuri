@@ -118,7 +118,6 @@ fonction imprime_valeur_membre(flux_std : z32, pointeur : *z8, info : *InfoType)
 			# À FAIRE : typage selon énum
 			soit valeur : z32 = mémoire(transtype(pointeur : *z32));
 			soit noms = noms de info_arg;
-			soit taille = taille de noms;
 
             # À FAIRE : indirection appel pour les opérateurs +=, -=, ...
 			pour v, i dans valeurs de info_arg {
@@ -275,7 +274,6 @@ fonction imprime_arg(flux_std : z32, arg : eini) : rien
             # À FAIRE : typage selon énum;
 			soit valeur : z32 = arg;
 			soit noms = noms de info_arg;
-			soit taille = taille de noms;
 
             # À FAIRE : indirection appel pour les opérateurs +=, -=, ...
 			pour v, i dans valeurs de info_arg {
