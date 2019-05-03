@@ -316,7 +316,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 			avance();
 
 			if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-				lance_erreur("Attendu une chaîne littérale après 'importe'");
+				lance_erreur("Attendu une chaine littérale après 'importe'");
 			}
 
 			auto const nom_module = donnees().chaine;
@@ -1482,10 +1482,10 @@ void analyseuse_grammaire::analyse_declaration_variable(unsigned short drapeaux)
 {
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		if ((drapeaux & DYNAMIC) != 0) {
-			lance_erreur("Attendu une chaîne de caractère après 'dyn'");
+			lance_erreur("Attendu une chaine de caractère après 'dyn'");
 		}
 		else {
-			lance_erreur("Attendu une chaîne de caractère après 'soit'");
+			lance_erreur("Attendu une chaine de caractère après 'soit'");
 		}
 	}
 
@@ -1502,7 +1502,7 @@ void analyseuse_grammaire::analyse_declaration_variable(unsigned short drapeaux)
 	if (!est_identifiant(id_morceau::EGAL)) {
 		if ((drapeaux & DYNAMIC) == 0) {
 			avance();
-			lance_erreur("Attendu '=' après chaîne de caractère");
+			lance_erreur("Attendu '=' après chaine de caractère");
 		}
 
 		auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
@@ -1540,7 +1540,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 	}
 
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-		lance_erreur("Attendu une chaîne de caractères après 'structure'");
+		lance_erreur("Attendu une chaine de caractères après 'structure'");
 	}
 
 	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_STRUCTURE, m_contexte, donnees());

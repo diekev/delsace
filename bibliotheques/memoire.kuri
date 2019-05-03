@@ -89,7 +89,7 @@ fonction bouge_mem(source : []octet, dyn destination : []octet, taille : z64) : 
     si debut <= pointeur de destination <= fin {
 	    # il y a surposition, utilise un tampon
 		# À FAIRE : expression pour les tailles des tableaux dynamics
-		dyn tampon = loge chaîne(taille);
+		dyn tampon = loge chaine(taille);
 		diffère { déloge tampon; }
 
         copie_mem(source, tampon, taille);

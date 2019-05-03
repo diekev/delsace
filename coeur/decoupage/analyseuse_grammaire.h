@@ -71,7 +71,7 @@ public:
 
 private:
 	/**
-	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
+	 * Lance une exception de type ErreurSyntactique contenant la chaine passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */

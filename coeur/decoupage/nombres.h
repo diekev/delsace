@@ -38,22 +38,22 @@ constexpr bool est_nombre_decimal(char c)
 }
 
 /**
- * Extrait un nombre depuis une chaîne de caractère spécifiée par 'debut' et
+ * Extrait un nombre depuis une chaine de caractère spécifiée par 'debut' et
  * 'fin'. La chaine est stockée dans 'chaine' et son identifiant dans
  * 'id_nombre'.
  *
- * Retourne le nombre de caractère de la chaîne [debut, fin] qui a été consommé.
+ * Retourne le nombre de caractère de la chaine [debut, fin] qui a été consommé.
  */
 size_t extrait_nombre(const char *debut, const char *fin, id_morceau &id_nombre);
 
 /**
- * Converti une chaîne de caractère en un nombre entier de type 'long'. Si la
- * chaîne de caractère représente un nombre qui ne peut être représenté par un
+ * Converti une chaine de caractère en un nombre entier de type 'long'. Si la
+ * chaine de caractère représente un nombre qui ne peut être représenté par un
  * entier de type 'long' (64-bit), la valeur maximale 0xffffffff est retournée.
  */
 long converti_chaine_nombre_entier(const std::string_view &chaine, id_morceau identifiant);
 
 /**
- * Converti une chaîne de caractère en un nombre réel de type 'double'.
+ * Converti une chaine de caractère en un nombre réel de type 'double'.
  */
 double converti_chaine_nombre_reel(const std::string_view &chaine, id_morceau identifiant);

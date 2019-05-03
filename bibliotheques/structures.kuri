@@ -12,7 +12,7 @@ structure pile {
     taille_elem : z64;
     taille : z64;
     capacite : z64;
-    tampon : chaîne;
+	tampon : chaine;
 }
 
 fonction cree_pile(taille_elem : z64) : *pile
@@ -35,7 +35,7 @@ fonction empile(dyn p : *pile, d : *rien) : rien
 {
     si taille de p == capacite de p {
         # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-        dyn tabl_tmp = loge chaîne((taille de p + 1) * taille_elem de p);
+		dyn tabl_tmp = loge chaine((taille de p + 1) * taille_elem de p);
 
         copie_mem(tampon de p, tabl_tmp, (taille de p) * taille_elem de p);
 
@@ -80,7 +80,7 @@ structure file {
     taille_elem : z64;
     taille : z64;
     capacite : z64;
-    tampon : chaîne;
+	tampon : chaine;
 }
 
 fonction cree_file(taille_elem : z64) : *file
@@ -103,7 +103,7 @@ fonction enfile(dyn q : *file, d : *rien) : rien
 {
     si taille de q == capacite de q {
         # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-        dyn tabl_tmp = loge chaîne((taille de q + 1) * taille_elem de q);
+		dyn tabl_tmp = loge chaine((taille de q + 1) * taille_elem de q);
 
         copie_mem(tampon de q, tabl_tmp, (taille de q) * taille_elem de q);
 
@@ -156,7 +156,7 @@ structure tableau {
     taille_elem : z64;
     taille : z64;
     capacite : z64;
-    tampon : chaîne;
+	tampon : chaine;
 }
 
 fonction cree_tableau(taille_elem : z64) : *tableau
@@ -179,7 +179,7 @@ fonction pousse_tableau(dyn t : *tableau, d : *rien) : rien
 {
     si taille de t == capacite de t {
         # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-        dyn tabl_tmp = loge chaîne((taille de t + 1) * taille_elem de t);
+		dyn tabl_tmp = loge chaine((taille de t + 1) * taille_elem de t);
 
         copie_mem(tampon de t, tabl_tmp, (taille de t) * taille_elem de t);
 

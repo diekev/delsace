@@ -756,7 +756,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 
 				erreur::lance_erreur(
-							"'chaîne' ne possède pas cette propriété !",
+							"'chaine' ne possède pas cette propriété !",
 							contexte,
 							membre->donnees_morceau(),
 							erreur::type_erreur::MEMBRE_INCONNU);

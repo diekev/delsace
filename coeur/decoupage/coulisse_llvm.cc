@@ -52,12 +52,12 @@
 /* ************************************************************************** */
 
 /* À FAIRE (coulisse LLVM)
- * - type 'chaîne'
+ * - type 'chaine'
  * - noeud 'mémoire', 'déclaration structure/énum'
  * - infos types
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
- * - ajourne opérateur [] pour les chaînes
+ * - ajourne opérateur [] pour les chaines
  * - converti paramètres fonction principale en un tableau
  * - boucle 'tantque'
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)

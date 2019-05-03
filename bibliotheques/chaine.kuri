@@ -1,7 +1,7 @@
-# Fonctions de manipulation de chaînes.
+# Fonctions de manipulation de chaines.
 
-# Retourne vrai si les deux chaînes données sont égales.
-fonction compare_chaines(ch1 : chaîne, ch2 : chaîne) : bool
+# Retourne vrai si les deux chaines données sont égales.
+fonction compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 {
     si taille de ch1 != taille de ch2 {
         retourne faux;
@@ -19,9 +19,9 @@ fonction compare_chaines(ch1 : chaîne, ch2 : chaîne) : bool
     retourne vrai;
 }
 
-# Retourne une chaîne correspondant à la concaténation de toutes les chaînes spécifiées.
-# La chaîne retournée a été logé et doit être délogée par l'appelante.
-fonction concatene(chns : ...chaîne) : chaîne
+# Retourne une chaine correspondant à la concaténation de toutes les chaines spécifiées.
+# La chaine retournée a été logé et doit être délogée par l'appelante.
+fonction concatene(chns : ...chaine) : chaine
 {
     dyn taille = 0;
 
@@ -29,7 +29,7 @@ fonction concatene(chns : ...chaîne) : chaîne
 	    taille += taille de chn;
     }
 
-    dyn res = loge chaîne(taille);
+    dyn res = loge chaine(taille);
     dyn coureur = 0;
     
     pour chn dans chns {
@@ -43,7 +43,7 @@ fonction concatene(chns : ...chaîne) : chaîne
     retourne res;
 }
 
-# Retourne la taille d'une chaîne C, c'est à dire nul-terminé.
+# Retourne la taille d'une chaine C, c'est à dire nul-terminé.
 fonction taille_chaine_c(ch : *z8) : z64
 {
     dyn index : z64 = 0;
@@ -55,10 +55,10 @@ fonction taille_chaine_c(ch : *z8) : z64
     retourne index;
 }
 
-# Converti une chaîne C, c'est à dire nul-terminé, en une chaîne native.
-fonction converti_chaine_c(chaine_c : *z8) : chaîne
+# Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
+fonction converti_chaine_c(chaine_c : *z8) : chaine
 {
-    dyn ret : chaîne;
+    dyn ret : chaine;
     pointeur de ret = chaine_c;
     taille de ret = taille_chaine_c(chaine_c);
     retourne ret;

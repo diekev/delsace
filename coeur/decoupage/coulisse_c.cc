@@ -246,7 +246,7 @@ static auto cree_info_type_structure_C(
 			+ std::to_string(nombre_base)
 			+ std::to_string(profondeur);
 
-	/* crée la chaîne pour le nom */
+	/* crée la chaine pour le nom */
 	auto nom_chaine = "__nom_"
 			+ std::string(nom_struct)
 			+ std::to_string(nombre_base)
@@ -365,7 +365,7 @@ static auto cree_info_type_enum_C(
 			+ std::to_string(nombre_base)
 			+ std::to_string(profondeur);
 
-	/* crée la chaîne pour le nom */
+	/* crée la chaine pour le nom */
 	auto nom_chaine = "__nom_"
 			+ std::string(nom_struct)
 			+ std::to_string(nombre_base)

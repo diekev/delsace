@@ -43,7 +43,7 @@ structure InfoTypeTableau {
 }
 
 structure InfoTypeMembreStructure {
-	nom : chaîne;
+    nom : chaine;
 	id : *InfoType;
 	decalage : z64; # décalage en octets dans la structure
 	#drapeaux : n32;
@@ -51,7 +51,7 @@ structure InfoTypeMembreStructure {
 
 structure InfoTypeStructure {
     id : id_info; # employant InfoType
-	nom : chaîne;
+	nom : chaine;
 	membres : []InfoTypeMembreStructure;
 }
 
@@ -63,12 +63,12 @@ structure InfoTypeFonction {
 
 structure InfoTypeEnum {
     id : id_info; # employant InfoType
-	nom : chaîne;
+	nom : chaine;
 	valeurs : []z32; # À FAIRE typage selon énum
-	noms : []chaîne;
+	noms : []chaine;
 }
 
-fonction possede_membre(arg : eini, nom : chaîne) : bool
+fonction possede_membre(arg : eini, nom : chaine) : bool
 {
     soit info = info de arg;
 

@@ -33,7 +33,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "associe", id_morceau::ASSOCIE },
 	{ "bool", id_morceau::BOOL },
 	{ "boucle", id_morceau::BOUCLE },
-	{ "chaîne", id_morceau::CHAINE },
+	{ "chaine", id_morceau::CHAINE },
 	{ "continue", id_morceau::CONTINUE },
 	{ "dans", id_morceau::DANS },
 	{ "de", id_morceau::DE },

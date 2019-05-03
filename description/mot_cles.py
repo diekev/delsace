@@ -46,7 +46,7 @@ mot_cles = [
 	u'importe',
 	u'nonsûr',
 	u'eini',
-	u'chaîne',
+	u'chaine',
 	u'loge',
 	u'déloge',
 	u'reloge',

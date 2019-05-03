@@ -165,7 +165,7 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 					os << "bool";
 					break;
 				case id_morceau::CHAINE:
-					os << "chaîne";
+					os << "chaine";
 					break;
 				case id_morceau::FONCTION:
 					os << "fonction";

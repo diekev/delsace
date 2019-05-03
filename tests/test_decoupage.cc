@@ -59,7 +59,7 @@ bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 
 		if ((*debut1).chaine != (*debut2).chaine) {
 #ifdef DEBOGUE_MORCEAUX
-			std::cerr << "Les chaînes ne correspondent pas : "
+			std::cerr << "Les chaines ne correspondent pas : "
 					  << (*debut1).chaine
 					  << " vs "
 					  << (*debut2).chaine << '\n';

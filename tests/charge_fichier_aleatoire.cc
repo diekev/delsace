@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	for (size_t i = 0; i < nombre_morceaux; ++i) {
 		auto dm = DonneesMorceaux{};
 		dm.identifiant = donnees_morceaux[i];
-		/* rétabli une chaîne car nous une décharge de la mémoire, donc les
+		/* rétabli une chaine car nous une décharge de la mémoire, donc les
 		 * pointeurs sont mauvais. */
 		dm.chaine = "texte_test";
 		dm.ligne_pos = 0ul;
