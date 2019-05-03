@@ -1015,13 +1015,6 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_FONCTION:
 		{
-			/* À FAIRE : inférence de type
-			 * - considération du type de retour des fonctions récursive
-			 * - il est possible que le retour dépende des variables locales de la
-			 *   fonction, donc il faut d'abord générer le code ou faire une prépasse
-			 *   pour générer les données nécessaires.
-			 */
-
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
 			auto &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
 

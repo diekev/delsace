@@ -418,6 +418,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::DECLARATION_FONCTION:
 		{
+			/* À FAIRE : inférence de type
+			 * - considération du type de retour des fonctions récursive
+			 */
+
 			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 
 			if (est_externe) {
