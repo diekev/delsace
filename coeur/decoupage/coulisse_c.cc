@@ -707,11 +707,9 @@ static void cree_appel(
 				{
 					os << nom_var_tableau << ".pointeur = (unsigned char*)(&";
 					genere_code_C(enf, contexte, false, os);
-					os << ".pointeur);\n";
+					os << ");\n";
 
-					os << nom_var_tableau << ".taille = ";
-					genere_code_C(enf, contexte, false, os);
-					os << ".sizeof(";
+					os << nom_var_tableau << ".taille = sizeof(";
 					contexte.magasin_types.converti_type_C(contexte, "", dt, os);
 					os << ");\n";
 					break;
