@@ -697,7 +697,7 @@ static void cree_appel(
 		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
 			auto nom_var_tableau = "__tableau_octet" + std::to_string(enf->morceau.ligne_pos);
 
-			os << "Tableau_unsigned_char " << nom_var_tableau << ";\n";
+			os << "Tableau_octet " << nom_var_tableau << ";\n";
 
 			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
 			auto type_base = dt.type_base();
