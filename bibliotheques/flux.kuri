@@ -19,103 +19,114 @@ fonction imprime_valeur_membre(flux_std : z32, pointeur : *z8, info : *InfoType)
 
     dyn ecrie = 0;
 
-    si id de info == ENTIER de id_info {
-        soit info_arg = transtype(info : *InfoTypeEntier);
+    associe id de info {
+	    ENTIER de id_info
+		{
+		    soit info_arg = transtype(info : *InfoTypeEntier);
 
-        si est_signe de info_arg {
-            si taille_en_octet de info_arg == 8 {
-                soit x : z8 = mémoire(transtype(pointeur : *z8));
-                ecrie = sprintf(ptr_tmp, "%c", x);
-            }
-            sinon si taille_en_octet de info_arg == 16 {
-                soit x : z16 = mémoire(transtype(pointeur : *z16));
-                ecrie = sprintf(ptr_tmp, "%d", x);
-            }
-            sinon si taille_en_octet de info_arg == 32 {
-                soit x : z32 = mémoire(transtype(pointeur : *z32));
-                ecrie = sprintf(ptr_tmp, "%d", x);
-            }
-            sinon si taille_en_octet de info_arg == 64 {
-                soit x : z64 = mémoire(transtype(pointeur : *z64));
-                ecrie = sprintf(ptr_tmp, "%ld", x);
-            }
-        }
-        sinon {
-            si taille_en_octet de info_arg == 8 {
-                soit x : n8 = mémoire(transtype(pointeur : *n8));
-                ecrie = sprintf(ptr_tmp, "%c", x);
-            }
-            sinon si taille_en_octet de info_arg == 16 {
-                soit x : n16 = mémoire(transtype(pointeur : *n16));
-                ecrie = sprintf(ptr_tmp, "%d", x);
-            }
-            sinon si taille_en_octet de info_arg == 32 {
-                soit x : n32 = mémoire(transtype(pointeur : *n32));
-                ecrie = sprintf(ptr_tmp, "%d", x);
-            }
-            sinon si taille_en_octet de info_arg == 64 {
-                soit x : n64 = mémoire(transtype(pointeur : *n64));
-                ecrie = sprintf(ptr_tmp, "%ld", x);
-            }
-        }
-    }
-	sinon si id de info == REEL de id_info {
-        # À FAIRE
-        soit info_arg = transtype(info : *InfoTypeReel);
+            si est_signe de info_arg {
+			    si taille_en_octet de info_arg == 8 {
+				    soit x : z8 = mémoire(transtype(pointeur : *z8));
+					ecrie = sprintf(ptr_tmp, "%c", x);
+				}
+				sinon si taille_en_octet de info_arg == 16 {
+				    soit x : z16 = mémoire(transtype(pointeur : *z16));
+					ecrie = sprintf(ptr_tmp, "%d", x);
+				}
+				sinon si taille_en_octet de info_arg == 32 {
+				    soit x : z32 = mémoire(transtype(pointeur : *z32));
+					ecrie = sprintf(ptr_tmp, "%d", x);
+				}
+				sinon si taille_en_octet de info_arg == 64 {
+				    soit x : z64 = mémoire(transtype(pointeur : *z64));
+					ecrie = sprintf(ptr_tmp, "%ld", x);
+				}
+			}
+			sinon {
+			    si taille_en_octet de info_arg == 8 {
+				    soit x : n8 = mémoire(transtype(pointeur : *n8));
+					ecrie = sprintf(ptr_tmp, "%c", x);
+				}
+				sinon si taille_en_octet de info_arg == 16 {
+				    soit x : n16 = mémoire(transtype(pointeur : *n16));
+					ecrie = sprintf(ptr_tmp, "%d", x);
+				}
+				sinon si taille_en_octet de info_arg == 32 {
+				    soit x : n32 = mémoire(transtype(pointeur : *n32));
+					ecrie = sprintf(ptr_tmp, "%d", x);
+				}
+				sinon si taille_en_octet de info_arg == 64 {
+				    soit x : n64 = mémoire(transtype(pointeur : *n64));
+					ecrie = sprintf(ptr_tmp, "%ld", x);
+				}
+			}
+		}
+		REEL de id_info
+		{
+		    # À FAIRE
+			soit info_arg = transtype(info : *InfoTypeReel);
 
-        si taille_en_octet de info_arg == 16 {
-            soit x : r16 = mémoire(transtype(pointeur : *r16));
-            ecrie = sprintf(ptr_tmp, "%f", x);
-        }
-        sinon si taille_en_octet de info_arg == 32 {
-            soit x : r32 = mémoire(transtype(pointeur : *r32));
-            ecrie = sprintf(ptr_tmp, "%f", x);
-        }
-        sinon si taille_en_octet de info_arg == 64 {
-            soit x : r64 = mémoire(transtype(pointeur : *r64));
-            ecrie = sprintf(ptr_tmp, "%f", x);
-        }
-    }
-	sinon si id de info == BOOLEEN de id_info {
-        # À FAIRE
-    }
-	sinon si id de info == CHAINE de id_info {
-        # À FAIRE
-        soit x : chaîne = mémoire(transtype(pointeur : *chaîne));
-        ecrie = sprintf(ptr_tmp, "chaîne { ptr = %p, taille = %d }", pointeur de x, taille de x);
-    }
-	sinon si id de info == STRUCTURE de id_info {
-        # À FAIRE
-    }
-	sinon si id de info == POINTEUR de id_info {
-        # Ne pas oublier qu'il y a un niveau d'indirection.
-        soit x = transtype(pointeur : **z8);
-        soit x0 = mémoire(x);
-        ecrie = sprintf(ptr_tmp, "%p", x0);
-    }
-	sinon si id de info == FONCTION de id_info {
-        # À FAIRE
-    }
-	sinon si id de info == EINI de id_info {
-        # À FAIRE
-    }
-	sinon si id de info == RIEN de id_info {
-        # À FAIRE
-    }
-	sinon si id de info == ENUM de id_info {
-	    soit info_arg = transtype(info : *InfoTypeEnum);
-		# À FAIRE : typage selon énum
-		soit valeur : z32 = mémoire(transtype(pointeur : *z32));
-		soit valeurs = valeurs de info_arg;
-		soit noms = noms de info_arg;
-		soit taille = taille de noms;
+            si taille_en_octet de info_arg == 16 {
+			    soit x : r16 = mémoire(transtype(pointeur : *r16));
+				ecrie = sprintf(ptr_tmp, "%f", x);
+			}
+			sinon si taille_en_octet de info_arg == 32 {
+			    soit x : r32 = mémoire(transtype(pointeur : *r32));
+				ecrie = sprintf(ptr_tmp, "%f", x);
+			}
+			sinon si taille_en_octet de info_arg == 64 {
+			    soit x : r64 = mémoire(transtype(pointeur : *r64));
+				ecrie = sprintf(ptr_tmp, "%f", x);
+			}
+		}
+		BOOLEEN de id_info
+		{
+		    # À FAIRE
+		}
+		CHAINE de id_info
+		{
+		    # À FAIRE : peut-être imprimer le contenu
+			soit x : chaîne = mémoire(transtype(pointeur : *chaîne));
+			ecrie = sprintf(ptr_tmp, "chaîne { ptr = %p, taille = %d }", pointeur de x, taille de x);
+		}
+		STRUCTURE de id_info
+		{
+		    # À FAIRE
+		}
+		POINTEUR de id_info
+		{
+		    # Ne pas oublier qu'il y a un niveau d'indirection.
+			soit x = transtype(pointeur : **z8);
+			soit x0 = mémoire(x);
+			ecrie = sprintf(ptr_tmp, "%p", x0);
+		}
+		FONCTION de id_info
+		{
+		    # À FAIRE
+		}
+		EINI de id_info
+		{
+		    # À FAIRE
+		}
+		RIEN de id_info
+		{
+		    # À FAIRE
+		}
+		ENUM de id_info
+		{
+		    soit info_arg = transtype(info : *InfoTypeEnum);
+			# À FAIRE : typage selon énum
+			soit valeur : z32 = mémoire(transtype(pointeur : *z32));
+			soit noms = noms de info_arg;
+			soit taille = taille de noms;
 
-        # À FAIRE : indirection appel pour les opérateurs +=, -=, ...
-		pour i dans transtype(0 : n64) ... taille {
-		    si valeurs[i] == valeur {
-			    soit n = noms[i];
-				write(flux_std, pointeur de n, taille de n);
-				arrête;
+            # À FAIRE : indirection appel pour les opérateurs +=, -=, ...
+			pour v, i dans valeurs de info_arg {
+			    si v == valeur {
+				    soit n = noms[i];
+					write(flux_std, pointeur de n, taille de n);
+					arrête;
+				}
 			}
 		}
 	}
@@ -134,134 +145,145 @@ fonction imprime_arg(flux_std : z32, arg : eini) : rien
 
     soit info = info de arg;
 
-    si id de info == ENTIER de id_info {
-        soit info_arg = transtype(info : *InfoTypeEntier);
+    associe id de info {
+	    ENTIER de id_info
+		{
+		    soit info_arg = transtype(info : *InfoTypeEntier);
 
-        si est_signe de info_arg {
-            si taille_en_octet de info_arg == 8 {
-                soit x : z8 = arg;
-                ecrie = sprintf(ptr_tmp, "%c", x);
-            }
-            sinon si taille_en_octet de info_arg == 16 {
-                soit x : z16 = arg;
-                ecrie = sprintf(ptr_tmp, "%d", x);
-            }
-            sinon si taille_en_octet de info_arg == 32 {
-                soit x : z32 = arg;
-                ecrie = sprintf(ptr_tmp, "%d", x);
-            }
-            sinon si taille_en_octet de info_arg == 64 {
-                soit x : z64 = arg;
-                ecrie = sprintf(ptr_tmp, "%ld", x);
-            }
-        }
-        sinon {
-            si taille_en_octet de info_arg == 8 {
-                soit x : n8 = arg;
-                ecrie = sprintf(ptr_tmp, "%c", x);
-            }
-            sinon si taille_en_octet de info_arg == 16 {
-                soit x : n16 = arg;
-                ecrie = sprintf(ptr_tmp, "%d", x);
-            }
-            sinon si taille_en_octet de info_arg == 32 {
-                soit x : n32 = arg;
-                ecrie = sprintf(ptr_tmp, "%d", x);
-            }
-            sinon si taille_en_octet de info_arg == 64 {
-                soit x : n64 = arg;
-                ecrie = sprintf(ptr_tmp, "%ld", x);
-            }
-        }
-    }
-	sinon si id de info == REEL de id_info {
-        soit info_arg = transtype(info : *InfoTypeReel);
+            si est_signe de info_arg {
+			    si taille_en_octet de info_arg == 8 {
+				    soit x : z8 = arg;
+					ecrie = sprintf(ptr_tmp, "%c", x);
+				}
+				sinon si taille_en_octet de info_arg == 16 {
+				    soit x : z16 = arg;
+					ecrie = sprintf(ptr_tmp, "%d", x);
+				}
+				sinon si taille_en_octet de info_arg == 32 {
+				    soit x : z32 = arg;
+					ecrie = sprintf(ptr_tmp, "%d", x);
+				}
+				sinon si taille_en_octet de info_arg == 64 {
+				    soit x : z64 = arg;
+					ecrie = sprintf(ptr_tmp, "%ld", x);
+				}
+			}
+			sinon {
+			    si taille_en_octet de info_arg == 8 {
+				    soit x : n8 = arg;
+					ecrie = sprintf(ptr_tmp, "%c", x);
+				}
+				sinon si taille_en_octet de info_arg == 16 {
+				    soit x : n16 = arg;
+					ecrie = sprintf(ptr_tmp, "%d", x);
+				}
+				sinon si taille_en_octet de info_arg == 32 {
+				    soit x : n32 = arg;
+					ecrie = sprintf(ptr_tmp, "%d", x);
+				}
+				sinon si taille_en_octet de info_arg == 64 {
+				    soit x : n64 = arg;
+					ecrie = sprintf(ptr_tmp, "%ld", x);
+				}
+			}
+		}
+		REEL de id_info
+		{
+		    soit info_arg = transtype(info : *InfoTypeReel);
 
-        si taille_en_octet de info_arg == 16 {
-            soit x : r16 = arg;
-            ecrie = sprintf(ptr_tmp, "%f", x);
-        }
-        sinon si taille_en_octet de info_arg == 32 {
-            soit x : r32 = arg;
-            ecrie = sprintf(ptr_tmp, "%f", x);
-        }
-        sinon si taille_en_octet de info_arg == 64 {
-            soit x : r64 = arg;
-            ecrie = sprintf(ptr_tmp, "%f", x);
-        }
-    }
-	sinon si id de info == BOOLEEN de id_info {
-        soit x : bool = arg;
-        ecrie = sprintf(ptr_tmp, "%d", x);
-    }
-	sinon si id de info == CHAINE de id_info {
-        soit x : chaîne = arg;
-		write(flux_std, pointeur de x, taille de x);
-    }
-	sinon si id de info == STRUCTURE de id_info {
-        soit info_arg = transtype(info : *InfoTypeStructure); 
-        
-        ecrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg);
-		write(flux_std, ptr_tmp, transtype(ecrie : z64));
+            si taille_en_octet de info_arg == 16 {
+			    soit x : r16 = arg;
+				ecrie = sprintf(ptr_tmp, "%f", x);
+			}
+			sinon si taille_en_octet de info_arg == 32 {
+			    soit x : r32 = arg;
+				ecrie = sprintf(ptr_tmp, "%f", x);
+			}
+			sinon si taille_en_octet de info_arg == 64 {
+			    soit x : r64 = arg;
+				ecrie = sprintf(ptr_tmp, "%f", x);
+			}
+		}
+		BOOLEEN de id_info
+		{
+		    soit x : bool = arg;
+			ecrie = sprintf(ptr_tmp, "%d", x);
+		}
+		CHAINE de id_info
+		{
+		    soit x : chaîne = arg;
+			write(flux_std, pointeur de x, taille de x);
+		}
+		STRUCTURE de id_info
+		{
+		    soit info_arg = transtype(info : *InfoTypeStructure);
 
-        soit membres = membres de info_arg;
-
-        dyn virgule = '\0';
-
-        pour membre dans membres {
-            soit pointeur = pointeur de nom de membre;
-            soit decalage = decalage de membre;
-            soit id = id de membre;
-            
-            ecrie = sprintf(ptr_tmp, "%c", virgule);
+            ecrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg);
 			write(flux_std, ptr_tmp, transtype(ecrie : z64));
 
-            ecrie = sprintf(ptr_tmp, " %s = ", pointeur);
+            soit membres = membres de info_arg;
+
+            dyn virgule = '\0';
+
+            pour membre dans membres {
+			    soit pointeur = pointeur de nom de membre;
+				soit decalage = decalage de membre;
+				soit id = id de membre;
+
+                ecrie = sprintf(ptr_tmp, "%c", virgule);
+				write(flux_std, ptr_tmp, transtype(ecrie : z64));
+
+                ecrie = sprintf(ptr_tmp, " %s = ", pointeur);
+				write(flux_std, ptr_tmp, transtype(ecrie : z64));
+
+                imprime_valeur_membre(flux_std, pointeur de arg + decalage, id);
+				virgule = ',';
+			}
+
+            ecrie = sprintf(ptr_tmp, " %c", '}');
 			write(flux_std, ptr_tmp, transtype(ecrie : z64));
-            
-            imprime_valeur_membre(flux_std, pointeur de arg + decalage, id);
-            virgule = ',';
-        }
+			ecrie = 0;
+		}
+		POINTEUR de id_info
+		{
+		    # Ne pas oublier qu'il y a un niveau d'indirection.
+			soit x = transtype(pointeur de arg : **z8);
+			soit x0 = mémoire(x);
+			ecrie = sprintf(ptr_tmp, "%p", x0);
+		}
+		FONCTION de id_info
+		{
+		    # À FAIRE
+		}
+		EINI de id_info
+		{
+		    # À FAIRE
+		}
+		RIEN de id_info
+		{
+		    # À FAIRE
+		}
+		TABLEAU de id_info
+		{
+		    soit x : []z8 = mémoire(transtype(pointeur de arg : *[]z8));
+			ecrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x);
+		}
+		ENUM de id_info
+		{
+		    soit info_arg = transtype(info : *InfoTypeEnum);
 
-        ecrie = sprintf(ptr_tmp, " %c", '}');
-		write(flux_std, ptr_tmp, transtype(ecrie : z64));
-        ecrie = 0;
-    }
-	sinon si id de info == POINTEUR de id_info {
-        # Ne pas oublier qu'il y a un niveau d'indirection.
-        soit x = transtype(pointeur de arg : **z8);
-        soit x0 = mémoire(x);
-        ecrie = sprintf(ptr_tmp, "%p", x0);
-    }
-	sinon si id de info == FONCTION de id_info {
-        # À FAIRE
-    }
-	sinon si id de info == EINI de id_info {
-        # À FAIRE
-    }
-	sinon si id de info == RIEN de id_info {
-        # À FAIRE
-    }
-	sinon si id de info == TABLEAU de id_info {
-        # À FAIRE : la coulisse C 
-        soit x : []z8 = mémoire(transtype(pointeur de arg : *[]z8));
-        ecrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x);
-    }
-	sinon si id de info == ENUM de id_info {
-	    soit info_arg = transtype(info : *InfoTypeEnum);
+            # À FAIRE : typage selon énum;
+			soit valeur : z32 = arg;
+			soit noms = noms de info_arg;
+			soit taille = taille de noms;
 
-        # À FAIRE : typage selon énum;
-		soit valeur : z32 = arg;
-		soit valeurs = valeurs de info_arg;
-		soit noms = noms de info_arg;
-		soit taille = taille de noms;
-
-        # À FAIRE : indirection appel pour les opérateurs +=, -=, ...
-		pour i dans transtype(0 : n64) ... taille {
-		    si valeurs[i] == valeur {
-			    soit n = noms[i];
-				write(flux_std, pointeur de n, taille de n);
-				arrête;
+            # À FAIRE : indirection appel pour les opérateurs +=, -=, ...
+			pour v, i dans valeurs de info_arg {
+			    si v == valeur {
+				    soit n = noms[i];
+					write(flux_std, pointeur de n, taille de n);
+					arrête;
+				}
 			}
 		}
 	}
