@@ -1607,13 +1607,20 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::MEMOIRE:
 		{
-			/* À FAIRE : assert type est pointeur. */
-
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte);
 
 			auto &dt_enfant = contexte.magasin_types.donnees_types[enfant->index_type];
 			b->index_type = contexte.magasin_types.ajoute_type(dt_enfant.derefence());
+
+			if (dt_enfant.type_base() != id_morceau::POINTEUR) {
+				erreur::lance_erreur(
+							"Un pointeur est requis pour le déréférencement via 'mémoire'",
+							contexte,
+							enfant->donnees_morceau(),
+							erreur::type_erreur::TYPE_DIFFERENTS);
+			}
+
 			break;
 		}
 		case type_noeud::LOGE:
