@@ -1096,6 +1096,11 @@ niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type
 			if (type1.derefence().type_base() == id_morceau::RIEN) {
 				return niveau_compat::ok;
 			}
+
+			/* x : *octet = y; */
+			if (type1.derefence().type_base() == id_morceau::OCTET) {
+				return niveau_compat::ok;
+			}
 		}
 
 		if (type1.derefence().type_base() == id_morceau::Z8) {

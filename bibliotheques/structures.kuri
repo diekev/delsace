@@ -46,9 +46,7 @@ fonction empile(dyn p : *pile, d : *rien) : rien
     }
 
     soit ptr = @pointeur[taille de p * taille_elem de p] de tampon de p;
-
-    # À FAIRE : transtype automatic
-    copie_mem_nonsur(transtype(d : *z8), ptr, taille_elem de p);
+	copie_mem_nonsur(d, ptr, taille_elem de p);
 
     taille de p += 1;
 }
@@ -66,7 +64,7 @@ fonction depile(dyn p : *pile, d : *rien) : rien
 
     si d != nul {
         soit ptr = @pointeur[(taille de p - 1) * taille_elem de p] de tampon de p;
-        copie_mem_nonsur(ptr, transtype(d : *z8), taille_elem de p);
+		copie_mem_nonsur(ptr, d, taille_elem de p);
     }
 
     taille de p -= 1;
@@ -114,9 +112,7 @@ fonction enfile(dyn q : *file, d : *rien) : rien
     }
 
     soit ptr = @pointeur[taille de q * taille_elem de q] de tampon de q;
-
-    # À FAIRE : transtype automatic
-    copie_mem_nonsur(transtype(d : *z8), ptr, taille_elem de q);
+	copie_mem_nonsur(d, ptr, taille_elem de q);
 
     taille de q += 1;
 }
@@ -134,7 +130,7 @@ fonction defile(dyn q : *file, d : *rien) : rien
 
     si d != nul {
         soit ptr = @pointeur[0] de tampon de q;
-        copie_mem_nonsur(ptr, transtype(d : *z8), taille_elem de q);
+		copie_mem_nonsur(ptr, d, taille_elem de q);
     }
 
     # réajuste la file en décalant les données
@@ -190,9 +186,7 @@ fonction pousse_tableau(dyn t : *tableau, d : *rien) : rien
     }
 
     soit ptr = @pointeur[taille de t * taille_elem de t] de tampon de t;
-
-    # À FAIRE : transtype automatic
-    copie_mem_nonsur(transtype(d : *z8), ptr, taille_elem de t);
+	copie_mem_nonsur(d, ptr, taille_elem de t);
 
     taille de t += 1;
 }
