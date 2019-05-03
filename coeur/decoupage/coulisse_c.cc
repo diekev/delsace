@@ -164,9 +164,11 @@ static std::string cree_info_type_C(
 		int nombre_base,
 		int profondeur);
 
-static int taille_type_octet(DonneesType const &donnees_type)
+static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesType const &donnees_type)
 {
-	switch (donnees_type.type_base() & 0xff) {
+	auto type_base = donnees_type.type_base();
+
+	switch (type_base & 0xff) {
 		default:
 		{
 			assert(false);
@@ -202,6 +204,14 @@ static int taille_type_octet(DonneesType const &donnees_type)
 		}
 		case id_morceau::CHAINE_CARACTERE:
 		{
+			auto index_struct = static_cast<uint64_t>(type_base >> 8);
+			auto &ds = contexte.donnees_structure(index_struct);
+
+			if (ds.est_enum) {
+				auto dt_enum = contexte.magasin_types.donnees_types[ds.noeud_decl->index_type];
+				return taille_type_octet(contexte, dt_enum);
+			}
+
 			/* À FAIRE */
 			return 0;
 		}
@@ -257,7 +267,7 @@ static auto cree_info_type_structure_C(
 	std::vector<std::string> pointeurs;
 	pointeurs.reserve(nombre_membres);
 
-	auto decalage = 0;
+	auto decalage = 0u;
 
 	for (auto i = 0ul; i < donnees_structure.donnees_types.size(); ++i) {
 		auto index_dt = donnees_structure.donnees_types[i];
@@ -277,13 +287,17 @@ static auto cree_info_type_structure_C(
 			auto struct_info_type_membre = cree_info_type_C(
 						contexte, os, dt, nombre_base + static_cast<int>(i), profondeur + 1);
 
+			auto align_type = alignement(contexte, dt);
+			auto padding = (align_type - (decalage % align_type)) % align_type;
+			decalage += padding;
+
 			os << "InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
 			os << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
 			os << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.size()  << ";\n";
-			os << nom_info_type_membre << ".decalage = " << decalage  << ";\n";
+			os << nom_info_type_membre << ".decalage = " << decalage << ";\n";
 			os << nom_info_type_membre << ".id = (InfoType *)(&" << struct_info_type_membre  << ");\n";
 
-			decalage += taille_type_octet(dt);
+			decalage += taille_type_octet(contexte, dt);
 
 			pointeurs.push_back(nom_info_type_membre);
 			break;

@@ -834,15 +834,21 @@ unsigned alignement(
 		case id_morceau::R64:
 		case id_morceau::N64:
 		case id_morceau::Z64:
+		case id_morceau::CHAINE:
 			return 8;
 		case id_morceau::CHAINE_CARACTERE:
 		{
 			auto const &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
-			auto &donnees_structure = contexte.donnees_structure(id_structure);
+			auto &ds = contexte.donnees_structure(id_structure);
+
+			if (ds.est_enum) {
+				auto dt_enum = contexte.magasin_types.donnees_types[ds.noeud_decl->index_type];
+				return alignement(contexte, dt_enum);
+			}
 
 			auto a = 0u;
 
-			for (auto const &donnees : donnees_structure.donnees_types) {
+			for (auto const &donnees : ds.donnees_types) {
 				auto const &dt = contexte.magasin_types.donnees_types[donnees];
 				a = std::max(a, alignement(contexte, dt));
 			}
