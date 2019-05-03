@@ -123,6 +123,7 @@ void assembleuse_arbre::genere_code_C(
 	os << "#include <stdio.h>\n";
 	os << "#include <stdlib.h>\n";
 	os << "#include <sys/stat.h>\n";
+	os << "#include <sys/time.h>\n";
 	os << "#include <fcntl.h>\n";
 	os << "#include <unistd.h>\n";
 	os << "#include <math.h>\n";

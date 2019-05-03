@@ -1,0 +1,75 @@
+
+# @inclus "sys/time.h"
+
+# À FAIRE : regarde les bibliothèques de temps/date des différents langages
+
+# Strictement égale à timeval_t
+structure ValTemps {
+    secondes : z64;
+    microsecondes : z64;
+}
+
+# Strictement égale à timezone_t À FAIRE : déprécié
+structure FuseauHoraire {
+    minutes_ouest : z64; # Minutes à l'ouest de GMT
+    temps_dst : z64; # Nonzéro si DST est en effet
+}
+
+fonction externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien;
+
+fonction maintenant_sec() : r64
+{
+	dyn heure : ValTemps;
+	gettimeofday(@heure, nul);
+
+    # À FAIRE : expression malformée si enligné
+    soit s = transtype(secondes de heure : r64);
+
+    # À FAIRE : 1e-6
+	retourne s + transtype(microsecondes de heure : r64) * 0.000001;
+}
+
+fonction maintenant_local() : r64
+{
+	dyn heure : ValTemps;
+	dyn fuseau : FuseauHoraire;
+	gettimeofday(@heure, @fuseau);
+
+    # À FAIRE : expression malformée si enligné
+    dyn s = transtype(secondes de heure : r64);
+    
+    s += transtype(minutes_ouest de fuseau : r64) * 60.0;
+
+    # À FAIRE : 1e-6
+	retourne s + transtype(microsecondes de heure : r64) * 0.000001;
+}
+
+fonction delta_sec(temps : r64) : r64
+{
+    retourne maintenant_sec() - temps;
+}
+
+fonction compte_ticks_ms() : z64
+{
+	dyn heure : ValTemps;
+	gettimeofday(@heure, nul);
+	retourne secondes de heure * 1000 + microsecondes de heure / 1000;
+}
+
+structure DonneesTemps {
+    heures : z32;
+    minutes : z32;
+    secondes : z32;
+}
+
+fonction calcule_temps() : DonneesTemps
+{
+    dyn maint = maintenant_local();
+    
+    dyn dt : DonneesTemps;
+    minutes de dt = transtype(maint / 60.0 : z32) % 60;
+    heures de dt = transtype(maint / 60.0 / 60.0 : z32) % 24;
+    secondes de dt = transtype(maint : z32) % 60;
+    
+    retourne dt;
+}

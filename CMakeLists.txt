@@ -134,6 +134,7 @@ add_subdirectory(tests)
 
 set(FICHIERS_BIBLIOTHEQUES
 	bibliotheques/chaine.kuri
+	bibliotheques/chrono.kuri
 	bibliotheques/flux.kuri
 	bibliotheques/info_type.kuri
 	bibliotheques/memoire.kuri
