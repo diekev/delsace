@@ -83,7 +83,6 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::VARIABLE)
 		CAS_TYPE(type_noeud::ACCES_MEMBRE)
 		CAS_TYPE(type_noeud::ACCES_MEMBRE_POINT)
-		CAS_TYPE(type_noeud::CONSTANTE)
 		CAS_TYPE(type_noeud::DECLARATION_VARIABLE)
 		CAS_TYPE(type_noeud::ASSIGNATION_VARIABLE)
 		CAS_TYPE(type_noeud::NOMBRE_REEL)
@@ -895,36 +894,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			performe_validation_semantique(enfant2, contexte);
 
 			b->index_type = enfant2->index_type;
-			break;
-		}
-		case type_noeud::CONSTANTE:
-		{
-			auto valeur = contexte.valeur_globale(b->morceau.chaine);
-
-			if (valeur != nullptr) {
-				erreur::lance_erreur(
-							"Redéfinition de la variable globale !",
-							contexte,
-							b->morceau,
-							erreur::type_erreur::VARIABLE_REDEFINIE);
-			}
-
-			performe_validation_semantique(b->enfants.front(), contexte);
-
-			if (b->index_type == -1ul) {
-				b->index_type = b->enfants.front()->index_type;
-
-				if (b->index_type == -1ul) {
-					erreur::lance_erreur(
-								"Impossible de définir le type de la variable globale !",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::TYPE_INCONNU);
-				}
-			}
-			/* À FAIRE : vérifie typage */
-
-			contexte.pousse_globale(b->morceau.chaine, nullptr, b->index_type, false);
 			break;
 		}
 		case type_noeud::DECLARATION_VARIABLE:

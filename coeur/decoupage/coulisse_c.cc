@@ -1273,21 +1273,6 @@ void genere_code_C(
 			genere_code_acces_membre(structure, membre, contexte, os);
 			break;
 		}
-		case type_noeud::CONSTANTE:
-		{
-			/* À FAIRE : énumération avec des expressions contenant d'autres énums.
-			 * différents types (réel, bool, etc..)
-			 */
-
-			auto n = converti_chaine_nombre_entier(
-						b->enfants.front()->chaine(),
-						b->enfants.front()->identifiant());
-
-			os << "static int " << b->morceau.chaine << '=' << n << ";\n";
-
-			contexte.pousse_globale(b->morceau.chaine, nullptr, b->index_type, false);
-			break;
-		}
 		case type_noeud::DECLARATION_VARIABLE:
 		{
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];

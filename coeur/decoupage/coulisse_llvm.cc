@@ -923,33 +923,6 @@ llvm::Value *genere_code_llvm(
 		{
 			return genere_code_llvm(b->enfants.back(), contexte, true);
 		}
-		case type_noeud::CONSTANTE:
-		{
-			/* À FAIRE : énumération avec des expressions contenant d'autres énums.
-			 * différents types (réel, bool, etc..)
-			 */
-
-			auto n = converti_chaine_nombre_entier(
-						 b->enfants.front()->chaine(),
-						 b->enfants.front()->identifiant());
-
-			auto type_llvm = contexte.magasin_types.converti_type(contexte, b->index_type);
-
-			auto val_constante = llvm::ConstantInt::get(
-								 type_llvm,
-								 static_cast<uint64_t>(n));
-
-			auto valeur = new llvm::GlobalVariable(
-							  *contexte.module_llvm,
-							  type_llvm,
-							  true,
-							  llvm::GlobalValue::InternalLinkage,
-							  val_constante);
-
-			contexte.pousse_globale(b->morceau.chaine, valeur, b->index_type, false);
-
-			return valeur;
-		}
 		case type_noeud::DECLARATION_VARIABLE:
 		{
 			auto const &type = contexte.magasin_types.donnees_types[b->index_type];
