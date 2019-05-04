@@ -12,7 +12,7 @@ fonction externe close(filedes : z32) : z32;
 fonction externe read(filedes : z32, tpn : *z8, nbyte : z64) : z32;
 fonction externe write(filedes : z32, tpn : *z8, nbyte : z64) : z32;
 
-fonction imprime_valeur_membre(flux_std : z32, pointeur : *z8, info : *InfoType) : rien
+fonction imprime_valeur(flux_std : z32, pointeur : *z8, info : *InfoType) : rien
 {
     dyn tmp : [128]z8;
     dyn ptr_tmp = @tmp[0];
@@ -109,7 +109,7 @@ fonction imprime_valeur_membre(flux_std : z32, pointeur : *z8, info : *InfoType)
                 ecrie = sprintf(ptr_tmp, " %s = ", ptr_nom);
 				write(flux_std, ptr_tmp, transtype(ecrie : z64));
 
-                imprime_valeur_membre(flux_std, pointeur + decalage, id);
+                imprime_valeur(flux_std, pointeur + decalage, id);
 				virgule = ',';
 			}
 
@@ -130,11 +130,17 @@ fonction imprime_valeur_membre(flux_std : z32, pointeur : *z8, info : *InfoType)
 		}
 		EINI de id_info
 		{
-		    # À FAIRE
+		    soit x : eini = mémoire(transtype(pointeur : *eini));
+			ecrie = sprintf(ptr_tmp, "eini { ptr = %p, info = %d }", pointeur de x, info de x);
 		}
 		RIEN de id_info
 		{
 		    # À FAIRE
+		}
+		TABLEAU de id_info
+		{
+		    soit x : []z8 = mémoire(transtype(pointeur : *[]z8));
+			ecrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x);
 		}
 		ENUM de id_info
 		{
@@ -159,170 +165,16 @@ fonction imprime_valeur_membre(flux_std : z32, pointeur : *z8, info : *InfoType)
 	}
 }
 
-fonction imprime_arg(flux_std : z32, arg : eini) : rien
-{
-    dyn tmp : [1024]z8;
-    dyn ptr_tmp = @tmp[0];
-
-    dyn ecrie = 0;
-
-    soit info = info de arg;
-
-    associe id de info {
-	    ENTIER de id_info
-		{
-		    soit info_arg = transtype(info : *InfoTypeEntier);
-
-            si est_signe de info_arg {
-			    si taille_en_octet de info_arg == 8 {
-				    soit x : z8 = arg;
-					ecrie = sprintf(ptr_tmp, "%c", x);
-				}
-				sinon si taille_en_octet de info_arg == 16 {
-				    soit x : z16 = arg;
-					ecrie = sprintf(ptr_tmp, "%d", x);
-				}
-				sinon si taille_en_octet de info_arg == 32 {
-				    soit x : z32 = arg;
-					ecrie = sprintf(ptr_tmp, "%d", x);
-				}
-				sinon si taille_en_octet de info_arg == 64 {
-				    soit x : z64 = arg;
-					ecrie = sprintf(ptr_tmp, "%ld", x);
-				}
-			}
-			sinon {
-			    si taille_en_octet de info_arg == 8 {
-				    soit x : n8 = arg;
-					ecrie = sprintf(ptr_tmp, "%c", x);
-				}
-				sinon si taille_en_octet de info_arg == 16 {
-				    soit x : n16 = arg;
-					ecrie = sprintf(ptr_tmp, "%d", x);
-				}
-				sinon si taille_en_octet de info_arg == 32 {
-				    soit x : n32 = arg;
-					ecrie = sprintf(ptr_tmp, "%d", x);
-				}
-				sinon si taille_en_octet de info_arg == 64 {
-				    soit x : n64 = arg;
-					ecrie = sprintf(ptr_tmp, "%ld", x);
-				}
-			}
-		}
-		REEL de id_info
-		{
-		    soit info_arg = transtype(info : *InfoTypeReel);
-
-            si taille_en_octet de info_arg == 16 {
-			    soit x : r16 = arg;
-				ecrie = sprintf(ptr_tmp, "%f", x);
-			}
-			sinon si taille_en_octet de info_arg == 32 {
-			    soit x : r32 = arg;
-				ecrie = sprintf(ptr_tmp, "%f", x);
-			}
-			sinon si taille_en_octet de info_arg == 64 {
-			    soit x : r64 = arg;
-				ecrie = sprintf(ptr_tmp, "%f", x);
-			}
-		}
-		BOOLEEN de id_info
-		{
-		    soit x : bool = arg;
-			ecrie = sprintf(ptr_tmp, "%d", x);
-		}
-		CHAINE de id_info
-		{
-		    soit x : chaine = arg;
-			write(flux_std, pointeur de x, taille de x);
-		}
-		STRUCTURE de id_info
-		{
-		    soit info_arg = transtype(info : *InfoTypeStructure);
-
-            ecrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg);
-			write(flux_std, ptr_tmp, transtype(ecrie : z64));
-
-            dyn virgule = '\0';
-
-            pour membre dans membres de info_arg {
-			    soit pointeur = pointeur de nom de membre;
-				soit decalage = decalage de membre;
-				soit id = id de membre;
-
-                ecrie = sprintf(ptr_tmp, "%c", virgule);
-				write(flux_std, ptr_tmp, transtype(ecrie : z64));
-
-                ecrie = sprintf(ptr_tmp, " %s = ", pointeur);
-				write(flux_std, ptr_tmp, transtype(ecrie : z64));
-
-                imprime_valeur_membre(flux_std, pointeur de arg + decalage, id);
-				virgule = ',';
-			}
-
-            ecrie = sprintf(ptr_tmp, " %c", '}');
-			write(flux_std, ptr_tmp, transtype(ecrie : z64));
-			ecrie = 0;
-		}
-		POINTEUR de id_info
-		{
-		    # Ne pas oublier qu'il y a un niveau d'indirection.
-			soit x = transtype(pointeur de arg : **z8);
-			soit x0 = mémoire(x);
-			ecrie = sprintf(ptr_tmp, "%p", x0);
-		}
-		FONCTION de id_info
-		{
-		    # À FAIRE
-		}
-		EINI de id_info
-		{
-		    # À FAIRE
-		}
-		RIEN de id_info
-		{
-		    # À FAIRE
-		}
-		TABLEAU de id_info
-		{
-		    soit x : []z8 = mémoire(transtype(pointeur de arg : *[]z8));
-			ecrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x);
-		}
-		ENUM de id_info
-		{
-		    soit info_arg = transtype(info : *InfoTypeEnum);
-
-            # À FAIRE : typage selon énum;
-			soit valeur : z32 = arg;
-			soit noms = noms de info_arg;
-
-            # À FAIRE : indirection appel pour les opérateurs +=, -=, ...
-			pour v, i dans valeurs de info_arg {
-			    si v == valeur {
-				    soit n = noms[i];
-					write(flux_std, pointeur de n, taille de n);
-					arrête;
-				}
-			}
-		}
-	}
-    
-    si ecrie > 0 {
-	    write(flux_std, ptr_tmp, transtype(ecrie : z64));
-    }
-}
-
 fonction imprime(args : ...eini) : rien
 {
     pour arg dans args {
-	    imprime_arg(std_out, arg);
+	    imprime_valeur(std_out, pointeur de arg, info de arg);
     }
 }
 
 fonction imprime_err(args : ...eini) : rien
 {
     pour arg dans args {
-	    imprime_arg(std_err, arg);
+	    imprime_valeur(std_err, pointeur de arg, info de arg);
 	}
 }
