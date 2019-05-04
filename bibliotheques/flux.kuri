@@ -91,7 +91,31 @@ fonction imprime_valeur_membre(flux_std : z32, pointeur : *z8, info : *InfoType)
 		}
 		STRUCTURE de id_info
 		{
-		    # À FAIRE
+		    soit info_arg = transtype(info : *InfoTypeStructure);
+
+            ecrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg);
+			write(flux_std, ptr_tmp, transtype(ecrie : z64));
+
+            dyn virgule = '\0';
+
+            pour membre dans membres de info_arg {
+			    soit ptr_nom = pointeur de nom de membre;
+				soit decalage = decalage de membre;
+				soit id = id de membre;
+
+                ecrie = sprintf(ptr_tmp, "%c", virgule);
+				write(flux_std, ptr_tmp, transtype(ecrie : z64));
+
+                ecrie = sprintf(ptr_tmp, " %s = ", ptr_nom);
+				write(flux_std, ptr_tmp, transtype(ecrie : z64));
+
+                imprime_valeur_membre(flux_std, pointeur + decalage, id);
+				virgule = ',';
+			}
+
+            ecrie = sprintf(ptr_tmp, " %c", '}');
+			write(flux_std, ptr_tmp, transtype(ecrie : z64));
+			ecrie = 0;
 		}
 		POINTEUR de id_info
 		{
@@ -220,11 +244,9 @@ fonction imprime_arg(flux_std : z32, arg : eini) : rien
             ecrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg);
 			write(flux_std, ptr_tmp, transtype(ecrie : z64));
 
-            soit membres = membres de info_arg;
-
             dyn virgule = '\0';
 
-            pour membre dans membres {
+            pour membre dans membres de info_arg {
 			    soit pointeur = pointeur de nom de membre;
 				soit decalage = decalage de membre;
 				soit id = id de membre;
