@@ -1,0 +1,131 @@
+importe "memoire"
+
+# À FAIRE : évite d'avoir des tampon partout.
+
+fonction externe open(chemin : *z8, drapeaux : z32) : z32;
+fonction externe close(fd : z32) : rien;
+fonction externe read(fd : z32, tampon : *z8, taille : n64) : z64;
+fonction externe stat(chemin : *z8, buf : *rien) : z32;
+
+# Version 64-bit de la structure 'stat' de "sys/stat.h"
+structure StatFichier {
+    _dev : n64;         # ID of device containing file
+	_ino : n64;         # inode number
+	_nlink : n64;     # number of hard links
+	_mode : n32;       # protection
+	_uid : n32;         # user ID of owner
+	_gid : n32;         # group ID of owner
+	pad0 : n32;         # padding pour la version 64-bit
+	_rdev : n64;        # device ID (if special file)
+	_size : z64;        # total size, in bytes
+	_blksize : z64; # blocksize for file system I/O
+	_blocks : z64;
+	_atime : z64;      # time of last access
+	_mtime : z64;      # time of last modification
+	_ctime : z64;      # time of last status change
+}
+
+fonction fichier_existe(chemin : chaine) : bool
+{
+	# nous devons avoir une chaine terminée par '\0' donc copie dans un
+	# tampon
+	dyn tampon : [1024]z8;
+
+	copie_mem_nonsur(
+		src=pointeur de chemin,
+		dst=@tampon[0],
+		taille=taille de chemin);
+
+	tampon[taille de chemin] = '\0';
+
+    dyn st : StatFichier;
+	# À FAIRE : prend pointeur automatiquement
+	soit ok = stat(@tampon[0], @st);
+
+	si ok == -1 {
+		retourne faux;
+	}
+
+	retourne vrai;
+}
+
+fonction ouvre_fichier(chemin : chaine) : z32
+{
+	si !fichier_existe(chemin) {
+		retourne -1;
+	}
+
+	# nous devons avoir une chaine terminée par '\0' donc copie dans un
+	# tampon
+	dyn tampon : [1024]z8;
+
+	copie_mem_nonsur(
+		src=pointeur de chemin,
+		dst=@tampon[0],
+		taille=taille de chemin);
+
+	tampon[taille de chemin] = '\0';
+
+    # À FAIRE : prend pointeur automatiquement
+	retourne open(@tampon[0], 0);
+}
+
+fonction ferme_fichier(desc : z32) : rien
+{
+	si desc != -1 {
+		close(desc);
+	}
+}
+
+fonction charge_contenu_fichier(chemin : chaine) : chaine
+{
+    dyn ret : chaine;
+
+	soit fd = ouvre_fichier(chemin);
+	diffère { ferme_fichier(fd); }
+
+	si fd == -1 {
+		retourne ret;
+	}
+
+	dyn tampon : [1024]z8;
+
+    boucle {
+	    # À FAIRE : prend pointeur automatiquement
+		dyn lu = read(fd, @tampon[0], 1024);
+
+		si lu == 0 {
+			arrête;
+		}
+
+		si lu == -1 {
+			# À FAIRE : erreur
+			déloge ret;
+			arrête;
+		}
+
+        dyn tmp = loge chaine(taille de ret + lu);
+
+		si taille de ret != 0 {
+			dyn src = @ret[0];
+			dyn dst = @tmp[0];
+
+			copie_mem_nonsur(src=src, dst=dst, taille=taille de ret);
+		}
+
+		dyn src = @tampon[0];
+		dyn dst = @tmp[taille de ret];
+
+		copie_mem_nonsur(src=src, dst=dst, taille=lu);
+
+		déloge ret;
+		ret = tmp;
+	}
+
+	retourne ret;
+}
+
+# À FAIRE : la coulisse C a un problème avec les rappels de fonctions en paramètres.
+#fonction pour_chaque_ligne(chemin : chaine, rappel : fonction(chaine)rien) : rien
+#{
+#}
