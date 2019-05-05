@@ -24,6 +24,7 @@
 
 #include "arbre_syntactic.h"
 
+#include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "modules.hh"
@@ -564,6 +565,21 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						performe_validation_semantique(enfant, contexte);
 					}
 
+					/* vérifie la compatibilité des arguments pour déterminer
+					 * s'il y aura besoin d'une conversion. */
+					auto index_type = contexte.type_locale(b->morceau.chaine);
+					auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
+					auto dt_params = donnees_types_parametres(dt_fonc);
+
+					auto enfant = b->enfants.begin();
+
+					/* Validation des types passés en paramètre. */
+					for (size_t i = 0; i < dt_params.size() - 1; ++i) {
+						auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
+						verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
+						++enfant;
+					}
+
 					return;
 				}
 
@@ -685,6 +701,87 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			/* À FAIRE : déduplique */
 			for (auto enfant : b->enfants) {
 				performe_validation_semantique(enfant, contexte);
+			}
+
+			/* transforme les enfants pour la génération du code */
+			auto fonction_variadique_interne = donnees_fonction->est_variadique
+					&& !donnees_fonction->est_externe;
+
+			/* Réordonne les enfants selon l'apparition des arguments car LLVM est
+			 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
+			 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
+			 * code est généré. */
+			std::vector<base *> enfants;
+
+			if (fonction_variadique_interne) {
+				enfants.resize(donnees_fonction->args.size());
+			}
+			else {
+				enfants.resize(noms_arguments->size());
+			}
+
+			auto noeud_tableau = static_cast<base *>(nullptr);
+
+			if (fonction_variadique_interne) {
+				/* Pour les fonctions variadiques interne, nous créons un tableau
+				 * correspondant au types des arguments. */
+
+				auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
+				auto index_premier_var_arg = nombre_args - 1;
+
+				noeud_tableau = contexte.assembleuse->cree_noeud(
+							type_noeud::TABLEAU, contexte, b->morceau);
+				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
+				noeud_tableau->drapeaux |= EST_CALCULE;
+				auto nom_arg = donnees_fonction->nom_args.back();
+				noeud_tableau->index_type = donnees_fonction->args[nom_arg].donnees_type;
+
+				enfants[index_premier_var_arg] = noeud_tableau;
+			}
+
+			auto enfant = b->enfants.begin();
+			auto nombre_arg_variadic = 0ul;
+
+			for (auto const &nom : *noms_arguments) {
+				/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
+				 * car ça a déjà été fait dans l'analyse grammaticale. */
+				auto const iter = donnees_fonction->args.find(nom);
+				auto index_arg = iter->second.index;
+				auto const index_type_arg = iter->second.donnees_type;
+				auto const index_type_enf = (*enfant)->index_type;
+				auto const &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
+				auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
+
+				if (iter->second.est_variadic) {
+					if (!type_arg.est_invalide()) {
+						verifie_compatibilite(b, contexte, type_arg, type_enf, *enfant);
+
+						if (noeud_tableau) {
+							noeud_tableau->ajoute_noeud(*enfant);
+						}
+						else {
+							enfants[index_arg + nombre_arg_variadic] = *enfant;
+							++nombre_arg_variadic;
+						}
+					}
+					else {
+						enfants[index_arg + nombre_arg_variadic] = *enfant;
+						++nombre_arg_variadic;
+					}
+				}
+				else {
+					verifie_compatibilite(b, contexte, type_arg, type_enf, *enfant);
+
+					enfants[index_arg] = *enfant;
+				}
+
+				++enfant;
+			}
+
+			b->enfants.clear();
+
+			for (auto enfant_ : enfants) {
+				b->enfants.push_back(enfant_);
 			}
 
 			break;

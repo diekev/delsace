@@ -678,21 +678,7 @@ llvm::Value *genere_code_llvm(
 			auto fonction = contexte.module_llvm->getFunction(nom_broye);
 			auto est_pointeur_fonction = (fonction == nullptr && contexte.locale_existe(b->morceau.chaine));
 
-			/* Cherche la liste d'arguments */
 			if (est_pointeur_fonction) {
-				auto index_type = contexte.type_locale(b->morceau.chaine);
-				auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
-				auto dt_params = donnees_types_parametres(dt_fonc);
-
-				auto enfant = b->enfants.begin();
-
-				/* Validation des types passés en paramètre. */
-				for (size_t i = 0; i < dt_params.size() - 1; ++i) {
-					auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
-					verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
-					++enfant;
-				}
-
 				auto valeur = contexte.valeur_locale(b->morceau.chaine);
 
 				auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
@@ -702,91 +688,7 @@ llvm::Value *genere_code_llvm(
 				return cree_appel(contexte, charge, b->enfants);
 			}
 
-			auto donnees_fonction = cherche_donnees_fonction(
-						contexte,
-						b->morceau.chaine,
-						static_cast<size_t>(b->morceau.module),
-						static_cast<size_t>(b->module_appel));
-
-			auto fonction_variadique_interne = donnees_fonction->est_variadique && !donnees_fonction->est_externe;
-
-			/* Réordonne les enfants selon l'apparition des arguments car LLVM est
-			 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
-			 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
-			 * code est généré. */
-			auto noms_arguments = std::any_cast<std::list<std::string_view>>(&b->valeur_calculee);
-			std::vector<base *> enfants;
-
-			if (fonction_variadique_interne) {
-				enfants.resize(donnees_fonction->args.size());
-			}
-			else {
-				enfants.resize(noms_arguments->size());
-			}
-
-			auto noeud_tableau = static_cast<base *>(nullptr);
-
-			if (fonction_variadique_interne) {
-				/* Pour les fonctions variadiques interne, nous créons un tableau
-				 * correspondant au types des arguments. */
-
-				auto nombre_args = donnees_fonction->args.size();
-				auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
-				auto index_premier_var_arg = nombre_args - 1;
-
-				noeud_tableau = new base(contexte, {});
-				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
-				noeud_tableau->drapeaux |= EST_CALCULE;
-				auto nom_arg = donnees_fonction->nom_args.back();
-				noeud_tableau->index_type = donnees_fonction->args[nom_arg].donnees_type;
-
-				enfants[index_premier_var_arg] = noeud_tableau;
-			}
-
-			auto enfant = b->enfants.begin();
-			auto nombre_arg_variadic = 0ul;
-
-			for (auto const &nom : *noms_arguments) {
-				/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
-				 * car ça a déjà été fait dans l'analyse grammaticale. */
-				auto const iter = donnees_fonction->args.find(nom);
-				auto index_arg = iter->second.index;
-				auto const index_type_arg = iter->second.donnees_type;
-				auto const index_type_enf = (*enfant)->index_type;
-				auto const &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
-				auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
-
-				if (iter->second.est_variadic) {
-					if (!type_arg.est_invalide()) {
-						verifie_compatibilite(b, contexte, type_arg, type_enf, *enfant);
-
-						if (noeud_tableau) {
-							noeud_tableau->ajoute_noeud(*enfant);
-						}
-						else {
-							enfants[index_arg + nombre_arg_variadic] = *enfant;
-							++nombre_arg_variadic;
-						}
-					}
-					else {
-						enfants[index_arg + nombre_arg_variadic] = *enfant;
-						++nombre_arg_variadic;
-					}
-				}
-				else {
-					verifie_compatibilite(b, contexte, type_arg, type_enf, *enfant);
-
-					enfants[index_arg] = *enfant;
-				}
-
-				++enfant;
-			}
-
-			auto appel = cree_appel(contexte, fonction, enfants);
-
-			delete noeud_tableau;
-
-			return appel;
+			return cree_appel(contexte, fonction, b->enfants);
 		}
 		case type_noeud::VARIABLE:
 		{

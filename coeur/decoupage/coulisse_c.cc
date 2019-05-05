@@ -649,13 +649,12 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 	return nom_eini;
 }
 
-template <typename Conteneur>
 static void cree_appel(
 		base *b,
 		std::ostream &os,
 		ContexteGenerationCode &contexte,
 		std::string const &nom_broye,
-		Conteneur const &enfants)
+		std::list<base *> const &enfants)
 {
 	for (auto enf : enfants) {
 		if ((enf->drapeaux & CONVERTI_TABLEAU) != 0) {
@@ -1131,109 +1130,12 @@ void genere_code_C(
 
 			auto est_pointeur_fonction = (contexte.locale_existe(b->morceau.chaine));
 
-			/* Cherche la liste d'arguments */
 			if (est_pointeur_fonction) {
-				auto index_type = contexte.type_locale(b->morceau.chaine);
-				auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
-				auto dt_params = donnees_types_parametres(dt_fonc);
-
-				auto enfant = b->enfants.begin();
-
-				/* Validation des types passés en paramètre. */
-				for (size_t i = 0; i < dt_params.size() - 1; ++i) {
-					auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
-					verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
-					++enfant;
-				}
-
 				cree_appel(b, os, contexte, nom_fonction, b->enfants);
 				return;
 			}
 
-			auto donnees_fonction = cherche_donnees_fonction(
-						contexte,
-						nom_fonction,
-						static_cast<size_t>(b->morceau.module),
-						static_cast<size_t>(b->module_appel));
-
-			auto fonction_variadique_interne = donnees_fonction->est_variadique && !donnees_fonction->est_externe;
-
-			/* Réordonne les enfants selon l'apparition des arguments car LLVM est
-			 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
-			 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
-			 * code est généré. */
-			auto noms_arguments = std::any_cast<std::list<std::string_view>>(&b->valeur_calculee);
-			std::vector<base *> enfants;
-
-			if (fonction_variadique_interne) {
-				enfants.resize(donnees_fonction->args.size());
-			}
-			else {
-				enfants.resize(noms_arguments->size());
-			}
-
-			auto noeud_tableau = static_cast<base *>(nullptr);
-
-			if (fonction_variadique_interne) {
-				/* Pour les fonctions variadiques interne, nous créons un tableau
-				 * correspondant au types des arguments. */
-
-				auto nombre_args = donnees_fonction->args.size();
-				auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
-				auto index_premier_var_arg = nombre_args - 1;
-
-				noeud_tableau = new base(contexte, b->morceau);
-				noeud_tableau->type = type_noeud::TABLEAU;
-				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
-				noeud_tableau->drapeaux |= EST_CALCULE;
-				auto nom_arg = donnees_fonction->nom_args.back();
-				noeud_tableau->index_type = donnees_fonction->args[nom_arg].donnees_type;
-
-				enfants[index_premier_var_arg] = noeud_tableau;
-			}
-
-			auto enfant = b->enfants.begin();
-			auto nombre_arg_variadic = 0ul;
-
-			for (auto const &nom : *noms_arguments) {
-				/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
-				 * car ça a déjà été fait dans l'analyse grammaticale. */
-				auto const iter = donnees_fonction->args.find(nom);
-				auto index_arg = iter->second.index;
-				auto const index_type_arg = iter->second.donnees_type;
-				auto const index_type_enf = (*enfant)->index_type;
-				auto const &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
-				auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
-
-				if (iter->second.est_variadic) {
-					if (!type_arg.est_invalide()) {
-						verifie_compatibilite(b, contexte, type_arg, type_enf, *enfant);
-
-						if (noeud_tableau) {
-							noeud_tableau->ajoute_noeud(*enfant);
-						}
-						else {
-							enfants[index_arg + nombre_arg_variadic] = *enfant;
-							++nombre_arg_variadic;
-						}
-					}
-					else {
-						enfants[index_arg + nombre_arg_variadic] = *enfant;
-						++nombre_arg_variadic;
-					}
-				}
-				else {
-					verifie_compatibilite(b, contexte, type_arg, type_enf, *enfant);
-
-					enfants[index_arg] = *enfant;
-				}
-
-				++enfant;
-			}
-
-			cree_appel(b, os, contexte, nom_fonction, enfants);
-
-			delete noeud_tableau;
+			cree_appel(b, os, contexte, nom_fonction, b->enfants);
 
 			break;
 		}
