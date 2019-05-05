@@ -140,6 +140,7 @@ set(FICHIERS_BIBLIOTHEQUES
 	bibliotheques/info_type.kuri
 	bibliotheques/memoire.kuri
 	bibliotheques/structures.kuri
+	bibliotheques/uri.kuri
 )
 
 install(
