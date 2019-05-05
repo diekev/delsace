@@ -121,8 +121,3 @@ fonction charge_contenu_fichier(chemin : chaine) : chaine
 
 	retourne ret;
 }
-
-# À FAIRE : la coulisse C a un problème avec les rappels de fonctions en paramètres.
-#fonction pour_chaque_ligne(chemin : chaine, rappel : fonction(chaine)rien) : rien
-#{
-#}

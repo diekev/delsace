@@ -63,3 +63,34 @@ fonction converti_chaine_c(chaine_c : *z8) : chaine
     taille de ret = taille_chaine_c(chaine_c);
     retourne ret;
 }
+
+# execute une fonction pour chaque ligne du texte d'entrée
+fonction pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonction(chaine, eini)rien) : rien
+{
+    dyn taille_chaine : z64 = 0;
+	dyn debut_chaine : z64 = 0;
+
+    pour c, i dans texte {
+	    taille_chaine += 1;
+
+        si c == '\n' {
+		    dyn ligne : chaine;
+			taille de ligne = taille_chaine;
+			pointeur de ligne = @texte[debut_chaine];
+
+            rappel(ligne, donnees);
+
+            debut_chaine = transtype(i + 1 : z64);
+			taille_chaine = 0;
+		}
+	}
+
+    # La dernière ligne n'a pas de retour...
+	si taille_chaine != 0 {
+	    dyn ligne : chaine;
+		taille de ligne = taille_chaine;
+		pointeur de ligne = @texte[debut_chaine];
+
+        rappel(ligne, donnees);
+	}
+}
