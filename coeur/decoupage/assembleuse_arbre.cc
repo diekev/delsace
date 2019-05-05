@@ -24,6 +24,8 @@
 
 #include "assembleuse_arbre.h"
 
+#include <sstream>
+
 #include "contexte_generation_code.h"
 #include "coulisse_c.hh"
 #include "coulisse_llvm.hh"
@@ -133,20 +135,31 @@ void assembleuse_arbre::genere_code_C(
 	os << "#include <GLFW/glfw3.h>\n";
 	os << "\n";
 
-	noeud::genere_code_C(m_pile.top(), contexte_generation, false, os);
+	/* NOTE : les initiliaseurs des infos types doivent être valide pour toute
+	 * la durée du programme, donc nous les mettons dans la fonction principale.
+	 */
+	std::stringstream ss_infos_types;
 
-	auto __main__ =
+	noeud::genere_code_C(m_pile.top(), contexte_generation, false, os, ss_infos_types);
+
+	auto debut_main =
 R"(
 int main(int argc, char **argv)
 {
 	Tableau_char_ptr_ tabl_args;
 	tabl_args.pointeur = argv;
 	tabl_args.taille = argc;
+)";
+
+	auto fin_main =
+R"(
 	return principale(tabl_args);
 }
 )";
 
-	os << __main__;
+	os << debut_main;
+	os << ss_infos_types.str();
+	os << fin_main;
 }
 
 void assembleuse_arbre::supprime_noeud(noeud::base *noeud)

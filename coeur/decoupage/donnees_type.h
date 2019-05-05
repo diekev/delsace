@@ -58,6 +58,8 @@ class DonneesType {
 	llvm::Type *m_type{nullptr};
 
 public:
+	std::string ptr_info_type{};
+
 	using iterateur_const = llvm::SmallVectorImpl<id_morceau>::const_reverse_iterator;
 
 	DonneesType() = default;

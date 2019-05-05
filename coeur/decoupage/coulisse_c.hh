@@ -36,6 +36,7 @@ void genere_code_C(
 		base *b,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche,
-		std::ostream &os);
+		std::ostream &os,
+		std::ostream &os_init);
 
 }  /* namespace noeud */

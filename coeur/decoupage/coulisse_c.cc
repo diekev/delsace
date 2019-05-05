@@ -90,7 +90,7 @@ static void genere_code_extra_pre_retour(
 
 	while (!pile_noeud.empty()) {
 		auto noeud = pile_noeud.back();
-		genere_code_C(noeud, contexte, true, os);
+		genere_code_C(noeud, contexte, true, os, os);
 		pile_noeud.pop_back();
 	}
 }
@@ -98,11 +98,11 @@ static void genere_code_extra_pre_retour(
 /* ************************************************************************** */
 
 /* À FAIRE : trouve une bonne manière de générer des noms uniques. */
-/* À FAIRE : variables globales pour les info types. */
 static int index = 0;
 
 static auto cree_info_type_defaul_C(
-		std::ostream &os,
+		std::ostream &os_decl,
+		std::ostream &os_init,
 		std::string const &id_type,
 		int nombre_base,
 		int profondeur)
@@ -113,14 +113,15 @@ static auto cree_info_type_defaul_C(
 			+ std::to_string(profondeur)
 			+ std::to_string(index++);
 
-	os << "InfoTypeEntier " << nom_info_type << ";\n";
-	os << nom_info_type << ".id = " << id_type << ";\n";
+	os_decl << "static InfoType " << nom_info_type << ";\n";
+	os_init << nom_info_type << ".id = " << id_type << ";\n";
 
 	return nom_info_type;
 }
 
 static auto cree_info_type_entier_C(
-		std::ostream &os,
+		std::ostream &os_decl,
+		std::ostream &os_init,
 		int taille_en_octet,
 		bool est_signe,
 		int nombre_base,
@@ -131,16 +132,17 @@ static auto cree_info_type_entier_C(
 			+ std::to_string(profondeur)
 			+ std::to_string(index++);
 
-	os << "InfoTypeEntier " << nom_info_type << ";\n";
-	os << nom_info_type << ".id = id_info_ENTIER;\n";
-	os << nom_info_type << ".est_signe = " << est_signe << ";\n";
-	os << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
+	os_decl << "static InfoTypeEntier " << nom_info_type << ";\n";
+	os_init << nom_info_type << ".id = id_info_ENTIER;\n";
+	os_init << nom_info_type << ".est_signe = " << est_signe << ";\n";
+	os_init << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
 
 	return nom_info_type;
 }
 
 static auto cree_info_type_reel_C(
-		std::ostream &os,
+		std::ostream &os_decl,
+		std::ostream &os_init,
 		int taille_en_octet,
 		int nombre_base,
 		int profondeur)
@@ -150,16 +152,17 @@ static auto cree_info_type_reel_C(
 			+ std::to_string(profondeur)
 			+ std::to_string(index++);
 
-	os << "InfoTypeReel " << nom_info_type << ";\n";
-	os << nom_info_type << ".id = id_info_REEL;\n";
-	os << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
+	os_decl << "static InfoTypeReel " << nom_info_type << ";\n";
+	os_init << nom_info_type << ".id = id_info_REEL;\n";
+	os_init << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
 
 	return nom_info_type;
 }
 
 static std::string cree_info_type_C(
 		ContexteGenerationCode &contexte,
-		std::ostream &os,
+		std::ostream &os_decl,
+		std::ostream &os_init,
 		DonneesType const &donnees_type,
 		int nombre_base,
 		int profondeur);
@@ -235,7 +238,8 @@ static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesT
 }
 
 static auto cree_info_type_structure_C(
-		std::ostream &os,
+		std::ostream &os_decl,
+		std::ostream &os_init,
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom_struct,
 		DonneesStructure const &donnees_structure,
@@ -252,13 +256,13 @@ static auto cree_info_type_structure_C(
 			+ std::to_string(nombre_base)
 			+ std::to_string(profondeur);
 
-	os << "chaine " << nom_chaine << " = ";
-	os << "{.pointeur = \"" << nom_struct << "\""
+	os_init << "static chaine " << nom_chaine << " = ";
+	os_init << "{.pointeur = \"" << nom_struct << "\""
 	   << ", .taille = " << nom_struct.size() << "};\n";
 
-	os << "InfoTypeStructure " << nom_info_type << ";\n";
-	os << nom_info_type << ".id = id_info_STRUCTURE;\n";
-	os << nom_info_type << ".nom = " << nom_chaine << ";\n";
+	os_decl << "static InfoTypeStructure " << nom_info_type << ";\n";
+	os_init << nom_info_type << ".id = id_info_STRUCTURE;\n";
+	os_init << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
 	/* crée un tableau fixe puis converti le en tableau dyn */
 	auto nombre_membres = donnees_structure.donnees_types.size();
@@ -284,18 +288,23 @@ static auto cree_info_type_structure_C(
 
 			auto nom_info_type_membre = "__info_type_membre" + suffixe;
 
-			auto struct_info_type_membre = cree_info_type_C(
-						contexte, os, dt, nombre_base + static_cast<int>(i), profondeur + 1);
+			auto idx = contexte.magasin_types.ajoute_type(dt);
+			auto &rderef = contexte.magasin_types.donnees_types[idx];
+
+			if (rderef.ptr_info_type == "") {
+				rderef.ptr_info_type = cree_info_type_C(
+							contexte, os_decl, os_init, dt, nombre_base + static_cast<int>(i), profondeur + 1);
+			}
 
 			auto align_type = alignement(contexte, dt);
 			auto padding = (align_type - (decalage % align_type)) % align_type;
 			decalage += padding;
 
-			os << "InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
-			os << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
-			os << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.size()  << ";\n";
-			os << nom_info_type_membre << ".decalage = " << decalage << ";\n";
-			os << nom_info_type_membre << ".id = (InfoType *)(&" << struct_info_type_membre  << ");\n";
+			os_decl << "static InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
+			os_init << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
+			os_init << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.size()  << ";\n";
+			os_init << nom_info_type_membre << ".decalage = " << decalage << ";\n";
+			os_init << nom_info_type_membre << ".id = (InfoType *)(&" << rderef.ptr_info_type  << ");\n";
 
 			decalage += taille_type_octet(contexte, dt);
 
@@ -318,19 +327,19 @@ static auto cree_info_type_structure_C(
 			+ std::to_string(profondeur);
 
 	contexte.magasin_types.converti_type_C(
-				contexte, nom_tableau_fixe, dt_tfixe, os);
+				contexte, nom_tableau_fixe, dt_tfixe, os_init);
 
-	os << " = ";
+	os_init << " = ";
 
 	auto virgule = '{';
 
 	for (auto const &ptr : pointeurs) {
-		os << virgule;
-		os << ptr;
+		os_init << virgule;
+		os_init << ptr;
 		virgule = ',';
 	}
 
-	os << "};\n";
+	os_init << "};\n";
 
 	/* alloue un tableau dynamique */
 	auto dt_tdyn = DonneesType{};
@@ -342,19 +351,20 @@ static auto cree_info_type_structure_C(
 			+ std::to_string(profondeur);
 
 	contexte.magasin_types.converti_type_C(
-				contexte, nom_tableau_fixe, dt_tdyn, os);
+				contexte, nom_tableau_fixe, dt_tdyn, os_init);
 
-	os << ' ' << nom_tableau_dyn << ";\n";
-	os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
-	os << nom_tableau_dyn << ".taille = " << nombre_membres << ";\n";
+	os_init << ' ' << nom_tableau_dyn << ";\n";
+	os_init << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
+	os_init << nom_tableau_dyn << ".taille = " << nombre_membres << ";\n";
 
-	os << nom_info_type << ".membres = " << nom_tableau_dyn << ";\n";
+	os_init << nom_info_type << ".membres = " << nom_tableau_dyn << ";\n";
 
 	return nom_info_type;
 }
 
 static auto cree_info_type_enum_C(
-		std::ostream &os,
+		std::ostream &os_decl,
+		std::ostream &os_init,
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom_struct,
 		DonneesStructure const &donnees_structure,
@@ -372,13 +382,13 @@ static auto cree_info_type_enum_C(
 			+ std::to_string(profondeur)
 			+ std::to_string(index++);
 
-	os << "chaine " << nom_chaine << " = ";
-	os << "{.pointeur = \"" << nom_struct << "\""
+	os_init << "static chaine " << nom_chaine << " = ";
+	os_init << "{.pointeur = \"" << nom_struct << "\""
 	   << ", .taille = " << nom_struct.size() << "};\n";
 
-	os << "InfoTypeEnum " << nom_info_type << ";\n";
-	os << nom_info_type << ".id = id_info_ENUM;\n";
-	os << nom_info_type << ".nom = " << nom_chaine << ";\n";
+	os_decl << "static InfoTypeEnum " << nom_info_type << ";\n";
+	os_init << nom_info_type << ".id = id_info_ENUM;\n";
+	os_init << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
 	auto noeud_decl = donnees_structure.noeud_decl;
 	auto nombre_enfants = noeud_decl->enfants.size();
@@ -391,17 +401,17 @@ static auto cree_info_type_enum_C(
 			+ std::to_string(profondeur)
 			+ std::to_string(index++);
 
-	os << "chaine " << nom_tabl_fixe << "[" << nombre_enfants << "] = {\n";
+	os_init << "chaine " << nom_tabl_fixe << "[" << nombre_enfants << "] = {\n";
 
 	for (auto enfant : noeud_decl->enfants) {
 		auto enf0 = enfant->enfants.front();
-		os << "{.pointeur=\"" << enf0->chaine() << "\", .taille=" << enf0->chaine().size() << "},";
+		os_init << "{.pointeur=\"" << enf0->chaine() << "\", .taille=" << enf0->chaine().size() << "},";
 	}
 
-	os << "};\n";
+	os_init << "};\n";
 
-	os << nom_info_type << ".noms.pointeur = " << nom_tabl_fixe << ";\n";
-	os << nom_info_type << ".noms.taille = " << nombre_enfants << ";\n";
+	os_init << nom_info_type << ".noms.pointeur = " << nom_tabl_fixe << ";\n";
+	os_init << nom_info_type << ".noms.taille = " << nombre_enfants << ";\n";
 
 
 	/* crée un tableau pour les noms des énumérations */
@@ -417,29 +427,30 @@ static auto cree_info_type_enum_C(
 				contexte,
 				"",
 				dt,
-				os);
+				os_init);
 
-	os << " " << nom_tabl_fixe_vals << "[" << nombre_enfants << "] = {\n";
+	os_init << " " << nom_tabl_fixe_vals << "[" << nombre_enfants << "] = {\n";
 
 	for (auto enfant : noeud_decl->enfants) {
 		auto enf1 = enfant->enfants.back();
 
-		genere_code_C(enf1, contexte, false, os);
+		genere_code_C(enf1, contexte, false, os_init, os_init);
 
-		os << ',';
+		os_init << ',';
 	}
 
-	os << "};\n";
+	os_init << "};\n";
 
-	os << nom_info_type << ".valeurs.pointeur = " << nom_tabl_fixe_vals << ";\n";
-	os << nom_info_type << ".valeurs.taille = " << nombre_enfants << ";\n";
+	os_init << nom_info_type << ".valeurs.pointeur = " << nom_tabl_fixe_vals << ";\n";
+	os_init << nom_info_type << ".valeurs.taille = " << nombre_enfants << ";\n";
 
 	return nom_info_type;
 }
 
 static std::string cree_info_type_C(
 		ContexteGenerationCode &contexte,
-		std::ostream &os,
+		std::ostream &os_decl,
+		std::ostream &os_init,
 		DonneesType const &donnees_type,
 		int nombre_base,
 		int profondeur)
@@ -449,83 +460,91 @@ static std::string cree_info_type_C(
 	switch (donnees_type.type_base() & 0xff) {
 		default:
 		{
+			std::cerr << chaine_identifiant(donnees_type.type_base() & 0xff);
 			assert(false);
 			break;
 		}
 		case id_morceau::BOOL:
 		{
-			valeur = cree_info_type_defaul_C(os, "id_info_BOOLEEN", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_BOOLEEN", nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::N8:
 		{
-			valeur = cree_info_type_entier_C(os, 8, false, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 8, false, nombre_base, profondeur);
 			break;
 		}
+		case id_morceau::OCTET:
 		case id_morceau::Z8:
 		{
-			valeur = cree_info_type_entier_C(os, 8, true, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 8, true, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::N16:
 		{
-			valeur = cree_info_type_entier_C(os, 16, false, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 16, false, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::Z16:
 		{
-			valeur = cree_info_type_entier_C(os, 16, true, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 16, true, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::N32:
 		{
-			valeur = cree_info_type_entier_C(os, 32, false, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 32, false, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::Z32:
 		{
-			valeur = cree_info_type_entier_C(os, 32, true, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 32, true, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::N64:
 		{
-			valeur = cree_info_type_entier_C(os, 64, false, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 64, false, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::Z64:
 		{
-			valeur = cree_info_type_entier_C(os, 64, true, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 64, true, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::R16:
 		{
 			/* À FAIRE : type r16 */
-			valeur = cree_info_type_reel_C(os, 32, nombre_base, profondeur);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 32, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::R32:
 		{
-			valeur = cree_info_type_reel_C(os, 32, nombre_base, profondeur);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 32, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::R64:
 		{
-			valeur = cree_info_type_reel_C(os, 64, nombre_base, profondeur);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 64, nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::POINTEUR:
 		{
 			auto deref = donnees_type.derefence();
-			auto valeur_pointee = cree_info_type_C(contexte, os, deref, nombre_base, profondeur + 1);
+
+			auto idx = contexte.magasin_types.ajoute_type(deref);
+			auto &rderef = contexte.magasin_types.donnees_types[idx];
+
+			if (rderef.ptr_info_type == "") {
+				rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef, nombre_base, profondeur + 1);
+			}
 
 			auto nom_info_type = "__info_type_pointeur"
 					+ std::to_string(nombre_base)
 					+ std::to_string(profondeur)
 					+ std::to_string(index++);
 
-			os << "InfoTypePointeur " << nom_info_type << ";\n";
-			os << nom_info_type << ".id = id_info_POINTEUR;\n";
-			os << nom_info_type << ".type_pointe = (InfoType *)(&" << valeur_pointee << ");\n";
+			os_decl << "static InfoTypePointeur " << nom_info_type << ";\n";
+			os_init << nom_info_type << ".id = id_info_POINTEUR;\n";
+			os_init << nom_info_type << ".type_pointe = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
 
 			valeur = nom_info_type;
 			break;
@@ -537,7 +556,8 @@ static std::string cree_info_type_C(
 
 			if (donnees_structure.est_enum) {
 				valeur = cree_info_type_enum_C(
-							os,
+							os_decl,
+							os_init,
 							contexte,
 							contexte.nom_struct(id_structure),
 							donnees_structure,
@@ -546,7 +566,8 @@ static std::string cree_info_type_C(
 			}
 			else {
 				valeur = cree_info_type_structure_C(
-							os,
+							os_decl,
+							os_init,
 							contexte,
 							contexte.nom_struct(id_structure),
 							donnees_structure,
@@ -559,15 +580,21 @@ static std::string cree_info_type_C(
 		case id_morceau::TABLEAU:
 		{
 			auto deref = donnees_type.derefence();
-			auto valeur_pointee = cree_info_type_C(contexte, os, deref, nombre_base, profondeur + 1);
+
+			auto idx = contexte.magasin_types.ajoute_type(deref);
+			auto &rderef = contexte.magasin_types.donnees_types[idx];
+
+			if (rderef.ptr_info_type == "") {
+				rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef, nombre_base, profondeur + 1);
+			}
 
 			auto nom_info_type = "__info_type_tableau"
 					+ std::to_string(nombre_base)
 					+ std::to_string(profondeur);
 
-			os << "InfoTypeTableau " << nom_info_type << ";\n";
-			os << nom_info_type << ".id = id_info_TABLEAU;\n";
-			os << nom_info_type << ".type_pointe = (InfoType *)(&" << valeur_pointee << ");\n";
+			os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
+			os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
+			os_init << nom_info_type << ".type_pointe = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
 
 			valeur = nom_info_type;
 			break;
@@ -575,22 +602,23 @@ static std::string cree_info_type_C(
 		case id_morceau::FONCTION:
 		{
 			/* À FAIRE : type params */
-			valeur = cree_info_type_defaul_C(os, "id_info_FONCTION", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_FONCTION", nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::EINI:
 		{
-			valeur = cree_info_type_defaul_C(os, "id_info_EINI", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_EINI", nombre_base, profondeur);
 			break;
 		}
+		case id_morceau::NUL: /* À FAIRE */
 		case id_morceau::RIEN:
 		{
-			valeur = cree_info_type_defaul_C(os, "id_info_RIEN", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_RIEN", nombre_base, profondeur);
 			break;
 		}
 		case id_morceau::CHAINE:
 		{
-			valeur = cree_info_type_defaul_C(os, "id_info_CHAINE", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_CHAINE", nombre_base, profondeur);
 			break;
 		}
 	}
@@ -630,16 +658,9 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 		}
 
 		os << " = ";
-		genere_code_C(b, contexte, false, os);
+		genere_code_C(b, contexte, false, os, os);
 		os << ";\n";
 	}
-
-	auto nom_info_type = cree_info_type_C(
-				contexte,
-				os,
-				dt,
-				static_cast<int>(b->morceau.ligne_pos >> 32),
-				0);
 
 	os << "eini " << nom_eini << ";\n";
 	os << nom_eini << ".pointeur = &";
@@ -648,11 +669,11 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 		os << nom_var;
 	}
 	else {
-		genere_code_C(b, contexte, false, os);
+		genere_code_C(b, contexte, false, os, os);
 	}
 
 	os << ";\n";
-	os << nom_eini << ".info = (InfoType *)(&" << nom_info_type << ");\n";
+	os << nom_eini << ".info = (InfoType *)(&" << dt.ptr_info_type << ");\n";
 
 	return nom_eini;
 }
@@ -688,7 +709,7 @@ static void cree_appel(
 
 				genere_code_C_prepasse(enf, contexte, false, os);
 				os << "chaine " << nom_var_chaine << " = ";
-				genere_code_C(enf, contexte, false, os);
+				genere_code_C(enf, contexte, false, os, os);
 				os << ";\n";
 			}
 			else {
@@ -714,7 +735,7 @@ static void cree_appel(
 				default:
 				{
 					os << nom_var_tableau << ".pointeur = (unsigned char*)(&";
-					genere_code_C(enf, contexte, false, os);
+					genere_code_C(enf, contexte, false, os, os);
 					os << ");\n";
 
 					os << nom_var_tableau << ".taille = sizeof(";
@@ -725,11 +746,11 @@ static void cree_appel(
 				case id_morceau::POINTEUR:
 				{
 					os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-					genere_code_C(enf, contexte, false, os);
+					genere_code_C(enf, contexte, false, os, os);
 					os << ".pointeur);\n";
 
 					os << nom_var_tableau << ".taille = ";
-					genere_code_C(enf, contexte, false, os);
+					genere_code_C(enf, contexte, false, os, os);
 					os << ".sizeof(";
 					contexte.magasin_types.converti_type_C(contexte, "", dt.derefence(), os);
 					os << ");\n";
@@ -738,11 +759,11 @@ static void cree_appel(
 				case id_morceau::CHAINE:
 				{
 					os << nom_var_tableau << ".pointeur = ";
-					genere_code_C(enf, contexte, false, os);
+					genere_code_C(enf, contexte, false, os, os);
 					os << ".pointeur;\n";
 
 					os << nom_var_tableau << ".taille = ";
-					genere_code_C(enf, contexte, false, os);
+					genere_code_C(enf, contexte, false, os, os);
 					os << ".taille;\n";
 					break;
 				}
@@ -752,18 +773,18 @@ static void cree_appel(
 
 					if (taille == 0) {
 						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-						genere_code_C(enf, contexte, false, os);
+						genere_code_C(enf, contexte, false, os, os);
 						os << ".pointeur);\n";
 
 						os << nom_var_tableau << ".taille = ";
-						genere_code_C(enf, contexte, false, os);
+						genere_code_C(enf, contexte, false, os, os);
 						os << ".taille * sizeof(";
 						contexte.magasin_types.converti_type_C(contexte, "", dt.derefence(), os);
 						os << ");\n";
 					}
 					else {
 						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-						genere_code_C(enf, contexte, false, os);
+						genere_code_C(enf, contexte, false, os, os);
 						os << ");\n";
 
 						os << nom_var_tableau << ".taille = " << taille << " * sizeof(";
@@ -826,7 +847,7 @@ static void cree_appel(
 			os << std::any_cast<std::string>(enf->valeur_calculee);
 		}
 		else {
-			genere_code_C(enf, contexte, false, os);
+			genere_code_C(enf, contexte, false, os, os);
 		}
 
 		virgule = ',';
@@ -926,7 +947,7 @@ static auto genere_code_acces_membre(
 		}
 	}
 
-	genere_code_C(structure, contexte, true, os);
+	genere_code_C(structure, contexte, true, os, os);
 	os << ((est_pointeur) ? "->" : ".") << membre->chaine();
 }
 
@@ -963,13 +984,13 @@ static void cree_initialisation(
 					/* besoin de créer une indirection */
 					if (dt_enf.type_base() == id_morceau::CHAINE) {
 						os << "chaine __chn_tmp" << index << " = ";
-						genere_code_C(donnees_membre.noeud_decl, contexte, false, os);
+						genere_code_C(donnees_membre.noeud_decl, contexte, false, os, os);
 						os << ";\n";
 						os << decl_nom << " = __chn_tmp" << index ++ << ";\n";
 					}
 					else {
 						os << decl_nom << " = ";
-						genere_code_C(donnees_membre.noeud_decl, contexte, false, os);
+						genere_code_C(donnees_membre.noeud_decl, contexte, false, os, os);
 						os << ";\n";
 					}
 				}
@@ -1221,7 +1242,7 @@ static void genere_code_C_prepasse(
 					os << std::any_cast<std::string>(enfant->valeur_calculee);
 				}
 				else {
-					genere_code_C(enfant, contexte, false, os);
+					genere_code_C(enfant, contexte, false, os, os);
 				}
 
 				virgule = ',';
@@ -1260,7 +1281,7 @@ static void genere_code_C_prepasse(
 
 			for (auto f : feuilles) {
 				os << virgule;
-				genere_code_C(f, contexte, false, os);
+				genere_code_C(f, contexte, false, os, os);
 				virgule = ',';
 			}
 
@@ -1320,7 +1341,8 @@ void genere_code_C(
 		base *b,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche,
-		std::ostream &os)
+		std::ostream &os,
+		std::ostream &os_init)
 {
 	switch (b->type) {
 		case type_noeud::RACINE:
@@ -1336,9 +1358,20 @@ void genere_code_C(
 
 			declare_structures_C(contexte, os);
 
+			auto debut_generation = dls::chrono::maintenant();
+			/* Crée les infos types pour tous les types connus.
+			 * À FAIRE : évite de créer ceux qui ne sont pas utiles */
+			int index_dt = 0;
+			for (auto &dt : contexte.magasin_types.donnees_types) {
+				auto ptr = cree_info_type_C(contexte, os, os_init, dt, index_dt++, 0);
+				dt.ptr_info_type = ptr;
+			}
+			temps_generation += dls::chrono::delta(debut_generation);
+
+			/* génère le code */
 			for (auto noeud : b->enfants) {
-				auto debut_generation = dls::chrono::maintenant();
-				genere_code_C(noeud, contexte, false, os);
+				debut_generation = dls::chrono::maintenant();
+				genere_code_C(noeud, contexte, false, os, os);
 				temps_generation += dls::chrono::delta(debut_generation);
 			}
 
@@ -1431,7 +1464,7 @@ void genere_code_C(
 			/* Crée code pour le bloc. */
 			auto bloc = b->enfants.front();
 			os << "{\n";
-			genere_code_C(bloc, contexte, false, os);
+			genere_code_C(bloc, contexte, false, os, os);
 
 			auto enfant_bloc = bloc->dernier_enfant();
 
@@ -1562,7 +1595,7 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
 
 				os << " *)(";
-				genere_code_C(expression, contexte, false, os);
+				genere_code_C(expression, contexte, false, os, os);
 				os << ".pointeur);\n";
 
 				nouvelle_expr = nom_eini;
@@ -1570,16 +1603,16 @@ void genere_code_C(
 
 			if (expression->type == type_noeud::LOGE) {
 				expression_modifiee = true;
-				genere_code_C(expression, contexte, false, os);
+				genere_code_C(expression, contexte, false, os, os);
 				nouvelle_expr = std::any_cast<std::string>(expression->valeur_calculee);
 			}
 
 			variable->drapeaux |= POUR_ASSIGNATION;
-			genere_code_C(variable, contexte, true, os);
+			genere_code_C(variable, contexte, true, os, os);
 			os << " = ";
 
 			if (!expression_modifiee) {
-				genere_code_C(expression, contexte, false, os);
+				genere_code_C(expression, contexte, false, os, os);
 			}
 			else {
 				os << nouvelle_expr;
@@ -1666,31 +1699,31 @@ void genere_code_C(
 						if (enfant1->morceau.identifiant == b->morceau.identifiant) {
 							/* (a comp b) */
 							os << '(';
-							genere_code_C(enfant1, contexte, false, os);
+							genere_code_C(enfant1, contexte, false, os, os);
 							os << ')';
 
 							os << "&&";
 
 							/* (b comp c) */
 							os << '(';
-							genere_code_C(enfant1->enfants.back(), contexte, valeur2_brut, os);
+							genere_code_C(enfant1->enfants.back(), contexte, valeur2_brut, os, os);
 							os << b->morceau.chaine;
-							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 							os << ')';
 						}
 						else {
 							os << '(';
-							genere_code_C(enfant1, contexte, false, os);
+							genere_code_C(enfant1, contexte, false, os, os);
 							os << b->morceau.chaine;
-							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 							os << ')';
 						}
 					}
 					else {
 						os << '(';
-						genere_code_C(enfant1, contexte, false, os);
+						genere_code_C(enfant1, contexte, false, os, os);
 						os << b->morceau.chaine;
-						genere_code_C(enfant2, contexte, valeur2_brut, os);
+						genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 						os << ')';
 					}
 
@@ -1703,18 +1736,18 @@ void genere_code_C(
 					switch (type_base & 0xff) {
 						case id_morceau::POINTEUR:
 						{
-							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 							os << '[';
-							genere_code_C(enfant1, contexte, valeur2_brut, os);
+							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
 							os << ']';
 							break;
 						}
 						case id_morceau::CHAINE:
 						{
-							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 							os << ".pointeur";
 							os << '[';
-							genere_code_C(enfant1, contexte, valeur2_brut, os);
+							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
 							os << ']';
 							break;
 						}
@@ -1722,14 +1755,14 @@ void genere_code_C(
 						{
 							auto taille_tableau = static_cast<int>(type_base >> 8);
 
-							genere_code_C(enfant2, contexte, valeur2_brut, os);
+							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 
 							if (taille_tableau == 0) {
 								os << ".pointeur";
 							}
 
 							os << '[';
-							genere_code_C(enfant1, contexte, valeur2_brut, os);
+							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
 							os << ']';
 							break;
 						}
@@ -1782,7 +1815,7 @@ void genere_code_C(
 				}
 			}
 
-			genere_code_C(enfant, contexte, expr_gauche, os);
+			genere_code_C(enfant, contexte, expr_gauche, os, os);
 			os << ")";
 
 			break;
@@ -1813,7 +1846,7 @@ void genere_code_C(
 
 				os << " = ";
 
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 
 				os << ";\n";
 			}
@@ -1866,19 +1899,19 @@ void genere_code_C(
 			genere_code_C_prepasse(enfant1, contexte, true, os);
 
 			os << "if (";
-			genere_code_C(enfant1, contexte, false, os);
+			genere_code_C(enfant1, contexte, false, os, os);
 			os << ") {\n";
 
 			/* noeud 2 : bloc */
 			auto enfant2 = *iter_enfant++;
-			genere_code_C(enfant2, contexte, false, os);
+			genere_code_C(enfant2, contexte, false, os, os);
 			os << "}\n";
 
 			/* noeud 3 : sinon (optionel) */
 			if (nombre_enfants == 3) {
 				os << "else {\n";
 				auto enfant3 = *iter_enfant++;
-				genere_code_C(enfant3, contexte, false, os);
+				genere_code_C(enfant3, contexte, false, os, os);
 				os << "}\n";
 			}
 
@@ -1890,7 +1923,7 @@ void genere_code_C(
 
 			for (auto enfant : b->enfants) {
 				genere_code_C_prepasse(enfant, contexte, true, os);
-				genere_code_C(enfant, contexte, true, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ";\n";
 			}
 
@@ -1903,7 +1936,7 @@ void genere_code_C(
 
 					while (!noeuds.empty()) {
 						auto n = noeuds.back();
-						genere_code_C(n, contexte, false, os);
+						genere_code_C(n, contexte, false, os, os);
 						noeuds.pop_back();
 					}
 				}
@@ -1955,11 +1988,11 @@ void genere_code_C(
 				}
 
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
-				genere_code_C(enfant_2, contexte_loc, false, os_loc);
+				genere_code_C(enfant_2, contexte_loc, false, os_loc, os_loc);
 				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
 				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
 				os_loc << " *" << var->chaine() << " = &";
-				genere_code_C(enfant_2, contexte_loc, false, os_loc);
+				genere_code_C(enfant_2, contexte_loc, false, os_loc, os_loc);
 				os_loc << ".pointeur["<< nom_var <<"];\n";
 
 				if (idx) {
@@ -1988,7 +2021,7 @@ void genere_code_C(
 				   << taille_tableau << "-1; ++"<< nom_var <<") {\n";
 				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
 				os_loc << " *" << var->chaine() << " = &";
-				genere_code_C(enfant_2, contexte_loc, false, os_loc);
+				genere_code_C(enfant_2, contexte_loc, false, os_loc, os_loc);
 				os_loc << "["<< nom_var <<"];\n";
 
 				if (idx) {
@@ -2006,12 +2039,12 @@ void genere_code_C(
 								type_debut,
 								os);
 					os << " " << enfant1->chaine() << " = ";
-					genere_code_C(enfant2->enfants.front(), contexte, false, os);
+					genere_code_C(enfant2->enfants.front(), contexte, false, os, os);
 
 					os << "; "
 					   << enfant1->chaine() << " <= ";
 
-					genere_code_C(enfant2->enfants.back(), contexte, false, os);
+					genere_code_C(enfant2->enfants.back(), contexte, false, os, os);
 					os <<"; ++" << enfant1->chaine()
 					  << ") {\n";
 
@@ -2062,19 +2095,19 @@ void genere_code_C(
 			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
 			contexte.empile_goto_arrete(enfant1->chaine(), (enfant_sinon != nullptr) ? goto_brise : goto_apres);
 
-			genere_code_C(enfant3, contexte, false, os);
+			genere_code_C(enfant3, contexte, false, os, os);
 
 			os << goto_continue << ":;\n";
 			os << "}\n";
 
 			if (enfant_sans_arret) {
-				genere_code_C(enfant_sans_arret, contexte, false, os);
+				genere_code_C(enfant_sans_arret, contexte, false, os, os);
 				os << "goto " << goto_apres << ";";
 			}
 
 			if (enfant_sinon) {
 				os << goto_brise << ":;\n";
-				genere_code_C(enfant_sinon, contexte, false, os);
+				genere_code_C(enfant_sinon, contexte, false, os, os);
 			}
 
 			os << goto_apres << ":;\n";
@@ -2139,7 +2172,7 @@ void genere_code_C(
 
 			os << "while (1) {\n";
 
-			genere_code_C(enfant1, contexte, false, os);
+			genere_code_C(enfant1, contexte, false, os, os);
 
 			os << goto_continue << ":;\n";
 			os << "}\n";
@@ -2173,10 +2206,10 @@ void genere_code_C(
 			os << "while (1) {";
 			genere_code_C_prepasse(enfant1, contexte, true, os);
 			os << "if (!";
-			genere_code_C(enfant1, contexte, false, os);
+			genere_code_C(enfant1, contexte, false, os, os);
 			os << ") { break; }\n";
 
-			genere_code_C(enfant2, contexte, false, os);
+			genere_code_C(enfant2, contexte, false, os, os);
 
 			os << goto_continue << ":;\n";
 			os << "}\n";
@@ -2193,7 +2226,7 @@ void genere_code_C(
 			auto const &index_type_de = enfant->index_type;
 
 			if (index_type_de == b->index_type) {
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 				return;
 			}
 
@@ -2209,7 +2242,7 @@ void genere_code_C(
 				os << "(";
 				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
 				os << ")(";
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 				os << ")";
 				return;
 			}
@@ -2217,7 +2250,7 @@ void genere_code_C(
 			os << "(";
 			contexte.magasin_types.converti_type_C(contexte, "", dt, os);
 			os << ")(";
-			genere_code_C(enfant, contexte, false, os);
+			genere_code_C(enfant, contexte, false, os, os);
 			os << ")";
 			return;
 
@@ -2256,7 +2289,7 @@ void genere_code_C(
 		case type_noeud::NONSUR:
 		{
 			contexte.non_sur(true);
-			genere_code_C(b->enfants.front(), contexte, false, os);
+			genere_code_C(b->enfants.front(), contexte, false, os, os);
 			contexte.non_sur(false);
 			break;
 		}
@@ -2277,7 +2310,7 @@ void genere_code_C(
 				os << virgule;
 
 				os << '.' << *nom_param << '=';
-				genere_code_C(*enfant, contexte, expr_gauche, os);
+				genere_code_C(*enfant, contexte, expr_gauche, os, os);
 				++enfant;
 				++nom_param;
 
@@ -2297,7 +2330,7 @@ void genere_code_C(
 
 			for (auto f : feuilles) {
 				os << virgule;
-				genere_code_C(f, contexte, false, os);
+				genere_code_C(f, contexte, false, os, os);
 				virgule = ',';
 			}
 
@@ -2314,7 +2347,7 @@ void genere_code_C(
 		case type_noeud::MEMOIRE:
 		{
 			os << "*(";
-			genere_code_C(b->enfants.front(), contexte, false, os);
+			genere_code_C(b->enfants.front(), contexte, false, os, os);
 			os << ")";
 			break;
 		}
@@ -2372,7 +2405,7 @@ void genere_code_C(
 
 				os << "long " << nom_taille << " = ";
 
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 
 				os << ";\n";
 
@@ -2437,18 +2470,18 @@ void genere_code_C(
 
 			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
 				os << "free(";
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 				os << ".pointeur);\n";
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 				os << ".pointeur = 0;\n";
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 				os << ".taille = 0;\n";
 			}
 			else {
 				os << "free(";
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 				os << ");\n";
-				genere_code_C(enfant, contexte, false, os);
+				genere_code_C(enfant, contexte, false, os, os);
 				os << " = 0;\n";
 			}
 
@@ -2464,19 +2497,19 @@ void genere_code_C(
 			}
 			else if (dt_pointeur.type_base() == id_morceau::CHAINE) {
 				auto enfant2 = b->enfants.back();
-				genere_code_C(enfant, contexte, true, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ".pointeur = (char *)(realloc(";
-				genere_code_C(enfant, contexte, true, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ".pointeur, sizeof(char) *";
-				genere_code_C(enfant2, contexte, true, os);
+				genere_code_C(enfant2, contexte, true, os, os);
 				os << "));\n";
-				genere_code_C(enfant, contexte, true, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ".taille = ";
-				genere_code_C(enfant2, contexte, true, os);
+				genere_code_C(enfant2, contexte, true, os, os);
 				os << ";\n";
 			}
 			else {
-				genere_code_C(enfant, contexte, true, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << " = (";
 				contexte.magasin_types.converti_type_C(
 							contexte,
@@ -2484,7 +2517,7 @@ void genere_code_C(
 							dt_pointeur,
 							os);
 				os << ")(realloc(";
-				genere_code_C(enfant, contexte, true, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ", sizeof(";
 				contexte.magasin_types.converti_type_C(
 							contexte,
@@ -2518,7 +2551,7 @@ void genere_code_C(
 				auto enf1 = enfant->enfants.back();
 
 				os << ' ' << b->chaine() << '_' << enf0->chaine() << " = ";
-				genere_code_C(enf1, contexte, false, os);
+				genere_code_C(enf1, contexte, false, os, os);
 				os << ";\n";
 			}
 
@@ -2544,11 +2577,11 @@ void genere_code_C(
 				// }
 
 				os << condition << "(";
-				genere_code_C(expression, contexte, false, os);
+				genere_code_C(expression, contexte, false, os, os);
 				os << " == ";
-				genere_code_C(enf0, contexte, false, os);
+				genere_code_C(enf0, contexte, false, os, os);
 				os << ") {\n";
-				genere_code_C(enf1, contexte, false, os);
+				genere_code_C(enf1, contexte, false, os, os);
 				os << "}\n";
 
 				condition = "else if";
