@@ -88,7 +88,10 @@ fonction imprime_valeur(flux_std : z32, pointeur : *z8, info : *InfoType) : rien
 		    # À FAIRE : peut-être imprimer le contenu
 			soit x : chaine = mémoire(transtype(pointeur : *chaine));
 			# ecrie = sprintf(ptr_tmp, "chaine { ptr = %p, taille = %d }", pointeur de x, taille de x);
+			soit apostrophe = '"';
+			write(flux_std, @apostrophe, 1);
 			write(flux_std, pointeur de x, taille de x);
+			write(flux_std, @apostrophe, 1);
 		}
 		STRUCTURE de id_info
 		{
