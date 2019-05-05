@@ -803,24 +803,22 @@ static void cree_appel(
 		}
 	}
 
-	if ((b->drapeaux & INDIRECTION_APPEL) != 0) {
-		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-		if (dt.type_base() != id_morceau::RIEN) {
-			auto nom_indirection = "__ret_" + nom_broye + std::to_string(b->morceau.ligne_pos);
-			auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
+	if (dt.type_base() != id_morceau::RIEN) {
+		auto nom_indirection = "__ret_" + nom_broye + std::to_string(b->morceau.ligne_pos);
+		auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 
-			if (!est_tableau) {
-				os << ' ' << nom_indirection;
-			}
-
-			os << " = ";
-			b->valeur_calculee = nom_indirection;
+		if (!est_tableau) {
+			os << ' ' << nom_indirection;
 		}
-		else {
-			/* la valeur calculée doit être toujours valide. */
-			b->valeur_calculee = std::string("");
-		}
+
+		os << " = ";
+		b->valeur_calculee = nom_indirection;
+	}
+	else {
+		/* la valeur calculée doit être toujours valide. */
+		b->valeur_calculee = std::string("");
 	}
 
 	os << nom_broye;
@@ -853,11 +851,7 @@ static void cree_appel(
 		virgule = ',';
 	}
 
-	os << ')';
-
-	if ((b->drapeaux & INDIRECTION_APPEL) != 0) {
-		os << ';';
-	}
+	os << ");";
 }
 
 static void declare_structures_C(
@@ -1060,7 +1054,6 @@ static void genere_code_C_prepasse(
 			auto nom_fonction = std::string(b->morceau.chaine);
 		//	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
 
-			b->drapeaux |= INDIRECTION_APPEL;
 			cree_appel(b, os, contexte, nom_fonction, b->enfants);
 			break;
 		}

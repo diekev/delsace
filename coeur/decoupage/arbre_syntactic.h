@@ -160,11 +160,10 @@ enum : unsigned short {
 	CONVERTI_EINI          = (1 << 4),
 	EXTRAIT_EINI           = (1 << 5),
 	EXTRAIT_CHAINE_C       = (1 << 6),
-	INDIRECTION_APPEL      = (1 << 7),
-	EST_EXTERNE            = (1 << 8),
-	EST_CALCULE            = (1 << 9),
-	CONVERTI_TABLEAU_OCTET = (1 << 10),
-	POUR_ASSIGNATION       = (1 << 11),
+	EST_EXTERNE            = (1 << 7),
+	EST_CALCULE            = (1 << 8),
+	CONVERTI_TABLEAU_OCTET = (1 << 9),
+	POUR_ASSIGNATION       = (1 << 10),
 
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
 };
