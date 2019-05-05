@@ -12,7 +12,11 @@ fonction externe close(filedes : z32) : z32;
 fonction externe read(filedes : z32, tpn : *z8, nbyte : z64) : z32;
 fonction externe write(filedes : z32, tpn : *z8, nbyte : z64) : z32;
 
-fonction imprime_valeur(flux_std : z32, pointeur : *z8, info : *InfoType) : rien
+fonction imprime_valeur(
+    flux_std : z32,
+	pointeur : *z8,
+	info : *InfoType,
+	echappe_chn : bool) : rien
 {
     dyn tmp : [128]z8;
     dyn ptr_tmp = @tmp[0];
@@ -26,72 +30,87 @@ fonction imprime_valeur(flux_std : z32, pointeur : *z8, info : *InfoType) : rien
 
             si est_signe de info_arg {
 			    si taille_en_octet de info_arg == 8 {
-				    soit x : z8 = mémoire(transtype(pointeur : *z8));
+				    soit x = mémoire(transtype(pointeur : *z8));
 					ecrie = sprintf(ptr_tmp, "%c", x);
 				}
 				sinon si taille_en_octet de info_arg == 16 {
-				    soit x : z16 = mémoire(transtype(pointeur : *z16));
+				    soit x = mémoire(transtype(pointeur : *z16));
 					ecrie = sprintf(ptr_tmp, "%d", x);
 				}
 				sinon si taille_en_octet de info_arg == 32 {
-				    soit x : z32 = mémoire(transtype(pointeur : *z32));
+				    soit x = mémoire(transtype(pointeur : *z32));
 					ecrie = sprintf(ptr_tmp, "%d", x);
 				}
 				sinon si taille_en_octet de info_arg == 64 {
-				    soit x : z64 = mémoire(transtype(pointeur : *z64));
+				    soit x = mémoire(transtype(pointeur : *z64));
 					ecrie = sprintf(ptr_tmp, "%ld", x);
 				}
 			}
 			sinon {
 			    si taille_en_octet de info_arg == 8 {
-				    soit x : n8 = mémoire(transtype(pointeur : *n8));
+				    soit x = mémoire(transtype(pointeur : *n8));
 					ecrie = sprintf(ptr_tmp, "%c", x);
 				}
 				sinon si taille_en_octet de info_arg == 16 {
-				    soit x : n16 = mémoire(transtype(pointeur : *n16));
+				    soit x = mémoire(transtype(pointeur : *n16));
 					ecrie = sprintf(ptr_tmp, "%d", x);
 				}
 				sinon si taille_en_octet de info_arg == 32 {
-				    soit x : n32 = mémoire(transtype(pointeur : *n32));
+				    soit x = mémoire(transtype(pointeur : *n32));
 					ecrie = sprintf(ptr_tmp, "%d", x);
 				}
 				sinon si taille_en_octet de info_arg == 64 {
-				    soit x : n64 = mémoire(transtype(pointeur : *n64));
+				    soit x = mémoire(transtype(pointeur : *n64));
 					ecrie = sprintf(ptr_tmp, "%ld", x);
 				}
 			}
 		}
 		REEL de id_info
 		{
-		    # À FAIRE
 			soit info_arg = transtype(info : *InfoTypeReel);
 
+            # À FAIRE : type R16
             si taille_en_octet de info_arg == 16 {
-			    soit x : r16 = mémoire(transtype(pointeur : *r16));
+			    soit x = mémoire(transtype(pointeur : *r16));
 				ecrie = sprintf(ptr_tmp, "%f", x);
 			}
 			sinon si taille_en_octet de info_arg == 32 {
-			    soit x : r32 = mémoire(transtype(pointeur : *r32));
+			    soit x = mémoire(transtype(pointeur : *r32));
 				ecrie = sprintf(ptr_tmp, "%f", x);
 			}
 			sinon si taille_en_octet de info_arg == 64 {
-			    soit x : r64 = mémoire(transtype(pointeur : *r64));
+			    soit x = mémoire(transtype(pointeur : *r64));
 				ecrie = sprintf(ptr_tmp, "%f", x);
 			}
 		}
 		BOOLEEN de id_info
 		{
-		    # À FAIRE
+		    soit x = mémoire(transtype(pointeur : *bool));
+			dyn chn : chaine;
+
+            si x {
+			    chn = "vrai";
+			}
+			sinon {
+			    chn = "faux";
+			}
+
+            write(flux_std, pointeur de chn, taille de chn);
 		}
 		CHAINE de id_info
 		{
-		    # À FAIRE : peut-être imprimer le contenu
-			soit x : chaine = mémoire(transtype(pointeur : *chaine));
-			# ecrie = sprintf(ptr_tmp, "chaine { ptr = %p, taille = %d }", pointeur de x, taille de x);
+		    soit x = mémoire(transtype(pointeur : *chaine));
 			soit apostrophe = '"';
-			write(flux_std, @apostrophe, 1);
-			write(flux_std, pointeur de x, taille de x);
-			write(flux_std, @apostrophe, 1);
+
+            si echappe_chn {
+			    write(flux_std, @apostrophe, 1);
+			}
+
+            write(flux_std, pointeur de x, taille de x);
+
+            si echappe_chn {
+			    write(flux_std, @apostrophe, 1);
+			}
 		}
 		STRUCTURE de id_info
 		{
@@ -113,7 +132,7 @@ fonction imprime_valeur(flux_std : z32, pointeur : *z8, info : *InfoType) : rien
                 ecrie = sprintf(ptr_tmp, " %s = ", ptr_nom);
 				write(flux_std, ptr_tmp, transtype(ecrie : z64));
 
-                imprime_valeur(flux_std, pointeur + decalage, id);
+                imprime_valeur(flux_std, pointeur + decalage, id, vrai);
 				virgule = ',';
 			}
 
@@ -130,30 +149,32 @@ fonction imprime_valeur(flux_std : z32, pointeur : *z8, info : *InfoType) : rien
 		}
 		FONCTION de id_info
 		{
-		    # À FAIRE
+		    # À FAIRE : types paramètres
+			soit x = "fonction()";
+			write(flux_std, pointeur de x, taille de x);
 		}
 		EINI de id_info
 		{
-		    soit x : eini = mémoire(transtype(pointeur : *eini));
+		    soit x = mémoire(transtype(pointeur : *eini));
 			ecrie = sprintf(ptr_tmp, "eini { ptr = %p, info = %d }", pointeur de x, info de x);
 		}
 		RIEN de id_info
 		{
-		    # À FAIRE
+		    soit x = "rien";
+			write(flux_std, pointeur de x, taille de x);
 		}
 		TABLEAU de id_info
 		{
-		    soit x : []z8 = mémoire(transtype(pointeur : *[]z8));
+		    soit x = mémoire(transtype(pointeur : *[]z8));
 			ecrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x);
 		}
 		ENUM de id_info
 		{
 		    soit info_arg = transtype(info : *InfoTypeEnum);
 			# À FAIRE : typage selon énum
-			soit valeur : z32 = mémoire(transtype(pointeur : *z32));
+			soit valeur = mémoire(transtype(pointeur : *z32));
 			soit noms = noms de info_arg;
 
-            # À FAIRE : indirection appel pour les opérateurs +=, -=, ...
 			pour v, i dans valeurs de info_arg {
 			    si v == valeur {
 				    soit n = noms[i];
@@ -172,13 +193,13 @@ fonction imprime_valeur(flux_std : z32, pointeur : *z8, info : *InfoType) : rien
 fonction imprime(args : ...eini) : rien
 {
     pour arg dans args {
-	    imprime_valeur(std_out, pointeur de arg, info de arg);
+	    imprime_valeur(std_out, pointeur de arg, info de arg, faux);
     }
 }
 
 fonction imprime_err(args : ...eini) : rien
 {
     pour arg dans args {
-	    imprime_valeur(std_err, pointeur de arg, info de arg);
+	    imprime_valeur(std_err, pointeur de arg, info de arg, faux);
 	}
 }
