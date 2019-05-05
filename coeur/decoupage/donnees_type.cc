@@ -612,9 +612,9 @@ bool MagasinDonneesType::converti_type_C(
 
 				virgule = ',';
 			}
-
-			os << ')';
 		}
+
+		os << ')';
 
 		return true;
 	}
