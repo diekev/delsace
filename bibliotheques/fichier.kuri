@@ -104,22 +104,19 @@ fonction charge_contenu_fichier(chemin : chaine) : chaine
 			arrête;
 		}
 
-        dyn tmp = loge chaine(taille de ret + lu);
+        soit taille_courante = taille de ret;
 
-		si taille de ret != 0 {
-			dyn src = @ret[0];
-			dyn dst = @tmp[0];
-
-			copie_mem_nonsur(src=src, dst=dst, taille=taille de ret);
+        si taille de ret != 0 {
+		    reloge ret : chaine(taille de ret + lu);
+		}
+		sinon {
+		    ret = loge chaine(lu);
 		}
 
 		dyn src = @tampon[0];
-		dyn dst = @tmp[taille de ret];
+		dyn dst = @ret[taille_courante];
 
-		copie_mem_nonsur(src=src, dst=dst, taille=lu);
-
-		déloge ret;
-		ret = tmp;
+        copie_mem_nonsur(src=src, dst=dst, taille=lu);
 	}
 
 	retourne ret;

@@ -1589,7 +1589,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto enfant = b->enfants.front();
 				performe_validation_semantique(enfant, contexte);
 			}
-			else if ((dt.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+			else {
 				auto dt_loge = DonneesType{};
 				dt_loge.pousse(id_morceau::POINTEUR);
 				dt_loge.pousse(dt);
@@ -1599,15 +1599,53 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			break;
 		}
+		case type_noeud::RELOGE:
+		{
+			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+
+			auto enfant = b->enfants.front();
+			performe_validation_semantique(enfant, contexte);
+
+			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
+				/* transforme en type tableau dynamic */
+				auto taille = (static_cast<int>(dt.type_base() >> 8));
+				b->drapeaux |= EST_CALCULE;
+				b->valeur_calculee = taille;
+
+				auto ndt = DonneesType{};
+				ndt.pousse(id_morceau::TABLEAU);
+				ndt.pousse(dt.derefence());
+
+				b->index_type = contexte.magasin_types.ajoute_type(ndt);
+			}
+			else if (dt.type_base() == id_morceau::CHAINE) {
+				auto enfant2 = b->enfants.back();
+				performe_validation_semantique(enfant2, contexte);
+			}
+			else {
+				auto dt_loge = DonneesType{};
+				dt_loge.pousse(id_morceau::POINTEUR);
+				dt_loge.pousse(dt);
+
+				b->index_type = contexte.magasin_types.ajoute_type(dt_loge);
+			}
+
+			if (enfant->index_type != b->index_type) {
+				auto &dt_enf = contexte.magasin_types.donnees_types[enfant->index_type];
+				erreur::lance_erreur_type_arguments(
+							dt,
+							dt_enf,
+							contexte,
+							b->morceau,
+							enfant->morceau);
+			}
+
+			break;
+		}
 		case type_noeud::DELOGE:
 		{
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte);
-			break;
-		}
-		case type_noeud::RELOGE:
-		{
-			/* À FAIRE */
 			break;
 		}
 		case type_noeud::DECLARATION_STRUCTURE:

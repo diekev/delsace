@@ -2305,17 +2305,44 @@ void genere_code_C(
 		}
 		case type_noeud::RELOGE:
 		{
-			/* À FAIRE */
-			// reloge [taille]z32 tabl;
-
-			// reloge chaine(taille) chn;
+			auto &dt_pointeur = contexte.magasin_types.donnees_types[b->index_type];
 			auto enfant = b->enfants.front();
 
-			os << "ptr = (type *)(realloc(ptr, nouvelle_taille);\n";
-			os << enfant->chaine() << ".pointeur = (char *)(realloc("
-			   << enfant->chaine() << ".pointeur, nouvelle_taille);\n";
+			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
+				/* À FAIRE : expression pour les types. */
+			}
+			else if (dt_pointeur.type_base() == id_morceau::CHAINE) {
+				auto enfant2 = b->enfants.back();
+				genere_code_C(enfant, contexte, true, os);
+				os << ".pointeur = (char *)(realloc(";
+				genere_code_C(enfant, contexte, true, os);
+				os << ".pointeur, sizeof(char) *";
+				genere_code_C(enfant2, contexte, true, os);
+				os << "));\n";
+				genere_code_C(enfant, contexte, true, os);
+				os << ".taille = ";
+				genere_code_C(enfant2, contexte, true, os);
+				os << ";\n";
+			}
+			else {
+				genere_code_C(enfant, contexte, true, os);
+				os << " = (";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_pointeur,
+							os);
+				os << ")(realloc(";
+				genere_code_C(enfant, contexte, true, os);
+				os << ", sizeof(";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_pointeur.derefence(),
+							os);
+				os << ")));\n";
+			}
 
-			os << enfant->chaine() << ".taille = 0;\n";
 			break;
 		}
 		case type_noeud::DECLARATION_STRUCTURE:

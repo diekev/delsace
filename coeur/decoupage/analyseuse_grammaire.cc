@@ -1276,6 +1276,41 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 				break;
 			}
+			case id_morceau::RELOGE:
+			{
+				/* reloge nom : type; */
+				auto noeud_reloge = m_assembleuse->empile_noeud(
+							type_noeud::RELOGE,
+							m_contexte,
+							morceau,
+							false);
+
+				++m_profondeur;
+				analyse_expression_droite(type_id::DOUBLE_POINTS, type_id::RELOGE);
+				--m_profondeur;
+
+				if (est_identifiant(type_id::CHAINE)) {
+					noeud_reloge->index_type = analyse_declaration_type(nullptr, false);
+
+					avance();
+
+					++m_profondeur;
+					analyse_expression_droite(type_id::POINT_VIRGULE, type_id::RELOGE);
+					--m_profondeur;
+
+					if (!requiers_identifiant(type_id::PARENTHESE_FERMANTE)) {
+						lance_erreur("Attendu une paranthèse fermante ')");
+					}
+				}
+				else {
+					noeud_reloge->index_type = analyse_declaration_type(nullptr, false);
+				}
+
+				m_assembleuse->depile_noeud(type_noeud::RELOGE);
+
+				expression.push_back(noeud_reloge);
+				break;
+			}
 			case id_morceau::DELOGE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(

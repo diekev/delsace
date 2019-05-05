@@ -35,17 +35,11 @@ fonction empile(dyn p : *pile, d : *rien) : rien
 {
     si taille de p == capacite de p {
         # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-		dyn tabl_tmp = loge chaine((taille de p + 1) * taille_elem de p);
-
-        copie_mem(tampon de p, tabl_tmp, (taille de p) * taille_elem de p);
-
-        déloge tampon de p;
-		tampon de p = tabl_tmp;
-
+		reloge tampon de p : chaine((taille de p + 1) * taille_elem de p);
         capacite de p += 1;
     }
 
-    soit ptr = @pointeur[taille de p * taille_elem de p] de tampon de p;
+    soit ptr = @tampon[taille de p * taille_elem de p] de p;
 	copie_mem_nonsur(d, ptr, taille_elem de p);
 
     taille de p += 1;
@@ -63,7 +57,7 @@ fonction depile(dyn p : *pile, d : *rien) : rien
     }
 
     si d != nul {
-        soit ptr = @pointeur[(taille de p - 1) * taille_elem de p] de tampon de p;
+	    soit ptr = @tampon[(taille de p - 1) * taille_elem de p] de p;
 		copie_mem_nonsur(ptr, d, taille_elem de p);
     }
 
@@ -101,17 +95,11 @@ fonction enfile(dyn q : *file, d : *rien) : rien
 {
     si taille de q == capacite de q {
         # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-		dyn tabl_tmp = loge chaine((taille de q + 1) * taille_elem de q);
-
-        copie_mem(tampon de q, tabl_tmp, (taille de q) * taille_elem de q);
-
-        déloge tampon de q;
-        tampon de q = tabl_tmp;
-
+		reloge tampon de q : chaine((taille de q + 1) * taille_elem de q);
         capacite de q += 1;
     }
 
-    soit ptr = @pointeur[taille de q * taille_elem de q] de tampon de q;
+    soit ptr = @tampon[taille de q * taille_elem de q] de q;
 	copie_mem_nonsur(d, ptr, taille_elem de q);
 
     taille de q += 1;
@@ -129,15 +117,15 @@ fonction defile(dyn q : *file, d : *rien) : rien
     }
 
     si d != nul {
-        soit ptr = @pointeur[0] de tampon de q;
+	    soit ptr = @tampon[0] de q;
 		copie_mem_nonsur(ptr, d, taille_elem de q);
     }
 
     # réajuste la file en décalant les données
 
     si taille de q > 1 {
-        soit ptr_dst = @pointeur[0] de tampon de q;
-        soit ptr_src = @pointeur[taille_elem de q] de tampon de q;
+	    soit ptr_dst = @tampon[0] de q;
+		soit ptr_src = @tampon[taille_elem de q] de q;
         copie_mem_nonsur(ptr_src, ptr_dst, taille_elem de q * (taille de q - 1));
     }
 
@@ -175,17 +163,11 @@ fonction pousse_tableau(dyn t : *tableau, d : *rien) : rien
 {
     si taille de t == capacite de t {
         # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-		dyn tabl_tmp = loge chaine((taille de t + 1) * taille_elem de t);
-
-        copie_mem(tampon de t, tabl_tmp, (taille de t) * taille_elem de t);
-
-        déloge tampon de t;
-		tampon de t = tabl_tmp;
-
+		reloge tampon de t : chaine((taille de t + 1) * taille_elem de t);
         capacite de t += 1;
     }
 
-    soit ptr = @pointeur[taille de t * taille_elem de t] de tampon de t;
+    soit ptr = @tampon[taille de t * taille_elem de t] de t;
 	copie_mem_nonsur(d, ptr, taille_elem de t);
 
     taille de t += 1;
@@ -202,7 +184,7 @@ fonction debut_tableau(t : *tableau) : *rien
         retourne nul;
     }
 
-    soit ptr = @pointeur[0] de tampon de t;
+    soit ptr = @tampon[0] de t;
     retourne transtype(ptr : *rien);
 }
 
@@ -215,6 +197,6 @@ fonction fin_tableau(t : *tableau) : *rien
     # NOTE : contrairement à C++, nous ne retournons pas un pointeur après la fin,
     # mais la fin elle-même car les boucles utilisant des plages vont jusqu'au dernier
     # élément (<=)
-    soit ptr = @pointeur[(taille de t - 1) * taille_elem de t] de tampon de t;
+	soit ptr = @tampon[(taille de t - 1) * taille_elem de t] de t;
     retourne transtype(ptr : *rien);
 }
