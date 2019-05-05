@@ -260,8 +260,8 @@ enum {
 };
 
 struct MagasinDonneesType {
-	std::unordered_map<DonneesType, size_t> donnees_type_index;
-	std::vector<DonneesType> donnees_types;
+	std::unordered_map<DonneesType, size_t> donnees_type_index{};
+	std::vector<DonneesType> donnees_types{};
 
 	MagasinDonneesType();
 
@@ -290,7 +290,7 @@ struct MagasinDonneesType {
 	size_t operator[](int type);
 
 private:
-	std::vector<size_t> index_types_communs;
+	std::vector<size_t> index_types_communs{};
 };
 
 /* ************************************************************************** */

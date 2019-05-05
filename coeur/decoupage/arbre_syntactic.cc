@@ -1218,21 +1218,21 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
 			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
 
-			auto verifie_redefinition_variable = [](base *b, ContexteGenerationCode &contexte)
+			auto verifie_redefinition_variable = [](base *b_local, ContexteGenerationCode &contexte_loc)
 			{
-				if (contexte.locale_existe(b->chaine())) {
+				if (contexte_loc.locale_existe(b_local->chaine())) {
 					erreur::lance_erreur(
 								"(Boucle pour) rédéfinition de la variable",
-								contexte,
-								b->donnees_morceau(),
+								contexte_loc,
+								b_local->donnees_morceau(),
 								erreur::type_erreur::VARIABLE_REDEFINIE);
 				}
 
-				if (contexte.globale_existe(b->chaine())) {
+				if (contexte_loc.globale_existe(b_local->chaine())) {
 					erreur::lance_erreur(
 								"(Boucle pour) rédéfinition de la variable globale",
-								contexte,
-								b->donnees_morceau(),
+								contexte_loc,
+								b_local->donnees_morceau(),
 								erreur::type_erreur::VARIABLE_REDEFINIE);
 				}
 			};

@@ -1734,60 +1734,60 @@ void genere_code_C(
 			contexte.empile_nombre_locales();
 
 			auto genere_code_tableau_chaine = [](
-					std::ostream &os,
-					ContexteGenerationCode &contexte,
-					base *enfant1,
-					base *enfant2,
+					std::ostream &os_loc,
+					ContexteGenerationCode &contexte_loc,
+					base *enfant_1,
+					base *enfant_2,
 					DonneesType const &dt,
 					std::string const &nom_var)
 			{
-				auto var = enfant1;
+				auto var = enfant_1;
 				auto idx = static_cast<noeud::base *>(nullptr);
 
-				if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
-					var = enfant1->enfants.front();
-					idx = enfant1->enfants.back();
+				if (enfant_1->morceau.identifiant == id_morceau::VIRGULE) {
+					var = enfant_1->enfants.front();
+					idx = enfant_1->enfants.back();
 				}
 
-				os << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
-				genere_code_C(enfant2, contexte, false, os);
-				os << ".taille - 1; ++"<< nom_var <<") {\n";
-				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
-				os << " *" << var->chaine() << " = &";
-				genere_code_C(enfant2, contexte, false, os);
-				os << ".pointeur["<< nom_var <<"];\n";
+				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
+				genere_code_C(enfant_2, contexte_loc, false, os_loc);
+				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
+				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
+				os_loc << " *" << var->chaine() << " = &";
+				genere_code_C(enfant_2, contexte_loc, false, os_loc);
+				os_loc << ".pointeur["<< nom_var <<"];\n";
 
 				if (idx) {
-					os << "int " << idx->chaine() << " = " << nom_var << ";\n";
+					os_loc << "int " << idx->chaine() << " = " << nom_var << ";\n";
 				}
 			};
 
 			auto genere_code_tableau_fixe = [](
-					std::ostream &os,
-					ContexteGenerationCode &contexte,
-					base *enfant1,
-					base *enfant2,
+					std::ostream &os_loc,
+					ContexteGenerationCode &contexte_loc,
+					base *enfant_1,
+					base *enfant_2,
 					DonneesType const &dt,
 					std::string const &nom_var,
 					uint64_t taille_tableau)
 			{
-				auto var = enfant1;
+				auto var = enfant_1;
 				auto idx = static_cast<noeud::base *>(nullptr);
 
-				if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
-					var = enfant1->enfants.front();
-					idx = enfant1->enfants.back();
+				if (enfant_1->morceau.identifiant == id_morceau::VIRGULE) {
+					var = enfant_1->enfants.front();
+					idx = enfant_1->enfants.back();
 				}
 
-				os << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= "
+				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= "
 				   << taille_tableau << "-1; ++"<< nom_var <<") {\n";
-				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
-				os << " *" << var->chaine() << " = &";
-				genere_code_C(enfant2, contexte, false, os);
-				os << "["<< nom_var <<"];\n";
+				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
+				os_loc << " *" << var->chaine() << " = &";
+				genere_code_C(enfant_2, contexte_loc, false, os_loc);
+				os_loc << "["<< nom_var <<"];\n";
 
 				if (idx) {
-					os << "int " << idx->chaine() << " = " << nom_var << ";\n";
+					os_loc << "int " << idx->chaine() << " = " << nom_var << ";\n";
 				}
 			};
 
