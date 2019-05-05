@@ -598,6 +598,12 @@ static std::string cree_info_type_C(
 	return valeur;
 }
 
+static void genere_code_C_prepasse(
+		base *b,
+		ContexteGenerationCode &contexte,
+		bool expr_gauche,
+		std::ostream &os);
+
 static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *b)
 {
 	auto nom_eini = std::string("__eini_")
@@ -606,6 +612,8 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 	auto nom_var = std::string{};
 
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+
+	genere_code_C_prepasse(b, contexte, false, os);
 
 	/* dans le cas d'un nombre ou d'un tableau, etc. */
 	if (b->type != type_noeud::VARIABLE) {
@@ -678,6 +686,7 @@ static void cree_appel(
 			if (enf->type != type_noeud::VARIABLE) {
 				nom_var_chaine = "__chaine" + std::to_string(enf->morceau.ligne_pos);
 
+				genere_code_C_prepasse(enf, contexte, false, os);
 				os << "chaine " << nom_var_chaine << " = ";
 				genere_code_C(enf, contexte, false, os);
 				os << ";\n";
@@ -768,22 +777,29 @@ static void cree_appel(
 
 			enf->valeur_calculee = nom_var_tableau;
 		}
-		else if (enf->type == type_noeud::TABLEAU) {
-			genere_code_C(enf, contexte, false, os);
+		else {
+			genere_code_C_prepasse(enf, contexte, false, os);
 		}
 	}
 
 	if ((b->drapeaux & INDIRECTION_APPEL) != 0) {
-		auto nom_indirection = "__ret_" + nom_broye + std::to_string(b->morceau.ligne_pos);
 		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-		auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 
-		if (!est_tableau) {
-			os << ' ' << nom_indirection;
+		if (dt.type_base() != id_morceau::RIEN) {
+			auto nom_indirection = "__ret_" + nom_broye + std::to_string(b->morceau.ligne_pos);
+			auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
+
+			if (!est_tableau) {
+				os << ' ' << nom_indirection;
+			}
+
+			os << " = ";
+			b->valeur_calculee = nom_indirection;
 		}
-
-		os << " = ";
-		b->valeur_calculee = nom_indirection;
+		else {
+			/* la valeur calculée doit être toujours valide. */
+			b->valeur_calculee = std::string("");
+		}
 	}
 
 	os << nom_broye;
@@ -807,9 +823,6 @@ static void cree_appel(
 			os << std::any_cast<std::string>(enf->valeur_calculee);
 		}
 		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
-			os << std::any_cast<std::string>(enf->valeur_calculee);
-		}
-		else if (enf->type == type_noeud::TABLEAU) {
 			os << std::any_cast<std::string>(enf->valeur_calculee);
 		}
 		else {
@@ -979,6 +992,330 @@ static void cree_initialisation(
 	}
 }
 
+/* La prépasse nous permet de générer du code avant celui des expressions afin
+ * d'éviter les problèmes dans les cas où par exemple le paramètre d'une
+ * fonction ou une condition ou une réassignation d'une chaine requiers une
+ * déclaration temporaire.
+ *
+ * Par exemple, sans prépasse ce code ne serait pas converti en C correctement :
+ *
+ * si !fichier_existe("/chemin/vers/fichier") { ... }
+ *
+ * il donnerait :
+ *
+ * if (!fichier_existe({.pointeur="/chemin/vers/fichier", .taille=20 })) { ... }
+ *
+ * avec prépasse :
+ *
+ * chaine __chaine_tmp134831354 = {.pointeur="/chemin/vers/fichier", .taille=20 };
+ * bool __ret_fichier_existe04554573 = fichier_existe(__chaine_tmp134831354);
+ * if (!__ret_fichier_existe04554573) { ... }
+ *
+ * Il y a plus de variables temporaires, mais le code est correct, et le
+ * compileur C supprimera ces temporaires de toute façon.
+ */
+static void genere_code_C_prepasse(
+		base *b,
+		ContexteGenerationCode &contexte,
+		bool /*expr_gauche*/,
+		std::ostream &os)
+{
+	switch (b->type) {
+		case type_noeud::RACINE:
+		{
+			assert(false);
+			break;
+		}
+		case type_noeud::DECLARATION_FONCTION:
+		{
+			assert(false);
+			break;
+		}
+		case type_noeud::APPEL_FONCTION:
+		{
+			/* broyage du nom */
+			auto module = contexte.module(static_cast<size_t>(b->module_appel));
+			auto nom_module = module->nom;
+			auto nom_fonction = std::string(b->morceau.chaine);
+		//	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
+
+			b->drapeaux |= INDIRECTION_APPEL;
+			cree_appel(b, os, contexte, nom_fonction, b->enfants);
+			break;
+		}
+		case type_noeud::VARIABLE:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::ACCES_MEMBRE:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::ACCES_MEMBRE_POINT:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::DECLARATION_VARIABLE:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::ASSIGNATION_VARIABLE:
+		{
+			genere_code_C_prepasse(b->enfants.back(),
+								   contexte,
+								   true,
+								   os);
+			break;
+		}
+		case type_noeud::NOMBRE_REEL:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::NOMBRE_ENTIER:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::OPERATION_BINAIRE:
+		{
+			for (auto enfant : b->enfants) {
+				genere_code_C_prepasse(enfant,
+									   contexte,
+									   true,
+									   os);
+			}
+
+			break;
+		}
+		case type_noeud::OPERATION_UNAIRE:
+		{
+			genere_code_C_prepasse(b->enfants.front(),
+								   contexte,
+								   true,
+								   os);
+			break;
+		}
+		case type_noeud::RETOUR:
+		{
+			break;
+		}
+		case type_noeud::CHAINE_LITTERALE:
+		{
+			auto chaine = std::any_cast<std::string>(b->valeur_calculee);
+
+			auto nom_chaine = "__chaine_tmp" + std::to_string(b->morceau.ligne_pos);
+
+			os << "chaine " << nom_chaine << " = {.pointeur=";
+			os << '"';
+
+			for (auto c : chaine) {
+				if (c == '\n') {
+					os << '\\' << 'n';
+				}
+				else if (c == '\t') {
+					os << '\\' << 't';
+				}
+				else {
+					os << c;
+				}
+			}
+
+			os << '"';
+			os << ", .taille=" << chaine.size() << "};\n";
+			b->valeur_calculee = nom_chaine;
+			break;
+		}
+		case type_noeud::BOOLEEN:
+		{
+			break;
+		}
+		case type_noeud::CARACTERE:
+		{
+			break;
+		}
+		case type_noeud::BLOC:
+		{
+			assert(false);
+			break;
+		}
+		case type_noeud::SI:
+		case type_noeud::POUR:
+		case type_noeud::CONTINUE_ARRETE:
+		case type_noeud::BOUCLE:
+		case type_noeud::TANTQUE:
+		case type_noeud::TRANSTYPE:
+		{
+			break;
+		}
+		case type_noeud::NUL:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::TAILLE_DE:
+		{
+			auto index_dt = std::any_cast<size_t>(b->valeur_calculee);
+			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
+			os << "sizeof(";
+			contexte.magasin_types.converti_type_C(contexte, "", donnees, os);
+			os << ")";
+			break;
+		}
+		case type_noeud::PLAGE:
+		{
+			assert(false);
+			break;
+		}
+		case type_noeud::DIFFERE:
+		{
+			break;
+		}
+		case type_noeud::NONSUR:
+		{
+			break;
+		}
+		case type_noeud::TABLEAU:
+		{
+			/* utilisé principalement pour convertir les listes d'arguments
+			 * variadics en un tableau */
+
+			auto taille_tableau = b->enfants.size();
+			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+
+			if (est_calcule) {
+				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
+			}
+
+			auto &type = contexte.magasin_types.donnees_types[b->index_type];
+
+			/* cherche si une conversion est requise */
+			for (auto enfant : b->enfants) {
+				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
+					enfant->valeur_calculee = cree_eini(contexte, os, enfant);
+				}
+			}
+
+			/* alloue un tableau fixe */
+			auto dt_tfixe = DonneesType{};
+			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
+			dt_tfixe.pousse(type);
+
+			auto nom_tableau_fixe = std::string("__tabl_fix")
+					.append(std::to_string(b->morceau.ligne_pos >> 32));
+
+			contexte.magasin_types.converti_type_C(
+						contexte, nom_tableau_fixe, dt_tfixe, os);
+
+			os << " = ";
+
+			auto virgule = '{';
+
+			for (auto enfant : b->enfants) {
+				os << virgule;
+				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
+					os << std::any_cast<std::string>(enfant->valeur_calculee);
+				}
+				else {
+					genere_code_C(enfant, contexte, false, os);
+				}
+
+				virgule = ',';
+			}
+
+			os << "};\n";
+
+			/* alloue un tableau dynamique */
+			auto dt_tdyn = DonneesType{};
+			dt_tdyn.pousse(id_morceau::TABLEAU);
+			dt_tdyn.pousse(type);
+
+			auto nom_tableau_dyn = std::string("__tabl_dyn")
+					.append(std::to_string(b->morceau.ligne_pos >> 32));
+
+			contexte.magasin_types.converti_type_C(
+						contexte, nom_tableau_fixe, dt_tdyn, os);
+
+			os << ' ' << nom_tableau_dyn << ";\n";
+			os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
+			os << nom_tableau_dyn << ".taille = " << taille_tableau << ";\n";
+
+			b->valeur_calculee = nom_tableau_dyn;
+			break;
+		}
+		case type_noeud::CONSTRUIT_STRUCTURE:
+		{
+			break;
+		}
+		case type_noeud::CONSTRUIT_TABLEAU:
+		{
+			std::vector<base *> feuilles;
+			rassemble_feuilles(b, feuilles);
+
+			auto virgule = '{';
+
+			for (auto f : feuilles) {
+				os << virgule;
+				genere_code_C(f, contexte, false, os);
+				virgule = ',';
+			}
+
+			os << '}';
+
+			break;
+		}
+		case type_noeud::TYPE_DE:
+		{
+			assert(false);
+			break;
+		}
+		case type_noeud::MEMOIRE:
+		{
+			break;
+		}
+		case type_noeud::LOGE:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::DELOGE:
+		{
+			break;
+		}
+		case type_noeud::RELOGE:
+		{
+			// À FAIRE
+			break;
+		}
+		case type_noeud::DECLARATION_STRUCTURE:
+		{
+			assert(false);
+			break;
+		}
+		case type_noeud::DECLARATION_ENUM:
+		{
+			assert(false);
+			break;
+		}
+		case type_noeud::ASSOCIE:
+		{
+			break;
+		}
+		case type_noeud::PAIRE_ASSOCIATION:
+		{
+			/* RAF : pris en charge dans type_noeud::ASSOCIE, ce noeud n'est que
+			 * pour ajouter un niveau d'indirection et faciliter la compilation
+			 * des associations. */
+			assert(false);
+			break;
+		}
+	}
+}
+
 void genere_code_C(
 		base *b,
 		ContexteGenerationCode &contexte,
@@ -1122,21 +1459,7 @@ void genere_code_C(
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
-			/* broyage du nom */
-			auto module = contexte.module(static_cast<size_t>(b->module_appel));
-			auto nom_module = module->nom;
-			auto nom_fonction = std::string(b->morceau.chaine);
-		//	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
-
-			auto est_pointeur_fonction = (contexte.locale_existe(b->morceau.chaine));
-
-			if (est_pointeur_fonction) {
-				cree_appel(b, os, contexte, nom_fonction, b->enfants);
-				return;
-			}
-
-			cree_appel(b, os, contexte, nom_fonction, b->enfants);
-
+			os << std::any_cast<std::string>(b->valeur_calculee);
 			break;
 		}
 		case type_noeud::VARIABLE:
@@ -1247,13 +1570,6 @@ void genere_code_C(
 
 			if (expression->type == type_noeud::LOGE) {
 				expression_modifiee = true;
-				genere_code_C(expression, contexte, false, os);
-				nouvelle_expr = std::any_cast<std::string>(expression->valeur_calculee);
-			}
-
-			if (expression->type == type_noeud::APPEL_FONCTION) {
-				expression_modifiee = true;
-				expression->drapeaux |= INDIRECTION_APPEL;
 				genere_code_C(expression, contexte, false, os);
 				nouvelle_expr = std::any_cast<std::string>(expression->valeur_calculee);
 			}
@@ -1481,6 +1797,8 @@ void genere_code_C(
 				nom_variable = "__ret" + std::to_string(b->morceau.ligne_pos);
 
 				auto enfant = b->enfants.front();
+				genere_code_C_prepasse(enfant, contexte, false, os);
+
 				auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
 
 				auto est_tableau = contexte.magasin_types.converti_type_C(
@@ -1511,25 +1829,7 @@ void genere_code_C(
 		}
 		case type_noeud::CHAINE_LITTERALE:
 		{
-			auto chaine = std::any_cast<std::string>(b->valeur_calculee);
-
-			os << "{.pointeur=";
-			os << '"';
-
-			for (auto c : chaine) {
-				if (c == '\n') {
-					os << '\\' << 'n';
-				}
-				else if (c == '\t') {
-					os << '\\' << 't';
-				}
-				else {
-					os << c;
-				}
-			}
-
-			os << '"';
-			os << ", .taille=" << chaine.size() << "}";
+			os << std::any_cast<std::string>(b->valeur_calculee);
 			break;
 		}
 		case type_noeud::BOOLEEN:
@@ -1563,6 +1863,8 @@ void genere_code_C(
 			/* noeud 1 : condition */
 			auto enfant1 = *iter_enfant++;
 
+			genere_code_C_prepasse(enfant1, contexte, true, os);
+
 			os << "if (";
 			genere_code_C(enfant1, contexte, false, os);
 			os << ") {\n";
@@ -1587,6 +1889,7 @@ void genere_code_C(
 			contexte.empile_nombre_locales();
 
 			for (auto enfant : b->enfants) {
+				genere_code_C_prepasse(enfant, contexte, true, os);
 				genere_code_C(enfant, contexte, true, os);
 				os << ";\n";
 			}
@@ -1860,9 +2163,18 @@ void genere_code_C(
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
 
-			os << "while (";
+			/* NOTE : la prépasse est susceptible de générer le code d'un appel
+			 * de fonction, donc nous utilisons
+			 * while (1) { if (!cond) { break; } }
+			 * au lieu de
+			 * while (cond) {}
+			 * pour être sûr que la fonction est appelée à chaque boucle.
+			 */
+			os << "while (1) {";
+			genere_code_C_prepasse(enfant1, contexte, true, os);
+			os << "if (!";
 			genere_code_C(enfant1, contexte, false, os);
-			os << ") {\n";
+			os << ") { break; }\n";
 
 			genere_code_C(enfant2, contexte, false, os);
 
@@ -1950,70 +2262,7 @@ void genere_code_C(
 		}
 		case type_noeud::TABLEAU:
 		{
-			/* utilisé principalement pour convertir les listes d'arguments
-			 * variadics en un tableau */
-
-			auto taille_tableau = b->enfants.size();
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-
-			if (est_calcule) {
-				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
-			}
-
-			auto &type = contexte.magasin_types.donnees_types[b->index_type];
-
-			/* cherche si une conversion est requise */
-			for (auto enfant : b->enfants) {
-				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
-					enfant->valeur_calculee = cree_eini(contexte, os, enfant);
-				}
-			}
-
-			/* alloue un tableau fixe */
-			auto dt_tfixe = DonneesType{};
-			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
-			dt_tfixe.pousse(type);
-
-			auto nom_tableau_fixe = std::string("__tabl_fix")
-					.append(std::to_string(b->morceau.ligne_pos >> 32));
-
-			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_fixe, dt_tfixe, os);
-
-			os << " = ";
-
-			auto virgule = '{';
-
-			for (auto enfant : b->enfants) {
-				os << virgule;
-				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
-					os << std::any_cast<std::string>(enfant->valeur_calculee);
-				}
-				else {
-					genere_code_C(enfant, contexte, false, os);
-				}
-
-				virgule = ',';
-			}
-
-			os << "};\n";
-
-			/* alloue un tableau dynamique */
-			auto dt_tdyn = DonneesType{};
-			dt_tdyn.pousse(id_morceau::TABLEAU);
-			dt_tdyn.pousse(type);
-
-			auto nom_tableau_dyn = std::string("__tabl_dyn")
-					.append(std::to_string(b->morceau.ligne_pos >> 32));
-
-			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_fixe, dt_tdyn, os);
-
-			os << ' ' << nom_tableau_dyn << ";\n";
-			os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
-			os << nom_tableau_dyn << ".taille = " << taille_tableau << ";\n";
-
-			b->valeur_calculee = nom_tableau_dyn;
+			os << std::any_cast<std::string>(b->valeur_calculee);
 			break;
 		}
 		case type_noeud::CONSTRUIT_STRUCTURE:
