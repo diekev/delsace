@@ -33,8 +33,7 @@ fonction concatene(chns : ...chaine) : chaine
     dyn coureur = 0;
     
     pour chn dans chns {
-        soit c = chn; # À FAIRE : le compileur se plaind d'un pointeur
-        pour v dans c {
+	    pour v dans chn {
 		    res[coureur] = v;
             coureur += 1;
         }
@@ -55,13 +54,18 @@ fonction taille_chaine_c(ch : *z8) : z64
     retourne index;
 }
 
+fonction construit_chaine(ptr : *z8, taille : z64) : chaine
+{
+    dyn ret : chaine;
+	pointeur de ret = ptr;
+	taille de ret = taille;
+	retourne ret;
+}
+
 # Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
 fonction converti_chaine_c(chaine_c : *z8) : chaine
 {
-    dyn ret : chaine;
-    pointeur de ret = chaine_c;
-    taille de ret = taille_chaine_c(chaine_c);
-    retourne ret;
+    retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c));
 }
 
 # execute une fonction pour chaque ligne du texte d'entrée
@@ -93,4 +97,23 @@ fonction pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonction(cha
 
         rappel(ligne, donnees);
 	}
+}
+
+fonction chaine_est_vide(chn : chaine) : bool
+{
+    retourne taille de chn == 0;
+}
+
+fonction trouve_caractere_chaine(chn : chaine, carac : z8, pos : z64) : z64
+{
+    soit debut = pos;
+	soit fin   = taille de chn;
+
+    pour i dans debut ... fin - 1 {
+	    si chn[i] == carac {
+		    retourne i;
+		}
+	}
+
+    retourne transtype(-1 : z64);
 }
