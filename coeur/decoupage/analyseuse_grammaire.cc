@@ -197,6 +197,7 @@ static bool est_operateur_binaire(id_morceau identifiant)
 		case id_morceau::EGAL:
 		case id_morceau::TROIS_POINTS:
 		case id_morceau::VIRGULE:
+		case id_morceau::CROCHET_OUVRANT:
 			return true;
 		default:
 			return false;
@@ -1222,7 +1223,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::CROCHET_OUVRANT:
 			{
 				/* l'accès à un élément d'un tableau est chaine[index] */
-				if (dernier_identifiant == id_morceau::CHAINE_CARACTERE) {
+				if (dernier_identifiant == id_morceau::CHAINE_CARACTERE || dernier_identifiant == id_morceau::CHAINE_LITTERALE) {
 					vide_pile_operateur(morceau.identifiant);
 
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
@@ -1231,6 +1232,13 @@ void analyseuse_grammaire::analyse_expression_droite(
 					++m_profondeur;
 					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
 					--m_profondeur;
+
+					/* Extrait le noeud enfant, il sera de nouveau ajouté dans
+					 * la compilation de l'expression à la fin de la fonction. */
+					auto noeud_expr = noeud->enfants.front();
+					noeud->enfants.clear();
+
+					expression.push_back(noeud_expr);
 
 					m_assembleuse->depile_noeud(type_noeud::OPERATION_BINAIRE);
 				}

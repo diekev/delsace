@@ -24,6 +24,8 @@
 
 #include "arbre_syntactic.h"
 
+#include <sstream>
+
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
@@ -402,7 +404,7 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::OPERATION_BINAIRE:
 		{
 			if (b->morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
-				return peut_etre_assigne(b->enfants.back(), contexte);
+				return peut_etre_assigne(b->enfants.front(), contexte);
 			}
 
 			return false;
@@ -1137,15 +1139,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 				case id_morceau::CROCHET_OUVRANT:
 				{
-					auto donnees_enfant = b->enfants.back()->index_type;
-					auto const &type = contexte.magasin_types.donnees_types[donnees_enfant];
-					auto type_base = type.type_base();
+					auto type_base = type1.type_base();
 
 					switch (type_base & 0xff) {
 						case id_morceau::TABLEAU:
 						case id_morceau::POINTEUR:
 						{
-							b->index_type = contexte.magasin_types.ajoute_type(type.derefence());
+							b->index_type = contexte.magasin_types.ajoute_type(type1.derefence());
 							break;
 						}
 						case id_morceau::CHAINE:
@@ -1155,8 +1155,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						}
 						default:
 						{
+							std::stringstream ss;
+							ss << "Le type '" << type1
+							   << "' ne peut être déréférencé par opérateur[] !";
+
 							erreur::lance_erreur(
-										"Le type ne peut être déréférencé par opérateur[] !",
+										ss.str(),
 										contexte,
 										b->morceau,
 										erreur::type_erreur::TYPE_DIFFERENTS);

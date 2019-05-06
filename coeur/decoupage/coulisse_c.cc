@@ -1710,23 +1710,23 @@ void genere_code_C(
 				}
 				case id_morceau::CROCHET_OUVRANT:
 				{
-					auto type_base = type2.type_base();
+					auto type_base = type1.type_base();
 
 					switch (type_base & 0xff) {
 						case id_morceau::POINTEUR:
 						{
-							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
-							os << '[';
 							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
+							os << '[';
+							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 							os << ']';
 							break;
 						}
 						case id_morceau::CHAINE:
 						{
-							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
 							os << ".pointeur";
 							os << '[';
-							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 							os << ']';
 							break;
 						}
@@ -1734,14 +1734,14 @@ void genere_code_C(
 						{
 							auto taille_tableau = static_cast<int>(type_base >> 8);
 
-							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
 
 							if (taille_tableau == 0) {
 								os << ".pointeur";
 							}
 
 							os << '[';
-							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
 							os << ']';
 							break;
 						}

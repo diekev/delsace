@@ -1167,7 +1167,10 @@ llvm::Value *genere_code_llvm(
 					break;
 				case id_morceau::CROCHET_OUVRANT:
 				{
-					if (type2.type_base() != id_morceau::POINTEUR && (type2.type_base() & 0xff) != id_morceau::TABLEAU) {
+					/* À FAIRE : la compilation de l'opérateur du crochet
+					 * ouvrant a été changé, vérifié si c'est toujours correcte
+					 */
+					if (type1.type_base() != id_morceau::POINTEUR && (type1.type_base() & 0xff) != id_morceau::TABLEAU) {
 						erreur::lance_erreur(
 									"Le type ne peut être déréférencé !",
 									contexte,
@@ -1179,17 +1182,17 @@ llvm::Value *genere_code_llvm(
 
 					if (type2.type_base() == id_morceau::POINTEUR) {
 						valeur = llvm::GetElementPtrInst::CreateInBounds(
-									 valeur2,
 									 valeur1,
+									 valeur2,
 									 "",
 									 contexte.bloc_courant());
 					}
 					else {
 						valeur = accede_element_tableau(
 									 contexte,
-									 valeur2,
-									 contexte.magasin_types.converti_type(contexte, index_type2),
-									 valeur1);
+									 valeur1,
+									 contexte.magasin_types.converti_type(contexte, index_type1),
+									 valeur2);
 					}
 
 					/* Dans le cas d'une assignation, on n'a pas besoin de charger
