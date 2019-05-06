@@ -103,15 +103,9 @@ static int index = 0;
 static auto cree_info_type_defaul_C(
 		std::ostream &os_decl,
 		std::ostream &os_init,
-		std::string const &id_type,
-		int nombre_base,
-		int profondeur)
+		std::string const &id_type)
 {
-	auto nom_info_type = "__info_type"
-			+ id_type
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur)
-			+ std::to_string(index++);
+	auto nom_info_type = "__info_type" + id_type + std::to_string(index++);
 
 	os_decl << "static InfoType " << nom_info_type << ";\n";
 	os_init << nom_info_type << ".id = " << id_type << ";\n";
@@ -123,14 +117,9 @@ static auto cree_info_type_entier_C(
 		std::ostream &os_decl,
 		std::ostream &os_init,
 		int taille_en_octet,
-		bool est_signe,
-		int nombre_base,
-		int profondeur)
+		bool est_signe)
 {
-	auto nom_info_type = "__info_type_entier"
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur)
-			+ std::to_string(index++);
+	auto nom_info_type = "__info_type_entier" + std::to_string(index++);
 
 	os_decl << "static InfoTypeEntier " << nom_info_type << ";\n";
 	os_init << nom_info_type << ".id = id_info_ENTIER;\n";
@@ -143,14 +132,9 @@ static auto cree_info_type_entier_C(
 static auto cree_info_type_reel_C(
 		std::ostream &os_decl,
 		std::ostream &os_init,
-		int taille_en_octet,
-		int nombre_base,
-		int profondeur)
+		int taille_en_octet)
 {
-	auto nom_info_type = "__info_type_reel"
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur)
-			+ std::to_string(index++);
+	auto nom_info_type = "__info_type_reel" + std::to_string(index++);
 
 	os_decl << "static InfoTypeReel " << nom_info_type << ";\n";
 	os_init << nom_info_type << ".id = id_info_REEL;\n";
@@ -163,9 +147,7 @@ static std::string cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os_decl,
 		std::ostream &os_init,
-		DonneesType const &donnees_type,
-		int nombre_base,
-		int profondeur);
+		DonneesType const &donnees_type);
 
 static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesType const &donnees_type)
 {
@@ -242,19 +224,12 @@ static auto cree_info_type_structure_C(
 		std::ostream &os_init,
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom_struct,
-		DonneesStructure const &donnees_structure,
-		int nombre_base,
-		int profondeur)
+		DonneesStructure const &donnees_structure)
 {
-	auto nom_info_type = "__info_type_struct"
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur);
+	auto nom_info_type = "__info_type_struct" + std::to_string(index++);
 
 	/* crée la chaine pour le nom */
-	auto nom_chaine = "__nom_"
-			+ std::string(nom_struct)
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur);
+	auto nom_chaine = "__nom_" + std::string(nom_struct) + std::to_string(index++);
 
 	os_init << "static chaine " << nom_chaine << " = ";
 	os_init << "{.pointeur = \"" << nom_struct << "\""
@@ -282,9 +257,7 @@ static auto cree_info_type_structure_C(
 				continue;
 			}
 
-			auto suffixe = std::to_string(i)
-					+ std::to_string(nombre_base)
-					+ std::to_string(profondeur);
+			auto suffixe = std::to_string(i) + std::to_string(index++);
 
 			auto nom_info_type_membre = "__info_type_membre" + suffixe;
 
@@ -293,7 +266,7 @@ static auto cree_info_type_structure_C(
 
 			if (rderef.ptr_info_type == "") {
 				rderef.ptr_info_type = cree_info_type_C(
-							contexte, os_decl, os_init, dt, nombre_base + static_cast<int>(i), profondeur + 1);
+							contexte, os_decl, os_init, dt);
 			}
 
 			auto align_type = alignement(contexte, dt);
@@ -322,9 +295,7 @@ static auto cree_info_type_structure_C(
 	dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(nombre_membres << 8));
 	dt_tfixe.pousse(type_struct_membre);
 
-	auto nom_tableau_fixe = std::string("__tabl_fix_membres")
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur);
+	auto nom_tableau_fixe = std::string("__tabl_fix_membres") + std::to_string(index++);
 
 	contexte.magasin_types.converti_type_C(
 				contexte, nom_tableau_fixe, dt_tfixe, os_init);
@@ -346,9 +317,7 @@ static auto cree_info_type_structure_C(
 	dt_tdyn.pousse(id_morceau::TABLEAU);
 	dt_tdyn.pousse(type_struct_membre);
 
-	auto nom_tableau_dyn = std::string("__tabl_dyn_membres")
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur);
+	auto nom_tableau_dyn = std::string("__tabl_dyn_membres") + std::to_string(index++);
 
 	contexte.magasin_types.converti_type_C(
 				contexte, nom_tableau_fixe, dt_tdyn, os_init);
@@ -367,19 +336,13 @@ static auto cree_info_type_enum_C(
 		std::ostream &os_init,
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom_struct,
-		DonneesStructure const &donnees_structure,
-		int nombre_base,
-		int profondeur)
+		DonneesStructure const &donnees_structure)
 {
-	auto nom_info_type = "__info_type_struct"
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur);
+	auto nom_info_type = "__info_type_enum" + std::to_string(index++);
 
 	/* crée la chaine pour le nom */
 	auto nom_chaine = "__nom_"
 			+ std::string(nom_struct)
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur)
 			+ std::to_string(index++);
 
 	os_init << "static chaine " << nom_chaine << " = ";
@@ -397,8 +360,6 @@ static auto cree_info_type_enum_C(
 
 	auto nom_tabl_fixe = "__noms_membres_"
 			+ std::string(nom_struct)
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur)
 			+ std::to_string(index++);
 
 	os_init << "chaine " << nom_tabl_fixe << "[" << nombre_enfants << "] = {\n";
@@ -417,8 +378,6 @@ static auto cree_info_type_enum_C(
 	/* crée un tableau pour les noms des énumérations */
 	auto nom_tabl_fixe_vals = "__valeurs_membres_"
 			+ std::string(nom_struct)
-			+ std::to_string(nombre_base)
-			+ std::to_string(profondeur)
 			+ std::to_string(index++);
 
 	auto &dt = contexte.magasin_types.donnees_types[noeud_decl->index_type];
@@ -451,9 +410,7 @@ static std::string cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os_decl,
 		std::ostream &os_init,
-		DonneesType const &donnees_type,
-		int nombre_base,
-		int profondeur)
+		DonneesType const &donnees_type)
 {
 	auto valeur = std::string("");
 
@@ -466,64 +423,64 @@ static std::string cree_info_type_C(
 		}
 		case id_morceau::BOOL:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_BOOLEEN", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_BOOLEEN");
 			break;
 		}
 		case id_morceau::N8:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 8, false, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 8, false);
 			break;
 		}
 		case id_morceau::OCTET:
 		case id_morceau::Z8:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 8, true, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 8, true);
 			break;
 		}
 		case id_morceau::N16:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 16, false, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 16, false);
 			break;
 		}
 		case id_morceau::Z16:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 16, true, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 16, true);
 			break;
 		}
 		case id_morceau::N32:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 32, false, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 32, false);
 			break;
 		}
 		case id_morceau::Z32:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 32, true, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 32, true);
 			break;
 		}
 		case id_morceau::N64:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 64, false, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 64, false);
 			break;
 		}
 		case id_morceau::Z64:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 64, true, nombre_base, profondeur);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 64, true);
 			break;
 		}
 		case id_morceau::R16:
 		{
 			/* À FAIRE : type r16 */
-			valeur = cree_info_type_reel_C(os_decl, os_init, 32, nombre_base, profondeur);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 32);
 			break;
 		}
 		case id_morceau::R32:
 		{
-			valeur = cree_info_type_reel_C(os_decl, os_init, 32, nombre_base, profondeur);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 32);
 			break;
 		}
 		case id_morceau::R64:
 		{
-			valeur = cree_info_type_reel_C(os_decl, os_init, 64, nombre_base, profondeur);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 64);
 			break;
 		}
 		case id_morceau::POINTEUR:
@@ -534,13 +491,10 @@ static std::string cree_info_type_C(
 			auto &rderef = contexte.magasin_types.donnees_types[idx];
 
 			if (rderef.ptr_info_type == "") {
-				rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef, nombre_base, profondeur + 1);
+				rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef);
 			}
 
-			auto nom_info_type = "__info_type_pointeur"
-					+ std::to_string(nombre_base)
-					+ std::to_string(profondeur)
-					+ std::to_string(index++);
+			auto nom_info_type = "__info_type_pointeur" + std::to_string(index++);
 
 			os_decl << "static InfoTypePointeur " << nom_info_type << ";\n";
 			os_init << nom_info_type << ".id = id_info_POINTEUR;\n";
@@ -560,9 +514,7 @@ static std::string cree_info_type_C(
 							os_init,
 							contexte,
 							contexte.nom_struct(id_structure),
-							donnees_structure,
-							nombre_base,
-							profondeur);
+							donnees_structure);
 			}
 			else {
 				valeur = cree_info_type_structure_C(
@@ -570,9 +522,7 @@ static std::string cree_info_type_C(
 							os_init,
 							contexte,
 							contexte.nom_struct(id_structure),
-							donnees_structure,
-							nombre_base,
-							profondeur);
+							donnees_structure);
 			}
 
 			break;
@@ -585,12 +535,10 @@ static std::string cree_info_type_C(
 			auto &rderef = contexte.magasin_types.donnees_types[idx];
 
 			if (rderef.ptr_info_type == "") {
-				rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef, nombre_base, profondeur + 1);
+				rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef);
 			}
 
-			auto nom_info_type = "__info_type_tableau"
-					+ std::to_string(nombre_base)
-					+ std::to_string(profondeur);
+			auto nom_info_type = "__info_type_tableau" + std::to_string(index++);
 
 			os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
 			os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
@@ -602,23 +550,23 @@ static std::string cree_info_type_C(
 		case id_morceau::FONCTION:
 		{
 			/* À FAIRE : type params */
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_FONCTION", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_FONCTION");
 			break;
 		}
 		case id_morceau::EINI:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_EINI", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_EINI");
 			break;
 		}
 		case id_morceau::NUL: /* À FAIRE */
 		case id_morceau::RIEN:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_RIEN", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_RIEN");
 			break;
 		}
 		case id_morceau::CHAINE:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_CHAINE", nombre_base, profondeur);
+			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_CHAINE");
 			break;
 		}
 	}
@@ -1339,9 +1287,8 @@ void genere_code_C(
 			auto debut_generation = dls::chrono::maintenant();
 			/* Crée les infos types pour tous les types connus.
 			 * À FAIRE : évite de créer ceux qui ne sont pas utiles */
-			int index_dt = 0;
 			for (auto &dt : contexte.magasin_types.donnees_types) {
-				auto ptr = cree_info_type_C(contexte, os, os_init, dt, index_dt++, 0);
+				auto ptr = cree_info_type_C(contexte, os, os_init, dt);
 				dt.ptr_info_type = ptr;
 			}
 			temps_generation += dls::chrono::delta(debut_generation);
