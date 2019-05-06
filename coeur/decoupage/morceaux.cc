@@ -46,6 +46,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "faux", id_morceau::FAUX },
 	{ "fonction", id_morceau::FONCTION },
 	{ "gabarit", id_morceau::GABARIT },
+	{ "garde", id_morceau::GARDE },
 	{ "importe", id_morceau::IMPORTE },
 	{ "loge", id_morceau::LOGE },
 	{ "mémoire", id_morceau::MEMOIRE },
@@ -64,6 +65,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "retourne", id_morceau::RETOURNE },
 	{ "rien", id_morceau::RIEN },
 	{ "sansarrêt", id_morceau::SANSARRET },
+	{ "saufsi", id_morceau::SAUFSI },
 	{ "si", id_morceau::SI },
 	{ "sinon", id_morceau::SINON },
 	{ "soit", id_morceau::SOIT },
@@ -82,6 +84,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 
 static std::map<std::string_view, id_morceau> paires_caracteres_double = {
 	{ "!=", id_morceau::DIFFERENCE },
+	{ "#!", id_morceau::DIRECTIVE },
 	{ "%=", id_morceau::MODULO_EGAL },
 	{ "&&", id_morceau::ESP_ESP },
 	{ "*=", id_morceau::MULTIPLIE_EGAL },
@@ -185,6 +188,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::TILDE";
 		case id_morceau::DIFFERENCE:
 			return "id_morceau::DIFFERENCE";
+		case id_morceau::DIRECTIVE:
+			return "id_morceau::DIRECTIVE";
 		case id_morceau::MODULO_EGAL:
 			return "id_morceau::MODULO_EGAL";
 		case id_morceau::ESP_ESP:
@@ -243,6 +248,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::FONCTION";
 		case id_morceau::GABARIT:
 			return "id_morceau::GABARIT";
+		case id_morceau::GARDE:
+			return "id_morceau::GARDE";
 		case id_morceau::IMPORTE:
 			return "id_morceau::IMPORTE";
 		case id_morceau::LOGE:
@@ -279,6 +286,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::RIEN";
 		case id_morceau::SANSARRET:
 			return "id_morceau::SANSARRET";
+		case id_morceau::SAUFSI:
+			return "id_morceau::SAUFSI";
 		case id_morceau::SI:
 			return "id_morceau::SI";
 		case id_morceau::SINON:

@@ -52,6 +52,8 @@ mot_cles = [
 	u'reloge',
 	u'tantque',
 	u'octet',
+	u'garde',
+	u'saufsi',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -104,6 +106,7 @@ caracteres_double = [
 	[u'/=', u'DIVSE_EGAL'],
 	[u'*=', u'MULTIPLIE_EGAL'],
 	[u'%=', u'MODULO_EGAL'],
+	[u'#!', u'DIRECTIVE'],
 ]
 
 caracteres_double = sorted(caracteres_double)
