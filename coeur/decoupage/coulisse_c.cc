@@ -2358,12 +2358,21 @@ void genere_code_C(
 			auto nombre_enfant = b->enfants.size();
 			auto a_pointeur = false;
 			auto nom_ptr_ret = std::string("");
+			auto nom_taille = "__taille_allouee" + std::to_string(index++);
 
 			if (dt.type_base() == id_morceau::TABLEAU) {
 				a_pointeur = true;
 				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
 				auto nom_tabl = "__tabl" + std::to_string(b->morceau.ligne_pos);
 				auto taille_tabl = std::any_cast<int>(b->valeur_calculee);
+
+				os << "long " << nom_taille << " = sizeof(";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt.derefence(),
+							os);
+				os << ") * " << taille_tabl << ");\n";
 
 				auto dt_ptr = DonneesType{};
 				dt_ptr.pousse(id_morceau::POINTEUR);
@@ -2382,13 +2391,7 @@ void genere_code_C(
 							dt_ptr,
 							os);
 
-				os << ")(malloc(sizeof(";
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt.derefence(),
-							os);
-				os << ") * " << taille_tabl << "));\n";
+				os << ")(malloc(" << nom_taille << ");\n";
 
 				contexte.magasin_types.converti_type_C(
 							contexte,
@@ -2406,7 +2409,6 @@ void genere_code_C(
 				a_pointeur = true;
 				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
 				auto nom_chaine = "__chaine" + std::to_string(b->morceau.ligne_pos);
-				auto nom_taille = "__taille" + std::to_string(b->morceau.ligne_pos);
 
 				os << "long " << nom_taille << " = ";
 
@@ -2425,14 +2427,20 @@ void genere_code_C(
 				nom_ptr_ret = nom_chaine;
 			}
 			else {
+				auto const dt_deref = dt.derefence();
+				os << "long " << nom_taille << " = sizeof(";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_deref,
+							os);
+				os << ");\n";
 				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
-
-				auto &dt_pointeur = contexte.magasin_types.donnees_types[b->index_type];
 
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt_pointeur,
+							dt,
 							os);
 
 				os << " " << nom_ptr << " = (";
@@ -2440,19 +2448,10 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt_pointeur,
+							dt,
 							os);
 
-				os << ")(malloc(sizeof(";
-
-				auto const dt_deref = dt_pointeur.derefence();
-
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt_deref,
-							os);
-				os << ")));\n";
+				os << ")(malloc(" << nom_taille << "));\n";
 
 				/* initialise la structure */
 				if ((dt_deref.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
@@ -2480,6 +2479,7 @@ void genere_code_C(
 				os << "}\n";
 			}
 
+			os << "__VG_memoire_utilisee__ += " << nom_taille << ";\n";
 			b->valeur_calculee = nom_ptr_ret;
 
 			break;
@@ -2488,8 +2488,25 @@ void genere_code_C(
 		{
 			auto enfant = b->enfants.front();
 			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
+			auto nom_taille = "__taille_allouee" + std::to_string(index++);
 
 			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
+				os << "long " << nom_taille << " = ";
+				genere_code_C(enfant, contexte, false, os, os);
+				os << ".taille";
+
+				if (dt.type_base() == id_morceau::TABLEAU) {
+					os << " * sizeof(";
+					contexte.magasin_types.converti_type_C(
+								contexte,
+								"",
+								dt.derefence(),
+								os);
+					os << ")";
+				}
+
+				os << ";\n";
+
 				os << "free(";
 				genere_code_C(enfant, contexte, false, os, os);
 				os << ".pointeur);\n";
@@ -2499,12 +2516,22 @@ void genere_code_C(
 				os << ".taille = 0;\n";
 			}
 			else {
+				os << "long " << nom_taille << " = sizeof(";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt.derefence(),
+							os);
+				os << ");\n";
+
 				os << "free(";
 				genere_code_C(enfant, contexte, false, os, os);
 				os << ");\n";
 				genere_code_C(enfant, contexte, false, os, os);
 				os << " = 0;\n";
 			}
+
+			os << "__VG_memoire_utilisee__ -= " << nom_taille << ";\n";
 
 			break;
 		}
@@ -2516,6 +2543,8 @@ void genere_code_C(
 			auto nombre_enfant = b->enfants.size();
 			auto a_pointeur = false;
 			auto nom_ptr_ret = std::string("");
+			auto nom_ancienne_taille = "__ancienne_taille" + std::to_string(index++);
+			auto nom_nouvelle_taille = "__nouvelle_taille" + std::to_string(index++);
 
 			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
 				/* À FAIRE : expression pour les types. */
@@ -2525,18 +2554,32 @@ void genere_code_C(
 				nombre_enfant -= 1;
 				a_pointeur = true;
 
+				os << "int " << nom_ancienne_taille << " = ";
+				genere_code_C(enfant1, contexte, true, os, os);
+				os << ".taille;\n";
+
+				os << "int " << nom_nouvelle_taille << " = sizeof(char) *";
+				genere_code_C(enfant2, contexte, true, os, os);
+				os << ";\n";
+
 				genere_code_C(enfant1, contexte, true, os, os);
 				os << ".pointeur = (char *)(realloc(";
 				genere_code_C(enfant1, contexte, true, os, os);
-				os << ".pointeur, sizeof(char) *";
-				genere_code_C(enfant2, contexte, true, os, os);
-				os << "));\n";
+				os << ".pointeur, " << nom_nouvelle_taille<< "));\n";
 				genere_code_C(enfant1, contexte, true, os, os);
-				os << ".taille = ";
-				genere_code_C(enfant2, contexte, true, os, os);
-				os << ";\n";
+				os << ".taille = " << nom_nouvelle_taille << ";\n";
 			}
 			else {
+				os << "int " << nom_ancienne_taille << " = sizeof(";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_pointeur.derefence(),
+							os);
+				os << ");\n";
+
+				os << "int " << nom_nouvelle_taille << " = " << nom_ancienne_taille << ";\n";
+
 				genere_code_C(enfant1, contexte, true, os, os);
 				os << " = (";
 				contexte.magasin_types.converti_type_C(
@@ -2568,6 +2611,9 @@ void genere_code_C(
 				genere_code_C(*enfant++, contexte, true, os, os);
 				os << "}\n";
 			}
+
+			os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
+			   << " - " << nom_ancienne_taille << ";\n";
 
 			break;
 		}

@@ -59,6 +59,20 @@ DonneesModule *ContexteGenerationCode::cree_module(
 	module->nom = nom;
 	module->chemin = chemin;
 
+	/* La fonction memoire_utilisee est définie globalement donc doit être
+	 * définie dans chaque module. */
+	auto donnees_fonctions = DonneesFonction();
+	auto dt = DonneesType{};
+	dt.pousse(id_morceau::FONCTION);
+	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
+	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
+	dt.pousse(id_morceau::Z64);
+	donnees_fonctions.index_type = magasin_types.ajoute_type(dt);
+	donnees_fonctions.index_type_retour = magasin_types[TYPE_Z64];
+
+	module->fonctions_exportees.insert("memoire_utilisee");
+	module->ajoute_donnees_fonctions("memoire_utilisee", donnees_fonctions);
+
 	modules.push_back(module);
 
 	return module;

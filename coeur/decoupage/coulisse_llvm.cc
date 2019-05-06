@@ -68,6 +68,7 @@
  * - associe
  * - ajourne la génération de code pour les boucles 'pour'
  * - saufsi
+ * - trace de la mémoire utilisée
  */
 
 /* ************************************************************************** */

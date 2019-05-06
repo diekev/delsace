@@ -130,6 +130,9 @@ void assembleuse_arbre::genere_code_C(
 
 	os << "\n";
 
+	os << "static long __VG_memoire_utilisee__ = 0;";
+	os << "static long memoire_utilisee() { return __VG_memoire_utilisee__; }";
+
 	/* NOTE : les initiliaseurs des infos types doivent être valide pour toute
 	 * la durée du programme, donc nous les mettons dans la fonction principale.
 	 */
