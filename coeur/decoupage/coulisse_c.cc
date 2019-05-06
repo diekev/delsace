@@ -975,18 +975,11 @@ static void cree_initialisation(
 				auto decl_nom = chaine_parent + std::string(accesseur) + std::string(nom);
 
 				if (donnees_membre.noeud_decl != nullptr) {
-					/* besoin de créer une indirection */
-					if (dt_enf.type_base() == id_morceau::CHAINE) {
-						os << "chaine __chn_tmp" << index << " = ";
-						genere_code_C(donnees_membre.noeud_decl, contexte, false, os, os);
-						os << ";\n";
-						os << decl_nom << " = __chn_tmp" << index ++ << ";\n";
-					}
-					else {
-						os << decl_nom << " = ";
-						genere_code_C(donnees_membre.noeud_decl, contexte, false, os, os);
-						os << ";\n";
-					}
+					/* indirection pour les chaines ou autres */
+					genere_code_C_prepasse(donnees_membre.noeud_decl, contexte, false, os);
+					os << decl_nom << " = ";
+					genere_code_C(donnees_membre.noeud_decl, contexte, false, os, os);
+					os << ";\n";
 				}
 				else {
 					cree_initialisation(
@@ -1120,7 +1113,9 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::CHAINE_LITTERALE:
 		{
-			auto chaine = std::any_cast<std::string>(b->valeur_calculee);
+			/* Note : dû à la possibilité de différer le code, nous devons
+			 * utiliser la chaine originale. */
+			auto chaine = b->morceau.chaine;
 
 			auto nom_chaine = "__chaine_tmp" + std::to_string(b->morceau.ligne_pos);
 
@@ -1199,12 +1194,7 @@ static void genere_code_C_prepasse(
 			/* utilisé principalement pour convertir les listes d'arguments
 			 * variadics en un tableau */
 
-			auto taille_tableau = b->enfants.size();
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-
-			if (est_calcule) {
-				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
-			}
+			auto taille_tableau = b->enfants.size();		
 
 			auto &type = contexte.magasin_types.donnees_types[b->index_type];
 

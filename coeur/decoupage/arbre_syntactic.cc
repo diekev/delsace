@@ -1219,8 +1219,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::CHAINE_LITTERALE:
 		{
-			/* fais en sorte que les caractères échappés ne soient pas comptés comme
-			 * deux caractères distincts, ce qui ne peut se faire avec la
+			/* fais en sorte que les caractères échappés ne soient pas comptés
+			 * comme deux caractères distincts, ce qui ne peut se faire avec la
 			 * std::string_view */
 			std::string corrigee;
 			corrigee.reserve(b->morceau.chaine.size());
@@ -1236,6 +1236,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				corrigee.push_back(c);
 			}
 
+			/* À FAIRE : ceci ne fonctionne pas dans le cas des noeuds différés
+			 * où la valeur calculee est redéfinie. */
 			b->valeur_calculee = corrigee;
 			b->index_type = contexte.magasin_types[TYPE_CHAINE];
 
