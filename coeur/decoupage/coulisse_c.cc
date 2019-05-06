@@ -2354,8 +2354,13 @@ void genere_code_C(
 		case type_noeud::LOGE:
 		{
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto enfant = b->enfants.begin();
+			auto nombre_enfant = b->enfants.size();
+			auto a_pointeur = false;
+			auto nom_ptr_ret = std::string("");
 
 			if (dt.type_base() == id_morceau::TABLEAU) {
+				a_pointeur = true;
 				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
 				auto nom_tabl = "__tabl" + std::to_string(b->morceau.ligne_pos);
 				auto taille_tabl = std::any_cast<int>(b->valeur_calculee);
@@ -2395,17 +2400,18 @@ void genere_code_C(
 				os << nom_tabl << ".pointeur = " << nom_ptr << ";\n";
 				os << nom_tabl << ".taille = " << taille_tabl << ";\n";
 
-				b->valeur_calculee = nom_tabl;
+				nom_ptr_ret = nom_tabl;
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
+				a_pointeur = true;
 				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
 				auto nom_chaine = "__chaine" + std::to_string(b->morceau.ligne_pos);
 				auto nom_taille = "__taille" + std::to_string(b->morceau.ligne_pos);
-				auto enfant = b->enfants.front();
 
 				os << "long " << nom_taille << " = ";
 
-				genere_code_C(enfant, contexte, false, os, os);
+				genere_code_C(*enfant++, contexte, false, os, os);
+				nombre_enfant -= 1;
 
 				os << ";\n";
 
@@ -2416,7 +2422,7 @@ void genere_code_C(
 				os << nom_chaine << ".pointeur = " << nom_ptr << ";\n";
 				os << nom_chaine << ".taille = " << nom_taille << ";\n";
 
-				b->valeur_calculee = nom_chaine;
+				nom_ptr_ret = nom_chaine;
 			}
 			else {
 				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
@@ -2458,8 +2464,23 @@ void genere_code_C(
 								os);
 				}
 
-				b->valeur_calculee = nom_ptr;
+				nom_ptr_ret = nom_ptr;
 			}
+
+			/* À FAIRE : que faire si le bloc est absent ? avorter ? */
+			if (nombre_enfant == 1) {
+				os << "if (" << nom_ptr_ret;
+
+				if (a_pointeur) {
+					os << ".pointeur ";
+				}
+
+				os << " == 0 ) {\n";
+				genere_code_C(*enfant++, contexte, true, os, os);
+				os << "}\n";
+			}
+
+			b->valeur_calculee = nom_ptr_ret;
 
 			break;
 		}
@@ -2490,26 +2511,33 @@ void genere_code_C(
 		case type_noeud::RELOGE:
 		{
 			auto &dt_pointeur = contexte.magasin_types.donnees_types[b->index_type];
-			auto enfant = b->enfants.front();
+			auto enfant = b->enfants.begin();
+			auto enfant1 = *enfant++;
+			auto nombre_enfant = b->enfants.size();
+			auto a_pointeur = false;
+			auto nom_ptr_ret = std::string("");
 
 			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
 				/* À FAIRE : expression pour les types. */
 			}
 			else if (dt_pointeur.type_base() == id_morceau::CHAINE) {
-				auto enfant2 = b->enfants.back();
-				genere_code_C(enfant, contexte, true, os, os);
+				auto enfant2 = *enfant++;
+				nombre_enfant -= 1;
+				a_pointeur = true;
+
+				genere_code_C(enfant1, contexte, true, os, os);
 				os << ".pointeur = (char *)(realloc(";
-				genere_code_C(enfant, contexte, true, os, os);
+				genere_code_C(enfant1, contexte, true, os, os);
 				os << ".pointeur, sizeof(char) *";
 				genere_code_C(enfant2, contexte, true, os, os);
 				os << "));\n";
-				genere_code_C(enfant, contexte, true, os, os);
+				genere_code_C(enfant1, contexte, true, os, os);
 				os << ".taille = ";
 				genere_code_C(enfant2, contexte, true, os, os);
 				os << ";\n";
 			}
 			else {
-				genere_code_C(enfant, contexte, true, os, os);
+				genere_code_C(enfant1, contexte, true, os, os);
 				os << " = (";
 				contexte.magasin_types.converti_type_C(
 							contexte,
@@ -2517,7 +2545,7 @@ void genere_code_C(
 							dt_pointeur,
 							os);
 				os << ")(realloc(";
-				genere_code_C(enfant, contexte, true, os, os);
+				genere_code_C(enfant1, contexte, true, os, os);
 				os << ", sizeof(";
 				contexte.magasin_types.converti_type_C(
 							contexte,
@@ -2525,6 +2553,20 @@ void genere_code_C(
 							dt_pointeur.derefence(),
 							os);
 				os << ")));\n";
+			}
+
+			/* À FAIRE : que faire si le bloc est absent ? avorter ? */
+			if (nombre_enfant == 2) {
+				os << "if (";
+				genere_code_C(enfant1, contexte, true, os, os);
+
+				if (a_pointeur) {
+					os << ".pointeur ";
+				}
+
+				os << " == 0 ) {\n";
+				genere_code_C(*enfant++, contexte, true, os, os);
+				os << "}\n";
 			}
 
 			break;

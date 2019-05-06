@@ -1274,40 +1274,56 @@ void analyseuse_grammaire::analyse_expression_droite(
 			}
 			case id_morceau::LOGE:
 			{
-				if (est_identifiant(id_morceau::CHAINE)) {
-					auto noeud = m_assembleuse->empile_noeud(
-								type_noeud::LOGE,
-								m_contexte,
-								morceau,
-								false);
+				auto noeud = m_assembleuse->empile_noeud(
+							type_noeud::LOGE,
+							m_contexte,
+							morceau,
+							false);
 
+				if (est_identifiant(id_morceau::CHAINE)) {
 					noeud->index_type = analyse_declaration_type(nullptr, false);
 
 					avance();
 
 					++m_profondeur;
-					analyse_expression_droite(type_id::POINT_VIRGULE, type_id::LOGE);
+					analyse_expression_droite(type_id::SINON, type_id::LOGE);
 					--m_profondeur;
 
 					if (!requiers_identifiant(type_id::PARENTHESE_FERMANTE)) {
 						lance_erreur("Attendu une paranthèse fermante ')");
 					}
-
-					m_assembleuse->depile_noeud(type_noeud::LOGE);
-
-					expression.push_back(noeud);
 				}
 				else {
-					auto noeud = m_assembleuse->cree_noeud(
-								type_noeud::LOGE,
+					noeud->index_type = analyse_declaration_type(nullptr, false);
+				}
+
+				if (est_identifiant(type_id::SINON)) {
+					avance();
+					m_assembleuse->empile_noeud(
+								type_noeud::BLOC,
 								m_contexte,
 								morceau);
 
-					noeud->index_type = analyse_declaration_type(nullptr, false);
+					if (!requiers_identifiant(type_id::ACCOLADE_OUVRANTE)) {
+						lance_erreur("Attendu une accolade ouvrante '{'");
+					}
 
-					expression.push_back(noeud);
+					++m_profondeur;
+					analyse_corps_fonction();
+					--m_profondeur;
+
+					if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+						lance_erreur("Attendu une accolade fermante '}'");
+					}
+
+					m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+					termine_boucle = true;
 				}
 
+				m_assembleuse->depile_noeud(type_noeud::LOGE);
+
+				expression.push_back(noeud);
 				break;
 			}
 			case id_morceau::RELOGE:
@@ -1329,7 +1345,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 					avance();
 
 					++m_profondeur;
-					analyse_expression_droite(type_id::POINT_VIRGULE, type_id::RELOGE);
+					analyse_expression_droite(type_id::SINON, type_id::RELOGE);
 					--m_profondeur;
 
 					if (!requiers_identifiant(type_id::PARENTHESE_FERMANTE)) {
@@ -1338,6 +1354,30 @@ void analyseuse_grammaire::analyse_expression_droite(
 				}
 				else {
 					noeud_reloge->index_type = analyse_declaration_type(nullptr, false);
+				}
+
+				if (est_identifiant(type_id::SINON)) {
+					avance();
+					m_assembleuse->empile_noeud(
+								type_noeud::BLOC,
+								m_contexte,
+								morceau);
+
+					if (!requiers_identifiant(type_id::ACCOLADE_OUVRANTE)) {
+						lance_erreur("Attendu une accolade ouvrante '{'");
+					}
+
+					++m_profondeur;
+					analyse_corps_fonction();
+					--m_profondeur;
+
+					if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+						lance_erreur("Attendu une accolade fermante '}'");
+					}
+
+					m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+					termine_boucle = true;
 				}
 
 				m_assembleuse->depile_noeud(type_noeud::RELOGE);

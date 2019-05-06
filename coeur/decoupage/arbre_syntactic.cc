@@ -1670,6 +1670,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::LOGE:
 		{
+			auto nombre_enfant = b->enfants.size();
+			auto enfant = b->enfants.begin();
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
@@ -1685,8 +1687,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->index_type = contexte.magasin_types.ajoute_type(ndt);
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
-				auto enfant = b->enfants.front();
-				performe_validation_semantique(enfant, contexte);
+				performe_validation_semantique(*enfant++, contexte);
+				nombre_enfant -= 1;
 			}
 			else {
 				auto dt_loge = DonneesType{};
@@ -1694,6 +1696,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				dt_loge.pousse(dt);
 
 				b->index_type = contexte.magasin_types.ajoute_type(dt_loge);
+			}
+
+			/* À FAIRE : détermine ce qui doit se passer dans un bloc suite à un
+			 * échec d'allocation. */
+			if (nombre_enfant == 1) {
+				performe_validation_semantique(*enfant++, contexte);
 			}
 
 			break;
@@ -1702,8 +1710,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-			auto enfant = b->enfants.front();
-			performe_validation_semantique(enfant, contexte);
+			auto nombre_enfant = b->enfants.size();
+			auto enfant = b->enfants.begin();
+			auto enfant1 = *enfant++;
+			performe_validation_semantique(enfant1, contexte);
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
 				/* transforme en type tableau dynamic */
@@ -1718,8 +1728,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->index_type = contexte.magasin_types.ajoute_type(ndt);
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
-				auto enfant2 = b->enfants.back();
-				performe_validation_semantique(enfant2, contexte);
+				performe_validation_semantique(*enfant++, contexte);
+				nombre_enfant -= 1;
 			}
 			else {
 				auto dt_loge = DonneesType{};
@@ -1729,14 +1739,20 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->index_type = contexte.magasin_types.ajoute_type(dt_loge);
 			}
 
-			if (enfant->index_type != b->index_type) {
-				auto &dt_enf = contexte.magasin_types.donnees_types[enfant->index_type];
+			if (enfant1->index_type != b->index_type) {
+				auto &dt_enf = contexte.magasin_types.donnees_types[enfant1->index_type];
 				erreur::lance_erreur_type_arguments(
 							dt,
 							dt_enf,
 							contexte,
 							b->morceau,
-							enfant->morceau);
+							enfant1->morceau);
+			}
+
+			/* À FAIRE : détermine ce qui doit se passer dans un bloc suite à un
+			 * échec d'allocation. */
+			if (nombre_enfant == 2) {
+				performe_validation_semantique(*enfant++, contexte);
 			}
 
 			break;
