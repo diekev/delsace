@@ -517,13 +517,9 @@ void analyseuse_grammaire::analyse_parametres_fonction(
 	}
 }
 
-void analyseuse_grammaire::analyse_controle_si()
+void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
 {
-	if (!requiers_identifiant(id_morceau::SI)) {
-		lance_erreur("Attendu la déclaration 'si'");
-	}
-
-	m_assembleuse->empile_noeud(type_noeud::SI, m_contexte, donnees());
+	m_assembleuse->empile_noeud(tn, m_contexte, donnees());
 
 	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE, id_morceau::SI);
 
@@ -552,7 +548,12 @@ void analyseuse_grammaire::analyse_controle_si()
 		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
 
 		if (est_identifiant(id_morceau::SI)) {
-			analyse_controle_si();
+			avance();
+			analyse_controle_si(type_noeud::SI);
+		}
+		else if (est_identifiant(id_morceau::SAUFSI)) {
+			avance();
+			analyse_controle_si(type_noeud::SAUFSI);
 		}
 		else {
 			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
@@ -569,7 +570,7 @@ void analyseuse_grammaire::analyse_controle_si()
 		m_assembleuse->depile_noeud(type_noeud::BLOC);
 	}
 
-	m_assembleuse->depile_noeud(type_noeud::SI);
+	m_assembleuse->depile_noeud(tn);
 }
 
 /* Arbre :
@@ -691,9 +692,13 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::RETOUR);
 		}
-		/* controle de flux : si */
 		else if (est_identifiant(id_morceau::SI)) {
-			analyse_controle_si();
+			avance();
+			analyse_controle_si(type_noeud::SI);
+		}
+		else if (est_identifiant(id_morceau::SAUFSI)) {
+			avance();
+			analyse_controle_si(type_noeud::SAUFSI);
 		}
 		else if (est_identifiant(id_morceau::POUR)) {
 			analyse_controle_pour();

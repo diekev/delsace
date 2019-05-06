@@ -67,6 +67,7 @@
  * - déclaration structure/énum
  * - associe
  * - ajourne la génération de code pour les boucles 'pour'
+ * - saufsi
  */
 
 /* ************************************************************************** */
@@ -1353,6 +1354,7 @@ llvm::Value *genere_code_llvm(
 						static_cast<uint64_t>(valeur),
 						false);
 		}
+		case type_noeud::SAUFSI:
 		case type_noeud::SI:
 		{
 			auto const nombre_enfants = b->enfants.size();

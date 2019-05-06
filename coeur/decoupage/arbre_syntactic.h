@@ -75,6 +75,7 @@ enum class type_noeud : char {
 	DECLARATION_ENUM,
 	ASSOCIE,
 	PAIRE_ASSOCIATION,
+	SAUFSI,
 };
 
 const char *chaine_type_noeud(type_noeud type);

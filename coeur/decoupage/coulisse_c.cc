@@ -1157,6 +1157,7 @@ static void genere_code_C_prepasse(
 			assert(false);
 			break;
 		}
+		case type_noeud::SAUFSI:
 		case type_noeud::SI:
 		case type_noeud::POUR:
 		case type_noeud::CONTINUE_ARRETE:
@@ -1881,6 +1882,7 @@ void genere_code_C(
 			os << '\'';
 			break;
 		}
+		case type_noeud::SAUFSI:
 		case type_noeud::SI:
 		{
 			auto const nombre_enfants = b->enfants.size();
@@ -1892,6 +1894,11 @@ void genere_code_C(
 			genere_code_C_prepasse(enfant1, contexte, true, os);
 
 			os << "if (";
+
+			if (b->type == type_noeud::SAUFSI) {
+				os << '!';
+			}
+
 			genere_code_C(enfant1, contexte, false, os, os);
 			os << ") {\n";
 

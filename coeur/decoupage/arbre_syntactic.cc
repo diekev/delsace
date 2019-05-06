@@ -118,6 +118,7 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::DECLARATION_ENUM)
 		CAS_TYPE(type_noeud::ASSOCIE)
 		CAS_TYPE(type_noeud::PAIRE_ASSOCIATION)
+		CAS_TYPE(type_noeud::SAUFSI)
 	}
 
 	return "erreur : type_noeud inconnu";
@@ -1250,6 +1251,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			b->index_type = contexte.magasin_types[TYPE_Z8];
 			break;
 		}
+		case type_noeud::SAUFSI:
 		case type_noeud::SI:
 		{
 			auto const nombre_enfants = b->enfants.size();

@@ -90,7 +90,7 @@ private:
 	void analyse_declaration_enum();
 	size_t analyse_declaration_type(DonneesType *donnees_type_fonction = nullptr, bool double_point = true);
 	size_t analyse_declaration_type_ex(DonneesType *donnees_type_fonction = nullptr);
-	void analyse_controle_si();
+	void analyse_controle_si(type_noeud tn);
 	void analyse_controle_pour();
 	void analyse_construction_structure(noeud::base *noeud);
 
