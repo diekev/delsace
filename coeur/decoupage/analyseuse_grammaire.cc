@@ -1453,7 +1453,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 		if (est_operateur_binaire(noeud->identifiant())) {
 			if (pile.size() < 2) {
 				erreur::lance_erreur(
-							"Expression malformée",
+							"Expression malformée pour opérateur binaire",
 							m_contexte,
 							noeud->donnees_morceau(),
 							erreur::type_erreur::NORMAL);
@@ -1484,7 +1484,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			else if (calcul_expression) {
 				if (pile.size() < 1) {
 					erreur::lance_erreur(
-								"Expression malformée",
+								"Expression malformée pour opérateur unaire",
 								m_contexte,
 								noeud->donnees_morceau(),
 								erreur::type_erreur::NORMAL);
