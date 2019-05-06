@@ -42,6 +42,9 @@ class assembleuse_arbre {
 	size_t m_memoire_utilisee = 0;
 
 public:
+	std::vector<std::string_view> inclusions{};
+	std::vector<std::string_view> bibliotheques{};
+
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre();
 

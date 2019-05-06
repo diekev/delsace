@@ -329,6 +329,35 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 			charge_module(os, m_racine_kuri, std::string(nom_module), m_contexte, donnees());
 			m_debut_analyse = dls::chrono::maintenant();
 		}
+		else if (est_identifiant(id_morceau::DIRECTIVE)) {
+			avance();
+
+			if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+				lance_erreur("Attendu une chaine de caractère après '#!'");
+			}
+
+			auto directive = donnees().chaine;
+
+			if (directive == "inclus") {
+				if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+					lance_erreur("Attendu une chaine littérale après la directive");
+				}
+
+				auto chaine = donnees().chaine;
+				m_assembleuse->inclusions.push_back(chaine);
+			}
+			else if (directive == "bib") {
+				if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+					lance_erreur("Attendu une chaine littérale après la directive");
+				}
+
+				auto chaine = donnees().chaine;
+				m_assembleuse->bibliotheques.push_back(chaine);
+			}
+			else {
+				lance_erreur("Directive inconnue");
+			}
+		}
 		else {
 			avance();
 			lance_erreur("Identifiant inattendu, doit être 'soit', 'dyn', 'fonction', 'structure', 'importe', ou 'énum'");

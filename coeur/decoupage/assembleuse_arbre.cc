@@ -121,18 +121,13 @@ void assembleuse_arbre::genere_code_C(
 		return;
 	}
 
-	/* À FAIRE : évité d'inclure tout ça si non nécessaire */
-	os << "#include <stdio.h>\n";
+	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
 	os << "#include <stdlib.h>\n";
-	os << "#include <sys/stat.h>\n";
-	os << "#include <sys/time.h>\n";
-	os << "#include <fcntl.h>\n";
-	os << "#include <unistd.h>\n";
-	os << "#include <math.h>\n";
-	os << "\n";
 
-	os << "#include <GL/glew.h>\n";
-	os << "#include <GLFW/glfw3.h>\n";
+	for (auto const &inc : this->inclusions) {
+		os << "#include <" << inc << ">\n";
+	}
+
 	os << "\n";
 
 	/* NOTE : les initiliaseurs des infos types doivent être valide pour toute

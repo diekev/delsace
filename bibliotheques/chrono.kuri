@@ -1,5 +1,6 @@
+# Bibliothèque de chronométrage.
 
-# @inclus "sys/time.h"
+#!inclus "sys/time.h"
 
 # À FAIRE : regarde les bibliothèques de temps/date des différents langages
 

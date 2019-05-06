@@ -623,7 +623,14 @@ int main(int argc, char *argv[])
 			of.close();
 
 			auto debut_executable = dls::chrono::maintenant();
-			auto commande = std::string("gcc /tmp/compilation_kuri.c -lglfw -lGL -lGLEW -lm -o ") + ops.chemin_sortie;
+			auto commande = std::string("gcc /tmp/compilation_kuri.c ");
+
+			for (auto const &bib : assembleuse.bibliotheques) {
+				commande += " -l" + std::string(bib);
+			}
+
+			commande += " -o ";
+			commande += ops.chemin_sortie;
 
 			auto err = system(commande.c_str());
 

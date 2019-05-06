@@ -1,15 +1,14 @@
 # Bibliothèque de flux, d'impression dans stdout.
 
+#!inclus "unistd.h"
+#!inclus "stdio.h"
+
 # Valeur des descripteurs fichiers pour les flux standards.
 soit std_out = 0;
 soit std_err = 1;
 soit std_log = 2;
 
-fonction externe printf(fmt : *z8, args : ...) : z32;
 fonction externe sprintf(tmp : *z8, fmt : *z8, args : ...) : z32;
-fonction externe open(chemin : *z8, oflag : z32) : z32;
-fonction externe close(filedes : z32) : z32;
-fonction externe read(filedes : z32, tpn : *z8, nbyte : z64) : z32;
 fonction externe write(filedes : z32, tpn : *z8, nbyte : z64) : z32;
 
 fonction imprime_valeur(

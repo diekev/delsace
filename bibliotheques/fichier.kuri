@@ -1,5 +1,9 @@
 importe "memoire"
 
+#!inclus "sys/stat.h"
+#!inclus "fcntl.h"
+#!inclus "unistd.h"
+
 # À FAIRE : évite d'avoir des tampon partout.
 
 fonction externe open(chemin : *z8, drapeaux : z32) : z32;
