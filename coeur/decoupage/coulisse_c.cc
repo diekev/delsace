@@ -1041,13 +1041,7 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
-			/* broyage du nom */
-			auto module = contexte.module(static_cast<size_t>(b->module_appel));
-			auto nom_module = module->nom;
-			auto nom_fonction = std::string(b->morceau.chaine);
-		//	auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
-
-			cree_appel(b, os, contexte, nom_fonction, b->enfants);
+			cree_appel(b, os, contexte, b->nom_fonction_appel, b->enfants);
 			break;
 		}
 		case type_noeud::VARIABLE:
@@ -1384,12 +1378,8 @@ void genere_code_C(
 				return;
 			}
 
-			/* broyage du nom */
-			auto nom_module = contexte.module(static_cast<size_t>(b->morceau.module))->nom;
-			auto nom_fonction = std::string(b->morceau.chaine);
-			//auto nom_broye = (est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
-
 			/* Crée fonction */
+			auto nom_fonction = donnees_fonction.nom_broye;
 
 			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
 						nom_fonction,
@@ -1487,7 +1477,12 @@ void genere_code_C(
 				os << "(*" << b->chaine() << ")";
 			}
 			else {
-				os << b->chaine();
+				if (b->nom_fonction_appel != "") {
+					os << b->nom_fonction_appel;
+				}
+				else {
+					os << b->chaine();
+				}
 			}
 
 			break;

@@ -191,6 +191,8 @@ struct base {
 
 	std::any valeur_calculee{};
 
+	std::string nom_fonction_appel{}; // À FAIRE : on ne peut pas utiliser valeur_calculee car les prépasses peuvent le changer.
+
 	size_t index_type = -1ul;
 
 	char aide_generation_code = 0;

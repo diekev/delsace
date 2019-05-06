@@ -25,6 +25,7 @@
 #include "arbre_syntactic.h"
 
 #include "assembleuse_arbre.h"
+#include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "modules.hh"
@@ -433,7 +434,15 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.commence_fonction(nullptr);
 
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
-			auto donnees_fonction = module->donnees_fonction(b->morceau.chaine);
+			auto nom_fonction = b->morceau.chaine;
+			auto &donnees_fonction = module->donnees_fonction(nom_fonction);
+
+			if (nom_fonction != "principale") {
+				donnees_fonction.nom_broye = broye_nom_fonction(nom_fonction, module->nom);
+			}
+			else {
+				donnees_fonction.nom_broye = "principale";
+			}
 
 			/* Pousse les paramètres sur la pile. */
 			for (auto const &nom : donnees_fonction.nom_args) {
@@ -512,8 +521,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						static_cast<size_t>(b->morceau.module),
 						static_cast<size_t>(b->module_appel));
 
-			auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
-
 			auto noms_arguments = std::any_cast<std::list<std::string_view>>(&b->valeur_calculee);
 
 			if (donnees_fonction == nullptr) {
@@ -580,6 +587,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
 						++enfant;
 					}
+
+					b->nom_fonction_appel = nom_fonction;
 
 					return;
 				}
@@ -785,6 +794,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->enfants.push_back(enfant_);
 			}
 
+			if (donnees_fonction->nom_broye.empty()) {
+				b->nom_fonction_appel = nom_fonction;
+			}
+			else {
+				b->nom_fonction_appel = donnees_fonction->nom_broye;
+			}
+
 			break;
 		}
 		case type_noeud::VARIABLE:
@@ -809,6 +825,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			if (module->fonction_existe(b->morceau.chaine)) {
 				auto const &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
 				b->index_type = donnees_fonction.index_type;
+				b->nom_fonction_appel = donnees_fonction.nom_broye;
 				return;
 			}
 

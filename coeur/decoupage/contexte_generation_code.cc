@@ -31,6 +31,7 @@
 #include <llvm/IR/LegacyPassManager.h>
 #pragma GCC diagnostic pop
 
+#include "broyage.hh"
 #include "modules.hh"
 
 ContexteGenerationCode::~ContexteGenerationCode()
@@ -61,6 +62,8 @@ DonneesModule *ContexteGenerationCode::cree_module(
 
 	/* La fonction memoire_utilisee est définie globalement donc doit être
 	 * définie dans chaque module. */
+	auto nom_fonction = "mémoire_utilisée";
+
 	auto donnees_fonctions = DonneesFonction();
 	auto dt = DonneesType{};
 	dt.pousse(id_morceau::FONCTION);
@@ -69,9 +72,10 @@ DonneesModule *ContexteGenerationCode::cree_module(
 	dt.pousse(id_morceau::Z64);
 	donnees_fonctions.index_type = magasin_types.ajoute_type(dt);
 	donnees_fonctions.index_type_retour = magasin_types[TYPE_Z64];
+	donnees_fonctions.nom_broye = broye_nom_fonction(nom_fonction, "");
 
-	module->fonctions_exportees.insert("memoire_utilisee");
-	module->ajoute_donnees_fonctions("memoire_utilisee", donnees_fonctions);
+	module->fonctions_exportees.insert(nom_fonction);
+	module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
 	modules.push_back(module);
 

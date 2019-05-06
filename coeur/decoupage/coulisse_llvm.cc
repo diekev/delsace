@@ -574,17 +574,13 @@ llvm::Value *genere_code_llvm(
 
 			contexte.magasin_types.donnees_types[donnees_fonction.index_type].type_llvm(type_fonction);
 
-			/* broyage du nom */
 			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
-			auto nom_module = contexte.module(static_cast<size_t>(b->morceau.module))->nom;
-			auto nom_fonction = std::string(b->morceau.chaine);
-			auto nom_broye = (est_externe || nom_module.empty()) ? nom_fonction : nom_module + '_' + nom_fonction;
 
 			/* Crée fonction */
 			auto fonction = llvm::Function::Create(
 								type_fonction,
 								llvm::Function::ExternalLinkage,
-								nom_broye,
+								donnees_fonction.nom_broye,
 								contexte.module_llvm);
 
 			if (est_externe) {
@@ -671,14 +667,7 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
-			/* broyage du nom */
-			auto module = contexte.module(static_cast<size_t>(b->module_appel));
-			auto nom_module = module->nom;
-			auto nom_fonction = std::string(b->morceau.chaine);
-			auto nom_broye = nom_module.empty() ? nom_fonction : nom_module + '_' + nom_fonction;
-
-			auto fonction = contexte.module_llvm->getFunction(nom_broye);
-			auto est_pointeur_fonction = (fonction == nullptr && contexte.locale_existe(b->morceau.chaine));
+			auto est_pointeur_fonction = contexte.locale_existe(b->morceau.chaine);
 
 			if (est_pointeur_fonction) {
 				auto valeur = contexte.valeur_locale(b->morceau.chaine);
@@ -690,6 +679,7 @@ llvm::Value *genere_code_llvm(
 				return cree_appel(contexte, charge, b->enfants);
 			}
 
+			auto fonction = contexte.module_llvm->getFunction(b->nom_fonction_appel);
 			return cree_appel(contexte, fonction, b->enfants);
 		}
 		case type_noeud::VARIABLE:
@@ -699,8 +689,8 @@ llvm::Value *genere_code_llvm(
 			if (valeur == nullptr) {
 				valeur = contexte.valeur_globale(b->morceau.chaine);
 
-				if (valeur == nullptr) {
-					valeur = contexte.module_llvm->getFunction(std::string(b->morceau.chaine));
+				if (valeur == nullptr && b->nom_fonction_appel != "") {
+					valeur = contexte.module_llvm->getFunction(b->nom_fonction_appel);
 					return valeur;
 				}
 			}

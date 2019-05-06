@@ -36,6 +36,7 @@ set(SOURCES
 	analyseuse_grammaire.h
 	arbre_syntactic.h
 	assembleuse_arbre.h
+	broyage.hh
 	contexte_generation_code.h
 	coulisse_c.hh
 	coulisse_llvm.hh
@@ -51,6 +52,7 @@ set(SOURCES
 	analyseuse_grammaire.cc
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
+	broyage.cc
 	contexte_generation_code.cc
 	coulisse_c.cc
 	coulisse_llvm.cc

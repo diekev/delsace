@@ -51,6 +51,7 @@ struct DonneesFonction {
 	size_t index_type_retour{-1ul};
 	size_t index_type{-1ul};
 	std::vector<std::string_view> nom_args{};
+	std::string nom_broye{};
 	bool est_externe = false;
 	bool est_variadique = false;
 	char pad[6];
