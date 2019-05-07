@@ -1112,9 +1112,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
-			if ((b->morceau.identifiant == id_morceau::CROCHET_OUVRANT) && enfant2->type == type_noeud::ACCES_MEMBRE) {
-				/* Pour corriger les accès membres via 'de', il faut
-				 * interchanger le premier enfant des noeuds. */
+			if ((b->morceau.identifiant == id_morceau::CROCHET_OUVRANT)
+					&& (enfant2->type == type_noeud::ACCES_MEMBRE
+						|| enfant2->morceau.identifiant == id_morceau::CROCHET_OUVRANT))
+			{
+				/* Pour corriger les accès membres via 'de' ou les accès chainés
+				 * des opérateurs[], il faut interchanger le premier enfant des
+				 * noeuds. */
 
 				auto enfant1de = enfant2->enfants.front();
 				auto enfant2de = enfant2->enfants.back();

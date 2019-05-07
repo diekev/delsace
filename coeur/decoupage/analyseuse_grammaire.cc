@@ -1223,7 +1223,9 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::CROCHET_OUVRANT:
 			{
 				/* l'accès à un élément d'un tableau est chaine[index] */
-				if (dernier_identifiant == id_morceau::CHAINE_CARACTERE || dernier_identifiant == id_morceau::CHAINE_LITTERALE) {
+				if (dernier_identifiant == id_morceau::CHAINE_CARACTERE
+						|| dernier_identifiant == id_morceau::CHAINE_LITTERALE
+						 || dernier_identifiant == id_morceau::CROCHET_OUVRANT) {
 					vide_pile_operateur(morceau.identifiant);
 
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
