@@ -1238,6 +1238,11 @@ void analyseuse_grammaire::analyse_expression_droite(
 					auto noeud_expr = noeud->enfants.front();
 					noeud->enfants.clear();
 
+					/* Si la racine de l'expression est un opérateur, il faut
+					 * l'empêcher d'être prise en compte pour l'expression
+					 * courante. */
+					noeud_expr->drapeaux |= IGNORE_OPERATEUR;
+
 					expression.push_back(noeud_expr);
 
 					m_assembleuse->depile_noeud(type_noeud::OPERATION_BINAIRE);
@@ -1450,7 +1455,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 	for (auto noeud : expression) {
 		DEB_LOG_EXPRESSION << tabulations[m_profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
-		if (est_operateur_binaire(noeud->identifiant())) {
+		if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_binaire(noeud->identifiant())) {
 			if (pile.size() < 2) {
 				erreur::lance_erreur(
 							"Expression malformée pour opérateur binaire",
@@ -1499,7 +1504,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 			pile.push_back(noeud);
 		}
-		else if (est_operateur_unaire(noeud->identifiant())) {
+		else if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_unaire(noeud->identifiant())) {
 			auto n1 = pile.back();
 			pile.pop_back();
 
