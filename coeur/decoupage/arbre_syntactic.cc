@@ -527,7 +527,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if (donnees_fonction == nullptr) {
 				/* Nous avons un pointeur vers une fonction. */
-				if (contexte.locale_existe(b->morceau.chaine)) {
+				if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
+						|| contexte.locale_existe(b->morceau.chaine)) {
 					for (auto const &nom : *noms_arguments) {
 						if (nom.empty()) {
 							continue;
@@ -541,11 +542,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									erreur::type_erreur::ARGUMENT_INCONNU);
 					}
 
+					auto index_type = (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE)
+							? b->index_type
+							: contexte.type_locale(b->morceau.chaine);
+					auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
+
 					/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
 
-					auto const &dt_pf = contexte.magasin_types.donnees_types[contexte.type_locale(b->morceau.chaine)];
-
-					if (dt_pf.type_base() != id_morceau::FONCTION) {
+					if (dt_fonc.type_base() != id_morceau::FONCTION) {
 						erreur::lance_erreur(
 									"La variable doit être un pointeur vers une fonction",
 									contexte,
@@ -553,8 +557,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									erreur::type_erreur::FONCTION_INCONNUE);
 					}
 
-					auto debut = dt_pf.end() - 1;
-					auto fin   = dt_pf.begin() - 1;
+					auto debut = dt_fonc.end() - 1;
+					auto fin   = dt_fonc.begin() - 1;
 
 					while (*debut != id_morceau::PARENTHESE_FERMANTE) {
 						--debut;
@@ -577,8 +581,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					/* vérifie la compatibilité des arguments pour déterminer
 					 * s'il y aura besoin d'une conversion. */
-					auto index_type = contexte.type_locale(b->morceau.chaine);
-					auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
 					auto dt_params = donnees_types_parametres(dt_fonc);
 
 					auto enfant = b->enfants.begin();
@@ -904,6 +906,15 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+#ifdef NONSUR
+				if (!contexte.non_sur() && expr_gauche) {
+					erreur::lance_erreur(
+								"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
+								contexte,
+								b->morceau,
+								erreur::type_erreur::ASSIGNATION_INVALIDE);
+				}
+#endif
 				if (membre->chaine() == "pointeur") {
 					auto dt = DonneesType{};
 					dt.pousse(id_morceau::POINTEUR);
@@ -951,6 +962,20 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto const &donnees_membres = iter->second;
 
 				b->index_type = donnees_structure.donnees_types[donnees_membres.index_membre];
+
+				/* pointeur vers une fonction */
+				if (membre->type == type_noeud::APPEL_FONCTION) {
+					/* ceci est le type de la fonction, l'analyse de l'appel
+					 * vérifiera le type des arguments et ajournera le type du
+					 * membre pour être celui du type de retour */
+					membre->index_type = b->index_type;
+					membre->aide_generation_code = GENERE_CODE_PTR_FONC_MEMBRE;
+
+					performe_validation_semantique(membre, contexte);
+
+					/* le type de l'accès est celui du retour de la fonction */
+					b->index_type = membre->index_type;
+				}
 
 				return;
 			}

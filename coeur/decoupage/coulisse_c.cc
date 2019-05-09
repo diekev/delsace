@@ -27,6 +27,7 @@
 #include <delsace/chrono/chronometrage.hh>
 
 #include <iostream>
+#include <sstream>
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
@@ -754,7 +755,7 @@ static void cree_appel(
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 	if (dt.type_base() != id_morceau::RIEN) {
-		auto nom_indirection = "__ret_" + nom_broye + std::to_string(b->morceau.ligne_pos);
+		auto nom_indirection = "__ret" + std::to_string(b->morceau.ligne_pos);
 		auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 
 		if (!est_tableau) {
@@ -853,31 +854,7 @@ static auto genere_code_acces_membre(
 {
 	auto const &index_type = structure->index_type;
 	auto type_structure = contexte.magasin_types.donnees_types[index_type];
-
 	auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
-
-	if (est_pointeur) {
-		type_structure = type_structure.derefence();
-	}
-
-	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
-#ifdef NONSUR
-		if (!contexte.non_sur() && expr_gauche) {
-			erreur::lance_erreur(
-						"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
-						contexte,
-						b->morceau,
-						erreur::type_erreur::ASSIGNATION_INVALIDE);
-		}
-#endif
-
-		auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
-
-		if (taille != 0) {
-			os << taille;
-			return;
-		}
-	}
 
 	/* vérifie si nous avons une énumération */
 	if (contexte.structure_existe(structure->chaine())) {
@@ -890,7 +867,8 @@ static auto genere_code_acces_membre(
 	}
 
 	genere_code_C(structure, contexte, true, os, os);
-	os << ((est_pointeur) ? "->" : ".") << membre->chaine();
+	os << ((est_pointeur) ? "->" : ".");
+	os << membre->chaine();
 }
 
 static void cree_initialisation(
@@ -999,7 +977,71 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::ACCES_MEMBRE:
 		{
-			// À FAIRE
+			auto structure = b->enfants.back();
+			auto membre = b->enfants.front();
+			auto const &index_type = structure->index_type;
+			auto type_structure = contexte.magasin_types.donnees_types[index_type];
+
+			auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
+
+			if (est_pointeur) {
+				type_structure = type_structure.derefence();
+			}
+
+			auto nom_acces = "__acces" + std::to_string(b->morceau.ligne_pos);
+			b->valeur_calculee = nom_acces;
+
+			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+				auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
+
+				if (taille != 0) {
+					os << "long " << nom_acces << " = " << taille << ";\n";
+					return;
+				}
+			}
+
+			/* vérifie si nous avons une énumération */
+			if (contexte.structure_existe(structure->chaine())) {
+				auto &ds = contexte.donnees_structure(structure->chaine());
+
+				if (ds.est_enum) {
+					os << "long " << nom_acces << " = "
+					   << structure->chaine() << '_' << membre->chaine() << ";\n";
+					return;
+				}
+			}
+
+			std::stringstream ss;
+
+			genere_code_C(structure, contexte, true, ss, ss);
+			ss << ((est_pointeur) ? "->" : ".");
+			ss << membre->chaine();
+
+			/* le membre peut-être un pointeur de fonction, donc fais une
+			 * prépasse pour générer cette appel */
+			if (membre->type == type_noeud::APPEL_FONCTION) {
+				membre->nom_fonction_appel = ss.str();
+				genere_code_C_prepasse(membre, contexte, false, os);
+
+				auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt,
+							os);
+				os << ' ' << nom_acces << " = "
+				   << std::any_cast<std::string>(membre->valeur_calculee) << ";\n";
+			}
+			else {
+				auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt,
+							os);
+				os << ' ' << nom_acces << " = " << ss.str() << ";\n";
+			}
+
 			break;
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
@@ -1436,9 +1478,15 @@ void genere_code_C(
 		}
 		case type_noeud::ACCES_MEMBRE:
 		{
-			auto structure = b->enfants.back();
-			auto membre = b->enfants.front();
-			genere_code_acces_membre(structure, membre, contexte, os);
+			if (expr_gauche == false) {
+				os << std::any_cast<std::string>(b->valeur_calculee);
+			}
+			else {
+				auto structure = b->enfants.back();
+				auto membre = b->enfants.front();
+				genere_code_acces_membre(structure, membre, contexte, os);
+			}
+
 			break;
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
@@ -1594,9 +1642,6 @@ void genere_code_C(
 
 			/* À FAIRE : typage */
 
-			/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
-			auto const valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
-
 			/* À FAIRE : tests */
 			auto est_operateur_comp = [](id_morceau id)
 			{
@@ -1625,31 +1670,31 @@ void genere_code_C(
 						if (enfant1->morceau.identifiant == b->morceau.identifiant) {
 							/* (a comp b) */
 							os << '(';
-							genere_code_C(enfant1, contexte, false, os, os);
+							genere_code_C(enfant1, contexte, expr_gauche, os, os);
 							os << ')';
 
 							os << "&&";
 
 							/* (b comp c) */
 							os << '(';
-							genere_code_C(enfant1->enfants.back(), contexte, valeur2_brut, os, os);
+							genere_code_C(enfant1->enfants.back(), contexte, expr_gauche, os, os);
 							os << b->morceau.chaine;
-							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant2, contexte, expr_gauche, os, os);
 							os << ')';
 						}
 						else {
 							os << '(';
-							genere_code_C(enfant1, contexte, false, os, os);
+							genere_code_C(enfant1, contexte, expr_gauche, os, os);
 							os << b->morceau.chaine;
-							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant2, contexte, expr_gauche, os, os);
 							os << ')';
 						}
 					}
 					else {
 						os << '(';
-						genere_code_C(enfant1, contexte, false, os, os);
+						genere_code_C(enfant1, contexte, expr_gauche, os, os);
 						os << b->morceau.chaine;
-						genere_code_C(enfant2, contexte, valeur2_brut, os, os);
+						genere_code_C(enfant2, contexte, expr_gauche, os, os);
 						os << ')';
 					}
 
@@ -1662,18 +1707,18 @@ void genere_code_C(
 					switch (type_base & 0xff) {
 						case id_morceau::POINTEUR:
 						{
-							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant1, contexte, expr_gauche, os, os);
 							os << '[';
-							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant2, contexte, expr_gauche, os, os);
 							os << ']';
 							break;
 						}
 						case id_morceau::CHAINE:
 						{
-							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant1, contexte, expr_gauche, os, os);
 							os << ".pointeur";
 							os << '[';
-							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant2, contexte, expr_gauche, os, os);
 							os << ']';
 							break;
 						}
@@ -1681,14 +1726,14 @@ void genere_code_C(
 						{
 							auto taille_tableau = static_cast<int>(type_base >> 8);
 
-							genere_code_C(enfant1, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant1, contexte, expr_gauche, os, os);
 
 							if (taille_tableau == 0) {
 								os << ".pointeur";
 							}
 
 							os << '[';
-							genere_code_C(enfant2, contexte, valeur2_brut, os, os);
+							genere_code_C(enfant2, contexte, expr_gauche, os, os);
 							os << ']';
 							break;
 						}
@@ -1918,6 +1963,8 @@ void genere_code_C(
 					var = enfant_1->enfants.front();
 					idx = enfant_1->enfants.back();
 				}
+
+				genere_code_C_prepasse(enfant_2, contexte_loc, false, os_loc);
 
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
 				genere_code_C(enfant_2, contexte_loc, false, os_loc, os_loc);
@@ -2182,7 +2229,7 @@ void genere_code_C(
 			os << "(";
 			contexte.magasin_types.converti_type_C(contexte, "", dt, os);
 			os << ")(";
-			genere_code_C(enfant, contexte, false, os, os);
+			genere_code_C(enfant, contexte, true, os, os);
 			os << ")";
 			return;
 
@@ -2424,7 +2471,7 @@ void genere_code_C(
 
 			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
 				os << "long " << nom_taille << " = ";
-				genere_code_C(enfant, contexte, false, os, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ".taille";
 
 				if (dt.type_base() == id_morceau::TABLEAU) {
@@ -2440,11 +2487,11 @@ void genere_code_C(
 				os << ";\n";
 
 				os << "free(";
-				genere_code_C(enfant, contexte, false, os, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ".pointeur);\n";
-				genere_code_C(enfant, contexte, false, os, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ".pointeur = 0;\n";
-				genere_code_C(enfant, contexte, false, os, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ".taille = 0;\n";
 			}
 			else {
@@ -2457,9 +2504,9 @@ void genere_code_C(
 				os << ");\n";
 
 				os << "free(";
-				genere_code_C(enfant, contexte, false, os, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << ");\n";
-				genere_code_C(enfant, contexte, false, os, os);
+				genere_code_C(enfant, contexte, true, os, os);
 				os << " = 0;\n";
 			}
 
@@ -2596,10 +2643,11 @@ void genere_code_C(
 				//     enf1
 				// }
 
+				/* À FAIRE : pour les accès membre -> prépasse */
 				os << condition << "(";
-				genere_code_C(expression, contexte, false, os, os);
+				genere_code_C(expression, contexte, true, os, os);
 				os << " == ";
-				genere_code_C(enf0, contexte, false, os, os);
+				genere_code_C(enf0, contexte, true, os, os);
 				os << ") {\n";
 				genere_code_C(enf1, contexte, false, os, os);
 				os << "}\n";
