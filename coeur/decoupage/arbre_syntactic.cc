@@ -414,6 +414,13 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
+static auto valides_enfants(base *b, ContexteGenerationCode &contexte)
+{
+	for (auto enfant : b->enfants) {
+		performe_validation_semantique(enfant, contexte);
+	}
+}
+
 void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 {
 	switch (b->type) {
@@ -574,10 +581,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					b->index_type = contexte.magasin_types.ajoute_type(dt);
 
-					/* À FAIRE : déduplique */
-					for (auto enfant : b->enfants) {
-						performe_validation_semantique(enfant, contexte);
-					}
+					valides_enfants(b, contexte);
 
 					/* vérifie la compatibilité des arguments pour déterminer
 					 * s'il y aura besoin d'une conversion. */
@@ -712,10 +716,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				index = std::min(index + 1, index_max);
 			}
 
-			/* À FAIRE : déduplique */
-			for (auto enfant : b->enfants) {
-				performe_validation_semantique(enfant, contexte);
-			}
+			valides_enfants(b, contexte);
 
 			/* transforme les enfants pour la génération du code */
 			auto fonction_variadique_interne = donnees_fonction->est_variadique
@@ -1363,10 +1364,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			contexte.empile_nombre_locales();
 
-			/* À FAIRE : déduplique */
-			for (auto enfant : b->enfants) {
-				performe_validation_semantique(enfant, contexte);
-			}
+			valides_enfants(b, contexte);
 
 			if (b->enfants.empty()) {
 				b->index_type = contexte.magasin_types[TYPE_RIEN];
@@ -1554,11 +1552,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::TAILLE_DE:
 		{
 			b->index_type = contexte.magasin_types[TYPE_N32];
-
-			for (auto enfant : b->enfants) {
-				performe_validation_semantique(enfant, contexte);
-			}
-
+			valides_enfants(b, contexte);
 			break;
 		}
 		case type_noeud::PLAGE:
@@ -1623,10 +1617,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::DIFFERE:
 		case type_noeud::TABLEAU:
 		{
-			for (auto enfant : b->enfants) {
-				performe_validation_semantique(enfant, contexte);
-			}
-
+			valides_enfants(b, contexte);
 			break;
 		}
 		case type_noeud::TANTQUE:
@@ -1918,11 +1909,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			/* TESTS : si énum -> vérifie que toutes les valeurs soient prises
 			 * en compte, sauf s'il y a un bloc sinon après. */
-			/* À FAIRE : déduplique */
-			for (auto enfant : b->enfants) {
-				performe_validation_semantique(enfant, contexte);
-			}
-
+			valides_enfants(b, contexte);
 			break;
 		}
 	}
