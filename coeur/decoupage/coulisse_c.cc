@@ -1251,6 +1251,17 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
+			auto nom_tableau = "__tabl" + std::to_string(b->morceau.ligne_pos);
+			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+
+			contexte.magasin_types.converti_type_C(
+						contexte,
+						nom_tableau,
+						dt,
+						os);
+
+			os << " = ";
+
 			std::vector<base *> feuilles;
 			rassemble_feuilles(b, feuilles);
 
@@ -1262,7 +1273,9 @@ static void genere_code_C_prepasse(
 				virgule = ',';
 			}
 
-			os << '}';
+			os << "};\n";
+
+			b->valeur_calculee = nom_tableau;
 
 			break;
 		}
@@ -1509,7 +1522,20 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_VARIABLE:
 		{
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto dt = contexte.magasin_types.donnees_types[b->index_type];
+
+			/* pour les assignations de tableaux fixes, remplace les crochets
+			 * par des pointeurs pour la déclaration */
+			if (possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
+				if (dt.type_base() != id_morceau::TABLEAU && (dt.type_base() & 0xff) == id_morceau::TABLEAU) {
+					auto ndt = DonneesType{};
+					ndt.pousse(id_morceau::POINTEUR);
+					ndt.pousse(dt.derefence());
+
+					dt = ndt;
+				}
+			}
+
 			auto est_tableau = contexte.magasin_types.converti_type_C(
 						contexte,
 						b->chaine(),
@@ -2313,19 +2339,7 @@ void genere_code_C(
 		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
-			std::vector<base *> feuilles;
-			rassemble_feuilles(b, feuilles);
-
-			auto virgule = '{';
-
-			for (auto f : feuilles) {
-				os << virgule;
-				genere_code_C(f, contexte, false, os, os);
-				virgule = ',';
-			}
-
-			os << '}';
-
+			os << std::any_cast<std::string>(b->valeur_calculee);
 			break;
 		}
 		case type_noeud::TYPE_DE:
