@@ -528,22 +528,31 @@ static std::string cree_info_type_C(
 
 			break;
 		}
+		case id_morceau::TROIS_POINTS:
 		case id_morceau::TABLEAU:
 		{
 			auto deref = donnees_type.derefence();
 
-			auto idx = contexte.magasin_types.ajoute_type(deref);
-			auto &rderef = contexte.magasin_types.donnees_types[idx];
-
-			if (rderef.ptr_info_type == "") {
-				rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef);
-			}
-
 			auto nom_info_type = "__info_type_tableau" + std::to_string(index++);
 
-			os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
-			os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
-			os_init << nom_info_type << ".type_pointe = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
+			/* dans le cas des arguments variadics des fonctions externes */
+			if (deref.est_invalide()) {
+				os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
+				os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
+				os_init << nom_info_type << ".type_pointe = 0;\n";
+			}
+			else {
+				auto idx = contexte.magasin_types.ajoute_type(deref);
+				auto &rderef = contexte.magasin_types.donnees_types[idx];
+
+				if (rderef.ptr_info_type == "") {
+					rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef);
+				}
+
+				os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
+				os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
+				os_init << nom_info_type << ".type_pointe = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
+			}
 
 			valeur = nom_info_type;
 			break;
@@ -1398,8 +1407,10 @@ void genere_code_C(
 				auto dt = DonneesType{};
 
 				if (argument.est_variadic) {
+					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
+
 					dt.pousse(id_morceau::TABLEAU);
-					dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
+					dt.pousse(dt_var.derefence());
 
 					contexte.magasin_types.ajoute_type(dt);
 				}

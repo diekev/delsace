@@ -460,9 +460,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto index_dt = argument.donnees_type;
 
 				if (argument.est_variadic) {
+					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
+
 					auto dt = DonneesType{};
 					dt.pousse(id_morceau::TABLEAU);
-					dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
+					dt.pousse(dt_var.derefence());
 
 					index_dt = contexte.magasin_types.ajoute_type(dt);
 				}
@@ -591,7 +593,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					/* Validation des types passés en paramètre. */
 					for (size_t i = 0; i < dt_params.size() - 1; ++i) {
 						auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
-						verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
+
+						if (dt_params[i].type_base() == id_morceau::TROIS_POINTS) {
+							verifie_compatibilite(b, contexte, dt_params[i].derefence(), type_enf, *enfant);
+						}
+						else {
+							verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
+						}
+
 						++enfant;
 					}
 
@@ -748,7 +757,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
 				noeud_tableau->drapeaux |= EST_CALCULE;
 				auto nom_arg = donnees_fonction->nom_args.back();
-				noeud_tableau->index_type = donnees_fonction->args[nom_arg].donnees_type;
+
+				auto index_dt_var = donnees_fonction->args[nom_arg].donnees_type;
+				auto &dt_var = contexte.magasin_types.donnees_types[index_dt_var];
+				noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.derefence());
 
 				enfants[index_premier_var_arg] = noeud_tableau;
 			}
@@ -766,9 +778,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto const &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
 				auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
 
+				/* À FAIRE : arguments variadics : comment les passer d'une
+				 * fonction à une autre. */
 				if (iter->second.est_variadic) {
-					if (!type_arg.est_invalide()) {
-						verifie_compatibilite(b, contexte, type_arg, type_enf, *enfant);
+					if (!type_arg.derefence().est_invalide()) {
+						verifie_compatibilite(b, contexte, type_arg.derefence(), type_enf, *enfant);
 
 						if (noeud_tableau) {
 							noeud_tableau->ajoute_noeud(*enfant);

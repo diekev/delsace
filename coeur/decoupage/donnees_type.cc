@@ -116,6 +116,11 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 		for (;debut != fin; --debut) {
 			auto donnee = *debut;
 			switch (donnee & 0xff) {
+				case id_morceau::TROIS_POINTS:
+				{
+					os << "...";
+					break;
+				}
 				case id_morceau::POINTEUR:
 					os << '*';
 					break;
@@ -503,7 +508,10 @@ static bool converti_type_simple_C(
 			break;
 		}
 		default:
+		{
+			assert(false);
 			break;
+		}
 	}
 
 	return est_tableau;
@@ -521,7 +529,7 @@ bool MagasinDonneesType::converti_type_C(
 		return false;
 	}
 
-	if (donnees.type_base() == id_morceau::TABLEAU) {
+	if (donnees.type_base() == id_morceau::TABLEAU || donnees.type_base() == id_morceau::TROIS_POINTS) {
 		if (echappe_struct) {
 			os << "struct ";
 		}
@@ -599,11 +607,11 @@ bool MagasinDonneesType::converti_type_C(
 				auto &pile_type = liste_pile_type[i];
 
 				while (!pile_type.empty()) {
-					converti_type_simple_C(
+					converti_type_C(
 								contexte,
-								os,
 								"",
 								pile_type.top(),
+								os,
 								echappe,
 								echappe_struct);
 

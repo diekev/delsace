@@ -101,6 +101,7 @@ static bool est_specifiant_type(id_morceau identifiant)
 		case id_morceau::FOIS:
 		case id_morceau::ESPERLUETTE:
 		case id_morceau::CROCHET_OUVRANT:
+		case id_morceau::TROIS_POINTS:
 			return true;
 		default:
 			return false;
@@ -477,26 +478,26 @@ void analyseuse_grammaire::analyse_parametres_fonction(
 		lance_erreur("Attendu ':' après le nom de l'argument");
 	}
 
-	if (est_identifiant(id_morceau::TROIS_POINTS)) {
-		avance();
+	auto index_dt = size_t{-1ul};
 
-		noeud->drapeaux |= VARIADIC;
+	if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+		index_dt = analyse_declaration_type(donnees_type_fonction, false);
 
-		if (!possede_drapeau(noeud->drapeaux, EST_EXTERNE) && est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-			lance_erreur("La déclaration de fonction variadique sans type n'est"
-						 " implémentée que pour les fonctions externes");
+		auto &dt = m_contexte.magasin_types.donnees_types[index_dt];
+
+		if (dt.type_base() == type_id::TROIS_POINTS) {
+			noeud->drapeaux |= VARIADIC;
+
+			if (!possede_drapeau(noeud->drapeaux, EST_EXTERNE) && dt.derefence().est_invalide()) {
+				lance_erreur("La déclaration de fonction variadique sans type n'est"
+							 " implémentée que pour les fonctions externes");
+			}
 		}
-	}
-
-	auto donnees_type = size_t{-1ul};
-
-	if (!possede_drapeau(noeud->drapeaux, VARIADIC) || !est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-		donnees_type = analyse_declaration_type(donnees_type_fonction, false);
 	}
 
 	DonneesArgument donnees_arg;
 	donnees_arg.index = donnees_fonction.args.size();
-	donnees_arg.donnees_type = donnees_type;
+	donnees_arg.donnees_type = index_dt;
 	/* doit être vrai uniquement pour le dernier argument */
 	donnees_arg.est_variadic = (noeud->drapeaux & VARIADIC) != 0;
 	donnees_arg.est_dynamic = est_dynamic;
@@ -1792,66 +1793,84 @@ size_t analyseuse_grammaire::analyse_declaration_type(DonneesType *donnees_type_
 
 size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_type_fonction)
 {
-	DonneesType donnees_type;
+	auto dernier_id = id_morceau{};
+	auto donnees_type = DonneesType{};
 
 	while (est_specifiant_type(identifiant_courant())) {
-		bool est_pointeur = true;
-		bool est_tableau  = false;
-		int taille = 0;
+		auto id = this->identifiant_courant();
+		avance();
 
-		if (requiers_identifiant(id_morceau::CROCHET_OUVRANT)) {
-			est_pointeur = false;
-			est_tableau = true;
+		switch (id) {
+			case type_id::CROCHET_OUVRANT:
+			{
+				auto taille = 0;
 
-			if (this->identifiant_courant() != id_morceau::CROCHET_FERMANT) {
-				/* À FAIRE */
+				if (this->identifiant_courant() != id_morceau::CROCHET_FERMANT) {
+					/* À FAIRE */
 #if 0
-				analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT, true);
+					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT, true);
 #else
-				if (!requiers_nombre_entier()) {
-					lance_erreur("Attendu un nombre entier après [");
+					if (!requiers_nombre_entier()) {
+						lance_erreur("Attendu un nombre entier après [");
+					}
+
+					auto const &morceau = donnees();
+					taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
+#endif
 				}
 
-				auto const &morceau = donnees();
-				taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
-#endif
+				if (!requiers_identifiant(id_morceau::CROCHET_FERMANT)) {
+					lance_erreur("Attendu ']'");
+				}
+
+				/* À FAIRE ? : meilleure manière de stocker la taille. */
+				donnees_type.pousse(id_morceau::TABLEAU | (taille << 8));
+
+				break;
+			}
+			case type_id::TROIS_POINTS:
+			{
+				donnees_type.pousse(id);
+				break;
+			}
+			case type_id::FOIS:
+			{
+				donnees_type.pousse(id_morceau::POINTEUR);
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+
+		dernier_id = id;
+	}
+
+	/* Soutiens pour les types des fonctions variadiques externes. */
+	if (dernier_id != id_morceau::TROIS_POINTS || !est_identifiant(type_id::PARENTHESE_FERMANTE)) {
+		if (!requiers_identifiant_type()) {
+			lance_erreur("Attendu la déclaration d'un type");
+		}
+
+		auto identifiant = donnees().identifiant;
+
+		if (identifiant == id_morceau::CHAINE_CARACTERE) {
+			auto const nom_type = donnees().chaine;
+
+			if (!m_contexte.structure_existe(nom_type)) {
+				lance_erreur("Structure inconnue", erreur::type_erreur::STRUCTURE_INCONNUE);
 			}
 
-			if (!requiers_identifiant(id_morceau::CROCHET_FERMANT)) {
-				lance_erreur("Attendu ']'");
-			}
+			auto const &donnees_structure = m_contexte.donnees_structure(nom_type);
+			identifiant = (identifiant | (static_cast<int>(donnees_structure.id) << 8));
 		}
 
-		if (est_pointeur) {
-			donnees_type.pousse(id_morceau::POINTEUR);
+		donnees_type.pousse(identifiant);
+
+		if (donnees_type_fonction) {
+			donnees_type_fonction->pousse(donnees_type);
 		}
-		else if (est_tableau) {
-			/* À FAIRE ? : meilleure manière de stocker la taille. */
-			donnees_type.pousse(id_morceau::TABLEAU | (taille << 8));
-		}
-	}
-
-	if (!requiers_identifiant_type()) {
-		lance_erreur("Attendu la déclaration d'un type");
-	}
-
-	auto identifiant = donnees().identifiant;
-
-	if (identifiant == id_morceau::CHAINE_CARACTERE) {
-		auto const nom_type = donnees().chaine;
-
-		if (!m_contexte.structure_existe(nom_type)) {
-			lance_erreur("Structure inconnue", erreur::type_erreur::STRUCTURE_INCONNUE);
-		}
-
-		auto const &donnees_structure = m_contexte.donnees_structure(nom_type);
-		identifiant = (identifiant | (static_cast<int>(donnees_structure.id) << 8));
-	}
-
-	donnees_type.pousse(identifiant);
-
-	if (donnees_type_fonction) {
-		donnees_type_fonction->pousse(donnees_type);
 	}
 
 	return m_contexte.magasin_types.ajoute_type(donnees_type);
