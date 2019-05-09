@@ -457,18 +457,17 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			for (auto const &nom : donnees_fonction.nom_args) {
 				auto const &argument = donnees_fonction.args[nom];
 
+				auto index_dt = argument.donnees_type;
+
 				if (argument.est_variadic) {
 					auto dt = DonneesType{};
 					dt.pousse(id_morceau::TABLEAU);
 					dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
 
-					auto index_dt = contexte.magasin_types.ajoute_type(dt);
+					index_dt = contexte.magasin_types.ajoute_type(dt);
+				}
 
-					contexte.pousse_locale(nom, nullptr, index_dt, argument.est_dynamic, argument.est_variadic);
-				}
-				else {
-					contexte.pousse_locale(nom, nullptr, argument.donnees_type, argument.est_dynamic, argument.est_variadic);
-				}
+				contexte.pousse_locale(nom, nullptr, index_dt, argument.est_dynamic, argument.est_variadic);
 			}
 
 			/* vérifie le type du bloc */
