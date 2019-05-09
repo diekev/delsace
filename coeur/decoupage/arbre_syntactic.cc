@@ -1066,14 +1066,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto variable = b->enfants.front();
 			auto expression = b->enfants.back();
 
-			if (!peut_etre_assigne(variable, contexte)) {
-				erreur::lance_erreur(
-							"Impossible d'assigner l'expression à la variable !",
-							contexte,
-							b->morceau,
-							erreur::type_erreur::ASSIGNATION_INVALIDE);
-			}
-
 			performe_validation_semantique(expression, contexte);
 
 			b->index_type = expression->index_type;
@@ -1106,6 +1098,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			performe_validation_semantique(variable, contexte);
+
+			/* À cause du mélange des opérateurs "[]" et "de", il faut attendre
+			 * que toutes les validations sémantiques soient faites pour pouvoir
+			 * calculer la validité de l'assignation, car la validation de
+			 * l'opérateur '[]' met les noeuds dans l'ordre. */
+			if (!peut_etre_assigne(variable, contexte)) {
+				erreur::lance_erreur(
+							"Impossible d'assigner l'expression à la variable !",
+							contexte,
+							b->morceau,
+							erreur::type_erreur::ASSIGNATION_INVALIDE);
+			}
 
 			auto const &type_gauche = contexte.magasin_types.donnees_types[variable->index_type];
 			auto const niveau_compat = sont_compatibles(type_gauche, dt, expression->type);
