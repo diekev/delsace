@@ -436,22 +436,22 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 
+			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
+			auto nom_fonction = b->morceau.chaine;
+			auto &donnees_fonction = module->donnees_fonction(nom_fonction);
+
+			if (!est_externe && nom_fonction != "principale") {
+				donnees_fonction.nom_broye = broye_nom_fonction(nom_fonction, module->nom);
+			}
+			else {
+				donnees_fonction.nom_broye = nom_fonction;
+			}
+
 			if (est_externe) {
 				return;
 			}
 
 			contexte.commence_fonction(nullptr);
-
-			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
-			auto nom_fonction = b->morceau.chaine;
-			auto &donnees_fonction = module->donnees_fonction(nom_fonction);
-
-			if (nom_fonction != "principale") {
-				donnees_fonction.nom_broye = broye_nom_fonction(nom_fonction, module->nom);
-			}
-			else {
-				donnees_fonction.nom_broye = "principale";
-			}
 
 			/* Pousse les paramètres sur la pile. */
 			for (auto const &nom : donnees_fonction.nom_args) {
