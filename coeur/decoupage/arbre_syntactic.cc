@@ -421,6 +421,82 @@ static auto valides_enfants(base *b, ContexteGenerationCode &contexte)
 	}
 }
 
+static auto valide_appel_pointeur_fonction(
+		base *b,
+		ContexteGenerationCode &contexte,
+		std::list<std::string_view> const &noms_arguments,
+		std::string const &nom_fonction)
+{
+	for (auto const &nom : noms_arguments) {
+		if (nom.empty()) {
+			continue;
+		}
+
+		/* À FAIRE : trouve les données morceaux idoines. */
+		erreur::lance_erreur(
+					"Les arguments d'un pointeur fonction ne peuvent être nommés",
+					contexte,
+					b->donnees_morceau(),
+					erreur::type_erreur::ARGUMENT_INCONNU);
+	}
+
+	auto index_type = (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE)
+			? b->index_type
+			: contexte.type_locale(b->morceau.chaine);
+	auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
+
+	/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
+
+	if (dt_fonc.type_base() != id_morceau::FONCTION) {
+		erreur::lance_erreur(
+					"La variable doit être un pointeur vers une fonction",
+					contexte,
+					b->donnees_morceau(),
+					erreur::type_erreur::FONCTION_INCONNUE);
+	}
+
+	auto debut = dt_fonc.end() - 1;
+	auto fin   = dt_fonc.begin() - 1;
+
+	while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+		--debut;
+	}
+
+	--debut;
+
+	auto dt = DonneesType{};
+
+	while (debut != fin) {
+		dt.pousse(*debut--);
+	}
+
+	b->index_type = contexte.magasin_types.ajoute_type(dt);
+
+	valides_enfants(b, contexte);
+
+	/* vérifie la compatibilité des arguments pour déterminer
+	 * s'il y aura besoin d'une conversion. */
+	auto dt_params = donnees_types_parametres(dt_fonc);
+
+	auto enfant = b->enfants.begin();
+
+	/* Validation des types passés en paramètre. */
+	for (size_t i = 0; i < dt_params.size() - 1; ++i) {
+		auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
+
+		if (dt_params[i].type_base() == id_morceau::TROIS_POINTS) {
+			verifie_compatibilite(b, contexte, dt_params[i].derefence(), type_enf, *enfant);
+		}
+		else {
+			verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
+		}
+
+		++enfant;
+	}
+
+	b->nom_fonction_appel = nom_fonction;
+}
+
 void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 {
 	switch (b->type) {
@@ -520,95 +596,32 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
-			/* broyage du nom */
-			auto module = contexte.module(static_cast<size_t>(b->module_appel));
-			auto nom_module = module->nom;
-			auto nom_fonction = std::string(b->morceau.chaine);
+			auto const nom_fonction = std::string(b->morceau.chaine);
+			auto noms_arguments = std::any_cast<std::list<std::string_view>>(&b->valeur_calculee);
 
-			auto donnees_fonction = cherche_donnees_fonction(
+			/* Nous avons un pointeur vers une fonction. */
+			if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
+					|| contexte.locale_existe(b->morceau.chaine))
+			{
+				valide_appel_pointeur_fonction(b, contexte, *noms_arguments, nom_fonction);
+				return;
+			}
+
+			/* Commence par valider les enfants puisqu'il nous faudra leurs
+			 * types pour déterminer la fonction à appeler. */
+			valides_enfants(b, contexte);
+
+			auto res = cherche_donnees_fonction(
 						contexte,
 						nom_fonction,
+						*noms_arguments,
+						b->enfants,
 						static_cast<size_t>(b->morceau.module),
 						static_cast<size_t>(b->module_appel));
 
-			auto noms_arguments = std::any_cast<std::list<std::string_view>>(&b->valeur_calculee);
+			auto donnees_fonction = res.df;
 
 			if (donnees_fonction == nullptr) {
-				/* Nous avons un pointeur vers une fonction. */
-				if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
-						|| contexte.locale_existe(b->morceau.chaine)) {
-					for (auto const &nom : *noms_arguments) {
-						if (nom.empty()) {
-							continue;
-						}
-
-						/* À FAIRE : trouve les données morceaux idoines. */
-						erreur::lance_erreur(
-									"Les arguments d'un pointeur fonction ne peuvent être nommés",
-									contexte,
-									b->donnees_morceau(),
-									erreur::type_erreur::ARGUMENT_INCONNU);
-					}
-
-					auto index_type = (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE)
-							? b->index_type
-							: contexte.type_locale(b->morceau.chaine);
-					auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
-
-					/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
-
-					if (dt_fonc.type_base() != id_morceau::FONCTION) {
-						erreur::lance_erreur(
-									"La variable doit être un pointeur vers une fonction",
-									contexte,
-									b->donnees_morceau(),
-									erreur::type_erreur::FONCTION_INCONNUE);
-					}
-
-					auto debut = dt_fonc.end() - 1;
-					auto fin   = dt_fonc.begin() - 1;
-
-					while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-						--debut;
-					}
-
-					--debut;
-
-					auto dt = DonneesType{};
-
-					while (debut != fin) {
-						dt.pousse(*debut--);
-					}
-
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
-
-					valides_enfants(b, contexte);
-
-					/* vérifie la compatibilité des arguments pour déterminer
-					 * s'il y aura besoin d'une conversion. */
-					auto dt_params = donnees_types_parametres(dt_fonc);
-
-					auto enfant = b->enfants.begin();
-
-					/* Validation des types passés en paramètre. */
-					for (size_t i = 0; i < dt_params.size() - 1; ++i) {
-						auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
-
-						if (dt_params[i].type_base() == id_morceau::TROIS_POINTS) {
-							verifie_compatibilite(b, contexte, dt_params[i].derefence(), type_enf, *enfant);
-						}
-						else {
-							verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
-						}
-
-						++enfant;
-					}
-
-					b->nom_fonction_appel = nom_fonction;
-
-					return;
-				}
-
 				erreur::lance_erreur(
 							"Fonction inconnue",
 							contexte,
@@ -616,200 +629,65 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							erreur::type_erreur::FONCTION_INCONNUE);
 			}
 
-			auto const nombre_args = donnees_fonction->args.size();
-
-			if (!donnees_fonction->est_variadique && (b->enfants.size() != nombre_args)) {
+			if (res.raison == MECOMPTAGE_ARGS) {
 				erreur::lance_erreur_nombre_arguments(
-							nombre_args,
+							donnees_fonction->args.size(),
 							b->enfants.size(),
 							contexte,
 							b->morceau);
 			}
 
-#ifdef NONSUR
-			if (donnees_fonction->est_externe && !contexte.non_sur()) {
+			if (res.raison == MENOMMAGE_ARG) {
+				erreur::lance_erreur_argument_inconnu(
+							res.nom_arg,
+							contexte,
+							b->donnees_morceau());
+			}
+
+			if (res.raison == RENOMMAGE_ARG) {
+				/* À FAIRE : trouve le morceau correspondant à l'argument. */
+				erreur::lance_erreur("Argument déjà nommé",
+									 contexte,
+									 b->donnees_morceau(),
+									 erreur::type_erreur::ARGUMENT_REDEFINI);
+			}
+
+			if (res.raison == MANQUE_NOM_APRES_VARIADIC) {
+				/* À FAIRE : trouve le morceau correspondant à l'argument. */
+				erreur::lance_erreur("Attendu le nom de l'argument",
+									 contexte,
+									 b->donnees_morceau(),
+									 erreur::type_erreur::ARGUMENT_INCONNU);
+			}
+
+			if (res.raison == METYPAGE_ARG) {
+				erreur::lance_erreur_type_arguments(
+							res.type1,
+							res.type2,
+							contexte,
+							res.noeud_decl->donnees_morceau(),
+							b->morceau);
+			}
+
+#ifdef NON_SUR
+			if (res.arg_pointeur && !contexte.non_sur()) {
 				erreur::lance_erreur(
 							"Ne peut appeler une fonction externe hors d'un bloc 'nonsûr'",
 							contexte,
 							b->morceau,
 							erreur::type_erreur::APPEL_INVALIDE);
 			}
+
 #endif
 
 			if (b->index_type == -1ul) {
 				b->index_type = donnees_fonction->index_type_retour;
 			}
 
-			/* vérifie que les arguments soient proprement nommés */
-			auto arguments_nommes = false;
-			std::set<std::string_view> args;
-			auto dernier_arg_variadique = false;
-
-			auto index = 0ul;
-			auto const index_max = nombre_args - donnees_fonction->est_variadique;
-
-			for (auto &nom_arg : *noms_arguments) {
-				if (nom_arg != "") {
-					arguments_nommes = true;
-
-					auto iter = donnees_fonction->args.find(nom_arg);
-
-					if (iter == donnees_fonction->args.end()) {
-						erreur::lance_erreur_argument_inconnu(
-									nom_arg,
-									contexte,
-									b->donnees_morceau());
-					}
-
-					auto &donnees = iter->second;
-
-					if ((args.find(nom_arg) != args.end()) && !donnees.est_variadic) {
-						/* À FAIRE : trouve le morceau correspondant à l'argument. */
-						erreur::lance_erreur("Argument déjà nommé",
-											 contexte,
-											 b->donnees_morceau(),
-											 erreur::type_erreur::ARGUMENT_REDEFINI);
-					}
-
-#ifdef NONSUR
-					auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
-
-					if (dt.type_base() == id_morceau::POINTEUR && !contexte.non_sur()) {
-						erreur::lance_erreur("Ne peut appeler une fonction hors d'un bloc 'nonsûr'",
-											 contexte,
-											 b->morceau,
-											 erreur::type_erreur::APPEL_INVALIDE);
-					}
-#endif
-
-					dernier_arg_variadique = iter->second.est_variadic;
-
-					args.insert(nom_arg);
-				}
-				else {
-					if (arguments_nommes == true && dernier_arg_variadique == false) {
-						/* À FAIRE : trouve le morceau correspondant à l'argument. */
-						erreur::lance_erreur("Attendu le nom de l'argument",
-											 contexte,
-											 b->donnees_morceau(),
-											 erreur::type_erreur::ARGUMENT_INCONNU);
-					}
-
-					if (nombre_args != 0) {
-						auto nom_argument = donnees_fonction->nom_args[index];
-
-#ifdef NONSUR
-						/* À FAIRE : meilleur stockage, ceci est redondant */
-						auto iter = donnees_fonction->args.find(nom_argument);
-						auto &donnees = iter->second;
-
-						/* il est possible que le type soit non-spécifié (variadic) */
-						if (donnees.donnees_type != -1ul) {
-							auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
-
-							if (dt.type_base() == id_morceau::POINTEUR && !contexte.non_sur()) {
-								erreur::lance_erreur("Ne peut appeler une fonction hors d'un bloc 'nonsûr'",
-													 contexte,
-													 b->morceau,
-													 erreur::type_erreur::APPEL_INVALIDE);
-							}
-						}
-#endif
-
-						args.insert(nom_argument);
-						nom_arg = nom_argument;
-					}
-				}
-
-				index = std::min(index + 1, index_max);
-			}
-
-			valides_enfants(b, contexte);
-
-			/* transforme les enfants pour la génération du code */
-			auto fonction_variadique_interne = donnees_fonction->est_variadique
-					&& !donnees_fonction->est_externe;
-
-			/* Réordonne les enfants selon l'apparition des arguments car LLVM est
-			 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
-			 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
-			 * code est généré. */
-			std::vector<base *> enfants;
-
-			if (fonction_variadique_interne) {
-				enfants.resize(donnees_fonction->args.size());
-			}
-			else {
-				enfants.resize(noms_arguments->size());
-			}
-
-			auto noeud_tableau = static_cast<base *>(nullptr);
-
-			if (fonction_variadique_interne) {
-				/* Pour les fonctions variadiques interne, nous créons un tableau
-				 * correspondant au types des arguments. */
-
-				auto nombre_args_var = std::max(0ul, noms_arguments->size() - (nombre_args - 1));
-				auto index_premier_var_arg = nombre_args - 1;
-
-				noeud_tableau = contexte.assembleuse->cree_noeud(
-							type_noeud::TABLEAU, contexte, b->morceau);
-				noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
-				noeud_tableau->drapeaux |= EST_CALCULE;
-				auto nom_arg = donnees_fonction->nom_args.back();
-
-				auto index_dt_var = donnees_fonction->args[nom_arg].donnees_type;
-				auto &dt_var = contexte.magasin_types.donnees_types[index_dt_var];
-				noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.derefence());
-
-				enfants[index_premier_var_arg] = noeud_tableau;
-			}
-
-			auto enfant = b->enfants.begin();
-			auto nombre_arg_variadic = 0ul;
-
-			for (auto const &nom : *noms_arguments) {
-				/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
-				 * car ça a déjà été fait dans l'analyse grammaticale. */
-				auto const iter = donnees_fonction->args.find(nom);
-				auto index_arg = iter->second.index;
-				auto const index_type_arg = iter->second.donnees_type;
-				auto const index_type_enf = (*enfant)->index_type;
-				auto const &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
-				auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
-
-				/* À FAIRE : arguments variadics : comment les passer d'une
-				 * fonction à une autre. */
-				if (iter->second.est_variadic) {
-					if (!type_arg.derefence().est_invalide()) {
-						verifie_compatibilite(b, contexte, type_arg.derefence(), type_enf, *enfant);
-
-						if (noeud_tableau) {
-							noeud_tableau->ajoute_noeud(*enfant);
-						}
-						else {
-							enfants[index_arg + nombre_arg_variadic] = *enfant;
-							++nombre_arg_variadic;
-						}
-					}
-					else {
-						enfants[index_arg + nombre_arg_variadic] = *enfant;
-						++nombre_arg_variadic;
-					}
-				}
-				else {
-					verifie_compatibilite(b, contexte, type_arg, type_enf, *enfant);
-
-					enfants[index_arg] = *enfant;
-				}
-
-				++enfant;
-			}
-
 			b->enfants.clear();
 
-			for (auto enfant_ : enfants) {
-				b->enfants.push_back(enfant_);
+			for (auto enfant : res.exprs) {
+				b->enfants.push_back(enfant);
 			}
 
 			if (donnees_fonction->nom_broye.empty()) {

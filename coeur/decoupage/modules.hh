@@ -24,16 +24,22 @@
 
 #pragma once
 
+#include <list>
 #include <set>
 #include <string>
 #include <unordered_map>
 
 #include <delsace/langage/tampon_source.hh>
 
+#include "donnees_type.h"
 #include "morceaux.h"
 
 namespace llvm {
 class Type;
+}
+
+namespace noeud {
+struct base;
 }
 
 struct ContexteGenerationCode;
@@ -141,8 +147,40 @@ void charge_module(
 		DonneesMorceaux const &morceau,
 		bool est_racine = false);
 
-DonneesFonction *cherche_donnees_fonction(
+/* ************************************************************************** */
+
+enum {
+	FONCTION_TROUVEE,
+	FONCTION_INTROUVEE,
+};
+
+enum {
+	AUCUNE_RAISON,
+	METYPAGE_ARG,
+	MENOMMAGE_ARG,
+	RENOMMAGE_ARG,
+	MECOMPTAGE_ARGS,
+	MANQUE_NOM_APRES_VARIADIC,
+};
+
+struct ResultatRecherche {
+	DonneesFonction *df = nullptr;
+	int etat = FONCTION_INTROUVEE;
+	int raison = AUCUNE_RAISON;
+	double poids_args = 0.0;
+	std::string_view nom_arg{};
+	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
+	std::vector<noeud::base *> exprs{};
+	DonneesType type1{};
+	DonneesType type2{};
+	noeud::base *noeud_decl = nullptr;
+	bool arg_pointeur = false;
+};
+
+ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom,
+		std::list<std::string_view> &noms_arguments,
+		std::list<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel);
