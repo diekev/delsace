@@ -51,15 +51,22 @@ bool DonneesModule::possede_fonction(std::string_view const &nom_fonction) const
 
 void DonneesModule::ajoute_donnees_fonctions(std::string_view const &nom_fonction, DonneesFonction const &donnees)
 {
-	fonctions.insert({nom_fonction, donnees});
+	auto iter = fonctions.find(nom_fonction);
+
+	if (iter == fonctions.end()) {
+		fonctions.insert({nom_fonction, {donnees}});
+	}
+	else {
+		iter->second.push_back(donnees);
+	}
 }
 
-DonneesFonction &DonneesModule::donnees_fonction(std::string_view const &nom_fonction) noexcept
+std::vector<DonneesFonction> &DonneesModule::donnees_fonction(std::string_view const &nom_fonction) noexcept
 {
 	auto iter = fonctions.find(nom_fonction);
 
 	if (iter == fonctions.end()) {
-		return m_donnees_invalides;
+		assert(false);
 	}
 
 	return iter->second;
@@ -72,10 +79,12 @@ bool DonneesModule::fonction_existe(std::string_view const &nom_fonction) const 
 
 size_t DonneesModule::memoire_utilisee() const noexcept
 {
-	auto memoire = fonctions.size() * (sizeof(DonneesFonction) + sizeof(std::string_view));
+	auto memoire = fonctions.size() * (sizeof(std::vector<DonneesFonction>) + sizeof(std::string_view));
 
-	for (auto const &fonc : fonctions) {
-		memoire += fonc.second.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
+	for (auto const &df : fonctions) {
+		for (auto const &fonc : df.second) {
+			memoire += fonc.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
+		}
 	}
 
 	return memoire;
@@ -443,24 +452,28 @@ ResultatRecherche cherche_donnees_fonction(
 			return {};
 		}
 
-		auto &df = module->donnees_fonction(nom);
+		auto &vdf = module->donnees_fonction(nom);
 
-		auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
+		for (auto &df : vdf) {
+			auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
 
-		if (res.etat == FONCTION_TROUVEE) {
-			return res;
+			if (res.etat == FONCTION_TROUVEE) {
+				return res;
+			}
 		}
 	}
 
 	auto module = contexte.module(index_module);
 
 	if (module->possede_fonction(nom)) {
-		auto &df = module->donnees_fonction(nom);
+		auto &vdf = module->donnees_fonction(nom);
 
-		auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
+		for (auto &df : vdf) {
+			auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
 
-		if (res.etat == FONCTION_TROUVEE) {
-			return res;
+			if (res.etat == FONCTION_TROUVEE) {
+				return res;
+			}
 		}
 	}
 
@@ -469,12 +482,14 @@ ResultatRecherche cherche_donnees_fonction(
 		module = contexte.module(nom_module);
 
 		if (module->possede_fonction(nom)) {
-			auto &df = module->donnees_fonction(nom);
+			auto &vdf = module->donnees_fonction(nom);
 
-			auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
+			for (auto &df : vdf) {
+				auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
 
-			if (res.etat == FONCTION_TROUVEE) {
-				return res;
+				if (res.etat == FONCTION_TROUVEE) {
+					return res;
+				}
 			}
 		}
 	}

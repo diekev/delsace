@@ -514,13 +514,20 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
 			auto nom_fonction = b->morceau.chaine;
-			auto &donnees_fonction = module->donnees_fonction(nom_fonction);
+			auto &vdf = module->donnees_fonction(nom_fonction);
+			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
+
+			for (auto &df : vdf) {
+				if (df.noeud_decl == b) {
+					donnees_fonction = &df;
+				}
+			}
 
 			if (!est_externe && nom_fonction != "principale") {
-				donnees_fonction.nom_broye = broye_nom_fonction(nom_fonction, module->nom);
+				donnees_fonction->nom_broye = broye_nom_fonction(nom_fonction, module->nom);
 			}
 			else {
-				donnees_fonction.nom_broye = nom_fonction;
+				donnees_fonction->nom_broye = nom_fonction;
 			}
 
 			if (est_externe) {
@@ -530,8 +537,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.commence_fonction(nullptr);
 
 			/* Pousse les paramètres sur la pile. */
-			for (auto const &nom : donnees_fonction.nom_args) {
-				auto const &argument = donnees_fonction.args[nom];
+			for (auto const &nom : donnees_fonction->nom_args) {
+				auto const &argument = donnees_fonction->args[nom];
 
 				auto index_dt = argument.donnees_type;
 
@@ -718,10 +725,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			/* Vérifie si c'est une fonction. */
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
 
+			/* À FAIRE : trouve la fonction selon le type */
 			if (module->fonction_existe(b->morceau.chaine)) {
 				auto const &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
-				b->index_type = donnees_fonction.index_type;
-				b->nom_fonction_appel = donnees_fonction.nom_broye;
+				b->index_type = donnees_fonction.front().index_type;
+				b->nom_fonction_appel = donnees_fonction.front().nom_broye;
 				return;
 			}
 

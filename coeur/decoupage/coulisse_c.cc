@@ -1372,7 +1372,14 @@ void genere_code_C(
 		case type_noeud::DECLARATION_FONCTION:
 		{
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
-			auto &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
+			auto &vdf = module->donnees_fonction(b->morceau.chaine);
+			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
+
+			for (auto &df : vdf) {
+				if (df.noeud_decl == b) {
+					donnees_fonction = &df;
+				}
+			}
 
 			/* Pour les fonctions variadiques nous transformons la liste d'argument en
 			 * un tableau dynamique transmis à la fonction. La raison étant que les
@@ -1390,7 +1397,7 @@ void genere_code_C(
 			}
 
 			/* Crée fonction */
-			auto nom_fonction = donnees_fonction.nom_broye;
+			auto nom_fonction = donnees_fonction->nom_broye;
 
 			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
 						nom_fonction,
@@ -1405,16 +1412,16 @@ void genere_code_C(
 
 			/* Crée code pour les arguments */
 
-			if (donnees_fonction.nom_args.size() == 0) {
+			if (donnees_fonction->nom_args.size() == 0) {
 				os << '(';
 			}
 
 			auto virgule = '(';
 
-			for (auto const &nom : donnees_fonction.nom_args) {
+			for (auto const &nom : donnees_fonction->nom_args) {
 				os << virgule;
 
-				auto &argument = donnees_fonction.args[nom];
+				auto &argument = donnees_fonction->args[nom];
 				auto index_type = argument.donnees_type;
 
 				auto dt = DonneesType{};

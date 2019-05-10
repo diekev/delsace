@@ -58,6 +58,7 @@ struct DonneesFonction {
 	size_t index_type{-1ul};
 	std::vector<std::string_view> nom_args{};
 	std::string nom_broye{};
+	noeud::base *noeud_decl = nullptr;
 	bool est_externe = false;
 	bool est_variadique = false;
 	char pad[6];
@@ -68,7 +69,7 @@ struct DonneesModule {
 	std::vector<DonneesMorceaux> morceaux{};
 	std::set<std::string_view> modules_importes{};
 	std::set<std::string_view> fonctions_exportees{};
-	std::unordered_map<std::string_view, DonneesFonction> fonctions{};
+	std::unordered_map<std::string_view, std::vector<DonneesFonction>> fonctions{};
 	size_t id = 0ul;
 	std::string nom{""};
 	std::string chemin{""};
@@ -100,7 +101,7 @@ struct DonneesModule {
 	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	[[nodiscard]] DonneesFonction &donnees_fonction(std::string_view const &nom_fonction) noexcept;
+	[[nodiscard]] std::vector<DonneesFonction> &donnees_fonction(std::string_view const &nom_fonction) noexcept;
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction

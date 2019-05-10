@@ -553,7 +553,14 @@ llvm::Value *genere_code_llvm(
 		case type_noeud::DECLARATION_FONCTION:
 		{
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
-			auto &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
+			auto &vdf = module->donnees_fonction(b->morceau.chaine);
+			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
+
+			for (auto &df : vdf) {
+				if (df.noeud_decl == b) {
+					donnees_fonction = &df;
+				}
+			}
 
 			/* Pour les fonctions variadiques nous transformons la liste d'argument en
 			 * un tableau dynamique transmis à la fonction. La raison étant que les
@@ -568,11 +575,11 @@ llvm::Value *genere_code_llvm(
 			auto &this_dt = contexte.magasin_types.donnees_types[b->index_type];
 			auto type_fonction = obtiens_type_fonction(
 									 contexte,
-									 donnees_fonction,
+									 *donnees_fonction,
 									 this_dt,
 									 (b->drapeaux & VARIADIC) != 0);
 
-			contexte.magasin_types.donnees_types[donnees_fonction.index_type].type_llvm(type_fonction);
+			contexte.magasin_types.donnees_types[donnees_fonction->index_type].type_llvm(type_fonction);
 
 			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 
@@ -580,7 +587,7 @@ llvm::Value *genere_code_llvm(
 			auto fonction = llvm::Function::Create(
 								type_fonction,
 								llvm::Function::ExternalLinkage,
-								donnees_fonction.nom_broye,
+								donnees_fonction->nom_broye,
 								contexte.module_llvm);
 
 			if (est_externe) {
@@ -596,8 +603,8 @@ llvm::Value *genere_code_llvm(
 			/* Crée code pour les arguments */
 			auto valeurs_args = fonction->arg_begin();
 
-			for (auto const &nom : donnees_fonction.nom_args) {
-				auto &argument = donnees_fonction.args[nom];
+			for (auto const &nom : donnees_fonction->nom_args) {
+				auto &argument = donnees_fonction->args[nom];
 				auto index_type = argument.donnees_type;
 				auto align = unsigned{0};
 				auto type = static_cast<llvm::Type *>(nullptr);

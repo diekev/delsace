@@ -409,6 +409,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 
 	auto donnees_fonctions = DonneesFonction{};
 	donnees_fonctions.est_externe = externe;
+	donnees_fonctions.noeud_decl = noeud;
 
 	analyse_parametres_fonction(noeud, donnees_fonctions, &donnees_type_fonction);
 
