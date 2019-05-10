@@ -30,4 +30,5 @@ std::string broye_nom_simple(std::string_view const &nom);
 
 std::string broye_nom_fonction(
 		std::string_view const &nom_fonction,
-		std::string const &nom_module);
+		std::string const &nom_module,
+		size_t index_type);

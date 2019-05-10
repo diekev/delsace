@@ -164,7 +164,7 @@ enum {
 	MANQUE_NOM_APRES_VARIADIC,
 };
 
-struct ResultatRecherche {
+struct DonneesCandidate {
 	DonneesFonction *df = nullptr;
 	int etat = FONCTION_INTROUVEE;
 	int raison = AUCUNE_RAISON;
@@ -176,6 +176,11 @@ struct ResultatRecherche {
 	DonneesType type2{};
 	noeud::base *noeud_decl = nullptr;
 	bool arg_pointeur = false;
+	std::vector<niveau_compat> drapeaux{};
+};
+
+struct ResultatRecherche {
+	std::vector<DonneesCandidate> candidates{};
 };
 
 ResultatRecherche cherche_donnees_fonction(

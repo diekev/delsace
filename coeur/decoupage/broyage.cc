@@ -74,7 +74,8 @@ std::string broye_nom_simple(std::string_view const &nom)
 
 std::string broye_nom_fonction(
 		std::string_view const &nom_fonction,
-		std::string const &nom_module)
+		std::string const &nom_module,
+		size_t index_type)
 {
 	/* pour l'instant, nous ne broyons que le nom pour supprimer les accents
 	 * dans le future, quand nous aurons des surcharges de fonctions et des
@@ -85,6 +86,7 @@ std::string broye_nom_fonction(
 	ret += broye_nom_simple(nom_module);
 	ret += '_';
 	ret += broye_nom_simple(nom_fonction);
+	ret += std::to_string(index_type);
 
 	return ret;
 }

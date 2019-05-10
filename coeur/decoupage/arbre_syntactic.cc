@@ -218,6 +218,27 @@ void rassemble_feuilles(
 	}
 }
 
+static void drapeau_depuis_niveau_compat(
+		base *enfant,
+		niveau_compat compat)
+{
+	if ((compat & niveau_compat::converti_tableau) != niveau_compat::aucune) {
+		enfant->drapeaux |= CONVERTI_TABLEAU;
+	}
+
+	if ((compat & niveau_compat::converti_eini) != niveau_compat::aucune) {
+		enfant->drapeaux |= CONVERTI_EINI;
+	}
+
+	if ((compat & niveau_compat::extrait_chaine_c) != niveau_compat::aucune) {
+		enfant->drapeaux |= EXTRAIT_CHAINE_C;
+	}
+
+	if ((compat & niveau_compat::converti_tableau_octet) != niveau_compat::aucune) {
+		enfant->drapeaux |= CONVERTI_TABLEAU_OCTET;
+	}
+}
+
 void verifie_compatibilite(
 		base *b,
 		ContexteGenerationCode &contexte,
@@ -236,21 +257,7 @@ void verifie_compatibilite(
 					b->morceau);
 	}
 
-	if ((compat & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_TABLEAU;
-	}
-
-	if ((compat & niveau_compat::converti_eini) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_EINI;
-	}
-
-	if ((compat & niveau_compat::extrait_chaine_c) != niveau_compat::aucune) {
-		enfant->drapeaux |= EXTRAIT_CHAINE_C;
-	}
-
-	if ((compat & niveau_compat::converti_tableau_octet) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_TABLEAU_OCTET;
-	}
+	drapeau_depuis_niveau_compat(enfant, compat);
 }
 
 void ajoute_nom_argument(base *b, const std::string_view &nom)
@@ -524,7 +531,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			if (!est_externe && nom_fonction != "principale") {
-				donnees_fonction->nom_broye = broye_nom_fonction(nom_fonction, module->nom);
+				donnees_fonction->nom_broye = broye_nom_fonction(nom_fonction, module->nom, donnees_fonction->index_type);
 			}
 			else {
 				donnees_fonction->nom_broye = nom_fonction;
@@ -626,9 +633,22 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						static_cast<size_t>(b->morceau.module),
 						static_cast<size_t>(b->module_appel));
 
-			auto donnees_fonction = res.df;
+			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
+			auto candidate = static_cast<DonneesCandidate *>(nullptr);
 
-			if (donnees_fonction == nullptr) {
+			auto poids = 0.0;
+
+			for (auto &dc : res.candidates) {
+				if (dc.etat == FONCTION_TROUVEE) {
+
+					if (dc.poids_args > poids) {
+						candidate = &dc;
+						poids = dc.poids_args;
+					}
+				}
+			}
+
+			if (candidate == nullptr || candidate->df == nullptr) {
 				erreur::lance_erreur(
 							"Fonction inconnue",
 							contexte,
@@ -636,7 +656,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							erreur::type_erreur::FONCTION_INCONNUE);
 			}
 
-			if (res.raison == MECOMPTAGE_ARGS) {
+			if (candidate->raison == MECOMPTAGE_ARGS) {
 				erreur::lance_erreur_nombre_arguments(
 							donnees_fonction->args.size(),
 							b->enfants.size(),
@@ -644,14 +664,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							b->morceau);
 			}
 
-			if (res.raison == MENOMMAGE_ARG) {
+			if (candidate->raison == MENOMMAGE_ARG) {
 				erreur::lance_erreur_argument_inconnu(
-							res.nom_arg,
+							candidate->nom_arg,
 							contexte,
 							b->donnees_morceau());
 			}
 
-			if (res.raison == RENOMMAGE_ARG) {
+			if (candidate->raison == RENOMMAGE_ARG) {
 				/* À FAIRE : trouve le morceau correspondant à l'argument. */
 				erreur::lance_erreur("Argument déjà nommé",
 									 contexte,
@@ -659,7 +679,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									 erreur::type_erreur::ARGUMENT_REDEFINI);
 			}
 
-			if (res.raison == MANQUE_NOM_APRES_VARIADIC) {
+			if (candidate->raison == MANQUE_NOM_APRES_VARIADIC) {
 				/* À FAIRE : trouve le morceau correspondant à l'argument. */
 				erreur::lance_erreur("Attendu le nom de l'argument",
 									 contexte,
@@ -667,17 +687,17 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									 erreur::type_erreur::ARGUMENT_INCONNU);
 			}
 
-			if (res.raison == METYPAGE_ARG) {
+			if (candidate->raison == METYPAGE_ARG) {
 				erreur::lance_erreur_type_arguments(
-							res.type1,
-							res.type2,
+							candidate->type1,
+							candidate->type2,
 							contexte,
-							res.noeud_decl->donnees_morceau(),
+							candidate->noeud_decl->donnees_morceau(),
 							b->morceau);
 			}
 
 #ifdef NON_SUR
-			if (res.arg_pointeur && !contexte.non_sur()) {
+			if (candidate->arg_pointeur && !contexte.non_sur()) {
 				erreur::lance_erreur(
 							"Ne peut appeler une fonction externe hors d'un bloc 'nonsûr'",
 							contexte,
@@ -686,6 +706,38 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 #endif
+			donnees_fonction = candidate->df;
+
+			/* met en place les drapeaux sur les enfants */
+
+			auto i = 0ul;
+			auto nombre_args_simples = candidate->exprs.size();
+			auto nombre_args_variadics = nombre_args_simples;
+
+			if (!candidate->exprs.empty() && candidate->exprs.back()->type == type_noeud::TABLEAU) {
+				/* ne compte pas le tableau */
+				nombre_args_simples -= 1;
+				nombre_args_variadics = candidate->drapeaux.size();
+			}
+
+			/* les drapeaux pour les arguments simples */
+			for (; i < nombre_args_simples; ++i) {
+				auto ncompat = candidate->drapeaux[i];
+				auto enfant = candidate->exprs[i];
+				drapeau_depuis_niveau_compat(enfant, ncompat);
+			}
+
+			/* les drapeaux pour les arguments variadics */
+			if (!candidate->exprs.empty()) {
+				auto noeud_tableau = candidate->exprs.back();
+				auto enfant_tabl = noeud_tableau->enfants.begin();
+
+				for (; i < nombre_args_variadics; ++i) {
+					auto ncompat = candidate->drapeaux[i];
+					auto enfant = *enfant_tabl++;
+					drapeau_depuis_niveau_compat(enfant, ncompat);
+				}
+			}
 
 			if (b->index_type == -1ul) {
 				b->index_type = donnees_fonction->index_type_retour;
@@ -693,7 +745,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			b->enfants.clear();
 
-			for (auto enfant : res.exprs) {
+			for (auto enfant : candidate->exprs) {
 				b->enfants.push_back(enfant);
 			}
 

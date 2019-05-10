@@ -194,55 +194,53 @@ void charge_module(
 static double verifie_compatibilite(
 		const DonneesType &type_arg,
 		const DonneesType &type_enf,
-		noeud::base *enfant)
+		noeud::base *enfant,
+		niveau_compat &drapeau)
 {
-	auto compat = sont_compatibles(type_arg, type_enf, enfant->type);
+	drapeau = sont_compatibles(type_arg, type_enf, enfant->type);
 
-	if (compat == niveau_compat::aucune) {
+	if (drapeau == niveau_compat::aucune) {
 		return 0.0;
 	}
 
-	if ((compat & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_TABLEAU;
+	if ((drapeau & niveau_compat::converti_tableau) != niveau_compat::aucune) {
 		return 0.5;
 	}
 
-	if ((compat & niveau_compat::converti_eini) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_EINI;
+	if ((drapeau & niveau_compat::converti_eini) != niveau_compat::aucune) {
 		return 0.5;
 	}
 
-	if ((compat & niveau_compat::extrait_chaine_c) != niveau_compat::aucune) {
-		enfant->drapeaux |= EXTRAIT_CHAINE_C;
+	if ((drapeau & niveau_compat::extrait_chaine_c) != niveau_compat::aucune) {
 		return 0.5;
 	}
 
-	if ((compat & niveau_compat::converti_tableau_octet) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_TABLEAU_OCTET;
+	if ((drapeau & niveau_compat::converti_tableau_octet) != niveau_compat::aucune) {
 		return 0.5;
 	}
 
 	return 1.0;
 }
 
-static ResultatRecherche verifie_donnees_fonction(
+static DonneesCandidate verifie_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		DonneesFonction &donnees_fonction,
-		std::list<std::string_view> &noms_arguments,
+		std::list<std::string_view> &noms_arguments_,
 		std::list<noeud::base *> const &exprs)
 {
-	auto res = ResultatRecherche{};
+	auto res = DonneesCandidate{};
 
 	auto const nombre_args = donnees_fonction.args.size();
 
 	if (!donnees_fonction.est_variadique && (exprs.size() != nombre_args)) {
-		res.etat = FONCTION_TROUVEE;
+		res.etat = FONCTION_INTROUVEE;
 		res.raison = MECOMPTAGE_ARGS;
 		res.df = &donnees_fonction;
 		return res;
 	}
 
 	if (nombre_args == 0) {
+		res.poids_args = 1.0;
 		res.etat = FONCTION_TROUVEE;
 		res.raison = AUCUNE_RAISON;
 		res.df = &donnees_fonction;
@@ -255,6 +253,8 @@ static ResultatRecherche verifie_donnees_fonction(
 	std::set<std::string_view> args;
 	auto dernier_arg_variadique = false;
 
+	/* crée une copie pour ne pas polluer la liste pour les appels suivants */
+	auto noms_arguments = noms_arguments_;
 	auto index = 0ul;
 	auto const index_max = nombre_args - donnees_fonction.est_variadique;
 	for (auto &nom_arg : noms_arguments) {
@@ -264,7 +264,7 @@ static ResultatRecherche verifie_donnees_fonction(
 			auto iter = donnees_fonction.args.find(nom_arg);
 
 			if (iter == donnees_fonction.args.end()) {
-				res.etat = FONCTION_TROUVEE;
+				res.etat = FONCTION_INTROUVEE;
 				res.raison = MENOMMAGE_ARG;
 				res.nom_arg = nom_arg;
 				res.df = &donnees_fonction;
@@ -274,7 +274,7 @@ static ResultatRecherche verifie_donnees_fonction(
 			auto &donnees = iter->second;
 
 			if ((args.find(nom_arg) != args.end()) && !donnees.est_variadic) {
-				res.etat = FONCTION_TROUVEE;
+				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
 				res.df = &donnees_fonction;
 				return res;
@@ -294,7 +294,7 @@ static ResultatRecherche verifie_donnees_fonction(
 		}
 		else {
 			if (arguments_nommes == true && dernier_arg_variadique == false) {
-				res.etat = FONCTION_TROUVEE;
+				res.etat = FONCTION_INTROUVEE;
 				res.raison = MANQUE_NOM_APRES_VARIADIC;
 				res.df = &donnees_fonction;
 				return res;
@@ -371,6 +371,10 @@ static ResultatRecherche verifie_donnees_fonction(
 	res.raison = AUCUNE_RAISON;
 
 	auto nombre_arg_variadic = 0ul;
+	auto nombre_arg_variadic_drapeau = 0ul;
+
+	std::vector<niveau_compat> drapeaux;
+	drapeaux.resize(exprs.size());
 
 	for (auto const &nom : noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
@@ -386,7 +390,8 @@ static ResultatRecherche verifie_donnees_fonction(
 		 * fonction à une autre. */
 		if (iter->second.est_variadic) {
 			if (!type_arg.derefence().est_invalide()) {
-				poids_args *= verifie_compatibilite(type_arg.derefence(), type_enf, *enfant);
+				auto drapeau = niveau_compat::ok;
+				poids_args *= verifie_compatibilite(type_arg.derefence(), type_enf, *enfant, drapeau);
 
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
@@ -399,19 +404,26 @@ static ResultatRecherche verifie_donnees_fonction(
 
 				if (noeud_tableau) {
 					noeud_tableau->ajoute_noeud(*enfant);
+					drapeaux[index_arg + nombre_arg_variadic_drapeau] = drapeau;
+					++nombre_arg_variadic_drapeau;
 				}
 				else {
 					enfants[index_arg + nombre_arg_variadic] = *enfant;
+					drapeaux[index_arg + nombre_arg_variadic_drapeau] = drapeau;
 					++nombre_arg_variadic;
+					++nombre_arg_variadic_drapeau;
 				}
 			}
 			else {
 				enfants[index_arg + nombre_arg_variadic] = *enfant;
+				drapeaux[index_arg + nombre_arg_variadic_drapeau] = niveau_compat::ok;
 				++nombre_arg_variadic;
+				++nombre_arg_variadic_drapeau;
 			}
 		}
 		else {
-			poids_args *= verifie_compatibilite(type_arg, type_enf, *enfant);
+			auto drapeau = niveau_compat::ok;
+			poids_args *= verifie_compatibilite(type_arg, type_enf, *enfant, drapeau);
 
 			if (poids_args == 0.0) {
 				poids_args = 0.0;
@@ -423,6 +435,7 @@ static ResultatRecherche verifie_donnees_fonction(
 			}
 
 			enfants[index_arg] = *enfant;
+			drapeaux[index_arg] = drapeau;
 		}
 
 		++enfant;
@@ -432,6 +445,7 @@ static ResultatRecherche verifie_donnees_fonction(
 	res.poids_args = poids_args;
 	res.exprs = enfants;
 	res.etat = FONCTION_TROUVEE;
+	res.drapeaux = drapeaux;
 
 	return res;
 }
@@ -444,6 +458,8 @@ ResultatRecherche cherche_donnees_fonction(
 		size_t index_module,
 		size_t index_module_appel)
 {
+	auto res = ResultatRecherche{};
+
 	if (index_module != index_module_appel) {
 		/* l'appel est qualifié (À FAIRE, méthode plus robuste) */
 		auto module = contexte.module(index_module_appel);
@@ -455,12 +471,11 @@ ResultatRecherche cherche_donnees_fonction(
 		auto &vdf = module->donnees_fonction(nom);
 
 		for (auto &df : vdf) {
-			auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-
-			if (res.etat == FONCTION_TROUVEE) {
-				return res;
-			}
+			auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
+			res.candidates.push_back(dc);
 		}
+
+		return res;
 	}
 
 	auto module = contexte.module(index_module);
@@ -469,11 +484,8 @@ ResultatRecherche cherche_donnees_fonction(
 		auto &vdf = module->donnees_fonction(nom);
 
 		for (auto &df : vdf) {
-			auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-
-			if (res.etat == FONCTION_TROUVEE) {
-				return res;
-			}
+			auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
+			res.candidates.push_back(dc);
 		}
 	}
 
@@ -485,14 +497,11 @@ ResultatRecherche cherche_donnees_fonction(
 			auto &vdf = module->donnees_fonction(nom);
 
 			for (auto &df : vdf) {
-				auto res = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-
-				if (res.etat == FONCTION_TROUVEE) {
-					return res;
-				}
+				auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
+				res.candidates.push_back(dc);
 			}
 		}
 	}
 
-	return {};
+	return res;
 }

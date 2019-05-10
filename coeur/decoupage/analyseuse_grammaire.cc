@@ -384,13 +384,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 		lance_erreur("Attendu la déclaration du nom de la fonction");
 	}
 
-	// crée noeud fonction
 	auto const nom_fonction = donnees().chaine;
-
-	if (m_module->fonction_existe(nom_fonction)) {
-		lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
-	}
-
 	m_module->fonctions_exportees.insert(nom_fonction);
 
 	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_contexte, donnees());
@@ -423,6 +417,16 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	noeud->index_type = analyse_declaration_type(&donnees_type_fonction);
 	donnees_fonctions.index_type_retour = noeud->index_type;
 	donnees_fonctions.index_type = m_contexte.magasin_types.ajoute_type(donnees_type_fonction);
+
+	if (m_module->fonction_existe(nom_fonction)) {
+		auto const &vdf = m_module->donnees_fonction(nom_fonction);
+
+		for (auto const &df : vdf) {
+			if (df.index_type == donnees_fonctions.index_type) {
+				lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
+			}
+		}
+	}
 
 	m_module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 

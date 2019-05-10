@@ -30,6 +30,7 @@
 #include "contexte_generation_code.h"
 #include "coulisse_c.hh"
 #include "coulisse_llvm.hh"
+#include "modules.hh"
 
 assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 {
@@ -133,7 +134,8 @@ void assembleuse_arbre::genere_code_C(
 
 	os << "static long __VG_memoire_utilisee__ = 0;";
 	os << "static long ";
-	os << broye_nom_fonction("mémoire_utilisée", "");
+	auto &df = contexte_generation.module(0)->donnees_fonction("mémoire_utilisée").front();
+	os << df.nom_broye;
 	os << "() { return __VG_memoire_utilisee__; }";
 
 	/* NOTE : les initiliaseurs des infos types doivent être valide pour toute

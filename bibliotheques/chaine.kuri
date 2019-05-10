@@ -99,7 +99,7 @@ fonction pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonction(cha
 	}
 }
 
-fonction chaine_est_vide(chn : chaine) : bool
+fonction est_vide(chn : chaine) : bool
 {
     retourne taille de chn == 0;
 }

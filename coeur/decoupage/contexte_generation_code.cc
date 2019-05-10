@@ -72,7 +72,7 @@ DonneesModule *ContexteGenerationCode::cree_module(
 	dt.pousse(id_morceau::Z64);
 	donnees_fonctions.index_type = magasin_types.ajoute_type(dt);
 	donnees_fonctions.index_type_retour = magasin_types[TYPE_Z64];
-	donnees_fonctions.nom_broye = broye_nom_fonction(nom_fonction, "");
+	donnees_fonctions.nom_broye = broye_nom_fonction(nom_fonction, "", donnees_fonctions.index_type);
 
 	module->fonctions_exportees.insert(nom_fonction);
 	module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);

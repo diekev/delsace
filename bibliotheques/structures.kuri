@@ -105,14 +105,14 @@ fonction enfile(dyn q : *file, d : *rien) : rien
     taille de q += 1;
 }
 
-fonction file_est_vide(q : *file) : bool
+fonction est_vide(q : *file) : bool
 {
     retourne taille de q == 0;
 }
 
 fonction defile(dyn q : *file, d : *rien) : rien
 {
-    si file_est_vide(q) {
+    si est_vide(q) {
         retourne;
     }
 
@@ -173,14 +173,14 @@ fonction pousse_tableau(dyn t : *tableau, d : *rien) : rien
     taille de t += 1;
 }
 
-fonction tableau_est_vide(t : *tableau) : bool
+fonction est_vide(t : *tableau) : bool
 {
     retourne taille de t == 0;
 }
 
 fonction debut_tableau(t : *tableau) : *rien
 {
-    si tableau_est_vide(t) {
+    si est_vide(t) {
         retourne nul;
     }
 
@@ -190,7 +190,7 @@ fonction debut_tableau(t : *tableau) : *rien
 
 fonction fin_tableau(t : *tableau) : *rien
 {
-    si tableau_est_vide(t) {
+    si est_vide(t) {
         retourne nul;
     }
 
