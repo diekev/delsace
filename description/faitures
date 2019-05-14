@@ -35,6 +35,9 @@ Faitures
 - type de tableau par défaut, le compilateur s'occupant de préserver la taille du tableau pour faire des vérifications en place
 - loge/déloge/reloge pour les loyers dynamics de mémoire
 - association/switch
+- surcharge de fonction avec des types différents
+- générateurs/coroutine permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
+- accès à la mémoire actuellement allouée
 
 
 À faire
@@ -52,13 +55,20 @@ Faitures
 - structures gabarit/génériques
 - type nombre réel sur 16-bit
 - types spéciaux pour chaînes de caractères et caractère simple
-- stack canaries
+- stack canaries (coulisse LLVM)
 - modules
 ---- préfixe les structures et les énumérations du nom du module
 ---- stocke les données des fonctions par module
 ---- ne charge les modules que s'il n'ont pas déjà été chargés
 - réusinage du système de vérification sémantique du code notamment pour dédupliquer ce code et prendre en compte l'analyse de fonctions dans des modules externes dont nous ne pouvons savoir le type avant l'analyse sémantique
 - unification du code d'accès au membre avec 'de' et '.'
+- fonctions génériques
+- coroutines en dehours de boucles
+- syntaxe d'appel uniforme
+- variables employées
+- évite l'initialisation via "---"
+- surcharge d'opérateur
+- accès via '.'
 
 
 À faire (tests)
@@ -70,6 +80,8 @@ Faitures
 - test chaine littérale, déclaration, assignement de pointeur et tableau
 - test énumération
 - test initialisation de structures lors des déclarations
+- test surcharge de fonction
+- test coroutine
 
 
 Bugs (coulisse LLVM)
