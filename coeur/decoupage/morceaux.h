@@ -103,6 +103,7 @@ enum class id_morceau : unsigned int {
 	R32,
 	R64,
 	RELOGE,
+	RETIENS,
 	RETOURNE,
 	RIEN,
 	SANSARRET,

@@ -52,6 +52,13 @@ struct DonneesArgument {
 	char pad[6];
 };
 
+struct DonneesCoroutine {
+	using paire_donnees = std::pair<size_t, char>;
+	using paire_variable = std::pair<std::string, paire_donnees>;
+	std::vector<paire_variable> variables{};
+	int nombre_retenues = 0;
+};
+
 struct DonneesFonction {
 	std::unordered_map<std::string_view, DonneesArgument> args{};
 	size_t index_type_retour{-1ul};
@@ -61,7 +68,9 @@ struct DonneesFonction {
 	noeud::base *noeud_decl = nullptr;
 	bool est_externe = false;
 	bool est_variadique = false;
-	char pad[6];
+	bool est_coroutine = false;
+	char pad[5];
+	DonneesCoroutine donnees_coroutine{};
 };
 
 struct DonneesModule {

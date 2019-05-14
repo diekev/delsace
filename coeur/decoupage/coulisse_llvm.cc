@@ -69,6 +69,7 @@
  * - ajourne la génération de code pour les boucles 'pour'
  * - saufsi
  * - trace de la mémoire utilisée
+ * - retiens
  */
 
 /* ************************************************************************** */
@@ -594,7 +595,7 @@ llvm::Value *genere_code_llvm(
 				return fonction;
 			}
 
-			contexte.commence_fonction(fonction);
+			contexte.commence_fonction(fonction, donnees_fonction);
 
 			auto block = cree_bloc(contexte, "entree");
 
@@ -2009,6 +2010,11 @@ llvm::Value *genere_code_llvm(
 			 * pour ajouter un niveau d'indirection et faciliter la compilation
 			 * des associations. */
 			assert(false);
+			return nullptr;
+		}
+		case type_noeud::RETIENS:
+		{
+			/* À FAIRE */
 			return nullptr;
 		}
 	}

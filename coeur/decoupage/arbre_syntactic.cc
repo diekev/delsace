@@ -122,6 +122,7 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::ASSOCIE)
 		CAS_TYPE(type_noeud::PAIRE_ASSOCIATION)
 		CAS_TYPE(type_noeud::SAUFSI)
+		CAS_TYPE(type_noeud::RETIENS)
 	}
 
 	return "erreur : type_noeud inconnu";
@@ -541,7 +542,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				return;
 			}
 
-			contexte.commence_fonction(nullptr);
+			contexte.commence_fonction(nullptr, donnees_fonction);
 
 			/* Pousse les paramètres sur la pile. */
 			for (auto const &nom : donnees_fonction->nom_args) {
@@ -573,7 +574,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* si le bloc est vide -> vérifie qu'aucun type n'a été spécifié */
 			if (dernier == nullptr) {
-				if (dt.type_base() != id_morceau::RIEN) {
+				if (dt.type_base() != id_morceau::RIEN && !donnees_fonction->est_coroutine) {
 					erreur::lance_erreur(
 								"Instruction de retour manquante",
 								contexte,
@@ -585,7 +586,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			else {
 				/* si le dernier noeud n'est pas un noeud de retour -> vérifie qu'aucun type n'a été spécifié */
 				if (dernier->type != type_noeud::RETOUR) {
-					if (dt.type_base() != id_morceau::RIEN) {
+					if (dt.type_base() != id_morceau::RIEN && !donnees_fonction->est_coroutine) {
 						erreur::lance_erreur(
 									"Instruction de retour manquante",
 									contexte,
@@ -738,6 +739,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					drapeau_depuis_niveau_compat(enfant, ncompat);
 				}
 			}
+
+			b->df = candidate->df;
 
 			if (b->index_type == -1ul) {
 				b->index_type = donnees_fonction->index_type_retour;
@@ -1377,7 +1380,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			performe_validation_semantique(enfant2, contexte);
 
-			/* À FAIRE : accès membre */
+			auto index_type = enfant2->index_type;
+			auto &type = contexte.magasin_types.donnees_types[index_type];
+			auto drapeaux = static_cast<char>(0);
+
+			/* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
+			 * type de retour d'une coroutine n'interfère avec le type d'une
+			 * variable (par exemple quand nous retournons une chaine). */
 			if (enfant2->type == type_noeud::PLAGE) {
 				/* À FAIRE : tests */
 				if (requiers_index) {
@@ -1389,25 +1398,41 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				b->aide_generation_code = GENERE_BOUCLE_PLAGE;
 			}
-			else {
-				auto index_type = enfant2->index_type;
-				auto &type = contexte.magasin_types.donnees_types[index_type];
+			else if (enfant2->type == type_noeud::APPEL_FONCTION && enfant2->df->est_coroutine) {
+				enfant1->index_type = enfant2->index_type;
 
+				if (requiers_index) {
+					b->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
+				}
+				else {
+					b->aide_generation_code = GENERE_BOUCLE_COROUTINE;
+				}
+			}
+			else {
 				if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
+					index_type = contexte.magasin_types.ajoute_type(type.derefence());
+
 					if (requiers_index) {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
 					}
 					else {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU;
 					}
+
+					drapeaux = BESOIN_DEREF;
 				}
 				else if (type.type_base() == id_morceau::CHAINE) {
+					index_type = contexte.magasin_types[TYPE_Z8];
+					enfant1->index_type = index_type;
+
 					if (requiers_index) {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
 					}
 					else {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU;
 					}
+
+					drapeaux = BESOIN_DEREF;
 				}
 				else {
 					auto valeur = contexte.est_locale_variadique(enfant2->chaine());
@@ -1419,20 +1444,16 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									enfant2->donnees_morceau());
 					}
 				}
+
+				/* À FAIRE : ceci est là pour sauvegarder l'index des coroutines
+				 * lors de l'itération de chaines ou de tableaux, ceci duplique
+				 * le code dans la coulisse C pour le nom de la variable. */
+				auto nom_var = "__i" + std::to_string(b->morceau.ligne_pos);
+				contexte.magasin_chaines.push_back(nom_var);
+				contexte.pousse_locale(contexte.magasin_chaines.back(), contexte.magasin_types[TYPE_Z32], 0);
 			}
 
 			contexte.empile_nombre_locales();
-
-			auto index_type = enfant2->index_type;
-			auto &type = contexte.magasin_types.donnees_types[index_type];
-
-			if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
-				index_type = contexte.magasin_types.ajoute_type(type.derefence());
-			}
-			else if (type.type_base() == id_morceau::CHAINE) {
-				index_type = contexte.magasin_types[TYPE_Z8];
-				enfant1->index_type = index_type;
-			}
 
 			auto est_dynamique = false;
 			auto iter_locale = contexte.iter_locale(enfant2->chaine());
@@ -1452,14 +1473,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto var = enfant1->enfants.front();
 				auto idx = enfant1->enfants.back();
 				var->index_type = index_type;
-				contexte.pousse_locale(var->chaine(), nullptr, index_type, est_dynamique, false);
+				contexte.pousse_locale(var->chaine(), index_type, drapeaux, est_dynamique);
 
 				index_type = contexte.magasin_types[TYPE_Z32];
 				idx->index_type = index_type;
 				contexte.pousse_locale(idx->chaine(), nullptr, index_type, est_dynamique, false);
 			}
 			else {
-				contexte.pousse_locale(enfant1->chaine(), nullptr, index_type, est_dynamique, false);
+				contexte.pousse_locale(enfant1->chaine(), index_type, drapeaux, est_dynamique);
 			}
 
 			performe_validation_semantique(enfant3, contexte);
@@ -1561,9 +1582,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			b->index_type = index_type_debut;
-
-			contexte.pousse_locale("__debut", nullptr, b->index_type, false, false);
-			contexte.pousse_locale("__fin", nullptr, b->index_type, false, false);
 
 			break;
 		}
@@ -1865,6 +1883,36 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			/* TESTS : si énum -> vérifie que toutes les valeurs soient prises
 			 * en compte, sauf s'il y a un bloc sinon après. */
 			valides_enfants(b, contexte);
+			break;
+		}
+		case type_noeud::RETIENS:
+		{
+			contexte.donnees_fonction->est_coroutine = true;
+			valides_enfants(b, contexte);
+
+			auto debut = contexte.debut_locales();
+			auto fin   = contexte.fin_locales();
+
+			auto &donnees_coroutine = contexte.donnees_fonction->donnees_coroutine;
+			donnees_coroutine.nombre_retenues += 1;
+
+			auto &variables = donnees_coroutine.variables;
+
+			for (; debut != fin; ++debut) {
+				auto duplique = false;
+
+				for (auto const &var : variables) {
+					if (var.first == debut->first) {
+						duplique = true;
+						break;
+					}
+				}
+
+				if (!duplique) {
+					variables.push_back({std::string(debut->first), {debut->second.donnees_type, debut->second.drapeaux}});
+				}
+			}
+
 			break;
 		}
 	}

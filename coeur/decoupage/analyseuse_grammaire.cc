@@ -699,6 +699,14 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::RETOUR);
 		}
+		else if (est_identifiant(id_morceau::RETIENS)) {
+			avance();
+			m_assembleuse->empile_noeud(type_noeud::RETIENS, m_contexte, donnees());
+
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::RETOURNE);
+
+			m_assembleuse->depile_noeud(type_noeud::RETIENS);
+		}
 		else if (est_identifiant(id_morceau::SI)) {
 			avance();
 			analyse_controle_si(type_noeud::SI);

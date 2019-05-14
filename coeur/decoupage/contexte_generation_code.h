@@ -101,6 +101,8 @@ struct DonneesStructure {
 	char pad[7] = {};
 };
 
+struct DonneesFonction;
+
 using conteneur_globales = std::unordered_map<std::string_view, DonneesVariable>;
 using conteneur_locales = std::vector<std::pair<std::string_view, DonneesVariable>>;
 
@@ -114,6 +116,13 @@ struct ContexteGenerationCode {
 	std::vector<DonneesModule *> modules{};
 
 	MagasinDonneesType magasin_types{};
+
+	DonneesFonction *donnees_fonction = nullptr;
+
+	/* magasin pour que les string_views des chaines temporaires soient toujours
+	 * valides (notamment utilisé pour les variables des boucles dans les
+	 * coroutines) */
+	std::vector<std::string> magasin_chaines{};
 
 	ContexteGenerationCode() = default;
 
@@ -281,7 +290,8 @@ struct ContexteGenerationCode {
 	void pousse_locale(
 			std::string_view const &nom,
 			size_t const &index_type,
-			char drapeaux);
+			char drapeaux,
+			bool est_dynamique = false);
 
 	char drapeaux_variable(std::string_view const &nom);
 
@@ -345,6 +355,8 @@ struct ContexteGenerationCode {
 
 	conteneur_locales::const_iterator iter_locale(const std::string_view &nom);
 
+	conteneur_locales::const_iterator debut_locales();
+
 	conteneur_locales::const_iterator fin_locales();
 
 	/* ********************************************************************** */
@@ -354,7 +366,7 @@ struct ContexteGenerationCode {
 	 * variables sont remis à zéro. Le pointeur passé en paramètre est celui de
 	 * la fonction courant.
 	 */
-	void commence_fonction(llvm::Function *f);
+	void commence_fonction(llvm::Function *f, DonneesFonction *df);
 
 	/**
 	 * Indique la fin de la fonction courant. Le compteur et le vecteur de

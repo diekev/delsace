@@ -311,13 +311,14 @@ void ContexteGenerationCode::pousse_locale(
 void ContexteGenerationCode::pousse_locale(
 		std::string_view const &nom,
 		size_t const &index_type,
-		char drapeaux)
+		char drapeaux,
+		bool est_dynamique)
 {
 	if (m_locales.size() > m_nombre_locales) {
-		m_locales[m_nombre_locales] = {nom, {nullptr, index_type, false, false, drapeaux, {}}};
+		m_locales[m_nombre_locales] = {nom, {nullptr, index_type, est_dynamique, false, drapeaux, {}}};
 	}
 	else {
-		m_locales.push_back({nom, {nullptr, index_type, false, false, drapeaux, {}}});
+		m_locales.push_back({nom, {nullptr, index_type, est_dynamique, false, drapeaux, {}}});
 	}
 
 	++m_nombre_locales;
@@ -456,14 +457,20 @@ conteneur_locales::const_iterator ContexteGenerationCode::iter_locale(const std:
 	return iter;
 }
 
+conteneur_locales::const_iterator ContexteGenerationCode::debut_locales()
+{
+	return m_locales.begin();
+}
+
 conteneur_locales::const_iterator ContexteGenerationCode::fin_locales()
 {
 	return m_locales.begin() + static_cast<long>(m_nombre_locales);
 }
 
-void ContexteGenerationCode::commence_fonction(llvm::Function *f)
+void ContexteGenerationCode::commence_fonction(llvm::Function *f, DonneesFonction *df)
 {
 	this->fonction = f;
+	this->donnees_fonction = df;
 	m_nombre_locales = 0;
 	m_locales.clear();
 }
@@ -471,6 +478,7 @@ void ContexteGenerationCode::commence_fonction(llvm::Function *f)
 void ContexteGenerationCode::termine_fonction()
 {
 	fonction = nullptr;
+	this->donnees_fonction = nullptr;
 	m_bloc_courant = nullptr;
 	m_nombre_locales = 0;
 	m_locales.clear();

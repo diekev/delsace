@@ -76,6 +76,7 @@ enum class type_noeud : char {
 	ASSOCIE,
 	PAIRE_ASSOCIATION,
 	SAUFSI,
+	RETIENS,
 };
 
 const char *chaine_type_noeud(type_noeud type);
@@ -179,9 +180,13 @@ enum {
 	GENERE_BOUCLE_PLAGE,
 	GENERE_BOUCLE_TABLEAU,
 	GENERE_BOUCLE_TABLEAU_INDEX,
+	GENERE_BOUCLE_COROUTINE,
+	GENERE_BOUCLE_COROUTINE_INDEX,
 
 	GENERE_CODE_PTR_FONC_MEMBRE,
 };
+
+struct DonneesFonction;
 
 namespace noeud {
 
@@ -203,7 +208,12 @@ struct base {
 	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées
 
+	DonneesFonction *df = nullptr; // pour les appels de coroutines dans les boucles ou autres.
+
 	explicit base(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+
+	base(base const &) = default;
+	base &operator=(base const &) = default;
 
 	/**
 	 * Ajoute un noeud à la liste des noeuds du noeud.

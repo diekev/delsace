@@ -86,6 +86,10 @@ static void genere_code_extra_pre_retour(
 		ContexteGenerationCode &contexte,
 		std::ostream &os)
 {
+	if (contexte.donnees_fonction->est_coroutine) {
+		os << "__etat->termine = 1;\n";
+	}
+
 	/* génère le code pour les blocs déférés */
 	auto pile_noeud = contexte.noeuds_differes();
 
@@ -763,7 +767,7 @@ static void cree_appel(
 
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-	if (dt.type_base() != id_morceau::RIEN) {
+	if (dt.type_base() != id_morceau::RIEN && (b->df != nullptr) && !b->df->est_coroutine) {
 		auto nom_indirection = "__ret" + std::to_string(b->morceau.ligne_pos);
 		auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 
@@ -786,6 +790,11 @@ static void cree_appel(
 	}
 
 	auto virgule = '(';
+
+	if ((b->df != nullptr) && b->df->est_coroutine) {
+		os << virgule << "&__etat" << b->morceau.ligne_pos;
+		virgule = ',';
+	}
 
 	for (auto enf : enfants) {
 		os << virgule;
@@ -1100,6 +1109,7 @@ static void genere_code_C_prepasse(
 								   os);
 			break;
 		}
+		case type_noeud::RETIENS:
 		case type_noeud::RETOUR:
 		{
 			break;
@@ -1343,6 +1353,7 @@ void genere_code_C(
 			for (auto noeud : b->enfants) {
 				auto debut_validation = dls::chrono::maintenant();
 				performe_validation_semantique(noeud, contexte);
+				contexte.magasin_chaines.clear();
 				temps_validation += dls::chrono::delta(debut_validation);
 			}
 
@@ -1361,6 +1372,7 @@ void genere_code_C(
 			for (auto noeud : b->enfants) {
 				debut_generation = dls::chrono::maintenant();
 				genere_code_C(noeud, contexte, false, os, os);
+				contexte.magasin_chaines.clear();
 				temps_generation += dls::chrono::delta(debut_generation);
 			}
 
@@ -1399,16 +1411,47 @@ void genere_code_C(
 			/* Crée fonction */
 			auto nom_fonction = donnees_fonction->nom_broye;
 
-			auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
-						nom_fonction,
-						contexte.magasin_types.donnees_types[b->index_type],
-					os);
+			if (donnees_fonction->est_coroutine) {
+				os << "typedef struct __etat_coro" << nom_fonction << " { bool reprend; bool termine; ";
+				contexte.magasin_types.converti_type_C(contexte,
+											"",
+											contexte.magasin_types.donnees_types[donnees_fonction->index_type_retour],
+										os);
+				os << " val;\n";
 
-			if (!est_tableau) {
-				os << " " << nom_fonction;
+
+				auto &donnees_coroutine = donnees_fonction->donnees_coroutine;
+
+				for (auto const &paire : donnees_coroutine.variables) {
+					contexte.magasin_types.converti_type_C(contexte,
+												"",
+												contexte.magasin_types.donnees_types[paire.second.first],
+											os);
+
+					/* Stocke un pointeur pour ne pas qu'il soit invalider par
+					 * le retour de la coroutine. */
+					if ((paire.second.second & BESOIN_DEREF) != 0) {
+						os << '*';
+					}
+
+					os << ' ' << paire.first << ";\n";
+				}
+
+				os << " } __etat_coro" << nom_fonction << ";\n";
+				os << "void " << nom_fonction;
+			}
+			else {
+				auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
+							nom_fonction,
+							contexte.magasin_types.donnees_types[b->index_type],
+						os);
+
+				if (!est_tableau) {
+					os << " " << nom_fonction;
+				}
 			}
 
-			contexte.commence_fonction(nullptr);
+			contexte.commence_fonction(nullptr, donnees_fonction);
 
 			/* Crée code pour les arguments */
 
@@ -1417,6 +1460,12 @@ void genere_code_C(
 			}
 
 			auto virgule = '(';
+
+			if (donnees_fonction->est_coroutine) {
+				os << virgule;
+				os << "__etat_coro" << nom_fonction << " *__etat";
+				virgule = ',';
+			}
 
 			for (auto const &nom : donnees_fonction->nom_args) {
 				os << virgule;
@@ -1438,7 +1487,7 @@ void genere_code_C(
 					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
 				}
 
-				est_tableau = contexte.magasin_types.converti_type_C(
+				auto est_tableau = contexte.magasin_types.converti_type_C(
 							contexte,
 							nom,
 							dt,
@@ -1458,6 +1507,21 @@ void genere_code_C(
 			/* Crée code pour le bloc. */
 			auto bloc = b->enfants.front();
 			os << "{\n";
+
+			if (donnees_fonction->est_coroutine) {
+				os << "if (__etat->reprend != 0) {\n";
+
+				for (auto i = 1; i <= donnees_fonction->donnees_coroutine.nombre_retenues; ++i) {
+					os << "if (__etat->reprend == " << i << ") { goto __reprend_coro" << i << "; }";
+				}
+
+				/* remet à zéro car nous avons besoin de les compter pour
+				 * générer les labels des goto */
+				donnees_fonction->donnees_coroutine.nombre_retenues = 0;
+
+				os << "}\n";
+			}
+
 			genere_code_C(bloc, contexte, false, os, os);
 
 			auto enfant_bloc = bloc->dernier_enfant();
@@ -2079,6 +2143,8 @@ void genere_code_C(
 				case GENERE_BOUCLE_TABLEAU_INDEX:
 				{
 					auto nom_var = "__i" + std::to_string(b->morceau.ligne_pos);
+					contexte.magasin_chaines.push_back(nom_var);
+					contexte.pousse_locale(contexte.magasin_chaines.back(), contexte.magasin_types[TYPE_Z32], 0);
 
 					/* À FAIRE: nom unique pour les boucles dans les boucles */
 					if ((type & 0xff) == id_morceau::TABLEAU) {
@@ -2108,6 +2174,56 @@ void genere_code_C(
 					}
 
 					break;
+				}
+				case GENERE_BOUCLE_COROUTINE:
+				case GENERE_BOUCLE_COROUTINE_INDEX:
+				{
+					auto nom_etat = "__etat" + std::to_string(enfant2->morceau.ligne_pos);
+
+					os << "__etat_coro" << enfant2->df->nom_broye << " " << nom_etat << ";\n";
+					os << nom_etat << ".reprend = 0;\n";
+					os << nom_etat << ".termine = 0;\n";
+
+					auto var = enfant1;
+					auto idx = static_cast<noeud::base *>(nullptr);
+					auto nom_idx = std::string{};
+
+					if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
+						var = enfant1->enfants.front();
+						idx = enfant1->enfants.back();
+
+						nom_idx = "__idx" + std::to_string(b->morceau.ligne_pos);
+
+						os << "int " << nom_idx << " = 0;";
+					}
+
+					os << "while (1) {\n";
+					genere_code_C_prepasse(enfant2, contexte, true, os);
+					genere_code_C(enfant2, contexte, true, os, os);
+
+					os << ";\n";
+
+					os << "if (" << nom_etat << ".termine == 1) { break; }\n";
+
+					contexte.magasin_types.converti_type_C(
+								contexte,
+								"",
+								type_debut,
+								os);
+					os << " " << var->chaine() << ";" << var->chaine() << " = " << nom_etat << ".val;\n";
+
+					if (idx) {
+						os << "int " << idx->chaine() << " = " << nom_idx << ";\n";
+						os << nom_idx << " += 1;";
+					}
+
+					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
+						contexte.pousse_locale(var->chaine(), var->index_type, 0);
+						contexte.pousse_locale(idx->chaine(), idx->index_type, 0);
+					}
+					else {
+						contexte.pousse_locale(enfant1->chaine(), index_type, 0);
+					}
 				}
 			}
 
@@ -2695,6 +2811,49 @@ void genere_code_C(
 			 * pour ajouter un niveau d'indirection et faciliter la compilation
 			 * des associations. */
 			assert(false);
+			break;
+		}
+		case type_noeud::RETIENS:
+		{
+			/* Transformation du code :
+			 *
+			 * retiens i;
+			 *
+			 * devient :
+			 *
+			 * __etat->val = i;
+			 * __etat->reprend = 1;
+			 * return;
+			 * __reprend_coroN:
+			 * i = __etat->val;
+			 */
+
+			auto &donnees_coroutine = contexte.donnees_fonction->donnees_coroutine;
+			donnees_coroutine.nombre_retenues += 1;
+
+			auto enfant = b->enfants.front();
+			genere_code_C_prepasse(enfant, contexte, true, os);
+
+			os << "__etat->val = ";
+			genere_code_C(enfant, contexte, true, os, os);
+			os << ";\n";
+
+			for (auto const &paire : donnees_coroutine.variables) {
+				if (contexte.locale_existe(paire.first)) {
+					os << "__etat->" << paire.first << " = " << paire.first << ";\n";
+				}
+			}
+
+			os << "__etat->reprend = " << donnees_coroutine.nombre_retenues << ";\n";
+			os << "return;\n";
+			os << "__reprend_coro" << donnees_coroutine.nombre_retenues << ":\n";
+
+			for (auto const &paire : donnees_coroutine.variables) {
+				if (contexte.locale_existe(paire.first)) {
+					os << paire.first << " = __etat->" << paire.first << ";\n";
+				}
+			}
+
 			break;
 		}
 	}
