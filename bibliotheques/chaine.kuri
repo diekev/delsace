@@ -117,3 +117,32 @@ fonction trouve_caractere_chaine(chn : chaine, carac : z8, pos : z64) : z64
 
     retourne transtype(-1 : z64);
 }
+
+fonction découpe(texte : chaine, sep : z8) : chaine
+{
+    dyn taille_mot : z64 = 0;
+	dyn debut_mot : z64 = 0;
+	dyn mot : chaine;
+
+    pour c, i dans texte {
+	    si c == sep {
+		    pointeur de mot = @texte[debut_mot];
+			taille de mot = taille_mot;
+
+            retiens mot;
+
+            debut_mot = transtype(i + 1 : z64);
+			taille_mot = 0;
+			continue;
+		}
+
+        taille_mot += 1;
+	}
+
+    si taille_mot != 0 {
+	    pointeur de mot = @texte[debut_mot];
+		taille de mot = taille_mot;
+
+        retiens mot;
+	}
+}
