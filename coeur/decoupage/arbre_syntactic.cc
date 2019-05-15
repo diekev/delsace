@@ -1868,6 +1868,19 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.donnees_fonction->est_coroutine = true;
 			valides_enfants(b, contexte);
 
+			auto enfant = b->enfants.front();
+
+			if (enfant->index_type != contexte.donnees_fonction->index_type_retour) {
+				auto const &dt_arg = contexte.magasin_types.donnees_types[contexte.donnees_fonction->index_type_retour];
+				auto const &dt_enf = contexte.magasin_types.donnees_types[enfant->index_type];
+				erreur::lance_erreur_type_retour(
+							dt_arg,
+							dt_enf,
+							contexte,
+							enfant->morceau,
+							b->morceau);
+			}
+
 			auto debut = contexte.debut_locales();
 			auto fin   = contexte.fin_locales();
 

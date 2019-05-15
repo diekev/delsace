@@ -230,6 +230,44 @@ void lance_erreur_plage(
 	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
 }
 
+[[noreturn]] void lance_erreur_type_retour(
+		const DonneesType &type_arg,
+		const DonneesType &type_enf,
+		const ContexteGenerationCode &contexte,
+		const DonneesMorceaux &morceau_enfant,
+		const DonneesMorceaux &morceau)
+{
+	auto const numero_ligne = morceau.ligne_pos >> 32;
+	auto const pos_mot = morceau_enfant.ligne_pos & 0xffffffff;
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne = module->tampon[numero_ligne];
+
+	std::stringstream ss;
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Dans l'expression de '" << morceau.chaine << "':\n";
+	ss << ligne;
+
+	imprime_caractere_vide(ss, pos_mot, ligne);
+	ss << '^';
+	imprime_tilde(ss, morceau_enfant.chaine);
+	ss << '\n';
+
+	ss << "Le type de '" << morceau_enfant.chaine << "' ne correspond pas à celui requis !\n";
+	ss << "Requiers : " << chaine_type(type_arg, contexte) << '\n';
+	ss << "Obtenu   : " << chaine_type(type_enf, contexte) << '\n';
+	ss << '\n';
+	ss << "Astuce :\n";
+	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
+
+	imprime_ligne_entre(ss, ligne, 0, pos_mot);
+	ss << "transtype(" << morceau_enfant.chaine << " : " << chaine_type(type_arg, contexte) << ")";
+	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.size(), ligne.size());
+	ss << "\n----------------------------------------------------------------\n";
+
+	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
+}
+
 [[noreturn]] void lance_erreur_argument_inconnu(
 		const std::string_view &nom_arg,
 		const ContexteGenerationCode &contexte,

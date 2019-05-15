@@ -101,6 +101,13 @@ public:
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau);
 
+[[noreturn]] void lance_erreur_type_retour(
+		const DonneesType &type_arg,
+		const DonneesType &type_enf,
+		const ContexteGenerationCode &contexte,
+		const DonneesMorceaux &morceau_enfant,
+		const DonneesMorceaux &morceau);
+
 [[noreturn]] void lance_erreur_argument_inconnu(
 		const std::string_view &nom_arg,
 		const ContexteGenerationCode &contexte,
