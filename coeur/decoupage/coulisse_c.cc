@@ -2838,20 +2838,21 @@ void genere_code_C(
 			genere_code_C(enfant, contexte, true, os, os);
 			os << ";\n";
 
-			for (auto const &paire : donnees_coroutine.variables) {
-				if (contexte.locale_existe(paire.first)) {
-					os << "__etat->" << paire.first << " = " << paire.first << ";\n";
-				}
+			auto debut = contexte.debut_locales();
+			auto fin   = contexte.fin_locales();
+
+			for (; debut != fin; ++debut) {
+				os << "__etat->" << debut->first << " = " << debut->first << ";\n";
 			}
 
 			os << "__etat->reprend = " << donnees_coroutine.nombre_retenues << ";\n";
 			os << "return;\n";
 			os << "__reprend_coro" << donnees_coroutine.nombre_retenues << ":\n";
 
-			for (auto const &paire : donnees_coroutine.variables) {
-				if (contexte.locale_existe(paire.first)) {
-					os << paire.first << " = __etat->" << paire.first << ";\n";
-				}
+			debut = contexte.debut_locales();
+
+			for (; debut != fin; ++debut) {
+				os << debut->first << " = __etat->" << debut->first << ";\n";
 			}
 
 			break;
