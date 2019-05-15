@@ -650,63 +650,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			if (candidate == nullptr || candidate->df == nullptr) {
-				erreur::lance_erreur(
-							"Fonction inconnue",
+				erreur::lance_erreur_fonction_inconnue(
 							contexte,
-							b->morceau,
-							erreur::type_erreur::FONCTION_INCONNUE);
+							b,
+							res.candidates);
 			}
 
-			if (candidate->raison == MECOMPTAGE_ARGS) {
-				erreur::lance_erreur_nombre_arguments(
-							donnees_fonction->args.size(),
-							b->enfants.size(),
-							contexte,
-							b->morceau);
-			}
-
-			if (candidate->raison == MENOMMAGE_ARG) {
-				erreur::lance_erreur_argument_inconnu(
-							candidate->nom_arg,
-							contexte,
-							b->donnees_morceau());
-			}
-
-			if (candidate->raison == RENOMMAGE_ARG) {
-				/* À FAIRE : trouve le morceau correspondant à l'argument. */
-				erreur::lance_erreur("Argument déjà nommé",
-									 contexte,
-									 b->donnees_morceau(),
-									 erreur::type_erreur::ARGUMENT_REDEFINI);
-			}
-
-			if (candidate->raison == MANQUE_NOM_APRES_VARIADIC) {
-				/* À FAIRE : trouve le morceau correspondant à l'argument. */
-				erreur::lance_erreur("Attendu le nom de l'argument",
-									 contexte,
-									 b->donnees_morceau(),
-									 erreur::type_erreur::ARGUMENT_INCONNU);
-			}
-
-			if (candidate->raison == METYPAGE_ARG) {
-				erreur::lance_erreur_type_arguments(
-							candidate->type1,
-							candidate->type2,
-							contexte,
-							candidate->noeud_decl->donnees_morceau(),
-							b->morceau);
-			}
-
-#ifdef NON_SUR
-			if (candidate->arg_pointeur && !contexte.non_sur()) {
-				erreur::lance_erreur(
-							"Ne peut appeler une fonction externe hors d'un bloc 'nonsûr'",
-							contexte,
-							b->morceau,
-							erreur::type_erreur::APPEL_INVALIDE);
-			}
-
-#endif
 			donnees_fonction = candidate->df;
 
 			/* met en place les drapeaux sur les enfants */
@@ -1166,7 +1115,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						default:
 						{
 							std::stringstream ss;
-							ss << "Le type '" << type1
+							ss << "Le type '" << chaine_type(type1, contexte)
 							   << "' ne peut être déréférencé par opérateur[] !";
 
 							erreur::lance_erreur(

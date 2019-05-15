@@ -276,6 +276,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			if ((args.find(nom_arg) != args.end()) && !donnees.est_variadic) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
+				res.nom_arg = nom_arg;
 				res.df = &donnees_fonction;
 				return res;
 			}

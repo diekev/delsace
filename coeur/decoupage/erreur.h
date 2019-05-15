@@ -26,9 +26,10 @@
 
 #include <string>
 
+#include "modules.hh"
 #include "morceaux.h"
 
-struct DonneesType;
+class DonneesType;
 
 struct DonneesMorceaux;
 struct ContexteGenerationCode;
@@ -121,5 +122,10 @@ public:
 		const DonneesType &type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
+
+[[noreturn]] void lance_erreur_fonction_inconnue(
+		ContexteGenerationCode const &contexte,
+		noeud::base *n,
+		std::vector<DonneesCandidate> const &candidates);
 
 }

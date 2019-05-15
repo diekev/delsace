@@ -182,7 +182,7 @@ public:
 	return !(type_a == type_b);
 }
 
-std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type);
+std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte);
 
 /* ************************************************************************** */
 

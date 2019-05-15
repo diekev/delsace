@@ -35,6 +35,8 @@
 #include <llvm/IR/TypeBuilder.h>
 #pragma GCC diagnostic pop
 
+#include <sstream>
+
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "morceaux.h"
@@ -104,8 +106,10 @@ DonneesType DonneesType::derefence() const
 	return donnees;
 }
 
-std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
+std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte)
 {
+	std::stringstream os;
+
 	if (donnees_type.est_invalide()) {
 		os << "type invalide";
 	}
@@ -196,14 +200,22 @@ std::ostream &operator<<(std::ostream &os, const DonneesType &donnees_type)
 				case id_morceau::NUL:
 					os << "nul";
 					break;
-				default:
-					os << chaine_identifiant(donnee & 0xff);
+				case id_morceau::CHAINE_CARACTERE:
+				{
+					auto id = static_cast<size_t>(donnee >> 8);
+					os << contexte.nom_struct(id);
 					break;
+				}
+				default:
+				{
+					os << "INVALIDE";
+					break;
+				}
 			}
 		}
 	}
 
-	return os;
+	return os.str();
 }
 
 /* ************************************************************************** */
