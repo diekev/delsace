@@ -152,7 +152,7 @@ static std::string cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os_decl,
 		std::ostream &os_init,
-		DonneesType const &donnees_type);
+		DonneesType &donnees_type);
 
 static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesType const &donnees_type)
 {
@@ -229,9 +229,14 @@ static auto cree_info_type_structure_C(
 		std::ostream &os_init,
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom_struct,
-		DonneesStructure const &donnees_structure)
+		DonneesStructure const &donnees_structure,
+		DonneesType &dt)
 {
 	auto nom_info_type = "__info_type_struct" + std::to_string(index++);
+
+	/* met en place le 'pointeur' direction au cas où une structure s'incluerait
+	 * elle-même via un pointeur */
+	dt.ptr_info_type = nom_info_type;
 
 	/* crée la chaine pour le nom */
 	auto nom_chaine = "__nom_" + std::string(nom_struct) + std::to_string(index++);
@@ -255,7 +260,7 @@ static auto cree_info_type_structure_C(
 
 	for (auto i = 0ul; i < donnees_structure.donnees_types.size(); ++i) {
 		auto index_dt = donnees_structure.donnees_types[i];
-		auto &dt = contexte.magasin_types.donnees_types[index_dt];
+		auto &dt_membre = contexte.magasin_types.donnees_types[index_dt];
 
 		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
 			if (paire_idx_mb.second.index_membre != i) {
@@ -266,15 +271,15 @@ static auto cree_info_type_structure_C(
 
 			auto nom_info_type_membre = "__info_type_membre" + suffixe;
 
-			auto idx = contexte.magasin_types.ajoute_type(dt);
+			auto idx = contexte.magasin_types.ajoute_type(dt_membre);
 			auto &rderef = contexte.magasin_types.donnees_types[idx];
 
 			if (rderef.ptr_info_type == "") {
 				rderef.ptr_info_type = cree_info_type_C(
-							contexte, os_decl, os_init, dt);
+							contexte, os_decl, os_init, dt_membre);
 			}
 
-			auto align_type = alignement(contexte, dt);
+			auto align_type = alignement(contexte, dt_membre);
 			auto padding = (align_type - (decalage % align_type)) % align_type;
 			decalage += padding;
 
@@ -284,7 +289,7 @@ static auto cree_info_type_structure_C(
 			os_init << nom_info_type_membre << ".decalage = " << decalage << ";\n";
 			os_init << nom_info_type_membre << ".id = (InfoType *)(&" << rderef.ptr_info_type  << ");\n";
 
-			decalage += taille_type_octet(contexte, dt);
+			decalage += taille_type_octet(contexte, dt_membre);
 
 			pointeurs.push_back(nom_info_type_membre);
 			break;
@@ -415,7 +420,7 @@ static std::string cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os_decl,
 		std::ostream &os_init,
-		DonneesType const &donnees_type)
+		DonneesType &donnees_type)
 {
 	auto valeur = std::string("");
 
@@ -527,7 +532,8 @@ static std::string cree_info_type_C(
 							os_init,
 							contexte,
 							contexte.nom_struct(id_structure),
-							donnees_structure);
+							donnees_structure,
+							donnees_type);
 			}
 
 			break;
@@ -1363,8 +1369,7 @@ void genere_code_C(
 			/* Crée les infos types pour tous les types connus.
 			 * À FAIRE : évite de créer ceux qui ne sont pas utiles */
 			for (auto &dt : contexte.magasin_types.donnees_types) {
-				auto ptr = cree_info_type_C(contexte, os, os_init, dt);
-				dt.ptr_info_type = ptr;
+				cree_info_type_C(contexte, os, os_init, dt);
 			}
 			temps_generation += dls::chrono::delta(debut_generation);
 

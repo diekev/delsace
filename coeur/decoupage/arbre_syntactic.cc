@@ -1805,6 +1805,44 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto &ds = contexte.donnees_structure(b->chaine());
 
+			auto verifie_inclusion_valeur = [&ds, &contexte](base *enf)
+			{
+				if (enf->index_type == ds.index_type) {
+					erreur::lance_erreur(
+								"Ne peut inclure la structure dans elle-même par valeur",
+								contexte,
+								enf->morceau,
+								erreur::type_erreur::TYPE_ARGUMENT);
+				}
+				else {
+					auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
+					auto type_base = dt.type_base();
+
+					if ((type_base & 0xff) == id_morceau::TABLEAU && type_base != id_morceau::TABLEAU) {
+						auto dt_deref = dt.derefence();
+
+						if (dt_deref == contexte.magasin_types.donnees_types[ds.index_type]) {
+							erreur::lance_erreur(
+										"Ne peut inclure la structure dans elle-même par valeur",
+										contexte,
+										enf->morceau,
+										erreur::type_erreur::TYPE_ARGUMENT);
+						}
+					}
+				}
+			};
+
+			auto verifie_redefinition_membre = [&ds, &contexte](base *enf)
+			{
+				if (ds.donnees_membres.find(enf->chaine()) != ds.donnees_membres.end()) {
+					erreur::lance_erreur(
+								"Redéfinition du membre",
+								contexte,
+								enf->morceau,
+								erreur::type_erreur::MEMBRE_REDEFINI);
+				}
+			};
+
 			for (auto enfant : b->enfants) {
 				if (enfant->type == type_noeud::ASSIGNATION_VARIABLE) {
 					if (enfant->morceau.identifiant != id_morceau::EGAL) {
@@ -1819,13 +1857,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					auto decl_expr = enfant->enfants.back();
 					auto nom_membre = decl_membre->chaine();
 
-					if (ds.donnees_membres.find(nom_membre) != ds.donnees_membres.end()) {
-						erreur::lance_erreur(
-									"Redéfinition du membre",
-									contexte,
-									enfant->morceau,
-									erreur::type_erreur::MEMBRE_REDEFINI);
-					}
+					verifie_redefinition_membre(decl_membre);
 
 					performe_validation_semantique(decl_expr, contexte);
 
@@ -1853,17 +1885,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						}
 					}
 
+					verifie_inclusion_valeur(decl_membre);
+
 					ds.donnees_membres.insert({nom_membre, { ds.donnees_types.size(), decl_expr }});
 					ds.donnees_types.push_back(decl_membre->index_type);
 				}
 				else if (enfant->type == type_noeud::VARIABLE) {
-					if (ds.donnees_membres.find(enfant->chaine()) != ds.donnees_membres.end()) {
-						erreur::lance_erreur(
-									"Redéfinition du membre",
-									contexte,
-									enfant->morceau,
-									erreur::type_erreur::MEMBRE_REDEFINI);
-					}
+					verifie_redefinition_membre(enfant);
+					verifie_inclusion_valeur(enfant);
 
 					ds.donnees_membres.insert({enfant->chaine(), { ds.donnees_types.size(), nullptr }});
 					ds.donnees_types.push_back(enfant->index_type);

@@ -1696,6 +1696,8 @@ void analyseuse_grammaire::analyse_declaration_structure()
 	donnees_structure.noeud_decl = noeud_decl;
 	donnees_structure.est_enum = false;
 
+	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
+
 	while (true) {
 		if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 			/* nous avons terminé */
@@ -1704,8 +1706,6 @@ void analyseuse_grammaire::analyse_declaration_structure()
 
 		analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCTURE, false, true);
 	}
-
-	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu '}' à la fin de la déclaration de la structure");
