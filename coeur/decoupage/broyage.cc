@@ -26,8 +26,6 @@
 
 #include <langage/unicode.hh>
 
-/* À FAIRE : coulisse C : broyage nom structures, variables, et énums */
-
 static char char_depuis_hex(char hex)
 {
 	return "0123456789ABCDEF"[static_cast<int>(hex)];

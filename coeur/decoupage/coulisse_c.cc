@@ -30,6 +30,7 @@
 #include <sstream>
 
 #include "arbre_syntactic.h"
+#include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "modules.hh"
@@ -98,6 +99,13 @@ static void genere_code_extra_pre_retour(
 		genere_code_C(noeud, contexte, true, os, os);
 		pile_noeud.pop_back();
 	}
+}
+
+/* ************************************************************************** */
+
+static inline auto broye_chaine(base *b)
+{
+	return broye_nom_simple(b->chaine());
 }
 
 /* ************************************************************************** */
@@ -234,12 +242,14 @@ static auto cree_info_type_structure_C(
 {
 	auto nom_info_type = "__info_type_struct" + std::to_string(index++);
 
+	auto nom_broye = broye_nom_simple(nom_struct);
+
 	/* met en place le 'pointeur' direction au cas où une structure s'incluerait
 	 * elle-même via un pointeur */
 	dt.ptr_info_type = nom_info_type;
 
 	/* crée la chaine pour le nom */
-	auto nom_chaine = "__nom_" + std::string(nom_struct) + std::to_string(index++);
+	auto nom_chaine = "__nom_" + nom_broye + std::to_string(index++);
 
 	os_init << "static chaine " << nom_chaine << " = ";
 	os_init << "{.pointeur = \"" << nom_struct << "\""
@@ -350,9 +360,11 @@ static auto cree_info_type_enum_C(
 {
 	auto nom_info_type = "__info_type_enum" + std::to_string(index++);
 
+	auto nom_broye = broye_nom_simple(nom_struct);
+
 	/* crée la chaine pour le nom */
 	auto nom_chaine = "__nom_"
-			+ std::string(nom_struct)
+			+ nom_broye
 			+ std::to_string(index++);
 
 	os_init << "static chaine " << nom_chaine << " = ";
@@ -369,7 +381,7 @@ static auto cree_info_type_enum_C(
 	/* crée un tableau pour les noms des énumérations */
 
 	auto nom_tabl_fixe = "__noms_membres_"
-			+ std::string(nom_struct)
+			+ nom_broye
 			+ std::to_string(index++);
 
 	os_init << "chaine " << nom_tabl_fixe << "[" << nombre_enfants << "] = {\n";
@@ -387,7 +399,7 @@ static auto cree_info_type_enum_C(
 
 	/* crée un tableau pour les noms des énumérations */
 	auto nom_tabl_fixe_vals = "__valeurs_membres_"
-			+ std::string(nom_struct)
+			+ nom_broye
 			+ std::to_string(index++);
 
 	auto &dt = contexte.magasin_types.donnees_types[noeud_decl->index_type];
@@ -525,6 +537,8 @@ static std::string cree_info_type_C(
 							contexte,
 							contexte.nom_struct(id_structure),
 							donnees_structure);
+
+				donnees_type.ptr_info_type = valeur;
 			}
 			else {
 				valeur = cree_info_type_structure_C(
@@ -835,10 +849,14 @@ static void declare_structures_C(
 
 	/* À FAIRE : optimise. */
 	for (auto is = 0ul; is < contexte.structures.size(); ++is) {
-		auto const &nom_struct = contexte.nom_struct(is);
-		os << "typedef struct " << contexte.nom_struct(is) << "{\n";
-
 		auto const &donnees = contexte.donnees_structure(is);
+
+		if (donnees.est_enum) {
+			continue;
+		}
+
+		auto const &nom_struct = broye_nom_simple(contexte.nom_struct(is));
+		os << "typedef struct " << nom_struct << "{\n";
 
 		for (auto i = 0ul; i < donnees.donnees_types.size(); ++i) {
 			auto index_dt = donnees.donnees_types[i];
@@ -846,7 +864,7 @@ static void declare_structures_C(
 
 			for (auto paire_idx_mb : donnees.donnees_membres) {
 				if (paire_idx_mb.second.index_membre == i) {
-					auto nom = paire_idx_mb.first;
+					auto nom = broye_nom_simple(paire_idx_mb.first);
 
 					auto est_tableau = contexte.magasin_types.converti_type_C(
 								contexte,
@@ -922,7 +940,7 @@ static void cree_initialisation(
 				}
 
 				auto nom = paire_idx_mb.first;
-				auto decl_nom = chaine_parent + std::string(accesseur) + std::string(nom);
+				auto decl_nom = chaine_parent + std::string(accesseur) + broye_nom_simple(nom);
 
 				if (donnees_membre.noeud_decl != nullptr) {
 					/* indirection pour les chaines ou autres */
@@ -1030,7 +1048,7 @@ static void genere_code_C_prepasse(
 
 				if (ds.est_enum) {
 					os << "long " << nom_acces << " = "
-					   << structure->chaine() << '_' << membre->chaine() << ";\n";
+					   << broye_chaine(structure) << '_' << broye_chaine(membre) << ";\n";
 					return;
 				}
 			}
@@ -1492,14 +1510,16 @@ void genere_code_C(
 					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
 				}
 
+				auto nom_broye = broye_nom_simple(nom);
+
 				auto est_tableau = contexte.magasin_types.converti_type_C(
 							contexte,
-							nom,
+							nom_broye,
 							dt,
 							os);
 
 				if (!est_tableau) {
-					os << " " << nom;
+					os << " " << nom_broye;
 				}
 
 				virgule = ',';
@@ -1563,14 +1583,14 @@ void genere_code_C(
 			auto drapeaux = contexte.drapeaux_variable(b->morceau.chaine);
 
 			if ((drapeaux & BESOIN_DEREF) != 0) {
-				os << "(*" << b->chaine() << ")";
+				os << "(*" << broye_chaine(b) << ")";
 			}
 			else {
 				if (b->nom_fonction_appel != "") {
 					os << b->nom_fonction_appel;
 				}
 				else {
-					os << b->chaine();
+					os << broye_chaine(b);
 				}
 			}
 
@@ -1612,14 +1632,16 @@ void genere_code_C(
 				}
 			}
 
+			auto nom_broye = broye_chaine(b);
+
 			auto est_tableau = contexte.magasin_types.converti_type_C(
 						contexte,
-						b->chaine(),
+						nom_broye,
 						dt,
 						os);
 
 			if (!est_tableau) {
-				os << " " << b->chaine();
+				os << " " << nom_broye;
 			}
 
 			if ((b->drapeaux & GLOBAL) != 0) {
@@ -1633,12 +1655,12 @@ void genere_code_C(
 				cree_initialisation(
 							contexte,
 							dt,
-							std::string(b->chaine()),
+							nom_broye,
 							".",
 							os);
 			}
 
-			contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+			contexte.pousse_locale(b->chaine(), nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
 
 			break;
 		}
@@ -2083,12 +2105,12 @@ void genere_code_C(
 				genere_code_C(enfant_2, contexte_loc, false, os_loc, os_loc);
 				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
 				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
-				os_loc << " *" << var->chaine() << " = &";
+				os_loc << " *" << broye_chaine(var) << " = &";
 				genere_code_C(enfant_2, contexte_loc, false, os_loc, os_loc);
 				os_loc << ".pointeur["<< nom_var <<"];\n";
 
 				if (idx) {
-					os_loc << "int " << idx->chaine() << " = " << nom_var << ";\n";
+					os_loc << "int " << broye_chaine(idx) << " = " << nom_var << ";\n";
 				}
 			};
 
@@ -2112,32 +2134,34 @@ void genere_code_C(
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= "
 				   << taille_tableau << "-1; ++"<< nom_var <<") {\n";
 				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
-				os_loc << " *" << var->chaine() << " = &";
+				os_loc << " *" << broye_chaine(var) << " = &";
 				genere_code_C(enfant_2, contexte_loc, false, os_loc, os_loc);
 				os_loc << "["<< nom_var <<"];\n";
 
 				if (idx) {
-					os_loc << "int " << idx->chaine() << " = " << nom_var << ";\n";
+					os_loc << "int " << broye_chaine(idx) << " = " << nom_var << ";\n";
 				}
 			};
 
 			switch (b->aide_generation_code) {
 				case GENERE_BOUCLE_PLAGE:
 				{
+					auto nom_broye = broye_chaine(enfant1);
+
 					os << "\nfor (";
 					contexte.magasin_types.converti_type_C(
 								contexte,
 								"",
 								type_debut,
 								os);
-					os << " " << enfant1->chaine() << " = ";
+					os << " " << nom_broye << " = ";
 					genere_code_C(enfant2->enfants.front(), contexte, false, os, os);
 
 					os << "; "
-					   << enfant1->chaine() << " <= ";
+					   << nom_broye << " <= ";
 
 					genere_code_C(enfant2->enfants.back(), contexte, false, os, os);
-					os <<"; ++" << enfant1->chaine()
+					os <<"; ++" << nom_broye
 					  << ") {\n";
 
 					contexte.pousse_locale(enfant1->chaine(), index_type, 0);
@@ -2215,10 +2239,10 @@ void genere_code_C(
 								"",
 								type_debut,
 								os);
-					os << " " << var->chaine() << ";" << var->chaine() << " = " << nom_etat << ".val;\n";
+					os << " " << broye_chaine(var) << ";" << broye_chaine(var) << " = " << nom_etat << ".val;\n";
 
 					if (idx) {
-						os << "int " << idx->chaine() << " = " << nom_idx << ";\n";
+						os << "int " << broye_chaine(idx) << " = " << nom_idx << ";\n";
 						os << nom_idx << " += 1;";
 					}
 
@@ -2453,7 +2477,7 @@ void genere_code_C(
 			for (auto i = 0ul; i < liste_params->size(); ++i) {
 				os << virgule;
 
-				os << '.' << *nom_param << '=';
+				os << '.' << broye_nom_simple(*nom_param) << '=';
 				genere_code_C(*enfant, contexte, expr_gauche, os, os);
 				++enfant;
 				++nom_param;
@@ -2770,7 +2794,7 @@ void genere_code_C(
 				auto enf0 = enfant->enfants.front();
 				auto enf1 = enfant->enfants.back();
 
-				os << ' ' << b->chaine() << '_' << enf0->chaine() << " = ";
+				os << ' ' << broye_chaine(b) << '_' << broye_chaine(enf0) << " = ";
 				genere_code_C(enf1, contexte, false, os, os);
 				os << ";\n";
 			}

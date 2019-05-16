@@ -38,6 +38,7 @@
 #include <sstream>
 
 #include "arbre_syntactic.h"
+#include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "morceaux.h"
 
@@ -509,7 +510,7 @@ static bool converti_type_simple_C(
 					os << "struct ";
 				}
 
-				os << nom_structure;
+				os << broye_nom_simple(nom_structure);
 			}
 
 			break;
