@@ -138,6 +138,7 @@ set(FICHIERS_BIBLIOTHEQUES
 	bibliotheques/fichier.kuri
 	bibliotheques/flux.kuri
 	bibliotheques/info_type.kuri
+	bibliotheques/iter.kuri
 	bibliotheques/memoire.kuri
 	bibliotheques/structures.kuri
 	bibliotheques/uri.kuri

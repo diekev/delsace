@@ -1,0 +1,13 @@
+# Bibliothèque contenant des outils pour les boucles et autres itérations.
+
+# Génére les index d'une plage allant de 'début' à 'fin' avec le 'pas' donné.
+fonction plage(debut : z32, fin : z32, pas : z32) : z32
+{
+    soit taille = (fin - debut) / pas;
+    dyn x = debut;
+    
+    pour i dans 0 ... taille {
+        retiens x;
+        x += pas;
+    }
+}
