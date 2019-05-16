@@ -352,6 +352,23 @@ bool est_constant(base *b)
 	}
 }
 
+static bool est_assignation_operee(id_morceau id)
+{
+	switch (id) {
+		default:
+		{
+			return false;
+		}
+		case id_morceau::MOINS_EGAL:
+		case id_morceau::PLUS_EGAL:
+		case id_morceau::MULTIPLIE_EGAL:
+		case id_morceau::DIVSE_EGAL:
+		{
+			return true;
+		}
+	}
+}
+
 /* ************************************************************************** */
 
 static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
@@ -1087,6 +1104,16 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 								type2,
 								contexte,
 								b->morceau);
+				}
+			}
+
+			if (est_assignation_operee(b->morceau.identifiant)) {
+				if (!peut_etre_assigne(enfant1, contexte)) {
+					erreur::lance_erreur(
+								"Impossible d'assigner l'expression à la variable !",
+								contexte,
+								b->morceau,
+								erreur::type_erreur::ASSIGNATION_INVALIDE);
 				}
 			}
 
