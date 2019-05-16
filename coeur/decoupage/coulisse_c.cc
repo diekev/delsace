@@ -903,14 +903,14 @@ static auto genere_code_acces_membre(
 		auto &ds = contexte.donnees_structure(structure->chaine());
 
 		if (ds.est_enum) {
-			os << structure->chaine() << '_' << membre->chaine();
+			os << broye_chaine(structure) << '_' << broye_chaine(membre);
 			return;
 		}
 	}
 
 	genere_code_C(structure, contexte, true, os, os);
 	os << ((est_pointeur) ? "->" : ".");
-	os << membre->chaine();
+	os << broye_chaine(membre);
 }
 
 static void cree_initialisation(
@@ -1057,7 +1057,7 @@ static void genere_code_C_prepasse(
 
 			genere_code_C(structure, contexte, true, ss, ss);
 			ss << ((est_pointeur) ? "->" : ".");
-			ss << membre->chaine();
+			ss << broye_chaine(membre);
 
 			/* le membre peut-être un pointeur de fonction, donc fais une
 			 * prépasse pour générer cette appel */
