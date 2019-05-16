@@ -1364,15 +1364,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			 * type de retour d'une coroutine n'interfère avec le type d'une
 			 * variable (par exemple quand nous retournons une chaine). */
 			if (enfant2->type == type_noeud::PLAGE) {
-				/* À FAIRE : tests */
 				if (requiers_index) {
-					erreur::lance_erreur(
-								"Ne peut pas extraire un index depuis la variable",
-								contexte,
-								enfant2->donnees_morceau());
+					b->aide_generation_code = GENERE_BOUCLE_PLAGE_INDEX;
 				}
-
-				b->aide_generation_code = GENERE_BOUCLE_PLAGE;
+				else {
+					b->aide_generation_code = GENERE_BOUCLE_PLAGE;
+				}
 			}
 			else if (enfant2->type == type_noeud::APPEL_FONCTION && enfant2->df->est_coroutine) {
 				enfant1->index_type = enfant2->index_type;

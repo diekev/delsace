@@ -2145,8 +2145,21 @@ void genere_code_C(
 
 			switch (b->aide_generation_code) {
 				case GENERE_BOUCLE_PLAGE:
+				case GENERE_BOUCLE_PLAGE_INDEX:
 				{
-					auto nom_broye = broye_chaine(enfant1);
+					auto var = enfant1;
+					auto idx = static_cast<noeud::base *>(nullptr);
+
+					if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
+						var = enfant1->enfants.front();
+						idx = enfant1->enfants.back();
+					}
+
+					auto nom_broye = broye_chaine(var);
+
+					if (idx != nullptr) {
+						os << "int " << broye_chaine(idx) << " = 0;";
+					}
 
 					os << "\nfor (";
 					contexte.magasin_types.converti_type_C(
@@ -2161,10 +2174,21 @@ void genere_code_C(
 					   << nom_broye << " <= ";
 
 					genere_code_C(enfant2->enfants.back(), contexte, false, os, os);
-					os <<"; ++" << nom_broye
-					  << ") {\n";
+					os <<"; ++" << nom_broye;
 
-					contexte.pousse_locale(enfant1->chaine(), index_type, 0);
+					if (idx != nullptr) {
+						os << ", ++" << broye_chaine(idx);
+					}
+
+					os  << ") {\n";
+
+					if (b->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
+						contexte.pousse_locale(var->chaine(), var->index_type, 0);
+						contexte.pousse_locale(idx->chaine(), idx->index_type, 0);
+					}
+					else {
+						contexte.pousse_locale(enfant1->chaine(), index_type, 0);
+					}
 
 					break;
 				}

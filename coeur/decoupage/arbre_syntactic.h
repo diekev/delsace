@@ -178,6 +178,7 @@ inline bool possede_drapeau(unsigned short drapeau, unsigned short valeur)
 
 enum {
 	GENERE_BOUCLE_PLAGE,
+	GENERE_BOUCLE_PLAGE_INDEX,
 	GENERE_BOUCLE_TABLEAU,
 	GENERE_BOUCLE_TABLEAU_INDEX,
 	GENERE_BOUCLE_COROUTINE,
