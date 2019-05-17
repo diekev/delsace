@@ -1,0 +1,23 @@
+importe "flux"
+
+fonction plage(début : z32, fin : z32, pas : z32) : z32
+{
+    soit taille = (fin - début) / pas;
+    dyn val = début;
+    
+    pour i dans 0 ... taille {
+        retiens val;
+        val += pas;
+    }
+    
+    imprime("Fin coroutine\n");
+}
+
+fonction principale(args : []*z8) : z32
+{
+    pour i dans plage(0, 10, 1) {
+        imprime("Valeur = ", i, '\n');
+    }
+    
+    retourne 0;
+}

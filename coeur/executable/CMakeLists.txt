@@ -43,3 +43,15 @@ install(
 )
 
 install(FILES fichiers/execution_kuri.S DESTINATION fichiers)
+
+add_executable(converti_html
+	converti_html.cc
+)
+
+target_include_directories(converti_html PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(converti_html "${BIBLIOTHEQUES}")
+
+install(
+	TARGETS converti_html RUNTIME DESTINATION .
+)

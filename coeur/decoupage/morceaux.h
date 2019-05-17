@@ -137,6 +137,8 @@ enum class id_morceau : unsigned int {
 	TABLEAU,
 	REFERENCE,
 	INCONNU,
+	CARACTERE_BLANC,
+	COMMENTAIRE,
 };
 
 inline id_morceau operator&(id_morceau id1, int id2)

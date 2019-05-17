@@ -130,6 +130,11 @@ private:
 	DonneesFonction m_donnees_invalides{};
 };
 
+std::string charge_fichier(
+		std::string const &chemin,
+		ContexteGenerationCode &contexte,
+		DonneesMorceaux const &morceau);
+
 /**
  * Charge le module dont le nom est spécifié.
  *

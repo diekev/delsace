@@ -1,0 +1,9 @@
+fonction exemple() : rien
+{
+	soit x = 1.5; # Type nombre réel 64-bit
+	soit y = 2;   # Type nombre entier relatif 32-bit
+	soit z = x;   # Type nombre réel 64-bit
+	soit w = y;   # Type nombre entier relatif 32-bit
+
+	retourne;
+}

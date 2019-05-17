@@ -1,0 +1,15 @@
+importe "chaine"
+importe "flux"
+
+fonction principale(args : []*z8) : z32
+{
+    imprime("Bonjour, tout le monde !\n");
+    imprime("Nous allons imprimer les arguments :\n");
+
+    pour arg, index dans args {
+        soit chn = converti_chaine_c(arg);
+        imprime("Argument ", index, " = ", chn, '\n');
+    }
+
+    retourne 0;
+}

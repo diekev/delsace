@@ -349,6 +349,10 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::REFERENCE";
 		case id_morceau::INCONNU:
 			return "id_morceau::INCONNU";
+		case id_morceau::CARACTERE_BLANC:
+			return "id_morceau::CARACTERE_BLANC";
+		case id_morceau::COMMENTAIRE:
+			return "id_morceau::COMMENTAIRE";
 	};
 
 	return "ERREUR";

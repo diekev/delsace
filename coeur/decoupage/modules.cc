@@ -92,7 +92,7 @@ size_t DonneesModule::memoire_utilisee() const noexcept
 
 /* ************************************************************************** */
 
-static auto charge_fichier(
+std::string charge_fichier(
 		std::string const &chemin,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau)

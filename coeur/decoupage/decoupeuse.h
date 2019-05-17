@@ -31,6 +31,11 @@
 
 struct DonneesModule;
 
+enum {
+	INCLUS_CARACTERES_BLANC = (1 << 0),
+	INCLUS_COMMENTAIRES     = (1 << 1),
+};
+
 class decoupeuse_texte {
 	DonneesModule *m_module;
 	const char *m_debut_mot = nullptr;
@@ -42,10 +47,12 @@ class decoupeuse_texte {
 	size_t m_pos_mot = 0;
 	size_t m_taille_mot_courant = 0;
 
+	int m_drapeaux = 0;
+
 public:
 	using iterateur = std::vector<DonneesMorceaux>::iterator;
 
-	explicit decoupeuse_texte(DonneesModule *module);
+	explicit decoupeuse_texte(DonneesModule *module, int drapeaux = 0);
 
 	void genere_morceaux();
 
@@ -71,7 +78,7 @@ private:
 
 	void analyse_caractere_simple();
 
-	void pousse_caractere();
+	void pousse_caractere(int n = 1);
 
 	void pousse_mot(id_morceau identifiant);
 

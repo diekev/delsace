@@ -128,6 +128,8 @@ id_extra = [
     u"TABLEAU",
     u"REFERENCE",
 	u'INCONNU',
+	u'CARACTERE_BLANC',
+	u'COMMENTAIRE',
 ]
 
 

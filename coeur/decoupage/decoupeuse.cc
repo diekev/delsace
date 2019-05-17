@@ -103,11 +103,12 @@ constexpr auto converti_utf32(const char *sequence, int n)
 
 /* ************************************************************************** */
 
-decoupeuse_texte::decoupeuse_texte(DonneesModule *module)
+decoupeuse_texte::decoupeuse_texte(DonneesModule *module, int drapeaux)
 	: m_module(module)
 	, m_debut_mot(module->tampon.debut())
 	, m_debut(module->tampon.debut())
 	, m_fin(module->tampon.fin())
+	, m_drapeaux(drapeaux)
 {
 	construit_tables_caractere_speciaux();
 }
@@ -160,7 +161,15 @@ void decoupeuse_texte::genere_morceaux()
 							this->pousse_mot(id_chaine(this->mot_courant()));
 						}
 
-						this->avance(nombre_octet);
+						if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+							this->enregistre_pos_mot();
+							this->avance(nombre_octet);
+							this->pousse_mot(id_morceau::CARACTERE_BLANC);
+						}
+						else {
+							this->avance(nombre_octet);
+						}
+
 						break;
 					}
 					case GUILLEMET_OUVRANT:
@@ -169,9 +178,16 @@ void decoupeuse_texte::genere_morceaux()
 							this->pousse_mot(id_chaine(this->mot_courant()));
 						}
 
-						/* Saute le premier guillemet. */
-						this->avance(nombre_octet);
-						this->enregistre_pos_mot();
+						/* Saute le premier guillemet si nécessaire. */
+						if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+							this->enregistre_pos_mot();
+							this->pousse_caractere(nombre_octet);
+							this->avance(nombre_octet);
+						}
+						else {
+							this->avance(nombre_octet);
+							this->enregistre_pos_mot();
+						}
 
 						while (!this->fini()) {
 							nombre_octet = lng::nombre_octets(m_debut);
@@ -185,7 +201,11 @@ void decoupeuse_texte::genere_morceaux()
 							this->avance(nombre_octet);
 						}
 
-						/* Saute le dernier guillemet. */
+						/* Saute le dernier guillemet si nécessaire. */
+						if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+							this->pousse_caractere(nombre_octet);
+						}
+
 						this->avance(nombre_octet);
 
 						this->pousse_mot(id_morceau::CHAINE_LITTERALE);
@@ -322,6 +342,12 @@ void decoupeuse_texte::analyse_caractere_simple()
 			this->pousse_mot(id_chaine(this->mot_courant()));
 		}
 
+		if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+			this->enregistre_pos_mot();
+			this->pousse_caractere();
+			this->pousse_mot(id_morceau::CARACTERE_BLANC);
+		}
+
 		this->avance();
 	}
 	else if (est_caractere_special(this->caractere_courant(), idc)) {
@@ -365,9 +391,16 @@ void decoupeuse_texte::analyse_caractere_simple()
 			}
 			case '"':
 			{
-				/* Saute le premier guillemet. */
-				this->avance();
-				this->enregistre_pos_mot();
+				/* Saute le premier guillemet si nécessaire. */
+				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+					this->enregistre_pos_mot();
+					this->pousse_caractere();
+					this->avance();
+				}
+				else {
+					this->avance();
+					this->enregistre_pos_mot();
+				}
 
 				while (!this->fini()) {
 					if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
@@ -378,7 +411,11 @@ void decoupeuse_texte::analyse_caractere_simple()
 					this->avance();
 				}
 
-				/* Saute le dernier guillemet. */
+				/* Saute le dernier guillemet si nécessaire. */
+				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+					this->pousse_caractere();
+				}
+
 				this->avance();
 
 				this->pousse_mot(id_morceau::CHAINE_LITTERALE);
@@ -386,10 +423,16 @@ void decoupeuse_texte::analyse_caractere_simple()
 			}
 			case '\'':
 			{
-				/* Saute la première apostrophe. */
-				this->avance();
-
-				this->enregistre_pos_mot();
+				/* Saute la première apostrophe si nécessaire. */
+				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+					this->enregistre_pos_mot();
+					this->pousse_caractere();
+					this->avance();
+				}
+				else {
+					this->avance();
+					this->enregistre_pos_mot();
+				}
 
 				if (this->caractere_courant() == '\\') {
 					this->pousse_caractere();
@@ -397,24 +440,41 @@ void decoupeuse_texte::analyse_caractere_simple()
 				}
 
 				this->pousse_caractere();
-				this->pousse_mot(id_morceau::CARACTERE);
+				this->avance();				
 
-				this->avance();
+				/* Saute la dernière apostrophe si nécessaire. */
+				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+					this->pousse_caractere();
+				}
 
-				/* Saute la dernière apostrophe. */
 				if (this->caractere_courant() != '\'') {
 					lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n");
 				}
 
 				this->avance();
+				this->pousse_mot(id_morceau::CARACTERE);
 				break;
 			}
 			case '#':
 			{
+				if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+					this->enregistre_pos_mot();
+				}
+
 				/* ignore commentaire */
 				while (this->caractere_courant() != '\n') {
 					this->avance();
+					this->pousse_caractere();
 				}
+
+				if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+					this->pousse_mot(id_morceau::COMMENTAIRE);
+				}
+
+				/* Lorsqu'on inclus pas les commentaires, il faut ignorer les
+				 * caractères poussées. */
+				m_taille_mot_courant = 0;
+
 				break;
 			}
 			default:
@@ -452,9 +512,9 @@ void decoupeuse_texte::analyse_caractere_simple()
 	}
 }
 
-void decoupeuse_texte::pousse_caractere()
+void decoupeuse_texte::pousse_caractere(int n)
 {
-	m_taille_mot_courant += 1;
+	m_taille_mot_courant += static_cast<size_t>(n);
 }
 
 void decoupeuse_texte::pousse_mot(id_morceau identifiant)
