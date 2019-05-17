@@ -545,14 +545,21 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			for (auto &df : vdf) {
 				if (df.noeud_decl == b) {
 					donnees_fonction = &df;
+					break;
 				}
 			}
 
-			if (!est_externe && nom_fonction != "principale") {
+			auto est_principale = (nom_fonction == "principale");
+
+			if (!est_externe && !est_principale) {
 				donnees_fonction->nom_broye = broye_nom_fonction(nom_fonction, module->nom, donnees_fonction->index_type);
 			}
 			else {
 				donnees_fonction->nom_broye = nom_fonction;
+
+				if (est_principale) {
+					donnees_fonction->est_utilisee = true;
+				}
 			}
 
 			if (est_externe) {
@@ -707,6 +714,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			b->df = candidate->df;
+			b->df->est_utilisee = true;
 
 			if (b->index_type == -1ul) {
 				b->index_type = donnees_fonction->index_type_retour;
@@ -748,9 +756,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* À FAIRE : trouve la fonction selon le type */
 			if (module->fonction_existe(b->morceau.chaine)) {
-				auto const &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
+				auto &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
 				b->index_type = donnees_fonction.front().index_type;
 				b->nom_fonction_appel = donnees_fonction.front().nom_broye;
+				donnees_fonction.front().est_utilisee = true;
 				return;
 			}
 

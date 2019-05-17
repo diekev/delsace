@@ -1420,7 +1420,12 @@ void genere_code_C(
 			for (auto &df : vdf) {
 				if (df.noeud_decl == b) {
 					donnees_fonction = &df;
+					break;
 				}
+			}
+
+			if (!donnees_fonction->est_utilisee) {
+				return;
 			}
 
 			/* Pour les fonctions variadiques nous transformons la liste d'argument en

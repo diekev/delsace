@@ -69,7 +69,8 @@ struct DonneesFonction {
 	bool est_externe = false;
 	bool est_variadique = false;
 	bool est_coroutine = false;
-	char pad[5];
+	bool est_utilisee = false;
+	char pad[4];
 	DonneesCoroutine donnees_coroutine{};
 };
 
