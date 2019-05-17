@@ -88,7 +88,7 @@ static void genere_code_extra_pre_retour(
 		std::ostream &os)
 {
 	if (contexte.donnees_fonction->est_coroutine) {
-		os << "__etat->termine = 1;\n";
+		os << "__etat->__termine_coro = 1;\n";
 	}
 
 	/* génère le code pour les blocs déférés */
@@ -1435,12 +1435,12 @@ void genere_code_C(
 			auto nom_fonction = donnees_fonction->nom_broye;
 
 			if (donnees_fonction->est_coroutine) {
-				os << "typedef struct __etat_coro" << nom_fonction << " { bool reprend; bool termine; ";
+				os << "typedef struct __etat_coro" << nom_fonction << " { bool __reprend_coro; bool __termine_coro; ";
 				contexte.magasin_types.converti_type_C(contexte,
 											"",
 											contexte.magasin_types.donnees_types[donnees_fonction->index_type_retour],
 										os);
-				os << " val;\n";
+				os << " __val_coro;\n";
 
 
 				auto &donnees_coroutine = donnees_fonction->donnees_coroutine;
@@ -1457,7 +1457,7 @@ void genere_code_C(
 						os << '*';
 					}
 
-					os << ' ' << paire.first << ";\n";
+					os << ' ' << broye_nom_simple(paire.first) << ";\n";
 				}
 
 				os << " } __etat_coro" << nom_fonction << ";\n";
@@ -1534,17 +1534,13 @@ void genere_code_C(
 			os << "{\n";
 
 			if (donnees_fonction->est_coroutine) {
-				os << "if (__etat->reprend != 0) {\n";
-
 				for (auto i = 1; i <= donnees_fonction->donnees_coroutine.nombre_retenues; ++i) {
-					os << "if (__etat->reprend == " << i << ") { goto __reprend_coro" << i << "; }";
+					os << "if (__etat->__reprend_coro == " << i << ") { goto __reprend_coro" << i << "; }";
 				}
 
 				/* remet à zéro car nous avons besoin de les compter pour
 				 * générer les labels des goto */
 				donnees_fonction->donnees_coroutine.nombre_retenues = 0;
-
-				os << "}\n";
 			}
 
 			genere_code_C(bloc, contexte, false, os, os);
@@ -2234,8 +2230,8 @@ void genere_code_C(
 					auto nom_etat = "__etat" + std::to_string(enfant2->morceau.ligne_pos);
 
 					os << "__etat_coro" << enfant2->df->nom_broye << " " << nom_etat << ";\n";
-					os << nom_etat << ".reprend = 0;\n";
-					os << nom_etat << ".termine = 0;\n";
+					os << nom_etat << ".__reprend_coro = 0;\n";
+					os << nom_etat << ".__termine_coro = 0;\n";
 
 					auto var = enfant1;
 					auto idx = static_cast<noeud::base *>(nullptr);
@@ -2256,14 +2252,17 @@ void genere_code_C(
 
 					os << ";\n";
 
-					os << "if (" << nom_etat << ".termine == 1) { break; }\n";
+					os << "if (" << nom_etat << ".__termine_coro == 1) { break; }\n";
+
+					auto nom_var_broye = broye_chaine(var);
 
 					contexte.magasin_types.converti_type_C(
 								contexte,
 								"",
 								type_debut,
 								os);
-					os << " " << broye_chaine(var) << ";" << broye_chaine(var) << " = " << nom_etat << ".val;\n";
+					os << " " << nom_var_broye << ";" << nom_var_broye
+					   << " = " << nom_etat << ".__val_coro;\n";
 
 					if (idx) {
 						os << "int " << broye_chaine(idx) << " = " << nom_idx << ";\n";
@@ -2887,7 +2886,7 @@ void genere_code_C(
 			auto enfant = b->enfants.front();
 			genere_code_C_prepasse(enfant, contexte, true, os);
 
-			os << "__etat->val = ";
+			os << "__etat->__val_coro = ";
 			genere_code_C(enfant, contexte, true, os, os);
 			os << ";\n";
 
@@ -2895,17 +2894,19 @@ void genere_code_C(
 			auto fin   = contexte.fin_locales();
 
 			for (; debut != fin; ++debut) {
-				os << "__etat->" << debut->first << " = " << debut->first << ";\n";
+				auto nom_broye = broye_nom_simple(debut->first);
+				os << "__etat->" << nom_broye << " = " << nom_broye << ";\n";
 			}
 
-			os << "__etat->reprend = " << donnees_coroutine.nombre_retenues << ";\n";
+			os << "__etat->__reprend_coro = " << donnees_coroutine.nombre_retenues << ";\n";
 			os << "return;\n";
 			os << "__reprend_coro" << donnees_coroutine.nombre_retenues << ":\n";
 
 			debut = contexte.debut_locales();
 
 			for (; debut != fin; ++debut) {
-				os << debut->first << " = __etat->" << debut->first << ";\n";
+				auto nom_broye = broye_nom_simple(debut->first);
+				os << nom_broye << " = __etat->" << nom_broye << ";\n";
 			}
 
 			break;
