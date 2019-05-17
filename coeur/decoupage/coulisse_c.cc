@@ -1442,7 +1442,6 @@ void genere_code_C(
 										os);
 				os << " __val_coro;\n";
 
-
 				auto &donnees_coroutine = donnees_fonction->donnees_coroutine;
 
 				for (auto const &paire : donnees_coroutine.variables) {
