@@ -669,7 +669,14 @@ static void cree_appel(
 {
 	for (auto enf : enfants) {
 		if ((enf->drapeaux & CONVERTI_TABLEAU) != 0) {
-			auto nom_tableau = std::string("__tabl_dyn_").append(enf->chaine());
+			auto nom_tabl_fixe = std::string(enf->chaine());
+
+			if (enf->type == type_noeud::CONSTRUIT_TABLEAU) {
+				genere_code_C_prepasse(enf, contexte, false, os);
+				nom_tabl_fixe = std::any_cast<std::string>(enf->valeur_calculee);
+			}
+
+			auto nom_tableau = std::string("__tabl_dyn") + std::to_string(index++);
 			enf->valeur_calculee = nom_tableau;
 
 			os << "Tableau_";
@@ -678,7 +685,7 @@ static void cree_appel(
 
 			os << ' ' << nom_tableau << ";\n";
 			os << nom_tableau << ".taille = " << static_cast<size_t>(dt.type_base() >> 8) << ";\n";
-			os << nom_tableau << ".pointeur = " << enf->chaine() << ";\n";
+			os << nom_tableau << ".pointeur = " << nom_tabl_fixe << ";\n";
 		}
 		else if ((enf->drapeaux & CONVERTI_EINI) != 0) {
 			enf->valeur_calculee = cree_eini(contexte, os, enf);
