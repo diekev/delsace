@@ -5,8 +5,8 @@ importe "chaine"
 
 énum id_info : z32 {
     ENTIER    = 0,
-	REEL      = 1,
-	BOOLEEN   = 2,
+	RÉEL      = 1,
+	BOOLÉEN   = 2,
 	CHAINE    = 3,
 	POINTEUR  = 4,
 	STRUCTURE = 5,
@@ -14,7 +14,7 @@ importe "chaine"
 	TABLEAU   = 7,
 	EINI      = 8,
 	RIEN      = 9,
-	ENUM      = 10,
+	ÉNUM      = 10,
 }
 
 structure InfoType {
@@ -23,29 +23,29 @@ structure InfoType {
 
 structure InfoTypeEntier {
     id : id_info; # employant InfoType
-	est_signe : bool;
+	est_signé : bool;
 	taille_en_octet : n32;
 }
 
-structure InfoTypeReel {
+structure InfoTypeRéel {
     id : id_info; # employant InfoType
 	taille_en_octet : n32;
 }
 
 structure InfoTypePointeur {
     id : id_info; # employant InfoType
-	type_pointe : *InfoType;
+	type_pointé : *InfoType;
 }
 
 structure InfoTypeTableau {
     id : id_info; # employant InfoType
-	type_pointe : *InfoType;
+	type_pointé : *InfoType;
 }
 
 structure InfoTypeMembreStructure {
     nom : chaine;
 	id : *InfoType;
-	decalage : z64; # décalage en octets dans la structure
+	décalage : z64; # décalage en octets dans la structure
 	#drapeaux : n32;
 }
 
@@ -61,14 +61,14 @@ structure InfoTypeFonction {
 	type_arguments : []*InfoType;
 }
 
-structure InfoTypeEnum {
+structure InfoTypeÉnum {
     id : id_info; # employant InfoType
 	nom : chaine;
 	valeurs : []z32; # À FAIRE typage selon énum
 	noms : []chaine;
 }
 
-fonction possede_membre(arg : eini, nom : chaine) : bool
+fonction possède_membre(arg : eini, nom : chaine) : bool
 {
     soit info = info de arg;
 

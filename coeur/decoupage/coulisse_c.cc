@@ -136,7 +136,7 @@ static auto cree_info_type_entier_C(
 
 	os_decl << "static InfoTypeEntier " << nom_info_type << ";\n";
 	os_init << nom_info_type << ".id = id_info_ENTIER;\n";
-	os_init << nom_info_type << ".est_signe = " << est_signe << ";\n";
+	os_init << nom_info_type << broye_nom_simple(".est_signé = ") << est_signe << ";\n";
 	os_init << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
 
 	return nom_info_type;
@@ -149,8 +149,8 @@ static auto cree_info_type_reel_C(
 {
 	auto nom_info_type = "__info_type_reel" + std::to_string(index++);
 
-	os_decl << "static InfoTypeReel " << nom_info_type << ";\n";
-	os_init << nom_info_type << ".id = id_info_REEL;\n";
+	os_decl << broye_nom_simple("static InfoTypeRéel ") << nom_info_type << ";\n";
+	os_init << nom_info_type << broye_nom_simple(".id = id_info_RÉEL;\n");
 	os_init << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
 
 	return nom_info_type;
@@ -296,7 +296,7 @@ static auto cree_info_type_structure_C(
 			os_decl << "static InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
 			os_init << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
 			os_init << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.size()  << ";\n";
-			os_init << nom_info_type_membre << ".decalage = " << decalage << ";\n";
+			os_init << nom_info_type_membre << broye_nom_simple(".décalage = ") << decalage << ";\n";
 			os_init << nom_info_type_membre << ".id = (InfoType *)(&" << rderef.ptr_info_type  << ");\n";
 
 			decalage += taille_type_octet(contexte, dt_membre);
@@ -371,8 +371,8 @@ static auto cree_info_type_enum_C(
 	os_init << "{.pointeur = \"" << nom_struct << "\""
 	   << ", .taille = " << nom_struct.size() << "};\n";
 
-	os_decl << "static InfoTypeEnum " << nom_info_type << ";\n";
-	os_init << nom_info_type << ".id = id_info_ENUM;\n";
+	os_decl << broye_nom_simple("static InfoTypeÉnum ") << nom_info_type << ";\n";
+	os_init << nom_info_type << broye_nom_simple(".id = id_info_ÉNUM;\n");
 	os_init << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
 	auto noeud_decl = donnees_structure.noeud_decl;
@@ -445,7 +445,7 @@ static std::string cree_info_type_C(
 		}
 		case id_morceau::BOOL:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_BOOLEEN");
+			valeur = cree_info_type_defaul_C(os_decl, os_init, broye_nom_simple("id_info_BOOLÉEN"));
 			break;
 		}
 		case id_morceau::N8:
@@ -520,7 +520,7 @@ static std::string cree_info_type_C(
 
 			os_decl << "static InfoTypePointeur " << nom_info_type << ";\n";
 			os_init << nom_info_type << ".id = id_info_POINTEUR;\n";
-			os_init << nom_info_type << ".type_pointe = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
+			os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
 
 			valeur = nom_info_type;
 			break;
@@ -563,7 +563,7 @@ static std::string cree_info_type_C(
 			if (deref.est_invalide()) {
 				os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
 				os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
-				os_init << nom_info_type << ".type_pointe = 0;\n";
+				os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = 0;\n";
 			}
 			else {
 				auto idx = contexte.magasin_types.ajoute_type(deref);
@@ -575,7 +575,7 @@ static std::string cree_info_type_C(
 
 				os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
 				os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
-				os_init << nom_info_type << ".type_pointe = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
+				os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
 			}
 
 			valeur = nom_info_type;

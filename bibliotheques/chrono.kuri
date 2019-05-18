@@ -57,17 +57,17 @@ fonction compte_ticks_ms() : z64
 	retourne secondes de heure * 1000 + microsecondes de heure / 1000;
 }
 
-structure DonneesTemps {
+structure DonnéesTemps {
     heures : z32;
     minutes : z32;
     secondes : z32;
 }
 
-fonction calcule_temps() : DonneesTemps
+fonction calcule_temps() : DonnéesTemps
 {
     dyn maint = maintenant_local();
     
-    dyn dt : DonneesTemps;
+    dyn dt : DonnéesTemps;
     minutes de dt = transtype(maint / 60.0 : z32) % 60;
     heures de dt = transtype(maint / 60.0 / 60.0 : z32) % 24;
     secondes de dt = transtype(maint : z32) % 60;

@@ -15,74 +15,74 @@ fonction imprime_valeur(
     flux_std : z32,
 	pointeur : *z8,
 	info : *InfoType,
-	echappe_chn : bool) : rien
+	échappe_chn : bool) : rien
 {
     dyn tmp : [128]z8;
     dyn ptr_tmp = @tmp[0];
 
-    dyn ecrie = 0;
+    dyn écrie = 0;
 
     associe id de info {
 	    ENTIER de id_info
 		{
 		    soit info_arg = transtype(info : *InfoTypeEntier);
 
-            si est_signe de info_arg {
+            si est_signé de info_arg {
 			    si taille_en_octet de info_arg == 8 {
 				    soit x = mémoire(transtype(pointeur : *z8));
-					ecrie = sprintf(ptr_tmp, "%c", x);
+					écrie = sprintf(ptr_tmp, "%c", x);
 				}
 				sinon si taille_en_octet de info_arg == 16 {
 				    soit x = mémoire(transtype(pointeur : *z16));
-					ecrie = sprintf(ptr_tmp, "%d", x);
+					écrie = sprintf(ptr_tmp, "%d", x);
 				}
 				sinon si taille_en_octet de info_arg == 32 {
 				    soit x = mémoire(transtype(pointeur : *z32));
-					ecrie = sprintf(ptr_tmp, "%d", x);
+					écrie = sprintf(ptr_tmp, "%d", x);
 				}
 				sinon si taille_en_octet de info_arg == 64 {
 				    soit x = mémoire(transtype(pointeur : *z64));
-					ecrie = sprintf(ptr_tmp, "%ld", x);
+					écrie = sprintf(ptr_tmp, "%ld", x);
 				}
 			}
 			sinon {
 			    si taille_en_octet de info_arg == 8 {
 				    soit x = mémoire(transtype(pointeur : *n8));
-					ecrie = sprintf(ptr_tmp, "%c", x);
+					écrie = sprintf(ptr_tmp, "%c", x);
 				}
 				sinon si taille_en_octet de info_arg == 16 {
 				    soit x = mémoire(transtype(pointeur : *n16));
-					ecrie = sprintf(ptr_tmp, "%d", x);
+					écrie = sprintf(ptr_tmp, "%d", x);
 				}
 				sinon si taille_en_octet de info_arg == 32 {
 				    soit x = mémoire(transtype(pointeur : *n32));
-					ecrie = sprintf(ptr_tmp, "%d", x);
+					écrie = sprintf(ptr_tmp, "%d", x);
 				}
 				sinon si taille_en_octet de info_arg == 64 {
 				    soit x = mémoire(transtype(pointeur : *n64));
-					ecrie = sprintf(ptr_tmp, "%ld", x);
+					écrie = sprintf(ptr_tmp, "%ld", x);
 				}
 			}
 		}
-		REEL de id_info
+		RÉEL de id_info
 		{
-			soit info_arg = transtype(info : *InfoTypeReel);
+		    soit info_arg = transtype(info : *InfoTypeRéel);
 
             # À FAIRE : type R16
             si taille_en_octet de info_arg == 16 {
 			    soit x = mémoire(transtype(pointeur : *r16));
-				ecrie = sprintf(ptr_tmp, "%f", x);
+				écrie = sprintf(ptr_tmp, "%f", x);
 			}
 			sinon si taille_en_octet de info_arg == 32 {
 			    soit x = mémoire(transtype(pointeur : *r32));
-				ecrie = sprintf(ptr_tmp, "%f", x);
+				écrie = sprintf(ptr_tmp, "%f", x);
 			}
 			sinon si taille_en_octet de info_arg == 64 {
 			    soit x = mémoire(transtype(pointeur : *r64));
-				ecrie = sprintf(ptr_tmp, "%f", x);
+				écrie = sprintf(ptr_tmp, "%f", x);
 			}
 		}
-		BOOLEEN de id_info
+		BOOLÉEN de id_info
 		{
 		    soit x = mémoire(transtype(pointeur : *bool));
 			dyn chn : chaine;
@@ -101,13 +101,13 @@ fonction imprime_valeur(
 		    soit x = mémoire(transtype(pointeur : *chaine));
 			soit apostrophe = '"';
 
-            si echappe_chn {
+            si échappe_chn {
 			    write(flux_std, @apostrophe, 1);
 			}
 
             write(flux_std, pointeur de x, taille de x);
 
-            si echappe_chn {
+            si échappe_chn {
 			    write(flux_std, @apostrophe, 1);
 			}
 		}
@@ -115,36 +115,36 @@ fonction imprime_valeur(
 		{
 		    soit info_arg = transtype(info : *InfoTypeStructure);
 
-            ecrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg);
-			write(flux_std, ptr_tmp, transtype(ecrie : z64));
+            écrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg);
+			write(flux_std, ptr_tmp, transtype(écrie : z64));
 
             dyn virgule = '\0';
 
             pour membre dans membres de info_arg {
 			    soit ptr_nom = pointeur de nom de membre;
-				soit decalage = decalage de membre;
+				soit décalage = décalage de membre;
 				soit id = id de membre;
 
-                ecrie = sprintf(ptr_tmp, "%c", virgule);
-				write(flux_std, ptr_tmp, transtype(ecrie : z64));
+                écrie = sprintf(ptr_tmp, "%c", virgule);
+				write(flux_std, ptr_tmp, transtype(écrie : z64));
 
-                ecrie = sprintf(ptr_tmp, " %s = ", ptr_nom);
-				write(flux_std, ptr_tmp, transtype(ecrie : z64));
+                écrie = sprintf(ptr_tmp, " %s = ", ptr_nom);
+				write(flux_std, ptr_tmp, transtype(écrie : z64));
 
-                imprime_valeur(flux_std, pointeur + decalage, id, vrai);
+                imprime_valeur(flux_std, pointeur + décalage, id, vrai);
 				virgule = ',';
 			}
 
-            ecrie = sprintf(ptr_tmp, " %c", '}');
-			write(flux_std, ptr_tmp, transtype(ecrie : z64));
-			ecrie = 0;
+            écrie = sprintf(ptr_tmp, " %c", '}');
+			write(flux_std, ptr_tmp, transtype(écrie : z64));
+			écrie = 0;
 		}
 		POINTEUR de id_info
 		{
 		    # Ne pas oublier qu'il y a un niveau d'indirection.
 			soit x = transtype(pointeur : **z8);
 			soit x0 = mémoire(x);
-			ecrie = sprintf(ptr_tmp, "%p", x0);
+			écrie = sprintf(ptr_tmp, "%p", x0);
 		}
 		FONCTION de id_info
 		{
@@ -155,7 +155,7 @@ fonction imprime_valeur(
 		EINI de id_info
 		{
 		    soit x = mémoire(transtype(pointeur : *eini));
-			ecrie = sprintf(ptr_tmp, "eini { ptr = %p, info = %d }", pointeur de x, info de x);
+			écrie = sprintf(ptr_tmp, "eini { ptr = %p, info = %d }", pointeur de x, info de x);
 		}
 		RIEN de id_info
 		{
@@ -165,11 +165,11 @@ fonction imprime_valeur(
 		TABLEAU de id_info
 		{
 		    soit x = mémoire(transtype(pointeur : *[]z8));
-			ecrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x);
+			écrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x);
 		}
-		ENUM de id_info
+		ÉNUM de id_info
 		{
-		    soit info_arg = transtype(info : *InfoTypeEnum);
+		    soit info_arg = transtype(info : *InfoTypeÉnum);
 			# À FAIRE : typage selon énum
 			soit valeur = mémoire(transtype(pointeur : *z32));
 			soit noms = noms de info_arg;
@@ -184,8 +184,8 @@ fonction imprime_valeur(
 		}
 	}
 
-    si ecrie != 0 {
-	    write(flux_std, ptr_tmp, transtype(ecrie : z64));
+    si écrie != 0 {
+	    write(flux_std, ptr_tmp, transtype(écrie : z64));
 	}
 }
 

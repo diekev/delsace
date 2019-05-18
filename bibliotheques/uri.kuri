@@ -1,29 +1,29 @@
-# Bibliothèque de manipulation d'uri.
+# Bibliothèque de manipulation d'uri.
 
 importe "chaine"
 
-# URI = scheme:[//authority]path[?query][#fragment]
-# authority = [userinfo@]host[:port]
+# URI = schéma:[//autorité]chemin[?requête][#fragment]
+# autorité = [info_usager@]hôte[:port]
 structure URI {
     uri : chaine;
-	schema : chaine;
-	autorite : chaine;
+	schéma : chaine;
+	autorité : chaine;
 	chemin : chaine;
-	requete : chaine;
+	requête : chaine;
 	fragment : chaine;
-	userinfo : chaine;
-	hote : chaine;
+	info_usager : chaine;
+	hôte : chaine;
 	port : chaine;
 }
 
 fonction est_valide(uri : *URI) : bool
 {
-	si chaine_est_vide(schema de uri) {
+    si est_vide(schéma de uri) {
 		retourne faux;
 	}
 
-	si !chaine_est_vide(autorite de uri) {
-		si chaine_est_vide(hote de uri) {
+    si !est_vide(autorité de uri) {
+	    si est_vide(hôte de uri) {
 		    retourne faux;
 		}
 	}
@@ -37,10 +37,10 @@ fonction construit_uri(chn : chaine) : URI
     uri de uri = chn;
        
 	# le schéma se trouve entre le début et ':'
-	dyn pos = trouve_caractere_chaine(chn, ':', 0);
+	dyn pos = trouve_caractère(chn, ':', 0);
 
 	si pos != -1 {
-		schema de uri = construit_chaine(@chn[0], pos);
+	    schéma de uri = construit_chaine(@chn[0], pos);
 		pos += 1;
 	}
 	sinon {
@@ -49,19 +49,19 @@ fonction construit_uri(chn : chaine) : URI
 
 	si (chn[pos] == '/' && chn[pos + 1] == '/') {
 		pos = pos + 2;
-		dyn fin_autorite = trouve_caractere_chaine(chn, '/', pos);
+		dyn fin_autorité = trouve_caractère(chn, '/', pos);
 
-		si (fin_autorite == -1) {
-			fin_autorite = taille de chn;
+        si (fin_autorité == -1) {
+		    fin_autorité = taille de chn;
 		}
 
-		autorite de uri = construit_chaine(@chn[pos - 2], fin_autorite - pos + 2);
+        autorité de uri = construit_chaine(@chn[pos - 2], fin_autorité - pos + 2);
 
-		dyn fin_user_info = trouve_caractere_chaine(chn, '@', pos);
+        dyn fin_user_info = trouve_caractère(chn, '@', pos);
 
 		# il est possible d'avoir un mot de passe : username:motdepasse
 		si (fin_user_info != -1) {
-			userinfo de uri = construit_chaine(@chn[pos], fin_user_info - (pos));
+		    info_usager de uri = construit_chaine(@chn[pos], fin_user_info - (pos));
 
 			pos = fin_user_info + 1;
 		}
@@ -69,47 +69,47 @@ fonction construit_uri(chn : chaine) : URI
 		# il est possible d'avoir des addresse IPv6 entre []
 
 		si (chn[pos] == '[') {
-			dyn fin_adresse = trouve_caractere_chaine(chn, ']', 0);
-			hote de uri = construit_chaine(@chn[pos], fin_adresse - pos + 1);
+		    dyn fin_adresse = trouve_caractère(chn, ']', 0);
+			hôte de uri = construit_chaine(@chn[pos], fin_adresse - pos + 1);
 
 			si (chn[fin_adresse + 1] == ':') {
-				port de uri = construit_chaine(@chn[fin_adresse + 2], fin_autorite - fin_adresse - 2);
+			    port de uri = construit_chaine(@chn[fin_adresse + 2], fin_autorité - fin_adresse - 2);
 			}
 		}
 		sinon {
-			dyn debut_port = trouve_caractere_chaine(chn, ':', pos);
+		    dyn debut_port = trouve_caractère(chn, ':', pos);
 
 			si (debut_port != -1) {
-				port de uri = construit_chaine(@chn[debut_port + 1], fin_autorite - debut_port - 1);
-				hote de uri = construit_chaine(@chn[pos], debut_port - pos);
+			    port de uri = construit_chaine(@chn[debut_port + 1], fin_autorité - debut_port - 1);
+				hôte de uri = construit_chaine(@chn[pos], debut_port - pos);
 			}
 			sinon {
-				hote de uri = construit_chaine(@chn[pos], fin_autorite - pos);
+			    hôte de uri = construit_chaine(@chn[pos], fin_autorité - pos);
 			}
 		}
 
-		pos = fin_autorite;
+        pos = fin_autorité;
 	}
 
-	dyn pos_requete = trouve_caractere_chaine(chn, '?', 0);
-	dyn pos_fragment = trouve_caractere_chaine(chn, '#', 0);
+    dyn pos_requête = trouve_caractère(chn, '?', 0);
+	dyn pos_fragment = trouve_caractère(chn, '#', 0);
 	dyn pos_fin_chemin = taille de chn;
 
-	si (pos_requete != -1) {
-		pos_fin_chemin = pos_requete;
+    si (pos_requête != -1) {
+	    pos_fin_chemin = pos_requête;
 	}
 	sinon si (pos_fragment != -1) {
-		pos_fin_chemin = pos_requete;
+	    pos_fin_chemin = pos_requête;
 	}
 
 	chemin de uri = construit_chaine(@chn[pos], pos_fin_chemin - pos);
 
-	si (pos_requete != -1) {
+    si (pos_requête != -1) {
 		si (pos_fragment == -1) {
 			pos_fragment = taille de chn;
 		}
 
-		requete de uri = construit_chaine(@chn[pos_requete], pos_fragment - pos_requete);
+        requête de uri = construit_chaine(@chn[pos_requête], pos_fragment - pos_requête);
 	}
 
 	si (pos_fragment != -1) {
