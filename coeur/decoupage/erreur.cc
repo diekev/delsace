@@ -63,11 +63,7 @@ static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const 
 			os << ' ';
 		}
 
-		/* il est possible que l'on reçoive un caractère unicode invalide, donc
-		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
-		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, lng::nombre_octets(&chaine[i]));
-		i += static_cast<size_t>(n);
+		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 
@@ -75,12 +71,7 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
 {
 	for (size_t i = 0; i < chaine.size() - 1;) {
 		os << '~';
-
-		/* il est possible que l'on reçoive un caractère unicode invalide, donc
-		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
-		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, lng::nombre_octets(&chaine[i]));
-		i += static_cast<size_t>(n);
+		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 
@@ -88,12 +79,7 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine, size
 {
 	for (size_t i = debut; i < fin;) {
 		os << '~';
-
-		/* il est possible que l'on reçoive un caractère unicode invalide, donc
-		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
-		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, lng::nombre_octets(&chaine[i]));
-		i += static_cast<size_t>(n);
+		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 

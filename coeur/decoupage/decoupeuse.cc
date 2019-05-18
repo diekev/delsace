@@ -299,11 +299,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 			ss << ' ';
 		}
 
-		/* il est possible que l'on reçoive un caractère unicode invalide, donc
-		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
-		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, lng::nombre_octets(&ligne_courante[i]));
-		i += static_cast<size_t>(n);
+		i += lng::decalage_pour_caractere(ligne_courante, i);
 	}
 
 	ss << "^~~~\n";
