@@ -211,6 +211,7 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 
+#ifdef NONSUR
 	CU_DEBUTE_PROPOSITION(
 				controleuse,
 				"On ne peut pas modifier les propriétés d'un tableau hors d'un bloc 'nonsûr'.");
@@ -250,4 +251,5 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == false);
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
+#endif
 }

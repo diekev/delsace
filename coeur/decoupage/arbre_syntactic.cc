@@ -1465,6 +1465,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				contexte.pousse_locale(enfant1->chaine(), index_type, drapeaux, est_dynamique);
 			}
 
+			/* À FAIRE : ceci duplique logique coulisse. */
+			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+			auto goto_brise = "__boucle_pour_brise" + std::to_string(b->morceau.ligne_pos);
+
+			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
+			contexte.empile_goto_arrete(enfant1->chaine(), (enfant4 != nullptr) ? goto_brise : goto_apres);
+
 			performe_validation_semantique(enfant3, contexte);
 
 			if (enfant4 != nullptr) {
@@ -1474,6 +1482,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					performe_validation_semantique(enfant5, contexte);
 				}
 			}
+
+			contexte.depile_goto_continue();
+			contexte.depile_goto_arrete();
 
 			contexte.depile_nombre_locales();
 
@@ -1568,7 +1579,50 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			break;
 		}
 		case type_noeud::CONTINUE_ARRETE:
+		{
+			valides_enfants(b, contexte);
+
+			auto chaine_var = b->enfants.empty() ? std::string_view{""} : b->enfants.front()->chaine();
+
+			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
+					? contexte.goto_continue(chaine_var)
+					: contexte.goto_arrete(chaine_var);
+
+			if (label_goto.empty()) {
+				if (chaine_var.empty()) {
+					erreur::lance_erreur(
+								"'continue' ou 'arrête' en dehors d'une boucle",
+								contexte,
+								b->morceau,
+								erreur::type_erreur::CONTROLE_INVALIDE);
+				}
+				else {
+					erreur::lance_erreur(
+								"Variable inconnue",
+								contexte,
+								b->enfants.front()->donnees_morceau(),
+								erreur::type_erreur::VARIABLE_INCONNUE);
+				}
+			}
+
+			break;
+		}
 		case type_noeud::BOUCLE:
+		{
+			/* À FAIRE : ceci duplique logique coulisse */
+			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+
+			contexte.empile_goto_continue("", goto_continue);
+			contexte.empile_goto_arrete("", goto_apres);
+
+			performe_validation_semantique(b->enfants.front(), contexte);
+
+			contexte.depile_goto_continue();
+			contexte.depile_goto_arrete();
+
+			break;
+		}
 		case type_noeud::DIFFERE:
 		case type_noeud::TABLEAU:
 		{
@@ -1583,7 +1637,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant2 = *iter++;
 
 			performe_validation_semantique(enfant1, contexte);
+
+			/* À FAIRE : ceci duplique logique coulisse */
+			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+
+			contexte.empile_goto_continue("", goto_continue);
+			contexte.empile_goto_arrete("", goto_apres);
+
 			performe_validation_semantique(enfant2, contexte);
+
+			contexte.depile_goto_continue();
+			contexte.depile_goto_arrete();
 
 			auto &dt = contexte.magasin_types.donnees_types[enfant1->index_type];
 

@@ -885,6 +885,7 @@ static void test_fonction_redinie(
 	CU_TERMINE_PROPOSITION(controleuse);
 }
 
+#if 0
 static auto test_syntaxe_appel_uniforme(
 				dls::test_unitaire::Controleuse &controleuse)
 {
@@ -946,6 +947,7 @@ static auto test_syntaxe_appel_uniforme(
 
 	// À FAIRE : arguments nommés, fonctions variadiques
 }
+#endif
 
 void test_fonctions(dls::test_unitaire::Controleuse &controleuse)
 {
@@ -964,5 +966,5 @@ void test_fonctions(dls::test_unitaire::Controleuse &controleuse)
 	test_appel_fonction_variadique(controleuse);
 	test_appel_fonction_variadique_args_nommes(controleuse);
 	test_pointeur_fonction(controleuse);
-	test_syntaxe_appel_uniforme(controleuse);
+	//test_syntaxe_appel_uniforme(controleuse);
 }

@@ -390,6 +390,8 @@ void lance_erreur_fonction_inconnue(
 
 	ss << "\nAucune candidate trouvée pour la fonction '" << b->morceau.chaine << "'\n";
 
+	auto type_erreur = erreur::type_erreur::FONCTION_INCONNUE;
+
 	for (auto &dc : candidates) {
 		auto df = dc.df;
 		ss << "\nCandidate :";
@@ -412,6 +414,7 @@ void lance_erreur_fonction_inconnue(
 			ss << "\tLe nombre d'arguments de la fonction est incorrect.\n";
 			ss << "\tRequiers " << df->args.size() << " arguments\n";
 			ss << "\tObtenu " << b->enfants.size() << " arguments\n";
+			type_erreur = erreur::type_erreur::NOMBRE_ARGUMENT;
 		}
 
 		if (dc.raison == MENOMMAGE_ARG) {
@@ -422,17 +425,21 @@ void lance_erreur_fonction_inconnue(
 			for (auto const &nom_arg : df->nom_args) {
 				ss << "\t\t" << nom_arg << '\n';
 			}
+
+			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
 		}
 
 		if (dc.raison == RENOMMAGE_ARG) {
 			/* À FAIRE : trouve le morceau correspondant à l'argument. */
 			ss << "\tL'argument '" << dc.nom_arg << "' a déjà été nommé\n";
+			type_erreur = erreur::type_erreur::ARGUMENT_REDEFINI;
 		}
 
 		if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
 			/* À FAIRE : trouve le morceau correspondant à l'argument. */
 			ss << "\tNom d'argument manquant\n";
 			ss << "\tLes arguments doivent être nommés s'ils sont précédés d'arguments déjà nommés\n";
+			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
 		}
 
 		if (dc.raison == METYPAGE_ARG) {
@@ -449,20 +456,21 @@ void lance_erreur_fonction_inconnue(
 //			imprime_ligne_entre(ss, ligne, 0, pos_mot);
 //			ss << "transtype(" << morceau_enfant.chaine << " : " << dc.type1 << ")";
 //			imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.size(), ligne.size());
+			type_erreur = erreur::type_erreur::TYPE_ARGUMENT;
 		}
 
 #ifdef NON_SUR
 		if (candidate->arg_pointeur && !contexte.non_sur()) {
 			/* À FAIRE : trouve le morceau correspondant à l'argument. */
 			ss << "\tNe peut appeler une fonction avec un argument pointé hors d'un bloc 'nonsûr'\n"
-			//erreur::type_erreur::APPEL_INVALIDE
+			type_erreur = erreur::type_erreur::APPEL_INVALIDE
 		}
 
 #endif
 	}
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.str().c_str(), erreur::type_erreur::FONCTION_INCONNUE);
+	throw erreur::frappe(ss.str().c_str(), type_erreur);
 }
 
 }

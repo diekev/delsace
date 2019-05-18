@@ -2329,23 +2329,6 @@ void genere_code_C(
 					? contexte.goto_continue(chaine_var)
 					: contexte.goto_arrete(chaine_var);
 
-			if (label_goto.empty()) {
-				if (chaine_var.empty()) {
-					erreur::lance_erreur(
-								"'continue' ou 'arrête' en dehors d'une boucle",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::CONTROLE_INVALIDE);
-				}
-				else {
-					erreur::lance_erreur(
-								"Variable inconnue",
-								contexte,
-								b->enfants.front()->donnees_morceau(),
-								erreur::type_erreur::VARIABLE_INCONNUE);
-				}
-			}
-
 			os << "goto " << label_goto;
 			break;
 		}
@@ -2454,14 +2437,7 @@ void genere_code_C(
 			os << ")(";
 			genere_code_C(enfant, contexte, true, os, os);
 			os << ")";
-			return;
-
-			/* À FAIRE : BitCast (Type Cast) */
-			erreur::lance_erreur_type_operation(
-						donnees_type_de,
-						dt,
-						contexte,
-						b->donnees_morceau());
+			break;
 		}
 		case type_noeud::NUL:
 		{
