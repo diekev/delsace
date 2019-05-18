@@ -41,7 +41,7 @@ public:
 			lng::tampon_source const &tampon,
 	        assembleuse_arbre &assembleuse);
 
-	void lance_analyse() override;
+	void lance_analyse(std::ostream &os) override;
 
 private:
 	/**

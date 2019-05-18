@@ -71,7 +71,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 public:
 	analyseuse_grammaire(std::vector<DonneesMorceaux> &identifiants, lng::tampon_source const &tampon);
 
-	void lance_analyse() override;
+	void lance_analyse(std::ostream &os) override;
 
 	const Schema *schema() const;
 

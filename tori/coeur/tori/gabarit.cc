@@ -40,7 +40,7 @@ std::string calcul_gabarit(std::string const &gabarit, ObjetDictionnaire &objet)
 	auto assembleuse = assembleuse_arbre{};
 
 	auto analyseuse = analyseuse_grammaire(decoupeuse.morceaux(), tampon, assembleuse);
-	analyseuse.lance_analyse();
+	analyseuse.lance_analyse(std::cerr);
 
 	return assembleuse.genere_code(objet);
 }

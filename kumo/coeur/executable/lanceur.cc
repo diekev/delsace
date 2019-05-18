@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 		decoupeuse.genere_morceaux();
 
 		auto analyseuse = analyseuse_grammaire(decoupeuse.morceaux(), tampon);
-		analyseuse.lance_analyse();
+		analyseuse.lance_analyse(std::cerr);
 
 		auto schema = analyseuse.schema();
 		imprime_creation_schema(std::cout, schema);

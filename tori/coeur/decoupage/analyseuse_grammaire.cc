@@ -43,7 +43,7 @@ analyseuse_grammaire::analyseuse_grammaire(
 	, m_tampon(tampon)
 {}
 
-void analyseuse_grammaire::lance_analyse()
+void analyseuse_grammaire::lance_analyse(std::ostream &os)
 {
 	m_position = 0;
 
