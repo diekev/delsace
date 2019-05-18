@@ -102,4 +102,19 @@ int nombre_octets(const char *sequence)
 	return 0;
 }
 
+size_t decalage_pour_caractere(std::string_view const &chaine, size_t i)
+{
+	auto decalage = 0ul;
+	auto n = nombre_octets(&chaine[i]);
+
+	while (n == 0) {
+		++decalage;
+		n = nombre_octets(&chaine[i]);
+	}
+
+	decalage += static_cast<size_t>(n);
+
+	return decalage;
+}
+
 }  /* namespace lng */

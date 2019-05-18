@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <string_view>
+
 namespace lng {
 
 /**
@@ -32,5 +34,12 @@ namespace lng {
  * Unicode (UTF-8).
  */
 int nombre_octets(const char *sequence);
+
+/**
+ * Trouve le décalage pour le caractère de la chaine à la position i. La
+ * fonction prend en compte la possibilité qu'un caractère soit invalide et le
+ * saute au cas où.
+ */
+size_t decalage_pour_caractere(std::string_view const &chaine, size_t i);
 
 }  /* namespace lng */
