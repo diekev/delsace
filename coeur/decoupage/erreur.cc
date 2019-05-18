@@ -123,7 +123,7 @@ void lance_erreur(
 	auto ligne_courante = module->tampon[ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
+	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
 	imprime_caractere_vide(ss, pos_mot, ligne_courante);
@@ -152,7 +152,7 @@ void lance_erreur_plage(
 	auto ligne_courante = module->tampon[ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
+	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
 	imprime_caractere_vide(ss, pos_premier, ligne_courante);
@@ -177,7 +177,7 @@ void lance_erreur_plage(
 	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
 	imprime_caractere_vide(ss, pos_mot, ligne);
@@ -206,7 +206,7 @@ void lance_erreur_plage(
 
 	std::stringstream ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << "Dans l'appel de la fonction '" << morceau.chaine << "':\n";
 	ss << ligne;
 
@@ -279,7 +279,7 @@ void lance_erreur_plage(
 	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
 	imprime_caractere_vide(ss, pos_mot, ligne);
@@ -304,7 +304,7 @@ void lance_erreur_plage(
 	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
 	imprime_caractere_vide(ss, pos_mot, ligne);
@@ -330,7 +330,7 @@ void lance_erreur_plage(
 	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
 	imprime_caractere_vide(ss, pos_mot, ligne);
@@ -357,7 +357,7 @@ void lance_erreur_type_operation(
 	auto ligne = module->tampon[numero_ligne];
 
 	std::stringstream ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
 	imprime_caractere_vide(ss, pos_mot, ligne);
