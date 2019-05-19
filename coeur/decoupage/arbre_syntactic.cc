@@ -732,7 +732,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::VARIABLE:
 		{
-			/* À FAIRE : logique pour déclarer sans mot-clé.
+			/* Logique pour déclarer sans mot-clé.
 			 * x = 5; # déclaration car n'existe pas
 			 * x = 6; # illégale car non dynamique
 			 *
@@ -787,9 +787,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto const &iter_locale = contexte.iter_locale(b->morceau.chaine);
 
-			b->aide_generation_code = GENERE_CODE_ACCES_VAR;
-
 			if (iter_locale != contexte.fin_locales()) {
+				b->aide_generation_code = GENERE_CODE_ACCES_VAR;
 				b->index_type = iter_locale->second.donnees_type;
 				return;
 			}
@@ -797,9 +796,27 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto const &iter_globale = contexte.iter_globale(b->morceau.chaine);
 
 			if (iter_globale != contexte.fin_globales()) {
+				b->aide_generation_code = GENERE_CODE_ACCES_VAR;
 				b->index_type = iter_globale->second.donnees_type;
 				return;
 			}
+
+			if (b->aide_generation_code == GAUCHE_ASSIGNATION) {
+				b->aide_generation_code = GENERE_CODE_DECL_VAR;
+
+				if (b->index_type == -1ul) {
+					erreur::lance_erreur(
+								"Aucun type précisé",
+								contexte,
+								b->morceau,
+								erreur::type_erreur::TYPE_INCONNU);
+				}
+
+				contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+				return;
+			}
+
+			b->aide_generation_code = GENERE_CODE_ACCES_VAR;
 
 			/* Vérifie si c'est une fonction. */
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
@@ -821,6 +838,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					b->index_type = donnees_structure.index_type;
 					return;
 				}
+			}
+
+			/* déclare la variable */
+			if (b->index_type != -1ul) {
+				b->aide_generation_code = GENERE_CODE_DECL_VAR;
+				contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+				return;
 			}
 
 			erreur::lance_erreur(
