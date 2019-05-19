@@ -740,9 +740,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::TANTQUE, m_contexte, donnees());
 
-			++m_profondeur;
 			analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::TANTQUE);
-			--m_profondeur;
 
 			/* recule pour être de nouveau synchronisé */
 			recule();
@@ -821,9 +819,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->empile_noeud(type_noeud::ASSOCIE, m_contexte, donnees());
 
-			++m_profondeur;
 			analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::ASSOCIE);
-			--m_profondeur;
 
 			/* recule pour être de nouveau synchronisé */
 			recule();
@@ -840,9 +836,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 				m_assembleuse->empile_noeud(type_noeud::PAIRE_ASSOCIATION, m_contexte, donnees());
 
-				++m_profondeur;
 				analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::ASSOCIE);
-				--m_profondeur;
 
 				/* recule pour être de nouveau synchronisé */
 				recule();
@@ -900,15 +894,16 @@ void analyseuse_grammaire::analyse_expression_droite(
 		bool const assignation)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
+	auto profondeur = m_profondeur++;
 
-	if (m_profondeur >= m_paires_vecteurs.size()) {
+	if (profondeur >= m_paires_vecteurs.size()) {
 		lance_erreur("Excès de la pile d'expression autorisée");
 	}
 
-	auto &expression = m_paires_vecteurs[m_profondeur].first;
+	auto &expression = m_paires_vecteurs[profondeur].first;
 	expression.clear();
 
-	auto &pile = m_paires_vecteurs[m_profondeur].second;
+	auto &pile = m_paires_vecteurs[profondeur].second;
 	pile.clear();
 
 	auto vide_pile_operateur = [&](id_morceau id_operateur)
@@ -932,12 +927,12 @@ void analyseuse_grammaire::analyse_expression_droite(
 	 * fermante */
 	auto termine_boucle = false;
 
-	DEB_LOG_EXPRESSION << tabulations[m_profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
+	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
 
 	while (!requiers_identifiant(identifiant_final)) {
 		auto &morceau = donnees();
 
-		DEB_LOG_EXPRESSION << tabulations[m_profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
 		switch (morceau.identifiant) {
 			case id_morceau::CHAINE_CARACTERE:
@@ -1039,9 +1034,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::TYPE_DE, m_contexte, morceau, false);
 
-				++m_profondeur;
 				analyse_expression_droite(id_morceau::INCONNU, id_morceau::TYPE_DE);
-				--m_profondeur;
 
 				m_assembleuse->depile_noeud(type_noeud::TYPE_DE);
 
@@ -1070,9 +1063,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, m_contexte, morceau, false);
 
-				++m_profondeur;
 				analyse_expression_droite(id_morceau::DOUBLE_POINTS, id_morceau::TRANSTYPE);
-				--m_profondeur;
 
 				noeud->index_type = analyse_declaration_type(nullptr, false);
 
@@ -1092,9 +1083,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::MEMOIRE, m_contexte, morceau, false);
 
-				++m_profondeur;
 				analyse_expression_droite(id_morceau::INCONNU, id_morceau::MEMOIRE);
-				--m_profondeur;
 
 				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 					lance_erreur("Attendu ')' après l'expression");
@@ -1245,9 +1234,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
 					pile.push_back(noeud);
 
-					++m_profondeur;
 					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
-					--m_profondeur;
 
 					/* Extrait le noeud enfant, il sera de nouveau ajouté dans
 					 * la compilation de l'expression à la fin de la fonction. */
@@ -1268,9 +1255,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 					morceau.identifiant = id_morceau::TABLEAU;
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_TABLEAU, m_contexte, morceau, false);
 
-					++m_profondeur;
 					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
-					--m_profondeur;
 
 					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_TABLEAU);
 
@@ -1314,9 +1299,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 					avance();
 
-					++m_profondeur;
 					analyse_expression_droite(type_id::SINON, type_id::LOGE);
-					--m_profondeur;
 
 					if (!requiers_identifiant(type_id::PARENTHESE_FERMANTE)) {
 						lance_erreur("Attendu une paranthèse fermante ')");
@@ -1337,9 +1320,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 						lance_erreur("Attendu une accolade ouvrante '{'");
 					}
 
-					++m_profondeur;
 					analyse_corps_fonction();
-					--m_profondeur;
 
 					if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 						lance_erreur("Attendu une accolade fermante '}'");
@@ -1364,18 +1345,14 @@ void analyseuse_grammaire::analyse_expression_droite(
 							morceau,
 							false);
 
-				++m_profondeur;
 				analyse_expression_droite(type_id::DOUBLE_POINTS, type_id::RELOGE);
-				--m_profondeur;
 
 				if (est_identifiant(type_id::CHAINE)) {
 					noeud_reloge->index_type = analyse_declaration_type(nullptr, false);
 
 					avance();
 
-					++m_profondeur;
 					analyse_expression_droite(type_id::SINON, type_id::RELOGE);
-					--m_profondeur;
 
 					if (!requiers_identifiant(type_id::PARENTHESE_FERMANTE)) {
 						lance_erreur("Attendu une paranthèse fermante ')");
@@ -1396,9 +1373,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 						lance_erreur("Attendu une accolade ouvrante '{'");
 					}
 
-					++m_profondeur;
 					analyse_corps_fonction();
-					--m_profondeur;
 
 					if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 						lance_erreur("Attendu une accolade fermante '}'");
@@ -1422,9 +1397,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 							morceau,
 							false);
 
-				++m_profondeur;
 				analyse_expression_droite(type_id::POINT_VIRGULE, type_id::DELOGE);
-				--m_profondeur;
 
 				/* besoin de reculer car l'analyse va jusqu'au point-virgule, ce
 				 * qui nous fait absorber le code de l'expression suivante */
@@ -1452,6 +1425,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 	/* Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
 	 * éviter de crasher lors des fuzz-tests. */
 	if (expression.empty()) {
+		--m_profondeur;
 		return;
 	}
 
@@ -1466,10 +1440,10 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 	pile.reserve(expression.size());
 
-	DEB_LOG_EXPRESSION << tabulations[m_profondeur] << "Expression :" << FIN_LOG_EXPRESSION;
+	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Expression :" << FIN_LOG_EXPRESSION;
 
 	for (auto noeud : expression) {
-		DEB_LOG_EXPRESSION << tabulations[m_profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
 		if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_binaire(noeud->identifiant())) {
 			if (pile.size() < 2) {
@@ -1581,6 +1555,8 @@ void analyseuse_grammaire::analyse_expression_droite(
 					premier_noeud->donnees_morceau(),
 					dernier_noeud->donnees_morceau());
 	}
+
+	--m_profondeur;
 }
 
 /* f(g(5, 6 + 3 * (2 - 5)), h()); */
@@ -1610,9 +1586,7 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
-		++m_profondeur;
 		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
-		--m_profondeur;
 	}
 }
 
@@ -1915,9 +1889,7 @@ void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
 
 		avance();
 
-		++m_profondeur;
 		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
-		--m_profondeur;
 	}
 }
 
