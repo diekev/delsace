@@ -41,7 +41,6 @@ enum class type_noeud : char {
 	VARIABLE,
 	ACCES_MEMBRE,
 	ACCES_MEMBRE_POINT,
-	DECLARATION_VARIABLE,
 	ASSIGNATION_VARIABLE,
 	NOMBRE_REEL,
 	NOMBRE_ENTIER,
@@ -157,7 +156,7 @@ const char *chaine_type_noeud(type_noeud type);
 enum : unsigned short {
 	DYNAMIC                = (1 << 0),
 	VARIADIC               = (1 << 1),
-	GLOBAL                 = (1 << 2),
+	DECLARATION            = (1 << 2),
 	CONVERTI_TABLEAU       = (1 << 3),
 	CONVERTI_EINI          = (1 << 4),
 	EXTRAIT_EINI           = (1 << 5),
@@ -185,6 +184,10 @@ enum {
 	GENERE_BOUCLE_COROUTINE_INDEX,
 
 	GENERE_CODE_PTR_FONC_MEMBRE,
+
+	GAUCHE_ASSIGNATION,
+	GENERE_CODE_DECL_VAR,
+	GENERE_CODE_ACCES_VAR,
 };
 
 struct DonneesFonction;

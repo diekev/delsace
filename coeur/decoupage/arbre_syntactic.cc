@@ -87,7 +87,6 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::VARIABLE)
 		CAS_TYPE(type_noeud::ACCES_MEMBRE)
 		CAS_TYPE(type_noeud::ACCES_MEMBRE_POINT)
-		CAS_TYPE(type_noeud::DECLARATION_VARIABLE)
 		CAS_TYPE(type_noeud::ASSIGNATION_VARIABLE)
 		CAS_TYPE(type_noeud::NOMBRE_REEL)
 		CAS_TYPE(type_noeud::NOMBRE_ENTIER)
@@ -377,10 +376,6 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 		default:
 		{
 			return false;
-		}
-		case type_noeud::DECLARATION_VARIABLE:
-		{
-			return true;
 		}
 		case type_noeud::VARIABLE:
 		{
@@ -737,7 +732,54 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::VARIABLE:
 		{
+			/* À FAIRE : logique pour déclarer sans mot-clé.
+			 * x = 5; # déclaration car n'existe pas
+			 * x = 6; # illégale car non dynamique
+			 *
+			 * soit x = 5; # déclaration car taggé
+			 * x = 6; # illégal car non dynamique
+			 *
+			 * soit x = 5; # déclaration car taggé
+			 * x = 6; # illégal car non dynamique
+			 */
+
+			if (possede_drapeau(b->drapeaux, DECLARATION)) {
+				auto existe = contexte.locale_existe(b->morceau.chaine);
+
+				if (existe) {
+					erreur::lance_erreur(
+								"Redéfinition de la variable locale",
+								contexte,
+								b->morceau,
+								erreur::type_erreur::VARIABLE_REDEFINIE);
+				}
+				else {
+					existe = contexte.globale_existe(b->morceau.chaine);
+
+					if (existe) {
+						erreur::lance_erreur(
+									"Redéfinition de la variable globale",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::VARIABLE_REDEFINIE);
+					}
+				}
+
+				if (contexte.donnees_fonction == nullptr) {
+					contexte.pousse_globale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0);
+				}
+				else {
+					contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+				}
+
+				b->aide_generation_code = GENERE_CODE_DECL_VAR;
+
+				return;
+			}
+
 			auto const &iter_locale = contexte.iter_locale(b->morceau.chaine);
+
+			b->aide_generation_code = GENERE_CODE_ACCES_VAR;
 
 			if (iter_locale != contexte.fin_locales()) {
 				b->index_type = iter_locale->second.donnees_type;
@@ -960,37 +1002,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			b->index_type = enfant2->index_type;
 			break;
 		}
-		case type_noeud::DECLARATION_VARIABLE:
-		{
-			auto existe = contexte.locale_existe(b->morceau.chaine);
-
-			if (existe) {
-				erreur::lance_erreur(
-							"Redéfinition de la variable locale",
-							contexte,
-							b->morceau,
-							erreur::type_erreur::VARIABLE_REDEFINIE);
-			}
-			else {
-				existe = contexte.globale_existe(b->morceau.chaine);
-
-				if (existe) {
-					erreur::lance_erreur(
-								"Redéfinition de la variable globale",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::VARIABLE_REDEFINIE);
-				}
-			}
-
-			if ((b->drapeaux & GLOBAL) != 0) {
-				contexte.pousse_globale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0);
-			}
-			else {
-				contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
-			}
-			break;
-		}
 		case type_noeud::ASSIGNATION_VARIABLE:
 		{
 			auto variable = b->enfants.front();
@@ -1027,13 +1038,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				variable->index_type = b->index_type;
 			}
 
+			variable->aide_generation_code = GAUCHE_ASSIGNATION;
 			performe_validation_semantique(variable, contexte);
 
 			/* À cause du mélange des opérateurs "[]" et "de", il faut attendre
 			 * que toutes les validations sémantiques soient faites pour pouvoir
 			 * calculer la validité de l'assignation, car la validation de
 			 * l'opérateur '[]' met les noeuds dans l'ordre. */
-			if (!peut_etre_assigne(variable, contexte)) {
+			if (variable->aide_generation_code != GENERE_CODE_DECL_VAR && !peut_etre_assigne(variable, contexte)) {
 				erreur::lance_erreur(
 							"Impossible d'assigner l'expression à la variable !",
 							contexte,

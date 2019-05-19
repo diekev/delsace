@@ -1098,11 +1098,6 @@ static void genere_code_C_prepasse(
 			// À FAIRE
 			break;
 		}
-		case type_noeud::DECLARATION_VARIABLE:
-		{
-			// À FAIRE
-			break;
-		}
 		case type_noeud::ASSIGNATION_VARIABLE:
 		{
 			genere_code_C_prepasse(b->enfants.back(),
@@ -1589,15 +1584,62 @@ void genere_code_C(
 		{
 			auto drapeaux = contexte.drapeaux_variable(b->morceau.chaine);
 
-			if ((drapeaux & BESOIN_DEREF) != 0) {
-				os << "(*" << broye_chaine(b) << ")";
+			if (b->aide_generation_code == GENERE_CODE_DECL_VAR) {
+				auto dt = contexte.magasin_types.donnees_types[b->index_type];
+
+				/* pour les assignations de tableaux fixes, remplace les crochets
+				 * par des pointeurs pour la déclaration */
+				if (possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
+					if (dt.type_base() != id_morceau::TABLEAU && (dt.type_base() & 0xff) == id_morceau::TABLEAU) {
+						auto ndt = DonneesType{};
+						ndt.pousse(id_morceau::POINTEUR);
+						ndt.pousse(dt.derefence());
+
+						dt = ndt;
+					}
+				}
+
+				auto nom_broye = broye_chaine(b);
+
+				auto est_tableau = contexte.magasin_types.converti_type_C(
+							contexte,
+							nom_broye,
+							dt,
+							os);
+
+				if (!est_tableau) {
+					os << " " << nom_broye;
+				}
+
+				if (contexte.donnees_fonction == nullptr) {
+					contexte.pousse_globale(b->chaine(), nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0);
+					return;
+				}
+
+				/* nous avons une déclaration, initialise à zéro */
+				if (!possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
+					os << ";\n";
+					cree_initialisation(
+								contexte,
+								dt,
+								nom_broye,
+								".",
+								os);
+				}
+
+				contexte.pousse_locale(b->chaine(), nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
 			}
-			else {
-				if (b->nom_fonction_appel != "") {
-					os << b->nom_fonction_appel;
+			else if (b->aide_generation_code == GENERE_CODE_ACCES_VAR) {
+				if ((drapeaux & BESOIN_DEREF) != 0) {
+					os << "(*" << broye_chaine(b) << ")";
 				}
 				else {
-					os << broye_chaine(b);
+					if (b->nom_fonction_appel != "") {
+						os << b->nom_fonction_appel;
+					}
+					else {
+						os << broye_chaine(b);
+					}
 				}
 			}
 
@@ -1621,54 +1663,6 @@ void genere_code_C(
 			auto structure = b->enfants.front();
 			auto membre = b->enfants.back();
 			genere_code_acces_membre(structure, membre, contexte, os);
-			break;
-		}
-		case type_noeud::DECLARATION_VARIABLE:
-		{
-			auto dt = contexte.magasin_types.donnees_types[b->index_type];
-
-			/* pour les assignations de tableaux fixes, remplace les crochets
-			 * par des pointeurs pour la déclaration */
-			if (possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
-				if (dt.type_base() != id_morceau::TABLEAU && (dt.type_base() & 0xff) == id_morceau::TABLEAU) {
-					auto ndt = DonneesType{};
-					ndt.pousse(id_morceau::POINTEUR);
-					ndt.pousse(dt.derefence());
-
-					dt = ndt;
-				}
-			}
-
-			auto nom_broye = broye_chaine(b);
-
-			auto est_tableau = contexte.magasin_types.converti_type_C(
-						contexte,
-						nom_broye,
-						dt,
-						os);
-
-			if (!est_tableau) {
-				os << " " << nom_broye;
-			}
-
-			if ((b->drapeaux & GLOBAL) != 0) {
-				contexte.pousse_globale(b->chaine(), nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0);
-				return;
-			}
-
-			/* nous avons une déclaration, initialise à zéro */
-			if (!possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
-				os << ";\n";
-				cree_initialisation(
-							contexte,
-							dt,
-							nom_broye,
-							".",
-							os);
-			}
-
-			contexte.pousse_locale(b->chaine(), nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
-
 			break;
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:

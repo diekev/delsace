@@ -280,6 +280,7 @@ static void test_transtype_expression(dls::test_unitaire::Controleuse &controleu
 					soit x : z32 = 1;
 					soit y : z32 = 5;
 					soit z : z32 = transtype(x + y * 5 : z32);
+					soit w : z32 = transtype(x - y : z32);
 				}
 				)";
 

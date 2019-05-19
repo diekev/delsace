@@ -300,14 +300,6 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 		if (est_identifiant(id_morceau::FONCTION)) {
 			analyse_declaration_fonction();
 		}
-		else if (est_identifiant(id_morceau::SOIT)) {
-			avance();
-			analyse_declaration_variable(GLOBAL);
-		}
-		else if (est_identifiant(id_morceau::DYN)) {
-			avance();
-			analyse_declaration_variable(GLOBAL | DYNAMIC);
-		}
 		else if (est_identifiant(id_morceau::STRUCTURE)) {
 			analyse_declaration_structure();
 		}
@@ -361,8 +353,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 			}
 		}
 		else {
-			avance();
-			lance_erreur("Identifiant inattendu, doit être 'soit', 'dyn', 'fonction', 'structure', 'importe', ou 'énum'");
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::INCONNU, false);
 		}
 	}
 }
@@ -670,18 +661,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		auto const pos = position();
 
-		/* assignement|déclaration constante : soit x = a + b; */
-		if (est_identifiant(id_morceau::SOIT)) {
-			avance();
-			analyse_declaration_variable(0);
-		}
-		/* assignement|déclaration dynamique : dyn x = a + b; */
-		else if (est_identifiant(id_morceau::DYN)) {
-			avance();
-			analyse_declaration_variable(DYNAMIC);
-		}
-		/* retour : retourne a + b; */
-		else if (est_identifiant(id_morceau::RETOURNE)) {
+		if (est_identifiant(id_morceau::RETOURNE)) {
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::RETOUR, m_contexte, donnees());
 
@@ -867,7 +847,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::PARENTHESE_OUVRANTE);
 		}
 		else {
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL, false, true);
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL, false);
 		}
 
 		/* Dans les fuzz-tests, c'est possible d'être bloqué dans une boucle
@@ -890,8 +870,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 void analyseuse_grammaire::analyse_expression_droite(
 		id_morceau identifiant_final,
 		id_morceau racine_expr,
-		bool const calcul_expression,
-		bool const assignation)
+		bool const calcul_expression)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 	auto profondeur = m_profondeur++;
@@ -927,6 +906,10 @@ void analyseuse_grammaire::analyse_expression_droite(
 	 * fermante */
 	auto termine_boucle = false;
 
+	auto assignation = false;
+
+	auto drapeaux = 0;
+
 	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
 
 	while (!requiers_identifiant(identifiant_final)) {
@@ -935,6 +918,16 @@ void analyseuse_grammaire::analyse_expression_droite(
 		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
 		switch (morceau.identifiant) {
+			case id_morceau::SOIT:
+			{
+				drapeaux |= DECLARATION;
+				break;
+			}
+			case id_morceau::DYN:
+			{
+				drapeaux |= (DYNAMIC | DECLARATION);
+				break;
+			}
 			case id_morceau::CHAINE_CARACTERE:
 			{
 				/* appel fonction : chaine + ( */
@@ -966,8 +959,11 @@ void analyseuse_grammaire::analyse_expression_droite(
 					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
 					expression.push_back(noeud);
 
+					noeud->drapeaux |= drapeaux;
+					drapeaux = 0;
+
 					/* nous avons la déclaration d'un type dans la structure */
-					if (racine_expr == id_morceau::STRUCTURE && est_identifiant(id_morceau::DOUBLE_POINTS)) {
+					if ((racine_expr != type_id::TRANSTYPE && racine_expr != type_id::LOGE && racine_expr != type_id::RELOGE) && est_identifiant(id_morceau::DOUBLE_POINTS)) {
 						noeud->index_type = analyse_declaration_type();
 					}
 				}
@@ -1213,9 +1209,11 @@ void analyseuse_grammaire::analyse_expression_droite(
 			}
 			case id_morceau::EGAL:
 			{
-				if (!assignation) {
+				if (assignation) {
 					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
 				}
+
+				assignation = true;
 
 				vide_pile_operateur(morceau.identifiant);
 
@@ -1590,61 +1588,6 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_variable(unsigned short drapeaux)
-{
-	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-		if ((drapeaux & DYNAMIC) != 0) {
-			lance_erreur("Attendu une chaine de caractère après 'dyn'");
-		}
-		else {
-			lance_erreur("Attendu une chaine de caractère après 'soit'");
-		}
-	}
-
-	const auto &morceau_variable = donnees();
-	auto donnees_type = size_t{-1ul};
-
-	if (est_identifiant(id_morceau::DOUBLE_POINTS)) {
-		donnees_type = analyse_declaration_type();
-	}
-
-	/* À FAIRE : ceci est principalement pour pouvoir déclarer des
-	 * structures ou des tableaux en attendant de pouvoir les initialiser
-	 * par une assignation directe. par exemple : soit x = Vecteur3D(); */
-	if (!est_identifiant(id_morceau::EGAL)) {
-		if ((drapeaux & DYNAMIC) == 0) {
-			avance();
-			lance_erreur("Attendu '=' après chaine de caractère");
-		}
-
-		auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
-		noeud_decl->index_type = donnees_type;
-		noeud_decl->drapeaux |= drapeaux;
-		m_assembleuse->depile_noeud(type_noeud::DECLARATION_VARIABLE);
-
-		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
-			lance_erreur("Attendu ';' à la fin de la déclaration de la variable");
-		}
-	}
-	else {
-		avance();
-
-		auto const &morceau_egal = donnees();
-
-		auto noeud = m_assembleuse->empile_noeud(type_noeud::ASSIGNATION_VARIABLE, m_contexte, morceau_egal);
-		noeud->index_type = donnees_type;
-
-		auto noeud_decl = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau_variable);
-		noeud_decl->index_type = donnees_type;
-		noeud_decl->drapeaux |= drapeaux;
-		noeud->ajoute_noeud(noeud_decl);
-
-		analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
-
-		m_assembleuse->depile_noeud(type_noeud::ASSIGNATION_VARIABLE);
-	}
-}
-
 void analyseuse_grammaire::analyse_declaration_structure()
 {
 	if (!requiers_identifiant(id_morceau::STRUCTURE)) {
@@ -1678,7 +1621,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 			break;
 		}
 
-		analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCTURE, false, true);
+		analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCTURE, false);
 	}
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
@@ -1719,7 +1662,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 			break;
 		}
 
-		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL, false, true);
+		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL, false);
 	}
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
