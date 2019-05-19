@@ -765,6 +765,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					}
 				}
 
+				if (b->index_type == -1ul) {
+					erreur::lance_erreur(
+								"Aucun type précisé",
+								contexte,
+								b->morceau,
+								erreur::type_erreur::TYPE_INCONNU);
+				}
+
 				if (contexte.donnees_fonction == nullptr) {
 					contexte.pousse_globale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0);
 				}
