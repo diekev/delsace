@@ -908,7 +908,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 	auto assignation = false;
 
-	auto drapeaux = 0;
+	auto drapeaux = static_cast<unsigned short>(0);
 
 	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
 
