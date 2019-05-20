@@ -46,6 +46,7 @@
 #include "info_type.hh"
 #include "modules.hh"
 #include "nombres.h"
+#include "validation_semantique.hh"
 
 #undef NOMME_IR
 

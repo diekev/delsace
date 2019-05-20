@@ -35,6 +35,7 @@
 #include "erreur.h"
 #include "modules.hh"
 #include "nombres.h"
+#include "validation_semantique.hh"
 
 namespace noeud {
 

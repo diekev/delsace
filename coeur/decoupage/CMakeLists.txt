@@ -48,6 +48,7 @@ set(SOURCES
 	modules.hh
 	morceaux.h
 	nombres.h
+	validation_semantique.hh
 
 	analyseuse_grammaire.cc
 	arbre_syntactic.cc
@@ -64,6 +65,7 @@ set(SOURCES
 	modules.cc
 	morceaux.cc
 	nombres.cc
+	validation_semantique.cc
 )
 
 add_library(decoupage STATIC "${SOURCES}")
