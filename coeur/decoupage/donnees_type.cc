@@ -24,6 +24,7 @@
 
 #include "donnees_type.h"
 
+#ifdef AVEC_LLVM
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -34,7 +35,9 @@
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #include <llvm/IR/TypeBuilder.h>
 #pragma GCC diagnostic pop
+#endif
 
+#include <cassert>
 #include <sstream>
 
 #include "arbre_syntactic.h"
@@ -62,7 +65,7 @@ void DonneesType::pousse(const DonneesType &autre)
 {
 	auto const taille = m_donnees.size();
 	m_donnees.resize(taille + autre.m_donnees.size());
-	std::copy(autre.m_donnees.begin(), autre.m_donnees.end(), m_donnees.begin() + taille);
+	std::copy(autre.m_donnees.begin(), autre.m_donnees.end(), m_donnees.begin() + static_cast<long>(taille));
 }
 
 id_morceau DonneesType::type_base() const
@@ -653,6 +656,7 @@ bool MagasinDonneesType::converti_type_C(
 	return est_tableau;
 }
 
+#ifdef AVEC_LLVM
 llvm::Type *MagasinDonneesType::converti_type(
 		ContexteGenerationCode &contexte,
 		const DonneesType &donnees)
@@ -669,9 +673,11 @@ llvm::Type *MagasinDonneesType::converti_type(
 	auto &dt = donnees_types[index];
 	return ::converti_type(contexte, dt);
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifdef AVEC_LLVM
 llvm::Type *converti_type_simple(
 		ContexteGenerationCode &contexte,
 		const id_morceau &identifiant,
@@ -838,6 +844,7 @@ llvm::Type *converti_type_simple(
 
 	return type;
 }
+#endif
 
 /**
  * Retourne un vecteur contenant les DonneesType de chaque paramètre et du type
@@ -888,6 +895,7 @@ llvm::Type *converti_type_simple(
 	return donnees_types;
 }
 
+#ifdef AVEC_LLVM
 llvm::Type *converti_type(
 		ContexteGenerationCode &contexte,
 		DonneesType &donnees_type)
@@ -935,6 +943,7 @@ llvm::Type *converti_type(
 
 	return type;
 }
+#endif
 
 unsigned alignement(
 		ContexteGenerationCode &contexte,

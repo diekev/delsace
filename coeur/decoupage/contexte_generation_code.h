@@ -24,6 +24,7 @@
 
 #pragma once
 
+#ifdef AVEC_LLVM
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
@@ -34,6 +35,17 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #include <llvm/IR/LLVMContext.h>
 #pragma GCC diagnostic pop
+
+namespace llvm {
+class BasicBlock;
+class Type;
+class Value;
+
+namespace legacy {
+class FunctionPassManager;
+}
+}  /* namespace llvm */
+#endif
 
 #include <stack>
 #include <unordered_map>
@@ -47,16 +59,6 @@ struct base;
 }
 
 struct DonneesModule;
-
-namespace llvm {
-class BasicBlock;
-class Type;
-class Value;
-
-namespace legacy {
-class FunctionPassManager;
-}
-}  /* namespace llvm */
 
 struct Metriques {
 	size_t nombre_modules = 0ul;
@@ -77,7 +79,9 @@ enum {
 };
 
 struct DonneesVariable {
+#ifdef AVEC_LLVM
 	llvm::Value *valeur{nullptr};
+#endif
 	size_t donnees_type{-1ul};
 	bool est_dynamique = false;
 	bool est_variadic = false;
@@ -93,7 +97,11 @@ struct DonneesMembre {
 struct DonneesStructure {
 	std::unordered_map<std::string_view, DonneesMembre> donnees_membres{};
 	std::vector<size_t> donnees_types{};
+
+#ifdef AVEC_LLVM
 	llvm::Type *type_llvm{nullptr};
+#endif
+
 	size_t id{0ul};
 	size_t index_type{-1ul};
 	noeud::base *noeud_decl = nullptr;
@@ -107,10 +115,13 @@ using conteneur_globales = std::unordered_map<std::string_view, DonneesVariable>
 using conteneur_locales = std::vector<std::pair<std::string_view, DonneesVariable>>;
 
 struct ContexteGenerationCode {
+#ifdef AVEC_LLVM
 	llvm::Module *module_llvm = nullptr;
 	llvm::LLVMContext contexte{};
 	llvm::Function *fonction = nullptr;
 	llvm::legacy::FunctionPassManager *menageur_fonctions = nullptr;
+#endif
+
 	assembleuse_arbre *assembleuse = nullptr;
 
 	std::vector<DonneesModule *> modules{};
@@ -164,6 +175,7 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
+#ifdef AVEC_LLVM
 	/**
 	 * Retourne un pointeur vers le block LLVM du bloc courant.
 	 */
@@ -205,6 +217,7 @@ struct ContexteGenerationCode {
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
 	llvm::BasicBlock *bloc_arrete(std::string_view chaine);
+#endif
 
 	/* ********************************************************************** */
 
@@ -246,14 +259,16 @@ struct ContexteGenerationCode {
 	 * Ajoute les données de la globale dont le nom est spécifié en paramètres
 	 * à la table de globales de ce contexte.
 	 */
-	void pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type, bool est_dynamique);
+	void pousse_globale(const std::string_view &nom, DonneesVariable const &donnees);
 
+#ifdef AVEC_LLVM
 	/**
 	 * Retourne un pointeur vers la valeur LLVM de la globale dont le nom est
 	 * spécifié en paramètre. Si aucune globale de ce nom n'existe, retourne
 	 * nullptr.
 	 */
 	llvm::Value *valeur_globale(const std::string_view &nom);
+#endif
 
 	/**
 	 * Retourne vrai s'il existe une globale dont le nom correspond au spécifié.
@@ -282,25 +297,18 @@ struct ContexteGenerationCode {
 	 */
 	void pousse_locale(
 			const std::string_view &nom,
-			llvm::Value *valeur,
-			const size_t &index_type,
-			const bool est_variable,
-			const bool est_variadique);
-
-	void pousse_locale(
-			std::string_view const &nom,
-			size_t const &index_type,
-			char drapeaux,
-			bool est_dynamique = false);
+			DonneesVariable const &donnees);
 
 	char drapeaux_variable(std::string_view const &nom);
 
+#ifdef AVEC_LLVM
 	/**
 	 * Retourne un pointeur vers la valeur LLVM de la locale dont le nom est
 	 * spécifié en paramètre. Si aucune locale de ce nom n'existe, retourne
 	 * nullptr.
 	 */
 	llvm::Value *valeur_locale(const std::string_view &nom);
+#endif
 
 	/**
 	 * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
@@ -366,7 +374,10 @@ struct ContexteGenerationCode {
 	 * variables sont remis à zéro. Le pointeur passé en paramètre est celui de
 	 * la fonction courant.
 	 */
+#ifdef AVEC_LLVM
 	void commence_fonction(llvm::Function *f, DonneesFonction *df);
+#endif
+	void commence_fonction(DonneesFonction *df);
 
 	/**
 	 * Indique la fin de la fonction courant. Le compteur et le vecteur de
@@ -450,7 +461,9 @@ struct ContexteGenerationCode {
 	std::unordered_map<std::string_view, DonneesStructure> structures{};
 
 private:
+#ifdef AVEC_LLVM
 	llvm::BasicBlock *m_bloc_courant = nullptr;
+#endif
 	conteneur_globales globales{};
 	std::vector<std::string_view> nom_structures{};
 
@@ -461,10 +474,12 @@ private:
 	std::stack<size_t> m_pile_nombre_differes{};
 	size_t m_nombre_differes = 0;
 
+#ifdef AVEC_LLVM
 	using paire_bloc = std::pair<std::string_view, llvm::BasicBlock *>;
 
 	std::vector<paire_bloc> m_pile_continue{};
 	std::vector<paire_bloc> m_pile_arrete{};
+#endif
 
 	using paire_goto = std::pair<std::string_view, std::string>;
 

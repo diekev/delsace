@@ -33,6 +33,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 
 # ------------------------------------------------------------------------------
 
+option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
+
+if(AVEC_LLVM)
+	find_package(LLVM REQUIRED)
+	add_definitions(AVEC_LLVM)
+endif()
+
+# ------------------------------------------------------------------------------
+
 set(CMAKE_CXX_STANDARD 20)
 
 add_compile_options(-fconcepts)
@@ -123,7 +132,6 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-find_package(LLVM REQUIRED)
 find_package(Delsace COMPONENTS chrono langage tests REQUIRED)
 
 # ------------------------------------------------------------------------------

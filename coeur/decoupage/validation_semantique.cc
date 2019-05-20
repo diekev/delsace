@@ -24,6 +24,7 @@
 
 #include "validation_semantique.hh"
 
+#include <cassert>
 #include <sstream>
 
 #include "arbre_syntactic.h"
@@ -371,7 +372,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				return;
 			}
 
-			contexte.commence_fonction(nullptr, donnees_fonction);
+			contexte.commence_fonction(donnees_fonction);
 
 			/* Pousse les paramètres sur la pile. */
 			for (auto const &nom : donnees_fonction->nom_args) {
@@ -389,7 +390,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					index_dt = contexte.magasin_types.ajoute_type(dt);
 				}
 
-				contexte.pousse_locale(nom, nullptr, index_dt, argument.est_dynamic, argument.est_variadic);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_variadic = argument.est_variadic;
+				donnees_var.est_dynamique = argument.est_dynamic;
+				donnees_var.donnees_type = index_dt;
+
+				contexte.pousse_locale(nom, donnees_var);
 			}
 
 			/* vérifie le type du bloc */
@@ -583,11 +589,15 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 								erreur::type_erreur::TYPE_INCONNU);
 				}
 
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
+				donnees_var.donnees_type = b->index_type;
+
 				if (contexte.donnees_fonction == nullptr) {
-					contexte.pousse_globale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0);
+					contexte.pousse_globale(b->morceau.chaine, donnees_var);
 				}
 				else {
-					contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+					contexte.pousse_locale(b->morceau.chaine, donnees_var);
 				}
 
 				b->aide_generation_code = GENERE_CODE_DECL_VAR;
@@ -622,7 +632,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 								erreur::type_erreur::TYPE_INCONNU);
 				}
 
-				contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
+				donnees_var.donnees_type = b->index_type;
+
+				contexte.pousse_locale(b->morceau.chaine, donnees_var);
 				return;
 			}
 
@@ -653,7 +667,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			/* déclare la variable */
 			if (b->index_type != -1ul) {
 				b->aide_generation_code = GENERE_CODE_DECL_VAR;
-				contexte.pousse_locale(b->morceau.chaine, nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
+				donnees_var.donnees_type = b->index_type;
+				contexte.pousse_locale(b->morceau.chaine, donnees_var);
 				return;
 			}
 
@@ -1155,9 +1172,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::BLOC:
 		{
+#ifdef AVEC_LLVM
 			/* Évite les crash lors de l'estimation du bloc suivant les
 			 * contrôles de flux. */
 			b->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
+#endif
 
 			contexte.empile_nombre_locales();
 
@@ -1286,7 +1305,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				 * le code dans la coulisse C pour le nom de la variable. */
 				auto nom_var = "__i" + std::to_string(b->morceau.ligne_pos);
 				contexte.magasin_chaines.push_back(nom_var);
-				contexte.pousse_locale(contexte.magasin_chaines.back(), contexte.magasin_types[TYPE_Z32], 0);
+
+				auto donnees_var = DonneesVariable{};
+				donnees_var.donnees_type = contexte.magasin_types[TYPE_Z32];
+				donnees_var.drapeaux = 0;
+
+				contexte.pousse_locale(contexte.magasin_chaines.back(), donnees_var);
 			}
 
 			contexte.empile_nombre_locales();
@@ -1309,14 +1333,30 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto var = enfant1->enfants.front();
 				auto idx = enfant1->enfants.back();
 				var->index_type = index_type;
-				contexte.pousse_locale(var->chaine(), index_type, drapeaux, est_dynamique);
+
+				auto donnees_var = DonneesVariable{};
+				donnees_var.donnees_type = index_type;
+				donnees_var.drapeaux = drapeaux;
+				donnees_var.est_dynamique = est_dynamique;
+
+				contexte.pousse_locale(var->chaine(), donnees_var);
 
 				index_type = contexte.magasin_types[TYPE_Z32];
 				idx->index_type = index_type;
-				contexte.pousse_locale(idx->chaine(), nullptr, index_type, est_dynamique, false);
+
+				donnees_var.donnees_type = index_type;
+				donnees_var.drapeaux = 0;
+				donnees_var.est_dynamique = est_dynamique;
+
+				contexte.pousse_locale(idx->chaine(), donnees_var);
 			}
 			else {
-				contexte.pousse_locale(enfant1->chaine(), index_type, drapeaux, est_dynamique);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.donnees_type = index_type;
+				donnees_var.drapeaux = drapeaux;
+				donnees_var.est_dynamique = est_dynamique;
+
+				contexte.pousse_locale(enfant1->chaine(), donnees_var);
 			}
 
 			/* À FAIRE : ceci duplique logique coulisse. */

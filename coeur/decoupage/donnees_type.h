@@ -24,6 +24,7 @@
 
 #pragma once
 
+#ifdef AVEC_LLVM
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -34,14 +35,15 @@
 #include <llvm/ADT/SmallVector.h>
 #pragma GCC diagnostic pop
 
+namespace llvm {
+class Type;
+}
+#endif
+
 #include <unordered_map>
 #include <vector>
 
 #include "morceaux.h"
-
-namespace llvm {
-class Type;
-}
 
 struct ContexteGenerationCode;
 
@@ -53,14 +55,17 @@ struct ContexteGenerationCode;
  * structure, etc...).
  */
 class DonneesType {
-	/* Petite optimisation pour les types simples. */
-	llvm::SmallVector<id_morceau, 1> m_donnees{};
+	/* À FAIRE : type similaire à llvm::SmallVector. */
+	std::vector<id_morceau> m_donnees{};
+
+#ifdef AVEC_LLVM
 	llvm::Type *m_type{nullptr};
+#endif
 
 public:
 	std::string ptr_info_type{};
 
-	using iterateur_const = llvm::SmallVectorImpl<id_morceau>::const_reverse_iterator;
+	using iterateur_const = std::vector<id_morceau>::const_reverse_iterator;
 
 	DonneesType() = default;
 
@@ -128,6 +133,7 @@ public:
 	 */
 	DonneesType derefence() const;
 
+#ifdef AVEC_LLVM
 	llvm::Type *type_llvm() const
 	{
 		return m_type;
@@ -137,6 +143,7 @@ public:
 	{
 		m_type = tllvm;
 	}
+#endif
 };
 
 /**
@@ -277,6 +284,7 @@ struct MagasinDonneesType {
 			bool echappe = false,
 			bool echappe_struct = false);
 
+#ifdef AVEC_LLVM
 	llvm::Type *converti_type(
 			ContexteGenerationCode &contexte,
 			DonneesType const &donnees);
@@ -284,6 +292,7 @@ struct MagasinDonneesType {
 	llvm::Type *converti_type(
 			ContexteGenerationCode &contexte,
 			size_t donnees);
+#endif
 
 	void declare_structures_C(
 			ContexteGenerationCode &contexte,
@@ -300,6 +309,7 @@ private:
 [[nodiscard]] auto donnees_types_parametres(
 		const DonneesType &donnees_type) noexcept(false) -> std::vector<DonneesType>;
 
+#ifdef AVEC_LLVM
 [[nodiscard]] llvm::Type *converti_type(
 		ContexteGenerationCode &contexte,
 		DonneesType &donnees_type);
@@ -308,6 +318,7 @@ private:
 		ContexteGenerationCode &contexte,
 		const id_morceau &identifiant,
 		llvm::Type *type_entree);
+#endif
 
 [[nodiscard]] unsigned alignement(
 		ContexteGenerationCode &contexte,

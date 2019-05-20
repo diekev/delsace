@@ -24,12 +24,18 @@
 
 #include "contexte_generation_code.h"
 
+#ifdef AVEC_LLVM
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <llvm/IR/LegacyPassManager.h>
 #pragma GCC diagnostic pop
+#endif
+
+#include <algorithm>
+#include <cassert>
+#include <iostream>
 
 #include "broyage.hh"
 #include "modules.hh"
@@ -40,7 +46,9 @@ ContexteGenerationCode::~ContexteGenerationCode()
 		delete module;
 	}
 
+#ifdef AVEC_LLVM
 	delete menageur_fonctions;
+#endif
 }
 
 /* ************************************************************************** */
@@ -111,6 +119,7 @@ bool ContexteGenerationCode::module_existe(const std::string_view &nom) const
 
 /* ************************************************************************** */
 
+#ifdef AVEC_LLVM
 llvm::BasicBlock *ContexteGenerationCode::bloc_courant() const
 {
 	return m_bloc_courant;
@@ -178,6 +187,7 @@ llvm::BasicBlock *ContexteGenerationCode::bloc_arrete(std::string_view chaine)
 
 	return nullptr;
 }
+#endif
 
 void ContexteGenerationCode::empile_goto_continue(std::string_view chaine, std::string const &bloc)
 {
@@ -237,7 +247,7 @@ std::string ContexteGenerationCode::goto_arrete(std::string_view chaine)
 	return "";
 }
 
-void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::Value *valeur, const size_t index_type, bool est_dynamique)
+void ContexteGenerationCode::pousse_globale(const std::string_view &nom, DonneesVariable const &donnees)
 {
 	/* Nous utilisons ça plutôt que 'insert' car la valeur est poussée deux fois :
 	 * - la première fois, nulle, lors de la validation sémantique,
@@ -245,9 +255,10 @@ void ContexteGenerationCode::pousse_globale(const std::string_view &nom, llvm::V
 	 *
 	 * 'insert' n'insert pas si la valeur existe déjà, donc nous nous
 	 * retrouvions avec un pointeur nul. */
-	globales[nom] = { valeur, index_type, est_dynamique };
+	globales[nom] = donnees;
 }
 
+#ifdef AVEC_LLVM
 llvm::Value *ContexteGenerationCode::valeur_globale(const std::string_view &nom)
 {
 	auto iter = globales.find(nom);
@@ -258,6 +269,7 @@ llvm::Value *ContexteGenerationCode::valeur_globale(const std::string_view &nom)
 
 	return iter->second.valeur;
 }
+#endif
 
 bool ContexteGenerationCode::globale_existe(const std::string_view &nom)
 {
@@ -293,32 +305,13 @@ conteneur_globales::const_iterator ContexteGenerationCode::fin_globales()
 
 void ContexteGenerationCode::pousse_locale(
 		const std::string_view &nom,
-		llvm::Value *valeur,
-		const size_t &index_type,
-		const bool est_variable,
-		const bool est_variadique)
+		DonneesVariable const &donnees)
 {
 	if (m_locales.size() > m_nombre_locales) {
-		m_locales[m_nombre_locales] = {nom, {valeur, index_type, est_variable, est_variadique, 0, {}}};
+		m_locales[m_nombre_locales] = { nom, donnees };
 	}
 	else {
-		m_locales.push_back({nom, {valeur, index_type, est_variable, est_variadique, 0, {}}});
-	}
-
-	++m_nombre_locales;
-}
-
-void ContexteGenerationCode::pousse_locale(
-		std::string_view const &nom,
-		size_t const &index_type,
-		char drapeaux,
-		bool est_dynamique)
-{
-	if (m_locales.size() > m_nombre_locales) {
-		m_locales[m_nombre_locales] = {nom, {nullptr, index_type, est_dynamique, false, drapeaux, {}}};
-	}
-	else {
-		m_locales.push_back({nom, {nullptr, index_type, est_dynamique, false, drapeaux, {}}});
+		m_locales.push_back({nom, donnees});
 	}
 
 	++m_nombre_locales;
@@ -341,6 +334,7 @@ char ContexteGenerationCode::drapeaux_variable(std::string_view const &nom)
 	return iter->second.drapeaux;
 }
 
+#ifdef AVEC_LLVM
 llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 {
 	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
@@ -357,6 +351,7 @@ llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 
 	return iter->second.valeur;
 }
+#endif
 
 bool ContexteGenerationCode::locale_existe(const std::string_view &nom)
 {
@@ -467,9 +462,16 @@ conteneur_locales::const_iterator ContexteGenerationCode::fin_locales()
 	return m_locales.begin() + static_cast<long>(m_nombre_locales);
 }
 
+#ifdef AVEC_LLVM
 void ContexteGenerationCode::commence_fonction(llvm::Function *f, DonneesFonction *df)
 {
 	this->fonction = f;
+	commence_fonction(df);
+}
+#endif
+
+void ContexteGenerationCode::commence_fonction(DonneesFonction *df)
+{
 	this->donnees_fonction = df;
 	m_nombre_locales = 0;
 	m_locales.clear();
@@ -477,9 +479,11 @@ void ContexteGenerationCode::commence_fonction(llvm::Function *f, DonneesFonctio
 
 void ContexteGenerationCode::termine_fonction()
 {
+#ifdef AVEC_LLVM
 	fonction = nullptr;
-	this->donnees_fonction = nullptr;
 	m_bloc_courant = nullptr;
+#endif
+	this->donnees_fonction = nullptr;
 	m_nombre_locales = 0;
 	m_locales.clear();
 
@@ -496,7 +500,9 @@ bool ContexteGenerationCode::structure_existe(const std::string_view &nom)
 size_t ContexteGenerationCode::ajoute_donnees_structure(const std::string_view &nom, DonneesStructure &donnees)
 {
 	donnees.id = nom_structures.size();
+#ifdef AVEC_LLVM
 	donnees.type_llvm = nullptr;
+#endif
 
 	auto dt = DonneesType{};
 	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
@@ -582,10 +588,12 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	memoire += m_pile_nombre_locales.size() * sizeof(size_t);
 
 	/* m_pile_continue */
+#ifdef AVEC_LLVM
 	memoire += m_pile_continue.size() * sizeof(llvm::BasicBlock *);
 
 	/* m_pile_arrete */
 	memoire += m_pile_arrete.size() * sizeof(llvm::BasicBlock *);
+#endif
 
 	/* magasin_types */
 	memoire += magasin_types.donnees_types.size() * sizeof(DonneesType);

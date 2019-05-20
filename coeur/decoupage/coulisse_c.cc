@@ -26,6 +26,7 @@
 
 #include <delsace/chrono/chronometrage.hh>
 
+#include <cassert>
 #include <iostream>
 #include <sstream>
 
@@ -1481,7 +1482,7 @@ void genere_code_C(
 				}
 			}
 
-			contexte.commence_fonction(nullptr, donnees_fonction);
+			contexte.commence_fonction(donnees_fonction);
 
 			/* Crée code pour les arguments */
 
@@ -1531,7 +1532,12 @@ void genere_code_C(
 
 				virgule = ',';
 
-				contexte.pousse_locale(nom, nullptr, index_type, argument.est_dynamic, argument.est_variadic);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_dynamique = argument.est_dynamic;
+				donnees_var.est_variadic = argument.est_variadic;
+				donnees_var.donnees_type = index_type;
+
+				contexte.pousse_locale(nom, donnees_var);
 			}
 
 			os << ")\n";
@@ -1613,7 +1619,10 @@ void genere_code_C(
 				}
 
 				if (contexte.donnees_fonction == nullptr) {
-					contexte.pousse_globale(b->chaine(), nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0);
+					auto donnees_var = DonneesVariable{};
+					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
+					donnees_var.donnees_type = b->index_type;
+					contexte.pousse_globale(b->chaine(), donnees_var);
 					return;
 				}
 
@@ -1628,7 +1637,11 @@ void genere_code_C(
 								os);
 				}
 
-				contexte.pousse_locale(b->chaine(), nullptr, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
+				donnees_var.donnees_type = b->index_type;
+
+				contexte.pousse_locale(b->chaine(), donnees_var);
 			}
 			else if (b->aide_generation_code == GENERE_CODE_ACCES_VAR) {
 				if ((drapeaux & BESOIN_DEREF) != 0) {
@@ -2185,11 +2198,18 @@ void genere_code_C(
 					os  << ") {\n";
 
 					if (b->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
-						contexte.pousse_locale(var->chaine(), var->index_type, 0);
-						contexte.pousse_locale(idx->chaine(), idx->index_type, 0);
+						auto donnees_var = DonneesVariable{};
+
+						donnees_var.donnees_type = var->index_type;
+						contexte.pousse_locale(var->chaine(), donnees_var);
+
+						donnees_var.donnees_type = idx->index_type;
+						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 					else {
-						contexte.pousse_locale(enfant1->chaine(), index_type, 0);
+						auto donnees_var = DonneesVariable{};
+						donnees_var.donnees_type = index_type;
+						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 
 					break;
@@ -2199,7 +2219,11 @@ void genere_code_C(
 				{
 					auto nom_var = "__i" + std::to_string(b->morceau.ligne_pos);
 					contexte.magasin_chaines.push_back(nom_var);
-					contexte.pousse_locale(contexte.magasin_chaines.back(), contexte.magasin_types[TYPE_Z32], 0);
+
+					auto donnees_var = DonneesVariable{};
+					donnees_var.donnees_type = contexte.magasin_types[TYPE_Z32];
+
+					contexte.pousse_locale(contexte.magasin_chaines.back(), donnees_var);
 
 					/* À FAIRE: nom unique pour les boucles dans les boucles */
 					if ((type & 0xff) == id_morceau::TABLEAU) {
@@ -2221,11 +2245,20 @@ void genere_code_C(
 					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
 						auto var = enfant1->enfants.front();
 						auto idx = enfant1->enfants.back();
-						contexte.pousse_locale(var->chaine(), var->index_type, BESOIN_DEREF);
-						contexte.pousse_locale(idx->chaine(), idx->index_type, 0);
+
+						donnees_var.donnees_type = var->index_type;
+						donnees_var.drapeaux = BESOIN_DEREF;
+
+						contexte.pousse_locale(var->chaine(), donnees_var);
+
+						donnees_var.donnees_type = idx->index_type;
+						donnees_var.drapeaux = 0;
+						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 					else {
-						contexte.pousse_locale(enfant1->chaine(), index_type, BESOIN_DEREF);
+						donnees_var.donnees_type = index_type;
+						donnees_var.drapeaux = BESOIN_DEREF;
+						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 
 					break;
@@ -2276,11 +2309,18 @@ void genere_code_C(
 					}
 
 					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
-						contexte.pousse_locale(var->chaine(), var->index_type, 0);
-						contexte.pousse_locale(idx->chaine(), idx->index_type, 0);
+						auto donnees_var = DonneesVariable{};
+
+						donnees_var.donnees_type = var->index_type;
+						contexte.pousse_locale(var->chaine(), donnees_var);
+
+						donnees_var.donnees_type = idx->index_type;
+						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 					else {
-						contexte.pousse_locale(enfant1->chaine(), index_type, 0);
+						auto donnees_var = DonneesVariable{};
+						donnees_var.donnees_type = index_type;
+						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 				}
 			}

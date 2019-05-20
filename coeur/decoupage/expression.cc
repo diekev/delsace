@@ -24,6 +24,8 @@
 
 #include "expression.h"
 
+#include <cassert>
+
 #include "arbre_syntactic.h"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"

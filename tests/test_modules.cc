@@ -24,17 +24,6 @@
 
 #include "test_modules.hh"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#include <llvm/IR/Module.h>
-#pragma GCC diagnostic pop
-
 #include <filesystem>
 
 #include "analyseuse_grammaire.h"
@@ -67,10 +56,7 @@ static std::pair<bool, bool> retourne_erreur_module_lancee(
 		charge_module(os, "", nom_module, contexte_generation, {}, true);
 
 		if (genere_code) {
-			auto module_llvm = llvm::Module("test", contexte_generation.contexte);
-			contexte_generation.module_llvm = &module_llvm;
-
-			assembleuse.genere_code_llvm(contexte_generation);
+			assembleuse.genere_code_C(contexte_generation, os);
 		}
 	}
 	catch (const erreur::frappe &e) {

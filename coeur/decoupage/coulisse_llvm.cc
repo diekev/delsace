@@ -647,7 +647,13 @@ llvm::Value *genere_code_llvm(
 				auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 				store->setAlignment(align);
 
-				contexte.pousse_locale(nom, alloc, index_type, argument.est_dynamic, argument.est_variadic);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.valeur = alloc;
+				donnees_var.est_dynamique = argument.est_dynamic;
+				donnees_var.est_variadic = argument.est_variadic;
+				donnees_var.donnees_type = index_type;
+
+				contexte.pousse_locale(nom, donnees_var);
 			}
 
 			/* Crée code pour le bloc. */
@@ -708,7 +714,12 @@ llvm::Value *genere_code_llvm(
 					valeur->setConstant((b->drapeaux & DYNAMIC) == 0);
 					valeur->setAlignment(alignement(contexte, type));
 
-					contexte.pousse_globale(b->chaine(), valeur, b->index_type, (b->drapeaux & DYNAMIC) != 0);
+					auto donnees_var = DonneesVariable{};
+					donnees_var.valeur = valeur;
+					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
+					donnees_var.donnees_type = b->index_type;
+
+					contexte.pousse_globale(b->chaine(), donnees_var);
 					return valeur;
 				}
 
@@ -748,7 +759,12 @@ llvm::Value *genere_code_llvm(
 					stocke->setAlignment(8);
 				}
 
-				contexte.pousse_locale(b->morceau.chaine, alloc, b->index_type, (b->drapeaux & DYNAMIC) != 0, false);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.valeur = alloc;
+				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
+				donnees_var.donnees_type = b->index_type;
+
+				contexte.pousse_locale(b->morceau.chaine, donnees_var);
 
 				return alloc;
 			}
@@ -1561,7 +1577,11 @@ llvm::Value *genere_code_llvm(
 							condition,
 							contexte.bloc_courant());
 
-				contexte.pousse_locale(enfant1->chaine(), noeud_phi, index_type, false, false);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.valeur = noeud_phi;
+				donnees_var.donnees_type = index_type;
+
+				contexte.pousse_locale(enfant1->chaine(), donnees_var);
 			}
 			else if (enfant2->type == type_noeud::VARIABLE) {
 				if (tableau) {
@@ -1628,7 +1648,11 @@ llvm::Value *genere_code_llvm(
 								 contexte.bloc_courant());
 				}
 
-				contexte.pousse_locale(enfant1->chaine(), valeur_arg, index_type, false, false);
+				auto donnees_var = DonneesVariable{};
+				donnees_var.valeur = valeur_arg;
+				donnees_var.donnees_type = index_type;
+
+				contexte.pousse_locale(enfant1->chaine(), donnees_var);
 			}
 
 			enfant3->valeur_calculee = bloc_inc;
@@ -1849,8 +1873,14 @@ llvm::Value *genere_code_llvm(
 			auto valeur_debut = genere_code_llvm(enfant1, contexte, false);
 			auto valeur_fin = genere_code_llvm(enfant2, contexte, false);
 
-			contexte.pousse_locale("__debut", valeur_debut, b->index_type, false, false);
-			contexte.pousse_locale("__fin", valeur_fin, b->index_type, false, false);
+			auto donnees_var = DonneesVariable{};
+			donnees_var.valeur = valeur_debut;
+			donnees_var.donnees_type = b->index_type;
+
+			contexte.pousse_locale("__debut", donnees_var);
+
+			donnees_var.valeur = valeur_fin;
+			contexte.pousse_locale("__fin", donnees_var);
 
 			return valeur_fin;
 		}

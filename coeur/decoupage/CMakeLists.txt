@@ -23,11 +23,9 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${INCLUSIONS_DELSACE_CHRONO}
 	${INCLUSIONS_DELSACE_LANGAGE}
-	${LLVM_INCLUDE_DIR}
 )
 
 set(BIBLIOTHEQUES
-	/usr/lib/llvm-6.0/lib/libLLVM.so # À FAIRE
 	stdc++fs
 	${BIBLIOTHEQUE_DELSACE_LANGAGE}
 )
@@ -39,12 +37,10 @@ set(SOURCES
 	broyage.hh
 	contexte_generation_code.h
 	coulisse_c.hh
-	coulisse_llvm.hh
     decoupeuse.h
 	donnees_type.h
 	erreur.h
 	expression.h
-	info_type.hh
 	modules.hh
 	morceaux.h
 	nombres.h
@@ -56,17 +52,21 @@ set(SOURCES
 	broyage.cc
 	contexte_generation_code.cc
 	coulisse_c.cc
-	coulisse_llvm.cc
     decoupeuse.cc
 	donnees_type.cc
 	erreur.cc
 	expression.cc
-	info_type.cc
 	modules.cc
 	morceaux.cc
 	nombres.cc
 	validation_semantique.cc
 )
+
+if(AVEC_LLVM)
+	list(APPEND INCLUSIONS ${LLVM_INCLUDE_DIR})
+	list(APPEND BIBLIOTHEQUES /usr/lib/llvm-6.0/lib/libLLVM.so) # À FAIRE
+	list(APPEND SOURCES coulisse_llvm.cc coulisse_llvm.hh info_type.cc info_type.hh)
+endif()
 
 add_library(decoupage STATIC "${SOURCES}")
 

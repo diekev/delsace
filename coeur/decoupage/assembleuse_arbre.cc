@@ -24,12 +24,17 @@
 
 #include "assembleuse_arbre.h"
 
+#include <cassert>
 #include <sstream>
 
 #include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "coulisse_c.hh"
+
+#ifdef AVEC_LLVM
 #include "coulisse_llvm.hh"
+#endif
+
 #include "modules.hh"
 
 assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
@@ -106,6 +111,7 @@ void assembleuse_arbre::imprime_code(std::ostream &os)
 	os << "------------------------------------------------------------------\n";
 }
 
+#ifdef AVEC_LLVM
 void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_generation)
 {
 	if (m_pile.empty()) {
@@ -114,6 +120,7 @@ void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_genera
 
 	noeud::genere_code_llvm(m_pile.top(), contexte_generation, false);
 }
+#endif
 
 void assembleuse_arbre::genere_code_C(
 		ContexteGenerationCode &contexte_generation,

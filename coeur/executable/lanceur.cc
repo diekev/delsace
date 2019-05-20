@@ -27,6 +27,7 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef AVEC_LLVM
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
@@ -50,6 +51,7 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
 #pragma GCC diagnostic pop
+#endif
 
 #include "decoupage/analyseuse_grammaire.h"
 #include "decoupage/contexte_generation_code.h"
@@ -207,6 +209,7 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 	return opts;
 }
 
+#ifdef AVEC_LLVM
 static void initialise_llvm()
 {
 	if (llvm::InitializeNativeTarget()
@@ -333,6 +336,7 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
 
 	return true;
 }
+#endif
 
 struct temps_seconde {
 	double valeur;
@@ -427,6 +431,7 @@ static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
 	return os;
 }
 
+#ifdef AVEC_LLVM
 static void cree_executable(const std::filesystem::path &dest, const std::filesystem::path &racine_kuri)
 {
 	/* Compile le fichier objet qui appelera 'fonction principale'. */
@@ -467,6 +472,7 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 		std::cerr << "Ne peut pas créer l'executable !\n";
 	}
 }
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -555,6 +561,7 @@ int main(int argc, char *argv[])
 			assembleuse.imprime_code(os);
 		}
 
+#ifdef AVEC_LLVM
 		auto coulisse_LLVM = false;
 		if (coulisse_LLVM) {
 			auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
@@ -610,7 +617,9 @@ int main(int argc, char *argv[])
 				temps_executable = dls::chrono::delta(debut_executable);
 			}
 		}
-		else {
+		else
+#endif
+		{
 			os << "Génération du code..." << std::endl;
 
 			std::ofstream of;
@@ -734,7 +743,9 @@ int main(int argc, char *argv[])
 
 	os << std::endl;
 
+#ifdef AVEC_LLVM
 	issitialise_llvm();
+#endif
 
 	return resultat;
 }
