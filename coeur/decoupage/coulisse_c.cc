@@ -1674,9 +1674,10 @@ void genere_code_C(
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{
-			auto structure = b->enfants.front();
-			auto membre = b->enfants.back();
-			genere_code_acces_membre(structure, membre, contexte, os);
+			/* À FAIRE. */
+//			auto structure = b->enfants.front();
+//			auto membre = b->enfants.back();
+//			genere_code_acces_membre(structure, membre, contexte, os);
 			break;
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:

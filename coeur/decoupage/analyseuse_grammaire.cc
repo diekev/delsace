@@ -900,7 +900,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
 	 * fontion. */
 	auto paren = 0;
-	auto dernier_identifiant = donnees().identifiant;
+	auto dernier_identifiant = (m_position == 0) ? id_morceau::INCONNU : donnees().identifiant;
 
 	/* utilisé pour terminer la boucle quand elle nous atteignons une parenthèse
 	 * fermante */
