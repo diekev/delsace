@@ -394,6 +394,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				donnees_var.est_variadic = argument.est_variadic;
 				donnees_var.est_dynamique = argument.est_dynamic;
 				donnees_var.donnees_type = index_dt;
+				donnees_var.est_argument = true;
 
 				contexte.pousse_locale(nom, donnees_var);
 			}
@@ -1882,6 +1883,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto &variables = donnees_coroutine.variables;
 
 			for (; debut != fin; ++debut) {
+				if (debut->second.est_argument) {
+					continue;
+				}
+
 				auto duplique = false;
 
 				for (auto const &var : variables) {

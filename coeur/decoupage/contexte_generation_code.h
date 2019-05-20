@@ -86,7 +86,8 @@ struct DonneesVariable {
 	bool est_dynamique = false;
 	bool est_variadic = false;
 	char drapeaux = 0;
-	char pad[5] = {};
+	bool est_argument = false;
+	char pad[4] = {};
 };
 
 struct DonneesMembre {

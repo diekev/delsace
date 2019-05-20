@@ -1536,6 +1536,7 @@ void genere_code_C(
 				donnees_var.est_dynamique = argument.est_dynamic;
 				donnees_var.est_variadic = argument.est_variadic;
 				donnees_var.donnees_type = index_type;
+				donnees_var.est_argument = true;
 
 				contexte.pousse_locale(nom, donnees_var);
 			}
@@ -2917,6 +2918,10 @@ void genere_code_C(
 			auto fin   = contexte.fin_locales();
 
 			for (; debut != fin; ++debut) {
+				if (debut->second.est_argument) {
+					continue;
+				}
+
 				auto nom_broye = broye_nom_simple(debut->first);
 				os << "__etat->" << nom_broye << " = " << nom_broye << ";\n";
 			}
@@ -2928,6 +2933,10 @@ void genere_code_C(
 			debut = contexte.debut_locales();
 
 			for (; debut != fin; ++debut) {
+				if (debut->second.est_argument) {
+					continue;
+				}
+
 				auto nom_broye = broye_nom_simple(debut->first);
 				os << nom_broye << " = __etat->" << nom_broye << ";\n";
 			}
