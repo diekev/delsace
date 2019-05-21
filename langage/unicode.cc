@@ -107,8 +107,9 @@ size_t decalage_pour_caractere(std::string_view const &chaine, size_t i)
 	auto decalage = 0ul;
 	auto n = nombre_octets(&chaine[i]);
 
-	while (n == 0) {
+	while (n == 0 && i < chaine.size()) {
 		++decalage;
+		++i;
 		n = nombre_octets(&chaine[i]);
 	}
 
