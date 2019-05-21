@@ -2658,9 +2658,14 @@ void genere_code_C(
 				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
 				auto nom_chaine = "__chaine" + std::to_string(b->morceau.ligne_pos);
 
+				auto enf = *enfant++;
+
+				/* Prépasse pour les accès de membres dans l'expression. */
+				genere_code_C_prepasse(enf, contexte, false, os);
+
 				os << "long " << nom_taille << " = ";
 
-				genere_code_C(*enfant++, contexte, false, os, os);
+				genere_code_C(enf, contexte, false, os, os);
 				nombre_enfant -= 1;
 
 				os << ";\n";
