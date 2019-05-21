@@ -86,7 +86,7 @@ enum class id_morceau : unsigned int {
 	DYN,
 	DELOGE,
 	EINI,
-	EMPLOYANT,
+	EMPL,
 	EXTERNE,
 	FAUX,
 	FONC,

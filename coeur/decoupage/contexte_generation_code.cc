@@ -334,6 +334,30 @@ char ContexteGenerationCode::drapeaux_variable(std::string_view const &nom)
 	return iter->second.drapeaux;
 }
 
+DonneesVariable &ContexteGenerationCode::donnees_variable(std::string_view const &nom)
+{
+	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
+
+	auto iter = std::find_if(m_locales.begin(), iter_fin,
+							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+	{
+		return paire.first == nom;
+	});
+
+	if (iter != iter_fin) {
+		return iter->second;
+	}
+
+	auto iter_g = globales.find(nom);
+
+	if (iter_g != globales.end()) {
+		return iter_g->second;
+	}
+
+	std::cerr << "Échec recherche " << nom << '\n';
+	throw "";
+}
+
 #ifdef AVEC_LLVM
 llvm::Value *ContexteGenerationCode::valeur_locale(const std::string_view &nom)
 {

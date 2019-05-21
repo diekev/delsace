@@ -87,7 +87,11 @@ struct DonneesVariable {
 	bool est_variadic = false;
 	char drapeaux = 0;
 	bool est_argument = false;
-	char pad[4] = {};
+	bool est_membre_emploie = false;
+	char pad[3] = {};
+
+	/* nom de la structure pour l'accès des variables employées */
+	std::string structure = "";
 };
 
 struct DonneesMembre {
@@ -301,6 +305,8 @@ struct ContexteGenerationCode {
 			DonneesVariable const &donnees);
 
 	char drapeaux_variable(std::string_view const &nom);
+
+	DonneesVariable &donnees_variable(const std::string_view &nom);
 
 #ifdef AVEC_LLVM
 	/**

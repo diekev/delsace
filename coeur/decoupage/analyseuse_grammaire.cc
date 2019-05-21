@@ -476,9 +476,15 @@ void analyseuse_grammaire::analyse_parametres_fonction(
 	}
 
 	auto est_dynamic = false;
+	auto est_employe = false;
 
 	if (est_identifiant(id_morceau::DYN)) {
 		est_dynamic = true;
+		avance();
+	}
+
+	if (est_identifiant(id_morceau::EMPL)) {
+		est_employe = true;
 		avance();
 	}
 
@@ -519,6 +525,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(
 	/* doit être vrai uniquement pour le dernier argument */
 	donnees_arg.est_variadic = (noeud->drapeaux & VARIADIC) != 0;
 	donnees_arg.est_dynamic = est_dynamic;
+	donnees_arg.est_employe = est_employe;
 
 	donnees_fonction.args.insert({nom_parametre, donnees_arg});
 	donnees_fonction.nom_args.push_back(nom_parametre);

@@ -401,6 +401,33 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				donnees_var.est_argument = true;
 
 				contexte.pousse_locale(nom, donnees_var);
+
+				if (argument.est_employe) {
+					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
+					auto id_structure = 0ul;
+
+					if (dt_var.type_base() == id_morceau::POINTEUR) {
+						id_structure = static_cast<size_t>(dt_var.derefence().type_base() >> 8);
+					}
+					else {
+						id_structure = static_cast<size_t>(dt_var.type_base() >> 8);
+					}
+
+					auto &ds = contexte.donnees_structure(id_structure);
+
+					/* pousse chaque membre de la structure sur la pile */
+
+					for (auto &dm : ds.donnees_membres) {
+						auto index_dt_m = ds.donnees_types[dm.second.index_membre];
+
+						donnees_var.est_dynamique = argument.est_dynamic;
+						donnees_var.donnees_type = index_dt_m;
+						donnees_var.est_argument = true;
+						donnees_var.est_membre_emploie = true;
+
+						contexte.pousse_locale(dm.first, donnees_var);
+					}
+				}
 			}
 
 			/* vérifie le type du bloc */
