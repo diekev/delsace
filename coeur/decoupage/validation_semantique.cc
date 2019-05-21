@@ -652,7 +652,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->index_type = iter_globale->second.donnees_type;
 				return;
 			}
-
 			if (b->aide_generation_code == GAUCHE_ASSIGNATION) {
 				b->aide_generation_code = GENERE_CODE_DECL_VAR;
 
@@ -668,7 +667,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 				donnees_var.donnees_type = b->index_type;
 
-				contexte.pousse_locale(b->morceau.chaine, donnees_var);
+				if (contexte.donnees_fonction == nullptr) {
+					contexte.pousse_globale(b->morceau.chaine, donnees_var);
+				}
+				else {
+					contexte.pousse_locale(b->morceau.chaine, donnees_var);
+				}
+
 				return;
 			}
 
@@ -702,7 +707,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 				donnees_var.donnees_type = b->index_type;
-				contexte.pousse_locale(b->morceau.chaine, donnees_var);
+
+				if (contexte.donnees_fonction == nullptr) {
+					contexte.pousse_globale(b->morceau.chaine, donnees_var);
+				}
+				else {
+					contexte.pousse_locale(b->morceau.chaine, donnees_var);
+				}
+
 				return;
 			}
 
