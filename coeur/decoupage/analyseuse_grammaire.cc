@@ -1626,6 +1626,13 @@ void analyseuse_grammaire::analyse_declaration_structure()
 		lance_erreur("Attendu la déclaration 'structure'");
 	}
 
+	auto est_externe = false;
+
+	if (est_identifiant(type_id::EXTERNE)) {
+		est_externe = true;
+		avance();
+	}
+
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Attendu une chaine de caractères après 'structure'");
 	}
@@ -1637,27 +1644,39 @@ void analyseuse_grammaire::analyse_declaration_structure()
 		lance_erreur("Redéfinition de la structure", erreur::type_erreur::STRUCTURE_REDEFINIE);
 	}
 
-	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-		lance_erreur("Attendu '{'");
-	}
-
 	auto donnees_structure = DonneesStructure{};
 	donnees_structure.noeud_decl = noeud_decl;
 	donnees_structure.est_enum = false;
+	donnees_structure.est_externe = est_externe;
 
 	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 
-	while (true) {
-		if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			/* nous avons terminé */
-			break;
-		}
+	auto analyse_membres = true;
 
-		analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCTURE, false);
+	if (est_externe) {
+		if (est_identifiant(type_id::POINT_VIRGULE)) {
+			avance();
+			analyse_membres = false;
+		}
 	}
 
-	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		lance_erreur("Attendu '}' à la fin de la déclaration de la structure");
+	if (analyse_membres) {
+		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+			lance_erreur("Attendu '{' après le nom de la structure");
+		}
+
+		while (true) {
+			if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+				/* nous avons terminé */
+				break;
+			}
+
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCTURE, false);
+		}
+
+		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+			lance_erreur("Attendu '}' à la fin de la déclaration de la structure");
+		}
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_STRUCTURE);

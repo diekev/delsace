@@ -512,7 +512,7 @@ static bool converti_type_simple_C(
 				converti_type_simple_C(contexte, os, "", dt.type_base(), false, false);
 			}
 			else {
-				if (echappe_struct) {
+				if (echappe_struct || donnees_struct.est_externe) {
 					os << "struct ";
 				}
 

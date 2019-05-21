@@ -264,6 +264,12 @@ static auto cree_info_type_structure_C(
 	/* crée un tableau fixe puis converti le en tableau dyn */
 	auto nombre_membres = donnees_structure.donnees_types.size();
 
+	if (donnees_structure.est_externe && nombre_membres == 0) {
+		os_init << nom_info_type << ".membres.taille = 0;\n";
+		os_init << nom_info_type << ".membres.pointeur = 0;\n";
+		return nom_info_type;
+	}
+
 	/* crée des structures pour chaque membre, et rassemble les pointeurs */
 	std::vector<std::string> pointeurs;
 	pointeurs.reserve(nombre_membres);
@@ -862,7 +868,7 @@ static void declare_structures_C(
 	for (auto is = 0ul; is < contexte.structures.size(); ++is) {
 		auto const &donnees = contexte.donnees_structure(is);
 
-		if (donnees.est_enum) {
+		if (donnees.est_enum || donnees.est_externe) {
 			continue;
 		}
 

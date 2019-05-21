@@ -111,7 +111,8 @@ struct DonneesStructure {
 	size_t index_type{-1ul};
 	noeud::base *noeud_decl = nullptr;
 	bool est_enum = false;
-	char pad[7] = {};
+	bool est_externe = false;
+	char pad[6] = {};
 };
 
 struct DonneesFonction;

@@ -4,45 +4,46 @@
 
 # À FAIRE : regarde les bibliothèques de temps/date des différents langages
 
-# Strictement égale à timeval_t
-structure ValTemps {
-    secondes : z64;
-    microsecondes : z64;
+# ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
+structure externe timeval {
+    tv_sec : z64;
+	tv_usec : z64;
 }
 
-# Strictement égale à timezone_t À FAIRE : déprécié
-structure FuseauHoraire {
-    minutes_ouest : z64; # Minutes à l'ouest de GMT
-    temps_dst : z64; # Nonzéro si DST est en effet
+# ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
+# À FAIRE : déprécié
+structure externe timezone {
+    tz_minuteswest : z64; # Minutes à l'ouest de GMT
+	tz_dsttime : z64; # Nonzéro si DST est en effet
 }
 
 fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien;
 
 fonc maintenant_sec() : r64
 {
-	dyn heure : ValTemps;
+    dyn heure : timeval;
 	gettimeofday(@heure, nul);
 
     # À FAIRE : expression malformée si enligné
-    soit s = transtype(secondes de heure : r64);
+	soit s = transtype(tv_sec de heure : r64);
 
     # À FAIRE : 1e-6
-	retourne s + transtype(microsecondes de heure : r64) * 0.000001;
+	retourne s + transtype(tv_usec de heure : r64) * 0.000001;
 }
 
 fonc maintenant_local() : r64
 {
-	dyn heure : ValTemps;
-	dyn fuseau : FuseauHoraire;
+    dyn heure : timeval;
+	dyn fuseau : timezone;
 	gettimeofday(@heure, @fuseau);
 
     # À FAIRE : expression malformée si enligné
-    dyn s = transtype(secondes de heure : r64);
+	dyn s = transtype(tv_sec de heure : r64);
     
-    s += transtype(minutes_ouest de fuseau : r64) * 60.0;
+    s += transtype(tz_minuteswest de fuseau : r64) * 60.0;
 
     # À FAIRE : 1e-6
-	retourne s + transtype(microsecondes de heure : r64) * 0.000001;
+	retourne s + transtype(tv_usec de heure : r64) * 0.000001;
 }
 
 fonc delta_sec(temps : r64) : r64
@@ -52,9 +53,9 @@ fonc delta_sec(temps : r64) : r64
 
 fonc compte_ticks_ms() : z64
 {
-	dyn heure : ValTemps;
+    dyn heure : timeval;
 	gettimeofday(@heure, nul);
-	retourne secondes de heure * 1000 + microsecondes de heure / 1000;
+	retourne tv_usec de heure * 1000 + tv_usec de heure / 1000;
 }
 
 structure DonnéesTemps {
