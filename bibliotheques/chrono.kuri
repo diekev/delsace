@@ -55,7 +55,7 @@ fonc compte_ticks_ms() : z64
 {
     dyn heure : timeval;
 	gettimeofday(@heure, nul);
-	retourne tv_usec de heure * 1000 + tv_usec de heure / 1000;
+	retourne tv_sec de heure * 1000 + tv_usec de heure / 1000;
 }
 
 structure DonnéesTemps {
