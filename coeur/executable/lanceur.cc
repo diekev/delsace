@@ -634,12 +634,46 @@ int main(int argc, char *argv[])
 			auto debut_executable = dls::chrono::maintenant();
 			auto commande = std::string("gcc /tmp/compilation_kuri.c ");
 
+			switch (ops.optimisation) {
+				case NiveauOptimisation::Aucun:
+				case NiveauOptimisation::O0:
+				{
+					commande += "-O0 ";
+					break;
+				}
+				case NiveauOptimisation::O1:
+				{
+					commande += "-O1 ";
+					break;
+				}
+				case NiveauOptimisation::O2:
+				{
+					commande += "-O2 ";
+					break;
+				}
+				case NiveauOptimisation::Os:
+				{
+					commande += "-Os ";
+					break;
+				}
+				/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
+				 * plus proche. */
+				case NiveauOptimisation::Oz:
+				case NiveauOptimisation::O3:
+				{
+					commande += "-O3 ";
+					break;
+				}
+			}
+
 			for (auto const &bib : assembleuse.bibliotheques) {
 				commande += " -l" + std::string(bib);
 			}
 
 			commande += " -o ";
 			commande += ops.chemin_sortie;
+
+			os << "Exécution de la commade '" << commande << "'..." << std::endl;
 
 			auto err = system(commande.c_str());
 
