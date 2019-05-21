@@ -1,4 +1,4 @@
-fonction retourne_0() : z32
+fonc retourne_0() : z32
 {
 	retourne 0;
 }

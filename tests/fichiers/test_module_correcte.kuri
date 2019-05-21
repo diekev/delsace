@@ -1,6 +1,6 @@
 importe "module_test"
 
-fonction principale(compte : z32, arguments : **z8) : z32
+fonc principale(compte : z32, arguments : **z8) : z32
 {
 	retourne module_test.retourne_0();
 }
