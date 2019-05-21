@@ -532,6 +532,7 @@ static std::string cree_info_type_C(
 			os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
 
 			valeur = nom_info_type;
+			donnees_type.ptr_info_type = valeur;
 			break;
 		}
 		case id_morceau::CHAINE_CARACTERE:
