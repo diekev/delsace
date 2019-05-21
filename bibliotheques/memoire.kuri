@@ -55,19 +55,50 @@ fonc copie_mem_nonsur(src : *octet, dyn dst : *octet, taille : z64) : rien
 	}
 }
 
-fonc copie_mem(source : []octet, dyn destination : []octet, taille : z64) : rien
+# Copie 'taille' octets depuis la source vers la destination
+# La copie se fait comme si un tampon intermédiaire a été utilisé,
+# permettant à la source et à la destination de se surposer.
+fonc copie_mem(src : []octet, dyn dst : []octet, taille : z64) : rien
 {
-    si taille de source < taille {
+    si taille de src < taille {
 	    retourne;
 	}
 
-    si taille de destination < taille {
+    si taille de dst < taille {
 	    retourne;
 	}
 
-    pour i dans transtype(0 : z64)...taille - 1 {
-	    destination[i] = source[i];
+    # vérifie si surposition
+
+    ptr_deb_src = @src[0];
+	ptr_fin_src = @src[taille de src - 1];
+	ptr_deb_dst = @dst[0];
+
+    # src |---------------|
+	# dst       |---------------|
+	# Copie à partir de la fin.
+	si ptr_deb_src <= ptr_deb_dst <= ptr_fin_src {
+	    pour i dans transtype(0 : z64)...taille - 1 {
+		    idx = taille - i - 1;
+			dst[idx] = src[idx];
+		}
 	}
+	sinon {
+	    pour i dans transtype(0 : z64)...taille - 1 {
+		    dst[i] = src[i];
+		}
+	}
+}
+
+# Similaire à copie_mem. La bibliothèque C possède memcpy et memmove, la
+# différence étant que memcpy ne peut recevoir de blocs se surposant, alors que
+# memmove peut ; mais aucune vérification n'est faite dans memcpy, menant à des
+# vulnérabilités ! Nous faisons une vérification dans notre version 'copie_mem'.
+# Cette fonction est plus ici pour avoir une symétrie avec la bibliothèque C
+# qu'autre chose.
+fonc bouge_mem(source : []octet, dyn destination : []octet, taille : z64) : rien
+{
+    copie_mem(source, destination, taille);
 }
 
 # À FAIRE : considération pour la surposition de blocs.
@@ -106,36 +137,6 @@ fonc echange_mem(a : []octet, b : []octet) : rien
         copie_mem_nonsur(src=source, dst=destination, taille=taille_tmp);
 
         debut += 128;
-	}
-}
-
-# Copie 'taille' octets depuis la source vers la destination
-# La copie se fait comme si un tampon intermédiaire a été utilisé,
-# permettant à la source et à la destination de se surposer.
-fonc bouge_mem(source : []octet, dyn destination : []octet, taille : z64) : rien
-{
-    si taille de source < taille {
-	    retourne;
-	}
-
-    si taille de destination < taille {
-	    retourne;
-	}
-
-    soit debut = pointeur de source;
-	soit fin   = debut + taille de source;
-
-    si debut <= pointeur de destination <= fin {
-	    # il y a surposition, utilise un tampon
-		# À FAIRE : expression pour les tailles des tableaux dynamics
-		dyn tampon = loge chaine(taille);
-		diffère { déloge tampon; }
-
-        copie_mem(source, tampon, taille);
-		copie_mem(tampon, destination, taille);
-	}
-	sinon {
-	    copie_mem(source, destination, taille);
 	}
 }
 
