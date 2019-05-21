@@ -48,6 +48,19 @@ int main(int argc, char *argv[])
 
 	fichier.read(donnees, static_cast<long>(taille_fichier));
 
+#if 1
+	try {
+		auto contexte = ContexteGenerationCode{};
+		auto module = contexte.cree_module("", "");
+		auto vue_donnees = std::string_view(donnees, taille_fichier);
+		module->tampon = lng::tampon_source(std::string(vue_donnees));
+		auto decoupeuse = decoupeuse_texte(module);
+		decoupeuse.genere_morceaux();
+	}
+	catch (erreur::frappe const &e) {
+		std::cerr << e.message() << '\n';
+	}
+#else
 	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
 	auto nombre_morceaux = taille_fichier / sizeof(id_morceau);
 
@@ -84,6 +97,7 @@ int main(int argc, char *argv[])
 	}
 
 	delete [] donnees;
+#endif
 
 	return 0;
 }
