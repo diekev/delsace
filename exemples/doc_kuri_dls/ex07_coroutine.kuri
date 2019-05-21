@@ -1,6 +1,6 @@
 importe "flux"
 
-fonction plage(début : z32, fin : z32, pas : z32) : z32
+corout plage(début : z32, fin : z32, pas : z32) : z32
 {
     soit taille = (fin - début) / pas;
     dyn val = début;
@@ -13,7 +13,7 @@ fonction plage(début : z32, fin : z32, pas : z32) : z32
     imprime("Fin coroutine\n");
 }
 
-fonction principale(args : []*z8) : z32
+fonc principale(args : []*z8) : z32
 {
     pour i dans plage(0, 10, 1) {
         imprime("Valeur = ", i, '\n');

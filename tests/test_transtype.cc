@@ -35,7 +35,7 @@ static void test_transtype_litterales(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : z8  = 0;
 					soit y : z16 = 0;
@@ -57,7 +57,7 @@ static void test_transtype_litterales(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : n8  = 0;
 					soit y : n16 = 0;
@@ -79,7 +79,7 @@ static void test_transtype_litterales(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : r16 = 0;
 					soit y : r32 = 0;
@@ -101,7 +101,7 @@ static void test_transtype_litterales(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : r16 = 0.0;
 					soit y : r32 = 0.0;
@@ -122,7 +122,7 @@ static void test_transtype_litterales(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : z8  = 0.0;
 					soit y : z16 = 0.0;
@@ -145,7 +145,7 @@ static void test_transtype_litterales(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : n8  = 0.0;
 					soit y : n16 = 0.0;
@@ -170,7 +170,7 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : z32 = 0;
 					soit y : n32 = transtype(x : n32);
@@ -189,7 +189,7 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : z32 = 0;
 					soit y : z8  = transtype(x : z8);
@@ -210,7 +210,7 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : z32 = 0;
 					soit y : n8  = transtype(x : n8);
@@ -229,7 +229,7 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : z32 = 0;
 					soit y : r32 = transtype(x : r32);
@@ -251,7 +251,7 @@ static void test_transtype_variable(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : z32 = 0;
 					soit y : r64 = transtype(x : r64);
@@ -275,7 +275,7 @@ static void test_transtype_expression(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit x : z32 = 1;
 					soit y : z32 = 5;

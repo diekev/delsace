@@ -1,4 +1,4 @@
-fonction exemple() : rien
+fonc exemple() : rien
 {
 	# Déclaration d'un tableau de 12 nombre entier relatif 32-bit
 	dyn tabl : [12]z32;

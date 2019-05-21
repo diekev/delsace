@@ -1,4 +1,4 @@
-fonction nombre_octets_unicode(sequence : *n8)
+fonc nombre_octets_unicode(sequence : *n8)
 {
     si 0x00 <= sequence[0] <= 0x7F {
         retourne 1;
@@ -63,7 +63,7 @@ fonction nombre_octets_unicode(sequence : *n8)
 # inférences de type
 # typage strict
 # portée explicite
-fonction decoupe_texte(debut : *n8)
+fonc decoupe_texte(debut : *n8)
 {
     dyn pos = 0;
     dyn copie = debut;

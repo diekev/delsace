@@ -35,7 +35,7 @@ static void test_variable_redefinie(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : n32, arguments : n8) : n32
+				fonc principale(compte : n32, arguments : n8) : n32
 				{
 					soit compte = 0;
 					retourne 0;
@@ -54,7 +54,7 @@ static void test_variable_redefinie(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction principale() : z32
+				fonc principale() : z32
 				{
 					soit x = 0;
 					soit x = 0;
@@ -75,7 +75,7 @@ static void test_variable_redefinie(dls::test_unitaire::Controleuse &controleuse
 		const char *texte =
 				R"(
 				soit PI = 3.14159;
-				fonction principale() : z32
+				fonc principale() : z32
 				{
 					soit PI = 3.14159;
 					retourne 0;
@@ -97,7 +97,7 @@ static void test_variable_indefinie(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : n32, arguments : n8) : z32
+				fonc principale(compte : n32, arguments : n8) : z32
 				{
 				soit a = comte;
 				retourne 0;
@@ -119,7 +119,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -148,7 +148,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -173,7 +173,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -197,7 +197,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -220,7 +220,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -245,7 +245,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -268,7 +268,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -293,7 +293,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -317,7 +317,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					pour i dans 0...10 {
 						soit a = i;
@@ -341,7 +341,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					pour i dans 0...10 {
 						soit a = i;
@@ -370,7 +370,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -417,7 +417,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -473,7 +473,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					dyn a = compte;
 
@@ -502,7 +502,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					dyn a = compte;
 
@@ -527,7 +527,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					dyn a = compte;
 
@@ -552,7 +552,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -579,7 +579,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 
@@ -602,7 +602,7 @@ static void test_portee_variable(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = compte;
 

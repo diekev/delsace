@@ -32,7 +32,7 @@ static void test_expression_flux_si(dls::test_unitaire::Controleuse &controleuse
 	CU_DEBUTE_PROPOSITION(controleuse, "L'expression d'un contrôle 'si' doit être booléenne.");
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit a = 5;
 		soit b = 6;
@@ -49,7 +49,7 @@ static void test_expression_flux_si(dls::test_unitaire::Controleuse &controleuse
 	CU_DEBUTE_PROPOSITION(controleuse, "L'expression d'un contrôle 'si' ne peut être d'un autre type que booléen.");
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit a = 5;
 
@@ -68,7 +68,7 @@ static void test_expression_flux_si(dls::test_unitaire::Controleuse &controleuse
 static void test_expression_general(dls::test_unitaire::Controleuse &controleuse)
 {
 	const char *texte =
-R"(fonction foo() : rien
+R"(fonc foo() : rien
 {
 	soit a = 5;
 	soit b = 5;
@@ -116,7 +116,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	/* comparaison réussie */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5.0 == 2.0;
 		soit t1 = 5.0 != 2.0;
@@ -134,7 +134,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	/* comparaison échouée */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5.0 == 2;
 	}
@@ -148,7 +148,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	/* comparaison échouée */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5.0 && 2.0;
 	}
@@ -162,7 +162,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	/* arithmétique réussie */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5.0 + 2.0;
 		soit t1 = 5.0 - 2.0;
@@ -178,7 +178,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	/* arithmétique échouée */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5.0 % 2.0;
 	}
@@ -192,7 +192,7 @@ static void test_expression_constante_reelle(dls::test_unitaire::Controleuse &co
 	/* binaire échouée */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5.0 & 2.0;
 	}
@@ -210,7 +210,7 @@ static void test_expression_constante_entiere(dls::test_unitaire::Controleuse &c
 	/* comparaison réussie */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5 == 2;
 		soit t1 = 5 != 2;
@@ -228,7 +228,7 @@ static void test_expression_constante_entiere(dls::test_unitaire::Controleuse &c
 	/* arithmétique réussie */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5 + 2;
 		soit t1 = 5 - 2;
@@ -250,7 +250,7 @@ static void test_expression_constante_entiere(dls::test_unitaire::Controleuse &c
 	/* binaire réussie */
 	{
 		const char *texte =
-	R"(fonction foo() : rien
+	R"(fonc foo() : rien
 	{
 		soit t0 = 5 & 2;
 		soit t1 = 5 | 2;

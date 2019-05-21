@@ -68,7 +68,7 @@ structure InfoTypeÉnum {
 	noms : []chaine;
 }
 
-fonction possède_membre(arg : eini, nom : chaine) : bool
+fonc possède_membre(arg : eini, nom : chaine) : bool
 {
     soit info = info de arg;
 

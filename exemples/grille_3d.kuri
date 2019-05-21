@@ -4,7 +4,7 @@ structure Résolution3D {
 	z : n32;
 }
 
-fonction initialise_résolution3D(x : n32, y : n32, z : n32) : Résolution3D
+fonc initialise_résolution3D(x : n32, y : n32, z : n32) : Résolution3D
 {
 	soit résolution : Résolution3D = { x:x, y:y, z:z };
 	return résolution;

@@ -74,7 +74,7 @@ DonneesModule *ContexteGenerationCode::cree_module(
 
 	auto donnees_fonctions = DonneesFonction();
 	auto dt = DonneesType{};
-	dt.pousse(id_morceau::FONCTION);
+	dt.pousse(id_morceau::FONC);
 	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
 	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
 	dt.pousse(id_morceau::Z64);

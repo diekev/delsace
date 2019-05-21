@@ -180,8 +180,11 @@ std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 				case id_morceau::CHAINE:
 					os << "chaine";
 					break;
-				case id_morceau::FONCTION:
-					os << "fonction";
+				case id_morceau::FONC:
+					os << "fonc";
+					break;
+				case id_morceau::COROUT:
+					os << "corout";
 					break;
 				case id_morceau::PARENTHESE_OUVRANTE:
 					os << '(';
@@ -472,9 +475,9 @@ static bool converti_type_simple_C(
 			os << "chaine";
 			break;
 		}
-		case id_morceau::FONCTION:
+		case id_morceau::COROUT:
+		case id_morceau::FONC:
 		{
-			/* À FAIRE */;
 			break;
 		}
 		case id_morceau::PARENTHESE_OUVRANTE:
@@ -568,7 +571,7 @@ bool MagasinDonneesType::converti_type_C(
 		return tabl;
 	}
 
-	if (donnees.type_base() == id_morceau::FONCTION) {
+	if (donnees.type_base() == id_morceau::FONC || donnees.type_base() == id_morceau::COROUT) {
 		std::vector<std::stack<id_morceau>> liste_pile_type;
 
 		auto debut = donnees.end() - 1;
@@ -854,7 +857,7 @@ llvm::Type *converti_type_simple(
 [[nodiscard]] auto donnees_types_parametres(
 		const DonneesType &donnees_type) noexcept(false) -> std::vector<DonneesType>
 {
-	if (donnees_type.type_base() != id_morceau::FONCTION) {
+	if (donnees_type.type_base() != id_morceau::FONC) {
 		return {};
 	}
 
@@ -902,7 +905,7 @@ llvm::Type *converti_type(
 {
 	/* Pointeur vers une fonction, seulement valide lors d'assignement, ou en
 	 * paramètre de fonction. */
-	if (donnees_type.type_base() == id_morceau::FONCTION) {
+	if (donnees_type.type_base() == id_morceau::FONC) {
 		if (donnees_type.type_llvm() != nullptr) {
 			return llvm::PointerType::get(donnees_type.type_llvm(), 0);
 		}
@@ -972,7 +975,7 @@ unsigned alignement(
 
 			return alignement(contexte, donnees_type.derefence());
 		}
-		case id_morceau::FONCTION:
+		case id_morceau::FONC:
 		case id_morceau::POINTEUR:
 		case id_morceau::EINI:
 		case id_morceau::R64:
@@ -1095,7 +1098,7 @@ niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type
 
 	/* Nous savons que les types sont différents, donc si l'un des deux est un
 	 * pointeur fonction, nous pouvons retourner faux. */
-	if (type1.type_base() == id_morceau::FONCTION) {
+	if (type1.type_base() == id_morceau::FONC) {
 		return niveau_compat::aucune;
 	}
 

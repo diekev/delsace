@@ -35,10 +35,10 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction passe_tableau_fixe(tabl : [3]z32) : rien
+				fonc passe_tableau_fixe(tabl : [3]z32) : rien
 				{
 				}
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : [3]z32;
 					passe_tableau_fixe(tabl);
@@ -58,10 +58,10 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction passe_tableau_fixe(tabl : [3]z32) : rien
+				fonc passe_tableau_fixe(tabl : [3]z32) : rien
 				{
 				}
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : []z32;
 					passe_tableau_fixe(tabl);
@@ -82,10 +82,10 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction passe_pointeur(tabl : *z32) : rien
+				fonc passe_pointeur(tabl : *z32) : rien
 				{
 				}
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : []z32;
 					nonsûr {
@@ -108,10 +108,10 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction passe_tableau_dynamic(tabl : []z32) : rien
+				fonc passe_tableau_dynamic(tabl : []z32) : rien
 				{
 				}
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : [3]z32;
 					passe_tableau_dynamic(tabl);
@@ -131,10 +131,10 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction passe_tableau_dynamic(tabl : []z32) : rien
+				fonc passe_tableau_dynamic(tabl : []z32) : rien
 				{
 				}
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : []z32;
 					passe_tableau_dynamic(tabl);
@@ -154,7 +154,7 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : []z32;
 					soit taille = taille de tabl;
@@ -174,7 +174,7 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : [3]z32;
 					soit taille = taille de tabl;
@@ -194,7 +194,7 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : [3]z32;
 
@@ -218,7 +218,7 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl : [3]z32;
 					taille de tabl = 3;
@@ -239,7 +239,7 @@ void test_tableaux(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn tabl = [1, 2, 3];
 				}

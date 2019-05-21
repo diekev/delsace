@@ -278,7 +278,7 @@ static auto valide_appel_pointeur_fonction(
 
 	/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
 
-	if (dt_fonc.type_base() != id_morceau::FONCTION) {
+	if (dt_fonc.type_base() != id_morceau::FONC) {
 		erreur::lance_erreur(
 					"La variable doit être un pointeur vers une fonction",
 					contexte,

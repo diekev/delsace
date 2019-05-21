@@ -36,7 +36,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 				}
 				)";
@@ -57,7 +57,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 		 * vérifiait la dernière instruction, donc on le test. */
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					pour i dans 0 ... 10 {
 					}
@@ -78,7 +78,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					retourne 0;
 				}
@@ -99,7 +99,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : z32
+				fonc foo() : z32
 				{
 				}
 				)";
@@ -119,7 +119,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : z32
+				fonc foo() : z32
 				{
 					retourne 0;
 				}
@@ -139,7 +139,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : z32
+				fonc foo() : z32
 				{
 					retourne 0.0;
 				}
@@ -160,7 +160,7 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : z32
+				fonc foo() : z32
 				{
 					retourne 0.0;
 					soit a = 5;

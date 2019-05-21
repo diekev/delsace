@@ -1,6 +1,6 @@
 # Contrôle flux
 
-fonction main()
+fonc main()
 {
     si 1 == 2 {
         retourne 1;

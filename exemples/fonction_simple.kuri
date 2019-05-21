@@ -1,6 +1,6 @@
 # License GPL
 
-fonction main()
+fonc main()
 {
 	soit valeur = 0;
 	retourne valeur;

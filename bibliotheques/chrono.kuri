@@ -16,9 +16,9 @@ structure FuseauHoraire {
     temps_dst : z64; # Nonzéro si DST est en effet
 }
 
-fonction externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien;
+fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien;
 
-fonction maintenant_sec() : r64
+fonc maintenant_sec() : r64
 {
 	dyn heure : ValTemps;
 	gettimeofday(@heure, nul);
@@ -30,7 +30,7 @@ fonction maintenant_sec() : r64
 	retourne s + transtype(microsecondes de heure : r64) * 0.000001;
 }
 
-fonction maintenant_local() : r64
+fonc maintenant_local() : r64
 {
 	dyn heure : ValTemps;
 	dyn fuseau : FuseauHoraire;
@@ -45,12 +45,12 @@ fonction maintenant_local() : r64
 	retourne s + transtype(microsecondes de heure : r64) * 0.000001;
 }
 
-fonction delta_sec(temps : r64) : r64
+fonc delta_sec(temps : r64) : r64
 {
     retourne maintenant_sec() - temps;
 }
 
-fonction compte_ticks_ms() : z64
+fonc compte_ticks_ms() : z64
 {
 	dyn heure : ValTemps;
 	gettimeofday(@heure, nul);
@@ -63,7 +63,7 @@ structure DonnéesTemps {
     secondes : z32;
 }
 
-fonction calcule_temps() : DonnéesTemps
+fonc calcule_temps() : DonnéesTemps
 {
     dyn maint = maintenant_local();
     

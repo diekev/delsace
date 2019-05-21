@@ -37,9 +37,9 @@ static auto test_appel_fonction_nonsure(
 	{
 		const char *texte =
 				R"(
-				fonction externe foo() : rien;
+				fonc externe foo() : rien;
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					foo();
 				}
@@ -59,9 +59,9 @@ static auto test_appel_fonction_nonsure(
 	{
 		const char *texte =
 				R"(
-				fonction externe foo() : rien;
+				fonc externe foo() : rien;
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					nonsûr {
 						foo();
@@ -82,12 +82,12 @@ static auto test_appel_fonction_nonsure(
 	{
 		const char *texte =
 				R"(
-				fonction foo(a : *z32) : rien
+				fonc foo(a : *z32) : rien
 				{
 					retourne;
 				}
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					soit x = 5;
 					foo(@x);
@@ -108,12 +108,12 @@ static auto test_appel_fonction_nonsure(
 	{
 		const char *texte =
 				R"(
-				fonction foo(a : *z32) : rien
+				fonc foo(a : *z32) : rien
 				{
 					retourne;
 				}
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					soit x = 5;
 					nonsûr {
@@ -141,13 +141,13 @@ static void test_pointeur_fonction(
 		const char *texte =
 				R"(
 				structure Foo {
-					x : fonction(z32,*z8,z32)z32;
+					x : fonc(z32,*z8,z32)z32;
 				}
 
-				fonction bar(a : fonction(r32, r64)rien) : rien
+				fonc bar(a : fonc(r32, r64)rien) : rien
 				{
 					soit x = a;
-					soit y : fonction(r32, r64)rien = a;
+					soit y : fonc(r32, r64)rien = a;
 				}
 				)";
 
@@ -164,7 +164,7 @@ static void test_pointeur_fonction(
 	{
 		const char *texte =
 				R"(
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					soit x = 5;
 					soit y = x();
@@ -185,7 +185,7 @@ static void test_pointeur_fonction(
 	{
 		const char *texte =
 				R"(
-				fonction bar(a : fonction(r64, r64)r32) : r32
+				fonc bar(a : fonc(r64, r64)r32) : r32
 				{
 					retourne a(0.2, 0.4);
 				}
@@ -204,7 +204,7 @@ static void test_pointeur_fonction(
 	{
 		const char *texte =
 				R"(
-				fonction bar(a : fonction(r32, r64)r32) : r32
+				fonc bar(a : fonc(r32, r64)r32) : r32
 				{
 					retourne a(x=0.2, z=0.4);
 				}
@@ -224,17 +224,17 @@ static void test_pointeur_fonction(
 	{
 		const char *texte =
 				R"(
-				fonction ajoute_cb(x : r64, z : r64, cb : fonction(r64, r64) r64) : r64
+				fonc ajoute_cb(x : r64, z : r64, cb : fonc(r64, r64) r64) : r64
 				{
 					retourne cb(x, z);
 				}
 
-				fonction ajoute_deux(x : r64, y : r64) : r64
+				fonc ajoute_deux(x : r64, y : r64) : r64
 				{
 					retourne x + y;
 				}
 
-				fonction bar() : r64
+				fonc bar() : r64
 				{
 					retourne ajoute_cb(1.0, 2.0, ajoute_deux);
 				}
@@ -253,17 +253,17 @@ static void test_pointeur_fonction(
 	{
 		const char *texte =
 				R"(
-				fonction ajoute_cb(x : r64, z : r64, cb : fonction(r64, r64) r64) : r64
+				fonc ajoute_cb(x : r64, z : r64, cb : fonc(r64, r64) r64) : r64
 				{
 					retourne cb(x, z);
 				}
 
-				fonction ajoute_trois(x : r64, y : r64, z : r64) : r64
+				fonc ajoute_trois(x : r64, y : r64, z : r64) : r64
 				{
 					retourne x + y + z;
 				}
 
-				fonction bar() : r64
+				fonc bar() : r64
 				{
 					retourne ajoute_cb(1.0, 2.0, ajoute_trois);
 				}
@@ -283,7 +283,7 @@ static void test_pointeur_fonction(
 	{
 		const char *texte =
 				R"(
-				fonction ajoute_cb(x : z32, z : z32, cb : fonction(r32, r32) r32) : r32
+				fonc ajoute_cb(x : z32, z : z32, cb : fonc(r32, r32) r32) : r32
 				{
 					retourne cb(x, z);
 				}
@@ -307,9 +307,9 @@ static void test_appel_fonction_variadique_args_nommes(
 	{
 		const char *texte =
 				R"(
-				fonction externe foo(a : z32, b : z32, c : ...z32) : rien;
+				fonc externe foo(a : z32, b : z32, c : ...z32) : rien;
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					nonsûr {
 						foo(0, 1, 2, 3, 4, 5);
@@ -330,9 +330,9 @@ static void test_appel_fonction_variadique_args_nommes(
 	{
 		const char *texte =
 				R"(
-				fonction externe foo(a : z32, b : z32, c : ...z32) : rien;
+				fonc externe foo(a : z32, b : z32, c : ...z32) : rien;
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					nonsûr {
 						foo(a=0, b=1, c=2, c=3, c=4, c=5);
@@ -353,9 +353,9 @@ static void test_appel_fonction_variadique_args_nommes(
 	{
 		const char *texte =
 				R"(
-				fonction externe foo(a : z32, b : z32, c : ...z32) : rien;
+				fonc externe foo(a : z32, b : z32, c : ...z32) : rien;
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					nonsûr {
 						foo(a=0, b=1, c=2, 3, 4, 5);
@@ -376,9 +376,9 @@ static void test_appel_fonction_variadique_args_nommes(
 	{
 		const char *texte =
 				R"(
-				fonction externe foo(a : z32, b : z32, c : ...z32) : rien;
+				fonc externe foo(a : z32, b : z32, c : ...z32) : rien;
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					nonsûr {
 						foo(a=0, c=1, 2, 3, 4, b=5);
@@ -404,9 +404,9 @@ static void test_appel_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe printf(arguments : ...) : rien;
+				fonc externe printf(arguments : ...) : rien;
 
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					nonsûr {
 						printf(0, 'z', 2.5, "chaine");
@@ -428,9 +428,9 @@ static void test_appel_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe printf(arguments : ...z32) : rien;
+				fonc externe printf(arguments : ...z32) : rien;
 
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					nonsûr {
 						printf(0, 'z', 2.5, "chaine");
@@ -453,9 +453,9 @@ static void test_appel_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe printf(arguments : ...z32) : rien;
+				fonc externe printf(arguments : ...z32) : rien;
 
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					nonsûr {
 						printf(0, 1, 2, 3, 4);
@@ -480,7 +480,7 @@ static void test_declaration_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe principale(compte : z32, arguments : ...) : rien;
+				fonc externe principale(compte : z32, arguments : ...) : rien;
 				)";
 
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
@@ -494,7 +494,7 @@ static void test_declaration_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe principale(compte : z32, arguments : ...z32) : rien;
+				fonc externe principale(compte : z32, arguments : ...z32) : rien;
 				)";
 
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
@@ -508,7 +508,7 @@ static void test_declaration_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe principale(arguments : ...*z32, compte : z32) : rien;
+				fonc externe principale(arguments : ...*z32, compte : z32) : rien;
 				)";
 
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
@@ -523,7 +523,7 @@ static void test_declaration_fonction_variadique(
 	{
 		const char *texte =
 				R"(
-				fonction externe principale(arguments : ...*z32, comptes : ...z32) : rien;
+				fonc externe principale(arguments : ...*z32, comptes : ...z32) : rien;
 				)";
 
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(texte, false, erreur::type_erreur::NORMAL);
@@ -543,17 +543,17 @@ static void test_fonction_general(
 	{
 		const char *texte =
 				R"(
-				fonction ne_retourne_rien() : rien
+				fonc ne_retourne_rien() : rien
 				{
 					retourne;
 				}
 
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : bool
+				fonc principale(compte : z32, arguments : z8) : bool
 				{
 					ne_retourne_rien();
 					soit a = ajouter(5, 8);
@@ -578,7 +578,7 @@ static void test_fonction_inconnue(
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					retourne sortie(0);
 				}
@@ -601,12 +601,12 @@ static void test_argument_nomme_succes(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(a=5, b=6);
 					soit y = ajouter(b=5, a=6);
@@ -630,12 +630,12 @@ static void test_argument_nomme_echec(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(a=5, a=6);
 					retourne x != 5;
@@ -654,12 +654,12 @@ static void test_argument_nomme_echec(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(a=5, c=6);
 					retourne x != 5;
@@ -678,12 +678,12 @@ static void test_argument_nomme_echec(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(a=5, 6);
 					retourne x != 5;
@@ -706,12 +706,12 @@ static void test_argument_nomme_echec(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(5, b=6);
 					retourne 0;
@@ -732,12 +732,12 @@ static void test_argument_nomme_echec(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(5, a=6);
 					retourne 0;
@@ -763,12 +763,12 @@ static void test_type_argument_echec(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 				retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 				soit x = ajouter(a=5.0, b=6.0);
 				retourne 0;
@@ -792,12 +792,12 @@ static void test_nombre_argument(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(a=5);
 					retourne x != 5;
@@ -817,12 +817,12 @@ static void test_nombre_argument(
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(a : z32, b : z32) : z32
+				fonc ajouter(a : z32, b : z32) : z32
 				{
 					retourne a + b;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit x = ajouter(5, 6, 7);
 					retourne x != 5;
@@ -845,7 +845,7 @@ static void test_argument_unique(
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, compte : z8) : z32
+				fonc principale(compte : z32, compte : z8) : z32
 				{
 					retourne x != 5;
 				}
@@ -867,12 +867,12 @@ static void test_fonction_redinie(
 	{
 		const char *texte =
 				R"(
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					retourne 0;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					retourne 0;
 				}
@@ -895,12 +895,12 @@ static auto test_syntaxe_appel_uniforme(
 	{
 		const char *texte =
 				R"(
-				fonction foo(a : z32) : rien
+				fonc foo(a : z32) : rien
 				{
 					retourne;
 				}
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					soit a = 5;
 					a.foo();
@@ -922,12 +922,12 @@ static auto test_syntaxe_appel_uniforme(
 	{
 		const char *texte =
 				R"(
-				fonction foo(a : z32, b : r64) : rien
+				fonc foo(a : z32, b : r64) : rien
 				{
 					retourne;
 				}
 
-				fonction bar() : rien
+				fonc bar() : rien
 				{
 					soit a = 0.0;
 					soit b = 5;

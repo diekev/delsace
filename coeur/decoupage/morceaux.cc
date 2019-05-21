@@ -35,6 +35,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "boucle", id_morceau::BOUCLE },
 	{ "chaine", id_morceau::CHAINE },
 	{ "continue", id_morceau::CONTINUE },
+	{ "corout", id_morceau::COROUT },
 	{ "dans", id_morceau::DANS },
 	{ "de", id_morceau::DE },
 	{ "diffère", id_morceau::DIFFERE },
@@ -44,7 +45,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "employant", id_morceau::EMPLOYANT },
 	{ "externe", id_morceau::EXTERNE },
 	{ "faux", id_morceau::FAUX },
-	{ "fonction", id_morceau::FONCTION },
+	{ "fonc", id_morceau::FONC },
 	{ "gabarit", id_morceau::GABARIT },
 	{ "garde", id_morceau::GARDE },
 	{ "importe", id_morceau::IMPORTE },
@@ -227,6 +228,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::CHAINE";
 		case id_morceau::CONTINUE:
 			return "id_morceau::CONTINUE";
+		case id_morceau::COROUT:
+			return "id_morceau::COROUT";
 		case id_morceau::DANS:
 			return "id_morceau::DANS";
 		case id_morceau::DE:
@@ -245,8 +248,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::EXTERNE";
 		case id_morceau::FAUX:
 			return "id_morceau::FAUX";
-		case id_morceau::FONCTION:
-			return "id_morceau::FONCTION";
+		case id_morceau::FONC:
+			return "id_morceau::FONC";
 		case id_morceau::GABARIT:
 			return "id_morceau::GABARIT";
 		case id_morceau::GARDE:

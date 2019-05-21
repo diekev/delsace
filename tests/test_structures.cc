@@ -123,7 +123,7 @@ static void test_structure_inconnue(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				fonction foo(v : Vecteur3D) : rien
+				fonc foo(v : Vecteur3D) : rien
 				{
 				}
 				)";
@@ -147,7 +147,7 @@ static void test_acces_membre(dls::test_unitaire::Controleuse &controleuse)
 					x : n32;
 					y : n32;
 				}
-				fonction accès_x(v : Vecteur2D) : n32
+				fonc accès_x(v : Vecteur2D) : n32
 				{
 					retourne x de v;
 				}
@@ -168,7 +168,7 @@ static void test_acces_membre(dls::test_unitaire::Controleuse &controleuse)
 					x : n32;
 					y : n32;
 				}
-				fonction accès_x(v : Vecteur2D) : rien
+				fonc accès_x(v : Vecteur2D) : rien
 				{
 					retourne z de v;
 				}
@@ -190,7 +190,7 @@ static void test_acces_membre(dls::test_unitaire::Controleuse &controleuse)
 					x : n32;
 					y : n32;
 				}
-				fonction accès_x(v : Vecteur2D) : rien
+				fonc accès_x(v : Vecteur2D) : rien
 				{
 					retourne x de w;
 				}
@@ -208,7 +208,7 @@ static void test_acces_membre(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction accès_x() : rien
+				fonc accès_x() : rien
 				{
 					soit a = 0;
 					soit b = x de a;
@@ -280,7 +280,7 @@ static void test_construction(dls::test_unitaire::Controleuse &controleuse)
 					y : n32;
 				}
 
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit v = Vecteur2D{x = 0, y = 1};
 				}
@@ -304,7 +304,7 @@ static void test_construction(dls::test_unitaire::Controleuse &controleuse)
 					y : n32;
 				}
 
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit v = Vecteur2D{0, 1};
 				}

@@ -5,7 +5,8 @@ import io
 mot_cles = [
 	u'soit',
 	u'dyn',
-	u'fonction',
+	u'fonc',
+	u'corout',
 	u'boucle',
 	u'pour',
 	u'dans',

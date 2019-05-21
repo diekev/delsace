@@ -7,8 +7,8 @@
 # "chaîne pascal arguments nommés et désordonnés\n" seront imprimées dans la
 # sortie standard.
 
-# Déclaration de la fonction externe printf qui se trouve dans libc.
-fonction externe printf(format : *z8, args : ...) : z32;
+# Déclaration de la fonc externe printf qui se trouve dans libc.
+fonc externe printf(format : *z8, args : ...) : z32;
 
 # Définition de la structure ChaînePascal.
 structure ChaînePascal {
@@ -18,8 +18,8 @@ structure ChaînePascal {
 }
 
 # Retourne la longueur d'une chaîne 'C' terminée par '\0'. Si la chaîne n'est
-# pas terminée par '\0', la fonction restera bloquée dans une boucle infinie.
-fonction longueur(chaîne : *z8) : z64
+# pas terminée par '\0', la fonc restera bloquée dans une boucle infinie.
+fonc longueur(chaîne : *z8) : z64
 {
 	dyn i : z64 = 0;
 
@@ -39,11 +39,11 @@ fonction longueur(chaîne : *z8) : z64
 # ChaînePascal ; les caractères suivants contiendront la chaîne elle-même.
 # 
 # Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
-# sortie standard, et la fonction retournera.
+# sortie standard, et la fonc retournera.
 # 
 # Si la chaîne 'C' mesure plus que 255 caractères, une erreur sera imprimée dans
-# la sortie standard, et la fonction retournera sans rien copier.
-fonction assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) : rien
+# la sortie standard, et la fonc retournera sans rien copier.
+fonc assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) : rien
 {
 	si cp == nul {
 		printf("La chaîne pascal est nul !\n");
@@ -67,8 +67,8 @@ fonction assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) : rien
 # Imprime une ChaînePascal dans la sortie standard.
 # 
 # Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
-# sortie standard, et la fonction retournera.
-fonction imprime_chaîne_pascal(cp : *ChaînePascal) : rien
+# sortie standard, et la fonc retournera.
+fonc imprime_chaîne_pascal(cp : *ChaînePascal) : rien
 {
 	si cp == nul {
 		printf("La chaîne pascal est nul !\n");
@@ -83,14 +83,14 @@ fonction imprime_chaîne_pascal(cp : *ChaînePascal) : rien
 }
 
 # Point d'entrée des programmes Kuri.
-fonction principale(compte : z32, arguments : **z8) : z32
+fonc principale(compte : z32, arguments : **z8) : z32
 {
 	dyn chaîne : ChaînePascal;
 
 	assigne_chaîne_pascal(@chaîne, "chaîne pascal\n");
 	imprime_chaîne_pascal(@chaîne);
 
-	# Il est possible de nommer les paramètres des fonctions et ainsi de les
+	# Il est possible de nommer les paramètres des foncs et ainsi de les
 	# donner dans le désordre.
 	assigne_chaîne_pascal(
 	    chaîne="chaîne pascal arguments nommés et désordonnés\n",

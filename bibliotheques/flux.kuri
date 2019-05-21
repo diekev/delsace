@@ -8,10 +8,10 @@ soit std_out = 0;
 soit std_err = 1;
 soit std_log = 2;
 
-fonction externe sprintf(tmp : *z8, fmt : *z8, args : ...) : z32;
-fonction externe write(filedes : z32, tpn : *z8, nbyte : z64) : z32;
+fonc externe sprintf(tmp : *z8, fmt : *z8, args : ...) : z32;
+fonc externe write(filedes : z32, tpn : *z8, nbyte : z64) : z32;
 
-fonction imprime_valeur(
+fonc imprime_valeur(
     flux_std : z32,
 	pointeur : *z8,
 	info : *InfoType,
@@ -189,14 +189,14 @@ fonction imprime_valeur(
 	}
 }
 
-fonction imprime(args : ...eini) : rien
+fonc imprime(args : ...eini) : rien
 {
     pour arg dans args {
 	    imprime_valeur(std_out, pointeur de arg, info de arg, faux);
     }
 }
 
-fonction imprime_err(args : ...eini) : rien
+fonc imprime_err(args : ...eini) : rien
 {
     pour arg dans args {
 	    imprime_valeur(std_err, pointeur de arg, info de arg, faux);

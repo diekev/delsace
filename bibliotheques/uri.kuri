@@ -16,7 +16,7 @@ structure URI {
 	port : chaine;
 }
 
-fonction est_valide(uri : *URI) : bool
+fonc est_valide(uri : *URI) : bool
 {
     si est_vide(schéma de uri) {
 		retourne faux;
@@ -31,7 +31,7 @@ fonction est_valide(uri : *URI) : bool
 	retourne vrai;
 }
 
-fonction construit_uri(chn : chaine) : URI
+fonc construit_uri(chn : chaine) : URI
 {
     dyn uri : URI;
     uri de uri = chn;

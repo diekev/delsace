@@ -1,4 +1,4 @@
-fonction somme_carrée(args : ...r64) : r64
+fonc somme_carrée(args : ...r64) : r64
 {
 	dyn résultat = 0.0;
 

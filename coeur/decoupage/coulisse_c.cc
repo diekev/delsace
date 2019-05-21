@@ -216,7 +216,7 @@ static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesT
 			return 0;
 		}
 		case id_morceau::POINTEUR:
-		case id_morceau::FONCTION:
+		case id_morceau::FONC:
 		{
 			/* À FAIRE : pointeur 32-bit/64-bit */
 			return 8;
@@ -441,7 +441,8 @@ static std::string cree_info_type_C(
 	switch (donnees_type.type_base() & 0xff) {
 		default:
 		{
-			std::cerr << chaine_identifiant(donnees_type.type_base() & 0xff);
+			std::cerr << chaine_type(donnees_type, contexte) << '\n';
+			std::cerr << chaine_identifiant(donnees_type.type_base() & 0xff) << '\n';
 			assert(false);
 			break;
 		}
@@ -583,9 +584,10 @@ static std::string cree_info_type_C(
 			valeur = nom_info_type;
 			break;
 		}
-		case id_morceau::FONCTION:
+		case id_morceau::COROUT:
+		case id_morceau::FONC:
 		{
-			/* À FAIRE : type params */
+			/* À FAIRE : type params, tag coroutine */
 			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_FONCTION");
 			break;
 		}

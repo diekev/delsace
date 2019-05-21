@@ -75,7 +75,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 namespace test_analyse {
 
 static id_morceau sequence_declaration_fonction[] = {
-	id_morceau::FONCTION,
+	id_morceau::FONC,
 	id_morceau::CHAINE_CARACTERE,
 	id_morceau::PARENTHESE_OUVRANTE,
 	id_morceau::PARENTHESE_FERMANTE,

@@ -5,7 +5,7 @@ structure Vecteur3D {
 }
 
 #!si faux
-fonction racine_carré(x : n32) : n32
+fonc racine_carré(x : n32) : n32
 {
 #!si vrai
 	dyn num = x;
@@ -62,27 +62,27 @@ fonction racine_carré(x : n32) : n32
 #!finsi
 }
 
-fonction carré(x : n32) : n32
+fonc carré(x : n32) : n32
 {
 	retourne x * x;
 }
 
-fonction longueur_vecteur(v : Vecteur3D) : n32
+fonc longueur_vecteur(v : Vecteur3D) : n32
 {
 	retourne 0;
 }
 
-fonction longueur(x : n32, y : n32, z : n32) : n32
+fonc longueur(x : n32, y : n32, z : n32) : n32
 {
 	retourne racine_carré(carré(x) + carré(y) + carré(z));
 }
 
-fonction principale(compte : n32, arguments : []*c8) : n32
+fonc principale(compte : n32, arguments : []*c8) : n32
 {
 	retourne longueur(compte, compte, compte);
 }
 
-fonction foo(compte : [2][2]n32) : n32
+fonc foo(compte : [2][2]n32) : n32
 {
 	soit a = compte[0][0];
 	soit b = @compte;
@@ -91,7 +91,7 @@ fonction foo(compte : [2][2]n32) : n32
 #!finsi
 
 #!si faux
-fonction principale1()
+fonc principale1()
 {
 	soit t0 = 5 + 2;
 	soit t1 = 5 - 2;
@@ -105,7 +105,7 @@ fonction principale1()
 	soit t9 = 5 ^ t0;
 }
 
-fonction principale2()
+fonc principale2()
 {
 	soit t0 = 5.0 == 2.0;
 	soit t1 = 5.0 != 2.0;
@@ -115,7 +115,7 @@ fonction principale2()
 	soit t5 = 5.0 > 2.0;
 }
 
-fonction principale3()
+fonc principale3()
 {
 	soit t4 = (5.0 == 5.0) && (6.0 == 6.0);
 	soit t5 = vrai != vrai;

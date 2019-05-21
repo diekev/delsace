@@ -1,7 +1,7 @@
 # Fonctions de manipulation de chaines.
 
 # Retourne vrai si les deux chaines données sont égales.
-fonction compare_chaines(ch1 : chaine, ch2 : chaine) : bool
+fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 {
     si taille de ch1 != taille de ch2 {
         retourne faux;
@@ -22,7 +22,7 @@ fonction compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 # Retourne une chaine correspondant à l'enchainement de toutes les chaines
 # spécifiées. La chaine retournée a été logé et doit être délogée par
 # l'appelante.
-fonction enchaine(chns : ...chaine) : chaine
+fonc enchaine(chns : ...chaine) : chaine
 {
     dyn taille = 0;
 
@@ -44,7 +44,7 @@ fonction enchaine(chns : ...chaine) : chaine
 }
 
 # Retourne la taille d'une chaine C, c'est à dire nul-terminé.
-fonction taille_chaine_c(ch : *z8) : z64
+fonc taille_chaine_c(ch : *z8) : z64
 {
     dyn index : z64 = 0;
 
@@ -55,7 +55,7 @@ fonction taille_chaine_c(ch : *z8) : z64
     retourne index;
 }
 
-fonction construit_chaine(ptr : *z8, taille : z64) : chaine
+fonc construit_chaine(ptr : *z8, taille : z64) : chaine
 {
     dyn ret : chaine;
 	pointeur de ret = ptr;
@@ -64,13 +64,13 @@ fonction construit_chaine(ptr : *z8, taille : z64) : chaine
 }
 
 # Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
-fonction converti_chaine_c(chaine_c : *z8) : chaine
+fonc converti_chaine_c(chaine_c : *z8) : chaine
 {
     retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c));
 }
 
 # execute une fonction pour chaque ligne du texte d'entrée
-fonction pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonction(chaine, eini)rien) : rien
+fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)rien) : rien
 {
     dyn taille_chaine : z64 = 0;
 	dyn début_chaine : z64 = 0;
@@ -100,12 +100,12 @@ fonction pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonction(cha
 	}
 }
 
-fonction est_vide(chn : chaine) : bool
+fonc est_vide(chn : chaine) : bool
 {
     retourne taille de chn == 0;
 }
 
-fonction trouve_caractère(chn : chaine, carac : z8, pos : z64) : z64
+fonc trouve_caractère(chn : chaine, carac : z8, pos : z64) : z64
 {
     soit début = pos;
 	soit fin   = taille de chn;
@@ -119,7 +119,7 @@ fonction trouve_caractère(chn : chaine, carac : z8, pos : z64) : z64
     retourne transtype(-1 : z64);
 }
 
-fonction découpe(texte : chaine, sep : z8) : chaine
+fonc découpe(texte : chaine, sep : z8) : chaine
 {
     dyn taille_mot : z64 = 0;
 	dyn début_mot : z64 = 0;

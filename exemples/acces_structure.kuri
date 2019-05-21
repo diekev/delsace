@@ -8,12 +8,12 @@ structure Vecteur3D {
 	z : n32;
 }
 
-fonction accès_x(v : Vecteur3D) : n32
+fonc accès_x(v : Vecteur3D) : n32
 {
 	retourne x de xy de v;
 }
 
-fonction principale() : n32
+fonc principale() : n32
 {
 	retourne 0;
 }

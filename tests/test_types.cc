@@ -35,12 +35,12 @@ static void test_inference_type_echec(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction ne_retourne_rien() : rien
+				fonc ne_retourne_rien() : rien
 				{
 					retourne;
 				}
 
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = ne_retourne_rien();
 					retourne 0;
@@ -61,12 +61,12 @@ static void test_inference_type_echec(dls::test_unitaire::Controleuse &controleu
 	{
 		const char *texte =
 				R"(
-				fonction ne_retourne_rien()
+				fonc ne_retourne_rien()
 				{
 					retourne;
 				}
 
-				fonction principale(compte : z32, arguments : n8) : z32
+				fonc principale(compte : z32, arguments : n8) : z32
 				{
 					soit a = ne_retourne_rien();
 					retourne 0;
@@ -91,17 +91,17 @@ static void test_inference_type_succes(dls::test_unitaire::Controleuse &controle
 	{
 		const char *texte =
 				R"(
-				fonction ajouter(x : z32) : z32
+				fonc ajouter(x : z32) : z32
 				{
 					retourne x + 2;
 				}
 
-				fonction ajouter_r64(x : r64) : r64
+				fonc ajouter_r64(x : r64) : r64
 				{
 					retourne x + 2.0;
 				}
 
-				fonction principale(compte : z32, arguments : z8) : z32
+				fonc principale(compte : z32, arguments : z8) : z32
 				{
 					soit a = ajouter(9);
 					soit b = ajouter(a);

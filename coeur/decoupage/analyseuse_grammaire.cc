@@ -297,78 +297,97 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 void analyseuse_grammaire::analyse_corps(std::ostream &os)
 {
 	while (!fini()) {
-		if (est_identifiant(id_morceau::FONCTION)) {
-			analyse_declaration_fonction();
-		}
-		else if (est_identifiant(id_morceau::STRUCTURE)) {
-			analyse_declaration_structure();
-		}
-		else if (est_identifiant(id_morceau::ENUM)) {
-			analyse_declaration_enum();
-		}
-		else if (est_identifiant(id_morceau::IMPORTE)) {
-			avance();
+		auto id = this->identifiant_courant();
 
-			if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-				lance_erreur("Attendu une chaine littérale après 'importe'");
+		switch (id) {
+			case id_morceau::FONC:
+			case id_morceau::COROUT:
+			{
+				avance();
+				analyse_declaration_fonction(id);
+				break;
 			}
-
-			auto const nom_module = donnees().chaine;
-			m_module->modules_importes.insert(nom_module);
-
-			/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
-			 * également en compte le chargement, le découpage, et l'analyse du
-			 * module importé */
-			m_module->temps_analyse += dls::chrono::delta(m_debut_analyse);
-			charge_module(os, m_racine_kuri, std::string(nom_module), m_contexte, donnees());
-			m_debut_analyse = dls::chrono::maintenant();
-		}
-		else if (est_identifiant(id_morceau::DIRECTIVE)) {
-			avance();
-
-			if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-				lance_erreur("Attendu une chaine de caractère après '#!'");
+			case id_morceau::STRUCTURE:
+			{
+				analyse_declaration_structure();
+				break;
 			}
+			case id_morceau::ENUM:
+			{
+				analyse_declaration_enum();
+				break;
+			}
+			case id_morceau::IMPORTE:
+			{
+				avance();
 
-			auto directive = donnees().chaine;
-
-			if (directive == "inclus") {
 				if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-					lance_erreur("Attendu une chaine littérale après la directive");
+					lance_erreur("Attendu une chaine littérale après 'importe'");
 				}
 
-				auto chaine = donnees().chaine;
-				m_assembleuse->inclusions.push_back(chaine);
+				auto const nom_module = donnees().chaine;
+				m_module->modules_importes.insert(nom_module);
+
+				/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
+				 * également en compte le chargement, le découpage, et l'analyse du
+				 * module importé */
+				m_module->temps_analyse += dls::chrono::delta(m_debut_analyse);
+				charge_module(os, m_racine_kuri, std::string(nom_module), m_contexte, donnees());
+				m_debut_analyse = dls::chrono::maintenant();
+				break;
 			}
-			else if (directive == "bib") {
-				if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-					lance_erreur("Attendu une chaine littérale après la directive");
+			case id_morceau::DIRECTIVE:
+			{
+				avance();
+
+				if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
+					lance_erreur("Attendu une chaine de caractère après '#!'");
 				}
 
-				auto chaine = donnees().chaine;
-				m_assembleuse->bibliotheques.push_back(chaine);
+				auto directive = donnees().chaine;
+
+				if (directive == "inclus") {
+					if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+						lance_erreur("Attendu une chaine littérale après la directive");
+					}
+
+					auto chaine = donnees().chaine;
+					m_assembleuse->inclusions.push_back(chaine);
+				}
+				else if (directive == "bib") {
+					if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+						lance_erreur("Attendu une chaine littérale après la directive");
+					}
+
+					auto chaine = donnees().chaine;
+					m_assembleuse->bibliotheques.push_back(chaine);
+				}
+				else {
+					lance_erreur("Directive inconnue");
+				}
+
+				break;
 			}
-			else {
-				lance_erreur("Directive inconnue");
+			default:
+			{
+				analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::INCONNU, false);
+				break;
 			}
-		}
-		else {
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::INCONNU, false);
 		}
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_fonction()
+void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 {
-	if (!requiers_identifiant(id_morceau::FONCTION)) {
-		lance_erreur("Attendu la déclaration du mot-clé 'fonction'");
-	}
-
 	auto externe = false;
 
 	if (est_identifiant(id_morceau::EXTERNE)) {
 		avance();
 		externe = true;
+
+		if (id == id_morceau::COROUT && externe) {
+			lance_erreur("Une coroutine ne peut pas être externe");
+		}
 	}
 
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
@@ -389,7 +408,7 @@ void analyseuse_grammaire::analyse_declaration_fonction()
 	}
 
 	auto donnees_type_fonction = DonneesType{};
-	donnees_type_fonction.pousse(id_morceau::FONCTION);
+	donnees_type_fonction.pousse(id);
 	donnees_type_fonction.pousse(id_morceau::PARENTHESE_OUVRANTE);
 
 	auto donnees_fonctions = DonneesFonction{};
@@ -1679,11 +1698,11 @@ size_t analyseuse_grammaire::analyse_declaration_type(DonneesType *donnees_type_
 	}
 
 	/* Vérifie si l'on a un pointeur vers une fonction. */
-	if (est_identifiant(id_morceau::FONCTION)) {
+	if (est_identifiant(id_morceau::FONC) || est_identifiant(id_morceau::COROUT)) {
 		avance();
 
 		auto dt = DonneesType{};
-		dt.pousse(id_morceau::FONCTION);
+		dt.pousse(donnees().identifiant);
 
 		if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 			lance_erreur("Attendu un '(' après 'fonction'");

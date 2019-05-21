@@ -35,7 +35,7 @@ static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					pour x dans 0...10 {
 					}
@@ -55,7 +55,7 @@ static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					pour x dans 0...10.0 {
 					}
@@ -76,7 +76,7 @@ static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					pour x dans 'a'...'z' {
 					}
@@ -104,7 +104,7 @@ static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 					demo : z32;
 				}
 
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					pour x dans vrai...faux {
 					}
@@ -129,7 +129,7 @@ static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 					demo : z32;
 				}
 
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn debut : Demo;
 					dyn fin   : Demo;
@@ -154,7 +154,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					boucle {
 						continue;
@@ -173,7 +173,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					boucle {
 						arrête;
@@ -194,7 +194,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					pour i dans 0 ... 10 {
 						arrête i;
@@ -218,7 +218,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					boucle {
 						continue a;
@@ -240,7 +240,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					pour i dans 0 ... 10 {
 						arrête j;
@@ -262,7 +262,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					soit a = 5;
 
@@ -284,7 +284,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					continue;
 				}
@@ -302,7 +302,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					arrête;
 				}
@@ -322,7 +322,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					pour i dans 0 ... 10 {
 						si i > 5 {
@@ -359,7 +359,7 @@ static void test_continue_arrete(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				fonction foo() : rien
+				fonc foo() : rien
 				{
 					dyn i = 0;
 					boucle {

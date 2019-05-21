@@ -6,10 +6,10 @@ importe "memoire"
 
 # À FAIRE : évite d'avoir des tampon partout.
 
-fonction externe open(chemin : *z8, drapeaux : z32) : z32;
-fonction externe close(fd : z32) : rien;
-fonction externe read(fd : z32, tampon : *z8, taille : n64) : z64;
-fonction externe stat(chemin : *z8, buf : *rien) : z32;
+fonc externe open(chemin : *z8, drapeaux : z32) : z32;
+fonc externe close(fd : z32) : rien;
+fonc externe read(fd : z32, tampon : *z8, taille : n64) : z64;
+fonc externe stat(chemin : *z8, buf : *rien) : z32;
 
 # Version 64-bit de la structure 'stat' de "sys/stat.h"
 structure StatFichier {
@@ -29,7 +29,7 @@ structure StatFichier {
 	_ctime : z64;      # time of last status change
 }
 
-fonction fichier_existe(chemin : chaine) : bool
+fonc fichier_existe(chemin : chaine) : bool
 {
 	# nous devons avoir une chaine terminée par '\0' donc copie dans un
 	# tampon
@@ -53,7 +53,7 @@ fonction fichier_existe(chemin : chaine) : bool
 	retourne vrai;
 }
 
-fonction ouvre_fichier(chemin : chaine) : z32
+fonc ouvre_fichier(chemin : chaine) : z32
 {
 	si !fichier_existe(chemin) {
 		retourne -1;
@@ -74,14 +74,14 @@ fonction ouvre_fichier(chemin : chaine) : z32
 	retourne open(@tampon[0], 0);
 }
 
-fonction ferme_fichier(desc : z32) : rien
+fonc ferme_fichier(desc : z32) : rien
 {
 	si desc != -1 {
 		close(desc);
 	}
 }
 
-fonction charge_contenu_fichier(chemin : chaine) : chaine
+fonc charge_contenu_fichier(chemin : chaine) : chaine
 {
     dyn ret : chaine;
 
