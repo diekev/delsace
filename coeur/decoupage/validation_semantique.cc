@@ -172,7 +172,11 @@ static bool est_assignation_operee(id_morceau id)
 		case id_morceau::MOINS_EGAL:
 		case id_morceau::PLUS_EGAL:
 		case id_morceau::MULTIPLIE_EGAL:
-		case id_morceau::DIVSE_EGAL:
+		case id_morceau::DIVISE_EGAL:
+		case id_morceau::MODULO_EGAL:
+		case id_morceau::ET_EGAL:
+		case id_morceau::OU_EGAL:
+		case id_morceau::OUX_EGAL:
 		{
 			return true;
 		}

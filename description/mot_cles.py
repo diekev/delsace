@@ -105,9 +105,12 @@ caracteres_double = [
 	[u'>>', u'DECALAGE_DROITE'],
 	[u'+=', u'PLUS_EGAL'],
 	[u'-=', u'MOINS_EGAL'],
-	[u'/=', u'DIVSE_EGAL'],
+	[u'/=', u'DIVISE_EGAL'],
 	[u'*=', u'MULTIPLIE_EGAL'],
 	[u'%=', u'MODULO_EGAL'],
+	[u'&=', u'ET_EGAL'],
+	[u'|=', u'OU_EGAL'],
+	[u'^=', u'OUX_EGAL'],
 	[u'#!', u'DIRECTIVE'],
 ]
 
