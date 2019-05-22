@@ -2130,7 +2130,6 @@ void genere_code_C(
 			auto enfant2 = *iter++;
 			auto enfant3 = *iter++;
 
-			/* À FAIRE */
 			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
 			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
 
@@ -2272,7 +2271,6 @@ void genere_code_C(
 
 					contexte.pousse_locale(contexte.magasin_chaines.back(), donnees_var);
 
-					/* À FAIRE: nom unique pour les boucles dans les boucles */
 					if ((type & 0xff) == id_morceau::TABLEAU) {
 						auto const taille_tableau = static_cast<uint64_t>(type >> 8);
 
