@@ -94,7 +94,7 @@ caracteres_simple = [
 
 caracteres_simple = sorted(caracteres_simple)
 
-caracteres_double = [
+digraphes = [
 	[u'<=', u'INFERIEUR_EGAL'],
 	[u'>=', u'SUPERIEUR_EGAL'],
 	[u'==', u'EGALITE'],
@@ -114,7 +114,15 @@ caracteres_double = [
 	[u'#!', u'DIRECTIVE'],
 ]
 
-caracteres_double = sorted(caracteres_double)
+digraphes = sorted(digraphes)
+
+trigraphes = [
+	[u'<<=', u'DEC_GAUCHE_EGAL'],
+	[u'>>=', u'DEC_DROITE_EGAL'],
+	[u'...', u'TROIS_POINTS'],
+]
+
+trigraphes = sorted(trigraphes)
 
 id_extra = [
 	u'NOMBRE_REEL',
@@ -124,7 +132,6 @@ id_extra = [
 	u'NOMBRE_BINAIRE',
 	u'PLUS_UNAIRE',
 	u'MOINS_UNAIRE',
-	u'TROIS_POINTS',
     u"CHAINE_CARACTERE",
     u"CHAINE_LITTERALE",
     u"CARACTERE",
@@ -175,9 +182,16 @@ def construit_tableaux():
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<std::string_view, id_morceau> paires_caracteres_double = {\n'
+	tableaux += u'static std::map<std::string_view, id_morceau> paires_digraphes = {\n'
 
-	for c in caracteres_double:
+	for c in digraphes:
+		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(c[0], c[1])
+
+	tableaux += u'};\n\n'
+
+	tableaux += u'static std::map<std::string_view, id_morceau> paires_trigraphes = {\n'
+
+	for c in trigraphes:
 		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(c[0], c[1])
 
 	tableaux += u'};\n\n'
@@ -201,7 +215,10 @@ def constuit_enumeration():
 	for car in caracteres_simple:
 		enumeration += u'\t{},\n'.format(car[1])
 
-	for car in caracteres_double:
+	for car in digraphes:
+		enumeration += u'\t{},\n'.format(car[1])
+
+	for car in trigraphes:
 		enumeration += u'\t{},\n'.format(car[1])
 
 	for mot in mot_cles + id_extra:
@@ -223,7 +240,11 @@ def construit_fonction_chaine_identifiant():
 		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
 		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
 
-	for car in caracteres_double:
+	for car in digraphes:
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
+
+	for car in trigraphes:
 		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
 		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
 
@@ -276,14 +297,16 @@ tableaux = construit_tableaux()
 fonctions = u"""
 static bool tables_caracteres[256] = {};
 static id_morceau tables_identifiants[256] = {};
-static bool tables_caracteres_double[256] = {};
+static bool tables_digraphes[256] = {};
+static bool tables_trigraphes[256] = {};
 static bool tables_mots_cles[256] = {};
 
 void construit_tables_caractere_speciaux()
 {
 	for (int i = 0; i < 256; ++i) {
 		tables_caracteres[i] = false;
-		tables_caracteres_double[i] = false;
+		tables_digraphes[i] = false;
+		tables_trigraphes[i] = false;
 		tables_mots_cles[i] = false;
 		tables_identifiants[i] = id_morceau::INCONNU;
 	}
@@ -293,8 +316,12 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[int(iter.first)] = iter.second;
 	}
 
-	for (const auto &iter : paires_caracteres_double) {
-		tables_caracteres_double[int(iter.first[0])] = true;
+	for (const auto &iter : paires_digraphes) {
+		tables_digraphes[int(iter.first[0])] = true;
+	}
+
+	for (const auto &iter : paires_trigraphes) {
+		tables_trigraphes[int(iter.first[0])] = true;
 	}
 
 	for (const auto &iter : paires_mots_cles) {
@@ -312,15 +339,30 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_caractere_double(const std::string_view &chaine)
+id_morceau id_digraphe(const std::string_view &chaine)
 {
-	if (!tables_caracteres_double[int(chaine[0])]) {
+	if (!tables_digraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_caracteres_double.find(chaine);
+	auto iterateur = paires_digraphes.find(chaine);
 
-	if (iterateur != paires_caracteres_double.end()) {
+	if (iterateur != paires_digraphes.end()) {
+		return (*iterateur).second;
+	}
+
+	return id_morceau::INCONNU;
+}
+
+id_morceau id_trigraphe(const std::string_view &chaine)
+{
+	if (!tables_trigraphes[int(chaine[0])]) {
+		return id_morceau::INCONNU;
+	}
+
+	auto iterateur = paires_trigraphes.find(chaine);
+
+	if (iterateur != paires_trigraphes.end()) {
 		return (*iterateur).second;
 	}
 
@@ -381,12 +423,14 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, id_morceau &i);
 
-id_morceau id_caractere_double(const std::string_view &chaine);
+id_morceau id_digraphe(const std::string_view &chaine);
+
+id_morceau id_trigraphe(const std::string_view &chaine);
 
 id_morceau id_chaine(const std::string_view &chaine);
 """
 
-with io.open(u"../coeur/decoupage/morceaux.h", u'w') as entete:
+with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'#include <string>\n\n')
@@ -398,7 +442,7 @@ with io.open(u"../coeur/decoupage/morceaux.h", u'w') as entete:
 
 with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
 	source.write(license_)
-	source.write(u'\n#include "morceaux.h"\n\n')
+	source.write(u'\n#include "morceaux.hh"\n\n')
 	source.write(u'#include <map>\n\n')
 	source.write(tableaux)
 	source.write(fonction)

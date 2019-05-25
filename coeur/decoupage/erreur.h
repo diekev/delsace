@@ -27,7 +27,7 @@
 #include <string>
 
 #include "modules.hh"
-#include "morceaux.h"
+#include "morceaux.hh"
 
 class DonneesType;
 

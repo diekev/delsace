@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "morceaux.h"
+#include "morceaux.hh"
 
 namespace noeud {
 struct base;

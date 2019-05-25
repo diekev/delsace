@@ -43,7 +43,7 @@ class Type;
 #include <unordered_map>
 #include <vector>
 
-#include "morceaux.h"
+#include "morceaux.hh"
 
 struct ContexteGenerationCode;
 

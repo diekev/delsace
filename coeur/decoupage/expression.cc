@@ -56,6 +56,8 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 		case id_morceau::ET_EGAL:
 		case id_morceau::OU_EGAL:
 		case id_morceau::OUX_EGAL:
+		case id_morceau::DEC_DROITE_EGAL:
+		case id_morceau::DEC_GAUCHE_EGAL:
 			return { dir_associativite::GAUCHE, 1 };
 		case id_morceau::VIRGULE:
 			return { dir_associativite::GAUCHE, 2 };

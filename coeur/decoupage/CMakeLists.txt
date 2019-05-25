@@ -42,7 +42,7 @@ set(SOURCES
 	erreur.h
 	expression.h
 	modules.hh
-	morceaux.h
+	morceaux.hh
 	nombres.h
 	validation_semantique.hh
 

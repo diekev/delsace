@@ -32,7 +32,7 @@
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
 #include "modules.hh"
-#include "morceaux.h"
+#include "morceaux.hh"
 
 namespace erreur {
 

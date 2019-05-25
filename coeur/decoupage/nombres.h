@@ -26,7 +26,7 @@
 
 #include <string>
 
-#include "morceaux.h"
+#include "morceaux.hh"
 
 /**
  * Retourne vrai si le caractère spécifié est un nombre décimal, c'est-à-dire

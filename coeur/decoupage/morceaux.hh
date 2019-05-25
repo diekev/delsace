@@ -73,6 +73,9 @@ enum class id_morceau : unsigned int {
 	OUX_EGAL,
 	OU_EGAL,
 	BARRE_BARRE,
+	TROIS_POINTS,
+	DEC_GAUCHE_EGAL,
+	DEC_DROITE_EGAL,
 	ARRETE,
 	ASSOCIE,
 	BOOL,
@@ -133,7 +136,6 @@ enum class id_morceau : unsigned int {
 	NOMBRE_BINAIRE,
 	PLUS_UNAIRE,
 	MOINS_UNAIRE,
-	TROIS_POINTS,
 	CHAINE_CARACTERE,
 	CHAINE_LITTERALE,
 	CARACTERE,
@@ -185,6 +187,8 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, id_morceau &i);
 
-id_morceau id_caractere_double(const std::string_view &chaine);
+id_morceau id_digraphe(const std::string_view &chaine);
+
+id_morceau id_trigraphe(const std::string_view &chaine);
 
 id_morceau id_chaine(const std::string_view &chaine);

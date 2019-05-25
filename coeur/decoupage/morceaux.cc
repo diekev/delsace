@@ -24,7 +24,7 @@
 
  /* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
  
-#include "morceaux.h"
+#include "morceaux.hh"
 
 #include <map>
 
@@ -84,7 +84,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "énum", id_morceau::ENUM },
 };
 
-static std::map<std::string_view, id_morceau> paires_caracteres_double = {
+static std::map<std::string_view, id_morceau> paires_digraphes = {
 	{ "!=", id_morceau::DIFFERENCE },
 	{ "#!", id_morceau::DIRECTIVE },
 	{ "%=", id_morceau::MODULO_EGAL },
@@ -102,6 +102,12 @@ static std::map<std::string_view, id_morceau> paires_caracteres_double = {
 	{ "^=", id_morceau::OUX_EGAL },
 	{ "|=", id_morceau::OU_EGAL },
 	{ "||", id_morceau::BARRE_BARRE },
+};
+
+static std::map<std::string_view, id_morceau> paires_trigraphes = {
+	{ "...", id_morceau::TROIS_POINTS },
+	{ "<<=", id_morceau::DEC_GAUCHE_EGAL },
+	{ ">>=", id_morceau::DEC_DROITE_EGAL },
 };
 
 static std::map<char, id_morceau> paires_caracteres_speciaux = {
@@ -225,6 +231,12 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::OU_EGAL";
 		case id_morceau::BARRE_BARRE:
 			return "id_morceau::BARRE_BARRE";
+		case id_morceau::TROIS_POINTS:
+			return "id_morceau::TROIS_POINTS";
+		case id_morceau::DEC_GAUCHE_EGAL:
+			return "id_morceau::DEC_GAUCHE_EGAL";
+		case id_morceau::DEC_DROITE_EGAL:
+			return "id_morceau::DEC_DROITE_EGAL";
 		case id_morceau::ARRETE:
 			return "id_morceau::ARRETE";
 		case id_morceau::ASSOCIE:
@@ -345,8 +357,6 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::PLUS_UNAIRE";
 		case id_morceau::MOINS_UNAIRE:
 			return "id_morceau::MOINS_UNAIRE";
-		case id_morceau::TROIS_POINTS:
-			return "id_morceau::TROIS_POINTS";
 		case id_morceau::CHAINE_CARACTERE:
 			return "id_morceau::CHAINE_CARACTERE";
 		case id_morceau::CHAINE_LITTERALE:
@@ -374,14 +384,16 @@ static constexpr auto TAILLE_MAX_MOT_CLE = 10;
 
 static bool tables_caracteres[256] = {};
 static id_morceau tables_identifiants[256] = {};
-static bool tables_caracteres_double[256] = {};
+static bool tables_digraphes[256] = {};
+static bool tables_trigraphes[256] = {};
 static bool tables_mots_cles[256] = {};
 
 void construit_tables_caractere_speciaux()
 {
 	for (int i = 0; i < 256; ++i) {
 		tables_caracteres[i] = false;
-		tables_caracteres_double[i] = false;
+		tables_digraphes[i] = false;
+		tables_trigraphes[i] = false;
 		tables_mots_cles[i] = false;
 		tables_identifiants[i] = id_morceau::INCONNU;
 	}
@@ -391,8 +403,12 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[int(iter.first)] = iter.second;
 	}
 
-	for (const auto &iter : paires_caracteres_double) {
-		tables_caracteres_double[int(iter.first[0])] = true;
+	for (const auto &iter : paires_digraphes) {
+		tables_digraphes[int(iter.first[0])] = true;
+	}
+
+	for (const auto &iter : paires_trigraphes) {
+		tables_trigraphes[int(iter.first[0])] = true;
 	}
 
 	for (const auto &iter : paires_mots_cles) {
@@ -410,15 +426,30 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_caractere_double(const std::string_view &chaine)
+id_morceau id_digraphe(const std::string_view &chaine)
 {
-	if (!tables_caracteres_double[int(chaine[0])]) {
+	if (!tables_digraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_caracteres_double.find(chaine);
+	auto iterateur = paires_digraphes.find(chaine);
 
-	if (iterateur != paires_caracteres_double.end()) {
+	if (iterateur != paires_digraphes.end()) {
+		return (*iterateur).second;
+	}
+
+	return id_morceau::INCONNU;
+}
+
+id_morceau id_trigraphe(const std::string_view &chaine)
+{
+	if (!tables_trigraphes[int(chaine[0])]) {
+		return id_morceau::INCONNU;
+	}
+
+	auto iterateur = paires_trigraphes.find(chaine);
+
+	if (iterateur != paires_trigraphes.end()) {
 		return (*iterateur).second;
 	}
 

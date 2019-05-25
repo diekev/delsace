@@ -43,7 +43,7 @@
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
-#include "morceaux.h"
+#include "morceaux.hh"
 
 DonneesType::DonneesType(id_morceau i0)
 {

@@ -353,11 +353,19 @@ void decoupeuse_texte::analyse_caractere_simple()
 
 		this->enregistre_pos_mot();
 
-		auto id = id_caractere_double(std::string_view(m_debut, 2));
+		auto id = id_trigraphe(std::string_view(m_debut, 3));
 
 		if (id != id_morceau::INCONNU) {
-			this->pousse_caractere();
-			this->pousse_caractere();
+			this->pousse_caractere(3);
+			this->pousse_mot(id);
+			this->avance(3);
+			return;
+		}
+
+		id = id_digraphe(std::string_view(m_debut, 2));
+
+		if (id != id_morceau::INCONNU) {
+			this->pousse_caractere(2);
 			this->pousse_mot(id);
 			this->avance(2);
 			return;
@@ -366,23 +374,9 @@ void decoupeuse_texte::analyse_caractere_simple()
 		switch (this->caractere_courant()) {
 			case '.':
 			{
-				if (this->caractere_voisin() != '.') {
-					this->pousse_caractere();
-					this->pousse_mot(id_morceau::POINT);
-					this->avance();
-					break;
-				}
-
-				if (this->caractere_voisin(2) != '.') {
-					lance_erreur("Un point est manquant ou un point est en trop !\n");
-				}
-
 				this->pousse_caractere();
-				this->pousse_caractere();
-				this->pousse_caractere();
-
-				this->pousse_mot(id_morceau::TROIS_POINTS);
-				this->avance(3);
+				this->pousse_mot(id_morceau::POINT);
+				this->avance();
 				break;
 			}
 			case '"':

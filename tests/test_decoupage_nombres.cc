@@ -30,7 +30,7 @@
 #include "decoupeuse.h"
 #include "erreur.h"
 #include "modules.hh"
-#include "morceaux.h"
+#include "morceaux.hh"
 #include "nombres.h"
 
 void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)

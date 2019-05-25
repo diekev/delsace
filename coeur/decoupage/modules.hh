@@ -32,7 +32,7 @@
 #include <delsace/langage/tampon_source.hh>
 
 #include "donnees_type.h"
-#include "morceaux.h"
+#include "morceaux.hh"
 
 namespace llvm {
 class Type;

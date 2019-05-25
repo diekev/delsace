@@ -28,7 +28,7 @@
 #include <list>
 
 #include "donnees_type.h"
-#include "morceaux.h"
+#include "morceaux.hh"
 
 char caractere_echape(char const *sequence);
 

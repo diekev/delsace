@@ -177,6 +177,8 @@ static bool est_assignation_operee(id_morceau id)
 		case id_morceau::ET_EGAL:
 		case id_morceau::OU_EGAL:
 		case id_morceau::OUX_EGAL:
+		case id_morceau::DEC_DROITE_EGAL:
+		case id_morceau::DEC_GAUCHE_EGAL:
 		{
 			return true;
 		}
