@@ -40,7 +40,9 @@ fonc fichier_existe(chemin : chaine) : bool
 		dst=@tampon[0],
 		taille=taille de chemin);
 
-	tampon[taille de chemin] = '\0';
+    # À FAIRE : conflit dans les opérateurs [] et de
+	taille = taille de chemin;
+	tampon[taille] = '\0';
 
     dyn st : StatFichier;
 	# À FAIRE : prend pointeur automatiquement
@@ -68,10 +70,31 @@ fonc ouvre_fichier(chemin : chaine) : z32
 		dst=@tampon[0],
 		taille=taille de chemin);
 
-	tampon[taille de chemin] = '\0';
+    # À FAIRE : conflit dans les opérateurs [] et de
+	taille = taille de chemin;
+	tampon[taille] = '\0';
 
     # À FAIRE : prend pointeur automatiquement
 	retourne open(@tampon[0], 0);
+}
+
+fonc ouvre_fichier_ecriture(chemin : chaine) : z32
+{
+    # nous devons avoir une chaine terminée par '\0' donc copie dans un
+	# tampon
+	dyn tampon : [1024]z8;
+
+    copie_mem_nonsur(
+	    src=pointeur de chemin,
+		dst=@tampon[0],
+		taille=taille de chemin);
+
+    taille = taille de chemin;
+
+    tampon[taille] = '\0';
+
+    # À FAIRE : prend pointeur automatiquement
+	retourne open(@tampon[0], 1);
 }
 
 fonc ferme_fichier(desc : z32) : rien
@@ -110,12 +133,7 @@ fonc charge_contenu_fichier(chemin : chaine) : chaine
 
         soit taille_courante = taille de ret;
 
-        si taille de ret != 0 {
-		    reloge ret : chaine(taille de ret + lu);
-		}
-		sinon {
-		    ret = loge chaine(lu);
-		}
+        reloge ret : chaine(taille de ret + lu);
 
 		dyn src = @tampon[0];
 		dyn dst = @ret[taille_courante];
