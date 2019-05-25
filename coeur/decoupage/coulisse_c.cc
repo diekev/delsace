@@ -2353,7 +2353,7 @@ void genere_code_C(
 						os << nom_idx << " += 1;";
 					}
 
-					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
+					if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
 						auto donnees_var = DonneesVariable{};
 
 						donnees_var.donnees_type = var->index_type;
