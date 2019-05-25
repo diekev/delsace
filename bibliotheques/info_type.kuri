@@ -70,11 +70,11 @@ structure InfoTypeÉnum {
 
 fonc possède_membre(arg : eini, nom : chaine) : bool
 {
-    soit info = info de arg;
+    info = info de arg;
 
-    si id de info de arg != STRUCTURE de id_info {
-        retourne faux;
-    }
+    si id de info != STRUCTURE de id_info {
+	    retourne faux;
+	}
 
     soit info_arg = transtype(info : *InfoTypeStructure); 
     
@@ -87,4 +87,21 @@ fonc possède_membre(arg : eini, nom : chaine) : bool
     }
 
     retourne faux;
+}
+
+corout membres(arg : eini) : chaine
+{
+    info = info de arg;
+
+    si id de info != STRUCTURE de id_info {
+	    retourne;
+	}
+
+    info_arg = transtype(info : *InfoTypeStructure);
+
+    membres = membres de info_arg;
+
+    pour membre dans membres {
+	    retiens nom de membre;
+	}
 }
