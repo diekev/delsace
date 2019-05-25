@@ -141,6 +141,7 @@ add_subdirectory(exemples)
 add_subdirectory(tests)
 
 set(FICHIERS_BIBLIOTHEQUES
+	bibliotheques/adn.kuri
 	bibliotheques/chaine.kuri
 	bibliotheques/chrono.kuri
 	bibliotheques/fichier.kuri
