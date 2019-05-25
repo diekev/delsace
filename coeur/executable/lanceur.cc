@@ -549,7 +549,7 @@ int main(int argc, char *argv[])
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
 		/* Charge d'abord le module d'informations de type */
-		charge_module(os, chemin_racine_kuri, "info_type", contexte_generation, {}, true);
+		charge_module(os, chemin_racine_kuri, "info_type", contexte_generation, {}, false);
 
 		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();
