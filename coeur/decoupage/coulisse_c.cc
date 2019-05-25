@@ -2491,7 +2491,8 @@ void genere_code_C(
 			auto const &index_type_de = enfant->index_type;
 
 			if (index_type_de == b->index_type) {
-				genere_code_C(enfant, contexte, false, os, os);
+				/* À FAIRE : prépasse pour les accès membres. */
+				genere_code_C(enfant, contexte, true, os, os);
 				return;
 			}
 
