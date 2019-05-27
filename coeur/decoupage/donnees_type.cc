@@ -1096,9 +1096,14 @@ niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type
 		return niveau_compat::extrait_eini;
 	}
 
-	/* Nous savons que les types sont différents, donc si l'un des deux est un
-	 * pointeur fonction, nous pouvons retourner faux. */
 	if (type1.type_base() == id_morceau::FONC) {
+		/* x : fonc()rien = nul; */
+		if (type2.type_base() == id_morceau::POINTEUR && type2.derefence().type_base() == id_morceau::NUL) {
+			return niveau_compat::ok;
+		}
+
+		/* Nous savons que les types sont différents, donc si l'un des deux est un
+		 * pointeur fonction, nous pouvons retourner faux. */
 		return niveau_compat::aucune;
 	}
 

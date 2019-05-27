@@ -90,6 +90,13 @@ bool peut_operer(
 		return true;
 	}
 
+	if (type1.type_base() == id_morceau::FONC) {
+		/* x : fonc()rien = nul; */
+		if (type2.type_base() == id_morceau::POINTEUR && type2.derefence().type_base() == id_morceau::NUL) {
+			return true;
+		}
+	}
+
 	if (est_type_entier(type1.type_base())) {
 		if (est_type_entier(type2.type_base())) {
 			return true;
