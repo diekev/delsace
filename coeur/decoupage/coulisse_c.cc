@@ -1888,10 +1888,11 @@ void genere_code_C(
 						}
 					}
 					else {
+						/* À FAIRE : prépasse pour les accès membre. */
 						os << '(';
-						genere_code_C(enfant1, contexte, expr_gauche, os, os);
+						genere_code_C(enfant1, contexte, true, os, os);
 						os << b->morceau.chaine;
-						genere_code_C(enfant2, contexte, expr_gauche, os, os);
+						genere_code_C(enfant2, contexte, true, os, os);
 						os << ')';
 					}
 
