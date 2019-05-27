@@ -805,7 +805,7 @@ static void cree_appel(
 
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-	if (dt.type_base() != id_morceau::RIEN && (b->df != nullptr) && !b->df->est_coroutine) {
+	if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
 		auto nom_indirection = "__ret" + std::to_string(b->morceau.ligne_pos);
 		auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 

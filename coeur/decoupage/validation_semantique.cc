@@ -315,6 +315,7 @@ static auto valide_appel_pointeur_fonction(
 	}
 
 	b->index_type = contexte.magasin_types.ajoute_type(dt);
+	b->aide_generation_code = APPEL_POINTEUR_FONCTION;
 
 	valides_enfants(b, contexte);
 
