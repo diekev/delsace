@@ -1,0 +1,18 @@
+kuri sécurité :
+-- vérifie que les limites des tableaux et chaines soit respectées : erreur ?
+-- constance par défaut
+-- propriété de la mémoire ? (Rust -> move + borrow checker)
+
+Vulnéralités de C :
+
+# https://security.web.cern.ch/security/recommendations/en/codetools/c.shtml
+# http://www.cs.wisc.edu/~kupsch/safefile
+
+-- chaine de format de chaine (dans printf, sprintf, ...) -> ne pas laisser l'utilisateur fournir la chaine
+
+-- prévention de buffer-overflows
+-- toujours vérifier les limites des tampons
+
+-- éviter les 'unsigned' car une valeur négative d'un signed est une valeur positif grande d'un unsigned
+
+-- les chars sont convertis en int et des instructions comme while ((c = getchar()) != EOF) peuvent échoués
