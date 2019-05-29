@@ -1,5 +1,7 @@
 # Fonctions de manipulation de chaines.
 
+importe "memoire"
+
 # Retourne vrai si les deux chaines données sont égales.
 fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 {
@@ -67,6 +69,31 @@ fonc construit_chaine(ptr : *z8, taille : z64) : chaine
 fonc converti_chaine_c(chaine_c : *z8) : chaine
 {
     retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c));
+}
+
+# Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
+# par un '\0' et l'utiliser dans les fonctions C.
+fonc copie_chaine_c_tampon(dyn tampon : []z8, chn : chaine) : *z8
+{
+    si taille de tampon == 0 {
+	    retourne nul;
+	}
+
+    si taille de tampon < taille de chn + 1 {
+	    tampon[0] = '\0';
+		retourne @tampon[0];
+	}
+
+    taille = taille de chn;
+
+    copie_mem_nonsur(
+	    src=pointeur de chn,
+		dst=@tampon[0],
+		taille=taille);
+
+    tampon[taille] = '\0';
+
+    retourne @tampon[0];
 }
 
 # execute une fonction pour chaque ligne du texte d'entrée
