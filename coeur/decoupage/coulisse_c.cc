@@ -1719,7 +1719,9 @@ void genere_code_C(
 
 				contexte.pousse_locale(b->chaine(), donnees_var);
 			}
-			else if (b->aide_generation_code == GENERE_CODE_ACCES_VAR) {
+			/* désactive la vérification car les variables dans les
+			 * constructions de structures n'ont pas cette aide */
+			else /*if (b->aide_generation_code == GENERE_CODE_ACCES_VAR)*/ {
 				if ((drapeaux & BESOIN_DEREF) != 0) {
 					os << "(*" << broye_chaine(b) << ")";
 				}
