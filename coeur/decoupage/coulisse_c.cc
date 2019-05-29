@@ -1300,7 +1300,7 @@ static void genere_code_C_prepasse(
 			dt_tdyn.pousse(type);
 
 			auto nom_tableau_dyn = std::string("__tabl_dyn")
-					.append(std::to_string(b->morceau.ligne_pos >> 32));
+					.append(std::to_string(b->morceau.ligne_pos));
 
 			contexte.magasin_types.converti_type_C(
 						contexte, nom_tableau_fixe, dt_tdyn, os);
