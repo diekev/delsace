@@ -207,6 +207,11 @@ std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 				case id_morceau::NUL:
 					os << "nul";
 					break;
+				case id_morceau::REFERENCE:
+				{
+					os << "&";
+					break;
+				}
 				case id_morceau::CHAINE_CARACTERE:
 				{
 					auto id = static_cast<size_t>(donnee >> 8);
@@ -267,6 +272,24 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_PTR_RIEN, DonneesType(id_morceau::POINTEUR, id_morceau::RIEN) },
 	{ TYPE_PTR_NUL, DonneesType(id_morceau::POINTEUR, id_morceau::NUL) },
 	{ TYPE_PTR_BOOL, DonneesType(id_morceau::POINTEUR, id_morceau::BOOL) },
+
+	{ TYPE_REF_N8, DonneesType(id_morceau::REFERENCE, id_morceau::N8) },
+	{ TYPE_REF_N16, DonneesType(id_morceau::REFERENCE, id_morceau::N16) },
+	{ TYPE_REF_N32, DonneesType(id_morceau::REFERENCE, id_morceau::N32) },
+	{ TYPE_REF_N64, DonneesType(id_morceau::REFERENCE, id_morceau::N64) },
+	{ TYPE_REF_Z8, DonneesType(id_morceau::REFERENCE, id_morceau::Z8) },
+	{ TYPE_REF_Z16, DonneesType(id_morceau::REFERENCE, id_morceau::Z16) },
+	{ TYPE_REF_Z32, DonneesType(id_morceau::REFERENCE, id_morceau::Z32) },
+	{ TYPE_REF_Z64, DonneesType(id_morceau::REFERENCE, id_morceau::Z64) },
+	/* À FAIRE : type R16 */
+	{ TYPE_REF_R16, DonneesType(id_morceau::REFERENCE, id_morceau::R32) },
+	{ TYPE_REF_R32, DonneesType(id_morceau::REFERENCE, id_morceau::R32) },
+	{ TYPE_REF_R64, DonneesType(id_morceau::REFERENCE, id_morceau::R64) },
+	{ TYPE_REF_EINI, DonneesType(id_morceau::REFERENCE, id_morceau::EINI) },
+	{ TYPE_REF_CHAINE, DonneesType(id_morceau::REFERENCE, id_morceau::CHAINE) },
+	{ TYPE_REF_RIEN, DonneesType(id_morceau::REFERENCE, id_morceau::RIEN) },
+	{ TYPE_REF_NUL, DonneesType(id_morceau::REFERENCE, id_morceau::NUL) },
+	{ TYPE_REF_BOOL, DonneesType(id_morceau::REFERENCE, id_morceau::BOOL) },
 
 	{ TYPE_TABL_N8, DonneesType(id_morceau::TABLEAU, id_morceau::N8) },
 	{ TYPE_TABL_N16, DonneesType(id_morceau::TABLEAU, id_morceau::N16) },
@@ -361,6 +384,17 @@ static bool converti_type_simple_C(
 		{
 			if (echappe) {
 				os << "_ptr_";
+			}
+			else {
+				os << '*';
+			}
+
+			break;
+		}
+		case id_morceau::REFERENCE:
+		{
+			if (echappe) {
+				os << "_ref_";
 			}
 			else {
 				os << '*';
@@ -1145,6 +1179,12 @@ niveau_compat sont_compatibles(const DonneesType &type1, const DonneesType &type
 			if (type2.type_base() == id_morceau::CHAINE) {
 				return niveau_compat::extrait_chaine_c;
 			}
+		}
+	}
+
+	if (type1.type_base() == id_morceau::REFERENCE) {
+		if (type1.derefence() == type2) {
+			return niveau_compat::prend_reference;
 		}
 	}
 

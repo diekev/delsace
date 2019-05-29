@@ -514,6 +514,7 @@ static std::string cree_info_type_C(
 			valeur = cree_info_type_reel_C(os_decl, os_init, 64);
 			break;
 		}
+		case id_morceau::REFERENCE:
 		case id_morceau::POINTEUR:
 		{
 			auto deref = donnees_type.derefence();
@@ -848,6 +849,9 @@ static void cree_appel(
 		}
 		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
 			os << std::any_cast<std::string>(enf->valeur_calculee);
+		}
+		else if ((enf->drapeaux & PREND_REFERENCE) != 0) {
+			os << "&" << enf->chaine();
 		}
 		else {
 			genere_code_C(enf, contexte, false, os, os);
@@ -1468,7 +1472,7 @@ void genere_code_C(
 												contexte.magasin_types.donnees_types[paire.second.first],
 											os);
 
-					/* Stocke un pointeur pour ne pas qu'il soit invalider par
+					/* Stocke un pointeur pour ne pas qu'il soit invalidé par
 					 * le retour de la coroutine. */
 					if ((paire.second.second & BESOIN_DEREF) != 0) {
 						os << '*';
@@ -1516,15 +1520,16 @@ void genere_code_C(
 				auto dt = DonneesType{};
 
 				if (argument.est_variadic) {
-					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
+					auto &dt_var = contexte.magasin_types.donnees_types[index_type];
 
 					dt.pousse(id_morceau::TABLEAU);
 					dt.pousse(dt_var.derefence());
 
+					index_type = argument.donnees_type;
 					contexte.magasin_types.ajoute_type(dt);
 				}
 				else {
-					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
+					dt = contexte.magasin_types.donnees_types[index_type];
 				}
 
 				auto nom_broye = broye_nom_simple(nom);
@@ -1546,6 +1551,12 @@ void genere_code_C(
 				donnees_var.est_variadic = argument.est_variadic;
 				donnees_var.donnees_type = index_type;
 				donnees_var.est_argument = true;
+
+				if (dt.type_base() == id_morceau::REFERENCE) {
+					donnees_var.drapeaux |= BESOIN_DEREF;
+					dt = dt.derefence();
+					donnees_var.donnees_type = contexte.magasin_types.ajoute_type(dt);
+				}
 
 				contexte.pousse_locale(nom, donnees_var);
 
@@ -1662,6 +1673,11 @@ void genere_code_C(
 					auto donnees_var = DonneesVariable{};
 					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 					donnees_var.donnees_type = b->index_type;
+
+					if (dt.type_base() == id_morceau::REFERENCE) {
+						donnees_var.drapeaux |= BESOIN_DEREF;
+					}
+
 					contexte.pousse_globale(b->chaine(), donnees_var);
 					return;
 				}
@@ -1681,6 +1697,10 @@ void genere_code_C(
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 				donnees_var.donnees_type = b->index_type;
 
+				if (dt.type_base() == id_morceau::REFERENCE) {
+					donnees_var.drapeaux |= BESOIN_DEREF;
+				}
+
 				contexte.pousse_locale(b->chaine(), donnees_var);
 			}
 			else if (b->aide_generation_code == GENERE_CODE_ACCES_VAR) {
@@ -1696,6 +1716,10 @@ void genere_code_C(
 
 						if (dv.est_membre_emploie) {
 							os << dv.structure;
+						}
+
+						if ((b->drapeaux & PREND_REFERENCE) != 0) {
+							os << '&';
 						}
 
 						os << broye_chaine(b);

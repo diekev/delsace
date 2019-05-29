@@ -1823,6 +1823,11 @@ size_t analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_ty
 				donnees_type.pousse(id_morceau::POINTEUR);
 				break;
 			}
+			case type_id::ESPERLUETTE:
+			{
+				donnees_type.pousse(id_morceau::REFERENCE);
+				break;
+			}
 			default:
 			{
 				break;

@@ -56,6 +56,10 @@ static void drapeau_depuis_niveau_compat(
 	if ((compat & niveau_compat::converti_tableau_octet) != niveau_compat::aucune) {
 		enfant->drapeaux |= CONVERTI_TABLEAU_OCTET;
 	}
+
+	if ((compat & niveau_compat::prend_reference) != niveau_compat::aucune) {
+		enfant->drapeaux |= PREND_REFERENCE;
+	}
 }
 
 static void verifie_compatibilite(
@@ -74,6 +78,16 @@ static void verifie_compatibilite(
 					contexte,
 					enfant->donnees_morceau(),
 					b->morceau);
+	}
+
+	if (compat == niveau_compat::prend_reference) {
+		if (enfant->type != type_noeud::VARIABLE) {
+			erreur::lance_erreur(
+						"Ne peut pas prendre la référence d'une valeur n'étant pas une variable",
+						contexte,
+						enfant->morceau,
+						erreur::type_erreur::TYPE_DIFFERENTS);
+		}
 	}
 
 	drapeau_depuis_niveau_compat(enfant, compat);
@@ -394,21 +408,31 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				auto index_dt = argument.donnees_type;
 
+				auto dt = DonneesType{};
+
 				if (argument.est_variadic) {
 					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
 
-					auto dt = DonneesType{};
 					dt.pousse(id_morceau::TABLEAU);
 					dt.pousse(dt_var.derefence());
-
-					index_dt = contexte.magasin_types.ajoute_type(dt);
+				}
+				else {
+					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
 				}
 
+				index_dt = contexte.magasin_types.ajoute_type(dt);
+
 				auto donnees_var = DonneesVariable{};
-				donnees_var.est_variadic = argument.est_variadic;
 				donnees_var.est_dynamique = argument.est_dynamic;
+				donnees_var.est_variadic = argument.est_variadic;
 				donnees_var.donnees_type = index_dt;
 				donnees_var.est_argument = true;
+
+				if (dt.type_base() == id_morceau::REFERENCE) {
+					donnees_var.drapeaux |= BESOIN_DEREF;
+					dt = dt.derefence();
+					donnees_var.donnees_type = contexte.magasin_types.ajoute_type(dt);
+				}
 
 				contexte.pousse_locale(nom, donnees_var);
 
@@ -416,7 +440,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
 					auto id_structure = 0ul;
 
-					if (dt_var.type_base() == id_morceau::POINTEUR) {
+					if (dt_var.type_base() == id_morceau::POINTEUR || dt_var.type_base() == id_morceau::REFERENCE) {
 						id_structure = static_cast<size_t>(dt_var.derefence().type_base() >> 8);
 					}
 					else {
@@ -635,6 +659,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 				donnees_var.donnees_type = b->index_type;
 
+				auto &dt = contexte.magasin_types.donnees_types[donnees_var.donnees_type];
+
+				if (dt.type_base() == id_morceau::REFERENCE) {
+					donnees_var.drapeaux |= BESOIN_DEREF;
+				}
+
 				if (contexte.donnees_fonction == nullptr) {
 					contexte.pousse_globale(b->morceau.chaine, donnees_var);
 				}
@@ -677,6 +707,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 				donnees_var.donnees_type = b->index_type;
 
+				auto &dt = contexte.magasin_types.donnees_types[donnees_var.donnees_type];
+
+				if (dt.type_base() == id_morceau::REFERENCE) {
+					donnees_var.drapeaux |= BESOIN_DEREF;
+				}
+
 				if (contexte.donnees_fonction == nullptr) {
 					contexte.pousse_globale(b->morceau.chaine, donnees_var);
 				}
@@ -718,6 +754,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 				donnees_var.donnees_type = b->index_type;
 
+				auto &dt = contexte.magasin_types.donnees_types[donnees_var.donnees_type];
+
+				if (dt.type_base() == id_morceau::REFERENCE) {
+					donnees_var.drapeaux |= BESOIN_DEREF;
+				}
+
 				if (contexte.donnees_fonction == nullptr) {
 					contexte.pousse_globale(b->morceau.chaine, donnees_var);
 				}
@@ -744,7 +786,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto const &index_type = structure->index_type;
 			auto type_structure = contexte.magasin_types.donnees_types[index_type];
 
-			if (type_structure.type_base() == id_morceau::POINTEUR) {
+			if (type_structure.type_base() == id_morceau::POINTEUR || type_structure.type_base() == id_morceau::REFERENCE) {
 				type_structure = type_structure.derefence();
 			}
 
@@ -977,6 +1019,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							dt,
 							contexte,
 							b->morceau);
+			}
+
+			if (niveau_compat == niveau_compat::prend_reference) {
+				expression->drapeaux |= PREND_REFERENCE;
 			}
 
 			break;

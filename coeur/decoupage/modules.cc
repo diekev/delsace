@@ -220,6 +220,14 @@ static double verifie_compatibilite(
 		return 0.5;
 	}
 
+	if ((drapeau & niveau_compat::prend_reference) != niveau_compat::aucune) {
+		if (enfant->type == type_noeud::VARIABLE) {
+			return 1.0;
+		}
+
+		return 0.0;
+	}
+
 	return 1.0;
 }
 

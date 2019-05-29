@@ -249,6 +249,23 @@ enum {
 	TYPE_PTR_NUL,
 	TYPE_PTR_BOOL,
 
+	TYPE_REF_N8,
+	TYPE_REF_N16,
+	TYPE_REF_N32,
+	TYPE_REF_N64,
+	TYPE_REF_Z8,
+	TYPE_REF_Z16,
+	TYPE_REF_Z32,
+	TYPE_REF_Z64,
+	TYPE_REF_R16,
+	TYPE_REF_R32,
+	TYPE_REF_R64,
+	TYPE_REF_EINI,
+	TYPE_REF_CHAINE,
+	TYPE_REF_RIEN,
+	TYPE_REF_NUL,
+	TYPE_REF_BOOL,
+
 	TYPE_TABL_N8,
 	TYPE_TABL_N16,
 	TYPE_TABL_N32,
@@ -336,6 +353,7 @@ enum class niveau_compat : char {
 	extrait_eini           = (1 << 3),
 	extrait_chaine_c       = (1 << 4),
 	converti_tableau_octet = (1 << 5),
+	prend_reference        = (1 << 6),
 };
 
 inline niveau_compat operator&(niveau_compat id1, niveau_compat id2)
