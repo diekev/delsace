@@ -1864,20 +1864,7 @@ void genere_code_C(
 			auto enfant2 = b->enfants.back();
 
 			auto const index_type1 = enfant1->index_type;
-			auto const index_type2 = enfant2->index_type;
-
 			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
-			auto &type2 = contexte.magasin_types.donnees_types[index_type2];
-
-			if ((b->morceau.identifiant != id_morceau::CROCHET_OUVRANT)) {
-				if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
-					erreur::lance_erreur_type_operation(
-								type1,
-								type2,
-								contexte,
-								b->morceau);
-				}
-			}
 
 			/* À FAIRE : typage */
 

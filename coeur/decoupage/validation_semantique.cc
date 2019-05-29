@@ -1077,13 +1077,38 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
 			auto const &type2 = contexte.magasin_types.donnees_types[index_type2];
 
-			if ((b->morceau.identifiant != id_morceau::CROCHET_OUVRANT)) {
-				if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
-					erreur::lance_erreur_type_operation(
-								type1,
-								type2,
-								contexte,
-								b->morceau);
+			auto est_operateur_comp = [](id_morceau id)
+			{
+				switch (id) {
+					default:
+					{
+						return false;
+					}
+					case id_morceau::INFERIEUR:
+					case id_morceau::INFERIEUR_EGAL:
+					case id_morceau::SUPERIEUR:
+					case id_morceau::SUPERIEUR_EGAL:
+					case id_morceau::EGALITE:
+					case id_morceau::DIFFERENCE:
+					{
+						return true;
+					}
+				}
+			};
+
+			/* détecte a comp b comp c */
+			if (est_operateur_comp(b->morceau.identifiant) && est_operateur_comp(enfant1->morceau.identifiant)) {
+				/* OK */
+			}
+			else {
+				if ((b->morceau.identifiant != id_morceau::CROCHET_OUVRANT)) {
+					if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
+						erreur::lance_erreur_type_operation(
+									type1,
+									type2,
+									contexte,
+									b->morceau);
+					}
 				}
 			}
 
