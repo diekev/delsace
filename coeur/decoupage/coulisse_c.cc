@@ -851,7 +851,23 @@ static void cree_appel(
 			os << std::any_cast<std::string>(enf->valeur_calculee);
 		}
 		else if ((enf->drapeaux & PREND_REFERENCE) != 0) {
-			os << "&" << enf->chaine();
+			os << "&";
+
+			/* Petit hack pour pouvoir passer des non-références à des
+			 * paramètres de type références : les références ont pour type le
+			 * type déréférencé, et sont automatiquement 'déréférencer' via (*x),
+			 * donc passer des références à des références n'est pas un problème
+			 * même si le code C généré ici devien '&(*x)'.
+			 * Mais lorsque nous devons passer une non-référence à une référence
+			 * le code devient '&&x' si le drapeaux PREND_REFERENCE est actif
+			 * donc on le désactive pour ne générer que '&x'.
+			 */
+
+			enf->drapeaux &= static_cast<unsigned short>(~PREND_REFERENCE);
+
+			genere_code_C(enf, contexte, false, os, os);
+
+			enf->drapeaux |= PREND_REFERENCE;
 		}
 		else {
 			genere_code_C(enf, contexte, false, os, os);
