@@ -1043,7 +1043,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant2 = b->enfants.back();
 
 			if ((b->morceau.identifiant == id_morceau::CROCHET_OUVRANT)
-					&& (enfant2->type == type_noeud::ACCES_MEMBRE
+					&& ((enfant2->type == type_noeud::ACCES_MEMBRE && !possede_drapeau(enfant2->drapeaux, IGNORE_OPERATEUR))
 						|| enfant2->morceau.identifiant == id_morceau::CROCHET_OUVRANT))
 			{
 				/* Pour corriger les accès membres via 'de' ou les accès chainés

@@ -84,7 +84,6 @@ fonc copie_chaine_c_tampon(dyn tampon : []z8, chn : chaine) : *z8
 		retourne @tampon[0];
 	}
 
-    # À FAIRE : conflit dans les opérateurs [] et de
     taille = taille de chn;
 
     copie_mem_nonsur(
