@@ -1,4 +1,5 @@
 importe "memoire"
+importe "chaine"
 
 #!inclus "sys/stat.h"
 #!inclus "fcntl.h"
@@ -31,22 +32,11 @@ structure StatFichier {
 
 fonc fichier_existe(chemin : chaine) : bool
 {
-	# nous devons avoir une chaine terminée par '\0' donc copie dans un
-	# tampon
 	dyn tampon : [1024]z8;
-
-	copie_mem_nonsur(
-		src=pointeur de chemin,
-		dst=@tampon[0],
-		taille=taille de chemin);
-
-    # À FAIRE : conflit dans les opérateurs [] et de
-	taille = taille de chemin;
-	tampon[taille] = '\0';
+	ptr_chemin = copie_chaine_c_tampon(tampon, chemin);
 
     dyn st : StatFichier;
-	# À FAIRE : prend pointeur automatiquement
-	soit ok = stat(@tampon[0], @st);
+	soit ok = stat(ptr_chemin, @st);
 
 	si ok == -1 {
 		retourne faux;
@@ -61,40 +51,18 @@ fonc ouvre_fichier(chemin : chaine) : z32
 		retourne -1;
 	}
 
-	# nous devons avoir une chaine terminée par '\0' donc copie dans un
-	# tampon
-	dyn tampon : [1024]z8;
+    dyn tampon : [1024]z8;
+	ptr_chemin = copie_chaine_c_tampon(tampon, chemin);
 
-	copie_mem_nonsur(
-		src=pointeur de chemin,
-		dst=@tampon[0],
-		taille=taille de chemin);
-
-    # À FAIRE : conflit dans les opérateurs [] et de
-	taille = taille de chemin;
-	tampon[taille] = '\0';
-
-    # À FAIRE : prend pointeur automatiquement
-	retourne open(@tampon[0], 0);
+    retourne open(ptr_chemin, 0);
 }
 
 fonc ouvre_fichier_ecriture(chemin : chaine) : z32
 {
-    # nous devons avoir une chaine terminée par '\0' donc copie dans un
-	# tampon
-	dyn tampon : [1024]z8;
+    dyn tampon : [1024]z8;
+	ptr_chemin = copie_chaine_c_tampon(tampon, chemin);
 
-    copie_mem_nonsur(
-	    src=pointeur de chemin,
-		dst=@tampon[0],
-		taille=taille de chemin);
-
-    taille = taille de chemin;
-
-    tampon[taille] = '\0';
-
-    # À FAIRE : prend pointeur automatiquement
-	retourne open(@tampon[0], 1);
+    retourne open(ptr_chemin, 1);
 }
 
 fonc ferme_fichier(desc : z32) : rien

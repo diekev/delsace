@@ -24,7 +24,6 @@ fonc maintenant_sec() : r64
     dyn heure : timeval;
 	gettimeofday(@heure, nul);
 
-    # À FAIRE : expression malformée si enligné
 	soit s = transtype(tv_sec de heure : r64);
 
     # À FAIRE : 1e-6
@@ -37,9 +36,7 @@ fonc maintenant_local() : r64
 	dyn fuseau : timezone;
 	gettimeofday(@heure, @fuseau);
 
-    # À FAIRE : expression malformée si enligné
-	dyn s = transtype(tv_sec de heure : r64);
-    
+	dyn s = transtype(tv_sec de heure : r64);    
     s += transtype(tz_minuteswest de fuseau : r64) * 60.0;
 
     # À FAIRE : 1e-6
