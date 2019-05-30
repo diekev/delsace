@@ -1,5 +1,4 @@
 # Bibliothèque d'introspection.
-# NOTE : les accents ont été enlevé sur les noms à cause de la coulisse C.
 
 importe "chaine"
 
