@@ -268,6 +268,18 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 		return false;
 	}
 
+	if (dernier_identifiant == id_morceau::CARACTERE) {
+		return false;
+	}
+
+	if (dernier_identifiant == id_morceau::TRANSTYPE) {
+		return false;
+	}
+
+	if (dernier_identifiant == id_morceau::MEMOIRE) {
+		return false;
+	}
+
 	return true;
 }
 
