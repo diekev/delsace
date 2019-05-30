@@ -192,6 +192,13 @@ void charge_module(
 }
 
 /* ************************************************************************** */
+
+template <typename T, typename... Ts>
+auto est_elem(T &&a, Ts &&...b)
+{
+	return ((a == b) || ...);
+}
+
 static double verifie_compatibilite(
 		const DonneesType &type_arg,
 		const DonneesType &type_enf,
@@ -221,7 +228,9 @@ static double verifie_compatibilite(
 	}
 
 	if ((drapeau & niveau_compat::prend_reference) != niveau_compat::aucune) {
-		if (enfant->type == type_noeud::VARIABLE) {
+		/* À FAIRE : ceci est pour différencier les valeurs gauches des valeurs
+		 * droites (littérales), il manque d'autres cas... */
+		if (est_elem(enfant->type, type_noeud::VARIABLE, type_noeud::ACCES_MEMBRE)) {
 			return 1.0;
 		}
 

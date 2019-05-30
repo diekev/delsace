@@ -865,7 +865,9 @@ static void cree_appel(
 
 			enf->drapeaux &= static_cast<unsigned short>(~PREND_REFERENCE);
 
-			genere_code_C(enf, contexte, false, os, os);
+			/* Pour les références des accès membres, on ne doit pas avoir de
+			 * prépasse, donc expr_gauche = true. */
+			genere_code_C(enf, contexte, true, os, os);
 
 			enf->drapeaux |= PREND_REFERENCE;
 		}
@@ -1057,6 +1059,10 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::ACCES_MEMBRE:
 		{
+			if (possede_drapeau(b->drapeaux, PREND_REFERENCE)) {
+				return;
+			}
+
 			auto structure = b->enfants.back();
 			auto membre = b->enfants.front();
 			auto const &index_type = structure->index_type;
