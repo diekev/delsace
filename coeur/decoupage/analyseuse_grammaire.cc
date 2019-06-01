@@ -1244,7 +1244,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::DE:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE, m_contexte, morceau);
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE_DE, m_contexte, morceau);
 				pile.push_back(noeud);
 				break;
 			}

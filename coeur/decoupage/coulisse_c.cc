@@ -1008,6 +1008,81 @@ static void cree_initialisation(
 	}
 }
 
+static void prepasse_acces_membre(
+		ContexteGenerationCode &contexte,
+		base *b,
+		base *structure,
+		base *membre,
+		std::ostream &os)
+{
+	if (possede_drapeau(b->drapeaux, PREND_REFERENCE)) {
+		return;
+	}
+
+	auto const &index_type = structure->index_type;
+	auto type_structure = contexte.magasin_types.donnees_types[index_type];
+
+	auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
+
+	if (est_pointeur) {
+		type_structure = type_structure.derefence();
+	}
+
+	auto nom_acces = "__acces" + std::to_string(b->morceau.ligne_pos);
+	b->valeur_calculee = nom_acces;
+
+	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+		auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
+
+		if (taille != 0) {
+			os << "long " << nom_acces << " = " << taille << ";\n";
+			return;
+		}
+	}
+
+	/* vérifie si nous avons une énumération */
+	if (contexte.structure_existe(structure->chaine())) {
+		auto &ds = contexte.donnees_structure(structure->chaine());
+
+		if (ds.est_enum) {
+			os << "long " << nom_acces << " = "
+			   << broye_chaine(structure) << '_' << broye_chaine(membre) << ";\n";
+			return;
+		}
+	}
+
+	std::stringstream ss;
+
+	genere_code_C(structure, contexte, true, ss, ss);
+	ss << ((est_pointeur) ? "->" : ".");
+	ss << broye_chaine(membre);
+
+	/* le membre peut-être un pointeur de fonction, donc fais une
+	 * prépasse pour générer cette appel */
+	if (membre->type == type_noeud::APPEL_FONCTION) {
+		membre->nom_fonction_appel = ss.str();
+		genere_code_C_prepasse(membre, contexte, false, os);
+
+		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+		contexte.magasin_types.converti_type_C(
+					contexte,
+					"",
+					dt,
+					os);
+		os << ' ' << nom_acces << " = "
+		   << std::any_cast<std::string>(membre->valeur_calculee) << ";\n";
+	}
+	else {
+		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+		contexte.magasin_types.converti_type_C(
+					contexte,
+					"",
+					dt,
+					os);
+		os << ' ' << nom_acces << " = " << ss.str() << ";\n";
+	}
+}
+
 /* La prépasse nous permet de générer du code avant celui des expressions afin
  * d'éviter les problèmes dans les cas où par exemple le paramètre d'une
  * fonction ou une condition ou une réassignation d'une chaine requiers une
@@ -1057,82 +1132,22 @@ static void genere_code_C_prepasse(
 			// À FAIRE
 			break;
 		}
-		case type_noeud::ACCES_MEMBRE:
+		case type_noeud::ACCES_MEMBRE_POINT:
 		{
-			if (possede_drapeau(b->drapeaux, PREND_REFERENCE)) {
-				return;
-			}
+			auto structure = b->enfants.front();
+			auto membre = b->enfants.back();
 
-			auto structure = b->enfants.back();
-			auto membre = b->enfants.front();
-			auto const &index_type = structure->index_type;
-			auto type_structure = contexte.magasin_types.donnees_types[index_type];
-
-			auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
-
-			if (est_pointeur) {
-				type_structure = type_structure.derefence();
-			}
-
-			auto nom_acces = "__acces" + std::to_string(b->morceau.ligne_pos);
-			b->valeur_calculee = nom_acces;
-
-			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
-				auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
-
-				if (taille != 0) {
-					os << "long " << nom_acces << " = " << taille << ";\n";
-					return;
-				}
-			}
-
-			/* vérifie si nous avons une énumération */
-			if (contexte.structure_existe(structure->chaine())) {
-				auto &ds = contexte.donnees_structure(structure->chaine());
-
-				if (ds.est_enum) {
-					os << "long " << nom_acces << " = "
-					   << broye_chaine(structure) << '_' << broye_chaine(membre) << ";\n";
-					return;
-				}
-			}
-
-			std::stringstream ss;
-
-			genere_code_C(structure, contexte, true, ss, ss);
-			ss << ((est_pointeur) ? "->" : ".");
-			ss << broye_chaine(membre);
-
-			/* le membre peut-être un pointeur de fonction, donc fais une
-			 * prépasse pour générer cette appel */
-			if (membre->type == type_noeud::APPEL_FONCTION) {
-				membre->nom_fonction_appel = ss.str();
-				genere_code_C_prepasse(membre, contexte, false, os);
-
-				auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt,
-							os);
-				os << ' ' << nom_acces << " = "
-				   << std::any_cast<std::string>(membre->valeur_calculee) << ";\n";
-			}
-			else {
-				auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt,
-							os);
-				os << ' ' << nom_acces << " = " << ss.str() << ";\n";
-			}
+			prepasse_acces_membre(contexte, b, structure, membre, os);
 
 			break;
 		}
-		case type_noeud::ACCES_MEMBRE_POINT:
+		case type_noeud::ACCES_MEMBRE_DE:
 		{
-			// À FAIRE
+			auto structure = b->enfants.back();
+			auto membre = b->enfants.front();
+
+			prepasse_acces_membre(contexte, b, structure, membre, os);
+
 			break;
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:
@@ -1753,7 +1768,20 @@ void genere_code_C(
 
 			break;
 		}
-		case type_noeud::ACCES_MEMBRE:
+		case type_noeud::ACCES_MEMBRE_POINT:
+		{
+			if (expr_gauche == false) {
+				os << std::any_cast<std::string>(b->valeur_calculee);
+			}
+			else {
+				auto structure = b->enfants.front();
+				auto membre = b->enfants.back();
+				genere_code_acces_membre(structure, membre, contexte, os);
+			}
+
+			break;
+		}
+		case type_noeud::ACCES_MEMBRE_DE:
 		{
 			if (expr_gauche == false) {
 				os << std::any_cast<std::string>(b->valeur_calculee);
@@ -1764,14 +1792,6 @@ void genere_code_C(
 				genere_code_acces_membre(structure, membre, contexte, os);
 			}
 
-			break;
-		}
-		case type_noeud::ACCES_MEMBRE_POINT:
-		{
-			/* À FAIRE. */
-//			auto structure = b->enfants.front();
-//			auto membre = b->enfants.back();
-//			genere_code_acces_membre(structure, membre, contexte, os);
 			break;
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:

@@ -255,9 +255,13 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 
 			return false;
 		}
-		case type_noeud::ACCES_MEMBRE:
+		case type_noeud::ACCES_MEMBRE_DE:
 		{
 			return peut_etre_assigne(b->enfants.back(), contexte);
+		}
+		case type_noeud::ACCES_MEMBRE_POINT:
+		{
+			return peut_etre_assigne(b->enfants.front(), contexte);
 		}
 		case type_noeud::OPERATION_BINAIRE:
 		{
@@ -354,6 +358,145 @@ static auto valide_appel_pointeur_fonction(
 	}
 
 	b->nom_fonction_appel = nom_fonction;
+}
+
+static void valide_acces_membre(
+		ContexteGenerationCode &contexte,
+		base *b,
+		base *structure,
+		base *membre)
+{
+	performe_validation_semantique(structure, contexte);
+
+	auto const &index_type = structure->index_type;
+	auto type_structure = contexte.magasin_types.donnees_types[index_type];
+
+	if (type_structure.type_base() == id_morceau::POINTEUR || type_structure.type_base() == id_morceau::REFERENCE) {
+		type_structure = type_structure.derefence();
+	}
+
+	if (type_structure.type_base() == id_morceau::CHAINE) {
+		if (membre->chaine() == "taille") {
+			b->index_type = contexte.magasin_types[TYPE_Z64];
+			return;
+		}
+
+		if (membre->chaine() == "pointeur") {
+			b->index_type = contexte.magasin_types[TYPE_PTR_Z8];
+			return;
+		}
+
+		erreur::lance_erreur(
+					"'chaine' ne possède pas cette propriété !",
+					contexte,
+					membre->donnees_morceau(),
+					erreur::type_erreur::MEMBRE_INCONNU);
+	}
+
+	if (type_structure.type_base() == id_morceau::EINI) {
+		if (membre->chaine() == "info") {
+			auto id_info_type = contexte.donnees_structure("InfoType").id;
+
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::POINTEUR);
+			dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(id_info_type << 8));
+
+			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			return;
+		}
+
+		if (membre->chaine() == "pointeur") {
+			b->index_type = contexte.magasin_types[TYPE_PTR_Z8];
+			return;
+		}
+
+		erreur::lance_erreur(
+					"'eini' ne possède pas cette propriété !",
+					contexte,
+					membre->donnees_morceau(),
+					erreur::type_erreur::MEMBRE_INCONNU);
+	}
+
+	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+#ifdef NONSUR
+		if (!contexte.non_sur() && expr_gauche) {
+			erreur::lance_erreur(
+						"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
+						contexte,
+						b->morceau,
+						erreur::type_erreur::ASSIGNATION_INVALIDE);
+		}
+#endif
+		if (membre->chaine() == "pointeur") {
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::POINTEUR);
+			dt.pousse(type_structure.derefence());
+
+			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			return;
+		}
+
+		if (membre->chaine() == "taille") {
+			b->index_type = contexte.magasin_types[TYPE_N64];
+			return;
+		}
+
+		erreur::lance_erreur(
+					"Le tableau ne possède pas cette propriété !",
+					contexte,
+					membre->donnees_morceau(),
+					erreur::type_erreur::MEMBRE_INCONNU);
+	}
+
+	if ((type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+		auto const index_structure = size_t(type_structure.type_base() >> 8);
+
+		auto const &nom_membre = membre->chaine();
+
+		auto &donnees_structure = contexte.donnees_structure(index_structure);
+
+		if (donnees_structure.est_enum) {
+			b->index_type = donnees_structure.index_type;
+			return;
+		}
+
+		auto const iter = donnees_structure.donnees_membres.find(nom_membre);
+
+		if (iter == donnees_structure.donnees_membres.end()) {
+			/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
+			erreur::lance_erreur(
+						"Membre inconnu",
+						contexte,
+						membre->morceau,
+						erreur::type_erreur::MEMBRE_INCONNU);
+		}
+
+		auto const &donnees_membres = iter->second;
+
+		b->index_type = donnees_structure.donnees_types[donnees_membres.index_membre];
+
+		/* pointeur vers une fonction */
+		if (membre->type == type_noeud::APPEL_FONCTION) {
+			/* ceci est le type de la fonction, l'analyse de l'appel
+			 * vérifiera le type des arguments et ajournera le type du
+			 * membre pour être celui du type de retour */
+			membre->index_type = b->index_type;
+			membre->aide_generation_code = GENERE_CODE_PTR_FONC_MEMBRE;
+
+			performe_validation_semantique(membre, contexte);
+
+			/* le type de l'accès est celui du retour de la fonction */
+			b->index_type = membre->index_type;
+		}
+
+		return;
+	}
+
+	erreur::lance_erreur(
+				"Impossible d'accéder au membre d'un objet n'étant pas une structure",
+				contexte,
+				structure->donnees_morceau(),
+				erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
 void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
@@ -776,185 +919,57 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						b->morceau,
 						erreur::type_erreur::VARIABLE_INCONNUE);
 		}
-		case type_noeud::ACCES_MEMBRE:
+		case type_noeud::ACCES_MEMBRE_DE:
 		{
 			auto structure = b->enfants.back();
 			auto membre = b->enfants.front();
 
-			performe_validation_semantique(structure, contexte);
-
-			auto const &index_type = structure->index_type;
-			auto type_structure = contexte.magasin_types.donnees_types[index_type];
-
-			if (type_structure.type_base() == id_morceau::POINTEUR || type_structure.type_base() == id_morceau::REFERENCE) {
-				type_structure = type_structure.derefence();
-			}
-
-			if (type_structure.type_base() == id_morceau::CHAINE) {
-				if (membre->chaine() == "taille") {
-					b->index_type = contexte.magasin_types[TYPE_Z64];
-					return;
-				}
-
-				if (membre->chaine() == "pointeur") {
-					b->index_type = contexte.magasin_types[TYPE_PTR_Z8];
-					return;
-				}
-
-				erreur::lance_erreur(
-							"'chaine' ne possède pas cette propriété !",
-							contexte,
-							membre->donnees_morceau(),
-							erreur::type_erreur::MEMBRE_INCONNU);
-			}
-
-			if (type_structure.type_base() == id_morceau::EINI) {
-				if (membre->chaine() == "info") {
-					auto id_info_type = contexte.donnees_structure("InfoType").id;
-
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::POINTEUR);
-					dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(id_info_type << 8));
-
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
-					return;
-				}
-
-				if (membre->chaine() == "pointeur") {
-					b->index_type = contexte.magasin_types[TYPE_PTR_Z8];
-					return;
-				}
-
-				erreur::lance_erreur(
-							"'eini' ne possède pas cette propriété !",
-							contexte,
-							membre->donnees_morceau(),
-							erreur::type_erreur::MEMBRE_INCONNU);
-			}
-
-			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
-#ifdef NONSUR
-				if (!contexte.non_sur() && expr_gauche) {
-					erreur::lance_erreur(
-								"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::ASSIGNATION_INVALIDE);
-				}
-#endif
-				if (membre->chaine() == "pointeur") {
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::POINTEUR);
-					dt.pousse(type_structure.derefence());
-
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
-					return;
-				}
-
-				if (membre->chaine() == "taille") {
-					b->index_type = contexte.magasin_types[TYPE_N64];
-					return;
-				}
-
-				erreur::lance_erreur(
-							"Le tableau ne possède pas cette propriété !",
-							contexte,
-							membre->donnees_morceau(),
-							erreur::type_erreur::MEMBRE_INCONNU);
-			}
-
-			if ((type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-				auto const index_structure = size_t(type_structure.type_base() >> 8);
-
-				auto const &nom_membre = membre->chaine();
-
-				auto &donnees_structure = contexte.donnees_structure(index_structure);
-
-				if (donnees_structure.est_enum) {
-					b->index_type = donnees_structure.index_type;
-					return;
-				}
-
-				auto const iter = donnees_structure.donnees_membres.find(nom_membre);
-
-				if (iter == donnees_structure.donnees_membres.end()) {
-					/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
-					erreur::lance_erreur(
-								"Membre inconnu",
-								contexte,
-								membre->morceau,
-								erreur::type_erreur::MEMBRE_INCONNU);
-				}
-
-				auto const &donnees_membres = iter->second;
-
-				b->index_type = donnees_structure.donnees_types[donnees_membres.index_membre];
-
-				/* pointeur vers une fonction */
-				if (membre->type == type_noeud::APPEL_FONCTION) {
-					/* ceci est le type de la fonction, l'analyse de l'appel
-					 * vérifiera le type des arguments et ajournera le type du
-					 * membre pour être celui du type de retour */
-					membre->index_type = b->index_type;
-					membre->aide_generation_code = GENERE_CODE_PTR_FONC_MEMBRE;
-
-					performe_validation_semantique(membre, contexte);
-
-					/* le type de l'accès est celui du retour de la fonction */
-					b->index_type = membre->index_type;
-				}
-
-				return;
-			}
-
-			erreur::lance_erreur(
-						"Impossible d'accéder au membre d'un objet n'étant pas une structure",
-						contexte,
-						structure->donnees_morceau(),
-						erreur::type_erreur::TYPE_DIFFERENTS);
+			valide_acces_membre(contexte, b, structure, membre);
+			break;
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
-			auto const nom_module = enfant1->chaine();
+			auto const nom_symbole = enfant1->chaine();
 
-			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
+			if (enfant1->type == type_noeud::VARIABLE) {
+				auto module = contexte.module(static_cast<size_t>(b->morceau.module));
 
-			if (!module->importe_module(nom_module)) {
-				erreur::lance_erreur(
-							"module inconnu",
-							contexte,
-							enfant1->donnees_morceau(),
-							erreur::type_erreur::MODULE_INCONNU);
+				if (module->importe_module(nom_symbole)) {
+					auto module_importe = contexte.module(nom_symbole);
+
+					if (module_importe == nullptr) {
+						erreur::lance_erreur(
+									"module inconnu",
+									contexte,
+									enfant1->donnees_morceau(),
+									erreur::type_erreur::MODULE_INCONNU);
+					}
+
+					auto const nom_fonction = enfant2->chaine();
+
+					if (!module_importe->possede_fonction(nom_fonction)) {
+						erreur::lance_erreur(
+									"Le module ne possède pas la fonction",
+									contexte,
+									enfant2->donnees_morceau(),
+									erreur::type_erreur::FONCTION_INCONNUE);
+					}
+
+					enfant2->module_appel = static_cast<int>(module_importe->id);
+
+					performe_validation_semantique(enfant2, contexte);
+
+					b->index_type = enfant2->index_type;
+
+					return;
+				}
 			}
 
-			auto module_importe = contexte.module(nom_module);
+			valide_acces_membre(contexte, b, enfant1, enfant2);
 
-			if (module_importe == nullptr) {
-				erreur::lance_erreur(
-							"module inconnu",
-							contexte,
-							enfant1->donnees_morceau(),
-							erreur::type_erreur::MODULE_INCONNU);
-			}
-
-			auto const nom_fonction = enfant2->chaine();
-
-			if (!module_importe->possede_fonction(nom_fonction)) {
-				erreur::lance_erreur(
-							"Le module ne possède pas la fonction",
-							contexte,
-							enfant2->donnees_morceau(),
-							erreur::type_erreur::FONCTION_INCONNUE);
-			}
-
-			enfant2->module_appel = static_cast<int>(module_importe->id);
-
-			performe_validation_semantique(enfant2, contexte);
-
-			b->index_type = enfant2->index_type;
 			break;
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:
@@ -1042,6 +1057,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
+#if 0
+			/* Désactivation du code de correction d'arbre syntactic pour
+			 * l'opérateur 'de', il cause trop de problème, pour une logique
+			 * trop compliquée. */
 			if ((b->morceau.identifiant == id_morceau::CROCHET_OUVRANT)
 					&& ((enfant2->type == type_noeud::ACCES_MEMBRE && !possede_drapeau(enfant2->drapeaux, IGNORE_OPERATEUR))
 						|| enfant2->morceau.identifiant == id_morceau::CROCHET_OUVRANT))
@@ -1067,6 +1086,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				enfant1 = b->enfants.front();
 				enfant2 = b->enfants.back();
 			}
+#endif
 
 			performe_validation_semantique(enfant1, contexte);
 			performe_validation_semantique(enfant2, contexte);

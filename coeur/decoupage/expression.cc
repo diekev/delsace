@@ -96,15 +96,22 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 		case id_morceau::MOINS_UNAIRE:
 			return { dir_associativite::DROITE, 13 };
 		case id_morceau::POINT:
-		/* NOTE : 'de' et '[]' doivent avoir la même précédence pour pouvoir
+		case id_morceau::CROCHET_OUVRANT:
+			return { dir_associativite::GAUCHE, 14 };
+		/* NOTE : pour l'instant ceci est désactivé, car la logique de
+		 * correction de l'arbre syntactic est capillotractée et decevante.
+		 *
+		 * NOTE : 'de' et '[]' doivent avoir la même précédence pour pouvoir
 		 * être dans le bon ordre quand nous avons des expressions du style :
 		 * @tampon[0] de indir[0] de x;
 		 * mais il faudra tout de même inverser leurs premiers enfants pour que
 		 * l'arbre syntactic soit correcte ; voir l'inversion dans l'analyse
 		 * sémantique de '[]'. */
 		case id_morceau::DE:
+#if 0
 		case id_morceau::CROCHET_OUVRANT:
-			return { dir_associativite::DROITE, 14 };
+#endif
+			return { dir_associativite::DROITE, 15 };
 		default:
 			assert(false);
 			return { static_cast<dir_associativite>(-1), -1 };
