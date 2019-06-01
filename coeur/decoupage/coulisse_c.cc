@@ -348,9 +348,9 @@ static auto cree_info_type_structure_C(
 	auto nom_tableau_dyn = std::string("__tabl_dyn_membres") + std::to_string(index++);
 
 	contexte.magasin_types.converti_type_C(
-				contexte, nom_tableau_fixe, dt_tdyn, os_init);
+				contexte, nom_tableau_dyn, dt_tdyn, os_init);
 
-	os_init << ' ' << nom_tableau_dyn << ";\n";
+	os_init << ";\n";
 	os_init << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
 	os_init << nom_tableau_dyn << ".taille = " << nombre_membres << ";\n";
 
@@ -641,15 +641,11 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 	if (b->type != type_noeud::VARIABLE) {
 		nom_var = std::string("__var_").append(nom_eini);
 
-		auto est_tableau = contexte.magasin_types.converti_type_C(
+		contexte.magasin_types.converti_type_C(
 					contexte,
 					nom_var,
 					dt,
 					os);
-
-		if (!est_tableau) {
-			os << " " << nom_var;
-		}
 
 		os << " = ";
 		genere_code_C(b, contexte, false, os, os);
@@ -808,11 +804,7 @@ static void cree_appel(
 
 	if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
 		auto nom_indirection = "__ret" + std::to_string(b->morceau.ligne_pos);
-		auto est_tableau = contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
-
-		if (!est_tableau) {
-			os << ' ' << nom_indirection;
-		}
+		contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 
 		os << " = ";
 		b->valeur_calculee = nom_indirection;
@@ -906,17 +898,13 @@ static void declare_structures_C(
 				if (paire_idx_mb.second.index_membre == i) {
 					auto nom = broye_nom_simple(paire_idx_mb.first);
 
-					auto est_tableau = contexte.magasin_types.converti_type_C(
+					contexte.magasin_types.converti_type_C(
 								contexte,
 								nom,
 								dt,
 								os,
 								false,
 								true);
-
-					if (!est_tableau) {
-						os << ' ' << nom;
-					}
 
 					os << ";\n";
 					break;
@@ -926,11 +914,6 @@ static void declare_structures_C(
 
 		os << "} " << nom_struct << ";\n\n";
 	}
-}
-
-static auto est_type_tableau_fixe(DonneesType &dt)
-{
-	return (dt.type_base() != id_morceau::TABLEAU) && ((dt.type_base() & 0xff) == id_morceau::TABLEAU);
 }
 
 static auto genere_code_acces_membre(
@@ -1083,20 +1066,26 @@ static void prepasse_acces_membre(
 		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 		contexte.magasin_types.converti_type_C(
 					contexte,
-					"",
+					nom_acces,
 					dt,
-					os);
-		os << ' ' << nom_acces << " = "
+					os,
+					false,
+					false,
+					true);
+		os << " = "
 		   << std::any_cast<std::string>(membre->valeur_calculee) << ";\n";
 	}
 	else {
 		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 		contexte.magasin_types.converti_type_C(
 					contexte,
-					"",
+					nom_acces,
 					dt,
-					os);
-		os << ' ' << nom_acces << " = " << ss.str() << ";\n";
+					os,
+					false,
+					false,
+					true);
+		os << " = " << ss.str() << ";\n";
 	}
 }
 
@@ -1539,14 +1528,10 @@ void genere_code_C(
 				os << "void " << nom_fonction;
 			}
 			else {
-				auto est_tableau = contexte.magasin_types.converti_type_C(contexte,
+				contexte.magasin_types.converti_type_C(contexte,
 							nom_fonction,
 							contexte.magasin_types.donnees_types[b->index_type],
 						os);
-
-				if (!est_tableau) {
-					os << " " << nom_fonction;
-				}
 			}
 
 			contexte.commence_fonction(donnees_fonction);
@@ -1588,15 +1573,11 @@ void genere_code_C(
 
 				auto nom_broye = broye_nom_simple(nom);
 
-				auto est_tableau = contexte.magasin_types.converti_type_C(
+				contexte.magasin_types.converti_type_C(
 							contexte,
 							nom_broye,
 							dt,
 							os);
-
-				if (!est_tableau) {
-					os << " " << nom_broye;
-				}
 
 				virgule = ',';
 
@@ -1713,15 +1694,11 @@ void genere_code_C(
 
 				auto nom_broye = broye_chaine(b);
 
-				auto est_tableau = contexte.magasin_types.converti_type_C(
+				contexte.magasin_types.converti_type_C(
 							contexte,
 							nom_broye,
 							dt,
 							os);
-
-				if (!est_tableau) {
-					os << " " << nom_broye;
-				}
 
 				if (contexte.donnees_fonction == nullptr) {
 					auto donnees_var = DonneesVariable{};
@@ -2075,15 +2052,11 @@ void genere_code_C(
 
 				auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
 
-				auto est_tableau = contexte.magasin_types.converti_type_C(
+				contexte.magasin_types.converti_type_C(
 							contexte,
 							nom_variable,
 							dt,
 							os);
-
-				if (!est_tableau) {
-					os << ' ' << nom_variable;
-				}
 
 				os << " = ";
 

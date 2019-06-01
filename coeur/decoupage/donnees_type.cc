@@ -369,16 +369,14 @@ size_t MagasinDonneesType::operator[](int type)
 	return index_types_communs[static_cast<size_t>(type)];
 }
 
-static bool converti_type_simple_C(
+static auto converti_type_simple_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os,
-		std::string_view const &nom_variable,
 		id_morceau id,
 		bool echappe,
-		bool echappe_struct)
+		bool echappe_struct,
+		bool echappe_tableau_fixe)
 {
-	bool est_tableau = false;
-
 	switch (id & 0xff) {
 		case id_morceau::POINTEUR:
 		{
@@ -404,13 +402,12 @@ static bool converti_type_simple_C(
 		}
 		case id_morceau::TABLEAU:
 		{
-			auto taille = static_cast<size_t>(id >> 8);
-			if (!est_tableau) {
-				os << " " << nom_variable;
+			if (echappe_tableau_fixe) {
+				os << '*';
+				return;
 			}
 
-			est_tableau = true;
-
+			auto taille = static_cast<size_t>(id >> 8);
 			os << '[' << taille << ']';
 
 			break;
@@ -543,7 +540,7 @@ static bool converti_type_simple_C(
 
 			if (donnees_struct.est_enum) {
 				auto &dt = contexte.magasin_types.donnees_types[donnees_struct.noeud_decl->index_type];
-				converti_type_simple_C(contexte, os, "", dt.type_base(), false, false);
+				converti_type_simple_C(contexte, os, dt.type_base(), false, false, false);
 			}
 			else {
 				if (echappe_struct || donnees_struct.est_externe) {
@@ -567,19 +564,31 @@ static bool converti_type_simple_C(
 		}
 	}
 
-	return est_tableau;
+	return;
 }
 
-bool MagasinDonneesType::converti_type_C(
+/* a : [2]z32 -> int x[2]
+ * b : [4][4]r64 -> double y[4][4]
+ * c : *bool -> bool *z
+ * d : **bool -> bool **z
+ * e : &bool -> bool *e
+ * f : [2]*z32 -> int *f[2]
+ * g : []z32 -> struct Tableau
+ *
+ * À FAIRE pour les accès ou assignations :
+ * z : [4][4]z32 -> int (*z)[4] (pour l'instant -> int **z)
+ */
+void MagasinDonneesType::converti_type_C(
 		ContexteGenerationCode &contexte,
 		std::string_view const &nom_variable,
 		DonneesType const &donnees,
 		std::ostream &os,
 		bool echappe,
-		bool echappe_struct)
+		bool echappe_struct,
+		bool echappe_tableau_fixe)
 {
 	if (donnees.est_invalide()) {
-		return false;
+		return;
 	}
 
 	if (donnees.type_base() == id_morceau::TABLEAU || donnees.type_base() == id_morceau::TROIS_POINTS) {
@@ -588,12 +597,13 @@ bool MagasinDonneesType::converti_type_C(
 		}
 
 		os << "Tableau_";
-		return this->converti_type_C(contexte, nom_variable, donnees.derefence(), os, true);
+		this->converti_type_C(contexte, nom_variable, donnees.derefence(), os, true);
+		return;
 	}
 
-	/* cas spécial pour convertir les types complexes comme []*z8 */
+	/* cas spécial pour convertir les types complexes comme *[]z8 */
 	if (donnees.type_base() == id_morceau::POINTEUR) {
-		auto tabl = this->converti_type_C(contexte, nom_variable, donnees.derefence(), os, echappe, echappe_struct);
+		this->converti_type_C(contexte, "", donnees.derefence(), os, echappe, echappe_struct);
 
 		if (echappe) {
 			os << "_ptr_";
@@ -602,7 +612,11 @@ bool MagasinDonneesType::converti_type_C(
 			os << '*';
 		}
 
-		return tabl;
+		if (nom_variable != "") {
+			os << ' ' << nom_variable;
+		}
+
+		return;
 	}
 
 	if (donnees.type_base() == id_morceau::FONC || donnees.type_base() == id_morceau::COROUT) {
@@ -638,10 +652,10 @@ bool MagasinDonneesType::converti_type_C(
 			converti_type_simple_C(
 						contexte,
 						os,
-						"",
 						pile.top(),
 						echappe,
-						echappe_struct);
+						echappe_struct,
+						echappe_tableau_fixe);
 
 			pile.pop();
 		}
@@ -677,20 +691,28 @@ bool MagasinDonneesType::converti_type_C(
 
 		os << ')';
 
-		return true;
+		return;
 	}
 
 	auto debut = donnees.begin();
 	auto fin = donnees.end();
 
-	bool est_tableau = false;
+	auto nom_consomme = false;
 
 	for (;debut != fin; ++debut) {
 		auto donnee = *debut;
-		est_tableau = converti_type_simple_C(contexte, os, nom_variable, donnee, echappe, echappe_struct);
+
+		if (est_type_tableau_fixe(donnee) && nom_consomme == false && nom_variable != "" && !echappe_tableau_fixe) {
+			os << ' ' << nom_variable;
+			nom_consomme = true;
+		}
+
+		converti_type_simple_C(contexte, os, donnee, echappe, echappe_struct, echappe_tableau_fixe);
 	}
 
-	return est_tableau;
+	if (nom_consomme == false && nom_variable != "") {
+		os << ' ' << nom_variable;
+	}
 }
 
 #ifdef AVEC_LLVM

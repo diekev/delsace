@@ -191,6 +191,16 @@ public:
 
 std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte);
 
+inline bool est_type_tableau_fixe(id_morceau id)
+{
+	return (id != id_morceau::TABLEAU) && ((id & 0xff) == id_morceau::TABLEAU);
+}
+
+inline bool est_type_tableau_fixe(DonneesType const &dt)
+{
+	return est_type_tableau_fixe(dt.type_base());
+}
+
 /* ************************************************************************** */
 
 namespace std {
@@ -293,13 +303,14 @@ struct MagasinDonneesType {
 
 	size_t ajoute_type(const DonneesType &donnees);
 
-	bool converti_type_C(
+	void converti_type_C(
 			ContexteGenerationCode &contexte,
 			std::string_view const &nom_variable,
 			DonneesType const &donnees,
 			std::ostream &os,
 			bool echappe = false,
-			bool echappe_struct = false);
+			bool echappe_struct = false,
+			bool echappe_tableau_fixe = false);
 
 #ifdef AVEC_LLVM
 	llvm::Type *converti_type(
