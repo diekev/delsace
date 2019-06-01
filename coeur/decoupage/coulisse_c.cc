@@ -928,6 +928,11 @@ static void declare_structures_C(
 	}
 }
 
+static auto est_type_tableau_fixe(DonneesType &dt)
+{
+	return (dt.type_base() != id_morceau::TABLEAU) && ((dt.type_base() & 0xff) == id_morceau::TABLEAU);
+}
+
 static auto genere_code_acces_membre(
 		base *structure,
 		base *membre,
@@ -946,6 +951,12 @@ static auto genere_code_acces_membre(
 			os << broye_chaine(structure) << '_' << broye_chaine(membre);
 			return;
 		}
+	}
+
+	if (est_type_tableau_fixe(type_structure)) {
+		auto taille_tableau = static_cast<size_t>(type_structure.type_base() >> 8);
+		os << taille_tableau;
+		return;
 	}
 
 	genere_code_C(structure, contexte, true, os, os);
@@ -1038,6 +1049,12 @@ static void prepasse_acces_membre(
 			os << "long " << nom_acces << " = " << taille << ";\n";
 			return;
 		}
+	}
+
+	if (est_type_tableau_fixe(type_structure)) {
+		auto taille_tableau = static_cast<size_t>(type_structure.type_base() >> 8);
+		os << "long " << nom_acces << " = " << taille_tableau << ";\n";
+		return;
 	}
 
 	/* vérifie si nous avons une énumération */
