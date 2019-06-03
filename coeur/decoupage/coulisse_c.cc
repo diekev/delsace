@@ -1330,9 +1330,9 @@ static void genere_code_C_prepasse(
 					.append(std::to_string(b->morceau.ligne_pos));
 
 			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_fixe, dt_tdyn, os);
+						contexte, nom_tableau_dyn, dt_tdyn, os);
 
-			os << ' ' << nom_tableau_dyn << ";\n";
+			os << ";\n";
 			os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
 			os << nom_tableau_dyn << ".taille = " << taille_tableau << ";\n";
 
