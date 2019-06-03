@@ -1797,7 +1797,7 @@ size_t analyseuse_grammaire::analyse_declaration_type(DonneesType *donnees_type_
 		avance();
 
 		auto dt = DonneesType{};
-		dt.pousse(donnees().identifiant);
+		dt.pousse(type_id::TYPE_DE);
 
 		if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 			lance_erreur("Attendu un '(' après 'type_de'");
@@ -1808,6 +1808,11 @@ size_t analyseuse_grammaire::analyse_declaration_type(DonneesType *donnees_type_
 					id_morceau::TYPE_DE,
 					false,
 					false);
+
+		/* Afin d'avoir un type unique, évitant les colésions pour les
+		 * expressions, on utilise le pointeur nécessairement unique comme autre
+		 * identifiant. */
+		dt.pousse(static_cast<id_morceau>(reinterpret_cast<long>(dt.expr)));
 
 		return m_contexte.magasin_types.ajoute_type(dt);
 	}
