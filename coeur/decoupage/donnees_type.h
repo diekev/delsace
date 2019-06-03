@@ -45,6 +45,10 @@ class Type;
 
 #include "morceaux.hh"
 
+namespace noeud {
+struct base;
+}
+
 struct ContexteGenerationCode;
 
 /**
@@ -64,6 +68,8 @@ class DonneesType {
 
 public:
 	std::string ptr_info_type{};
+
+	noeud::base *expr = nullptr;
 
 	using iterateur_const = std::vector<id_morceau>::const_reverse_iterator;
 

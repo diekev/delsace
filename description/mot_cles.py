@@ -26,6 +26,7 @@ mot_cles = [
 	u'faux',
 	u'taille_de',
 	u'type_de',
+	u'info_de',
 	u'mémoire',
 	u'empl',
 	u'n8',

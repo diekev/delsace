@@ -910,10 +910,11 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	}
 }
 
-void analyseuse_grammaire::analyse_expression_droite(
+noeud::base *analyseuse_grammaire::analyse_expression_droite(
 		id_morceau identifiant_final,
 		id_morceau racine_expr,
-		bool const calcul_expression)
+		bool const calcul_expression,
+		bool ajoute_noeud)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 	auto profondeur = m_profondeur++;
@@ -1065,17 +1066,17 @@ void analyseuse_grammaire::analyse_expression_droite(
 				expression.push_back(noeud);
 				break;
 			}
-			case id_morceau::TYPE_DE:
+			case id_morceau::INFO_DE:
 			{
 				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-					lance_erreur("Attendu '(' après 'type_de'");
+					lance_erreur("Attendu '(' après 'info_de'");
 				}
 
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::TYPE_DE, m_contexte, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::INFO_DE, m_contexte, morceau, false);
 
-				analyse_expression_droite(id_morceau::INCONNU, id_morceau::TYPE_DE);
+				analyse_expression_droite(id_morceau::INCONNU, id_morceau::INFO_DE);
 
-				m_assembleuse->depile_noeud(type_noeud::TYPE_DE);
+				m_assembleuse->depile_noeud(type_noeud::INFO_DE);
 
 				/* vérifie mais n'avance pas */
 				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
@@ -1472,7 +1473,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 	 * éviter de crasher lors des fuzz-tests. */
 	if (expression.empty()) {
 		--m_profondeur;
-		return;
+		return nullptr;
 	}
 
 	while (!pile.empty()) {
@@ -1570,7 +1571,12 @@ void analyseuse_grammaire::analyse_expression_droite(
 		}
 	}
 
-	m_assembleuse->ajoute_noeud(pile.back());
+	auto noeud_expr = pile.back();
+
+	if (ajoute_noeud) {
+		m_assembleuse->ajoute_noeud(noeud_expr);
+	}
+
 	pile.pop_back();
 
 	if (pile.size() != 0) {
@@ -1603,6 +1609,8 @@ void analyseuse_grammaire::analyse_expression_droite(
 	}
 
 	--m_profondeur;
+
+	return noeud_expr;
 }
 
 /* f(g(5, 6 + 3 * (2 - 5)), h()); */
@@ -1781,6 +1789,25 @@ size_t analyseuse_grammaire::analyse_declaration_type(DonneesType *donnees_type_
 		if (donnees_type_fonction) {
 			donnees_type_fonction->pousse(dt);
 		}
+
+		return m_contexte.magasin_types.ajoute_type(dt);
+	}
+
+	if (est_identifiant(type_id::TYPE_DE)) {
+		avance();
+
+		auto dt = DonneesType{};
+		dt.pousse(donnees().identifiant);
+
+		if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+			lance_erreur("Attendu un '(' après 'type_de'");
+		}
+
+		dt.expr = analyse_expression_droite(
+					id_morceau::PARENTHESE_FERMANTE,
+					id_morceau::TYPE_DE,
+					false,
+					false);
 
 		return m_contexte.magasin_types.ajoute_type(dt);
 	}

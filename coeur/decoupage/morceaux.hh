@@ -96,6 +96,7 @@ enum class id_morceau : unsigned int {
 	GABARIT,
 	GARDE,
 	IMPORTE,
+	INFO_DE,
 	LOGE,
 	MEMOIRE,
 	N16,

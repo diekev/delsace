@@ -66,7 +66,7 @@ enum class type_noeud : char {
 	TABLEAU,
 	CONSTRUIT_TABLEAU,
 	CONSTRUIT_STRUCTURE,
-	TYPE_DE,
+	INFO_DE,
 	LOGE,
 	DELOGE,
 	RELOGE,

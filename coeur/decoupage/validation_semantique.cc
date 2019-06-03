@@ -807,6 +807,17 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				if (dt.type_base() == id_morceau::REFERENCE) {
 					donnees_var.drapeaux |= BESOIN_DEREF;
 				}
+				else if (dt.type_base() == id_morceau::TYPE_DE) {
+					assert(dt.expr != nullptr);
+					performe_validation_semantique(dt.expr, contexte);
+
+					if (dt.expr->type == type_noeud::VARIABLE) {
+						auto &dv = contexte.donnees_variable(dt.expr->chaine());
+						b->index_type = dv.donnees_type;
+					}
+
+					donnees_var.donnees_type = b->index_type;
+				}
 
 				if (contexte.donnees_fonction == nullptr) {
 					contexte.pousse_globale(b->morceau.chaine, donnees_var);
@@ -855,6 +866,17 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				if (dt.type_base() == id_morceau::REFERENCE) {
 					donnees_var.drapeaux |= BESOIN_DEREF;
 				}
+				else if (dt.type_base() == id_morceau::TYPE_DE) {
+					assert(dt.expr != nullptr);
+					performe_validation_semantique(dt.expr, contexte);
+
+					if (dt.expr->type == type_noeud::VARIABLE) {
+						auto &dv = contexte.donnees_variable(dt.expr->chaine());
+						b->index_type = dv.donnees_type;
+					}
+
+					donnees_var.donnees_type = b->index_type;
+				}
 
 				if (contexte.donnees_fonction == nullptr) {
 					contexte.pousse_globale(b->morceau.chaine, donnees_var);
@@ -901,6 +923,17 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				if (dt.type_base() == id_morceau::REFERENCE) {
 					donnees_var.drapeaux |= BESOIN_DEREF;
+				}
+				else if (dt.type_base() == id_morceau::TYPE_DE) {
+					assert(dt.expr != nullptr);
+					performe_validation_semantique(dt.expr, contexte);
+
+					if (dt.expr->type == type_noeud::VARIABLE) {
+						auto &dv = contexte.donnees_variable(dt.expr->chaine());
+						b->index_type = dv.donnees_type;
+					}
+
+					donnees_var.donnees_type = b->index_type;
 				}
 
 				if (contexte.donnees_fonction == nullptr) {
@@ -1767,11 +1800,83 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			b->index_type = contexte.magasin_types.ajoute_type(dt);
 			break;
 		}
-		case type_noeud::TYPE_DE:
+		case type_noeud::INFO_DE:
 		{
-			/* À FAIRE : retourne une structure InfoType */
-			b->index_type = contexte.magasin_types[TYPE_N64];
-			performe_validation_semantique(b->enfants.front(), contexte);
+			auto enfant = b->enfants.front();
+
+			performe_validation_semantique(enfant, contexte);
+
+			if (enfant->type == type_noeud::VARIABLE) {
+				auto &dv = contexte.donnees_variable(enfant->chaine());
+				enfant->index_type = dv.donnees_type;
+			}
+
+			auto &dt_enf = contexte.magasin_types.donnees_types[enfant->index_type];
+			auto nom_struct = "InfoType";
+
+			switch (dt_enf.type_base() & 0xff) {
+				default:
+				{
+					break;
+				}
+				case id_morceau::BOOL:
+				case id_morceau::N8:
+				case id_morceau::OCTET:
+				case id_morceau::Z8:
+				case id_morceau::N16:
+				case id_morceau::Z16:
+				case id_morceau::N32:
+				case id_morceau::Z32:
+				case id_morceau::N64:
+				case id_morceau::Z64:
+				{
+					nom_struct = "InfoTypeEntier";
+					break;
+				}
+				case id_morceau::R16:
+				case id_morceau::R32:
+				case id_morceau::R64:
+				{
+					nom_struct = "InfoTypeRéel";
+					break;
+				}
+				case id_morceau::REFERENCE:
+				case id_morceau::POINTEUR:
+				{
+					nom_struct = "InfoTypePointeur";
+					break;
+				}
+				case id_morceau::CHAINE_CARACTERE:
+				{
+					nom_struct = "InfoTypeStructure";
+					break;
+				}
+				case id_morceau::TROIS_POINTS:
+				case id_morceau::TABLEAU:
+				{
+					nom_struct = "InfoTypeTableau";
+					break;
+				}
+				case id_morceau::COROUT:
+				case id_morceau::FONC:
+				case id_morceau::EINI:
+				case id_morceau::NUL: /* À FAIRE */
+				case id_morceau::RIEN:
+				case id_morceau::CHAINE:
+				{
+					nom_struct = "InfoType";
+					break;
+				}
+			}
+
+			auto &ds = contexte.donnees_structure(nom_struct);
+
+			auto dt = DonneesType{};
+			dt.pousse(id_morceau::POINTEUR);
+			dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
+
+			b->index_type = contexte.magasin_types.ajoute_type(dt);
+
 			break;
 		}
 		case type_noeud::MEMOIRE:

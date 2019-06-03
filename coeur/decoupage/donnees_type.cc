@@ -320,8 +320,25 @@ MagasinDonneesType::MagasinDonneesType()
 	}
 }
 
+static bool peut_etre_dereference(id_morceau id)
+{
+	switch (id) {
+		default:
+			return false;
+		case id_morceau::POINTEUR:
+		case id_morceau::REFERENCE:
+		case id_morceau::TABLEAU:
+		case id_morceau::TROIS_POINTS:
+			return true;
+	}
+}
+
 size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 {
+	if (donnees.est_invalide()) {
+		return -1ul;
+	}
+
 	auto iter = donnees_type_index.find(donnees);
 
 	if (iter != donnees_type_index.end()) {
@@ -332,6 +349,12 @@ size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 	donnees_types.push_back(donnees);
 
 	donnees_type_index.insert({donnees, index});
+
+	/* Ajoute récursivement les types afin d'être sûr que tous les types
+	 * possibles du programme existent lors de la création des infos types. */
+	if (peut_etre_dereference(donnees.type_base())) {
+		ajoute_type(donnees.derefence());
+	}
 
 	return index;
 }
@@ -555,6 +578,11 @@ static auto converti_type_simple_C(
 		case id_morceau::EINI:
 		{
 			os << "eini";
+			break;
+		}
+		case id_morceau::TYPE_DE:
+		{
+			assert(false && "type_de aurait dû être résolu");
 			break;
 		}
 		default:

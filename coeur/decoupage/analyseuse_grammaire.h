@@ -83,7 +83,7 @@ private:
 	void analyse_declaration_fonction(id_morceau id);
 	void analyse_parametres_fonction(noeud::base *noeud, DonneesFonction &donnees_fonction, DonneesType *donnees_type_fonction);
 	void analyse_corps_fonction();
-	void analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool const calcul_expression = false);
+	noeud::base *analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool const calcul_expression = false, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_enum();

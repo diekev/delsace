@@ -617,6 +617,10 @@ static std::string cree_info_type_C(
 		}
 	}
 
+	if (donnees_type.ptr_info_type == "") {
+		donnees_type.ptr_info_type = valeur;
+	}
+
 	return valeur;
 }
 
@@ -1373,9 +1377,9 @@ static void genere_code_C_prepasse(
 
 			break;
 		}
-		case type_noeud::TYPE_DE:
+		case type_noeud::INFO_DE:
 		{
-			assert(false);
+			// À FAIRE
 			break;
 		}
 		case type_noeud::MEMOIRE:
@@ -1447,7 +1451,9 @@ void genere_code_C(
 			/* Crée les infos types pour tous les types connus.
 			 * À FAIRE : évite de créer ceux qui ne sont pas utiles */
 			for (auto &dt : contexte.magasin_types.donnees_types) {
-				cree_info_type_C(contexte, os, os_init, dt);
+				if (dt.type_base() != id_morceau::TYPE_DE) {
+					cree_info_type_C(contexte, os, os_init, dt);
+				}
 			}
 			temps_generation += dls::chrono::delta(debut_generation);
 
@@ -2631,10 +2637,11 @@ void genere_code_C(
 			os << std::any_cast<std::string>(b->valeur_calculee);
 			break;
 		}
-		case type_noeud::TYPE_DE:
+		case type_noeud::INFO_DE:
 		{
 			auto enfant = b->enfants.front();
-			os << enfant->index_type;
+			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
+			os << "&" << dt.ptr_info_type;
 			break;
 		}
 		case type_noeud::MEMOIRE:
