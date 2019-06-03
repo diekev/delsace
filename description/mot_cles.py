@@ -91,6 +91,7 @@ caracteres_simple = [
 	[u'"', u'GUILLEMET'],
 	[u'<', u'INFERIEUR'],
 	[u'>', u'SUPERIEUR'],
+	[u'$', u'DOLLAR'],
 ]
 
 caracteres_simple = sorted(caracteres_simple)

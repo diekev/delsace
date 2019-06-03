@@ -32,6 +32,7 @@ enum class id_morceau : unsigned int {
 	EXCLAMATION,
 	GUILLEMET,
 	DIESE,
+	DOLLAR,
 	POURCENT,
 	ESPERLUETTE,
 	APOSTROPHE,

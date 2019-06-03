@@ -115,6 +115,7 @@ static std::map<char, id_morceau> paires_caracteres_speciaux = {
 	{ '!', id_morceau::EXCLAMATION },
 	{ '"', id_morceau::GUILLEMET },
 	{ '#', id_morceau::DIESE },
+	{ '$', id_morceau::DOLLAR },
 	{ '%', id_morceau::POURCENT },
 	{ '&', id_morceau::ESPERLUETTE },
 	{ '\'', id_morceau::APOSTROPHE },
@@ -150,6 +151,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::GUILLEMET";
 		case id_morceau::DIESE:
 			return "id_morceau::DIESE";
+		case id_morceau::DOLLAR:
+			return "id_morceau::DOLLAR";
 		case id_morceau::POURCENT:
 			return "id_morceau::POURCENT";
 		case id_morceau::ESPERLUETTE:
