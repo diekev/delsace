@@ -25,6 +25,7 @@
 #include "validation_semantique.hh"
 
 #include <cassert>
+#include <iostream>
 #include <sstream>
 
 #include "arbre_syntactic.h"
@@ -488,6 +489,28 @@ static void valide_acces_membre(
 			/* le type de l'accès est celui du retour de la fonction */
 			b->index_type = membre->index_type;
 		}
+
+		return;
+	}
+
+	if (membre->type == type_noeud::APPEL_FONCTION) {
+		auto noeud_gauche = structure;
+		/* vérifie si la 'structure' n'est pas déjà un appel */
+
+		if (structure->aide_generation_code == APPEL_FONCTION_SYNT_UNI) {
+			noeud_gauche = structure->enfants.back();
+		}
+
+		b->aide_generation_code = APPEL_FONCTION_SYNT_UNI;
+		membre->enfants.push_front(noeud_gauche);
+
+		/* les noms d'arguments sont nécessaire pour trouver la bonne fonction,
+		 * même vides, et il nous faut le bon compte de noms */
+		auto *nom_args = std::any_cast<std::list<std::string_view>>(&membre->valeur_calculee);
+		nom_args->push_front("");
+
+		performe_validation_semantique(membre, contexte);
+		b->index_type = membre->index_type;
 
 		return;
 	}

@@ -191,6 +191,8 @@ enum {
 	GENERE_CODE_ACCES_VAR,
 
 	APPEL_POINTEUR_FONCTION,
+
+	APPEL_FONCTION_SYNT_UNI,
 };
 
 struct DonneesFonction;

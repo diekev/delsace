@@ -1017,6 +1017,12 @@ static void prepasse_acces_membre(
 		return;
 	}
 
+	if (b->aide_generation_code == APPEL_FONCTION_SYNT_UNI) {
+		cree_appel(membre, os, contexte, membre->nom_fonction_appel, membre->enfants);
+		b->valeur_calculee = membre->valeur_calculee;
+		return;
+	}
+
 	auto const &index_type = structure->index_type;
 	auto type_structure = contexte.magasin_types.donnees_types[index_type];
 
@@ -1770,7 +1776,7 @@ void genere_code_C(
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{
-			if (expr_gauche == false) {
+			if (expr_gauche == false || b->aide_generation_code == APPEL_FONCTION_SYNT_UNI) {
 				os << std::any_cast<std::string>(b->valeur_calculee);
 			}
 			else {
