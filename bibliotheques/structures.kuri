@@ -39,7 +39,7 @@ fonc empile(dyn p : *pile, d : *rien) : rien
 		capacité de p += 1;
     }
 
-    soit ptr = @tampon[taille de p * taille_elem de p] de p;
+    soit ptr = @p.tampon[taille de p * taille_elem de p];
 	copie_mem_nonsur(d, ptr, taille_elem de p);
 
     taille de p += 1;
@@ -57,7 +57,7 @@ fonc dépile(dyn p : *pile, d : *rien) : rien
     }
 
     si d != nul {
-	    soit ptr = @tampon[(taille de p - 1) * taille_elem de p] de p;
+	    soit ptr = @p.tampon[(taille de p - 1) * taille_elem de p];
 		copie_mem_nonsur(ptr, d, taille_elem de p);
     }
 
@@ -99,7 +99,7 @@ fonc enfile(dyn q : *file, d : *rien) : rien
 		capacité de q += 1;
     }
 
-    soit ptr = @tampon[taille de q * taille_elem de q] de q;
+    soit ptr = @q.tampon[taille de q * taille_elem de q];
 	copie_mem_nonsur(d, ptr, taille_elem de q);
 
     taille de q += 1;
@@ -117,15 +117,15 @@ fonc défile(dyn q : *file, d : *rien) : rien
     }
 
     si d != nul {
-	    soit ptr = @tampon[0] de q;
+	    soit ptr = @q.tampon[0];
 		copie_mem_nonsur(ptr, d, taille_elem de q);
     }
 
     # réajuste la file en décalant les données
 
     si taille de q > 1 {
-	    soit ptr_dst = @tampon[0] de q;
-		soit ptr_src = @tampon[taille_elem de q] de q;
+	    soit ptr_dst = @q.tampon[0];
+		soit ptr_src = @q.tampon[taille_elem de q];
         copie_mem_nonsur(ptr_src, ptr_dst, taille_elem de q * (taille de q - 1));
     }
 
@@ -167,7 +167,7 @@ fonc pousse_tableau(dyn t : *tableau, d : *rien) : rien
 		capacité de t += 1;
     }
 
-    soit ptr = @tampon[taille de t * taille_elem de t] de t;
+    soit ptr = @t.tampon[taille de t * taille_elem de t];
 	copie_mem_nonsur(d, ptr, taille_elem de t);
 
     taille de t += 1;
@@ -184,7 +184,7 @@ fonc début_tableau(t : *tableau) : *rien
         retourne nul;
     }
 
-    soit ptr = @tampon[0] de t;
+    soit ptr = @t.tampon[0];
     retourne transtype(ptr : *rien);
 }
 
@@ -197,6 +197,6 @@ fonc fin_tableau(t : *tableau) : *rien
     # NOTE : contrairement à C++, nous ne retournons pas un pointeur après la fin,
     # mais la fin elle-même car les boucles utilisant des plages vont jusqu'au dernier
     # élément (<=)
-	soit ptr = @tampon[(taille de t - 1) * taille_elem de t] de t;
+	soit ptr = @t.tampon[(taille de t - 1) * taille_elem de t];
     retourne transtype(ptr : *rien);
 }
