@@ -759,6 +759,8 @@ static void cree_appel(
 				}
 				case id_morceau::CHAINE:
 				{
+					genere_code_C_prepasse(enf, contexte, false, os);
+
 					os << nom_var_tableau << ".pointeur = ";
 					genere_code_C(enf, contexte, false, os, os);
 					os << ".pointeur;\n";
