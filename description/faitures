@@ -38,6 +38,7 @@ Faitures
 - surcharge de fonction avec des types différents
 - générateurs/coroutine permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
 - accès à la mémoire actuellement allouée
+- plusieurs valeur de retour
 
 
 À faire
@@ -82,6 +83,7 @@ Faitures
 - test initialisation de structures lors des déclarations
 - test surcharge de fonction
 - test coroutine
+- test valeurs de retours multiples
 
 
 Bugs (coulisse LLVM)
@@ -109,7 +111,7 @@ Idées
 - mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
 - transformer les messages d'erreur en tutoriaux
 - valeur par défaut des arguments
-- plusieurs valeurs de retour, avec nom et valeur par défaut
+- ajout de nom et valeur par défaut au type de retour
 - contexte (modifiable par l'utilisateur) implicit passé en paramètre de toutes les fonctions internes pour pouvoir faciliter la gestion de la mémoire et d'autres données du programme
 - compte de la mémoire utilisée avec rapport en fin d'exécution du programme sur ce qui a utilisé le plus de mémoire, et s'il y a fuite de mémoire
 

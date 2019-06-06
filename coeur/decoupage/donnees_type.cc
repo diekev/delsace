@@ -38,6 +38,7 @@
 #endif
 
 #include <cassert>
+#include <iostream>
 #include <sstream>
 
 #include "arbre_syntactic.h"
@@ -653,6 +654,9 @@ void MagasinDonneesType::converti_type_C(
 		auto debut = donnees.end() - 1;
 		auto fin = donnees.begin() - 1;
 
+		auto nombre_types_retour = 0ul;
+		auto parametres_finis = false;
+
 		/* saute l'id fonction */
 		--debut;
 
@@ -663,40 +667,61 @@ void MagasinDonneesType::converti_type_C(
 				/* rien à faire */
 			}
 			else if (*debut == id_morceau::PARENTHESE_FERMANTE) {
-				liste_pile_type.push_back(pile);
+				/* évite d'empiler s'il n'y a pas de paramètre, càd 'foo()' */
+				if (!pile.empty()) {
+					liste_pile_type.push_back(pile);
+				}
+
 				pile = std::stack<id_morceau>{};
+
+				if (parametres_finis) {
+					++nombre_types_retour;
+				}
+
+				parametres_finis = true;
 			}
 			else if (*debut == id_morceau::VIRGULE) {
 				liste_pile_type.push_back(pile);
 				pile = std::stack<id_morceau>{};
+
+				if (parametres_finis) {
+					++nombre_types_retour;
+				}
 			}
 			else {
 				pile.push(*debut);
 			}
 		}
 
-		/* la pile contient le type retour */
-		while (!pile.empty()) {
-			converti_type_simple_C(
-						contexte,
-						os,
-						pile.top(),
-						echappe,
-						echappe_struct,
-						echappe_tableau_fixe);
+		if (nombre_types_retour == 1) {
+			auto &pile_type = liste_pile_type[liste_pile_type.size() - nombre_types_retour];
 
-			pile.pop();
+			while (!pile_type.empty()) {
+				converti_type_C(
+							contexte,
+							"",
+							pile_type.top(),
+							os,
+							echappe,
+							echappe_struct);
+
+				pile_type.pop();
+			}
+		}
+		else {
+			os << "void ";
 		}
 
 		os << "(*" << nom_variable << ")";
 
 		auto virgule = '(';
 
-		if (liste_pile_type.size() == 1) {
+		if (liste_pile_type.size() == nombre_types_retour) {
 			os << virgule;
+			virgule = ' ';
 		}
 		else {
-			for (auto i = 0ul; i < liste_pile_type.size(); ++i) {
+			for (auto i = 0ul; i < liste_pile_type.size() - nombre_types_retour; ++i) {
 				os << virgule;
 
 				auto &pile_type = liste_pile_type[i];
@@ -713,6 +738,29 @@ void MagasinDonneesType::converti_type_C(
 					pile_type.pop();
 				}
 
+				virgule = ',';
+			}
+		}
+
+		if (nombre_types_retour > 1) {
+			for (auto i = liste_pile_type.size() - nombre_types_retour; i < liste_pile_type.size(); ++i) {
+				os << virgule;
+
+				auto &pile_type = liste_pile_type[i];
+
+				while (!pile_type.empty()) {
+					converti_type_C(
+								contexte,
+								"",
+								pile_type.top(),
+								os,
+								echappe,
+								echappe_struct);
+
+					pile_type.pop();
+				}
+
+				os << '*';
 				virgule = ',';
 			}
 		}
@@ -939,9 +987,10 @@ llvm::Type *converti_type_simple(
  * paramètre n'est pas un pointeur fonction, retourne un vecteur vide.
  */
 [[nodiscard]] auto donnees_types_parametres(
-		const DonneesType &donnees_type) noexcept(false) -> std::vector<DonneesType>
+		const DonneesType &donnees_type,
+		size_t &nombre_types_retour) noexcept(false) -> std::vector<DonneesType>
 {
-	if (donnees_type.type_base() != id_morceau::FONC) {
+	if (donnees_type.type_base() != id_morceau::FONC && donnees_type.type_base() != id_morceau::COROUT) {
 		return {};
 	}
 
@@ -949,9 +998,8 @@ llvm::Type *converti_type_simple(
 	std::vector<DonneesType> donnees_types;
 
 	auto debut = donnees_type.end() - 1;
-	auto fin   = donnees_type.begin() - 1;
 
-	--debut; /* fonction */
+	--debut; /* fonc ou corout */
 	--debut; /* ( */
 
 	/* type paramètres */
@@ -972,12 +1020,26 @@ llvm::Type *converti_type_simple(
 
 	--debut; /* ) */
 
+	--debut; /* ( */
+
 	/* type retour */
-	while (debut != fin) {
-		dt.pousse(*debut--);
+	while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+			dt.pousse(*debut--);
+
+			if (*debut == id_morceau::VIRGULE) {
+				--debut;
+				break;
+			}
+		}
+
+		donnees_types.push_back(dt);
+		++nombre_types_retour;
+
+		dt = DonneesType{};
 	}
 
-	donnees_types.push_back(dt);
+	--debut; /* ) */
 
 	return donnees_types;
 }

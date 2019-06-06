@@ -341,7 +341,8 @@ private:
 /* ************************************************************************** */
 
 [[nodiscard]] auto donnees_types_parametres(
-		const DonneesType &donnees_type) noexcept(false) -> std::vector<DonneesType>;
+		const DonneesType &donnees_type,
+		size_t &nombre_types_retour) noexcept(false) -> std::vector<DonneesType>;
 
 #ifdef AVEC_LLVM
 [[nodiscard]] llvm::Type *converti_type(

@@ -429,6 +429,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 	donnees_type_fonction.pousse(id_morceau::PARENTHESE_OUVRANTE);
 
 	auto donnees_fonctions = DonneesFonction{};
+	donnees_fonctions.est_coroutine = (id == id_morceau::COROUT);
 	donnees_fonctions.est_externe = externe;
 	donnees_fonctions.noeud_decl = noeud;
 
@@ -441,8 +442,31 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 	donnees_type_fonction.pousse(id_morceau::PARENTHESE_FERMANTE);
 
 	/* À FAIRE : inférence de type retour. */
-	noeud->index_type = analyse_declaration_type(&donnees_type_fonction);
-	donnees_fonctions.index_type_retour = noeud->index_type;
+
+	avance();
+
+	donnees_type_fonction.pousse(type_id::PARENTHESE_OUVRANTE);
+
+	auto idx_ret = 0;
+
+	while (true) {
+		auto index_type = analyse_declaration_type(&donnees_type_fonction, false);
+		donnees_fonctions.idx_types_retours.push_back(index_type);
+		donnees_fonctions.noms_retours.push_back("__ret" + std::to_string(idx_ret++));
+
+		if (est_identifiant(type_id::ACCOLADE_OUVRANTE) || est_identifiant(type_id::POINT_VIRGULE)) {
+			break;
+		}
+
+		if (est_identifiant(type_id::VIRGULE)) {
+			donnees_type_fonction.pousse(type_id::VIRGULE);
+			avance();
+		}
+	}
+
+	donnees_type_fonction.pousse(type_id::PARENTHESE_FERMANTE);
+
+	noeud->index_type = donnees_fonctions.idx_types_retours[0];
 	donnees_fonctions.index_type = m_contexte.magasin_types.ajoute_type(donnees_type_fonction);
 
 	if (m_module->fonction_existe(nom_fonction)) {
@@ -460,6 +484,10 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 	if (externe) {
 		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
 			lance_erreur("Attendu un point-virgule ';' après la déclaration de la fonction externe");
+		}
+
+		if (donnees_fonctions.idx_types_retours.size() > 1) {
+			lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
 		}
 	}
 	else {
@@ -1784,7 +1812,37 @@ size_t analyseuse_grammaire::analyse_declaration_type(DonneesType *donnees_type_
 		avance();
 		dt.pousse(id_morceau::PARENTHESE_FERMANTE);
 
-		analyse_declaration_type(&dt, false);
+		bool eu_paren_ouvrante = false;
+
+		if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+			avance();
+			eu_paren_ouvrante = true;
+		}
+
+		dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
+
+		while (true) {
+			if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+				break;
+			}
+
+			analyse_declaration_type(&dt, false);
+
+			auto est_virgule = est_identifiant(id_morceau::VIRGULE);
+
+			if ((est_virgule && !eu_paren_ouvrante) || !est_virgule) {
+				break;
+			}
+
+			avance();
+			dt.pousse(id_morceau::VIRGULE);
+		}
+
+		if (eu_paren_ouvrante && est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+			avance();
+		}
+
+		dt.pousse(id_morceau::PARENTHESE_FERMANTE);
 
 		if (donnees_type_fonction) {
 			donnees_type_fonction->pousse(dt);

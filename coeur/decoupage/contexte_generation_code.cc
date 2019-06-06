@@ -77,9 +77,11 @@ DonneesModule *ContexteGenerationCode::cree_module(
 	dt.pousse(id_morceau::FONC);
 	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
 	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
+	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
 	dt.pousse(id_morceau::Z64);
+	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
 	donnees_fonctions.index_type = magasin_types.ajoute_type(dt);
-	donnees_fonctions.index_type_retour = magasin_types[TYPE_Z64];
+	donnees_fonctions.idx_types_retours.push_back(magasin_types[TYPE_Z64]);
 	donnees_fonctions.nom_broye = broye_nom_fonction(nom_fonction, "", donnees_fonctions.index_type);
 
 	module->fonctions_exportees.insert(nom_fonction);

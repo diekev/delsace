@@ -208,6 +208,11 @@ void rassemble_feuilles(
 		base *noeud_base,
 		std::vector<base *> &feuilles)
 {
+	if (noeud_base->identifiant() != id_morceau::VIRGULE) {
+		feuilles.push_back(noeud_base);
+		return;
+	}
+
 	for (auto enfant : noeud_base->enfants) {
 		if (enfant->identifiant() == id_morceau::VIRGULE) {
 			rassemble_feuilles(enfant, feuilles);

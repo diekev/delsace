@@ -275,6 +275,25 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 	}
 }
 
+static auto derniere_instruction(base *b)
+{
+	if (b == nullptr) {
+		return static_cast<base *>(nullptr);
+	}
+
+	if (b->type == type_noeud::RETOUR) {
+		return b;
+	}
+
+	if (b->type == type_noeud::SI) {
+		if (b->enfants.size() != 3) {
+			return static_cast<base *>(nullptr);
+		}
+	}
+
+	return derniere_instruction(b->dernier_enfant());
+}
+
 /* ************************************************************************** */
 
 static auto valides_enfants(base *b, ContexteGenerationCode &contexte)
@@ -318,34 +337,17 @@ static auto valide_appel_pointeur_fonction(
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
-	auto debut = dt_fonc.end() - 1;
-	auto fin   = dt_fonc.begin() - 1;
-
-	while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-		--debut;
-	}
-
-	--debut;
-
-	auto dt = DonneesType{};
-
-	while (debut != fin) {
-		dt.pousse(*debut--);
-	}
-
-	b->index_type = contexte.magasin_types.ajoute_type(dt);
-	b->aide_generation_code = APPEL_POINTEUR_FONCTION;
-
 	valides_enfants(b, contexte);
 
 	/* vérifie la compatibilité des arguments pour déterminer
 	 * s'il y aura besoin d'une conversion. */
-	auto dt_params = donnees_types_parametres(dt_fonc);
+	auto nombre_type_retour = 0ul;
+	auto dt_params = donnees_types_parametres(dt_fonc, nombre_type_retour);
 
 	auto enfant = b->enfants.begin();
 
 	/* Validation des types passés en paramètre. */
-	for (size_t i = 0; i < dt_params.size() - 1; ++i) {
+	for (size_t i = 0; i < dt_params.size() - nombre_type_retour; ++i) {
 		auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
 
 		if (dt_params[i].type_base() == id_morceau::TROIS_POINTS) {
@@ -359,6 +361,11 @@ static auto valide_appel_pointeur_fonction(
 	}
 
 	b->nom_fonction_appel = nom_fonction;
+	/* À FAIRE : multiples types retours */
+	auto &dt = dt_params[dt_params.size() - nombre_type_retour];
+	b->index_type = contexte.magasin_types.ajoute_type(dt);
+	b->index_type_fonc = index_type;
+	b->aide_generation_code = APPEL_POINTEUR_FONCTION;
 }
 
 static void valide_acces_membre(
@@ -634,13 +641,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto bloc = b->enfants.front();
 
 			performe_validation_semantique(bloc, contexte);
-			auto type_bloc = bloc->index_type;
-			auto dernier = bloc->dernier_enfant();
+			auto inst_ret = derniere_instruction(bloc->dernier_enfant());
 
-			auto dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-			/* si le bloc est vide -> vérifie qu'aucun type n'a été spécifié */
-			if (dernier == nullptr) {
+			/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
+			if (inst_ret == nullptr) {
 				if (dt.type_base() != id_morceau::RIEN && !donnees_fonction->est_coroutine) {
 					erreur::lance_erreur(
 								"Instruction de retour manquante",
@@ -648,29 +654,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 								b->morceau,
 								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
-			}
-			/* si le bloc n'est pas vide */
-			else {
-				/* si le dernier noeud n'est pas un noeud de retour -> vérifie qu'aucun type n'a été spécifié */
-				if (dernier->type != type_noeud::RETOUR) {
-					if (dt.type_base() != id_morceau::RIEN && !donnees_fonction->est_coroutine) {
-						erreur::lance_erreur(
-									"Instruction de retour manquante",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-				}
-				/* vérifie que le type du bloc correspond au type de la fonction */
-				else {
-					if (b->index_type != type_bloc) {
-						erreur::lance_erreur(
-									"Le type de retour est invalide",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-				}
+
+				b->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
 			}
 
 			contexte.termine_fonction();
@@ -758,9 +743,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			b->df = candidate->df;
 			b->df->est_utilisee = true;
+			b->index_type_fonc = donnees_fonction->index_type;
 
 			if (b->index_type == -1ul) {
-				b->index_type = donnees_fonction->index_type_retour;
+				/* À FAIRE : multiple types retours */
+				b->index_type = donnees_fonction->idx_types_retours[0];
 			}
 
 			b->enfants.clear();
@@ -1058,6 +1045,53 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							erreur::type_erreur::ASSIGNATION_RIEN);
 			}
 
+			/* a, b = foo() */
+			if (variable->identifiant() == id_morceau::VIRGULE) {
+				if (expression->type != type_noeud::APPEL_FONCTION) {
+					erreur::lance_erreur(
+								"Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.",
+								contexte,
+								variable->morceau,
+								erreur::type_erreur::NORMAL);
+				}
+
+				std::vector<base *> feuilles;
+				rassemble_feuilles(variable, feuilles);
+
+				/* Utilisation du type de la fonction et non
+				 * DonneesFonction::idx_types_retour car les pointeurs de
+				 * fonctions n'ont pas de DonneesFonction. */
+				auto idx_dt_fonc = expression->index_type_fonc;
+				auto &dt_fonc = contexte.magasin_types.donnees_types[idx_dt_fonc];
+
+				auto nombre_type_retour = 0ul;
+				auto dt_params = donnees_types_parametres(dt_fonc, nombre_type_retour);
+
+				if (feuilles.size() != nombre_type_retour) {
+					erreur::lance_erreur(
+								"L'ignorance d'une valeur de retour non implémentée.",
+								contexte,
+								variable->morceau,
+								erreur::type_erreur::NORMAL);
+				}
+
+				auto decalage = dt_params.size() - nombre_type_retour;
+
+				for (auto i = 0ul; i < feuilles.size(); ++i) {
+					auto &f = feuilles[i];
+					auto &dtr = dt_params[decalage + i];
+
+					if (f->index_type == -1ul) {
+						f->index_type = contexte.magasin_types.ajoute_type(dtr);
+					}
+
+					f->aide_generation_code = GAUCHE_ASSIGNATION;
+					performe_validation_semantique(f, contexte);
+				}
+
+				return;
+			}
+
 			/* Ajourne les données du premier enfant si elles sont invalides, dans le
 			 * cas d'une déclaration de variable. */
 			if (variable->index_type == -1ul) {
@@ -1295,13 +1329,96 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::RETOUR:
 		{
+			auto df = contexte.donnees_fonction;
+
 			if (b->enfants.empty()) {
 				b->index_type = contexte.magasin_types[TYPE_RIEN];
+
+				if (!df->est_coroutine && (df->idx_types_retours[0] != b->index_type)) {
+					erreur::lance_erreur(
+								"Expression de retour manquante",
+								contexte,
+								b->morceau);
+				}
+
 				return;
 			}
 
-			performe_validation_semantique(b->enfants.front(), contexte);
-			b->index_type = b->enfants.front()->index_type;
+			assert(b->enfants.size() == 1);
+
+			auto enfant = b->enfants.front();
+
+			auto nombre_retour = df->idx_types_retours.size();
+
+			if (nombre_retour > 1) {
+				if (enfant->identifiant() == id_morceau::VIRGULE) {
+					std::vector<base *> feuilles;
+					rassemble_feuilles(enfant, feuilles);
+
+					if (feuilles.size() != df->idx_types_retours.size()) {
+						erreur::lance_erreur(
+									"Le compte d'expression de retour est invalide",
+									contexte,
+									b->morceau);
+					}
+
+					for (auto i = 0ul; i < feuilles.size(); ++i) {
+						auto f = feuilles[i];
+						performe_validation_semantique(f, contexte);
+
+						auto &dt_f = contexte.magasin_types.donnees_types[f->index_type];
+						auto &dt_i = contexte.magasin_types.donnees_types[df->idx_types_retours[i]];
+
+						auto nc = sont_compatibles(dt_i, dt_f, f->type);
+
+						if (nc == niveau_compat::aucune) {
+							erreur::lance_erreur_type_retour(
+										dt_i,
+										dt_f,
+										contexte,
+										f->morceau,
+										b->morceau);
+						}
+					}
+
+					/* À FAIRE : multiples types de retour */
+					b->index_type = feuilles[0]->index_type;
+					b->aide_generation_code = GENERE_CODE_RETOUR_MOULT;
+				}
+				else if (enfant->type == type_noeud::APPEL_FONCTION) {
+					performe_validation_semantique(enfant, contexte);
+
+					/* À FAIRE : multiples types de retour, confirmation typage */
+					b->index_type = enfant->index_type;
+					b->aide_generation_code = GENERE_CODE_RETOUR_MOULT;
+				}
+				else {
+					erreur::lance_erreur(
+								"Le compte d'expression de retour est invalide",
+								contexte,
+								b->morceau);
+				}
+			}
+			else {
+				performe_validation_semantique(enfant, contexte);
+				b->index_type = enfant->index_type;
+
+				auto &dt_f = contexte.magasin_types.donnees_types[b->index_type];
+				auto &dt_i = contexte.magasin_types.donnees_types[df->idx_types_retours[0]];
+
+				auto nc = sont_compatibles(dt_i, dt_f, enfant->type);
+
+				if (nc == niveau_compat::aucune) {
+					erreur::lance_erreur_type_retour(
+								dt_i,
+								dt_f,
+								contexte,
+								enfant->morceau,
+								b->morceau);
+				}
+
+				b->aide_generation_code = GENERE_CODE_RETOUR_SIMPLE;
+			}
 
 			break;
 		}
@@ -1425,19 +1542,20 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			};
 
-			auto const requiers_index = enfant1->morceau.identifiant == id_morceau::VIRGULE;
-
-			if (requiers_index) {
-				auto var = enfant1->enfants.front();
-				auto idx = enfant1->enfants.back();
-				verifie_redefinition_variable(var, contexte);
-				verifie_redefinition_variable(idx, contexte);
-			}
-			else {
-				verifie_redefinition_variable(enfant1, contexte);
-			}
 
 			performe_validation_semantique(enfant2, contexte);
+
+			/* À FAIRE : utilisation du type */
+			auto df = static_cast<DonneesFonction *>(nullptr);
+
+			auto feuilles = std::vector<base *>{};
+			rassemble_feuilles(enfant1, feuilles);
+
+			for (auto f : feuilles) {
+				verifie_redefinition_variable(f, contexte);
+			}
+
+			auto requiers_index = feuilles.size() == 2;
 
 			auto index_type = enfant2->index_type;
 			auto &type = contexte.magasin_types.donnees_types[index_type];
@@ -1457,11 +1575,22 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			else if (enfant2->type == type_noeud::APPEL_FONCTION && enfant2->df->est_coroutine) {
 				enfant1->index_type = enfant2->index_type;
 
-				if (requiers_index) {
+				df = enfant2->df;
+				auto nombre_vars_ret = df->idx_types_retours.size();
+
+				if (feuilles.size() == nombre_vars_ret) {
+					requiers_index = false;
+					b->aide_generation_code = GENERE_BOUCLE_COROUTINE;
+				}
+				else if (feuilles.size() == nombre_vars_ret + 1) {
+					requiers_index = true;
 					b->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
 				}
 				else {
-					b->aide_generation_code = GENERE_BOUCLE_COROUTINE;
+					erreur::lance_erreur(
+								"Mauvais compte d'arguments à déployer",
+								contexte,
+								enfant1->morceau);
 				}
 			}
 			else {
@@ -1530,34 +1659,38 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			}
 
-			if (requiers_index) {
-				auto var = enfant1->enfants.front();
-				auto idx = enfant1->enfants.back();
-				var->index_type = index_type;
+			auto nombre_feuilles = feuilles.size() - requiers_index;
+
+			for (auto i = 0ul; i < nombre_feuilles; ++i) {
+				auto f = feuilles[i];
 
 				auto donnees_var = DonneesVariable{};
-				donnees_var.donnees_type = index_type;
+
+				if (df != nullptr) {
+					donnees_var.donnees_type = df->idx_types_retours[i];
+				}
+				else {
+					donnees_var.donnees_type = index_type;
+				}
+
 				donnees_var.drapeaux = drapeaux;
 				donnees_var.est_dynamique = est_dynamique;
 
-				contexte.pousse_locale(var->chaine(), donnees_var);
+				contexte.pousse_locale(f->chaine(), donnees_var);
+			}
+
+			if (requiers_index) {
+				auto idx = feuilles.back();
 
 				index_type = contexte.magasin_types[TYPE_Z32];
 				idx->index_type = index_type;
 
+				auto donnees_var = DonneesVariable{};
 				donnees_var.donnees_type = index_type;
 				donnees_var.drapeaux = 0;
 				donnees_var.est_dynamique = est_dynamique;
 
 				contexte.pousse_locale(idx->chaine(), donnees_var);
-			}
-			else {
-				auto donnees_var = DonneesVariable{};
-				donnees_var.donnees_type = index_type;
-				donnees_var.drapeaux = drapeaux;
-				donnees_var.est_dynamique = est_dynamique;
-
-				contexte.pousse_locale(enfant1->chaine(), donnees_var);
 			}
 
 			/* À FAIRE : ceci duplique logique coulisse. */
@@ -1769,7 +1902,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
 			std::vector<base *> feuilles;
-			rassemble_feuilles(b, feuilles);
+			rassemble_feuilles(b->enfants.front(), feuilles);
 
 			for (auto f : feuilles) {
 				performe_validation_semantique(f, contexte);
@@ -2130,13 +2263,21 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::RETIENS:
 		{
-			contexte.donnees_fonction->est_coroutine = true;
+			if (!contexte.donnees_fonction->est_coroutine) {
+				erreur::lance_erreur(
+							"'retiens' hors d'une coroutine",
+							contexte,
+							b->morceau);
+			}
+
 			valides_enfants(b, contexte);
 
 			auto enfant = b->enfants.front();
 
-			if (enfant->index_type != contexte.donnees_fonction->index_type_retour) {
-				auto const &dt_arg = contexte.magasin_types.donnees_types[contexte.donnees_fonction->index_type_retour];
+			/* À FAIRE : multiple types retours. */
+			auto idx_type_retour = contexte.donnees_fonction->idx_types_retours[0];
+			if (enfant->index_type != contexte.donnees_fonction->idx_types_retours[0]) {
+				auto const &dt_arg = contexte.magasin_types.donnees_types[idx_type_retour];
 				auto const &dt_enf = contexte.magasin_types.donnees_types[enfant->index_type];
 				erreur::lance_erreur_type_retour(
 							dt_arg,

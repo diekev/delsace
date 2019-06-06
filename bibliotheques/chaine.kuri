@@ -146,7 +146,7 @@ fonc trouve_caractère(chn : chaine, carac : z8, pos : z64) : z64
     retourne transtype(-1 : z64);
 }
 
-fonc découpe(texte : chaine, sep : z8) : chaine
+corout découpe(texte : chaine, sep : z8) : chaine
 {
     dyn taille_mot : z64 = 0;
 	dyn début_mot : z64 = 0;

@@ -18,7 +18,7 @@ fonc comp_mem_ordre(a : []octet, b : []octet, taille : z64) : z32
 	    soit v = a[i] - b[i];
 
         si v != 0 {
-		    retourne v;
+		    retourne transtype(v : z32);
 		}
 	}
 

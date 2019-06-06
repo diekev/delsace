@@ -62,7 +62,8 @@ struct DonneesCoroutine {
 
 struct DonneesFonction {
 	std::unordered_map<std::string_view, DonneesArgument> args{};
-	size_t index_type_retour{-1ul};
+	std::vector<size_t> idx_types_retours{};
+	std::vector<std::string> noms_retours{};
 	size_t index_type{-1ul};
 	std::vector<std::string_view> nom_args{};
 	std::string nom_broye{};

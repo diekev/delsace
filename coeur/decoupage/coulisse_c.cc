@@ -806,7 +806,20 @@ static void cree_appel(
 
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-	if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
+	std::list<base *> liste_var_retour{};
+	std::vector<std::string> liste_noms_retour{};
+
+	if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET) {
+		liste_var_retour = std::any_cast<std::list<base *>>(b->valeur_calculee);
+		/* la valeur calculée doit être toujours valide. */
+		b->valeur_calculee = std::string("");
+	}
+	else if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET2) {
+		liste_noms_retour = std::any_cast<std::vector<std::string>>(b->valeur_calculee);
+		/* la valeur calculée doit être toujours valide. */
+		b->valeur_calculee = std::string("");
+	}
+	else if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
 		auto nom_indirection = "__ret" + std::to_string(b->morceau.ligne_pos);
 		contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 
@@ -820,11 +833,12 @@ static void cree_appel(
 
 	os << nom_broye;
 
-	if (enfants.size() == 0) {
-		os << '(';
-	}
-
 	auto virgule = '(';
+
+	if (enfants.empty() && liste_var_retour.empty() && liste_noms_retour.empty()) {
+		os << virgule;
+		virgule = ' ';
+	}
 
 	if ((b->df != nullptr) && b->df->est_coroutine) {
 		os << virgule << "&__etat" << b->morceau.ligne_pos;
@@ -871,6 +885,21 @@ static void cree_appel(
 			genere_code_C(enf, contexte, false, os, os);
 		}
 
+		virgule = ',';
+	}
+
+	for (auto n : liste_var_retour) {
+		os << virgule;
+
+		os << "&(";
+		genere_code_C(n, contexte, false, os, os);
+		os << ')';
+
+		virgule = ',';
+	}
+
+	for (auto n : liste_noms_retour) {
+		os << virgule << n;
 		virgule = ',';
 	}
 
@@ -1168,10 +1197,45 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:
 		{
-			genere_code_C_prepasse(b->enfants.back(),
+			auto variable = b->enfants.front();
+			auto expression = b->enfants.back();
+
+			/* a, b = foo(); -> foo(&a, &b); */
+			if (variable->identifiant() == id_morceau::VIRGULE) {
+				std::vector<base *> feuilles;
+				rassemble_feuilles(variable, feuilles);
+
+				std::list<base *> noeuds;
+
+				for (auto f : feuilles) {
+					f->drapeaux |= POUR_ASSIGNATION;
+
+					/* déclare au besoin */
+					if (f->aide_generation_code == GENERE_CODE_DECL_VAR) {
+						genere_code_C(f, contexte, true, os, os);
+						os << ';' << '\n';
+					}
+
+					f->drapeaux &= static_cast<unsigned short>(~POUR_ASSIGNATION);
+					f->aide_generation_code = 0;
+					noeuds.push_back(f);
+				}
+
+				expression->aide_generation_code = APPEL_FONCTION_MOULT_RET;
+				expression->valeur_calculee = noeuds;
+
+				genere_code_C_prepasse(expression,
+									   contexte,
+									   true,
+									   os);
+				return;
+			}
+
+			genere_code_C_prepasse(expression,
 								   contexte,
 								   true,
 								   os);
+
 			break;
 		}
 		case type_noeud::NOMBRE_REEL:
@@ -1367,7 +1431,7 @@ static void genere_code_C_prepasse(
 			os << " = ";
 
 			std::vector<base *> feuilles;
-			rassemble_feuilles(b, feuilles);
+			rassemble_feuilles(b->enfants.front(), feuilles);
 
 			auto virgule = '{';
 
@@ -1511,13 +1575,24 @@ void genere_code_C(
 			/* Crée fonction */
 			auto nom_fonction = donnees_fonction->nom_broye;
 
+			auto moult_retour = donnees_fonction->idx_types_retours.size() > 1;
+
 			if (donnees_fonction->est_coroutine) {
 				os << "typedef struct __etat_coro" << nom_fonction << " { bool __reprend_coro; bool __termine_coro; ";
-				contexte.magasin_types.converti_type_C(contexte,
-											"",
-											contexte.magasin_types.donnees_types[donnees_fonction->index_type_retour],
-										os);
-				os << " __val_coro;\n";
+
+				auto idx_ret = 0ul;
+				for (auto idx : donnees_fonction->idx_types_retours) {
+					auto &nom_ret = donnees_fonction->noms_retours[idx_ret++];
+
+					auto &dt = contexte.magasin_types.donnees_types[idx];
+					contexte.magasin_types.converti_type_C(
+								contexte,
+								nom_ret,
+								dt,
+								os);
+
+					os << ";\n";
+				}
 
 				auto &donnees_coroutine = donnees_fonction->donnees_coroutine;
 
@@ -1539,6 +1614,9 @@ void genere_code_C(
 				os << " } __etat_coro" << nom_fonction << ";\n";
 				os << "void " << nom_fonction;
 			}
+			else if (moult_retour) {
+				os << "void " << nom_fonction;
+			}
 			else {
 				contexte.magasin_types.converti_type_C(contexte,
 							nom_fonction,
@@ -1550,11 +1628,12 @@ void genere_code_C(
 
 			/* Crée code pour les arguments */
 
-			if (donnees_fonction->nom_args.size() == 0) {
-				os << '(';
-			}
-
 			auto virgule = '(';
+
+			if (donnees_fonction->nom_args.size() == 0 && !moult_retour) {
+				os << '(';
+				virgule = ' ';
+			}
 
 			if (donnees_fonction->est_coroutine) {
 				os << virgule;
@@ -1638,6 +1717,24 @@ void genere_code_C(
 				}
 			}
 
+			if (moult_retour && !donnees_fonction->est_coroutine) {
+				auto idx_ret = 0ul;
+				for (auto idx : donnees_fonction->idx_types_retours) {
+					os << virgule;
+
+					auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
+
+					auto &dt = contexte.magasin_types.donnees_types[idx];
+					contexte.magasin_types.converti_type_C(
+								contexte,
+								nom_ret,
+								dt,
+								os);
+
+					virgule = ',';
+				}
+			}
+
 			os << ")\n";
 
 			/* Crée code pour le bloc. */
@@ -1656,22 +1753,8 @@ void genere_code_C(
 
 			genere_code_C(bloc, contexte, false, os, os);
 
-			auto enfant_bloc = bloc->dernier_enfant();
-
-			if (enfant_bloc != nullptr) {
-				if (enfant_bloc->type == type_noeud::RETOUR) {
-					/* RAF */
-				}
-				else if (enfant_bloc->type == type_noeud::NONSUR) {
-					enfant_bloc = enfant_bloc->dernier_enfant();
-
-					if (enfant_bloc != nullptr || enfant_bloc->type != type_noeud::RETOUR) {
-						genere_code_extra_pre_retour(contexte, os);
-					}
-				}
-				else {
-					genere_code_extra_pre_retour(contexte, os);
-				}
+			if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
+				genere_code_extra_pre_retour(contexte, os);
 			}
 
 			os << "}\n";
@@ -1806,6 +1889,12 @@ void genere_code_C(
 
 			auto variable = b->enfants.front();
 			auto expression = b->enfants.back();
+
+			/* a, b = foo(); -> foo(&a, &b); */
+			if (variable->identifiant() == id_morceau::VIRGULE) {
+				/* fais dans la prépasse */
+				return;
+			}
 
 			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
 			auto expression_modifiee = false;
@@ -2054,12 +2143,37 @@ void genere_code_C(
 		{
 			auto nom_variable = std::string("");
 
-			if (!b->enfants.empty()) {
-				assert(b->enfants.size() == 1);
-
-				nom_variable = "__ret" + std::to_string(b->morceau.ligne_pos);
-
+			if (b->aide_generation_code == GENERE_CODE_RETOUR_MOULT) {
 				auto enfant = b->enfants.front();
+				auto df = contexte.donnees_fonction;
+
+				if (enfant->type == type_noeud::APPEL_FONCTION) {
+					/* retourne foo() -> foo(__ret...); return; */
+					enfant->aide_generation_code = APPEL_FONCTION_MOULT_RET2;
+					enfant->valeur_calculee = df->noms_retours;
+					genere_code_C_prepasse(enfant, contexte, false, os);
+				}
+				else if (enfant->identifiant() == id_morceau::VIRGULE) {
+					/* retourne a, b; -> *__ret1 = a; *__ret2 = b; return; */
+					std::vector<base *> feuilles;
+					rassemble_feuilles(enfant, feuilles);
+
+					auto idx = 0ul;
+					for (auto f : feuilles) {
+						genere_code_C_prepasse(f, contexte, false, os);
+
+						os << '*' << df->noms_retours[idx++] << " = ";
+						genere_code_C(f, contexte, false, os, os);
+						os << ';';
+					}
+				}
+			}
+			else if (b->aide_generation_code == GENERE_CODE_RETOUR_SIMPLE) {
+				auto enfant = b->enfants.front();
+				auto df = contexte.donnees_fonction;
+
+				nom_variable = df->noms_retours[0];
+
 				genere_code_C_prepasse(enfant, contexte, false, os);
 
 				auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
@@ -2375,16 +2489,19 @@ void genere_code_C(
 					os << nom_etat << ".__reprend_coro = 0;\n";
 					os << nom_etat << ".__termine_coro = 0;\n";
 
-					auto var = enfant1;
+					/* À FAIRE : utilisation du type */
+					auto df = enfant2->df;
+					auto nombre_vars_ret = df->idx_types_retours.size();
+
+					auto feuilles = std::vector<base *>{};
+					rassemble_feuilles(enfant1, feuilles);
+
 					auto idx = static_cast<noeud::base *>(nullptr);
 					auto nom_idx = std::string{};
 
-					if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
-						var = enfant1->enfants.front();
-						idx = enfant1->enfants.back();
-
+					if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
+						idx = feuilles.back();
 						nom_idx = "__idx" + std::to_string(b->morceau.ligne_pos);
-
 						os << "int " << nom_idx << " = 0;";
 					}
 
@@ -2396,34 +2513,33 @@ void genere_code_C(
 
 					os << "if (" << nom_etat << ".__termine_coro == 1) { break; }\n";
 
-					auto nom_var_broye = broye_chaine(var);
+					for (auto i = 0ul; i < nombre_vars_ret; ++i) {
+						auto f = feuilles[i];
+						auto nom_var_broye = broye_chaine(f);
 
-					contexte.magasin_types.converti_type_C(
-								contexte,
-								"",
-								type_debut,
-								os);
-					os << " " << nom_var_broye << ";" << nom_var_broye
-					   << " = " << nom_etat << ".__val_coro;\n";
+						contexte.magasin_types.converti_type_C(
+									contexte,
+									nom_var_broye,
+									type_debut,
+									os);
+
+						os << ';'
+						   << nom_var_broye
+						   << " = " << nom_etat
+						   << '.' << df->noms_retours[i] << ";\n";
+
+						auto donnees_var = DonneesVariable{};
+						donnees_var.donnees_type = df->idx_types_retours[i];
+						contexte.pousse_locale(f->chaine(), donnees_var);
+					}
 
 					if (idx) {
 						os << "int " << broye_chaine(idx) << " = " << nom_idx << ";\n";
 						os << nom_idx << " += 1;";
-					}
 
-					if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
 						auto donnees_var = DonneesVariable{};
-
-						donnees_var.donnees_type = var->index_type;
-						contexte.pousse_locale(var->chaine(), donnees_var);
-
 						donnees_var.donnees_type = idx->index_type;
 						contexte.pousse_locale(idx->chaine(), donnees_var);
-					}
-					else {
-						auto donnees_var = DonneesVariable{};
-						donnees_var.donnees_type = index_type;
-						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 				}
 			}
@@ -3012,15 +3128,24 @@ void genere_code_C(
 			 * i = __etat->val;
 			 */
 
-			auto &donnees_coroutine = contexte.donnees_fonction->donnees_coroutine;
+			auto df = contexte.donnees_fonction;
+			auto &donnees_coroutine = df->donnees_coroutine;
 			donnees_coroutine.nombre_retenues += 1;
 
 			auto enfant = b->enfants.front();
-			genere_code_C_prepasse(enfant, contexte, true, os);
 
-			os << "__etat->__val_coro = ";
-			genere_code_C(enfant, contexte, true, os, os);
-			os << ";\n";
+			auto feuilles = std::vector<base *>{};
+			rassemble_feuilles(enfant, feuilles);
+
+			for (auto i = 0ul; i < feuilles.size(); ++i) {
+				auto f = feuilles[i];
+
+				genere_code_C_prepasse(f, contexte, true, os);
+
+				os << "__etat->" << df->noms_retours[i] << " = ";
+				genere_code_C(f, contexte, true, os, os);
+				os << ";\n";
+			}
 
 			auto debut = contexte.debut_locales();
 			auto fin   = contexte.fin_locales();

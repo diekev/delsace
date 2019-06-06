@@ -177,6 +177,7 @@ inline bool possede_drapeau(unsigned short drapeau, unsigned short valeur)
 }
 
 enum {
+	/* instruction 'pour' */
 	GENERE_BOUCLE_PLAGE,
 	GENERE_BOUCLE_PLAGE_INDEX,
 	GENERE_BOUCLE_TABLEAU,
@@ -193,6 +194,14 @@ enum {
 	APPEL_POINTEUR_FONCTION,
 
 	APPEL_FONCTION_SYNT_UNI,
+
+	APPEL_FONCTION_MOULT_RET,
+	APPEL_FONCTION_MOULT_RET2,
+
+	/* instruction 'retourne' */
+	REQUIERS_CODE_EXTRA_RETOUR,
+	GENERE_CODE_RETOUR_MOULT,
+	GENERE_CODE_RETOUR_SIMPLE,
 };
 
 struct DonneesFonction;
@@ -211,6 +220,11 @@ struct base {
 	std::string nom_fonction_appel{}; // À FAIRE : on ne peut pas utiliser valeur_calculee car les prépasses peuvent le changer.
 
 	size_t index_type = -1ul;
+
+	/* utilisé pour déterminer les types de retour des fonctions à moultretour
+	 * car lors du besoin index_type est utilisé pour le type de retour de la
+	 *  première valeur */
+	size_t index_type_fonc = -1ul;
 
 	char aide_generation_code = 0;
 	unsigned short drapeaux = 0;
