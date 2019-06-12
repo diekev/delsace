@@ -2290,28 +2290,28 @@ void genere_code_C(
 		{
 			contexte.empile_nombre_locales();
 
+			auto dernier_enfant = static_cast<base *>(nullptr);
+
 			for (auto enfant : b->enfants) {
 				genere_code_C_prepasse(enfant, contexte, true, os);
 				genere_code_C(enfant, contexte, true, os, os);
 				os << ";\n";
+
+				dernier_enfant = enfant;
 
 				if (enfant->type == type_noeud::RETOUR) {
 					break;
 				}
 			}
 
-			if (b->enfants.size() != 0) {
-				auto dernier_enfant = b->enfants.back();
+			if (dernier_enfant != nullptr && dernier_enfant->type != type_noeud::RETOUR) {
+				/* génère le code pour tous les noeuds différés de ce bloc */
+				auto noeuds = contexte.noeuds_differes_bloc();
 
-				if (dernier_enfant->type != type_noeud::RETOUR) {
-					/* génère le code pour tous les noeuds différés de ce bloc */
-					auto noeuds = contexte.noeuds_differes_bloc();
-
-					while (!noeuds.empty()) {
-						auto n = noeuds.back();
-						genere_code_C(n, contexte, false, os, os);
-						noeuds.pop_back();
-					}
+				while (!noeuds.empty()) {
+					auto n = noeuds.back();
+					genere_code_C(n, contexte, false, os, os);
+					noeuds.pop_back();
 				}
 			}
 
