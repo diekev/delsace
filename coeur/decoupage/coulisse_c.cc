@@ -1614,7 +1614,7 @@ void genere_code_C(
 				}
 
 				os << " } __etat_coro" << nom_fonction << ";\n";
-				os << "void " << nom_fonction;
+				os << "static inline void " << nom_fonction;
 			}
 			else if (moult_retour) {
 				os << "void " << nom_fonction;
