@@ -353,38 +353,6 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 				m_debut_analyse = dls::chrono::maintenant();
 				break;
 			}
-			case id_morceau::DIRECTIVE:
-			{
-				avance();
-
-				if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-					lance_erreur("Attendu une chaine de caractère après '#!'");
-				}
-
-				auto directive = donnees().chaine;
-
-				if (directive == "inclus") {
-					if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-						lance_erreur("Attendu une chaine littérale après la directive");
-					}
-
-					auto chaine = donnees().chaine;
-					m_assembleuse->inclusions.push_back(chaine);
-				}
-				else if (directive == "bib") {
-					if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-						lance_erreur("Attendu une chaine littérale après la directive");
-					}
-
-					auto chaine = donnees().chaine;
-					m_assembleuse->bibliotheques.push_back(chaine);
-				}
-				else {
-					lance_erreur("Directive inconnue");
-				}
-
-				break;
-			}
 			default:
 			{
 				analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::INCONNU, false);
@@ -418,6 +386,15 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 
 	if (externe) {
 		noeud->drapeaux |= EST_EXTERNE;
+	}
+
+	if (m_etiquette_enligne) {
+		noeud->drapeaux |= FORCE_ENLIGNE;
+		m_etiquette_enligne = false;
+	}
+	else if (m_etiquette_horsligne) {
+		noeud->drapeaux |= FORCE_HORSLIGNE;
+		m_etiquette_horsligne = false;
 	}
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
@@ -742,10 +719,6 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			}
 			else {
 				avance();
-			}
-
-			if (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante après l'expression de retour.");
 			}
 
 			m_assembleuse->depile_noeud(type_noeud::RETOUR);
@@ -1484,6 +1457,75 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 				break;
 			}
+			case id_morceau::DIRECTIVE:
+			{
+				if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
+					avance();
+
+					auto directive = donnees().chaine;
+
+					if (directive == "inclus") {
+						if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+							lance_erreur("Attendu une chaine littérale après la directive");
+						}
+
+						auto chaine = donnees().chaine;
+						m_assembleuse->inclusions.push_back(chaine);
+					}
+					else if (directive == "bib") {
+						if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+							lance_erreur("Attendu une chaine littérale après la directive");
+						}
+
+						auto chaine = donnees().chaine;
+						m_assembleuse->bibliotheques.push_back(chaine);
+					}
+					else if (directive == "finsi") {
+						// dépile la dernière directive si, erreur si aucune
+					}
+					else if (directive == "enligne") {
+						m_etiquette_enligne = true;
+					}
+					else if (directive == "horsligne") {
+						m_etiquette_horsligne = true;
+					}
+					else if (directive == "commande") {
+						// ajoute une commande à exécuter après la compilation
+						// ignore si pas dans le fichier racine ?
+					}
+					else if (directive == "sortie") {
+						// renseigne le nom et le type (obj, exe) du fichier de sortie
+					}
+					else if (directive == "chemin") {
+						// ajoute le chemin à la liste des chemins où chercher les modules
+					}
+					else if (directive == "nulctx") {
+						// marque la fonction; où la déclaration d'un pointeur
+						// de fonction comme ne requierant pas le contexte implicite (À FAIRE)
+					}
+					else {
+						lance_erreur("Directive inconnue");
+					}
+				}
+				else if (est_identifiant(id_morceau::SI)) {
+					analyse_directive_si();
+				}
+				else if (est_identifiant(id_morceau::SINON)) {
+					avance();
+
+					if (est_identifiant(id_morceau::SI)) {
+						analyse_directive_si();
+					}
+
+					// ignore le code si la directive si parente a été consommée
+				}
+				else {
+					lance_erreur("Directive inconnue");
+				}
+
+				termine_boucle = true;
+				break;
+			}
 			default:
 			{
 				lance_erreur("Identifiant inattendu dans l'expression");
@@ -1995,6 +2037,42 @@ void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
 		avance();
 
 		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
+	}
+}
+
+void analyseuse_grammaire::analyse_directive_si()
+{
+	avance();
+	avance();
+
+	auto directive = donnees().chaine;
+
+	if (directive == "linux") {
+
+	}
+	else if (directive == "windows") {
+
+	}
+	else if (directive == "macos") {
+
+	}
+	else if (directive == "vrai") {
+
+	}
+	else if (directive == "faux") {
+
+	}
+	else if (directive == "arch8") {
+
+	}
+	else if (directive == "arch32") {
+
+	}
+	else if (directive == "arch64") {
+
+	}
+	else {
+		lance_erreur("Directive inconnue");
 	}
 }
 

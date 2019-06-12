@@ -56,6 +56,9 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 
 	double m_debut_analyse = 0.0;
 
+	bool m_etiquette_enligne = false;
+	bool m_etiquette_horsligne = false;
+
 public:
 	analyseuse_grammaire(
 			ContexteGenerationCode &contexte,
@@ -92,6 +95,7 @@ private:
 	void analyse_controle_si(type_noeud tn);
 	void analyse_controle_pour();
 	void analyse_construction_structure(noeud::base *noeud);
+	void analyse_directive_si();
 
 	bool requiers_identifiant_type();
 	bool requiers_nombre_entier();

@@ -1614,12 +1614,33 @@ void genere_code_C(
 				}
 
 				os << " } __etat_coro" << nom_fonction << ";\n";
-				os << "static inline void " << nom_fonction;
-			}
-			else if (moult_retour) {
+
+				os << "static ";
+
+				if (!possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+					os << "inline ";
+				}
+
 				os << "void " << nom_fonction;
 			}
+			else if (moult_retour) {
+				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
+					os << "static inline void ";
+				}
+				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+					os << "static void __attribute__ ((noinline)) ";
+				}
+
+				os << nom_fonction;
+			}
 			else {
+				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
+					os << "static inline ";
+				}
+				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+					os << "__attribute__ ((noinline)) ";
+				}
+
 				contexte.magasin_types.converti_type_C(contexte,
 							nom_fonction,
 							contexte.magasin_types.donnees_types[b->index_type],
@@ -2273,6 +2294,10 @@ void genere_code_C(
 				genere_code_C_prepasse(enfant, contexte, true, os);
 				genere_code_C(enfant, contexte, true, os, os);
 				os << ";\n";
+
+				if (enfant->type == type_noeud::RETOUR) {
+					break;
+				}
 			}
 
 			if (b->enfants.size() != 0) {
