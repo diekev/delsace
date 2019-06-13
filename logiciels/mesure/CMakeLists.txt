@@ -14,13 +14,19 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2019 Kévin Dietrich.
+# The Original Code is Copyright (C) 2017 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(arachne)
-add_subdirectory(kumo)
-add_subdirectory(mesure)
-add_subdirectory(parcer)
-add_subdirectory(tori)
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+)
+
+add_executable(mesure mesure.cc)
+
+target_include_directories(mesure PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(mesure stdc++fs)
+
+install(TARGETS mesure RUNTIME DESTINATION .)
