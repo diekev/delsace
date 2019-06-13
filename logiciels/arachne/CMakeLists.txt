@@ -14,12 +14,10 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2019 Kévin Dietrich.
+# The Original Code is Copyright (C) 2018 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(arachne)
-add_subdirectory(kumo)
-add_subdirectory(parcer)
-add_subdirectory(tori)
+add_subdirectory(sources)
+

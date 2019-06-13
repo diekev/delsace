@@ -1,0 +1,100 @@
+'''
+MATCH (n:LABEL),
+MATCH (n)-[r:RELATION]->()
+
+TROUVE (n:) # trouve tous les noeuds, mets les dans une collection 'n'
+TROUVE (n:)-[r:]->(m) # trouve tous les noeuds qui ont une relation avec un autre noeuds
+
+push condition noeud (tout, propriétés, étiquette)
+push condition relation (tout, propriétés, étiquette)
+push condition noeud (tout, propriétés, étiquette)
+
+COMPARE_PROPRIETE_EGAL "nom" "NOM"
+COMPARE_PROPRIETE_INFERIEURE
+
+TROUVE (n:UTILISATEUR)-[r:]->(m:UTILISATEUR)
+SI n.nom == "NOM" ET m.nom == "NOM"
+RETOURNE n.nom, m.nom;
+
+TROUVE (n:UTILISATEUR {nom:"NOM"})-[r:]->(m:UTILISATEUR {nom:"NOM"})
+RETOURNE n.nom, m.nom;
+'''
+
+CRÉE BASE_DE_DONNÉES "nom";
+UTILISE "nom";
+
+TROUVE (n:ETIQUETTE {nom:"lmqkjsd"})
+SUPPRIME n;
+
+TROUVE
+SI
+RETOURNE
+ET
+OU
+CRÉE
+SUPPRIME
+CHARGE
+ÉCRIT
+FICHIER
+BASE_DE_DONNÉES
+
+(
+)
+{
+}
+[
+]
+:
+;
+,
+==
+!=
+<=
+=>
+<
+>
+
+trouve:
+	description_noeud | description_relation
+
+description_noeud:
+	pareno chaîne : chaîne acco propriétés accf parenf
+
+pareno:
+	(
+
+parenf:
+	)
+
+acco:
+	{
+
+accf:
+	}
+
+description_chaine:
+	croo chaîne : chaîne acco propriétés accf crof
+
+croo:
+	[
+
+crof:
+	]
+
+chaîne:
+	caractères française, _ 0-8
+
+propriétés:
+	propriété [, propriété...]
+
+propriété:
+	chaîne : (chaîne | nombre)
+
+nombre:
+	nombre_entier | nombre_décimal
+
+nombre_entier:
+	0-9+
+
+nombre_décimal
+	0-9+.0-9+

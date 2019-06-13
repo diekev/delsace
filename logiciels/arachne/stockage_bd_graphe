@@ -1,0 +1,52 @@
+- stockage des noeuds (arachne.noeud.bd):
+-- chaque item est des 9 octets (node id: 100 -> démarre à 900 octet dans le fichier)
+-- 1 octet : drapeau pour savoir si le noeud est utilisé ou peut être recyclé
+-- 4 octets : id de la première relation du noeud
+-- 4 octets : id de la première propriété
+-- 5 octets : pointeur pour le magasin d'étiquettes du noeud
+-- 1 octet : drapeaux (savoir si le noeud est densément connecté)
+
+- stockage des relations (arachne.relation.bd):
+-- 1 octet : drapeau d'utilisation
+-- 4 octets : id du noeud de départ
+-- 4 octets : id du noeud de fin
+-- 4 octets : pointeur vers le type de relation
+-- 4 octets : pointeur vers la relation suivante du noeud de départ
+-- 4 octets : pointeur vers la relation précédente du noeud de départ
+-- 4 octets : pointeur vers la relation suivante du noeud de fin
+-- 4 octets : pointeur vers la relation précédente du noeud de fin
+-- 4 octets : id de la première propriété
+-- 1 octet : drapeau pour savoir si la relation est la première dans la liste de relation
+
+- stockage des type de relations (arachne.type_relation.bd):
+-- 1 octet : drapeau d'utilisation
+-- 4 octet : id
+-- 4 octet : taille
+-- x octet : valeur
+
+- stockage des propriétés (arachne.propriete.bd):
+-- 1 octet : drapeau d'utilisation
+-- 1 octet : type de la propriété (int, float, etc...)
+-- 4 octets : id de la propriété suivante
+-- 4 octets : pointeur vers le nom de la propriété
+-- 4 octets : pointeur vers la valeur de la propriété dynamique ou valeur enlignée
+
+
+- stockage du nom des propriété (arachne.nom_propriete.bd):
+-- 4 octet : id
+-- 4 octet : taille
+-- x octet : contenu
+
+
+- stockage des valeurs des propriété strings (arachne.valeur_propriete_str.bd):
+-- 4 octet : pointeur
+-- 4 octet : taille
+-- 1 octet : drapeau d'utilisation
+-- x octet : contenu
+
+
+- stockage des valeurs des propriété arrays (arachne.valeur_propriete_arr.bd):
+-- 4 octet : pointeur
+-- 4 octet : taille
+-- 1 octet : drapeau d'utilisation
+-- x octet : contenu

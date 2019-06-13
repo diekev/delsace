@@ -23,6 +23,7 @@ set(NOM_PROJET tests_unitaire_delsace)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 set(BIBLIOTHEQUES
@@ -32,9 +33,15 @@ set(BIBLIOTHEQUES
 	sha256
 	math
 	types
+	arachne
+	stdc++fs
+	systeme_fichier
 )
 
 set(SOURCES
+	arachne/test_creation_base_donnees.cc
+	arachne/test_graphe.cc
+
 	math/test_math.cc
 	math/test_matrice.cc
 	math/test_matrice_fixe.cc
@@ -48,6 +55,8 @@ set(SOURCES
 	test_temperature.cc
 	test_time.cc
 	test_uri.cc
+
+	arachne/tests_arachne.hh
 
 	math/tests_math.hh
 	math/tests_matrice.hh

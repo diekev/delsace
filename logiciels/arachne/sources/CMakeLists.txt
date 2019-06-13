@@ -14,12 +14,42 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2019 Kévin Dietrich.
+# The Original Code is Copyright (C) 2018 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(arachne)
-add_subdirectory(kumo)
-add_subdirectory(parcer)
-add_subdirectory(tori)
+set(NOM_PROJET arachne)
+
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
+)
+
+set(BIBLIOTHEQUES
+	stdc++fs
+	systeme_fichier
+	dl
+)
+
+set(ENTETES
+	analyseuse.h
+	autrice_fichier.h
+	gestionnaire.h
+	graphe.h
+	lectrice_fichier.h
+	magasin_chaine.h
+)
+
+set(SOURCES
+	analyseuse.cc
+	autrice_fichier.cc
+	gestionnaire.cc
+	graphe.cc
+	lectrice_fichier.cc
+	magasin_chaine.cc
+)
+
+add_library(${NOM_PROJET} STATIC ${SOURCES} ${ENTETES})
+
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+target_link_libraries(${NOM_PROJET} ${INCLUSIONS})
