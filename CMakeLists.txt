@@ -116,18 +116,7 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-add_subdirectory(base64)
-add_subdirectory(bcrypt)
-add_subdirectory(chrono)
-add_subdirectory(connexion_mysql)
-add_subdirectory(kumo)
-add_subdirectory(langage)
-add_subdirectory(math)
-add_subdirectory(parallèle)
-add_subdirectory(phys)
-add_subdirectory(réseau)
-add_subdirectory(sha256)
+add_subdirectory(biblinternes)
+add_subdirectory(logiciels)
 add_subdirectory(tests)
-add_subdirectory(tests_delsace)
-add_subdirectory(tori)
-add_subdirectory(unicode)
+

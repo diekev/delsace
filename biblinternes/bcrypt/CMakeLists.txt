@@ -19,55 +19,44 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_PROJET tests_unitaire_delsace)
+set(NOM_PROJET bcrypt)
+
+enable_language(ASM)
+
+set(CMAKE_ASM_FLAGS "${CXXFLAGS} -x assembler-with-cpp")
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 set(BIBLIOTHEQUES
-	tests
-	base64
-	reseau
-	sha256
 )
 
-set(SOURCES
-	math/tests_matrice.cc
-	math/tests_quaternion.cc
-	math/tests_vecteur.cc
+add_library(${NOM_PROJET} STATIC
+	bcrypt.c
+	crypt_blowfish.c
+	crypt_gensalt.c
+	wrapper.c
 
-	tests.cc
-	test_uri.cc
+	bcrypt.hh
+	bcrypt.h
+	crypt.h
+	crypt_blowfish.h
+	crypt_gensalt.h
+	ow-crypt.h
 
-	math/tests_matrice.hh
-	math/tests_quaternion.hh
-	math/tests_vecteur.hh
-
-	test_uri.hh
+	x86.S
 )
 
-add_executable(${NOM_PROJET} ${SOURCES})
+get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=class-memaccess)
+set_target_properties(${NOM_PROJET} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+
 target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
-add_test(tests ${NOM_PROJET})
-
-install(TARGETS ${NOM_PROJET} RUNTIME DESTINATION .)
-
-set(NOM_PROJET tests_aleatoire_delsace)
-
-set(SOURCES
-	tests_aleatoire.cc
+install(
+    TARGETS ${NOM_PROJET} ARCHIVE DESTINATION .
 )
-
-add_executable(${NOM_PROJET} ${SOURCES})
-
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-
-add_test(tests ${NOM_PROJET})
-
-install(TARGETS ${NOM_PROJET} RUNTIME DESTINATION .)
