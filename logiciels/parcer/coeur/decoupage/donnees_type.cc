@@ -1,0 +1,228 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#include "donnees_type.hh"
+
+#include <cassert>
+#include <sstream>
+
+#include "arbre_syntactic.hh"
+#include "broyage.hh"
+#include "contexte_generation_code.hh"
+#include "morceaux.hh"
+
+DonneesType::DonneesType(id_morceau i0)
+{
+	m_donnees.push_back(i0);
+}
+
+DonneesType::DonneesType(id_morceau i0, id_morceau i1)
+{
+	m_donnees.push_back(i0);
+	m_donnees.push_back(i1);
+}
+
+void DonneesType::pousse(id_morceau identifiant)
+{
+	m_donnees.push_back(identifiant);
+}
+
+void DonneesType::pousse(const DonneesType &autre)
+{
+	auto const taille = m_donnees.size();
+	m_donnees.resize(taille + autre.m_donnees.size());
+	std::copy(autre.m_donnees.begin(), autre.m_donnees.end(), m_donnees.begin() + static_cast<long>(taille));
+}
+
+id_morceau DonneesType::type_base() const
+{
+	return m_donnees.front();
+}
+
+bool DonneesType::est_invalide() const
+{
+	if (m_donnees.empty()) {
+		return true;
+	}
+
+	switch (m_donnees.back()) {
+		case id_morceau::POINTEUR:
+		case id_morceau::REFERENCE:
+		case id_morceau::TABLEAU:
+			return true;
+		default:
+			return false;
+	}
+}
+
+DonneesType::iterateur_const DonneesType::begin() const
+{
+	return m_donnees.rbegin();
+}
+
+DonneesType::iterateur_const DonneesType::end() const
+{
+	return m_donnees.rend();
+}
+
+DonneesType DonneesType::derefence() const
+{
+	auto donnees = DonneesType{};
+
+	for (size_t i = 1; i < m_donnees.size(); ++i) {
+		donnees.pousse(m_donnees[i]);
+	}
+
+	return donnees;
+}
+
+std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte)
+{
+	std::stringstream os;
+
+	if (donnees_type.est_invalide()) {
+		os << "type invalide";
+	}
+	else {
+		auto debut = donnees_type.end() - 1;
+		auto fin = donnees_type.begin() - 1;
+
+		for (;debut != fin; --debut) {
+			auto donnee = *debut;
+			switch (donnee & 0xff) {
+				case id_morceau::TROIS_POINTS:
+				{
+					os << "...";
+					break;
+				}
+				case id_morceau::POINTEUR:
+					os << '*';
+					break;
+				case id_morceau::TABLEAU:
+					os << '[';
+
+					if (static_cast<size_t>(donnee >> 8) != 0) {
+						os << static_cast<size_t>(donnee >> 8);
+					}
+
+					os << ']';
+					break;
+				case id_morceau::BOOL:
+					os << "bool";
+					break;
+				case id_morceau::PARENTHESE_OUVRANTE:
+					os << '(';
+					break;
+				case id_morceau::PARENTHESE_FERMANTE:
+					os << ')';
+					break;
+				case id_morceau::VIRGULE:
+					os << ',';
+					break;
+				case id_morceau::CHAINE_CARACTERE:
+				{
+					auto id = static_cast<size_t>(donnee >> 8);
+					os << contexte.nom_struct(id);
+					break;
+				}
+				default:
+				{
+					os << "INVALIDE";
+					break;
+				}
+			}
+		}
+	}
+
+	return os.str();
+}
+
+/* ************************************************************************** */
+
+size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
+{
+	auto iter = donnees_type_index.find(donnees);
+
+	if (iter != donnees_type_index.end()) {
+		return iter->second;
+	}
+
+	auto index = donnees_types.size();
+	donnees_types.push_back(donnees);
+
+	donnees_type_index.insert({donnees, index});
+
+	return index;
+}
+
+/* ************************************************************************** */
+
+/**
+ * Retourne un vecteur contenant les DonneesType de chaque paramètre et du type
+ * de retour d'un DonneesType d'un pointeur fonction. Si le DonneesType passé en
+ * paramètre n'est pas un pointeur fonction, retourne un vecteur vide.
+ */
+[[nodiscard]] auto donnees_types_parametres(
+		const DonneesType &donnees_type) noexcept(false) -> std::vector<DonneesType>
+{
+//	if (donnees_type.type_base() != id_morceau::FONC) {
+//		return {};
+//	}
+
+	auto dt = DonneesType{};
+	std::vector<DonneesType> donnees_types;
+
+	auto debut = donnees_type.end() - 1;
+	auto fin   = donnees_type.begin() - 1;
+
+	--debut; /* fonction */
+	--debut; /* ( */
+
+	/* type paramètres */
+	while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+			dt.pousse(*debut--);
+
+			if (*debut == id_morceau::VIRGULE) {
+				--debut;
+				break;
+			}
+		}
+
+		donnees_types.push_back(dt);
+
+		dt = DonneesType{};
+	}
+
+	--debut; /* ) */
+
+	/* type retour */
+	while (debut != fin) {
+		dt.pousse(*debut--);
+	}
+
+	donnees_types.push_back(dt);
+
+	return donnees_types;
+}
