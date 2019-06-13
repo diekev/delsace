@@ -26,6 +26,9 @@
 
 #include <cmath>
 #include <limits>
+#include <string>
+
+#include "concepts.hh"
 
 namespace dls::math {
 
@@ -136,5 +139,313 @@ template <typename T>
 {
 	return (degre / static_cast<T>(180)) * static_cast<T>(M_PI);
 }
+
+/**
+ * Cas de base, il semblerait que les templates variadiques ne foncionnent pas
+ * sans lui.
+ */
+template <ConceptNombre nombre>
+inline auto min(const nombre &a) -> const nombre&
+{
+	return a;
+}
+
+/**
+ * Retourne le minimum de deux valeurs.
+ */
+template <ConceptNombre nombre>
+inline auto min(const nombre &a, const nombre &b) -> const nombre&
+{
+	return (a > b) ? a : b;
+}
+
+/**
+ * Retourne le minimum de plusieurs valeurs.
+ */
+template <ConceptNombre nombre, ConceptNombre... nombres>
+inline auto min(const nombre &a, const nombre &b, const nombres &... c) -> const nombre&
+{
+	return min(a, min(b, c...));
+}
+
+/**
+ * Cas de base, il semblerait que les templates variadiques ne foncionnent pas
+ * sans lui.
+ */
+template <ConceptNombre nombre>
+inline auto max(const nombre &a) -> const nombre&
+{
+	return a;
+}
+
+/**
+ * Retourne le maximum de deux valeurs.
+ */
+template <ConceptNombre nombre>
+inline auto max(const nombre &a, const nombre &b) -> const nombre&
+{
+	return (a > b) ? a : b;
+}
+
+/**
+ * Retourne le maximum de plusieurs valeurs.
+ */
+template <ConceptNombre nombre, ConceptNombre... nombres>
+inline auto max(const nombre &a, const nombre &b, const nombres &... c) -> const nombre&
+{
+	return max(a, max(b, c...));
+}
+
+/**
+ * Retourne la valeur du premier paramètre serrée entre min et max.
+ */
+template <ConceptNombre nombre>
+inline auto clamp(const nombre &x, const nombre &min = nombre(0), const nombre &max = nombre(1)) -> const nombre&
+{
+	if      (x < min) return min;
+	else if (x > max) return max;
+	return x;
+}
+
+template <ConceptNombre nombre>
+inline auto radian_vers_degre(nombre radian)
+{
+	return (radian / static_cast<nombre>(M_PI)) * static_cast<nombre>(180);
+}
+
+template <ConceptNombre nombre>
+inline auto degre_vers_radian(nombre degre)
+{
+	return (degre / static_cast<nombre>(180)) * static_cast<nombre>(M_PI);
+}
+
+template <ConceptNombre nombre>
+inline auto etape_lisse(nombre r)
+{
+	static_assert(std::is_floating_point<nombre>::value,
+				  "Cette opération ne fonctionne que sur des nombres décimaux !");
+
+	if (r <= static_cast<nombre>(0)) {
+		return static_cast<nombre>(0);
+	}
+
+	if (r > static_cast<nombre>(1)) {
+		return static_cast<nombre>(1);
+	}
+
+	return r * r * r * (10 + r * (-15 + r * 6));
+}
+
+template <ConceptNombre nombre>
+inline auto etape_lisse(nombre n, nombre n_bas, nombre n_haut, nombre valeur_basse, nombre valeur_haute)
+{
+	static_assert(std::is_floating_point<nombre>::value,
+				  "Cette opération ne fonctionne que sur des nombres décimaux !");
+
+	return valeur_basse + etape_lisse((n - n_bas) / (n_haut - n_bas)) * (valeur_haute - valeur_basse);
+}
+
+template <ConceptNombre nombre>
+inline auto rampe(nombre n)
+{
+	static_assert(std::is_floating_point<nombre>::value,
+				  "Cette opération ne fonctionne que sur des nombres décimaux !");
+
+	return etape_lisse((n + 1) * 0.5) * 2 - 1;
+}
+
+#define INUTILISE(x) static_cast<void>(x)
+
+/**
+ * Retourne vrai si le nombre spécifié est d'un type intégral et pair.
+ */
+template <ConceptNombre nombre>
+inline auto est_pair(nombre x)
+{
+	/* cppcheck-suppress syntaxError */
+	if constexpr (std::is_integral<nombre>::value) {
+		return (x & 0x1) == 0;
+	}
+
+	INUTILISE(x);
+	return false;
+}
+
+template <typename T>
+struct est_float : std::false_type {};
+
+template <>
+struct est_float<float> : std::true_type {};
+
+template <typename T>
+struct est_double : std::false_type {};
+
+template <>
+struct est_double<double> : std::true_type {};
+
+template <typename T>
+struct est_string : std::false_type {};
+
+template <>
+struct est_string<std::string> : std::true_type {};
+
+template <typename T>
+struct est_bool : std::false_type {};
+
+template <>
+struct est_bool<bool> : std::true_type {};
+
+/**
+ * Retourne la valeur par défaut du type spécifié. Savoir, 0, false, ou "".
+ */
+template <typename T>
+inline auto valeur_nulle()
+{
+	if constexpr (est_string<T>::value) {
+		return std::string{""};
+	}
+	else if constexpr (est_bool<T>::value) {
+		return false;
+	}
+
+	return static_cast<T>(0);
+}
+
+/**
+ * Tolérance pour les types décimaux. Si le type du nombre n'est pas décimal,
+ * retourne 0.
+ */
+template <ConceptNombre nombre>
+inline auto tolerance()
+{
+	if constexpr (est_float<nombre>::value) {
+		return 1e-8f;
+	}
+	else if constexpr (est_double<nombre>::value) {
+		return 1e-15;
+	}
+
+	return valeur_nulle<nombre>();
+}
+
+/**
+ * Delta pour de petit écart de nombres décimaux. Si le type du nombre n'est pas
+ * décimal, retourne 0.
+ */
+template <ConceptNombre nombre>
+inline auto delta()
+{
+	if constexpr (est_float<nombre>::value) {
+		return 1e-5f;
+	}
+	else if constexpr (est_double<nombre>::value) {
+		return 1e-9;
+	}
+
+	return valeur_nulle<nombre>();
+}
+
+/**
+ * Retourne vrai si le nombre spécifié est à peu près égal à zéro suivant la
+ * comparaison de nombre décimaux par défaut.
+ */
+template <ConceptNombre nombre>
+inline auto est_environ_zero(nombre n)
+{
+	const auto t = valeur_nulle<nombre>() + tolerance<nombre>();
+	return !(n > t) && !(n < -t);
+}
+
+/**
+ * Retourne vrai si le nombre spécifié est à peu près égal à zéro suivant la
+ * tolérance spécifiée.
+ */
+template <ConceptNombre nombre>
+inline auto est_environ_zero(nombre n, nombre t)
+{
+	return !(n > t) && !(n < -t);
+}
+
+/**
+ * Retourne vrai si les nombres spécifiés sont à peu près égaux suivant la
+ * comparaison de nombre décimaux par défaut.
+ */
+template <ConceptNombre nombre>
+inline auto sont_environ_egaux(nombre a, nombre b)
+{
+	const auto t = valeur_nulle<nombre>() + tolerance<nombre>();
+	return !(std::abs(a - b) > t);
+}
+
+/**
+ * Retourne vrai si les nombres spécifiés sont à peu près égaux suivant la
+ * tolérance spécifiée.
+ */
+template <ConceptNombre nombre>
+inline auto sont_environ_egaux(nombre a, nombre b, nombre t)
+{
+	return !(std::abs(a - b) > t);
+}
+
+/**
+ * Retourne vrai si les nombres spécifiés sont relativment égaux suivant la
+ * tolérance absolue ou relative spécifiée.
+ */
+template <ConceptNombre nombre>
+inline auto sont_relativement_egaux(nombre a, nombre b, nombre t_abs, nombre t_rel)
+{
+	/* D'abord, vérifions que nous sommes dans la tolérance absolue, ce qui est
+	 * nécessaire pour les nombres proches de zéro. */
+	if (!(std::abs(a - b) > t_abs)) {
+		return true;
+	}
+
+	/* Ensuite, vérifions si nous sommes dans la tolérance relative pour prendre
+	 * en compte les grands nombres qui ne sont pas dans la tolérance absolue
+	 * mais qui pourrait être la représentation décimale la plus proche. */
+	const auto erreur = std::abs(a - b) / ((std::abs(b) > std::abs(a)) ? b : a);
+	return (erreur <= t_rel);
+}
+
+template <ConceptNombre N>
+inline auto reciproque(N n)
+{
+	return static_cast<N>(1) / n;
+}
+
+template <typename T>
+struct nombre_bit {
+	static constexpr std::size_t valeur = sizeof(T) * 8;
+};
+
+/* Puissance de nombres entiers positifs. */
+
+template <std::size_t B, std::size_t E>
+struct puissance {
+	enum {
+		valeur = B * puissance<B, E - 1>::valeur
+	};
+};
+
+template <std::size_t E>
+struct puissance<1, E> {
+	enum {
+		valeur = 1
+	};
+};
+
+template <std::size_t E>
+struct puissance<0, E> {
+	enum {
+		valeur = 0
+	};
+};
+
+template <std::size_t B>
+struct puissance<B, 0> {
+	enum {
+		valeur = 1
+	};
+};
 
 }  /* namespace dls::math */

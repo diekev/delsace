@@ -22,31 +22,10 @@
  *
  */
 
-#include "tests.hh"
+#pragma once
 
-#include "test_uri.hh"
+#include "../tests/test_unitaire.hh"
 
-#include "math/tests_math.hh"
-#include "math/tests_matrice.hh"
-#include "math/tests_quaternion.hh"
-#include "math/tests_vecteur.hh"
-
-int main()
-{
-	dls::test_unitaire::Controleuse controleuse;
-	controleuse.ajoute_fonction(test_uri);
-	controleuse.ajoute_fonction(tests_matrice);
-	controleuse.ajoute_fonction(tests_quaternion);
-	controleuse.ajoute_fonction(tests_vecteur);
-	controleuse.ajoute_fonction(test_matrice);
-	controleuse.ajoute_fonction(test_math);
-	controleuse.ajoute_fonction(test_statistique);
-	controleuse.ajoute_fonction(test_nombre_decimaux);
-	controleuse.ajoute_fonction(test_pystring);
-	controleuse.ajoute_fonction(test_date);
-	controleuse.ajoute_fonction(test_temperature);
-
-	controleuse.performe_controles();
-
-	controleuse.imprime_resultat();
-}
+void test_matrice(dls::test_unitaire::Controleuse &controleur);
+void test_math(dls::test_unitaire::Controleuse &controleur);
+void test_statistique(dls::test_unitaire::Controleuse &controleur);

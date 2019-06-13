@@ -14,29 +14,32 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2019 Kévin Dietrich.
+# The Original Code is Copyright (C) 2017 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(audio)
-add_subdirectory(base64)
-add_subdirectory(bcrypt)
-add_subdirectory(chisei)
-add_subdirectory(chrono)
-add_subdirectory(compression)
-add_subdirectory(connexion_mysql)
-add_subdirectory(flux)
-add_subdirectory(image)
-add_subdirectory(langage)
-add_subdirectory(math)
-add_subdirectory(nombre_decimaux)
-add_subdirectory(outils)
-add_subdirectory(parallèle)
-add_subdirectory(phys)
-add_subdirectory(réseau)
-add_subdirectory(sha256)
-add_subdirectory(systeme_fichier)
-add_subdirectory(tests)
-add_subdirectory(types)
-add_subdirectory(unicode)
+set(NOM_BIBLIOTHEQUE docopt)
+
+set(HEADERS_LIB
+	docopt.hh
+	docopt_value.hh
+)
+
+set(HEADERS
+	docopt_private.hh
+	docopt_util.hh
+
+	${HEADERS_LIB}
+)
+
+set(SOURCES
+	docopt.cc
+)
+
+add_definitions(-DDOCTOPT_USE_BOOST_REGEX=0)
+
+add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${HEADERS})
+
+install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
+install(FILES ${HEADERS_LIB} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})

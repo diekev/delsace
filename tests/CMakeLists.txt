@@ -30,21 +30,32 @@ set(BIBLIOTHEQUES
 	base64
 	reseau
 	sha256
+	math
+	types
 )
 
 set(SOURCES
+	math/test_math.cc
+	math/test_matrice.cc
+	math/test_matrice_fixe.cc
 	math/tests_matrice.cc
 	math/tests_quaternion.cc
 	math/tests_vecteur.cc
 
 	tests.cc
+	test_float.cc
+	test_string.cc
+	test_temperature.cc
+	test_time.cc
 	test_uri.cc
 
+	math/tests_math.hh
 	math/tests_matrice.hh
 	math/tests_quaternion.hh
 	math/tests_vecteur.hh
 
 	test_uri.hh
+	tests.hh
 )
 
 add_executable(${NOM_PROJET} ${SOURCES})

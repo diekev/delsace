@@ -15,38 +15,29 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2017 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#include "tests.hh"
-
-#include "test_uri.hh"
-
-#include "math/tests_math.hh"
-#include "math/tests_matrice.hh"
-#include "math/tests_quaternion.hh"
-#include "math/tests_vecteur.hh"
+#include "masque_binaire.h"
 
 int main()
 {
-	dls::test_unitaire::Controleuse controleuse;
-	controleuse.ajoute_fonction(test_uri);
-	controleuse.ajoute_fonction(tests_matrice);
-	controleuse.ajoute_fonction(tests_quaternion);
-	controleuse.ajoute_fonction(tests_vecteur);
-	controleuse.ajoute_fonction(test_matrice);
-	controleuse.ajoute_fonction(test_math);
-	controleuse.ajoute_fonction(test_statistique);
-	controleuse.ajoute_fonction(test_nombre_decimaux);
-	controleuse.ajoute_fonction(test_pystring);
-	controleuse.ajoute_fonction(test_date);
-	controleuse.ajoute_fonction(test_temperature);
+	dls::outils::MasqueBinaire<int> masque;
+	masque |= 2;
 
-	controleuse.performe_controles();
+	if (masque != 2) {
+		return 1;
+	}
 
-	controleuse.imprime_resultat();
+	masque &= 3;
+
+	if (2 != masque) {
+		return 1;
+	}
+
+	masque |= ~masque;
 }

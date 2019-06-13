@@ -14,60 +14,40 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2017 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE math)
-
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../
-)
-
-set(BIBLIOTHEQUES
-)
+set(NOM_BIBLIOTHEQUE chisei)
 
 set(ENTETES
-	aleatoire.hh
-	base_vecteur.hh
-	bruit.hh
-	concepts.hh
-	entrepolation.hh
-	matrice.hh
-	outils.hh
-	statistique.hh
-	swizzler.hh
-	quaternion.hh
-	vecteur.hh
-
-	matrice/dimensions.hh
-	matrice/matrice.hh
-	matrice/matrice_fixe.hh
-	matrice/operations.hh
+	genetique.h
 )
 
-add_library(${NOM_BIBLIOTHEQUE} STATIC
-	bruit.cc
-	concepts.cc
-	entrepolation.cc
-	matrice.cc
-	outils.cc
-	quaternion.cc
-	vecteur.cc
-
-	matrice/dimensions.cc
-
-	${ENTETES}
+set(SOURCES
+	genetique.cc
 )
 
-target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
+add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
 
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib
-)
-
+install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
+
+if(AVEC_EXEMPLES)
+	set(FICHIERS_KNAPSACK
+		exemples/1000_poids.txt
+		exemples/1000_valeurs.txt
+		exemples/10000_poids.txt
+		exemples/10000_valeurs.txt
+	)
+
+    add_executable(exemple_knapsack exemples/exemple_knapsack.cc)
+	target_link_libraries(exemple_knapsack chisei)
+	install(TARGETS exemple_knapsack RUNTIME DESTINATION bin)
+	install(FILES ${FICHIERS_KNAPSACK} DESTINATION bin)
+
+	add_executable(exemple_chaine exemples/exemple_chaine.cc)
+	target_link_libraries(exemple_chaine chisei)
+	install(TARGETS exemple_chaine RUNTIME DESTINATION bin)
+endif()

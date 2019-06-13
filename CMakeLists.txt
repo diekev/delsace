@@ -116,7 +116,7 @@ endif()
 
 # ------------------------------------------------------------------------------
 
+add_subdirectory(biblexternes)
 add_subdirectory(biblinternes)
 add_subdirectory(logiciels)
 add_subdirectory(tests)
-

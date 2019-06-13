@@ -14,29 +14,26 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2019 Kévin Dietrich.
+# The Original Code is Copyright (C) 2017 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(audio)
-add_subdirectory(base64)
-add_subdirectory(bcrypt)
-add_subdirectory(chisei)
-add_subdirectory(chrono)
-add_subdirectory(compression)
-add_subdirectory(connexion_mysql)
-add_subdirectory(flux)
-add_subdirectory(image)
-add_subdirectory(langage)
-add_subdirectory(math)
-add_subdirectory(nombre_decimaux)
-add_subdirectory(outils)
-add_subdirectory(parallèle)
-add_subdirectory(phys)
-add_subdirectory(réseau)
-add_subdirectory(sha256)
-add_subdirectory(systeme_fichier)
-add_subdirectory(tests)
-add_subdirectory(types)
-add_subdirectory(unicode)
+set(NOM_BIBLIOTHEQUE nombre_decimaux)
+
+set(ENTETES
+	imprimeur.h
+	ordre.h
+	quatification.h
+	tableau_precision.h
+	traits.h
+)
+
+set(SOURCES
+	main.cc
+)
+
+add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+
+install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
+install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
