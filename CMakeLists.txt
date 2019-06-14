@@ -114,6 +114,8 @@ elseif(CMAKE_BUILD_TYPE MATCHES "Release")
 	add_compile_options(-O3)
 endif()
 
+add_compile_options(-march=native)
+
 # ------------------------------------------------------------------------------
 
 add_subdirectory(biblexternes)

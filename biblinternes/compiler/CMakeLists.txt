@@ -14,43 +14,48 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2016 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_PROJET parallele)
+set(NOM_BIBLIOTHEQUE compiler)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 set(BIBLIOTHEQUES
-	tbb
+    docopt
 )
 
-add_executable(${NOM_PROJET}
-    flow_graph.cc
-    image_graph.cc
-    lanceur.cc
-    sse_test.cc
-    synchronisé.cc
-    task.cc
-
-    flow_graph.hh
-    future.hh
-    image_graph.hh
-    sse_float.hh
-    sse_test.hh
-    synchronisé.hh
-    task.hh
+set(ENTETES
+    jit/function.h
+    static/scanner.h
+    static/filebuffer.h
+    jit/postfix.h
+    jit/node.h
+    jit/compiler.h
+    jit/x86.h
+    makego.h
 )
 
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(
-    TARGETS ${NOM_PROJET} RUNTIME DESTINATION .
+set(SOURCES
+	main.cc
+    static/scanner.cc
+    static/filebuffer.cc
+    jit/postfix.cc
+    jit/node.cc
+    jit/compiler.cc
+    jit/x86.cc
+    makego.cc
 )
+
+add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+
+install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
+
+install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
