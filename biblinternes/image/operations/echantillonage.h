@@ -173,7 +173,6 @@ static void surechantillonage(const math::matrice<nombre> &src, math::matrice<no
 	auto yofs_f = &yofs_f_arr[0];
 	auto buf0 = &buf0_arr[0];
 	auto buf1 = &buf1_arr[0];
-	auto ptr_d = dst[0];
 
 	for (dx = 0; dx < dst_width; dx++) {
 		fx = (static_cast<float>(dx) + 0.5f) * scale_x - 0.5f;
@@ -202,7 +201,9 @@ static void surechantillonage(const math::matrice<nombre> &src, math::matrice<no
 		yofs_f[dy] = fy;
 	}
 
-	for (dy = 0; dy < dst_height; dy++, ptr_d = dst[dy]) {
+	for (dy = 0; dy < dst_height; dy++) {
+		auto ptr_d = dst[dy];
+
 		fy = yofs_f[dy];
 		int sy0 = yofs_i[dy], sy1 = sy0 + (fy > 0 && sy0 < src_height-1);
 

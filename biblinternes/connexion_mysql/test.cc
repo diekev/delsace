@@ -35,7 +35,7 @@ public:
 		, m_ligne(nullptr)
 	{}
 
-	iterateur_ligne(MYSQL_RES *res)
+	explicit iterateur_ligne(MYSQL_RES *res)
 		: m_resultat(res)
 		, m_ligne(mysql_fetch_row(m_resultat))
 	{}
@@ -67,7 +67,7 @@ class ligne_resultat {
 	{}
 
 public:
-	ligne_resultat(iterateur_ligne iter_ligne)
+	explicit ligne_resultat(iterateur_ligne iter_ligne)
 		: ligne_resultat(iter_ligne.ligne(), iter_ligne.resultat())
 	{}
 

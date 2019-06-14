@@ -91,7 +91,7 @@ public:
 
 	synchronise() = delete;
 
-	synchronise(__type *pointeur)
+	explicit synchronise(__type *pointeur)
 		: m_pointeur(pointeur)
 	{}
 

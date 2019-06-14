@@ -101,6 +101,8 @@ struct OptionsCompilation {
 	bool erreur = false;
 
 	NiveauOptimisation optimisation = NiveauOptimisation::Aucun;
+
+	/* cppcheck-suppress unusedStructMember */
 	char pad[7];
 };
 

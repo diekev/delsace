@@ -70,6 +70,7 @@ const char *tampon_source::debut() const noexcept
 
 const char *tampon_source::fin() const noexcept
 {
+	/* cppcheck-suppress containerOutOfBoundsIndexExpression */
 	return &m_tampon[m_tampon.size()];
 }
 
@@ -91,10 +92,10 @@ size_t tampon_source::taille_donnees() const noexcept
 void tampon_source::construit_lignes()
 {
 	for (size_t i = 0; i < m_tampon.size();) {
-		auto d = &m_tampon[i];
-		auto taille = trouve_fin_ligne(&m_tampon[i], &m_tampon[m_tampon.size()]);
+		auto pos = &m_tampon[i];
+		auto taille = trouve_fin_ligne(pos, this->fin());
 
-		m_lignes.push_back(std::string_view{d, taille});
+		m_lignes.push_back(std::string_view{pos, taille});
 
 		i += taille;
 	}

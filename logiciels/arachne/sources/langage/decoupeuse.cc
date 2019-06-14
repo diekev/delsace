@@ -303,6 +303,7 @@ void Decoupeuse::decoupe()
 	m_position_ligne = 0;
 
 	m_debut = &m_chaine[0];
+	/* cppcheck-suppress containerOutOfBoundsIndexExpression */
 	m_fin = &m_chaine[m_chaine.size()];
 
 	while (m_debut != m_fin) {

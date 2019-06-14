@@ -50,7 +50,7 @@ protected:
 public:
 	DonneesMorceaux donnees_morceaux;
 
-	Noeud(const DonneesMorceaux &donnees);
+	explicit Noeud(const DonneesMorceaux &donnees);
 
 	virtual ~Noeud() = default;
 
@@ -67,7 +67,7 @@ public:
 
 class NoeudChaineCaractere final : public Noeud {
 public:
-	NoeudChaineCaractere(const DonneesMorceaux &donnees);
+	explicit NoeudChaineCaractere(const DonneesMorceaux &donnees);
 
 	type_noeud type() const override;
 
@@ -80,7 +80,7 @@ public:
 
 class NoeudVariable final : public Noeud {
 public:
-	NoeudVariable(const DonneesMorceaux &donnees);
+	explicit NoeudVariable(const DonneesMorceaux &donnees);
 
 	type_noeud type() const override;
 
@@ -93,7 +93,7 @@ public:
 
 class NoeudBloc final : public Noeud {
 public:
-	NoeudBloc(const DonneesMorceaux &donnees);
+	explicit NoeudBloc(const DonneesMorceaux &donnees);
 
 	type_noeud type() const override;
 
@@ -106,7 +106,7 @@ public:
 
 class NoeudSi final : public Noeud {
 public:
-	NoeudSi(const DonneesMorceaux &donnees);
+	explicit NoeudSi(const DonneesMorceaux &donnees);
 
 	type_noeud type() const override;
 
@@ -119,7 +119,7 @@ public:
 
 class NoeudPour final : public Noeud {
 public:
-	NoeudPour(const DonneesMorceaux &donnees);
+	explicit NoeudPour(const DonneesMorceaux &donnees);
 
 	type_noeud type() const override;
 

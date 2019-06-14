@@ -57,7 +57,6 @@ static inline bool est_base64(char c)
 static std::string encode_impl(const unsigned char *chaine, unsigned long longueur, const std::string &table)
 {
 	int i = 0;
-	int j = 0;
 	unsigned char char_array_3[3];
 	unsigned char char_array_4[4];
 
@@ -82,7 +81,7 @@ static std::string encode_impl(const unsigned char *chaine, unsigned long longue
 	}
 
 	if (i != 0) {
-		for (j = i; j < 3; j++) {
+		for (int j = i; j < 3; j++) {
 			char_array_3[j] = '\0';
 		}
 
@@ -91,7 +90,7 @@ static std::string encode_impl(const unsigned char *chaine, unsigned long longue
 		char_array_4[2] = static_cast<unsigned char>(((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6));
 		char_array_4[3] = char_array_3[2] & 0x3f;
 
-		for (j = 0; (j < i + 1); j++) {
+		for (int j = 0; (j < i + 1); j++) {
 			ret += table[char_array_4[j]];
 		}
 
@@ -141,7 +140,6 @@ static std::string decode_impl(std::string const& chaine, const std::string &tab
 {
 	auto longueur = chaine.size();
 	int i = 0;
-	int j = 0;
 	size_t in_ = 0;
 	unsigned char char_array_4[4], char_array_3[3];
 
@@ -170,11 +168,11 @@ static std::string decode_impl(std::string const& chaine, const std::string &tab
 	}
 
 	if (i) {
-		for (j = i; j <4; j++) {
+		for (int j = i; j <4; j++) {
 			char_array_4[j] = 0;
 		}
 
-		for (j = 0; j <4; j++) {
+		for (int j = 0; j <4; j++) {
 			char_array_4[j] = static_cast<unsigned char>(table.find(static_cast<char>(char_array_4[j])));
 		}
 
@@ -182,7 +180,7 @@ static std::string decode_impl(std::string const& chaine, const std::string &tab
 		char_array_3[1] = static_cast<unsigned char>(((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2));
 		char_array_3[2] = static_cast<unsigned char>(((char_array_4[2] & 0x3) << 6) + char_array_4[3]);
 
-		for (j = 0; (j < i - 1); j++) {
+		for (int j = 0; (j < i - 1); j++) {
 			ret += static_cast<char>(char_array_3[j]);
 		}
 	}

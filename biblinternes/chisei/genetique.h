@@ -375,11 +375,11 @@ auto lance_algorithme_genetique(std::ostream &os, const typename TypeProbleme::t
 				}
 			}
 
-			const auto aptitude = TypeProbleme::aptitude(population[i]);
-			moyenne += aptitude;
+			const auto aptitude_i = TypeProbleme::aptitude(population[i]);
+			moyenne += aptitude_i;
 
-			if (aptitude > meilleur_aptitude) {
-				meilleur_aptitude = aptitude;
+			if (aptitude_i > meilleur_aptitude) {
+				meilleur_aptitude = aptitude_i;
 				meilleur_index = i;
 			}
 

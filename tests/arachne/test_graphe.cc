@@ -24,6 +24,7 @@
 
 #include "tests_arachne.hh"
 
+#include <algorithm>
 #include <list>
 
 #include "../biblinternes/systeme_fichier/utilitaires.h"
@@ -136,13 +137,10 @@ public:
 	{
 		auto contenu = donnees().valeur;
 
-		for (etiquette *e : n->etiquettes) {
-			if (e->id_nom == contenu) {
-				return true;
-			}
-		}
-
-		return false;
+		return std::any_of(
+					n->etiquettes.begin(),
+					n->etiquettes.end(),
+					[&contenu](etiquette *e) { return e->id_nom == contenu; });
 	}
 
 	resultat_analyseuse resultat() const

@@ -83,8 +83,8 @@ public:
 		{
 			m_parent = rhs.m_parent;
 			m_debut = rhs.m_debut;
+			rhs.m_parent = nullptr;
 			rhs.m_debut = 0.0;
-			rhs.m_debut = nullptr;
 
 			return *this;
 		}

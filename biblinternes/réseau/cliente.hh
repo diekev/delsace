@@ -240,7 +240,7 @@ public:
 					tampon[taille] = '\0';
 					reponse.append(tampon, static_cast<size_t>(taille));
 				}
-				else if (taille <= 0) {
+				else {
 					auto erreur = SSL_get_error(m_ssl, taille);
 
 					if (erreur != SSL_ERROR_NONE || erreur != SSL_ERROR_ZERO_RETURN) {

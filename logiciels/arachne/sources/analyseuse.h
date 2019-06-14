@@ -44,7 +44,7 @@ struct DonneesMorceaux {
  */
 class analyseuse : public lng::analyseuse<DonneesMorceaux> {
 public:
-	analyseuse(std::vector<DonneesMorceaux> &identifiants)
+	explicit analyseuse(std::vector<DonneesMorceaux> &identifiants)
 		: lng::analyseuse<DonneesMorceaux>(identifiants)
 	{}
 

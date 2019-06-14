@@ -36,7 +36,7 @@ struct Node {
 	char character;
 	int frequency;
 
-	Node(const char ch, const int freq = 1)
+	explicit Node(const char ch, const int freq = 1)
 	    : left(nullptr)
 	    , right(nullptr)
 	    , code("")

@@ -60,7 +60,7 @@ struct Pixel {
 	 * les quatres éléments ou canaux du pixel seront égaux à la valeur
 	 * spécifiée.
 	 */
-	Pixel(const nombre &valeur)
+	explicit Pixel(const nombre &valeur)
 		: r(valeur)
 		, g(valeur)
 		, b(valeur)

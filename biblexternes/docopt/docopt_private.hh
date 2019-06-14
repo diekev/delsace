@@ -249,7 +249,7 @@ protected:
 
 class Command : public Argument {
 public:
-	Command(const std::string &name, const value &v = value{false})
+	explicit Command(const std::string &name, const value &v = value{false})
 		: Argument(name, v)
 	{}
 

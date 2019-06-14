@@ -26,6 +26,7 @@
 
 int main()
 {
+#if 0
 	dls::outils::MasqueBinaire<int> masque;
 	masque |= 2;
 
@@ -40,4 +41,5 @@ int main()
 	}
 
 	masque |= ~masque;
+#endif
 }

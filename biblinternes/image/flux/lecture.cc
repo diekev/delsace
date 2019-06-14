@@ -158,12 +158,12 @@ math::matrice<PixelChar> LecteurJPEG::ouvre(const filesystem::path &chemin)
 math::matrice<PixelChar> LecteurPNM::ouvre(const filesystem::path &chemin)
 {
 	FILE *fichier = std::fopen(chemin.c_str(), "r");
-	std::fseek(fichier, 0L, SEEK_SET);
 
 	if (!fichier) {
-		std::fclose(fichier);
 		return { math::Hauteur(0), math::Largeur(0) };
 	}
+
+	std::fseek(fichier, 0L, SEEK_SET);
 
 	char id[2];
 	int nombre_colonnes, nombre_lignes;

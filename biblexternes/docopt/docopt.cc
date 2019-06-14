@@ -81,7 +81,7 @@ std::ostream& operator<<(std::ostream& os, value const& val)
 
 class Tokens {
 public:
-	Tokens(const std::vector<std::string> &tokens, bool isParsingArgv = true)
+	explicit Tokens(const std::vector<std::string> &tokens, bool isParsingArgv = true)
 		: fTokens(tokens)
 		, fIsParsingArgv(isParsingArgv)
 	{}

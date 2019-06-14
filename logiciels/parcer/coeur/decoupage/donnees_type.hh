@@ -49,7 +49,7 @@ public:
 
 	DonneesType() = default;
 
-	DonneesType(id_morceau i0);
+	explicit DonneesType(id_morceau i0);
 
 	DonneesType(id_morceau i0, id_morceau i1);
 

@@ -300,7 +300,8 @@ bool is_positive_nan(real d)
 	const auto b = as_integral(d) > (traits::EXP_MASK << traits::MANT);
 	const auto c = (header(d) == traits::EXP_MASK) && (significand(d) > 0);
 
-	assert(a == b && b == c);
+	/* cppcheck-suppress compareBoolExpressionWithInt */
+	assert((a == b) && (b == c));
 
 	return b; /* Seems most efficient. */
 }
