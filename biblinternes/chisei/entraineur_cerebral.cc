@@ -26,6 +26,7 @@
 
 #include "reseau_neuronal.h"
 
+#if 0
 EntraineurCerebral::EntraineurCerebral(ReseauNeuronal &reseau)
     : m_reseau(&reseau)
 {
@@ -155,3 +156,4 @@ void EntraineurCerebral::actualise_poids()
 		}
 	}
 }
+#endif

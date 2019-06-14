@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2017 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,209 +24,196 @@
 
 #include "reseau_neuronal.h"
 
+#include "../math/matrice/operations.hh"
+
 #include <random>
 
-/* ************************************************************************** */
+#define INSCRIPTION_JOURNAL
 
-/**
- * Hyperbolic tangent function, remapped to [0, 1].
- */
+#ifdef INSCRIPTION_JOURNAL
+#	define INSCRIT_JOURNAL std::cout
+#else
+
+struct flux_vide {};
+
 template <typename T>
-static inline T active_signal(const T x)
+flux_vide &operator<<(flux_vide &flux, const T &)
 {
-	return (std::tanh(x) + static_cast<T>(1)) / static_cast<T>(2);
+	return flux;
 }
 
-/* ************************************************************************** */
+flux_vide flux_global;
 
-ReseauNeuronal::ReseauNeuronal(int entrees, int couches, int sorties)
-    : m_nombre_entrees(entrees)
-    , m_nombre_couches(couches)
-    , m_nombre_sorties(sorties)
-    , m_entrees(new double[m_nombre_entrees + 1])
-    , m_couches(new double[m_nombre_couches + 1])
-    , m_sorties(new double[m_nombre_sorties])
-    , m_entrees_couches(new double*[m_nombre_entrees + 1])
-    , m_couches_sorties(new double*[m_nombre_couches + 1])
+#define INSCRIT_JOURNAL flux_global
+
+#endif
+
+static Matrice active(const Matrice &matrice, TypeActivation activation)
 {
-	/* -------------------- Neurones -------------------- */
+	auto resultat = matrice;
 
-	/* Initialisation des neurones d'entrées. */
-	for (int i = 0; i < m_nombre_entrees; ++i) {
-		m_entrees[i] = 0.0;
+	switch (activation) {
+		default:
+		case TypeActivation::AUCUNE:
+			break;
+		case TypeActivation::ULRE:
+			dls::math::applique_fonction(resultat, [](const double valeur)
+			{
+				return std::max(0.0, valeur);
+			});
+			break;
 	}
 
-	/* Neurone d'entrée de biais. */
-	m_entrees[m_nombre_entrees] = -1.0;
+	return resultat;
+}
 
-	/* Initialisation des neurones cachés. */
-	for (int i = 0; i < m_nombre_couches; ++i) {
-		m_couches[i] = 0.0;
+Matrice CoucheReseau::traduit(const Matrice &matrice)
+{
+	INSCRIT_JOURNAL << "Début traduction de la matrice d'entrée....\n";
+
+	neurones = matrice;
+	auto resultat = neurones;
+	auto ceci = this;
+	auto couche_suivante = suivante;
+
+	while (couche_suivante != nullptr) {
+		INSCRIT_JOURNAL << "\tTaille resultat avant multiplication : "
+						<< resultat.nombre_lignes() << 'x'
+						<< resultat.nombre_colonnes() << ".\n";
+
+		INSCRIT_JOURNAL << "\tTaille matrice poids : "
+						<< ceci->poids.nombre_lignes() << 'x'
+						<< ceci->poids.nombre_colonnes() << ".\n";
+
+		resultat *= ceci->poids;
+
+		INSCRIT_JOURNAL << "\tTaille resultat après multiplicatoin : "
+						<< resultat.nombre_lignes() << 'x'
+						<< resultat.nombre_colonnes() << ".\n";
+
+		resultat += couche_suivante->biais;
+
+		INSCRIT_JOURNAL << "\tTaille resultat après addition : "
+						<< resultat.nombre_lignes() << 'x'
+						<< resultat.nombre_colonnes() << ".\n";
+
+		resultat = active(resultat, couche_suivante->activation);
+
+		INSCRIT_JOURNAL << "\tTaille resultat après activation : "
+						<< resultat.nombre_lignes() << 'x'
+						<< resultat.nombre_colonnes() << ".\n";
+
+		couche_suivante->neurones = resultat;
+
+		INSCRIT_JOURNAL << "\tPassage à la couche suivante...\n";
+
+		ceci = couche_suivante;
+		couche_suivante = couche_suivante->suivante;
 	}
 
-	/* Poids caché de biais. */
-	m_couches[m_nombre_entrees] = -1.0;
+	INSCRIT_JOURNAL << "Fin traduction de la matrice d'entrée....\n";
 
-	/* Initialisation des neurones cachés. */
-	for (int i = 0; i < m_nombre_sorties; ++i) {
-		m_sorties[i] = 0.0;
-	}
-
-	/* -------------------- Matrices -------------------- */
-
-	for (int i = 0; i <= m_nombre_entrees; ++i) {
-		m_entrees_couches[i] = new double[m_nombre_couches];
-
-		for (int j = 0; j < m_nombre_couches; ++j){
-			m_entrees_couches[i][j] = 0.0;
-		}
-	}
-
-	for (int i = 0; i <= m_nombre_couches; ++i)  {
-		m_couches_sorties[i] = new double[m_nombre_sorties];
-
-		for (int j = 0; j < m_nombre_sorties; ++j) {
-			m_couches_sorties[i][j] = 0.0;
-		}
-	}
-
-	initialise_poids();
+	return resultat;
 }
 
 ReseauNeuronal::~ReseauNeuronal()
 {
-	/* Suppression des neurones d'entrées. */
-	delete [] m_entrees;
-
-	/* Suppression des neurones cachés. */
-	delete [] m_couches;
-
-	/* Suppression des neurones de sorties. */
-	delete [] m_sorties;
-
-	/* Suppression de la matrice entrees/couches. */
-	for (int i = 0; i <= m_nombre_entrees; ++i) {
-		delete [] m_entrees_couches[i];
+	for (auto &couche : m_couches) {
+		delete couche;
 	}
-
-	delete [] m_entrees_couches;
-
-	/* Suppression de la matrice couches/sorties. */
-	for (int i = 0; i <= m_nombre_couches; ++i) {
-		delete [] m_couches_sorties[i];
-	}
-
-	delete [] m_couches_sorties;
 }
 
-ReseauNeuronal &ReseauNeuronal::operator=(const ReseauNeuronal &)
+CoucheReseau *ReseauNeuronal::ajoute_entree(int taille_entree)
 {
-	/* TODO */
-	return *this;
+	return ajoute_couche(nullptr, taille_entree, TypeActivation::AUCUNE);
 }
 
-void ReseauNeuronal::initialise_poids()
+CoucheReseau *ReseauNeuronal::ajoute_couche(CoucheReseau *couche_precedente, int taille_couche, TypeActivation activation)
 {
-	const auto plage_couche = 1.0 / std::sqrt(static_cast<double>(m_nombre_entrees));
-	const auto plage_sortie = 1.0 / std::sqrt(static_cast<double>(m_nombre_couches));
+	INSCRIT_JOURNAL << "Création couche...\n";
+	CoucheReseau *couche = new CoucheReseau;
+	couche->precendente = couche_precedente;
+	couche->suivante = nullptr;
+	couche->activation = activation;
+	couche->taille = taille_couche;
 
-	std::mt19937 gna(30101991);
-	std::uniform_real_distribution<double> dist_couche(-plage_couche, plage_couche);
-	std::uniform_real_distribution<double> dist_sortie(-plage_sortie, plage_sortie);
+	couche->biais = Matrice(dls::math::Hauteur(1), dls::math::Largeur(taille_couche));
+	couche->neurones = Matrice(dls::math::Hauteur(1), dls::math::Largeur(taille_couche));
 
-	/* Mise des poids entrée/couche. */
-	for (int i = 0; i <= m_nombre_entrees; ++i) {
-		for (int j = 0; j < m_nombre_couches; ++j) {
-			m_entrees_couches[i][j] = dist_couche(gna);
+	INSCRIT_JOURNAL << "\tCouche " << m_couches.size() << " :\n";
+	INSCRIT_JOURNAL << "\tTaille biais : 1x" << taille_couche << ".\n";
+	INSCRIT_JOURNAL << "\tTaille neurones : 1x" << taille_couche << ".\n";
+
+	if (couche_precedente != nullptr) {
+		couche_precedente->suivante = couche;
+	}
+
+	m_couches.push_back(couche);
+
+	INSCRIT_JOURNAL << "Création couche terminée.\n";
+	return couche;
+}
+
+CoucheReseau *ReseauNeuronal::ajoute_sortie(CoucheReseau *couche_precedente, int taille_couche)
+{
+	return ajoute_couche(couche_precedente, taille_couche, TypeActivation::AUCUNE);
+}
+
+void ReseauNeuronal::compile()
+{
+	INSCRIT_JOURNAL << "Compilation réseau neuronal....\n";
+
+	/* Création des matrices de poids. */
+	for (size_t i = 0ul; i < m_couches.size() - 1; ++i) {
+		/* Le nombre de lignes de la matrice de poids est égal au nombre de colonnes de la matrice i. */
+		const auto hauteur = m_couches[i]->taille;
+		const auto largeur = m_couches[i + 1]->taille;
+
+		m_couches[i]->poids = Matrice(dls::math::Hauteur(hauteur), dls::math::Largeur(largeur));
+
+		INSCRIT_JOURNAL << "\tTaille matrice poids entre couche " << i << " et "
+						<< i + 1 << " : " << hauteur << "x" << largeur << ".\n";
+	}
+
+	INSCRIT_JOURNAL << "Compilation réseau neuronal terminée.\n";
+}
+
+void ReseauNeuronal::initialise_couches(TypeInitialisation initialisation)
+{
+	switch (initialisation) {
+		case TypeInitialisation::ZERO:
+			for (size_t i = 0ul; i < m_couches.size(); ++i) {
+				m_couches[i]->poids.remplie(0);
+				m_couches[i]->biais.remplie(0);
+				m_couches[i]->neurones.remplie(0);
+			}
+
+			break;
+		case TypeInitialisation::UNITE:
+			for (size_t i = 0ul; i < m_couches.size(); ++i) {
+				m_couches[i]->poids.remplie(1);
+				m_couches[i]->biais.remplie(1);
+				m_couches[i]->neurones.remplie(1);
+			}
+
+			break;
+		case TypeInitialisation::ALEATOIRE:
+		{
+			std::uniform_real_distribution<double> dist(-1.0, 1.0);
+			std::mt19937 rng(19937);
+
+			auto fonction = [&](const double)
+			{
+				return dist(rng);
+			};
+
+			for (size_t i = 0ul; i < m_couches.size(); ++i) {
+				dls::math::applique_fonction(m_couches[i]->poids, fonction);
+				dls::math::applique_fonction(m_couches[i]->biais, fonction);
+				dls::math::applique_fonction(m_couches[i]->neurones, fonction);
+			}
+
+			break;
 		}
 	}
-
-	/* Mise des poids couche/sortie. */
-	for (int i = 0; i <= m_nombre_couches; ++i) {
-		for (int j = 0; j < m_nombre_sorties; ++j) {
-			m_couches_sorties[i][j] = dist_sortie(gna);
-		}
-	}
-}
-
-void ReseauNeuronal::avance(const double *entrees)
-{
-	/* Initialisation des neurones d'entrées avec les entrées données. */
-	for (int i = 0; i < m_nombre_entrees; ++i) {
-		m_entrees[i] = entrees[i];
-	}
-
-	/* Calcul des valeurs des neurones cachées, incluant le biais. */
-	for (int i = 0; i < m_nombre_couches; ++i) {
-		/* clear value */
-		m_couches[i] = 0.0f;
-
-		/* perform dot product of the two vector */
-		for (int j = 0; j <= m_nombre_entrees; ++j) {
-			m_couches[i] += (m_entrees[j] * m_entrees_couches[j][i]);
-		}
-
-		/* activate */
-		m_couches[i] = active_signal(m_couches[i]);
-	}
-
-	/* compute ouput layer values */
-	for (int i = 0; i < m_nombre_sorties; ++i) {
-		/* clear value */
-		m_sorties[i] = 0.0f;
-
-		/* perform dot product of the two vector */
-		for (int j = 0; j <= m_nombre_couches; ++j) {
-			m_sorties[i] += (m_couches[j] * m_couches_sorties[j][i]);
-		}
-
-		/* activate */
-		m_sorties[i] = active_signal(m_sorties[i]);
-	}
-}
-
-double *ReseauNeuronal::avance_entrees(double *entrees)
-{
-	avance(entrees);
-	return m_sorties;
-}
-
-int ReseauNeuronal::nombre_entrees() const
-{
-	return m_nombre_entrees;
-}
-
-int ReseauNeuronal::nombre_couches() const
-{
-	return m_nombre_couches;
-}
-
-int ReseauNeuronal::nombre_sorties() const
-{
-	return m_nombre_sorties;
-}
-
-double *ReseauNeuronal::entrees()
-{
-	return m_entrees;
-}
-
-double *ReseauNeuronal::couches()
-{
-	return m_couches;
-}
-
-double *ReseauNeuronal::sorties()
-{
-	return m_sorties;
-}
-
-double **ReseauNeuronal::entrees_couches()
-{
-	return m_entrees_couches;
-}
-
-double **ReseauNeuronal::couches_sorties()
-{
-	return m_couches_sorties;
 }

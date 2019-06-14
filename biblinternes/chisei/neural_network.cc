@@ -199,6 +199,7 @@ void test_neural_net(std::ostream &os)
 		network.target_output[i] = network.outputs[0][i];
 	}
 
+#if 0
 	ReseauNeuronal reseau_neuronal(NUM_INPUT, NUM_PERCEPTRON, NUM_OUTPUT);
 
 	std::vector<DonneeFormation> donnees;
@@ -229,4 +230,5 @@ void test_neural_net(std::ostream &os)
 		}
 		os << '\n';
 	}
+#endif
 }
