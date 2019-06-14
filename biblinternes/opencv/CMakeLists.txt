@@ -14,50 +14,58 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2017 Kévin Dietrich.
+# The Original Code is Copyright (C) 2016 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE chisei)
+set(NOM_BIBLIOTHEQUE opencv)
 
+set(INCLUSIONS
+)
+
+set(BIBLIOTHEQUES
+    opencv_core
+    opencv_imgproc
+    opencv_highgui
+    opencv_imgcodecs
+    opencv_objdetect
+    opencv_videoio
+    opencv_face
+    mysqlcppconn
+    docopt
+    chronometrage
+    systeme_fichier
+)
 
 set(ENTETES
-    entraineur_cerebral.h
-	genetique.h
-    includes.h
-    learner.h
-    reseau_neuronal.h
+	detecteur_visage.h
+	lecteur_video.h
+	auteur_video.h
+	definitions.h
+	reconnaissant_facial.h
+	objets_communs.h
+	enveloppe_sql.h
 )
 
 set(SOURCES
-	genetique.cc
-    entraineur_cerebral.cc
-    learner.cc
-    main.cc
-    neural_network.cc
-    reseau_neuronal.cc
+	main.cc
+	detecteur_visage.cc
+	lecteur_video.cc
+	auteur_video.cc
+	reconnaissant_facial.cc
+	objets_communs.cc
+	enveloppe_sql.cc
 )
 
+if(AVEC_OPENCV)
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
 
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+
 install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
+
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
-
-if(AVEC_EXEMPLES)
-	set(FICHIERS_KNAPSACK
-		exemples/1000_poids.txt
-		exemples/1000_valeurs.txt
-		exemples/10000_poids.txt
-		exemples/10000_valeurs.txt
-	)
-
-    add_executable(exemple_knapsack exemples/exemple_knapsack.cc)
-	target_link_libraries(exemple_knapsack chisei)
-	install(TARGETS exemple_knapsack RUNTIME DESTINATION bin)
-	install(FILES ${FICHIERS_KNAPSACK} DESTINATION bin)
-
-	add_executable(exemple_chaine exemples/exemple_chaine.cc)
-	target_link_libraries(exemple_chaine chisei)
-	install(TARGETS exemple_chaine RUNTIME DESTINATION bin)
 endif()

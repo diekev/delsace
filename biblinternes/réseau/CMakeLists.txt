@@ -29,6 +29,7 @@ set(INCLUSIONS
 add_library(reseau STATIC
 	cliente.cc
 	cliente_http.cc
+	cppnetlib.cc
 	message.cc
 	outils_http.cc
 	serveuse.cc

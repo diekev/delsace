@@ -14,50 +14,43 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2017 Kévin Dietrich.
+# The Original Code is Copyright (C) 2016 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE chisei)
+set(NOM_BIBLIOTHEQUE fluid_retimer)
 
+set(INCLUSIONS
+)
+
+set(BIBLIOTHEQUES
+    openvdb
+    Half
+    fftw3f
+    blosc
+    z
+    pthread
+    docopt
+)
 
 set(ENTETES
-    entraineur_cerebral.h
-	genetique.h
-    includes.h
-    learner.h
-    reseau_neuronal.h
+	retimer.h
 )
 
 set(SOURCES
-	genetique.cc
-    entraineur_cerebral.cc
-    learner.cc
-    main.cc
-    neural_network.cc
-    reseau_neuronal.cc
+	main.cc
+	retimer.cc
 )
+
+#add_definitions(DWREAL_IS_DOUBLE=0)
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
 
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+
 install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
+
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
-
-if(AVEC_EXEMPLES)
-	set(FICHIERS_KNAPSACK
-		exemples/1000_poids.txt
-		exemples/1000_valeurs.txt
-		exemples/10000_poids.txt
-		exemples/10000_valeurs.txt
-	)
-
-    add_executable(exemple_knapsack exemples/exemple_knapsack.cc)
-	target_link_libraries(exemple_knapsack chisei)
-	install(TARGETS exemple_knapsack RUNTIME DESTINATION bin)
-	install(FILES ${FICHIERS_KNAPSACK} DESTINATION bin)
-
-	add_executable(exemple_chaine exemples/exemple_chaine.cc)
-	target_link_libraries(exemple_chaine chisei)
-	install(TARGETS exemple_chaine RUNTIME DESTINATION bin)
-endif()
