@@ -118,6 +118,7 @@ static auto compte_lignes(std::istream &is)
 		}
 
 		if (commence_par(ligne, "//")) {
+			nombre_commentaires++;
 			continue;
 		}
 
