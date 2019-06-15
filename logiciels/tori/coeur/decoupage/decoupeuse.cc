@@ -29,20 +29,15 @@
 #include <sstream>
 
 #include "../../biblinternes/langage/tampon_source.hh"
+#include "../../biblinternes/outils/conditions.h"
 
 #include "erreur.hh"
 
 /* ************************************************************************** */
 
-template <typename T, typename... Ts>
-bool est_element(T a, Ts... ts)
-{
-	return ((a == ts) || ...);
-}
-
 static bool est_caractere_blanc(char c)
 {
-	return est_element(c, '\t', '\r', '\n', ' ');
+	return dls::outils::est_element(c, '\t', '\r', '\n', ' ');
 }
 
 /* ************************************************************************** */

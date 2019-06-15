@@ -30,22 +30,13 @@ namespace dls {
 namespace outils {
 
 /**
- * Retourne vrai si le premier élément est égal au second.
- */
-template <typename T1, typename T2>
-auto est_element(T1 &&a, T2 &&b) -> bool
-{
-	return a == b;
-}
-
-/**
  * Retourne vrai si le premier élément est à l'un ou l'autre des éléments
  * suivants.
  */
-template <typename T1, typename T2, typename... Ts>
-auto est_element(T1 &&a, T2 &&b, Ts &&... t) -> bool
+template <typename T, typename... Ts>
+auto est_element(T &&a, Ts &&... ts)
 {
-	return a == b || est_element(a, t...);
+	return ((a == ts) || ...);
 }
 
 }  /* namespace outils */
