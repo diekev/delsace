@@ -26,6 +26,7 @@
 #include <experimental/filesystem>
 
 #include "biblinternes/chrono/chronometre_de_portee.hh"
+#include "biblinternes/outils/conditions.h"
 
 namespace filesystem = std::experimental::filesystem;
 
@@ -100,7 +101,7 @@ static auto compte_lignes(std::istream &is)
 	auto nombre_commentaires = 0;
 
 	std::string ligne;
-	bool commentaire_c = false;
+	auto commentaire_c = false;
 
 	while (std::getline(is, ligne)) {
 		if (ligne.empty()) {
@@ -135,21 +136,45 @@ static auto compte_lignes(std::istream &is)
 	return std::pair<int, int>(nombre_lignes, nombre_commentaires);
 }
 
-static auto est_fichier_source(const filesystem::path &chemin)
+enum {
+	FICHIER_SOURCE,
+	FICHIER_ENTETE,
+	FICHIER_INCONNU,
+};
+
+static auto est_fichier_entete(filesystem::path const &extension)
 {
-	const auto extension = chemin.extension();
-	return extension == ".c"
-			|| extension == ".cc"
-			|| extension == ".cpp"
-			|| extension == ".h"
-			|| extension == ".hh"
-			|| extension == ".hpp";
+	return dls::outils::est_element(extension, ".h", ".hh", ".hpp");
+}
+
+static auto est_fichier_source(filesystem::path const &extension)
+{
+	return dls::outils::est_element(extension, ".c", ".cc", ".cpp", ".tcc");
+}
+
+static auto type_fichier(filesystem::path const &chemin)
+{
+	auto const extension = chemin.extension();
+
+	if (est_fichier_entete(extension)) {
+		return FICHIER_ENTETE;
+	}
+
+	if (est_fichier_source(extension)) {
+		return FICHIER_SOURCE;
+	}
+
+	return FICHIER_INCONNU;
 }
 
 int main()
 {
 	auto nombre_total_lignes = 0;
+	auto nombre_total_lignes_source = 0;
+	auto nombre_total_lignes_entete = 0;
 	auto nombre_total_commentaires = 0;
+	auto nombre_total_commentaires_source = 0;
+	auto nombre_total_commentaires_entete = 0;
 	auto nombre_fichiers = 0;
 
 	std::ostream &os = std::cout;
@@ -163,7 +188,9 @@ int main()
 			continue;
 		}
 
-		if (!est_fichier_source(chemin_fichier)) {
+		auto type = type_fichier(chemin_fichier);
+
+		if (type == FICHIER_INCONNU) {
 			continue;
 		}
 
@@ -176,15 +203,36 @@ int main()
 			continue;
 		}
 
-		const auto nombre_lignes = compte_lignes(fichier);
+		auto const nombre_lignes = compte_lignes(fichier);
 		nombre_total_lignes += nombre_lignes.first;
 		nombre_total_commentaires += nombre_lignes.second;
+
+		if (type == FICHIER_ENTETE) {
+			nombre_total_lignes_entete += nombre_lignes.first;
+			nombre_total_commentaires_entete += nombre_lignes.second;
+		}
+		else if (type == FICHIER_SOURCE) {
+			nombre_total_lignes_source += nombre_lignes.first;
+			nombre_total_commentaires_source += nombre_lignes.second;
+		}
 	}
 
 	os << "Il y a " << formatte(nombre_total_lignes + nombre_total_commentaires)
 	   << " lignes en tout, dans " << formatte(nombre_fichiers) << " fichiers.\n";
-	os << "Dont :\n";
+	os << '\n';
+	os << "Fichiers sources :\n";
+	os << "    - " << formatte(nombre_total_lignes_source) << " lignes de programmes\n";
+	os << "    - " << formatte(nombre_total_commentaires_source) << " lignes de commentaires\n";
+	os << "Ratio commentaires / lignes programmes : " << static_cast<double>(nombre_total_commentaires_source) / nombre_total_lignes_source << '\n';
+	os << '\n';
+	os << "Fichiers entêtes :\n";
+	os << "    - " << formatte(nombre_total_lignes_entete) << " lignes de programmes\n";
+	os << "    - " << formatte(nombre_total_commentaires_entete) << " lignes de commentaires\n";
+	os << "Ratio commentaires / lignes programmes : " << static_cast<double>(nombre_total_commentaires_entete) / nombre_total_lignes_entete << '\n';
+	os << '\n';
+	os << "Total :\n";
 	os << "    - " << formatte(nombre_total_lignes) << " lignes de programmes\n";
 	os << "    - " << formatte(nombre_total_commentaires) << " lignes de commentaires\n";
 	os << "Ratio commentaires / lignes programmes : " << static_cast<double>(nombre_total_commentaires) / nombre_total_lignes << '\n';
+	os << '\n';
 }
