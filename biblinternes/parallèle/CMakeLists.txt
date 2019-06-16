@@ -28,6 +28,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	tbb
+	pthread
 )
 
 add_executable(${NOM_PROJET}
