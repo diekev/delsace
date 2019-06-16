@@ -61,7 +61,7 @@ static auto formatte(int nombre)
 	return resultat;
 }
 
-static auto commence_par(const std::string &ligne, const std::string &motif)
+static auto commence_par(std::string const &ligne, std::string const &motif)
 {
 	if (motif.size() > ligne.size()) {
 		return false;
@@ -77,7 +77,7 @@ static auto commence_par(const std::string &ligne, const std::string &motif)
 	return ligne.substr(index, motif.size()) == motif;
 }
 
-static auto fini_par(const std::string &ligne, const std::string &motif)
+static auto fini_par(std::string const &ligne, std::string const &motif)
 {
 	if (motif.size() > ligne.size()) {
 		return false;
@@ -95,10 +95,25 @@ static auto fini_par(const std::string &ligne, const std::string &motif)
 //	return ligne.substr((index + 1) - motif.size(), motif.size()) == motif;
 }
 
+/* Considère les lignes comme étant vides si elles ne contiennent que des
+ * caractères blancs ou des séquences de début ou de fin d'instructions comme
+ * }); à la fin des lambdas. */
+static auto est_ligne_vide(std::string const &ligne)
+{
+	for (auto c : ligne) {
+		if (!dls::outils::est_element(c, ' ', '\t', '\n', '\r', '\v', '{', '}', '(', ')', '[', ']', ';')) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 static auto compte_lignes(std::istream &is)
 {
 	auto nombre_lignes = 0;
 	auto nombre_commentaires = 0;
+	auto nombre_inutiles = 0;
 
 	std::string ligne;
 	auto commentaire_c = false;
@@ -128,6 +143,11 @@ static auto compte_lignes(std::istream &is)
 			}
 
 			nombre_commentaires++;
+			continue;
+		}
+
+		if (est_ligne_vide(ligne)) {
+			++nombre_inutiles;
 			continue;
 		}
 
