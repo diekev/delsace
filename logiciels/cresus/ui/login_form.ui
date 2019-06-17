@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LoginForm</class>
+ <widget class="QDialog" name="LoginForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>368</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Connectez-vous</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="m_user_edit">
+       <property name="placeholderText">
+        <string>Nom</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="m_pass_edit">
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+       <property name="placeholderText">
+        <string>Mot de Passe</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Ou créez un compte</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="3" column="0">
+      <widget class="QLineEdit" name="m_password_check_create">
+       <property name="placeholderText">
+        <string>Retapez le mot de passe</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLineEdit" name="m_username_create">
+       <property name="placeholderText">
+        <string>Nom Complet</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="m_fullname_create">
+       <property name="placeholderText">
+        <string>Nom d'utilisateur</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="m_password_create">
+       <property name="placeholderText">
+        <string>Mot de passe</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="m_error_label">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>LoginForm</receiver>
+   <slot>onLoginButClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>LoginForm</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_fullname_create</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>LoginForm</receiver>
+   <slot>onTextEditChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>207</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_pass_edit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>LoginForm</receiver>
+   <slot>onTextEditChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>98</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_password_check_create</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>LoginForm</receiver>
+   <slot>onTextEditChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>269</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_password_create</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>LoginForm</receiver>
+   <slot>onTextEditChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>238</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_user_edit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>LoginForm</receiver>
+   <slot>onTextEditChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>67</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_username_create</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>LoginForm</receiver>
+   <slot>onTextEditChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>176</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>onLoginButClicked()</slot>
+  <slot>onTextEditChange()</slot>
+ </slots>
+</ui>

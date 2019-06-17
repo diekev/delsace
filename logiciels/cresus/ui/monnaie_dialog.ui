@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MonnaieDialog</class>
+ <widget class="QDialog" name="MonnaieDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>573</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Porte Monnaie</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>0.01 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="m_1c_num"/>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="m_1c_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>0.02 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QSpinBox" name="m_2c_num"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="m_2c_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>0.05 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QSpinBox" name="m_5c_num"/>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="m_5c_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>0.10 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QSpinBox" name="m_10c_num"/>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLabel" name="m_10c_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>0.20 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QSpinBox" name="m_20c_num"/>
+     </item>
+     <item row="4" column="2">
+      <widget class="QLabel" name="m_20c_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>0.50 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QSpinBox" name="m_50c_num"/>
+     </item>
+     <item row="5" column="2">
+      <widget class="QLabel" name="m_50c_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>1.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QSpinBox" name="m_1e_num"/>
+     </item>
+     <item row="6" column="2">
+      <widget class="QLabel" name="m_1e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>2.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <widget class="QSpinBox" name="m_2e_num"/>
+     </item>
+     <item row="7" column="2">
+      <widget class="QLabel" name="m_2e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>5.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QSpinBox" name="m_5e_num"/>
+     </item>
+     <item row="8" column="2">
+      <widget class="QLabel" name="m_5e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>10.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QSpinBox" name="m_10e_num"/>
+     </item>
+     <item row="9" column="2">
+      <widget class="QLabel" name="m_10e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>20.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1">
+      <widget class="QSpinBox" name="m_20e_num"/>
+     </item>
+     <item row="10" column="2">
+      <widget class="QLabel" name="m_20e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
+      <widget class="QLabel" name="label_12">
+       <property name="text">
+        <string>50.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="1">
+      <widget class="QSpinBox" name="m_50e_num"/>
+     </item>
+     <item row="11" column="2">
+      <widget class="QLabel" name="m_50e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="0">
+      <widget class="QLabel" name="label_14">
+       <property name="text">
+        <string>100.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="1">
+      <widget class="QSpinBox" name="m_100e_num"/>
+     </item>
+     <item row="12" column="2">
+      <widget class="QLabel" name="m_100e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="0">
+      <widget class="QLabel" name="label_15">
+       <property name="text">
+        <string>200.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="1">
+      <widget class="QSpinBox" name="m_200e_num"/>
+     </item>
+     <item row="13" column="2">
+      <widget class="QLabel" name="m_200e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="14" column="0">
+      <widget class="QLabel" name="label_13">
+       <property name="text">
+        <string>500.00 €</string>
+       </property>
+      </widget>
+     </item>
+     <item row="14" column="1">
+      <widget class="QSpinBox" name="m_500e_num"/>
+     </item>
+     <item row="14" column="2">
+      <widget class="QLabel" name="m_500e_label">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="m_total_label">
+       <property name="text">
+        <string>Total</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="m_total_value">
+       <property name="text">
+        <string>0.00 €</string>
+       </property>
+       <property name="scaledContents">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="m_button_box">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>m_button_box</sender>
+   <signal>accepted()</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_button_box</sender>
+   <signal>rejected()</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_1c_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set1cValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>22</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_100e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set100eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>406</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_10c_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set10cValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>118</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_10e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set10eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>310</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_1e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set1eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>214</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_200e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set200eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>438</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_20c_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set20cValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>150</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_20e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set20eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>342</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_2c_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set2cValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>54</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_500e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set500eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>470</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_2e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set2eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>246</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_50c_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set50cValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>182</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_50e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set50eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>374</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_5c_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set5cValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_5e_num</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MonnaieDialog</receiver>
+   <slot>set5eValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>278</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>set1cValue(int)</slot>
+  <slot>set2cValue(int)</slot>
+  <slot>set5cValue(int)</slot>
+  <slot>set10cValue(int)</slot>
+  <slot>set20cValue(int)</slot>
+  <slot>set50cValue(int)</slot>
+  <slot>set1eValue(int)</slot>
+  <slot>set2eValue(int)</slot>
+  <slot>set5eValue(int)</slot>
+  <slot>set10eValue(int)</slot>
+  <slot>set20eValue(int)</slot>
+  <slot>set50eValue(int)</slot>
+  <slot>set100eValue(int)</slot>
+  <slot>set200eValue(int)</slot>
+  <slot>set500eValue(int)</slot>
+ </slots>
+</ui>
