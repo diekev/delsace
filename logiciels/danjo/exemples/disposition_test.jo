@@ -1,0 +1,52 @@
+disposition "1disposition_début" {
+	étiquette(valeur="Disposition")
+	colonne {
+		ligne {
+			étiquette(valeur="Taille image")
+			entier(valeur=6; min=-10; max=200; infobulle="La taille de l'image sur l'axe des X."; attache=taille_x; suffixe="px")
+		}
+		ligne {
+			étiquette(valeur="Taille image Y")
+			décimal(valeur=6; min=0; max=200; infobulle="La taille de l'image sur l'axe des X."; attache=taille_y; suffixe="px")
+		}
+
+        énum(valeur="exr"; items=[{ nom="JPEG", valeur="jpeg"}, { nom="EXR", valeur="exr"}, { nom="PNG", valeur="png"}]; attache=type_fichier)
+		liste(valeur="image"; attache=liste_calque)
+		chaine(valeur=""; attache=nom_fichier)
+		fichier_entrée(valeur=""; attache=fichier_in; filtres="Images (*.jpg *jpeg)")
+		fichier_sortie(valeur=""; attache=fichier_ex; filtres="Images (*.exr *png)")
+		vecteur(valeur="0, 1, 0"; attache=direction)
+	}
+	dossier {
+		onglet "Texte" {
+			étiquette(valeur="Texte")
+			texte(attache=qlskjhdqlskjdhf; valeur="fqsdf")
+		}
+		onglet "Onglet Test" {
+			étiquette(valeur="Youpi !")
+			ligne {
+				rampe_couleur(attache=rampe1)
+			}
+		}
+		onglet "Onglet Test 2" {
+			étiquette(valeur="Youpi 2 !")
+			ligne {
+				couleur(valeur="1,0,1,1"; attache=arriere_plan)
+				case(valeur=vrai; attache=cocher)
+			}
+		}
+		onglet "Courbe Couleur" {
+			étiquette(valeur="Courbe")
+			courbe_couleur(attache=courbe_1)
+		}
+		onglet "Courbe Valeur" {
+			étiquette(valeur="Courbe")
+			courbe_valeur(attache=courbe_2)
+		}
+	}
+	ligne {
+		étiquette(valeur="Ligne 2")
+		bouton(valeur="Cube"; attache=ajoute_objet; métadonnée="cube")
+		bouton(valeur="Sphère"; attache=ajoute_objet; métadonnée="sphere")
+	}
+}

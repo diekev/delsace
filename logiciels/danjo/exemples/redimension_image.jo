@@ -1,0 +1,10 @@
+disposition "redimension_image" {
+    ligne {
+        étiquette(valeur="Largeur")
+        entier(valeur=1280; min=4; max=8196; attache=largeur)
+    }
+    ligne {
+        étiquette(valeur="Hauteur")
+        entier(valeur=720; min=4; max=8196; attache=hauteur)
+    }
+}

@@ -1,0 +1,143 @@
+## Types de contrôles
+
+
+#### étiquette
+affiche une chaîne de caractère dans l'interface
+
+propriétés :
+
+* valeur : une chaîne de caractère délimitée par des guillemets.
+
+
+#### entier
+affiche un sélecteur de nombre entier
+
+propriétés :
+
+* min : un nombre entier définissant la valeur minimale du contrôle
+* max : un nombre entier définissant la valeur maximale du contrôle
+* pas : un nombre entier définissant la distance entre deux valeurs consécutives du contrôle
+* valeur : un nombre entier définissant la valeur initiale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+
+exemple :
+> entier(min=0; max=10; valeur=5; pas=1; attache=nombre; infobulle="Défini la valeur du nombre entre 0 et 10 par incrément de 1.")
+
+#### décimal
+affiche un sélecteur de nombre décimal
+
+propriétés :
+
+* min : un nombre définissant la valeur minimale du contrôle
+* max : un nombre définissant la valeur maximale du contrôle
+* pas : un nombre définissant la distance entre deux valeurs consécutives du contrôle
+* valeur : un nombre définissant la valeur initiale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+
+exemple :
+> entier(min=0.0; max=10.0; valeur=5.0; pas=0.5; attache=nombre; infobulle="Défini la valeur du nombre entre 0.0 et 10.0 par incrément de 0.5.")
+
+#### liste
+affiche une liste déroulante
+
+propriétés :
+
+* valeur : une chaîne de caractère délimitée par des guillemets définissant la valeur initiale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+* items : une liste de paire de chaînes de caractère définissants les noms et les valeurs des items dans la liste
+
+exemple :
+> liste(valeur="jpeg"; items=[ { nom="JPEG", valeur="jpeg" }, { nom="EXR", valeur="exr" } ]; attache=format_fichier; infobulle="Sélection du format de fichier image.")
+
+#### case
+affiche une case à cocher
+
+propriétés :
+
+* valeur : vrai ou faux, définissant la valeur initiale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+
+exemple :
+> case(valeur=vrai; attache=preserver_ratio; infobulle="Préserver le ratio d'aspect de l'image.")
+
+#### chaine
+affiche un éditeur de chaîne de caractère
+
+propriétés :
+
+* valeur : une chaîne de caractère délimitée par des guillemets définissant la valeur initiale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+
+exemple :
+> chaine(valeur=""; attache=texte; infobulle="")
+
+#### fichier_entree :
+affiche un sélecteur de fichier d'entrée
+
+propriétés :
+
+* valeur : une chaîne de caractère délimitée par des guillemets définissant la valeur initiale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+
+exemple :
+> fichier_entree(valeur="/chemin/vers/fichier"; attache=fichier; infobulle="Le fichier d'entrée.")
+
+#### fichier_sortie :
+affiche un sélecteur de fichier de sortie
+
+propriétés :
+
+* valeur : une chaîne de caractère délimitée par des guillemets définissant la valeur initiale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+
+exemple :
+> fichier_sortie(valeur="/chemin/vers/fichier"; attache=fichier; infobulle="Le fichier de sortie.")
+
+#### sélection couleur :
+affiche un sélecteur de couleur
+
+propriétés :
+
+* valeur : quatre nombres séparés par des virgules et délimités par des guillemets définissant les valeurs initiales de chaques cannal de la couleur (RVBA)
+* min : un nombre définissant la valeur minimale du contrôle
+* max : un nombre définissant la valeur maximale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+
+exemple :
+> couleur(valeur="0,0,0,1"; attache=arriere_plan; infobulle="Couleur de l'arrière plan.")
+
+#### sélection vecteur :
+affiche un sélecteur de vecteur
+
+propriétés :
+
+* valeur : trois nombres séparés par des virgules et délimités par des guillemets définissant les valeurs initiales de chaques dimension du vecteur (XYZ)
+* min : un nombre définissant la valeur minimale du contrôle
+* max : un nombre définissant la valeur maximale du contrôle
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+
+exemple :
+> vecteur(valeur="1,0,0"; attache=direction; infobulle="Direction du vent.")
+
+#### bouton :
+affiche un bouton
+
+propriétés :
+
+* valeur : une chaîne de caractère délimitée par des guillemets définissant le texte du bouton
+* attache : une chaîne de caractère correspondant au nom de la propriété attachée à ce contrôle
+* infobulle : une chaîne de caractère délimitée par des guillemets donnant des informations sur ce que la propriété change.
+* icône : une chaîne de caractère délimitée par des guillemets définissant le chemin vers l'icône affichée sur le bouton.
+
+exemple :
+> bouton(valeur="Simuler"; attache=lancer_simulation; infobulle="Lance la simulation.")
+
