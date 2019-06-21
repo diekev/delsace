@@ -529,17 +529,17 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (m_corps.prims()->taille() == 0l) {
 			this->ajoute_avertissement("Aucune primitive en entrée");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto corps_guide = entree(1)->requiers_corps(contexte);
+		auto corps_guide = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_guide == nullptr) {
 			this->ajoute_avertissement("Aucun guide connecté");
@@ -643,33 +643,6 @@ public:
 
 /* ************************************************************************** */
 
-class GNA {
-	std::mt19937 m_rng;
-
-public:
-	GNA(int graine = 1)
-		: m_rng(graine)
-	{}
-
-	int entier_aleatoire(int min, int max)
-	{
-		std::uniform_int_distribution<int> dist(min, max);
-		return dist(m_rng);
-	}
-
-	float float_aleatoire(float min, float max)
-	{
-		std::uniform_real_distribution<float> dist(min, max);
-		return dist(m_rng);
-	}
-
-	double double_aleatoire(double min, double max)
-	{
-		std::uniform_real_distribution<double> dist(min, max);
-		return dist(m_rng);
-	}
-};
-
 class OpBruitCheveux : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Bruit Cheveux";
@@ -696,10 +669,10 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (m_corps.prims()->taille() == 0l) {
 			this->ajoute_avertissement("Aucune primitive en entrée");
@@ -744,7 +717,7 @@ public:
 				continue;
 			}
 
-			if (prob != 1.0f && gna.float_aleatoire(0.0f, 1.0f) >= prob) {
+			if (prob != 1.0f && gna.uniforme(0.0f, 1.0f) >= prob) {
 				continue;
 			}
 
@@ -752,10 +725,10 @@ public:
 				auto idx = poly->index_point(j);
 				auto p = points->point(idx);
 
-				auto bruit = quantite * mult * gna.float_aleatoire(-alea, alea);
-				auto bruit_x = (gna.float_aleatoire(-0.5f, 0.5f) + decalage) * bruit;
-				auto bruit_y = (gna.float_aleatoire(-0.5f, 0.5f) + decalage) * bruit;
-				auto bruit_z = (gna.float_aleatoire(-0.5f, 0.5f) + decalage) * bruit;
+				auto bruit = quantite * mult * gna.uniforme(-alea, alea);
+				auto bruit_x = (gna.uniforme(-0.5f, 0.5f) + decalage) * bruit;
+				auto bruit_y = (gna.uniforme(-0.5f, 0.5f) + decalage) * bruit;
+				auto bruit_z = (gna.uniforme(-0.5f, 0.5f) + decalage) * bruit;
 
 				p.x += bruit_x;
 				p.y += bruit_y;
@@ -801,17 +774,17 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte);
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (m_corps.prims()->taille() == 0l) {
 			this->ajoute_avertissement("Aucune primitive en entrée");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto corps2 = entree(1)->requiers_corps(contexte);
+		auto corps2 = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (corps2 == nullptr) {
 			this->ajoute_avertissement("Aucun corps connecté à la seconde entrée");

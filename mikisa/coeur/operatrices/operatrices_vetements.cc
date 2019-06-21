@@ -719,7 +719,7 @@ struct config {
 	float height = 1.0f;
 	float min_distance = 0.05f;
 	int max_attempts = 30;
-	point start;
+	point start{};
 };
 
 // This implements the algorithm described in 'Fast Poisson Disk Sampling in
@@ -856,8 +856,15 @@ class Edge {
 public:
 	using VertexType = size_t;
 
-	Edge(const VertexType &p1, const VertexType &p2) : p1(p1), p2(p2), isBad(false) {};
-	Edge(const Edge &e) : p1(e.p1), p2(e.p2), isBad(false) {}
+	Edge(const VertexType &p1_, const VertexType &p2_)
+		: p1(p1_), p2(p2_), isBad(false)
+	{}
+
+	Edge(const Edge &e)
+		: p1(e.p1)
+		, p2(e.p2)
+		, isBad(false)
+	{}
 
 	VertexType p1;
 	VertexType p2;
@@ -1030,9 +1037,9 @@ public:
 	const std::vector<VertexType>& getVertices() const { return _vertices; }
 
 private:
-	std::vector<TriangleType> _triangles;
-	std::vector<EdgeType> _edges;
-	std::vector<VertexType> _vertices;
+	std::vector<TriangleType> _triangles{};
+	std::vector<EdgeType> _edges{};
+	std::vector<VertexType> _vertices{};
 };
 
 class OpPatchTriangle : public OperatriceCorps {
