@@ -36,6 +36,7 @@
 #include "postfix.h"
 #include "range.h"
 
+#include "../math/outils.hh"
 #include "../outils/definitions.h"
 #include "../tests/test_unitaire.hh"
 
@@ -755,78 +756,17 @@ static auto test_adn(std::ostream &os, std::istream &)
 
 /* ************************************************************************** */
 
-template <typename T>
-struct is_float : std::false_type {};
-
-template <>
-struct is_float<float> : std::true_type {};
-
-template <typename T>
-struct is_double : std::false_type {};
-
-template <>
-struct is_double<double> : std::true_type {};
-
-template <typename T>
-struct is_string : std::false_type {};
-
-template <>
-struct is_string<std::string> : std::true_type {};
-
-template <typename T>
-struct is_bool : std::false_type {};
-
-template <>
-struct is_bool<bool> : std::true_type {};
-
-template <typename T>
-static inline auto est_pair(T x)
-{
-	if constexpr (std::is_integral<T>::value) {
-		return (x & 0x1) == 0;
-	}
-
-	INUTILISE(x);
-	return false;
-}
-
-template <typename T>
-static inline auto valeur_nulle()
-{
-	if constexpr (is_string<T>::value) {
-		return std::string{""};
-	}
-	else if constexpr (is_bool<T>::value) {
-		return false;
-	}
-
-	return static_cast<T>(0);
-}
-
-template <typename T>
-static inline auto tolerance()
-{
-	if constexpr (is_float<T>::value) {
-		return 1e-5f;
-	}
-	else if constexpr (is_double<T>::value) {
-		return 1e-8;
-	}
-
-	return valeur_nulle<T>();
-}
-
 static auto test_constexpr_if_ex(dls::test_unitaire::Controleuse &controlleur)
 {
-	CU_VERIFIE_EGALITE(controlleur, est_pair(3), false);
-	CU_VERIFIE_EGALITE(controlleur, est_pair(3.0), false);
-	CU_VERIFIE_EGALITE(controlleur, est_pair(2), true);
-	CU_VERIFIE_EGALITE(controlleur, est_pair(2.0), false);
+	CU_VERIFIE_EGALITE(controlleur, dls::math::est_pair(3), false);
+	CU_VERIFIE_EGALITE(controlleur, dls::math::est_pair(3.0), false);
+	CU_VERIFIE_EGALITE(controlleur, dls::math::est_pair(2), true);
+	CU_VERIFIE_EGALITE(controlleur, dls::math::est_pair(2.0), false);
 
-	CU_VERIFIE_EGALITE(controlleur, tolerance<int>(), 0);
-	CU_VERIFIE_EGALITE(controlleur, tolerance<float>(), 1e-5f);
-	CU_VERIFIE_EGALITE(controlleur, tolerance<double>(), 1e-8);
-	CU_VERIFIE_EGALITE(controlleur, tolerance<std::string>(), std::string{""});
+	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<int>(), 0);
+	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<float>(), 1e-5f);
+	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<double>(), 1e-8);
+	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<std::string>(), std::string{""});
 }
 
 static auto test_constexpr_if(std::ostream &os, std::istream &)

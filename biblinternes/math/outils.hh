@@ -30,6 +30,8 @@
 
 #include "concepts.hh"
 
+#include "../outils/definitions.h"
+
 namespace dls::math {
 
 /**
@@ -312,8 +314,11 @@ inline auto valeur_nulle()
 /**
  * Tolérance pour les types décimaux. Si le type du nombre n'est pas décimal,
  * retourne 0.
+ *
+ * NOTE : ne peut utiliser ConceptNombre car valeur_nulle peut prendre une
+ * std::string.
  */
-template <ConceptNombre nombre>
+template <typename nombre>
 inline auto tolerance()
 {
 	if constexpr (est_float<nombre>::value) {
