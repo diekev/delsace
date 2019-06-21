@@ -428,17 +428,17 @@ void Scene::GenerateParticles(std::vector<fluidCore::Particle*>& particles,
 		if ((frame==0 && m_solids[l]->m_geom->IsDynamic()==false) ||
 				(m_solids[l]->m_geom->IsDynamic()==true && m_solids[l]->m_geom->IsInFrame(static_cast<float>(frame)))) {
 			//clip AABB to sim boundaries, account for density
-			auto lminf = dls::math::vec3f(std::floor(solidaabb.m_min.x), std::floor(solidaabb.m_min.y), std::floor(solidaabb.m_min.z));
-			auto lmaxf = dls::math::vec3f(std::ceil(solidaabb.m_max.x), std::ceil(solidaabb.m_max.y), std::ceil(solidaabb.m_max.z));
+			lminf = dls::math::vec3f(std::floor(solidaabb.m_min.x), std::floor(solidaabb.m_min.y), std::floor(solidaabb.m_min.z));
+			lmaxf = dls::math::vec3f(std::ceil(solidaabb.m_max.x), std::ceil(solidaabb.m_max.y), std::ceil(solidaabb.m_max.z));
 			lminf = std::max(lminf, dls::math::vec3f(0.0f))/density; /* À FAIRE : extrait_min_max */
 			lmaxf = std::min(lmaxf, dims+dls::math::vec3f(1.0f))/density; /* À FAIRE : extrait_min_max */
 
-			auto lmin = dls::math::vec3<unsigned int>(
+			lmin = dls::math::vec3<unsigned int>(
 						static_cast<unsigned int>(lminf.x),
 						static_cast<unsigned int>(lminf.y),
 						static_cast<unsigned int>(lminf.z));
 
-			auto lmax = dls::math::vec3<unsigned int>(
+			lmax = dls::math::vec3<unsigned int>(
 						static_cast<unsigned int>(lmaxf.x),
 						static_cast<unsigned int>(lmaxf.y),
 						static_cast<unsigned int>(lmaxf.z));
@@ -592,12 +592,12 @@ void Scene::AddLiquidParticle(
 		const int& frame,
 		const unsigned int& liquidGeomID)
 {
-	auto worldpos = pos*scale;
+	//auto worldpos = pos*scale;
 
 	/* À FAIRE : CheckPointInsideGeomByID */
 //	if (CheckPointInsideGeomByID(worldpos, static_cast<float>(frame), liquidGeomID)==true) {
 		//if particles are in a solid, don't generate them
-		unsigned int solidGeomID;
+		//unsigned int solidGeomID;
 		//if (CheckPointInsideSolidGeom(worldpos, static_cast<float>(frame), solidGeomID)==false) {
 			fluidCore::Particle* p = new fluidCore::Particle;
 			p->m_p = pos;

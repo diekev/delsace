@@ -26,6 +26,7 @@
 
 #include "../corps/corps.h"
 
+#include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -423,7 +424,7 @@ static void dessine_boite(
 
 	for (int i = 0; i < 8; ++i) {
 		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
-		attr_C->pousse_vec3(dls::math::vec3f(0.0f, 1.0f, 0.0f));
+		attr_C->pousse(dls::math::vec3f(0.0f, 1.0f, 0.0f));
 	}
 
 	for (int i = 0; i < 12; ++i) {
@@ -440,7 +441,7 @@ class OperatriceAriel final : public OperatriceCorps {
 	objCore::Obj geom_ariel = objCore::Obj{};
 #endif
 
-	Fluide m_fluide;
+	Fluide m_fluide{};
 
 public:
 	static constexpr auto NOM = "Ariel";
@@ -452,7 +453,7 @@ public:
 		entrees(2);
 	}
 
-	~OperatriceAriel()
+	~OperatriceAriel() override
 	{
 #ifdef WITH_ARIEL
 		delete m_scene;
@@ -485,7 +486,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(Rectangle const &rectangle, const int temps) override
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
@@ -495,7 +496,7 @@ public:
 		//auto step_size = 0.005f;
 
 		/* À FAIRE : réinitialisation. */
-		if (temps == 1) {
+		if (contexte.temps_courant == 1) {
 			initialise_fluide(m_fluide, dimensions);
 			m_fluide.particules.clear();
 
@@ -510,7 +511,7 @@ public:
 
 		for (auto particule : m_fluide.particules) {
 			m_corps.ajoute_point(particule.pos.x, particule.pos.y, particule.pos.z);
-			attr_C->pousse_vec3(dls::math::vec3f(0.0f, 0.0f, 1.0f));
+			attr_C->pousse(dls::math::vec3f(0.0f, 0.0f, 1.0f));
 		}
 
 		/* visualise domaine */
