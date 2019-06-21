@@ -912,6 +912,195 @@ public:
 
 /* ************************************************************************** */
 
+#include "corps/iteration_corps.hh"
+#include "bibliotheques/outils/definitions.hh"
+
+struct donnees_promotion {
+	long idx_dest{};
+	dls::tableau<std::pair<long, float>> paires_idx_poids{};
+};
+
+static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr portee_dest)
+{
+	auto portee_orig = attr_orig.portee;
+
+	auto attr_dest = corps.ajoute_attribut(
+				attr_orig.nom() + "_promotion",
+				attr_orig.type(),
+				portee_dest);
+
+	dls::tableau<donnees_promotion> donnees;
+	donnees.reserve(attr_dest->taille());
+
+	if (portee_orig == portee_attr::POINT) {
+		if (portee_dest == portee_attr::PRIMITIVE) {
+			/* moyenne des attributs des points autour de la primitive */
+			pour_chaque_primitive(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto donnee = donnees_promotion{};
+				donnee.idx_dest = static_cast<long>(prim->index);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					donnee.paires_idx_poids.pousse({prim->index_point(i), 1.0f / static_cast<float>(nombre_points)});
+				}
+
+				donnees.pousse(donnee);
+			});
+		}
+		else if (portee_dest == portee_attr::VERTEX) {
+			/* attribut du point de ce vertex */
+			pour_chaque_primitive(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = donnees.taille();
+					donnee.paires_idx_poids.pousse({prim->index_point(i), 1.0f});
+					donnees.pousse(donnee);
+				}
+			});
+		}
+		else if (portee_dest == portee_attr::CORPS) {
+			/* moyenne de tous les attributs */
+			auto donnee = donnees_promotion{};
+			donnee.idx_dest = 0;
+
+			for (auto i = 0l; i < attr_orig.taille(); ++i) {
+				donnee.paires_idx_poids.pousse({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
+			}
+
+			donnees.pousse(donnee);
+		}
+	}
+	else if (portee_orig == portee_attr::PRIMITIVE) {
+		if (portee_dest == portee_attr::POINT) {
+			// moyenne des attributs des primitives autour du point
+		}
+		else if (portee_dest == portee_attr::VERTEX) {
+			// attribut de la primitive contenant le vertex
+		}
+		else if (portee_dest == portee_attr::CORPS) {
+			/* moyenne de tous les attributs */
+			auto donnee = donnees_promotion{};
+			donnee.idx_dest = 0;
+
+			for (auto i = 0l; i < attr_orig.taille(); ++i) {
+				donnee.paires_idx_poids.pousse({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
+			}
+
+			donnees.pousse(donnee);
+		}
+	}
+	else if (portee_orig == portee_attr::VERTEX) {
+		if (portee_dest == portee_attr::POINT) {
+			// moyenne des attributs des vertex autour du point
+		}
+		else if (portee_dest == portee_attr::PRIMITIVE) {
+			// moyenne des attributs des vertex autour de la primitive
+		}
+		else if (portee_dest == portee_attr::CORPS) {
+			/* moyenne de tous les attributs */
+			auto donnee = donnees_promotion{};
+			donnee.idx_dest = 0;
+
+			for (auto i = 0l; i < attr_orig.taille(); ++i) {
+				donnee.paires_idx_poids.pousse({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
+			}
+
+			donnees.pousse(donnee);
+		}
+	}
+	else if (portee_orig == portee_attr::CORPS) {
+		/* peut importe la portée de destination, l'attribut est le même */
+		for (auto i = 0l; i < attr_dest->taille(); ++i) {
+			auto donnee = donnees_promotion{};
+			donnee.idx_dest = i;
+			donnee.paires_idx_poids.pousse({0, 1.0f});
+
+			donnees.pousse(donnee);
+		}
+	}
+	else if (portee_orig == portee_attr::GROUPE) {
+		/* À FAIRE */
+	}
+
+	for (auto const &donnee : donnees) {
+		for (auto const &p : donnee.paires_idx_poids) {
+			copie_attribut(&attr_orig, p.first, attr_dest, donnee.idx_dest);
+		}
+	}
+
+	auto const &nom = attr_orig.nom();
+	corps.supprime_attribut(nom);
+	attr_dest->nom(nom);
+}
+
+class OpPromeutAttribut final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Promeut Attributs";
+	static constexpr auto AIDE = "";
+
+	explicit OpPromeutAttribut(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_transfere_attribut.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto const nom_attribut = evalue_chaine("nom_attribut");
+
+		auto attr_orig = m_corps.attribut(nom_attribut);
+
+		if (attr_orig == nullptr) {
+			std::stringstream ss;
+			ss << "Le corps d'origine ne possède pas l'attribut '"
+			   << nom_attribut << "'";
+			this->ajoute_avertissement(ss.str());
+			return EXECUTION_ECHOUEE;
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void obtiens_liste(
+			std::string const &attache,
+			std::vector<std::string> &chaines) override
+	{
+		if (attache == "nom_attribut") {
+			entree(1)->obtiens_liste_attributs(chaines);
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_attributs(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationAttribut>());
@@ -920,6 +1109,7 @@ void enregistre_operatrices_attributs(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceRandomisationAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceCreationNormaux>());
 	usine.enregistre_type(cree_desc<OpTransfereAttributs>());
+	usine.enregistre_type(cree_desc<OpPromeutAttribut>());
 }
 
 #pragma clang diagnostic pop

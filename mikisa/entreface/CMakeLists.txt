@@ -157,6 +157,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_point3d_vecteur.jo
 	scripts_danjo/operatrice_rasterisation_prim.jo
 	scripts_danjo/operatrice_saturation.jo
+	scripts_danjo/operatrice_script_detail.jo
 	scripts_danjo/operatrice_simulation.jo
 	scripts_danjo/operatrice_simulation_grain.jo
 	scripts_danjo/operatrice_simulation_vetement.jo

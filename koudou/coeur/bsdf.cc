@@ -123,13 +123,6 @@ void BSDFDiffus::genere_echantillon(GNA &gna, ParametresRendu const &parametres,
 
 /* ************************************************************************** */
 
-inline auto reflechi(
-		dls::math::vec3d const &I,
-		dls::math::vec3d const &N)
-{
-	return I - 2.0 * produit_scalaire(I, N) * N;
-}
-
 BSDFReflectance::BSDFReflectance(ContexteNuancage &ctx)
 	: BSDF(ctx)
 {}
@@ -167,71 +160,7 @@ void BSDFReflectance::genere_echantillon(GNA &gna, ParametresRendu const &parame
 
 /* ************************************************************************** */
 
-auto refracte0(
-		dls::math::vec3d const &I,
-		dls::math::vec3d const &N,
-		const double idr)
-{
-	auto Nrefr = N;
-	auto cos_theta = produit_scalaire(Nrefr, I);
-	auto eta_dehors = 1.0;
-	auto eta_dedans = idr;
-
-	if (cos_theta < 0.0) {
-		/* Nous sommes en dehors de la surface, nous voulons cos(theta) positif. */
-		cos_theta = -cos_theta;
-	}
-	else {
-		/* Nous sommes dans la surface, cos(theta) est déjà positif, mais retourne le normal. */
-		Nrefr.x = -N.x;
-		Nrefr.y = -N.y;
-		Nrefr.z = -N.z;
-
-		std::swap(eta_dehors, eta_dedans);
-	}
-
-	auto eta = eta_dehors / eta_dedans;
-	auto k = 1.0 - eta * eta * (1.0 - cos_theta * cos_theta);
-
-	if (k < 0.0) {
-		return dls::math::vec3d(0.0);
-	}
-
-	return eta * I + (eta * cos_theta - sqrt(k)) * Nrefr;
-}
-
-auto fresnel0(
-		dls::math::vec3d const &I,
-		dls::math::vec3d const &N,
-		double const &idr,
-		double &kr)
-{
-	auto cosi = produit_scalaire(I, N);
-	auto eta_dehors = 1.0;
-	auto eta_dedans = idr;
-
-	if (cosi > 0) {
-		std::swap(eta_dehors, eta_dedans);
-	}
-
-	/* Calcul sin_i selon la loi de Snell. */
-	auto sint = eta_dehors / eta_dedans * sqrt(std::max(0.0, 1 - cosi * cosi));
-
-	/* Réflection interne totale. */
-	if (sint >= 1.0) {
-		kr = 1.0;
-	}
-	else {
-		auto cost = sqrt(std::max(0.0, 1.0 - sint * sint));
-		cosi = abs(cosi);
-		auto Rs = ((eta_dedans * cosi) - (eta_dehors * cost)) / ((eta_dedans * cosi) + (eta_dehors * cost));
-		auto Rp = ((eta_dehors * cosi) - (eta_dedans * cost)) / ((eta_dehors * cosi) + (eta_dedans * cost));
-		kr = (Rs * Rs + Rp * Rp) / 2;
-	}
-
-	/* En conséquence de la conservation d'énergie, la transmittance est donnée
-	 * par kt = 1 - kr. */
-}
+#undef ROULETTE_RUSSE
 
 BSDFVerre::BSDFVerre(ContexteNuancage &ctx)
 	: BSDF(ctx)
@@ -255,9 +184,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 
 #ifdef ROULETTE_RUSSE
 	/* Calcul le fresnel. */
-	double kr;
-	fresnel(rayon.direction, contexte.N, index_refraction, kr);
-
+	auto kr = fresnel(rayon.direction, contexte.N, index_refraction);
 	auto outside = produit_scalaire(rayon.direction, contexte.N) < 0;
 	auto bias = outside ? -1e-4 * contexte.N : 1e-4 * contexte.N;
 
@@ -270,7 +197,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 	if (kr <= gna.nombre_aleatoire()) {
 		rayon_local.direction = normalise(refracte(rayon.direction, contexte.N, index_refraction));
 
-		for (int i = 0; i < 3; ++i) {
+		for (auto i = 0ul; i < 3; ++i) {
 			rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
 		}
 
@@ -280,7 +207,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 
 	rayon_local.direction = normalise(reflechi(rayon.direction, contexte.N));
 
-	for (int i = 0; i < 3; ++i) {
+	for (auto i = 0ul; i < 3; ++i) {
 		rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
 	}
 
@@ -289,14 +216,13 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 	auto refractionColor = Spectre(0.0f);
 
 	/* Calcul le fresnel. */
-	double kr;
-	fresnel0(rayon.direction, contexte.N, index_refraction, kr);
+	auto kr = fresnel(rayon.direction, contexte.N, index_refraction);
 	auto outside = produit_scalaire(rayon.direction, contexte.N) < 0;
 	auto bias = outside ? -1e-4 * contexte.N : 1e-4 * contexte.N;
 
 	/* Calcul la réfraction s'il n'y a pas un cas de réflection interne totale. */
 	if (kr < 1) {
-		auto refractionDirection = normalise(refracte0(rayon.direction, contexte.N, index_refraction));
+		auto refractionDirection = normalise(refracte(rayon.direction, contexte.N, index_refraction));
 		auto refractionRayOrig = contexte.P + bias;
 
 		Rayon rayon_local;
@@ -426,23 +352,6 @@ void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, ParametresRendu const &p
 
 /* ************************************************************************** */
 
-/**
- * "Building an orthonormal basis, revisited"
- * http://graphics.pixar.com/library/OrthonormalB/paper.pdf
- */
-template <typename T>
-static void cree_base_orthonormal(
-		dls::math::vec3<T> const &n,
-		dls::math::vec3<T> &b0,
-		dls::math::vec3<T> &b1)
-{
-	auto const sign = std::copysign(static_cast<T>(1.0), n.z);
-	auto const a = static_cast<T>(-1.0) / (sign + n.z);
-	auto const b = n.x * n.y * a;
-	b0 = dls::math::vec3<T>(1.0 + sign * n.x * n.x * a, sign * b, -sign * n.x);
-	b1 = dls::math::vec3<T>(b, sign + n.y * n.y * a, -n.y);
-}
-
 BSDFPhaseAnisotropique::BSDFPhaseAnisotropique(ContexteNuancage &ctx, double g_)
 	: BSDF(ctx)
 	, g(g_)
@@ -514,7 +423,7 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, ParametresRendu const 
 		auto in = -contexte.V;
 
 		dls::math::vec3d t0, t1;
-		cree_base_orthonormal(in, t0, t1);
+		cree_base_orthonormale(in, t0, t1);
 
 		dir = sin_theta * std::sin(phi) * t0 + sin_theta * std::cos(phi) * t1 + cos_theta * in;
 		pdf = calcul_pdf(cos_theta);

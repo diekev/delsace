@@ -33,6 +33,110 @@
 
 namespace dls {
 
+template <typename T>
+struct chaine_pour_type {
+	static const char *CT()
+	{
+		return typeid(T).name();
+	}
+};
+
+template <>
+struct chaine_pour_type<char> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<char>";
+	}
+};
+
+template <>
+struct chaine_pour_type<short> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<short>";
+	}
+};
+
+template <>
+struct chaine_pour_type<int> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<int>";
+	}
+};
+
+template <>
+struct chaine_pour_type<long> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<long>";
+	}
+};
+
+template <>
+struct chaine_pour_type<long long> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<long long>";
+	}
+};
+
+template <>
+struct chaine_pour_type<unsigned char> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<unsigned char>";
+	}
+};
+
+template <>
+struct chaine_pour_type<unsigned short> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<unsigned short>";
+	}
+};
+
+template <>
+struct chaine_pour_type<unsigned int> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<unsigned int>";
+	}
+};
+
+template <>
+struct chaine_pour_type<unsigned long> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<unsigned long>";
+	}
+};
+
+template <>
+struct chaine_pour_type<unsigned long long> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<unsigned long long>";
+	}
+};
+
+template <>
+struct chaine_pour_type<float> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<float>";
+	}
+};
+
+template <>
+struct chaine_pour_type<double> {
+	static constexpr const char *CT()
+	{
+		return "dls::tableau<double>";
+	}
+};
+
 /* struct utilisée dans les std::vector en attendant d'avoir notre propre
  * tableau. */
 template <typename T>
@@ -53,7 +157,7 @@ struct logeuse_guardee {
 	{
 		static_cast<void>(hint);
 
-		auto p = memoire::loge_tableau<T>("dls::tableau", static_cast<long>(n));
+		auto p = memoire::loge_tableau<T>(chaine_pour_type<T>::CT(), static_cast<long>(n));
 
 		if (p == nullptr) {
 			throw std::bad_alloc();
@@ -65,7 +169,7 @@ struct logeuse_guardee {
 	void deallocate(T *p, size_t n)
 	{
 		if (p != nullptr) {
-			memoire::deloge_tableau("dls::tableau", p, static_cast<long>(n));
+			memoire::deloge_tableau(chaine_pour_type<T>::CT(), p, static_cast<long>(n));
 		}
 	}
 
@@ -205,6 +309,11 @@ public:
 	void clear()
 	{
 		m_vecteur.clear();
+	}
+
+	void pop_back()
+	{
+		m_vecteur.pop_back();
 	}
 
 	void pousse(T const &valeur)

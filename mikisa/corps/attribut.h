@@ -46,6 +46,8 @@ enum class type_attribut : char {
 	MAT4,
 };
 
+long taille_octet_type_attribut(type_attribut type);
+
 enum class portee_attr : char {
 	/* l'attribut varie pour chaque point */
 	POINT,

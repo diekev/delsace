@@ -1,0 +1,6 @@
+disposition "operatrice_script_detail" {
+    ligne {
+	    étiquette(valeur="Texte")
+		texte(valeur=""; attache=script)
+	}
+}

@@ -301,15 +301,29 @@ void ajoute_polygone_surface(
 		}
 
 		if (attr_couleurs) {
-			if (attr_couleurs->portee == portee_attr::POINT) {
-				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(0)));
-				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i - 1)));
-				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i)));
+			if (attr_couleurs->type() == type_attribut::VEC3) {
+				if (attr_couleurs->portee == portee_attr::POINT) {
+					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(0)));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i - 1)));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i)));
+				}
+				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				}
 			}
-			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+			else {
+				if (attr_couleurs->portee == portee_attr::POINT) {
+					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(0)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i - 1)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i)).xyz);
+				}
+				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+				}
 			}
 		}
 		else {
@@ -332,13 +346,25 @@ void ajoute_polygone_segment(
 		points.pousse(liste_points->point(polygone->index_point(i + 1)));
 
 		if (attr_couleurs) {
-			if (attr_couleurs->portee == portee_attr::POINT) {
-				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(0)));
-				couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i + 1)));
+			if (attr_couleurs->type() == type_attribut::VEC3) {
+				if (attr_couleurs->portee == portee_attr::POINT) {
+					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(0)));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i + 1)));
+				}
+				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				}
 			}
-			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-				couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+			else {
+				if (attr_couleurs->portee == portee_attr::POINT) {
+					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(0)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i + 1)).xyz);
+				}
+				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+				}
 			}
 		}
 		else {
@@ -691,7 +717,12 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 		points.pousse(liste_points->point(i));
 
 		if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
-			couleurs.pousse(attr_C->vec3(i));
+			if (attr_C->type() == type_attribut::VEC3) {
+				couleurs.pousse(attr_C->vec3(i));
+			}
+			else {
+				couleurs.pousse(attr_C->vec4(i).xyz);
+			}
 		}
 	}
 

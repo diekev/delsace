@@ -24,9 +24,11 @@
 
 #include "attribut.h"
 
+#include <cstring>
+
 /* ************************************************************************** */
 
-static auto taille_octet_type_attribut(type_attribut type)
+long taille_octet_type_attribut(type_attribut type)
 {
 	switch (type) {
 		case type_attribut::ENT8:
@@ -128,33 +130,33 @@ void copie_attribut(Attribut *attr_orig, long idx_orig, Attribut *attr_dest, lon
 {
 	switch (attr_orig->type()) {
 		case type_attribut::ENT8:
-			attr_dest->valeur(idx_dest, attr_orig->ent8(idx_orig));
-			break;
 		case type_attribut::ENT32:
-			attr_dest->valeur(idx_dest, attr_orig->ent32(idx_orig));
-			break;
 		case type_attribut::DECIMAL:
-			attr_dest->valeur(idx_dest, attr_orig->decimal(idx_orig));
-			break;
 		case type_attribut::VEC2:
-			attr_dest->valeur(idx_dest, attr_orig->vec2(idx_orig));
-			break;
 		case type_attribut::VEC3:
-			attr_dest->valeur(idx_dest, attr_orig->vec3(idx_orig));
-			break;
 		case type_attribut::VEC4:
-			attr_dest->valeur(idx_dest, attr_orig->vec4(idx_orig));
-			break;
 		case type_attribut::MAT3:
-			attr_dest->valeur(idx_dest, attr_orig->mat3(idx_orig));
-			break;
 		case type_attribut::MAT4:
-			attr_dest->valeur(idx_dest, attr_orig->mat4(idx_orig));
+		{
+			auto donnees_orig = static_cast<char *>(attr_orig->donnees());
+			auto donnees_dest = static_cast<char *>(attr_dest->donnees());
+
+			auto octets_type = taille_octet_type_attribut(attr_orig->type());
+
+			auto ptr_orig = donnees_orig + (idx_orig * octets_type);
+			auto ptr_dest = donnees_dest + (idx_dest * octets_type);
+
+			std::memcpy(ptr_dest, ptr_orig, static_cast<size_t>(octets_type));
 			break;
+		}
 		case type_attribut::CHAINE:
+		{
 			attr_dest->valeur(idx_dest, attr_orig->chaine(idx_orig));
 			break;
+		}
 		case type_attribut::INVALIDE:
+		{
 			break;
+		}
 	}
 }

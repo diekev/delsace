@@ -65,6 +65,7 @@ set(BIBLIOTHEQUES
 	bibloc_mikisa
 	bib_corps
 	bib_snh
+	bib_lcc
 )
 
 qt5_wrap_cpp(
@@ -114,6 +115,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_pixel.h
 	operatrices/operatrices_point3d.h
 	operatrices/operatrices_region.h
+	operatrices/operatrices_script.hh
 	operatrices/operatrices_simulations.hh
 	operatrices/operatrices_snh.hh
 	operatrices/operatrices_vetements.hh
@@ -176,6 +178,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_pixel.cc
 	operatrices/operatrices_point3d.cc
 	operatrices/operatrices_region.cc
+	operatrices/operatrices_script.cc
 	operatrices/operatrices_simulations.cc
 	operatrices/operatrices_snh.cc
 	operatrices/operatrices_vetements.cc
