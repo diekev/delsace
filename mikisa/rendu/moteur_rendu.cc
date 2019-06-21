@@ -56,9 +56,38 @@ static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
 
 /* ************************************************************************** */
 
+/* Concernant ce déléguée_scène :
+ * La finalité du MoteurRendu est d'abstraire différents moteurs de rendus
+ * (traçage de rayon, ratissage, OpenGL, etc.) dans un système où il y a
+ * plusieurs moteurs de rendu, et plusieurs représentation scénique différentes,
+ * opérants en même temps. La Déléguée de scène servira de pont entre les
+ * différentes représentations scéniques et les différents moteurs de rendus.
+ * L'idée est similaire à celle présente dans Hydra de Pixar.
+ */
+struct deleguee_scene {
+	Scene *scene = nullptr;
+
+	long nombre_objets() const
+	{
+		return scene->objets().taille();
+	}
+
+	Objet *objet(long idx) const
+	{
+		return scene->objets()[idx];
+	}
+};
+
+/* ************************************************************************** */
+
+MoteurRendu::MoteurRendu()
+	: m_delegue(memoire::loge<deleguee_scene>("Délégué Scène"))
+{}
+
 MoteurRendu::~MoteurRendu()
 {
 	memoire::deloge("RenduGrille", m_rendu_grille);
+	memoire::deloge("Délégué Scène", m_delegue);
 }
 
 void MoteurRendu::camera(vision::Camera3D *camera)
@@ -68,7 +97,7 @@ void MoteurRendu::camera(vision::Camera3D *camera)
 
 void MoteurRendu::scene(Scene *scene)
 {
-	m_scene = scene;
+	m_delegue->scene = scene;
 }
 
 void MoteurRendu::calcule_rendu(
@@ -136,8 +165,8 @@ void MoteurRendu::calcule_rendu(
 		m_rendu_grille->dessine(contexte);
 	}
 
-	if (m_scene != nullptr) {
-		auto camera_scene = m_scene->camera();
+	if (m_delegue->scene != nullptr) {
+		auto camera_scene = m_delegue->scene->camera();
 
 		if (!rendu_final && camera_scene != nullptr) {
 			/* la rotation de la caméra est appliquée aux points dans
@@ -157,7 +186,9 @@ void MoteurRendu::calcule_rendu(
 			pile.enleve_sommet();
 		}
 
-		for (auto objet : m_scene->objets()) {
+		for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
+			auto objet = m_delegue->objet(i);
+
 			pile.pousse(objet->transformation.matrice());
 
 			objet->corps.accede_lecture([&pile, &contexte](Corps const &corps)
@@ -207,4 +238,9 @@ void MoteurRendu::calcule_rendu(
 			std::swap(tampon[idx0 + 3], tampon[idx1 + 3]);
 		}
 	}
+}
+
+void MoteurRendu::construit_scene()
+{
+
 }

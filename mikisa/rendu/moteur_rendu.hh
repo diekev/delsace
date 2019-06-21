@@ -24,20 +24,27 @@
 
 #pragma once
 
+#include "bibloc/tableau.hh"
+
 namespace vision {
 class Camera3D;
 }
 
 class RenduGrille;
 class Scene;
+class TamponRendu;
+
+struct deleguee_scene;
 
 class MoteurRendu {
 	vision::Camera3D *m_camera = nullptr;
-	Scene *m_scene = nullptr;
 	RenduGrille *m_rendu_grille = nullptr;
+	deleguee_scene *m_delegue = nullptr;
+
+	dls::tableau<TamponRendu *> m_tampons{};
 
 public:
-	MoteurRendu() = default;
+	MoteurRendu();
 
 	~MoteurRendu();
 
@@ -49,4 +56,6 @@ public:
 	void scene(Scene *scene);
 
 	void calcule_rendu(float *tampon, int hauteur, int largeur, bool rendu_final);
+
+	void construit_scene();
 };
