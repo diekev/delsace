@@ -210,6 +210,11 @@ public:
 	 */
 	void parametres_dessin(ParametresDessin const &parametres);
 
+	ParametresDessin const &parametres_dessin() const
+	{
+		return m_paramatres_dessin;
+	}
+
 	/**
 	 * Finalise la construction du programme. Cette fonction doit
 	 * obligatoirement être appelée après avoir chargé les sources du programme
@@ -273,6 +278,11 @@ public:
 	 * Retourne un pointeur vers l'atlas texture de ce tampon.
 	 */
 	AtlasTexture *atlas();
+
+	numero7::ego::TamponObjet::Ptr &donnees()
+	{
+		return m_donnees_tampon;
+	}
 
 private:
 	/**

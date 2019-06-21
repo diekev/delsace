@@ -308,3 +308,6 @@ if (AVEC_SILVATHEQUE)
 		DESTINATION silvatheque/texte
 	)
 endif (AVEC_SILVATHEQUE)
+
+set(NOM_PROJET vulkan)
+add_subdirectory(vulkan)
