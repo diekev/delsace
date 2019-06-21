@@ -148,12 +148,17 @@ EntreeOperatrice::EntreeOperatrice(PriseEntree *prise)
 
 bool EntreeOperatrice::connectee() const
 {
-	return m_ptr->lien != nullptr;
+	return !m_ptr->liens.empty();
 }
 
 void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	auto lien = m_ptr->lien;
+	if (m_ptr->liens.empty()) {
+		return;
+	}
+
+	auto lien = m_ptr->liens[0];
+
 	m_liste_noms_calques.clear();
 
 	if (lien != nullptr) {
@@ -172,7 +177,11 @@ void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &co
 
 vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	auto lien = m_ptr->lien;
+	if (m_ptr->liens.empty()) {
+		return nullptr;
+	}
+
+	auto lien = m_ptr->liens[0];
 
 	if (lien == nullptr) {
 		return nullptr;
@@ -188,7 +197,11 @@ vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &co
 
 Objet *EntreeOperatrice::requiers_objet(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	auto lien = m_ptr->lien;
+	if (m_ptr->liens.empty()) {
+		return nullptr;
+	}
+
+	auto lien = m_ptr->liens[0];
 
 	if (lien == nullptr) {
 		return nullptr;
@@ -204,7 +217,11 @@ Objet *EntreeOperatrice::requiers_objet(ContexteEvaluation const &contexte, Donn
 
 TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	auto lien = m_ptr->lien;
+	if (m_ptr->liens.empty()) {
+		return nullptr;
+	}
+
+	auto lien = m_ptr->liens[0];
 
 	if (lien == nullptr) {
 		return nullptr;
@@ -220,7 +237,11 @@ TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &conte
 
 const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	auto lien = m_ptr->lien;
+	if (m_ptr->liens.empty()) {
+		return nullptr;
+	}
+
+	auto lien = m_ptr->liens[0];
 
 	if (lien == nullptr) {
 		return nullptr;
@@ -258,7 +279,11 @@ void EntreeOperatrice::obtiens_liste_calque(std::vector<std::string> &chaines) c
 
 void EntreeOperatrice::obtiens_liste_attributs(std::vector<std::string> &chaines) const
 {
-	auto lien = m_ptr->lien;
+	if (m_ptr->liens.empty()) {
+		return;
+	}
+
+	auto lien = m_ptr->liens[0];
 
 	if (lien == nullptr) {
 		return;
@@ -279,7 +304,11 @@ void EntreeOperatrice::obtiens_liste_attributs(std::vector<std::string> &chaines
 
 void EntreeOperatrice::obtiens_liste_groupes_prims(std::vector<std::string> &chaines) const
 {
-	auto lien = m_ptr->lien;
+	if (m_ptr->liens.empty()) {
+		return;
+	}
+
+	auto lien = m_ptr->liens[0];
 
 	if (lien == nullptr) {
 		return;
@@ -300,7 +329,11 @@ void EntreeOperatrice::obtiens_liste_groupes_prims(std::vector<std::string> &cha
 
 void EntreeOperatrice::obtiens_liste_groupes_points(std::vector<std::string> &chaines) const
 {
-	auto lien = m_ptr->lien;
+	if (m_ptr->liens.empty()) {
+		return;
+	}
+
+	auto lien = m_ptr->liens[0];
 
 	if (lien == nullptr) {
 		return;

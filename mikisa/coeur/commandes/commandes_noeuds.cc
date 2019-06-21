@@ -255,11 +255,11 @@ public:
 			connexion->x = donnees.x;
 			connexion->y = donnees.y;
 
-			if (prise_entree && prise_entree->lien) {
+			if (prise_entree && !prise_entree->liens.empty()) {
 				connexion->prise_entree = nullptr;
-				connexion->prise_sortie = prise_entree->lien;
+				connexion->prise_sortie = prise_entree->liens[0];
 
-				if (graphe->deconnecte(prise_entree->lien, prise_entree)) {
+				if (graphe->deconnecte(prise_entree->liens[0], prise_entree)) {
 					m_prise_entree_deconnectee = noeud_connecte_sortie(
 													 prise_entree->parent,
 													 graphe->dernier_noeud_sortie);
@@ -329,8 +329,8 @@ public:
 			}
 
 			if (peut_connecter(entree, sortie)) {
-				if (entree->lien != nullptr) {
-					graphe->deconnecte(entree->lien, entree);
+				if (!entree->liens.empty()) {
+					graphe->deconnecte(entree->liens[0], entree);
 				}
 
 				graphe->connecte(sortie, entree);

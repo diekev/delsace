@@ -128,7 +128,7 @@ public:
 	{
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_SORTIE);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 	}
 };
 
@@ -175,7 +175,7 @@ public:
 	{
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_SATURATION);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 
 		/* saturation */
 		compileuse.ajoute_noeud(0.5f);

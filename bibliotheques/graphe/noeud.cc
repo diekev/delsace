@@ -205,7 +205,7 @@ bool Noeud::a_des_entrees_liees() const
 {
 	auto pred = [](PriseEntree *prise)
 	{
-		return prise->lien != nullptr;
+		return !prise->liens.empty();
 	};
 
 	return std::any_of(m_entrees.begin(), m_entrees.end(), pred);

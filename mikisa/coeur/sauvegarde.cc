@@ -237,7 +237,7 @@ static void ecris_graphe(
 			auto element_prise = doc.NewElement("entree");
 			element_prise->SetAttribute("nom", prise->nom.c_str());
 			element_prise->SetAttribute("id", id_depuis_pointeur(prise).c_str());
-			element_prise->SetAttribute("connexion", id_depuis_pointeur(prise->lien).c_str());
+			element_prise->SetAttribute("connexion", id_depuis_pointeur(prise->liens[0]).c_str());
 
 			racine_prise_entree->InsertEndChild(element_prise);
 		}

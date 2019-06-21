@@ -73,9 +73,11 @@ struct PriseSortie {
 
 struct PriseEntree {
 	Noeud *parent = nullptr;
-	PriseSortie *lien = nullptr;
+	std::vector<PriseSortie *> liens{};
+	//PriseSortie *lien = nullptr;
 	std::string nom = "";
 	int type = 0;
+	bool multiple_connexions = false;
 
 	/* position et taille dans l'entreface */
 	Rectangle rectangle{};

@@ -111,14 +111,16 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		m_scene->addItem(item);
 
 		for (PriseEntree *prise : node_ptr->entrees()) {
-			if (prise->lien == nullptr) {
+			if (prise->liens.empty()) {
 				continue;
 			}
 
+			auto lien = prise->liens[0];
+
 			auto const x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
 			auto const y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
-			auto const x2 = prise->lien->rectangle.x + prise->lien->rectangle.largeur / 2.0f;
-			auto const y2 = prise->lien->rectangle.y + prise->lien->rectangle.hauteur / 2.0f;
+			auto const x2 = lien->rectangle.x + lien->rectangle.largeur / 2.0f;
+			auto const y2 = lien->rectangle.y + lien->rectangle.hauteur / 2.0f;
 
 			auto ligne = new QGraphicsLineItem();
 			ligne->setPen(QPen(Qt::white, 2.0));

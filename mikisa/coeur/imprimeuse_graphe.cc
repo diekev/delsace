@@ -209,9 +209,9 @@ inline void dump_link(numero7::systeme_fichier::File &file, const PriseSortie *f
 
 inline void dump_node_links(numero7::systeme_fichier::File &file, const Noeud *node)
 {
-	for (auto const &input : node->entrees()) {
-		if (input->lien) {
-			dump_link(file, input->lien, input);
+	for (auto const &entree : node->entrees()) {
+		for (auto const &sortie : entree->liens) {
+			dump_link(file, sortie, entree);
 		}
 	}
 }

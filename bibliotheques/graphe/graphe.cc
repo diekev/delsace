@@ -104,8 +104,8 @@ void Graphe::supprime(Noeud *node)
 
 	/* déconnecte entrées */
 	for (PriseEntree *entree : node->entrees()) {
-		if (entree->lien) {
-			deconnecte(entree->lien, entree);
+		for (PriseSortie *sortie : entree->liens) {
+			deconnecte(sortie, entree);
 		}
 	}
 
@@ -125,12 +125,12 @@ void Graphe::supprime(Noeud *node)
 
 void Graphe::connecte(PriseSortie *sortie, PriseEntree *entree)
 {
-	if (entree->lien != nullptr) {
+	if (!entree->liens.empty() && !entree->multiple_connexions) {
 		std::cerr << "L'entrée est déjà connectée !\n";
 		return;
 	}
 
-	entree->lien = sortie;
+	entree->liens.push_back(sortie);
 	sortie->liens.push_back(entree);
 
 	marque_surannee(entree->parent);
@@ -140,15 +140,22 @@ void Graphe::connecte(PriseSortie *sortie, PriseEntree *entree)
 
 bool Graphe::deconnecte(PriseSortie *sortie, PriseEntree *entree)
 {
-	auto iter = std::find(sortie->liens.begin(), sortie->liens.end(), entree);
+	auto iter_entree = std::find(sortie->liens.begin(), sortie->liens.end(), entree);
 
-	if (iter == sortie->liens.end()) {
+	if (iter_entree == sortie->liens.end()) {
 		std::cerr << "L'entrée n'est pas connectée à la sortie !\n";
 		return false;
 	}
 
-	sortie->liens.erase(iter);
-	entree->lien = nullptr;
+	auto iter_sortie = std::find(entree->liens.begin(), entree->liens.end(), sortie);
+
+	if (iter_sortie == entree->liens.end()) {
+		std::cerr << "L'entrée n'est pas connectée à la sortie !\n";
+		return false;
+	}
+
+	sortie->liens.erase(iter_entree);
+	entree->liens.erase(iter_sortie);
 
 	marque_surannee(entree->parent);
 
@@ -322,7 +329,7 @@ void calcule_degree(Noeud *noeud)
 	noeud->degre = 0;
 
 	for (auto *prise : noeud->entrees()) {
-		noeud->degre += (prise->lien != nullptr);
+		noeud->degre += static_cast<int>(prise->liens.size());
 	}
 }
 

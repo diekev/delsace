@@ -58,11 +58,11 @@ void execute_noeud(
 		auto temps_parent = 0.0f;
 
 		for (auto entree : noeud->entrees()) {
-			if (!entree->lien) {
+			if (entree->liens.empty()) {
 				continue;
 			}
 
-			temps_parent += entree->lien->parent->temps_execution();
+			temps_parent += entree->liens[0]->parent->temps_execution();
 		}
 
 		noeud->incremente_compte_execution();

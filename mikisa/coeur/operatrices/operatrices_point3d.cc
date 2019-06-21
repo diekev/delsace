@@ -202,7 +202,7 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_SORTIE);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 	}
 };
 
@@ -250,8 +250,8 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_MATH);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->liens[0]));
 
 		auto operation = evalue_enum("opération");
 
@@ -316,7 +316,7 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_SEPARE_VECTEUR);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 		compileuse.decalage_pile(sortie(0)->pointeur());
 		compileuse.decalage_pile(sortie(1)->pointeur());
 		compileuse.decalage_pile(sortie(2)->pointeur());
@@ -367,9 +367,9 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_COMBINE_VECTEUR);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->lien));
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(2)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->liens[0]));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(2)->pointeur()->liens[0]));
 		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
@@ -420,7 +420,7 @@ public:
 	void compile(CompileuseGraphe &compileuse, GestionnaireDonneesGraphe &gestionnaire, int temps) override
 	{
 		compileuse.ajoute_noeud(NOEUD_POINT3D_BRUIT_PROC);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 
 		/* prépare le bruit */
 		auto const graine = static_cast<unsigned>(evalue_entier("graine"));
@@ -508,7 +508,7 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_TRAD_VEC);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 
 		auto const vieux_min = evalue_decimal("vieux_min");
 		auto const vieux_max = evalue_decimal("vieux_max");
@@ -565,7 +565,7 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_NORMALISE);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
@@ -614,7 +614,7 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_COMPLEMENT);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
@@ -686,7 +686,7 @@ public:
 				break;
 		}
 
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
 		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
@@ -735,8 +735,8 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_PRODUIT_SCALAIRE);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->liens[0]));
 		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
@@ -785,8 +785,8 @@ public:
 		INUTILISE(gestionnaire);
 		INUTILISE(temps);
 		compileuse.ajoute_noeud(NOEUD_POINT3D_PRODUIT_CROIX);
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->lien));
-		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->lien));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(0)->pointeur()->liens[0]));
+		compileuse.ajoute_noeud(compileuse.decalage_pile(entree(1)->pointeur()->liens[0]));
 		compileuse.decalage_pile(sortie(0)->pointeur());
 	}
 };
