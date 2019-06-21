@@ -19,27 +19,26 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(commandes)
-add_subdirectory(chaine)
-add_subdirectory(geometrie)
-add_subdirectory(graphe)
-add_subdirectory(kelvinlet)
-add_subdirectory(objets)
-add_subdirectory(observation)
-add_subdirectory(opengl)
-add_subdirectory(outils)
-add_subdirectory(Patate)
-add_subdirectory(rmsd)
-add_subdirectory(spectre)
-add_subdirectory(snh)
-add_subdirectory(structures)
-add_subdirectory(tests)
-add_subdirectory(texture)
-add_subdirectory(transformation)
-add_subdirectory(vision)
-add_subdirectory(voro)
-add_subdirectory(xml)
+set(NOM_CIBLE bib_rmsd)
 
-if(AVEC_MENGE)
-	add_subdirectory(Menge)
-endif(AVEC_MENGE)
+set(INCLUSIONS
+
+)
+
+add_library(${NOM_CIBLE} STATIC
+	rmsd.c
+	rmsd.h
+)
+
+get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_CIBLE} COMPILE_OPTIONS)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wold-style-cast)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wnon-virtual-dtor)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Woverloaded-virtual)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-delete-non-virtual-dtor)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fconcepts)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fno-nonansi-builtins)
+set_target_properties(${NOM_CIBLE} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+
+target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})

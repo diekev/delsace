@@ -31,7 +31,8 @@ menu "Noeud Simulation" {
 	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")
 	}
 	menu "Physique" {
-	    action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
+	    action(valeur="Ariel"; attache=ajouter_noeud; métadonnée="Ariel")
+		action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
 		action(valeur="Ajout Corps Rigide"; attache=ajouter_noeud; métadonnée="Ajout Corps Rigide")
 		action(valeur="Dynamiques Corps Rigides"; attache=ajouter_noeud; métadonnée="Dynamiques Corps Rigides")
 		action(valeur="Force d'Interaction"; attache=ajouter_noeud; métadonnée="Force d'Interaction")

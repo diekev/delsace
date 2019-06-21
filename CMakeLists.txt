@@ -150,6 +150,7 @@ if(AVEC_MIKISA)
 	find_package(OpenColorIO)
 	find_package(OpenEXR)
 	find_package(OpenSubDiv)
+	find_package(OpenVDB)
 endif(AVEC_MIKISA)
 
 find_package(Qt5Core REQUIRED)
@@ -173,6 +174,8 @@ set(BIBLIOTHEQUES_TBB tbb)
 set(BIBLIOTHEQUES_IMAGE ${BIBLIOTHEQUES_IMAGE} jpeg png)
 
 set(BIBLIOTHEQUES_DANJO ${BIBLIOTHEQUES_DANJO} ${BIBLIOTHEQUE_DELSACE_PHYS} ${BIBLIOTHEQUE_DELSACE_LANGAGE})
+
+set(INCLUSIONS_BOOST /opt/lib/boost/include)
 
 # ------------------------------------------------------------------------------
 

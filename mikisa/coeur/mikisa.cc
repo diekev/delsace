@@ -60,6 +60,7 @@
 
 #include "operatrices/operatrices_3d.h"
 #include "operatrices/operatrices_arbre.hh"
+#include "operatrices/operatrices_ariel.hh"
 #include "operatrices/operatrices_attributs.hh"
 #include "operatrices/operatrices_bullet.hh"
 #include "operatrices/operatrices_cheveux.h"
@@ -119,6 +120,7 @@ void Mikisa::initialise()
 {
 	enregistre_operatrices_3d(m_usine_operatrices);
 	enregistre_operatrices_arbre(m_usine_operatrices);
+	enregistre_operatrices_ariel(m_usine_operatrices);
 	enregistre_operatrices_attributs(m_usine_operatrices);
 	enregistre_operatrices_bullet(m_usine_operatrices);
 	enregistre_operatrices_cheveux(m_usine_operatrices);

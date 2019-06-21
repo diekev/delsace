@@ -21,6 +21,8 @@
 
 set(NOM_CIBLE mikisa_coeur)
 
+add_subdirectory(operatrices/ariel)
+
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
@@ -66,6 +68,7 @@ set(BIBLIOTHEQUES
 	bib_corps
 	bib_snh
 	bib_lcc
+	mikisa_ariel
 )
 
 qt5_wrap_cpp(
@@ -102,6 +105,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/ocean.hh
 	operatrices/operatrices_3d.h
 	operatrices/operatrices_arbre.hh
+	operatrices/operatrices_ariel.hh
 	operatrices/operatrices_attributs.hh
 	operatrices/operatrices_bullet.hh
 	operatrices/operatrices_cheveux.h
@@ -167,6 +171,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/normaux.cc
 	operatrices/operatrices_3d.cc
 	operatrices/operatrices_arbre.cc
+	operatrices/operatrices_ariel.cc
 	operatrices/operatrices_attributs.cc
 	operatrices/operatrices_bullet.cc
 	operatrices/operatrices_cheveux.cc
