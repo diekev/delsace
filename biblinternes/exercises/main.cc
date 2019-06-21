@@ -36,6 +36,7 @@
 #include "postfix.h"
 #include "range.h"
 
+#include "../outils/definitions.h"
 #include "../tests/test_unitaire.hh"
 
 /* ************************************************************************** */
@@ -753,8 +754,6 @@ static auto test_adn(std::ostream &os, std::istream &)
 }
 
 /* ************************************************************************** */
-
-#define INUTILISE(x) static_cast<void>(x)
 
 template <typename T>
 struct is_float : std::false_type {};

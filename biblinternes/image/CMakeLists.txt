@@ -43,7 +43,6 @@ set(ENTETES_OPERATIONS
 set(ENTETES_OUTILS
 	outils/couleurs.h
 	outils/flux.h
-	outils/generaux.h
 )
 
 set(ENTETES

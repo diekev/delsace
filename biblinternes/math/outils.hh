@@ -254,8 +254,6 @@ inline auto rampe(nombre n)
 	return etape_lisse((n + 1) * 0.5) * 2 - 1;
 }
 
-#define INUTILISE(x) static_cast<void>(x)
-
 /**
  * Retourne vrai si le nombre spécifié est d'un type intégral et pair.
  */

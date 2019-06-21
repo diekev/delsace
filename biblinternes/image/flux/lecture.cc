@@ -43,7 +43,7 @@
 #endif
 
 #include "../outils/flux.h"
-#include "../outils/generaux.h"
+#include "../../outils/definitions.h"
 
 #include "../operations/conversion.h"
 

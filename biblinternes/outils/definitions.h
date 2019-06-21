@@ -36,7 +36,9 @@
 #define TOUJOURS_INLINE [[ gnu::always_inline ]]
 #define JAMAIS_INLINE  [[ gnu::noinline ]]
 
-#define INUTILISE(x) static_cast<void>(x)
+#ifndef INUTILISE
+#	define INUTILISE(x) static_cast<void>(x)
+#endif
 
 #define CHAINE_IMPL(x) #x
 #define CHAINE(x) CHAINE_IMPL(x)
