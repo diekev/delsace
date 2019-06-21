@@ -40,6 +40,7 @@ menu "Noeud Objet" {
 		action(valeur="Lissage Laplacien"; attache=ajouter_noeud; métadonnée="Lissage Laplacien")
 		action(valeur="Normalise Covariance"; attache=ajouter_noeud; métadonnée="Normalise Covariance")
 		action(valeur="OpenSubDiv"; attache=ajouter_noeud; métadonnée="OpenSubDiv")
+		action(valeur="Patch Triangle"; attache=ajouter_noeud; métadonnée="Patch Triangle")
 		action(valeur="Séparation Primitives"; attache=ajouter_noeud; métadonnée="Séparation Primitives")
 		action(valeur="Texture"; attache=ajouter_noeud; métadonnée="Texture")
 		action(valeur="Triangulation"; attache=ajouter_noeud; métadonnée="Triangulation")

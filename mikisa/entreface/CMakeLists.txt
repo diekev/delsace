@@ -147,6 +147,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_ocean.jo
         scripts_danjo/operatrice_ondelette_haar.jo
 	scripts_danjo/operatrice_opensubdiv.jo
+	scripts_danjo/operatrice_patch_triangle.jo
 	scripts_danjo/operatrice_premultiplication.jo
 	scripts_danjo/operatrice_p3d_ep_fluide.jo
 	scripts_danjo/operatrice_point3d_math.jo

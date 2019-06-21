@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,13 +25,19 @@
 #include "operatrices_vetements.hh"
 
 #include <set>
+#include <stack>
+#include <vector>
 
+#include "bibliotheques/outils/constantes.h"
+#include "bibliotheques/outils/definitions.hh"
+#include "bibliotheques/outils/gna.hh"
 #include "bibliotheques/outils/parallelisme.h"
 
 #include "bibloc/tableau.hh"
 
 #include "corps/iteration_corps.hh"
 
+#include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
@@ -181,8 +187,8 @@ static void integre_explicitement_avec_attenuation(
 
 		/* voir http://www.sccg.sk/~onderik/phd/ca2010/ca10_lesson11.pdf */
 		auto tmp = dls::math::mat3x3f(
-					   0.0f, -Ri_i.z,  Ri_i.y,
-					 Ri_i.z,    0.0f, -Ri_i.x,
+					0.0f, -Ri_i.z,  Ri_i.y,
+					Ri_i.z,    0.0f, -Ri_i.x,
 					-Ri_i.y,  Ri_i.x,  0.0f);
 
 		tmp *= transpose(tmp);
@@ -678,7 +684,466 @@ public:
 
 /* ************************************************************************** */
 
+namespace bridson {
+
+constexpr static auto infinity = std::numeric_limits<float>::infinity();
+
+struct point {
+	float x = infinity;
+	float y = infinity;
+};
+
+// A configuration structure to customise the poisson_disc_distribution
+// algorithm below.
+//
+//   width, height - Defines the range of x as (0, width] and the range
+//                   of y as (0, height].
+//
+//   min_distance  - The smallest distance allowed between two points. Also,
+//                   points will never be further apart than twice this
+//                   distance.
+//
+//   max_attempts  - The algorithm stochastically attempts to place a new point
+//                   around a current point. This number limits the number of
+//                   attempts per point. A lower number will speed up the
+//                   algorithm but at some cost, possibly significant, to the
+//                   result's aesthetics.
+//
+//   start         - An optional parameter. If set to anything other than
+//                   point's default values (infinity, infinity) the algorithm
+//                   will start from this point. Otherwise a point is chosen
+//                   randomly. Expected to be within the region defined by
+//                   width and height.
+struct config {
+	float width = 1.0f;
+	float height = 1.0f;
+	float min_distance = 0.05f;
+	int max_attempts = 30;
+	point start;
+};
+
+// This implements the algorithm described in 'Fast Poisson Disk Sampling in
+// Arbitrary Dimensions' by Robert Bridson. This produces a random set of
+// points such that no two points are closer than conf.min_distance apart or
+// further apart than twice that distance.
+//
+// Parameters
+//
+//   conf    - The configuration, as detailed above.
+//
+//   random  - A callback of the form float(float limit) that returns a random
+//             value ranging from 0 (inclusive) to limit (exclusive).
+//
+//   in_area - A callback of the form bool(point) that returns whether a point
+//             is within a valid area. This can be used to create shapes other
+//             than rectangles. Points can't be outside of the defined limits of
+//             the width and height specified. See the notes section for more.
+//
+//   output  - A callback of the form void(point). All points that are part of
+//             the final Poisson disc distribution are passed here.
+//
+// Notes
+//
+//   The time complexity is O(n) where n is the number of points.
+//
+//   The in_area callback must prevent points from leaving the region defined by
+//   width and height (i.e., 0 <= x < width and 0 <= y < height). If this is
+//   not done invalid memory accesses will occur and most likely a segmentation
+//   fault.
+template <typename T, typename T2, typename T3>
+void
+poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
+{
+	auto cell_size = conf.min_distance / std::sqrt(2.0f);
+	auto grid_width = static_cast<int>(std::ceil(conf.width / cell_size));
+	auto grid_height = static_cast<int>(std::ceil(conf.height / cell_size));
+
+	std::vector<point> grid(static_cast<size_t>(grid_width * grid_height));
+	std::stack<point> process;
+
+	auto squared_distance = [](const point& a, const point& b) {
+		auto delta_x = a.x - b.x;
+		auto delta_y = a.y - b.y;
+
+		return delta_x * delta_x + delta_y * delta_y;
+	};
+
+	auto point_around = [&conf, &random](point p) {
+		auto radius = random(conf.min_distance) + conf.min_distance;
+		auto angle = random(constantes<float>::TAU);
+
+		p.x += std::cos(angle) * radius;
+		p.y += std::sin(angle) * radius;
+
+		return p;
+	};
+
+	auto set = [cell_size, grid_width, &grid](const point& p) {
+		auto x = static_cast<int>(p.x / cell_size);
+		auto y = static_cast<int>(p.y / cell_size);
+		grid[static_cast<size_t>(y * grid_width + x)] = p;
+	};
+
+	auto add = [&process, &output, &set](const point& p) {
+		process.push(p);
+		output(p);
+		set(p);
+	};
+
+	auto point_too_close = [&](const point& p) {
+		auto x_index = static_cast<int>(std::floor(p.x / cell_size));
+		auto y_index = static_cast<int>(std::floor(p.y / cell_size));
+
+		if (grid[static_cast<size_t>(y_index * grid_width + x_index)].x != infinity) {
+			return true;
+		}
+
+		auto min_dist_squared = conf.min_distance * conf.min_distance;
+		auto min_x = std::max(x_index - 2, 0);
+		auto min_y = std::max(y_index - 2, 0);
+		auto max_x = std::min(x_index + 2, grid_width - 1);
+		auto max_y = std::min(y_index + 2, grid_height - 1);
+
+		for (auto y = min_y; y <= max_y; ++y) {
+			for (auto x = min_x; x <= max_x; ++x) {
+				auto point = grid[static_cast<size_t>(y * grid_width + x)];
+				auto exists = point.x != infinity;
+
+				if (exists && squared_distance(p, point) < min_dist_squared) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	};
+
+	if (conf.start.x == infinity) {
+		do {
+			conf.start.x = random(conf.width);
+			conf.start.y = random(conf.height);
+		} while (!in_area(conf.start));
+	}
+
+	add(conf.start);
+
+	while (!process.empty()) {
+		auto point = process.top();
+		process.pop();
+
+		for (int i = 0; i != conf.max_attempts; ++i) {
+			auto p = point_around(point);
+
+			if (in_area(p) && !point_too_close(p)) {
+				add(p);
+			}
+		}
+	}
+}
+
+} // bridson namespace
+
+template<class T>
+T half(T x);
+
+template <>
+float half(float x){return 0.5f * x;}
+
+template <>
+double half(double x){return 0.5 * x;}
+
+class Edge {
+public:
+	using VertexType = size_t;
+
+	Edge(const VertexType &p1, const VertexType &p2) : p1(p1), p2(p2), isBad(false) {};
+	Edge(const Edge &e) : p1(e.p1), p2(e.p2), isBad(false) {}
+
+	VertexType p1;
+	VertexType p2;
+
+	bool isBad;
+};
+
+inline bool operator == (const Edge & e1, const Edge & e2)
+{
+	return 	(e1.p1 == e2.p1 && e1.p2 == e2.p2) ||
+			(e1.p1 == e2.p2 && e1.p2 == e2.p1);
+}
+
+class Triangle {
+public:
+	using EdgeType = Edge;
+	using VertexType = size_t;
+
+	Triangle(const VertexType &_p1, const VertexType &_p2, const VertexType &_p3)
+		:	p1(_p1), p2(_p2), p3(_p3),
+		  e1(_p1, _p2), e2(_p2, _p3), e3(_p3, _p1), isBad(false)
+	{}
+
+	bool containsVertex(const VertexType &v) const
+	{
+		return p1 == v || p2 == v || p3 == v;
+	}
+
+	VertexType p1;
+	VertexType p2;
+	VertexType p3;
+	EdgeType e1;
+	EdgeType e2;
+	EdgeType e3;
+	bool isBad;
+};
+
+template <class T>
+inline bool operator == (Triangle const &t1, Triangle const &t2)
+{
+	return	(t1.p1 == t2.p1 || t1.p1 == t2.p2 || t1.p1 == t2.p3) &&
+			(t1.p2 == t2.p1 || t1.p2 == t2.p2 || t1.p2 == t2.p3) &&
+			(t1.p3 == t2.p1 || t1.p3 == t2.p2 || t1.p3 == t2.p3);
+}
+
+class Delaunay {
+public:
+	using TriangleType = Triangle;
+	using EdgeType = Edge;
+	using VertexType = dls::math::vec2f;
+
+private:
+	bool cercle_circontient(TriangleType const &triangle, VertexType const &v)
+	{
+		auto const &p1 = _vertices[triangle.p1];
+		auto const &p2 = _vertices[triangle.p2];
+		auto const &p3 = _vertices[triangle.p3];
+
+		auto const ab = longueur_carree(p1);
+		auto const cd = longueur_carree(p2);
+		auto const ef = longueur_carree(p3);
+
+		auto const circum_x = (ab * (p3.y - p2.y) + cd * (p1.y - p3.y) + ef * (p2.y - p1.y)) / (p1.x * (p3.y - p2.y) + p2.x * (p1.y - p3.y) + p3.x * (p2.y - p1.y));
+		auto const circum_y = (ab * (p3.x - p2.x) + cd * (p1.x - p3.x) + ef * (p2.x - p1.x)) / (p1.y * (p3.x - p2.x) + p2.y * (p1.x - p3.x) + p3.y * (p2.x - p1.x));
+
+		const VertexType circum(half(circum_x), half(circum_y));
+		auto const circum_radius = longueur_carree(p1 - circum);
+		auto const dist = longueur_carree(v - circum);
+		return dist <= circum_radius;
+	}
+
+public:
+
+	const std::vector<TriangleType>& triangulate(std::vector<VertexType> &vertices)
+	{
+		// Store the vertices locally
+		_vertices = vertices;
+
+		// Determinate the super triangle
+		auto minX = vertices[0].x;
+		auto minY = vertices[0].y;
+		auto maxX = minX;
+		auto maxY = minY;
+
+		for (std::size_t i = 0; i < vertices.size(); ++i) {
+			if (vertices[i].x < minX) minX = vertices[i].x;
+			if (vertices[i].y < minY) minY = vertices[i].y;
+			if (vertices[i].x > maxX) maxX = vertices[i].x;
+			if (vertices[i].y > maxY) maxY = vertices[i].y;
+		}
+
+		auto const dx = maxX - minX;
+		auto const dy = maxY - minY;
+		auto const deltaMax = std::max(dx, dy);
+		auto const midx = half(minX + maxX);
+		auto const midy = half(minY + maxY);
+
+		const VertexType p1(midx - 20 * deltaMax, midy - deltaMax);
+		const VertexType p2(midx, midy + 20 * deltaMax);
+		const VertexType p3(midx + 20 * deltaMax, midy - deltaMax);
+
+		//std::cout << "Super triangle " << std::endl << Triangle(p1, p2, p3) << std::endl;
+
+		// Create a list of triangles, and add the supertriangle in it
+		auto offset = _vertices.size();
+		_vertices.push_back(p1);
+		_vertices.push_back(p2);
+		_vertices.push_back(p3);
+
+		_triangles.push_back(TriangleType(offset + 0, offset + 1, offset + 2));
+
+		for (auto i = 0ul; i < vertices.size(); ++i) {
+			std::vector<EdgeType> polygone;
+
+			for (auto &t : _triangles) {
+				if (cercle_circontient(t, vertices[i])) {
+					t.isBad = true;
+					polygone.push_back(t.e1);
+					polygone.push_back(t.e2);
+					polygone.push_back(t.e3);
+				}
+				else {
+					// message erreur?
+				}
+			}
+
+			_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [](TriangleType &t){
+								 return t.isBad;
+							 }), end(_triangles));
+
+			for (auto e1 = begin(polygone); e1 != end(polygone); ++e1) {
+				for (auto e2 = e1 + 1; e2 != end(polygone); ++e2) {
+					if (*e1 == *e2) {
+						e1->isBad = true;
+						e2->isBad = true;
+					}
+				}
+			}
+
+			polygone.erase(std::remove_if(begin(polygone), end(polygone), [](EdgeType &e){
+							   return e.isBad;
+						   }), end(polygone));
+
+			for(const auto &e : polygone) {
+				_triangles.push_back(TriangleType(e.p1, e.p2, i));
+			}
+		}
+
+		_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [offset](TriangleType &t){
+							 return t.containsVertex(offset + 0) || t.containsVertex(offset + 1) || t.containsVertex(offset + 2);
+						 }), end(_triangles));
+
+		for(const auto &t : _triangles)
+		{
+			_edges.push_back(t.e1);
+			_edges.push_back(t.e2);
+			_edges.push_back(t.e3);
+		}
+
+		// retire les trois vertices du super-triangle
+		_vertices.pop_back();
+		_vertices.pop_back();
+		_vertices.pop_back();
+
+		return _triangles;
+	}
+
+	const std::vector<TriangleType>& getTriangles() const { return _triangles; }
+	const std::vector<EdgeType>& getEdges() const { return _edges; }
+	const std::vector<VertexType>& getVertices() const { return _vertices; }
+
+private:
+	std::vector<TriangleType> _triangles;
+	std::vector<EdgeType> _edges;
+	std::vector<VertexType> _vertices;
+};
+
+class OpPatchTriangle : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Patch Triangle";
+	static constexpr auto AIDE = "";
+
+	OpPatchTriangle(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(0);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_patch_triangle.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+
+		m_corps.reinitialise();
+
+		auto taille_x = evalue_decimal("taille_x");
+		auto taille_y = evalue_decimal("taille_y");
+		auto distance = evalue_decimal("distance");
+		auto graine = evalue_entier("graine");
+		auto centre = evalue_vecteur("centre");
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("patch triangle");
+
+		bridson::config conf;
+		conf.min_distance = distance;
+		conf.width = taille_x;
+		conf.height = taille_y;
+		conf.start.x = 0.0f;
+		conf.start.y = 0.0f;
+
+		auto gna = GNA(graine);
+
+		auto vertices = std::vector<dls::math::vec2f>();
+
+		bridson::poisson_disc_distribution(
+					conf,
+					// random
+					[&gna](float range)
+		{
+			return gna.uniforme(0.0f, range);
+		},
+		// in_area
+		[&](bridson::point const &p)
+		{
+			return p.x > 0 && p.x < taille_x && p.y > 0 && p.y < taille_y;
+		},
+		// output
+		[&vertices](bridson::point const &p)
+		{
+			//m_corps.ajoute_point(p.x, 0.0f, p.y);
+			vertices.push_back(dls::math::vec2f(p.x, p.y));
+		}
+		);
+
+		chef->indique_progression(45.0f);
+
+		auto delaunay = Delaunay();
+		delaunay.triangulate(vertices);
+
+		chef->indique_progression(90.0f);
+
+		auto const &vertex = delaunay.getVertices();
+
+		for (auto const &v : vertex) {
+			auto p = centre;
+			p.x += v.x - (taille_x / 2.0f);
+			p.z += v.y - (taille_y / 2.0f);
+
+			m_corps.ajoute_point(p.x, p.y, p.z);
+		}
+
+		auto const &cotes = delaunay.getTriangles();
+
+		for (auto const &cote : cotes) {
+			auto prim = Polygone::construit(&m_corps, type_polygone::FERME, 3);
+			prim->ajoute_sommet(static_cast<long>(cote.p1));
+			prim->ajoute_sommet(static_cast<long>(cote.p2));
+			prim->ajoute_sommet(static_cast<long>(cote.p3));
+		}
+
+		chef->indique_progression(100.0f);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_vetement(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceSimVetement>());
+	usine.enregistre_type(cree_desc<OpPatchTriangle>());
 }

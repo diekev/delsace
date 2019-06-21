@@ -1,0 +1,19 @@
+disposition "operatrice_patch_triangle" {
+    ligne {
+	    étiquette(valeur="Taille")
+		décimal(valeur=2.0; min=0; attache=taille_x)
+		décimal(valeur=2.0; min=0; attache=taille_y)
+	}
+	ligne {
+	    étiquette(valeur="Centre")
+		vecteur(valeur="0,0,0"; attache=centre)
+	}
+	ligne {
+	    étiquette(valeur="Distance Min")
+		décimal(valeur=0.1; min=0; attache=distance)
+	}
+	ligne {
+	    étiquette(valeur="Graine")
+		entier(valeur=1; min=0; attache=graine)
+	}
+}
