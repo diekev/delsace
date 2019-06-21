@@ -1025,10 +1025,10 @@ public:
 		auto p = rotation * dls::math::vec4f(0.0f, joint1->l2, 0.0f, 1.0f);
 		m_corps.ajoute_point(p.x, p.y, p.z);
 
-		attr_C->pousse_vec3(dls::math::vec3f(1.0f));
-		attr_C->pousse_vec3(dls::math::vec3f(1.0f));
-		attr_C->pousse_vec3(dls::math::vec3f(1.0f));
-		attr_C->pousse_vec3(dls::math::vec3f(1.0f));
+		attr_C->pousse(dls::math::vec3f(1.0f));
+		attr_C->pousse(dls::math::vec3f(1.0f));
+		attr_C->pousse(dls::math::vec3f(1.0f));
+		attr_C->pousse(dls::math::vec3f(1.0f));
 
 		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
 		poly->ajoute_sommet(0);
@@ -1083,16 +1083,16 @@ public:
 
 		if (show_stresses == false) {
 			for (auto f : mesh->faces) {
-				attr_C->pousse_vec3(red_blue(mesh->forces[static_cast<size_t>(f.x)].norm(), 500.0f, 2000.0f));
-				attr_C->pousse_vec3(red_blue(mesh->forces[static_cast<size_t>(f.y)].norm(), 500.0f, 2000.0f));
-				attr_C->pousse_vec3(red_blue(mesh->forces[static_cast<size_t>(f.z)].norm(), 500.0f, 2000.0f));
+				attr_C->pousse(red_blue(mesh->forces[static_cast<size_t>(f.x)].norm(), 500.0f, 2000.0f));
+				attr_C->pousse(red_blue(mesh->forces[static_cast<size_t>(f.y)].norm(), 500.0f, 2000.0f));
+				attr_C->pousse(red_blue(mesh->forces[static_cast<size_t>(f.z)].norm(), 500.0f, 2000.0f));
 			}
 		}
 		else {
 			for (auto f : mesh->faces) {
-				attr_C->pousse_vec3(red_blue(mesh->vertex_stress[static_cast<size_t>(f.x)], 100000.0f, 500000.0f));
-				attr_C->pousse_vec3(red_blue(mesh->vertex_stress[static_cast<size_t>(f.y)], 100000.0f, 500000.0f));
-				attr_C->pousse_vec3(red_blue(mesh->vertex_stress[static_cast<size_t>(f.z)], 100000.0f, 500000.0f));
+				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<size_t>(f.x)], 100000.0f, 500000.0f));
+				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<size_t>(f.y)], 100000.0f, 500000.0f));
+				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<size_t>(f.z)], 100000.0f, 500000.0f));
 			}
 		}
 	}
