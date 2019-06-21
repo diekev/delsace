@@ -23,6 +23,8 @@ menu "Noeud Objet" {
 	}
 	menu "Cheveux" {
 	    action(valeur="Création Courbes"; attache=ajouter_noeud; métadonnée="Création Courbes")
+		action(valeur="Bruit Cheveux"; attache=ajouter_noeud; métadonnée="Bruit Cheveux")
+		action(valeur="Mélange Cheveux"; attache=ajouter_noeud; métadonnée="Mélange Cheveux")
 	}
 	menu "Maillage" {
 	    action(valeur="Aligne Covariance"; attache=ajouter_noeud; métadonnée="Aligne Covariance")

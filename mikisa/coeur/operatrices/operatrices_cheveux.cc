@@ -508,10 +508,383 @@ public:
 
 /* ************************************************************************** */
 
+class OpTouffeCheveux : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Touffe Cheveux";
+	static constexpr auto AIDE = "";
+
+	explicit OpTouffeCheveux(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(2);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
+
+		if (m_corps.prims()->taille() == 0l) {
+			this->ajoute_avertissement("Aucune primitive en entrée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto corps_guide = entree(1)->requiers_corps(contexte);
+
+		if (corps_guide == nullptr) {
+			this->ajoute_avertissement("Aucun guide connecté");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* poids de l'effet */
+		auto const poids = evalue_decimal("poids");
+		/* randomisation du poids de l'effet */
+		auto const alea_poids = evalue_decimal("aléa_poids");
+		/* comment l'effet affecte la base ou le bout
+		 *  1 = attraction complète
+		 *  0 = attraction nulle
+		 * -1 = répulsion complète */
+	//	auto const attraction_bout = evalue_decimal("attraction_bout");
+	//	auto const attraction_base = evalue_decimal("attraction_base");
+		/* controle où la transition entre la base et le bout se fait
+		 * 0   = base
+		 * 0.5 = milieu
+		 * 1   = bout  */
+	//	auto const biais_attraction = evalue_decimal("biais_attraction");
+		/* défini les limites de l'effet */
+	//	auto const distance_min = evalue_decimal("distance_min");
+	//	auto const distance_max = evalue_decimal("distance_max");
+		/* cause les fibres de tournoier autour de la touffe */
+	//	auto const tournoiement = evalue_decimal("tournoiement");
+		/* ajout d'un effet de frizz, plus la valeur est élevé, plus les
+		 * fibres s'envole loin de la touffe */
+	//	auto const envole = evalue_decimal("envole");
+
+		auto points_entree = m_corps.points();
+
+		for (auto ip = 0; ip < m_corps.prims()->taille(); ++ip) {
+			auto prim = m_corps.prims()->prim(ip);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto polygone = dynamic_cast<Polygone *>(prim);
+
+			if (polygone->type != type_polygone::OUVERT) {
+				continue;
+			}
+
+		//	auto pos = points_entree->point(polygone->index_point(0));
+		//	auto guide = trouve_courbe_plus_proche(corps_guide->prims(), pos);
+
+			/* guide ne peut-être nul, donc ne vérifie pas la validité */
+
+			/* attire la courbe vers le guide :
+			 * - pour chaque point de la courbe, calcul un point équivalent
+			 *   le long du guide
+			 * - calcul un vecteur d'attraction entre les points
+			 * - applique le poids selon les paramètres */
+			for (auto j = 0; j < polygone->nombre_sommets(); ++j) {
+				auto point_orig = points_entree->point(polygone->index_point(j));
+				auto pt_guide = point_orig;//echantillone(guide, dist);
+
+				auto dir = pt_guide - point_orig;
+
+				auto point_final = point_orig + dir * poids * alea_poids/* * dist(rng)*/;
+				points_entree->point(polygone->index_point(j), point_final);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	Polygone *trouve_courbe_plus_proche(ListePrimitives const *prims, dls::math::vec3f const &pos) const
+	{
+		auto poly_ret = static_cast<Polygone *>(nullptr);
+		auto dist_min = std::numeric_limits<float>::max();
+		auto points_entree = m_corps.points();
+
+		for (auto ip = 0; ip < prims->taille(); ++ip) {
+			auto prim = prims->prim(ip);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				continue;
+			}
+
+			auto polygone = dynamic_cast<Polygone *>(prim);
+
+			if (polygone->type != type_polygone::OUVERT) {
+				continue;
+			}
+
+			auto point = points_entree->point(polygone->index_point(0));
+			auto dist = longueur(point - pos);
+
+			if (dist_min < dist) {
+				dist = dist_min;
+				poly_ret = polygone;
+			}
+		}
+
+		return poly_ret;
+	}
+};
+
+/* ************************************************************************** */
+
+class GNA {
+	std::mt19937 m_rng;
+
+public:
+	GNA(int graine = 1)
+		: m_rng(graine)
+	{}
+
+	int entier_aleatoire(int min, int max)
+	{
+		std::uniform_int_distribution<int> dist(min, max);
+		return dist(m_rng);
+	}
+
+	float float_aleatoire(float min, float max)
+	{
+		std::uniform_real_distribution<float> dist(min, max);
+		return dist(m_rng);
+	}
+
+	double double_aleatoire(double min, double max)
+	{
+		std::uniform_real_distribution<double> dist(min, max);
+		return dist(m_rng);
+	}
+};
+
+class OpBruitCheveux : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Bruit Cheveux";
+	static constexpr auto AIDE = "";
+
+	explicit OpBruitCheveux(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_bruit_cheveux.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
+
+		if (m_corps.prims()->taille() == 0l) {
+			this->ajoute_avertissement("Aucune primitive en entrée");
+			return EXECUTION_REUSSIE;
+		}
+
+		auto prims = m_corps.prims();
+		auto points = m_corps.points();
+
+		/* quantité de bruit */
+		auto const quantite = evalue_decimal("quantité");
+		/* modulation de l'effet le long de la fibre */
+//		auto const quantite_base = evalue_decimal("quantité_base");
+//		auto const quantite_bout = evalue_decimal("quantité_bout");
+		/* multiplie la quantité */
+		auto const mult = evalue_decimal("mult");
+		/* randomise la quantité */
+		auto const alea = evalue_decimal("alea");
+		/* décalage le long de la fibre */
+		auto const decalage = evalue_decimal("décalage");
+		/* fréquence du bruit */
+//		auto const frequence = evalue_decimal("fréquence");
+		/* probabilité/pourcentage qu'une fibre soit affectée */
+		auto const prob = evalue_decimal("probabilité");
+		/* maintiens la longueur de la fibre */
+//		auto const maintiens_longueur = evalue_bool("maintiens_longueur");
+
+		auto gna = GNA();
+
+		for (auto i = 0; i < prims->taille(); ++i) {
+			auto prim = prims->prim(i);
+
+			if (prim->type_prim() != type_primitive::POLYGONE) {
+				/* ERREUR ? */
+				continue;
+			}
+
+			auto poly = dynamic_cast<Polygone *>(prim);
+
+			if (poly->type != type_polygone::OUVERT) {
+				/* ERREUR ? */
+				continue;
+			}
+
+			if (prob != 1.0f && gna.float_aleatoire(0.0f, 1.0f) >= prob) {
+				continue;
+			}
+
+			for (auto j = 1; j < poly->nombre_sommets(); ++j) {
+				auto idx = poly->index_point(j);
+				auto p = points->point(idx);
+
+				auto bruit = quantite * mult * gna.float_aleatoire(-alea, alea);
+				auto bruit_x = (gna.float_aleatoire(-0.5f, 0.5f) + decalage) * bruit;
+				auto bruit_y = (gna.float_aleatoire(-0.5f, 0.5f) + decalage) * bruit;
+				auto bruit_z = (gna.float_aleatoire(-0.5f, 0.5f) + decalage) * bruit;
+
+				p.x += bruit_x;
+				p.y += bruit_y;
+				p.z += bruit_z;
+
+				points->point(idx, p);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+/**
+ * Mélange de deux groupes de cheveux. Idée provenant de
+ * "The Hair Motion Compositor : Compositing Dynamic Hair Animations in
+ * a Production Environment"
+ * http://library.imageworks.com/pdfs/imageworks-library-the-hair-motion-compositor-compositing-dynamic-hair-animations-production-environment.pdf
+ */
+class OpMelangeCheveux : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Mélange Cheveux";
+	static constexpr auto AIDE = "Fusionne les points de deux ensemble de cheveux.";
+
+	explicit OpMelangeCheveux(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_melange_cheveux.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte);
+
+		if (m_corps.prims()->taille() == 0l) {
+			this->ajoute_avertissement("Aucune primitive en entrée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto corps2 = entree(1)->requiers_corps(contexte);
+
+		if (corps2 == nullptr) {
+			this->ajoute_avertissement("Aucun corps connecté à la seconde entrée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto prims1 = m_corps.prims();
+		auto prims2 = corps2->prims();
+
+		if (prims1->taille() != prims2->taille()) {
+			this->ajoute_avertissement("Les corps possèdent des nombres de primitives différents");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto points1 = m_corps.points();
+		auto points2 = corps2->points();
+
+		auto const fac = evalue_decimal("facteur");
+
+		/* À FAIRE :
+		 * - interpolation linéaire/rotationelle (quaternion?)
+		 * - définition d'un masque ou d'un groupe pour choisir quels
+		 *   cheveux affecter, le masque peut-être des PrimSphères à
+		 *   venir
+		 * - poids de l'effet selon la position sur la courbe (courbe
+		 *   de mappage), pour plus affecter le bout ou la base
+		 */
+
+		for (auto i = 0; i < prims1->taille(); ++i) {
+			auto prim1 = prims1->prim(i);
+			auto prim2 = prims2->prim(i);
+
+			if (prim1->type_prim() != prim2->type_prim()) {
+				this->ajoute_avertissement("Les types des primitives sont différents !");
+				return EXECUTION_ECHOUEE;
+			}
+
+			if (prim1->type_prim() != type_primitive::POLYGONE) {
+				/* ERREUR ? */
+				continue;
+			}
+
+			auto poly1 = dynamic_cast<Polygone *>(prim1);
+			auto poly2 = dynamic_cast<Polygone *>(prim2);
+
+			if (poly1->nombre_sommets() != poly2->nombre_sommets()) {
+				this->ajoute_avertissement("Le nombre de points divergent sur les courbes");
+				return EXECUTION_ECHOUEE;
+			}
+
+			for (auto j = 0; j < poly1->nombre_sommets(); ++j) {
+				auto p1 = points1->point(poly1->index_point(j));
+				auto p2 = points2->point(poly2->index_point(j));
+
+				auto p = p1 * fac + p2 * (1.0f - fac);
+
+				points1->point(poly1->index_point(j), p);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationCourbes>());
 	usine.enregistre_type(cree_desc<OperatriceMasseRessort>());
+	usine.enregistre_type(cree_desc<OpTouffeCheveux>());
+	usine.enregistre_type(cree_desc<OpBruitCheveux>());
+	usine.enregistre_type(cree_desc<OpMelangeCheveux>());
 }
 
 #pragma clang diagnostic pop

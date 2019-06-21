@@ -100,6 +100,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_ajout_corps_rigide.jo
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_attr_couleur.jo
+	scripts_danjo/operatrice_bruit_cheveux.jo
 	scripts_danjo/operatrice_bruit_topologique.jo
 	scripts_danjo/operatrice_camera.jo
 	scripts_danjo/operatrice_champs_distance.jo
@@ -137,6 +138,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_lecture_objet.jo
 	scripts_danjo/operatrice_maillage_vers_volume.jo
 	scripts_danjo/operatrice_melange.jo
+	scripts_danjo/operatrice_melange_cheveux.jo
 	scripts_danjo/operatrice_min_max.jo
 	scripts_danjo/operatrice_normalisation.jo
 	scripts_danjo/operatrice_normalise_covariance.jo
