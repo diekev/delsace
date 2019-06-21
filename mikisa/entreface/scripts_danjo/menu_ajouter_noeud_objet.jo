@@ -12,6 +12,9 @@ menu "Noeud Objet" {
 		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
 		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
 	}
+	menu "Arbre" {
+	    action(valeur="Création Arbre"; attache=ajouter_noeud; métadonnée="Création Arbre")
+	}
 	menu "Attribut" {
 	    action(valeur="Couleur"; attache=ajouter_noeud; métadonnée="Couleur")
 		action(valeur="Création Attribut"; attache=ajouter_noeud; métadonnée="Création Attribut")

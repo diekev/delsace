@@ -101,6 +101,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/normaux.hh
 	operatrices/ocean.hh
 	operatrices/operatrices_3d.h
+	operatrices/operatrices_arbre.hh
 	operatrices/operatrices_attributs.hh
 	operatrices/operatrices_bullet.hh
 	operatrices/operatrices_cheveux.h
@@ -165,6 +166,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/ocean.cc
 	operatrices/normaux.cc
 	operatrices/operatrices_3d.cc
+	operatrices/operatrices_arbre.cc
 	operatrices/operatrices_attributs.cc
 	operatrices/operatrices_bullet.cc
 	operatrices/operatrices_cheveux.cc

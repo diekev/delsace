@@ -112,6 +112,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_coordonnees_polaires.jo
 	scripts_danjo/operatrice_correction_couleur.jo
 	scripts_danjo/operatrice_courbe_couleur.jo
+	scripts_danjo/operatrice_creation_arbre.jo
 	scripts_danjo/operatrice_creation_groupe.jo
 	scripts_danjo/operatrice_creation_kelvinlet.jo
 	scripts_danjo/operatrice_daltonisme.jo
