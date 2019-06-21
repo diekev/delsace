@@ -309,5 +309,7 @@ if (AVEC_SILVATHEQUE)
 	)
 endif (AVEC_SILVATHEQUE)
 
+if (AVEC_VULKAN)
 set(NOM_PROJET vulkan)
 add_subdirectory(vulkan)
+endif (AVEC_VULKAN)
