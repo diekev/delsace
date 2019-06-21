@@ -29,6 +29,13 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 )
 
+set(ENTETES_MATRICE
+	matrice/dimensions.hh
+	matrice/matrice.hh
+	matrice/matrice_fixe.hh
+	matrice/operations.hh
+)
+
 set(ENTETES
 	aleatoire.hh
 	base_vecteur.hh
@@ -41,11 +48,6 @@ set(ENTETES
 	swizzler.hh
 	quaternion.hh
 	vecteur.hh
-
-	matrice/dimensions.hh
-	matrice/matrice.hh
-	matrice/matrice_fixe.hh
-	matrice/operations.hh
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC
@@ -60,6 +62,7 @@ add_library(${NOM_BIBLIOTHEQUE} STATIC
 	matrice/dimensions.cc
 
 	${ENTETES}
+	${ENTETES_MATRICE}
 )
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
@@ -71,3 +74,5 @@ install(
 )
 
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
+
+install(FILES ${ENTETES_MATRICE} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE}/matrice)
