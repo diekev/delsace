@@ -60,6 +60,7 @@ menu "Noeud Objet" {
 		action(valeur="Évaluation Kelvinlet"; attache=ajouter_noeud; métadonnée="Évaluation Kelvinlet")
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
 		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
+		action(valeur="Simulation Muscles"; attache=ajouter_noeud; métadonnée="Simulation Muscles")
 	}
 	menu "Volume" {
 	    action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")

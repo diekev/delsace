@@ -67,6 +67,7 @@
 #include "operatrices/operatrices_fracture.hh"
 #include "operatrices/operatrices_groupes.hh"
 #include "operatrices/operatrices_maillage.hh"
+#include "operatrices/operatrices_muscles.hh"
 #include "operatrices/operatrices_opensubdiv.hh"
 #include "operatrices/operatrices_particules.h"
 #include "operatrices/operatrices_pixel.h"
@@ -121,6 +122,7 @@ void Mikisa::initialise()
 	enregistre_operatrices_fracture(m_usine_operatrices);
 	enregistre_operatrices_groupes(m_usine_operatrices);
 	enregistre_operatrices_maillage(m_usine_operatrices);
+	enregistre_operatrices_muscles(m_usine_operatrices);
 	enregistre_operatrices_opensubdiv(m_usine_operatrices);
 	enregistre_operatrices_particules(m_usine_operatrices);
 	enregistre_operatrices_pixel(m_usine_operatrices);

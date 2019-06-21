@@ -106,6 +106,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_fracture.hh
 	operatrices/operatrices_groupes.hh
 	operatrices/operatrices_maillage.hh
+	operatrices/operatrices_muscles.hh
 	operatrices/operatrices_opensubdiv.hh
 	operatrices/operatrices_particules.h
 	operatrices/operatrices_pixel.h
@@ -166,6 +167,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_fracture.cc
 	operatrices/operatrices_groupes.cc
 	operatrices/operatrices_maillage.cc
+	operatrices/operatrices_muscles.cc
 	operatrices/operatrices_opensubdiv.cc
 	operatrices/operatrices_particules.cc
 	operatrices/operatrices_pixel.cc
