@@ -24,4 +24,6 @@
 
 #pragma once
 
+#ifndef INUTILISE
 #define INUTILISE(x) static_cast<void>((x))
+#endif
