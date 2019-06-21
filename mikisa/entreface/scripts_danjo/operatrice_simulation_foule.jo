@@ -1,0 +1,34 @@
+disposition "operatrice_simulation_foule" {
+    ligne {
+	    étiquette(valeur="Mélée")
+		case(valeur=faux; attache=méléee; infobulle="Décide si les gens doivent s'entremêler.")
+	}
+	ligne {
+	    étiquette(valeur="Rend cible")
+		case(valeur=faux; attache=rend_cible; infobulle="Décide si le plan cible doit être rendu.")
+	}
+	ligne {
+	    étiquette(valeur="Vitesse Min")
+		décimal(valeur=1; attache=vitesse_min; infobulle="Vitesse minimale des gens.")
+	}
+	ligne {
+	    étiquette(valeur="Vitesse Max")
+		décimal(valeur=1; attache=vitesse_max; infobulle="Vitesse maximale des gens.")
+	}
+	ligne {
+	    étiquette(valeur="Nom des progénitures")
+		chaine(valeur=""; attache=nom_progénitures; infobulle="Le nom qui se sera donné aux gens générés.")
+	}
+	ligne {
+	    étiquette(valeur="Nombre de progénitures")
+		entier(valeur=10; attache=nombre_progénitures; infobulle="Combien de gens doivent être générés.")
+	}
+	ligne {
+	    étiquette(valeur="Temps de début")
+		entier(valeur=1; attache=temps_début; infobulle="Décide sur quel image commencer.")
+	}
+	ligne {
+	    étiquette(valeur="Temps de fin")
+		entier(valeur=1; attache=temps_fin; infobulle="Décide sur quel image s'arrêter.")
+	}
+}

@@ -74,6 +74,7 @@
 #include "operatrices/operatrices_point3d.h"
 #include "operatrices/operatrices_region.h"
 #include "operatrices/operatrices_script.hh"
+#include "operatrices/operatrices_simulation_foule.hh"
 #include "operatrices/operatrices_simulations.hh"
 #include "operatrices/operatrices_snh.hh"
 #include "operatrices/operatrices_vetements.hh"
@@ -131,6 +132,7 @@ void Mikisa::initialise()
 	enregistre_operatrices_point3d(m_usine_operatrices);
 	enregistre_operatrices_region(m_usine_operatrices);
 	enregistre_operatrices_script(m_usine_operatrices);
+	enregistre_operatrices_sim_foule(m_usine_operatrices);
 	enregistre_operatrices_simulations(m_usine_operatrices);
 	enregistre_operatrices_snh(m_usine_operatrices);
 	enregistre_operatrices_vetement(m_usine_operatrices);

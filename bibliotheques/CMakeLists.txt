@@ -38,3 +38,7 @@ add_subdirectory(transformation)
 add_subdirectory(vision)
 add_subdirectory(voro)
 add_subdirectory(xml)
+
+if(AVEC_MENGE)
+	add_subdirectory(Menge)
+endif(AVEC_MENGE)

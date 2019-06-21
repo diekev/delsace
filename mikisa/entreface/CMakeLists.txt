@@ -159,6 +159,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_saturation.jo
 	scripts_danjo/operatrice_script_detail.jo
 	scripts_danjo/operatrice_simulation.jo
+	scripts_danjo/operatrice_simulation_foule.jo
 	scripts_danjo/operatrice_simulation_grain.jo
 	scripts_danjo/operatrice_simulation_vetement.jo
 	scripts_danjo/operatrice_solveur_n_corps.jo
