@@ -60,6 +60,7 @@ menu "Noeud Objet" {
 	menu "Volume" {
 	    action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")
 		action(valeur="Maillage vers Volume"; attache=ajouter_noeud; métadonnée="Maillage vers Volume")
+		action(valeur="Rastérisation Prim"; attache=ajouter_noeud; métadonnée="Rastérisation Prim")
 	}
 	menu "Sortie" {
 	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")

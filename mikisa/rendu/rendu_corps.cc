@@ -522,12 +522,12 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	auto programme = tampon->programme();
 	programme->active();
 	programme->uniforme("volume", texture->number());
-	programme->uniforme("offset", grille->min.x, grille->min.y, grille->min.z);
-	programme->uniforme("dimension", grille->dim.x, grille->dim.y, grille->dim.z);
+	programme->uniforme("offset", grille->etendu().min.x, grille->etendu().min.y, grille->etendu().min.z);
+	programme->uniforme("dimension", grille->etendu().taille().x, grille->etendu().taille().y, grille->etendu().taille().z);
 	programme->desactive();
 
 	/* crée vertices */
-	slice(view_dir, -1ul, tampon, grille->min, grille->max);
+	slice(view_dir, -1ul, tampon, grille->etendu().min, grille->etendu().max);
 
 	/* crée texture 3d */
 
@@ -538,9 +538,9 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 
 	auto res_grille = grille->resolution();
 	int res[3] = {
-		static_cast<int>(res_grille[0]),
-		static_cast<int>(res_grille[1]),
-		static_cast<int>(res_grille[2])
+		res_grille[0],
+		res_grille[1],
+		res_grille[2]
 	};
 
 	if (volume->grille->type() == type_volume::SCALAIRE) {
