@@ -725,6 +725,161 @@ public:
 
 /* ************************************************************************** */
 
+#if 0
+#if 0
+ NA       // 4 // 0  // 0
+ NB  NC // 3 // 1  // 1 // 0
+   ND    // 2 // 2  // 2
+ NE  NF // 1 // 3  // 3 // 3
+     NG // O // 4       // 4
+
+min(niveau, max(niveau_enfants) + 1)
+NA | 4 | 4 | 4
+NB | 3 | 3 | 3
+NC | 3 | 3 | 3
+ND | 2 | 2 | 2
+NE | 1 | 0 | 1
+NF | 1 | 1 | 1
+NG | 0 | 0 | 0
+
+   | NA | NB | NC | ND | NE | NF | NG
+NA |  0 |  1 |  0 |  0 |  0 |  0 |  0
+NB |  1 |  0 |  0 |  1 |  0 |  0 |  0
+NC |  0 |  0 |  0 |  1 |  0 |  0 |  0
+ND |  0 |  1 |  1 |  0 |  1 |  1 |  0
+NE |  0 |  0 |  0 |  1 |  0 |  0 |  0
+NF |  0 |  0 |  0 |  1 |  0 |  0 |  1
+NG |  0 |  0 |  0 |  0 |  0 |  1 |  0
+#endif
+
+static void assigne_niveau_parent(Noeud *noeud, int niveau)
+{
+	if (noeud->niveau >= niveau) {
+		return;
+	}
+
+	noeud->niveau = niveau;
+
+	for (auto &prise : noeuds->prise_entrees()) {
+		if (prise->lien == nullptr) {
+			continue;
+		}
+
+		assigne_niveau_parent(prise->lien->parent, niveau + 1);
+	}
+}
+
+static void corrige_niveau_selon_enfant(Noeud *noeud)
+{
+	auto max_niveau_enfant = -1;
+
+	for (auto &prise : noeuds->sorties()) {
+		for (auto &liens : prise->liens()) {
+			if (lien->parent->niveau > max_niveau_enfant) {
+				max_niveau_enfant = lien->parent->niveau;
+			}
+		}
+	}
+
+	noeud->niveau = std::min(noeud->niveau, max_niveau_enfant + 1);
+
+	for (auto &prise : noeuds->sorties()) {
+		for (auto &liens : prise->liens()) {
+			if (lien->parent->niveau > max_niveau_enfant) {
+				corrige_niveau_selon_enfant(lien->parent);
+			}
+		}
+	}
+}
+
+static bool est_racine(Noeud *noeud)
+{
+	return noeud->entrees.size() == 0;
+}
+
+static bool est_feuille(Noeud *noeud)
+{
+	return noeud->sorties.size() == 0;
+}
+
+static constexpr DISTANCE_ENTRE_NOEUDS_X = 200
+static constexpr DISTANCE_ENTRE_NOEUDS_Y = 100
+
+// À FAIRE : noeuds orphelin
+static void autodispose_graphe(Graphe &graphe)
+{
+	auto pos_x_min = std::numeric_limits<int>::max();
+	auto pos_y_min = std::numeric_limits<int>::max();
+
+	// assigne le niveau -1 à tous les noeuds, 0 pour les noeuds sans sorties
+	for (auto &noeud : graphe.noeuds()) {
+		if (est_feuille(noeud)) {
+			noeud->niveau = 0;
+		}
+		else {
+			noeud->niveau = -1;
+		}
+
+		pos_x_min = std::min(pos_x_min, noeud->pos_x);
+		pos_x_min = std::min(pos_y_min, noeud->pos_y);
+	}
+
+	// remonte le graphe à travers les noeuds feuille et assigne niveau = max(niveau, niveau_enfant + 1)
+	for (auto &noeud : graphe.noeuds()) {
+		if (noeud->niveau != 0) {
+			continue;
+		}
+
+		for (auto &prise : noeuds->entrees()) {
+			if (prise->lien == nullptr) {
+				continue;
+			}
+
+			assigne_niveau_parent(prise->lien->parent, 1);
+		}
+	}
+
+	// descend le graphe à travers les noeuds racines et assigne
+	// niveau = min(niveau, max(niveau_enfants) + 1)
+	for (auto &noeud : graphe.noeuds()) {
+		if (!est_racine(noeud)) {
+			continue;
+		}
+
+		corrige_niveau_selon_enfant(noeud);
+	}
+
+	// compte le nombre de noeuds dans chaque niveau pour leur assigner un déplacement horizontal
+	std::map<int, int> noeuds_par_niveau;
+	for (auto &noeud : graphe.noeuds()) {
+		noeuds_par_niveau[noeud->niveau] += 1;
+
+		noeud->pos_y = pos_y_min + DISTANCE_ENTRE_NOEUDS_Y * noeud->niveau;
+	}
+
+
+	// calcul les limites du graphe
+	// zoom sur le graphe
+}
+#endif
+
+class CommandeArrangeGraphe final : public Commande {
+public:
+	CommandeArrangeGraphe() = default;
+
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	{
+		//auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		//auto graphe = mikisa->graphe;
+
+		//autodispose_graphe(*graphe);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_graphes(UsineCommande &usine)
 {
 	usine.enregistre_type("dessine_graphe_composite",
@@ -770,6 +925,10 @@ void enregistre_commandes_graphes(UsineCommande &usine)
 	usine.enregistre_type("sors_noeud",
 						   description_commande<CommandeSorsNoeud>(
 							   "graphe", 0, 0, 0, false));
+
+	usine.enregistre_type("arrange_graphe",
+						   description_commande<CommandeArrangeGraphe>(
+							   "graphe", 0, 0, Qt::Key_L, false));
 }
 
 #pragma clang diagnostic pop
