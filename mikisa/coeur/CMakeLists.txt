@@ -35,6 +35,7 @@ set(INCLUSIONS
 	${INCLUSIONS_OPENSUBDIV}
 	${INCLUSIONS_DELSACE_MATH}
 	${INCLUSIONS_BULLET}
+	/usr/include/eigen3
 )
 
 set(BIBLIOTHEQUES
@@ -63,6 +64,7 @@ set(BIBLIOTHEQUES
 	bib_outils
 	bibloc_mikisa
 	bib_corps
+	bib_snh
 )
 
 qt5_wrap_cpp(
@@ -113,6 +115,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_point3d.h
 	operatrices/operatrices_region.h
 	operatrices/operatrices_simulations.hh
+	operatrices/operatrices_snh.hh
 	operatrices/operatrices_vetements.hh
 	operatrices/operatrices_visualisation.hh
 	operatrices/operatrices_volume.hh
@@ -174,6 +177,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_point3d.cc
 	operatrices/operatrices_region.cc
 	operatrices/operatrices_simulations.cc
+	operatrices/operatrices_snh.cc
 	operatrices/operatrices_vetements.cc
 	operatrices/operatrices_visualisation.cc
 	operatrices/operatrices_volume.cc
