@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "bibliotheques/graphe/graphe.h"
+
 #include "bibliotheques/transformation/transformation.h"
 
 #include "corps/corps.h"
@@ -44,7 +46,9 @@ struct Objet {
 
 	dls::synchronise<Corps> corps{};
 
-	Objet() = default;
+	Graphe graphe;
+
+	Objet();
 
 	Objet(Objet const &) = default;
 	Objet &operator=(Objet const &) = default;

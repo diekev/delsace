@@ -77,6 +77,8 @@ void EditriceGraphe::ajourne_etat(int evenement)
 {
 	auto creation = (categorie_evenement(type_evenement(evenement)) == type_evenement::noeud);
 	creation |= (evenement == (type_evenement::image | type_evenement::traite));
+	creation |= (evenement == (type_evenement::objet | type_evenement::ajoute));
+	creation |= (evenement == (type_evenement::objet | type_evenement::enleve));
 	creation |= (evenement == (type_evenement::rafraichissement));
 
 	if (!creation) {

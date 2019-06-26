@@ -49,6 +49,7 @@
 #include "coeur/tache.h"
 
 #include "barre_progres.hh"
+#include "editrice_arborescence.hh"
 #include "editrice_ligne_temps.h"
 #include "editrice_noeud.h"
 #include "editrice_proprietes.h"
@@ -68,6 +69,7 @@ static const char *chemins_scripts[] = {
 };
 
 enum {
+	EDITRICE_ARBORESCENCE,
 	EDITRICE_PROPRIETE,
 	EDITRICE_GRAPHE,
 	EDITRICE_LIGNE_TEMPS,
@@ -85,6 +87,7 @@ FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 	mikisa.notifiant_thread = memoire::loge<TaskNotifier>("TaskNotifier", this);
 
 	genere_barre_menu();
+	genere_menu_prereglages();
 
 	statusBar()->addWidget(m_barre_progres);
 	m_barre_progres->setVisible(false);
@@ -94,7 +97,11 @@ FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 	dock_vue2D->raise();
 
 	ajoute_dock("Grapĥe", EDITRICE_GRAPHE, Qt::LeftDockWidgetArea);
-	ajoute_dock("Propriétés", EDITRICE_PROPRIETE, Qt::RightDockWidgetArea);
+
+	auto dock_arbre = ajoute_dock("Arborescence", EDITRICE_ARBORESCENCE, Qt::RightDockWidgetArea);
+	ajoute_dock("Propriétés", EDITRICE_PROPRIETE, Qt::RightDockWidgetArea, dock_arbre);
+	dock_arbre->raise();
+
 	ajoute_dock("Rendu", EDITRICE_RENDU, Qt::RightDockWidgetArea);
 	ajoute_dock("Ligne Temps", EDITRICE_LIGNE_TEMPS, Qt::RightDockWidgetArea);
 
@@ -172,6 +179,19 @@ void FenetrePrincipale::genere_barre_menu()
 			this, SLOT(mis_a_jour_menu_fichier_recent()));
 }
 
+void FenetrePrincipale::genere_menu_prereglages()
+{
+	danjo::DonneesInterface donnees{};
+	donnees.manipulable = nullptr;
+	donnees.conteneur = nullptr;
+	donnees.repondant_bouton = m_mikisa.repondant_commande();
+
+	auto const texte_entree = danjo::contenu_fichier("entreface/menu_prereglage.jo");
+
+	m_barre_outil = m_mikisa.gestionnaire_entreface->compile_barre_outils(donnees, texte_entree.c_str());
+	addToolBar(Qt::TopToolBarArea, m_barre_outil);
+}
+
 QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier)
 {
 	BaseEditrice *editrice = nullptr;
@@ -194,6 +214,9 @@ QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int ai
 			break;
 		case EDITRICE_VUE3D:
 			editrice = new EditriceVue3D(m_mikisa);
+			break;
+		case EDITRICE_ARBORESCENCE:
+			editrice = new EditriceArborescence(m_mikisa);
 			break;
 	}
 

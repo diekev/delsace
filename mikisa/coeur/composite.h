@@ -37,6 +37,8 @@ public:
 
 	~Composite() = default;
 
+	std::string nom = "";
+
 	Image const &image() const;
 
 	void image(Image const &img);

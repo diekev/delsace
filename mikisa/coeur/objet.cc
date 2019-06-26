@@ -23,3 +23,9 @@
  */
 
 #include "objet.h"
+
+#include "operatrice_image.h"
+
+Objet::Objet()
+	: graphe(cree_noeud_image, supprime_noeud_image)
+{}

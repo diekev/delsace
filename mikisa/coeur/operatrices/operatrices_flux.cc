@@ -43,12 +43,18 @@
 
 #include "bibloc/tableau.hh"
 
+#include "../evaluation/reseau.hh"
+
+#include "../base_de_donnees.hh"
+
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
 #include "../gestionnaire_fichier.hh"
+#include "../objet.h"
 #include "../operatrice_corps.h"
 #include "../operatrice_image.h"
 #include "../usine_operatrice.h"
+
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -447,6 +453,75 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceImportObjet : public OperatriceCorps {
+	Objet *m_objet = nullptr;
+
+public:
+	static constexpr auto NOM = "Import Objet";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceImportObjet(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(0);
+	}
+
+	OperatriceImportObjet(OperatriceImportObjet const &) = default;
+	OperatriceImportObjet &operator=(OperatriceImportObjet const &) = default;
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_import_objet.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_objet = nullptr;
+		m_corps.reinitialise();
+
+		auto nom_objet = evalue_chaine("nom_objet");
+
+		if (nom_objet.empty()) {
+			this->ajoute_avertissement("Aucun objet sélectionné");
+			return EXECUTION_ECHOUEE;
+		}
+
+		m_objet = contexte.bdd->objet(nom_objet);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Aucun objet de ce nom n'existe");
+			return EXECUTION_ECHOUEE;
+		}
+
+		m_objet->corps.accede_lecture([this](Corps const &_corps_)
+		{
+			_corps_.copie_vers(&m_corps);
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const override
+	{
+		if (m_objet != nullptr) {
+			compilatrice.ajoute_dependance(noeud, m_objet);
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 #undef OP_INFINIE
 
 #ifdef OP_INFINIE
@@ -517,6 +592,7 @@ void enregistre_operatrices_flux(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
 	usine.enregistre_type(cree_desc<OperatriceEntreeGraphe>());
+	usine.enregistre_type(cree_desc<OperatriceImportObjet>());
 
 #ifdef OP_INFINIE
 	usine.enregistre_type(cree_desc<OperatriceInfinie>());

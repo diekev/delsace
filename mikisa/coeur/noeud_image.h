@@ -33,6 +33,7 @@ enum {
 	NOEUD_IMAGE_DEFAUT = 0,
 	NOEUD_IMAGE_SORTIE = 1,
 	NOEUD_OBJET_SORTIE = 2,
+	NOEUD_OBJET        = 3,
 };
 
 void synchronise_donnees_operatrice(Noeud *noeud);

@@ -60,4 +60,6 @@ public:
 	int type() const override;
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+
+	bool depend_sur_temps() const override;
 };

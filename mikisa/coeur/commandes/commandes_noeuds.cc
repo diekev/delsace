@@ -38,19 +38,20 @@
 
 #include "bibloc/logeuse_memoire.hh"
 
+#include "../evaluation/evaluation.hh"
+
 #include "../composite.h"
-#include "../evaluation.h"
 #include "../evenement.h"
 #include "../imprimeuse_graphe.h"
 #include "../manipulatrice.h"
 #include "../mikisa.h"
 #include "../noeud_image.h"
+#include "../objet.h"
 #include "../operatrice_graphe_maillage.h"
 #include "../operatrice_graphe_pixel.h"
 #include "../operatrice_image.h"
-#include "../operatrice_objet.h"
-#include "../operatrice_scene.h"
 #include "../operatrice_simulation.hh"
+#include "../scene.h"
 #include "../usine_operatrice.h"
 
 #pragma clang diagnostic push
@@ -62,15 +63,19 @@
  * Ajourne le noeud_actif du graphe pour être égal au noeud spécifié et
  * retourne vrai si le graphe doit être évalué, c'est-à-dire si une visionneuse
  * différente de la dernière visionneuse a été sélectionnée. La fonction ajourne
- * également les pointeurs derniere_visionneuse_selectionnee et
- * derniere_scene_selectionnee de mikisa si le noeud est une visionneuse ou
- * une opératrice scène.
+ * également le pointeur derniere_visionneuse_selectionnee du graphe si le noeud
+ * est une visionneuse.
  */
 static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 {
 	graphe.noeud_actif = noeud;
 
 	if (graphe.noeud_actif == nullptr) {
+		return false;
+	}
+
+	if (noeud->type() == NOEUD_OBJET) {
+		/* À FAIRE : considère avoir et mettre en place un objet actif. */
 		return false;
 	}
 
@@ -92,10 +97,6 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 	}
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-
-	if (operatrice->type() == OPERATRICE_SCENE) {
-		mikisa.derniere_scene_selectionnee = graphe.noeud_actif;
-	}
 
 	if (operatrice->possede_manipulatrice_3d(mikisa.type_manipulation_3d)) {
 		mikisa.manipulatrice_3d = operatrice->manipulatrice_3d(mikisa.type_manipulation_3d);
@@ -189,17 +190,6 @@ public:
 		noeud->pos_x(mikisa->graphe->centre_x);
 		noeud->pos_y(mikisa->graphe->centre_y);
 
-		/* À FAIRE : meilleure gestion des objets */
-		if (op->type() == OPERATRICE_OBJET) {
-			auto op_objet = dynamic_cast<OperatriceObjet *>(op);
-
-			auto noeud_scene = mikisa->derniere_scene_selectionnee;
-			auto op_noeud = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
-			auto op_scene = dynamic_cast<OperatriceScene *>(op_noeud);
-			auto scene = op_scene->scene();
-			scene->ajoute_objet(op_objet->objet());
-		}
-
 		if (op->type() == OPERATRICE_SORTIE_IMAGE) {
 			noeud->type(NOEUD_IMAGE_SORTIE);
 		}
@@ -212,7 +202,7 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
 
 		if (mikisa->contexte == GRAPHE_SCENE) {
-			evalue_resultat(*mikisa, "noeud ajouté");
+			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
 		}
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -279,7 +269,7 @@ public:
 
 		/* évalue le graphe si un visionneur a été sélectionné */
 		if (besoin_evaluation) {
-			evalue_resultat(*mikisa, "noeud sélectionné");
+			requiers_evaluation(*mikisa, NOEUD_SELECTIONE, "noeud sélectionné");
 		}
 
 		return EXECUTION_COMMANDE_MODALE;
@@ -346,7 +336,7 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
-			evalue_resultat(*mikisa, "graphe modifié");
+			requiers_evaluation(*mikisa, GRAPHE_MODIFIE, "graphe modifié");
 		}
 	}
 };
@@ -365,46 +355,45 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
-
-		/* À FAIRE : meilleure gestion des objets, suppression nom objet
-		 * ensemble noms possibles. */
-		if (op->type() == OPERATRICE_OBJET) {
-			auto op_objet = dynamic_cast<OperatriceObjet *>(op);
-
-			auto noeud_scene = mikisa->derniere_scene_selectionnee;
-			auto op_noeud = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
-			auto op_scene = dynamic_cast<OperatriceScene *>(op_noeud);
-			auto scene = op_scene->scene();
-			scene->enleve_objet(op_objet->objet());
-		}
-
-		if (noeud == mikisa->derniere_scene_selectionnee) {
-			mikisa->derniere_scene_selectionnee = nullptr;
-		}
-		else if (noeud == mikisa->derniere_visionneuse_selectionnee) {
+		if (noeud == mikisa->derniere_visionneuse_selectionnee) {
 			mikisa->derniere_visionneuse_selectionnee = nullptr;
 		}
 		if (noeud == graphe->dernier_noeud_sortie) {
 			graphe->dernier_noeud_sortie = nullptr;
 		}
 
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+		auto besoin_execution = false;
 
-		if (operatrice->manipulatrice_3d(mikisa->type_manipulation_3d) == mikisa->manipulatrice_3d) {
-			mikisa->manipulatrice_3d = nullptr;
+		if (noeud->type() == NOEUD_OBJET) {
+			besoin_execution = true;
+
+			auto scene = mikisa->scene;
+			auto objet = std::any_cast<Objet *>(noeud->donnees());
+
+			/* À FAIRE : redondance avec la suppression de la BDD et du graphe
+			 * de dépendance. */
+			scene->enleve_objet(objet);
+
+			mikisa->bdd.enleve_objet(objet);
 		}
+		else {
+			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
-		auto const besoin_execution = noeud_connecte_sortie(noeud, graphe->dernier_noeud_sortie);
+			if (operatrice->manipulatrice_3d(mikisa->type_manipulation_3d) == mikisa->manipulatrice_3d) {
+				mikisa->manipulatrice_3d = nullptr;
+			}
 
-		graphe->supprime(noeud);
+			besoin_execution = noeud_connecte_sortie(noeud, graphe->dernier_noeud_sortie);
+
+			graphe->supprime(noeud);
+		}
 
 		graphe->noeud_actif = nullptr;
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
 		if (besoin_execution || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
-			evalue_resultat(*mikisa, "noeud supprimé");
+			requiers_evaluation(*mikisa, NOEUD_ENLEVE, "noeud supprimé");
 		}
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -465,7 +454,7 @@ public:
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
-		if (mikisa->contexte == GRAPHE_PIXEL || mikisa->contexte == GRAPHE_MAILLAGE) {
+		if (mikisa->contexte == GRAPHE_PIXEL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SCENE) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
@@ -609,53 +598,47 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+		if (noeud->type() == GRAPHE_OBJET) {
+			auto objet = std::any_cast<Objet *>(noeud->donnees());
 
-		if (operatrice->type() == OPERATRICE_GRAPHE_PIXEL) {
-			auto operatrice_graphe = dynamic_cast<OperatriceGraphePixel *>(operatrice);
-
-			mikisa->graphe = operatrice_graphe->graphe();
-			mikisa->contexte = GRAPHE_PIXEL;
-
-			mikisa->chemin_courant = "/composite/" + noeud->nom() + "/";
-		}
-		else if (operatrice->type() == OPERATRICE_SCENE) {
-			auto operatrice_scene = dynamic_cast<OperatriceScene *>(operatrice);
-
-			mikisa->graphe = operatrice_scene->graphe();
-			mikisa->contexte = GRAPHE_SCENE;
-
-			mikisa->chemin_courant = "/composite/" + noeud->nom() + "/";
-		}
-		else if (operatrice->type() == OPERATRICE_OBJET) {
 			assert(mikisa->contexte == GRAPHE_SCENE);
 
-			auto operatrice_objet = dynamic_cast<OperatriceObjet *>(operatrice);
-
-			mikisa->graphe = operatrice_objet->graphe();
+			mikisa->graphe = &objet->graphe;
 			mikisa->contexte = GRAPHE_OBJET;
 
-			mikisa->chemin_courant += noeud->nom() + "/";
+			mikisa->chemin_courant = "/scènes/Scène/" + objet->nom + "/";
 		}
-		else if (operatrice->type() == OPERATRICE_GRAPHE_MAILLAGE) {
-			assert(mikisa->contexte == GRAPHE_OBJET);
+		else {
+			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
-			auto operatrice_graphe = dynamic_cast<OperatriceGrapheMaillage *>(operatrice);
+			if (operatrice->type() == OPERATRICE_GRAPHE_PIXEL) {
+				auto operatrice_graphe = dynamic_cast<OperatriceGraphePixel *>(operatrice);
 
-			mikisa->graphe = operatrice_graphe->graphe();
-			mikisa->contexte = GRAPHE_MAILLAGE;
+				mikisa->graphe = operatrice_graphe->graphe();
+				mikisa->contexte = GRAPHE_PIXEL;
 
-			mikisa->chemin_courant += noeud->nom() + "/";
-		}
-		else if (operatrice->type() == OPERATRICE_SIMULATION) {
-			assert(mikisa->contexte == GRAPHE_OBJET);
+				mikisa->chemin_courant = "/composite/" + noeud->nom() + "/";
+			}
+			else if (operatrice->type() == OPERATRICE_GRAPHE_MAILLAGE) {
+				assert(mikisa->contexte == GRAPHE_OBJET);
 
-			auto operatrice_graphe = dynamic_cast<OperatriceSimulation *>(operatrice);
+				auto operatrice_graphe = dynamic_cast<OperatriceGrapheMaillage *>(operatrice);
 
-			mikisa->graphe = operatrice_graphe->graphe();
-			mikisa->contexte = GRAPHE_SIMULATION;
+				mikisa->graphe = operatrice_graphe->graphe();
+				mikisa->contexte = GRAPHE_MAILLAGE;
 
-			mikisa->chemin_courant += noeud->nom() + "/";
+				mikisa->chemin_courant += noeud->nom() + "/";
+			}
+			else if (operatrice->type() == OPERATRICE_SIMULATION) {
+				assert(mikisa->contexte == GRAPHE_OBJET);
+
+				auto operatrice_graphe = dynamic_cast<OperatriceSimulation *>(operatrice);
+
+				mikisa->graphe = operatrice_graphe->graphe();
+				mikisa->contexte = GRAPHE_SIMULATION;
+
+				mikisa->chemin_courant += noeud->nom() + "/";
+			}
 		}
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
@@ -672,42 +655,24 @@ public:
 	{
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
-		if (mikisa->contexte == GRAPHE_COMPOSITE) {
+		if (mikisa->contexte == GRAPHE_COMPOSITE || mikisa->contexte == GRAPHE_SCENE) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
 		if (mikisa->contexte == GRAPHE_OBJET) {
-			auto noeud_scene = mikisa->derniere_scene_selectionnee;
-			auto operatrice = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
-			auto operatrice_scene = dynamic_cast<OperatriceScene *>(operatrice);
-
-			mikisa->graphe = operatrice_scene->graphe();
+			auto scene = mikisa->scene;
+			mikisa->graphe = &scene->graphe;
 			mikisa->contexte = GRAPHE_SCENE;
-			mikisa->chemin_courant = "/composite/" + noeud_scene->nom() + "/";
+			mikisa->chemin_courant = "/scènes/" + scene->nom + "/";
 		}
-		else if (mikisa->contexte == GRAPHE_MAILLAGE) {
-			auto noeud_scene = mikisa->derniere_scene_selectionnee;
-			auto operatrice = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
-			auto operatrice_scene = dynamic_cast<OperatriceScene *>(operatrice);
-			auto noeud_objet = operatrice_scene->graphe()->noeud_actif;
-			operatrice = std::any_cast<OperatriceImage *>(noeud_objet->donnees());
-			auto operatrice_objet = dynamic_cast<OperatriceObjet *>(operatrice);
+		else if (mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
+			auto scene = mikisa->scene;
+			auto noeud_actif = scene->graphe.noeud_actif;
+			auto objet = std::any_cast<Objet *>(noeud_actif->donnees());
 
-			mikisa->graphe = operatrice_objet->graphe();
+			mikisa->graphe = &objet->graphe;
 			mikisa->contexte = GRAPHE_OBJET;
-			mikisa->chemin_courant = "/composite/" + noeud_scene->nom() + "/" + noeud_objet->nom() + "/";
-		}
-		else if (mikisa->contexte == GRAPHE_SIMULATION) {
-			auto noeud_scene = mikisa->derniere_scene_selectionnee;
-			auto operatrice = std::any_cast<OperatriceImage *>(noeud_scene->donnees());
-			auto operatrice_scene = dynamic_cast<OperatriceScene *>(operatrice);
-			auto noeud_objet = operatrice_scene->graphe()->noeud_actif;
-			operatrice = std::any_cast<OperatriceImage *>(noeud_objet->donnees());
-			auto operatrice_objet = dynamic_cast<OperatriceObjet *>(operatrice);
-
-			mikisa->graphe = operatrice_objet->graphe();
-			mikisa->contexte = GRAPHE_OBJET;
-			mikisa->chemin_courant = "/composite/" + noeud_scene->nom() + "/" + noeud_objet->nom() + "/";
+			mikisa->chemin_courant = "/scènes/" + scene->nom + "/" + objet->nom + "/";
 		}
 		else {
 			auto composite = mikisa->composite;

@@ -25,6 +25,7 @@
 #include "operatrice_image.h"
 
 #include "bibliotheques/graphe/noeud.h"
+#include "bibliotheques/outils/definitions.hh"
 
 #include "bibloc/logeuse_memoire.hh"
 
@@ -193,26 +194,6 @@ vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &co
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 	return operatrice->camera();
-}
-
-Objet *EntreeOperatrice::requiers_objet(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-{
-	if (m_ptr->liens.empty()) {
-		return nullptr;
-	}
-
-	auto lien = m_ptr->liens[0];
-
-	if (lien == nullptr) {
-		return nullptr;
-	}
-
-	auto noeud = lien->parent;
-
-	execute_noeud(noeud, contexte, donnees_aval);
-
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-	return operatrice->objet();
 }
 
 TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
@@ -513,17 +494,7 @@ vision::Camera3D *OperatriceImage::camera()
 	return nullptr;
 }
 
-Scene *OperatriceImage::scene()
-{
-	return nullptr;
-}
-
 TextureImage *OperatriceImage::texture()
-{
-	return nullptr;
-}
-
-Objet *OperatriceImage::objet()
 {
 	return nullptr;
 }
@@ -557,6 +528,30 @@ void OperatriceImage::obtiens_liste(std::string const &/*attache*/, std::vector<
 
 	/* Par défaut, on utilise la liste de la première entrée. */
 	entree(0)->obtiens_liste_calque(chaines);
+}
+
+void OperatriceImage::renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const
+{
+	INUTILISE(compilatrice);
+	INUTILISE(noeud);
+}
+
+bool OperatriceImage::possede_animation()
+{
+	for (auto iter = this->debut(); iter != this->fin(); ++iter) {
+		auto &prop = iter->second;
+
+		if (prop.est_anime()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool OperatriceImage::depend_sur_temps() const
+{
+	return false;
 }
 
 /* ************************************************************************** */

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2016 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,31 +24,19 @@
 
 #pragma once
 
-#include "bibliotheques/geometrie/rectangle.h"
+class Mikisa;
 
-class BaseDeDonnees;
-class ChefExecution;
-struct GestionnaireFichier;
-
-struct ContexteEvaluation {
-	/* Le rectangle définissant l'aire de rendu. */
-	Rectangle resolution_rendu{};
-
-	GestionnaireFichier *gestionnaire_fichier = nullptr;
-
-	/* Enveloppe la logique de notification de progression et d'arrêt
-	 * des tâches. */
-	ChefExecution *chef = nullptr;
-
-	/* Base de données du logiciel */
-	BaseDeDonnees const *bdd = nullptr;
-
-	/* données sur le temps */
-	int temps_debut = 0;
-	int temps_fin = 250;
-	int temps_courant = 0;
-	double cadence = 0.0;
-
-	ContexteEvaluation(ContexteEvaluation const &) = default;
-	ContexteEvaluation &operator=(ContexteEvaluation const &) = default;
+enum {
+	OBJET_AJOUTE,
+	OBJET_ENLEVE,
+	NOEUD_AJOUTE,
+	NOEUD_ENLEVE,
+	NOEUD_SELECTIONE, /* pour les sorties/visionneuses */
+	GRAPHE_MODIFIE,
+	TEMPS_CHANGE,
+	FICHIER_OUVERT,
+	PARAMETRE_CHANGE,
+	RENDU_REQUIS,
 };
+
+void requiers_evaluation(Mikisa &mikisa, int raison, const char *message);

@@ -51,6 +51,7 @@ qt5_wrap_cpp(
 
 	barre_progres.hh
 	base_editrice.h
+	editrice_arborescence.hh
 	editrice_ligne_temps.h
 	editrice_noeud.h
 	editrice_rendu.h
@@ -82,6 +83,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/menu_debogage.jo
 	scripts_danjo/menu_edition.jo
 	scripts_danjo/menu_fichier.jo
+	scripts_danjo/menu_prereglage.jo
 	scripts_danjo/operatrice_3d_cercle.jo
 	scripts_danjo/operatrice_3d_cone.jo
 	scripts_danjo/operatrice_3d_creation_attribut.jo
@@ -134,6 +136,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_gigue_points.jo
 	scripts_danjo/operatrice_grade.jo
 	scripts_danjo/operatrice_gravite.jo
+	scripts_danjo/operatrice_import_objet.jo
 	scripts_danjo/operatrice_incrustation.jo
 	scripts_danjo/operatrice_lecture_fichier.jo
 	scripts_danjo/operatrice_lecture_objet.jo
@@ -190,6 +193,7 @@ add_library(${NOM_CIBLE} STATIC
 
 	barre_progres.hh
 	base_editrice.h
+	editrice_arborescence.hh
 	editrice_ligne_temps.h
 	editrice_noeud.h
 	editrice_proprietes.h
@@ -210,6 +214,7 @@ add_library(${NOM_CIBLE} STATIC
 
 	barre_progres.cc
 	base_editrice.cc
+	editrice_arborescence.cc
 	editrice_ligne_temps.cc
 	editrice_noeud.cc
 	editrice_proprietes.cc

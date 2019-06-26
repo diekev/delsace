@@ -36,6 +36,7 @@
 #include "coeur/composite.h"
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
+#include "coeur/scene.h"
 
 #include "rendu/moteur_rendu.hh"
 
@@ -106,17 +107,8 @@ void VisionneurScene::initialise()
 void VisionneurScene::peint_opengl()
 {
 	/* dessine la scène dans le tampon */
-
-	auto noeud = m_mikisa.derniere_scene_selectionnee;
-
-	if (noeud != nullptr) {
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-		auto scene = operatrice->scene();
-		m_moteur_rendu->scene(scene);
-	}
-	else {
-		m_moteur_rendu->scene(nullptr);
-	}
+	auto scene = m_mikisa.scene;
+	m_moteur_rendu->scene(scene);
 
 	m_moteur_rendu->calcule_rendu(
 				m_tampon,
@@ -191,9 +183,9 @@ void VisionneurScene::peint_opengl()
 	ss << fps << " IPS";
 	m_rendu_texte->dessine(m_contexte, ss.str());
 
-	if (noeud != nullptr) {
+	if (scene != nullptr) {
 		ss.str("");
-		ss << "Scène : " << noeud->nom();
+		ss << "Scène : " << scene->nom;
 
 		m_rendu_texte->dessine(m_contexte, ss.str());
 	}

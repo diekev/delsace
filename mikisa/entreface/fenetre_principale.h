@@ -41,6 +41,7 @@ class FenetrePrincipale : public QMainWindow {
 	Mikisa &m_mikisa;
 
 	BarreDeProgres *m_barre_progres = nullptr;
+	QToolBar *m_barre_outil = nullptr;
 
 public:
 	explicit FenetrePrincipale(Mikisa &mikisa, QWidget *parent = nullptr);
@@ -63,6 +64,7 @@ public Q_SLOTS:
 private:
 	QDockWidget *ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier = nullptr);
 	void genere_barre_menu();
+	void genere_menu_prereglages();
 	void charge_reglages();
 	void ecrit_reglages() const;
 	void closeEvent(QCloseEvent *) override;

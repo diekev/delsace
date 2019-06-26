@@ -43,6 +43,8 @@ class Noeud;
 class PriseEntree;
 class Scene;
 class TextureImage;
+class CompilatriceReseau;
+class NoeudReseau;
 class UsineOperatrice;
 
 namespace vision {
@@ -201,14 +203,6 @@ public:
 	vision::Camera3D *requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
 	/**
-	 * Requiers l'objet du noeud connecté à cette prise en exécutant ledit
-	 * noeud avant de retourner un pointeur vers l'objet. Si aucun objet
-	 * n'est créé par le noeud, ou si aucune connexion n'existe, retourne
-	 * nullptr.
-	 */
-	Objet *requiers_objet(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
-
-	/**
 	 * Requiers la texture du noeud connecté à cette prise en exécutant ledit
 	 * noeud avant de retourner un pointeur vers la texture. Si aucune texture
 	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
@@ -355,11 +349,7 @@ public:
 
 	virtual vision::Camera3D *camera();
 
-	virtual Scene *scene();
-
 	virtual TextureImage *texture();
-
-	virtual Objet *objet();
 
 	virtual Corps *corps();
 
@@ -392,6 +382,12 @@ public:
 	virtual void obtiens_liste(
 			std::string const &attache,
 			std::vector<std::string> &chaines);
+
+	virtual void renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const;
+
+	bool possede_animation();
+
+	virtual bool depend_sur_temps() const;
 };
 
 /* ************************************************************************** */

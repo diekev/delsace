@@ -39,8 +39,9 @@
 
 #include "bibliotheques/commandes/commande.h"
 
+#include "../evaluation/evaluation.hh"
+
 #include "../composite.h"
-#include "../evaluation.h"
 #include "../evenement.h"
 #include "../mikisa.h"
 
@@ -187,9 +188,9 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		/* À FAIRE : vérifie l'éligibilité du chemin de sortie. */
+		/* À FAIRE : vérifie l'éligibilité du chemin de sortie, graphe rendu */
 
-		evalue_graphe(*mikisa, "commande rendu image");
+		requiers_evaluation(*mikisa, RENDU_REQUIS, "commande rendu image");
 
 		ecris_image(mikisa->composite,
 					mikisa->nom_calque_sortie,

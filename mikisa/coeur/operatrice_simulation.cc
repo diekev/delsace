@@ -144,3 +144,8 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 
 	return EXECUTION_REUSSIE;
 }
+
+bool OperatriceSimulation::depend_sur_temps() const
+{
+	return true;
+}

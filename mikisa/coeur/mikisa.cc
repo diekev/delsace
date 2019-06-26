@@ -43,15 +43,18 @@
 
 #include "bibloc/logeuse_memoire.hh"
 
+#include "evaluation/evaluation.hh"
+
 #include "composite.h"
 #include "configuration.h"
-#include "evaluation.h"
 #include "manipulatrice.h"
 #include "noeud_image.h"
+#include "scene.h"
 #include "tache.h"
 
 #include "commandes/commandes_edition.h"
 #include "commandes/commandes_noeuds.h"
+#include "commandes/commandes_objet.hh"
 #include "commandes/commandes_projet.h"
 #include "commandes/commandes_rendu.h"
 #include "commandes/commandes_temps.h"
@@ -89,19 +92,23 @@ Mikisa::Mikisa()
 	: m_usine_commande{}
 	, m_usine_operatrices{}
 	, m_repondant_commande(memoire::loge<RepondantCommande>("RepondantCommande", m_usine_commande, this))
-	, composite(memoire::loge<Composite>("Composite"))
+	, composite(nullptr)
 	, fenetre_principale(nullptr)
 	, editrice_active(nullptr)
 	, gestionnaire_entreface(memoire::loge<danjo::GestionnaireInterface>("danjo::GestionnaireInterface"))
 	, project_settings(memoire::loge<ProjectSettings>("ProjectSettings"))
 	, camera_2d(memoire::loge<vision::Camera2D>("vision::Camera2D"))
 	, camera_3d(memoire::loge<vision::Camera3D>("vision::Camera3D", 0, 0))
-	, graphe(&composite->graph())
+	, graphe(nullptr)
 	, type_manipulation_3d(MANIPULATION_POSITION)
-	, chemin_courant("/composite/")
+	, chemin_courant("/scènes/Scène")
 	, notifiant_thread(nullptr)
 	, chef_execution(*this)
 {
+	scene = bdd.cree_scene("Scène");
+	composite = bdd.cree_composite("composite");
+	graphe = &scene->graphe;
+
 	camera_3d->projection(vision::TypeProjection::PERSPECTIVE);
 }
 
@@ -110,7 +117,6 @@ Mikisa::~Mikisa()
 	memoire::deloge("TaskNotifier", notifiant_thread);
 	memoire::deloge("vision::Camera2D", camera_2d);
 	memoire::deloge("vision::Camera3D", camera_3d);
-	memoire::deloge("Composite", composite);
 	memoire::deloge("ProjectSettings", project_settings);
 	memoire::deloge("RepondantCommande", m_repondant_commande);
 	memoire::deloge("danjo::GestionnaireInterface", gestionnaire_entreface);
@@ -144,6 +150,7 @@ void Mikisa::initialise()
 	enregistre_operatrices_volume(m_usine_operatrices);
 
 	enregistre_commandes_graphes(m_usine_commande);
+	enregistre_commandes_objet(m_usine_commande);
 	enregistre_commandes_projet(m_usine_commande);
 	enregistre_commandes_edition(m_usine_commande);
 	enregistre_commandes_rendu(m_usine_commande);
@@ -235,5 +242,5 @@ RepondantCommande *Mikisa::repondant_commande() const
 
 void Mikisa::ajourne_pour_nouveau_temps(const char *message)
 {
-	evalue_resultat(*this, message);
+	requiers_evaluation(*this, TEMPS_CHANGE, message);
 }

@@ -91,11 +91,17 @@ set_target_properties(qt_mikisa_coeur PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPI
 add_library(${NOM_CIBLE} STATIC
 	commandes/commandes_edition.h
 	commandes/commandes_noeuds.h
+	commandes/commandes_objet.hh
 	commandes/commandes_projet.h
 	commandes/commandes_rendu.h
 	commandes/commandes_temps.h
 	commandes/commandes_vue2d.h
 	commandes/commandes_vue3d.h
+
+	evaluation/evaluation.hh
+	evaluation/execution.hh
+	evaluation/plan.hh
+	evaluation/reseau.hh
 
 	operatrices/arbre_bvh.hh
 	operatrices/arbre_octernaire.hh
@@ -128,13 +134,13 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_visualisation.hh
 	operatrices/operatrices_volume.hh
 
+	base_de_donnees.hh
 	chef_execution.hh
 	composite.h
 	configuration.h
 	contexte_evaluation.hh
 	donnees_aval.hh
 	donnees_simulation.hh
-	evaluation.h
 	evenement.h
 	gestionnaire_fichier.hh
 	imprimeuse_graphe.h
@@ -146,9 +152,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrice_graphe_maillage.h
 	operatrice_graphe_pixel.h
 	operatrice_image.h
-	operatrice_objet.h
 	operatrice_pixel.h
-	operatrice_scene.h
 	operatrice_simulation.hh
 	sauvegarde.h
 	scene.h
@@ -157,11 +161,17 @@ add_library(${NOM_CIBLE} STATIC
 
 	commandes/commandes_edition.cc
 	commandes/commandes_noeuds.cc
+	commandes/commandes_objet.cc
 	commandes/commandes_projet.cc
 	commandes/commandes_rendu.cc
 	commandes/commandes_temps.cc
 	commandes/commandes_vue2d.cc
 	commandes/commandes_vue3d.cc
+
+	evaluation/evaluation.cc
+	evaluation/execution.cc
+	evaluation/plan.cc
+	evaluation/reseau.cc
 
 	operatrices/arbre_bvh.cc
 	operatrices/arbre_octernaire.cc
@@ -194,13 +204,14 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/operatrices_visualisation.cc
 	operatrices/operatrices_volume.cc
 
+	base_de_donnees.cc
+
 	chef_execution.cc
 	composite.cc
 	configuration.cc
 	contexte_evaluation.cc
 	donnees_aval.cc
 	donnees_simulation.cc
-	evaluation.cc
 	evenement.cc
 	gestionnaire_fichier.cc
 	imprimeuse_graphe.cc
@@ -212,9 +223,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrice_graphe_maillage.cc
 	operatrice_graphe_pixel.cc
 	operatrice_image.cc
-	operatrice_objet.cc
 	operatrice_pixel.cc
-	operatrice_scene.cc
 	operatrice_simulation.cc
 	sauvegarde.cc
 	scene.cc

@@ -26,6 +26,30 @@
 
 #include <algorithm>
 
+#include "noeud_image.h"
+#include "objet.h"
+
+/* ************************************************************************** */
+
+static auto fonction_creation_noeud()
+{
+	auto noeud = memoire::loge<Noeud>("Noeud");
+	noeud->type(NOEUD_OBJET);
+
+	return noeud;
+}
+
+static auto fonction_destruction_noeud(Noeud *noeud)
+{
+	memoire::deloge("Noeud", noeud);
+}
+
+/* ************************************************************************** */
+
+Scene::Scene()
+	: graphe(Graphe(fonction_creation_noeud, fonction_destruction_noeud))
+{}
+
 void Scene::reinitialise()
 {
 	m_objets.clear();
@@ -34,6 +58,20 @@ void Scene::reinitialise()
 
 void Scene::ajoute_objet(Objet *objet)
 {
+	auto noeud = graphe.cree_noeud(objet->nom);
+
+	if (objet->nom != noeud->nom()) {
+		objet->nom = noeud->nom();
+	}
+
+	noeud->donnees(objet);
+
+	ajoute_objet(noeud, objet);
+}
+
+void Scene::ajoute_objet(Noeud *noeud, Objet *objet)
+{
+	table_objet_noeud.insert({objet, noeud});
 	m_objets.pousse(objet);
 }
 
@@ -41,6 +79,14 @@ void Scene::enleve_objet(Objet *objet)
 {
 	auto iter = std::find(m_objets.debut(), m_objets.fin(), objet);
 	m_objets.erase(iter);
+
+	auto iter_noeud = table_objet_noeud.find(objet);
+
+	if (iter_noeud == table_objet_noeud.end()) {
+		throw std::runtime_error("L'objet n'est pas la table objets/noeuds de la scène !");
+	}
+
+	graphe.supprime(iter_noeud->second);
 }
 
 const dls::tableau<Objet *> &Scene::objets()

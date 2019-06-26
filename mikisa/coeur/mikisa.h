@@ -32,6 +32,8 @@
 
 #include "bibloc/tableau.hh"
 
+#include "base_de_donnees.hh"
+
 #include "chef_execution.hh"
 #include "gestionnaire_fichier.hh"
 #include "usine_operatrice.h"
@@ -46,6 +48,7 @@ class Manipulatrice2D;
 class Noeud;
 class ProjectSettings;
 class RepondantCommande;
+class Scene;
 class TaskNotifier;
 
 namespace vision {
@@ -139,11 +142,12 @@ public:
 	bool animation = false;
 
 	/* contexte graphe */
-	int contexte = GRAPHE_COMPOSITE;
+	int contexte = GRAPHE_SCENE;
 	Graphe *graphe = nullptr;
 
+	Scene *scene = nullptr;
+
 	Noeud *derniere_visionneuse_selectionnee = nullptr;
-	Noeud *derniere_scene_selectionnee = nullptr;
 
 	/* manipulation objets 2d */
 	bool manipulation_2d_activee = false;
@@ -170,6 +174,8 @@ public:
 	GestionnaireFichier gestionnaire_fichier{};
 
 	ChefExecution chef_execution;
+
+	BaseDeDonnees bdd{};
 
 	void ajourne_pour_nouveau_temps(const char *message);
 };

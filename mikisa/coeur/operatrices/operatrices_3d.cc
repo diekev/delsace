@@ -31,8 +31,6 @@
 #include "../contexte_evaluation.hh"
 #include "../manipulatrice.h"
 #include "../operatrice_corps.h"
-#include "../operatrice_objet.h"  /* enregistrement dans l'usine */
-#include "../operatrice_scene.h"  /* enregistrement dans l'usine */
 #include "../usine_operatrice.h"
 
 #pragma clang diagnostic push
@@ -319,8 +317,6 @@ public:
 void enregistre_operatrices_3d(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCamera>());
-	usine.enregistre_type(cree_desc<OperatriceScene>());
-	usine.enregistre_type(cree_desc<OperatriceObjet>());
 	usine.enregistre_type(cree_desc<OperatriceTexture>());
 }
 

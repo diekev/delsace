@@ -48,7 +48,9 @@ Noeud::Noeud(void (*suppression_donnees)(std::any))
 
 Noeud::~Noeud()
 {
-	supprime_donnees(m_donnees);
+	if (supprime_donnees != nullptr) {
+		supprime_donnees(m_donnees);
+	}
 
 	for (auto &socket : this->m_entrees) {
 		delete socket;

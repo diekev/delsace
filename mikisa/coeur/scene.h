@@ -24,7 +24,14 @@
 
 #pragma once
 
+#include <string>
+#include <unordered_map>
+
+#include "bibliotheques/graphe/graphe.h"
+
 #include "bibloc/tableau.hh"
+
+#include "evaluation/reseau.hh"
 
 struct Objet;
 
@@ -35,9 +42,21 @@ class Camera3D;
 class Scene {
 	dls::tableau<Objet *> m_objets{};
 	vision::Camera3D *m_camera = nullptr;
+	std::unordered_map<Objet *, Noeud *> table_objet_noeud{};
 
 public:
-	Scene() = default;
+	/* Réseau représentant les dépendances entre les objets dans la scène. */
+	Reseau reseau{};
+
+	/* Le graphe est utilisé pour afficher des noeuds pour chaque objet dans
+	 * l'interface et pour pouvoir créer une distinction entre "ajout d'objet
+	 * dans la scène" et "édition d'un objet, de son graphe".
+	 */
+	Graphe graphe;
+
+	std::string nom = "";
+
+	Scene();
 	~Scene() = default;
 
 	Scene(Scene const &) = default;
@@ -46,6 +65,8 @@ public:
 	void reinitialise();
 
 	void ajoute_objet(Objet *objet);
+
+	void ajoute_objet(Noeud *noeud, Objet *objet);
 
 	void enleve_objet(Objet *objet);
 

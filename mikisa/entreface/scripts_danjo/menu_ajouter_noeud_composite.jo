@@ -1,7 +1,6 @@
 menu "Noeud Composite" {
     menu "3D" {
 	    action(valeur="Caméra"; attache=ajouter_noeud; métadonnée="Caméra")
-		action(valeur="Scène"; attache=ajouter_noeud; métadonnée="Scène")
 	}
     menu "Flux" {
 	    action(valeur="Commutateur"; attache=ajouter_noeud; métadonnée="Commutateur")

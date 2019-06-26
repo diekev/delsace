@@ -69,7 +69,16 @@ static QBrush brosse_pour_type(int type)
 ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	: QGraphicsRectItem(parent)
 {
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = static_cast<OperatriceImage *>(nullptr);
+	auto brosse_couleur = QBrush();
+
+	if (noeud->type() == NOEUD_OBJET) {
+		brosse_couleur = brosse_pour_type(OPERATRICE_OBJET);
+	}
+	else {
+		operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+		brosse_couleur = brosse_pour_type(operatrice->type());
+	}
 
 	auto const pos_x = noeud->pos_x();
 	auto const pos_y = noeud->pos_y();
@@ -145,7 +154,7 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	/* icone */
 	auto icone = new QGraphicsRectItem(this);
 	icone->setRect(pos_x + 1, decalage_icone_y + 1, largeur_icone - 2, hauteur_icone - 2);
-	icone->setBrush(brosse_pour_type(operatrice->type()));
+	icone->setBrush(brosse_couleur);
 	icone->setPen(QPen(QColor(0, 0, 0, 0), 0.0));
 
 	/* nom du noeud */
@@ -199,7 +208,7 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	/* pinceaux pour le coeur du noeud */
 	QBrush brosse;
 
-	if (operatrice->avertissements().empty()) {
+	if (!operatrice || operatrice->avertissements().empty()) {
 		brosse = QBrush(QColor(45, 45, 45));
 	}
 	else {

@@ -37,8 +37,9 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
+#include "coeur/evaluation/evaluation.hh"
+
 #include "coeur/composite.h"
-#include "coeur/evaluation.h"
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
@@ -89,7 +90,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
-	if (noeud == nullptr) {
+	if (noeud == nullptr || noeud->type() == GRAPHE_OBJET) {
 		return;
 	}
 
@@ -172,7 +173,8 @@ void EditriceProprietes::ajourne_manipulable()
 
 	/* Marque le noeud courant et ceux en son aval surannées. */
 	marque_surannee(noeud);
-	evalue_resultat(m_mikisa, "réponse modification propriété manipulable");
+
+	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
 }
 
 void EditriceProprietes::obtiens_liste(

@@ -10,6 +10,7 @@ menu "Noeud Simulation" {
 		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
 		action(valeur="Entrée Graphe"; attache=ajouter_noeud; métadonnée="Entrée Graphe")
 		action(valeur="Entrée Simulation"; attache=ajouter_noeud; métadonnée="Entrée Simulation")
+		action(valeur="Import Objet"; attache=ajouter_noeud; métadonnée="Import Objet")
 		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
 	}
 	menu "Attribut" {
