@@ -127,10 +127,9 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-option(AVEC_KAMIKAZE "Compiler le logiciel de création 3D Kamikaze" ON)
 option(AVEC_KANBA "Compiler le logiciel de peinture 3D Kanba" ON)
 option(AVEC_KOUDOU "Compiler le logiciel de rendu 3D Koudou" ON)
-option(AVEC_MIKISA "Compiler le logiciel de compositing Mikisa" ON)
+option(AVEC_MIKISA "Compiler le logiciel de création 3D et compositing Mikisa" ON)
 option(AVEC_POSEIDON "Compiler le logiciel de simulation de fluide Poséidon" ON)
 option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" ON)
 
@@ -212,25 +211,6 @@ set(STYLES
 )
 
 add_subdirectory(bibliotheques)
-
-if (AVEC_KAMIKAZE)
-	add_subdirectory(kamikaze)
-
-	install(
-		FILES ${ICONES}
-		DESTINATION kamikaze/icones
-	)
-
-    install(
-		FILES ${STYLES}
-		DESTINATION kamikaze/styles
-	)
-
-    install(
-		FILES fichiers/texte/texture_texte.png
-		DESTINATION kamikaze/texte
-	)
-endif (AVEC_KAMIKAZE)
 
 if (AVEC_KANBA)
     add_subdirectory(kanba)

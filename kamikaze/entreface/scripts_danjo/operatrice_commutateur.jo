@@ -1,6 +1,0 @@
-disposition "operatrice_commutateur" {
-    ligne {
-        étiquette(valeur="Prise")
-		entier(valeur=0; attache=prise; infobulle="L'index de la prise à évaluer."; min=0; max=1)
-    }
-}

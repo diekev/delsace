@@ -1,4 +1,0 @@
-menu "Édition" {
-    action(valeur="Défaire"; attache=defaire)
-	action(valeur="Refaire"; attache=refaire)
-}

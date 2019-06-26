@@ -1,3 +1,0 @@
-menu "Ajouter Objet" {
-    action(valeur="Objet Vide"; attache=ajouter_objet; métadonnée="Objet")
-}

@@ -1,6 +1,0 @@
-disposition "operatrice_creation_icosphere" {
-    ligne {
-        étiquette(valeur="Rayon")
-		décimal(valeur=1; attache=rayon; min=0; max=10)
-    }
-}
