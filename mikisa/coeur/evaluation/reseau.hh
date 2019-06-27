@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <vector>
 
+class Noeud;
 class Objet;
 class Scene;
 
@@ -51,6 +52,7 @@ struct NoeudReseau {
 	std::set<NoeudReseau *> sorties{};
 
 	Objet *objet{};
+	Noeud *noeud_objet{};
 
 	int degree = 0;
 	int pad = 0;
@@ -89,7 +91,7 @@ public:
 	CompilatriceReseau(CompilatriceReseau const &) = default;
 	CompilatriceReseau &operator=(CompilatriceReseau const &) = default;
 
-	void cree_noeud(Objet *objet);
+	void cree_noeud(Objet *objet, Noeud *noeud_objet);
 
 	void ajoute_dependance(NoeudReseau *noeud, Objet *objet);
 

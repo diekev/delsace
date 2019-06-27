@@ -34,6 +34,7 @@
 #include "bibloc/logeuse_memoire.hh"
 
 #include "evaluation/evaluation.hh"
+#include "evaluation/plan.hh"
 
 #include "evenement.h"
 #include "composite.h"
@@ -212,85 +213,98 @@ static void sauvegarde_proprietes(
 static void ecris_graphe(
 		tinyxml2::XMLDocument &doc,
 		tinyxml2::XMLElement *racine_graphe,
+		Graphe const &graphe);
+
+static auto ecris_noeud(
+		tinyxml2::XMLDocument &doc,
+		tinyxml2::XMLElement *racine_graphe,
+		Noeud *noeud)
+{
+	/* Noeud */
+	auto element_noeud = doc.NewElement("noeud");
+	element_noeud->SetAttribute("nom", noeud->nom().c_str());
+//		element_noeud->SetAttribute("drapeaux", noeud->flags());
+	element_noeud->SetAttribute("posx", noeud->pos_x());
+	element_noeud->SetAttribute("posy", noeud->pos_y());
+
+	/* Prises d'entrée. */
+	auto racine_prise_entree = doc.NewElement("prises_entree");
+
+	for (auto const &prise : noeud->entrees()) {
+		auto element_prise = doc.NewElement("entree");
+		element_prise->SetAttribute("nom", prise->nom.c_str());
+		element_prise->SetAttribute("id", id_depuis_pointeur(prise).c_str());
+
+		if (!prise->liens.empty()) {
+			element_prise->SetAttribute("connexion", id_depuis_pointeur(prise->liens[0]).c_str());
+		}
+
+		racine_prise_entree->InsertEndChild(element_prise);
+	}
+
+	element_noeud->InsertEndChild(racine_prise_entree);
+
+	/* Prises de sortie */
+	auto racine_prise_sortie = doc.NewElement("prises_sortie");
+
+	for (auto const &prise : noeud->sorties()) {
+		/* REMARQUE : par optimisation on ne sauvegarde que les
+			 * connexions depuis les prises d'entrées. */
+		auto element_prise = doc.NewElement("sortie");
+		element_prise->SetAttribute("nom", prise->nom.c_str());
+		element_prise->SetAttribute("id", id_depuis_pointeur(prise).c_str());
+
+		racine_prise_sortie->InsertEndChild(element_prise);
+	}
+
+	element_noeud->InsertEndChild(racine_prise_sortie);
+
+	/* Opératrice */
+	switch (noeud->type()) {
+		case NOEUD_OBJET:
+		{
+			auto objet = std::any_cast<Objet *>(noeud->donnees());
+
+			auto element_objet = doc.NewElement("objet");
+			element_objet->SetAttribute("nom", objet->nom.c_str());
+
+			element_noeud->InsertEndChild(element_objet);
+
+			break;
+		}
+		default:
+		{
+			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+			auto element_operatrice = doc.NewElement("operatrice");
+			element_operatrice->SetAttribute("nom", operatrice->nom_classe());
+
+			sauvegarde_proprietes(doc, element_operatrice, operatrice);
+
+			/* Graphe */
+			auto graphe_op = graphe_operatrice(operatrice);
+
+			if (graphe_op != nullptr) {
+				auto racine_graphe_op = doc.NewElement("graphe");
+				element_operatrice->InsertEndChild(racine_graphe_op);
+				ecris_graphe(doc, racine_graphe_op, *graphe_op);
+			}
+
+			element_noeud->InsertEndChild(element_operatrice);
+
+			break;
+		}
+	}
+
+	racine_graphe->InsertEndChild(element_noeud);
+}
+
+static void ecris_graphe(
+		tinyxml2::XMLDocument &doc,
+		tinyxml2::XMLElement *racine_graphe,
 		Graphe const &graphe)
 {
 	for (auto const &noeud : graphe.noeuds()) {
-		/* Noeud */
-		auto element_noeud = doc.NewElement("noeud");
-		element_noeud->SetAttribute("nom", noeud->nom().c_str());
-//		element_noeud->SetAttribute("drapeaux", noeud->flags());
-		element_noeud->SetAttribute("posx", noeud->pos_x());
-		element_noeud->SetAttribute("posy", noeud->pos_y());
-
-		/* Prises d'entrée. */
-		auto racine_prise_entree = doc.NewElement("prises_entree");
-
-		for (auto const &prise : noeud->entrees()) {
-			auto element_prise = doc.NewElement("entree");
-			element_prise->SetAttribute("nom", prise->nom.c_str());
-			element_prise->SetAttribute("id", id_depuis_pointeur(prise).c_str());
-
-			if (!prise->liens.empty()) {
-				element_prise->SetAttribute("connexion", id_depuis_pointeur(prise->liens[0]).c_str());
-			}
-
-			racine_prise_entree->InsertEndChild(element_prise);
-		}
-
-		element_noeud->InsertEndChild(racine_prise_entree);
-
-		/* Prises de sortie */
-		auto racine_prise_sortie = doc.NewElement("prises_sortie");
-
-		for (auto const &prise : noeud->sorties()) {
-			/* REMARQUE : par optimisation on ne sauvegarde que les
-				 * connexions depuis les prises d'entrées. */
-			auto element_prise = doc.NewElement("sortie");
-			element_prise->SetAttribute("nom", prise->nom.c_str());
-			element_prise->SetAttribute("id", id_depuis_pointeur(prise).c_str());
-
-			racine_prise_sortie->InsertEndChild(element_prise);
-		}
-
-		element_noeud->InsertEndChild(racine_prise_sortie);
-
-		/* Opératrice */
-		switch (noeud->type()) {
-			case NOEUD_OBJET:
-			{
-				auto objet = std::any_cast<Objet *>(noeud->donnees());
-
-				auto element_objet = doc.NewElement("objet");
-				element_objet->SetAttribute("nom", objet->nom.c_str());
-
-				element_noeud->InsertEndChild(element_objet);
-
-				break;
-			}
-			default:
-			{
-				auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-				auto element_operatrice = doc.NewElement("operatrice");
-				element_operatrice->SetAttribute("nom", operatrice->nom_classe());
-
-				sauvegarde_proprietes(doc, element_operatrice, operatrice);
-
-				/* Graphe */
-				auto graphe_op = graphe_operatrice(operatrice);
-
-				if (graphe_op != nullptr) {
-					auto racine_graphe_op = doc.NewElement("graphe");
-					element_operatrice->InsertEndChild(racine_graphe_op);
-					ecris_graphe(doc, racine_graphe_op, *graphe_op);
-				}
-
-				element_noeud->InsertEndChild(element_operatrice);
-
-				break;
-			}
-		}
-
-		racine_graphe->InsertEndChild(element_noeud);
+		ecris_noeud(doc, racine_graphe, noeud);
 	}
 }
 
@@ -347,6 +361,10 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 	auto racine_scenes = doc.NewElement("scenes");
 	racine_projet->InsertEndChild(racine_scenes);
 
+
+	auto planifieuse = Planifieuse{};
+	auto compileuse = CompilatriceReseau{};
+
 	for (auto const scene : bdd.scenes()) {
 		/* Écriture de la scène. */
 		auto racine_scene = doc.NewElement("scene");
@@ -354,11 +372,18 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 
 		racine_scenes->InsertEndChild(racine_scene);
 
+		compileuse.reseau = &scene->reseau;
+		compileuse.compile_reseau(scene);
+
+		auto plan = planifieuse.requiers_plan_pour_scene(scene->reseau);
+
 		/* Écriture du graphe. */
 		auto racine_graphe = doc.NewElement("graphe");
 		racine_scene->InsertEndChild(racine_graphe);
 
-		ecris_graphe(doc, racine_graphe, scene->graphe);
+		for (auto &noeud : plan->noeuds) {
+			ecris_noeud(doc, racine_graphe, noeud->noeud_objet);
+		}
 	}
 
 	auto const resultat = doc.SaveFile(chemin.c_str());
@@ -549,8 +574,6 @@ static void lecture_noeud(
 
 	auto noeud = graphe->cree_noeud(nom_noeud);
 
-	/* À FAIRE : restaurer les pointeurs des objets dans les opératrices. */
-
 	switch (noeud->type()) {
 		case NOEUD_OBJET:
 		{
@@ -693,7 +716,6 @@ static void lis_scenes(
 		lecture_graphe(racine_graphe, mikisa, &scene->graphe);
 
 		/* met en place les objets */
-		/* À FAIRE : graphe de dépendance. */
 		for (auto noeud : scene->graphe.noeuds()) {
 			scene->ajoute_objet(noeud, std::any_cast<Objet *>(noeud->donnees()));
 		}

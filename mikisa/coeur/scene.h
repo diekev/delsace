@@ -72,6 +72,8 @@ public:
 
 	const dls::tableau<Objet *> &objets();
 
+	std::unordered_map<Objet *, Noeud *> const &table_objets() const;
+
 	void camera(vision::Camera3D *camera);
 
 	vision::Camera3D *camera();

@@ -46,7 +46,7 @@ void Reseau::reinitialise()
 
 /* ************************************************************************** */
 
-void CompilatriceReseau::cree_noeud(Objet *objet)
+void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 {
 	auto iter_noeud = m_table_objet_noeud.find(objet);
 
@@ -56,6 +56,7 @@ void CompilatriceReseau::cree_noeud(Objet *objet)
 
 	auto noeud = new NoeudReseau{};
 	noeud->objet = objet;
+	noeud->noeud_objet = noeud_objet;
 	reseau->noeuds.push_back(noeud);
 
 	m_table_objet_noeud.insert({objet, noeud});
@@ -83,8 +84,8 @@ void CompilatriceReseau::compile_reseau(Scene *scene)
 	reseau->reinitialise();
 
 	/* crée les noeuds */
-	for (auto objet : scene->objets()) {
-		cree_noeud(objet);
+	for (auto paire : scene->table_objets()) {
+		cree_noeud(paire.first, paire.second);
 	}
 
 	/* crée les dépendances */

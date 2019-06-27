@@ -94,6 +94,11 @@ const dls::tableau<Objet *> &Scene::objets()
 	return m_objets;
 }
 
+const std::unordered_map<Objet *, Noeud *> &Scene::table_objets() const
+{
+	return table_objet_noeud;
+}
+
 void Scene::camera(vision::Camera3D *camera)
 {
 	m_camera = camera;
