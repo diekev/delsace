@@ -1,0 +1,896 @@
+importe "chaine"
+importe "fichier"
+importe "flux"
+importe "chrono"
+
+fonc externe write(filedes : z32, tpn : *z8, nbyte : z64) : z32;
+
+structure Image {
+    tampon : chaine; # À FAIRE : []octet
+    chemin : chaine;
+    hauteur : z32;
+    largeur : z32;
+    channels : z32;
+}
+
+fonc ecris_fichier(df : z32, chn : chaine) : rien
+{
+    write(df, pointeur de chn, taille de chn);
+}
+
+fonc imprime_fichier(df : z32, args : ...eini) : rien
+{
+    pour arg dans args {
+	    imprime_valeur(df, pointeur de arg, info de arg, faux);
+	}
+}
+
+fonc génére_image_damier() : Image
+{
+    dyn image : Image;
+    largeur de image = 1024;
+    hauteur de image = 1024;
+    channels de image = 1;
+
+    nombre_caracteres = largeur de image * hauteur de image;
+
+    dyn tampon = loge chaine(nombre_caracteres);
+
+    taille_case = largeur de image / 8;
+
+    tampon de image = tampon;
+
+    dyn idx = 0;
+
+    pour i dans 0...largeur de image - 1 {
+        pour j dans 0...hauteur de image - 1 {
+            si (i / taille_case + j / taille_case) % 2 == 0 {
+                tampon[idx] = '0';
+            }
+            sinon {
+                tampon[idx] = '1';
+            }
+
+            idx += 1;
+        }
+    }
+
+    retourne image;
+}
+
+fonc génére_image_noire() : Image
+{
+    dyn image : Image;
+    largeur de image = 1024;
+    hauteur de image = 1024;
+    channels de image = 1;
+
+    nombre_caracteres = largeur de image * hauteur de image;
+
+    dyn tampon = loge chaine(nombre_caracteres);
+
+    taille_case = largeur de image / 8;
+
+    tampon de image = tampon;
+
+    pour v dans tampon {
+        v = 0;
+    }
+
+    retourne image;
+}
+
+fonc abs(x : r32) : r32
+{
+    si x < 0.0 {
+        retourne -x;
+    }
+
+    retourne x;
+}
+
+fonc dessine_ligne(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) : rien
+{
+    dyn tampon = tampon de image;
+
+    dyn dx = transtype(x2 - x1 : r32);
+    dyn dy = transtype(y2 - y1 : r32);
+    dyn pas : r32;
+
+    si abs(dx) >= abs(dy) {
+        pas = abs(dx);
+    }
+    sinon {
+        pas = abs(dy);
+    }
+
+    dx /= pas;
+    dy /= pas;
+    dyn x = transtype(x1 : r32);
+    dyn y = transtype(y1 : r32);
+    dyn i : r32 = 1.0;
+
+    tantque i <= pas {
+        xi = transtype(x : z32);
+        yi = transtype(y : z32);
+        index = xi + yi * largeur de image;
+        tampon[index] = 1;
+
+        x += dx;
+        y += dy;
+        i += 1.0;
+    }
+}
+
+fonc dessine_triangle(
+    dyn image : &Image,
+    x1 : r64,
+    y1 : r64,
+    x2 : r64,
+    y2 : r64,
+    x3 : r64,
+    y3 : r64) : rien
+{
+    ld = transtype(largeur de image - 1 : r64);
+    hd = transtype(hauteur de image - 1 : r64);
+
+    x1i = transtype(ld * x1 : z32);
+    x2i = transtype(ld * x2 : z32);
+    x3i = transtype(ld * x3 : z32);
+
+    y1i = transtype(hd * y1 : z32);
+    y2i = transtype(hd * y2 : z32);
+    y3i = transtype(hd * y3 : z32);
+
+    dessine_ligne(image, x1i, y1i, x2i, y2i);
+    dessine_ligne(image, x2i, y2i, x3i, y3i);
+    dessine_ligne(image, x3i, y3i, x1i, y1i);
+}
+
+# http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
+structure Vec2 {
+    x : r64;
+    y : r64;
+}
+
+fonc restreint(dyn x : &z32, min : z32, max : z32) : rien
+{
+    si x <= min {
+        x = min;
+    }
+    si x >= max {
+        x = max;
+    }
+}
+
+fonc min(a : r64, b : r64) : r64
+{
+    si a <= b {
+        retourne a;
+    }
+
+    retourne b;
+}
+
+# Remplis un triangle qui pointe vers le haut avec une base horizontale :
+#      /\
+#     /  \
+#     ----
+fonc remplis_triangle_bas_plat(
+    dyn image : &Image,
+    v1 : Vec2,
+    v2 : Vec2,
+    v3 : Vec2) : rien
+{
+    ld = transtype(largeur de image - 1 : r64);
+    hd = transtype(hauteur de image - 1 : r64);
+
+    taille_pixel = 1.0 / min(ld, hd);
+
+    cd1_inv = (x de v2 - x de v1) / (y de v2 - y de v1) * taille_pixel;
+    cd2_inv = (x de v3 - x de v1) / (y de v3 - y de v1) * taille_pixel;
+
+    dyn cur_x1 = x de v1;
+    dyn cur_x2 = x de v1;
+
+    y1 = transtype(y de v1 * hd : z32);
+    y2 = transtype(y de v2 * hd : z32);
+
+    restreint(y1, 0, hauteur de image - 1);
+    restreint(y2, 0, hauteur de image - 1);
+
+    dyn scanlineY = y1;
+
+    tantque scanlineY <= y2 {
+        x1i = transtype(cur_x1 * ld : z32);
+        x2i = transtype(cur_x2 * ld : z32);
+
+        restreint(x1i, 0, largeur de image - 1);
+        restreint(x2i, 0, largeur de image - 1);
+
+        dessine_ligne(image, x1i, scanlineY, x2i, scanlineY);
+
+        cur_x1 += cd1_inv;
+        cur_x2 += cd2_inv;
+
+        scanlineY += 1;
+    }
+}
+
+# Remplis un triangle qui pointe vers le bas avec une base horizontale :
+#     ----
+#     \  /
+#      \/
+fonc remplis_triangle_haut_plat(
+    dyn image : &Image,
+    v1 : Vec2,
+    v2 : Vec2,
+    v3 : Vec2) : rien
+{
+    ld = transtype(largeur de image - 1 : r64);
+    hd = transtype(hauteur de image - 1 : r64);
+
+    taille_pixel = 1.0 / ld;
+
+    cd1_inv = (x de v3 - x de v1) / (y de v3 - y de v1) * taille_pixel;
+    cd2_inv = (x de v3 - x de v2) / (y de v3 - y de v2) * taille_pixel;
+
+    dyn cur_x1 = x de v3;
+    dyn cur_x2 = x de v3;
+
+    y1 = transtype(y de v1 * hd : z32);
+    y3 = transtype(y de v3 * hd : z32);
+
+    restreint(y1, 0, hauteur de image - 1);
+    restreint(y3, 0, hauteur de image - 1);
+
+    dyn scanlineY = y3;
+
+    tantque scanlineY > y1 {
+        x1i = transtype(cur_x1 * ld : z32);
+        x2i = transtype(cur_x2 * ld : z32);
+
+        restreint(x1i, 0, largeur de image - 1);
+        restreint(x2i, 0, largeur de image - 1);
+
+        dessine_ligne(image, x1i, scanlineY, x2i, scanlineY);
+
+        cur_x1 -= cd1_inv;
+        cur_x2 -= cd2_inv;
+        scanlineY -= 1;
+    }
+}
+
+fonc échange(dyn a : &r64, dyn b : &r64) : rien
+{
+    tmp = a;
+    a = b;
+    b = tmp;
+}
+
+fonc échange(dyn v1 : &Vec2, dyn v2 : &Vec2) : rien
+{
+    échange(x de v1, x de v2);
+    échange(y de v1, y de v2);
+}
+
+# Pour dessiner par ratissage un triangle quelconque, nous le divisons au besoin
+# en deux triangles avec bases horizontales dont un pointe vers le haut et
+# l'autre le bas :
+#
+#   /|
+#  / |
+# /__|
+# \  |
+#  \ |
+#   \|
+#
+fonc ratisse_triangle(
+    dyn image : &Image,
+    x1 : r64,
+    y1 : r64,
+    x2 : r64,
+    y2 : r64,
+    x3 : r64,
+    y3 : r64) : rien
+{
+    v1 = Vec2{ x = x1, y = y1 };
+    v2 = Vec2{ x = x2, y = y2 };
+    v3 = Vec2{ x = x3, y = y3 };
+
+    boucle {
+        si (y de v1) <= (y de v2) <= (y de v3) {
+            arrête;
+        }
+
+        si y de v2 < y de v1 {
+            échange(v1, v2);
+        }
+
+        si y de v3 < y de v2 {
+            échange(v2, v3);
+        }
+    }
+
+    si y de v2 == y de v3 {
+        remplis_triangle_bas_plat(image, v1, v2, v3);
+    }
+    sinon si y de v1 == y de v2 {
+        remplis_triangle_haut_plat(image, v1, v2, v3);
+    }
+    sinon {
+        x4 = x de v1 + ((y de v2 - y de v1) / (y de v3 - y de v1)) * (x de v3 - x de v1);
+        y4 = y de v2;
+
+        v4 = Vec2{ x = x4, y = y4 };
+
+        remplis_triangle_bas_plat(image, v1, v2, v4);
+        remplis_triangle_haut_plat(image, v2, v4, v3);
+    }
+}
+
+fonc écris_ppm(image : Image, chemin : chaine) : rien
+{
+    df = ouvre_fichier_ecriture(chemin);
+    diffère { ferme_fichier(df); }
+
+    si df == -1 {
+        imprime("Le fichier '", chemin, "' ne peut être ouvert", '\n');
+        retourne;
+    }
+
+    imprime("Descripteur fichier : ", df, '\n');
+
+    entete = "P1";
+    taille_x = largeur de image;
+    taille_y = hauteur de image;
+    taille_case = taille_x / 8;
+
+    imprime_fichier(df, entete, ' ', taille_x, ' ', taille_y, ' ');
+
+    nombre_caracteres = taille_x * taille_y * 2;
+
+    dyn tampon = loge chaine(nombre_caracteres);
+    diffère { déloge tampon; }
+
+    dyn idx = 0;
+    dyn idx_image = 0;
+
+    pour i dans 0...taille_x - 1 {
+        pour j dans 0...taille_y - 1 {
+            tampon[idx] = '0' + tampon[idx_image] de image;
+            tampon[idx + 1] = ' ';
+            idx_image += 1;
+            idx += 2;
+        }
+    }
+
+    debut = maintenant_sec();
+
+    imprime_fichier(df, tampon);
+
+    delta = delta_sec(debut);
+
+    imprime("Temps d'écriture = ", delta, "s", '\n');
+}
+
+fonc écris_pnm(image : Image, chemin : chaine) : rien
+{
+    df = ouvre_fichier_ecriture(chemin);
+    diffère { ferme_fichier(df); }
+
+    si df == -1 {
+        imprime("Le fichier '", chemin,"' ne peut être ouvert", '\n');
+        retourne;
+    }
+
+    imprime("Descripteur fichier PNM : ", df, '\n');
+
+    dyn entete : chaine;
+
+    associe channels de image {
+        1 { entete = "P5"; }
+        3 { entete = "P6"; }
+    }
+
+    taille_x = largeur de image;
+    taille_y = hauteur de image;
+    tampon_image = tampon de image;
+
+    imprime_fichier(df, entete, ' ', taille_x, ' ', taille_y, ' ', 255, ' ');
+
+    nombre_caracteres = taille_x * taille_y * channels de image;
+
+    dyn tampon = loge chaine(nombre_caracteres);
+    diffère { déloge tampon; }
+
+    dyn idx = 0;
+    dyn idx_image = 0;
+
+    pour i dans 0...taille_x - 1 {
+        pour j dans 0...taille_y - 1 {
+            pour k dans 0 ... channels de image - 1 {
+                tampon[idx + k] = tampon_image[idx_image + k];
+            }
+
+            idx += channels de image;
+            idx_image += channels de image;
+        }
+    }
+
+    debut = maintenant_sec();
+
+    imprime_fichier(df, tampon);
+
+    delta = delta_sec(debut);
+
+    imprime("Temps d'écriture PNM = ", delta, "s", '\n');
+}
+
+#####################
+
+fonc détruit_image(image : *Image) : rien
+{
+    déloge tampon de image;
+}
+
+structure externe FILE;
+fonc externe fopen(__filename : *z8, __modes : *z8) : *FILE;
+fonc externe fclose(__file : *FILE) : z32;
+
+structure externe jpeg_error_mgr;
+structure externe jpeg_memory_mgr;
+structure externe jpeg_progress_mgr;
+structure externe jpeg_source_mgr;
+structure externe JQUANT_TBL;
+structure externe JHUFF_TBL;
+structure externe jpeg_marker_struct;
+structure externe jpeg_decomp_master;
+structure externe jpeg_d_main_controller;
+structure externe jpeg_d_coef_controller;
+structure externe jpeg_d_post_controller;
+structure externe jpeg_input_controller;
+structure externe jpeg_marker_reader;
+structure externe jpeg_entropy_decoder;
+structure externe jpeg_inverse_dct;
+structure externe jpeg_upsampler;
+structure externe jpeg_color_deconverter;
+structure externe jpeg_color_quantizer;
+structure externe jpeg_comp_master;
+structure externe jpeg_c_main_controller;
+structure externe jpeg_c_prep_controller;
+structure externe jpeg_c_coef_controller;
+structure externe jpeg_marker_writer;
+structure externe jpeg_color_converter;
+structure externe jpeg_downsampler;
+structure externe jpeg_forward_dct;
+structure externe jpeg_entropy_encoder;
+structure externe jpeg_scan_info;
+
+structure externe jpeg_component_info {
+    component_id : z32;
+    component_index : z32;
+    h_samp_factor : z32;
+    v_samp_factor : z32;
+    quant_tbl_no : z32;
+
+    dc_tbl_no : z32;
+    ac_tbl_no : z32;
+
+    width_in_blocks : n32;
+    height_in_blocks : n32;
+
+    DCT_h_scaled_size : z32;
+    DCT_v_scaled_size : z32;
+    downsampled_width : n32;
+    downsampled_height : n32;
+    component_needed : z32;
+    MCU_width : z32;
+    MCU_height : z32;
+    MCU_blocks : z32;
+    MCU_sample_width : z32;
+    last_col_width : z32;
+    last_row_height : z32;
+    quant_table : *JQUANT_TBL;
+    dct_table : *rien;
+}
+
+structure externe jpeg_decompress_struct {
+    err : *jpeg_error_mgr;
+    mem : *jpeg_memory_mgr;
+    progress : *jpeg_progress_mgr;
+    client_data : *rien;
+    is_decompressor : z32;
+    global_state : z32;
+
+    src : *jpeg_source_mgr;
+
+    image_width : n32;
+    image_height : n32;
+    num_components : z32;
+    jpeg_color_space : z32;
+
+    out_color_space : z32;
+
+    scale_num : n32;
+    scale_denom : n32;
+
+    output_gamma : r64;
+
+    buffered_image : z32;
+    raw_data_out : z32;
+
+    dct_method : z32;
+    do_fancy_upsampling : z32;
+    do_block_smoothing : z32;
+
+    quantize_colors : z32;
+    dither_mode : z32;
+    two_pass_quantize : z32;
+    desired_number_of_colors : z32;
+    enable_1pass_quant : z32;
+    enable_external_quant : z32;
+    enable_2pass_quant : z32;
+
+    output_width : n32;
+    output_height : n32;
+    out_color_components : z32;
+    output_components : z32;
+    rec_outbuf_height : z32;
+    actual_number_of_colors : z32;
+    colormap : **z8;
+    output_scanline : n32;
+    input_scan_number : z32;
+    input_iMCU_row : n32;
+    output_scan_number : z32;
+    output_iMCU_row : n32;
+    coef_bits : [64]*z32;
+
+    quant_tbl_ptrs : [4]*JQUANT_TBL;
+
+    dc_huff_tbl_ptrs : [4]*JHUFF_TBL;
+    ac_huff_tbl_ptrs : [4]*JHUFF_TBL;
+
+    data_precision : z32;
+
+    comp_info : *jpeg_component_info;
+    is_baseline : z32;
+    progressive_mode : z32;
+    arith_code : z32;
+
+    arith_dc_L : [16]z8;
+    arith_dc_U : [16]z8;
+    arith_ac_K : [16]z8;
+
+    restart_interval : n32;
+    saw_JFIF_marker : z32;
+
+    JFIF_major_version : z8;
+    JFIF_minor_version : z8;
+    density_unit : z8;
+    X_density : z16;
+    Y_density : z16;
+    saw_Adobe_marker : z32;
+    Adobe_transform : z8;
+
+    CCIR601_sampling : z32;
+
+    marker_list : *jpeg_marker_struct;
+
+    max_h_samp_factor : z32;
+    max_v_samp_factor : z32;
+
+    min_DCT_h_scaled_size : z32;
+    min_DCT_v_scaled_size : z32;
+
+    total_iMCU_rows : n32 ;
+
+    sample_range_limit : *z8;
+
+    comps_in_scan : z32;
+    cur_comp_info : [4]*jpeg_component_info;
+
+    MCUs_per_row : n32;
+    MCU_rows_in_scan : n32;
+
+    blocks_in_MCU : z32;
+    MCU_membership : [10]z32;
+
+    Ss : z32;
+    Se : z32;
+    Ah : z32;
+    Al : z32;
+
+    block_size : z32;
+    natural_order : *z32;
+    lim_Se : z32;
+
+    unread_marker : z32;
+
+    master : *jpeg_decomp_master;
+    main : *jpeg_d_main_controller;
+    coef : *jpeg_d_coef_controller;
+    post : *jpeg_d_post_controller;
+    inputctl : *jpeg_input_controller;
+    marker : *jpeg_marker_reader;
+    entropy : *jpeg_entropy_decoder;
+    idct : *jpeg_inverse_dct;
+    upsample : *jpeg_upsampler;
+    cconvert : *jpeg_color_deconverter;
+    cquantize : *jpeg_color_quantizer;
+}
+
+fonc externe jpeg_std_error(err : *jpeg_error_mgr) : *jpeg_error_mgr;
+fonc externe jpeg_create_decompress(info : *jpeg_decompress_struct) : rien;
+fonc externe jpeg_start_decompress(info : *jpeg_decompress_struct) : rien;
+fonc externe jpeg_finish_decompress(info : *jpeg_decompress_struct) : rien;
+fonc externe jpeg_destroy_decompress(info : *jpeg_decompress_struct) : rien;
+
+fonc externe jpeg_stdio_src(info : *jpeg_decompress_struct, file : *FILE) : rien;
+fonc externe jpeg_save_markers(info : *jpeg_decompress_struct, marker_code : z32, length_limit : n32) : rien;
+fonc externe jpeg_read_header(info : *jpeg_decompress_struct, require_image : z32) : rien;
+
+fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) : n32;
+
+#soit JPEG_APP0 = 0xE0;
+
+#!inclus "jpeglib.h"
+
+#!bib "jpeg"
+
+fonc lis_jpeg(chemin : chaine) : Image
+{
+    dyn image : Image;
+    # nous devons avoir une chaine terminée par '\0' donc copie dans un
+	# tampon
+	dyn tampon : [1024]z8;
+	ptr_tampon = copie_chaine_c_tampon(tampon, chemin);
+
+    modes = "rb";
+
+    file = fopen(@tampon[0], pointeur de modes);
+    diffère { fclose(file); }
+
+    si file == nul {
+        imprime("Ne peut ouvrir le fichier image...", '\n');
+        retourne image;
+    }
+
+    dyn erreur_jpeg : jpeg_error_mgr;
+    dyn info : jpeg_decompress_struct;
+
+	jpeg_create_decompress(@info);
+	err de info = jpeg_std_error(@erreur_jpeg);
+
+	jpeg_stdio_src(@info, file);
+
+	jpeg_save_markers(@info, 0xE1, 0xffff);
+
+	jpeg_read_header(@info, 1);
+
+	jpeg_start_decompress(@info);
+
+    largeur = transtype(output_width de info : z32);
+	hauteur = transtype(output_height de info : z32);
+	channels = transtype(output_components de info : z32);
+
+	largeur de image = largeur;
+	hauteur de image = hauteur;
+	channels de image = channels;
+	chemin de image = chemin;
+
+	tampon de image = loge chaine(largeur * hauteur * channels);
+
+	stride = largeur * channels;
+
+    imprime("Hauteur = ", hauteur, '\n');
+    imprime("Largeur = ", largeur, '\n');
+
+	pour xi dans 0...hauteur - 1 {
+        buffer = @tampon[xi * stride] de image;
+		jpeg_read_scanlines(@info, @buffer, 1);
+	}
+
+	jpeg_finish_decompress(@info);
+	jpeg_destroy_decompress(@info);
+
+    retourne image;
+}
+
+structure externe jpeg_compress_struct {
+    err : *jpeg_error_mgr;
+    mem : *jpeg_memory_mgr;
+    progress : *jpeg_progress_mgr;
+    client_data : *rien;
+    is_decompressor : z32;
+    global_state : z32;
+
+    image_width : n32;
+    image_height : n32;
+    input_components : z32;
+    in_color_space : z32;
+
+    input_gamma : r64;
+    scale_num : n32;
+    scale_denom : n32;
+
+    jpeg_width : n32;
+    jpeg_height : n32;
+
+    data_precision : z32;
+
+    num_components : z32;
+    jpeg_color_space : z32;
+
+    comp_info : *jpeg_component_info;
+
+    quant_tbl_ptrs : [4]*JQUANT_TBL;
+    q_scale_factor : [4]z32;
+
+    dc_huff_tbl_ptrs : [4]*JHUFF_TBL;
+    ac_huff_tbl_ptrs : [4]*JHUFF_TBL;
+
+    arith_dc_L : [16]n8;
+    arith_dc_U : [16]n8;
+    arith_ac_K : [16]n8;
+
+    num_scans : z32;
+    scan_info : *jpeg_scan_info;
+
+    raw_data_in : z32;
+    arith_code : z32;
+    optimize_coding : z32;
+    CCIR601_sampling : z32;
+
+    do_fancy_downsampling : z32;
+
+    smoothing_factor : z32;
+    dct_method : z32;
+
+    restart_interval : n32;
+    restart_in_rows : z32;
+
+    write_JFIF_header : z32;
+    JFIF_major_version : n8;
+    JFIF_minor_version : n8;
+    density_unit : n8;
+    X_density : n16;
+    Y_density : n16;
+    write_Adobe_marker : z32;
+
+    next_scanline : n32;
+
+    progressive_mode : z32;
+    max_h_samp_factor : z32;
+    max_v_samp_factor : z32;
+
+    min_DCT_h_scaled_size : z32;
+    min_DCT_v_scaled_size : z32;
+
+    total_iMCU_rows : n32;
+
+    comps_in_scan : z32;
+    cur_comp_info : [4]*jpeg_component_info;
+
+    MCUs_per_row : n32;
+    MCU_rows_in_scan : n32;
+
+    blocks_in_MCU : z32;
+    MCU_membership : [10]z32;
+    Ss : z32;
+    Se : z32;
+    Ah : z32;
+    Al : z32;
+
+    block_size : z32;
+    natural_order : *z32;
+    lim_Se : z32;
+
+    master : *jpeg_comp_master;
+    main : *jpeg_c_main_controller;
+    prep : *jpeg_c_prep_controller;
+    coef : *jpeg_c_coef_controller;
+    marker : *jpeg_marker_writer;
+    cconvert : *jpeg_color_converter;
+    downsample : *jpeg_downsampler;
+    fdct : *jpeg_forward_dct;
+    entropy : *jpeg_entropy_encoder;
+    script_space : *jpeg_scan_info;
+    script_space_size : z32;
+}
+
+fonc externe jpeg_create_compress(info : *jpeg_compress_struct) : rien;
+fonc externe jpeg_destroy_compress(info : *jpeg_compress_struct) : rien;
+fonc externe jpeg_finish_compress(info : *jpeg_compress_struct) : rien;
+fonc externe jpeg_set_defaults(info : *jpeg_compress_struct) : rien;
+fonc externe jpeg_stdio_dest(info : *jpeg_compress_struct, file : *FILE) : rien;
+fonc externe jpeg_set_quality(info : *jpeg_compress_struct, quality : z32, v : z32) : rien;
+fonc externe jpeg_start_compress(info : *jpeg_compress_struct, v : z32) : rien;
+fonc externe jpeg_write_scanlines(info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) : n32;
+
+soit _JCS_GRAYSCALE = 1;
+soit _JCS_RGB = 2;
+
+fonc écris_jpeg(image : Image, chemin : chaine) : rien
+{
+    # nous devons avoir une chaine terminée par '\0' donc copie dans un
+	# tampon
+	dyn tampon : [1024]z8;
+	ptr_tampon = copie_chaine_c_tampon(tampon, chemin);
+
+    modes = "wb";
+
+    file = fopen(@tampon[0], pointeur de modes);
+    diffère { fclose(file); }
+
+	#fseek(file, 0L, SEEK_SET);
+
+	dyn info : jpeg_compress_struct;
+	dyn jerr : jpeg_error_mgr;
+
+	jpeg_create_compress(@info);
+	err de info = jpeg_std_error(@jerr);
+
+	jpeg_stdio_dest(@info, file);
+	image_width de info = transtype(largeur de image : n32);
+	image_height de info = transtype(hauteur de image : n32);
+	input_components de info = channels de image;
+
+	associe (input_components de info) {
+		1 { in_color_space de info = _JCS_GRAYSCALE; }
+		3 { in_color_space de info = _JCS_RGB; }
+	}
+
+	jpeg_set_defaults(@info);
+
+    h_samp_factor de comp_info[0] de info = 2;
+    v_samp_factor de comp_info[0] de info = 2;
+
+	jpeg_set_quality(@info, 95, 0);
+    jpeg_start_compress(@info, 1);
+
+	stride = largeur de image * channels de image;
+
+	pour x dans 0...hauteur de image - 1 {
+        buffer = @tampon[x * stride] de image;
+		jpeg_write_scanlines(@info, @buffer, 1);
+	}
+
+	jpeg_finish_compress(@info);
+	jpeg_destroy_compress(@info);
+}
+
+fonc test_jpeg() : rien
+{
+    imprime("Entrée jpeg : mémoire utilisée : ", mémoire_utilisée(), '\n');
+
+    image = lis_jpeg("/home/kevin/Images/59446046_185101052475540_1803696242081923072_n.jpg");
+
+    chemin = "/home/kevin/test.pnm";
+    écris_pnm(image, chemin);
+
+    #imprime(image, '\n');
+
+    imprime("Mémoire utilisée : ", mémoire_utilisée(), '\n');
+
+    détruit_image(@image);
+}
+
+#####################
+
+fonc principale(args : []*z8) : z32
+{
+    image = génére_image_noire();
+    ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
+ #  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
+
+    écris_ppm(image, "/home/kevin/test.ppm");
+
+    détruit_image(@image);
+
+    #test_jpeg();
+
+    diffère { imprime("Mémoire utilisée : ", mémoire_utilisée(), '\n'); }
+
+    retourne 0;
+}

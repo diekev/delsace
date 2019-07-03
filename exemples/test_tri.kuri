@@ -1,0 +1,96 @@
+
+fonc partition(tableau : []z32, premier : z32, dernier : z32, pivot : z32) : z32
+{
+	échange(@tableau[premier], @tableau[dernier]);
+
+	soit variable j = premier;
+
+	pour i dans premier...dernier - 1 {
+		si tableau[i] <= tableau[dernier] {
+			échange(@tableau[i], @tableau[j]);
+		}
+	}
+
+	échange(@tableau[dernier], @tableau[j]);
+
+	retourne j;
+}
+
+fonc tri_rapide(tableau : []z32, premier : z32, dernier : z32) : rien
+{
+	si premier < dernier {
+		soit variable pivot = choix_pivot(tableau, premier, dernier);
+		pivot = partition(tableau, premier, dernier, pivot);
+
+		tri_rapide(tableau, premier, pivot - 1);
+		tri_rapide(tableau, pivot + 1, dernier);
+	}
+}
+
+structure Plage {
+	premier : *z32;
+	dernier : *z32;
+}
+
+fonc choix_pivot(plage : *Plage) : *z32
+{
+	retourne avance(premier de plage, distance(plage) / 2);
+}
+
+fonc tri_rapide(plage : *Plage) : rien
+{
+	si premier de plage < dernier de plage {
+		soit variable pivot = choix_pivot(plage);
+		pivot = partition(plage, pivot);
+
+		soit variable plage1;
+		premier de plage1 = premier de plage;
+		dernier de plage1 = pivot - taille_de(z32);
+
+		soit variable plage2;
+		premier de plage2 = pivot + taille_de(z32);
+		dernier de plage2 = dernier de plage;
+
+		tri_rapide(plage1);
+		tri_rapide(plage2);
+	}
+}
+
+structure GNASimple {
+	z : z32;
+	w : z32;
+}
+
+fonc construit_gna(graine : z32) : GNASimple
+{
+	soit variable gna_simple : GNASimple;
+	z de gna_simple = graine;
+	w de gna_simple = graine + 1;
+	retourne gna_simple;
+}
+
+fonc nombre_aléatoire(variable gna_simple : *GNASimple) : z32
+{
+	z de gna_simple = 36969 * (z de gna_simple & 655535) + (z de gna_simple >> 16);
+	w de gna_simple = 36969 * (w de gna_simple & 655535) + (w de gna_simple >> 16);
+	retourne (z de gna_simple << 16) + w de gna_simple;
+}
+
+fonc principale(compte : z32, arguments : **z8) : z32
+{
+	soit variable tableau : [1024]z32;
+
+	soit gna_simple = construit_gna(5);
+
+	pour i dans 0...1023 {
+		tableau[i] = nombre_aléatoire(@gna_simple);
+	}
+
+	soit variable plage : Plage;
+	premier de plage = @tableau[0];
+	dernier de plage = @tableau[1023];
+
+	tri_rapide(@plage);
+
+	retourne 0;
+}

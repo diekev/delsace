@@ -1,0 +1,154 @@
+importe "chaine"
+importe "flux"
+importe "memoire"
+importe "uri"
+
+################################################################################
+
+#!inclus "netdb.h"
+#!inclus "unistd.h"
+
+soit _AF_INET = 2;
+soit _SOCK_STREAM = 1;
+
+structure externe hostent {
+    h_name : *z8;
+    h_aliases : **z8;
+    h_addrtype : z32;
+    h_length : z32;
+    h_addr_list : **z8;
+}
+
+structure externe in_addr {
+    s_addr : n32;
+}
+
+structure externe sockaddr {
+    sa_family : n16;
+    sa_data : [14]z8;
+}
+
+structure externe sockaddr_in {
+    sin_family : n16;
+    sin_port : n16;
+    sin_addr : in_addr;
+    sin_zero : [8]n8;
+}
+
+fonc externe gethostbyname(arg : *z8) : *hostent;
+
+fonc externe socket(a : z32, b : z32, c : z32) : z32;
+
+fonc externe htons(a : n16) : n16;
+
+fonc externe close(a : z32) : z32;
+
+fonc externe connect(prise : z32, addr : *sockaddr, taille : z64) : z32;
+
+fonc externe recv(prise : z32, tampon : *z8, taille : n64, flags : z32) : z64;
+fonc externe send(prise : z32, tampon : *rien, taille : n64, flags : z32) : z64;
+
+################################################################################
+
+fonc charge_page(chemin : chaine) : chaine
+{
+    retourne chemin;
+}
+
+fonc principale(args : []*z8) : z32
+{
+    # connecte vers la page
+    uri = construit_uri("http://www.youtube.com/watch?v=Pxdgu2XIAAg");
+
+    si !est_valide(@uri) {
+        imprime("L'uri est invalide !", '\n');
+        retourne 1;
+    }
+
+    dyn tampon : [1024]z8;
+    ptr_tampon = copie_chaine_c_tampon(tampon, hôte de uri);
+
+    he = gethostbyname(ptr_tampon);
+
+    si he == nul {
+        imprime("Ne peut pas trouver les informations de l'hôte !", '\n');
+        retourne 1;
+    }
+
+    prise = socket(_AF_INET, _SOCK_STREAM, 0);
+
+    si prise == -1 {
+        imprime("Ne peut pas créer la prise !", '\n');
+        retourne 1;
+    }
+
+    diffère { close(prise); }
+
+    # À FAIRE : calcule port
+    port : n16 = 80;
+
+    dyn their_addr : sockaddr_in;
+    sin_family de their_addr = transtype(_AF_INET : n16);
+    sin_port de their_addr = htons(port);
+    sin_zero[0] de their_addr = 0;
+    sin_zero[1] de their_addr = 0;
+    sin_zero[2] de their_addr = 0;
+    sin_zero[3] de their_addr = 0;
+    sin_zero[4] de their_addr = 0;
+    sin_zero[5] de their_addr = 0;
+    sin_zero[6] de their_addr = 0;
+    sin_zero[7] de their_addr = 0;
+
+    x = h_addr_list[0] de he;
+    sin_addr de their_addr = mémoire(transtype(x : *in_addr));
+
+    imprime(their_addr, '\n');
+
+    si connect(prise, transtype(@their_addr : *sockaddr), transtype(taille_de(sockaddr) : z64)) == -1 {
+        imprime("Impossible de se connecter à la prise !", '\n');
+        retourne 1;
+    }
+
+    imprime("Connexion active", '\n');
+
+    # envoie la requête
+
+    imprime(uri, '\n', '\n');
+
+    requête = "GET / HTTP/1.1\r\nHost: www.youtube.com\r\nAccept-Encoding: identity\r\nAccept-Charset: utf-8, iso-8859-1;q=0.5\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/ *;q=0.8\r\nUser-Agent: delsace\r\nConnection: close\r\n\r\n";
+
+    si send(prise, pointeur de requête, transtype(taille de requête : n64), 0) == -1 {
+        imprime("Ne peut pas envoyer la reqûete !", '\n');
+        retourne 1;
+    }
+
+    imprime("Reqûete envoyée :", '\n');
+    imprime(requête, '\n', '\n');
+
+    # obtiens les données
+
+    taille_max_données = 1024;
+    dyn réponse : chaine;
+    diffère { déloge réponse; }
+
+    boucle {
+        taille_reçue = recv(prise, @tampon[0], transtype(taille_max_données : n64), 0);
+        imprime("Reçu paquet de taille ", taille_reçue, '\n');
+
+        si taille_reçue > 0 {
+            ancienne_taille = taille de réponse;
+            reloge réponse : chaine(taille de réponse + taille_reçue);
+            copie_mem_nonsur(src=@tampon[0], dst=@réponse[ancienne_taille], taille=taille_reçue);
+        }
+        sinon si taille_reçue == 0 {
+            arrête;
+        }
+        sinon si taille_reçue == -1 {
+            arrête;
+        }
+    }
+
+    imprime("Réponse :", '\n', réponse, '\n');
+
+    retourne 0;
+}

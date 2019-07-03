@@ -1,0 +1,85 @@
+fonction externe printf(format : *z8, args : ...) : z32;
+
+fonction recherche_binaire(x : []z32, n : z32, v : z32) : z32
+{
+	soit variable l = 0;
+	soit variable u = n;
+
+	boucle {
+		si l > u {
+			retourne -1;
+		}
+
+		soit m = (l + u) / 2; # possible qu'il y est surcharge
+
+		si x[m] < v {
+			l = m + 1;
+		}
+		sinon si x[m] == v { # trop de comparaison
+			retourne m;
+		}
+		sinon { # x[m] > v
+			u = m - 1; # possible qu'il y est souscharge -1
+		}
+	}
+
+	retourne -1;
+}
+
+fonction distance(ptr1 : *z32, ptr2 : *z32) : z32
+{
+	retourne transtype(ptr2 - ptr1)(z32) / taille_de(z32);
+}
+
+fonction suivant(ptr : *z32, n : z32) : *z32
+{
+	retourne ptr + transtype(n * taille_de(z32))(*z32);
+}
+
+fonction limite_basse(f : *z32, l : *z32, v : z32) : *z32
+{
+	soit variable fl = f;
+	soit variable ll = l;	
+
+	boucle {
+		si fl == ll {
+			arrête;
+		}
+
+		soit m = suivant(fl, distance(fl, ll) / 2);
+
+		si (m[0] < v) {
+			fl = suivant(m, 1);
+		}
+		sinon {
+			ll = m;
+		}
+	}
+
+	retourne fl;
+}
+
+fonction principale(compte : z32, arguments : **z8) : z32
+{
+	soit variable tableau : [32]z32;
+
+	pour x dans 0 ... 31 {
+		tableau[x] = x * 4;
+	}
+
+	soit valeur = 659;
+	soit début = @tableau[0];
+	soit fin   = @tableau[32];
+	soit r = limite_basse(début, fin, valeur);
+
+	printf("L'élément dont la valeur est %d, se trouve à la position %d\n", valeur, distance(début, r));
+
+	soit r2 = recherche_binaire(début, 32, valeur);
+	printf("L'élément dont la valeur est %d, se trouve à la position %d\n", valeur, r2);
+
+	pour i dans 0 ... 31 {
+		printf("Position %d : %d\n", i, tableau[i]);
+	}
+
+	retourne 0;
+}

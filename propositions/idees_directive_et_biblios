@@ -1,0 +1,60 @@
+arbres :
+- huffman (Z-lib)
+- binaire
+- binaire de recherche
+- quatraire
+- huitaire
+- rouge/noir
+- B
+- B+
+- VDB
+
+triage :
+- rapide
+- LSD
+- racine
+
+--------------------------------------------------------------------------------
+
+#!inclus
+#!bib
+#!chemin "../"
+#!enligne
+#!horsligne
+#!si (windows|linux|macos|vrai|faux|expr_booléenne|arch8|arch32|arch64)
+#!finsi
+#!sinon
+#!option
+#!commande
+#!sortie
+#!nulcontexte (défini si la fonction ne peut recevoir de contexte, hors fonction externe)
+#!nulctx
+
+si une fonction est marqué 'nulctx', elle ne peut appeler une fonction avec contexte.
+
+pousse_contexte contexte;
+
+structure lieu {
+    ligne : n32;
+    colonne : n32;
+    fichier : chaine;
+    fonction : chaine;
+    date : chaine; # "jj/mm/année" la date où la compilation à commencer
+    temps : chaine; # "hh:mm:ss" le temps quand la compilation à commencer
+}
+
+--------------------------------------------------------------------------------
+
+# conditions
+garde ... sinon
+si ... dans ...
+si ... hors ...
+
+# boucles
+boucle ... tantque
+jusque ...
+
+# erreur, exception
+tente ... sinon ... (try ... catch ...)
+tente ... (si échec, la fonction échoue aussi)
+... sinon ... (si échec, va dans sinon)

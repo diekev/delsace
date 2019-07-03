@@ -1,0 +1,332 @@
+importe "evenements"
+importe "glfw"
+importe "glew"
+importe "structures"
+importe "flux"
+importe "chaine"
+importe "dessin_opengl"
+importe "chrono"
+
+# À FAIRE : rendu texte, chargement image
+
+################################################################################
+
+dyn VG_file_évènements : *file = nul;
+
+fonc rappel_erreur(erreur : z32, desc : *z8) : rien
+{
+    soit chn = converti_chaine_c(desc);
+    imprime("Erreur ", erreur, " : ", chn, '\n');
+}
+
+fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) : rien
+{
+    #glfwSetWindowShouldClose(fenetre, 1);
+    dyn évènement : Évènement;
+
+	si action == 1 {
+		type de évènement = CLE_PRESSEE de type_évènement;
+	}
+	sinon si action == 0 {
+		type de évènement = CLE_RELACHEE de type_évènement;
+	}
+	sinon si action == 2 {
+		type de évènement = CLE_REPETEE de type_évènement;
+	}
+
+    mods de évènement = mods;
+    cle de évènement = cle;
+
+    enfile(VG_file_évènements, @évènement);
+}
+
+fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) : rien
+{
+    dyn évènement : Évènement;
+
+    si action == 1 {
+		type de évènement = SOURIS_PRESSEE de type_évènement;
+	}
+	sinon si action == 0 {
+		type de évènement = SOURIS_RELACHEE de type_évènement;
+	}
+
+    mods de évènement = mods;
+    souris de évènement = bouton;
+
+    enfile(VG_file_évènements, @évènement);
+}
+
+fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) : rien
+{
+    dyn évènement : Évènement;
+    type de évènement = SOURIS_BOUGEE de type_évènement;
+    pos_x de évènement = pos_x;
+    pos_y de évènement = pos_y;
+
+    enfile(VG_file_évènements, @évènement);
+}
+
+fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) : rien
+{
+    dyn évènement : Évènement;
+    type de évènement = SOURIS_ROULETTE de type_évènement;
+    delta_x de évènement = delta_x;
+    delta_y de évènement = delta_y;
+
+    enfile(VG_file_évènements, @évènement);
+}
+
+fonc rappel_dimension(fenetre : *GLFWwindow, x : z32, y : z32) : rien
+{
+	glViewport(0, 0, x, y);
+
+    dyn évènement : Évènement;
+    type de évènement = REDIMENSION de type_évènement;
+    delta_x de évènement = transtype(x : r64);
+    delta_y de évènement = transtype(y : r64);
+
+    enfile(VG_file_évènements, @évènement);
+}
+
+################################################################################
+
+soit TAILLE_TUILE = 32;
+soit TUILES_X = 20;
+soit TUILES_Y = 15;
+
+structure Entite {
+    pos_x = TAILLE_TUILE * 10;
+    pos_y = TAILLE_TUILE * 7;
+}
+
+################################################################################
+
+structure Application {
+    fenetre : *GLFWwindow = nul;
+    hauteur : z32 = 0;
+    largeur : z32 = 0;
+    souris_x = 0.0;
+    souris_y = 0.0;
+    dernier_évènement = NUL de type_évènement;
+    temps_double_clic : z64;
+
+    personnage : Entite;
+}
+
+fonc initialise_opengl(app : &Application) : rien
+{
+    glfwMakeContextCurrent(fenetre de app);
+
+    soit erreur = glewInit();
+
+    si erreur != 0 {
+        imprime("Erreur lors de l'initilisation de GLEW !\n");
+    }
+
+    initialise_tampon_dessin();
+
+    glfwSwapInterval(1);
+}
+
+fonc dessine_fenetre(app : &Application) : rien
+{
+    glClear(0x00004000);
+
+    glClearColor(0.5, 0.5, 1.0, 1.0);
+
+    soit l = transtype(largeur de app : r32);
+    soit h = transtype(hauteur de app : r32);
+
+    # dessine l'arrière plan
+
+    # dessine les personnages
+    soit taille_x = transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_X : r32);
+    soit taille_y = transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32);
+    soit pos_x = transtype(pos_x de personnage de app : r32) / transtype(TAILLE_TUILE * TUILES_X : r32);
+    soit pos_y = transtype(pos_y de personnage de app : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32);
+
+    soit couleur = Couleur{r = 1.0, v = 1.0, b = 1.0, a = 1.0 };
+
+    dessine_carré_ex(pos_x, pos_y, taille_x, taille_y, couleur);
+
+    glfwSwapBuffers(fenetre de app);
+}
+
+fonc traite_évènement(dyn app : &Application, évènement : Évènement) : rien
+{
+    #imprime(évènement, '\n');
+
+    si type de évènement == REDIMENSION de type_évènement {
+        largeur de app = transtype(delta_x de évènement : z32);
+        hauteur de app = transtype(delta_y de évènement : z32);
+    }
+
+    si type de évènement == CLE_PRESSEE de type_évènement || type de évènement == CLE_REPETEE de type_évènement {
+        si cle de évènement == RIGHT de type_cle {
+            pos_x de personnage de app += TAILLE_TUILE;
+
+            # vérifie collision
+            si pos_x de personnage de app >= largeur de app {
+               pos_x de personnage de app = largeur de app - TAILLE_TUILE;
+            }
+        }
+        si cle de évènement == UP de type_cle {
+            pos_y de personnage de app += TAILLE_TUILE;
+
+            # vérifie collision
+            si pos_y de personnage de app >= hauteur de app {
+               pos_y de personnage de app = hauteur de app - TAILLE_TUILE;
+            }
+        }
+        si cle de évènement == LEFT de type_cle {
+            pos_x de personnage de app -= TAILLE_TUILE;
+
+            # vérifie collision
+            si pos_x de personnage de app < 0 {
+               pos_x de personnage de app = 0;
+            }
+        }
+        si cle de évènement == DOWN de type_cle {
+            pos_y de personnage de app -= TAILLE_TUILE;
+
+            # vérifie collision
+            si pos_y de personnage de app < 0 {
+               pos_y de personnage de app = 0;
+            }
+        }
+    }
+}
+
+TEMPS_DOUBLE_CLIC_MS : z64 = 500;
+
+# Maximum, au cas où on laisse les utilisateurs renseigner le temps.
+TEMPS_DOUBLE_CLIC_MS_MAX : z64 = 5000;
+
+fonc traite_évènements(dyn app : &Application) : rien
+{
+    tantque !est_vide(VG_file_évènements) {
+        dyn évènement : Évènement;
+        défile(VG_file_évènements, @évènement);
+
+        # enregistrement de la position de la souris, car ceci n'est donnée
+		# que pour les mouvements */
+		si type de évènement == SOURIS_BOUGEE de type_évènement {
+			souris_x de app = pos_x de évènement;
+			souris_y de app = pos_y de évènement;
+		}
+		sinon si type de évènement != REDIMENSION de type_évènement {
+			pos_x de évènement = souris_x de app;
+			pos_y de évènement = souris_y de app;
+		}
+
+        # si souris relachée
+		# -- si dernier évènement est souris pressée -> nous avons un clic, ignore
+		# -- sinon -> nous avons une souris relachée
+		# si souris cliquée
+		# -- si dernier clic < TEMPS_DOUBLE_CLIC -> nous avons un double clic
+		# Editrice::souris_clic() est toujours appelé quand la souris est cliquée
+		# Editrice::double_clic() est appelé si un deuxième clic survient dans l'écart de temps défini
+		# Editrice::souris_relachee() est appelé un autre évènement est survenu depuis le dernier clic
+		#    par exemple : presse souris, tappe une lettre, relache souris
+
+		si type de évènement == SOURIS_RELACHEE de type_évènement {
+			si (dernier_évènement de app == SOURIS_PRESSEE de type_évènement) || (dernier_évènement de app == DOUBLE_CLIC de type_évènement) {
+				continue;
+			}
+
+			# traite l'évènement
+		}
+		sinon si type de évènement == SOURIS_PRESSEE de type_évènement {
+			si (compte_ticks_ms() - temps_double_clic de app) <= TEMPS_DOUBLE_CLIC_MS {
+				type de évènement = DOUBLE_CLIC de type_évènement;
+			}
+
+			temps_double_clic de app = compte_ticks_ms();
+		}
+
+		traite_évènement(app, évènement);
+
+		dernier_évènement de app = type de évènement;
+    }
+}
+
+fonc boucle_principale(app : &Application) : rien
+{
+    tantque glfwWindowShouldClose(fenetre de app) == 0 {
+        # À FAIRE : l'impression de chaines contenant des caractères échappés
+        # ont un déborderment de tampon car l'échappement est compté comme un
+        # caractère en soi.
+        imprime(app, '\n', '\n');
+        imprime("Mémoire utilisée : ", mémoire_utilisée(), 'o', '\n', '\n');
+
+	    glfwWaitEvents();
+
+        traite_évènements(app);
+
+        dessine_fenetre(app);
+    }
+}
+
+fonc lance_application(dyn app : &Application) : z32
+{
+    si glfwInit() == 0 {
+        imprime("Impossible d'initialiser GLFW !\n");
+        retourne 1;
+    }
+
+    # initialise la file d'évènements
+    nonsûr {
+        VG_file_évènements = crée_file(transtype(taille_de(Évènement) : z64));
+    }
+
+    dyn largeur : z32 = TAILLE_TUILE * TUILES_X;
+    dyn hauteur : z32 = TAILLE_TUILE * TUILES_Y;
+
+    #dyn donnees_moniteur = transtype(glfwGetVideoMode(glfwGetPrimaryMonitor()) : *DonneesMoniteur);
+
+    #si donnees_moniteur != nul {
+    #    largeur = largeur de donnees_moniteur;
+    #    hauteur = hauteur de donnees_moniteur;
+    #}
+
+    #imprime(mémoire(donnees_moniteur), '\n');
+
+    soit titre = "Créathèque";
+
+    glfwWindowHint(CONTEXT_GLFW_VERSION_MAJOR, 4);
+    glfwWindowHint(CONTEXT_GLFW_VERSION_MINOR, 0);
+    soit fenetre = glfwCreateWindow(largeur, hauteur, titre, nul, nul);
+
+    si fenetre == nul {
+        imprime("Impossible d'initialiser la fenêtre !\n");
+        glfwTerminate();
+        retourne 1;
+    }
+
+    glfwSetKeyCallback(fenetre, rappel_clavier);
+	glfwSetCursorPosCallback(fenetre, rappel_position_souris);
+	glfwSetMouseButtonCallback(fenetre, rappel_bouton_souris);
+	glfwSetScrollCallback(fenetre, rappel_roulette);
+	# Décommente pour activer le redimensionnement
+	#glfwSetWindowSizeCallback(fenetre, rappel_dimension);
+
+    # initialise l'application
+    fenetre de app = fenetre;
+    hauteur de app = hauteur;
+    largeur de app = largeur;
+
+    initialise_opengl(app);
+
+    boucle_principale(app);
+
+    issitialise_tampon_dessin();
+
+    decrée_file(VG_file_évènements);
+
+    glfwDestroyWindow(fenetre);
+
+    glfwTerminate();
+
+    retourne 0;
+}

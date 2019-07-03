@@ -1,0 +1,33 @@
+importe "flux"
+
+fonc principale(args : []*z8) : z32
+{
+	diffère {
+	    imprime("Mémoire utilisée : ", mémoire_utilisée(), "\n");
+	}
+
+	dyn x = loge chaine(256) sinon {
+	    retourne 1;
+	}
+
+	diffère { déloge x; }
+
+	dyn y = loge r64 sinon {
+	    retourne 1;
+	}
+
+	diffère { déloge y; }
+
+	reloge x : chaine(512) sinon {
+	    retourne 1;
+	}
+
+    reloge y : r64 sinon {
+	    retourne 1;
+	}
+
+	imprime("Mémoire utilisée : ", mémoire_utilisée(), "\n");
+
+
+    retourne 0;
+}

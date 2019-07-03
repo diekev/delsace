@@ -1,0 +1,49 @@
+importe "flux"
+
+N = 5;
+
+structure XYZ {
+    a = 128.0;
+    b : type_de(a);
+}
+
+fonc copie_vNvN(dyn a : [3]z32, b : type_de(a)) : rien
+{
+    pour v, i dans b {
+        a[i] = v;
+    }
+}
+
+# tag fonction comme étant un gabarit
+# - rassemble les types gabarit
+# lors de l'appel :
+# - détermine les types
+# - validation sémantique avec contexte des types si non validée pour ces types
+# - tag pour génération avec types
+# lors de la génération
+fonc ajoute(a : $T, b : $T) : $T
+{
+    retourne a + b;
+}
+
+fonc principale(args : []*z8) : type_de(N)
+{
+    x = 5.0;
+    dyn y : type_de(x);
+
+    infos = info_de(y);
+
+    imprime(mémoire(infos), '\n');
+
+    imprime("N = ", N, '\n');
+
+    z = faux;
+
+    w : type_de(z) = vrai;
+
+    a = 0;
+
+    b = transtype(a : type_de(w));
+
+    retourne 0;
+}

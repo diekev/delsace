@@ -1,0 +1,105 @@
+importe "flux"
+importe "chaine"
+importe "structures"
+
+#################################################################
+
+fonc test_pile() : rien
+{
+    imprime("==========================================\n");
+
+    dyn p = cree_pile(transtype(taille_de(z32) : z64));
+    diffère { 
+        decree_pile(p);
+        imprime("pile décréée !\n");
+    }
+
+    imprime(" ----------- remplissage de la pile\n");
+
+    pour i dans 0...9 {
+        soit v = i * 2;
+        empile(p, @v);
+        imprime("empile : ", v, " -> ", mémoire(p), '\n');
+    }
+
+    imprime(" ----------- vidage de la pile\n");
+
+    tantque !est_vide(p) {
+        dyn v : z32;
+        depile(p, @v);
+        imprime("dépile : ", v, " -> ", mémoire(p), '\n');
+    }
+}
+
+fonc test_file() : rien
+{
+    imprime("==========================================\n");
+
+    dyn p = cree_file(transtype(taille_de(z32) : z64));
+    diffère { 
+        decree_file(p);
+        imprime("file décréée !\n");
+    }
+
+    imprime(" ----------- remplissage de la file\n");
+
+    pour i dans 0...9 {
+        soit v = i * 2;
+        enfile(p, @v);  # À FAIRE : transtypage automatique
+        imprime("enfile : ", v, " -> ", mémoire(p), '\n');
+    }
+
+    imprime(" ----------- vidage de la file\n");
+
+    tantque !file_est_vide(p) {
+        dyn v : z32;
+        defile(p, @v);
+        imprime("défile : ", v, " -> ", mémoire(p), '\n');
+    }
+}
+
+fonc test_tableau() : rien
+{
+    imprime("==========================================\n");
+
+    dyn t = cree_tableau(transtype(taille_de(z32) : z64));
+    diffère { 
+        decree_tableau(t);
+        imprime("tableau décréé !\n");
+    }
+
+    imprime(" ----------- remplissage du tableau\n");
+
+    pour i dans 0...9 {
+        soit v = i * 2;
+        pousse_tableau(t, @v);
+        imprime("pousse : ", v, " -> ", mémoire(t), '\n');
+    }
+
+    imprime(" ----------- itération du tableau\n");
+
+    soit debut = transtype(debut_tableau(t) : *z32);
+    soit fin   = transtype(fin_tableau(t) : *z32);
+
+    imprime("plage tableau : ", debut, " -> ", fin, '\n');
+
+    pour v dans debut...fin {
+        soit x = mémoire(v);
+        imprime("iter : ", x, " -> ", mémoire(t), '\n');
+    }
+}
+
+fonc principale(args : []*z8) : z32
+{
+    imprime("Il y a ", taille de args, " arguments :\n");
+
+    pour arg dans args {
+        soit chaine = converti_chaine_c(arg);
+        imprime('\t', chaine, '\n');
+    }
+
+    test_pile();
+    test_file();
+    test_tableau();
+    retourne 0;
+}

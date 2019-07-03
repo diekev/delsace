@@ -1,0 +1,115 @@
+# Implémentation inachevée d'une table de hachage avec adressage ouvert
+# https://en.wikipedia.org/wiki/Open_addressing
+
+structure pair {
+	clé : z32;
+	valeur : z32;
+}
+
+structure table_hachage {
+	nombre_alvéole : z32;
+	alvéoles : *pair;
+}
+
+fonction empreinte(clé : z32) : z32
+{
+	retourne z32;
+}
+
+fonction trouve_alvéole(table : *table_hachage, clé : z32) : z32
+{
+	soit variable i = empreinte(clé) % nombre_alvéole de table;
+
+
+	boucle {
+		si (alvéoles[i] de table == nul) || (clé de alvéoles[i] de table == clé) {
+			arrête;
+		}
+
+		i = i + 1;
+	}
+
+	retourne i;
+}
+
+fonction lookup(table : *table_hachage, clé : z32) : z32
+{
+	soit i = trouve_alvéole(table, clé);
+
+	si alvéoles[i] de table != nul {
+		# la clé est dans la table
+		retourne valeur de alvéoles[i] de table;
+	}
+
+	retourne 0;
+}
+
+fonction élargis_table(variable table : *table_hachage) : rien
+{
+	# Il est recommandé d'allouer un tampon de manière logarithmique
+	# Insérer les éléments dans la nouvelle table avec set
+	retourne;
+}
+
+fonction set(table : *table_hachage, clé : z32, valeur : z32) : z32
+{
+	soit variable i = trouve_alvéole(table, clé);
+
+	si alvéoles[i] de table != nul {
+		# nous avons notre clé
+		valeur de alvéoles[i] de table = valeur;
+		retourne;
+	}
+
+	si presque_pleine(table) {
+		élargis_table(table);
+		i = trouve_alvéole(table);
+	}
+
+	clé de alvéoles[i] de table = clé;
+	valeur de alvéoles[i] de table = valeur;
+	
+	retourne;
+}
+
+fonction remove(table : *table_hachage, clé : z32) : rien
+{
+	soit variable i = trouve_alvéole(table, clé);
+
+	si alvéoles[i] de table == nul {
+		retourne;
+	}
+
+	soit variable j = i;
+
+	boucle {
+		alvéoles[i] de table = inoccupé;
+
+		boucle {
+			j = (j + 1) % nombre_alvéole de table;
+
+			si alvéoles[j] != nul {
+				arrête;
+			}
+
+			soit k = empreinte(clé de alvéoles[i] de table) % nombre_alvéole de table;
+			
+			# Détermine si k est cycliquement dans (i, j]
+			# |   i.k.j ]
+			# [....j i.k. | ou |.k..j i...|
+			si (i <= j) {
+				si ((i < k) && (k <= j)) {
+					continue;
+				}
+			}
+			sinon si ((i < k) || (k <= j)) {
+				continue;
+			}
+
+			arrête;
+		}
+
+		alvéoles[i] de table = alvéoles[j] de table;
+		i = j;
+	}
+}

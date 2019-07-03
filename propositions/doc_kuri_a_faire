@@ -1,0 +1,86 @@
+- module
+
+La recherche de module se fait soit dans le dossier courant de compilation, soit dans le dossier où sont installer les modules standards de Kuri.
+
+- allocation dynamique de mémoire
+
+L'allocation dynamique se fait via 3 mot-clés : loge (pour donner une adresse en mémoire), reloge (pour donner une nouvelle au besoin), et déloge (pour rendre l'adresse). Ils sont similaire à malloc, realloc, et free de C.
+
+fonc foo()
+{
+    x = loge chaine(256); # retourne une chaine dont le pointeur est alloué sur la pile pour contenir 256 caractères.
+
+    reloge x : chaine(1024); # x est relogé pour pouvoir contenir 1024 caractères.
+
+    déloge x; # x est délogé, x.taille renvoie '0', x.pointeur 'nul'.
+}
+
+- retour multiple
+
+Il est possible de retourner plusieurs valeurs d'une fonction, coroutine ou non.
+
+fonc retour_multiple() : z32, bool, chaine
+{
+    retourne 0, vrai, "message";
+}
+
+- appel via le premier paramètre
+
+fonc ajoute(a : z32, b : z32) : z32
+{
+    retourne a + b;
+}
+
+fonc foo()
+{
+    x = 5;
+    y = 6;
+
+    # Les deux appels suivants sont pareils
+    z = ajoute(x, y);
+    w = x.ajoute(y);
+}
+
+
+- typage via type_de()
+
+fonc foo()
+{
+    x = 123; # type z32
+    dyn y : type_de(x); # type z32
+    y = vrai; # erreur y est de type z32 et ne peut être assigné une valeur de type booléen
+}
+
+- infos via info_de()
+
+Alors que les eini renferment un pointeur vers une structure de base InfoType devant être discriminée via une énumération pour définir la bonne structure, info_de renvoie un pointeur vers la structure correcte.
+
+fonc foo()
+{
+    x = 123;
+
+    # Retourne un pointeur vers InfoTypeEntier
+    y = info_de(x);
+
+    # Retourne un pointeur vers InfoTypePointeur représantant le pointeur vers
+    # InfoTypeEntier de « y ».
+    z = info_de(y);
+}
+
+- variables "employées"
+
+Une variable « employée » (ou implicite, de même étymologie) est une variable tacite de type structure dont on n'a pas besoin d'accéder directement. C'est-à-dire que l'on peut directement nommer ses membres comme s'ils étaient définis localement.
+
+structure Vec3 {
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+}
+
+fonc init_vecteur(empl dyn vec : &Vec3) : rien
+{
+    # vec étant employé, on peut directement accéder à ses membres
+    x = 9.0;
+    y = 16.0;
+    z = 25.0;
+}

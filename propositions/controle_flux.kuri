@@ -1,0 +1,67 @@
+#
+tantque x == 6 {
+}
+sansarrêt {
+}
+sinon {}
+
+bloc condition
+	goto bloc suivant, bloc condition
+bloc corps
+	goto bloc condition
+
+#
+jusque x == 6 {}
+sansarrêt {}
+sinon {}
+
+bloc condition
+	goto bloc suivant, bloc condition
+bloc corps
+	goto bloc condition
+
+#
+saufsi x == 6 {
+}
+sinon {  }
+
+#
+si x == 6 {
+}
+sinon {  }
+
+#
+garde x == 6 sinon {
+}
+
+#
+boucle {
+}
+
+#
+répète {
+} tandis x == 6;
+
+bloc corps
+	goto bloc condition
+bloc condition
+	goto bloc corps, bloc suivant
+
+#
+pour x dans 0 ... 6 {
+}
+sansarrêt {
+}
+sinon {}
+
+#
+associe expr {
+	expr : bloc;
+	sinon : bloc;
+}
+
+#
+cas expr {
+	quand expr : bloc;
+	sinon : bloc;
+}
