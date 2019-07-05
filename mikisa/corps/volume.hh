@@ -183,6 +183,7 @@ struct Tuile {
 
 template <typename T>
 class Grille : public BaseGrille {
+protected:
 #ifdef UTILISE_TUILES
 	std::vector<Tuile<T> *> m_tuiles{};
 	std::vector<size_t> m_table_index{};
@@ -213,7 +214,7 @@ public:
 #endif
 	}
 
-	T valeur(size_t index) const
+	T &valeur(size_t index) const
 	{
 		if (index >= m_nombre_voxels) {
 			return m_arriere_plan;
@@ -385,6 +386,39 @@ public:
 	type_volume type() const override
 	{
 		return type_volume::SCALAIRE;
+	}
+
+	void echange(Grille<T> &autre)
+	{
+#ifdef UTILISE_TUILES
+		m_tuiles.swap(autre.m_tuiles);
+		m_tuiles.swap(autre.m_tuiles);
+		std::swap(m_tuile, autre.m_tuile);
+#else
+		m_donnees.swap(autre.m_donnees);
+#endif
+
+		std::swap(m_arriere_plan, autre.m_arriere_plan);
+		std::swap(m_dummy, autre.m_dummy);
+		std::swap(m_nombre_tuiles, autre.m_nombre_tuiles);
+	}
+};
+
+class GrilleMAC : public Grille<dls::math::vec3f> {
+public:
+	dls::math::vec3f valeur_centree(dls::math::vec3i const &pos)
+	{
+		return valeur_centree(pos.x, pos.y, pos.z);
+	}
+
+	dls::math::vec3f valeur_centree(int i, int j, int k)
+	{
+		auto idx = calcul_index(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k));
+
+		return dls::math::vec3f(
+					0.5f * (m_donnees[idx].x + m_donnees[idx + 1].x),
+					0.5f * (m_donnees[idx].y + m_donnees[idx + m_res.x].y),
+					0.5f * (m_donnees[idx].z + m_donnees[idx + m_res.x * m_res.y].z));
 	}
 };
 
