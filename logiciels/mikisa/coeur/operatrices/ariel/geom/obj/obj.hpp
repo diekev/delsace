@@ -151,7 +151,7 @@ class InterpolatedObj {
 public:
 	InterpolatedObj();
 	InterpolatedObj(objCore::Obj* obj0, objCore::Obj* obj1);
-	~InterpolatedObj();
+	~InterpolatedObj() = default;
 
 	InterpolatedObj(InterpolatedObj const &) = default;
 	InterpolatedObj &operator=(InterpolatedObj const &) = default;
@@ -164,8 +164,8 @@ public:
 	spaceCore::Aabb GetElementAabb(const unsigned int& primID);
 	unsigned int GetNumberOfElements();
 
-	objCore::Obj*   m_obj0{};
-	objCore::Obj*   m_obj1{};
+	objCore::Obj *m_obj0 = nullptr;
+	objCore::Obj *m_obj1 = nullptr;
 
 private:
 	rayCore::Intersection TriangleTest(const unsigned int& polyIndex,

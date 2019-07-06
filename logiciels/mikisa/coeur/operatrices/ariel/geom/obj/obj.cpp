@@ -14,7 +14,8 @@ namespace objCore {
 // Obj Class
 //====================================
 
-Obj::Obj() {
+Obj::Obj()
+{
 	m_numberOfVertices = 0;
 	m_numberOfNormals = 0;
 	m_numberOfUVs = 0;
@@ -28,12 +29,14 @@ Obj::Obj() {
 	m_keep = false;
 }
 
-Obj::Obj(const std::string& filename) {
+Obj::Obj(const std::string& filename)
+{
 	ReadObj(filename);
 	m_keep = false;
 }
 
-Obj::~Obj() {
+Obj::~Obj()
+{
 	if (!m_keep) { //if keep flag is set true, contents won't be destroyed. Used for memory transfer.
 		delete [] m_vertices;
 		delete [] m_polyVertexIndices;
@@ -198,26 +201,28 @@ bool Obj::ReadObj(const std::string& filename)
 
 bool Obj::WriteObj(const std::string& filename) {
 	std::ofstream outputFile(filename.c_str());
+
 	if (outputFile.is_open()) {
 		//write out vertices
 		for (unsigned int i=0; i<m_numberOfVertices; i++) {
-			dls::math::vec3f v = m_vertices[i];
+			auto v = m_vertices[i];
 			outputFile << "v " << v.x << " " << v.y << " " << v.z << "\n";
 		}
 		//write out uvs
 		for (unsigned int i=0; i<m_numberOfUVs; i++) {
-			dls::math::vec2f uv = m_uvs[i];
+			auto uv = m_uvs[i];
 			outputFile << "vt " << uv.x << " " << uv.y << "\n";
 		}
 		//write out normals
 		for (unsigned int i=0; i<m_numberOfNormals; i++) {
-			dls::math::vec3f n = m_normals[i];
+			auto n = m_normals[i];
 			outputFile << "vn " << n.x << " " << n.y << " " << n.z << "\n";
 		}
 		//Write out faces
+
 		if (m_numberOfUVs==0 && m_numberOfNormals==0) {
 			for (unsigned int i=0; i<m_numberOfPolys; i++) {
-				dls::math::vec4i fv = m_polyVertexIndices[i];
+				auto fv = m_polyVertexIndices[i];
 				outputFile << "f ";
 				outputFile << fv.x << " " << fv.y << " " << fv.z << " ";
 				if (fv.w!=0) {
@@ -225,37 +230,41 @@ bool Obj::WriteObj(const std::string& filename) {
 				}
 				outputFile << "\n";
 			}
-		}else {
+		}
+		else {
 			for (unsigned int i=0; i<m_numberOfPolys; i++) {
-				dls::math::vec4i fv = m_polyVertexIndices[i];
-				dls::math::vec4i fn = m_polyNormalIndices[i];
-				dls::math::vec4i fuv = m_polyUVIndices[i];
+				auto fv = m_polyVertexIndices[i];
+				auto fn = m_polyNormalIndices[i];
+				auto fuv = m_polyUVIndices[i];
 				outputFile << "f ";
 				outputFile << fv.x << "/" << fuv.x << "/" << fn.x << " ";
 				outputFile << fv.y << "/" << fuv.y << "/" << fn.y << " ";
 				outputFile << fv.z << "/" << fuv.z << "/" << fn.z << " ";
+
 				if (fv.w!=0) {
 					outputFile << fv.w << "/" << fuv.w << "/" << fn.w << " ";
 				}
+
 				outputFile << "\n";
 			}
 		}
+
 		outputFile.close();
 		std::cout << "Wrote obj file to " << filename << std::endl;
 		return true;
-	}else {
-		std::cout << "Error: Unable to write to " << filename << std::endl;
-		return false;
 	}
+
+	std::cout << "Error: Unable to write to " << filename << std::endl;
+	return false;
 }
 
 void Obj::PrereadObj(const std::string& filename)
 {
 	std::ifstream fp_in;
-	unsigned int vertexCount = 0;
-	unsigned int normalCount = 0;
-	unsigned int uvCount = 0;
-	unsigned int faceCount = 0;
+	auto vertexCount = 0u;
+	auto normalCount = 0u;
+	auto uvCount = 0u;
+	auto faceCount = 0u;
 	auto fname = filename.c_str();
 	fp_in.open(fname);
 
@@ -263,15 +272,20 @@ void Obj::PrereadObj(const std::string& filename)
 		while (fp_in.good()) {
 			std::string line;
 			getline(fp_in, line);
+
 			if (!line.empty()) {
-				std::string header = utilityCore::getFirstNCharactersOfString(line, 2);
+				auto header = utilityCore::getFirstNCharactersOfString(line, 2);
+
 				if (header.compare("v ")==0) {
 					vertexCount++;
-				}else if (header.compare("vt")==0) {
+				}
+				else if (header.compare("vt")==0) {
 					uvCount++;
-				}else if (header.compare("vn")==0) {
+				}
+				else if (header.compare("vn")==0) {
 					normalCount++;
-				}else if (header.compare("f ")==0) {
+				}
+				else if (header.compare("f ")==0) {
 					faceCount++;
 				}
 			}
@@ -290,7 +304,7 @@ void Obj::PrereadObj(const std::string& filename)
 in which case return a face of area zero*/
 Poly Obj::GetPoly(const unsigned int& polyIndex)
 {
-	Point pNull(dls::math::vec3f(0.0f, 0.0f, 0.0f),
+	auto pNull = Point(dls::math::vec3f(0.0f, 0.0f, 0.0f),
 				dls::math::vec3f(0.0f, 1.0f, 0.0f),
 				dls::math::vec2f(0.0f, 0.0f));
 
@@ -301,16 +315,18 @@ Poly Obj::GetPoly(const unsigned int& polyIndex)
 	auto vertexIndices = m_polyVertexIndices[polyIndex];
 	auto normalIndices = m_polyNormalIndices[polyIndex];
 	auto uvIndices = m_polyUVIndices[polyIndex];
-	Point p1(m_vertices[vertexIndices.x-1], m_normals[normalIndices.x-1], m_uvs[uvIndices.x-1]);
-	Point p2(m_vertices[vertexIndices.y-1], m_normals[normalIndices.y-1], m_uvs[uvIndices.y-1]);
-	Point p3(m_vertices[vertexIndices.z-1], m_normals[normalIndices.z-1], m_uvs[uvIndices.z-1]);
+	auto p1 = Point(m_vertices[vertexIndices.x-1], m_normals[normalIndices.x-1], m_uvs[uvIndices.x-1]);
+	auto p2 = Point(m_vertices[vertexIndices.y-1], m_normals[normalIndices.y-1], m_uvs[uvIndices.y-1]);
+	auto p3 = Point(m_vertices[vertexIndices.z-1], m_normals[normalIndices.z-1], m_uvs[uvIndices.z-1]);
+
 	if (vertexIndices.w==0) {
 		return Poly(p1, p2, p3, p1, polyIndex);
 	}
-	Point p4(m_vertices[vertexIndices.w-1], m_normals[normalIndices.w-1],
-			m_uvs[uvIndices.w-1]);
-	return Poly(p1, p2, p3, p4, polyIndex);
 
+	auto p4 = Point(m_vertices[vertexIndices.w-1], m_normals[normalIndices.w-1],
+			m_uvs[uvIndices.w-1]);
+
+	return Poly(p1, p2, p3, p4, polyIndex);
 }
 
 //Applies given transforglm::mation glm::matrix to the given point
@@ -371,28 +387,26 @@ rayCore::Intersection Obj::IntersectElement(
 		const unsigned int& primID,
 		const rayCore::Ray& r)
 {
-	//check if quad by comparing x and w components
-	dls::math::vec4i vi = m_polyVertexIndices[primID];
-	//triangle case
+	auto vi = m_polyVertexIndices[primID];
+
 	if (vi.w==0) {
 		return TriangleTest(primID, r, false);
 	}
-	else { //quad case
-		return QuadTest(primID, r);
-	}
+
+	return QuadTest(primID, r);
 }
 
 rayCore::Intersection Obj::QuadTest(
 		const unsigned int& polyIndex,
 		const rayCore::Ray& r)
 {
-	rayCore::Intersection intersect = TriangleTest(polyIndex, r, false);
+	auto intersect = TriangleTest(polyIndex, r, false);
+
 	if (intersect.m_hit) {
 		return intersect;
 	}
-	else {
-		return TriangleTest(polyIndex, r, true);
-	}
+
+	return TriangleTest(polyIndex, r, true);
 }
 
 inline rayCore::Intersection Obj::RayTriangleTest(const dls::math::vec3f& v0,
@@ -407,27 +421,27 @@ inline rayCore::Intersection Obj::RayTriangleTest(const dls::math::vec3f& v0,
 												  const rayCore::Ray& r)
 {
 	//grab points and edges from poly
-	dls::math::vec3f edge1 = v1-v0;
-	dls::math::vec3f edge2 = v2-v0;
+	auto edge1 = v1 - v0;
+	auto edge2 = v2 - v0;
 	//calculate determinant
-	dls::math::vec3f rdirection = r.m_direction;
-	dls::math::vec3f pvec = produit_croix(rdirection, edge2);
-	float det = produit_scalaire(edge1, pvec);
+	auto rdirection = r.m_direction;
+	auto pvec = produit_croix(rdirection, edge2);
+	auto det = produit_scalaire(edge1, pvec);
 
 	if (det == 0.0f) {
 		return rayCore::Intersection();
 	}
 
-	float inv_det = 1.0f/det;
-	dls::math::vec3f tvec = r.m_origin - v0;
+	auto inv_det = 1.0f/det;
+	auto tvec = r.m_origin - v0;
 	//calculate barycentric coord
 	dls::math::vec3f bary;
 	bary.x = produit_scalaire(tvec, pvec) * inv_det;
-	dls::math::vec3f qvec = produit_croix(tvec, edge1);
+	auto qvec = produit_croix(tvec, edge1);
 	bary.y = produit_scalaire(rdirection, qvec) * inv_det;
 	//calculate distance from ray origin to intersection
-	float t = produit_scalaire(edge2, qvec) * inv_det;
-	bool hit = (bary.x >= 0.0f && bary.y >= 0.0f && (bary.x + bary.y) <= 1.0f);
+	auto t = produit_scalaire(edge2, qvec) * inv_det;
+	auto hit = (bary.x >= 0.0f && bary.y >= 0.0f && (bary.x + bary.y) <= 1.0f);
 
 	if (hit) {
 		bary.z = 1.0f - bary.x - bary.y;
@@ -451,19 +465,19 @@ rayCore::Intersection Obj::TriangleTest(const unsigned int& polyIndex,
 										const bool& checkQuad)
 {
 	//grab indices
-	dls::math::vec4i vi = m_polyVertexIndices[polyIndex];
-	dls::math::vec4i ni = m_polyNormalIndices[polyIndex];
-	dls::math::vec4i ui = m_polyUVIndices[polyIndex];
+	auto vi = m_polyVertexIndices[polyIndex];
+	auto ni = m_polyNormalIndices[polyIndex];
+	auto ui = m_polyUVIndices[polyIndex];
 	//grab points, edges, uvs from poly
-	dls::math::vec3f v0 = m_vertices[vi.x-1];
-	dls::math::vec3f v1 = m_vertices[vi.y-1];
-	dls::math::vec3f v2 = m_vertices[vi.z-1];
-	dls::math::vec3f n0 = m_normals[ni.x-1];
-	dls::math::vec3f n1 = m_normals[ni.y-1];
-	dls::math::vec3f n2 = m_normals[ni.z-1];
-	dls::math::vec2f u0 = m_uvs[ui.x-1];
-	dls::math::vec2f u1 = m_uvs[ui.y-1];
-	dls::math::vec2f u2 = m_uvs[ui.z-1];
+	auto v0 = m_vertices[vi.x-1];
+	auto v1 = m_vertices[vi.y-1];
+	auto v2 = m_vertices[vi.z-1];
+	auto n0 = m_normals[ni.x-1];
+	auto n1 = m_normals[ni.y-1];
+	auto n2 = m_normals[ni.z-1];
+	auto u0 = m_uvs[ui.x-1];
+	auto u1 = m_uvs[ui.y-1];
+	auto u2 = m_uvs[ui.z-1];
 
 	if (checkQuad==true) {
 		v1 = m_vertices[vi.w-1];
@@ -471,7 +485,7 @@ rayCore::Intersection Obj::TriangleTest(const unsigned int& polyIndex,
 		u1 = m_uvs[ui.w-1];
 	}
 
-	rayCore::Intersection result = Obj::RayTriangleTest(v0, v1, v2, n0, n1, n2, u0, u1, u2, r);
+	auto result = Obj::RayTriangleTest(v0, v1, v2, n0, n1, n2, u0, u1, u2, r);
 	result.m_objectID = m_id;
 	result.m_primID = polyIndex;
 	return result;
@@ -481,69 +495,64 @@ rayCore::Intersection Obj::TriangleTest(const unsigned int& polyIndex,
 // InterpolatedObj Class
 //====================================
 
-InterpolatedObj::InterpolatedObj()
-{
-	m_obj0 = nullptr;
-	m_obj1 = nullptr;
-}
-
 /*Right now only prints a warning if objs have mismatched topology, must make this do something
 better in the future since mismatched topology leads to Very Bad Things*/
-InterpolatedObj::InterpolatedObj(objCore::Obj* obj0, objCore::Obj* obj1) {
-	m_obj0 = obj0;
-	m_obj1 = obj1;
-	if (obj0->m_numberOfPolys!=obj1->m_numberOfPolys) {
+InterpolatedObj::InterpolatedObj(objCore::Obj* obj0, objCore::Obj* obj1)
+	: m_obj0(obj0)
+	, m_obj1(obj1)
+{
+	if (obj0->m_numberOfPolys != obj1->m_numberOfPolys) {
 		std::cout << "Warning: Attempted to create InterpolatedObj with mismatched topology!"
 				  << std::endl;
 	}
 }
 
-InterpolatedObj::~InterpolatedObj() {
-}
-
 rayCore::Intersection InterpolatedObj::IntersectElement(const unsigned int& primID,
-														const rayCore::Ray& r) {
+														const rayCore::Ray& r)
+{
 	//check if quad by comparing x and w components
-	dls::math::vec4i vi = m_obj0->m_polyVertexIndices[primID];
-	//triangle case
+	auto vi = m_obj0->m_polyVertexIndices[primID];
+
 	if (vi.w==0) {
 		return TriangleTest(primID, r, false);
-	}else { //quad case
-		return QuadTest(primID, r);
 	}
+
+	return QuadTest(primID, r);
 }
 
 rayCore::Intersection InterpolatedObj::TriangleTest(const unsigned int& polyIndex,
 													const rayCore::Ray& r,
-													const bool& checkQuad) {
+													const bool& checkQuad)
+{
 	//make sure interp value is between 0 and 1
-	float clampedInterp = r.m_frame - std::floor(r.m_frame);
+	auto clampedInterp = r.m_frame - std::floor(r.m_frame);
 	//grab indices
-	dls::math::vec4i vi0 = m_obj0->m_polyVertexIndices[polyIndex];
-	dls::math::vec4i ni0 = m_obj0->m_polyNormalIndices[polyIndex];
-	dls::math::vec4i ui0 = m_obj0->m_polyUVIndices[polyIndex];
-	dls::math::vec4i vi1 = m_obj1->m_polyVertexIndices[polyIndex];
-	dls::math::vec4i ni1 = m_obj1->m_polyNormalIndices[polyIndex];
-	dls::math::vec4i ui1 = m_obj1->m_polyUVIndices[polyIndex];
+	auto vi0 = m_obj0->m_polyVertexIndices[polyIndex];
+	auto ni0 = m_obj0->m_polyNormalIndices[polyIndex];
+	auto ui0 = m_obj0->m_polyUVIndices[polyIndex];
+	auto vi1 = m_obj1->m_polyVertexIndices[polyIndex];
+	auto ni1 = m_obj1->m_polyNormalIndices[polyIndex];
+	auto ui1 = m_obj1->m_polyUVIndices[polyIndex];
 	//grab points, edges, uvs from poly
-	dls::math::vec3f v0 = m_obj0->m_vertices[vi0.x-1] * (1.0f-clampedInterp) +
+	auto v0 = m_obj0->m_vertices[vi0.x-1] * (1.0f-clampedInterp) +
 			m_obj1->m_vertices[vi1.x-1] * clampedInterp;
-	dls::math::vec3f v1 = m_obj0->m_vertices[vi0.y-1] * (1.0f-clampedInterp) +
+	auto v1 = m_obj0->m_vertices[vi0.y-1] * (1.0f-clampedInterp) +
 			m_obj1->m_vertices[vi1.y-1] * clampedInterp;
-	dls::math::vec3f v2 = m_obj0->m_vertices[vi0.z-1] * (1.0f-clampedInterp) +
+	auto v2 = m_obj0->m_vertices[vi0.z-1] * (1.0f-clampedInterp) +
 			m_obj1->m_vertices[vi1.z-1] * clampedInterp;
-	dls::math::vec3f n0 = m_obj0->m_normals[ni0.x-1] * (1.0f-clampedInterp) +
+	auto n0 = m_obj0->m_normals[ni0.x-1] * (1.0f-clampedInterp) +
 			m_obj1->m_normals[ni1.x-1] * clampedInterp;
-	dls::math::vec3f n1 = m_obj0->m_normals[ni0.y-1] * (1.0f-clampedInterp) +
+	auto n1 = m_obj0->m_normals[ni0.y-1] * (1.0f-clampedInterp) +
 			m_obj1->m_normals[ni1.y-1] * clampedInterp;
-	dls::math::vec3f n2 = m_obj0->m_normals[ni0.z-1] * (1.0f-clampedInterp) +
+	auto n2 = m_obj0->m_normals[ni0.z-1] * (1.0f-clampedInterp) +
 			m_obj1->m_normals[ni1.z-1] * clampedInterp;
-	dls::math::vec2f u0 = m_obj0->m_uvs[ui0.x-1] * (1.0f-clampedInterp) +
+	auto u0 = m_obj0->m_uvs[ui0.x-1] * (1.0f-clampedInterp) +
 			m_obj1->m_uvs[ui1.x-1] * clampedInterp;
-	dls::math::vec2f u1 = m_obj0->m_uvs[ui0.y-1] * (1.0f-clampedInterp) +
+	auto u1 = m_obj0->m_uvs[ui0.y-1] * (1.0f-clampedInterp) +
 			m_obj1->m_uvs[ui1.y-1] * clampedInterp;
-	dls::math::vec2f u2 = m_obj0->m_uvs[ui0.z-1] * (1.0f-clampedInterp) +
+	auto u2 = m_obj0->m_uvs[ui0.z-1] * (1.0f-clampedInterp) +
 			m_obj1->m_uvs[ui1.z-1] * clampedInterp;
+
 	if (checkQuad==true) {
 		v1 = m_obj0->m_vertices[vi0.w-1] * (1.0f-clampedInterp) +
 				m_obj1->m_vertices[vi1.w-1] * clampedInterp;
@@ -552,7 +561,8 @@ rayCore::Intersection InterpolatedObj::TriangleTest(const unsigned int& polyInde
 		u1 = m_obj0->m_uvs[ui0.w-1] * (1.0f-clampedInterp) +
 				m_obj1->m_uvs[ui1.w-1] * clampedInterp;
 	}
-	rayCore::Intersection result = Obj::RayTriangleTest(v0, v1, v2, n0/longueur(n0),
+
+	auto result = Obj::RayTriangleTest(v0, v1, v2, n0/longueur(n0),
 														n1/longueur(n1), n2/longueur(n2),
 														u0, u1, u2, r);
 	result.m_objectID = m_obj0->m_id;
@@ -561,22 +571,25 @@ rayCore::Intersection InterpolatedObj::TriangleTest(const unsigned int& polyInde
 }
 
 rayCore::Intersection InterpolatedObj::QuadTest(const unsigned int& polyIndex,
-												const rayCore::Ray& r) {
-	rayCore::Intersection intersect = TriangleTest(polyIndex, r, false);
+												const rayCore::Ray& r)
+{
+	auto const intersect = TriangleTest(polyIndex, r, false);
+
 	if (intersect.m_hit) {
 		return intersect;
-	}else {
-		return TriangleTest(polyIndex, r, true);
 	}
+
+	return TriangleTest(polyIndex, r, true);
 }
 
 /*Calls GetPoly for both referenced objs and returns a single interpolated poly. */
 Poly InterpolatedObj::GetPoly(const unsigned int& polyIndex,
-							  const float& interpolation) {
-	Poly p0 = m_obj0->GetPoly(polyIndex);
-	Poly p1 = m_obj1->GetPoly(polyIndex);
+							  const float& interpolation)
+{
+	auto p0 = m_obj0->GetPoly(polyIndex);
+	auto p1 = m_obj1->GetPoly(polyIndex);
 	//make sure interp value is between 0 and 1
-	float clampedInterp = interpolation - std::floor(interpolation);
+	auto clampedInterp = interpolation - std::floor(interpolation);
 	Poly p;
 	p.m_vertex0.m_position = p0.m_vertex0.m_position * (1.0f-clampedInterp) +
 			p1.m_vertex0.m_position * clampedInterp;
@@ -605,16 +618,20 @@ Poly InterpolatedObj::GetPoly(const unsigned int& polyIndex,
 	return p;
 }
 
-spaceCore::Aabb InterpolatedObj::GetElementAabb(const unsigned int& primID) {
-	spaceCore::Aabb aabb0 = m_obj0->GetElementAabb(primID);
-	spaceCore::Aabb aabb1 = m_obj1->GetElementAabb(primID);
-	dls::math::vec3f combinedMin = std::min(aabb0.m_min, aabb1.m_min);
-	dls::math::vec3f combinedMax = std::max(aabb0.m_max, aabb1.m_max);
-	dls::math::vec3f combinedCentroid = (aabb0.m_centroid + aabb1.m_centroid) / 2.0f;
+spaceCore::Aabb InterpolatedObj::GetElementAabb(const unsigned int& primID)
+{
+	auto aabb0 = m_obj0->GetElementAabb(primID);
+	auto aabb1 = m_obj1->GetElementAabb(primID);
+	auto combinedMin = std::min(aabb0.m_min, aabb1.m_min);
+	auto combinedMax = std::max(aabb0.m_max, aabb1.m_max);
+	auto combinedCentroid = (aabb0.m_centroid + aabb1.m_centroid) / 2.0f;
+
 	return spaceCore::Aabb(combinedMin, combinedMax, combinedCentroid, aabb0.m_id);
 }
 
-unsigned int InterpolatedObj::GetNumberOfElements() {
+unsigned int InterpolatedObj::GetNumberOfElements()
+{
 	return m_obj0->GetNumberOfElements();
 }
+
 }

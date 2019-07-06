@@ -50,7 +50,7 @@ public:
 	Intersection(const bool& hit, const dls::math::vec3f& point, const dls::math::vec3f& normal,
 				 const dls::math::vec2f& uv, const unsigned int& objectID,
 				 const unsigned int& primID);
-	~Intersection();
+	~Intersection() = default;
 
 	void SetContents(const bool& hit, const dls::math::vec3f& point,
 					 const dls::math::vec3f& normal, const dls::math::vec2f& uv,
