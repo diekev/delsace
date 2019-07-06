@@ -68,7 +68,7 @@ Objet *BaseDeDonnees::cree_objet(std::string const &nom)
 	auto objet = memoire::loge<Objet>("objet");
 	objet->nom = nom;
 
-	m_objets.push_back(objet);
+	m_objets.pousse(objet);
 
 	return objet;
 }
@@ -86,12 +86,12 @@ Objet *BaseDeDonnees::objet(std::string const &nom) const
 
 void BaseDeDonnees::enleve_objet(Objet *objet)
 {
-	auto iter = std::find(m_objets.begin(), m_objets.end(), objet);
+	auto iter = std::find(m_objets.debut(), m_objets.fin(), objet);
 	m_objets.erase(iter);
 	delete objet;
 }
 
-const std::vector<Objet *> &BaseDeDonnees::objets() const
+const dls::tableau<Objet *> &BaseDeDonnees::objets() const
 {
 	return m_objets;
 }
@@ -101,7 +101,7 @@ Scene *BaseDeDonnees::cree_scene(std::string const &nom)
 	auto scene = memoire::loge<Scene>("scene");
 	scene->nom = nom;
 
-	m_scenes.push_back(scene);
+	m_scenes.pousse(scene);
 
 	return scene;
 }
@@ -117,7 +117,7 @@ Scene *BaseDeDonnees::scene(const std::string &nom) const
 	return nullptr;
 }
 
-const std::vector<Scene *> &BaseDeDonnees::scenes() const
+const dls::tableau<Scene *> &BaseDeDonnees::scenes() const
 {
 	return m_scenes;
 }
@@ -127,7 +127,7 @@ Composite *BaseDeDonnees::cree_composite(std::string const &nom)
 	auto compo = memoire::loge<Composite>("compo");
 	compo->nom = nom;
 
-	m_composites.push_back(compo);
+	m_composites.pousse(compo);
 
 	return compo;
 }
@@ -143,7 +143,7 @@ Composite *BaseDeDonnees::composite(std::string const &nom) const
 	return nullptr;
 }
 
-const std::vector<Composite *> &BaseDeDonnees::composites() const
+const dls::tableau<Composite *> &BaseDeDonnees::composites() const
 {
 	return m_composites;
 }

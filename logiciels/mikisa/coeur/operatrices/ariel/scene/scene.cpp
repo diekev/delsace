@@ -51,19 +51,19 @@ void Scene::SetPaths(
 }
 
 void Scene::ExportParticles(
-		std::vector<fluidCore::Particle*> particles,
+		dls::tableau<fluidCore::Particle*> particles,
 		const float& maxd,
 		const int& frame,
 		const bool& VDB,
 		const bool& OBJ,
 		const bool& PARTIO)
 {
-	auto const particlesCount = particles.size();
+	auto const particlesCount = particles.taille();
 
-	std::vector<fluidCore::Particle*> sdfparticles;
+	dls::tableau<fluidCore::Particle*> sdfparticles;
 	for (unsigned int i = 0; i<particlesCount; i++) {
 		if (particles[i]->m_type == fluidCore::geomtype::FLUID && !particles[i]->m_invalid) {
-			sdfparticles.push_back(particles[i]);
+			sdfparticles.pousse(particles[i]);
 		}
 	}
 
@@ -74,7 +74,7 @@ void Scene::ExportParticles(
 		auto sdfparticlesCount = sdfparticles.size();
 
 		std::string partiofilename = m_partioPath;
-		std::vector<std::string> tokens = utilityCore::tokenizeString(partiofilename, ".");
+		dls::tableau<std::string> tokens = utilityCore::tokenizeString(partiofilename, ".");
 		std::string ext = "." + tokens[tokens.size()-1];
 		if (strcmp(ext.c_str(), ".gz")==0) {
 			ext = "." + tokens[tokens.size()-2] + ext;
@@ -129,20 +129,20 @@ void Scene::ExportParticles(
 
 void Scene::AddExternalForce(dls::math::vec3f force)
 {
-	m_externalForces.push_back(force);
+	m_externalForces.pousse(force);
 }
 
-std::vector<dls::math::vec3f>& Scene::GetExternalForces()
+dls::tableau<dls::math::vec3f>& Scene::GetExternalForces()
 {
 	return m_externalForces;
 }
 
-std::vector<geomCore::Geom*>& Scene::GetSolidGeoms()
+dls::tableau<geomCore::Geom*>& Scene::GetSolidGeoms()
 {
 	return m_solids;
 }
 
-std::vector<geomCore::Geom*>& Scene::GetLiquidGeoms()
+dls::tableau<geomCore::Geom*>& Scene::GetLiquidGeoms()
 {
 	return m_liquids;
 }
@@ -152,7 +152,7 @@ void Scene::BuildPermaSolidGeomLevelSet()
 	delete m_permaSolidLevelSet;
 	m_permaSolidLevelSet = new fluidCore::LevelSet();
 
-	auto solidObjectsCount = m_solids.size();
+	auto solidObjectsCount = m_solids.taille();
 	auto permaSolidSDFCreated = false;
 
 	for (unsigned int i=0; i< solidObjectsCount; i++) {
@@ -187,7 +187,7 @@ void Scene::BuildSolidGeomLevelSet(const int& frame)
 	m_solidLevelSet = new fluidCore::LevelSet();
 
 	//build levelsets for all varying geoms, then merge in cached permanent solid level set
-	auto solidObjectsCount = m_solids.size();
+	auto solidObjectsCount = m_solids.taille();
 	auto solidSDFCreated = false;
 
 	for (unsigned int i=0; i<solidObjectsCount; i++) {
@@ -248,7 +248,7 @@ void Scene::BuildLiquidGeomLevelSet(const int& frame)
 	delete m_liquidLevelSet;
 	m_liquidLevelSet = new fluidCore::LevelSet();
 
-	auto liquidObjectsCount = m_liquids.size();
+	auto liquidObjectsCount = m_liquids.taille();
 	auto liquidSDFCreated = false;
 
 	for (unsigned int i=0; i<liquidObjectsCount; i++) {
@@ -308,7 +308,7 @@ unsigned int Scene::GetLiquidParticleCount()
 	return m_liquidParticleCount;
 }
 
-void Scene::GenerateParticles(std::vector<fluidCore::Particle*>& particles,
+void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 		const dls::math::vec3i &dimensions,
 		const float& density,
 		fluidCore::ParticleGrid* pgrid,
@@ -327,9 +327,9 @@ void Scene::GenerateParticles(std::vector<fluidCore::Particle*>& particles,
 	auto w = density*thickness;
 
 	//store list of pointers to particles we need to delete for later deletion in the locked block
-	std::vector<fluidCore::Particle*> particlesToDelete;
-	particlesToDelete.reserve(m_solidParticles.size());
-	particlesToDelete.insert(particlesToDelete.end(), m_solidParticles.begin(),
+	dls::tableau<fluidCore::Particle*> particlesToDelete;
+	particlesToDelete.reserve(static_cast<long>(m_solidParticles.size()));
+	particlesToDelete.insere(particlesToDelete.fin(), m_solidParticles.begin(),
 							 m_solidParticles.end());
 
 	tbb::concurrent_vector<fluidCore::Particle*>().swap(m_solidParticles);
@@ -421,7 +421,7 @@ void Scene::GenerateParticles(std::vector<fluidCore::Particle*>& particles,
 	}
 #endif
 
-	auto solidCount = m_solids.size();
+	auto solidCount = m_solids.taille();
 	for (unsigned int l=0; l<solidCount; ++l) {
 		auto solidaabb = m_solids[l]->m_geom->GetAabb(static_cast<float>(frame));
 
@@ -465,7 +465,7 @@ void Scene::GenerateParticles(std::vector<fluidCore::Particle*>& particles,
 	m_particleLock.lock();
 
 	//delete old particles
-	auto delParticleCount = particlesToDelete.size();
+	auto delParticleCount = particlesToDelete.taille();
 	tbb::parallel_for(tbb::blocked_range<unsigned int>(0, static_cast<unsigned int>(delParticleCount)),
 					  [&](const tbb::blocked_range<unsigned int>& r)
 	{
@@ -475,12 +475,12 @@ void Scene::GenerateParticles(std::vector<fluidCore::Particle*>& particles,
 	});
 
 	//add new particles to main particles list
-	std::vector<fluidCore::Particle*>().swap(particles);
-	particles.reserve(m_liquidParticles.size()+m_permaSolidParticles.size()+
-					  m_solidParticles.size());
-	particles.insert(particles.end(), m_liquidParticles.begin(), m_liquidParticles.end());
-	particles.insert(particles.end(), m_permaSolidParticles.begin(), m_permaSolidParticles.end());
-	particles.insert(particles.end(), m_solidParticles.begin(), m_solidParticles.end());
+	dls::tableau<fluidCore::Particle*>().echange(particles);
+	particles.reserve(static_cast<long>(m_liquidParticles.size()+m_permaSolidParticles.size()+
+					  m_solidParticles.size()));
+	particles.insere(particles.fin(), m_liquidParticles.begin(), m_liquidParticles.end());
+	particles.insere(particles.fin(), m_permaSolidParticles.begin(), m_permaSolidParticles.end());
+	particles.insere(particles.fin(), m_solidParticles.begin(), m_solidParticles.end());
 	m_liquidParticleCount = static_cast<unsigned int>(m_liquidParticles.size());
 
 	//std::cout << "Solid+Fluid particles: " << particles.size() << std::endl;
@@ -493,7 +493,7 @@ bool Scene::CheckPointInsideGeomByID(
 		const float& frame,
 		const unsigned int& geomID)
 {
-	if (geomID<m_geoms.size()) {
+	if (geomID<m_geoms.taille()) {
 		rayCore::Ray r;
 		r.m_origin = p;
 		r.m_frame = frame;
@@ -523,7 +523,7 @@ bool Scene::CheckPointInsideSolidGeom(
 	r.m_frame = frame;
 	r.m_direction = normalise(dls::math::vec3f(0.0f, 0.0f, 1.0f));
 
-	auto solidGeomCount = m_solids.size();
+	auto solidGeomCount = m_solids.taille();
 
 	for (unsigned int i=0; i<solidGeomCount; i++) {
 		//unsigned int hits = 0;
@@ -552,7 +552,7 @@ bool Scene::CheckPointInsideLiquidGeom(
 	r.m_frame = frame;
 	r.m_direction = normalise(dls::math::vec3f(0.0f, 0.0f, 1.0f));
 
-	auto liquidGeomCount = m_liquids.size();
+	auto liquidGeomCount = m_liquids.taille();
 
 	for (unsigned int i=0; i<liquidGeomCount; i++) {
 		spaceCore::HitCountTraverseAccumulator traverser(p);
@@ -573,7 +573,7 @@ bool Scene::CheckPointInsideLiquidGeom(
 rayCore::Intersection Scene::IntersectSolidGeoms(const rayCore::Ray& r)
 {
 	rayCore::Intersection bestHit;
-	auto solidGeomCount = m_solids.size();
+	auto solidGeomCount = m_solids.taille();
 
 	for (unsigned int i=0; i<solidGeomCount; i++) {
 		spaceCore::TraverseAccumulator traverser;

@@ -29,7 +29,7 @@ public:
 	void Init();
 	void Step(bool saveVDB, bool saveOBJ, bool savePARTIO);
 
-	std::vector<Particle*>* GetParticles();
+	dls::tableau<Particle*>* GetParticles();
 	dls::math::vec3i GetDimensions();
 	sceneCore::Scene* GetScene();
 
@@ -51,7 +51,7 @@ private:
 	bool IsCellFluid(const int& x, const int& y, const int& z);
 
 	dls::math::vec3i                              m_dimensions{};
-	std::vector<Particle*>                  m_particles{};
+	dls::tableau<Particle*>                  m_particles{};
 	MacGrid                                 m_mgrid{};
 	MacGrid                                 m_mgrid_previous{};
 	ParticleGrid*                           m_pgrid{};

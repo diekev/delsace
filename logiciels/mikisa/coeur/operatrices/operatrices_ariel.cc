@@ -46,7 +46,7 @@ struct Particule {
 
 template <typename T>
 class Grille {
-	std::vector<T> m_donnees = {};
+	dls::tableau<T> m_donnees = {};
 
 	dls::math::vec3<size_t> m_res = dls::math::vec3<size_t>(0ul, 0ul, 0ul);
 	size_t m_nombre_voxels = 0;
@@ -86,8 +86,8 @@ public:
 
 		m_nombre_voxels = res_x * res_y * res_z;
 
-		m_donnees.resize(m_nombre_voxels);
-		std::fill(m_donnees.begin(), m_donnees.end(), T(0));
+		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels));
+		std::fill(m_donnees.debut(), m_donnees.fin(), T(0));
 	}
 
 	dls::math::vec3<size_t> resolution() const
@@ -155,11 +155,11 @@ public:
 };
 
 class GrilleParticule {
-	std::vector<std::vector<Particule *>> m_donnees = {};
+	dls::tableau<dls::tableau<Particule *>> m_donnees = {};
 	dls::math::vec3<size_t> m_res = dls::math::vec3<size_t>(0ul, 0ul, 0ul);
 	size_t m_nombre_voxels = 0;
 
-	std::vector<Particule *> m_arriere_plan = {};
+	dls::tableau<Particule *> m_arriere_plan = {};
 
 	size_t calcul_index(size_t x, size_t y, size_t z) const
 	{
@@ -191,7 +191,7 @@ public:
 		m_res.z = res_z;
 
 		m_nombre_voxels = res_x * res_y * res_z;
-		m_donnees.resize(m_nombre_voxels);
+		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels));
 
 		for (auto &donnees : m_donnees) {
 			donnees.clear();
@@ -204,16 +204,16 @@ public:
 			return;
 		}
 
-		m_donnees[calcul_index(x, y, z)].push_back(particule);
+		m_donnees[static_cast<long>(calcul_index(x, y, z))].pousse(particule);
 	}
 
-	const std::vector<Particule *> &particule(size_t x, size_t y, size_t z) const
+	const dls::tableau<Particule *> &particule(size_t x, size_t y, size_t z) const
 	{
 		if (hors_des_limites(x, y, z)) {
 			return m_arriere_plan;
 		}
 
-		return m_donnees[calcul_index(x, y, z)];
+		return m_donnees[static_cast<long>(calcul_index(x, y, z))];
 	}
 };
 
@@ -237,7 +237,7 @@ struct Fluide {
 	Grille<dls::math::vec3f> ancienne_velocites{};
 	GrilleParticule grille_particules{};
 
-	std::vector<Particule> particules{};
+	dls::tableau<Particule> particules{};
 
 	/* géométrie domaine */
 	dls::math::vec3f min = dls::math::vec3f(-8.0f, 0.0f, -8.0f);
@@ -381,7 +381,7 @@ void cree_particules_source(Fluide *fluide, size_t nombre)
 					p.pos.z = pos_p.z + dist_z(rng);
 					p.vel = dls::math::vec3f(0.0f);
 
-					fluide->particules.push_back(p);
+					fluide->particules.pousse(p);
 				}
 			}
 		}

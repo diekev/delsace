@@ -2,7 +2,7 @@
 
 template <typename T>
 class courbe {
-    std::vector<T> m_valeurs;
+	dls::tableau<T> m_valeurs;
 
 public:
     courbe();

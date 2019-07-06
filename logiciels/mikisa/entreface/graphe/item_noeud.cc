@@ -208,7 +208,7 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	/* pinceaux pour le coeur du noeud */
 	QBrush brosse;
 
-	if (!operatrice || operatrice->avertissements().empty()) {
+	if (!operatrice || operatrice->avertissements().est_vide()) {
 		brosse = QBrush(QColor(45, 45, 45));
 	}
 	else {

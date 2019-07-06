@@ -21,8 +21,8 @@ template <typename T> void MultiQueue<T>::Push(const T& item) {
     m_queue.push(item);
 }
 
-template <typename T> void MultiQueue<T>::Push(const std::vector<T>& items) {
-    unsigned int itemsCount = items.size();
+template <typename T> void MultiQueue<T>::Push(const dls::tableau<T>& items) {
+	unsigned int itemsCount = items.taille();
 	for (int i=0; i<itemsCount; i++) {
         m_queue.push(items[i]);
     }
@@ -34,8 +34,8 @@ template <typename T> T MultiQueue<T>::Pop() {
     return item;
 }
 
-template <typename T> std::vector<T> MultiQueue<T>::Pop(const unsigned int& count) {
-    std::vector<T> items(count);
+template <typename T> dls::tableau<T> MultiQueue<T>::Pop(const unsigned int& count) {
+	dls::tableau<T> items(count);
 	for (int i=0; i<count; i++) {
         m_queue.try_pop(items[i]);
     }

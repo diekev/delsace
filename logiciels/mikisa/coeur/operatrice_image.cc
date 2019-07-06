@@ -149,12 +149,12 @@ EntreeOperatrice::EntreeOperatrice(PriseEntree *prise)
 
 bool EntreeOperatrice::connectee() const
 {
-	return !m_ptr->liens.empty();
+	return !m_ptr->liens.est_vide();
 }
 
 void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	if (m_ptr->liens.empty()) {
+	if (m_ptr->liens.est_vide()) {
 		return;
 	}
 
@@ -171,14 +171,14 @@ void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &co
 		operatrice->transfere_image(image);
 
 		for (auto const &calque : image.calques()) {
-			m_liste_noms_calques.push_back(calque->nom);
+			m_liste_noms_calques.pousse(calque->nom);
 		}
 	}
 }
 
 vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	if (m_ptr->liens.empty()) {
+	if (m_ptr->liens.est_vide()) {
 		return nullptr;
 	}
 
@@ -198,7 +198,7 @@ vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &co
 
 TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	if (m_ptr->liens.empty()) {
+	if (m_ptr->liens.est_vide()) {
 		return nullptr;
 	}
 
@@ -218,7 +218,7 @@ TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &conte
 
 const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	if (m_ptr->liens.empty()) {
+	if (m_ptr->liens.est_vide()) {
 		return nullptr;
 	}
 
@@ -253,14 +253,14 @@ Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, ContexteEvaluation c
 	return corps_lien->copie();
 }
 
-void EntreeOperatrice::obtiens_liste_calque(std::vector<std::string> &chaines) const
+void EntreeOperatrice::obtiens_liste_calque(dls::tableau<std::string> &chaines) const
 {
 	chaines = m_liste_noms_calques;
 }
 
-void EntreeOperatrice::obtiens_liste_attributs(std::vector<std::string> &chaines) const
+void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<std::string> &chaines) const
 {
-	if (m_ptr->liens.empty()) {
+	if (m_ptr->liens.est_vide()) {
 		return;
 	}
 
@@ -279,13 +279,13 @@ void EntreeOperatrice::obtiens_liste_attributs(std::vector<std::string> &chaines
 	}
 
 	for (auto attributs : corps->attributs()) {
-		chaines.push_back(attributs->nom());
+		chaines.pousse(attributs->nom());
 	}
 }
 
-void EntreeOperatrice::obtiens_liste_groupes_prims(std::vector<std::string> &chaines) const
+void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<std::string> &chaines) const
 {
-	if (m_ptr->liens.empty()) {
+	if (m_ptr->liens.est_vide()) {
 		return;
 	}
 
@@ -304,13 +304,13 @@ void EntreeOperatrice::obtiens_liste_groupes_prims(std::vector<std::string> &cha
 	}
 
 	for (auto const &groupe : corps->groupes_prims()) {
-		chaines.push_back(groupe.nom);
+		chaines.pousse(groupe.nom);
 	}
 }
 
-void EntreeOperatrice::obtiens_liste_groupes_points(std::vector<std::string> &chaines) const
+void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<std::string> &chaines) const
 {
-	if (m_ptr->liens.empty()) {
+	if (m_ptr->liens.est_vide()) {
 		return;
 	}
 
@@ -329,7 +329,7 @@ void EntreeOperatrice::obtiens_liste_groupes_points(std::vector<std::string> &ch
 	}
 
 	for (auto const &groupe : corps->groupes_points()) {
-		chaines.push_back(groupe.nom);
+		chaines.pousse(groupe.nom);
 	}
 }
 
@@ -339,8 +339,8 @@ OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud *node)
 	: m_graphe_parent(graphe_parent)
 {
 	node->donnees(this);
-	m_input_data.resize(m_num_inputs);
-	m_sorties.resize(m_num_outputs);
+	m_input_data.redimensionne(m_num_inputs);
+	m_sorties.redimensionne(m_num_outputs);
 }
 
 void OperatriceImage::usine(UsineOperatrice *usine_op)
@@ -358,13 +358,13 @@ int OperatriceImage::type() const
 	return OPERATRICE_IMAGE;
 }
 
-void OperatriceImage::entrees(size_t number)
+void OperatriceImage::entrees(long number)
 {
 	m_num_inputs = number;
-	m_input_data.resize(number);
+	m_input_data.redimensionne(number);
 }
 
-size_t OperatriceImage::entrees() const
+long OperatriceImage::entrees() const
 {
 	return m_num_inputs;
 }
@@ -387,7 +387,7 @@ int OperatriceImage::type_entree(int n) const
 	}
 }
 
-EntreeOperatrice *OperatriceImage::entree(size_t index)
+EntreeOperatrice *OperatriceImage::entree(long index)
 {
 	if (index >= m_num_inputs) {
 		return nullptr;
@@ -396,7 +396,7 @@ EntreeOperatrice *OperatriceImage::entree(size_t index)
 	return &m_input_data[index];
 }
 
-const EntreeOperatrice *OperatriceImage::entree(size_t index) const
+const EntreeOperatrice *OperatriceImage::entree(long index) const
 {
 	if (index >= m_num_inputs) {
 		return nullptr;
@@ -405,18 +405,18 @@ const EntreeOperatrice *OperatriceImage::entree(size_t index) const
 	return &m_input_data[index];
 }
 
-void OperatriceImage::donnees_entree(size_t index, PriseEntree *socket)
+void OperatriceImage::donnees_entree(long index, PriseEntree *socket)
 {
-	if (index >= m_input_data.size()) {
+	if (index >= m_input_data.taille()) {
 		std::cerr << nom_classe() << " : Overflow while setting data (inputs: "
-				  << m_input_data.size() << ", index: " << index << ")\n";
+				  << m_input_data.taille() << ", index: " << index << ")\n";
 		return;
 	}
 
 	m_input_data[index] = EntreeOperatrice(socket);
 }
 
-SortieOperatrice *OperatriceImage::sortie(size_t index)
+SortieOperatrice *OperatriceImage::sortie(long index)
 {
 	if (index >= m_num_outputs) {
 		return nullptr;
@@ -425,24 +425,24 @@ SortieOperatrice *OperatriceImage::sortie(size_t index)
 	return &m_sorties[index];
 }
 
-void OperatriceImage::donnees_sortie(size_t index, PriseSortie *prise)
+void OperatriceImage::donnees_sortie(long index, PriseSortie *prise)
 {
-	if (index >= m_sorties.size()) {
+	if (index >= m_sorties.taille()) {
 		std::cerr << nom_classe() << " : Overflow while setting data (outputs: "
-				  << m_sorties.size() << ", index: " << index << ")\n";
+				  << m_sorties.taille() << ", index: " << index << ")\n";
 		return;
 	}
 
 	m_sorties[index] = SortieOperatrice(prise);
 }
 
-void OperatriceImage::sorties(size_t number)
+void OperatriceImage::sorties(long number)
 {
 	m_num_outputs = number;
-	m_sorties.resize(number);
+	m_sorties.redimensionne(number);
 }
 
-size_t OperatriceImage::sorties() const
+long OperatriceImage::sorties() const
 {
 	return m_num_outputs;
 }
@@ -476,7 +476,7 @@ void OperatriceImage::transfere_image(Image &image)
 
 void OperatriceImage::ajoute_avertissement(std::string const &avertissement)
 {
-	m_avertissements.push_back(avertissement);
+	m_avertissements.pousse(avertissement);
 }
 
 void OperatriceImage::reinitialise_avertisements()
@@ -484,7 +484,7 @@ void OperatriceImage::reinitialise_avertisements()
 	m_avertissements.clear();
 }
 
-std::vector<std::string> const &OperatriceImage::avertissements() const
+dls::tableau<std::string> const &OperatriceImage::avertissements() const
 {
 	return m_avertissements;
 }
@@ -519,7 +519,7 @@ void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*t
 	/* rien à faire par défaut */
 }
 
-void OperatriceImage::obtiens_liste(std::string const &/*attache*/, std::vector<std::string> &chaines)
+void OperatriceImage::obtiens_liste(std::string const &/*attache*/, dls::tableau<std::string> &chaines)
 {
 	if (entrees() == 0) {
 		chaines.clear();

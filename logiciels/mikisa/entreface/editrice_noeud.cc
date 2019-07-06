@@ -113,7 +113,7 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		m_scene->addItem(item);
 
 		for (PriseEntree *prise : node_ptr->entrees()) {
-			if (prise->liens.empty()) {
+			if (prise->liens.est_vide()) {
 				continue;
 			}
 

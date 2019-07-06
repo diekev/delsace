@@ -132,7 +132,7 @@ void Noeud::ajoute_entree(std::string const &name, const int type)
 	prise->parent = this;
 	prise->type = type;
 
-	this->m_entrees.push_back(prise);
+	this->m_entrees.pousse(prise);
 }
 
 void Noeud::ajoute_sortie(std::string const &name, const int type)
@@ -141,10 +141,10 @@ void Noeud::ajoute_sortie(std::string const &name, const int type)
 	prise->parent = this;
 	prise->type = type;
 
-	this->m_sorties.push_back(prise);
+	this->m_sorties.pousse(prise);
 }
 
-PriseEntree *Noeud::entree(size_t index)
+PriseEntree *Noeud::entree(long index)
 {
 	return m_entrees[index];
 }
@@ -158,16 +158,16 @@ PriseEntree *Noeud::entree(std::string const &nom)
 		return prise->nom == nom;
 	};
 
-	auto iter = std::find_if(m_entrees.begin(), m_entrees.end(), op);
+	auto iter = std::find_if(m_entrees.debut(), m_entrees.fin(), op);
 
-	if (iter != m_entrees.end()) {
+	if (iter != m_entrees.fin()) {
 		return *iter;
 	}
 
 	return nullptr;
 }
 
-PriseSortie *Noeud::sortie(size_t index)
+PriseSortie *Noeud::sortie(long index)
 {
 	return m_sorties[index];
 }
@@ -179,9 +179,9 @@ PriseSortie *Noeud::sortie(std::string const &nom)
 		return prise->nom == nom;
 	};
 
-	auto iter = std::find_if(m_sorties.begin(), m_sorties.end(), op);
+	auto iter = std::find_if(m_sorties.debut(), m_sorties.fin(), op);
 
-	if (iter != m_sorties.end()) {
+	if (iter != m_sorties.fin()) {
 		return *iter;
 	}
 
@@ -190,12 +190,12 @@ PriseSortie *Noeud::sortie(std::string const &nom)
 
 Noeud::plage_entrees Noeud::entrees() const noexcept
 {
-	return plage_entrees(m_entrees.begin(), m_entrees.end());
+	return plage_entrees(m_entrees.debut(), m_entrees.fin());
 }
 
 Noeud::plage_sorties Noeud::sorties() const noexcept
 {
-	return plage_sorties(m_sorties.begin(), m_sorties.end());
+	return plage_sorties(m_sorties.debut(), m_sorties.fin());
 }
 
 bool Noeud::est_lie() const
@@ -207,20 +207,20 @@ bool Noeud::a_des_entrees_liees() const
 {
 	auto pred = [](PriseEntree *prise)
 	{
-		return !prise->liens.empty();
+		return !prise->liens.est_vide();
 	};
 
-	return std::any_of(m_entrees.begin(), m_entrees.end(), pred);
+	return std::any_of(m_entrees.debut(), m_entrees.fin(), pred);
 }
 
 bool Noeud::a_des_sorties_liees() const
 {
 	auto pred = [](PriseSortie *prise)
 	{
-		return !prise->liens.empty();
+		return !prise->liens.est_vide();
 	};
 
-	return std::any_of(m_sorties.begin(), m_sorties.end(), pred);
+	return std::any_of(m_sorties.debut(), m_sorties.fin(), pred);
 }
 
 int Noeud::type() const

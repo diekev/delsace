@@ -74,7 +74,7 @@ lcc::noeud::base *assembleuse_arbre::cree_noeud(
 				type);
 
 	if (noeud != nullptr) {
-		m_noeuds.push_back(noeud);
+		m_noeuds.pousse(noeud);
 	}
 
 	return noeud;
@@ -109,12 +109,12 @@ void assembleuse_arbre::supprime_noeud(lcc::noeud::base *noeud)
 
 size_t assembleuse_arbre::memoire_utilisee() const
 {
-	return m_memoire_utilisee + m_noeuds.size() * sizeof(lcc::noeud::base *);
+	return m_memoire_utilisee + nombre_noeuds() * sizeof(lcc::noeud::base *);
 }
 
 size_t assembleuse_arbre::nombre_noeuds() const
 {
-	return m_noeuds.size();
+	return static_cast<size_t>(m_noeuds.taille());
 }
 
 void imprime_taille_memoire_noeud(std::ostream &os)

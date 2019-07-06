@@ -99,7 +99,7 @@ void GestionnaireInterface::ajourne_menu(const std::string &nom)
 /* À FAIRE : passe un script. */
 void GestionnaireInterface::recree_menu(
 		const std::string &nom,
-		const std::vector<DonneesAction> &donnees_actions)
+		const dls::tableau<DonneesAction> &donnees_actions)
 {
 	auto menu = pointeur_menu(nom);
 
@@ -308,7 +308,7 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees,
 		return nullptr;
 	}
 
-	m_barres_outils.push_back(assembleur.barre_outils());
+	m_barres_outils.pousse(assembleur.barre_outils());
 
 	return assembleur.barre_outils();
 }

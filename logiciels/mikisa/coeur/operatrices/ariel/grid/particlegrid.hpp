@@ -27,13 +27,13 @@ public:
 	ParticleGrid &operator=(ParticleGrid const &) = default;
 
 	//Sorting tools
-	void Sort(std::vector<Particle*>& particles);
-	std::vector<Particle*> GetCellNeighbors(const dls::math::vec3f& index,
+	void Sort(dls::tableau<Particle*>& particles);
+	dls::tableau<Particle*> GetCellNeighbors(const dls::math::vec3f& index,
 											const dls::math::vec3f& numberOfNeighbors);
-	std::vector<Particle*> GetWallNeighbors(const dls::math::vec3f& index,
+	dls::tableau<Particle*> GetWallNeighbors(const dls::math::vec3f& index,
 											const dls::math::vec3f& numberOfNeighbors);
 
-	void MarkCellTypes(std::vector<Particle*>& particles, Grid<int>* A,
+	void MarkCellTypes(dls::tableau<Particle*>& particles, Grid<int>* A,
 					   const float& density);
 	float CellSDF(const int& i, const int& j, const int& k, const float& density,
 				  const geomtype& type);
@@ -45,7 +45,7 @@ private:
 
 	dls::math::vec3i                            m_dimensions{};
 	Grid<int>*                                  m_grid{};
-	std::vector< std::vector<Particle*> >       m_cells{};
+	dls::tableau< dls::tableau<Particle*> >       m_cells{};
 
 };
 }

@@ -99,9 +99,9 @@ bool Obj::ReadObj(const std::string& filename)
 			getline(fp_in, line);
 
 			if (!line.empty()) {
-				std::vector<std::string> tokens = utilityCore::tokenizeString(line, " ");
+				auto tokens = utilityCore::tokenizeString(line, " ");
 
-				if (tokens.size()>1) {
+				if (tokens.taille()>1) {
 					if (tokens[0].compare("v")==0) {
 						auto x = static_cast<float>(atof(tokens[1].c_str()));
 						auto y = static_cast<float>(atof(tokens[2].c_str()));
@@ -128,18 +128,17 @@ bool Obj::ReadObj(const std::string& filename)
 						dls::math::vec4i vertices(0);
 						dls::math::vec4i normals(0);
 						dls::math::vec4i uvs(0);
-						unsigned int loops = std::min(4u, static_cast<unsigned int>(tokens.size())-1)+1;
+						unsigned int loops = std::min(4u, static_cast<unsigned int>(tokens.taille())-1)+1;
 						for (unsigned int i=1; i<loops; i++) {
-							std::vector<std::string> faceindices =
-									utilityCore::tokenizeString(tokens[i], "/");
+							auto faceindices = utilityCore::tokenizeString(tokens[i], "/");
 							vertices[i-1] = atoi(faceindices[0].c_str());
-							if (faceindices.size()==2 && m_numberOfNormals>1) {
+							if (faceindices.taille()==2 && m_numberOfNormals>1) {
 								normals[i-1] = atoi(faceindices[1].c_str());
 							}
-							else if (faceindices.size()==2 && m_numberOfUVs>1) {
+							else if (faceindices.taille()==2 && m_numberOfUVs>1) {
 								uvs[i-1] = atoi(faceindices[1].c_str());
 							}
-							else if (faceindices.size()==3) {
+							else if (faceindices.taille()==3) {
 								uvs[i-1] = atoi(faceindices[1].c_str());
 								normals[i-1] = atoi(faceindices[2].c_str());
 							}

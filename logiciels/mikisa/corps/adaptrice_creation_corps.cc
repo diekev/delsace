@@ -144,7 +144,7 @@ void AdaptriceCreationCorps::reserve_uvs(long const nombre)
 	}
 }
 
-void AdaptriceCreationCorps::groupes(std::vector<std::string> const &noms)
+void AdaptriceCreationCorps::groupes(dls::tableau<std::string> const &noms)
 {
 	groupes_courant.clear();
 

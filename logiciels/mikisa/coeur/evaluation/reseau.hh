@@ -26,7 +26,8 @@
 
 #include <set>
 #include <unordered_map>
-#include <vector>
+
+#include "biblinternes/structures/tableau.hh"
 
 class Noeud;
 class Objet;
@@ -67,7 +68,7 @@ struct NoeudReseau {
 /* ************************************************************************** */
 
 struct Reseau {
-	std::vector<NoeudReseau *> noeuds{};
+	dls::tableau<NoeudReseau *> noeuds{};
 
 	/* noeud racine représentant le temps dans le réseau */
 	NoeudReseau noeud_temps{};

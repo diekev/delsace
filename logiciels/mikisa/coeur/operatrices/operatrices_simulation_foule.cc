@@ -153,7 +153,7 @@ static void bouge(Personne &personne, dls::math::vec3f const &cible_globale)
 }
 
 #if 0
-void CheckCollision(size_t PersonCount, std::vector<Personne> &Person, int ColNumb)
+void CheckCollision(size_t PersonCount, dls::tableau<Personne> &Person, int ColNumb)
 {
 	//Count = 0 // sets the count for people to start off at 0
 	for (auto Count = 0ul; Count < Person.size(); ++Count) {
@@ -342,7 +342,7 @@ void CheckCollision(size_t PersonCount, std::vector<Personne> &Person, int ColNu
 
 static void verifie_collision(
 		Personne &personne,
-		std::vector<Personne> const &personnes,
+		dls::tableau<Personne> const &personnes,
 		dls::math::vec3f const &cible_globale)
 {
 	for (auto &autre : personnes) {
@@ -355,7 +355,7 @@ static void verifie_collision(
 }
 
 class OperatriceSimFoule final : public OperatriceCorps {
-	std::vector<Personne> m_personnes{};
+	dls::tableau<Personne> m_personnes{};
 
 public:
 	static constexpr auto NOM = "Simulation Foule";
@@ -414,9 +414,9 @@ public:
 		auto const cible_globale = dls::math::vec3f(0.0f, 1.0f, 0.0f);
 
 		/* progénère */
-		if (contexte.temps_courant == 1 || m_personnes.empty() || m_personnes.size() != static_cast<size_t>(nombre_progenitures)) {
+		if (contexte.temps_courant == 1 || m_personnes.est_vide() || m_personnes.taille() != nombre_progenitures) {
 			m_personnes.clear();
-			m_personnes.reserve(static_cast<size_t>(nombre_progenitures));
+			m_personnes.reserve(nombre_progenitures);
 
 			for (auto i = 0; i < nombre_progenitures; ++i) {
 				auto personne = Personne{};
@@ -430,9 +430,9 @@ public:
 
 				personne.min = personne.location - dls::math::vec3f(0.5f);
 				personne.max = personne.location + dls::math::vec3f(0.5f);
-				personne.id = static_cast<int>(m_personnes.size());
+				personne.id = static_cast<int>(m_personnes.taille());
 
-				m_personnes.push_back(personne);
+				m_personnes.pousse(personne);
 			}
 		}
 

@@ -188,7 +188,7 @@ public:
 
 	void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
 		if (attache == "nom_groupe") {
 			entree(0)->obtiens_liste_groupes_points(chaines);
@@ -540,7 +540,7 @@ public:
 
 	void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
 		if (attache == "groupe_origine") {
 			auto origine = evalue_enum("origine");
@@ -1006,7 +1006,7 @@ public:
 
 	void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
 		if (attache == "nom_groupe") {
 			entree(0)->obtiens_liste_groupes_prims(chaines);
@@ -1248,7 +1248,7 @@ public:
 		auto dist = evalue_decimal("distance", contexte.temps_courant);
 
 		/* À FAIRE : liste de points à garder : doublons[i] = i. */
-		auto doublons = std::vector<int>(static_cast<size_t>(points_entree->taille()), -1);
+		auto doublons = dls::tableau<int>(points_entree->taille(), -1);
 
 #if 1
 		auto arbre = ArbreKD(points_entree->taille());
@@ -1294,7 +1294,7 @@ public:
 							 [&](Corps const &, Polygone *poly)
 		{
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-				auto index = static_cast<size_t>(poly->index_point(j));
+				auto index = poly->index_point(j);
 
 				if (doublons[index] != -1) {
 					poly->ajourne_index(j, doublons[index]);
@@ -1543,7 +1543,7 @@ public:
 
 	void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
 		if (attache == "nom_attribut") {
 			entree(0)->obtiens_liste_attributs(chaines);

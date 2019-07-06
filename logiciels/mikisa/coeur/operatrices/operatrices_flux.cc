@@ -432,14 +432,14 @@ public:
 
 		m_corps.reinitialise();
 
-		if (m_graphe_parent.entrees.empty()) {
+		if (m_graphe_parent.entrees.est_vide()) {
 			ajoute_avertissement("Le graphe n'a aucune entrée !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto index_entree = static_cast<size_t>(evalue_entier("index_entrée"));
+		auto index_entree = evalue_entier("index_entrée");
 
-		if (index_entree >= m_graphe_parent.entrees.size()) {
+		if (index_entree >= m_graphe_parent.entrees.taille()) {
 			ajoute_avertissement("L'index de l'entrée est hors de portée !");
 			return EXECUTION_ECHOUEE;
 		}

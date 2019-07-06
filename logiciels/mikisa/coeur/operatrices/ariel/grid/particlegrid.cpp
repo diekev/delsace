@@ -29,12 +29,12 @@ void ParticleGrid::Init(const int& x, const int& y, const int& z)
 	m_grid = new Grid<int>(dls::math::vec3i(x,y,z), -1);
 }
 
-std::vector<Particle*> ParticleGrid::GetCellNeighbors(
+dls::tableau<Particle*> ParticleGrid::GetCellNeighbors(
 		const dls::math::vec3f& index,
 		const dls::math::vec3f& numberOfNeighbors)
 {
 	//loop through neighbors, for each neighbor, check if cell has particles and push back contents
-	std::vector<Particle*> neighbors;
+	dls::tableau<Particle*> neighbors;
 
 	auto ix = index.x;
 	auto iy = index.y;
@@ -53,13 +53,13 @@ std::vector<Particle*> ParticleGrid::GetCellNeighbors(
 					continue;
 				}
 
-				auto cellindex = static_cast<size_t>(m_grid->GetCell(dls::math::vec3f(sx, sy, sz)));
+				auto cellindex = m_grid->GetCell(dls::math::vec3f(sx, sy, sz));
 
-				if (cellindex != -1ul) {
-					auto cellparticlecount = m_cells[cellindex].size();
+				if (cellindex != -1l) {
+					auto cellparticlecount = m_cells[cellindex].taille();
 
-					for (auto a = 0ul; a < cellparticlecount; a++) {
-						neighbors.push_back(m_cells[cellindex][a]);
+					for (auto a = 0l; a < cellparticlecount; a++) {
+						neighbors.pousse(m_cells[cellindex][a]);
 					}
 				}
 			}
@@ -69,11 +69,11 @@ std::vector<Particle*> ParticleGrid::GetCellNeighbors(
 	return neighbors;
 }
 
-std::vector<Particle*> ParticleGrid::GetWallNeighbors(
+dls::tableau<Particle*> ParticleGrid::GetWallNeighbors(
 		const dls::math::vec3f& index,
 		const dls::math::vec3f& numberOfNeighbors)
 {
-	std::vector<Particle*> neighbors;
+	dls::tableau<Particle*> neighbors;
 
 	auto ix = index.x;
 	auto iy = index.y;
@@ -93,12 +93,12 @@ std::vector<Particle*> ParticleGrid::GetWallNeighbors(
 					continue;
 				}
 
-				auto cellindex = static_cast<size_t>(m_grid->GetCell(dls::math::vec3f(sx, sy, sz)));
+				auto cellindex = m_grid->GetCell(dls::math::vec3f(sx, sy, sz));
 
-				if (cellindex != -1ul) {
-					auto cellparticlecount = m_cells[cellindex].size();
-					for (auto a = 0ul; a<cellparticlecount; a++) {
-						neighbors.push_back(m_cells[cellindex][a]);
+				if (cellindex != -1l) {
+					auto cellparticlecount = m_cells[cellindex].taille();
+					for (auto a = 0l; a<cellparticlecount; a++) {
+						neighbors.pousse(m_cells[cellindex][a]);
 					}
 				}
 			}
@@ -119,9 +119,9 @@ float ParticleGrid::CellSDF(
 	auto cellindex = m_grid->GetCell(i,j,k);
 
 	if (cellindex>=0) {
-		for (size_t a = 0; a < m_cells[static_cast<size_t>(cellindex)].size(); a++ ) {
-			if (m_cells[static_cast<size_t>(cellindex)][a]->m_type == type) {
-				accm += m_cells[static_cast<size_t>(cellindex)][a]->m_density;
+		for (auto a = 0; a < m_cells[cellindex].taille(); a++ ) {
+			if (m_cells[cellindex][a]->m_type == type) {
+				accm += m_cells[cellindex][a]->m_density;
 			}
 			else {
 				return 1.0f;
@@ -154,7 +154,7 @@ void ParticleGrid::BuildSDF(
 }
 
 void ParticleGrid::MarkCellTypes(
-		std::vector<Particle*>& particles,
+		dls::tableau<Particle*>& particles,
 		Grid<int>* A,
 		const float& density)
 {
@@ -169,10 +169,10 @@ void ParticleGrid::MarkCellTypes(
 			for (int j = 0; j < y; ++j) {
 				for (int k = 0; k < z; ++k) {
 					A->SetCell(i,j,k, AIR);
-					auto cellindex = static_cast<size_t>(m_grid->GetCell(i,j,k));
+					auto cellindex = m_grid->GetCell(i,j,k);
 
-					if (cellindex != -1ul && cellindex<m_cells.size()) {
-						for (size_t a = 0; a<m_cells[cellindex].size(); a++) {
+					if (cellindex != -1l && cellindex<m_cells.taille()) {
+						for (auto a = 0; a<m_cells[cellindex].taille(); a++) {
 							if (m_cells[cellindex][a]->m_type == SOLID) {
 								A->SetCell(i,j,k, SOLID);
 							}
@@ -194,7 +194,7 @@ void ParticleGrid::MarkCellTypes(
 	});
 }
 
-void ParticleGrid::Sort(std::vector<Particle*>& particles)
+void ParticleGrid::Sort(dls::tableau<Particle*>& particles)
 {
 	// clear existing cells
 	for (auto &cellule : m_cells) {
@@ -203,11 +203,11 @@ void ParticleGrid::Sort(std::vector<Particle*>& particles)
 
 	auto maxd = std::max(std::max(m_dimensions.x, m_dimensions.y), m_dimensions.z);
 
-	auto particlecount = particles.size();
-	auto cellscount = m_cells.size();
+	auto particlecount = particles.taille();
+	auto cellscount = m_cells.taille();
 
 	// cout << particlecount << endl;
-	for (auto i = 0ul; i < particlecount; i++) {
+	for (auto i = 0l; i < particlecount; i++) {
 		auto p = particles[i];
 
 		auto pos = p->m_p;
@@ -218,12 +218,12 @@ void ParticleGrid::Sort(std::vector<Particle*>& particles)
 		auto cellindex = m_grid->GetCell(pos);
 
 		if (cellindex>=0) { //if grid has value here, a cell already exists for it
-			m_cells[static_cast<size_t>(cellindex)].push_back(p);
+			m_cells[cellindex].pousse(p);
 		}
 		else { //if grid has no value, create new cell and push index to grid
-			std::vector<Particle*> cell;
-			cell.push_back(p);
-			m_cells.push_back(cell);
+			dls::tableau<Particle*> cell;
+			cell.pousse(p);
+			m_cells.pousse(cell);
 			m_grid->SetCell(pos, static_cast<int>(cellscount));
 			cellscount++;
 		}

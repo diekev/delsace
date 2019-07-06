@@ -70,7 +70,7 @@ void Graphe::ajoute(Noeud *noeud)
 
 	m_noms_noeuds.insert(nom_temp);
 
-	m_noeuds.push_back(noeud);
+	m_noeuds.pousse(noeud);
 
 	this->vide_selection();
 	this->ajoute_selection(noeud);
@@ -90,13 +90,13 @@ void Graphe::supprime_noeud(Noeud *noeud)
 
 void Graphe::supprime(Noeud *node)
 {
-	auto iter = std::find_if(m_noeuds.begin(), m_noeuds.end(),
+	auto iter = std::find_if(m_noeuds.debut(), m_noeuds.fin(),
 							 [node](Noeud *node_ptr)
 	{
 		return node_ptr == node;
 	});
 
-	if (iter == m_noeuds.end()) {
+	if (iter == m_noeuds.fin()) {
 		/* À FAIRE : erreur entreface */
 		std::cerr << "Impossible de trouver le noeud dans le graphe !\n";
 		return;
@@ -125,13 +125,13 @@ void Graphe::supprime(Noeud *node)
 
 void Graphe::connecte(PriseSortie *sortie, PriseEntree *entree)
 {
-	if (!entree->liens.empty() && !entree->multiple_connexions) {
+	if (!entree->liens.est_vide() && !entree->multiple_connexions) {
 		std::cerr << "L'entrée est déjà connectée !\n";
 		return;
 	}
 
-	entree->liens.push_back(sortie);
-	sortie->liens.push_back(entree);
+	entree->liens.pousse(sortie);
+	sortie->liens.pousse(entree);
 
 	marque_surannee(entree->parent);
 
@@ -140,16 +140,16 @@ void Graphe::connecte(PriseSortie *sortie, PriseEntree *entree)
 
 bool Graphe::deconnecte(PriseSortie *sortie, PriseEntree *entree)
 {
-	auto iter_entree = std::find(sortie->liens.begin(), sortie->liens.end(), entree);
+	auto iter_entree = std::find(sortie->liens.debut(), sortie->liens.fin(), entree);
 
-	if (iter_entree == sortie->liens.end()) {
+	if (iter_entree == sortie->liens.fin()) {
 		std::cerr << "L'entrée n'est pas connectée à la sortie !\n";
 		return false;
 	}
 
-	auto iter_sortie = std::find(entree->liens.begin(), entree->liens.end(), sortie);
+	auto iter_sortie = std::find(entree->liens.debut(), entree->liens.fin(), sortie);
 
-	if (iter_sortie == entree->liens.end()) {
+	if (iter_sortie == entree->liens.fin()) {
 		std::cerr << "L'entrée n'est pas connectée à la sortie !\n";
 		return false;
 	}
@@ -166,12 +166,12 @@ bool Graphe::deconnecte(PriseSortie *sortie, PriseEntree *entree)
 
 Graphe::plage_noeud Graphe::noeuds()
 {
-	return plage_noeud(m_noeuds.begin(), m_noeuds.end());
+	return plage_noeud(m_noeuds.debut(), m_noeuds.fin());
 }
 
 Graphe::plage_noeud_const Graphe::noeuds() const
 {
-	return plage_noeud_const(m_noeuds.cbegin(), m_noeuds.cend());
+	return plage_noeud_const(m_noeuds.debut(), m_noeuds.fin());
 }
 
 void Graphe::ajoute_selection(Noeud *noeud)
@@ -329,7 +329,7 @@ void calcule_degree(Noeud *noeud)
 	noeud->degre = 0;
 
 	for (auto *prise : noeud->entrees()) {
-		noeud->degre += static_cast<int>(prise->liens.size());
+		noeud->degre += static_cast<int>(prise->liens.taille());
 	}
 }
 

@@ -81,16 +81,16 @@ std::string convertIntToString(int number)
 	return ss.str();
 }
 
-std::vector<std::string> tokenizeString(std::string str, std::string separator)
+dls::tableau<std::string> tokenizeString(std::string str, std::string separator)
 {
-	std::vector<std::string> results;
+	dls::tableau<std::string> results;
 	char * cstr, *p;
 	std::string strt = str;
 	cstr = new char[strt.size()+1];
 	std::strcpy (cstr, strt.c_str());
 	p=std::strtok (cstr, separator.c_str());
 	while (p!=nullptr) {
-		results.push_back(p);
+		results.pousse(p);
 		p=strtok(nullptr, separator.c_str());
 	}
 	delete [] cstr;
@@ -98,12 +98,12 @@ std::vector<std::string> tokenizeString(std::string str, std::string separator)
 	return results;
 }
 
-std::vector<std::string> tokenizeStringByAllWhitespace(std::string str)
+dls::tableau<std::string> tokenizeStringByAllWhitespace(std::string str)
 {
 	std::stringstream strstr(str);
 	std::istream_iterator<std::string> it(strstr);
 	std::istream_iterator<std::string> end;
-	std::vector<std::string> results(it, end);
+	dls::tableau<std::string> results(it, end);
 	return results;
 }
 
@@ -302,8 +302,8 @@ std::string readFileAsString(std::string filename)
 std::string getRelativePath(std::string path)
 {
 	std::string relativePath;
-	std::vector<std::string> pathTokens = tokenizeString(path, "/");
-	for (auto i=0ul; i<pathTokens.size()-1; i++) {
+	dls::tableau<std::string> pathTokens = tokenizeString(path, "/");
+	for (auto i=0l; i<pathTokens.taille()-1; i++) {
 		relativePath = relativePath + pathTokens[i] + "/";
 	}
 	return relativePath;

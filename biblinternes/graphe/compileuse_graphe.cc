@@ -53,7 +53,7 @@ void CompileuseGraphe::ajoute_noeud(dls::math::vec3f const &v)
 	this->ajoute_noeud(v.x, v.y, v.z);
 }
 
-size_t CompileuseGraphe::decalage_pile(PriseSortie *prise)
+long CompileuseGraphe::decalage_pile(PriseSortie *prise)
 {
 	if (prise == nullptr) {
 		return 0;
@@ -85,7 +85,7 @@ size_t CompileuseGraphe::decalage_pile(PriseSortie *prise)
 	return prise->decalage_pile;
 }
 
-size_t CompileuseGraphe::decalage_pile(type_prise tprise)
+long CompileuseGraphe::decalage_pile(type_prise tprise)
 {
 	auto d = m_decalage;
 
@@ -122,12 +122,12 @@ int CompileuseGraphe::decalage_pile(int taille)
 	return static_cast<int>(d);
 }
 
-void CompileuseGraphe::stocke_decimal(size_t decalage, float const &v)
+void CompileuseGraphe::stocke_decimal(long decalage, float const &v)
 {
 	m_pile[decalage++] = v;
 }
 
-void CompileuseGraphe::stocke_vec3f(size_t decalage, dls::math::vec3f const &v)
+void CompileuseGraphe::stocke_vec3f(long decalage, dls::math::vec3f const &v)
 {
 	m_pile[decalage++] = v.x;
 	m_pile[decalage++] = v.y;
@@ -136,25 +136,25 @@ void CompileuseGraphe::stocke_vec3f(size_t decalage, dls::math::vec3f const &v)
 
 CompileuseGraphe::iterateur CompileuseGraphe::debut()
 {
-	return m_pile.begin();
+	return m_pile.debut();
 }
 
 CompileuseGraphe::iterateur CompileuseGraphe::fin()
 {
-	return m_pile.end();
+	return m_pile.fin();
 }
 
 CompileuseGraphe::iterateur_const CompileuseGraphe::debut() const
 {
-	return m_pile.cbegin();
+	return m_pile.debut();
 }
 
 CompileuseGraphe::iterateur_const CompileuseGraphe::fin() const
 {
-	return m_pile.cend();
+	return m_pile.fin();
 }
 
-std::vector<float> CompileuseGraphe::pile()
+dls::tableau<float> CompileuseGraphe::pile()
 {
 	return m_pile;
 }

@@ -27,6 +27,8 @@
 #include <experimental/filesystem>
 #include <unordered_map>
 
+#include "biblinternes/structures/tableau.hh"
+
 class QBoxLayout;
 class QMenu;
 class QToolBar;
@@ -60,7 +62,7 @@ class GestionnaireInterface {
 	std::unordered_map<std::string, QMenu *> m_menus{};
 	std::unordered_map<std::string, QMenu *> m_menus_entrerogeables{};
 	std::unordered_map<std::string, QBoxLayout *> m_dispositions{};
-	std::vector<QToolBar *> m_barres_outils{};
+	dls::tableau<QToolBar *> m_barres_outils{};
 
 public:
 	~GestionnaireInterface();
@@ -69,7 +71,7 @@ public:
 
 	void recree_menu(
 			const std::string &nom,
-			const std::vector<DonneesAction> &donnees_actions);
+			const dls::tableau<DonneesAction> &donnees_actions);
 
 	void ajourne_disposition(const std::string &nom, int temps = 0);
 

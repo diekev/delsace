@@ -66,8 +66,8 @@ public:
 							const unsigned int& nodeid);
 	void Transform(const dls::math::mat4x4f& m);
 
-	std::vector<rayCore::Intersection> m_intersections{};
-	std::vector<unsigned int> m_nodeids{};
+	dls::tableau<rayCore::Intersection> m_intersections{};
+	dls::tableau<unsigned int> m_nodeids{};
 };
 }
 

@@ -137,7 +137,7 @@ void FenetrePrincipale::ecrit_reglages() const
 
 void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 {
-	std::vector<danjo::DonneesAction> donnees_actions;
+	dls::tableau<danjo::DonneesAction> donnees_actions;
 
 	danjo::DonneesAction donnees{};
 	donnees.attache = "ouvrir_fichier_recent";
@@ -149,7 +149,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 		donnees.nom = name.toStdString();
 		donnees.metadonnee = fichier_recent;
 
-		donnees_actions.push_back(donnees);
+		donnees_actions.pousse(donnees);
 	}
 
 	m_mikisa.gestionnaire_entreface->recree_menu("Projets Récents", donnees_actions);

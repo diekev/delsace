@@ -64,7 +64,7 @@ public:
 
 	void reserve_uvs(long const nombre) override;
 
-	void groupes(std::vector<std::string> const &noms) override;
+	void groupes(dls::tableau<std::string> const &noms) override;
 
 	void groupe_nuancage(const int idx) override;
 };
@@ -143,7 +143,7 @@ void AdaptriceCreation::reserve_uvs(long const nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreation::groupes(std::vector<std::string> const &noms)
+void AdaptriceCreation::groupes(dls::tableau<std::string> const &noms)
 {
 	INUTILISE(noms);
 }

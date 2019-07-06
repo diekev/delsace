@@ -66,7 +66,7 @@ void ArbreOcternaire::insert_triangle(
 		limites3f const &limites_enfant)
 {
 	if (noeud->est_feuille) {
-		noeud->triangles.push_back(triangle);
+		noeud->triangles.pousse(triangle);
 		return;
 	}
 
@@ -121,7 +121,7 @@ ArbreOcternaire::Noeud *ArbreOcternaire::racine()
 
 void rassemble_topologie(ArbreOcternaire::Noeud *noeud, Corps &corps)
 {
-	if (noeud->est_feuille && noeud->triangles.empty()) {
+	if (noeud->est_feuille && noeud->triangles.est_vide()) {
 		return;
 	}
 

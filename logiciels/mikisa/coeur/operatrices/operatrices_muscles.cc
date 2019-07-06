@@ -69,19 +69,19 @@ public:
 	float angle{},l1{},l2{}; // angle in radians, length in metres
 	float weight{};
 
-	std::vector<SimMesh*> muscleList{};
-	std::vector<float> muscleOrigins{};	//0-1
-	std::vector<float> muscleInsertions{};
-	std::vector<float> muscleActivations{}; //0-1
-	std::vector<float> muscleMaxForces{};
-	std::vector<float> muscleLengths{};
+	dls::tableau<SimMesh*> muscleList{};
+	dls::tableau<float> muscleOrigins{};	//0-1
+	dls::tableau<float> muscleInsertions{};
+	dls::tableau<float> muscleActivations{}; //0-1
+	dls::tableau<float> muscleMaxForces{};
+	dls::tableau<float> muscleLengths{};
 
 	//If dummies are to be added
-	std::vector<float> dummy_muscle_moments{};
-	std::vector<float> dummy_muscle_max_force{};
+	dls::tableau<float> dummy_muscle_moments{};
+	dls::tableau<float> dummy_muscle_max_force{};
 
-	std::vector<dls::math::vec3f> muscleScales{};
-	std::vector< dls::math::vec4f > render_buffer{};
+	dls::tableau<dls::math::vec3f> muscleScales{};
+	dls::tableau< dls::math::vec4f > render_buffer{};
 
 	Joint(float,float,float);
 	void AddMuscle(SimMesh* , float, float, float, const dls::math::vec3f &);
@@ -114,19 +114,19 @@ public:
 	int num_faces{};
 	int num_tets{};
 
-	std::vector< dls::math::vec4f > vertices{};
-	std::vector< dls::math::vec4f > curr_vertices{};
-	std::vector< dls::math::vec4f > final_vertices{};
-	std::vector< float > vertex_stress{};
+	dls::tableau< dls::math::vec4f > vertices{};
+	dls::tableau< dls::math::vec4f > curr_vertices{};
+	dls::tableau< dls::math::vec4f > final_vertices{};
+	dls::tableau< float > vertex_stress{};
 
-	std::vector< dls::math::vec3f > faces{};
-	std::vector< dls::math::vec4i > tets{};
+	dls::tableau< dls::math::vec3f > faces{};
+	dls::tableau< dls::math::vec4i > tets{};
 
-	std::vector< Eigen::Vector3f > forces{};
+	dls::tableau< Eigen::Vector3f > forces{};
 
-	std::vector< tet_t* > sim_tets{};
+	dls::tableau< tet_t* > sim_tets{};
 
-	std::vector< dls::math::vec4f > render_buffer{};
+	dls::tableau< dls::math::vec4f > render_buffer{};
 
 	int origin_vertex{};
 	int insertion_vertex{};
@@ -189,18 +189,18 @@ void Joint::AddMuscle(SimMesh* muscle , float origin, float insertion, float max
 {
 	INUTILISE(scale);
 
-	muscleList.push_back(muscle);
-	muscleOrigins.push_back(origin);
-	muscleInsertions.push_back(insertion);
-	muscleMaxForces.push_back(maxForce);
-	muscleActivations.push_back(0);
+	muscleList.pousse(muscle);
+	muscleOrigins.pousse(origin);
+	muscleInsertions.pousse(insertion);
+	muscleMaxForces.pousse(maxForce);
+	muscleActivations.pousse(0);
 
 	auto k1 = l1*(1-origin);
 	auto k2 = l2*(insertion);
 	auto n_scale = (std::sqrt(std::pow(k1, 2.0f) + std::pow(k2, 2.0f)-2.0f * k1 * k2 * std::cos(angle)))/2.0f;
 
-	muscleLengths.push_back(n_scale*2.0f);
-	muscleScales.push_back(dls::math::vec3f(n_scale,n_scale,n_scale));
+	muscleLengths.pousse(n_scale*2.0f);
+	muscleScales.pousse(dls::math::vec3f(n_scale,n_scale,n_scale));
 	num_muscles++;
 }
 
@@ -221,17 +221,17 @@ void Joint::IncWeight(float wt)
 
 void Joint::CalculateActivations()
 {
-	std::vector<float> moment_arms;
+	dls::tableau<float> moment_arms;
 	float temp_moment,ms_moment_arm,net_moment_arm;
 	float k1,k2;
 	ms_moment_arm=0;
 
-	for (size_t i=0; i < static_cast<size_t>(num_muscles); i++) {
+	for (auto i=0; i < num_muscles; i++) {
 		k1 = l1*(1-muscleOrigins[i]);
 		k2 = l2*(muscleInsertions[i]);
 		temp_moment = k1 * k2 * std::sin(angle) / (std::sqrt(std::pow(k1,2.0f) + std::pow(k2,2.0f)-2.0f*k1*k2*std::cos(angle) ) );
 		//cout<<"temp_moment: "<<temp_moment<<endl;
-		moment_arms.push_back(temp_moment*muscleMaxForces[i]);
+		moment_arms.pousse(temp_moment*muscleMaxForces[i]);
 		ms_moment_arm += std::pow(temp_moment*muscleMaxForces[i],2.0f);
 	}
 
@@ -242,7 +242,7 @@ void Joint::CalculateActivations()
 	//cout<<"nma: "<<net_moment_arm<<endl;
 	//cout<<"msma: "<<ms_moment_arm<<endl;
 	//std::cout<<glm::degrees(angle)<<" "<<weight<<" ";
-	for (size_t i=0; i < static_cast<size_t>(num_muscles); i++) {
+	for (auto i=0; i < num_muscles; i++) {
 		muscleActivations[i] = (moment_arms[i]*net_moment_arm)/ms_moment_arm;
 		//cout<<"Muscle "<<i<<" activation: "<<muscleActivations[i]<<"; ";
 
@@ -265,7 +265,7 @@ void Joint::Equilibriate()
 {
 	CalculateActivations();
 
-	for (size_t i=0; i < static_cast<size_t>(num_muscles); i++) {
+	for (auto i=0; i < num_muscles; i++) {
 		auto k1 = l1 * (1.0f - muscleOrigins[i]);
 		auto k2 = l2 * (muscleInsertions[i]);
 		auto new_length = (std::sqrt(std::pow(k1,2.0f)+std::pow(k2,2.0f)-2.0f*k1*k2*std::cos(angle)));
@@ -282,28 +282,28 @@ void Joint::Render()
 	// Add each vertex of faces in the order into the render buffer (TODR)
 	render_buffer.clear();
 
-//	render_buffer.push_back(dls::math::vec4f(0.0,0.0,0.0,1.0));
-//	render_buffer.push_back(dls::math::vec4f(0.0,l1,0.0,1.0));
-//	render_buffer.push_back(dls::math::vec4f(0.0,0.0,0.0,1.0));
+//	render_buffer.pousse(dls::math::vec4f(0.0,0.0,0.0,1.0));
+//	render_buffer.pousse(dls::math::vec4f(0.0,l1,0.0,1.0));
+//	render_buffer.pousse(dls::math::vec4f(0.0,0.0,0.0,1.0));
 //	dls::math::mat4x4f rotation = dls::math::rotation(dls::math::mat4x4f(1.0f), angle, dls::math::vec3f(0.0f,0.0f,-1.0f));
-//	render_buffer.push_back(rotation*dls::math::vec4f(0.0,l2,0.0,1.0));
+//	render_buffer.pousse(rotation*dls::math::vec4f(0.0,l2,0.0,1.0));
 	/*for ( int i=0; i< faces.size() ; i++){
-		render_buffer.push_back(curr_vertices[faces[i].x]);
-		render_buffer.push_back(curr_vertices[faces[i].y]);
-		render_buffer.push_back(curr_vertices[faces[i].z]);
+		render_buffer.pousse(curr_vertices[faces[i].x]);
+		render_buffer.pousse(curr_vertices[faces[i].y]);
+		render_buffer.pousse(curr_vertices[faces[i].z]);
 		//cout<<faces[i].x<<","<<faces[i].y<<","<<faces[i].z<<endl;
 	}*/
 
 	//setting up colour
 
-//	render_buffer.push_back(dls::math::vec4f(1.0,1.0,1.0,1.0));
-//	render_buffer.push_back(dls::math::vec4f(1.0,1.0,1.0,1.0));
-//	render_buffer.push_back(dls::math::vec4f(1.0,1.0,1.0,1.0));
-//	render_buffer.push_back(dls::math::vec4f(1.0,1.0,1.0,1.0));
+//	render_buffer.pousse(dls::math::vec4f(1.0,1.0,1.0,1.0));
+//	render_buffer.pousse(dls::math::vec4f(1.0,1.0,1.0,1.0));
+//	render_buffer.pousse(dls::math::vec4f(1.0,1.0,1.0,1.0));
+//	render_buffer.pousse(dls::math::vec4f(1.0,1.0,1.0,1.0));
 	/*for ( int i=0; i< faces.size() ; i++){
-		render_buffer.push_back(red_blue(forces[faces[i].x].norm(),500,2000));
-		render_buffer.push_back(red_blue(forces[faces[i].y].norm(),500,2000));
-		render_buffer.push_back(red_blue(forces[faces[i].z].norm(),500,2000));
+		render_buffer.pousse(red_blue(forces[faces[i].x].norm(),500,2000));
+		render_buffer.pousse(red_blue(forces[faces[i].y].norm(),500,2000));
+		render_buffer.pousse(red_blue(forces[faces[i].z].norm(),500,2000));
 	}*/
 
 	// setup the vbo and vao;
@@ -346,7 +346,7 @@ void Joint::Render()
 //	delete ms_mult;
 
 	auto pi = constantes<float>::PI;
-	for (auto i = 0ul; i < muscleList.size(); i++){
+	for (auto i = 0l; i < muscleList.taille(); i++){
 		auto k1 = l1 * (1.0f - muscleOrigins[i]);
 		auto k2 = l2 * (muscleInsertions[i]);
 		auto d = (std::sqrt(std::pow(k1, 2.0f) + std::pow(k2,2.0f)-2.0f*k1*k2*std::cos(angle)));
@@ -358,11 +358,11 @@ void Joint::Render()
 		}
 		//cout<<muscle_angle<<endl;
 
-//		matrixStack.push_back(glm::translate(dls::math::mat4x4f(1.0f), dls::math::vec3f(0.0f,l1*(1-muscleOrigins[i]),0.0f)));
+//		matrixStack.pousse(glm::translate(dls::math::mat4x4f(1.0f), dls::math::vec3f(0.0f,l1*(1-muscleOrigins[i]),0.0f)));
 
-//		matrixStack.push_back(glm::rotate(dls::math::mat4x4f(1.0f),muscle_angle, dls::math::vec3f(0.0f,0.0f,-1.0f)) );
+//		matrixStack.pousse(glm::rotate(dls::math::mat4x4f(1.0f),muscle_angle, dls::math::vec3f(0.0f,0.0f,-1.0f)) );
 
-//		matrixStack.push_back(glm::scale(dls::math::mat4x4f(1.0f),dls::math::vec3f(muscleScales[i])));
+//		matrixStack.pousse(glm::scale(dls::math::mat4x4f(1.0f),dls::math::vec3f(muscleScales[i])));
 
 		muscleList[i]->Render();
 
@@ -372,12 +372,12 @@ void Joint::Render()
 	}
 }
 
-dls::math::mat4x4f* multiply_stack(std::vector<dls::math::mat4x4f> matStack)
+dls::math::mat4x4f* multiply_stack(dls::tableau<dls::math::mat4x4f> matStack)
 {
 	dls::math::mat4x4f* mult;
 	mult = new dls::math::mat4x4f(1.0f);
 
-	for (auto i=0ul; i < matStack.size();i++){
+	for (auto i=0l; i < matStack.taille();i++){
 		*mult = (*mult) * matStack[i];
 	}
 
@@ -441,8 +441,8 @@ void SimMesh::ReadTetgenMesh(std::string mesh_name){
 				dls::math::vec4f vertex;
 				temp_ss >> counter >> vertex.x >> vertex.y >> vertex.z;
 				vertex.w = 1;
-				vertices.push_back(vertex);
-				vertex_stress.push_back(0);
+				vertices.pousse(vertex);
+				vertex_stress.pousse(0);
 			}
 
 		}
@@ -479,7 +479,7 @@ void SimMesh::ReadTetgenMesh(std::string mesh_name){
 				temp_ss >> counter >> face.x >> face.y >> face.z;
 				// indices in vertices array start from 0
 				face.x--;face.y--;face.z--;
-				faces.push_back(face);
+				faces.pousse(face);
 			}
 
 		}
@@ -513,26 +513,26 @@ void SimMesh::ReadTetgenMesh(std::string mesh_name){
 				temp_ss >> counter >> tet.x >> tet.y >> tet.z >> tet.w;
 				// indices in vertices array start from 0
 				tet.x--;tet.y--;tet.z--;tet.w--;
-				tets.push_back(tet);
+				tets.pousse(tet);
 			}
 		}
 	}
 
 	// initialize sim tets
-	for (auto i = 0ul; i < tets.size(); i++){
+	for (auto i = 0l; i < tets.taille(); i++){
 		auto temp = new tet_t;
 		temp->vertices = tets[i];
-		sim_tets.push_back(temp);
+		sim_tets.pousse(temp);
 
 		// initialize the stress-force coefficients
 		Eigen::Vector3f v0;
-		v0 << vertices[static_cast<size_t>(temp->vertices[0])].x, vertices[static_cast<size_t>(temp->vertices[0])].y, vertices[static_cast<size_t>(temp->vertices[0])].z;
+		v0 << vertices[temp->vertices[0]].x, vertices[temp->vertices[0]].y, vertices[temp->vertices[0]].z;
 		Eigen::Vector3f v1;
-		v1 << vertices[static_cast<size_t>(temp->vertices[1])].x ,vertices[static_cast<size_t>(temp->vertices[1])].y ,vertices[static_cast<size_t>(temp->vertices[1])].z;
+		v1 << vertices[temp->vertices[1]].x ,vertices[temp->vertices[1]].y ,vertices[temp->vertices[1]].z;
 		Eigen::Vector3f v2;
-		v2 << vertices[static_cast<size_t>(temp->vertices[2])].x ,vertices[static_cast<size_t>(temp->vertices[2])].y ,vertices[static_cast<size_t>(temp->vertices[2])].z;
+		v2 << vertices[temp->vertices[2]].x ,vertices[temp->vertices[2]].y ,vertices[temp->vertices[2]].z;
 		Eigen::Vector3f v3;
-		v3 << vertices[static_cast<size_t>(temp->vertices[3])].x ,vertices[static_cast<size_t>(temp->vertices[3])].y ,vertices[static_cast<size_t>(temp->vertices[3])].z;
+		v3 << vertices[temp->vertices[3]].x ,vertices[temp->vertices[3]].y ,vertices[temp->vertices[3]].z;
 
 		temp->g[0] = -(1.0/6.0)*((v2-v0).cross(v1-v0) + (v1-v0).cross(v3-v0) + (v3-v0).cross(v2-v0));
 		temp->g[1] = -(1.0/6.0)*((v3-v1).cross(v0-v1) + (v0-v1).cross(v2-v1) + (v2-v1).cross(v3-v1));
@@ -567,24 +567,24 @@ void SimMesh::Render(bool show_stresses)
 	render_buffer.clear();
 
 	for (auto f : faces) {
-		render_buffer.push_back(curr_vertices[static_cast<size_t>(f.x)]);
-		render_buffer.push_back(curr_vertices[static_cast<size_t>(f.y)]);
-		render_buffer.push_back(curr_vertices[static_cast<size_t>(f.z)]);
+		render_buffer.pousse(curr_vertices[static_cast<long>(f.x)]);
+		render_buffer.pousse(curr_vertices[static_cast<long>(f.y)]);
+		render_buffer.pousse(curr_vertices[static_cast<long>(f.z)]);
 	}
 
 	//setting up colour
 	if (show_stresses == false) {
 //		for (auto f : faces) {
-//			render_buffer.push_back(red_blue(forces[static_cast<size_t>(f.x)].norm(),500,2000));
-//			render_buffer.push_back(red_blue(forces[static_cast<size_t>(f.y)].norm(),500,2000));
-//			render_buffer.push_back(red_blue(forces[static_cast<size_t>(f.z)].norm(),500,2000));
+//			render_buffer.pousse(red_blue(forces[static_cast<long>(f.x)].norm(),500,2000));
+//			render_buffer.pousse(red_blue(forces[static_cast<long>(f.y)].norm(),500,2000));
+//			render_buffer.pousse(red_blue(forces[static_cast<long>(f.z)].norm(),500,2000));
 //		}
 	}
 	else {
 //		for (auto f : faces) {
-//			render_buffer.push_back(red_blue(vertex_stress[static_cast<size_t>(f.x)],100000,500000));
-//			render_buffer.push_back(red_blue(vertex_stress[static_cast<size_t>(f.y)],100000,500000));
-//			render_buffer.push_back(red_blue(vertex_stress[static_cast<size_t>(f.z)],100000,500000));
+//			render_buffer.pousse(red_blue(vertex_stress[static_cast<long>(f.x)],100000,500000));
+//			render_buffer.pousse(red_blue(vertex_stress[static_cast<long>(f.y)],100000,500000));
+//			render_buffer.pousse(red_blue(vertex_stress[static_cast<long>(f.z)],100000,500000));
 //		}
 	}
 }
@@ -596,15 +596,15 @@ void SimMesh::CalculateDeformationGradients(){
 		Eigen::Matrix3f Ds;
 		Eigen::Matrix3f TempF;
 
-		dls::math::vec4f edge1 = curr_vertices[static_cast<size_t>(tet->vertices[1])] -curr_vertices[static_cast<size_t>(tet->vertices[0])];
-		dls::math::vec4f edge2 = curr_vertices[static_cast<size_t>(tet->vertices[3])] -curr_vertices[static_cast<size_t>(tet->vertices[0])];
-		dls::math::vec4f edge3 = curr_vertices[static_cast<size_t>(tet->vertices[2])] -curr_vertices[static_cast<size_t>(tet->vertices[0])];
+		dls::math::vec4f edge1 = curr_vertices[tet->vertices[1]] -curr_vertices[tet->vertices[0]];
+		dls::math::vec4f edge2 = curr_vertices[tet->vertices[3]] -curr_vertices[tet->vertices[0]];
+		dls::math::vec4f edge3 = curr_vertices[tet->vertices[2]] -curr_vertices[tet->vertices[0]];
 
 		Dm <<edge1.x,edge2.x,edge3.x,edge1.y,edge2.y,edge3.y,edge1.z,edge2.z,edge3.z;
 
-		edge1 = vertices[static_cast<size_t>(tet->vertices[1])] -vertices[static_cast<size_t>(tet->vertices[0])];
-		edge2 =	vertices[static_cast<size_t>(tet->vertices[3])] -vertices[static_cast<size_t>(tet->vertices[0])];
-		edge3 = vertices[static_cast<size_t>(tet->vertices[2])] -vertices[static_cast<size_t>(tet->vertices[0])];
+		edge1 = vertices[tet->vertices[1]] -vertices[tet->vertices[0]];
+		edge2 =	vertices[tet->vertices[3]] -vertices[tet->vertices[0]];
+		edge3 = vertices[tet->vertices[2]] -vertices[tet->vertices[0]];
 
 		Ds <<edge1.x,edge2.x,edge3.x,edge1.y,edge2.y,edge3.y,edge1.z,edge2.z,edge3.z;
 
@@ -655,7 +655,7 @@ void SimMesh::CalculateStresses(){
 	float T = Tmax*act*(std::max(1.0f-(std::abs(l-l_init)*0.5f),0.0f));//80000;
 
 	// Main loop for each tetrahedron
-	for (auto i = 0ul; i < sim_tets.size();i++) {
+	for (auto i = 0l; i < sim_tets.taille();i++) {
 		F_orig = sim_tets[i]->F;
 
 		if ( true /*F_orig.determinant() < 0*/){
@@ -856,10 +856,10 @@ void SimMesh::CalculateStresses(){
 void SimMesh::ComputeForces()
 {
 	forces.clear();
-	for (auto i = 0ul; i < vertices.size(); i++){
+	for (auto i = 0l; i < vertices.taille(); i++){
 		Eigen::Vector3f a;
 		a<<0,0,0;
-		forces.push_back(a);
+		forces.pousse(a);
 		vertex_stress[i]=0;
 	}
 
@@ -868,7 +868,7 @@ void SimMesh::ComputeForces()
 		curr_P = curr_tet->P;
 
 		for (auto j = 0ul; j < 4; j++){
-			auto curr_vertex = static_cast<size_t>(curr_tet->vertices[j]);
+			auto curr_vertex = curr_tet->vertices[j];
 			forces[curr_vertex]-=(curr_P)*(curr_tet->g[j]);
 			vertex_stress[curr_vertex] += 0.25f * (curr_P(0,0) + curr_P(1,1) + curr_P(2,2));
 			//cout<<"iteration "<<iteration<<"vertex stress"<< i<<"th vertex:"<<vertex_stress[i]<<endl;
@@ -883,7 +883,7 @@ void SimMesh::ComputeForces()
 
 void SimMesh::MoveInsertion(dls::math::vec4f const &t)
 {
-	for (auto i = 0ul; i < vertices.size(); ++i){
+	for (auto i = 0l; i < vertices.taille(); ++i){
 		if (vertices[i].x > 1.8f){ //condition for insertion vertices
 			curr_vertices[i] += t;
 		}
@@ -899,7 +899,7 @@ void SimMesh::TimeStep(float dT)
 	avg_move = 0;
 	max_move=0;
 	float move;
-	for (auto i = 0ul; i < vertices.size(); ++i){
+	for (auto i = 0l; i < vertices.taille(); ++i){
 		//if (i == 0 || i==17){
 		if (vertices[i].x < 0.2f || vertices[i].x >1.8f){
 			// if (iteration==0){
@@ -1045,7 +1045,7 @@ public:
 		calcul_normaux(m_corps, true, false);
 	}
 
-	void convertie_geometrie_muscle(SimMesh *mesh, size_t i, bool show_stresses, Attribut *attr_C)
+	void convertie_geometrie_muscle(SimMesh *mesh, long i, bool show_stresses, Attribut *attr_C)
 	{
 		auto decalage = m_corps.points()->taille();
 
@@ -1067,9 +1067,9 @@ public:
 		mat *= dls::math::dimension(dls::math::mat4x4f(1.0f), joint1->muscleScales[i]);
 
 		for (auto f : mesh->faces) {
-			auto const &v0 = mat * mesh->curr_vertices[static_cast<size_t>(f.x)];// + mat[3];
-			auto const &v1 = mat * mesh->curr_vertices[static_cast<size_t>(f.y)];// + mat[3];
-			auto const &v2 = mat * mesh->curr_vertices[static_cast<size_t>(f.z)];// + mat[3];
+			auto const &v0 = mat * mesh->curr_vertices[static_cast<long>(f.x)];// + mat[3];
+			auto const &v1 = mat * mesh->curr_vertices[static_cast<long>(f.y)];// + mat[3];
+			auto const &v2 = mat * mesh->curr_vertices[static_cast<long>(f.z)];// + mat[3];
 
 			m_corps.ajoute_point(v0.x, v0.y, v0.z);
 			m_corps.ajoute_point(v1.x, v1.y, v1.z);
@@ -1083,16 +1083,16 @@ public:
 
 		if (show_stresses == false) {
 			for (auto f : mesh->faces) {
-				attr_C->pousse(red_blue(mesh->forces[static_cast<size_t>(f.x)].norm(), 500.0f, 2000.0f));
-				attr_C->pousse(red_blue(mesh->forces[static_cast<size_t>(f.y)].norm(), 500.0f, 2000.0f));
-				attr_C->pousse(red_blue(mesh->forces[static_cast<size_t>(f.z)].norm(), 500.0f, 2000.0f));
+				attr_C->pousse(red_blue(mesh->forces[static_cast<long>(f.x)].norm(), 500.0f, 2000.0f));
+				attr_C->pousse(red_blue(mesh->forces[static_cast<long>(f.y)].norm(), 500.0f, 2000.0f));
+				attr_C->pousse(red_blue(mesh->forces[static_cast<long>(f.z)].norm(), 500.0f, 2000.0f));
 			}
 		}
 		else {
 			for (auto f : mesh->faces) {
-				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<size_t>(f.x)], 100000.0f, 500000.0f));
-				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<size_t>(f.y)], 100000.0f, 500000.0f));
-				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<size_t>(f.z)], 100000.0f, 500000.0f));
+				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<long>(f.x)], 100000.0f, 500000.0f));
+				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<long>(f.y)], 100000.0f, 500000.0f));
+				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<long>(f.z)], 100000.0f, 500000.0f));
 			}
 		}
 	}

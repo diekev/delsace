@@ -258,6 +258,11 @@ public:
 		this->echange(autre);
 	}
 
+	template <typename __iter_horsin, typename = std::_RequireInputIter<__iter_horsin>>
+	tableau(__iter_horsin __deb, __iter_horsin __fin)
+		: m_vecteur(__deb, __fin)
+	{}
+
 	~tableau() = default;
 
 	tableau &operator=(tableau const &autre)
@@ -404,9 +409,26 @@ public:
 		m_vecteur.erase(iter);
 	}
 
+	void erase(iteratrice debut_, iteratrice fin_)
+	{
+		m_vecteur.erase(debut_, fin_);
+	}
+
 	void insere(iteratrice ou, T const &quoi)
 	{
 		m_vecteur.insert(ou, quoi);
+	}
+
+	template <typename __iter_horsin>
+	void insere(iteratrice ou, __iter_horsin __deb, __iter_horsin __fin)
+	{
+		m_vecteur.insert(ou, __deb, __fin);
+	}
+
+	template <typename... Args>
+	void emplace_back(Args &&...args)
+	{
+		m_vecteur.emplace_back(args...);
 	}
 };
 #else

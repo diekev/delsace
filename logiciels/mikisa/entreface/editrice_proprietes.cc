@@ -98,7 +98,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	operatrice->ajourne_proprietes();
 
 	/* avertissements */
-	if (operatrice->avertissements().size() > 0) {
+	if (operatrice->avertissements().taille() > 0) {
 		auto disposition_avertissements = new QGridLayout();
 		auto ligne = 0;
 		auto const &pixmap = QPixmap("icones/icone_avertissement.png");
@@ -179,7 +179,7 @@ void EditriceProprietes::ajourne_manipulable()
 
 void EditriceProprietes::obtiens_liste(
 		std::string const &attache,
-		std::vector<std::string> &chaines)
+		dls::tableau<std::string> &chaines)
 {
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;

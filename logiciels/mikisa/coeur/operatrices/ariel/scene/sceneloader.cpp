@@ -19,7 +19,7 @@ SceneLoader::SceneLoader(const std::string& filename)
     m_cameraFov = dls::math::vec2f(45.0f);
 
     //grab relative path
-    std::vector<std::string> pathTokens = utilityCore::tokenizeString(filename, "/");
+	auto pathTokens = utilityCore::tokenizeString(filename, "/");
 	if (std::strcmp(filename.substr(0,1).c_str(), "/")==0) {
         m_relativePath = "/";
 	}
@@ -27,7 +27,7 @@ SceneLoader::SceneLoader(const std::string& filename)
         m_relativePath = "";
     }
 
-	for (auto i=0ul; i < pathTokens.size()-1; i++) {
+	for (auto i=0l; i < pathTokens.taille()-1; i++) {
         m_relativePath = m_relativePath + pathTokens[i] + "/";
     }
 
@@ -277,7 +277,7 @@ void SceneLoader::LoadAnimMeshSequences(const Json::Value& jsonanimmesh)
             std::cout << "Warning: animmesh node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;
 		}else {
-            m_animMeshSequences.push_back(std::vector<
+			m_animMeshSequences.push_back(dls::tableau<
                                           spaceCore::Bvh<objCore::InterpolatedObj>*>());
             unsigned int nodeNumber = 0;
             nodeNumber = (unsigned int)m_animMeshSequences.size()-1;

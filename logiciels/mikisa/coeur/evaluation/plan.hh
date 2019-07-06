@@ -25,7 +25,8 @@
 #pragma once
 
 #include <memory>
-#include <vector>
+
+#include "biblinternes/structures/tableau.hh"
 
 struct NoeudReseau;
 struct Reseau;
@@ -51,7 +52,7 @@ class Objet;
 
 struct Planifieuse {
 	struct Plan {
-		std::vector<NoeudReseau *> noeuds{};
+		dls::tableau<NoeudReseau *> noeuds{};
 
 		const char *message = nullptr;
 

@@ -108,7 +108,7 @@ void ControleProprieteListe::ajourne_liste()
 		return;
 	}
 
-	std::vector<std::string> chaines;
+	dls::tableau<std::string> chaines;
 	m_conteneur->obtiens_liste(m_attache, chaines);
 
 	m_liste->clear();

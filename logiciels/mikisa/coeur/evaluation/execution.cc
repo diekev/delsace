@@ -267,7 +267,7 @@ void TacheEvaluationPlan::evalue()
 {
 	DEBUT_LOG_EVALUATION << "------------------------------------" << FIN_LOG_EVALUATION;
 	DEBUT_LOG_EVALUATION << "Le plan a "
-						 << m_plan->noeuds.size()
+						 << m_plan->noeuds.taille()
 						 << " noeuds"
 						 << FIN_LOG_EVALUATION;
 

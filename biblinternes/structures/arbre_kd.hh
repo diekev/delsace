@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/vecteur.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class ArbreKD {
 public:
@@ -37,7 +38,7 @@ public:
 	};
 
 private:
-	std::vector<Noeud> m_noeuds;
+	dls::tableau<Noeud> m_noeuds;
 	long m_noeuds_totaux;
 	long m_racine;
 
@@ -52,7 +53,7 @@ public:
 
 	void balance();
 
-	int calc_doublons_rapide(float const dist, bool utilise_ordre_index, std::vector<int> &doublons);
+	int calc_doublons_rapide(float const dist, bool utilise_ordre_index, dls::tableau<int> &doublons);
 
 private:
 	long balance(Noeud *noeuds, long noeuds_totaux, int axe, int decalage);

@@ -26,12 +26,12 @@
 
 #include <any>
 #include <list>
-#include <vector>
 
 #include "biblinternes/geometrie/rectangle.h"
 #include "biblinternes/image/pixel.h"
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/outils/iterateurs.h"
+#include "biblinternes/structures/tableau.hh"
 
 #include "danjo/manipulable.h"
 
@@ -163,7 +163,7 @@ public:
  */
 class EntreeOperatrice {
 	PriseEntree *m_ptr = nullptr;
-	std::vector<std::string> m_liste_noms_calques{};
+	dls::tableau<std::string> m_liste_noms_calques{};
 
 public:
 	/**
@@ -217,25 +217,25 @@ public:
 	 * Place la liste de calque de l'image transitante par cette entrée dans le
 	 * vecteur de chaines spécifié.
 	 */
-	void obtiens_liste_calque(std::vector<std::string> &chaines) const;
+	void obtiens_liste_calque(dls::tableau<std::string> &chaines) const;
 
 	/**
 	 * Place la liste d'attributs du corps transitant par cette entrée dans le
 	 * vecteur de chaines spécifié.
 	 */
-	void obtiens_liste_attributs(std::vector<std::string> &chaines) const;
+	void obtiens_liste_attributs(dls::tableau<std::string> &chaines) const;
 
 	/**
 	 * Place la liste de groupes de primitives du corps transitant par cette
 	 * entrée dans le vecteur de chaines spécifié.
 	 */
-	void obtiens_liste_groupes_prims(std::vector<std::string> &chaines) const;
+	void obtiens_liste_groupes_prims(dls::tableau<std::string> &chaines) const;
 
 	/**
 	 * Place la liste de groupes de points du corps transitant par cette entrée
 	 * dans le vecteur de chaines spécifié.
 	 */
-	void obtiens_liste_groupes_points(std::vector<std::string> &chaines) const;
+	void obtiens_liste_groupes_points(dls::tableau<std::string> &chaines) const;
 
 	PriseEntree *pointeur()
 	{
@@ -266,13 +266,13 @@ public:
 /* ************************************************************************** */
 
 class OperatriceImage : public danjo::Manipulable {
-	size_t m_num_inputs = 2;
-	size_t m_num_outputs = 1;
+	long m_num_inputs = 2;
+	long m_num_outputs = 1;
 
-	std::vector<EntreeOperatrice> m_input_data{};
-	std::vector<SortieOperatrice> m_sorties{};
+	dls::tableau<EntreeOperatrice> m_input_data{};
+	dls::tableau<SortieOperatrice> m_sorties{};
 
-	std::vector<std::string> m_avertissements{};
+	dls::tableau<std::string> m_avertissements{};
 
 	UsineOperatrice *m_usine = nullptr;
 
@@ -300,29 +300,29 @@ public:
 
 	/* Input handling. */
 
-	void entrees(size_t number);
+	void entrees(long number);
 
-	size_t entrees() const;
+	long entrees() const;
 
 	virtual const char *nom_entree(int n);
 
 	virtual int type_entree(int n) const;
 
-	EntreeOperatrice *entree(size_t index);
+	EntreeOperatrice *entree(long index);
 
-	const EntreeOperatrice *entree(size_t index) const;
+	const EntreeOperatrice *entree(long index) const;
 
-	void donnees_entree(size_t index, PriseEntree *socket);
+	void donnees_entree(long index, PriseEntree *socket);
 
-	SortieOperatrice *sortie(size_t index);
+	SortieOperatrice *sortie(long index);
 
-	void donnees_sortie(size_t index, PriseSortie *prise);
+	void donnees_sortie(long index, PriseSortie *prise);
 
 	/* Output handling. */
 
-	void sorties(size_t number);
+	void sorties(long number);
 
-	size_t sorties() const;
+	long sorties() const;
 
 	virtual const char *nom_sortie(int n);
 
@@ -344,7 +344,7 @@ public:
 
 	void reinitialise_avertisements();
 
-	std::vector<std::string> const &avertissements() const;
+	dls::tableau<std::string> const &avertissements() const;
 
 	virtual vision::Camera3D *camera();
 
@@ -380,7 +380,7 @@ public:
 	 */
 	virtual void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines);
+			dls::tableau<std::string> &chaines);
 
 	virtual void renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const;
 

@@ -67,13 +67,13 @@ static void tri_graphe_plan(Planifieuse::PtrPlan plan, NoeudReseau *noeud_temps)
 		predicat(noeud_temps);
 	}
 
-	tri_topologique(plan->noeuds.begin(), plan->noeuds.end(), predicat);
+	tri_topologique(plan->noeuds.debut(), plan->noeuds.fin(), predicat);
 }
 
 /* ************************************************************************** */
 
 static void rassemble_noeuds(
-		std::vector<NoeudReseau *> &noeuds,
+		dls::tableau<NoeudReseau *> &noeuds,
 		std::set<NoeudReseau *> &noeuds_visites,
 		NoeudReseau *noeud)
 {
@@ -81,7 +81,7 @@ static void rassemble_noeuds(
 		return;
 	}
 
-	noeuds.push_back(noeud);
+	noeuds.pousse(noeud);
 	noeuds_visites.insert(noeud);
 
 	for (auto enfant : noeud->sorties) {

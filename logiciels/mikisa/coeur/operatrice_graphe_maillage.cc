@@ -419,7 +419,7 @@ int OperatriceGrapheMaillage::execute(ContexteEvaluation const &contexte, Donnee
 	for (auto i = 0; i < m_corps.points()->taille(); ++i) {
 		auto pos = m_corps.points()->point(i);
 
-		execute_graphe(pile.begin(), pile.end(), m_gestionnaire, pos, pos);
+		execute_graphe(pile.debut(), pile.fin(), m_gestionnaire, pos, pos);
 
 		m_corps.points()->point(i, pos);
 	}

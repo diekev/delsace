@@ -65,29 +65,29 @@ void LevelSet::LevelSetFromAnimMesh(objCore::InterpolatedObj* animmesh, const fl
 	objCore::Obj* o1 = animmesh->m_obj1;
 
 	//copy vertices into vdb format
-	std::vector<openvdb::Vec3s> vdbpoints;
+	dls::tableau<openvdb::Vec3s> vdbpoints;
 	for (unsigned int i=0; i<o0->m_numberOfVertices; i++) {
 		dls::math::vec3f vertex = o0->m_vertices[i] * (1.0f-interpolation) +
 				o1->m_vertices[i] * interpolation;
 		vertex = dls::math::vec3f(m * dls::math::vec4f(vertex, 1.0f));
 		openvdb::Vec3s vdbvertex(vertex.x, vertex.y, vertex.z);
-		vdbpoints.push_back(transform->worldToIndex(vdbvertex));
+		vdbpoints.pousse(transform->worldToIndex(vdbvertex));
 	}
 
 	//copy faces into vdb format
-	std::vector<openvdb::Vec4I> vdbpolys;
+	dls::tableau<openvdb::Vec4I> vdbpolys;
 	for (unsigned int i=0; i<o0->m_numberOfPolys; i++) {
 		dls::math::vec4i poly = o0->m_polyVertexIndices[i];
 		openvdb::Vec4I vdbpoly(static_cast<unsigned int>(poly[0])-1, static_cast<unsigned int>(poly[1])-1, static_cast<unsigned int>(poly[2])-1, static_cast<unsigned int>(poly[3])-1);
 		if (poly[0]==poly[3] || poly[3]<0) {
 			vdbpoly[3] = openvdb::util::INVALID_IDX;
 		}
-		vdbpolys.push_back(vdbpoly);
+		vdbpolys.pousse(vdbpoly);
 	}
 
 	//call vdb tools for creating level set
-	m_vdbgrid = openvdb::tools::meshToLevelSet<openvdb::FloatGrid>(
-				*transform, vdbpoints, vdbpolys);
+//	m_vdbgrid = openvdb::tools::meshToLevelSet<openvdb::FloatGrid>(
+//				*transform, vdbpoints, vdbpolys);
 
 	//cleanup
 	vdbpoints.clear();
@@ -99,35 +99,35 @@ void LevelSet::LevelSetFromMesh(objCore::Obj* mesh, const dls::math::mat4x4f& m)
 	auto transform = openvdb::math::Transform::createLinearTransform(0.25);
 
 	//copy vertices into vdb format
-	std::vector<openvdb::Vec3s> vdbpoints;
+	dls::tableau<openvdb::Vec3s> vdbpoints;
 	for (unsigned int i=0; i<mesh->m_numberOfVertices; i++) {
 		dls::math::vec3f vertex = mesh->m_vertices[i];
 		vertex = dls::math::vec3f(m * dls::math::vec4f(vertex, 1.0f));
 		openvdb::Vec3s vdbvertex(vertex.x, vertex.y, vertex.z);
-		vdbpoints.push_back(transform->worldToIndex(vdbvertex));
+		vdbpoints.pousse(transform->worldToIndex(vdbvertex));
 	}
 
 	//copy faces into vdb format
-	std::vector<openvdb::Vec4I> vdbpolys;
+	dls::tableau<openvdb::Vec4I> vdbpolys;
 	for (unsigned int i=0; i<mesh->m_numberOfPolys; i++) {
 		dls::math::vec4i poly = mesh->m_polyVertexIndices[i];
 		openvdb::Vec4I vdbpoly(static_cast<unsigned int>(poly[0])-1, static_cast<unsigned int>(poly[1])-1, static_cast<unsigned int>(poly[2])-1, static_cast<unsigned int>(poly[3])-1);
 		if (poly[0]==poly[3] || poly[3]==0) {
 			vdbpoly[3] = openvdb::util::INVALID_IDX;
 		}
-		vdbpolys.push_back(vdbpoly);
+		vdbpolys.pousse(vdbpoly);
 	}
 
 	//call vdb tools for creating level set
-	m_vdbgrid = openvdb::tools::meshToLevelSet<openvdb::FloatGrid>(
-				*transform, vdbpoints, vdbpolys);
+//	m_vdbgrid = openvdb::tools::meshToLevelSet<openvdb::FloatGrid>(
+//				*transform, vdbpoints, vdbpolys);
 
 	//cleanup
 	vdbpoints.clear();
 	vdbpolys.clear();
 }
 
-LevelSet::LevelSet(std::vector<Particle*>& particles, float maxdimension)
+LevelSet::LevelSet(dls::tableau<Particle*>& particles, float maxdimension)
 {
 	m_vdbgrid = openvdb::createLevelSet<openvdb::FloatGrid>();
 	openvdb::tools::ParticlesToLevelSet<openvdb::FloatGrid> raster(*m_vdbgrid);
@@ -145,18 +145,18 @@ void LevelSet::WriteObjToFile(std::string filename)
 	openvdb::tools::VolumeToMesh vdbmesher(0, 0.05);
 	vdbmesher(*GetVDBGrid());
 
-	//get all mesh points and dump to dls::math::vec3f std::vector
+	//get all mesh points and dump to dls::math::vec3f dls::tableau
 	auto vdbPointsCount = vdbmesher.pointListSize();
 	openvdb::tools::PointList& vdbPoints = vdbmesher.pointList();
 
-	std::vector<dls::math::vec3f> points;
-	points.reserve(vdbPointsCount);
+	dls::tableau<dls::math::vec3f> points;
+	points.reserve(static_cast<long>(vdbPointsCount));
 	for (auto i = 0l; i < static_cast<long>(vdbPointsCount); i++) {
 		dls::math::vec3f v(vdbPoints[i][0], vdbPoints[i][1], vdbPoints[i][2]);
-		points.push_back(v);
+		points.pousse(v);
 	}
 
-	//get all mesh faces and dump to dls::math::vec4f std::vector
+	//get all mesh faces and dump to dls::math::vec4f dls::tableau
 	auto vdbFacesCount = vdbmesher.polygonPoolListSize();
 	auto &vdbFaces = vdbmesher.polygonPoolList();
 
@@ -165,8 +165,8 @@ void LevelSet::WriteObjToFile(std::string filename)
 		facesCount = facesCount + vdbFaces[i].numQuads() + vdbFaces[i].numTriangles();
 	}
 
-	std::vector<dls::math::vec4i> faces;
-	faces.reserve(facesCount);
+	dls::tableau<dls::math::vec4i> faces;
+	faces.reserve(static_cast<long>(facesCount));
 
 	for (unsigned int i=0; i<vdbFacesCount; i++) {
 		auto count = vdbFaces[i].numQuads();
@@ -177,25 +177,25 @@ void LevelSet::WriteObjToFile(std::string filename)
 						static_cast<int>(vdbface.y()) + 1,
 						static_cast<int>(vdbface.z()) + 1,
 						static_cast<int>(vdbface.w()) + 1);
-			faces.push_back(f);
+			faces.pousse(f);
 		}
 		count = vdbFaces[i].numTriangles();
 		for (unsigned int j=0; j<count; j++) {
 			openvdb::Vec3I vdbface = vdbFaces[i].triangle(j);
 			dls::math::vec4i f(static_cast<int>(vdbface[0])+1, static_cast<int>(vdbface[1])+1, static_cast<int>(vdbface[2])+1, 0);
-			faces.push_back(f);
+			faces.pousse(f);
 		}
 	}
 
 	//pack points and faces into objcontainer and write
 	objCore::Obj* mesh = new objCore::Obj();
-	mesh->m_numberOfVertices = static_cast<unsigned int>(points.size());
+	mesh->m_numberOfVertices = static_cast<unsigned int>(points.taille());
 	mesh->m_vertices = &points[0];
 	mesh->m_numberOfNormals = 0;
 	mesh->m_normals = nullptr;
 	mesh->m_numberOfUVs = 0;
 	mesh->m_uvs = nullptr;
-	mesh->m_numberOfPolys = static_cast<unsigned int>(faces.size());
+	mesh->m_numberOfPolys = static_cast<unsigned int>(faces.taille());
 	mesh->m_polyVertexIndices = &faces[0];
 	mesh->m_polyNormalIndices = nullptr;
 	mesh->m_polyUVIndices = nullptr;
@@ -207,11 +207,11 @@ void LevelSet::WriteObjToFile(std::string filename)
 	delete mesh;
 }
 
-void LevelSet::ProjectPointsToSurface(std::vector<Particle*>& particles, const float& pscale)
+void LevelSet::ProjectPointsToSurface(dls::tableau<Particle*>& particles, const float& pscale)
 {
-	auto pointsCount = particles.size();
-	std::vector<openvdb::Vec3R> vdbpoints(pointsCount);
-	std::vector<float> distances;
+	auto pointsCount = particles.taille();
+	dls::tableau<openvdb::Vec3R> vdbpoints(pointsCount);
+	dls::tableau<float> distances;
 	distances.reserve(pointsCount);
 
 	for (unsigned int i=0; i<pointsCount; i++) {
@@ -219,13 +219,13 @@ void LevelSet::ProjectPointsToSurface(std::vector<Particle*>& particles, const f
 		openvdb::Vec3s vdbvertex(p.x, p.y, p.z);
 		vdbpoints[i] = vdbvertex;
 	}
-	openvdb::util::NullInterrupter n;
-	auto csp = openvdb::tools::ClosestSurfacePoint<openvdb::FloatGrid>::create(*m_vdbgrid, 0.0f, &n);
+	//openvdb::util::NullInterrupter n;
+	//auto csp = openvdb::tools::ClosestSurfacePoint<openvdb::FloatGrid>::create(*m_vdbgrid, 0.0f, &n);
 
 	//	openvdb::tools::ClosestSurfacePoint<openvdb::FloatGrid> csp;
 	//    csp.initialize(*m_vdbgrid, 0.0f, &n);
 
-	csp->searchAndReplace(vdbpoints, distances);
+	//csp->searchAndReplace(vdbpoints, distances);
 
 	for (unsigned int i=0; i<pointsCount; i++) {
 		vdbpoints[i] = vdbpoints[i]/pscale;

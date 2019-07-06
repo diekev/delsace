@@ -35,7 +35,7 @@ class WidgetTest : public danjo::ConteneurControles {
 public:
 	explicit WidgetTest(QWidget *parent = nullptr);
 
-	void obtiens_liste(const std::string &attache, std::vector<std::string> &chaines) override;
+	void obtiens_liste(const std::string &attache, dls::tableau<std::string> &chaines) override;
 
 	void ajourne_manipulable() override;
 };

@@ -16,9 +16,9 @@
 #include <iterator>
 #include <sstream>
 #include <string>
-#include <vector>
 
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/structures/tableau.hh"
 
 //====================================
 // Useful Math Constants
@@ -67,9 +67,9 @@ bool replaceString(std::string& str, const std::string& from, const std::string&
 
 std::string convertIntToString(int number);
 
-std::vector<std::string> tokenizeString(std::string str, std::string separator);
+dls::tableau<std::string> tokenizeString(std::string str, std::string separator);
 
-std::vector<std::string> tokenizeStringByAllWhitespace(std::string str);
+dls::tableau<std::string> tokenizeStringByAllWhitespace(std::string str);
 
 std::string getLastNCharactersOfString(std::string s, size_t n);
 

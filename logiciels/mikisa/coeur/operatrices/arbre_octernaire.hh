@@ -41,7 +41,7 @@ public:
 			nullptr, nullptr, nullptr, nullptr
 		};
 
-		std::vector<Triangle> triangles{};
+		dls::tableau<Triangle> triangles{};
 
 		~Noeud();
 	};

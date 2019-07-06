@@ -100,8 +100,8 @@ void EditriceRendu::ajourne_manipulable()
 
 void EditriceRendu::obtiens_liste(
 		std::string const &/*attache*/,
-		std::vector<std::string> &chaines)
+		dls::tableau<std::string> &chaines)
 {
 	/* À FAIRE */
-	chaines.push_back("image");
+	chaines.pousse("image");
 }

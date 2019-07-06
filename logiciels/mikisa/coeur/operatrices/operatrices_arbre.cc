@@ -46,7 +46,7 @@ struct MTreeNode {
 	/* radius of node */
 	float radius = 0.0f;
 	/* the extremities of the node. First child is the continuity of the branch */
-	std::vector<MTreeNode *> children{};
+	dls::tableau<MTreeNode *> children{};
 	/* the id of the NodeFunction that created the node */
 	int creator = 0;
 	/* when growing nodes it is useful to know how much they should grow. this parameter gives the length a node has grown since grow was called */
@@ -71,15 +71,15 @@ struct MTreeNode {
 		, creator(c)
 	{}
 
-	std::pair<float, float> get_grow_candidates(std::vector<MTreeNode *> &candidats, int creator_)
+	std::pair<float, float> get_grow_candidates(dls::tableau<MTreeNode *> &candidats, int creator_)
 	{
 		auto max_height = -std::numeric_limits<float>::max();
 		auto min_height =  std::numeric_limits<float>::max();
 
 		/* seuls les extremités peuvent être poussées */
-		if (this->children.empty()) {
+		if (this->children.est_vide()) {
 			if (this->creator == creator_) {
-				candidats.push_back(this);
+				candidats.pousse(this);
 				max_height = min_height = this->position.z;
 			}
 		}
@@ -100,11 +100,11 @@ struct MTreeNode {
 
 		current_distance += distance_from_parent;//# increase current distance by the distance from node parent
 
-		if (this->children.empty()) { // if node is the end of the branch, return the length of the branch and set the position_in_branch to 1
+		if (this->children.est_vide()) { // if node is the end of the branch, return the length of the branch and set the position_in_branch to 1
 			this->position_in_branch = 1.0f;
 			return current_distance;
 		}
-		for (auto i = 1ul; i < this->children.size(); ++i) { // recursivelly call the function on all side children
+		for (auto i = 1; i < this->children.taille(); ++i) { // recursivelly call the function on all side children
 			this->children[i]->set_positions_in_branches(0, 0); // the current_distance of a side child is 0 since it is the begining of a new branch
 		}
 
@@ -115,9 +115,9 @@ struct MTreeNode {
 		return branch_length;
 	}
 
-	void get_split_candidates(std::vector<MTreeNode *> &candidates, int creator_, float start, float end)
+	void get_split_candidates(dls::tableau<MTreeNode *> &candidates, int creator_, float start, float end)
 	{
-		if ((this->children.size() == 1) && (!this->is_branch_origin) && (this->creator == creator_) && (end >= this->position_in_branch) && (this->position_in_branch >= start)) {
+		if ((this->children.taille() == 1) && (!this->is_branch_origin) && (this->creator == creator_) && (end >= this->position_in_branch) && (this->position_in_branch >= start)) {
 			if (end <= start) {
 				this->position_in_branch = 0.0f;
 			}
@@ -125,7 +125,7 @@ struct MTreeNode {
 				this->position_in_branch = (this->position_in_branch - start) / (end-start); // transform the position in branch so that a position at offset is 0
 			}
 
-			candidates.push_back(this);
+			candidates.pousse(this);
 		}
 
 		for (auto &child : this->children) {
@@ -133,11 +133,11 @@ struct MTreeNode {
 		}
 	}
 
-	void get_leaf_candidates(std::vector<MTreeNode *> &candidates, float max_radius)
+	void get_leaf_candidates(dls::tableau<MTreeNode *> &candidates, float max_radius)
 	{
 		/* recursively populates a list with position, direction radius of all modules susceptible to create a leaf*/
 		if ((this->radius <= max_radius) && (this->can_spawn_leaf)) {
-			auto extremity = this->children.empty();
+			auto extremity = this->children.est_vide();
 			auto direction_ = extremity ? this->direction : (this->children[0]->position - this->position);
 			auto length = longueur(direction_);
 			if (length != 0.0f) {
@@ -145,7 +145,7 @@ struct MTreeNode {
 			}
 
 			// XXX
-			//candidates.push_back(new MTreeNode(this->position, direction, length, this->radius, extremity))
+			//candidates.pousse(new MTreeNode(this->position, direction, length, this->radius, extremity))
 		}
 
 		for (auto &child : this->children) {
@@ -154,18 +154,18 @@ struct MTreeNode {
 	}
 
 	void get_branches(
-			std::vector<std::vector<dls::math::vec4f>> &positions,
-			std::vector<std::vector<float>> &radii,
+			dls::tableau<dls::tableau<dls::math::vec4f>> &positions,
+			dls::tableau<dls::tableau<float>> &radii,
 			bool first_branch = false,
 			dls::math::vec3f *parent_pos = nullptr)
 	{
 		/* populate list of list of points of each branch */
 
 		auto pos = first_branch ? *parent_pos : this->position;
-		positions.back().push_back(dls::math::vec4f(pos.x, pos.y, pos.z, 0.0f));// # add position to last branch
-		radii.back().push_back(this->radius); // add radius to last branch
+		positions.back().pousse(dls::math::vec4f(pos.x, pos.y, pos.z, 0.0f));// # add position to last branch
+		radii.back().pousse(this->radius); // add radius to last branch
 
-		for (auto i = 0ul; i < this->children.size(); ++i) {
+		for (auto i = 0l; i < this->children.taille(); ++i) {
 			if (i > 0) { // if child is begining of new branch
 				positions.emplace_back(); // add empty branch for position
 				radii.emplace_back(); // add empty branch for radius;
@@ -175,14 +175,14 @@ struct MTreeNode {
 		}
 	}
 
-	void get_armature_data(float min_radius, int *bone_index, std::vector<std::vector<MTreeNode *>> &armature_data, int parent_index)
+	void get_armature_data(float min_radius, int *bone_index, dls::tableau<dls::tableau<MTreeNode *>> &armature_data, int parent_index)
 	{
 		/* armature data is list of list of (position_head, position_tail, radius_head, radius_tail, parent bone index) of each node. bone_index is a list of one int*/
 		auto index = 0;
 
-		if (this->radius > min_radius && !this->children.empty()) { // if radius is greater than max radius, add data to armature data
+		if (this->radius > min_radius && !this->children.est_vide()) { // if radius is greater than max radius, add data to armature data
 		   // auto child = this->children[0];
-		   // armature_data.back().push_back(new MTreeNode(this->position, child.position, this->radius, child->radius, parent_index));
+		   // armature_data.back().pousse(new MTreeNode(this->position, child.position, this->radius, child->radius, parent_index));
 			this->bone_name = "bone_" + std::to_string(bone_index[0]);
 			index = bone_index[0];
 			bone_index[0] += 1;
@@ -192,7 +192,7 @@ struct MTreeNode {
 			index = parent_index;
 		}
 
-		for (auto i = 0ul; i < this->children.size(); ++i) {
+		for (auto i = 0l; i < this->children.taille(); ++i) {
 			auto child = this->children[i];
 
 			if ((i > 0) && (child->radius > min_radius)) {
@@ -207,7 +207,7 @@ struct MTreeNode {
 		/* used when creating tree from grease pencil, rescales the radius of each branch according to its parent radius */
 		this->radius *= base_radius;
 
-		for (auto i = 0ul; i < this->children.size(); ++i) {
+		for (auto i = 0l; i < this->children.taille(); ++i) {
 			if (i == 0) {
 				this->children[i]->recalculate_radius(base_radius);
 			}
@@ -264,10 +264,10 @@ struct CandidatFeuille {
 	bool is_end{};
 };
 
-auto add_candidates(std::vector<CandidatFeuille> &leaf_candidates, int dupli_number)
+auto add_candidates(dls::tableau<CandidatFeuille> &leaf_candidates, int dupli_number)
 {
 	/* create new leaf candidates by interpolating existing ones */
-	auto new_candidates = std::vector<CandidatFeuille>{};
+	auto new_candidates = dls::tableau<CandidatFeuille>{};
 
 	for (auto candidat : leaf_candidates) {
 		if (candidat.is_end) {// no new candidate can be created from end_leaf
@@ -276,20 +276,20 @@ auto add_candidates(std::vector<CandidatFeuille> &leaf_candidates, int dupli_num
 
 		for (auto i = 0; i < dupli_number; ++i) {
 			auto pos = candidat.position + candidat.direction * candidat.length * (static_cast<float>(i) + 1.0f) / (static_cast<float>(dupli_number) + 2.0f);
-			new_candidates.push_back({pos, candidat.direction, candidat.length, candidat.radius, candidat.is_end});
+			new_candidates.pousse({pos, candidat.direction, candidat.length, candidat.radius, candidat.is_end});
 		}
 	}
 
 	//leaf_candidates.extend(new_candidates);
 	for (auto candidat : new_candidates) {
-		leaf_candidates.push_back(candidat);
+		leaf_candidates.pousse(candidat);
 	}
 }
 
 struct MTree {
 	MTreeNode *stem = nullptr;
-	std::vector<dls::math::vec3f> verts{};
-	std::vector<dls::math::vec4i> faces{};
+	dls::tableau<dls::math::vec3f> verts{};
+	dls::tableau<dls::math::vec4i> faces{};
 
 	void build_mesh_data()
 	{
@@ -322,7 +322,7 @@ struct MTree {
 			auto position = extremity->position + extremity->direction / resolution; // position of new TreeNode
 			auto rad = radius * std::pow(remaining_length/length, shape) + (1.0f - remaining_length/length) * end_radius; // radius of new TreeNode
 			auto new_node = new MTreeNode(position, direction, rad, creator); // new TreeNode
-			extremity->children.push_back(new_node); // Add new TreeNode to extremity's children
+			extremity->children.pousse(new_node); // Add new TreeNode to extremity's children
 			extremity = new_node; // replace extremity by new TreeNode
 			remaining_length -= 1.0f / resolution;
 		}
@@ -346,7 +346,7 @@ struct MTree {
 			int creator,
 			int selection)
 	{
-		auto grow_candidates = std::vector<MTreeNode *>{};
+		auto grow_candidates = dls::tableau<MTreeNode *>{};
 		this->stem->get_grow_candidates(grow_candidates, selection); // get all leafs of valid creator
 
 		auto branch_length = 1.0f / resolution; // branch length is use multiple times so best to calculate it once
@@ -365,7 +365,7 @@ struct MTree {
 
 		//grow_candidates = deque(grow_candidates); // convert grow_candidates to deque for performance (lots of adding/removing last element)
 
-		while (grow_candidates.size() > 0) { // grow all candidates until there are none (all have grown to their respective length)
+		while (grow_candidates.taille() > 0) { // grow all candidates until there are none (all have grown to their respective length)
 			auto node = grow_candidates[0];
 
 			auto children_number = ((gna.uniforme(0.0f, 1.0f) > split_proba) || node->is_branch_origin) ? 1 : 2; // if 1 the branch grows normally, if more than 1 the branch forks into more branches
@@ -422,10 +422,10 @@ struct MTree {
 					child->is_branch_origin = true;
 				}
 
-				node->children.push_back(child);
+				node->children.pousse(child);
 
 				if (growth < node->growth_goal) {
-					grow_candidates.push_back(child); // if child can still grow, add it to the grow candidates
+					grow_candidates.pousse(child); // if child can still grow, add it to the grow candidates
 				}
 			}
 		}
@@ -442,11 +442,11 @@ struct MTree {
 			int creator,
 			int selection)
 	{
-		auto split_candidates = std::vector<MTreeNode *>{};
+		auto split_candidates = dls::tableau<MTreeNode *>{};
 		this->stem->set_positions_in_branches();
 		this->stem->get_split_candidates(split_candidates, selection, start, end);
 
-		amount = std::min(amount, static_cast<int>(split_candidates.size()));
+		amount = std::min(amount, static_cast<int>(split_candidates.taille()));
 
 		/* À FAIRE : échantillone aléatoirement */
 		//split_candidates = sample(split_candidates, amount);
@@ -470,7 +470,7 @@ struct MTree {
 				child->position_in_branch = node->position_in_branch;
 				child->is_branch_origin = true;
 				child->can_spawn_leaf = false;
-				node->children.push_back(child);
+				node->children.pousse(child);
 				tangent = rotate_quat(tangent, rot);
 			}
 		}
@@ -514,13 +514,13 @@ struct MTree {
 			float randomness,
 			int creator)
 	{
-		if (this->stem->children.empty()) { // roots can only be added on a trunk on non 0 length
+		if (this->stem->children.est_vide()) { // roots can only be added on a trunk on non 0 length
 			return;
 		}
 
 		auto roots_origin = new MTreeNode(this->stem->position, -this->stem->direction, this->stem->radius, -1);
 		roots_origin->is_branch_origin = true;
-		this->stem->children.push_back(roots_origin); // stem is set as branch origin, so it cannot be splitted by split function. second children of stem will then always be root origin
+		this->stem->children.pousse(roots_origin); // stem is set as branch origin, so it cannot be splitted by split function. second children of stem will then always be root origin
 
 		this->grow(length, 1, 1, 0, resolution, randomness, split_proba, 0.5f, 0.6f, 0, 0, -0.1f, -1, false, creator, -1);
 	}
@@ -534,7 +534,7 @@ struct MTree {
 //			bool extremity_only)
 //	{
 //		/* À FAIRE : quelle structure ? vector de vector ? */
-//		auto leaf_candidates = std::vector<MTreeNode *>{};
+//		auto leaf_candidates = dls::tableau<MTreeNode *>{};
 //		this->stem->get_leaf_candidates(leaf_candidates, max_radius);
 
 //		if (!extremity_only) {
@@ -1014,7 +1014,7 @@ struct BezierPoint {
 };
 
 struct Spline {
-	std::vector<BezierPoint *> bezier_points{};
+	dls::tableau<BezierPoint *> bezier_points{};
 };
 
 static auto zAxis = dls::math::vec3f(0, 0, 1);
@@ -1253,11 +1253,11 @@ struct stemSpline {
 
 struct Curve {
 	int resolution_u = 0;
-	std::vector<Spline *> splines;
+	dls::tableau<Spline *> splines;
 };
 
 void kickstart_trunk(
-		std::vector<stemSpline> &addstem,
+		dls::tableau<stemSpline> &addstem,
 		int levels,
 		int leaves,
 		dls::math::vec3f branches,
@@ -1281,7 +1281,7 @@ void kickstart_trunk(
 	auto newSpline = new Spline; // 'BEZIER'
 	cu.resolution_u = resU;
 	auto point_bezier = new BezierPoint{};
-	newSpline->bezier_points.push_back(point_bezier);
+	newSpline->bezier_points.pousse(point_bezier);
 
 	auto newPoint = newSpline->bezier_points.back();
 	newPoint->co = dls::math::vec3f(0.0f, 0.0f, 0.0f);
@@ -1306,7 +1306,7 @@ void kickstart_trunk(
 			childStems, startRad, endRad, 0, 0, {}
 			);
 
-	addstem.push_back(stem);
+	addstem.pousse(stem);
 }
 
 struct childPoint {
@@ -1418,35 +1418,35 @@ double shapeRatio(int shape, double ratio, double pruneWidthPeak=0.0, double pru
 
 void fabricate_stems(
 		double addsplinetobone,
-		std::vector<stemSpline> &addstem,
+		dls::tableau<stemSpline> &addstem,
 		double baseSize,
-		std::vector<double> &branches,
-		std::vector<childPoint> &childP,
+		dls::tableau<double> &branches,
+		dls::tableau<childPoint> &childP,
 		Curve &cu,
-		std::vector<double> &curve,
+		dls::tableau<double> &curve,
 		double curveBack,
-		std::vector<double> &curveRes,
-		std::vector<double> &curveV,
-		std::vector<double> &attractUp,
-		std::vector<double> &downAngle,
-		std::vector<double> &downAngleV,
+		dls::tableau<double> &curveRes,
+		dls::tableau<double> &curveV,
+		dls::tableau<double> &attractUp,
+		dls::tableau<double> &downAngle,
+		dls::tableau<double> &downAngleV,
 		double leafDist,
 		double leaves,
-		std::vector<double> &length,
-		std::vector<double> &lengthV,
+		dls::tableau<double> &length,
+		dls::tableau<double> &lengthV,
 		int levels,
 		size_t n,
 		double ratioPower,
 		int resU,
-		std::vector<double> &rotate,
-		std::vector<double> &rotateV,
+		dls::tableau<double> &rotate,
+		dls::tableau<double> &rotateV,
 		double scaleVal,
 		int shape,
 		int storeN,
-		std::vector<double> &taper,
+		dls::tableau<double> &taper,
 		int shapeS,
 		double minRadius,
-		std::vector<double> &radiusTweak,
+		dls::tableau<double> &radiusTweak,
 		double *customShape,
 		std::string const &rMode,
 		double segSplits,
@@ -1460,16 +1460,16 @@ void fabricate_stems(
 	// Store the old rotation to allow new stems to be rotated away from the previous one.
 	auto oldRotate = 0;
 
-	auto rot_a = std::vector<int>{};
+	auto rot_a = dls::tableau<int>{};
 
 	// use fancy child point selection / rotation
 	if ((n == 1) && (rMode != "original")) {
-		auto childP_T0 = std::unordered_map<int, std::vector<childPoint>>{};
-		auto childP_L = std::vector<childPoint>{};
+		auto childP_T0 = std::unordered_map<int, dls::tableau<childPoint>>{};
+		auto childP_L = dls::tableau<childPoint>{};
 
 		for (auto const &p : childP) {
 			if (p.offset == 1) {
-				childP_L.push_back(p);
+				childP_L.pousse(p);
 			}
 			else {
 				auto iter = std::find(childP_T0.begin(), childP_T0.end(), p.offset);
@@ -1478,15 +1478,15 @@ void fabricate_stems(
 					childP_T0[p.offset] = { p };
 				}
 				else {
-					childP_T0[p.offset].push_back(p);
+					childP_T0[p.offset].pousse(p);
 				}
 			}
 		}
 
-		auto childP_T = std::vector<std::vector<childPoint>>{}; //[childP_T[k] for k in sorted(childP_T.keys())];
+		auto childP_T = dls::tableau<dls::tableau<childPoint>>{}; //[childP_T[k] for k in sorted(childP_T.keys())];
 
-		childP = std::vector<childPoint>{};
-		auto rot_a = std::vector<int>{};
+		childP = dls::tableau<childPoint>{};
+		auto rot_a = dls::tableau<int>{};
 
 		for (auto &p : childP_T) {
 			if (rMode == "rotate") {
@@ -1502,12 +1502,12 @@ void fabricate_stems(
 
 				// choose start point whose angle is closest to the rotate angle
 				auto a1 = std::fmod(bRotate, constantes<double>::TAU);
-				auto a_diff = std::vector<double>{};
+				auto a_diff = dls::tableau<double>{};
 
 				for (auto &a  { p) {
 					auto a2 = std::atan2(a.co[0], -a.co[1]);
 					auto d = std::min(std::fmod(a1 - a2 + constantes<double>::TAU, constantes<double>::TAU), std::fmod(a2 - a1 + constantes<double>::TAU, constantes<double>::TAU));
-					a_diff.push_back(d);
+					a_diff.pousse(d);
 				}
 
 				auto idx = 0ul;// a_diff.index(min(a_diff));
@@ -1557,20 +1557,20 @@ void fabricate_stems(
 					childP.append(p[randint(0, len(p)-1)])
 					rot_a.append(bRotate)// + pi)
 				*/
-				childP.push_back(p[idx]);
-				rot_a.push_back(a);
+				childP.pousse(p[idx]);
+				rot_a.pousse(a);
 
 			}
 			else {
 				// À FAIRE
 				auto idx = 0ul; //randint(0, p.size() - 1);
-				childP.push_back(p[idx]);
+				childP.pousse(p[idx]);
 			}
 			// childP.append(p[idx])
 
 			for (auto const &p  { childP_L) {
-				childP.push_back(p);
-				rot_a.push_back(0);
+				childP.pousse(p);
+				rot_a.pousse(0);
 			}
 
 			oldRotate = 0;
@@ -1581,7 +1581,7 @@ void fabricate_stems(
 	for (auto const &p : childP) {
 		// Add a spline and set the coordinate of the first point.
 		auto newSpline = new Spline{}; // 'BEZIER'
-		cu.splines.push_back(newSpline);
+		cu.splines.pousse(newSpline);
 		cu.resolution_u = resU;
 
 		auto newPoint = newSpline->bezier_points.back();
@@ -1723,7 +1723,7 @@ void fabricate_stems(
 					startRad, endRad, cu.splines.size() - 1, 0, p.quat
 					);
 
-		addstem.push_back(stem);
+		addstem.pousse(stem);
 
 		//  auto bone = roundBone(p.parBone, boneStep[n - 1]);
 		//isend == (p.offset == 1);
@@ -1743,7 +1743,7 @@ void perform_pruning(
 		double currentScale,
 		double curve,
 		double curveBack,
-		std::vector<int> &curveRes,
+		dls::tableau<int> &curveRes,
 		bool deleteSpline,
 		bool forceSprout,
 		double handles,
@@ -1767,14 +1767,14 @@ void perform_pruning(
 		double randState,
 		double ratio,
 		double scaleVal,
-		std::vector<double> &segSplits,
+		dls::tableau<double> &segSplits,
 		double splineToBone,
 		double splitAngle,
 		double splitAngleV,
 		stemSpline &st,
 		bool startPrune,
 		double branchDist,
-		std::vector<double> &length,
+		dls::tableau<double> &length,
 		double splitByLen,
 		double closeTip,
 		double nrings,
@@ -1782,13 +1782,13 @@ void perform_pruning(
 		double splitHeight,
 		double attractOut,
 		double rMode,
-		std::vector<double> &lengthV,
+		dls::tableau<double> &lengthV,
 		double taperCrown,
 		double boneStep,
 		double rotate,
 		double rotateV)
 {
-	std::vector<stemSpline> splineList;
+	dls::tableau<stemSpline> splineList;
 
 	while (startPrune && ((currentMax - currentMin) > 0.005)) {
 		// À FAIRE setstate(randState)
@@ -1811,7 +1811,7 @@ void perform_pruning(
 			}
 
 			auto newSpline = new Spline; //cu.splines.new('BEZIER');
-			cu.splines.push_back(newSpline);
+			cu.splines.pousse(newSpline);
 
 			auto newPoint = newSpline->bezier_points.back();
 			newPoint->co = originalCo;
@@ -1830,8 +1830,8 @@ void perform_pruning(
 		}
 
 		// Initialise the spline list for those contained in the current level of branching
-		splineList = std::vector<stemSpline>{};
-		splineList.push_back(st);
+		splineList = dls::tableau<stemSpline>{};
+		splineList.pousse(st);
 
 		// split length variation
 		auto stemsegL = splineList[0].segL;  // initial segment length used for variation
@@ -2150,7 +2150,7 @@ public {
 		}
 #else
 		auto closeTip = true;
-		auto levelCount = std::vector<size_t>{};
+		auto levelCount = dls::tableau<size_t>{};
 		auto cu = Curve{};
 		auto baseSize = 1.0f;
 		auto baseSize_s = 1.0f;
@@ -2158,7 +2158,7 @@ public {
 
 		for (auto n = 0; n < params.Levels; ++n) {
 			auto storeN = n;
-			auto stemList = std::vector<stemSpline>{};
+			auto stemList = dls::tableau<stemSpline>{};
 			// If n is used as an index to access parameters for the tree
 			// it must be at most 3 or it will reference outside the array index
 			n = std::min(3, n);
@@ -2191,7 +2191,7 @@ public {
 				baseSize = 0;
 			}
 
-			auto childP = std::vector<int>{};
+			auto childP = dls::tableau<int>{};
 			// Now grow each of the stems in the list of those to be extended
 			for (auto &st : stemList) {
 				// When using pruning, we need to ensure that the random effects
@@ -2230,7 +2230,7 @@ public {
 							rotate, rotateV
 							);
 
-				levelCount.push_back(cu.splines.size());
+				levelCount.pousse(cu.splines.size());
 			}
 		}
 #endif

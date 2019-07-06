@@ -185,8 +185,8 @@ template <typename T>
 class Grille : public BaseGrille {
 protected:
 #ifdef UTILISE_TUILES
-	std::vector<Tuile<T> *> m_tuiles{};
-	std::vector<size_t> m_table_index{};
+	dls::tableau<Tuile<T> *> m_tuiles{};
+	dls::tableau<size_t> m_table_index{};
 	dls::math::vec3i m_tuile{};
 #else
 	dls::tableau<T> m_donnees = {};

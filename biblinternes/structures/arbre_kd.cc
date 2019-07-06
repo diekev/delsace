@@ -74,14 +74,14 @@ static void deduplicate_recursive(DeDuplicateParams *p, long i)
 }
 
 ArbreKD::ArbreKD(long taille_max)
-	: m_noeuds(static_cast<size_t>(taille_max))
+	: m_noeuds(taille_max)
 	, m_noeuds_totaux(0)
 	, m_racine(-1)
 {}
 
 void ArbreKD::insert(long index, const dls::math::vec3f &co)
 {
-	auto noeud = &m_noeuds[static_cast<size_t>(m_noeuds_totaux++)];
+	auto noeud = &m_noeuds[m_noeuds_totaux++];
 	noeud->index = index;
 	noeud->co = co;
 	noeud->gauche = -1;
@@ -94,15 +94,15 @@ void ArbreKD::balance()
 	m_racine = balance(&m_noeuds[0], m_noeuds_totaux, 0, 0);
 }
 
-int ArbreKD::calc_doublons_rapide(const float dist, bool utilise_ordre_index, std::vector<int> &doublons)
+int ArbreKD::calc_doublons_rapide(const float dist, bool utilise_ordre_index, dls::tableau<int> &doublons)
 {
 	auto trouves = 0;
 
 	DeDuplicateParams p;
-	p.nodes = this->m_noeuds.data();
+	p.nodes = this->m_noeuds.donnees();
 	p.range = dist;
 	p.range_sq = dist * dist;
-	p.duplicates = doublons.data();
+	p.duplicates = doublons.donnees();
 	p.duplicates_found = &trouves;
 
 	if (utilise_ordre_index) {
@@ -111,17 +111,17 @@ int ArbreKD::calc_doublons_rapide(const float dist, bool utilise_ordre_index, st
 	else {
 		for (auto i = 0; i < m_noeuds_totaux; i++) {
 			auto const node_index = i;
-			auto const index = m_noeuds[static_cast<size_t>(node_index)].index;
+			auto const index = m_noeuds[node_index].index;
 
-			if (doublons[static_cast<size_t>(index)] == -1 || doublons[static_cast<size_t>(index)] == index) {
+			if (doublons[index] == -1 || doublons[index] == index) {
 				p.search = static_cast<int>(index);
-				p.search_co = m_noeuds[static_cast<size_t>(node_index)].co;
+				p.search_co = m_noeuds[node_index].co;
 
 				int found_prev = trouves;
 				deduplicate_recursive(&p, m_racine);
 				if (trouves != found_prev) {
 					/* Prevent chains of doubles. */
-					doublons[static_cast<size_t>(index)] = static_cast<int>(index);
+					doublons[index] = static_cast<int>(index);
 				}
 			}
 		}

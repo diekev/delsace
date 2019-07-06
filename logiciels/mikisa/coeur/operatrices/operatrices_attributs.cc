@@ -193,7 +193,7 @@ public:
 
 	void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
 		if (attache == "nom_attribut") {
 			entree(0)->obtiens_liste_attributs(chaines);
@@ -539,7 +539,7 @@ public:
 
 	void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
 		if (attache == "nom_attribut") {
 			entree(0)->obtiens_liste_attributs(chaines);
@@ -902,7 +902,7 @@ public:
 
 	void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
 		if (attache == "nom_attribut") {
 			entree(1)->obtiens_liste_attributs(chaines);
@@ -1091,7 +1091,7 @@ public:
 
 	void obtiens_liste(
 			std::string const &attache,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
 		if (attache == "nom_attribut") {
 			entree(1)->obtiens_liste_attributs(chaines);

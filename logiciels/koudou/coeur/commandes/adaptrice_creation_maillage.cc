@@ -101,7 +101,7 @@ void AdaptriceChargementMaillage::reserve_uvs(long const nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceChargementMaillage::groupes(std::vector<std::string> const &noms)
+void AdaptriceChargementMaillage::groupes(dls::tableau<std::string> const &noms)
 {
 	INUTILISE(noms);
 }

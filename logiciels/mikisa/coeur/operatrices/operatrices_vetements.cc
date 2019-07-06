@@ -758,7 +758,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 	auto grid_width = static_cast<int>(std::ceil(conf.width / cell_size));
 	auto grid_height = static_cast<int>(std::ceil(conf.height / cell_size));
 
-	std::vector<point> grid(static_cast<size_t>(grid_width * grid_height));
+	dls::tableau<point> grid(grid_width * grid_height);
 	std::stack<point> process;
 
 	auto squared_distance = [](const point& a, const point& b) {
@@ -781,7 +781,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 	auto set = [cell_size, grid_width, &grid](const point& p) {
 		auto x = static_cast<int>(p.x / cell_size);
 		auto y = static_cast<int>(p.y / cell_size);
-		grid[static_cast<size_t>(y * grid_width + x)] = p;
+		grid[y * grid_width + x] = p;
 	};
 
 	auto add = [&process, &output, &set](const point& p) {
@@ -794,7 +794,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 		auto x_index = static_cast<int>(std::floor(p.x / cell_size));
 		auto y_index = static_cast<int>(std::floor(p.y / cell_size));
 
-		if (grid[static_cast<size_t>(y_index * grid_width + x_index)].x != infinity) {
+		if (grid[y_index * grid_width + x_index].x != infinity) {
 			return true;
 		}
 
@@ -806,7 +806,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 
 		for (auto y = min_y; y <= max_y; ++y) {
 			for (auto x = min_x; x <= max_x; ++x) {
-				auto point = grid[static_cast<size_t>(y * grid_width + x)];
+				auto point = grid[y * grid_width + x];
 				auto exists = point.x != infinity;
 
 				if (exists && squared_distance(p, point) < min_dist_squared) {
@@ -854,7 +854,7 @@ double half(double x){return 0.5 * x;}
 
 class Edge {
 public:
-	using VertexType = size_t;
+	using VertexType = long;
 
 	Edge(const VertexType &p1_, const VertexType &p2_)
 		: p1(p1_), p2(p2_), isBad(false)
@@ -881,7 +881,7 @@ inline bool operator == (const Edge & e1, const Edge & e2)
 class Triangle {
 public:
 	using EdgeType = Edge;
-	using VertexType = size_t;
+	using VertexType = long;
 
 	Triangle(const VertexType &_p1, const VertexType &_p2, const VertexType &_p3)
 		:	p1(_p1), p2(_p2), p3(_p3),
@@ -938,7 +938,7 @@ private:
 
 public:
 
-	const std::vector<TriangleType>& triangulate(std::vector<VertexType> &vertices)
+	const dls::tableau<TriangleType>& triangulate(dls::tableau<VertexType> &vertices)
 	{
 		// Store the vertices locally
 		_vertices = vertices;
@@ -949,7 +949,7 @@ public:
 		auto maxX = minX;
 		auto maxY = minY;
 
-		for (std::size_t i = 0; i < vertices.size(); ++i) {
+		for (auto i = 0; i < vertices.taille(); ++i) {
 			if (vertices[i].x < minX) minX = vertices[i].x;
 			if (vertices[i].y < minY) minY = vertices[i].y;
 			if (vertices[i].x > maxX) maxX = vertices[i].x;
@@ -969,31 +969,31 @@ public:
 		//std::cout << "Super triangle " << std::endl << Triangle(p1, p2, p3) << std::endl;
 
 		// Create a list of triangles, and add the supertriangle in it
-		auto offset = _vertices.size();
-		_vertices.push_back(p1);
-		_vertices.push_back(p2);
-		_vertices.push_back(p3);
+		auto offset = _vertices.taille();
+		_vertices.pousse(p1);
+		_vertices.pousse(p2);
+		_vertices.pousse(p3);
 
-		_triangles.push_back(TriangleType(offset + 0, offset + 1, offset + 2));
+		_triangles.pousse(TriangleType(offset + 0, offset + 1, offset + 2));
 
-		for (auto i = 0ul; i < vertices.size(); ++i) {
-			std::vector<EdgeType> polygone;
+		for (auto i = 0l; i < vertices.taille(); ++i) {
+			dls::tableau<EdgeType> polygone;
 
 			for (auto &t : _triangles) {
 				if (cercle_circontient(t, vertices[i])) {
 					t.isBad = true;
-					polygone.push_back(t.e1);
-					polygone.push_back(t.e2);
-					polygone.push_back(t.e3);
+					polygone.pousse(t.e1);
+					polygone.pousse(t.e2);
+					polygone.pousse(t.e3);
 				}
 				else {
 					// message erreur?
 				}
 			}
 
-			_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [](TriangleType &t){
+			_triangles.erase(std::remove_if(_triangles.debut(), _triangles.fin(), [](TriangleType &t){
 								 return t.isBad;
-							 }), end(_triangles));
+							 }), _triangles.fin());
 
 			for (auto e1 = begin(polygone); e1 != end(polygone); ++e1) {
 				for (auto e2 = e1 + 1; e2 != end(polygone); ++e2) {
@@ -1009,7 +1009,7 @@ public:
 						   }), end(polygone));
 
 			for(const auto &e : polygone) {
-				_triangles.push_back(TriangleType(e.p1, e.p2, i));
+				_triangles.pousse(TriangleType(e.p1, e.p2, i));
 			}
 		}
 
@@ -1019,9 +1019,9 @@ public:
 
 		for(const auto &t : _triangles)
 		{
-			_edges.push_back(t.e1);
-			_edges.push_back(t.e2);
-			_edges.push_back(t.e3);
+			_edges.pousse(t.e1);
+			_edges.pousse(t.e2);
+			_edges.pousse(t.e3);
 		}
 
 		// retire les trois vertices du super-triangle
@@ -1032,14 +1032,14 @@ public:
 		return _triangles;
 	}
 
-	const std::vector<TriangleType>& getTriangles() const { return _triangles; }
-	const std::vector<EdgeType>& getEdges() const { return _edges; }
-	const std::vector<VertexType>& getVertices() const { return _vertices; }
+	const dls::tableau<TriangleType>& getTriangles() const { return _triangles; }
+	const dls::tableau<EdgeType>& getEdges() const { return _edges; }
+	const dls::tableau<VertexType>& getVertices() const { return _vertices; }
 
 private:
-	std::vector<TriangleType> _triangles{};
-	std::vector<EdgeType> _edges{};
-	std::vector<VertexType> _vertices{};
+	dls::tableau<TriangleType> _triangles{};
+	dls::tableau<EdgeType> _edges{};
+	dls::tableau<VertexType> _vertices{};
 };
 
 class OpPatchTriangle : public OperatriceCorps {
@@ -1093,7 +1093,7 @@ public:
 
 		auto gna = GNA(graine);
 
-		auto vertices = std::vector<dls::math::vec2f>();
+		auto vertices = dls::tableau<dls::math::vec2f>();
 
 		bridson::poisson_disc_distribution(
 					conf,
@@ -1111,7 +1111,7 @@ public:
 		[&vertices](bridson::point const &p)
 		{
 			//m_corps.ajoute_point(p.x, 0.0f, p.y);
-			vertices.push_back(dls::math::vec2f(p.x, p.y));
+			vertices.pousse(dls::math::vec2f(p.x, p.y));
 		}
 		);
 

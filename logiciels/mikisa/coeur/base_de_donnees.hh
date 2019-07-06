@@ -25,16 +25,17 @@
 #pragma once
 
 #include <string>
-#include <vector>
+
+#include "biblinternes/structures/tableau.hh"
 
 class Composite;
 class Objet;
 class Scene;
 
 class BaseDeDonnees final {
-	std::vector<Composite *> m_composites{};
-	std::vector<Objet *> m_objets{};
-	std::vector<Scene *> m_scenes{};
+	dls::tableau<Composite *> m_composites{};
+	dls::tableau<Objet *> m_objets{};
+	dls::tableau<Scene *> m_scenes{};
 
 public:
 	BaseDeDonnees() = default;
@@ -51,7 +52,7 @@ public:
 
 	void enleve_objet(Objet *objet);
 
-	std::vector<Objet *> const &objets() const;
+	dls::tableau<Objet *> const &objets() const;
 
 	/* ********************************************************************** */
 
@@ -59,7 +60,7 @@ public:
 
 	Scene *scene(std::string const &nom) const;
 
-	std::vector<Scene *> const &scenes() const;
+	dls::tableau<Scene *> const &scenes() const;
 
 	/* ********************************************************************** */
 
@@ -67,5 +68,5 @@ public:
 
 	Composite *composite(std::string const &nom) const;
 
-	std::vector<Composite *> const &composites() const;
+	dls::tableau<Composite *> const &composites() const;
 };

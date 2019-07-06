@@ -54,9 +54,9 @@ inline static std::string node_id(const Noeud *node, bool quoted = true)
 	return ss.str();
 }
 
-inline size_t get_input_index(const PriseEntree *socket)
+inline long get_input_index(const PriseEntree *socket)
 {
-	auto i = 0ul;
+	auto i = 0l;
 	for (auto const &input : socket->parent->entrees()) {
 		if (input->nom == socket->nom) {
 			return i;
@@ -65,12 +65,12 @@ inline size_t get_input_index(const PriseEntree *socket)
 		++i;
 	}
 
-	return -1ul;
+	return -1l;
 }
 
-inline size_t get_output_index(const PriseSortie *socket)
+inline long get_output_index(const PriseSortie *socket)
 {
-	auto i = 0ul;
+	auto i = 0l;
 	for (auto const &output : socket->parent->sorties()) {
 		if (output->nom == socket->nom) {
 			return i;
@@ -79,12 +79,12 @@ inline size_t get_output_index(const PriseSortie *socket)
 		++i;
 	}
 
-	return -1ul;
+	return -1l;
 }
 
-inline static std::string input_id(const PriseEntree *socket, size_t index, bool quoted = true)
+inline static std::string input_id(const PriseEntree *socket, long index, bool quoted = true)
 {
-	if (index == -1ul) {
+	if (index == -1l) {
 		index = get_input_index(socket);
 	}
 
@@ -101,9 +101,9 @@ inline static std::string input_id(const PriseEntree *socket, size_t index, bool
 	return ss.str();
 }
 
-inline static std::string output_id(const PriseSortie *socket, size_t index, bool quoted = true)
+inline static std::string output_id(const PriseSortie *socket, long index, bool quoted = true)
 {
-	if (index == -1ul) {
+	if (index == -1l) {
 		index = get_output_index(socket);
 	}
 
@@ -135,10 +135,10 @@ inline void dump_node(dls::systeme_fichier::File &file, Noeud *node)
 	file.print("label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">");
 	file.print("<TR><TD COLSPAN=\"2\">%s</TD></TR>", node->nom().c_str());
 
-	auto const numin = node->entrees().size();
-	auto const numout = node->sorties().size();
+	auto const numin = static_cast<long>(node->entrees().size());
+	auto const numout = static_cast<long>(node->sorties().size());
 
-	for (size_t i = 0; (i < numin) || (i < numout); ++i) {
+	for (auto i = 0; (i < numin) || (i < numout); ++i) {
 		file.print("<TR>");
 
 		if (i < numin) {
@@ -194,13 +194,13 @@ inline void dump_link(dls::systeme_fichier::File &file, const PriseSortie *from,
 	auto penwidth = 2.0;
 
 	file.print("%s:%s -> %s:%s",
-			   node_id(from->parent).c_str(), output_id(from, -1ul).c_str(),
-			   node_id(to->parent).c_str(), input_id(to, -1ul).c_str());
+			   node_id(from->parent).c_str(), output_id(from, -1l).c_str(),
+			   node_id(to->parent).c_str(), input_id(to, -1l).c_str());
 
 	file.print("[");
 
 	/* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
-	file.print("id=\"VAL%s:%s\"", node_id(to->parent, false).c_str(), input_id(to, -1ul, false).c_str());
+	file.print("id=\"VAL%s:%s\"", node_id(to->parent, false).c_str(), input_id(to, -1l, false).c_str());
 	file.print(",penwidth=\"%f\"", penwidth);
 
 	file.print("];\n");

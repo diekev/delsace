@@ -26,10 +26,10 @@
 
 #include <any>
 #include <string>
-#include <vector>
 
 #include "biblinternes/geometrie/rectangle.h"
 #include "biblinternes/outils/iterateurs.h"
+#include "biblinternes/structures/tableau.hh"
 
 class Noeud;
 struct PriseEntree;
@@ -52,12 +52,12 @@ enum type_prise {
 
 struct PriseSortie {
 	Noeud *parent = nullptr;
-	std::vector<PriseEntree *> liens{};
+	dls::tableau<PriseEntree *> liens{};
 	std::string nom = "";
 	int type = 0;
 
 	/* décalage dans la pile d'une CompileuseGraphe */
-	size_t decalage_pile = 0;
+	long decalage_pile = 0;
 
 	/* position et taille dans l'entreface */
 	Rectangle rectangle{};
@@ -73,7 +73,7 @@ struct PriseSortie {
 
 struct PriseEntree {
 	Noeud *parent = nullptr;
-	std::vector<PriseSortie *> liens{};
+	dls::tableau<PriseSortie *> liens{};
 	//PriseSortie *lien = nullptr;
 	std::string nom = "";
 	int type = 0;
@@ -94,8 +94,8 @@ struct PriseEntree {
 class Noeud {
 	void (*supprime_donnees)(std::any) = nullptr;
 
-	std::vector<PriseEntree *> m_entrees = {};
-	std::vector<PriseSortie *> m_sorties = {};
+	dls::tableau<PriseEntree *> m_entrees = {};
+	dls::tableau<PriseSortie *> m_sorties = {};
 
 	std::any m_donnees = nullptr;
 
@@ -122,8 +122,8 @@ public:
 	Noeud(Noeud const &) = default;
 	Noeud &operator=(Noeud const &) = default;
 
-	using plage_entrees = dls::outils::plage_iterable<std::vector<PriseEntree *>::const_iterator>;
-	using plage_sorties = dls::outils::plage_iterable<std::vector<PriseSortie *>::const_iterator>;
+	using plage_entrees = dls::outils::plage_iterable<dls::tableau<PriseEntree *>::const_iteratrice>;
+	using plage_sorties = dls::outils::plage_iterable<dls::tableau<PriseSortie *>::const_iteratrice>;
 
 	std::any donnees() const;
 	void donnees(std::any pointeur);
@@ -189,7 +189,7 @@ public:
 	/**
 	 * Retourne l'entrée selon l'index spécifié.
 	 */
-	PriseEntree *entree(size_t index);
+	PriseEntree *entree(long index);
 
 	/**
 	 * Retourne l'entrée selon le nom spécifié.
@@ -199,7 +199,7 @@ public:
 	/**
 	 * Retourne la sortie selon l'index spécifié.
 	 */
-	PriseSortie *sortie(size_t index);
+	PriseSortie *sortie(long index);
 
 	/**
 	 * Retourne la sortie selon le nom spécifié.

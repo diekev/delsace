@@ -25,7 +25,8 @@
 #pragma once
 
 #include <string>
-#include <vector>
+
+#include "biblinternes/structures/tableau.hh"
 
 namespace objets {
 
@@ -55,7 +56,7 @@ public:
 
 	virtual void reserve_uvs(long const nombre) = 0;
 
-	virtual void groupes(std::vector<std::string> const &noms) = 0;
+	virtual void groupes(dls::tableau<std::string> const &noms) = 0;
 
 	virtual void groupe_nuancage(const int index) = 0;
 };

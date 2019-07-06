@@ -53,5 +53,5 @@ public:
 
 	void ajourne_manipulable() override;
 
-	void obtiens_liste(std::string const &attache, std::vector<std::string> &chaines) override;
+	void obtiens_liste(std::string const &attache, dls::tableau<std::string> &chaines) override;
 };

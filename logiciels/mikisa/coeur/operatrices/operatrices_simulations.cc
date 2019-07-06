@@ -71,7 +71,7 @@ public:
 
 		m_corps.reinitialise();
 
-		if (m_graphe_parent.donnees.empty()) {
+		if (m_graphe_parent.donnees.est_vide()) {
 			ajoute_avertissement("Les données du graphe sont vides !");
 			return EXECUTION_ECHOUEE;
 		}

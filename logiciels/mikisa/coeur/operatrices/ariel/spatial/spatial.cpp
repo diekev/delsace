@@ -76,13 +76,13 @@ void DebugTraverseAccumulator::RecordIntersection(
 		const rayCore::Intersection& intersect,
 		const unsigned int& nodeid)
 {
-    m_intersections.push_back(intersect);
-    m_nodeids.push_back(nodeid);
+	m_intersections.pousse(intersect);
+	m_nodeids.pousse(nodeid);
 }
 
 void DebugTraverseAccumulator::Transform(const dls::math::mat4x4f& m)
 {
-	auto intersectionCount = m_intersections.size();
+	auto intersectionCount = m_intersections.taille();
 
 	for (unsigned int i=0; i<intersectionCount; i++) {
         m_intersections[i] = m_intersections[i].Transform(m);

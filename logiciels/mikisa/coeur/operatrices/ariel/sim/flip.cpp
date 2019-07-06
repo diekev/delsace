@@ -492,7 +492,7 @@ static dls::math::vec3f Resample(
 	return ru;
 }
 
-static void ResampleParticles(ParticleGrid* pgrid, std::vector<Particle*>& particles,
+static void ResampleParticles(ParticleGrid* pgrid, dls::tableau<Particle*>& particles,
 							  sceneCore::Scene* scene, const float& frame, const float& dt,
 							  const float& re, const dls::math::vec3i& dimensions)
 {
@@ -505,9 +505,9 @@ static void ResampleParticles(ParticleGrid* pgrid, std::vector<Particle*>& parti
 	auto springforce = 50.0f;
 
 	//use springs to temporarily displace particles
-	auto particleCount = particles.size();
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	auto particleCount = particles.taille();
+	tbb::parallel_for(tbb::blocked_range<long>(0, particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto n0=r.begin(); n0!=r.end(); ++n0) {
 			if (particles[n0]->m_type==FLUID) {
@@ -516,10 +516,10 @@ static void ResampleParticles(ParticleGrid* pgrid, std::vector<Particle*>& parti
 				auto x = std::max(0.0f,std::min(maxd,maxd*p->m_p.x));
 				auto y = std::max(0.0f,std::min(maxd,maxd*p->m_p.y));
 				auto z = std::max(0.0f,std::min(maxd,maxd*p->m_p.z));
-				std::vector<Particle*> neighbors = pgrid->GetCellNeighbors(dls::math::vec3f(x,y,z),
+				dls::tableau<Particle*> neighbors = pgrid->GetCellNeighbors(dls::math::vec3f(x,y,z),
 																		   dls::math::vec3f(1.0f));
-				auto neighborsCount = neighbors.size();
-				for (auto n1=0ul; n1<neighborsCount; ++n1) {
+				auto neighborsCount = neighbors.taille();
+				for (auto n1=0l; n1<neighborsCount; ++n1) {
 					Particle* np = neighbors[n1];
 					if (p!=np) {
 						auto dist = longueur(p->m_p-np->m_p);
@@ -550,9 +550,9 @@ static void ResampleParticles(ParticleGrid* pgrid, std::vector<Particle*>& parti
 		}
 	});
 
-	particleCount = particles.size();
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	particleCount = particles.taille();
+	tbb::parallel_for(tbb::blocked_range<long>(0,particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto n=r.begin(); n!=r.end(); ++n) {
 			if (particles[n]->m_type == FLUID) {
@@ -565,9 +565,9 @@ static void ResampleParticles(ParticleGrid* pgrid, std::vector<Particle*>& parti
 		}
 	});
 
-	particleCount = particles.size();
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	particleCount = particles.taille();
+	tbb::parallel_for(tbb::blocked_range<long>(0,particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto n=r.begin(); n!=r.end(); ++n) {
 			if (particles[n]->m_type == FLUID) {
@@ -692,11 +692,11 @@ static dls::math::vec3f InterpolateVelocity(dls::math::vec3f p, MacGrid* mgrid)
 	return u;
 }
 
-static void SplatMACGridToParticles(std::vector<Particle*>& particles, MacGrid* mgrid)
+static void SplatMACGridToParticles(dls::tableau<Particle*>& particles, MacGrid* mgrid)
 {
-	auto particleCount = particles.size();
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r) {
+	auto particleCount = particles.taille();
+	tbb::parallel_for(tbb::blocked_range<long>(0,particleCount),
+					  [&](const tbb::blocked_range<long>& r) {
 		for (auto i=r.begin(); i!=r.end(); ++i) {
 			particles[i]->m_u = InterpolateVelocity(particles[i]->m_p, mgrid);
 		}
@@ -705,7 +705,7 @@ static void SplatMACGridToParticles(std::vector<Particle*>& particles, MacGrid* 
 
 static void SplatParticlesToMACGrid(
 		ParticleGrid* sgrid,
-		std::vector<Particle*>& /*particles*/,
+		dls::tableau<Particle*>& /*particles*/,
 		MacGrid* mgrid)
 {
 	auto const RE = 1.4f; //sharpen kernel weight
@@ -720,7 +720,7 @@ static void SplatParticlesToMACGrid(
 		for (auto i=r.begin(); i!=r.end(); ++i) {
 			for (auto j = 0; j < y+1; ++j) {
 				for (auto k = 0; k < z+1; ++k) {
-					std::vector<Particle*> neighbors;
+					dls::tableau<Particle*> neighbors;
 					//Splat X direction
 					if (j<y && k<z) {
 						auto px = dls::math::vec3f(
@@ -735,7 +735,7 @@ static void SplatParticlesToMACGrid(
 									dls::math::vec3f(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k)),
 									dls::math::vec3f(1.0f, 2.0f, 2.0f));
 
-						for (unsigned int n=0; n<neighbors.size(); n++) {
+						for (unsigned int n=0; n<neighbors.taille(); n++) {
 							Particle* p = neighbors[n];
 							if (p->m_type == FLUID) {
 								dls::math::vec3f pos;
@@ -763,7 +763,7 @@ static void SplatParticlesToMACGrid(
 						auto sumy = 0.0f;
 						neighbors = sgrid->GetWallNeighbors(dls::math::vec3f(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k)),
 															dls::math::vec3f(2.0f, 1.0f, 2.0f));
-						for (unsigned int n=0; n<neighbors.size(); n++) {
+						for (unsigned int n=0; n<neighbors.taille(); n++) {
 							Particle* p = neighbors[n];
 							if (p->m_type == FLUID) {
 								dls::math::vec3f pos;
@@ -791,7 +791,7 @@ static void SplatParticlesToMACGrid(
 						auto sumz = 0.0f;
 						neighbors = sgrid->GetWallNeighbors(dls::math::vec3f(static_cast<float>(i),static_cast<float>(j),static_cast<float>(k)),
 															dls::math::vec3f(2.0f,2.0f,1.0f));
-						for (unsigned int n=0; n<neighbors.size(); n++) {
+						for (unsigned int n=0; n<neighbors.taille(); n++) {
 							Particle* p = neighbors[n];
 							if (p->m_type == FLUID) {
 								dls::math::vec3f pos;
@@ -869,7 +869,7 @@ void FlipSim::Init()
 				p->m_p = (dls::math::vec3f(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k)) + dls::math::vec3f(0.5f))*h;
 				p->m_type = FLUID;
 				p->m_mass = 1.0f;
-				m_particles.push_back(p);
+				m_particles.pousse(p);
 			}
 		}
 	}
@@ -878,7 +878,7 @@ void FlipSim::Init()
 	ComputeDensity();
 	m_max_density = 0.0f;
 	//sum densities across particles
-	for (unsigned int n=0; n<m_particles.size(); n++) {
+	for (unsigned int n=0; n<m_particles.taille(); n++) {
 		Particle *p = m_particles[n];
 		m_max_density = std::max(m_max_density,p->m_density);
 		delete p;
@@ -893,10 +893,10 @@ void FlipSim::Init()
 
 void FlipSim::StoreTempParticleVelocities()
 {
-	auto particlecount = m_particles.size();
+	auto particlecount = m_particles.taille();
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particlecount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particlecount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto p=r.begin(); p!=r.end(); ++p) {
 			m_particles[p]->m_pt = m_particles[p]->m_p;
@@ -947,12 +947,12 @@ void FlipSim::Step(bool saveVDB, bool saveOBJ, bool savePARTIO)
 void FlipSim::AdjustParticlesStuckInSolids()
 {
 	auto maxd = static_cast<float>(std::max(std::max(m_dimensions.x, m_dimensions.z), m_dimensions.y));
-	auto particleCount = m_particles.size();
+	auto particleCount = m_particles.taille();
 	//pushi_back to vectors doesn't play nice with lambdas for some reason, so we have to
 	//do something a little bit convoluted here...
 	bool* particleInSolidChecks = new bool[particleCount];
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto p=r.begin(); p!=r.end(); ++p) {
 			particleInSolidChecks[p] = false;
@@ -969,18 +969,18 @@ void FlipSim::AdjustParticlesStuckInSolids()
 	});
 
 	//build vector of particles we need to adjust
-	std::vector<Particle*> stuckParticles;
+	dls::tableau<Particle*> stuckParticles;
 	stuckParticles.reserve(particleCount);
 	for (unsigned int p=0; p<particleCount; p++) {
 		if (particleInSolidChecks[p]==true) {
-			stuckParticles.push_back(m_particles[p]);
+			stuckParticles.pousse(m_particles[p]);
 			m_particles[p]->m_pt = m_particles[p]->m_p;
 		}
 	}
 	delete [] particleInSolidChecks;
 	//figure out direction to nearest surface from levelset, then raycast for a precise result
 	m_scene->GetSolidLevelSet()->ProjectPointsToSurface(stuckParticles, maxd);
-	auto stuckCount = static_cast<unsigned int>(stuckParticles.size());
+	auto stuckCount = static_cast<unsigned int>(stuckParticles.taille());
 	for (auto p=0u; p<stuckCount; p++) {
 		rayCore::Ray r;
 		r.m_origin = stuckParticles[p]->m_pt * maxd;
@@ -1002,10 +1002,10 @@ void FlipSim::AdjustParticlesStuckInSolids()
 void FlipSim::CheckParticleSolidConstraints()
 {
 	auto maxd = static_cast<float>(std::max(std::max(m_dimensions.x, m_dimensions.z), m_dimensions.y));
-	auto particlecount = m_particles.size();
+	auto particlecount = m_particles.taille();
 	// for (unsigned int p=0; p<particlecount; p++) {
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particlecount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particlecount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto p = r.begin(); p!=r.end(); ++p) {
 			if (m_particles[p]->m_type==FLUID) {
@@ -1053,11 +1053,11 @@ void FlipSim::AdvectParticles()
 	auto y = m_dimensions.y;
 	auto z = m_dimensions.z;
 	auto maxd = static_cast<float>(std::max(std::max(x, z), y));
-	auto particleCount = m_particles.size();
+	auto particleCount = m_particles.taille();
 
 	//update positions
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0, particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto i=r.begin(); i!=r.end(); ++i) {
 			if (m_particles[i]->m_type == FLUID) {
@@ -1071,8 +1071,8 @@ void FlipSim::AdvectParticles()
 	m_pgrid->Sort(m_particles); //sort
 
 	//apply constraints for outer walls of sim
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto p0=r.begin(); p0!=r.end(); ++p0) {
 			auto rayon = 1.0f/maxd;
@@ -1092,7 +1092,7 @@ void FlipSim::AdvectParticles()
 							dls::math::vec3f(i,j,k),
 							dls::math::vec3f(1.0f));
 
-				for (auto p1 = 0ul; p1 < neighbors.size(); p1++) {
+				for (auto p1 = 0l; p1 < neighbors.taille(); p1++) {
 					Particle* np = neighbors[p1];
 					auto re = 1.5f*m_density/maxd;
 					if (np->m_type == SOLID) {
@@ -1114,11 +1114,11 @@ void FlipSim::AdvectParticles()
 
 void FlipSim::SolvePicFlip()
 {
-	auto particleCount = m_particles.size();
+	auto particleCount = m_particles.taille();
 
 	//store copy of current velocities for later
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto i=r.begin(); i!=r.end(); ++i) {
 			m_particles[i]->m_t = m_particles[i]->m_u;
@@ -1128,8 +1128,8 @@ void FlipSim::SolvePicFlip()
 	SplatMACGridToParticles(m_particles, &m_mgrid_previous);
 
 	//set FLIP velocity
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto i=r.begin(); i!=r.end(); ++i) {
 			m_particles[i]->m_t = m_particles[i]->m_u + m_particles[i]->m_t;
@@ -1140,8 +1140,8 @@ void FlipSim::SolvePicFlip()
 	SplatMACGridToParticles(m_particles, &m_mgrid);
 
 	//combine PIC and FLIP
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particleCount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particleCount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto i=r.begin(); i!=r.end(); ++i) {
 			m_particles[i]->m_u = (1.0f-m_picflipratio)*m_particles[i]->m_u +
@@ -1555,14 +1555,14 @@ void FlipSim::SubtractPressureGradient()
 void FlipSim::ApplyExternalForces()
 {
 	auto externalForces = m_scene->GetExternalForces();
-	auto numberOfExternalForces = externalForces.size();
-	auto particlecount = m_particles.size();
+	auto numberOfExternalForces = externalForces.taille();
+	auto particlecount = m_particles.taille();
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particlecount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particlecount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto i=r.begin(); i!=r.end(); ++i) {
-			for (auto j=0ul; j<numberOfExternalForces; j++) {
+			for (auto j=0l; j<numberOfExternalForces; j++) {
 				m_particles[i]->m_u += externalForces[j]*m_stepsize;
 			}
 		}
@@ -1573,10 +1573,10 @@ void FlipSim::ComputeDensity()
 {
 	auto maxd = static_cast<float>(std::max(std::max(m_dimensions.x, m_dimensions.z), m_dimensions.y));
 
-	auto particlecount = m_particles.size();
+	auto particlecount = m_particles.taille();
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0,particlecount),
-					  [&](const tbb::blocked_range<size_t>& r)
+	tbb::parallel_for(tbb::blocked_range<long>(0,particlecount),
+					  [&](const tbb::blocked_range<long>& r)
 	{
 		for (auto i=r.begin(); i!=r.end(); ++i) {
 			//Find neighbours
@@ -1590,7 +1590,7 @@ void FlipSim::ComputeDensity()
 			position.y = std::max(0.0f,std::min(maxd-1.0f, maxd*position.y));
 			position.z = std::max(0.0f,std::min(maxd-1.0f, maxd*position.z));
 
-			std::vector<Particle *> neighbors;
+			dls::tableau<Particle *> neighbors;
 			neighbors = m_pgrid->GetCellNeighbors(position, dls::math::vec3f(1));
 
 			auto weightsum = 0.0f;
@@ -1613,7 +1613,7 @@ bool FlipSim::IsCellFluid(const int& x, const int& y, const int& z)
 	return (m_scene->GetLiquidLevelSet()->GetCell(x,y,z)<0.0f);
 }
 
-std::vector<Particle*>* FlipSim::GetParticles()
+dls::tableau<Particle*>* FlipSim::GetParticles()
 {
 	return &m_particles;
 }

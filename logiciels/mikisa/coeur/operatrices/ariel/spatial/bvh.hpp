@@ -82,14 +82,14 @@ public:
 	Bvh &operator=(Bvh const &autre) = default;
 
 private:
-	float FindBestSplit(BvhNode &Node, std::vector<unsigned int> &references,
+	float FindBestSplit(BvhNode &Node, dls::tableau<unsigned int> &references,
 						const Axis &direction, const unsigned int &quality, Aabb* aabbs,
 						unsigned int &leftCount, unsigned int &rightCount);
 
 	Axis FindLongestAxis(Aabb const &box);
 
 	double CalculateSplitCost(const float &split, const BvhNode &node,
-							  std::vector<unsigned int> &references, const Axis &direction,
+							  dls::tableau<unsigned int> &references, const Axis &direction,
 							  Aabb* aabbs, unsigned int &leftCount, unsigned int &rightCount);
 };
 
@@ -210,23 +210,23 @@ void Bvh<T>::BuildBvh(const unsigned int &maxDepth)
 	}
 
 	//create vectors to store nodes during construction
-	std::vector<BvhNode> tree;
-	tree.reserve(static_cast<size_t>(std::pow(2.0f, static_cast<float>(maxDepth))));
+	dls::tableau<BvhNode> tree;
+	tree.reserve(static_cast<long>(std::pow(2.0f, static_cast<float>(maxDepth))));
 
 	auto nodeCount = 0u;
 	auto layerCount = 0u;
 
-	std::vector< std::vector<unsigned int> > currentRefs;
-	currentRefs.reserve(static_cast<size_t>(std::pow(2.0f, static_cast<float>(maxDepth))));
+	dls::tableau< dls::tableau<unsigned int> > currentRefs;
+	currentRefs.reserve(static_cast<long>(std::pow(2.0f, static_cast<float>(maxDepth))));
 
-	std::vector<BvhNode*> currentLayer;
-	std::vector<unsigned int> finalRefList;
+	dls::tableau<BvhNode*> currentLayer;
+	dls::tableau<unsigned int> finalRefList;
 	//create null node to place in index 0. tree begins at index 1.
-	tree.push_back(BvhNode());
+	tree.pousse(BvhNode());
 	nodeCount++;
 	//    BvhNode* nullnode = &tree[0];
 	//create root node with aabb that is combined from all input aabbs
-	tree.push_back(BvhNode());
+	tree.pousse(BvhNode());
 	nodeCount++;
 	auto root = &tree[1];
 
@@ -239,23 +239,23 @@ void Bvh<T>::BuildBvh(const unsigned int &maxDepth)
 	root->m_referenceOffset = 0;
 	root->m_nodeid = 1;
 
-	std::vector<unsigned int> rootreferences;
+	dls::tableau<unsigned int> rootreferences;
 	rootreferences.reserve(numberOfAabbs);
 
 	for (unsigned int i=0; i<numberOfAabbs; i++) {
-		rootreferences.push_back(aabbs[i].m_id);
+		rootreferences.pousse(static_cast<unsigned>(aabbs[i].m_id));
 	}
 
-	currentLayer.push_back(root);
-	currentRefs.push_back(rootreferences);
+	currentLayer.pousse(root);
+	currentRefs.pousse(rootreferences);
 
 	//for each layer, split nodes and move on to next layer
 	for (unsigned int layer=0; layer<maxDepth; layer++) {
 		//set up temp storage buffers for next layer
-		std::vector< std::vector<unsigned int> > nextLayerRefs;
-		std::vector<BvhNode*> nextLayer;
+		dls::tableau< dls::tableau<unsigned int> > nextLayerRefs;
+		dls::tableau<BvhNode*> nextLayer;
 		//for each node in current layer, split and push result
-		auto numberOfNodesInLayer = currentLayer.size();
+		auto numberOfNodesInLayer = currentLayer.taille();
 
 		if (numberOfNodesInLayer > 0) {
 			layerCount++;
@@ -263,17 +263,17 @@ void Bvh<T>::BuildBvh(const unsigned int &maxDepth)
 
 		for (unsigned int i=0; i<numberOfNodesInLayer; i++) {
 			//if <20 prims or last layer, make node a leaf node
-			auto refCount = static_cast<unsigned int>(currentRefs[i].size());
+			auto refCount = static_cast<unsigned int>(currentRefs[i].taille());
 			auto node = currentLayer[i];
 
 			if (refCount <= 5 || layer==maxDepth-1) {
 				node->m_left = 0;
 				node->m_right = 0;
 				node->m_numberOfReferences = refCount;
-				node->m_referenceOffset = static_cast<unsigned int>(finalRefList.size());
+				node->m_referenceOffset = static_cast<unsigned int>(finalRefList.taille());
 
 				for (unsigned int j=0; j<node->m_numberOfReferences; j++) {
-					finalRefList.push_back(currentRefs[i][j]);
+					finalRefList.pousse(currentRefs[i][j]);
 				}
 			}
 			else { //else, find the best split via SAH and add children to next layer
@@ -324,29 +324,29 @@ void Bvh<T>::BuildBvh(const unsigned int &maxDepth)
 					node->m_left = 0;
 					node->m_right = 0;
 					node->m_numberOfReferences = refCount;
-					node->m_referenceOffset = static_cast<unsigned int>(finalRefList.size());
+					node->m_referenceOffset = static_cast<unsigned int>(finalRefList.taille());
 
 					for (unsigned int j=0; j<node->m_numberOfReferences; j++) {
-						finalRefList.push_back(currentRefs[i][j]);
+						finalRefList.pousse(currentRefs[i][j]);
 					}
 				}
 				else {
 					//create left and right nodes
-					tree.push_back(BvhNode());
+					tree.pousse(BvhNode());
 					nodeCount++;
-					auto leftID = static_cast<unsigned int>(tree.size()-1);
+					auto leftID = static_cast<unsigned int>(tree.taille()-1);
 					auto left = &tree[leftID];
 					left->m_nodeid = leftID;
-					tree.push_back(BvhNode());
+					tree.pousse(BvhNode());
 					nodeCount++;
-					auto rightID = static_cast<unsigned int>(tree.size() - 1);
+					auto rightID = static_cast<unsigned int>(tree.taille() - 1);
 					auto right = &tree[rightID];
 					right->m_nodeid = rightID;
 					node->m_left = leftID;
 					node->m_right = rightID;
 					//create lists of left and right objects based on centroid location
-					std::vector<unsigned int> leftRefs;
-					std::vector<unsigned int> rightRefs;
+					dls::tableau<unsigned int> leftRefs;
+					dls::tableau<unsigned int> rightRefs;
 					leftRefs.reserve(leftCount);
 					rightRefs.reserve(rightCount);
 					left->m_numberOfReferences = leftCount;
@@ -357,20 +357,20 @@ void Bvh<T>::BuildBvh(const unsigned int &maxDepth)
 						auto const &reference = aabbs[referenceIndex];
 
 						if (reference.m_centroid[splitAxis]<=bestSplit) {
-							leftRefs.push_back(referenceIndex);
+							leftRefs.pousse(referenceIndex);
 							left->m_bounds.ExpandAabb(reference.m_min, reference.m_max);
 						}
 						else {
-							rightRefs.push_back(referenceIndex);
+							rightRefs.pousse(referenceIndex);
 							right->m_bounds.ExpandAabb(reference.m_min, reference.m_max);
 						}
 					}
 
 					//add left and right children to next later
-					nextLayer.push_back(left);
-					nextLayerRefs.push_back(leftRefs);
-					nextLayer.push_back(right);
-					nextLayerRefs.push_back(rightRefs);
+					nextLayer.pousse(left);
+					nextLayerRefs.pousse(leftRefs);
+					nextLayer.pousse(right);
+					nextLayerRefs.pousse(rightRefs);
 					//cleanup
 					leftRefs.clear();
 					rightRefs.clear();
@@ -389,13 +389,13 @@ void Bvh<T>::BuildBvh(const unsigned int &maxDepth)
 		currentRefs = nextLayerRefs;
 	}
 
-	m_numberOfNodes = tree.size();
+	m_numberOfNodes = tree.taille();
 	m_nodes = new BvhNode[m_numberOfNodes];
-	copy(tree.begin(), tree.end(), m_nodes);
+	copy(tree.debut(), tree.fin(), m_nodes);
 
-	m_numberOfReferenceIndices = finalRefList.size();
+	m_numberOfReferenceIndices = finalRefList.taille();
 	m_referenceIndices = new unsigned int[m_numberOfReferenceIndices];
-	copy(finalRefList.begin(), finalRefList.end(), m_referenceIndices);
+	copy(finalRefList.debut(), finalRefList.fin(), m_referenceIndices);
 
 	delete [] aabbs;
 
@@ -405,7 +405,7 @@ void Bvh<T>::BuildBvh(const unsigned int &maxDepth)
 template <typename T>
 float Bvh<T>::FindBestSplit(
 		BvhNode &node,
-		std::vector<unsigned int> &references,
+		dls::tableau<unsigned int> &references,
 		Axis const &direction,
 		unsigned int const &quality,
 		Aabb *aabbs,
@@ -462,7 +462,7 @@ template <typename T>
 double Bvh<T>::CalculateSplitCost(
 		float const &split,
 		BvhNode const &node,
-		std::vector<unsigned int> &references,
+		dls::tableau<unsigned int> &references,
 		Axis const &direction,
 		Aabb *aabbs,
 		unsigned int &leftCount,

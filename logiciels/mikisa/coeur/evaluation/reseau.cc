@@ -57,7 +57,7 @@ void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 	auto noeud = new NoeudReseau{};
 	noeud->objet = objet;
 	noeud->noeud_objet = noeud_objet;
-	reseau->noeuds.push_back(noeud);
+	reseau->noeuds.pousse(noeud);
 
 	m_table_objet_noeud.insert({objet, noeud});
 }

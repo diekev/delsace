@@ -25,6 +25,10 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
+set(BIBLIOTHEQUES
+	memoire
+)
+
 add_library(${NOM_CIBLE} STATIC
 	adaptrice_creation.h
 	adaptrice_creation.cc
@@ -35,3 +39,5 @@ add_library(${NOM_CIBLE} STATIC
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")

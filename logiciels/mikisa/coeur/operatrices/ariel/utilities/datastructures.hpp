@@ -22,6 +22,8 @@
 #include <tbb/concurrent_queue.h>
 #include <tbb/concurrent_vector.h>
 
+#include "biblinternes/structures/tableau.hh"
+
 //====================================
 // Class Declarations
 //====================================
@@ -54,9 +56,9 @@ public:
 	~MultiQueue();
 
 	void Push(const T& item);
-	void Push(const std::vector<T>& items);
+	void Push(const dls::tableau<T>& items);
 	T Pop();
-	std::vector<T> Pop(const unsigned int& count);
+	dls::tableau<T> Pop(const unsigned int& count);
 	unsigned int Size();
 	bool Empty();
 

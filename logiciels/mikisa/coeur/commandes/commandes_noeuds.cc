@@ -245,7 +245,7 @@ public:
 			connexion->x = donnees.x;
 			connexion->y = donnees.y;
 
-			if (prise_entree && !prise_entree->liens.empty()) {
+			if (prise_entree && !prise_entree->liens.est_vide()) {
 				connexion->prise_entree = nullptr;
 				connexion->prise_sortie = prise_entree->liens[0];
 
@@ -319,7 +319,7 @@ public:
 			}
 
 			if (peut_connecter(entree, sortie)) {
-				if (!entree->liens.empty()) {
+				if (!entree->liens.est_vide()) {
 					graphe->deconnecte(entree->liens[0], entree);
 				}
 

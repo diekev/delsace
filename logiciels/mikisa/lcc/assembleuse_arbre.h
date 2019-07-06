@@ -27,7 +27,8 @@
 #include <list>
 #include <stack>
 #include <string>
-#include <vector>
+
+#include "biblinternes/structures/tableau.hh"
 
 #include "arbre_syntactic.h"
 
@@ -36,7 +37,7 @@ struct DonneesMorceaux;
 
 class assembleuse_arbre {
 	std::stack<lcc::noeud::base *> m_pile{};
-	std::vector<lcc::noeud::base *> m_noeuds{};
+	dls::tableau<lcc::noeud::base *> m_noeuds{};
 
 	size_t m_memoire_utilisee = 0;
 

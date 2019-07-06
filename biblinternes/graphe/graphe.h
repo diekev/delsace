@@ -101,15 +101,15 @@ public:
 	bool besoin_ajournement = false;
 
 	/* Données personnalisables pour les sur-entrées de ce graphe. */
-	std::vector<std::any> entrees{};
+	dls::tableau<std::any> entrees{};
 
 	/* Données extras personnalisables de ce graphe. */
-	std::vector<std::any> donnees{};
+	dls::tableau<std::any> donnees{};
 
 	/* entreface de programmation */
 
-	using iterateur = std::vector<Noeud *>::iterator;
-	using iterateur_const = std::vector<Noeud *>::const_iterator;
+	using iterateur = dls::tableau<Noeud *>::iteratrice;
+	using iterateur_const = dls::tableau<Noeud *>::const_iteratrice;
 
 	using plage_noeud = dls::outils::plage_iterable<iterateur>;
 	using plage_noeud_const = dls::outils::plage_iterable<iterateur_const>;
@@ -190,7 +190,7 @@ private:
 
 	void supprime_noeud(Noeud *noeud);
 
-	std::vector<Noeud *> m_noeuds{};
+	dls::tableau<Noeud *> m_noeuds{};
 	std::set<Noeud *> m_noeuds_selectionnes{};
 
 	std::set<std::string> m_noms_noeuds{};

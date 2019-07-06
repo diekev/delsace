@@ -58,7 +58,7 @@ void execute_noeud(
 		auto temps_parent = 0.0f;
 
 		for (auto entree : noeud->entrees()) {
-			if (entree->liens.empty()) {
+			if (entree->liens.est_vide()) {
 				continue;
 			}
 
@@ -74,15 +74,15 @@ void synchronise_donnees_operatrice(Noeud *noeud)
 {
 	auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
 
-	for (size_t i = 0; i < op->entrees(); ++i) {
-		noeud->ajoute_entree(op->nom_entree(static_cast<int>(i)), op->type_entree(static_cast<int>(i)));
+	for (auto i = 0; i < op->entrees(); ++i) {
+		noeud->ajoute_entree(op->nom_entree(i), op->type_entree(i));
 	}
 
-	for (size_t i = 0; i < op->sorties(); ++i) {
-		noeud->ajoute_sortie(op->nom_sortie(static_cast<int>(i)), op->type_sortie(static_cast<int>(i)));
+	for (auto i = 0; i < op->sorties(); ++i) {
+		noeud->ajoute_sortie(op->nom_sortie(i), op->type_sortie(i));
 	}
 
-	auto index = 0ul;
+	auto index = 0l;
 
 	for (auto entree : noeud->entrees()) {
 		op->donnees_entree(index++, entree);

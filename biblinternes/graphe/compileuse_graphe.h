@@ -39,12 +39,12 @@ static constexpr auto TAILLE_PILE = 256;
 /* *************************************************************************** */
 
 class CompileuseGraphe {
-	std::vector<float> m_pile;
-	size_t m_decalage;
+	dls::tableau<float> m_pile;
+	long m_decalage;
 
 public:
-	using iterateur = std::vector<float>::iterator;
-	using iterateur_const = std::vector<float>::const_iterator;
+	using iterateur = dls::tableau<float>::iteratrice;
+	using iterateur_const = dls::tableau<float>::const_iteratrice;
 
 	CompileuseGraphe();
 
@@ -96,15 +96,15 @@ public:
 
 	void ajoute_noeud(dls::math::vec3f const &v);
 
-	size_t decalage_pile(PriseSortie *prise);
+	long decalage_pile(PriseSortie *prise);
 
-	size_t decalage_pile(type_prise tprise);
+	long decalage_pile(type_prise tprise);
 
 	int decalage_pile(int taille);
 
-	void stocke_decimal(size_t decalage, float const &v);
+	void stocke_decimal(long decalage, float const &v);
 
-	void stocke_vec3f(size_t decalage, dls::math::vec3f const &v);
+	void stocke_vec3f(long decalage, dls::math::vec3f const &v);
 
 	iterateur debut();
 
@@ -113,7 +113,7 @@ public:
 	iterateur_const debut() const;
 
 	iterateur_const fin() const;
-	std::vector<float> pile();
+	dls::tableau<float> pile();
 };
 
 /* *************************************************************************** */

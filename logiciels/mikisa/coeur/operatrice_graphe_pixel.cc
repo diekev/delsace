@@ -344,7 +344,7 @@ int OperatriceGraphePixel::execute(ContexteEvaluation const &contexte, DonneesAv
 				entree.a = courante.a;
 
 				dls::phys::couleur32 sortie;
-				execute_graphe(pile.begin(), pile.end(), entree, sortie);
+				execute_graphe(pile.debut(), pile.fin(), entree, sortie);
 
 				courante.r = sortie.r;
 				courante.g = sortie.v;

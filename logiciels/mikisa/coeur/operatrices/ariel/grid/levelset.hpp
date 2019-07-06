@@ -37,7 +37,7 @@ public:
 
 	ParticleList() = default;
 
-	ParticleList(std::vector<Particle*> plist, float maxdimension) {
+	ParticleList(dls::tableau<Particle*> plist, float maxdimension) {
 		m_particles = plist;
 		m_maxdimension = maxdimension;
 	}
@@ -46,17 +46,17 @@ public:
 
 	int size() const
 	{
-		return static_cast<int>(m_particles.size());
+		return static_cast<int>(m_particles.taille());
 	}
 
-	void getPos(size_t n, openvdb::Vec3R& pos) const
+	void getPos(long n, openvdb::Vec3R& pos) const
 	{
 		pos = openvdb::Vec3f(m_particles[n]->m_p.x*m_maxdimension,
 							 m_particles[n]->m_p.y*m_maxdimension,
 							 m_particles[n]->m_p.z*m_maxdimension);
 	}
 
-	void getPosRad(size_t n, openvdb::Vec3R& pos, openvdb::Real& rad) const
+	void getPosRad(long n, openvdb::Vec3R& pos, openvdb::Real& rad) const
 	{
 		pos = openvdb::Vec3f(m_particles[n]->m_p.x*m_maxdimension,
 							 m_particles[n]->m_p.y*m_maxdimension,
@@ -68,7 +68,7 @@ public:
 		}
 	}
 
-	void getPosRadVel(size_t n, openvdb::Vec3R& pos, openvdb::Real& rad,
+	void getPosRadVel(long n, openvdb::Vec3R& pos, openvdb::Real& rad,
 					  openvdb::Vec3R& vel) const
 	{
 		pos = openvdb::Vec3f(m_particles[n]->m_p.x*m_maxdimension,
@@ -89,7 +89,7 @@ public:
 	}
 
 private:
-	std::vector<Particle*>      m_particles{};
+	dls::tableau<Particle*>      m_particles{};
 	float                       m_maxdimension{};
 };
 
@@ -102,7 +102,7 @@ public:
 	LevelSet(objCore::Obj* mesh, const dls::math::mat4x4f& m);
 	LevelSet(objCore::InterpolatedObj* animmesh, const float& interpolation,
 			 const dls::math::mat4x4f& m);
-	LevelSet(std::vector<Particle*>& particles, float maxdimension);
+	LevelSet(dls::tableau<Particle*>& particles, float maxdimension);
 	~LevelSet();
 
 	//Cell accessors and setters and whatever
@@ -120,7 +120,7 @@ public:
 	void Merge(LevelSet& ls);
 	void Copy(LevelSet& ls);
 
-	void ProjectPointsToSurface(std::vector<Particle*>& particles, const float& pscale);
+	void ProjectPointsToSurface(dls::tableau<Particle*>& particles, const float& pscale);
 
 	void WriteObjToFile(std::string filename);
 	void WriteVDBGridToFile(std::string filename);

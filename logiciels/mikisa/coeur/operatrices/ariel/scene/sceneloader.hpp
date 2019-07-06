@@ -63,10 +63,10 @@ private:
 	std::string                             m_meshPath{};
 	std::string                             m_vdbPath{};
 	std::string                             m_partioPath{};
-	std::vector<dls::math::vec3f>                  m_externalForces{};
+	dls::tableau<dls::math::vec3f>                  m_externalForces{};
 
 	std::map<std::string, unsigned int>                         m_linkNames{};
-	std::vector< std::vector<
+	dls::tableau< dls::tableau<
 	spaceCore::Bvh<objCore::InterpolatedObj>* > >  m_animMeshSequences{};
 };
 }

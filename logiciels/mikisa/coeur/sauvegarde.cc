@@ -238,7 +238,7 @@ static auto ecris_noeud(
 		element_prise->SetAttribut("nom", prise->nom.c_str());
 		element_prise->SetAttribut("id", id_depuis_pointeur(prise).c_str());
 
-		if (!prise->liens.empty()) {
+		if (!prise->liens.est_vide()) {
 			element_prise->SetAttribut("connexion", id_depuis_pointeur(prise->liens[0]).c_str());
 		}
 

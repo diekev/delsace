@@ -50,10 +50,10 @@ public:
 
 	void obtiens_liste(
 			const std::string &/*attache*/,
-			std::vector<std::string> &chaines) override
+			dls::tableau<std::string> &chaines) override
 	{
-		chaines.push_back("action1");
-		chaines.push_back("action2");
+		chaines.pousse("action1");
+		chaines.pousse("action2");
 	}
 };
 

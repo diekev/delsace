@@ -33,15 +33,15 @@
 
 namespace objets {
 
-static std::vector<std::string> brise(std::string const &chaine)
+static dls::tableau<std::string> brise(std::string const &chaine)
 {
 	std::stringstream ss(chaine);
-	std::vector<std::string> res;
+	dls::tableau<std::string> res;
 	std::string tmp;
 	tmp.reserve(3);
 
 	while (std::getline(ss, tmp, '/')) {
-		res.push_back(tmp);
+		res.pousse(tmp);
 	}
 
 	return res;
@@ -82,9 +82,9 @@ static void lis_sommet(AdaptriceCreationObjet *adaptrice, std::istringstream &is
 static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
 	std::string info_poly;
-	std::vector<int> index_polygones;
-	std::vector<int> index_normaux;
-	std::vector<int> index_coords_uv;
+	dls::tableau<int> index_polygones;
+	dls::tableau<int> index_normaux;
+	dls::tableau<int> index_coords_uv;
 
 	auto ptr_index = static_cast<int *>(nullptr);
 	auto ptr_normaux = static_cast<int *>(nullptr);
@@ -93,38 +93,38 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 	while (is >> info_poly) {
 		auto morceaux = brise(info_poly);
 
-		switch (morceaux.size()) {
+		switch (morceaux.taille()) {
 			case 1:
 			{
-				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
+				index_polygones.pousse(std::stoi(morceaux[0]) - 1);
 
-				ptr_index = index_polygones.data();
+				ptr_index = index_polygones.donnees();
 
 				break;
 			}
 			case 2:
 			{
-				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
-				index_coords_uv.push_back(std::stoi(morceaux[1]) - 1);
+				index_polygones.pousse(std::stoi(morceaux[0]) - 1);
+				index_coords_uv.pousse(std::stoi(morceaux[1]) - 1);
 
-				ptr_index = index_polygones.data();
-				ptr_coords = index_coords_uv.data();
+				ptr_index = index_polygones.donnees();
+				ptr_coords = index_coords_uv.donnees();
 
 				break;
 			}
 			case 3:
 			{
-				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
+				index_polygones.pousse(std::stoi(morceaux[0]) - 1);
 
 				if (!morceaux[1].empty()) {
-					index_coords_uv.push_back(std::stoi(morceaux[1]) - 1);
-					ptr_coords = index_coords_uv.data();
+					index_coords_uv.pousse(std::stoi(morceaux[1]) - 1);
+					ptr_coords = index_coords_uv.donnees();
 				}
 
-				index_normaux.push_back(std::stoi(morceaux[2]) - 1);
+				index_normaux.pousse(std::stoi(morceaux[2]) - 1);
 
-				ptr_index = index_polygones.data();
-				ptr_normaux = index_normaux.data();
+				ptr_index = index_polygones.donnees();
+				ptr_normaux = index_normaux.donnees();
 
 				break;
 			}
@@ -135,7 +135,7 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 				ptr_index,
 				ptr_coords,
 				ptr_normaux,
-				static_cast<long>(index_polygones.size()));
+				index_polygones.taille());
 }
 
 static void lis_objet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
@@ -149,22 +149,22 @@ static void lis_objet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 static void lis_ligne(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
 	std::string info_poly;
-	std::vector<int> index;
+	dls::tableau<int> index;
 
 	while (is >> info_poly) {
-		index.push_back(std::stoi(info_poly) - 1);
+		index.pousse(std::stoi(info_poly) - 1);
 	}
 
-	adaptrice->ajoute_ligne(index.data(), index.size());
+	adaptrice->ajoute_ligne(index.donnees(), static_cast<size_t>(index.taille()));
 }
 
 static void lis_groupes_geometries(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
 	std::string groupe;
-	std::vector<std::string> groupes;
+	dls::tableau<std::string> groupes;
 
 	while (is >> groupe) {
-		groupes.push_back(groupe);
+		groupes.pousse(groupe);
 	}
 
 	adaptrice->groupes(groupes);

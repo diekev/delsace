@@ -88,11 +88,11 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 		m_corps2.reinitialise();
 
 		m_graphe.entrees.clear();
-		m_graphe.entrees.push_back(&m_corps1);
-		m_graphe.entrees.push_back(&m_corps2);
+		m_graphe.entrees.pousse(&m_corps1);
+		m_graphe.entrees.pousse(&m_corps2);
 
 		m_graphe.donnees.clear();
-		m_graphe.donnees.push_back(&m_corps);
+		m_graphe.donnees.pousse(&m_corps);
 
 		/* copie l'état de base */
 		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);

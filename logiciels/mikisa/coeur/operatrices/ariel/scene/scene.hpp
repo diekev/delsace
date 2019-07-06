@@ -31,12 +31,12 @@ public:
 	Scene(Scene const &) = default;
 	Scene &operator=(Scene const &) = default;
 
-	void GenerateParticles(std::vector<fluidCore::Particle*>& particles,
+	void GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 						   const dls::math::vec3i& dimensions, const float& density,
 						   fluidCore::ParticleGrid* pgrid, const int& frame);
 
 	void AddExternalForce(dls::math::vec3f force);
-	std::vector<dls::math::vec3f>& GetExternalForces();
+	dls::tableau<dls::math::vec3f>& GetExternalForces();
 
 	fluidCore::LevelSet* GetSolidLevelSet();
 	fluidCore::LevelSet* GetLiquidLevelSet();
@@ -49,12 +49,12 @@ public:
 	void SetPaths(const std::string& imagePath, const std::string& meshPath,
 				  const std::string& vdbPath, const std::string& partioPath);
 
-	void ExportParticles(std::vector<fluidCore::Particle*> particles,
+	void ExportParticles(dls::tableau<fluidCore::Particle*> particles,
 						 const float& maxd, const int& frame, const bool& VDB,
 						 const bool& OBJ, const bool& PARTIO);
 
-	std::vector<geomCore::Geom*>& GetSolidGeoms();
-	std::vector<geomCore::Geom*>& GetLiquidGeoms();
+	dls::tableau<geomCore::Geom*>& GetSolidGeoms();
+	dls::tableau<geomCore::Geom*>& GetLiquidGeoms();
 
 	rayCore::Intersection IntersectSolidGeoms(const rayCore::Ray& r);
 	bool CheckPointInsideSolidGeom(const dls::math::vec3f& p, const float& frame,
@@ -72,7 +72,7 @@ public:
 	std::string                                                 m_partioPath{};
 
 	tbb::mutex                                                  m_particleLock{};
-	std::vector<geomCore::Geom*>                                m_liquids{};
+	dls::tableau<geomCore::Geom*>                                m_liquids{};
 
 private:
 	void AddLiquidParticle(const dls::math::vec3f& pos, const dls::math::vec3f& vel, const float& thickness,
@@ -84,16 +84,16 @@ private:
 	fluidCore::LevelSet*                                        m_solidLevelSet{};
 	fluidCore::LevelSet*                                        m_permaSolidLevelSet{};
 	fluidCore::LevelSet*                                        m_liquidLevelSet{};
-	std::vector<dls::math::vec3f>                                      m_externalForces{};
+	dls::tableau<dls::math::vec3f>                                      m_externalForces{};
 
-	std::vector<geomCore::GeomTransform>                        m_geomTransforms{};
-	std::vector<spaceCore::Bvh<objCore::Obj> >                  m_meshFiles{};
-	std::vector<spaceCore::Bvh<objCore::InterpolatedObj> >      m_animMeshes{};
-	std::vector<geomCore::Geom>                                 m_geoms{};
-	std::vector<geomCore::MeshContainer>                        m_meshContainers{};
-	std::vector<geomCore::AnimatedMeshContainer>                m_animmeshContainers{};
-	std::vector<geomCore::Geom*>                                m_solids{};
-	std::vector<dls::math::vec3f>                                      m_liquidStartingVelocities{};
+	dls::tableau<geomCore::GeomTransform>                        m_geomTransforms{};
+	dls::tableau<spaceCore::Bvh<objCore::Obj> >                  m_meshFiles{};
+	dls::tableau<spaceCore::Bvh<objCore::InterpolatedObj> >      m_animMeshes{};
+	dls::tableau<geomCore::Geom>                                 m_geoms{};
+	dls::tableau<geomCore::MeshContainer>                        m_meshContainers{};
+	dls::tableau<geomCore::AnimatedMeshContainer>                m_animmeshContainers{};
+	dls::tableau<geomCore::Geom*>                                m_solids{};
+	dls::tableau<dls::math::vec3f>                                      m_liquidStartingVelocities{};
 
 	tbb::concurrent_vector<fluidCore::Particle*>                m_liquidParticles{};
 	tbb::concurrent_vector<fluidCore::Particle*>                m_permaSolidParticles{};
