@@ -55,8 +55,8 @@ int test(const u_char *tampon, size_t taille)
 	const auto nombre_morceaux_max = taille / sizeof(danjo::id_morceau);
 	auto ptr_morceaux = reinterpret_cast<const danjo::id_morceau *>(tampon);
 
-	auto donnees_morceaux = std::vector<danjo::DonneesMorceaux>{};
-	donnees_morceaux.reserve(nombre_morceaux_max);
+	auto donnees_morceaux = dls::tableau<danjo::DonneesMorceaux>{};
+	donnees_morceaux.reserve(static_cast<long>(nombre_morceaux_max));
 
 	for (size_t i = 0ul; i < nombre_morceaux_max; ++i) {
 		auto dm = danjo::DonneesMorceaux{};

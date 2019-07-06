@@ -41,7 +41,7 @@ public:
 	explicit AnalyseuseLogique(
 			Manipulable *manipulable,
 			lng::tampon_source const &tampon,
-			std::vector<DonneesMorceaux> &identifiants,
+			dls::tableau<DonneesMorceaux> &identifiants,
 			bool initialise_manipulable = false);
 
 	AnalyseuseLogique(AnalyseuseLogique const &) = default;

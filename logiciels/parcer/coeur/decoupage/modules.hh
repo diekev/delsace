@@ -30,6 +30,7 @@
 #include <unordered_map>
 
 #include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "donnees_type.hh"
 #include "morceaux.hh"
@@ -77,7 +78,7 @@ struct DonneesFonction {
 
 struct DonneesModule {
 	lng::tampon_source tampon{""};
-	std::vector<DonneesMorceaux> morceaux{};
+	dls::tableau<DonneesMorceaux> morceaux{};
 	std::set<std::string_view> modules_importes{};
 	std::set<std::string_view> fonctions_exportees{};
 	std::unordered_map<std::string_view, std::vector<DonneesFonction>> fonctions{};

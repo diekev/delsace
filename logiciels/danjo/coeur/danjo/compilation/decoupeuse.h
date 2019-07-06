@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.h"
 
@@ -50,12 +50,12 @@ class Decoupeuse {
 	const char *m_debut_mot = nullptr;
 	const char *m_fin = nullptr;
 
-	std::vector<DonneesMorceaux> m_identifiants{};
+	dls::tableau<DonneesMorceaux> m_identifiants{};
 	lng::tampon_source const &m_tampon;
 
 public:
-	using iterateur = std::vector<DonneesMorceaux>::iterator;
-	using iterateur_const = std::vector<DonneesMorceaux>::const_iterator;
+	using iterateur = dls::tableau<DonneesMorceaux>::iteratrice;
+	using iterateur_const = dls::tableau<DonneesMorceaux>::const_iteratrice;
 
 	/**
 	 * Construit une instance de Decoupeuse pour la chaîne spécifiée.
@@ -86,7 +86,7 @@ public:
 	/**
 	 * Retourne la liste de morceaux découpés.
 	 */
-	std::vector<DonneesMorceaux> &morceaux();
+	dls::tableau<DonneesMorceaux> &morceaux();
 
 	/**
 	 * Retourne un itérateur pointant vers le début de la liste d'identifiants.

@@ -31,6 +31,7 @@ message(${INCLUSIONS})
 set(BIBLIOTHEQUES
 	stdc++fs
 	langage
+	memoire
 )
 
 set(SOURCES

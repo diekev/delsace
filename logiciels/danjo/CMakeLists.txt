@@ -34,6 +34,7 @@ set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_QT5_WIDGETS}
 	bib_phys
 	langage
+	memoire
 
 	stdc++fs
 )

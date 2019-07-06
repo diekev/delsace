@@ -28,6 +28,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	coeur_tori
 	langage
+	memoire
 )
 
 set(SOURCES

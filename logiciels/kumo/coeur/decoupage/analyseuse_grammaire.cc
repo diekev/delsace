@@ -69,7 +69,7 @@ static void initialise_colonne(Colonne &colonne)
 
 /* ************************************************************************** */
 
-analyseuse_grammaire::analyseuse_grammaire(std::vector<DonneesMorceaux> &identifiants, lng::tampon_source const &tampon)
+analyseuse_grammaire::analyseuse_grammaire(dls::tableau<DonneesMorceaux> &identifiants, lng::tampon_source const &tampon)
 	: lng::analyseuse<DonneesMorceaux>(identifiants)
 	, m_tampon(tampon)
 {}
@@ -78,7 +78,7 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 {
 	m_position = 0;
 
-	if (m_identifiants.size() == 0) {
+	if (m_identifiants.taille() == 0) {
 		return;
 	}
 

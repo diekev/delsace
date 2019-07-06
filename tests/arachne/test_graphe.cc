@@ -73,7 +73,7 @@ class analyseuse_graphe final : public lng::analyseuse<arachne::DonneesMorceaux>
 	resultat_analyseuse m_resultat{};
 
 public:
-	explicit analyseuse_graphe(const graphe &g, std::vector<arachne::DonneesMorceaux> &donnees)
+	explicit analyseuse_graphe(const graphe &g, dls::tableau<arachne::DonneesMorceaux> &donnees)
 		: lng::analyseuse<arachne::DonneesMorceaux>(donnees)
 		, m_graphe(g)
 	{}
@@ -206,10 +206,9 @@ void verifie_condition(std::vector<int> conditions)
 void test_analyse_graphe(const arachne::graphe &graphe, dls::test_unitaire::Controleuse &controlleur)
 {
 	{
-		std::vector<arachne::DonneesMorceaux> donnees({
-			{ arachne::NOEUD, 0 },
-			{ arachne::A_ETIQUETTE, graphe.id_etiquette("utilisateur") },
-		});
+		dls::tableau<arachne::DonneesMorceaux> donnees;
+		donnees.pousse({ arachne::NOEUD, 0 });
+		donnees.pousse({ arachne::A_ETIQUETTE, graphe.id_etiquette("utilisateur") });
 
 		arachne::analyseuse_graphe analyseuse(graphe, donnees);
 		analyseuse.lance_analyse(std::cerr);
@@ -220,10 +219,9 @@ void test_analyse_graphe(const arachne::graphe &graphe, dls::test_unitaire::Cont
 	}
 
 	{
-		std::vector<arachne::DonneesMorceaux> donnees({
-			{ arachne::NOEUD, 0u },
-			{ arachne::A_ETIQUETTE, graphe.id_etiquette("utilisatrice") },
-		});
+		dls::tableau<arachne::DonneesMorceaux> donnees;
+		donnees.pousse({ arachne::NOEUD, 0 });
+		donnees.pousse({ arachne::A_ETIQUETTE, graphe.id_etiquette("utilisatrice") });
 
 		arachne::analyseuse_graphe analyseuse(graphe, donnees);
 		analyseuse.lance_analyse(std::cerr);
@@ -234,13 +232,12 @@ void test_analyse_graphe(const arachne::graphe &graphe, dls::test_unitaire::Cont
 	}
 
 	{
-		std::vector<arachne::DonneesMorceaux> donnees({
-			{ arachne::NOEUD, 0u },
-			{ arachne::A_ETIQUETTE, graphe.id_etiquette("utilisateur") },
-			{ arachne::A_RELATION,  graphe.id_etiquette("relation") },
-			{ arachne::NOEUD, 0u },
-			{ arachne::A_ETIQUETTE, graphe.id_etiquette("utilisateur") },
-		});
+		dls::tableau<arachne::DonneesMorceaux> donnees;
+		donnees.pousse({ arachne::NOEUD, 0u });
+		donnees.pousse({ arachne::A_ETIQUETTE, graphe.id_etiquette("utilisateur") });
+		donnees.pousse({ arachne::A_RELATION,  graphe.id_etiquette("relation") });
+		donnees.pousse({ arachne::NOEUD, 0u });
+		donnees.pousse({ arachne::A_ETIQUETTE, graphe.id_etiquette("utilisateur") });
 
 		arachne::analyseuse_graphe analyseuse(graphe, donnees);
 		analyseuse.lance_analyse(std::cerr);

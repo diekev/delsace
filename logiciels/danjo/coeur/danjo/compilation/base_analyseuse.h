@@ -24,9 +24,8 @@
 
 #pragma once
 
-#include <vector>
-
 #include "biblinternes/langage/analyseuse.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.h"
 
@@ -43,7 +42,7 @@ class base_analyseuse : public lng::analyseuse<DonneesMorceaux> {
 	lng::tampon_source const &m_tampon;
 
 public:
-	base_analyseuse(lng::tampon_source const &tampon, std::vector<DonneesMorceaux> &identifiants);
+	base_analyseuse(lng::tampon_source const &tampon, dls::tableau<DonneesMorceaux> &identifiants);
 
 protected:
 	/**

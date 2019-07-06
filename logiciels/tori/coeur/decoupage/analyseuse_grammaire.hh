@@ -37,7 +37,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 
 public:
 	analyseuse_grammaire(
-			std::vector<DonneesMorceaux> &identifiants,
+			dls::tableau<DonneesMorceaux> &identifiants,
 			lng::tampon_source const &tampon,
 	        assembleuse_arbre &assembleuse);
 

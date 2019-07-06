@@ -30,6 +30,7 @@
 
 #include "lcc/analyseuse_grammaire.h"
 #include "lcc/contexte_execution.hh"
+#include "lcc/contexte_generation_code.h"
 #include "lcc/decoupeuse.h"
 #include "lcc/execution_pile.hh"
 #include "lcc/modules.hh"

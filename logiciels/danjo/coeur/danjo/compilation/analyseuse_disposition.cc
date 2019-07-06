@@ -83,7 +83,7 @@ static bool est_identifiant_propriete(id_morceau identifiant)
 
 AnalyseuseDisposition::AnalyseuseDisposition(
 		lng::tampon_source const &tampon,
-		std::vector<DonneesMorceaux> &identifiants)
+		dls::tableau<DonneesMorceaux> &identifiants)
 	: base_analyseuse(tampon, identifiants)
 {}
 
@@ -94,7 +94,7 @@ void AnalyseuseDisposition::installe_assembleur(AssembleurDisposition *assembleu
 
 void AnalyseuseDisposition::lance_analyse(std::ostream &os)
 {
-	if (m_identifiants.empty()) {
+	if (m_identifiants.est_vide()) {
 		return;
 	}
 

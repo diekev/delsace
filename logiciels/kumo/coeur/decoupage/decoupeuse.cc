@@ -86,22 +86,22 @@ void decoupeuse_texte::genere_morceaux()
 
 size_t decoupeuse_texte::memoire_morceaux() const
 {
-	return m_morceaux.size() * sizeof(DonneesMorceaux);
+	return static_cast<size_t>(m_morceaux.taille()) * sizeof(DonneesMorceaux);
 }
 
-std::vector<DonneesMorceaux> &decoupeuse_texte::morceaux()
+dls::tableau<DonneesMorceaux> &decoupeuse_texte::morceaux()
 {
 	return m_morceaux;
 }
 
 decoupeuse_texte::iterateur decoupeuse_texte::begin()
 {
-	return m_morceaux.begin();
+	return m_morceaux.debut();
 }
 
 decoupeuse_texte::iterateur decoupeuse_texte::end()
 {
-	return m_morceaux.end();
+	return m_morceaux.fin();
 }
 
 bool decoupeuse_texte::fini() const
@@ -229,7 +229,7 @@ void decoupeuse_texte::pousse_caractere()
 
 void decoupeuse_texte::pousse_mot(int identifiant)
 {
-	m_morceaux.push_back({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), static_cast<size_t>(identifiant) });
+	m_morceaux.pousse({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), static_cast<size_t>(identifiant) });
 	m_taille_mot_courant = 0;
 }
 

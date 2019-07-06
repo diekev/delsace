@@ -24,8 +24,15 @@
 
 #pragma once
 
+#undef DEBOGUE_IDENTIFIANT
+
+#ifdef DEBOGUE_IDENTIFIANT
+#	include <map>
+#endif
+
 #include <ostream>
-#include <vector>
+
+#include "biblinternes/structures/tableau.hh"
 
 namespace lng {
 
@@ -35,13 +42,20 @@ namespace lng {
 template <typename TypeIdentifiant>
 struct analyseuse {
 protected:
-	std::vector<TypeIdentifiant> &m_identifiants;
+	/* La référence n'est pas constante car l'analyseuse peut changer
+	 * l'identifiant des morceaux
+	 * (par exemple id_morceau::PLUS -> id_morceau::PLUS_UNAIRE). */
+	dls::tableau<TypeIdentifiant> &m_identifiants;
 	long m_position = 0;
+
+#ifdef DEBOGUE_IDENTIFIANT
+	std::map<typename TypeIdentifiant::type, int> m_tableau_identifiant;
+#endif
 
 public:
 	using type_id = typename TypeIdentifiant::type;
 
-	explicit analyseuse(std::vector<TypeIdentifiant> &identifiants)
+	explicit analyseuse(dls::tableau<TypeIdentifiant> &identifiants)
 		: m_identifiants(identifiants)
 	{}
 
@@ -55,6 +69,10 @@ public:
 	 */
 	virtual void lance_analyse(std::ostream &os) = 0;
 
+#ifdef DEBOGUE_IDENTIFIANT
+	void imprime_identifiants_plus_utilises(std::ostream &os, size_t nombre = 5);
+#endif
+
 protected:
 	/**
 	 * Vérifie que l'identifiant courant est égal à celui spécifié puis avance
@@ -62,7 +80,7 @@ protected:
 	 */
 	bool requiers_identifiant(type_id identifiant)
 	{
-		if (m_position >= static_cast<long>(m_identifiants.size())) {
+		if (m_position >= m_identifiants.taille()) {
 			return false;
 		}
 
@@ -102,6 +120,9 @@ protected:
 	 */
 	bool est_identifiant(type_id identifiant)
 	{
+#ifdef DEBOGUE_IDENTIFIANT
+		m_tableau_identifiant[identifiant]++;
+#endif
 		return identifiant == this->identifiant_courant();
 	}
 
@@ -111,12 +132,17 @@ protected:
 	 */
 	bool sont_2_identifiants(type_id id1, type_id id2)
 	{
-		if ((m_position + 2) >= static_cast<long>(m_identifiants.size())) {
+		if ((m_position + 2) >= m_identifiants.taille()) {
 			return false;
 		}
 
-		return m_identifiants[static_cast<size_t>(m_position)].identifiant == id1
-				&& m_identifiants[static_cast<size_t>(m_position + 1)].identifiant == id2;
+#ifdef DEBOGUE_IDENTIFIANT
+		m_tableau_identifiant[id1]++;
+		m_tableau_identifiant[id2]++;
+#endif
+
+		return m_identifiants[m_position].identifiant == id1
+				&& m_identifiants[m_position + 1].identifiant == id2;
 	}
 
 	/**
@@ -125,13 +151,19 @@ protected:
 	 */
 	bool sont_3_identifiants(type_id id1, type_id id2, type_id id3)
 	{
-		if (m_position + 3 >= static_cast<long>(m_identifiants.size())) {
+		if (m_position + 3 >= m_identifiants.taille()) {
 			return false;
 		}
 
-		return m_identifiants[static_cast<size_t>(m_position)].identifiant == id1
-				&& m_identifiants[static_cast<size_t>(m_position + 1)].identifiant == id2
-				&& m_identifiants[static_cast<size_t>(m_position + 2)].identifiant == id3;
+#ifdef DEBOGUE_IDENTIFIANT
+		m_tableau_identifiant[id1]++;
+		m_tableau_identifiant[id2]++;
+		m_tableau_identifiant[id3]++;
+#endif
+
+		return m_identifiants[m_position].identifiant == id1
+				&& m_identifiants[m_position + 1].identifiant == id2
+				&& m_identifiants[m_position + 2].identifiant == id3;
 	}
 
 	/**
@@ -139,27 +171,50 @@ protected:
 	 */
 	type_id identifiant_courant() const
 	{
-		if (m_position >= static_cast<long>(m_identifiants.size())) {
+		if (m_position >= m_identifiants.taille()) {
 			return TypeIdentifiant::INCONNU;
 		}
 
-		return m_identifiants[static_cast<size_t>(m_position)].identifiant;
+		return m_identifiants[m_position].identifiant;
 	}
 
 	bool fini() const
 	{
-		return m_position == static_cast<long>(m_identifiants.size());
+		return m_position == m_identifiants.taille();
 	}
 
 	TypeIdentifiant &donnees()
 	{
-		return m_identifiants[static_cast<size_t>(position())];
+		return m_identifiants[position()];
 	}
 
 	TypeIdentifiant const &donnees() const
 	{
-		return m_identifiants[static_cast<size_t>(position())];
+		return m_identifiants[position()];
 	}
 };
+
+
+#ifdef DEBOGUE_IDENTIFIANT
+template <typename TypeIdentifiant>
+void analyseuse<TypeIdentifiant>::imprime_identifiants_plus_utilises(std::ostream &os, size_t nombre)
+{
+	std::vector<std::pair<int, int>> tableau(m_tableau_identifiant.size());
+	std::copy(m_tableau_identifiant.begin(), m_tableau_identifiant.end(), tableau.begin());
+
+	std::sort(tableau.begin(), tableau.end(),
+			  [](const std::pair<int, int> &a, const std::pair<int, int> &b)
+	{
+		return a.second > b.second;
+	});
+
+	os << "--------------------------------\n";
+	os << "Identifiant les plus comparées :\n";
+	for (size_t i = 0; i < nombre; ++i) {
+		//os << chaine_identifiant(tableau[i].first) << " : " << tableau[i].second << '\n';
+	}
+	os << "--------------------------------\n";
+}
+#endif
 
 }  /* namespace lng */

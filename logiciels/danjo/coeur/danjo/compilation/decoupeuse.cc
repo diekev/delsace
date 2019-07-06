@@ -122,22 +122,22 @@ void Decoupeuse::impression_debogage(const std::string &quoi)
 
 Decoupeuse::iterateur Decoupeuse::begin()
 {
-	return m_identifiants.begin();
+	return m_identifiants.debut();
 }
 
 Decoupeuse::iterateur Decoupeuse::end()
 {
-	return m_identifiants.end();
+	return m_identifiants.fin();
 }
 
 Decoupeuse::iterateur_const Decoupeuse::cbegin() const
 {
-	return m_identifiants.cbegin();
+	return m_identifiants.debut();
 }
 
 Decoupeuse::iterateur_const Decoupeuse::cend() const
 {
-	return m_identifiants.end();
+	return m_identifiants.fin();
 }
 
 void Decoupeuse::decoupe()
@@ -409,10 +409,10 @@ void Decoupeuse::lance_erreur(const std::string &quoi) const
 
 void Decoupeuse::ajoute_identifiant(id_morceau identifiant, const std::string_view &contenu)
 {
-	m_identifiants.push_back({contenu, m_ligne | m_position_ligne, identifiant});
+	m_identifiants.pousse({contenu, m_ligne | m_position_ligne, identifiant});
 }
 
-std::vector<DonneesMorceaux> &Decoupeuse::morceaux()
+dls::tableau<DonneesMorceaux> &Decoupeuse::morceaux()
 {
 	return m_identifiants;
 }
@@ -424,7 +424,7 @@ void Decoupeuse::pousse_caractere()
 
 void Decoupeuse::pousse_mot(id_morceau identifiant)
 {
-	m_identifiants.push_back({ mot_courant(), ((m_ligne << 32) | m_position_ligne), identifiant });
+	m_identifiants.pousse({ mot_courant(), ((m_ligne << 32) | m_position_ligne), identifiant });
 	m_taille_mot_courant = 0;
 }
 

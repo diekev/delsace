@@ -236,7 +236,7 @@ void decoupeuse_texte::genere_morceaux()
 
 size_t decoupeuse_texte::memoire_morceaux() const
 {
-	return m_module->morceaux.size() * sizeof(DonneesMorceaux);
+	return static_cast<size_t>(m_module->morceaux.taille()) * sizeof(DonneesMorceaux);
 }
 
 void decoupeuse_texte::imprime_morceaux(std::ostream &os)
@@ -510,7 +510,7 @@ void decoupeuse_texte::pousse_caractere(int n)
 
 void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_module->morceaux.push_back({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), identifiant, static_cast<int>(m_module->id) });
+	m_module->morceaux.pousse({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), identifiant, static_cast<int>(m_module->id) });
 	m_taille_mot_courant = 0;
 }
 

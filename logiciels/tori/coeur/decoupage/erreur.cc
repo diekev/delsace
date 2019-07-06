@@ -27,7 +27,7 @@
 #include <sstream>
 
 #include "morceaux.hh"
-#include "../../biblinternes/langage/tampon_source.hh"
+#include "biblinternes/langage/tampon_source.hh"
 
 namespace erreur {
 

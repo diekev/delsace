@@ -46,7 +46,7 @@ set(ENTETES
 )
 
 set(SOURCES
-    main.cc
+	#main.cc
 	logeuse_memoire.cc
 )
 

@@ -45,7 +45,7 @@ class AnalyseuseDisposition : public base_analyseuse {
 public:
 	explicit AnalyseuseDisposition(
 			lng::tampon_source const &tampon,
-			std::vector<DonneesMorceaux> &identifiants);
+			dls::tableau<DonneesMorceaux> &identifiants);
 
 	AnalyseuseDisposition(AnalyseuseDisposition const &) = delete;
 	AnalyseuseDisposition &operator=(AnalyseuseDisposition const &) = delete;

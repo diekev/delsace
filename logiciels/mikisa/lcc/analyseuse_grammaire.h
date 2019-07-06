@@ -24,14 +24,17 @@
 
 #pragma once
 
-#include "analyseuse.h"
+#include "biblinternes/langage/analyseuse.hh"
 
 #include "assembleuse_arbre.h"
+#include "morceaux.hh"
+#include "erreur.h"
 
 struct ContexteGenerationCode;
 struct DonneesModule;
 
-class analyseuse_grammaire : public Analyseuse {
+class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
+	ContexteGenerationCode &m_contexte;
 	assembleuse_arbre *m_assembleuse = nullptr;
 
 	/* Ces vecteurs sont utilisés pour stocker les données des expressions
@@ -65,4 +68,13 @@ private:
 	void analyse_bloc();
 	void analyse_controle_si();
 	void analyse_controle_pour();
+
+	/**
+	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
+	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
+	 * contenues dans l'instance DonneesMorceaux lui correspondant.
+	 */
+	[[noreturn]] void lance_erreur(
+			const std::string &quoi,
+			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 };

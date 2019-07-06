@@ -27,6 +27,7 @@
 #include "biblinternes/graphe/compileuse_graphe.h"
 
 #include "analyseuse_grammaire.h"
+#include "contexte_generation_code.h"
 #include "decoupeuse.h"
 #include "execution_pile.hh"
 #include "modules.hh"

@@ -285,7 +285,7 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 {
 	m_position = 0;
 
-	if (m_identifiants.size() == 0) {
+	if (m_identifiants.taille() == 0) {
 		return;
 	}
 

@@ -36,6 +36,7 @@ set(BIBLIOTHEQUES
 	arachne
 	stdc++fs
 	systeme_fichier
+	memoire
 )
 
 set(SOURCES

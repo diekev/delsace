@@ -30,7 +30,7 @@
 
 namespace danjo {
 
-base_analyseuse::base_analyseuse(lng::tampon_source const &tampon, std::vector<DonneesMorceaux> &identifiants)
+base_analyseuse::base_analyseuse(lng::tampon_source const &tampon, dls::tableau<DonneesMorceaux> &identifiants)
 	: lng::analyseuse<DonneesMorceaux>(identifiants)
 	, m_tampon(tampon)
 {}

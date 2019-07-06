@@ -25,9 +25,9 @@
 #pragma once
 
 #include "biblinternes/langage/analyseuse.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include <string>
-#include <vector>
 
 namespace arachne {
 
@@ -44,7 +44,7 @@ struct DonneesMorceaux {
  */
 class analyseuse : public lng::analyseuse<DonneesMorceaux> {
 public:
-	explicit analyseuse(std::vector<DonneesMorceaux> &identifiants)
+	explicit analyseuse(dls::tableau<DonneesMorceaux> &identifiants)
 		: lng::analyseuse<DonneesMorceaux>(identifiants)
 	{}
 

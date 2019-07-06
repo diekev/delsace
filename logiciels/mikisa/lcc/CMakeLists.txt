@@ -35,7 +35,6 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	analyseuse.h
 	analyseuse_grammaire.h
 	arbre_syntactic.h
 	assembleuse_arbre.h
@@ -54,7 +53,6 @@ set(SOURCES
 	tampon_source.h
 	unicode.h
 
-	analyseuse.cc
 	analyseuse_grammaire.cc
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
@@ -84,4 +82,4 @@ add_executable(test_lcc test_lcc.cc)
 
 target_include_directories(test_lcc PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(test_lcc ${NOM_PROJET} bib_graphe)
+target_link_libraries(test_lcc ${NOM_PROJET} bib_graphe memoire)

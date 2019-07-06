@@ -69,7 +69,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 	lng::tampon_source const &m_tampon;
 
 public:
-	analyseuse_grammaire(std::vector<DonneesMorceaux> &identifiants, lng::tampon_source const &tampon);
+	analyseuse_grammaire(dls::tableau<DonneesMorceaux> &identifiants, lng::tampon_source const &tampon);
 
 	void lance_analyse(std::ostream &os) override;
 

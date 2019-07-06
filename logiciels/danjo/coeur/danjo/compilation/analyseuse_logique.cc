@@ -59,7 +59,7 @@ enum {
 AnalyseuseLogique::AnalyseuseLogique(
 		Manipulable *manipulable,
 		lng::tampon_source const &tampon,
-		std::vector<DonneesMorceaux> &identifiants,
+		dls::tableau<DonneesMorceaux> &identifiants,
 		bool initialise_manipulable)
 	: base_analyseuse(tampon, identifiants)
 	, m_manipulable(manipulable)
@@ -68,7 +68,7 @@ AnalyseuseLogique::AnalyseuseLogique(
 
 void AnalyseuseLogique::lance_analyse(std::ostream &)
 {
-	if (m_identifiants.empty()) {
+	if (m_identifiants.est_vide()) {
 		return;
 	}
 
@@ -198,7 +198,7 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 
 	while (!est_identifiant(id_morceau::POINT_VIRGULE)) {
 		symbole.identifiant = identifiant_courant();
-		valeur = m_identifiants[static_cast<size_t>(position() + 1)].chaine;
+		valeur = m_identifiants[position() + 1].chaine;
 
 		if (est_identifiant(id_morceau::NOMBRE)) {
 			symbole.valeur = std::experimental::any(std::stoi(valeur));

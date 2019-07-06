@@ -268,7 +268,8 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
 		DonneesModule *module)
-	: Analyseuse(module->morceaux, contexte)
+	: lng::analyseuse<DonneesMorceaux>(module->morceaux)
+	, m_contexte(contexte)
 	, m_assembleuse(contexte.assembleuse)
 	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
 	, m_module(module)
@@ -846,3 +847,7 @@ void analyseuse_grammaire::analyse_appel_fonction()
 	}
 }
 
+void analyseuse_grammaire::lance_erreur(const std::string &quoi, erreur::type_erreur type)
+{
+	erreur::lance_erreur(quoi, m_contexte, m_identifiants[position()], type);
+}

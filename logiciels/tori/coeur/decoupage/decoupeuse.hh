@@ -25,7 +25,8 @@
 #pragma once
 
 #include <string_view>
-#include <vector>
+
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
 
@@ -44,10 +45,10 @@ class decoupeuse_texte {
 	size_t m_pos_mot = 0;
 	size_t m_taille_mot_courant = 0;
 
-	std::vector<DonneesMorceaux> m_morceaux{};
+	dls::tableau<DonneesMorceaux> m_morceaux{};
 
 public:
-	using iterateur = std::vector<DonneesMorceaux>::iterator;
+	using iterateur = dls::tableau<DonneesMorceaux>::iteratrice;
 
 	explicit decoupeuse_texte(lng::tampon_source const &tampon);
 
@@ -62,7 +63,7 @@ public:
 	 */
 	size_t memoire_morceaux() const;
 
-	std::vector<DonneesMorceaux> &morceaux();
+	dls::tableau<DonneesMorceaux> &morceaux();
 
 	iterateur begin();
 

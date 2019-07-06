@@ -26,6 +26,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	tests
 	danjo
+	memoire
 )
 
 add_executable(test_danjo

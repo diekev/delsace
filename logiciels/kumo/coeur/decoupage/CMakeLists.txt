@@ -28,6 +28,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	langage
+	memoire
 )
 
 set(SOURCES

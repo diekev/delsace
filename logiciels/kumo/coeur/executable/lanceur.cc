@@ -27,7 +27,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "../../biblinternes/langage/tampon_source.hh"
+#include "biblinternes/langage/tampon_source.hh"
 
 #include "decoupage/analyseuse_grammaire.hh"
 #include "decoupage/decoupeuse.hh"
