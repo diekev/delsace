@@ -20,3 +20,11 @@
 # ***** END GPL LICENSE BLOCK *****
 
 add_subdirectory(docopt)
+add_subdirectory(kelvinlet)
+add_subdirectory(Patate)
+add_subdirectory(snh)
+add_subdirectory(voro)
+
+if(AVEC_MENGE)
+	add_subdirectory(Menge)
+endif(AVEC_MENGE)

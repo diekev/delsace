@@ -22,16 +22,23 @@
 set(NOM_BIBLIOTHEQUE outils)
 
 set(ENTETES
+	constantes.h
 	conditions.h
 	definitions.h
+	gna.hh
 	garde_portee.h
 	iterateurs.h
 	masque_binaire.h
+	parallelisme.h
 	synchrone.h
+	temps.hh
 )
 
 set(SOURCES
+	gna.cc
 	garde_portee.cc
+	iterateurs.cc
+	temps.cc
 	main.cc
 )
 

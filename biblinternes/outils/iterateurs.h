@@ -5,6 +5,34 @@
 namespace dls {
 namespace outils {
 
+/* À FAIRE : déduplique. */
+template <typename T>
+struct plage_iterable {
+	T debut;
+	T fin;
+
+public:
+	plage_iterable(T d, T f)
+		: debut(d)
+		, fin(f)
+	{}
+
+	T begin()
+	{
+		return debut;
+	}
+
+	T end()
+	{
+		return fin;
+	}
+
+	size_t size() const
+	{
+		return static_cast<size_t>(fin - debut);
+	}
+};
+
 /**
  * Simple itérateur avant pour utiliser des boucle for basé sur des plages.
  * L'itérateur peut aller en arrière si le pas est négatif.

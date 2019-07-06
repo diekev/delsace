@@ -29,13 +29,17 @@ project(delsace)
 
 # ------------------------------------------------------------------------------
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
+
+# ------------------------------------------------------------------------------
+
+set(CMAKE_BUILD_TYPE_INIT "Release")
 
 # ------------------------------------------------------------------------------
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts")
+add_compile_options(-fconcepts)
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
 	add_compile_options(-g)
@@ -115,6 +119,50 @@ elseif(CMAKE_BUILD_TYPE MATCHES "Release")
 endif()
 
 add_compile_options(-march=native)
+
+# ------------------------------------------------------------------------------
+
+option(AVEC_KANBA "Compiler le logiciel de peinture 3D Kanba" ON)
+option(AVEC_KOUDOU "Compiler le logiciel de rendu 3D Koudou" ON)
+option(AVEC_MIKISA "Compiler le logiciel de création 3D et compositing Mikisa" ON)
+option(AVEC_POSEIDON "Compiler le logiciel de simulation de fluide Poséidon" ON)
+option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" ON)
+
+# ------------------------------------------------------------------------------
+
+find_package(PTex REQUIRED)
+
+if(AVEC_MIKISA)
+	find_package(Bullet)
+	find_package(OpenColorIO)
+	find_package(OpenEXR)
+	find_package(OpenSubDiv)
+	find_package(OpenVDB)
+endif(AVEC_MIKISA)
+
+find_package(Qt5Core REQUIRED)
+set(INCLUSIONS_QT5_CORE ${Qt5Core_INCLUDE_DIRS})
+set(BIBLIOTHEQUES_QT5_CORE Qt5::Core)
+
+find_package(Qt5Gui REQUIRED)
+set(INCLUSIONS_QT5_GUI ${Qt5Gui_INCLUDE_DIRS})
+set(BIBLIOTHEQUES_QT5_GUI Qt5::Gui)
+
+find_package(Qt5OpenGL REQUIRED)
+set(INCLUSIONS_QT5_OPENGL ${Qt5OpenGL_INCLUDE_DIRS})
+set(BIBLIOTHEQUES_QT5_OPENGL Qt5::OpenGL)
+
+find_package(Qt5Widgets REQUIRED)
+set(INCLUSIONS_QT5_WIDGETS ${Qt5Widgets_INCLUDE_DIRS})
+set(BIBLIOTHEQUES_QT5_WIDGETS Qt5::Widgets)
+
+set(BIBLIOTHEQUES_OPENGL GLEW GLU GL glut)
+set(BIBLIOTHEQUES_TBB tbb)
+set(BIBLIOTHEQUES_IMAGE ${BIBLIOTHEQUES_IMAGE} jpeg png)
+
+set(BIBLIOTHEQUES_DANJO ${BIBLIOTHEQUES_DANJO} ${BIBLIOTHEQUE_DELSACE_PHYS} ${BIBLIOTHEQUE_DELSACE_LANGAGE})
+
+set(INCLUSIONS_BOOST /opt/lib/boost/include)
 
 # ------------------------------------------------------------------------------
 
