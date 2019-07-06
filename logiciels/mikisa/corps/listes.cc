@@ -24,7 +24,7 @@
 
 #include "listes.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "corps.h"
 #include "volume.hh"

@@ -26,7 +26,7 @@
 
 #include "biblinternes/objets/adaptrice_creation.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class Corps;
 class GroupePrimitive;

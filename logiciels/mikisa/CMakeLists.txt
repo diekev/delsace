@@ -23,7 +23,6 @@
 
 set(NOM_PROJET mikisa)
 
-add_subdirectory(bibloc)
 add_subdirectory(corps)
 add_subdirectory(coeur)
 add_subdirectory(entreface)

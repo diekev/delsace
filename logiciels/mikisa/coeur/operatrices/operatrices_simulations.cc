@@ -27,7 +27,7 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/parallelisme.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "corps/collision.hh"
 #include "corps/groupes.h"

@@ -90,7 +90,7 @@ struct Metriques {
 
 /* ************************************************************************** */
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 struct donnees_propriete {
 	std::string nom = "";

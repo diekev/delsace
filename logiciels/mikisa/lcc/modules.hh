@@ -28,7 +28,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
 #include "tampon_source.h"

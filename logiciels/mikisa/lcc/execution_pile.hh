@@ -29,7 +29,7 @@
 #include "biblinternes/math/matrice.hh"
 #include "biblinternes/phys/couleur.hh"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "contexte_execution.hh"
 

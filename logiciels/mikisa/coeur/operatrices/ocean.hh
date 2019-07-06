@@ -29,7 +29,7 @@
 #include "biblinternes/math/vecteur.hh"
 
 #if 0
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 struct champs_simulation {
 	fftw_complex *entrees = nullptr;

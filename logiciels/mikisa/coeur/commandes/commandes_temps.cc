@@ -29,7 +29,7 @@
 
 #include "biblinternes/commandes/commande.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "../composite.h"
 #include "../evenement.h"

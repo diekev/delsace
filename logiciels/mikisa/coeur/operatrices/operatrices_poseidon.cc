@@ -30,7 +30,7 @@
 #include "operatrice_corps.h"
 #include "usine_operatrice.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #undef AVEC_POSEIDON
 

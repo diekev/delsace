@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "bibloc/synchronise.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/parallèle/synchronisé.hh"
+#include "biblinternes/structures/tableau.hh"
 
 struct Corps;
 

@@ -29,7 +29,7 @@
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/constantes.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "coeur/manipulatrice.h"
 

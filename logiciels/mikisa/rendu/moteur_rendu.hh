@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace vision {
 class Camera3D;

@@ -30,7 +30,7 @@
 #	include <map>
 #endif
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "contexte_generation_code.h"
 #include "erreur.h"

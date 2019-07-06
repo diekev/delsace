@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/definitions.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "attribut.h"
 #include "corps.h"

@@ -29,7 +29,7 @@
 
 #include "biblinternes/outils/iterateurs.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 /* ************************************************************************** */
 

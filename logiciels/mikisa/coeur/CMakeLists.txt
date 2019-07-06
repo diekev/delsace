@@ -58,7 +58,7 @@ set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_BULLET}
 	bib_kelvinlet
 	bib_outils
-	bibloc_mikisa
+	memoire
 	bib_corps
 	bib_snh
 	bib_lcc

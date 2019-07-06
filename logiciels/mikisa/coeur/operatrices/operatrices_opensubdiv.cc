@@ -36,8 +36,8 @@
 #include <opensubdiv/far/topologyDescriptor.h>
 #pragma GCC diagnostic pop
 
-#include "bibloc/logeuse_memoire.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
 

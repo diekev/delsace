@@ -35,7 +35,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/parallelisme.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../operatrice_image.h"

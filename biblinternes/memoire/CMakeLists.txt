@@ -42,10 +42,12 @@ set(ENTETES
     allocator.h
     block.h
     guard.h
+	logeuse_memoire.hh
 )
 
 set(SOURCES
     main.cc
+	logeuse_memoire.cc
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})

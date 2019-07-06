@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 //#include <cstring>
 

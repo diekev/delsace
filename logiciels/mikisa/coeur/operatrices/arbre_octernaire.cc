@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/constantes.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "corps/corps.h"
 

@@ -27,7 +27,7 @@
 #include "biblinternes/graphe/compileuse_graphe.h"
 #include "biblinternes/outils/definitions.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "contexte_execution.hh"
 #include "contexte_generation_code.h"

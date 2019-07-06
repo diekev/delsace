@@ -28,10 +28,10 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bibloc_mikisa
 	bib_corps
 	stdc++fs
 	bib_phys
+	memoire
 )
 
 set(SOURCES

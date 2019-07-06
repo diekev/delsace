@@ -30,7 +30,7 @@
 #include "biblinternes/observation/observation.hh"
 #include "biblinternes/commandes/commande.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "base_de_donnees.hh"
 

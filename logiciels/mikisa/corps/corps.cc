@@ -28,7 +28,7 @@
 
 #include "biblinternes/outils/definitions.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "groupes.h"
 #include "volume.hh"

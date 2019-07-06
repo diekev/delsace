@@ -34,7 +34,7 @@
 #include "biblinternes/xml/element.h"
 #include "biblinternes/xml/noeud.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "evaluation/evaluation.hh"
 #include "evaluation/plan.hh"

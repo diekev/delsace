@@ -29,10 +29,12 @@ add_library(${NOM_CIBLE} STATIC
 	arbre_kd.cc
 	grille_particules.cc
 	hachage_spatiale.cc
+	tableau.cc
 
 	arbre_kd.hh
 	grille_particules.hh
 	hachage_spatiale.hh
+	tableau.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})

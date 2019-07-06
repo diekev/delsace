@@ -41,7 +41,7 @@
 #include "biblinternes/vision/camera_2d.h"
 #include "biblinternes/vision/camera.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "evaluation/evaluation.hh"
 

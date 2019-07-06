@@ -27,8 +27,8 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
 
-#include "bibloc/logeuse_memoire.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "corps/attribut.h"
 #include "corps/corps.h"

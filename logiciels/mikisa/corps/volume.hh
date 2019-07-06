@@ -30,8 +30,8 @@
 
 #include "biblinternes/geometrie/limites.hh"
 
-#include "bibloc/logeuse_memoire.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/tableau.hh"
 
 enum class type_volume : char {
 	SCALAIRE,

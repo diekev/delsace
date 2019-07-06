@@ -33,7 +33,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/parallelisme.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
 

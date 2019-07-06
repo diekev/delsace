@@ -97,8 +97,9 @@ private:
 template <typename T>
 Bvh<T>::Bvh(T basegeom)
 	: Bvh<T>()
-	, m_basegeom(basegeom)
-{}
+{
+	m_basegeom = basegeom;
+}
 
 template <typename T>
 Bvh<T>::~Bvh()

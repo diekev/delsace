@@ -28,7 +28,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/parallelisme.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "corps/collision.hh"
 #include "corps/volume.hh"

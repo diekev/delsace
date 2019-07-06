@@ -24,7 +24,48 @@
 
 #pragma once
 
+#include <functional>
 #include <mutex>
+
+namespace dls {
+
+/**
+ * Cette structure sert à cacher les mutex autour d'un objet via des fonctions
+ * encapsulantes.
+ */
+template <typename T>
+struct synchronise {
+	std::mutex m_mutex{};
+	T m_ptr{};
+
+public:
+	synchronise() = default;
+
+	synchronise &operator=(T ptr)
+	{
+		m_mutex.lock();
+		m_ptr = ptr;
+		m_mutex.unlock();
+
+		return *this;
+	}
+
+	void accede_ecriture(std::function<void(T&)> &&op)
+	{
+		m_mutex.lock();
+		op(m_ptr);
+		m_mutex.unlock();
+	}
+
+	void accede_lecture(std::function<void(T const&)> &&op)
+	{
+		m_mutex.lock();
+		op(m_ptr);
+		m_mutex.unlock();
+	}
+};
+
+}  /* namespace dls */
 
 namespace parallele {
 

@@ -33,8 +33,8 @@
 #include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/grille_particules.hh"
 
-#include "bibloc/logeuse_memoire.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "corps/corps.h"
 #include "corps/groupes.h"

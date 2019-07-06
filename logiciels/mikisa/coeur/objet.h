@@ -30,7 +30,7 @@
 
 #include "corps/corps.h"
 
-#include "bibloc/synchronise.hh"
+#include "biblinternes/parallèle/synchronisé.hh"
 
 struct Objet {
 	/* transformation */

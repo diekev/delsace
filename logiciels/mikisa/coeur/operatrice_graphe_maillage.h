@@ -29,7 +29,7 @@
 #include "biblinternes/graphe/compileuse_graphe.h"
 #include "biblinternes/graphe/graphe.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 /* ************************************************************************** */
 

@@ -28,7 +28,7 @@
 
 #include "biblinternes/math/vecteur.hh"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "corps/triangulation.hh"
 

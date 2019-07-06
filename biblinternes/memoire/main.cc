@@ -24,6 +24,7 @@
 
 #include "allocator.h"
 
+#if 0
 int main()
 {
 	std::atexit(note_infos_allocs);
@@ -68,3 +69,4 @@ int main()
 	delete [] (p1);
 	delete [] (p2);
 }
+#endif

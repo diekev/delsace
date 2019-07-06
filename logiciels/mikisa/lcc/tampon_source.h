@@ -26,7 +26,7 @@
 
 #include <string>
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class TamponSource {
 	std::string m_tampon{};

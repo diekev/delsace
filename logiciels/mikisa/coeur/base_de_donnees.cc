@@ -24,7 +24,7 @@
 
 #include "base_de_donnees.hh"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "composite.h"
 #include "objet.h"

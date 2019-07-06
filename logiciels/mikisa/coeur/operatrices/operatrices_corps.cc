@@ -32,8 +32,8 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/parallelisme.h"
 
-#include "bibloc/logeuse_memoire.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "corps/adaptrice_creation_corps.h"
 #include "corps/iteration_corps.hh"

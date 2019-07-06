@@ -32,7 +32,7 @@
 #include "biblinternes/texture/texture.h"
 #include "biblinternes/vision/camera.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "corps/attribut.h"
 #include "corps/corps.h"

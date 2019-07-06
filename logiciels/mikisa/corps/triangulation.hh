@@ -26,7 +26,7 @@
 
 #include "biblinternes/math/vecteur.hh"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class Corps;
 class GroupePrimitive;

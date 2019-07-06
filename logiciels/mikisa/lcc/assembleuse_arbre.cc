@@ -27,7 +27,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "contexte_generation_code.h"
 

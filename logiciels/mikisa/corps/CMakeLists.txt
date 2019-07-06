@@ -29,7 +29,6 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	bib_transformation
-	bibloc_mikisa
 )
 
 add_library(${NOM_CIBLE} STATIC

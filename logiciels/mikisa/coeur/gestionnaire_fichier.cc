@@ -1,7 +1,7 @@
 
 #include "gestionnaire_fichier.hh"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 PoigneeFichier::PoigneeFichier(const std::string &chemin)
 	: m_chemin(chemin)

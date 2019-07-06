@@ -27,7 +27,7 @@
 #include "biblinternes/outils/parallelisme.h"
 #include "biblexternes/Patate/grenaille.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "corps/corps.h"
 

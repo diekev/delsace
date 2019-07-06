@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/gna.hh"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../operatrice_corps.h"

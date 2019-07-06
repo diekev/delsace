@@ -28,8 +28,8 @@
 
 #include "biblinternes/outils/gna.hh"
 
-#include "bibloc/logeuse_memoire.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"

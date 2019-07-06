@@ -27,8 +27,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "bibloc/logeuse_memoire.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class Graphe;
 class Noeud;

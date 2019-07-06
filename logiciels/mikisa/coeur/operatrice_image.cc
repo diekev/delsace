@@ -27,7 +27,7 @@
 #include "biblinternes/graphe/noeud.h"
 #include "biblinternes/outils/definitions.h"
 
-#include "bibloc/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "corps/corps.h"
 

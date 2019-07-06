@@ -44,8 +44,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
-#include "bibloc/logeuse_memoire.hh"
-#include "bibloc/tableau.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../contexte_evaluation.hh"
 #include "../donnees_simulation.hh"

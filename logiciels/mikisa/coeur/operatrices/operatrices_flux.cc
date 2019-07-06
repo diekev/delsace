@@ -41,7 +41,7 @@
 #include "biblinternes/graphe/graphe.h"
 #include "biblinternes/outils/definitions.h"
 
-#include "bibloc/tableau.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../evaluation/reseau.hh"
 
