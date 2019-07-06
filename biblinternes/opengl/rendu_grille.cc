@@ -25,24 +25,24 @@
 #include "rendu_grille.h"
 
 #include <algorithm>
-#include <delsace/math/vecteur.hh>
-#include <ego/outils.h>
+#include "biblinternes/math/vecteur.hh"
+#include "biblinternes/ego/outils.h"
 #include <GL/glew.h>
 #include <numeric>
 
-#include "bibliotheques/opengl/tampon_rendu.h"
+#include "biblinternes/opengl/tampon_rendu.h"
 
 static TamponRendu *cree_tampon(dls::math::vec4f const &couleur, float taille_ligne)
 {
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 

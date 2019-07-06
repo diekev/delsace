@@ -35,9 +35,9 @@
 #include <OpenEXR/ImfOutputFile.h>
 #pragma GCC diagnostic pop
 
-#include <numero7/image/flux/ecriture.h>
+#include "biblinternes/image/flux/ecriture.h"
 
-#include "bibliotheques/commandes/commande.h"
+#include "biblinternes/commandes/commande.h"
 
 #include "../evaluation/evaluation.hh"
 
@@ -164,7 +164,7 @@ static bool ecris_image(
 		ecris_exr(chemin_image.c_str(), parametres);
 	}
 	else {
-		numero7::image::flux::ecris(chemin_image, tampon->tampon);
+		dls::image::flux::ecris(chemin_image, tampon->tampon);
 	}
 
 	return true;

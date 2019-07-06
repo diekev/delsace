@@ -24,7 +24,7 @@
 
 #include "fenetre_principale.h"
 
-#include <danjo/danjo.h>
+#include "danjo/danjo.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -39,7 +39,7 @@
 #include <QStatusBar>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "bibloc/logeuse_memoire.hh"
 

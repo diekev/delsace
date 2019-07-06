@@ -26,7 +26,7 @@
 
 #include <cassert>
 
-#include "../outils/definitions.hh"
+#include "../outils/definitions.h"
 
 bool Commande::evalue_predicat(std::any const &pointeur, std::string const &metadonnee)
 {

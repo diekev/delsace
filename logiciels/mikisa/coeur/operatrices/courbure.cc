@@ -24,8 +24,8 @@
 
 #include "courbure.hh"
 
-#include "bibliotheques/outils/parallelisme.h"
-#include "bibliotheques/Patate/grenaille.h"
+#include "biblinternes/outils/parallelisme.h"
+#include "biblexternes/Patate/grenaille.h"
 
 #include "bibloc/tableau.hh"
 

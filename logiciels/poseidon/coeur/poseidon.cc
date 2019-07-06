@@ -32,8 +32,8 @@
 #include <QFileDialog>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/repondant_commande.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/vision/camera.h"
 
 #include "commandes/commandes_temps.h"
 #include "commandes/commandes_vue3d.h"

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/objets/adaptrice_creation.h"
+#include "biblinternes/objets/adaptrice_creation.h"
 
 class Maillage;
 

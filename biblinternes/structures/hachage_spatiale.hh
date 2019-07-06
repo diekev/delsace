@@ -27,7 +27,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 struct HachageSpatial {
 	std::unordered_map<std::size_t, std::vector<dls::math::vec3f>> m_tableau{};

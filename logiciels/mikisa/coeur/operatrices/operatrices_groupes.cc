@@ -24,7 +24,7 @@
 
 #include "operatrices_groupes.hh"
 
-#include "bibliotheques/outils/gna.hh"
+#include "biblinternes/outils/gna.hh"
 
 #include "bibloc/tableau.hh"
 

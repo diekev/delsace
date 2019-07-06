@@ -31,7 +31,7 @@
 #include <QMenu>
 #include <QToolBar>
 
-#include <delsace/langage/tampon_source.hh>
+#include "biblinternes/langage/tampon_source.hh"
 
 #include "controles/action.h"
 
@@ -137,7 +137,7 @@ QMenu *GestionnaireInterface::compile_menu(
 
 		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
 		analyseuse.installe_assembleur(&assembleuse);
-		analyseuse.lance_analyse();
+		analyseuse.lance_analyse(std::cerr);
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -172,7 +172,7 @@ QMenu *GestionnaireInterface::compile_menu_entrerogeable(
 
 		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
 		analyseuse.installe_assembleur(&assembleuse);
-		analyseuse.lance_analyse();
+		analyseuse.lance_analyse(std::cerr);
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -218,7 +218,7 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 
 		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
 		analyseuse.installe_assembleur(&assembleuse);
-		analyseuse.lance_analyse();
+		analyseuse.lance_analyse(std::cerr);
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -260,7 +260,7 @@ void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const
 
 		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
 		analyseuse.installe_assembleur(&assembleuse);
-		analyseuse.lance_analyse();
+		analyseuse.lance_analyse(std::cerr);
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -297,7 +297,7 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees,
 
 		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
 		analyseuse.installe_assembleur(&assembleur);
-		analyseuse.lance_analyse();
+		analyseuse.lance_analyse(std::cerr);
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
@@ -388,7 +388,7 @@ void compile_feuille_logique(const char *texte_entree)
 		decoupeuse.decoupe();
 
 		auto analyseuse = AnalyseuseLogique(nullptr, tampon, decoupeuse.morceaux());
-		analyseuse.lance_analyse();
+		analyseuse.lance_analyse(std::cerr);
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();

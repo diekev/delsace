@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "../../math/matrice/matrice.h"
+#include "biblinternes/math/matrice/matrice.hh"
 
 namespace dls {
 namespace image {
@@ -115,7 +115,7 @@ static const float noyau_sobel_y[] = {
  * <l, c> spécifiées.
  */
 template <ConceptNombre nombre>
-auto applique_noyau(const math::matrice<nombre> &image, const float *kernel, int l, int c)
+auto applique_noyau(const math::matrice_dyn<nombre> &image, const float *kernel, int l, int c)
 {
 	const auto &ul = image[l - 1][c - 1] * kernel[0];
 	const auto &uc = image[l - 1][c] * kernel[1];
@@ -137,7 +137,7 @@ auto applique_noyau(const math::matrice<nombre> &image, const float *kernel, int
  * matrice spécifiée.
  */
 template <ConceptNombre nombre>
-auto applique_convolution(const math::matrice<nombre> &matrice, const int convolution)
+auto applique_convolution(const math::matrice_dyn<nombre> &matrice, const int convolution)
 {
 	const float *kernel = nullptr;
 
@@ -165,7 +165,7 @@ auto applique_convolution(const math::matrice<nombre> &matrice, const int convol
 	const auto hauteur = matrice.nombre_lignes();
 	const auto largeur = matrice.nombre_colonnes();
 
-	auto image_tampon = math::matrice<nombre>(matrice.dimensions());
+	auto image_tampon = math::matrice_dyn<nombre>(matrice.dimensions());
 
 	for (int l = 1; l < hauteur - 1; ++l) {
 		for (int c = 1; c < largeur - 1; ++c) {
@@ -190,7 +190,7 @@ enum {
  * est l'index de la ligne, et `c` celui de la colonne.
  */
 template <ConceptNombre nombre>
-static nombre laplacien(const math::matrice<nombre> &image, size_t l, size_t c)
+static nombre laplacien(const math::matrice_dyn<nombre> &image, size_t l, size_t c)
 {
 	const auto &x0 = image[l][c];
 	const auto &x1 = image[l][c - 1];
@@ -206,7 +206,7 @@ static nombre laplacien(const math::matrice<nombre> &image, size_t l, size_t c)
  * spécifié où `l` est l'index de la ligne, et `c` celui de la colonne.
  */
 template <ConceptNombre nombre>
-static nombre divergence_x(const math::matrice<nombre> &image, size_t l, size_t c)
+static nombre divergence_x(const math::matrice_dyn<nombre> &image, size_t l, size_t c)
 {
 	const auto &x0 = image[l][c];
 	const auto &x1 = image[l][c - 1];
@@ -220,7 +220,7 @@ static nombre divergence_x(const math::matrice<nombre> &image, size_t l, size_t 
  * spécifié où `l` est l'index de la ligne, et `c` celui de la colonne.
  */
 template <ConceptNombre nombre>
-static nombre divergence_y(const math::matrice<nombre> &image, size_t l, size_t c)
+static nombre divergence_y(const math::matrice_dyn<nombre> &image, size_t l, size_t c)
 {
 	const auto &x0 = image[l][c];
 	const auto &x1 = image[l - 1][c];
@@ -234,7 +234,7 @@ static nombre divergence_y(const math::matrice<nombre> &image, size_t l, size_t 
  * spécifié où `l` est l'index de la ligne, et `c` celui de la colonne.
  */
 template <ConceptNombre nombre>
-static nombre gradient_x(const math::matrice<nombre> &image, size_t l, size_t c)
+static nombre gradient_x(const math::matrice_dyn<nombre> &image, size_t l, size_t c)
 {
 	const auto &x1 = image[l][c - 1];
 	const auto &x2 = image[l][c + 1];
@@ -247,7 +247,7 @@ static nombre gradient_x(const math::matrice<nombre> &image, size_t l, size_t c)
  * spécifié où `l` est l'index de la ligne, et `c` celui de la colonne.
  */
 template <ConceptNombre nombre>
-static nombre gradient_y(const math::matrice<nombre> &image, size_t l, size_t c)
+static nombre gradient_y(const math::matrice_dyn<nombre> &image, size_t l, size_t c)
 {
 	const auto &y1 = image[l - 1][c];
 	const auto &y2 = image[l + 1][c];
@@ -260,7 +260,7 @@ static nombre gradient_y(const math::matrice<nombre> &image, size_t l, size_t c)
  * est l'index de la ligne, et `c` celui de la colonne.
  */
 template <ConceptNombre nombre>
-static nombre gradient(const math::matrice<nombre> &image, size_t l, size_t c)
+static nombre gradient(const math::matrice_dyn<nombre> &image, size_t l, size_t c)
 {
 	const auto &x0 = image[l][c];
 	const auto &x2 = image[l][c - 1];
@@ -274,9 +274,9 @@ static nombre gradient(const math::matrice<nombre> &image, size_t l, size_t c)
  * matrice spécifiée.
  */
 template <ConceptNombre nombre>
-auto applique_filtre(const math::matrice<nombre> &matrice, int type_filtre)
+auto applique_filtre(const math::matrice_dyn<nombre> &matrice, int type_filtre)
 {
-	typedef nombre(*type_fontion)(const math::matrice<nombre>&, size_t, size_t);
+	typedef nombre(*type_fontion)(const math::matrice_dyn<nombre>&, size_t, size_t);
 
 	type_fontion fonction;
 
@@ -303,7 +303,7 @@ auto applique_filtre(const math::matrice<nombre> &matrice, int type_filtre)
 
 	const auto largeur = matrice.nombre_colonnes();
 	const auto hauteur = matrice.nombre_lignes();
-	auto image_tampon = math::matrice<nombre>(matrice.dimensions());
+	auto image_tampon = math::matrice_dyn<nombre>(matrice.dimensions());
 
 	for (int l = 1; l < hauteur - 1; ++l) {
 		for (int c = 1; c < largeur - 1; ++c) {

@@ -27,8 +27,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/objets/import_objet.h"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/objets/import_objet.h"
 
 #include "adaptrice_creation_maillage.h"
 

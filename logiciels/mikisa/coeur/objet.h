@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "bibliotheques/graphe/graphe.h"
+#include "biblinternes/graphe/graphe.h"
 
-#include "bibliotheques/transformation/transformation.h"
+#include "biblinternes/transformation/transformation.h"
 
 #include "corps/corps.h"
 

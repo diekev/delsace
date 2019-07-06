@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/graphe/graphe.h"
+#include "biblinternes/graphe/graphe.h"
 
 #include "operatrice_image.h"
 

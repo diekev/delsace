@@ -27,8 +27,8 @@
 #include <vector>
 #include <map>
 
-#include "bibliotheques/outils/iterateurs.h"
-#include "bibliotheques/transformation/transformation.h"
+#include "biblinternes/outils/iterateurs.h"
+#include "biblinternes/transformation/transformation.h"
 
 struct Parametres;
 
@@ -59,8 +59,8 @@ class Arbre {
 	Parametres *m_parametres{};
 
 public:
-	using plage_sommets = plage_iterable<std::vector<Sommet *>::const_iterator>;
-	using plage_arretes = plage_iterable<std::vector<Arrete *>::const_iterator>;
+	using plage_sommets = dls::outils::plage_iterable<std::vector<Sommet *>::const_iterator>;
+	using plage_arretes = dls::outils::plage_iterable<std::vector<Arrete *>::const_iterator>;
 
 	Arbre();
 

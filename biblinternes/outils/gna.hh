@@ -26,7 +26,7 @@
 
 #include <random>
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 class GNA {
 	std::mt19937 m_gna;

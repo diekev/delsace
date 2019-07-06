@@ -40,9 +40,9 @@
 #include <bullet/LinearMath/btConvexHullComputer.h>
 #pragma GCC diagnostic pop
 
-#include <delsace/math/quaternion.hh>
+#include "biblinternes/math/quaternion.hh"
 
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/definitions.h"
 
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"

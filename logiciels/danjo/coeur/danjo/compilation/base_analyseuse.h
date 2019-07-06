@@ -26,7 +26,7 @@
 
 #include <vector>
 
-#include <delsace/langage/analyseuse.hh>
+#include "biblinternes/langage/analyseuse.hh"
 
 #include "morceaux.h"
 

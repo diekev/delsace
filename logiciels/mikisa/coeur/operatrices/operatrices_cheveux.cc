@@ -24,8 +24,8 @@
 
 #include "operatrices_cheveux.h"
 
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/gna.hh"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/gna.hh"
 
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"

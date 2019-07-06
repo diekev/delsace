@@ -28,7 +28,7 @@
 
 #include <vector>
 
-using Matrice = dls::math::matrice<double>;
+using Matrice = dls::math::matrice_dyn<double>;
 
 enum TypeActivation {
 	AUCUNE = 0,

@@ -24,9 +24,9 @@
 
 #include "operatrices_point3d.h"
 
-#include <delsace/math/bruit.hh>
+#include "biblinternes/math/bruit.hh"
 
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/definitions.h"
 
 #include "../operatrice_graphe_maillage.h"
 #include "../usine_operatrice.h"

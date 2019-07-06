@@ -22,7 +22,7 @@
 set(NOM_CIBLE bib_commandes)
 
 set(INCLUSIONS
-	${INCLUSIONS_DANJO}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../logiciels/danjo/coeur/
 )
 
 add_library(${NOM_CIBLE} STATIC

@@ -24,12 +24,12 @@
 
 #include "fluide.h"
 
-#include <chronometrage/chronometre_de_portee.h>
+#include "biblinternes/chrono/outils.hh"
 
 #include <random>
 
-#include "bibliotheques/objets/creation.h"
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/objets/creation.h"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "adaptrice_creation_maillage.h"
 #include "imcompressibilite.h"

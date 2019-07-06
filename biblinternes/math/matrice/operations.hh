@@ -33,7 +33,7 @@ namespace math {
  * Applique une fonction à chaque élément de la matrice.
  */
 template <ConceptNombre nombre, typename Function>
-void applique_fonction(matrice<nombre> &mat, Function &&function)
+void applique_fonction(matrice_dyn<nombre> &mat, Function &&function)
 {
 	for (int l = 0; l < mat.nombre_lignes(); ++l) {
 		for (int c = 0; c < mat.nombre_colonnes(); ++c) {
@@ -48,7 +48,7 @@ void applique_fonction(matrice<nombre> &mat, Function &&function)
  * l'élément traité est passée à la fonction.
  */
 template <ConceptNombre nombre, typename Function>
-void applique_fonction_position(matrice<nombre> &mat, Function &&function)
+void applique_fonction_position(matrice_dyn<nombre> &mat, Function &&function)
 {
 	for (int l = 0; l < mat.nombre_lignes(); ++l) {
 		for (int c = 0; c < mat.nombre_colonnes(); ++c) {
@@ -62,7 +62,7 @@ void applique_fonction_position(matrice<nombre> &mat, Function &&function)
  * modifiée, sans passer par une matrice temporaire.
  */
 template <ConceptNombre nombre, typename Fonction>
-void melange_matrices(matrice<nombre> &mat_a, const matrice<nombre> &mat_b, Fonction &&function)
+void melange_matrices(matrice_dyn<nombre> &mat_a, const matrice_dyn<nombre> &mat_b, Fonction &&function)
 {
 	const auto nombre_lignes = std::min(mat_a.nombre_lignes(), mat_b.nombre_lignes());
 	const auto nombre_colonnes = std::min(mat_a.nombre_colonnes(), mat_b.nombre_colonnes());
@@ -78,7 +78,7 @@ void melange_matrices(matrice<nombre> &mat_a, const matrice<nombre> &mat_b, Fonc
  * Retourne la valeur maximale d'une matrice.
  */
 template <ConceptNombre nombre>
-nombre valeur_maximale(const matrice<nombre> &mat)
+nombre valeur_maximale(const matrice_dyn<nombre> &mat)
 {
 	auto resultat = std::numeric_limits<nombre>::min();
 
@@ -95,7 +95,7 @@ nombre valeur_maximale(const matrice<nombre> &mat)
  * Retourne la valeur minimale d'une matrice.
  */
 template <ConceptNombre nombre>
-nombre valeur_minimale(const matrice<nombre> &mat)
+nombre valeur_minimale(const matrice_dyn<nombre> &mat)
 {
 	auto resultat = std::numeric_limits<nombre>::max();
 
@@ -116,7 +116,7 @@ nombre valeur_minimale(const matrice<nombre> &mat)
  * ExceptionValeur est lancée.
  */
 template <ConceptNombre Nombre>
-auto hadamard(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+auto hadamard(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
 	if (cote_droit.dimensions() != cote_gauche.dimensions()) {
 		throw ExceptionValeur(
@@ -124,7 +124,7 @@ auto hadamard(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_dr
 					" dimensions similaires !");
 	}
 
-	matrice<Nombre> resultat(cote_gauche.dimensions());
+	matrice_dyn<Nombre> resultat(cote_gauche.dimensions());
 
 	for (int i = 0; i < cote_gauche.nombre_lignes(); ++i) {
 		for (int j = 0; j < cote_gauche.nombre_colonnes(); ++j) {
@@ -140,14 +140,14 @@ auto hadamard(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_dr
  * deux matrices spécifiées.
  */
 template <ConceptNombre Nombre>
-auto kronecker(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+auto kronecker(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
 	const auto dim_gauche = cote_gauche.dimensions();
 	const auto dim_droite = cote_droit.dimensions();
 	const auto hauteur = dim_droite.hauteur * dim_gauche.hauteur;
 	const auto largeur = dim_droite.largeur * dim_gauche.largeur;
 
-	auto resultat = matrice<Nombre>(Hauteur(hauteur), Largeur(largeur));
+	auto resultat = matrice_dyn<Nombre>(Hauteur(hauteur), Largeur(largeur));
 
 	for (int i = 0; i < hauteur; ++i) {
 		for (int j = 0; j < largeur; ++j) {
@@ -171,7 +171,7 @@ auto kronecker(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_d
  * type ExceptionValeur est lancée.
  */
 template <ConceptNombre Nombre>
-auto contenation_horizontale(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+auto contenation_horizontale(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
 	if (cote_gauche.nombre_lignes() != cote_droit.nombre_lignes()) {
 		throw ExceptionValeur(
@@ -182,7 +182,7 @@ auto contenation_horizontale(const matrice<Nombre> &cote_gauche, const matrice<N
 	const auto hauteur = cote_gauche.nombre_lignes();
 	const auto largeur = cote_gauche.nombre_colonnes() + cote_droit.nombre_colonnes();
 
-	auto resultat = matrice<Nombre>(Hauteur(hauteur), Largeur(largeur));
+	auto resultat = matrice_dyn<Nombre>(Hauteur(hauteur), Largeur(largeur));
 
 	for (int i = 0; i < resultat.nombre_lignes(); ++i) {
 		int j = 0;
@@ -207,7 +207,7 @@ auto contenation_horizontale(const matrice<Nombre> &cote_gauche, const matrice<N
  * type ExceptionValeur est lancée.
  */
 template <ConceptNombre Nombre>
-auto contenation_veritcale(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+auto contenation_veritcale(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
 	if (cote_gauche.nombre_colonnes() != cote_droit.nombre_colonnes()) {
 		throw ExceptionValeur(
@@ -218,7 +218,7 @@ auto contenation_veritcale(const matrice<Nombre> &cote_gauche, const matrice<Nom
 	const auto hauteur = cote_gauche.nombre_lignes() + cote_droit.nombre_lignes();
 	const auto largeur = cote_gauche.nombre_colonnes();
 
-	auto resultat = matrice<Nombre>(Hauteur(hauteur), Largeur(largeur));
+	auto resultat = matrice_dyn<Nombre>(Hauteur(hauteur), Largeur(largeur));
 
 	for (int i = 0; i < cote_gauche.nombre_lignes(); ++i) {
 		for (int j = 0; j < cote_gauche.nombre_colonnes(); ++j) {
@@ -240,9 +240,9 @@ auto contenation_veritcale(const matrice<Nombre> &cote_gauche, const matrice<Nom
  * matrice spécifiée.
  */
 template <ConceptNombre Nombre>
-auto transpose(const matrice<Nombre> &m)
+auto transpose(const matrice_dyn<Nombre> &m)
 {
-	auto resultat = matrice<Nombre>(Hauteur(m.nombre_colonnes()), Largeur(m.nombre_lignes()));
+	auto resultat = matrice_dyn<Nombre>(Hauteur(m.nombre_colonnes()), Largeur(m.nombre_lignes()));
 
 	for (int i = 0; i < resultat.nombre_lignes(); ++i) {
 		for (int j = 0; j < resultat.nombre_colonnes(); ++j) {
@@ -261,9 +261,9 @@ auto transpose(const matrice<Nombre> &m)
  * 2 fois plus petite que l'originale).
  */
 template <ConceptNombre Nombre>
-auto maximum_local(const matrice<Nombre> &m, int taille)
+auto maximum_local(const matrice_dyn<Nombre> &m, int taille)
 {
-	auto resultat = matrice<Nombre>(
+	auto resultat = matrice_dyn<Nombre>(
 						Hauteur(m.nombre_lignes() / taille),
 						Largeur(m.nombre_colonnes() / taille));
 
@@ -294,9 +294,9 @@ auto maximum_local(const matrice<Nombre> &m, int taille)
  * 2 fois plus petite que l'originale).
  */
 template <ConceptNombre Nombre>
-auto minimum_local(const matrice<Nombre> &m, int taille)
+auto minimum_local(const matrice_dyn<Nombre> &m, int taille)
 {
-	auto resultat = matrice<Nombre>(
+	auto resultat = matrice_dyn<Nombre>(
 						Hauteur(m.nombre_lignes() / taille),
 						Largeur(m.nombre_colonnes() / taille));
 

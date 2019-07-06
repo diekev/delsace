@@ -27,7 +27,7 @@
 #include <cmath>
 #include <vector>
 
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/outils/constantes.h"
 
 /* ************************************************************************** */
 

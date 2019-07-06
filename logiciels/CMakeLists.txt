@@ -20,6 +20,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 add_subdirectory(arachne)
+add_subdirectory(danjo)
 add_subdirectory(kumo)
 add_subdirectory(mesure)
 add_subdirectory(parcer)

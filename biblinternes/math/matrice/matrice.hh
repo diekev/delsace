@@ -63,7 +63,7 @@ public:
 };
 
 template <ConceptNombre Nombre>
-class matrice;
+class matrice_dyn;
 
 /**
  * Copie les données d'une matrice vers celles d'une autre.
@@ -72,7 +72,7 @@ class matrice;
  * ExceptionValeur est lancée.
  */
 template <ConceptNombre Nombre>
-static auto copie(const matrice<Nombre> &de, matrice<Nombre> &vers)
+static auto copie(const matrice_dyn<Nombre> &de, matrice_dyn<Nombre> &vers)
 {
 	if (de.dimensions() != vers.dimensions()) {
 		throw ExceptionValeur(
@@ -102,7 +102,7 @@ static auto copie(const matrice<Nombre> &de, matrice<Nombre> &vers)
  * première ligne, troisième colonne.
  */
 template <ConceptNombre Nombre>
-class matrice {
+class matrice_dyn {
 	Dimensions m_dimensions{};
 
 	Nombre *m_donnees = nullptr;
@@ -112,48 +112,48 @@ public:
 	 * Construit une matrice par défaut. Le contenu et les dimensions de la
 	 * matrice ne sont pas initialisées.
 	 */
-	matrice() = default;
+	matrice_dyn() = default;
 
 	/**
 	 * Construit une matrice avec les dimensions spécifiés. Le contenu de la
 	 * matrice n'est pas initialié.
 	 */
-	explicit matrice(const Dimensions &dimensions);
+	explicit matrice_dyn(const Dimensions &dimensions);
 
 	/**
 	 * Construit une matrice avec la hauteur et la largeur spécifiées. Le
 	 * contenu de la matrice n'est pas initialié.
 	 */
-	matrice(const Hauteur &hauteur, const Largeur &largeur);
+	matrice_dyn(const Hauteur &hauteur, const Largeur &largeur);
 
 	/**
 	 * Construit une matrice avec la hauteur et la largeur spécifiées. Le
 	 * contenu de la matrice n'est pas initialié.
 	 */
-	matrice(const Largeur &largeur, const Hauteur &hauteur);
+	matrice_dyn(const Largeur &largeur, const Hauteur &hauteur);
 
 	/**
 	 * Construit une matrice à partir d'une autre. Après cette opération, la
 	 * condition *this == autre est vraie.
 	 */
-	matrice(const matrice &autre);
+	matrice_dyn(const matrice_dyn &autre);
 
 	/**
 	 * Construit une matrice en prenant les valeurs d'une autre. Après cette
 	 * opération, l'autre matrice est laissée dans un état indéfini.
 	 */
-	matrice(matrice &&autre);
+	matrice_dyn(matrice_dyn &&autre);
 
 	/**
 	 * Construit une matrice bidimensionnelle depuis une liste de listes.
 	 */
-	explicit matrice(const std::initializer_list<std::initializer_list<Nombre>> &listes_valeurs);
+	explicit matrice_dyn(const std::initializer_list<std::initializer_list<Nombre>> &listes_valeurs);
 
 	/**
 	 * Détruit la matrice. La mémoire pointée par donnees() est libéré, et
 	 * l'utilisation du pointeur est indéfini.
 	 */
-	~matrice();
+	~matrice_dyn();
 
 	/**
 	 * Remplie la matrice avec la valeur passée en argument.
@@ -186,7 +186,7 @@ public:
 	/**
 	 * Échange les valeurs de cette matrice avec celle de l'autre.
 	 */
-	void swap(matrice &autre);
+	void swap(matrice_dyn &autre);
 
 	/**
 	 * Retourne un pointeur vers les données de cette matrice.
@@ -211,19 +211,19 @@ public:
 	 * Crée une matrice identité à partir des dimensions spécifiées. Si les
 	 * dimensions ne sont pas carré, une exception est lancée.
 	 */
-	static matrice identite(const Dimensions &dimensions);
+	static matrice_dyn identite(const Dimensions &dimensions);
 
 	/**
 	 * Assigne les valeurs d'une autre matrice dans celle-ci. Après cette
 	 * opération, la condition *this == autre est vraie.
 	 */
-	matrice &operator=(const matrice &autre);
+	matrice_dyn &operator=(const matrice_dyn &autre);
 
 	/**
 	 * Assigne les valeurs d'une autre matrice dans celle-ci. Après cette
 	 * opération, l'autre matrice est laissée dans un état indéfini.
 	 */
-	matrice &operator=(matrice &&autre);
+	matrice_dyn &operator=(matrice_dyn &&autre);
 
 	/**
 	 * Additionne les valeurs d'une autre matrice à celle-ci.
@@ -231,7 +231,7 @@ public:
 	 * Si les matrice ont des dimensions différentes, une exception de type
 	 * ExceptionValeur est lancée.
 	 */
-	matrice &operator+=(const matrice &autre);
+	matrice_dyn &operator+=(const matrice_dyn &autre);
 
 	/**
 	 * Soustrait les valeurs d'une autre matrice à celle-ci.
@@ -239,7 +239,7 @@ public:
 	 * Si les matrice ont des dimensions différentes, une exception de type
 	 * ExceptionValeur est lancée.
 	 */
-	matrice &operator-=(const matrice &autre);
+	matrice_dyn &operator-=(const matrice_dyn &autre);
 
 	/**
 	 * Multiplie cette matrice avec une autre.
@@ -247,50 +247,50 @@ public:
 	 * Si les matrice ont des dimensions incompatibles, une exception de type
 	 * ExceptionValeur est lancée.
 	 */
-	matrice &operator*=(const matrice &autre);
+	matrice_dyn &operator*=(const matrice_dyn &autre);
 
 	/**
 	 * Multiplie chaque valeur de cette matrice avec la valeur spécificiée.
 	 */
-	matrice &operator*=(const Nombre valeur);
+	matrice_dyn &operator*=(const Nombre valeur);
 };
 
 /* ***************************** Implémentation ***************************** */
 
 template<ConceptNombre Nombre>
-matrice<Nombre>::matrice(const Dimensions &dimensions)
+matrice_dyn<Nombre>::matrice_dyn(const Dimensions &dimensions)
 	: m_dimensions(dimensions)
 {
 	m_donnees = new Nombre[dimensions.nombre_elements()];
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre>::matrice(const Hauteur &hauteur, const Largeur &largeur)
-	: matrice(Dimensions(hauteur, largeur))
+matrice_dyn<Nombre>::matrice_dyn(const Hauteur &hauteur, const Largeur &largeur)
+	: matrice_dyn(Dimensions(hauteur, largeur))
 {}
 
 template<ConceptNombre Nombre>
-matrice<Nombre>::matrice(const Largeur &largeur, const Hauteur &hauteur)
-	: matrice(Dimensions(hauteur, largeur))
+matrice_dyn<Nombre>::matrice_dyn(const Largeur &largeur, const Hauteur &hauteur)
+	: matrice_dyn(Dimensions(hauteur, largeur))
 {}
 
 template<ConceptNombre Nombre>
-matrice<Nombre>::matrice(const matrice &autre)
-	: matrice(autre.dimensions())
+matrice_dyn<Nombre>::matrice_dyn(const matrice_dyn &autre)
+	: matrice_dyn(autre.dimensions())
 {
 	copie(autre, *this);
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre>::matrice(matrice &&autre)
-	: matrice()
+matrice_dyn<Nombre>::matrice_dyn(matrice_dyn &&autre)
+	: matrice_dyn()
 {
 	swap(autre);
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre>::matrice(const std::initializer_list<std::initializer_list<Nombre> > &listes_valeurs)
-	: matrice()
+matrice_dyn<Nombre>::matrice_dyn(const std::initializer_list<std::initializer_list<Nombre> > &listes_valeurs)
+	: matrice_dyn()
 {
 	const auto lignes = listes_valeurs.size();
 	const auto colonnes = listes_valeurs.begin()->size();
@@ -308,7 +308,7 @@ matrice<Nombre>::matrice(const std::initializer_list<std::initializer_list<Nombr
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre>::~matrice()
+matrice_dyn<Nombre>::~matrice_dyn()
 {
 	if (!m_donnees) {
 		return;
@@ -318,7 +318,7 @@ matrice<Nombre>::~matrice()
 }
 
 template<ConceptNombre Nombre>
-void matrice<Nombre>::remplie(const Nombre valeur)
+void matrice_dyn<Nombre>::remplie(const Nombre valeur)
 {
 	for (int i = 0, ie = dimensions().nombre_elements(); i < ie; ++i) {
 		m_donnees[i] = valeur;
@@ -326,25 +326,25 @@ void matrice<Nombre>::remplie(const Nombre valeur)
 }
 
 template<ConceptNombre Nombre>
-const Dimensions &matrice<Nombre>::dimensions() const
+const Dimensions &matrice_dyn<Nombre>::dimensions() const
 {
 	return m_dimensions;
 }
 
 template<ConceptNombre Nombre>
-int matrice<Nombre>::nombre_colonnes() const
+int matrice_dyn<Nombre>::nombre_colonnes() const
 {
 	return m_dimensions.largeur;
 }
 
 template<ConceptNombre Nombre>
-int matrice<Nombre>::nombre_lignes() const
+int matrice_dyn<Nombre>::nombre_lignes() const
 {
 	return m_dimensions.hauteur;
 }
 
 template<ConceptNombre Nombre>
-void matrice<Nombre>::redimensionne(const Dimensions &nouvelles_dimensions)
+void matrice_dyn<Nombre>::redimensionne(const Dimensions &nouvelles_dimensions)
 {
 	if (this->dimensions() == nouvelles_dimensions) {
 		return;
@@ -365,38 +365,38 @@ void matrice<Nombre>::redimensionne(const Dimensions &nouvelles_dimensions)
 }
 
 template<ConceptNombre Nombre>
-void matrice<Nombre>::swap(matrice &autre)
+void matrice_dyn<Nombre>::swap(matrice_dyn &autre)
 {
 	std::swap(m_dimensions, autre.m_dimensions);
 	std::swap(m_donnees, autre.m_donnees);
 }
 
 template<ConceptNombre Nombre>
-Nombre *matrice<Nombre>::donnees() const
+Nombre *matrice_dyn<Nombre>::donnees() const
 {
 	return m_donnees;
 }
 
 template<ConceptNombre Nombre>
-Nombre *matrice<Nombre>::operator[](int i)
+Nombre *matrice_dyn<Nombre>::operator[](int i)
 {
 	return &m_donnees[i * m_dimensions.largeur];
 }
 
 template<ConceptNombre Nombre>
-Nombre *matrice<Nombre>::operator[](int i) const
+Nombre *matrice_dyn<Nombre>::operator[](int i) const
 {
 	return &m_donnees[i * m_dimensions.largeur];
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre> matrice<Nombre>::identite(const Dimensions &dimensions)
+matrice_dyn<Nombre> matrice_dyn<Nombre>::identite(const Dimensions &dimensions)
 {
 	if (dimensions.hauteur != dimensions.largeur) {
 		throw ExceptionValeur("Une matrice identité doit être carré !");
 	}
 
-	matrice resultat(dimensions);
+	auto resultat = matrice_dyn<Nombre>(dimensions);
 	resultat.remplie(0);
 
 	for (int i = 0, ie = resultat.nombre_lignes(); i < ie; ++i) {
@@ -407,7 +407,7 @@ matrice<Nombre> matrice<Nombre>::identite(const Dimensions &dimensions)
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre> &matrice<Nombre>::operator=(const matrice<Nombre> &autre)
+matrice_dyn<Nombre> &matrice_dyn<Nombre>::operator=(const matrice_dyn<Nombre> &autre)
 {
 	if (this->dimensions().nombre_elements() != autre.dimensions().nombre_elements()) {
 		delete m_donnees;
@@ -421,14 +421,14 @@ matrice<Nombre> &matrice<Nombre>::operator=(const matrice<Nombre> &autre)
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre> &matrice<Nombre>::operator=(matrice<Nombre> &&autre)
+matrice_dyn<Nombre> &matrice_dyn<Nombre>::operator=(matrice_dyn<Nombre> &&autre)
 {
 	swap(autre);
 	return *this;
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre> &matrice<Nombre>::operator+=(const matrice<Nombre> &autre)
+matrice_dyn<Nombre> &matrice_dyn<Nombre>::operator+=(const matrice_dyn<Nombre> &autre)
 {
 	if (this->dimensions() != autre.dimensions()) {
 		throw ExceptionValeur(
@@ -444,7 +444,7 @@ matrice<Nombre> &matrice<Nombre>::operator+=(const matrice<Nombre> &autre)
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre> &matrice<Nombre>::operator-=(const matrice<Nombre> &autre)
+matrice_dyn<Nombre> &matrice_dyn<Nombre>::operator-=(const matrice_dyn<Nombre> &autre)
 {
 	if (this->dimensions() != autre.dimensions()) {
 		throw ExceptionValeur(
@@ -460,7 +460,7 @@ matrice<Nombre> &matrice<Nombre>::operator-=(const matrice<Nombre> &autre)
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre> &matrice<Nombre>::operator*=(const matrice &autre)
+matrice_dyn<Nombre> &matrice_dyn<Nombre>::operator*=(const matrice_dyn &autre)
 {
 	if (this->nombre_colonnes() != autre.nombre_lignes()) {
 		throw ExceptionValeur(
@@ -469,7 +469,7 @@ matrice<Nombre> &matrice<Nombre>::operator*=(const matrice &autre)
 					"lignes de la seconde.");
 	}
 
-	matrice resultat = matrice(Hauteur(nombre_lignes()), Largeur(autre.nombre_colonnes()));
+	auto resultat = matrice_dyn(Hauteur(nombre_lignes()), Largeur(autre.nombre_colonnes()));
 
 	for (int l = 0, fl = resultat.nombre_lignes(); l < fl; ++l) {
 		for (int c = 0, fc = resultat.nombre_colonnes(); c < fc; ++c) {
@@ -488,7 +488,7 @@ matrice<Nombre> &matrice<Nombre>::operator*=(const matrice &autre)
 }
 
 template<ConceptNombre Nombre>
-matrice<Nombre> &matrice<Nombre>::operator*=(const Nombre valeur)
+matrice_dyn<Nombre> &matrice_dyn<Nombre>::operator*=(const Nombre valeur)
 {
 	for (int i = 0; i < this->dimensions().nombre_elements(); ++i) {
 		m_donnees[i] *= valeur;
@@ -504,9 +504,9 @@ matrice<Nombre> &matrice<Nombre>::operator*=(const Nombre valeur)
  * matrices spécifiées.
  */
 template <ConceptNombre Nombre>
-auto operator+(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+auto operator+(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
-	matrice<Nombre> tmp(cote_gauche);
+	auto tmp = matrice_dyn<Nombre>(cote_gauche);
 	tmp += cote_droit;
 	return tmp;
 }
@@ -516,9 +516,9 @@ auto operator+(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_d
  * valeurs de la matrice cote_droit à celles de cote_gauche.
  */
 template <ConceptNombre Nombre>
-auto operator-(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+auto operator-(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
-	matrice<Nombre> tmp(cote_gauche);
+	auto tmp = matrice_dyn<Nombre>(cote_gauche);
 	tmp -= cote_droit;
 	return tmp;
 }
@@ -528,9 +528,9 @@ auto operator-(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_d
  * matrices spécifiées.
  */
 template <ConceptNombre Nombre>
-auto operator*(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+auto operator*(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
-	matrice<Nombre> tmp(cote_gauche);
+	auto tmp = matrice_dyn<Nombre>(cote_gauche);
 	tmp *= cote_droit;
 	return tmp;
 }
@@ -540,9 +540,9 @@ auto operator*(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_d
  * matrice spécifiée avec le nombre spécifié.
  */
 template <ConceptNombre Nombre>
-auto operator*(const matrice<Nombre> &cote_gauche, const Nombre cote_droit)
+auto operator*(const matrice_dyn<Nombre> &cote_gauche, const Nombre cote_droit)
 {
-	matrice<Nombre> tmp(cote_gauche);
+	auto tmp = matrice_dyn<Nombre>(cote_gauche);
 	tmp *= cote_droit;
 	return tmp;
 }
@@ -552,9 +552,9 @@ auto operator*(const matrice<Nombre> &cote_gauche, const Nombre cote_droit)
  * matrice spécifiée avec le nombre spécifié.
  */
 template <ConceptNombre Nombre>
-auto operator*(const Nombre cote_gauche, const matrice<Nombre> &cote_droit)
+auto operator*(const Nombre cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
-	matrice<Nombre> tmp(cote_droit);
+	auto tmp = matrice_dyn<Nombre>(cote_droit);
 	tmp *= cote_gauche;
 	return tmp;
 }
@@ -563,7 +563,7 @@ auto operator*(const Nombre cote_gauche, const matrice<Nombre> &cote_droit)
  * Vérifie que les deux matrices spécifiées sont égales.
  */
 template <ConceptNombre Nombre>
-bool operator==(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+bool operator==(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
 	if (cote_gauche.dimensions() != cote_droit.dimensions()) {
 		return false;
@@ -591,7 +591,7 @@ bool operator==(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_
  * Vérifie que les deux matrices spécifiées sont différentes.
  */
 template <ConceptNombre Nombre>
-bool operator!=(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_droit)
+bool operator!=(const matrice_dyn<Nombre> &cote_gauche, const matrice_dyn<Nombre> &cote_droit)
 {
 	return !(cote_gauche == cote_droit);
 }
@@ -600,7 +600,7 @@ bool operator!=(const matrice<Nombre> &cote_gauche, const matrice<Nombre> &cote_
  * Imprime les données de la matrice spécifiée dans le flux donné.
  */
 template <ConceptNombre Nombre>
-auto &operator<<(std::ostream &os, const matrice<Nombre> &mat)
+auto &operator<<(std::ostream &os, const matrice_dyn<Nombre> &mat)
 {
 	for (int i = 0; i < mat.nombre_lignes(); ++i) {
 		os << "[";

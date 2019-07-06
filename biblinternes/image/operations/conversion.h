@@ -39,23 +39,23 @@ namespace operation {
  * valeurs décimales (type float) en valeurs entières (type unsigned char) de la
  * matrice spécifiée en paramètre.
  */
-math::matrice<PixelChar> converti_en_char(const math::matrice<PixelFloat> &image);
+math::matrice_dyn<PixelChar> converti_en_char(const math::matrice_dyn<PixelFloat> &image);
 
 /**
  * Retourne une matrice dont les valeurs sont le résultat de la conversion des
  * valeurs entières (type unsigned char) en valeurs décimales (type float) de la
  * matrice spécifiée en paramètre.
  */
-math::matrice<PixelFloat> converti_en_float(const math::matrice<PixelChar> &image);
+math::matrice_dyn<PixelFloat> converti_en_float(const math::matrice_dyn<PixelChar> &image);
 
 /**
  * Converti une image avec un seul canal (par exemple luminance) vers une image
  * avec quatre canaux.
  */
 template <ConceptNombre nombre>
-static auto converti_float_pixel(const math::matrice<nombre> &image)
+static auto converti_float_pixel(const math::matrice_dyn<nombre> &image)
 {
-	math::matrice<Pixel<nombre>> resultat(image.dimensions());
+	math::matrice_dyn<Pixel<nombre>> resultat(image.dimensions());
 
 	for (auto l = 0; l < image.nombre_lignes(); ++l) {
 		for (auto c = 0; c < image.nombre_colonnes(); ++c) {
@@ -74,9 +74,9 @@ static auto converti_float_pixel(const math::matrice<nombre> &image)
  * Rec. 709 de la luminance.
  */
 template <ConceptNombre nombre>
-auto luminance(const math::matrice<Pixel<nombre>> &image)
+auto luminance(const math::matrice_dyn<Pixel<nombre>> &image)
 {
-	math::matrice<nombre> luma(image.dimensions());
+	math::matrice_dyn<nombre> luma(image.dimensions());
 
 	for (int x = 0; x < image.nombre_lignes(); ++x) {
 		for (int y = 0; y < image.nombre_colonnes(); ++y) {

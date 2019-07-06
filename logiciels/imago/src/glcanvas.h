@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <ego/program.h>
-#include <ego/bufferobject.h>
-#include <ego/texture.h>
+#include "biblinternes/ego/program.h"
+#include "biblinternes/ego/bufferobject.h"
+#include "biblinternes/ego/texture.h"
 
 #include <QGLWidget>
 

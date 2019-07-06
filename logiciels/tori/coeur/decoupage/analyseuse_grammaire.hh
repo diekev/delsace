@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "../../biblinternes/langage/analyseuse.hh"
-#include "../../biblinternes/langage/tampon_source.hh"
+#include "biblinternes/langage/analyseuse.hh"
+#include "biblinternes/langage/tampon_source.hh"
 
 #include "morceaux.hh"
 

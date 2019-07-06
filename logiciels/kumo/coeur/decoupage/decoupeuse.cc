@@ -28,8 +28,8 @@
 #include <cstring>
 #include <sstream>
 
-#include "../../biblinternes/langage/tampon_source.hh"
-#include "../../biblinternes/langage/unicode.hh"
+#include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/langage/unicode.hh"
 
 #include "erreur.hh"
 #include "nombres.hh"

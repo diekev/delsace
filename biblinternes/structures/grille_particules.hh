@@ -26,8 +26,8 @@
 
 #include <set>
 
-#include <delsace/math/outils.hh>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/outils.hh"
+#include "biblinternes/math/vecteur.hh"
 
 class GrilleParticules {
 	dls::math::point3d m_min{};

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "../../biblinternes/langage/analyseuse.hh"
+#include "biblinternes/langage/analyseuse.hh"
 
 #include <experimental/any>
 #include <vector>

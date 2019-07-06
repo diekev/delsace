@@ -7,7 +7,7 @@
 #ifndef MESHGEN_HPP
 #define MESHGEN_HPP
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 #include "obj/obj.hpp"
 
 namespace geomCore {

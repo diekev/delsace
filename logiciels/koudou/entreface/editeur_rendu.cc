@@ -36,7 +36,7 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"

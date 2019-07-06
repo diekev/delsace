@@ -24,12 +24,11 @@
 
 #include "moteur_rendu.h"
 
-#include <chronometrage/utilitaires.h>
-
 #include <tbb/parallel_for.h>
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/chrono/outils.hh"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/vision/camera.h"
 
 #include "bsdf.h"
 #include "gna.h"
@@ -178,8 +177,8 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, std::vec
 //	auto vielle_hauteur = camera->hauteur();
 //	auto vielle_largeur = camera->largeur();
 
-	m_pellicule.redimensionne(numero7::math::Hauteur(camera->hauteur()),
-							  numero7::math::Largeur(camera->largeur()));
+	m_pellicule.redimensionne(dls::math::Hauteur(camera->hauteur()),
+							  dls::math::Largeur(camera->largeur()));
 
 	//camera->redimensionne(m_pellicule.largeur(), m_pellicule.hauteur());
 	//camera->ajourne();
@@ -230,7 +229,7 @@ Pellicule *MoteurRendu::pointeur_pellicule()
 	return &m_pellicule;
 }
 
-numero7::math::matrice<dls::math::vec3d> const &MoteurRendu::pellicule()
+dls::math::matrice_dyn<dls::math::vec3d> const &MoteurRendu::pellicule()
 {
 	m_pellicule.creer_image();
 	return m_pellicule.donnees();
@@ -304,11 +303,11 @@ void TacheRendu::commence(Koudou const &koudou)
 			break;
 		}
 
-		auto const debut_echantillon = numero7::chronometrage::maintenant();
+		auto const debut_echantillon = dls::chrono::maintenant();
 
 		moteur_rendu->echantillone_scene(koudou.parametres_rendu, carreaux, e);
 
-		auto const fin_echantillon = numero7::chronometrage::maintenant();
+		auto const fin_echantillon = dls::chrono::maintenant();
 
 		temps_echantillon = fin_echantillon - debut_echantillon;
 		temps_ecoule += temps_echantillon;

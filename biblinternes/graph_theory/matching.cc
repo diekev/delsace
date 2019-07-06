@@ -121,7 +121,7 @@ class MatchingGraph {
 	std::vector<Node *> m_boys{};
 	std::vector<Node *> m_girls{};
 
-	dls::math::matrice<int> m_adjacency_matrix{};
+	dls::math::matrice_dyn<int> m_adjacency_matrix{};
 
 public:
 	MatchingGraph() = default;

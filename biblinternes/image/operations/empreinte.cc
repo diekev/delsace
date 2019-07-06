@@ -42,7 +42,7 @@ size_t empreinte_image(const filesystem::path &chemin_image)
 
 	/* 2. Réduit la taille. */
 	//std::cerr << "Redimensionnage image....\n";
-	auto resultat = math::matrice<float>(math::Hauteur(8), math::Largeur(9));
+	auto resultat = math::matrice_dyn<float>(math::Hauteur(8), math::Largeur(9));
 	redimensionne(luma, resultat);
 
 	/* 3. Calcule l'empreinte. */

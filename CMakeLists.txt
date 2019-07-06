@@ -167,8 +167,6 @@ set(BIBLIOTHEQUES_OPENGL GLEW GLU GL glut)
 set(BIBLIOTHEQUES_TBB tbb)
 set(BIBLIOTHEQUES_IMAGE ${BIBLIOTHEQUES_IMAGE} jpeg png)
 
-set(BIBLIOTHEQUES_DANJO ${BIBLIOTHEQUES_DANJO} ${BIBLIOTHEQUE_DELSACE_PHYS} ${BIBLIOTHEQUE_DELSACE_LANGAGE})
-
 set(INCLUSIONS_BOOST /opt/lib/boost/include)
 
 # ------------------------------------------------------------------------------

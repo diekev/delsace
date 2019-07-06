@@ -27,7 +27,7 @@
 #include "editrice_vue2d.h"
 
 #include <cassert>
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <iostream>
 
 #pragma GCC diagnostic push
@@ -41,12 +41,12 @@
 #include <QWheelEvent>
 #pragma GCC diagnostic pop
 
-#include <image/operations/operations.h>
-#include <image/pixel.h>
+#include "biblinternes/image/operations/operations.h"
+#include "biblinternes/image/pixel.h"
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/commandes/repondant_commande.h"
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/outils/constantes.h"
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
@@ -118,7 +118,7 @@ void Visionneuse2D::resizeGL(int w, int h)
 	m_matrice_image[1][1] = static_cast<float>(720) / 1280;
 }
 
-void Visionneuse2D::charge_image(numero7::math::matrice<numero7::image::Pixel<float>> const &image)
+void Visionneuse2D::charge_image(dls::math::matrice_dyn<dls::image::Pixel<float>> const &image)
 {
 	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
 		m_matrice_image = dls::math::mat4x4f(1.0);
@@ -226,10 +226,10 @@ void EditriceVue2D::ajourne_etat(int evenement)
 		if (tampon == nullptr) {
 			/* Charge une image vide, les dimensions sont à peu près celle d'une
 			 * image de 1280x720. */
-			auto image_vide = type_image(numero7::math::Hauteur(10),
-										 numero7::math::Largeur(17));
+			auto image_vide = type_image(dls::math::Hauteur(10),
+										 dls::math::Largeur(17));
 
-			auto pixel = numero7::image::Pixel<float>(0.0f);
+			auto pixel = dls::image::Pixel<float>(0.0f);
 			pixel.a = 1.0f;
 
 			image_vide.remplie(pixel);

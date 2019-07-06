@@ -24,14 +24,14 @@
 
 #include "moteur_rendu.hh"
 
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <GL/glew.h>
 
-#include "bibliotheques/opengl/contexte_rendu.h"
-#include "bibliotheques/opengl/rendu_camera.h"
-#include "bibliotheques/opengl/rendu_grille.h"
-#include "bibliotheques/opengl/pile_matrice.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/opengl/contexte_rendu.h"
+#include "biblinternes/opengl/rendu_camera.h"
+#include "biblinternes/opengl/rendu_grille.h"
+#include "biblinternes/opengl/pile_matrice.h"
+#include "biblinternes/vision/camera.h"
 
 #include "coeur/objet.h"
 #include "coeur/scene.h"

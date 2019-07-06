@@ -24,7 +24,7 @@
 
 #include "vue_editrice_graphe.h"
 
-#include <danjo/danjo.h>
+#include "danjo/danjo.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -36,8 +36,8 @@
 #include <QMenu>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "coeur/mikisa.h"
 

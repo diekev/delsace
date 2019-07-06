@@ -29,8 +29,8 @@ set(INC_SYS
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUES_MATH}
-	${BIBLIOTHEQUES_IMAGE}
+	math
+	image
 	bib_observation
 	bib_commandes
 	bib_objets

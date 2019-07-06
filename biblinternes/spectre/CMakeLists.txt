@@ -23,7 +23,6 @@ set(NOM_CIBLE bib_spectre)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${INCLUSIONS_DELSACE_MATH}
 )
 
 add_library(${NOM_CIBLE} STATIC

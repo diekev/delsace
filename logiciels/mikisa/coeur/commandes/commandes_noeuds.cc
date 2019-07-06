@@ -32,9 +32,9 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
 
 #include "bibloc/logeuse_memoire.hh"
 

@@ -26,9 +26,9 @@
 
 #include "primitive.hh"
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
-#include "bibliotheques/geometrie/limites.hh"
+#include "biblinternes/geometrie/limites.hh"
 
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"

@@ -61,8 +61,8 @@ public:
 
 	virtual void evalue_entrees(int temps) = 0;
 
-	virtual numero7::image::Pixel<float> evalue_pixel(
-			numero7::image::Pixel<float> const &pixel,
+	virtual dls::image::Pixel<float> evalue_pixel(
+			dls::image::Pixel<float> const &pixel,
 			const float x,
 			const float y) = 0;
 

@@ -26,8 +26,8 @@
 
 #include <cassert>
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/texture/texture.h"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/texture/texture.h"
 
 #include "gna.h"
 #include "koudou.h"

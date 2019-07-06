@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <delsace/math/matrice.hh>
+#include "biblinternes/math/matrice.hh"
 #include <string>
 
-#include "bibliotheques/outils/iterateurs.h"
+#include "biblinternes/outils/iterateurs.h"
 
 #include "bibloc/tableau.hh"
 

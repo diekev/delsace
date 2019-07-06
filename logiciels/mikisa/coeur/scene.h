@@ -27,7 +27,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "bibliotheques/graphe/graphe.h"
+#include "biblinternes/graphe/graphe.h"
 
 #include "bibloc/tableau.hh"
 

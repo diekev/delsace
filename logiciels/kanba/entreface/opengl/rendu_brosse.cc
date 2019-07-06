@@ -24,11 +24,11 @@
 
 #include "rendu_brosse.h"
 
-#include <numero7/ego/outils.h>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/ego/outils.h"
+#include "biblinternes/math/vecteur.hh"
 
-#include "bibliotheques/opengl/tampon_rendu.h"
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/constantes.h"
 
 /* ************************************************************************** */
 
@@ -58,11 +58,11 @@ static TamponRendu *creer_tampon()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
+				dls::ego::Nuanceur::VERTEX,
 				source_vertex);
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
+				dls::ego::Nuanceur::FRAGMENT,
 				source_fragment);
 
 	tampon->finalise_programme();

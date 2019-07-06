@@ -26,7 +26,7 @@
 
 #include <QDialog>
 
-#include <delsace/phys/couleur.hh>
+#include "biblinternes/phys/couleur.hh"
 
 class ControleNombreDecimal;
 class QGridLayout;

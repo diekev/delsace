@@ -27,7 +27,7 @@
 #include <memory>
 #include <array>
 
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/definitions.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -39,9 +39,9 @@
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 #include <iostream>
-#include "bibliotheques/snh/TetMesh.h"
-#include "bibliotheques/snh/StableNeoHookean.h"
-#include "bibliotheques/snh/TetNewtonSolver.h"
+#include "biblexternes/snh/TetMesh.h"
+#include "biblexternes/snh/StableNeoHookean.h"
+#include "biblexternes/snh/TetNewtonSolver.h"
 #pragma GCC diagnostic pop
 
 #include "../contexte_evaluation.hh"

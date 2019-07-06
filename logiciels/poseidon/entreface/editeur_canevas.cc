@@ -31,7 +31,7 @@
 #include "editeur_canevas.h"
 
 #include <cassert>
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <iostream>
 
 #pragma GCC diagnostic push
@@ -45,8 +45,8 @@
 #include <QVBoxLayout>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "coeur/evenement.h"
 #include "coeur/poseidon.h"

@@ -22,11 +22,11 @@
  *
  */
 
-#include <delsace/tests/test_aleatoire.hh>
 #include <iostream>
 #include <random>
 
-#include <delsace/langage/tampon_source.hh>
+#include "biblinternes/tests/test_aleatoire.hh"
+#include "biblinternes/langage/tampon_source.hh"
 
 #include "coeur/danjo/compilation/analyseuse_disposition.h"
 #include "coeur/danjo/compilation/morceaux.h"
@@ -69,7 +69,7 @@ int test(const u_char *tampon, size_t taille)
 	auto analyseuse = danjo::AnalyseuseDisposition(tampon_donnees, donnees_morceaux);
 
 	try {
-		analyseuse.lance_analyse();
+		analyseuse.lance_analyse(std::cerr);
 	}
 	catch (...) {
 

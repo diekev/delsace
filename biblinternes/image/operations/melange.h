@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "../../math/matrice/matrice.h"
-#include "../../math/matrice/operations.h"
-#include "../../math/interpolation.h"
+#include "../../math/matrice/matrice.hh"
+#include "../../math/matrice/operations.hh"
+#include "../../math/entrepolation.hh"
 
 #include "../pixel.h"
 
@@ -50,14 +50,14 @@ enum {
  * mélange est assigné à la première image.
  */
 template <ConceptNombre nombre>
-void melange_images(math::matrice<Pixel<nombre>> &image1, const math::matrice<Pixel<nombre>> &image2, int melange, float facteur)
+void melange_images(math::matrice_dyn<Pixel<nombre>> &image1, const math::matrice_dyn<Pixel<nombre>> &image2, int melange, float facteur)
 {
 	auto melange_normal = [&](const Pixel<nombre> &pixel1, const Pixel<nombre> &pixel2)
 	{
 		Pixel<nombre> resultat;
-		resultat.r = math::interp_lineaire(pixel1.r, pixel2.r, facteur);
-		resultat.g = math::interp_lineaire(pixel1.g, pixel2.g, facteur);
-		resultat.b = math::interp_lineaire(pixel1.b, pixel2.b, facteur);
+		resultat.r = math::entrepolation_lineaire(pixel1.r, pixel2.r, facteur);
+		resultat.g = math::entrepolation_lineaire(pixel1.g, pixel2.g, facteur);
+		resultat.b = math::entrepolation_lineaire(pixel1.b, pixel2.b, facteur);
 		resultat.a = pixel1.a;
 		return resultat;
 	};
@@ -65,9 +65,9 @@ void melange_images(math::matrice<Pixel<nombre>> &image1, const math::matrice<Pi
 	auto melange_addition = [&](const Pixel<nombre> &pixel1, const Pixel<nombre> &pixel2)
 	{
 		Pixel<nombre> resultat;
-		resultat.r = math::interp_lineaire(pixel1.r, pixel1.r + pixel2.r, facteur);
-		resultat.g = math::interp_lineaire(pixel1.g, pixel1.g + pixel2.g, facteur);
-		resultat.b = math::interp_lineaire(pixel1.b, pixel1.b + pixel2.b, facteur);
+		resultat.r = math::entrepolation_lineaire(pixel1.r, pixel1.r + pixel2.r, facteur);
+		resultat.g = math::entrepolation_lineaire(pixel1.g, pixel1.g + pixel2.g, facteur);
+		resultat.b = math::entrepolation_lineaire(pixel1.b, pixel1.b + pixel2.b, facteur);
 		resultat.a = pixel1.a;
 		return resultat;
 	};
@@ -75,9 +75,9 @@ void melange_images(math::matrice<Pixel<nombre>> &image1, const math::matrice<Pi
 	auto melange_soustraction = [&](const Pixel<nombre> &pixel1, const Pixel<nombre> &pixel2)
 	{
 		Pixel<nombre> resultat;
-		resultat.r = math::interp_lineaire(pixel1.r, pixel1.r - pixel2.r, facteur);
-		resultat.g = math::interp_lineaire(pixel1.g, pixel1.g - pixel2.g, facteur);
-		resultat.b = math::interp_lineaire(pixel1.b, pixel1.b - pixel2.b, facteur);
+		resultat.r = math::entrepolation_lineaire(pixel1.r, pixel1.r - pixel2.r, facteur);
+		resultat.g = math::entrepolation_lineaire(pixel1.g, pixel1.g - pixel2.g, facteur);
+		resultat.b = math::entrepolation_lineaire(pixel1.b, pixel1.b - pixel2.b, facteur);
 		resultat.a = pixel1.a;
 		return resultat;
 	};
@@ -85,9 +85,9 @@ void melange_images(math::matrice<Pixel<nombre>> &image1, const math::matrice<Pi
 	auto melange_multiplication = [&](const Pixel<nombre> &pixel1, const Pixel<nombre> &pixel2)
 	{
 		Pixel<nombre> resultat;
-		resultat.r = math::interp_lineaire(pixel1.r, pixel1.r * pixel2.r, facteur);
-		resultat.g = math::interp_lineaire(pixel1.g, pixel1.g * pixel2.g, facteur);
-		resultat.b = math::interp_lineaire(pixel1.b, pixel1.b * pixel2.b, facteur);
+		resultat.r = math::entrepolation_lineaire(pixel1.r, pixel1.r * pixel2.r, facteur);
+		resultat.g = math::entrepolation_lineaire(pixel1.g, pixel1.g * pixel2.g, facteur);
+		resultat.b = math::entrepolation_lineaire(pixel1.b, pixel1.b * pixel2.b, facteur);
 		resultat.a = pixel1.a;
 		return resultat;
 	};
@@ -95,9 +95,9 @@ void melange_images(math::matrice<Pixel<nombre>> &image1, const math::matrice<Pi
 	auto melange_division = [&](const Pixel<nombre> &pixel1, const Pixel<nombre> &pixel2)
 	{
 		Pixel<nombre> resultat;
-		resultat.r = (pixel2.r != 0.0f) ? math::interp_lineaire(pixel1.r, pixel1.r / pixel2.r, facteur) : 0.0f;
-		resultat.g = (pixel2.g != 0.0f) ? math::interp_lineaire(pixel1.g, pixel1.g / pixel2.g, facteur) : 0.0f;
-		resultat.b = (pixel2.b != 0.0f) ? math::interp_lineaire(pixel1.b, pixel1.b / pixel2.b, facteur) : 0.0f;
+		resultat.r = (pixel2.r != 0.0f) ? math::entrepolation_lineaire(pixel1.r, pixel1.r / pixel2.r, facteur) : 0.0f;
+		resultat.g = (pixel2.g != 0.0f) ? math::entrepolation_lineaire(pixel1.g, pixel1.g / pixel2.g, facteur) : 0.0f;
+		resultat.b = (pixel2.b != 0.0f) ? math::entrepolation_lineaire(pixel1.b, pixel1.b / pixel2.b, facteur) : 0.0f;
 		resultat.a = pixel1.a;
 		return resultat;
 	};
@@ -105,9 +105,9 @@ void melange_images(math::matrice<Pixel<nombre>> &image1, const math::matrice<Pi
 	auto melange_ecran = [&](const Pixel<nombre> &pixel1, const Pixel<nombre> &pixel2)
 	{
 		Pixel<nombre> resultat;
-		resultat.r = math::interp_lineaire(pixel1.r, 1.0f - (1.0f - pixel1.r) * (1.0f - pixel2.r), facteur);
-		resultat.g = math::interp_lineaire(pixel1.g, 1.0f - (1.0f - pixel1.g) * (1.0f - pixel2.g), facteur);
-		resultat.b = math::interp_lineaire(pixel1.b, 1.0f - (1.0f - pixel1.b) * (1.0f - pixel2.b), facteur);
+		resultat.r = math::entrepolation_lineaire(pixel1.r, 1.0f - (1.0f - pixel1.r) * (1.0f - pixel2.r), facteur);
+		resultat.g = math::entrepolation_lineaire(pixel1.g, 1.0f - (1.0f - pixel1.g) * (1.0f - pixel2.g), facteur);
+		resultat.b = math::entrepolation_lineaire(pixel1.b, 1.0f - (1.0f - pixel1.b) * (1.0f - pixel2.b), facteur);
 		resultat.a = pixel1.a;
 		return resultat;
 	};
@@ -117,24 +117,24 @@ void melange_images(math::matrice<Pixel<nombre>> &image1, const math::matrice<Pi
 		Pixel<nombre> resultat;
 
 		if (pixel1.r < 0.5f) {
-			resultat.r = math::interp_lineaire(pixel1.r, 2.0f * pixel1.r * pixel2.r, facteur);
+			resultat.r = math::entrepolation_lineaire(pixel1.r, 2.0f * pixel1.r * pixel2.r, facteur);
 		}
 		else {
-			resultat.r = math::interp_lineaire(pixel1.r, 1.0f - 2.0f * (1.0f - pixel1.r) * (1.0f - pixel2.r), facteur);
+			resultat.r = math::entrepolation_lineaire(pixel1.r, 1.0f - 2.0f * (1.0f - pixel1.r) * (1.0f - pixel2.r), facteur);
 		}
 
 		if (pixel1.g < 0.5f) {
-			resultat.g = math::interp_lineaire(pixel1.g, 2.0f * pixel1.g * pixel2.g, facteur);
+			resultat.g = math::entrepolation_lineaire(pixel1.g, 2.0f * pixel1.g * pixel2.g, facteur);
 		}
 		else {
-			resultat.g = math::interp_lineaire(pixel1.g, 1.0f - 2.0f * (1.0f - pixel1.g) * (1.0f - pixel2.g), facteur);
+			resultat.g = math::entrepolation_lineaire(pixel1.g, 1.0f - 2.0f * (1.0f - pixel1.g) * (1.0f - pixel2.g), facteur);
 		}
 
 		if (pixel1.b < 0.5f) {
-			resultat.b = math::interp_lineaire(pixel1.b, 2.0f * pixel1.b * pixel2.b, facteur);
+			resultat.b = math::entrepolation_lineaire(pixel1.b, 2.0f * pixel1.b * pixel2.b, facteur);
 		}
 		else {
-			resultat.b = math::interp_lineaire(pixel1.b, 1.0f - 2.0f * (1.0f - pixel1.b) * (1.0f - pixel2.b), facteur);
+			resultat.b = math::entrepolation_lineaire(pixel1.b, 1.0f - 2.0f * (1.0f - pixel1.b) * (1.0f - pixel2.b), facteur);
 		}
 
 		resultat.a = pixel1.a;
@@ -145,9 +145,9 @@ void melange_images(math::matrice<Pixel<nombre>> &image1, const math::matrice<Pi
 	auto melange_difference = [&](const Pixel<nombre> &pixel1, const Pixel<nombre> &pixel2)
 	{
 		Pixel<nombre> resultat;
-		resultat.r = math::interp_lineaire(pixel1.r, std::abs(pixel1.r - pixel2.r), facteur);
-		resultat.g = math::interp_lineaire(pixel1.g, std::abs(pixel1.g - pixel2.g), facteur);
-		resultat.b = math::interp_lineaire(pixel1.b, std::abs(pixel1.b - pixel2.b), facteur);
+		resultat.r = math::entrepolation_lineaire(pixel1.r, std::abs(pixel1.r - pixel2.r), facteur);
+		resultat.g = math::entrepolation_lineaire(pixel1.g, std::abs(pixel1.g - pixel2.g), facteur);
+		resultat.b = math::entrepolation_lineaire(pixel1.b, std::abs(pixel1.b - pixel2.b), facteur);
 		resultat.a = pixel1.a;
 		return resultat;
 	};

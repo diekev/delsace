@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <ego/bufferobject.h>
-#include <ego/program.h>
+#include "biblinternes/ego/bufferobject.h"
+#include "biblinternes/ego/program.h"
 #include <glm/glm.hpp>
 
 #include "slab.h"
@@ -40,7 +40,7 @@ enum {
 };
 
 class Fluid {
-	numero7::ego::BufferObject::Ptr m_buffer;
+	dls::ego::BufferObject::Ptr m_buffer;
 
 	const float m_vertices[8] = {
 	    -1.0f, -1.0f,
@@ -60,13 +60,13 @@ public:
 	Surface m_obstacles_high_res;
 	Surface m_divergence;
 
-	numero7::ego::Program m_program;
-	numero7::ego::Program m_advect_program;
-	numero7::ego::Program m_jacobi_program;
-	numero7::ego::Program m_gradient_program;
-	numero7::ego::Program m_divergence_program;
-	numero7::ego::Program m_impulse_program;
-	numero7::ego::Program m_buoyancy_program;
+	dls::ego::Program m_program;
+	dls::ego::Program m_advect_program;
+	dls::ego::Program m_jacobi_program;
+	dls::ego::Program m_gradient_program;
+	dls::ego::Program m_divergence_program;
+	dls::ego::Program m_impulse_program;
+	dls::ego::Program m_buoyancy_program;
 
 	float m_impulse_temperature, m_impulse_density;
 	float m_dissipation_rate;

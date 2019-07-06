@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <numero7/math/matrice/matrice.h>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -68,7 +68,7 @@ public:
 	void paintGL() override;
 	void resizeGL(int w, int h) override;
 
-	void charge_image(numero7::math::matrice<dls::math::vec4f> const &image);
+	void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
 
 	void mode_visionnage(int mode);
 

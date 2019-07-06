@@ -26,7 +26,7 @@
 
 #include "melange.h"
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 struct Brosse {
 	dls::math::vec4f couleur = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);

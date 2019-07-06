@@ -24,16 +24,16 @@
 
 #include "operatrices_region.h"
 
-#include <numero7/image/operations/champs_distance.h>
-#include <numero7/image/operations/conversion.h>
-#include <numero7/image/operations/convolution.h>
-#include <numero7/image/operations/operations.h>
+#include "biblinternes/image/operations/champs_distance.h"
+#include "biblinternes/image/operations/conversion.h"
+#include "biblinternes/image/operations/convolution.h"
+#include "biblinternes/image/operations/operations.h"
 
-#include <numero7/math/matrice/operations.h>
+#include "biblinternes/math/matrice/operations.hh"
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/gna.hh"
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/gna.hh"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "bibloc/tableau.hh"
 
@@ -185,9 +185,9 @@ public:
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
-								   [&](numero7::image::PixelFloat const &/*pixel*/, int l, int c)
+								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
-			auto resultat = numero7::image::PixelFloat();
+			auto resultat = dls::image::PixelFloat();
 			resultat.a = 1.0f;
 
 			if (filtre == ANALYSE_GRADIENT) {
@@ -280,7 +280,7 @@ public:
 			}
 			else if (filtre == ANALYSE_COURBE) {
 				auto px  = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l));
-				auto gradient = numero7::image::PixelFloat();
+				auto gradient = dls::image::PixelFloat();
 
 				if (dir == DIRECTION_X) {
 					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
@@ -368,40 +368,40 @@ public:
 		auto filtre = 0;
 
 		if (operation == "netteté") {
-			filtre = numero7::image::operation::NOYAU_NETTETE;
+			filtre = dls::image::operation::NOYAU_NETTETE;
 		}
 		else if (operation == "netteté_autre") {
-			filtre = numero7::image::operation::NOYAU_NETTETE_ALT;
+			filtre = dls::image::operation::NOYAU_NETTETE_ALT;
 		}
 		else if (operation == "flou_gaussien") {
-			filtre = numero7::image::operation::NOYAU_FLOU_GAUSSIEN;
+			filtre = dls::image::operation::NOYAU_FLOU_GAUSSIEN;
 		}
 		else if (operation == "flou") {
-			filtre = numero7::image::operation::NOYAU_FLOU_ALT;
+			filtre = dls::image::operation::NOYAU_FLOU_ALT;
 		}
 		else if (operation == "flou_sans_poids") {
-			filtre = numero7::image::operation::NOYAU_FLOU_NON_PONDERE;
+			filtre = dls::image::operation::NOYAU_FLOU_NON_PONDERE;
 		}
 		else if (operation == "relief_no") {
-			filtre = numero7::image::operation::NOYAU_RELIEF_NO;
+			filtre = dls::image::operation::NOYAU_RELIEF_NO;
 		}
 		else if (operation == "relief_ne") {
-			filtre = numero7::image::operation::NOYAU_RELIEF_NE;
+			filtre = dls::image::operation::NOYAU_RELIEF_NE;
 		}
 		else if (operation == "relief_so") {
-			filtre = numero7::image::operation::NOYAU_RELIEF_SO;
+			filtre = dls::image::operation::NOYAU_RELIEF_SO;
 		}
 		else if (operation == "relief_se") {
-			filtre = numero7::image::operation::NOYAU_RELIEF_SE;
+			filtre = dls::image::operation::NOYAU_RELIEF_SE;
 		}
 		else if (operation == "sobel_x") {
-			filtre = numero7::image::operation::NOYAU_SOBEL_X;
+			filtre = dls::image::operation::NOYAU_SOBEL_X;
 		}
 		else if (operation == "sobel_y") {
-			filtre = numero7::image::operation::NOYAU_SOBEL_Y;
+			filtre = dls::image::operation::NOYAU_SOBEL_Y;
 		}
 
-		tampon->tampon = numero7::image::operation::applique_convolution(tampon->tampon, filtre);
+		tampon->tampon = dls::image::operation::applique_convolution(tampon->tampon, filtre);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -447,14 +447,14 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto maximum = numero7::image::operation::valeur_maximale(tampon->tampon);
+		auto maximum = dls::image::operation::valeur_maximale(tampon->tampon);
 		maximum.r = (maximum.r > 0.0f) ? (1.0f / maximum.r) : 0.0f;
 		maximum.g = (maximum.g > 0.0f) ? (1.0f / maximum.g) : 0.0f;
 		maximum.b = (maximum.b > 0.0f) ? (1.0f / maximum.b) : 0.0f;
 		maximum.a = (maximum.a > 0.0f) ? (1.0f / maximum.a) : 0.0f;
 
 		applique_fonction(tampon->tampon,
-						  [&](numero7::image::Pixel<float> const &pixel)
+						  [&](dls::image::Pixel<float> const &pixel)
 		{
 			return maximum * pixel;
 		});
@@ -506,7 +506,7 @@ public:
 		auto const largeur = static_cast<size_t>(tampon->tampon.nombre_colonnes());
 		auto const hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
 
-		numero7::math::matrice<numero7::image::Pixel<float>> image_tmp(tampon->tampon.dimensions());
+		dls::math::matrice_dyn<dls::image::Pixel<float>> image_tmp(tampon->tampon.dimensions());
 
 		auto const rayon_flou = evalue_decimal("rayon", contexte.temps_courant);
 		auto const type_flou = evalue_enum("type");
@@ -540,11 +540,11 @@ public:
 
 		/* flou horizontal */
 		applique_fonction_position(image_tmp,
-								   [&](numero7::image::Pixel<float> const &/*pixel*/, int ye, int xe)
+								   [&](dls::image::Pixel<float> const &/*pixel*/, int ye, int xe)
 		{
 			auto x = static_cast<long>(xe);
 			auto y = static_cast<long>(ye);
-			numero7::image::Pixel<float> valeur;
+			dls::image::Pixel<float> valeur;
 			valeur.r = 0.0f;
 			valeur.g = 0.0f;
 			valeur.b = 0.0f;
@@ -569,11 +569,11 @@ public:
 
 		/* flou vertical */
 		applique_fonction_position(image_tmp,
-								   [&](numero7::image::Pixel<float> const &/*pixel*/, int ye, int xe)
+								   [&](dls::image::Pixel<float> const &/*pixel*/, int ye, int xe)
 		{
 			auto x = static_cast<long>(xe);
 			auto y = static_cast<long>(ye);
-			numero7::image::Pixel<float> valeur;
+			dls::image::Pixel<float> valeur;
 			valeur.r = 0.0f;
 			valeur.g = 0.0f;
 			valeur.b = 0.0f;
@@ -653,7 +653,7 @@ public:
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
-								   [&](numero7::image::PixelFloat const &/*pixel*/, int l, int c)
+								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			auto const fc = static_cast<float>(c) * largeur_inverse + decalage_x;
 			auto const fl = static_cast<float>(l) * hauteur_inverse + decalage_y;
@@ -676,7 +676,7 @@ public:
 /* ************************************************************************** */
 
 static void calcule_distance(
-		numero7::math::matrice<float> &phi,
+		dls::math::matrice_dyn<float> &phi,
 		int x, int y, float h)
 {
 	auto a = std::min(phi[y][x - 1], phi[y][x + 1]);
@@ -732,8 +732,8 @@ public:
 		}
 
 		auto const methode = evalue_enum("méthode");
-		auto image_grise = numero7::image::operation::luminance(tampon->tampon);
-		auto image_tampon = numero7::math::matrice<float>(tampon->tampon.dimensions());
+		auto image_grise = dls::image::operation::luminance(tampon->tampon);
+		auto image_tampon = dls::math::matrice_dyn<float>(tampon->tampon.dimensions());
 		auto valeur_iso = evalue_decimal("valeur_iso", contexte.temps_courant);
 
 		/* À FAIRE :  deux versions de chaque algorithme : signée et non-signée.
@@ -795,14 +795,14 @@ public:
 			}
 		}
 		else if (methode == "estime") {
-			numero7::image::operation::navigation_estime::genere_champs_distance(image_grise, image_tampon, valeur_iso);
+			dls::image::operation::navigation_estime::genere_champs_distance(image_grise, image_tampon, valeur_iso);
 		}
 		else if (methode == "8SSEDT") {
-			numero7::image::operation::ssedt::genere_champs_distance(image_grise, image_tampon, valeur_iso);
+			dls::image::operation::ssedt::genere_champs_distance(image_grise, image_tampon, valeur_iso);
 		}
 
 		/* À FAIRE : alpha ou tampon à canaux variables */
-		tampon->tampon = numero7::image::operation::converti_float_pixel(image_tampon);
+		tampon->tampon = dls::image::operation::converti_float_pixel(image_tampon);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -810,7 +810,7 @@ public:
 
 /* ************************************************************************** */
 
-static auto moyenne(numero7::image::Pixel<float> const &pixel)
+static auto moyenne(dls::image::Pixel<float> const &pixel)
 {
 	return (pixel.r + pixel.g + pixel.b) * 0.3333f;
 }
@@ -870,7 +870,7 @@ public:
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
-								   [&](numero7::image::PixelFloat const &/*pixel*/, int l, int c)
+								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			auto const c0 = std::min(res_x - 1, std::max(0, c - 1));
 			auto const c1 = std::min(res_x - 1, std::max(0, c + 1));
@@ -930,7 +930,7 @@ unsigned int poisson(const float u, const float lambda)
 	return x;
 }
 
-using type_image_grise = numero7::math::matrice<float>;
+using type_image_grise = dls::math::matrice_dyn<float>;
 
 static type_image_grise extrait_canal(type_image const &image, const int chaine)
 {
@@ -1211,7 +1211,7 @@ public:
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		applique_fonction_position(image_tampon,
-								   [&](numero7::image::PixelFloat const &/*pixel*/, int l, int c)
+								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			/* À FAIRE : image carrée ? */
 			auto const r = static_cast<float>(l);
@@ -1369,11 +1369,11 @@ public:
 		auto const rayon = evalue_entier("rayon");
 
 		auto performe_dilation = [&](
-								 numero7::image::Pixel<float> const &/*pixel*/,
+								 dls::image::Pixel<float> const &/*pixel*/,
 								 int y,
 								 int x)
 		{
-			numero7::image::Pixel<float> p0(0.0f);
+			dls::image::Pixel<float> p0(0.0f);
 			p0.a = 1.0f;
 
 			auto const debut_x = std::max(0, x - rayon);
@@ -1449,11 +1449,11 @@ public:
 		auto const rayon = evalue_entier("rayon");
 
 		auto performe_erosion = [&](
-								numero7::image::Pixel<float> const &/*pixel*/,
+								dls::image::Pixel<float> const &/*pixel*/,
 								int y,
 								int x)
 		{
-			numero7::image::Pixel<float> p0(1.0f);
+			dls::image::Pixel<float> p0(1.0f);
 
 			auto const debut_x = std::max(0, x - rayon);
 			auto const debut_y = std::max(0, y - rayon);
@@ -1526,7 +1526,7 @@ public:
 
 		auto image_tampon = type_image(tampon->tampon.dimensions());
 
-		using pixel_t = numero7::image::Pixel<float>;
+		using pixel_t = dls::image::Pixel<float>;
 		using paire_pixel_t = std::pair<pixel_t, int>;
 
 		dls::tableau<paire_pixel_t> histogramme(360ul);
@@ -1581,8 +1581,8 @@ public:
  */
 
 static void initialise_causal_prefiltre(
-		numero7::image::Pixel<float> *pixel,
-		numero7::image::Pixel<float> &somme,
+		dls::image::Pixel<float> *pixel,
+		dls::image::Pixel<float> &somme,
 		int longueur)
 {
 	auto const Zp = std::sqrt(3.0f) - 2.0f;
@@ -1611,7 +1611,7 @@ static void initialise_causal_prefiltre(
 }
 
 static void initialise_anticausal_prefiltre(
-		numero7::image::Pixel<float> *pixel)
+		dls::image::Pixel<float> *pixel)
 {
 	auto const Zp  = std::sqrt(3.0f) - 2.0f;
 	auto const iZp = (Zp / (Zp - 1.0f));
@@ -1622,11 +1622,11 @@ static void initialise_anticausal_prefiltre(
 	pixel[0].a = iZp * pixel[0].a;
 }
 
-static void recursion_prefiltre(numero7::image::Pixel<float> *pixel, int longueur, int stride)
+static void recursion_prefiltre(dls::image::Pixel<float> *pixel, int longueur, int stride)
 {
 	auto const Zp = std::sqrt(3.0f) - 2.0f;
 	auto const lambda = (1.0f - Zp) * (1.0f - 1.0f / Zp);
-	auto somme = numero7::image::Pixel<float>{};
+	auto somme = dls::image::Pixel<float>{};
 	auto compte = 0;
 
 	initialise_causal_prefiltre(pixel, somme, longueur);

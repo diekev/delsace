@@ -24,7 +24,7 @@
 
 #include "creation.h"
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 #include "adaptrice_creation.h"
 

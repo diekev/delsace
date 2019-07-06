@@ -25,12 +25,12 @@
 #include "visionneur_scene.h"
 
 #include <GL/glew.h>
-#include <chronometrage/utilitaires.h>
 
-#include "bibliotheques/opengl/rendu_grille.h"
-#include "bibliotheques/opengl/rendu_camera.h"
-#include "bibliotheques/opengl/rendu_texte.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/chrono/outils.hh"
+#include "biblinternes/opengl/rendu_grille.h"
+#include "biblinternes/opengl/rendu_camera.h"
+#include "biblinternes/opengl/rendu_texte.h"
+#include "biblinternes/vision/camera.h"
 
 #include "coeur/koudou.h"
 #include "coeur/objet.h"
@@ -96,7 +96,7 @@ void VisionneurScene::initialise()
 	m_rendu_camera->initialise();
 #endif
 
-	m_debut = numero7::chronometrage::maintenant();
+	m_debut = dls::chrono::maintenant();
 }
 
 void VisionneurScene::peint_opengl()
@@ -154,7 +154,7 @@ void VisionneurScene::peint_opengl()
 		m_stack.enleve_sommet();
 	}
 
-	auto const fin = numero7::chronometrage::maintenant();
+	auto const fin = dls::chrono::maintenant();
 
 	auto const temps = fin - m_debut;
 	auto const fps = static_cast<int>(1.0 / temps);
@@ -169,7 +169,7 @@ void VisionneurScene::peint_opengl()
 
 	glDisable(GL_BLEND);
 
-	m_debut = numero7::chronometrage::maintenant();
+	m_debut = dls::chrono::maintenant();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)

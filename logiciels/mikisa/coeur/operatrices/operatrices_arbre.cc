@@ -24,11 +24,11 @@
 
 #include "operatrices_arbre.hh"
 
-#include <delsace/math/quaternion.hh>
+#include "biblinternes/math/quaternion.hh"
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/gna.hh"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/gna.hh"
 
 #include "../donnees_aval.hh"
 #include "../operatrice_corps.h"
@@ -1002,7 +1002,7 @@ float ShapeRatio(int shape, float ratio)
 
 /* ************************************************************************** */
 
-#include <delsace/math/quaternion.hh>
+#include "biblinternes/math/quaternion.hh"
 
 struct BezierPoint {
 	dls::math::vec3f handle_left{};

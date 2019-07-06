@@ -24,8 +24,8 @@
 
 #include "rendu_texte.h"
 
-#include <ego/outils.h>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/ego/outils.h"
+#include "biblinternes/math/vecteur.hh"
 #include <vector>
 #include <unordered_map>
 
@@ -132,11 +132,11 @@ static TamponRendu *cree_tampon()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
+				dls::ego::Nuanceur::VERTEX,
 				source_vertex);
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
+				dls::ego::Nuanceur::FRAGMENT,
 				source_fragment);
 
 	tampon->finalise_programme();
@@ -158,21 +158,21 @@ static TamponRendu *cree_tampon()
 	auto programme = tampon->programme();
 	programme->active();
 	programme->uniforme("couleur", 1.0f, 0.0f, 1.0f, 1.0f);
-	programme->uniforme("texture_texte", texture->number());
+	programme->uniforme("texture_texte", texture->code_attache());
 	programme->desactive();
 
 	return tampon;
 }
 
-static void genere_texture(numero7::ego::Texture2D *texture, const void *data, GLint size[2])
+static void genere_texture(dls::ego::Texture2D *texture, const void *data, GLint size[2])
 {
-	texture->free(true);
-	texture->bind();
-	texture->setType(GL_FLOAT, GL_RGB, GL_RGB);
-	texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	texture->setWrapping(GL_CLAMP);
-	texture->fill(data, size);
-	texture->unbind();
+	texture->deloge(true);
+	texture->attache();
+	texture->type(GL_FLOAT, GL_RGB, GL_RGB);
+	texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+	texture->enveloppe(GL_CLAMP);
+	texture->remplie(data, size);
+	texture->detache();
 }
 
 /* ************************************************************************** */

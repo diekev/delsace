@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-#include "bibliotheques/outils/iterateurs.h"
+#include "biblinternes/outils/iterateurs.h"
 
 namespace chaine {
 
@@ -41,8 +41,8 @@ class utf8 {
 public:
 	using type_valeur = char32_t;
 	using type_taille = size_t;
-	using plage = plage_iterable<std::vector<char32_t>::iterator>;
-	using plage_const = plage_iterable<std::vector<char32_t>::const_iterator>;
+	using plage = dls::outils::plage_iterable<std::vector<char32_t>::iterator>;
+	using plage_const = dls::outils::plage_iterable<std::vector<char32_t>::const_iterator>;
 
 	utf8() = default;
 

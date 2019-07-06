@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <image/pixel.h>
-#include <math/matrice/matrice.h>
+#include "biblinternes/image/pixel.h"
+#include "biblinternes/math/matrice/matrice.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -35,8 +35,8 @@
 #include <QGLWidget>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/opengl/contexte_rendu.h"
-#include "bibliotheques/vision/camera_2d.h"
+#include "biblinternes/opengl/contexte_rendu.h"
+#include "biblinternes/vision/camera_2d.h"
 
 #include "base_editrice.h"
 
@@ -65,7 +65,7 @@ public:
 	void initializeGL() override;
 	void paintGL() override;
 	void resizeGL(int w, int h) override;
-	void charge_image(const numero7::math::matrice<numero7::image::Pixel<float> > &image);
+	void charge_image(const dls::math::matrice_dyn<dls::image::Pixel<float> > &image);
 	void wheelEvent(QWheelEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;

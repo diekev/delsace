@@ -92,7 +92,7 @@ void AnalyseuseDisposition::installe_assembleur(AssembleurDisposition *assembleu
 	m_assembleur = assembleur;
 }
 
-void AnalyseuseDisposition::lance_analyse()
+void AnalyseuseDisposition::lance_analyse(std::ostream &os)
 {
 	if (m_identifiants.empty()) {
 		return;

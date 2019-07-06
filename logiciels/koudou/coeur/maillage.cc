@@ -24,7 +24,7 @@
 
 #include "maillage.h"
 
-#include "bibliotheques/objets/creation.h"
+#include "biblinternes/objets/creation.h"
 
 #include "commandes/adaptrice_creation_maillage.h"
 

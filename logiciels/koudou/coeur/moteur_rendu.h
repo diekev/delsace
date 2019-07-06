@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/spectre/spectre.h"
+#include "biblinternes/spectre/spectre.h"
 
 #include "pellicule.h"
 #include "tache.h"
@@ -40,7 +40,7 @@ class MoteurRendu {
 public:
 	void echantillone_scene(ParametresRendu const &parametres, std::vector<CarreauPellicule> const &carreaux, unsigned int echantillon);
 
-	numero7::math::matrice<dls::math::vec3d> const &pellicule();
+	dls::math::matrice_dyn<dls::math::vec3d> const &pellicule();
 
 	void reinitialise();
 

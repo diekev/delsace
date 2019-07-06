@@ -26,19 +26,18 @@
 
 #include <random>
 
-#include <danjo/types/courbe_bezier.h>
-#include <danjo/types/outils.h>
-#include <danjo/types/rampe_couleur.h>
+#include "biblinternes/image/operations/melange.h"
+#include "biblinternes/image/outils/couleurs.h"
+#include "biblinternes/math/bruit.hh"
+#include "biblinternes/math/entrepolation.hh"
+#include "biblinternes/math/matrice.hh"
 
-#include <numero7/image/operations/melange.h>
-#include <numero7/image/outils/couleurs.h>
-#include <delsace/math/bruit.hh>
-#include <delsace/math/entrepolation.hh>
-#include <delsace/math/matrice.hh>
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/parallelisme.h"
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/parallelisme.h"
+#include "danjo/types/courbe_bezier.h"
+#include "danjo/types/rampe_couleur.h"
 
 #include "../contexte_evaluation.hh"
 #include "../operatrice_graphe_pixel.h"
@@ -121,7 +120,7 @@ public:
 		m_saturation = evalue_decimal("saturation", temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -133,13 +132,13 @@ public:
 		auto sat = 0.0f;
 
 		if (m_operation == SATURATION_REC709) {
-			sat = numero7::image::outils::luminance_709(pixel.r, pixel.g, pixel.b);
+			sat = dls::image::outils::luminance_709(pixel.r, pixel.g, pixel.b);
 		}
 		else if (m_operation == SATURATION_CCIR601) {
-			sat = numero7::image::outils::luminance_601(pixel.r, pixel.g, pixel.b);
+			sat = dls::image::outils::luminance_601(pixel.r, pixel.g, pixel.b);
 		}
 		else if (m_operation == SATURATION_MOYENNE) {
-			sat = numero7::image::outils::moyenne(pixel.r, pixel.g, pixel.b);
+			sat = dls::image::outils::moyenne(pixel.r, pixel.g, pixel.b);
 		}
 		else if (m_operation == SATURATION_MINIMUM) {
 			sat = std::min(pixel.r, std::min(pixel.g, pixel.b));
@@ -151,7 +150,7 @@ public:
 			sat = std::sqrt(pixel.r * pixel.r + pixel.g * pixel.g + pixel.b * pixel.b);
 		}
 
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.a = pixel.a;
 
 		if (m_saturation != 0.0f) {
@@ -230,31 +229,31 @@ public:
 		auto melange = 0;
 
 		if (operation == "mélanger") {
-			melange = numero7::image::operation::MELANGE_NORMAL;
+			melange = dls::image::operation::MELANGE_NORMAL;
 		}
 		else if (operation == "ajouter") {
-			melange = numero7::image::operation::MELANGE_ADDITION;
+			melange = dls::image::operation::MELANGE_ADDITION;
 		}
 		else if (operation == "soustraire") {
-			melange = numero7::image::operation::MELANGE_SOUSTRACTION;
+			melange = dls::image::operation::MELANGE_SOUSTRACTION;
 		}
 		else if (operation == "diviser") {
-			melange = numero7::image::operation::MELANGE_DIVISION;
+			melange = dls::image::operation::MELANGE_DIVISION;
 		}
 		else if (operation == "multiplier") {
-			melange = numero7::image::operation::MELANGE_MULTIPLICATION;
+			melange = dls::image::operation::MELANGE_MULTIPLICATION;
 		}
 		else if (operation == "écran") {
-			melange = numero7::image::operation::MELANGE_ECRAN;
+			melange = dls::image::operation::MELANGE_ECRAN;
 		}
 		else if (operation == "superposer") {
-			melange = numero7::image::operation::MELANGE_SUPERPOSITION;
+			melange = dls::image::operation::MELANGE_SUPERPOSITION;
 		}
 		else if (operation == "différence") {
-			melange = numero7::image::operation::MELANGE_DIFFERENCE;
+			melange = dls::image::operation::MELANGE_DIFFERENCE;
 		}
 
-		numero7::image::operation::melange_images(tampon->tampon, tampon2->tampon, melange, facteur);
+		dls::image::operation::melange_images(tampon->tampon, tampon2->tampon, melange, facteur);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -385,7 +384,7 @@ public:
 		{
 			for (size_t l = plage.begin(); l < plage.end(); ++l) {
 				for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {
-					auto resultat = numero7::image::PixelFloat(0.0f);
+					auto resultat = dls::image::PixelFloat(0.0f);
 
 					switch (fusion) {
 						case FUSION_CLARIFICATION:
@@ -533,12 +532,12 @@ public:
 		m_rng.seed(19937);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
 
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.r = m_dist(m_rng);
 		resultat.g = m_dist(m_rng);
 		resultat.b = m_dist(m_rng);
@@ -584,12 +583,12 @@ public:
 		m_couleur = evalue_couleur("couleur_constante");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(pixel);
 		INUTILISE(x);
 		INUTILISE(y);
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.r = m_couleur[0];
 		resultat.g = m_couleur[1];
 		resultat.b = m_couleur[2];
@@ -676,9 +675,9 @@ public:
 		m_rampe = evalue_rampe_couleur("degrade");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
-		numero7::image::Pixel<float> resultat = pixel;
+		dls::image::Pixel<float> resultat = pixel;
 		float valeur = m_decalage;
 
 		/* centre le dégradé au milieu de l'image */
@@ -765,7 +764,7 @@ public:
 		m_dimensions = (dimensions == "3D") ? 3 : 1;
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(pixel);
 		auto somme_x = 0.0f;
@@ -824,7 +823,7 @@ public:
 		auto bruit_y = somme_y * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
 		auto bruit_z = somme_z * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
 
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.r = bruit_x;
 		resultat.b = bruit_y;
 		resultat.g = bruit_z;
@@ -984,9 +983,9 @@ public:
 
 /* ************************************************************************** */
 
-numero7::image::Pixel<float> converti_en_pixel(dls::phys::couleur32 const &v)
+dls::image::Pixel<float> converti_en_pixel(dls::phys::couleur32 const &v)
 {
-	numero7::image::Pixel<float> pixel;
+	dls::image::Pixel<float> pixel;
 	pixel.r = v[0];
 	pixel.g = v[1];
 	pixel.b = v[2];
@@ -995,7 +994,7 @@ numero7::image::Pixel<float> converti_en_pixel(dls::phys::couleur32 const &v)
 	return pixel;
 }
 
-void restreint(numero7::image::Pixel<float> &pixel, float min, float max)
+void restreint(dls::image::Pixel<float> &pixel, float min, float max)
 {
 	if (pixel.r < min) {
 		pixel.r = min;
@@ -1026,17 +1025,17 @@ class OperatriceEtalonnage final  : public OperatricePixel {
 	bool m_entrepolation_lineaire = false;
 	int pad{};
 
-	numero7::image::Pixel<float> m_point_noir{};
-	numero7::image::Pixel<float> m_point_blanc{};
-	numero7::image::Pixel<float> m_blanc{};
-	numero7::image::Pixel<float> m_noir{};
-	numero7::image::Pixel<float> m_multiple{};
-	numero7::image::Pixel<float> m_ajoute{};
+	dls::image::Pixel<float> m_point_noir{};
+	dls::image::Pixel<float> m_point_blanc{};
+	dls::image::Pixel<float> m_blanc{};
+	dls::image::Pixel<float> m_noir{};
+	dls::image::Pixel<float> m_multiple{};
+	dls::image::Pixel<float> m_ajoute{};
 
-	numero7::image::Pixel<float> m_delta_BN = m_point_blanc - m_point_noir;
-	numero7::image::Pixel<float> A1 = m_blanc - m_noir;
-	numero7::image::Pixel<float> B{};
-	numero7::image::Pixel<float> m_gamma{};
+	dls::image::Pixel<float> m_delta_BN = m_point_blanc - m_point_noir;
+	dls::image::Pixel<float> A1 = m_blanc - m_noir;
+	dls::image::Pixel<float> B{};
+	dls::image::Pixel<float> m_gamma{};
 
 public:
 	static constexpr auto NOM = "Étalonnage";
@@ -1107,16 +1106,16 @@ public:
 			}
 		}
 
-		m_entrepolation_lineaire = (m_delta_BN != numero7::image::Pixel<float>(1.0f));
-		m_entrepolation_lineaire |= (B != numero7::image::Pixel<float>(0.0f));
+		m_entrepolation_lineaire = (m_delta_BN != dls::image::Pixel<float>(1.0f));
+		m_entrepolation_lineaire |= (B != dls::image::Pixel<float>(0.0f));
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
 
-		numero7::image::Pixel<float> resultat = pixel;
+		dls::image::Pixel<float> resultat = pixel;
 
 		if (!m_inverse) {
 			/* entrepolation linéaire */
@@ -1188,8 +1187,8 @@ public:
 
 			/* inverse la partie linéaire */
 			if (m_entrepolation_lineaire) {
-				numero7::image::Pixel<float> A_local;
-				numero7::image::Pixel<float> B_local;
+				dls::image::Pixel<float> A_local;
+				dls::image::Pixel<float> B_local;
 				A_local.r = (m_delta_BN.r != 0.0f) ? 1.0f / m_delta_BN.r : 1.0f;
 				A_local.g = (m_delta_BN.g != 0.0f) ? 1.0f / m_delta_BN.g : 1.0f;
 				A_local.b = (m_delta_BN.b != 0.0f) ? 1.0f / m_delta_BN.b : 1.0f;
@@ -1257,11 +1256,11 @@ public:
 		m_gamma = evalue_decimal("gamma", temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.r = std::pow(pixel.r, m_gamma);
 		resultat.g = std::pow(pixel.g, m_gamma);
 		resultat.b = std::pow(pixel.b, m_gamma);
@@ -1355,7 +1354,7 @@ public:
 		m_exposition = std::pow(2.0f, evalue_decimal("exposition", temps));
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		auto resultat = pixel;
 		auto besoin_correction_gamma = true;
@@ -1488,7 +1487,7 @@ public:
 		m_puissance = evalue_couleur("puissance");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1539,11 +1538,11 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.r = 1.0f - pixel.r;
 		resultat.g = 1.0f - pixel.g;
 		resultat.b = 1.0f - pixel.b;
@@ -1596,7 +1595,7 @@ public:
 		m_b = evalue_decimal("b");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1617,7 +1616,7 @@ public:
 
 		auto const facteur = std::sqrt(T.r * T.r + T.g * T.g + T.b * T.b);
 
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.r = (1.0f - facteur) * T.r + facteur * pixel.r;
 		resultat.g = (1.0f - facteur) * T.g + facteur * pixel.g;
 		resultat.b = (1.0f - facteur) * T.b + facteur * pixel.b;
@@ -1676,7 +1675,7 @@ public:
 		m_inverse = evalue_bool("inverse");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1728,11 +1727,11 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 
 		auto facteur = pixel.r * 0.2126f + pixel.g * 0.7152f + pixel.b * 0.0722f;
 
@@ -1790,11 +1789,11 @@ public:
 		m_contraste = evalue_decimal("contraste", temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 
 		if (m_pivot > 0.0f) {
 			resultat.r = std::pow(pixel.r / m_pivot, m_contraste) * m_pivot;
@@ -1851,7 +1850,7 @@ public:
 		m_courbe = evalue_courbe_couleur("courbe");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1863,7 +1862,7 @@ public:
 
 		temp = ::evalue_courbe_couleur(*m_courbe, temp);
 
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.r = temp.r;
 		resultat.g = temp.v;
 		resultat.b = temp.b;
@@ -1915,11 +1914,11 @@ public:
 		m_neuf_max = evalue_couleur("neuf_max");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 
 		for (int i = 0; i < 3; ++i) {
 			resultat[i] = dls::math::traduit(pixel[i], m_vieux_min[i], m_vieux_max[i], m_neuf_min[i], m_neuf_max[i]);
@@ -1969,11 +1968,11 @@ public:
 		m_neuf_max = evalue_couleur("neuf_max");
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		numero7::image::Pixel<float> resultat;
+		dls::image::Pixel<float> resultat;
 		resultat.r = (pixel.r - m_neuf_min.r) / (m_neuf_max.r - m_neuf_min.r);
 		resultat.g = (pixel.g - m_neuf_min.v) / (m_neuf_max.v - m_neuf_min.v);
 		resultat.b = (pixel.b - m_neuf_min.b) / (m_neuf_max.b - m_neuf_min.b);
@@ -2058,9 +2057,9 @@ static dls::math::mat4x4f matrices_daltonisme[] = {
 	},
 };
 
-auto operator*(numero7::image::Pixel<float> const &p, dls::math::mat4x4f const &m)
+auto operator*(dls::image::Pixel<float> const &p, dls::math::mat4x4f const &m)
 {
-	numero7::image::Pixel<float> r;
+	dls::image::Pixel<float> r;
 	r.r = p.r * m[0][0] + p.g * m[0][1] + p.b * m[0][2] + p.a * m[0][3];
 	r.g = p.r * m[1][0] + p.g * m[1][1] + p.b * m[1][2] + p.a * m[1][3];
 	r.b = p.r * m[2][0] + p.g * m[2][1] + p.b * m[2][2] + p.a * m[2][3];
@@ -2131,7 +2130,7 @@ public:
 		}
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);

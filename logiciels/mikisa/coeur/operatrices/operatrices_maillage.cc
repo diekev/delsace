@@ -24,14 +24,14 @@
 
 #include "operatrices_maillage.hh"
 
-#include <delsace/math/bruit.hh>
+#include "biblinternes/math/bruit.hh"
 #include <eigen3/Eigen/Eigenvalues>
 #include <set>
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/gna.hh"
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/gna.hh"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "bibloc/tableau.hh"
 

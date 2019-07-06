@@ -24,7 +24,7 @@
 
 #include "operatrices_attributs.hh"
 
-#include "bibliotheques/outils/gna.hh"
+#include "biblinternes/outils/gna.hh"
 
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
@@ -784,7 +784,7 @@ public:
 /* ************************************************************************** */
 
 #include <mutex>
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/parallelisme.h"
 
 class OpTransfereAttributs final : public OperatriceCorps {
 public:
@@ -913,7 +913,7 @@ public:
 /* ************************************************************************** */
 
 #include "corps/iteration_corps.hh"
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/definitions.h"
 
 struct donnees_promotion {
 	long idx_dest{};

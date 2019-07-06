@@ -24,13 +24,13 @@
 
 #include "rendu_maillage.h"
 
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <numeric>
 
-#include "bibliotheques/opengl/atlas_texture.h"
-#include "bibliotheques/opengl/contexte_rendu.h"
-#include "bibliotheques/opengl/tampon_rendu.h"
-#include "bibliotheques/texture/texture.h"
+#include "biblinternes/opengl/atlas_texture.h"
+#include "biblinternes/opengl/contexte_rendu.h"
+#include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/texture/texture.h"
 
 #include "coeur/maillage.h"
 
@@ -39,40 +39,40 @@
 #undef BOMBAGE_TEXTURE
 
 #ifdef BOMBAGE_TEXTURE
-static void genere_texture(numero7::ego::Texture2D *texture, const void *donnes, GLint taille[2])
+static void genere_texture(dls::ego::Texture2D *texture, const void *donnes, GLint taille[2])
 {
 	texture->free(true);
-	numero7::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
-	texture->bind();
-	numero7::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
+	texture->attache();
+	dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
 	texture->setType(GL_FLOAT, GL_RGB, GL_RGB);
-	numero7::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
 	texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	numero7::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
 	texture->setWrapping(GL_REPEAT);
-	numero7::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
 	texture->fill(donnes, taille);
-	numero7::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
-	texture->unbind();
-	numero7::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
+	texture->detache();
+	dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
 }
 #else
 static void genere_texture(AtlasTexture *atlas, const void *donnes, GLint taille[3])
 {
 	atlas->detruit(true);
-	numero7::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
 	atlas->attache();
-	numero7::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
 	atlas->typage(GL_FLOAT, GL_RGBA, GL_RGBA);
-	numero7::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
 	atlas->filtre_min_mag(GL_NEAREST, GL_NEAREST);
-	numero7::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
 	atlas->enveloppage(GL_CLAMP);
-	numero7::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
 	atlas->rempli(donnes, taille);
-	numero7::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
 	atlas->detache();
-	numero7::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
 }
 #endif
 
@@ -83,12 +83,12 @@ TamponRendu *cree_tampon_arrete()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 
@@ -139,7 +139,7 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 
 	tampon->remplie_tampon(parametres_tampon);
 
-	numero7::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
+	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
 	ParametresDessin parametres_dessin;
 	parametres_dessin.type_dessin(GL_LINES);
@@ -156,12 +156,12 @@ TamponRendu *cree_tampon_normal()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 
@@ -225,7 +225,7 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 
 	tampon->remplie_tampon(parametres_tampon);
 
-	numero7::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
+	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
 	ParametresDessin parametres_dessin;
 	parametres_dessin.type_dessin(GL_LINES);
@@ -243,20 +243,20 @@ TamponRendu *creer_tampon()
 
 #ifdef BOMBAGE_TEXTURE
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/texture_bombee.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/texture_bombee.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/texture_bombee.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/texture_bombee.frag"));
 #else
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/diffus.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/diffus.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/diffus.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/diffus.frag"));
 #endif
 
 	tampon->finalise_programme();
@@ -359,14 +359,14 @@ TamponRendu *genere_tampon(Maillage *maillage, std::vector<uint> const &id_polys
 
 	tampon->remplie_tampon(parametres_tampon);
 
-	numero7::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
+	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
 	parametres_tampon.attribut = "normal";
 	parametres_tampon.pointeur_donnees_extra = normaux.data();
 	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
 
 	tampon->remplie_tampon_extra(parametres_tampon);
-	numero7::ego::util::GPU_check_errors("Erreur lors de la création du tampon de normal");
+	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de normal");
 
 	parametres_tampon.attribut = "uvs";
 	parametres_tampon.dimension_attribut = 3;
@@ -375,7 +375,7 @@ TamponRendu *genere_tampon(Maillage *maillage, std::vector<uint> const &id_polys
 
 	tampon->remplie_tampon_extra(parametres_tampon);
 
-	numero7::ego::util::GPU_check_errors("Erreur lors de la création du tampon d'uvs");
+	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon d'uvs");
 
 	return tampon;
 }
@@ -545,7 +545,7 @@ void RenduMaillage::ajourne_texture()
 		genere_texture(texture, image.data(), taille_texture);
 	}
 
-	numero7::ego::util::GPU_check_errors("Erreur lors de la génération de la texture");
+	dls::ego::util::GPU_check_errors("Erreur lors de la génération de la texture");
 #endif
 	m_maillage->marque_texture_surrannee(false);
 }

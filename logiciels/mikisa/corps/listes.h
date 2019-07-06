@@ -26,9 +26,9 @@
 
 #include <memory>
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
-#include "bibliotheques/outils/iterateurs.h"
+#include "biblinternes/outils/iterateurs.h"
 
 #include "bibloc/tableau.hh"
 

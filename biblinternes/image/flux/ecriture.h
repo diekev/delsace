@@ -42,7 +42,7 @@ namespace flux {
  * fichier pointé par le chemin est inconnu, la fonction plante sur une
  * assertion fausse.
  */
-void ecris(const filesystem::path &chemin, const math::matrice<PixelChar> &image);
+void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelChar> &image);
 
 /**
  * Écris une image de type float au chemin précisé. Le chemin doit contenir un
@@ -50,7 +50,7 @@ void ecris(const filesystem::path &chemin, const math::matrice<PixelChar> &image
  * fichier pointé par le chemin est inconnu, la fonction plante sur une
  * assertion fausse.
  */
-void ecris(const filesystem::path &chemin, const math::matrice<PixelFloat> &image);
+void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelFloat> &image);
 
 /**
  * Struct pour créer un type pour écrire une image au format JPEG.
@@ -62,7 +62,7 @@ struct AuteurJPEG {
 	 * nom de fichier JPEG valide. Si le chemin n'est pas valide, la fonction ne
 	 * fait rien.
 	 */
-	static void ecris(const filesystem::path &chemin, const math::matrice<PixelChar> &image);
+	static void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelChar> &image);
 };
 
 /**
@@ -75,7 +75,7 @@ struct AuteurPNM {
 	 * nom de fichier PNM valide. Si le chemin n'est pas valide, la fonction ne
 	 * fait rien.
 	 */
-	static void ecris(const filesystem::path &chemin, const math::matrice<PixelChar> &image);
+	static void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelChar> &image);
 };
 
 /**
@@ -88,7 +88,7 @@ struct AuteurEXR {
 	 * nom de fichier EXR valide. Si le chemin n'est pas valide, la fonction ne
 	 * fait rien.
 	 */
-	static void ecris(const filesystem::path &chemin, const math::matrice<PixelFloat> &image);
+	static void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelFloat> &image);
 };
 
 }  /* namespace flux */

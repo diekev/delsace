@@ -24,7 +24,7 @@
 
 #include "base_analyseuse.h"
 
-#include <delsace/langage/tampon_source.hh>
+#include "biblinternes/langage/tampon_source.hh"
 
 #include "erreur.h"
 

@@ -24,7 +24,7 @@
 
 #include "limites_corps.hh"
 
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/outils/constantes.h"
 
 #include "corps/corps.h"
 

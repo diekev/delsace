@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
-#include "bibliotheques/spectre/spectre.h"
+#include "biblinternes/spectre/spectre.h"
 
 struct ContexteNuancage;
 class GNA;

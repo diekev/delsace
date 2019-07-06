@@ -24,12 +24,13 @@
 
 #include "operatrices_corps.hh"
 
-#include "bibliotheques/kelvinlet/kelvinlet.hh"
-#include "bibliotheques/objets/creation.h"
-#include "bibliotheques/objets/import_objet.h"
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblexternes/kelvinlet/kelvinlet.hh"
+
+#include "biblinternes/objets/creation.h"
+#include "biblinternes/objets/import_objet.h"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"

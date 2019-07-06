@@ -24,8 +24,8 @@
 
 #include "operatrices_flux.h"
 
-#include <numero7/image/flux/lecture.h>
-#include <numero7/image/operations/conversion.h>
+#include "biblinternes/image/flux/lecture.h"
+#include "biblinternes/image/operations/conversion.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"
@@ -38,8 +38,8 @@
 #include <OpenEXR/ImathBox.h>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/graphe/graphe.h"
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/graphe/graphe.h"
+#include "biblinternes/outils/definitions.h"
 
 #include "bibloc/tableau.hh"
 
@@ -127,13 +127,13 @@ static auto charge_exr(const char *chemin, std::any const &donnees)
 	file.readPixels(dw.min.y, dw.max.y);
 
 	type_image img = type_image(
-						 numero7::math::Largeur(static_cast<int>(width)),
-						 numero7::math::Hauteur(static_cast<int>(height)));
+						 dls::math::Largeur(static_cast<int>(width)),
+						 dls::math::Hauteur(static_cast<int>(height)));
 
 	long idx(0);
 	for (auto y(0); y < height; ++y) {
 		for (auto x(0l), xe(width); x < xe; ++x, ++idx) {
-			auto pixel = numero7::image::PixelFloat();
+			auto pixel = dls::image::PixelFloat();
 			pixel.r = pixels[idx].r;
 			pixel.g = pixels[idx].g;
 			pixel.b = pixels[idx].b;
@@ -149,9 +149,9 @@ static auto charge_exr(const char *chemin, std::any const &donnees)
 
 static auto charge_jpeg(const char *chemin, std::any const &donnees)
 {
-	auto const image_char = numero7::image::flux::LecteurJPEG::ouvre(chemin);
+	auto const image_char = dls::image::flux::LecteurJPEG::ouvre(chemin);
 	auto ptr = std::any_cast<type_image *>(donnees);
-	*ptr = numero7::image::operation::converti_en_float(image_char);
+	*ptr = dls::image::operation::converti_en_float(image_char);
 }
 
 /* ************************************************************************** */

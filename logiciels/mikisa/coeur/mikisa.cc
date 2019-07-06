@@ -35,11 +35,11 @@
 #include <QMessageBox>
 #pragma GCC diagnostic pop
 
-#include <danjo/danjo.h>
+#include "danjo/danjo.h"
 
-#include "bibliotheques/commandes/repondant_commande.h"
-#include "bibliotheques/vision/camera_2d.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/vision/camera_2d.h"
+#include "biblinternes/vision/camera.h"
 
 #include "bibloc/logeuse_memoire.hh"
 

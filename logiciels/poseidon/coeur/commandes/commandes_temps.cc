@@ -24,7 +24,7 @@
 
 #include "commandes_temps.h"
 
-#include "bibliotheques/commandes/commande.h"
+#include "biblinternes/commandes/commande.h"
 
 #include "../evenement.h"
 #include "../fluide.h"

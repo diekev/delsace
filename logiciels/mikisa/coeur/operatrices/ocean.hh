@@ -26,7 +26,7 @@
 
 #include <fftw3.h>
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 #if 0
 #include "bibloc/logeuse_memoire.hh"

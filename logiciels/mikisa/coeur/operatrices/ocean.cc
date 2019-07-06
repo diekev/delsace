@@ -26,12 +26,12 @@
 
 #include <cmath>
 
-#include <delsace/math/entrepolation.hh>
-#include <delsace/math/outils.hh>
+#include "biblinternes/math/entrepolation.hh"
+#include "biblinternes/math/outils.hh"
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/gna.hh"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/gna.hh"
 
 #include "bibloc/logeuse_memoire.hh"
 

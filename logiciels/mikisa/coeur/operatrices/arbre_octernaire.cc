@@ -24,7 +24,7 @@
 
 #include "arbre_octernaire.hh"
 
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/outils/constantes.h"
 
 #include "bibloc/logeuse_memoire.hh"
 

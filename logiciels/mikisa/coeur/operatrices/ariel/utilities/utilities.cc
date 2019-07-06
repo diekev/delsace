@@ -13,7 +13,7 @@
 #include <cstring>
 #include <fstream>
 
-#include "bibliotheques/rmsd/rmsd.h"
+#include "biblinternes/rmsd/rmsd.h"
 
 namespace utilityCore {
 

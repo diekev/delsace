@@ -26,7 +26,7 @@
 
 #include "controle_propriete.h"
 
-#include <delsace/phys/couleur.hh>
+#include "biblinternes/phys/couleur.hh"
 
 class QHBoxLayout;
 

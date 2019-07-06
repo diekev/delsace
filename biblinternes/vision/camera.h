@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include <delsace/math/matrice.hh>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
 
 namespace vision {
 

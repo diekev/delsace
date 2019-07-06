@@ -28,8 +28,8 @@
 #include <stack>
 #include <unordered_map>
 
-#include <delsace/phys/couleur.hh>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/phys/couleur.hh"
+#include "biblinternes/math/vecteur.hh"
 
 #include "donnees_type.h"
 #include "execution_pile.hh"

@@ -25,8 +25,8 @@
 #pragma once
 
 #include <experimental/any>
-#include <delsace/math/vecteur.hh>
-#include <delsace/phys/couleur.hh>
+#include "biblinternes/math/vecteur.hh"
+#include "biblinternes/phys/couleur.hh"
 #include <unordered_map>
 #include <vector>
 

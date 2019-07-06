@@ -24,7 +24,7 @@
 
 #include "editeur_calques.h"
 
-#include <numero7/outils/iterateurs.h>
+#include "biblinternes/outils/iterateurs.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -36,7 +36,7 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "coeur/evenement.h"
 #include "coeur/kanba.h"
@@ -167,7 +167,7 @@ void EditeurCalques::ajourne_etat(int evenement)
 
 		auto const &canaux = maillage->canaux_texture();
 
-		for (auto const calque : numero7::outils::inverse_iterateur(canaux.calques[TypeCanal::DIFFUSION])) {
+		for (auto const calque : dls::outils::inverse_iterateur(canaux.calques[TypeCanal::DIFFUSION])) {
 			auto item = new ItemArbreCalque(calque);
 			auto bouton_visible = new BoutonItemCalque(calque, "visible");
 			auto bouton_peinture = new BoutonItemCalque(calque, "peinture");

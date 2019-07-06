@@ -24,8 +24,9 @@
 
 #include "operatrices_fracture.hh"
 
-#include "bibliotheques/outils/gna.hh"
-#include "bibliotheques/voro/voro++.hh"
+#include "biblexternes/voro/voro++.hh"
+
+#include "biblinternes/outils/gna.hh"
 
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"

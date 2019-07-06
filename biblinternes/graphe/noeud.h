@@ -28,8 +28,8 @@
 #include <string>
 #include <vector>
 
-#include "bibliotheques/geometrie/rectangle.h"
-#include "bibliotheques/outils/iterateurs.h"
+#include "biblinternes/geometrie/rectangle.h"
+#include "biblinternes/outils/iterateurs.h"
 
 class Noeud;
 struct PriseEntree;
@@ -122,8 +122,8 @@ public:
 	Noeud(Noeud const &) = default;
 	Noeud &operator=(Noeud const &) = default;
 
-	using plage_entrees = plage_iterable<std::vector<PriseEntree *>::const_iterator>;
-	using plage_sorties = plage_iterable<std::vector<PriseSortie *>::const_iterator>;
+	using plage_entrees = dls::outils::plage_iterable<std::vector<PriseEntree *>::const_iterator>;
+	using plage_sorties = dls::outils::plage_iterable<std::vector<PriseSortie *>::const_iterator>;
 
 	std::any donnees() const;
 	void donnees(std::any pointeur);

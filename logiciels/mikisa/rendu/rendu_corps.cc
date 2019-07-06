@@ -24,13 +24,13 @@
 
 #include "rendu_corps.h"
 
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <numeric>
 
-#include "bibliotheques/opengl/contexte_rendu.h"
-#include "bibliotheques/opengl/tampon_rendu.h"
-#include "bibliotheques/texture/texture.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/opengl/contexte_rendu.h"
+#include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/texture/texture.h"
+#include "biblinternes/vision/camera.h"
 
 #include "bibloc/tableau.hh"
 
@@ -231,12 +231,12 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs)
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/diffus.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/diffus.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/diffus.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/diffus.frag"));
 
 	tampon->finalise_programme();
 
@@ -379,12 +379,12 @@ static TamponRendu *cree_tampon_segments()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 
@@ -516,12 +516,12 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/volume.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/volume.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/volume.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/volume.frag"));
 
 	tampon->finalise_programme();
 
@@ -547,7 +547,7 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 
 	auto programme = tampon->programme();
 	programme->active();
-	programme->uniforme("volume", texture->number());
+	programme->uniforme("volume", texture->code_attache());
 	programme->uniforme("offset", grille->etendu().min.x, grille->etendu().min.y, grille->etendu().min.z);
 	programme->uniforme("dimension", grille->etendu().taille().x, grille->etendu().taille().y, grille->etendu().taille().z);
 	programme->desactive();
@@ -557,10 +557,10 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 
 	/* crée texture 3d */
 
-	texture->bind();
-	texture->setType(GL_FLOAT, GL_RED, GL_RED);
-	texture->setMinMagFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	texture->setWrapping(GL_CLAMP_TO_BORDER);
+	texture->attache();
+	texture->type(GL_FLOAT, GL_RED, GL_RED);
+	texture->filtre_min_mag(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	texture->enveloppe(GL_CLAMP_TO_BORDER);
 
 	auto res_grille = grille->resolution();
 	int res[3] = {
@@ -571,11 +571,11 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 
 	if (volume->grille->type() == type_volume::SCALAIRE) {
 		auto grille_scalaire = dynamic_cast<Grille<float> *>(volume->grille);
-		texture->fill(grille_scalaire->donnees(), res);
+		texture->remplie(grille_scalaire->donnees(), res);
 	}
 
-	texture->generateMipMap(0, 4);
-	texture->unbind();
+	texture->genere_mip_map(0, 4);
+	texture->detache();
 
 	return tampon;
 }

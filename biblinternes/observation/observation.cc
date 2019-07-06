@@ -24,7 +24,7 @@
 
 #include "observation.hh"
 
-#include "../outils/definitions.hh"
+#include "../outils/definitions.h"
 
 #include <algorithm>
 

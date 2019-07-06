@@ -30,9 +30,9 @@ namespace dls {
 namespace image {
 namespace operation {
 
-math::matrice<PixelChar> converti_en_char(const math::matrice<PixelFloat> &image)
+math::matrice_dyn<PixelChar> converti_en_char(const math::matrice_dyn<PixelFloat> &image)
 {
-	math::matrice<PixelChar> resultat(image.dimensions());
+	math::matrice_dyn<PixelChar> resultat(image.dimensions());
 
 	for (int x = 0; x < image.nombre_lignes(); ++x) {
 		for (int y = 0; y < image.nombre_colonnes(); ++y) {
@@ -46,9 +46,9 @@ math::matrice<PixelChar> converti_en_char(const math::matrice<PixelFloat> &image
 	return resultat;
 }
 
-math::matrice<PixelFloat> converti_en_float(const math::matrice<PixelChar> &image)
+math::matrice_dyn<PixelFloat> converti_en_float(const math::matrice_dyn<PixelChar> &image)
 {
-	math::matrice<PixelFloat> resultat(image.dimensions());
+	math::matrice_dyn<PixelFloat> resultat(image.dimensions());
 
 	static constexpr auto echelle = 1.0f / 255.0f;
 

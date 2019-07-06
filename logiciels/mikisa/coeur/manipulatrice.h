@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 enum {
 	ETAT_DEFAUT         = 0,

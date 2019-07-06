@@ -24,9 +24,9 @@
 
 #include "rendu_image.h"
 
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 
-#include "bibliotheques/opengl/tampon_rendu.h"
+#include "biblinternes/opengl/tampon_rendu.h"
 
 #include "bibloc/logeuse_memoire.hh"
 
@@ -59,8 +59,8 @@ TamponRendu *cree_tampon_image()
 {
 	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
-	tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex);
-	tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment);
+	tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, source_vertex);
+	tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT, source_fragment);
 	tampon->finalise_programme();
 
 	ParametresProgramme parametre_programme;
@@ -76,7 +76,7 @@ TamponRendu *cree_tampon_image()
 
 	auto programme = tampon->programme();
 	programme->active();
-	programme->uniforme("image", texture->number());
+	programme->uniforme("image", texture->code_attache());
 	programme->desactive();
 
 	float sommets[8] = {
@@ -105,13 +105,13 @@ TamponRendu *cree_tampon_image()
 void genere_texture_image(TamponRendu *tampon, const float *data, int size[])
 {
 	auto texture = tampon->texture();
-	texture->free(true);
-	texture->bind();
-	texture->setType(GL_FLOAT, GL_RGBA, GL_RGBA);
-	texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	texture->setWrapping(GL_CLAMP);
-	texture->fill(data, size);
-	texture->unbind();
+	texture->deloge(true);
+	texture->attache();
+	texture->type(GL_FLOAT, GL_RGBA, GL_RGBA);
+	texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+	texture->enveloppe(GL_CLAMP);
+	texture->remplie(data, size);
+	texture->detache();
 }
 
 /* ************************************************************************** */
@@ -138,8 +138,8 @@ static TamponRendu *cree_tampon_bordure()
 {
 	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
-	tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex_bordure);
-	tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
+	tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, source_vertex_bordure);
+	tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
 	tampon->finalise_programme();
 
 	ParametresProgramme parametre_programme;
@@ -192,7 +192,7 @@ RenduImage::~RenduImage()
 	memoire::deloge("TamponRendu", m_tampon_bordure);
 }
 
-void RenduImage::charge_image(const numero7::math::matrice<numero7::image::Pixel<float> > &image)
+void RenduImage::charge_image(const dls::math::matrice_dyn<dls::image::Pixel<float> > &image)
 {
 	GLint size[2] = {
 		image.nombre_colonnes(),
@@ -201,7 +201,7 @@ void RenduImage::charge_image(const numero7::math::matrice<numero7::image::Pixel
 
 	genere_texture_image(m_tampon_image, &image[0][0].r, size);
 
-	numero7::ego::util::GPU_check_errors("Unable to create image texture");
+	dls::ego::util::GPU_check_errors("Unable to create image texture");
 }
 
 void RenduImage::dessine(ContexteRendu const &contexte)

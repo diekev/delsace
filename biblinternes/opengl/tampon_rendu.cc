@@ -24,7 +24,7 @@
 
 #include "tampon_rendu.h"
 
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <GL/glew.h>
 #include <mutex>
 #include <tbb/concurrent_vector.h>
@@ -103,7 +103,7 @@ TamponRendu::~TamponRendu()
 	delete m_atlas;
 }
 
-void TamponRendu::charge_source_programme(numero7::ego::Nuanceur type_programme, std::string const &source, std::ostream &os)
+void TamponRendu::charge_source_programme(dls::ego::Nuanceur type_programme, std::string const &source, std::ostream &os)
 {
 	m_programme.charge(type_programme, source, os);
 }
@@ -141,7 +141,7 @@ void TamponRendu::peut_surligner(bool ouinon)
 void TamponRendu::initialise_tampon()
 {
 	if (m_donnees_tampon == nullptr) {
-		m_donnees_tampon = numero7::ego::TamponObjet::create();
+		m_donnees_tampon = dls::ego::TamponObjet::cree_unique();
 	}
 }
 
@@ -151,51 +151,51 @@ void TamponRendu::remplie_tampon(ParametresTampon const &parametres)
 
 	m_elements = parametres.elements;
 
-	m_donnees_tampon->bind();
+	m_donnees_tampon->attache();
 
-	m_donnees_tampon->generateVertexBuffer(
+	m_donnees_tampon->genere_tampon_sommet(
 				parametres.pointeur_sommets,
-				parametres.taille_octet_sommets);
+				static_cast<long>(parametres.taille_octet_sommets));
 
-	numero7::ego::util::GPU_check_errors("Erreur lors du tampon sommet");
+	dls::ego::util::GPU_check_errors("Erreur lors du tampon sommet");
 
 	if (parametres.pointeur_index) {
-		m_donnees_tampon->generateIndexBuffer(
+		m_donnees_tampon->genere_tampon_index(
 					parametres.pointeur_index,
-					parametres.taille_octet_index);
+					static_cast<long>(parametres.taille_octet_index));
 
-		numero7::ego::util::GPU_check_errors("Erreur lors du tampon index");
+		dls::ego::util::GPU_check_errors("Erreur lors du tampon index");
 
 		m_dessin_indexe = true;
 	}
 
-	m_donnees_tampon->attribPointer(
-				m_programme[parametres.attribut],
+	m_donnees_tampon->pointeur_attribut(
+				static_cast<unsigned>(m_programme[parametres.attribut]),
 				parametres.dimension_attribut);
 
-	numero7::ego::util::GPU_check_errors("Erreur lors de la mise en place de l'attribut");
+	dls::ego::util::GPU_check_errors("Erreur lors de la mise en place de l'attribut");
 
-	m_donnees_tampon->unbind();
+	m_donnees_tampon->detache();
 }
 
 void TamponRendu::remplie_tampon_extra(ParametresTampon const &parametres)
 {
 	initialise_tampon();
 
-	m_donnees_tampon->bind();
+	m_donnees_tampon->attache();
 
-	m_donnees_tampon->generateExtraBuffer(
+	m_donnees_tampon->genere_tampon_extra(
 				parametres.pointeur_donnees_extra,
-				parametres.taille_octet_donnees_extra);
-	numero7::ego::util::GPU_check_errors("Erreur lors de la génération du tampon extra");
+				static_cast<long>(parametres.taille_octet_donnees_extra));
+	dls::ego::util::GPU_check_errors("Erreur lors de la génération du tampon extra");
 
-	m_donnees_tampon->attribPointer(
-				m_programme[parametres.attribut],
+	m_donnees_tampon->pointeur_attribut(
+				static_cast<unsigned>(m_programme[parametres.attribut]),
 				parametres.dimension_attribut);
 
-	numero7::ego::util::GPU_check_errors("Erreur lors de la mise en place du pointeur");
+	dls::ego::util::GPU_check_errors("Erreur lors de la mise en place du pointeur");
 
-	m_donnees_tampon->unbind();
+	m_donnees_tampon->detache();
 
 	if (parametres.attribut == "normal" || parametres.attribut == "normaux") {
 		m_requiers_normal = true;
@@ -216,38 +216,38 @@ void TamponRendu::dessine(ContexteRendu const &contexte)
 		glLineWidth(m_paramatres_dessin.taille_ligne());
 	}
 
-	numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon avant utilisation programme");
+	dls::ego::util::GPU_check_errors("Erreur lors du rendu du tampon avant utilisation programme");
 
 	m_programme.active();
-	m_donnees_tampon->bind();
+	m_donnees_tampon->attache();
 
 	if (m_texture) {
-		m_texture->bind();
+		m_texture->attache();
 	}
 
 	if (m_texture_3d) {
-		m_texture_3d->bind();
+		m_texture_3d->attache();
 	}
 
 	if (m_atlas) {
 		m_atlas->attache();
 	}
 
-	numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après attache texture");
+	dls::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après attache texture");
 
-	glUniformMatrix4fv(static_cast<int>(m_programme("matrice")), 1, GL_FALSE, &contexte.matrice_objet()[0][0]);
-	numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice objet");
-	glUniformMatrix4fv(static_cast<int>(m_programme("MVP")), 1, GL_FALSE, &contexte.MVP()[0][0]);
-	numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice MVP");
+	glUniformMatrix4fv(m_programme("matrice"), 1, GL_FALSE, &contexte.matrice_objet()[0][0]);
+	dls::ego::util::GPU_check_errors("Erreur lors du passage de la matrice objet");
+	glUniformMatrix4fv(m_programme("MVP"), 1, GL_FALSE, &contexte.MVP()[0][0]);
+	dls::ego::util::GPU_check_errors("Erreur lors du passage de la matrice MVP");
 
 	if (m_requiers_normal) {
-		glUniformMatrix3fv(static_cast<int>(m_programme("N")), 1, GL_FALSE, &contexte.normal()[0][0]);
-		numero7::ego::util::GPU_check_errors("Erreur lors du passage de la matrice N");
+		glUniformMatrix3fv(m_programme("N"), 1, GL_FALSE, &contexte.normal()[0][0]);
+		dls::ego::util::GPU_check_errors("Erreur lors du passage de la matrice N");
 	}
 
 	if (m_peut_surligner) {
-		glUniform1i(static_cast<int>(m_programme("pour_surlignage")), contexte.pour_surlignage());
-		numero7::ego::util::GPU_check_errors("Erreur lors du passage pour_surlignage");
+		glUniform1i(m_programme("pour_surlignage"), contexte.pour_surlignage());
+		dls::ego::util::GPU_check_errors("Erreur lors du passage pour_surlignage");
 	}
 
 	if (m_dessin_indexe) {
@@ -257,21 +257,21 @@ void TamponRendu::dessine(ContexteRendu const &contexte)
 		glDrawArrays(m_paramatres_dessin.type_dessin(), 0, static_cast<int>(m_elements));
 	}
 
-	numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après dessin indexé");
+	dls::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après dessin indexé");
 
 	if (m_atlas) {
 		m_atlas->detache();
 	}
 
 	if (m_texture) {
-		m_texture->unbind();
+		m_texture->detache();
 	}
 
 	if (m_texture_3d) {
-		m_texture_3d->unbind();
+		m_texture_3d->detache();
 	}
 
-	m_donnees_tampon->unbind();
+	m_donnees_tampon->detache();
 	m_programme.desactive();
 
 	if (m_paramatres_dessin.type_dessin() == GL_POINTS) {
@@ -282,7 +282,7 @@ void TamponRendu::dessine(ContexteRendu const &contexte)
 	}
 }
 
-numero7::ego::Programme *TamponRendu::programme()
+dls::ego::Programme *TamponRendu::programme()
 {
 	return &m_programme;
 }
@@ -296,20 +296,20 @@ void TamponRendu::ajoute_atlas()
 
 void TamponRendu::ajoute_texture()
 {
-	m_texture = numero7::ego::Texture2D::create(0);
+	m_texture = dls::ego::Texture2D::cree_unique(0);
 }
 
 void TamponRendu::ajoute_texture_3d()
 {
-	m_texture_3d = numero7::ego::Texture3D::create(0);
+	m_texture_3d = dls::ego::Texture3D::cree_unique(0);
 }
 
-numero7::ego::Texture2D *TamponRendu::texture()
+dls::ego::Texture2D *TamponRendu::texture()
 {
 	return m_texture.get();
 }
 
-numero7::ego::Texture3D *TamponRendu::texture_3d()
+dls::ego::Texture3D *TamponRendu::texture_3d()
 {
 	return m_texture_3d.get();
 }

@@ -45,7 +45,7 @@ namespace dls {
 namespace image {
 namespace flux {
 
-void ecris(const filesystem::path &chemin, const math::matrice<PixelChar> &image)
+void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelChar> &image)
 {
 	const auto &extension = chemin.extension();
 
@@ -64,7 +64,7 @@ void ecris(const filesystem::path &chemin, const math::matrice<PixelChar> &image
 	}
 }
 
-void ecris(const filesystem::path &chemin, const math::matrice<PixelFloat> &image)
+void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelFloat> &image)
 {
 	const auto &extension = chemin.extension();
 
@@ -84,7 +84,7 @@ void ecris(const filesystem::path &chemin, const math::matrice<PixelFloat> &imag
 	}
 }
 
-void AuteurJPEG::ecris(const filesystem::path &chemin, const math::matrice<PixelChar> &image)
+void AuteurJPEG::ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelChar> &image)
 {
 #ifdef AVEC_JPEG
 	FILE *file = std::fopen(chemin.c_str(), "wb");
@@ -143,7 +143,7 @@ void AuteurJPEG::ecris(const filesystem::path &chemin, const math::matrice<Pixel
 #endif
 }
 
-void AuteurPNM::ecris(const filesystem::path &chemin, const math::matrice<PixelChar> &image)
+void AuteurPNM::ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelChar> &image)
 {
 	const auto &height = image.nombre_lignes();
 	const auto &width = image.nombre_colonnes();
@@ -174,7 +174,7 @@ void AuteurPNM::ecris(const filesystem::path &chemin, const math::matrice<PixelC
 
 
 // TODO: catch exceptions (std::exception)?
-void AuteurEXR::ecris(const filesystem::path &chemin, const math::matrice<PixelFloat> &image)
+void AuteurEXR::ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelFloat> &image)
 {
 #ifdef AVEC_OPENEXR
 	namespace openexr = OPENEXR_IMF_NAMESPACE;

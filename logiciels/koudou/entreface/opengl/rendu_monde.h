@@ -25,7 +25,7 @@
 #pragma once
 
 #include <experimental/filesystem>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 #include <vector>
 
 class ContexteRendu;

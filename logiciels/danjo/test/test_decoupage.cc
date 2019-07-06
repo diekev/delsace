@@ -25,7 +25,7 @@
 #include "test_decoupage.h"
 
 #include <cstring>
-#include <delsace/langage/tampon_source.hh>
+#include "biblinternes/langage/tampon_source.hh"
 
 #include "compilation/decoupeuse.h"
 

@@ -33,7 +33,7 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/texture/texture.h"
+#include "biblinternes/texture/texture.h"
 
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"

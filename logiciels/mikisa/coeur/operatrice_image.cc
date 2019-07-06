@@ -24,8 +24,8 @@
 
 #include "operatrice_image.h"
 
-#include "bibliotheques/graphe/noeud.h"
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/graphe/noeud.h"
+#include "biblinternes/outils/definitions.h"
 
 #include "bibloc/logeuse_memoire.hh"
 
@@ -36,21 +36,21 @@
 
 /* ************************************************************************** */
 
-numero7::image::Pixel<float> Calque::valeur(size_t x, size_t y) const
+dls::image::Pixel<float> Calque::valeur(size_t x, size_t y) const
 {
 	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
 	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
 	return tampon[static_cast<int>(y)][static_cast<int>(x)];
 }
 
-void Calque::valeur(size_t x, size_t y, numero7::image::Pixel<float> const &pixel)
+void Calque::valeur(size_t x, size_t y, dls::image::Pixel<float> const &pixel)
 {
 	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
 	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
 	tampon[static_cast<int>(y)][static_cast<int>(x)] = pixel;
 }
 
-numero7::image::Pixel<float> Calque::echantillone(float x, float y) const
+dls::image::Pixel<float> Calque::echantillone(float x, float y) const
 {
 	auto const res_x = tampon.nombre_colonnes();
 	auto const res_y = tampon.nombre_lignes();
@@ -66,7 +66,7 @@ numero7::image::Pixel<float> Calque::echantillone(float x, float y) const
 	auto const x2 = std::max(0, std::min(entier_x + 1, res_x - 1));
 	auto const y2 = std::max(0, std::min(entier_y + 1, res_y - 1));
 
-	auto valeur = numero7::image::Pixel<float>(0.0f);
+	auto valeur = dls::image::Pixel<float>(0.0f);
 	valeur += fract_x * fract_y * tampon[y1][x1];
 	valeur += (1.0f - fract_x) * fract_y * tampon[y1][x2];
 	valeur += fract_x * (1.0f - fract_y) * tampon[y2][x1];
@@ -86,10 +86,10 @@ Calque *Image::ajoute_calque(std::string const &nom, Rectangle const &rectangle)
 {
 	auto tampon = memoire::loge<Calque>("Calque");
 	tampon->nom = nom;
-	tampon->tampon = type_image(numero7::math::Hauteur(static_cast<int>(rectangle.hauteur)),
-								numero7::math::Largeur(static_cast<int>(rectangle.largeur)));
+	tampon->tampon = type_image(dls::math::Hauteur(static_cast<int>(rectangle.hauteur)),
+								dls::math::Largeur(static_cast<int>(rectangle.largeur)));
 
-	auto pixel = numero7::image::Pixel<float>(0.0f);
+	auto pixel = dls::image::Pixel<float>(0.0f);
 	pixel.a = 1.0f;
 
 	tampon->tampon.remplie(pixel);

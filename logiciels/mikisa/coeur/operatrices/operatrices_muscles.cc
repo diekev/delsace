@@ -39,8 +39,8 @@
 #include <Eigen/Eigen>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
 
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"

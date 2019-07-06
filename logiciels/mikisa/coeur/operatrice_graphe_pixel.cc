@@ -24,8 +24,8 @@
 
 #include "operatrice_graphe_pixel.h"
 
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "bibloc/logeuse_memoire.hh"
 
@@ -70,7 +70,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -117,7 +117,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -164,7 +164,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	numero7::image::Pixel<float> evalue_pixel(numero7::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);

@@ -27,7 +27,7 @@
 #include <iostream>
 #include <set>
 
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/definitions.h"
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"

@@ -36,11 +36,11 @@ void convertie_float(unsigned char uchar[3], float d[3])
 	d[2] = uchar[2] / 255.0f;
 }
 
-numero7::math::matrice<Spectre> image_nulle()
+dls::math::matrice_dyn<Spectre> image_nulle()
 {
-	auto image = numero7::math::matrice<Spectre>(
-					 numero7::math::Hauteur(1),
-					 numero7::math::Largeur(1));
+	auto image = dls::math::matrice_dyn<Spectre>(
+					 dls::math::Hauteur(1),
+					 dls::math::Largeur(1));
 
 	float rvb[3] = { 1.0f, 0.0f, 1.0f };
 	image[0][0] = Spectre::depuis_rgb(rvb);
@@ -48,7 +48,7 @@ numero7::math::matrice<Spectre> image_nulle()
 	return image;
 }
 
-numero7::math::matrice<Spectre> ouvre_png(std::experimental::filesystem::path const &chemin)
+dls::math::matrice_dyn<Spectre> ouvre_png(std::experimental::filesystem::path const &chemin)
 {
 	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 
@@ -123,9 +123,9 @@ numero7::math::matrice<Spectre> ouvre_png(std::experimental::filesystem::path co
 	png_read_image(png, row_pointers);
 
 
-	auto image = numero7::math::matrice<Spectre>(
-					 numero7::math::Hauteur(static_cast<int>(height)),
-					 numero7::math::Largeur(static_cast<int>(width)));
+	auto image = dls::math::matrice_dyn<Spectre>(
+					 dls::math::Hauteur(static_cast<int>(height)),
+					 dls::math::Largeur(static_cast<int>(width)));
 
 
 	for (size_t y = 0; y < height; y++) {
@@ -152,14 +152,14 @@ numero7::math::matrice<Spectre> ouvre_png(std::experimental::filesystem::path co
 	return image;
 }
 
-numero7::math::matrice<Spectre> ouvre_jpeg(std::experimental::filesystem::path const &chemin)
+dls::math::matrice_dyn<Spectre> ouvre_jpeg(std::experimental::filesystem::path const &chemin)
 {
 	FILE *file = std::fopen(chemin.c_str(), "rb");
 
 	if (file == nullptr) {
-		auto image = numero7::math::matrice<Spectre>(
-						 numero7::math::Hauteur(1),
-						 numero7::math::Largeur(1));
+		auto image = dls::math::matrice_dyn<Spectre>(
+						 dls::math::Hauteur(1),
+						 dls::math::Largeur(1));
 
 		float rvb[3] = { 1.0f, 0.0f, 1.0f };
 		image[0][0] = Spectre::depuis_rgb(rvb);
@@ -186,9 +186,9 @@ numero7::math::matrice<Spectre> ouvre_jpeg(std::experimental::filesystem::path c
 	auto const hauteur = info.output_height;
 	auto const channels = info.output_components;
 
-	auto image = numero7::math::matrice<Spectre>(
-					 numero7::math::Hauteur(static_cast<int>(hauteur)),
-					 numero7::math::Largeur(static_cast<int>(largeur)));
+	auto image = dls::math::matrice_dyn<Spectre>(
+					 dls::math::Hauteur(static_cast<int>(hauteur)),
+					 dls::math::Largeur(static_cast<int>(largeur)));
 
 	auto const &stride = largeur * static_cast<unsigned>(channels);
 
@@ -307,9 +307,9 @@ Spectre TextureImage::echantillone_uv(int x, int y)
 	return m_image[y][x];
 }
 
-void TextureImage::charge_donnees(numero7::math::matrice<numero7::image::PixelFloat> const &donnees)
+void TextureImage::charge_donnees(dls::math::matrice_dyn<dls::image::PixelFloat> const &donnees)
 {
-	m_image = numero7::math::matrice<Spectre>(donnees.dimensions());
+	m_image = dls::math::matrice_dyn<Spectre>(donnees.dimensions());
 
 	for (int l = 0; l < m_image.nombre_lignes(); ++l) {
 		for (int c = 0; c < m_image.nombre_colonnes(); ++c) {
@@ -320,7 +320,7 @@ void TextureImage::charge_donnees(numero7::math::matrice<numero7::image::PixelFl
 	}
 }
 
-void TextureImage::etablie_image(numero7::math::matrice<Spectre> const &image)
+void TextureImage::etablie_image(dls::math::matrice_dyn<Spectre> const &image)
 {
 	m_image = image;
 }
@@ -409,7 +409,7 @@ TextureImage *charge_texture(std::experimental::filesystem::path const &chemin)
 {
 	auto texture = new TextureImage();
 
-	numero7::math::matrice<Spectre> image;
+	dls::math::matrice_dyn<Spectre> image;
 
 	if (chemin.extension() == ".png") {
 		image = ouvre_png(chemin);

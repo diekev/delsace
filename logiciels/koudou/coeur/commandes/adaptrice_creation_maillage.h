@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include "bibliotheques/objets/adaptrice_creation.h"
+#include "biblinternes/objets/adaptrice_creation.h"
 
 #include <vector>
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 class Maillage;
 

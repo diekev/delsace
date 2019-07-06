@@ -24,7 +24,7 @@
 
 #include "operatrices_script.hh"
 
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "corps/attribut.h"
 

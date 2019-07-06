@@ -31,7 +31,7 @@ set(SOURCES
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUES_TEST_UNITAIRE}
+	tests
 
 	kanba_coeur
 

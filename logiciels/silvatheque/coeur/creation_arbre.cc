@@ -24,7 +24,7 @@
 
 #include "creation_arbre.h"
 
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/outils/constantes.h"
 
 #include "arbre.h"
 

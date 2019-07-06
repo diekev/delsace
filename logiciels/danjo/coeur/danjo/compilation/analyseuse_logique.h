@@ -47,7 +47,7 @@ public:
 	AnalyseuseLogique(AnalyseuseLogique const &) = default;
 	AnalyseuseLogique &operator=(AnalyseuseLogique const &) = default;
 
-	void lance_analyse() override;
+	void lance_analyse(std::ostream &) override;
         
 private:
 	void analyse_corps();

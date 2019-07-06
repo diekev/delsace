@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <math/matrice/matrice.h>
-#include <image/pixel.h>
+#include "biblinternes/image/pixel.h"
+#include "biblinternes/math/matrice/matrice.hh"
 
 class ContexteRendu;
 class TamponRendu;
@@ -51,7 +51,7 @@ public:
 	 */
 	~RenduImage();
 
-	void charge_image(const numero7::math::matrice<numero7::image::Pixel<float> > &image);
+	void charge_image(const dls::math::matrice_dyn<dls::image::Pixel<float> > &image);
 
 	/**
 	 * Dessine l'image dans le contexte spécifié.

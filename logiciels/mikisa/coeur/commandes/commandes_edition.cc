@@ -24,10 +24,11 @@
 
 #include "commandes_edition.h"
 
-#include <danjo/danjo.h>
+#include "danjo/danjo.h"
+#include "danjo/manipulable.h"
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "../composite.h"
 #include "../evenement.h"

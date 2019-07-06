@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include "bibliotheques/observation/observation.hh"
-#include "bibliotheques/commandes/commande.h"
+#include "biblinternes/observation/observation.hh"
+#include "biblinternes/commandes/commande.h"
 
-#include <numero7/math/matrice/matrice.h>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
 
 class BaseEditrice;
 class Brosse;
@@ -48,7 +48,7 @@ enum {
 };
 
 struct Kanba : public Sujette {
-	numero7::math::matrice<dls::math::vec4f> tampon;
+	dls::math::matrice_dyn<dls::math::vec4f> tampon;
 
 	/* Interface utilisateur. */
 	FenetrePrincipale *fenetre_principale = nullptr;

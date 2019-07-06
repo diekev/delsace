@@ -30,7 +30,7 @@
 #include <memory>
 #include <set>
 
-#include "bibliotheques/outils/iterateurs.h"
+#include "biblinternes/outils/iterateurs.h"
 
 /* ************************************************************************** */
 
@@ -111,8 +111,8 @@ public:
 	using iterateur = std::vector<Noeud *>::iterator;
 	using iterateur_const = std::vector<Noeud *>::const_iterator;
 
-	using plage_noeud = plage_iterable<iterateur>;
-	using plage_noeud_const = plage_iterable<iterateur_const>;
+	using plage_noeud = dls::outils::plage_iterable<iterateur>;
+	using plage_noeud_const = dls::outils::plage_iterable<iterateur_const>;
 
 	Graphe(type_function_creation_noeud fonction_creation,
 		   type_function_destruction_noeud fonction_destruction);

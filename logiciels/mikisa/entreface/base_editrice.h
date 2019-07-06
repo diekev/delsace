@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <danjo/conteneur_controles.h>
+#include "danjo/conteneur_controles.h"
 
-#include "bibliotheques/observation/observation.hh"
+#include "biblinternes/observation/observation.hh"
 
 class Mikisa;
 class QFrame;

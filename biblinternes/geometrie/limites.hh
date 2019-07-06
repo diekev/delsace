@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 /* Généralisation d'une boîte englobante 3D, pour définir des limites pour
  * différents types, différentes dimensions. */

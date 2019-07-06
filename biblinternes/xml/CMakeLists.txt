@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE xml)
+set(NOM_BIBLIOTHEQUE bib_xml)
 
 set(ENTETES
 	attribut.h

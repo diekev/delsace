@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <delsace/phys/couleur.hh>
+#include "biblinternes/phys/couleur.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"

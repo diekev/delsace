@@ -26,7 +26,7 @@
 
 #include <tbb/tick_count.h>
 
-#include "bibliotheques/graphe/noeud.h"
+#include "biblinternes/graphe/noeud.h"
 
 #include "operatrice_image.h"
 

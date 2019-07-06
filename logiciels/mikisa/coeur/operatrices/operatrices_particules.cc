@@ -26,12 +26,12 @@
 
 #include <eigen3/Eigen/Eigenvalues>
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/gna.hh"
-#include "bibliotheques/outils/parallelisme.h"
-#include "bibliotheques/outils/temps.hh"
-#include "bibliotheques/structures/arbre_kd.hh"
-#include "bibliotheques/structures/grille_particules.hh"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/gna.hh"
+#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/outils/temps.hh"
+#include "biblinternes/structures/arbre_kd.hh"
+#include "biblinternes/structures/grille_particules.hh"
 
 #include "bibloc/logeuse_memoire.hh"
 #include "bibloc/tableau.hh"

@@ -24,7 +24,7 @@
 
 #include "operatrice_pixel.h"
 
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "contexte_evaluation.hh"
 

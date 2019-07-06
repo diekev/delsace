@@ -24,8 +24,8 @@
 
 #include "visionneur_image.h"
 
-#include <ego/outils.h>
-#include <numero7/image/pixel.h>
+#include "biblinternes/ego/outils.h"
+#include "biblinternes/image/pixel.h"
 
 #include "coeur/kanba.h"
 #include "../editeur_canevas.h"
@@ -53,15 +53,15 @@ static const char *fragment_source =
 		"	fragment_color = texture(image, flipped);\n"
 		"}\n";
 
-static void generate_texture(numero7::ego::Texture2D::Ptr &texture, const float *data, GLint size[2])
+static void generate_texture(dls::ego::Texture2D::Ptr &texture, const float *data, GLint size[2])
 {
-	texture->free(true);
-	texture->bind();
-	texture->setType(GL_FLOAT, GL_RGBA, GL_RGBA);
-	texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	texture->setWrapping(GL_CLAMP);
-	texture->fill(data, size);
-	texture->unbind();
+	texture->deloge(true);
+	texture->attache();
+	texture->type(GL_FLOAT, GL_RGBA, GL_RGBA);
+	texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+	texture->enveloppe(GL_CLAMP);
+	texture->remplie(data, size);
+	texture->detache();
 }
 
 /* ************************************************************************** */
@@ -75,10 +75,10 @@ VisionneurImage::VisionneurImage(VueCanevas *parent, Kanba *kanba)
 
 void VisionneurImage::initialise()
 {
-	m_texture = numero7::ego::Texture2D::create(0);
+	m_texture = dls::ego::Texture2D::cree_unique(0);
 
-	m_program.charge(numero7::ego::Nuanceur::VERTEX, vertex_source);
-	m_program.charge(numero7::ego::Nuanceur::FRAGMENT, fragment_source);
+	m_program.charge(dls::ego::Nuanceur::VERTEX, vertex_source);
+	m_program.charge(dls::ego::Nuanceur::FRAGMENT, fragment_source);
 
 	m_program.cree_et_lie_programme();
 
@@ -87,17 +87,17 @@ void VisionneurImage::initialise()
 		m_program.ajoute_attribut("vertex");
 		m_program.ajoute_uniforme("image");
 
-		glUniform1i(static_cast<int>(m_program("image")), static_cast<int>(m_texture->number()));
+		glUniform1i(m_program("image"), static_cast<int>(m_texture->code_attache()));
 	}
 	m_program.desactive();
 
-	m_buffer = numero7::ego::TamponObjet::create();
+	m_buffer = dls::ego::TamponObjet::cree_unique();
 
-	m_buffer->bind();
-	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
-	m_buffer->generateIndexBuffer(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->attribPointer(m_program["vertex"], 2);
-	m_buffer->unbind();
+	m_buffer->attache();
+	m_buffer->genere_tampon_sommet(m_vertices, sizeof(float) * 8);
+	m_buffer->genere_tampon_index(&m_indices[0], sizeof(GLushort) * 6);
+	m_buffer->pointeur_attribut(static_cast<unsigned>(m_program["vertex"]), 2);
+	m_buffer->detache();
 
 	charge_image(m_kanba->tampon);
 }
@@ -110,13 +110,13 @@ void VisionneurImage::peint_opengl()
 	glEnable (GL_BLEND);
 	if (m_program.est_valide()) {
 		m_program.active();
-		m_buffer->bind();
-		m_texture->bind();
+		m_buffer->attache();
+		m_texture->attache();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		m_texture->unbind();
-		m_buffer->unbind();
+		m_texture->detache();
+		m_buffer->detache();
 		m_program.desactive();
 	}
 	glDisable (GL_BLEND);
@@ -127,7 +127,7 @@ void VisionneurImage::redimensionne(int largeur, int hauteur)
 	glViewport(0, 0, largeur, hauteur);
 }
 
-void VisionneurImage::charge_image(numero7::math::matrice<dls::math::vec4f> const &image)
+void VisionneurImage::charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image)
 {
 	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
 		return;
@@ -147,5 +147,5 @@ void VisionneurImage::charge_image(numero7::math::matrice<dls::math::vec4f> cons
 
 	generate_texture(m_texture, &image[0][0][0], size);
 
-	numero7::ego::util::GPU_check_errors("Unable to create image texture");
+	dls::ego::util::GPU_check_errors("Unable to create image texture");
 }

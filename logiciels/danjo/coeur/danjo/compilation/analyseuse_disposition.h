@@ -61,7 +61,7 @@ public:
 	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
 	 * une exception est lancée.
 	 */
-	void lance_analyse() override;
+	void lance_analyse(std::ostream &os) override;
 
 private:
 	/**

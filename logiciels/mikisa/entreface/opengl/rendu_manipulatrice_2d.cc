@@ -24,7 +24,7 @@
 
 #include "rendu_manipulatrice_2d.h"
 
-#include "bibliotheques/opengl/tampon_rendu.h"
+#include "biblinternes/opengl/tampon_rendu.h"
 
 static const char *source_vertex_bordure =
 		"#version 330 core\n"
@@ -47,8 +47,8 @@ static const char *source_fragment_bordure =
 RenduManipulatrice2D::RenduManipulatrice2D()
 	: m_tampon(new TamponRendu())
 {
-	m_tampon->charge_source_programme(numero7::ego::Nuanceur::VERTEX, source_vertex_bordure);
-	m_tampon->charge_source_programme(numero7::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
+	m_tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, source_vertex_bordure);
+	m_tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
 	m_tampon->finalise_programme();
 
 	ParametresProgramme parametre_programme;

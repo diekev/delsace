@@ -66,7 +66,7 @@ AnalyseuseLogique::AnalyseuseLogique(
 	, m_initialise_manipulable(initialise_manipulable)
 {}
 
-void AnalyseuseLogique::lance_analyse()
+void AnalyseuseLogique::lance_analyse(std::ostream &)
 {
 	if (m_identifiants.empty()) {
 		return;

@@ -29,7 +29,7 @@
 
 #include <systeme_fichier/file.h>
 
-#include "bibliotheques/graphe/graphe.h"
+#include "biblinternes/graphe/graphe.h"
 #include "noeud_image.h"
 
 /* Adapted from Blender's BVM debug code. */
@@ -120,7 +120,7 @@ inline static std::string output_id(const PriseSortie *socket, size_t index, boo
 	return ss.str();
 }
 
-inline void dump_node(numero7::systeme_fichier::File &file, Noeud *node)
+inline void dump_node(dls::systeme_fichier::File &file, Noeud *node)
 {
 	constexpr auto shape = "box";
 	constexpr auto style = "filled,rounded";
@@ -189,7 +189,7 @@ inline void dump_node(numero7::systeme_fichier::File &file, Noeud *node)
 	file.print("\n");
 }
 
-inline void dump_link(numero7::systeme_fichier::File &file, const PriseSortie *from, const PriseEntree *to)
+inline void dump_link(dls::systeme_fichier::File &file, const PriseSortie *from, const PriseEntree *to)
 {
 	auto penwidth = 2.0;
 
@@ -207,7 +207,7 @@ inline void dump_link(numero7::systeme_fichier::File &file, const PriseSortie *f
 	file.print("\n");
 }
 
-inline void dump_node_links(numero7::systeme_fichier::File &file, const Noeud *node)
+inline void dump_node_links(dls::systeme_fichier::File &file, const Noeud *node)
 {
 	for (auto const &entree : node->entrees()) {
 		for (auto const &sortie : entree->liens) {
@@ -222,7 +222,7 @@ ImprimeuseGraphe::ImprimeuseGraphe(Graphe *graph)
 
 void ImprimeuseGraphe::operator()(filesystem::path const &path)
 {
-	numero7::systeme_fichier::File file(path, "w");
+	dls::systeme_fichier::File file(path, "w");
 
 	if (!file) {
 		return;

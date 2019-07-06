@@ -26,7 +26,7 @@
 
 #include <QWidget>
 
-#include <delsace/phys/couleur.hh>
+#include "biblinternes/phys/couleur.hh"
 
 namespace danjo {
 

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/spectre/spectre.h"
+#include "biblinternes/spectre/spectre.h"
 
 #include "types.h"
 

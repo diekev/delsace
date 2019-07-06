@@ -28,10 +28,10 @@
 #include <stack>
 #include <vector>
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/gna.hh"
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/gna.hh"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "bibloc/tableau.hh"
 

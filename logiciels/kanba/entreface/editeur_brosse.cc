@@ -24,7 +24,7 @@
 
 #include "editeur_brosse.h"
 
-#include <danjo/danjo.h>
+#include "danjo/danjo.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"

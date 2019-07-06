@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <ego/program.h>
-#include <ego/bufferobject.h>
-#include <ego/texture.h>
+#include "biblinternes/ego/program.h"
+#include "biblinternes/ego/bufferobject.h"
+#include "biblinternes/ego/texture.h"
 #include <sstream>
 
 #include <QGLWidget>
@@ -36,8 +36,8 @@ extern const char *basic_fragment;
 class GLCanvas : public QGLWidget {
 	Q_OBJECT
 
-	numero7::ego::Program m_program;
-	numero7::ego::BufferObject::Ptr m_buffer;
+	dls::ego::Program m_program;
+	dls::ego::BufferObject::Ptr m_buffer;
 	std::stringstream m_stringstream;
 
 	int m_width, m_height;

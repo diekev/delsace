@@ -26,8 +26,8 @@
 
 #include "operatrice_corps.h"
 
-#include "bibliotheques/graphe/compileuse_graphe.h"
-#include "bibliotheques/graphe/graphe.h"
+#include "biblinternes/graphe/compileuse_graphe.h"
+#include "biblinternes/graphe/graphe.h"
 
 #include "bibloc/tableau.hh"
 
@@ -68,7 +68,7 @@ namespace dls {
 namespace math {
 class BruitPerlin3D;
 }  /* namespace math */
-}  /* namespace numero7 */
+}  /* namespace dls */
 
 class GestionnaireDonneesGraphe {
 	dls::tableau<dls::math::BruitPerlin3D *> m_bruits{};

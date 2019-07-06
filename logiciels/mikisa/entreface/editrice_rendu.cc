@@ -24,7 +24,7 @@
 
 #include "editrice_rendu.h"
 
-#include <danjo/danjo.h>
+#include "danjo/danjo.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -35,7 +35,7 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"

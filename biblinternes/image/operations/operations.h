@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "../../math/matrice/matrice.h"
+#include "../../math/matrice/matrice.hh"
 #include "../pixel.h"
 
 namespace dls {
@@ -38,7 +38,7 @@ namespace operation {
  * nul.
  */
 template <ConceptNombre nombre>
-void extrait_canal(const math::matrice<Pixel<nombre>> &image, nombre *donnees, int canal)
+void extrait_canal(const math::matrice_dyn<Pixel<nombre>> &image, nombre *donnees, int canal)
 {
 	for (int l = 0; l < image.nombre_lignes(); ++l) {
 		for (int c = 0; c < image.nombre_colonnes(); ++c) {
@@ -65,7 +65,7 @@ void extrait_canal(const math::matrice<Pixel<nombre>> &image, nombre *donnees, i
  * Retourne la valeur maximale d'une matrice de pixel.
  */
 template <ConceptNombre nombre>
-Pixel<nombre> valeur_maximale(const math::matrice<Pixel<nombre>> &image)
+Pixel<nombre> valeur_maximale(const math::matrice_dyn<Pixel<nombre>> &image)
 {
 	Pixel<nombre> resultat;
 	resultat.r = std::numeric_limits<nombre>::min();
@@ -89,7 +89,7 @@ Pixel<nombre> valeur_maximale(const math::matrice<Pixel<nombre>> &image)
  * Retourne la valeur minimale d'une matrice de pixel.
  */
 template <ConceptNombre nombre>
-Pixel<nombre> valeur_minimale(const math::matrice<Pixel<nombre>> &image)
+Pixel<nombre> valeur_minimale(const math::matrice_dyn<Pixel<nombre>> &image)
 {
 	Pixel<nombre> resultat;
 	resultat.r = std::numeric_limits<nombre>::max();

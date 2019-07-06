@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "../../math/matrice/matrice.h"
-#include "../../math/vec2.h"
+#include "../../math/matrice/matrice.hh"
+#include "../../math/vecteur.hh"
 
 namespace dls {
 namespace image {
@@ -45,9 +45,9 @@ namespace navigation_estime {
  */
 
 void navigation_estime_ex(
-		const math::matrice<float> &image,
-		math::matrice<float> &distance,
-		math::matrice<math::vec2i> &nearest_point)
+		const math::matrice_dyn<float> &image,
+		math::matrice_dyn<float> &distance,
+		math::matrice_dyn<math::vec2i> &nearest_point)
 {
 	const auto sx = image.nombre_colonnes();
 	const auto sy = image.nombre_lignes();
@@ -136,7 +136,7 @@ void navigation_estime_ex(
 	}
 }
 
-void normalise(math::matrice<float> &field)
+void normalise(math::matrice_dyn<float> &field)
 {
 	const auto nc = field.nombre_colonnes();
 	const auto nl = field.nombre_lignes();
@@ -166,9 +166,9 @@ void normalise(math::matrice<float> &field)
 #endif
 }
 
-void initialise(const math::matrice<float> &image,
-		   math::matrice<float> &distance,
-		   math::matrice<math::vec2i> &nearest_point)
+void initialise(const math::matrice_dyn<float> &image,
+		   math::matrice_dyn<float> &distance,
+		   math::matrice_dyn<math::vec2i> &nearest_point)
 {
 	const auto nc = image.nombre_colonnes();
 	const auto nl = image.nombre_lignes();
@@ -177,7 +177,7 @@ void initialise(const math::matrice<float> &image,
 	for (auto l = 0; l < nl; ++l) {
 		for (auto c = 0; c < nc; ++c) {
 			distance[l][c] = max_dist;
-			nearest_point[l][c] = { 0, 0 };
+			nearest_point[l][c] = math::vec2i{ 0, 0 };
 		}
 	}
 
@@ -192,16 +192,16 @@ void initialise(const math::matrice<float> &image,
 				(image[l + 1][c] > 0.5f) != inside)
 			{
 				distance[l][c] = 0.0f;
-				nearest_point[l][c] = { l, c };
+				nearest_point[l][c] = math::vec2i{ l, c };
 			}
 		}
 	}
 }
 
-void genere_champs_distance(const math::matrice<float> &image,
-                  math::matrice<float> &distance, float valeur_iso)
+void genere_champs_distance(const math::matrice_dyn<float> &image,
+				  math::matrice_dyn<float> &distance, float valeur_iso)
 {
-	math::matrice<math::vec2i> nearest_point(image.dimensions());
+	math::matrice_dyn<math::vec2i> nearest_point(image.dimensions());
 
 	initialise(image, distance, nearest_point);
 	navigation_estime_ex(image, distance, nearest_point);
@@ -223,7 +223,7 @@ T distance_carre(const math::vec2<T> &p)
 	return p[0] * p[0] + p[1] * p[1];
 }
 
-inline void compare_dist(const math::matrice<math::vec2<int>> &g,
+inline void compare_dist(const math::matrice_dyn<math::vec2<int>> &g,
 						 math::vec2<int> &p,
 						 int c, int l,
 						 int decalage_c, int decalage_l)
@@ -237,7 +237,7 @@ inline void compare_dist(const math::matrice<math::vec2<int>> &g,
 	}
 }
 
-void scan(math::matrice<math::vec2<int>> &g)
+void scan(math::matrice_dyn<math::vec2<int>> &g)
 {
 	const auto sx = g.nombre_colonnes() - 1;
 	const auto sy = g.nombre_lignes() - 1;
@@ -290,9 +290,9 @@ void scan(math::matrice<math::vec2<int>> &g)
 }
 
 void initialise(
-		const math::matrice<float> &image,
-		math::matrice<math::vec2<int>> &grille1,
-		math::matrice<math::vec2<int>> &grille2)
+		const math::matrice_dyn<float> &image,
+		math::matrice_dyn<math::vec2<int>> &grille1,
+		math::matrice_dyn<math::vec2<int>> &grille2)
 {
 	const auto sx = image.nombre_colonnes();
 	const auto sy = image.nombre_lignes();
@@ -301,20 +301,20 @@ void initialise(
 	for (auto l = 0; l < sy; ++l) {
 		for (auto c = 0; c < sx; ++c) {
 			if (image[l][c] < 0.5f) {
-				grille1[l][c] = { 0, 0 };
-				grille2[l][c] = { max_dist, max_dist };
+				grille1[l][c] = math::vec2i{ 0, 0 };
+				grille2[l][c] = math::vec2i{ max_dist, max_dist };
 			}
 			else {
-				grille1[l][c] = { max_dist, max_dist };
-				grille2[l][c] = { 0, 0 };
+				grille1[l][c] = math::vec2i{ max_dist, max_dist };
+				grille2[l][c] = math::vec2i{ 0, 0 };
 			}
 		}
 	}
 }
 
 void genere_champs_distance(
-		const math::matrice<float> &image,
-        math::matrice<float> &distance,
+		const math::matrice_dyn<float> &image,
+		math::matrice_dyn<float> &distance,
         float valeur_iso)
 {
 	const auto sx = image.nombre_colonnes();
@@ -323,8 +323,8 @@ void genere_champs_distance(
 
 	/* We use two point grids: one which keeps track of the interior distances,
 	 * while the other, the exterior distances. */
-	math::matrice<math::vec2<int>> grille1(image.dimensions());
-	math::matrice<math::vec2<int>> grille2(image.dimensions());
+	math::matrice_dyn<math::vec2<int>> grille1(image.dimensions());
+	math::matrice_dyn<math::vec2<int>> grille2(image.dimensions());
 
 	initialise(image, grille1, grille2);
 

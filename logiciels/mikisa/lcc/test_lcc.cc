@@ -24,7 +24,7 @@
 
 #include <iostream>
 
-#include "bibliotheques/graphe/compileuse_graphe.h"
+#include "biblinternes/graphe/compileuse_graphe.h"
 
 #include "analyseuse_grammaire.h"
 #include "decoupeuse.h"

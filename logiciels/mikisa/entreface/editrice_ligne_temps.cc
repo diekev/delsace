@@ -24,8 +24,8 @@
 
 #include "editrice_ligne_temps.h"
 
-#include <danjo/danjo.h>
-#include <danjo/manipulable.h>
+#include "danjo/danjo.h"
+#include "danjo/manipulable.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -42,7 +42,7 @@
 #include <QTimer>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"

@@ -26,8 +26,8 @@
 
 #include "operatrice_image.h"
 
-#include "bibliotheques/graphe/compileuse_graphe.h"
-#include "bibliotheques/graphe/graphe.h"
+#include "biblinternes/graphe/compileuse_graphe.h"
+#include "biblinternes/graphe/graphe.h"
 
 /* ************************************************************************** */
 

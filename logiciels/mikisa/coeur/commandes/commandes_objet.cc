@@ -24,7 +24,7 @@
 
 #include "commandes_objet.hh"
 
-#include "bibliotheques/commandes/commande.h"
+#include "biblinternes/commandes/commande.h"
 
 #include "../evaluation/evaluation.hh"
 
@@ -37,7 +37,7 @@
 
 /* ************************************************************************** */
 
-#include <danjo/danjo.h>
+#include "danjo/danjo.h"
 
 class CommandeAjoutePrereglage final : public Commande {
 public:

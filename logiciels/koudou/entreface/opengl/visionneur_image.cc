@@ -24,31 +24,31 @@
 
 #include "visionneur_image.h"
 
-#include <ego/outils.h>
-#include <image/pixel.h>
+#include "biblinternes/ego/outils.h"
+#include "biblinternes/image/pixel.h"
 
 #include "../editeur_canevas.h"
 
 /* ************************************************************************** */
 
 static void extrait_canal(
-		numero7::math::matrice<dls::math::vec3d> const &image,
+		dls::math::matrice_dyn<dls::math::vec3d> const &image,
 		float *donnees,
 		int canal)
 {
 	for (int l = 0; l < image.nombre_lignes(); ++l) {
 		for (int c = 0; c < image.nombre_colonnes(); ++c) {
 			switch (canal) {
-				case numero7::image::CANAL_R:
+				case dls::image::CANAL_R:
 					*donnees++ = static_cast<float>(image[l][c][0]);
 					break;
-				case numero7::image::CANAL_G:
+				case dls::image::CANAL_G:
 					*donnees++ = static_cast<float>(image[l][c][1]);
 					break;
-				case numero7::image::CANAL_B:
+				case dls::image::CANAL_B:
 					*donnees++ = static_cast<float>(image[l][c][2]);
 					break;
-				case numero7::image::CANAL_A:
+				case dls::image::CANAL_A:
 					*donnees++ = static_cast<float>(image[l][c][3]);
 					break;
 			}
@@ -86,15 +86,15 @@ static const char *fragment_source =
 		"	fragment_color = vec4(red, green, blue, 1.0);\n"
 		"}\n";
 
-static void generate_texture(numero7::ego::Texture2D::Ptr &texture, const float *data, GLint size[2])
+static void generate_texture(dls::ego::Texture2D::Ptr &texture, const float *data, GLint size[2])
 {
-	texture->free(true);
-	texture->bind();
-	texture->setType(GL_FLOAT, GL_RED, GL_RED);
-	texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	texture->setWrapping(GL_CLAMP);
-	texture->fill(data, size);
-	texture->unbind();
+	texture->deloge(true);
+	texture->attache();
+	texture->type(GL_FLOAT, GL_RED, GL_RED);
+	texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+	texture->enveloppe(GL_CLAMP);
+	texture->remplie(data, size);
+	texture->detache();
 }
 
 /* ************************************************************************** */
@@ -110,13 +110,13 @@ VisionneurImage::VisionneurImage(VueCanevas *parent)
 
 void VisionneurImage::initialise()
 {
-	m_texture_R = numero7::ego::Texture2D::create(0);
-	m_texture_G = numero7::ego::Texture2D::create(1);
-	m_texture_B = numero7::ego::Texture2D::create(2);
-	m_texture_A = numero7::ego::Texture2D::create(3);
+	m_texture_R = dls::ego::Texture2D::cree_unique(0);
+	m_texture_G = dls::ego::Texture2D::cree_unique(1);
+	m_texture_B = dls::ego::Texture2D::cree_unique(2);
+	m_texture_A = dls::ego::Texture2D::cree_unique(3);
 
-	m_program.charge(numero7::ego::Nuanceur::VERTEX, vertex_source);
-	m_program.charge(numero7::ego::Nuanceur::FRAGMENT, fragment_source);
+	m_program.charge(dls::ego::Nuanceur::VERTEX, vertex_source);
+	m_program.charge(dls::ego::Nuanceur::FRAGMENT, fragment_source);
 
 	m_program.cree_et_lie_programme();
 
@@ -128,37 +128,37 @@ void VisionneurImage::initialise()
 		m_program.ajoute_uniforme("blue_channel");
 		m_program.ajoute_uniforme("alpha_channel");
 
-		glUniform1i(static_cast<int>(m_program("red_channel")), static_cast<int>(m_texture_R->number()));
-		glUniform1i(static_cast<int>(m_program("green_channel")), static_cast<int>(m_texture_G->number()));
-		glUniform1i(static_cast<int>(m_program("blue_channel")), static_cast<int>(m_texture_B->number()));
-		glUniform1i(static_cast<int>(m_program("alpha_channel")), static_cast<int>(m_texture_A->number()));
+		glUniform1i(m_program("red_channel"), static_cast<int>(m_texture_R->code_attache()));
+		glUniform1i(m_program("green_channel"), static_cast<int>(m_texture_G->code_attache()));
+		glUniform1i(m_program("blue_channel"), static_cast<int>(m_texture_B->code_attache()));
+		glUniform1i(m_program("alpha_channel"), static_cast<int>(m_texture_A->code_attache()));
 	}
 	m_program.desactive();
 
-	m_buffer = numero7::ego::TamponObjet::create();
+	m_buffer = dls::ego::TamponObjet::cree_unique();
 
-	m_buffer->bind();
-	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
-	m_buffer->generateIndexBuffer(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->attribPointer(m_program["vertex"], 2);
-	m_buffer->unbind();
+	m_buffer->attache();
+	m_buffer->genere_tampon_sommet(m_vertices, sizeof(float) * 8);
+	m_buffer->genere_tampon_index(&m_indices[0], sizeof(GLushort) * 6);
+	m_buffer->pointeur_attribut(static_cast<unsigned>(m_program["vertex"]), 2);
+	m_buffer->detache();
 }
 
 void VisionneurImage::peint_opengl()
 {
 	if (m_program.est_valide()) {
 		m_program.active();
-		m_buffer->bind();
-		m_texture_R->bind();
-		m_texture_G->bind();
-		m_texture_B->bind();
+		m_buffer->attache();
+		m_texture_R->attache();
+		m_texture_G->attache();
+		m_texture_B->attache();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		m_texture_B->unbind();
-		m_texture_G->unbind();
-		m_texture_R->unbind();
-		m_buffer->unbind();
+		m_texture_B->detache();
+		m_texture_G->detache();
+		m_texture_R->detache();
+		m_buffer->detache();
 		m_program.desactive();
 	}
 }
@@ -168,7 +168,7 @@ void VisionneurImage::redimensionne(int largeur, int hauteur)
 	glViewport(0, 0, largeur, hauteur);
 }
 
-void VisionneurImage::charge_image(numero7::math::matrice<dls::math::vec3d> const &image)
+void VisionneurImage::charge_image(dls::math::matrice_dyn<dls::math::vec3d> const &image)
 {
 	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
 		return;
@@ -185,9 +185,9 @@ void VisionneurImage::charge_image(numero7::math::matrice<dls::math::vec3d> cons
 	m_donnees_g.resize(resolution);
 	m_donnees_b.resize(resolution);
 
-	extrait_canal(image, &m_donnees_r[0], numero7::image::CANAL_R);
-	extrait_canal(image, &m_donnees_g[0], numero7::image::CANAL_G);
-	extrait_canal(image, &m_donnees_b[0], numero7::image::CANAL_B);
+	extrait_canal(image, &m_donnees_r[0], dls::image::CANAL_R);
+	extrait_canal(image, &m_donnees_g[0], dls::image::CANAL_G);
+	extrait_canal(image, &m_donnees_b[0], dls::image::CANAL_B);
 
 	if (m_largeur != size[0] || m_hauteur != size[1]) {
 		m_hauteur = size[0];
@@ -200,5 +200,5 @@ void VisionneurImage::charge_image(numero7::math::matrice<dls::math::vec3d> cons
 	generate_texture(m_texture_G, m_donnees_g.data(), size);
 	generate_texture(m_texture_B, m_donnees_b.data(), size);
 
-	numero7::ego::util::GPU_check_errors("Unable to create image texture");
+	dls::ego::util::GPU_check_errors("Unable to create image texture");
 }

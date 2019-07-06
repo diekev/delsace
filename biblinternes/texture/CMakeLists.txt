@@ -23,13 +23,13 @@ set(NOM_CIBLE bib_texture)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${INCLUSIONS_MATH}
-	${INCLUSIONS_DELSACE_MATH}
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUES_MATH}
-	${BIBLIOTHEQUES_IMAGE}
+	math
+	image
+	png
+	jpeg
 	bib_spectre
 )
 

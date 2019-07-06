@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <delsace/math/matrice.hh>
+#include "biblinternes/math/matrice.hh"
 
 #include <map>
 #include <vector>

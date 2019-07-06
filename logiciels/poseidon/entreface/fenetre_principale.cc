@@ -35,7 +35,7 @@
 #include <QStatusBar>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "coeur/evenement.h"
 

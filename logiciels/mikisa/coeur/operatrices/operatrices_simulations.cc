@@ -24,8 +24,8 @@
 
 #include "operatrices_simulations.hh"
 
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "bibloc/tableau.hh"
 

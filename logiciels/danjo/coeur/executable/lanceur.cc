@@ -26,7 +26,7 @@
 #include <fstream>
 #include <iostream>
 
-#include <delsace/langage/tampon_source.hh>
+#include "biblinternes/langage/tampon_source.hh"
 
 #include "danjo/compilation/decoupeuse.h"
 #include "danjo/compilation/analyseuse_disposition.h"

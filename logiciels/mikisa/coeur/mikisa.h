@@ -27,8 +27,8 @@
 #include <string>
 #include <thread>
 
-#include "bibliotheques/observation/observation.hh"
-#include "bibliotheques/commandes/commande.h"
+#include "biblinternes/observation/observation.hh"
+#include "biblinternes/commandes/commande.h"
 
 #include "bibloc/tableau.hh"
 

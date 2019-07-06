@@ -24,17 +24,16 @@
 
 #pragma once
 
-#include <danjo/manipulable.h>
-
-#include <image/pixel.h>
-#include <math/matrice/matrice.h>
-
 #include <any>
 #include <list>
 #include <vector>
 
-#include "bibliotheques/geometrie/rectangle.h"
-#include "bibliotheques/outils/iterateurs.h"
+#include "biblinternes/geometrie/rectangle.h"
+#include "biblinternes/image/pixel.h"
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/outils/iterateurs.h"
+
+#include "danjo/manipulable.h"
 
 class Corps;
 class Graphe;
@@ -55,7 +54,7 @@ struct ContexteEvaluation;
 struct DonneesAval;
 struct Objet;
 
-using type_image = numero7::math::matrice<numero7::image::Pixel<float>>;
+using type_image = dls::math::matrice_dyn<dls::image::Pixel<float>>;
 
 enum {
 	EXECUTION_REUSSIE = 0,
@@ -85,19 +84,19 @@ struct Calque {
 	/**
 	 * Retourne la valeur du tampon de ce calque à la position <x, y>.
 	 */
-	numero7::image::Pixel<float> valeur(size_t x, size_t y) const;
+	dls::image::Pixel<float> valeur(size_t x, size_t y) const;
 
 	/**
 	 * Ajourne la valeur du tampon de ce calque à la position <x, y>.
 	 */
-	void valeur(size_t x, size_t y, numero7::image::Pixel<float> const &pixel);
+	void valeur(size_t x, size_t y, dls::image::Pixel<float> const &pixel);
 
 	/**
 	 * Échantillonne le tampon de ce calque à la position <x, y> en utilisant
 	 * une entrepolation linéaire entre les pixels se trouvant entre les quatre
 	 * coins de la position spécifiée.
 	 */
-	numero7::image::Pixel<float> echantillone(float x, float y) const;
+	dls::image::Pixel<float> echantillone(float x, float y) const;
 };
 
 /* ************************************************************************** */
@@ -107,8 +106,8 @@ class Image {
 	std::string m_nom_calque{};
 
 public:
-	using plage_calques = plage_iterable<std::list<Calque *>::iterator>;
-	using plage_calques_const = plage_iterable<std::list<Calque *>::const_iterator>;
+	using plage_calques = dls::outils::plage_iterable<std::list<Calque *>::iterator>;
+	using plage_calques_const = dls::outils::plage_iterable<std::list<Calque *>::const_iterator>;
 
 	~Image();
 

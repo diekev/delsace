@@ -24,7 +24,7 @@
 
 #include "adaptrice_creation_corps.h"
 
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/definitions.h"
 
 #include "bibloc/logeuse_memoire.hh"
 

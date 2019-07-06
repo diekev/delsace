@@ -83,7 +83,7 @@ tuple_vecteurs calcul_index_et_poids(
  * impérativement être inférieure à celle de l'image src.
  */
 template <ConceptNombre nombre>
-static void sousechantillonage_horizontal(const math::matrice<nombre> &src, math::matrice<nombre> &dst)
+static void sousechantillonage_horizontal(const math::matrice_dyn<nombre> &src, math::matrice_dyn<nombre> &dst)
 {
 	std::vector<int>   index_gauche;
 	std::vector<int>   index_droite;
@@ -116,7 +116,7 @@ static void sousechantillonage_horizontal(const math::matrice<nombre> &src, math
  * impérativement être inférieure à celle de l'image src.
  */
 template <ConceptNombre nombre>
-static void sousechantillonage_vertical(const math::matrice<nombre> &src, math::matrice<nombre> &dst)
+static void sousechantillonage_vertical(const math::matrice_dyn<nombre> &src, math::matrice_dyn<nombre> &dst)
 {
 	std::vector<int>   index_haut;
 	std::vector<int>   index_bas;
@@ -148,7 +148,7 @@ static void sousechantillonage_vertical(const math::matrice<nombre> &src, math::
  * taille supérieure à l'image src sur au moins l'une des deux dimensions.
  */
 template <ConceptNombre nombre>
-static void surechantillonage(const math::matrice<nombre> &src, math::matrice<nombre> &dst)
+static void surechantillonage(const math::matrice_dyn<nombre> &src, math::matrice_dyn<nombre> &dst)
 {
 	auto dst_width = dst.nombre_colonnes();
 	auto dst_height = dst.nombre_lignes();
@@ -262,10 +262,10 @@ static void surechantillonage(const math::matrice<nombre> &src, math::matrice<no
  * ont les mêmes dimensions, l'image src est simplement copiée vers l'image dst.
  */
 template <ConceptNombre nombre>
-void redimensionne(const math::matrice<nombre> &src, math::matrice<nombre> &dst)
+void redimensionne(const math::matrice_dyn<nombre> &src, math::matrice_dyn<nombre> &dst)
 {
 	if (src.nombre_colonnes() > dst.nombre_colonnes() && src.nombre_lignes() > dst.nombre_lignes() ) {
-		math::matrice<nombre> tmp(math::Hauteur(src.nombre_lignes()), math::Largeur(dst.nombre_colonnes()));
+		math::matrice_dyn<nombre> tmp(math::Hauteur(src.nombre_lignes()), math::Largeur(dst.nombre_colonnes()));
 		sousechantillonage_horizontal(src, tmp);
 		sousechantillonage_vertical(tmp, dst);
 	}
@@ -273,7 +273,7 @@ void redimensionne(const math::matrice<nombre> &src, math::matrice<nombre> &dst)
 		sousechantillonage_horizontal(src, dst);
 	}
 	else if (src.nombre_colonnes() > dst.nombre_colonnes() && src.nombre_lignes() < dst.nombre_lignes() ) {
-		math::matrice<nombre> tmp(math::Hauteur(src.nombre_lignes()), math::Largeur(dst.nombre_colonnes()));
+		math::matrice_dyn<nombre> tmp(math::Hauteur(src.nombre_lignes()), math::Largeur(dst.nombre_colonnes()));
 		sousechantillonage_horizontal(src, tmp);
 		surechantillonage(tmp, dst);
 	}
@@ -287,7 +287,7 @@ void redimensionne(const math::matrice<nombre> &src, math::matrice<nombre> &dst)
 		surechantillonage(src, dst);
 	}
 	else if (src.nombre_colonnes() < dst.nombre_colonnes() && src.nombre_lignes() > dst.nombre_lignes() ) {
-		math::matrice<nombre> tmp(math::Hauteur(dst.nombre_lignes()), math::Largeur(src.nombre_colonnes()));
+		math::matrice_dyn<nombre> tmp(math::Hauteur(dst.nombre_lignes()), math::Largeur(src.nombre_colonnes()));
 		sousechantillonage_vertical(src, tmp);
 		surechantillonage(tmp, dst);
 	}

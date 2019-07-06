@@ -32,10 +32,10 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/vision/camera_2d.h"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/vision/camera_2d.h"
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"

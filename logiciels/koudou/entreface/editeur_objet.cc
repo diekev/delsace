@@ -33,7 +33,7 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/outils/constantes.h"
 
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"

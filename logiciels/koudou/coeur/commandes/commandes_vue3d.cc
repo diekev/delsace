@@ -34,9 +34,9 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/vision/camera.h"
 
 #include "../evenement.h"
 #include "../koudou.h"

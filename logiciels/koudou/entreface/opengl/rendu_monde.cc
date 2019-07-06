@@ -24,14 +24,14 @@
 
 #include "rendu_monde.h"
 
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <GL/glew.h>
 
-#include "bibliotheques/objets/adaptrice_creation.h"
-#include "bibliotheques/objets/creation.h"
-#include "bibliotheques/opengl/tampon_rendu.h"
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/texture/texture.h"
+#include "biblinternes/objets/adaptrice_creation.h"
+#include "biblinternes/objets/creation.h"
+#include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/texture/texture.h"
 
 #include "coeur/koudou.h"
 
@@ -160,18 +160,18 @@ static TamponRendu *cree_tampon(TypeTexture type_texture)
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	if (type_texture == TypeTexture::COULEUR) {
 		tampon->charge_source_programme(
-					numero7::ego::Nuanceur::FRAGMENT,
-					numero7::ego::util::str_from_file("nuanceurs/couleur.frag"));
+					dls::ego::Nuanceur::FRAGMENT,
+					dls::ego::util::str_from_file("nuanceurs/couleur.frag"));
 	}
 	else {
 		tampon->charge_source_programme(
-					numero7::ego::Nuanceur::FRAGMENT,
-					numero7::ego::util::str_from_file("nuanceurs/texture.frag"));
+					dls::ego::Nuanceur::FRAGMENT,
+					dls::ego::util::str_from_file("nuanceurs/texture.frag"));
 	}
 
 	tampon->finalise_programme();
@@ -203,22 +203,22 @@ static TamponRendu *cree_tampon(TypeTexture type_texture)
 
 		auto programme = tampon->programme();
 		programme->active();
-		programme->uniforme("image", texture->number());
+		programme->uniforme("image", texture->code_attache());
 		programme->desactive();
 	}
 
 	return tampon;
 }
 
-static void genere_texture(numero7::ego::Texture2D *texture, const void *data, GLint size[2])
+static void genere_texture(dls::ego::Texture2D *texture, const void *data, GLint size[2])
 {
-	texture->free(true);
-	texture->bind();
-	texture->setType(GL_FLOAT, GL_RGB, GL_RGB);
-	texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	texture->setWrapping(GL_CLAMP);
-	texture->fill(data, size);
-	texture->unbind();
+	texture->deloge(true);
+	texture->attache();
+	texture->type(GL_FLOAT, GL_RGB, GL_RGB);
+	texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+	texture->enveloppe(GL_CLAMP);
+	texture->remplie(data, size);
+	texture->detache();
 }
 
 /* ************************************************************************** */

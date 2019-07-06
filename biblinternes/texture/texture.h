@@ -25,11 +25,12 @@
 #pragma once
 
 #include <experimental/filesystem>
-#include <image/pixel.h>
-#include <math/matrice/matrice.h>
-#include <delsace/math/vecteur.hh>
 
-#include "bibliotheques/spectre/spectre.h"
+#include "biblinternes/image/pixel.h"
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
+
+#include "biblinternes/spectre/spectre.h"
 
 namespace vision {
 class Camera3D;
@@ -94,7 +95,7 @@ public:
 /* ************************************************************************** */
 
 class TextureImage final : public Texture {
-	numero7::math::matrice<Spectre> m_image{};
+	dls::math::matrice_dyn<Spectre> m_image{};
 	std::experimental::filesystem::path m_chemin{};
 	vision::Camera3D *m_camera = nullptr;
 
@@ -112,7 +113,7 @@ public:
 
 	Spectre echantillone(dls::math::vec3d const &direction) const override;
 
-	void etablie_image(numero7::math::matrice<Spectre> const &image);
+	void etablie_image(dls::math::matrice_dyn<Spectre> const &image);
 
 	SpectreRGB *donnees();
 	int largeur();
@@ -146,7 +147,7 @@ public:
 
 	Spectre echantillone_uv(int x, int y);
 
-	void charge_donnees(numero7::math::matrice<numero7::image::PixelFloat> const &donnees);
+	void charge_donnees(dls::math::matrice_dyn<dls::image::PixelFloat> const &donnees);
 };
 
 TextureImage *charge_texture(std::experimental::filesystem::path const &chemin);

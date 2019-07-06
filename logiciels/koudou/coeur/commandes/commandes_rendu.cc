@@ -24,7 +24,7 @@
 
 #include "commandes_rendu.h"
 
-#include "bibliotheques/commandes/commande.h"
+#include "biblinternes/commandes/commande.h"
 
 #include "../koudou.h"
 #include "../moteur_rendu.h"

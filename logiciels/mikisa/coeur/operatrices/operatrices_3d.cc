@@ -24,9 +24,9 @@
 
 #include "operatrices_3d.h"
 
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/texture/texture.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/texture/texture.h"
+#include "biblinternes/vision/camera.h"
 
 #include "../contexte_evaluation.hh"
 #include "../manipulatrice.h"

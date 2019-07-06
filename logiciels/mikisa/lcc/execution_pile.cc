@@ -24,7 +24,7 @@
 
 #include "execution_pile.hh"
 
-#include <delsace/math/entrepolation.hh>
+#include "biblinternes/math/entrepolation.hh"
 
 #include <cstring>
 #include <random>

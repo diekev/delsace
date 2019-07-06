@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 #include <vector>
 
-#include "bibliotheques/spectre/spectre.h"
+#include "biblinternes/spectre/spectre.h"
 
 #include "types.h"
 

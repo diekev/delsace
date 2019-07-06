@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "bibliotheques/opengl/contexte_rendu.h"
-#include "bibliotheques/opengl/pile_matrice.h"
+#include "biblinternes/opengl/contexte_rendu.h"
+#include "biblinternes/opengl/pile_matrice.h"
 
 class Koudou;
 class RenduCamera;

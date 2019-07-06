@@ -27,7 +27,7 @@
 #include <vector>
 #include <map>
 
-#include "bibliotheques/transformation/transformation.h"
+#include "biblinternes/transformation/transformation.h"
 
 /**
  * Représentation d'un sommet dans l'espace tridimensionel.

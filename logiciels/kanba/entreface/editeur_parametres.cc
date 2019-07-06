@@ -92,8 +92,8 @@ void VueParametres::ajourne_donnees()
 	auto const resolution = evalue_enum("resolution");
 
 	if (m_kanba->parametres_rendu.resolution != resolution) {
-		auto const largeur = numero7::math::Largeur(RESOLUTIONS[resolution][0]);
-		auto const hauteur = numero7::math::Hauteur(RESOLUTIONS[resolution][1]);
+		auto const largeur = dls::math::Largeur(RESOLUTIONS[resolution][0]);
+		auto const hauteur = dls::math::Hauteur(RESOLUTIONS[resolution][1]);
 
 		m_kanba->moteur_rendu->pointeur_pellicule()->redimensionne(hauteur, largeur);
 	}

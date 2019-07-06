@@ -24,12 +24,12 @@
 
 #pragma once
 
-#include <ego/programme.h>
-#include <ego/tampon_objet.h>
-#include <ego/texture.h>
+#include "biblinternes/ego/programme.h"
+#include "biblinternes/ego/tampon_objet.h"
+#include "biblinternes/ego/texture.h"
 
-#include <numero7/math/matrice/matrice.h>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
 
 class Kanba;
 class VueCanevas;
@@ -41,9 +41,9 @@ class VueCanevas;
 class VisionneurImage {
 	VueCanevas *m_parent;
 
-	numero7::ego::Programme m_program{};
-	numero7::ego::TamponObjet::Ptr m_buffer;
-	numero7::ego::Texture2D::Ptr m_texture;
+	dls::ego::Programme m_program{};
+	dls::ego::TamponObjet::Ptr m_buffer;
+	dls::ego::Texture2D::Ptr m_texture;
 
 	const float m_vertices[8] = {
 		0.0f, 0.0f,
@@ -99,5 +99,5 @@ public:
 	 * Charge l'image spécifiée dans le visionneur. Les données de l'image sont
 	 * copiées dans des tampons OpenGL pour le rendu.
 	 */
-	void charge_image(numero7::math::matrice<dls::math::vec4f> const &image);
+	void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
 };

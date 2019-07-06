@@ -24,8 +24,8 @@
 
 #include "arbre_syntactic.h"
 
-#include "bibliotheques/graphe/compileuse_graphe.h"
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/graphe/compileuse_graphe.h"
+#include "biblinternes/outils/definitions.h"
 
 #include "bibloc/tableau.hh"
 

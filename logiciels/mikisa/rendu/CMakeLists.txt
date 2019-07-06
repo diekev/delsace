@@ -24,13 +24,11 @@ set(NOM_CIBLE mikisa_rendu)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${INCLUSIONS_EGO}
-	${INCLUSIONS_MATH}
 )
 
 set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_OPENGL}
-	${BIBLIOTHEQUES_EGO}
+	ego
 	bib_opengl
 	bib_texture
 	mikisa_coeur

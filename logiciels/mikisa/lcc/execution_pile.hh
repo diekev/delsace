@@ -24,10 +24,10 @@
 
 #pragma once
 
-//#include "bibliotheques/graphe/compileuse_graphe.h"
+//#include "biblinternes/graphe/compileuse_graphe.h"
 
-#include <delsace/math/matrice.hh>
-#include <delsace/phys/couleur.hh>
+#include "biblinternes/math/matrice.hh"
+#include "biblinternes/phys/couleur.hh"
 
 #include "bibloc/tableau.hh"
 

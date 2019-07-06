@@ -30,7 +30,7 @@
 #include "editeur_canevas.h"
 
 #include <cassert>
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <iostream>
 
 #pragma GCC diagnostic push
@@ -45,11 +45,11 @@
 #include <QVBoxLayout>
 #pragma GCC diagnostic pop
 
-#include <image/pixel.h>
-#include <image/operations/operations.h>
+#include "biblinternes/image/pixel.h"
+#include "biblinternes/image/operations/operations.h"
 
-#include "bibliotheques/commandes/commande.h"
-#include "bibliotheques/commandes/repondant_commande.h"
+#include "biblinternes/commandes/commande.h"
+#include "biblinternes/commandes/repondant_commande.h"
 
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"
@@ -139,7 +139,7 @@ void VueCanevas::mouseReleaseEvent(QMouseEvent *e)
 	m_koudou->repondant_commande->acheve_commande_modale(donnees);
 }
 
-void VueCanevas::charge_image(numero7::math::matrice<dls::math::vec3d> const &image)
+void VueCanevas::charge_image(dls::math::matrice_dyn<dls::math::vec3d> const &image)
 {
 	m_visionneur_image->charge_image(image);
 }

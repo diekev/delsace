@@ -27,9 +27,9 @@
 #include <algorithm>
 #include <random>
 
-#include <delsace/math/bruit.hh>
+#include "biblinternes/math/bruit.hh"
 
-#include "bibliotheques/texture/texture.h"
+#include "biblinternes/texture/texture.h"
 
 #include "outils_couleur.h"
 #include "paqueuse_texture.h"

@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <ego/bufferobject.h>
-#include <ego/program.h>
-#include <ego/texture.h>
+#include "biblinternes/ego/bufferobject.h"
+#include "biblinternes/ego/program.h"
+#include "biblinternes/ego/texture.h"
 
 /* Needs to included after glew.h, which is included in gpu/program.h and
  * gpu/bufferobject.h */
@@ -37,8 +37,8 @@ class Fluid;
 class GLCanvas : public QGLWidget {
 	Q_OBJECT
 
-	numero7::ego::Program m_program;
-	numero7::ego::BufferObject::Ptr m_buffer;
+	dls::ego::Program m_program;
+	dls::ego::BufferObject::Ptr m_buffer;
 
 	const float m_vertices[8] = {
 	    -1.0f, -1.0f,

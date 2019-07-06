@@ -37,6 +37,7 @@ set(BIBLIOTHEQUES
 	bib_observation
 	bib_vision
 	bib_transformation
+	ego
 )
 
 qt5_wrap_cpp(

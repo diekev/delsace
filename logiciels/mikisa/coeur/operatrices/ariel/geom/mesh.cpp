@@ -5,7 +5,7 @@
 // Implements mesh.hpp
 
 #include "mesh.hpp"
-#include <delsace/math/outils.hh>
+#include "biblinternes/math/outils.hh"
 
 namespace geomCore {
 

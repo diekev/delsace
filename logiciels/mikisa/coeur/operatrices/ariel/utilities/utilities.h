@@ -8,8 +8,8 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
-#include <delsace/math/matrice.hh>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
 #include <algorithm>
 #include <istream>
 #include <ostream>
@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/outils/constantes.h"
 
 //====================================
 // Useful Math Constants

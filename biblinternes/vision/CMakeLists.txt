@@ -22,8 +22,7 @@
 set(NOM_CIBLE bib_vision)
 
 set(INCLUSIONS
-	${INCLUSIONS_MATH}
-	${INCLUSIONS_DELSACE_MATH}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 add_library(${NOM_CIBLE} STATIC

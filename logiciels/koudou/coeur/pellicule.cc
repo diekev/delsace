@@ -25,7 +25,7 @@
 #include "pellicule.h"
 
 Pellicule::Pellicule()
-	: m_matrice(numero7::math::Hauteur(720), numero7::math::Largeur(1280))
+	: m_matrice(dls::math::Hauteur(720), dls::math::Largeur(1280))
 {}
 
 int Pellicule::hauteur() const
@@ -51,7 +51,7 @@ dls::math::vec3d const &Pellicule::couleur(int i, int j)
 	return m_matrice[i][j];
 }
 
-numero7::math::matrice<dls::math::vec3d> const &Pellicule::donnees()
+dls::math::matrice_dyn<dls::math::vec3d> const &Pellicule::donnees()
 {
 	return m_matrice;
 }
@@ -91,7 +91,7 @@ void Pellicule::creer_image()
 	}
 }
 
-void Pellicule::redimensionne(numero7::math::Hauteur const &hauteur, numero7::math::Largeur const &largeur)
+void Pellicule::redimensionne(dls::math::Hauteur const &hauteur, dls::math::Largeur const &largeur)
 {
-	m_matrice = numero7::math::matrice<dls::math::vec3d>(hauteur, largeur);
+	m_matrice = dls::math::matrice_dyn<dls::math::vec3d>(hauteur, largeur);
 }

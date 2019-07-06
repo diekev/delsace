@@ -24,8 +24,8 @@
 
 #include "bsdf.h"
 
-#include "bibliotheques/outils/constantes.h"
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
 
 #include "gna.h"
 #include "koudou.h"

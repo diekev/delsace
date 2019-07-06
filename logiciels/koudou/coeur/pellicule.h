@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <math/matrice/matrice.h>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
 
 #include <vector>
 
@@ -42,7 +42,7 @@ struct PixelPellicule {
 };
 
 class Pellicule {
-	numero7::math::matrice<dls::math::vec3d> m_matrice;
+	dls::math::matrice_dyn<dls::math::vec3d> m_matrice;
 
 	std::vector<PixelPellicule> m_pixels_pellicule{};
 
@@ -57,11 +57,11 @@ public:
 
 	dls::math::vec3d const &couleur(int i, int j);
 
-	numero7::math::matrice<dls::math::vec3d> const &donnees();
+	dls::math::matrice_dyn<dls::math::vec3d> const &donnees();
 
 	void reinitialise();
 
-	void redimensionne(numero7::math::Hauteur const &hauteur, numero7::math::Largeur const &largeur);
+	void redimensionne(dls::math::Hauteur const &hauteur, dls::math::Largeur const &largeur);
 
 	void creer_image();
 };

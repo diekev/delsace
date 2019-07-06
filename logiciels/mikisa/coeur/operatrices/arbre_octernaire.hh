@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/geometrie/limites.hh"
+#include "biblinternes/geometrie/limites.hh"
 #include "corps/triangulation.hh"
 
 class ArbreOcternaire {

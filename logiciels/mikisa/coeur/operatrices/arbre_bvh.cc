@@ -26,7 +26,7 @@
 
 #include <cassert>
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 #include "bibloc/logeuse_memoire.hh"
 

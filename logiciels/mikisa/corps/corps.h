@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "bibliotheques/transformation/transformation.h"
+#include "biblinternes/transformation/transformation.h"
 
 #include <unordered_map>
 
@@ -71,8 +71,8 @@ struct Corps {
 
 	int type = CORPS_NUL;
 
-	using plage_attributs = plage_iterable<dls::tableau<Attribut *>::iteratrice>;
-	using plage_const_attributs = plage_iterable<dls::tableau<Attribut *>::const_iteratrice>;
+	using plage_attributs = dls::outils::plage_iterable<dls::tableau<Attribut *>::iteratrice>;
+	using plage_const_attributs = dls::outils::plage_iterable<dls::tableau<Attribut *>::const_iteratrice>;
 
 	Corps() = default;
 	virtual ~Corps();
@@ -132,8 +132,8 @@ struct Corps {
 
 	/* Groupes points. */
 
-	using plage_grp_pnts = plage_iterable<dls::tableau<GroupePoint>::iteratrice>;
-	using plage_const_grp_pnts = plage_iterable<dls::tableau<GroupePoint>::const_iteratrice>;
+	using plage_grp_pnts = dls::outils::plage_iterable<dls::tableau<GroupePoint>::iteratrice>;
+	using plage_const_grp_pnts = dls::outils::plage_iterable<dls::tableau<GroupePoint>::const_iteratrice>;
 
 	GroupePoint *ajoute_groupe_point(std::string const &nom_groupe);
 
@@ -145,8 +145,8 @@ struct Corps {
 
 	/* Groupes primitives. */
 
-	using plage_grp_prims = plage_iterable<dls::tableau<GroupePrimitive>::iteratrice>;
-	using plage_const_grp_prims = plage_iterable<dls::tableau<GroupePrimitive>::const_iteratrice>;
+	using plage_grp_prims = dls::outils::plage_iterable<dls::tableau<GroupePrimitive>::iteratrice>;
+	using plage_const_grp_prims = dls::outils::plage_iterable<dls::tableau<GroupePrimitive>::const_iteratrice>;
 
 	GroupePrimitive *ajoute_groupe_primitive(std::string const &nom_groupe);
 

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <danjo/manipulable.h>
+#include "danjo/manipulable.h"
 
 #include "base_editeur.h"
 

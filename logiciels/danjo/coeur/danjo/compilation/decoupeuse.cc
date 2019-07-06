@@ -27,8 +27,8 @@
 #include <algorithm>
 #include <iostream>
 
-#include <delsace/langage/tampon_source.hh>
-#include <delsace/langage/unicode.hh>
+#include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/langage/unicode.hh"
 
 #include "erreur.h"
 #include "morceaux.h"

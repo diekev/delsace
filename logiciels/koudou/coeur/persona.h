@@ -25,7 +25,7 @@
 #pragma once
 
 #include <algorithm>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 #include <experimental/any>
 #include <iostream>
 #include <string>

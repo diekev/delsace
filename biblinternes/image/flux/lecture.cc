@@ -53,7 +53,7 @@ namespace flux {
 
 /* ************************************************************************** */
 
-math::matrice<PixelChar> lecture_uchar(const filesystem::path &chemin)
+math::matrice_dyn<PixelChar> lecture_uchar(const filesystem::path &chemin)
 {
 	const auto &extension = chemin.extension();
 
@@ -72,7 +72,7 @@ math::matrice<PixelChar> lecture_uchar(const filesystem::path &chemin)
 	}
 }
 
-math::matrice<PixelFloat> lecture_float(const filesystem::path &chemin)
+math::matrice_dyn<PixelFloat> lecture_float(const filesystem::path &chemin)
 {
 	const auto &extension = chemin.extension();
 
@@ -94,7 +94,7 @@ math::matrice<PixelFloat> lecture_float(const filesystem::path &chemin)
 
 /* ************************************************************************** */
 
-math::matrice<PixelChar> LecteurJPEG::ouvre(const filesystem::path &chemin)
+math::matrice_dyn<PixelChar> LecteurJPEG::ouvre(const filesystem::path &chemin)
 {
 #ifdef AVEC_JPEG
 	FILE *file = std::fopen(chemin.c_str(), "rb");
@@ -123,7 +123,7 @@ math::matrice<PixelChar> LecteurJPEG::ouvre(const filesystem::path &chemin)
 	const auto height = info.output_height;
 	const auto channels = info.output_components;
 
-	auto image = math::matrice<PixelChar>(math::Hauteur(height), math::Largeur(width));
+	auto image = math::matrice_dyn<PixelChar>(math::Hauteur(height), math::Largeur(width));
 
 	const auto &stride = width * channels;
 
@@ -155,7 +155,7 @@ math::matrice<PixelChar> LecteurJPEG::ouvre(const filesystem::path &chemin)
 
 /* ************************************************************************** */
 
-math::matrice<PixelChar> LecteurPNM::ouvre(const filesystem::path &chemin)
+math::matrice_dyn<PixelChar> LecteurPNM::ouvre(const filesystem::path &chemin)
 {
 	FILE *fichier = std::fopen(chemin.c_str(), "r");
 
@@ -176,7 +176,7 @@ math::matrice<PixelChar> LecteurPNM::ouvre(const filesystem::path &chemin)
 		return { math::Hauteur(0), math::Largeur(0) };
 	}
 
-	auto img = math::matrice<PixelChar>(
+	auto img = math::matrice_dyn<PixelChar>(
 				math::Hauteur(nombre_lignes),
 				math::Largeur(nombre_colonnes));
 
@@ -193,7 +193,7 @@ math::matrice<PixelChar> LecteurPNM::ouvre(const filesystem::path &chemin)
 
 /* ************************************************************************** */
 
-math::matrice<PixelChar> LecteurTIF::ouvre(const filesystem::path &chemin)
+math::matrice_dyn<PixelChar> LecteurTIF::ouvre(const filesystem::path &chemin)
 {
 #ifdef AVEC_TIFF
 	TIFF *file = TIFFOpen(chemin.c_str(), "r");
@@ -223,7 +223,7 @@ math::matrice<PixelChar> LecteurTIF::ouvre(const filesystem::path &chemin)
 
 /* ************************************************************************** */
 
-math::matrice<PixelFloat> LecteurEXR::ouvre(const filesystem::path &chemin)
+math::matrice_dyn<PixelFloat> LecteurEXR::ouvre(const filesystem::path &chemin)
 {
 #ifdef AVEC_OPENEXR
 	namespace openexr = OPENEXR_IMF_NAMESPACE;

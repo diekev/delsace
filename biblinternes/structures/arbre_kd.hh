@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 class ArbreKD {
 public:

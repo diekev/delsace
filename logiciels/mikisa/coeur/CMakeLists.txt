@@ -26,26 +26,20 @@ add_subdirectory(operatrices/ariel)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${INCLUSIONS_DANJO}
-	${INCLUSIONS_IMAGE}
-	${INCLUSIONS_MATH}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 	${INCLUSIONS_OPENCOLORIO}
-	${INCLUSIONS_SYSFICHIER}
 	${INCLUSIONS_QT5_CORE}
 	${INCLUSIONS_QT5_WIDGETS}
 	${INCLUSIONS_OPENEXR}
 	${INCLUSIONS_OPENSUBDIV}
-	${INCLUSIONS_DELSACE_MATH}
 	${INCLUSIONS_BULLET}
 	/usr/include/eigen3
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUES_DANJO}
-	${BIBLIOTHEQUES_MATH}
-	${BIBLIOTHEQUES_SYSFICHIER}
+	danjo
 	${BIBLIOTHEQUES_TBB}
-	${BIBLIOTHEQUES_IMAGE}
+	image
 	bib_observation
 	bib_commandes
 	bib_xml
@@ -69,6 +63,7 @@ set(BIBLIOTHEQUES
 	bib_snh
 	bib_lcc
 	mikisa_ariel
+	systeme_fichier
 )
 
 qt5_wrap_cpp(

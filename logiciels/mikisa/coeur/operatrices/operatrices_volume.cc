@@ -24,9 +24,9 @@
 
 #include "operatrices_volume.hh"
 
-#include "bibliotheques/outils/definitions.hh"
-#include "bibliotheques/outils/gna.hh"
-#include "bibliotheques/outils/parallelisme.h"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/gna.hh"
+#include "biblinternes/outils/parallelisme.h"
 
 #include "bibloc/logeuse_memoire.hh"
 
@@ -307,7 +307,7 @@ public:
 /* ************************************************************************** */
 
 /* À FAIRE : bibliothèque de bruit */
-#include <delsace/math/bruit.hh>
+#include "biblinternes/math/bruit.hh"
 
 struct FBM {
 	float echelle = 1.0f;

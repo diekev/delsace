@@ -25,9 +25,9 @@
 #include "spectre.h"
 
 #include <algorithm>
-#include <delsace/math/entrepolation.hh>
+#include "biblinternes/math/entrepolation.hh"
 
-#include "bibliotheques/outils/definitions.hh"
+#include "biblinternes/outils/definitions.h"
 
 /* ************************************************************************** */
 

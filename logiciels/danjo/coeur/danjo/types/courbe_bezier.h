@@ -26,7 +26,7 @@
 
 #include <vector>
 
-#include <delsace/phys/couleur.hh>
+#include "biblinternes/phys/couleur.hh"
 
 struct Point {
 	float x;

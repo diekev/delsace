@@ -24,7 +24,7 @@
 
 #include "normaux.hh"
 
-#include "bibliotheques/outils/constantes.h"
+#include "biblinternes/outils/constantes.h"
 
 #include "corps/corps.h"
 #include "corps/iteration_corps.hh"

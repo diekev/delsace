@@ -31,11 +31,11 @@ static void test_dimensions(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({ { 0, 1, 2 }, { 3, 4, 5 } });
+	matrice_dyn<int> mat1({ { 0, 1, 2 }, { 3, 4, 5 } });
 
 	CU_VERIFIE_CONDITION(controleur, mat1.dimensions() == Dimensions(Hauteur(2), Largeur(3)));
 
-	matrice<int> mat2({ { 0, 1 }, { 2, 3 }, { 4, 5 } });
+	matrice_dyn<int> mat2({ { 0, 1 }, { 2, 3 }, { 4, 5 } });
 
 	CU_VERIFIE_CONDITION(controleur, mat2.dimensions() == Dimensions(Hauteur(3), Largeur(2)));
 
@@ -59,19 +59,19 @@ static void test_identite(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1 = matrice<int>::identite(Dimensions(Hauteur(2), Largeur(2)));
-	matrice<int> mat2({ { 1, 0 }, { 0, 1 } });
+	matrice_dyn<int> mat1 = matrice_dyn<int>::identite(Dimensions(Hauteur(2), Largeur(2)));
+	matrice_dyn<int> mat2({ { 1, 0 }, { 0, 1 } });
 
 	CU_VERIFIE_CONDITION(controleur, mat1 == mat2);
 
-	mat1 = matrice<int>::identite(Dimensions(Hauteur(3), Largeur(3)));
-	mat2 = matrice<int>({ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } });
+	mat1 = matrice_dyn<int>::identite(Dimensions(Hauteur(3), Largeur(3)));
+	mat2 = matrice_dyn<int>({ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } });
 
 	CU_VERIFIE_CONDITION(controleur, mat1 == mat2);
 
 	auto exception_identite = [&]()
 	{
-		mat1 = matrice<int>::identite(Dimensions(Hauteur(3), Largeur(2)));
+		mat1 = matrice_dyn<int>::identite(Dimensions(Hauteur(3), Largeur(2)));
 	};
 
 	CU_VERIFIE_EXCEPTION_JETEE(controleur, exception_identite);
@@ -81,11 +81,11 @@ static void test_addition(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({ { 1, 3 }, { 1, 0 }, { 1, 2 } });
-	matrice<int> mat2({ { 0, 0 }, { 7, 5 }, { 2, 1 } });
+	matrice_dyn<int> mat1({ { 1, 3 }, { 1, 0 }, { 1, 2 } });
+	matrice_dyn<int> mat2({ { 0, 0 }, { 7, 5 }, { 2, 1 } });
 
 	/* Résultat de mat1 + mat2 */
-	matrice<int> res_attendu({ { 1, 3 }, { 8, 5 }, { 3, 3 } });
+	matrice_dyn<int> res_attendu({ { 1, 3 }, { 8, 5 }, { 3, 3 } });
 
 	auto res = mat1 + mat2;
 
@@ -93,8 +93,8 @@ static void test_addition(dls::test_unitaire::Controleuse &controleur)
 
 	auto exception_addition = [&]()
 	{
-		auto m1 = matrice<int>(Dimensions(Hauteur(3), Largeur(3)));
-		auto m2 = matrice<int>(Dimensions(Hauteur(2), Largeur(2)));
+		auto m1 = matrice_dyn<int>(Dimensions(Hauteur(3), Largeur(3)));
+		auto m2 = matrice_dyn<int>(Dimensions(Hauteur(2), Largeur(2)));
 		m1 += m2;
 	};
 
@@ -105,11 +105,11 @@ static void test_multiplication(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({ { 1, 0 }, { -1, 3 } });
-	matrice<int> mat2({ { 3, 1 }, {  2, 1 } });
+	matrice_dyn<int> mat1({ { 1, 0 }, { -1, 3 } });
+	matrice_dyn<int> mat2({ { 3, 1 }, {  2, 1 } });
 
 	/* Résultat de mat1 * mat2 */
-	matrice<int> res({ { 3, 1 }, {  3, 2 } });
+	matrice_dyn<int> res({ { 3, 1 }, {  3, 2 } });
 
 	auto res1 = mat1 * mat2;
 
@@ -117,14 +117,14 @@ static void test_multiplication(dls::test_unitaire::Controleuse &controleur)
 
 	/* Test commutativité 1 */
 
-	mat1 = matrice<int>({ { 1, 2, 0 }, { 4, 3, -1 } });
-	mat2 = matrice<int>({ { 5, 1 }, { 2, 3 }, { 3, 4 } });
+	mat1 = matrice_dyn<int>({ { 1, 2, 0 }, { 4, 3, -1 } });
+	mat2 = matrice_dyn<int>({ { 5, 1 }, { 2, 3 }, { 3, 4 } });
 
 	/* Résultat de mat1 * mat2. */
-	matrice<int> res_m1m2_attendu({ { 9, 7 }, { 23, 9 } });
+	matrice_dyn<int> res_m1m2_attendu({ { 9, 7 }, { 23, 9 } });
 
 	/* Résultat de mat2 * mat1. */
-	matrice<int> res_m2m1_attendu({ { 9, 13, -1 }, { 14, 13, -3 }, { 19, 18, -4 } });
+	matrice_dyn<int> res_m2m1_attendu({ { 9, 13, -1 }, { 14, 13, -3 }, { 19, 18, -4 } });
 
 	auto res_m1m2 = mat1 * mat2;
 	auto res_m2m1 = mat2 * mat1;
@@ -135,11 +135,11 @@ static void test_multiplication(dls::test_unitaire::Controleuse &controleur)
 	/* Simplement au cas où. */
 	CU_VERIFIE_CONDITION(controleur, res_m2m1 != res_m1m2);
 
-	mat1 = matrice<int>({ { 3, 4, 2 } });
-	mat2 = matrice<int>({ { 13, 9, 7, 15 }, { 8, 7, 4, 6 }, { 6, 4, 0, 3 } });
+	mat1 = matrice_dyn<int>({ { 3, 4, 2 } });
+	mat2 = matrice_dyn<int>({ { 13, 9, 7, 15 }, { 8, 7, 4, 6 }, { 6, 4, 0, 3 } });
 
 	/* Résultat de mat1 * mat2. */
-	res_m1m2_attendu = matrice<int>({ { 83, 63, 37, 75 } });
+	res_m1m2_attendu = matrice_dyn<int>({ { 83, 63, 37, 75 } });
 
 	res_m1m2 = mat1 * mat2;
 
@@ -147,8 +147,8 @@ static void test_multiplication(dls::test_unitaire::Controleuse &controleur)
 
 	auto exception_multiplication = [&]()
 	{
-		auto m1 = matrice<int>(Dimensions(Hauteur(3), Largeur(3)));
-		auto m2 = matrice<int>(Dimensions(Hauteur(2), Largeur(2)));
+		auto m1 = matrice_dyn<int>(Dimensions(Hauteur(3), Largeur(3)));
+		auto m2 = matrice_dyn<int>(Dimensions(Hauteur(2), Largeur(2)));
 		m1 *= m2;
 	};
 
@@ -159,11 +159,11 @@ static void test_hadamard(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({ { 1, 3, 2 }, { 1, 0, 0 }, { 1, 2, 2 } });
-	matrice<int> mat2({ { 0, 0, 2 }, { 7, 5, 0 }, { 2, 1, 1 } });
+	matrice_dyn<int> mat1({ { 1, 3, 2 }, { 1, 0, 0 }, { 1, 2, 2 } });
+	matrice_dyn<int> mat2({ { 0, 0, 2 }, { 7, 5, 0 }, { 2, 1, 1 } });
 
 	/* Résultat de mat1 * mat2 */
-	matrice<int> res_attendu({ { 0, 0, 4 }, { 7, 0, 0 }, { 2, 2, 2 } });
+	matrice_dyn<int> res_attendu({ { 0, 0, 4 }, { 7, 0, 0 }, { 2, 2, 2 } });
 
 	auto res = hadamard(mat1, mat2);
 
@@ -171,8 +171,8 @@ static void test_hadamard(dls::test_unitaire::Controleuse &controleur)
 
 	auto exception_hadamard = [&]()
 	{
-		auto m1 = matrice<int>(Dimensions(Hauteur(3), Largeur(3)));
-		auto m2 = matrice<int>(Dimensions(Hauteur(2), Largeur(2)));
+		auto m1 = matrice_dyn<int>(Dimensions(Hauteur(3), Largeur(3)));
+		auto m2 = matrice_dyn<int>(Dimensions(Hauteur(2), Largeur(2)));
 		return hadamard(m1, m2);
 	};
 
@@ -183,10 +183,10 @@ static void test_kronecker(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({ { 1, 2 }, { 3, 1 } });
-	matrice<int> mat2({ { 0, 3 }, { 2, 1 } });
+	matrice_dyn<int> mat1({ { 1, 2 }, { 3, 1 } });
+	matrice_dyn<int> mat2({ { 0, 3 }, { 2, 1 } });
 
-	matrice<int> res_attendu({
+	matrice_dyn<int> res_attendu({
 			{ 0, 3, 0, 6 },
 			{ 2, 1, 4, 2 },
 			{ 0, 9, 0, 3 },
@@ -197,10 +197,10 @@ static void test_kronecker(dls::test_unitaire::Controleuse &controleur)
 
 	CU_VERIFIE_CONDITION(controleur, res == res_attendu);
 
-	mat1 = matrice<int>({ { 1, 3, 2 }, { 1, 0, 0 }, { 1, 2, 2 } });
-	mat2 = matrice<int>({ { 0, 5 }, { 5, 0 }, { 1, 1 } });
+	mat1 = matrice_dyn<int>({ { 1, 3, 2 }, { 1, 0, 0 }, { 1, 2, 2 } });
+	mat2 = matrice_dyn<int>({ { 0, 5 }, { 5, 0 }, { 1, 1 } });
 
-	res_attendu = matrice<int>({
+	res_attendu = matrice_dyn<int>({
 			{  0,  5,  0, 15,  0, 10 },
 			{  5,  0, 15,  0, 10,  0 },
 			{  1,  1,  3,  3,  2,  2 },
@@ -221,10 +221,10 @@ static void test_concatenation(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({ { 1, 2 }, { 3, 1 } });
-	matrice<int> mat2({ { 0, 3 }, { 2, 1 } });
+	matrice_dyn<int> mat1({ { 1, 2 }, { 3, 1 } });
+	matrice_dyn<int> mat2({ { 0, 3 }, { 2, 1 } });
 
-	matrice<int> res_attendu({
+	matrice_dyn<int> res_attendu({
 			{ 1, 2, 0, 3 },
 			{ 3, 1, 2, 1 },
 	});
@@ -235,8 +235,8 @@ static void test_concatenation(dls::test_unitaire::Controleuse &controleur)
 
 	auto exception_horizontale = [&]()
 	{
-		auto m1 = matrice<int>(Dimensions(Hauteur(3), Largeur(3)));
-		auto m2 = matrice<int>(Dimensions(Hauteur(2), Largeur(2)));
+		auto m1 = matrice_dyn<int>(Dimensions(Hauteur(3), Largeur(3)));
+		auto m2 = matrice_dyn<int>(Dimensions(Hauteur(2), Largeur(2)));
 		return contenation_horizontale(m1, m2);
 	};
 
@@ -244,7 +244,7 @@ static void test_concatenation(dls::test_unitaire::Controleuse &controleur)
 
 	res = contenation_veritcale(mat1, mat2);
 
-	res_attendu = matrice<int>({
+	res_attendu = matrice_dyn<int>({
 			{ 1, 2 },
 			{ 3, 1 },
 			{ 0, 3 },
@@ -255,8 +255,8 @@ static void test_concatenation(dls::test_unitaire::Controleuse &controleur)
 
 	auto exception_verticale = [&]()
 	{
-		auto m1 = matrice<int>(Dimensions(Hauteur(3), Largeur(3)));
-		auto m2 = matrice<int>(Dimensions(Hauteur(2), Largeur(2)));
+		auto m1 = matrice_dyn<int>(Dimensions(Hauteur(3), Largeur(3)));
+		auto m2 = matrice_dyn<int>(Dimensions(Hauteur(2), Largeur(2)));
 		return contenation_veritcale(m1, m2);
 	};
 
@@ -267,9 +267,9 @@ static void test_transpose(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({ { 0, 1, 2, 3 }, { 4, 5, 6, 7 }, { 8, 9, 10, 11 } });
+	matrice_dyn<int> mat1({ { 0, 1, 2, 3 }, { 4, 5, 6, 7 }, { 8, 9, 10, 11 } });
 
-	matrice<int> res_attendu({
+	matrice_dyn<int> res_attendu({
 			{ 0, 4, 8 },
 			{ 1, 5, 9 },
 			{ 2, 6, 10 },
@@ -285,14 +285,14 @@ static void test_maximum_local(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({
+	matrice_dyn<int> mat1({
 			{  0,  1,  2,  3 },
 			{  4,  5,  6,  7 },
 			{  8,  9, 10, 11 },
 			{ 12, 13, 14, 15 }
 	});
 
-	matrice<int> res_attendu({
+	matrice_dyn<int> res_attendu({
 			{  5,  7 },
 			{ 13, 15 },
 	});
@@ -301,7 +301,7 @@ static void test_maximum_local(dls::test_unitaire::Controleuse &controleur)
 
 	CU_VERIFIE_CONDITION(controleur, res == res_attendu);
 
-	mat1 = matrice<int>({
+	mat1 = matrice_dyn<int>({
 			{  0,  1,  2,  3,  4,  5 },
 			{  6,  7,  8,  9, 10, 11 },
 			{ 12, 13, 14, 15, 16, 17 },
@@ -310,7 +310,7 @@ static void test_maximum_local(dls::test_unitaire::Controleuse &controleur)
 			{ 30, 31, 32, 33, 34, 35 }
 	});
 
-	res_attendu = matrice<int>({
+	res_attendu = matrice_dyn<int>({
 			{  7,  9, 11 },
 			{ 19, 21, 23 },
 			{ 31, 33, 35 },
@@ -320,7 +320,7 @@ static void test_maximum_local(dls::test_unitaire::Controleuse &controleur)
 
 	CU_VERIFIE_CONDITION(controleur, res == res_attendu);
 
-	res_attendu = matrice<int>({
+	res_attendu = matrice_dyn<int>({
 			{ 14, 17 },
 			{ 32, 35 }
 	});
@@ -334,14 +334,14 @@ static void test_minimum_local(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	matrice<int> mat1({
+	matrice_dyn<int> mat1({
 			{  0,  1,  2,  3 },
 			{  4,  5,  6,  7 },
 			{  8,  9, 10, 11 },
 			{ 12, 13, 14, 15 }
 	});
 
-	matrice<int> res_attendu({
+	matrice_dyn<int> res_attendu({
 			{  0,  2 },
 			{  8, 10 },
 	});
@@ -350,7 +350,7 @@ static void test_minimum_local(dls::test_unitaire::Controleuse &controleur)
 
 	CU_VERIFIE_CONDITION(controleur, res == res_attendu);
 
-	mat1 = matrice<int>({
+	mat1 = matrice_dyn<int>({
 			{  0,  1,  2,  3,  4,  5 },
 			{  6,  7,  8,  9, 10, 11 },
 			{ 12, 13, 14, 15, 16, 17 },
@@ -359,7 +359,7 @@ static void test_minimum_local(dls::test_unitaire::Controleuse &controleur)
 			{ 30, 31, 32, 33, 34, 35 }
 	});
 
-	res_attendu = matrice<int>({
+	res_attendu = matrice_dyn<int>({
 			{  0,  2,  4 },
 			{ 12, 14, 16 },
 			{ 24, 26, 28 },
@@ -369,7 +369,7 @@ static void test_minimum_local(dls::test_unitaire::Controleuse &controleur)
 
 	CU_VERIFIE_CONDITION(controleur, res == res_attendu);
 
-	res_attendu = matrice<int>({
+	res_attendu = matrice_dyn<int>({
 			{  0,  3 },
 			{ 18, 21 }
 	});

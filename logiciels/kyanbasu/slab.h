@@ -24,15 +24,15 @@
 
 #pragma once
 
-#include <ego/framebuffer.h>
-#include <ego/texture.h>
+#include "biblinternes/ego/framebuffer.h"
+#include "biblinternes/ego/texture.h"
 
 class Surface {
 public:
     GLuint FboHandle = 0;
-	numero7::ego::FrameBuffer::Ptr framebuffer;
-	numero7::ego::RenderBuffer::Ptr renderbuffer;
-	numero7::ego::Texture2D::Ptr texture = nullptr;
+	dls::ego::FrameBuffer::Ptr framebuffer;
+	dls::ego::RenderBuffer::Ptr renderbuffer;
+	dls::ego::Texture2D::Ptr texture = nullptr;
     int NumComponents = 0;
 	unsigned int render_buffer = 0;
 

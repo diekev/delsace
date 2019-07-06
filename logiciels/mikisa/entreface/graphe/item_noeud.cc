@@ -33,7 +33,7 @@
 #include <QPen>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/graphe/noeud.h"
+#include "biblinternes/graphe/noeud.h"
 
 #include "coeur/noeud_image.h"
 #include "coeur/operatrice_image.h"

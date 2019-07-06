@@ -26,7 +26,7 @@
 
 #include "base_editrice.h"
 
-#include <danjo/manipulable.h>
+#include "danjo/manipulable.h"
 
 class QFrame;
 class QGridLayout;

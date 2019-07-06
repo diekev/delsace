@@ -24,12 +24,12 @@
 
 #include "rendu_maillage.h"
 
-#include <ego/outils.h>
+#include "biblinternes/ego/outils.h"
 #include <numeric>
 
-#include "bibliotheques/opengl/contexte_rendu.h"
-#include "bibliotheques/opengl/tampon_rendu.h"
-#include "bibliotheques/texture/texture.h"
+#include "biblinternes/opengl/contexte_rendu.h"
+#include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/texture/texture.h"
 
 #include "coeur/maillage.h"
 
@@ -40,12 +40,12 @@ TamponRendu *cree_tampon_arrete()
 	auto tampon = new TamponRendu;
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::VERTEX,
-				numero7::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::ego::Nuanceur::VERTEX,
+				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
-				numero7::ego::Nuanceur::FRAGMENT,
-				numero7::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::ego::Nuanceur::FRAGMENT,
+				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 
@@ -96,7 +96,7 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 
 	tampon->remplie_tampon(parametres_tampon);
 
-	numero7::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
+	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
 	ParametresDessin parametres_dessin;
 	parametres_dessin.type_dessin(GL_LINES);

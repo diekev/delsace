@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <image/pixel.h>
-#include <math/matrice/matrice.h>
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/image/pixel.h"
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -60,7 +60,7 @@ public:
 	void paintGL() override;
 	void resizeGL(int w, int h) override;
 
-	void charge_image(numero7::math::matrice<dls::math::vec3d> const &image);
+	void charge_image(dls::math::matrice_dyn<dls::math::vec3d> const &image);
 
 	void mousePressEvent(QMouseEvent *e) override;
 	void mouseMoveEvent(QMouseEvent *e) override;

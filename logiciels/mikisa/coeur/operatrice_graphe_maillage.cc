@@ -24,8 +24,8 @@
 
 #include "operatrice_graphe_maillage.h"
 
-#include <delsace/math/bruit.hh>
-#include <delsace/math/entrepolation.hh>
+#include "biblinternes/math/bruit.hh"
+#include "biblinternes/math/entrepolation.hh"
 
 #include "corps/corps.h"
 

@@ -25,12 +25,12 @@
 #include "visionneur_scene.h"
 
 #include <GL/glew.h>
-#include <numero7/chronometrage/utilitaires.h>
 #include <sstream>
 
-#include "bibliotheques/opengl/rendu_grille.h"
-#include "bibliotheques/opengl/rendu_texte.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/chrono/outils.hh"
+#include "biblinternes/opengl/rendu_grille.h"
+#include "biblinternes/opengl/rendu_texte.h"
+#include "biblinternes/vision/camera.h"
 
 #include "coeur/fluide.h"
 #include "coeur/poseidon.h"
@@ -80,7 +80,7 @@ void VisionneurScene::initialise()
 	m_rendu_texte = new RenduTexte();
 
 	m_camera->ajourne();
-	m_temps_debut = numero7::chronometrage::maintenant();
+	m_temps_debut = dls::chrono::maintenant();
 }
 
 void VisionneurScene::peint_opengl()
@@ -127,7 +127,7 @@ void VisionneurScene::peint_opengl()
 	rendu_champs_distance.dessine(m_contexte);
 #endif
 
-	auto const fin = numero7::chronometrage::maintenant();
+	auto const fin = dls::chrono::maintenant();
 
 	auto const temps = fin - m_temps_debut;
 	auto const fps = static_cast<int>(1.0 / temps);
@@ -142,7 +142,7 @@ void VisionneurScene::peint_opengl()
 
 	glDisable(GL_BLEND);
 
-	m_temps_debut = numero7::chronometrage::maintenant();
+	m_temps_debut = dls::chrono::maintenant();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)

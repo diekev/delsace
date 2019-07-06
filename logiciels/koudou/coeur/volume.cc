@@ -24,7 +24,7 @@
 
 #include "volume.h"
 
-#include <delsace/math/bruit.hh>
+#include "biblinternes/math/bruit.hh"
 
 #include "bsdf.h"
 #include "gna.h"

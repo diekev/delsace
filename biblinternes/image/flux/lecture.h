@@ -42,7 +42,7 @@ namespace flux {
  * le chemin n'existe pas ou si l'extension du fichier pointé par le chemin est
  * inconnu, la fonction plante sur une assertion fausse.
  */
-math::matrice<PixelChar> lecture_uchar(const filesystem::path &chemin);
+math::matrice_dyn<PixelChar> lecture_uchar(const filesystem::path &chemin);
 
 /**
  * Lis le fichier dont le chemin est spécifié et retourne une image au format
@@ -50,7 +50,7 @@ math::matrice<PixelChar> lecture_uchar(const filesystem::path &chemin);
  * chemin n'existe pas ou si l'extension du fichier pointé par le chemin est
  * inconnu, la fonction plante sur une assertion fausse.
  */
-math::matrice<PixelFloat> lecture_float(const filesystem::path &chemin);
+math::matrice_dyn<PixelFloat> lecture_float(const filesystem::path &chemin);
 
 /**
  * Struct pour créer un type pour lire une image au format JPEG.
@@ -60,7 +60,7 @@ struct LecteurJPEG {
 	 * Ouvre le fichier dont le chemin est spécifié et retourne une image au
 	 * format unsigned char.
 	 */
-	static math::matrice<PixelChar> ouvre(const filesystem::path &chemin);
+	static math::matrice_dyn<PixelChar> ouvre(const filesystem::path &chemin);
 };
 
 /**
@@ -71,7 +71,7 @@ struct LecteurPNM {
 	 * Ouvre le fichier dont le chemin est spécifié et retourne une image au
 	 * format unsigned char.
 	 */
-	static math::matrice<PixelChar> ouvre(const filesystem::path &chemin);
+	static math::matrice_dyn<PixelChar> ouvre(const filesystem::path &chemin);
 };
 
 /**
@@ -82,7 +82,7 @@ struct LecteurTIF {
 	 * Ouvre le fichier dont le chemin est spécifié et retourne une image au
 	 * format unsigned char.
 	 */
-	static math::matrice<PixelChar> ouvre(const filesystem::path &chemin);
+	static math::matrice_dyn<PixelChar> ouvre(const filesystem::path &chemin);
 };
 
 /**
@@ -93,7 +93,7 @@ struct LecteurEXR {
 	 * Ouvre le fichier dont le chemin est spécifié et retourne une image au
 	 * format unsigned char.
 	 */
-	static math::matrice<PixelFloat> ouvre(const filesystem::path &chemin);
+	static math::matrice_dyn<PixelFloat> ouvre(const filesystem::path &chemin);
 };
 
 }  /* namespace flux */

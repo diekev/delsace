@@ -22,11 +22,11 @@
  *
  */
 
-#include <numero7/test_unitaire/test_unitaire.h>
+#include "biblinternes/tests/test_unitaire.hh"
 
 int main()
 {
-	numero7::test_unitaire::ControleurUnitaire controlleur;
+	dls::test_unitaire::Controleuse controlleur;
 
 	controlleur.performe_controles();
 	controlleur.imprime_resultat();

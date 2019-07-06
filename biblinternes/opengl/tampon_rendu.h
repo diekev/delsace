@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <ego/tampon_objet.h>
-#include <ego/programme.h>
-#include <ego/texture.h>
+#include "biblinternes/ego/tampon_objet.h"
+#include "biblinternes/ego/programme.h"
+#include "biblinternes/ego/texture.h"
 
 #include <string>
 #include <vector>
@@ -169,12 +169,12 @@ public:
  * La classe TamponRendu gère les données et les paramètres d'un BufferObject.
  */
 class TamponRendu {
-	numero7::ego::TamponObjet::Ptr m_donnees_tampon = nullptr;
-	numero7::ego::Programme m_programme{};
+	dls::ego::TamponObjet::Ptr m_donnees_tampon = nullptr;
+	dls::ego::Programme m_programme{};
 	size_t m_elements = 0;
 
-	numero7::ego::Texture2D::Ptr m_texture = nullptr;
-	numero7::ego::Texture3D::Ptr m_texture_3d = nullptr;
+	dls::ego::Texture2D::Ptr m_texture = nullptr;
+	dls::ego::Texture3D::Ptr m_texture_3d = nullptr;
 
 	AtlasTexture *m_atlas = nullptr;
 
@@ -196,7 +196,7 @@ public:
 	 * les fichiers et de mettre leurs contenus dans des std::string.
 	 */
 	void charge_source_programme(
-			numero7::ego::Nuanceur type_programme,
+			dls::ego::Nuanceur type_programme,
 			std::string const &source,
 			std::ostream &os = std::cerr);
 
@@ -247,7 +247,7 @@ public:
 	/**
 	 * Retourne un pointeur vers le programme de ce tampon.
 	 */
-	numero7::ego::Programme *programme();
+	dls::ego::Programme *programme();
 
 	/**
 	 * Ajoute une texture dans ce tampon.
@@ -267,19 +267,19 @@ public:
 	/**
 	 * Retourne un pointeur vers la texture de ce tampon.
 	 */
-	numero7::ego::Texture2D *texture();
+	dls::ego::Texture2D *texture();
 
 	/**
 	 * Retourne un pointeur vers la texture de ce tampon.
 	 */
-	numero7::ego::Texture3D *texture_3d();
+	dls::ego::Texture3D *texture_3d();
 
 	/**
 	 * Retourne un pointeur vers l'atlas texture de ce tampon.
 	 */
 	AtlasTexture *atlas();
 
-	numero7::ego::TamponObjet::Ptr &donnees()
+	dls::ego::TamponObjet::Ptr &donnees()
 	{
 		return m_donnees_tampon;
 	}

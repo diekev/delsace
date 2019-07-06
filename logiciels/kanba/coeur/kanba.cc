@@ -32,8 +32,8 @@
 #include <QFileDialog>
 #pragma GCC diagnostic pop
 
-#include "bibliotheques/commandes/repondant_commande.h"
-#include "bibliotheques/vision/camera.h"
+#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/vision/camera.h"
 
 #include "brosse.h"
 #include "maillage.h"
@@ -44,7 +44,7 @@
 #include "commandes/commandes_vue3d.h"
 
 Kanba::Kanba()
-	: tampon(numero7::math::Hauteur(1080), numero7::math::Largeur(1920))
+	: tampon(dls::math::Hauteur(1080), dls::math::Largeur(1920))
 	, usine_commande{}
 	, repondant_commande(new RepondantCommande(usine_commande, this))
 	, brosse(new Brosse())
