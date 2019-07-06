@@ -1,0 +1,388 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either verifon 2
+ * of the License, or (at your option) any later verifon.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#include "import_objet.h"
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+#include "adaptrice_creation.h"
+
+namespace objets {
+
+static std::vector<std::string> brise(std::string const &chaine)
+{
+	std::stringstream ss(chaine);
+	std::vector<std::string> res;
+	std::string tmp;
+	tmp.reserve(3);
+
+	while (std::getline(ss, tmp, '/')) {
+		res.push_back(tmp);
+	}
+
+	return res;
+}
+
+static void lis_normal_sommet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	float x, y, z;
+	is >> x >> y >> z;
+
+	adaptrice->ajoute_normal(x, y, z);
+}
+
+static void lis_parametres_sommet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	float x, y, z;
+	is >> x >> y >> z;
+
+	adaptrice->ajoute_parametres_sommet(x, y, z);
+}
+
+static void lis_coord_texture_sommet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	float u, v, w;
+	is >> u >> v >> w;
+
+	adaptrice->ajoute_coord_uv_sommet(u, v, w);
+}
+
+static void lis_sommet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	float x, y, z;
+	is >> x >> y >> z;
+
+	adaptrice->ajoute_sommet(x, y, z);
+}
+
+static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	std::string info_poly;
+	std::vector<int> index_polygones;
+	std::vector<int> index_normaux;
+	std::vector<int> index_coords_uv;
+
+	auto ptr_index = static_cast<int *>(nullptr);
+	auto ptr_normaux = static_cast<int *>(nullptr);
+	auto ptr_coords = static_cast<int *>(nullptr);
+
+	while (is >> info_poly) {
+		auto morceaux = brise(info_poly);
+
+		switch (morceaux.size()) {
+			case 1:
+			{
+				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
+
+				ptr_index = index_polygones.data();
+
+				break;
+			}
+			case 2:
+			{
+				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
+				index_coords_uv.push_back(std::stoi(morceaux[1]) - 1);
+
+				ptr_index = index_polygones.data();
+				ptr_coords = index_coords_uv.data();
+
+				break;
+			}
+			case 3:
+			{
+				index_polygones.push_back(std::stoi(morceaux[0]) - 1);
+
+				if (!morceaux[1].empty()) {
+					index_coords_uv.push_back(std::stoi(morceaux[1]) - 1);
+					ptr_coords = index_coords_uv.data();
+				}
+
+				index_normaux.push_back(std::stoi(morceaux[2]) - 1);
+
+				ptr_index = index_polygones.data();
+				ptr_normaux = index_normaux.data();
+
+				break;
+			}
+		}
+	}
+
+	adaptrice->ajoute_polygone(
+				ptr_index,
+				ptr_coords,
+				ptr_normaux,
+				static_cast<long>(index_polygones.size()));
+}
+
+static void lis_objet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	std::string nom_objet;
+	is >> nom_objet;
+
+	adaptrice->ajoute_objet(nom_objet);
+}
+
+static void lis_ligne(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	std::string info_poly;
+	std::vector<int> index;
+
+	while (is >> info_poly) {
+		index.push_back(std::stoi(info_poly) - 1);
+	}
+
+	adaptrice->ajoute_ligne(index.data(), index.size());
+}
+
+static void lis_groupes_geometries(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	std::string groupe;
+	std::vector<std::string> groupes;
+
+	while (is >> groupe) {
+		groupes.push_back(groupe);
+	}
+
+	adaptrice->groupes(groupes);
+}
+
+static void lis_groupe_nuancage(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
+{
+	std::string groupe;
+	is >> groupe;
+
+	if (groupe == "off") {
+		return;
+	}
+
+	int index = std::stoi(groupe);
+
+	adaptrice->groupe_nuancage(index);
+}
+
+void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, std::string const &chemin)
+{
+	std::ifstream ifs;
+	ifs.open(chemin.c_str());
+
+	if (!ifs.is_open()) {
+		return;
+	}
+
+	std::string ligne;
+	std::string entete;
+
+	while (std::getline(ifs, ligne)) {
+		std::istringstream is(ligne);
+		is >> entete;
+
+		if (entete == "vn") {
+			lis_normal_sommet(adaptrice, is);
+		}
+		else if (entete == "vt") {
+			lis_coord_texture_sommet(adaptrice, is);
+		}
+		else if (entete == "vp") {
+			lis_parametres_sommet(adaptrice, is);
+		}
+		else if (entete == "v") {
+			lis_sommet(adaptrice, is);
+		}
+		else if (ligne[0] == 'f') {
+			lis_polygone(adaptrice, is);
+		}
+		else if (ligne[0] == 'l') {
+			lis_ligne(adaptrice, is);
+		}
+		else if (entete == "o") {
+			lis_objet(adaptrice, is);
+		}
+		else if (entete == "#") {
+			continue;
+		}
+		else if (entete == "g") {
+			lis_groupes_geometries(adaptrice, is);
+		}
+		else if (entete == "s") {
+			lis_groupe_nuancage(adaptrice, is);
+		}
+		else if (entete == "mttlib") {
+			/* À FAIRE */
+		}
+		else if (entete == "newmtl") {
+			/* À FAIRE */
+		}
+		else if (entete == "usemtl") {
+			/* À FAIRE */
+		}
+	};
+}
+
+/* ************************************************************************** */
+
+static bool est_entete_ascii(uint8_t *entete)
+{
+	return     entete[0] == 's'
+			&& entete[1] == 'o'
+			&& entete[2] == 'l'
+			&& entete[3] == 'i'
+			&& entete[4] == 'd';
+}
+
+static void charge_STL_ascii(AdaptriceCreationObjet *adaptrice, std::ifstream &fichier)
+{
+	/* lis la première ligne, doit être 'solid nom' */
+	std::string tampon;
+	std::getline(fichier, tampon);
+
+	std::string mot;
+
+	int sommets[3] = { 0, 1, 2 };
+	int normaux[3] = { 0, 0, 0 };
+
+	while (std::getline(fichier, tampon)) {
+		std::istringstream is(tampon);
+		is >> mot;
+
+		if (mot == "facet") {
+			is >> mot;
+
+			if (mot != "normal") {
+				std::cerr << "Attendu le mot 'normal' après 'facet' !\n";
+				break;
+			}
+
+			float nx, ny, nz;
+			is >> nx >> ny >> nz;
+
+			adaptrice->ajoute_normal(nx, ny, nz);
+		}
+		else if (mot == "outer") {
+			is >> mot;
+
+			if (mot != "loop") {
+				std::cerr << "Attendu le mot 'loop' après 'outer' !\n";
+				break;
+			}
+		}
+		else if (mot == "vertex") {
+			float vx, vy, vz;
+			is >> vx >> vy >> vz;
+
+			adaptrice->ajoute_sommet(vx, vy, vz);
+		}
+		else if (mot == "endloop") {
+			/* RIEN À FAIRE */
+		}
+		else if (mot == "endfacet") {
+			adaptrice->ajoute_polygone(sommets, nullptr, normaux, 3);
+
+			for (int i = 0; i < 3; ++i) {
+				sommets[i] += 3;
+				normaux[i] += 1;
+			}
+		}
+		else if (mot == "endsolid") {
+			/* RIEN À FAIRE */
+		}
+		else {
+			std::cerr << "Mot clé '" << mot << "' inattendu !\n";
+			break;
+		}
+	}
+}
+
+static void charge_STL_binaire(AdaptriceCreationObjet *adaptrice, std::ifstream &fichier)
+{
+	/* lis l'en-tête */
+	uint8_t entete[80];
+	fichier.read(reinterpret_cast<char *>(entete), 80);
+
+	/* lis nombre triangle */
+	uint32_t nombre_triangles;
+	fichier.read(reinterpret_cast<char *>(&nombre_triangles), sizeof(uint32_t));
+
+	adaptrice->reserve_polygones(nombre_triangles);
+	adaptrice->reserve_sommets(nombre_triangles * 3);
+	adaptrice->reserve_normaux(nombre_triangles);
+
+	/* lis triangles */
+	float nor[3];
+	float v0[3];
+	float v1[3];
+	float v2[3];
+	uint16_t mot_controle;
+
+	int sommets[3] = { 0, 1, 2 };
+	int normaux[3] = { 0, 0, 0 };
+
+	for (uint32_t i = 0; i < nombre_triangles; ++i) {
+		fichier.read(reinterpret_cast<char *>(nor), sizeof(float) * 3);
+		fichier.read(reinterpret_cast<char *>(v0), sizeof(float) * 3);
+		fichier.read(reinterpret_cast<char *>(v1), sizeof(float) * 3);
+		fichier.read(reinterpret_cast<char *>(v2), sizeof(float) * 3);
+		fichier.read(reinterpret_cast<char *>(&mot_controle), sizeof(uint16_t));
+
+		adaptrice->ajoute_normal(nor[0], nor[1], nor[2]);
+		adaptrice->ajoute_sommet(v0[0], v0[1], v0[2]);
+		adaptrice->ajoute_sommet(v1[0], v1[1], v1[2]);
+		adaptrice->ajoute_sommet(v2[0], v2[1], v2[2]);
+
+		adaptrice->ajoute_polygone(sommets, nullptr, normaux, 3);
+
+		for (uint32_t e = 0; e < 3; ++e) {
+			sommets[e] += 3;
+			normaux[e] += 1;
+		}
+	}
+}
+
+void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, std::string const &chemin)
+{
+	std::ifstream fichier;
+	fichier.open(chemin.c_str());
+
+	if (!fichier.is_open()) {
+		return;
+	}
+
+	/* lis en-tête */
+	uint8_t entete[5];
+	fichier.read(reinterpret_cast<char *>(entete), 5);
+
+	/* rembobine */
+	fichier.seekg(0);
+
+	if (est_entete_ascii(entete)) {
+		charge_STL_ascii(adaptrice, fichier);
+	}
+	else {
+		charge_STL_binaire(adaptrice, fichier);
+	}
+}
+
+}  /* namespace objets */

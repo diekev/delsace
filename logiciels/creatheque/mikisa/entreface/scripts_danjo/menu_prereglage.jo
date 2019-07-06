@@ -1,0 +1,9 @@
+barre_outils {
+    action(valeur="Création grille"; attache=ajoute_prereglage; métadonnée="grille"; icône="icones/icon_grid.png")
+	action(valeur="Création boîte"; attache=ajoute_prereglage; métadonnée="boîte"; icône="icones/icon_box.png")
+	action(valeur="Création cercle"; attache=ajoute_prereglage; métadonnée="cercle"; icône="icones/icon_circle.png")
+	action(valeur="Création icosphère"; attache=ajoute_prereglage; métadonnée="icosphère"; icône="icones/icon_icosphere.png")
+	action(valeur="Création tube"; attache=ajoute_prereglage; métadonnée="tube"; icône="icones/icon_tube.png")
+	action(valeur="Création cone"; attache=ajoute_prereglage; métadonnée="cone"; icône="icones/icon_cone.png")
+	action(valeur="Création torus"; attache=ajoute_prereglage; métadonnée="torus"; icône="icones/icon_torus.png")
+}

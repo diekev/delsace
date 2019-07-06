@@ -1,0 +1,45 @@
+disposition "operatrice_opensubdiv" {
+    ligne {
+	    étiquette(valeur="Niveau")
+		entier(valeur=2; min=0; max=8; attache=niveau_max)
+	}
+	ligne {
+	    étiquette(valeur="Schéma")
+		énum(attache=schéma; valeur="catmark";
+		     items=[{nom="Bilinéaire", valeur="bilineaire"},
+			        {nom="Catmark", valeur="catmark"},
+					{nom="Boucle", valeur="boucle"}])
+	}
+	ligne {
+	    étiquette(valeur="Entrepolation bordure sommet")
+		énum(attache=entrep_bord; valeur="aucune";
+		     items=[{nom="Aucune", valeur="aucune"},
+			        {nom="Segment", valeur="segment"},
+					{nom="Segment et coin", valeur="segment_coin"}])
+	}
+	ligne {
+	    étiquette(valeur="Entrepolation linéaire FVar")
+		énum(attache=entrep_fvar; valeur="tout";
+		     items=[{nom="Aucune", valeur="aucune"},
+			        {nom="Coins seuls", valeur="coins_seuls"},
+					{nom="Coins + 1", valeur="coins_p1"},
+					{nom="Coins + 2", valeur="coins_p2"},
+					{nom="Bordures", valeur="bordures"},
+					{nom="Tout", valeur="tout"}
+			 ])
+	}
+	ligne {
+	    étiquette(valeur="Méthode de pliage")
+		énum(attache=pliage; valeur="uniforme";
+		     items=[{nom="Uniforme", valeur="uniforme"},
+			        {nom="Chaikin", valeur="chaikin"}
+			 ])
+	}
+	ligne {
+	    étiquette(valeur="Sousdivision triangulaire")
+		énum(attache=sousdivision_triangle; valeur="catmark";
+		     items=[{nom="Catmark", valeur="catmark"},
+			        {nom="Lisse", valeur="lisse"}
+			 ])
+	}
+}

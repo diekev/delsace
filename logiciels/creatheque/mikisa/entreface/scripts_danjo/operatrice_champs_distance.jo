@@ -1,0 +1,19 @@
+disposition "operatrice_champs_distance" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Méthode")
+		énum(valeur="balayage_rapide"; attache=méthode;
+		      items=[
+			  {nom="Balayage Rapide", valeur="balayage_rapide"},
+              {nom="Navigation à l'estime", valeur="estime"},
+              {nom="8SSEDT", valeur="8SSEDT"}
+              ])
+    }
+	ligne {
+	    étiquette(valeur="Valeur ISO")
+		décimal(valeur=0.5; attache=valeur_iso; min=0.0; max=1.0)
+	}
+}

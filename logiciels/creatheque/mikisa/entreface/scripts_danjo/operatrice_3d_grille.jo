@@ -1,0 +1,30 @@
+disposition "operatrice_3d_grille" {
+    ligne {
+	    étiquette(valeur="Lignes")
+		entier(valeur=2; attache=lignes; min=2)
+	}
+	ligne {
+	    étiquette(valeur="Colonnes")
+		entier(valeur=2; attache=colonnes; min=2)
+	}
+	ligne {
+	    étiquette(valeur="Taille X")
+		décimal(valeur=1.0; attache=taille_x; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Taille Y")
+		décimal(valeur=1.0; attache=taille_y; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Position")
+		vecteur(valeur="0,0,0"; attache=position)
+	}
+	ligne {
+	    étiquette(valeur="Rotation")
+		vecteur(valeur="0,0,0"; attache=rotation)
+	}
+	ligne {
+	    étiquette(valeur="Taille")
+		vecteur(valeur="1,1,1"; attache=taille)
+	}
+}

@@ -1,0 +1,22 @@
+disposition "operatrice_traduction" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+	    étiquette(valeur="Vieux Min")
+		couleur(valeur="0,0,0,1"; attache=vieux_min; min=-1; max=1)
+		}
+	ligne {
+	    étiquette(valeur="Vieux Max")
+		couleur(valeur="1,1,1,1"; attache=vieux_max; min=-1; max=1)
+	}
+	ligne {
+	    étiquette(valeur="Neuf Min")
+		couleur(valeur="0,0,0,1"; attache=neuf_min; min=-1; max=1)
+	}
+	ligne {
+	    étiquette(valeur="Neuf Max")
+		couleur(valeur="1,1,1,1"; attache=neuf_max; min=-1; max=1)
+	}
+}

@@ -1,0 +1,6 @@
+disposition "operatrice_constante" {
+    ligne {
+        étiquette(valeur="Couleur")
+		couleur(valeur="0.8,0.0,0.8"; attache=couleur_constante; min=0; max=1)
+    }
+}

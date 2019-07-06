@@ -1,0 +1,22 @@
+disposition "operatrice_filtre" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Opération")
+		énum(valeur="netteté"; attache=operation;
+            items=[{nom="Netteté", valeur="netteté"},
+                   {nom="Netteté (autre)", valeur="netteté_autre"},
+                   {nom="Flou Gaussien", valeur="flou_gaussien"},
+                   {nom="Flou", valeur="flou"},
+                   {nom="Flou sans poids", valeur="flou_sans_poids"},
+                   {nom="Relief NO", valeur="relief_no"},
+                   {nom="Relief NE", valeur="relief_ne"},
+                   {nom="Relief SO", valeur="relief_so"},
+                   {nom="Relief SE", valeur="relief_se"},
+                   {nom="Sobel X", valeur="sobel_x"},
+                   {nom="Sobel Y", valeur="sobel_y"}
+            ])
+    }
+}

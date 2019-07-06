@@ -1,0 +1,23 @@
+disposition "operatrice_3d_normaux.jo" {
+    ligne {
+	    étiquette(valeur="Location")
+		énum(valeur="point"; attache=location; items=[
+		     {nom="Point", valeur="point"},
+			 {nom="Primitive", valeur="primitive"},
+			 {nom="Corps", valeur="corps"}
+			 ])
+	}
+	ligne {
+	    étiquette(valeur="Pesée")
+		énum(valeur="aire"; attache=pesée; items=[
+		     {nom="Aire", valeur="aire"},
+			 {nom="Angle", valeur="angle"},
+			 {nom="Longueur coté max", valeur="max"},
+			 {nom="Moyenne", valeur="moyenne"}
+			 ])
+	}
+	ligne {
+	    étiquette(valeur="Inverse direction")
+		case(valeur=faux; attache=inverse_direction)
+	}
+}

@@ -1,0 +1,5 @@
+menu "Noeud Scène" {
+    menu "3D" {
+	    action(valeur="Caméra"; attache=ajouter_noeud; métadonnée="Caméra")
+	}
+}

@@ -1,0 +1,14 @@
+disposition "operatrice_solveur_n_corps" {
+    ligne {
+	    étiquette(valeur="Gravitation")
+		décimal(valeur=1.0; attache=gravitation)
+	}
+	ligne {
+	    étiquette(valeur="Dt")
+		décimal(valeur=0.1; attache=dt_simulation; min=0)
+	}
+	ligne {
+	    étiquette(valeur="Multiplication vélocité")
+		décimal(valeur=1.0; attache=mult_vel; infobulle="Multiplication de la vélocité lors de l'initialisation de celle-ci en cas d'absence d'attribut de vélocité sur les points d'entrée")
+	}
+}

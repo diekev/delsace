@@ -1,0 +1,26 @@
+disposition "operatrice_force_interaction" {
+	ligne {
+		étiquette(valeur="Rayon")
+		décimal(valeur=0.1; min=0; attache=rayon; infobulle="Défini la taille de la distribution locale autour de la particule")
+	}
+	ligne {
+		étiquette(valeur="Poids")
+		décimal(valeur=1.0; min=0; attache=poids; infobulle="Multiplicateur de la force finale calculée")
+	}
+	ligne {
+		étiquette(valeur="Force Directionelle")
+		vecteur(valeur="0,0,0"; attache=force_dir; infobulle="Pousse ou tire la particule dans la direction des axes de la distribution locale")
+	}
+	ligne {
+		étiquette(valeur="Force Axiale")
+		vecteur(valeur="0,0,0"; attache=force_axe; infobulle="Pousse ou tire la particule vers les axes de la distribution locale")
+	}
+	ligne {
+		étiquette(valeur="Force Rotationelle")
+		vecteur(valeur="0,0,0"; attache=force_rot; infobulle="Tourne la particule autour des axes de la distribution locale")
+	}
+	ligne {
+		étiquette(valeur="Force Centre")
+		décimal(valeur=1.0; attache=force_centre; infobulle="Pousse ou tire la particule vers le centre de masse de la distribution locale")
+	}
+}

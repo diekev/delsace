@@ -1,0 +1,29 @@
+disposition "operatrice_creation_groupe" {
+    ligne {
+	    étiquette(valeur="Nom")
+		chaine(valeur=""; attache=nom_groupe)
+	}
+	ligne {
+	    étiquette(valeur="Contenu")
+		énum(valeur="points"; attache=contenu; items=[
+		     {nom="Points", valeur="points"},
+			 {nom="Primitives", valeur="primitives"}
+			 ])
+	}
+	ligne {
+	    étiquette(valeur="Méthode")
+		énum(valeur="tout"; attache=méthode; items=[
+		     {nom="Tout", valeur="tout"},
+			 {nom="Pair", valeur="pair"},
+			 {nom="Impair", valeur="impair"}
+			 ])
+	}
+    ligne {
+        étiquette(valeur="Probabilité")
+        décimal(valeur=1.0; attache=probabilité; min=0; max=1)
+    }
+    ligne {
+        étiquette(valeur="Graine")
+        entier(valeur=1; attache=graine; min=1)
+    }
+}

@@ -1,0 +1,41 @@
+disposition "operatrice_simulation_vetement" {
+    ligne {
+	    étiquette(valeur="Intégration")
+		énum(valeur="verlet"; attache=intégration; items=[
+		    { nom="Verlet", valeur="verlet" },
+			{ nom="Dynamique Basée Position", valeur="dbp" }
+		])
+	}
+	ligne {
+	    étiquette(valeur="Dt")
+		décimal(valeur=0.1; attache=dt; min=0)
+	}
+	ligne {
+	    étiquette(valeur="Itérations")
+		entier(valeur=2; attache=itérations; min=1)
+	}
+	ligne {
+	    étiquette(valeur="Masse")
+		décimal(valeur=1.0; attache=masse; min=0)
+	}
+	ligne {
+	    étiquette(valeur="Atténuation globale")
+		décimal(valeur=0.98; attache=atténuation_globale; min=0; max=1; infobulle="Atténuation globale de la vélocité.")
+	}
+	ligne {
+	    étiquette(valeur="Courbe")
+		décimal(valeur=0.5; attache=courbe; min=0; max=1)
+	}
+	ligne {
+	    étiquette(valeur="Étirement")
+		décimal(valeur=0.25; attache=étirement; min=0; max=1)
+	}
+	ligne {
+	    étiquette(valeur="Atténuation")
+		décimal(valeur=0.00125; attache=atténuation; min=0; max=1)
+	}
+	ligne {
+	    étiquette(valeur="Gravité")
+		vecteur(valeur="0,-9.81,0"; attache=gravité)
+	}
+}

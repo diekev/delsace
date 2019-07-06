@@ -1,0 +1,56 @@
+menu "Noeud Simulation" {
+    menu "Entrée" {
+	    action(valeur="Création Cercle"; attache=ajouter_noeud; métadonnée="Création Cercle")
+		action(valeur="Création Cone"; attache=ajouter_noeud; métadonnée="Création Cone")
+		action(valeur="Création Cube"; attache=ajouter_noeud; métadonnée="Création Cube")
+		action(valeur="Création Cylindre"; attache=ajouter_noeud; métadonnée="Création Cylindre")
+		action(valeur="Création Grille"; attache=ajouter_noeud; métadonnée="Création Grille")
+		action(valeur="Création Sphère Ico"; attache=ajouter_noeud; métadonnée="Création Sphère Ico")
+		action(valeur="Création Sphère UV"; attache=ajouter_noeud; métadonnée="Création Sphère UV")
+		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
+		action(valeur="Entrée Graphe"; attache=ajouter_noeud; métadonnée="Entrée Graphe")
+		action(valeur="Entrée Simulation"; attache=ajouter_noeud; métadonnée="Entrée Simulation")
+		action(valeur="Import Objet"; attache=ajouter_noeud; métadonnée="Import Objet")
+		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
+	}
+	menu "Attribut" {
+	    action(valeur="Couleur"; attache=ajouter_noeud; métadonnée="Couleur")
+		action(valeur="Création Attribut"; attache=ajouter_noeud; métadonnée="Création Attribut")
+		action(valeur="Randomisation Attribut"; attache=ajouter_noeud; métadonnée="Randomisation Attribut")
+		action(valeur="Suppression Attribut"; attache=ajouter_noeud; métadonnée="Suppression Attribut")
+	}
+	menu "Cheveux" {
+	    action(valeur="Masse Ressort"; attache=ajouter_noeud; métadonnée="Masse Ressort")
+	}
+	menu "Corps" {
+	    action(valeur="Fusionnage Corps"; attache=ajouter_noeud; métadonnée="Fusionnage Corps")
+	}
+	menu "Flux" {
+	    action(valeur="Commutation Corps"; attache=ajouter_noeud; métadonnée="Commutation Corps")
+	}
+	menu "Groupe" {
+	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")
+	}
+	menu "Physique" {
+	    action(valeur="Ariel"; attache=ajouter_noeud; métadonnée="Ariel")
+		action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
+		action(valeur="Ajout Corps Rigide"; attache=ajouter_noeud; métadonnée="Ajout Corps Rigide")
+		action(valeur="Dynamiques Corps Rigides"; attache=ajouter_noeud; métadonnée="Dynamiques Corps Rigides")
+		action(valeur="Force d'Interaction"; attache=ajouter_noeud; métadonnée="Force d'Interaction")
+		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
+		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
+		action(valeur="Simulation Foule"; attache=ajouter_noeud; métadonnée="Simulation Foule")
+		action(valeur="Simulation Vêtement"; attache=ajouter_noeud; métadonnée="Simulation Vêtement")
+		action(valeur="Solveur N-Corps"; attache=ajouter_noeud; métadonnée="Solveur N-Corps")
+		action(valeur="Solveur Particules"; attache=ajouter_noeud; métadonnée="Solveur Particules")
+		action(valeur="Vent"; attache=ajouter_noeud; métadonnée="Vent")
+	}
+	menu "Particules" {
+	    action(valeur="Création Points"; attache=ajouter_noeud; métadonnée="Création Points")
+		action(valeur="Suppression Points"; attache=ajouter_noeud; métadonnée="Suppression Points")
+		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
+	}
+    menu "Sortie" {
+	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
+	}
+}

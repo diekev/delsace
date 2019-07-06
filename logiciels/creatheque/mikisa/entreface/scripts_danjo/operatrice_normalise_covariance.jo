@@ -1,0 +1,6 @@
+disposition "operatrice_normalise_covariance" {
+    ligne {
+	    étiquette(valeur="Poids")
+		décimal(valeur=1.0; attache=poids)
+	}
+}

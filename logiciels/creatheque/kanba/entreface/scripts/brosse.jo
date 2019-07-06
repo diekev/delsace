@@ -1,0 +1,24 @@
+disposition "Brosse" {
+    ligne {
+        étiquette(valeur="Couleur")
+        couleur(valeur="1.0,0.0,1.0,1.0"; attache=couleur_brosse)
+    }
+    ligne {
+        étiquette(valeur="Rayon")
+        entier(valeur=35; min=1; max=100; attache=rayon)
+    }
+    ligne {
+        étiquette(valeur="Opacité")
+        décimal(valeur=1.0; min=0.0; max=1.0; attache=opacité)
+    }
+    ligne {
+        étiquette(valeur="Mode de Fusion")
+        énum(valeur="normal"; attache=mode_fusion; items=[
+            {nom="Normal", valeur="normal"},
+            {nom="Addition", valeur="addition"},
+            {nom="Soustraction", valeur="soustraction"},
+            {nom="Multiplication", valeur="multiplication"},
+            {nom="Division", valeur="division"}
+        ])
+    }
+}

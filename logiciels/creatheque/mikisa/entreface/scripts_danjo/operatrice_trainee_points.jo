@@ -1,0 +1,18 @@
+disposition "operatrice_trainee_points" {
+    ligne {
+	    étiquette(valeur="Attribut")
+		liste(valeur="V"; attache=nom_attribut)
+	}
+	ligne {
+	    étiquette(valeur="Taille")
+		décimal(valeur=1.0; attache=taille; min=0)
+	}
+    ligne {
+	    étiquette(valeur="Dt")
+		décimal(valeur=0.046; attache=dt; min=0; infobulle="Dérivée du temps pour évaluer les vecteurs de vélocités.")
+	}
+	ligne {
+	    étiquette(valeur="Inverse Direction")
+		case(valeur=faux; attache=inverse_direction)
+	}
+}

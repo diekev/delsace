@@ -1,0 +1,31 @@
+disposition "operatrice_fonte_maillage" {
+    ligne {
+	    étiquette(valeur="Direction")
+		énum(valeur="normal"; attache=direction;
+		     items=[{nom="Normal", valeur="normal"}, {nom="Radial", valeur="radial"}])
+	}
+	ligne {
+	    étiquette(valeur="Quantité")
+		décimal(valeur=0.75; min=0; max=1; attache=quantité)
+	}
+	ligne {
+	    étiquette(valeur="Étalement")
+		décimal(valeur=1; min=0; max=10; attache=étalement)
+	}
+	ligne {
+	    étiquette(valeur="Épaisseur")
+		décimal(valeur=0.05; min=0; max=1; attache=épaisseur)
+	}
+	ligne {
+	    étiquette(valeur="Amplitude bruit")
+		décimal(valeur=1.0; min=0; max=10; attache=amplitude)
+	}
+	ligne {
+	    étiquette(valeur="Fréquence bruit")
+		vecteur(valeur="1,1,1"; min=0; max=100; attache=fréquence)
+	}
+	ligne {
+	    étiquette(valeur="Décalage bruit")
+		vecteur(valeur="0,0,0"; max=100; attache=décalage)
+	}
+}

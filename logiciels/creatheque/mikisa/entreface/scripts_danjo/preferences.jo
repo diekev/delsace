@@ -1,0 +1,38 @@
+disposition "Préférences" {
+    ligne {
+        étiquette(valeur="Rayon coeur noeud")
+		décimal(attache=rayon_coeur_noeud; valeur=25.0; min=0; max=100; infobulle="Rayon du coeur de tous les noeuds en pixel.")
+    }
+    ligne {
+        étiquette(valeur="Couleur noeud repos")
+		couleur(attache=couleur_noeud_repos; valeur="0.29,0.46,0.65,1"; infobulle="Couleur pour remplir le coeur du noeud quand il est au repos.")
+    }
+    ligne {
+        étiquette(valeur="Couleur noeud selectionné")
+		couleur(attache=couleur_noeud_selectionne; valeur="0.38,0.67,0.98,1"; infobulle="Couleur pour remplir le coeur du noeud quand il est selectionné.")
+    }
+    ligne {
+        étiquette(valeur="Couleur contour noeud")
+		couleur(attache=couleur_contour_noeud; valeur="0.8,0.8,0.8,1"; infobulle="Couleur pour dessiner le contour du noeud.")
+    }
+    ligne {
+        étiquette(valeur="Largeur contour noeud")
+		décimal(attache=largeur_contour; valeur=3.0; min=0; max=10; infobulle="Largeur du contour du noeud en pixel.")
+    }
+    ligne {
+        étiquette(valeur="Plug Sweep")
+		décimal(attache=plug_sweep; valeur=32.0; min=0; max=100; infobulle="Arclength sweep of a Plug in pixels.")
+    }
+    ligne {
+        étiquette(valeur="Plug Gap")
+		décimal(attache=plug_gap; valeur=8.0; min=0; max=25; infobulle="Arclength size of the mandatory gap between two Plugs.")
+    }
+    ligne {
+        étiquette(valeur="Durée expansion")
+		entier(attache=durée_expansion; valeur=400; min=0; max=1000; infobulle="Durée de l'animation de l'expansion des noeuds en millisecondes.")
+    }
+    ligne {
+        étiquette(valeur="Durée fermeture")
+		entier(attache=durée_fermeture; valeur=400; min=0; max=1000; infobulle="Durée de l'animation de la fermeture des noeuds en millisecondes.")
+    }
+}

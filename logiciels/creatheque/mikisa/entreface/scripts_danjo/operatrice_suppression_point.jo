@@ -1,0 +1,6 @@
+disposition "operatrice_suppression_point" {
+    ligne {
+	    étiquette(valeur="Nom groupe")
+		liste(valeur=""; attache=nom_groupe; infobulle="Nom du groupe utilisé pour supprimer les points.")
+	}
+}

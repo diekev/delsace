@@ -1,0 +1,46 @@
+disposition "operatrice_simulation_grain" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à visionner.")
+	}
+	ligne {
+	    étiquette(valeur="Graine")
+		entier(valeur=134; attache=graine; min=0)
+	}
+	ligne {
+	    étiquette(valeur="Taille grain rouge")
+		décimal(valeur=3.3; attache=rayon_grain_r; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Taille grain vert")
+		décimal(valeur=2.9; attache=rayon_grain_v; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Taille grain bleu")
+		décimal(valeur=2.5; attache=rayon_grain_b; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Sigma taille rouge")
+		décimal(valeur=0.6; attache=sigma_rayon_r; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Sigma taille vert")
+		décimal(valeur=0.6; attache=sigma_rayon_v; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Sigma taille bleu")
+		décimal(valeur=0.6; attache=sigma_rayon_b; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Sigma filtre rouge")
+		décimal(valeur=0.416; attache=sigma_filtre_r; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Sigma filtre vert")
+		décimal(valeur=0.46; attache=sigma_filtre_v; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Sigma filtre bleu")
+		décimal(valeur=0.85; attache=sigma_filtre_b; min=0.0)
+	}
+}

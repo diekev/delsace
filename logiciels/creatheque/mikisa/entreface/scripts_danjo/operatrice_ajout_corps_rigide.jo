@@ -1,0 +1,30 @@
+disposition "operatrice_ajout_corps_rigide" {
+    ligne {
+	    étiquette(valeur="Masse")
+		décimal(valeur=1.0; attache=masse; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Friction")
+		décimal(valeur=0.5; attache=friction; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Restitution")
+		décimal(valeur=0.0; attache=restitution; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Amortissement linéaire")
+		décimal(valeur=0.04; attache=amort_lin; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Amortissement angulaire")
+		décimal(valeur=0.5; attache=amort_ang; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Seuil sommeil linéaire")
+		décimal(valeur=0.4; attache=seuil_lin; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Seuil sommeil angulaire")
+		décimal(valeur=0.5; attache=seuil_ang; min=0.0)
+	}
+}

@@ -1,0 +1,53 @@
+disposition "operatrice_texture" {
+    ligne {
+	    étiquette(valeur="Projection texture")
+		énum(valeur="planaire"; attache=projection;
+		items=[
+		    {nom="Planaire", valeur="planaire"},
+			{nom="Triplanaire", valeur="triplanaire"},
+			{nom="Caméra", valeur="caméra"},
+			{nom="Cubique", valeur="cubique"},
+			{nom="Cylindrique", valeur="cylindrique"},
+			{nom="Sphèrique", valeur="sphèrique"},
+			{nom="UV", valeur="uv"}
+		])
+	}
+	ligne {
+	    étiquette(valeur="Direction")
+		énum(valeur="x"; attache=direction;
+		items=[
+		    {nom="X", valeur="x"},
+			{nom="Y", valeur="y"},
+			{nom="Z", valeur="z"}
+		])
+	}
+	ligne {
+	    étiquette(valeur="Alignement")
+		énum(valeur="local"; attache=alignement;
+		items=[
+		    {nom="Local", valeur="local"},
+			{nom="Global", valeur="global"}
+		])
+	}
+	ligne {
+	    étiquette(valeur="Entrepolation")
+		énum(valeur="linéaire"; attache=entrepolation;
+		items=[
+		    {nom="Linéaire", valeur="linéaire"},
+			{nom="Proximité", valeur="proximité"}
+		])
+	}
+	ligne {
+	    étiquette(valeur="Enveloppage")
+		énum(valeur="répétition"; attache=enveloppage;
+		items=[
+		    {nom="Répétition", valeur="répétition"},
+			{nom="Répétition mirroir", valeur="répétition_mirroir"},
+			{nom="Restriction", valeur="restriction"}
+		])
+	}
+	ligne {
+	    étiquette(valeur="Taille")
+		vecteur(valeur="1,1,1"; attache=taille_texture)
+	}
+}

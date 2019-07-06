@@ -1,0 +1,63 @@
+disposition "operatrice_lecture_fichier" {
+    dossier {
+	    onglet "Principal" {
+		    ligne {
+			    étiquette(valeur="Nom Calque")
+				liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à créer contenant les données de l'image chargée.")
+			}
+			ligne {
+			    étiquette(valeur="Chemin")
+				fichier_entrée(valeur=""; attache=chemin; filtres="Images (*.jpg *.jpeg *.exr)")
+			}
+			ligne {
+			    étiquette(valeur="Texture")
+				case(valeur=faux; attache=est_texture)
+			}
+		}
+		onglet "Séquence" {
+		    ligne {
+			    étiquette(valeur="Animation")
+				case(valeur=faux; attache=est_animation)
+			}
+			ligne {
+			    étiquette(valeur="Première Image")
+				entier(valeur=1; min=1; infobulle="La première image de la séquence à charger"; attache=première_image)
+			}
+			ligne {
+			    étiquette(valeur="Avant")
+				énum(valeur="retiens"; infobulle="Comportement de la séquence avant la dernière image"; attache=avant;
+				     items=[{nom="Retiens", valeur="retiens"}, {nom="Boucle", valeur="boucle"}, {nom="Rebondis", valeur="rebondis"}, {nom="Noir", valeur="noir"}])
+			}
+			ligne {
+			    étiquette(valeur="Dernière Image")
+				entier(valeur=1; min=1; infobulle="La dernière image de la séquence à charger"; attache=dernière_image)
+			}
+			ligne {
+			    étiquette(valeur="Après")
+				énum(valeur="retiens"; infobulle="Comportement de la séquence après la dernière image"; attache=après;
+				     items=[{nom="Retiens", valeur="retiens"}, {nom="Boucle", valeur="boucle"}, {nom="Rebondis", valeur="rebondis"}, {nom="Noir", valeur="noir"}])
+			}
+			ligne {
+			    étiquette(valeur="Décalage")
+				entier(valeur=0; infobulle="Décale la séquence d'un nombre d'image équivalent à la valeur indiqué"; attache=décalage)
+			}
+			ligne {
+			    étiquette(valeur="Images manquantes")
+				énum(valeur="erreur"; infobulle="Comportement de l'opératrice s'il manque une image"; attache=images_manquantes;
+				     items=[{nom="Erreur", valeur="erreur"}, {nom="Noir", valeur="noir"}, {nom="Échiquier", valeur="échiquier"}, {nom="Image voisine", valeur="image_voisine"}])
+			}
+		}
+		onglet "Couleur" {
+		    ligne {
+			    étiquette(valeur="Prémultipliée")
+				case(valeur=faux; attache=prémultipliée;
+				     infobulle="Si cochée, l'opératrice corrige les couleurs des pixels partiellements transparents produits par la plupart des moteurs de rendu en divisant les couleurs par l'alpha avant de convertir depuis l'espace colorimétrique, puis multiplie par l'alpha après la correction")
+			}
+			ligne {
+			    étiquette(valeur="Données crues")
+				case(valeur=faux; attache=crue;
+				     infobulle="Si cochée, l'opératrice ne converti pas les valeurs")
+			}
+		}
+	}
+}

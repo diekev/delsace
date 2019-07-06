@@ -1,0 +1,336 @@
+disposition "Paramètres Arbre" {
+    dossier {
+	    onglet "Générale" {
+		    ligne {
+			    étiquette(valeur="Shape")
+				entier(valeur=1; min=0; max=8; attache=Shape)
+			}
+			ligne {
+			    étiquette(valeur="BaseSize")
+				décimal(valeur=1.0; min=0; max=1; attache=BaseSize)
+			}
+			ligne {
+			    étiquette(valeur="Scale")
+				décimal(valeur=1.0; min=0; max=100; attache=Scale)
+			}
+			ligne {
+			    étiquette(valeur="ScaleV")
+				décimal(valeur=1.0; min=0; max=100; attache=ScaleV)
+			}
+			ligne {
+			    étiquette(valeur="ZScale")
+				décimal(valeur=1.0; min=0; max=1; attache=ZScale)
+			}
+			ligne {
+			    étiquette(valeur="ZScaleV")
+				décimal(valeur=1.0; min=0; max=1; attache=ZScaleV)
+			}
+			ligne {
+			    étiquette(valeur="Levels")
+				entier(valeur=1; min=1; max=4; attache=Levels)
+			}
+			ligne {
+			    étiquette(valeur="Ratio")
+				décimal(valeur=1.0; min=0; max=1; attache=Ratio)
+			}
+			ligne {
+			    étiquette(valeur="RatioPower")
+				décimal(valeur=1.0; min=0; max=2; attache=RatioPower)
+			}
+			ligne {
+			    étiquette(valeur="Lobes")
+				entier(valeur=1; min=0; max=100; attache=Lobes)
+			}
+			ligne {
+			    étiquette(valeur="LobeDepth")
+				décimal(valeur=1.0; min=0; max=1; attache=LobeDepth)
+			}
+			ligne {
+			    étiquette(valeur="Flare")
+				décimal(valeur=1.0; min=0; max=1; attache=Flare)
+			}
+		}
+		onglet "Niveau 0" {
+		    ligne {
+			    étiquette(valeur="_0Scale")
+				décimal(valeur=1.0; attache=_0Scale)
+			}
+			ligne {
+			    étiquette(valeur="_0ScaleV")
+				décimal(valeur=1.0; min=0; max=1; attache=_0ScaleV)
+			}
+			ligne {
+			    étiquette(valeur="_0Length")
+				décimal(valeur=1.0; min=0; max=1; attache=_0Length)
+			}
+			ligne {
+			    étiquette(valeur="_0LengthV")
+				décimal(valeur=1.0; min=0; max=1; attache=_0LengthV)
+			}
+			ligne {
+			    étiquette(valeur="_0Taper")
+				décimal(valeur=1.0; min=0; max=3; attache=_0Taper)
+			}
+			ligne {
+			    étiquette(valeur="_0BaseSplits")
+				décimal(valeur=1.0; min=0; max=1; attache=_0BaseSplits)
+			}
+			ligne {
+			    étiquette(valeur="_0SegSplits")
+				décimal(valeur=1.0; attache=_0SegSplits)
+			}
+			ligne {
+			    étiquette(valeur="_0SplitAngle")
+				décimal(valeur=1.0; min=0; max=360; attache=_0SplitAngle)
+			}
+			ligne {
+			    étiquette(valeur="_0SplitAngleV")
+				décimal(valeur=1.0; min=0; max=360; attache=_0SplitAngleV)
+			}
+			ligne {
+			    étiquette(valeur="_0CurveRes")
+				décimal(valeur=1.0; attache=_0CurveRes)
+			}
+			ligne {
+			    étiquette(valeur="_0Curve")
+				décimal(valeur=1.0; attache=_0Curve)
+			}
+			ligne {
+			    étiquette(valeur="_0CurveBack")
+				décimal(valeur=1.0; attache=_0CurveBack)
+			}
+			ligne {
+			    étiquette(valeur="_0CurveV")
+				décimal(valeur=1.0; attache=_0CurveV)
+			}
+		}
+		onglet "Niveau 1" {
+		    ligne {
+			    étiquette(valeur="_1DownAngle")
+				décimal(valeur=1.0; min=0; max=360; attache=_1DownAngle)
+			}
+			ligne {
+			    étiquette(valeur="_1DownAngleV")
+				décimal(valeur=1.0; min=0; max=360; attache=_1DownAngleV)
+			}
+			ligne {
+			    étiquette(valeur="_1Rotate")
+				décimal(valeur=1.0; attache=_1Rotate)
+			}
+			ligne {
+			    étiquette(valeur="_1RotateV")
+				décimal(valeur=1.0; attache=_1RotateV)
+			}
+			ligne {
+			    étiquette(valeur="_1Branches")
+				décimal(valeur=1.0; attache=_1Branches)
+			}
+			ligne {
+			    étiquette(valeur="_1Length")
+				décimal(valeur=1.0; min=0; max=1; attache=_1Length)
+			}
+			ligne {
+			    étiquette(valeur="_1LengthV")
+				décimal(valeur=1.0; min=0; max=1; attache=_1LengthV)
+			}
+			ligne {
+			    étiquette(valeur="_1Taper")
+				décimal(valeur=1.0; min=0; max=3; attache=_1Taper)
+			}
+			ligne {
+			    étiquette(valeur="_1SegSplits")
+				décimal(valeur=1.0; attache=_1SegSplits)
+			}
+			ligne {
+			    étiquette(valeur="_1SplitAngle")
+				décimal(valeur=1.0; min=0; max=360; attache=_1SplitAngle)
+			}
+			ligne {
+			    étiquette(valeur="_1SplitAngleV")
+				décimal(valeur=1.0; min=0; max=360; attache=_1SplitAngleV)
+			}
+			ligne {
+			    étiquette(valeur="_1CurveRes")
+				décimal(valeur=1.0; attache=_1CurveRes)
+			}
+			ligne {
+			    étiquette(valeur="_1Curve")
+				décimal(valeur=1.0; attache=_1Curve)
+			}
+			ligne {
+			    étiquette(valeur="_1CurveBack")
+				décimal(valeur=1.0; attache=_1CurveBack)
+			}
+			ligne {
+			    étiquette(valeur="_1CurveV")
+				décimal(valeur=1.0; attache=_1CurveV)
+			}
+		}
+		onglet "Niveau 2" {
+		    ligne {
+			    étiquette(valeur="_2DownAngle")
+				décimal(valeur=1.0; min=0; max=360; attache=_2DownAngle)
+			}
+			ligne {
+			    étiquette(valeur="_2DownAngleV")
+				décimal(valeur=1.0; min=0; max=360; attache=_2DownAngleV)
+			}
+			ligne {
+			    étiquette(valeur="_2Rotate")
+				décimal(valeur=1.0; min=0; max=360; attache=_2Rotate)
+			}
+			ligne {
+			    étiquette(valeur="_2RotateV")
+				décimal(valeur=1.0; min=0; max=360; attache=_2RotateV)
+			}
+			ligne {
+			    étiquette(valeur="_2Branches")
+				décimal(valeur=1.0; attache=_2Branches)
+			}
+			ligne {
+			    étiquette(valeur="_2Length")
+				décimal(valeur=1.0; min=0; max=1; attache=_2Length)
+			}
+			ligne {
+			    étiquette(valeur="_2LengthV")
+				décimal(valeur=1.0; min=0; max=1; attache=_2LengthV)
+			}
+			ligne {
+			    étiquette(valeur="_2Taper")
+				décimal(valeur=1.0; min=0; max=3; attache=_2Taper)
+			}
+			ligne {
+			    étiquette(valeur="_2SegSplits")
+				décimal(valeur=1.0; attache=_2SegSplits)
+			}
+			ligne {
+			    étiquette(valeur="_2SplitAngle")
+				décimal(valeur=1.0; min=0; max=360; attache=_2SplitAngle)
+			}
+			ligne {
+			    étiquette(valeur="_2SplitAngleV")
+				décimal(valeur=1.0; min=0; max=360; attache=_2SplitAngleV)
+			}
+			ligne {
+			    étiquette(valeur="_2CurveRes")
+				décimal(valeur=1.0; attache=_2CurveRes)
+			}
+			ligne {
+			    étiquette(valeur="_2Curve")
+				décimal(valeur=1.0; attache=_2Curve)
+			}
+			ligne {
+			    étiquette(valeur="_2CurveBack")
+				décimal(valeur=1.0; attache=_2CurveBack)
+			}
+			ligne {
+			    étiquette(valeur="_2CurveV")
+				décimal(valeur=1.0; attache=_2CurveV)
+			}
+		}
+		onglet "Niveau 3" {
+		    ligne {
+			    étiquette(valeur="_3DownAngle")
+				décimal(valeur=1.0; min=0; max=360; attache=_3DownAngle)
+			}
+			ligne {
+			    étiquette(valeur="_3DownAngleV")
+				décimal(valeur=1.0; min=0; max=360; attache=_3DownAngleV)
+			}
+			ligne {
+			    étiquette(valeur="_3Rotate")
+				décimal(valeur=1.0; min=0; max=360; attache=_3Rotate)
+			}
+			ligne {
+			    étiquette(valeur="_3RotateV")
+				décimal(valeur=1.0; min=0; max=360; attache=_3RotateV)
+			}
+			ligne {
+			    étiquette(valeur="_3Branches")
+				décimal(valeur=1.0; attache=_3Branches)
+			}
+			ligne {
+			    étiquette(valeur="_3Length")
+				décimal(valeur=1.0; min=0; max=1; attache=_3Length)
+			}
+			ligne {
+			    étiquette(valeur="_3LengthV")
+				décimal(valeur=1.0; min=0; max=1; attache=_3LengthV)
+			}
+			ligne {
+			    étiquette(valeur="_3Taper")
+				décimal(valeur=1.0; min=0; max=3; attache=_3Taper)
+			}
+			ligne {
+			    étiquette(valeur="_3SegSplits")
+				décimal(valeur=1.0; attache=_3SegSplits)
+			}
+			ligne {
+			    étiquette(valeur="_3SplitAngle")
+				décimal(valeur=1.0; min=0; max=360; attache=_3SplitAngle)
+			}
+			ligne {
+			    étiquette(valeur="_3SplitAngleV")
+				décimal(valeur=1.0; min=0; max=360; attache=_3SplitAngleV)
+			}
+			ligne {
+			    étiquette(valeur="_3CurveRes")
+				décimal(valeur=1.0; attache=_3CurveRes)
+			}
+			ligne {
+			    étiquette(valeur="_3Curve")
+				décimal(valeur=1.0; attache=_3Curve)
+			}
+			ligne {
+			    étiquette(valeur="_3CurveBack")
+				décimal(valeur=1.0; attache=_3CurveBack)
+			}
+			ligne {
+			    étiquette(valeur="_3CurveV")
+				décimal(valeur=1.0; attache=_3CurveV)
+			}
+		}
+		onglet "Feuillage" {
+		    ligne {
+			    étiquette(valeur="Leaves")
+				décimal(valeur=1.0; attache=Leaves)
+			}
+			ligne {
+			    étiquette(valeur="LeafShape")
+				décimal(valeur=1.0; attache=LeafShape)
+			}
+			ligne {
+			    étiquette(valeur="LeafScale")
+				décimal(valeur=1.0; attache=LeafScale)
+			}
+			ligne {
+			    étiquette(valeur="LeafScaleX")
+				décimal(valeur=1.0; attache=LeafScaleX)
+			}
+			ligne {
+			    étiquette(valeur="AttractionUp")
+				décimal(valeur=1.0; attache=AttractionUp)
+			}
+			ligne {
+			    étiquette(valeur="PruneRatio")
+				décimal(valeur=1.0; attache=PruneRatio)
+			}
+			ligne {
+			    étiquette(valeur="PruneWidth")
+				décimal(valeur=1.0; attache=PruneWidth)
+			}
+			ligne {
+			    étiquette(valeur="PruneWidthPeak")
+				décimal(valeur=1.0; attache=PruneWidthPeak)
+			}
+			ligne {
+			    étiquette(valeur="PrunePowerLow")
+				décimal(valeur=1.0; attache=PrunePowerLow)
+			}
+			ligne {
+			    étiquette(valeur="PrunePowerHigh")
+				décimal(valeur=1.0; attache=PrunePowerHigh)
+			}
+		}
+	}
+}

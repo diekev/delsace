@@ -1,0 +1,18 @@
+disposition "operatrice_collision" {
+	ligne {
+	    étiquette(valeur="Rayon")
+		décimal(valeur=0.1; attache=rayon; min=0.0)
+	}
+	ligne {
+	    étiquette(valeur="Réponse Collision")
+		énum(valeur="rien"; attache=réponse_collision;
+		    items=[{nom="Rien", valeur="rien"},
+			       {nom="Rebondis", valeur="rebondis"},
+				   {nom="Colle", valeur="colle"}
+				])
+	}
+	ligne {
+	    étiquette(valeur="Élasticité")
+		décimal(valeur=1.0; attache=élasticité; min=0.0)
+	}
+}

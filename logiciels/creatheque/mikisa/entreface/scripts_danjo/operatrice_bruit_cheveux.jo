@@ -1,0 +1,38 @@
+disposition "operatrice_bruit_cheveux" {
+    ligne {
+	    étiquette(valeur="Quantité")
+		décimal(valeur=1.0; attache=quantité)
+	}
+	ligne {
+	    étiquette(valeur="Quantité Base")
+		décimal(valeur=1.0; attache=quantité_base)
+	}
+	ligne {
+	    étiquette(valeur="Quantité Bout")
+		décimal(valeur=1.0; attache=quantité_bout)
+	}
+	ligne {
+	    étiquette(valeur="Multiplication")
+		décimal(valeur=1.0; attache=mult)
+	}
+	ligne {
+	    étiquette(valeur="Aléatoire")
+		décimal(valeur=1.0; attache=alea)
+	}
+	ligne {
+	    étiquette(valeur="Décalage")
+		décimal(valeur=0.0; attache=décalage)
+	}
+	ligne {
+	    étiquette(valeur="Fréquence")
+		décimal(valeur=1.0; attache=fréquence)
+	}
+	ligne {
+	    étiquette(valeur="Probabilité")
+		décimal(valeur=1.0; attache=probabilité; min=0.0; max=1.0; infobulle="Probabilité qu'une courbe soit affectée par l'effet")
+	}
+	ligne {
+	    étiquette(valeur="Maintiens Longueur")
+		case(valeur=faux; attache=maintiens_longueur)
+	}
+}

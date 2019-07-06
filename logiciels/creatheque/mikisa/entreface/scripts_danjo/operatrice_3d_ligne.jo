@@ -1,0 +1,18 @@
+disposition "operatrice_3d_ligne" {
+    ligne {
+	    étiquette(valeur="Taille")
+		décimal(valeur=1.0; attache=taille; min=0)
+	}
+	ligne {
+	    étiquette(valeur="Segments")
+		entier(valeur=1; attache=segments; min=1)
+	}
+	ligne {
+	    étiquette(valeur="Origine")
+		vecteur(valeur="0,0,0"; attache=origine)
+	}
+	ligne {
+	    étiquette(valeur="Direction")
+		vecteur(valeur="1,1,1"; attache=direction)
+	}
+}

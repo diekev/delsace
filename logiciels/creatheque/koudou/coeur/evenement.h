@@ -1,0 +1,130 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2017 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#pragma once
+
+#include <iostream>
+
+enum type_evenement : int {
+	/* Category. */
+	rendu            = (1 << 0),
+	temps            = (2 << 0),
+	rafraichissement = (3 << 0),
+	objet            = (4 << 0),
+	materiau         = (5 << 0),
+	camera           = (6 << 0),
+
+	/* Action. */
+	fini       = (1 << 8),
+	ajoute     = (2 << 8),
+	modifie    = (3 << 8),
+	selectione = (4 << 8),
+};
+
+constexpr type_evenement operator&(type_evenement cote_gauche, type_evenement cote_droit)
+{
+	return static_cast<type_evenement>(static_cast<int>(cote_gauche) & static_cast<int>(cote_droit));
+}
+
+constexpr type_evenement operator&(type_evenement cote_gauche, int cote_droit)
+{
+	return static_cast<type_evenement>(static_cast<int>(cote_gauche) & cote_droit);
+}
+
+constexpr type_evenement operator|(type_evenement cote_gauche, type_evenement cote_droit)
+{
+	return static_cast<type_evenement>(static_cast<int>(cote_gauche) | static_cast<int>(cote_droit));
+}
+
+constexpr type_evenement operator^(type_evenement cote_gauche, type_evenement cote_droit)
+{
+	return static_cast<type_evenement>(static_cast<int>(cote_gauche) ^ static_cast<int>(cote_droit));
+}
+
+constexpr type_evenement operator~(type_evenement cote_gauche)
+{
+	return static_cast<type_evenement>(~static_cast<int>(cote_gauche));
+}
+
+type_evenement &operator|=(type_evenement &cote_gauche, type_evenement cote_droit);
+type_evenement &operator&=(type_evenement &cote_gauche, type_evenement cote_droit);
+type_evenement &operator^=(type_evenement &cote_gauche, type_evenement cote_droit);
+
+constexpr auto action_evenement(type_evenement evenement)
+{
+	return evenement & 0x0000ff00;
+}
+
+constexpr auto categorie_evenement(type_evenement evenement)
+{
+	return evenement & 0x000000ff;
+}
+
+template <typename TypeChar>
+std::basic_ostream<TypeChar> &operator<<(
+		std::basic_ostream<TypeChar> &os,
+		type_evenement evenement)
+{
+	switch (categorie_evenement(evenement)) {
+		case type_evenement::rendu:
+			os << "rendu, ";
+			break;
+		case type_evenement::temps:
+			os << "temps, ";
+			break;
+		case type_evenement::rafraichissement:
+			os << "rafraichissement, ";
+			break;
+		case type_evenement::objet:
+			os << "objet, ";
+			break;
+		case type_evenement::materiau:
+			os << "materiau, ";
+			break;
+		case type_evenement::camera:
+			os << "camera, ";
+			break;
+		default:
+			break;
+	}
+
+	switch (action_evenement(evenement)) {
+		case type_evenement::fini:
+			os << "fini";
+			break;
+		case type_evenement::ajoute:
+			os << "ajoute";
+			break;
+		case type_evenement::modifie:
+			os << "modifie";
+			break;
+		case type_evenement::selectione:
+			os << "selectione";
+			break;
+		default:
+			break;
+	}
+
+	return os;
+}

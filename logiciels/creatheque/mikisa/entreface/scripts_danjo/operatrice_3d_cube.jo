@@ -1,0 +1,18 @@
+disposition "operatrice_3d_cube" {
+    ligne {
+	    étiquette(valeur="Rayon")
+		vecteur(valeur="1,1,1"; attache=rayon)
+	}
+	ligne {
+	    étiquette(valeur="Position")
+		vecteur(valeur="0,0,0"; attache=position)
+	}
+	ligne {
+	    étiquette(valeur="Rotation")
+		vecteur(valeur="0,0,0"; attache=rotation)
+	}
+	ligne {
+	    étiquette(valeur="Taille")
+		vecteur(valeur="1,1,1"; attache=taille)
+	}
+}

@@ -1,0 +1,22 @@
+disposition "operatrice_3d_lissage_laplacien" {
+    ligne {
+	    étiquette(valeur="Poids")
+		décimal(valeur=1.0; attache=poids)
+	}
+    ligne {
+	    étiquette(valeur="Itérations")
+		entier(valeur=1; min=0; attache=itérations)
+	}
+	ligne {
+	    étiquette(valeur="Pondère selon distance")
+		case(valeur=faux; attache=pondère_distance; infobulle="Pondère le poids des sommets du voisinage selon leurs distances au sommet central.")
+	}
+	ligne {
+	    étiquette(valeur="Préserve bordures")
+		case(valeur=vrai; attache=préserve_bordures; infobulle="Ne calcul le lissage que pour les vertex ne se trouvant pas sur une bordure.")
+	}
+	ligne {
+	    étiquette(valeur="Tangeante")
+		case(valeur=faux; attache=tangeante; infobulle="Applique le lissage aux niveaux des tangeantes.")
+	}
+}

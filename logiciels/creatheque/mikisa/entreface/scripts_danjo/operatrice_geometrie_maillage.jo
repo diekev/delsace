@@ -1,0 +1,39 @@
+disposition "operatrice_geometrie_maillage" {
+    ligne {
+	    étiquette(valeur="Type")
+		énum(valeur="aire"; attache=type_metrie; items=[
+		    {nom="Aire Polygone", valeur="aire"},
+			{nom="Périmètre Polygone", valeur="périmètre"},
+			{nom="Barycentre Polygone", valeur="barycentre_poly"},
+			{nom="Centroïde Polygone", valeur="centroïde_poly"},
+			{nom="Distance Barycentre", valeur="dist_barycentre"},
+			{nom="Distance Centroïde", valeur="dist_centroïde"},
+			{nom="Courbure Min", valeur="courbure_min"},
+			{nom="Courbure Max", valeur="courbure_max"},
+			{nom="Direction Min", valeur="direction_min"},
+			{nom="Direction Max", valeur="direction_max"},
+			{nom="Variation géométrique", valeur="var_géom"},
+			{nom="Gaussien", valeur="gaussien"},
+			{nom="Moyenne", valeur="moyenne"},
+			{nom="Tangeante", valeur="tangeante"}
+		])
+	}
+	ligne {
+	    étiquette(valeur="Valeur Max")
+		décimal(valeur=0.0; attache=valeur_max)
+	}
+	ligne {
+	    étiquette(valeur="Courbure Relative")
+		case(valeur=faux; attache=relatif;
+		     infobulle="Détermine si la courbure doit être calculée en fonction de la distance maximale entre les points et leur barycentre.")
+	}
+	ligne {
+	    étiquette(valeur="Rayon Courbure")
+		décimal(valeur=1.0; attache=rayon)
+	}
+	ligne {
+	    étiquette(valeur="Limite Rayon Par Arrête")
+		case(valeur=faux; attache=limite_rayon;
+		     infobulle="Détermine si le rayon de calcul de la courbure est exprimé selon la taille de l'arrête la plus longue.")
+	}
+}

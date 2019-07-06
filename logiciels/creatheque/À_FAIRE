@@ -1,0 +1,366 @@
+######
+koudou
+- cryptomatte
+- groupes de lumières (Arnold, LuxRender)
+- assignation de matériaux selon des critères (chemins (ex : "/racine/objets/../"), nom (ex : "oeil")) (Katana)
+- AOVs
+- Deep Rendering
+- Camera Space Volumetric Shadows https://jo.dreggn.org/home/2012_camera_space.pdf
+- volume, TUVs
+- échantilloneur
+- BVH par groupes de triangles
+- rendu du BVH dans la scène OpenGL
+- ajout de lumière et d'objet depuis des opérateurs
+- ajourne l'interface de transformation selon la transformation de l'objet courant
+- introduction d'un système de chemin :
+-- /
+-- /objets/
+-- /matériaux/
+-- /textures/
+-- /textures/2D/
+-- /textures/3D/
+- sauvegarde/lecture projet
+- sauvegarde image
+- gestion des espaces colorimétriques
+- filtrage des pixels générés
+- évaluation du BxDF des lumières
+- implémentation danjo
+- ligne de temps
+-- IDÉES
+---- cuisson des textures connectées aux nuanceurs pour sauver de la mémoire https://blender.community/c/rightclickselect/3Rbbbc/blender-pbr-workflow-enhanced
+
+#####
+kanba
+- GÉNÉRALE
+-- empaquettage des textures
+-- sélection de polygones, groupes de polygones (création selon UV)
+-- sélection d'objets
+-- création de nuanceurs
+-- modes de nuançages (plat, ombrages, matériaux, etc...)
+-- séparation des différents objets (MARI, Substance Painter)
+-- système de versions par objet/assets (MARI) avec transfer de peinture
+-- séparation du canevas 2D et 3D dans différents éditeur
+-- peinture par profondeur (8-bit, 16-bit, 32-bit)
+-- gestion des espaces colorimétriques
+-- peinture sur un plan puis projection
+-- visions des projets récents (MARI, LightWorks)
+-- historique
+-- ligne de temps
+
+- CALQUES :
+-- masque
+-- filtres
+-- renommage
+-- réordonnage
+-- "cuisson" de calques procéduraux
+-- rendu par carreaux
+-- sélection multiple
+-- commandes visibilité, peinture, verrouillage
+
+- INTERFACE :
+-- calque
+-- calque procédural
+-- PTex
+
+- BUGS
+-- dessin
+---- les textures ayant des dimensions différentes ne rendent pas bien
+-- chargements
+---- texture n'est pas bonne
+---- calque actif n'est pas peignable
+
+######
+mikisa
+
+- EN COURS/URGENT
+-- manipulatrices 3D
+-- manipulatrices 2D
+
+- GÉNÉRALE
+-- gestion des espaces colorimétriques
+-- système de mise en cache
+-- cryptomatte
+-- format d'images : PNG, DCX, TIF
+-- deep compositing
+-- bit depth (8, 16, 32)
+-- rassemblement récursif des objets connectés entre eux
+-- désactivation de certains noeuds
+-- alembic
+-- chemin de fichiers relatifs
+-- utilisation d'un plan personnalisable pour placer/éditer les objets (Houdini, Polybrush)
+-- flou directionnel
+
+- NOEUDS
+-- cache/tampon
+-- lightwrap
+-- incrustation
+-- masque/rotoscopie
+-- transformation/position
+-- échantillonage de disque Poisson
+-- LUTs
+-- conversion log/linéaire Cinéon
+-- texture image, procédurelle
+-- bruits procéduraux
+
+- NOEUDS 3D :
+-- PARTICULES
+---- entrées
+------ texture (optionnelle), pour la distribution
+------ objet pour l'emission (optionnel)
+------ objet pour la collision
+---- sorties
+------ liste de points
+-- PANCARTES
+---- entrées
+------ liste de poins (optionel), pour la distribution
+------ texture
+------ caméra
+---- sorties
+------ objet(s)
+-- INSTANTIATION OBJET
+---- entrées
+------ liste de points
+------ objet à instancier
+---- sorties
+------ objets
+-- DISTRIBUTION POINTS
+---- entrées
+------ objet pour la surface a utilisé
+------ texture pour définir la distribution de point (densité, rayon, etc.)
+---- sorties
+------ liste de points
+
+- OBJETS 3D :
+-- Maillage
+-- Pancarte avec masque(s) (AFTER EFFECTS)
+---- 4 sommets
+---- UV implicites
+---- 1 normal
+---- pos, rot, éch
+---- pivot
+-- Courbe (Bézier, Cheveux)
+-- Surface (NURBS)
+-- Points (Particules)
+
+- SIMULATION :
+-- Particules
+---- Collision à l'intérieur des bornes des polygones
+---- Durée de vie des particules
+
+- CANNEVAS :
+-- sélection couleur
+
+- VUE 2D :
+-- peinture par brosse
+-- rotoscopie
+-- déformation d'image avec un maillage
+
+- VUE 3D :
+-- simulation 3D, particules
+-- instance de cartes sur des points
+
+- ROTOSCOPIE :
+-- assignation de couleurs aux cerces
+-- assignation de noms aux cerces
+-- cerces illimitées
+-- vue en arbre/groupage
+-- visionnage en temps réel des cerces sur la vidéo
+-- atténuation directionnelle ou doucissement des arrêtes
+-- ajout et suppression de points temporairement
+-- flou directionel des mattes selon la direction et la vélocité des cerces elles-mêmes (vs l'image dans son ensemble)
+-- édition de courbe pour régler finement les clés de frames, filtrage et scriptage
+-- rotation et mise à l'échelle des cerces et des points sélectionnés, basé sur le trackage avec des décalages de position globaux
+-- maniement intelligent et rapide d'image OpenEXR, DPX, etc. (4k)
+-- de bons outils LUTs pour voir dans les ombres ou lumières pour suivre les objets qui peuvent sembler être virtuellement coupés ou écrasés
+-- organisation des cerces en calques/groupes selon leurs couleurs (ou d'autres groupes) (https://vimeo.com/93702764)
+-- ajout d'un décalage d'image constant aux cerces et aux calques/groupes
+
+- INTERFACE
+-- groupes/cadres pour organiser les noeuds
+-- évaluation graphe selon la taille d'une fenêtre définie par l'utilisateur
+-- redimension composite
+-- prise venant du centre du noeud (à la NUKE) pour mieux organiser le graphe ?
+-- miniature de l'image dans les noeuds de lecture et de scène
+-- miniature du graphe pour se repérer
+-- éditeur pour voir toutes les images et vidéos utilisées dans le projet
+-- sélection d'objets 3D depuis la vue 2D (KATANA)
+
+- MANIPULATRICE
+-- opératrice : défini si besoin échelle, rotation, ou déplacement
+-- 3D : échelle, rotation
+-- 2D : échelle, rotation, déplacement, grille/maillage pour déformer les pixels
+-- dernier noeud sélectionné
+--- 2D si opératrice besoin manipulateur : dessine manipulateur selon données opératrice
+--- 2D si manipulateur sélectionné : ajourne données opératrice et interface
+--- 3D si objet ou caméra sélectionné : dessine manipulatrice selon position objet
+--- 3D si manipulatrice sélectionnée : ajourne données opératrice objet et interface
+-- pivot dynamique
+-- VC Element 3D
+--- taille origine fleche      50
+--- taille origine bas fleche  40
+--- taille origine plan        20
+
+- MONTAGE VIDEO
+-- strips, chaque strip à un graphe, et l'on calcul le graphe de la strip courante
+-- audio, cast audio 3D scène
+-- bins : pour stocker les "assets" du projets
+---- un moyen pour gérer tous les fichiers (audio, vidéo, image, objet) utilisés dans le projet
+
+- CAMÉRA 3D
+-- orientation autour d'un point (modification du pivot)
+-- orientation automatique selon le chemin de mouvement (motion path) défini par une courbe de bézier
+
+struct Bande {
+    Graphe graphe;
+    int image_debut;
+    int image_fin;
+    int piste; // plusieurs pistes audio/vidéo
+};
+
+struct Projet {
+    std::list<std::shared_ptr<Bande>> bandes;
+    int hauteur;
+    int largeur;
+    int debut;
+    int fin;
+};
+
+struct Mikisa {
+    std::vector<Projet> projets;
+    std::vector<Projet> historique;
+};
+
+class DelegueScene {
+    struct donnees_corps {
+        Corps *corps;
+        Materiel *mat;
+        matrice mat;
+    };
+
+public:
+    bool besoin_ajournement() const
+    {
+        return m_scene->besoin_ajournement;
+    }
+
+    /* charge les données de la scène */
+    void construit_scene() const
+    {
+        for (Objet *objet : scene->objets()) {
+            for (Corps *corps : objet->collection.plage()) {
+                donnees_.push_back(corps, matrice);
+            }
+        }
+
+        if (dessine_cameras) {
+            for (Camera *camera : scene->cameras()) {
+                donnees_.push_back(camera, matrice);
+            }
+        }
+
+        if (dessine_grille) {
+            donnees_.push_back(scene->grille);
+        }
+    }
+
+    size_t nombre_objets() const
+    {
+        return donnees_.size();
+    }
+
+    int type_objet(int i) const
+    {
+        return donnees_[i].corps->type;
+    }
+
+    Corps *corps(size_t i) const
+    {
+        return donnees_[i].corps;
+    }
+};
+
+class MoteurRendu {
+    std::vector<RenduCorps *> m_rendu_corps;
+    DelegueScene *m_delegue_scene;
+
+public:
+    void ajourne()
+    {
+        if (!m_delegue_scene->besoin_ajournement()) {
+            return;
+        }
+
+        m_delegue_scene->construit_scene();
+        m_rendu_corps.clear();
+
+        auto nombre_objet = m_delegue_scene->nombre_objet();
+
+        for (int i = 0; i < nombre_objet; ++i) {
+            // construit rendu pour objet i
+        }
+    }
+
+    void calcul_rendu()
+    {
+        for (const auto &rendu_corps : m_rendu_corps) {
+            rendu_corps.dessine(m_contexte);
+        }
+    }
+};
+
+STRUCTURE
+-- /
+-- /audios/
+-- /audios/{nom}
+-- /bandes/
+-- /bandes/graphe/
+-- /bandes/graphe/{noeud}/graphe/
+-- /projets/
+-- /images/
+-- /images/{nom}
+-- /materiaux/
+-- /materiaux/{nom}
+-- /vidéos/
+-- /vidéos/{nom}
+
+BUGS
+-- l'image 2D n'est pas recalculée quand on change la scène 3D et que la visionneuse 2D n'est pas active
+-- le texte sur la visionneuse 3D ne s'affiche pas correctement quand on a la scène 2D et la scène 3D actives en même temps
+-- les connexions entre les noeuds sont parfois dessinées derrière les noeuds
+-- taper sur entrée pour confirmer l'édition d'une chaine dans un dialogue confirme et ferme le dialogue
+-- l'inversion de l'étalonnage ne fonctionne pas correctement
+-- crash lors de l'évaluation d'une courbe ou d'une rampe lue depuis un fichier de sauvegarde, car les données de ces types ne sont pas écrits dans les fichiers.
+
+########
+kamikaze
+- création de liens entre les noeuds avec les commandes
+- système de physique
+- système de mise en cache
+- poséidon
+- implémentation danjo
+
+#####
+danjo
+- initialisation propriétés
+- animation des propriétés selon le temps
+-- courbes
+- BUGS :
+-- les tabs/onglets sont réinitialisés
+- controle interface
+-- courbes (teinte, couleur)
+-- rampe (sélection couleur par point de controle)
+-- meilleur différence interface sélection, entrée de nombre valeur entière ou décimale
+-- roue couleur (sélection couleur par valeur chaine)
+
+########
+poséidon
+-- macgrid
+-- incompressibilité
+
+########
+- deduplique
+-- noeud, graphe, impression graphe
+
+#######
+papiers
+- comparison of different image interpolation http://wvuscholar.wvu.edu/reports/Doma_Divya.pdf

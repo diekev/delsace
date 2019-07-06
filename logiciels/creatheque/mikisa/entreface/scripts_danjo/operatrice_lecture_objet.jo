@@ -1,0 +1,61 @@
+disposition "operatrice_objet" {
+dossier {
+    onglet "Fichier" {
+	    ligne {
+		    étiquette(valeur="Chemin")
+			fichier_entrée(valeur=""; attache=chemin; filtres="Objets (*.obj *.stl)")
+		}
+	}
+	onglet "Séquence" {
+	    ligne {
+		    étiquette(valeur="Animation")
+			case(valeur=faux; attache=est_animation)
+		}
+		ligne {
+		    étiquette(valeur="Premier Fichier")
+			entier(valeur=1; min=1; infobulle="Le premier fichier de la séquence à charger"; attache=premier_fichier)
+		}
+		ligne {
+		    étiquette(valeur="Avant")
+			énum(valeur="retiens"; infobulle="Comportement de la séquence avant le premier fichier"; attache=avant;
+			     items=[{nom="Retiens", valeur="retiens"}, {nom="Nul", valeur="nul"}])
+		}
+		ligne {
+		    étiquette(valeur="Dernier Fichier")
+			entier(valeur=1; min=1; infobulle="Le dernier fichier de la séquence à charger"; attache=dernier_fichier)
+		}
+		ligne {
+		    étiquette(valeur="Après")
+			énum(valeur="retiens"; infobulle="Comportement de la séquence après le premier fichier"; attache=après;
+			    items=[{nom="Retiens", valeur="retiens"}, {nom="Nul", valeur="nul"}])
+		}
+		ligne {
+		    étiquette(valeur="Décalage")
+			entier(valeur=0; infobulle="Décale la séquence d'un nombre d'image équivalent à la valeur indiqué"; attache=décalage)
+		}
+		ligne {
+		    étiquette(valeur="Fichiers manquants")
+			énum(valeur="erreur"; infobulle="Comportement de l'opératrice s'il manque un fichier"; attache=images_manquantes;
+			     items=[{nom="Erreur", valeur="erreur"}, {nom="Noir", valeur="noir"}, {nom="Fichier voisin", valeur="fichier_voisin"}])
+		}
+	}
+	onglet "Transformation" {
+	    ligne {
+		    étiquette(valeur="Position")
+			vecteur(valeur="0,0,0"; attache=position)
+		}
+		ligne {
+		    étiquette(valeur="Rotation")
+			vecteur(valeur="0,0,0"; attache=rotation)
+		}
+		ligne {
+		    étiquette(valeur="Taille")
+			vecteur(valeur="1,1,1"; attache=taille)
+		}
+		ligne {
+		    étiquette(valeur="Échelle Uniforme")
+			décimal(valeur=1.0; attache=echelle_uniforme)
+		}
+	}
+}
+}

@@ -1,0 +1,45 @@
+disposition "operatrice_camera" {
+    dossier {
+	    onglet "Transformation" {
+		    ligne {
+			    étiquette(valeur="Position")
+				vecteur(valeur="0,0,0"; attache=position)
+			}
+			ligne {
+			    étiquette(valeur="Rotation")
+				vecteur(valeur="0,0,0"; attache=rotation)
+			}
+			ligne {
+			    étiquette(valeur="Taille")
+				entier(valeur=1280; attache=largeur; min=4; max=8192; suffixe="px")
+				entier(valeur=720; attache=hauteur; min=4; max=8192; suffixe="px")
+			}
+		}
+		onglet "Projection" {
+		    ligne {
+			    étiquette(valeur="Projection")
+				énum(valeur="perspective"; attache=projection;
+				      items=[
+					  {nom="Perspective", valeur="perspective"},
+					  {nom="Orthographique", valeur="orthographique"}
+					  ])
+			}
+			ligne {
+			    étiquette(valeur="Proche")
+				décimal(valeur=0.01; attache=proche; min=0.0; suffixe="m")
+			}
+			ligne {
+			    étiquette(valeur="Éloigné")
+				décimal(valeur=1000.0; attache=éloigné; min=0.0; suffixe="m")
+			}
+			ligne {
+			    étiquette(valeur="Longueur Focale")
+				décimal(valeur=35.0; attache=longueur_focale; min=0.0; suffixe="mm")
+			}
+			ligne {
+			    étiquette(valeur="Largeur Senseur")
+				décimal(valeur=22.0; attache=largeur_senseur; min=0.0; suffixe="mm")
+			}
+		}
+	}
+}

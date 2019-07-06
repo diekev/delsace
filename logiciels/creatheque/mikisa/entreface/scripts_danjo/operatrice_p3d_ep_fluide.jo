@@ -1,0 +1,6 @@
+disposition "operatrice_p3d_ep_fluide" {
+	ligne {
+	    étiquette(valeur="Ordre")
+		entier(valeur=2; attache=ordre; min=1; max=6)
+	}
+}

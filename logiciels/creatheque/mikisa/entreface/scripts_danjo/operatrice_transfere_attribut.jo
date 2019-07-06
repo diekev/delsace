@@ -1,0 +1,10 @@
+disposition "operatrice_transfere_attribut" {
+    ligne {
+	    étiquette(valeur="Attribut")
+		liste(valeur="C"; attache=nom_attribut)
+	}
+	ligne {
+	    étiquette(valeur="Distance")
+		décimal(valeur=1.0; attache=distance; min=0)
+	}
+}
