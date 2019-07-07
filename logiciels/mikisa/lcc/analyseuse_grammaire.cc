@@ -90,7 +90,7 @@ static const char *tabulations[PROFONDEUR_EXPRESSION_MAX] = {
 
 /**
  * Pointeur spécial utilisé pour représenter un noeud de type paranthèse
- * ouvrante dans l'arbre syntactic. Ce noeud n'est pas insérer dans l'arbre,
+ * ouvrante dans l'arbre syntactic. Ce noeud n'est pas inséré dans l'arbre,
  * mais simplement utilisé pour compiler les arbres syntactics des expressions.
  */
 static auto NOEUD_PARENTHESE = reinterpret_cast<lcc::noeud::base *>(id_morceau::PARENTHESE_OUVRANTE);

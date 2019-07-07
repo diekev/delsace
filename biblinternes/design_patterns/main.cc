@@ -198,10 +198,10 @@ int clz( unsigned int x )
  * d'empreinte est un non-problème.
  *
  * Pour éviter les duplications, on considère le maximum de zéro en entête. Le
- * nombre estimer d'éléments sera de 2^max.
+ * nombre estimé d'éléments sera de 2^max.
  *
- * Pour éviter les erreurs dues aux outliars, on calcule la fonction plusieurs
- * fois avec différente fonction de hachage.
+ * Pour éviter les erreurs dues aux extrêmes, on calcule la fonction plusieurs
+ * fois avec différentes fonctions de hachage.
  */
 void hyperloglog(std::ostream &os)
 {
