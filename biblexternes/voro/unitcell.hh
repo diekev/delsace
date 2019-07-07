@@ -60,7 +60,7 @@ public:
 	}
 	void draw_domain_pov(FILE *fp=stdout);
 	bool intersects_image(double dx,double dy,double dz,double &vol);
-	void images(std::vector<int> &vi,std::vector<double> &vd);
+	void images(dls::tableau<int> &vi,dls::tableau<double> &vd);
 protected:
 	/** The maximum y-coordinate that could possibly cut the
 		 * computed unit Voronoi cell. */

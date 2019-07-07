@@ -249,10 +249,10 @@ public:
 		do {
 			if (cn->compute_cell(vc,vl)) {
 				// adapted from voro++
-				std::vector<double> verts;
-				std::vector<int> face_orders;
-				std::vector<int> face_verts;
-				std::vector<int> neighbors;
+				dls::tableau<double> verts;
+				dls::tableau<int> face_orders;
+				dls::tableau<int> face_verts;
+				dls::tableau<int> neighbors;
 				double *pp, centroid[3];
 				pp = vl.p[vl.ijk]+vl.ps*vl.q;
 
@@ -265,9 +265,9 @@ public:
 				c.verts = memoire::loge_tableau<float[3]>("c.verts", c.totvert);
 
 				for (auto v = 0; v < c.totvert; v++) {
-					c.verts[v][0] = static_cast<float>(verts[static_cast<size_t>(v * 3)]);
-					c.verts[v][1] = static_cast<float>(verts[static_cast<size_t>(v * 3 + 1)]);
-					c.verts[v][2] = static_cast<float>(verts[static_cast<size_t>(v * 3 + 2)]);
+					c.verts[v][0] = static_cast<float>(verts[v * 3]);
+					c.verts[v][1] = static_cast<float>(verts[v * 3 + 1]);
+					c.verts[v][2] = static_cast<float>(verts[v * 3 + 2]);
 				}
 
 				// faces
@@ -276,7 +276,7 @@ public:
 				c.poly_totvert = memoire::loge_tableau<int>("c.poly_totvert", c.totpoly);
 
 				for (auto fo = 0; fo < c.totpoly; fo++) {
-					c.poly_totvert[fo] = face_orders[static_cast<size_t>(fo)];
+					c.poly_totvert[fo] = face_orders[fo];
 				}
 
 				vc.face_vertices(face_verts);
@@ -288,7 +288,7 @@ public:
 					c.poly_indices[fo] = memoire::loge_tableau<int>("c.poly_indices", num_verts);
 
 					for (auto fv = 0; fv < num_verts; fv++) {
-						c.poly_indices[fo][fv] = face_verts[static_cast<size_t>(skip + 1 + fv)];
+						c.poly_indices[fo][fv] = face_verts[skip + 1 + fv];
 					}
 
 					skip += (num_verts+1);
@@ -299,7 +299,7 @@ public:
 				c.neighbors = memoire::loge_tableau<int>("c.neighbors", c.totpoly);
 
 				for (auto n = 0; n < c.totpoly; n++) {
-					c.neighbors[n] = neighbors[static_cast<size_t>(n)];
+					c.neighbors[n] = neighbors[n];
 				}
 
 				// centroid

@@ -16,10 +16,10 @@ namespace voro {
  * Prints a vector of integers.
  * \param[in] v the vector to print.
  * \param[in] fp the file stream to print to. */
-void voro_print_vector(std::vector<int> &v,FILE *fp)
+void voro_print_vector(dls::tableau<int> &v,FILE *fp)
 {
-	auto k = 0ul;
-	auto s=v.size();
+	auto k = 0l;
+	auto s=v.taille();
 
 	while(k+4<s) {
 		fprintf(fp,"%d %d %d %d ",v[k],v[k+1],v[k+2],v[k+3]);
@@ -49,10 +49,10 @@ void voro_print_vector(std::vector<int> &v,FILE *fp)
  * Prints a vector of doubles.
  * \param[in] v the vector to print.
  * \param[in] fp the file stream to print to. */
-void voro_print_vector(std::vector<double> &v,FILE *fp)
+void voro_print_vector(dls::tableau<double> &v,FILE *fp)
 {
-	auto k = 0ul;
-	auto s=v.size();
+	auto k = 0l;
+	auto s=v.taille();
 	while(k+4<s) {
 		fprintf(fp,"%g %g %g %g ",v[k],v[k+1],v[k+2],v[k+3]);
 		k+=4;
@@ -74,13 +74,13 @@ void voro_print_vector(std::vector<double> &v,FILE *fp)
  * until the end of the vector is reached.
  * \param[in] v the vector to interpret and print.
  * \param[in] fp the file stream to print to. */
-void voro_print_face_vertices(std::vector<int> &v,FILE *fp)
+void voro_print_face_vertices(dls::tableau<int> &v,FILE *fp)
 {
-	if (v.empty()) {
+	if (v.est_vide()) {
 		return;
 	}
 
-	size_t j,k=0;
+	auto j = 0, k=0;
 
 	auto l = v[k++];
 
@@ -89,13 +89,13 @@ void voro_print_face_vertices(std::vector<int> &v,FILE *fp)
 		else fputs("()",fp);
 	}
 	else {
-		j = k + static_cast<size_t>(l);
+		j = k + l;
 		fprintf(fp,"(%d",v[k++]);
 		while(k<j) fprintf(fp,",%d",v[k++]);
 		fputs(")",fp);
 	}
 
-	while (k < v.size()) {
+	while (k < v.taille()) {
 		l = v[k++];
 
 		if (l<=1) {
@@ -103,9 +103,10 @@ void voro_print_face_vertices(std::vector<int> &v,FILE *fp)
 			else fputs(" ()",fp);
 		}
 		else {
-			j = k + static_cast<size_t>(l);
+			j = k + l;
 			fprintf(fp," (%d",v[k++]);
-			while(k<j) fprintf(fp,",%d",v[k++]);
+			while(k<j)
+				fprintf(fp,",%d",v[k++]);
 			fputs(")",fp);
 		}
 	}

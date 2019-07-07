@@ -119,7 +119,7 @@ bool unitcell::intersects_image(double dx,double dy,double dz,double &vol) {
  *                centered in the middle of the primary domain.
  * \param[out] vd a vector containing the fraction of the Voronoi cell volume
  *                within each corresponding image listed in vi. */
-void unitcell::images(std::vector<int> &vi,std::vector<double> &vd) {
+void unitcell::images(dls::tableau<int> &vi,dls::tableau<double> &vd) {
 	const int ms2=max_unit_voro_shells*2+1,mss=ms2*ms2*ms2;
 	bool *a=new bool[mss],*ac=a+max_unit_voro_shells*(1+ms2*(1+ms2)),*ap=a;
 	int i,j,k;
@@ -145,10 +145,10 @@ void unitcell::images(std::vector<int> &vi,std::vector<double> &vd) {
 		if(intersects_image(i,j,k,vol)) {
 
 			// Add this entry to the output vectors
-			vi.push_back(i);
-			vi.push_back(j);
-			vi.push_back(k);
-			vd.push_back(vol);
+			vi.pousse(i);
+			vi.pousse(j);
+			vi.pousse(k);
+			vd.pousse(vol);
 
 			// Add neighbors to the queue if they have not been
 			// tested

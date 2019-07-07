@@ -10,7 +10,7 @@
 #ifndef VOROPP_CELL_HH
 #define VOROPP_CELL_HH
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "config.hh"
 #include "common.hh"
@@ -136,52 +136,68 @@ public:
 	void centroid(double &cx,double &cy,double &cz);
 	int number_of_faces();
 	int number_of_edges();
-	void vertex_orders(std::vector<int> &v);
+	void vertex_orders(dls::tableau<int> &v);
 	void output_vertex_orders(FILE *fp=stdout);
-	void vertices(std::vector<double> &v);
+	void vertices(dls::tableau<double> &v);
 	void output_vertices(FILE *fp=stdout);
-	void vertices(double x,double y,double z,std::vector<double> &v);
+	void vertices(double x,double y,double z,dls::tableau<double> &v);
 	void output_vertices(double x,double y,double z,FILE *fp=stdout);
-	void face_areas(std::vector<double> &v);
+	void face_areas(dls::tableau<double> &v);
+
 	/** Outputs the areas of the faces.
-		 * \param[in] fp the file handle to write to. */
-	inline void output_face_areas(FILE *fp=stdout) {
-		std::vector<double> v;face_areas(v);
+	 * \param[in] fp the file handle to write to. */
+	inline void output_face_areas(FILE *fp=stdout)
+	{
+		dls::tableau<double> v;face_areas(v);
 		voro_print_vector(v,fp);
 	}
-	void face_orders(std::vector<int> &v);
+
+	void face_orders(dls::tableau<int> &v);
+
 	/** Outputs a list of the number of sides of each face.
-		 * \param[in] fp the file handle to write to. */
-	inline void output_face_orders(FILE *fp=stdout) {
-		std::vector<int> v;face_orders(v);
+	 * \param[in] fp the file handle to write to. */
+	inline void output_face_orders(FILE *fp=stdout)
+	{
+		dls::tableau<int> v;
+		face_orders(v);
 		voro_print_vector(v,fp);
 	}
-	void face_freq_table(std::vector<int> &v);
+
+	void face_freq_table(dls::tableau<int> &v);
+
 	/** Outputs a */
-	inline void output_face_freq_table(FILE *fp=stdout) {
-		std::vector<int> v;face_freq_table(v);
+	inline void output_face_freq_table(FILE *fp=stdout)
+	{
+		dls::tableau<int> v;face_freq_table(v);
 		voro_print_vector(v,fp);
 	}
-	void face_vertices(std::vector<int> &v);
+
+	void face_vertices(dls::tableau<int> &v);
 	/** Outputs the */
-	inline void output_face_vertices(FILE *fp=stdout) {
-		std::vector<int> v;face_vertices(v);
+	inline void output_face_vertices(FILE *fp=stdout)
+	{
+		dls::tableau<int> v;face_vertices(v);
 		voro_print_face_vertices(v,fp);
 	}
-	void face_perimeters(std::vector<double> &v);
+
+	void face_perimeters(dls::tableau<double> &v);
 	/** Outputs a list of the perimeters of each face.
 		 * \param[in] fp the file handle to write to. */
-	inline void output_face_perimeters(FILE *fp=stdout) {
-		std::vector<double> v;face_perimeters(v);
+	inline void output_face_perimeters(FILE *fp=stdout)
+	{
+		dls::tableau<double> v;face_perimeters(v);
 		voro_print_vector(v,fp);
 	}
-	void normals(std::vector<double> &v);
+
+	void normals(dls::tableau<double> &v);
 	/** Outputs a list of the perimeters of each face.
-		 * \param[in] fp the file handle to write to. */
-	inline void output_normals(FILE *fp=stdout) {
-		std::vector<double> v;normals(v);
+	 * \param[in] fp the file handle to write to. */
+	inline void output_normals(FILE *fp=stdout)
+	{
+		dls::tableau<double> v;normals(v);
 		voro_print_positions(v,fp);
 	}
+
 	/** Outputs a custom string of information about the Voronoi
 		 * cell to a file. It assumes the cell is at (0,0,0) and has a
 		 * the default_radius associated with it.
@@ -202,7 +218,7 @@ public:
 		 * \param[out] v a reference to a vector in which to return the
 		 *               results. If no neighbor information is
 		 *               available, a blank vector is returned. */
-	virtual void neighbors(std::vector<int> &v) {v.clear();}
+	virtual void neighbors(dls::tableau<int> &v) {v.clear();}
 	/** This is a virtual function that is overridden by a routine
 		 * to print a list of IDs of neighboring particles
 		 * corresponding to each face. By default, when no neighbor
@@ -291,7 +307,7 @@ private:
 	template<class vc_class>
 	inline void add_to_stack(vc_class &vc,int lp,int *&stackp2);
 	inline bool plane_intersects_track(double x,double y,double z,double rs,double g);
-	inline void normals_search(std::vector<double> &v,int i,int j,int k);
+	inline void normals_search(dls::tableau<double> &v,int i,int j,int k);
 	inline bool search_edge(int l,int &m,int &k);
 	inline int m_test(int n,double &ans);
 	int check_marginal(int n,double &ans);
@@ -401,7 +417,7 @@ private:
 	inline void n_switch_to_aux1(int i) {};
 	inline void n_copy_to_aux1(int i,int m) {};
 	inline void n_set_to_aux1_offset(int k,int m) {};
-	inline void n_neighbors(std::vector<int> &v) {v.clear();};
+	inline void n_neighbors(dls::tableau<int> &v) {v.clear();};
 	friend class voronoicell_base;
 };
 
@@ -483,10 +499,10 @@ public:
 	void init_octahedron(double l);
 	void init_tetrahedron(double x0,double y0,double z0,double x1,double y1,double z1,double x2,double y2,double z2,double x3,double y3,double z3);
 	void check_facets();
-	virtual void neighbors(std::vector<int> &v);
+	virtual void neighbors(dls::tableau<int> &v);
 	virtual void print_edges_neighbors(int i);
 	virtual void output_neighbors(FILE *fp=stdout) {
-		std::vector<int> v;neighbors(v);
+		dls::tableau<int> v;neighbors(v);
 		voro_print_vector(v,fp);
 	}
 private:
