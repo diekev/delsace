@@ -40,6 +40,7 @@ set(BIBLIOTHEQUES
 	bib_objets
 	bib_opengl
 	bib_texture
+	bib_structures
 )
 
 add_compile_options(-fPIC)

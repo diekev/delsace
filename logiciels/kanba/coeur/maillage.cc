@@ -221,7 +221,7 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 	texels_par_cm = texels_par_cm * 10;
 
 	/* calcule la resolution UV de chaque polygone en fonction de la densité */
-	std::map<std::pair<unsigned int, unsigned int>, unsigned int> tableau_compte_faces;
+	dls::dico<std::pair<unsigned int, unsigned int>, unsigned int> tableau_compte_faces;
 
 	auto nombre_texels = 0u;
 
@@ -248,10 +248,10 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 
 		nombre_texels += p->res_u * p->res_v;
 
-		auto iter = tableau_compte_faces.find(paire);
+		auto iter = tableau_compte_faces.trouve(paire);
 
-		if (iter == tableau_compte_faces.end()) {
-			tableau_compte_faces.insert({paire, 1});
+		if (iter == tableau_compte_faces.fin()) {
+			tableau_compte_faces.insere({paire, 1});
 		}
 		else {
 			tableau_compte_faces[paire] += 1;
@@ -325,9 +325,9 @@ void Maillage::ajoute_quad(const size_t s0, const size_t s1, const size_t s2, co
 
 		arrete->index = i;
 
-		auto iter = m_tableau_arretes.find(std::make_pair(arrete->s[1]->index, arrete->s[0]->index));
+		auto iter = m_tableau_arretes.trouve(std::make_pair(arrete->s[1]->index, arrete->s[0]->index));
 
-		if (iter != m_tableau_arretes.end()) {
+		if (iter != m_tableau_arretes.fin()) {
 			arrete->opposee = iter->second;
 			arrete->opposee->opposee = arrete;
 		}
@@ -335,7 +335,7 @@ void Maillage::ajoute_quad(const size_t s0, const size_t s1, const size_t s2, co
 			arrete->opposee = nullptr;
 		}
 
-		m_tableau_arretes.insert({std::make_pair(arrete->s[0]->index, arrete->s[1]->index), arrete});
+		m_tableau_arretes.insere({std::make_pair(arrete->s[0]->index, arrete->s[1]->index), arrete});
 
 		poly->a[i] = arrete;
 

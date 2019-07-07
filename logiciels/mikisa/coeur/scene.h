@@ -25,10 +25,11 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 
 #include "biblinternes/graphe/graphe.h"
 
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "evaluation/reseau.hh"
@@ -42,7 +43,7 @@ class Camera3D;
 class Scene {
 	dls::tableau<Objet *> m_objets{};
 	vision::Camera3D *m_camera = nullptr;
-	std::unordered_map<Objet *, Noeud *> table_objet_noeud{};
+	dls::dico_desordonne<Objet *, Noeud *> table_objet_noeud{};
 
 public:
 	/* Réseau représentant les dépendances entre les objets dans la scène. */
@@ -54,7 +55,7 @@ public:
 	 */
 	Graphe graphe;
 
-	std::string nom = "";
+	dls::chaine nom = "";
 
 	Scene();
 	~Scene() = default;
@@ -72,7 +73,7 @@ public:
 
 	const dls::tableau<Objet *> &objets();
 
-	std::unordered_map<Objet *, Noeud *> const &table_objets() const;
+	dls::dico_desordonne<Objet *, Noeud *> const &table_objets() const;
 
 	void camera(vision::Camera3D *camera);
 

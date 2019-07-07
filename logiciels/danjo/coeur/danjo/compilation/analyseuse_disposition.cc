@@ -26,6 +26,8 @@
 
 #include <iostream>
 
+#include "biblinternes/structures/chaine.hh"
+
 #include "assembleuse_disposition.h"
 
 //#define DEBOGUE_ANALYSEUR
@@ -135,7 +137,7 @@ void AnalyseuseDisposition::analyse_script_disposition()
 		lance_erreur("Attendu le nom de la disposition après 'disposition' !");
 	}
 
-	m_assembleur->nom_disposition(std::string{donnees().chaine});
+	m_assembleur->nom_disposition(dls::chaine{donnees().chaine});
 
 	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante après le nom de la disposition !");
@@ -173,7 +175,7 @@ void AnalyseuseDisposition::analyse_script_menu()
 		lance_erreur("Attendu une accolade ouvrante après le nom du menu !");
 	}
 
-	m_assembleur->ajoute_menu(std::string{nom});
+	m_assembleur->ajoute_menu(dls::chaine{nom});
 
 	analyse_menu();
 
@@ -375,7 +377,7 @@ void AnalyseuseDisposition::analyse_onglet()
 		lance_erreur("Attendu une accolade ouvrante après le nom de 'onglet' !");
 	}
 
-	m_assembleur->ajoute_onglet(std::string{nom});
+	m_assembleur->ajoute_onglet(dls::chaine{nom});
 
 	analyse_disposition();
 
@@ -558,17 +560,17 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 		if (type_controle == id_morceau::BOUTON) {
 			m_assembleur->propriete_bouton(
 						identifiant_propriete,
-						std::string{donnees().chaine});
+						dls::chaine{donnees().chaine});
 		}
 		else if (type_controle == id_morceau::ACTION) {
 			m_assembleur->propriete_action(
 						identifiant_propriete,
-			std::string{donnees().chaine});
+			dls::chaine{donnees().chaine});
 		}
 		else {
 			const auto valeur = valeur_negative ?
-									"-" + std::string{donnees().chaine}
-								  : std::string{donnees().chaine};
+									"-" + dls::chaine{donnees().chaine}
+								  : dls::chaine{donnees().chaine};
 
 			m_assembleur->propriete_controle(
 						identifiant_propriete,
@@ -641,7 +643,7 @@ void AnalyseuseDisposition::analyse_item()
 		lance_erreur("Attendu une accolade fermée !");
 	}
 
-	m_assembleur->ajoute_item_liste(std::string{nom}, std::string{valeur});
+	m_assembleur->ajoute_item_liste(dls::chaine{nom}, dls::chaine{valeur});
 
 	if (!requiers_identifiant(id_morceau::VIRGULE)) {
 		/* Fin des identifiants item. */

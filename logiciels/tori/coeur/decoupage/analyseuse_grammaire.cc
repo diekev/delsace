@@ -25,7 +25,6 @@
 #include "analyseuse_grammaire.hh"
 
 #include <iostream>
-#include <set>
 
 #include "arbre_syntactic.hh"
 #include "assembleuse_arbre.hh"

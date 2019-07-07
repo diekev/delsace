@@ -75,7 +75,7 @@ public:
 		auto const probabilite = evalue_decimal("probabilité", contexte.temps_courant);
 		auto const graine = evalue_entier("graine", contexte.temps_courant);
 
-		if (nom_groupe.empty()) {
+		if (nom_groupe.est_vide()) {
 			ajoute_avertissement("Le nom du groupe est vide !");
 			return EXECUTION_ECHOUEE;
 		}

@@ -30,7 +30,7 @@
 
 namespace tori {
 
-std::string calcul_gabarit(std::string const &gabarit, ObjetDictionnaire &objet)
+dls::chaine calcul_gabarit(dls::chaine const &gabarit, ObjetDictionnaire &objet)
 {
 	auto const tampon = lng::tampon_source{gabarit};
 

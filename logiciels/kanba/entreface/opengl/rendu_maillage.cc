@@ -31,6 +31,7 @@
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/texture/texture.h"
+#include "biblinternes/structures/dico.hh"
 
 #include "coeur/maillage.h"
 
@@ -400,7 +401,7 @@ void RenduMaillage::initialise()
 	auto nombre_quads = 0;
 	auto nombre_tris = 0;
 
-	std::map<std::pair<uint, uint>, std::vector<uint>> vecteurs_polys;
+	dls::dico<std::pair<uint, uint>, std::vector<uint>> vecteurs_polys;
 
 	for (size_t	i = 0; i < nombre_polys; ++i) {
 		auto const poly = m_maillage->polygone(i);
@@ -411,7 +412,7 @@ void RenduMaillage::initialise()
 		vecteurs_polys[paire].push_back(static_cast<uint>(i));
 	}
 
-	std::cout << "Nombre de seaux : " << vecteurs_polys.size() << '\n';
+	std::cout << "Nombre de seaux : " << vecteurs_polys.taille() << '\n';
 
 	std::cout << "Nombre de quads : " << nombre_quads
 			  << ", nombre de triangles : " << nombre_tris << '\n';

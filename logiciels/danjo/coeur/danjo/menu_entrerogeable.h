@@ -26,6 +26,8 @@
 
 #include <QMenu>
 
+#include "biblinternes/structures/dico.hh"
+
 /**
  * Un MenuEntrerogeable est un menu qui nous permet de chercher une de ses
  * actions en tapant un texte dans une barre de recherche. Les actions pouvant
@@ -38,7 +40,7 @@
 class MenuEntrerogeable final : public QMenu {
 	Q_OBJECT
 
-	std::map<QString, QAction *> m_actions{};
+	dls::dico<QString, QAction *> m_actions{};
 	QMenu *m_menu_auxiliaire = nullptr;
 
 public:

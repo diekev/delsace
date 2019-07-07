@@ -51,11 +51,11 @@ const char *frappe::message() const
 	return m_message.c_str();
 }
 
-static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const std::string_view &chaine)
+static void imprime_caractere_vide(std::ostream &os, const long nombre, const dls::vue_chaine &chaine)
 {
 	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < std::min(nombre, chaine.size());) {
+	for (auto i = 0l; i < std::min(nombre, chaine.taille());) {
 		if (chaine[i] == '\t') {
 			os << '\t';
 		}
@@ -67,17 +67,17 @@ static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const 
 	}
 }
 
-static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
+static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine)
 {
-	for (size_t i = 0; i < chaine.size() - 1;) {
+	for (auto i = 0l; i < chaine.taille() - 1;) {
 		os << '~';
 		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 
-static void imprime_tilde(std::ostream &os, const std::string_view &chaine, size_t debut, size_t fin)
+static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine, long debut, long fin)
 {
-	for (size_t i = debut; i < fin;) {
+	for (auto i = debut; i < fin;) {
 		os << '~';
 		i += lng::decalage_pour_caractere(chaine, i);
 	}
@@ -85,9 +85,9 @@ static void imprime_tilde(std::ostream &os, const std::string_view &chaine, size
 
 static void imprime_ligne_entre(
 		std::ostream &os,
-		const std::string_view &chaine,
-		size_t debut,
-		size_t fin)
+		const dls::vue_chaine &chaine,
+		long debut,
+		long fin)
 {
 	for (auto i = debut; i < fin; ++i) {
 		os << chaine[i];
@@ -95,13 +95,13 @@ static void imprime_ligne_entre(
 }
 
 void lance_erreur(
-		const std::string &quoi,
+		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau,
 		type_erreur type)
 {
-	auto const ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto const identifiant = morceau.identifiant;
 	auto const &chaine = morceau.chaine;
 
@@ -124,15 +124,15 @@ void lance_erreur(
 }
 
 void lance_erreur_plage(
-		const std::string &quoi,
+		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &premier_morceau,
 		const DonneesMorceaux &dernier_morceau,
 		type_erreur type)
 {
-	auto const ligne = premier_morceau.ligne_pos >> 32;
-	auto const pos_premier = premier_morceau.ligne_pos & 0xffffffff;
-	auto const pos_dernier = dernier_morceau.ligne_pos & 0xffffffff;
+	auto const ligne = static_cast<long>(premier_morceau.ligne_pos >> 32);
+	auto const pos_premier = static_cast<long>(premier_morceau.ligne_pos & 0xffffffff);
+	auto const pos_dernier = static_cast<long>(dernier_morceau.ligne_pos & 0xffffffff);
 
 	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
 	auto ligne_courante = module->tampon[ligne];
@@ -157,8 +157,8 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -185,8 +185,8 @@ void lance_erreur_plage(
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau_enfant.ligne_pos & 0xffffffff;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau_enfant.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -210,7 +210,7 @@ void lance_erreur_plage(
 
 	imprime_ligne_entre(ss, ligne, 0, pos_mot);
 	ss << "transtype(" << morceau_enfant.chaine << " : " << chaine_type(type_arg, contexte) << ")";
-	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.size(), ligne.size());
+	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
@@ -223,8 +223,8 @@ void lance_erreur_plage(
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau_enfant.ligne_pos & 0xffffffff;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau_enfant.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -248,19 +248,19 @@ void lance_erreur_plage(
 
 	imprime_ligne_entre(ss, ligne, 0, pos_mot);
 	ss << "transtype(" << morceau_enfant.chaine << " : " << chaine_type(type_arg, contexte) << ")";
-	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.size(), ligne.size());
+	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_argument_inconnu(
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -280,12 +280,12 @@ void lance_erreur_plage(
 }
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -310,8 +310,8 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -337,8 +337,8 @@ void lance_erreur_type_operation(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -364,8 +364,8 @@ void lance_erreur_fonction_inconnue(
 		std::vector<DonneesCandidate> const &candidates)
 {
 	auto const &morceau = b->morceau;
-	auto const numero_ligne = morceau.ligne_pos >> 32;
-	auto const pos_mot = morceau.ligne_pos & 0xffffffff;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
@@ -412,7 +412,7 @@ void lance_erreur_fonction_inconnue(
 
 		if (dc.raison == MECOMPTAGE_ARGS) {
 			ss << "\tLe nombre d'arguments de la fonction est incorrect.\n";
-			ss << "\tRequiers " << df->args.size() << " arguments\n";
+			ss << "\tRequiers " << df->args.taille() << " arguments\n";
 			ss << "\tObtenu " << b->enfants.size() << " arguments\n";
 			type_erreur = erreur::type_erreur::NOMBRE_ARGUMENT;
 		}

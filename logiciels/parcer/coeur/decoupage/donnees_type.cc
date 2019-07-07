@@ -162,16 +162,16 @@ std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 
 size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 {
-	auto iter = donnees_type_index.find(donnees);
+	auto iter = donnees_type_index.trouve(donnees);
 
-	if (iter != donnees_type_index.end()) {
+	if (iter != donnees_type_index.fin()) {
 		return iter->second;
 	}
 
 	auto index = donnees_types.size();
 	donnees_types.push_back(donnees);
 
-	donnees_type_index.insert({donnees, index});
+	donnees_type_index.insere({donnees, index});
 
 	return index;
 }

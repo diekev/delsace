@@ -60,7 +60,7 @@ public:
 
 	virtual void imprime_arbre(std::ostream &os, int tab) const = 0;
 
-	virtual void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const = 0;
+	virtual void genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const = 0;
 };
 
 /* ************************************************************************** */
@@ -73,7 +73,7 @@ public:
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
 
-	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
+	void genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const override;
 };
 
 /* ************************************************************************** */
@@ -86,7 +86,7 @@ public:
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
 
-	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
+	void genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const override;
 };
 
 /* ************************************************************************** */
@@ -99,7 +99,7 @@ public:
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
 
-	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
+	void genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const override;
 };
 
 /* ************************************************************************** */
@@ -112,7 +112,7 @@ public:
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
 
-	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
+	void genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const override;
 };
 
 /* ************************************************************************** */
@@ -125,5 +125,5 @@ public:
 
 	void imprime_arbre(std::ostream &os, int tab) const override;
 
-	void genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const override;
+	void genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const override;
 };

@@ -65,7 +65,7 @@ DonneesModule *ContexteGenerationCode::module(size_t index) const
 	return modules[index];
 }
 
-DonneesModule *ContexteGenerationCode::module(const std::string_view &nom) const
+DonneesModule *ContexteGenerationCode::module(const dls::vue_chaine &nom) const
 {
 	for (auto module : modules) {
 		if (module->nom == nom) {
@@ -76,7 +76,7 @@ DonneesModule *ContexteGenerationCode::module(const std::string_view &nom) const
 	return nullptr;
 }
 
-bool ContexteGenerationCode::module_existe(const std::string_view &nom) const
+bool ContexteGenerationCode::module_existe(const dls::vue_chaine &nom) const
 {
 	for (auto module : modules) {
 		if (module->nom == nom) {
@@ -89,7 +89,7 @@ bool ContexteGenerationCode::module_existe(const std::string_view &nom) const
 
 /* ************************************************************************** */
 
-void ContexteGenerationCode::empile_goto_continue(std::string_view chaine, std::string const &bloc)
+void ContexteGenerationCode::empile_goto_continue(dls::vue_chaine chaine, std::string const &bloc)
 {
 	m_pile_goto_continue.push_back({chaine, bloc});
 }
@@ -99,13 +99,13 @@ void ContexteGenerationCode::depile_goto_continue()
 	m_pile_goto_continue.pop_back();
 }
 
-std::string ContexteGenerationCode::goto_continue(std::string_view chaine)
+std::string ContexteGenerationCode::goto_continue(dls::vue_chaine chaine)
 {
 	if (m_pile_goto_continue.empty()) {
 		return "";
 	}
 
-	if (chaine.empty()) {
+	if (chaine.est_vide()) {
 		return m_pile_goto_continue.back().second;
 	}
 
@@ -118,7 +118,7 @@ std::string ContexteGenerationCode::goto_continue(std::string_view chaine)
 	return "";
 }
 
-void ContexteGenerationCode::empile_goto_arrete(std::string_view chaine, std::string const &bloc)
+void ContexteGenerationCode::empile_goto_arrete(dls::vue_chaine chaine, std::string const &bloc)
 {
 	m_pile_goto_arrete.push_back({chaine, bloc});
 }
@@ -128,13 +128,13 @@ void ContexteGenerationCode::depile_goto_arrete()
 	m_pile_goto_arrete.pop_back();
 }
 
-std::string ContexteGenerationCode::goto_arrete(std::string_view chaine)
+std::string ContexteGenerationCode::goto_arrete(dls::vue_chaine chaine)
 {
 	if (m_pile_goto_arrete.empty()) {
 		return "";
 	}
 
-	if (chaine.empty()) {
+	if (chaine.est_vide()) {
 		return m_pile_goto_arrete.back().second;
 	}
 
@@ -147,7 +147,7 @@ std::string ContexteGenerationCode::goto_arrete(std::string_view chaine)
 	return "";
 }
 
-void ContexteGenerationCode::pousse_globale(const std::string_view &nom, DonneesVariable const &donnees)
+void ContexteGenerationCode::pousse_globale(const dls::vue_chaine &nom, DonneesVariable const &donnees)
 {
 	/* Nous utilisons ça plutôt que 'insert' car la valeur est poussée deux fois :
 	 * - la première fois, nulle, lors de la validation sémantique,
@@ -158,40 +158,40 @@ void ContexteGenerationCode::pousse_globale(const std::string_view &nom, Donnees
 	globales[nom] = donnees;
 }
 
-bool ContexteGenerationCode::globale_existe(const std::string_view &nom)
+bool ContexteGenerationCode::globale_existe(const dls::vue_chaine &nom)
 {
-	auto iter = globales.find(nom);
+	auto iter = globales.trouve(nom);
 
-	if (iter == globales.end()) {
+	if (iter == globales.fin()) {
 		return false;
 	}
 
 	return true;
 }
 
-size_t ContexteGenerationCode::type_globale(const std::string_view &nom)
+size_t ContexteGenerationCode::type_globale(const dls::vue_chaine &nom)
 {
-	auto iter = globales.find(nom);
+	auto iter = globales.trouve(nom);
 
-	if (iter == globales.end()) {
+	if (iter == globales.fin()) {
 		return -1ul;
 	}
 
 	return iter->second.donnees_type;
 }
 
-conteneur_globales::const_iterator ContexteGenerationCode::iter_globale(const std::string_view &nom)
+conteneur_globales::const_iteratrice ContexteGenerationCode::iter_globale(const dls::vue_chaine &nom)
 {
-	return globales.find(nom);
+	return globales.trouve(nom);
 }
 
-conteneur_globales::const_iterator ContexteGenerationCode::fin_globales()
+conteneur_globales::const_iteratrice ContexteGenerationCode::fin_globales()
 {
-	return globales.end();
+	return globales.fin();
 }
 
 void ContexteGenerationCode::pousse_locale(
-		const std::string_view &nom,
+		const dls::vue_chaine &nom,
 		DonneesVariable const &donnees)
 {
 	if (m_locales.size() > m_nombre_locales) {
@@ -204,12 +204,12 @@ void ContexteGenerationCode::pousse_locale(
 	++m_nombre_locales;
 }
 
-char ContexteGenerationCode::drapeaux_variable(std::string_view const &nom)
+char ContexteGenerationCode::drapeaux_variable(dls::vue_chaine const &nom)
 {
 	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
 
 	auto iter = std::find_if(m_locales.begin(), iter_fin,
-							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+							 [&](const std::pair<dls::vue_chaine, DonneesVariable> &paire)
 	{
 		return paire.first == nom;
 	});
@@ -221,12 +221,12 @@ char ContexteGenerationCode::drapeaux_variable(std::string_view const &nom)
 	return iter->second.drapeaux;
 }
 
-DonneesVariable &ContexteGenerationCode::donnees_variable(std::string_view const &nom)
+DonneesVariable &ContexteGenerationCode::donnees_variable(dls::vue_chaine const &nom)
 {
 	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
 
 	auto iter = std::find_if(m_locales.begin(), iter_fin,
-							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+							 [&](const std::pair<dls::vue_chaine, DonneesVariable> &paire)
 	{
 		return paire.first == nom;
 	});
@@ -235,9 +235,9 @@ DonneesVariable &ContexteGenerationCode::donnees_variable(std::string_view const
 		return iter->second;
 	}
 
-	auto iter_g = globales.find(nom);
+	auto iter_g = globales.trouve(nom);
 
-	if (iter_g != globales.end()) {
+	if (iter_g != globales.fin()) {
 		return iter_g->second;
 	}
 
@@ -245,12 +245,12 @@ DonneesVariable &ContexteGenerationCode::donnees_variable(std::string_view const
 	throw "";
 }
 
-bool ContexteGenerationCode::locale_existe(const std::string_view &nom)
+bool ContexteGenerationCode::locale_existe(const dls::vue_chaine &nom)
 {
 	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
 
 	auto iter = std::find_if(m_locales.begin(), iter_fin,
-							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+							 [&](const std::pair<dls::vue_chaine, DonneesVariable> &paire)
 	{
 		return paire.first == nom;
 	});
@@ -262,11 +262,11 @@ bool ContexteGenerationCode::locale_existe(const std::string_view &nom)
 	return true;
 }
 
-size_t ContexteGenerationCode::type_locale(const std::string_view &nom)
+size_t ContexteGenerationCode::type_locale(const dls::vue_chaine &nom)
 {
 	auto iter_fin = m_locales.begin() + static_cast<long>(m_nombre_locales);
 	auto iter = std::find_if(m_locales.begin(), iter_fin,
-							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+							 [&](const std::pair<dls::vue_chaine, DonneesVariable> &paire)
 	{
 		return paire.first == nom;
 	});
@@ -278,7 +278,7 @@ size_t ContexteGenerationCode::type_locale(const std::string_view &nom)
 	return iter->second.donnees_type;
 }
 
-bool ContexteGenerationCode::peut_etre_assigne(const std::string_view &nom)
+bool ContexteGenerationCode::peut_etre_assigne(const dls::vue_chaine &nom)
 {
 	auto iter = iter_locale(nom);
 
@@ -291,23 +291,23 @@ bool ContexteGenerationCode::peut_etre_assigne(const std::string_view &nom)
 
 void ContexteGenerationCode::empile_nombre_locales()
 {
-	m_pile_nombre_locales.push(m_nombre_locales);
-	m_pile_nombre_differes.push(m_nombre_differes);
+	m_pile_nombre_locales.empile(m_nombre_locales);
+	m_pile_nombre_differes.empile(m_nombre_differes);
 }
 
 void ContexteGenerationCode::depile_nombre_locales()
 {
-	auto nombre_locales = m_pile_nombre_locales.top();
+	auto nombre_locales = m_pile_nombre_locales.haut();
 	/* nous ne pouvons pas avoir moins de locales en sortant du bloc */
 	assert(nombre_locales <= m_nombre_locales);
 	m_nombre_locales = nombre_locales;
-	m_pile_nombre_locales.pop();
+	m_pile_nombre_locales.depile();
 
-	auto nombre_differes = m_pile_nombre_differes.top();
+	auto nombre_differes = m_pile_nombre_differes.haut();
 	/* nous ne pouvons pas avoir moins de noeuds différés en sortant du bloc */
 	assert(nombre_differes <= m_nombre_differes);
 	m_nombre_differes = nombre_differes;
-	m_pile_nombre_differes.pop();
+	m_pile_nombre_differes.depile();
 
 	while (m_noeuds_differes.size() > nombre_differes) {
 		m_noeuds_differes.pop_back();
@@ -321,7 +321,7 @@ void ContexteGenerationCode::imprime_locales(std::ostream &os)
 	}
 }
 
-bool ContexteGenerationCode::est_locale_variadique(const std::string_view &nom)
+bool ContexteGenerationCode::est_locale_variadique(const dls::vue_chaine &nom)
 {
 	auto iter = iter_locale(nom);
 
@@ -332,11 +332,11 @@ bool ContexteGenerationCode::est_locale_variadique(const std::string_view &nom)
 	return iter->second.est_variadic;
 }
 
-conteneur_locales::const_iterator ContexteGenerationCode::iter_locale(const std::string_view &nom)
+conteneur_locales::const_iterator ContexteGenerationCode::iter_locale(const dls::vue_chaine &nom)
 {
 	auto iter_fin = fin_locales();
 	auto iter = std::find_if(m_locales.cbegin(), iter_fin,
-							 [&](const std::pair<std::string_view, DonneesVariable> &paire)
+							 [&](const std::pair<dls::vue_chaine, DonneesVariable> &paire)
 	{
 		return paire.first == nom;
 	});
@@ -372,12 +372,12 @@ void ContexteGenerationCode::termine_fonction()
 	}
 }
 
-bool ContexteGenerationCode::structure_existe(const std::string_view &nom)
+bool ContexteGenerationCode::structure_existe(const dls::vue_chaine &nom)
 {
-	return structures.find(nom) != structures.end();
+	return structures.trouve(nom) != structures.fin();
 }
 
-size_t ContexteGenerationCode::ajoute_donnees_structure(const std::string_view &nom, DonneesStructure &donnees)
+size_t ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine &nom, DonneesStructure &donnees)
 {
 	donnees.id = nom_structures.size();
 
@@ -386,13 +386,13 @@ size_t ContexteGenerationCode::ajoute_donnees_structure(const std::string_view &
 
 	donnees.index_type = magasin_types.ajoute_type(dt);
 
-	structures.insert({nom, donnees});
+	structures.insere({nom, donnees});
 	nom_structures.push_back(nom);
 
 	return donnees.id;
 }
 
-DonneesStructure &ContexteGenerationCode::donnees_structure(const std::string_view &nom)
+DonneesStructure &ContexteGenerationCode::donnees_structure(const dls::vue_chaine &nom)
 {
 	return structures[nom];
 }
@@ -402,9 +402,9 @@ DonneesStructure &ContexteGenerationCode::donnees_structure(const size_t id)
 	return structures[nom_structures[id]];
 }
 
-std::string ContexteGenerationCode::nom_struct(const size_t id) const
+dls::chaine ContexteGenerationCode::nom_struct(const size_t id) const
 {
-	return std::string{nom_structures[id]};
+	return dls::chaine{nom_structures[id]};
 }
 
 /* ************************************************************************** */
@@ -422,7 +422,7 @@ std::vector<noeud::base *> const &ContexteGenerationCode::noeuds_differes() cons
 
 std::vector<noeud::base *> ContexteGenerationCode::noeuds_differes_bloc() const
 {
-	auto idx_debut = m_pile_nombre_differes.top();
+	auto idx_debut = m_pile_nombre_differes.haut();
 	auto idx_fin = m_nombre_differes;
 
 	if (idx_debut == idx_fin) {
@@ -446,27 +446,27 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	size_t memoire = sizeof(ContexteGenerationCode);
 
 	/* globales */
-	memoire += globales.size() * (sizeof(DonneesVariable) + sizeof(std::string_view));
+	memoire += static_cast<size_t>(globales.taille()) * (sizeof(DonneesVariable) + sizeof(dls::vue_chaine));
 
 	/* fonctions */
 
 	/* structures */
-	memoire += structures.size() * sizeof(DonneesStructure);
+	memoire += static_cast<size_t>(structures.taille()) * sizeof(DonneesStructure);
 
 	for (auto const &structure : structures) {
-		memoire += structure.second.donnees_membres.size() * (sizeof(DonneesMembre) + sizeof(std::string_view));
+		memoire += static_cast<size_t>(structure.second.donnees_membres.taille()) * (sizeof(DonneesMembre) + sizeof(dls::vue_chaine));
 		memoire += structure.second.donnees_types.size() * sizeof(DonneesType);
 	}
 
-	memoire += nom_structures.size() * sizeof(std::string_view);
+	memoire += nom_structures.size() * sizeof(dls::vue_chaine);
 
 	/* m_locales */
-	memoire += m_locales.capacity() * sizeof(std::pair<std::string_view, DonneesVariable>);
-	memoire += m_pile_nombre_locales.size() * sizeof(size_t);
+	memoire += m_locales.capacity() * sizeof(std::pair<dls::vue_chaine, DonneesVariable>);
+	memoire += static_cast<size_t>(m_pile_nombre_locales.taille()) * sizeof(size_t);
 
 	/* magasin_types */
 	memoire += magasin_types.donnees_types.size() * sizeof(DonneesType);
-	memoire += magasin_types.donnees_type_index.size() * (sizeof(size_t) + sizeof(size_t));
+	memoire += static_cast<size_t>(magasin_types.donnees_type_index.taille()) * (sizeof(size_t) + sizeof(size_t));
 
 	for (auto module : modules) {
 		memoire += module->memoire_utilisee();

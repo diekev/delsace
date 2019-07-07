@@ -26,7 +26,7 @@
 
 #include "analyseur.h"
 
-#include <unordered_map>
+#include "biblinternes/structures/dico_desordonne.hh"
 
 #include "postfix.h"
 
@@ -41,19 +41,19 @@ struct DonneesVariables {
 using Expression = std::vector<Variable>;
 
 struct DonneesFonction {
-	std::unordered_map<std::string, DonneesVariables> variables_locales;
+	dls::dico_desordonne<std::string, DonneesVariables> variables_locales;
 	std::vector<Expression> expressions;
 	Expression expression_retour;
 };
 
 struct DonneesScript {
-	std::unordered_map<std::string, DonneesVariables> variables;
-	std::unordered_map<std::string, DonneesFonction> fonctions;
+	dls::dico_desordonne<std::string, DonneesVariables> variables;
+	dls::dico_desordonne<std::string, DonneesFonction> fonctions;
 };
 
 class AnalyseuseLangage : public Analyseuse {
 	DonneesScript m_donnees_script;
-	std::unordered_map<std::string, double> m_chronometres;
+	dls::dico_desordonne<std::string, double> m_chronometres;
 
 public:
 	void lance_analyse(const std::vector<DonneesMorceaux> &morceaux) override;

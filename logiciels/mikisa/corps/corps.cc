@@ -38,7 +38,7 @@ Corps::~Corps()
 	reinitialise();
 }
 
-bool Corps::possede_attribut(std::string const &nom_attribut)
+bool Corps::possede_attribut(dls::chaine const &nom_attribut)
 {
 	return this->attribut(nom_attribut) != nullptr;
 }
@@ -49,7 +49,7 @@ void Corps::ajoute_attribut(Attribut *attr)
 }
 
 Attribut *Corps::ajoute_attribut(
-		std::string const &nom_attribut,
+		dls::chaine const &nom_attribut,
 		type_attribut type_,
 		portee_attr portee,
 		bool force_vide)
@@ -97,7 +97,7 @@ Attribut *Corps::ajoute_attribut(
 	return attr;
 }
 
-void Corps::supprime_attribut(std::string const &nom_attribut)
+void Corps::supprime_attribut(dls::chaine const &nom_attribut)
 {
 	auto iter = std::find_if(m_attributs.debut(), m_attributs.fin(),
 							 [&](Attribut *attr)
@@ -114,7 +114,7 @@ void Corps::supprime_attribut(std::string const &nom_attribut)
 	m_attributs.erase(iter);
 }
 
-Attribut *Corps::attribut(std::string const &nom_attribut) const
+Attribut *Corps::attribut(dls::chaine const &nom_attribut) const
 {
 	for (auto const &attr : m_attributs) {
 		if (attr->nom() != nom_attribut) {
@@ -274,7 +274,7 @@ Corps::plage_const_attributs Corps::attributs() const
 
 /* ************************************************************************** */
 
-GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_groupe)
+GroupePoint *Corps::ajoute_groupe_point(const dls::chaine &nom_groupe)
 {
 	auto ptr_groupe = groupe_point(nom_groupe);
 
@@ -290,7 +290,7 @@ GroupePoint *Corps::ajoute_groupe_point(const std::string &nom_groupe)
 	return &m_groupes_points.back();
 }
 
-GroupePoint *Corps::groupe_point(const std::string &nom_groupe) const
+GroupePoint *Corps::groupe_point(const dls::chaine &nom_groupe) const
 {
 	auto iter = std::find_if(m_groupes_points.debut(), m_groupes_points.fin(),
 							 [&](GroupePoint const &groupe)
@@ -318,7 +318,7 @@ Corps::plage_const_grp_pnts Corps::groupes_points() const
 
 /* ************************************************************************** */
 
-GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_groupe)
+GroupePrimitive *Corps::ajoute_groupe_primitive(dls::chaine const &nom_groupe)
 {
 	auto ptr_groupe = groupe_primitive(nom_groupe);
 
@@ -334,7 +334,7 @@ GroupePrimitive *Corps::ajoute_groupe_primitive(std::string const &nom_groupe)
 	return &m_groupes_prims.back();
 }
 
-GroupePrimitive *Corps::groupe_primitive(const std::string &nom_groupe) const
+GroupePrimitive *Corps::groupe_primitive(const dls::chaine &nom_groupe) const
 {
 	auto iter = std::find_if(m_groupes_prims.debut(), m_groupes_prims.fin(),
 							 [&](GroupePrimitive const &groupe)

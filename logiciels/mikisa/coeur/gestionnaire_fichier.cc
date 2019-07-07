@@ -3,7 +3,7 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
-PoigneeFichier::PoigneeFichier(const std::string &chemin)
+PoigneeFichier::PoigneeFichier(dls::chaine const &chemin)
 	: m_chemin(chemin)
 {}
 
@@ -56,16 +56,16 @@ GestionnaireFichier::~GestionnaireFichier()
 	}
 }
 
-PoigneeFichier *GestionnaireFichier::poignee_fichier(const std::string &chemin)
+PoigneeFichier *GestionnaireFichier::poignee_fichier(const dls::chaine &chemin)
 {
-	auto iter = m_table.find(chemin);
+	auto iter = m_table.trouve(chemin);
 
-	if (iter != m_table.end()) {
+	if (iter != m_table.fin()) {
 		return iter->second;
 	}
 
 	auto poignee = memoire::loge<PoigneeFichier>("PoigneeFichier", chemin);
-	m_table.insert({chemin, poignee});
+	m_table.insere({chemin, poignee});
 
 	return poignee;
 }

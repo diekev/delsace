@@ -74,15 +74,15 @@ static void tri_graphe_plan(Planifieuse::PtrPlan plan, NoeudReseau *noeud_temps)
 
 static void rassemble_noeuds(
 		dls::tableau<NoeudReseau *> &noeuds,
-		std::set<NoeudReseau *> &noeuds_visites,
+		dls::ensemble<NoeudReseau *> &noeuds_visites,
 		NoeudReseau *noeud)
 {
-	if (noeuds_visites.find(noeud) != noeuds_visites.end()) {
+	if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
 		return;
 	}
 
 	noeuds.pousse(noeud);
-	noeuds_visites.insert(noeud);
+	noeuds_visites.insere(noeud);
 
 	for (auto enfant : noeud->sorties) {
 		rassemble_noeuds(noeuds, noeuds_visites, enfant);
@@ -98,7 +98,7 @@ Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_scene(Reseau &reseau) const
 
 	/* Prépare les noeuds au tri topologique. */
 	for (auto noeud_dep : plan->noeuds) {
-		noeud_dep->degree = static_cast<int>(noeud_dep->entrees.size());
+		noeud_dep->degree = static_cast<int>(noeud_dep->entrees.taille());
 	}
 
 	tri_graphe_plan(plan, &reseau.noeud_temps);
@@ -110,7 +110,7 @@ Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_objet(Reseau &reseau, Objet
 {
 	auto plan = std::make_shared<Plan>();
 
-	std::set<NoeudReseau *> noeuds_visites;
+	dls::ensemble<NoeudReseau *> noeuds_visites;
 
 	for (auto noeud : reseau.noeuds) {
 		if (noeud->objet == objet) {
@@ -123,7 +123,7 @@ Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_objet(Reseau &reseau, Objet
 	 * de noeuds parents dans la branche. */
 	for (auto noeud_dep : plan->noeuds) {
 		for (auto noeud_aval : noeud_dep->entrees) {
-			if (noeuds_visites.find(noeud_aval) != noeuds_visites.end()) {
+			if (noeuds_visites.trouve(noeud_aval) != noeuds_visites.fin()) {
 				noeud_dep->degree += 1;
 			}
 		}
@@ -141,7 +141,7 @@ Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_nouveau_temps(Reseau &resea
 	plan->est_animation = est_animation;
 	plan->est_pour_temps = true;
 
-	std::set<NoeudReseau *> noeuds_visites;
+	dls::ensemble<NoeudReseau *> noeuds_visites;
 
 	/* À FAIRE : le noeud temps ne doit pas être dans le plan. */
 	rassemble_noeuds(plan->noeuds, noeuds_visites, &reseau.noeud_temps);
@@ -150,7 +150,7 @@ Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_nouveau_temps(Reseau &resea
 	 * de noeuds parents dans la branche. */
 	for (auto noeud_dep : plan->noeuds) {
 		for (auto noeud_aval : noeud_dep->entrees) {
-			if (noeuds_visites.find(noeud_aval) != noeuds_visites.end()) {
+			if (noeuds_visites.trouve(noeud_aval) != noeuds_visites.fin()) {
 				noeud_dep->degree += 1;
 			}
 		}

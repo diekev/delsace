@@ -35,25 +35,25 @@ size_t HachageSpatial::fonction_empreinte(dls::math::vec3f const &position)
 void HachageSpatial::ajoute(dls::math::vec3f const &position)
 {
 	auto const empreinte = fonction_empreinte(position);
-	m_tableau[empreinte].push_back(position);
+	m_tableau[empreinte].pousse(position);
 }
 
-std::vector<dls::math::vec3f> const &HachageSpatial::particules(dls::math::vec3f const &position)
+dls::tableau<dls::math::vec3f> const &HachageSpatial::particules(dls::math::vec3f const &position)
 {
 	auto const empreinte = fonction_empreinte(position);
 	return m_tableau[empreinte];
 }
 
-size_t HachageSpatial::taille() const
+long HachageSpatial::taille() const
 {
-	return m_tableau.size();
+	return m_tableau.taille();
 }
 
 bool verifie_distance_minimal(HachageSpatial &hachage_spatial, const dls::math::vec3f &point, float distance)
 {
 	auto const points = hachage_spatial.particules(point);
 
-	for (auto p = 0ul; p < points.size(); ++p) {
+	for (auto p = 0l; p < points.taille(); ++p) {
 		if (longueur(point - points[p]) < distance) {
 			return false;
 		}

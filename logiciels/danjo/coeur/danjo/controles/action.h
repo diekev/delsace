@@ -26,6 +26,8 @@
 
 #include <QAction>
 
+#include "biblinternes/structures/chaine.hh"
+
 namespace danjo {
 
 class RepondantBouton;
@@ -39,8 +41,8 @@ class Action : public QAction {
 	Q_OBJECT
 
 	RepondantBouton *m_repondant = nullptr;
-	std::string m_attache = "";
-	std::string m_metadonnee = "";
+	dls::chaine m_attache = "";
+	dls::chaine m_metadonnee = "";
 
 public:
 	explicit Action(QWidget *parent = nullptr);
@@ -58,29 +60,29 @@ public:
 	 * Établie l'attache du bouton, c'est-à-dire l'identifiant qui sera passé
 	 * au RepondantBouton lors d'un clique sur ce bouton.
 	 */
-	void etablie_attache(const std::string &attache);
+	void etablie_attache(const dls::chaine &attache);
 
 	/**
 	 * Établie la valeur du bouton, c'est-à-dire la chaîne de caractère qui sera
 	 * affichée sur le bouton dans l'entreface.
 	 */
-	void etablie_valeur(const std::string &valeur);
+	void etablie_valeur(const dls::chaine &valeur);
 
 	/**
 	 * Établie le contenu de l'infobulle du bouton.
 	 */
-	void etablie_infobulle(const std::string &valeur);
+	void etablie_infobulle(const dls::chaine &valeur);
 
 	/**
 	 * Établie la métadonnée de l'action, c'est-à-dire la chaîne de caractère
 	 * qui sera passée au RepondantBouton lors d'un clique sur ce bouton.
 	 */
-	void etablie_metadonnee(const std::string &metadonnee);
+	void etablie_metadonnee(const dls::chaine &metadonnee);
 
 	/**
 	 * Établie l'icône de cette action.
 	 */
-	void etablie_icone(const std::string &valeur);
+	void etablie_icone(const dls::chaine &valeur);
 
 	/**
 	 * Évalue le prédicat de l'attache de cette action, pour soit activer, soit

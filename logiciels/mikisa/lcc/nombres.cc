@@ -160,12 +160,12 @@ size_t extrait_nombre(const char *debut, const char *fin, id_morceau &id_nombre)
 
 /* ************************************************************************** */
 
-static long converti_chaine_nombre_binaire(const std::string_view &chaine)
+static long converti_chaine_nombre_binaire(const dls::vue_chaine &chaine)
 {
 	auto resultat = 0l;
 	auto n = 0;
 
-	for (size_t i = chaine.size() - 1; i != -1ul; --i) {
+	for (auto i = chaine.taille() - 1; i != -1l; --i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -184,12 +184,12 @@ static long converti_chaine_nombre_binaire(const std::string_view &chaine)
 	return resultat;
 }
 
-static long converti_chaine_nombre_octal(const std::string_view &chaine)
+static long converti_chaine_nombre_octal(const dls::vue_chaine &chaine)
 {
 	auto resultat = 0l;
 	auto n = 0;
 
-	for (size_t i = chaine.size() - 1; i != -1ul; --i) {
+	for (auto i = chaine.taille() - 1; i != -1l; --i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -208,12 +208,12 @@ static long converti_chaine_nombre_octal(const std::string_view &chaine)
 	return resultat;
 }
 
-static long converti_chaine_nombre_hexadecimal(const std::string_view &chaine)
+static long converti_chaine_nombre_hexadecimal(const dls::vue_chaine &chaine)
 {
 	auto resultat = 0l;
 	auto n = 0;
 
-	for (size_t i = chaine.size() - 1; i != -1ul; --i) {
+	for (auto i = chaine.taille() - 1; i != -1l; --i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -239,12 +239,12 @@ static long converti_chaine_nombre_hexadecimal(const std::string_view &chaine)
 	return resultat;
 }
 
-static auto converti_nombre_entier(const std::string_view &chaine)
+static auto converti_nombre_entier(const dls::vue_chaine &chaine)
 {
 	long valeur = 0l;
-	size_t i = 0;
+	auto i = 0l;
 
-	for (; i < chaine.size(); ++i) {
+	for (; i < chaine.taille(); ++i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -266,29 +266,29 @@ static auto converti_nombre_entier(const std::string_view &chaine)
 	return valeur;
 }
 
-long converti_chaine_nombre_entier(const std::string_view &chaine, id_morceau identifiant)
+long converti_chaine_nombre_entier(const dls::vue_chaine &chaine, id_morceau identifiant)
 {
 	switch (identifiant) {
 		case id_morceau::NOMBRE_ENTIER:
 			return converti_nombre_entier(chaine);
 		case id_morceau::NOMBRE_BINAIRE:
-			return converti_chaine_nombre_binaire({&chaine[2], chaine.size() - 2});
+			return converti_chaine_nombre_binaire({&chaine[2], chaine.taille() - 2});
 		case id_morceau::NOMBRE_OCTAL:
-			return converti_chaine_nombre_octal({&chaine[2], chaine.size() - 2});
+			return converti_chaine_nombre_octal({&chaine[2], chaine.taille() - 2});
 		case id_morceau::NOMBRE_HEXADECIMAL:
-			return converti_chaine_nombre_hexadecimal({&chaine[2], chaine.size() - 2});
+			return converti_chaine_nombre_hexadecimal({&chaine[2], chaine.taille() - 2});
 		default:
 			return 0l;
 	}
 }
 
-static auto converti_nombre_reel(const std::string_view &chaine)
+static auto converti_nombre_reel(const dls::vue_chaine &chaine)
 {
 	double valeur = 0.0;
-	size_t i = 0;
+	auto i = 0l;
 
 	/* avant point */
-	for (; i < chaine.size(); ++i) {
+	for (; i < chaine.taille(); ++i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -310,7 +310,7 @@ static auto converti_nombre_reel(const std::string_view &chaine)
 	/* après point */
 	auto dividende = 10.0;
 
-	for (; i < chaine.size(); ++i) {
+	for (; i < chaine.taille(); ++i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -328,7 +328,7 @@ static auto converti_nombre_reel(const std::string_view &chaine)
 	return valeur;
 }
 
-double converti_chaine_nombre_reel(const std::string_view &chaine, id_morceau identifiant)
+double converti_chaine_nombre_reel(const dls::vue_chaine &chaine, id_morceau identifiant)
 {
 	switch (identifiant) {
 		case id_morceau::NOMBRE_REEL:

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string_view>
+#include "biblinternes/structures/vue_chaine.hh"
 
 #include "morceaux.hh"
 #include "tampon_source.h"
@@ -37,10 +37,10 @@ class decoupeuse_texte {
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
 
-	size_t m_position_ligne = 0;
-	size_t m_compte_ligne = 0;
-	size_t m_pos_mot = 0;
-	size_t m_taille_mot_courant = 0;
+	long m_position_ligne = 0;
+	long m_compte_ligne = 0;
+	long m_pos_mot = 0;
+	long m_taille_mot_courant = 0;
 
 public:
 	explicit decoupeuse_texte(DonneesModule *module);
@@ -63,9 +63,9 @@ private:
 
 	char caractere_voisin(int n = 1) const;
 
-	std::string_view mot_courant() const;
+	dls::vue_chaine mot_courant() const;
 
-	[[noreturn]] void lance_erreur(const std::string &quoi) const;
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi) const;
 
 	void analyse_caractere_simple();
 

@@ -24,13 +24,12 @@
 
 #pragma once
 
-#include <string>
-
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 class TamponSource {
-	std::string m_tampon{};
-	dls::tableau<std::string_view> m_lignes{};
+	dls::chaine m_tampon{};
+	dls::tableau<dls::vue_chaine> m_lignes{};
 
 public:
 	/**
@@ -40,11 +39,11 @@ public:
 	explicit TamponSource(const char *chaine);
 
 	/**
-	 * Construit une instance de TamponSource avec une std::string qui
-	 * est 'bougée' dans la tampon. Après cette opération la std::string
+	 * Construit une instance de TamponSource avec une chaine qui
+	 * est 'bougée' dans la tampon. Après cette opération la chaine
 	 * passée en paramètre sera vide.
 	 */
-	explicit TamponSource(std::string chaine) noexcept;
+	explicit TamponSource(dls::chaine chaine) noexcept;
 
 	/**
 	 * Retourne un pointeur vers le début du tampon.
@@ -57,12 +56,12 @@ public:
 	const char *fin() const noexcept;
 
 	/**
-	 * Retourne un std::string_view vers la ligne indiquée par l'index i
+	 * Retourne un dls::vue_chaine vers la ligne indiquée par l'index i
 	 * spécifié. Aucune vérification pour savoir si i est dans la portée
 	 * du tampon n'est effectuée, de sorte que si i n'est pas dans la
 	 * portée, le programme crashera.
 	 */
-	std::string_view operator[](size_t i) const noexcept;
+	dls::vue_chaine operator[](long i) const noexcept;
 
 	/**
 	 * Retourne le nombre de ligne dans le tampon.

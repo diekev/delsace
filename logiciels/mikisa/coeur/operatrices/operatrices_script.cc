@@ -420,7 +420,7 @@ template <typename T>
 static auto remplis_donnees(
 		lcc::pile &donnees,
 		gestionnaire_propriete &gest_props,
-		std::string const &nom,
+		dls::chaine const &nom,
 		T const &v)
 {
 	auto idx = gest_props.pointeur_donnees(nom);
@@ -467,7 +467,7 @@ public:
 
 		auto texte = evalue_chaine("script");
 
-		if (texte.empty()) {
+		if (texte.est_vide()) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -633,7 +633,7 @@ public:
 
 		auto texte = evalue_chaine("script");
 
-		if (texte.empty()) {
+		if (texte.est_vide()) {
 			return EXECUTION_ECHOUEE;
 		}
 

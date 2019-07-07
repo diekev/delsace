@@ -22,6 +22,7 @@
 set(NOM_BIBLIOTHEQUE design_patterns)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES

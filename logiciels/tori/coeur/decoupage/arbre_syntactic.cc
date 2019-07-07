@@ -63,7 +63,7 @@ void NoeudChaineCaractere::imprime_arbre(std::ostream &os, int tab) const
 	os << "Chaîne Caractère\n";
 }
 
-void NoeudChaineCaractere::genere_code(std::string &tampon, tori::ObjetDictionnaire &/*objet*/) const
+void NoeudChaineCaractere::genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &/*objet*/) const
 {
 	tampon += donnees_morceaux.chaine;
 }
@@ -85,12 +85,12 @@ void NoeudVariable::imprime_arbre(std::ostream &os, int tab) const
 	os << "Variable\n";
 }
 
-void NoeudVariable::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const
+void NoeudVariable::genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const
 {
 	auto variable = this->donnees_morceaux.chaine;
-	auto iter = objet.valeur.find(std::string(variable));
+	auto iter = objet.valeur.trouve(dls::chaine(variable));
 
-	if (iter != objet.valeur.end()) {
+	if (iter != objet.valeur.fin()) {
 		auto const &objet_variable = iter->second;
 
 		switch (objet_variable->type) {
@@ -151,7 +151,7 @@ void NoeudBloc::imprime_arbre(std::ostream &os, int tab) const
 	}
 }
 
-void NoeudBloc::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const
+void NoeudBloc::genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const
 {
 	for (auto enfant : enfants) {
 		enfant->genere_code(tampon, objet);
@@ -179,11 +179,11 @@ void NoeudSi::imprime_arbre(std::ostream &os, int tab) const
 	}
 }
 
-void NoeudSi::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const
+void NoeudSi::genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const
 {
 	auto variable = enfants[0]->donnees_morceaux.chaine;
 
-	if (objet.valeur.find(std::string(variable)) != objet.valeur.end()) {
+	if (objet.valeur.trouve(dls::chaine(variable)) != objet.valeur.fin()) {
 		enfants[1]->genere_code(tampon, objet);
 	}
 	else {
@@ -214,12 +214,12 @@ void NoeudPour::imprime_arbre(std::ostream &os, int tab) const
 	}
 }
 
-void NoeudPour::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet) const
+void NoeudPour::genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) const
 {
 	auto propriete = enfants[1]->donnees_morceaux.chaine;
-	auto iter = objet.valeur.find(std::string(propriete));
+	auto iter = objet.valeur.trouve(dls::chaine(propriete));
 
-	if (iter == objet.valeur.end()) {
+	if (iter == objet.valeur.fin()) {
 		return;
 	}
 
@@ -249,7 +249,7 @@ void NoeudPour::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet)
 			auto tableau = static_cast<tori::ObjetTableau *>(objet_iter.get());
 
 			for (auto const &objet_tableau : tableau->valeur) {
-				objet.valeur[std::string(variable)] = objet_tableau;
+				objet.valeur[dls::chaine(variable)] = objet_tableau;
 
 				enfants[2]->genere_code(tampon, objet);
 			}
@@ -264,7 +264,7 @@ void NoeudPour::genere_code(std::string &tampon, tori::ObjetDictionnaire &objet)
 				auto objet_nom = std::make_shared<tori::ObjetChaine>();
 				objet_nom->valeur = paire_iter.first;
 
-				objet.valeur[std::string(variable)] = objet_nom;
+				objet.valeur[dls::chaine(variable)] = objet_nom;
 
 				enfants[2]->genere_code(tampon, objet);
 			}

@@ -113,7 +113,7 @@ Decoupeuse::Decoupeuse(lng::tampon_source const &tampon)
 	construit_tables_caractere_speciaux();
 }
 
-void Decoupeuse::impression_debogage(const std::string &quoi)
+void Decoupeuse::impression_debogage(const dls::chaine &quoi)
 {
 	std::cout << "Trouvé symbole " << quoi
 			  << ", ligne : " << m_ligne
@@ -209,7 +209,7 @@ void Decoupeuse::decoupe()
 								break;
 							}
 
-							m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+							m_taille_mot_courant += nombre_octet;
 							this->avance(static_cast<size_t>(nombre_octet));
 						}
 
@@ -221,7 +221,7 @@ void Decoupeuse::decoupe()
 					}
 					default:
 					{
-						m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+						m_taille_mot_courant += nombre_octet;
 						this->avance(static_cast<size_t>(nombre_octet));
 						break;
 					}
@@ -281,7 +281,7 @@ void Decoupeuse::analyse_caractere_simple()
 
 		this->enregistre_pos_mot();
 
-		auto id = id_caractere_double(std::string_view(m_debut, 2));
+		auto id = id_caractere_double(dls::vue_chaine(m_debut, 2));
 
 		if (id != id_morceau::INCONNU) {
 			this->pousse_caractere();
@@ -384,7 +384,7 @@ void Decoupeuse::analyse_caractere_simple()
 		 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
 		 * infinie. */
 		const auto compte = extrait_nombre(m_debut, m_fin, id_nombre);
-		m_taille_mot_courant = compte;
+		m_taille_mot_courant = static_cast<long>(compte);
 
 		this->pousse_mot(id_nombre);
 		this->avance(compte);
@@ -399,7 +399,7 @@ void Decoupeuse::analyse_caractere_simple()
 	}
 }
 
-void Decoupeuse::lance_erreur(const std::string &quoi) const
+void Decoupeuse::lance_erreur(const dls::chaine &quoi) const
 {
 	throw ErreurFrappe(m_tampon[m_ligne],
 					   m_ligne + 1,
@@ -407,9 +407,9 @@ void Decoupeuse::lance_erreur(const std::string &quoi) const
 					   quoi);
 }
 
-void Decoupeuse::ajoute_identifiant(id_morceau identifiant, const std::string_view &contenu)
+void Decoupeuse::ajoute_identifiant(id_morceau identifiant, const dls::vue_chaine &contenu)
 {
-	m_identifiants.pousse({contenu, m_ligne | m_position_ligne, identifiant});
+	m_identifiants.pousse({contenu, static_cast<size_t>((m_ligne << 32) | m_position_ligne), identifiant});
 }
 
 dls::tableau<DonneesMorceaux> &Decoupeuse::morceaux()
@@ -424,7 +424,7 @@ void Decoupeuse::pousse_caractere()
 
 void Decoupeuse::pousse_mot(id_morceau identifiant)
 {
-	m_identifiants.pousse({ mot_courant(), ((m_ligne << 32) | m_position_ligne), identifiant });
+	m_identifiants.pousse({ mot_courant(), static_cast<size_t>((m_ligne << 32) | m_position_ligne), identifiant });
 	m_taille_mot_courant = 0;
 }
 
@@ -465,9 +465,9 @@ char Decoupeuse::caractere_voisin(int n) const
 	return *ptr;
 }
 
-std::string_view Decoupeuse::mot_courant() const
+dls::vue_chaine Decoupeuse::mot_courant() const
 {
-	return std::string_view(m_debut_mot, m_taille_mot_courant);
+	return dls::vue_chaine(m_debut_mot, m_taille_mot_courant);
 }
 
 }  /* namespace danjo */

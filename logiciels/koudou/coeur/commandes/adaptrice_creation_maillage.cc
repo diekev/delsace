@@ -76,7 +76,7 @@ void AdaptriceChargementMaillage::ajoute_ligne(const int *index, size_t nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceChargementMaillage::ajoute_objet(std::string const &nom)
+void AdaptriceChargementMaillage::ajoute_objet(dls::chaine const &nom)
 {
 	INUTILISE(nom);
 }
@@ -101,7 +101,7 @@ void AdaptriceChargementMaillage::reserve_uvs(long const nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceChargementMaillage::groupes(dls::tableau<std::string> const &noms)
+void AdaptriceChargementMaillage::groupes(const dls::tableau<dls::chaine> &noms)
 {
 	INUTILISE(noms);
 }

@@ -25,8 +25,8 @@
 #include "postfix.h"
 
 #include <iostream>
-#include <stack>
-#include <vector>
+
+#include "biblinternes/structures/pile.hh"
 
 #include "../../outils/conditions.h"
 
@@ -129,70 +129,70 @@ auto split(const std::string &source)
 	return result;
 }
 
-auto postfix(const std::string &expression) -> std::queue<std::string>
+auto postfix(const std::string &expression) -> dls::file<std::string>
 {
-	std::queue<std::string> output;
-	std::stack<std::string> stack;
+	dls::file<std::string> output;
+	dls::pile<std::string> stack;
 
 	const auto &tokens = split(expression);
 
 	for (const auto &token : tokens) {
 		if (isdigit(token[0]) || token[0] == '.') {
-			output.push(token);
+			output.enfile(token);
 			continue;
 		}
 
 		if (is_function(token)) {
-			stack.push(token);
+			stack.empile(token);
 			continue;
 		}
 
 		if (is_operator(token)) {
-			while (   !stack.empty()
-			       && is_operator(stack.top())
-			       && (has_lower_precedence(token, stack.top())))
+			while (   !stack.est_vide()
+				   && is_operator(stack.haut())
+				   && (has_lower_precedence(token, stack.haut())))
 			{
-				output.push(stack.top());
-				stack.pop();
+				output.enfile(stack.haut());
+				stack.depile();
 			}
 
-			stack.push(token);
+			stack.empile(token);
 			continue;
 		}
 
 		if (token == "(") {
-			stack.push(token);
+			stack.empile(token);
 			continue;
 		}
 
 		if (token == ")") {
-			if (stack.empty()) {
+			if (stack.est_vide()) {
 				std::cerr << "Parenthesis mismatch!\n";
 				break;
 			}
 
-			while (stack.top() != "(") {
-				output.push(stack.top());
-				stack.pop();
+			while (stack.haut() != "(") {
+				output.enfile(stack.haut());
+				stack.depile();
 			}
 
 			// pop the left parenthesis from the stack
-			if (stack.top() == "(") {
-				stack.pop();
+			if (stack.haut() == "(") {
+				stack.depile();
 			}
 
 			continue;
 		}
 	}
 
-	while (!stack.empty()) {
-		if (stack.top() == "(") {
+	while (!stack.est_vide()) {
+		if (stack.haut() == "(") {
 			std::cerr << "Parenthesis mismatch!\n";
 			break;
 		}
 
-		output.push(stack.top());
-		stack.pop();
+		output.enfile(stack.haut());
+		stack.depile();
 	}
 
 	return output;

@@ -55,7 +55,7 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &don
 			break;
 	}
 
-	m_noeuds.push_back(noeud);
+	m_noeuds.pousse(noeud);
 
 	return noeud;
 }
@@ -63,29 +63,29 @@ Noeud *assembleuse_arbre::cree_noeud(type_noeud type, const DonneesMorceaux &don
 void assembleuse_arbre::ajoute_noeud(type_noeud type, const DonneesMorceaux &donnees)
 {
 	auto noeud = cree_noeud(type, donnees);
-	m_pile.top()->ajoute_enfant(noeud);
+	m_pile.haut()->ajoute_enfant(noeud);
 }
 
 void assembleuse_arbre::empile_noeud(type_noeud type, const DonneesMorceaux &donnees)
 {
 	auto noeud = cree_noeud(type, donnees);
 
-	if (!m_pile.empty()) {
-		m_pile.top()->ajoute_enfant(noeud);
+	if (!m_pile.est_vide()) {
+		m_pile.haut()->ajoute_enfant(noeud);
 	}
 
-	m_pile.push(noeud);
+	m_pile.empile(noeud);
 }
 
 void assembleuse_arbre::depile_noeud(type_noeud type)
 {
 	escompte_type(type);
-	m_pile.pop();
+	m_pile.depile();
 }
 
 void assembleuse_arbre::escompte_type(type_noeud type)
 {
-	auto noeud = m_pile.top();
+	auto noeud = m_pile.haut();
 	if (noeud->type() != type) {
 		throw "type invalide";
 	}
@@ -93,21 +93,21 @@ void assembleuse_arbre::escompte_type(type_noeud type)
 
 void assembleuse_arbre::imprime_arbre(std::ostream &os)
 {
-	if (m_pile.empty()) {
+	if (m_pile.est_vide()) {
 		os << "Arbre vide !\n";
 		return;
 	}
 
-	m_pile.top()->imprime_arbre(os, 0);
+	m_pile.haut()->imprime_arbre(os, 0);
 }
 
-std::string assembleuse_arbre::genere_code(tori::ObjetDictionnaire &objet) const
+dls::chaine assembleuse_arbre::genere_code(tori::ObjetDictionnaire &objet) const
 {
-	if (m_pile.empty()) {
+	if (m_pile.est_vide()) {
 		return "";
 	}
 
-	auto tampon = std::string{};
-	m_pile.top()->genere_code(tampon, objet);
+	auto tampon = dls::chaine{};
+	m_pile.haut()->genere_code(tampon, objet);
 	return tampon;
 }

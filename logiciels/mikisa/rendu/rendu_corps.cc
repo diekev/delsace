@@ -52,12 +52,12 @@ enum {
 struct VariableAttribut {
 	int location;
 	int type;
-	std::string nom;
+	dls::chaine nom;
 };
 
 struct VariableGenerique {
 	int type;
-	std::string nom;
+	dls::chaine nom;
 };
 
 struct DonneesScripts {
@@ -67,7 +67,7 @@ struct DonneesScripts {
 	dls::tableau<VariableGenerique> variables_sortie;
 };
 
-static void ajoute_variable_attribut(std::string &tampon, std::string const &nom, const int type)
+static void ajoute_variable_attribut(dls::chaine &tampon, dls::chaine const &nom, const int type)
 {
 	switch (type) {
 		case VARIABLE_TYPE_VEC2:
@@ -81,7 +81,7 @@ static void ajoute_variable_attribut(std::string &tampon, std::string const &nom
 	}
 }
 
-static void ajoute_variable_uniforme(std::string &tampon, std::string const &nom, const int type)
+static void ajoute_variable_uniforme(dls::chaine &tampon, dls::chaine const &nom, const int type)
 {
 	switch (type) {
 		case VARIABLE_TYPE_VEC2:
@@ -104,7 +104,7 @@ static void ajoute_variable_uniforme(std::string &tampon, std::string const &nom
 	}
 }
 
-static void ajoute_variable_sortie(std::string &tampon, std::string const &nom, const int type)
+static void ajoute_variable_sortie(dls::chaine &tampon, dls::chaine const &nom, const int type)
 {
 	switch (type) {
 		case VARIABLE_TYPE_VEC2:
@@ -127,7 +127,7 @@ static void ajoute_variable_sortie(std::string &tampon, std::string const &nom, 
 	}
 }
 
-static void ajoute_variable_entree(std::string &tampon, std::string const &nom, const int type)
+static void ajoute_variable_entree(dls::chaine &tampon, dls::chaine const &nom, const int type)
 {
 	switch (type) {
 		case VARIABLE_TYPE_VEC2:
@@ -152,8 +152,8 @@ static void ajoute_variable_entree(std::string &tampon, std::string const &nom, 
 
 void compile_sources_nuanceur(Maillage *maillage)
 {
-	std::string source_vertex;
-	std::string source_fragment;
+	dls::chaine source_vertex;
+	dls::chaine source_fragment;
 
 	// ajoute_variable_attribut(nom, type);
 	source_vertex += "layout (location = 0) in vec3 sommets;";

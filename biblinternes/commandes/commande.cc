@@ -28,7 +28,7 @@
 
 #include "../outils/definitions.h"
 
-bool Commande::evalue_predicat(std::any const &pointeur, std::string const &metadonnee)
+bool Commande::evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee)
 {
 	INUTILISE(pointeur);
 	INUTILISE(metadonnee);
@@ -51,25 +51,25 @@ void Commande::termine_execution_modale(
 	INUTILISE(donnees);
 }
 
-void UsineCommande::enregistre_type(std::string const &nom, DescriptionCommande const &description)
+void UsineCommande::enregistre_type(dls::chaine const &nom, DescriptionCommande const &description)
 {
-	auto const iter = m_tableau.find(nom);
-	assert(iter == m_tableau.end());
+	auto const iter = m_tableau.trouve(nom);
+	assert(iter == m_tableau.fin());
 
 	m_tableau[nom] = description;
 }
 
-Commande *UsineCommande::operator()(std::string const &nom)
+Commande *UsineCommande::operator()(dls::chaine const &nom)
 {
-	auto const iter = m_tableau.find(nom);
-	assert(iter != m_tableau.end());
+	auto const iter = m_tableau.trouve(nom);
+	assert(iter != m_tableau.fin());
 
 	DescriptionCommande const &desc = iter->second;
 
 	return desc.construction_commande();
 }
 
-Commande *UsineCommande::trouve_commande(std::string const &categorie, DonneesCommande &donnees_commande)
+Commande *UsineCommande::trouve_commande(dls::chaine const &categorie, DonneesCommande &donnees_commande)
 {
 	for (auto const &donnees : m_tableau) {
 		DescriptionCommande const &desc = donnees.second;

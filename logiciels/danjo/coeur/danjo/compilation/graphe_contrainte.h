@@ -24,8 +24,9 @@
 
 #pragma once
 
-#include <string>
 #include <vector>
+
+#include "biblinternes/structures/chaine.hh"
 
 #include "expression.h"
 
@@ -45,7 +46,7 @@ class Variable {
 public:
 	std::vector<contrainte *> m_contraintes{};
 
-	std::string nom{}; // nom de la propriété du manipulable
+	dls::chaine nom{}; // nom de la propriété du manipulable
 	int degree{};
 };
 

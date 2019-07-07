@@ -77,7 +77,7 @@ struct base final {
 
 	id_morceau identifiant() const;
 
-	std::string_view chaine() const;
+	dls::vue_chaine chaine() const;
 
 	void imprime_code(std::ostream &os, int profondeur);
 };

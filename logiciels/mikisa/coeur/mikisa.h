@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include <string>
 #include <thread>
 
 #include "biblinternes/observation/observation.hh"
@@ -79,8 +78,8 @@ class Mikisa : public Sujette {
 	UsineOperatrice m_usine_operatrices;
 	RepondantCommande *m_repondant_commande = nullptr;
 
-	dls::tableau<std::string> m_fichiers_recents{};
-	std::string m_chemin_projet{};
+	dls::tableau<dls::chaine> m_fichiers_recents{};
+	dls::chaine m_chemin_projet{};
 
 	bool m_projet_ouvert = false;
 
@@ -98,15 +97,15 @@ public:
 
 	UsineOperatrice &usine_operatrices();
 
-	std::string requiers_dialogue(int type);
-	void affiche_erreur(std::string const &message);
+	dls::chaine requiers_dialogue(int type);
+	void affiche_erreur(dls::chaine const &message);
 
-	std::string chemin_projet() const;
+	dls::chaine chemin_projet() const;
 
-	void chemin_projet(std::string const &chemin);
+	void chemin_projet(dls::chaine const &chemin);
 
-	dls::tableau<std::string> const &fichiers_recents();
-	void ajoute_fichier_recent(std::string const &chemin);
+	dls::tableau<dls::chaine> const &fichiers_recents();
+	void ajoute_fichier_recent(dls::chaine const &chemin);
 
 	bool projet_ouvert() const;
 
@@ -125,8 +124,8 @@ public:
 	ProjectSettings *project_settings;
 
 	/* Information de sortie. */
-	std::string chemin_sortie = "";
-	std::string nom_calque_sortie = "";
+	dls::chaine chemin_sortie = "";
+	dls::chaine nom_calque_sortie = "";
 
 	/* vue 2d */
 	vision::Camera2D *camera_2d = nullptr;
@@ -160,7 +159,7 @@ public:
 	Manipulatrice3D *manipulatrice_3d = nullptr;
 
 	/* chemin du graphe courant */
-	std::string chemin_courant = "";
+	dls::chaine chemin_courant = "";
 
 	/* pour les tâches */
 	bool tache_en_cours = false;

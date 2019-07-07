@@ -48,18 +48,18 @@ lcc::noeud::base *assembleuse_arbre::empile_noeud(lcc::noeud::type_noeud type, C
 {
 	auto noeud = cree_noeud(type, contexte, morceau);
 
-	if (!m_pile.empty() && ajoute) {
+	if (!m_pile.est_vide() && ajoute) {
 		this->ajoute_noeud(noeud);
 	}
 
-	m_pile.push(noeud);
+	m_pile.empile(noeud);
 
 	return noeud;
 }
 
 void assembleuse_arbre::ajoute_noeud(lcc::noeud::base *noeud)
 {
-	m_pile.top()->ajoute_noeud(noeud);
+	m_pile.haut()->ajoute_noeud(noeud);
 }
 
 lcc::noeud::base *assembleuse_arbre::cree_noeud(
@@ -82,25 +82,25 @@ lcc::noeud::base *assembleuse_arbre::cree_noeud(
 
 void assembleuse_arbre::depile_noeud(lcc::noeud::type_noeud type)
 {
-	assert(m_pile.top()->type == type);
-	m_pile.pop();
+	assert(m_pile.haut()->type == type);
+	m_pile.depile();
 	static_cast<void>(type);
 }
 
 void assembleuse_arbre::imprime_code(std::ostream &os)
 {
 	os << "------------------------------------------------------------------\n";
-	m_pile.top()->imprime_code(os, 0);
+	m_pile.haut()->imprime_code(os, 0);
 	os << "------------------------------------------------------------------\n";
 }
 
 void assembleuse_arbre::genere_code(ContexteGenerationCode &contexte_generation, compileuse_lng &compileuse)
 {
-	if (m_pile.empty()) {
+	if (m_pile.est_vide()) {
 		return;
 	}
 
-	lcc::noeud::genere_code(m_pile.top(), contexte_generation, compileuse, false);
+	lcc::noeud::genere_code(m_pile.haut(), contexte_generation, compileuse, false);
 }
 
 void assembleuse_arbre::supprime_noeud(lcc::noeud::base *noeud)

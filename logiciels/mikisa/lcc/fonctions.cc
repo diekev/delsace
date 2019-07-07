@@ -148,15 +148,15 @@ signature::signature(types_entrees _entrees_, types_sorties _sorties_)
 
 /* ************************************************************************** */
 
-void magasin_fonctions::ajoute_fonction(const std::string &nom, code_inst type, const signature &seing, ctx_script ctx)
+void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, const signature &seing, ctx_script ctx)
 {
-	auto iter = table.find(nom);
+	auto iter = table.trouve(nom);
 
-	if (iter == table.end()) {
+	if (iter == table.fin()) {
 		auto tableau = dls::tableau<donnees_fonction>{};
 		tableau.pousse({seing, type, ctx});
 
-		table.insert({nom, tableau});
+		table.insere({nom, tableau});
 	}
 	else {
 		iter->second.pousse({seing, type, ctx});
@@ -164,7 +164,7 @@ void magasin_fonctions::ajoute_fonction(const std::string &nom, code_inst type, 
 }
 
 donnees_fonction_generation magasin_fonctions::meilleure_candidate(
-		std::string const &nom,
+		dls::chaine const &nom,
 		types_entrees const &types_params)
 {
 	auto res = donnees_fonction_generation{};
@@ -173,9 +173,9 @@ donnees_fonction_generation magasin_fonctions::meilleure_candidate(
 	res.entrees = {};
 	res.sorties = {};
 
-	auto iter = table.find(nom);
+	auto iter = table.trouve(nom);
 
-	if (iter == table.end()) {
+	if (iter == table.fin()) {
 		return res;
 	}
 

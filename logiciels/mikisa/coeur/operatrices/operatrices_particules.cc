@@ -89,7 +89,7 @@ public:
 
 		auto nom_groupe = evalue_chaine("nom_groupe");
 
-		if (nom_groupe.empty()) {
+		if (nom_groupe.est_vide()) {
 			ajoute_avertissement("Le nom du groupe est vide !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -187,8 +187,8 @@ public:
 	}
 
 	void obtiens_liste(
-			std::string const &attache,
-			dls::tableau<std::string> &chaines) override
+			dls::chaine const &attache,
+			dls::tableau<dls::chaine> &chaines) override
 	{
 		if (attache == "nom_groupe") {
 			entree(0)->obtiens_liste_groupes_points(chaines);
@@ -271,7 +271,7 @@ public:
 		auto nom_groupe_origine = evalue_chaine("groupe_origine");
 		auto groupe_entree = static_cast<GroupePoint *>(nullptr);
 
-		if (!nom_groupe_origine.empty()) {
+		if (!nom_groupe_origine.est_vide()) {
 			groupe_entree = corps_entree->groupe_point(nom_groupe_origine);
 
 			if (groupe_entree == nullptr) {
@@ -286,7 +286,7 @@ public:
 		if (grouper_points) {
 			auto nom_groupe = evalue_chaine("nom_groupe");
 
-			if (nom_groupe.empty()) {
+			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
 				return EXECUTION_ECHOUEE;
 			}
@@ -355,7 +355,7 @@ public:
 		if (grouper_points) {
 			auto nom_groupe = evalue_chaine("nom_groupe");
 
-			if (nom_groupe.empty()) {
+			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
 				return EXECUTION_ECHOUEE;
 			}
@@ -396,7 +396,7 @@ public:
 		auto nom_groupe_origine = evalue_chaine("groupe_origine");
 		auto groupe_entree = static_cast<GroupePrimitive *>(nullptr);
 
-		if (!nom_groupe_origine.empty()) {
+		if (!nom_groupe_origine.est_vide()) {
 			groupe_entree = corps_entree->groupe_primitive(nom_groupe_origine);
 
 			if (groupe_entree == nullptr) {
@@ -418,7 +418,7 @@ public:
 		if (grouper_points) {
 			auto nom_groupe = evalue_chaine("nom_groupe");
 
-			if (nom_groupe.empty()) {
+			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
 				return EXECUTION_ECHOUEE;
 			}
@@ -491,7 +491,7 @@ public:
 	{
 		auto nom_attribut = evalue_chaine("nom_attribut");
 
-		if (nom_attribut.empty()) {
+		if (nom_attribut.est_vide()) {
 			this->ajoute_avertissement("L'attribut n'est pas spécifié");
 			return EXECUTION_ECHOUEE;
 		}
@@ -518,7 +518,7 @@ public:
 		if (grouper_points) {
 			auto nom_groupe = evalue_chaine("nom_groupe");
 
-			if (nom_groupe.empty()) {
+			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
 				return EXECUTION_ECHOUEE;
 			}
@@ -539,8 +539,8 @@ public:
 	}
 
 	void obtiens_liste(
-			std::string const &attache,
-			dls::tableau<std::string> &chaines) override
+			dls::chaine const &attache,
+			dls::tableau<dls::chaine> &chaines) override
 	{
 		if (attache == "groupe_origine") {
 			auto origine = evalue_enum("origine");
@@ -791,7 +791,7 @@ public:
 		auto nom_groupe = evalue_chaine("nom_groupe");
 		auto groupe_prim = static_cast<GroupePrimitive *>(nullptr);
 
-		if (!nom_groupe.empty()) {
+		if (!nom_groupe.est_vide()) {
 			groupe_prim = corps_maillage->groupe_primitive(nom_groupe);
 
 			if (groupe_prim == nullptr) {
@@ -1005,8 +1005,8 @@ public:
 	}
 
 	void obtiens_liste(
-			std::string const &attache,
-			dls::tableau<std::string> &chaines) override
+			dls::chaine const &attache,
+			dls::tableau<dls::chaine> &chaines) override
 	{
 		if (attache == "nom_groupe") {
 			entree(0)->obtiens_liste_groupes_prims(chaines);
@@ -1542,8 +1542,8 @@ public:
 	}
 
 	void obtiens_liste(
-			std::string const &attache,
-			dls::tableau<std::string> &chaines) override
+			dls::chaine const &attache,
+			dls::tableau<dls::chaine> &chaines) override
 	{
 		if (attache == "nom_attribut") {
 			entree(0)->obtiens_liste_attributs(chaines);

@@ -24,6 +24,8 @@
 
 #include "grille_particules.hh"
 
+#include "biblinternes/structures/ensemble.hh"
+
 GrilleParticules::GrilleParticules(const dls::math::point3d &min, const dls::math::point3d &max, float distance)
 	: m_min(min)
 	, m_max(max)
@@ -49,14 +51,14 @@ bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, f
 {
 #if 1
 	auto moitie = distance * 0.5f;
-	std::set<size_t> indices;
+	dls::ensemble<size_t> indices;
 
 	for (auto dx = -moitie; dx <= moitie; dx += moitie) {
 		for (auto dy = -moitie; dy <= moitie; dy += moitie) {
 			for (auto dz = -moitie; dz <= moitie; dz += moitie) {
 				auto const p = dls::math::vec3f{point.x + dx, point.y + dy, point.z + dz};
 				auto index_pos = calcul_index_pos(p);
-				indices.insert(index_pos);
+				indices.insere(index_pos);
 			}
 		}
 	}
@@ -89,10 +91,10 @@ bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, f
 bool GrilleParticules::triangle_couvert(const dls::math::vec3f &v0, const dls::math::vec3f &v1, const dls::math::vec3f &v2, const float radius)
 {
 #if 1
-	std::set<size_t> indices;
-	indices.insert(calcul_index_pos(v0));
-	indices.insert(calcul_index_pos(v1));
-	indices.insert(calcul_index_pos(v2));
+	dls::ensemble<size_t> indices;
+	indices.insere(calcul_index_pos(v0));
+	indices.insere(calcul_index_pos(v1));
+	indices.insere(calcul_index_pos(v2));
 
 	for (auto &index : indices) {
 		auto const &points = m_grille[index];

@@ -34,7 +34,7 @@ unsigned int magasin_chaine::ajoute_chaine(const std::string &chaine)
 	auto index = index_chaine(chaine);
 
 	if (index == 0) {
-		m_tableau.insert({chaine, ++m_nombre_chaines});
+		m_tableau.insere({chaine, ++m_nombre_chaines});
 		m_taille_chaines += chaine.size();
 		return m_nombre_chaines;
 	}
@@ -44,9 +44,9 @@ unsigned int magasin_chaine::ajoute_chaine(const std::string &chaine)
 
 unsigned int magasin_chaine::index_chaine(const std::string &chaine) const
 {
-	auto iter = m_tableau.find(chaine);
+	auto iter = m_tableau.trouve(chaine);
 
-	if (iter == m_tableau.end()) {
+	if (iter == m_tableau.fin()) {
 		return 0;
 	}
 
@@ -55,7 +55,7 @@ unsigned int magasin_chaine::index_chaine(const std::string &chaine) const
 
 bool magasin_chaine::est_valide() const
 {
-	return m_nombre_chaines == m_tableau.size();
+	return m_nombre_chaines == m_tableau.taille();
 }
 
 size_t magasin_chaine::taille() const
@@ -70,32 +70,32 @@ size_t magasin_chaine::taille_chaines() const
 
 magasin_chaine::iterateur magasin_chaine::debut()
 {
-	return m_tableau.begin();
+	return m_tableau.debut();
 }
 
 magasin_chaine::iterateur magasin_chaine::fin()
 {
-	return m_tableau.end();
+	return m_tableau.fin();
 }
 
 magasin_chaine::iterateur magasin_chaine::begin()
 {
-	return m_tableau.begin();
+	return m_tableau.debut();
 }
 
 magasin_chaine::iterateur magasin_chaine::end()
 {
-	return m_tableau.end();
+	return m_tableau.fin();
 }
 
 magasin_chaine::iterateur_const magasin_chaine::begin() const
 {
-	return m_tableau.begin();
+	return m_tableau.debut();
 }
 
 magasin_chaine::iterateur_const magasin_chaine::end() const
 {
-	return m_tableau.end();
+	return m_tableau.fin();
 }
 
 void ecris_magasin_chaine(const magasin_chaine &magasin, const std::experimental::filesystem::path &chemin)

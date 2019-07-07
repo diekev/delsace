@@ -40,7 +40,7 @@ public:
 	 * Construit le message d'erreur selon les paramètres passés.
 	 */
 	ErreurFrappe(
-			const std::string_view &ligne,
+			const dls::vue_chaine &ligne,
 			int numero_ligne,
 			int position_ligne,
 			const std::string &quoi);
@@ -63,7 +63,7 @@ public:
 	 * Construit le message d'erreur selon les paramètres passés.
 	 */
 	ErreurSyntactique(
-			const std::string_view &ligne,
+			const dls::vue_chaine &ligne,
 			int numero_ligne,
 			int position_ligne,
 			const std::string &quoi,

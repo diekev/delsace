@@ -28,19 +28,19 @@
 
 #include "operatrice_image.h"
 
-size_t UsineOperatrice::enregistre_type(DescOperatrice const &desc)
+long UsineOperatrice::enregistre_type(DescOperatrice const &desc)
 {
-	auto const iter = m_map.find(desc.name);
-	assert(iter == m_map.end());
+	auto const iter = m_map.trouve(desc.name);
+	assert(iter == m_map.fin());
 
 	m_map[desc.name] = desc;
 	return num_entries();
 }
 
-OperatriceImage *UsineOperatrice::operator()(std::string const &name, Graphe &graphe_parent, Noeud *noeud)
+OperatriceImage *UsineOperatrice::operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud *noeud)
 {
-	auto const iter = m_map.find(name);
-	assert(iter != m_map.end());
+	auto const iter = m_map.trouve(name);
+	assert(iter != m_map.fin());
 
 	DescOperatrice const &desc = iter->second;
 
@@ -52,8 +52,8 @@ OperatriceImage *UsineOperatrice::operator()(std::string const &name, Graphe &gr
 
 void UsineOperatrice::deloge(OperatriceImage *operatrice)
 {
-	auto const iter = m_map.find(operatrice->nom_classe());
-	assert(iter != m_map.end());
+	auto const iter = m_map.trouve(operatrice->nom_classe());
+	assert(iter != m_map.fin());
 
 	DescOperatrice &desc = iter->second;
 	desc.supprime_operatrice(operatrice);
@@ -62,7 +62,7 @@ void UsineOperatrice::deloge(OperatriceImage *operatrice)
 dls::tableau<DescOperatrice> UsineOperatrice::keys() const
 {
 	dls::tableau<DescOperatrice> v;
-	v.reserve(static_cast<long>(num_entries()));
+	v.reserve(num_entries());
 
 	for (auto const &entry : m_map) {
 		v.pousse(entry.second);
@@ -71,7 +71,7 @@ dls::tableau<DescOperatrice> UsineOperatrice::keys() const
 	return v;
 }
 
-bool UsineOperatrice::registered(std::string const &key) const
+bool UsineOperatrice::registered(dls::chaine const &key) const
 {
-	return (m_map.find(key) != m_map.end());
+	return (m_map.trouve(key) != m_map.fin());
 }

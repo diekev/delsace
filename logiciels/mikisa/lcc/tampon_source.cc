@@ -30,9 +30,9 @@
  * Retourne la position de la fin de la prochaine ligne (caractère '\\n') dans
  * la chaîne délimitée par 'debut' et 'fin'.
  */
-static size_t trouve_fin_ligne(const char *debut, const char *fin)
+static long trouve_fin_ligne(const char *debut, const char *fin)
 {
-	size_t pos = 0;
+	long pos = 0;
 
 	while (debut != fin) {
 		++pos;
@@ -55,7 +55,7 @@ TamponSource::TamponSource(const char *chaine)
 	construit_lignes();
 }
 
-TamponSource::TamponSource(std::string chaine) noexcept
+TamponSource::TamponSource(dls::chaine chaine) noexcept
 	: m_tampon(std::move(chaine))
 {
 	construit_lignes();
@@ -68,12 +68,12 @@ const char *TamponSource::debut() const noexcept
 
 const char *TamponSource::fin() const noexcept
 {
-	return &m_tampon[m_tampon.size()];
+	return &m_tampon[m_tampon.taille()];
 }
 
-std::string_view TamponSource::operator[](size_t i) const noexcept
+dls::vue_chaine TamponSource::operator[](long i) const noexcept
 {
-	return m_lignes[static_cast<long>(i)];
+	return m_lignes[i];
 }
 
 size_t TamponSource::nombre_lignes() const noexcept
@@ -83,17 +83,17 @@ size_t TamponSource::nombre_lignes() const noexcept
 
 size_t TamponSource::taille_donnees() const noexcept
 {
-	return m_tampon.size() * sizeof(std::string_view::value_type);
+	return static_cast<size_t>(m_tampon.taille()) * sizeof(char);
 }
 
 void TamponSource::construit_lignes()
 {
-	for (size_t i = 0; i < m_tampon.size();) {
-		auto d = &m_tampon[i];
-		auto taille = trouve_fin_ligne(&m_tampon[i], &m_tampon[m_tampon.size()]);
+	for (auto i = 0l; i < m_tampon.taille();) {
+		auto const d = &m_tampon[i];
+		auto const t = trouve_fin_ligne(&m_tampon[i], &m_tampon[m_tampon.taille()]);
 
-		m_lignes.pousse(std::string_view{d, taille});
+		m_lignes.pousse(dls::vue_chaine{d, t});
 
-		i += taille;
+		i += t;
 	}
 }

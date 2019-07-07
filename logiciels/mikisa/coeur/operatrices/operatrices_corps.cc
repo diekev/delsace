@@ -34,6 +34,7 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 
 #include "corps/adaptrice_creation_corps.h"
 #include "corps/iteration_corps.hh"
@@ -589,7 +590,7 @@ class OperatriceLectureObjet final : public OperatriceCorps {
 
 	math::transformation m_transformation{};
 
-	std::string m_dernier_chemin = "";
+	dls::chaine m_dernier_chemin = "";
 
 	PoigneeFichier *m_poignee_fichier = nullptr;
 
@@ -682,7 +683,7 @@ public:
 			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
 			auto donnees = std::any(&adaptrice);
 
-			if (chemin.find(".obj") != std::string::npos) {
+			if (chemin.trouve(".obj") != dls::chaine::npos) {
 				m_poignee_fichier->lecture_chemin(
 							[](const char *chemin_, std::any const &donnees_)
 				{
@@ -691,7 +692,7 @@ public:
 				donnees);
 
 			}
-			else if (chemin.find(".stl") != std::string::npos) {
+			else if (chemin.trouve(".stl") != dls::chaine::npos) {
 				m_poignee_fichier->lecture_chemin(
 							[](const char *chemin_, std::any const &donnees_)
 				{
@@ -847,19 +848,19 @@ public:
 	void fusionne_attributs(Corps const *corps1, Corps const *corps2)
 	{
 		using paire_attribut = std::pair<Attribut *, Attribut *>;
-		using tableau_attribut = std::unordered_map<std::string, paire_attribut>;
+		using tableau_attribut = dls::dico_desordonne<dls::chaine, paire_attribut>;
 
 		auto tableau = tableau_attribut{};
 
 		for (auto attr : corps1->attributs()) {
-			tableau.insert({attr->nom(), std::make_pair(attr, nullptr)});
+			tableau.insere({attr->nom(), std::make_pair(attr, nullptr)});
 		}
 
 		for (auto attr : corps2->attributs()) {
-			auto iter = tableau.find(attr->nom());
+			auto iter = tableau.trouve(attr->nom());
 
-			if (iter == tableau.end()) {
-				tableau.insert({attr->nom(), std::make_pair(nullptr, attr)});
+			if (iter == tableau.fin()) {
+				tableau.insere({attr->nom(), std::make_pair(nullptr, attr)});
 			}
 			else {
 				tableau[attr->nom()].second = attr;
@@ -924,19 +925,19 @@ public:
 	void fusionne_groupe_points(Corps const *corps1, Corps const *corps2)
 	{
 		using paire_groupe = std::pair<GroupePoint const *, GroupePoint const *>;
-		using tableau_groupe = std::unordered_map<std::string, paire_groupe>;
+		using tableau_groupe = dls::dico_desordonne<dls::chaine, paire_groupe>;
 
 		auto tableau = tableau_groupe{};
 
 		for (auto const &groupe : corps1->groupes_points()) {
-			tableau.insert({groupe.nom, {&groupe, nullptr}});
+			tableau.insere({groupe.nom, {&groupe, nullptr}});
 		}
 
 		for (auto const &groupe : corps2->groupes_points()) {
-			auto iter = tableau.find(groupe.nom);
+			auto iter = tableau.trouve(groupe.nom);
 
-			if (iter == tableau.end()) {
-				tableau.insert({groupe.nom, std::make_pair(nullptr, &groupe)});
+			if (iter == tableau.fin()) {
+				tableau.insere({groupe.nom, std::make_pair(nullptr, &groupe)});
 			}
 			else {
 				tableau[groupe.nom].second = &groupe;
@@ -988,19 +989,19 @@ public:
 	void fusionne_groupe_prims(Corps const *corps1, Corps const *corps2)
 	{
 		using paire_groupe = std::pair<GroupePrimitive const *, GroupePrimitive const *>;
-		using tableau_groupe = std::unordered_map<std::string, paire_groupe>;
+		using tableau_groupe = dls::dico_desordonne<dls::chaine, paire_groupe>;
 
 		auto tableau = tableau_groupe{};
 
 		for (auto const &groupe : corps1->groupes_prims()) {
-			tableau.insert({groupe.nom, std::make_pair(&groupe, nullptr)});
+			tableau.insere({groupe.nom, std::make_pair(&groupe, nullptr)});
 		}
 
 		for (auto const &groupe : corps2->groupes_prims()) {
-			auto iter = tableau.find(groupe.nom);
+			auto iter = tableau.trouve(groupe.nom);
 
-			if (iter == tableau.end()) {
-				tableau.insert({groupe.nom, std::make_pair(nullptr, &groupe)});
+			if (iter == tableau.fin()) {
+				tableau.insere({groupe.nom, std::make_pair(nullptr, &groupe)});
 			}
 			else {
 				tableau[groupe.nom].second = &groupe;
@@ -1337,7 +1338,7 @@ static void ajoute_deformeur(
 		Deformer &deformeur,
 		dls::math::vec3f const &pos,
 		bool pousse,
-		std::string const &action,
+		dls::chaine const &action,
 		double echelle,
 		double vitesse,
 		double incompressibilite,
@@ -1535,7 +1536,7 @@ public:
 		/* À FAIRE : définit quand les déformeurs sont ajoutés, accumule les
 		 *  déformeurs */
 		auto mes_donnnes = DonneesAval{};
-		mes_donnnes.table.insert({"déformeurs_kelvinlet", &m_deformeurs});
+		mes_donnnes.table.insere({"déformeurs_kelvinlet", &m_deformeurs});
 
 		entree(1)->requiers_corps(contexte, &mes_donnnes);
 

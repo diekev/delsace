@@ -39,17 +39,17 @@ void Action::installe_repondant(RepondantBouton *repondant)
 	m_repondant = repondant;
 }
 
-void Action::etablie_attache(const std::string &attache)
+void Action::etablie_attache(const dls::chaine &attache)
 {
 	m_attache = attache;
 }
 
-void Action::etablie_metadonnee(const std::string &metadonnee)
+void Action::etablie_metadonnee(const dls::chaine &metadonnee)
 {
 	m_metadonnee = metadonnee;
 }
 
-void Action::etablie_icone(const std::string &valeur)
+void Action::etablie_icone(const dls::chaine &valeur)
 {
 	this->setIcon(QIcon(valeur.c_str()));
 }
@@ -64,12 +64,12 @@ void Action::evalue_predicat()
 	this->setEnabled(ok);
 }
 
-void Action::etablie_valeur(const std::string &valeur)
+void Action::etablie_valeur(const dls::chaine &valeur)
 {
 	this->setText(valeur.c_str());
 }
 
-void Action::etablie_infobulle(const std::string &valeur)
+void Action::etablie_infobulle(const dls::chaine &valeur)
 {
 	this->setToolTip(valeur.c_str());
 }

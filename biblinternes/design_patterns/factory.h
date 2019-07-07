@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <unordered_map>
+#include "biblinternes/structures/dico_desordonne.hh"
 
 template <typename T>
 T *clone(const T * const instance)
@@ -36,7 +36,7 @@ template <typename Base, typename Key = std::string>
 class FamilyFactory {
 	typedef Base *(*CreateFunc)();
 
-	std::unordered_map<Key, CreateFunc> m_map{};
+	dls::dico_desordonne<Key, CreateFunc> m_map{};
 
 public:
 	template <typename Derived>
@@ -44,18 +44,18 @@ public:
 	{
 		static_assert(std::is_base_of<Base, Derived>::value, "");
 
-		const auto &iter = m_map.find(key);
+		const auto &iter = m_map.trouve(key);
 
-		if (iter == m_map.end()) {
+		if (iter == m_map.fin()) {
 			m_map[key] = &createImpl<Derived>;
 		}
 	}
 
 	Base *operator()(const Key &key) const
 	{
-		const auto &iter = m_map.find(key);
+		const auto &iter = m_map.trouve(key);
 
-		if (iter != m_map.end()) {
+		if (iter != m_map.fin()) {
 			return (*iter).second();
 		}
 
@@ -73,7 +73,7 @@ private:
 /* Base must provide a clone() method */
 template <typename Base, typename Key = std::string>
 class CloneFactory {
-	std::unordered_map<Key, Base *> m_map{};
+	dls::dico_desordonne<Key, Base *> m_map{};
 
 public:
 	~CloneFactory()
@@ -86,37 +86,37 @@ public:
 	template <typename Derived>
 	void registerType(const Key &key, const Derived &)
 	{
-		const auto &iter = m_map.find(key);
+		const auto &iter = m_map.trouve(key);
 
-		if (iter == m_map.end()) {
+		if (iter == m_map.fin()) {
 			m_map[key] = new Derived();
 		}
 	}
 
 	void registerInstance(const Key &key, Base *instance)
 	{
-		const auto &iter = m_map.find(key);
+		const auto &iter = m_map.trouve(key);
 
-		if (iter == m_map.end()) {
+		if (iter == m_map.fin()) {
 			m_map[key] = instance;
 		}
 	}
 
 	void unregister(const Key &key)
 	{
-		const auto &iter = m_map.find(key);
+		const auto &iter = m_map.trouve(key);
 
-		if (iter != m_map.end()) {
+		if (iter != m_map.fin()) {
 			delete m_map[key];
-			m_map.erase(iter);
+			m_map.efface(iter);
 		}
 	}
 
 	Base *operator()(const Key &key) const
 	{
-		const auto &iter = m_map.find(key);
+		const auto &iter = m_map.trouve(key);
 
-		if (iter != m_map.end()) {
+		if (iter != m_map.fin()) {
 			return (*iter).second->clone();
 		}
 

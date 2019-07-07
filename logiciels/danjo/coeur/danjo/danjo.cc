@@ -79,7 +79,7 @@ GestionnaireInterface::~GestionnaireInterface()
 //	}
 }
 
-void GestionnaireInterface::ajourne_menu(const std::string &nom)
+void GestionnaireInterface::ajourne_menu(const dls::chaine &nom)
 {
 	auto menu = pointeur_menu(nom);
 
@@ -98,7 +98,7 @@ void GestionnaireInterface::ajourne_menu(const std::string &nom)
 
 /* À FAIRE : passe un script. */
 void GestionnaireInterface::recree_menu(
-		const std::string &nom,
+		const dls::chaine &nom,
 		const dls::tableau<DonneesAction> &donnees_actions)
 {
 	auto menu = pointeur_menu(nom);
@@ -149,7 +149,7 @@ QMenu *GestionnaireInterface::compile_menu(
 	}
 
 	for (const auto &pair : assembleuse.donnees_menus()) {
-		m_menus.insert(pair);
+		m_menus.insere(pair);
 	}
 
 	return assembleuse.menu();
@@ -192,7 +192,7 @@ QMenu *GestionnaireInterface::compile_menu_entrerogeable(
 
 	/* À FAIRE : déduplique les menus. */
 	for (const auto &pair : assembleuse.donnees_menus()) {
-		m_menus_entrerogeables.insert(pair);
+		m_menus_entrerogeables.insere(pair);
 	}
 
 	return menu_entrerogeable;
@@ -234,7 +234,7 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 
 	auto nom = assembleuse.nom_disposition();
 
-	m_dispositions.insert({nom, disposition});
+	m_dispositions.insere({nom, disposition});
 
 	return disposition;
 }
@@ -270,11 +270,11 @@ void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const
 	}
 }
 
-QMenu *GestionnaireInterface::pointeur_menu(const std::string &nom)
+QMenu *GestionnaireInterface::pointeur_menu(const dls::chaine &nom)
 {
-	auto iter = m_menus.find(nom);
+	auto iter = m_menus.trouve(nom);
 
-	if (iter == m_menus.end()) {
+	if (iter == m_menus.fin()) {
 		std::cerr << "Le menu '" << nom << "' est introuvable !\n";
 		return nullptr;
 	}
@@ -329,7 +329,7 @@ bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const cha
 
 /* ************************************************************************** */
 
-std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
+dls::chaine contenu_fichier(const std::experimental::filesystem::path &chemin)
 {
 	if (!std::experimental::filesystem::exists(chemin)) {
 		return "";
@@ -341,7 +341,7 @@ std::string contenu_fichier(const std::experimental::filesystem::path &chemin)
 	std::string contenu((std::istreambuf_iterator<char>(entree)),
 						(std::istreambuf_iterator<char>()));
 
-	return contenu;
+	return dls::chaine(contenu);
 }
 
 /* ************************************************************************** */

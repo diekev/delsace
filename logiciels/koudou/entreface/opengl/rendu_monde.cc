@@ -54,7 +54,7 @@ public:
 
 	void ajoute_ligne(const int *idx, size_t nombre) override;
 
-	void ajoute_objet(std::string const &nom) override;
+	void ajoute_objet(dls::chaine const &nom) override;
 
 	void reserve_polygones(long const nombre) override;
 
@@ -64,7 +64,7 @@ public:
 
 	void reserve_uvs(long const nombre) override;
 
-	void groupes(dls::tableau<std::string> const &noms) override;
+	void groupes(dls::tableau<dls::chaine> const &noms) override;
 
 	void groupe_nuancage(const int idx) override;
 };
@@ -118,7 +118,7 @@ void AdaptriceCreation::ajoute_ligne(const int *idx, size_t nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreation::ajoute_objet(std::string const &nom)
+void AdaptriceCreation::ajoute_objet(dls::chaine const &nom)
 {
 	INUTILISE(nom);
 }
@@ -143,7 +143,7 @@ void AdaptriceCreation::reserve_uvs(long const nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreation::groupes(dls::tableau<std::string> const &noms)
+void AdaptriceCreation::groupes(dls::tableau<dls::chaine> const &noms)
 {
 	INUTILISE(noms);
 }

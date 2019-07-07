@@ -26,8 +26,9 @@
 
 #include "biblinternes/ego/outils.h"
 #include "biblinternes/math/vecteur.hh"
-#include <vector>
-#include <unordered_map>
+
+#include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../texture/texture.h"
 
@@ -38,7 +39,7 @@ static constexpr auto HAUTEUR_TEXTURE_POLICE = 36;
 static constexpr auto LARGEUR_TEXTURE_POLICE = 1254;
 static constexpr auto LARGEUR_PAR_LETTRE = 19;
 
-std::unordered_map<char, int> table_uv_texte({
+dls::dico_desordonne<char, int> table_uv_texte({
 	{'a', 0}, {'b', 1}, {'c', 2}, {'d', 3}, {'e', 4}, {'f', 5}, {'g', 6},
 	{'h', 7}, {'i', 8}, {'j', 9}, {'k', 10}, {'l', 11}, {'m', 12}, {'n', 13},
 	{'o', 14}, {'p', 15}, {'q', 16}, {'r', 17}, {'s', 18}, {'t', 19}, {'u', 20},
@@ -55,13 +56,13 @@ static constexpr auto HAUTEUR_TEXTURE_POLICE = 40;
 static constexpr auto LARGEUR_TEXTURE_POLICE = 1748;
 static constexpr auto LARGEUR_PAR_LETTRE = 19;
 
-static std::unordered_map<int, int> table_uv_texte({
+static dls::dico_desordonne<int, int> table_uv_texte({
 	{97, 0}, {98, 1}, {99, 2}, {100, 3}, {101, 4}, {102, 5}, {103, 6}, {104, 7}, {105, 8}, {106, 9}, {107, 10}, {108, 11}, {109, 12}, {110, 13}, {111, 14}, {112, 15}, {113, 16}, {114, 17}, {115, 18}, {116, 19}, {117, 20}, {118, 21}, {119, 22}, {120, 23}, {121, 24}, {122, 25}, {65, 26}, {66, 27}, {67, 28}, {68, 29}, {69, 30}, {70, 31}, {71, 32}, {72, 33}, {73, 34}, {74, 35}, {75, 36}, {76, 37}, {77, 38}, {78, 39}, {79, 40}, {80, 41}, {81, 42}, {82, 43}, {83, 44}, {84, 45}, {85, 46}, {86, 47}, {87, 48}, {88, 49}, {89, 50}, {90, 51}, {32, 52}, {44, 53}, {63, 54}, {59, 55}, {46, 56}, {58, 57}, {47, 58}, {33, 59}, {45, 60}, {42, 61}, {48, 62}, {49, 63}, {50, 64}, {51, 65}, {52, 66}, {53, 67}, {54, 68}, {55, 69}, {56, 70}, {57, 71}, {201, 72}, {202, 73}, {200, 74}, {192, 75}, {194, 76}, {207, 77}, {206, 78}, {212, 79}, {217, 80}, {220, 81}, {233, 82}, {234, 83}, {232, 84}, {224, 85}, {226, 86}, {239, 87}, {238, 88}, {244, 89}, {249, 90}, {252, 91},
 });
 
-static void rempli_uv(std::string const &chaine, std::vector<dls::math::vec2f> &uvs)
+static void rempli_uv(std::string const &chaine, dls::tableau<dls::math::vec2f> &uvs)
 {
-	auto const echelle_lettres = 1.0f / static_cast<float>(table_uv_texte.size());
+	auto const echelle_lettres = 1.0f / static_cast<float>(table_uv_texte.taille());
 
 	for (size_t i = 0; i < chaine.size();) {
 		int valeur = -1;
@@ -94,10 +95,10 @@ static void rempli_uv(std::string const &chaine, std::vector<dls::math::vec2f> &
 
 		auto const decalage = static_cast<float>(table_uv_texte[valeur]) * echelle_lettres;
 
-		uvs.push_back(dls::math::vec2f(decalage, 1.0f));
-		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
-		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 0.0f));
-		uvs.push_back(dls::math::vec2f(decalage, 0.0f));
+		uvs.pousse(dls::math::vec2f(decalage, 1.0f));
+		uvs.pousse(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
+		uvs.pousse(dls::math::vec2f(decalage + echelle_lettres, 0.0f));
+		uvs.pousse(dls::math::vec2f(decalage, 0.0f));
 	}
 }
 #endif
@@ -201,8 +202,8 @@ void RenduTexte::ajourne(std::string const &texte)
 
 	/* Une texture avec toutes les lettres. */
 
-	std::vector<dls::math::vec2f> vertex;
-	std::vector<unsigned int> index;
+	dls::tableau<dls::math::vec2f> vertex;
+	dls::tableau<unsigned int> index;
 
 	/* Calcul taille des lettres relativement à la fenêtre. */
 	auto const largeur_lettre = LARGEUR_PAR_LETTRE / static_cast<float>(m_largeur);
@@ -212,17 +213,17 @@ void RenduTexte::ajourne(std::string const &texte)
 	for (size_t i = 0; i < texte.size(); ++i) {
 		auto const origine_x = static_cast<float>(i) * largeur_lettre;
 
-		vertex.push_back(dls::math::vec2f(origine_x, hauteur_lettre));
-		vertex.push_back(dls::math::vec2f(origine_x + largeur_lettre, hauteur_lettre));
-		vertex.push_back(dls::math::vec2f(origine_x + largeur_lettre, 0.0f));
-		vertex.push_back(dls::math::vec2f(origine_x, 0.0f));
+		vertex.pousse(dls::math::vec2f(origine_x, hauteur_lettre));
+		vertex.pousse(dls::math::vec2f(origine_x + largeur_lettre, hauteur_lettre));
+		vertex.pousse(dls::math::vec2f(origine_x + largeur_lettre, 0.0f));
+		vertex.pousse(dls::math::vec2f(origine_x, 0.0f));
 
-		index.push_back(static_cast<unsigned>(i * 4 + 0));
-		index.push_back(static_cast<unsigned>(i * 4 + 1));
-		index.push_back(static_cast<unsigned>(i * 4 + 2));
-		index.push_back(static_cast<unsigned>(i * 4 + 0));
-		index.push_back(static_cast<unsigned>(i * 4 + 2));
-		index.push_back(static_cast<unsigned>(i * 4 + 3));
+		index.pousse(static_cast<unsigned>(i * 4 + 0));
+		index.pousse(static_cast<unsigned>(i * 4 + 1));
+		index.pousse(static_cast<unsigned>(i * 4 + 2));
+		index.pousse(static_cast<unsigned>(i * 4 + 0));
+		index.pousse(static_cast<unsigned>(i * 4 + 2));
+		index.pousse(static_cast<unsigned>(i * 4 + 3));
 	}
 
 	/* Placement en haut à gauche de l'écran. */
@@ -237,7 +238,7 @@ void RenduTexte::ajourne(std::string const &texte)
 	}
 
 	/* Une fonction qui associe lettre -> coordonnées UV */
-	std::vector<dls::math::vec2f> uvs;
+	dls::tableau<dls::math::vec2f> uvs;
 
 #if 0
 	auto const echelle_lettres = 1.0 / table_uv_texte.size();
@@ -245,10 +246,10 @@ void RenduTexte::ajourne(std::string const &texte)
 	for (auto const &caractere : texte) {
 		auto const decalage = table_uv_texte[caractere] * echelle_lettres;
 
-		uvs.push_back(dls::math::vec2f(decalage, 1.0f));
-		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
-		uvs.push_back(dls::math::vec2f(decalage + echelle_lettres, 0.0f));
-		uvs.push_back(dls::math::vec2f(decalage, 0.0f));
+		uvs.pousse(dls::math::vec2f(decalage, 1.0f));
+		uvs.pousse(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
+		uvs.pousse(dls::math::vec2f(decalage + echelle_lettres, 0.0f));
+		uvs.pousse(dls::math::vec2f(decalage, 0.0f));
 	}
 #else
 	rempli_uv(texte, uvs);
@@ -256,18 +257,18 @@ void RenduTexte::ajourne(std::string const &texte)
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
-	parametres_tampon.elements = index.size();
-	parametres_tampon.pointeur_index = index.data();
-	parametres_tampon.pointeur_sommets = vertex.data();
-	parametres_tampon.taille_octet_sommets = vertex.size() * sizeof(dls::math::vec2f);
-	parametres_tampon.taille_octet_index = index.size() * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(index.taille());
+	parametres_tampon.pointeur_index = index.donnees();
+	parametres_tampon.pointeur_sommets = vertex.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(vertex.taille()) * sizeof(dls::math::vec2f);
+	parametres_tampon.taille_octet_index = static_cast<size_t>(index.taille()) * sizeof(unsigned int);
 	parametres_tampon.dimension_attribut = 2;
 
 	m_tampon->remplie_tampon(parametres_tampon);
 
 	parametres_tampon.attribut = "uvs";
-	parametres_tampon.pointeur_donnees_extra = uvs.data();
-	parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(dls::math::vec2f);
+	parametres_tampon.pointeur_donnees_extra = uvs.donnees();
+	parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(uvs.taille()) * sizeof(dls::math::vec2f);
 	parametres_tampon.dimension_attribut = 2;
 
 	m_tampon->remplie_tampon_extra(parametres_tampon);

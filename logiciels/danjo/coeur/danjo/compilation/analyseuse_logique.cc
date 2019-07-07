@@ -25,7 +25,8 @@
 #include "analyseuse_logique.h"
 
 #include <iostream>
-#include <stack>
+
+#include "biblinternes/structures/pile.hh"
 
 #include "expression.h"
 #include "graphe_contrainte.h"
@@ -154,7 +155,7 @@ void AnalyseuseLogique::analyse_declaration(const int type)
 		lance_erreur("Attendu '=' !");
 	}
 
-	analyse_expression(std::string{nom}, type);
+	analyse_expression(dls::chaine{nom}, type);
 
 	if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
 		lance_erreur("Attendu un point virgule !");
@@ -165,7 +166,7 @@ void AnalyseuseLogique::analyse_declaration(const int type)
 	LOG << __func__ << " fin\n";
 }
 
-void AnalyseuseLogique::analyse_expression(const std::string &nom, const int type)
+void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int type)
 {
 	LOG << __func__ << '\n';
 
@@ -191,21 +192,21 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
 	std::vector<Symbole> expression;
-	std::stack<Symbole> pile;
+	dls::pile<Symbole> pile;
 
 	Symbole symbole;
-	std::string valeur;
+	dls::chaine valeur;
 
 	while (!est_identifiant(id_morceau::POINT_VIRGULE)) {
 		symbole.identifiant = identifiant_courant();
 		valeur = m_identifiants[position() + 1].chaine;
 
 		if (est_identifiant(id_morceau::NOMBRE)) {
-			symbole.valeur = std::experimental::any(std::stoi(valeur));
+			symbole.valeur = std::experimental::any(std::stoi(valeur.c_str()));
 			expression.push_back(symbole);
 		}
 		else if (est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
-			symbole.valeur = std::experimental::any(std::stof(valeur));
+			symbole.valeur = std::experimental::any(std::stof(valeur.c_str()));
 			expression.push_back(symbole);
 		}
 		else if (est_identifiant(id_morceau::VRAI) || est_identifiant(id_morceau::FAUX)) {
@@ -239,46 +240,46 @@ void AnalyseuseLogique::analyse_expression(const std::string &nom, const int typ
 			expression.push_back(symbole);
 		}
 		else if (est_operateur(symbole.identifiant)) {
-			while (!pile.empty()
-				   && est_operateur(pile.top().identifiant)
-				   && (precedence_faible(symbole.identifiant, pile.top().identifiant)))
+			while (!pile.est_vide()
+				   && est_operateur(pile.haut().identifiant)
+				   && (precedence_faible(symbole.identifiant, pile.haut().identifiant)))
 			{
-				expression.push_back(pile.top());
-				pile.pop();
+				expression.push_back(pile.haut());
+				pile.depile();
 			}
 
 			symbole.valeur = std::experimental::any(valeur);
-			pile.push(symbole);
+			pile.empile(symbole);
 		}
 		else if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-			pile.push(symbole);
+			pile.empile(symbole);
 		}
 		else if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-			if (pile.empty()) {
+			if (pile.est_vide()) {
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (pile.top().identifiant != id_morceau::PARENTHESE_OUVRANTE) {
-				expression.push_back(pile.top());
-				pile.pop();
+			while (pile.haut().identifiant != id_morceau::PARENTHESE_OUVRANTE) {
+				expression.push_back(pile.haut());
+				pile.depile();
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			if (pile.top().identifiant == id_morceau::PARENTHESE_OUVRANTE) {
-				pile.pop();
+			if (pile.haut().identifiant == id_morceau::PARENTHESE_OUVRANTE) {
+				pile.depile();
 			}
 		}
 
 		avance();
 	}
 
-	while (!pile.empty()) {
-		if (pile.top().identifiant == id_morceau::PARENTHESE_OUVRANTE) {
+	while (!pile.est_vide()) {
+		if (pile.haut().identifiant == id_morceau::PARENTHESE_OUVRANTE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		expression.push_back(pile.top());
-		pile.pop();
+		expression.push_back(pile.haut());
+		pile.depile();
 	}
 
 #ifdef DEBOGUE_EXPRESSION

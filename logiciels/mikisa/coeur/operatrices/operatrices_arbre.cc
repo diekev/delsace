@@ -62,7 +62,7 @@ struct MTreeNode {
 	bool is_branch_origin = false;
 	bool can_spawn_leaf = true;
 	/* name of bone the branch is bound to, if any */
-	std::string bone_name = "";
+	dls::chaine bone_name = "";
 
 	MTreeNode(dls::math::vec3f const &p, dls::math::vec3f const &d, float r, int c = 0)
 		: position(p)
@@ -814,7 +814,7 @@ int OperatriceCreationArbre::execute(const ContexteEvaluation &contexte, Donnees
 	m_arbre = new MTree();
 
 	auto mes_donnees = DonneesAval{};
-	mes_donnees.table.insert({"arbre", m_arbre});
+	mes_donnees.table.insere({"arbre", m_arbre});
 
 	entree(0)->requiers_corps(contexte, &mes_donnees);
 
@@ -1009,8 +1009,8 @@ struct BezierPoint {
 	dls::math::vec3f co{};
 	dls::math::vec3f handle_right{};
 	float radius;
-	std::string handle_left_type = "";
-	std::string handle_right_type = "";
+	dls::chaine handle_left_type = "";
+	dls::chaine handle_right_type = "";
 };
 
 struct Spline {
@@ -1448,7 +1448,7 @@ void fabricate_stems(
 		double minRadius,
 		dls::tableau<double> &radiusTweak,
 		double *customShape,
-		std::string const &rMode,
+		dls::chaine const &rMode,
 		double segSplits,
 		bool useOldDownAngle,
 		bool useParentAngle,
@@ -1464,7 +1464,7 @@ void fabricate_stems(
 
 	// use fancy child point selection / rotation
 	if ((n == 1) && (rMode != "original")) {
-		auto childP_T0 = std::unordered_map<int, dls::tableau<childPoint>>{};
+		auto childP_T0 = dls::dico_desordonne<int, dls::tableau<childPoint>>{};
 		auto childP_L = dls::tableau<childPoint>{};
 
 		for (auto const &p : childP) {

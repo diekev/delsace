@@ -25,8 +25,9 @@
 #pragma once
 
 #include <any>
-#include <stack>
-#include <unordered_map>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 
 enum {
 	EXECUTION_COMMANDE_REUSSIE,
@@ -41,7 +42,7 @@ struct DonneesCommande {
 	bool double_clique = false;
 	float x = 0;
 	float y = 0;
-	std::string metadonnee = "";
+	dls::chaine metadonnee = "";
 
 	DonneesCommande() = default;
 };
@@ -50,7 +51,7 @@ class Commande {
 public:
 	virtual ~Commande() = default;
 
-	virtual bool evalue_predicat(std::any const &pointeur, std::string const &metadonnee);
+	virtual bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee);
 
 	virtual int execute(std::any const &pointeur, DonneesCommande const &donnees) = 0;
 
@@ -62,8 +63,8 @@ public:
 struct DescriptionCommande {
 	typedef Commande *(*fonction_usine)();
 
-	std::string categorie{};
-	std::string metadonnee{};
+	dls::chaine categorie{};
+	dls::chaine metadonnee{};
 	int souris = 0;
 	int modificateur = 0;
 	int cle = 0;
@@ -75,12 +76,12 @@ struct DescriptionCommande {
 
 template <typename T>
 inline auto description_commande(
-		std::string const &categorie,
+		dls::chaine const &categorie,
 		int souris,
 		int modificateur,
 		int cle,
 		bool double_clique,
-		std::string const &metadonnee = "")
+		dls::chaine const &metadonnee = "")
 {
 	DescriptionCommande description;
 	description.cle = cle;
@@ -92,7 +93,7 @@ inline auto description_commande(
 	description.metadonnee = metadonnee;
 
 #if 0
-	std::string identifiant;
+	dls::chaine identifiant;
 	identifiant.reserve(categorie.size() + 13);
 
 	identifiant += categorie;
@@ -129,12 +130,12 @@ inline auto description_commande(
 }
 
 class UsineCommande {
-	std::unordered_map<std::string, DescriptionCommande> m_tableau{};
+	dls::dico_desordonne<dls::chaine, DescriptionCommande> m_tableau{};
 
 public:
-	void enregistre_type(std::string const &nom, DescriptionCommande const &description);
+	void enregistre_type(dls::chaine const &nom, DescriptionCommande const &description);
 
-	Commande *operator()(std::string const &nom);
+	Commande *operator()(dls::chaine const &nom);
 
-	Commande *trouve_commande(std::string const &categorie, DonneesCommande &donnees_commande);
+	Commande *trouve_commande(dls::chaine const &categorie, DonneesCommande &donnees_commande);
 };

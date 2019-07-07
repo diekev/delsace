@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace danjo {
 
@@ -43,12 +43,12 @@ public:
 	 * L'identifiant passé en paramètre est l'attache du bouton défini dans le
 	 * script (bouton(attache="..."; métadonnée="...")).
 	 */
-	virtual void repond_clique(const std::string &identifiant, const std::string &metadonnee) = 0;
+	virtual void repond_clique(const dls::chaine &identifiant, const dls::chaine &metadonnee) = 0;
 
 	/**
 	 * Fonction appelée pour vérifié si un bouton doit ou non être désactivé.
 	 */
-	virtual bool evalue_predicat(const std::string &identifiant, const std::string &metadonnee) = 0;
+	virtual bool evalue_predicat(const dls::chaine &identifiant, const dls::chaine &metadonnee) = 0;
 };
 
 }  /* namespace danjo */

@@ -24,6 +24,7 @@ set(NOM_PROJET service)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 add_library(reseau STATIC

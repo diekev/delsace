@@ -28,9 +28,10 @@
 
 #include <functional>
 #include <memory>
-#include <set>
 
 #include "biblinternes/outils/iterateurs.h"
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/ensemble.hh"
 
 /* ************************************************************************** */
 
@@ -55,7 +56,7 @@ struct Connexion {
  * l'utilisateur.
  */
 struct InfoNoeud {
-	std::string informations{};
+	dls::chaine informations{};
 
 	/* coordonnées xy de la souris sur l'écran, c'est à cette position que
 	 * les informations seront dessinées. */
@@ -123,7 +124,7 @@ public:
 	Graphe(Graphe const &) = default;
 	Graphe &operator=(Graphe const &) = default;
 
-	Noeud *cree_noeud(std::string const &nom_noeud);
+	Noeud *cree_noeud(dls::chaine const &nom_noeud);
 
 	/**
 	 * Supprime un noeud du graphe. Le noeud est deconnecté de tous les noeuds
@@ -191,9 +192,9 @@ private:
 	void supprime_noeud(Noeud *noeud);
 
 	dls::tableau<Noeud *> m_noeuds{};
-	std::set<Noeud *> m_noeuds_selectionnes{};
+	dls::ensemble<Noeud *> m_noeuds_selectionnes{};
 
-	std::set<std::string> m_noms_noeuds{};
+	dls::ensemble<dls::chaine> m_noms_noeuds{};
 };
 
 /* ************************************************************************** */

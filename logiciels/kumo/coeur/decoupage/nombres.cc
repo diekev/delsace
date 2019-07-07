@@ -59,10 +59,10 @@ static inline bool est_nombre_hexadecimal(char c)
 	return est_nombre_decimal(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 }
 
-static int extrait_nombre_binaire(const char *debut, const char *fin, std::string &chaine)
+static int extrait_nombre_binaire(const char *debut, const char *fin, dls::chaine &chaine)
 {
 	int compte = 0;
-	chaine.clear();
+	chaine.efface();
 
 	while (debut != fin) {
 		if (*debut != '_') {
@@ -70,7 +70,7 @@ static int extrait_nombre_binaire(const char *debut, const char *fin, std::strin
 				break;
 			}
 
-			chaine.push_back(*debut);
+			chaine.pousse(*debut);
 		}
 
 		++debut;
@@ -80,10 +80,10 @@ static int extrait_nombre_binaire(const char *debut, const char *fin, std::strin
 	return compte;
 }
 
-static int extrait_nombre_octal(const char *debut, const char *fin, std::string &chaine)
+static int extrait_nombre_octal(const char *debut, const char *fin, dls::chaine &chaine)
 {
 	int compte = 0;
-	chaine.clear();
+	chaine.efface();
 
 	while (debut != fin) {
 		if (*debut != '_') {
@@ -91,7 +91,7 @@ static int extrait_nombre_octal(const char *debut, const char *fin, std::string 
 				break;
 			}
 
-			chaine.push_back(*debut);
+			chaine.pousse(*debut);
 		}
 
 		++debut;
@@ -101,10 +101,10 @@ static int extrait_nombre_octal(const char *debut, const char *fin, std::string 
 	return compte;
 }
 
-static int extrait_nombre_hexadecimal(const char *debut, const char *fin, std::string &chaine)
+static int extrait_nombre_hexadecimal(const char *debut, const char *fin, dls::chaine &chaine)
 {
 	int compte = 0;
-	chaine.clear();
+	chaine.efface();
 
 	while (debut != fin) {
 		if (*debut != '_') {
@@ -112,7 +112,7 @@ static int extrait_nombre_hexadecimal(const char *debut, const char *fin, std::s
 				break;
 			}
 
-			chaine.push_back(*debut);
+			chaine.pousse(*debut);
 		}
 
 		++debut;
@@ -122,7 +122,7 @@ static int extrait_nombre_hexadecimal(const char *debut, const char *fin, std::s
 	return compte;
 }
 
-static int extrait_nombre_decimal(const char *debut, const char *fin, std::string &chaine, int &id_nombre)
+static int extrait_nombre_decimal(const char *debut, const char *fin, dls::chaine &chaine, int &id_nombre)
 {
 	int compte = 0;
 	int etat = ETAT_NOMBRE_DEBUT;
@@ -147,7 +147,7 @@ static int extrait_nombre_decimal(const char *debut, const char *fin, std::strin
 				id_nombre = ID_NOMBRE_REEL;
 			}
 
-			chaine.push_back(*debut);
+			chaine.pousse(*debut);
 		}
 
 		++debut;
@@ -157,7 +157,7 @@ static int extrait_nombre_decimal(const char *debut, const char *fin, std::strin
 	return compte;
 }
 
-int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int &id_nombre)
+int extrait_nombre(const char *debut, const char *fin, dls::chaine &chaine, int &id_nombre)
 {
 	if (*debut == '0' && (*(debut + 1) == 'b' || *(debut + 1) == 'B')) {
 		id_nombre = ID_NOMBRE_BINAIRE;
@@ -182,15 +182,15 @@ int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int 
 
 /* ************************************************************************** */
 
-static long converti_chaine_nombre_binaire(const std::string_view &chaine)
+static long converti_chaine_nombre_binaire(const dls::vue_chaine &chaine)
 {
-	if (chaine.length() > 64) {
+	if (chaine.taille() > 64) {
 		/* À FAIRE : erreur, surcharge. */
 		return std::numeric_limits<long>::max();
 	}
 
 	auto resultat = 0l;
-	auto n = chaine.length() - 1;
+	auto n = chaine.taille() - 1;
 
 	for (auto c : chaine) {
 		resultat |= ((int(c) - int('0')) << n);
@@ -200,15 +200,15 @@ static long converti_chaine_nombre_binaire(const std::string_view &chaine)
 	return resultat;
 }
 
-static long converti_chaine_nombre_octal(const std::string_view &chaine)
+static long converti_chaine_nombre_octal(const dls::vue_chaine &chaine)
 {
-	if (chaine.length() > 22 || chaine > "1777777777777777777777") {
+	if (chaine.taille() > 22 || chaine > "1777777777777777777777") {
 		/* À FAIRE : erreur, surcharge. */
 		return std::numeric_limits<long>::max();
 	}
 
 	auto resultat = 0l;
-	auto n = chaine.length() - 1;
+	auto n = chaine.taille() - 1;
 
 	for (auto c : chaine) {
 		resultat |= ((int(c) - int('0')) * static_cast<long>(std::pow(8, n)));
@@ -218,15 +218,15 @@ static long converti_chaine_nombre_octal(const std::string_view &chaine)
 	return resultat;
 }
 
-static long converti_chaine_nombre_hexadecimal(const std::string_view &chaine)
+static long converti_chaine_nombre_hexadecimal(const dls::vue_chaine &chaine)
 {
-	if (chaine.length() > 16) {
+	if (chaine.taille() > 16) {
 		/* À FAIRE : erreur, surcharge. */
 		return std::numeric_limits<long>::max();
 	}
 
 	auto resultat = 0l;
-	auto n = chaine.length() - 1;
+	auto n = chaine.taille() - 1;
 
 	for (auto c : chaine) {
 		if (est_nombre_decimal(c)) {
@@ -243,11 +243,11 @@ static long converti_chaine_nombre_hexadecimal(const std::string_view &chaine)
 	return resultat;
 }
 
-long converti_chaine_nombre_entier(const std::string_view &chaine, int identifiant)
+long converti_chaine_nombre_entier(const dls::vue_chaine &chaine, int identifiant)
 {
 	switch (identifiant) {
 		case ID_NOMBRE_ENTIER:
-			if (chaine.length() > 19 || chaine > "9223372036854775807") {
+			if (chaine.taille() > 19 || chaine > "9223372036854775807") {
 				/* À FAIRE : erreur, surcharge. */
 				return std::numeric_limits<long>::max();
 			}
@@ -264,7 +264,7 @@ long converti_chaine_nombre_entier(const std::string_view &chaine, int identifia
 	}
 }
 
-double converti_chaine_nombre_reel(const std::string_view &chaine, int identifiant)
+double converti_chaine_nombre_reel(const dls::vue_chaine &chaine, int identifiant)
 {
 	switch (identifiant) {
 		case ID_NOMBRE_REEL:

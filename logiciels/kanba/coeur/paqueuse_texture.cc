@@ -24,6 +24,8 @@
 
 #include "paqueuse_texture.h"
 
+#include "biblinternes/structures/dico.hh"
+
 #include "maillage.h"
 
 #undef LOGUE_EMPATQUETTAGE
@@ -51,7 +53,7 @@ uint64_t empreinte_xy(unsigned x, unsigned y)
 	return uint64_t(x) << 32ul | uint64_t(y);
 }
 
-static std::map<uint64_t, Polygone *> tableau_coord_polygones;
+static dls::dico<uint64_t, Polygone *> tableau_coord_polygones;
 
 PaqueuseTexture::Noeud::~Noeud()
 {
@@ -131,11 +133,11 @@ void PaqueuseTexture::empaquete(const std::vector<Polygone *> &polygones)
 
 		auto const empreinte = empreinte_xy(polygone->x, polygone->y);
 
-		if (tableau_coord_polygones.find(empreinte) != tableau_coord_polygones.end()) {
+		if (tableau_coord_polygones.trouve(empreinte) != tableau_coord_polygones.fin()) {
 			//std::cerr << "Plusieurs polygones ont les mêmes coordonnées !\n";
 		}
 		else {
-			tableau_coord_polygones.insert({ empreinte, polygone });
+			tableau_coord_polygones.insere({ empreinte, polygone });
 		}
 
 		LOG << "Assignation des coordonnées "

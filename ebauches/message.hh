@@ -2,7 +2,7 @@ struct requete {
 	int version;   // 10 ou 11
 	std::string methode; // "GET", "POST"
 	std::string target; // "/index.html"
-	std::map<std::string, std::string> champs; // paires nom/valeurs
+	dls::dico<std::string, std::string> champs; // paires nom/valeurs
 	std::string corps; // taille variable
 };
 
@@ -10,13 +10,13 @@ struct reponse {
 	int version; // 10 ou 11
 	int status; // 200 veut dire OK
 	std::string raison; // humainement lisible
-	std::map<std::string, std::string> champs; // paires nom/valeurs
+	dls::dico<std::string, std::string> champs; // paires nom/valeurs
 	std::string corps; // taille variable
 };
 
 // ne connaissent pas les allocateurs
 // le corps est codé en dur en std::string
-// les champs sont codé en dur en std::map
+// les champs sont codé en dur en dls::dico
 // les noms ne sont pas sensible à la casse
 // les types requete, reponse sont distint, unrelated, mais nous ne voulons qu'un seul type pour dédupliquer le code :
 
@@ -87,7 +87,7 @@ struct message<true, Corps, Champs> {
 	int version;   // 10 ou 11
 	std::string methode; // "GET", "POST"
 	std::string target; // "/index.html"
-	std::map<std::string, std::string> champs; // paires nom/valeurs
+	dls::dico<std::string, std::string> champs; // paires nom/valeurs
 
 	/* Arugments forwardés au constructeur du corps, au cas où le corps aurait besoin d'un allocateur. */
 	template <class... Args>
@@ -112,7 +112,7 @@ struct message<false, Corps> : private Corps::value_type, private Champs {
 	int version; // 10 ou 11
 	int status; // 200 veut dire OK
 	std::string raison; // humainement lisible
-	std::map<std::string, std::string> champs; // paires nom/valeurs
+	dls::dico<std::string, std::string> champs; // paires nom/valeurs
 
 	// taille variable
 	typename Corps::value_type &corps()

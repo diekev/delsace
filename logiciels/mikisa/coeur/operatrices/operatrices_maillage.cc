@@ -26,13 +26,13 @@
 
 #include "biblinternes/math/bruit.hh"
 #include <eigen3/Eigen/Eigenvalues>
-#include <set>
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/parallelisme.h"
 
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
@@ -55,7 +55,7 @@ static auto cherche_index_voisins(Corps const &corps)
 {
 	auto points_entree = corps.points();
 
-	dls::tableau<std::set<long>> voisins(points_entree->taille());
+	dls::tableau<dls::ensemble<long>> voisins(points_entree->taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -66,15 +66,15 @@ static auto cherche_index_voisins(Corps const &corps)
 			auto i0 = poly->index_point(j);
 			auto i1 = poly->index_point(j + 1);
 
-			voisins[i0].insert(i1);
-			voisins[i1].insert(i0);
+			voisins[i0].insere(i1);
+			voisins[i1].insere(i0);
 		}
 
 		auto dernier = poly->index_point(poly->nombre_sommets() - 1);
 		auto premier = poly->index_point(0);
 
-		voisins[premier].insert(dernier);
-		voisins[dernier].insert(premier);
+		voisins[premier].insere(dernier);
+		voisins[dernier].insere(premier);
 	});
 
 	return voisins;
@@ -84,7 +84,7 @@ static auto cherche_index_adjacents(Corps const &corps)
 {
 	auto points_entree = corps.points();
 
-	dls::tableau<std::set<long>> adjacents(points_entree->taille());
+	dls::tableau<dls::ensemble<long>> adjacents(points_entree->taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *polygone)
@@ -94,7 +94,7 @@ static auto cherche_index_adjacents(Corps const &corps)
 		for (auto j = 0; j < polygone->nombre_sommets(); ++j) {
 			auto i0 = polygone->index_point(j);
 
-			adjacents[i0].insert(static_cast<long>(polygone->index));
+			adjacents[i0].insere(static_cast<long>(polygone->index));
 		}
 	});
 
@@ -102,13 +102,13 @@ static auto cherche_index_adjacents(Corps const &corps)
 }
 
 static auto cherche_index_bordures(
-		dls::tableau<std::set<long>> const &voisins,
-		dls::tableau<std::set<long>> const &adjacents)
+		dls::tableau<dls::ensemble<long>> const &voisins,
+		dls::tableau<dls::ensemble<long>> const &adjacents)
 {
 	dls::tableau<char> bordures(voisins.taille());
 
 	for (auto i = 0; i < voisins.taille(); ++i) {
-		bordures[i] = voisins[i].size() != adjacents[i].size();
+		bordures[i] = voisins[i].taille() != adjacents[i].taille();
 	}
 
 	return bordures;
@@ -119,7 +119,7 @@ static auto cherche_index_bordures(
 static auto calcule_lissage_normal(
 		ListePoints3D const *points_entree,
 		dls::tableau<char> const &bordures,
-		dls::tableau<std::set<long>> const &voisins,
+		dls::tableau<dls::ensemble<long>> const &voisins,
 		dls::tableau<dls::math::vec3f> &deplacement,
 		bool preserve_bordures)
 {
@@ -132,7 +132,7 @@ static auto calcule_lissage_normal(
 					deplacement[i] = dls::math::vec3f(0.0f);
 				}
 				else {
-					auto nn = voisins[i].size();
+					auto nn = voisins[i].taille();
 					if (!nn) {
 						continue;
 					}
@@ -153,7 +153,7 @@ static auto calcule_lissage_normal(
 				}
 			}
 			else {
-				auto nn = voisins[i].size();
+				auto nn = voisins[i].taille();
 
 				if (!nn) {
 					continue;
@@ -173,7 +173,7 @@ static auto calcule_lissage_normal(
 static auto calcule_lissage_pondere(
 		ListePoints3D const *points_entree,
 		dls::tableau<char> const &bordures,
-		dls::tableau<std::set<long>> const &voisins,
+		dls::tableau<dls::ensemble<long>> const &voisins,
 		dls::tableau<dls::math::vec3f> &deplacement,
 		bool preserve_bordures)
 {
@@ -186,7 +186,7 @@ static auto calcule_lissage_pondere(
 					deplacement[i] = dls::math::vec3f(0.0f);
 				}
 				else {
-					auto nn = voisins[i].size();
+					auto nn = voisins[i].taille();
 					if (!nn) {
 						continue;
 					}
@@ -212,7 +212,7 @@ static auto calcule_lissage_pondere(
 				}
 			}
 			else {
-				auto nn = voisins[i].size();
+				auto nn = voisins[i].taille();
 
 				if (!nn) {
 					continue;
@@ -820,8 +820,8 @@ public:
 				deplacement[i] += gna.uniforme(0.0f, echelle) * (pv - point);
 			}
 
-			if (voisins.size() != 0) {
-				deplacement[i] /= static_cast<float>(voisins.size());
+			if (voisins.taille() != 0) {
+				deplacement[i] /= static_cast<float>(voisins.taille());
 			}
 
 			/* normal */
@@ -899,7 +899,7 @@ public:
 		 * différents du nombre des primitives voisins. */
 		auto nombre_elimines = 0;
 		for (auto i = 0; i < points_elimines.taille(); ++i) {
-			if (index_voisins[i].size() != index_adjacents[i].size()) {
+			if (index_voisins[i].taille() != index_adjacents[i].taille()) {
 				points_elimines[i] = 1;
 				++nombre_elimines;
 			}
@@ -1197,7 +1197,7 @@ static auto calcul_tangeantes(Corps &corps)
 			poids_total += poids;
 		}
 
-		if (voisins.size() != 0) {
+		if (voisins.taille() != 0) {
 			tangeante /= poids_total;
 		}
 

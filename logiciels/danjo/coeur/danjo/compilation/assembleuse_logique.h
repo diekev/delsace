@@ -24,26 +24,27 @@
 
 #pragma once
 
-#include <set>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/ensemble.hh"
 
 #include "graphe_contrainte.h"
 
 namespace danjo {
 
 class AssembleuseLogique {
-	std::set<std::string> m_noms_variables{};
+	dls::ensemble<dls::chaine> m_noms_variables{};
 
 	graphe_contrainte m_graphe{};
 
 public:
 
-	Variable *ajoute_variable(const std::string &nom);
+	Variable *ajoute_variable(const dls::chaine &nom);
 
 	void ajoute_contrainte(contrainte *c);
 
-	bool variable_connue(const std::string &nom);
+	bool variable_connue(const dls::chaine &nom);
 
-	Variable *variable(const std::string &nom);
+	Variable *variable(const dls::chaine &nom);
 };
 
 }  /* namespace danjo */

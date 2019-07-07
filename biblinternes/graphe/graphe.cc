@@ -38,7 +38,7 @@ Graphe::~Graphe()
 	supprime_tout();
 }
 
-Noeud *Graphe::cree_noeud(const std::string &nom_noeud)
+Noeud *Graphe::cree_noeud(const dls::chaine &nom_noeud)
 {
 	auto n = static_cast<Noeud *>(nullptr);
 
@@ -62,13 +62,13 @@ void Graphe::ajoute(Noeud *noeud)
 	auto nom = noeud->nom();
 	auto nom_temp = nom;
 
-	while (m_noms_noeuds.find(nom_temp) != m_noms_noeuds.end()) {
+	while (m_noms_noeuds.trouve(nom_temp) != m_noms_noeuds.fin()) {
 		nom_temp = nom + std::to_string(i++);
 	}
 
 	noeud->nom(nom_temp);
 
-	m_noms_noeuds.insert(nom_temp);
+	m_noms_noeuds.insere(nom_temp);
 
 	m_noeuds.pousse(noeud);
 
@@ -176,13 +176,13 @@ Graphe::plage_noeud_const Graphe::noeuds() const
 
 void Graphe::ajoute_selection(Noeud *noeud)
 {
-	m_noeuds_selectionnes.insert(noeud);
+	m_noeuds_selectionnes.insere(noeud);
 	this->noeud_actif = noeud;
 }
 
 void Graphe::vide_selection()
 {
-	m_noeuds_selectionnes.clear();
+	m_noeuds_selectionnes.efface();
 	this->noeud_actif = nullptr;
 }
 
@@ -192,7 +192,7 @@ void Graphe::supprime_tout()
 		supprime_noeud(noeud);
 	}
 
-	m_noeuds_selectionnes.clear();
+	m_noeuds_selectionnes.efface();
 	m_noeuds.clear();
 }
 

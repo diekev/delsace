@@ -41,7 +41,7 @@ void WidgetTest::ajourne_manipulable()
 {
 }
 
-void WidgetTest::obtiens_liste(const std::string &attache, dls::tableau<std::string> &chaines)
+void WidgetTest::obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines)
 {
 	std::cerr << "Obtention de la liste pour l'attache : " << attache << '\n';
 
@@ -50,7 +50,7 @@ void WidgetTest::obtiens_liste(const std::string &attache, dls::tableau<std::str
 
 /* ************************************************************************** */
 
-void RepondantBoutonTest::repond_clique(const std::string &valeur, const std::string &metadonnee)
+void RepondantBoutonTest::repond_clique(const dls::chaine &valeur, const dls::chaine &metadonnee)
 {
 	std::cerr << "Répondant au clique pour " << valeur
 			  << ", avec métadonnée " << metadonnee << '\n';
@@ -77,7 +77,7 @@ void RepondantBoutonTest::repond_clique(const std::string &valeur, const std::st
 	}
 }
 
-bool RepondantBoutonTest::evalue_predicat(const std::string &valeur, const std::string &metadonnee)
+bool RepondantBoutonTest::evalue_predicat(const dls::chaine &valeur, const dls::chaine &metadonnee)
 {
 	std::cerr << "Évalue prédicat pour " << valeur
 			  << ", avec métadonnée " << metadonnee << '\n';

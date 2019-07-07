@@ -27,63 +27,64 @@
 
 #include "biblinternes/chrono/chronometre_de_portee.hh"
 #include "biblinternes/outils/conditions.h"
+#include "biblinternes/structures/chaine.hh"
 
 namespace filesystem = std::experimental::filesystem;
 
 static auto formatte(int nombre)
 {
-	auto resultat_tmp = std::to_string(nombre);
+	auto resultat_tmp = dls::chaine(std::to_string(nombre));
 
-	const auto taille = resultat_tmp.size();
+	const auto taille = resultat_tmp.taille();
 
 	if (taille <= 3) {
 		return resultat_tmp;
 	}
 
 	const auto reste = taille % 3;
-	std::string resultat = std::string{""};
+	auto resultat = dls::chaine{""};
 	resultat.reserve(taille + taille / 3);
 
-	for (auto i = 0ul; i < reste; ++i) {
-		resultat.push_back(resultat_tmp[i]);
+	for (auto i = 0l; i < reste; ++i) {
+		resultat.pousse(resultat_tmp[i]);
 	}
 
 	for (auto i = reste; i < taille; i += 3) {
 		if (reste != 0 || i != reste) {
-			resultat.push_back(' ');
+			resultat.pousse(' ');
 		}
 
-		resultat.push_back(resultat_tmp[i + 0]);
-		resultat.push_back(resultat_tmp[i + 1]);
-		resultat.push_back(resultat_tmp[i + 2]);
+		resultat.pousse(resultat_tmp[i + 0]);
+		resultat.pousse(resultat_tmp[i + 1]);
+		resultat.pousse(resultat_tmp[i + 2]);
 	}
 
 	return resultat;
 }
 
-static auto commence_par(std::string const &ligne, std::string const &motif)
+static auto commence_par(dls::chaine const &ligne, dls::chaine const &motif)
 {
-	if (motif.size() > ligne.size()) {
+	if (motif.taille() > ligne.taille()) {
 		return false;
 	}
 
-	auto index = 0ul;
+	auto index = 0l;
 
 	/* Évite les espaces blancs. */
-	while (index < ligne.size() && (ligne[index] == '\t' || ligne[index] == ' ')) {
+	while (index < ligne.taille() && (ligne[index] == '\t' || ligne[index] == ' ')) {
 		++index;
 	}
 
-	return ligne.substr(index, motif.size()) == motif;
+	return ligne.sous_chaine(index, motif.taille()) == motif;
 }
 
-static auto fini_par(std::string const &ligne, std::string const &motif)
+static auto fini_par(dls::chaine const &ligne, dls::chaine const &motif)
 {
-	if (motif.size() > ligne.size()) {
+	if (motif.taille() > ligne.taille()) {
 		return false;
 	}
 
-	return ligne.find(motif) != std::string::npos;
+	return ligne.trouve(motif) != dls::chaine::npos;
 
 //	auto index = ligne.size() - 1;
 
@@ -98,7 +99,7 @@ static auto fini_par(std::string const &ligne, std::string const &motif)
 /* Considère les lignes comme étant vides si elles ne contiennent que des
  * caractères blancs ou des séquences de début ou de fin d'instructions comme
  * }); à la fin des lambdas. */
-static auto est_ligne_vide(std::string const &ligne)
+static auto est_ligne_vide(dls::chaine const &ligne)
 {
 	for (auto c : ligne) {
 		if (!dls::outils::est_element(c, ' ', '\t', '\n', '\r', '\v', '{', '}', '(', ')', '[', ']', ';')) {

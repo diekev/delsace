@@ -25,10 +25,10 @@
 #pragma once
 
 #include <any>
-#include <string>
 
 #include "biblinternes/geometrie/rectangle.h"
 #include "biblinternes/outils/iterateurs.h"
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 class Noeud;
@@ -53,7 +53,7 @@ enum type_prise {
 struct PriseSortie {
 	Noeud *parent = nullptr;
 	dls::tableau<PriseEntree *> liens{};
-	std::string nom = "";
+	dls::chaine nom = "";
 	int type = 0;
 
 	/* décalage dans la pile d'une CompileuseGraphe */
@@ -62,7 +62,7 @@ struct PriseSortie {
 	/* position et taille dans l'entreface */
 	Rectangle rectangle{};
 
-	explicit PriseSortie(std::string const &nom_prise);
+	explicit PriseSortie(dls::chaine const &nom_prise);
 
 	/* À FAIRE : considère l'utilisation de shared_ptr */
 	PriseSortie(PriseSortie const &) = default;
@@ -75,14 +75,14 @@ struct PriseEntree {
 	Noeud *parent = nullptr;
 	dls::tableau<PriseSortie *> liens{};
 	//PriseSortie *lien = nullptr;
-	std::string nom = "";
+	dls::chaine nom = "";
 	int type = 0;
 	bool multiple_connexions = false;
 
 	/* position et taille dans l'entreface */
 	Rectangle rectangle{};
 
-	explicit PriseEntree(std::string const &nom_prise);
+	explicit PriseEntree(dls::chaine const &nom_prise);
 
 	/* À FAIRE : considère l'utilisation de shared_ptr */
 	PriseEntree(PriseEntree const &) = default;
@@ -99,7 +99,7 @@ class Noeud {
 
 	std::any m_donnees = nullptr;
 
-	std::string m_nom = "";
+	dls::chaine m_nom = "";
 
 	/* Interface utilisateur. */
 	Rectangle m_rectangle{};
@@ -128,8 +128,8 @@ public:
 	std::any donnees() const;
 	void donnees(std::any pointeur);
 
-	std::string const &nom() const;
-	void nom(std::string const &nom);
+	dls::chaine const &nom() const;
+	void nom(dls::chaine const &nom);
 
 	/**
 	 * Retourne la position horizontale du noeud dans l'éditeur.
@@ -179,12 +179,12 @@ public:
 	/**
 	 * Ajoute une prise d'entrée au noeud.
 	 */
-	void ajoute_entree(std::string const &nom, const int type);
+	void ajoute_entree(dls::chaine const &nom, const int type);
 
 	/**
 	 * Ajoute une prise de sortie au noeud.
 	 */
-	void ajoute_sortie(std::string const &nom, const int type);
+	void ajoute_sortie(dls::chaine const &nom, const int type);
 
 	/**
 	 * Retourne l'entrée selon l'index spécifié.
@@ -194,7 +194,7 @@ public:
 	/**
 	 * Retourne l'entrée selon le nom spécifié.
 	 */
-	PriseEntree *entree(std::string const &nom);
+	PriseEntree *entree(dls::chaine const &nom);
 
 	/**
 	 * Retourne la sortie selon l'index spécifié.
@@ -204,7 +204,7 @@ public:
 	/**
 	 * Retourne la sortie selon le nom spécifié.
 	 */
-	PriseSortie *sortie(std::string const &nom);
+	PriseSortie *sortie(dls::chaine const &nom);
 
 	/**
 	 * Retourne une plage itérable sur les entrées de ce noeud.

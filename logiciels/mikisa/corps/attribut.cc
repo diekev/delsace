@@ -38,7 +38,7 @@ long taille_octet_type_attribut(type_attribut type)
 		case type_attribut::DECIMAL:
 			return static_cast<long>(sizeof(float));
 		case type_attribut::CHAINE:
-			return static_cast<long>(sizeof(std::string));
+			return static_cast<long>(sizeof(dls::chaine));
 		case type_attribut::VEC2:
 			return static_cast<long>(sizeof(dls::math::vec2f));
 		case type_attribut::VEC3:
@@ -56,7 +56,7 @@ long taille_octet_type_attribut(type_attribut type)
 
 /* ************************************************************************** */
 
-Attribut::Attribut(std::string const &name, type_attribut type, portee_attr portee_, long taille)
+Attribut::Attribut(dls::chaine const &name, type_attribut type, portee_attr portee_, long taille)
 	: m_nom(name)
 	, m_type(type)
 	, portee(portee_)
@@ -77,12 +77,12 @@ type_attribut Attribut::type() const
 	return m_type;
 }
 
-std::string Attribut::nom() const
+dls::chaine Attribut::nom() const
 {
 	return m_nom;
 }
 
-void Attribut::nom(std::string const &n)
+void Attribut::nom(dls::chaine const &n)
 {
 	m_nom = n;
 }

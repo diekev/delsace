@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <map>
+#include "biblinternes/structures/dico.hh"
 
 #include "outils_http.hh"
 #include "uri.hh"
@@ -44,7 +44,7 @@ template <>
 struct message<false> {
 	status_http status;
 	std::string corps;
-	std::map<std::string, std::string> entetes;
+	dls::dico<std::string, std::string> entetes;
 };
 
 using type_requete = message<true>;

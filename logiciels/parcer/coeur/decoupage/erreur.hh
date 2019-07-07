@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 #include "modules.hh"
 #include "morceaux.hh"
@@ -64,7 +64,7 @@ enum class type_erreur : int {
 };
 
 class frappe {
-	std::string m_message;
+	dls::chaine m_message;
 	type_erreur m_type;
 
 public:
@@ -76,13 +76,13 @@ public:
 };
 
 [[noreturn]] void lance_erreur(
-		const std::string &quoi,
+		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_plage(
-		const std::string &quoi,
+		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &premier_morceau,
 		const DonneesMorceaux &dernier_morceau,
@@ -109,12 +109,12 @@ public:
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_argument_inconnu(
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 

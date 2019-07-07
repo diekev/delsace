@@ -40,51 +40,51 @@
 
 /* ************************************************************************** */
 
-bool DonneesModule::importe_module(std::string_view const &nom_module) const
+bool DonneesModule::importe_module(dls::vue_chaine const &nom_module) const
 {
-	return modules_importes.find(nom_module) != modules_importes.end();
+	return modules_importes.trouve(nom_module) != modules_importes.fin();
 }
 
-bool DonneesModule::possede_fonction(std::string_view const &nom_fonction) const
+bool DonneesModule::possede_fonction(dls::vue_chaine const &nom_fonction) const
 {
-	return fonctions_exportees.find(nom_fonction) != fonctions_exportees.end();
+	return fonctions_exportees.trouve(nom_fonction) != fonctions_exportees.fin();
 }
 
-void DonneesModule::ajoute_donnees_fonctions(std::string_view const &nom_fonction, DonneesFonction const &donnees)
+void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine const &nom_fonction, DonneesFonction const &donnees)
 {
-	auto iter = fonctions.find(nom_fonction);
+	auto iter = fonctions.trouve(nom_fonction);
 
-	if (iter == fonctions.end()) {
-		fonctions.insert({nom_fonction, {donnees}});
+	if (iter == fonctions.fin()) {
+		fonctions.insere({nom_fonction, {donnees}});
 	}
 	else {
 		iter->second.push_back(donnees);
 	}
 }
 
-std::vector<DonneesFonction> &DonneesModule::donnees_fonction(std::string_view const &nom_fonction) noexcept
+std::vector<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept
 {
-	auto iter = fonctions.find(nom_fonction);
+	auto iter = fonctions.trouve(nom_fonction);
 
-	if (iter == fonctions.end()) {
+	if (iter == fonctions.fin()) {
 		assert(false);
 	}
 
 	return iter->second;
 }
 
-bool DonneesModule::fonction_existe(std::string_view const &nom_fonction) const noexcept
+bool DonneesModule::fonction_existe(dls::vue_chaine const &nom_fonction) const noexcept
 {
-	return fonctions.find(nom_fonction) != fonctions.end();
+	return fonctions.trouve(nom_fonction) != fonctions.fin();
 }
 
 size_t DonneesModule::memoire_utilisee() const noexcept
 {
-	auto memoire = fonctions.size() * (sizeof(std::vector<DonneesFonction>) + sizeof(std::string_view));
+	auto memoire = static_cast<size_t>(fonctions.taille()) * (sizeof(std::vector<DonneesFonction>) + sizeof(dls::vue_chaine));
 
 	for (auto const &df : fonctions) {
 		for (auto const &fonc : df.second) {
-			memoire += fonc.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
+			memoire += static_cast<size_t>(fonc.args.taille()) * (sizeof(DonneesArgument) + sizeof(dls::vue_chaine));
 		}
 	}
 

@@ -33,7 +33,7 @@ RepondantCommande::RepondantCommande(UsineCommande &usine_commande, std::any con
 	, m_pointeur(pointeur)
 {}
 
-bool RepondantCommande::appele_commande(std::string const &categorie, DonneesCommande const &donnees_commande)
+bool RepondantCommande::appele_commande(dls::chaine const &categorie, DonneesCommande const &donnees_commande)
 {
 #if 0
 	std::cerr << "Appele commande pour catégorie : " << categorie << " :\n";
@@ -85,7 +85,7 @@ void RepondantCommande::acheve_commande_modale(DonneesCommande const &donnees_co
 	m_commande_modale = nullptr;
 }
 
-void RepondantCommande::repond_clique(std::string const &identifiant, std::string const &metadonnee)
+void RepondantCommande::repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee)
 {
 	auto commande = m_usine_commande(identifiant);
 
@@ -97,7 +97,7 @@ void RepondantCommande::repond_clique(std::string const &identifiant, std::strin
 	delete commande;
 }
 
-bool RepondantCommande::evalue_predicat(std::string const &identifiant, std::string const &metadonnee)
+bool RepondantCommande::evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee)
 {
 	auto commande = m_usine_commande(identifiant);
 	return commande->evalue_predicat(m_pointeur, metadonnee);

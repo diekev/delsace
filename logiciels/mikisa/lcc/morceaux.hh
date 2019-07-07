@@ -26,7 +26,7 @@
  
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/vue_chaine.hh"
 
 enum class id_morceau : unsigned int {
 	EXCLAMATION,
@@ -138,8 +138,8 @@ struct DonneesMorceaux {
 	using type = id_morceau;
 	static constexpr type INCONNU = id_morceau::INCONNU;
 
-	std::string_view chaine;
-	size_t ligne_pos;
+	dls::vue_chaine chaine;
+	unsigned long ligne_pos;
 	id_morceau identifiant;
 	int module = 0;
 };
@@ -150,6 +150,6 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, id_morceau &i);
 
-id_morceau id_caractere_double(const std::string_view &chaine);
+id_morceau id_caractere_double(const dls::vue_chaine &chaine);
 
-id_morceau id_chaine(const std::string_view &chaine);
+id_morceau id_chaine(const dls::vue_chaine &chaine);

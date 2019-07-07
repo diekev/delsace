@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/memoire/logeuse_gardee.hh"
 
 //#include <cstring>
 
@@ -33,210 +33,12 @@
 
 namespace dls {
 
-template <typename T>
-struct chaine_pour_type {
-	static const char *CT()
-	{
-		return typeid(T).name();
-	}
-};
-
-template <>
-struct chaine_pour_type<char> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<char>";
-	}
-};
-
-template <>
-struct chaine_pour_type<short> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<short>";
-	}
-};
-
-template <>
-struct chaine_pour_type<int> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<int>";
-	}
-};
-
-template <>
-struct chaine_pour_type<long> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<long>";
-	}
-};
-
-template <>
-struct chaine_pour_type<long long> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<long long>";
-	}
-};
-
-template <>
-struct chaine_pour_type<unsigned char> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<unsigned char>";
-	}
-};
-
-template <>
-struct chaine_pour_type<unsigned short> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<unsigned short>";
-	}
-};
-
-template <>
-struct chaine_pour_type<unsigned int> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<unsigned int>";
-	}
-};
-
-template <>
-struct chaine_pour_type<unsigned long> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<unsigned long>";
-	}
-};
-
-template <>
-struct chaine_pour_type<unsigned long long> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<unsigned long long>";
-	}
-};
-
-template <>
-struct chaine_pour_type<float> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<float>";
-	}
-};
-
-template <>
-struct chaine_pour_type<double> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<double>";
-	}
-};
-
-/* struct utilisée dans les std::vector en attendant d'avoir notre propre
- * tableau. */
-template <typename T>
-struct logeuse_guardee {
-	using size_type       = size_t;
-	using difference_type = std::ptrdiff_t;
-	using pointer         = T *;
-	using const_pointer   = const T *;
-	using reference       = T&;
-	using const_reference = const T&;
-	using value_type      = T;
-
-	logeuse_guardee() = default;
-
-	logeuse_guardee(logeuse_guardee const &) = default;
-
-	T *allocate(size_t n, void const *hint = nullptr)
-	{
-		static_cast<void>(hint);
-
-		auto p = memoire::loge_tableau<T>(chaine_pour_type<T>::CT(), static_cast<long>(n));
-
-		if (p == nullptr) {
-			throw std::bad_alloc();
-		}
-
-		return p;
-	}
-
-	void deallocate(T *p, size_t n)
-	{
-		if (p != nullptr) {
-			memoire::deloge_tableau(chaine_pour_type<T>::CT(), p, static_cast<long>(n));
-		}
-	}
-
-	T *address(T &x) const
-	{
-		return &x;
-	}
-
-	T const *address(T const &x) const
-	{
-		return &x;
-	}
-
-	logeuse_guardee<T> &operator=(logeuse_guardee const &)
-	{
-		return *this;
-	}
-
-	void construct(T *p, const T& val)
-	{
-		if (p != nullptr) {
-			new (p) T(val);
-		}
-	}
-
-	void destroy(T *p)
-	{
-		p->~T();
-	}
-
-	size_t max_size() const
-	{
-		return size_t(-1);
-	}
-
-	template <class U>
-	struct rebind {
-		typedef logeuse_guardee<U> other;
-	};
-
-	template <class U>
-	logeuse_guardee(logeuse_guardee<U> const &)
-	{}
-
-	template <class U>
-	logeuse_guardee& operator=(logeuse_guardee<U> const &)
-	{
-		return *this;
-	}
-
-	inline bool operator==(logeuse_guardee const &) const
-	{
-		return true;
-	}
-
-	inline bool operator!=(logeuse_guardee const &autre) const
-	{
-		return !operator==(autre);
-	}
-};
-
 /* pour l'instant enrobe un std::vector, notre tableau a des bogues et crash
  * trop lors des réallocations, en plus d'être lent lors des réallocations */
 template <typename T>
 struct tableau {
 private:
-	std::vector<T, logeuse_guardee<T>> m_vecteur{};
+	std::vector<T, memoire::logeuse_guardee<T>> m_vecteur{};
 
 public:
 	tableau() = default;
@@ -316,6 +118,11 @@ public:
 		m_vecteur.clear();
 	}
 
+	void pop_front()
+	{
+		m_vecteur.erase(m_vecteur.begin());
+	}
+
 	void pop_back()
 	{
 		m_vecteur.pop_back();
@@ -381,8 +188,8 @@ public:
 		return m_vecteur.back();
 	}
 
-	using iteratrice = typename std::vector<T, logeuse_guardee<T>>::iterator;
-	using const_iteratrice = typename std::vector<T, logeuse_guardee<T>>::const_iterator;
+	using iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::iterator;
+	using const_iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::const_iterator;
 
 	iteratrice debut()
 	{

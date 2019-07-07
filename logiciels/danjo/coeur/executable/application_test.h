@@ -35,15 +35,15 @@ class WidgetTest : public danjo::ConteneurControles {
 public:
 	explicit WidgetTest(QWidget *parent = nullptr);
 
-	void obtiens_liste(const std::string &attache, dls::tableau<std::string> &chaines) override;
+	void obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines) override;
 
 	void ajourne_manipulable() override;
 };
 
 class RepondantBoutonTest : public danjo::RepondantBouton {
 public:
-	void repond_clique(const std::string &valeur, const std::string &metadonnee) override;
-	bool evalue_predicat(const std::string &valeur, const std::string &metadonnee) override;
+	void repond_clique(const dls::chaine &valeur, const dls::chaine &metadonnee) override;
+	bool evalue_predicat(const dls::chaine &valeur, const dls::chaine &metadonnee) override;
 };
 
 class FenetreTest : public QMainWindow {

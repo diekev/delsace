@@ -26,5 +26,5 @@
 
 PileMatrice::PileMatrice()
 {
-	m_pile.push(dls::math::mat4x4d(1.0f));
+	m_pile.empile(dls::math::mat4x4d(1.0));
 }

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/graphe/graphe.h"
+#include "biblinternes/structures/chaine.hh"
 
 #include "operatrice_image.h"
 
@@ -37,7 +38,7 @@ public:
 
 	~Composite() = default;
 
-	std::string nom = "";
+	dls::chaine nom = "";
 
 	Image const &image() const;
 

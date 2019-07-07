@@ -25,10 +25,12 @@
 #pragma once
 
 #include <experimental/any>
+
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/phys/couleur.hh"
-#include <unordered_map>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 
 struct CourbeBezier;
 struct CourbeCouleur;
@@ -101,7 +103,7 @@ private:
  * toutes les propriétés utilisées dans le script de définition de l'entreface.
  */
 class Manipulable {
-	std::unordered_map<std::string, Propriete> m_proprietes{};
+	dls::dico_desordonne<dls::chaine, Propriete> m_proprietes{};
 	bool m_initialise = false;
 	bool pad[7];
 
@@ -110,7 +112,7 @@ public:
 
 	virtual	~Manipulable() = default;
 
-	using iterateur = std::unordered_map<std::string, Propriete>::iterator;
+	using iterateur = dls::dico_desordonne<dls::chaine, Propriete>::iteratrice;
 
 	/**
 	 * Retourne un itérateur pointant vers le début de la liste de propriétés.
@@ -127,89 +129,89 @@ public:
 	 *
 	 * La valeur spécifiée est la valeur par défaut du manipulable.
 	 */
-	void ajoute_propriete(const std::string &nom, TypePropriete type, const std::experimental::any &valeur);
+	void ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::experimental::any &valeur);
 
 	/**
 	 * Ajoute une propriété extra à ce manipulable avec le nom spécifié.
 	 */
-	void ajoute_propriete_extra(const std::string &nom, const Propriete &propriete);
+	void ajoute_propriete_extra(const dls::chaine &nom, const Propriete &propriete);
 
 	/**
 	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.
 	 *
 	 * La valeur spécifiée est la valeur par défaut du manipulable.
 	 */
-	void ajoute_propriete(const std::string &nom, TypePropriete type);
+	void ajoute_propriete(const dls::chaine &nom, TypePropriete type);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'entier' du nom spécifié.
 	 */
-	int evalue_entier(const std::string &nom, int temps = 0);
+	int evalue_entier(const dls::chaine &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'décimal' du nom spécifié.
 	 */
-	float evalue_decimal(const std::string &nom, int temps = 0);
+	float evalue_decimal(const dls::chaine &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'vecteur' du nom spécifié.
 	 */
-	dls::math::vec3f evalue_vecteur(const std::string &nom, int temps = 0);
+	dls::math::vec3f evalue_vecteur(const dls::chaine &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'couleur' du nom spécifié.
 	 */
-	dls::phys::couleur32 evalue_couleur(const std::string &nom, int temps = 0);
+	dls::phys::couleur32 evalue_couleur(const dls::chaine &nom, int temps = 0);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_entrée' du nom spécifié.
 	 */
-	std::string evalue_fichier_entree(const std::string &nom);
+	dls::chaine evalue_fichier_entree(const dls::chaine &nom);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_sortie' du nom spécifié.
 	 */
-	std::string evalue_fichier_sortie(const std::string &nom);
+	dls::chaine evalue_fichier_sortie(const dls::chaine &nom);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'chaine' du nom spécifié.
 	 */
-	std::string evalue_chaine(const std::string &nom);
+	dls::chaine evalue_chaine(const dls::chaine &nom);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'bool' du nom spécifié.
 	 */
-	bool evalue_bool(const std::string &nom);
+	bool evalue_bool(const dls::chaine &nom);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'énum' du nom spécifié.
 	 */
-	std::string evalue_enum(const std::string &nom);
+	dls::chaine evalue_enum(const dls::chaine &nom);
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'liste' du nom spécifié.
 	 */
-	std::string evalue_liste(const std::string &nom);
+	dls::chaine evalue_liste(const dls::chaine &nom);
 
 	/**
 	 * Retourne la courbe de la propriété 'courbe_couleur' du nom spécifié.
 	 */
-	CourbeCouleur *evalue_courbe_couleur(const std::string &nom);
+	CourbeCouleur *evalue_courbe_couleur(const dls::chaine &nom);
 
 	/**
 	 * Retourne la courbe de la propriété 'courbe_valeur' du nom spécifié.
 	 */
-	CourbeBezier *evalue_courbe_valeur(const std::string &nom);
+	CourbeBezier *evalue_courbe_valeur(const dls::chaine &nom);
 
 	/**
 	 * Retourne la rampe de la propriété 'rampe_couleur' du nom spécifié.
 	 */
-	RampeCouleur *evalue_rampe_couleur(const std::string &nom);
+	RampeCouleur *evalue_rampe_couleur(const dls::chaine &nom);
 
 	/**
 	 * Rends la propriété spécifiée visible dans l'entreface.
 	 */
-	void rend_propriete_visible(const std::string &nom, bool ouinon);
+	void rend_propriete_visible(const dls::chaine &nom, bool ouinon);
 
 	/**
 	 * Ajourne les propriétés de ce manipulable. Par exemple pour décider si
@@ -220,45 +222,45 @@ public:
 	/**
 	 * Établie la valeur de la propriété de type bool spécifiée.
 	 */
-	void valeur_bool(const std::string &nom, bool valeur);
+	void valeur_bool(const dls::chaine &nom, bool valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type entier spécifiée.
 	 */
-	void valeur_entier(const std::string &nom, int valeur);
+	void valeur_entier(const dls::chaine &nom, int valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type décimal spécifiée.
 	 */
-	void valeur_decimal(const std::string &nom, float valeur);
+	void valeur_decimal(const dls::chaine &nom, float valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type vecteur spécifiée.
 	 */
-	void valeur_vecteur(const std::string &nom, const dls::math::vec3f &valeur);
+	void valeur_vecteur(const dls::chaine &nom, const dls::math::vec3f &valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type couleur spécifiée.
 	 */
-	void valeur_couleur(const std::string &nom, const dls::phys::couleur32 &valeur);
+	void valeur_couleur(const dls::chaine &nom, const dls::phys::couleur32 &valeur);
 
 	/**
 	 * Établie la valeur de la propriété de type chaine, fichier, ou liste
 	 * spécifiée.
 	 */
-	void valeur_chaine(const std::string &nom, const std::string &valeur);
+	void valeur_chaine(const dls::chaine &nom, const dls::chaine &valeur);
 
 	/**
 	 * Retourne un pointeur vers la valeur de la propriété au nom spécifié.
 	 */
-	void *operator[](const std::string &nom);
+	void *operator[](const dls::chaine &nom);
 
 	/**
 	 * Retourne le type de la propriété du nom spécifié.
 	 */
-	TypePropriete type_propriete(const std::string &nom);
+	TypePropriete type_propriete(const dls::chaine &nom);
 
-	Propriete *propriete(const std::string &nom);
+	Propriete *propriete(const dls::chaine &nom);
 };
 
 }  /* namespace danjo */

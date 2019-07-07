@@ -32,7 +32,7 @@
 #undef DEBOGUE_MEMOIRE
 
 #ifdef DEBOGUE_MEMOIRE
-#	include <map>
+#	include "biblinternes/structures/dico.hh"
 #endif
 
 namespace memoire {
@@ -43,7 +43,7 @@ struct logeuse_memoire {
 
 #ifdef DEBOGUE_MEMOIRE
 	/* XXX - il est possible d'avoir une situation de concurence sur la table */
-	std::map<const char *, std::atomic_long> tableau_allocation;
+	dls::dico<const char *, std::atomic_long> tableau_allocation;
 #endif
 
 	~logeuse_memoire();

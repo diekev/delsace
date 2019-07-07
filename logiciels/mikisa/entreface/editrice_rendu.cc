@@ -69,7 +69,7 @@ void EditriceRendu::ajourne_etat(int evenement)
 
 	auto const &texte = danjo::contenu_fichier("entreface/disposition_rendu.jo");
 
-	if (texte.empty()) {
+	if (texte.est_vide()) {
 		return;
 	}
 
@@ -99,8 +99,8 @@ void EditriceRendu::ajourne_manipulable()
 }
 
 void EditriceRendu::obtiens_liste(
-		std::string const &/*attache*/,
-		dls::tableau<std::string> &chaines)
+		dls::chaine const &/*attache*/,
+		dls::tableau<dls::chaine> &chaines)
 {
 	/* À FAIRE */
 	chaines.pousse("image");

@@ -24,9 +24,10 @@
 
 #pragma once
 
-#include <stack>
 #include <string>
 #include <vector>
+
+#include "biblinternes/structures/pile.hh"
 
 namespace pile {
 
@@ -71,7 +72,7 @@ struct Noeud {
 class arborescence_iterator {
 	using iterateur_noeud = std::vector<Noeud *>::iterator;
 
-	std::stack<iterateur_noeud, std::vector<iterateur_noeud>> m_pile{};
+	dls::pile<iterateur_noeud> m_pile{};
 
 	int m_profondeur = 0;
 
@@ -85,12 +86,12 @@ public:
 	arborescence_iterator() noexcept
 	{
 		m_profondeur = -1;
-		this->m_pile.push(iterateur_noeud());
+		this->m_pile.empile(iterateur_noeud());
 	}
 
 	arborescence_iterator(Noeud *noeud)
 	{
-		this->m_pile.push(noeud->enfants.begin());
+		this->m_pile.empile(noeud->enfants.begin());
 	}
 
 	arborescence_iterator(const arborescence_iterator &rhs)
@@ -106,16 +107,16 @@ public:
 
 	Noeud *operator*() const
 	{
-		if (m_profondeur == -1 || !*m_pile.top()) {
+		if (m_profondeur == -1 || !*m_pile.haut()) {
 			return nullptr;
 		}
 
-		return (*m_pile.top());
+		return (*m_pile.haut());
 	}
 
 	Noeud **operator->() const
 	{
-		return &(*m_pile.top());
+		return &(*m_pile.haut());
 	}
 
 	int profondeur()
@@ -125,18 +126,18 @@ public:
 
 	void incremente()
 	{
-		++(this->m_pile.top());
+		++(this->m_pile.haut());
 
-		if (this->m_pile.top() == iterateur_noeud()) {
+		if (this->m_pile.haut() == iterateur_noeud()) {
 			if (this->m_profondeur != 0) {
 				--this->m_profondeur;
-				this->m_pile.pop();
-				++(this->m_pile.top());
+				this->m_pile.depile();
+				++(this->m_pile.haut());
 			}
 		}
 		else {
 			++this->m_profondeur;
-			this->m_pile.push((*m_pile.top())->enfants.begin());
+			this->m_pile.empile((*m_pile.haut())->enfants.begin());
 		}
 	}
 

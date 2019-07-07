@@ -24,10 +24,9 @@
 
 #pragma once
 
-#include <string>
-#include <unordered_map>
-
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
 
 class Graphe;
@@ -41,8 +40,8 @@ struct DescOperatrice {
 	DescOperatrice() = default;
 
 	DescOperatrice(
-			std::string const &opname,
-			std::string const &ophelp,
+			dls::chaine const &opname,
+			dls::chaine const &ophelp,
 			factory_func func,
 			fonc_suppression func_supp)
 	    : name(opname)
@@ -51,8 +50,8 @@ struct DescOperatrice {
 		, supprime_operatrice(func_supp)
 	{}
 
-	std::string name = "";
-	std::string tooltip = "";
+	dls::chaine name = "";
+	dls::chaine tooltip = "";
 	factory_func build_operator = nullptr;
 	fonc_suppression supprime_operatrice = nullptr;
 };
@@ -86,7 +85,7 @@ public:
 	 *
 	 * @return The number of entries after registering the new element.
 	 */
-	size_t enregistre_type(DescOperatrice const &desc);
+	long enregistre_type(DescOperatrice const &desc);
 
 	/**
 	 * @brief operator() Create a ImageNode based on the given key.
@@ -94,7 +93,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return A new ImageNode object corresponding to the given key.
 	 */
-	OperatriceImage *operator()(std::string const &name, Graphe &graphe_parent, Noeud *noeud);
+	OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud *noeud);
 
 	void deloge(OperatriceImage *operatrice);
 
@@ -103,13 +102,13 @@ public:
 	 *
 	 * @return The number of entries registered in this factory, 0 if empty.
 	 */
-	inline size_t num_entries() const
+	inline long num_entries() const
 	{
-		return m_map.size();
+		return m_map.taille();
 	}
 
 	/**
-	 * @brief keys std::strings registered in this factory.
+	 * @brief keys dls::chaines registered in this factory.
 	 *
 	 * @return An unsorted vector containing the keys registered in this factory.
 	 */
@@ -122,8 +121,8 @@ public:
 	 * @param key The key to lookup.
 	 * @return True if the key is found, false otherwise.
 	 */
-	bool registered(std::string const &key) const;
+	bool registered(dls::chaine const &key) const;
 
 private:
-	std::unordered_map<std::string, DescOperatrice> m_map{};
+	dls::dico_desordonne<dls::chaine, DescOperatrice> m_map{};
 };

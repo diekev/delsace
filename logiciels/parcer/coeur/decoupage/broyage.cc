@@ -31,12 +31,12 @@ static char char_depuis_hex(char hex)
 	return "0123456789ABCDEF"[static_cast<int>(hex)];
 }
 
-std::string broye_nom_simple(std::string_view const &nom)
+dls::chaine broye_nom_simple(dls::vue_chaine const &nom)
 {
-	auto ret = std::string{};
+	auto ret = dls::chaine{};
 
 	auto debut = &nom[0];
-	auto fin   = &nom[nom.size()];
+	auto fin   = &nom[nom.taille()];
 
 	while (debut < fin) {
 		auto no = lng::nombre_octets(debut);
@@ -70,9 +70,9 @@ std::string broye_nom_simple(std::string_view const &nom)
 	return ret;
 }
 
-std::string broye_nom_fonction(
-		std::string_view const &nom_fonction,
-		std::string const &nom_module,
+dls::chaine broye_nom_fonction(
+		dls::vue_chaine const &nom_fonction,
+		const dls::chaine &nom_module,
 		size_t index_type)
 {
 	/* pour l'instant, nous ne broyons que le nom pour supprimer les accents
@@ -80,7 +80,7 @@ std::string broye_nom_fonction(
 	 * génériques nous incluerons également les types
 	 */
 
-	auto ret = std::string("KR_");
+	auto ret = dls::chaine("KR_");
 	ret += broye_nom_simple(nom_module);
 	ret += '_';
 	ret += broye_nom_simple(nom_fonction);

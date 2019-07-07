@@ -31,6 +31,7 @@
 #include "biblinternes/image/pixel.h"
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/outils/iterateurs.h"
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "danjo/manipulable.h"
@@ -78,7 +79,7 @@ enum {
 /* ************************************************************************** */
 
 struct Calque {
-	std::string nom{};
+	dls::chaine nom{};
 	type_image tampon{};
 
 	/**
@@ -103,7 +104,7 @@ struct Calque {
 
 class Image {
 	std::list<Calque *> m_calques{};
-	std::string m_nom_calque{};
+	dls::chaine m_nom_calque{};
 
 public:
 	using plage_calques = dls::outils::plage_iterable<std::list<Calque *>::iterator>;
@@ -116,13 +117,13 @@ public:
 	 * est définie par le rectangle passé en paramètre. Retourne un pointeur
 	 * vers le calque ajouté.
 	 */
-	Calque *ajoute_calque(std::string const &nom, Rectangle const &rectangle);
+	Calque *ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle);
 
 	/**
 	 * Retourne un pointeur vers le calque portant le nom passé en paramètre. Si
 	 * aucun calque ne portant ce nom est trouvé, retourne nullptr.
 	 */
-	Calque *calque(std::string const &nom) const;
+	Calque *calque(dls::chaine const &nom) const;
 
 	/**
 	 * Retourne une plage itérable sur la liste de calques de cette Image.
@@ -144,12 +145,12 @@ public:
 	/**
 	 * Renseigne le nom du calque actif.
 	 */
-	void nom_calque_actif(std::string const &nom);
+	void nom_calque_actif(dls::chaine const &nom);
 
 	/**
 	 * Retourne le nom du calque actif.
 	 */
-	std::string const &nom_calque_actif() const;
+	dls::chaine const &nom_calque_actif() const;
 };
 
 /* ************************************************************************** */
@@ -163,7 +164,7 @@ public:
  */
 class EntreeOperatrice {
 	PriseEntree *m_ptr = nullptr;
-	dls::tableau<std::string> m_liste_noms_calques{};
+	dls::tableau<dls::chaine> m_liste_noms_calques{};
 
 public:
 	/**
@@ -217,25 +218,25 @@ public:
 	 * Place la liste de calque de l'image transitante par cette entrée dans le
 	 * vecteur de chaines spécifié.
 	 */
-	void obtiens_liste_calque(dls::tableau<std::string> &chaines) const;
+	void obtiens_liste_calque(dls::tableau<dls::chaine> &chaines) const;
 
 	/**
 	 * Place la liste d'attributs du corps transitant par cette entrée dans le
 	 * vecteur de chaines spécifié.
 	 */
-	void obtiens_liste_attributs(dls::tableau<std::string> &chaines) const;
+	void obtiens_liste_attributs(dls::tableau<dls::chaine> &chaines) const;
 
 	/**
 	 * Place la liste de groupes de primitives du corps transitant par cette
 	 * entrée dans le vecteur de chaines spécifié.
 	 */
-	void obtiens_liste_groupes_prims(dls::tableau<std::string> &chaines) const;
+	void obtiens_liste_groupes_prims(dls::tableau<dls::chaine> &chaines) const;
 
 	/**
 	 * Place la liste de groupes de points du corps transitant par cette entrée
 	 * dans le vecteur de chaines spécifié.
 	 */
-	void obtiens_liste_groupes_points(dls::tableau<std::string> &chaines) const;
+	void obtiens_liste_groupes_points(dls::tableau<dls::chaine> &chaines) const;
 
 	PriseEntree *pointeur()
 	{
@@ -272,7 +273,7 @@ class OperatriceImage : public danjo::Manipulable {
 	dls::tableau<EntreeOperatrice> m_input_data{};
 	dls::tableau<SortieOperatrice> m_sorties{};
 
-	dls::tableau<std::string> m_avertissements{};
+	dls::tableau<dls::chaine> m_avertissements{};
 
 	UsineOperatrice *m_usine = nullptr;
 
@@ -340,11 +341,11 @@ public:
 
 	void transfere_image(Image &image);
 
-	void ajoute_avertissement(std::string const &avertissement);
+	void ajoute_avertissement(dls::chaine const &avertissement);
 
 	void reinitialise_avertisements();
 
-	dls::tableau<std::string> const &avertissements() const;
+	dls::tableau<dls::chaine> const &avertissements() const;
 
 	virtual vision::Camera3D *camera();
 
@@ -379,8 +380,8 @@ public:
 	 * spécifiée.
 	 */
 	virtual void obtiens_liste(
-			std::string const &attache,
-			dls::tableau<std::string> &chaines);
+			dls::chaine const &attache,
+			dls::tableau<dls::chaine> &chaines);
 
 	virtual void renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const;
 

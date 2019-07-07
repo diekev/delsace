@@ -35,21 +35,21 @@ namespace langage {
  * mots-clés du langage.
  */
 class Decoupeur {
-	std::string_view m_chaine;
+	dls::vue_chaine m_chaine;
 	int m_position;
 	int m_position_ligne;
 	int m_ligne;
 	bool m_fini;
 	char m_caractere_courant;
 
-	std::vector<std::string_view> m_lignes;
+	std::vector<dls::vue_chaine> m_lignes;
 	std::vector<DonneesMorceaux> m_identifiants{};
 
 public:
 	/**
 	 * Construit une instance de Decoupeur pour la chaîne spécifiée.
 	 */
-	explicit Decoupeur(const std::string_view &chaine);
+	explicit Decoupeur(const dls::vue_chaine &chaine);
 
 	/**
 	 * Lance la découpe de la chaîne de caractère spécifiée en paramètre du
@@ -67,7 +67,7 @@ public:
 	 * Ajoute un identifiant au vecteur d'identifiants avec les données passées
 	 * en paramètres.
 	 */
-	void ajoute_identifiant(int identifiant, const std::string_view &ligne, int numero_ligne, int position_ligne, const std::string &contenu);
+	void ajoute_identifiant(int identifiant, const dls::vue_chaine &ligne, int numero_ligne, int position_ligne, const std::string &contenu);
 
 	/**
 	 * Retourne la liste de morceaux découpés.

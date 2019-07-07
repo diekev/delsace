@@ -26,7 +26,6 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <unordered_map>
 #include <vector>
 
 #include "huffman.h"
@@ -73,7 +72,7 @@ std::string BinaryTree::encode(const std::string &to_encode)
 	encoded.reserve(m_encode_length);
 
 	for (const auto &ch : to_encode) {
-		auto iter = m_map.find(ch);
+		auto iter = m_map.trouve(ch);
 		encoded.append(iter->second);
 	}
 
@@ -130,7 +129,7 @@ void BinaryTree::build_huffman_map(Node *node, const std::string &code)
 	}
 
 	if (node->left == nullptr && node->right == nullptr) {
-		m_map.insert(std::make_pair(node->character, node->code));
+		m_map.insere(std::make_pair(node->character, node->code));
 		m_encode_length += static_cast<size_t>(node->frequency) * node->code.length();
 		return;
 	}

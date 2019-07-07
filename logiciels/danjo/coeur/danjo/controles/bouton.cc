@@ -39,27 +39,27 @@ void Bouton::installe_repondant(RepondantBouton *repondant)
 	m_repondant = repondant;
 }
 
-void Bouton::etablie_attache(const std::string &attache)
+void Bouton::etablie_attache(const dls::chaine &attache)
 {
 	m_attache = attache;
 }
 
-void Bouton::etablie_metadonnee(const std::string &metadonnee)
+void Bouton::etablie_metadonnee(const dls::chaine &metadonnee)
 {
 	m_metadonnee = metadonnee;
 }
 
-void Bouton::etablie_icone(const std::string &valeur)
+void Bouton::etablie_icone(const dls::chaine &valeur)
 {
 	this->setIcon(QIcon(valeur.c_str()));
 }
 
-void Bouton::etablie_valeur(const std::string &valeur)
+void Bouton::etablie_valeur(const dls::chaine &valeur)
 {
 	this->setText(valeur.c_str());
 }
 
-void Bouton::etablie_infobulle(const std::string &valeur)
+void Bouton::etablie_infobulle(const dls::chaine &valeur)
 {
 	this->setToolTip(valeur.c_str());
 }

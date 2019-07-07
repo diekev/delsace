@@ -32,7 +32,6 @@
 #include <sys/wait.h>
 
 #include <iostream>
-#include <map>
 
 #include "message.hh"
 #include "uri.hh"

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/langage/analyseuse.hh"
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.h"
@@ -50,7 +51,7 @@ protected:
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
-	[[noreturn]] void lance_erreur(const std::string &quoi);
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi);
 };
 
 } /* namespace danjo */

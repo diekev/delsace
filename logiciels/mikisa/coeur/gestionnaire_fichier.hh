@@ -27,7 +27,9 @@
 #include <any>
 #include <fstream>
 #include <mutex>
-#include <unordered_map>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 
 using type_fonction_lecture = void(*)(std::istream &, std::any const&);
 using type_fonction_ecriture = void(*)(std::ostream &, std::any const&);
@@ -37,10 +39,10 @@ using type_fonction_ecriture_chemin = void(*)(const char *, std::any const&);
 struct PoigneeFichier {
 private:
 	std::mutex m_mutex{};
-	std::string m_chemin{};
+	dls::chaine m_chemin{};
 
 public:
-	explicit PoigneeFichier(std::string const &chemin);
+	explicit PoigneeFichier(dls::chaine const &chemin);
 
 	void lecture(type_fonction_lecture &&fonction, std::any const &donnees);
 
@@ -56,10 +58,10 @@ public:
 };
 
 class GestionnaireFichier {
-	std::unordered_map<std::string, PoigneeFichier *> m_table{};
+	dls::dico_desordonne<dls::chaine, PoigneeFichier *> m_table{};
 
 public:
 	~GestionnaireFichier();
 
-	PoigneeFichier *poignee_fichier(std::string const &chemin);
+	PoigneeFichier *poignee_fichier(dls::chaine const &chemin);
 };

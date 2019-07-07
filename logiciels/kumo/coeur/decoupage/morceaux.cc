@@ -26,9 +26,9 @@
  
 #include "morceaux.hh"
 
-#include <map>
+#include "biblinternes/structures/dico.hh"
 
-static std::map<std::string_view, int> paires_mots_cles = {
+static dls::dico<dls::vue_chaine, int> paires_mots_cles = {
 	{ "ajourne", ID_AJOURNE },
 	{ "auto_incrémente", ID_AUTO_INCREMENTE },
 	{ "binaire", ID_BINAIRE },
@@ -57,7 +57,7 @@ static std::map<std::string_view, int> paires_mots_cles = {
 	{ "zerofill", ID_ZEROFILL },
 };
 
-static std::map<char, int> paires_caracteres_speciaux = {
+static dls::dico<char, int> paires_caracteres_speciaux = {
 	{ '(', ID_PARENTHESE_OUVRANTE },
 	{ ')', ID_PARENTHESE_FERMANTE },
 	{ ',', ID_VIRGULE },
@@ -190,15 +190,15 @@ bool est_caractere_special(char c, int &i)
 	return true;
 }
 
-int id_chaine(const std::string_view &chaine)
+int id_chaine(const dls::vue_chaine &chaine)
 {
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
 		return ID_CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.find(chaine);
+	auto iterateur = paires_mots_cles.trouve(chaine);
 
-	if (iterateur != paires_mots_cles.end()) {
+	if (iterateur != paires_mots_cles.fin()) {
 		return (*iterateur).second;
 	}
 

@@ -22,7 +22,12 @@
 set(NOM_CIBLE bib_commandes)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../logiciels/danjo/coeur/
+)
+
+set(BIBLIOTHEQUES
+	bib_structures
 )
 
 add_library(${NOM_CIBLE} STATIC
@@ -33,3 +38,5 @@ add_library(${NOM_CIBLE} STATIC
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")

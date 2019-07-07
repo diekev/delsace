@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/langage/analyseuse.hh"
+#include "biblinternes/structures/chaine.hh"
 
 #include <experimental/any>
 #include <vector>
@@ -36,7 +37,7 @@ class tampon_source;
 }
 
 struct Colonne {
-	std::string nom = "";
+	dls::chaine nom = "";
 	size_t type{};
 	int taille = 0;
 	int octet = 4;
@@ -48,20 +49,20 @@ struct Colonne {
 	bool a_valeur_defaut = false;
 	size_t id_valeur_defaut = 0;
 	std::experimental::any defaut;
-	std::string table = "";
-	std::string ref = "";
+	dls::chaine table = "";
+	dls::chaine ref = "";
 	size_t suppression = 0;
 	int ajournement = 0;
 };
 
 struct Table {
 	std::vector<Colonne> colonnes{};
-	std::string_view nom{};
+	dls::vue_chaine nom{};
 };
 
 struct Schema {
 	std::vector<Table> tables{};
-	std::string_view nom{};
+	dls::vue_chaine nom{};
 };
 
 class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {

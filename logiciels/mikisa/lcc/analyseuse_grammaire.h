@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/langage/analyseuse.hh"
+#include "biblinternes/structures/chaine.hh"
 
 #include "assembleuse_arbre.h"
 #include "morceaux.hh"
@@ -75,6 +76,6 @@ private:
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
 	[[noreturn]] void lance_erreur(
-			const std::string &quoi,
+			const dls::chaine &quoi,
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 };

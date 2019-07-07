@@ -113,7 +113,7 @@ static void dessine_boite(
 //				faces = []
 
 struct Personne {
-	std::string nom = "";
+	dls::chaine nom = "";
 	dls::math::vec3f location = dls::math::vec3f(0.0f);
 	dls::math::vec3f parcouru = dls::math::vec3f(0.0f);
 	dls::math::vec3f min = dls::math::vec3f(0.0f);

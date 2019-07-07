@@ -63,7 +63,7 @@ void BaseDeDonnees::reinitialise()
 	m_composites.clear();
 }
 
-Objet *BaseDeDonnees::cree_objet(std::string const &nom)
+Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom)
 {
 	auto objet = memoire::loge<Objet>("objet");
 	objet->nom = nom;
@@ -73,7 +73,7 @@ Objet *BaseDeDonnees::cree_objet(std::string const &nom)
 	return objet;
 }
 
-Objet *BaseDeDonnees::objet(std::string const &nom) const
+Objet *BaseDeDonnees::objet(dls::chaine const &nom) const
 {
 	for (auto objet : m_objets) {
 		if (objet->nom == nom) {
@@ -96,7 +96,7 @@ const dls::tableau<Objet *> &BaseDeDonnees::objets() const
 	return m_objets;
 }
 
-Scene *BaseDeDonnees::cree_scene(std::string const &nom)
+Scene *BaseDeDonnees::cree_scene(dls::chaine const &nom)
 {
 	auto scene = memoire::loge<Scene>("scene");
 	scene->nom = nom;
@@ -106,7 +106,7 @@ Scene *BaseDeDonnees::cree_scene(std::string const &nom)
 	return scene;
 }
 
-Scene *BaseDeDonnees::scene(const std::string &nom) const
+Scene *BaseDeDonnees::scene(const dls::chaine &nom) const
 {
 	for (auto scene : m_scenes) {
 		if (scene->nom == nom) {
@@ -122,7 +122,7 @@ const dls::tableau<Scene *> &BaseDeDonnees::scenes() const
 	return m_scenes;
 }
 
-Composite *BaseDeDonnees::cree_composite(std::string const &nom)
+Composite *BaseDeDonnees::cree_composite(dls::chaine const &nom)
 {
 	auto compo = memoire::loge<Composite>("compo");
 	compo->nom = nom;
@@ -132,7 +132,7 @@ Composite *BaseDeDonnees::cree_composite(std::string const &nom)
 	return compo;
 }
 
-Composite *BaseDeDonnees::composite(std::string const &nom) const
+Composite *BaseDeDonnees::composite(dls::chaine const &nom) const
 {
 	for (auto compo : m_composites) {
 		if (compo->nom == nom) {

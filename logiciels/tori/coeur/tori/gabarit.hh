@@ -24,12 +24,12 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace tori {
 
 struct ObjetDictionnaire;
 
-std::string calcul_gabarit(std::string const &gabarit, ObjetDictionnaire &objet);
+dls::chaine calcul_gabarit(dls::chaine const &gabarit, ObjetDictionnaire &objet);
 
 }  /* namespace tori */

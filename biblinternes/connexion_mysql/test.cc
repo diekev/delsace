@@ -25,6 +25,8 @@
 #include <iostream>
 #include <mysql/mysql.h>
 
+#include "biblinternes/structures/chaine.hh"
+
 class iterateur_ligne {
 	MYSQL_RES *m_resultat = nullptr;
 	MYSQL_ROW m_ligne = nullptr;
@@ -71,9 +73,9 @@ public:
 		: ligne_resultat(iter_ligne.ligne(), iter_ligne.resultat())
 	{}
 
-	std::string_view operator[](size_t i)
+	dls::vue_chaine operator[](long i)
 	{
-		return std::string_view(m_ligne[i], m_longueurs[i]);
+		return dls::vue_chaine(m_ligne[i], static_cast<long>(m_longueurs[i]));
 	}
 };
 

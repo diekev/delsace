@@ -25,9 +25,10 @@
 #pragma once
 
 #include <iostream>
-#include <map>
-#include <stack>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/pile.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class Noeud;
 enum class type_noeud : unsigned int;
@@ -38,8 +39,8 @@ class ObjetDictionnaire;
 }
 
 class assembleuse_arbre {
-	std::stack<Noeud *> m_pile{};
-	std::vector<Noeud *> m_noeuds{};
+	dls::pile<Noeud *> m_pile{};
+	dls::tableau<Noeud *> m_noeuds{};
 
 public:
 	~assembleuse_arbre();
@@ -56,5 +57,5 @@ public:
 
 	void imprime_arbre(std::ostream &os);
 
-	std::string genere_code(tori::ObjetDictionnaire &objet) const;
+	dls::chaine genere_code(tori::ObjetDictionnaire &objet) const;
 };

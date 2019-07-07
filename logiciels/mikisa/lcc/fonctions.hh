@@ -24,7 +24,8 @@
 
 #pragma once
 
-#include <unordered_map>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 
 #include "donnees_type.h"
 
@@ -66,17 +67,17 @@ struct donnees_fonction_generation {
 
 struct magasin_fonctions {
 	void ajoute_fonction(
-			std::string const &nom,
+			dls::chaine const &nom,
 			lcc::code_inst type,
 			signature const &seing,
 			lcc::ctx_script ctx);
 
 	donnees_fonction_generation meilleure_candidate(
-			std::string const &nom,
+			dls::chaine const &nom,
 			types_entrees const &type_params);
 
 private:
-	std::unordered_map<std::string, dls::tableau<donnees_fonction>> table{};
+	dls::dico_desordonne<dls::chaine, dls::tableau<donnees_fonction>> table{};
 };
 
 /* ************************************************************************** */

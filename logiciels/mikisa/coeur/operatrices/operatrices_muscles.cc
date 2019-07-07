@@ -150,7 +150,7 @@ public:
 		}
 	}
 
-	void ReadTetgenMesh(std::string mesh_name);
+	void ReadTetgenMesh(dls::chaine mesh_name);
 
 	void Render(bool show_stresses = false);
 
@@ -412,7 +412,7 @@ SimMesh::SimMesh()
 	l=l_init=1.0;
 }
 
-void SimMesh::ReadTetgenMesh(std::string mesh_name){
+void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 
 	//Read vertices
 	std::string line;

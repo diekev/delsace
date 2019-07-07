@@ -26,6 +26,8 @@
 
 #include "controle_propriete.h"
 
+#include "biblinternes/structures/chaine.hh"
+
 class QHBoxLayout;
 class QLineEdit;
 class QMenu;
@@ -48,8 +50,8 @@ class ControleProprieteListe final : public ControlePropriete {
 
 	/* connexion */
 	ConteneurControles *m_conteneur = nullptr;
-	std::string m_attache = "";
-	std::string *m_pointeur = nullptr;
+	dls::chaine m_attache = "";
+	dls::chaine *m_pointeur = nullptr;
 
 public:
 	explicit ControleProprieteListe(QWidget *parent = nullptr);
@@ -59,7 +61,7 @@ public:
 
 	~ControleProprieteListe() override = default;
 
-	void attache(const std::string &attache);
+	void attache(const dls::chaine &attache);
 
 	void conteneur(ConteneurControles *conteneur);
 

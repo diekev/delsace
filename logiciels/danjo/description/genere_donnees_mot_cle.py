@@ -142,8 +142,8 @@ def construit_structures():
 	structures += u'\nstruct DonneesMorceaux {\n'
 	structures += u'\tusing type = id_morceau;\n'
 	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n\n'
-	structures += u'\tstd::string_view chaine;\n'
-	structures += u'\tsize_t ligne_pos;\n'
+	structures += u'\tdls::vue_chaine chaine;\n'
+	structures += u'\tunsigned long ligne_pos;\n'
 	structures += u'\tid_morceau identifiant;\n'
 	structures += u'\tint pad = 0;\n'
 	structures += u'};\n'
@@ -154,7 +154,7 @@ def construit_structures():
 def construit_tableaux():
 	tableaux = u''
 
-	tableaux += u'static std::map<std::string_view, id_morceau> paires_mots_cles = {\n'
+	tableaux += u'static dls::dico<dls::vue_chaine, id_morceau> paires_mots_cles = {\n'
 
 	for mot in mot_cles:
 		m = enleve_accent(mot)
@@ -163,14 +163,14 @@ def construit_tableaux():
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<std::string_view, id_morceau> paires_caracteres_double = {\n'
+	tableaux += u'static dls::dico<dls::vue_chaine, id_morceau> paires_caracteres_double = {\n'
 
 	for c in caracteres_double:
 		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(c[0], c[1])
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<char, id_morceau> paires_caracteres_speciaux = {\n'
+	tableaux += u'static dls::dico<char, id_morceau> paires_caracteres_speciaux = {\n'
 
 	for c in caracteres_simple:
 		if c[0] == "'":
@@ -300,22 +300,22 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_caractere_double(const std::string_view &chaine)
+id_morceau id_caractere_double(const dls::vue_chaine &chaine)
 {
 	if (!tables_caracteres_double[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_caracteres_double.find(chaine);
+	auto iterateur = paires_caracteres_double.trouve(chaine);
 
-	if (iterateur != paires_caracteres_double.end()) {
+	if (iterateur != paires_caracteres_double.fin()) {
 		return (*iterateur).second;
 	}
 
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_chaine(const std::string_view &chaine)
+id_morceau id_chaine(const dls::vue_chaine &chaine)
 {
 	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
 		return id_morceau::CHAINE_CARACTERE;
@@ -325,9 +325,9 @@ id_morceau id_chaine(const std::string_view &chaine)
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.find(chaine);
+	auto iterateur = paires_mots_cles.trouve(chaine);
 
-	if (iterateur != paires_mots_cles.end()) {
+	if (iterateur != paires_mots_cles.fin()) {
 		return (*iterateur).second;
 	}
 
@@ -369,15 +369,15 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, id_morceau &i);
 
-id_morceau id_caractere_double(const std::string_view &chaine);
+id_morceau id_caractere_double(const dls::vue_chaine &chaine);
 
-id_morceau id_chaine(const std::string_view &chaine);
+id_morceau id_chaine(const dls::vue_chaine &chaine);
 """
 
 with io.open(u"../coeur/danjo/compilation/morceaux.h", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
-	entete.write(u'#include <string>\n\n')
+	entete.write(u'#include "biblinternes/structures/vue_chaine.hh"\n\n')
 	entete.write(u'namespace danjo {\n\n')
 	entete.write(enumeration)
 	entete.write(fonctions_enumeration)
@@ -389,7 +389,7 @@ with io.open(u"../coeur/danjo/compilation/morceaux.h", u'w') as entete:
 with io.open(u'../coeur/danjo/compilation/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.h"\n\n')
-	source.write(u'#include <map>\n\n')
+	source.write(u'#include "biblinternes/structures/dico.hh"\n\n')
 	source.write(u'namespace danjo {\n\n')
 	source.write(tableaux)
 	source.write(fonction)

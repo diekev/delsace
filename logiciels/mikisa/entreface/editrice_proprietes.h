@@ -47,7 +47,7 @@ public:
 
 	void ajourne_manipulable() override;
 
-	void obtiens_liste(std::string const &attache, dls::tableau<std::string> &chaines) override;
+	void obtiens_liste(dls::chaine const &attache, dls::tableau<dls::chaine> &chaines) override;
 
 	void reinitialise_entreface(bool creation_avert);
 };

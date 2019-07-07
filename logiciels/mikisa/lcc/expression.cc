@@ -285,9 +285,9 @@ static inline bool extrait_valeur_bool(lcc::noeud::base *n)
 	return n->calcule ? std::any_cast<bool>(n->valeur_calculee) : (n->chaine() == "vrai");
 }
 
-static inline std::string extrait_chaine(lcc::noeud::base *n)
+static inline dls::chaine extrait_chaine(lcc::noeud::base *n)
 {
-	return std::any_cast<std::string>(n->valeur_calculee);
+	return std::any_cast<dls::chaine>(n->valeur_calculee);
 }
 
 lcc::noeud::base *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerationCode &contexte, lcc::noeud::base *op, lcc::noeud::base *n1, lcc::noeud::base *n2)
@@ -301,8 +301,8 @@ lcc::noeud::base *calcul_expression_double(assembleuse_arbre &assembleuse, Conte
 			auto v1 = extrait_chaine(n1);
 			auto v2 = extrait_chaine(n2);
 
-			std::string v;
-			v.reserve(v1.size() + v2.size());
+			dls::chaine v;
+			v.reserve(v1.taille() + v2.taille());
 			v.append(v1);
 			v.append(v2);
 

@@ -26,7 +26,7 @@
  
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 enum {
 	ID_DANS,
@@ -48,7 +48,7 @@ struct DonneesMorceaux {
 	using type = size_t;
 	static constexpr type INCONNU = ID_INCONNU;
 
-	std::string_view chaine;
+	dls::vue_chaine chaine;
 	size_t ligne_pos;
 	size_t identifiant;
 };
@@ -57,4 +57,4 @@ const char *chaine_identifiant(int id);
 
 void construit_tables_caractere_speciaux();
 
-int id_chaine(const std::string_view &chaine);
+int id_chaine(const dls::vue_chaine &chaine);

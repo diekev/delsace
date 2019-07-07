@@ -29,7 +29,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	tests
 	base64
-	reseau
+	#reseau
 	sha256
 	math
 	types
@@ -55,7 +55,7 @@ set(SOURCES
 	test_string.cc
 	test_temperature.cc
 	test_time.cc
-	test_uri.cc
+	#test_uri.cc
 
 	arachne/tests_arachne.hh
 
@@ -64,7 +64,7 @@ set(SOURCES
 	math/tests_quaternion.hh
 	math/tests_vecteur.hh
 
-	test_uri.hh
+	#test_uri.hh
 	tests.hh
 )
 

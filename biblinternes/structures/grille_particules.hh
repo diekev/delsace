@@ -24,8 +24,6 @@
 
 #pragma once
 
-#include <set>
-
 #include "biblinternes/math/outils.hh"
 #include "biblinternes/math/vecteur.hh"
 

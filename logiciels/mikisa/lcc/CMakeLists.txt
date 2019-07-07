@@ -32,6 +32,7 @@ set(BIBLIOTHEQUES
 	stdc++fs
 	bib_phys
 	memoire
+	bib_structures
 )
 
 set(SOURCES

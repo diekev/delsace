@@ -22,11 +22,12 @@
 set(NOM_PROJET mysql)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
 	mysqlclient
+	bib_structures
 )
 
 add_executable(${NOM_PROJET}

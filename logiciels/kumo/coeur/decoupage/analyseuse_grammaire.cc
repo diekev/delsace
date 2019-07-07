@@ -25,7 +25,6 @@
 #include "analyseuse_grammaire.hh"
 
 #include <iostream>
-#include <set>
 
 #include "erreur.hh"
 #include "nombres.hh"
@@ -233,10 +232,10 @@ static void initialise_propriete(
 			colonne.defaut = donnees.chaine;
 			break;
 		case ID_TAILLE:
-			colonne.taille = std::atoi(std::string(donnees.chaine).c_str());
+			colonne.taille = std::atoi(dls::chaine(donnees.chaine).c_str());
 			break;
 		case ID_OCTET:
-			colonne.octet = std::atoi(std::string(donnees.chaine).c_str());
+			colonne.octet = std::atoi(dls::chaine(donnees.chaine).c_str());
 			break;
 		case ID_TABLE:
 			colonne.table = donnees.chaine;

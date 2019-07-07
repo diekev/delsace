@@ -59,7 +59,7 @@ void ControleProprieteEnum::ajourne_valeur_pointee(int /*valeur*/)
 
 void ControleProprieteEnum::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<std::string *>(donnees.pointeur);
+	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
 
 	auto valeur_defaut = donnees.valeur_defaut;
 

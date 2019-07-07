@@ -25,8 +25,9 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
+
+#include "biblinternes/structures/dico_desordonne.hh"
 
 constexpr int MAGIC_NUMBER = 0x48554646;
 
@@ -64,7 +65,7 @@ struct Node {
 std::vector<Node *> nodes_from_distribution(int letters[]);
 
 class BinaryTree {
-	using HuffMap = std::unordered_map<char, std::string>;
+	using HuffMap = dls::dico_desordonne<char, std::string>;
 
 	Node *m_root;
 	HuffMap m_map;

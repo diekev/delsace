@@ -25,10 +25,10 @@
 #pragma once
 
 #include <memory>
-#include <string>
 
 #include "biblinternes/outils/iterateurs.h"
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 /* ************************************************************************** */
@@ -40,7 +40,7 @@ class GroupePoint {
 	ptr_liste m_points{};
 
 public:
-	std::string nom{};
+	dls::chaine nom{};
 
 	void ajoute_point(size_t index_point);
 
@@ -69,7 +69,7 @@ class GroupePrimitive {
 	ptr_liste m_primitives{};
 
 public:
-	std::string nom{};
+	dls::chaine nom{};
 
 	void ajoute_primitive(size_t index_poly);
 

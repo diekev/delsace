@@ -113,7 +113,7 @@ void AdaptriceCreationCorps::ajoute_ligne(const int *index, size_t nombre)
 	INUTILISE(nombre);
 }
 
-void AdaptriceCreationCorps::ajoute_objet(std::string const &nom)
+void AdaptriceCreationCorps::ajoute_objet(dls::chaine const &nom)
 {
 	corps->nom = nom;
 }
@@ -144,7 +144,7 @@ void AdaptriceCreationCorps::reserve_uvs(long const nombre)
 	}
 }
 
-void AdaptriceCreationCorps::groupes(dls::tableau<std::string> const &noms)
+void AdaptriceCreationCorps::groupes(dls::tableau<dls::chaine> const &noms)
 {
 	groupes_courant.clear();
 

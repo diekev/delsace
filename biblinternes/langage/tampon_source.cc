@@ -30,9 +30,9 @@
  * Retourne la position de la fin de la prochaine ligne (caractère '\\n') dans
  * la chaîne délimitée par 'debut' et 'fin'.
  */
-static size_t trouve_fin_ligne(const char *debut, const char *fin)
+static long trouve_fin_ligne(const char *debut, const char *fin)
 {
-	size_t pos = 0;
+	long pos = 0;
 
 	while (debut != fin) {
 		++pos;
@@ -57,7 +57,7 @@ tampon_source::tampon_source(const char *chaine)
 	construit_lignes();
 }
 
-tampon_source::tampon_source(std::string chaine) noexcept
+tampon_source::tampon_source(dls::chaine chaine) noexcept
 	: m_tampon(std::move(chaine))
 {
 	construit_lignes();
@@ -71,31 +71,31 @@ const char *tampon_source::debut() const noexcept
 const char *tampon_source::fin() const noexcept
 {
 	/* cppcheck-suppress containerOutOfBoundsIndexExpression */
-	return &m_tampon[m_tampon.size()];
+	return &m_tampon[m_tampon.taille()];
 }
 
-std::string_view tampon_source::operator[](size_t i) const noexcept
+dls::vue_chaine tampon_source::operator[](long i) const noexcept
 {
 	return m_lignes[i];
 }
 
 size_t tampon_source::nombre_lignes() const noexcept
 {
-	return m_lignes.size();
+	return static_cast<size_t>(m_lignes.taille());
 }
 
 size_t tampon_source::taille_donnees() const noexcept
 {
-	return m_tampon.size() * sizeof(std::string_view::value_type);
+	return static_cast<size_t>(m_tampon.taille()) * sizeof(char);
 }
 
 void tampon_source::construit_lignes()
 {
-	for (size_t i = 0; i < m_tampon.size();) {
+	for (auto i = 0l; i < m_tampon.taille();) {
 		auto pos = &m_tampon[i];
 		auto taille = trouve_fin_ligne(pos, this->fin());
 
-		m_lignes.push_back(std::string_view{pos, taille});
+		m_lignes.pousse(dls::vue_chaine{pos, taille});
 
 		i += taille;
 	}

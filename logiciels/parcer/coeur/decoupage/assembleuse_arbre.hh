@@ -25,9 +25,10 @@
 #pragma once
 
 #include <list>
-#include <stack>
 #include <string>
-#include <vector>
+
+#include "biblinternes/structures/pile.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "arbre_syntactic.hh"
 
@@ -35,15 +36,15 @@ struct ContexteGenerationCode;
 struct DonneesMorceaux;
 
 class assembleuse_arbre {
-	std::stack<noeud::base *> m_pile{};
-	std::vector<noeud::base *> m_noeuds{};
+	dls::pile<noeud::base *> m_pile{};
+	dls::tableau<noeud::base *> m_noeuds{};
 	std::list<noeud::base *> noeuds_libres{};
 
 	size_t m_memoire_utilisee = 0;
 
 public:
-	std::vector<std::string_view> inclusions{};
-	std::vector<std::string_view> bibliotheques{};
+	std::vector<dls::vue_chaine> inclusions{};
+	std::vector<dls::vue_chaine> bibliotheques{};
 
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre();

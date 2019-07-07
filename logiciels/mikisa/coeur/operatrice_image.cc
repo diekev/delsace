@@ -82,7 +82,7 @@ Image::~Image()
 	reinitialise();
 }
 
-Calque *Image::ajoute_calque(std::string const &nom, Rectangle const &rectangle)
+Calque *Image::ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle)
 {
 	auto tampon = memoire::loge<Calque>("Calque");
 	tampon->nom = nom;
@@ -99,7 +99,7 @@ Calque *Image::ajoute_calque(std::string const &nom, Rectangle const &rectangle)
 	return tampon;
 }
 
-Calque *Image::calque(std::string const &nom) const
+Calque *Image::calque(dls::chaine const &nom) const
 {
 	for (Calque *tampon : m_calques) {
 		if (tampon->nom == nom) {
@@ -131,12 +131,12 @@ void Image::reinitialise(bool garde_memoires)
 	m_calques.clear();
 }
 
-void Image::nom_calque_actif(std::string const &nom)
+void Image::nom_calque_actif(dls::chaine const &nom)
 {
 	m_nom_calque = nom;
 }
 
-std::string const &Image::nom_calque_actif() const
+dls::chaine const &Image::nom_calque_actif() const
 {
 	return m_nom_calque;
 }
@@ -253,12 +253,12 @@ Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, ContexteEvaluation c
 	return corps_lien->copie();
 }
 
-void EntreeOperatrice::obtiens_liste_calque(dls::tableau<std::string> &chaines) const
+void EntreeOperatrice::obtiens_liste_calque(dls::tableau<dls::chaine> &chaines) const
 {
 	chaines = m_liste_noms_calques;
 }
 
-void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<std::string> &chaines) const
+void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<dls::chaine> &chaines) const
 {
 	if (m_ptr->liens.est_vide()) {
 		return;
@@ -283,7 +283,7 @@ void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<std::string> &chaine
 	}
 }
 
-void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<std::string> &chaines) const
+void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<dls::chaine> &chaines) const
 {
 	if (m_ptr->liens.est_vide()) {
 		return;
@@ -308,7 +308,7 @@ void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<std::string> &ch
 	}
 }
 
-void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<std::string> &chaines) const
+void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &chaines) const
 {
 	if (m_ptr->liens.est_vide()) {
 		return;
@@ -474,7 +474,7 @@ void OperatriceImage::transfere_image(Image &image)
 	m_image.reinitialise(true);
 }
 
-void OperatriceImage::ajoute_avertissement(std::string const &avertissement)
+void OperatriceImage::ajoute_avertissement(dls::chaine const &avertissement)
 {
 	m_avertissements.pousse(avertissement);
 }
@@ -484,7 +484,7 @@ void OperatriceImage::reinitialise_avertisements()
 	m_avertissements.clear();
 }
 
-dls::tableau<std::string> const &OperatriceImage::avertissements() const
+dls::tableau<dls::chaine> const &OperatriceImage::avertissements() const
 {
 	return m_avertissements;
 }
@@ -519,7 +519,7 @@ void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*t
 	/* rien à faire par défaut */
 }
 
-void OperatriceImage::obtiens_liste(std::string const &/*attache*/, dls::tableau<std::string> &chaines)
+void OperatriceImage::obtiens_liste(dls::chaine const &/*attache*/, dls::tableau<dls::chaine> &chaines)
 {
 	if (entrees() == 0) {
 		chaines.clear();

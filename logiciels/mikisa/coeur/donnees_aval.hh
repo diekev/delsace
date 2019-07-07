@@ -25,13 +25,15 @@
 #pragma once
 
 #include <any>
-#include <unordered_map>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 
 struct DonneesAval {
-	std::unordered_map<std::string, std::any> table;
+	dls::dico_desordonne<dls::chaine, std::any> table;
 
-	bool possede(std::string const &cle)
+	bool possede(dls::chaine const &cle)
 	{
-		return this->table.find(cle) != table.end();
+		return this->table.trouve(cle) != table.fin();
 	}
 };

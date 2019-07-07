@@ -22,6 +22,7 @@
 set(NOM_BIBLIOTHEQUE memoire)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
@@ -42,11 +43,13 @@ set(ENTETES
     allocator.h
     block.h
     guard.h
+	logeuse_gardee.hh
 	logeuse_memoire.hh
 )
 
 set(SOURCES
 	#main.cc
+	logeuse_gardee.cc
 	logeuse_memoire.cc
 )
 

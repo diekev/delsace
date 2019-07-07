@@ -78,12 +78,12 @@ size_t extrait_nombre(const char *debut, const char *fin, id_morceau &id_nombre)
 
 /* ************************************************************************** */
 
-static auto converti_nombre_entier(const std::string_view &chaine)
+static auto converti_nombre_entier(const dls::vue_chaine &chaine)
 {
 	long valeur = 0l;
-	size_t i = 0;
+	auto i = 0l;
 
-	for (; i < chaine.size(); ++i) {
+	for (; i < chaine.taille(); ++i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -105,18 +105,18 @@ static auto converti_nombre_entier(const std::string_view &chaine)
 	return valeur;
 }
 
-long converti_chaine_nombre_entier(const std::string_view &chaine, id_morceau /*identifiant*/)
+long converti_chaine_nombre_entier(const dls::vue_chaine &chaine, id_morceau /*identifiant*/)
 {
 	return converti_nombre_entier(chaine);
 }
 
-static auto converti_nombre_reel(const std::string_view &chaine)
+static auto converti_nombre_reel(const dls::vue_chaine &chaine)
 {
 	double valeur = 0.0;
-	size_t i = 0;
+	auto i = 0l;
 
 	/* avant point */
-	for (; i < chaine.size(); ++i) {
+	for (; i < chaine.taille(); ++i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -138,7 +138,7 @@ static auto converti_nombre_reel(const std::string_view &chaine)
 	/* après point */
 	auto dividende = 10.0;
 
-	for (; i < chaine.size(); ++i) {
+	for (; i < chaine.taille(); ++i) {
 		auto c = chaine[i];
 
 		if (c == '_') {
@@ -156,7 +156,7 @@ static auto converti_nombre_reel(const std::string_view &chaine)
 	return valeur;
 }
 
-double converti_chaine_nombre_reel(const std::string_view &chaine, id_morceau /*identifiant*/)
+double converti_chaine_nombre_reel(const dls::vue_chaine &chaine, id_morceau /*identifiant*/)
 {
 	return converti_nombre_reel(chaine);
 }

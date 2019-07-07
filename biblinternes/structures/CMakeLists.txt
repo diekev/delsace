@@ -25,16 +25,35 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
+set(BIBLIOTHEQUES
+	memoire
+)
+
 add_library(${NOM_CIBLE} STATIC
 	arbre_kd.cc
+	chaine.cc
+	dico.cc
+	dico_desordonne.cc
+	ensemble.cc
+	file.cc
 	grille_particules.cc
 	hachage_spatiale.cc
+	pile.cc
 	tableau.cc
+	vue_chaine.cc
 
 	arbre_kd.hh
+	chaine.hh
+	dico.hh
+	dico_desordonne.hh
+	ensemble.hh
+	file.hh
 	grille_particules.hh
 	hachage_spatiale.hh
+	pile.hh
 	tableau.hh
+	vue_chaine.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")

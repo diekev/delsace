@@ -25,10 +25,10 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
-#include <string>
 
 #include "biblinternes/outils/iterateurs.h"
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 /* ************************************************************************** */
@@ -109,7 +109,7 @@ struct type_attribut_depuis_type<dls::math::mat4x4f> {
 };
 
 template <>
-struct type_attribut_depuis_type<std::string> {
+struct type_attribut_depuis_type<dls::chaine> {
 	static constexpr auto type = type_attribut::CHAINE;
 };
 
@@ -126,7 +126,7 @@ struct type_attribut_depuis_type<std::string> {
 	}
 
 class Attribut {
-	std::string m_nom;
+	dls::chaine m_nom;
 	type_attribut m_type;
 
 	dls::tableau<char> m_tampon{};
@@ -136,14 +136,14 @@ public:
 
 	Attribut(Attribut const &rhs);
 
-	Attribut(std::string const &nom, type_attribut type, portee_attr portee = portee_attr::POINT, long taille = 0);
+	Attribut(dls::chaine const &nom, type_attribut type, portee_attr portee = portee_attr::POINT, long taille = 0);
 
 	Attribut &operator=(Attribut const &rhs) = default;
 
 	type_attribut type() const;
 
-	std::string nom() const;
-	void nom(const std::string &n);
+	dls::chaine nom() const;
+	void nom(const dls::chaine &n);
 
 	void reserve(long n);
 	void redimensionne(long n);
@@ -188,7 +188,7 @@ public:
 	ACCEDE_VALEUR_TYPE(vec4, dls::math::vec4f)
 	ACCEDE_VALEUR_TYPE(mat3, dls::math::mat3x3f)
 	ACCEDE_VALEUR_TYPE(mat4, dls::math::mat4x4f)
-	ACCEDE_VALEUR_TYPE(chaine, std::string)
+	ACCEDE_VALEUR_TYPE(chaine, dls::chaine)
 
 	template <typename T>
 	auto pousse(T const &v)

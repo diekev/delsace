@@ -24,9 +24,11 @@
 
 #pragma once
 
-#include <map>
 #include <memory>
 #include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico.hh"
 
 namespace tori {
 
@@ -51,23 +53,23 @@ std::shared_ptr<Objet> construit_objet(long v);
 
 std::shared_ptr<Objet> construit_objet(double v);
 
-std::shared_ptr<Objet> construit_objet(std::string const &v);
+std::shared_ptr<Objet> construit_objet(dls::chaine const &v);
 std::shared_ptr<Objet> construit_objet(char const *v);
 
 struct ObjetDictionnaire final : public Objet {
-	std::map<std::string, std::shared_ptr<Objet>> valeur{};
+	dls::dico<dls::chaine, std::shared_ptr<Objet>> valeur{};
 
 	ObjetDictionnaire()
 		: Objet{ type_objet::DICTIONNAIRE }
 	{}
 
 	template <typename T>
-	void insere(std::string const &cle, T const &v)
+	void insere(dls::chaine const &cle, T const &v)
 	{
 		valeur[cle] = construit_objet(v);
 	}
 
-	void insere(std::string const &cle, std::shared_ptr<Objet> const &v)
+	void insere(dls::chaine const &cle, std::shared_ptr<Objet> const &v)
 	{
 		valeur[cle] = v;
 	}
@@ -101,7 +103,7 @@ struct ObjetTableau final : public Objet {
 };
 
 struct ObjetChaine final : public Objet {
-	std::string valeur{};
+	dls::chaine valeur{};
 
 	ObjetChaine()
 		: Objet{ type_objet::CHAINE }

@@ -25,11 +25,14 @@
 #pragma once
 
 #include <any>
-#include <stack>
-#include <unordered_map>
 
 #include "biblinternes/phys/couleur.hh"
 #include "biblinternes/math/vecteur.hh"
+
+#include "biblinternes/memoire/logeuse_memoire.hh"
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/pile.hh"
 
 #include "donnees_type.h"
 #include "execution_pile.hh"
@@ -90,10 +93,8 @@ struct Metriques {
 
 /* ************************************************************************** */
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
-
 struct donnees_propriete {
-	std::string nom = "";
+	dls::chaine nom = "";
 	lcc::type_var type{};
 	bool est_requis = false;
 	bool pad = false;
@@ -101,7 +102,7 @@ struct donnees_propriete {
 	std::any ptr_donnees = nullptr;
 
 	donnees_propriete(
-			std::string const &_nom_,
+			dls::chaine const &_nom_,
 			lcc::type_var _type_,
 			bool _est_requis_,
 			int _ptr_)
@@ -123,19 +124,19 @@ struct gestionnaire_propriete {
 		}
 	}
 
-	void ajoute_propriete(std::string const &nom, lcc::type_var type, int idx)
+	void ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
 		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, idx));
 	}
 
-	void requiers_attr(std::string const &nom, lcc::type_var type, int idx)
+	void requiers_attr(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
 		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, idx);
 		donnees.pousse(prop);
 		requetes.pousse(prop);
 	}
 
-	bool propriete_existe(std::string_view const &nom)
+	bool propriete_existe(dls::vue_chaine const &nom)
 	{
 		for (auto const &donnee : donnees) {
 			if (donnee->nom == nom) {
@@ -146,7 +147,7 @@ struct gestionnaire_propriete {
 		return false;
 	}
 
-	lcc::type_var type_propriete(std::string_view const &nom)
+	lcc::type_var type_propriete(dls::vue_chaine const &nom)
 	{
 		for (auto const &donnee : donnees) {
 			if (donnee->nom == nom) {
@@ -157,7 +158,7 @@ struct gestionnaire_propriete {
 		return lcc::type_var::INVALIDE;
 	}
 
-	int pointeur_donnees(std::string_view const &nom) const
+	int pointeur_donnees(dls::vue_chaine const &nom) const
 	{
 		for (auto &donnee : donnees) {
 			if (donnee->nom == nom) {
@@ -176,7 +177,7 @@ struct donnees_variables {
 	lcc::type_var donnees_type{};
 };
 
-using conteneur_locales = dls::tableau<std::pair<std::string_view, donnees_variables>>;
+using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine, donnees_variables>>;
 
 struct ContexteGenerationCode {
 	assembleuse_arbre *assembleuse = nullptr;
@@ -206,7 +207,7 @@ struct ContexteGenerationCode {
 	 * module ainsi créé. Aucune vérification n'est faite quant à la présence
 	 * d'un module avec un nom similaire pour l'instant.
 	 */
-	DonneesModule *cree_module(const std::string &nom);
+	DonneesModule *cree_module(const dls::chaine &nom);
 
 	/**
 	 * Retourne un pointeur vers le module à l'index indiqué. Si l'index est
@@ -218,39 +219,39 @@ struct ContexteGenerationCode {
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
 	 * module n'a ce nom, retourne nullptr.
 	 */
-	DonneesModule *module(const std::string_view &nom) const;
+	DonneesModule *module(const dls::vue_chaine &nom) const;
 
 	/**
 	 * Retourne vrai si le module dont le nom est spécifié existe dans la liste
 	 * de module de ce contexte.
 	 */
-	bool module_existe(const std::string_view &nom) const;
+	bool module_existe(const dls::vue_chaine &nom) const;
 
 	/* ********************************************************************** */
 
-	void pousse_locale(std::string_view const &nom, int valeur, lcc::type_var donnees_type);
+	void pousse_locale(dls::vue_chaine const &nom, int valeur, lcc::type_var donnees_type);
 
-	int valeur_locale(std::string_view const &nom);
+	int valeur_locale(dls::vue_chaine const &nom);
 
-	lcc::type_var donnees_type(std::string_view const &nom);
+	lcc::type_var donnees_type(dls::vue_chaine const &nom);
 
 	/**
 	 * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
 	 */
-	bool locale_existe(const std::string_view &nom);
+	bool locale_existe(const dls::vue_chaine &nom);
 
 	/**
 	 * Retourne les données de la locale dont le nom est spécifié en paramètre.
 	 * Si aucune locale ne portant ce nom n'existe, des données vides sont
 	 * retournées.
 	 */
-	size_t type_locale(const std::string_view &nom);
+	size_t type_locale(const dls::vue_chaine &nom);
 
 	/**
 	 * Retourne vrai si la variable locale dont le nom est spécifié peut être
 	 * assignée.
 	 */
-	bool peut_etre_assigne(const std::string_view &nom);
+	bool peut_etre_assigne(const dls::vue_chaine &nom);
 
 	/**
 	 * Indique que l'on débute un nouveau bloc dans la fonction, et donc nous
@@ -283,9 +284,9 @@ struct ContexteGenerationCode {
 	 * Retourne vrai si la variable est un argument variadic. Autrement,
 	 * retourne faux.
 	 */
-	bool est_locale_variadique(const std::string_view &nom);
+	bool est_locale_variadique(const dls::vue_chaine &nom);
 
-	conteneur_locales::iteratrice iter_locale(const std::string_view &nom);
+	conteneur_locales::iteratrice iter_locale(const dls::vue_chaine &nom);
 
 	conteneur_locales::iteratrice fin_locales();
 
@@ -315,7 +316,7 @@ struct ContexteGenerationCode {
 
 private:
 	conteneur_locales m_locales{};
-	std::stack<size_t> m_pile_nombre_locales{};
+	dls::pile<size_t> m_pile_nombre_locales{};
 	size_t m_nombre_locales = 0;
 
 	bool m_non_sur = false;

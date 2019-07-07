@@ -48,7 +48,7 @@ int main()
 
 	auto tampon = tori::calcul_gabarit(texte, objet);
 
-	if (tampon.empty()) {
+	if (tampon.est_vide()) {
 
 	}
 

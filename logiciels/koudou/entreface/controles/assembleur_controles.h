@@ -32,7 +32,7 @@
 #include <QObject>
 #pragma GCC diagnostic pop
 
-#include <unordered_map>
+#include "biblinternes/structures/dico_desordonne.hh"
 
 class QGridLayout;
 
@@ -44,7 +44,7 @@ class AssembleurControles {
 	int m_compte_items{};
 
 	std::vector<QWidget *> m_controles{};
-	std::unordered_map<std::string, widget_pair> m_tableau_controle{};
+	dls::dico_desordonne<std::string, widget_pair> m_tableau_controle{};
 
 public:
 	explicit AssembleurControles(QGridLayout *layout);

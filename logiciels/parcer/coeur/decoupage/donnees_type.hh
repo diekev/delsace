@@ -24,8 +24,9 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <vector>
+
+#include "biblinternes/structures/dico_desordonne.hh"
 
 #include "morceaux.hh"
 
@@ -183,7 +184,7 @@ struct hash<DonneesType> {
 /* ************************************************************************** */
 
 struct MagasinDonneesType {
-	std::unordered_map<DonneesType, size_t> donnees_type_index{};
+	dls::dico_desordonne<DonneesType, size_t> donnees_type_index{};
 	std::vector<DonneesType> donnees_types{};
 
 	MagasinDonneesType() = default;

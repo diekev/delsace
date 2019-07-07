@@ -25,7 +25,8 @@
 #pragma once
 
 #include <string>
-#include <queue>
 
-auto postfix(const std::string &expression) -> std::queue<std::string>;
-auto evaluate_postfix(std::queue<std::string> &expression) -> double;
+#include "biblinternes/structures/file.hh"
+
+auto postfix(const std::string &expression) -> dls::file<std::string>;
+auto evaluate_postfix(dls::file<std::string> &expression) -> double;

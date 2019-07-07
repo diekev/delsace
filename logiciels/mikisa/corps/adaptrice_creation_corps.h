@@ -48,7 +48,7 @@ public:
 
 	void ajoute_ligne(const int *index, size_t nombre) override;
 
-	void ajoute_objet(std::string const &nom) override;
+	void ajoute_objet(dls::chaine const &nom) override;
 
 	void reserve_polygones(long const nombre) override;
 
@@ -58,7 +58,7 @@ public:
 
 	void reserve_uvs(long const nombre) override;
 
-	void groupes(dls::tableau<std::string> const &noms) override;
+	void groupes(dls::tableau<dls::chaine> const &noms) override;
 
 	void groupe_nuancage(const int index) override;
 

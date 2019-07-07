@@ -347,7 +347,7 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		m_donnees_simulation->table.insert({ "monde_physique", &m_monde });
+		m_donnees_simulation->table.insere({ "monde_physique", &m_monde });
 
 		/* À FAIRE : réinitialisation. */
 		if (m_monde.ptr() == nullptr || contexte.temps_courant == m_donnees_simulation->temps_debut) {

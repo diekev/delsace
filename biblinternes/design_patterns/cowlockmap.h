@@ -25,8 +25,9 @@
 #pragma once
 
 #include <atomic>
-#include <map>
 #include <mutex>
+
+#include "biblinternes/structures/dico.hh"
 
 void rcu_read_lock() {}
 void rcu_read_unlock() {}
@@ -34,7 +35,7 @@ void synchronize_rcu() {}
 
 template <typename Key, typename Value>
 class COWLockMap{
-	std::atomic<std::map<Key, Value> *> m_map_ref;
+	std::atomic<dls::dico<Key, Value> *> m_map_ref;
 	std::mutex m_mutex;
 
 	auto find(const Key &key) -> Value
@@ -49,8 +50,8 @@ class COWLockMap{
 	{
 		m_mutex.lock();
 
-		std::map<Key, Value> *cur_map = m_map_ref.load(std::memory_order_relaxed);
-		std::map<Key, Value> *new_map = new std::map<Key, Value>(*cur_map);
+		dls::dico<Key, Value> *cur_map = m_map_ref.load(std::memory_order_relaxed);
+		dls::dico<Key, Value> *new_map = new dls::dico<Key, Value>(*cur_map);
 
 		auto ret = new_map->insert(val);
 		m_map_ref.store(new_map);

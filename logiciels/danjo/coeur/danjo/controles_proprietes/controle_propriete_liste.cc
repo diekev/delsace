@@ -54,7 +54,7 @@ ControleProprieteListe::ControleProprieteListe(QWidget *parent)
 	connect(m_liste, SIGNAL(aboutToShow()), this, SLOT(ajourne_liste()));
 }
 
-void ControleProprieteListe::attache(const std::string &attache)
+void ControleProprieteListe::attache(const dls::chaine &attache)
 {
 	m_attache = attache;
 }
@@ -66,7 +66,7 @@ void ControleProprieteListe::conteneur(ConteneurControles *conteneur)
 
 void ControleProprieteListe::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<std::string *>(donnees.pointeur);
+	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
 
 	if (donnees.initialisation) {
 		*m_pointeur = donnees.valeur_defaut;
@@ -108,7 +108,7 @@ void ControleProprieteListe::ajourne_liste()
 		return;
 	}
 
-	dls::tableau<std::string> chaines;
+	dls::tableau<dls::chaine> chaines;
 	m_conteneur->obtiens_liste(m_attache, chaines);
 
 	m_liste->clear();

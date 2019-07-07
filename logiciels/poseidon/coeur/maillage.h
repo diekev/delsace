@@ -25,7 +25,8 @@
 #pragma once
 
 #include <vector>
-#include <map>
+
+#include "biblinternes/structures/dico.hh"
 
 #include "biblinternes/transformation/transformation.h"
 
@@ -95,7 +96,7 @@ class Maillage {
 	std::vector<Sommet *> m_sommets{};
 	std::vector<Arrete *> m_arretes{};
 
-	std::map<std::pair<int, int>, Arrete *> m_tableau_arretes{};
+	dls::dico<std::pair<int, int>, Arrete *> m_tableau_arretes{};
 
 	math::transformation m_transformation{};
 

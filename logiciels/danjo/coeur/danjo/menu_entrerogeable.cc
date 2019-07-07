@@ -132,7 +132,7 @@ void MenuEntrerogeable::init(QMenu *menu)
 			init(act->menu());
 		}
 		else {
-			m_actions.insert(std::make_pair(act->text(), act));
+			m_actions.insere(std::make_pair(act->text(), act));
 		}
 	}
 }
@@ -206,7 +206,7 @@ void MenuEntrerogeable::showEvent(QShowEvent *event)
 		editeur_ligne->setFocus();
 
 		/* Initialisation recursive des actions. */
-		m_actions.clear();
+		m_actions.efface();
 		init(this);
 
 		/* Initialisation du menu des items correspondantes. */

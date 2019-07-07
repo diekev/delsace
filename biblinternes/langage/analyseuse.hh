@@ -27,7 +27,7 @@
 #undef DEBOGUE_IDENTIFIANT
 
 #ifdef DEBOGUE_IDENTIFIANT
-#	include <map>
+#	include "biblinternes/structures/dico.hh"
 #endif
 
 #include <ostream>
@@ -49,7 +49,7 @@ protected:
 	long m_position = 0;
 
 #ifdef DEBOGUE_IDENTIFIANT
-	std::map<typename TypeIdentifiant::type, int> m_tableau_identifiant;
+	dls::dico<typename TypeIdentifiant::type, int> m_tableau_identifiant;
 #endif
 
 public:

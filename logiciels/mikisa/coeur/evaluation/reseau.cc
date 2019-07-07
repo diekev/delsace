@@ -48,9 +48,9 @@ void Reseau::reinitialise()
 
 void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 {
-	auto iter_noeud = m_table_objet_noeud.find(objet);
+	auto iter_noeud = m_table_objet_noeud.trouve(objet);
 
-	if (iter_noeud != m_table_objet_noeud.end()) {
+	if (iter_noeud != m_table_objet_noeud.fin()) {
 		throw std::runtime_error("Un noeud existe déjà pour l'objet !");
 	}
 
@@ -59,14 +59,14 @@ void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 	noeud->noeud_objet = noeud_objet;
 	reseau->noeuds.pousse(noeud);
 
-	m_table_objet_noeud.insert({objet, noeud});
+	m_table_objet_noeud.insere({objet, noeud});
 }
 
 void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
 {
-	auto iter_noeud = m_table_objet_noeud.find(objet);
+	auto iter_noeud = m_table_objet_noeud.trouve(objet);
 
-	if (iter_noeud == m_table_objet_noeud.end()) {
+	if (iter_noeud == m_table_objet_noeud.fin()) {
 		throw std::runtime_error("Aucun noeud n'existe pour l'objet !");
 	}
 
@@ -75,8 +75,8 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
 
 void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers)
 {
-	noeud_de->entrees.insert(noeud_vers);
-	noeud_vers->sorties.insert(noeud_de);
+	noeud_de->entrees.insere(noeud_vers);
+	noeud_vers->sorties.insere(noeud_de);
 }
 
 void CompilatriceReseau::compile_reseau(Scene *scene)

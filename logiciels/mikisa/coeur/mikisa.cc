@@ -171,7 +171,7 @@ UsineOperatrice &Mikisa::usine_operatrices()
 	return m_usine_operatrices;
 }
 
-std::string Mikisa::requiers_dialogue(int type)
+dls::chaine Mikisa::requiers_dialogue(int type)
 {
 	/* À FAIRE : sort ça de la classe. */
 	if (type == FICHIER_OUVERTURE) {
@@ -187,7 +187,7 @@ std::string Mikisa::requiers_dialogue(int type)
 	return "";
 }
 
-void Mikisa::affiche_erreur(std::string const &message)
+void Mikisa::affiche_erreur(dls::chaine const &message)
 {
 	/* À FAIRE : sort ça de la classe. */
 	QMessageBox boite_message;
@@ -195,18 +195,18 @@ void Mikisa::affiche_erreur(std::string const &message)
 	boite_message.setFixedSize(500, 200);
 }
 
-std::string Mikisa::chemin_projet() const
+dls::chaine Mikisa::chemin_projet() const
 {
 	return m_chemin_projet;
 }
 
-void Mikisa::chemin_projet(std::string const &chemin)
+void Mikisa::chemin_projet(dls::chaine const &chemin)
 {
 	m_chemin_projet = chemin;
 	ajoute_fichier_recent(chemin);
 }
 
-void Mikisa::ajoute_fichier_recent(std::string const &chemin)
+void Mikisa::ajoute_fichier_recent(dls::chaine const &chemin)
 {
 	auto index = std::find(m_fichiers_recents.debut(), m_fichiers_recents.fin(), chemin);
 
@@ -222,7 +222,7 @@ void Mikisa::ajoute_fichier_recent(std::string const &chemin)
 	}
 }
 
-dls::tableau<std::string> const &Mikisa::fichiers_recents()
+dls::tableau<dls::chaine> const &Mikisa::fichiers_recents()
 {
 	return m_fichiers_recents;
 }

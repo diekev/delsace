@@ -72,7 +72,7 @@ std::shared_ptr<Objet> construit_objet(double v)
 	return objet;
 }
 
-std::shared_ptr<Objet> construit_objet(std::string const &v)
+std::shared_ptr<Objet> construit_objet(dls::chaine const &v)
 {
 	auto objet = std::make_shared<ObjetChaine>();
 	objet->valeur = v;

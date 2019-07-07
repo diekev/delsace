@@ -26,8 +26,6 @@
 
 #include "biblinternes/transformation/transformation.h"
 
-#include <unordered_map>
-
 #include "biblinternes/structures/tableau.hh"
 
 #include "attribut.h"
@@ -67,7 +65,7 @@ struct Corps {
 	dls::math::point3f taille = dls::math::point3f(0.0f);
 
 	/* autres propriétés */
-	std::string nom = "corps";
+	dls::chaine nom = "corps";
 
 	int type = CORPS_NUL;
 
@@ -77,19 +75,19 @@ struct Corps {
 	Corps() = default;
 	virtual ~Corps();
 
-	bool possede_attribut(std::string const &nom_attribut);
+	bool possede_attribut(dls::chaine const &nom_attribut);
 
 	void ajoute_attribut(Attribut *attr);
 
 	Attribut *ajoute_attribut(
-			std::string const &nom_attribut,
+			dls::chaine const &nom_attribut,
 			type_attribut type_,
 			portee_attr portee = portee_attr::POINT,
 			bool force_vide = false);
 
-	void supprime_attribut(std::string const &nom_attribut);
+	void supprime_attribut(dls::chaine const &nom_attribut);
 
-	Attribut *attribut(std::string const &nom_attribut) const;
+	Attribut *attribut(dls::chaine const &nom_attribut) const;
 
 	long ajoute_point(dls::math::vec3f const &pos);
 
@@ -135,9 +133,9 @@ struct Corps {
 	using plage_grp_pnts = dls::outils::plage_iterable<dls::tableau<GroupePoint>::iteratrice>;
 	using plage_const_grp_pnts = dls::outils::plage_iterable<dls::tableau<GroupePoint>::const_iteratrice>;
 
-	GroupePoint *ajoute_groupe_point(std::string const &nom_groupe);
+	GroupePoint *ajoute_groupe_point(dls::chaine const &nom_groupe);
 
-	GroupePoint *groupe_point(const std::string &nom_groupe) const;
+	GroupePoint *groupe_point(const dls::chaine &nom_groupe) const;
 
 	plage_grp_pnts groupes_points();
 
@@ -148,9 +146,9 @@ struct Corps {
 	using plage_grp_prims = dls::outils::plage_iterable<dls::tableau<GroupePrimitive>::iteratrice>;
 	using plage_const_grp_prims = dls::outils::plage_iterable<dls::tableau<GroupePrimitive>::const_iteratrice>;
 
-	GroupePrimitive *ajoute_groupe_primitive(std::string const &nom_groupe);
+	GroupePrimitive *ajoute_groupe_primitive(dls::chaine const &nom_groupe);
 
-	GroupePrimitive *groupe_primitive(std::string const &nom_groupe) const;
+	GroupePrimitive *groupe_primitive(dls::chaine const &nom_groupe) const;
 
 	plage_grp_prims groupes_prims();
 

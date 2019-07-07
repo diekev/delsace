@@ -81,7 +81,7 @@ struct DonneesMorceaux {
 	int numero_ligne = 0;
 	int position_ligne = 0;
 	std::string contenu = "";
-	std::string_view ligne;
+	dls::vue_chaine ligne;
 
 	DonneesMorceaux() = default;
 };

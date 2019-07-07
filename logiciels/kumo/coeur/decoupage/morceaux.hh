@@ -26,7 +26,7 @@
  
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/vue_chaine.hh"
 
 enum {
 	ID_PARENTHESE_OUVRANTE,
@@ -73,12 +73,12 @@ enum {
 };
 
 struct DonneesMorceaux {
-	using type = size_t;
+	using type = unsigned long;
 	static constexpr type INCONNU = ID_INCONNU;
 
-	std::string_view chaine;
-	size_t ligne_pos;
-	size_t identifiant;
+	dls::vue_chaine chaine;
+	unsigned long ligne_pos;
+	unsigned long identifiant;
 };
 
 const char *chaine_identifiant(int id);
@@ -87,4 +87,4 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, int &i);
 
-int id_chaine(const std::string_view &chaine);
+int id_chaine(const dls::vue_chaine &chaine);

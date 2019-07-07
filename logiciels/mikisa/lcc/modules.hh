@@ -24,10 +24,6 @@
 
 #pragma once
 
-#include <set>
-#include <string>
-#include <unordered_map>
-
 #include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
@@ -36,7 +32,7 @@
 struct DonneesModule {
 	TamponSource tampon{""};
 	dls::tableau<DonneesMorceaux> morceaux{};
-	std::string nom{""};
+	dls::chaine nom{""};
 	size_t id = 0;
 	double temps_chargement = 0.0;
 	double temps_analyse = 0.0;

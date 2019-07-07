@@ -10,7 +10,6 @@
 
 #include "../../biblexternes/docopt/docopt.hh"
 #include <iostream>
-#include <stack>
 
 static const char usage[] = R"(
 Compiler.
@@ -160,16 +159,16 @@ static function<int64_t(int64_t)> adder(int64_t n)
 }
 
 template <typename T>
-static auto debug_queue(std::queue<T> queue)
+static auto debug_queue(dls::file<T> queue)
 {
-	while (!queue.empty()) {
+	while (!queue.est_vide()) {
 		std::cerr << queue.front() << '\n';
 		queue.pop();
 	}
 }
 
 #if 0
-static function<int(void)> evaluate_postfix(std::queue<std::string> &expression)
+static function<int(void)> evaluate_postfix(dls::file<std::string> &expression)
 {
 	code_vector code;
 
@@ -223,7 +222,7 @@ static function<int(void)> evaluate_postfix(std::queue<std::string> &expression)
 	return function<int(void)>(code.begin(), code.end());
 }
 #else
-static function<int(void)> evaluate_postfix(std::queue<std::string> &expression)
+static function<int(void)> evaluate_postfix(dls::file<std::string> &expression)
 {
 	jit::state state;
 
@@ -231,9 +230,9 @@ static function<int(void)> evaluate_postfix(std::queue<std::string> &expression)
 
 	int stack_ptr = 0;
 
-	while (!expression.empty()) {
+	while (!expression.est_vide()) {
 		auto token = expression.front();
-		expression.pop();
+		expression.defile();
 
 		if (is_operator(token)) {
 			if (token == "+") {

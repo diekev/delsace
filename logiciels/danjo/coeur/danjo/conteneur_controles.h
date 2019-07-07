@@ -26,6 +26,7 @@
 
 #include <QWidget>
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 namespace danjo {
@@ -56,7 +57,7 @@ public Q_SLOTS:
 	 * Cette méthode est appelée à chaque fois qu'un controle de liste a besoin
 	 * de mettre à jour sa liste de chaînes disponible pour l'attache spécifiée.
 	 */
-	virtual void obtiens_liste(const std::string &attache, dls::tableau<std::string> &chaines);
+	virtual void obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines);
 };
 
 }  /* namespace danjo */

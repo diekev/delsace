@@ -112,11 +112,11 @@ static void ecris_exr(const char *chemin, ParametresImage const &parametres)
 	fichier.writePixels(static_cast<int>(hauteur));
 }
 
-static void corrige_chemin_pour_ecriture(std::string &chemin, int temps)
+static void corrige_chemin_pour_ecriture(dls::chaine &chemin, int temps)
 {
-	auto const pos_debut = chemin.find_first_of('#');
+	auto const pos_debut = chemin.trouve_premier_de('#');
 
-	if (pos_debut == std::string::npos) {
+	if (pos_debut == dls::chaine::npos) {
 		return;
 	}
 
@@ -128,16 +128,16 @@ static void corrige_chemin_pour_ecriture(std::string &chemin, int temps)
 
 	auto compte = pos_fin - pos_debut;
 
-	auto chaine_nombre = std::to_string(temps);
-	chaine_nombre.insert(0, compte - chaine_nombre.size(), '0');
+	auto chaine_nombre = dls::chaine(std::to_string(temps));
+	chaine_nombre.insere(0, compte - chaine_nombre.taille(), '0');
 
-	chemin.replace(pos_debut, chaine_nombre.size(), chaine_nombre);
+	chemin.remplace(pos_debut, chaine_nombre.taille(), chaine_nombre);
 }
 
 static bool ecris_image(
 		Composite *composite,
-		std::string const &nom_calque,
-		std::string const &chemin,
+		dls::chaine const &nom_calque,
+		dls::chaine const &chemin,
 		int temps)
 {
 	/* calcul le chemin */
@@ -154,7 +154,7 @@ static bool ecris_image(
 	}
 
 	/* écris l'image */
-	if (chemin_image.find(".exr") != std::string::npos) {
+	if (chemin_image.trouve(".exr") != dls::chaine::npos) {
 		ParametresImage parametres;
 		parametres.composant = 4;
 		parametres.hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
@@ -164,7 +164,7 @@ static bool ecris_image(
 		ecris_exr(chemin_image.c_str(), parametres);
 	}
 	else {
-		dls::image::flux::ecris(chemin_image, tampon->tampon);
+		dls::image::flux::ecris(chemin_image.c_str(), tampon->tampon);
 	}
 
 	return true;

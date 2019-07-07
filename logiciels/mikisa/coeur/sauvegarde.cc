@@ -36,6 +36,8 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
+#include "biblinternes/structures/dico_desordonne.hh"
+
 #include "evaluation/evaluation.hh"
 #include "evaluation/plan.hh"
 
@@ -78,7 +80,7 @@ static Graphe *graphe_operatrice(OperatriceImage *operatrice)
 	}
 }
 
-static std::string id_depuis_pointeur(void *pointeur)
+static dls::chaine id_depuis_pointeur(void *pointeur)
 {
 	std::stringstream ss;
 	ss << pointeur;
@@ -196,7 +198,7 @@ static void sauvegarde_proprietes(
 			case danjo::TypePropriete::CHAINE_CARACTERE:
 			case danjo::TypePropriete::TEXTE:
 			{
-				std::string donnees = manipulable->evalue_chaine(nom);
+				dls::chaine donnees = manipulable->evalue_chaine(nom);
 				element_donnees->SetAttribut("valeur", donnees.c_str());
 				break;
 			}
@@ -507,26 +509,26 @@ static void lecture_propriete(
 		}
 		case danjo::TypePropriete::ENUM:
 		{
-			auto const donnees = std::string(element_donnees->attribut("valeur"));
+			auto const donnees = dls::chaine(element_donnees->attribut("valeur"));
 			manipulable->ajoute_propriete(nom_prop, danjo::TypePropriete::ENUM, donnees);
 			break;
 		}
 		case danjo::TypePropriete::FICHIER_SORTIE:
 		{
-			auto const donnees = std::string(element_donnees->attribut("valeur"));
+			auto const donnees = dls::chaine(element_donnees->attribut("valeur"));
 			manipulable->ajoute_propriete(nom_prop, danjo::TypePropriete::FICHIER_SORTIE, donnees);
 			break;
 		}
 		case danjo::TypePropriete::FICHIER_ENTREE:
 		{
-			auto const donnees = std::string(element_donnees->attribut("valeur"));
+			auto const donnees = dls::chaine(element_donnees->attribut("valeur"));
 			manipulable->ajoute_propriete(nom_prop, danjo::TypePropriete::FICHIER_ENTREE, donnees);
 			break;
 		}
 		case danjo::TypePropriete::TEXTE:
 		case danjo::TypePropriete::CHAINE_CARACTERE:
 		{
-			auto const donnees = std::string(element_donnees->attribut("valeur"));
+			auto const donnees = dls::chaine(element_donnees->attribut("valeur"));
 			manipulable->ajoute_propriete(nom_prop, danjo::TypePropriete::CHAINE_CARACTERE, donnees);
 			break;
 		}
@@ -554,10 +556,10 @@ struct DonneesConnexions {
 	/* Tableau faisant correspondre les ids des prises connectées entre elles.
 	 * La clé du tableau est l'id de la prise d'entrée, la valeur, celle de la
 	 * prise de sortie. */
-	std::unordered_map<std::string, std::string> tableau_connexion_id{};
+	dls::dico_desordonne<dls::chaine, dls::chaine> tableau_connexion_id{};
 
-	std::unordered_map<std::string, PriseEntree *> tableau_id_prise_entree{};
-	std::unordered_map<std::string, PriseSortie *> tableau_id_prise_sortie{};
+	dls::dico_desordonne<dls::chaine, PriseEntree *> tableau_id_prise_entree{};
+	dls::dico_desordonne<dls::chaine, PriseSortie *> tableau_id_prise_sortie{};
 };
 
 static void lecture_graphe(

@@ -24,9 +24,8 @@
 
 #pragma once
 
-#include <set>
-#include <unordered_map>
-
+#include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/tableau.hh"
 
 class Noeud;
@@ -49,8 +48,8 @@ class Scene;
 /* ************************************************************************** */
 
 struct NoeudReseau {
-	std::set<NoeudReseau *> entrees{};
-	std::set<NoeudReseau *> sorties{};
+	dls::ensemble<NoeudReseau *> entrees{};
+	dls::ensemble<NoeudReseau *> sorties{};
 
 	Objet *objet{};
 	Noeud *noeud_objet{};
@@ -82,7 +81,7 @@ struct Reseau {
 
 struct CompilatriceReseau {
 private:
-	std::unordered_map<Objet *, NoeudReseau *> m_table_objet_noeud{};
+	dls::dico_desordonne<Objet *, NoeudReseau *> m_table_objet_noeud{};
 
 public:
 	Reseau *reseau = nullptr;

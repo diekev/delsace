@@ -132,7 +132,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 	auto const &texte = danjo::contenu_fichier(operatrice->chemin_entreface());
 
-	if (texte.empty()) {
+	if (texte.est_vide()) {
 		return;
 	}
 
@@ -178,8 +178,8 @@ void EditriceProprietes::ajourne_manipulable()
 }
 
 void EditriceProprietes::obtiens_liste(
-		std::string const &attache,
-		dls::tableau<std::string> &chaines)
+		dls::chaine const &attache,
+		dls::tableau<dls::chaine> &chaines)
 {
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;

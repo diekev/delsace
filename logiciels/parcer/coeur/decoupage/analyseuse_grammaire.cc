@@ -26,7 +26,6 @@
 
 #include "biblinternes/chrono/outils.hh"
 #include <iostream>
-#include <set>
 
 #include "arbre_syntactic.hh"
 #include "contexte_generation_code.hh"
@@ -272,7 +271,7 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
 		DonneesModule *module,
-		std::string const &racine_kuri)
+		dls::chaine const &racine_kuri)
 	: lng::analyseuse<DonneesMorceaux>(module->morceaux)
 	, m_contexte(contexte)
 	, m_assembleuse(contexte.assembleuse)
@@ -790,7 +789,7 @@ bool analyseuse_grammaire::requiers_nombre_entier()
 	return ok;
 }
 
-void analyseuse_grammaire::lance_erreur(const std::string &quoi, erreur::type_erreur type)
+void analyseuse_grammaire::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 {
 	erreur::lance_erreur(quoi, m_contexte, donnees(), type);
 }

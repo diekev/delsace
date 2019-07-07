@@ -25,9 +25,9 @@
 #pragma once
 
 #include <list>
-#include <stack>
 #include <string>
 
+#include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "arbre_syntactic.h"
@@ -36,7 +36,7 @@ struct ContexteGenerationCode;
 struct DonneesMorceaux;
 
 class assembleuse_arbre {
-	std::stack<lcc::noeud::base *> m_pile{};
+	dls::pile<lcc::noeud::base *> m_pile{};
 	dls::tableau<lcc::noeud::base *> m_noeuds{};
 
 	size_t m_memoire_utilisee = 0;

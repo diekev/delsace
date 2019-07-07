@@ -186,9 +186,9 @@ char decoupeuse_texte::caractere_voisin(int n) const
 	return *(m_debut + n);
 }
 
-std::string_view decoupeuse_texte::mot_courant() const
+dls::vue_chaine decoupeuse_texte::mot_courant() const
 {
-	return std::string_view(m_debut_mot, m_taille_mot_courant);
+	return dls::vue_chaine(m_debut_mot, m_taille_mot_courant);
 }
 
 void decoupeuse_texte::lance_erreur(const std::string &quoi) const
@@ -201,7 +201,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 
 	/* La position ligne est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < m_position_ligne; ++i) {
+	for (auto i = 0l; i < m_position_ligne; ++i) {
 		if (ligne_courante[i] == '\t') {
 			ss << '\t';
 		}
@@ -239,7 +239,7 @@ void decoupeuse_texte::pousse_caractere()
 
 void decoupeuse_texte::pousse_mot(int identifiant)
 {
-	m_morceaux.pousse({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), static_cast<size_t>(identifiant) });
+	m_morceaux.pousse({ mot_courant(), static_cast<size_t>((m_compte_ligne << 32) | m_pos_mot), static_cast<size_t>(identifiant) });
 	m_taille_mot_courant = 0;
 	m_debut_mot = nullptr;
 }

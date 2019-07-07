@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/langage/analyseuse.hh"
+#include "biblinternes/structures/chaine.hh"
 
 #include "assembleuse_arbre.hh"
 #include "erreur.hh"
@@ -50,7 +51,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 	std::vector<paire_vecteurs> m_paires_vecteurs;
 	size_t m_profondeur = 0;
 
-	std::string m_racine_kuri{};
+	dls::chaine m_racine_kuri{};
 
 	DonneesModule *m_module;
 
@@ -60,7 +61,7 @@ public:
 	analyseuse_grammaire(
 			ContexteGenerationCode &contexte,
 			DonneesModule *module,
-			std::string const &racine_kuri);
+			dls::chaine const &racine_kuri);
 
 	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
 	 * module. */
@@ -76,7 +77,7 @@ private:
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
 	[[noreturn]] void lance_erreur(
-			const std::string &quoi,
+			const dls::chaine &quoi,
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 
 	void analyse_corps(std::ostream &os);

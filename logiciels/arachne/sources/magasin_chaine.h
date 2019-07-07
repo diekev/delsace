@@ -25,7 +25,8 @@
 #pragma once
 
 #include <experimental/filesystem>
-#include <unordered_map>
+
+#include "biblinternes/structures/dico_desordonne.hh"
 
 namespace arachne {
 
@@ -35,7 +36,7 @@ namespace arachne {
  * fois.
  */
 struct magasin_chaine {
-	std::unordered_map<std::string, int> m_tableau = {};
+	dls::dico_desordonne<std::string, int> m_tableau = {};
 	unsigned int m_nombre_chaines = 0;
 	size_t m_taille_chaines = 0ul;
 
@@ -43,8 +44,8 @@ public:
 	magasin_chaine() = default;
 	~magasin_chaine() = default;
 
-	using iterateur = std::unordered_map<std::string, int>::iterator;
-	using iterateur_const = std::unordered_map<std::string, int>::const_iterator;
+	using iterateur = dls::dico_desordonne<std::string, int>::iteratrice;
+	using iterateur_const = dls::dico_desordonne<std::string, int>::const_iteratrice;
 
 	/**
 	 * Ajoute la chaîne spécifiée en paramètre dans le magasin si elle n'y est

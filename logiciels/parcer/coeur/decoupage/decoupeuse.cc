@@ -197,7 +197,7 @@ void decoupeuse_texte::genere_morceaux()
 								break;
 							}
 
-							m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+							m_taille_mot_courant += nombre_octet;
 							this->avance(nombre_octet);
 						}
 
@@ -213,7 +213,7 @@ void decoupeuse_texte::genere_morceaux()
 					}
 					default:
 					{
-						m_taille_mot_courant += static_cast<size_t>(nombre_octet);
+						m_taille_mot_courant += nombre_octet;
 						this->avance(nombre_octet);
 						break;
 					}
@@ -276,9 +276,9 @@ char decoupeuse_texte::caractere_voisin(int n) const
 	return *(m_debut + n);
 }
 
-std::string_view decoupeuse_texte::mot_courant() const
+dls::vue_chaine decoupeuse_texte::mot_courant() const
 {
-	return std::string_view(m_debut_mot, m_taille_mot_courant);
+	return dls::vue_chaine(m_debut_mot, m_taille_mot_courant);
 }
 
 void decoupeuse_texte::lance_erreur(const std::string &quoi) const
@@ -291,7 +291,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 
 	/* La position ligne est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < m_position_ligne;) {
+	for (auto i = 0l; i < m_position_ligne;) {
 		if (ligne_courante[i] == '\t') {
 			ss << '\t';
 		}
@@ -353,7 +353,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 
 		this->enregistre_pos_mot();
 
-		auto id = id_trigraphe(std::string_view(m_debut, 3));
+		auto id = id_trigraphe(dls::vue_chaine(m_debut, 3));
 
 		if (id != id_morceau::INCONNU) {
 			this->pousse_caractere(3);
@@ -362,7 +362,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 			return;
 		}
 
-		id = id_digraphe(std::string_view(m_debut, 2));
+		id = id_digraphe(dls::vue_chaine(m_debut, 2));
 
 		if (id != id_morceau::INCONNU) {
 			this->pousse_caractere(2);
@@ -488,7 +488,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 		 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
 		 * infinie. */
 		auto const compte = extrait_nombre(m_debut, m_fin, id_nombre);
-		m_taille_mot_courant = compte;
+		m_taille_mot_courant = static_cast<long>(compte);
 
 		this->pousse_mot(id_nombre);
 		this->avance(static_cast<int>(compte));
@@ -505,12 +505,12 @@ void decoupeuse_texte::analyse_caractere_simple()
 
 void decoupeuse_texte::pousse_caractere(int n)
 {
-	m_taille_mot_courant += static_cast<size_t>(n);
+	m_taille_mot_courant += n;
 }
 
 void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_module->morceaux.pousse({ mot_courant(), ((m_compte_ligne << 32) | m_pos_mot), identifiant, static_cast<int>(m_module->id) });
+	m_module->morceaux.pousse({ mot_courant(), static_cast<size_t>((m_compte_ligne << 32) | m_pos_mot), identifiant, static_cast<int>(m_module->id) });
 	m_taille_mot_courant = 0;
 }
 

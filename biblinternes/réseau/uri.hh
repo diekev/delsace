@@ -32,35 +32,35 @@ namespace reseau {
 // authority = [userinfo@]host[:port]
 class uri {
 	std::string m_uri{};
-	std::string_view m_schema{};
-	std::string_view m_autorite{};
-	std::string_view m_chemin{};
-	std::string_view m_requete{};
-	std::string_view m_fragment{};
-	std::string_view m_userinfo{};
-	std::string_view m_hote{};
-	std::string_view m_port{};
+	dls::vue_chaine m_schema{};
+	dls::vue_chaine m_autorite{};
+	dls::vue_chaine m_chemin{};
+	dls::vue_chaine m_requete{};
+	dls::vue_chaine m_fragment{};
+	dls::vue_chaine m_userinfo{};
+	dls::vue_chaine m_hote{};
+	dls::vue_chaine m_port{};
 
 public:
 	explicit uri(const std::string &chaine);
 
 	bool est_valide() const;
 
-	std::string_view schema() const;
+	dls::vue_chaine schema() const;
 
-	std::string_view autorite() const;
+	dls::vue_chaine autorite() const;
 
-	std::string_view chemin() const;
+	dls::vue_chaine chemin() const;
 
-	std::string_view requete() const;
+	dls::vue_chaine requete() const;
 
-	std::string_view fragment() const;
+	dls::vue_chaine fragment() const;
 
-	std::string_view hote() const;
+	dls::vue_chaine hote() const;
 
-	std::string_view userinfo() const;
+	dls::vue_chaine userinfo() const;
 
-	std::string_view port() const;
+	dls::vue_chaine port() const;
 };
 
 }

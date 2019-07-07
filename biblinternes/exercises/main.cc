@@ -28,8 +28,9 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
-#include <stack>
-#include <unordered_map>
+
+#include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/pile.hh"
 
 #include "curry.h"
 #include "divers.h"
@@ -43,11 +44,11 @@
 /* ************************************************************************** */
 
 template <typename T>
-static auto debug_queue(std::queue<T> queue)
+static auto debug_queue(dls::file<T> queue)
 {
-	while (!queue.empty()) {
+	while (!queue.est_vide()) {
 		std::cerr << queue.front() << '\n';
-		queue.pop();
+		queue.defile();
 	}
 }
 
@@ -226,7 +227,7 @@ static auto test_range(std::ostream &os, std::istream &)
 
 /* ************************************************************************** */
 
-using pointer_relocation_map = std::unordered_map<void *, void *>;
+using pointer_relocation_map = dls::dico_desordonne<void *, void *>;
 
 static constexpr auto redo_filename = "/home/kevin/redo.txt";
 static constexpr auto undo_filename = "/home/kevin/undo.txt";
@@ -247,7 +248,7 @@ static auto read_prm(std::ifstream &file, pointer_relocation_map &prm)
 		file >> key >> value;
 
 		//	prm[key] = value;
-		prm.insert(std::pair<void *, void *>{ key, value });
+		prm.insere(std::pair<void *, void *>{ key, value });
 	}
 
 	file.close();
@@ -259,7 +260,7 @@ static auto write_prm(std::ofstream &file, pointer_relocation_map &prm)
 		return;
 	}
 
-	file << prm.size() << '\n';
+	file << prm.taille() << '\n';
 
 	for (auto entry : prm) {
 		file << entry.first << ' ' << entry.second << '\n';
@@ -269,7 +270,7 @@ static auto write_prm(std::ofstream &file, pointer_relocation_map &prm)
 static auto save_prm(std::ofstream &undo_file, pointer_relocation_map &prm)
 {
 	write_prm(undo_file, prm);
-	prm.clear();
+	prm.efface();
 
 	std::ofstream redo_file;
 	redo_file.open(redo_filename, std::ofstream::out | std::ofstream::trunc);
@@ -287,8 +288,8 @@ static auto load_prm(std::ifstream &file, pointer_relocation_map &prm)
 		tmp_prm[entry.first] = C;
 
 		if (C != entry.second) {
-			auto iter = prm.find(entry.second);
-			prm.erase(iter);
+			auto iter = prm.trouve(entry.second);
+			prm.efface(iter);
 		}
 	}
 
@@ -299,7 +300,7 @@ static auto load_prm(std::ifstream &file, pointer_relocation_map &prm)
 
 using object_t = int;
 
-using undo_stack_t = std::stack<std::string>;
+using undo_stack_t = dls::pile<std::string>;
 undo_stack_t undo_stack;
 
 static auto change_object_value(std::ofstream &undo_file,

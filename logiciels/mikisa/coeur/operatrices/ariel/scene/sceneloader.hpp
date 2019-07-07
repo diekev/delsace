@@ -7,8 +7,8 @@
 #ifndef SCENELOADER_HPP
 #define SCENELOADER_HPP
 
-#include <map>
-#include <vector>
+#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/tableau.hh"
 
 //#include <json/json.h>
 #include "../utilities/utilities.h"
@@ -65,7 +65,7 @@ private:
 	std::string                             m_partioPath{};
 	dls::tableau<dls::math::vec3f>                  m_externalForces{};
 
-	std::map<std::string, unsigned int>                         m_linkNames{};
+	dls::dico<std::string, unsigned int>                         m_linkNames{};
 	dls::tableau< dls::tableau<
 	spaceCore::Bvh<objCore::InterpolatedObj>* > >  m_animMeshSequences{};
 };

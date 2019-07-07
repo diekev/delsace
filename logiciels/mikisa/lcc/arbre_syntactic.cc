@@ -125,7 +125,7 @@ id_morceau base::identifiant() const
 	return donnees.identifiant;
 }
 
-std::string_view base::chaine() const
+dls::vue_chaine base::chaine() const
 {
 	return donnees.chaine;
 }
@@ -146,7 +146,7 @@ void base::imprime_code(std::ostream &os, int profondeur)
 
 /* ************************************************************************** */
 
-static auto extrait_decimal(std::string_view const &vue_chaine)
+static auto extrait_decimal(dls::vue_chaine const &vue_chaine)
 {
 	std::stringstream ss;
 	ss << vue_chaine;
@@ -156,7 +156,7 @@ static auto extrait_decimal(std::string_view const &vue_chaine)
 	return r;
 }
 
-static auto extrait_entier(std::string_view const &vue_chaine)
+static auto extrait_entier(dls::vue_chaine const &vue_chaine)
 {
 	std::stringstream ss;
 	ss << vue_chaine;
@@ -266,7 +266,7 @@ int genere_code(
 			/* À FAIRE : cherche/crée le pointeur pour l'attribut */
 			if (expr_gauche) {
 				if (!gest_attrs.propriete_existe(b->chaine())) {
-					gest_attrs.requiers_attr(std::string(b->chaine()), b->donnees_type, b->pointeur_donnees);
+					gest_attrs.requiers_attr(dls::chaine(b->chaine()), b->donnees_type, b->pointeur_donnees);
 				}
 				else {
 					b->donnees_type = gest_attrs.type_propriete(b->chaine());
@@ -416,7 +416,7 @@ int genere_code(
 			}
 
 			auto donnees_fonc = contexte_generation.fonctions.meilleure_candidate(
-						std::string(b->chaine()),
+						dls::chaine(b->chaine()),
 						types_params);
 
 			if (donnees_fonc.donnees == nullptr) {

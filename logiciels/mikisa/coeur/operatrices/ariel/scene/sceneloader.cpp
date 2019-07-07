@@ -187,7 +187,7 @@ void SceneLoader::LoadGeom(const Json::Value& jsongeom)
 	}else {
         std::string id = jsongeom["id"].asString();
         //Check if id already exists
-        std::map<std::string, unsigned int>::iterator it = m_linkNames.find("geom_"+id);
+		dls::dico<std::string, unsigned int>::iterator it = m_linkNames.find("geom_"+id);
 		if (it!=m_linkNames.end()) {
             std::cout << "Warning: geom node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;
@@ -272,7 +272,7 @@ void SceneLoader::LoadAnimMeshSequences(const Json::Value& jsonanimmesh)
 	}else {
         std::string id = jsonanimmesh["id"].asString();
         //Check if id already exists
-        std::map<std::string, unsigned int>::iterator it = m_linkNames.find("animmesh_"+id);
+		dls::dico<std::string, unsigned int>::iterator it = m_linkNames.find("animmesh_"+id);
 		if (it!=m_linkNames.end()) {
             std::cout << "Warning: animmesh node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;
@@ -325,7 +325,7 @@ void SceneLoader::LoadGeomTransforms(const Json::Value& jsontransforms)
 	}else {
         std::string id = jsontransforms["id"].asString();
         //Check if id already exists
-        std::map<std::string, unsigned int>::iterator it = m_linkNames.find("transform_"+id);
+		dls::dico<std::string, unsigned int>::iterator it = m_linkNames.find("transform_"+id);
 		if (it!=m_linkNames.end()) {
             std::cout << "Warning: transform node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;
@@ -369,7 +369,7 @@ void SceneLoader::LoadMeshFiles(const Json::Value& jsonmeshfile)
 	}else {
         std::string id = jsonmeshfile["id"].asString();
         //Check if id already exists
-        std::map<std::string, unsigned int>::iterator it = m_linkNames.find("meshfile_"+id);
+		dls::dico<std::string, unsigned int>::iterator it = m_linkNames.find("meshfile_"+id);
 		if (it!=m_linkNames.end()) {
             std::cout << "Warning: meshfile node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;

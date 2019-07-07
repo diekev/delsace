@@ -26,6 +26,8 @@
 
 #include "controle_propriete.h"
 
+#include "biblinternes/structures/chaine.hh"
+
 class QHBoxLayout;
 class QLineEdit;
 class QPushButton;
@@ -67,7 +69,7 @@ Q_SIGNALS:
 class ControleProprieteFichier final : public SelecteurFichier {
 	Q_OBJECT
 
-	std::string *m_pointeur{};
+	dls::chaine *m_pointeur{};
 
 public:
 	explicit ControleProprieteFichier(bool input, QWidget *parent = nullptr);

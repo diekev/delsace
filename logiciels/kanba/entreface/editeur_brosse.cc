@@ -39,7 +39,7 @@
 #include "coeur/kanba.h"
 #include "coeur/melange.h"
 
-static std::string nom_mode_fusion(TypeMelange type_melange)
+static dls::chaine nom_mode_fusion(TypeMelange type_melange)
 {
 	switch (type_melange) {
 		default:
@@ -56,7 +56,7 @@ static std::string nom_mode_fusion(TypeMelange type_melange)
 	}
 }
 
-static TypeMelange mode_fusion_depuis_nom(std::string const &nom)
+static TypeMelange mode_fusion_depuis_nom(dls::chaine const &nom)
 {
 	if (nom == "normal") {
 		return TypeMelange::NORMAL;

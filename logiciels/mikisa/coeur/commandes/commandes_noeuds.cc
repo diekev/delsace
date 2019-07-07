@@ -815,7 +815,7 @@ static void autodispose_graphe(Graphe &graphe)
 	}
 
 	// compte le nombre de noeuds dans chaque niveau pour leur assigner un déplacement horizontal
-	std::map<int, int> noeuds_par_niveau;
+	dls::dico<int, int> noeuds_par_niveau;
 	for (auto &noeud : graphe.noeuds()) {
 		noeuds_par_niveau[noeud->niveau] += 1;
 

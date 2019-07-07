@@ -24,9 +24,6 @@
 
 #pragma once
 
-#include <map>
-#include <vector>
-
 class ContexteRendu;
 class Maillage;
 class TamponRendu;

@@ -24,15 +24,13 @@
 
 #include "operatrices_vetements.hh"
 
-#include <set>
-#include <stack>
-#include <vector>
-
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/parallelisme.h"
 
+#include "biblinternes/structures/ensemble.hh"
+#include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
@@ -415,9 +413,9 @@ static void applique_contraintes_verlet(Corps &corps, DonneesSimVerlet const &do
 
 /* ************************************************************************** */
 
-static std::set<std::pair<long, long>> calcul_cote_unique(Corps &corps)
+static dls::ensemble<std::pair<long, long>> calcul_cote_unique(Corps &corps)
 {
-	std::set<std::pair<long, long>> ensemble_cote;
+	dls::ensemble<std::pair<long, long>> ensemble_cote;
 
 	pour_chaque_polygone(corps,
 						 [&](Corps const &, Polygone *poly)
@@ -428,7 +426,7 @@ static std::set<std::pair<long, long>> calcul_cote_unique(Corps &corps)
 
 			/* Ordonne les index pour ne pas compter les cotés allant
 			 * dans le sens opposé : (0, 1) = (1, 0). */
-			ensemble_cote.insert(std::make_pair(std::min(j0, j1), std::max(j0, j1)));
+			ensemble_cote.insere(std::make_pair(std::min(j0, j1), std::max(j0, j1)));
 		}
 
 		/* diagonales, À FAIRE : + de 4 sommets */
@@ -436,12 +434,12 @@ static std::set<std::pair<long, long>> calcul_cote_unique(Corps &corps)
 			auto j0 = poly->index_point(0);
 			auto j1 = poly->index_point(2);
 
-			ensemble_cote.insert(std::make_pair(j0, j1));
+			ensemble_cote.insere(std::make_pair(j0, j1));
 
 			j0 = poly->index_point(1);
 			j1 = poly->index_point(3);
 
-			ensemble_cote.insert(std::make_pair(j0, j1));
+			ensemble_cote.insere(std::make_pair(j0, j1));
 		}
 	});
 
@@ -545,7 +543,7 @@ public:
 
 		if (m_donnees_verlet.contrainte_distance.est_vide()) {
 			auto ensemble_cote = calcul_cote_unique(m_corps);
-			m_donnees_verlet.contrainte_distance.reserve(static_cast<long>(ensemble_cote.size()));
+			m_donnees_verlet.contrainte_distance.reserve(ensemble_cote.taille());
 
 			for (auto &cote : ensemble_cote) {
 				auto c = ContrainteDistance{};
@@ -610,7 +608,7 @@ public:
 
 		if (d_constraints.est_vide()) {
 			auto ensemble_cote = calcul_cote_unique(m_corps);
-			d_constraints.reserve(static_cast<long>(ensemble_cote.size()));
+			d_constraints.reserve(ensemble_cote.taille());
 
 			for (auto &cote : ensemble_cote) {
 				auto c = ajoute_contrainte_distance(
@@ -759,7 +757,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 	auto grid_height = static_cast<int>(std::ceil(conf.height / cell_size));
 
 	dls::tableau<point> grid(grid_width * grid_height);
-	std::stack<point> process;
+	dls::pile<point> process;
 
 	auto squared_distance = [](const point& a, const point& b) {
 		auto delta_x = a.x - b.x;
@@ -785,7 +783,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 	};
 
 	auto add = [&process, &output, &set](const point& p) {
-		process.push(p);
+		process.empile(p);
 		output(p);
 		set(p);
 	};
@@ -827,9 +825,9 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 
 	add(conf.start);
 
-	while (!process.empty()) {
-		auto point = process.top();
-		process.pop();
+	while (!process.est_vide()) {
+		auto point = process.haut();
+		process.depile();
 
 		for (int i = 0; i != conf.max_attempts; ++i) {
 			auto p = point_around(point);

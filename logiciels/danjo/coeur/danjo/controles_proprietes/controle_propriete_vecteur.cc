@@ -38,10 +38,11 @@
 #include "donnees_controle.h"
 
 #include <sstream>
-static std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur)
+
+static std::vector<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur)
 {
-	std::vector<std::string> resultat;
-	std::stringstream ss(chaine);
+	std::vector<dls::chaine> resultat;
+	std::stringstream ss(chaine.c_str());
 	std::string temp;
 
 	while (std::getline(ss, temp, delimiteur)) {

@@ -30,6 +30,9 @@
 #include <systeme_fichier/file.h>
 
 #include "biblinternes/graphe/graphe.h"
+
+#include "biblinternes/structures/chaine.hh"
+
 #include "noeud_image.h"
 
 /* Adapted from Blender's BVM debug code. */
@@ -39,7 +42,7 @@ static constexpr auto fontsize = 20.0;
 static constexpr auto node_label_size = 14.0;
 static constexpr auto color_value = "gold1";
 
-inline static std::string node_id(const Noeud *node, bool quoted = true)
+inline static dls::chaine node_id(const Noeud *node, bool quoted = true)
 {
 	std::stringstream ss;
 
@@ -82,7 +85,7 @@ inline long get_output_index(const PriseSortie *socket)
 	return -1l;
 }
 
-inline static std::string input_id(const PriseEntree *socket, long index, bool quoted = true)
+inline static dls::chaine input_id(const PriseEntree *socket, long index, bool quoted = true)
 {
 	if (index == -1l) {
 		index = get_input_index(socket);
@@ -101,7 +104,7 @@ inline static std::string input_id(const PriseEntree *socket, long index, bool q
 	return ss.str();
 }
 
-inline static std::string output_id(const PriseSortie *socket, long index, bool quoted = true)
+inline static dls::chaine output_id(const PriseSortie *socket, long index, bool quoted = true)
 {
 	if (index == -1l) {
 		index = get_output_index(socket);

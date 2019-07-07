@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string_view>
+#include "biblinternes/structures/vue_chaine.hh"
 
 namespace lng {
 
@@ -40,6 +40,6 @@ int nombre_octets(const char *sequence);
  * fonction prend en compte la possibilité qu'un caractère soit invalide et le
  * saute au cas où.
  */
-size_t decalage_pour_caractere(std::string_view const &chaine, size_t i);
+long decalage_pour_caractere(dls::vue_chaine const &chaine, long i);
 
 }  /* namespace lng */

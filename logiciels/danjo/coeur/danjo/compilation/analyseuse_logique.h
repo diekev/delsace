@@ -53,7 +53,7 @@ private:
 	void analyse_corps();
 	void analyse_entree();
 	void analyse_declaration(const int type);
-	void analyse_expression(const std::string &nom, const int type);
+	void analyse_expression(const dls::chaine &nom, const int type);
 	void analyse_entreface();
 	void analyse_logique();
 	void analyse_sortie();

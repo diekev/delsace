@@ -27,6 +27,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	decoupage_tori
+	bib_structures
 )
 
 set(SOURCES

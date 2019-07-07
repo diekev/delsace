@@ -48,7 +48,7 @@ ControleProprieteChaineCaractere::ControleProprieteChaineCaractere(QWidget *pare
 
 void ControleProprieteChaineCaractere::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<std::string *>(donnees.pointeur);
+	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
 
 	if (donnees.initialisation) {
 		*m_pointeur = donnees.valeur_defaut;
@@ -82,7 +82,7 @@ ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(QWidget *parent)
 
 void ControleProprieteEditeurTexte::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<std::string *>(donnees.pointeur);
+	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
 
 	if (donnees.initialisation) {
 		*m_pointeur = donnees.valeur_defaut;

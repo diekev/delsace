@@ -29,6 +29,7 @@ set(BIBLIOTHEQUES
 	coeur_tori
 	langage
 	memoire
+	bib_structures
 )
 
 set(SOURCES

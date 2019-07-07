@@ -24,8 +24,9 @@
 
 #pragma once
 
-#include <stack>
-#include <unordered_map>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/pile.hh"
 
 #include "donnees_type.hh"
 
@@ -74,7 +75,7 @@ struct DonneesMembre {
 };
 
 struct DonneesStructure {
-	std::unordered_map<std::string_view, DonneesMembre> donnees_membres{};
+	dls::dico_desordonne<dls::vue_chaine, DonneesMembre> donnees_membres{};
 	std::vector<size_t> donnees_types{};
 
 	size_t id{0ul};
@@ -87,8 +88,8 @@ struct DonneesStructure {
 
 struct DonneesFonction;
 
-using conteneur_globales = std::unordered_map<std::string_view, DonneesVariable>;
-using conteneur_locales = std::vector<std::pair<std::string_view, DonneesVariable>>;
+using conteneur_globales = dls::dico_desordonne<dls::vue_chaine, DonneesVariable>;
+using conteneur_locales = std::vector<std::pair<dls::vue_chaine, DonneesVariable>>;
 
 struct ContexteGenerationCode {
 	assembleuse_arbre *assembleuse = nullptr;
@@ -99,7 +100,7 @@ struct ContexteGenerationCode {
 
 	DonneesFonction *donnees_fonction = nullptr;
 
-	/* magasin pour que les string_views des chaines temporaires soient toujours
+	/* magasin pour que les vue_chaines des chaines temporaires soient toujours
 	 * valides (notamment utilisé pour les variables des boucles dans les
 	 * coroutines) */
 	std::vector<std::string> magasin_chaines{};
@@ -134,20 +135,20 @@ struct ContexteGenerationCode {
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
 	 * module n'a ce nom, retourne nullptr.
 	 */
-	DonneesModule *module(const std::string_view &nom) const;
+	DonneesModule *module(const dls::vue_chaine &nom) const;
 
 	/**
 	 * Retourne vrai si le module dont le nom est spécifié existe dans la liste
 	 * de module de ce contexte.
 	 */
-	bool module_existe(const std::string_view &nom) const;
+	bool module_existe(const dls::vue_chaine &nom) const;
 
 	/* ********************************************************************** */
 
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
 	 */
-	void empile_goto_continue(std::string_view chaine, std::string const &bloc);
+	void empile_goto_continue(dls::vue_chaine chaine, std::string const &bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
@@ -158,12 +159,12 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	std::string goto_continue(std::string_view chaine);
+	std::string goto_continue(dls::vue_chaine chaine);
 
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
 	 */
-	void empile_goto_arrete(std::string_view chaine, std::string const &bloc);
+	void empile_goto_arrete(dls::vue_chaine chaine, std::string const &bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
@@ -174,7 +175,7 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	std::string goto_arrete(std::string_view chaine);
+	std::string goto_arrete(dls::vue_chaine chaine);
 
 	/* ********************************************************************** */
 
@@ -182,23 +183,23 @@ struct ContexteGenerationCode {
 	 * Ajoute les données de la globale dont le nom est spécifié en paramètres
 	 * à la table de globales de ce contexte.
 	 */
-	void pousse_globale(const std::string_view &nom, DonneesVariable const &donnees);
+	void pousse_globale(const dls::vue_chaine &nom, DonneesVariable const &donnees);
 
 	/**
 	 * Retourne vrai s'il existe une globale dont le nom correspond au spécifié.
 	 */
-	bool globale_existe(const std::string_view &nom);
+	bool globale_existe(const dls::vue_chaine &nom);
 
 	/**
 	 * Retourne les données de la globale dont le nom est spécifié en
 	 * paramètre. Si aucune globale ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	size_t type_globale(const std::string_view &nom);
+	size_t type_globale(const dls::vue_chaine &nom);
 
-	conteneur_globales::const_iterator iter_globale(const std::string_view &nom);
+	conteneur_globales::const_iteratrice iter_globale(const dls::vue_chaine &nom);
 
-	conteneur_globales::const_iterator fin_globales();
+	conteneur_globales::const_iteratrice fin_globales();
 
 	/* ********************************************************************** */
 
@@ -210,30 +211,30 @@ struct ContexteGenerationCode {
 	 * variables.
 	 */
 	void pousse_locale(
-			const std::string_view &nom,
+			const dls::vue_chaine &nom,
 			DonneesVariable const &donnees);
 
-	char drapeaux_variable(std::string_view const &nom);
+	char drapeaux_variable(dls::vue_chaine const &nom);
 
-	DonneesVariable &donnees_variable(const std::string_view &nom);
+	DonneesVariable &donnees_variable(const dls::vue_chaine &nom);
 
 	/**
 	 * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
 	 */
-	bool locale_existe(const std::string_view &nom);
+	bool locale_existe(const dls::vue_chaine &nom);
 
 	/**
 	 * Retourne les données de la locale dont le nom est spécifié en paramètre.
 	 * Si aucune locale ne portant ce nom n'existe, des données vides sont
 	 * retournées.
 	 */
-	size_t type_locale(const std::string_view &nom);
+	size_t type_locale(const dls::vue_chaine &nom);
 
 	/**
 	 * Retourne vrai si la variable locale dont le nom est spécifié peut être
 	 * assignée.
 	 */
-	bool peut_etre_assigne(const std::string_view &nom);
+	bool peut_etre_assigne(const dls::vue_chaine &nom);
 
 	/**
 	 * Indique que l'on débute un nouveau bloc dans la fonction, et donc nous
@@ -266,9 +267,9 @@ struct ContexteGenerationCode {
 	 * Retourne vrai si la variable est un argument variadic. Autrement,
 	 * retourne faux.
 	 */
-	bool est_locale_variadique(const std::string_view &nom);
+	bool est_locale_variadique(const dls::vue_chaine &nom);
 
-	conteneur_locales::const_iterator iter_locale(const std::string_view &nom);
+	conteneur_locales::const_iterator iter_locale(const dls::vue_chaine &nom);
 
 	conteneur_locales::const_iterator debut_locales();
 
@@ -296,21 +297,21 @@ struct ContexteGenerationCode {
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une structure
 	 * ayant déjà été ajouté à la liste de structures de ce contexte.
 	 */
-	bool structure_existe(const std::string_view &nom);
+	bool structure_existe(const dls::vue_chaine &nom);
 
 	/**
 	 * Ajoute les données de la structure dont le nom est spécifié en paramètres
 	 * à la table de structure de ce contexte. Retourne l'id de la structure
 	 * ainsi ajoutée.
 	 */
-	size_t ajoute_donnees_structure(const std::string_view &nom, DonneesStructure &donnees);
+	size_t ajoute_donnees_structure(const dls::vue_chaine &nom, DonneesStructure &donnees);
 
 	/**
 	 * Retourne les données de la structure dont le nom est spécifié en
 	 * paramètre. Si aucune structure ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	DonneesStructure &donnees_structure(const std::string_view &nom);
+	DonneesStructure &donnees_structure(const dls::vue_chaine &nom);
 
 	/**
 	 * Retourne les données de la structure dont l'id est spécifié en
@@ -319,7 +320,7 @@ struct ContexteGenerationCode {
 	 */
 	DonneesStructure &donnees_structure(const size_t id);
 
-	std::string nom_struct(const size_t id) const;
+	dls::chaine nom_struct(const size_t id) const;
 
 	/* ********************************************************************** */
 
@@ -362,20 +363,20 @@ struct ContexteGenerationCode {
 	 */
 	bool non_sur() const;
 
-	std::unordered_map<std::string_view, DonneesStructure> structures{};
+	dls::dico_desordonne<dls::vue_chaine, DonneesStructure> structures{};
 
 private:
 	conteneur_globales globales{};
-	std::vector<std::string_view> nom_structures{};
+	std::vector<dls::vue_chaine> nom_structures{};
 
 	conteneur_locales m_locales{};
-	std::stack<size_t> m_pile_nombre_locales{};
+	dls::pile<size_t> m_pile_nombre_locales{};
 	size_t m_nombre_locales = 0;
 
-	std::stack<size_t> m_pile_nombre_differes{};
+	dls::pile<size_t> m_pile_nombre_differes{};
 	size_t m_nombre_differes = 0;
 
-	using paire_goto = std::pair<std::string_view, std::string>;
+	using paire_goto = std::pair<dls::vue_chaine, std::string>;
 
 	std::vector<paire_goto> m_pile_goto_continue{};
 	std::vector<paire_goto> m_pile_goto_arrete{};

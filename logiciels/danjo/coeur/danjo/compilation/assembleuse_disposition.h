@@ -24,9 +24,11 @@
 
 #pragma once
 
-#include <stack>
 #include <string>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/pile.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "controles_proprietes/donnees_controle.h"
 
@@ -55,10 +57,10 @@ class RepondantBouton;
  * contrôles et de leur conteneur.
  */
 class AssembleurDisposition {
-	std::stack<QBoxLayout *, std::vector<QBoxLayout *>> m_pile_dispositions{};
-	std::stack<QMenu *, std::vector<QMenu *>> m_pile_menus{};
+	dls::pile<QBoxLayout *> m_pile_dispositions{};
+	dls::pile<QMenu *> m_pile_menus{};
 
-	std::vector<std::pair<std::string, QMenu *>> m_donnees_menus{};
+	dls::tableau<std::pair<dls::chaine, QMenu *>> m_donnees_menus{};
 
 	Action *m_derniere_action = nullptr;
 	ControlePropriete *m_dernier_controle = nullptr;
@@ -73,7 +75,7 @@ class AssembleurDisposition {
 
 	QToolBar *m_barre_outils = nullptr;
 
-	std::string m_nom = "";
+	dls::chaine m_nom = "";
 
 	int m_temps = 0;
 	bool m_initialisation_seule = false;
@@ -117,7 +119,7 @@ public:
 	 * contrôle ajouté via ajoute_controle est considéré comme étant une liste
 	 * déroulante.
 	 */
-	void ajoute_item_liste(const std::string &nom, const std::string &valeur);
+	void ajoute_item_liste(const dls::chaine &nom, const dls::chaine &valeur);
 
 	/**
 	 * Ajoute un bouton à la disposition se trouvant au sommet de la pile.
@@ -142,12 +144,12 @@ public:
 	/**
 	 * Ajoute une propriété au dernier contrôle ajouté.
 	 */
-	void propriete_controle(id_morceau identifiant, const std::string &valeur);
+	void propriete_controle(id_morceau identifiant, const dls::chaine &valeur);
 
 	/**
 	 * Ajoute une propriété au dernier bouton ajouté.
 	 */
-	void propriete_bouton(id_morceau indentifiant, const std::string &valeur);
+	void propriete_bouton(id_morceau indentifiant, const dls::chaine &valeur);
 
 	/**
 	 * Retourne la disposition se trouvant au sommet de la pile de dispositions.
@@ -157,13 +159,13 @@ public:
 
 	QMenu *menu();
 
-	void ajoute_menu(const std::string &nom);
+	void ajoute_menu(const dls::chaine &nom);
 
 	void sort_menu();
 
 	void ajoute_action();
 
-	void propriete_action(id_morceau identifiant, const std::string &valeur);
+	void propriete_action(id_morceau identifiant, const dls::chaine &valeur);
 
 	void ajoute_separateur();
 
@@ -181,7 +183,7 @@ public:
 	 * Ajoute un onglet au dernier dossier ajouté. La disposition de l'onglet
 	 * est mise sur la pile de dispositions.
 	 */
-	void ajoute_onglet(const std::string &nom);
+	void ajoute_onglet(const dls::chaine &nom);
 
 	/**
 	 * Achève la création du dernier onglet ajouté. La disposition de l'onglet
@@ -192,18 +194,18 @@ public:
 	/**
 	 * Établie le nom de la disposition étant créée.
 	 */
-	void nom_disposition(const std::string &chaine);
+	void nom_disposition(const dls::chaine &chaine);
 
 	/**
 	 * Retourne le nom de la disposition créée.
 	 */
-	std::string nom_disposition() const;
+	dls::chaine nom_disposition() const;
 
 	/**
 	 * Retourne un vecteur contenant des paires composées de noms des menus et
 	 * de ceux-ci.
 	 */
-	const std::vector<std::pair<std::string, QMenu *> > &donnees_menus() const;
+	const dls::tableau<std::pair<dls::chaine, QMenu *> > &donnees_menus() const;
 
 	/**
 	 * Créé une nouvelle barre à outils qui remplace toute barre à outils

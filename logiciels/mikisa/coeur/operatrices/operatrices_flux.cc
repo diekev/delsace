@@ -61,12 +61,12 @@
 
 /* ************************************************************************** */
 
-static void corrige_chemin_pour_temps(std::string &chemin, const int image)
+static void corrige_chemin_pour_temps(dls::chaine &chemin, const int image)
 {
 	/* Trouve le dernier point. */
-	auto pos_dernier_point = chemin.find_last_of('.');
+	auto pos_dernier_point = chemin.trouve_dernier_de('.');
 
-	if (pos_dernier_point == std::string::npos || pos_dernier_point == 0) {
+	if (pos_dernier_point == dls::chaine::npos || pos_dernier_point == 0) {
 		//std::cerr << "Ne peut pas trouver le dernier point !\n";
 		return;
 	}
@@ -80,7 +80,7 @@ static void corrige_chemin_pour_temps(std::string &chemin, const int image)
 		pos_point_precedent -= 1;
 	}
 
-	if (pos_point_precedent == std::string::npos || pos_point_precedent == 0) {
+	if (pos_point_precedent == dls::chaine::npos || pos_point_precedent == 0) {
 		//std::cerr << "Ne peut pas trouver le point précédent !\n";
 		return;
 	}
@@ -96,11 +96,11 @@ static void corrige_chemin_pour_temps(std::string &chemin, const int image)
 
 	//std::cerr << "Nombre de caractères pour l'image : " << taille_nombre_image << '\n';
 
-	auto chaine_image = std::to_string(image);
+	auto chaine_image = dls::chaine(std::to_string(image));
 
-	chaine_image.insert(0, taille_nombre_image - chaine_image.size(), '0');
+	chaine_image.insere(0, taille_nombre_image - chaine_image.taille(), '0');
 
-	chemin.replace(pos_point_precedent + 1, chaine_image.size(), chaine_image);
+	chemin.remplace(pos_point_precedent + 1, chaine_image.taille(), chaine_image);
 	//std::cerr << "Nouveau nom " << chemin << '\n';
 }
 
@@ -200,7 +200,7 @@ public:
 
 class OperatriceLectureJPEG : public OperatriceImage {
 	type_image m_image_chargee{};
-	std::string m_dernier_chemin = "";
+	dls::chaine m_dernier_chemin = "";
 	PoigneeFichier *m_poignee_fichier = nullptr;
 
 public:
@@ -246,9 +246,9 @@ public:
 		auto const &rectangle = contexte.resolution_rendu;
 		auto tampon = m_image.ajoute_calque(nom_calque, rectangle);
 
-		std::string chemin = evalue_chaine("chemin");
+		dls::chaine chemin = evalue_chaine("chemin");
 
-		if (chemin.empty()) {
+		if (chemin.est_vide()) {
 			ajoute_avertissement("Le chemin de fichier est vide !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -261,7 +261,7 @@ public:
 			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
 			auto donnees = std::any(&m_image_chargee);
 
-			if (chemin.find(".exr") != std::string::npos) {
+			if (chemin.trouve(".exr") != dls::chaine::npos) {
 				m_poignee_fichier->lecture_chemin(charge_exr, donnees);
 			}
 			else {
@@ -492,7 +492,7 @@ public:
 
 		auto nom_objet = evalue_chaine("nom_objet");
 
-		if (nom_objet.empty()) {
+		if (nom_objet.est_vide()) {
 			this->ajoute_avertissement("Aucun objet sélectionné");
 			return EXECUTION_ECHOUEE;
 		}

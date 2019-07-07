@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.h"
@@ -39,11 +40,11 @@ namespace danjo {
  * mots-clés du langage.
  */
 class Decoupeuse {
-	size_t m_position{0};
-	size_t m_position_ligne{0};
-	size_t m_pos_mot{0};
-	size_t m_ligne{0};
-	size_t m_taille_mot_courant{0};
+	long m_position{0};
+	long m_position_ligne{0};
+	long m_pos_mot{0};
+	long m_ligne{0};
+	long m_taille_mot_courant{0};
 	bool m_fini{false};
 	char m_caractere_courant{'\0'};
 	const char *m_debut = nullptr;
@@ -81,7 +82,7 @@ public:
 	 * Ajoute un identifiant au vecteur d'identifiants avec les données passées
 	 * en paramètres.
 	 */
-	void ajoute_identifiant(id_morceau identifiant, const std::string_view &contenu);
+	void ajoute_identifiant(id_morceau identifiant, const dls::vue_chaine &contenu);
 
 	/**
 	 * Retourne la liste de morceaux découpés.
@@ -116,7 +117,7 @@ private:
 	 * le mot courant passé via le paramètre 'quoi'.
 	 */
 	/* cppcheck-suppress unusedPrivateFunction */
-	void impression_debogage(const std::string &quoi);
+	void impression_debogage(const dls::chaine &quoi);
 
 	/**
 	 * Avance le curseur sur le tampon du nombre de crans spécifié en paramètre.
@@ -164,17 +165,17 @@ private:
 	[[nodiscard]] char caractere_voisin(int n = 1) const;
 
 	/**
-	 * Retourne une string_view sur le mot dont le début à été marqué par le
+	 * Retourne une vue_chaine sur le mot dont le début à été marqué par le
 	 * dernier appel à enregistre_pos_mot(), et dont la taille correspond au
 	 * nombre d'appel à pousse_caractère() depuis l'enregistrement de la
 	 * position.
 	 */
-	[[nodiscard]] std::string_view mot_courant() const;
+	[[nodiscard]] dls::vue_chaine mot_courant() const;
 
 	/**
 	 * Lance une erreur dont le message correspond au paramètre 'quoi'.
 	 */
-	[[noreturn]] void lance_erreur(const std::string &quoi) const;
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi) const;
 };
 
 }  /* namespace danjo */

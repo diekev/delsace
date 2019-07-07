@@ -25,8 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
-#include <stack>
-#include <vector>
+#include "biblinternes/structures/pile.hh"
 
 /**
  * La classe PileMatrice gère l'accumulation et la composition de matrices dans
@@ -37,7 +36,7 @@
  * pour dessiner l'objet courant.
  */
 class PileMatrice {
-	std::stack<dls::math::mat4x4d, std::vector<dls::math::mat4x4d>> m_pile{};
+	dls::pile<dls::math::mat4x4d> m_pile{};
 
 public:
 	/**
@@ -68,16 +67,16 @@ public:
 
 inline void PileMatrice::pousse(dls::math::mat4x4d const &mat)
 {
-	m_pile.push(m_pile.top() * mat);
+	m_pile.empile(m_pile.haut() * mat);
 }
 
 inline void PileMatrice::enleve_sommet()
 {
-	m_pile.pop();
+	m_pile.depile();
 }
 
 inline dls::math::mat4x4d const &PileMatrice::sommet() const
 {
-	return m_pile.top();
+	return m_pile.haut();
 }
 

@@ -24,7 +24,9 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
+
+#include "compilation/morceaux.h"
 
 namespace danjo {
 
@@ -33,17 +35,17 @@ namespace danjo {
  * erreur de frappe est repérée.
  */
 class ErreurFrappe {
-	std::string m_quoi{""};
+	dls::chaine m_quoi{""};
 
 public:
 	/**
 	 * Construit le message d'erreur selon les paramètres passés.
 	 */
 	ErreurFrappe(
-			const std::string_view &ligne,
-			size_t numero_ligne,
-			size_t position_ligne,
-			const std::string_view &quoi);
+			const dls::vue_chaine &ligne,
+			long numero_ligne,
+			long position_ligne,
+			const dls::vue_chaine &quoi);
 
 	/**
 	 * Retourne le message d'erreur.
@@ -56,18 +58,19 @@ public:
  * erreur de syntaxe est repérée.
  */
 class ErreurSyntactique {
-	std::string m_quoi{""};
+	dls::chaine m_quoi{""};
 
 public:
 	/**
 	 * Construit le message d'erreur selon les paramètres passés.
 	 */
 	ErreurSyntactique(
-			const std::string_view &ligne,
-			size_t numero_ligne,
-			size_t position_ligne,
-			const std::string_view &quoi,
-			const std::string_view &contenu);
+			const dls::vue_chaine &ligne,
+			long numero_ligne,
+			long position_ligne,
+			const dls::vue_chaine &quoi,
+			const dls::vue_chaine &contenu,
+			id_morceau id);
 
 	/**
 	 * Retourne le message d'erreur.

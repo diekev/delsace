@@ -146,7 +146,7 @@ static void imprime_type(std::ostream &os, const Colonne &colonne, bool est_ref)
 	}
 }
 
-const Table &trouve_table(const Schema &schema, const std::string &nom)
+const Table &trouve_table(const Schema &schema, const dls::chaine &nom)
 {
 	for (const auto &table : schema.tables) {
 		if (table.nom == nom) {
@@ -157,7 +157,7 @@ const Table &trouve_table(const Schema &schema, const std::string &nom)
 	throw "table inconnue";
 }
 
-const Colonne &trouve_colonne(const Table &table, const std::string &nom)
+const Colonne &trouve_colonne(const Table &table, const dls::chaine &nom)
 {
 	for (const auto &colonne : table.colonnes) {
 		if (colonne.nom == nom) {

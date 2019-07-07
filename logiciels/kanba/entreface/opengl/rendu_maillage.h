@@ -26,7 +26,6 @@
 
 #include "biblinternes/math/matrice.hh"
 
-#include <map>
 #include <vector>
 
 class ContexteRendu;

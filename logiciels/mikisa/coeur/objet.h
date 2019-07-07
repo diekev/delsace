@@ -26,6 +26,8 @@
 
 #include "biblinternes/graphe/graphe.h"
 
+#include "biblinternes/structures/chaine.hh"
+
 #include "biblinternes/transformation/transformation.h"
 
 #include "corps/corps.h"
@@ -42,7 +44,7 @@ struct Objet {
 	float echelle_uniforme              = 1.0f;
 
 	/* autres propriétés */
-	std::string nom = "objet";
+	dls::chaine nom = "objet";
 
 	dls::synchronise<Corps> corps{};
 

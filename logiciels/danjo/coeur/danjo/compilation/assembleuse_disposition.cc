@@ -80,11 +80,11 @@ void AssembleurDisposition::ajoute_disposition(id_morceau identifiant)
 			break;
 	}
 
-	if (!m_pile_dispositions.empty()) {
-		m_pile_dispositions.top()->addLayout(disposition);
+	if (!m_pile_dispositions.est_vide()) {
+		m_pile_dispositions.haut()->addLayout(disposition);
 	}
 
-	m_pile_dispositions.push(disposition);
+	m_pile_dispositions.empile(disposition);
 }
 
 void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
@@ -164,7 +164,7 @@ void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
 	m_dernier_controle = controle;
 
 	if (!m_initialisation_seule) {
-		m_pile_dispositions.top()->addWidget(controle);
+		m_pile_dispositions.haut()->addWidget(controle);
 	}
 }
 
@@ -226,7 +226,7 @@ void AssembleurDisposition::cree_controles_proprietes_extra()
 		donnees_etiquette.valeur_defaut = iter->first;
 		etiquette->finalise(donnees_etiquette);
 
-		m_pile_dispositions.top()->addWidget(etiquette);
+		m_pile_dispositions.haut()->addWidget(etiquette);
 
 		ajoute_controle(identifiant);
 		m_donnees_controle.nom = iter->first;
@@ -237,13 +237,13 @@ void AssembleurDisposition::cree_controles_proprietes_extra()
 	}
 }
 
-void AssembleurDisposition::ajoute_item_liste(const std::string &nom, const std::string &valeur)
+void AssembleurDisposition::ajoute_item_liste(const dls::chaine &nom, const dls::chaine &valeur)
 {
 	if (m_initialisation_seule) {
 		return;
 	}
 
-	m_donnees_controle.valeur_enum.push_back({nom, valeur});
+	m_donnees_controle.valeur_enum.pousse({nom, valeur});
 }
 
 void AssembleurDisposition::ajoute_bouton()
@@ -256,7 +256,7 @@ void AssembleurDisposition::ajoute_bouton()
 	bouton->installe_repondant(m_repondant);
 
 	m_dernier_bouton = bouton;
-	m_pile_dispositions.top()->addWidget(bouton);
+	m_pile_dispositions.haut()->addWidget(bouton);
 }
 
 void AssembleurDisposition::finalise_controle()
@@ -295,10 +295,10 @@ void AssembleurDisposition::finalise_controle()
 
 void AssembleurDisposition::sors_disposition()
 {
-	m_pile_dispositions.pop();
+	m_pile_dispositions.depile();
 }
 
-void AssembleurDisposition::propriete_controle(id_morceau identifiant, const std::string &valeur)
+void AssembleurDisposition::propriete_controle(id_morceau identifiant, const dls::chaine &valeur)
 {
 	switch (identifiant) {
 		case id_morceau::INFOBULLE:
@@ -334,7 +334,7 @@ void AssembleurDisposition::propriete_controle(id_morceau identifiant, const std
 	}
 }
 
-void AssembleurDisposition::propriete_bouton(id_morceau identifiant, const std::string &valeur)
+void AssembleurDisposition::propriete_bouton(id_morceau identifiant, const dls::chaine &valeur)
 {
 	if (m_initialisation_seule) {
 		return;
@@ -361,7 +361,7 @@ void AssembleurDisposition::propriete_bouton(id_morceau identifiant, const std::
 	}
 }
 
-void AssembleurDisposition::propriete_action(id_morceau identifiant, const std::string &valeur)
+void AssembleurDisposition::propriete_action(id_morceau identifiant, const dls::chaine &valeur)
 {
 	if (m_initialisation_seule) {
 		return;
@@ -390,11 +390,11 @@ void AssembleurDisposition::propriete_action(id_morceau identifiant, const std::
 
 QBoxLayout *AssembleurDisposition::disposition()
 {
-	if (m_pile_dispositions.empty()) {
+	if (m_pile_dispositions.est_vide()) {
 		return nullptr;
 	}
 
-	return m_pile_dispositions.top();
+	return m_pile_dispositions.haut();
 }
 
 QMenu *AssembleurDisposition::menu()
@@ -402,7 +402,7 @@ QMenu *AssembleurDisposition::menu()
 	return m_menu_racine;
 }
 
-void AssembleurDisposition::ajoute_menu(const std::string &nom)
+void AssembleurDisposition::ajoute_menu(const dls::chaine &nom)
 {
 	if (m_initialisation_seule) {
 		return;
@@ -410,21 +410,21 @@ void AssembleurDisposition::ajoute_menu(const std::string &nom)
 
 	auto menu = new QMenu(nom.c_str());
 
-	if (!m_pile_menus.empty()) {
-		m_pile_menus.top()->addMenu(menu);
+	if (!m_pile_menus.est_vide()) {
+		m_pile_menus.haut()->addMenu(menu);
 	}
 	else {
 		m_menu_racine = menu;
 	}
 
-	m_donnees_menus.push_back({nom, menu});
+	m_donnees_menus.pousse({nom, menu});
 
-	m_pile_menus.push(menu);
+	m_pile_menus.empile(menu);
 }
 
 void AssembleurDisposition::sort_menu()
 {
-	m_pile_menus.pop();
+	m_pile_menus.depile();
 }
 
 void AssembleurDisposition::ajoute_action()
@@ -441,7 +441,7 @@ void AssembleurDisposition::ajoute_action()
 		m_barre_outils->addAction(action);
 	}
 	else {
-		m_pile_menus.top()->addAction(action);
+		m_pile_menus.haut()->addAction(action);
 	}
 
 	m_derniere_action = action;
@@ -453,7 +453,7 @@ void AssembleurDisposition::ajoute_separateur()
 		return;
 	}
 
-	m_pile_menus.top()->addSeparator();
+	m_pile_menus.haut()->addSeparator();
 }
 
 void AssembleurDisposition::ajoute_dossier()
@@ -464,7 +464,7 @@ void AssembleurDisposition::ajoute_dossier()
 
 	QTabWidget *dossier = new QTabWidget;
 
-	m_pile_dispositions.top()->addWidget(dossier);
+	m_pile_dispositions.haut()->addWidget(dossier);
 
 	m_dernier_dossier = dossier;
 }
@@ -474,7 +474,7 @@ void AssembleurDisposition::finalise_dossier()
 	m_dernier_dossier = nullptr;
 }
 
-void AssembleurDisposition::ajoute_onglet(const std::string &nom)
+void AssembleurDisposition::ajoute_onglet(const dls::chaine &nom)
 {
 	if (m_initialisation_seule) {
 		return;
@@ -486,27 +486,27 @@ void AssembleurDisposition::ajoute_onglet(const std::string &nom)
 	auto onglet = new QWidget;
 	onglet->setLayout(disp_onglet);
 
-	m_pile_dispositions.push(disp_onglet);
+	m_pile_dispositions.empile(disp_onglet);
 
 	m_dernier_dossier->addTab(onglet, nom.c_str());
 }
 
 void AssembleurDisposition::finalise_onglet()
 {
-	m_pile_dispositions.pop();
+	m_pile_dispositions.depile();
 }
 
-void AssembleurDisposition::nom_disposition(const std::string &chaine)
+void AssembleurDisposition::nom_disposition(const dls::chaine &chaine)
 {
 	m_nom = chaine;
 }
 
-std::string AssembleurDisposition::nom_disposition() const
+dls::chaine AssembleurDisposition::nom_disposition() const
 {
 	return m_nom;
 }
 
-const std::vector<std::pair<std::string, QMenu *>> &AssembleurDisposition::donnees_menus() const
+const dls::tableau<std::pair<dls::chaine, QMenu *>> &AssembleurDisposition::donnees_menus() const
 {
 	return m_donnees_menus;
 }

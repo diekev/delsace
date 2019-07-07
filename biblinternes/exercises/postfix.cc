@@ -26,8 +26,9 @@
 
 #include <cmath>
 #include <iostream>
-#include <stack>
 #include <vector>
+
+#include "biblinternes/structures/pile.hh"
 
 #include "../outils/conditions.h"
 
@@ -130,70 +131,70 @@ auto split(const std::string &source)
 	return result;
 }
 
-auto postfix(const std::string &expression) -> std::queue<std::string>
+auto postfix(const std::string &expression) -> dls::file<std::string>
 {
-	std::queue<std::string> output;
-	std::stack<std::string> stack;
+	dls::file<std::string> output;
+	dls::pile<std::string> stack;
 
 	const auto &tokens = split(expression);
 
 	for (const auto &token : tokens) {
 		if (isdigit(token[0]) || token[0] == '.') {
-			output.push(token);
+			output.enfile(token);
 			continue;
 		}
 
 		if (is_function(token)) {
-			stack.push(token);
+			stack.empile(token);
 			continue;
 		}
 
 		if (is_operator(token)) {
-			while (   !stack.empty()
-			       && is_operator(stack.top())
-			       && (has_lower_precedence(token, stack.top())))
+			while (   !stack.est_vide()
+				   && is_operator(stack.haut())
+				   && (has_lower_precedence(token, stack.haut())))
 			{
-				output.push(stack.top());
-				stack.pop();
+				output.enfile(stack.haut());
+				stack.depile();
 			}
 
-			stack.push(token);
+			stack.empile(token);
 			continue;
 		}
 
 		if (token == "(") {
-			stack.push(token);
+			stack.empile(token);
 			continue;
 		}
 
 		if (token == ")") {
-			if (stack.empty()) {
+			if (stack.est_vide()) {
 				std::cerr << "Parenthesis mismatch!\n";
 				break;
 			}
 
-			while (stack.top() != "(") {
-				output.push(stack.top());
-				stack.pop();
+			while (stack.haut() != "(") {
+				output.enfile(stack.haut());
+				stack.depile();
 			}
 
 			// pop the left parenthesis from the stack
-			if (stack.top() == "(") {
-				stack.pop();
+			if (stack.haut() == "(") {
+				stack.depile();
 			}
 
 			continue;
 		}
 	}
 
-	while (!stack.empty()) {
-		if (stack.top() == "(") {
+	while (!stack.est_vide()) {
+		if (stack.haut() == "(") {
 			std::cerr << "Parenthesis mismatch!\n";
 			break;
 		}
 
-		output.push(stack.top());
-		stack.pop();
+		output.enfile(stack.haut());
+		stack.depile();
 	}
 
 	return output;
@@ -247,42 +248,42 @@ auto evaluate(const double value, const std::string &fn)
 	return 0.0;
 }
 
-auto evaluate_postfix(std::queue<std::string> &expression) -> double
+auto evaluate_postfix(dls::file<std::string> &expression) -> double
 {
-	std::stack<double> stack;
+	dls::pile<double> stack;
 
 	/* Push a zero on the stack in case the expression starts with a negative
 	 * number, or is empty. */
-	stack.push(0);
+	stack.empile(0);
 
-	while (!expression.empty()) {
+	while (!expression.est_vide()) {
 		auto token = expression.front();
-		expression.pop();
+		expression.defile();
 
 		if (is_operator(token)) {
-			auto op1 = stack.top();
-			stack.pop();
+			auto op1 = stack.haut();
+			stack.depile();
 
-			auto op2 = stack.top();
-			stack.pop();
+			auto op2 = stack.haut();
+			stack.depile();
 
 			auto result = evaluate(op2, op1, token.c_str());
-			stack.push(result);
+			stack.empile(result);
 
 			continue;
 		}
 		else if (is_function(token)) {
-			auto op1 = stack.top();
-			stack.pop();
+			auto op1 = stack.haut();
+			stack.depile();
 
 			auto result = evaluate(op1, token);
-			stack.push(result);
+			stack.empile(result);
 
 			continue;
 		}
 
-		stack.push(std::stod(token));
+		stack.empile(std::stod(token));
 	}
 
-	return stack.top();
+	return stack.haut();
 }

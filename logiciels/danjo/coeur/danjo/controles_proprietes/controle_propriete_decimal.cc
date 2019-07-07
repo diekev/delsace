@@ -40,9 +40,9 @@ namespace danjo {
 
 /* Il s'emblerait que std::atof a du mal à convertir les string en float. */
 template <typename T>
-static T convertie(const std::string &valeur)
+static T convertie(const dls::chaine &valeur)
 {
-	std::istringstream ss(valeur);
+	std::istringstream ss(valeur.c_str());
 	T result;
 
 	ss >> result;

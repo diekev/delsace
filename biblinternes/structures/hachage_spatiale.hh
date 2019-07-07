@@ -24,13 +24,13 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <vector>
-
 #include "biblinternes/math/vecteur.hh"
 
+#include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/tableau.hh"
+
 struct HachageSpatial {
-	std::unordered_map<std::size_t, std::vector<dls::math::vec3f>> m_tableau{};
+	dls::dico_desordonne<std::size_t, dls::tableau<dls::math::vec3f>> m_tableau{};
 
 	/**
 	 * La taille maximum recommandée par la publication de Cline et al. est de
@@ -63,12 +63,12 @@ struct HachageSpatial {
 	 * Retourne un vecteur contenant les positions ayant la même empreinte que
 	 * la position passée en paramètre.
 	 */
-	std::vector<dls::math::vec3f> const &particules(dls::math::vec3f const &position);
+	dls::tableau<dls::math::vec3f> const &particules(dls::math::vec3f const &position);
 
 	/**
 	 * Retourne le nombre d'alvéoles présentes dans la table de hachage.
 	 */
-	size_t taille() const;
+	long taille() const;
 };
 
 /**

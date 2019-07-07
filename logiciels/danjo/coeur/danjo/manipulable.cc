@@ -215,20 +215,20 @@ bool Propriete::trouve_valeurs_temps(int temps, std::experimental::any &v1, std:
 
 Manipulable::iterateur Manipulable::debut()
 {
-	return m_proprietes.begin();
+	return m_proprietes.debut();
 }
 
 Manipulable::iterateur Manipulable::fin()
 {
-	return m_proprietes.end();
+	return m_proprietes.fin();
 }
 
-void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type, const std::experimental::any &valeur)
+void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::experimental::any &valeur)
 {
-	m_proprietes.insert({nom, {valeur, type}});
+	m_proprietes.insere({nom, {valeur, type}});
 }
 
-void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
+void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
 {
 	std::experimental::any valeur;
 
@@ -250,7 +250,7 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 		case TypePropriete::FICHIER_SORTIE:
 		case TypePropriete::CHAINE_CARACTERE:
 		case TypePropriete::TEXTE:
-			valeur = std::experimental::any(std::string(""));
+			valeur = std::experimental::any(dls::chaine(""));
 			break;
 		case TypePropriete::BOOL:
 			valeur = std::experimental::any(false);
@@ -277,14 +277,14 @@ void Manipulable::ajoute_propriete(const std::string &nom, TypePropriete type)
 	m_proprietes[nom] = Propriete{valeur, type};
 }
 
-void Manipulable::ajoute_propriete_extra(const std::string &nom, const Propriete &propriete)
+void Manipulable::ajoute_propriete_extra(const dls::chaine &nom, const Propriete &propriete)
 {
 	Propriete prop = propriete;
 	prop.est_extra = true;
 	m_proprietes[nom] = prop;
 }
 
-int Manipulable::evalue_entier(const std::string &nom, int temps)
+int Manipulable::evalue_entier(const dls::chaine &nom, int temps)
 {
 	Propriete &prop = m_proprietes[nom];
 
@@ -295,7 +295,7 @@ int Manipulable::evalue_entier(const std::string &nom, int temps)
 	return std::experimental::any_cast<int>(prop.valeur);
 }
 
-float Manipulable::evalue_decimal(const std::string &nom, int temps)
+float Manipulable::evalue_decimal(const dls::chaine &nom, int temps)
 {
 	Propriete &prop = m_proprietes[nom];
 
@@ -306,7 +306,7 @@ float Manipulable::evalue_decimal(const std::string &nom, int temps)
 	return std::experimental::any_cast<float>(prop.valeur);
 }
 
-dls::math::vec3f Manipulable::evalue_vecteur(const std::string &nom, int temps)
+dls::math::vec3f Manipulable::evalue_vecteur(const dls::chaine &nom, int temps)
 {
 	Propriete &prop = m_proprietes[nom];
 
@@ -317,7 +317,7 @@ dls::math::vec3f Manipulable::evalue_vecteur(const std::string &nom, int temps)
 	return std::experimental::any_cast<dls::math::vec3f>(prop.valeur);
 }
 
-dls::phys::couleur32 Manipulable::evalue_couleur(const std::string &nom, int temps)
+dls::phys::couleur32 Manipulable::evalue_couleur(const dls::chaine &nom, int temps)
 {
 	Propriete &prop = m_proprietes[nom];
 
@@ -328,52 +328,52 @@ dls::phys::couleur32 Manipulable::evalue_couleur(const std::string &nom, int tem
 	return std::experimental::any_cast<dls::phys::couleur32>(prop.valeur);
 }
 
-std::string Manipulable::evalue_fichier_entree(const std::string &nom)
+dls::chaine Manipulable::evalue_fichier_entree(const dls::chaine &nom)
 {
-	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<dls::chaine>(m_proprietes[nom].valeur);
 }
 
-std::string Manipulable::evalue_fichier_sortie(const std::string &nom)
+dls::chaine Manipulable::evalue_fichier_sortie(const dls::chaine &nom)
 {
-	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<dls::chaine>(m_proprietes[nom].valeur);
 }
 
-std::string Manipulable::evalue_chaine(const std::string &nom)
+dls::chaine Manipulable::evalue_chaine(const dls::chaine &nom)
 {
-	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<dls::chaine>(m_proprietes[nom].valeur);
 }
 
-bool Manipulable::evalue_bool(const std::string &nom)
+bool Manipulable::evalue_bool(const dls::chaine &nom)
 {
 	return std::experimental::any_cast<bool>(m_proprietes[nom].valeur);
 }
 
-std::string Manipulable::evalue_enum(const std::string &nom)
+dls::chaine Manipulable::evalue_enum(const dls::chaine &nom)
 {
-	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<dls::chaine>(m_proprietes[nom].valeur);
 }
 
-std::string Manipulable::evalue_liste(const std::string &nom)
+dls::chaine Manipulable::evalue_liste(const dls::chaine &nom)
 {
-	return std::experimental::any_cast<std::string>(m_proprietes[nom].valeur);
+	return std::experimental::any_cast<dls::chaine>(m_proprietes[nom].valeur);
 }
 
-CourbeCouleur *Manipulable::evalue_courbe_couleur(const std::string &nom)
+CourbeCouleur *Manipulable::evalue_courbe_couleur(const dls::chaine &nom)
 {
 	return std::experimental::any_cast<CourbeCouleur>(&m_proprietes[nom].valeur);
 }
 
-CourbeBezier *Manipulable::evalue_courbe_valeur(const std::string &nom)
+CourbeBezier *Manipulable::evalue_courbe_valeur(const dls::chaine &nom)
 {
 	return std::experimental::any_cast<CourbeBezier>(&m_proprietes[nom].valeur);
 }
 
-RampeCouleur *Manipulable::evalue_rampe_couleur(const std::string &nom)
+RampeCouleur *Manipulable::evalue_rampe_couleur(const dls::chaine &nom)
 {
 	return std::experimental::any_cast<RampeCouleur>(&m_proprietes[nom].valeur);
 }
 
-void Manipulable::rend_propriete_visible(const std::string &nom, bool ouinon)
+void Manipulable::rend_propriete_visible(const dls::chaine &nom, bool ouinon)
 {
 	m_proprietes[nom].visible = ouinon;
 }
@@ -383,37 +383,37 @@ bool Manipulable::ajourne_proprietes()
 	return true;
 }
 
-void Manipulable::valeur_bool(const std::string &nom, bool valeur)
+void Manipulable::valeur_bool(const dls::chaine &nom, bool valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
 
-void Manipulable::valeur_entier(const std::string &nom, int valeur)
+void Manipulable::valeur_entier(const dls::chaine &nom, int valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
 
-void Manipulable::valeur_decimal(const std::string &nom, float valeur)
+void Manipulable::valeur_decimal(const dls::chaine &nom, float valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
 
-void Manipulable::valeur_vecteur(const std::string &nom, const dls::math::vec3f &valeur)
+void Manipulable::valeur_vecteur(const dls::chaine &nom, const dls::math::vec3f &valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
 
-void Manipulable::valeur_couleur(const std::string &nom, const dls::phys::couleur32 &valeur)
+void Manipulable::valeur_couleur(const dls::chaine &nom, const dls::phys::couleur32 &valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
 
-void Manipulable::valeur_chaine(const std::string &nom, const std::string &valeur)
+void Manipulable::valeur_chaine(const dls::chaine &nom, const dls::chaine &valeur)
 {
 	m_proprietes[nom].valeur = valeur;
 }
 
-void *Manipulable::operator[](const std::string &nom)
+void *Manipulable::operator[](const dls::chaine &nom)
 {
 	auto &propriete = m_proprietes[nom];
 	void *pointeur = nullptr;
@@ -436,7 +436,7 @@ void *Manipulable::operator[](const std::string &nom)
 		case TypePropriete::FICHIER_SORTIE:
 		case TypePropriete::CHAINE_CARACTERE:
 		case TypePropriete::TEXTE:
-			pointeur = std::experimental::any_cast<std::string>(&propriete.valeur);
+			pointeur = std::experimental::any_cast<dls::chaine>(&propriete.valeur);
 			break;
 		case TypePropriete::BOOL:
 			pointeur = std::experimental::any_cast<bool>(&propriete.valeur);
@@ -455,17 +455,17 @@ void *Manipulable::operator[](const std::string &nom)
 	return pointeur;
 }
 
-TypePropriete Manipulable::type_propriete(const std::string &nom)
+TypePropriete Manipulable::type_propriete(const dls::chaine &nom)
 {
 	const auto &propriete = m_proprietes[nom];
 	return propriete.type;
 }
 
-Propriete *Manipulable::propriete(const std::string &nom)
+Propriete *Manipulable::propriete(const dls::chaine &nom)
 {
-	auto iter = m_proprietes.find(nom);
+	auto iter = m_proprietes.trouve(nom);
 
-	if (iter == m_proprietes.end()) {
+	if (iter == m_proprietes.fin()) {
 		return nullptr;
 	}
 

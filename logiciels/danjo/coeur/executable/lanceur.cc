@@ -73,8 +73,8 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 		os << "feuille \"" << nom_disposition << "\" {\n";
 		os << "\tentreface {\n";
 
-		auto nom_propriete = std::string("");
-		auto valeur_propriete = std::string("");
+		auto nom_propriete = dls::chaine("");
+		auto valeur_propriete = dls::chaine("");
 
 		while (debut++ != fin) {
 			if (!danjo::est_identifiant_controle(debut->identifiant)) {
@@ -87,8 +87,8 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 
 			auto identifiant = debut->identifiant;
 
-			nom_propriete.clear();
-			valeur_propriete.clear();
+			nom_propriete.efface();
+			valeur_propriete.efface();
 
 			while (debut->identifiant != danjo::id_morceau::PARENTHESE_FERMANTE) {
 				if (debut->identifiant == danjo::id_morceau::VALEUR) {
@@ -107,7 +107,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 				++debut;
 			}
 
-			if (nom_propriete.empty()) {
+			if (nom_propriete.est_vide()) {
 				//imprime_morceaux(decoupeuse.begin(), decoupeuse.end());
 				std::cerr << "Fichier " << chemin << " : attache manquante !\n";
 				continue;

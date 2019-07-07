@@ -72,11 +72,11 @@ def construit_structures():
 	structures = u''
 
 	structures += u'\nstruct DonneesMorceaux {\n'
-	structures += u'\tusing type = size_t;\n'
+	structures += u'\tusing type = unsigned long;\n'
 	structures += u'\tstatic constexpr type INCONNU = ID_INCONNU;\n\n'
-	structures += u'\tstd::string_view chaine;\n'
-	structures += u'\tsize_t ligne_pos;\n'
-	structures += u'\tsize_t identifiant;\n'
+	structures += u'\tdls::vue_chaine chaine;\n'
+	structures += u'\tunsigned long ligne_pos;\n'
+	structures += u'\tunsigned long identifiant;\n'
 	structures += u'};\n'
 
 	return structures
@@ -85,7 +85,7 @@ def construit_structures():
 def construit_tableaux():
 	tableaux = u''
 
-	tableaux += u'static std::map<std::string_view, int> paires_mots_cles = {\n'
+	tableaux += u'static dls::dico<dls::vue_chaine, int> paires_mots_cles = {\n'
 
 	for mot in mot_cles:
 		m = enleve_accent(mot)
@@ -94,7 +94,7 @@ def construit_tableaux():
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<char, int> paires_caracteres_speciaux = {\n'
+	tableaux += u'static dls::dico<char, int> paires_caracteres_speciaux = {\n'
 
 	for c in caracteres_simple:
 		if c[0] == "'":
@@ -211,15 +211,15 @@ bool est_caractere_special(char c, int &i)
 	return true;
 }
 
-int id_chaine(const std::string_view &chaine)
+int id_chaine(const dls::vue_chaine &chaine)
 {
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
 		return ID_CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.find(chaine);
+	auto iterateur = paires_mots_cles.trouve(chaine);
 
-	if (iterateur != paires_mots_cles.end()) {
+	if (iterateur != paires_mots_cles.fin()) {
 		return (*iterateur).second;
 	}
 
@@ -234,13 +234,13 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, int &i);
 
-int id_chaine(const std::string_view &chaine);
+int id_chaine(const dls::vue_chaine &chaine);
 """
 
 with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
-	entete.write(u'#include <string>\n\n')
+	entete.write(u'#include "biblinternes/structures/vue_chaine.hh"\n\n')
 	entete.write(enumeration)
 	entete.write(structures)
 	entete.write(declaration_fonctions)
@@ -249,7 +249,7 @@ with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
 with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.hh"\n\n')
-	source.write(u'#include <map>\n\n')
+	source.write(u'#include "biblinternes/structures/dico.hh"\n\n')
 	source.write(tableaux)
 	source.write(fonction)
 	source.write(fonctions)

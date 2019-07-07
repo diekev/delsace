@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "manipulable.h"
 
@@ -39,16 +39,16 @@ enum {
 
 struct DonneesControle {
 	void *pointeur = nullptr;
-	std::string nom = "";
-	std::string valeur_min = "";
-	std::string valeur_max = "";
-	std::string valeur_defaut = "";
-	std::string precision = "";
-	std::string pas = "";
-	std::string infobulle = "";
-	std::string filtres = "";
-	std::string suffixe = "";
-	std::vector<std::pair<std::string, std::string>> valeur_enum{};
+	dls::chaine nom = "";
+	dls::chaine valeur_min = "";
+	dls::chaine valeur_max = "";
+	dls::chaine valeur_defaut = "";
+	dls::chaine precision = "";
+	dls::chaine pas = "";
+	dls::chaine infobulle = "";
+	dls::chaine filtres = "";
+	dls::chaine suffixe = "";
+	dls::tableau<std::pair<dls::chaine, dls::chaine>> valeur_enum{};
 	TypePropriete type = {};
 
 	bool initialisation = false;

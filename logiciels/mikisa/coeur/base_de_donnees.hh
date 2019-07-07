@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include <string>
-
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 class Composite;
@@ -46,9 +45,9 @@ public:
 
 	/* ********************************************************************** */
 
-	Objet *cree_objet(std::string const &nom);
+	Objet *cree_objet(dls::chaine const &nom);
 
-	Objet *objet(std::string const &nom) const;
+	Objet *objet(dls::chaine const &nom) const;
 
 	void enleve_objet(Objet *objet);
 
@@ -56,17 +55,17 @@ public:
 
 	/* ********************************************************************** */
 
-	Scene *cree_scene(std::string const &nom);
+	Scene *cree_scene(dls::chaine const &nom);
 
-	Scene *scene(std::string const &nom) const;
+	Scene *scene(dls::chaine const &nom) const;
 
 	dls::tableau<Scene *> const &scenes() const;
 
 	/* ********************************************************************** */
 
-	Composite *cree_composite(std::string const &nom);
+	Composite *cree_composite(dls::chaine const &nom);
 
-	Composite *composite(std::string const &nom) const;
+	Composite *composite(dls::chaine const &nom) const;
 
 	dls::tableau<Composite *> const &composites() const;
 };

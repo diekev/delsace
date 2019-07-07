@@ -161,7 +161,7 @@ static void lis_ligne(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 static void lis_groupes_geometries(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
 	std::string groupe;
-	dls::tableau<std::string> groupes;
+	dls::tableau<dls::chaine> groupes;
 
 	while (is >> groupe) {
 		groupes.pousse(groupe);

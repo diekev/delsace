@@ -49,8 +49,8 @@ public:
 	void ajourne_manipulable() override {}
 
 	void obtiens_liste(
-			const std::string &/*attache*/,
-			dls::tableau<std::string> &chaines) override
+			const dls::chaine &/*attache*/,
+			dls::tableau<dls::chaine> &chaines) override
 	{
 		chaines.pousse("action1");
 		chaines.pousse("action2");

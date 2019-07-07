@@ -26,6 +26,8 @@
 
 #include "controle_propriete.h"
 
+#include "biblinternes/structures/chaine.hh"
+
 class QComboBox;
 class QHBoxLayout;
 
@@ -39,8 +41,8 @@ class ControleProprieteEnum final : public ControlePropriete {
 	QHBoxLayout *m_agencement{};
 	QComboBox *m_liste_deroulante{};
 
-	std::string *m_pointeur{};
-	std::string m_valeur_defaut{};
+	dls::chaine *m_pointeur{};
+	dls::chaine m_valeur_defaut{};
 	int m_index_valeur_defaut{};
 	int m_index_courant{};
 

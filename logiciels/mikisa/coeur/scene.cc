@@ -71,7 +71,7 @@ void Scene::ajoute_objet(Objet *objet)
 
 void Scene::ajoute_objet(Noeud *noeud, Objet *objet)
 {
-	table_objet_noeud.insert({objet, noeud});
+	table_objet_noeud.insere({objet, noeud});
 	m_objets.pousse(objet);
 }
 
@@ -80,9 +80,9 @@ void Scene::enleve_objet(Objet *objet)
 	auto iter = std::find(m_objets.debut(), m_objets.fin(), objet);
 	m_objets.erase(iter);
 
-	auto iter_noeud = table_objet_noeud.find(objet);
+	auto iter_noeud = table_objet_noeud.trouve(objet);
 
-	if (iter_noeud == table_objet_noeud.end()) {
+	if (iter_noeud == table_objet_noeud.fin()) {
 		throw std::runtime_error("L'objet n'est pas la table objets/noeuds de la scène !");
 	}
 
@@ -94,7 +94,7 @@ const dls::tableau<Objet *> &Scene::objets()
 	return m_objets;
 }
 
-const std::unordered_map<Objet *, Noeud *> &Scene::table_objets() const
+const dls::dico_desordonne<Objet *, Noeud *> &Scene::table_objets() const
 {
 	return table_objet_noeud;
 }

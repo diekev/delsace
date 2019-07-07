@@ -35,9 +35,9 @@
 
 /* ************************************************************************** */
 
-static void ouvre_fichier_implementation(Mikisa &mikisa, std::string const &chemin_projet)
+static void ouvre_fichier_implementation(Mikisa &mikisa, dls::chaine const &chemin_projet)
 {
-	auto const erreur = coeur::ouvre_projet(chemin_projet, mikisa);
+	auto const erreur = coeur::ouvre_projet(chemin_projet.c_str(), mikisa);
 
 	switch (erreur) {
 		case coeur::erreur_fichier::AUCUNE_ERREUR:
@@ -75,7 +75,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 		auto const chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE);
 
-		if (chemin_projet.empty()) {
+		if (chemin_projet.est_vide()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
@@ -107,7 +107,7 @@ static void sauve_fichier_sous(Mikisa &mikisa)
 	mikisa.chemin_projet(chemin_projet);
 	mikisa.projet_ouvert(true);
 
-	coeur::sauvegarde_projet(chemin_projet, mikisa);
+	coeur::sauvegarde_projet(chemin_projet.c_str(), mikisa);
 }
 
 class CommandeSauvegarder final : public Commande {
@@ -117,7 +117,7 @@ public:
 		auto mikisa = std::any_cast<Mikisa *>(pointeur);
 
 		if (mikisa->projet_ouvert()) {
-			coeur::sauvegarde_projet(mikisa->chemin_projet(), *mikisa);
+			coeur::sauvegarde_projet(mikisa->chemin_projet().c_str(), *mikisa);
 		}
 		else {
 			sauve_fichier_sous(*mikisa);

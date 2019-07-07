@@ -82,9 +82,9 @@ void Maillage::ajoute_quad(const int s0, const int s1, const int s2, const int s
 
 		arrete->index = i;
 
-		auto iter = m_tableau_arretes.find(std::make_pair(arrete->s[1]->index, arrete->s[0]->index));
+		auto iter = m_tableau_arretes.trouve(std::make_pair(arrete->s[1]->index, arrete->s[0]->index));
 
-		if (iter != m_tableau_arretes.end()) {
+		if (iter != m_tableau_arretes.fin()) {
 			arrete->opposee = iter->second;
 			arrete->opposee->opposee = arrete;
 		}
@@ -92,7 +92,7 @@ void Maillage::ajoute_quad(const int s0, const int s1, const int s2, const int s
 			arrete->opposee = nullptr;
 		}
 
-		m_tableau_arretes.insert({std::make_pair(arrete->s[0]->index, arrete->s[1]->index), arrete});
+		m_tableau_arretes.insere({std::make_pair(arrete->s[0]->index, arrete->s[1]->index), arrete});
 
 		poly->a[i] = arrete;
 

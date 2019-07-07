@@ -28,11 +28,10 @@
 
 namespace danjo {
 
-ErreurFrappe::ErreurFrappe(
-		const std::string_view &ligne,
-		size_t numero_ligne,
-		size_t position_ligne,
-		const std::string_view &quoi)
+ErreurFrappe::ErreurFrappe(const dls::vue_chaine &ligne,
+		long numero_ligne,
+		long position_ligne,
+		const dls::vue_chaine &quoi)
 {
 	std::stringstream ss;
 
@@ -50,12 +49,11 @@ const char *ErreurFrappe::quoi() const
 	return m_quoi.c_str();
 }
 
-ErreurSyntactique::ErreurSyntactique(
-		const std::string_view &ligne,
-		size_t numero_ligne,
-		size_t position_ligne,
-		const std::string_view &quoi,
-		const std::string_view &contenu)
+ErreurSyntactique::ErreurSyntactique(const dls::vue_chaine &ligne,
+		long numero_ligne,
+		long position_ligne,
+		const dls::vue_chaine &quoi,
+		const dls::vue_chaine &contenu, id_morceau id)
 {
 	std::stringstream ss;
 
@@ -63,7 +61,7 @@ ErreurSyntactique::ErreurSyntactique(
 	   << ", position "<< position_ligne<< " :\n"
 	   << ligne << '\n'
 	   << quoi << '\n'
-	   << "Obtenu : " << contenu << '\n';
+	   << "Obtenu : " << contenu << " (" << chaine_identifiant(id) << ")\n";
 
 	/* cppcheck-suppress useInitializationList */
 	m_quoi = ss.str();

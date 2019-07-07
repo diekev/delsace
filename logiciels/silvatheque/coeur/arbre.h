@@ -25,7 +25,6 @@
 #pragma once
 
 #include <vector>
-#include <map>
 
 #include "biblinternes/outils/iterateurs.h"
 #include "biblinternes/transformation/transformation.h"

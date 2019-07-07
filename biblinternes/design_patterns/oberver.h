@@ -25,8 +25,9 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <vector>
+
+#include "biblinternes/structures/dico.hh"
 
 /* from https://juanchopanzacpp.wordpress.com/2013/02/24/simple-observer-pattern-implementation-c11/ */
 
@@ -41,7 +42,7 @@ enum class event : int {
 
 template <typename EventType>
 class Subject {
-	std::map<event, std::vector<std::function<void()>>> m_observers{};
+	dls::dico<event, std::vector<std::function<void()>>> m_observers{};
 
 public:
 	template <typename ObserverType>
@@ -58,7 +59,7 @@ public:
 
 	void notify(const EventType &e) const
 	{
-		for (const auto &observer : m_observers.at(e)) {
+		for (const auto &observer : m_observers.a(e)) {
 			observer();
 		}
 	}

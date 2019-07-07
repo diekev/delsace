@@ -46,11 +46,11 @@ const char *frappe::message() const
 	return m_message.c_str();
 }
 
-static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const std::string_view &chaine)
+static void imprime_caractere_vide(std::ostream &os, const long nombre, const dls::vue_chaine &chaine)
 {
 	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
-	for (size_t i = 0; i < nombre; ++i) {
+	for (auto i = 0l; i < nombre; ++i) {
 		if (chaine[i] == '\t') {
 			os << '\t';
 		}
@@ -60,17 +60,17 @@ static void imprime_caractere_vide(std::ostream &os, const size_t nombre, const 
 	}
 }
 
-static void imprime_tilde(std::ostream &os, const std::string_view &chaine)
+static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine)
 {
-	for (size_t i = 0; i < chaine.size() - 1; ++i) {
+	for (auto i = 0; i < chaine.taille() - 1; ++i) {
 		os << '~';
 	}
 }
 
 void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, const DonneesMorceaux &morceau, int type)
 {
-	const auto ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto identifiant = morceau.identifiant;
 	const auto &chaine = morceau.chaine;
 
@@ -97,8 +97,8 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;
@@ -120,12 +120,12 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 [[noreturn]] void lance_erreur_type_arguments(
 		const int type_arg,
 		const int type_enf,
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;
@@ -145,12 +145,12 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 }
 
 [[noreturn]] void lance_erreur_argument_inconnu(
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;
@@ -169,12 +169,12 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 }
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)
 {
-	const auto numero_ligne = morceau.ligne_pos >> 32;
-	const auto pos_mot = morceau.ligne_pos & 0xffffffff;
+	const auto numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto ligne = tampon[numero_ligne];
 
 	std::stringstream ss;

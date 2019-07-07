@@ -25,7 +25,7 @@
 #pragma once
 
 #include <string>
-#include <queue>
+#include <vector>
 
 namespace langage {
 

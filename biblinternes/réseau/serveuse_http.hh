@@ -37,7 +37,7 @@ struct serveuse_http {
 
 	static type_requete construit_requete(const std::string &requete)
 	{
-		std::map<std::string_view, std::string_view> champs;
+		dls::dico<dls::vue_chaine, dls::vue_chaine> champs;
 
 		/* decoupe la requete */
 		size_t decalage = 0;
@@ -47,7 +47,7 @@ struct serveuse_http {
 			++pos;
 		}
 
-		auto chaine_methode = std::string_view(&requete[decalage], pos);
+		auto chaine_methode = dls::vue_chaine(&requete[decalage], pos);
 
 		decalage = pos + 1;
 		pos = decalage;
@@ -56,7 +56,7 @@ struct serveuse_http {
 			++pos;
 		}
 
-		auto cible = std::string_view(&requete[decalage], pos - decalage);
+		auto cible = dls::vue_chaine(&requete[decalage], pos - decalage);
 
 		decalage = pos + 1;
 		pos = decalage;
@@ -65,7 +65,7 @@ struct serveuse_http {
 			++pos;
 		}
 
-		auto version = std::string_view(&requete[decalage], pos - decalage + 1);
+		auto version = dls::vue_chaine(&requete[decalage], pos - decalage + 1);
 
 		std::string cible_corrige;
 		cible_corrige.reserve(cible.size());

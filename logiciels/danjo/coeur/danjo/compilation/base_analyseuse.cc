@@ -35,14 +35,14 @@ base_analyseuse::base_analyseuse(lng::tampon_source const &tampon, dls::tableau<
 	, m_tampon(tampon)
 {}
 
-void base_analyseuse::lance_erreur(const std::string &quoi)
+void base_analyseuse::lance_erreur(const dls::chaine &quoi)
 {
-	const auto numero_ligne = (donnees().ligne_pos >> 32);
-	const auto position_ligne = donnees().ligne_pos & 0xffffffff;
+	const auto numero_ligne = static_cast<long>(donnees().ligne_pos >> 32);
+	const auto position_ligne = static_cast<long>(donnees().ligne_pos & 0xffffffff);
 	const auto ligne = m_tampon[numero_ligne];
 	const auto contenu = donnees().chaine;
 
-	throw ErreurSyntactique(ligne, numero_ligne + 1, position_ligne, quoi, contenu);
+	throw ErreurSyntactique(ligne, numero_ligne + 1, position_ligne, quoi, contenu, donnees().identifiant);
 }
 
 }  /* namespace danjo */

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 struct DonneesMorceaux;
 
@@ -55,7 +55,7 @@ enum {
 };
 
 class frappe {
-	std::string m_message;
+	dls::chaine m_message;
 	int m_type;
 
 public:
@@ -81,17 +81,17 @@ public:
 [[noreturn]] void lance_erreur_type_arguments(
 		const int type_arg,
 		const int type_enf,
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_argument_inconnu(
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
-		const std::string_view &nom_arg,
+		const dls::vue_chaine &nom_arg,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau);
 

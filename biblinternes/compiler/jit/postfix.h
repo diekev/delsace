@@ -24,9 +24,10 @@
 
 #pragma once
 
-#include <queue>
 #include <string>
+
+#include "biblinternes/structures/file.hh"
 
 bool is_operator(const std::string &token);
 
-auto postfix(const std::string &expression) -> std::queue<std::string>;
+auto postfix(const std::string &expression) -> dls::file<std::string>;

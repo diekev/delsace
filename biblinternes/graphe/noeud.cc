@@ -28,13 +28,13 @@
 
 /* ************************************************************************** */
 
-PriseSortie::PriseSortie(std::string const &nom_prise)
+PriseSortie::PriseSortie(dls::chaine const &nom_prise)
 	: nom(nom_prise)
 {}
 
 /* ************************************************************************** */
 
-PriseEntree::PriseEntree(std::string const &nom_prise)
+PriseEntree::PriseEntree(dls::chaine const &nom_prise)
 	: nom(nom_prise)
 {}
 
@@ -71,12 +71,12 @@ void Noeud::donnees(std::any pointeur)
 	this->m_donnees = pointeur;
 }
 
-std::string const &Noeud::nom() const
+dls::chaine const &Noeud::nom() const
 {
 	return m_nom;
 }
 
-void Noeud::nom(std::string const &name)
+void Noeud::nom(dls::chaine const &name)
 {
 	m_nom = name;
 }
@@ -126,7 +126,7 @@ Rectangle const &Noeud::rectangle() const
 	return m_rectangle;
 }
 
-void Noeud::ajoute_entree(std::string const &name, const int type)
+void Noeud::ajoute_entree(dls::chaine const &name, const int type)
 {
 	auto prise = new PriseEntree(name);
 	prise->parent = this;
@@ -135,7 +135,7 @@ void Noeud::ajoute_entree(std::string const &name, const int type)
 	this->m_entrees.pousse(prise);
 }
 
-void Noeud::ajoute_sortie(std::string const &name, const int type)
+void Noeud::ajoute_sortie(dls::chaine const &name, const int type)
 {
 	auto prise = new PriseSortie(name);
 	prise->parent = this;
@@ -151,7 +151,7 @@ PriseEntree *Noeud::entree(long index)
 
 #include <algorithm>
 
-PriseEntree *Noeud::entree(std::string const &nom)
+PriseEntree *Noeud::entree(dls::chaine const &nom)
 {
 	auto op = [&](PriseEntree const *prise)
 	{
@@ -172,7 +172,7 @@ PriseSortie *Noeud::sortie(long index)
 	return m_sorties[index];
 }
 
-PriseSortie *Noeud::sortie(std::string const &nom)
+PriseSortie *Noeud::sortie(dls::chaine const &nom)
 {
 	auto op = [&](PriseSortie const *prise)
 	{

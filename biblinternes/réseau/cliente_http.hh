@@ -125,9 +125,9 @@ struct cliente_http {
 
 		//auto protocol = 10 + (chaine[7] == '1');
 
-		//auto resultat = std::string_view(&chaine[9], 3);
+		//auto resultat = dls::vue_chaine(&chaine[9], 3);
 
-		//auto raison = std::string_view(&chaine[10], 5);
+		//auto raison = dls::vue_chaine(&chaine[10], 5);
 	}
 };
 

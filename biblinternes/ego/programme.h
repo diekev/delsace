@@ -27,7 +27,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <unordered_map>
+
+#include "biblinternes/structures/dico_desordonne.hh"
 
 #include "version.h"
 
@@ -60,8 +61,8 @@ enum {
 class Programme {
 	unsigned int m_programme = 0;
 	unsigned int m_nuanceurs[NOMBRE_NUANCEURS] = { 0, 0, 0, 0, 0, 0 };
-	std::unordered_map<std::string, int> m_attributs{};
-	std::unordered_map<std::string, int> m_uniformes{};
+	dls::dico_desordonne<std::string, int> m_attributs{};
+	dls::dico_desordonne<std::string, int> m_uniformes{};
 
 public:
 	Programme() = default;

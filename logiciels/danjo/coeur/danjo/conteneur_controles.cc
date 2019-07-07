@@ -31,8 +31,8 @@ ConteneurControles::ConteneurControles(QWidget *parent)
 {}
 
 void ConteneurControles::obtiens_liste(
-		const std::string &/*attache*/,
-		dls::tableau<std::string> &chaines)
+		const dls::chaine &/*attache*/,
+		dls::tableau<dls::chaine> &chaines)
 {
 	chaines.clear();
 }

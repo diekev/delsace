@@ -50,5 +50,5 @@ void AdaptriceCreationMaillage::ajoute_polygone(const int *index_sommet, const i
 void AdaptriceCreationMaillage::ajoute_ligne(const int *index, size_t nombre)
 {}
 
-void AdaptriceCreationMaillage::ajoute_objet(std::string const &nom)
+void AdaptriceCreationMaillage::ajoute_objet(dls::chaine const &nom)
 {}

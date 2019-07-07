@@ -39,8 +39,8 @@ Programme::~Programme()
 		glDeleteProgram(m_programme);
 	}
 
-	m_attributs.clear();
-	m_uniformes.clear();
+	m_attributs.efface();
+	m_uniformes.efface();
 }
 
 Programme::Ptr Programme::cree_unique()

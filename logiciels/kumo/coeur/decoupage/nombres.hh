@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 /**
  * Retourne vrai si le caractère spécifié est un nombre décimal, c'est-à-dire
@@ -39,16 +39,16 @@ bool est_nombre_decimal(char c);
  *
  * Retourne le nombre de caractère de la chaîne [debut, fin] qui a été consommé.
  */
-int extrait_nombre(const char *debut, const char *fin, std::string &chaine, int &id_nombre);
+int extrait_nombre(const char *debut, const char *fin, dls::chaine &chaine, int &id_nombre);
 
 /**
  * Converti une chaîne de caractère en un nombre entier de type 'long'. Si la
  * chaîne de caractère représente un nombre qui ne peut être représenté par un
  * entier de type 'long' (64-bit), la valeur maximale 0xffffffff est retournée.
  */
-long converti_chaine_nombre_entier(const std::string_view &chaine, int identifiant);
+long converti_chaine_nombre_entier(const dls::vue_chaine &chaine, int identifiant);
 
 /**
  * Converti une chaîne de caractère en un nombre réel de type 'double'.
  */
-double converti_chaine_nombre_reel(const std::string_view &chaine, int identifiant);
+double converti_chaine_nombre_reel(const dls::vue_chaine &chaine, int identifiant);

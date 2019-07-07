@@ -25,12 +25,14 @@
 #pragma once
 
 #include <any>
-#include <unordered_map>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 
 /* Structure utilisée pour passer les données relatives à une simulation entre
  * les noeuds du graphe de celle-ci. */
 struct DonneesSimulation {
-	std::unordered_map<std::string, std::any> table{};
+	dls::dico_desordonne<dls::chaine, std::any> table{};
 	int temps_debut = 0;
 	int temps_fin = 0;
 	int dernier_temps = 0;

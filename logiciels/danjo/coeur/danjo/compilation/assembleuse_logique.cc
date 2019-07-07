@@ -28,14 +28,14 @@
 
 namespace danjo {
 
-Variable *AssembleuseLogique::ajoute_variable(const std::string &nom)
+Variable *AssembleuseLogique::ajoute_variable(const dls::chaine &nom)
 {
 	auto var = new Variable;
 	var->degree = 0;
 	var->nom = nom;
 
 	m_graphe.ajoute_variable(var);
-	m_noms_variables.insert(nom);
+	m_noms_variables.insere(nom);
 
 	return var;
 }
@@ -45,12 +45,12 @@ void AssembleuseLogique::ajoute_contrainte(contrainte *c)
 	m_graphe.ajoute_contrainte(c);
 }
 
-bool AssembleuseLogique::variable_connue(const std::string &nom)
+bool AssembleuseLogique::variable_connue(const dls::chaine &nom)
 {
-	return m_noms_variables.find(nom) != m_noms_variables.end();
+	return m_noms_variables.trouve(nom) != m_noms_variables.fin();
 }
 
-Variable *AssembleuseLogique::variable(const std::string &nom)
+Variable *AssembleuseLogique::variable(const dls::chaine &nom)
 {
 	auto debut = m_graphe.debut_variable();
 	auto fin = m_graphe.fin_variable();

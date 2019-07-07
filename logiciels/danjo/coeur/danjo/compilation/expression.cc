@@ -25,7 +25,8 @@
 #include "expression.h"
 
 #include <iostream>
-#include <stack>
+
+#include "biblinternes/structures/pile.hh"
 
 #include "manipulable.h"
 #include "morceaux.h"
@@ -215,29 +216,29 @@ bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
 
 Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable)
 {
-	std::stack<Symbole> pile;
+	dls::pile<Symbole> pile;
 
 	/* Pousse un zéro sur la pile si jamais l'expression est vide ou démarre
 	 * avec un nombre négatif. */
-	pile.push({std::experimental::any(0), id_morceau::NOMBRE});
+	pile.empile({std::experimental::any(0), id_morceau::NOMBRE});
 
 	for (const Symbole &symbole : expression) {
 		if (est_operateur(symbole.identifiant)) {
-			auto s2 = pile.top();
-			pile.pop();
+			auto s2 = pile.haut();
+			pile.depile();
 
-			auto s1 = pile.top();
-			pile.pop();
+			auto s1 = pile.haut();
+			pile.depile();
 
 			auto resultat = evalue_operation(s1, s2, symbole.identifiant);
-			pile.push(resultat);
+			pile.empile(resultat);
 		}
 		else if (est_operateur_logique(symbole.identifiant)) {
-			auto s1 = pile.top();
-			pile.pop();
+			auto s1 = pile.haut();
+			pile.depile();
 
 			auto resultat = evalue_operation_logique(s1, symbole.identifiant);
-			pile.push(resultat);
+			pile.empile(resultat);
 		}
 		else {
 			switch (symbole.identifiant) {
@@ -250,7 +251,7 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 				case id_morceau::COULEUR:
 				case id_morceau::VECTEUR:
 				{
-					pile.push(symbole);
+					pile.empile(symbole);
 					break;
 				}
 				case id_morceau::CHAINE_CARACTERE:
@@ -306,14 +307,14 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 						}
 					}
 
-					pile.push(tmp);
+					pile.empile(tmp);
 					break;
 				}
 			}
 		}
 	}
 
-	return pile.top();
+	return pile.haut();
 }
 
 void imprime_valeur_symbole(Symbole symbole, std::ostream &os)

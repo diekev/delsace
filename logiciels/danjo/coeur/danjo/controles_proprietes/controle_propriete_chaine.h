@@ -26,6 +26,8 @@
 
 #include "controle_propriete.h"
 
+#include "biblinternes/structures/chaine.hh"
+
 class QHBoxLayout;
 class QLineEdit;
 class QPushButton;
@@ -40,7 +42,7 @@ class ControleProprieteChaineCaractere final : public ControlePropriete {
 	QHBoxLayout *m_agencement{};
 	QLineEdit *m_editeur_ligne{};
 
-	std::string *m_pointeur{};
+	dls::chaine *m_pointeur{};
 
 public:
 	explicit ControleProprieteChaineCaractere(QWidget *parent = nullptr);
@@ -62,7 +64,7 @@ class ControleProprieteEditeurTexte final : public ControlePropriete {
 	QTextEdit *m_editeur_ligne{};
 	QPushButton *m_bouton{};
 
-	std::string *m_pointeur{};
+	dls::chaine *m_pointeur{};
 
 public:
 	explicit ControleProprieteEditeurTexte(QWidget *parent = nullptr);

@@ -25,7 +25,6 @@
 #include "analyseuse_grammaire.h"
 
 #include <iostream>
-#include <set>
 
 #include "biblinternes/outils/definitions.h"
 
@@ -847,7 +846,7 @@ void analyseuse_grammaire::analyse_appel_fonction()
 	}
 }
 
-void analyseuse_grammaire::lance_erreur(const std::string &quoi, erreur::type_erreur type)
+void analyseuse_grammaire::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 {
 	erreur::lance_erreur(quoi, m_contexte, m_identifiants[position()], type);
 }

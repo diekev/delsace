@@ -68,7 +68,7 @@ void AssembleurControles::setTooltip(QString const &tooltip)
 
 void AssembleurControles::clear()
 {
-	m_tableau_controle.clear();
+	m_tableau_controle.efface();
 	m_controles.clear();
 	vide_agencement(m_agencement);
 }

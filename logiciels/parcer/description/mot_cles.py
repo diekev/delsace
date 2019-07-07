@@ -217,8 +217,8 @@ def construit_structures():
 	structures += u'\nstruct DonneesMorceaux {\n'
 	structures += u'\tusing type = id_morceau;\n'
 	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n'
-	structures += u'\tstd::string_view chaine;\n'
-	structures += u'\tsize_t ligne_pos;\n'
+	structures += u'\tdls::vue_chaine chaine;\n'
+	structures += u'\tunsigned long ligne_pos;\n'
 	structures += u'\tid_morceau identifiant;\n'
 	structures += u'\tint module = 0;\n'
 	structures += u'};\n'
@@ -229,7 +229,7 @@ def construit_structures():
 def construit_tableaux():
 	tableaux = u''
 
-	tableaux += u'static std::map<std::string_view, id_morceau> paires_mots_cles = {\n'
+	tableaux += u'static dls::dico<dls::vue_chaine, id_morceau> paires_mots_cles = {\n'
 
 	for mot in mot_cles:
 		m = enleve_accent(mot)
@@ -238,21 +238,21 @@ def construit_tableaux():
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<std::string_view, id_morceau> paires_digraphes = {\n'
+	tableaux += u'static dls::dico<dls::vue_chaine, id_morceau> paires_digraphes = {\n'
 
 	for c in digraphes:
 		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(c[0], c[1])
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<std::string_view, id_morceau> paires_trigraphes = {\n'
+	tableaux += u'static dls::dico<dls::vue_chaine, id_morceau> paires_trigraphes = {\n'
 
 	for c in trigraphes:
 		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(c[0], c[1])
 
 	tableaux += u'};\n\n'
 
-	tableaux += u'static std::map<char, id_morceau> paires_caracteres_speciaux = {\n'
+	tableaux += u'static dls::dico<char, id_morceau> paires_caracteres_speciaux = {\n'
 
 	for c in caracteres_simple:
 		if c[0] == "'":
@@ -395,37 +395,37 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_digraphe(std::string_view const &chaine)
+id_morceau id_digraphe(dls::vue_chaine const &chaine)
 {
 	if (!tables_digraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_digraphes.find(chaine);
+	auto iterateur = paires_digraphes.trouve(chaine);
 
-	if (iterateur != paires_digraphes.end()) {
+	if (iterateur != paires_digraphes.fin()) {
 		return (*iterateur).second;
 	}
 
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_trigraphe(std::string_view const &chaine)
+id_morceau id_trigraphe(dls::vue_chaine const &chaine)
 {
 	if (!tables_trigraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_trigraphes.find(chaine);
+	auto iterateur = paires_trigraphes.trouve(chaine);
 
-	if (iterateur != paires_trigraphes.end()) {
+	if (iterateur != paires_trigraphes.fin()) {
 		return (*iterateur).second;
 	}
 
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_chaine(std::string_view const &chaine)
+id_morceau id_chaine(dls::vue_chaine const &chaine)
 {
 	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
 		return id_morceau::CHAINE_CARACTERE;
@@ -435,9 +435,9 @@ id_morceau id_chaine(std::string_view const &chaine)
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.find(chaine);
+	auto iterateur = paires_mots_cles.trouve(chaine);
 
-	if (iterateur != paires_mots_cles.end()) {
+	if (iterateur != paires_mots_cles.fin()) {
 		return (*iterateur).second;
 	}
 
@@ -479,17 +479,17 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, id_morceau &i);
 
-id_morceau id_digraphe(std::string_view const &chaine);
+id_morceau id_digraphe(dls::vue_chaine const &chaine);
 
-id_morceau id_trigraphe(std::string_view const &chaine);
+id_morceau id_trigraphe(dls::vue_chaine const &chaine);
 
-id_morceau id_chaine(std::string_view const &chaine);
+id_morceau id_chaine(dls::vue_chaine const &chaine);
 """
 
 with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
-	entete.write(u'#include <string>\n\n')
+	entete.write(u'#include "biblinternes/structures/vue_chaine.hh"\n\n')
 	entete.write(enumeration)
 	entete.write(fonctions_enumeration)
 	entete.write(structures)
@@ -499,7 +499,7 @@ with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
 with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.hh"\n\n')
-	source.write(u'#include <map>\n\n')
+	source.write(u'#include "biblinternes/structures/dico.hh"\n\n')
 	source.write(tableaux)
 	source.write(fonction)
 	source.write(u'\nstatic constexpr auto TAILLE_MAX_MOT_CLE = {};\n'.format(taille_max_mot_cles))
