@@ -24,13 +24,13 @@
 
 #pragma once
 
+#include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
-#include "tampon_source.h"
 
 struct DonneesModule {
-	TamponSource tampon{""};
+	lng::tampon_source tampon{""};
 	dls::tableau<DonneesMorceaux> morceaux{};
 	dls::chaine nom{""};
 	size_t id = 0;

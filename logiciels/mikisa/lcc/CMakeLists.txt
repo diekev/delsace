@@ -33,6 +33,7 @@ set(BIBLIOTHEQUES
 	bib_phys
 	memoire
 	bib_structures
+	langage
 )
 
 set(SOURCES
@@ -51,8 +52,6 @@ set(SOURCES
 	morceaux.hh
 	nombres.h
 	code_inst.hh
-	tampon_source.h
-	unicode.h
 
 	analyseuse_grammaire.cc
 	arbre_syntactic.cc
@@ -69,8 +68,6 @@ set(SOURCES
 	morceaux.cc
 	nombres.cc
 	code_inst.cc
-	tampon_source.cc
-	unicode.cc
 )
 
 add_library(${NOM_PROJET} STATIC "${SOURCES}")

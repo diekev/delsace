@@ -479,7 +479,7 @@ public:
 		auto ctx_gen = ContexteGenerationCode{};
 
 		auto donnees_module = ctx_gen.cree_module("racine");
-		donnees_module->tampon = TamponSource(texte);
+		donnees_module->tampon = lng::tampon_source(texte);
 
 		try {
 			auto decoupeuse = decoupeuse_texte(donnees_module);
@@ -645,7 +645,7 @@ public:
 		auto ctx_gen = ContexteGenerationCode{};
 
 		auto donnees_module = ctx_gen.cree_module("racine");
-		donnees_module->tampon = TamponSource(texte);
+		donnees_module->tampon = lng::tampon_source(texte);
 
 		try {
 			auto decoupeuse = decoupeuse_texte(donnees_module);

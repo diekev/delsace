@@ -37,7 +37,6 @@
 #include "donnees_type.h"
 #include "execution_pile.hh"
 #include "fonctions.hh"
-#include "tampon_source.h"
 
 class assembleuse_arbre;
 

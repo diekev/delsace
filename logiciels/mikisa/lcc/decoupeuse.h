@@ -24,10 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/structures/vue_chaine.hh"
+#include "biblinternes/structures/chaine.hh"
 
 #include "morceaux.hh"
-#include "tampon_source.h"
 
 struct DonneesModule;
 

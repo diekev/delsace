@@ -27,11 +27,11 @@
 #include <iostream>
 #include <sstream>
 
+#include "biblinternes/langage/unicode.hh"
+
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
 #include "modules.hh"
-#include "tampon_source.h"
-#include "unicode.h"
 
 namespace erreur {
 
@@ -62,11 +62,7 @@ static void imprime_caractere_vide(std::ostream &os, const long nombre, const dl
 			os << ' ';
 		}
 
-		/* il est possible que l'on reçoive un caractère unicode invalide, donc
-		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
-		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, nombre_octets(&chaine[i]));
-		i += static_cast<long>(n);
+		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 
@@ -74,12 +70,7 @@ static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine)
 {
 	for (auto i = 0l; i < chaine.taille() - 1;) {
 		os << '~';
-
-		/* il est possible que l'on reçoive un caractère unicode invalide, donc
-		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
-		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, nombre_octets(&chaine[i]));
-		i += static_cast<long>(n);
+		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 
@@ -87,12 +78,7 @@ static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine, long 
 {
 	for (auto i = debut; i < fin;) {
 		os << '~';
-
-		/* il est possible que l'on reçoive un caractère unicode invalide, donc
-		 * on incrémente au minimum de 1 pour ne pas être bloqué dans une
-		 * boucle infinie. À FAIRE : trouver mieux */
-		auto n = std::max(1, nombre_octets(&chaine[i]));
-		i += static_cast<long>(n);
+		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 
