@@ -403,15 +403,16 @@ void analyseuse_grammaire::analyse_expression(
 		bool const /*calcul_expression*/)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
+	auto profondeur = m_profondeur++;
 
-	if (m_profondeur >= m_paires_vecteurs.taille()) {
+	if (profondeur >= m_paires_vecteurs.taille()) {
 		lance_erreur("Excès de la pile d'expression autorisée");
 	}
 
-	auto &expression = m_paires_vecteurs[m_profondeur].first;
+	auto &expression = m_paires_vecteurs[profondeur].first;
 	expression.clear();
 
-	auto &pile = m_paires_vecteurs[m_profondeur].second;
+	auto &pile = m_paires_vecteurs[profondeur].second;
 	pile.clear();
 
 	auto vide_pile_operateur = [&](id_morceau id_operateur)
@@ -435,12 +436,12 @@ void analyseuse_grammaire::analyse_expression(
 	 * fermante */
 	auto termine_boucle = false;
 
-	DEB_LOG_EXPRESSION << tabulations[m_profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
+	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
 
 	while (!requiers_identifiant(identifiant_final)) {
 		auto &morceau = m_identifiants[position()];
 
-		DEB_LOG_EXPRESSION << tabulations[m_profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
 		switch (morceau.identifiant) {
 			case id_morceau::CHAINE_CARACTERE:
@@ -492,9 +493,7 @@ void analyseuse_grammaire::analyse_expression(
 					lance_erreur("Attendu une paranthèse ouvrante après la déclaration du constructeur");
 				}
 
-				++m_profondeur;
 				analyse_expression(id_morceau::POINT_VIRGULE);
-				--m_profondeur;
 
 				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 					lance_erreur("Attendu une paranthèse fermante après la déclaration du constructeur");
@@ -644,9 +643,7 @@ void analyseuse_grammaire::analyse_expression(
 					auto noeud = m_assembleuse->empile_noeud(lcc::noeud::type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
 					pile.pousse(noeud);
 
-					++m_profondeur;
 					analyse_expression(id_morceau::CROCHET_FERMANT);
-					--m_profondeur;
 
 					m_assembleuse->depile_noeud(lcc::noeud::type_noeud::OPERATION_BINAIRE);
 				}
@@ -655,9 +652,7 @@ void analyseuse_grammaire::analyse_expression(
 					auto noeud = m_assembleuse->empile_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau, false);
 					pile.pousse(noeud);
 
-					++m_profondeur;
 					analyse_expression(id_morceau::CROCHET_FERMANT);
-					--m_profondeur;
 
 					m_assembleuse->depile_noeud(lcc::noeud::type_noeud::VALEUR);
 				}
@@ -739,6 +734,7 @@ void analyseuse_grammaire::analyse_expression(
 	/* Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
 	 * éviter de crasher lors des fuzz-tests. */
 	if (expression.est_vide()) {
+		--m_profondeur;
 		return;
 	}
 
@@ -753,10 +749,10 @@ void analyseuse_grammaire::analyse_expression(
 
 	pile.reserve(expression.taille());
 
-	DEB_LOG_EXPRESSION << tabulations[m_profondeur] << "Expression :" << FIN_LOG_EXPRESSION;
+	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Expression :" << FIN_LOG_EXPRESSION;
 
 	for (lcc::noeud::base *noeud : expression) {
-		DEB_LOG_EXPRESSION << tabulations[m_profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
 		if (est_operateur_binaire(noeud->identifiant())) {
 			if (pile.taille() < 2) {
@@ -822,6 +818,8 @@ void analyseuse_grammaire::analyse_expression(
 					premier_noeud->donnees_morceau(),
 					dernier_noeud->donnees_morceau());
 	}
+
+	--m_profondeur;
 }
 
 /* f(g(5, 6 + 3 * (2 - 5)), h()); */
@@ -839,9 +837,7 @@ void analyseuse_grammaire::analyse_appel_fonction()
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
-		++m_profondeur;
 		analyse_expression(id_morceau::VIRGULE);
-		--m_profondeur;
 	}
 }
 
