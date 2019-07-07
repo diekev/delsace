@@ -547,7 +547,6 @@ void analyseuse_grammaire::analyse_expression(
 					 * analyse_appel_fonction() */
 					recule();
 
-					/* À FAIRE */
 					termine_boucle = true;
 					break;
 				}

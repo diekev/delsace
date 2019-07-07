@@ -296,7 +296,7 @@ static void charge_STL_ascii(AdaptriceCreationObjet *adaptrice, std::ifstream &f
 			adaptrice->ajoute_sommet(vx, vy, vz);
 		}
 		else if (mot == "endloop") {
-			/* RIEN À FAIRE */
+			/* R-À-F */
 		}
 		else if (mot == "endfacet") {
 			adaptrice->ajoute_polygone(sommets, nullptr, normaux, 3);
@@ -307,7 +307,7 @@ static void charge_STL_ascii(AdaptriceCreationObjet *adaptrice, std::ifstream &f
 			}
 		}
 		else if (mot == "endsolid") {
-			/* RIEN À FAIRE */
+			/* R-À-F */
 		}
 		else {
 			std::cerr << "Mot clé '" << mot << "' inattendu !\n";

@@ -515,9 +515,7 @@ Manipulatrice3D *OperatriceImage::manipulatrice_3d(int /*type*/)
 }
 
 void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*temps*/)
-{
-	/* rien à faire par défaut */
-}
+{}
 
 void OperatriceImage::obtiens_liste(dls::chaine const &/*attache*/, dls::tableau<dls::chaine> &chaines)
 {

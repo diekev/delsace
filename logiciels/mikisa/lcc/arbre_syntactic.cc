@@ -263,7 +263,6 @@ int genere_code(
 		{
 			auto &gest_attrs = contexte_generation.gest_attrs;
 
-			/* À FAIRE : cherche/crée le pointeur pour l'attribut */
 			if (expr_gauche) {
 				if (!gest_attrs.propriete_existe(b->chaine())) {
 					gest_attrs.requiers_attr(dls::chaine(b->chaine()), b->donnees_type, b->pointeur_donnees);
@@ -509,7 +508,6 @@ int genere_code(
 				}
 				case id_morceau::PLUS_UNAIRE:
 				{
-					/* rien à faire */
 					b->pointeur_donnees = pointeur;
 					break;
 				}
