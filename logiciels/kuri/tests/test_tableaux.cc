@@ -24,7 +24,6 @@
 
 #include "test_tableaux.hh"
 
-#include "erreur.h"
 #include "outils.h"
 
 void test_tableaux(dls::test_unitaire::Controleuse &controleuse)

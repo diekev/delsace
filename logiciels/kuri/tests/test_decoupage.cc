@@ -28,7 +28,7 @@
 
 #include "decoupage/contexte_generation_code.h"  // pour DonneesModule
 #include "decoupage/decoupeuse.h"
-#include "modules.hh"
+#include "decoupage/modules.hh"
 
 #undef DEBOGUE_MORCEAUX
 
@@ -150,8 +150,8 @@ decoupeuse_texte decoupeuse(str, str + len);
 	decoupeuse_texte decoupeuse(&module);
 	decoupeuse.genere_morceaux();
 
-	return verifie_morceaux(module.morceaux.begin(),
-							module.morceaux.end(),
+	return verifie_morceaux(module.morceaux.debut(),
+							module.morceaux.fin(),
 							std::begin(donnees_morceaux),
 							std::end(donnees_morceaux));
 }

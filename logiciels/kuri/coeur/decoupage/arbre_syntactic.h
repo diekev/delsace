@@ -219,14 +219,14 @@ struct base {
 
 	std::any valeur_calculee{};
 
-	std::string nom_fonction_appel{}; // À FAIRE : on ne peut pas utiliser valeur_calculee car les prépasses peuvent le changer.
+	dls::chaine nom_fonction_appel{}; // À FAIRE : on ne peut pas utiliser valeur_calculee car les prépasses peuvent le changer.
 
-	size_t index_type = -1ul;
+	long index_type = -1l;
 
 	/* utilisé pour déterminer les types de retour des fonctions à moultretour
 	 * car lors du besoin index_type est utilisé pour le type de retour de la
 	 *  première valeur */
-	size_t index_type_fonc = -1ul;
+	long index_type_fonc = -1l;
 
 	char aide_generation_code = 0;
 	unsigned short drapeaux = 0;
@@ -260,7 +260,7 @@ struct base {
 	/**
 	 * Retourne une référence constante vers la chaine du morceau de ce noeud.
 	 */
-	std::string_view const &chaine() const;
+	dls::vue_chaine const &chaine() const;
 
 	/**
 	 * Retourne une référence constante vers les données du morceau de ce neoud.
@@ -276,12 +276,12 @@ struct base {
 
 void rassemble_feuilles(
 		base *noeud_base,
-		std::vector<base *> &feuilles);
+		dls::tableau<base *> &feuilles);
 
 bool est_constant(base *b);
 
 /* Ajout le nom d'un argument à la liste des noms d'un noeud d'appel */
-void ajoute_nom_argument(base *b, const std::string_view &nom);
+void ajoute_nom_argument(base *b, const dls::vue_chaine &nom);
 
 bool peut_operer(
 		const DonneesType &type1,

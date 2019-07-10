@@ -22,10 +22,10 @@
  *
  */
 
-#include "analyseuse_grammaire.h"
-#include "contexte_generation_code.h"
-#include "decoupeuse.h"
-#include "modules.hh"
+#include "decoupage/analyseuse_grammaire.h"
+#include "decoupage/contexte_generation_code.h"
+#include "decoupage/decoupeuse.h"
+#include "decoupage/modules.hh"
 
 #include <cstdlib>
 #include <cstring>
@@ -33,7 +33,7 @@
 #include <iostream>
 #include <random>
 
-#include <tests/test_aleatoire.hh>
+#include "biblinternes/tests/test_aleatoire.hh"
 
 namespace test_decoupage {
 
@@ -42,11 +42,11 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	try {
 		auto donnees_char = reinterpret_cast<const char *>(donnees);
 
-		std::string texte;
-		texte.reserve(taille + 1ul);
+		dls::chaine texte;
+		texte.reserve(static_cast<long>(taille) + 1l);
 
 		for (auto i = 0ul; i < taille; ++i) {
-			texte.push_back(donnees_char[i]);
+			texte.pousse(donnees_char[i]);
 		}
 
 		auto contexte = ContexteGenerationCode{};
@@ -198,7 +198,7 @@ void parenthese::visite(visiteur_arbre visiteur)
 }
 
 struct appel_fonction : public expression {
-	std::vector<expression *> params{};
+	dls::tableau<expression *> params{};
 
 	virtual void visite(visiteur_arbre visiteur) override;
 };
@@ -231,7 +231,7 @@ void acces_tableau::visite(visiteur_arbre visiteur)
 
 struct arbre {
 	expression *racine{nullptr};
-	std::vector<expression *> noeuds{};
+	dls::tableau<expression *> noeuds{};
 	std::random_device device{};
 	std::uniform_real_distribution<double> rng{0.0, 1.0};
 
@@ -258,14 +258,14 @@ struct arbre {
 
 		if (profondeur >= 32) {
 			auto noeud = new variable{};
-			this->noeuds.push_back(noeud);
+			this->noeuds.pousse(noeud);
 			return noeud;
 		}
 
 		if (p > 0.5) {
 			auto noeud = new parenthese{};
 			noeud->centre = construit_expression_ex(prob / 1.2, profondeur + 1);
-			this->noeuds.push_back(noeud);
+			this->noeuds.pousse(noeud);
 			return noeud;
 		}
 
@@ -275,14 +275,14 @@ struct arbre {
 			case 0:
 			{
 				auto noeud = new variable{};
-				this->noeuds.push_back(noeud);
+				this->noeuds.pousse(noeud);
 				return noeud;
 			}
 			case 1:
 			{
 				auto noeud = new operation_unaire{};
 				noeud->droite = construit_expression_ex(prob / 1.2, profondeur + 1);
-				this->noeuds.push_back(noeud);
+				this->noeuds.pousse(noeud);
 				return noeud;
 			}
 			case 2:
@@ -294,17 +294,17 @@ struct arbre {
 				for (auto i = 0ul; i < n; ++i) {
 					/* construction d'une nouvelle expression, donc réinitialise prob */
 					auto enfant = construit_expression_ex(1.0, profondeur + 1);
-					noeud->params.push_back(enfant);
+					noeud->params.pousse(enfant);
 				}
 
-				this->noeuds.push_back(noeud);
+				this->noeuds.pousse(noeud);
 				return noeud;
 			}
 			case 3:
 			{
 				auto noeud = new acces_tableau{};
 				noeud->param = construit_expression_ex(prob / 1.2, profondeur + 1);
-				this->noeuds.push_back(noeud);
+				this->noeuds.pousse(noeud);
 				return noeud;
 			}
 			default:
@@ -313,7 +313,7 @@ struct arbre {
 				auto noeud = new operation_binaire{};
 				noeud->droite = construit_expression_ex(prob / 1.2, profondeur + 1);
 				noeud->gauche = construit_expression_ex(prob / 1.2, profondeur + 1);
-				this->noeuds.push_back(noeud);
+				this->noeuds.pousse(noeud);
 				return noeud;
 			}
 		}
@@ -327,7 +327,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 #if 0
 	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
 
-	std::vector<DonneesMorceaux> morceaux;
+	dls::tableau<DonneesMorceaux> morceaux;
 	morceaux.reserve(max_morceaux);
 
 	auto dm = DonneesMorceaux{};
@@ -366,34 +366,34 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 #else
 	auto const max_morceaux = taille_tampon / sizeof(id_morceau);
 
-	std::vector<id_morceau> morceaux;
-	morceaux.reserve(max_morceaux);
+	dls::tableau<id_morceau> morceaux;
+	morceaux.reserve(static_cast<long>(max_morceaux));
 
 	for (auto id : sequence_declaration_fonction) {
-		morceaux.push_back(id);
+		morceaux.pousse(id);
 	}
 
-	for (auto n = morceaux.size(); n < max_morceaux - 1; ++n) {
+	for (auto n = morceaux.taille(); n < static_cast<long>(max_morceaux) - 1; ++n) {
 		auto arbre = arbre_expression::arbre{};
 		arbre.construit_expression();
 
 		auto visiteur = [&](id_morceau id)
 		{
-			morceaux.push_back(id);
+			morceaux.pousse(id);
 		};
 
 		arbre.visite(visiteur);
 
-		morceaux.push_back(id_morceau::POINT_VIRGULE);
+		morceaux.pousse(id_morceau::POINT_VIRGULE);
 
-		n += arbre.noeuds.size();
+		n += arbre.noeuds.taille();
 	}
 
-	morceaux.push_back(id_morceau::ACCOLADE_FERMANTE);
+	morceaux.pousse(id_morceau::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+	auto const taille_octet = sizeof(DonneesMorceaux) * static_cast<size_t>(morceaux.taille());
 
-	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #endif
 }
 
@@ -402,7 +402,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 #if 0
 	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
 
-	std::vector<DonneesMorceaux> morceaux;
+	dls::tableau<DonneesMorceaux> morceaux;
 	morceaux.reserve(max_morceaux);
 
 	std::random_device device{};
@@ -440,22 +440,22 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 		static_cast<int>(id_morceau::INCONNU)
 	};
 
-	std::vector<id_morceau> morceaux;
-	morceaux.reserve(max_morceaux);
+	dls::tableau<id_morceau> morceaux;
+	morceaux.reserve(static_cast<long>(max_morceaux));
 
 	for (auto id : sequence_declaration_fonction) {
-		morceaux.push_back(id);
+		morceaux.pousse(id);
 	}
 
-	for (auto n = morceaux.size(); n < max_morceaux - 1; ++n) {
-		morceaux.push_back(static_cast<id_morceau>(rng(device)));
+	for (auto n = morceaux.taille(); n < static_cast<long>(max_morceaux) - 1; ++n) {
+		morceaux.pousse(static_cast<id_morceau>(rng(device)));
 	}
 
-	morceaux.push_back(id_morceau::ACCOLADE_FERMANTE);
+	morceaux.pousse(id_morceau::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+	auto const taille_octet = sizeof(DonneesMorceaux) * static_cast<size_t>(morceaux.taille());
 
-	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #endif
 }
 
@@ -464,8 +464,8 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
 	auto nombre_morceaux = taille / sizeof(id_morceau);
 
-	std::vector<DonneesMorceaux> morceaux;
-	morceaux.reserve(nombre_morceaux);
+	dls::tableau<DonneesMorceaux> morceaux;
+	morceaux.reserve(static_cast<long>(nombre_morceaux));
 
 	auto dm = DonneesMorceaux{};
 	dm.chaine = "texte_test";
@@ -474,7 +474,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 	for (size_t i = 0; i < nombre_morceaux; ++i) {
 		dm.identifiant = donnees_morceaux[i];
-		morceaux.push_back(dm);
+		morceaux.pousse(dm);
 	}
 
 	try {

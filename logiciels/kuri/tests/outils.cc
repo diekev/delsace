@@ -26,10 +26,10 @@
 
 #include <iostream>
 
-#include "analyseuse_grammaire.h"
-#include "contexte_generation_code.h"
-#include "decoupeuse.h"
-#include "modules.hh"
+#include "decoupage/analyseuse_grammaire.h"
+#include "decoupage/contexte_generation_code.h"
+#include "decoupage/decoupeuse.h"
+#include "decoupage/modules.hh"
 
 std::pair<bool, bool> retourne_erreur_lancee(
 		const char *texte,

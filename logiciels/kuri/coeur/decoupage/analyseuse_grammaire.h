@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <delsace/langage/analyseuse.hh>
+#include "biblinternes/langage/analyseuse.hh"
 
 #include "assembleuse_arbre.h"
 #include "erreur.h"
@@ -46,11 +46,11 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 	 * appel vers 'analyse_expression_droite()', mais cela rend la classe peu
 	 * sûre niveau multi-threading.
 	 */
-	using paire_vecteurs = std::pair<std::vector<noeud::base *>, std::vector<noeud::base *>>;
-	std::vector<paire_vecteurs> m_paires_vecteurs;
-	size_t m_profondeur = 0;
+	using paire_vecteurs = std::pair<dls::tableau<noeud::base *>, dls::tableau<noeud::base *>>;
+	dls::tableau<paire_vecteurs> m_paires_vecteurs;
+	long m_profondeur = 0;
 
-	std::string m_racine_kuri{};
+	dls::chaine m_racine_kuri{};
 
 	DonneesModule *m_module;
 
@@ -63,7 +63,7 @@ public:
 	analyseuse_grammaire(
 			ContexteGenerationCode &contexte,
 			DonneesModule *module,
-			std::string const &racine_kuri);
+			dls::chaine const &racine_kuri);
 
 	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
 	 * module. */
@@ -79,7 +79,7 @@ private:
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
 	[[noreturn]] void lance_erreur(
-			const std::string &quoi,
+			const dls::chaine &quoi,
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 
 	void analyse_corps(std::ostream &os);
@@ -90,8 +90,8 @@ private:
 	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_enum();
-	size_t analyse_declaration_type(DonneesType *donnees_type_fonction = nullptr, bool double_point = true);
-	size_t analyse_declaration_type_ex(DonneesType *donnees_type_fonction = nullptr);
+	long analyse_declaration_type(DonneesType *donnees_type_fonction = nullptr, bool double_point = true);
+	long analyse_declaration_type_ex(DonneesType *donnees_type_fonction = nullptr);
 	void analyse_controle_si(type_noeud tn);
 	void analyse_controle_pour();
 	void analyse_construction_structure(noeud::base *noeud);

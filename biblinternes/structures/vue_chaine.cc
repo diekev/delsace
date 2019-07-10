@@ -53,6 +53,16 @@ bool vue_chaine::est_vide() const
 	return m_taille == 0;
 }
 
+const char *vue_chaine::begin() const
+{
+	return &m_ptr[0];
+}
+
+const char *vue_chaine::end() const
+{
+	return &m_ptr[m_taille];
+}
+
 bool operator<(const vue_chaine &c1, const vue_chaine &c2)
 {
 	auto taille = std::max(c1.taille(), c2.taille());

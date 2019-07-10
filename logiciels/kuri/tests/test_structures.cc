@@ -24,8 +24,6 @@
 
 #include "test_structures.hh"
 
-#include "decoupage/erreur.h"
-
 #include "outils.h"
 
 static void test_structure_redefinie(dls::test_unitaire::Controleuse &controleuse)

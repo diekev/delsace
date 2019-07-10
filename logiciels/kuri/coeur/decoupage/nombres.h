@@ -24,8 +24,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "morceaux.hh"
 
 /**
@@ -51,9 +49,9 @@ size_t extrait_nombre(const char *debut, const char *fin, id_morceau &id_nombre)
  * chaine de caractère représente un nombre qui ne peut être représenté par un
  * entier de type 'long' (64-bit), la valeur maximale 0xffffffff est retournée.
  */
-long converti_chaine_nombre_entier(const std::string_view &chaine, id_morceau identifiant);
+long converti_chaine_nombre_entier(const dls::vue_chaine &chaine, id_morceau identifiant);
 
 /**
  * Converti une chaine de caractère en un nombre réel de type 'double'.
  */
-double converti_chaine_nombre_reel(const std::string_view &chaine, id_morceau identifiant);
+double converti_chaine_nombre_reel(const dls::vue_chaine &chaine, id_morceau identifiant);

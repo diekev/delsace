@@ -24,6 +24,6 @@
 
 #pragma once
 
-#include <tests/test_unitaire.hh>
+#include "biblinternes/tests/test_unitaire.hh"
 
 void test_decoupage_nombres(dls::test_unitaire::Controleuse &controleuse);

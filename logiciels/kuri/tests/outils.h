@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "erreur.h"
+#include "decoupage/erreur.h"
 
 std::pair<bool, bool> retourne_erreur_lancee(
 		const char *texte,

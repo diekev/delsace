@@ -24,7 +24,6 @@
 
 #include "test_types.h"
 
-#include "erreur.h"
 #include "outils.h"
 
 static void test_inference_type_echec(dls::test_unitaire::Controleuse &controleuse)

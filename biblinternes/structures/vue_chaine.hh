@@ -46,6 +46,10 @@ public:
 	long taille() const;
 
 	bool est_vide() const;
+
+	const char *begin() const;
+
+	const char *end() const;
 };
 
 bool operator<(vue_chaine const &c1, vue_chaine const &c2);

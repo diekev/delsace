@@ -306,11 +306,11 @@ static auto valides_enfants(base *b, ContexteGenerationCode &contexte)
 static auto valide_appel_pointeur_fonction(
 		base *b,
 		ContexteGenerationCode &contexte,
-		std::list<std::string_view> const &noms_arguments,
-		std::string const &nom_fonction)
+		std::list<dls::vue_chaine> const &noms_arguments,
+		dls::chaine const &nom_fonction)
 {
 	for (auto const &nom : noms_arguments) {
-		if (nom.empty()) {
+		if (nom.est_vide()) {
 			continue;
 		}
 
@@ -341,13 +341,13 @@ static auto valide_appel_pointeur_fonction(
 
 	/* vérifie la compatibilité des arguments pour déterminer
 	 * s'il y aura besoin d'une conversion. */
-	auto nombre_type_retour = 0ul;
+	auto nombre_type_retour = 0l;
 	auto dt_params = donnees_types_parametres(dt_fonc, nombre_type_retour);
 
 	auto enfant = b->enfants.begin();
 
 	/* Validation des types passés en paramètre. */
-	for (size_t i = 0; i < dt_params.size() - nombre_type_retour; ++i) {
+	for (auto i = 0l; i < dt_params.taille() - nombre_type_retour; ++i) {
 		auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
 
 		if (dt_params[i].type_base() == id_morceau::TROIS_POINTS) {
@@ -362,7 +362,7 @@ static auto valide_appel_pointeur_fonction(
 
 	b->nom_fonction_appel = nom_fonction;
 	/* À FAIRE : multiples types retours */
-	auto &dt = dt_params[dt_params.size() - nombre_type_retour];
+	auto &dt = dt_params[dt_params.taille() - nombre_type_retour];
 	b->index_type = contexte.magasin_types.ajoute_type(dt);
 	b->index_type_fonc = index_type;
 	b->aide_generation_code = APPEL_POINTEUR_FONCTION;
@@ -457,7 +457,7 @@ static void valide_acces_membre(
 	}
 
 	if ((type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-		auto const index_structure = size_t(type_structure.type_base() >> 8);
+		auto const index_structure = static_cast<long>(type_structure.type_base() >> 8);
 
 		auto const &nom_membre = membre->chaine();
 
@@ -468,9 +468,9 @@ static void valide_acces_membre(
 			return;
 		}
 
-		auto const iter = donnees_structure.donnees_membres.find(nom_membre);
+		auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
 
-		if (iter == donnees_structure.donnees_membres.end()) {
+		if (iter == donnees_structure.donnees_membres.fin()) {
 			/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
 			erreur::lance_erreur(
 						"Membre inconnu",
@@ -513,7 +513,7 @@ static void valide_acces_membre(
 
 		/* les noms d'arguments sont nécessaire pour trouver la bonne fonction,
 		 * même vides, et il nous faut le bon compte de noms */
-		auto *nom_args = std::any_cast<std::list<std::string_view>>(&membre->valeur_calculee);
+		auto *nom_args = std::any_cast<std::list<dls::vue_chaine>>(&membre->valeur_calculee);
 		nom_args->push_front("");
 
 		performe_validation_semantique(membre, contexte);
@@ -611,13 +611,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				if (argument.est_employe) {
 					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
-					auto id_structure = 0ul;
+					auto id_structure = 0l;
 
 					if (dt_var.type_base() == id_morceau::POINTEUR || dt_var.type_base() == id_morceau::REFERENCE) {
-						id_structure = static_cast<size_t>(dt_var.derefence().type_base() >> 8);
+						id_structure = static_cast<long>(dt_var.derefence().type_base() >> 8);
 					}
 					else {
-						id_structure = static_cast<size_t>(dt_var.type_base() >> 8);
+						id_structure = static_cast<long>(dt_var.type_base() >> 8);
 					}
 
 					auto &ds = contexte.donnees_structure(id_structure);
@@ -663,8 +663,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
-			auto const nom_fonction = std::string(b->morceau.chaine);
-			auto noms_arguments = std::any_cast<std::list<std::string_view>>(&b->valeur_calculee);
+			auto const nom_fonction = dls::chaine(b->morceau.chaine);
+			auto noms_arguments = std::any_cast<std::list<dls::vue_chaine>>(&b->valeur_calculee);
 
 			/* Nous avons un pointeur vers une fonction. */
 			if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
@@ -712,14 +712,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* met en place les drapeaux sur les enfants */
 
-			auto i = 0ul;
-			auto nombre_args_simples = candidate->exprs.size();
+			auto i = 0l;
+			auto nombre_args_simples = candidate->exprs.taille();
 			auto nombre_args_variadics = nombre_args_simples;
 
-			if (!candidate->exprs.empty() && candidate->exprs.back()->type == type_noeud::TABLEAU) {
+			if (!candidate->exprs.est_vide() && candidate->exprs.back()->type == type_noeud::TABLEAU) {
 				/* ne compte pas le tableau */
 				nombre_args_simples -= 1;
-				nombre_args_variadics = candidate->drapeaux.size();
+				nombre_args_variadics = candidate->drapeaux.taille();
 			}
 
 			/* les drapeaux pour les arguments simples */
@@ -730,7 +730,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			/* les drapeaux pour les arguments variadics */
-			if (!candidate->exprs.empty()) {
+			if (!candidate->exprs.est_vide()) {
 				auto noeud_tableau = candidate->exprs.back();
 				auto enfant_tabl = noeud_tableau->enfants.begin();
 
@@ -745,7 +745,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			b->df->est_utilisee = true;
 			b->index_type_fonc = donnees_fonction->index_type;
 
-			if (b->index_type == -1ul) {
+			if (b->index_type == -1l) {
 				/* À FAIRE : multiple types retours */
 				b->index_type = donnees_fonction->idx_types_retours[0];
 			}
@@ -756,7 +756,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->enfants.push_back(enfant);
 			}
 
-			if (donnees_fonction->nom_broye.empty()) {
+			if (donnees_fonction->nom_broye.est_vide()) {
 				b->nom_fonction_appel = nom_fonction;
 			}
 			else {
@@ -800,7 +800,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					}
 				}
 
-				if (b->index_type == -1ul) {
+				if (b->index_type == -1l) {
 					erreur::lance_erreur(
 								"Aucun type précisé",
 								contexte,
@@ -859,7 +859,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			if (b->aide_generation_code == GAUCHE_ASSIGNATION) {
 				b->aide_generation_code = GENERE_CODE_DECL_VAR;
 
-				if (b->index_type == -1ul) {
+				if (b->index_type == -1l) {
 					erreur::lance_erreur(
 								"Aucun type précisé",
 								contexte,
@@ -923,7 +923,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			/* déclare la variable */
-			if (b->index_type != -1ul) {
+			if (b->index_type != -1l) {
 				b->aide_generation_code = GENERE_CODE_DECL_VAR;
 				auto donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
@@ -1024,7 +1024,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			b->index_type = expression->index_type;
 
-			if (b->index_type == -1ul) {
+			if (b->index_type == -1l) {
 				erreur::lance_erreur(
 							"Impossible de définir le type de la variable !",
 							contexte,
@@ -1055,7 +1055,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 								erreur::type_erreur::NORMAL);
 				}
 
-				std::vector<base *> feuilles;
+				dls::tableau<base *> feuilles;
 				rassemble_feuilles(variable, feuilles);
 
 				/* Utilisation du type de la fonction et non
@@ -1064,10 +1064,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto idx_dt_fonc = expression->index_type_fonc;
 				auto &dt_fonc = contexte.magasin_types.donnees_types[idx_dt_fonc];
 
-				auto nombre_type_retour = 0ul;
+				auto nombre_type_retour = 0l;
 				auto dt_params = donnees_types_parametres(dt_fonc, nombre_type_retour);
 
-				if (feuilles.size() != nombre_type_retour) {
+				if (feuilles.taille() != nombre_type_retour) {
 					erreur::lance_erreur(
 								"L'ignorance d'une valeur de retour non implémentée.",
 								contexte,
@@ -1075,13 +1075,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 								erreur::type_erreur::NORMAL);
 				}
 
-				auto decalage = dt_params.size() - nombre_type_retour;
+				auto decalage = dt_params.taille() - nombre_type_retour;
 
-				for (auto i = 0ul; i < feuilles.size(); ++i) {
+				for (auto i = 0l; i < feuilles.taille(); ++i) {
 					auto &f = feuilles[i];
 					auto &dtr = dt_params[decalage + i];
 
-					if (f->index_type == -1ul) {
+					if (f->index_type == -1l) {
 						f->index_type = contexte.magasin_types.ajoute_type(dtr);
 					}
 
@@ -1094,7 +1094,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* Ajourne les données du premier enfant si elles sont invalides, dans le
 			 * cas d'une déclaration de variable. */
-			if (variable->index_type == -1ul) {
+			if (variable->index_type == -1l) {
 				variable->index_type = b->index_type;
 			}
 
@@ -1293,7 +1293,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto index_type = enfant->index_type;
 			auto const &type = contexte.magasin_types.donnees_types[index_type];
 
-			if (b->index_type == -1ul) {
+			if (b->index_type == -1l) {
 				switch (b->identifiant()) {
 					default:
 					{
@@ -1348,21 +1348,21 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto enfant = b->enfants.front();
 
-			auto nombre_retour = df->idx_types_retours.size();
+			auto nombre_retour = df->idx_types_retours.taille();
 
 			if (nombre_retour > 1) {
 				if (enfant->identifiant() == id_morceau::VIRGULE) {
-					std::vector<base *> feuilles;
+					dls::tableau<base *> feuilles;
 					rassemble_feuilles(enfant, feuilles);
 
-					if (feuilles.size() != df->idx_types_retours.size()) {
+					if (feuilles.taille() != df->idx_types_retours.taille()) {
 						erreur::lance_erreur(
 									"Le compte d'expression de retour est invalide",
 									contexte,
 									b->morceau);
 					}
 
-					for (auto i = 0ul; i < feuilles.size(); ++i) {
+					for (auto i = 0l; i < feuilles.taille(); ++i) {
 						auto f = feuilles[i];
 						performe_validation_semantique(f, contexte);
 
@@ -1426,11 +1426,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			/* fais en sorte que les caractères échappés ne soient pas comptés
 			 * comme deux caractères distincts, ce qui ne peut se faire avec la
-			 * std::string_view */
-			std::string corrigee;
-			corrigee.reserve(b->morceau.chaine.size());
+			 * dls::vue_chaine */
+			dls::chaine corrigee;
+			corrigee.reserve(b->morceau.chaine.taille());
 
-			for (size_t i = 0; i < b->morceau.chaine.size(); ++i) {
+			for (auto i = 0l; i < b->morceau.chaine.taille(); ++i) {
 				auto c = b->morceau.chaine[i];
 
 				if (c == '\\') {
@@ -1438,7 +1438,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					++i;
 				}
 
-				corrigee.push_back(c);
+				corrigee.pousse(c);
 			}
 
 			/* À FAIRE : ceci ne fonctionne pas dans le cas des noeuds différés
@@ -1548,14 +1548,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			/* À FAIRE : utilisation du type */
 			auto df = static_cast<DonneesFonction *>(nullptr);
 
-			auto feuilles = std::vector<base *>{};
+			auto feuilles = dls::tableau<base *>{};
 			rassemble_feuilles(enfant1, feuilles);
 
 			for (auto f : feuilles) {
 				verifie_redefinition_variable(f, contexte);
 			}
 
-			auto requiers_index = feuilles.size() == 2;
+			auto requiers_index = feuilles.taille() == 2;
 
 			auto index_type = enfant2->index_type;
 			auto &type = contexte.magasin_types.donnees_types[index_type];
@@ -1576,13 +1576,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				enfant1->index_type = enfant2->index_type;
 
 				df = enfant2->df;
-				auto nombre_vars_ret = df->idx_types_retours.size();
+				auto nombre_vars_ret = df->idx_types_retours.taille();
 
-				if (feuilles.size() == nombre_vars_ret) {
+				if (feuilles.taille() == nombre_vars_ret) {
 					requiers_index = false;
 					b->aide_generation_code = GENERE_BOUCLE_COROUTINE;
 				}
-				else if (feuilles.size() == nombre_vars_ret + 1) {
+				else if (feuilles.taille() == nombre_vars_ret + 1) {
 					requiers_index = true;
 					b->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
 				}
@@ -1633,7 +1633,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				/* À FAIRE : ceci est là pour sauvegarder l'index des coroutines
 				 * lors de l'itération de chaines ou de tableaux, ceci duplique
 				 * le code dans la coulisse C pour le nom de la variable. */
-				auto nom_var = "__i" + std::to_string(b->morceau.ligne_pos);
+				auto nom_var = "__i" + dls::vers_chaine(b->morceau.ligne_pos);
 				contexte.magasin_chaines.push_back(nom_var);
 
 				auto donnees_var = DonneesVariable{};
@@ -1659,9 +1659,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			}
 
-			auto nombre_feuilles = feuilles.size() - requiers_index;
+			auto nombre_feuilles = feuilles.taille() - requiers_index;
 
-			for (auto i = 0ul; i < nombre_feuilles; ++i) {
+			for (auto i = 0l; i < nombre_feuilles; ++i) {
 				auto f = feuilles[i];
 
 				auto donnees_var = DonneesVariable{};
@@ -1694,9 +1694,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			/* À FAIRE : ceci duplique logique coulisse. */
-			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
-			auto goto_brise = "__boucle_pour_brise" + std::to_string(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b->morceau.ligne_pos);
 
 			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
 			contexte.empile_goto_arrete(enfant1->chaine(), (enfant4 != nullptr) ? goto_brise : goto_apres);
@@ -1720,7 +1720,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::TRANSTYPE:
 		{
-			if (b->index_type == -1ul) {
+			if (b->index_type == -1l) {
 				erreur::lance_erreur(
 							"Ne peut transtyper vers un type invalide",
 							contexte,
@@ -1731,7 +1731,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte);
 
-			if (enfant->index_type == -1ul) {
+			if (enfant->index_type == -1l) {
 				erreur::lance_erreur(
 							"Ne peut calculer le type d'origine",
 							contexte,
@@ -1765,7 +1765,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto index_type_debut = enfant1->index_type;
 			auto index_type_fin   = enfant2->index_type;
 
-			if (index_type_debut == -1ul || index_type_fin == -1ul) {
+			if (index_type_debut == -1l || index_type_fin == -1l) {
 				erreur::lance_erreur(
 							"Les types de l'expression sont invalides !",
 							contexte,
@@ -1810,14 +1810,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			valides_enfants(b, contexte);
 
-			auto chaine_var = b->enfants.empty() ? std::string_view{""} : b->enfants.front()->chaine();
+			auto chaine_var = b->enfants.empty() ? dls::vue_chaine{""} : b->enfants.front()->chaine();
 
 			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
 					? contexte.goto_continue(chaine_var)
 					: contexte.goto_arrete(chaine_var);
 
-			if (label_goto.empty()) {
-				if (chaine_var.empty()) {
+			if (label_goto.est_vide()) {
+				if (chaine_var.est_vide()) {
 					erreur::lance_erreur(
 								"'continue' ou 'arrête' en dehors d'une boucle",
 								contexte,
@@ -1838,8 +1838,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::BOUCLE:
 		{
 			/* À FAIRE : ceci duplique logique coulisse */
-			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
 
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
@@ -1867,8 +1867,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			performe_validation_semantique(enfant1, contexte);
 
 			/* À FAIRE : ceci duplique logique coulisse */
-			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
 
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
@@ -1901,14 +1901,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
-			std::vector<base *> feuilles;
+			dls::tableau<base *> feuilles;
 			rassemble_feuilles(b->enfants.front(), feuilles);
 
 			for (auto f : feuilles) {
 				performe_validation_semantique(f, contexte);
 			}
 
-			if (feuilles.empty()) {
+			if (feuilles.est_vide()) {
 				return;
 			}
 
@@ -1931,7 +1931,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			DonneesType dt;
-			dt.pousse(id_morceau::TABLEAU | static_cast<int>(feuilles.size() << 8));
+			dt.pousse(id_morceau::TABLEAU | static_cast<int>(feuilles.taille() << 8));
 			dt.pousse(contexte.magasin_types.donnees_types[type_feuille]);
 
 			b->index_type = contexte.magasin_types.ajoute_type(dt);
@@ -2181,7 +2181,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto verifie_redefinition_membre = [&ds, &contexte](base *enf)
 			{
-				if (ds.donnees_membres.find(enf->chaine()) != ds.donnees_membres.end()) {
+				if (ds.donnees_membres.trouve(enf->chaine()) != ds.donnees_membres.fin()) {
 					erreur::lance_erreur(
 								"Redéfinition du membre",
 								contexte,
@@ -2209,7 +2209,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					performe_validation_semantique(decl_expr, contexte);
 
 					if (decl_membre->index_type != decl_expr->index_type) {
-						if (decl_membre->index_type == -1ul) {
+						if (decl_membre->index_type == -1l) {
 							decl_membre->index_type = decl_expr->index_type;
 						}
 						else {
@@ -2234,15 +2234,15 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					verifie_inclusion_valeur(decl_membre);
 
-					ds.donnees_membres.insert({nom_membre, { ds.donnees_types.size(), decl_expr }});
-					ds.donnees_types.push_back(decl_membre->index_type);
+					ds.donnees_membres.insere({nom_membre, { ds.donnees_types.taille(), decl_expr }});
+					ds.donnees_types.pousse(decl_membre->index_type);
 				}
 				else if (enfant->type == type_noeud::VARIABLE) {
 					verifie_redefinition_membre(enfant);
 					verifie_inclusion_valeur(enfant);
 
-					ds.donnees_membres.insert({enfant->chaine(), { ds.donnees_types.size(), nullptr }});
-					ds.donnees_types.push_back(enfant->index_type);
+					ds.donnees_membres.insere({enfant->chaine(), { ds.donnees_types.taille(), nullptr }});
+					ds.donnees_types.pousse(enfant->index_type);
 				}
 			}
 
@@ -2310,7 +2310,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 
 				if (!duplique) {
-					variables.push_back({std::string(debut->first), {debut->second.donnees_type, debut->second.drapeaux}});
+					variables.pousse({dls::chaine(debut->first), {debut->second.donnees_type, debut->second.drapeaux}});
 				}
 			}
 

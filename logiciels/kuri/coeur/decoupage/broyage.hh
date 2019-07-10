@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
-std::string broye_nom_simple(std::string_view const &nom);
+dls::chaine broye_nom_simple(dls::vue_chaine const &nom);
 
-std::string broye_nom_fonction(
-		std::string_view const &nom_fonction,
-		std::string const &nom_module,
-		size_t index_type);
+dls::chaine broye_nom_fonction(
+		dls::vue_chaine const &nom_fonction,
+		dls::chaine const &nom_module,
+		long index_type);

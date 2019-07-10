@@ -24,7 +24,7 @@
 
 #include "test_unicode.h"
 
-#include <delsace/langage/unicode.hh>
+#include "biblinternes/langage/unicode.hh"
 
 void test_unicode(dls::test_unitaire::Controleuse &controleuse)
 {

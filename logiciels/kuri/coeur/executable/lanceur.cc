@@ -59,7 +59,7 @@
 #include "decoupage/erreur.h"
 #include "decoupage/modules.hh"
 
-#include <chrono/outils.hh>
+#include "biblinternes/chrono/chronometrage.hh"
 
 static const char *options =
 R"(kuri [OPTIONS...] FICHIER
@@ -555,7 +555,7 @@ int main(int argc, char *argv[])
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
-		charge_module(os, chemin_racine_kuri, nom_module, contexte_generation, {}, true);
+		charge_module(os, chemin_racine_kuri, nom_module.c_str(), contexte_generation, {}, true);
 
 		if (ops.emet_arbre) {
 			assembleuse.imprime_code(os);
@@ -568,7 +568,7 @@ int main(int argc, char *argv[])
 
 			initialise_llvm();
 
-			auto erreur = std::string{""};
+			auto erreur = dls::chaine{""};
 			auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
 
 			if (!cible) {
@@ -632,7 +632,7 @@ int main(int argc, char *argv[])
 			of.close();
 
 			auto debut_executable = dls::chrono::maintenant();
-			auto commande = std::string("gcc /tmp/compilation_kuri.c ");
+			auto commande = dls::chaine("gcc /tmp/compilation_kuri.c ");
 
 			switch (ops.optimisation) {
 				case NiveauOptimisation::Aucun:
@@ -667,7 +667,7 @@ int main(int argc, char *argv[])
 			}
 
 			for (auto const &bib : assembleuse.bibliotheques) {
-				commande += " -l" + std::string(bib);
+				commande += " -l" + dls::chaine(bib);
 			}
 
 			commande += " -o ";
@@ -727,7 +727,7 @@ int main(int argc, char *argv[])
 	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
 	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
 	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_aggrege << '\n';
-	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(mem_totale) / temps_aggrege)) << '\n';
+	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(memoire::consommee()) / temps_aggrege)) << '\n';
 
 	os << '\n';
 	os << "Métriques :\n";
@@ -735,7 +735,7 @@ int main(int argc, char *argv[])
 	os << "\tNombre noeuds   : " << nombre_noeuds << '\n';
 
 	os << '\n';
-	os << "Mémoire : " << taille_octet(mem_totale) << '\n';
+	os << "Mémoire : " << taille_octet(mem_totale) << " (" << taille_octet(static_cast<size_t>(memoire::consommee())) << ')' << '\n';
 	os << "\tTampon   : " << taille_octet(metriques.memoire_tampons) << '\n';
 	os << "\tMorceaux : " << taille_octet(metriques.memoire_morceaux) << '\n';
 	os << "\tArbre    : " << taille_octet(mem_arbre) << '\n';

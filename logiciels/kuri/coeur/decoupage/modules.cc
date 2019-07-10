@@ -28,9 +28,8 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <string>
 
-#include <chrono/outils.hh>
+#include "biblinternes/chrono/chronometrage.hh"
 
 #include "analyseuse_grammaire.h"
 #include "assembleuse_arbre.h"
@@ -40,51 +39,54 @@
 
 /* ************************************************************************** */
 
-bool DonneesModule::importe_module(std::string_view const &nom_module) const
+bool DonneesModule::importe_module(dls::vue_chaine const &nom_module) const
 {
-	return modules_importes.find(nom_module) != modules_importes.end();
+	return modules_importes.trouve(nom_module) != modules_importes.fin();
 }
 
-bool DonneesModule::possede_fonction(std::string_view const &nom_fonction) const
+bool DonneesModule::possede_fonction(dls::vue_chaine const &nom_fonction) const
 {
-	return fonctions_exportees.find(nom_fonction) != fonctions_exportees.end();
+	return fonctions_exportees.trouve(nom_fonction) != fonctions_exportees.fin();
 }
 
-void DonneesModule::ajoute_donnees_fonctions(std::string_view const &nom_fonction, DonneesFonction const &donnees)
+void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine const &nom_fonction, DonneesFonction const &donnees)
 {
-	auto iter = fonctions.find(nom_fonction);
+	auto iter = fonctions.trouve(nom_fonction);
 
-	if (iter == fonctions.end()) {
-		fonctions.insert({nom_fonction, {donnees}});
+	if (iter == fonctions.fin()) {
+		/* À FAIRE : initializer_list */
+		auto tabl = dls::tableau<DonneesFonction>();
+		tabl.pousse(donnees);
+		fonctions.insere({nom_fonction, tabl});
 	}
 	else {
-		iter->second.push_back(donnees);
+		iter->second.pousse(donnees);
 	}
 }
 
-std::vector<DonneesFonction> &DonneesModule::donnees_fonction(std::string_view const &nom_fonction) noexcept
+dls::tableau<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept
 {
-	auto iter = fonctions.find(nom_fonction);
+	auto iter = fonctions.trouve(nom_fonction);
 
-	if (iter == fonctions.end()) {
+	if (iter == fonctions.fin()) {
 		assert(false);
 	}
 
 	return iter->second;
 }
 
-bool DonneesModule::fonction_existe(std::string_view const &nom_fonction) const noexcept
+bool DonneesModule::fonction_existe(dls::vue_chaine const &nom_fonction) const noexcept
 {
-	return fonctions.find(nom_fonction) != fonctions.end();
+	return fonctions.trouve(nom_fonction) != fonctions.fin();
 }
 
 size_t DonneesModule::memoire_utilisee() const noexcept
 {
-	auto memoire = fonctions.size() * (sizeof(std::vector<DonneesFonction>) + sizeof(std::string_view));
+	auto memoire = static_cast<size_t>(fonctions.taille()) * (sizeof(dls::tableau<DonneesFonction>) + sizeof(dls::vue_chaine));
 
 	for (auto const &df : fonctions) {
 		for (auto const &fonc : df.second) {
-			memoire += fonc.args.size() * (sizeof(DonneesArgument) + sizeof(std::string_view));
+			memoire += static_cast<size_t>(fonc.args.taille()) * (sizeof(DonneesArgument) + sizeof(dls::vue_chaine));
 		}
 	}
 
@@ -93,8 +95,8 @@ size_t DonneesModule::memoire_utilisee() const noexcept
 
 /* ************************************************************************** */
 
-std::string charge_fichier(
-		std::string const &chemin,
+dls::chaine charge_fichier(
+		const dls::chaine &chemin,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau)
 {
@@ -110,16 +112,16 @@ std::string charge_fichier(
 	}
 
 	fichier.seekg(0, fichier.end);
-	auto const taille_fichier = static_cast<std::string::size_type>(fichier.tellg());
+	auto const taille_fichier = fichier.tellg();
 	fichier.seekg(0, fichier.beg);
 
 	std::string tampon;
-	std::string res;
+	dls::chaine res;
 	res.reserve(taille_fichier);
 
 	while (std::getline(fichier, tampon)) {
 		res += tampon;
-		res.append(1, '\n');
+		res.pousse('\n');
 	}
 
 	return res;
@@ -127,19 +129,19 @@ std::string charge_fichier(
 
 void charge_module(
 		std::ostream &os,
-		std::string const &racine_kuri,
-		std::string const &nom,
+		dls::chaine const &racine_kuri,
+		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau,
 		bool est_racine)
 {
 	auto chemin = nom + ".kuri";
 
-	if (!std::filesystem::exists(chemin)) {
+	if (!std::filesystem::exists(chemin.c_str())) {
 		/* essaie dans la racine kuri */
 		chemin = racine_kuri + "/bibliotheques/" + chemin;
 
-		if (!std::filesystem::exists(chemin)) {
+		if (!std::filesystem::exists(chemin.c_str())) {
 			erreur::lance_erreur(
 						"Impossible de trouver le fichier correspondant au module",
 						contexte,
@@ -148,7 +150,7 @@ void charge_module(
 		}
 	}
 
-	if (!std::filesystem::is_regular_file(chemin)) {
+	if (!std::filesystem::is_regular_file(chemin.c_str())) {
 		erreur::lance_erreur(
 					"Le nom du module ne pointe pas vers un fichier régulier",
 					contexte,
@@ -157,11 +159,11 @@ void charge_module(
 	}
 
 	/* trouve le chemin absolu du module */
-	auto chemin_absolu = std::filesystem::absolute(chemin);
+	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
 	/* Le module racine n'a pas de nom, afin que les noms de ses fonctions ne
 	 * soient pas broyés. */
-	auto module = contexte.cree_module(est_racine ? "" : nom, chemin_absolu);
+	auto module = contexte.cree_module(est_racine ? "" : nom.c_str(), chemin_absolu.c_str());
 
 	if (module == nullptr) {
 		/* le module a déjà été chargé */
@@ -243,14 +245,14 @@ static double verifie_compatibilite(
 static DonneesCandidate verifie_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		DonneesFonction &donnees_fonction,
-		std::list<std::string_view> &noms_arguments_,
+		std::list<dls::vue_chaine> &noms_arguments_,
 		std::list<noeud::base *> const &exprs)
 {
 	auto res = DonneesCandidate{};
 
-	auto const nombre_args = donnees_fonction.args.size();
+	auto const nombre_args = donnees_fonction.args.taille();
 
-	if (!donnees_fonction.est_variadique && (exprs.size() != nombre_args)) {
+	if (!donnees_fonction.est_variadique && (static_cast<long>(exprs.size()) != nombre_args)) {
 		res.etat = FONCTION_INTROUVEE;
 		res.raison = MECOMPTAGE_ARGS;
 		res.df = &donnees_fonction;
@@ -268,20 +270,20 @@ static DonneesCandidate verifie_donnees_fonction(
 	/* ***************** vérifie si les noms correspondent ****************** */
 
 	auto arguments_nommes = false;
-	std::set<std::string_view> args;
+	dls::ensemble<dls::vue_chaine> args;
 	auto dernier_arg_variadique = false;
 
 	/* crée une copie pour ne pas polluer la liste pour les appels suivants */
 	auto noms_arguments = noms_arguments_;
-	auto index = 0ul;
+	auto index = 0l;
 	auto const index_max = nombre_args - donnees_fonction.est_variadique;
 	for (auto &nom_arg : noms_arguments) {
 		if (nom_arg != "") {
 			arguments_nommes = true;
 
-			auto iter = donnees_fonction.args.find(nom_arg);
+			auto iter = donnees_fonction.args.trouve(nom_arg);
 
-			if (iter == donnees_fonction.args.end()) {
+			if (iter == donnees_fonction.args.fin()) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MENOMMAGE_ARG;
 				res.nom_arg = nom_arg;
@@ -291,7 +293,7 @@ static DonneesCandidate verifie_donnees_fonction(
 
 			auto &donnees = iter->second;
 
-			if ((args.find(nom_arg) != args.end()) && !donnees.est_variadic) {
+			if ((args.trouve(nom_arg) != args.fin()) && !donnees.est_variadic) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
 				res.nom_arg = nom_arg;
@@ -309,7 +311,7 @@ static DonneesCandidate verifie_donnees_fonction(
 
 			dernier_arg_variadique = iter->second.est_variadic;
 
-			args.insert(nom_arg);
+			args.insere(nom_arg);
 		}
 		else {
 			if (arguments_nommes == true && dernier_arg_variadique == false) {
@@ -321,7 +323,7 @@ static DonneesCandidate verifie_donnees_fonction(
 
 			if (nombre_args != 0) {
 				auto nom_argument = donnees_fonction.nom_args[index];
-				args.insert(nom_argument);
+				args.insere(nom_argument);
 				nom_arg = nom_argument;
 
 #ifdef NONSUR
@@ -355,13 +357,13 @@ static DonneesCandidate verifie_donnees_fonction(
 	 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
 	 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
 	 * code est généré. */
-	std::vector<noeud::base *> enfants;
+	dls::tableau<noeud::base *> enfants;
 
 	if (fonction_variadique_interne) {
-		enfants.resize(donnees_fonction.args.size());
+		enfants.redimensionne(donnees_fonction.args.taille());
 	}
 	else {
-		enfants.resize(noms_arguments.size());
+		enfants.redimensionne(static_cast<long>(noms_arguments.size()));
 	}
 
 	auto enfant = exprs.begin();
@@ -371,12 +373,12 @@ static DonneesCandidate verifie_donnees_fonction(
 		/* Pour les fonctions variadiques interne, nous créons un tableau
 		 * correspondant au types des arguments. */
 
-		auto nombre_args_var = std::max(0ul, noms_arguments.size() - (nombre_args - 1));
+		auto nombre_args_var = std::max(0l, static_cast<long>(noms_arguments.size()) - (nombre_args - 1));
 		auto index_premier_var_arg = nombre_args - 1;
 
 		noeud_tableau = contexte.assembleuse->cree_noeud(
 					type_noeud::TABLEAU, contexte, (*enfant)->morceau);
-		noeud_tableau->valeur_calculee = static_cast<long>(nombre_args_var);
+		noeud_tableau->valeur_calculee = nombre_args_var;
 		noeud_tableau->drapeaux |= EST_CALCULE;
 		auto nom_arg = donnees_fonction.nom_args.back();
 
@@ -389,20 +391,20 @@ static DonneesCandidate verifie_donnees_fonction(
 
 	res.raison = AUCUNE_RAISON;
 
-	auto nombre_arg_variadic = 0ul;
-	auto nombre_arg_variadic_drapeau = 0ul;
+	auto nombre_arg_variadic = 0l;
+	auto nombre_arg_variadic_drapeau = 0l;
 
-	std::vector<niveau_compat> drapeaux;
-	drapeaux.resize(exprs.size());
+	dls::tableau<niveau_compat> drapeaux;
+	drapeaux.redimensionne(static_cast<long>(exprs.size()));
 
 	for (auto const &nom : noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
 		 * car ça a déjà été fait plus haut. */
-		auto const iter = donnees_fonction.args.find(nom);
+		auto const iter = donnees_fonction.args.trouve(nom);
 		auto index_arg = iter->second.index;
 		auto const index_type_arg = iter->second.donnees_type;
 		auto const index_type_enf = (*enfant)->index_type;
-		auto const &type_arg = index_type_arg == -1ul ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
+		auto const &type_arg = (index_type_arg == -1l) ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
 		auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
 
 		/* À FAIRE : arguments variadics : comment les passer d'une
@@ -471,8 +473,8 @@ static DonneesCandidate verifie_donnees_fonction(
 
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
-		std::string_view const &nom,
-		std::list<std::string_view> &noms_arguments,
+		dls::vue_chaine const &nom,
+		std::list<dls::vue_chaine> &noms_arguments,
 		std::list<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel)
@@ -491,7 +493,7 @@ ResultatRecherche cherche_donnees_fonction(
 
 		for (auto &df : vdf) {
 			auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-			res.candidates.push_back(dc);
+			res.candidates.pousse(dc);
 		}
 
 		return res;
@@ -504,7 +506,7 @@ ResultatRecherche cherche_donnees_fonction(
 
 		for (auto &df : vdf) {
 			auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-			res.candidates.push_back(dc);
+			res.candidates.pousse(dc);
 		}
 	}
 
@@ -517,7 +519,7 @@ ResultatRecherche cherche_donnees_fonction(
 
 			for (auto &df : vdf) {
 				auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-				res.candidates.push_back(dc);
+				res.candidates.pousse(dc);
 			}
 		}
 	}

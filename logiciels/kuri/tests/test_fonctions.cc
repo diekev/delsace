@@ -24,7 +24,6 @@
 
 #include "test_fonctions.h"
 
-#include "erreur.h"
 #include "outils.h"
 
 #ifdef NONSUR

@@ -26,9 +26,9 @@
  
 #include "morceaux.hh"
 
-#include <map>
+#include "biblinternes/structures/dico.hh"
 
-static std::map<std::string_view, id_morceau> paires_mots_cles = {
+static dls::dico<dls::vue_chaine, id_morceau> paires_mots_cles = {
 	{ "arrête", id_morceau::ARRETE },
 	{ "associe", id_morceau::ASSOCIE },
 	{ "bool", id_morceau::BOOL },
@@ -85,7 +85,7 @@ static std::map<std::string_view, id_morceau> paires_mots_cles = {
 	{ "énum", id_morceau::ENUM },
 };
 
-static std::map<std::string_view, id_morceau> paires_digraphes = {
+static dls::dico<dls::vue_chaine, id_morceau> paires_digraphes = {
 	{ "!=", id_morceau::DIFFERENCE },
 	{ "#!", id_morceau::DIRECTIVE },
 	{ "%=", id_morceau::MODULO_EGAL },
@@ -105,13 +105,13 @@ static std::map<std::string_view, id_morceau> paires_digraphes = {
 	{ "||", id_morceau::BARRE_BARRE },
 };
 
-static std::map<std::string_view, id_morceau> paires_trigraphes = {
+static dls::dico<dls::vue_chaine, id_morceau> paires_trigraphes = {
 	{ "...", id_morceau::TROIS_POINTS },
 	{ "<<=", id_morceau::DEC_GAUCHE_EGAL },
 	{ ">>=", id_morceau::DEC_DROITE_EGAL },
 };
 
-static std::map<char, id_morceau> paires_caracteres_speciaux = {
+static dls::dico<char, id_morceau> paires_caracteres_speciaux = {
 	{ '!', id_morceau::EXCLAMATION },
 	{ '"', id_morceau::GUILLEMET },
 	{ '#', id_morceau::DIESE },
@@ -432,39 +432,39 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_digraphe(const std::string_view &chaine)
+id_morceau id_digraphe(const dls::vue_chaine &chaine)
 {
 	if (!tables_digraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_digraphes.find(chaine);
+	auto iterateur = paires_digraphes.trouve(chaine);
 
-	if (iterateur != paires_digraphes.end()) {
+	if (iterateur != paires_digraphes.fin()) {
 		return (*iterateur).second;
 	}
 
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_trigraphe(const std::string_view &chaine)
+id_morceau id_trigraphe(const dls::vue_chaine &chaine)
 {
 	if (!tables_trigraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_trigraphes.find(chaine);
+	auto iterateur = paires_trigraphes.trouve(chaine);
 
-	if (iterateur != paires_trigraphes.end()) {
+	if (iterateur != paires_trigraphes.fin()) {
 		return (*iterateur).second;
 	}
 
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_chaine(const std::string_view &chaine)
+id_morceau id_chaine(const dls::vue_chaine &chaine)
 {
-	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
+	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
@@ -472,9 +472,9 @@ id_morceau id_chaine(const std::string_view &chaine)
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.find(chaine);
+	auto iterateur = paires_mots_cles.trouve(chaine);
 
-	if (iterateur != paires_mots_cles.end()) {
+	if (iterateur != paires_mots_cles.fin()) {
 		return (*iterateur).second;
 	}
 

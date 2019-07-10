@@ -24,12 +24,11 @@
 
 #include <fstream>
 #include <iostream>
-#include <vector>
 
-#include "analyseuse_grammaire.h"
-#include "contexte_generation_code.h"
-#include "decoupeuse.h"
-#include "modules.hh"
+#include "decoupage/analyseuse_grammaire.h"
+#include "decoupage/contexte_generation_code.h"
+#include "decoupage/decoupeuse.h"
+#include "decoupage/modules.hh"
 
 int main(int argc, char *argv[])
 {
@@ -41,10 +40,10 @@ int main(int argc, char *argv[])
 	std::ifstream fichier(argv[1]);
 
 	fichier.seekg(0, fichier.end);
-	auto const taille_fichier = static_cast<size_t>(fichier.tellg());
+	auto const taille_fichier = fichier.tellg();
 	fichier.seekg(0, fichier.beg);
 
-	char *donnees = new char[taille_fichier];
+	char *donnees = new char[static_cast<size_t>(taille_fichier)];
 
 	fichier.read(donnees, static_cast<long>(taille_fichier));
 
@@ -52,8 +51,8 @@ int main(int argc, char *argv[])
 	try {
 		auto contexte = ContexteGenerationCode{};
 		auto module = contexte.cree_module("", "");
-		auto vue_donnees = std::string_view(donnees, taille_fichier);
-		module->tampon = lng::tampon_source(std::string(vue_donnees));
+		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
+		module->tampon = lng::tampon_source(dls::chaine(vue_donnees));
 		auto decoupeuse = decoupeuse_texte(module);
 		decoupeuse.genere_morceaux();
 	}
@@ -62,12 +61,12 @@ int main(int argc, char *argv[])
 	}
 #else
 	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
-	auto nombre_morceaux = taille_fichier / sizeof(id_morceau);
+	auto nombre_morceaux = taille_fichier / static_cast<long>(sizeof(id_morceau));
 
-	std::vector<DonneesMorceaux> morceaux;
+	dls::tableau<DonneesMorceaux> morceaux;
 	morceaux.reserve(nombre_morceaux);
 
-	for (size_t i = 0; i < nombre_morceaux; ++i) {
+	for (auto i = 0; i < nombre_morceaux; ++i) {
 		auto dm = DonneesMorceaux{};
 		dm.identifiant = donnees_morceaux[i];
 		/* rétabli une chaine car nous une décharge de la mémoire, donc les
@@ -75,7 +74,7 @@ int main(int argc, char *argv[])
 		dm.chaine = "texte_test";
 		dm.ligne_pos = 0ul;
 		dm.module = 0;
-		morceaux.push_back(dm);
+		morceaux.pousse(dm);
 	}
 
 	std::cerr << "Il y a " << nombre_morceaux << " morceaux.\n";

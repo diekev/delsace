@@ -25,11 +25,10 @@
 #pragma once
 
 #include <list>
-#include <set>
-#include <string>
-#include <unordered_map>
 
-#include <delsace/langage/tampon_source.hh>
+#include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/ensemble.hh"
 
 #include "donnees_type.h"
 #include "morceaux.hh"
@@ -45,8 +44,8 @@ struct base;
 struct ContexteGenerationCode;
 
 struct DonneesArgument {
-	size_t index = 0;
-	size_t donnees_type{-1ul};
+	long index = 0;
+	long donnees_type{-1l};
 	bool est_variadic = false;
 	bool est_dynamic = false;
 	bool est_employe = false;
@@ -54,19 +53,19 @@ struct DonneesArgument {
 };
 
 struct DonneesCoroutine {
-	using paire_donnees = std::pair<size_t, char>;
-	using paire_variable = std::pair<std::string, paire_donnees>;
-	std::vector<paire_variable> variables{};
+	using paire_donnees = std::pair<long, char>;
+	using paire_variable = std::pair<dls::chaine, paire_donnees>;
+	dls::tableau<paire_variable> variables{};
 	int nombre_retenues = 0;
 };
 
 struct DonneesFonction {
-	std::unordered_map<std::string_view, DonneesArgument> args{};
-	std::vector<size_t> idx_types_retours{};
-	std::vector<std::string> noms_retours{};
-	size_t index_type{-1ul};
-	std::vector<std::string_view> nom_args{};
-	std::string nom_broye{};
+	dls::dico_desordonne<dls::vue_chaine, DonneesArgument> args{};
+	dls::tableau<long> idx_types_retours{};
+	dls::tableau<dls::chaine> noms_retours{};
+	long index_type{-1l};
+	dls::tableau<dls::vue_chaine> nom_args{};
+	dls::chaine nom_broye{};
 	noeud::base *noeud_decl = nullptr;
 	bool est_externe = false;
 	bool est_variadique = false;
@@ -78,13 +77,13 @@ struct DonneesFonction {
 
 struct DonneesModule {
 	lng::tampon_source tampon{""};
-	std::vector<DonneesMorceaux> morceaux{};
-	std::set<std::string_view> modules_importes{};
-	std::set<std::string_view> fonctions_exportees{};
-	std::unordered_map<std::string_view, std::vector<DonneesFonction>> fonctions{};
+	dls::tableau<DonneesMorceaux> morceaux{};
+	dls::ensemble<dls::vue_chaine> modules_importes{};
+	dls::ensemble<dls::vue_chaine> fonctions_exportees{};
+	dls::dico_desordonne<dls::vue_chaine, dls::tableau<DonneesFonction>> fonctions{};
 	size_t id = 0ul;
-	std::string nom{""};
-	std::string chemin{""};
+	dls::chaine nom{""};
+	dls::chaine chemin{""};
 	double temps_chargement = 0.0;
 	double temps_analyse = 0.0;
 	double temps_tampon = 0.0;
@@ -95,31 +94,31 @@ struct DonneesModule {
 	/**
 	 * Retourne vrai si le module importe un module du nom spécifié.
 	 */
-	bool importe_module(std::string_view const &nom_module) const;
+	bool importe_module(dls::vue_chaine const &nom_module) const;
 
 	/**
 	 * Retourne vrai si le module possède une fonction du nom spécifié.
 	 */
-	bool possede_fonction(std::string_view const &nom_fonction) const;
+	bool possede_fonction(dls::vue_chaine const &nom_fonction) const;
 
 	/**
 	 * Ajoute les données de la fonction dont le nom est spécifié en paramètres
 	 * à la table de fonctions de ce contexte.
 	 */
-	void ajoute_donnees_fonctions(std::string_view const &nom_fonction, DonneesFonction const &donnees);
+	void ajoute_donnees_fonctions(dls::vue_chaine const &nom_fonction, DonneesFonction const &donnees);
 
 	/**
 	 * Retourne les données de la fonction dont le nom est spécifié en
 	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	[[nodiscard]] std::vector<DonneesFonction> &donnees_fonction(std::string_view const &nom_fonction) noexcept;
+	[[nodiscard]] dls::tableau<DonneesFonction> &donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept;
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
 	 * ayant déjà été ajouté à la liste de fonctions de ce module.
 	 */
-	[[nodiscard]] bool fonction_existe(std::string_view const &nom_fonction) const noexcept;
+	[[nodiscard]] bool fonction_existe(dls::vue_chaine const &nom_fonction) const noexcept;
 
 	/**
 	 * Retourne la mémoire utilisée en octet par les données de ce module. La
@@ -133,8 +132,8 @@ private:
 	DonneesFonction m_donnees_invalides{};
 };
 
-std::string charge_fichier(
-		std::string const &chemin,
+dls::chaine charge_fichier(
+		dls::chaine const &chemin,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau);
 
@@ -159,8 +158,8 @@ std::string charge_fichier(
  */
 void charge_module(
 		std::ostream &os,
-		std::string const &racine_kuri,
-		std::string const &nom,
+		dls::chaine const &racine_kuri,
+		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau,
 		bool est_racine = false);
@@ -186,24 +185,24 @@ struct DonneesCandidate {
 	int etat = FONCTION_INTROUVEE;
 	int raison = AUCUNE_RAISON;
 	double poids_args = 0.0;
-	std::string_view nom_arg{};
+	dls::vue_chaine nom_arg{};
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
-	std::vector<noeud::base *> exprs{};
+	dls::tableau<noeud::base *> exprs{};
 	DonneesType type1{};
 	DonneesType type2{};
 	noeud::base *noeud_decl = nullptr;
 	bool arg_pointeur = false;
-	std::vector<niveau_compat> drapeaux{};
+	dls::tableau<niveau_compat> drapeaux{};
 };
 
 struct ResultatRecherche {
-	std::vector<DonneesCandidate> candidates{};
+	dls::tableau<DonneesCandidate> candidates{};
 };
 
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
-		std::string_view const &nom,
-		std::list<std::string_view> &noms_arguments,
+		dls::vue_chaine const &nom,
+		std::list<dls::vue_chaine> &noms_arguments,
 		std::list<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel);

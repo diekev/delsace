@@ -71,7 +71,7 @@ public:
 
 	void pousse(char c);
 
-	void append(chaine const &c);
+	chaine &append(chaine const &c);
 
 	bool est_vide() const;
 
@@ -152,7 +152,17 @@ inline auto end(chaine const &c)
 	return c.fin();
 }
 
+/* ************************************************************************** */
+
+template <typename T>
+auto vers_chaine(T const &valeur)
+{
+	return chaine(std::to_string(valeur));
+}
+
 }  /* namespace dls */
+
+/* ************************************************************************** */
 
 namespace std {
 

@@ -24,7 +24,6 @@
 
 #include "test_variables.h"
 
-#include "erreur.h"
 #include "outils.h"
 
 static void test_variable_redefinie(dls::test_unitaire::Controleuse &controleuse)

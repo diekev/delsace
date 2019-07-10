@@ -24,7 +24,7 @@
 
 #include "coulisse_c.hh"
 
-#include <delsace/chrono/chronometrage.hh>
+#include "biblinternes/chrono/chronometrage.hh"
 
 #include <cassert>
 #include <iostream>
@@ -53,7 +53,7 @@ struct Tampon {
 static auto imprime(
 		Tampon &tampon,
 		const char *chn_fmt,
-		std::vector<const char *> const &args)
+		dls::tableau<const char *> const &args)
 {
 	auto ptr = chn_fmt;
 	auto ptr_tampon = tampon.ptr;
@@ -96,7 +96,7 @@ static void genere_code_extra_pre_retour(
 	/* génère le code pour les blocs déférés */
 	auto pile_noeud = contexte.noeuds_differes();
 
-	while (!pile_noeud.empty()) {
+	while (!pile_noeud.est_vide()) {
 		auto noeud = pile_noeud.back();
 		genere_code_C(noeud, contexte, true, os, os);
 		pile_noeud.pop_back();
@@ -118,9 +118,9 @@ static int index = 0;
 static auto cree_info_type_defaul_C(
 		std::ostream &os_decl,
 		std::ostream &os_init,
-		std::string const &id_type)
+		dls::chaine const &id_type)
 {
-	auto nom_info_type = "__info_type" + id_type + std::to_string(index++);
+	auto nom_info_type = "__info_type" + id_type + dls::vers_chaine(index++);
 
 	os_decl << "static InfoType " << nom_info_type << ";\n";
 	os_init << nom_info_type << ".id = " << id_type << ";\n";
@@ -134,7 +134,7 @@ static auto cree_info_type_entier_C(
 		int taille_en_octet,
 		bool est_signe)
 {
-	auto nom_info_type = "__info_type_entier" + std::to_string(index++);
+	auto nom_info_type = "__info_type_entier" + dls::vers_chaine(index++);
 
 	os_decl << "static InfoTypeEntier " << nom_info_type << ";\n";
 	os_init << nom_info_type << ".id = id_info_ENTIER;\n";
@@ -149,7 +149,7 @@ static auto cree_info_type_reel_C(
 		std::ostream &os_init,
 		int taille_en_octet)
 {
-	auto nom_info_type = "__info_type_reel" + std::to_string(index++);
+	auto nom_info_type = "__info_type_reel" + dls::vers_chaine(index++);
 
 	os_decl << broye_nom_simple("static InfoTypeRéel ") << nom_info_type << ";\n";
 	os_init << nom_info_type << broye_nom_simple(".id = id_info_RÉEL;\n");
@@ -158,7 +158,7 @@ static auto cree_info_type_reel_C(
 	return nom_info_type;
 }
 
-static std::string cree_info_type_C(
+static dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os_decl,
 		std::ostream &os_init,
@@ -204,7 +204,7 @@ static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesT
 		}
 		case id_morceau::CHAINE_CARACTERE:
 		{
-			auto index_struct = static_cast<uint64_t>(type_base >> 8);
+			auto index_struct = static_cast<long>(type_base >> 8);
 			auto &ds = contexte.donnees_structure(index_struct);
 
 			if (ds.est_enum) {
@@ -238,11 +238,11 @@ static auto cree_info_type_structure_C(
 		std::ostream &os_decl,
 		std::ostream &os_init,
 		ContexteGenerationCode &contexte,
-		std::string_view const &nom_struct,
+		dls::vue_chaine const &nom_struct,
 		DonneesStructure const &donnees_structure,
 		DonneesType &dt)
 {
-	auto nom_info_type = "__info_type_struct" + std::to_string(index++);
+	auto nom_info_type = "__info_type_struct" + dls::vers_chaine(index++);
 
 	auto nom_broye = broye_nom_simple(nom_struct);
 
@@ -251,18 +251,18 @@ static auto cree_info_type_structure_C(
 	dt.ptr_info_type = nom_info_type;
 
 	/* crée la chaine pour le nom */
-	auto nom_chaine = "__nom_" + nom_broye + std::to_string(index++);
+	auto nom_chaine = "__nom_" + nom_broye + dls::vers_chaine(index++);
 
 	os_init << "static chaine " << nom_chaine << " = ";
 	os_init << "{.pointeur = \"" << nom_struct << "\""
-	   << ", .taille = " << nom_struct.size() << "};\n";
+	   << ", .taille = " << nom_struct.taille() << "};\n";
 
 	os_decl << "static InfoTypeStructure " << nom_info_type << ";\n";
 	os_init << nom_info_type << ".id = id_info_STRUCTURE;\n";
 	os_init << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
 	/* crée un tableau fixe puis converti le en tableau dyn */
-	auto nombre_membres = donnees_structure.donnees_types.size();
+	auto nombre_membres = donnees_structure.donnees_types.taille();
 
 	if (donnees_structure.est_externe && nombre_membres == 0) {
 		os_init << nom_info_type << ".membres.taille = 0;\n";
@@ -271,12 +271,12 @@ static auto cree_info_type_structure_C(
 	}
 
 	/* crée des structures pour chaque membre, et rassemble les pointeurs */
-	std::vector<std::string> pointeurs;
+	dls::tableau<dls::chaine> pointeurs;
 	pointeurs.reserve(nombre_membres);
 
 	auto decalage = 0u;
 
-	for (auto i = 0ul; i < donnees_structure.donnees_types.size(); ++i) {
+	for (auto i = 0l; i < donnees_structure.donnees_types.taille(); ++i) {
 		auto index_dt = donnees_structure.donnees_types[i];
 		auto &dt_membre = contexte.magasin_types.donnees_types[index_dt];
 
@@ -285,7 +285,7 @@ static auto cree_info_type_structure_C(
 				continue;
 			}
 
-			auto suffixe = std::to_string(i) + std::to_string(index++);
+			auto suffixe = dls::vers_chaine(i) + dls::vers_chaine(index++);
 
 			auto nom_info_type_membre = "__info_type_membre" + suffixe;
 
@@ -303,13 +303,13 @@ static auto cree_info_type_structure_C(
 
 			os_decl << "static InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
 			os_init << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
-			os_init << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.size()  << ";\n";
+			os_init << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.taille()  << ";\n";
 			os_init << nom_info_type_membre << broye_nom_simple(".décalage = ") << decalage << ";\n";
 			os_init << nom_info_type_membre << ".id = (InfoType *)(&" << rderef.ptr_info_type  << ");\n";
 
 			decalage += taille_type_octet(contexte, dt_membre);
 
-			pointeurs.push_back(nom_info_type_membre);
+			pointeurs.pousse(nom_info_type_membre);
 			break;
 		}
 	}
@@ -323,7 +323,7 @@ static auto cree_info_type_structure_C(
 	dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(nombre_membres << 8));
 	dt_tfixe.pousse(type_struct_membre);
 
-	auto nom_tableau_fixe = std::string("__tabl_fix_membres") + std::to_string(index++);
+	auto nom_tableau_fixe = dls::chaine("__tabl_fix_membres") + dls::vers_chaine(index++);
 
 	contexte.magasin_types.converti_type_C(
 				contexte, nom_tableau_fixe, dt_tfixe, os_init);
@@ -345,7 +345,7 @@ static auto cree_info_type_structure_C(
 	dt_tdyn.pousse(id_morceau::TABLEAU);
 	dt_tdyn.pousse(type_struct_membre);
 
-	auto nom_tableau_dyn = std::string("__tabl_dyn_membres") + std::to_string(index++);
+	auto nom_tableau_dyn = dls::chaine("__tabl_dyn_membres") + dls::vers_chaine(index++);
 
 	contexte.magasin_types.converti_type_C(
 				contexte, nom_tableau_dyn, dt_tdyn, os_init);
@@ -363,21 +363,21 @@ static auto cree_info_type_enum_C(
 		std::ostream &os_decl,
 		std::ostream &os_init,
 		ContexteGenerationCode &contexte,
-		std::string_view const &nom_struct,
+		dls::vue_chaine const &nom_struct,
 		DonneesStructure const &donnees_structure)
 {
-	auto nom_info_type = "__info_type_enum" + std::to_string(index++);
+	auto nom_info_type = "__info_type_enum" + dls::vers_chaine(index++);
 
 	auto nom_broye = broye_nom_simple(nom_struct);
 
 	/* crée la chaine pour le nom */
 	auto nom_chaine = "__nom_"
 			+ nom_broye
-			+ std::to_string(index++);
+			+ dls::vers_chaine(index++);
 
 	os_init << "static chaine " << nom_chaine << " = ";
 	os_init << "{.pointeur = \"" << nom_struct << "\""
-	   << ", .taille = " << nom_struct.size() << "};\n";
+	   << ", .taille = " << nom_struct.taille() << "};\n";
 
 	os_decl << broye_nom_simple("static InfoTypeÉnum ") << nom_info_type << ";\n";
 	os_init << nom_info_type << broye_nom_simple(".id = id_info_ÉNUM;\n");
@@ -390,13 +390,13 @@ static auto cree_info_type_enum_C(
 
 	auto nom_tabl_fixe = "__noms_membres_"
 			+ nom_broye
-			+ std::to_string(index++);
+			+ dls::vers_chaine(index++);
 
 	os_init << "chaine " << nom_tabl_fixe << "[" << nombre_enfants << "] = {\n";
 
 	for (auto enfant : noeud_decl->enfants) {
 		auto enf0 = enfant->enfants.front();
-		os_init << "{.pointeur=\"" << enf0->chaine() << "\", .taille=" << enf0->chaine().size() << "},";
+		os_init << "{.pointeur=\"" << enf0->chaine() << "\", .taille=" << enf0->chaine().taille() << "},";
 	}
 
 	os_init << "};\n";
@@ -408,7 +408,7 @@ static auto cree_info_type_enum_C(
 	/* crée un tableau pour les noms des énumérations */
 	auto nom_tabl_fixe_vals = "__valeurs_membres_"
 			+ nom_broye
-			+ std::to_string(index++);
+			+ dls::vers_chaine(index++);
 
 	auto &dt = contexte.magasin_types.donnees_types[noeud_decl->index_type];
 
@@ -436,13 +436,13 @@ static auto cree_info_type_enum_C(
 	return nom_info_type;
 }
 
-static std::string cree_info_type_C(
+static dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		std::ostream &os_decl,
 		std::ostream &os_init,
 		DonneesType &donnees_type)
 {
-	auto valeur = std::string("");
+	auto valeur = dls::chaine("");
 
 	switch (donnees_type.type_base() & 0xff) {
 		default:
@@ -526,7 +526,7 @@ static std::string cree_info_type_C(
 				rderef.ptr_info_type = cree_info_type_C(contexte, os_decl, os_init, rderef);
 			}
 
-			auto nom_info_type = "__info_type_pointeur" + std::to_string(index++);
+			auto nom_info_type = "__info_type_pointeur" + dls::vers_chaine(index++);
 
 			os_decl << "static InfoTypePointeur " << nom_info_type << ";\n";
 			os_init << nom_info_type << ".id = id_info_POINTEUR;\n";
@@ -538,7 +538,7 @@ static std::string cree_info_type_C(
 		}
 		case id_morceau::CHAINE_CARACTERE:
 		{
-			auto id_structure = static_cast<size_t>(donnees_type.type_base() >> 8);
+			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
 			auto donnees_structure = contexte.donnees_structure(id_structure);
 
 			if (donnees_structure.est_enum) {
@@ -568,7 +568,7 @@ static std::string cree_info_type_C(
 		{
 			auto deref = donnees_type.derefence();
 
-			auto nom_info_type = "__info_type_tableau" + std::to_string(index++);
+			auto nom_info_type = "__info_type_tableau" + dls::vers_chaine(index++);
 
 			/* dans le cas des arguments variadics des fonctions externes */
 			if (deref.est_invalide()) {
@@ -632,10 +632,10 @@ static void genere_code_C_prepasse(
 
 static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *b)
 {
-	auto nom_eini = std::string("__eini_")
-			.append(std::to_string(b->morceau.ligne_pos));
+	auto nom_eini = dls::chaine("__eini_")
+			.append(dls::vers_chaine(b->morceau.ligne_pos).c_str());
 
-	auto nom_var = std::string{};
+	auto nom_var = dls::chaine{};
 
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
@@ -643,7 +643,7 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 
 	/* dans le cas d'un nombre ou d'un tableau, etc. */
 	if (b->type != type_noeud::VARIABLE) {
-		nom_var = std::string("__var_").append(nom_eini);
+		nom_var = dls::chaine("__var_").append(nom_eini);
 
 		contexte.magasin_types.converti_type_C(
 					contexte,
@@ -659,7 +659,7 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 	os << "eini " << nom_eini << ";\n";
 	os << nom_eini << ".pointeur = &";
 
-	if (!nom_var.empty()) {
+	if (!nom_var.est_vide()) {
 		os << nom_var;
 	}
 	else {
@@ -676,19 +676,19 @@ static void cree_appel(
 		base *b,
 		std::ostream &os,
 		ContexteGenerationCode &contexte,
-		std::string const &nom_broye,
+		dls::chaine const &nom_broye,
 		std::list<base *> const &enfants)
 {
 	for (auto enf : enfants) {
 		if ((enf->drapeaux & CONVERTI_TABLEAU) != 0) {
-			auto nom_tabl_fixe = std::string(enf->chaine());
+			auto nom_tabl_fixe = dls::chaine(enf->chaine());
 
 			if (enf->type == type_noeud::CONSTRUIT_TABLEAU) {
 				genere_code_C_prepasse(enf, contexte, false, os);
-				nom_tabl_fixe = std::any_cast<std::string>(enf->valeur_calculee);
+				nom_tabl_fixe = std::any_cast<dls::chaine>(enf->valeur_calculee);
 			}
 
-			auto nom_tableau = std::string("__tabl_dyn") + std::to_string(index++);
+			auto nom_tableau = dls::chaine("__tabl_dyn") + dls::vers_chaine(index++);
 			enf->valeur_calculee = nom_tableau;
 
 			os << "Tableau_";
@@ -703,10 +703,10 @@ static void cree_appel(
 			enf->valeur_calculee = cree_eini(contexte, os, enf);
 		}
 		else if ((enf->drapeaux & EXTRAIT_CHAINE_C) != 0) {
-			auto nom_var_chaine = std::string("");
+			auto nom_var_chaine = dls::chaine("");
 
 			if (enf->type != type_noeud::VARIABLE) {
-				nom_var_chaine = "__chaine" + std::to_string(enf->morceau.ligne_pos);
+				nom_var_chaine = "__chaine" + dls::vers_chaine(enf->morceau.ligne_pos);
 
 				genere_code_C_prepasse(enf, contexte, false, os);
 				os << "chaine " << nom_var_chaine << " = ";
@@ -717,7 +717,7 @@ static void cree_appel(
 				nom_var_chaine = enf->chaine();
 			}
 
-			auto nom_var = "__pointeur" + std::to_string(enf->morceau.ligne_pos);
+			auto nom_var = "__pointeur" + dls::vers_chaine(enf->morceau.ligne_pos);
 
 			os << "const char *" + nom_var;
 			os << " = " << nom_var_chaine << ".pointeur;\n";
@@ -725,7 +725,7 @@ static void cree_appel(
 			enf->valeur_calculee = nom_var;
 		}
 		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
-			auto nom_var_tableau = "__tableau_octet" + std::to_string(enf->morceau.ligne_pos);
+			auto nom_var_tableau = "__tableau_octet" + dls::vers_chaine(enf->morceau.ligne_pos);
 
 			os << "Tableau_octet " << nom_var_tableau << ";\n";
 
@@ -809,20 +809,20 @@ static void cree_appel(
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 	std::list<base *> liste_var_retour{};
-	std::vector<std::string> liste_noms_retour{};
+	dls::tableau<dls::chaine> liste_noms_retour{};
 
 	if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET) {
 		liste_var_retour = std::any_cast<std::list<base *>>(b->valeur_calculee);
 		/* la valeur calculée doit être toujours valide. */
-		b->valeur_calculee = std::string("");
+		b->valeur_calculee = dls::chaine("");
 	}
 	else if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET2) {
-		liste_noms_retour = std::any_cast<std::vector<std::string>>(b->valeur_calculee);
+		liste_noms_retour = std::any_cast<dls::tableau<dls::chaine>>(b->valeur_calculee);
 		/* la valeur calculée doit être toujours valide. */
-		b->valeur_calculee = std::string("");
+		b->valeur_calculee = dls::chaine("");
 	}
 	else if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
-		auto nom_indirection = "__ret" + std::to_string(b->morceau.ligne_pos);
+		auto nom_indirection = "__ret" + dls::vers_chaine(b->morceau.ligne_pos);
 		contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
 
 		os << " = ";
@@ -830,14 +830,14 @@ static void cree_appel(
 	}
 	else {
 		/* la valeur calculée doit être toujours valide. */
-		b->valeur_calculee = std::string("");
+		b->valeur_calculee = dls::chaine("");
 	}
 
 	os << nom_broye;
 
 	auto virgule = '(';
 
-	if (enfants.empty() && liste_var_retour.empty() && liste_noms_retour.empty()) {
+	if (enfants.empty() && liste_var_retour.empty() && liste_noms_retour.est_vide()) {
 		os << virgule;
 		virgule = ' ';
 	}
@@ -851,16 +851,16 @@ static void cree_appel(
 		os << virgule;
 
 		if ((enf->drapeaux & CONVERTI_TABLEAU) != 0) {
-			os << std::any_cast<std::string>(enf->valeur_calculee);
+			os << std::any_cast<dls::chaine>(enf->valeur_calculee);
 		}
 		else if ((enf->drapeaux & CONVERTI_EINI) != 0) {
-			os << std::any_cast<std::string>(enf->valeur_calculee);
+			os << std::any_cast<dls::chaine>(enf->valeur_calculee);
 		}
 		else if ((enf->drapeaux & EXTRAIT_CHAINE_C) != 0) {
-			os << std::any_cast<std::string>(enf->valeur_calculee);
+			os << std::any_cast<dls::chaine>(enf->valeur_calculee);
 		}
 		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
-			os << std::any_cast<std::string>(enf->valeur_calculee);
+			os << std::any_cast<dls::chaine>(enf->valeur_calculee);
 		}
 		else if ((enf->drapeaux & PREND_REFERENCE) != 0) {
 			os << "&";
@@ -915,7 +915,7 @@ static void declare_structures_C(
 	contexte.magasin_types.declare_structures_C(contexte, os);
 
 	/* À FAIRE : optimise. */
-	for (auto is = 0ul; is < contexte.structures.size(); ++is) {
+	for (auto is = 0l; is < contexte.structures.taille(); ++is) {
 		auto const &donnees = contexte.donnees_structure(is);
 
 		if (donnees.est_enum || donnees.est_externe) {
@@ -925,7 +925,7 @@ static void declare_structures_C(
 		auto const &nom_struct = broye_nom_simple(contexte.nom_struct(is));
 		os << "typedef struct " << nom_struct << "{\n";
 
-		for (auto i = 0ul; i < donnees.donnees_types.size(); ++i) {
+		for (auto i = 0l; i < donnees.donnees_types.taille(); ++i) {
 			auto index_dt = donnees.donnees_types[i];
 			auto &dt = contexte.magasin_types.donnees_types[index_dt];
 
@@ -985,8 +985,8 @@ static auto genere_code_acces_membre(
 static void cree_initialisation(
 		ContexteGenerationCode &contexte,
 		DonneesType const &dt_parent,
-		std::string const &chaine_parent,
-		std::string_view const &accesseur,
+		dls::chaine const &chaine_parent,
+		dls::vue_chaine const &accesseur,
 		std::ostream &os)
 {
 	if (dt_parent.type_base() == id_morceau::CHAINE || dt_parent.type_base() == id_morceau::TABLEAU) {
@@ -994,10 +994,10 @@ static void cree_initialisation(
 		os << chaine_parent << accesseur << "taille = 0;\n";
 	}
 	else if ((dt_parent.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-		auto const index_structure = static_cast<size_t>(dt_parent.type_base() >> 8);
+		auto const index_structure = static_cast<long>(dt_parent.type_base() >> 8);
 		auto const &ds = contexte.donnees_structure(index_structure);
 
-		for (auto i = 0ul; i < ds.donnees_types.size(); ++i) {
+		for (auto i = 0l; i < ds.donnees_types.taille(); ++i) {
 			auto index_dt = ds.donnees_types[i];
 			auto &dt_enf = contexte.magasin_types.donnees_types[index_dt];
 
@@ -1009,7 +1009,7 @@ static void cree_initialisation(
 				}
 
 				auto nom = paire_idx_mb.first;
-				auto decl_nom = chaine_parent + std::string(accesseur) + broye_nom_simple(nom);
+				auto decl_nom = chaine_parent + dls::chaine(accesseur) + broye_nom_simple(nom);
 
 				if (donnees_membre.noeud_decl != nullptr) {
 					/* indirection pour les chaines ou autres */
@@ -1063,7 +1063,7 @@ static void prepasse_acces_membre(
 		type_structure = type_structure.derefence();
 	}
 
-	auto nom_acces = "__acces" + std::to_string(b->morceau.ligne_pos);
+	auto nom_acces = "__acces" + dls::vers_chaine(b->morceau.ligne_pos);
 	b->valeur_calculee = nom_acces;
 
 	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
@@ -1114,7 +1114,7 @@ static void prepasse_acces_membre(
 					false,
 					true);
 		os << " = "
-		   << std::any_cast<std::string>(membre->valeur_calculee) << ";\n";
+		   << std::any_cast<dls::chaine>(membre->valeur_calculee) << ";\n";
 	}
 	else {
 		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
@@ -1204,7 +1204,7 @@ static void genere_code_C_prepasse(
 
 			/* a, b = foo(); -> foo(&a, &b); */
 			if (variable->identifiant() == id_morceau::VIRGULE) {
-				std::vector<base *> feuilles;
+				dls::tableau<base *> feuilles;
 				rassemble_feuilles(variable, feuilles);
 
 				std::list<base *> noeuds;
@@ -1280,7 +1280,7 @@ static void genere_code_C_prepasse(
 			 * utiliser la chaine originale. */
 			auto chaine = b->morceau.chaine;
 
-			auto nom_chaine = "__chaine_tmp" + std::to_string(b->morceau.ligne_pos);
+			auto nom_chaine = "__chaine_tmp" + dls::vers_chaine(b->morceau.ligne_pos);
 
 			os << "chaine " << nom_chaine << " = {.pointeur=";
 			os << '"';
@@ -1298,7 +1298,7 @@ static void genere_code_C_prepasse(
 			}
 
 			os << '"';
-			os << ", .taille=" << chaine.size() << "};\n";
+			os << ", .taille=" << chaine.taille() << "};\n";
 			b->valeur_calculee = nom_chaine;
 			break;
 		}
@@ -1332,7 +1332,7 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::TAILLE_DE:
 		{
-			auto index_dt = std::any_cast<size_t>(b->valeur_calculee);
+			auto index_dt = std::any_cast<long>(b->valeur_calculee);
 			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
 			os << "sizeof(";
 			contexte.magasin_types.converti_type_C(contexte, "", donnees, os);
@@ -1357,7 +1357,7 @@ static void genere_code_C_prepasse(
 			/* utilisé principalement pour convertir les listes d'arguments
 			 * variadics en un tableau */
 
-			auto taille_tableau = b->enfants.size();		
+			auto taille_tableau = b->enfants.size();
 
 			auto &type = contexte.magasin_types.donnees_types[b->index_type];
 
@@ -1373,8 +1373,8 @@ static void genere_code_C_prepasse(
 			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
 			dt_tfixe.pousse(type);
 
-			auto nom_tableau_fixe = std::string("__tabl_fix")
-					.append(std::to_string(b->morceau.ligne_pos >> 32));
+			auto nom_tableau_fixe = dls::chaine("__tabl_fix")
+					.append(dls::vers_chaine(b->morceau.ligne_pos >> 32));
 
 			contexte.magasin_types.converti_type_C(
 						contexte, nom_tableau_fixe, dt_tfixe, os);
@@ -1386,7 +1386,7 @@ static void genere_code_C_prepasse(
 			for (auto enfant : b->enfants) {
 				os << virgule;
 				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
-					os << std::any_cast<std::string>(enfant->valeur_calculee);
+					os << std::any_cast<dls::chaine>(enfant->valeur_calculee);
 				}
 				else {
 					genere_code_C(enfant, contexte, false, os, os);
@@ -1402,8 +1402,8 @@ static void genere_code_C_prepasse(
 			dt_tdyn.pousse(id_morceau::TABLEAU);
 			dt_tdyn.pousse(type);
 
-			auto nom_tableau_dyn = std::string("__tabl_dyn")
-					.append(std::to_string(b->morceau.ligne_pos));
+			auto nom_tableau_dyn = dls::chaine("__tabl_dyn")
+					.append(dls::vers_chaine(b->morceau.ligne_pos));
 
 			contexte.magasin_types.converti_type_C(
 						contexte, nom_tableau_dyn, dt_tdyn, os);
@@ -1421,7 +1421,7 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
-			auto nom_tableau = "__tabl" + std::to_string(b->morceau.ligne_pos);
+			auto nom_tableau = "__tabl" + dls::vers_chaine(b->morceau.ligne_pos);
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			contexte.magasin_types.converti_type_C(
@@ -1432,7 +1432,7 @@ static void genere_code_C_prepasse(
 
 			os << " = ";
 
-			std::vector<base *> feuilles;
+			dls::tableau<base *> feuilles;
 			rassemble_feuilles(b->enfants.front(), feuilles);
 
 			auto virgule = '{';
@@ -1577,12 +1577,12 @@ void genere_code_C(
 			/* Crée fonction */
 			auto nom_fonction = donnees_fonction->nom_broye;
 
-			auto moult_retour = donnees_fonction->idx_types_retours.size() > 1;
+			auto moult_retour = donnees_fonction->idx_types_retours.taille() > 1;
 
 			if (donnees_fonction->est_coroutine) {
 				os << "typedef struct __etat_coro" << nom_fonction << " { bool __reprend_coro; bool __termine_coro; ";
 
-				auto idx_ret = 0ul;
+				auto idx_ret = 0l;
 				for (auto idx : donnees_fonction->idx_types_retours) {
 					auto &nom_ret = donnees_fonction->noms_retours[idx_ret++];
 
@@ -1653,7 +1653,7 @@ void genere_code_C(
 
 			auto virgule = '(';
 
-			if (donnees_fonction->nom_args.size() == 0 && !moult_retour) {
+			if (donnees_fonction->nom_args.taille() == 0 && !moult_retour) {
 				os << '(';
 				virgule = ' ';
 			}
@@ -1711,15 +1711,15 @@ void genere_code_C(
 
 				if (argument.est_employe) {
 					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
-					auto id_structure = 0ul;
+					auto id_structure = 0l;
 					auto est_pointeur = false;
 
 					if (dt_var.type_base() == id_morceau::POINTEUR) {
 						est_pointeur = true;
-						id_structure = static_cast<size_t>(dt_var.derefence().type_base() >> 8);
+						id_structure = static_cast<long>(dt_var.derefence().type_base() >> 8);
 					}
 					else {
-						id_structure = static_cast<size_t>(dt_var.type_base() >> 8);
+						id_structure = static_cast<long>(dt_var.type_base() >> 8);
 					}
 
 					auto &ds = contexte.donnees_structure(id_structure);
@@ -1741,7 +1741,7 @@ void genere_code_C(
 			}
 
 			if (moult_retour && !donnees_fonction->est_coroutine) {
-				auto idx_ret = 0ul;
+				auto idx_ret = 0l;
 				for (auto idx : donnees_fonction->idx_types_retours) {
 					os << virgule;
 
@@ -1788,7 +1788,7 @@ void genere_code_C(
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
-			os << std::any_cast<std::string>(b->valeur_calculee);
+			os << std::any_cast<dls::chaine>(b->valeur_calculee);
 			break;
 		}
 		case type_noeud::VARIABLE:
@@ -1883,7 +1883,7 @@ void genere_code_C(
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{
 			if (expr_gauche == false || b->aide_generation_code == APPEL_FONCTION_SYNT_UNI) {
-				os << std::any_cast<std::string>(b->valeur_calculee);
+				os << std::any_cast<dls::chaine>(b->valeur_calculee);
 			}
 			else {
 				auto structure = b->enfants.front();
@@ -1896,7 +1896,7 @@ void genere_code_C(
 		case type_noeud::ACCES_MEMBRE_DE:
 		{
 			if (expr_gauche == false) {
-				os << std::any_cast<std::string>(b->valeur_calculee);
+				os << std::any_cast<dls::chaine>(b->valeur_calculee);
 			}
 			else {
 				auto structure = b->enfants.back();
@@ -1921,7 +1921,7 @@ void genere_code_C(
 
 			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
 			auto expression_modifiee = false;
-			auto nouvelle_expr = std::string();
+			auto nouvelle_expr = dls::chaine();
 
 			/* À FAIRE */
 			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
@@ -1940,8 +1940,8 @@ void genere_code_C(
 				expression->index_type = variable->index_type;
 				expression_modifiee = true;
 
-				auto nom_eini = std::string("__eini_ext_")
-						.append(std::to_string(expression->morceau.ligne_pos >> 32));
+				auto nom_eini = dls::chaine("__eini_ext_")
+						.append(dls::vers_chaine(expression->morceau.ligne_pos >> 32));
 
 				auto &dt = contexte.magasin_types.donnees_types[expression->index_type];
 
@@ -1961,7 +1961,7 @@ void genere_code_C(
 			if (expression->type == type_noeud::LOGE) {
 				expression_modifiee = true;
 				genere_code_C(expression, contexte, false, os, os);
-				nouvelle_expr = std::any_cast<std::string>(expression->valeur_calculee);
+				nouvelle_expr = std::any_cast<dls::chaine>(expression->valeur_calculee);
 			}
 
 			variable->drapeaux |= POUR_ASSIGNATION;
@@ -2164,7 +2164,7 @@ void genere_code_C(
 		}
 		case type_noeud::RETOUR:
 		{
-			auto nom_variable = std::string("");
+			auto nom_variable = dls::chaine("");
 
 			if (b->aide_generation_code == GENERE_CODE_RETOUR_MOULT) {
 				auto enfant = b->enfants.front();
@@ -2178,10 +2178,10 @@ void genere_code_C(
 				}
 				else if (enfant->identifiant() == id_morceau::VIRGULE) {
 					/* retourne a, b; -> *__ret1 = a; *__ret2 = b; return; */
-					std::vector<base *> feuilles;
+					dls::tableau<base *> feuilles;
 					rassemble_feuilles(enfant, feuilles);
 
-					auto idx = 0ul;
+					auto idx = 0l;
 					for (auto f : feuilles) {
 						genere_code_C_prepasse(f, contexte, false, os);
 
@@ -2225,7 +2225,7 @@ void genere_code_C(
 		}
 		case type_noeud::CHAINE_LITTERALE:
 		{
-			os << std::any_cast<std::string>(b->valeur_calculee);
+			os << std::any_cast<dls::chaine>(b->valeur_calculee);
 			break;
 		}
 		case type_noeud::BOOLEEN:
@@ -2308,7 +2308,7 @@ void genere_code_C(
 				/* génère le code pour tous les noeuds différés de ce bloc */
 				auto noeuds = contexte.noeuds_differes_bloc();
 
-				while (!noeuds.empty()) {
+				while (!noeuds.est_vide()) {
 					auto n = noeuds.back();
 					genere_code_C(n, contexte, false, os, os);
 					noeuds.pop_back();
@@ -2349,7 +2349,7 @@ void genere_code_C(
 					base *enfant_1,
 					base *enfant_2,
 					DonneesType const &dt,
-					std::string const &nom_var)
+					dls::chaine const &nom_var)
 			{
 				auto var = enfant_1;
 				auto idx = static_cast<noeud::base *>(nullptr);
@@ -2380,7 +2380,7 @@ void genere_code_C(
 					base *enfant_1,
 					base *enfant_2,
 					DonneesType const &dt,
-					std::string const &nom_var,
+					dls::chaine const &nom_var,
 					uint64_t taille_tableau)
 			{
 				auto var = enfant_1;
@@ -2462,7 +2462,7 @@ void genere_code_C(
 				case GENERE_BOUCLE_TABLEAU:
 				case GENERE_BOUCLE_TABLEAU_INDEX:
 				{
-					auto nom_var = "__i" + std::to_string(b->morceau.ligne_pos);
+					auto nom_var = "__i" + dls::vers_chaine(b->morceau.ligne_pos);
 					contexte.magasin_chaines.push_back(nom_var);
 
 					auto donnees_var = DonneesVariable{};
@@ -2510,7 +2510,7 @@ void genere_code_C(
 				case GENERE_BOUCLE_COROUTINE:
 				case GENERE_BOUCLE_COROUTINE_INDEX:
 				{
-					auto nom_etat = "__etat" + std::to_string(enfant2->morceau.ligne_pos);
+					auto nom_etat = "__etat" + dls::vers_chaine(enfant2->morceau.ligne_pos);
 
 					os << "__etat_coro" << enfant2->df->nom_broye << " " << nom_etat << ";\n";
 					os << nom_etat << ".__reprend_coro = 0;\n";
@@ -2518,17 +2518,17 @@ void genere_code_C(
 
 					/* À FAIRE : utilisation du type */
 					auto df = enfant2->df;
-					auto nombre_vars_ret = df->idx_types_retours.size();
+					auto nombre_vars_ret = df->idx_types_retours.taille();
 
-					auto feuilles = std::vector<base *>{};
+					auto feuilles = dls::tableau<base *>{};
 					rassemble_feuilles(enfant1, feuilles);
 
 					auto idx = static_cast<noeud::base *>(nullptr);
-					auto nom_idx = std::string{};
+					auto nom_idx = dls::chaine{};
 
 					if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
 						idx = feuilles.back();
-						nom_idx = "__idx" + std::to_string(b->morceau.ligne_pos);
+						nom_idx = "__idx" + dls::vers_chaine(b->morceau.ligne_pos);
 						os << "int " << nom_idx << " = 0;";
 					}
 
@@ -2540,7 +2540,7 @@ void genere_code_C(
 
 					os << "if (" << nom_etat << ".__termine_coro == 1) { break; }\n";
 
-					for (auto i = 0ul; i < nombre_vars_ret; ++i) {
+					for (auto i = 0l; i < nombre_vars_ret; ++i) {
 						auto f = feuilles[i];
 						auto nom_var_broye = broye_chaine(f);
 
@@ -2571,9 +2571,9 @@ void genere_code_C(
 				}
 			}
 
-			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
-			auto goto_brise = "__boucle_pour_brise" + std::to_string(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b->morceau.ligne_pos);
 
 			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
 			contexte.empile_goto_arrete(enfant1->chaine(), (enfant_sinon != nullptr) ? goto_brise : goto_apres);
@@ -2604,7 +2604,7 @@ void genere_code_C(
 		}
 		case type_noeud::CONTINUE_ARRETE:
 		{
-			auto chaine_var = b->enfants.empty() ? std::string_view{""} : b->enfants.front()->chaine();
+			auto chaine_var = b->enfants.empty() ? dls::vue_chaine{""} : b->enfants.front()->chaine();
 
 			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
 					? contexte.goto_continue(chaine_var)
@@ -2630,8 +2630,8 @@ void genere_code_C(
 
 			/* création des blocs */
 
-			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
 
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
@@ -2656,8 +2656,8 @@ void genere_code_C(
 			auto enfant1 = *iter++;
 			auto enfant2 = *iter++;
 
-			auto goto_continue = "__continue_boucle_pour" + std::to_string(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + std::to_string(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
 
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
@@ -2728,7 +2728,7 @@ void genere_code_C(
 		}
 		case type_noeud::TAILLE_DE:
 		{
-			auto index_dt = std::any_cast<size_t>(b->valeur_calculee);
+			auto index_dt = std::any_cast<long>(b->valeur_calculee);
 			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
 			os << "sizeof(";
 			contexte.magasin_types.converti_type_C(contexte, "", donnees, os);
@@ -2755,18 +2755,18 @@ void genere_code_C(
 		}
 		case type_noeud::TABLEAU:
 		{
-			os << std::any_cast<std::string>(b->valeur_calculee);
+			os << std::any_cast<dls::chaine>(b->valeur_calculee);
 			break;
 		}
 		case type_noeud::CONSTRUIT_STRUCTURE:
 		{
-			auto liste_params = std::any_cast<std::vector<std::string_view>>(&b->valeur_calculee);
+			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine>>(&b->valeur_calculee);
 
 			auto enfant = b->enfants.begin();
-			auto nom_param = liste_params->begin();
+			auto nom_param = liste_params->debut();
 			auto virgule = '{';
 
-			for (auto i = 0ul; i < liste_params->size(); ++i) {
+			for (auto i = 0l; i < liste_params->taille(); ++i) {
 				os << virgule;
 
 				os << '.' << broye_nom_simple(*nom_param) << '=';
@@ -2783,7 +2783,7 @@ void genere_code_C(
 		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
-			os << std::any_cast<std::string>(b->valeur_calculee);
+			os << std::any_cast<dls::chaine>(b->valeur_calculee);
 			break;
 		}
 		case type_noeud::INFO_DE:
@@ -2806,13 +2806,13 @@ void genere_code_C(
 			auto enfant = b->enfants.begin();
 			auto nombre_enfant = b->enfants.size();
 			auto a_pointeur = false;
-			auto nom_ptr_ret = std::string("");
-			auto nom_taille = "__taille_allouee" + std::to_string(index++);
+			auto nom_ptr_ret = dls::chaine("");
+			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
 
 			if (dt.type_base() == id_morceau::TABLEAU) {
 				a_pointeur = true;
-				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
-				auto nom_tabl = "__tabl" + std::to_string(b->morceau.ligne_pos);
+				auto nom_ptr = "__ptr" + dls::vers_chaine(b->morceau.ligne_pos);
+				auto nom_tabl = "__tabl" + dls::vers_chaine(b->morceau.ligne_pos);
 				auto taille_tabl = std::any_cast<int>(b->valeur_calculee);
 
 				os << "long " << nom_taille << " = sizeof(";
@@ -2856,8 +2856,8 @@ void genere_code_C(
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
 				a_pointeur = true;
-				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
-				auto nom_chaine = "__chaine" + std::to_string(b->morceau.ligne_pos);
+				auto nom_ptr = "__ptr" + dls::vers_chaine(b->morceau.ligne_pos);
+				auto nom_chaine = "__chaine" + dls::vers_chaine(b->morceau.ligne_pos);
 
 				auto enf = *enfant++;
 
@@ -2889,7 +2889,7 @@ void genere_code_C(
 							dt_deref,
 							os);
 				os << ");\n";
-				auto nom_ptr = "__ptr" + std::to_string(b->morceau.ligne_pos);
+				auto nom_ptr = "__ptr" + dls::vers_chaine(b->morceau.ligne_pos);
 
 				contexte.magasin_types.converti_type_C(
 							contexte,
@@ -2942,7 +2942,7 @@ void genere_code_C(
 		{
 			auto enfant = b->enfants.front();
 			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
-			auto nom_taille = "__taille_allouee" + std::to_string(index++);
+			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
 
 			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
 				os << "long " << nom_taille << " = ";
@@ -2996,9 +2996,9 @@ void genere_code_C(
 			auto enfant1 = *enfant++;
 			auto nombre_enfant = b->enfants.size();
 			auto a_pointeur = false;
-			auto nom_ptr_ret = std::string("");
-			auto nom_ancienne_taille = "__ancienne_taille" + std::to_string(index++);
-			auto nom_nouvelle_taille = "__nouvelle_taille" + std::to_string(index++);
+			auto nom_ptr_ret = dls::chaine("");
+			auto nom_ancienne_taille = "__ancienne_taille" + dls::vers_chaine(index++);
+			auto nom_nouvelle_taille = "__nouvelle_taille" + dls::vers_chaine(index++);
 
 			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
 				/* À FAIRE : expression pour les types. */
@@ -3161,10 +3161,10 @@ void genere_code_C(
 
 			auto enfant = b->enfants.front();
 
-			auto feuilles = std::vector<base *>{};
+			auto feuilles = dls::tableau<base *>{};
 			rassemble_feuilles(enfant, feuilles);
 
-			for (auto i = 0ul; i < feuilles.size(); ++i) {
+			for (auto i = 0l; i < feuilles.taille(); ++i) {
 				auto f = feuilles[i];
 
 				genere_code_C_prepasse(f, contexte, true, os);

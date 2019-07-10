@@ -24,7 +24,6 @@
 
 #include "test_transtype.hh"
 
-#include "erreur.h"
 #include "outils.h"
 
 static void test_transtype_litterales(dls::test_unitaire::Controleuse &controleuse)

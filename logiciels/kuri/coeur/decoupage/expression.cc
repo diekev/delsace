@@ -303,9 +303,9 @@ static inline bool extrait_valeur_bool(noeud::base *n)
 	return possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<bool>(n->valeur_calculee) : (n->chaine() == "vrai");
 }
 
-static inline std::string extrait_chaine(noeud::base *n)
+static inline dls::chaine extrait_chaine(noeud::base *n)
 {
-	return std::any_cast<std::string>(n->valeur_calculee);
+	return std::any_cast<dls::chaine>(n->valeur_calculee);
 }
 
 noeud::base *calcul_expression_double(
@@ -324,15 +324,15 @@ noeud::base *calcul_expression_double(
 			auto v1 = extrait_chaine(n1);
 			auto v2 = extrait_chaine(n2);
 
-			std::string v;
-			v.reserve(v1.size() + v2.size());
+			dls::chaine v;
+			v.reserve(v1.taille() + v2.taille());
 			v.append(v1);
 			v.append(v2);
 
 			n1->valeur_calculee = v;
 			n1->drapeaux |= EST_CALCULE;
 			auto dt = DonneesType{};
-			dt.pousse(id_morceau::TABLEAU | static_cast<int>(v.size() << 8));
+			dt.pousse(id_morceau::TABLEAU | static_cast<int>(v.taille() << 8));
 			dt.pousse(id_morceau::Z8);
 			n1->index_type = contexte.magasin_types.ajoute_type(dt);
 

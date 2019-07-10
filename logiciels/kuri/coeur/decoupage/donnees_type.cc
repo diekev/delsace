@@ -48,25 +48,25 @@
 
 DonneesType::DonneesType(id_morceau i0)
 {
-	m_donnees.push_back(i0);
+	m_donnees.pousse(i0);
 }
 
 DonneesType::DonneesType(id_morceau i0, id_morceau i1)
 {
-	m_donnees.push_back(i0);
-	m_donnees.push_back(i1);
+	m_donnees.pousse(i0);
+	m_donnees.pousse(i1);
 }
 
 void DonneesType::pousse(id_morceau identifiant)
 {
-	m_donnees.push_back(identifiant);
+	m_donnees.pousse(identifiant);
 }
 
 void DonneesType::pousse(const DonneesType &autre)
 {
-	auto const taille = m_donnees.size();
-	m_donnees.resize(taille + autre.m_donnees.size());
-	std::copy(autre.m_donnees.begin(), autre.m_donnees.end(), m_donnees.begin() + static_cast<long>(taille));
+	auto const taille = m_donnees.taille();
+	m_donnees.redimensionne(taille + autre.m_donnees.taille());
+	std::copy(autre.m_donnees.debut(), autre.m_donnees.fin(), m_donnees.debut() + taille);
 }
 
 id_morceau DonneesType::type_base() const
@@ -76,7 +76,7 @@ id_morceau DonneesType::type_base() const
 
 bool DonneesType::est_invalide() const
 {
-	if (m_donnees.empty()) {
+	if (m_donnees.est_vide()) {
 		return true;
 	}
 
@@ -92,26 +92,31 @@ bool DonneesType::est_invalide() const
 
 DonneesType::iterateur_const DonneesType::begin() const
 {
-	return m_donnees.rbegin();
+	return m_donnees.debut_inverse();
 }
 
 DonneesType::iterateur_const DonneesType::end() const
 {
-	return m_donnees.rend();
+	return m_donnees.fin_inverse();
 }
 
 DonneesType DonneesType::derefence() const
 {
 	auto donnees = DonneesType{};
 
-	for (size_t i = 1; i < m_donnees.size(); ++i) {
+	for (auto i = 1; i < m_donnees.taille(); ++i) {
 		donnees.pousse(m_donnees[i]);
 	}
 
 	return donnees;
 }
 
-std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte)
+long DonneesType::taille() const
+{
+	return m_donnees.taille();
+}
+
+dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte)
 {
 	std::stringstream os;
 
@@ -215,7 +220,7 @@ std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 				}
 				case id_morceau::CHAINE_CARACTERE:
 				{
-					auto id = static_cast<size_t>(donnee >> 8);
+					auto id = static_cast<long>(donnee >> 8);
 					os << contexte.nom_struct(id);
 					break;
 				}
@@ -313,10 +318,10 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 MagasinDonneesType::MagasinDonneesType()
 {
 	/* initialise les types communs */
-	index_types_communs.resize(TYPES_TOTAUX);
+	index_types_communs.redimensionne(TYPES_TOTAUX);
 
 	for (auto donnees : donnees_types_communs) {
-		auto const idx = static_cast<size_t>(donnees.val_enum);
+		auto const idx = static_cast<long>(donnees.val_enum);
 		index_types_communs[idx] = ajoute_type(donnees.dt);
 	}
 }
@@ -334,22 +339,22 @@ static bool peut_etre_dereference(id_morceau id)
 	}
 }
 
-size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
+long MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 {
 	if (donnees.est_invalide()) {
-		return -1ul;
+		return -1l;
 	}
 
-	auto iter = donnees_type_index.find(donnees);
+	auto iter = donnees_type_index.trouve(donnees);
 
-	if (iter != donnees_type_index.end()) {
+	if (iter != donnees_type_index.fin()) {
 		return iter->second;
 	}
 
-	auto index = donnees_types.size();
-	donnees_types.push_back(donnees);
+	auto index = donnees_types.taille();
+	donnees_types.pousse(donnees);
 
-	donnees_type_index.insert({donnees, index});
+	donnees_type_index.insere({donnees, index});
 
 	/* Ajoute récursivement les types afin d'être sûr que tous les types
 	 * possibles du programme existent lors de la création des infos types. */
@@ -388,9 +393,9 @@ void MagasinDonneesType::declare_structures_C(
 	}
 }
 
-size_t MagasinDonneesType::operator[](int type)
+long MagasinDonneesType::operator[](int type)
 {
-	return index_types_communs[static_cast<size_t>(type)];
+	return index_types_communs[type];
 }
 
 static auto converti_type_simple_C(
@@ -558,7 +563,7 @@ static auto converti_type_simple_C(
 		}
 		case id_morceau::CHAINE_CARACTERE:
 		{
-			auto id_struct = static_cast<size_t>(id >> 8);
+			auto id_struct = static_cast<long>(id >> 8);
 			auto &donnees_struct = contexte.donnees_structure(id_struct);
 			auto nom_structure = contexte.nom_struct(id_struct);
 
@@ -609,7 +614,7 @@ static auto converti_type_simple_C(
  */
 void MagasinDonneesType::converti_type_C(
 		ContexteGenerationCode &contexte,
-		std::string_view const &nom_variable,
+		dls::vue_chaine const &nom_variable,
 		DonneesType const &donnees,
 		std::ostream &os,
 		bool echappe,
@@ -649,18 +654,18 @@ void MagasinDonneesType::converti_type_C(
 	}
 
 	if (donnees.type_base() == id_morceau::FONC || donnees.type_base() == id_morceau::COROUT) {
-		std::vector<std::stack<id_morceau>> liste_pile_type;
+		dls::tableau<dls::pile<id_morceau>> liste_pile_type;
 
 		auto debut = donnees.end() - 1;
 		auto fin = donnees.begin() - 1;
 
-		auto nombre_types_retour = 0ul;
+		auto nombre_types_retour = 0l;
 		auto parametres_finis = false;
 
 		/* saute l'id fonction */
 		--debut;
 
-		std::stack<id_morceau> pile;
+		dls::pile<id_morceau> pile;
 
 		for (; debut != fin; --debut) {
 			if (*debut == id_morceau::PARENTHESE_OUVRANTE) {
@@ -668,11 +673,11 @@ void MagasinDonneesType::converti_type_C(
 			}
 			else if (*debut == id_morceau::PARENTHESE_FERMANTE) {
 				/* évite d'empiler s'il n'y a pas de paramètre, càd 'foo()' */
-				if (!pile.empty()) {
-					liste_pile_type.push_back(pile);
+				if (!pile.est_vide()) {
+					liste_pile_type.pousse(pile);
 				}
 
-				pile = std::stack<id_morceau>{};
+				pile = dls::pile<id_morceau>{};
 
 				if (parametres_finis) {
 					++nombre_types_retour;
@@ -681,31 +686,31 @@ void MagasinDonneesType::converti_type_C(
 				parametres_finis = true;
 			}
 			else if (*debut == id_morceau::VIRGULE) {
-				liste_pile_type.push_back(pile);
-				pile = std::stack<id_morceau>{};
+				liste_pile_type.pousse(pile);
+				pile = dls::pile<id_morceau>{};
 
 				if (parametres_finis) {
 					++nombre_types_retour;
 				}
 			}
 			else {
-				pile.push(*debut);
+				pile.empile(*debut);
 			}
 		}
 
 		if (nombre_types_retour == 1) {
-			auto &pile_type = liste_pile_type[liste_pile_type.size() - nombre_types_retour];
+			auto &pile_type = liste_pile_type[liste_pile_type.taille() - nombre_types_retour];
 
-			while (!pile_type.empty()) {
+			while (!pile_type.est_vide()) {
 				converti_type_C(
 							contexte,
 							"",
-							pile_type.top(),
+							pile_type.haut(),
 							os,
 							echappe,
 							echappe_struct);
 
-				pile_type.pop();
+				pile_type.depile();
 			}
 		}
 		else {
@@ -716,26 +721,26 @@ void MagasinDonneesType::converti_type_C(
 
 		auto virgule = '(';
 
-		if (liste_pile_type.size() == nombre_types_retour) {
+		if (liste_pile_type.taille() == nombre_types_retour) {
 			os << virgule;
 			virgule = ' ';
 		}
 		else {
-			for (auto i = 0ul; i < liste_pile_type.size() - nombre_types_retour; ++i) {
+			for (auto i = 0l; i < liste_pile_type.taille() - nombre_types_retour; ++i) {
 				os << virgule;
 
 				auto &pile_type = liste_pile_type[i];
 
-				while (!pile_type.empty()) {
+				while (!pile_type.est_vide()) {
 					converti_type_C(
 								contexte,
 								"",
-								pile_type.top(),
+								pile_type.haut(),
 								os,
 								echappe,
 								echappe_struct);
 
-					pile_type.pop();
+					pile_type.depile();
 				}
 
 				virgule = ',';
@@ -743,21 +748,21 @@ void MagasinDonneesType::converti_type_C(
 		}
 
 		if (nombre_types_retour > 1) {
-			for (auto i = liste_pile_type.size() - nombre_types_retour; i < liste_pile_type.size(); ++i) {
+			for (auto i = liste_pile_type.taille() - nombre_types_retour; i < liste_pile_type.taille(); ++i) {
 				os << virgule;
 
 				auto &pile_type = liste_pile_type[i];
 
-				while (!pile_type.empty()) {
+				while (!pile_type.est_vide()) {
 					converti_type_C(
 								contexte,
 								"",
-								pile_type.top(),
+								pile_type.haut(),
 								os,
 								echappe,
 								echappe_struct);
 
-					pile_type.pop();
+					pile_type.depile();
 				}
 
 				os << '*';
@@ -863,7 +868,7 @@ llvm::Type *converti_type_simple(
 			auto &donnees_structure = contexte.donnees_structure(id_structure);
 
 			if (donnees_structure.type_llvm == nullptr) {
-				std::vector<llvm::Type *> types_membres;
+				dls::tableau<llvm::Type *> types_membres;
 				types_membres.resize(donnees_structure.donnees_types.size());
 
 				std::transform(donnees_structure.donnees_types.begin(),
@@ -896,7 +901,7 @@ llvm::Type *converti_type_simple(
 			}
 			else {
 				/* type = structure { *type, n64 } */
-				std::vector<llvm::Type *> types_membres(2ul);
+				dls::tableau<llvm::Type *> types_membres(2ul);
 				types_membres[0] = llvm::PointerType::get(type_entree, 0);
 				types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
 
@@ -931,7 +936,7 @@ llvm::Type *converti_type_simple(
 
 				auto type_struct_info = converti_type(contexte, ref_dt_info);
 
-				std::vector<llvm::Type *> types_membres(2ul);
+				dls::tableau<llvm::Type *> types_membres(2ul);
 				types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
 				types_membres[1] = type_struct_info;
 
@@ -957,7 +962,7 @@ llvm::Type *converti_type_simple(
 
 			if (type_chaine.type_llvm() == nullptr) {
 				/* type = structure { *z8, z64 } */
-				std::vector<llvm::Type *> types_membres(2ul);
+				dls::tableau<llvm::Type *> types_membres(2ul);
 				types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
 				types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
 
@@ -988,14 +993,14 @@ llvm::Type *converti_type_simple(
  */
 [[nodiscard]] auto donnees_types_parametres(
 		const DonneesType &donnees_type,
-		size_t &nombre_types_retour) noexcept(false) -> std::vector<DonneesType>
+		long &nombre_types_retour) noexcept(false) -> dls::tableau<DonneesType>
 {
 	if (donnees_type.type_base() != id_morceau::FONC && donnees_type.type_base() != id_morceau::COROUT) {
 		return {};
 	}
 
 	auto dt = DonneesType{};
-	std::vector<DonneesType> donnees_types;
+	dls::tableau<DonneesType> donnees_types;
 
 	auto debut = donnees_type.end() - 1;
 
@@ -1013,7 +1018,7 @@ llvm::Type *converti_type_simple(
 			}
 		}
 
-		donnees_types.push_back(dt);
+		donnees_types.pousse(dt);
 
 		dt = DonneesType{};
 	}
@@ -1033,7 +1038,7 @@ llvm::Type *converti_type_simple(
 			}
 		}
 
-		donnees_types.push_back(dt);
+		donnees_types.pousse(dt);
 		++nombre_types_retour;
 
 		dt = DonneesType{};
@@ -1058,13 +1063,13 @@ llvm::Type *converti_type(
 
 		llvm::Type *type = nullptr;
 		auto dt = DonneesType{};
-		std::vector<llvm::Type *> parametres;
+		dls::tableau<llvm::Type *> parametres;
 
 		auto dt_params = donnees_types_parametres(donnees_type);
 
 		for (size_t i = 0; i < dt_params.size() - 1; ++i) {
 			type = converti_type(contexte, dt_params[i]);
-			parametres.push_back(type);
+			parametres.pousse(type);
 		}
 
 		type = converti_type(contexte, dt_params.back());
@@ -1131,7 +1136,7 @@ unsigned alignement(
 			return 8;
 		case id_morceau::CHAINE_CARACTERE:
 		{
-			auto const &id_structure = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
+			auto const &id_structure = (static_cast<long>(identifiant) & 0xffffff00) >> 8;
 			auto &ds = contexte.donnees_structure(id_structure);
 
 			if (ds.est_enum) {

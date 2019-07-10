@@ -19,15 +19,17 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+set(NOM_CIBLE kuri_decoupage)
+
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${INCLUSIONS_DELSACE_CHRONO}
-	${INCLUSIONS_DELSACE_LANGAGE}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )
 
 set(BIBLIOTHEQUES
 	stdc++fs
-	${BIBLIOTHEQUE_DELSACE_LANGAGE}
+	langage
+	bib_structures
+	memoire
 )
 
 set(SOURCES
@@ -68,8 +70,8 @@ if(AVEC_LLVM)
 	list(APPEND SOURCES coulisse_llvm.cc coulisse_llvm.hh info_type.cc info_type.hh)
 endif()
 
-add_library(decoupage STATIC "${SOURCES}")
+add_library(${NOM_CIBLE} STATIC "${SOURCES}")
 
-target_include_directories(decoupage PUBLIC "${INCLUSIONS}")
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(decoupage "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")

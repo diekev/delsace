@@ -24,7 +24,6 @@
 
 #include "test_expression.h"
 
-#include "erreur.h"
 #include "outils.h"
 
 static void test_expression_flux_si(dls::test_unitaire::Controleuse &controleuse)

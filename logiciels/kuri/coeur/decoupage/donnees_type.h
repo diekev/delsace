@@ -40,8 +40,8 @@ class Type;
 }
 #endif
 
-#include <unordered_map>
-#include <vector>
+#include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
 
@@ -60,18 +60,18 @@ struct ContexteGenerationCode;
  */
 class DonneesType {
 	/* À FAIRE : type similaire à llvm::SmallVector. */
-	std::vector<id_morceau> m_donnees{};
+	dls::tableau<id_morceau> m_donnees{};
 
 #ifdef AVEC_LLVM
 	llvm::Type *m_type{nullptr};
 #endif
 
 public:
-	std::string ptr_info_type{};
+	dls::chaine ptr_info_type{};
 
 	noeud::base *expr = nullptr;
 
-	using iterateur_const = std::vector<id_morceau>::const_reverse_iterator;
+	using iterateur_const = dls::tableau<id_morceau>::const_iteratrice_inverse;
 
 	DonneesType() = default;
 
@@ -139,6 +139,8 @@ public:
 	 */
 	DonneesType derefence() const;
 
+	long taille() const;
+
 #ifdef AVEC_LLVM
 	llvm::Type *type_llvm() const
 	{
@@ -195,7 +197,7 @@ public:
 	return !(type_a == type_b);
 }
 
-std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte);
+dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte);
 
 inline bool est_type_tableau_fixe(id_morceau id)
 {
@@ -302,16 +304,16 @@ enum {
 };
 
 struct MagasinDonneesType {
-	std::unordered_map<DonneesType, size_t> donnees_type_index{};
-	std::vector<DonneesType> donnees_types{};
+	dls::dico_desordonne<DonneesType, long> donnees_type_index{};
+	dls::tableau<DonneesType> donnees_types{};
 
 	MagasinDonneesType();
 
-	size_t ajoute_type(const DonneesType &donnees);
+	long ajoute_type(const DonneesType &donnees);
 
 	void converti_type_C(
 			ContexteGenerationCode &contexte,
-			std::string_view const &nom_variable,
+			dls::vue_chaine const &nom_variable,
 			DonneesType const &donnees,
 			std::ostream &os,
 			bool echappe = false,
@@ -332,17 +334,17 @@ struct MagasinDonneesType {
 			ContexteGenerationCode &contexte,
 			std::ostream &os);
 
-	size_t operator[](int type);
+	long operator[](int type);
 
 private:
-	std::vector<size_t> index_types_communs{};
+	dls::tableau<long> index_types_communs{};
 };
 
 /* ************************************************************************** */
 
 [[nodiscard]] auto donnees_types_parametres(
 		const DonneesType &donnees_type,
-		size_t &nombre_types_retour) noexcept(false) -> std::vector<DonneesType>;
+		long &nombre_types_retour) noexcept(false) -> dls::tableau<DonneesType>;
 
 #ifdef AVEC_LLVM
 [[nodiscard]] llvm::Type *converti_type(

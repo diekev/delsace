@@ -59,9 +59,10 @@ void chaine::pousse(char c)
 	m_chaine.push_back(c);
 }
 
-void chaine::append(const chaine &c)
+chaine &chaine::append(const chaine &c)
 {
 	m_chaine.append(c.m_chaine);
+	return *this;
 }
 
 bool chaine::est_vide() const

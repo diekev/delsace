@@ -24,7 +24,6 @@
 
 #include "test_boucle.hh"
 
-#include "erreur.h"
 #include "outils.h"
 
 static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)

@@ -46,7 +46,7 @@ assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 assembleuse_arbre::~assembleuse_arbre()
 {
 	for (auto noeud : m_noeuds) {
-		delete noeud;
+		memoire::deloge("noeud_base", noeud);
 	}
 }
 
@@ -54,18 +54,18 @@ noeud::base *assembleuse_arbre::empile_noeud(type_noeud type, ContexteGeneration
 {
 	auto noeud = cree_noeud(type, contexte, morceau);
 
-	if (!m_pile.empty() && ajoute) {
+	if (!m_pile.est_vide() && ajoute) {
 		this->ajoute_noeud(noeud);
 	}
 
-	m_pile.push(noeud);
+	m_pile.empile(noeud);
 
 	return noeud;
 }
 
 void assembleuse_arbre::ajoute_noeud(noeud::base *noeud)
 {
-	m_pile.top()->ajoute_noeud(noeud);
+	m_pile.haut()->ajoute_noeud(noeud);
 }
 
 noeud::base *assembleuse_arbre::cree_noeud(
@@ -73,7 +73,7 @@ noeud::base *assembleuse_arbre::cree_noeud(
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau)
 {
-	auto noeud = new noeud::base(contexte, morceau);
+	auto noeud = memoire::loge<noeud::base>("noeud_base", contexte, morceau);
 	m_memoire_utilisee += sizeof(noeud::base);
 
 	/* À FAIRE : réutilise la mémoire des noeuds libérés. */
@@ -84,14 +84,14 @@ noeud::base *assembleuse_arbre::cree_noeud(
 		if (type == type_noeud::APPEL_FONCTION) {
 			/* requis pour pouvoir renseigner le noms de arguments depuis
 			 * l'analyse. */
-			noeud->valeur_calculee = std::list<std::string_view>{};
+			noeud->valeur_calculee = std::list<dls::vue_chaine>{};
 
 			/* requis pour déterminer le module dans le noeud d'accès point
 			 * À FAIRE : trouver mieux pour accéder à cette information */
 			noeud->module_appel = noeud->morceau.module;
 		}
 
-		m_noeuds.push_back(noeud);
+		m_noeuds.pousse(noeud);
 	}
 
 	return noeud;
@@ -99,26 +99,26 @@ noeud::base *assembleuse_arbre::cree_noeud(
 
 void assembleuse_arbre::depile_noeud(type_noeud type)
 {
-	assert(m_pile.top()->type == type);
-	m_pile.pop();
+	assert(m_pile.haut()->type == type);
+	m_pile.depile();
 	static_cast<void>(type);
 }
 
 void assembleuse_arbre::imprime_code(std::ostream &os)
 {
 	os << "------------------------------------------------------------------\n";
-	m_pile.top()->imprime_code(os, 0);
+	m_pile.haut()->imprime_code(os, 0);
 	os << "------------------------------------------------------------------\n";
 }
 
 #ifdef AVEC_LLVM
 void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_generation)
 {
-	if (m_pile.empty()) {
+	if (m_pile.est_vide()) {
 		return;
 	}
 
-	noeud::genere_code_llvm(m_pile.top(), contexte_generation, false);
+	noeud::genere_code_llvm(m_pile.haut(), contexte_generation, false);
 }
 #endif
 
@@ -126,7 +126,7 @@ void assembleuse_arbre::genere_code_C(
 		ContexteGenerationCode &contexte_generation,
 		std::ostream &os)
 {
-	if (m_pile.empty()) {
+	if (m_pile.est_vide()) {
 		return;
 	}
 
@@ -158,7 +158,7 @@ void assembleuse_arbre::genere_code_C(
 	 */
 	std::stringstream ss_infos_types;
 
-	noeud::genere_code_C(m_pile.top(), contexte_generation, false, os, ss_infos_types);
+	noeud::genere_code_C(m_pile.haut(), contexte_generation, false, os, ss_infos_types);
 
 	auto debut_main =
 R"(
@@ -187,12 +187,12 @@ void assembleuse_arbre::supprime_noeud(noeud::base *noeud)
 
 size_t assembleuse_arbre::memoire_utilisee() const
 {
-	return m_memoire_utilisee + m_noeuds.size() * sizeof(noeud::base *);
+	return m_memoire_utilisee + nombre_noeuds() * sizeof(noeud::base *);
 }
 
 size_t assembleuse_arbre::nombre_noeuds() const
 {
-	return m_noeuds.size();
+	return static_cast<size_t>(m_noeuds.taille());
 }
 
 void imprime_taille_memoire_noeud(std::ostream &os)

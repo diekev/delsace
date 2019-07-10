@@ -190,6 +190,8 @@ public:
 
 	using iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::iterator;
 	using const_iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::const_iterator;
+	using iteratrice_inverse = typename std::vector<T, memoire::logeuse_guardee<T>>::reverse_iterator;
+	using const_iteratrice_inverse = typename std::vector<T, memoire::logeuse_guardee<T>>::const_reverse_iterator;
 
 	iteratrice debut()
 	{
@@ -209,6 +211,26 @@ public:
 	const_iteratrice fin() const
 	{
 		return m_vecteur.cend();
+	}
+
+	iteratrice_inverse debut_inverse()
+	{
+		return m_vecteur.rbegin();
+	}
+
+	const_iteratrice_inverse debut_inverse() const
+	{
+		return m_vecteur.crbegin();
+	}
+
+	iteratrice_inverse fin_inverse()
+	{
+		return m_vecteur.rend();
+	}
+
+	const_iteratrice_inverse fin_inverse() const
+	{
+		return m_vecteur.crend();
 	}
 
 	void erase(iteratrice iter)

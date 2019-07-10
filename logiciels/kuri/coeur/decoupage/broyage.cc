@@ -24,19 +24,19 @@
 
 #include "broyage.hh"
 
-#include <langage/unicode.hh>
+#include "biblinternes/langage/unicode.hh"
 
 static char char_depuis_hex(char hex)
 {
 	return "0123456789ABCDEF"[static_cast<int>(hex)];
 }
 
-std::string broye_nom_simple(std::string_view const &nom)
+dls::chaine broye_nom_simple(dls::vue_chaine const &nom)
 {
-	auto ret = std::string{};
+	auto ret = dls::chaine{};
 
 	auto debut = &nom[0];
-	auto fin   = &nom[nom.size()];
+	auto fin   = &nom[nom.taille()];
 
 	while (debut < fin) {
 		auto no = lng::nombre_octets(debut);
@@ -70,21 +70,21 @@ std::string broye_nom_simple(std::string_view const &nom)
 	return ret;
 }
 
-std::string broye_nom_fonction(
-		std::string_view const &nom_fonction,
-		std::string const &nom_module,
-		size_t index_type)
+dls::chaine broye_nom_fonction(
+		dls::vue_chaine const &nom_fonction,
+		dls::chaine const &nom_module,
+		long index_type)
 {
 	/* pour l'instant, nous ne broyons que le nom pour supprimer les accents
 	 * dans le future, quand nous aurons des surcharges de fonctions et des
 	 * génériques nous incluerons également les types
 	 */
 
-	auto ret = std::string("KR_");
+	auto ret = dls::chaine("KR_");
 	ret += broye_nom_simple(nom_module);
 	ret += '_';
 	ret += broye_nom_simple(nom_fonction);
-	ret += std::to_string(index_type);
+	ret += dls::vers_chaine(index_type);
 
 	return ret;
 }

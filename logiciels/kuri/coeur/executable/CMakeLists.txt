@@ -26,7 +26,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	decoupage
+	kuri_decoupage
 	stdc++fs
 )
 

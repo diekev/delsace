@@ -24,7 +24,6 @@
 
 #include "test_retour.hh"
 
-#include "erreur.h"
 #include "outils.h"
 
 void test_retour(dls::test_unitaire::Controleuse &controleuse)

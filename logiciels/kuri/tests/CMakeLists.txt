@@ -26,8 +26,8 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUE_DELSACE_TESTS}
-	decoupage
+	tests
+	kuri_decoupage
 )
 
 set(SOURCES
