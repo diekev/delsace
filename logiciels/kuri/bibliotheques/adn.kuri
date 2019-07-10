@@ -1,0 +1,85 @@
+# Bibliothèque de conversion entre des flux binaires et les 'bases azotées'
+# de l'acide désoxyribonucléique.
+
+# Converti un flux d'octets binaire en une chaine d'ADN composée de 'a', 'c',
+# 'g', ou 't'. La conversion s'effectue en coupant chac octet en quatre groupes
+# de deux bits. La valeur de chac duobit définie ensuite la base azotée
+# correspondante selon l'appariement suivant :
+# 0b00 = 'a'
+# 0b01 = 'c'
+# 0b10 = 'g'
+# 0b11 = 't'
+#
+# La chaine retourner a été logée, et doit donc être délogée par l'appelante.
+fonc encode_adn(valeurs : []octet) : chaine
+{
+    dyn chn : chaine;
+
+    si taille de valeurs == 0 {
+        retourne chn;
+    }
+
+    codes = ['a', 'c', 'g', 't'];
+    reloge chn : chaine(taille de valeurs * 4);
+
+    pour v, i dans valeurs {
+        chn[i * 4 + 0] = codes[(v & 0b11000000) >> 6];
+        chn[i * 4 + 1] = codes[(v & 0b00110000) >> 4];
+        chn[i * 4 + 2] = codes[(v & 0b00001100) >> 2];
+        chn[i * 4 + 3] = codes[(v & 0b00000011)     ];
+    }
+
+    retourne chn;
+}
+
+# Converti un flux d'octets représantant une chaine d'ADN en un flux binaire. La
+# conversion est l'opposée de celle effectuée dans encode_adn : chaque octet est
+# considéré comme une base azotée définissant sa valeur (00, 01, 10, 11). Les
+# bases sont groupées en quatre pour former un octet final.
+#
+# La chaine retourner a été logée, et doit donc être délogée par l'appelante.
+fonc décode_adn(valeurs : []octet) : chaine
+{
+    dyn chn : chaine;
+    taille = taille de valeurs;
+
+    si taille == 0 {
+        retourne chn;
+    }
+
+    reloge chn : chaine(taille / 4);
+    dyn val : z8 = 0;
+
+    pour v, i dans valeurs {
+        idx = i % 4;
+        décalage = (3 - idx) * 2;
+
+        associe v {
+            'a' { val |= (0b00 << décalage); } 
+            'c' { val |= (0b01 << décalage); } 
+            'g' { val |= (0b10 << décalage); } 
+            't' { val |= (0b11 << décalage); } 
+        }
+
+        si idx == 3 {
+            chn[i / 4] = val;
+            val = 0;
+        }
+    }
+
+    retourne chn;
+}
+
+# Change directement la chaine passée en paramètre de sorte que chaque base est
+# remplacée par sa paire.
+fonc appariement(dyn chn : []octet) : rien
+{
+    pour v dans chn {
+        associe v {
+            'a' { v = transtype('t' : octet); }
+            'c' { v = transtype('g' : octet); }
+            'g' { v = transtype('c' : octet); }
+            't' { v = transtype('a' : octet); }
+        }
+    }
+}

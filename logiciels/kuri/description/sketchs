@@ -1,0 +1,229 @@
+importe std.flux
+
+classe gabarit(T) Noeud {
+	T posx = 0;
+	T posy = 0;
+
+	constructeur() = défaut;
+
+	destructeur() = défaut;
+
+	fonction compile()
+	{
+		posx = 0;
+		posy = 0;
+	}
+}
+
+classe vecteur2 {
+    e8 x;
+    e8 y;
+
+    construction()
+    {
+        x = 0;
+        y = 0;
+    }
+
+    construction(e8 vx, e8 vy)
+    {
+        x = vx;
+        y = vy;
+    }
+
+    destruction()
+
+    vecteur2 opération+()
+}
+
+# converti les méthodes en 'nom_méthode' + '_' + 'nom_classe'
+
+soit vec = vecteur2();  # converti en soit vec = construction_vecteur2();
+
+enum {
+	OUVERT,
+	FERME,
+}
+
+fonction ajoute(d32 x, d32 y) -> d32
+{
+	retourne x + y;
+}
+
+classe Fichier {
+	fonction ouvre();
+
+	fonction ferme();
+
+	fonction état();
+}
+
+fonction foo(chemin)
+{
+	Fichier fichier(chemin);
+
+	ouvre(fichier);
+
+	si état(fichier) != OUVERT {
+		retourne faux;
+	}
+
+	retourne vrai;
+
+sortie:
+	ferme(fichier);
+
+échec:
+	ferme(fichier);
+}
+
+fonction gabarit(E, V) trouve(E premier, E dernier, V valeur)
+{
+	boucle premier...dernier {
+		if *premier == valeur {
+			arrête;
+		}
+	}
+	sinon {
+		retourne premier;
+	}
+
+	retourne dernier;
+}
+
+iter = trouve(début(graphe), fin(graphe), noeud);
+
+Noeud noeud;
+
+Manière d'accès de noeud::posy
+posy de noeud = posy de noeud + 5;
+
+# Manière d'appel de Noeud::compile()
+compile(noeud);
+
+boucle ... {
+	si condition {
+		arrête;
+	}
+}
+sinon {
+}
+
+fonction decoupe(chaine *s, e32 pattern) -> chaine
+{
+    chaine temp;
+
+    boucle 0...longueur(s) comme c {
+        if c == pattern {
+            soit temp2 = temp;
+            temp = "";
+            retiens temp2;
+        }
+
+        temp += c;
+    }
+}
+
+fonction principale()
+{
+    boucle decoupe("Le temps est moche", ' ') comme mot {
+        imprime("%s", mot);
+    }
+}
+
+fonction xyz()
+{
+    # ID_POUR
+    # ID_CHAINE
+    # ID_DANS
+    # expr
+    pour mot dans decoupe("", "") {
+        imprime("%s", mot);
+    }
+    sinon {
+
+    }
+
+    boucle {
+        arrête;
+        continue;
+    }
+    sinon {
+
+    }
+
+    pour index dans 0...10 {
+
+    }
+    sinon {
+
+    }
+}
+
+fonction impression_chaine(où : *e8, chaine : *e8)
+{
+	boucle {
+		si *chaine == 0 {
+			arrête;
+		}
+
+		*où++ = *chaine++;
+	}
+}
+
+fonction impression_entier(où : *e8, valeur : e32)
+{
+	soit variable temp = valeur;
+
+	if temp < 0 {
+		*où++ = '-';
+		temp = -temp;
+	}
+
+	if temp > 1_000_000_000 {
+		*où++ = '0' + temp / 1_000_000_000;
+		temp = temp % 1_000_000_000;
+	}
+
+	if temp > 100_000_000 {
+		*où++ = '0' + temp / 100_000_000;
+		temp = temp % 100_000_000;
+	}
+
+	if temp > 10_000_000 {
+		*où++ = '0' + temp / 10_000_000;
+		temp = temp % 10_000_000;
+	}
+
+	if temp > 1_000_000 {
+		*où++ = '0' + temp / 1_000_000;
+		temp = temp % 1_000_000;
+	}
+
+	if temp > 100_000 {
+		*où++ = '0' + temp / 100_000;
+		temp = temp % 100_000;
+	}
+
+	if temp > 10_000 {
+		*où++ = '0' + temp / 10_000;
+		temp = temp % 10_000;
+	}
+
+	if temp > 1_000 {
+		*où++ = '0' + temp / 1_000;
+		temp = temp % 1_000;
+	}
+
+	if temp > 100 {
+		*où++ = '0' + temp / 100;
+		temp = temp % 100;
+	}
+
+	if temp > 10 {
+		*où++ = '0' + temp / 10;
+		temp = temp % 10;
+	}
+
+	*où++ = '0' + temp;
+}

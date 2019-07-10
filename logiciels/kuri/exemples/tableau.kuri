@@ -1,0 +1,11 @@
+# déclaration tableau
+soit tableau : [8]e32 = [0, 0, 0, 0, 0, 0, 0, 0];
+soit tableau = [0, 0, 0, 0, 0, 0, 0, 0];
+
+# déclaration tableau de tableau
+soit tableaux : [8][2]r64 = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]];
+soit tableaux = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]];
+
+# accès tableau
+soit x = tableau[1];
+soit y = tableaux[0][1];

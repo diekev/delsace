@@ -1,0 +1,49 @@
+fonc externe printf(fmt : *z8, args : ...) : z32;
+
+# Si le tableau n'a pas de taille connue : convertie en structure TableauType { ptr : *type, taille : n64 }
+# Si le tableau a une taille connue, ne fais rien
+# Passage de paramètres :
+## si le tableau paramètre n'a pas de taille connue, on peut passer un tableau dynamic ou static
+## Si le tableau paramètre a une taille connue, on ne peut que passer un tableau static
+# Performe une vérification des limites d'accès au tableau.
+
+fonc passe_tableau_fixe(tabl : [5]z32) : rien
+{
+	printf("passe_tableau_fixe : \n");
+
+	pour valeur dans tabl {
+		printf("%d\n", valeur);
+	}
+}
+
+fonc passe_tableau_dynamic(tabl : []z32) : rien
+{
+	printf("passe_tableau_dynamic : taille : %d\n", taille de tabl);
+
+	pour valeur dans tabl {
+		printf("%d\n", valeur);
+	}
+}
+
+fonc principale(c : z32, args : [][]z8) : z32
+{
+	# Point d'entrée des programmes kuri.
+	dyn tabl_fix : [5]z32;
+
+	dyn dernier = 0;
+
+	pour x dans tabl_fix {
+		x = dernier;
+		dernier = (dernier + 2) * (x + 1);
+	}
+
+	passe_tableau_fixe(tabl_fix); # ok
+	passe_tableau_dynamic(tabl_fix); # ok
+
+	dyn tabl_dynamic : []z32;
+
+	#passe_tableau_fixe(tabl_dynamic); # erreur
+	passe_tableau_dynamic(tabl_dynamic); # ok
+
+	retourne 0;
+}

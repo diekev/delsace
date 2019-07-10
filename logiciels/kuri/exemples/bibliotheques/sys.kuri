@@ -1,0 +1,37 @@
+#module sys
+
+# Retourne une chaîne de caractère contenant le nom du système d'exploitation.
+fonc sysexp() : chaine
+{
+#!si linux
+	retourne "linux";
+#!sinon si windows
+    retourne "windows";
+#!sinon si macos
+    retourne "macos";
+#!sinon
+    retourne "inconnu";
+#!finsi
+}
+
+# Retourne le nombre de bit de l'adressage de la machine.
+fonc adressage() : z32
+{
+#!si arch32
+	retourne 32;
+#!sinon si arch64
+    retourne 64;
+#!sinon
+    retourne 0;
+#!finsi
+}
+
+fonc boutisme() : chaine
+{
+	retourne "petit";
+}
+
+fonc processeur() : chaine
+{
+	retourne "";
+}

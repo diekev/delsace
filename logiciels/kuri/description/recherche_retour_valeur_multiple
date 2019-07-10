@@ -1,0 +1,37 @@
+===============================================================================
+a, b = foo()
+
+fonction externe                            IMPOSSIBLE
+
+fonction interne                            foo(&a, &b)
+
+coroutine                                   foo(etat); a = etat->a, b = etat->b
+
+ptr coroutine                               foo(etat); a = etat->a, b = etat->b
+
+ptr fonction interne                        foo(&a, &b)
+
+ptr fonction externe                        IMPOSSIBLE
+
+ptr fonction interne pour fonction externe  IMPOSSIBLE
+
+===============================================================================
+a = bar()
+
+fonction externe                            a = bar()
+
+fonction interne                            a = bar()
+
+coroutine                                   bar(etat); a = etat->a
+
+ptr coroutine                               bar(etat); a = etat->a
+
+ptr fonction interne                        a = bar()
+
+ptr fonction externe                        a = bar()
+
+ptr fonction interne pour fonction externe  a = bar()
+
+===============================================================================
+REGLES
+ -> seules les fonctions avec plusieurs valeurs de retours sont modifiées

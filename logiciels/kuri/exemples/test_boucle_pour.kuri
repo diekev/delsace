@@ -1,0 +1,47 @@
+importe "flux"
+
+fonc boucle_avec_plage() : rien
+{
+	imprime("boucle_avec_plage()\n");
+
+	pour i dans 0...10 {
+		imprime(i, '\n');
+	}
+
+	imprime('\n');
+}
+
+fonc boucle_avec_args_varidics(args : ...z32) : rien
+{
+	imprime("boucle_avec_args_varidics()\n");
+
+	pour arg dans args {
+		imprime(arg, '\n');
+	}
+
+	imprime('\n');
+}
+
+fonc boucle_avec_tableau(tableau : [10]z32) : rien
+{
+	imprime("boucle_avec_tableau()\n");
+
+	pour v dans tableau {
+		imprime(v, '\n');
+	}
+
+	imprime('\n');
+}
+
+fonc principale(args : []*z8) : z32
+{
+	boucle_avec_plage();
+
+	boucle_avec_args_varidics(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
+
+	tableau = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27];
+
+	boucle_avec_tableau(tableau);
+
+	retourne 0;
+}

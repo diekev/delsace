@@ -1,0 +1,46 @@
+#
+# C++
+#
+using Ntype = Vtype;
+typedef Vtype Ntype;
+
+#
+# C#
+#
+using Ntype = Vtype;
+
+#
+# D
+#
+alias FooInt = Foo!int;
+alias Fun = int delegate(int);
+
+#
+# Java
+#
+N/A
+
+#
+# Python
+#
+N/A
+
+#
+# Rust
+#
+type Name = String;
+
+#
+# Go
+#
+type Ntype Vtype
+
+#
+# Swift
+#
+typealias Ntype = Vtype
+
+#
+# Kuri
+#
+avec Ntype = Vtype;

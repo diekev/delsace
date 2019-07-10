@@ -1,0 +1,13 @@
+possession :
+
+-- chaque objet possède le pointeur qu'il contient
+-- si un pointeur est passé à une fonction, la fonction prend possession du pointeur
+-- un pointeur peut-être partagé avec une fonction (via mot-clé &dyn)
+-- une fonction peut déléguer la possession d'un pointeur à son appeleur
+
+multithreading :
+- deadlock :
+-- causes : cycle dans le graphe d'appel, à travers ou non plusieurs thread
+-- solution compilation : annotation du code? utilisation d'un graphe de dépendance concret
+- race condition :
+-- causes : accès en écriture à un objet partagé

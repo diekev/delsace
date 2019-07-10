@@ -1,0 +1,176 @@
+importe "flux"
+
+fonc imprime_tableau(tabl : []r64) : rien
+{
+    imprime("imprime_tableau...\n");
+    imprime("taille de tabl = ", taille de tabl, "\n");
+    imprime("pointeur de tabl = ", pointeur de tabl, "\n");
+
+    dyn index = 0;
+    pour v dans tabl {
+        # À FAIRE : besoin_dérèf
+        soit x = v;
+        imprime("tabl[", index, "] = ", x, "\n");
+        index = index + 1;
+    }
+}
+
+structure Vecteur {
+    x : r64;
+    y : r64;
+    z : r64;
+}
+
+fonc test() : rien
+{
+    imprime("=========================================\n");
+    imprime("                 tableau                 \n");
+
+    dyn tabl = [1.0, 2.0, 4.0, 8.0, 16.0];
+
+    imprime_tableau(tabl);
+
+    imprime("=========================================\n");
+    imprime("                 tailles                 \n");
+
+    imprime("taille_de(z32) = ", taille_de(z32), "\n");
+    imprime("taille_de([]z32) = ", taille_de([]z32), "\n");
+    imprime("taille_de([]r64) = ", taille_de([]r64), "\n");
+    imprime("taille_de(eini) = ", taille_de(eini), "\n");
+
+    imprime("=========================================\n");
+    imprime("                 vecteur                 \n");
+
+    dyn vec2 : Vecteur;
+    soit vec1 = Vecteur{x = 1.0, y = 4.0, z = 16.0};
+
+    imprime("Vecteur initiliasé : ", vec1, '\n');
+    imprime("Vecteur non-initiliasé : ", vec2, '\n');
+
+    # À FAIRE : appel foncs ne foncne pas s'il faut transformer les arguments
+    dyn nom = "x";
+
+    dyn ok = possede_membre(vec1, nom);
+
+    si ok {
+        imprime("Le vecteur possède le membre 'x' !\n");
+    }
+    sinon {
+        imprime("Le vecteur ne possède pas le membre 'x' !\n");
+    }
+
+    # À FAIRE : réassignement
+    dyn nom1 = "non";
+    ok = possede_membre(vec1, nom1);
+
+    si ok {
+        imprime("Le vecteur possède le membre 'non' !\n");
+    }
+    sinon {
+        imprime("Le vecteur ne possède pas le membre 'non' !\n");
+    }
+}
+
+fonc logement_tableau() : rien
+{
+    imprime("=========================================\n");
+    imprime("            logements tableau            \n");
+
+    dyn tabl = loge [32]r64;
+
+    imprime("Tableau logé à l'addresse : ", pointeur de tabl, '\n');
+    imprime("Taille tableau : ", taille de tabl, '\n');
+
+    dyn debut = 1.0;
+
+    pour v dans tabl {
+        v = debut;
+        debut *= 3.0;
+    }
+
+    imprime_tableau(tabl);
+
+    déloge tabl;
+    
+    imprime("Tableau délogé : ", pointeur de tabl, '\n');
+    imprime("Taille tableau : ", taille de tabl, '\n');
+
+    imprime_tableau(tabl);
+}
+
+
+fonc logement_chaine() : rien
+{  
+    imprime("=========================================\n");
+    imprime("            logements chaine             \n");
+
+    soit chn1 = "Kévin";
+    soit chn2 = "Dietrich";
+
+    dyn chnr = concatene(chn1, chn2);
+
+    imprime("Résultat : ", chnr, '\n');
+
+    déloge chnr;
+    
+    imprime("Chaîne délogée : ", pointeur de chnr, '\n');
+    imprime("Taille chaîne  : ", taille de chnr, '\n');
+}
+
+fonc test_fichier() : rien
+{
+    imprime("=========================================\n");
+    imprime("                 fichier                 \n");
+
+    soit chemin = "/home/kevin/test.kuri";
+
+    nonsûr {
+        dyn res = open(chemin, 0);
+
+        si res == -1 {
+            imprime("Erreur lors de l'ouverture du fichier !\n");
+            retourne;
+        }
+
+        dyn tpn : [1024]z8;
+        dyn nread = read(res, @tpn[0], 1024);
+
+        imprime("Lu ", nread, " octets\n");
+        
+        dyn chn : chaîne;
+        pointeur de chn = @tpn[0]; # À FAIRE : prend pointeur automatiquement
+        taille de chn = transtype(nread : z64);
+
+        imprime(chn, '\n');
+
+        res = close(res);
+
+        si res == -1 {
+            imprime("Erreur lors de la fermeture du fichier !\n");
+            retourne;
+        }
+    }
+}
+
+fonc principale(args : []*z8) : z32
+{
+    imprime("=========================================\n");
+    imprime("                arguments                \n");
+
+    soit str = "nombre d'arguments = ";
+    imprime(str, argc, "\n");
+
+    dyn i = 0;
+    pour arg dans args {
+        soit nom_arg = converti_chaine_c(arg);
+        imprime("argument ", i,": ", nom_arg, "\n");
+        i += 1;
+    }
+
+    logement_tableau();
+    logement_chaine();
+    #test_fichier();
+    test();
+
+    retourne 0;
+}

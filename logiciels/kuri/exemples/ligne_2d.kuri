@@ -1,0 +1,72 @@
+fonction externe printf(format : *z8, args : ...) : z32;
+
+structure Point2D {
+	x : r64;
+	y : r64;
+}
+
+fonction crée_point(x : r64, y : r64) : Point2D
+{
+	soit variable point : Point2D;
+	x de point = x;
+	y de point = y;
+
+	retourne point;
+}
+
+structure Ligne2D {
+	p1 : Point2D;
+	p2 : Point2D;
+}
+
+fonction crée_ligne(p1 : Point2D, p2 : Point2D) : Ligne2D
+{
+	soit variable ligne : Ligne2D;
+	p1 de ligne = p1;
+	p2 de ligne = p2;
+
+	retourne ligne;
+}
+
+fonction crée_ligne_depuis_coef(coef : r64) : Ligne2D
+{
+	soit variable ligne : Ligne2D;
+	p1 de ligne = crée_point(0.0, 0.0);
+	p2 de ligne = crée_point(1.0, coef);
+
+	retourne ligne;
+}
+
+fonction coefficient_directeur(ligne : *Ligne2D) : r64
+{
+	soit p1 = p1 de ligne;
+	soit p2 = p2 de ligne;
+
+	soit x1 = x de p1;
+	soit x2 = x de p2;
+
+	soit y1 = y de p1;
+	soit y2 = y de p2;
+
+	retourne (y2 - y1) / (x2 - x1);
+}
+
+fonction coefficient_directeur2(ligne : *Ligne2D) : r64
+{
+	retourne (y de p2 de ligne - y de p1 de ligne) / (x de p2 de ligne - x de p1 de ligne); 
+}
+
+fonction principale(compte : z32, args : **z8) : z32
+{
+	soit ligne = crée_ligne_depuis_coef(5.0);
+
+	soit coef = coefficient_directeur(@ligne);
+
+	printf("Le coefficient directeur est de %f\n", coef);
+
+	soit coef2 = coefficient_directeur2(@ligne);
+	
+	printf("Le coefficient directeur est de %f\n", coef2);
+
+	retourne 0;	
+}

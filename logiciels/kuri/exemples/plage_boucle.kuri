@@ -1,0 +1,96 @@
+fonction externe printf(format : *z8, args : ...) : z32;
+
+fonction test_plage_typée() : rien
+{
+	printf("boucle de caractères :\n");
+
+	pour i dans 'a'...'z' {
+		printf("%c\n", i);
+	}
+
+	printf("\n");
+
+	printf("boucle de nombres entier r32 :\n");
+
+	pour i dans 0 ... 10 {
+		printf("%d\n", i);
+	}
+
+	printf("\n");
+	
+	printf("boucle de nombres entier n32 :\n");
+
+	soit debutn32 : n32 = 0;
+	soit finn32 : n32 = 10;
+
+	pour i dans debutn32 ... finn32 {
+		printf("%d\n", i);
+	}
+
+	printf("\n");
+	
+	printf("boucle de nombres réels r64 :\n");
+
+	pour i dans 0.5...25.5 {
+		printf("%f\n", i);
+	}
+	printf("\n");
+
+	soit debut = transtype(0.5)(r32);
+	soit fin   = transtype(9.5)(r32);
+
+	printf("boucle de nombres réels r32 [%f, %f]:\n", debut, fin);
+	pour i dans debut...fin {
+		printf("%f\n", i);
+	}
+	printf("\n");
+
+	retourne;
+}
+
+fonction test_génération_séquence() : rien
+{
+	soit variable debut = 10;
+	soit variable fin   = 0;
+
+	printf(format="Plage de %d à %d\n", args=debut, fin);
+
+	pour x dans debut...fin {
+		printf("%d\n", x);
+	}
+
+	printf("\n");
+
+	debut = 0;
+	fin   = 10;
+
+	printf(format="Plage de %d à %d\n", args=fin, args=debut);
+
+	pour x dans debut...fin {
+		printf("%d\n", fin - x);
+	}
+
+	printf("\n");
+
+	debut = 0;
+	fin   = 10;
+
+	soit plage = (fin - debut);
+	soit demi_plage = plage / 2;
+
+	printf(args=-demi_plage, demi_plage, format="Plage de %d à %d\n");
+
+	pour x dans debut...fin {
+		printf("%d\n", x - demi_plage);
+	}
+
+	printf("\n");
+
+	retourne;
+}
+
+fonction principale(compte : z32, args : **z8) : z32
+{
+	test_génération_séquence();
+	retourne 0;
+}

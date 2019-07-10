@@ -1,0 +1,229 @@
+structure ivec3 {
+    x : z32;
+    y : z32;
+    z : z32;
+}
+
+structure ivec4 {
+    x : z32;
+    y : z32;
+    z : z32;
+    w : z32;
+}
+
+structure atlas_texture {
+    noeuds : []ivec3;
+    utilise : z32;
+    largeur : z32;
+    hauteur : z32;
+    profondeur : z32;
+    id : z32;
+    donnees : []octet;
+}
+
+fonc pousse(dyn tabl : *[]ivec3, val : ivec3) : rien
+{
+    reloge tabl : []ivec3 (taille de tabl + 1);
+    tabl[taille de tabl - 1] = val;
+}
+
+fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) : *atlas_texture
+{
+    dyn atlas = loge atlas_texture;
+
+    # À FAIRE : assertion
+    # assert((profondeur == 1) || (profondeur == 3) || (profondeur == 4));
+
+    si atlas == nul {
+        # À FAIRE : erreur
+        retourne nul;
+    }
+
+    utilise de atlas = 0;
+    largeur de atlas = largeur;
+    hauteur de atlas = hauteur;
+    profondeur de atlas = profondeur;
+    id de atlas = 0;
+
+    soit noeud = ivec3{ x = 1, y = 1, z = largeur - 2 };
+    pousse(@noeuds de atlas, noeud);
+
+    donnees de atlas = loge []octet (largeur * profondeur * hauteur);
+
+    retourne atlas;
+}
+
+fonc décree_atlas_texture(atlas : *atlas_texture) : rien
+{
+    déloge noeuds de atlas;
+    déloge donnees de atlas;
+    déloge atlas;
+}
+
+fonc texture_atlas_set_region(
+    texture_atlas_t * atlas,
+                          const size_t x,
+                          const size_t y,
+                          const size_t largeur,
+                          const size_t hauteur,
+                          const unsigned char * data,
+                          const size_t stride ) : rien
+{
+    # assert( atlas );
+    # assert( x > 0);
+    # assert( y > 0);
+    # assert( x < (atlas->largeur-1));
+    # assert( (x + largeur) <= (atlas->largeur-1));
+    # assert( y < (atlas->hauteur-1));
+    # assert( (y + hauteur) <= (atlas->hauteur-1));
+
+    # prevent copying data from undefined position
+    # and prevent memcpy's undefined behavior when count is zero
+    # assert(hauteur == 0 || (data != NULL && largeur > 0));
+
+    soit depth = atlas->depth;
+    soit charsize = sizeof(char);
+
+    pour i dans 0 ... hauteur - 1 {
+        memcpy( atlas->data+((y+i)*atlas->largeur + x ) * charsize * depth,
+                data + (i*stride) * charsize, largeur * charsize * depth  );
+    }
+}
+
+fonc texture_atlas_fit(
+    atlas : *texture_atlas_t,
+    index : z32,
+    largeur : z32,
+    hauteur : z32) : z32
+{
+    # assert( atlas );
+
+    dyn noeud = noeuds[index] de atlas;
+    dyn x = x de noeud;
+    dyn y = y de noeud;
+    dyn largeur_restante = largeur;
+
+    si ((x + largeur) > (largeur de atlas - 1)) {
+        retourne -1;
+    }
+    
+    dyn y = y de noeud;
+    dyn i = index;
+
+    tantque largeur_restante > 0 {
+        noeud = noeuds[i] de atlas;
+        
+        si (y de noeud > y) {
+            y = y de noeud;
+        }
+        
+        si ((y + hauteur) > (hauteur de atlas - 1)) {
+            retourne -1;
+        }
+        
+        largeur_restante -= z de noeud;
+        i += 1;
+    }
+
+    retourne y;
+}
+
+fonc texture_atlas_merge(atlas : *atlas_texture) : rien
+{
+	# assert(atlas);
+
+	pour i dans 0 ... taille de noeuds de atlas - 2 {
+		soit noeud = noeuds[i] de atlas;
+		soit suiv  = noeuds[i + 1] de atlas;
+
+		si y de noeud == y de suiv {
+			z de noeud += z de suiv;
+			tableau_efface(noeuds de atlas, i + 1); # À FAIRE
+			i -= 1;
+		}
+	}
+}
+
+fonc texture_atlas_get_region(
+    atlas : *atlas_texture,
+    largeur : z32,
+    hauteur : z32) : ivec4
+{
+    # assert( atlas );
+
+    dyn meilleur_hauteur = (1 << 31); # À FAIRE UINT_MAX
+    dyn meilleur_largeur = (1 << 31); # À FAIRE UINT_MAX
+    dyn meilleur_index   = -1;
+    
+    pour noeud, i dans noeuds de atlas {
+        soit y = texture_atlas_fit(atlas, i, largeur, hauteur);
+        
+        si y < 0 {
+            continue;
+        }
+        
+        noeud = (ivec3 *) vector_get( atlas->noeuds, i );
+        si( ( (y + hauteur) < meilleur_hauteur ) ||
+            ( ((y + hauteur) == meilleur_hauteur) && (0 <= z de noeud && z de noeud < meilleur_largeur)) )
+        {
+            meilleur_hauteur = y + hauteur;
+            meilleur_index = i;
+            meilleur_largeur = z de noeud;
+            x de region = x de noeud;
+            y de region = y;
+        }
+    }
+
+    si meilleur_index == -1 {
+        x de region = -1;
+        y de region = -1;
+        largeur de region = 0;
+        hauteur de region = 0;
+        retourne region;
+    }
+
+    dyn noeud : ivec3;
+    x de noeud = x de region;
+    y de noeud = y de region + hauteur;
+    z de noeud = largeur;
+    vector_insert( atlas->noeuds, meilleur_index, noeud ); # À FAIRE
+
+    pour i dans meilleur_index + 1 ... taille de noeuds de atlas - 1 {
+        noeud = noeuds[i] de atlas;
+        prev  = noeuds[i - 1] de atlas;
+
+        si x de noeud >= (x de prev + z de prev) {
+            arrête;
+        }
+        
+        soit shrink = x de prev + z de prev - x de noeud;
+        x de noeud += shrink;
+        z de noeud -= shrink;
+
+        si z de noeud > 0 {
+            arrête;
+        }
+        
+        vector_erase(noeuds de atlas, i);
+        i -= 1;
+    }
+
+    texture_atlas_merge(atlas);
+    utilise de atlas += largeur * hauteur;
+    retourne region;
+}
+
+fonc texture_atlas_clear(atlas : *atlas_texture) : rien
+{
+    #assert(atlas);
+    #assert(donnees de atlas);
+
+    vector_clear(atlas->noeuds); # À FAIRE
+    utilise de atlas = 0;
+    # We want a one pixel border around the whole atlas to avoid any artefact when
+    # sampling texture
+    soit noeud = ivec3{ x = 1, y = 1, z = largeur de atlas - 2 };
+
+    pousse(noeuds de atlas, noeud);
+    init_mem( atlas->data, 0, atlas->largeur*atlas->hauteur*atlas->depth );
+}

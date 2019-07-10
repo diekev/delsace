@@ -1,0 +1,29 @@
++---------+---------+---------------------+--------------------+
+| Langage | Module  | Espace de nom       | Espaces homonymes  |
++---------+---------+---------------------+--------------------+
+| Python  | Fichier | nom du fichier      | non                |
+| Swift   | Dossier | nom du dossier      | non                |
+| C++     | Fichier | bloc de code        | oui                |
+| Go      | Fichier | nom dans le fichier | oui                |
+| Crystal | Fichier | nom du fichier      | non                |
+| Rust    | Fichier | nom dans le fichier | oui                |
++---------+---------+---------------------+--------------------+
+
+
+Bibliothèque :
+- un espace de nom pour toute la bibliothèque
+-- un espace de nom pour les fichiers défini dans le fichier, utilisant le nom du fichier le cas échéant
+
+
+BKE.CacheFile.new() # BKE/CacheFile.kuri
+BKE::CacheFile::new()
+BKE\CacheFile\new()
+BKE/CacheFile/new()
+BKE$CacheFile$new()
+
+# CacheFile.kuri
+# module BKE.CacheFile
+
+BKE.Object.remove() # BKE/Object.kuri
+
+BLI.path.

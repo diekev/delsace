@@ -1,0 +1,4 @@
+fonc principale(compte : z32, arguments : **z8) : z32
+{
+	retourne test0.retourne_0();
+}

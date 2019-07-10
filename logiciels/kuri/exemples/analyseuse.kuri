@@ -1,0 +1,68 @@
+structure Analyseuse {
+	morceaux : []Morceau;
+	coureur  : z32;
+}
+
+fonction a_fini(analyseuse : &Analyseuse) : bool
+{
+	renvoie coureur de analyseuse >= taille de morceaux de analyseuse;
+}
+
+fonction requiers_identifiant(analyseuse : &Analyseuse) : bool
+{
+
+}
+
+fonction avance(analyseuse : &Analyseuse) : rien
+{
+	coureur de analyseuse += 1;
+}
+
+fonction analyse_expression(analyseuse : *Analyseuse) : rien
+{
+	pile_identifiant : pile;
+	expression : file;
+
+	boucle {
+		id = identifiant de morceaux[coureur] de analyseuse;
+
+		associe identifiant {
+			id_morceau.PLUS
+			{
+				vide_pile_identifiant();
+			}
+			2,
+			3,
+			4,
+			5,
+			6
+			{
+
+			}
+			id_morceau.ACCOLADE_OUVRANTE
+			{
+				empile_noeud(assembleuse, type_noeud.BLOC);
+			}
+			id_morceau.ACCOLADE_FERMANTE
+			{
+				depile_noeud(assembleuse, type_noeud.BLOC);
+			}
+			id_morceau.POINT_VIRGULE
+			{
+				avance(analyseuse);
+				arrête;
+			}
+		}
+
+		avance(analyseuse);
+	}
+}
+
+fonction lance_analyse(analyseuse : *Analyseuse) : bool
+{
+	coureur de analyseuse = 0;
+
+	tantque !a_fini(analyseuse) {
+		analyse_expression(analyseuse);
+	}
+}

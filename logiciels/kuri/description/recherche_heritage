@@ -1,0 +1,86 @@
+# héritage | polymorphisme
+--------------------------
+
+Le but est de pouvoir réutiliser des fonctions, sans pour autant avoir une fonction par type, et de pouvoir stocker des types différents dans une même structure de données.
+
+Pour stocker des types différents dans une même structure de données, il faut que tous les types aient la même taille, ce qui ne peut-être garanti que via un pointeur.
+
+Pour réutiliser des fonctions avec des types différents, ils doivent avoir les mêmes membres, dans le même ordre (c'est-à-dire avec les mêmes décalages). Puisque les types peuvent avoir des tailles différentes, et puisque les paramètres des fonctions sont alloués sur la pile, il faut utiliser un pointeur pour la variable. Les membres des classes filles ne peuvent avoir le même nom que les membres des classes mères.
+
+C++
+---
+
+Les fonctions virtuelles sont stockées dans une table virtuelle pour chaque classe. La table virtuelle permet d'appeler la bonne fonction quand bien même les types sont tous dans une même structure de données, donc que nous ne savons le type exacte.
+
+Les classes filles possèdent les membres des classes mères dans le bon ordre afin de pouvoir les utilisés dans des fonctions génériques.
+
+L'inconvénient est que le pointeur vers la vtable prend de la place et ruine un peu la cohérence de cache, ralentissant le programme. Les indirections de pointeurs nuisent également à la vitesse d'exécution du programme.
+
+class A {
+    int x;
+
+    virtual bool est_parente() { return true; }
+};
+
+class B final : public A {
+    int y
+
+    bool est_parente() override { return false; }
+};
+
+# transformation :
+------------------
+
+struct __vtable_for_A {
+    bool (*est_parente)(A *this);
+};
+
+class A {
+    void *__vtable;
+    int x;
+};
+
+struct __vtable_for_B {
+    bool (*est_parente)(B *this);
+};
+
+class B {
+    void *__vtable;
+
+    // tous les membres de A
+    int x;
+
+    // tous les membres de B
+    int y;
+};
+
+B b;
+b.est_parente(); -> b.__vtable->est_parente(&b);
+
+JAI
+---
+
+Utilisation du mot-clé 'using' pour intégrer les membres d'une structure dans une autre, plus grande fléxibilité vis-à-vis du placement des membres et de la cohérence de cache.
+
+Il n'y a pas de vtable car pas de fonctions 'membres' ou 'méthodes'. L'appel à la bonne fonction peut se faire via une énumération discriminante.
+
+A :: struct {
+    x : int;
+}
+
+B :: struct {
+    using A;
+    y : int;
+}
+
+# transformation :
+------------------
+
+A :: struct {
+    x : int;
+}
+
+B :: struct {
+    x : int;
+    y : int;
+}

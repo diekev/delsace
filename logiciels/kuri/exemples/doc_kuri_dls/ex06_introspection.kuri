@@ -1,0 +1,34 @@
+importe "flux"
+
+fonc imprime_type_args(args : ...eini) : rien
+{
+	pour arg dans args {
+	    associe id de info de arg {
+		    RÉEL de id_info {
+			    imprime("Nous avons un nombre réel\n");
+		    }
+		    ENTIER de id_info {
+			    imprime("Nous avons un nombre entier\n");
+		    }
+		    STRUCTURE de id_info {
+			    imprime("Nous avons une structure\n");
+		    }
+		    FONCTION de id_info {
+			    imprime("Nous avons une fonction\n");
+		    }
+		    POINTEUR de id_info {
+			    imprime("Nous avons un pointeur\n");
+		    }
+		    CHAINE de id_info {
+			    imprime("Nous avons une chaine\n");
+		    }
+	    }
+	}
+}
+
+fonc exemple() : rien
+{
+    # Passe différents types, bien que la fonction espère des types 'eini'.
+	# Le dernier argument est un pointeur vers la fonction 'exemple'.
+	imprime_type_args(1, 1.3, "chaine", exemple);
+}

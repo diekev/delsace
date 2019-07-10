@@ -1,0 +1,141 @@
+# Principe d'itération dans Kuri
+# - boucle sur une plage d ... f 
+#   - la plage doit être sur des types usines (eN, rN, zN)
+#   - pour les types non usines
+#     - on pourrait avoir deux opérateur pour définir le début et la fin pour une plage d'objet non usine
+#     - ça nécessiterait également des opérateurs surchargés (=, +, -) ou nouveaux (++, --) 
+# - boucle sur des arguments variadiques
+#   - nécessite d'avoir un système de réflexion
+# - boucle sur un objet
+#   - l'objet doit définir un opérateur retournant une coroutine
+# - boucle sur une coroutine
+
+
+# Génère des nombres allant de 1 à 10
+fonction génératrice_ascendante() : z32
+{
+	pour x dans 0 ... 10 {
+		retiens x;
+	}
+}
+
+# Génère des nombres allant de 10 à 1
+fonction génératrice_descendante() : z32
+{
+	pour x dans 0 ... 10 {
+		retiens 10 - x;
+	}
+}
+
+# Génère des nombres selon un rappel
+# invoque : pour x dans génèratice_par_rappel(rappel);
+fonction génètrice_par_rappel(rappel : fonction(z32)z32) : z32
+{
+	pour x dans 0 ... 10 {
+		retiens rappel(x);
+	}
+}
+
+# Itération sur une chaîne de caractère
+fonction iteration_chaîne(chaine : *z8) : z8
+{
+	soit l = longueur(chaine);
+
+	pour x dans 0 ... l {
+		retiens chaine[x];
+	}
+}
+# Invoque pour c dans iteration_chaîne(chaine) { }
+
+# Itération sur un liste chaînée
+structure Liste {
+	suivante : *Liste;
+}
+
+fonction iteration_liste_chaînée(liste : *Liste) : *Liste
+{
+	soit variable début = liste;
+
+	boucle {
+		si début == nul {
+			arrête;
+		}
+
+		retiens début;
+
+		début = suivante de début;
+	}
+}
+# Invocation pour l dans iteration_liste_chaînée(liste)  { }
+
+# Requiers :
+# - multiple valeur de retour
+# - opérateur +
+# - opérateur =
+# opérateur ... (liste : *Liste, liste : *Liste) : *Liste, *Liste
+# {
+# 	retourne iteration_liste_chaînée(liste);
+# }
+
+# trouver un nom
+# opérateur pour
+# opérateur dans
+# opérateur retiens, co_retourne
+# problème : comment définir les itérateurs bidirectionnels
+opérateur pour (liste : *Liste) : *Liste
+{
+	retourne iteration_liste_chaînée(liste);
+}
+# Invocation pour l dans liste { }
+
+# Itération bidirection
+structure ListeDC {
+	suivante : *ListeDC;
+	précédente : *ListeDC;
+}
+
+opérateur pour (liste : *ListeDC) : *ListeDC
+{
+	soit variable l = liste;
+	boucle {
+		si l == nul {
+			arrête;
+		}
+
+		retiens l;
+		
+		l = suivante de l;
+	}
+
+	retiens nul;
+}
+
+fonction inverse(liste : *ListeDC) : *ListeDC
+{
+	soit variable l = liste;
+
+	boucle {
+		si l == nul {
+			arrête;
+		}
+
+		retiens l;
+
+		l = précédente de l;
+	}
+}
+
+fonction iteration_listeDC(liste : *ListeDC) : rien
+{
+	soit variable queue : *ListeDC = nul;
+
+	pour tête dans liste {
+		# fais quelque chose
+		queue = tête;
+	}
+
+	pour tête dans inverse(queue) {
+		queue = tête;
+	}
+}
+

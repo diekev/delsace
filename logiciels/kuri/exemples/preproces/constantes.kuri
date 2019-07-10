@@ -1,0 +1,10 @@
+# Ligne de license ou commentaire
+
+soit constante PI         = 3.14159;
+soit constante PI_INVERSE = 1.0 / 3.14159;
+
+soit constante TAU         = 6.28318;
+soit constante TAU_INVERSE = 1.0 / 6.28318;
+
+soit constante PHI         = 1.618;
+soit constante PHI_INVERSE = 0.618;

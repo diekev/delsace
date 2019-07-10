@@ -1,0 +1,95 @@
+importe "memoire"
+importe "flux"
+
+fonc test_echange_memoire() : rien
+{
+    # test superposition
+    
+    chn = "0123456789";
+    
+    dyn a : []octet;
+    dyn b : []octet;
+    
+    echange_mem(a, b);
+}
+
+fonc test_bouge_memoire() : rien
+{
+    # test superposition
+    
+    chn = "0123456789";
+    
+    dyn a : []octet;
+    dyn b : []octet;
+    
+    bouge_mem(a, b, 0);
+}
+
+fonc copie_mem2(src : []octet, dyn dst : []octet, taille : z64) : rien
+{
+    si taille de src < taille {
+	    retourne;
+	}
+
+    si taille de dst < taille {
+	    retourne;
+	}
+    	
+	# vérifie si superposition
+	
+	ptr_deb_src = @src[0];
+	ptr_fin_src = @src[taille de src - 1];
+	ptr_deb_dst = @dst[0];
+	
+	# src |---------------|
+	# dst       |---------------|
+	si ptr_deb_src <= ptr_deb_dst <= ptr_fin_src {    
+        pour i dans transtype(0 : z64)...taille - 1 {
+            idx = taille - i - 1;
+	        dst[idx] = src[idx];
+	    }
+	}
+	sinon {
+        pour i dans transtype(0 : z64)...taille - 1 {
+	        dst[i] = src[i];
+	    }
+	}
+}
+
+fonc test_copie_mem() : rien
+{
+    # test superposition
+    # 0123456789
+    # 0120123456
+    
+    # 0123456789
+    # 3456789789
+    
+    # Les chaines statiques ne peuvent être modifiées.
+    chn_stat = "0123456789";
+    dyn chn = loge chaine(taille de chn_stat);
+    diffère { déloge chn; }
+    
+    pour c, i dans chn_stat {
+        chn[i] = c;
+    }
+    
+    imprime("Chaine : ", chn, '\n');
+    
+    dyn a : []octet;
+    pointeur de a = @chn[3];
+    taille de a = 7;
+    dyn b : []octet;
+    pointeur de b = @chn[0];
+    taille de b = 10;
+    
+    copie_mem(a, b, 7);
+    
+    imprime("Chaine : ", chn, '\n');
+}
+
+fonc principale(args : []*z8) : z32
+{
+    test_copie_mem();
+    retourne 0;
+}

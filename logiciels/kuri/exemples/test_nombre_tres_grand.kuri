@@ -1,0 +1,21 @@
+# Cet exemple vient d'une vidéo sur Zig, un nouveau langage de programmation.
+# https://www.youtube.com/watch?v=Z4oYSByyRak
+# Elle montre un exemple où javascript n'ajoute pas correctement deux grand
+# nombres. Javascript donne 36028797018963970 alors que la bonne réponse est
+# 36028797018963968 (à 2 près).
+
+importe "flux"
+
+fonc ajoute(a : n64, b : n64) : n64
+{
+	retourne a + b;
+}
+
+fonc principale(args : []*z8) : z32
+{
+	x = transtype(18014398509481984 : n64);
+	y = ajoute(x, x);
+
+	imprime(x, " + ", x, " = ", y, '\n');
+	retourne 0;
+}

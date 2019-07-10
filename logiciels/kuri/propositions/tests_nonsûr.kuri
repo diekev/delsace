@@ -1,0 +1,143 @@
+nonsûr {
+	manipulation pointeur (décl, déréf, [], arith)  # OK
+	assignation direct de tableaux dynamic  # OK
+	assignation variable globale  # OK
+	appel fonction prenant un pointeur  # OK
+	appel fonction externe  # OK
+	déréférence tableau '[]' # ou plutôt, force le compilateur à générer des tests de limite
+}
+
+# déclaration pointeur
+
+R"(
+fonction foo() : rien
+{
+	soit a : *z32 = nul;
+}
+")
+
+R"(
+fonction foo() : rien
+{
+	nonsûr {
+		soit a : *z32 = nul;
+	}
+}
+")
+
+# arithmétique pointeur
+
+R"(
+fonction externe foo_ext() : rien;
+
+fonction foo(a : *z32) : rien
+{
+	soit x = a + 1;
+}
+")
+
+R"(
+fonction foo(a : *z32) : rien
+{
+	nonsûr {
+		soit x = a + 1;
+	}
+}
+")
+
+# appel fonction externe
+
+R"(
+fonction externe foo_ext() : rien;
+
+fonction foo() : rien
+{
+	foo_ext();
+}
+")
+
+R"(
+fonction externe foo_ext(fmt : *z8, args : ...) : z32;
+
+fonction foo() : rien
+{
+	nonsûr {
+		foo_ext();
+	}
+}
+")
+
+# appel fonction pointeur
+
+R"(
+fonction bar(a : *z8) : rien;
+
+fonction foo(a : *z8) : rien
+{
+	bar(a);
+}
+")
+
+R"(
+fonction bar(a : *z8) : rien;
+
+fonction foo(a : *z8) : rien
+{
+	nonsûr {
+		bar(a);
+	}
+}
+")
+
+# déréférence pointeur
+
+R"(
+fonction foo(a : *z8) : rien
+{
+	soit b = a[0];
+}
+")
+
+R"(
+fonction foo(a : *z8) : rien
+{
+	nonsûr {
+		soit b = a[0];
+	}
+}
+")
+
+# assignation des membres d'un tableau
+
+R"(
+fonction foo(a : *z8, taille : n64) : rien
+{
+	dyn b : []z8;
+	pointeur de b = a;
+	taille de b = taille;
+}
+")
+
+R"(
+fonction foo(a : *z8, taille : n64) : rien
+{
+	dyn b : []z8;
+	nonsûr {
+		# À FAIRE : dans le cas où un tableau est passé en paramètre, il faudrait savoir si le tableau est à l'origine un tableau fixe ?
+		pointeur de b = a;
+		taille de b = taille;
+	}
+}
+")
+
+# interdit de modifier les éléments d'un tableau fixe
+
+R"(
+fonction foo(a : *z8, taille : n64) : rien
+{
+	dyn b : [32]z8;
+	pointeur de b = a;
+	taille de b = taille;
+}
+")
+

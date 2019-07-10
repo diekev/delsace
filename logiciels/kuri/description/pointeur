@@ -1,0 +1,26 @@
+langage | déclare                | obtiens | déréférence
+--------|------------------------|---------|------------
+C       | *p                     | &p      | *p
+C++     | *p                     | &p      | *p
+Go      | *p                     | &p      | *p
+Rust    | *p                     | &p      | *p
+Pascal  | ^p                     | @p      | ^p
+JAI     | ^p                     |         | ^p
+Swift   | UnsafePointer<type>(p) |         | ptr.memory
+Kuri    | *p                     | @p      | mémoire(p)
+
+taille_de
+mémoire
+
+soit r = 2.0;
+soit e = transtype<e32>(mémoire(@r));
+
+# tableau
+
+langage | déclare | déréférence
+--------|---------|------------
+C       | type[]  | var[...]
+C++     | type[]  | var[...]
+Go      | []type  | var[...]
+Swift   | [type]  | var[...]
+Kuri    | []type  | var[...]

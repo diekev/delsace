@@ -1,0 +1,10 @@
+# Contrôle flux
+
+fonc main()
+{
+    si 1 == 2 {
+        retourne 1;
+    }
+
+    retourne 0;
+}

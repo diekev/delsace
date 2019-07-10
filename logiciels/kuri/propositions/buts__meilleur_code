@@ -1,0 +1,36 @@
+no raw pointeurs :
+-- tout est une référence
+-- si une fonction prend un pointeur nu, elle ne peut-être appelée que dans un contexte nonsûr
+-- les tableaux ne sont pas des pointeurs
+-- arithmétique de références (recherche binaire)
+-- artihmétique/manipulation de pointeur dans un contexte nonsûr
+-- pointeur membre ?
+-- possession claire des références, passe la possession aux fonctions
+-- shared_ptr/unique_ptr
+
+no raw loops :
+-- alerte si plusieurs boucles dans une même fonction
+-- reconnaissance des algorithmes
+-- tangeante : rangées/plages
+
+implemente complete types
+-- implémenter des types qui correspondent au silicium
+
+interface humaine :
+-- modèle de propriété
+-- correction de l'interraction selon l'attente des utilisateurs
+
+no incidental data-structure
+-- relations claires entre les structures de données
+-- possessions claires
+
+no raw synchronisation primitives
+-- encapsuler les mutex et al. dans des classes et algorithmes réutilisables
+-- système de tâches
+-- graphe de dépendance
+-- folly::synchronise
+-- annotation du code pour trouver les verrous morts (cf. clang)
+
+sécurité
+-- vérifier que les tableaux soient accéder dans leurs limites
+-- évite les pointeurs nuls

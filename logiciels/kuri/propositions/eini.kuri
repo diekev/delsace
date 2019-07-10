@@ -1,0 +1,65 @@
+# type eini
+# ---------
+# 
+# mots-clés
+# - classe_de : retourne une chaîne représentant la classe, p.e. "structure"
+# - type_de   : retourne une chaîne représentant le type, p.e. "Vecteur3D"
+# - extrait   : retourne la valeur de l'objet selon le type passé
+# - eini      : construit un eini
+# - taille_de : taille en octet
+#
+# +----------------------+-----------+---------------+-----------------+
+# | expression           | classe    | type          | valeur          |
+# +----------------------+-----------+---------------+-----------------+
+# | soit a = 5;          | structure | z32           | 5               |
+# | soit t = [N]z32;     | tableau   | [N]z32        | adresse         |
+# | soit t = *z32;       | pointeur  | *z32          | adresse         |
+# | fonction foo() : z32 | fonction  | fonction()z32 | adresse         |
+# | soit v = Vecteur3D;  | structure | Vecteur3D     | val initialisée |
+# | soit é = AP_NOIR;    | énum      | z32           | val AP_NOIR     |
+# +----------------------+-----------+---------------+-----------------+
+#
+# Comment faire pour stocker les objets lors de l'exécution ? Il faudrait une
+# allocation dynamique de la mémoire avec une désallocation automatique...
+#
+# structure eini {
+#	type   : *z8;   // par ex : "r8", "z32", "bool", "Point2D"
+#	classe : *z8;   // par ex : "structure", "fonction", "opérateur"
+#	valeur : *rien; // pointeur vers la valeur allouée
+# }
+#
+# construit eini :
+#	- alloue de l'espace pour la structure
+#	- renseigne le type
+#	- renseigne la classe
+#	- appel malloc pour allouée dynamiquement de la place sur la heap pour l'objet
+#
+# détruit eini :
+#	- appel free sur le pointeur
+#
+# assigne :
+#	- appel malloc / free sur le pointeur
+
+structure Vecteur3D {
+
+}
+
+fonction foo(valeur : eini) : eini
+{
+	soit type = type_de(valeur);
+
+	si type == "z32" {
+		soit x = extrait(valeur : z32);
+	}
+	sinon si type == "z8" {
+		soit x = extrait(valeur : z8);
+	}
+	sinon si type == "Vecteur3D" {
+		soit x = extrait(valeur : Vecteur3D);
+	}
+
+	# construit
+
+	soit y = 5;
+	soit eini_y = eini(y);
+}

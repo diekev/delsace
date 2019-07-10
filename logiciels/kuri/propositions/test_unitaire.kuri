@@ -1,0 +1,32 @@
+test "nom test" {
+	proposition "addition correcte"
+	{
+		test_egal(ajouter(10, 5), 15);
+		test_egal(ajouter(-1, 1), 0);
+		test_egal(ajouter(-1, -1), 15);
+	}
+
+	proposition "soustraction correcte"
+	{
+		test_egal(soustraire(10, 5), 5);
+		test_egal(soustraire(-1, 1), -2);
+		test_egal(soustraire(-1, -1), 0);
+	}
+
+	proposition "multiplication correcte"
+	{
+		test_egal(multiplier(10, 5), 50);
+		test_egal(multiplier(-1, 1), -1);
+		test_egal(multiplier(-1, -1), 1);
+	}
+
+	proposition "division correcte"
+	{
+		test_egal(diviser(10, 5), 2);
+		test_egal(diviser(-1, 1), -1);
+		test_egal(diviser(-1, -1), 1);
+		test_egal(diviser(0, 1), 0);
+		test_egal(diviser(5, 0), pun);
+		test_erreur(diviser(5, 0));
+	}
+}
