@@ -29,7 +29,9 @@
 #include <memory>
 #include <regex>
 #include <unordered_set>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "docopt_value.hh"
 
@@ -39,7 +41,7 @@ namespace docopt {
 class Pattern;
 class LeafPattern;
 
-using PatternList = std::vector<std::shared_ptr<Pattern>>;
+using PatternList = dls::tableau<std::shared_ptr<Pattern>>;
 
 // Utility to use Pattern types in std hash-containers
 struct PatternHasher {
@@ -84,18 +86,18 @@ using UniquePatternSet = std::unordered_set<std::shared_ptr<Pattern>, PatternHas
 class Pattern {
 public:
 	// flatten out children, stopping descent when the given filter returns 'true'
-	virtual std::vector<Pattern *> flat(bool (*filter)(const Pattern *)) = 0;
+	virtual dls::tableau<Pattern *> flat(bool (*filter)(const Pattern *)) = 0;
 
 	// flatten out all children into a list of LeafPattern objects
-	virtual void collect_leaves(std::vector<LeafPattern*> &) = 0;
+	virtual void collect_leaves(dls::tableau<LeafPattern*> &) = 0;
 
 	// flatten out all children into a list of LeafPattern objects
-	std::vector<LeafPattern*> leaves();
+	dls::tableau<LeafPattern*> leaves();
 
 	// Attempt to find something in 'left' that matches this pattern's spec, and if so, move it to 'collected'
-	virtual bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const = 0;
+	virtual bool match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const = 0;
 
-	virtual const std::string & name() const = 0;
+	virtual const dls::chaine & name() const = 0;
 
 	virtual bool hasValue() const { return false; }
 
@@ -105,16 +107,16 @@ public:
 };
 
 class LeafPattern : public Pattern {
-	std::string fName;
+	dls::chaine fName;
 	value fValue;
 
 public:
-	LeafPattern(const std::string &name, const value &v = {})
+	LeafPattern(const dls::chaine &name, const value &v = {})
 		: fName(name)
 		, fValue(v)
 	{}
 
-	virtual std::vector<Pattern*> flat(bool (*filter)(const Pattern *)) override
+	virtual dls::tableau<Pattern*> flat(bool (*filter)(const Pattern *)) override
 	{
 		if (filter(this)) {
 			return { this };
@@ -123,19 +125,19 @@ public:
 		return {};
 	}
 
-	virtual void collect_leaves(std::vector<LeafPattern*>& lst) override final
+	virtual void collect_leaves(dls::tableau<LeafPattern*>& lst) override final
 	{
-		lst.push_back(this);
+		lst.pousse(this);
 	}
 
-	virtual bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
+	virtual bool match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const override;
 
 	virtual bool hasValue() const override { return static_cast<bool>(fValue); }
 
 	value const& getValue() const { return fValue; }
 	void setValue(value&& v) { fValue = std::move(v); }
 
-	virtual std::string const& name() const override { return fName; }
+	virtual dls::chaine const& name() const override { return fName; }
 
 	virtual size_t hash() const override
 	{
@@ -165,7 +167,7 @@ public:
 		return *this;
 	}
 
-	virtual std::string const& name() const override
+	virtual dls::chaine const& name() const override
 	{
 		throw std::runtime_error("Logic error: name() shouldnt be called on a BranchPattern");
 	}
@@ -175,23 +177,23 @@ public:
 		throw std::runtime_error("Logic error: name() shouldnt be called on a BranchPattern");
 	}
 
-	virtual std::vector<Pattern*> flat(bool (*filter)(Pattern const*)) override
+	virtual dls::tableau<Pattern*> flat(bool (*filter)(Pattern const*)) override
 	{
 		if (filter(this)) {
 			return {this};
 		}
 
-		std::vector<Pattern*> ret;
+		dls::tableau<Pattern*> ret;
 
 		for (auto& child : fChildren) {
 			auto sublist = child->flat(filter);
-			ret.insert(ret.end(), sublist.begin(), sublist.end());
+			ret.insere(ret.fin(), sublist.debut(), sublist.fin());
 		}
 
 		return ret;
 	}
 
-	virtual void collect_leaves(std::vector<LeafPattern*>& lst) override final
+	virtual void collect_leaves(dls::tableau<LeafPattern*>& lst) override final
 	{
 		for (auto& child : fChildren) {
 			child->collect_leaves(lst);
@@ -214,19 +216,19 @@ public:
 			}
 
 			// then we try to add it to the list
-			auto inserted = patterns.insert(child);
+			auto insereed = patterns.insere(child);
 
-			if (!inserted.second) {
+			if (!insereed.second) {
 				// already there? then reuse the existing shared_ptr for that thing
-				child = *inserted.first;
+				child = *insereed.first;
 			}
 		}
 	}
 
 	virtual size_t hash() const override
 	{
-		size_t seed = typeid(*this).hash_code();
-		hash_combine(seed, fChildren.size());
+		auto seed = typeid(*this).hash_code();
+		hash_combine(seed, fChildren.taille());
 
 		for (auto const& child : fChildren) {
 			hash_combine(seed, child->hash());
@@ -249,7 +251,7 @@ protected:
 
 class Command : public Argument {
 public:
-	explicit Command(const std::string &name, const value &v = value{false})
+	explicit Command(const dls::chaine &name, const value &v = value{false})
 		: Argument(name, v)
 	{}
 
@@ -259,13 +261,13 @@ protected:
 
 class Option final : public LeafPattern {
 public:
-	static Option parse(std::string const& option_description);
+	static Option parse(dls::chaine const& option_description);
 
-	Option(const std::string &shortOption,
-		   const std::string &longOption,
+	Option(const dls::chaine &shortOption,
+		   const dls::chaine &longOption,
 		   int argcount = 0,
 		   const value &v = value{false})
-		: LeafPattern(longOption.empty() ? shortOption : longOption,
+		: LeafPattern(longOption.est_vide() ? shortOption : longOption,
 					  std::move(v)),
 		  fShortOption(std::move(shortOption)),
 		  fLongOption(std::move(longOption)),
@@ -285,8 +287,8 @@ public:
 
 	using LeafPattern::setValue;
 
-	std::string const& longOption() const { return fLongOption; }
-	std::string const& shortOption() const { return fShortOption; }
+	dls::chaine const& longOption() const { return fLongOption; }
+	dls::chaine const& shortOption() const { return fShortOption; }
 	int argCount() const { return fArgcount; }
 
 	virtual size_t hash() const override {
@@ -301,8 +303,8 @@ protected:
 	virtual std::pair<size_t, std::shared_ptr<LeafPattern>> single_match(PatternList const& left) const override;
 
 private:
-	std::string fShortOption;
-	std::string fLongOption;
+	dls::chaine fShortOption;
+	dls::chaine fLongOption;
 	int fArgcount;
 };
 
@@ -310,14 +312,14 @@ class Required : public BranchPattern {
 public:
 	using BranchPattern::BranchPattern;
 
-	bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
+	bool match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const override;
 };
 
 class Optional : public BranchPattern {
 public:
 	using BranchPattern::BranchPattern;
 
-	bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override {
+	bool match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const override {
 		for (auto const& pattern : fChildren) {
 			pattern->match(left, collected);
 		}
@@ -333,45 +335,45 @@ class OneOrMore : public BranchPattern {
 public:
 	using BranchPattern::BranchPattern;
 
-	bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
+	bool match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const override;
 };
 
 class Either : public BranchPattern {
 public:
 	using BranchPattern::BranchPattern;
 
-	bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
+	bool match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const override;
 };
 
 #pragma mark -
 #pragma mark inline implementations
 
-inline std::vector<LeafPattern*> Pattern::leaves()
+inline dls::tableau<LeafPattern*> Pattern::leaves()
 {
-	std::vector<LeafPattern*> ret;
+	dls::tableau<LeafPattern*> ret;
 	collect_leaves(ret);
 	return ret;
 }
 
-static inline std::vector<PatternList> transform(PatternList pattern)
+static inline dls::tableau<PatternList> transform(PatternList pattern)
 {
-	std::vector<PatternList> result;
+	dls::tableau<PatternList> result;
 
-	std::vector<PatternList> groups;
+	dls::tableau<PatternList> groups;
 	groups.emplace_back(std::move(pattern));
 
-	while(!groups.empty()) {
+	while(!groups.est_vide()) {
 		// pop off the first element
 		auto children = std::move(groups[0]);
-		groups.erase(groups.begin());
+		groups.erase(groups.debut());
 
 		// find the first branch node in the list
-		auto child_iter = std::find_if(children.begin(), children.end(), [](std::shared_ptr<Pattern> const& p) {
+		auto child_iter = std::find_if(children.debut(), children.fin(), [](std::shared_ptr<Pattern> const& p) {
 				return dynamic_cast<BranchPattern const*>(p.get());
 	});
 
 		// no branch nodes left : expansion is complete for this grouping
-		if (child_iter == children.end()) {
+		if (child_iter == children.fin()) {
 			result.emplace_back(std::move(children));
 			continue;
 		}
@@ -385,7 +387,7 @@ static inline std::vector<PatternList> transform(PatternList pattern)
 			// "[e] + children" for each child 'e' in Either
 			for (auto const& eitherChild : either->children()) {
 				PatternList group = { eitherChild };
-				group.insert(group.end(), children.begin(), children.end());
+				group.insere(group.fin(), children.debut(), children.fin());
 
 				groups.emplace_back(std::move(group));
 			}
@@ -393,8 +395,8 @@ static inline std::vector<PatternList> transform(PatternList pattern)
 			// child.children * 2 + children
 			auto const& subchildren = oneOrMore->children();
 			PatternList group = subchildren;
-			group.insert(group.end(), subchildren.begin(), subchildren.end());
-			group.insert(group.end(), children.begin(), children.end());
+			group.insere(group.fin(), subchildren.debut(), subchildren.fin());
+			group.insere(group.fin(), children.debut(), children.fin());
 
 			groups.emplace_back(std::move(group));
 		} else { // Required, Optional, OptionsShortcut
@@ -402,7 +404,7 @@ static inline std::vector<PatternList> transform(PatternList pattern)
 
 			// child.children + children
 			PatternList group = branch->children();
-			group.insert(group.end(), children.begin(), children.end());
+			group.insere(group.fin(), children.debut(), children.fin());
 
 			groups.emplace_back(std::move(group));
 		}
@@ -413,10 +415,10 @@ static inline std::vector<PatternList> transform(PatternList pattern)
 
 inline void BranchPattern::fix_repeating_arguments()
 {
-	std::vector<PatternList> either = transform(children());
+	dls::tableau<PatternList> either = transform(children());
 	for (auto const& group : either) {
 		// use multiset to help identify duplicate entries
-		std::unordered_multiset<std::shared_ptr<Pattern>, PatternHasher> group_set {group.begin(), group.end()};
+		std::unordered_multiset<std::shared_ptr<Pattern>, PatternHasher> group_set {group.debut(), group.fin()};
 		for (auto const& e : group_set) {
 			if (group_set.count(e) == 1)
 				continue;
@@ -440,7 +442,7 @@ inline void BranchPattern::fix_repeating_arguments()
 			}
 
 			if (ensureList) {
-				std::vector<std::string> newValue;
+				dls::tableau<dls::chaine> newValue;
 				if (leaf->getValue().isString()) {
 					newValue = split(leaf->getValue().asString());
 				}
@@ -454,22 +456,22 @@ inline void BranchPattern::fix_repeating_arguments()
 	}
 }
 
-inline bool LeafPattern::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+inline bool LeafPattern::match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const
 {
 	auto match = single_match(left);
 	if (!match.second) {
 		return false;
 	}
 
-	left.erase(left.begin()+static_cast<std::ptrdiff_t>(match.first));
+	left.erase(left.debut()+static_cast<std::ptrdiff_t>(match.first));
 
-	auto same_name = std::find_if(collected.begin(), collected.end(), [&](std::shared_ptr<LeafPattern> const& p) {
+	auto same_name = std::find_if(collected.debut(), collected.fin(), [&](std::shared_ptr<LeafPattern> const& p) {
 			return p->name()==name();
 });
 	if (getValue().isLong()) {
 		long val = 1;
-		if (same_name == collected.end()) {
-			collected.push_back(match.second);
+		if (same_name == collected.fin()) {
+			collected.pousse(match.second);
 			match.second->setValue(value{val});
 		} else if ((**same_name).getValue().isLong()) {
 			val += (**same_name).getValue().asLong();
@@ -478,27 +480,27 @@ inline bool LeafPattern::match(PatternList& left, std::vector<std::shared_ptr<Le
 			(**same_name).setValue(value{val});
 		}
 	} else if (getValue().isStringList()) {
-		std::vector<std::string> val;
+		dls::tableau<dls::chaine> val;
 		if (match.second->getValue().isString()) {
-			val.push_back(match.second->getValue().asString());
+			val.pousse(match.second->getValue().asString());
 		} else if (match.second->getValue().isStringList()) {
 			val = match.second->getValue().asStringList();
 		} else {
 			/// cant be!?
 		}
 
-		if (same_name == collected.end()) {
-			collected.push_back(match.second);
+		if (same_name == collected.fin()) {
+			collected.pousse(match.second);
 			match.second->setValue(value{val});
 		} else if ((**same_name).getValue().isStringList()) {
-			std::vector<std::string> const& list = (**same_name).getValue().asStringList();
-			val.insert(val.begin(), list.begin(), list.end());
+			dls::tableau<dls::chaine> const& list = (**same_name).getValue().asStringList();
+			val.insere(val.debut(), list.debut(), list.fin());
 			(**same_name).setValue(value{val});
 		} else {
 			(**same_name).setValue(value{val});
 		}
 	} else {
-		collected.push_back(match.second);
+		collected.pousse(match.second);
 	}
 	return true;
 }
@@ -507,7 +509,7 @@ inline std::pair<size_t, std::shared_ptr<LeafPattern>> Argument::single_match(Pa
 {
 	std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
 
-	for (size_t i = 0, size = left.size(); i < size; ++i)
+	for (size_t i = 0, size = left.taille(); i < size; ++i)
 	{
 		auto arg = dynamic_cast<Argument const*>(left[i].get());
 		if (arg) {
@@ -524,7 +526,7 @@ inline std::pair<size_t, std::shared_ptr<LeafPattern>> Command::single_match(Pat
 {
 	std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
 
-	for (size_t i = 0, size = left.size(); i < size; ++i)
+	for (size_t i = 0, size = left.taille(); i < size; ++i)
 	{
 		auto arg = dynamic_cast<Argument const*>(left[i].get());
 		if (arg) {
@@ -539,20 +541,20 @@ inline std::pair<size_t, std::shared_ptr<LeafPattern>> Command::single_match(Pat
 	return ret;
 }
 
-inline Option Option::parse(std::string const& option_description)
+inline Option Option::parse(dls::chaine const& option_description)
 {
-	std::string shortOption, longOption;
+	dls::chaine shortOption, longOption;
 	int argcount = 0;
 	value val { false };
 
-	auto double_space = option_description.find("  ");
-	auto options_end = option_description.end();
-	if (double_space != std::string::npos) {
-		options_end = option_description.begin() + static_cast<std::ptrdiff_t>(double_space);
+	auto double_space = option_description.trouve("  ");
+	auto options_end = option_description.fin();
+	if (double_space != dls::chaine::npos) {
+		options_end = option_description.debut() + static_cast<std::ptrdiff_t>(double_space);
 	}
 
 	static const std::regex pattern {"(-{1,2})?(.*?)([,= ]|$)"};
-	for (std::sregex_iterator i {option_description.begin(), options_end, pattern, std::regex_constants::match_not_null},
+	for (std::sregex_iterator i {option_description.debut(), options_end, pattern, std::regex_constants::match_not_null},
 		e{};
 		i != e;
 		++i)
@@ -567,7 +569,7 @@ inline Option Option::parse(std::string const& option_description)
 			}
 		}
 		else if (match[2].length() > 0) { // [2] always matches.
-			std::string m = match[2];
+			dls::chaine m = match[2];
 			argcount = 1;
 		}
 		else {
@@ -584,7 +586,7 @@ inline Option Option::parse(std::string const& option_description)
 
 	if (argcount) {
 		std::smatch match;
-		if (std::regex_search(options_end, option_description.end(),
+		if (std::regex_search(options_end, option_description.fin(),
 							  match,
 							  std::regex{"\\[default: (.*)\\]", std::regex::icase}))
 		{
@@ -602,23 +604,23 @@ inline Option Option::parse(std::string const& option_description)
 
 inline std::pair<size_t, std::shared_ptr<LeafPattern>> Option::single_match(PatternList const& left) const
 {
-	auto thematch = find_if(left.begin(), left.end(), [this](std::shared_ptr<Pattern> const& a)
+	auto thematch = find_if(left.debut(), left.fin(), [this](std::shared_ptr<Pattern> const& a)
 	{
 			auto leaf = std::dynamic_pointer_cast<LeafPattern>(a);
 			return leaf && this->name() == leaf->name();
 	});
 
-	if (thematch == left.end()) {
+	if (thematch == left.fin()) {
 		return {};
 	}
 
 	return {
-		std::distance(left.begin(), thematch),
+		std::distance(left.debut(), thematch),
 		std::dynamic_pointer_cast<LeafPattern>(*thematch)
 	};
 }
 
-inline bool Required::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+inline bool Required::match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const
 {
 	auto l = left;
 	auto c = collected;
@@ -638,9 +640,9 @@ inline bool Required::match(PatternList& left, std::vector<std::shared_ptr<LeafP
 	return true;
 }
 
-inline bool OneOrMore::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+inline bool OneOrMore::match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const
 {
-	assert(fChildren.size() == 1);
+	assert(fChildren.taille() == 1);
 
 	auto l = left;
 	auto c = collected;
@@ -676,11 +678,11 @@ inline bool OneOrMore::match(PatternList& left, std::vector<std::shared_ptr<Leaf
 	return true;
 }
 
-inline bool Either::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+inline bool Either::match(PatternList& left, dls::tableau<std::shared_ptr<LeafPattern>>& collected) const
 {
-	using Outcome = std::pair<PatternList, std::vector<std::shared_ptr<LeafPattern>>>;
+	using Outcome = std::pair<PatternList, dls::tableau<std::shared_ptr<LeafPattern>>>;
 
-	std::vector<Outcome> outcomes;
+	dls::tableau<Outcome> outcomes;
 
 	for (auto const& pattern : fChildren) {
 		// need a copy so we apply the same one for every iteration
@@ -692,13 +694,13 @@ inline bool Either::match(PatternList& left, std::vector<std::shared_ptr<LeafPat
 		}
 	}
 
-	auto min = std::min_element(outcomes.begin(), outcomes.end(),
+	auto min = std::min_element(outcomes.debut(), outcomes.fin(),
 								[](Outcome const& o1, Outcome const& o2)
 	{
-			return o1.first.size() < o2.first.size();
+			return o1.first.taille() < o2.first.taille();
 	});
 
-	if (min == outcomes.end()) {
+	if (min == outcomes.fin()) {
 		// (left, collected) unchanged
 		return false;
 	}

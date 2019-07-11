@@ -27,22 +27,25 @@
 
 #include <regex>
 
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
+
 namespace {
 
-bool starts_with(const std::string &str, const std::string &prefix)
+bool starts_with(const dls::chaine &str, const dls::chaine &prefix)
 {
-	if (str.length() < prefix.length()) {
+	if (str.taille() < prefix.taille()) {
 		return false;
 	}
 
-	return std::equal(prefix.begin(), prefix.end(), str.begin());
+	return std::equal(prefix.debut(), prefix.fin(), str.debut());
 }
 
-std::string trim(std::string &&str, const std::string &whitespace = " \t\n")
+dls::chaine trim(dls::chaine &&str, const dls::chaine &whitespace = " \t\n")
 {
 	const auto fin_string = str.find_last_not_of(whitespace);
 
-	if (fin_string == std::string::npos) {
+	if (fin_string == dls::chaine::npos) {
 		return {};
 	}
 
@@ -54,23 +57,23 @@ std::string trim(std::string &&str, const std::string &whitespace = " \t\n")
 	return std::move(str);
 }
 
-std::vector<std::string> split(const std::string &str, size_t pos = 0)
+dls::tableau<dls::chaine> split(const dls::chaine &str, size_t pos = 0)
 {
 	const char * const anySpace = " \t\r\n\v\f";
 
-	std::vector<std::string> ret;
+	dls::tableau<dls::chaine> ret;
 
-	while (pos != std::string::npos) {
+	while (pos != dls::chaine::npos) {
 		auto start = str.find_first_not_of(anySpace, pos);
 
-		if (start == std::string::npos) {
+		if (start == dls::chaine::npos) {
 			break;
 		}
 
 		auto end = str.find_first_of(anySpace, start);
-		auto size = (end == std::string::npos) ? end : end-start;
+		auto size = (end == dls::chaine::npos) ? end : end-start;
 
-		ret.emplace_back(str.substr(start, size));
+		ret.emplace_back(str.sous_chaine(start, size));
 
 		pos = end;
 	}
@@ -78,19 +81,19 @@ std::vector<std::string> split(const std::string &str, size_t pos = 0)
 	return ret;
 }
 
-std::tuple<std::string, std::string, std::string> partition(std::string str, const std::string &point)
+std::tuple<dls::chaine, dls::chaine, dls::chaine> partition(dls::chaine str, const dls::chaine &point)
 {
-	std::tuple<std::string, std::string, std::string> ret;
+	std::tuple<dls::chaine, dls::chaine, dls::chaine> ret;
 
-	auto i = str.find(point);
+	auto i = str.trouve(point);
 
-	if (i == std::string::npos) {
+	if (i == dls::chaine::npos) {
 		// no match: string goes in 0th spot only
 	}
 	else {
-		std::get<2>(ret) = str.substr(i + point.size());
+		std::get<2>(ret) = str.sous_chaine(i + point.chaine());
 		std::get<1>(ret) = point;
-		str.resize(i);
+		str.redimensionne(i);
 	}
 
 	std::get<0>(ret) = std::move(str);
@@ -99,13 +102,13 @@ std::tuple<std::string, std::string, std::string> partition(std::string str, con
 }
 
 template <typename I>
-std::string join(I iter, I end, const std::string &delim)
+dls::chaine join(I iter, I end, const dls::chaine &delim)
 {
 	if (iter == end) {
 		return {};
 	}
 
-	std::string ret = *iter;
+	dls::chaine ret = *iter;
 
 	for (++iter; iter != end; ++iter) {
 		ret.append(delim);
@@ -115,12 +118,12 @@ std::string join(I iter, I end, const std::string &delim)
 	return ret;
 }
 
-std::vector<std::string> regex_split(const std::string &text, const std::regex &re)
+dls::tableau<dls::chaine> regex_split(const dls::chaine &text, const std::regex &re)
 {
-	auto it = std::sregex_token_iterator(text.begin(), text.end(), re, -1);
+	auto it = std::sregex_token_iterator(text.debut(), text.fin(), re, -1);
 	auto end = std::sregex_token_iterator();
 
-	std::vector<std::string> ret;
+	dls::tableau<dls::chaine> ret;
 
 	for (; it != end; ++it) {
 		ret.emplace_back(*it);

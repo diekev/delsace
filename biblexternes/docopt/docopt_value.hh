@@ -27,8 +27,9 @@
 
 #include <functional>  /* pour std::hash */
 #include <iosfwd>
-#include <string>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace dls {
 namespace docopt {
@@ -40,8 +41,8 @@ struct value {
 	/// An empty value
 	value() {}
 
-	explicit value(std::string);
-	explicit value(std::vector<std::string>);
+	explicit value(dls::chaine);
+	explicit value(dls::tableau<dls::chaine>);
 
 	explicit value(bool);
 	explicit value(long);
@@ -65,8 +66,8 @@ struct value {
 	// Throws std::invalid_argument if the type does not match
 	bool asBool() const;
 	long asLong() const;
-	std::string const& asString() const;
-	std::vector<std::string> const& asStringList() const;
+	dls::chaine const& asString() const;
+	dls::tableau<dls::chaine> const& asStringList() const;
 
 	size_t hash() const noexcept;
 
@@ -89,8 +90,8 @@ private:
 
 		bool boolValue;
 		long longValue;
-		std::string strValue;
-		std::vector<std::string> strList;
+		dls::chaine strValue;
+		dls::tableau<dls::chaine> strList;
 	};
 
 	static const char* kindAsString(Kind kind)
@@ -112,11 +113,11 @@ private:
 			return;
 		}
 
-		std::string error = "Illegal cast to ";
+		dls::chaine error = "Illegal cast to ";
 		error += kindAsString(expected);
 		error += "; type is actually ";
 		error += kindAsString(kind);
-		throw std::runtime_error(std::move(error));
+		throw std::runtime_error(error.c_str());
 	}
 
 private:
@@ -157,16 +158,16 @@ inline value::value(long v)
 	variant.longValue = v;
 }
 
-inline value::value(std::string v)
+inline value::value(dls::chaine v)
 	: kind(Kind::String)
 {
-	new (&variant.strValue) std::string(std::move(v));
+	new (&variant.strValue) dls::chaine(std::move(v));
 }
 
-inline value::value(std::vector<std::string> v)
+inline value::value(dls::tableau<dls::chaine> v)
 	: kind(Kind::StringList)
 {
-	new (&variant.strList) std::vector<std::string>(std::move(v));
+	new (&variant.strList) dls::tableau<dls::chaine>(std::move(v));
 }
 
 inline value::value(const value &other)
@@ -174,11 +175,11 @@ inline value::value(const value &other)
 {
 	switch (kind) {
 		case Kind::String:
-			new (&variant.strValue) std::string(other.variant.strValue);
+			new (&variant.strValue) dls::chaine(other.variant.strValue);
 			break;
 
 		case Kind::StringList:
-			new (&variant.strList) std::vector<std::string>(other.variant.strList);
+			new (&variant.strList) dls::tableau<dls::chaine>(other.variant.strList);
 			break;
 
 		case Kind::Bool:
@@ -200,11 +201,11 @@ inline value::value(value &&other) noexcept
 {
 	switch (kind) {
 		case Kind::String:
-			new (&variant.strValue) std::string(std::move(other.variant.strValue));
+			new (&variant.strValue) dls::chaine(std::move(other.variant.strValue));
 			break;
 
 		case Kind::StringList:
-			new (&variant.strList) std::vector<std::string>(std::move(other.variant.strList));
+			new (&variant.strList) dls::tableau<dls::chaine>(std::move(other.variant.strList));
 			break;
 
 		case Kind::Bool:
@@ -224,11 +225,11 @@ inline value::~value()
 {
 	switch (kind) {
 		case Kind::String:
-			variant.strValue.~basic_string();
+			variant.strValue.~chaine();
 			break;
 
 		case Kind::StringList:
-			variant.strList.~vector();
+			variant.strList.~tableau();
 			break;
 
 		case Kind::Empty:
@@ -262,10 +263,10 @@ inline size_t value::hash() const noexcept
 {
 	switch (kind) {
 		case Kind::String:
-			return std::hash<std::string>()(variant.strValue);
+			return std::hash<dls::chaine>()(variant.strValue);
 
 		case Kind::StringList: {
-			size_t seed = std::hash<size_t>()(variant.strList.size());
+			size_t seed = std::hash<size_t>()(static_cast<size_t>(variant.strList.taille()));
 			for(auto const& str : variant.strList) {
 				hash_combine(seed, str);
 			}
@@ -295,12 +296,12 @@ inline long value::asLong() const
 {
 	// Attempt to convert a string to a long
 	if (kind == Kind::String) {
-		const std::string& str = variant.strValue;
+		const dls::chaine& str = variant.strValue;
 		std::size_t pos;
-		const long ret = stol(str, &pos); // Throws if it can't convert
-		if (pos != str.length()) {
+		const long ret = std::stol(str.c_str(), &pos); // Throws if it can't convert
+		if (pos != static_cast<size_t>(str.taille())) {
 			// The string ended in non-digits.
-			throw std::runtime_error( str + " contains non-numeric characters.");
+			throw std::runtime_error((str + " contains non-numeric characters.").c_str());
 		}
 		return ret;
 	}
@@ -310,13 +311,13 @@ inline long value::asLong() const
 	return variant.longValue;
 }
 
-inline std::string const& value::asString() const
+inline dls::chaine const& value::asString() const
 {
 	throwIfNotKind(Kind::String);
 	return variant.strValue;
 }
 
-inline std::vector<std::string> const& value::asStringList() const
+inline dls::tableau<dls::chaine> const& value::asStringList() const
 {
 	throwIfNotKind(Kind::StringList);
 	return variant.strList;

@@ -27,9 +27,9 @@
 
 #include "docopt_value.hh"
 
-#include <map>
-#include <vector>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace dls {
 namespace docopt {
@@ -69,9 +69,9 @@ struct DocoptExitVersion : std::runtime_error {
 /// @throws DocoptExitHelp if 'help' is true and the user has passed the '--help' argument
 /// @throws DocoptExitVersion if 'version' is true and the user has passed the '--version' argument
 /// @throws DocoptArgumentError if the user's argv did not match the usage patterns
-std::map<std::string, value> docopt_parse(
-		const std::string &doc,
-		const std::vector<std::string> &argv,
+dls::dico<dls::chaine, value> docopt_parse(
+		const dls::chaine &doc,
+		const dls::tableau<dls::chaine> &argv,
 		bool help = true,
 		bool version = true,
 		bool options_first = false);
@@ -83,11 +83,11 @@ std::map<std::string, value> docopt_parse(
 ///  * DocoptExitHelp - print usage string and terminate (with exit code 0)
 ///  * DocoptExitVersion - print version and terminate (with exit code 0)
 ///  * DocoptArgumentError - print error and usage string and terminate (with exit code -1)
-std::map<std::string, value> docopt(
-		const std::string &doc,
-		const std::vector<std::string> &argv,
+dls::dico<dls::chaine, value> docopt(
+		const dls::chaine &doc,
+		const dls::tableau<dls::chaine> &argv,
 		bool help = true,
-		const std::string &version = {},
+		const dls::chaine &version = {},
 		bool options_first = false) noexcept;
 
 /**
@@ -96,8 +96,8 @@ std::map<std::string, value> docopt(
  * donné sur la ligne de commande.
  */
 bool get_bool(
-		const std::map<std::string, value> &args,
-		const std::string &nom_argument) noexcept;
+		const dls::dico<dls::chaine, value> &args,
+		const dls::chaine &nom_argument) noexcept;
 
 /**
  * Retourne la valeur long associée avec l'argument dont le nom est passé en
@@ -105,26 +105,26 @@ bool get_bool(
  * donné sur la ligne de commande.
  */
 long get_long(
-		const std::map<std::string, value> &args,
-		const std::string &nom_argument) noexcept;
+		const dls::dico<dls::chaine, value> &args,
+		const dls::chaine &nom_argument) noexcept;
 
 /**
  * Retourne la valeur string associée avec l'argument dont le nom est passé en
  * paramètre. Retourne une string vide si l'argument est introuvable ou n'a pas
  * été donné sur la ligne de commande.
  */
-std::string get_string(
-		const std::map<std::string, value> &args,
-		const std::string &nom_argument) noexcept;
+dls::chaine get_string(
+		const dls::dico<dls::chaine, value> &args,
+		const dls::chaine &nom_argument) noexcept;
 
 /**
  * Retourne la liste de string associée avec l'argument dont le nom est passé en
  * paramètre. Retourne une liste vide si l'argument est introuvable ou n'a pas
  * été donné sur la ligne de commande.
  */
-std::vector<std::string> get_string_list(
-		const std::map<std::string, value> &args,
-		const std::string &nom_argument) noexcept;
+dls::tableau<dls::chaine> get_string_list(
+		const dls::dico<dls::chaine, value> &args,
+		const dls::chaine &nom_argument) noexcept;
 
 }  /* namespace docopt */
 }  /* namespace dls */
