@@ -24,10 +24,10 @@
 
 #include "erreur.hh"
 
-#include <sstream>
+#include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "morceaux.hh"
-#include "biblinternes/langage/tampon_source.hh"
 
 namespace erreur {
 
@@ -46,7 +46,7 @@ const char *frappe::message() const
 	return m_message.c_str();
 }
 
-static void imprime_caractere_vide(std::ostream &os, const long nombre, const dls::vue_chaine &chaine)
+static void imprime_caractere_vide(dls::flux_chaine &os, const long nombre, const dls::vue_chaine &chaine)
 {
 	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
@@ -60,7 +60,7 @@ static void imprime_caractere_vide(std::ostream &os, const long nombre, const dl
 	}
 }
 
-static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine)
+static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine)
 {
 	for (auto i = 0; i < chaine.taille() - 1; ++i) {
 		os << '~';
@@ -76,7 +76,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 
 	auto ligne_courante = tampon[ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
@@ -88,7 +88,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	ss << quoi;
 	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(int(identifiant)) << ')';
 
-	throw erreur::frappe(ss.str().c_str(), type);
+	throw erreur::frappe(ss.chn().c_str(), type);
 }
 
 [[noreturn]] void lance_erreur_nombre_arguments(
@@ -101,7 +101,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto ligne = tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -114,7 +114,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	ss << "Requiers : " << nombre_arguments << '\n';
 	ss << "Obtenu : " << nombre_recus << '\n';
 
-	throw frappe(ss.str().c_str(), NOMBRE_ARGUMENT);
+	throw frappe(ss.chn().c_str(), NOMBRE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
@@ -128,7 +128,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto ligne = tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -141,7 +141,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	ss << "Les types d'arguments ne correspondent pas !\n";
 	ss << "Requiers " << chaine_identifiant(type_arg) << '\n';
 	ss << "Obtenu " << chaine_identifiant(type_enf) << '\n';
-	throw frappe(ss.str().c_str(), TYPE_ARGUMENT);
+	throw frappe(ss.chn().c_str(), TYPE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_argument_inconnu(
@@ -153,7 +153,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto ligne = tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -165,7 +165,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	ss << "Fonction : '" << morceau.chaine
 	   << "', argument nommé '" << nom_arg << "' inconnu !\n";
 
-	throw frappe(ss.str().c_str(), ARGUMENT_INCONNU);
+	throw frappe(ss.chn().c_str(), ARGUMENT_INCONNU);
 }
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
@@ -177,7 +177,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	const auto ligne = tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -189,7 +189,7 @@ void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, con
 	ss << "Fonction : '" << morceau.chaine
 	   << "', redéclaration de l'argument '" << nom_arg << "' !\n";
 
-	throw frappe(ss.str().c_str(), ARGUMENT_REDEFINI);
+	throw frappe(ss.chn().c_str(), ARGUMENT_REDEFINI);
 }
 
 }

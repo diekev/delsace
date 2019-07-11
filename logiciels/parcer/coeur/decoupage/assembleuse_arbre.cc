@@ -25,7 +25,6 @@
 #include "assembleuse_arbre.hh"
 
 #include <cassert>
-#include <sstream>
 
 #include "broyage.hh"
 #include "contexte_generation_code.hh"

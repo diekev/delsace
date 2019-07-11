@@ -25,7 +25,8 @@
 #include "donnees_type.hh"
 
 #include <cassert>
-#include <sstream>
+
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntactic.hh"
 #include "broyage.hh"
@@ -97,9 +98,9 @@ DonneesType DonneesType::derefence() const
 	return donnees;
 }
 
-std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte)
+dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte)
 {
-	std::stringstream os;
+	dls::flux_chaine os;
 
 	if (donnees_type.est_invalide()) {
 		os << "type invalide";
@@ -155,7 +156,7 @@ std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 		}
 	}
 
-	return os.str();
+	return os.chn();
 }
 
 /* ************************************************************************** */

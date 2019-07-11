@@ -24,7 +24,7 @@
 
 #include "erreur.h"
 
-#include <sstream>
+#include "biblinternes/structures/flux_chaine.hh"
 
 namespace danjo {
 
@@ -33,7 +33,7 @@ ErreurFrappe::ErreurFrappe(const dls::vue_chaine &ligne,
 		long position_ligne,
 		const dls::vue_chaine &quoi)
 {
-	std::stringstream ss;
+	dls::flux_chaine ss;
 
 	ss << "Erreur de frappe : ligne " << numero_ligne
 	   << ", position " << position_ligne << " :\n"
@@ -41,7 +41,7 @@ ErreurFrappe::ErreurFrappe(const dls::vue_chaine &ligne,
 	   << quoi << '\n';
 
 	/* cppcheck-suppress useInitializationList */
-	m_quoi = ss.str();
+	m_quoi = ss.chn();
 }
 
 const char *ErreurFrappe::quoi() const
@@ -55,7 +55,7 @@ ErreurSyntactique::ErreurSyntactique(const dls::vue_chaine &ligne,
 		const dls::vue_chaine &quoi,
 		const dls::vue_chaine &contenu, id_morceau id)
 {
-	std::stringstream ss;
+	dls::flux_chaine ss;
 
 	ss << "Erreur syntactique : ligne " << numero_ligne
 	   << ", position "<< position_ligne<< " :\n"
@@ -64,7 +64,7 @@ ErreurSyntactique::ErreurSyntactique(const dls::vue_chaine &ligne,
 	   << "Obtenu : " << contenu << " (" << chaine_identifiant(id) << ")\n";
 
 	/* cppcheck-suppress useInitializationList */
-	m_quoi = ss.str();
+	m_quoi = ss.chn();
 }
 
 const char *ErreurSyntactique::quoi() const

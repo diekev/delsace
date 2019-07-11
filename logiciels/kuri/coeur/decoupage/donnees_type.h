@@ -41,6 +41,7 @@ class Type;
 #endif
 
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
@@ -315,7 +316,7 @@ struct MagasinDonneesType {
 			ContexteGenerationCode &contexte,
 			dls::vue_chaine const &nom_variable,
 			DonneesType const &donnees,
-			std::ostream &os,
+			dls::flux_chaine &os,
 			bool echappe = false,
 			bool echappe_struct = false,
 			bool echappe_tableau_fixe = false);
@@ -332,7 +333,7 @@ struct MagasinDonneesType {
 
 	void declare_structures_C(
 			ContexteGenerationCode &contexte,
-			std::ostream &os);
+			dls::flux_chaine &os);
 
 	long operator[](int type);
 

@@ -22,20 +22,23 @@
  *
  */
 
-#pragma once
+#include "flux_chaine.hh"
 
-#include "biblinternes/structures/flux_chaine.hh"
+namespace dls {
 
-struct ContexteGenerationCode;
+flux_chaine::type_chaine flux_chaine::chn() const
+{
+	return m_flux.str();
+}
 
-namespace noeud {
+void flux_chaine::chn(const flux_chaine::type_chaine &c)
+{
+	m_flux.str(c);
+}
 
-struct base;
+flux_chaine::type_flux &flux_chaine::flux()
+{
+	return m_flux;
+}
 
-void genere_code_C(base *b,
-		ContexteGenerationCode &contexte,
-		bool expr_gauche,
-		dls::flux_chaine &os,
-		dls::flux_chaine &os_init);
-
-}  /* namespace noeud */
+}  /* namespace dls */

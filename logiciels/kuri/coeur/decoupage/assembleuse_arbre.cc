@@ -25,7 +25,6 @@
 #include "assembleuse_arbre.h"
 
 #include <cassert>
-#include <sstream>
 
 #include "broyage.hh"
 #include "contexte_generation_code.h"
@@ -156,9 +155,10 @@ void assembleuse_arbre::genere_code_C(
 	/* NOTE : les initiliaseurs des infos types doivent être valide pour toute
 	 * la durée du programme, donc nous les mettons dans la fonction principale.
 	 */
-	std::stringstream ss_infos_types;
+	dls::flux_chaine ss_infos_types;
+	dls::flux_chaine fc_code;
 
-	noeud::genere_code_C(m_pile.haut(), contexte_generation, false, os, ss_infos_types);
+	noeud::genere_code_C(m_pile.haut(), contexte_generation, false, fc_code, ss_infos_types);
 
 	auto debut_main =
 R"(
@@ -175,8 +175,9 @@ R"(
 }
 )";
 
+	os << fc_code.chn();
 	os << debut_main;
-	os << ss_infos_types.str();
+	os << ss_infos_types.chn();
 	os << fin_main;
 }
 

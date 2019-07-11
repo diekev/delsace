@@ -25,7 +25,6 @@
 #include "sauvegarde.h"
 
 #include <iostream>
-#include <sstream>
 
 #include "danjo/manipulable.h"
 
@@ -37,6 +36,7 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "evaluation/evaluation.hh"
 #include "evaluation/plan.hh"
@@ -82,9 +82,9 @@ static Graphe *graphe_operatrice(OperatriceImage *operatrice)
 
 static dls::chaine id_depuis_pointeur(void *pointeur)
 {
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << pointeur;
-	return ss.str();
+	return ss.chn();
 }
 
 static void sauvegarde_proprietes(

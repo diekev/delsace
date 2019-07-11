@@ -24,7 +24,7 @@
 
 #include "arbre_syntactic.hh"
 
-#include <sstream>
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "../tori/objet.hh"
 
@@ -120,10 +120,10 @@ void NoeudVariable::genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &ob
 			case tori::type_objet::TABLEAU:
 			case tori::type_objet::DICTIONNAIRE:
 			{
-				std::stringstream ss;
+				dls::flux_chaine ss;
 				ss << std::hex << objet_variable.get();
 
-				tampon += "objet à " + ss.str();
+				tampon += "objet à " + ss.chn();
 				break;
 			}
 		}

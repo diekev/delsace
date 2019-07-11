@@ -24,9 +24,8 @@
 
 #include "erreur.hh"
 
-#include <sstream>
-
 #include "biblinternes/langage/unicode.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntactic.hh"
 #include "contexte_generation_code.hh"
@@ -51,7 +50,7 @@ const char *frappe::message() const
 	return m_message.c_str();
 }
 
-static void imprime_caractere_vide(std::ostream &os, const long nombre, const dls::vue_chaine &chaine)
+static void imprime_caractere_vide(dls::flux_chaine &os, const long nombre, const dls::vue_chaine &chaine)
 {
 	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
@@ -67,7 +66,7 @@ static void imprime_caractere_vide(std::ostream &os, const long nombre, const dl
 	}
 }
 
-static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine)
+static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine)
 {
 	for (auto i = 0l; i < chaine.taille() - 1;) {
 		os << '~';
@@ -75,7 +74,7 @@ static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine)
 	}
 }
 
-static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine, long debut, long fin)
+static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine, long debut, long fin)
 {
 	for (auto i = debut; i < fin;) {
 		os << '~';
@@ -84,7 +83,7 @@ static void imprime_tilde(std::ostream &os, const dls::vue_chaine &chaine, long 
 }
 
 static void imprime_ligne_entre(
-		std::ostream &os,
+		dls::flux_chaine &os,
 		const dls::vue_chaine &chaine,
 		long debut,
 		long fin)
@@ -108,7 +107,7 @@ void lance_erreur(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne_courante = module->tampon[ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
@@ -120,7 +119,7 @@ void lance_erreur(
 	ss << quoi;
 	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
 
-	throw erreur::frappe(ss.str().c_str(), type);
+	throw erreur::frappe(ss.chn().c_str(), type);
 }
 
 void lance_erreur_plage(
@@ -137,7 +136,7 @@ void lance_erreur_plage(
 	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
 	auto ligne_courante = module->tampon[ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
@@ -148,7 +147,7 @@ void lance_erreur_plage(
 
 	ss << quoi;
 
-	throw erreur::frappe(ss.str().c_str(), type);
+	throw erreur::frappe(ss.chn().c_str(), type);
 }
 
 [[noreturn]] void lance_erreur_nombre_arguments(
@@ -162,7 +161,7 @@ void lance_erreur_plage(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -175,7 +174,7 @@ void lance_erreur_plage(
 	ss << "Requiers : " << nombre_arguments << '\n';
 	ss << "Obtenu : " << nombre_recus << '\n';
 
-	throw frappe(ss.str().c_str(), type_erreur::NOMBRE_ARGUMENT);
+	throw frappe(ss.chn().c_str(), type_erreur::NOMBRE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
@@ -190,7 +189,7 @@ void lance_erreur_plage(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << "Dans l'appel de la fonction '" << morceau.chaine << "':\n";
@@ -213,7 +212,7 @@ void lance_erreur_plage(
 	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
+	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_type_retour(
@@ -228,7 +227,7 @@ void lance_erreur_plage(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << "Dans l'expression de '" << morceau.chaine << "':\n";
@@ -251,7 +250,7 @@ void lance_erreur_plage(
 	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw frappe(ss.str().c_str(), type_erreur::TYPE_ARGUMENT);
+	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_argument_inconnu(
@@ -264,7 +263,7 @@ void lance_erreur_plage(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -276,7 +275,7 @@ void lance_erreur_plage(
 	ss << "Fonction : '" << morceau.chaine
 	   << "', argument nommé '" << nom_arg << "' inconnu !\n";
 
-	throw frappe(ss.str().c_str(), type_erreur::ARGUMENT_INCONNU);
+	throw frappe(ss.chn().c_str(), type_erreur::ARGUMENT_INCONNU);
 }
 
 [[noreturn]] void lance_erreur_redeclaration_argument(
@@ -289,7 +288,7 @@ void lance_erreur_plage(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -301,7 +300,7 @@ void lance_erreur_plage(
 	ss << "Fonction : '" << morceau.chaine
 	   << "', redéclaration de l'argument '" << nom_arg << "' !\n";
 
-	throw frappe(ss.str().c_str(), type_erreur::ARGUMENT_REDEFINI);
+	throw frappe(ss.chn().c_str(), type_erreur::ARGUMENT_REDEFINI);
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
@@ -315,7 +314,7 @@ void lance_erreur_plage(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -328,7 +327,7 @@ void lance_erreur_plage(
 	ss << "Type à gauche : " << chaine_type(type_gauche, contexte) << '\n';
 	ss << "Type à droite : " << chaine_type(type_droite, contexte) << '\n';
 
-	throw frappe(ss.str().c_str(), type_erreur::ASSIGNATION_MAUVAIS_TYPE);
+	throw frappe(ss.chn().c_str(), type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 }
 
 void lance_erreur_type_operation(
@@ -342,7 +341,7 @@ void lance_erreur_type_operation(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
@@ -355,7 +354,7 @@ void lance_erreur_type_operation(
 	ss << "Type à gauche : " << chaine_type(type_gauche, contexte) << '\n';
 	ss << "Type à droite : " << chaine_type(type_droite, contexte) << '\n';
 
-	throw frappe(ss.str().c_str(), type_erreur::TYPE_DIFFERENTS);
+	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
 }
 
 void lance_erreur_fonction_inconnue(
@@ -369,7 +368,7 @@ void lance_erreur_fonction_inconnue(
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne = module->tampon[numero_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << module->chemin << ':' << (b->morceau.ligne_pos >> 32) << '\n';
@@ -385,7 +384,7 @@ void lance_erreur_fonction_inconnue(
 		ss << "\nFonction inconnue : aucune candidate trouvée\n";
 		ss << "Vérifiez que la fonction existe bel et bien dans un module importé\n";
 
-		throw erreur::frappe(ss.str().c_str(), erreur::type_erreur::FONCTION_INCONNUE);
+		throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
 	ss << "\nAucune candidate trouvée pour la fonction '" << b->morceau.chaine << "'\n";
@@ -470,7 +469,7 @@ void lance_erreur_fonction_inconnue(
 	}
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.str().c_str(), type_erreur);
+	throw erreur::frappe(ss.chn().c_str(), type_erreur);
 }
 
 }

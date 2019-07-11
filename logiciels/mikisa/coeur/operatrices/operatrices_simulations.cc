@@ -27,6 +27,7 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/parallelisme.h"
 
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/collision.hh"
@@ -411,9 +412,9 @@ public:
 			reponse = rep_collision::COLLE;
 		}
 		else {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Opération '" << chaine_reponse << "' inconnue\n";
-			this->ajoute_avertissement(ss.str());
+			this->ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 

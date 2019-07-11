@@ -28,7 +28,6 @@
 
 #include <cassert>
 #include <iostream>
-#include <sstream>
 
 #include "arbre_syntactic.h"
 #include "broyage.hh"
@@ -87,7 +86,7 @@ static auto imprime(
 
 static void genere_code_extra_pre_retour(
 		ContexteGenerationCode &contexte,
-		std::ostream &os)
+		dls::flux_chaine &os)
 {
 	if (contexte.donnees_fonction->est_coroutine) {
 		os << "__etat->__termine_coro = 1;\n";
@@ -116,8 +115,8 @@ static inline auto broye_chaine(base *b)
 static int index = 0;
 
 static auto cree_info_type_defaul_C(
-		std::ostream &os_decl,
-		std::ostream &os_init,
+		dls::flux_chaine &os_decl,
+		dls::flux_chaine &os_init,
 		dls::chaine const &id_type)
 {
 	auto nom_info_type = "__info_type" + id_type + dls::vers_chaine(index++);
@@ -129,8 +128,8 @@ static auto cree_info_type_defaul_C(
 }
 
 static auto cree_info_type_entier_C(
-		std::ostream &os_decl,
-		std::ostream &os_init,
+		dls::flux_chaine &os_decl,
+		dls::flux_chaine &os_init,
 		int taille_en_octet,
 		bool est_signe)
 {
@@ -145,8 +144,8 @@ static auto cree_info_type_entier_C(
 }
 
 static auto cree_info_type_reel_C(
-		std::ostream &os_decl,
-		std::ostream &os_init,
+		dls::flux_chaine &os_decl,
+		dls::flux_chaine &os_init,
 		int taille_en_octet)
 {
 	auto nom_info_type = "__info_type_reel" + dls::vers_chaine(index++);
@@ -160,8 +159,8 @@ static auto cree_info_type_reel_C(
 
 static dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
-		std::ostream &os_decl,
-		std::ostream &os_init,
+		dls::flux_chaine &os_decl,
+		dls::flux_chaine &os_init,
 		DonneesType &donnees_type);
 
 static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesType const &donnees_type)
@@ -235,8 +234,8 @@ static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesT
 }
 
 static auto cree_info_type_structure_C(
-		std::ostream &os_decl,
-		std::ostream &os_init,
+		dls::flux_chaine &os_decl,
+		dls::flux_chaine &os_init,
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine const &nom_struct,
 		DonneesStructure const &donnees_structure,
@@ -360,8 +359,8 @@ static auto cree_info_type_structure_C(
 }
 
 static auto cree_info_type_enum_C(
-		std::ostream &os_decl,
-		std::ostream &os_init,
+		dls::flux_chaine &os_decl,
+		dls::flux_chaine &os_init,
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine const &nom_struct,
 		DonneesStructure const &donnees_structure)
@@ -438,8 +437,8 @@ static auto cree_info_type_enum_C(
 
 static dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
-		std::ostream &os_decl,
-		std::ostream &os_init,
+		dls::flux_chaine &os_decl,
+		dls::flux_chaine &os_init,
 		DonneesType &donnees_type)
 {
 	auto valeur = dls::chaine("");
@@ -628,9 +627,9 @@ static void genere_code_C_prepasse(
 		base *b,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche,
-		std::ostream &os);
+		dls::flux_chaine &os);
 
-static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *b)
+static auto cree_eini(ContexteGenerationCode &contexte, dls::flux_chaine &os, base *b)
 {
 	auto nom_eini = dls::chaine("__eini_")
 			.append(dls::vers_chaine(b->morceau.ligne_pos).c_str());
@@ -674,7 +673,7 @@ static auto cree_eini(ContexteGenerationCode &contexte, std::ostream &os, base *
 
 static void cree_appel(
 		base *b,
-		std::ostream &os,
+		dls::flux_chaine &os,
 		ContexteGenerationCode &contexte,
 		dls::chaine const &nom_broye,
 		std::list<base *> const &enfants)
@@ -910,7 +909,7 @@ static void cree_appel(
 
 static void declare_structures_C(
 		ContexteGenerationCode &contexte,
-		std::ostream &os)
+		dls::flux_chaine &os)
 {
 	contexte.magasin_types.declare_structures_C(contexte, os);
 
@@ -955,7 +954,7 @@ static auto genere_code_acces_membre(
 		base *structure,
 		base *membre,
 		ContexteGenerationCode &contexte,
-		std::ostream &os)
+		dls::flux_chaine &os)
 {
 	auto const &index_type = structure->index_type;
 	auto type_structure = contexte.magasin_types.donnees_types[index_type];
@@ -987,7 +986,7 @@ static void cree_initialisation(
 		DonneesType const &dt_parent,
 		dls::chaine const &chaine_parent,
 		dls::vue_chaine const &accesseur,
-		std::ostream &os)
+		dls::flux_chaine &os)
 {
 	if (dt_parent.type_base() == id_morceau::CHAINE || dt_parent.type_base() == id_morceau::TABLEAU) {
 		os << chaine_parent << accesseur << "pointeur = 0;\n";
@@ -1042,7 +1041,7 @@ static void prepasse_acces_membre(
 		base *b,
 		base *structure,
 		base *membre,
-		std::ostream &os)
+		dls::flux_chaine &os)
 {
 	if (possede_drapeau(b->drapeaux, PREND_REFERENCE)) {
 		return;
@@ -1092,7 +1091,7 @@ static void prepasse_acces_membre(
 		}
 	}
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 
 	genere_code_C(structure, contexte, true, ss, ss);
 	ss << ((est_pointeur) ? "->" : ".");
@@ -1101,7 +1100,7 @@ static void prepasse_acces_membre(
 	/* le membre peut-être un pointeur de fonction, donc fais une
 	 * prépasse pour générer cette appel */
 	if (membre->type == type_noeud::APPEL_FONCTION) {
-		membre->nom_fonction_appel = ss.str();
+		membre->nom_fonction_appel = ss.chn();
 		genere_code_C_prepasse(membre, contexte, false, os);
 
 		auto &dt = contexte.magasin_types.donnees_types[b->index_type];
@@ -1126,7 +1125,7 @@ static void prepasse_acces_membre(
 					false,
 					false,
 					true);
-		os << " = " << ss.str() << ";\n";
+		os << " = " << ss.chn() << ";\n";
 	}
 }
 
@@ -1156,7 +1155,7 @@ static void genere_code_C_prepasse(
 		base *b,
 		ContexteGenerationCode &contexte,
 		bool /*expr_gauche*/,
-		std::ostream &os)
+		dls::flux_chaine &os)
 {
 	switch (b->type) {
 		case type_noeud::RACINE:
@@ -1501,8 +1500,8 @@ void genere_code_C(
 		base *b,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche,
-		std::ostream &os,
-		std::ostream &os_init)
+		dls::flux_chaine &os,
+		dls::flux_chaine &os_init)
 {
 	switch (b->type) {
 		case type_noeud::RACINE:
@@ -2344,7 +2343,7 @@ void genere_code_C(
 			contexte.empile_nombre_locales();
 
 			auto genere_code_tableau_chaine = [](
-					std::ostream &os_loc,
+					dls::flux_chaine &os_loc,
 					ContexteGenerationCode &contexte_loc,
 					base *enfant_1,
 					base *enfant_2,
@@ -2375,7 +2374,7 @@ void genere_code_C(
 			};
 
 			auto genere_code_tableau_fixe = [](
-					std::ostream &os_loc,
+					dls::flux_chaine &os_loc,
 					ContexteGenerationCode &contexte_loc,
 					base *enfant_1,
 					base *enfant_2,

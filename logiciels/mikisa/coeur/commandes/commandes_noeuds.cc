@@ -37,6 +37,7 @@
 #include "biblinternes/outils/definitions.h"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "../evaluation/evaluation.hh"
 
@@ -467,7 +468,7 @@ public:
 			info_noeud->x = donnees.x;
 			info_noeud->y = donnees.y;
 
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "<p>Opératrice : " << noeud->nom() << "</p>";
 			ss << "<hr/>";
 
@@ -508,7 +509,7 @@ public:
 			ss << "<p>Nombre d'exécution : " << noeud->compte_execution() << "</p>";
 			ss << "<hr/>";
 
-			info_noeud->informations = ss.str();
+			info_noeud->informations = ss.chn();
 
 			graphe->info_noeud = info_noeud;
 		}

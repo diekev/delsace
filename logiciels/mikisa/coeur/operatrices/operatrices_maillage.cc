@@ -33,6 +33,7 @@
 #include "biblinternes/outils/parallelisme.h"
 
 #include "biblinternes/structures/ensemble.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
@@ -1401,18 +1402,18 @@ public:
 						static_cast<double>(rayon));
 
 			if (donnees_ret.nombre_instable > 0) {
-				std::stringstream ss;
+				dls::flux_chaine ss;
 				ss << "Il y a " << donnees_ret.nombre_instable
 				   << " points instables. Veuillez modifier le rayon pour stabiliser l'algorithme.";
-				this->ajoute_avertissement(ss.str());
+				this->ajoute_avertissement(ss.chn());
 				return EXECUTION_ECHOUEE;
 			}
 
 			if (donnees_ret.nombre_impossible > 0) {
-				std::stringstream ss;
+				dls::flux_chaine ss;
 				ss << "Il y a " << donnees_ret.nombre_impossible
 				   << " points impossibles à calculer. Veuillez modifier le rayon pour stabiliser l'algorithme.";
-				this->ajoute_avertissement(ss.str());
+				this->ajoute_avertissement(ss.chn());
 				return EXECUTION_ECHOUEE;
 			}
 

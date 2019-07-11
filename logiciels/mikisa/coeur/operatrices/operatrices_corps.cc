@@ -35,6 +35,7 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "corps/adaptrice_creation_corps.h"
 #include "corps/iteration_corps.hh"
@@ -875,16 +876,16 @@ public:
 				auto attr2 = paire_attr.second;
 
 				if (attr1->type() != attr2->type()) {
-					std::stringstream ss;
+					dls::flux_chaine ss;
 					ss << "Les types des attributs '" << attr1->nom() << "' sont différents !";
-					ajoute_avertissement(ss.str());
+					ajoute_avertissement(ss.chn());
 					continue;
 				}
 
 				if (attr1->portee != attr2->portee) {
-					std::stringstream ss;
+					dls::flux_chaine ss;
 					ss << "Les portées des attributs '" << attr1->nom() << "' sont différentes !";
-					ajoute_avertissement(ss.str());
+					ajoute_avertissement(ss.chn());
 					continue;
 				}
 

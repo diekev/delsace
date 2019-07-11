@@ -438,11 +438,11 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
 		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
 
-		std::stringstream ss;
+		dls::flux_chaine ss;
 		ss << "as -o /tmp/execution_kuri.o ";
 		ss << chemin_execution_S;
 
-		auto err = system(ss.str().c_str());
+		auto err = system(ss.chn().c_str());
 
 		if (err != 0) {
 			std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
@@ -455,7 +455,7 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 		return;
 	}
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "ld ";
 	/* ce qui chargera le programme */
 	ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
@@ -466,7 +466,7 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 	ss << "/tmp/kuri.o ";
 	ss << "-o " << dest;
 
-	auto err = system(ss.str().c_str());
+	auto err = system(ss.chn().c_str());
 
 	if (err != 0) {
 		std::cerr << "Ne peut pas créer l'executable !\n";

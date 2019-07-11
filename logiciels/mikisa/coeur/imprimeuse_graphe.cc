@@ -25,13 +25,13 @@
 #include "imprimeuse_graphe.h"
 
 #include <iomanip>
-#include <sstream>
 
 #include <systeme_fichier/file.h>
 
 #include "biblinternes/graphe/graphe.h"
 
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "noeud_image.h"
 
@@ -44,17 +44,17 @@ static constexpr auto color_value = "gold1";
 
 inline static dls::chaine node_id(const Noeud *node, bool quoted = true)
 {
-	std::stringstream ss;
+	dls::flux_chaine ss;
 
 	ss << "node_" << node;
 
 	if (quoted) {
-		std::stringstream ssq;
-		ssq << std::quoted(ss.str());
-		return ssq.str();
+		dls::flux_chaine ssq;
+		ssq << std::quoted(ss.chn());
+		return ssq.chn();
 	}
 
-	return ss.str();
+	return ss.chn();
 }
 
 inline long get_input_index(const PriseEntree *socket)
@@ -91,17 +91,17 @@ inline static dls::chaine input_id(const PriseEntree *socket, long index, bool q
 		index = get_input_index(socket);
 	}
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 
 	ss << "I" << socket->nom << "_" << index;
 
 	if (quoted) {
-		std::stringstream ssq;
-		ssq << std::quoted(ss.str());
-		return ssq.str();
+		dls::flux_chaine ssq;
+		ssq << std::quoted(ss.chn());
+		return ssq.chn();
 	}
 
-	return ss.str();
+	return ss.chn();
 }
 
 inline static dls::chaine output_id(const PriseSortie *socket, long index, bool quoted = true)
@@ -110,17 +110,17 @@ inline static dls::chaine output_id(const PriseSortie *socket, long index, bool 
 		index = get_output_index(socket);
 	}
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 
 	ss << "O" << socket->nom << "_" << index;
 
 	if (quoted) {
-		std::stringstream ssq;
-		ssq << std::quoted(ss.str());
-		return ssq.str();
+		dls::flux_chaine ssq;
+		ssq << std::quoted(ss.chn());
+		return ssq.chn();
 	}
 
-	return ss.str();
+	return ss.chn();
 }
 
 inline void dump_node(dls::systeme_fichier::File &file, Noeud *node)

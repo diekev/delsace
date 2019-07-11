@@ -26,7 +26,6 @@
 
 #include <cassert>
 #include <iostream>
-#include <sstream>
 
 #include "arbre_syntactic.h"
 #include "broyage.hh"
@@ -1256,12 +1255,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						}
 						default:
 						{
-							std::stringstream ss;
+							dls::flux_chaine ss;
 							ss << "Le type '" << chaine_type(type1, contexte)
 							   << "' ne peut être déréférencé par opérateur[] !";
 
 							erreur::lance_erreur(
-										ss.str(),
+										ss.chn(),
 										contexte,
 										b->morceau,
 										erreur::type_erreur::TYPE_DIFFERENTS);

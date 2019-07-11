@@ -25,7 +25,6 @@
 #include "commandes_fichier.h"
 
 #include <fstream>
-#include <sstream>
 
 #include "biblinternes/commandes/commande.h"
 #include "biblinternes/objets/import_objet.h"

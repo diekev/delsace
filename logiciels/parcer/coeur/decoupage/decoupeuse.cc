@@ -26,9 +26,9 @@
 
 #include <iostream>
 #include <cstring>
-#include <sstream>
 
 #include "biblinternes/langage/unicode.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "contexte_generation_code.hh"  // pour DonneesModule
 #include "erreur.hh"
@@ -285,7 +285,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 {
 	auto ligne_courante = m_module->tampon[m_compte_ligne];
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << "Erreur : ligne:" << m_compte_ligne + 1 << ":\n";
 	ss << ligne_courante;
 
@@ -305,7 +305,7 @@ void decoupeuse_texte::lance_erreur(const std::string &quoi) const
 	ss << "^~~~\n";
 	ss << quoi;
 
-	throw erreur::frappe(ss.str().c_str(), erreur::type_erreur::DECOUPAGE);
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::DECOUPAGE);
 }
 
 // si caractere blanc:

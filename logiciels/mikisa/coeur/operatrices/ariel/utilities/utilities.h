@@ -14,7 +14,6 @@
 #include <istream>
 #include <ostream>
 #include <iterator>
-#include <sstream>
 #include <string>
 
 #include "biblinternes/outils/constantes.h"

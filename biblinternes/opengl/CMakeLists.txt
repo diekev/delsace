@@ -28,6 +28,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	ego
 	${BIBLIOTHEQUES_TBB}
+	bib_structures
 )
 
 add_library(${NOM_CIBLE} STATIC

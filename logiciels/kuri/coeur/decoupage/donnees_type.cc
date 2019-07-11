@@ -39,7 +39,6 @@
 
 #include <cassert>
 #include <iostream>
-#include <sstream>
 
 #include "arbre_syntactic.h"
 #include "broyage.hh"
@@ -118,7 +117,7 @@ long DonneesType::taille() const
 
 dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte)
 {
-	std::stringstream os;
+	dls::flux_chaine os;
 
 	if (donnees_type.est_invalide()) {
 		os << "type invalide";
@@ -233,7 +232,7 @@ dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 		}
 	}
 
-	return os.str();
+	return os.chn();
 }
 
 /* ************************************************************************** */
@@ -367,7 +366,7 @@ long MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 
 void MagasinDonneesType::declare_structures_C(
 		ContexteGenerationCode &contexte,
-		std::ostream &os)
+		dls::flux_chaine &os)
 {
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n\n";
 	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n\n";
@@ -400,7 +399,7 @@ long MagasinDonneesType::operator[](int type)
 
 static auto converti_type_simple_C(
 		ContexteGenerationCode &contexte,
-		std::ostream &os,
+		dls::flux_chaine &os,
 		id_morceau id,
 		bool echappe,
 		bool echappe_struct,
@@ -616,7 +615,7 @@ void MagasinDonneesType::converti_type_C(
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine const &nom_variable,
 		DonneesType const &donnees,
-		std::ostream &os,
+		dls::flux_chaine &os,
 		bool echappe,
 		bool echappe_struct,
 		bool echappe_tableau_fixe)

@@ -27,8 +27,6 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
-#include <sstream>
-
 #include "compilation/morceaux.h"
 
 #include "controles/controle_echelle_valeur.h"

@@ -25,7 +25,6 @@
 #include "validation_semantique.hh"
 
 #include <cassert>
-#include <sstream>
 
 #include "arbre_syntactic.hh"
 #include "broyage.hh"

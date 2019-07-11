@@ -24,18 +24,43 @@
 
 #pragma once
 
-#include "biblinternes/structures/flux_chaine.hh"
+#include <sstream>
 
-struct ContexteGenerationCode;
+#include "biblinternes/memoire/logeuse_gardee.hh"
 
-namespace noeud {
+namespace dls {
 
-struct base;
+struct flux_chaine {
+	using type_flux = std::basic_stringstream<char, std::char_traits<char>, memoire::logeuse_guardee<char>>;
+	using type_chaine = std::basic_string<char, std::char_traits<char>, memoire::logeuse_guardee<char>>;
 
-void genere_code_C(base *b,
-		ContexteGenerationCode &contexte,
-		bool expr_gauche,
-		dls::flux_chaine &os,
-		dls::flux_chaine &os_init);
+private:
 
-}  /* namespace noeud */
+	type_flux m_flux{};
+
+public:
+	flux_chaine() = default;
+	~flux_chaine() = default;
+
+	type_chaine chn() const;
+
+	void chn(type_chaine const &c);
+
+	type_flux &flux();
+};
+
+template <typename T>
+flux_chaine &operator<<(flux_chaine &flux, T const &v)
+{
+	flux.flux() << v;
+	return flux;
+}
+
+template <typename T>
+flux_chaine &operator>>(flux_chaine &flux, T &v)
+{
+	flux.flux() >> v;
+	return flux;
+}
+
+}  /* namespace dls */

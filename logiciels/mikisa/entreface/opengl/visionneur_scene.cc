@@ -24,14 +24,12 @@
 
 #include "visionneur_scene.h"
 
-#include <sstream>
-
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/opengl/rendu_texte.h"
 #include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
-
-#include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "coeur/composite.h"
 #include "coeur/manipulatrice.h"
@@ -179,24 +177,24 @@ void VisionneurScene::peint_opengl()
 
 	m_rendu_texte->reinitialise();
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << fps << " IPS";
-	m_rendu_texte->dessine(m_contexte, ss.str());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
 
 	if (scene != nullptr) {
-		ss.str("");
+		ss.chn("");
 		ss << "Scène : " << scene->nom;
 
-		m_rendu_texte->dessine(m_contexte, ss.str());
+		m_rendu_texte->dessine(m_contexte, ss.chn());
 	}
 
-	ss.str("");
+	ss.chn("");
 	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
-	m_rendu_texte->dessine(m_contexte, ss.str());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.str("");
+	ss.chn("");
 	ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
-	m_rendu_texte->dessine(m_contexte, ss.str());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
 
 #if 0
 	noeud = m_mikisa.graphe->noeud_actif;
@@ -208,24 +206,24 @@ void VisionneurScene::peint_opengl()
 			auto objet = operatrice->objet();
 			auto maillage = objet->donnees;
 
-			ss.str("");
+			ss.chn("");
 			ss << "Maillage : " << maillage->nom;
-			m_rendu_texte->dessine(m_contexte, ss.str());
-			ss.str("");
+			m_rendu_texte->dessine(m_contexte, ss.chn());
+			ss.chn("");
 			ss << "Nombre sommets   : " << maillage->nombre_sommets();
-			m_rendu_texte->dessine(m_contexte, ss.str());
-			ss.str("");
+			m_rendu_texte->dessine(m_contexte, ss.chn());
+			ss.chn("");
 			ss << "Nombre polygones : " << maillage->nombre_polygones();
-			m_rendu_texte->dessine(m_contexte, ss.str());
-			ss.str("");
+			m_rendu_texte->dessine(m_contexte, ss.chn());
+			ss.chn("");
 			ss << "Nombre arrêtes   : " << maillage->nombre_arretes();
-			m_rendu_texte->dessine(m_contexte, ss.str());
-			ss.str("");
+			m_rendu_texte->dessine(m_contexte, ss.chn());
+			ss.chn("");
 			ss << "Nombre uvs       : " << maillage->nombre_uvs();
-			m_rendu_texte->dessine(m_contexte, ss.str());
-			ss.str("");
+			m_rendu_texte->dessine(m_contexte, ss.chn());
+			ss.chn("");
 			ss << "Nombre normaux   : " << maillage->nombre_normaux();
-			m_rendu_texte->dessine(m_contexte, ss.str());
+			m_rendu_texte->dessine(m_contexte, ss.chn());
 		}
 	}
 #endif

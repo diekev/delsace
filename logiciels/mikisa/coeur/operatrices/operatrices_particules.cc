@@ -31,6 +31,7 @@
 #include "biblinternes/outils/parallelisme.h"
 #include "biblinternes/outils/temps.hh"
 #include "biblinternes/structures/arbre_kd.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/grille_particules.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
@@ -499,16 +500,16 @@ public:
 		auto attr_source = corps_entree->attribut(nom_attribut);
 
 		if (attr_source == nullptr) {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "L'attribut '" << nom_attribut << "' n'existe pas !";
-			this->ajoute_avertissement(ss.str());
+			this->ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
 		if (attr_source->type() != type_attribut::VEC3) {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "L'attribut '" << nom_attribut << "' n'est pas de type vecteur !";
-			this->ajoute_avertissement(ss.str());
+			this->ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -795,11 +796,11 @@ public:
 			groupe_prim = corps_maillage->groupe_primitive(nom_groupe);
 
 			if (groupe_prim == nullptr) {
-				std::stringstream ss;
+				dls::flux_chaine ss;
 				ss << "Aucun groupe de primitives nommé '" << nom_groupe
 				   << "' trouvé sur le corps d'entrée !";
 
-				this->ajoute_avertissement(ss.str());
+				this->ajoute_avertissement(ss.chn());
 				return EXECUTION_ECHOUEE;
 			}
 		}
@@ -848,12 +849,12 @@ public:
 			auto const index_boite = static_cast<int>(std::log2(aire_maximum / aire));
 
 			if (index_boite < 0 || index_boite >= 64) {
-				std::stringstream ss;
+				dls::flux_chaine ss;
 				ss << "Erreur lors de la génération de l'index d'une boîte !";
 				ss << "\n   Index : " << index_boite;
 				ss << "\n   Aire triangle : " << aire;
 				ss << "\n   Aire totale : " << aire_maximum;
-				this->ajoute_avertissement(ss.str());
+				this->ajoute_avertissement(ss.chn());
 				continue;
 			}
 

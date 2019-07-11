@@ -26,6 +26,7 @@
 
 #include <vector>
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 
 #include "morceaux.hh"
@@ -158,7 +159,7 @@ public:
 	return !(type_a == type_b);
 }
 
-std::string chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte);
+dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte);
 
 /* ************************************************************************** */
 

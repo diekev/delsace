@@ -25,6 +25,7 @@
 #include "operatrices_attributs.hh"
 
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
@@ -109,9 +110,9 @@ public:
 			type = type_attribut::MAT4;
 		}
 		else {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Type d'attribut '" << chaine_type << "' invalide !";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -133,9 +134,9 @@ public:
 			portee = portee_attr::CORPS;
 		}
 		else {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -314,9 +315,9 @@ public:
 			operation = op_rand_attr::MAXIMUM;
 		}
 		else {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Opération '" << enum_operation << "' inconnue !";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -599,9 +600,9 @@ public:
 				groupe_points = m_corps.groupe_point(nom_groupe);
 
 				if (groupe_points == nullptr) {
-					std::stringstream ss;
+					dls::flux_chaine ss;
 					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.str());
+					ajoute_avertissement(ss.chn());
 					return EXECUTION_ECHOUEE;
 				}
 			}
@@ -613,9 +614,9 @@ public:
 				groupe_prims = m_corps.groupe_primitive(nom_groupe);
 
 				if (groupe_prims == nullptr) {
-					std::stringstream ss;
+					dls::flux_chaine ss;
 					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.str());
+					ajoute_avertissement(ss.chn());
 					return EXECUTION_ECHOUEE;
 				}
 			}
@@ -632,9 +633,9 @@ public:
 				groupe_prims = m_corps.groupe_primitive(nom_groupe);
 
 				if (groupe_prims == nullptr) {
-					std::stringstream ss;
+					dls::flux_chaine ss;
 					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.str());
+					ajoute_avertissement(ss.chn());
 					return EXECUTION_ECHOUEE;
 				}
 
@@ -645,9 +646,9 @@ public:
 			}
 		}
 		else {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Portée '" << chaine_portee << "' non-supportée !";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -751,9 +752,9 @@ public:
 			location = location_normal::CORPS;
 		}
 		else if (chaine_location != "point") {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Méthode de location '" << chaine_location << "' inconnue";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -769,9 +770,9 @@ public:
 			pesee = pesee_normal::MOYENNE;
 		}
 		else if (chaine_pesee != "aire") {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Méthode de pesée '" << chaine_location << "' inconnue";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -844,18 +845,18 @@ public:
 		auto attr_orig = corps_orig->attribut(nom_attribut);
 
 		if (attr_orig == nullptr) {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Le corps d'origine ne possède pas l'attribut '"
 			   << nom_attribut << "'";
-			this->ajoute_avertissement(ss.str());
+			this->ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
 		if (attr_orig->portee != portee_attr::POINT) {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "L'attribut '"
 			   << nom_attribut << "' n'est pas sur les points\n";
-			this->ajoute_avertissement(ss.str());
+			this->ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1079,10 +1080,10 @@ public:
 		auto attr_orig = m_corps.attribut(nom_attribut);
 
 		if (attr_orig == nullptr) {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Le corps d'origine ne possède pas l'attribut '"
 			   << nom_attribut << "'";
-			this->ajoute_avertissement(ss.str());
+			this->ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 

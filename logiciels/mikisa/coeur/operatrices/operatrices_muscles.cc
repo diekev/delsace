@@ -41,6 +41,7 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
@@ -416,7 +417,7 @@ void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 
 	//Read vertices
 	std::string line;
-	std::stringstream temp_ss;
+	dls::flux_chaine temp_ss;
 
 	std::ifstream node_file((mesh_name+".node").c_str());
 
@@ -427,7 +428,7 @@ void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 			if (line[line.find_first_not_of(" ")] == '#' )
 				continue;
 			else{
-				temp_ss.str(line);
+				temp_ss.chn(line.c_str());
 				temp_ss >> num_vertices;
 				break;
 			}
@@ -436,7 +437,7 @@ void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 			if (line[line.find_first_not_of(" ")] == '#' )
 				continue;
 			else{
-				temp_ss.str(line);
+				temp_ss.chn(line.c_str());
 				int counter;
 				dls::math::vec4f vertex;
 				temp_ss >> counter >> vertex.x >> vertex.y >> vertex.z;
@@ -462,7 +463,7 @@ void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 			if (line[line.find_first_not_of(" ")] == '#' )
 				continue;
 			else{
-				temp_ss.str(line);
+				temp_ss.chn(line.c_str());
 				temp_ss >> num_faces;
 				//cout<<num_faces<<endl;
 				break;
@@ -473,7 +474,7 @@ void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 				continue;
 			else{
 				line +=" ";
-				temp_ss.str(line);
+				temp_ss.chn(line.c_str());
 				int counter;
 				dls::math::vec3f face;
 				temp_ss >> counter >> face.x >> face.y >> face.z;
@@ -496,7 +497,7 @@ void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 			if (line[line.find_first_not_of(" ")] == '#' )
 				continue;
 			else{
-				temp_ss.str(line);
+				temp_ss.chn(line.c_str());
 				temp_ss >> num_tets;
 				//cout<<num_tets<<endl;
 				break;
@@ -507,7 +508,7 @@ void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 				continue;
 			else{
 				line +=" ";
-				temp_ss.str(line);
+				temp_ss.chn(line.c_str());
 				int counter;
 				dls::math::vec4i tet;
 				temp_ss >> counter >> tet.x >> tet.y >> tet.z >> tet.w;

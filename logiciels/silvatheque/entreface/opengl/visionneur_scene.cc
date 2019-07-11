@@ -25,11 +25,11 @@
 #include "visionneur_scene.h"
 
 #include <GL/glew.h>
-#include <sstream>
 
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/opengl/rendu_grille.h"
 #include "biblinternes/opengl/rendu_texte.h"
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/arbre.h"
@@ -113,13 +113,13 @@ void VisionneurScene::peint_opengl()
 	auto const temps = fin - m_debut;
 	auto const fps = static_cast<int>(1.0 / temps);
 
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << fps << " IPS";
 
 	glEnable(GL_BLEND);
 
 	m_rendu_texte->reinitialise();
-	m_rendu_texte->dessine(m_contexte, ss.str());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
 
 	glDisable(GL_BLEND);
 

@@ -27,6 +27,7 @@
 #include "biblinternes/graphe/compileuse_graphe.h"
 #include "biblinternes/outils/definitions.h"
 
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "contexte_execution.hh"
@@ -148,7 +149,7 @@ void base::imprime_code(std::ostream &os, int profondeur)
 
 static auto extrait_decimal(dls::vue_chaine const &vue_chaine)
 {
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << vue_chaine;
 
 	float r;
@@ -158,7 +159,7 @@ static auto extrait_decimal(dls::vue_chaine const &vue_chaine)
 
 static auto extrait_entier(dls::vue_chaine const &vue_chaine)
 {
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << vue_chaine;
 
 	int r;
@@ -419,9 +420,9 @@ int genere_code(
 						types_params);
 
 			if (donnees_fonc.donnees == nullptr) {
-				std::stringstream ss;
+				dls::flux_chaine ss;
 				ss << "Impossible de trouver la fonction '" << b->chaine() << "'";
-				throw std::runtime_error(ss.str());
+				throw std::runtime_error(ss.chn().c_str());
 			}
 
 			auto type_instance = donnees_fonc.type;
@@ -791,7 +792,7 @@ int genere_code(
 					case type_var::INVALIDE:
 					case type_var::POLYMORPHIQUE:
 					{
-						std::stringstream ss;
+						dls::flux_chaine ss;
 						ss << "La variable '"
 						   << enfant_droite->chaine()
 						   << "' n'est pas une structure !"
@@ -799,7 +800,7 @@ int genere_code(
 						   << enfant_gauche->chaine()
 						   << "' impossible.";
 
-						throw std::runtime_error(ss.str());
+						throw std::runtime_error(ss.chn().c_str());
 					}
 					case type_var::VEC2:
 					{

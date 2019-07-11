@@ -26,6 +26,7 @@
 
 #include "biblinternes/outils/gna.hh"
 
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "../contexte_evaluation.hh"
@@ -97,9 +98,9 @@ public:
 			decalage = 2l;
 		}
 		else {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "La méthode '" << chaine_methode << "' est invalide !";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -116,9 +117,9 @@ public:
 			n = m_corps.prims()->taille();
 		}
 		else {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -133,9 +134,9 @@ public:
 			auto groupe = m_corps.groupe_point(nom_groupe);
 
 			if (groupe != nullptr) {
-				std::stringstream ss;
+				dls::flux_chaine ss;
 				ss << "Le groupe '" << nom_groupe << "' existe déjà !";
-				ajoute_avertissement(ss.str());
+				ajoute_avertissement(ss.chn());
 				return EXECUTION_ECHOUEE;
 			}
 
@@ -173,9 +174,9 @@ public:
 			auto groupe = m_corps.groupe_primitive(nom_groupe);
 
 			if (groupe != nullptr) {
-				std::stringstream ss;
+				dls::flux_chaine ss;
 				ss << "Le groupe '" << nom_groupe << "' existe déjà !";
-				ajoute_avertissement(ss.str());
+				ajoute_avertissement(ss.chn());
 				return EXECUTION_ECHOUEE;
 			}
 
@@ -210,9 +211,9 @@ public:
 			}
 		}
 		else {
-			std::stringstream ss;
+			dls::flux_chaine ss;
 			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
-			ajoute_avertissement(ss.str());
+			ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
 		}
 

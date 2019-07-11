@@ -24,8 +24,6 @@
 
 #include "arbre_syntactic.hh"
 
-#include <sstream>
-
 #include "assembleuse_arbre.hh"
 #include "broyage.hh"
 #include "contexte_generation_code.hh"
