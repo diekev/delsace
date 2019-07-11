@@ -131,6 +131,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_gigue_points.jo
 	scripts_danjo/operatrice_grade.jo
 	scripts_danjo/operatrice_gravite.jo
+	scripts_danjo/operatrice_import_alembic.jo
 	scripts_danjo/operatrice_import_objet.jo
 	scripts_danjo/operatrice_incrustation.jo
 	scripts_danjo/operatrice_lecture_fichier.jo

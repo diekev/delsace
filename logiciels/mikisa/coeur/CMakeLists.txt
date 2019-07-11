@@ -33,6 +33,7 @@ set(INCLUSIONS
 	${INCLUSIONS_OPENEXR}
 	${INCLUSIONS_OPENSUBDIV}
 	${INCLUSIONS_BULLET}
+	${INCLUSIONS_ALEMBIC}
 	/usr/include/eigen3
 )
 
@@ -64,6 +65,7 @@ set(BIBLIOTHEQUES
 	bib_lcc
 	mikisa_ariel
 	systeme_fichier
+	${BIBLIOTHEQUES_ALEMBIC}
 )
 
 qt5_wrap_cpp(
@@ -105,6 +107,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/normaux.hh
 	operatrices/ocean.hh
 	operatrices/operatrices_3d.h
+	operatrices/operatrices_alembic.hh
 	operatrices/operatrices_arbre.hh
 	operatrices/operatrices_ariel.hh
 	operatrices/operatrices_attributs.hh
@@ -176,6 +179,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/ocean.cc
 	operatrices/normaux.cc
 	operatrices/operatrices_3d.cc
+	operatrices/operatrices_alembic.cc
 	operatrices/operatrices_arbre.cc
 	operatrices/operatrices_ariel.cc
 	operatrices/operatrices_attributs.cc

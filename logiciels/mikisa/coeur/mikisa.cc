@@ -62,6 +62,7 @@
 #include "commandes/commandes_vue3d.h"
 
 #include "operatrices/operatrices_3d.h"
+#include "operatrices/operatrices_alembic.hh"
 #include "operatrices/operatrices_arbre.hh"
 #include "operatrices/operatrices_ariel.hh"
 #include "operatrices/operatrices_attributs.hh"
@@ -126,6 +127,7 @@ Mikisa::~Mikisa()
 void Mikisa::initialise()
 {
 	enregistre_operatrices_3d(m_usine_operatrices);
+	enregistre_operatrices_alembic(m_usine_operatrices);
 	enregistre_operatrices_arbre(m_usine_operatrices);
 	enregistre_operatrices_ariel(m_usine_operatrices);
 	enregistre_operatrices_attributs(m_usine_operatrices);

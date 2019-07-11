@@ -140,6 +140,7 @@ option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèq
 find_package(PTex REQUIRED)
 
 if(AVEC_MIKISA)
+	find_package(Alembic)
 	find_package(Bullet)
 	find_package(OpenColorIO)
 	find_package(OpenEXR)

@@ -312,6 +312,12 @@ void ajoute_polygone_surface(
 					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
 					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
 				}
+				else if (attr_couleurs->portee == portee_attr::VERTEX) {
+					/* À FAIRE : indexage des vertex. */
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				}
 			}
 			else {
 				if (attr_couleurs->portee == portee_attr::POINT) {
@@ -320,6 +326,12 @@ void ajoute_polygone_surface(
 					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i)).xyz);
 				}
 				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+				}
+				else if (attr_couleurs->portee == portee_attr::VERTEX) {
+					/* À FAIRE : indexage des vertex. */
 					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
 					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
 					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
