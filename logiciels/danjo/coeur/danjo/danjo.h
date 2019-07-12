@@ -33,6 +33,7 @@
 class QBoxLayout;
 class QMenu;
 class QToolBar;
+class QWidget;
 
 namespace danjo {
 
@@ -65,8 +66,12 @@ class GestionnaireInterface {
 	dls::dico_desordonne<dls::chaine, QBoxLayout *> m_dispositions{};
 	dls::tableau<QToolBar *> m_barres_outils{};
 
+	QWidget *m_parent_dialogue = nullptr;
+
 public:
 	~GestionnaireInterface();
+
+	void parent_dialogue(QWidget *p);
 
 	void ajourne_menu(const dls::chaine &nom);
 

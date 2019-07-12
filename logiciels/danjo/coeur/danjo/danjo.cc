@@ -79,6 +79,11 @@ GestionnaireInterface::~GestionnaireInterface()
 //	}
 }
 
+void GestionnaireInterface::parent_dialogue(QWidget *p)
+{
+	m_parent_dialogue = p;
+}
+
 void GestionnaireInterface::ajourne_menu(const dls::chaine &nom)
 {
 	auto menu = pointeur_menu(nom);
@@ -321,7 +326,7 @@ bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const cha
 		return false;
 	}
 
-	Dialogue dialogue(disposition);
+	auto dialogue = Dialogue(disposition, this->m_parent_dialogue);
 	dialogue.show();
 
 	return dialogue.exec() == QDialog::Accepted;

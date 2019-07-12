@@ -85,6 +85,7 @@ FenetrePrincipale::FenetrePrincipale(Mikisa &mikisa, QWidget *parent)
 {
 	mikisa.fenetre_principale = this;
 	mikisa.notifiant_thread = memoire::loge<TaskNotifier>("TaskNotifier", this);
+	mikisa.gestionnaire_entreface->parent_dialogue(this);
 
 	genere_barre_menu();
 	genere_menu_prereglages();
