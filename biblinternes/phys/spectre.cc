@@ -22,7 +22,7 @@
  *
  */
 
-#include "spectre.h"
+#include "spectre.hh"
 
 #include <algorithm>
 #include "biblinternes/math/entrepolation.hh"

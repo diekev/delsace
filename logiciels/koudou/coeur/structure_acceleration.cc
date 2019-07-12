@@ -24,7 +24,7 @@
 
 #include "structure_acceleration.h"
 
-#include "biblinternes/geometrie/boite_englobante.hh"
+#include "biblinternes/math/boite_englobante.hh"
 #include "biblinternes/outils/definitions.h"
 
 #include "maillage.h"

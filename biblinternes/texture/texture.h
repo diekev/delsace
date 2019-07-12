@@ -30,7 +30,7 @@
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
-#include "biblinternes/spectre/spectre.h"
+#include "biblinternes/phys/spectre.hh"
 
 namespace vision {
 class Camera3D;

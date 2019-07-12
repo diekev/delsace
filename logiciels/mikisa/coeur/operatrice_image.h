@@ -27,7 +27,7 @@
 #include <any>
 #include <list>
 
-#include "biblinternes/geometrie/rectangle.h"
+#include "biblinternes/math/rectangle.hh"
 #include "biblinternes/image/pixel.h"
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/outils/iterateurs.h"

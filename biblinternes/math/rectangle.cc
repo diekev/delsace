@@ -22,7 +22,7 @@
  *
  */
 
-#include "rectangle.h"
+#include "rectangle.hh"
 
 
 Rectangle Rectangle::depuis_centre(float x, float y, float largeur, float hauteur)

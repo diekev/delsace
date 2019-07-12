@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/math/vecteur.hh"
+#include "vecteur.hh"
 
 /* Généralisation d'une boîte englobante 3D, pour définir des limites pour
  * différents types, différentes dimensions. */

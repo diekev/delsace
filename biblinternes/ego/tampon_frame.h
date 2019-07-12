@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "tampon_rendu.h"
+#include "tampon_image.hh"
 #include "texture.h"
 
 namespace dls {

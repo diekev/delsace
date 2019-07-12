@@ -26,7 +26,6 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bib_geometrie
 )
 
 add_library(${NOM_CIBLE} STATIC

@@ -27,7 +27,7 @@
 #include <vector>
 
 #include "biblinternes/outils/iterateurs.h"
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/transformation.hh"
 
 struct Parametres;
 

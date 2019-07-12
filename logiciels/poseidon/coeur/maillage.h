@@ -28,7 +28,7 @@
 
 #include "biblinternes/structures/dico.hh"
 
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/transformation.hh"
 
 /**
  * Représentation d'un sommet dans l'espace tridimensionel.

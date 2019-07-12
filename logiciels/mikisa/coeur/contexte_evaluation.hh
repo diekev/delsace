@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/geometrie/rectangle.h"
+#include "biblinternes/math/rectangle.hh"
 
 class BaseDeDonnees;
 class ChefExecution;

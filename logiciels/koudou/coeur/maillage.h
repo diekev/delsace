@@ -26,8 +26,8 @@
 
 #include <vector>
 
-#include "biblinternes/geometrie/boite_englobante.hh"
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/boite_englobante.hh"
+#include "biblinternes/math/transformation.hh"
 
 class Nuanceur;
 class Rayon;

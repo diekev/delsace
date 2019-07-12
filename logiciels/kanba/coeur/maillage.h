@@ -26,7 +26,7 @@
 
 #include <vector>
 
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/transformation.hh"
 #include "biblinternes/structures/dico.hh"
 
 #include "calques.h"

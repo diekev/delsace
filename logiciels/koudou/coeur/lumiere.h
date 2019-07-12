@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/spectre/spectre.h"
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/phys/spectre.hh"
+#include "biblinternes/math/transformation.hh"
 
 class Nuanceur;
 

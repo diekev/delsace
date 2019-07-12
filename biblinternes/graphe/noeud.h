@@ -26,7 +26,7 @@
 
 #include <any>
 
-#include "biblinternes/geometrie/rectangle.h"
+#include "biblinternes/math/rectangle.hh"
 #include "biblinternes/outils/iterateurs.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"

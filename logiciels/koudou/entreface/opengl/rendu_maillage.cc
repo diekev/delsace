@@ -28,7 +28,7 @@
 #include <numeric>
 
 #include "biblinternes/opengl/tampon_rendu.h"
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/transformation.hh"
 
 #include "coeur/lumiere.h"
 #include "coeur/maillage.h"

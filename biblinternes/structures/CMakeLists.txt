@@ -32,6 +32,7 @@ set(BIBLIOTHEQUES
 add_library(${NOM_CIBLE} STATIC
 	arbre_kd.cc
 	chaine.cc
+	chaine_utf8.cc
 	dico.cc
 	dico_desordonne.cc
 	ensemble.cc
@@ -45,6 +46,7 @@ add_library(${NOM_CIBLE} STATIC
 
 	arbre_kd.hh
 	chaine.hh
+	chaine_utf8.hh
 	dico.hh
 	dico_desordonne.hh
 	ensemble.hh

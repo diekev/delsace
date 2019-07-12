@@ -32,11 +32,9 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_IMAGE}
 	bib_commandes
-	bib_geometrie
 	bib_objets
 	bib_observation
 	bib_vision
-	bib_transformation
 	ego
 )
 

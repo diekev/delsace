@@ -29,8 +29,8 @@ set(ENTETES
 	outils.h
 	programme.h
 	tampon_frame.h
+	tampon_image.hh
 	tampon_objet.h
-	tampon_rendu.h
 	texture.h
 	texture.tcc
 	version.h
@@ -41,7 +41,8 @@ set(SOURCES
 	programme.cc
 	tampon_objet.cc
 	tampon_frame.cc
-	tampon_rendu.cc
+	tampon_image.cc
+	tampon_objet.cc
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})

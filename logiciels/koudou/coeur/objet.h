@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/transformation.hh"
 
 class Lumiere;
 class Maillage;

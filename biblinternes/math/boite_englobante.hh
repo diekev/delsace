@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/math/vecteur.hh"
+#include "vecteur.hh"
 
 #include "../outils/constantes.h"
 

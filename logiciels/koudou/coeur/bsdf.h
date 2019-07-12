@@ -26,7 +26,7 @@
 
 #include "biblinternes/math/vecteur.hh"
 
-#include "biblinternes/spectre/spectre.h"
+#include "biblinternes/phys/spectre.hh"
 
 struct ContexteNuancage;
 class GNA;

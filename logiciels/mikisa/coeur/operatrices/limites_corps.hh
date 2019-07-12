@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/geometrie/limites.hh"
+#include "biblinternes/math/limites.hh"
 
 class Corps;
 

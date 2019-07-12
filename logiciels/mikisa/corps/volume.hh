@@ -28,7 +28,7 @@
 
 #include "biblinternes/math/vecteur.hh"
 
-#include "biblinternes/geometrie/limites.hh"
+#include "biblinternes/math/limites.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/tableau.hh"

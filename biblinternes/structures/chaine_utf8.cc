@@ -22,7 +22,7 @@
  *
  */
 
-#include "utf8.h"
+#include "chaine_utf8.hh"
 
 #include <cstring>
 #include <iostream>

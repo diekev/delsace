@@ -36,7 +36,6 @@ set(BIBLIOTHEQUES
 	bib_objets
 	bib_vision
 	bib_texture
-	bib_transformation
 )
 
 add_compile_options(-fPIC)

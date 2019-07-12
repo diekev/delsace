@@ -48,8 +48,6 @@ set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_OPENEXR}
 	bib_vision
 	bib_objets
-	bib_transformation
-	bib_geometrie
 	bib_graphe
 	bib_voro
 	bib_structures

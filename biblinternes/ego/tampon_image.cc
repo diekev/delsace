@@ -22,7 +22,7 @@
  *
  */
 
-#include "tampon_rendu.h"
+#include "tampon_image.hh"
 
 #include <cassert>
 #include <GL/glew.h>

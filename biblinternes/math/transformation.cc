@@ -22,7 +22,7 @@
  *
  */
 
-#include "transformation.h"
+#include "transformation.hh"
 
 namespace math {
 

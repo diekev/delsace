@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/math/matrice.hh"
-#include "biblinternes/math/vecteur.hh"
+#include "matrice.hh"
+#include "vecteur.hh"
 
 namespace math {
 
