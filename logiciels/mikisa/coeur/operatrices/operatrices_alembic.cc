@@ -39,8 +39,13 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include <Alembic/Abc/IArchive.h>
 #include <Alembic/Abc/IObject.h>
-#include <Alembic/AbcGeom/IXform.h>
+#include <Alembic/AbcGeom/ICamera.h>
+#include <Alembic/AbcGeom/ICurves.h>
+#include <Alembic/AbcGeom/INuPatch.h>
+#include <Alembic/AbcGeom/IPoints.h>
 #include <Alembic/AbcGeom/IPolyMesh.h>
+#include <Alembic/AbcGeom/ISubD.h>
+#include <Alembic/AbcGeom/IXform.h>
 #include <Alembic/AbcCoreOgawa/All.h>
 #pragma GCC diagnostic pop
 
@@ -99,23 +104,6 @@ static auto ouvre_archive(
 	return ABC::IArchive{};
 }
 
-static ABC::IObject trouve_iobjet(ABC::IObject &racine)
-{
-	for (auto i = 0ul; i < racine.getNumChildren(); ++i) {
-		auto obj = racine.getChild(i);
-
-		if (ABG::IXform::matches(obj.getHeader())) {
-			return trouve_iobjet(obj);
-		}
-
-		if (ABG::IPolyMesh::matches(obj.getHeader())) {
-			return obj;
-		}
-	}
-
-	return ABC::IObject();
-}
-
 static auto brise(dls::chaine const &chn, char delim)
 {
 	std::stringstream ss(chn.c_str());
@@ -149,6 +137,20 @@ static auto trouve_iobjet(const ABC::IObject &object, dls::chaine const &chemin)
 	return tmp;
 }
 
+static auto rassemble_chemins_objets(
+		ABC::IObject const &object,
+		dls::tableau<dls::chaine> &chemins)
+{
+	if (!object.valid()) {
+		return;
+	}
+
+	for (size_t i = 0; i < object.getNumChildren(); ++i) {
+		chemins.pousse(object.getChild(i).getFullName().c_str());
+		rassemble_chemins_objets(object.getChild(i), chemins);
+	}
+}
+
 static auto converti_portee(ABG::GeometryScope portee)
 {
 	switch (portee) {
@@ -159,7 +161,7 @@ static auto converti_portee(ABG::GeometryScope portee)
 		case ABG::kFacevaryingScope:
 			return portee_attr::VERTEX;
 		case ABG::kVaryingScope:
-			return portee_attr::PRIMITIVE;
+			return portee_attr::POINT;
 		case ABG::kVertexScope:
 			return portee_attr::POINT;
 		case ABG::kUnknownScope:
@@ -167,6 +169,176 @@ static auto converti_portee(ABG::GeometryScope portee)
 	}
 
 	return portee_attr::CORPS;
+}
+
+/* ************************************************************************** */
+
+static auto charge_points(
+		Corps &corps,
+		ABC::P3fArraySamplePtr positions)
+{
+	corps.points()->reserve(static_cast<long>(positions->size()));
+
+	for (auto i = 0ul; i < positions->size(); ++i) {
+		auto &p = (*positions)[i];
+
+		corps.ajoute_point(p.x, p.y, p.z);
+	}
+}
+
+static auto charge_attributs(
+		Corps &corps,
+		ABC::ICompoundProperty &prop,
+		ABC::ISampleSelector const &selecteur)
+{
+	if (!prop.valid()) {
+		return;
+	}
+
+	auto const num_props = prop.getNumProperties();
+
+	for (size_t i = 0; i < num_props; ++i) {
+		auto const &prop_header = prop.getPropertyHeader(i);
+		if (ABG::IFloatGeomParam::matches(prop_header)) {
+			auto param = ABG::IFloatGeomParam(prop, prop_header.getName());
+			auto param_sample = ABG::IFloatGeomParam::Sample();
+			param.getIndexed(param_sample, selecteur);
+
+			auto valeurs = param_sample.getVals();
+			auto indices = param_sample.getIndices();
+
+			auto attr = corps.ajoute_attribut(
+						prop_header.getName(),
+						type_attribut::DECIMAL);
+
+			attr->redimensionne(static_cast<long>(valeurs->size()));
+			attr->portee = converti_portee(param_sample.getScope());
+
+			for (auto j = 0ul; j < valeurs->size(); ++j) {
+				auto &v = (*valeurs)[j];
+
+				attr->decimal(static_cast<long>(j)) = v;
+			}
+
+			continue;
+		}
+
+		if (ABG::IV2fGeomParam::matches(prop_header)) {
+			auto param = ABG::IV2fGeomParam(prop, prop_header.getName());
+			auto param_sample = ABG::IV2fGeomParam::Sample();
+			param.getIndexed(param_sample, selecteur);
+
+			auto valeurs = param_sample.getVals();
+			auto indices = param_sample.getIndices();
+
+			auto attr = corps.ajoute_attribut(
+						prop_header.getName(),
+						type_attribut::VEC2);
+
+			attr->redimensionne(static_cast<long>(valeurs->size()));
+			attr->portee = converti_portee(param_sample.getScope());
+
+			for (auto j = 0ul; j < valeurs->size(); ++j) {
+				auto &v = (*valeurs)[j];
+
+				attr->vec2(static_cast<long>(j)) = dls::math::vec2f(v.x, v.y);
+			}
+
+			continue;
+		}
+
+		if (ABG::IV3fGeomParam::matches(prop_header)) {
+			auto param = ABG::IV3fGeomParam(prop, prop_header.getName());
+			auto param_sample = ABG::IV3fGeomParam::Sample();
+			param.getIndexed(param_sample, selecteur);
+
+			auto valeurs = param_sample.getVals();
+			auto indices = param_sample.getIndices();
+
+			auto attr = corps.ajoute_attribut(
+						prop_header.getName(),
+						type_attribut::VEC3);
+
+			attr->redimensionne(static_cast<long>(valeurs->size()));
+			attr->portee = converti_portee(param_sample.getScope());
+
+			for (auto j = 0ul; j < valeurs->size(); ++j) {
+				auto &v = (*valeurs)[j];
+
+				attr->vec3(static_cast<long>(j)) = dls::math::vec3f(v.x, v.y, v.z);
+			}
+
+			continue;
+		}
+
+		if (ABG::IC3fGeomParam::matches(prop_header)) {
+			auto param = ABG::IC3fGeomParam(prop, prop_header.getName());
+			auto param_sample = ABG::IC3fGeomParam::Sample();
+			param.getIndexed(param_sample, selecteur);
+
+			auto valeurs = param_sample.getVals();
+			auto indices = param_sample.getIndices();
+
+			auto attr = corps.ajoute_attribut(
+						prop_header.getName(),
+						type_attribut::VEC3);
+
+			attr->redimensionne(static_cast<long>(valeurs->size()));
+			attr->portee = converti_portee(param_sample.getScope());
+
+			/* XXX */
+			if (attr->nom() == "Col" || attr->nom() == "Cd") {
+				attr->nom("C");
+			}
+
+			auto taille = (indices->size() > 0) ? indices->size() : valeurs->size();
+
+			for (auto j = 0ul; j < taille; ++j) {
+
+				if (indices->size() > 0) {
+					auto idx = (*indices)[j];
+					auto &v = (*valeurs)[idx];
+
+					attr->vec3(static_cast<long>(idx)) = dls::math::vec3f(v.x, v.y, v.z);
+				}
+				else {
+					auto &v = (*valeurs)[j];
+					attr->vec3(static_cast<long>(j)) = dls::math::vec3f(v.x, v.y, v.z);
+				}
+			}
+
+			continue;
+		}
+
+		if (ABG::IC4fGeomParam::matches(prop_header)) {
+			auto param = ABG::IC4fGeomParam(prop, prop_header.getName());
+			auto param_sample = ABG::IC4fGeomParam::Sample();
+			param.getIndexed(param_sample, selecteur);
+
+			auto valeurs = param_sample.getVals();
+			auto indices = param_sample.getIndices();
+
+			auto attr = corps.ajoute_attribut(
+						prop_header.getName(),
+						type_attribut::VEC4);
+
+			/* XXX */
+			if (attr->nom() == "Col" || attr->nom() == "Cd") {
+				attr->nom("C");
+			}
+
+			attr->redimensionne(static_cast<long>(valeurs->size()));
+			attr->portee = converti_portee(param_sample.getScope());
+
+			for (auto j = 0ul; j < valeurs->size(); ++j) {
+				auto &v = (*valeurs)[j];
+
+				attr->vec4(static_cast<long>(j)) = dls::math::vec4f(v.r, v.g, v.b, v.a);
+			}
+
+			continue;
+		}
+	}
 }
 
 /* ************************************************************************** */
@@ -188,6 +360,8 @@ static auto converti_portee(ABG::GeometryScope portee)
  */
 
 class OpImportAlembic : public OperatriceCorps {
+	ABC::IArchive m_archive{};
+
 public:
 	static constexpr auto NOM = "Import Alembic";
 	static constexpr auto AIDE = "Importe le contenu d'un fichier Alembic.";
@@ -206,6 +380,8 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	void obtiens_liste(dls::chaine const &raison, dls::tableau<dls::chaine> &liste) override;
+
+	bool depend_sur_temps() const override;
 };
 
 OpImportAlembic::OpImportAlembic(Graphe &graphe_parent, Noeud *noeud)
@@ -243,14 +419,14 @@ int OpImportAlembic::execute(
 
 	auto chemin_archive = evalue_fichier_entree("chemin_archive");
 
-	auto archive = ouvre_archive(chemin_archive, *this);
+	m_archive = ouvre_archive(chemin_archive, *this);
 
-	if (!archive.valid()) {
+	if (!m_archive.valid()) {
 		chef->indique_progression(1.0f);
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto obj_racine = archive.getTop();
+	auto obj_racine = m_archive.getTop();
 
 	if (!obj_racine.valid()) {
 		chef->indique_progression(1.0f);
@@ -273,191 +449,68 @@ int OpImportAlembic::execute(
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto poly_mesh = ABG::IPolyMesh(obj);
+	auto selecteur = ABC::ISampleSelector(static_cast<double>(contexte.temps_courant) / contexte.cadence);
 
-	auto schema = poly_mesh.getSchema();
+	if (ABG::IPolyMesh::matches(obj.getHeader())) {
+		auto poly_mesh = ABG::IPolyMesh(obj);
 
-	auto sample = schema.getValue();
+		auto schema = poly_mesh.getSchema();
 
-	/* positions */
+		auto sample = schema.getValue(selecteur);
 
-	auto positions = sample.getPositions();
+		/* positions */
 
-	m_corps.points()->reserve(static_cast<long>(positions->size()));
+		auto positions = sample.getPositions();
+		charge_points(m_corps, positions);
 
-	for (auto i = 0ul; i < positions->size(); ++i) {
-		auto &p = (*positions)[i];
+		/* faces */
 
-		m_corps.ajoute_point(p.x, p.y, p.z);
-	}
+		auto compte_faces = sample.getFaceCounts();
+		auto index_faces  = sample.getFaceIndices();
+		auto poly_index = 0ul;
 
-	/* faces */
+		for (auto i = 0ul; i < compte_faces->size(); ++i) {
+			auto compte = (*compte_faces)[i];
 
-	auto compte_faces = sample.getFaceCounts();
-	auto index_faces  = sample.getFaceIndices();
-	auto poly_index = 0ul;
+			auto poly = Polygone::construit(&m_corps, type_polygone::FERME, compte);
 
-	for (auto i = 0ul; i < compte_faces->size(); ++i) {
-		auto compte = (*compte_faces)[i];
-
-		auto poly = Polygone::construit(&m_corps, type_polygone::FERME, compte);
-
-		for (auto j = 0; j < compte; ++j) {
-			poly->ajoute_sommet((*index_faces)[poly_index++]);
-		}
-	}
-
-	/* normaux */
-
-	auto normaux = schema.getNormalsParam();
-
-	if (normaux.valid()) {
-		if (normaux.getScope() == ABG::kFacevaryingScope) {
-			/* normaux par poly */
-		}
-	}
-
-	calcul_normaux(m_corps, location_normal::PRIMITIVE, pesee_normal::AIRE, true);
-
-	/* attributs */
-
-	auto prop = schema.getArbGeomParams();
-
-	if (prop.valid()) {
-		auto const num_props = prop.getNumProperties();
-
-		for (size_t i = 0; i < num_props; ++i) {
-			auto const &prop_header = prop.getPropertyHeader(i);
-			if (ABG::IFloatGeomParam::matches(prop_header)) {
-				auto param = ABG::IFloatGeomParam(prop, prop_header.getName());
-				auto param_sample = ABG::IFloatGeomParam::Sample();
-				param.getIndexed(param_sample);
-
-				auto valeurs = param_sample.getVals();
-				auto indices = param_sample.getIndices();
-
-				auto attr = m_corps.ajoute_attribut(
-							prop_header.getName(),
-							type_attribut::DECIMAL);
-
-				attr->redimensionne(static_cast<long>(valeurs->size()));
-				attr->portee = converti_portee(param_sample.getScope());
-
-				for (auto j = 0ul; j < valeurs->size(); ++j) {
-					auto &v = (*valeurs)[j];
-
-					attr->decimal(static_cast<long>(j)) = v;
-				}
-
-				continue;
-			}
-
-			if (ABG::IV2fGeomParam::matches(prop_header)) {
-				auto param = ABG::IV2fGeomParam(prop, prop_header.getName());
-				auto param_sample = ABG::IV2fGeomParam::Sample();
-				param.getIndexed(param_sample);
-
-				auto valeurs = param_sample.getVals();
-				auto indices = param_sample.getIndices();
-
-				auto attr = m_corps.ajoute_attribut(
-							prop_header.getName(),
-							type_attribut::VEC2);
-
-				attr->redimensionne(static_cast<long>(valeurs->size()));
-				attr->portee = converti_portee(param_sample.getScope());
-
-				for (auto j = 0ul; j < valeurs->size(); ++j) {
-					auto &v = (*valeurs)[j];
-
-					attr->vec2(static_cast<long>(j)) = dls::math::vec2f(v.x, v.y);
-				}
-
-				continue;
-			}
-
-			if (ABG::IV3fGeomParam::matches(prop_header)) {
-				auto param = ABG::IV3fGeomParam(prop, prop_header.getName());
-				auto param_sample = ABG::IV3fGeomParam::Sample();
-				param.getIndexed(param_sample);
-
-				auto valeurs = param_sample.getVals();
-				auto indices = param_sample.getIndices();
-
-				auto attr = m_corps.ajoute_attribut(
-							prop_header.getName(),
-							type_attribut::VEC3);
-
-				attr->redimensionne(static_cast<long>(valeurs->size()));
-				attr->portee = converti_portee(param_sample.getScope());
-
-				for (auto j = 0ul; j < valeurs->size(); ++j) {
-					auto &v = (*valeurs)[j];
-
-					attr->vec3(static_cast<long>(j)) = dls::math::vec3f(v.x, v.y, v.z);
-				}
-
-				continue;
-			}
-
-			if (ABG::IC3fGeomParam::matches(prop_header)) {
-				auto param = ABG::IC3fGeomParam(prop, prop_header.getName());
-				auto param_sample = ABG::IC3fGeomParam::Sample();
-				param.getIndexed(param_sample);
-
-				auto valeurs = param_sample.getVals();
-				auto indices = param_sample.getIndices();
-
-				auto attr = m_corps.ajoute_attribut(
-							prop_header.getName(),
-							type_attribut::VEC3);
-
-				attr->redimensionne(static_cast<long>(valeurs->size()));
-				attr->portee = converti_portee(param_sample.getScope());
-
-				/* XXX */
-				if (attr->nom() == "Col") {
-					attr->nom("C");
-				}
-
-				for (auto j = 0ul; j < valeurs->size(); ++j) {
-					auto &v = (*valeurs)[j];
-
-					attr->vec3(static_cast<long>(j)) = dls::math::vec3f(v.x, v.y, v.z);
-				}
-
-				continue;
-			}
-
-			if (ABG::IC4fGeomParam::matches(prop_header)) {
-				auto param = ABG::IC4fGeomParam(prop, prop_header.getName());
-				auto param_sample = ABG::IC4fGeomParam::Sample();
-				param.getIndexed(param_sample);
-
-				auto valeurs = param_sample.getVals();
-				auto indices = param_sample.getIndices();
-
-				auto attr = m_corps.ajoute_attribut(
-							prop_header.getName(),
-							type_attribut::VEC4);
-
-				/* XXX */
-				if (attr->nom() == "Col") {
-					attr->nom("C");
-				}
-
-				attr->redimensionne(static_cast<long>(valeurs->size()));
-				attr->portee = converti_portee(param_sample.getScope());
-
-				for (auto j = 0ul; j < valeurs->size(); ++j) {
-					auto &v = (*valeurs)[j];
-
-					attr->vec4(static_cast<long>(j)) = dls::math::vec4f(v.r, v.g, v.b, v.a);
-				}
-
-				continue;
+			for (auto j = 0; j < compte; ++j) {
+				poly->ajoute_sommet((*index_faces)[poly_index++]);
 			}
 		}
+
+		/* normaux */
+
+		auto normaux = schema.getNormalsParam();
+
+		if (normaux.valid()) {
+			if (normaux.getScope() == ABG::kFacevaryingScope) {
+				/* normaux par poly */
+			}
+		}
+
+		calcul_normaux(m_corps, location_normal::PRIMITIVE, pesee_normal::AIRE, true);
+
+		/* attributs */
+
+		auto prop = schema.getArbGeomParams();
+		charge_attributs(m_corps, prop, selecteur);
+	}
+	else if (ABG::IPoints::matches(obj.getHeader())) {
+		auto poly_mesh = ABG::IPoints(obj);
+
+		auto schema = poly_mesh.getSchema();
+
+		auto sample = schema.getValue(selecteur);
+
+		auto positions = sample.getPositions();
+		charge_points(m_corps, positions);
+
+		auto prop = schema.getArbGeomParams();
+		charge_attributs(m_corps, prop, selecteur);
+	}
+	else {
+		ajoute_avertissement("Type d'objet non-supporté !");
 	}
 
 	chef->indique_progression(1.0f);
@@ -469,10 +522,21 @@ void OpImportAlembic::obtiens_liste(
 		dls::chaine const &raison,
 		dls::tableau<dls::chaine> &liste)
 {
-	/* À FAIRE */
-	if (raison == "chemin_objet") {
-		liste.clear();
+	liste.clear();
+
+	if (!m_archive.valid()) {
+		return;
 	}
+
+	if (raison == "chemin_objet") {
+		rassemble_chemins_objets(m_archive.getTop(), liste);
+	}
+}
+
+bool OpImportAlembic::depend_sur_temps() const
+{
+	/* À FAIRE */
+	return true;
 }
 
 /* ************************************************************************** */
