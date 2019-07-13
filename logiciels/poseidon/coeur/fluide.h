@@ -40,8 +40,8 @@ static constexpr auto VOXELS_N1 = 8;
 static constexpr auto VOXELS_DECALAGE = VOXELS_N0 * VOXELS_N1;
 
 class GrilleParticule {
-	std::vector<size_t> m_niveau_0;
-	std::vector<size_t> m_niveau_1;
+	dls::tableau<size_t> m_niveau_0;
+	dls::tableau<size_t> m_niveau_1;
 
 	struct NoeudNiveau0 {
 		NoeudNiveau1 *noeuds[VOXELS_N0];
@@ -52,11 +52,11 @@ class GrilleParticule {
 	};
 
 	struct NoeudNiveau2 {
-		std::list<Particule *> particules;
+		dls::liste<Particule *> particules;
 	};
 
 public:
-	const std::list<Particule *> &particules(size_t x, size_t y, size_t z)
+	const dls::liste<Particule *> &particules(size_t x, size_t y, size_t z)
 	{
 		auto const x0 = x / VOXELS_DECALAGE;
 		auto const y0 = y / VOXELS_DECALAGE;
@@ -67,28 +67,28 @@ public:
 };
 #else
 class GrilleParticule {
-	std::vector<std::vector<Particule *>> m_donnees = {};
-	dls::math::vec3<size_t> m_res = dls::math::vec3<size_t>(0ul, 0ul, 0ul);
-	size_t m_nombre_voxels = 0;
+	dls::tableau<dls::tableau<Particule *>> m_donnees = {};
+	dls::math::vec3<long> m_res = dls::math::vec3<long>(0l, 0l, 0l);
+	long m_nombre_voxels = 0;
 
-	std::vector<Particule *> m_arriere_plan = {};
+	dls::tableau<Particule *> m_arriere_plan = {};
 
-	size_t calcul_index(size_t x, size_t y, size_t z) const
+	long calcul_index(long x, long y, long z) const
 	{
 		return x + (y + z * m_res[1]) * m_res[0];
 	}
 
-	bool hors_des_limites(size_t x, size_t y, size_t z) const
+	bool hors_des_limites(long x, long y, long z) const
 	{
-		if (x >= m_res[0]) {
+		if (x < 0 || x >= m_res[0]) {
 			return true;
 		}
 
-		if (y >= m_res[1]) {
+		if (y < 0 || y >= m_res[1]) {
 			return true;
 		}
 
-		if (z >= m_res[2]) {
+		if (z < 0 || z >= m_res[2]) {
 			return true;
 		}
 
@@ -96,30 +96,30 @@ class GrilleParticule {
 	}
 
 public:
-	void initialise(size_t res_x, size_t res_y, size_t res_z)
+	void initialise(long res_x, long res_y, long res_z)
 	{
 		m_res.x = res_x;
 		m_res.y = res_y;
 		m_res.z = res_z;
 
 		m_nombre_voxels = res_x * res_y * res_z;
-		m_donnees.resize(m_nombre_voxels);
+		m_donnees.redimensionne(m_nombre_voxels);
 
 		for (auto &donnees : m_donnees) {
-			donnees.clear();
+			donnees.efface();
 		}
 	}
 
-	void ajoute_particule(size_t x, size_t y, size_t z, Particule *particule)
+	void ajoute_particule(long x, long y, long z, Particule *particule)
 	{
 		if (hors_des_limites(x, y, z)) {
 			return;
 		}
 
-		m_donnees[calcul_index(x, y, z)].push_back(particule);
+		m_donnees[calcul_index(x, y, z)].pousse(particule);
 	}
 
-	const std::vector<Particule *> &particule(size_t x, size_t y, size_t z) const
+	const dls::tableau<Particule *> &particule(long x, long y, long z) const
 	{
 		if (hors_des_limites(x, y, z)) {
 			return m_arriere_plan;
@@ -139,7 +139,7 @@ struct Fluide {
 	Maillage *source{};
 	Maillage *domaine{};
 
-	dls::math::vec3<size_t> res{};
+	dls::math::vec3<long> res{};
 
 	Grille<char> drapeaux{};
 	Grille<float> phi{};
@@ -153,7 +153,7 @@ struct Fluide {
 	Grille<dls::math::vec3f> ancienne_velocites{};
 	GrilleParticule grille_particules{};
 
-	std::vector<Particule> particules{};
+	dls::tableau<Particule> particules{};
 
 	Fluide();
 	~Fluide();
@@ -182,4 +182,4 @@ private:
 	void etend_champs_velocite();
 };
 
-void cree_particule(Fluide *fluide, size_t nombre);
+void cree_particule(Fluide *fluide, long nombre);

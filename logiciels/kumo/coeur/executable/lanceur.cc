@@ -38,12 +38,12 @@ static lng::tampon_source charge_fichier(const char *chemin_fichier)
 	std::ifstream fichier;
 	fichier.open(chemin_fichier);
 
-	std::string tampon;
+	dls::chaine tampon;
 	std::string temp;
 
 	while (std::getline(fichier, temp)) {
 		tampon += temp;
-		tampon.append(1, '\n');
+		tampon.pousse('\n');
 	}
 
 	return lng::tampon_source{tampon};

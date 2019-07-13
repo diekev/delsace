@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/phys/couleur.hh"
 
@@ -40,7 +40,7 @@ struct PointRampeCouleur {
 };
 
 struct RampeCouleur {
-	std::vector<PointRampeCouleur> points{};
+	dls::tableau<PointRampeCouleur> points{};
 	char entrepolation = ENTREPOLATION_RVB;
 };
 

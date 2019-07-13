@@ -38,7 +38,7 @@ class MoteurRendu {
 	bool m_est_arrete = false;
 
 public:
-	void echantillone_scene(ParametresRendu const &parametres, std::vector<CarreauPellicule> const &carreaux, unsigned int echantillon);
+	void echantillone_scene(ParametresRendu const &parametres, dls::tableau<CarreauPellicule> const &carreaux, unsigned int echantillon);
 
 	dls::math::matrice_dyn<dls::math::vec3d> const &pellicule();
 

@@ -104,7 +104,7 @@ void ListePoints3D::reinitialise()
 				memoire::deloge("Point3D", s);
 			}
 
-			m_sommets->clear();
+			m_sommets->efface();
 		}
 	}
 }
@@ -213,7 +213,7 @@ void ListePrimitives::reinitialise()
 				}
 			}
 
-			m_primitives->clear();
+			m_primitives->efface();
 		}
 	}
 }

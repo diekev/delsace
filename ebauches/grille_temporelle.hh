@@ -12,7 +12,7 @@ struct Block {
 
 tempalte <typename T>
 class GrilleTemporelle {
-	std::vector<pair_temps_valeur<T>> donnees{};
+	dls::tableau<pair_temps_valeur<T>> donnees{};
 	T arrier_plan{};
 	vec3f min;
 	vec3f max;
@@ -36,7 +36,7 @@ public:
 
 		auto index = ix + iy * rx + iz * rx * ry;
 
-		donnees[index].push_back(pair_temps_valeur{valeur, t});
+		donnees[index].pousse(pair_temps_valeur{valeur, t});
 	}
 
 	void insere(vec3f const &co, float t, T valeur)
@@ -61,11 +61,11 @@ public:
 
 		auto const &valeurs = donnees[index];
 
-		if (valeurs.empty()) {
+		if (valeurs.est_vide()) {
 			return arriere_plan;
 		}
 
-		if (valeurs.size() == 1) {
+		if (valeurs.taille() == 1) {
 			return valeurs[0].valeur;
 		}
 
@@ -73,13 +73,13 @@ public:
 			return valeurs[0].valeur;
 		}
 
-		if (t >= valeurs[valeurs.size() - 1]) {
-			return valeurs[valeurs.size() - 1].valeur;
+		if (t >= valeurs[valeurs.taille() - 1]) {
+			return valeurs[valeurs.taille() - 1].valeur;
 		}
 
 		auto v = 0.0f;
 
-		for (size_t i = 1; i < valeurs.size(); ++i) {
+		for (size_t i = 1; i < valeurs.taille(); ++i) {
 			auto const &p0 = valeurs[i - 1];
 			auto const &p1 = valeurs[i];
 

@@ -27,7 +27,7 @@
 #include <algorithm>
 #include <iostream>
 #include <random>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 template <typename C>
 concept bool ConceptConteneur()
@@ -38,17 +38,17 @@ concept bool ConceptConteneur()
 		C(a);
 		a = b;
 		(&a)->~C();
-		a.begin();
-		a.end();
+		a.debut();
+		a.fin();
 		a.cbegin();
 		a.cend();
 		a.swap(b);
 		std::swap(a, b);
 		a == b;
 		a != b;
-		a.size();
+		a.taille();
 		a.max_size();
-		a.empty();
+		a.est_vide();
 	};
 }
 
@@ -101,10 +101,10 @@ namespace chisei {
 /* ************************************************************************** */
 
 /**
- * Créé une chaine de type std::string de la longueur spécifiée contenant des
+ * Créé une chaine de type dls::chaine de la longueur spécifiée contenant des
  * caractères aléatoire générés par le générateur donnée.
  */
-std::string chaine_aleatoire(std::mt19937 &generateur, size_t longueur);
+dls::chaine chaine_aleatoire(std::mt19937 &generateur, long longueur);
 
 /**
  * Croise les valeurs pointées par deux itérateurs entre debut1-fin1 et
@@ -155,9 +155,9 @@ inline auto croise_si(
 		ContSortie1 &conteneur_sortie,
 		Fonction fonction)
 {
-	croise_si(conteneur1.begin(), conteneur1.end(),
-			  conteneur2.begin(), conteneur2.end(),
-			  conteneur_sortie.begin(),
+	croise_si(conteneur1.debut(), conteneur1.fin(),
+			  conteneur2.debut(), conteneur2.fin(),
+			  conteneur_sortie.debut(),
 			  fonction);
 }
 
@@ -192,8 +192,8 @@ template <ConceptConteneur Cont1, ConceptConteneur Cont2>
 inline auto compte_correspondances(Cont1 conteneur1, Cont2 conteneur2)
 {
 	return compte_correspondances(
-				conteneur1.begin(), conteneur1.end(),
-				conteneur2.begin(), conteneur2.end());
+				conteneur1.debut(), conteneur1.fin(),
+				conteneur2.debut(), conteneur2.fin());
 }
 
 /**
@@ -250,7 +250,7 @@ concept bool ConceptTypeProbleme = requires(
 	/**
 	 * Créer la population à partir des données principales et d'un générateur
 	 * de nombre aléatoire de type std::mt19937. Cette fonction doit retourner
-	 * un std::vector<typename T::type_chromosome.
+	 * un dls::tableau<typename T::type_chromosome.
 	 */
 	T::cree_population(donnees, rng);
 
@@ -348,7 +348,7 @@ auto lance_algorithme_genetique(std::ostream &os, const typename TypeProbleme::t
 	auto meilleur_chromosome = type_chromosome();
 
 	while (generation++ < TypeProbleme::GENERATIONS_MAX) {
-		std::sort(population.begin(), population.end(), TypeProbleme::compare_aptitude);
+		std::sort(population.debut(), population.fin(), TypeProbleme::compare_aptitude);
 
 		moyenne = 0.0;
 		auto parent = 0;

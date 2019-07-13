@@ -35,20 +35,20 @@
 
 #include "../flux/outils.h"
 
-int test_huffman(const std::string &filename, bool encode)
+int test_huffman(const dls::chaine &filename, bool encode)
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 
 	std::unique_ptr<HuffManFileHeader> header(new HuffManFileHeader());
 	std::unique_ptr<HuffManFile> hfile(new HuffManFile());
-	std::string str;
+	dls::chaine str;
 
 	int dist[256];
 
 	if (encode) {
 		std::ifstream ifs(filename.c_str());
 
-		dls::flux::foreach_line(ifs, [&str](const std::string &line)
+		dls::flux::foreach_line(ifs, [&str](const dls::chaine &line)
 		{
 			str.append(line + "\n");
 		});
@@ -90,8 +90,8 @@ int test_huffman(const std::string &filename, bool encode)
 		std::cout << "Message entropy: " << tree->entropy() << "\n";
 	}
 	else {
-		std::string bytes = hfile->strFromBytes();
-		std::string decoded = tree->decode(bytes);
+		dls::chaine bytes = hfile->strFromBytes();
+		dls::chaine decoded = tree->decode(bytes);
 
 		std::cout << decoded;
 	}
@@ -99,29 +99,29 @@ int test_huffman(const std::string &filename, bool encode)
 	return 0;
 }
 
-static void test_lz(const std::string &filename, const bool encode)
+static void test_lz(const dls::chaine &filename, const bool encode)
 {
 	if (encode) {
 		dictionnary_t dictionnary;
 		build_dictionnary(dictionnary);
-		std::string w("");
+		dls::chaine w("");
 
 		std::ifstream ifs(filename.c_str());
-		std::string str((std::istreambuf_iterator<char>(ifs)),
+		dls::chaine str((std::istreambuf_iterator<char>(ifs)),
 		                 std::istreambuf_iterator<char>());
 
 		std::ofstream ofile("/tmp/encoded.lz", std::ios::out | std::ios::binary);
 
 		for (const auto &c : str) {
 			const auto &seq = w + c;
-			const auto &iter = std::find(dictionnary.begin(), dictionnary.end(), seq);
+			const auto &iter = std::find(dictionnary.debut(), dictionnary.fin(), seq);
 
-			if (iter != dictionnary.end()) {
+			if (iter != dictionnary.fin()) {
 				w = seq;
 			}
 			else {
 				encode_sequence(w, dictionnary, ofile);
-				dictionnary.push_back(seq);
+				dictionnary.pousse(seq);
 				w = c;
 			}
 		}
@@ -130,7 +130,7 @@ static void test_lz(const std::string &filename, const bool encode)
 	}
 	else {
 		std::ifstream ifs("/tmp/encoded.lz", std::ios::in | std::ios::binary);
-		std::string str((std::istreambuf_iterator<char>(ifs)),
+		dls::chaine str((std::istreambuf_iterator<char>(ifs)),
 		                 std::istreambuf_iterator<char>());
 		decode(str);
 	}

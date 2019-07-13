@@ -102,8 +102,8 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	auto const hauteur_prise = 32.0;
 	auto const largeur_prise = 32.0;
 
-	auto const nombre_entrees = noeud->entrees().size();
-	auto const nombre_sorties = noeud->sorties().size();
+	auto const nombre_entrees = noeud->entrees().taille();
+	auto const nombre_sorties = noeud->sorties().taille();
 
 	auto decalage_icone_y = pos_y;
 	auto decalage_texte_y = pos_y;

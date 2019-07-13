@@ -83,7 +83,7 @@ noeud::base *assembleuse_arbre::cree_noeud(
 		if (type == type_noeud::APPEL_FONCTION) {
 			/* requis pour pouvoir renseigner le noms de arguments depuis
 			 * l'analyse. */
-			noeud->valeur_calculee = std::list<dls::vue_chaine>{};
+			noeud->valeur_calculee = dls::liste<dls::vue_chaine>{};
 
 			/* requis pour déterminer le module dans le noeud d'accès point
 			 * À FAIRE : trouver mieux pour accéder à cette information */
@@ -183,7 +183,7 @@ R"(
 
 void assembleuse_arbre::supprime_noeud(noeud::base *noeud)
 {
-	this->noeuds_libres.push_back(noeud);
+	this->noeuds_libres.pousse(noeud);
 }
 
 size_t assembleuse_arbre::memoire_utilisee() const
@@ -202,7 +202,7 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 	os << "noeud::base              : " << sizeof(noeud::base) << '\n';
 	os << "DonneesType              : " << sizeof(DonneesType) << '\n';
 	os << "DonneesMorceaux          : " << sizeof(DonneesMorceaux) << '\n';
-	os << "std::list<noeud::base *> : " << sizeof(std::list<noeud::base *>) << '\n';
+	os << "dls::liste<noeud::base *> : " << sizeof(dls::liste<noeud::base *>) << '\n';
 	os << "std::any                 : " << sizeof(std::any) << '\n';
 	os << "------------------------------------------------------------------\n";
 }

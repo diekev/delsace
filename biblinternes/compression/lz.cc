@@ -26,7 +26,7 @@
 
 #include <algorithm>
 
-using dictionnary_t = std::vector<std::string>;
+using dictionnary_t = dls::tableau<dls::chaine>;
 
 void build_dictionnary(dictionnary_t &dict)
 {
@@ -37,24 +37,24 @@ void build_dictionnary(dictionnary_t &dict)
 	}
 }
 
-void decode(const std::string &to_decode)
+void decode(const dls::chaine &to_decode)
 {
 	dictionnary_t dictionnary;
 	build_dictionnary(dictionnary);
 
-	std::string w(1, to_decode[0]);
+	dls::chaine w(1, to_decode[0]);
 	auto decoded_str = w;
-	auto num_str = std::string{};
-	auto entree = std::string{};
+	auto num_str = dls::chaine{};
+	auto entree = dls::chaine{};
 
 	auto code_point = false;
 
-	for (size_t i = 1; i < to_decode.size(); ++i) {
+	for (auto i = 1; i < to_decode.taille(); ++i) {
 		const auto &c = to_decode[i];
 
 		if (c == '<') {
 			code_point = true;
-			num_str.clear();
+			num_str.efface();
 			continue;
 		}
 
@@ -67,16 +67,16 @@ void decode(const std::string &to_decode)
 			continue;
 		}
 
-		auto index = 0ul;
-		if (num_str.size() != 0) {
-			index = static_cast<size_t>(std::atoi(num_str.c_str()));
-			num_str.clear();
+		auto index = 0l;
+		if (num_str.taille() != 0) {
+			index = std::atoi(num_str.c_str());
+			num_str.efface();
 		}
 
-		if (index > 255ul && index < dictionnary.size()) {
+		if (index > 255l && index < dictionnary.taille()) {
 			entree = dictionnary[index];
 		}
-		else if (index > 255ul && index >= dictionnary.size()) {
+		else if (index > 255ul && index >= dictionnary.taille()) {
 			entree = w + w[0];
 		}
 		else {
@@ -85,19 +85,19 @@ void decode(const std::string &to_decode)
 
 		decoded_str += entree;
 
-		dictionnary.push_back(w + entree);
+		dictionnary.pousse(w + entree);
 		w = entree;
 	}
 
 	std::cout << decoded_str << '\n';
 }
 
-void encode_sequence(const std::string &seq,
+void encode_sequence(const dls::chaine &seq,
                      const dictionnary_t &dictionnary,
                      std::ostream &os)
 {
-	const auto &iter = std::find(dictionnary.begin(), dictionnary.end(), seq);
-	const auto &code = iter - dictionnary.begin();
+	const auto &iter = std::find(dictionnary.debut(), dictionnary.fin(), seq);
+	const auto &code = iter - dictionnary.debut();
 
 	if (code < 256) {
 		os << static_cast<char>(code);

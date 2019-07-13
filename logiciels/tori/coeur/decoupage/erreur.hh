@@ -54,7 +54,7 @@ enum {
 };
 
 class frappe {
-	std::string m_message;
+	dls::chaine m_message;
 	int m_type;
 
 public:
@@ -66,7 +66,7 @@ public:
 };
 
 [[noreturn]] void lance_erreur(
-		const std::string &quoi,
+		const dls::chaine &quoi,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau,
 		int type = NORMAL);

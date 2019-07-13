@@ -138,7 +138,7 @@ void analyseuse_grammaire::analyse_declaration_table()
 		lance_erreur("La déclaration d'une table doit terminer par une accolade fermante '}'");
 	}
 
-	m_schema.tables.push_back(table);
+	m_schema.tables.pousse(table);
 
 	this->analyse_declaration_table();
 }
@@ -185,7 +185,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 	}
 
 	/* À FAIRE : validation des propriétés. */
-	table.colonnes.push_back(colonne);
+	table.colonnes.pousse(colonne);
 
 	if (est_identifiant(ID_CHAINE_CARACTERE)) {
 		this->analyse_declaration_colonne(table);
@@ -326,7 +326,7 @@ bool analyseuse_grammaire::requiers_valeur(DonneesMorceaux::type identifiant)
 	}
 }
 
-void analyseuse_grammaire::lance_erreur(const std::string &quoi, int type)
+void analyseuse_grammaire::lance_erreur(const dls::chaine &quoi, int type)
 {
 	erreur::lance_erreur(quoi, m_tampon, donnees(), type);
 }

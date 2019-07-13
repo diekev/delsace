@@ -281,14 +281,14 @@ void Joint::Equilibriate()
 void Joint::Render()
 {
 	// Add each vertex of faces in the order into the render buffer (TODR)
-	render_buffer.clear();
+	render_buffer.efface();
 
 //	render_buffer.pousse(dls::math::vec4f(0.0,0.0,0.0,1.0));
 //	render_buffer.pousse(dls::math::vec4f(0.0,l1,0.0,1.0));
 //	render_buffer.pousse(dls::math::vec4f(0.0,0.0,0.0,1.0));
 //	dls::math::mat4x4f rotation = dls::math::rotation(dls::math::mat4x4f(1.0f), angle, dls::math::vec3f(0.0f,0.0f,-1.0f));
 //	render_buffer.pousse(rotation*dls::math::vec4f(0.0,l2,0.0,1.0));
-	/*for ( int i=0; i< faces.size() ; i++){
+	/*for ( int i=0; i< faces.taille() ; i++){
 		render_buffer.pousse(curr_vertices[faces[i].x]);
 		render_buffer.pousse(curr_vertices[faces[i].y]);
 		render_buffer.pousse(curr_vertices[faces[i].z]);
@@ -301,25 +301,25 @@ void Joint::Render()
 //	render_buffer.pousse(dls::math::vec4f(1.0,1.0,1.0,1.0));
 //	render_buffer.pousse(dls::math::vec4f(1.0,1.0,1.0,1.0));
 //	render_buffer.pousse(dls::math::vec4f(1.0,1.0,1.0,1.0));
-	/*for ( int i=0; i< faces.size() ; i++){
+	/*for ( int i=0; i< faces.taille() ; i++){
 		render_buffer.pousse(red_blue(forces[faces[i].x].norm(),500,2000));
 		render_buffer.pousse(red_blue(forces[faces[i].y].norm(),500,2000));
 		render_buffer.pousse(red_blue(forces[faces[i].z].norm(),500,2000));
 	}*/
 
 	// setup the vbo and vao;
-	//cout<<render_buffer.size()<<endl;
+	//cout<<render_buffer.taille()<<endl;
 	//bind them
 //	glBindVertexArray (vao);
 //	glBindBuffer (GL_ARRAY_BUFFER, vbo);
 
-//	glBufferData (GL_ARRAY_BUFFER, render_buffer.size() * sizeof(dls::math::vec4f), &render_buffer[0], GL_STATIC_DRAW);
-//	//cout<< render_buffer.size() * sizeof(dls::math::vec4f)<<endl;
+//	glBufferData (GL_ARRAY_BUFFER, render_buffer.taille() * sizeof(dls::math::vec4f), &render_buffer[0], GL_STATIC_DRAW);
+//	//cout<< render_buffer.taille() * sizeof(dls::math::vec4f)<<endl;
 //	//setup the vertex array as per the shader
 //	glEnableVertexAttribArray( vPosition );
 //	glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
-//	size_t offset = (1.0/2)*render_buffer.size()* sizeof(dls::math::vec4f);
+//	size_t offset = (1.0/2)*render_buffer.taille()* sizeof(dls::math::vec4f);
 
 //	glEnableVertexAttribArray( vColor );
 //	glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(offset));
@@ -563,9 +563,9 @@ void SimMesh::Equilibriate(float threshold, float dT){
 
 void SimMesh::Render(bool show_stresses)
 {
-	//cout<<vertices.size()<<endl;
+	//cout<<vertices.taille()<<endl;
 	// Add each vertex of faces in the order into the render buffer
-	render_buffer.clear();
+	render_buffer.efface();
 
 	for (auto f : faces) {
 		render_buffer.pousse(curr_vertices[static_cast<long>(f.x)]);
@@ -856,7 +856,7 @@ void SimMesh::CalculateStresses(){
 
 void SimMesh::ComputeForces()
 {
-	forces.clear();
+	forces.efface();
 	for (auto i = 0l; i < vertices.taille(); i++){
 		Eigen::Vector3f a;
 		a<<0,0,0;

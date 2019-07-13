@@ -57,7 +57,7 @@ void ajoute_calque_procedurale(Maillage *maillage)
 	auto const largeur = maillage->largeur_texture();
 	auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
-	for (size_t i = 0; i < nombre_polygones; ++i) {
+	for (auto i = 0; i < nombre_polygones; ++i) {
 		auto poly = maillage->polygone(i);
 
 		auto const &s0 = poly->s[0]->pos;
@@ -96,7 +96,7 @@ void ajoute_calque_echiquier(Maillage *maillage)
 	std::mt19937 rng(19937);
 	std::uniform_real_distribution<float> dist(0.0f, 360.0f);
 
-	for (size_t i = 0; i < nombre_polygones; ++i) {
+	for (auto i = 0; i < nombre_polygones; ++i) {
 		auto poly = maillage->polygone(i);
 
 		auto hue = dist(rng);
@@ -162,7 +162,7 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 	auto const largeur = maillage->largeur_texture();
 	auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
-	for (size_t i = 0; i < nombre_polygones; ++i) {
+	for (auto i = 0; i < nombre_polygones; ++i) {
 		auto poly = maillage->polygone(i);
 
 		auto const angle_xy = std::abs(poly->nor.z);// abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 0.0, 1.0)));
@@ -225,7 +225,7 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 
 	auto nombre_texels = 0u;
 
-	for (size_t i = 0; i < maillage->nombre_polygones(); ++i) {
+	for (auto i = 0; i < maillage->nombre_polygones(); ++i) {
 		auto p = maillage->polygone(i);
 #ifdef TAILLE_UNIFORME
 		p->res_u = 16;
@@ -293,30 +293,30 @@ void Maillage::ajoute_sommet(dls::math::vec3f const &coord)
 {
 	auto sommet = new Sommet();
 	sommet->pos = coord;
-	sommet->index = m_sommets.size();
-	m_sommets.push_back(sommet);
+	sommet->index = m_sommets.taille();
+	m_sommets.pousse(sommet);
 }
 
-void Maillage::ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre)
+void Maillage::ajoute_sommets(const dls::math::vec3f *sommets, long nombre)
 {
-	m_sommets.reserve(m_sommets.size() + nombre);
+	m_sommets.reserve(m_sommets.taille() + nombre);
 
-	for (size_t i = 0; i < nombre; ++i) {
+	for (auto i = 0; i < nombre; ++i) {
 		ajoute_sommet(sommets[i]);
 	}
 }
 
-void Maillage::ajoute_quad(const size_t s0, const size_t s1, const size_t s2, const size_t s3)
+void Maillage::ajoute_quad(const long s0, const long s1, const long s2, const long s3)
 {
 	auto poly = new Polygone();
 	poly->s[0] = m_sommets[s0];
 	poly->s[1] = m_sommets[s1];
 	poly->s[2] = m_sommets[s2];
-	poly->s[3] = ((s3 == -1ul) ? nullptr : m_sommets[s3]);
+	poly->s[3] = ((s3 == -1l) ? nullptr : m_sommets[s3]);
 
-	auto const nombre_sommet = ((s3 == -1ul) ? 3ul : 4ul);
+	auto const nombre_sommet = ((s3 == -1l) ? 3l : 4l);
 
-	for (size_t i = 0; i < nombre_sommet; ++i) {
+	for (long i = 0; i < nombre_sommet; ++i) {
 		auto arrete = new Arrete();
 		arrete->p = poly;
 
@@ -339,16 +339,16 @@ void Maillage::ajoute_quad(const size_t s0, const size_t s1, const size_t s2, co
 
 		poly->a[i] = arrete;
 
-		m_arretes.push_back(arrete);
+		m_arretes.pousse(arrete);
 	}
 
 	auto c1 = poly->s[1]->pos - poly->s[0]->pos;
 	auto c2 = poly->s[2]->pos - poly->s[0]->pos;
 	poly->nor = dls::math::normalise(dls::math::produit_croix(c1, c2));
 
-	poly->index = m_polys.size();
+	poly->index = m_polys.taille();
 
-	m_polys.push_back(poly);
+	m_polys.pousse(poly);
 }
 
 #define COULEUR_ALEATOIRE
@@ -359,14 +359,14 @@ void Maillage::cree_tampon()
 
 	std::cerr << "Tri des polygones...\n";
 
-	std::sort(m_polys.begin(), m_polys.end(), [](const Polygone *a, const Polygone *b)
+	std::sort(m_polys.debut(), m_polys.fin(), [](const Polygone *a, const Polygone *b)
 	{
 		return a->res_u > b->res_u && a->res_v > b->res_v;
 	});
 
 	std::cerr << "Réindexage des polygones...\n";
 
-	for (size_t i = 0; i < m_polys.size(); ++i) {
+	for (long i = 0; i < m_polys.taille(); ++i) {
 		m_polys[i]->index = i;
 	}
 
@@ -408,12 +408,12 @@ CanauxTexture &Maillage::canaux_texture()
 	return m_canaux;
 }
 
-std::string const &Maillage::nom() const
+dls::chaine const &Maillage::nom() const
 {
 	return m_nom;
 }
 
-void Maillage::nom(std::string const &nom)
+void Maillage::nom(dls::chaine const &nom)
 {
 	m_nom = nom;
 }
@@ -456,42 +456,42 @@ math::transformation const &Maillage::transformation() const
 	return m_transformation;
 }
 
-size_t Maillage::nombre_sommets() const
+long Maillage::nombre_sommets() const
 {
-	return m_sommets.size();
+	return m_sommets.taille();
 }
 
-size_t Maillage::nombre_polygones() const
+long Maillage::nombre_polygones() const
 {
-	return m_polys.size();
+	return m_polys.taille();
 }
 
-const Sommet *Maillage::sommet(size_t i) const
+const Sommet *Maillage::sommet(long i) const
 {
 	return m_sommets[i];
 }
 
-const Polygone *Maillage::polygone(size_t i) const
+const Polygone *Maillage::polygone(long i) const
 {
 	return m_polys[i];
 }
 
-size_t Maillage::nombre_arretes() const
+long Maillage::nombre_arretes() const
 {
-	return m_arretes.size();
+	return m_arretes.taille();
 }
 
-Arrete *Maillage::arrete(size_t i)
-{
-	return m_arretes[i];
-}
-
-const Arrete *Maillage::arrete(size_t i) const
+Arrete *Maillage::arrete(long i)
 {
 	return m_arretes[i];
 }
 
-Polygone *Maillage::polygone(size_t i)
+const Arrete *Maillage::arrete(long i) const
+{
+	return m_arretes[i];
+}
+
+Polygone *Maillage::polygone(long i)
 {
 	return m_polys[i];
 }

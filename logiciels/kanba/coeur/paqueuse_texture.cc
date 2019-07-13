@@ -75,12 +75,12 @@ PaqueuseTexture::~PaqueuseTexture()
 	delete m_racine;
 }
 
-void PaqueuseTexture::empaquete(const std::vector<Polygone *> &polygones)
+void PaqueuseTexture::empaquete(const dls::tableau<Polygone *> &polygones)
 {
 	LOG << "Début de la création de la texture paquetée...\n";
 
-	auto const largeur_max = polygones[0]->res_u * polygones.size();
-	auto const hauteur_max = polygones[0]->res_v * polygones.size();
+	auto const largeur_max = polygones[0]->res_u * polygones.taille();
+	auto const hauteur_max = polygones[0]->res_v * polygones.taille();
 	m_racine->largeur = 16384;
 	m_racine->hauteur = 16384;
 
@@ -95,7 +95,7 @@ void PaqueuseTexture::empaquete(const std::vector<Polygone *> &polygones)
 
 	for (auto const &polygone : polygones) {
 #ifdef QUEUE_PRIORITE
-		while (!m_queue_priorite.empty()) {
+		while (!m_queue_priorite.est_vide()) {
 			noeud = m_queue_priorite.top();
 
 			if (polygone->res_u <= noeud->largeur && polygone->res_v <= noeud->hauteur) {

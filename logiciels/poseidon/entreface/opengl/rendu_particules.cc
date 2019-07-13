@@ -85,19 +85,19 @@ void RenduParticules::initialise()
 {
 	m_tampon = cree_tampon();
 
-	std::vector<dls::math::vec3f> points;
-	points.reserve(m_fluide->particules.size());
+	dls::tableau<dls::math::vec3f> points;
+	points.reserve(m_fluide->particules.taille());
 
 	for (auto const &particule : m_fluide->particules) {
-		points.push_back(particule.pos);
+		points.pousse(particule.pos);
 	}
 
 	ParametresTampon parametres;
 	parametres.attribut = "sommets";
 	parametres.dimension_attribut = 3;
-	parametres.pointeur_sommets = points.data();
-	parametres.elements = points.size();
-	parametres.taille_octet_sommets = points.size() * sizeof(dls::math::vec3f);
+	parametres.pointeur_sommets = points.donnees();
+	parametres.elements = static_cast<size_t>(points.taille());
+	parametres.taille_octet_sommets = static_cast<size_t>(points.taille()) * sizeof(dls::math::vec3f);
 
 	m_tampon->remplie_tampon(parametres);
 }

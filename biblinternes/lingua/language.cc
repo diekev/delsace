@@ -26,54 +26,55 @@
 
 #include <algorithm>
 
-static auto replace_substr(std::string &str, const std::string &substr, const std::string &rep)
+static auto replace_substr(dls::chaine &str, const dls::chaine &substr, const dls::chaine &rep)
 {
-	size_t index = 0;
+	auto index = 0l;
 	while (true) {
 	     /* Locate the substring to replace. */
-	     index = str.find(substr, index);
+		 index = str.trouve(substr, index);
 
-	     if (index == std::string::npos)
+		 if (index == dls::chaine::npos) {
 			 break;
+		 }
 
 	     /* Make the replacement. */
-	     str.replace(index, substr.size(), rep);
+		 str.remplace(index, substr.taille(), rep);
 
 	     /* Advance index forward so the next iteration doesn't pick it up as well. */
-	     index += rep.size();
+	     index += rep.taille();
 	}
 }
 
 /* ************************************************************************** */
 
-Language::Language(std::string name)
+Language::Language(dls::chaine name)
     : Language()
 {
 	m_name = std::move(name);
 }
 
-Language::Ptr Language::create(std::string name)
+Language::Ptr Language::create(dls::chaine name)
 {
 	return Ptr(new Language(name));
 }
 
 void Language::parent(Language * const parent)
 {
-	this->m_parents.push_back(parent);
+	this->m_parents.pousse(parent);
 }
 
 const Language *Language::parent() const noexcept
 {
-	if (m_parents.empty()) {
+	if (m_parents.est_vide()) {
 		return nullptr;
 	}
 
 	return m_parents[0];
 }
 
-const Language *Language::parent(const std::string &name) const noexcept
+const Language *Language::parent(const dls::chaine &name) const noexcept
 {
-	auto iter = std::find_if(m_parents.begin(), m_parents.end(),
+	auto iter = std::find_if(m_parents.debut(), m_parents.fin(),
 	                         [&name](const Language *language) -> bool
 	{
 		return language->name() == name;
@@ -82,12 +83,12 @@ const Language *Language::parent(const std::string &name) const noexcept
 	return *iter;
 }
 
-void Language::name(const std::string &n)
+void Language::name(const dls::chaine &n)
 {
 	m_name = n;
 }
 
-const std::string &Language::name() const noexcept
+const dls::chaine &Language::name() const noexcept
 {
 	return m_name;
 }
@@ -97,7 +98,7 @@ void Language::setTable(const table_t &table)
 	m_table = table;
 }
 
-std::string Language::translate(const std::string &word) const
+dls::chaine Language::translate(const dls::chaine &word) const
 {
 	auto mot = word;
 
@@ -112,7 +113,7 @@ std::string Language::translate(const std::string &word) const
 
 void LangageTree::addLanguage(const Language::Ptr &langage)
 {
-	m_langages.push_back(langage);
+	m_langages.pousse(langage);
 }
 
 void LangageTree::connect(const Language::Ptr &child, const Language::Ptr &parent)
@@ -120,13 +121,13 @@ void LangageTree::connect(const Language::Ptr &child, const Language::Ptr &paren
 	child->parent(parent.get());
 }
 
-void LangageTree::walk(std::string &word) const
+void LangageTree::walk(dls::chaine &word) const
 {
 	const auto langage = m_langages[0].get();
 	walk(langage, word);
 }
 
-void LangageTree::walk(const Language * const node, std::string &word) const
+void LangageTree::walk(const Language * const node, dls::chaine &word) const
 {
 	if (!node) {
 		return;

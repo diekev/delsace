@@ -31,6 +31,7 @@
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/tableau.hh"
 
 struct CourbeBezier;
 struct CourbeCouleur;
@@ -64,7 +65,7 @@ struct Propriete {
 
 	bool pad[2];
 
-	std::vector<std::pair<int, std::experimental::any>> courbe{};
+	dls::tableau<std::pair<int, std::experimental::any>> courbe{};
 
 	void ajoute_cle(const int v, int temps);
 

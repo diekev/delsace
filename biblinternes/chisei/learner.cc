@@ -27,7 +27,7 @@
 #include <fstream>
 #include <iostream>
 
-void learner::respond(const std::string &phrase)
+void learner::respond(const dls::chaine &phrase)
 {
 	std::ostream &os = std::cout;
 
@@ -65,7 +65,7 @@ void learner::respond(const std::string &phrase)
 	memory.close();
 }
 
-void learner::say(const std::string &phrase)
+void learner::say(const dls::chaine &phrase)
 {
 	std::ostream &os = std::cout;
 	os << phrase << '\n';

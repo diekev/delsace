@@ -868,11 +868,11 @@ llvm::Type *converti_type_simple(
 
 			if (donnees_structure.type_llvm == nullptr) {
 				dls::tableau<llvm::Type *> types_membres;
-				types_membres.resize(donnees_structure.donnees_types.size());
+				types_membres.redimensionne(donnees_structure.donnees_types.taille());
 
-				std::transform(donnees_structure.donnees_types.begin(),
-							   donnees_structure.donnees_types.end(),
-							   types_membres.begin(),
+				std::transform(donnees_structure.donnees_types.debut(),
+							   donnees_structure.donnees_types.fin(),
+							   types_membres.debut(),
 							   [&](const size_t index_type)
 				{
 					auto &dt = contexte.magasin_types.donnees_types[index_type];
@@ -1066,7 +1066,7 @@ llvm::Type *converti_type(
 
 		auto dt_params = donnees_types_parametres(donnees_type);
 
-		for (size_t i = 0; i < dt_params.size() - 1; ++i) {
+		for (size_t i = 0; i < dt_params.taille() - 1; ++i) {
 			type = converti_type(contexte, dt_params[i]);
 			parametres.pousse(type);
 		}

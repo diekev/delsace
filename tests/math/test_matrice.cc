@@ -24,8 +24,8 @@
 
 #include "tests_math.hh"
 
-#include "../math/matrice/matrice.hh"
-#include "../math/matrice/operations.hh"
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/matrice/operations.hh"
 
 static void test_dimensions(dls::test_unitaire::Controleuse &controleur)
 {

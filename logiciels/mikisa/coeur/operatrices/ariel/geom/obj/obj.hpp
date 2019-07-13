@@ -93,7 +93,7 @@ struct Poly {
 class Obj {
 public:
 	Obj();
-	Obj(const std::string& filename);
+	Obj(const dls::chaine& filename);
 	~Obj();
 
 	Obj(Obj const &) = default;
@@ -101,8 +101,8 @@ public:
 
 	void BakeTransform(const dls::math::mat4x4f& transform);
 
-	bool ReadObj(const std::string& filename);
-	bool WriteObj(const std::string& filename);
+	bool ReadObj(const dls::chaine& filename);
+	bool WriteObj(const dls::chaine& filename);
 
 	Poly GetPoly(const unsigned int& polyIndex);
 	static Poly TransformPoly(const Poly& p, const dls::math::mat4x4f& m);
@@ -139,7 +139,7 @@ public:
 	bool            m_keep{};
 
 private:
-	void PrereadObj(const std::string& filename);
+	void PrereadObj(const dls::chaine& filename);
 	rayCore::Intersection TriangleTest(const unsigned int& polyIndex,
 									   const rayCore::Ray& r,
 									   const bool& checkQuad);

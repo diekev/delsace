@@ -43,11 +43,11 @@ public:
 
 	void ouvre(const std::experimental::filesystem::path &chemin);
 
-	size_t taille() const;
+	long taille() const;
 
 	void ferme();
 
-	size_t lis_tampon(char *tampon, size_t taille) const;
+	long lis_tampon(char *tampon, long taille) const;
 
 	bool est_ouverte() const;
 };

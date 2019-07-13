@@ -34,22 +34,22 @@
 
 /* ************************************************************************** */
 
-void ParametresProgramme::ajoute_attribut(std::string const &nom)
+void ParametresProgramme::ajoute_attribut(dls::chaine const &nom)
 {
-	m_attributs.push_back(nom);
+	m_attributs.pousse(nom);
 }
 
-void ParametresProgramme::ajoute_uniforme(std::string const &nom)
+void ParametresProgramme::ajoute_uniforme(dls::chaine const &nom)
 {
-	m_uniformes.push_back(nom);
+	m_uniformes.pousse(nom);
 }
 
-std::vector<std::string> const &ParametresProgramme::attributs() const
+dls::tableau<dls::chaine> const &ParametresProgramme::attributs() const
 {
 	return m_attributs;
 }
 
-std::vector<std::string> const &ParametresProgramme::uniformes() const
+dls::tableau<dls::chaine> const &ParametresProgramme::uniformes() const
 {
 	return m_uniformes;
 }
@@ -103,7 +103,7 @@ TamponRendu::~TamponRendu()
 	delete m_atlas;
 }
 
-void TamponRendu::charge_source_programme(dls::ego::Nuanceur type_programme, std::string const &source, std::ostream &os)
+void TamponRendu::charge_source_programme(dls::ego::Nuanceur type_programme, dls::chaine const &source, std::ostream &os)
 {
 	m_programme.charge(type_programme, source, os);
 }

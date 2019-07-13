@@ -1365,7 +1365,7 @@ double voronoicell_base::volume() {
  * \param[out] v the vector to store the results in. */
 void voronoicell_base::face_areas(dls::tableau<double> &v) {
 	double area;
-	v.clear();
+	v.efface();
 	int i,j,k,l,m,n;
 	double ux,uy,uz,vx,vy,vz,wx,wy,wz;
 	for (i=1;i<p;i++) for (j=0;j<nu[i];j++) {
@@ -1668,7 +1668,7 @@ int voronoicell_base::check_marginal(int n,double &ans) {
  * \param[out] v the vector to store the results in. */
 void voronoicell_base::normals(dls::tableau<double> &v) {
 	int i,j,k;
-	v.clear();
+	v.efface();
 	for (i=1;i<p;i++) for (j=0;j<nu[i];j++) {
 		k=ed[i][j];
 		if(k>=0) normals_search(v,i,j,k);
@@ -1843,7 +1843,7 @@ void voronoicell_base::output_vertices(double x,double y,double z,FILE *fp) {
 /** This routine returns the perimeters of each face.
  * \param[out] v the vector to store the results in. */
 void voronoicell_base::face_perimeters(dls::tableau<double> &v) {
-	v.clear();
+	v.efface();
 	int i,j,k,l,m;
 	double dx,dy,dz,perim;
 	for (i=1;i<p;i++) for (j=0;j<nu[i];j++) {
@@ -1879,7 +1879,7 @@ void voronoicell_base::face_vertices(dls::tableau<int> &v)
 	auto vp = 0l;
 	auto vn = 0l;
 
-	v.clear();
+	v.efface();
 
 	for (int i = 1; i < p; i++) {
 		for (int j = 0; j < nu[i]; j++) {
@@ -1913,7 +1913,7 @@ void voronoicell_base::face_vertices(dls::tableau<int> &v)
 void voronoicell_base::face_orders(dls::tableau<int> &v)
 {
 	int i,j,k,l,m,q;
-	v.clear();
+	v.efface();
 
 	for (i=1;i<p;i++) {
 		for (j=0;j<nu[i];j++) {
@@ -1943,7 +1943,7 @@ void voronoicell_base::face_orders(dls::tableau<int> &v)
 void voronoicell_base::face_freq_table(dls::tableau<int> &v)
 {
 	int i,j,k,l,m;
-	v.clear();
+	v.efface();
 
 	for (i=1;i<p;i++) {
 		for (j=0;j<nu[i];j++) {
@@ -2259,7 +2259,7 @@ voronoicell_neighbor::~voronoicell_neighbor() {
 
 /** Computes a vector list of neighbors. */
 void voronoicell_neighbor::neighbors(dls::tableau<int> &v) {
-	v.clear();
+	v.efface();
 	int i,j,k,l,m;
 	for (i=1;i<p;i++) for (j=0;j<nu[i];j++) {
 		k=ed[i][j];

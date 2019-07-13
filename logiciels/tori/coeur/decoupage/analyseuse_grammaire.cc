@@ -194,7 +194,7 @@ void analyseuse_grammaire::analyse_pour()
 	analyse_page();
 }
 
-void analyseuse_grammaire::lance_erreur(const std::string &quoi, int type)
+void analyseuse_grammaire::lance_erreur(const dls::chaine &quoi, int type)
 {
 	erreur::lance_erreur(quoi, m_tampon, donnees(), type);
 }

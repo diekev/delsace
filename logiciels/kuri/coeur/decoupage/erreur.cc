@@ -411,7 +411,7 @@ void lance_erreur_fonction_inconnue(
 		if (dc.raison == MECOMPTAGE_ARGS) {
 			ss << "\tLe nombre d'arguments de la fonction est incorrect.\n";
 			ss << "\tRequiers " << df->args.taille() << " arguments\n";
-			ss << "\tObtenu " << b->enfants.size() << " arguments\n";
+			ss << "\tObtenu " << b->enfants.taille() << " arguments\n";
 			type_erreur = erreur::type_erreur::NOMBRE_ARGUMENT;
 		}
 
@@ -453,7 +453,7 @@ void lance_erreur_fonction_inconnue(
 
 //			imprime_ligne_entre(ss, ligne, 0, pos_mot);
 //			ss << "transtype(" << morceau_enfant.chaine << " : " << dc.type1 << ")";
-//			imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.size(), ligne.size());
+//			imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
 			type_erreur = erreur::type_erreur::TYPE_ARGUMENT;
 		}
 

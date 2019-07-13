@@ -29,13 +29,13 @@
 namespace dls {
 namespace systeme_fichier {
 
-File::File(const std::string &filename, const std::string &modes)
+File::File(const dls::chaine &filename, const dls::chaine &modes)
     : File()
 {
 	open(filename, modes);
 }
 
-void File::open(const std::string &filename, const std::string &modes)
+void File::open(const dls::chaine &filename, const dls::chaine &modes)
 {
 	auto fptr = std::fopen(filename.c_str(), modes.c_str());
 
@@ -115,20 +115,20 @@ Pipe::Pipe()
     : m_file(nullptr)
 {}
 
-Pipe::Pipe(const std::string &filename, const std::string &modes)
+Pipe::Pipe(const dls::chaine &filename, const dls::chaine &modes)
     : Pipe()
 {
 	open(filename, modes);
 }
 
-void Pipe::open(const std::string &filename, const std::string &modes)
+void Pipe::open(const dls::chaine &filename, const dls::chaine &modes)
 {
 	m_file = Ptr(popen(filename.c_str(), modes.c_str()), FileDeleter());
 }
 
-std::string Pipe::output()
+dls::chaine Pipe::output()
 {
-	std::string output;
+	dls::chaine output;
 
 	char buffer[128];
 	while (!std::feof(m_file.get())) {

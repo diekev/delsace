@@ -68,7 +68,7 @@ void Kanba::enregistre_commandes()
 	enregistre_commandes_vue3d(this->usine_commande);
 }
 
-std::string Kanba::requiers_dialogue(int type)
+dls::chaine Kanba::requiers_dialogue(int type)
 {
 	if (type == FICHIER_OUVERTURE) {
 		auto const chemin = QFileDialog::getOpenFileName();

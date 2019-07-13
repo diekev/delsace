@@ -24,13 +24,13 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 class FileBuffer {
-	std::string m_buffer;
+	dls::chaine m_buffer;
 
 public:
-	explicit FileBuffer(const std::string &filename) noexcept(false);
+	explicit FileBuffer(const dls::chaine &filename) noexcept(false);
 
 	~FileBuffer() noexcept = default;
 

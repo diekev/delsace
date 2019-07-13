@@ -76,7 +76,7 @@ void bitfield_controle(AssembleurControles &assembleur, Propriete *prop)
 	auto controle = new ControleEnum;
 	controle->pointeur(std::experimental::any_cast<int>(&prop->donnee));
 
-	auto model = new QStandardItemModel(static_cast<int>(prop->items_enumeration.paires.size()), 1);
+	auto model = new QStandardItemModel(static_cast<int>(prop->items_enumeration.paires.taille()), 1);
 	auto index = 0;
 
 	for (PaireNomValeur const &enum_item : prop->items_enumeration.paires) {
@@ -100,12 +100,12 @@ void bitfield_controle(AssembleurControles &assembleur, Propriete *prop)
 
 void controle_chaine_caractere(AssembleurControles &assembleur, Propriete *prop)
 {
-	auto ptr = std::experimental::any_cast<std::string>(&prop->donnee);
+	auto ptr = std::experimental::any_cast<dls::chaine>(&prop->donnee);
 	auto controle = new ControleChaineCaractere;
 	controle->pointeur(ptr);
 
-	if (ptr->length() == 0) {
-		controle->setPlaceholderText(std::experimental::any_cast<std::string>(prop->valeur_defaut).c_str());
+	if (ptr->taille() == 0) {
+		controle->setPlaceholderText(std::experimental::any_cast<dls::chaine>(prop->valeur_defaut).c_str());
 	}
 	else {
 		controle->setText(ptr->c_str());
@@ -148,7 +148,7 @@ void controle_couleur(AssembleurControles &assembleur, Propriete *prop)
 
 void controle_fichier_entree(AssembleurControles &assembleur, Propriete *prop)
 {
-	auto ptr = std::experimental::any_cast<std::string>(&prop->donnee);
+	auto ptr = std::experimental::any_cast<dls::chaine>(&prop->donnee);
 	auto controle = new ControleFichier(true);
 	controle->pointeur(ptr);
 	controle->setValue(ptr->c_str());
@@ -158,7 +158,7 @@ void controle_fichier_entree(AssembleurControles &assembleur, Propriete *prop)
 
 void controle_fichier_sortie(AssembleurControles &assembleur, Propriete *prop)
 {
-	auto ptr = std::experimental::any_cast<std::string>(&prop->donnee);
+	auto ptr = std::experimental::any_cast<dls::chaine>(&prop->donnee);
 	auto controle = new ControleFichier(false);
 	controle->pointeur(ptr);
 	controle->setValue(ptr->c_str());
@@ -168,7 +168,7 @@ void controle_fichier_sortie(AssembleurControles &assembleur, Propriete *prop)
 
 void controle_liste(AssembleurControles &assembleur, Propriete *prop)
 {
-	auto ptr = std::experimental::any_cast<std::string>(&prop->donnee);
+	auto ptr = std::experimental::any_cast<dls::chaine>(&prop->donnee);
 	auto controle = new ControleListe();
 	controle->pointeur(ptr);
 	controle->setValue(ptr->c_str());

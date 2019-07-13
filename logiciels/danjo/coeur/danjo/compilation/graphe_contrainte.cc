@@ -42,58 +42,58 @@ graphe_contrainte::~graphe_contrainte()
 
 void graphe_contrainte::ajoute_contrainte(contrainte *c)
 {
-	m_contraintes.push_back(c);
+	m_contraintes.pousse(c);
 }
 
 void graphe_contrainte::ajoute_variable(Variable *v)
 {
-	m_variables.push_back(v);
+	m_variables.pousse(v);
 }
 
 graphe_contrainte::iterateur_contrainte graphe_contrainte::debut_contrainte()
 {
-	return m_contraintes.begin();
+	return m_contraintes.debut();
 }
 
 graphe_contrainte::iterateur_contrainte graphe_contrainte::fin_contrainte()
 {
-	return m_contraintes.end();
+	return m_contraintes.fin();
 }
 
 graphe_contrainte::iterateur_contrainte_const graphe_contrainte::debut_contrainte() const
 {
-	return m_contraintes.cbegin();
+	return m_contraintes.debut();
 }
 
 graphe_contrainte::iterateur_contrainte_const graphe_contrainte::fin_contrainte() const
 {
-	return m_contraintes.cend();
+	return m_contraintes.fin();
 }
 
 graphe_contrainte::iterateur_variable graphe_contrainte::debut_variable()
 {
-	return m_variables.begin();
+	return m_variables.debut();
 }
 
 graphe_contrainte::iterateur_variable graphe_contrainte::fin_variable()
 {
-	return m_variables.end();
+	return m_variables.fin();
 }
 
 graphe_contrainte::iterateur_variable_const graphe_contrainte::debut_variable() const
 {
-	return m_variables.cbegin();
+	return m_variables.debut();
 }
 
 graphe_contrainte::iterateur_variable_const graphe_contrainte::fin_variable() const
 {
-	return m_variables.cend();
+	return m_variables.fin();
 }
 
 void connecte(contrainte *c, Variable *v)
 {
-	c->m_variables.push_back(v);
-	v->m_contraintes.push_back(c);
+	c->m_variables.pousse(v);
+	v->m_contraintes.pousse(c);
 }
 
 void imprime_graphe(std::ostream &os, const graphe_contrainte &graphe)

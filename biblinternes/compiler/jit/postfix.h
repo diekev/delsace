@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 #include "biblinternes/structures/file.hh"
 
-bool is_operator(const std::string &token);
+bool is_operator(const dls::chaine &token);
 
-auto postfix(const std::string &expression) -> dls::file<std::string>;
+auto postfix(const dls::chaine &expression) -> dls::file<dls::chaine>;

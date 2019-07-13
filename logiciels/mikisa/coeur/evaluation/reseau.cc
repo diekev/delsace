@@ -41,7 +41,7 @@ void Reseau::reinitialise()
 		delete noeud;
 	}
 
-	noeuds.clear();
+	noeuds.efface();
 }
 
 /* ************************************************************************** */

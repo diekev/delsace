@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <list>
+#include "biblinternes/structures/liste.hh"
 
 #include "biblinternes/structures/pile.hh"
 
@@ -36,7 +36,7 @@ struct DonneesMorceaux;
 class assembleuse_arbre {
 	dls::pile<noeud::base *> m_pile{};
 	dls::tableau<noeud::base *> m_noeuds{};
-	std::list<noeud::base *> noeuds_libres{};
+	dls::liste<noeud::base *> noeuds_libres{};
 
 	size_t m_memoire_utilisee = 0;
 

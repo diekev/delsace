@@ -48,19 +48,19 @@ void BaseDeDonnees::reinitialise()
 		memoire::deloge("objet", objet);
 	}
 
-	m_objets.clear();
+	m_objets.efface();
 
 	for (auto scene : m_scenes) {
 		memoire::deloge("scene", scene);
 	}
 
-	m_scenes.clear();
+	m_scenes.efface();
 
 	for (auto compo : m_composites) {
 		memoire::deloge("compo", compo);
 	}
 
-	m_composites.clear();
+	m_composites.efface();
 }
 
 Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom)

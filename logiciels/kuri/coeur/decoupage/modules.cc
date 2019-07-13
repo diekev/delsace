@@ -54,10 +54,7 @@ void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine const &nom_fonction
 	auto iter = fonctions.trouve(nom_fonction);
 
 	if (iter == fonctions.fin()) {
-		/* À FAIRE : initializer_list */
-		auto tabl = dls::tableau<DonneesFonction>();
-		tabl.pousse(donnees);
-		fonctions.insere({nom_fonction, tabl});
+		fonctions.insere({nom_fonction, {donnees}});
 	}
 	else {
 		iter->second.pousse(donnees);
@@ -245,14 +242,14 @@ static double verifie_compatibilite(
 static DonneesCandidate verifie_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		DonneesFonction &donnees_fonction,
-		std::list<dls::vue_chaine> &noms_arguments_,
-		std::list<noeud::base *> const &exprs)
+		dls::liste<dls::vue_chaine> &noms_arguments_,
+		dls::liste<noeud::base *> const &exprs)
 {
 	auto res = DonneesCandidate{};
 
 	auto const nombre_args = donnees_fonction.args.taille();
 
-	if (!donnees_fonction.est_variadique && (static_cast<long>(exprs.size()) != nombre_args)) {
+	if (!donnees_fonction.est_variadique && (exprs.taille() != nombre_args)) {
 		res.etat = FONCTION_INTROUVEE;
 		res.raison = MECOMPTAGE_ARGS;
 		res.df = &donnees_fonction;
@@ -363,17 +360,17 @@ static DonneesCandidate verifie_donnees_fonction(
 		enfants.redimensionne(donnees_fonction.args.taille());
 	}
 	else {
-		enfants.redimensionne(static_cast<long>(noms_arguments.size()));
+		enfants.redimensionne(noms_arguments.taille());
 	}
 
-	auto enfant = exprs.begin();
+	auto enfant = exprs.debut();
 	auto noeud_tableau = static_cast<noeud::base *>(nullptr);
 
 	if (fonction_variadique_interne) {
 		/* Pour les fonctions variadiques interne, nous créons un tableau
 		 * correspondant au types des arguments. */
 
-		auto nombre_args_var = std::max(0l, static_cast<long>(noms_arguments.size()) - (nombre_args - 1));
+		auto nombre_args_var = std::max(0l, noms_arguments.taille() - (nombre_args - 1));
 		auto index_premier_var_arg = nombre_args - 1;
 
 		noeud_tableau = contexte.assembleuse->cree_noeud(
@@ -395,7 +392,7 @@ static DonneesCandidate verifie_donnees_fonction(
 	auto nombre_arg_variadic_drapeau = 0l;
 
 	dls::tableau<niveau_compat> drapeaux;
-	drapeaux.redimensionne(static_cast<long>(exprs.size()));
+	drapeaux.redimensionne(exprs.taille());
 
 	for (auto const &nom : noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
@@ -474,8 +471,8 @@ static DonneesCandidate verifie_donnees_fonction(
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine const &nom,
-		std::list<dls::vue_chaine> &noms_arguments,
-		std::list<noeud::base *> const &exprs,
+		dls::liste<dls::vue_chaine> &noms_arguments,
+		dls::liste<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel)
 {

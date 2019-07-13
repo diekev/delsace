@@ -93,12 +93,12 @@ void RenduChampsDistance::initialise()
 
 	auto dh2 = dh * 0.5f;
 
-	std::vector<dls::math::vec3f> sommets;
+	dls::tableau<dls::math::vec3f> sommets;
 	sommets.reserve(m_fluide->res.x * m_fluide->res.y * m_fluide->res.z);
 
-	for (size_t x = 0; x < m_fluide->res.x; ++x) {
-		for (size_t y = 0; y < m_fluide->res.y; ++y) {
-			for (size_t z = 0; z < m_fluide->res.z; ++z) {
+	for (auto x = 0; x < m_fluide->res.x; ++x) {
+		for (auto y = 0; y < m_fluide->res.y; ++y) {
+			for (auto z = 0; z < m_fluide->res.z; ++z) {
 				if (m_fluide->phi.valeur(x, y, z) > 0.250f) {
 					continue;
 				}
@@ -108,7 +108,7 @@ void RenduChampsDistance::initialise()
 				pos.y += static_cast<float>(y) * dh.y + dh2.y;
 				pos.z += static_cast<float>(z) * dh.z + dh2.z;
 
-				sommets.push_back(pos);
+				sommets.pousse(pos);
 			}
 		}
 	}
@@ -118,9 +118,9 @@ void RenduChampsDistance::initialise()
 	ParametresTampon parametres;
 	parametres.attribut = "sommets";
 	parametres.dimension_attribut = 3;
-	parametres.elements = sommets.size();
-	parametres.pointeur_sommets = sommets.data();
-	parametres.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
+	parametres.elements = static_cast<size_t>(sommets.taille());
+	parametres.pointeur_sommets = sommets.donnees();
+	parametres.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
 
 	m_tampon->remplie_tampon(parametres);
 }

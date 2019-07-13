@@ -214,7 +214,7 @@ bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
 			|| ((p2.first == DROITE) && (p1.second < p2.second));
 }
 
-Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable)
+Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *manipulable)
 {
 	dls::pile<Symbole> pile;
 
@@ -256,7 +256,7 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 				}
 				case id_morceau::CHAINE_CARACTERE:
 				{
-					auto nom = std::experimental::any_cast<std::string>(symbole.valeur);
+					auto nom = std::experimental::any_cast<dls::chaine>(symbole.valeur);
 
 					Symbole tmp;
 
@@ -330,7 +330,7 @@ void imprime_valeur_symbole(Symbole symbole, std::ostream &os)
 			os << std::experimental::any_cast<bool>(symbole.valeur) << ' ';
 			break;
 		default:
-			os << std::experimental::any_cast<std::string>(symbole.valeur) << ' ';
+			os << std::experimental::any_cast<dls::chaine>(symbole.valeur) << ' ';
 			break;
 	}
 }

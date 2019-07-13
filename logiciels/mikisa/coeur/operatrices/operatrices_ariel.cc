@@ -145,7 +145,7 @@ public:
 
 	void *donnees() const
 	{
-		return m_donnees.data();
+		return m_donnees.donnees();
 	}
 
 	size_t taille_octet() const
@@ -194,7 +194,7 @@ public:
 		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels));
 
 		for (auto &donnees : m_donnees) {
-			donnees.clear();
+			donnees.efface();
 		}
 	}
 
@@ -322,7 +322,7 @@ bool contiens(dls::math::vec3f const &min,
 void cree_particules_source(Fluide *fluide, size_t nombre)
 {
 	//CHRONOMETRE_PORTEE(__func__, std::cerr);
-	fluide->particules.clear();
+	fluide->particules.efface();
 
 	auto const &min_source = dls::math::vec3f(-2.0f, 4.0f, -2.0f);
 	auto const &max_source = dls::math::vec3f( 2.0f, 8.0f, 2.0f);
@@ -498,7 +498,7 @@ public:
 		/* À FAIRE : réinitialisation. */
 		if (contexte.temps_courant == 1) {
 			initialise_fluide(m_fluide, dimensions);
-			m_fluide.particules.clear();
+			m_fluide.particules.efface();
 
 			cree_particules_source(&m_fluide, 8);
 		}

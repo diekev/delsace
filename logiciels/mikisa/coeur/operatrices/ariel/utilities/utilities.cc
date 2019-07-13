@@ -14,6 +14,7 @@
 #include <fstream>
 
 #include "biblinternes/rmsd/rmsd.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
 namespace utilityCore {
 
@@ -53,10 +54,10 @@ bool epsilonCheck(float a, float b)
 	return std::abs(std::abs(a) - std::abs(b)) < EPSILON;
 }
 
-std::string padString(size_t length, std::string str)
+dls::chaine padString(long length, dls::chaine str)
 {
-	auto strlength = str.length();
-	std::string pad = "";
+	auto strlength = str.taille();
+	dls::chaine pad = "";
 
 	for (auto i=strlength; i < length; i++) {
 		pad = pad + "0";
@@ -65,28 +66,28 @@ std::string padString(size_t length, std::string str)
 	return pad + str;
 }
 
-bool replaceString(std::string &str, const std::string &from, const std::string &to)
+bool replaceString(dls::chaine &str, const dls::chaine &from, const dls::chaine &to)
 {
-	size_t start_pos = str.find(from);
-	if (start_pos == std::string::npos)
+	auto start_pos = str.trouve(from);
+	if (start_pos == dls::chaine::npos)
 		return false;
-	str.replace(start_pos, from.length(), to);
+	str.remplace(start_pos, from.taille(), to);
 	return true;
 }
 
-std::string convertIntToString(int number)
+dls::chaine convertIntToString(int number)
 {
-	std::stringstream ss;
+	dls::flux_chaine ss;
 	ss << number;
-	return ss.str();
+	return ss.chn();
 }
 
-dls::tableau<std::string> tokenizeString(std::string str, std::string separator)
+dls::tableau<dls::chaine> tokenizeString(dls::chaine str, dls::chaine separator)
 {
-	dls::tableau<std::string> results;
+	dls::tableau<dls::chaine> results;
 	char * cstr, *p;
-	std::string strt = str;
-	cstr = new char[strt.size()+1];
+	dls::chaine strt = str;
+	cstr = new char[strt.taille()+1];
 	std::strcpy (cstr, strt.c_str());
 	p=std::strtok (cstr, separator.c_str());
 	while (p!=nullptr) {
@@ -98,23 +99,23 @@ dls::tableau<std::string> tokenizeString(std::string str, std::string separator)
 	return results;
 }
 
-dls::tableau<std::string> tokenizeStringByAllWhitespace(std::string str)
+dls::tableau<dls::chaine> tokenizeStringByAllWhitespace(dls::chaine const &str)
 {
-	std::stringstream strstr(str);
-	std::istream_iterator<std::string> it(strstr);
-	std::istream_iterator<std::string> end;
-	dls::tableau<std::string> results(it, end);
+	std::stringstream strstr(str.c_str());
+	std::istream_iterator<dls::chaine> it(strstr);
+	std::istream_iterator<dls::chaine> end;
+	dls::tableau<dls::chaine> results(it, end);
 	return results;
 }
 
-std::string getLastNCharactersOfString(std::string s, size_t n)
+dls::chaine getLastNCharactersOfString(dls::chaine s, long n)
 {
-	return s.substr(s.length() - n, n);
+	return s.sous_chaine(s.taille() - n, n);
 }
 
-std::string getFirstNCharactersOfString(std::string s, size_t n)
+dls::chaine getFirstNCharactersOfString(dls::chaine s, long n)
 {
-	return s.substr(0, n);
+	return s.sous_chaine(0, n);
 }
 
 int getMilliseconds()
@@ -288,21 +289,16 @@ void fovToPerspective(float fovy, float aspect, float zNear, dls::math::vec2f &x
 	xBounds[1] = yBounds[1]*aspect;
 }
 
-std::string readFileAsString(std::string filename)
+dls::chaine readFileAsString(dls::chaine filename)
 {
 	std::ifstream t(filename.c_str());
-	std::string str;
-	t.seekg(0, std::ios::end);
-	str.reserve(static_cast<size_t>(t.tellg()));
-	t.seekg(0, std::ios::beg);
-	str.assign((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-	return str;
+	return dls::chaine((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 }
 
-std::string getRelativePath(std::string path)
+dls::chaine getRelativePath(dls::chaine path)
 {
-	std::string relativePath;
-	dls::tableau<std::string> pathTokens = tokenizeString(path, "/");
+	dls::chaine relativePath;
+	dls::tableau<dls::chaine> pathTokens = tokenizeString(path, "/");
 	for (auto i=0l; i<pathTokens.taille()-1; i++) {
 		relativePath = relativePath + pathTokens[i] + "/";
 	}

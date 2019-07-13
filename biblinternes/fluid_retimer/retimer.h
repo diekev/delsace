@@ -45,7 +45,7 @@ class Retimer {
 	float m_shutter_speed;
 	bool m_threaded;
 	openvdb::GridPtrVec m_grids;
-	std::vector<std::string> m_grid_names;
+	dls::tableau<dls::chaine> m_grid_names;
 
 	void readvectSL(ScalarGrid::Ptr work,
 					ScalarGrid::Ptr gridA,
@@ -59,8 +59,8 @@ public:
 	~Retimer();
 
 	void setTimeScale(const float scale);
-	void setGridNames(std::initializer_list<std::string> list);
-	void retime(const std::string &previous, const std::string &cur, const std::string &to);
+	void setGridNames(std::initializer_list<dls::chaine> list);
+	void retime(const dls::chaine &previous, const dls::chaine &cur, const dls::chaine &to);
 	void setThreaded(const bool threaded);
 };
 

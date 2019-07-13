@@ -218,7 +218,7 @@ public:
 		 * \param[out] v a reference to a vector in which to return the
 		 *               results. If no neighbor information is
 		 *               available, a blank vector is returned. */
-	virtual void neighbors(dls::tableau<int> &v) {v.clear();}
+	virtual void neighbors(dls::tableau<int> &v) {v.efface();}
 	/** This is a virtual function that is overridden by a routine
 		 * to print a list of IDs of neighboring particles
 		 * corresponding to each face. By default, when no neighbor
@@ -417,7 +417,7 @@ private:
 	inline void n_switch_to_aux1(int i) {};
 	inline void n_copy_to_aux1(int i,int m) {};
 	inline void n_set_to_aux1_offset(int k,int m) {};
-	inline void n_neighbors(dls::tableau<int> &v) {v.clear();};
+	inline void n_neighbors(dls::tableau<int> &v) {v.efface();};
 	friend class voronoicell_base;
 };
 

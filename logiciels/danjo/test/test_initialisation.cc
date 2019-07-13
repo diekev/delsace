@@ -27,7 +27,7 @@
 #include "coeur/danjo/danjo.h"
 #include "coeur/danjo/manipulable.h"
 
-static bool possede_propriete(danjo::Manipulable &manipulable, const std::string &nom)
+static bool possede_propriete(danjo::Manipulable &manipulable, const dls::chaine &nom)
 {
 	return manipulable.propriete(nom) != nullptr;
 }

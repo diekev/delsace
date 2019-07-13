@@ -116,7 +116,7 @@ void cree_controles(AssembleurControles &assembleur, Persona *persona)
 			}
 		}
 
-		if (!prop.infobulle.empty()) {
+		if (!prop.infobulle.est_vide()) {
 			infobulle_controle(assembleur, prop.infobulle.c_str());
 		}
 

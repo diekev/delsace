@@ -146,7 +146,7 @@ void AdaptriceCreationCorps::reserve_uvs(long const nombre)
 
 void AdaptriceCreationCorps::groupes(dls::tableau<dls::chaine> const &noms)
 {
-	groupes_courant.clear();
+	groupes_courant.efface();
 
 	for (auto const &nom : noms) {
 		auto groupe = corps->ajoute_groupe_primitive(nom);

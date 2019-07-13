@@ -191,7 +191,7 @@ dls::vue_chaine decoupeuse_texte::mot_courant() const
 	return dls::vue_chaine(m_debut_mot, m_taille_mot_courant);
 }
 
-void decoupeuse_texte::lance_erreur(const std::string &quoi) const
+void decoupeuse_texte::lance_erreur(const dls::chaine &quoi) const
 {
 	auto ligne_courante = m_tampon[m_compte_ligne];
 

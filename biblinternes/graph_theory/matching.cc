@@ -25,20 +25,20 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../math/matrice/matrice.hh"
 
 struct Node;
 
 struct Socket {
-	std::string name;
+	dls::chaine name;
 	Socket *link;
 	Node *parent;
 	float weight;
 
-	Socket(const std::string &name_, const float weight_, Node *node_)
+	Socket(const dls::chaine &name_, const float weight_, Node *node_)
 		: name(name_)
 	    , link(nullptr)
 		, parent(node_)
@@ -50,15 +50,15 @@ struct Socket {
 };
 
 struct Node {
-	std::vector<Socket *> sockets{};
-	std::string name = "";
+	dls::tableau<Socket *> sockets{};
+	dls::chaine name = "";
 	int degree = 0;
 
 	using Ptr = std::unique_ptr<Node>;
 
 	Node() = default;
 
-	explicit Node(const std::string &name_)
+	explicit Node(const dls::chaine &name_)
 		: Node()
 	{
 		this->name = name_;
@@ -71,14 +71,14 @@ struct Node {
 		}
 	}
 
-	static Ptr create(const std::string &name)
+	static Ptr create(const dls::chaine &name)
 	{
 		return Ptr(new Node(name));
 	}
 
-	void addSockets(const std::initializer_list<std::string> &socket_list)
+	void addSockets(const std::initializer_list<dls::chaine> &socket_list)
 	{
-		sockets.reserve(socket_list.size());
+		sockets.reserve(static_cast<long>(socket_list.size()));
 
 		int i = 1;
 		for (const auto &socket : socket_list) {
@@ -86,24 +86,24 @@ struct Node {
 		}
 	}
 
-	void removeSocket(const std::string &name_)
+	void removeSocket(const dls::chaine &name_)
 	{
-		auto iter = std::find_if(sockets.begin(), sockets.end(),
+		auto iter = std::find_if(sockets.debut(), sockets.fin(),
 								 [&](Socket *sock) { return sock->name == name_; });
 
-		if (iter != sockets.end()) {
+		if (iter != sockets.fin()) {
 			Socket *sock = *iter;
 			sockets.erase(iter);
 			delete sock;
 		}
 	}
 
-	Socket *socket(const std::string &name_) const
+	Socket *socket(const dls::chaine &name_) const
 	{
-		auto iter = std::find_if(sockets.begin(), sockets.end(),
+		auto iter = std::find_if(sockets.debut(), sockets.fin(),
 								 [&](Socket *sock) { return sock->name == name_; });
 
-		if (iter != sockets.end()) {
+		if (iter != sockets.fin()) {
 			return *iter;
 		}
 
@@ -118,8 +118,8 @@ struct Node {
 };
 
 class MatchingGraph {
-	std::vector<Node *> m_boys{};
-	std::vector<Node *> m_girls{};
+	dls::tableau<Node *> m_boys{};
+	dls::tableau<Node *> m_girls{};
 
 	dls::math::matrice_dyn<int> m_adjacency_matrix{};
 
@@ -219,8 +219,8 @@ public:
 	void build_adjacency_matrix()
 	{
 		const auto dimensions = dls::math::Dimensions(
-									dls::math::Hauteur(static_cast<int>(m_boys.size())),
-									dls::math::Largeur(static_cast<int>(m_girls.size())));
+									dls::math::Hauteur(static_cast<int>(m_boys.taille())),
+									dls::math::Largeur(static_cast<int>(m_girls.taille())));
 
 		m_adjacency_matrix.redimensionne(dimensions);
 		m_adjacency_matrix.remplie(0);
@@ -253,12 +253,12 @@ public:
 	}
 
 private:
-	Node *findGirl(const std::string &name) const
+	Node *findGirl(const dls::chaine &name) const
 	{
-		auto iter = std::find_if(m_girls.begin(), m_girls.end(),
+		auto iter = std::find_if(m_girls.debut(), m_girls.fin(),
 		                         [&](Node *node) { return node->name == name; });
 
-		if (iter != m_girls.end()) {
+		if (iter != m_girls.fin()) {
 			return *iter;
 		}
 
@@ -290,7 +290,7 @@ private:
 		/* Sockets are sorted by order of preference so iterate from the last
 		 * socket to the first, and remove connections ("reject boys") until
 		 * there is only one left. */
-		size_t s = girl->sockets.size();
+		auto s = girl->sockets.taille();
 		while (girl->degree > 1 && s--) {
 			Socket *gsock = girl->sockets[s];
 

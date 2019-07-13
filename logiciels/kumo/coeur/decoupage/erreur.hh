@@ -67,7 +67,7 @@ public:
 };
 
 [[noreturn]] void lance_erreur(
-		const std::string &quoi,
+		const dls::chaine &quoi,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau,
 		int type = NORMAL);

@@ -35,25 +35,25 @@
 
 DonneesType::DonneesType(id_morceau i0)
 {
-	m_donnees.push_back(i0);
+	m_donnees.pousse(i0);
 }
 
 DonneesType::DonneesType(id_morceau i0, id_morceau i1)
 {
-	m_donnees.push_back(i0);
-	m_donnees.push_back(i1);
+	m_donnees.pousse(i0);
+	m_donnees.pousse(i1);
 }
 
 void DonneesType::pousse(id_morceau identifiant)
 {
-	m_donnees.push_back(identifiant);
+	m_donnees.pousse(identifiant);
 }
 
 void DonneesType::pousse(const DonneesType &autre)
 {
-	auto const taille = m_donnees.size();
-	m_donnees.resize(taille + autre.m_donnees.size());
-	std::copy(autre.m_donnees.begin(), autre.m_donnees.end(), m_donnees.begin() + static_cast<long>(taille));
+	auto const taille = m_donnees.taille();
+	m_donnees.redimensionne(taille + autre.m_donnees.taille());
+	std::copy(autre.m_donnees.debut(), autre.m_donnees.fin(), m_donnees.debut() + static_cast<long>(taille));
 }
 
 id_morceau DonneesType::type_base() const
@@ -63,7 +63,7 @@ id_morceau DonneesType::type_base() const
 
 bool DonneesType::est_invalide() const
 {
-	if (m_donnees.empty()) {
+	if (m_donnees.est_vide()) {
 		return true;
 	}
 
@@ -79,19 +79,19 @@ bool DonneesType::est_invalide() const
 
 DonneesType::iterateur_const DonneesType::begin() const
 {
-	return m_donnees.rbegin();
+	return m_donnees.debut_inverse();
 }
 
 DonneesType::iterateur_const DonneesType::end() const
 {
-	return m_donnees.rend();
+	return m_donnees.fin_inverse();
 }
 
 DonneesType DonneesType::derefence() const
 {
 	auto donnees = DonneesType{};
 
-	for (size_t i = 1; i < m_donnees.size(); ++i) {
+	for (long i = 1; i < m_donnees.taille(); ++i) {
 		donnees.pousse(m_donnees[i]);
 	}
 
@@ -143,7 +143,7 @@ dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 					break;
 				case id_morceau::CHAINE_CARACTERE:
 				{
-					auto id = static_cast<size_t>(donnee >> 8);
+					auto id = static_cast<long>(donnee >> 8);
 					os << contexte.nom_struct(id);
 					break;
 				}
@@ -161,7 +161,7 @@ dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 
 /* ************************************************************************** */
 
-size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
+long MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 {
 	auto iter = donnees_type_index.trouve(donnees);
 
@@ -169,8 +169,8 @@ size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 		return iter->second;
 	}
 
-	auto index = donnees_types.size();
-	donnees_types.push_back(donnees);
+	auto index = donnees_types.taille();
+	donnees_types.pousse(donnees);
 
 	donnees_type_index.insere({donnees, index});
 
@@ -185,14 +185,14 @@ size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
  * paramètre n'est pas un pointeur fonction, retourne un vecteur vide.
  */
 [[nodiscard]] auto donnees_types_parametres(
-		const DonneesType &donnees_type) noexcept(false) -> std::vector<DonneesType>
+		const DonneesType &donnees_type) noexcept(false) -> dls::tableau<DonneesType>
 {
 //	if (donnees_type.type_base() != id_morceau::FONC) {
 //		return {};
 //	}
 
 	auto dt = DonneesType{};
-	std::vector<DonneesType> donnees_types;
+	dls::tableau<DonneesType> donnees_types;
 
 	auto debut = donnees_type.end() - 1;
 	auto fin   = donnees_type.begin() - 1;
@@ -211,7 +211,7 @@ size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 			}
 		}
 
-		donnees_types.push_back(dt);
+		donnees_types.pousse(dt);
 
 		dt = DonneesType{};
 	}
@@ -223,7 +223,7 @@ size_t MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 		dt.pousse(*debut--);
 	}
 
-	donnees_types.push_back(dt);
+	donnees_types.pousse(dt);
 
 	return donnees_types;
 }

@@ -9,6 +9,6 @@ public:
 
     void ajoute_point(T const &valeur)
     {
-        m_valeurs.push_back(valeur);
+        m_valeurs.pousse(valeur);
     }
 };

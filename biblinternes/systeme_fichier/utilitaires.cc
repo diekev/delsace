@@ -26,6 +26,8 @@
 
 #include <fstream>
 
+#include "biblinternes/structures/chaine.hh"
+
 namespace dls {
 namespace systeme_fichier {
 
@@ -102,7 +104,7 @@ void mettre_poubelle(const std::experimental::filesystem::path &chemin)
 
 	/* write info file to be able to restore the image */
 
-	auto info_fichier = std::string{};
+	auto info_fichier = dls::chaine{};
 	info_fichier += "[Trash Info]\nPath=";
 	info_fichier += chemin.string();
 	info_fichier += "\nDeletionDate=";

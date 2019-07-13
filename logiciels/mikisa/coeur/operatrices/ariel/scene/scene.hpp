@@ -7,7 +7,7 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 #include <tbb/tbb.h>
 #include <tbb/concurrent_vector.h>
 #include "../utilities/utilities.h"
@@ -46,8 +46,8 @@ public:
 	void BuildSolidGeomLevelSet(const int& frame);
 	void BuildPermaSolidGeomLevelSet();
 
-	void SetPaths(const std::string& imagePath, const std::string& meshPath,
-				  const std::string& vdbPath, const std::string& partioPath);
+	void SetPaths(const dls::chaine& imagePath, const dls::chaine& meshPath,
+				  const dls::chaine& vdbPath, const dls::chaine& partioPath);
 
 	void ExportParticles(dls::tableau<fluidCore::Particle*> particles,
 						 const float& maxd, const int& frame, const bool& VDB,
@@ -66,10 +66,10 @@ public:
 
 	unsigned int GetLiquidParticleCount();
 
-	std::string                                                 m_imagePath{};
-	std::string                                                 m_meshPath{};
-	std::string                                                 m_vdbPath{};
-	std::string                                                 m_partioPath{};
+	dls::chaine                                                 m_imagePath{};
+	dls::chaine                                                 m_meshPath{};
+	dls::chaine                                                 m_vdbPath{};
+	dls::chaine                                                 m_partioPath{};
 
 	tbb::mutex                                                  m_particleLock{};
 	dls::tableau<geomCore::Geom*>                                m_liquids{};

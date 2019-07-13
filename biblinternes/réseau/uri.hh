@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace reseau {
 
 // URI = scheme:[//authority]path[?query][#fragment]
 // authority = [userinfo@]host[:port]
 class uri {
-	std::string m_uri{};
+	dls::chaine m_uri{};
 	dls::vue_chaine m_schema{};
 	dls::vue_chaine m_autorite{};
 	dls::vue_chaine m_chemin{};
@@ -42,7 +42,7 @@ class uri {
 	dls::vue_chaine m_port{};
 
 public:
-	explicit uri(const std::string &chaine);
+	explicit uri(const dls::chaine &chaine);
 
 	bool est_valide() const;
 

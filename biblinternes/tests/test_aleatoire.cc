@@ -36,7 +36,7 @@ namespace dls {
 namespace test_aleatoire {
 
 void Testeuse::ajoute_tests(
-		const std::string &nom,
+		const dls::chaine &nom,
 		t_fonction_initialisation initialisation,
 		t_fonction_entree_test entree_test)
 {
@@ -45,12 +45,12 @@ void Testeuse::ajoute_tests(
 	foncs.initialisation = initialisation;
 	foncs.entree_test = entree_test;
 
-	fonctions.push_back(foncs);
+	fonctions.pousse(foncs);
 }
 
 int Testeuse::performe_tests(std::ostream &os)
 {
-	auto chemin = std::string("/tmp/test_");
+	auto chemin = dls::chaine("/tmp/test_");
 
 	std::random_device device{};
 	std::uniform_int_distribution<u_char> rng{0, 255};

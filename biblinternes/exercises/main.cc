@@ -29,6 +29,10 @@
 #include <limits>
 #include <numeric>
 
+#include "biblinternes/math/outils.hh"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/tests/test_unitaire.hh"
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/pile.hh"
 
@@ -37,9 +41,6 @@
 #include "postfix.h"
 #include "range.h"
 
-#include "../math/outils.hh"
-#include "../outils/definitions.h"
-#include "../tests/test_unitaire.hh"
 
 /* ************************************************************************** */
 
@@ -190,7 +191,7 @@ static auto test_to_words(std::ostream &os, std::istream &is)
 template <typename Container>
 static auto all(const Container &container)
 {
-	return range<typename Container::const_iterator>(container.cbegin(), container.cend() - 1);
+	return range<typename Container::const_iteratrice>(container.debut(), container.fin() - 1);
 }
 
 template <typename RangeType>
@@ -202,7 +203,7 @@ static auto retro(const RangeType &r)
 template <typename RangeType, typename ValueType>
 static auto find(RangeType r, ValueType v)
 {
-	for (; !r.empty(); r.pop_front()) {
+	for (; !r.est_vide(); r.pop_front()) {
 		if (r.front() == v) {
 			break;
 		}
@@ -213,13 +214,13 @@ static auto find(RangeType r, ValueType v)
 
 static auto test_range(std::ostream &os, std::istream &)
 {
-	std::vector<int> v = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	dls::tableau<int> v = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
 	auto r0 = all(v);
 
 	auto r = retro(find(r0, 5));
 
-	while (!r.empty()) {
+	while (!r.est_vide()) {
 		os << r.front() << '\n';
 		r.pop_front();
 	}
@@ -300,7 +301,7 @@ static auto load_prm(std::ifstream &file, pointer_relocation_map &prm)
 
 using object_t = int;
 
-using undo_stack_t = dls::pile<std::string>;
+using undo_stack_t = dls::pile<dls::chaine>;
 undo_stack_t undo_stack;
 
 static auto change_object_value(std::ofstream &undo_file,
@@ -396,11 +397,11 @@ static auto test_prm(std::ostream &, std::istream &)
 /* ************************************************************************** */
 
 static auto calcul_partage_dette(
-		const std::vector<double> &dettes,
+		const dls::tableau<double> &dettes,
 		const double capital,
-		std::vector<double> &partages)
+		dls::tableau<double> &partages)
 {
-	auto total_dettes = std::accumulate(dettes.begin(), dettes.end(), 0.0);
+	auto total_dettes = std::accumulate(dettes.debut(), dettes.fin(), 0.0);
 
 	/* S'il y a suffisament de capitaux, distribue à chacun leurs dûs. */
 	if (total_dettes <= capital) {
@@ -408,12 +409,12 @@ static auto calcul_partage_dette(
 		return;
 	}
 
-	partages.resize(dettes.size());
-	std::fill(partages.begin(), partages.end(), 0.0);
+	partages.redimensionne(dettes.taille());
+	std::fill(partages.debut(), partages.fin(), 0.0);
 
 	auto reste = capital;
 
-	for (size_t i = 0; i < dettes.size() - 1; ++i) {
+	for (auto i = 0l; i < dettes.taille() - 1; ++i) {
 		/* Calcul parts contestées. */
 		auto contestee = std::min(dettes[i], dettes[i + 1]);
 
@@ -430,36 +431,36 @@ static auto calcul_partage_dette(
 	}
 
 	/* Assigne les parts non-contestées. */
-	partages[dettes.size() - 1] += reste;
+	partages[dettes.taille() - 1] += reste;
 }
 
 static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 {
 	{
-		std::vector<double> dettes = { 50.0 };
+		dls::tableau<double> dettes = { 50.0 };
 		auto capital = 100.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 50.0);
 	}
 
 	{
-		std::vector<double> dettes = { 100.0 };
+		dls::tableau<double> dettes = { 100.0 };
 		auto capital = 75.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 75.0);
 	}
 
 	{
-		std::vector<double> dettes = { 50.0, 100.0 };
+		dls::tableau<double> dettes = { 50.0, 100.0 };
 		auto capital = 100.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 25.0);
@@ -467,10 +468,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 300.0 };
+		dls::tableau<double> dettes = { 100.0, 300.0 };
 		auto capital = 66.0 + 2.0 / 3.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], (33.0 + 1.0 / 3.0));
@@ -478,10 +479,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 300.0 };
+		dls::tableau<double> dettes = { 100.0, 300.0 };
 		auto capital = 125;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 50.0);
@@ -489,10 +490,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 300.0 };
+		dls::tableau<double> dettes = { 100.0, 300.0 };
 		auto capital = 200;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 50.0);
@@ -500,10 +501,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 200.0 };
+		dls::tableau<double> dettes = { 100.0, 200.0 };
 		auto capital = 66.0 + 2.0 / 3.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], (33.0 + 1.0 / 3.0));
@@ -511,10 +512,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 200.0 };
+		dls::tableau<double> dettes = { 100.0, 200.0 };
 		auto capital = 125.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 50.0);
@@ -522,10 +523,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 200.0 };
+		dls::tableau<double> dettes = { 100.0, 200.0 };
 		auto capital = 150.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 50.0);
@@ -533,10 +534,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 200.0, 300.0 };
+		dls::tableau<double> dettes = { 200.0, 300.0 };
 		auto capital = 66.0 + 2.0 / 3.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], (33.0 + 1.0 / 3.0));
@@ -544,10 +545,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 200.0, 300.0 };
+		dls::tableau<double> dettes = { 200.0, 300.0 };
 		auto capital = 150.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 75.0);
@@ -555,10 +556,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 200.0, 300.0 };
+		dls::tableau<double> dettes = { 200.0, 300.0 };
 		auto capital = 250.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 100.0);
@@ -566,10 +567,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 200.0, 300.0 };
+		dls::tableau<double> dettes = { 100.0, 200.0, 300.0 };
 		auto capital = 100;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], (33.0 + 1.0 / 3.0));
@@ -578,10 +579,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 200.0, 300.0 };
+		dls::tableau<double> dettes = { 100.0, 200.0, 300.0 };
 		auto capital = 200.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 50.0);
@@ -590,10 +591,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 200.0, 300.0 };
+		dls::tableau<double> dettes = { 100.0, 200.0, 300.0 };
 		auto capital = 300.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 50.0);
@@ -602,10 +603,10 @@ static void test_unitaire_dette(dls::test_unitaire::Controleuse &controlleur)
 	}
 
 	{
-		std::vector<double> dettes = { 100.0, 200.0, 300.0 };
+		dls::tableau<double> dettes = { 100.0, 200.0, 300.0 };
 		auto capital = 600.0;
 
-		std::vector<double> partages;
+		dls::tableau<double> partages;
 		calcul_partage_dette(dettes, capital, partages);
 
 		CU_VERIFIE_EGALITE(controlleur, partages[0], 100.0);
@@ -654,25 +655,25 @@ static auto proteine_paire(char valeur)
 	}
 }
 
-auto brin_pair(const std::string &brin)
+auto brin_pair(const dls::chaine &brin)
 {
-	std::string pair;
-	pair.resize(brin.size());
+	dls::chaine pair;
+	pair.redimensionne(brin.taille());
 
-	for (size_t i = 0; i < brin.size(); ++i) {
+	for (auto i = 0l; i < brin.taille(); ++i) {
 		pair[i] = proteine_paire(brin[i]);
 	}
 
 	return pair;
 }
 
-static auto converti_vers_adn_ex(const char *ptr, const size_t taille, bool inverse)
+static auto converti_vers_adn_ex(const char *ptr, const long taille, bool inverse)
 {
-	std::string tampon;
-	tampon.resize(taille * 4);
+	dls::chaine tampon;
+	tampon.redimensionne(taille * 4);
 
 	if (inverse) {
-		for (size_t i = taille - 1; i != -1; --i) {
+		for (auto i = taille - 1; i != -1; --i) {
 			tampon[i * 4 + 0] = proteine((*ptr >> 6) & 0b00000011);
 			tampon[i * 4 + 1] = proteine((*ptr >> 4) & 0b00000011);
 			tampon[i * 4 + 2] = proteine((*ptr >> 2) & 0b00000011);
@@ -682,7 +683,7 @@ static auto converti_vers_adn_ex(const char *ptr, const size_t taille, bool inve
 		}
 	}
 	else {
-		for (size_t i = 0; i < taille; ++i) {
+		for (auto i = 0l; i < taille; ++i) {
 			tampon[i * 4 + 0] = proteine((*ptr >> 6) & 0b00000011);
 			tampon[i * 4 + 1] = proteine((*ptr >> 4) & 0b00000011);
 			tampon[i * 4 + 2] = proteine((*ptr >> 2) & 0b00000011);
@@ -707,15 +708,15 @@ auto converti_vers_adn(T objet)
 template <>
 auto converti_vers_adn(const char *objet)
 {
-	const auto taille = std::strlen(objet);
+	const auto taille = static_cast<long>(std::strlen(objet));
 
 	return converti_vers_adn_ex(objet, taille, false);
 }
 
 template <>
-auto converti_vers_adn(const std::string &objet)
+auto converti_vers_adn(const dls::chaine &objet)
 {
-	return converti_vers_adn_ex(objet.c_str(), objet.size(), false);
+	return converti_vers_adn_ex(objet.c_str(), objet.taille(), false);
 }
 
 static auto tests_conversion_adn(dls::test_unitaire::Controleuse &controlleur)
@@ -723,19 +724,19 @@ static auto tests_conversion_adn(dls::test_unitaire::Controleuse &controlleur)
 	{
 		auto adn = converti_vers_adn(0);
 
-		CU_VERIFIE_EGALITE(controlleur, adn, std::string("AAAAAAAAAAAAAAAA"));
+		CU_VERIFIE_EGALITE(controlleur, adn, dls::chaine("AAAAAAAAAAAAAAAA"));
 	}
 
 	{
 		auto adn = converti_vers_adn(1);
 
-		CU_VERIFIE_EGALITE(controlleur, adn, std::string("AAAAAAAAAAAAAAAC"));
+		CU_VERIFIE_EGALITE(controlleur, adn, dls::chaine("AAAAAAAAAAAAAAAC"));
 	}
 
 	{
 		auto adn = converti_vers_adn("ADN");
 
-		CU_VERIFIE_EGALITE(controlleur, adn, std::string("CAACCACACATG"));
+		CU_VERIFIE_EGALITE(controlleur, adn, dls::chaine("CAACCACACATG"));
 	}
 
 	{
@@ -743,7 +744,7 @@ static auto tests_conversion_adn(dls::test_unitaire::Controleuse &controlleur)
 
 		CU_VERIFIE_EGALITE(controlleur,
 						   adn,
-						   std::string("CAAGCGCCCTCACTCACGCCCTAGAGAACAATCGACCGTACGTAAGAACCATCGACCTCCCGTA"));
+						   dls::chaine("CAAGCGCCCTCACTCACGCCCTAGAGAACAATCGACCGTACGTAAGAACCATCGACCTCCCGTA"));
 	}
 }
 
@@ -767,7 +768,7 @@ static auto test_constexpr_if_ex(dls::test_unitaire::Controleuse &controlleur)
 	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<int>(), 0);
 	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<float>(), 1e-5f);
 	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<double>(), 1e-8);
-	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<std::string>(), std::string{""});
+	CU_VERIFIE_EGALITE(controlleur, dls::math::tolerance<dls::chaine>(), dls::chaine{""});
 }
 
 static auto test_constexpr_if(std::ostream &os, std::istream &)
@@ -783,7 +784,7 @@ static auto test_constexpr_if(std::ostream &os, std::istream &)
 struct Donnees {
 	const int nombre_candidats = 6;
 	int ensemble_candidats[6] = { 1, 2, 5, 10, 20, 50 };
-	std::vector<int> ensemble_resultat{};
+	dls::tableau<int> ensemble_resultat{};
 	int resultat_courant = 0;
 	int objectif = 0;
 
@@ -808,7 +809,7 @@ static auto candidat_peut_contribuer(int candidat)
 
 static auto assigne_candidat(Donnees &donnees, int candidat)
 {
-	donnees.ensemble_resultat.push_back(candidat);
+	donnees.ensemble_resultat.pousse(candidat);
 	donnees.resultat_courant -= candidat;
 }
 
@@ -1009,40 +1010,41 @@ struct InformationsTexte {
 	InformationsTexte() = default;
 };
 
-auto rogne(const std::string &texte, const std::string &espaces_blancs = " \n\t")
+auto rogne(const dls::chaine &texte, const dls::chaine &espaces_blancs = " \n\t")
 {
-	const auto debut = texte.find_first_not_of(espaces_blancs);
+	const auto debut = texte.trouve_premier_non_de(espaces_blancs);
 
-	if (debut == std::string::npos) {
-		return std::string{""};
+	if (debut == dls::chaine::npos) {
+		return dls::chaine{""};
 	}
 
-	const auto fin = texte.find_last_not_of(espaces_blancs);
+	const auto fin = texte.trouve_dernier_non_de(espaces_blancs);
 	const auto plage = fin - debut + 1;
 
-	return texte.substr(debut, plage);
+	return texte.sous_chaine(debut, plage);
 }
 
-auto decoupe(const std::string &texte, const char delimiteur)
+auto decoupe(const dls::chaine &texte, const char delimiteur)
 {
-	std::vector<std::string> morceaux;
+	dls::tableau<dls::chaine> morceaux;
 	std::string bout;
-	std::stringstream ss(texte);
+	std::stringstream ss(texte.c_str());
 
 	while (std::getline(ss, bout, delimiteur)) {
-		morceaux.push_back(bout);
+		morceaux.pousse(bout);
 	}
 
 	return morceaux;
 }
 
-auto nombre_caractere(bool espaces, std::string texte)
+auto nombre_caractere(bool espaces, dls::chaine texte)
 {
+	std::regex r;
 	if (!espaces) {
-		texte = std::regex_replace(texte, std::regex("/\\s+/g"), " ");
+		texte = std::regex_replace(texte.c_str(), std::regex("/\\s+/g"), " ");
 	}
 
-	return texte.size();
+	return texte.taille();
 }
 
 enum {
@@ -1074,11 +1076,11 @@ auto temps(int nombre_mot, int type)
 	return n;
 }
 
-auto informations_texte(const std::string &texte, int drapeaux, const std::string &mots_cles)
+auto informations_texte(const dls::chaine &texte, int drapeaux, const dls::chaine &mots_cles)
 {
 	auto informations = InformationsTexte();
 
-	if (texte.empty()) {
+	if (texte.est_vide()) {
 		return informations;
 	}
 
@@ -1087,63 +1089,64 @@ auto informations_texte(const std::string &texte, int drapeaux, const std::strin
 
 	if ((drapeaux & IGNORE_APOSTROPHES) != 0) {
 		const auto regex = std::regex("[\\'\\’]");  // "gi"
-		copie_texte1 = std::regex_replace(copie_texte1, regex, "");
+		copie_texte1 = std::regex_replace(copie_texte1.c_str(), regex, "");
 	}
 	else {
 		const auto regex = std::regex("[\\'\\’]");  // "gi"
-		copie_texte1 = std::regex_replace(copie_texte1, regex, " ");
+		copie_texte1 = std::regex_replace(copie_texte1.c_str(), regex, " ");
 	}
 
 	if ((drapeaux & IGNORE_TIRETS) != 0) {
 		const auto regex = std::regex("[\\-]");  // "gi"
-		copie_texte1 = std::regex_replace(copie_texte1, regex, "");
+		copie_texte1 = std::regex_replace(copie_texte1.c_str(), regex, "");
 	}
 	else {
 		const auto regex = std::regex("[\\-]");  // "gi"
-		copie_texte1 = std::regex_replace(copie_texte1, regex, " ");
+		copie_texte1 = std::regex_replace(copie_texte1.c_str(), regex, " ");
 	}
 
 	if ((drapeaux & IGNORE_MOTS_VIDES) != 0) {
-		std::string motif;
+		dls::chaine motif;
 		std::regex regex;
 
 		for (const auto &mot_vide : mots_vides) {
-			motif = std::string{"^\\s*"} + mot_vide + "\\s*$";
-			motif += std::string{"|^\\s*"} + mot_vide + "\\s+";
-			motif += std::string{"|\\s+"} + mot_vide + "\\s*$";
-			motif += std::string{"|\\s+"} + mot_vide + "\\s+";
+			motif = dls::chaine{"^\\s*"} + mot_vide + "\\s*$";
+			motif += dls::chaine{"|^\\s*"} + mot_vide + "\\s+";
+			motif += dls::chaine{"|\\s+"} + mot_vide + "\\s*$";
+			motif += dls::chaine{"|\\s+"} + mot_vide + "\\s+";
 
-			regex = std::regex(motif);  // "gi"
+			regex = std::regex(motif.c_str());  // "gi"
 
-			copie_texte1 = std::regex_replace(copie_texte1, regex, " ");
-			copie_texte2 = std::regex_replace(copie_texte2, regex, " ");
+			copie_texte1 = std::regex_replace(copie_texte1.c_str(), regex, " ");
+			copie_texte2 = std::regex_replace(copie_texte2.c_str(), regex, " ");
 		}
 	}
 
 	auto regex = std::regex("[^\\w^àáâãäåçèéêëìíîïðòóôõöùúûüýÿ]");  // "gi"
-	copie_texte1 = std::regex_replace(copie_texte1, regex," ");
-	copie_texte1 = std::regex_replace(copie_texte1, std::regex("/\\s+/g"), " ");
+	copie_texte1 = std::regex_replace(copie_texte1.c_str(), regex," ");
+	copie_texte1 = std::regex_replace(copie_texte1.c_str(), std::regex("/\\s+/g"), " ");
 	copie_texte1 = rogne(copie_texte1);
 
 	auto atext = decoupe(texte, ' ');
 
 	regex = std::regex("(\r\n|\r|\n)");  // "g"
-	copie_texte2 = std::regex_replace(copie_texte2, regex, "");
+	copie_texte2 = std::regex_replace(copie_texte2.c_str(), regex, "");
 	copie_texte2 = rogne(copie_texte2);
 
-	if (!mots_cles.empty()) {
-		regex = std::regex("\\b" + mots_cles + "\\b");  // g
-		const auto iterateur_debut = std::sregex_iterator(copie_texte1.begin(), copie_texte1.end(), regex);
+	if (!mots_cles.est_vide()) {
+		regex = std::regex(("\\b" + mots_cles + "\\b").c_str());  // g
+		auto tmp_str = std::string(copie_texte1.c_str());
+		const auto iterateur_debut = std::sregex_iterator(tmp_str.begin(), tmp_str.end(), regex);
 		const auto iterateur_fin = std::sregex_iterator();
 
 		informations.occurence_mots_cles = static_cast<int>(std::distance(iterateur_debut, iterateur_fin));
 	}
 
-	if (mots_cles.empty() && (informations.occurence_mots_cles != 0 || atext[atext.size() - 1] == "")){
+	if (mots_cles.est_vide() && (informations.occurence_mots_cles != 0 || atext[atext.taille() - 1] == "")){
 		informations.occurence_mots_cles = 0;
 	}
 
-	informations.nombre_mots = static_cast<int>((atext[atext.size() - 1ul]=="") ? atext.size() - 1ul : atext.size());
+	informations.nombre_mots = static_cast<int>((atext[atext.taille() - 1l]=="") ? atext.taille() - 1l : atext.taille());
 
 	const auto nombre_caracteres_sans_espace = nombre_caractere(false, copie_texte2);
 	const auto lignes_ordinateur = static_cast<int>(static_cast<double>(nombre_caracteres_sans_espace) / 78.0 + 1.0);

@@ -150,10 +150,10 @@ void Scene::ajoute_maillage(Maillage *maillage)
 	objet->transformation = maillage->transformation();
 	objet->nuanceur = maillage->nuanceur();
 
-	objets.push_back(objet);
+	objets.pousse(objet);
 	objet_actif = objet;
 
-	maillages.push_back(maillage);
+	maillages.pousse(maillage);
 }
 
 void Scene::ajoute_lumiere(Lumiere *lumiere)
@@ -162,10 +162,10 @@ void Scene::ajoute_lumiere(Lumiere *lumiere)
 	objet->transformation = lumiere->transformation;
 	objet->nuanceur = lumiere->nuanceur;
 
-	objets.push_back(objet);
+	objets.pousse(objet);
 	objet_actif = objet;
 
-	lumieres.push_back(lumiere);
+	lumieres.pousse(lumiere);
 }
 
 /* ************************************************************************** */

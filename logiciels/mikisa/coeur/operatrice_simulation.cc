@@ -87,11 +87,11 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 		m_corps1.reinitialise();
 		m_corps2.reinitialise();
 
-		m_graphe.entrees.clear();
+		m_graphe.entrees.efface();
 		m_graphe.entrees.pousse(&m_corps1);
 		m_graphe.entrees.pousse(&m_corps2);
 
-		m_graphe.donnees.clear();
+		m_graphe.donnees.efface();
 		m_graphe.donnees.pousse(&m_corps);
 
 		/* copie l'état de base */

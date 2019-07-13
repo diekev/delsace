@@ -134,30 +134,30 @@ utf8::utf8(const char *c_str)
 			throw "Impossible de décoder la chaine avec le codec UTF-8 !";
 		}
 
-		m_donnees.push_back(valeur);
+		m_donnees.pousse(valeur);
 	}
 }
 
-utf8::utf8(std::string const &std_string)
+utf8::utf8(dls::chaine const &std_string)
 	: utf8(std_string.c_str())
 {}
 
 utf8::plage utf8::caracteres()
 {
-	return plage(m_donnees.begin(), m_donnees.end());
+	return plage(m_donnees.debut(), m_donnees.fin());
 }
 
 utf8::plage_const utf8::caracteres() const
 {
-	return plage_const(m_donnees.begin(), m_donnees.end());
+	return plage_const(m_donnees.debut(), m_donnees.fin());
 }
 
 utf8::type_taille utf8::taille() const
 {
-	return m_donnees.size();
+	return m_donnees.taille();
 }
 
-utf8::type_valeur utf8::operator[](size_t i) const
+utf8::type_valeur utf8::operator[](long i) const
 {
 	return m_donnees[i];
 }
@@ -182,14 +182,14 @@ bool utf8::compare(const char *autre) const
 	return this->compare(utf8(autre));
 }
 
-bool utf8::compare(std::string const &autre) const
+bool utf8::compare(dls::chaine const &autre) const
 {
 	return this->compare(utf8(autre));
 }
 
 /* ************************************************************************** */
 
-std::string converti_en_std_string(utf8 const &chaine_utf8)
+dls::chaine converti_en_std_string(utf8 const &chaine_utf8)
 {
 	std::ostringstream os;
 	os << chaine_utf8;

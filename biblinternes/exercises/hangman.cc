@@ -28,7 +28,7 @@
 #include <iostream>
 #include <random>
 
-std::string words[] = {
+dls::chaine words[] = {
     "apopathodiaphulatophobe", // 23
     "chemin",  // 6
     "deliquescence", // 13
@@ -43,13 +43,13 @@ std::string words[] = {
     "utiliser",  // 8
 };
 
-auto find_best_match(const std::string &to_guess)
+auto find_best_match(const dls::chaine &to_guess)
 {
-	std::string best_match, tmp_match;
+	dls::chaine best_match, tmp_match;
 	auto prev_match = 0;
 
 	for (const auto &word : words) {
-		auto match = count_matches(to_guess, word);
+		auto match = compte_commun(to_guess, word);
 
 		if (match > prev_match) {
 			prev_match = match;
@@ -68,11 +68,11 @@ auto hangman_player_human(std::istream &is, std::ostream &os)
 	std::uniform_int_distribution<int> dist(0, num_words - 1);
 
 	const auto &word = words[dist(rd)];
-	std::string tmp(word.length(), '_');
+	dls::chaine tmp(word.taille(), '_');
 
 	int max_guesses = 10;
 	char letter;
-	std::string guess_word;
+	dls::chaine guess_word;
 
 	os << tmp << '\n';
 
@@ -80,8 +80,8 @@ auto hangman_player_human(std::istream &is, std::ostream &os)
 		os << "Pick a letter: ";
 		is >> letter;
 
-		auto index = word.find(letter);
-		if (index == std::string::npos) {
+		auto index = word.trouve(letter);
+		if (index == dls::chaine::npos) {
 			os << "Letter not present in word!\n";
 			--max_guesses;
 			continue;
@@ -89,10 +89,10 @@ auto hangman_player_human(std::istream &is, std::ostream &os)
 
 		tmp[index] = letter;
 
-		while ((index = word.find(letter, index + 1)) != std::string::npos)
+		while ((index = word.trouve(letter, index + 1)) != dls::chaine::npos)
 			tmp[index] = letter;
 
-		if (count(tmp, '_') == 0) {
+		if (compte(tmp, '_') == 0) {
 			os << "Congratulation! You guessed correctly!\n";
 			os << tmp << '\n';
 			break;
@@ -131,7 +131,7 @@ auto hangman_player_computer(std::istream &is, std::ostream &os)
 	int letters;
 	is >> letters;
 
-	std::string word(static_cast<size_t>(letters), '_');
+	dls::chaine word(letters, '_');
 	bool available[26];
 	std::fill(std::begin(available), std::end(available), true);
 

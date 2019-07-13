@@ -141,7 +141,7 @@ void EditeurObjet::ajourne_etat(int evenement)
 {
 	auto &scene = m_koudou->parametres_rendu.scene;
 
-	if (scene.objets.empty()) {
+	if (scene.objets.est_vide()) {
 		return;
 	}
 

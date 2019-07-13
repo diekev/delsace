@@ -51,8 +51,8 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 		auto decoupeuse = danjo::Decoupeuse(tampon);
 		decoupeuse.decoupe();
 
-		auto debut = decoupeuse.begin();
-		auto fin = decoupeuse.end();
+		auto debut = decoupeuse.morceaux().debut();
+		auto fin = decoupeuse.morceaux().fin();
 
 		if (debut->identifiant != danjo::id_morceau::DISPOSITION) {
 			return;
@@ -108,7 +108,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 			}
 
 			if (nom_propriete.est_vide()) {
-				//imprime_morceaux(decoupeuse.begin(), decoupeuse.end());
+				//imprime_morceaux(decoupeuse.debut(), decoupeuse.fin());
 				std::cerr << "Fichier " << chemin << " : attache manquante !\n";
 				continue;
 			}

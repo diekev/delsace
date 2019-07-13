@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/outils/iterateurs.h"
 
@@ -36,13 +36,13 @@ namespace chaine {
  * de valeur.
  */
 class utf8 {
-	std::vector<char32_t> m_donnees{};
+	dls::tableau<char32_t> m_donnees{};
 
 public:
 	using type_valeur = char32_t;
-	using type_taille = size_t;
-	using plage = dls::outils::plage_iterable<std::vector<char32_t>::iterator>;
-	using plage_const = dls::outils::plage_iterable<std::vector<char32_t>::const_iterator>;
+	using type_taille = long;
+	using plage = dls::outils::plage_iterable<dls::tableau<char32_t>::iteratrice>;
+	using plage_const = dls::outils::plage_iterable<dls::tableau<char32_t>::const_iteratrice>;
 
 	utf8() = default;
 
@@ -54,7 +54,7 @@ public:
 
 	explicit utf8(const char *c_str);
 
-	explicit utf8(std::string const &std_string);
+	explicit utf8(dls::chaine const &std_string);
 
 	plage caracteres();
 
@@ -62,13 +62,13 @@ public:
 
 	type_taille taille() const;
 
-	type_valeur operator[](size_t i) const;
+	type_valeur operator[](long i) const;
 
 	bool compare(utf8 const &autre) const;
 
 	bool compare(const char *autre) const;
 
-	bool compare(std::string const &autre) const;
+	bool compare(dls::chaine const &autre) const;
 };
 
 /* ********************************* égalité ******************************** */
@@ -88,12 +88,12 @@ inline bool operator==(const char *a, utf8 const &b)
 	return b.compare(a);
 }
 
-inline bool operator==(utf8 const &a, std::string const &b)
+inline bool operator==(utf8 const &a, dls::chaine const &b)
 {
 	return a.compare(b);
 }
 
-inline bool operator==(std::string const &a, utf8 const &b)
+inline bool operator==(dls::chaine const &a, utf8 const &b)
 {
 	return b.compare(a);
 }
@@ -115,19 +115,19 @@ inline bool operator!=(const char *a, utf8 const &b)
 	return !(a == b);
 }
 
-inline bool operator!=(utf8 const &a, std::string const &b)
+inline bool operator!=(utf8 const &a, dls::chaine const &b)
 {
 	return !(a == b);
 }
 
-inline bool operator!=(std::string const &a, utf8 const &b)
+inline bool operator!=(dls::chaine const &a, utf8 const &b)
 {
 	return !(a == b);
 }
 
 /* ******************************* conversion ******************************* */
 
-std::string converti_en_std_string(utf8 const &chaine_utf8);
+dls::chaine converti_en_std_string(utf8 const &chaine_utf8);
 
 /* ******************************* impression ******************************* */
 

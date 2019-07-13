@@ -22,9 +22,11 @@
 set(NOM_BIBLIOTHEQUE runtime_polymorphy)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
+	bib_structures
 )
 
 set(ENTETES

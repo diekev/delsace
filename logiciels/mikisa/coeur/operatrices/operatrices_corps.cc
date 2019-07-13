@@ -1443,7 +1443,7 @@ public:
 		}
 
 		/* À FAIRE : réinitialisation, trouver quand créer les déformeurs. */
-		deformeur->clear();
+		deformeur->efface();
 
 		/* À FAIRE :
 		 * - contrainte par groupe
@@ -1530,7 +1530,7 @@ public:
 		auto debut = evalue_entier("début");
 
 		if (contexte.temps_courant <= debut) {
-			m_deformeurs.clear();
+			m_deformeurs.efface();
 			return EXECUTION_REUSSIE;
 		}
 

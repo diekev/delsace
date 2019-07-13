@@ -29,19 +29,19 @@ namespace image {
 namespace operation {
 
 tuple_vecteurs calcul_index_et_poids(
-		const size_t taille_soure,
-		const size_t taille_dest)
+		const long taille_soure,
+		const long taille_dest)
 {
-	std::vector<int>   index_gauche(taille_soure);
-	std::vector<int>   index_droite(taille_soure);
-	std::vector<float> poids(taille_soure);
+	dls::tableau<int>   index_gauche(taille_soure);
+	dls::tableau<int>   index_droite(taille_soure);
+	dls::tableau<float> poids(taille_soure);
 
 	const auto echelle = static_cast<float>(taille_dest) / static_cast<float>(taille_soure);
 
 	/* On ne calcule les index que jusqu'à l'avant-dernier puisqu'il faut
 	 * nécessairement que les derniers éléments de la source et de la
 	 * destination soient les mêmes. */
-	for (size_t i = 0; i < taille_soure - 1; i++) {
+	for (long i = 0; i < taille_soure - 1; i++) {
 		const auto i0 = static_cast<float>(i) * echelle;
 		const auto i1 = static_cast<float>(i + 1) * echelle;
 

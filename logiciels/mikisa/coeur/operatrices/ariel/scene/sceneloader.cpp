@@ -8,7 +8,7 @@
 
 namespace sceneCore{
 
-SceneLoader::SceneLoader(const std::string& filename)
+SceneLoader::SceneLoader(const dls::chaine& filename)
 {
     std::cout << "Loading scene from " << filename << "...\n" << std::endl;
 
@@ -20,7 +20,7 @@ SceneLoader::SceneLoader(const std::string& filename)
 
     //grab relative path
 	auto pathTokens = utilityCore::tokenizeString(filename, "/");
-	if (std::strcmp(filename.substr(0,1).c_str(), "/")==0) {
+	if (std::strcmp(filename.sous_chaine(0, 1).c_str(), "/")==0) {
         m_relativePath = "/";
 	}
 	else {
@@ -35,7 +35,7 @@ SceneLoader::SceneLoader(const std::string& filename)
 
 #if 0
     //do json stuff
-    std::string jsonInput = utilityCore::readFileAsString(filename);
+	dls::chaine jsonInput = utilityCore::readFileAsString(filename);
     Json::Value root;
     Json::Reader reader;
     bool parsedSuccess = reader.parse(jsonInput, root, false);
@@ -59,7 +59,7 @@ SceneLoader::SceneLoader(const std::string& filename)
         }
 		if (root.isMember("transforms")) {
             std::cout << "Loading transforms..." << std::endl;
-            unsigned int nodesInGroup = root["transforms"].size();
+            unsigned int nodesInGroup = root["transforms"].taille();
             m_s->m_geomTransforms.reserve(nodesInGroup);
 			for (unsigned int j=0; j<nodesInGroup; j++) {
                 LoadGeomTransforms(root["transforms"][j]);
@@ -67,7 +67,7 @@ SceneLoader::SceneLoader(const std::string& filename)
         }
 		if (root.isMember("meshfiles")) {
             std::cout << "Loading meshfiles..." << std::endl;
-            unsigned int nodesInGroup = root["meshfiles"].size();
+            unsigned int nodesInGroup = root["meshfiles"].taille();
             m_s->m_meshFiles.reserve(nodesInGroup);
 			for (unsigned int j=0; j<nodesInGroup; j++) {
                 LoadMeshFiles(root["meshfiles"][j]);
@@ -75,14 +75,14 @@ SceneLoader::SceneLoader(const std::string& filename)
         }
 		if (root.isMember("animatedmeshes")) {
             std::cout << "Loading animatedmeshes..." << std::endl;
-            unsigned int nodesInGroup = root["animatedmeshes"].size();
+            unsigned int nodesInGroup = root["animatedmeshes"].taille();
             //since we want sequences to be instanceable, the loading method for sequences
             //gets a little complicated. we have to construct interpolatedObj objects for each
             //frame, store in a vector, and then store those vectors for later referencing
             m_animMeshSequences.reserve(nodesInGroup);
             unsigned int interpObjCount = 0;
 			for (unsigned int j=0; j<nodesInGroup; j++) {
-                interpObjCount = interpObjCount + root["animatedmeshes"][j].size() + 1;
+                interpObjCount = interpObjCount + root["animatedmeshes"][j].taille() + 1;
             }
             m_s->m_animMeshes.reserve(interpObjCount);
 			for (unsigned int j=0; j<nodesInGroup; j++) {
@@ -91,7 +91,7 @@ SceneLoader::SceneLoader(const std::string& filename)
         }
 		if (root.isMember("geoms")) {
             std::cout << "Loading geoms..." << std::endl;
-            unsigned int nodesInGroup = root["geoms"].size();
+            unsigned int nodesInGroup = root["geoms"].taille();
             m_s->m_geoms.reserve(nodesInGroup);
             unsigned int meshContainerCount = 0;
             unsigned int animmeshContainerCount = 0;
@@ -112,7 +112,7 @@ SceneLoader::SceneLoader(const std::string& filename)
             std::cout << "Loading sim..." << std::endl;
             unsigned int fluidNodeCount = 0;
             unsigned int solidNodeCount = 0;
-            unsigned int simNodeCount = root["sim"].size();
+            unsigned int simNodeCount = root["sim"].taille();
 			for (unsigned int j=0; j<simNodeCount; j++) {
 				if (strcmp(root["sim"][j]["type"].asString().c_str(), "liquid")==0) {
                     fluidNodeCount++;
@@ -158,7 +158,7 @@ float SceneLoader::GetStepsize() {
 void SceneLoader::LoadSim(const Json::Value& jsonsim)
 {
 #if 0
-    std::string id = jsonsim["geom"].asString();
+	dls::chaine id = jsonsim["geom"].asString();
     unsigned int geomID = m_linkNames["geom_"+id];
     geomCore::Geom* geomnode = &m_s->m_geoms[geomID];
     //load velocity
@@ -170,10 +170,10 @@ void SceneLoader::LoadSim(const Json::Value& jsonsim)
     }
     //check object type and add
 	if (strcmp(jsonsim["type"].asString().c_str(), "liquid")==0) {
-        m_s->m_liquids.push_back(geomnode);
-        m_s->m_liquidStartingVelocities.push_back(velocity);
+		m_s->m_liquids.pousse(geomnode);
+		m_s->m_liquidStartingVelocities.pousse(velocity);
 	}else if (strcmp(jsonsim["type"].asString().c_str(), "solid")==0) {
-        m_s->m_solids.push_back(geomnode);
+		m_s->m_solids.pousse(geomnode);
     }
 #endif
 }
@@ -185,10 +185,10 @@ void SceneLoader::LoadGeom(const Json::Value& jsongeom)
         std::cout << "Warning: Couldn't load geom node, missing ID. Skipping...\n" 
                   << std::endl;
 	}else {
-        std::string id = jsongeom["id"].asString();
+		dls::chaine id = jsongeom["id"].asString();
         //Check if id already exists
-		dls::dico<std::string, unsigned int>::iterator it = m_linkNames.find("geom_"+id);
-		if (it!=m_linkNames.end()) {
+		dls::dico<dls::chaine, unsigned int>::iterator it = m_linkNames.find("geom_"+id);
+		if (it!=m_linkNames.fin()) {
             std::cout << "Warning: geom node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;
 		}else {
@@ -197,16 +197,16 @@ void SceneLoader::LoadGeom(const Json::Value& jsongeom)
             bool postPersist = jsongeom["post_persist"].asBool();
             unsigned int frameInterval = jsongeom["frame_interval"].asInt();
             unsigned int frameOffset = jsongeom["frame_offset"].asInt();
-            unsigned int transformFrameCount = jsongeom["transform_frames"].size();
+            unsigned int transformFrameCount = jsongeom["transform_frames"].taille();
             //then take care of type specific stuff
 			if (strcmp(jsongeom["type"].asString().c_str(), "mesh")==0) {
                 //check frame counts
-				unsigned int frameCount = std::min(jsongeom["geom_frames"].size(),
+				unsigned int frameCount = std::min(jsongeom["geom_frames"].taille(),
                                                    transformFrameCount);
                 //build transform pointers array
                 geomCore::GeomTransform** transforms = new geomCore::GeomTransform*[frameCount];
 				for (unsigned int i=0; i<frameCount; i++) {
-                    std::string transformname = jsongeom["transform_frames"][i].asString();
+					dls::chaine transformname = jsongeom["transform_frames"][i].asString();
                     unsigned int transformID = m_linkNames["transform_"+transformname];
                     transforms[i] = &m_s->m_geomTransforms[transformID]; 
                 } 
@@ -214,28 +214,28 @@ void SceneLoader::LoadGeom(const Json::Value& jsongeom)
                 spaceCore::Bvh<objCore::Obj>** meshes = new spaceCore::Bvh<objCore::Obj>*
                                                             [frameCount];
 				for (unsigned int i=0; i<frameCount; i++) {
-                    std::string meshname = jsongeom["geom_frames"][i].asString();
+					dls::chaine meshname = jsongeom["geom_frames"][i].asString();
                     unsigned int meshID = m_linkNames["meshfile_"+meshname];
                     meshes[i] = &m_s->m_meshFiles[meshID];
                 } 
-                m_s->m_meshContainers.push_back(geomCore::MeshContainer(frameCount, frameOffset,
+				m_s->m_meshContainers.pousse(geomCore::MeshContainer(frameCount, frameOffset,
                                                                         frameInterval, prePersist,
                                                                         postPersist, transforms,
                                                                         meshes)); 
-                unsigned int meshNodeID = m_s->m_meshContainers.size()-1;
+                unsigned int meshNodeID = m_s->m_meshContainers.taille()-1;
                 m_s->m_meshContainers[meshNodeID].m_id = meshNodeID;
                 m_linkNames["meshinterface_"+id] = meshNodeID;
-                m_s->m_geoms.push_back(geomCore::Geom(&m_s->m_meshContainers[meshNodeID]));
+				m_s->m_geoms.pousse(geomCore::Geom(&m_s->m_meshContainers[meshNodeID]));
 			}else if (strcmp(jsongeom["type"].asString().c_str(), "animated_mesh")==0) {
                 //check frame counts
-                std::string animmeshname = jsongeom["anim_sequence"].asString();
+				dls::chaine animmeshname = jsongeom["anim_sequence"].asString();
                 unsigned int animmeshID = m_linkNames["animmesh_"+animmeshname];
-                unsigned int frameCount = m_animMeshSequences[animmeshID].size();
+                unsigned int frameCount = m_animMeshSequences[animmeshID].taille();
 				frameCount = std::min(frameCount, transformFrameCount);
                 //build transform pointers array
                 geomCore::GeomTransform** transforms = new geomCore::GeomTransform*[frameCount];
 				for (unsigned int i=0; i<frameCount; i++) {
-                    std::string transformname = jsongeom["transform_frames"][i].asString();
+					dls::chaine transformname = jsongeom["transform_frames"][i].asString();
                     unsigned int transformID = m_linkNames["transform_"+transformname];
                     transforms[i] = &m_s->m_geomTransforms[transformID]; 
                 } 
@@ -245,17 +245,17 @@ void SceneLoader::LoadGeom(const Json::Value& jsongeom)
 				for (unsigned int i=0; i<frameCount; i++) {
                     animmeshes[i] = m_animMeshSequences[animmeshID][i];    
                 }
-                m_s->m_animmeshContainers.push_back(geomCore::AnimatedMeshContainer(
+				m_s->m_animmeshContainers.pousse(geomCore::AnimatedMeshContainer(
                                                                 frameCount, frameOffset,
                                                                 frameInterval, prePersist,
                                                                 postPersist, transforms,
                                                                 animmeshes)); 
-                unsigned int animmeshNodeID = m_s->m_animmeshContainers.size()-1;
+                unsigned int animmeshNodeID = m_s->m_animmeshContainers.taille()-1;
                 m_s->m_animmeshContainers[animmeshNodeID].m_id = animmeshNodeID;
                 m_linkNames["animmeshinterface_"+id] = animmeshNodeID;
-                m_s->m_geoms.push_back(geomCore::Geom(&m_s->m_animmeshContainers[animmeshNodeID]));
+				m_s->m_geoms.pousse(geomCore::Geom(&m_s->m_animmeshContainers[animmeshNodeID]));
             }
-            unsigned int geomNodeID = m_s->m_geoms.size()-1;
+            unsigned int geomNodeID = m_s->m_geoms.taille()-1;
             m_s->m_geoms[geomNodeID].m_id = geomNodeID;
             m_linkNames["geom_"+id] = geomNodeID;
         }
@@ -270,46 +270,46 @@ void SceneLoader::LoadAnimMeshSequences(const Json::Value& jsonanimmesh)
         std::cout << "Warning: Couldn't load animmesh node, missing ID. Skipping...\n" 
                   << std::endl;
 	}else {
-        std::string id = jsonanimmesh["id"].asString();
+		dls::chaine id = jsonanimmesh["id"].asString();
         //Check if id already exists
-		dls::dico<std::string, unsigned int>::iterator it = m_linkNames.find("animmesh_"+id);
-		if (it!=m_linkNames.end()) {
+		dls::dico<dls::chaine, unsigned int>::iterator it = m_linkNames.find("animmesh_"+id);
+		if (it!=m_linkNames.fin()) {
             std::cout << "Warning: animmesh node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;
 		}else {
-			m_animMeshSequences.push_back(dls::tableau<
+			m_animMeshSequences.pousse(dls::tableau<
                                           spaceCore::Bvh<objCore::InterpolatedObj>*>());
             unsigned int nodeNumber = 0;
-            nodeNumber = (unsigned int)m_animMeshSequences.size()-1;
-            unsigned int frameCount = jsonanimmesh["frames"].size();
+            nodeNumber = (unsigned int)m_animMeshSequences.taille()-1;
+            unsigned int frameCount = jsonanimmesh["frames"].taille();
             m_animMeshSequences[nodeNumber].reserve(frameCount);
             std::cout << "Creating animmesh with " << frameCount << " frames" << std::endl;
 			for (unsigned int i=0; i<frameCount-1; i++) {
                 //grab current and next frame IDs to pass to an InterpolatedObj
-                std::string thisframelink = jsonanimmesh["frames"][i].asString();
-                std::string nextframelink = jsonanimmesh["frames"][i+1].asString();
+				dls::chaine thisframelink = jsonanimmesh["frames"][i].asString();
+				dls::chaine nextframelink = jsonanimmesh["frames"][i+1].asString();
                 unsigned int thisframeID = m_linkNames["meshfile_"+thisframelink];
                 unsigned int nextframeID = m_linkNames["meshfile_"+nextframelink];
-                m_s->m_animMeshes.push_back(spaceCore::Bvh<objCore::InterpolatedObj>());
-                unsigned int animMeshNodeNumber = (unsigned int)m_s->m_animMeshes.size()-1;
+				m_s->m_animMeshes.pousse(spaceCore::Bvh<objCore::InterpolatedObj>());
+                unsigned int animMeshNodeNumber = (unsigned int)m_s->m_animMeshes.taille()-1;
                 objCore::InterpolatedObj interpObj(&m_s->m_meshFiles[thisframeID].m_basegeom,
                                                    &m_s->m_meshFiles[nextframeID].m_basegeom);
                 m_s->m_animMeshes[animMeshNodeNumber] = interpObj;
                 m_s->m_animMeshes[animMeshNodeNumber].BuildBvh(24);
                 m_s->m_animMeshes[animMeshNodeNumber].m_id = animMeshNodeNumber;
-                m_animMeshSequences[nodeNumber].push_back(&m_s->m_animMeshes[animMeshNodeNumber]);
+				m_animMeshSequences[nodeNumber].pousse(&m_s->m_animMeshes[animMeshNodeNumber]);
             }
             //last frame has to be a special case since there is next frame
-            std::string thisframelink = jsonanimmesh["frames"][frameCount-1].asString();
+			dls::chaine thisframelink = jsonanimmesh["frames"][frameCount-1].asString();
             unsigned int thisframeID = m_linkNames["meshfile_"+thisframelink];
-            m_s->m_animMeshes.push_back(spaceCore::Bvh<objCore::InterpolatedObj>());
-            unsigned int animMeshNodeNumber = (unsigned int)m_s->m_animMeshes.size()-1;
+			m_s->m_animMeshes.pousse(spaceCore::Bvh<objCore::InterpolatedObj>());
+            unsigned int animMeshNodeNumber = (unsigned int)m_s->m_animMeshes.taille()-1;
             objCore::InterpolatedObj interpObj(&m_s->m_meshFiles[thisframeID].m_basegeom,
                                                &m_s->m_meshFiles[thisframeID].m_basegeom);
             m_s->m_animMeshes[animMeshNodeNumber] = interpObj;
             m_s->m_animMeshes[animMeshNodeNumber].BuildBvh(24);
             m_s->m_animMeshes[animMeshNodeNumber].m_id = animMeshNodeNumber;
-            m_animMeshSequences[nodeNumber].push_back(&m_s->m_animMeshes[animMeshNodeNumber]);
+			m_animMeshSequences[nodeNumber].pousse(&m_s->m_animMeshes[animMeshNodeNumber]);
             m_linkNames["animmesh_"+id] = nodeNumber;
         }   
     }
@@ -323,10 +323,10 @@ void SceneLoader::LoadGeomTransforms(const Json::Value& jsontransforms)
         std::cout << "Warning: Couldn't load transform node, missing ID. Skipping...\n" 
                   << std::endl;
 	}else {
-        std::string id = jsontransforms["id"].asString();
+		dls::chaine id = jsontransforms["id"].asString();
         //Check if id already exists
-		dls::dico<std::string, unsigned int>::iterator it = m_linkNames.find("transform_"+id);
-		if (it!=m_linkNames.end()) {
+		dls::dico<dls::chaine, unsigned int>::iterator it = m_linkNames.find("transform_"+id);
+		if (it!=m_linkNames.fin()) {
             std::cout << "Warning: transform node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;
 		}else {
@@ -350,9 +350,9 @@ void SceneLoader::LoadGeomTransforms(const Json::Value& jsontransforms)
                 scale.z = jsontransforms["scale"]["z"].asFloat();
             }
             //push back geomFrame and set up id links   
-            m_s->m_geomTransforms.push_back(geomCore::GeomTransform(translation, rotation, scale));
+			m_s->m_geomTransforms.pousse(geomCore::GeomTransform(translation, rotation, scale));
             unsigned int nodeNumber = 0;
-            nodeNumber = (unsigned int)m_s->m_geomTransforms.size()-1;
+            nodeNumber = (unsigned int)m_s->m_geomTransforms.taille()-1;
             m_s->m_geomTransforms[nodeNumber].m_id = nodeNumber;
             m_linkNames["transform_"+id] = nodeNumber;
         }
@@ -367,21 +367,21 @@ void SceneLoader::LoadMeshFiles(const Json::Value& jsonmeshfile)
         std::cout << "Warning: Couldn't load meshfile node, missing ID. Skipping...\n" 
                   << std::endl;
 	}else {
-        std::string id = jsonmeshfile["id"].asString();
+		dls::chaine id = jsonmeshfile["id"].asString();
         //Check if id already exists
-		dls::dico<std::string, unsigned int>::iterator it = m_linkNames.find("meshfile_"+id);
-		if (it!=m_linkNames.end()) {
+		dls::dico<dls::chaine, unsigned int>::iterator it = m_linkNames.find("meshfile_"+id);
+		if (it!=m_linkNames.fin()) {
             std::cout << "Warning: meshfile node with ID \"" << id
                       << "\" already exists! Skipping...\n" << std::endl;
 		}else {
-            m_s->m_meshFiles.push_back(spaceCore::Bvh<objCore::Obj>());
-            unsigned int nodeNumber = (unsigned int)m_s->m_meshFiles.size()-1;
+			m_s->m_meshFiles.pousse(spaceCore::Bvh<objCore::Obj>());
+            unsigned int nodeNumber = (unsigned int)m_s->m_meshFiles.taille()-1;
             //meshfile can either point to obj file or request a mesh generator
 			if (jsonmeshfile.isMember("file")==true) {
-                std::string filename = jsonmeshfile["file"].asString();
+				dls::chaine filename = jsonmeshfile["file"].asString();
                 m_s->m_meshFiles[nodeNumber].m_basegeom.ReadObj(m_relativePath+filename);
 			}else if (jsonmeshfile.isMember("mesh_gen")==true) {
-                std::string gentype = jsonmeshfile["mesh_gen"].asString();
+				dls::chaine gentype = jsonmeshfile["mesh_gen"].asString();
 				if (strcmp(gentype.c_str(), "box")==0) {
                     std::cout << "Ran box mesh gen" << std::endl;
                     geomCore::CubeGen cubebuilder;
@@ -420,7 +420,7 @@ void SceneLoader::LoadMeshFiles(const Json::Value& jsonmeshfile)
 void SceneLoader::LoadGlobalForces(const Json::Value& jsonforces)
 {
 #if 0
-    unsigned int forceCount = jsonforces.size();
+    unsigned int forceCount = jsonforces.taille();
 	for (unsigned int i=0; i<forceCount; i++) {
         dls::math::vec3f force;
         force[0] = jsonforces[i]["x"].asFloat();

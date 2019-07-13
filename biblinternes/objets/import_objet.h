@@ -24,16 +24,16 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace objets {
 
 class AdaptriceCreationObjet;
 
-typedef void(* fonction_rappel)(std::string const &message);
+typedef void(* fonction_rappel)(dls::chaine const &message);
 
-void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, std::string const &chemin);
+void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, dls::chaine const &chemin);
 
-void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, std::string const &chemin);
+void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, dls::chaine const &chemin);
 
 }  /* namespace objets */

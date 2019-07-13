@@ -79,7 +79,7 @@ private:
 
 	dls::vue_chaine mot_courant() const;
 
-	[[noreturn]] void lance_erreur(const std::string &quoi) const;
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi) const;
 
 	void analyse_caractere_simple();
 

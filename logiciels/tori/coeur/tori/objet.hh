@@ -25,7 +25,7 @@
 #pragma once
 
 #include <memory>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
@@ -76,7 +76,7 @@ struct ObjetDictionnaire final : public Objet {
 };
 
 struct ObjetTableau final : public Objet {
-	std::vector<std::shared_ptr<Objet>> valeur{};
+	dls::tableau<std::shared_ptr<Objet>> valeur{};
 
 	ObjetTableau()
 		: Objet{ type_objet::TABLEAU }
@@ -93,12 +93,12 @@ struct ObjetTableau final : public Objet {
 	template <typename T>
 	void pousse(T const &v)
 	{
-		valeur.push_back(construit_objet(v));
+		valeur.pousse(construit_objet(v));
 	}
 
 	void pousse(std::shared_ptr<Objet> const &v)
 	{
-		valeur.push_back(v);
+		valeur.pousse(v);
 	}
 };
 

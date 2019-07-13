@@ -26,7 +26,7 @@
 
 #include <cmath>
 #include <limits>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 
 /* http://www.graphviz.org/Documentation/TSE93.pdf */
@@ -158,10 +158,10 @@ void feasible_tree()
 {
 	init_rank();
 
-	std::vector<Node *> nodes;
+	dls::tableau<Node *> nodes;
 	Node *incident_node;
 
-	while (tight_tree() < nodes.size()) {
+	while (tight_tree() < nodes.taille()) {
 		Edge *e = nullptr; // todo
 		auto delta = slack(e);
 

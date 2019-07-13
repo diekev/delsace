@@ -53,7 +53,7 @@ Programme::SPtr Programme::cree_partage()
 	return SPtr(new Programme());
 }
 
-void Programme::charge(Nuanceur type_nuanceur, std::string const &source, std::ostream &os)
+void Programme::charge(Nuanceur type_nuanceur, dls::chaine const &source, std::ostream &os)
 {
 	unsigned int type;
 
@@ -148,124 +148,124 @@ bool Programme::est_valide(std::ostream &os) const
 	return false;
 }
 
-void Programme::ajoute_attribut(std::string const &attribut)
+void Programme::ajoute_attribut(dls::chaine const &attribut)
 {
 	m_attributs[attribut] = glGetAttribLocation(m_programme, attribut.c_str());
 }
 
-void Programme::ajoute_uniforme(std::string const &uniform)
+void Programme::ajoute_uniforme(dls::chaine const &uniform)
 {
 	m_uniformes[uniform] = glGetUniformLocation(m_programme, uniform.c_str());
 }
 
-int Programme::operator[](std::string const &attribute)
+int Programme::operator[](dls::chaine const &attribute)
 {
 	return m_attributs[attribute];
 }
 
-int Programme::operator()(std::string const &uniform)
+int Programme::operator()(dls::chaine const &uniform)
 {
 	return m_uniformes[uniform];
 }
 
 /* ************************** set up uniform values ************************* */
 
-void Programme::uniforme(std::string const &uniform, double const value)
+void Programme::uniforme(dls::chaine const &uniform, double const value)
 {
 	glUniform1d(m_uniformes[uniform], value);
 }
 
-void Programme::uniforme(std::string const &uniform, double const v0, double const v1)
+void Programme::uniforme(dls::chaine const &uniform, double const v0, double const v1)
 {
 	glUniform2d(m_uniformes[uniform], v0, v1);
 }
 
-void Programme::uniforme(std::string const &uniform, double const v0, double const v1, double const v2)
+void Programme::uniforme(dls::chaine const &uniform, double const v0, double const v1, double const v2)
 {
 	glUniform3d(m_uniformes[uniform], v0, v1, v2);
 }
 
-void Programme::uniforme(std::string const &uniform, double const v0, double const v1, double const v2, double const v4)
+void Programme::uniforme(dls::chaine const &uniform, double const v0, double const v1, double const v2, double const v4)
 {
 	glUniform4d(m_uniformes[uniform], v0, v1, v2, v4);
 }
 
-void Programme::uniforme(std::string const &uniform, float const value)
+void Programme::uniforme(dls::chaine const &uniform, float const value)
 {
 	glUniform1f(m_uniformes[uniform], value);
 }
 
-void Programme::uniforme(std::string const &uniform, float const v0, float const v1)
+void Programme::uniforme(dls::chaine const &uniform, float const v0, float const v1)
 {
 	glUniform2f(m_uniformes[uniform], v0, v1);
 }
 
-void Programme::uniforme(std::string const &uniform, float const v0, float const v1, float const v2)
+void Programme::uniforme(dls::chaine const &uniform, float const v0, float const v1, float const v2)
 {
 	glUniform3f(m_uniformes[uniform], v0, v1, v2);
 }
 
-void Programme::uniforme(std::string const &uniform, float const v0, float const v1, float const v2, float const v4)
+void Programme::uniforme(dls::chaine const &uniform, float const v0, float const v1, float const v2, float const v4)
 {
 	glUniform4f(m_uniformes[uniform], v0, v1, v2, v4);
 }
 
-void Programme::uniforme(std::string const &uniform, int const value)
+void Programme::uniforme(dls::chaine const &uniform, int const value)
 {
 	glUniform1i(m_uniformes[uniform], value);
 }
 
-void Programme::uniforme(std::string const &uniform, int const v0, int const v1)
+void Programme::uniforme(dls::chaine const &uniform, int const v0, int const v1)
 {
 	glUniform2i(m_uniformes[uniform], v0, v1);
 }
 
-void Programme::uniforme(std::string const &uniform, int const v0, int const v1, int const v2)
+void Programme::uniforme(dls::chaine const &uniform, int const v0, int const v1, int const v2)
 {
 	glUniform3i(m_uniformes[uniform], v0, v1, v2);
 }
 
-void Programme::uniforme(std::string const &uniform, int const v0, int const v1, int const v2, int const v4)
+void Programme::uniforme(dls::chaine const &uniform, int const v0, int const v1, int const v2, int const v4)
 {
 	glUniform4i(m_uniformes[uniform], v0, v1, v2, v4);
 }
 
-void Programme::uniforme(std::string const &uniform, const unsigned int value)
+void Programme::uniforme(dls::chaine const &uniform, const unsigned int value)
 {
 	glUniform1ui(m_uniformes[uniform], value);
 }
 
-void Programme::uniforme(std::string const &uniform, const unsigned int v0, const unsigned int v1)
+void Programme::uniforme(dls::chaine const &uniform, const unsigned int v0, const unsigned int v1)
 {
 	glUniform2ui(m_uniformes[uniform], v0, v1);
 }
 
-void Programme::uniforme(std::string const &uniform, const unsigned int v0, const unsigned int v1, const unsigned int v2)
+void Programme::uniforme(dls::chaine const &uniform, const unsigned int v0, const unsigned int v1, const unsigned int v2)
 {
 	glUniform3ui(m_uniformes[uniform], v0, v1, v2);
 }
 
-void Programme::uniforme(std::string const &uniform, const unsigned int v0, const unsigned int v1, const unsigned int v2, const unsigned int v4)
+void Programme::uniforme(dls::chaine const &uniform, const unsigned int v0, const unsigned int v1, const unsigned int v2, const unsigned int v4)
 {
 	glUniform4ui(m_uniformes[uniform], v0, v1, v2, v4);
 }
 
-void Programme::uniforme(std::string const &uniform, double const *value, int const n)
+void Programme::uniforme(dls::chaine const &uniform, double const *value, int const n)
 {
 	glUniform1dv(m_uniformes[uniform], n, value);
 }
 
-void Programme::uniforme(std::string const &uniform, float const *value, int const n)
+void Programme::uniforme(dls::chaine const &uniform, float const *value, int const n)
 {
 	glUniform1fv(m_uniformes[uniform], n, value);
 }
 
-void Programme::uniforme(std::string const &uniform, int const *value, int const n)
+void Programme::uniforme(dls::chaine const &uniform, int const *value, int const n)
 {
 	glUniform1iv(m_uniformes[uniform], n, value);
 }
 
-void Programme::uniforme (std::string const &uniform, const unsigned int *value, int const n)
+void Programme::uniforme (dls::chaine const &uniform, const unsigned int *value, int const n)
 {
 	glUniform1uiv(m_uniformes[uniform], n, value);
 }

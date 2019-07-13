@@ -38,9 +38,9 @@ int Pellicule::largeur() const
 	return m_matrice.dimensions().largeur;
 }
 
-void Pellicule::ajoute_echantillon(size_t i, size_t j, dls::math::vec3d const &couleur, const double poids)
+void Pellicule::ajoute_echantillon(long i, long j, dls::math::vec3d const &couleur, const double poids)
 {
-	auto index = i + static_cast<size_t>(m_matrice.nombre_colonnes()) * j;
+	auto index = i + static_cast<long>(m_matrice.nombre_colonnes()) * j;
 	auto &pixel_pellicule = m_pixels_pellicule[index];
 	pixel_pellicule.couleur += couleur;
 	pixel_pellicule.poids += poids;
@@ -59,7 +59,7 @@ dls::math::matrice_dyn<dls::math::vec3d> const &Pellicule::donnees()
 void Pellicule::reinitialise()
 {
 	m_matrice.remplie(dls::math::vec3d(0.0));
-	m_pixels_pellicule.resize(static_cast<size_t>(m_matrice.nombre_colonnes() * m_matrice.nombre_lignes()));
+	m_pixels_pellicule.redimensionne(m_matrice.nombre_colonnes() * m_matrice.nombre_lignes());
 
 	for (auto &pixel_pellicule : m_pixels_pellicule) {
 		pixel_pellicule.couleur = dls::math::vec3d(0.0);
@@ -69,13 +69,13 @@ void Pellicule::reinitialise()
 
 void Pellicule::creer_image()
 {
-	if (m_pixels_pellicule.empty()) {
+	if (m_pixels_pellicule.est_vide()) {
 		return;
 	}
 
 	auto const &hauteur = m_matrice.nombre_lignes();
 	auto const &largeur = m_matrice.nombre_colonnes();
-	auto index = 0ul;
+	auto index = 0l;
 
 	for (int i = 0; i < hauteur; ++i) {
 		for (int j = 0; j < largeur; ++j, ++index) {

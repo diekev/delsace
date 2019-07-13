@@ -27,7 +27,7 @@
 #include "danjo/repondant_bouton.h"
 
 #include <any>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 class Commande;
 class DonneesCommande;

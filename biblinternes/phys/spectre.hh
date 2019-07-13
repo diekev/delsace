@@ -25,7 +25,7 @@
 #pragma once
 
 #include <cmath>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/outils/constantes.h"
 
@@ -45,15 +45,15 @@ inline void rgb_vers_xyz(const float rgb[3], float xyz[3])
 	xyz[2] = 0.019334f * rgb[0] + 0.119193f * rgb[1] + 0.950227f * rgb[2];
 }
 
-float moyenne_echantillons(const float *lambdas, const float *valeurs, size_t n, const float debut_lambda, const float fin_lambda);
+float moyenne_echantillons(const float *lambdas, const float *valeurs, long n, const float debut_lambda, const float fin_lambda);
 
-bool echantillons_spectre_trie(const float *lambdas, const float */*valeurs*/, size_t n);
+bool echantillons_spectre_trie(const float *lambdas, const float */*valeurs*/, long n);
 
-void trie_echantillons_spectre(float *lambdas, float *valeurs, size_t n);
+void trie_echantillons_spectre(float *lambdas, float *valeurs, long n);
 
 float entrepole_echantillons_spectre(const float *lambdas,
 		const float *valeurs,
-		size_t n,
+		long n,
 		float l);
 
 enum TypeSpectre {
@@ -484,7 +484,7 @@ public:
 
 	SpectreEchantillon(SpectreRGB const &r, TypeSpectre t);
 
-	static SpectreEchantillon depuis_echantillons(const float *lambda, const float *v, size_t n);
+	static SpectreEchantillon depuis_echantillons(const float *lambda, const float *v, long n);
 
 	static SpectreEchantillon depuis_rgb(const float rgb[3], TypeSpectre type = TypeSpectre::SPECTRE_REFLECTANCE);
 
@@ -527,7 +527,7 @@ public:
 
 	SpectreRGB vers_spectre_rvb() const;
 
-	static SpectreRGB depuis_echantillons(const float *lambda, const float *v, size_t n);
+	static SpectreRGB depuis_echantillons(const float *lambda, const float *v, long n);
 
 	static SpectreRGB depuis_xyz(float *xyz);
 

@@ -114,5 +114,5 @@ struct Koudou : public Sujette {
 
 	void enregistre_commandes();
 
-	std::string requiers_dialogue(int type);
+	dls::chaine requiers_dialogue(int type);
 };

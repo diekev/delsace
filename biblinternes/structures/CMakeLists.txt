@@ -40,6 +40,7 @@ add_library(${NOM_CIBLE} STATIC
 	flux_chaine.cc
 	grille_particules.cc
 	hachage_spatiale.cc
+	liste.cc
 	pile.cc
 	tableau.cc
 	vue_chaine.cc
@@ -54,6 +55,7 @@ add_library(${NOM_CIBLE} STATIC
 	flux_chaine.hh
 	grille_particules.hh
 	hachage_spatiale.hh
+	liste.hh
 	pile.hh
 	tableau.hh
 	vue_chaine.hh

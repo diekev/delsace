@@ -25,7 +25,7 @@
 #pragma once
 
 #include <any>
-#include <list>
+#include "biblinternes/structures/liste.hh"
 
 #include "morceaux.hh"
 
@@ -60,7 +60,7 @@ enum class type_noeud : char {
 
 struct base final {
 	/* propriétés */
-	std::list<base *> enfants{};
+	dls::liste<base *> enfants{};
 	DonneesMorceaux const &donnees;
 	int pointeur_donnees = 0;
 	type_noeud type = type_noeud::RACINE;

@@ -45,7 +45,7 @@ public:
 
 	void ferme();
 
-	size_t ecrit_tampon(const char *tampon, size_t taille) const;
+	long ecrit_tampon(const char *tampon, long taille) const;
 
 	bool est_ouverte() const;
 };

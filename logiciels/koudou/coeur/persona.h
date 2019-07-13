@@ -28,8 +28,8 @@
 #include "biblinternes/math/vecteur.hh"
 #include <experimental/any>
 #include <iostream>
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 enum class TypePropriete {
 	BOOL,
@@ -45,27 +45,27 @@ enum class TypePropriete {
 };
 
 struct PaireNomValeur {
-	std::string nom{};
+	dls::chaine nom{};
 	int valeur{};
 };
 
 struct ProprieteEnumerante {
-	std::vector<PaireNomValeur> paires{};
+	dls::tableau<PaireNomValeur> paires{};
 
-	void ajoute(std::string nom, int valeur)
+	void ajoute(dls::chaine nom, int valeur)
 	{
 		PaireNomValeur paire;
 		paire.nom = std::move(nom);
 		paire.valeur = valeur;
 
-		paires.push_back(std::move(paire));
+		paires.pousse(std::move(paire));
 	}
 };
 
 struct Propriete {
-	std::string nom{};
-	std::string nom_entreface{};
-	std::string infobulle{};
+	dls::chaine nom{};
+	dls::chaine nom_entreface{};
+	dls::chaine infobulle{};
 	TypePropriete type{};
 
 	std::experimental::any donnee{};
@@ -82,18 +82,18 @@ struct Propriete {
  * l'entreface utilisateur.
  */
 class Persona {
-	std::vector<Propriete> m_proprietes{};
+	dls::tableau<Propriete> m_proprietes{};
 
 public:
 	virtual ~Persona() = default;
 
-	void ajoute_propriete(std::string nom, std::string nom_entreface, TypePropriete type);
+	void ajoute_propriete(dls::chaine nom, dls::chaine nom_entreface, TypePropriete type);
 
 	/* Modification des propriétés. */
 
-	void rend_visible(std::string const &nom_propriete, bool visible);
+	void rend_visible(dls::chaine const &nom_propriete, bool visible);
 
-	void etablie_infobulle(std::string tooltip);
+	void etablie_infobulle(dls::chaine tooltip);
 
 	void etablie_min_max(const float min, const float max);
 
@@ -105,67 +105,67 @@ public:
 
 	void etablie_valeur_bool_defaut(bool valeur);
 
-	void etablie_valeur_string_defaut(std::string const &valeur);
+	void etablie_valeur_string_defaut(dls::chaine const &valeur);
 
 	void etablie_valeur_vec3_defaut(dls::math::vec3f const &valeur);
 
 	void etablie_valeur_couleur_defaut(dls::math::vec4f const &valeur);
 
-	void ajourne_valeur_float(std::string const &nom_propriete, float valeur);
+	void ajourne_valeur_float(dls::chaine const &nom_propriete, float valeur);
 
-	void ajourne_valeur_int(std::string const &nom_propriete, int valeur);
+	void ajourne_valeur_int(dls::chaine const &nom_propriete, int valeur);
 
-	void ajourne_valeur_bool(std::string const &nom_propriete, bool valeur);
+	void ajourne_valeur_bool(dls::chaine const &nom_propriete, bool valeur);
 
-	void ajourne_valeur_string(std::string const &nom_propriete, std::string const &valeur);
+	void ajourne_valeur_string(dls::chaine const &nom_propriete, dls::chaine const &valeur);
 
-	void ajourne_valeur_couleur(std::string const &nom_propriete, dls::math::vec4f const &valeur);
+	void ajourne_valeur_couleur(dls::chaine const &nom_propriete, dls::math::vec4f const &valeur);
 
-	void ajourne_valeur_vec3(std::string const &nom_propriete, dls::math::vec3f const &valeur);
+	void ajourne_valeur_vec3(dls::chaine const &nom_propriete, dls::math::vec3f const &valeur);
 
-	void ajourne_valeur_enum(std::string const &nom_propriete, ProprieteEnumerante const &propriete);
+	void ajourne_valeur_enum(dls::chaine const &nom_propriete, ProprieteEnumerante const &propriete);
 
 	/* Évaluation. */
 
-	int evalue_int(std::string const &nom_propriete);
+	int evalue_int(dls::chaine const &nom_propriete);
 
-	float evalue_float(std::string const &nom_propriete);
+	float evalue_float(dls::chaine const &nom_propriete);
 
-	int evalue_enum(std::string const &nom_propriete);
+	int evalue_enum(dls::chaine const &nom_propriete);
 
-	int evalue_bool(std::string const &nom_propriete);
+	int evalue_bool(dls::chaine const &nom_propriete);
 
-	dls::math::vec3f evalue_vec3(std::string const &nom_propriete);
+	dls::math::vec3f evalue_vec3(dls::chaine const &nom_propriete);
 
-	dls::math::vec4f evalue_couleur(std::string const &nom_propriete);
+	dls::math::vec4f evalue_couleur(dls::chaine const &nom_propriete);
 
-	std::string evalue_string(std::string const &nom_propriete);
+	dls::chaine evalue_string(dls::chaine const &nom_propriete);
 
 	/* Accès. */
 
-	std::vector<Propriete> &proprietes();
+	dls::tableau<Propriete> &proprietes();
 
 	/* Interface. */
 
 	virtual bool ajourne_proprietes();
 
 private:
-	inline Propriete *trouve_propriete(std::string const &nom_propriete)
+	inline Propriete *trouve_propriete(dls::chaine const &nom_propriete)
 	{
 		auto const &iter = std::find_if(
-							   m_proprietes.begin(), m_proprietes.end(),
+							   m_proprietes.debut(), m_proprietes.fin(),
 							   [&](Propriete const &prop)
 		{
 			return prop.nom == nom_propriete;
 		});
 
-		if (iter == m_proprietes.end()) {
+		if (iter == m_proprietes.fin()) {
 			std::cerr << "Impossible de trouver la propriété : "
 					  << nom_propriete << '\n';
 			return nullptr;
 		}
 
-		auto const index = iter - m_proprietes.begin();
-		return &m_proprietes[static_cast<size_t>(index)];
+		auto const index = iter - m_proprietes.debut();
+		return &m_proprietes[index];
 	}
 };

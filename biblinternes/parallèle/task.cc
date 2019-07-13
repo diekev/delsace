@@ -94,7 +94,7 @@ bool notification_queue::pop(std::function<void ()> &x)
 task_system::task_system()
     : m_index(0)
 {
-	m_queue.resize(m_count);
+	m_queue.redimensionne(m_count);
 
 	for (unsigned n = 0; n != m_count; ++n) {
 		m_threads.emplace_back([&, n] { run(n); });

@@ -35,14 +35,14 @@ static void construit_table_cerce(CerceBezier &cerce)
 	const auto res_courbe = 32;
 	const auto facteur = 1.0f / res_courbe;
 
-	cerce.table.clear();
+	cerce.table.efface();
 	cerce.table.reserve(res_courbe + 1);
 
-	for (size_t i = 0; i < cerce.points.size(); ++i) {
+	for (auto i = 0; i < cerce.points.taille(); ++i) {
 		auto i1 = i;
 		auto i2 = i + 1;
 
-		if (i2 == cerce.points.size()) {
+		if (i2 == cerce.points.taille()) {
 			if (cerce.ferme) {
 				i2 = 0;
 			}
@@ -63,7 +63,7 @@ static void construit_table_cerce(CerceBezier &cerce)
 		const auto &x_pt1 = p2.co[POINT_CONTROLE1].x;
 		const auto &y_pt1 = p2.co[POINT_CONTROLE1].y;
 
-		cerce.table.push_back(Point{x1, y1});
+		cerce.table.pousse(Point{x1, y1});
 
 		for (int j = 1; j <= res_courbe; ++j) {
 			const auto fac_i = facteur * static_cast<float>(j);
@@ -92,7 +92,7 @@ static void construit_table_cerce(CerceBezier &cerce)
 			const auto xt2 = mfac_i * x_c_pt1 + fac_i * x_pt2_c;
 			const auto yt2 = mfac_i * y_c_pt1 + fac_i * y_pt2_c;
 
-			cerce.table.push_back(Point{xt2, yt2});
+			cerce.table.pousse(Point{xt2, yt2});
 		}
 	}
 }
@@ -107,7 +107,7 @@ static void ajoute_point_cerce(CerceBezier &cerce, float x, float y)
 	point.co[POINT_CONTROLE2].x = x + 0.1f;
 	point.co[POINT_CONTROLE2].y = y;
 
-	cerce.points.push_back(point);
+	cerce.points.pousse(point);
 
 	cerce.min.x = std::min(cerce.min.x, x);
 	cerce.min.y = std::min(cerce.min.y, y);
@@ -131,12 +131,12 @@ static bool contenu_dans_courbe(const CerceBezier &cerce, float x, float y)
 		return false;
 	}
 
-	const auto n = cerce.table.size();
+	const auto n = cerce.table.taille();
 	auto inside = false;
 	auto p1x = cerce.table[0].x;
 	auto p1y = cerce.table[0].y;
 
-	for (size_t i = 1; i < n + 1; ++i) {
+	for (auto i = 1; i < n + 1; ++i) {
 		auto p2x = cerce.table[i % n].x;
 		auto p2y = cerce.table[i % n].y;
 
@@ -185,7 +185,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 
 	painter.drawRect(this->rect());
 
-	if (m_cerce.points.empty()) {
+	if (m_cerce.points.est_vide()) {
 		return;
 	}
 
@@ -208,7 +208,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 
 		constexpr auto TAILLE_CARREAU = 16;
 
-		std::vector<Carreau> carreaux;
+		dls::tableau<Carreau> carreaux;
 
 		for (int i = 0; i < largeur; i += TAILLE_CARREAU) {
 			for (int j = 0; j < hauteur; j += TAILLE_CARREAU) {
@@ -222,7 +222,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				auto fy = static_cast<float>(j) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
-					carreaux.push_back(carreau);
+					carreaux.pousse(carreau);
 					continue;
 				}
 
@@ -230,7 +230,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				fy = static_cast<float>(j) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
-					carreaux.push_back(carreau);
+					carreaux.pousse(carreau);
 					continue;
 				}
 
@@ -238,7 +238,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				fy = static_cast<float>(j + carreau.hauteur) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
-					carreaux.push_back(carreau);
+					carreaux.pousse(carreau);
 					continue;
 				}
 
@@ -246,13 +246,13 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				fy = static_cast<float>(j + carreau.hauteur) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
-					carreaux.push_back(carreau);
+					carreaux.pousse(carreau);
 					continue;
 				}
 			}
 		}
 
-		std::cerr << "Il y a " << carreaux.size() << " carreaux\n";
+		std::cerr << "Il y a " << carreaux.taille() << " carreaux\n";
 
 		for (const Carreau &carreau : carreaux) {
 			for (int i = carreau.x; i < carreau.x + carreau.largeur; ++i) {
@@ -320,17 +320,17 @@ void ControleMasque::paintEvent(QPaintEvent *)
 						 static_cast<int>((1.0f - point.co[POINT_CONTROLE2].y) * hauteurf));
 	}
 
-	if (m_cerce.points.size() <= 1) {
+	if (m_cerce.points.taille() <= 1) {
 		return;
 	}
 
 	/* dessine la courbe */
 	stylo = QPen(Qt::yellow);
-	stylo.setWidthF(2.0f);
+	stylo.setWidthF(2.0);
 
 	painter.setPen(stylo);
 
-	for (size_t i = 0; i < m_cerce.table.size() - 1; ++i) {
+	for (auto i = 0; i < m_cerce.table.taille() - 1; ++i) {
 		auto p1 = m_cerce.table[i];
 		auto p2 = m_cerce.table[i + 1];
 

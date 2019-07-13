@@ -87,7 +87,7 @@ Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal)
 			break;
 	}
 
-	canaux.calques[type_canal].push_back(calque);
+	canaux.calques[type_canal].pousse(calque);
 
 	return calque;
 }
@@ -95,9 +95,9 @@ Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal)
 void supprime_calque(CanauxTexture &canaux, Calque *calque)
 {
 	auto &calques = canaux.calques[TypeCanal::DIFFUSION];
-	auto iter = std::find(calques.begin(), calques.end(), calque);
+	auto iter = std::find(calques.debut(), calques.fin(), calque);
 
-	if (iter == calques.end()) {
+	if (iter == calques.fin()) {
 		/* À FAIRE : erreur. */
 	}
 

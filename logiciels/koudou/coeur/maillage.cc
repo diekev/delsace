@@ -47,22 +47,22 @@ Maillage::~Maillage()
 
 Maillage::iterateur Maillage::begin()
 {
-	return m_triangles.begin();
+	return m_triangles.debut();
 }
 
 Maillage::iterateur Maillage::end()
 {
-	return m_triangles.end();
+	return m_triangles.fin();
 }
 
 Maillage::const_iterateur Maillage::begin() const
 {
-	return m_triangles.cbegin();
+	return m_triangles.debut();
 }
 
 Maillage::const_iterateur Maillage::end() const
 {
-	return m_triangles.cend();
+	return m_triangles.fin();
 }
 
 void Maillage::ajoute_triangle(
@@ -76,7 +76,7 @@ void Maillage::ajoute_triangle(
 	triangle->v2 = v2;
 	triangle->normal = calcul_normal(*triangle);
 
-	m_triangles.push_back(triangle);
+	m_triangles.pousse(triangle);
 }
 
 void Maillage::transformation(math::transformation const &transforme)
@@ -215,12 +215,12 @@ void Maillage::calcule_limites(
 	}
 }
 
-void Maillage::nom(std::string const &nom)
+void Maillage::nom(dls::chaine const &nom)
 {
 	m_nom = nom;
 }
 
-std::string const &Maillage::nom() const
+dls::chaine const &Maillage::nom() const
 {
 	return m_nom;
 }

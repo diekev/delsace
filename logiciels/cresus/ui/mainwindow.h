@@ -63,14 +63,14 @@ class MainWindow : public QMainWindow {
 	UserPreferences *m_user_prefs;
 
 	Utilisateur *m_user;
-	std::vector<Utilisateur *> m_users;
+	dls::tableau<Utilisateur *> m_users;
 
-	std::vector<AccountWidget *> m_account_widgets;
-	std::vector<MonthlyTableWidget *> m_active_revenues;
-	std::vector<MonthlyTableWidget *> m_passive_revenues;
-	std::vector<MonthlyTableWidget *> m_personal_expenses;
-	std::vector<MonthlyTableWidget *> m_housing_expenses;
-	std::vector<MonthlyTableWidget *> m_transport_expenses;
+	dls::tableau<AccountWidget *> m_account_widgets;
+	dls::tableau<MonthlyTableWidget *> m_active_revenues;
+	dls::tableau<MonthlyTableWidget *> m_passive_revenues;
+	dls::tableau<MonthlyTableWidget *> m_personal_expenses;
+	dls::tableau<MonthlyTableWidget *> m_housing_expenses;
+	dls::tableau<MonthlyTableWidget *> m_transport_expenses;
 
 	QSqlDatabase m_database;
 	QTranslator m_translator;

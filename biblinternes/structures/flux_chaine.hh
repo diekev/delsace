@@ -42,6 +42,8 @@ public:
 	flux_chaine() = default;
 	~flux_chaine() = default;
 
+	flux_chaine(type_chaine const &c);
+
 	type_chaine chn() const;
 
 	void chn(type_chaine const &c);

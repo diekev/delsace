@@ -24,16 +24,16 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace dls {
 namespace audio {
 
 class WaveHeader {
-	std::string m_group_id;
+	dls::chaine m_group_id;
 	unsigned int m_file_length;
-	std::string m_riff_type;
+	dls::chaine m_riff_type;
 
 public:
 	WaveHeader();
@@ -43,7 +43,7 @@ public:
 };
 
 class WaveFormatChunk {
-	std::string m_chunk_id;
+	dls::chaine m_chunk_id;
 	unsigned int m_chunk_size;
 	unsigned short m_format_tag;
 	unsigned short m_num_channels;
@@ -74,18 +74,18 @@ public:
 };
 
 class WaveDataChunk {
-	std::string m_chunk_id;
+	dls::chaine m_chunk_id;
 	unsigned int m_chunk_size;
-	std::vector<short> m_array;
+	dls::tableau<short> m_array;
 
 public:
 	WaveDataChunk();
 	~WaveDataChunk() = default;
 
-	std::vector<short> &array();
+	dls::tableau<short> &array();
 
 	void chunkSize(uint size);
-	const uint chunkSize() const;
+	uint chunkSize() const;
 
 	void write(std::ostream &os);
 };
@@ -103,7 +103,7 @@ public:
 	WaveGenerator &operator=(const WaveGenerator &) = delete;
 
 	void addFreq(double freq, int amplitude, double length);
-	void save(const std::string &filename);
+	void save(const dls::chaine &filename);
 };
 
 }  /* namespace audio */

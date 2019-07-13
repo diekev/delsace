@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 
 template <typename T>
@@ -32,7 +33,7 @@ T *clone(const T * const instance)
 	return new T(*instance);
 }
 
-template <typename Base, typename Key = std::string>
+template <typename Base, typename Key = dls::chaine>
 class FamilyFactory {
 	typedef Base *(*CreateFunc)();
 
@@ -71,7 +72,7 @@ private:
 };
 
 /* Base must provide a clone() method */
-template <typename Base, typename Key = std::string>
+template <typename Base, typename Key = dls::chaine>
 class CloneFactory {
 	dls::dico_desordonne<Key, Base *> m_map{};
 

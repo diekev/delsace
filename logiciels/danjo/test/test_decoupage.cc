@@ -125,8 +125,8 @@ bool test_decoupage_texte1()
 	auto decoupeuse = danjo::Decoupeuse(tampon);
 	decoupeuse.decoupe();
 
-	return verifie_morceaux(decoupeuse.begin(),
-							decoupeuse.end(),
+	return verifie_morceaux(decoupeuse.morceaux().debut(),
+							decoupeuse.morceaux().fin(),
 							std::begin(donnees_morceaux),
 							std::end(donnees_morceaux));
 }

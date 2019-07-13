@@ -124,7 +124,7 @@ ControleChaineCaractere::ControleChaineCaractere(QWidget *parent)
 	connect(this, &QLineEdit::returnPressed, this, &ControleChaineCaractere::ajourne_valeur_pointee);
 }
 
-void ControleChaineCaractere::pointeur(std::string *pointeur)
+void ControleChaineCaractere::pointeur(dls::chaine *pointeur)
 {
 	m_pointeur = pointeur;
 }
@@ -186,7 +186,7 @@ ControleFichier::ControleFichier(bool input, QWidget *parent)
 	connect(this, &SelecteurFichier::valeur_changee, this, &ControleFichier::ajourne_valeur_pointee);
 }
 
-void ControleFichier::pointeur(std::string *pointeur)
+void ControleFichier::pointeur(dls::chaine *pointeur)
 {
 	m_pointeur = pointeur;
 }
@@ -205,7 +205,7 @@ ControleListe::ControleListe(QWidget *parent)
 	connect(this, &SelecteurListe::valeur_changee, this, &ControleListe::ajourne_valeur_pointee);
 }
 
-void ControleListe::pointeur(std::string *pointeur)
+void ControleListe::pointeur(dls::chaine *pointeur)
 {
 	m_pointeur = pointeur;
 }

@@ -25,7 +25,9 @@
 #pragma once
 
 #include <functional>
-#include <string>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace dls {
 namespace test_aleatoire {
@@ -42,12 +44,12 @@ using t_fonction_entree_test = std::function<int(const u_char *, size_t)>;
  */
 class Testeuse {
 	struct FonctionsTest {
-		std::string nom{};
+		dls::chaine nom{};
 		t_fonction_initialisation initialisation = nullptr;
 		t_fonction_entree_test entree_test = nullptr;
 	};
 
-	std::vector<FonctionsTest> fonctions{};
+	dls::tableau<FonctionsTest> fonctions{};
 
 public:
 	/**
@@ -63,7 +65,7 @@ public:
 	 * fichier où écrire les données si un test échou.
 	 */
 	void ajoute_tests(
-			const std::string &nom,
+			const dls::chaine &nom,
 			t_fonction_initialisation initialisation,
 			t_fonction_entree_test entree_test);
 

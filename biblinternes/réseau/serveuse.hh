@@ -38,7 +38,7 @@
 
 #if defined __cpp_concepts && __cpp_concepts >= 201507
 template <typename T>
-concept bool ConceptTypeServeuse = requires(const std::string &requete)
+concept bool ConceptTypeServeuse = requires(const dls::chaine &requete)
 {
 	{ T::PORT_DEFAUT } -> unsigned short;
 	{ T::construit_requete(requete) };
@@ -120,11 +120,11 @@ public:
 
 				TypeServeuse::repond_requete(requete, reponse);
 
-				auto chaine_reponse = std::string{""};
+				auto chaine_reponse = dls::chaine{""};
 
 				TypeServeuse::construit_reponse(reponse, chaine_reponse);
 
-				if (send(prise, chaine_reponse.c_str(), chaine_reponse.size(), 0) == -1) {
+				if (send(prise, chaine_reponse.c_str(), chaine_reponse.taille(), 0) == -1) {
 					perror("send");
 				}
 
@@ -147,7 +147,7 @@ public:
 
 		char tampon[MAXDATASIZE];
 
-		std::string requete;
+		dls::chaine requete;
 
 		do {
 			auto taille = recv(prise, tampon, MAXDATASIZE, 0);

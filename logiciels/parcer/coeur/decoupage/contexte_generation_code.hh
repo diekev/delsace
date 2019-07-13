@@ -66,7 +66,7 @@ struct DonneesVariable {
 	char pad[3] = {};
 
 	/* nom de la structure pour l'accès des variables employées */
-	std::string structure = "";
+	dls::chaine structure = "";
 };
 
 struct DonneesMembre {
@@ -76,10 +76,10 @@ struct DonneesMembre {
 
 struct DonneesStructure {
 	dls::dico_desordonne<dls::vue_chaine, DonneesMembre> donnees_membres{};
-	std::vector<size_t> donnees_types{};
+	dls::tableau<size_t> donnees_types{};
 
-	size_t id{0ul};
-	size_t index_type{-1ul};
+	long id{0l};
+	long index_type{-1l};
 	noeud::base *noeud_decl = nullptr;
 	bool est_enum = false;
 	bool est_externe = false;
@@ -89,12 +89,12 @@ struct DonneesStructure {
 struct DonneesFonction;
 
 using conteneur_globales = dls::dico_desordonne<dls::vue_chaine, DonneesVariable>;
-using conteneur_locales = std::vector<std::pair<dls::vue_chaine, DonneesVariable>>;
+using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine, DonneesVariable>>;
 
 struct ContexteGenerationCode {
 	assembleuse_arbre *assembleuse = nullptr;
 
-	std::vector<DonneesModule *> modules{};
+	dls::tableau<DonneesModule *> modules{};
 
 	MagasinDonneesType magasin_types{};
 
@@ -103,7 +103,7 @@ struct ContexteGenerationCode {
 	/* magasin pour que les vue_chaines des chaines temporaires soient toujours
 	 * valides (notamment utilisé pour les variables des boucles dans les
 	 * coroutines) */
-	std::vector<std::string> magasin_chaines{};
+	dls::tableau<dls::chaine> magasin_chaines{};
 
 	ContexteGenerationCode() = default;
 
@@ -123,13 +123,13 @@ struct ContexteGenerationCode {
 	 * module ainsi créé. Aucune vérification n'est faite quant à la présence
 	 * d'un module avec un nom similaire pour l'instant.
 	 */
-	DonneesModule *cree_module(std::string const &nom, std::string const &chemin);
+	DonneesModule *cree_module(dls::chaine const &nom, dls::chaine const &chemin);
 
 	/**
 	 * Retourne un pointeur vers le module à l'index indiqué. Si l'index est
 	 * en dehors de portée, le programme crashera.
 	 */
-	DonneesModule *module(size_t index) const;
+	DonneesModule *module(long index) const;
 
 	/**
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
@@ -148,7 +148,7 @@ struct ContexteGenerationCode {
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
 	 */
-	void empile_goto_continue(dls::vue_chaine chaine, std::string const &bloc);
+	void empile_goto_continue(dls::vue_chaine chaine, dls::chaine const &bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
@@ -159,12 +159,12 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	std::string goto_continue(dls::vue_chaine chaine);
+	dls::chaine goto_continue(dls::vue_chaine chaine);
 
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
 	 */
-	void empile_goto_arrete(dls::vue_chaine chaine, std::string const &bloc);
+	void empile_goto_arrete(dls::vue_chaine chaine, dls::chaine const &bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
@@ -175,7 +175,7 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	std::string goto_arrete(dls::vue_chaine chaine);
+	dls::chaine goto_arrete(dls::vue_chaine chaine);
 
 	/* ********************************************************************** */
 
@@ -269,11 +269,11 @@ struct ContexteGenerationCode {
 	 */
 	bool est_locale_variadique(const dls::vue_chaine &nom);
 
-	conteneur_locales::const_iterator iter_locale(const dls::vue_chaine &nom);
+	conteneur_locales::const_iteratrice iter_locale(const dls::vue_chaine &nom) const;
 
-	conteneur_locales::const_iterator debut_locales();
+	conteneur_locales::const_iteratrice debut_locales() const;
 
-	conteneur_locales::const_iterator fin_locales();
+	conteneur_locales::const_iteratrice fin_locales() const;
 
 	/* ********************************************************************** */
 
@@ -304,7 +304,7 @@ struct ContexteGenerationCode {
 	 * à la table de structure de ce contexte. Retourne l'id de la structure
 	 * ainsi ajoutée.
 	 */
-	size_t ajoute_donnees_structure(const dls::vue_chaine &nom, DonneesStructure &donnees);
+	long ajoute_donnees_structure(const dls::vue_chaine &nom, DonneesStructure &donnees);
 
 	/**
 	 * Retourne les données de la structure dont le nom est spécifié en
@@ -318,9 +318,9 @@ struct ContexteGenerationCode {
 	 * paramètre. Si aucune structure ne portant cette id n'existe, des données
 	 * vides sont retournées.
 	 */
-	DonneesStructure &donnees_structure(const size_t id);
+	DonneesStructure &donnees_structure(const long id);
 
-	dls::chaine nom_struct(const size_t id) const;
+	dls::chaine nom_struct(const long id) const;
 
 	/* ********************************************************************** */
 
@@ -332,12 +332,12 @@ struct ContexteGenerationCode {
 	/**
 	 * Retourne une référence vers la pile constante de noeuds différés.
 	 */
-	std::vector<noeud::base *> const &noeuds_differes() const;
+	dls::tableau<noeud::base *> const &noeuds_differes() const;
 
 	/**
 	 * Retourne une liste des noeuds différés du bloc courant.
 	 */
-	std::vector<noeud::base *> noeuds_differes_bloc() const;
+	dls::tableau<noeud::base *> noeuds_differes_bloc() const;
 
 	/* ********************************************************************** */
 
@@ -367,21 +367,21 @@ struct ContexteGenerationCode {
 
 private:
 	conteneur_globales globales{};
-	std::vector<dls::vue_chaine> nom_structures{};
+	dls::tableau<dls::vue_chaine> nom_structures{};
 
 	conteneur_locales m_locales{};
-	dls::pile<size_t> m_pile_nombre_locales{};
-	size_t m_nombre_locales = 0;
+	dls::pile<long> m_pile_nombre_locales{};
+	long m_nombre_locales = 0;
 
-	dls::pile<size_t> m_pile_nombre_differes{};
-	size_t m_nombre_differes = 0;
+	dls::pile<long> m_pile_nombre_differes{};
+	long m_nombre_differes = 0;
 
-	using paire_goto = std::pair<dls::vue_chaine, std::string>;
+	using paire_goto = std::pair<dls::vue_chaine, dls::chaine>;
 
-	std::vector<paire_goto> m_pile_goto_continue{};
-	std::vector<paire_goto> m_pile_goto_arrete{};
+	dls::tableau<paire_goto> m_pile_goto_continue{};
+	dls::tableau<paire_goto> m_pile_goto_arrete{};
 
-	std::vector<noeud::base *> m_noeuds_differes{};
+	dls::tableau<noeud::base *> m_noeuds_differes{};
 
 	bool m_non_sur = false;
 

@@ -504,9 +504,9 @@ float bruit_simplex_3d(float xin, float yin, float zin)
 
 BruitCourbe2D::BruitCourbe2D()
 {
-	m_echelle_longueur_accroissement_bruit.push_back(std::make_pair(0.1f, 0.03f));
-	m_echelle_longueur_accroissement_bruit.push_back(std::make_pair(0.06f, 0.03f * 0.35f));
-	m_echelle_longueur_accroissement_bruit.push_back(std::make_pair(0.026f, 0.03f * 0.1f));
+	m_echelle_longueur_accroissement_bruit.pousse(std::make_pair(0.1f, 0.03f));
+	m_echelle_longueur_accroissement_bruit.pousse(std::make_pair(0.06f, 0.03f * 0.35f));
+	m_echelle_longueur_accroissement_bruit.pousse(std::make_pair(0.026f, 0.03f * 0.1f));
 }
 
 float BruitCourbe2D::distance_solide(float x, float y) const

@@ -25,7 +25,7 @@
 #pragma once
 
 #include <netdb.h>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 #include <strings.h> /* bzero */
 #include <unistd.h> /* close */
 
@@ -38,8 +38,8 @@
 template <typename T>
 concept bool ConceptTypeCliente = requires(
 									  const typename T::donnees_requete &d,
-									  std::string &requete,
-									  const std::string &reponse)
+									  dls::chaine &requete,
+									  const dls::chaine &reponse)
 {
 	typename T::donnees_requete;
 	{ T::construit_requete(d, requete) } -> void;
@@ -118,7 +118,7 @@ public:
 			return false;
 		}
 
-		const auto hote = std::string(u.hote());
+		const auto hote = dls::chaine(u.hote());
 		hostent *he = gethostbyname(hote.c_str());
 
 		if (he == nullptr) {  /* Info de l'hôte */
@@ -150,7 +150,7 @@ public:
 			}
 		}
 		else {
-			port = static_cast<uint16_t>(std::atoi(std::string(u.port()).c_str()));
+			port = static_cast<uint16_t>(std::atoi(dls::chaine(u.port()).c_str()));
 		}
 
 		their_addr.sin_port = htons(port);    /* short, network byte order */
@@ -207,18 +207,18 @@ public:
 			return;
 		}
 
-		std::string requete;
+		dls::chaine requete;
 		TypeCliente::construit_requete(donnees, requete);
 
 		if (m_securise) {
-			auto taille = SSL_write(m_ssl, requete.c_str(), static_cast<int>(requete.size()));
+			auto taille = SSL_write(m_ssl, requete.c_str(), static_cast<int>(requete.taille()));
 
 			if (taille <= 0) {
 				imprime_erreur_ssl(m_ssl, taille, "Erreur lors de l'écriture SSL : ");
 			}
 		}
 		else {
-			if (send(m_prise, requete.c_str(), requete.size(), 0) == -1) {
+			if (send(m_prise, requete.c_str(), requete.taille(), 0) == -1) {
 				perror("send");
 			}
 		}
@@ -230,7 +230,7 @@ public:
 
 		char tampon[MAXDATASIZE];
 
-		std::string reponse;
+		dls::chaine reponse;
 
 		if (m_securise) {
 			do {

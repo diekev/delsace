@@ -25,8 +25,8 @@
 #pragma once
 
 #include <experimental/any>
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.h"
 
@@ -43,7 +43,7 @@ bool est_operateur(id_morceau identifiant);
 
 bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2);
 
-Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable);
+Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *manipulable);
 
 void imprime_valeur_symbole(Symbole symbole, std::ostream &os);
 

@@ -45,7 +45,7 @@ public:
 		auto koudou = std::any_cast<Koudou *>(pointeur);
 		auto const chemin_projet = koudou->requiers_dialogue(FICHIER_OUVERTURE);
 
-		if (chemin_projet.empty()) {
+		if (chemin_projet.est_vide()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 

@@ -63,7 +63,7 @@ void Controleuse::debute_proposition(const char *raison)
 	m_proposition = raison;
 }
 
-void Controleuse::debute_proposition(const std::string &raison)
+void Controleuse::debute_proposition(const dls::chaine &raison)
 {
 	m_proposition = raison;
 }
@@ -75,7 +75,7 @@ void Controleuse::termine_proposition()
 
 void Controleuse::imprime_resultat()
 {
-	const auto &nombre_echecs = m_echecs.size();
+	const auto &nombre_echecs = m_echecs.taille();
 
 	m_flux << "\nSUCCÈS (" << m_total - nombre_echecs << ")\n";
 
@@ -83,12 +83,12 @@ void Controleuse::imprime_resultat()
 		m_flux << "ÉCHECS (" << nombre_echecs << ")\n";
 
 		for (const auto &fail : m_echecs) {
-			for (size_t i = 0; i < m_taille_max_erreur; ++i) {
+			for (auto i = 0; i < m_taille_max_erreur; ++i) {
 				m_flux << '-';
 			}
 			m_flux << '\n';
 			m_flux << fail;
-			for (size_t i = 0; i < m_taille_max_erreur; ++i) {
+			for (auto i = 0; i < m_taille_max_erreur; ++i) {
 				m_flux << '-';
 			}
 			m_flux << '\n';
@@ -103,7 +103,7 @@ void Controleuse::performe_controles()
 	}
 }
 
-void Controleuse::pousse_erreur(const std::string &erreur)
+void Controleuse::pousse_erreur(const dls::chaine &erreur)
 {
 	std::stringstream ss;
 	ss << "Proposition : " << m_proposition << "\n\n";
@@ -124,11 +124,11 @@ void Controleuse::pousse_erreur(const std::string &erreur)
 
 	auto chaine = ss.str();
 
-	if (erreur.size() > m_taille_max_erreur) {
-		m_taille_max_erreur = erreur.size();
+	if (erreur.taille() > m_taille_max_erreur) {
+		m_taille_max_erreur = erreur.taille();
 	}
 
-	m_echecs.push_back(chaine);
+	m_echecs.pousse(chaine);
 }
 
 }  /* namespace test_unitaire */

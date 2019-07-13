@@ -58,7 +58,7 @@ class PinWheel : public WheelWidget {
 	std::mt19937 m_rng;
 	u_int64_t m_pins;
 	QString m_pins_str;
-	std::string m_keys;
+	dls::chaine m_keys;
 
 private Q_SLOTS:
 	virtual void updateLabel(int value);
@@ -76,7 +76,7 @@ public:
 class LetterWheel : public WheelWidget {
 	Q_OBJECT
 
-	std::string m_keys;
+	dls::chaine m_keys;
 
 private Q_SLOTS:
 	virtual void updateLabel(int value);
@@ -85,7 +85,7 @@ public:
 	LetterWheel(int num_values, QWidget *parent = nullptr);
 	~LetterWheel() = default;
 
-	void setKeys(const std::string &keys);
+	void setKeys(const dls::chaine &keys);
 	char key();
 	char key(const int pos);
 };

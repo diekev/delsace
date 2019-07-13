@@ -109,7 +109,7 @@ public:
 		}
 
 		dls::tableau<std::pair<Attribut *, Attribut *>> paires_attrs;
-		paires_attrs.reserve(static_cast<long>(corps->attributs().size()));
+		paires_attrs.reserve(corps->attributs().taille());
 
 		for (auto attr : corps->attributs()) {
 			auto attr2 = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
@@ -1306,13 +1306,13 @@ public:
 #else	/* À FAIRE : le réindexage n'est pas correcte. */
 		/* Supprime les points */
 
-		auto tamis_point = dls::tableau<bool>(doublons.size(), false);
-		auto reindexage = dls::tableau<long>(doublons.size(), -1);
+		auto tamis_point = dls::tableau<bool>(doublons.taille(), false);
+		auto reindexage = dls::tableau<long>(doublons.taille(), -1);
 		auto nouvel_index = 0;
 
 		std::cerr << "Calcul tamis, reindexage\n";
 
-		for (auto i = 0ul; i < doublons.size(); ++i) {
+		for (auto i = 0ul; i < doublons.taille(); ++i) {
 			auto supprime = (doublons[i] != -1) && (doublons[i] != static_cast<int>(i));
 			tamis_point[i] = supprime;
 

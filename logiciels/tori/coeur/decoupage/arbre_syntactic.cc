@@ -43,7 +43,7 @@ Noeud::Noeud(const DonneesMorceaux &donnees)
 
 void Noeud::ajoute_enfant(Noeud *noeud)
 {
-	enfants.push_back(noeud);
+	enfants.pousse(noeud);
 }
 
 /* ************************************************************************** */
@@ -187,7 +187,7 @@ void NoeudSi::genere_code(dls::chaine &tampon, tori::ObjetDictionnaire &objet) c
 		enfants[1]->genere_code(tampon, objet);
 	}
 	else {
-		if (enfants.size() > 2) {
+		if (enfants.taille() > 2) {
 			enfants[2]->genere_code(tampon, objet);
 		}
 	}

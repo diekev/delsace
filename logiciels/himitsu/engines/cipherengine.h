@@ -106,8 +106,8 @@ class EnigmaCipher final : public CipherEngine {
 	Q_OBJECT
 
 	Ui::EnigmaCipher *ui;
-	std::vector<int> m_plug_board;
-	std::string m_reflect;
+	dls::tableau<int> m_plug_board;
+	dls::chaine m_reflect;
 
 	enum {
 		ROTOR_1 = 0,
@@ -126,7 +126,7 @@ class EnigmaCipher final : public CipherEngine {
 	/**
 	 * http://www.cryptomuseum.com/crypto/enigma/g/index.htm
 	 */
-	const std::string m_original_keys[NUM_ROTORS] = {
+	const dls::chaine m_original_keys[NUM_ROTORS] = {
 	    "LPGSZMHAEOQKVXRFYBUTNICJDW",
 	    "SLVGBTFXJQOHEWIRZYAMKPCNDU",
 	    "CJGDPSHKTURAWZXFMYNQOBVLIE"

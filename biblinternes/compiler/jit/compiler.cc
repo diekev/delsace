@@ -43,11 +43,11 @@ compiler::~compiler()
 
 void compiler::add_node(node *n)
 {
-	if (!m_nodes.empty()) {
+	if (!m_nodes.est_vide()) {
 		n->link(m_nodes.back());
 	}
 
-	m_nodes.push_back(n);
+	m_nodes.pousse(n);
 }
 
 void compiler::compile(code_vector &code) const

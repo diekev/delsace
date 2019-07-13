@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/structures/pile.hh"
 
@@ -35,24 +35,24 @@ namespace pile {
 
 struct Noeud {
 	Noeud *parent = nullptr;
-	std::vector<Noeud *> enfants = {};
+	dls::tableau<Noeud *> enfants = {};
 
-	std::string nom = "";
+	dls::chaine nom = "";
 
 	Noeud(const Noeud &) = default;
 	Noeud &operator=(const Noeud &) = default;
 
-	Noeud(std::string nom_, bool genere_enfants)
+	Noeud(dls::chaine nom_, bool genere_enfants)
 		: nom(std::move(nom_))
 	{
 		if (!genere_enfants) {
 			return;
 		}
 
-		enfants.push_back(new Noeud(this->nom + "/enfant_a", false));
-		enfants.push_back(new Noeud(this->nom + "/enfant_b", false));
-		enfants.push_back(new Noeud(this->nom + "/enfant_c", false));
-		enfants.push_back(new Noeud(this->nom + "/enfant_d", false));
+		enfants.pousse(new Noeud(this->nom + "/enfant_a", false));
+		enfants.pousse(new Noeud(this->nom + "/enfant_b", false));
+		enfants.pousse(new Noeud(this->nom + "/enfant_c", false));
+		enfants.pousse(new Noeud(this->nom + "/enfant_d", false));
 
 		for (Noeud *enfant : this->enfants) {
 			enfant->parent = this;
@@ -70,7 +70,7 @@ struct Noeud {
 /* ************************* arborescence_iterator ************************** */
 
 class arborescence_iterator {
-	using iterateur_noeud = std::vector<Noeud *>::iterator;
+	using iterateur_noeud = dls::tableau<Noeud *>::iteratrice;
 
 	dls::pile<iterateur_noeud> m_pile{};
 
@@ -91,7 +91,7 @@ public:
 
 	arborescence_iterator(Noeud *noeud)
 	{
-		this->m_pile.empile(noeud->enfants.begin());
+		this->m_pile.empile(noeud->enfants.debut());
 	}
 
 	arborescence_iterator(const arborescence_iterator &rhs)
@@ -137,7 +137,7 @@ public:
 		}
 		else {
 			++this->m_profondeur;
-			this->m_pile.empile((*m_pile.haut())->enfants.begin());
+			this->m_pile.empile((*m_pile.haut())->enfants.debut());
 		}
 	}
 
@@ -171,7 +171,7 @@ bool operator!=(const arborescence_iterator &ita, const arborescence_iterator &i
 /* ****************************** arborescence ****************************** */
 
 struct Arborescence {
-	std::vector<Noeud *> noeuds = {};
+	dls::tableau<Noeud *> noeuds = {};
 	Noeud *racine = nullptr;
 
 	~Arborescence()
@@ -181,7 +181,7 @@ struct Arborescence {
 
 	void push_back(Noeud *noeud)
 	{
-		this->racine->enfants.push_back(noeud);
+		this->racine->enfants.pousse(noeud);
 	}
 };
 

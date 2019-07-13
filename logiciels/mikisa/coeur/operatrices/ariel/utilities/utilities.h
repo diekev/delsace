@@ -7,16 +7,17 @@
 
 #ifndef UTILITIES_H
 #define UTILITIES_H
-
 #include "biblinternes/math/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
+
 #include <algorithm>
 #include <istream>
 #include <ostream>
 #include <iterator>
-#include <string>
 
 #include "biblinternes/outils/constantes.h"
+
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 //====================================
@@ -60,19 +61,19 @@ bool epsilonCheck(float a, float b);
 // String wrangling stuff
 //====================================
 
-std::string padString(size_t length, std::string str);
+dls::chaine padString(long length, dls::chaine str);
 
-bool replaceString(std::string& str, const std::string& from, const std::string& to);
+bool replaceString(dls::chaine& str, const dls::chaine& from, const dls::chaine& to);
 
-std::string convertIntToString(int number);
+dls::chaine convertIntToString(int number);
 
-dls::tableau<std::string> tokenizeString(std::string str, std::string separator);
+dls::tableau<dls::chaine> tokenizeString(dls::chaine str, dls::chaine separator);
 
-dls::tableau<std::string> tokenizeStringByAllWhitespace(std::string str);
+dls::tableau<dls::chaine> tokenizeStringByAllWhitespace(dls::chaine const &str);
 
-std::string getLastNCharactersOfString(std::string s, size_t n);
+dls::chaine getLastNCharactersOfString(dls::chaine s, long n);
 
-std::string getFirstNCharactersOfString(std::string s, size_t n);
+dls::chaine getFirstNCharactersOfString(dls::chaine s, long n);
 
 //====================================
 // Time stuff
@@ -125,9 +126,9 @@ void fovToPerspective(float fovy, float aspect, float zNear, dls::math::vec2f& x
 // IO Stuff
 //====================================
 
-std::string readFileAsString(std::string filename);
+dls::chaine readFileAsString(dls::chaine filename);
 
-std::string getRelativePath(std::string path);
+dls::chaine getRelativePath(dls::chaine path);
 
 }
 

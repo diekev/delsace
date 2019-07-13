@@ -26,7 +26,7 @@
 
 #include "biblinternes/math/matrice.hh"
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 class ContexteRendu;
 class Maillage;
@@ -40,7 +40,7 @@ class TamponRendu;
  */
 struct Page {
 	TamponRendu *tampon{};
-	std::vector<uint> polys{};
+	dls::tableau<uint> polys{};
 };
 
 /**
@@ -53,7 +53,7 @@ class RenduMaillage {
 
 	Maillage *m_maillage = nullptr;
 
-	std::vector<Page> m_pages{};
+	dls::tableau<Page> m_pages{};
 
 public:
 	/**

@@ -198,7 +198,7 @@ void ParticleGrid::Sort(dls::tableau<Particle*>& particles)
 {
 	// clear existing cells
 	for (auto &cellule : m_cells) {
-		cellule.clear();
+		cellule.efface();
 	}
 
 	auto maxd = std::max(std::max(m_dimensions.x, m_dimensions.y), m_dimensions.z);

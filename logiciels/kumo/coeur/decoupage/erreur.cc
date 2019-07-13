@@ -68,7 +68,7 @@ static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine)
 	}
 }
 
-void lance_erreur(const std::string &quoi, lng::tampon_source const &tampon, const DonneesMorceaux &morceau, int type)
+void lance_erreur(const dls::chaine &quoi, lng::tampon_source const &tampon, const DonneesMorceaux &morceau, int type)
 {
 	const auto ligne = static_cast<long>(morceau.ligne_pos >> 32);
 	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);

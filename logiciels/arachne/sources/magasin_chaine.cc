@@ -24,25 +24,27 @@
 
 #include "magasin_chaine.h"
 
+#include "biblinternes/structures/tableau.hh"
+
 #include "autrice_fichier.h"
 #include "lectrice_fichier.h"
 
 namespace arachne {
 
-unsigned int magasin_chaine::ajoute_chaine(const std::string &chaine)
+long magasin_chaine::ajoute_chaine(const dls::chaine &chaine)
 {
 	auto index = index_chaine(chaine);
 
 	if (index == 0) {
 		m_tableau.insere({chaine, ++m_nombre_chaines});
-		m_taille_chaines += chaine.size();
+		m_taille_chaines += chaine.taille();
 		return m_nombre_chaines;
 	}
 
 	return index;
 }
 
-unsigned int magasin_chaine::index_chaine(const std::string &chaine) const
+unsigned int magasin_chaine::index_chaine(const dls::chaine &chaine) const
 {
 	auto iter = m_tableau.trouve(chaine);
 
@@ -58,12 +60,12 @@ bool magasin_chaine::est_valide() const
 	return m_nombre_chaines == m_tableau.taille();
 }
 
-size_t magasin_chaine::taille() const
+long magasin_chaine::taille() const
 {
 	return m_nombre_chaines;
 }
 
-size_t magasin_chaine::taille_chaines() const
+long magasin_chaine::taille_chaines() const
 {
 	return m_taille_chaines;
 }
@@ -110,25 +112,25 @@ void ecris_magasin_chaine(const magasin_chaine &magasin, const std::experimental
 
 	std::fprintf(stderr, "Écriture de %lu d'entrées du magasin dans le fichier.\n", magasin.taille());
 
-	std::vector<char> tampon;
-	tampon.resize(magasin.taille() * 12 + magasin.taille_chaines());
+	dls::tableau<char> tampon;
+	tampon.redimensionne(magasin.taille() * 12 + magasin.taille_chaines());
 
-	auto decalage = 0ul;
+	auto decalage = 0l;
 
 	for (const auto &pair : magasin) {
 		*reinterpret_cast<unsigned int *>(&tampon[decalage + 0]) = static_cast<unsigned>(pair.second);
-		*reinterpret_cast<size_t *>(&tampon[decalage + 4]) = pair.first.size();
+		*reinterpret_cast<long *>(&tampon[decalage + 4]) = pair.first.taille();
 
 		auto pointeur = &tampon[decalage + 12];
 
-		for (size_t i = 0; i < pair.first.size(); ++i) {
+		for (auto i = 0; i < pair.first.taille(); ++i) {
 			*pointeur++ = pair.first[i];
 		}
 
-		decalage += (12 + pair.first.size());
+		decalage += (12 + pair.first.taille());
 	}
 
-	autrice.ecrit_tampon(tampon.data(), tampon.size());
+	autrice.ecrit_tampon(tampon.donnees(), tampon.taille());
 
 	autrice.ferme();
 }
@@ -146,7 +148,7 @@ void lis_magasin_chaine(const std::experimental::filesystem::path &chemin)
 	std::fprintf(stderr, "Lecture fichier '%s'\n", chemin.c_str());
 
 	auto taille_fichier = lectrice.taille();
-	std::string tampon_chaine;
+	dls::chaine tampon_chaine;
 
 	std::fprintf(stderr, "Taille fichier : %lu\n", taille_fichier);
 
@@ -158,11 +160,11 @@ void lis_magasin_chaine(const std::experimental::filesystem::path &chemin)
 		lectrice.lis_tampon(tampon, 12);
 
 		auto index = *reinterpret_cast<unsigned int *>(&tampon[0]);
-		auto taille = *reinterpret_cast<size_t *>(&tampon[4]);
+		auto taille = *reinterpret_cast<long *>(&tampon[4]);
 
 		std::fprintf(stderr, "Index : %u, taille %lu\n", index, taille);
 
-		tampon_chaine.resize(taille);
+		tampon_chaine.redimensionne(taille);
 
 		lectrice.lis_tampon(&tampon_chaine[0], taille);
 

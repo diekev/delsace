@@ -37,14 +37,14 @@
 
 #include <sstream>
 
-static std::vector<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur)
+static dls::tableau<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur)
 {
-	std::vector<dls::chaine> resultat;
+	dls::tableau<dls::chaine> resultat;
 	std::stringstream ss(chaine.c_str());
 	std::string temp;
 
 	while (std::getline(ss, temp, delimiteur)) {
-		resultat.push_back(temp);
+		resultat.pousse(temp);
 	}
 
 	return resultat;
@@ -54,9 +54,9 @@ namespace danjo {
 
 /* Il s'emblerait que std::atof a du mal à convertir les string en float. */
 template <typename T>
-static T convertie(const std::string &valeur)
+static T convertie(const dls::chaine &valeur)
 {
-	std::istringstream ss(valeur);
+	std::istringstream ss(valeur.c_str());
 	T result;
 
 	ss >> result;

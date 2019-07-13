@@ -754,7 +754,7 @@ static void SplatParticlesToMACGrid(
 						}
 						mgrid->m_u_x->SetCell(i,j,k,uxsum);
 					}
-					neighbors.clear();
+					neighbors.efface();
 
 					//Splat Y direction
 					if (i<x && k<z) {
@@ -782,7 +782,7 @@ static void SplatParticlesToMACGrid(
 						}
 						mgrid->m_u_y->SetCell(i,j,k,uysum);
 					}
-					neighbors.clear();
+					neighbors.efface();
 
 					//Splat Z direction
 					if (i<x && j<y) {
@@ -810,7 +810,7 @@ static void SplatParticlesToMACGrid(
 						}
 						mgrid->m_u_z->SetCell(i,j,k,uzsum);
 					}
-					neighbors.clear();
+					neighbors.efface();
 				}
 			}
 		}
@@ -849,7 +849,7 @@ FlipSim::~FlipSim()
 		delete particule;
 	}
 
-	m_particles.clear();
+	m_particles.efface();
 	ClearMacgrid(m_mgrid);
 }
 
@@ -883,7 +883,7 @@ void FlipSim::Init()
 		m_max_density = std::max(m_max_density,p->m_density);
 		delete p;
 	}
-	m_particles.clear();
+	m_particles.efface();
 
 	//Generate particles and sort
 	m_scene->GenerateParticles(m_particles, m_dimensions, m_density, m_pgrid, 0);
@@ -996,7 +996,7 @@ void FlipSim::AdjustParticlesStuckInSolids()
 			stuckParticles[p]->m_u = normalise(r.m_direction) * d;
 		}
 	}
-	stuckParticles.clear();
+	stuckParticles.efface();
 }
 
 void FlipSim::CheckParticleSolidConstraints()

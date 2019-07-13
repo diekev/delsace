@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "melange.h"
 
@@ -50,7 +50,7 @@ struct Calque {
 	void *tampon = nullptr;
 	int drapeaux = 0;
 
-	std::string nom = "";
+	dls::chaine nom = "";
 
 	TypeCalque type_calque = TypeCalque::PEINTURE;
 
@@ -60,7 +60,7 @@ struct Calque {
 	/* TypeCalque::REPETABLE */
 	float taille_u = 1.0f;
 	float taille_v = 1.0f;
-	std::string chemin = "";
+	dls::chaine chemin = "";
 
 	/* TypeCalque::PROCEDUREL */
 	int octaves = 1;
@@ -89,7 +89,7 @@ enum TypeCanal {
 };
 
 struct CanauxTexture {
-	std::vector<Calque *> calques[TypeCanal::NOMBRE_CANAUX];
+	dls::tableau<Calque *> calques[TypeCanal::NOMBRE_CANAUX];
 
 	/* La hauteur initiale du tampon des calques. */
 	size_t hauteur{};

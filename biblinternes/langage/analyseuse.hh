@@ -199,10 +199,10 @@ protected:
 template <typename TypeIdentifiant>
 void analyseuse<TypeIdentifiant>::imprime_identifiants_plus_utilises(std::ostream &os, size_t nombre)
 {
-	std::vector<std::pair<int, int>> tableau(m_tableau_identifiant.size());
-	std::copy(m_tableau_identifiant.begin(), m_tableau_identifiant.end(), tableau.begin());
+	dls::tableau<std::pair<int, int>> tableau(m_tableau_identifiant.taille());
+	std::copy(m_tableau_identifiant.debut(), m_tableau_identifiant.fin(), tableau.debut());
 
-	std::sort(tableau.begin(), tableau.end(),
+	std::sort(tableau.debut(), tableau.fin(),
 			  [](const std::pair<int, int> &a, const std::pair<int, int> &b)
 	{
 		return a.second > b.second;

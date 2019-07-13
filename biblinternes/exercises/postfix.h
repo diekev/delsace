@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 #include "biblinternes/structures/file.hh"
 
-auto postfix(const std::string &expression) -> dls::file<std::string>;
-auto evaluate_postfix(dls::file<std::string> &expression) -> double;
+auto postfix(const dls::chaine &expression) -> dls::file<dls::chaine>;
+auto evaluate_postfix(dls::file<dls::chaine> &expression) -> double;

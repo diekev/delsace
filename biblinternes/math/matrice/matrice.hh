@@ -31,6 +31,8 @@
 #include <cstring>  /* Pour std::memcpy, std::memcmp. */
 #include <iostream>
 
+#include "biblinternes/structures/chaine.hh"
+
 namespace dls {
 namespace math {
 
@@ -38,7 +40,7 @@ namespace math {
  * Type d'exception lancée quand il y a une erreur de valeur.
  */
 class ExceptionValeur {
-	const std::string &m_quoi;
+	const dls::chaine &m_quoi;
 
 public:
 	/**
@@ -49,14 +51,14 @@ public:
 	/**
 	 * Crée une exception avec le message d'erreur.
 	 */
-	explicit ExceptionValeur(const std::string &quoi)
+	explicit ExceptionValeur(const dls::chaine &quoi)
 		: m_quoi(quoi)
 	{}
 
 	/**
 	 * Retourne le message d'erreur.
 	 */
-	const std::string &quoi() const
+	const dls::chaine &quoi() const
 	{
 		return m_quoi;
 	}

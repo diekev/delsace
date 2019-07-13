@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/phys/couleur.hh"
 #include "biblinternes/math/matrice.hh"

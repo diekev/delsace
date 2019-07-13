@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.h"
 
@@ -35,7 +35,7 @@ namespace langage {
  */
 class Analyseuse {
 protected:
-	std::vector<DonneesMorceaux> m_identifiants{};
+	dls::tableau<DonneesMorceaux> m_identifiants{};
 	int m_position = 0;
 
 public:
@@ -48,7 +48,7 @@ public:
 	 * Si aucun assembleur n'est installé lors de l'appel de cette méthode,
 	 * une exception est lancée.
 	 */
-	virtual void lance_analyse(const std::vector<DonneesMorceaux> &identifiants) = 0;
+	virtual void lance_analyse(const dls::tableau<DonneesMorceaux> &identifiants) = 0;
 
 protected:
 	/**
@@ -67,7 +67,7 @@ protected:
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
-	void lance_erreur(const std::string &quoi);
+	void lance_erreur(const dls::chaine &quoi);
 
 	/**
 	 * Avance l'analyseur d'un cran sur le vecteur d'identifiants.

@@ -665,7 +665,7 @@ public:
 			;
 		// We do not use the 0th node...
 		node_end = 1;
-		nodes.clear();
+		nodes.efface();
 		nodes.redimensionne(particles.taille() * 2);
 		int root = cree_nouveau_noeud();
 		// Make sure that one leaf node contains only one particle.

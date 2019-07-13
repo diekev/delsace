@@ -522,7 +522,7 @@ void OpImportAlembic::obtiens_liste(
 		dls::chaine const &raison,
 		dls::tableau<dls::chaine> &liste)
 {
-	liste.clear();
+	liste.efface();
 
 	if (!m_archive.valid()) {
 		return;

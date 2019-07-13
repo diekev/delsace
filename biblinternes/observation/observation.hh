@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 /**
  * Implémentation du patron de conception "Observateur".
@@ -56,7 +56,7 @@ public:
 /* ************************************************************************** */
 
 class Sujette {
-	std::vector<Observatrice *> m_observatrices{};
+	dls::tableau<Observatrice *> m_observatrices{};
 	Observatrice *m_observatrice_dialogue = nullptr;
 
 public:

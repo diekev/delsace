@@ -88,7 +88,7 @@ struct magasin_tableau {
 
 	void reinitialise()
 	{
-		tableaux.clear();
+		tableaux.efface();
 	}
 };
 

@@ -43,7 +43,7 @@ struct PCGSolver {
 	/* Vecteur de recherche */
 	Grille<float> s{};
 
-	void initialise(dls::math::vec3<size_t> const &res)
+	void initialise(dls::math::vec3<long> const &res)
 	{
 		M.initialise(res.x, res.y, res.z);
 
@@ -69,9 +69,9 @@ float calcul_divergence(
 	auto const res = d.resolution();
 	float max_divergence = 0.0f;
 
-	for (size_t z = 0; z < res.z; ++z) {
-		for (size_t y = 0; y < res.y; ++y) {
-			for (size_t x = 0; x < res.x; ++x) {
+	for (long z = 0; z < res.z; ++z) {
+		for (long y = 0; y < res.y; ++y) {
+			for (long x = 0; x < res.x; ++x) {
 				auto const x0 = grille_x.valeur(x - 1, y, z);
 				auto const x1 = grille_x.valeur(x + 1, y, z);
 				auto const y0 = grille_y.valeur(x, y - 1, z);
@@ -98,9 +98,9 @@ float calcul_divergence(
 	auto const res = d.resolution();
 	float max_divergence = 0.0f;
 
-	for (size_t z = 0; z < res.z; ++z) {
-		for (size_t y = 0; y < res.y; ++y) {
-			for (size_t x = 0; x < res.x; ++x) {
+	for (long z = 0; z < res.z; ++z) {
+		for (long y = 0; y < res.y; ++y) {
+			for (long x = 0; x < res.x; ++x) {
 				auto const x0 = grille.valeur(x - 1, y, z);
 				auto const x1 = grille.valeur(x + 1, y, z);
 				auto const y0 = grille.valeur(x, y - 1, z);
@@ -128,9 +128,9 @@ void construit_preconditionneur(
 
 	constexpr auto T = 0.97f;
 
-	for (size_t z = 0; z < res.z; ++z) {
-		for (size_t y = 0; y < res.y; ++y) {
-			for (size_t x = 0; x < res.x; ++x) {
+	for (long z = 0; z < res.z; ++z) {
+		for (long y = 0; y < res.y; ++y) {
+			for (long x = 0; x < res.x; ++x) {
 				if (drapeaux.valeur(x, y, z) == 0) {
 					pcg_solver.M.valeur(x, y, z, 0.0f);
 					continue;
@@ -179,9 +179,9 @@ void applique_preconditionneur(
 	q.initialise(res.x, res.y, res.z);
 
 	/* Résoud Lq = r */
-	for (size_t z = 0; z < res.z; ++z) {
-		for (size_t y = 0; y < res.y; ++y) {
-			for (size_t x = 0; x < res.x; ++x) {
+	for (long z = 0; z < res.z; ++z) {
+		for (long y = 0; y < res.y; ++y) {
+			for (long x = 0; x < res.x; ++x) {
 				if (drapeaux.valeur(x, y, z) == 0) {
 					q.valeur(x, y, z, 0.0f);
 					continue;
@@ -214,9 +214,9 @@ void applique_preconditionneur(
 	}
 
 	/* Résoud L^Tz = q */
-	for (size_t z = res.z - 1; z < -1ul; --z) {
-		for (size_t y = res.y - 1; y < -1ul; --y) {
-			for (size_t x = res.x - 1; x < -1ul; --x) {
+	for (long z = res.z - 1; z >= 0; --z) {
+		for (long y = res.y - 1; y >= 0; --y) {
+			for (long x = res.x - 1; x >= 0; --x) {
 				if (drapeaux.valeur(x, y, z) == 0) {
 					q.valeur(x, y, z, 0.0f);
 					continue;
@@ -253,9 +253,9 @@ float produit_scalaire(Grille<float> const &a, Grille<float> const &b)
 
 	auto valeur = 0.0f;
 
-	for (size_t z = 0; z < res_z; ++z) {
-		for (size_t y = 0; y < res_y; ++y) {
-			for (size_t x = 0; x < res_x; ++x) {
+	for (long z = 0; z < res_z; ++z) {
+		for (long y = 0; y < res_y; ++y) {
+			for (long x = 0; x < res_x; ++x) {
 				valeur += a.valeur(x, y, z) * b.valeur(x, y, z);
 			}
 		}
@@ -272,9 +272,9 @@ float maximum(Grille<float> const &a)
 
 	auto max = std::numeric_limits<float>::min();
 
-	for (size_t x = 0; x < res_x; ++x) {
-		for (size_t y = 0; y < res_y; ++y) {
-			for (size_t z = 0; z < res_z; ++z) {
+	for (long x = 0; x < res_x; ++x) {
+		for (long y = 0; y < res_y; ++y) {
+			for (long z = 0; z < res_z; ++z) {
 				auto const v = std::abs(a.valeur(x, y, z));
 				if (v > max) {
 					max = v;
@@ -292,9 +292,9 @@ void ajourne_pression_residus(const float alpha, Grille<float> &p, Grille<float>
 	auto const res_y = a.resolution().y;
 	auto const res_z = a.resolution().z;
 
-	for (size_t x = 0; x < res_x; ++x) {
-		for (size_t y = 0; y < res_y; ++y) {
-			for (size_t z = 0; z < res_z; ++z) {
+	for (long x = 0; x < res_x; ++x) {
+		for (long y = 0; y < res_y; ++y) {
+			for (long z = 0; z < res_z; ++z) {
 				auto vp = p.valeur(x, y, z);
 				auto vr = r.valeur(x, y, z);
 				auto vz = a.valeur(x, y, z);
@@ -313,9 +313,9 @@ void ajourne_vecteur_recherche(Grille<float> &s, Grille<float> const &a, const f
 	auto const res_y = s.resolution().y;
 	auto const res_z = s.resolution().z;
 
-	for (size_t x = 0; x < res_x; ++x) {
-		for (size_t y = 0; y < res_y; ++y) {
-			for (size_t z = 0; z < res_z; ++z) {
+	for (long x = 0; x < res_x; ++x) {
+		for (long y = 0; y < res_y; ++y) {
+			for (long z = 0; z < res_z; ++z) {
 				auto vs = s.valeur(x, y, z);
 				auto vz = a.valeur(x, y, z);
 
@@ -330,9 +330,9 @@ void applique_A(PCGSolver &pcg_solver)
 {
 	auto const res = pcg_solver.M.resolution();
 
-	for (size_t z = 0; z < res.z; ++z) {
-		for (size_t y = 0; y < res.y; ++y) {
-			for (size_t x = 0; x < res.x; ++x) {
+	for (long z = 0; z < res.z; ++z) {
+		for (long y = 0; y < res.y; ++y) {
+			for (long x = 0; x < res.x; ++x) {
 				auto const coef = pcg_solver.Adiag.valeur(x, y, z);
 
 				auto const s_i0jk = pcg_solver.s.valeur(x - 1, y, z);
@@ -371,7 +371,7 @@ void solve_pressure(PCGSolver &pcg_solver, Grille<char> const &drapeaux)
 	auto const rho = 1.0f;
 	auto const max_iter = 100;
 
-	size_t i = 0;
+	long i = 0;
 	auto max_divergence = 0.0f;
 
 	for (; i < max_iter; ++i) {
@@ -412,9 +412,9 @@ void construit_A(PCGSolver &pcg_solver, Grille<char> const &drapeaux)
 {
 	auto const &res = drapeaux.resolution();
 
-	for (size_t z = 0; z < res.z; ++z) {
-		for (size_t y = 0; y < res.y; ++y) {
-			for (size_t x = 0; x < res.x; ++x) {
+	for (long z = 0; z < res.z; ++z) {
+		for (long y = 0; y < res.y; ++y) {
+			for (long x = 0; x < res.x; ++x) {
 				//auto const p_i0jk = drapeaux.valeur(x - 1, y, z);
 				auto const p_i1jk = drapeaux.valeur(x + 1, y, z);
 				//auto const p_ij0k = drapeaux.valeur(x, y - 1, z);
@@ -439,9 +439,9 @@ void soustrait_gradient_pression(Grille<float> &grille, PCGSolver const &pcg_sol
 {
 	auto const &res = grille.resolution();
 
-	for (size_t z = 0; z < res.z; ++z) {
-		for (size_t y = 0; y < res.y; ++y) {
-			for (size_t x = 0; x < res.x; ++x) {
+	for (long z = 0; z < res.z; ++z) {
+		for (long y = 0; y < res.y; ++y) {
+			for (long x = 0; x < res.x; ++x) {
 				auto const p_i0jk = pcg_solver.p.valeur(x - 1, y, z);
 				auto const p_i1jk = pcg_solver.p.valeur(x + 1, y, z);
 				auto const p_ij0k = pcg_solver.p.valeur(x, y - 1, z);

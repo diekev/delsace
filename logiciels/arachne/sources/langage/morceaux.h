@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace arachne {
 
@@ -74,8 +74,8 @@ struct DonneesMorceaux {
 	int identifiant = 0;
 	int numero_ligne = 0;
 	int position_ligne = 0;
-	std::string contenu = "";
-	std::string ligne;
+	dls::chaine contenu = "";
+	dls::chaine ligne;
 
 	DonneesMorceaux() = default;
 };

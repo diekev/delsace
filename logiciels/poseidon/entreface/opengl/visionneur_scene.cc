@@ -133,7 +133,7 @@ void VisionneurScene::peint_opengl()
 	auto const fps = static_cast<int>(1.0 / temps);
 
 	dls::flux_chaine ss;
-	ss << fps << " IPS, particules : " << m_poseidon->fluide->particules.size();
+	ss << fps << " IPS, particules : " << m_poseidon->fluide->particules.taille();
 
 	glEnable(GL_BLEND);
 

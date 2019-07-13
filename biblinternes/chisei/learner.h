@@ -24,13 +24,13 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 class learner {
 public:
 	learner() = default;
 	~learner() = default;
 
-	void respond(const std::string &phrase);
-	void say(const std::string &phrase);
+	void respond(const dls::chaine &phrase);
+	void say(const dls::chaine &phrase);
 };

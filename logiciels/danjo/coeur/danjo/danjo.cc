@@ -343,10 +343,7 @@ dls::chaine contenu_fichier(const std::experimental::filesystem::path &chemin)
 	std::ifstream entree;
 	entree.open(chemin.c_str());
 
-	std::string contenu((std::istreambuf_iterator<char>(entree)),
-						(std::istreambuf_iterator<char>()));
-
-	return dls::chaine(contenu);
+	return {(std::istreambuf_iterator<char>(entree)), (std::istreambuf_iterator<char>())};
 }
 
 /* ************************************************************************** */

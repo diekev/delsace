@@ -55,12 +55,12 @@ void lectrice_fichier::ouvre(const std::experimental::filesystem::path &chemin)
 	m_pointeur = pointeur;
 }
 
-size_t lectrice_fichier::taille() const
+long lectrice_fichier::taille() const
 {
-	std::fseek(m_pointeur, 0ul, SEEK_END);
+	std::fseek(m_pointeur, 0l, SEEK_END);
 	auto t = std::ftell(m_pointeur);
-	std::fseek(m_pointeur, 0ul, SEEK_SET);
-	return static_cast<size_t>(t);
+	std::fseek(m_pointeur, 0l, SEEK_SET);
+	return t;
 }
 
 void lectrice_fichier::ferme()
@@ -71,9 +71,9 @@ void lectrice_fichier::ferme()
 	}
 }
 
-size_t lectrice_fichier::lis_tampon(char *tampon, size_t taille) const
+long lectrice_fichier::lis_tampon(char *tampon, long taille) const
 {
-	return std::fread(tampon, sizeof(char), taille, m_pointeur);
+	return static_cast<long>(std::fread(tampon, sizeof(char), static_cast<size_t>(taille), m_pointeur));
 }
 
 bool lectrice_fichier::est_ouverte() const

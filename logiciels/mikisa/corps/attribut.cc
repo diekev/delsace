@@ -106,7 +106,7 @@ long Attribut::taille() const
 
 void Attribut::reinitialise()
 {
-	m_tampon.clear();
+	m_tampon.efface();
 }
 
 const void *Attribut::donnees() const

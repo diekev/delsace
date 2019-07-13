@@ -7,7 +7,7 @@
 #ifndef LEVELSET_HPP
 #define LEVELSET_HPP
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -122,8 +122,8 @@ public:
 
 	void ProjectPointsToSurface(dls::tableau<Particle*>& particles, const float& pscale);
 
-	void WriteObjToFile(std::string filename);
-	void WriteVDBGridToFile(std::string filename);
+	void WriteObjToFile(dls::chaine filename);
+	void WriteVDBGridToFile(dls::chaine filename);
 
 protected:
 	void LevelSetFromAnimMesh(objCore::InterpolatedObj* animmesh, const float& interpolation,

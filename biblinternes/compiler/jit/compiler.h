@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "function.h"
 
@@ -71,7 +71,7 @@ enum class reg {
 };
 
 class compiler {
-	std::vector<node *> m_nodes{};
+	dls::tableau<node *> m_nodes{};
 
 public:
 	compiler() = default;

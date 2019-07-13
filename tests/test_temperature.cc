@@ -24,7 +24,7 @@
 
 #include "tests.hh"
 
-#include "../types/temperature.h"
+#include "biblinternes/types/temperature.h"
 
 template <typename real>
 void test_temperature_impl(dls::test_unitaire::Controleuse &controleur)

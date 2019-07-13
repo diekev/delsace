@@ -36,6 +36,8 @@
 #include <QWidget>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/structures/chaine.hh"
+
 #include "base_controles.h"
 
 class QGridLayout;
@@ -142,7 +144,7 @@ Q_SIGNALS:
 class ControleChaineCaractere final : public QLineEdit {
 	Q_OBJECT
 
-	std::string *m_pointeur{};
+	dls::chaine *m_pointeur{};
 
 public:
 	explicit ControleChaineCaractere(QWidget *parent = nullptr);
@@ -151,7 +153,7 @@ public:
 	ControleChaineCaractere(ControleChaineCaractere const &) = default;
 	ControleChaineCaractere &operator=(ControleChaineCaractere const &) = default;
 
-	void pointeur(std::string *pointeur);
+	void pointeur(dls::chaine *pointeur);
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee();
@@ -211,7 +213,7 @@ Q_SIGNALS:
 class ControleFichier final : public SelecteurFichier {
 	Q_OBJECT
 
-	std::string *m_pointeur{};
+	dls::chaine *m_pointeur{};
 
 public:
 	explicit ControleFichier(bool input, QWidget *parent = nullptr);
@@ -220,7 +222,7 @@ public:
 	ControleFichier(ControleFichier const &) = default;
 	ControleFichier &operator=(ControleFichier const &) = default;
 
-	void pointeur(std::string *pointeur);
+	void pointeur(dls::chaine *pointeur);
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(QString const &valeur);
@@ -234,7 +236,7 @@ Q_SIGNALS:
 class ControleListe final : public SelecteurListe {
 	Q_OBJECT
 
-	std::string *m_pointeur{};
+	dls::chaine *m_pointeur{};
 
 public:
 	explicit ControleListe(QWidget *parent = nullptr);
@@ -244,7 +246,7 @@ public:
 	ControleListe(ControleListe const &) = default;
 	ControleListe &operator=(ControleListe const &) = default;
 
-	void pointeur(std::string *pointeur);
+	void pointeur(dls::chaine *pointeur);
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(QString const &valeur);

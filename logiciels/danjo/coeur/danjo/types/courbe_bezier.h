@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/phys/couleur.hh"
 
@@ -54,7 +54,7 @@ struct PointBezier {
 
 struct CourbeBezier {
 	/* les points constituants cette courbe */
-	std::vector<PointBezier> points{};
+	dls::tableau<PointBezier> points{};
 
 	/* le point courant de cette courbe */
 	PointBezier *point_courant = nullptr;
@@ -66,7 +66,7 @@ struct CourbeBezier {
 	PointBezier extension_max{};
 
 	/* Pour le rendu et l'évaluation. */
-	std::vector<Point> table{};
+	dls::tableau<Point> table{};
 
 	/* valeur minimale de la courbe pour l'évaluation */
 	float valeur_min = 0.0f;

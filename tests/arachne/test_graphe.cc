@@ -25,7 +25,7 @@
 #include "tests_arachne.hh"
 
 #include <algorithm>
-#include <list>
+#include "biblinternes/structures/liste.hh"
 
 #include "../biblinternes/systeme_fichier/utilitaires.h"
 
@@ -51,20 +51,20 @@ enum {
 };
 
 class resultat_analyseuse {
-	std::list<noeud *> m_noeuds{};
+	dls::liste<noeud *> m_noeuds{};
 
 public:
 	void ajoute_noeud(noeud *n)
 	{
-		m_noeuds.push_back(n);
+		m_noeuds.pousse(n);
 	}
 
 	/**
 	 * Nombre de résultats.
 	 */
-	size_t nombre() const
+	long nombre() const
 	{
-		return m_noeuds.size();
+		return m_noeuds.taille();
 	}
 };
 
@@ -138,8 +138,8 @@ public:
 		auto contenu = donnees().valeur;
 
 		return std::any_of(
-					n->etiquettes.begin(),
-					n->etiquettes.end(),
+					n->etiquettes.debut(),
+					n->etiquettes.fin(),
 					[&contenu](etiquette *e) { return e->id_nom == contenu; });
 	}
 
@@ -150,7 +150,7 @@ public:
 };
 
 #if 0
-void verifie_condition(std::vector<int> conditions)
+void verifie_condition(dls::tableau<int> conditions)
 {
 	for (auto condition : conditions) {
 		if (condition == NOEUD) {

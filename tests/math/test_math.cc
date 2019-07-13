@@ -24,9 +24,9 @@
 
 #include "tests_math.hh"
 
-#include "../math/aleatoire.hh"
-#include "../math/concepts.hh"
-#include "../math/statistique.hh"
+#include "biblinternes/math/aleatoire.hh"
+#include "biblinternes/math/concepts.hh"
+#include "biblinternes/math/statistique.hh"
 
 #include <tuple>
 
@@ -74,37 +74,37 @@ void test_statistique_impl(dls::test_unitaire::Controleuse &controleur)
 	using namespace dls::math;
 
 	{
-		const std::vector<real> v = { 1, 2, 3, 4 };
+		const dls::tableau<real> v = { 1, 2, 3, 4 };
 
-		auto m = moyenne<real>(v.begin(), v.end());
+		auto m = moyenne<real>(v.debut(), v.fin());
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, m, static_cast<real>(2.5));
 
-		auto md = mediane<real>(v.begin(), v.end());
+		auto md = mediane<real>(v.debut(), v.fin());
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, md, static_cast<real>(2.5));
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, md, m);
 	}
 
 	{
-		const std::vector<real> v = { 1, 1, 1, 1 };
+		const dls::tableau<real> v = { 1, 1, 1, 1 };
 
-		auto m = moyenne<real>(v.begin(), v.end());
+		auto m = moyenne<real>(v.debut(), v.fin());
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, m, static_cast<real>(1));
 
-		auto md = mediane<real>(v.begin(), v.end());
+		auto md = mediane<real>(v.debut(), v.fin());
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, md, static_cast<real>(1));
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, md, m);
 
-		auto sigma = ecart_type<real>(v.begin(), v.end(), m);
+		auto sigma = ecart_type<real>(v.debut(), v.fin(), m);
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, sigma, static_cast<real>(0));
 	}
 
 	{
-		const std::vector<real> v = { 1, 2, 3, 4, 5 };
+		const dls::tableau<real> v = { 1, 2, 3, 4, 5 };
 
-		auto m = moyenne<real>(v.begin(), v.end());
+		auto m = moyenne<real>(v.debut(), v.fin());
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, m, static_cast<real>(3));
 
-		auto md = mediane<real>(v.begin(), v.end());
+		auto md = mediane<real>(v.debut(), v.fin());
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, md, static_cast<real>(3));
 		CU_VERIFIE_EGALITE_DECIMALE(controleur, md, m);
 	}

@@ -28,8 +28,8 @@
 #include "biblinternes/ego/programme.h"
 #include "biblinternes/ego/texture.h"
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class AtlasTexture;
 class ContexteRendu;
@@ -42,7 +42,7 @@ class ContexteRendu;
  */
 struct ParametresTampon {
 	/* Le nom de l'attribut. */
-	std::string attribut = "";
+	dls::chaine attribut = "";
 
 	/* Le nombre de dimension d'un élément de l'attribut (généralement 2 ou 3). */
 	int dimension_attribut = 0;
@@ -76,8 +76,8 @@ struct ParametresTampon {
  * uniformes pour un TamponRendu.
  */
 class ParametresProgramme {
-	std::vector<std::string> m_attributs = {};
-	std::vector<std::string> m_uniformes = {};
+	dls::tableau<dls::chaine> m_attributs = {};
+	dls::tableau<dls::chaine> m_uniformes = {};
 
 public:
 	/**
@@ -88,22 +88,22 @@ public:
 	/**
 	 * Ajoute le nom d'un nouvel attribut dans la liste des attributs.
 	 */
-	void ajoute_attribut(std::string const &nom);
+	void ajoute_attribut(dls::chaine const &nom);
 
 	/**
 	 * Ajoute le nom d'une nouvelle valeur uniforme dans la liste des uniformes.
 	 */
-	void ajoute_uniforme(std::string const &nom);
+	void ajoute_uniforme(dls::chaine const &nom);
 
 	/**
 	 * Retourne la liste des attributs.
 	 */
-	std::vector<std::string> const &attributs() const;
+	dls::tableau<dls::chaine> const &attributs() const;
 
 	/**
 	 * Retourne la liste des uniformes.
 	 */
-	std::vector<std::string> const &uniformes() const;
+	dls::tableau<dls::chaine> const &uniformes() const;
 };
 
 /* ************************************************************************** */
@@ -193,11 +193,11 @@ public:
 	 *
 	 * Les sources doivent être un texte et non un chemin vers un fichier ! Il
 	 * est attendu que la fonction qui appèle cette méthode se charge d'ouvrir
-	 * les fichiers et de mettre leurs contenus dans des std::string.
+	 * les fichiers et de mettre leurs contenus dans des dls::chaine.
 	 */
 	void charge_source_programme(
 			dls::ego::Nuanceur type_programme,
-			std::string const &source,
+			dls::chaine const &source,
 			std::ostream &os = std::cerr);
 
 	/**

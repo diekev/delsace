@@ -32,7 +32,9 @@
 #include <QObject>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class QGridLayout;
 
@@ -43,8 +45,8 @@ class AssembleurControles {
 	QWidget *m_dernier_controle{};
 	int m_compte_items{};
 
-	std::vector<QWidget *> m_controles{};
-	dls::dico_desordonne<std::string, widget_pair> m_tableau_controle{};
+	dls::tableau<QWidget *> m_controles{};
+	dls::dico_desordonne<dls::chaine, widget_pair> m_tableau_controle{};
 
 public:
 	explicit AssembleurControles(QGridLayout *layout);

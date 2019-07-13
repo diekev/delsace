@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace dls {
 namespace image {
@@ -33,17 +33,17 @@ namespace outils {
 /**
  * Retourne vrai si l'extension est celle d'un fichier EXR.
  */
-bool est_extension_exr(const std::string &extension);
+bool est_extension_exr(const dls::chaine &extension);
 
 /**
  * Retourne vrai si l'extension est celle d'un fichier JPEG.
  */
-bool est_extension_jpeg(const std::string &extension);
+bool est_extension_jpeg(const dls::chaine &extension);
 
 /**
  * Retourne vrai si l'extension est celle d'un fichier PNM.
  */
-bool est_extension_pnm(const std::string &extension);
+bool est_extension_pnm(const dls::chaine &extension);
 
 }  /* namespace outils */
 }  /* namespace image */

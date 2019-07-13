@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
-		charge_module(os, "", chemin, contexte_generation, {}, true);
+		charge_module(os, "", chemin.c_str(), contexte_generation, {}, true);
 
 		if (ops.emet_arbre) {
 			assembleuse.imprime_code(os);
@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
 		of.close();
 
 		auto debut_executable = dls::chrono::maintenant();
-//		auto commande = std::string("gcc /tmp/conversion.kuri ");
+//		auto commande = dls::chaine("gcc /tmp/conversion.kuri ");
 
 //		commande += " -o ";
 //		commande += ops.chemin_sortie;

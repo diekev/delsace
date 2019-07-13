@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <type_traits>
 
+#include "biblinternes/structures/chaine.hh"
+
 namespace dls {
 namespace flux {
 
@@ -41,7 +43,7 @@ auto normalize_args(T arg) -> typename std::enable_if<std::is_pointer<T>::value,
 	return arg;
 }
 
-auto normalize_args(const std::string &arg)
+auto normalize_args(const dls::chaine &arg)
 {
 	return arg.c_str();
 }
@@ -71,10 +73,10 @@ template<> inline const char* typename_as_string<const char *>()  { return "cons
 
 #define ENFORCE(x, type)                                                        \
 	if (!(x)) {                                                                 \
-		std::string err{typename_as_string<T>()};                               \
+		dls::chaine err{typename_as_string<T>()};                               \
 		err += " is of a wrong type, expected: ";                               \
 		err += typename_as_string<type>();                                      \
-		throw std::invalid_argument(err);                                       \
+		throw std::invalid_argument(err.c_str());                                       \
 	}
 
 template<typename T, typename... Ts>

@@ -27,7 +27,7 @@
 #include "biblinternes/langage/analyseuse.hh"
 #include "biblinternes/structures/tableau.hh"
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace arachne {
 

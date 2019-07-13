@@ -24,7 +24,7 @@
 #pragma once
 
 #include <iostream>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 #include "version.h"
 
@@ -36,7 +36,7 @@ namespace util {
 /**
  * @brief Get the content of a file as a string.
  */
-std::string str_from_file(const std::string &filename);
+dls::chaine str_from_file(const dls::chaine &filename);
 
 #define GPU_check_errors(message) \
 	gl_check_errors(message, __FILE__, __LINE__);
@@ -44,12 +44,12 @@ std::string str_from_file(const std::string &filename);
 #define GPU_check_framebuffer(message) \
 	gl_check_framebuffer(message, __FILE__, __LINE__);
 
-void gl_check_errors(const std::string &message,
-                     const std::string &file,
+void gl_check_errors(const dls::chaine &message,
+                     const dls::chaine &file,
                      const int line);
 
-void gl_check_framebuffer(const std::string &message,
-                          const std::string &file,
+void gl_check_framebuffer(const dls::chaine &message,
+                          const dls::chaine &file,
 	                      const int line);
 
 typedef void(* get_ivfunc)(unsigned int index, unsigned int pname, int *param);
@@ -57,7 +57,7 @@ typedef void(* get_logfunc)(unsigned int index, int bufSize, int *length, char *
 
 bool check_status(unsigned int index,
                   unsigned int pname,
-                  const std::string &prefix,
+                  const dls::chaine &prefix,
                   get_ivfunc ivfunc,
                   get_logfunc log_func,
                   std::ostream &os = std::cerr);

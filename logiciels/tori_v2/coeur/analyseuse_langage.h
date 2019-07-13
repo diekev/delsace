@@ -33,30 +33,30 @@
 namespace langage {
 
 struct DonneesVariables {
-	std::string valeur{};
+	dls::chaine valeur{};
 
 	DonneesVariables() = default;
 };
 
-using Expression = std::vector<Variable>;
+using Expression = dls::tableau<Variable>;
 
 struct DonneesFonction {
-	dls::dico_desordonne<std::string, DonneesVariables> variables_locales;
-	std::vector<Expression> expressions;
+	dls::dico_desordonne<dls::chaine, DonneesVariables> variables_locales;
+	dls::tableau<Expression> expressions;
 	Expression expression_retour;
 };
 
 struct DonneesScript {
-	dls::dico_desordonne<std::string, DonneesVariables> variables;
-	dls::dico_desordonne<std::string, DonneesFonction> fonctions;
+	dls::dico_desordonne<dls::chaine, DonneesVariables> variables;
+	dls::dico_desordonne<dls::chaine, DonneesFonction> fonctions;
 };
 
 class AnalyseuseLangage : public Analyseuse {
 	DonneesScript m_donnees_script;
-	dls::dico_desordonne<std::string, double> m_chronometres;
+	dls::dico_desordonne<dls::chaine, double> m_chronometres;
 
 public:
-	void lance_analyse(const std::vector<DonneesMorceaux> &morceaux) override;
+	void lance_analyse(const dls::tableau<DonneesMorceaux> &morceaux) override;
 
 private:
 	void analyse_declaration();

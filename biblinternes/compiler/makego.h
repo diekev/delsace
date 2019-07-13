@@ -24,6 +24,6 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
-void read_file(const std::string &filename);
+void read_file(const dls::chaine &filename);

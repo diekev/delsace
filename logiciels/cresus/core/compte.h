@@ -97,7 +97,7 @@ public:
 
 	auto addTransaction(const Transaction &transac) -> void
 	{
-		this->m_transactions.push_back(transac);
+		this->m_transactions.pousse(transac);
 	}
 
 	auto addTransaction(const float value, const bool income) -> void

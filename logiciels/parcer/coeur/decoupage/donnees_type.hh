@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -42,12 +42,12 @@ struct ContexteGenerationCode;
  */
 class DonneesType {
 	/* À FAIRE : type similaire à llvm::SmallVector. */
-	std::vector<id_morceau> m_donnees{};
+	dls::tableau<id_morceau> m_donnees{};
 
 public:
-	std::string ptr_info_type{};
+	dls::chaine ptr_info_type{};
 
-	using iterateur_const = std::vector<id_morceau>::const_reverse_iterator;
+	using iterateur_const = dls::tableau<id_morceau>::const_iteratrice_inverse;
 
 	DonneesType() = default;
 
@@ -185,10 +185,10 @@ struct hash<DonneesType> {
 /* ************************************************************************** */
 
 struct MagasinDonneesType {
-	dls::dico_desordonne<DonneesType, size_t> donnees_type_index{};
-	std::vector<DonneesType> donnees_types{};
+	dls::dico_desordonne<DonneesType, long> donnees_type_index{};
+	dls::tableau<DonneesType> donnees_types{};
 
 	MagasinDonneesType() = default;
 
-	size_t ajoute_type(const DonneesType &donnees);
+	long ajoute_type(const DonneesType &donnees);
 };

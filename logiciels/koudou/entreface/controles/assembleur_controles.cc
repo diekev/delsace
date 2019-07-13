@@ -53,7 +53,7 @@ void AssembleurControles::addWidget(QWidget *widget, QString const &name)
 	m_agencement->addWidget(widget, m_compte_items, 1);
 
 	m_dernier_controle = widget;
-	m_controles.push_back(widget);
+	m_controles.pousse(widget);
 	m_tableau_controle[name.toStdString()] = std::make_pair(label, widget);
 
 	++m_compte_items;
@@ -69,7 +69,7 @@ void AssembleurControles::setTooltip(QString const &tooltip)
 void AssembleurControles::clear()
 {
 	m_tableau_controle.efface();
-	m_controles.clear();
+	m_controles.efface();
 	vide_agencement(m_agencement);
 }
 

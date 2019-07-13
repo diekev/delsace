@@ -35,12 +35,12 @@
 
 static void entresecte_triangles_maillage(
 		Maillage const &maillage,
-		size_t index,
+		long index,
 		double distance_maximale,
 		Rayon const &rayon,
 		Entresection &entresection)
 {
-	auto index_triangle = 0ul;
+	auto index_triangle = 0l;
 
 	for (const Triangle *triangle : maillage) {
 #ifdef STATISTIQUES
@@ -92,7 +92,7 @@ Entresection StructureAcceleration::entresecte(
 		Rayon const &rayon,
 		double distance_maximale) const
 {
-	auto index = 0ul;
+	auto index = 0l;
 	auto entresection = Entresection();
 	entresection.distance = distance_maximale;
 
@@ -175,10 +175,10 @@ bool VolumeEnglobant::Etendue::entresecte(Rayon const &rayon,
 
 void VolumeEnglobant::construit(Scene const &scene)
 {
-	m_etendues.resize(scene.maillages.size());
-	auto i = 0ul;
+	m_etendues.redimensionne(scene.maillages.taille());
+	auto i = 0l;
 	for (Maillage *maillage : scene.maillages) {
-		for (uint8_t j = 0; j < NOMBRE_NORMAUX_PLAN; ++j) {
+		for (auto j = 0; j < NOMBRE_NORMAUX_PLAN; ++j) {
 			maillage->calcule_limites(NORMAUX_PLAN[j], m_etendues[i].d[j][0], m_etendues[i].d[j][1]);
 		}
 
@@ -199,7 +199,7 @@ Entresection VolumeEnglobant::entresecte(
 	rayon_local.distance_max = rayon.distance_max;
 	rayon_local.temps = rayon.temps;
 
-	auto index = 0ul;
+	auto index = 0l;
 	auto entresection = Entresection();
 	entresection.distance = distance_maximale;
 

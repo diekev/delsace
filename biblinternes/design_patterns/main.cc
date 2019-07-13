@@ -81,7 +81,7 @@ void foo()
 void test()
 {
 	auto count = std::thread::hardware_concurrency();
-	std::vector<std::thread> threads;
+	dls::tableau<std::thread> threads;
 
 	for (auto i = 0u; i < count; ++i) {
 		threads.emplace_back(foo);
@@ -106,19 +106,19 @@ void test()
 void echantillonage_reserve(std::ostream &os)
 {
 	std::mt19937 gen(134971);
-	std::uniform_int_distribution<size_t> dist(64, 1024);
+	std::uniform_int_distribution<long> dist(64, 1024);
 
-	std::vector<int> donnees;
-	donnees.resize(dist(gen));
+	dls::tableau<int> donnees;
+	donnees.redimensionne(dist(gen));
 
-	std::iota(donnees.begin(), donnees.end(), 0);
+	std::iota(donnees.debut(), donnees.fin(), 0);
 
-	os << "Il y a " << donnees.size() << " nombres en tout.\n";
+	os << "Il y a " << donnees.taille() << " nombres en tout.\n";
 
 	std::uniform_real_distribution<double> dist2(0.0, 1.0);
 	auto nombre_donnees_vues = 0;
 
-	std::vector<int> selections;
+	dls::tableau<int> selections;
 	selections.reserve(32);
 
 	for (const auto donnee : donnees) {
@@ -127,7 +127,7 @@ void echantillonage_reserve(std::ostream &os)
 		const auto probabilite_selection = 32.0 / nombre_donnees_vues;
 
 		if (probabilite_selection < dist2(gen)) {
-			if (selections.size() == 32) {
+			if (selections.taille() == 32) {
 				for (auto &selection : selections) {
 					if (probabilite_selection < dist2(gen)) {
 						selection = donnee;
@@ -136,7 +136,7 @@ void echantillonage_reserve(std::ostream &os)
 				}
 			}
 			else {
-				selections.push_back(donnee);
+				selections.pousse(donnee);
 			}
 		}
 	}

@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 #include <x86intrin.h>
 
 #include "../chrono/chronometre_de_portee.hh"
@@ -61,18 +61,18 @@ public:
 	}
 };
 
-float accumulate(std::vector<float> &v)
+float accumulate(dls::tableau<float> &v)
 {
 	// copy the length of v and a pointer to the data onto the local stack
-	const size_t n = v.size();
+	const auto n = v.taille();
 
-	if (n == 0ul) {
+	if (n == 0l) {
 		return 0.0f;
 	}
 
 	float *p = &v.front();
 
-	size_t i = 0ul, e = ROUND_DOWN(n, 4ul);
+	auto i = 0l, e = ROUND_DOWN(n, 4l);
 
 #if 0
 	__m128 mmSum = _mm_setzero_ps();
@@ -94,7 +94,7 @@ float accumulate(std::vector<float> &v)
 	sse_float mmSum;
 
 	// unrolled loop that adds up 4 elements at a time
-	for (; i < e; i += 4ul) {
+	for (; i < e; i += 4l) {
 		mmSum += sse_float(p + i);
 	}
 
@@ -114,13 +114,13 @@ auto test_sse()
 #if 0
 	constexpr auto size = 500000;
 	constexpr auto iter = 5000;
-	std::vector<float> v(size), v2(size);
-	std::iota(v.begin(), v.end(), 0.0f);
-	std::iota(v2.begin(), v2.end(), 1.0f);
+	dls::tableau<float> v(size), v2(size);
+	std::iota(v.debut(), v.fin(), 0.0f);
+	std::iota(v2.debut(), v2.fin(), 1.0f);
 
-	std::vector<float> sv(size), sv2(size);
-	std::iota(sv.begin(), sv.end(), 0.0f);
-	std::iota(sv2.begin(), sv2.end(), 1.0f);
+	dls::tableau<float> sv(size), sv2(size);
+	std::iota(sv.debut(), sv.fin(), 0.0f);
+	std::iota(sv2.debut(), sv2.fin(), 1.0f);
 
 	for (size_t i = 0; i < size; ++i) {
 		if (v2[i] != sv2[i]) {
@@ -154,11 +154,11 @@ auto test_sse()
 		}
 	}
 #else
-	std::vector<float> v(1000);
-	std::iota(v.begin(), v.end(), 0.0f);
+	dls::tableau<float> v(1000);
+	std::iota(v.debut(), v.fin(), 0.0f);
 
 	std::cout << "sse: " << accumulate(v) << "\n";
-	std::cout << "builtin: " << std::accumulate(v.begin(), v.end(), 0.0f) << "\n";
+	std::cout << "builtin: " << std::accumulate(v.debut(), v.fin(), 0.0f) << "\n";
 #endif
 }
 

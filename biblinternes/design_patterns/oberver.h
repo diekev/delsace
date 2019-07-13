@@ -25,7 +25,7 @@
 #pragma once
 
 #include <functional>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/structures/dico.hh"
 
@@ -42,19 +42,19 @@ enum class event : int {
 
 template <typename EventType>
 class Subject {
-	dls::dico<event, std::vector<std::function<void()>>> m_observers{};
+	dls::dico<event, dls::tableau<std::function<void()>>> m_observers{};
 
 public:
 	template <typename ObserverType>
 	void add(const EventType &e, ObserverType &&observer)
 	{
-		(m_observers[e]).push_back(std::forward<ObserverType>(observer));
+		(m_observers[e]).pousse(std::forward<ObserverType>(observer));
 	}
 
 	template <typename ObserverType>
 	void add(EventType &&e, ObserverType &&observer)
 	{
-		(m_observers[std::move(e)]).push_back(std::forward<ObserverType>(observer));
+		(m_observers[std::move(e)]).pousse(std::forward<ObserverType>(observer));
 	}
 
 	void notify(const EventType &e) const
@@ -71,7 +71,7 @@ class Observable;
 
 class Observer {
 protected:
-	std::vector<Observable *> m_observables{};
+	dls::tableau<Observable *> m_observables{};
 
 	virtual ~Observer() = default;
 
@@ -83,7 +83,7 @@ public:
 };
 
 class Observable {
-	std::vector<Observer *> m_observers{};
+	dls::tableau<Observer *> m_observers{};
 
 public:
 	virtual ~Observable();

@@ -79,7 +79,7 @@ static btCollisionShape *cree_forme_pour_corps(Corps &corps)
 
 //	/* conversion des représentations */
 //	auto hull_computer = btConvexHullComputer();
-//	auto verts_ptr = reinterpret_cast<float *>(verts.data());
+//	auto verts_ptr = reinterpret_cast<float *>(verts.donnees());
 //	auto stride = static_cast<int>(sizeof(dls::math::vec3f));
 //	auto count = static_cast<int>(corps.points()->taille());
 
@@ -87,7 +87,7 @@ static btCollisionShape *cree_forme_pour_corps(Corps &corps)
 //		hull_computer.compute(verts_ptr, stride, count, 0.0, 0.0);
 //	}
 
-//	auto hull_shape = memoire::loge<btConvexHullShape>(&(hull_computer.vertices[0].getX()), hull_computer.vertices.size());
+//	auto hull_shape = memoire::loge<btConvexHullShape>(&(hull_computer.vertices[0].getX()), hull_computer.vertices.taille());
 
 //	auto forme = memoire::loge<rbCollisionShape>();
 //	forme->cshape = hull_shape;

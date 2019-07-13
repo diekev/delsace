@@ -79,7 +79,7 @@ bool operator!=(const Edge &lhs, const Edge &rhs)
 
 /* ************************************************************************** */
 
-Vertex::Vertex(std::string name)
+Vertex::Vertex(dls::chaine name)
     : Vertex()
 {
 	m_name = std::move(name);
@@ -87,15 +87,15 @@ Vertex::Vertex(std::string name)
 
 void Vertex::addIncidentEdge(Edge *e)
 {
-	m_incident_edges.push_back(e);
+	m_incident_edges.pousse(e);
 	++m_degree;
 }
 
 void Vertex::removeIncidentEdge(Edge *e)
 {
-	auto iter = std::find(m_incident_edges.begin(), m_incident_edges.end(), e);
+	auto iter = std::find(m_incident_edges.debut(), m_incident_edges.fin(), e);
 
-	if (iter == m_incident_edges.end()) {
+	if (iter == m_incident_edges.fin()) {
 		throw "Trying to remove an edge not incident to the current vertex!";
 	}
 
@@ -103,12 +103,12 @@ void Vertex::removeIncidentEdge(Edge *e)
 	--m_degree;
 }
 
-const std::vector<Edge *> &Vertex::incident_egdes() const
+const dls::tableau<Edge *> &Vertex::incident_egdes() const
 {
 	return m_incident_edges;
 }
 
-const std::string &Vertex::name() const
+const dls::chaine &Vertex::name() const
 {
 	return m_name;
 }
@@ -151,24 +151,24 @@ void Graph::addEdge(Vertex * const first, Vertex * const second)
 
 	Edge::Ptr edge = Edge::create(first, second);
 
-	auto iter = std::find(m_edges.begin(), m_edges.end(), edge);
+	auto iter = std::find(m_edges.debut(), m_edges.fin(), edge);
 
-	if (iter == m_edges.end()) {
+	if (iter == m_edges.fin()) {
 		first->addIncidentEdge(edge.get());
 		second->addIncidentEdge(edge.get());
-		m_edges.push_back(std::move(edge));
+		m_edges.pousse(std::move(edge));
 	}
 }
 
 void Graph::addVertex(Vertex * const v)
 {
-	m_vertices.push_back(v);
+	m_vertices.pousse(v);
 }
 
 void Graph::addVertex(const std::initializer_list<Vertex *> &list)
 {
 	for (const auto &v : list) {
-		m_vertices.push_back(v);
+		m_vertices.pousse(v);
 	}
 }
 

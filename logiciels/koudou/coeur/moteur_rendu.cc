@@ -169,7 +169,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const 
 
 /* ************************************************************************** */
 
-void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, std::vector<CarreauPellicule> const &carreaux, unsigned int echantillon)
+void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tableau<CarreauPellicule> const &carreaux, unsigned int echantillon)
 {
 	auto camera = parametres.camera;
 	/* À FAIRE : redimensionne la caméra et la pellicule selon la fenêtre
@@ -183,12 +183,12 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, std::vec
 	//camera->redimensionne(m_pellicule.largeur(), m_pellicule.hauteur());
 	//camera->ajourne();
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, carreaux.size()),
-					  [&](tbb::blocked_range<size_t> const &plage)
+	tbb::parallel_for(tbb::blocked_range<long>(0, carreaux.taille()),
+					  [&](tbb::blocked_range<long> const &plage)
 	{
 		GNA gna(17771 + static_cast<unsigned int>(plage.begin()) * (echantillon + 1));
 
-		for (size_t j = plage.begin(); j < plage.end(); ++j) {
+		for (auto j = plage.begin(); j < plage.end(); ++j) {
 			auto const &carreau = carreaux[j];
 
 			for (auto x = carreau.x; x < carreau.x + carreau.largeur; ++x) {
@@ -276,7 +276,7 @@ void TacheRendu::commence(Koudou const &koudou)
 	auto const carreaux_x = static_cast<unsigned>(std::ceil(static_cast<float>(largeur_pellicule) / static_cast<float>(largeur_carreau)));
 	auto const carreaux_y = static_cast<unsigned>(std::ceil(static_cast<float>(hauteur_pellicule) / static_cast<float>(hauteur_carreau)));
 
-	std::vector<CarreauPellicule> carreaux;
+	dls::tableau<CarreauPellicule> carreaux;
 	carreaux.reserve(static_cast<size_t>(carreaux_x * carreaux_y));
 
 	for (unsigned int i = 0; i < carreaux_x; ++i) {
@@ -287,7 +287,7 @@ void TacheRendu::commence(Koudou const &koudou)
 			carreau.largeur = std::min(largeur_carreau, largeur_pellicule - carreau.x);
 			carreau.hauteur = std::min(hauteur_carreau, hauteur_pellicule - carreau.y);
 
-			carreaux.push_back(carreau);
+			carreaux.pousse(carreau);
 		}
 	}
 

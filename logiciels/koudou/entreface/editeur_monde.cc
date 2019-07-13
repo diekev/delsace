@@ -72,7 +72,7 @@ void VueMonde::ajourne_donnees()
 		}
 		else {
 			auto chemin = evalue_string("image");
-			auto texture = charge_texture(chemin);
+			auto texture = charge_texture(chemin.c_str());
 
 			m_monde->texture = texture;
 		}
@@ -88,7 +88,7 @@ void VueMonde::ajourne_donnees()
 			supprime_texture(m_monde->texture);
 
 			auto chemin = evalue_string("image");
-			auto texture = charge_texture(chemin);
+			auto texture = charge_texture(chemin.c_str());
 
 			m_monde->texture = texture;
 		}

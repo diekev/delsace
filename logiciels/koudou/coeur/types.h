@@ -37,8 +37,8 @@ enum {
 };
 
 struct Entresection {
-	size_t id = 0;
-	size_t id_triangle = 0;
+	long id = 0;
+	long id_triangle = 0;
 	int type_objet = OBJET_TYPE_AUCUN;
 	double distance = 0.0;
 	const Maillage *maillage = nullptr;

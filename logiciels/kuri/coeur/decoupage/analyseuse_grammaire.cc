@@ -925,10 +925,10 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 	}
 
 	auto &expression = m_paires_vecteurs[profondeur].first;
-	expression.clear();
+	expression.efface();
 
 	auto &pile = m_paires_vecteurs[profondeur].second;
-	pile.clear();
+	pile.efface();
 
 	auto vide_pile_operateur = [&](id_morceau id_operateur)
 	{
@@ -1287,7 +1287,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					/* Extrait le noeud enfant, il sera de nouveau ajouté dans
 					 * la compilation de l'expression à la fin de la fonction. */
 					auto noeud_expr = noeud->enfants.front();
-					noeud->enfants.clear();
+					noeud->enfants.efface();
 
 					/* Si la racine de l'expression est un opérateur, il faut
 					 * l'empêcher d'être prise en compte pour l'expression

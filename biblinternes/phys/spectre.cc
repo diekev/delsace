@@ -32,9 +32,9 @@
 /* ************************************************************************** */
 
 template <typename Predicate>
-auto trouve_entrevalle(size_t taille, Predicate const &predicat)
+auto trouve_entrevalle(long taille, Predicate const &predicat)
 {
-	auto debut = 0ul, longueur = taille;
+	auto debut = 0l, longueur = taille;
 
 	while (longueur > 0) {
 		auto moitie = longueur >> 1, milieu = debut + moitie;
@@ -49,13 +49,13 @@ auto trouve_entrevalle(size_t taille, Predicate const &predicat)
 		}
 	}
 
-	return dls::math::restreint(debut - 1, 0ul, taille - 2);
+	return dls::math::restreint(debut - 1, 0l, taille - 2);
 }
 
 float moyenne_echantillons(
 		const float *lambdas,
 		const float *valeurs,
-		size_t n,
+		long n,
 		const float debut_lambda,
 		const float fin_lambda)
 {
@@ -81,13 +81,13 @@ float moyenne_echantillons(
 		somme += valeurs[n - 1] * (fin_lambda - lambdas[n - 1]);
 	}
 
-	size_t i = 0;
+	auto i = 0;
 
 	while (debut_lambda > lambdas[i + 1]) {
 		++i;
 	}
 
-	auto entrepole = [lambdas, valeurs](float w, size_t iv)
+	auto entrepole = [lambdas, valeurs](float w, long iv)
 	{
 		return dls::math::entrepolation_lineaire(
 					valeurs[iv],
@@ -105,9 +105,9 @@ float moyenne_echantillons(
 	return somme / (fin_lambda - debut_lambda);
 }
 
-bool echantillons_spectre_trie(const float *lambdas, const float *, size_t n)
+bool echantillons_spectre_trie(const float *lambdas, const float *, long n)
 {
-	for (size_t i = 0; i < n - 1; ++i) {
+	for (auto i = 0; i < n - 1; ++i) {
 		if (lambdas[n] > lambdas[n + 1]) {
 			return false;
 		}
@@ -119,18 +119,18 @@ bool echantillons_spectre_trie(const float *lambdas, const float *, size_t n)
 void trie_echantillons_spectre(
 		float *lambdas,
 		float *valeurs,
-		size_t n)
+		long n)
 {
-	std::vector<std::pair<float, float>> vec;
+	dls::tableau<std::pair<float, float>> vec;
 	vec.reserve(n);
 
-	for (size_t i = 0; i < n; ++i) {
-		vec.push_back(std::make_pair(lambdas[i], valeurs[i]));
+	for (auto i = 0; i < n; ++i) {
+		vec.pousse(std::make_pair(lambdas[i], valeurs[i]));
 	}
 
-	std::sort(vec.begin(), vec.end());
+	std::sort(vec.debut(), vec.fin());
 
-	for (size_t i = 0; i < n; ++i) {
+	for (auto i = 0; i < n; ++i) {
 		lambdas[i] = vec[i].first;
 		valeurs[i] = vec[i].second;
 	}
@@ -139,7 +139,7 @@ void trie_echantillons_spectre(
 float entrepole_echantillons_spectre(
 		const float *lambdas,
 		const float *valeurs,
-		size_t n,
+		long n,
 		float l)
 {
 	if (l <= lambdas[0]) {
@@ -150,7 +150,7 @@ float entrepole_echantillons_spectre(
 		return valeurs[n - 1];
 	}
 
-	auto const offset = trouve_entrevalle(n, [&](size_t index) { return lambdas[index] <= l; });
+	auto const offset = trouve_entrevalle(n, [&](long index) { return lambdas[index] <= l; });
 
 	auto const t = (l - lambdas[offset]) / (lambdas[offset + 1] - lambdas[offset]);
 
@@ -170,10 +170,10 @@ float entrepole_echantillons_spectre(
 // others may involve downsampling. For upsampling, we just point-sample,
 // and for downsampling, we apply a box filter centered around the
 // destination wavelength with total width equal to the sample spacing.
-void reechantillone_spectre_lineaire(
+static void reechantillone_spectre_lineaire(
 		const float *lambdaIn,
 		const float *vIn,
-		size_t nIn,
+		long nIn,
 		float lambdaMin,
 		float lambdaMax,
 		size_t nOut,
@@ -202,9 +202,9 @@ void reechantillone_spectre_lineaire(
 	// increasing set of wavelength values. However, this isn't a problem
 	// since we only access these virtual samples if the destination range
 	// is wider than the source range.)
-	auto lambdaInClamped = [&](size_t index)
+	auto lambdaInClamped = [&](long index)
 	{
-		if (index == -1ul) {
+		if (index == -1l) {
 			return lambdaMin - delta;
 		}
 
@@ -217,9 +217,9 @@ void reechantillone_spectre_lineaire(
 
 	// Due to the piecewise-constant assumption, the SPD values outside the
 	// specified range are given by the valid endpoints.
-	auto vInClamped = [&](size_t index)
+	auto vInClamped = [&](long index)
 	{
-		return vIn[dls::math::restreint(index, 0ul, nIn - 1)];
+		return vIn[dls::math::restreint(index, 0l, nIn - 1)];
 	};
 
 	// Helper that upsamples ors downsample the given SPD at the given
@@ -249,14 +249,14 @@ void reechantillone_spectre_lineaire(
 		// Otherwise, find indices into the input SPD that bracket the
 		// wavelength range [lambda-delta, lambda+delta]. Note that this is
 		// a 2x wider range than we will actually filter over in the end.
-		size_t start, end;
+		long start, end;
 		if (lambda - delta < lambdaIn[0]) {
 			// Virtual sample at the start, as described above.
-			start = -1ul;
+			start = -1l;
 		}
 		else {
 			start = trouve_entrevalle(
-				nIn, [&](size_t i) { return lambdaIn[i] <= lambda - delta; });
+				nIn, [&](long i) { return lambdaIn[i] <= lambda - delta; });
 		}
 
 		if (lambda + delta > lambdaIn[nIn - 1]){
@@ -283,7 +283,7 @@ void reechantillone_spectre_lineaire(
 		if (end - start == 1) {
 			// Downsampling: evaluate the piecewise-linear function at
 			// lambda.
-			float t = (lambda - lambdaInClamped(start)) /
+			auto t = (lambda - lambdaInClamped(start)) /
 					  (lambdaInClamped(end) - lambdaInClamped(start));
 			return dls::math::entrepolation_lineaire(vInClamped(start), vInClamped(end), t);
 		}
@@ -387,15 +387,15 @@ SpectreEchantillon::SpectreEchantillon::SpectreEchantillon(SpectreRGB const &r, 
 	*this = SpectreEchantillon::depuis_rgb(rgb, t);
 }
 
-SpectreEchantillon SpectreEchantillon::depuis_echantillons(const float *lambda, const float *v, size_t n)
+SpectreEchantillon SpectreEchantillon::depuis_echantillons(const float *lambda, const float *v, long n)
 {
 	if (!echantillons_spectre_trie(lambda, v, n)) {
-		std::vector<float> slambda(&lambda[0], &lambda[n]);
-		std::vector<float> sv(&v[0], &v[n]);
+		dls::tableau<float> slambda(&lambda[0], &lambda[n]);
+		dls::tableau<float> sv(&v[0], &v[n]);
 
-		trie_echantillons_spectre(slambda.data(), sv.data(), n);
+		trie_echantillons_spectre(slambda.donnees(), sv.donnees(), n);
 
-		return depuis_echantillons(slambda.data(), sv.data(), n);
+		return depuis_echantillons(slambda.donnees(), sv.donnees(), n);
 	}
 
 	SpectreEchantillon resultat;
@@ -682,15 +682,15 @@ SpectreRGB SpectreRGB::vers_spectre_rvb() const
 	return *this;
 }
 
-SpectreRGB SpectreRGB::depuis_echantillons(const float *lambda, const float *v, size_t n)
+SpectreRGB SpectreRGB::depuis_echantillons(const float *lambda, const float *v, long n)
 {
 	if (!echantillons_spectre_trie(lambda, v, n)) {
-		std::vector<float> slambda(&lambda[0], &lambda[n]);
-		std::vector<float> sv(&v[0], &v[n]);
+		dls::tableau<float> slambda(&lambda[0], &lambda[n]);
+		dls::tableau<float> sv(&v[0], &v[n]);
 
-		trie_echantillons_spectre(slambda.data(), sv.data(), n);
+		trie_echantillons_spectre(slambda.donnees(), sv.donnees(), n);
 
-		return depuis_echantillons(slambda.data(), sv.data(), n);
+		return depuis_echantillons(slambda.donnees(), sv.donnees(), n);
 	}
 
 	float xyz[3] = { 0.0, 0.0, 0.0 };

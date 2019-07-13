@@ -59,12 +59,12 @@ void Propriete::ajoute_cle(const dls::phys::couleur32 &v, int temps)
 
 void Propriete::supprime_animation()
 {
-	courbe.clear();
+	courbe.efface();
 }
 
 bool Propriete::est_anime() const
 {
-	return !courbe.empty();
+	return !courbe.est_vide();
 }
 
 bool Propriete::possede_cle(int temps) const
@@ -153,9 +153,9 @@ dls::phys::couleur32 Propriete::evalue_couleur(int temps)
 void Propriete::ajoute_cle_impl(const std::experimental::any &v, int temps)
 {
 	bool insere = false;
-	size_t i = 0;
+	long i = 0;
 
-	for (; i < courbe.size(); ++i) {
+	for (; i < courbe.taille(); ++i) {
 		if (courbe[i].first == temps) {
 			courbe[i].second = v;
 			insere = true;
@@ -163,14 +163,14 @@ void Propriete::ajoute_cle_impl(const std::experimental::any &v, int temps)
 		}
 
 		if (courbe[i].first > temps) {
-			courbe.insert(courbe.begin() + static_cast<long>(i), std::make_pair(temps, v));
+			courbe.insere(courbe.debut() + i, std::make_pair(temps, v));
 			insere = true;
 			break;
 		}
 	}
 
 	if (!insere) {
-		courbe.push_back(std::make_pair(temps, v));
+		courbe.pousse(std::make_pair(temps, v));
 	}
 }
 
@@ -179,7 +179,7 @@ bool Propriete::trouve_valeurs_temps(int temps, std::experimental::any &v1, std:
 	bool v1_trouve = false;
 	bool v2_trouve = false;
 
-	for (size_t i = 0; i < courbe.size(); ++i) {
+	for (auto i = 0; i < courbe.taille(); ++i) {
 		if (courbe[i].first < temps) {
 			v1 = courbe[i].second;
 			t1 = courbe[i].first;

@@ -133,6 +133,6 @@ public:
 [[noreturn]] void lance_erreur_fonction_inconnue(
 		ContexteGenerationCode const &contexte,
 		noeud::base *n,
-		std::vector<DonneesCandidate> const &candidates);
+		dls::tableau<DonneesCandidate> const &candidates);
 
 }

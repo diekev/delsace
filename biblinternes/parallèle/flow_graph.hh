@@ -24,15 +24,15 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 #include <tuple>
 
 #include <tbb/flow_graph.h>
 
 struct body {
-	std::string m_name;
+	dls::chaine m_name;
 
-	explicit body(const std::string &name)
+	explicit body(const dls::chaine &name)
 	    : m_name(name)
 	{}
 

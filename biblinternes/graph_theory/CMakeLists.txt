@@ -22,11 +22,13 @@
 set(NOM_BIBLIOTHEQUE graph_theory)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
     docopt
     pthread
+	bib_structures
 )
 
 set(ENTETES

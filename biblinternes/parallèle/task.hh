@@ -30,7 +30,7 @@
 #include <functional>
 #include <mutex>
 #include <thread>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 using lock_t = std::unique_lock<std::mutex>;
 
@@ -85,8 +85,8 @@ public:
 
 class task_system {
 	unsigned int m_count = std::thread::hardware_concurrency();
-	std::vector<std::thread> m_threads{};
-	std::vector<notification_queue> m_queue{};
+	dls::tableau<std::thread> m_threads{};
+	dls::tableau<notification_queue> m_queue{};
 	std::atomic<unsigned> m_index{};
 
 	void run(unsigned i);

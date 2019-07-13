@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/math/transformation.hh"
 #include "biblinternes/structures/dico.hh"
@@ -36,7 +36,7 @@
  */
 struct Sommet {
 	dls::math::vec3f pos{};
-	size_t index{};
+	long index{};
 };
 
 struct Polygone;
@@ -56,7 +56,7 @@ struct Arrete {
 	Arrete *opposee = nullptr;
 
 	/* L'index de l'arrête dans la boucle d'arrêtes du polygone. */
-	size_t index = 0;
+	long index = 0;
 
 	Arrete() = default;
 };
@@ -76,7 +76,7 @@ struct Polygone {
 	dls::math::vec3f nor{};
 
 	/* L'index de ce polygone. */
-	size_t index = 0;
+	long index = 0;
 
 	/* La résolution UV de ce polygone. */
 	unsigned int res_u = 0;
@@ -93,9 +93,9 @@ struct Polygone {
  * formant un objet dans l'espace tridimensionel.
  */
 class Maillage {
-	std::vector<Polygone *> m_polys{};
-	std::vector<Sommet *> m_sommets{};
-	std::vector<Arrete *> m_arretes{};
+	dls::tableau<Polygone *> m_polys{};
+	dls::tableau<Sommet *> m_sommets{};
+	dls::tableau<Arrete *> m_arretes{};
 
 	dls::dico<std::pair<int, int>, Arrete *> m_tableau_arretes{};
 
@@ -109,7 +109,7 @@ class Maillage {
 
 	unsigned int m_largeur_texture{};
 
-	std::string m_nom{};
+	dls::chaine m_nom{};
 
 	Maillage(Maillage const &autre) = default;
 	Maillage &operator=(Maillage const &autre) = default;
@@ -127,58 +127,58 @@ public:
 	/**
 	 * Ajoute une suite de sommets à ce maillage.
 	 */
-	void ajoute_sommets(const dls::math::vec3f *sommets, size_t nombre);
+	void ajoute_sommets(const dls::math::vec3f *sommets, long nombre);
 
 	/**
 	 * Retourne un pointeur vers le sommet dont l'index correspond à l'index
 	 * passé en paramètre.
 	 */
-	const Sommet *sommet(size_t i) const;
+	const Sommet *sommet(long i) const;
 
 	/**
 	 * Retourne le nombre de sommets de ce maillage.
 	 */
-	size_t nombre_sommets() const;
+	long nombre_sommets() const;
 
 	/**
 	 * Ajoute un quadrilatère à ce maillage. Les paramètres sont les index des
 	 * sommets déjà ajoutés à ce maillage.
 	 */
-	void ajoute_quad(const size_t s0, const size_t s1, const size_t s2, const size_t s3);
+	void ajoute_quad(const long s0, const long s1, const long s2, const long s3);
 
 	/**
 	 * Retourne le nombre de polygones de ce maillage.
 	 */
-	size_t nombre_polygones() const;
+	long nombre_polygones() const;
 
 	/**
 	 * Retourne un pointeur vers le polygone dont l'index correspond à l'index
 	 * passé en paramètre.
 	 */
-	Polygone *polygone(size_t i);
+	Polygone *polygone(long i);
 
 	/**
 	 * Retourne un pointeur vers le polygone dont l'index correspond à l'index
 	 * passé en paramètre.
 	 */
-	const Polygone *polygone(size_t i) const;
+	const Polygone *polygone(long i) const;
 
 	/**
 	 * Retourne le nombre d'arrêtes de ce maillage.
 	 */
-	size_t nombre_arretes() const;
+	long nombre_arretes() const;
 
 	/**
 	 * Retourne un pointeur vers l'arrête dont l'index correspond à l'index
 	 * passé en paramètre.
 	 */
-	Arrete *arrete(size_t i);
+	Arrete *arrete(long i);
 
 	/**
 	 * Retourne un pointeur vers le polygone dont l'index correspond à l'index
 	 * passé en paramètre.
 	 */
-	const Arrete *arrete(size_t i) const;
+	const Arrete *arrete(long i) const;
 
 	/**
 	 * Renseigne la transformation de ce maillage.
@@ -236,10 +236,10 @@ public:
 	/**
 	 * Retourne le nom de ce maillage.
 	 */
-	std::string const &nom() const;
+	dls::chaine const &nom() const;
 
 	/**
 	 * Renomme ce maillage.
 	 */
-	void nom(std::string const &nom);
+	void nom(dls::chaine const &nom);
 };

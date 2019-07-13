@@ -39,10 +39,10 @@ Scene::~Scene()
 }
 
 void Scene::SetPaths(
-		const std::string& imagePath,
-		const std::string& meshPath,
-		const std::string& vdbPath,
-		const std::string& partioPath)
+		const dls::chaine& imagePath,
+		const dls::chaine& meshPath,
+		const dls::chaine& vdbPath,
+		const dls::chaine& partioPath)
 {
 	m_imagePath = imagePath;
 	m_meshPath = meshPath;
@@ -67,17 +67,17 @@ void Scene::ExportParticles(
 		}
 	}
 
-	std::string frameString = utilityCore::padString(4, utilityCore::convertIntToString(frame));
+	dls::chaine frameString = utilityCore::padString(4, utilityCore::convertIntToString(frame));
 
 	if (PARTIO) {
 #ifdef WITH_PARTIO
-		auto sdfparticlesCount = sdfparticles.size();
+		auto sdfparticlesCount = sdfparticles.taille();
 
-		std::string partiofilename = m_partioPath;
-		dls::tableau<std::string> tokens = utilityCore::tokenizeString(partiofilename, ".");
-		std::string ext = "." + tokens[tokens.size()-1];
+		dls::chaine partiofilename = m_partioPath;
+		dls::tableau<dls::chaine> tokens = utilityCore::tokenizeString(partiofilename, ".");
+		dls::chaine ext = "." + tokens[tokens.taille()-1];
 		if (strcmp(ext.c_str(), ".gz")==0) {
-			ext = "." + tokens[tokens.size()-2] + ext;
+			ext = "." + tokens[tokens.taille()-2] + ext;
 		}
 
 		utilityCore::replaceString(partiofilename, ext, "."+frameString+ext);
@@ -108,10 +108,10 @@ void Scene::ExportParticles(
 	}
 
 	if (VDB || OBJ) {
-		std::string vdbfilename = m_vdbPath;
+		dls::chaine vdbfilename = m_vdbPath;
 		utilityCore::replaceString(vdbfilename, ".vdb", "."+frameString+".vdb");
 
-		std::string objfilename = m_meshPath;
+		dls::chaine objfilename = m_meshPath;
 		utilityCore::replaceString(objfilename, ".obj", "."+frameString+".obj");
 
 		fluidCore::LevelSet* fluidSDF = new fluidCore::LevelSet(sdfparticles, maxd);
@@ -377,7 +377,7 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 	});
 	std::cout << "Generé : " << m_liquidParticles.size() << " particules liquides\n" << std::endl;
 #else
-	auto liquidCount = m_liquids.size();
+	auto liquidCount = m_liquids.taille();
 
 	for (unsigned int l=0; l<liquidCount; ++l) {
 		auto liquidaabb = m_liquids[l]->m_geom->GetAabb(static_cast<float>(frame));
@@ -483,7 +483,7 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 	particles.insere(particles.fin(), m_solidParticles.begin(), m_solidParticles.end());
 	m_liquidParticleCount = static_cast<unsigned int>(m_liquidParticles.size());
 
-	//std::cout << "Solid+Fluid particles: " << particles.size() << std::endl;
+	//std::cout << "Solid+Fluid particles: " << particles.taille() << std::endl;
 
 	m_particleLock.unlock();
 }

@@ -38,6 +38,8 @@ struct chaine {
 	using type_chaine = std::basic_string<char, std::char_traits<char>, memoire::logeuse_guardee<char>>;
 	using iteratrice = typename type_chaine::iterator;
 	using const_iteratrice = typename type_chaine::const_iterator;
+	using iteratrice_inverse = typename type_chaine::reverse_iterator;
+	using const_iteratrice_inverse = typename type_chaine::const_reverse_iterator;
 
 private:
 	type_chaine m_chaine{};
@@ -47,9 +49,15 @@ public:
 
 	chaine() = default;
 
+	chaine(char c);
+
 	chaine(char const *__c_str);
 
+	chaine(char const *__c_str, long taille);
+
 	chaine(vue_chaine const &vue);
+
+	chaine(long nombre, char c);
 
 	template <typename AllocatorT>
 	chaine(std::basic_string<char, std::char_traits<char>, AllocatorT> const &str)
@@ -59,6 +67,11 @@ public:
 	template <typename AllocatorT>
 	chaine(std::basic_string<char, std::char_traits<char>, AllocatorT> &&str)
 		: m_chaine(str)
+	{}
+
+	template <typename __iter_horsin, typename = std::_RequireInputIter<__iter_horsin>>
+	chaine(__iter_horsin __deb, __iter_horsin __fin)
+		: m_chaine(__deb, __fin)
 	{}
 
 	void efface();
@@ -81,11 +94,21 @@ public:
 
 	dls::chaine sous_chaine(long pos, long combien) const;
 
-	long trouve(chaine const &motif) const;
+	long trouve(char c, long pos = 0) const;
+
+	long trouve(chaine const &motif, long pos = 0) const;
 
 	long trouve_premier_de(char c) const;
 
+	long trouve_premier_non_de(char c) const;
+
+	long trouve_premier_non_de(chaine const &c) const;
+
 	long trouve_dernier_de(char c) const;
+
+	long trouve_dernier_non_de(char c) const;
+
+	long trouve_dernier_non_de(chaine const &c) const;
 
 	void insere(long pos, long combien, char c);
 
@@ -107,6 +130,14 @@ public:
 
 	const_iteratrice fin() const;
 
+	iteratrice_inverse debut_inverse();
+
+	iteratrice_inverse fin_inverse();
+
+	const_iteratrice_inverse debut_inverse() const;
+
+	const_iteratrice_inverse fin_inverse() const;
+
 	chaine &operator+=(char c);
 
 	chaine &operator+=(chaine const &autre);
@@ -117,6 +148,8 @@ public:
 /* ************************************************************************** */
 
 std::ostream &operator<<(std::ostream &os, chaine const &c);
+
+std::istream &operator>>(std::istream &os, chaine &c);
 
 bool operator==(chaine const &c1, chaine const &c2);
 

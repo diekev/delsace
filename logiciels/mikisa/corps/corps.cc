@@ -213,10 +213,10 @@ void Corps::reinitialise()
 		memoire::deloge("Attribut", attribut);
 	}
 
-	m_attributs.clear();
+	m_attributs.efface();
 
-	m_groupes_prims.clear();
-	m_groupes_points.clear();
+	m_groupes_prims.efface();
+	m_groupes_points.efface();
 }
 
 Corps *Corps::copie() const

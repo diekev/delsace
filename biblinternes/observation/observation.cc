@@ -46,12 +46,12 @@ int Observatrice::montre_dialogue(int dialogue)
 
 void Sujette::ajoute_observatrice(Observatrice *observatrice)
 {
-	m_observatrices.push_back(observatrice);
+	m_observatrices.pousse(observatrice);
 }
 
 void Sujette::enleve_observatrice(Observatrice *observatrice)
 {
-	auto iter = std::find(m_observatrices.begin(), m_observatrices.end(), observatrice);
+	auto iter = std::find(m_observatrices.debut(), m_observatrices.fin(), observatrice);
 	m_observatrices.erase(iter);
 
 	if (m_observatrice_dialogue == observatrice) {

@@ -90,8 +90,8 @@ void LevelSet::LevelSetFromAnimMesh(objCore::InterpolatedObj* animmesh, const fl
 //				*transform, vdbpoints, vdbpolys);
 
 	//cleanup
-	vdbpoints.clear();
-	vdbpolys.clear();
+	vdbpoints.efface();
+	vdbpolys.efface();
 }
 
 void LevelSet::LevelSetFromMesh(objCore::Obj* mesh, const dls::math::mat4x4f& m)
@@ -123,8 +123,8 @@ void LevelSet::LevelSetFromMesh(objCore::Obj* mesh, const dls::math::mat4x4f& m)
 //				*transform, vdbpoints, vdbpolys);
 
 	//cleanup
-	vdbpoints.clear();
-	vdbpolys.clear();
+	vdbpoints.efface();
+	vdbpolys.efface();
 }
 
 LevelSet::LevelSet(dls::tableau<Particle*>& particles, float maxdimension)
@@ -140,7 +140,7 @@ LevelSet::LevelSet(dls::tableau<Particle*>& particles, float maxdimension)
 	raster.finalize();
 }
 
-void LevelSet::WriteObjToFile(std::string filename)
+void LevelSet::WriteObjToFile(dls::chaine filename)
 {
 	openvdb::tools::VolumeToMesh vdbmesher(0, 0.05);
 	vdbmesher(*GetVDBGrid());
@@ -233,9 +233,9 @@ void LevelSet::ProjectPointsToSurface(dls::tableau<Particle*>& particles, const 
 	}
 }
 
-void LevelSet::WriteVDBGridToFile(std::string filename)
+void LevelSet::WriteVDBGridToFile(dls::chaine filename)
 {
-	openvdb::io::File file(filename);
+	openvdb::io::File file(filename.c_str());
 	openvdb::GridPtrVec grids;
 	grids.push_back(m_vdbgrid);
 	file.write(grids);

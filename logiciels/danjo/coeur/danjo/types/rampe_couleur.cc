@@ -37,7 +37,7 @@ void cree_rampe_defaut(RampeCouleur &rampe)
 
 void tri_points_rampe(RampeCouleur &rampe)
 {
-	std::sort(rampe.points.begin(), rampe.points.end(),
+	std::sort(rampe.points.debut(), rampe.points.fin(),
 			  [](const PointRampeCouleur &a, const PointRampeCouleur &b)
 	{
 		return a.position < b.position;
@@ -50,7 +50,7 @@ void ajoute_point_rampe(RampeCouleur &rampe, float x, const dls::phys::couleur32
 	p.position = x;
 	p.couleur = couleur;
 
-	rampe.points.push_back(p);
+	rampe.points.pousse(p);
 
 	tri_points_rampe(rampe);
 }
@@ -70,7 +70,7 @@ dls::phys::couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float
 {
 	auto v = restreint(valeur, 0.0f, 1.0f);
 
-	if (rampe.points.size() == 1) {
+	if (rampe.points.taille() == 1) {
 		return rampe.points[0].couleur;
 	}
 
@@ -78,13 +78,13 @@ dls::phys::couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float
 		return rampe.points[0].couleur;
 	}
 
-	if (v >= rampe.points[rampe.points.size() - 1].position) {
-		return rampe.points[rampe.points.size() - 1].couleur;
+	if (v >= rampe.points[rampe.points.taille() - 1].position) {
+		return rampe.points[rampe.points.taille() - 1].couleur;
 	}
 
 	dls::phys::couleur32 res;
 
-	for (size_t i = 0; i < rampe.points.size() - 1; ++i) {
+	for (auto i = 0; i < rampe.points.taille() - 1; ++i) {
 		const auto &p0 = rampe.points[i];
 		const auto &p1 = rampe.points[i + 1];
 

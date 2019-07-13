@@ -34,7 +34,7 @@ void ConteneurControles::obtiens_liste(
 		const dls::chaine &/*attache*/,
 		dls::tableau<dls::chaine> &chaines)
 {
-	chaines.clear();
+	chaines.efface();
 }
 
 }  /* namespace danjo */

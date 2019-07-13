@@ -25,7 +25,7 @@
 #pragma once
 
 #include <queue>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 struct Polygone;
 
@@ -64,7 +64,7 @@ class PaqueuseTexture {
 
 	Noeud *m_racine = nullptr;
 
-	std::priority_queue<Noeud *, std::vector<Noeud *>, CompareNoeud> m_queue_priorite{};
+	std::priority_queue<Noeud *, dls::tableau<Noeud *>, CompareNoeud> m_queue_priorite{};
 
 	unsigned int max_x = 0;
 	unsigned int max_y = 0;
@@ -80,7 +80,7 @@ public:
 	/**
 	 * Démarre l'empaquetage des polygones spécifiés.
 	 */
-	void empaquete(const std::vector<Polygone *> &polygones);
+	void empaquete(const dls::tableau<Polygone *> &polygones);
 
 	/**
 	 * Retourne la largeur de la texture empaquettée.

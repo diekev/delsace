@@ -27,18 +27,20 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 template<typename T>
-void draw(const T &x, std::ostream &out, size_t position)
+void draw(const T &x, std::ostream &out, long position)
 {
-	out << std::string(position, ' ') << "\033[0m" << x << "\n";
+	out << dls::chaine(position, ' ') << "\033[0m" << x << "\n";
 }
 
 class object_t {
 	struct concept_t {
 		virtual ~concept_t() = default;
-		virtual void draw_impl(std::ostream &, size_t) const = 0;
+		virtual void draw_impl(std::ostream &, long) const = 0;
 	};
 
 	std::shared_ptr<const concept_t> m_self;
@@ -49,7 +51,7 @@ class object_t {
 		    : m_data(std::move(x))
 		{}
 
-		void draw_impl(std::ostream &out, size_t position) const
+		void draw_impl(std::ostream &out, long position) const
 		{
 			draw(m_data, out, position);
 		}
@@ -65,17 +67,17 @@ public:
 		/* std::cout << "ctor\n"; */
 	}
 
-	friend void draw(const object_t &x, std::ostream &out, size_t position)
+	friend void draw(const object_t &x, std::ostream &out, long position)
 	{
 		x.m_self->draw_impl(out, position);
 	}
 };
 
-using document_t = std::vector<object_t>;
+using document_t = dls::tableau<object_t>;
 
-void draw(const document_t &x, std::ostream &out, size_t position);
+void draw(const document_t &x, std::ostream &out, long position);
 
-using history_t = std::vector<document_t>;
+using history_t = dls::tableau<document_t>;
 
 void commit(history_t &x);
 void undo(history_t &x);
@@ -87,5 +89,5 @@ class my_class_t {
 	/* ... */
 };
 
-void draw(const my_class_t &, std::ostream &out, size_t position);
+void draw(const my_class_t &, std::ostream &out, long position);
 

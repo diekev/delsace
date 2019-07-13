@@ -156,10 +156,10 @@ static void bouge(Personne &personne, dls::math::vec3f const &cible_globale)
 void CheckCollision(size_t PersonCount, dls::tableau<Personne> &Person, int ColNumb)
 {
 	//Count = 0 // sets the count for people to start off at 0
-	for (auto Count = 0ul; Count < Person.size(); ++Count) {
+	for (auto Count = 0ul; Count < Person.taille(); ++Count) {
 		if (Count != PersonCount)  { //# means person doesnt exist
 			if (Person[PersonCount].a_fini != true) { //# says they have reached their final destination
-				if (/*Done_Moving.count(Count) < Person.size()*/false) { //# if the cube it collides with has stopped
+				if (/*Done_Moving.count(Count) < Person.taille()*/false) { //# if the cube it collides with has stopped
 					float TargetX, TargetY, TargetZ;
 
 					if (Person[Count].SecondaryTarget == nullptr) {
@@ -415,7 +415,7 @@ public:
 
 		/* progénère */
 		if (contexte.temps_courant == 1 || m_personnes.est_vide() || m_personnes.taille() != nombre_progenitures) {
-			m_personnes.clear();
+			m_personnes.efface();
 			m_personnes.reserve(nombre_progenitures);
 
 			for (auto i = 0; i < nombre_progenitures; ++i) {

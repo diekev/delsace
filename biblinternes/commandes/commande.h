@@ -94,7 +94,7 @@ inline auto description_commande(
 
 #if 0
 	dls::chaine identifiant;
-	identifiant.reserve(categorie.size() + 13);
+	identifiant.reserve(categorie.taille() + 13);
 
 	identifiant += categorie;
 
@@ -102,26 +102,26 @@ inline auto description_commande(
 
 	*tampon = *reinterpret_cast<char *>(&description.souris);
 
-	identifiant.push_back(tampon[0]);
-	identifiant.push_back(tampon[1]);
-	identifiant.push_back(tampon[2]);
-	identifiant.push_back(tampon[3]);
+	identifiant.pousse(tampon[0]);
+	identifiant.pousse(tampon[1]);
+	identifiant.pousse(tampon[2]);
+	identifiant.pousse(tampon[3]);
 
 	*tampon = *reinterpret_cast<char *>(&description.modificateur);
 
-	identifiant.push_back(tampon[0]);
-	identifiant.push_back(tampon[1]);
-	identifiant.push_back(tampon[2]);
-	identifiant.push_back(tampon[3]);
+	identifiant.pousse(tampon[0]);
+	identifiant.pousse(tampon[1]);
+	identifiant.pousse(tampon[2]);
+	identifiant.pousse(tampon[3]);
 
 	*tampon = *reinterpret_cast<char *>(&description.cle);
 
-	identifiant.push_back(tampon[0]);
-	identifiant.push_back(tampon[1]);
-	identifiant.push_back(tampon[2]);
-	identifiant.push_back(tampon[3]);
+	identifiant.pousse(tampon[0]);
+	identifiant.pousse(tampon[1]);
+	identifiant.pousse(tampon[2]);
+	identifiant.pousse(tampon[3]);
 
-	identifiant.push_back('\0' + static_cast<char>(double_clique));
+	identifiant.pousse('\0' + static_cast<char>(double_clique));
 
 	std::cerr << "Tampon commande " << identifiant << '\n';
 #endif

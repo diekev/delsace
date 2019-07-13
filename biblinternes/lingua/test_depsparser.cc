@@ -64,17 +64,17 @@ static std::ostream &operator<<(std::ostream &os, const word &w)
 
 void test_dependency_parser(std::ostream &os)
 {
-	std::vector<word *> sentence;
+	dls::tableau<word *> sentence;
 
 	word canis = word("canis", category::noun, gender::masculine, number::singular, gcase::nominative, 3);
 	word parvum = word("parvum", category::adjective, gender::masculine, number::singular, gcase::accusative, 0);
 	word videt = word("videt",   category::verb, gender::none, number::singular, gcase::none, 3);
 	word felis = word("felis", category::noun, gender::masculine, number::singular, gcase::nominative, 3);
 
-	sentence.push_back(&canis);
-	sentence.push_back(&parvum);
-	sentence.push_back(&videt);
-	sentence.push_back(&felis);
+	sentence.pousse(&canis);
+	sentence.pousse(&parvum);
+	sentence.pousse(&videt);
+	sentence.pousse(&felis);
 
 	lsup(sentence);
 

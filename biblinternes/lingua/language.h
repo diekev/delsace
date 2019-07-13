@@ -25,17 +25,17 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 using sound_pair = std::pair<const char *, const char *>;
-using table_t = std::vector<sound_pair>;
+using table_t = dls::tableau<sound_pair>;
 
 class Language {
-	std::vector<Language *> m_parents{};
-	std::vector<Language *> m_children{};
-	std::string m_family = "";
-	std::string m_name = "";
+	dls::tableau<Language *> m_parents{};
+	dls::tableau<Language *> m_children{};
+	dls::chaine m_family = "";
+	dls::chaine m_name = "";
 	table_t m_table{};
 
 public:
@@ -43,27 +43,27 @@ public:
 
 	using Ptr = std::shared_ptr<Language>;
 
-	explicit Language(std::string name);
+	explicit Language(dls::chaine name);
 
-	static Ptr create(std::string name);
+	static Ptr create(dls::chaine name);
 
 	void parent(Language * const parent);
 
 	const Language *parent() const noexcept;
 
-	const Language *parent(const std::string &name) const noexcept;
+	const Language *parent(const dls::chaine &name) const noexcept;
 
-	void name(const std::string &n);
+	void name(const dls::chaine &n);
 
-	const std::string &name() const noexcept;
+	const dls::chaine &name() const noexcept;
 
 	void setTable(const table_t &table);
 
-	std::string translate(const std::string &word) const;
+	dls::chaine translate(const dls::chaine &word) const;
 };
 
 class LangageTree {
-	std::vector<Language::Ptr> m_langages{};
+	dls::tableau<Language::Ptr> m_langages{};
 
 public:
 	LangageTree() = default;
@@ -73,8 +73,8 @@ public:
 
 	void connect(const Language::Ptr &child, const Language::Ptr &parent);
 
-	void walk(std::string &word) const;
+	void walk(dls::chaine &word) const;
 
 private:
-	void walk(const Language * const node, std::string &word) const;
+	void walk(const Language * const node, dls::chaine &word) const;
 };

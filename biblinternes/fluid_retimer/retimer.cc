@@ -166,8 +166,8 @@ Retimer::Retimer(int steps, float time_scale, float shutter_speed)
 
 Retimer::~Retimer()
 {
-	m_grids.clear();
-	m_grid_names.clear();
+	m_grids.efface();
+	m_grid_names.efface();
 }
 
 void Retimer::setTimeScale(const float scale)
@@ -185,10 +185,10 @@ void Retimer::setThreaded(const bool threaded)
  *
  * @param list a list of grid name.
  */
-void Retimer::setGridNames(std::initializer_list<std::string> list)
+void Retimer::setGridNames(std::initializer_list<dls::chaine> list)
 {
 	for (const auto item : list) {
-		m_grid_names.push_back(item);
+		m_grid_names.pousse(item);
 	}
 }
 
@@ -201,7 +201,7 @@ void Retimer::setGridNames(std::initializer_list<std::string> list)
  * @param cur the file containing the grids for the current frame
  * @param to the file where to put the retimed grids
  */
-void Retimer::retime(const std::string &previous, const std::string &cur, const std::string &to)
+void Retimer::retime(const dls::chaine &previous, const dls::chaine &cur, const dls::chaine &to)
 {
 	openvdb::io::File file_p(previous);
 	file_p.open();
@@ -212,7 +212,7 @@ void Retimer::retime(const std::string &previous, const std::string &cur, const 
 	VectorGrid::Ptr velGridA = openvdb::gridPtrCast<VectorGrid>(file_p.readGrid("velocity"));
 	VectorGrid::Ptr velGridB = openvdb::gridPtrCast<VectorGrid>(file_c.readGrid("velocity"));
 
-	for (auto i = 0ul; i < m_grid_names.size(); ++i) {
+	for (auto i = 0ul; i < m_grid_names.taille(); ++i) {
 		openvdb::GridBase::Ptr gridA_tmp = file_p.readGrid(m_grid_names[i]);
 		openvdb::GridBase::Ptr gridB_tmp = file_c.readGrid(m_grid_names[i]);
 
@@ -225,7 +225,7 @@ void Retimer::retime(const std::string &previous, const std::string &cur, const 
 
 		readvectSL(retimed, gridA, gridB, velGridA, velGridB);
 
-		m_grids.push_back(retimed);
+		m_grids.pousse(retimed);
 	}
 
 	openvdb::io::File file_to(to);
@@ -233,7 +233,7 @@ void Retimer::retime(const std::string &previous, const std::string &cur, const 
 	file_to.close();
 	file_p.close();
 	file_c.close();
-	m_grids.clear();
+	m_grids.efface();
 }
 
 /**

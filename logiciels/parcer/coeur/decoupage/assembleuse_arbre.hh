@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <list>
-#include <string>
+#include "biblinternes/structures/liste.hh"
+#include "biblinternes/structures/chaine.hh"
 
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -38,13 +38,13 @@ struct DonneesMorceaux;
 class assembleuse_arbre {
 	dls::pile<noeud::base *> m_pile{};
 	dls::tableau<noeud::base *> m_noeuds{};
-	std::list<noeud::base *> noeuds_libres{};
+	dls::liste<noeud::base *> noeuds_libres{};
 
 	size_t m_memoire_utilisee = 0;
 
 public:
-	std::vector<dls::vue_chaine> inclusions{};
-	std::vector<dls::vue_chaine> bibliotheques{};
+	dls::tableau<dls::vue_chaine> inclusions{};
+	dls::tableau<dls::vue_chaine> bibliotheques{};
 
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre();

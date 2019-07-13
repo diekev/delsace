@@ -21,6 +21,10 @@
 
 set(NOM_BIBLIOTHEQUE reference)
 
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+)
+
 set(ENTETES
 )
 
@@ -28,7 +32,14 @@ set(SOURCES
 	main.cc
 )
 
+set(BIBLIOTHEQUES
+	bib_structures
+)
+
 add_executable(${NOM_BIBLIOTHEQUE} ${SOURCES} ${ENTETES})
+
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
 
 install(TARGETS ${NOM_BIBLIOTHEQUE} DESTINATION bin)
 install(FILES ${ENTETES} DESTINATION include/girafeenfeu/${NOM_BIBLIOTHEQUE})

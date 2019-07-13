@@ -29,6 +29,7 @@ set(BIBLIOTHEQUES
 	stdc++fs
 	systeme_fichier
 	dl
+	bib_structures
 )
 
 set(ENTETES

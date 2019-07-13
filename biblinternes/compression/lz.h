@@ -25,15 +25,15 @@
 #pragma once
 
 #include <iostream>
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
-using dictionnary_t = std::vector<std::string>;
+using dictionnary_t = dls::tableau<dls::chaine>;
 
 void build_dictionnary(dictionnary_t &dict);
 
-void decode(const std::string &to_decode);
+void decode(const dls::chaine &to_decode);
 
-void encode_sequence(const std::string &seq,
+void encode_sequence(const dls::chaine &seq,
                      const dictionnary_t &dictionnary,
                      std::ostream &os);

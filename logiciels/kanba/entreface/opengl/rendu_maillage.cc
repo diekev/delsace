@@ -115,28 +115,28 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 	auto const nombre_elements = nombre_arretes * 2;
 	auto tampon = cree_tampon_arrete();
 
-	std::vector<dls::math::vec3f> sommets;
-	sommets.reserve(nombre_elements);
+	dls::tableau<dls::math::vec3f> sommets;
+	sommets.reserve(static_cast<long>(nombre_elements));
 
 	/* OpenGL ne travaille qu'avec des floats. */
-	for (size_t	i = 0; i < nombre_arretes; ++i) {
+	for (auto i = 0; i < nombre_arretes; ++i) {
 		auto const arrete = maillage->arrete(i);
 
-		sommets.push_back(arrete->s[0]->pos);
-		sommets.push_back(arrete->s[1]->pos);
+		sommets.pousse(arrete->s[0]->pos);
+		sommets.pousse(arrete->s[1]->pos);
 	}
 
-	std::vector<unsigned int> indices(sommets.size());
-	std::iota(indices.begin(), indices.end(), 0);
+	dls::tableau<unsigned int> indices(sommets.taille());
+	std::iota(indices.debut(), indices.fin(), 0);
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.data();
-	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
-	parametres_tampon.elements = indices.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = indices.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(indices.taille());
 
 	tampon->remplie_tampon(parametres_tampon);
 
@@ -188,11 +188,11 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 	auto const nombre_elements = nombre_polygones * 2;
 	auto tampon = cree_tampon_normal();
 
-	std::vector<dls::math::vec3f> sommets;
-	sommets.reserve(nombre_elements);
+	dls::tableau<dls::math::vec3f> sommets;
+	sommets.reserve(static_cast<long>(nombre_elements));
 
 	/* OpenGL ne travaille qu'avec des floats. */
-	for (size_t	i = 0; i < nombre_polygones; ++i) {
+	for (auto i = 0; i < nombre_polygones; ++i) {
 		auto const polygone = maillage->polygone(i);
 		auto V = polygone->s[0]->pos;
 		V += polygone->s[1]->pos;
@@ -208,21 +208,21 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 
 		auto const N = normalise(polygone->nor);
 
-		sommets.push_back(V);
-		sommets.push_back(V + 0.1f * N);
+		sommets.pousse(V);
+		sommets.pousse(V + 0.1f * N);
 	}
 
-	std::vector<unsigned int> indices(sommets.size());
-	std::iota(indices.begin(), indices.end(), 0);
+	dls::tableau<unsigned int> indices(sommets.taille());
+	std::iota(indices.debut(), indices.fin(), 0);
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.data();
-	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
-	parametres_tampon.elements = indices.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = indices.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(indices.taille());
 
 	tampon->remplie_tampon(parametres_tampon);
 
@@ -298,54 +298,54 @@ TamponRendu *creer_tampon()
 	return tampon;
 }
 
-TamponRendu *genere_tampon(Maillage *maillage, std::vector<uint> const &id_polys)
+TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &id_polys)
 {
-	auto nombre_elements = id_polys.size() * 6;
+	auto nombre_elements = id_polys.taille() * 6;
 	auto tampon = creer_tampon();
 
-	std::vector<dls::math::vec3f> sommets;
+	dls::tableau<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_elements);
 
-	std::vector<dls::math::vec3f> uvs;
+	dls::tableau<dls::math::vec3f> uvs;
 	uvs.reserve(nombre_elements);
 
-	std::vector<dls::math::vec3f> normaux;
+	dls::tableau<dls::math::vec3f> normaux;
 	normaux.reserve(nombre_elements);
 
 	auto index_poly = 0.0f;
 
-	for (size_t	i : id_polys) {
+	for (auto i : id_polys) {
 		auto const poly = maillage->polygone(i);
 
-		sommets.push_back(poly->s[0]->pos);
-		sommets.push_back(poly->s[1]->pos);
-		sommets.push_back(poly->s[2]->pos);
+		sommets.pousse(poly->s[0]->pos);
+		sommets.pousse(poly->s[1]->pos);
+		sommets.pousse(poly->s[2]->pos);
 
-		normaux.push_back(poly->nor);
-		normaux.push_back(poly->nor);
-		normaux.push_back(poly->nor);
+		normaux.pousse(poly->nor);
+		normaux.pousse(poly->nor);
+		normaux.pousse(poly->nor);
 
 		if (poly->s[3] != nullptr) {
-			sommets.push_back(poly->s[0]->pos);
-			sommets.push_back(poly->s[2]->pos);
-			sommets.push_back(poly->s[3]->pos);
+			sommets.pousse(poly->s[0]->pos);
+			sommets.pousse(poly->s[2]->pos);
+			sommets.pousse(poly->s[3]->pos);
 
-			uvs.push_back(dls::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.push_back(dls::math::vec3f(0.0f, 1.0f, index_poly));
-			uvs.push_back(dls::math::vec3f(1.0f, 1.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(0.0f, 1.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(1.0f, 1.0f, index_poly));
 
-			uvs.push_back(dls::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.push_back(dls::math::vec3f(1.0f, 1.0f, index_poly));
-			uvs.push_back(dls::math::vec3f(1.0f, 0.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(1.0f, 1.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(1.0f, 0.0f, index_poly));
 
-			normaux.push_back(poly->nor);
-			normaux.push_back(poly->nor);
-			normaux.push_back(poly->nor);
+			normaux.pousse(poly->nor);
+			normaux.pousse(poly->nor);
+			normaux.pousse(poly->nor);
 		}
 		else {
-			uvs.push_back(dls::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.push_back(dls::math::vec3f(0.0f, 1.0f, index_poly));
-			uvs.push_back(dls::math::vec3f(1.0f, 0.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(0.0f, 1.0f, index_poly));
+			uvs.pousse(dls::math::vec3f(1.0f, 0.0f, index_poly));
 		}
 
 		index_poly += 1.0f;
@@ -354,25 +354,25 @@ TamponRendu *genere_tampon(Maillage *maillage, std::vector<uint> const &id_polys
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.elements = sommets.size();
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
+	parametres_tampon.elements = static_cast<size_t>(sommets.taille());
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
 
 	tampon->remplie_tampon(parametres_tampon);
 
 	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
 	parametres_tampon.attribut = "normal";
-	parametres_tampon.pointeur_donnees_extra = normaux.data();
-	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_donnees_extra = normaux.donnees();
+	parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(normaux.taille() )* sizeof(dls::math::vec3f);
 
 	tampon->remplie_tampon_extra(parametres_tampon);
 	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de normal");
 
 	parametres_tampon.attribut = "uvs";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.taille_octet_donnees_extra = uvs.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_donnees_extra = uvs.data();
+	parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(uvs.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_donnees_extra = uvs.donnees();
 
 	tampon->remplie_tampon_extra(parametres_tampon);
 
@@ -401,15 +401,15 @@ void RenduMaillage::initialise()
 	auto nombre_quads = 0;
 	auto nombre_tris = 0;
 
-	dls::dico<std::pair<uint, uint>, std::vector<uint>> vecteurs_polys;
+	dls::dico<std::pair<uint, uint>, dls::tableau<uint>> vecteurs_polys;
 
-	for (size_t	i = 0; i < nombre_polys; ++i) {
+	for (auto i = 0; i < nombre_polys; ++i) {
 		auto const poly = m_maillage->polygone(i);
 		((poly->s[3] != nullptr) ? nombre_quads : nombre_tris) += 1;
 
 		auto const &paire = std::make_pair(poly->res_u, poly->res_v);
 
-		vecteurs_polys[paire].push_back(static_cast<uint>(i));
+		vecteurs_polys[paire].pousse(static_cast<uint>(i));
 	}
 
 	std::cout << "Nombre de seaux : " << vecteurs_polys.taille() << '\n';
@@ -425,19 +425,19 @@ void RenduMaillage::initialise()
 
 	for (auto const &id_polys : vecteurs_polys) {
 		for (uint i : id_polys.second) {
-			if (static_cast<int>(page.polys.size()) >= max_textures) {
-				m_pages.push_back(page);
-				page.polys.clear();
+			if (static_cast<int>(page.polys.taille()) >= max_textures) {
+				m_pages.pousse(page);
+				page.polys.efface();
 			}
 
-			page.polys.push_back(i);
+			page.polys.pousse(i);
 		}
 
-		m_pages.push_back(page);
-		page.polys.clear();
+		m_pages.pousse(page);
+		page.polys.efface();
 	}
 
-	std::cerr << "Il y a " << m_pages.size() << " pages\n";
+	std::cerr << "Il y a " << m_pages.taille() << " pages\n";
 
 	for (auto &pages : m_pages) {
 		pages.tampon = genere_tampon(m_maillage, pages.polys);
@@ -515,7 +515,7 @@ void RenduMaillage::ajourne_texture()
 		GLint taille_texture[3] = {
 			static_cast<GLint>(poly->res_u),
 			static_cast<GLint>(poly->res_v),
-			static_cast<GLint>(pages.polys.size())
+			static_cast<GLint>(pages.polys.taille())
 		};
 
 //		std::cerr << "Création d'une texture de "
@@ -523,12 +523,12 @@ void RenduMaillage::ajourne_texture()
 //				  << taille_texture[1] << "x"
 //				  << taille_texture[2] << '\n';
 
-		std::vector<dls::math::vec4f> image(static_cast<size_t>(taille_texture[0] * taille_texture[1] * taille_texture[2]));
-		auto donnees = image.data();
+		dls::tableau<dls::math::vec4f> image(taille_texture[0] * taille_texture[1] * taille_texture[2]);
+		auto donnees = image.donnees();
 
 		/* Copie les texels dans l'atlas OpenGL. */
 		auto ip = 0;
-		for (size_t i : pages.polys) {
+		for (auto i : pages.polys) {
 			auto poly_page = m_maillage->polygone(i);
 			auto index_poly = (poly_page->x + poly_page->y * (m_maillage->largeur_texture()));
 			auto tampon_poly = tampon + index_poly;
@@ -543,7 +543,7 @@ void RenduMaillage::ajourne_texture()
 		}
 
 		auto texture = pages.tampon->atlas();
-		genere_texture(texture, image.data(), taille_texture);
+		genere_texture(texture, image.donnees(), taille_texture);
 	}
 
 	dls::ego::util::GPU_check_errors("Erreur lors de la génération de la texture");

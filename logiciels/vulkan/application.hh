@@ -29,7 +29,7 @@
 #endif
 #include <GLFW/glfw3.h>
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "evenement.hh"
 
@@ -42,7 +42,7 @@ class Application {
 	VkInstance instance{};
 #endif
 
-	std::vector<Editrice *> m_editrices{};
+	dls::tableau<Editrice *> m_editrices{};
 	dls::math::vec2d souris{};
 
 	/* pour la détection de doubles clics */

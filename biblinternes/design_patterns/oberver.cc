@@ -34,14 +34,14 @@ void Observer::update(const Observable *observable) const
 
 void Observer::add(Observable *observable)
 {
-	m_observables.push_back(observable);
+	m_observables.pousse(observable);
 }
 
 void Observer::remove(Observable *observable)
 {
-	auto iter = std::find(m_observables.begin(), m_observables.end(), observable);
+	auto iter = std::find(m_observables.debut(), m_observables.fin(), observable);
 
-	if (iter != m_observables.end()) {
+	if (iter != m_observables.fin()) {
 		m_observables.erase(iter);
 	}
 }
@@ -55,15 +55,15 @@ Observable::~Observable()
 
 void Observable::add(Observer *observer)
 {
-	m_observers.push_back(observer);
+	m_observers.pousse(observer);
 	observer->add(this);
 }
 
 void Observable::remove(Observer *observer)
 {
-	auto iter = std::find(m_observers.begin(), m_observers.end(), observer);
+	auto iter = std::find(m_observers.debut(), m_observers.fin(), observer);
 
-	if (iter != m_observers.end()) {
+	if (iter != m_observers.fin()) {
 		m_observers.erase(iter);
 	}
 }

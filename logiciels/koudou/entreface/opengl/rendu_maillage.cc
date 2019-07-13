@@ -99,42 +99,42 @@ void RenduMaillage::genere_tampon_surface()
 
 	auto nombre_sommets = std::distance(m_maillage->begin(), m_maillage->end());
 
-	std::vector<dls::math::vec3f> sommets;
-	sommets.reserve(static_cast<size_t>(nombre_sommets * 3));
+	dls::tableau<dls::math::vec3f> sommets;
+	sommets.reserve(nombre_sommets * 3);
 
-	std::vector<dls::math::vec3f> normaux;
-	normaux.reserve(static_cast<size_t>(nombre_sommets * 3));
+	dls::tableau<dls::math::vec3f> normaux;
+	normaux.reserve(nombre_sommets * 3);
 
 	/* OpenGL ne travaille qu'avec des floats. */
 	for (const Triangle *triangle : *m_maillage) {
-		sommets.push_back(dls::math::vec3f(static_cast<float>(triangle->v0.x), static_cast<float>(triangle->v0.y), static_cast<float>(triangle->v0.z)));
-		sommets.push_back(dls::math::vec3f(static_cast<float>(triangle->v1.x), static_cast<float>(triangle->v1.y), static_cast<float>(triangle->v1.z)));
-		sommets.push_back(dls::math::vec3f(static_cast<float>(triangle->v2.x), static_cast<float>(triangle->v2.y), static_cast<float>(triangle->v2.z)));
+		sommets.pousse(dls::math::vec3f(static_cast<float>(triangle->v0.x), static_cast<float>(triangle->v0.y), static_cast<float>(triangle->v0.z)));
+		sommets.pousse(dls::math::vec3f(static_cast<float>(triangle->v1.x), static_cast<float>(triangle->v1.y), static_cast<float>(triangle->v1.z)));
+		sommets.pousse(dls::math::vec3f(static_cast<float>(triangle->v2.x), static_cast<float>(triangle->v2.y), static_cast<float>(triangle->v2.z)));
 
 		auto normal = dls::math::vec3f(static_cast<float>(triangle->normal.x), static_cast<float>(triangle->normal.y), static_cast<float>(triangle->normal.z));
 
-		normaux.push_back(normal);
-		normaux.push_back(normal);
-		normaux.push_back(normal);
+		normaux.pousse(normal);
+		normaux.pousse(normal);
+		normaux.pousse(normal);
 	}
 
-	std::vector<unsigned int> indices(sommets.size());
-	std::iota(indices.begin(), indices.end(), 0);
+	dls::tableau<unsigned int> indices(sommets.taille());
+	std::iota(indices.debut(), indices.fin(), 0);
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.data();
-	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
-	parametres_tampon.elements = indices.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = indices.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(indices.taille());
 
 	m_tampon_surface->remplie_tampon(parametres_tampon);
 
 	parametres_tampon.attribut = "normal";
-	parametres_tampon.pointeur_donnees_extra = normaux.data();
-	parametres_tampon.taille_octet_donnees_extra = normaux.size() * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_donnees_extra = normaux.donnees();
+	parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(normaux.taille()) * sizeof(dls::math::vec3f);
 
 	m_tampon_surface->remplie_tampon_extra(parametres_tampon);
 }
@@ -174,8 +174,8 @@ void RenduMaillage::genere_tampon_normal()
 
 	auto nombre_triangle = std::distance(m_maillage->begin(), m_maillage->end());
 
-	std::vector<dls::math::vec3f> sommets;
-	sommets.reserve(static_cast<size_t>(nombre_triangle * 2));
+	dls::tableau<dls::math::vec3f> sommets;
+	sommets.reserve(nombre_triangle * 2);
 
 	for (const Triangle *triangle : *m_maillage) {
 		auto const &N = normalise(triangle->normal);
@@ -183,21 +183,21 @@ void RenduMaillage::genere_tampon_normal()
 
 		auto const &NV = V + N;
 
-		sommets.push_back(dls::math::vec3f(static_cast<float>(V.x), static_cast<float>(V.y), static_cast<float>(V.z)));
-		sommets.push_back(dls::math::vec3f(static_cast<float>(NV.x), static_cast<float>(NV.y), static_cast<float>(NV.z)));
+		sommets.pousse(dls::math::vec3f(static_cast<float>(V.x), static_cast<float>(V.y), static_cast<float>(V.z)));
+		sommets.pousse(dls::math::vec3f(static_cast<float>(NV.x), static_cast<float>(NV.y), static_cast<float>(NV.z)));
 	}
 
-	std::vector<unsigned int> indices(sommets.size());
-	std::iota(indices.begin(), indices.end(), 0);
+	dls::tableau<unsigned int> indices(sommets.taille());
+	std::iota(indices.debut(), indices.fin(), 0);
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.data();
-	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
-	parametres_tampon.elements = indices.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = indices.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(indices.taille());
 
 	m_tampon_normal->remplie_tampon(parametres_tampon);
 
@@ -234,9 +234,9 @@ void RenduMaillage::dessine(ContexteRendu const &contexte, Scene const &scene)
 	programme->uniforme("couleur", spectre[0], spectre[1], spectre[2], 1.0f);
 
 	/* À FAIRE : trouve les lumières les plus proches. */
-	auto const nombre_lumiere = std::min(8ul, scene.lumieres.size());
+	auto const nombre_lumiere = std::min(8l, scene.lumieres.taille());
 
-	for (size_t i = 0; i < nombre_lumiere; ++i) {
+	for (long i = 0; i < nombre_lumiere; ++i) {
 		auto lumiere = scene.lumieres[i];
 		spectre = lumiere->spectre;
 		auto transform = lumiere->transformation.matrice();

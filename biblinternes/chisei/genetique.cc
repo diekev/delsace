@@ -24,18 +24,18 @@
 
 #include "genetique.h"
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace dls {
 namespace chisei {
 
-std::string chaine_aleatoire(std::mt19937 &generateur, size_t longueur)
+dls::chaine chaine_aleatoire(std::mt19937 &generateur, long longueur)
 {
 	std::uniform_int_distribution<char> lettre_aleatoire(-128, 127);
-	std::string chaine;
-	chaine.resize(longueur);
+	dls::chaine chaine;
+	chaine.redimensionne(longueur);
 
-	std::generate(chaine.begin(), chaine.end(), [&]{ return lettre_aleatoire(generateur); });
+	std::generate(chaine.debut(), chaine.fin(), [&]{ return lettre_aleatoire(generateur); });
 
 	return chaine;
 }

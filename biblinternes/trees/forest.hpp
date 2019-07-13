@@ -754,9 +754,9 @@ private:
 template <typename T>
 bool operator==(const forest<T>& x, const forest<T>& y)
 {
-	if (x.size() != y.size()) return false;
+	if (x.taille() != y.taille()) return false;
 
-	for (typename forest<T>::const_iterator first(x.begin()), last(x.end()), pos(y.begin());
+	for (typename forest<T>::const_iterator first(x.debut()), last(x.fin()), pos(y.debut());
 			first != last; ++first, ++pos)
 	{
 		if (first.edge() != pos.edge()) return false;
@@ -806,7 +806,7 @@ forest<T>::forest(const forest& x) :
 {
 	unsafe::set_next(end(), root());
 
-	insert(begin(), const_child_iterator(x.begin()), const_child_iterator(x.end()));
+	insert(begin(), const_child_iterator(x.debut()), const_child_iterator(x.fin()));
 }
 
 /*************************************************************************************************/
@@ -816,7 +816,7 @@ void forest<T>::swap(forest& tree)
 {
 	size_type old_size(size_valid() ? 0 : size());
 	iterator last(splice(end(), tree));
-	tree.splice(tree.end(), *this, child_iterator(begin()), child_iterator(last), old_size);
+	tree.splice(tree.fin(), *this, child_iterator(begin()), child_iterator(last), old_size);
 }
 
 #endif
@@ -919,8 +919,8 @@ typename forest<T>::iterator forest<T>::erase(const iterator& position)
 template <typename T>
 typename forest<T>::iterator forest<T>::splice(iterator position, forest<T>& x)
 {
-	return splice(position, x, child_iterator(x.begin()), child_iterator(x.end()),
-			x.size_valid() ? x.size() : 0);
+	return splice(position, x, child_iterator(x.debut()), child_iterator(x.fin()),
+			x.size_valid() ? x.taille() : 0);
 }
 
 /*************************************************************************************************/
@@ -1029,8 +1029,8 @@ public:
 	iterator& back() { return *(--child_end(iterator_m)); }
 	iterator& front() { return *(child_begin(iterator_m)); }
 
-	void push_back(const value_type& x) { forest_m.insert(child_end(iterator_m).base(), x); }
-	void push_front(const value_type& x) { forest_m.insert(child_begin(iterator_m).base(), x); }
+	void push_back(const value_type& x) { forest_m.insere(child_end(iterator_m).base(), x); }
+	void push_front(const value_type& x) { forest_m.insere(child_begin(iterator_m).base(), x); }
 
 	void pop_back() { forest_m.erase(--child_end(iterator_m).base()); }
 	void pop_front() { forest_m.erase(child_begin(iterator_m).base()); }

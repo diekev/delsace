@@ -24,17 +24,18 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
-#include "../outils/iterateurs.h"
+#include "biblinternes/outils/iterateurs.h"
 
-template <typename CharType>
-auto count(const std::basic_string<CharType> &str, CharType c)
+template <typename CharType, typename CharTrait, typename Alloc>
+auto count(const std::basic_string<CharType, CharTrait, Alloc> &str, CharType c)
 {
-	auto count = 0ul;
-	auto index = 0ul, prev = 0ul;
+	using type_string = std::basic_string<CharType, CharTrait, Alloc>;
+	auto count = static_cast<type_string>(0);
+	auto index = static_cast<type_string>(0), prev = static_cast<type_string>(0);
 
-	while ((index = str.find(c, prev)) != std::basic_string<CharType>::npos) {
+	while ((index = str.find(c, prev)) != type_string::npos) {
 		++count;
 		prev = index + 1;
 	}
@@ -42,17 +43,31 @@ auto count(const std::basic_string<CharType> &str, CharType c)
 	return count;
 }
 
-template <typename CharType>
-auto count_matches(const std::basic_string<CharType> &rhs,
-                   const std::basic_string<CharType> &lhs)
+inline auto compte(const dls::chaine &str, char c)
 {
-	if (rhs.length() != lhs.length()) {
+	auto count = 0l;
+	auto index = 0l;
+	auto prev =  0l;
+
+	while ((index = str.trouve(c, prev)) != dls::chaine::npos) {
+		++count;
+		prev = index + 1;
+	}
+
+	return count;
+}
+
+template <typename CharType, typename CharTrait, typename Alloc>
+auto count_matches(const std::basic_string<CharType, CharTrait, Alloc> &rhs,
+				   const std::basic_string<CharType, CharTrait, Alloc> &lhs)
+{
+	if (rhs.taille() != lhs.taille()) {
 		return 0;
 	}
 
 	auto match = 0;
 
-	for (const auto &i : dls::outils::plage(rhs.length())) {
+	for (const auto &i : dls::outils::plage(rhs.taille())) {
 		if (rhs[i] == lhs[i]) {
 			++match;
 		}
@@ -61,23 +76,64 @@ auto count_matches(const std::basic_string<CharType> &rhs,
 	return match;
 }
 
-template <typename CharType>
-auto replace_substr(std::basic_string<CharType> &str,
-                    const std::basic_string<CharType> &substr,
-                    const std::basic_string<CharType> &rep)
+inline auto compte_commun(dls::chaine const &rhs, dls::chaine const &lhs)
 {
+	if (rhs.taille() != lhs.taille()) {
+		return 0;
+	}
+
+	auto match = 0;
+
+	for (const auto &i : dls::outils::plage(rhs.taille())) {
+		if (rhs[i] == lhs[i]) {
+			++match;
+		}
+	}
+
+	return match;
+}
+
+template <typename CharType, typename CharTrait, typename Alloc>
+auto replace_substr(std::basic_string<CharType, CharTrait, Alloc> &str,
+					const std::basic_string<CharType, CharTrait, Alloc> &substr,
+					const std::basic_string<CharType, CharTrait, Alloc> &rep)
+{
+	using type_string = std::basic_string<CharType, CharTrait, Alloc>;
 	size_t index = 0;
 	while (true) {
 	     /* Locate the substring to replace. */
 	     index = str.find(substr, index);
 
-	     if (index == std::basic_string<CharType>::npos)
+		 if (index == type_string::npos)
 			 break;
 
 	     /* Make the replacement. */
-	     str.replace(index, substr.size(), rep);
+	     str.replace(index, substr.taille(), rep);
 
 	     /* Advance index forward so the next iteration doesn't pick it up as well. */
-	     index += rep.size();
+	     index += rep.taille();
+	}
+}
+
+inline auto remplace_souschaine(
+		dls::chaine &str,
+		dls::chaine const &substr,
+		dls::chaine const &rep)
+{
+	long index = 0;
+
+	while (true) {
+		 /* Locate the substring to replace. */
+		 index = str.trouve(substr, index);
+
+		 if (index == dls::chaine::npos) {
+			 break;
+		 }
+
+		 /* Make the replacement. */
+		 str.remplace(index, substr.taille(), rep);
+
+		 /* Advance index forward so the next iteration doesn't pick it up as well. */
+		 index += rep.taille();
 	}
 }

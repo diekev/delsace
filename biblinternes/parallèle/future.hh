@@ -29,7 +29,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 using lock_t = std::unique_lock<std::mutex>;
 
@@ -66,19 +66,19 @@ auto package(F &&f) -> std::pair<packaged_task<S>, future<result_of_t_<S>>>;
 
 template <typename R>
 struct shared_base {
-	std::vector<R> _r; // poor man's boost::optionnal
+	dls::tableau<R> _r; // poor man's boost::optionnal
 	std::mutex _mutex;
 	std::condition_variable _ready; // for debugging with future.get()
-	std::vector<std::function<void()>> _then;
+	dls::tableau<std::function<void()>> _then;
 
 	virtual ~shared_base() {}
 
 	void set(R &&r)
 	{
-		std::vector<std::function<void()>> then;
+		dls::tableau<std::function<void()>> then;
 		{
 			lock_t lock(_mutex);
-			_r.push_back(std::move(r));
+			_r.pousse(std::move(r));
 			swap(_then, then);
 		}
 
@@ -98,8 +98,8 @@ struct shared_base {
 			lock_t lock(_mutex);
 
 			/* check whether or not the value already arrived */
-			if (_r.empty()) {
-				_then.push_back(std::forward<F>(f));
+			if (_r.est_vide()) {
+				_then.pousse(std::forward<F>(f));
 			}
 			else {
 				resolved = true;
@@ -115,7 +115,7 @@ struct shared_base {
 	{
 		lock_t lock(_mutex);
 
-		while (_r.empty()) {
+		while (_r.est_vide()) {
 			_ready.wait(lock);
 		}
 

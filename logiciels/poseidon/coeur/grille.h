@@ -25,33 +25,33 @@
 #pragma once
 
 #include "biblinternes/math/vecteur.hh"
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 template <typename T>
 class Grille {
-	std::vector<T> m_donnees = {};
+	dls::tableau<T> m_donnees = {};
 
-	dls::math::vec3<size_t> m_res = dls::math::vec3<size_t>(0ul, 0ul, 0ul);
-	size_t m_nombre_voxels = 0;
+	dls::math::vec3<long> m_res = dls::math::vec3<long>(0l, 0l, 0l);
+	long m_nombre_voxels = 0;
 
 	T m_arriere_plan = T(0);
 
-	size_t calcul_index(size_t x, size_t y, size_t z) const
+	long calcul_index(long x, long y, long z) const
 	{
 		return x + (y + z * m_res[1]) * m_res[0];
 	}
 
-	bool hors_des_limites(size_t x, size_t y, size_t z) const
+	bool hors_des_limites(long x, long y, long z) const
 	{
-		if (x >= m_res[0]) {
+		if (x < 0 || x >= m_res[0]) {
 			return true;
 		}
 
-		if (y >= m_res[1]) {
+		if (y < 0 || y >= m_res[1]) {
 			return true;
 		}
 
-		if (z >= m_res[2]) {
+		if (z < 0 || z >= m_res[2]) {
 			return true;
 		}
 
@@ -61,7 +61,7 @@ class Grille {
 public:
 	Grille() = default;
 
-	void initialise(size_t res_x, size_t res_y, size_t res_z)
+	void initialise(long res_x, long res_y, long res_z)
 	{
 		m_res[0] = res_x;
 		m_res[1] = res_y;
@@ -69,16 +69,16 @@ public:
 
 		m_nombre_voxels = res_x * res_y * res_z;
 
-		m_donnees.resize(m_nombre_voxels);
-		std::fill(m_donnees.begin(), m_donnees.end(), T(0));
+		m_donnees.redimensionne(m_nombre_voxels);
+		std::fill(m_donnees.debut(), m_donnees.fin(), T(0));
 	}
 
-	dls::math::vec3<size_t> resolution() const
+	dls::math::vec3<long> resolution() const
 	{
 		return m_res;
 	}
 
-	T valeur(size_t index) const
+	T valeur(long index) const
 	{
 		if (index >= m_nombre_voxels) {
 			return m_arriere_plan;
@@ -87,7 +87,7 @@ public:
 		return m_donnees[index];
 	}
 
-	T valeur(size_t x, size_t y, size_t z) const
+	T valeur(long x, long y, long z) const
 	{
 		if (hors_des_limites(x, y, z)) {
 			return m_arriere_plan;
@@ -96,7 +96,7 @@ public:
 		return m_donnees[calcul_index(x, y, z)];
 	}
 
-	void valeur(size_t index, T v)
+	void valeur(long index, T v)
 	{
 		if (index >= m_nombre_voxels) {
 			return;
@@ -105,7 +105,7 @@ public:
 		m_donnees[index] = v;
 	}
 
-	void valeur(size_t x, size_t y, size_t z, T v)
+	void valeur(long x, long y, long z, T v)
 	{
 		if (hors_des_limites(x, y, z)) {
 			return;
@@ -116,7 +116,7 @@ public:
 
 	void copie(Grille<T> const &grille)
 	{
-		for (size_t i = 0; i < m_nombre_voxels; ++i) {
+		for (long i = 0; i < m_nombre_voxels; ++i) {
 			m_donnees[i] = grille.m_donnees[i];
 		}
 	}
@@ -128,11 +128,11 @@ public:
 
 	void *donnees() const
 	{
-		return m_donnees.data();
+		return m_donnees.donnees();
 	}
 
 	size_t taille_octet() const
 	{
-		return m_nombre_voxels * sizeof(T);
+		return static_cast<size_t>(m_nombre_voxels) * sizeof(T);
 	}
 };

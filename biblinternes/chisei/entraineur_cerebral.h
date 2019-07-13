@@ -24,13 +24,13 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 class ReseauNeuronal;
 
 struct DonneeFormation {
-	std::vector<double> entrees = {};
-	std::vector<double> desirees = {};
+	dls::tableau<double> entrees = {};
+	dls::tableau<double> desirees = {};
 };
 
 class EntraineurCerebral {
@@ -62,7 +62,7 @@ public:
 
 	inline double gradient_erreur_couche(int j);
 
-	void execute_apprentissage(const std::vector<DonneeFormation> &donnees);
+	void execute_apprentissage(const dls::tableau<DonneeFormation> &donnees);
 
 	void retropojette(const double *desirees);
 

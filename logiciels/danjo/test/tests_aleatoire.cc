@@ -86,7 +86,7 @@ namespace analyse_structuree {
 
 #if 0
 struct Noeud {
-	std::vector<Noeud *> enfants;
+	dls::tableau<Noeud *> enfants;
 
 	virtual ~Noeud() = default;
 	virtual size_t genere_morceaux(danjo::id_morceau *&ptr_morceaux, size_t taille) = 0;
@@ -185,13 +185,13 @@ struct NoeudControle final : public Noeud {
 };
 
 struct Arbre {
-	std::vector<Noeud *> noeuds{};
+	dls::tableau<Noeud *> noeuds{};
 	Noeud *racine;
 
 	Arbre()
 		: racine(new NoeudDispostion{})
 	{
-		noeuds.push_back(racine);
+		noeuds.pousse(racine);
 	}
 };
 #endif

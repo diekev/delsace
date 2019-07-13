@@ -22,6 +22,7 @@
 set(NOM_CIBLE bib_observation)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 add_library(${NOM_CIBLE} STATIC

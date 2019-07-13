@@ -8,28 +8,38 @@ namespace outils {
 /* À FAIRE : déduplique. */
 template <typename T>
 struct plage_iterable {
-	T debut;
-	T fin;
+	T m_debut;
+	T m_fin;
 
 public:
 	plage_iterable(T d, T f)
-		: debut(d)
-		, fin(f)
+		: m_debut(d)
+		, m_fin(f)
 	{}
+
+	T debut()
+	{
+		return m_debut;
+	}
+
+	T fin()
+	{
+		return m_fin;
+	}
 
 	T begin()
 	{
-		return debut;
+		return m_debut;
 	}
 
 	T end()
 	{
-		return fin;
+		return m_fin;
 	}
 
-	size_t size() const
+	long taille() const
 	{
-		return static_cast<size_t>(fin - debut);
+		return (m_fin - m_debut);
 	}
 };
 
@@ -184,14 +194,14 @@ public:
 		: m_conteneur(container)
 	{}
 
-	typename T::reverse_iterator begin() const noexcept
+	typename T::iteratrice_inverse begin() const noexcept
 	{
-		return m_conteneur.rbegin();
+		return m_conteneur.debut_inverse();
 	}
 
-	typename T::reverse_iterator end() const noexcept
+	typename T::iteratrice_inverse end() const noexcept
 	{
-		return m_conteneur.rend();
+		return m_conteneur.debut_inverse();
 	}
 };
 
@@ -208,14 +218,14 @@ public:
 		: m_conteneur(container)
 	{}
 
-	typename T::const_reverse_iterator begin() const noexcept
+	typename T::const_iteratrice_inverse begin() const noexcept
 	{
-		return m_conteneur.rbegin();
+		return m_conteneur.debut_inverse();
 	}
 
-	typename T::const_reverse_iterator end() const noexcept
+	typename T::const_iteratrice_inverse end() const noexcept
 	{
-		return m_conteneur.rend();
+		return m_conteneur.fin_inverse();
 	}
 };
 

@@ -45,12 +45,12 @@ public:
 		, m_end(end)
 	{}
 
-	int begin() const noexcept
+	int debut() const noexcept
 	{
 		return m_begin;
 	}
 
-	int end() const noexcept
+	int fin() const noexcept
 	{
 		return m_end;
 	}
@@ -59,18 +59,18 @@ public:
 template <typename OpType>
 void parallel_for(const range &r, const OpType &op, int grain_size = 1)
 {
-	const auto task_size = r.end() - r.begin();
+	const auto task_size = r.fin() - r.debut();
 	const auto num_subtasks = task_size / grain_size;
 	const auto stride = task_size / num_subtasks;
 
-	auto start = r.begin();
+	auto start = r.debut();
 
 	task_system task;
 
 	for (auto c = 0; c != num_subtasks; ++c) {
-		if ((start + stride) >= r.end()) {
-			auto func = std::bind(op, range(start, r.end()));
-//			std::cerr << "Range: " << start << ", " << r.end() << '\n';
+		if ((start + stride) >= r.fin()) {
+			auto func = std::bind(op, range(start, r.fin()));
+//			std::cerr << "Range: " << start << ", " << r.fin() << '\n';
 			task.async_(func);
 			break;
 		}
@@ -100,7 +100,7 @@ int main()
 		size_t sub_total = 0;
 		const auto sqrt_5 = std::sqrt(5.0f);
 
-		for (auto i = r.begin(); i != r.end(); ++i) {
+		for (auto i = r.debut(); i != r.fin(); ++i) {
 			sub_total += static_cast<size_t>(static_cast<float>(i) * sqrt_5);
 		}
 

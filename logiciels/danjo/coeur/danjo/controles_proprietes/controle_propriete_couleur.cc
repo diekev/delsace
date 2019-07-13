@@ -34,14 +34,14 @@
 
 #include <sstream>
 
-static std::vector<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur)
+static dls::tableau<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur)
 {
-	std::vector<dls::chaine> resultat;
+	dls::tableau<dls::chaine> resultat;
 	std::stringstream ss(chaine.c_str());
 	std::string temp;
 
 	while (std::getline(ss, temp, delimiteur)) {
-		resultat.push_back(temp);
+		resultat.pousse(temp);
 	}
 
 	return resultat;

@@ -83,12 +83,12 @@ struct connexion_mysql {
 	MYSQL myqsl;
 };
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 struct Profil {
-	std::string nom;
-	std::string prenom;
-	std::string age;
+	dls::chaine nom;
+	dls::chaine prenom;
+	dls::chaine age;
 };
 
 int main(int argc, char **argv)
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 	auto iter_ligne = iterateur_ligne(resultat);
 
 #if 0
-	std::vector<Profil> m_profils;
+	dls::tableau<Profil> m_profils;
 
 	for (const auto &ligne : iter_ligne) {
 		auto profil = Profil{};
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 		profil.prenom = ligne[1];
 		profil.age = ligne[2];
 
-		m_profils.push_back(profil);
+		m_profils.pousse(profil);
 	}
 #else
 	while (iter_ligne.ligne() != nullptr) {

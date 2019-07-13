@@ -26,8 +26,9 @@
 
 #include <iostream>
 #include <memory>
-#include <string>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class Vertex;
 
@@ -60,15 +61,15 @@ bool operator!=(const Edge &lhs, const Edge &rhs);
 /* ************************************************************************** */
 
 class Vertex {
-	std::vector<Edge *> m_incident_edges{};
+	dls::tableau<Edge *> m_incident_edges{};
 	int m_degree = 0;
-	std::string m_name = "";
+	dls::chaine m_name = "";
 	bool m_processed = false;
 
 public:
 	Vertex() = default;
 
-	explicit Vertex(std::string name);
+	explicit Vertex(dls::chaine name);
 
 	~Vertex() = default;
 
@@ -76,9 +77,9 @@ public:
 
 	void removeIncidentEdge(Edge *e);
 
-	const std::vector<Edge *> &incident_egdes() const;
+	const dls::tableau<Edge *> &incident_egdes() const;
 
-	const std::string &name() const;
+	const dls::chaine &name() const;
 
 	bool processed() const;
 
@@ -88,8 +89,8 @@ public:
 /* ************************************************************************** */
 
 class Graph {
-	std::vector<Vertex *> m_vertices{};
-	std::vector<Edge::Ptr> m_edges{};
+	dls::tableau<Vertex *> m_vertices{};
+	dls::tableau<Edge::Ptr> m_edges{};
 
 public:
 	Graph() = default;
