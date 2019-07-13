@@ -19,13 +19,19 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(arachne)
-add_subdirectory(danjo)
-add_subdirectory(kuri)
-add_subdirectory(kumo)
-add_subdirectory(mesure)
-add_subdirectory(parcer)
-add_subdirectory(tori)
+ajoute_sousdossier(AVEC_ARACHNE arachne)
+ajoute_sousdossier(AVEC_DANJO danjo)
+ajoute_sousdossier(AVEC_KANBA kanba)
+ajoute_sousdossier(AVEC_KOUDOU koudou)
+ajoute_sousdossier(AVEC_KUMO kumo)
+ajoute_sousdossier(AVEC_KURI kuri)
+ajoute_sousdossier(AVEC_MIKISA mikisa)
+ajoute_sousdossier(AVEC_MESURE mesure)
+ajoute_sousdossier(AVEC_PARCER parcer)
+ajoute_sousdossier(AVEC_POSEIDON poseidon)
+ajoute_sousdossier(AVEC_SILVATHEQUE silvatheque)
+ajoute_sousdossier(AVEC_TORI tori)
+ajoute_sousdossier(AVEC_VULKAN vulkan)
 
 set(ICONES
 	fichiers/icones/icone_avertissement.png
@@ -60,8 +66,6 @@ set(STYLES
 )
 
 if (AVEC_KANBA)
-	add_subdirectory(kanba)
-
 	install(
 		FILES ${STYLES}
 		DESTINATION kanba/styles
@@ -74,8 +78,6 @@ if (AVEC_KANBA)
 endif (AVEC_KANBA)
 
 if (AVEC_KOUDOU)
-	add_subdirectory(koudou)
-
 	install(
 		FILES ${STYLES}
 		DESTINATION koudou/styles
@@ -88,8 +90,6 @@ if (AVEC_KOUDOU)
 endif (AVEC_KOUDOU)
 
 if (AVEC_MIKISA)
-	add_subdirectory(mikisa)
-
 	install(
 		FILES ${STYLES}
 		DESTINATION mikisa/styles
@@ -107,8 +107,6 @@ if (AVEC_MIKISA)
 endif (AVEC_MIKISA)
 
 if (AVEC_POSEIDON)
-	add_subdirectory(poseidon)
-
 	install(
 		FILES ${ICONES}
 		DESTINATION poseidon/icones
@@ -126,8 +124,6 @@ if (AVEC_POSEIDON)
 endif (AVEC_POSEIDON)
 
 if (AVEC_SILVATHEQUE)
-	add_subdirectory(silvatheque)
-
 	install(
 		FILES ${STYLES}
 		DESTINATION silvatheque/styles
@@ -138,8 +134,3 @@ if (AVEC_SILVATHEQUE)
 		DESTINATION silvatheque/texte
 	)
 endif (AVEC_SILVATHEQUE)
-
-if (AVEC_VULKAN)
-	set(NOM_PROJET vulkan)
-	add_subdirectory(vulkan)
-endif (AVEC_VULKAN)

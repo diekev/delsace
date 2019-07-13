@@ -129,15 +129,83 @@ add_compile_options(-march=native)
 
 # ------------------------------------------------------------------------------
 
+option(AVEC_ARACHNE "Compiler le logiciel Arachné" ON)
+option(AVEC_DANJO "Compiler le langage de création d'interface Danjo" ON)
 option(AVEC_KANBA "Compiler le logiciel de peinture 3D Kanba" ON)
 option(AVEC_KOUDOU "Compiler le logiciel de rendu 3D Koudou" ON)
+option(AVEC_KUMO "Compiler le langage de création de tables MySQL Kumo" ON)
+option(AVEC_KURI "Compiler le compilateur du langage Kuri" ON)
+option(AVEC_MESURE "Compiler le langage de statistiques de lignes de code Mesure" ON)
 option(AVEC_MIKISA "Compiler le logiciel de création 3D et compositing Mikisa" ON)
+option(AVEC_PARCER "Compiler le parser C/C++ Parcer" ON)
 option(AVEC_POSEIDON "Compiler le logiciel de simulation de fluide Poséidon" ON)
 option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" ON)
+option(AVEC_TORI "Compiler le compilateur du langage Tori" ON)
+option(AVEC_VULKAN "Compiler le logiciel test de Vulkan" ON)
+
+option(SEULEMENT_KURI "Ne compiler que Kuri et ses dépendances" OFF)
+
+# Évite de polluer les options pour l'instant.
+set(REQUIERS_QT OFF)
+set(REQUIERS_TBB ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
+set(REQUIERS_OPENGL ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
+set(REQUIERS_BOOST ON)
+
+if(SEULEMENT_KURI)
+	set(AVEC_KURI ON)
+
+	set(AVEC_ARACHNE OFF)
+	set(AVEC_DANJO OFF)
+	set(AVEC_KANBA OFF)
+	set(AVEC_KOUDOU OFF)
+	set(AVEC_KUMO OFF)
+	set(AVEC_MESURE OFF)
+	set(AVEC_MIKISA OFF)
+	set(AVEC_POSEIDON OFF)
+	set(AVEC_PARCER OFF)
+	set(AVEC_POSEIDON OFF)
+	set(REQUIERS_QT OFF)
+	set(AVEC_SILVATHEQUE OFF)
+	set(AVEC_TORI OFF)
+	set(AVEC_VULKAN OFF)
+endif(SEULEMENT_KURI)
+
+macro(ajoute_sousdossier __test__ __nom__)
+	if (${__test__})
+		add_subdirectory(${__nom__})
+	endif()
+endmacro()
+
+# À FAIRE : permet la déclaration de plusiers dépendances
+macro(active_dependances __test__ __dep__)
+	if (${__test__})
+		set(${__dep__} ON)
+	endif()
+endmacro()
+
+active_dependances(AVEC_KANBA AVEC_DANJO)
+active_dependances(AVEC_KOUDOU AVEC_DANJO)
+active_dependances(AVEC_MIKISA AVEC_DANJO)
+active_dependances(AVEC_POSEIDON AVEC_DANJO)
+active_dependances(AVEC_SILVATHEQUE AVEC_DANJO)
+
+active_dependances(AVEC_KOUDOU REQUIERS_TBB)
+active_dependances(AVEC_MIKISA REQUIERS_TBB)
+
+active_dependances(AVEC_KANBA REQUIERS_OPENGL)
+active_dependances(AVEC_KOUDOU REQUIERS_OPENGL)
+active_dependances(AVEC_MIKISA REQUIERS_OPENGL)
+active_dependances(AVEC_POSEIDON REQUIERS_OPENGL)
+active_dependances(AVEC_SILVATHEQUE REQUIERS_OPENGL)
+active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
+
+active_dependances(AVEC_DANJO REQUIERS_QT)
 
 # ------------------------------------------------------------------------------
 
-find_package(PTex REQUIRED)
+if(AVEC_KANBA)
+	find_package(PTex REQUIRED)
+endif()
 
 if(AVEC_MIKISA)
 	find_package(Alembic)
@@ -148,27 +216,40 @@ if(AVEC_MIKISA)
 	find_package(OpenVDB)
 endif(AVEC_MIKISA)
 
-find_package(Qt5Core REQUIRED)
-set(INCLUSIONS_QT5_CORE ${Qt5Core_INCLUDE_DIRS})
-set(BIBLIOTHEQUES_QT5_CORE Qt5::Core)
+if(REQUIERS_QT)
+	find_package(Qt5Core REQUIRED)
+	set(INCLUSIONS_QT5_CORE ${Qt5Core_INCLUDE_DIRS})
+	set(BIBLIOTHEQUES_QT5_CORE Qt5::Core)
 
-find_package(Qt5Gui REQUIRED)
-set(INCLUSIONS_QT5_GUI ${Qt5Gui_INCLUDE_DIRS})
-set(BIBLIOTHEQUES_QT5_GUI Qt5::Gui)
+	find_package(Qt5Gui REQUIRED)
+	set(INCLUSIONS_QT5_GUI ${Qt5Gui_INCLUDE_DIRS})
+	set(BIBLIOTHEQUES_QT5_GUI Qt5::Gui)
 
-find_package(Qt5OpenGL REQUIRED)
-set(INCLUSIONS_QT5_OPENGL ${Qt5OpenGL_INCLUDE_DIRS})
-set(BIBLIOTHEQUES_QT5_OPENGL Qt5::OpenGL)
+	find_package(Qt5OpenGL REQUIRED)
+	set(INCLUSIONS_QT5_OPENGL ${Qt5OpenGL_INCLUDE_DIRS})
+	set(BIBLIOTHEQUES_QT5_OPENGL Qt5::OpenGL)
 
-find_package(Qt5Widgets REQUIRED)
-set(INCLUSIONS_QT5_WIDGETS ${Qt5Widgets_INCLUDE_DIRS})
-set(BIBLIOTHEQUES_QT5_WIDGETS Qt5::Widgets)
+	find_package(Qt5Widgets REQUIRED)
+	set(INCLUSIONS_QT5_WIDGETS ${Qt5Widgets_INCLUDE_DIRS})
+	set(BIBLIOTHEQUES_QT5_WIDGETS Qt5::Widgets)
+endif()
 
-set(BIBLIOTHEQUES_OPENGL GLEW GLU GL glut)
-set(BIBLIOTHEQUES_TBB tbb)
+# À FAIRE : find_package
+if(REQUIERS_OPENGL)
+	set(BIBLIOTHEQUES_OPENGL GLEW GLU GL glut)
+endif()
+
+# À FAIRE : find_package
+if(REQUIERS_TBB)
+	set(BIBLIOTHEQUES_TBB tbb)
+endif()
+
 set(BIBLIOTHEQUES_IMAGE ${BIBLIOTHEQUES_IMAGE} jpeg png)
 
-set(INCLUSIONS_BOOST /opt/lib/boost/include)
+# À FAIRE : find_package
+if(REQUIERS_BOOST)
+	set(INCLUSIONS_BOOST /opt/lib/boost/include)
+endif()
 
 # ------------------------------------------------------------------------------
 
