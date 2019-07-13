@@ -49,6 +49,18 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
+/* Opératrices ou faitures intéressantes pour les systèmes de particules :
+ * - distribution poisson (bruit bleu)
+ * - systèmes de particules imbriqués
+ * - entrecollision (grains, sables, etc.)
+ * - suivi de l'age (ex : attribut + script LCC pour grouper les particules)
+ * - groupement des particules de manière aléatoire (voir opératrice groupe)
+ * - émission/évènement par collision (ex : émet une fois, tue les parents,
+ *   rebondis, traverse objet, etc.)
+ * - colle aux surfaces, avec possibilité de se promener sur la surface
+ * - filtre particules selon attribut (script LCC)
+ */
+
 /* ************************************************************************** */
 
 class OperatriceSuppressionPoints final : public OperatriceCorps {
