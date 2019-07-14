@@ -19,7 +19,7 @@ void main()
 {
 	vec4 s = vec4(sommets.xyz, 1.0);
 	gl_Position = MVP * matrice * s;
-	normal = (N * normaux);
+	normal = (N * vec3(matrice * vec4(normaux, 0.0)));
 	sommet = s.xyz;
 	UV = uvs;
 	mat = matrice;
