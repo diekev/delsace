@@ -114,6 +114,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_creation_kelvinlet.jo
 	scripts_danjo/operatrice_daltonisme.jo
 	scripts_danjo/operatrice_deformation.jo
+	scripts_danjo/operatrice_deformation_kelvinlet.jo
 	scripts_danjo/operatrice_degrade.jo
 	scripts_danjo/operatrice_dilation_erosion.jo
 	scripts_danjo/operatrice_dispersion_points.jo

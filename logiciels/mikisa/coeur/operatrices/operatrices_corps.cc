@@ -40,6 +40,7 @@
 #include "corps/adaptrice_creation_corps.h"
 #include "corps/iteration_corps.hh"
 
+#include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
 #include "../donnees_aval.hh"
 #include "../gestionnaire_fichier.hh"
@@ -1573,6 +1574,189 @@ public:
 
 /* ************************************************************************** */
 
+using DeformeursBrosse = dls::tableau<Kelvinlet::BrushBase::Ptr>;
+
+template<class BrushType>
+static void ajoute_deformeur(
+		DeformeursBrosse& deformer,
+		const typename BrushType::Force& force,
+		double incompressibilite,
+		double echelle)
+{
+	//-----------------------//
+	// Hard-coded Parameters //
+	//-----------------------//
+	auto vitesse  = 5.0; // > 0.
+
+	BrushType def;
+	def.SetEps(echelle);
+	def.SetMaterial(vitesse, incompressibilite);
+	def.SetForce(force);
+	def.Calibrate();
+
+	Kelvinlet::BrushBase::Ptr ptr;
+	ptr.reset(new BrushType(def));
+	deformer.pousse(ptr);
+}
+
+static Vector3 deforme_kelvinlet_brosse(
+		const Vector3& p,
+		const DeformeursBrosse& deformer)
+{
+	Vector3 u = Vector3::Zero();
+	for (const auto& def : deformer) {
+		u += def->Eval(p);
+	}
+	return u;
+}
+
+class OpDeformationKelvinlet final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Déformation Kelvinlet";
+	static constexpr auto AIDE = "";
+
+	explicit OpDeformationKelvinlet(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_deformation_kelvinlet.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		if (m_corps.points()->taille() == 0) {
+			this->ajoute_avertissement("Le corps d'entrée est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto const repetition = evalue_entier("répétition");
+		auto const incompressibilite = static_cast<double>(evalue_decimal("incompressibilité"));
+		auto const echelle = static_cast<double>(evalue_decimal("échelle"));
+		auto const type = evalue_enum("type");
+
+		auto deformeurs = DeformeursBrosse{};
+
+		if (type == "regulier") {
+			Vector3 f = Vector3::UnitY();
+			using BrushType = Kelvinlet::BrushGrab;
+			ajoute_deformeur<BrushType>(deformeurs, f, incompressibilite, echelle);
+		}
+		else if (type == "biscale") {
+			Vector3 f = Vector3::UnitY();
+			using BrushType = Kelvinlet::BrushGrabBiScale;
+			ajoute_deformeur<BrushType>(deformeurs, f, incompressibilite, echelle);
+		}
+		else if (type == "triscale") {
+			Vector3 f = Vector3::UnitY();
+			using BrushType = Kelvinlet::BrushGrabTriScale;
+			ajoute_deformeur<BrushType>(deformeurs, f, incompressibilite, echelle);
+		}
+		else if (type == "laplacien") {
+			Vector3 f = Vector3::UnitY();
+			using BrushType = Kelvinlet::BrushGrabLaplacian;
+			ajoute_deformeur<BrushType>(deformeurs, f, incompressibilite, echelle);
+		}
+		else if (type == "bilaplacien") {
+			Vector3 f = Vector3::UnitY();
+			using BrushType = Kelvinlet::BrushGrabBiLaplacian;
+			ajoute_deformeur<BrushType>(deformeurs, f, incompressibilite, echelle);
+		}
+		else if (type == "cusp") {
+			Vector3 f = Vector3::UnitY();
+			using BrushType = Kelvinlet::BrushGrabCusp;
+			ajoute_deformeur<BrushType>(deformeurs, f, incompressibilite, echelle);
+		}
+		else if (type == "cusp_laplacien") {
+			Vector3 f = Vector3::UnitY();
+			using BrushType = Kelvinlet::BrushGrabCuspLaplacian;
+			ajoute_deformeur<BrushType>(deformeurs, f, incompressibilite, echelle);
+		}
+		else if (type == "cusp_bilaplacien") {
+			Vector3 f = Vector3::UnitY();
+			using BrushType = Kelvinlet::BrushGrabCuspBiLaplacian;
+			ajoute_deformeur<BrushType>(deformeurs, f, incompressibilite, echelle);
+		}
+		else if (type == "twist") {
+			Vector3 axisAngle = 0.25 * M_PI * Vector3::UnitZ();
+			Matrix33 F = Kelvinlet::AssembleSkewSymMatrix(axisAngle);
+			using BrushType = Kelvinlet::BrushAffine;
+			ajoute_deformeur<BrushType>(deformeurs, F, incompressibilite, echelle);
+		}
+		else if (type == "scale") {
+			Matrix33 F = Matrix33::Identity();
+			using BrushType = Kelvinlet::BrushAffine;
+			ajoute_deformeur<BrushType>(deformeurs, F, incompressibilite, echelle);
+		}
+		else if (type == "pinch") {
+			Matrix33 F = Matrix33::Zero();
+			F(0,0) =  0.75;
+			F(1,1) = -F(0,0);
+			using BrushType = Kelvinlet::BrushAffine;
+			ajoute_deformeur<BrushType>(deformeurs, F, incompressibilite, echelle);
+		}
+		else {
+			this->ajoute_avertissement("Type de kelvinlet inconnu");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("déformation kelvinlet");
+		chef->indique_progression(0.0f);
+
+		/* calcule la déformation */
+		auto points_entree = m_corps.points();
+
+		points_entree->detache();
+
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+						 [&](tbb::blocked_range<long> const &plage)
+		{
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				auto p = m_corps.point_transforme(i);
+
+				auto point_eigen = Vector3();
+
+				for (auto j = 0; j < repetition; ++j) {
+					point_eigen << static_cast<double>(p.x), static_cast<double>(p.y), static_cast<double>(p.z);
+
+					auto dist = deforme_kelvinlet_brosse(point_eigen, deformeurs);
+
+					p.x += static_cast<float>(dist[0]);
+					p.y += static_cast<float>(dist[1]);
+					p.z += static_cast<float>(dist[2]);
+				}
+
+				points_entree->point(i, p);
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin()) / static_cast<float>(points_entree->taille());
+			chef->indique_progression_parallele(delta);
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 template <typename T>
 auto sphere(T u, T v, T r)
 {
@@ -1925,6 +2109,7 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSeparationPrims>());
 	usine.enregistre_type(cree_desc<OpEvaluationKelvinlet>());
 	usine.enregistre_type(cree_desc<OpCreationKelvinlet>());
+	usine.enregistre_type(cree_desc<OpDeformationKelvinlet>());
 	usine.enregistre_type(cree_desc<OperatriceCreationLatLong>());
 }
 

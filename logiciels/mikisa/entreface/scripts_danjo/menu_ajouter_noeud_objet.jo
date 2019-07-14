@@ -62,6 +62,7 @@ menu "Noeud Objet" {
 	}
 	menu "Simulation" {
 	    action(valeur="Création Kelvinlet"; attache=ajouter_noeud; métadonnée="Création Kelvinlet")
+		action(valeur="Déformation Kelvinlet"; attache=ajouter_noeud; métadonnée="Déformation Kelvinlet")
 		action(valeur="Évaluation Kelvinlet"; attache=ajouter_noeud; métadonnée="Évaluation Kelvinlet")
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
 		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")

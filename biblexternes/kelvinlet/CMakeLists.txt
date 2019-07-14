@@ -33,7 +33,10 @@ set(BIBILIOTHEQUES
 )
 
 add_library(${NOM_CIBLE} STATIC
-    dynaBase.cpp
+	brushAffine.cpp
+	brushBase.cpp
+	brushGrabBase.cpp
+	dynaBase.cpp
 	dynaPulseAffine.cpp
 	dynaPulseBase.cpp
 	dynaPulseGrab.cpp
@@ -41,6 +44,17 @@ add_library(${NOM_CIBLE} STATIC
 	dynaPushBase.cpp
 	dynaPushGrab.cpp
 
+	brushAffine.h
+	brushBase.h
+	brushGrab.h
+	brushGrabBase.h
+	brushGrabBiLaplacian.h
+	brushGrabBiScale.h
+	brushGrabCusp.h
+	brushGrabCuspBiLaplacian.h
+	brushGrabCuspLaplacian.h
+	brushGrabLaplacian.h
+	brushGrabTriScale.h
 	dynaBase.h
 	dynaPulseAffine.h
 	dynaPulseBase.h
