@@ -47,8 +47,12 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "../evaluation/reseau.hh"
+
+#include "../base_de_donnees.hh"
 #include "../contexte_evaluation.hh"
-#include "../donnees_simulation.hh"
+#include "../donnees_aval.hh"
+#include "../objet.h"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -126,6 +130,8 @@ class MondePhysique {
 
 	btAlignedObjectArray<btCollisionShape *> m_formes_collisions{};
 
+	dls::dico_desordonne<btRigidBody *, Objet *> m_dico_objets{};
+
 public:
 	~MondePhysique()
 	{
@@ -137,9 +143,21 @@ public:
 		m_formes_collisions.push_back(forme);
 	}
 
-	void ajoute_corps_rigide(btRigidBody *corps_rigide)
+	void ajoute_corps_rigide(btRigidBody *corps_rigide, Objet *objet)
 	{
 		m_monde_dynamics->addRigidBody(corps_rigide);
+		m_dico_objets.insere({ corps_rigide, objet });
+	}
+
+	Objet *objet_pour_corps_rigide(btRigidBody *corps_rigide) const
+	{
+		auto iter = m_dico_objets.trouve(corps_rigide);
+
+		if (iter == m_dico_objets.fin()) {
+			return nullptr;
+		}
+
+		return iter->second;
 	}
 
 	btDiscreteDynamicsWorld *ptr()
@@ -199,6 +217,7 @@ public:
 		}
 
 		m_formes_collisions.clear();
+		m_dico_objets.efface();
 
 		/* supprime données monde */
 		memoire::deloge("btSequentialImpulseConstraintSolver", m_solveur_constraintes);
@@ -212,9 +231,14 @@ public:
 /* ************************************************************************** */
 
 class AjoutCorpsRigide final : public OperatriceCorps {
+	Objet *m_objet = nullptr;
+
 public:
 	static constexpr auto NOM = "Ajout Corps Rigide";
 	static constexpr auto AIDE = "";
+
+	AjoutCorpsRigide(AjoutCorpsRigide const &) = default;
+	AjoutCorpsRigide &operator=(AjoutCorpsRigide const &) = default;
 
 	AjoutCorpsRigide(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
@@ -240,14 +264,42 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		/* L'entrée 0 est pour le corps. */
 		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		if (!donnees_aval->possede("monde_physique")) {
+			this->ajoute_avertissement("Aucun monde physique en aval !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* L'entrée 0 est pour le corps. */
+		//entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		/* L'entrée 1 est pour accumuler les corps. */
 		entree(1)->requiers_corps(contexte, donnees_aval);
 
-		auto monde = std::any_cast<MondePhysique *>(m_donnees_simulation->table["monde_physique"]);
+		m_objet = nullptr;
+
+		auto nom_objet = evalue_chaine("nom_objet");
+
+		if (nom_objet.est_vide()) {
+			this->ajoute_avertissement("Aucun objet sélectionné");
+			return EXECUTION_ECHOUEE;
+		}
+
+		m_objet = contexte.bdd->objet(nom_objet);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Aucun objet de ce nom n'existe");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto monde = std::any_cast<MondePhysique *>(donnees_aval->table["monde_physique"]);
+
+		/* copie par convénience */
+		m_objet->corps.accede_lecture([this](Corps const &_corps_)
+		{
+			_corps_.copie_vers(&m_corps);
+		});
 
 		auto forme = cree_forme_pour_corps(m_corps);
 		monde->ajoute_forme(forme);
@@ -256,9 +308,16 @@ public:
 
 		auto corps_rigide = cree_corps_rigide(tranformation, forme);
 
-		monde->ajoute_corps_rigide(corps_rigide);
+		monde->ajoute_corps_rigide(corps_rigide, m_objet);
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const override
+	{
+		if (m_objet != nullptr) {
+			compilatrice.ajoute_dependance(noeud, m_objet);
+		}
 	}
 
 	btRigidBody *cree_corps_rigide(btTransform const &transforme_initiale, btCollisionShape *forme_collision)
@@ -347,18 +406,23 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		m_donnees_simulation->table.insere({ "monde_physique", &m_monde });
+		INUTILISE(donnees_aval);
+
+		auto da = DonneesAval{};
+		da.table.insere({ "monde_physique", &m_monde });
+
+		auto temps_debut = 1;
 
 		/* À FAIRE : réinitialisation. */
-		if (m_monde.ptr() == nullptr || contexte.temps_courant == m_donnees_simulation->temps_debut) {
+		if (m_monde.ptr() == nullptr || contexte.temps_courant == temps_debut) {
 			m_monde.initialise_monde();
 
 			/* il faut exécuter les noeuds en amont après avoir initialisé la table */
 			m_corps.reinitialise();
-			entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+			entree(0)->requiers_copie_corps(&m_corps, contexte, &da);
 		}
 
-		if (contexte.temps_courant > m_donnees_simulation->temps_debut) {
+		if (contexte.temps_courant > temps_debut) {
 			m_monde.ptr()->stepSimulation(1.0 / contexte.cadence);
 		}
 
@@ -373,8 +437,16 @@ public:
 		 * - pour modifier les matrices pour chaque objet, il vaudrait mieux
 		 *   pouvoir accéder aux corps des objets via des pointeurs. */
 		for (int i = 0; i < m_monde.ptr()->getNumCollisionObjects(); i++) {
-			btCollisionObject* obj = m_monde.ptr()->getCollisionObjectArray()[i];
-			btRigidBody* body = btRigidBody::upcast(obj);
+			auto obj = m_monde.ptr()->getCollisionObjectArray()[i];
+			auto body = btRigidBody::upcast(obj);
+
+			auto objet = m_monde.objet_pour_corps_rigide(body);
+
+			if (objet == nullptr) {
+				/* À FAIRE : erreur. */
+				continue;
+			}
+
 			auto ms = body->getMotionState();
 
 			if (ms != nullptr) {
@@ -384,7 +456,12 @@ public:
 				double mat[4][4];
 				trans.getOpenGLMatrix(reinterpret_cast<double *>(mat));
 				auto transformation = math::transformation(mat);
-				m_corps.transformation = transformation;
+
+				objet->corps.accede_ecriture([&transformation](Corps &corps)
+				{
+					corps.transformation = transformation;
+				});
+				//m_corps.transformation = transformation;
 			}
 		}
 	}
