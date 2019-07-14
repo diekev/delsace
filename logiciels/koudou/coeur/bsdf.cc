@@ -26,8 +26,8 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/gna.hh"
 
-#include "gna.h"
 #include "koudou.h"
 #include "moteur_rendu.h"
 #include "nuanceur.h"
@@ -328,14 +328,14 @@ void BSDFPhaseIsotropique::genere_echantillon(GNA &gna, ParametresRendu const &p
 	INUTILISE(parametres);
 	INUTILISE(profondeur);
 
-	auto xi = gna.nombre_aleatoire();
+	auto xi = gna.uniforme(0.0, 1.0);
 	dir.z = xi * 2.0 - 1.0; // cos_theta;
 
 	auto sin_theta = 1.0 - dir.z * dir.z; // carré de sin_theta
 
 	if (sin_theta > 1.0) {
 		sin_theta = std::sqrt(sin_theta);
-		xi = gna.nombre_aleatoire();
+		xi = gna.uniforme(0.0, 1.0);
 
 		auto phi = xi * constantes<double>::TAU;
 		dir.x = sin_theta * std::cos(phi);
@@ -396,14 +396,14 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, ParametresRendu const 
 
 	if (isotropique) {
 		/* Pareil que BSDFPhaseIsotropique::genere_echantillon. */
-		auto xi = gna.nombre_aleatoire();
+		auto xi = gna.uniforme(0.0, 1.0);
 		dir.z = xi * 2.0 - 1.0; // cos_theta;
 
 		auto sin_theta = 1.0 - dir.z * dir.z; // carré de sin_theta
 
 		if (sin_theta > 1.0) {
 			sin_theta = std::sqrt(sin_theta);
-			xi = gna.nombre_aleatoire();
+			xi = gna.uniforme(0.0, 1.0);
 
 			auto phi = xi * constantes<double>::TAU;
 			dir.x = sin_theta * std::cos(phi);
@@ -417,8 +417,8 @@ void BSDFPhaseAnisotropique::genere_echantillon(GNA &gna, ParametresRendu const 
 		pdf = 0.25 * constantes<double>::PI_INV;
 	}
 	else {
-		auto phi = gna.nombre_aleatoire() * constantes<double>::TAU;
-		auto cos_theta = inverse_cdf(gna.nombre_aleatoire());
+		auto phi = gna.uniforme(0.0, 1.0) * constantes<double>::TAU;
+		auto cos_theta = inverse_cdf(gna.uniforme(0.0, 1.0));
 		auto sin_theta = std::sqrt(1.0 - cos_theta * cos_theta); // carré de sin_theta
 		auto in = -contexte.V;
 

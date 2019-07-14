@@ -28,10 +28,10 @@
 
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/gna.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "bsdf.h"
-#include "gna.h"
 #include "koudou.h"
 #include "maillage.h"
 #include "nuanceur.h"
@@ -45,8 +45,8 @@
 vision::EchantillonCamera genere_echantillon(GNA &gna, unsigned int x, unsigned int y)
 {
 	vision::EchantillonCamera echantillon;
-	echantillon.x = x + gna.nombre_aleatoire();
-	echantillon.y = y + gna.nombre_aleatoire();
+	echantillon.x = x + gna.uniforme(0.0, 1.0);
+	echantillon.y = y + gna.uniforme(0.0, 1.0);
 
 	return echantillon;
 }
@@ -186,7 +186,7 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 	tbb::parallel_for(tbb::blocked_range<long>(0, carreaux.taille()),
 					  [&](tbb::blocked_range<long> const &plage)
 	{
-		GNA gna(17771 + static_cast<unsigned int>(plage.begin()) * (echantillon + 1));
+		auto gna = GNA(17771 + static_cast<int>(plage.begin() * (echantillon + 1)));
 
 		for (auto j = plage.begin(); j < plage.end(); ++j) {
 			auto const &carreau = carreaux[j];
@@ -277,7 +277,7 @@ void TacheRendu::commence(Koudou const &koudou)
 	auto const carreaux_y = static_cast<unsigned>(std::ceil(static_cast<float>(hauteur_pellicule) / static_cast<float>(hauteur_carreau)));
 
 	dls::tableau<CarreauPellicule> carreaux;
-	carreaux.reserve(static_cast<size_t>(carreaux_x * carreaux_y));
+	carreaux.reserve(carreaux_x * carreaux_y);
 
 	for (unsigned int i = 0; i < carreaux_x; ++i) {
 		for (unsigned int j = 0; j < carreaux_y; ++j) {

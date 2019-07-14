@@ -34,6 +34,7 @@ set(BIBLIOTHEQUES
 	bib_commandes
 	bib_objets
 	bib_observation
+	bib_outils
 	bib_vision
 	ego
 )
@@ -64,7 +65,6 @@ add_library(${NOM_CIBLE} STATIC
 	bsdf.h
 	configuration.h
 	evenement.h
-	gna.h
 	koudou.h
 	lumiere.h
 	maillage.h
@@ -88,7 +88,6 @@ add_library(${NOM_CIBLE} STATIC
 	bsdf.cc
 	configuration.cc
 	evenement.cc
-	gna.cc
 	koudou.cc
 	lumiere.cc
 	maillage.cc
