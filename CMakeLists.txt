@@ -150,6 +150,11 @@ set(REQUIERS_QT OFF)
 set(REQUIERS_TBB ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
 set(REQUIERS_OPENGL ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
 set(REQUIERS_BOOST ON)
+set(REQUIERS_DOCOPT ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
+set(REQUIERS_KELVINLET OFF)
+set(REQUIERS_PATATE OFF)
+set(REQUIERS_SNH OFF)
+set(REQUIERS_VORO OFF)
 
 if(SEULEMENT_KURI)
 	set(AVEC_KURI ON)
@@ -198,6 +203,11 @@ active_dependances(AVEC_MIKISA REQUIERS_OPENGL)
 active_dependances(AVEC_POSEIDON REQUIERS_OPENGL)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_OPENGL)
 active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
+
+active_dependances(AVEC_MIKISA REQUIERS_KELVINLET)
+active_dependances(AVEC_MIKISA REQUIERS_PATATE)
+active_dependances(AVEC_MIKISA REQUIERS_SNH)
+active_dependances(AVEC_MIKISA REQUIERS_VORO)
 
 active_dependances(AVEC_DANJO REQUIERS_QT)
 
