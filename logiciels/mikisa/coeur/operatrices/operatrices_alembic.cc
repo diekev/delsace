@@ -361,6 +361,7 @@ static auto charge_attributs(
 
 class OpImportAlembic : public OperatriceCorps {
 	ABC::IArchive m_archive{};
+	ABG::IObject m_iobjet{};
 
 public:
 	static constexpr auto NOM = "Import Alembic";
@@ -441,9 +442,9 @@ int OpImportAlembic::execute(
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto obj = trouve_iobjet(obj_racine, chemin_objet);
+	m_iobjet = trouve_iobjet(obj_racine, chemin_objet);
 
-	if (!obj.valid()) {
+	if (!m_iobjet.valid()) {
 		chef->indique_progression(1.0f);
 		this->ajoute_avertissement("Impossible de trouver l'objet !");
 		return EXECUTION_ECHOUEE;
@@ -451,8 +452,8 @@ int OpImportAlembic::execute(
 
 	auto selecteur = ABC::ISampleSelector(static_cast<double>(contexte.temps_courant) / contexte.cadence);
 
-	if (ABG::IPolyMesh::matches(obj.getHeader())) {
-		auto poly_mesh = ABG::IPolyMesh(obj);
+	if (ABG::IPolyMesh::matches(m_iobjet.getHeader())) {
+		auto poly_mesh = ABG::IPolyMesh(m_iobjet);
 
 		auto schema = poly_mesh.getSchema();
 
@@ -496,8 +497,8 @@ int OpImportAlembic::execute(
 		auto prop = schema.getArbGeomParams();
 		charge_attributs(m_corps, prop, selecteur);
 	}
-	else if (ABG::IPoints::matches(obj.getHeader())) {
-		auto poly_mesh = ABG::IPoints(obj);
+	else if (ABG::IPoints::matches(m_iobjet.getHeader())) {
+		auto poly_mesh = ABG::IPoints(m_iobjet);
 
 		auto schema = poly_mesh.getSchema();
 
@@ -535,8 +536,24 @@ void OpImportAlembic::obtiens_liste(
 
 bool OpImportAlembic::depend_sur_temps() const
 {
-	/* À FAIRE */
-	return true;
+	if (!m_iobjet.valid()) {
+		return false;
+	}
+
+	if (ABG::IPolyMesh::matches(m_iobjet.getHeader())) {
+		auto poly_mesh = ABG::IPolyMesh(m_iobjet);
+		auto schema = poly_mesh.getSchema();
+
+		return !schema.isConstant();
+	}
+	else if (ABG::IPoints::matches(m_iobjet.getHeader())) {
+		auto poly_mesh = ABG::IPoints(m_iobjet);
+		auto schema = poly_mesh.getSchema();
+
+		return !schema.isConstant();
+	}
+
+	return false;
 }
 
 /* ************************************************************************** */
