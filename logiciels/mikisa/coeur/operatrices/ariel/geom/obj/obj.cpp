@@ -5,7 +5,10 @@
 // Implements obj.hpp
 
 #include <tbb/tbb.h>
+
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
+
 #include "obj.hpp"
 
 namespace objCore {
@@ -99,7 +102,7 @@ bool Obj::ReadObj(const dls::chaine& filename)
 			getline(fp_in, line);
 
 			if (!line.empty()) {
-				auto tokens = utilityCore::tokenizeString(line, " ");
+				auto tokens = dls::morcelle(line, ' ');
 
 				if (tokens.taille()>1) {
 					if (tokens[0] == "v") {
@@ -130,7 +133,7 @@ bool Obj::ReadObj(const dls::chaine& filename)
 						dls::math::vec4i uvs(0);
 						unsigned int loops = std::min(4u, static_cast<unsigned int>(tokens.taille())-1)+1;
 						for (unsigned int i=1; i<loops; i++) {
-							auto faceindices = utilityCore::tokenizeString(tokens[i], "/");
+							auto faceindices = dls::morcelle(tokens[i], '/');
 							vertices[i-1] = atoi(faceindices[0].c_str());
 							if (faceindices.taille()==2 && m_numberOfNormals>1) {
 								normals[i-1] = atoi(faceindices[1].c_str());
@@ -273,7 +276,7 @@ void Obj::PrereadObj(const dls::chaine& filename)
 			getline(fp_in, line);
 
 			if (!line.empty()) {
-				auto header = utilityCore::getFirstNCharactersOfString(line, 2);
+				auto header = dls::premier_n_caracteres(line, 2);
 
 				if (header == "v ") {
 					vertexCount++;

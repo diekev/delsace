@@ -6,6 +6,8 @@
 
 #include "sceneloader.hpp"
 
+#include "biblinternes/outils/chaine.hh"
+
 namespace sceneCore{
 
 SceneLoader::SceneLoader(const dls::chaine& filename)
@@ -19,7 +21,7 @@ SceneLoader::SceneLoader(const dls::chaine& filename)
     m_cameraFov = dls::math::vec2f(45.0f);
 
     //grab relative path
-	auto pathTokens = utilityCore::tokenizeString(filename, "/");
+	auto pathTokens = dls::morcelle(filename, '/');
 	if (std::strcmp(filename.sous_chaine(0, 1).c_str(), "/")==0) {
         m_relativePath = "/";
 	}

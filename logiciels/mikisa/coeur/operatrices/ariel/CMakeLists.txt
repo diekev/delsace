@@ -39,6 +39,7 @@ set(BIBLIOTHEQUES
 	z
 	/opt/lib/blosc/lib/libblosc.so
 	/opt/lib/boost/lib/libboost_iostreams.so
+	bib_outils
 )
 
 set(SOURCES

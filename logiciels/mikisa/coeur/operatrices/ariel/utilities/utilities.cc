@@ -13,6 +13,7 @@
 #include <cstring>
 #include <fstream>
 
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/rmsd/rmsd.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
@@ -52,70 +53,6 @@ dls::math::vec3f clampRGB(dls::math::vec3f color)
 bool epsilonCheck(float a, float b)
 {
 	return std::abs(std::abs(a) - std::abs(b)) < EPSILON;
-}
-
-dls::chaine padString(long length, dls::chaine str)
-{
-	auto strlength = str.taille();
-	dls::chaine pad = "";
-
-	for (auto i=strlength; i < length; i++) {
-		pad = pad + "0";
-	}
-
-	return pad + str;
-}
-
-bool replaceString(dls::chaine &str, const dls::chaine &from, const dls::chaine &to)
-{
-	auto start_pos = str.trouve(from);
-	if (start_pos == dls::chaine::npos)
-		return false;
-	str.remplace(start_pos, from.taille(), to);
-	return true;
-}
-
-dls::chaine convertIntToString(int number)
-{
-	dls::flux_chaine ss;
-	ss << number;
-	return ss.chn();
-}
-
-dls::tableau<dls::chaine> tokenizeString(dls::chaine str, dls::chaine separator)
-{
-	dls::tableau<dls::chaine> results;
-	char * cstr, *p;
-	dls::chaine strt = str;
-	cstr = new char[strt.taille()+1];
-	std::strcpy (cstr, strt.c_str());
-	p=std::strtok (cstr, separator.c_str());
-	while (p!=nullptr) {
-		results.pousse(p);
-		p=strtok(nullptr, separator.c_str());
-	}
-	delete [] cstr;
-	delete [] p;
-	return results;
-}
-
-dls::tableau<dls::chaine> tokenizeStringByAllWhitespace(dls::chaine const &str)
-{
-	std::stringstream strstr(str.c_str());
-	std::istream_iterator<dls::chaine> it(strstr);
-	std::istream_iterator<dls::chaine> end;
-	dls::tableau<dls::chaine> results(it, end);
-	return results;
-}
-
-dls::chaine getLastNCharactersOfString(dls::chaine s, long n)
-{
-	return s.sous_chaine(s.taille() - n, n);
-}
-
-dls::chaine getFirstNCharactersOfString(dls::chaine s, long n)
-{
-	return s.sous_chaine(0, n);
 }
 
 int getMilliseconds()
@@ -298,7 +235,7 @@ dls::chaine readFileAsString(dls::chaine filename)
 dls::chaine getRelativePath(dls::chaine path)
 {
 	dls::chaine relativePath;
-	dls::tableau<dls::chaine> pathTokens = tokenizeString(path, "/");
+	dls::tableau<dls::chaine> pathTokens = dls::morcelle(path, '/');
 	for (auto i=0l; i<pathTokens.taille()-1; i++) {
 		relativePath = relativePath + pathTokens[i] + "/";
 	}

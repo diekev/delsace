@@ -21,6 +21,8 @@
 
 #include "scene.hpp"
 
+#include "biblinternes/outils/chaine.hh"
+
 namespace sceneCore{
 
 Scene::Scene()
@@ -67,7 +69,7 @@ void Scene::ExportParticles(
 		}
 	}
 
-	dls::chaine frameString = utilityCore::padString(4, utilityCore::convertIntToString(frame));
+	dls::chaine frameString = dls::garnis_chaine(dls::chaine_depuis_entier(frame), 4);
 
 	if (PARTIO) {
 #ifdef WITH_PARTIO
@@ -108,11 +110,11 @@ void Scene::ExportParticles(
 	}
 
 	if (VDB || OBJ) {
-		dls::chaine vdbfilename = m_vdbPath;
-		utilityCore::replaceString(vdbfilename, ".vdb", "."+frameString+".vdb");
+		auto vdbfilename = m_vdbPath;
+		dls::remplace_chaine(vdbfilename, ".vdb", "."+frameString+".vdb");
 
-		dls::chaine objfilename = m_meshPath;
-		utilityCore::replaceString(objfilename, ".obj", "."+frameString+".obj");
+		auto objfilename = m_meshPath;
+		dls::remplace_chaine(objfilename, ".obj", "."+frameString+".obj");
 
 		fluidCore::LevelSet* fluidSDF = new fluidCore::LevelSet(sdfparticles, maxd);
 

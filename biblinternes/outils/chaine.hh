@@ -31,4 +31,16 @@ namespace dls {
 
 tableau<chaine> morcelle(chaine const &texte, char const delimiteur);
 
+tableau<chaine> morcelle(chaine const &texte, chaine const &delimitrice);
+
+bool remplace_chaine(chaine &chn, chaine const &de, chaine const &vers);
+
+chaine garnis_chaine(chaine const &chn, long taille);
+
+chaine chaine_depuis_entier(int nombre);
+
+chaine premier_n_caracteres(chaine const &chn, long n);
+
+chaine dernier_n_caracteres(chaine const &chn, long n);
+
 }  /* namespace dls */

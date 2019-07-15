@@ -58,24 +58,6 @@ dls::math::vec3f clampRGB(dls::math::vec3f color);
 bool epsilonCheck(float a, float b);
 
 //====================================
-// String wrangling stuff
-//====================================
-
-dls::chaine padString(long length, dls::chaine str);
-
-bool replaceString(dls::chaine& str, const dls::chaine& from, const dls::chaine& to);
-
-dls::chaine convertIntToString(int number);
-
-dls::tableau<dls::chaine> tokenizeString(dls::chaine str, dls::chaine separator);
-
-dls::tableau<dls::chaine> tokenizeStringByAllWhitespace(dls::chaine const &str);
-
-dls::chaine getLastNCharactersOfString(dls::chaine s, long n);
-
-dls::chaine getFirstNCharactersOfString(dls::chaine s, long n);
-
-//====================================
 // Time stuff
 //====================================
 
