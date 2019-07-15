@@ -26,8 +26,7 @@ enable_language(ASM)
 set(CMAKE_ASM_FLAGS "${CXXFLAGS} -x assembler-with-cpp")
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
