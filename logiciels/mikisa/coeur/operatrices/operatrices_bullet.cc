@@ -119,6 +119,11 @@ static btTransform converti_transformation(Corps &corps)
 
 /* ************************************************************************** */
 
+struct DonneesObjet {
+	Objet *objet{};
+	math::transformation transformation_orig{};
+};
+
 class MondePhysique {
 	btDiscreteDynamicsWorld *m_monde_dynamics = nullptr;
 	btDefaultCollisionConfiguration *m_configuration_collision = nullptr;
@@ -130,7 +135,7 @@ class MondePhysique {
 
 	btAlignedObjectArray<btCollisionShape *> m_formes_collisions{};
 
-	dls::dico_desordonne<btRigidBody *, Objet *> m_dico_objets{};
+	dls::dico_desordonne<btRigidBody *, DonneesObjet> m_dico_objets{};
 
 public:
 	~MondePhysique()
@@ -143,10 +148,13 @@ public:
 		m_formes_collisions.push_back(forme);
 	}
 
-	void ajoute_corps_rigide(btRigidBody *corps_rigide, Objet *objet)
+	void ajoute_corps_rigide(btRigidBody *corps_rigide, Objet *objet, math::transformation const &transformation)
 	{
+	//	std::cerr << "---------------------------------------------------\n";
+	//	std::cerr << "Ajout d'un corps rigide pour '" << objet->nom << "'\n";
+	//	std::cerr << transformation.matrice() << '\n';
 		m_monde_dynamics->addRigidBody(corps_rigide);
-		m_dico_objets.insere({ corps_rigide, objet });
+		m_dico_objets.insere({ corps_rigide, { objet, transformation } });
 	}
 
 	Objet *objet_pour_corps_rigide(btRigidBody *corps_rigide) const
@@ -157,7 +165,7 @@ public:
 			return nullptr;
 		}
 
-		return iter->second;
+		return iter->second.objet;
 	}
 
 	btDiscreteDynamicsWorld *ptr()
@@ -167,8 +175,27 @@ public:
 
 	void initialise_monde()
 	{
+		/* À FAIRE : réinitialisation totale des pointeurs. */
 		if (m_monde_dynamics != nullptr) {
-			supprime_monde();
+//			supprime_monde();
+
+//			std::cerr << "---------------------------------------------------\n";
+//			std::cerr << "Mise en place des transformations originelles\n";
+
+			for (auto &paire : m_dico_objets) {
+				auto objet = paire.second.objet;
+				auto const &transforme = paire.second.transformation_orig;
+
+		//		std::cerr << "- objet : " << objet->nom << '\n';
+		//		std::cerr << transforme.matrice() << '\n';
+
+				objet->corps.accede_ecriture([&transforme](Corps &corps)
+				{
+					corps.transformation = transforme;
+				});
+			}
+
+			return;
 		}
 
 		/* La configuration de collision contiens les réglages de base pour la
@@ -308,7 +335,7 @@ public:
 
 		auto corps_rigide = cree_corps_rigide(tranformation, forme);
 
-		monde->ajoute_corps_rigide(corps_rigide, m_objet);
+		monde->ajoute_corps_rigide(corps_rigide, m_objet, m_corps.transformation);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -433,6 +460,9 @@ public:
 
 	void ajourne_corps_depuis_sim()
 	{
+		//std::cerr << "---------------------------------------------------\n";
+		//std::cerr << "Ajournement des transformations après simulation\n";
+
 		/* À FAIRE :
 		 * - pour modifier les matrices pour chaque objet, il vaudrait mieux
 		 *   pouvoir accéder aux corps des objets via des pointeurs. */
@@ -450,12 +480,15 @@ public:
 			auto ms = body->getMotionState();
 
 			if (ms != nullptr) {
+				//std::cerr << "- objet " << objet->nom << '\n';
 				btTransform trans;
 				ms->getWorldTransform(trans);
 
 				double mat[4][4];
 				trans.getOpenGLMatrix(reinterpret_cast<double *>(mat));
 				auto transformation = math::transformation(mat);
+
+				//std::cerr << transformation.matrice() << '\n';
 
 				objet->corps.accede_ecriture([&transformation](Corps &corps)
 				{
