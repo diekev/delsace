@@ -88,16 +88,6 @@ dls::math::mat4x4f buildRotation(float radian, dls::math::vec3f axis);
 dls::math::mat4x4f buildScale(dls::math::vec3f scale);
 
 //====================================
-// GLM Printers
-//====================================
-
-void printMat4(dls::math::mat4x4f m);
-
-void printVec4(dls::math::vec4f m);
-
-void printVec3(dls::math::vec3f m);
-
-//====================================
 // GL Stuff
 //====================================
 
