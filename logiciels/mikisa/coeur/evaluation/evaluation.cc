@@ -84,11 +84,15 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		}
 		case OBJET_AJOUTE:
 		case OBJET_ENLEVE:
-		case TEMPS_CHANGE:
 		case FICHIER_OUVERT:
 		case RENDU_REQUIS:
 		{
 			plan = planifieuse.requiers_plan_pour_scene(mikisa.scene->reseau);
+			break;
+		}
+		case TEMPS_CHANGE:
+		{
+			plan = planifieuse.requiers_plan_pour_nouveau_temps(mikisa.scene->reseau, mikisa.temps_courant, mikisa.animation);
 			break;
 		}
 	}

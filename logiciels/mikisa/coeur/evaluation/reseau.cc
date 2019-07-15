@@ -42,6 +42,7 @@ void Reseau::reinitialise()
 	}
 
 	noeuds.efface();
+	noeud_temps.sorties.efface();
 }
 
 /* ************************************************************************** */
@@ -75,8 +76,8 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
 
 void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers)
 {
-	noeud_de->entrees.insere(noeud_vers);
-	noeud_vers->sorties.insere(noeud_de);
+	noeud_de->sorties.insere(noeud_vers);
+	noeud_vers->entrees.insere(noeud_de);
 }
 
 void CompilatriceReseau::compile_reseau(Scene *scene)
