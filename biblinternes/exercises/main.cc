@@ -30,6 +30,7 @@
 #include <numeric>
 
 #include "biblinternes/math/outils.hh"
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/tests/test_unitaire.hh"
 #include "biblinternes/structures/chaine.hh"
@@ -1024,18 +1025,6 @@ auto rogne(const dls::chaine &texte, const dls::chaine &espaces_blancs = " \n\t"
 	return texte.sous_chaine(debut, plage);
 }
 
-auto decoupe(const dls::chaine &texte, const char delimiteur)
-{
-	dls::tableau<dls::chaine> morceaux;
-	std::string bout;
-	std::stringstream ss(texte.c_str());
-
-	while (std::getline(ss, bout, delimiteur)) {
-		morceaux.pousse(bout);
-	}
-
-	return morceaux;
-}
 
 auto nombre_caractere(bool espaces, dls::chaine texte)
 {
@@ -1127,7 +1116,7 @@ auto informations_texte(const dls::chaine &texte, int drapeaux, const dls::chain
 	copie_texte1 = std::regex_replace(copie_texte1.c_str(), std::regex("/\\s+/g"), " ");
 	copie_texte1 = rogne(copie_texte1);
 
-	auto atext = decoupe(texte, ' ');
+	auto atext = dls::morcelle(texte, ' ');
 
 	regex = std::regex("(\r\n|\r|\n)");  // "g"
 	copie_texte2 = std::regex_replace(copie_texte2.c_str(), regex, "");

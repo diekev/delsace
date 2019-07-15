@@ -36,6 +36,7 @@ set(BIBLIOTHEQUES
 	langage
 	memoire
 	bib_structures
+	bib_outils
 
 	stdc++fs
 )

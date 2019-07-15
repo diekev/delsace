@@ -27,6 +27,8 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
+#include "biblinternes/outils/chaine.hh"
+
 #include "compilation/morceaux.h"
 
 #include "controles/controle_echelle_valeur.h"
@@ -36,19 +38,6 @@
 #include "donnees_controle.h"
 
 #include <sstream>
-
-static dls::tableau<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur)
-{
-	dls::tableau<dls::chaine> resultat;
-	std::stringstream ss(chaine.c_str());
-	std::string temp;
-
-	while (std::getline(ss, temp, delimiteur)) {
-		resultat.pousse(temp);
-	}
-
-	return resultat;
-}
 
 namespace danjo {
 
@@ -138,7 +127,7 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 	m_z->ajourne_plage(min, max);
 
 	if (donnees.initialisation) {
-		auto valeurs = decoupe(donnees.valeur_defaut, ',');
+		auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
 		auto index = 0ul;
 
 		auto valeur_defaut = dls::math::vec3f();

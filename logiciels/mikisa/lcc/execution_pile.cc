@@ -1722,7 +1722,7 @@ void execute_pile(
 				auto chaine = gest_chn.get(ptr_chaine);
 				auto sepa = gest_chn.get(ptr_separa);
 
-				auto morceaux = decoupe(chaine, sepa);
+				auto morceaux = dls::morcelle(chaine, sepa);
 
 				auto tabl = gest_tabl.cree(morceaux.taille());
 

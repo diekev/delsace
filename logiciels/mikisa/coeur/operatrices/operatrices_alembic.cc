@@ -49,6 +49,7 @@
 #include <Alembic/AbcCoreOgawa/All.h>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
@@ -104,29 +105,13 @@ static auto ouvre_archive(
 	return ABC::IArchive{};
 }
 
-static auto brise(dls::chaine const &chn, char delim)
-{
-	std::stringstream ss(chn.c_str());
-	std::string item;
-
-	dls::tableau<dls::chaine> tokens;
-
-	while (std::getline(ss, item, delim)) {
-	  if (!item.empty()) {
-		tokens.pousse(item);
-	  }
-	}
-
-	return tokens;
-}
-
 static auto trouve_iobjet(const ABC::IObject &object, dls::chaine const &chemin)
 {
 	if (!object.valid()) {
 		return ABC::IObject();
 	}
 
-	auto tokens = brise(chemin, '/');
+	auto tokens = dls::morcelle(chemin, '/');
 
 	auto tmp = object;
 

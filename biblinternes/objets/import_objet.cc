@@ -27,25 +27,13 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "adaptrice_creation.h"
 
 namespace objets {
-
-static dls::tableau<dls::chaine> brise(dls::chaine const &chaine)
-{
-	std::stringstream ss(chaine.c_str());
-	dls::tableau<dls::chaine> res;
-	std::string tmp;
-	tmp.reserve(3);
-
-	while (std::getline(ss, tmp, '/')) {
-		res.pousse(tmp);
-	}
-
-	return res;
-}
 
 static void lis_normal_sommet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
@@ -91,7 +79,7 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 	auto ptr_coords = static_cast<int *>(nullptr);
 
 	while (is >> info_poly) {
-		auto morceaux = brise(info_poly);
+		auto morceaux = dls::morcelle(info_poly, '/');
 
 		switch (morceaux.taille()) {
 			case 1:

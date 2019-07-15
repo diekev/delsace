@@ -26,6 +26,8 @@
 
 #include <QHBoxLayout>
 
+#include "biblinternes/outils/chaine.hh"
+
 #include "compilation/morceaux.h"
 
 #include "controles/controle_couleur.h"
@@ -33,19 +35,6 @@
 #include "donnees_controle.h"
 
 #include <sstream>
-
-static dls::tableau<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur)
-{
-	dls::tableau<dls::chaine> resultat;
-	std::stringstream ss(chaine.c_str());
-	std::string temp;
-
-	while (std::getline(ss, temp, delimiteur)) {
-		resultat.pousse(temp);
-	}
-
-	return resultat;
-}
 
 namespace danjo {
 
@@ -75,7 +64,7 @@ void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
 	m_controle_couleur->ajourne_plage(min, max);
 
 	if (donnees.initialisation) {
-		auto valeurs = decoupe(donnees.valeur_defaut, ',');
+		auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
 		auto index = 0;
 
 		dls::phys::couleur32 valeur_defaut(1.0f);
