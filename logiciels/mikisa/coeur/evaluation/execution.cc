@@ -272,7 +272,10 @@ void TacheEvaluationPlan::evalue()
 						 << FIN_LOG_EVALUATION;
 
 	for (auto &noeud : m_plan->noeuds) {
-		DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->nom << FIN_LOG_EVALUATION;
+		if (noeud->objet != nullptr) {
+			DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->nom << FIN_LOG_EVALUATION;
+		}
+
 		evalue_objet(m_contexte, noeud->objet);
 	}
 
@@ -291,8 +294,17 @@ void Executrice::execute_plan(Mikisa &mikisa,
 
 	/* nous sommes déjà dans un thread */
 	if (plan->est_animation) {
+		DEBUT_LOG_EVALUATION << "Évaluation animation pour '"
+							 << plan->message
+							 << "' ..."
+							 << FIN_LOG_EVALUATION;
+
 		/* tag les noeuds des graphes pour l'exécution temporelle */
 		for (auto &noeud : plan->noeuds) {
+			if (noeud->objet != nullptr) {
+				DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->nom << FIN_LOG_EVALUATION;
+			}
+
 			evalue_objet(contexte, noeud->objet);
 		}
 
