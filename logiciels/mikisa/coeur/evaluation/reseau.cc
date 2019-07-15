@@ -38,7 +38,7 @@ Reseau::~Reseau()
 void Reseau::reinitialise()
 {
 	for (auto noeud : this->noeuds) {
-		delete noeud;
+		memoire::deloge("NoeudReseau", noeud);
 	}
 
 	noeuds.efface();
@@ -55,7 +55,7 @@ void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 		throw std::runtime_error("Un noeud existe déjà pour l'objet !");
 	}
 
-	auto noeud = new NoeudReseau{};
+	auto noeud = memoire::loge<NoeudReseau>("NoeudReseau");
 	noeud->objet = objet;
 	noeud->noeud_objet = noeud_objet;
 	reseau->noeuds.pousse(noeud);
