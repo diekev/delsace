@@ -333,22 +333,6 @@ void calcule_degree(Noeud *noeud)
 	}
 }
 
-template <typename I, typename P>
-void tri_topologique(I debut, I fin, P predicat)
-{
-	while (debut != fin) {
-		auto nouveau_debut = std::partition(debut, fin, predicat);
-
-		/* Aucune solution n'a été trouvée, il est possible qu'il y ait
-		 * un cycle dans le graphe. */
-		if (nouveau_debut == debut) {
-			break;
-		}
-
-		debut = nouveau_debut;
-	}
-}
-
 void tri_topologique(Graphe &graphe)
 {
 	for (auto &noeud : graphe.noeuds()) {

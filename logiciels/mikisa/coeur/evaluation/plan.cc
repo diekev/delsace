@@ -24,27 +24,11 @@
 
 #include "plan.hh"
 
-#include <algorithm>
+#include "biblinternes/graphe/graphe.h"
 
 #include "reseau.hh"
 
 /* ************************************************************************** */
-
-template <typename I, typename P>
-static void tri_topologique(I debut, I fin, P predicat)
-{
-	while (debut != fin) {
-		auto nouveau_debut = std::partition(debut, fin, predicat);
-
-		/* Aucune solution n'a été trouvée, il est possible qu'il y ait
-		 * un cycle dans le graphe. */
-		if (nouveau_debut == debut) {
-			break;
-		}
-
-		debut = nouveau_debut;
-	}
-}
 
 static void tri_graphe_plan(Planifieuse::PtrPlan plan, NoeudReseau *noeud_temps)
 {
