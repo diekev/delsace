@@ -71,7 +71,7 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
 		throw std::runtime_error("Aucun noeud n'existe pour l'objet !");
 	}
 
-	ajoute_dependance(noeud, iter_noeud->second);
+	ajoute_dependance(iter_noeud->second, noeud);
 }
 
 void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers)
