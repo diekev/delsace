@@ -24,7 +24,7 @@
 
 #include "tests_quaternion.hh"
 
-#include "math/quaternion.hh"
+#include "biblinternes/math/quaternion.hh"
 
 static void test_addition(dls::test_unitaire::Controleuse &controleuse)
 {

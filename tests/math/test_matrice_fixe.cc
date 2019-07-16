@@ -25,7 +25,7 @@
 #include "tests_math.hh"
 
 #if 0
-#include "../math/mat4.h"
+#include "biblinternes/math/mat4.h"
 
 static void test_matrice_identite(dls::test_unitaire::Controleuse &controleur)
 {

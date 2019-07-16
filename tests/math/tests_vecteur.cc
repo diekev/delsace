@@ -24,7 +24,7 @@
 
 #include "tests_vecteur.hh"
 
-#include "math/vecteur.hh"
+#include "biblinternes/math/vecteur.hh"
 
 static void test_ordre(dls::test_unitaire::Controleuse &controleuse)
 {
