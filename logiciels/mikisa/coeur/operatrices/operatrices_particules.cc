@@ -593,7 +593,19 @@ class ListeTriangle {
 
 public:
 	ListeTriangle() = default;
-	~ListeTriangle() = default;
+
+	ListeTriangle(ListeTriangle const &) = default;
+	ListeTriangle &operator=(ListeTriangle const &) = default;
+
+	~ListeTriangle()
+	{
+		auto triangle = m_premier_triangle;
+		while (triangle != nullptr) {
+			auto tri_suiv = triangle->suivant;
+			memoire::deloge("Triangle", triangle);
+			triangle = tri_suiv;
+		}
+	}
 
 	Triangle *ajoute(dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
 	{
