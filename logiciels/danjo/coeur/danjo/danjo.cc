@@ -32,6 +32,7 @@
 #include <QToolBar>
 
 #include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/outils/fichier.hh"
 
 #include "controles/action.h"
 
@@ -334,20 +335,6 @@ bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const cha
 
 /* ************************************************************************** */
 
-dls::chaine contenu_fichier(const std::experimental::filesystem::path &chemin)
-{
-	if (!std::experimental::filesystem::exists(chemin)) {
-		return "";
-	}
-
-	std::ifstream entree;
-	entree.open(chemin.c_str());
-
-	return {(std::istreambuf_iterator<char>(entree)), (std::istreambuf_iterator<char>())};
-}
-
-/* ************************************************************************** */
-
 static GestionnaireInterface __gestionnaire;
 
 QBoxLayout *compile_entreface(
@@ -367,7 +354,7 @@ QBoxLayout *compile_entreface(
 		return nullptr;
 	}
 
-	const auto texte_entree = contenu_fichier(chemin_texte.c_str());
+	const auto texte_entree = dls::contenu_fichier(chemin_texte.c_str());
 	return __gestionnaire.compile_entreface(donnees, texte_entree.c_str(), temps);
 }
 

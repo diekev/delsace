@@ -27,6 +27,7 @@ set(BIBLIOTHEQUES
 	tests
 	danjo
 	memoire
+	bib_outils
 )
 
 add_executable(test_danjo

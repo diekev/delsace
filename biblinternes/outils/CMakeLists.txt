@@ -27,13 +27,16 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	bib_structures
+	stdc++fs
 )
 
 set(ENTETES
 	chaine.hh
+	chemin.hh
 	constantes.h
 	conditions.h
 	definitions.h
+	fichier.hh
 	gna.hh
 	garde_portee.h
 	iterateurs.h
@@ -45,6 +48,8 @@ set(ENTETES
 
 set(SOURCES
 	chaine.cc
+	chemin.cc
+	fichier.cc
 	gna.cc
 	garde_portee.cc
 	iterateurs.cc

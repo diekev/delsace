@@ -23,10 +23,11 @@
  */
 
 #include "divers.h"
-#include "string_utils.h"
 
 #include <iostream>
 #include <random>
+
+#include "biblinternes/outils/chaine.hh"
 
 dls::chaine words[] = {
     "apopathodiaphulatophobe", // 23
@@ -46,7 +47,7 @@ dls::chaine words[] = {
 auto find_best_match(const dls::chaine &to_guess)
 {
 	dls::chaine best_match, tmp_match;
-	auto prev_match = 0;
+	auto prev_match = 0l;
 
 	for (const auto &word : words) {
 		auto match = compte_commun(to_guess, word);

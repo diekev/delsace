@@ -24,10 +24,10 @@
 
 #include "rendu_lumiere.h"
 
-#include "biblinternes/ego/outils.h"
 #include <numeric>
 
 #include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/lumiere.h"
 
@@ -50,11 +50,11 @@ void RenduLumiere::initialise()
 
 	m_tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	m_tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	m_tampon->finalise_programme();
 

@@ -24,10 +24,10 @@
 
 #include "rendu_maillage.h"
 
-#include "biblinternes/ego/outils.h"
 #include <numeric>
 
 #include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/math/transformation.hh"
 
 #include "coeur/lumiere.h"
@@ -68,11 +68,11 @@ void RenduMaillage::genere_tampon_surface()
 
 	m_tampon_surface->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/diffus.vert"));
+				dls::contenu_fichier("nuanceurs/diffus.vert"));
 
 	m_tampon_surface->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/diffus.frag"));
+				dls::contenu_fichier("nuanceurs/diffus.frag"));
 
 	m_tampon_surface->finalise_programme();
 
@@ -149,11 +149,11 @@ void RenduMaillage::genere_tampon_normal()
 
 	m_tampon_normal->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	m_tampon_normal->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	m_tampon_normal->finalise_programme();
 

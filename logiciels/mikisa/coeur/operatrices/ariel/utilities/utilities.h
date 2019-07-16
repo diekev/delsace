@@ -94,14 +94,6 @@ dls::math::mat4x4f buildScale(dls::math::vec3f scale);
 void fovToPerspective(float fovy, float aspect, float zNear, dls::math::vec2f& xBounds,
 								   dls::math::vec2f& yBounds);
 
-//====================================
-// IO Stuff
-//====================================
-
-dls::chaine readFileAsString(dls::chaine filename);
-
-dls::chaine getRelativePath(dls::chaine path);
-
 }
 
 #endif

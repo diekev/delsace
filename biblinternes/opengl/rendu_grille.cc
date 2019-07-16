@@ -26,7 +26,7 @@
 
 #include <algorithm>
 #include "biblinternes/math/vecteur.hh"
-#include "biblinternes/ego/outils.h"
+#include "biblinternes/outils/fichier.hh"
 #include <GL/glew.h>
 #include <numeric>
 
@@ -38,11 +38,11 @@ static TamponRendu *cree_tampon(dls::math::vec4f const &couleur, float taille_li
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 

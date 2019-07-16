@@ -29,6 +29,7 @@
 
 #include "biblinternes/commandes/commande.h"
 #include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "../composite.h"
 #include "../evenement.h"
@@ -57,7 +58,7 @@ public:
 		donnees_entreface.repondant_bouton = mikisa->repondant_commande();
 		donnees_entreface.manipulable = &resultat;
 
-		auto const texte_entree = danjo::contenu_fichier("entreface/ajouter_propriete.jo");
+		auto const texte_entree = dls::contenu_fichier("entreface/ajouter_propriete.jo");
 		auto ok = gestionnaire->montre_dialogue(donnees_entreface, texte_entree.c_str());
 
 		if (!ok) {

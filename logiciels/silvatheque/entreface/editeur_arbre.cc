@@ -35,6 +35,8 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/fichier.hh"
+
 #include "coeur/arbre.h"
 #include "coeur/creation_arbre.h"
 #include "coeur/evenement.h"
@@ -350,7 +352,7 @@ void EditeurArbre::ajourne_etat(int evenement)
 	donnees.manipulable = m_vue;
 	donnees.repondant_bouton = nullptr;
 
-	auto const contenu_fichier = danjo::contenu_fichier("scripts/arbre.jo");
+	auto const contenu_fichier = dls::contenu_fichier("scripts/arbre.jo");
 	auto disposition = danjo::compile_entreface(donnees, contenu_fichier.c_str());
 
 	if (m_conteneur_disposition->layout()) {

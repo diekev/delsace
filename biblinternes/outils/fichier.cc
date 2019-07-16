@@ -22,34 +22,27 @@
  *
  */
 
-#pragma once
+#include "fichier.hh"
 
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tableau.hh"
+#include <fstream>
+#include <filesystem>
 
 namespace dls {
 
-tableau<chaine> morcelle(chaine const &texte, char const delimiteur);
+chaine contenu_fichier(chaine const &chemin)
+{
+	if (!std::filesystem::exists(chemin.c_str())) {
+		return "";
+	}
 
-tableau<chaine> morcelle(chaine const &texte, chaine const &delimitrice);
+	std::ifstream entree;
+	entree.open(chemin.c_str());
 
-bool remplace_chaine(chaine &chn, chaine const &de, chaine const &vers);
+	if (entree.is_open()) {
+		return "";
+	}
 
-void remplace_souschaine(
-		dls::chaine &str,
-		dls::chaine const &substr,
-		dls::chaine const &rep);
-
-chaine garnis_chaine(chaine const &chn, long taille);
-
-chaine chaine_depuis_entier(int nombre);
-
-chaine premier_n_caracteres(chaine const &chn, long n);
-
-chaine dernier_n_caracteres(chaine const &chn, long n);
-
-long compte(const dls::chaine &str, char c);
-
-long compte_commun(dls::chaine const &rhs, dls::chaine const &lhs);
+	return {(std::istreambuf_iterator<char>(entree)), (std::istreambuf_iterator<char>())};
+}
 
 }  /* namespace dls */

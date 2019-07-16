@@ -24,11 +24,12 @@
 
 #include "rendu_maillage.h"
 
-#include "biblinternes/ego/outils.h"
 #include <numeric>
 
+#include "biblinternes/ego/outils.h"
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/texture/texture.h"
 
 #include "coeur/maillage.h"
@@ -41,11 +42,11 @@ TamponRendu *cree_tampon_arrete()
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 

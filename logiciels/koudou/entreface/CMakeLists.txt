@@ -41,6 +41,7 @@ set(BIBLIOTHEQUES
 	bib_opengl
 	bib_texture
 	bib_structures
+	bib_outils
 )
 
 add_compile_options(-fPIC)

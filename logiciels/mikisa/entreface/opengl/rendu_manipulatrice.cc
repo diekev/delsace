@@ -24,11 +24,9 @@
 
 #include "rendu_manipulatrice.h"
 
-#include "biblinternes/ego/outils.h"
-
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/constantes.h"
-
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/manipulatrice.h"
@@ -69,11 +67,11 @@ static TamponRendu *cree_tampon_base(dls::math::vec4f const &couleur)
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 

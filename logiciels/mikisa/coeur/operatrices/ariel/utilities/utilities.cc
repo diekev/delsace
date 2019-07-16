@@ -208,20 +208,4 @@ void fovToPerspective(float fovy, float aspect, float zNear, dls::math::vec2f &x
 	xBounds[1] = yBounds[1]*aspect;
 }
 
-dls::chaine readFileAsString(dls::chaine filename)
-{
-	std::ifstream t(filename.c_str());
-	return dls::chaine((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-}
-
-dls::chaine getRelativePath(dls::chaine path)
-{
-	dls::chaine relativePath;
-	dls::tableau<dls::chaine> pathTokens = dls::morcelle(path, '/');
-	for (auto i=0l; i<pathTokens.taille()-1; i++) {
-		relativePath = relativePath + pathTokens[i] + "/";
-	}
-	return relativePath;
-}
-
 }

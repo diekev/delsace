@@ -35,9 +35,9 @@
 #include <OpenEXR/ImfOutputFile.h>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/image/flux/ecriture.h"
-
 #include "biblinternes/commandes/commande.h"
+#include "biblinternes/image/flux/ecriture.h"
+#include "biblinternes/outils/chemin.hh"
 
 #include "../evaluation/evaluation.hh"
 
@@ -112,28 +112,6 @@ static void ecris_exr(const char *chemin, ParametresImage const &parametres)
 	fichier.writePixels(static_cast<int>(hauteur));
 }
 
-static void corrige_chemin_pour_ecriture(dls::chaine &chemin, int temps)
-{
-	auto const pos_debut = chemin.trouve_premier_de('#');
-
-	if (pos_debut == dls::chaine::npos) {
-		return;
-	}
-
-	auto pos_fin = pos_debut + 1;
-
-	while (chemin[pos_fin] == '#') {
-		pos_fin++;
-	}
-
-	auto compte = pos_fin - pos_debut;
-
-	auto chaine_nombre = dls::chaine(std::to_string(temps));
-	chaine_nombre.insere(0, compte - chaine_nombre.taille(), '0');
-
-	chemin.remplace(pos_debut, chaine_nombre.taille(), chaine_nombre);
-}
-
 static bool ecris_image(
 		Composite *composite,
 		dls::chaine const &nom_calque,
@@ -142,7 +120,7 @@ static bool ecris_image(
 {
 	/* calcul le chemin */
 	auto chemin_image = chemin;
-	corrige_chemin_pour_ecriture(chemin_image, temps);
+	dls::corrige_chemin_pour_ecriture(chemin_image, temps);
 
 	/* récupère les données */
 	auto const &image = composite->image();

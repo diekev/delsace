@@ -26,6 +26,8 @@
 
 #include "biblinternes/structures/flux_chaine.hh"
 
+#include "iterateurs.h"
+
 namespace dls {
 
 tableau<chaine> morcelle(chaine const &texte, char const delimiteur)
@@ -100,6 +102,57 @@ chaine premier_n_caracteres(chaine const &chn, long n)
 chaine dernier_n_caracteres(chaine const &chn, long n)
 {
 	return chn.sous_chaine(chn.taille() - n, n);
+}
+
+long compte(const chaine &str, char c)
+{
+	auto count = 0l;
+	auto index = 0l;
+	auto prev =  0l;
+
+	while ((index = str.trouve(c, prev)) != dls::chaine::npos) {
+		++count;
+		prev = index + 1;
+	}
+
+	return count;
+}
+
+long compte_commun(const chaine &rhs, const chaine &lhs)
+{
+	if (rhs.taille() != lhs.taille()) {
+		return 0;
+	}
+
+	auto match = 0;
+
+	for (const auto &i : outils::plage(rhs.taille())) {
+		if (rhs[i] == lhs[i]) {
+			++match;
+		}
+	}
+
+	return match;
+}
+
+void remplace_souschaine(chaine &str, const chaine &substr, const chaine &rep)
+{
+	long index = 0;
+
+	while (true) {
+		/* Locate the substring to replace. */
+		index = str.trouve(substr, index);
+
+		if (index == dls::chaine::npos) {
+			break;
+		}
+
+		/* Make the replacement. */
+		str.remplace(index, substr.taille(), rep);
+
+		/* Advance index forward so the next iteration doesn't pick it up as well. */
+		index += rep.taille();
+	}
 }
 
 }  /* namespace dls */

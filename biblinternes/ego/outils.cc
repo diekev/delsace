@@ -35,22 +35,6 @@ namespace ego {
 EGO_VERSION_NAMESPACE_BEGIN
 namespace util {
 
-dls::chaine str_from_file(const dls::chaine &filename)
-{
-	std::ifstream fp(filename.c_str());
-
-	if (!fp) {
-		std::cerr << "Error loading file: " << filename << '\n';
-		return dls::chaine("");
-	}
-
-	std::stringstream data;
-	data << fp.rdbuf();
-	fp.close();
-
-	return data.str();
-}
-
 /* Adapted from Blender. */
 static void system_backtrace(std::ostream &os)
 {

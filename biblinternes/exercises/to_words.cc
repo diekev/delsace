@@ -23,13 +23,13 @@
  */
 
 #include "divers.h"
-#include "string_utils.h"
 
 #include <algorithm>
 #include <cstring>
 #include <iostream>
 
 #include "biblinternes/chrono/chronometre_de_portee.hh"
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/iterateurs.h"
 #include "biblinternes/structures/tableau.hh"
 

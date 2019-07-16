@@ -25,31 +25,14 @@
 #pragma once
 
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tableau.hh"
 
 namespace dls {
 
-tableau<chaine> morcelle(chaine const &texte, char const delimiteur);
-
-tableau<chaine> morcelle(chaine const &texte, chaine const &delimitrice);
-
-bool remplace_chaine(chaine &chn, chaine const &de, chaine const &vers);
-
-void remplace_souschaine(
-		dls::chaine &str,
-		dls::chaine const &substr,
-		dls::chaine const &rep);
-
-chaine garnis_chaine(chaine const &chn, long taille);
-
-chaine chaine_depuis_entier(int nombre);
-
-chaine premier_n_caracteres(chaine const &chn, long n);
-
-chaine dernier_n_caracteres(chaine const &chn, long n);
-
-long compte(const dls::chaine &str, char c);
-
-long compte_commun(dls::chaine const &rhs, dls::chaine const &lhs);
+/**
+ * Retourne une chaîne de caractère ayant le contenu du fichier pointé par le
+ * chemin spécifié. Si le chemin pointe vers un fichier non-existant, la chaîne
+ * retournée sera vide.
+ */
+chaine contenu_fichier(chaine const &chemin);
 
 }  /* namespace dls */

@@ -26,6 +26,8 @@
 
 #include <iostream>
 
+#include "biblinternes/outils/fichier.hh"
+
 #include <QApplication>
 #include <QMenuBar>
 #include <QWidget>
@@ -63,7 +65,7 @@ void RepondantBoutonTest::repond_clique(const dls::chaine &valeur, const dls::ch
 		donnees.repondant_bouton = this;
 		donnees.conteneur = nullptr;
 
-		auto texte_entree = danjo::contenu_fichier("exemples/redimension_image.jo");
+		auto texte_entree = dls::contenu_fichier("exemples/redimension_image.jo");
 		auto ok = danjo::montre_dialogue(donnees, texte_entree.c_str());
 
 		if (ok) {
@@ -108,19 +110,19 @@ FenetreTest::FenetreTest()
 	donnees.repondant_bouton = &m_repondant;
 	donnees.conteneur = widget_test;
 
-	auto texte_entree = danjo::contenu_fichier("exemples/disposition_test.jo");
+	auto texte_entree = dls::contenu_fichier("exemples/disposition_test.jo");
 
 	auto disposition = danjo::compile_entreface(donnees, texte_entree.c_str());
 	widget_test->setLayout(disposition);
 
 	setCentralWidget(widget_test);
 
-	auto script_menu = danjo::contenu_fichier("exemples/menu_fichier.jo");
+	auto script_menu = dls::contenu_fichier("exemples/menu_fichier.jo");
 	auto menu = danjo::compile_menu(donnees, script_menu.c_str());
 
 	menuBar()->addMenu(menu);
 
-	script_menu = danjo::contenu_fichier("exemples/menu_edition.jo");
+	script_menu = dls::contenu_fichier("exemples/menu_edition.jo");
 	menu = danjo::compile_menu(donnees, script_menu.c_str());
 
 	menuBar()->addMenu(menu);
@@ -138,7 +140,7 @@ int main(int argc, char *argv[])
 
 	return app.exec();
 #else
-//	auto texte_logique = danjo::contenu_fichier("exemples/redimension_image.dan");
+//	auto texte_logique = dls::contenu_fichier("exemples/redimension_image.dan");
 //	danjo::compile_feuille_logique(texte_logique.c_str());
 
 	danjo::Manipulable manipulable;

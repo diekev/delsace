@@ -27,6 +27,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	bib_outils
 )
 
 set(ENTETES
@@ -34,7 +35,6 @@ set(ENTETES
     curry.h
     itoa.h
     divers.h
-    string_utils.h
     range.h
 )
 

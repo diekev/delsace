@@ -33,11 +33,6 @@ namespace ego {
 EGO_VERSION_NAMESPACE_BEGIN
 namespace util {
 
-/**
- * @brief Get the content of a file as a string.
- */
-dls::chaine str_from_file(const dls::chaine &filename);
-
 #define GPU_check_errors(message) \
 	gl_check_errors(message, __FILE__, __LINE__);
 

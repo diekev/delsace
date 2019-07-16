@@ -37,6 +37,7 @@ set(BIBLIOTHEQUES
 	ego
 	bib_opengl
 	bib_texture
+	bib_outils
 )
 
 add_compile_options(-fPIC)

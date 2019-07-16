@@ -37,6 +37,8 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/fichier.hh"
+
 #include "coeur/evaluation/evaluation.hh"
 
 #include "coeur/composite.h"
@@ -130,7 +132,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto const &texte = danjo::contenu_fichier(operatrice->chemin_entreface());
+	auto const &texte = dls::contenu_fichier(operatrice->chemin_entreface());
 
 	if (texte.est_vide()) {
 		return;

@@ -43,6 +43,7 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
@@ -110,7 +111,7 @@ EditriceLigneTemps::EditriceLigneTemps(Mikisa &mikisa, QWidget *parent)
 	donnees.manipulable = &dummy;
 	donnees.repondant_bouton = mikisa.repondant_commande();
 
-	auto text_entree = danjo::contenu_fichier("entreface/disposition_ligne_temps.jo");
+	auto text_entree = dls::contenu_fichier("entreface/disposition_ligne_temps.jo");
 	auto disp_controles = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, text_entree.c_str());
 
 	m_tc_layout->addLayout(disp_controles);

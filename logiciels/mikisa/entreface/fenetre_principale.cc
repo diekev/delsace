@@ -40,8 +40,8 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/commandes/repondant_commande.h"
-
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
@@ -169,7 +169,7 @@ void FenetrePrincipale::genere_barre_menu()
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
 	for (auto const &chemin : chemins_scripts) {
-		auto const texte_entree = danjo::contenu_fichier(chemin);
+		auto const texte_entree = dls::contenu_fichier(chemin);
 		auto menu = m_mikisa.gestionnaire_entreface->compile_menu(donnees, texte_entree.c_str());
 
 		menuBar()->addMenu(menu);
@@ -187,7 +187,7 @@ void FenetrePrincipale::genere_menu_prereglages()
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	auto const texte_entree = danjo::contenu_fichier("entreface/menu_prereglage.jo");
+	auto const texte_entree = dls::contenu_fichier("entreface/menu_prereglage.jo");
 
 	m_barre_outil = m_mikisa.gestionnaire_entreface->compile_barre_outils(donnees, texte_entree.c_str());
 	addToolBar(Qt::TopToolBarArea, m_barre_outil);

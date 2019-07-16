@@ -43,6 +43,7 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/evenement.h"
 #include "coeur/fluide.h"
@@ -112,7 +113,7 @@ EditriceLigneTemps::EditriceLigneTemps(Poseidon *poseidon, QWidget *parent)
 	donnees.manipulable = &dummy;
 	donnees.repondant_bouton = poseidon->repondant_commande;
 
-	auto text_entree = danjo::contenu_fichier("scripts/disposition_ligne_temps.jo");
+	auto text_entree = dls::contenu_fichier("scripts/disposition_ligne_temps.jo");
 	auto disp_controles = danjo::compile_entreface(donnees, text_entree.c_str());
 
 	m_tc_layout->addLayout(disp_controles);

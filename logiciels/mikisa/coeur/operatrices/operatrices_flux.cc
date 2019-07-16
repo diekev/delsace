@@ -39,6 +39,7 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/graphe/graphe.h"
+#include "biblinternes/outils/chemin.hh"
 #include "biblinternes/outils/definitions.h"
 
 #include "biblinternes/structures/tableau.hh"
@@ -58,51 +59,6 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
-
-/* ************************************************************************** */
-
-static void corrige_chemin_pour_temps(dls::chaine &chemin, const int image)
-{
-	/* Trouve le dernier point. */
-	auto pos_dernier_point = chemin.trouve_dernier_de('.');
-
-	if (pos_dernier_point == dls::chaine::npos || pos_dernier_point == 0) {
-		//std::cerr << "Ne peut pas trouver le dernier point !\n";
-		return;
-	}
-
-	//std::cerr << "Trouver le dernier point à la position : " << pos_dernier_point << '\n';
-
-	/* Trouve le point précédent. */
-	auto pos_point_precedent = pos_dernier_point - 1;
-
-	while (pos_point_precedent > 0 && ::isdigit(chemin[pos_point_precedent])) {
-		pos_point_precedent -= 1;
-	}
-
-	if (pos_point_precedent == dls::chaine::npos || pos_point_precedent == 0) {
-		//std::cerr << "Ne peut pas trouver le point précédent !\n";
-		return;
-	}
-
-	if (chemin[pos_point_precedent] == '/') {
-		//std::cerr << "Le chemin n'a pas de nom !\n";
-		return;
-	}
-
-	//std::cerr << "Trouver l'avant dernier point à la position : " << pos_point_precedent << '\n';
-
-	auto taille_nombre_image = pos_dernier_point - (pos_point_precedent + 1);
-
-	//std::cerr << "Nombre de caractères pour l'image : " << taille_nombre_image << '\n';
-
-	auto chaine_image = dls::chaine(std::to_string(image));
-
-	chaine_image.insere(0, taille_nombre_image - chaine_image.taille(), '0');
-
-	chemin.remplace(pos_point_precedent + 1, chaine_image.taille(), chaine_image);
-	//std::cerr << "Nouveau nom " << chemin << '\n';
-}
 
 /* ************************************************************************** */
 
@@ -254,7 +210,7 @@ public:
 		}
 
 		if (evalue_bool("est_animation")) {
-			corrige_chemin_pour_temps(chemin, contexte.temps_courant);
+			dls::corrige_chemin_pour_temps(chemin, contexte.temps_courant);
 		}
 
 		if (m_dernier_chemin != chemin) {

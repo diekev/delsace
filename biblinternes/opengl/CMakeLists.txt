@@ -29,6 +29,7 @@ set(BIBLIOTHEQUES
 	ego
 	${BIBLIOTHEQUES_TBB}
 	bib_structures
+	bib_outils
 )
 
 add_library(${NOM_CIBLE} STATIC

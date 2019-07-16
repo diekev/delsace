@@ -24,13 +24,13 @@
 
 #include "rendu_monde.h"
 
-#include "biblinternes/ego/outils.h"
 #include <GL/glew.h>
 
 #include "biblinternes/objets/adaptrice_creation.h"
 #include "biblinternes/objets/creation.h"
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/texture/texture.h"
 
 #include "coeur/koudou.h"
@@ -161,17 +161,17 @@ static TamponRendu *cree_tampon(TypeTexture type_texture)
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	if (type_texture == TypeTexture::COULEUR) {
 		tampon->charge_source_programme(
 					dls::ego::Nuanceur::FRAGMENT,
-					dls::ego::util::str_from_file("nuanceurs/couleur.frag"));
+					dls::contenu_fichier("nuanceurs/couleur.frag"));
 	}
 	else {
 		tampon->charge_source_programme(
 					dls::ego::Nuanceur::FRAGMENT,
-					dls::ego::util::str_from_file("nuanceurs/texture.frag"));
+					dls::contenu_fichier("nuanceurs/texture.frag"));
 	}
 
 	tampon->finalise_programme();
