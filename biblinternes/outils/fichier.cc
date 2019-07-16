@@ -32,13 +32,15 @@ namespace dls {
 chaine contenu_fichier(chaine const &chemin)
 {
 	if (!std::filesystem::exists(chemin.c_str())) {
+		std::cerr << "Le fichier '" << chemin << "' n'existe pas !\n";
 		return "";
 	}
 
 	std::ifstream entree;
 	entree.open(chemin.c_str());
 
-	if (entree.is_open()) {
+	if (!entree.is_open()) {
+		std::cerr << "Le fichier '" << chemin << "' ne peut être ouvert !\n";
 		return "";
 	}
 
