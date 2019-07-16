@@ -786,6 +786,7 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	mikisa.scene = mikisa.bdd.scenes()[0];
 	mikisa.graphe = &mikisa.scene->graphe;
 	mikisa.chemin_courant = "/scènes/" + mikisa.scene->nom + "/";
+	mikisa.contexte = GRAPHE_SCENE;
 
 	requiers_evaluation(mikisa, FICHIER_OUVERT, "chargement d'un projet");
 
