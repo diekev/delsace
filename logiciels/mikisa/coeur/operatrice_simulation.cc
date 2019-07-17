@@ -158,3 +158,14 @@ void OperatriceSimulation::amont_change()
 		op->amont_change();
 	}
 }
+
+void OperatriceSimulation::renseigne_dependance(
+		ContexteEvaluation const &contexte,
+		CompilatriceReseau &compilatrice,
+		NoeudReseau *noeud_res)
+{
+	for (auto noeud : m_graphe.noeuds()) {
+		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+		op->renseigne_dependance(contexte, compilatrice, noeud_res);
+	}
+}

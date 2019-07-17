@@ -64,4 +64,6 @@ public:
 	bool depend_sur_temps() const override;
 
 	void amont_change() override;
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override;
 };
