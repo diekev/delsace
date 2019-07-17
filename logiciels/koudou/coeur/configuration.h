@@ -24,15 +24,15 @@
 
 #pragma once
 
-#include "persona.h"
+#include "danjo/manipulable.h"
 
-struct Configuration : public Persona {
+struct Configuration : public danjo::Manipulable {
 	Configuration();
 
 	void ajourne();
 };
 
-struct ParametresProjet : public Persona {
+struct ParametresProjet : public danjo::Manipulable {
 	ParametresProjet();
 
 	void ajourne();

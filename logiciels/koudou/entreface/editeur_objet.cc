@@ -41,26 +41,24 @@
 #include "coeur/maillage.h"
 #include "coeur/objet.h"
 
-#include "outils.h"
-
 VueObjet::VueObjet()
 	: m_objet(nullptr)
 {
-	ajoute_propriete("position", "Position", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0f));
-	etablie_min_max(-10.0f, 10.0f);
+	ajoute_propriete("position", danjo::TypePropriete::VECTEUR);
+//	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0f));
+//	etablie_min_max(-10.0f, 10.0f);
 
-	ajoute_propriete("rotation", "Rotation", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0f));
-	etablie_min_max(0.0f, 360.0f);
+	ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR);
+//	etablie_valeur_vec3_defaut(dls::math::vec3f(0.0f));
+//	etablie_min_max(0.0f, 360.0f);
 
-	ajoute_propriete("échelle", "Échelle", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(dls::math::vec3f(1.0f));
-	etablie_min_max(0.0f, 10.0f);
+	ajoute_propriete("échelle", danjo::TypePropriete::VECTEUR);
+//	etablie_valeur_vec3_defaut(dls::math::vec3f(1.0f));
+//	etablie_min_max(0.0f, 10.0f);
 
 	/* Propriétés maillages */
-	ajoute_propriete("dessine_normaux", "Déssine normaux", TypePropriete::BOOL);
-	etablie_valeur_bool_defaut(false);
+	ajoute_propriete("dessine_normaux", danjo::TypePropriete::BOOL);
+//	etablie_valeur_bool_defaut(false);
 }
 
 void VueObjet::objet(Objet *o)
@@ -74,9 +72,9 @@ void VueObjet::ajourne_donnees()
 		return;
 	}
 
-	auto pos = evalue_vec3("position");
-	auto rot = evalue_vec3("rotation");
-	auto ech = evalue_vec3("échelle");
+	auto pos = evalue_vecteur("position");
+	auto rot = evalue_vecteur("rotation");
+	auto ech = evalue_vecteur("échelle");
 
 	auto transformation = math::transformation();
 	transformation *= math::translation(pos.x, pos.y, pos.z);
@@ -102,10 +100,10 @@ bool VueObjet::ajourne_proprietes()
 	auto const est_maillage = (m_objet->type == TypeObjet::MAILLAGE);
 
 	if (est_maillage) {
-		ajourne_valeur_bool("dessine_normaux", m_objet->maillage->dessine_normaux());
+		valeur_bool("dessine_normaux", m_objet->maillage->dessine_normaux());
 	}
 
-	rend_visible("dessine_normaux", est_maillage);
+	//rend_visible("dessine_normaux", est_maillage);
 
 	return true;
 }
@@ -118,7 +116,6 @@ EditeurObjet::EditeurObjet(Koudou *koudou, QWidget *parent)
 	, m_widget(new QWidget())
 	, m_scroll(new QScrollArea())
 	, m_glayout(new QGridLayout(m_widget))
-	, m_assembleur_controles(m_glayout)
 {
 	m_widget->setSizePolicy(m_cadre->sizePolicy());
 
@@ -157,11 +154,11 @@ void EditeurObjet::ajourne_etat(int evenement)
 	creation |= (evenement == (static_cast<type_evenement>(-1)));
 
 	if (creation) {
-		cree_controles(m_assembleur_controles, m_vue);
-		m_assembleur_controles.setContext(this, SLOT(ajourne_maillage()));
+		//cree_controles(m_assembleur_controles, m_vue);
+		//m_assembleur_controles.setContext(this, SLOT(ajourne_maillage()));
 	}
 	else {
-		ajourne_controles(m_assembleur_controles, m_vue);
+		//ajourne_controles(m_assembleur_controles, m_vue);
 	}
 }
 

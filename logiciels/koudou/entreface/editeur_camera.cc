@@ -36,40 +36,38 @@
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"
 
-#include "outils.h"
-
 /* ************************************************************************** */
 
 VueCamera::VueCamera(ProjectiveCamera *camera)
 	: m_camera(camera)
 {
-	ajoute_propriete("position", "Position", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(dls::math::vec3f{0.0f, 0.0f, 0.0f});
-	etablie_min_max(-10.0f, 10.0f);
+	ajoute_propriete("position", danjo::TypePropriete::VECTEUR);
+//	etablie_valeur_vec3_defaut(dls::math::vec3f{0.0f, 0.0f, 0.0f});
+//	etablie_min_max(-10.0f, 10.0f);
 
-	ajoute_propriete("rotation", "Rotation", TypePropriete::VEC3);
-	etablie_valeur_vec3_defaut(dls::math::vec3f{0.0f, 0.0f, 0.0f});
-	etablie_min_max(0.0f, 360.0f);
+	ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR);
+//	etablie_valeur_vec3_defaut(dls::math::vec3f{0.0f, 0.0f, 0.0f});
+//	etablie_min_max(0.0f, 360.0f);
 
-	ajoute_propriete("ouverture", "Ouverture obturateur", TypePropriete::FLOAT);
-	etablie_valeur_float_defaut(0.0f);
-	etablie_min_max(0.0f, 1.0f);
+	ajoute_propriete("ouverture", danjo::TypePropriete::DECIMAL);
+//	etablie_valeur_float_defaut(0.0f);
+//	etablie_min_max(0.0f, 1.0f);
 
-	ajoute_propriete("fermeture", "Fermeture obturateur", TypePropriete::FLOAT);
-	etablie_valeur_float_defaut(1.0f);
-	etablie_min_max(0.0f, 1.0f);
+	ajoute_propriete("fermeture", danjo::TypePropriete::DECIMAL);
+//	etablie_valeur_float_defaut(1.0f);
+//	etablie_min_max(0.0f, 1.0f);
 
-	ajoute_propriete("rayon", "Rayon lentille", TypePropriete::FLOAT);
-	etablie_valeur_float_defaut(0.0f);
-	etablie_min_max(0.0f, 1.0f);
+	ajoute_propriete("rayon", danjo::TypePropriete::DECIMAL);
+//	etablie_valeur_float_defaut(0.0f);
+//	etablie_min_max(0.0f, 1.0f);
 
-	ajoute_propriete("distance", "Distance focale", TypePropriete::FLOAT);
-	etablie_valeur_float_defaut(0.0f);
-	etablie_min_max(0.0f, 1.0f);
+	ajoute_propriete("distance", danjo::TypePropriete::DECIMAL);
+//	etablie_valeur_float_defaut(0.0f);
+//	etablie_min_max(0.0f, 1.0f);
 
-	ajoute_propriete("champs_de_vue", "Champs de vue", TypePropriete::FLOAT);
-	etablie_valeur_float_defaut(60.0f);
-	etablie_min_max(0.0f, 360.0f);
+	ajoute_propriete("champs_de_vue", danjo::TypePropriete::DECIMAL);
+//	etablie_valeur_float_defaut(60.0f);
+//	etablie_min_max(0.0f, 360.0f);
 }
 
 void VueCamera::ajourne_donnees()
@@ -116,7 +114,6 @@ EditeurCamera::EditeurCamera(Koudou *koudou, QWidget *parent)
 	, m_widget(new QWidget())
 	, m_scroll(new QScrollArea())
 	, m_glayout(new QGridLayout(m_widget))
-	, m_assembleur_controles(m_glayout)
 {
 #ifdef NOUVELLE_CAMERA
 	m_vue = new VueCamera(koudou->parametres_rendu.camera);
@@ -150,8 +147,8 @@ void EditeurCamera::ajourne_etat(int evenement)
 	}
 
 	m_vue->ajourne_proprietes();
-	cree_controles(m_assembleur_controles, m_vue);
-	m_assembleur_controles.setContext(this, SLOT(ajourne_camera()));
+	//cree_controles(m_assembleur_controles, m_vue);
+	//m_assembleur_controles.setContext(this, SLOT(ajourne_camera()));
 }
 
 void EditeurCamera::ajourne_camera()

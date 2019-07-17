@@ -38,26 +38,24 @@
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"
 
-#include "outils.h"
-
 VueMonde::VueMonde(Monde *monde)
 	: m_monde(monde)
 {
-	ProprieteEnumerante enum_texture;
-	enum_texture.ajoute("Couleur", static_cast<int>(TypeTexture::COULEUR));
-	enum_texture.ajoute("Image", static_cast<int>(TypeTexture::IMAGE));
+//	ProprieteEnumerante enum_texture;
+//	enum_texture.ajoute("Couleur", static_cast<int>(TypeTexture::COULEUR));
+//	enum_texture.ajoute("Image", static_cast<int>(TypeTexture::IMAGE));
 
-	ajoute_propriete("type_texture", "Type Texture", TypePropriete::ENUM);
-	etablie_valeur_enum(enum_texture);
+	ajoute_propriete("type_texture", danjo::TypePropriete::ENUM);
+//	etablie_valeur_enum(enum_texture);
 
-	ajoute_propriete("image", "Image", TypePropriete::FICHIER_ENTREE);
+	ajoute_propriete("image", danjo::TypePropriete::FICHIER_ENTREE);
 
-	ajoute_propriete("couleur", "Couleur", TypePropriete::COULEUR);
+	ajoute_propriete("couleur", danjo::TypePropriete::COULEUR);
 }
 
 void VueMonde::ajourne_donnees()
 {
-	auto const type_texture = static_cast<TypeTexture>(evalue_enum("type_texture"));
+	auto const type_texture = static_cast<TypeTexture>(0); //static_cast<TypeTexture>(evalue_enum("type_texture"));
 
 	if (!m_monde->texture || m_monde->texture->type() != type_texture) {
 		supprime_texture(m_monde->texture);
@@ -71,7 +69,7 @@ void VueMonde::ajourne_donnees()
 			m_monde->texture = texture;
 		}
 		else {
-			auto chemin = evalue_string("image");
+			auto chemin = evalue_chaine("image");
 			auto texture = charge_texture(chemin.c_str());
 
 			m_monde->texture = texture;
@@ -87,7 +85,7 @@ void VueMonde::ajourne_donnees()
 		else {
 			supprime_texture(m_monde->texture);
 
-			auto chemin = evalue_string("image");
+			auto chemin = evalue_chaine("image");
 			auto texture = charge_texture(chemin.c_str());
 
 			m_monde->texture = texture;
@@ -97,10 +95,10 @@ void VueMonde::ajourne_donnees()
 
 bool VueMonde::ajourne_proprietes()
 {
-	auto const type_texture = static_cast<TypeTexture>(evalue_enum("type_texture"));
+	auto const type_texture = static_cast<TypeTexture>(0); //static_cast<TypeTexture>(evalue_enum("type_texture"));
 
-	rend_visible("image", type_texture == TypeTexture::IMAGE);
-	rend_visible("couleur", type_texture == TypeTexture::COULEUR);
+//	rend_visible("image", type_texture == TypeTexture::IMAGE);
+//	rend_visible("couleur", type_texture == TypeTexture::COULEUR);
 
 	if (type_texture == TypeTexture::COULEUR) {
 		if (m_monde->texture) {
@@ -114,7 +112,7 @@ bool VueMonde::ajourne_proprietes()
 
 			auto couleur = texture->spectre();
 
-			ajourne_valeur_couleur("couleur", dls::math::vec4f(couleur[0], couleur[1], couleur[2], 1.0f));
+			valeur_couleur("couleur", dls::phys::couleur32(couleur[0], couleur[1], couleur[2], 1.0f));
 		}
 	}
 
@@ -129,7 +127,6 @@ EditeurMonde::EditeurMonde(Koudou *koudou, QWidget *parent)
 	, m_widget(new QWidget())
 	, m_scroll(new QScrollArea())
 	, m_glayout(new QGridLayout(m_widget))
-	, m_assembleur_controles(m_glayout)
 {
 	m_widget->setSizePolicy(m_cadre->sizePolicy());
 
@@ -153,11 +150,11 @@ void EditeurMonde::ajourne_etat(int evenement)
 	m_vue->ajourne_proprietes();
 
 	if (evenement == type_evenement::rafraichissement) {
-		cree_controles(m_assembleur_controles, m_vue);
-		m_assembleur_controles.setContext(this, SLOT(ajourne_monde()));
+		//cree_controles(m_assembleur_controles, m_vue);
+		//m_assembleur_controles.setContext(this, SLOT(ajourne_monde()));
 	}
 	else {
-		ajourne_controles(m_assembleur_controles, m_vue);
+		//ajourne_controles(m_assembleur_controles, m_vue);
 	}
 }
 

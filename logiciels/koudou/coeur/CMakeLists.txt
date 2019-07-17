@@ -70,7 +70,6 @@ add_library(${NOM_CIBLE} STATIC
 	maillage.h
 	objet.h
 	pellicule.h
-	persona.h
 	moteur_rendu.h
 	nuanceur.h
 	scene.h
@@ -95,7 +94,6 @@ add_library(${NOM_CIBLE} STATIC
 	nuanceur.cc
 	objet.cc
 	pellicule.cc
-	persona.cc
 	scene.cc
 	statistiques.cc
 	structure_acceleration.cc

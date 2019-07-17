@@ -24,15 +24,15 @@
 
 #pragma once
 
-#include "coeur/persona.h"
+#include "danjo/manipulable.h"
 
-#include "controles/assembleur_controles.h"
 #include "base_editeur.h"
 
 class Monde;
 class QScrollArea;
+class QGridLayout;
 
-class VueMonde final : public Persona {
+class VueMonde final : public danjo::Manipulable {
 	Monde *m_monde;
 
 public:
@@ -53,7 +53,6 @@ class EditeurMonde final : public BaseEditrice {
 	QWidget *m_widget;
 	QScrollArea *m_scroll;
 	QGridLayout *m_glayout;
-	AssembleurControles m_assembleur_controles;
 
 public:
 	EditeurMonde(Koudou *koudou, QWidget *parent = nullptr);
