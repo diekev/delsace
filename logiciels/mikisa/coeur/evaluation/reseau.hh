@@ -31,6 +31,7 @@
 class Noeud;
 class Objet;
 class Scene;
+struct ContexteEvaluation;
 
 /* ************************************************************************** */
 
@@ -99,5 +100,5 @@ public:
 
 	void ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers);
 
-	void compile_reseau(Scene *scene, Objet *objet);
+	void compile_reseau(ContexteEvaluation &contexte, Scene *scene, Objet *objet);
 };

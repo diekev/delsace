@@ -528,8 +528,9 @@ void OperatriceImage::obtiens_liste(dls::chaine const &/*attache*/, dls::tableau
 	entree(0)->obtiens_liste_calque(chaines);
 }
 
-void OperatriceImage::renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const
+void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud)
 {
+	INUTILISE(contexte);
 	INUTILISE(compilatrice);
 	INUTILISE(noeud);
 }

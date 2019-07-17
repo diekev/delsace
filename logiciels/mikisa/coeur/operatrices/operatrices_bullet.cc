@@ -258,6 +258,7 @@ public:
 /* ************************************************************************** */
 
 class AjoutCorpsRigide final : public OperatriceCorps {
+	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
 
 public:
@@ -289,6 +290,22 @@ public:
 		return AIDE;
 	}
 
+	Objet *trouve_objet(ContexteEvaluation const &contexte)
+	{
+		auto nom_objet = evalue_chaine("nom_objet");
+
+		if (nom_objet.est_vide()) {
+			return nullptr;
+		}
+
+		if (nom_objet != m_nom_objet) {
+			m_nom_objet = nom_objet;
+			m_objet = contexte.bdd->objet(nom_objet);
+		}
+
+		return m_objet;
+	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
@@ -313,7 +330,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		m_objet = contexte.bdd->objet(nom_objet);
+		m_objet = trouve_objet(contexte);
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Aucun objet de ce nom n'existe");
@@ -340,11 +357,17 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	void renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const override
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
 	{
-		if (m_objet != nullptr) {
-			compilatrice.ajoute_dependance(noeud, m_objet);
+		if (m_objet == nullptr) {
+			m_objet = trouve_objet(contexte);
+
+			if (m_objet == nullptr) {
+				return;
+			}
 		}
+
+		compilatrice.ajoute_dependance(noeud, m_objet);
 	}
 
 	btRigidBody *cree_corps_rigide(btTransform const &transforme_initiale, btCollisionShape *forme_collision)

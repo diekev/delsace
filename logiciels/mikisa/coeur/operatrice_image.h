@@ -383,7 +383,7 @@ public:
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines);
 
-	virtual void renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const;
+	virtual void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud);
 
 	bool possede_animation();
 

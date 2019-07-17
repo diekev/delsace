@@ -103,7 +103,7 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *n
 	noeud_vers->entrees.insere(noeud_de);
 }
 
-void CompilatriceReseau::compile_reseau(Scene *scene, Objet *objet)
+void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, Scene *scene, Objet *objet)
 {
 	reseau->reinitialise();
 
@@ -134,7 +134,7 @@ void CompilatriceReseau::compile_reseau(Scene *scene, Objet *objet)
 				ajoute_dependance(&reseau->noeud_temps, noeud_dep);
 			}
 
-			operatrice->renseigne_dependance(*this, noeud_dep);
+			operatrice->renseigne_dependance(contexte, *this, noeud_dep);
 		}
 	}
 

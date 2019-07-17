@@ -73,7 +73,7 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		objet = std::any_cast<Objet *>(scene->graphe.noeud_actif->donnees());
 	}
 
-	compileuse.compile_reseau(mikisa.scene, objet);
+	compileuse.compile_reseau(contexte, mikisa.scene, objet);
 
 	auto plan = Planifieuse::PtrPlan{nullptr};
 
