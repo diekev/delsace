@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/any>
+#include <any>
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -35,7 +35,7 @@ namespace danjo {
 class Manipulable;
 
 struct Symbole {
-	std::experimental::any valeur{};
+	std::any valeur{};
 	id_morceau identifiant{};
 };
 

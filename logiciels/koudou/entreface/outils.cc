@@ -61,7 +61,7 @@ void cree_controles(AssembleurControles &assembleur, Persona *persona)
 	assembleur.clear();
 
 	for (Propriete &prop : persona->proprietes()) {
-		assert(!prop.donnee.empty());
+		assert(prop.donnee.has_value());
 
 		switch (prop.type) {
 			case TypePropriete::BOOL:

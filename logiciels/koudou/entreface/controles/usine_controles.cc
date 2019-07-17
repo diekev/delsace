@@ -40,9 +40,9 @@
 void controle_int(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleInt;
-	controle->pointeur(std::experimental::any_cast<int>(&prop->donnee));
+	controle->pointeur(std::any_cast<int>(&prop->donnee));
 	controle->setRange(static_cast<int>(prop->min), static_cast<int>(prop->max));
-	controle->setValue(std::experimental::any_cast<int>(prop->donnee));
+	controle->setValue(std::any_cast<int>(prop->donnee));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
 }
@@ -50,9 +50,9 @@ void controle_int(AssembleurControles &assembleur, Propriete *prop)
 void controle_float(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleFloat;
-	controle->pointeur(std::experimental::any_cast<float>(&prop->donnee));
+	controle->pointeur(std::any_cast<float>(&prop->donnee));
 	controle->setRange(prop->min, prop->max);
-	controle->setValue(std::experimental::any_cast<float>(prop->donnee));
+	controle->setValue(std::any_cast<float>(prop->donnee));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
 }
@@ -60,13 +60,13 @@ void controle_float(AssembleurControles &assembleur, Propriete *prop)
 void controle_enum(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleEnum;
-	controle->pointeur(std::experimental::any_cast<int>(&prop->donnee));
+	controle->pointeur(std::any_cast<int>(&prop->donnee));
 
 	for (PaireNomValeur const &item : prop->items_enumeration.paires) {
 		controle->addItem(item.nom.c_str(), QVariant(item.valeur));
 	}
 
-	controle->setCurrentIndex(std::experimental::any_cast<int>(prop->donnee));
+	controle->setCurrentIndex(std::any_cast<int>(prop->donnee));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
 }
@@ -74,7 +74,7 @@ void controle_enum(AssembleurControles &assembleur, Propriete *prop)
 void bitfield_controle(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleEnum;
-	controle->pointeur(std::experimental::any_cast<int>(&prop->donnee));
+	controle->pointeur(std::any_cast<int>(&prop->donnee));
 
 	auto model = new QStandardItemModel(static_cast<int>(prop->items_enumeration.paires.taille()), 1);
 	auto index = 0;
@@ -100,12 +100,12 @@ void bitfield_controle(AssembleurControles &assembleur, Propriete *prop)
 
 void controle_chaine_caractere(AssembleurControles &assembleur, Propriete *prop)
 {
-	auto ptr = std::experimental::any_cast<dls::chaine>(&prop->donnee);
+	auto ptr = std::any_cast<dls::chaine>(&prop->donnee);
 	auto controle = new ControleChaineCaractere;
 	controle->pointeur(ptr);
 
 	if (ptr->taille() == 0) {
-		controle->setPlaceholderText(std::experimental::any_cast<dls::chaine>(prop->valeur_defaut).c_str());
+		controle->setPlaceholderText(std::any_cast<dls::chaine>(prop->valeur_defaut).c_str());
 	}
 	else {
 		controle->setText(ptr->c_str());
@@ -117,8 +117,8 @@ void controle_chaine_caractere(AssembleurControles &assembleur, Propriete *prop)
 void controle_bool(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleBool;
-	controle->pointeur(std::experimental::any_cast<bool>(&prop->donnee));
-	controle->setChecked(std::experimental::any_cast<bool>(prop->donnee));
+	controle->pointeur(std::any_cast<bool>(&prop->donnee));
+	controle->setChecked(std::any_cast<bool>(prop->donnee));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
 }
@@ -132,7 +132,7 @@ void controle_vec3(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleVec3;
 	controle->setMinMax(prop->min, prop->max);
-	controle->pointeur(&(std::experimental::any_cast<dls::math::vec3f>(&prop->donnee)->x));
+	controle->pointeur(&(std::any_cast<dls::math::vec3f>(&prop->donnee)->x));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
 }
@@ -141,14 +141,14 @@ void controle_couleur(AssembleurControles &assembleur, Propriete *prop)
 {
 	auto controle = new ControleCouleur;
 	controle->setMinMax(prop->min, prop->max);
-	controle->pointeur(&(std::experimental::any_cast<dls::math::vec4f>(&prop->donnee)->x));
+	controle->pointeur(&(std::any_cast<dls::math::vec4f>(&prop->donnee)->x));
 
 	assembleur.addWidget(controle, prop->nom_entreface.c_str());
 }
 
 void controle_fichier_entree(AssembleurControles &assembleur, Propriete *prop)
 {
-	auto ptr = std::experimental::any_cast<dls::chaine>(&prop->donnee);
+	auto ptr = std::any_cast<dls::chaine>(&prop->donnee);
 	auto controle = new ControleFichier(true);
 	controle->pointeur(ptr);
 	controle->setValue(ptr->c_str());
@@ -158,7 +158,7 @@ void controle_fichier_entree(AssembleurControles &assembleur, Propriete *prop)
 
 void controle_fichier_sortie(AssembleurControles &assembleur, Propriete *prop)
 {
-	auto ptr = std::experimental::any_cast<dls::chaine>(&prop->donnee);
+	auto ptr = std::any_cast<dls::chaine>(&prop->donnee);
 	auto controle = new ControleFichier(false);
 	controle->pointeur(ptr);
 	controle->setValue(ptr->c_str());
@@ -168,7 +168,7 @@ void controle_fichier_sortie(AssembleurControles &assembleur, Propriete *prop)
 
 void controle_liste(AssembleurControles &assembleur, Propriete *prop)
 {
-	auto ptr = std::experimental::any_cast<dls::chaine>(&prop->donnee);
+	auto ptr = std::any_cast<dls::chaine>(&prop->donnee);
 	auto controle = new ControleListe();
 	controle->pointeur(ptr);
 	controle->setValue(ptr->c_str());

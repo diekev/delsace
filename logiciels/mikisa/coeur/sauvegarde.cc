@@ -127,7 +127,7 @@ static void sauvegarde_proprietes(
 					for (auto const &valeur : prop.courbe) {
 						auto element_cle = doc.NewElement("cle");
 						element_cle->SetAttribut("temps", valeur.first);
-						element_cle->SetAttribut("valeur", std::experimental::any_cast<int>(valeur.second));
+						element_cle->SetAttribut("valeur", std::any_cast<int>(valeur.second));
 						element_animation->InsertEndChild(element_cle);
 					}
 
@@ -147,7 +147,7 @@ static void sauvegarde_proprietes(
 					for (auto const &valeur : prop.courbe) {
 						auto element_cle = doc.NewElement("cle");
 						element_cle->SetAttribut("temps", valeur.first);
-						element_cle->SetAttribut("valeur", std::experimental::any_cast<float>(valeur.second));
+						element_cle->SetAttribut("valeur", std::any_cast<float>(valeur.second));
 						element_animation->InsertEndChild(element_cle);
 					}
 
@@ -169,7 +169,7 @@ static void sauvegarde_proprietes(
 
 					for (auto const &valeur : prop.courbe) {
 						auto element_cle = doc.NewElement("cle");
-						auto vec = std::experimental::any_cast<dls::math::vec3f>(valeur.second);
+						auto vec = std::any_cast<dls::math::vec3f>(valeur.second);
 						element_cle->SetAttribut("temps", valeur.first);
 						element_cle->SetAttribut("valeurx", vec.x);
 						element_cle->SetAttribut("valeury", vec.y);

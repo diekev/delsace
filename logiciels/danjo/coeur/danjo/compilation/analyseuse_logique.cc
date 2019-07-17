@@ -202,11 +202,11 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 		valeur = m_identifiants[position() + 1].chaine;
 
 		if (est_identifiant(id_morceau::NOMBRE)) {
-			symbole.valeur = std::experimental::any(std::stoi(valeur.c_str()));
+			symbole.valeur = std::any(std::stoi(valeur.c_str()));
 			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
-			symbole.valeur = std::experimental::any(std::stof(valeur.c_str()));
+			symbole.valeur = std::any(std::stof(valeur.c_str()));
 			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::VRAI) || est_identifiant(id_morceau::FAUX)) {
@@ -236,7 +236,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 				connecte(cont, variable);
 			}
 
-			symbole.valeur = std::experimental::any(valeur);
+			symbole.valeur = std::any(valeur);
 			expression.pousse(symbole);
 		}
 		else if (est_operateur(symbole.identifiant)) {
@@ -248,7 +248,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 				pile.depile();
 			}
 
-			symbole.valeur = std::experimental::any(valeur);
+			symbole.valeur = std::any(valeur);
 			pile.empile(symbole);
 		}
 		else if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {

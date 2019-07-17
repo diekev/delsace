@@ -26,7 +26,7 @@
 
 #include <algorithm>
 #include "biblinternes/math/vecteur.hh"
-#include <experimental/any>
+#include <any>
 #include <iostream>
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -68,8 +68,8 @@ struct Propriete {
 	dls::chaine infobulle{};
 	TypePropriete type{};
 
-	std::experimental::any donnee{};
-	std::experimental::any valeur_defaut{};
+	std::any donnee{};
+	std::any valeur_defaut{};
 
 	ProprieteEnumerante items_enumeration{};
 

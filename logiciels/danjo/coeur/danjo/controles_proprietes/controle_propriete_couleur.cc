@@ -76,7 +76,7 @@ void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
 		m_propriete->valeur = valeur_defaut;
 	}
 
-	m_controle_couleur->couleur(std::experimental::any_cast<dls::phys::couleur32>(m_propriete->valeur));
+	m_controle_couleur->couleur(std::any_cast<dls::phys::couleur32>(m_propriete->valeur));
 
 	setToolTip(donnees.infobulle.c_str());
 }

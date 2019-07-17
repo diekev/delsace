@@ -36,30 +36,30 @@ void Persona::ajoute_propriete(dls::chaine nom, dls::chaine nom_entreface, TypeP
 
 	switch (type) {
 		case TypePropriete::BOOL:
-			prop.donnee = std::experimental::any(false);
+			prop.donnee = std::any(false);
 			break;
 		case TypePropriete::FLOAT:
-			prop.donnee = std::experimental::any(0.0f);
+			prop.donnee = std::any(0.0f);
 			break;
 		case TypePropriete::VEC3:
-			prop.donnee = std::experimental::any(dls::math::vec3f(0.0f));
+			prop.donnee = std::any(dls::math::vec3f(0.0f));
 			break;
 		case TypePropriete::COULEUR:
-			prop.donnee = std::experimental::any(dls::math::vec4f(0.0f));
+			prop.donnee = std::any(dls::math::vec4f(0.0f));
 			break;
 		case TypePropriete::ENUM:
 		case TypePropriete::INT:
-			prop.donnee = std::experimental::any(0);
+			prop.donnee = std::any(0);
 			break;
 		case TypePropriete::FICHIER_ENTREE:
 		case TypePropriete::FICHIER_SORTIE:
 		case TypePropriete::STRING:
 		case TypePropriete::LISTE:
-			prop.donnee = std::experimental::any(dls::chaine(""));
+			prop.donnee = std::any(dls::chaine(""));
 			break;
 	}
 
-	assert(!prop.donnee.empty());
+	assert(prop.donnee.has_value());
 
 	m_proprietes.pousse(std::move(prop));
 }
@@ -83,7 +83,7 @@ int Persona::evalue_int(dls::chaine const &nom_propriete)
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
 	if (prop) {
-		return std::experimental::any_cast<int>(prop->donnee);
+		return std::any_cast<int>(prop->donnee);
 	}
 
 	return 0;
@@ -94,7 +94,7 @@ float Persona::evalue_float(dls::chaine const &nom_propriete)
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
 	if (prop) {
-		return std::experimental::any_cast<float>(prop->donnee);
+		return std::any_cast<float>(prop->donnee);
 	}
 
 	return 0.0f;
@@ -110,7 +110,7 @@ int Persona::evalue_bool(dls::chaine const &nom_propriete)
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
 	if (prop) {
-		return std::experimental::any_cast<bool>(prop->donnee);
+		return std::any_cast<bool>(prop->donnee);
 	}
 
 	return false;
@@ -121,7 +121,7 @@ dls::math::vec3f Persona::evalue_vec3(dls::chaine const &nom_propriete)
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
 	if (prop) {
-		return std::experimental::any_cast<dls::math::vec3f>(prop->donnee);
+		return std::any_cast<dls::math::vec3f>(prop->donnee);
 	}
 
 	return dls::math::vec3f(0.0f, 0.0f, 0.0f);
@@ -132,7 +132,7 @@ dls::math::vec4f Persona::evalue_couleur(dls::chaine const &nom_propriete)
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
 	if (prop) {
-		return std::experimental::any_cast<dls::math::vec4f>(prop->donnee);
+		return std::any_cast<dls::math::vec4f>(prop->donnee);
 	}
 
 	return dls::math::vec4f(0.0f, 0.0f, 0.0f, 0.0f);
@@ -143,7 +143,7 @@ dls::chaine Persona::evalue_string(dls::chaine const &nom_propriete)
 	const Propriete *prop = trouve_propriete(nom_propriete);
 
 	if (prop) {
-		return std::experimental::any_cast<dls::chaine>(prop->donnee);
+		return std::any_cast<dls::chaine>(prop->donnee);
 	}
 
 	return {};
@@ -171,7 +171,7 @@ void Persona::etablie_valeur_int_defaut(int valeur)
 
 	assert(prop.type == TypePropriete::INT || prop.type == TypePropriete::ENUM);
 
-	prop.donnee = std::experimental::any(valeur);
+	prop.donnee = std::any(valeur);
 }
 
 void Persona::etablie_valeur_float_defaut(float valeur)
@@ -180,7 +180,7 @@ void Persona::etablie_valeur_float_defaut(float valeur)
 
 	assert(prop.type == TypePropriete::FLOAT);
 
-	prop.donnee = std::experimental::any(valeur);
+	prop.donnee = std::any(valeur);
 }
 
 void Persona::etablie_valeur_bool_defaut(bool valeur)
@@ -189,7 +189,7 @@ void Persona::etablie_valeur_bool_defaut(bool valeur)
 
 	assert(prop.type == TypePropriete::BOOL);
 
-	prop.donnee = std::experimental::any(valeur);
+	prop.donnee = std::any(valeur);
 }
 
 void Persona::etablie_valeur_string_defaut(dls::chaine const &valeur)
@@ -201,7 +201,7 @@ void Persona::etablie_valeur_string_defaut(dls::chaine const &valeur)
 	       prop.type == TypePropriete::FICHIER_SORTIE ||
 	       prop.type == TypePropriete::LISTE);
 
-	prop.donnee = std::experimental::any(valeur);
+	prop.donnee = std::any(valeur);
 }
 
 void Persona::etablie_valeur_vec3_defaut(dls::math::vec3f const &valeur)
@@ -210,7 +210,7 @@ void Persona::etablie_valeur_vec3_defaut(dls::math::vec3f const &valeur)
 
 	assert(prop.type == TypePropriete::VEC3);
 
-	prop.donnee = std::experimental::any(valeur);
+	prop.donnee = std::any(valeur);
 }
 
 void Persona::etablie_valeur_couleur_defaut(dls::math::vec4f const &valeur)
@@ -219,7 +219,7 @@ void Persona::etablie_valeur_couleur_defaut(dls::math::vec4f const &valeur)
 
 	assert(prop.type == TypePropriete::COULEUR);
 
-	prop.donnee = std::experimental::any(valeur);
+	prop.donnee = std::any(valeur);
 }
 
 void Persona::ajourne_valeur_float(dls::chaine const &nom_propriete, float valeur)
@@ -230,7 +230,7 @@ void Persona::ajourne_valeur_float(dls::chaine const &nom_propriete, float valeu
 		return;
 	}
 
-	auto donnees = std::experimental::any_cast<float>(&prop->donnee);
+	auto donnees = std::any_cast<float>(&prop->donnee);
 	(*donnees) = valeur;
 }
 
@@ -242,7 +242,7 @@ void Persona::ajourne_valeur_int(dls::chaine const &nom_propriete, int valeur)
 		return;
 	}
 
-	auto donnees = std::experimental::any_cast<int>(&prop->donnee);
+	auto donnees = std::any_cast<int>(&prop->donnee);
 	(*donnees) = valeur;
 }
 
@@ -254,7 +254,7 @@ void Persona::ajourne_valeur_bool(dls::chaine const &nom_propriete, bool valeur)
 		return;
 	}
 
-	auto donnees = std::experimental::any_cast<bool>(&prop->donnee);
+	auto donnees = std::any_cast<bool>(&prop->donnee);
 	(*donnees) = valeur;
 }
 
@@ -266,7 +266,7 @@ void Persona::ajourne_valeur_couleur(dls::chaine const &nom_propriete, dls::math
 		return;
 	}
 
-	auto donnees = std::experimental::any_cast<dls::math::vec4f>(&prop->donnee);
+	auto donnees = std::any_cast<dls::math::vec4f>(&prop->donnee);
 	(*donnees) = valeur;
 }
 
@@ -278,7 +278,7 @@ void Persona::ajourne_valeur_string(dls::chaine const &nom_propriete, dls::chain
 		return;
 	}
 
-	auto donnees = std::experimental::any_cast<dls::chaine>(&prop->donnee);
+	auto donnees = std::any_cast<dls::chaine>(&prop->donnee);
 	(*donnees) = valeur;
 }
 
@@ -303,7 +303,7 @@ void Persona::ajourne_valeur_vec3(dls::chaine const &nom_propriete, dls::math::v
 		return;
 	}
 
-	auto donnees = std::experimental::any_cast<dls::math::vec3f>(&prop->donnee);
+	auto donnees = std::any_cast<dls::math::vec3f>(&prop->donnee);
 	(*donnees) = valeur;
 }
 

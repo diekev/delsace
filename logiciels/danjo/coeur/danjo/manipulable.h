@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/any>
+#include <any>
 
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/phys/couleur.hh"
@@ -56,7 +56,7 @@ enum TypePropriete {
 };
 
 struct Propriete {
-	std::experimental::any valeur{};
+	std::any valeur{};
 	TypePropriete type{};
 
 	bool est_extra = false;
@@ -65,7 +65,7 @@ struct Propriete {
 
 	bool pad[2];
 
-	dls::tableau<std::pair<int, std::experimental::any>> courbe{};
+	dls::tableau<std::pair<int, std::any>> courbe{};
 
 	void ajoute_cle(const int v, int temps);
 
@@ -90,11 +90,11 @@ struct Propriete {
 	dls::phys::couleur32 evalue_couleur(int temps) const;
 
 private:
-	void ajoute_cle_impl(const std::experimental::any &v, int temps);
+	void ajoute_cle_impl(const std::any &v, int temps);
 
 	void tri_courbe();
 
-	bool trouve_valeurs_temps(int temps, std::experimental::any &v1, std::experimental::any &v2, int &t1, int &t2) const;
+	bool trouve_valeurs_temps(int temps, std::any &v1, std::any &v2, int &t1, int &t2) const;
 };
 
 /**
@@ -130,7 +130,7 @@ public:
 	 *
 	 * La valeur spécifiée est la valeur par défaut du manipulable.
 	 */
-	void ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::experimental::any &valeur);
+	void ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::any &valeur);
 
 	/**
 	 * Ajoute une propriété extra à ce manipulable avec le nom spécifié.

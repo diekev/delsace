@@ -153,7 +153,7 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 		m_z->valeur(valeur[2]);
 	}
 	else {
-		const auto &valeur = std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur);
+		const auto &valeur = std::any_cast<dls::math::vec3f>(m_propriete->valeur);
 		m_x->valeur(valeur[0]);
 		m_y->valeur(valeur[1]);
 		m_z->valeur(valeur[2]);
@@ -189,14 +189,14 @@ void ControleProprieteVec3::bascule_animation()
 
 	if (m_animation == false) {
 		m_propriete->supprime_animation();
-		const auto &valeur = std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur);
+		const auto &valeur = std::any_cast<dls::math::vec3f>(m_propriete->valeur);
 		m_x->valeur(valeur[0]);
 		m_y->valeur(valeur[1]);
 		m_z->valeur(valeur[2]);
 		m_bouton_animation->setText("C");
 	}
 	else {
-		m_propriete->ajoute_cle(std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur), m_temps);
+		m_propriete->ajoute_cle(std::any_cast<dls::math::vec3f>(m_propriete->valeur), m_temps);
 		m_bouton_animation->setText("c");
 	}
 

@@ -27,7 +27,7 @@
 #include "biblinternes/langage/analyseuse.hh"
 #include "biblinternes/structures/chaine.hh"
 
-#include <experimental/any>
+#include <any>
 #include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
@@ -48,7 +48,7 @@ struct Colonne {
 	bool peut_etre_nulle = true;
 	bool a_valeur_defaut = false;
 	size_t id_valeur_defaut = 0;
-	std::experimental::any defaut;
+	std::any defaut;
 	dls::chaine table = "";
 	dls::chaine ref = "";
 	size_t suppression = 0;
