@@ -180,14 +180,14 @@ public:
 //			supprime_monde();
 
 //			std::cerr << "---------------------------------------------------\n";
-//			std::cerr << "Mise en place des transformations originelles\n";
+			std::cerr << "Mise en place des transformations originelles\n";
 
 			for (auto &paire : m_dico_objets) {
 				auto objet = paire.second.objet;
 				auto const &transforme = paire.second.transformation_orig;
 
-		//		std::cerr << "- objet : " << objet->nom << '\n';
-		//		std::cerr << transforme.matrice() << '\n';
+				std::cerr << "- objet : " << objet->nom << '\n';
+				std::cerr << transforme.matrice() << '\n';
 
 				objet->corps.accede_ecriture([&transforme](Corps &corps)
 				{
@@ -298,7 +298,7 @@ public:
 			return nullptr;
 		}
 
-		if (nom_objet != m_nom_objet) {
+		if (nom_objet != m_nom_objet || m_objet == nullptr) {
 			m_nom_objet = nom_objet;
 			m_objet = contexte.bdd->objet(nom_objet);
 		}
@@ -349,6 +349,10 @@ public:
 		monde->ajoute_forme(forme);
 
 		auto tranformation = converti_transformation(m_corps);
+
+		std::cerr << "Crée corps rigide pour : '" << m_objet->nom << "'\n";
+		std::cerr << "Transformation :\n";
+		std::cerr << m_corps.transformation.matrice() << '\n';
 
 		auto corps_rigide = cree_corps_rigide(tranformation, forme);
 
@@ -476,6 +480,10 @@ public:
 			m_monde.ptr()->stepSimulation(1.0 / contexte.cadence);
 		}
 
+		std::cerr << "---------------------------------------------\n";
+		std::cerr << "Image : " << contexte.temps_courant << '\n';
+		std::cerr << "---------------------------------------------\n";
+
 		ajourne_corps_depuis_sim();
 
 		return EXECUTION_REUSSIE;
@@ -503,7 +511,6 @@ public:
 			auto ms = body->getMotionState();
 
 			if (ms != nullptr) {
-				//std::cerr << "- objet " << objet->nom << '\n';
 				btTransform trans;
 				ms->getWorldTransform(trans);
 
@@ -511,7 +518,8 @@ public:
 				trans.getOpenGLMatrix(reinterpret_cast<double *>(mat));
 				auto transformation = math::transformation(mat);
 
-				//std::cerr << transformation.matrice() << '\n';
+				std::cerr << "Ajourne matrice pour objet '" << objet->nom << "'\n";
+				std::cerr << transformation.matrice() << '\n';
 
 				objet->corps.accede_ecriture([&transformation](Corps &corps)
 				{
