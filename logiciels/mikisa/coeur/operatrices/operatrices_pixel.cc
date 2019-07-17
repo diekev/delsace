@@ -617,7 +617,7 @@ class OperatriceDegrade final : public OperatricePixel {
 
 	int pad = 0;
 
-	RampeCouleur *m_rampe{};
+	RampeCouleur const *m_rampe{};
 
 public:
 	static constexpr auto NOM = "Dégradé";
@@ -1815,7 +1815,7 @@ public:
 /* ************************************************************************** */
 
 class OperatriceCourbeCouleur final : public OperatricePixel {
-	CourbeCouleur *m_courbe{};
+	CourbeCouleur const *m_courbe{};
 
 public:
 	static constexpr auto NOM = "Courbe Couleur";
