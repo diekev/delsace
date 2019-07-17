@@ -291,11 +291,8 @@ public:
 
 			for (long vert = 0; vert < nombre_sommets; ++vert) {
 				float const * pos = sommets[premier_sommet + vert].GetPosition();
-				auto p3d = memoire::loge<Point3D>("Point3D");
-				p3d->x = pos[0];
-				p3d->y = pos[1];
-				p3d->z = pos[2];
-				liste_points->pousse(p3d);
+				auto point = dls::math::vec3f(pos[0], pos[1], pos[2]);
+				liste_points->pousse(point);
 			}
 
 			for (long face = 0; face < nombre_polygones; ++face) {

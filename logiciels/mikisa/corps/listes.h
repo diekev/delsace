@@ -36,10 +36,6 @@
 
 struct Corps;
 
-struct Point3D {
-	float x, y, z;
-};
-
 /* ************************************************************************** */
 
 /**
@@ -128,7 +124,7 @@ public:
 
 class ListePoints3D {
 public:
-	using type_liste = dls::tableau<Point3D *>;
+	using type_liste = dls::tableau<dls::math::vec3f>;
 
 private:
 	typedef std::shared_ptr<type_liste> RefPtr;
@@ -146,7 +142,7 @@ public:
 
 	long taille() const;
 
-	void pousse(Point3D *p);
+	void pousse(dls::math::vec3f const &p);
 
 	dls::math::vec3f point(long i) const;
 

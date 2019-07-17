@@ -1110,12 +1110,7 @@ static void trouve_points_voisins(
 		}
 
 		if (longueur(point - pi) < radius) {
-			auto p3d = memoire::loge<Point3D>("Point3D");
-			p3d->x = pi.x;
-			p3d->y = pi.y;
-			p3d->z = pi.z;
-
-			rpoints.pousse(p3d);
+			rpoints.pousse(pi);
 		}
 	}
 }

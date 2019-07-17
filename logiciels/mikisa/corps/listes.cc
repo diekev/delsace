@@ -100,10 +100,6 @@ void ListePoints3D::reinitialise()
 			m_sommets = RefPtr(memoire::loge<type_liste>("liste_point3d"), supprime_liste_points);
 		}
 		else {
-			for (auto s : (*m_sommets)) {
-				memoire::deloge("Point3D", s);
-			}
-
 			m_sommets->efface();
 		}
 	}
@@ -132,7 +128,7 @@ long ListePoints3D::taille() const
 	return m_sommets->taille();
 }
 
-void ListePoints3D::pousse(Point3D *s)
+void ListePoints3D::pousse(const dls::math::vec3f &s)
 {
 	detache();
 	m_sommets->pousse(s);
@@ -141,19 +137,14 @@ void ListePoints3D::pousse(Point3D *s)
 dls::math::vec3f ListePoints3D::point(long i) const
 {
 	assert(i >= 0);
-	auto ref = m_sommets->a(i);
-	return dls::math::vec3f(ref->x, ref->y, ref->z);
+	return m_sommets->a(i);
 }
 
 void ListePoints3D::point(long i, dls::math::vec3f const &p)
 {
 	assert(i >= 0);
 	detache();
-
-	auto ref = m_sommets->a(i);
-	ref->x = p.x;
-	ref->y = p.y;
-	ref->z = p.z;
+	m_sommets->a(i) = p;
 }
 
 void ListePoints3D::detache()
@@ -165,12 +156,7 @@ void ListePoints3D::detache()
 		m_sommets->reserve(tmp->taille());
 
 		for (auto sommet : (*tmp)) {
-			auto p3d = memoire::loge<Point3D>("Point3D");
-			p3d->x = sommet->x;
-			p3d->y = sommet->y;
-			p3d->z = sommet->z;
-
-			m_sommets->pousse(p3d);
+			m_sommets->pousse(sommet);
 		}
 	}
 	else if (tmp == nullptr) {
