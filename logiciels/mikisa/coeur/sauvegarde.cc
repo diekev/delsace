@@ -378,7 +378,7 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		racine_scenes->InsertEndChild(racine_scene);
 
 		compileuse.reseau = &scene->reseau;
-		compileuse.compile_reseau(scene);
+		compileuse.compile_reseau(scene, nullptr);
 
 		auto plan = planifieuse.requiers_plan_pour_scene(scene->reseau);
 

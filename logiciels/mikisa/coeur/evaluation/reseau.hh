@@ -83,6 +83,8 @@ struct CompilatriceReseau {
 private:
 	dls::dico_desordonne<Objet *, NoeudReseau *> m_table_objet_noeud{};
 
+	NoeudReseau *trouve_noeud_pour_objet(Objet *objet);
+
 public:
 	Reseau *reseau = nullptr;
 
@@ -97,5 +99,5 @@ public:
 
 	void ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers);
 
-	void compile_reseau(Scene *scene);
+	void compile_reseau(Scene *scene, Objet *objet);
 };

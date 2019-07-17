@@ -552,6 +552,11 @@ bool OperatriceImage::depend_sur_temps() const
 	return false;
 }
 
+void OperatriceImage::amont_change()
+{
+	return;
+}
+
 /* ************************************************************************** */
 
 static void supprime_operatrice_image(std::any pointeur)

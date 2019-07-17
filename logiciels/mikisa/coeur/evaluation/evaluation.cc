@@ -66,7 +66,14 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	auto compileuse = CompilatriceReseau{};
 	compileuse.reseau = &mikisa.scene->reseau;
 
-	compileuse.compile_reseau(mikisa.scene);
+	auto scene = mikisa.scene;
+	auto objet = static_cast<Objet *>(nullptr);
+
+	if (scene->graphe.noeud_actif != nullptr) {
+		objet = std::any_cast<Objet *>(scene->graphe.noeud_actif->donnees());
+	}
+
+	compileuse.compile_reseau(mikisa.scene, objet);
 
 	auto plan = Planifieuse::PtrPlan{nullptr};
 
@@ -77,8 +84,6 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		case GRAPHE_MODIFIE:
 		case PARAMETRE_CHANGE:
 		{
-			auto scene = mikisa.scene;
-			auto objet = std::any_cast<Objet *>(scene->graphe.noeud_actif->donnees());
 			plan = planifieuse.requiers_plan_pour_objet(mikisa.scene->reseau, objet);
 			break;
 		}

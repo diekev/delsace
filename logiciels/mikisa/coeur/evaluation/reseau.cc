@@ -30,6 +30,24 @@
 
 /* ************************************************************************** */
 
+static void marque_execution_graphe(NoeudReseau *racine)
+{
+	for (auto noeud_res : racine->sorties) {
+		auto objet = noeud_res->objet;
+		auto &graphe = objet->graphe;
+
+		for (auto &noeud : graphe.noeuds()) {
+			noeud->besoin_execution(true);
+			auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+			op->amont_change();
+		}
+
+		marque_execution_graphe(noeud_res);
+	}
+}
+
+/* ************************************************************************** */
+
 Reseau::~Reseau()
 {
 	reinitialise();
@@ -63,7 +81,7 @@ void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 	m_table_objet_noeud.insere({objet, noeud});
 }
 
-void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
+NoeudReseau *CompilatriceReseau::trouve_noeud_pour_objet(Objet *objet)
 {
 	auto iter_noeud = m_table_objet_noeud.trouve(objet);
 
@@ -71,7 +89,12 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
 		throw std::runtime_error("Aucun noeud n'existe pour l'objet !");
 	}
 
-	ajoute_dependance(iter_noeud->second, noeud);
+	return iter_noeud->second;
+}
+
+void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
+{
+	ajoute_dependance(trouve_noeud_pour_objet(objet), noeud);
 }
 
 void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers)
@@ -80,7 +103,7 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *n
 	noeud_vers->entrees.insere(noeud_de);
 }
 
-void CompilatriceReseau::compile_reseau(Scene *scene)
+void CompilatriceReseau::compile_reseau(Scene *scene, Objet *objet)
 {
 	reseau->reinitialise();
 
@@ -91,7 +114,7 @@ void CompilatriceReseau::compile_reseau(Scene *scene)
 
 	/* crée les dépendances */
 	for (auto noeud_dep : reseau->noeuds) {
-		auto objet = noeud_dep->objet;
+		auto objet_noeud = noeud_dep->objet;
 
 		/* À FAIRE : les objets ne sont pas des 'Manipulables'. */
 //		if (objet->possede_animation()) {
@@ -101,7 +124,7 @@ void CompilatriceReseau::compile_reseau(Scene *scene)
 		/* À FAIRE : n'ajoute les dépendances que pour les noeuds connectés au
 		 * noeud de sortie. */
 
-		for (auto noeud : objet->graphe.noeuds()) {
+		for (auto noeud : objet_noeud->graphe.noeuds()) {
 			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 			if (operatrice->possede_animation()) {
@@ -113,5 +136,12 @@ void CompilatriceReseau::compile_reseau(Scene *scene)
 
 			operatrice->renseigne_dependance(*this, noeud_dep);
 		}
+	}
+
+	/* Marque les graphes des objets en aval comm ayant besoin d'une exécution.
+	 * À FAIRE : trouve les noeuds exacts à exécuter. */
+	if (objet != nullptr) {
+		auto noeud_objet = trouve_noeud_pour_objet(objet);
+		marque_execution_graphe(noeud_objet);
 	}
 }

@@ -164,6 +164,25 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 	}
 }
 
+/* À FAIRE : déduplique. */
+static void marque_surannee_(Noeud *noeud)
+{
+	if (noeud == nullptr) {
+		return;
+	}
+
+	noeud->besoin_execution(true);
+
+	auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+	op->amont_change();
+
+	for (PriseSortie *sortie : noeud->sorties()) {
+		for (PriseEntree *entree : sortie->liens) {
+			marque_surannee(entree->parent);
+		}
+	}
+}
+
 void EditriceProprietes::ajourne_manipulable()
 {
 	auto graphe = m_mikisa.graphe;
@@ -174,7 +193,7 @@ void EditriceProprietes::ajourne_manipulable()
 	}
 
 	/* Marque le noeud courant et ceux en son aval surannées. */
-	marque_surannee(noeud);
+	marque_surannee_(noeud);
 
 	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
 }

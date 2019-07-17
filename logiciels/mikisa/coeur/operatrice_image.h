@@ -388,6 +388,8 @@ public:
 	bool possede_animation();
 
 	virtual bool depend_sur_temps() const;
+
+	virtual void amont_change();
 };
 
 /* ************************************************************************** */
