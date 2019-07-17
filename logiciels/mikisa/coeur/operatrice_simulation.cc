@@ -153,6 +153,7 @@ bool OperatriceSimulation::depend_sur_temps() const
 void OperatriceSimulation::amont_change()
 {
 	for (auto noeud : m_graphe.noeuds()) {
+		noeud->besoin_execution(true);
 		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
 		op->amont_change();
 	}
