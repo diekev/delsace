@@ -33,22 +33,12 @@
 #include <QHBoxLayout>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/conditions.h"
+
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 #include "coeur/objet.h"
 #include "coeur/scene.h"
-
-template <typename T1, typename T2>
-auto est_element(T1 &&a, T2 &&b) -> bool
-{
-	return a == b;
-}
-
-template <typename T1, typename T2, typename... Ts>
-auto est_element(T1 &&a, T2 &&b, Ts &&... t) -> bool
-{
-	return a == b || est_element(a, t...);
-}
 
 //#define DRAG_DROP_PARENTING
 
@@ -219,11 +209,11 @@ void EditriceArborescence::ajourne_etat(int evenement_)
 		return;
 	}
 
-	if (!est_element(categorie_evenement(evenement), type_evenement::objet, type_evenement::noeud)) {
+	if (!dls::outils::est_element(categorie_evenement(evenement), type_evenement::objet, type_evenement::noeud)) {
 		return;
 	}
 
-	if (!est_element(action_evenement(evenement), type_evenement::ajoute, type_evenement::modifie)) {
+	if (!dls::outils::est_element(action_evenement(evenement), type_evenement::ajoute, type_evenement::modifie)) {
 		return;
 	}
 

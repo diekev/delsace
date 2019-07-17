@@ -30,6 +30,7 @@
 #include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "analyseuse_grammaire.h"
 #include "assembleuse_arbre.h"
@@ -192,12 +193,6 @@ void charge_module(
 
 /* ************************************************************************** */
 
-template <typename T, typename... Ts>
-auto est_elem(T &&a, Ts &&...b)
-{
-	return ((a == b) || ...);
-}
-
 static double verifie_compatibilite(
 		const DonneesType &type_arg,
 		const DonneesType &type_enf,
@@ -229,7 +224,7 @@ static double verifie_compatibilite(
 	if ((drapeau & niveau_compat::prend_reference) != niveau_compat::aucune) {
 		/* À FAIRE : ceci est pour différencier les valeurs gauches des valeurs
 		 * droites (littérales), il manque d'autres cas... */
-		if (est_elem(enfant->type, type_noeud::VARIABLE, type_noeud::ACCES_MEMBRE_DE)) {
+		if (dls::outils::est_element(enfant->type, type_noeud::VARIABLE, type_noeud::ACCES_MEMBRE_DE)) {
 			return 1.0;
 		}
 
