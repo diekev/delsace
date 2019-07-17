@@ -97,6 +97,7 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		}
 		case TEMPS_CHANGE:
 		{
+			compileuse.marque_execution_temps_change();
 			plan = planifieuse.requiers_plan_pour_nouveau_temps(mikisa.scene->reseau, mikisa.temps_courant, mikisa.animation);
 			break;
 		}

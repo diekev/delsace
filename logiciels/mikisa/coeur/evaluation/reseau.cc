@@ -145,3 +145,8 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, Scene *sce
 		marque_execution_graphe(noeud_objet);
 	}
 }
+
+void CompilatriceReseau::marque_execution_temps_change()
+{
+	marque_execution_graphe(&reseau->noeud_temps);
+}

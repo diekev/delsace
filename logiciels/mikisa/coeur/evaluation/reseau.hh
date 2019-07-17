@@ -101,4 +101,6 @@ public:
 	void ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers);
 
 	void compile_reseau(ContexteEvaluation &contexte, Scene *scene, Objet *objet);
+
+	void marque_execution_temps_change();
 };
