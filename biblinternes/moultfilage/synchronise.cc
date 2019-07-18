@@ -22,7 +22,7 @@
  *
  */
 
-#include "synchronisé.hh"
+#include "synchronise.hh"
 
 namespace parallele {
 

@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_PROJET parallele)
+set(NOM_PROJET bib_moultfilage)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
@@ -31,21 +31,37 @@ set(BIBLIOTHEQUES
 	bib_structures
 )
 
-add_executable(${NOM_PROJET}
-    flow_graph.cc
-    image_graph.cc
-    lanceur.cc
-    sse_test.cc
-    synchronisé.cc
-    task.cc
+set(SOURCES
+	synchronise.cc
 
-    flow_graph.hh
-    future.hh
-    image_graph.hh
-    sse_float.hh
-    sse_test.hh
-    synchronisé.hh
-    task.hh
+	boucle.hh
+	synchronise.hh
+	synchrone.hh
+)
+
+add_library(${NOM_PROJET} STATIC ${SOURCES})
+
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+
+################################################################################
+
+set(NOM_PROJET moultfilage)
+
+add_executable(${NOM_PROJET}
+	flow_graph.cc
+	image_graph.cc
+	lanceur.cc
+	sse_test.cc
+	task.cc
+
+	flow_graph.hh
+	future.hh
+	image_graph.hh
+	sse_float.hh
+	sse_test.hh
+	task.hh
 )
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")

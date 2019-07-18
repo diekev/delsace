@@ -41,8 +41,6 @@ set(ENTETES
 	garde_portee.h
 	iterateurs.h
 	masque_binaire.h
-	parallelisme.h
-	synchrone.h
 	temps.hh
 )
 

@@ -34,7 +34,7 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "danjo/types/courbe_bezier.h"
 #include "danjo/types/rampe_couleur.h"

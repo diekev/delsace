@@ -31,7 +31,7 @@
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/flux_chaine.hh"

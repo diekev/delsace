@@ -785,7 +785,7 @@ public:
 /* ************************************************************************** */
 
 #include <mutex>
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 class OpTransfereAttributs final : public OperatriceCorps {
 public:

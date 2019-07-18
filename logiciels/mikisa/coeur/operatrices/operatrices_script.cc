@@ -24,7 +24,7 @@
 
 #include "operatrices_script.hh"
 
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "corps/attribut.h"
 

@@ -32,7 +32,7 @@
 
 #include "corps/corps.h"
 
-#include "biblinternes/parallèle/synchronisé.hh"
+#include "biblinternes/moultfilage/synchronise.hh"
 
 struct Objet {
 	/* transformation */

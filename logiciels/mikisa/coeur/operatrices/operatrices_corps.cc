@@ -30,7 +30,7 @@
 #include "biblinternes/objets/import_objet.h"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/tableau.hh"

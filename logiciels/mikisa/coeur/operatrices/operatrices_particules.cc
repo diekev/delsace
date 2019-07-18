@@ -28,7 +28,7 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/temps.hh"
 #include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/flux_chaine.hh"

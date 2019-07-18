@@ -29,7 +29,7 @@
 #include <random>
 
 #include "biblinternes/objets/creation.h"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "adaptrice_creation_maillage.h"
 #include "imcompressibilite.h"

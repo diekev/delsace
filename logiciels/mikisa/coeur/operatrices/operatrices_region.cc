@@ -33,7 +33,7 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "biblinternes/structures/tableau.hh"
 

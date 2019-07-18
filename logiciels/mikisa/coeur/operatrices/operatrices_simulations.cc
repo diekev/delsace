@@ -25,7 +25,7 @@
 #include "operatrices_simulations.hh"
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
