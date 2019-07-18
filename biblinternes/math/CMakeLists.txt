@@ -45,6 +45,7 @@ set(ENTETES
 	limites.hh
 	matrice.hh
 	outils.hh
+	rmsd.hh
 	statistique.hh
 	swizzler.hh
 	quaternion.hh
@@ -63,6 +64,7 @@ add_library(${NOM_BIBLIOTHEQUE} STATIC
 	outils.cc
 	quaternion.cc
 	rectangle.cc
+	rmsd.cc
 	transformation.cc
 	vecteur.cc
 

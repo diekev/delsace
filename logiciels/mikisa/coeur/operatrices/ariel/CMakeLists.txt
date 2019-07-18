@@ -34,7 +34,6 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	math
 	${BIBLIOTHEQUES_OPENVDB}
-	bib_rmsd
 	${BIBLIOTHEQUES_OPENEXR}
 	z
 	/opt/lib/blosc/lib/libblosc.so

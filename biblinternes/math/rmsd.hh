@@ -30,13 +30,7 @@
  * 
  */
 
-#ifndef _rmsd_h_
-#define _rmsd_h_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#pragma once
 
 /*
  * calculate_rotation_rmsd()
@@ -72,9 +66,3 @@ void fast_rmsd(double ref_xlist[][3],
                double mov_xlist[][3], 
                int n_list,
                double* rmsd); 
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif

@@ -13,8 +13,8 @@
 #include <cstring>
 #include <fstream>
 
+#include "biblinternes/math/rmsd.hh"
 #include "biblinternes/outils/chaine.hh"
-#include "biblinternes/rmsd/rmsd.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
 namespace utilityCore {
