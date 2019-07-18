@@ -29,6 +29,8 @@
 
 namespace dls {
 
+/* ************************************************************************** */
+
 struct loquet_gyrant {
 private:
 	enum class etat : int {
@@ -39,20 +41,14 @@ private:
 	std::atomic<etat> m_verrou;
 
 public:
-	loquet_gyrant()
-		: m_verrou(etat::deverrouille)
-	{}
+	loquet_gyrant();
 
-	void verrouille()
-	{
-		while (m_verrou.exchange(etat::verrouille) == etat::verrouille) {}
-	}
+	void verrouille();
 
-	void deverrouille()
-	{
-		m_verrou.exchange(etat::deverrouille);
-	}
+	void deverrouille();
 };
+
+/* ************************************************************************** */
 
 struct loquet_gyrant_affamant {
 private:
@@ -64,51 +60,26 @@ private:
 	std::atomic<etat> m_verrou;
 
 public:
-	loquet_gyrant_affamant()
-		: m_verrou(etat::deverrouille)
-	{}
+	loquet_gyrant_affamant();
 
-	void verrouille()
-	{
-		auto tmp = etat::deverrouille;
+	void verrouille();
 
-		while (!m_verrou.compare_exchange_strong(tmp, etat::verrouille)) {
-			std::this_thread::yield();
-			tmp = etat::deverrouille;
-		}
-	}
-
-	void deverrouille()
-	{
-		m_verrou.store(etat::deverrouille, std::memory_order_release);
-	}
+	void deverrouille();
 };
 
-// sans famine (au moins sur x86)
+/* ************************************************************************** */
+
+/* sans famine (au moins sur x86) */
 class loquet_ticket {
 	std::atomic<long> m_ticket;
 	std::atomic<long> m_grant;
 
 public:
-	loquet_ticket()
-		: m_ticket(0)
-		, m_grant(0)
-	{}
+	loquet_ticket();
 
-	void verrouille()
-	{
-		auto ticket = m_ticket.fetch_add(1);
+	void verrouille();
 
-		while (ticket != m_grant.load()) {
-			std::this_thread::yield();
-		}
-	}
-
-	void deverrouille()
-	{
-		auto grant = m_grant.load(std::memory_order_relaxed);
-		m_grant.store(grant + 1, std::memory_order_release);
-	}
+	void deverrouille();
 };
 
 }  /* namespace dls */

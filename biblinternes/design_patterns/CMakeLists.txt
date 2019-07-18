@@ -30,18 +30,18 @@ set(BIBLIOTHEQUES
 )
 
 set(ENTETES
+	cowlockmap.h
     factory.h
+	loquets.hh
+	oberver.h
+	producers.h
     singleton.h
-    thread_shared_ptr.h
-    locks.h
-    cowlockmap.h
-    classes.h
-    oberver.h
-    producers.h
+	thread_shared_ptr.h
 )
 
 set(SOURCES
-    main.cc
+	loquets.cc
+	main.cc
     oberver.cc
 )
 

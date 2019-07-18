@@ -65,14 +65,3 @@ public:
 
 template <typename T>
 std::mutex Singleton<T, 1>::m_mutex;
-
-/* test class */
-
-class SoundManager final : public Singleton<SoundManager, 0> {
-	SoundManager() = default;
-	SoundManager(const SoundManager &) = default;
-	SoundManager(SoundManager &&) = default;
-	~SoundManager() = default;
-
-	friend SoundManager *Singleton<SoundManager, 0>::instance();
-};
