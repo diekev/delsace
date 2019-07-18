@@ -18,7 +18,6 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include "../../utilities/utilities.h"
 #include "../../ray/ray.hpp"
 #include "../../spatial/aabb.hpp"
 

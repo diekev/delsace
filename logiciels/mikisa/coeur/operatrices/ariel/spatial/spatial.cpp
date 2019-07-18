@@ -33,7 +33,7 @@ void TraverseAccumulator::RecordIntersection(const rayCore::Intersection& inters
 void TraverseAccumulator::Transform(const dls::math::mat4x4f& m)
 {
     m_intersection = m_intersection.Transform(m);
-    m_origin = dls::math::vec3f(utilityCore::multiply(m, dls::math::vec4f(m_origin, 1.0f)));
+	m_origin = dls::math::vec3f(m * dls::math::vec4f(m_origin, 1.0f));
 }
 
 HitCountTraverseAccumulator::HitCountTraverseAccumulator(const dls::math::vec3f& origin)
@@ -68,7 +68,7 @@ void HitCountTraverseAccumulator::RecordIntersection(const rayCore::Intersection
 void HitCountTraverseAccumulator::Transform(const dls::math::mat4x4f& m)
 {
     m_intersection = m_intersection.Transform(m);
-    m_origin = dls::math::vec3f(utilityCore::multiply(m, dls::math::vec4f(m_origin, 1.0f)));
+	m_origin = dls::math::vec3f(m * dls::math::vec4f(m_origin, 1.0f));
 }
 
 //Keeps a copy of every single hit that is recorded to this accumulator

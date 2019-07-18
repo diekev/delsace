@@ -8,6 +8,8 @@
 
 namespace spaceCore {
 
+static constexpr auto REALLY_BIG_NUMBER = 1000000000000000000.0f;
+
 Aabb::Aabb()
 {
 	SetContents(dls::math::vec3f(REALLY_BIG_NUMBER), dls::math::vec3f(-REALLY_BIG_NUMBER), dls::math::vec3f(0.0f), -1);
@@ -57,22 +59,15 @@ float Aabb::FastIntersectionTest(const rayCore::Ray& r)
 Aabb Aabb::Transform(const dls::math::mat4x4f& transform)
 {
 	//transform all corners of aabb
-	auto const tmin = dls::math::vec3f(utilityCore::multiply(transform, dls::math::vec4f(m_min, 1.0f)));
-	auto const tmax = dls::math::vec3f(utilityCore::multiply(transform, dls::math::vec4f(m_max, 1.0f)));
-	auto const tcentroid = dls::math::vec3f(utilityCore::multiply(transform,
-																  dls::math::vec4f(m_centroid, 1.0f)));
-	auto const m0 = dls::math::vec3f(utilityCore::multiply(transform,
-														   dls::math::vec4f(m_max.x, m_min.y, m_min.z, 1.0f)));
-	auto const m1 = dls::math::vec3f(utilityCore::multiply(transform,
-														   dls::math::vec4f(m_max.x, m_min.y, m_max.z, 1.0f)));
-	auto const m2 = dls::math::vec3f(utilityCore::multiply(transform,
-														   dls::math::vec4f(m_max.x, m_max.y, m_min.z, 1.0f)));
-	auto const m3 = dls::math::vec3f(utilityCore::multiply(transform,
-														   dls::math::vec4f(m_min.x, m_min.y, m_max.z, 1.0f)));
-	auto const m4 = dls::math::vec3f(utilityCore::multiply(transform,
-														   dls::math::vec4f(m_min.x, m_max.y, m_min.z, 1.0f)));
-	auto const m5 = dls::math::vec3f(utilityCore::multiply(transform,
-														   dls::math::vec4f(m_min.x, m_max.y, m_max.z, 1.0f)));
+	auto const tmin = dls::math::vec3f(transform * dls::math::vec4f(m_min, 1.0f));
+	auto const tmax = dls::math::vec3f(transform *  dls::math::vec4f(m_max, 1.0f));
+	auto const tcentroid = dls::math::vec3f(transform * dls::math::vec4f(m_centroid, 1.0f));
+	auto const m0 = dls::math::vec3f(transform * dls::math::vec4f(m_max.x, m_min.y, m_min.z, 1.0f));
+	auto const m1 = dls::math::vec3f(transform * dls::math::vec4f(m_max.x, m_min.y, m_max.z, 1.0f));
+	auto const m2 = dls::math::vec3f(transform * dls::math::vec4f(m_max.x, m_max.y, m_min.z, 1.0f));
+	auto const m3 = dls::math::vec3f(transform * dls::math::vec4f(m_min.x, m_min.y, m_max.z, 1.0f));
+	auto const m4 = dls::math::vec3f(transform * dls::math::vec4f(m_min.x, m_max.y, m_min.z, 1.0f));
+	auto const m5 = dls::math::vec3f(transform * dls::math::vec4f(m_min.x, m_max.y, m_max.z, 1.0f));
 	//build new aabb, return
 	Aabb a;
 	a.m_min = std::min(std::min(std::min(tmin, tmax), std::min(m0, m1)),

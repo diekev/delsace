@@ -8,7 +8,7 @@
 #define __INCLUS_GRILLE_ARIEL__
 
 #include <tbb/tbb.h>
-#include "../utilities/utilities.h"
+#include "biblinternes/math/vecteur.hh"
 
 namespace fluidCore {
 

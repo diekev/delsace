@@ -96,4 +96,12 @@ transformation vise(
 		dls::math::vec3d const &mire,
 		dls::math::vec3d const &haut);
 
+/* À FAIRE : gabarit */
+transformation construit_transformation(
+		dls::math::vec3f const &trans,
+		dls::math::vec3f const &rot,
+		dls::math::vec3f const &ech);
+
+dls::math::mat4x4f matf_depuis_matd(dls::math::mat4x4d const &m);
+
 }  /* namespace math */

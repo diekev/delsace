@@ -75,9 +75,7 @@ set(SOURCES
     utilities/datastructures.hpp
     utilities/loopvector.inl
     utilities/multiqueue.inl
-    utilities/shortstack.inl
-	utilities/utilities.cc
-	utilities/utilities.h
+	utilities/shortstack.inl
 )
 
 add_library(${NOM_CIBLE} STATIC ${SOURCES})

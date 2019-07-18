@@ -6,6 +6,7 @@
 
 #include "mesh.hpp"
 #include "biblinternes/math/outils.hh"
+#include "biblinternes/math/transformation.hh"
 
 namespace geomCore {
 
@@ -116,8 +117,10 @@ bool MeshContainer::GetTransforms(
 			m_geomTransforms[upperFrame]->m_rotation * lerpWeight;
 	auto interpS = m_geomTransforms[lowerFrame]->m_scale * (1.0f-lerpWeight) +
 			m_geomTransforms[upperFrame]->m_scale * lerpWeight;
-	inversetransform = utilityCore::buildInverseTransformationMatrix(interpT, interpR, interpS);
-	transform = utilityCore::buildTransformationMatrix(interpT, interpR, interpS);
+
+	auto xform = math::construit_transformation(interpT, interpR, interpS);
+	inversetransform = math::matf_depuis_matd(xform.inverse());
+	transform = math::matf_depuis_matd(xform.matrice());
 
 	return true;
 }
@@ -239,8 +242,10 @@ bool AnimatedMeshContainer::GetTransforms(
 			m_geomTransforms[upperFrame]->m_rotation * lerpWeight;
 	auto interpS = m_geomTransforms[lowerFrame]->m_scale * (1.0f-lerpWeight) +
 			m_geomTransforms[upperFrame]->m_scale * lerpWeight;
-	inversetransform = utilityCore::buildInverseTransformationMatrix(interpT, interpR, interpS);
-	transform = utilityCore::buildTransformationMatrix(interpT, interpR, interpS);
+
+	auto xform = math::construit_transformation(interpT, interpR, interpS);
+	inversetransform = math::matf_depuis_matd(xform.inverse());
+	transform = math::matf_depuis_matd(xform.matrice());
 
 	return true;
 }

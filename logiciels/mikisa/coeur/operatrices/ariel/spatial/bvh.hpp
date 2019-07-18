@@ -20,8 +20,9 @@
 #include "aabb.hpp"
 #include "spatial.hpp"
 #include "../ray/ray.hpp"
-#include "../utilities/utilities.h"
 #include "../utilities/datastructures.hpp"
+
+#include "biblinternes/outils/constantes.h"
 
 enum Axis{
 	axis_x,

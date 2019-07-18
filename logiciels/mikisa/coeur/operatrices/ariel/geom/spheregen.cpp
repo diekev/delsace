@@ -6,7 +6,8 @@
 
 #include <tbb/tbb.h>
 #include "spheregen.hpp"
-#include "../utilities/utilities.h"
+#include "biblinternes/math/transformation.hh"
+#include "biblinternes/outils/constantes.h"
 
 namespace geomCore{
 
@@ -18,9 +19,10 @@ SphereGen::SphereGen(const unsigned int& subdivCount)
 
 void SphereGen::Tesselate(objCore::Obj* o, const dls::math::vec3f& center, const float& radius)
 {
-	dls::math::vec3f scale = dls::math::vec3f(radius*2.0f);
-	dls::math::mat4x4f transform = utilityCore::buildTransformationMatrix(
-				center, dls::math::vec3f(0.0f, 0.0f, 0.0f), scale);
+	auto scale = dls::math::vec3f(radius*2.0f);
+
+	auto xform = math::construit_transformation(center, dls::math::vec3f(0.0f, 0.0f, 0.0f), scale);
+	auto transform = math::matf_depuis_matd(xform.matrice());
 
 	Tesselate(o);
 	unsigned int numberOfPoints = o->m_numberOfVertices;

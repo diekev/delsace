@@ -335,8 +335,8 @@ Poly Obj::GetPoly(const unsigned int& polyIndex)
 Point Obj::TransformPoint(const Point& p, const dls::math::mat4x4f& m)
 {
 	Point r = p;
-	r.m_position = dls::math::vec3f( utilityCore::multiply(m,dls::math::vec4f(p.m_position,1.0f)) );
-	r.m_normal = normalise(dls::math::vec3f( utilityCore::multiply(m,dls::math::vec4f(p.m_normal,0.0f)) ));
+	r.m_position = dls::math::vec3f(m * dls::math::vec4f(p.m_position,1.0f));
+	r.m_normal = normalise(dls::math::vec3f(m * dls::math::vec4f(p.m_normal, 0.0f)));
 	return r;
 }
 

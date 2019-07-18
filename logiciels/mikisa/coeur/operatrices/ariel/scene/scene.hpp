@@ -10,7 +10,6 @@
 #include "biblinternes/structures/tableau.hh"
 #include <tbb/tbb.h>
 #include <tbb/concurrent_vector.h>
-#include "../utilities/utilities.h"
 #include "../grid/grid.hpp"
 #include "../geom/mesh.hpp"
 #include "../grid/particlegrid.hpp"

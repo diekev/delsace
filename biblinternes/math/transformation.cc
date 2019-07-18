@@ -432,4 +432,46 @@ transformation vise(
 	return transformation(dls::math::inverse(matrice), matrice);
 }
 
+static auto converti_vec3f(dls::math::vec3f const &v)
+{
+	return dls::math::vec3d(static_cast<double>(v.x), static_cast<double>(v.y), static_cast<double>(v.z));
+}
+
+transformation construit_transformation(
+		dls::math::vec3f const &trans,
+		dls::math::vec3f const &rot,
+		dls::math::vec3f const &ech)
+{
+	auto xform = transformation{};
+
+	xform *= translation(converti_vec3f(trans));
+	xform *= rotation_z(dls::math::degrees_vers_radians(static_cast<double>(rot.z)));
+	xform *= rotation_y(dls::math::degrees_vers_radians(static_cast<double>(rot.y)));
+	xform *= rotation_x(dls::math::degrees_vers_radians(static_cast<double>(rot.x)));
+	xform *= echelle(converti_vec3f(ech));
+
+	return xform;
+}
+
+dls::math::mat4x4f matf_depuis_matd(dls::math::mat4x4d const &m)
+{
+	auto ret = dls::math::mat4x4f{};
+
+	for (auto i = 0ul; i < 4; ++i) {
+		for (auto j = 0ul; j < 4; ++j) {
+			ret[i][j] = static_cast<float>(m[i][j]);
+		}
+	}
+
+	return ret;
+}
+
+//void fovToPerspective(float fovy, float aspect, float zNear, dls::math::vec2f &xBounds, dls::math::vec2f &yBounds)
+//{
+//	yBounds[1] = zNear * std::tan(fovy*constantes<float>::PI/360.0f);
+//	yBounds[0] = -yBounds[1];
+//	xBounds[0] = yBounds[0]*aspect;
+//	xBounds[1] = yBounds[1]*aspect;
+//}
+
 }  /* namespace math */

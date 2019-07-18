@@ -6,7 +6,7 @@
 
 #include <tbb/tbb.h>
 #include "cubegen.hpp"
-#include "../utilities/utilities.h" 
+#include "biblinternes/math/transformation.hh"
 
 namespace geomCore{
 
@@ -98,8 +98,8 @@ void CubeGen::Tesselate(
 {
 	auto scale = upperCorner-lowerCorner;
 	auto center = (upperCorner+lowerCorner)/2.0f;
-	auto transform = utilityCore::buildTransformationMatrix(
-				center, dls::math::vec3f(0.0f, 0.0f, 0.0f), scale);
+	auto xform = math::construit_transformation(center, dls::math::vec3f(0.0f, 0.0f, 0.0f), scale);
+	auto transform = math::matf_depuis_matd(xform.matrice());
 
 	Tesselate(o);
 	unsigned int numberOfPoints = o->m_numberOfVertices;
