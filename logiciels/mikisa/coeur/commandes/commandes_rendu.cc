@@ -35,7 +35,7 @@
 #include <OpenEXR/ImfOutputFile.h>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/image/flux/ecriture.h"
 #include "biblinternes/outils/chemin.hh"
 

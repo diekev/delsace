@@ -24,7 +24,7 @@
 
 #include "commandes_objet.hh"
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/outils/fichier.hh"
 
 #include "../evaluation/evaluation.hh"

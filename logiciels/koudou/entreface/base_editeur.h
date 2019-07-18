@@ -32,7 +32,7 @@
 #include <QWidget>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/observation/observation.hh"
+#include "biblinternes/patrons_conception/observation.hh"
 
 class Koudou;
 class QFrame;

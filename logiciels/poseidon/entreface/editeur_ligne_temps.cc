@@ -42,7 +42,7 @@
 #include <QTimer>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/outils/fichier.hh"
 
 #include "coeur/evenement.h"

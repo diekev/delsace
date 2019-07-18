@@ -26,7 +26,7 @@
 
 #include "danjo/conteneur_controles.h"
 
-#include "biblinternes/observation/observation.hh"
+#include "biblinternes/patrons_conception/observation.hh"
 
 class Kanba;
 class QFrame;

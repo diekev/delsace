@@ -35,7 +35,7 @@
 #include <QToolTip>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "graphe/item_noeud.h"
 #include "graphe/vue_editrice_graphe.h"

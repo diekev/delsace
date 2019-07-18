@@ -44,8 +44,8 @@
 #include "biblinternes/image/operations/operations.h"
 #include "biblinternes/image/pixel.h"
 
-#include "biblinternes/commandes/commande.h"
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/outils/constantes.h"
 
 #include "coeur/composite.h"

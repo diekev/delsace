@@ -37,7 +37,7 @@
 
 #include "danjo/danjo.h"
 
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/vision/camera_2d.h"
 #include "biblinternes/vision/camera.h"
 

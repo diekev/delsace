@@ -37,8 +37,8 @@
 #include <QToolButton>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/commande.h"
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/graphe/graphe.h"
 
 #include "coeur/evenement.h"

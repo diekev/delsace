@@ -36,8 +36,8 @@
 #include <QMenu>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/commande.h"
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/outils/fichier.hh"
 
 #include "coeur/mikisa.h"

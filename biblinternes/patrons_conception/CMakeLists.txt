@@ -19,30 +19,37 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE design_patterns)
+set(NOM_BIBLIOTHEQUE bib_patrons)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../logiciels/danjo/coeur/
 )
 
 set(BIBLIOTHEQUES
+	bib_structures
     pthread
 )
 
 set(ENTETES
+	commande.h
 	cowlockmap.h
     factory.h
 	loquets.hh
 	oberver.h
+	observation.hh
 	producers.h
+	repondant_commande.h
     singleton.h
 	thread_shared_ptr.h
 )
 
 set(SOURCES
+	commande.cc
 	loquets.cc
-	main.cc
     oberver.cc
+	observation.cc
+	repondant_commande.cc
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
@@ -54,3 +61,11 @@ target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
 install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
 
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
+
+################################################################################
+
+add_executable(patrons_conception main.cc)
+
+target_include_directories(patrons_conception PUBLIC ${INCLUSIONS})
+
+target_link_libraries(patrons_conception "${BIBLIOTHEQUES}" bib_patrons)

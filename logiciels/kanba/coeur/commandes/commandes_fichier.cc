@@ -26,7 +26,7 @@
 
 #include <fstream>
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/objets/import_objet.h"
 
 #include "adaptrice_creation_maillage.h"

@@ -32,7 +32,7 @@
 #include <QFileDialog>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/vision/camera.h"
 
 #include "brosse.h"

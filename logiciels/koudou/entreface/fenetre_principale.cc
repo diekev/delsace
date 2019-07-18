@@ -38,7 +38,7 @@
 #include <QToolTip>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
 #include "coeur/configuration.h"

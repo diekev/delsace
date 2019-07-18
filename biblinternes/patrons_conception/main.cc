@@ -73,8 +73,8 @@ namespace singleton {
 
 void foo()
 {
-	auto sin = Singleton<SoundManager, 0>::instance();
-	std::cout << "Thread " << std::this_thread::get_id() << ": " << sin << '\n';
+	//auto sin = Singleton<SoundManager, 0>::instance();
+	std::cout << "Thread " << std::this_thread::get_id() << ": " << '\n';
 }
 
 void test()

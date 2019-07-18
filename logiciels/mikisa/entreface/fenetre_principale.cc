@@ -39,7 +39,7 @@
 #include <QStatusBar>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/fichier.hh"
 

@@ -41,8 +41,7 @@ set(BIBLIOTHEQUES
 	danjo
 	${BIBLIOTHEQUES_TBB}
 	image
-	bib_observation
-	bib_commandes
+	bib_patrons
 	bib_xml
 	${BIBLIOTHEQUES_OPENCOLORIO}
 	${BIBLIOTHEQUES_OPENEXR}
