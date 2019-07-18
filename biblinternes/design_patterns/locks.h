@@ -24,88 +24,91 @@
 
 #pragma once
 
+#include <atomic>
 #include <thread>
 
-class spin_lock {
-	std::atomic<int> m_lock;
+namespace dls {
 
-	enum state : int {
-		unlock = 0,
-		lock = 1,
+struct loquet_gyrant {
+private:
+	enum class etat : int {
+		deverrouille = 0,
+		verrouille = 1,
 	};
 
+	std::atomic<etat> m_verrou;
+
 public:
-	spin_lock()
-	    : m_lock(unlock)
+	loquet_gyrant()
+		: m_verrou(etat::deverrouille)
 	{}
 
-	void lock()
+	void verrouille()
 	{
-		while (m_lock.exchange(state::lock) == state::lock) {}
+		while (m_verrou.exchange(etat::verrouille) == etat::verrouille) {}
 	}
 
-	void unlock()
+	void deverrouille()
 	{
-		m_lock.exchange(state::unlock);
+		m_verrou.exchange(etat::deverrouille);
 	}
 };
 
-namespace starvation {
-
-class spin_lock {
-	std::atomic<int> m_lock;
-
-	enum state : int {
-		unlock = 0,
-		lock = 1,
+struct loquet_gyrant_affamant {
+private:
+	enum class etat : int {
+		deverrouille = 0,
+		verrouille = 1,
 	};
 
+	std::atomic<etat> m_verrou;
+
 public:
-	spin_lock()
-	    : m_lock(state::unlock)
+	loquet_gyrant_affamant()
+		: m_verrou(etat::deverrouille)
 	{}
 
-	void lock()
+	void verrouille()
 	{
-		int tmp = state::unlock;
+		auto tmp = etat::deverrouille;
 
-		while (!m_lock.compare_exchange_strong(tmp, state::lock)) {
+		while (!m_verrou.compare_exchange_strong(tmp, etat::verrouille)) {
 			std::this_thread::yield();
-			tmp = state::unlock;
+			tmp = etat::deverrouille;
 		}
 	}
 
-	void unlock()
+	void deverrouille()
 	{
-		m_lock.store(state::unlock, std::memory_order_release);
+		m_verrou.store(etat::deverrouille, std::memory_order_release);
 	}
 };
 
-}  /* namespace starvation */
-
-// starvation-free (at least on x86)
-class ticket_lock {
+// sans famine (au moins sur x86)
+class loquet_ticket {
 	std::atomic<long> m_ticket;
 	std::atomic<long> m_grant;
 
 public:
-	ticket_lock()
-	    : m_ticket(0)
-	    , m_grant(0)
+	loquet_ticket()
+		: m_ticket(0)
+		, m_grant(0)
 	{}
 
-	void lock()
+	void verrouille()
 	{
-		long lticket = m_ticket.fetch_add(1);
+		auto ticket = m_ticket.fetch_add(1);
 
-		while (lticket != m_grant.load()) {
+		while (ticket != m_grant.load()) {
 			std::this_thread::yield();
 		}
 	}
 
-	void unlock()
+	void deverrouille()
 	{
-		long lgrant = m_grant.load(std::memory_order_relaxed);
-		m_grant.store(lgrant + 1, std::memory_order_release);
+		auto grant = m_grant.load(std::memory_order_relaxed);
+		m_grant.store(grant + 1, std::memory_order_release);
 	}
 };
+
+}  /* namespace dls */
