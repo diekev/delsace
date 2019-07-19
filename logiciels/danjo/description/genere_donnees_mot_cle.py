@@ -318,7 +318,7 @@ id_morceau id_caractere_double(const dls::vue_chaine &chaine)
 
 id_morceau id_chaine(const dls::vue_chaine &chaine)
 {
-	if (chaine.size() == 1 || chaine.size() > TAILLE_MAX_MOT_CLE) {
+	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
