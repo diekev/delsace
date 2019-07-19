@@ -380,15 +380,7 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 
 		compileuse.reseau = &scene->reseau;
 
-		auto contexte = ContexteEvaluation{};
-		contexte.bdd = &mikisa.bdd;
-		contexte.cadence = mikisa.cadence;
-		contexte.temps_debut = mikisa.temps_debut;
-		contexte.temps_fin = mikisa.temps_fin;
-		contexte.temps_courant = mikisa.temps_courant;
-		contexte.gestionnaire_fichier = const_cast<GestionnaireFichier *>(&mikisa.gestionnaire_fichier);
-		contexte.chef = const_cast<ChefExecution *>(&mikisa.chef_execution);
-
+		auto contexte = cree_contexte_evaluation(mikisa);
 		compileuse.compile_reseau(contexte, scene, nullptr);
 
 		auto plan = planifieuse.requiers_plan_pour_scene(scene->reseau);

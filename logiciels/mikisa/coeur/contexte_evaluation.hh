@@ -29,6 +29,7 @@
 class BaseDeDonnees;
 class ChefExecution;
 struct GestionnaireFichier;
+struct Mikisa;
 
 struct ContexteEvaluation {
 	/* Le rectangle définissant l'aire de rendu. */
@@ -52,3 +53,5 @@ struct ContexteEvaluation {
 	ContexteEvaluation(ContexteEvaluation const &) = default;
 	ContexteEvaluation &operator=(ContexteEvaluation const &) = default;
 };
+
+ContexteEvaluation cree_contexte_evaluation(Mikisa const &mikisa);

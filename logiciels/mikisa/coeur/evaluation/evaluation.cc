@@ -47,22 +47,6 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	auto planifieuse = Planifieuse{};
 	auto executrice = Executrice{};
 
-	auto rectangle = Rectangle{};
-	rectangle.x = 0;
-	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
-
-	auto contexte = ContexteEvaluation{};
-	contexte.bdd = &mikisa.bdd;
-	contexte.cadence = mikisa.cadence;
-	contexte.temps_debut = mikisa.temps_debut;
-	contexte.temps_fin = mikisa.temps_fin;
-	contexte.temps_courant = mikisa.temps_courant;
-	contexte.resolution_rendu = rectangle;
-	contexte.gestionnaire_fichier = &mikisa.gestionnaire_fichier;
-	contexte.chef = &mikisa.chef_execution;
-
 	auto compileuse = CompilatriceReseau{};
 	compileuse.reseau = &mikisa.scene->reseau;
 
@@ -73,6 +57,7 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		objet = std::any_cast<Objet *>(scene->graphe.noeud_actif->donnees());
 	}
 
+	auto contexte = cree_contexte_evaluation(mikisa);
 	compileuse.compile_reseau(contexte, mikisa.scene, objet);
 
 	auto plan = Planifieuse::PtrPlan{nullptr};
