@@ -77,6 +77,9 @@ enum {
 };
 
 struct DonneesMorceaux {
+	static constexpr int INCONNU = IDENTIFIANT_NUL;
+	using type = int;
+
 	int identifiant = 0;
 	int numero_ligne = 0;
 	int position_ligne = 0;
@@ -85,7 +88,5 @@ struct DonneesMorceaux {
 
 	DonneesMorceaux() = default;
 };
-
-dls::tableau<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur = ' ');
 
 }  /* namespace langage */

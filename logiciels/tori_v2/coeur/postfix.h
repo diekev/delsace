@@ -30,8 +30,8 @@
 namespace langage {
 
 struct Variable {
-	int identifiant;
-	dls::chaine valeur;
+	int identifiant = 0;
+	dls::chaine valeur = "";
 };
 
 bool est_operateur(int identifiant);

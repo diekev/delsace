@@ -35,14 +35,14 @@ namespace langage {
  * mots-clés du langage.
  */
 class Decoupeur {
-	dls::vue_chaine m_chaine;
-	int m_position;
-	int m_position_ligne;
-	int m_ligne;
-	bool m_fini;
-	char m_caractere_courant;
+	dls::vue_chaine m_chaine = "";
+	int m_position = 0;
+	int m_position_ligne = 0;
+	int m_ligne = 0;
+	bool m_fini = 0;
+	char m_caractere_courant = 0;
 
-	dls::tableau<dls::vue_chaine> m_lignes;
+	dls::tableau<dls::vue_chaine> m_lignes{};
 	dls::tableau<DonneesMorceaux> m_identifiants{};
 
 public:
@@ -72,7 +72,7 @@ public:
 	/**
 	 * Retourne la liste de morceaux découpés.
 	 */
-	const dls::tableau<DonneesMorceaux> &morceaux() const;
+	dls::tableau<DonneesMorceaux> &morceaux();
 
 private:
 	/**

@@ -147,7 +147,7 @@ option(AVEC_PARCER "Compiler le parser C/C++ Parcer" ON)
 option(AVEC_POSEIDON "Compiler le logiciel de simulation de fluide Poséidon" ON)
 option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" ON)
 option(AVEC_TORI "Compiler le compilateur du langage Tori" ON)
-option(AVEC_TORI_V2 "Compiler Tori V2" OFF)
+option(AVEC_TORI_V2 "Compiler Tori V2" ON)
 option(AVEC_VULKAN "Compiler le logiciel test de Vulkan" ON)
 
 option(SEULEMENT_KURI "Ne compiler que Kuri et ses dépendances" OFF)

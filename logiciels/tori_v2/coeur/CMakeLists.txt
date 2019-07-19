@@ -20,18 +20,21 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
+)
+
+set(BIBLIOTHEQUES
+	langage
+	bib_structures
 )
 
 add_executable(tori_v2
-    analyseur.h
 	analyseuse_langage.h
     decoupeur.h
 	erreur.h
     morceaux.h
 	postfix.h
 
-	analyseur.cc
 	analyseuse_langage.cc
     decoupeur.cc
 	erreur.cc
@@ -41,3 +44,4 @@ add_executable(tori_v2
 )
 
 target_include_directories(tori_v2 PUBLIC "${INCLUSIONS}")
+target_link_libraries(tori_v2 "${BIBLIOTHEQUES}")
