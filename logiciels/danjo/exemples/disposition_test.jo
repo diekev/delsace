@@ -43,6 +43,10 @@ disposition "1disposition_début" {
 			étiquette(valeur="Courbe")
 			courbe_valeur(attache=courbe_2)
 		}
+		onglet "Liste Manip" {
+			étiquette(valeur="Courbe")
+			liste_manip(attache=liste_objets)
+		}
 	}
 	ligne {
 		étiquette(valeur="Ligne 2")

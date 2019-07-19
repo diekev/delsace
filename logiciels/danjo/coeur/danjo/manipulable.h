@@ -39,6 +39,8 @@ struct RampeCouleur;
 
 namespace danjo {
 
+struct ListeManipulable;
+
 enum TypePropriete {
 	ENTIER,
 	DECIMAL,
@@ -53,6 +55,7 @@ enum TypePropriete {
 	COURBE_VALEUR,
 	RAMPE_COULEUR,
 	TEXTE,
+	LISTE_MANIP,
 };
 
 struct Propriete {
@@ -208,6 +211,11 @@ public:
 	 * Retourne la rampe de la propriété 'rampe_couleur' du nom spécifié.
 	 */
 	RampeCouleur const *evalue_rampe_couleur(const dls::chaine &nom) const;
+
+	/**
+	 * Retourne la liste de la propriété 'liste_manip' du nom spécifié.
+	 */
+	ListeManipulable const *evalue_liste_manip(const dls::chaine &nom) const;
 
 	/**
 	 * Rends la propriété spécifiée visible dans l'entreface.

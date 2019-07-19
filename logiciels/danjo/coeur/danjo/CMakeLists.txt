@@ -50,6 +50,7 @@ qt5_wrap_cpp(
 	controles_proprietes/controle_propriete_fichier.h
 	controles_proprietes/controle_propriete_rampe_couleur.h
 	controles_proprietes/controle_propriete_liste.h
+	controles_proprietes/controle_propriete_liste_manip.hh
 	controles_proprietes/controle_propriete_vecteur.h
 
 	dialogues/dialogue_couleur.h
@@ -86,6 +87,7 @@ endif()
 
 set(ENTETES_TYPES
 	types/courbe_bezier.h
+	types/liste_manip.hh
 	types/outils.h
 	types/rampe_couleur.h
 )
@@ -127,6 +129,7 @@ set(SOURCES
 	controles_proprietes/controle_propriete_fichier.cc
 	controles_proprietes/controle_propriete_rampe_couleur.cc
 	controles_proprietes/controle_propriete_liste.cc
+	controles_proprietes/controle_propriete_liste_manip.cc
 	controles_proprietes/controle_propriete_vecteur.cc
 	controles_proprietes/donnees_controle.cc
 
@@ -144,6 +147,7 @@ set(SOURCES
 	dialogues/dialogue_couleur.cc
 
 	types/courbe_bezier.cc
+	types/liste_manip.cc
 	types/outils.cc
 	types/rampe_couleur.cc
 
@@ -181,6 +185,7 @@ set(SOURCES
 	controles_proprietes/controle_propriete_etiquette.h
 	controles_proprietes/controle_propriete_fichier.h
 	controles_proprietes/controle_propriete_liste.h
+	controles_proprietes/controle_propriete_liste_manip.hh
 	controles_proprietes/controle_propriete_rampe_couleur.h
 	controles_proprietes/controle_propriete_vecteur.h
 	controles_proprietes/donnees_controle.h

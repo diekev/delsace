@@ -27,6 +27,7 @@
 #include <assert.h>
 
 #include "types/courbe_bezier.h"
+#include "types/liste_manip.hh"
 #include "types/rampe_couleur.h"
 
 namespace danjo {
@@ -272,6 +273,12 @@ void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
 			valeur = std::any(rampe);
 			break;
 		}
+		case TypePropriete::LISTE_MANIP:
+		{
+			auto liste = ListeManipulable();
+			valeur = std::any(liste);
+			break;
+		}
 	}
 
 	m_proprietes[nom] = Propriete{valeur, type};
@@ -373,6 +380,11 @@ RampeCouleur const *Manipulable::evalue_rampe_couleur(const dls::chaine &nom) co
 	return std::any_cast<RampeCouleur>(&propriete(nom)->valeur);
 }
 
+ListeManipulable const *Manipulable::evalue_liste_manip(const dls::chaine &nom) const
+{
+	return std::any_cast<ListeManipulable>(&propriete(nom)->valeur);
+}
+
 void Manipulable::rend_propriete_visible(const dls::chaine &nom, bool ouinon)
 {
 	m_proprietes[nom].visible = ouinon;
@@ -449,6 +461,9 @@ void *Manipulable::operator[](const dls::chaine &nom)
 			break;
 		case TypePropriete::RAMPE_COULEUR:
 			pointeur = std::any_cast<RampeCouleur>(&propriete.valeur);
+			break;
+		case TypePropriete::LISTE_MANIP:
+			pointeur = std::any_cast<ListeManipulable>(&propriete.valeur);
 			break;
 	}
 

@@ -206,6 +206,7 @@ static void sauvegarde_proprietes(
 			case danjo::COURBE_COULEUR:
 			case danjo::COURBE_VALEUR:
 			case danjo::RAMPE_COULEUR:
+			case danjo::TypePropriete::LISTE_MANIP:
 				/* À FAIRE */
 				break;
 		}
@@ -538,6 +539,7 @@ static void lecture_propriete(
 		case danjo::COURBE_COULEUR:
 		case danjo::COURBE_VALEUR:
 		case danjo::RAMPE_COULEUR:
+		case danjo::TypePropriete::LISTE_MANIP:
 			/* À FAIRE */
 			break;
 	}

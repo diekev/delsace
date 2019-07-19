@@ -26,7 +26,6 @@
  
 #include "morceaux.h"
 
-#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
 
 namespace danjo {
@@ -58,6 +57,7 @@ static dls::dico<dls::vue_chaine, id_morceau> paires_mots_cles = {
 	{ "items", id_morceau::ITEMS },
 	{ "ligne", id_morceau::LIGNE },
 	{ "liste", id_morceau::LISTE },
+	{ "liste_manip", id_morceau::LISTE_MANIP },
 	{ "logique", id_morceau::LOGIQUE },
 	{ "max", id_morceau::MAX },
 	{ "menu", id_morceau::MENU },
@@ -281,6 +281,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::LIGNE";
 		case id_morceau::LISTE:
 			return "id_morceau::LISTE";
+		case id_morceau::LISTE_MANIP:
+			return "id_morceau::LISTE_MANIP";
 		case id_morceau::LOGIQUE:
 			return "id_morceau::LOGIQUE";
 		case id_morceau::MAX:

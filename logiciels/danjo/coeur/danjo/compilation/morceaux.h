@@ -103,6 +103,7 @@ enum class id_morceau : unsigned int {
 	ITEMS,
 	LIGNE,
 	LISTE,
+	LISTE_MANIP,
 	LOGIQUE,
 	MAX,
 	MENU,
