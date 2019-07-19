@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/ego/bufferobject.h"
-#include "biblinternes/ego/program.h"
+#include "biblinternes/ego/programme.h"
+#include "biblinternes/ego/tampon_objet.h"
 #include "biblinternes/ego/texture.h"
 
 /* Needs to included after glew.h, which is included in gpu/program.h and
@@ -37,8 +37,8 @@ class Fluid;
 class GLCanvas : public QGLWidget {
 	Q_OBJECT
 
-	dls::ego::Program m_program;
-	dls::ego::BufferObject::Ptr m_buffer;
+	dls::ego::Programme m_program{};
+	dls::ego::TamponObjet::Ptr m_buffer{};
 
 	const float m_vertices[8] = {
 	    -1.0f, -1.0f,
@@ -49,15 +49,19 @@ class GLCanvas : public QGLWidget {
 
 	const GLushort m_indices[6] = { 0, 1, 2, 0, 2, 3 };
 
-	Fluid *m_fluid;
+	Fluid *m_fluid = nullptr;
 
-	int m_width, m_height;
+	int m_width = 0;
+	int m_height = 0;
 
-	QTimer *m_timer;
+	QTimer *m_timer = nullptr;
 
 public:
 	explicit GLCanvas(QWidget *parent = nullptr);
 	~GLCanvas();
+
+	GLCanvas(GLCanvas const &) = default;
+	GLCanvas &operator=(GLCanvas const &) = default;
 
 	void initializeGL();
 	void paintGL();

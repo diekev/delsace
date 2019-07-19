@@ -27,6 +27,8 @@
 #include <QSqlDatabase>
 #include <QTranslator>
 
+#include "biblinternes/structures/tableau.hh"
+
 namespace Ui {
 class MainWindow;
 }
@@ -53,28 +55,28 @@ enum {
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
-	Ui::MainWindow *ui;
+	Ui::MainWindow *ui = nullptr;
 
-	AccountDialog *m_account_dialog;
-	TransactionDialog *m_transaction_dialog;
-	MonnaieDialog *m_monnaie_dialog;
-	RetraitDialog *m_retrait_dialog;
+	AccountDialog *m_account_dialog = nullptr;
+	TransactionDialog *m_transaction_dialog = nullptr;
+	MonnaieDialog *m_monnaie_dialog = nullptr;
+	RetraitDialog *m_retrait_dialog = nullptr;
 	/* TODO: per-user preferences */
-	UserPreferences *m_user_prefs;
+	UserPreferences *m_user_prefs = nullptr;
 
-	Utilisateur *m_user;
-	dls::tableau<Utilisateur *> m_users;
+	Utilisateur *m_user = nullptr;
+	dls::tableau<Utilisateur *> m_users = {};
 
-	dls::tableau<AccountWidget *> m_account_widgets;
-	dls::tableau<MonthlyTableWidget *> m_active_revenues;
-	dls::tableau<MonthlyTableWidget *> m_passive_revenues;
-	dls::tableau<MonthlyTableWidget *> m_personal_expenses;
-	dls::tableau<MonthlyTableWidget *> m_housing_expenses;
-	dls::tableau<MonthlyTableWidget *> m_transport_expenses;
+	dls::tableau<AccountWidget *> m_account_widgets = {};
+	dls::tableau<MonthlyTableWidget *> m_active_revenues = {};
+	dls::tableau<MonthlyTableWidget *> m_passive_revenues = {};
+	dls::tableau<MonthlyTableWidget *> m_personal_expenses = {};
+	dls::tableau<MonthlyTableWidget *> m_housing_expenses = {};
+	dls::tableau<MonthlyTableWidget *> m_transport_expenses = {};
 
-	QSqlDatabase m_database;
-	QTranslator m_translator;
-	QString m_current_language;
+	QSqlDatabase m_database = {};
+	QTranslator m_translator{};
+	QString m_current_language = "";
 
 	auto keyPressEvent(QKeyEvent *e) -> void;
 	auto closeEvent(QCloseEvent *) -> void;
@@ -95,24 +97,28 @@ private Q_SLOTS:
 	void saveFile();
 	void openFile();
 	void editPreferences();
-	void editAccount(const QString &name, const float value);
+	void editAccount(const QString &name, const double value);
 
 public:
 	MainWindow();
 	~MainWindow();
+
+	MainWindow(MainWindow const &) = default;
+	MainWindow &operator=(MainWindow const &) = default;
+
 	auto setUser(const QString &name) -> void;
 	auto createUser(const QString &name) -> void;
 	auto updateBilanTab() -> void;
-	auto updateBilanWidget(const QString &name, const float value) -> void;
+	auto updateBilanWidget(const QString &name, const double value) -> void;
 
 	auto createDefaultTableWidgets() -> void;
-	auto updateTableWidget(const QString &category, const float value, const int mois, int type) -> void;
+	auto updateTableWidget(const QString &category, const double value, const int mois, int type) -> void;
 
 	auto setDatabase(const QSqlDatabase &db) -> void;
 
 	auto readSettings() -> void;
 	auto writeSettings() -> void;
 	auto createWidgetForAccount(const Compte &compte) -> void;
-	auto updateUserTables(QDate date, int mois, int annee, float montant, QString category) -> void;
+	auto updateUserTables(QDate date, int mois, int annee, double montant, QString category) -> void;
 	auto updateUserTables() -> void;
 };

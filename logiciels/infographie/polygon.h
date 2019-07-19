@@ -29,8 +29,8 @@
 #include <QVector>
 
 struct Polygon {
-	QVector<QPoint> vertices;
-	QPoint centroid;
+	QVector<QPoint> vertices{};
+	QPoint centroid{};
 };
 
 void draw(const Polygon &curve, QPainter &painter);

@@ -24,7 +24,8 @@
 
 #include "fluid.h"
 
-#include <ego/utils.h>
+#include "biblinternes/ego/outils.h"
+#include "biblinternes/outils/fichier.hh"
 
 Fluid::Fluid()
     : m_impulse_temperature(10.0f)
@@ -49,7 +50,7 @@ void Fluid::init(int width, int height)
 {
 	m_width = width / 2;
 	m_height = height / 2;
-	m_splat_radius = m_width / 8.0f;
+	m_splat_radius = static_cast<float>(m_width) / 8.0f;
 
 	int num_textures = 0;
 
@@ -75,174 +76,174 @@ void Fluid::init(int width, int height)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	clear_surface(m_temperature.ping, m_temperature_ambient);
 
-	m_impulse_pos = glm::vec2{ width / 2, -m_splat_radius / 2 };
+	m_impulse_pos = dls::math::vec2f{ static_cast<float>(width) / 2.0f, -m_splat_radius / 2.0f};
 
-	m_buffer = numero7::ego::BufferObject::create();
-	m_buffer->bind();
-	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
-	m_buffer->generateIndexBuffer(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->unbind();
+	m_buffer = dls::ego::TamponObjet::cree_unique();
+	m_buffer->attache();
+	m_buffer->genere_tampon_sommet(m_vertices, sizeof(float) * 8);
+	m_buffer->genere_tampon_index(&m_indices[0], sizeof(GLushort) * 6);
+	m_buffer->detache();
 }
 
 void Fluid::step(unsigned int)
 {
 	glViewport(0, 0, m_grid_width, m_grid_height);
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
-	m_buffer->bind();
+	m_buffer->attache();
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
 	advect(m_velocity.ping, m_velocity.ping, m_obstacles, m_velocity.pong);
 	swap_surfaces(&m_velocity);
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
 	advect(m_velocity.ping, m_temperature.ping, m_obstacles, m_temperature.pong);
 	swap_surfaces(&m_temperature);
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
 	advect(m_velocity.ping, m_density.ping, m_obstacles, m_density.pong);
 	swap_surfaces(&m_density);
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
 	applyBuoyancy(m_velocity.ping, m_temperature.ping, m_density.ping, m_velocity.pong);
 	swap_surfaces(&m_velocity);
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
 	applyImpulse(m_temperature.ping, m_impulse_pos, m_impulse_temperature);
 	applyImpulse(m_density.ping, m_impulse_pos, m_impulse_density);
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
 	computedivergence(m_velocity.ping, m_obstacles, m_divergence);
 	clear_surface(m_pressure.ping, 0.0f);
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
 	for (int i = 0; i < m_jacobi_iterations; ++i) {
 		jacobi(m_pressure.ping, m_divergence, m_obstacles, m_pressure.pong);
 		swap_surfaces(&m_pressure);
 	}
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
 	subtractGradient(m_velocity.ping, m_pressure.ping, m_obstacles, m_velocity.pong);
 	swap_surfaces(&m_velocity);
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
-	m_buffer->unbind();
+	m_buffer->detache();
 }
 
 void Fluid::initPrograms()
 {
-	numero7::ego::Program *p = &m_advect_program;
-	p->load(numero7::ego::VERTEX_SHADER, numero7::ego::util::str_from_file("shaders/simple.vert"));
-	p->load(numero7::ego::FRAGMENT_SHADER, numero7::ego::util::str_from_file("shaders/advect.frag"));
-	p->createAndLinkProgram();
-	p->enable();
-	p->addAttribute("vertex");
-	p->addUniform("inverse_size");
-	p->addUniform("dt");
-	p->addUniform("dissipation");
-	p->addUniform("source");
-	p->addUniform("obstacles");
-	p->disable();
+	auto p = &m_advect_program;
+	p->charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("shaders/simple.vert"));
+	p->charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("shaders/advect.frag"));
+	p->cree_et_lie_programme();
+	p->active();
+	p->ajoute_attribut("vertex");
+	p->ajoute_uniforme("inverse_size");
+	p->ajoute_uniforme("dt");
+	p->ajoute_uniforme("dissipation");
+	p->ajoute_uniforme("source");
+	p->ajoute_uniforme("obstacles");
+	p->desactive();
 
 	p = &m_jacobi_program;
-	p->load(numero7::ego::VERTEX_SHADER, numero7::ego::util::str_from_file("shaders/simple.vert"));
-	p->load(numero7::ego::FRAGMENT_SHADER, numero7::ego::util::str_from_file("shaders/jacobi.frag"));
-	p->createAndLinkProgram();
-	p->enable();
-	p->addAttribute("vertex");
-	p->addUniform("alpha");
-	p->addUniform("inverse_beta");
-	p->addUniform("divergence");
-	p->addUniform("obstacles");
-	p->addUniform("pressure");
-	p->disable();
+	p->charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("shaders/simple.vert"));
+	p->charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("shaders/jacobi.frag"));
+	p->cree_et_lie_programme();
+	p->active();
+	p->ajoute_attribut("vertex");
+	p->ajoute_uniforme("alpha");
+	p->ajoute_uniforme("inverse_beta");
+	p->ajoute_uniforme("divergence");
+	p->ajoute_uniforme("obstacles");
+	p->ajoute_uniforme("pressure");
+	p->desactive();
 
 	p = &m_gradient_program;
-	p->load(numero7::ego::VERTEX_SHADER, numero7::ego::util::str_from_file("shaders/simple.vert"));
-	p->load(numero7::ego::FRAGMENT_SHADER, numero7::ego::util::str_from_file("shaders/subtract_gradient.frag"));
-	p->createAndLinkProgram();
-	p->enable();
-	p->addAttribute("vertex");
-	p->addUniform("gradient_scale");
-	p->addUniform("half_inverse_dh");
-	p->addUniform("pressure");
-	p->addUniform("obstacles");
-	p->disable();
+	p->charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("shaders/simple.vert"));
+	p->charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("shaders/subtract_gradient.frag"));
+	p->cree_et_lie_programme();
+	p->active();
+	p->ajoute_attribut("vertex");
+	p->ajoute_uniforme("gradient_scale");
+	p->ajoute_uniforme("half_inverse_dh");
+	p->ajoute_uniforme("pressure");
+	p->ajoute_uniforme("obstacles");
+	p->desactive();
 
 	p = &m_divergence_program;
-	p->load(numero7::ego::VERTEX_SHADER, numero7::ego::util::str_from_file("shaders/simple.vert"));
-	p->load(numero7::ego::FRAGMENT_SHADER, numero7::ego::util::str_from_file("shaders/divergence.frag"));
-	p->createAndLinkProgram();
-	p->enable();
-	p->addAttribute("vertex");
-	p->addUniform("half_inverse_dh");
-	p->addUniform("obstacles");
-	p->disable();
+	p->charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("shaders/simple.vert"));
+	p->charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("shaders/divergence.frag"));
+	p->cree_et_lie_programme();
+	p->active();
+	p->ajoute_attribut("vertex");
+	p->ajoute_uniforme("half_inverse_dh");
+	p->ajoute_uniforme("obstacles");
+	p->desactive();
 
 	p = &m_impulse_program;
-	p->load(numero7::ego::VERTEX_SHADER, numero7::ego::util::str_from_file("shaders/simple.vert"));
-	p->load(numero7::ego::FRAGMENT_SHADER, numero7::ego::util::str_from_file("shaders/splat.frag"));
-	p->createAndLinkProgram();
-	p->enable();
-	p->addAttribute("vertex");
-	p->addUniform("point");
-	p->addUniform("radius");
-	p->addUniform("fill_color");
-	p->disable();
+	p->charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("shaders/simple.vert"));
+	p->charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("shaders/splat.frag"));
+	p->cree_et_lie_programme();
+	p->active();
+	p->ajoute_attribut("vertex");
+	p->ajoute_uniforme("point");
+	p->ajoute_uniforme("radius");
+	p->ajoute_uniforme("fill_color");
+	p->desactive();
 
 	p = &m_buoyancy_program;
-	p->load(numero7::ego::VERTEX_SHADER, numero7::ego::util::str_from_file("shaders/simple.vert"));
-	p->load(numero7::ego::FRAGMENT_SHADER, numero7::ego::util::str_from_file("shaders/buoyancy.frag"));
-	p->createAndLinkProgram();
-	p->enable();
-	p->addAttribute("vertex");
-	p->addUniform("temperature");
-	p->addUniform("density");
-	p->addUniform("temperature_ambient");
-	p->addUniform("dt");
-	p->addUniform("sigma");
-	p->addUniform("kappa");
-	p->disable();
+	p->charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("shaders/simple.vert"));
+	p->charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("shaders/buoyancy.frag"));
+	p->cree_et_lie_programme();
+	p->active();
+	p->ajoute_attribut("vertex");
+	p->ajoute_uniforme("temperature");
+	p->ajoute_uniforme("density");
+	p->ajoute_uniforme("temperature_ambient");
+	p->ajoute_uniforme("dt");
+	p->ajoute_uniforme("sigma");
+	p->ajoute_uniforme("kappa");
+	p->desactive();
 }
 
 void Fluid::jacobi(const Surface &pressure, const Surface &divergence, const Surface &obstacles, const Surface &dest)
 {
-	numero7::ego::Program *p = &m_jacobi_program;
+	auto p = &m_jacobi_program;
 
-	m_buffer->attribPointer((*p)["vertex"], 2);
+	m_buffer->pointeur_attribut(static_cast<unsigned>((*p)["vertex"]), 2);
 
 	glEnable(GL_BLEND);
 
-	if (p->isValid()) {
-		p->enable();
+	if (p->est_valide()) {
+		p->active();
 		glUniform1f((*p)("alpha"), -m_cell_size * m_cell_size);
 		glUniform1f((*p)("inverse_beta"), 0.25f);
-		glUniform1i((*p)("divergence"), divergence.texture->number());
-		glUniform1i((*p)("obstacles"), obstacles.texture->number());
-		glUniform1i((*p)("pressure"), pressure.texture->number());
+		glUniform1i((*p)("divergence"), static_cast<int>(divergence.texture->code_attache()));
+		glUniform1i((*p)("obstacles"), static_cast<int>(obstacles.texture->code_attache()));
+		glUniform1i((*p)("pressure"), static_cast<int>(pressure.texture->code_attache()));
 
-		dest.framebuffer->bind();
-		pressure.texture->bind();
-		divergence.texture->bind();
-		obstacles.texture->bind();
+		dest.framebuffer->attache();
+		pressure.texture->attache();
+		divergence.texture->attache();
+		obstacles.texture->attache();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		pressure.texture->unbind();
-		divergence.texture->unbind();
-		obstacles.texture->unbind();
-		dest.framebuffer->unbind();
-		p->disable();
+		pressure.texture->detache();
+		divergence.texture->detache();
+		obstacles.texture->detache();
+		dest.framebuffer->detache();
+		p->desactive();
 	}
 
 	glDisable(GL_BLEND);
@@ -250,90 +251,90 @@ void Fluid::jacobi(const Surface &pressure, const Surface &divergence, const Sur
 
 void Fluid::advect(const Surface &velocity, const Surface &source, const Surface &obstacles, const Surface &dest)
 {
-	numero7::ego::Program *p = &m_advect_program;
+	auto p = &m_advect_program;
 
-	m_buffer->attribPointer((*p)["vertex"], 2);
+	m_buffer->pointeur_attribut(static_cast<unsigned>((*p)["vertex"]), 2);
 
 	glEnable(GL_BLEND);
 
-	if (p->isValid()) {
-		p->enable();
-		glUniform2f((*p)("inverse_size"), 1.0f / m_width, 1.0f / m_height);
+	if (p->est_valide()) {
+		p->active();
+		glUniform2f((*p)("inverse_size"), 1.0f / static_cast<float>(m_width), 1.0f / static_cast<float>(m_height));
 		glUniform1f((*p)("dt"), m_dt);
 		glUniform1f((*p)("dissipation"), m_dissipation_rate);
-		glUniform1i((*p)("source"), source.texture->number());
-		glUniform1i((*p)("obstacles"), obstacles.texture->number());
+		glUniform1i((*p)("source"), static_cast<int>(source.texture->code_attache()));
+		glUniform1i((*p)("obstacles"), static_cast<int>(obstacles.texture->code_attache()));
 
-		dest.framebuffer->bind();
-		velocity.texture->bind();
-		source.texture->bind();
-		obstacles.texture->bind();
+		dest.framebuffer->attache();
+		velocity.texture->attache();
+		source.texture->attache();
+		obstacles.texture->attache();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		velocity.texture->unbind();
-		source.texture->unbind();
-		obstacles.texture->unbind();
-		dest.framebuffer->unbind();
-		p->disable();
+		velocity.texture->detache();
+		source.texture->detache();
+		obstacles.texture->detache();
+		dest.framebuffer->detache();
+		p->desactive();
 	}
 
 	glDisable(GL_BLEND);
 }
 
-void Fluid::applyImpulse(const Surface &dest, const glm::vec2 &position, float value)
+void Fluid::applyImpulse(const Surface &dest, const dls::math::vec2f &position, float value)
 {
-	numero7::ego::Program *p = &m_impulse_program;
+	auto p = &m_impulse_program;
 
-	m_buffer->attribPointer((*p)["vertex"], 2);
+	m_buffer->pointeur_attribut(static_cast<unsigned>((*p)["vertex"]), 2);
 
-	if (p->isValid()) {
+	if (p->est_valide()) {
 
 		glEnable(GL_BLEND);
-		p->enable();
-		glUniform2f((*p)("point"), (float) position.x, (float) position.x);
+		p->active();
+		glUniform2f((*p)("point"), position.x, position.y);
 		glUniform1f((*p)("radius"), m_splat_radius);
 		glUniform3f((*p)("fill_color"), value, value, value);
 
-		dest.framebuffer->bind();
+		dest.framebuffer->attache();
 		glEnable(GL_BLEND);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		dest.framebuffer->unbind();
-		p->disable();
+		dest.framebuffer->detache();
+		p->desactive();
 		glDisable(GL_BLEND);
 	}
 }
 
 void Fluid::subtractGradient(const Surface &velocity, const Surface &pressure, const Surface &obstacles, const Surface &dest)
 {
-	numero7::ego::Program *p = &m_gradient_program;
+	auto p = &m_gradient_program;
 
-	m_buffer->attribPointer((*p)["vertex"], 2);
+	m_buffer->pointeur_attribut(static_cast<unsigned>((*p)["vertex"]), 2);
 
 	glEnable(GL_BLEND);
 
-	if (p->isValid()) {
-		p->enable();
+	if (p->est_valide()) {
+		p->active();
 
 		glUniform1f((*p)("gradient_scale"), m_gradient_scale);
 		glUniform1f((*p)("half_inverse_dh"), 0.5f / m_cell_size);
-		glUniform1i((*p)("pressure"), pressure.texture->number());
-		glUniform1i((*p)("obstacles"), obstacles.texture->number());
+		glUniform1i((*p)("pressure"), static_cast<int>(pressure.texture->code_attache()));
+		glUniform1i((*p)("obstacles"), static_cast<int>(obstacles.texture->code_attache()));
 
-		dest.framebuffer->bind();
-		velocity.texture->bind();
-		pressure.texture->bind();
-		obstacles.texture->bind();
+		dest.framebuffer->attache();
+		velocity.texture->attache();
+		pressure.texture->attache();
+		obstacles.texture->attache();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		dest.framebuffer->unbind();
-		velocity.texture->unbind();
-		pressure.texture->unbind();
-		obstacles.texture->unbind();
-		p->disable();
+		dest.framebuffer->detache();
+		velocity.texture->detache();
+		pressure.texture->detache();
+		obstacles.texture->detache();
+		p->desactive();
 	}
 
 	glDisable(GL_BLEND);
@@ -341,28 +342,28 @@ void Fluid::subtractGradient(const Surface &velocity, const Surface &pressure, c
 
 void Fluid::computedivergence(const Surface &velocity, const Surface &obstacles, const Surface &dest)
 {
-	numero7::ego::Program *p = &m_divergence_program;
+	auto p = &m_divergence_program;
 
-	m_buffer->attribPointer((*p)["vertex"], 2);
+	m_buffer->pointeur_attribut(static_cast<unsigned>((*p)["vertex"]), 2);
 
 	glEnable(GL_BLEND);
 
-	if (p->isValid()) {
-		p->enable();
+	if (p->est_valide()) {
+		p->active();
 
 		glUniform1f((*p)("half_inverse_dh"), 0.5f / m_cell_size);
-		glUniform1i((*p)("obstacles"), obstacles.texture->number());
+		glUniform1i((*p)("obstacles"), static_cast<int>(obstacles.texture->code_attache()));
 
-		dest.framebuffer->bind();
-		velocity.texture->bind();
-		obstacles.texture->bind();
+		dest.framebuffer->attache();
+		velocity.texture->attache();
+		obstacles.texture->attache();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		dest.framebuffer->unbind();
-		velocity.texture->unbind();
-		obstacles.texture->unbind();
-		p->disable();
+		dest.framebuffer->detache();
+		velocity.texture->detache();
+		obstacles.texture->detache();
+		p->desactive();
 	}
 
 	glDisable(GL_BLEND);
@@ -370,34 +371,34 @@ void Fluid::computedivergence(const Surface &velocity, const Surface &obstacles,
 
 void Fluid::applyBuoyancy(const Surface &velocity, const Surface &temperature, const Surface &density, const Surface &dest)
 {
-	numero7::ego::Program *p = &m_buoyancy_program;
+	auto p = &m_buoyancy_program;
 
-	m_buffer->attribPointer((*p)["vertex"], 2);
+	m_buffer->pointeur_attribut(static_cast<unsigned>((*p)["vertex"]), 2);
 
 	glEnable(GL_BLEND);
 
-	if (p->isValid()) {
-		p->enable();
+	if (p->est_valide()) {
+		p->active();
 
-		glUniform1i((*p)("temperature"), temperature.texture->number());
-		glUniform1i((*p)("density"), density.texture->number());
+		glUniform1i((*p)("temperature"), static_cast<int>(temperature.texture->code_attache()));
+		glUniform1i((*p)("density"), static_cast<int>(density.texture->code_attache()));
 		glUniform1f((*p)("temperature_ambient"), m_temperature_ambient);
 		glUniform1f((*p)("dt"), m_dt);
 		glUniform1f((*p)("sigma"), m_smoke_density);
 		glUniform1f((*p)("kappa"), m_smoke_weight);
 
-		dest.framebuffer->bind();
-		velocity.texture->bind();
-		temperature.texture->bind();
-		density.texture->bind();
+		dest.framebuffer->attache();
+		velocity.texture->attache();
+		temperature.texture->attache();
+		density.texture->attache();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		dest.framebuffer->unbind();
-		velocity.texture->unbind();
-		temperature.texture->unbind();
-		density.texture->unbind();
-		p->disable();
+		dest.framebuffer->detache();
+		velocity.texture->detache();
+		temperature.texture->detache();
+		density.texture->detache();
+		p->desactive();
 	}
 
 	glDisable(GL_BLEND);
@@ -407,22 +408,22 @@ void Fluid::bindTexture(int field)
 {
 	switch (field) {
 		case FLUID_FIELD_DENSITY:
-			m_density.ping.texture->bind();
+			m_density.ping.texture->attache();
 			break;
 		case FLUID_FIELD_DIVERGENCE:
-			m_divergence.texture->bind();
+			m_divergence.texture->attache();
 			break;
 		case FLUID_FIELD_PRESSURE:
-			m_pressure.ping.texture->bind();
+			m_pressure.ping.texture->attache();
 			break;
 		case FLUID_FIELD_VELOCITY:
-			m_velocity.ping.texture->bind();
+			m_velocity.ping.texture->attache();
 			break;
 		case FLUID_FIELD_TEMPERATURE:
-			m_temperature.ping.texture->bind();
+			m_temperature.ping.texture->attache();
 			break;
 		case FLUID_FIELD_OBSTACLE:
-			m_obstacles.texture->bind();
+			m_obstacles.texture->attache();
 			break;
 	}
 }
@@ -431,22 +432,22 @@ void Fluid::unbindTexture(int field)
 {
 	switch (field) {
 		case FLUID_FIELD_DENSITY:
-			m_density.ping.texture->unbind();
+			m_density.ping.texture->detache();
 			break;
 		case FLUID_FIELD_DIVERGENCE:
-			m_divergence.texture->unbind();
+			m_divergence.texture->detache();
 			break;
 		case FLUID_FIELD_PRESSURE:
-			m_pressure.ping.texture->unbind();
+			m_pressure.ping.texture->detache();
 			break;
 		case FLUID_FIELD_VELOCITY:
-			m_velocity.ping.texture->unbind();
+			m_velocity.ping.texture->detache();
 			break;
 		case FLUID_FIELD_TEMPERATURE:
-			m_temperature.ping.texture->unbind();
+			m_temperature.ping.texture->detache();
 			break;
 		case FLUID_FIELD_OBSTACLE:
-			m_obstacles.texture->unbind();
+			m_obstacles.texture->detache();
 			break;
 	}
 }

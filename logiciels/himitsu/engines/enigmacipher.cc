@@ -44,8 +44,8 @@ EnigmaCipher::EnigmaCipher()
 
 	m_reflect = "IMETCGFRAYSQBZXWLHKDVUPOJN";
 
-	m_plug_board.resize(26);
-	std::iota(m_plug_board.begin(), m_plug_board.end(), 0);
+	m_plug_board.redimensionne(26);
+	std::iota(m_plug_board.debut(), m_plug_board.fin(), 0);
 
 	addSwapPair('A', 'T');
 	addSwapPair('B', 'J');
@@ -63,7 +63,7 @@ EnigmaCipher::~EnigmaCipher()
 char EnigmaCipher::getCipheredChar(char to_encrypt)
 {
 	if (isalpha(to_encrypt)) {
-		to_encrypt = toupper(to_encrypt);
+		to_encrypt = static_cast<char>(toupper(to_encrypt));
 		to_encrypt = toPlugBoard(to_encrypt);
 		to_encrypt = letter_add(to_encrypt, getCipherKey());
 		to_encrypt = toPlugBoard(to_encrypt);
@@ -75,7 +75,7 @@ char EnigmaCipher::getCipheredChar(char to_encrypt)
 char EnigmaCipher::getDecipheredChar(char to_decrypt)
 {
 	if (isalpha(to_decrypt)) {
-		to_decrypt = toupper(to_decrypt);
+		to_decrypt = static_cast<char>(toupper(to_decrypt));
 		to_decrypt = toPlugBoard(to_decrypt);
 		to_decrypt = letter_sub(to_decrypt, getCipherKey());
 		to_decrypt = toPlugBoard(to_decrypt);
@@ -130,8 +130,8 @@ void EnigmaCipher::addSwapPair(const char a, const char b)
 
 char EnigmaCipher::toPlugBoard(const char to_scrumble) const
 {
-	auto first = ((isupper(to_scrumble)) ? 'A' : 'a');
-	return m_plug_board[letter_index(to_scrumble)] + first;
+	auto first = (isupper(to_scrumble)) ? 'A' : 'a';
+	return static_cast<char>(m_plug_board[letter_index(to_scrumble)] + first);
 }
 
 void EnigmaCipher::reset()

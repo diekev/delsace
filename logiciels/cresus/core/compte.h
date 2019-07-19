@@ -33,11 +33,11 @@ enum {
 };
 
 class Compte {
-	QString m_nom;
-	float m_balance;
-	int m_type;
-	bool m_is_blocked;
-	QVector<Transaction> m_transactions;
+	QString m_nom{};
+	double m_balance{};
+	int m_type{};
+	bool m_is_blocked{};
+	QVector<Transaction> m_transactions{};
 
 public:
 	/* Required for serialization */
@@ -65,12 +65,12 @@ public:
 		return this->m_nom;
 	}
 
-	auto value() const -> float
+	auto value() const -> double
 	{
 		return this->m_balance;
 	}
 
-	auto setValue(const float valeur) -> void
+	auto setValue(const double valeur) -> void
 	{
 		this->m_balance = valeur;
 	}
@@ -85,22 +85,22 @@ public:
 		this->m_type = type;
 	}
 
-	auto setDeposit(const float montant) -> void
+	auto setDeposit(const double montant) -> void
 	{
 		this->m_balance += montant;
 	}
 
-	auto setWithdrawal(const float montant) -> void
+	auto setWithdrawal(const double montant) -> void
 	{
 		this->m_balance -= montant;
 	}
 
 	auto addTransaction(const Transaction &transac) -> void
 	{
-		this->m_transactions.pousse(transac);
+		this->m_transactions.push_back(transac);
 	}
 
-	auto addTransaction(const float value, const bool income) -> void
+	auto addTransaction(const double value, const bool income) -> void
 	{
 		this->m_balance += (income) ? value : -value;
 	}

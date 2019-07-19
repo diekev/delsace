@@ -40,15 +40,16 @@ class VigenereCipher;
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
-	Ui::MainWindow *ui;
-	QString m_ciphered_text;
-	CipherEngine *m_current_engine, *m_previous_engine;
-	CaesarCipher *m_caesar_cipher;
-	EnigmaCipher *m_enigma_cipher;
-	LorenzCipher *m_lorenz_cipher;
-	VigenereCipher *m_vigenere_cipher;
+	Ui::MainWindow *ui = nullptr;
+	QString m_ciphered_text = "";
+	CipherEngine *m_current_engine = nullptr;
+	CipherEngine *m_previous_engine = nullptr;
+	CaesarCipher *m_caesar_cipher = nullptr;
+	EnigmaCipher *m_enigma_cipher = nullptr;
+	LorenzCipher *m_lorenz_cipher = nullptr;
+	VigenereCipher *m_vigenere_cipher = nullptr;
 
-	QSlider *m_letter_dist[26];
+	QSlider *m_letter_dist[26] = {};
 
 	void setCurrentEngine(CipherEngine *cur);
 	void cipher(const char letter, int mode);
@@ -64,4 +65,7 @@ private Q_SLOTS:
 public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
+
+	MainWindow(MainWindow const &) = default;
+	MainWindow &operator=(MainWindow const &) = default;
 };

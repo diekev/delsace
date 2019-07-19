@@ -25,8 +25,10 @@
 #include "glcanvas.h"
 
 #include <cassert>
-#include <ego/utils.h>
 #include <iostream>
+
+#include "biblinternes/ego/outils.h"
+#include "biblinternes/outils/fichier.hh"
 
 GLCanvas::GLCanvas(QWidget *parent)
     : QGLWidget(parent)
@@ -43,45 +45,45 @@ void GLCanvas::initializeGL()
 		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
 	}
 
-	m_texture = ego::Texture2D::create(0);
+	m_texture = dls::ego::Texture2D::cree_unique(0);
 
-	m_program.load(ego::VERTEX_SHADER, ego::util::str_from_file("gpu_shaders/vert.glsl"));
-	m_program.load(ego::FRAGMENT_SHADER, ego::util::str_from_file("gpu_shaders/frag.glsl"));
+	m_program.charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("gpu_shaders/vert.glsl"));
+	m_program.charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("gpu_shaders/frag.glsl"));
 
-	m_program.createAndLinkProgram();
+	m_program.cree_et_lie_programme();
 
-	m_program.enable();
+	m_program.active();
 	{
-		m_program.addAttribute("vertex");
-		m_program.addUniform("image");
+		m_program.ajoute_attribut("vertex");
+		m_program.ajoute_uniforme("image");
 
-		glUniform1i(m_program("image"), m_texture->number());
+		glUniform1i(m_program("image"), static_cast<int>(m_texture->code_attache()));
 	}
-	m_program.disable();
+	m_program.desactive();
 
-	m_buffer = ego::BufferObject::create();
+	m_buffer = dls::ego::TamponObjet::cree_unique();
 
-	m_buffer->bind();
-	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
-	m_buffer->generateIndexBuffer(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->attribPointer(m_program["vertex"], 2);
-	m_buffer->unbind();
+	m_buffer->attache();
+	m_buffer->genere_tampon_sommet(m_vertices, sizeof(float) * 8);
+	m_buffer->genere_tampon_index(&m_indices[0], sizeof(GLushort) * 6);
+	m_buffer->pointeur_attribut(static_cast<unsigned>(m_program["vertex"]), 2);
+	m_buffer->detache();
 }
 
 void GLCanvas::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (m_program.isValid()) {
-		m_program.enable();
-		m_buffer->bind();
-		m_texture->bind();
+	if (m_program.est_valide()) {
+		m_program.active();
+		m_buffer->attache();
+		m_texture->attache();
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		m_texture->unbind();
-		m_buffer->unbind();
-		m_program.disable();
+		m_texture->detache();
+		m_buffer->detache();
+		m_program.desactive();
 	}
 }
 
@@ -92,19 +94,19 @@ void GLCanvas::resizeGL(int w, int h)
 
 void GLCanvas::loadImage(const QImage &image) const
 {
-	QImage data = QGLWidget::convertToGLFormat(image);
+	QImage donnees_image = QGLWidget::convertToGLFormat(image);
 
-	assert((data.width() > 0) && (data.height() > 0));
+	assert((donnees_image.width() > 0) && (donnees_image.height() > 0));
 
-	GLint size[] = { data.width(), data.height() };
+	GLint size[] = { donnees_image.width(), donnees_image.height() };
 
-	m_texture->free(true);
-	m_texture->bind();
-	m_texture->setType(GL_UNSIGNED_BYTE, GL_RGBA, GL_RGBA);
-	m_texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	m_texture->setWrapping(GL_CLAMP);
-	m_texture->fill(data.bits(), size);
-	m_texture->unbind();
+	m_texture->deloge(true);
+	m_texture->attache();
+	m_texture->type(GL_UNSIGNED_BYTE, GL_RGBA, GL_RGBA);
+	m_texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+	m_texture->enveloppe(GL_CLAMP);
+	m_texture->remplie(donnees_image.bits(), size);
+	m_texture->detache();
 
-	ego::util::GPU_check_errors("Unable to create image texture");
+	dls::ego::util::GPU_check_errors("Unable to create image texture");
 }

@@ -26,14 +26,14 @@
 #include "compte.h"
 
 class Utilisateur {
-	QString m_nom;
-	QVector<Compte> m_accounts;
-	QVector<Transaction> m_transactions;
+	QString m_nom{};
+	QVector<Compte> m_accounts{};
+	QVector<Transaction> m_transactions{};
 
-	float m_argent_liquide;
-	float m_net_value;
-	float m_dette;
-	float m_liquid_capital;
+	double m_argent_liquide{};
+	double m_net_value{};
+	double m_dette{};
+	double m_liquid_capital{};
 
 	auto updateNetValue() -> void
 	{
@@ -54,7 +54,7 @@ public:
 	explicit Utilisateur(QString name)
 		: m_nom(std::move(name))
 	{
-		m_argent_liquide = m_net_value = m_dette = m_liquid_capital = 0.0f;
+		m_argent_liquide = m_net_value = m_dette = m_liquid_capital = 0.0;
 		m_accounts.reserve(10);
 		m_transactions.reserve(10);
 	}
@@ -86,35 +86,35 @@ public:
 		m_nom = std::move(name);
 	}
 
-	auto netValue() -> float&
+	auto netValue() -> double&
 	{
 		updateNetValue();
 		return m_net_value;
 	}
 
-	auto netValue() const -> float
+	auto netValue() const -> double
 	{
 		return m_net_value;
 	}
 
-	auto setArgentLiquide(const float valeur) -> void
+	auto setArgentLiquide(const double valeur) -> void
 	{
 		m_argent_liquide = valeur;
 	}
 
-	auto getArgentLiquide() const -> float
+	auto getArgentLiquide() const -> double
 	{
 		return m_argent_liquide;
 	}
 
-	auto setDebt(const float valeur) -> void
+	auto setDebt(const double valeur) -> void
 	{
 		m_dette = valeur;
 	}
 
 	auto addAccount(const Compte &account) -> void
 	{
-		m_accounts.pousse(account);
+		m_accounts.push_back(account);
 	}
 
 	auto account(int index) -> Compte&

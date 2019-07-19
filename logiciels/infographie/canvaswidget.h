@@ -29,11 +29,14 @@
 #include "scene.h"
 
 class CanvasWidget : public QWidget {
-	Scene *m_scene;
+	Scene *m_scene = nullptr;
 
 public:
 	explicit CanvasWidget(QWidget *parent = nullptr);
 	~CanvasWidget() = default;
+
+	CanvasWidget(CanvasWidget const &) = default;
+	CanvasWidget &operator=(CanvasWidget const &) = default;
 
 	void setScene(Scene *scene);
 

@@ -42,14 +42,17 @@ enum {
 class RetraitDialog : public QDialog {
 	Q_OBJECT
 
-	Ui::RetraitDialog *ui;
+	Ui::RetraitDialog *ui = nullptr;
 
 public:
 	explicit RetraitDialog(QWidget *parent = nullptr);
 	~RetraitDialog();
 
+	RetraitDialog(RetraitDialog const &) = default;
+	RetraitDialog &operator=(RetraitDialog const &) = default;
+
 	auto accountIndex() const -> int;
-	auto montant() const -> float;
+	auto montant() const -> double;
 	auto addCompteItem(const QString &name) -> void;
 	auto date() const -> QDate;
 	auto resetToDefaults() -> void;
@@ -58,12 +61,12 @@ public:
 class TransactionDialog : public QDialog {
 	Q_OBJECT
 
-	Ui::TransactionDialog *ui;
+	Ui::TransactionDialog *ui = nullptr;
 
 	/* This is to be in sync with Utilisateur::m_argent_liquide!
 	 * It is used to check if we do not end up with negative cash values */
-	float m_cash;
-	bool m_is_income;
+	double m_cash = 0.0;
+	bool m_is_income = false;
 
 public Q_SLOTS:
 	void onAcceptButtonClicked();
@@ -74,7 +77,10 @@ public:
 	explicit TransactionDialog(QWidget *parent = nullptr);
 	~TransactionDialog();
 
-	auto setCash(const float cash) -> void;
+	TransactionDialog(TransactionDialog const &) = default;
+	TransactionDialog &operator=(TransactionDialog const &) = default;
+
+	auto setCash(const double cash) -> void;
 
 	auto accountIndex() const -> int;
 	auto addCompteItem(const QString &name) -> void;
@@ -82,7 +88,7 @@ public:
 	auto addTypeItem(const QString &name, const QVariant data, const bool income) -> void;
 	auto category(const bool income) const -> QString;
 	auto mediumItem() const -> int;
-	auto montant() const -> float;
+	auto montant() const -> double;
 	auto resetToDefaults() -> void;
 	auto setTransactionUI(const bool income) -> void;
 	auto date() const -> QDate;
@@ -93,9 +99,22 @@ class MonnaieDialog : public QDialog {
 	Q_OBJECT
 
 	Ui::MonnaieDialog *ui;
-	double m_total_value, m_1c_value, m_2c_value, m_5c_value, m_10c_value,
-	m_20c_value, m_50c_value, m_1e_value, m_2e_value, m_5e_value, m_10e_value,
-	m_20e_value, m_50e_value, m_100e_value, m_200e_value, m_500e_value;
+	double m_total_value = 0.0;
+	double m_1c_value = 0.0;
+	double m_2c_value = 0.0;
+	double m_5c_value = 0.0;
+	double m_10c_value = 0.0;
+	double m_20c_value = 0.0;
+	double m_50c_value = 0.0;
+	double m_1e_value = 0.0;
+	double m_2e_value = 0.0;
+	double m_5e_value = 0.0;
+	double m_10e_value = 0.0;
+	double m_20e_value = 0.0;
+	double m_50e_value = 0.0;
+	double m_100e_value = 0.0;
+	double m_200e_value = 0.0;
+	double m_500e_value = 0.0;
 
 public Q_SLOTS:
 	void set1cValue(const int v);
@@ -119,13 +138,16 @@ public:
 	explicit MonnaieDialog(QWidget *parent = nullptr);
 	~MonnaieDialog();
 
-	auto totalValue() const -> float;
+	MonnaieDialog(MonnaieDialog const &) = default;
+	MonnaieDialog &operator=(MonnaieDialog const &) = default;
+
+	auto totalValue() const -> double;
 };
 
 class AccountDialog : public QDialog {
 	Q_OBJECT
 
-	Ui::AccountDialog *ui;
+	Ui::AccountDialog *ui = nullptr;
 
 private Q_SLOTS:
 	void onAcceptButtonClicked();
@@ -135,9 +157,12 @@ public:
 	explicit AccountDialog(QWidget *parent = nullptr);
 	~AccountDialog();
 
+	AccountDialog(AccountDialog const &) = default;
+	AccountDialog &operator=(AccountDialog const &) = default;
+
 	auto name() const -> QString;
 	auto type() const -> int;
-	auto value() const -> float;
+	auto value() const -> double;
 	auto resetToDefaults() -> void;
 	auto blockedStatus() const -> bool;
 };
@@ -150,8 +175,8 @@ public:
 class UserPreferences : public QDialog {
 	Q_OBJECT
 
-	Ui::UserPreferences *ui;
-	QString m_language_path;
+	Ui::UserPreferences *ui = nullptr;
+	QString m_language_path = "";
 
 private Q_SLOTS:
 	void setFilePath();
@@ -159,6 +184,9 @@ private Q_SLOTS:
 public:
 	explicit UserPreferences(QWidget *parent = nullptr);
 	~UserPreferences();
+
+	UserPreferences(UserPreferences const &) = default;
+	UserPreferences &operator=(UserPreferences const &) = default;
 
 	auto filePath() const -> QString;
 	auto setFilePath(const QString &path) -> void;

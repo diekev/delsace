@@ -23,7 +23,7 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(langage
+add_executable(tori_v2
     analyseur.h
 	analyseuse_langage.h
     decoupeur.h
@@ -40,4 +40,4 @@ add_executable(langage
     test.cc
 )
 
-target_include_directories(langage PUBLIC "${INCLUSIONS}")
+target_include_directories(tori_v2 PUBLIC "${INCLUSIONS}")

@@ -20,17 +20,24 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ajoute_sousdossier(AVEC_ARACHNE arachne)
+ajoute_sousdossier(AVEC_CRESUS cresus)
 ajoute_sousdossier(AVEC_DANJO danjo)
+ajoute_sousdossier(AVEC_HIKAGE hikage)
+ajoute_sousdossier(AVEC_HIMITSU himitsu)
+ajoute_sousdossier(AVEC_IMAGO imago)
+ajoute_sousdossier(AVEC_INFOGRAPHIE infographie)
 ajoute_sousdossier(AVEC_KANBA kanba)
 ajoute_sousdossier(AVEC_KOUDOU koudou)
 ajoute_sousdossier(AVEC_KUMO kumo)
 ajoute_sousdossier(AVEC_KURI kuri)
+ajoute_sousdossier(AVEC_KYANBASU kyanbasu)
 ajoute_sousdossier(AVEC_MIKISA mikisa)
 ajoute_sousdossier(AVEC_MESURE mesure)
 ajoute_sousdossier(AVEC_PARCER parcer)
 ajoute_sousdossier(AVEC_POSEIDON poseidon)
 ajoute_sousdossier(AVEC_SILVATHEQUE silvatheque)
 ajoute_sousdossier(AVEC_TORI tori)
+ajoute_sousdossier(AVEC_TORI_V2 tori_v2)
 ajoute_sousdossier(AVEC_VULKAN vulkan)
 
 set(ICONES

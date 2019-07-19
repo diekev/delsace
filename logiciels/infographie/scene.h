@@ -36,19 +36,22 @@ enum {
 class Scene : public QObject {
 	Q_OBJECT
 
-	QVector<ChaikinCurve> m_chaikin_curves;
-	ChaikinCurve *m_cur_curve;
+	QVector<ChaikinCurve> m_chaikin_curves{};
+	ChaikinCurve *m_cur_curve = nullptr;
 
-	QVector<SierpinskiCurve> m_sierpenski_curves;
-	SierpinskiCurve *m_cur_sierpenski;
+	QVector<SierpinskiCurve> m_sierpenski_curves{};
+	SierpinskiCurve *m_cur_sierpenski = nullptr;
 
-	QVector<Polygon> m_polygons;
-	Polygon *m_cur_polygon;
+	QVector<Polygon> m_polygons{};
+	Polygon *m_cur_polygon = nullptr;
 
 	int m_mode = MODE_CHAIKIN;
 
 public:
 	Scene();
+
+	Scene(Scene const &) = default;
+	Scene &operator=(Scene const &) = default;
 
 	const QVector<ChaikinCurve> &chaikinCurves() const;
 	const QVector<SierpinskiCurve> &sierpenskiCurves() const;

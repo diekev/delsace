@@ -26,6 +26,9 @@
 
 #include <QWidget>
 
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
+
 namespace Ui {
 class CaesarCipher;
 class EnigmaCipher;
@@ -59,8 +62,8 @@ Q_SIGNALS:
 class CaesarCipher final : public CipherEngine {
 	Q_OBJECT
 
-	Ui::CaesarCipher *ui;
-	int m_original_key;
+	Ui::CaesarCipher *ui = nullptr;
+	int m_original_key = 0;
 
 private Q_SLOTS:
 	void onCipherKeyChange();
@@ -72,6 +75,9 @@ public:
 	CaesarCipher();
 	~CaesarCipher();
 
+	CaesarCipher(CaesarCipher const &) = default;
+	CaesarCipher &operator=(CaesarCipher const &) = default;
+
 	char getCipheredChar(char to_encrypt);
 	char getDecipheredChar(char to_decrypt);
 	int getCipherKey() const;
@@ -81,10 +87,10 @@ public:
 class VigenereCipher final : public CipherEngine {
 	Q_OBJECT
 
-	Ui::VigenereCipher *ui;
+	Ui::VigenereCipher *ui = nullptr;
 
-	int m_index;
-	QString m_original_key;
+	int m_index = 0;
+	QString m_original_key = "";
 
 private Q_SLOTS:
 	void onCipherKeyChange();
@@ -96,6 +102,9 @@ public:
 	VigenereCipher();
 	~VigenereCipher();
 
+	VigenereCipher(VigenereCipher const &) = default;
+	VigenereCipher &operator=(VigenereCipher const &) = default;
+
 	char getCipheredChar(char to_encrypt);
 	char getDecipheredChar(char to_decrypt);
 	int getCipherKey() const;
@@ -105,9 +114,9 @@ public:
 class EnigmaCipher final : public CipherEngine {
 	Q_OBJECT
 
-	Ui::EnigmaCipher *ui;
-	dls::tableau<int> m_plug_board;
-	dls::chaine m_reflect;
+	Ui::EnigmaCipher *ui = nullptr;
+	dls::tableau<int> m_plug_board{};
+	dls::chaine m_reflect = "";
 
 	enum {
 		ROTOR_1 = 0,
@@ -119,9 +128,9 @@ class EnigmaCipher final : public CipherEngine {
 		NUM_ROTORS = ROTOR_3 + 1
 	};
 
-	LetterWheel *m_rotors[NUM_ROTORS];
+	LetterWheel *m_rotors[NUM_ROTORS] = {};
 
-	int m_original_rotor_pos[NUM_ROTORS];
+	int m_original_rotor_pos[NUM_ROTORS] = {};
 
 	/**
 	 * http://www.cryptomuseum.com/crypto/enigma/g/index.htm
@@ -142,6 +151,9 @@ public:
 	EnigmaCipher();
 	~EnigmaCipher();
 
+	EnigmaCipher(EnigmaCipher const &) = default;
+	EnigmaCipher &operator=(EnigmaCipher const &) = default;
+
 	char getCipheredChar(char to_encrypt);
 	char getDecipheredChar(char to_decrypt);
 	int getCipherKey() const;
@@ -151,7 +163,7 @@ public:
 class LorenzCipher final : public CipherEngine {
 	Q_OBJECT
 
-	Ui::LorenzCipher *ui;
+	Ui::LorenzCipher *ui = nullptr;
 
 	enum {
 		WHEEL_PHI_1 = 0,
@@ -172,14 +184,14 @@ class LorenzCipher final : public CipherEngine {
 		NUM_WHEELS = WHEEL_CHI_5 + 1
 	};
 
-	PinWheel *m_wheels[NUM_WHEELS];
+	PinWheel *m_wheels[NUM_WHEELS] = {};
 
 	const int m_wheels_range[NUM_WHEELS] = {
 	    43, 47, 51, 53, 59, 37, 61, 41, 31, 29, 26, 23
 	};
 
-	int m_original_keys[NUM_WHEELS];
-	QLineEdit *m_pin_edit[NUM_WHEELS];
+	int m_original_keys[NUM_WHEELS] = {};
+	QLineEdit *m_pin_edit[NUM_WHEELS] = {};
 
 private Q_SLOTS:
 	void generateRandomPin();
@@ -191,6 +203,9 @@ public Q_SLOTS:
 public:
 	LorenzCipher();
 	~LorenzCipher();
+
+	LorenzCipher(LorenzCipher const &) = default;
+	LorenzCipher &operator=(LorenzCipher const &) = default;
 
 	char getCipheredChar(char to_encrypt);
 	char getDecipheredChar(char to_decrypt);

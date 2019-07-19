@@ -29,7 +29,7 @@
 #include <QSqlQuery>
 
 class DatabaseManager : public QObject {
-	QSqlDatabase m_database;
+	QSqlDatabase m_database{};
 
 public:
 	explicit DatabaseManager(QObject *parent = nullptr);

@@ -32,7 +32,7 @@ class QVBoxLayout;
 class ColorWidget final : public QWidget {
 	Q_OBJECT
 	int m_role = 0;
-	QVector<QPointF> m_curves[4];
+	QVector<QPointF> m_curves[4] = {};
 	QPointF *m_cur_point = nullptr;
 	bool m_mouse_down = false;
 
@@ -41,6 +41,9 @@ class ColorWidget final : public QWidget {
 public:
 	ColorWidget(QWidget *parent = nullptr);
 	~ColorWidget() = default;
+
+	ColorWidget(ColorWidget const &) = default;
+	ColorWidget &operator=(ColorWidget const &) = default;
 
 public Q_SLOTS:
 	void setRole(int role);
@@ -54,11 +57,14 @@ protected:
 };
 
 class ColorPickerWidget final : public QWidget {
-	ColorWidget *m_frame;
-	QVBoxLayout *m_layout;
-	QComboBox *m_role;
+	ColorWidget *m_frame = nullptr;
+	QVBoxLayout *m_layout = nullptr;
+	QComboBox *m_role = nullptr;
 
 public:
 	ColorPickerWidget(QWidget *parent = nullptr);
 	~ColorPickerWidget() = default;
+
+	ColorPickerWidget(ColorPickerWidget const &) = default;
+	ColorPickerWidget &operator=(ColorPickerWidget const &) = default;
 };

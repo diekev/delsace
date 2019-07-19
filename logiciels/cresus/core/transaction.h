@@ -27,8 +27,8 @@
 #include <QVariant>
 
 class Transaction {
-	QString m_categorie;
-	float m_valeur;
+	QString m_categorie{};
+	double m_valeur{};
 
 	enum type {
 		REVENUE,
@@ -36,7 +36,7 @@ class Transaction {
 	};
 
 public:
-	explicit Transaction(const float valeur)
+	explicit Transaction(const double valeur)
 	    : m_categorie("")
 	    , m_valeur(valeur)
 	{}

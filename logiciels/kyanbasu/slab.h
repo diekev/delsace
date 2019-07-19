@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include "biblinternes/ego/framebuffer.h"
+#include "biblinternes/ego/tampon_frame.h"
 #include "biblinternes/ego/texture.h"
 
 class Surface {
 public:
     GLuint FboHandle = 0;
-	dls::ego::FrameBuffer::Ptr framebuffer;
-	dls::ego::RenderBuffer::Ptr renderbuffer;
+	dls::ego::TamponFrame::Ptr framebuffer{};
+	dls::ego::TamponRendu::Ptr renderbuffer{};
 	dls::ego::Texture2D::Ptr texture = nullptr;
     int NumComponents = 0;
 	unsigned int render_buffer = 0;
@@ -47,8 +47,8 @@ public:
 
 class Slab {
 public:
-    Surface ping;
-    Surface pong;
+	Surface ping{};
+	Surface pong{};
 };
 
 Slab create_slab(GLsizei width, GLsizei height, int numComponents, int &unit);

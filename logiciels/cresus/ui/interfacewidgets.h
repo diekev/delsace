@@ -38,30 +38,34 @@ class QPushButton;
 class AccountWidget final : public QWidget {
 	Q_OBJECT
 
-	QLabel *m_text, *m_value;
-	QHBoxLayout *m_layout;
-	QPushButton *m_action;
+	QLabel *m_text = nullptr;
+	QLabel *m_value = nullptr;
+	QHBoxLayout *m_layout = nullptr;
+	QPushButton *m_action = nullptr;
 
 	/* dialog */
-	QDialog *m_dialog;
-	QVBoxLayout *m_layout_dialog;
-	QLineEdit *m_value_edit;
-	QDialogButtonBox *m_button_box;
+	QDialog *m_dialog = nullptr;
+	QVBoxLayout *m_layout_dialog = nullptr;
+	QLineEdit *m_value_edit = nullptr;
+	QDialogButtonBox *m_button_box = nullptr;
 
 private Q_SLOTS:
 	void editValue();
 
 Q_SIGNALS:
-	void valueChanged(const QString &text, const float value);
+	void valueChanged(const QString &text, const double value);
 
 public:
 	explicit AccountWidget(QWidget *parent = nullptr);
-	AccountWidget(const QString &text, const float value, QWidget *parent = nullptr);
+	AccountWidget(const QString &text, const double value, QWidget *parent = nullptr);
 	~AccountWidget() = default;
+
+	AccountWidget(AccountWidget const &) = default;
+	AccountWidget &operator=(AccountWidget const &) = default;
 
 	auto name() const -> QString;
 	auto setName(const QString &name) const -> void;
-	auto setValue(const float value) const -> void;
+	auto setValue(const double value) const -> void;
 	auto setSize(const int size) const -> void;
 	auto setBold(const bool do_name_bold, const bool do_value_bold) const -> void;
 	auto showPushButton(const bool b) const -> void;
@@ -71,17 +75,20 @@ public:
 class MonthlyTableWidget final : public QWidget {
 	Q_OBJECT
 
-	QLabel *m_category;
-	QLabel *m_values[12];
-	QHBoxLayout *m_layout;
+	QLabel *m_category = nullptr;
+	QLabel *m_values[12] = {};
+	QHBoxLayout *m_layout = nullptr;
 
 public:
 	explicit MonthlyTableWidget(QWidget *parent = nullptr);
 	MonthlyTableWidget(const QString &category, QWidget *parent = nullptr);
 	~MonthlyTableWidget() = default;
 
+	MonthlyTableWidget(MonthlyTableWidget const &) = default;
+	MonthlyTableWidget &operator=(MonthlyTableWidget const &) = default;
+
 	auto category() const -> QString;
-	auto setValue(const float value, const int mois) const -> void;
+	auto setValue(const double value, const int mois) const -> void;
 	void setCategory(const QString &category) const;
 };
 
@@ -89,15 +96,16 @@ public:
 class TableWidgetGroup final : public QWidget {
 	Q_OBJECT
 
-	QGroupBox *m_group_box;
-	QVBoxLayout *m_layout, *m_box_layout;
-	QPushButton *m_action;
+	QGroupBox *m_group_box = nullptr;
+	QVBoxLayout *m_layout = nullptr;
+	QVBoxLayout *m_box_layout = nullptr;
+	QPushButton *m_action = nullptr;
 
 	/* dialog */
-	QDialog *m_dialog;
-	QVBoxLayout *m_layout_dialog;
-	QLineEdit *m_value_edit;
-	QDialogButtonBox *m_button_box;
+	QDialog *m_dialog = nullptr;
+	QVBoxLayout *m_layout_dialog = nullptr;
+	QLineEdit *m_value_edit = nullptr;
+	QDialogButtonBox *m_button_box = nullptr;
 
 private Q_SLOTS:
 	void addCategory();
@@ -109,6 +117,9 @@ public:
 	explicit TableWidgetGroup(QWidget *parent = nullptr);
 	TableWidgetGroup(const QString &category, QWidget *parent = nullptr);
 	~TableWidgetGroup() = default;
+
+	TableWidgetGroup(TableWidgetGroup const &) = default;
+	TableWidgetGroup &operator=(TableWidgetGroup const &) = default;
 
 	void setTitle(const QString &title) const;
 };

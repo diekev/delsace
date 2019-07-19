@@ -29,14 +29,14 @@
 #include <QVector>
 
 struct ChaikinCurve {
-	QVector<QPoint> control_points;
-	QVector<QPoint> chaikin_points;
+	QVector<QPoint> control_points{};
+	QVector<QPoint> chaikin_points{};
 	int resolution = 3;
 };
 
 struct SierpinskiCurve {
-	QPoint center;
-	QVector<QPoint> curve_points;
+	QPoint center{};
+	QVector<QPoint> curve_points{};
 	int resolution = 1;
 };
 

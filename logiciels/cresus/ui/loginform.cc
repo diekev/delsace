@@ -31,9 +31,9 @@
 #include <QSqlQuery>
 #include <QVBoxLayout>
 
-#include "ui_login_form.h"
+#include "biblinternes/outils/conditions.h"
 
-#include "util/util_bool.h"
+#include "ui_login_form.h"
 
 LoginForm::LoginForm(QWidget *parent)
 	: QDialog(parent)
@@ -97,26 +97,26 @@ void LoginForm::onLoginButClicked()
 	auto password = ui->m_pass_edit->text();
 
 	/* create new user if the above two fields are blank */
-	if (is_equal("", username, password)) {
+	if (dls::outils::sont_egaux("", username, password)) {
 		auto fullname = ui->m_fullname_create->text();
-		auto username = ui->m_username_create->text();
-		auto password = ui->m_password_create->text();
+		auto username_ = ui->m_username_create->text();
+		auto password_ = ui->m_password_create->text();
 		auto password_check = ui->m_password_check_create->text();
 
-		if (is_equal("", fullname, username, password, password_check)) {
+		if (dls::outils::sont_egaux("", fullname, username_, password_, password_check)) {
 			ui->m_error_label->setText(tr("Les champs sont tous vident !"));
 			return;
 		}
 
-		if (password_check != password) {
+		if (password_check != password_) {
 			ui->m_error_label->setText(tr("Les mot de passes ne correpondent pas !"));
 			ui->m_password_check_create->setFocus();
 			return;
 		}
 
-		if (query.exec("insert into users (username, password, fullname) values('" + username + "','" + password + "','" + fullname + "')")) {
+		if (query.exec("insert into users (username, password, fullname) values('" + username_ + "','" + password_ + "','" + fullname + "')")) {
 			setUser(fullname);
-			setUsername(username);
+			setUsername(username_);
 			m_new_user = true;
 			Q_EMIT accept();
 			return;

@@ -32,7 +32,7 @@
 struct Project {
 	QString name = "";
 	QString filename = "";
-	QIcon thumbnail;
+	QIcon thumbnail{};
 
 	Project() = default;
 	Project(const Project &other) = default;
@@ -51,6 +51,9 @@ class ProjectManager {
 public:
 	ProjectManager() = default;
 	~ProjectManager() = default;
+
+	ProjectManager(ProjectManager const &) = default;
+	ProjectManager &operator=(ProjectManager const &) = default;
 
 	void currentProject(const QString &name);
 	void createProject(const QString &name);

@@ -35,10 +35,13 @@ class GLCanvas;
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
-	Ui::MainWindow *ui;
-	GLCanvas *m_canvas;
+	Ui::MainWindow *ui = nullptr;
+	GLCanvas *m_canvas = nullptr;
 
 public:
-	explicit MainWindow(QWidget *parent = 0);
+	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
+
+	MainWindow(MainWindow const &) = default;
+	MainWindow &operator=(MainWindow const &) = default;
 };

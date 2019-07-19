@@ -27,6 +27,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	bib_structures
+	stdc++fs
 )
 
 set(HEADERS

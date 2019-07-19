@@ -35,14 +35,18 @@ class Project;
 class ProjectDialog : public QDialog {
 	Q_OBJECT
 
-	Ui::ProjectDialog *ui;
-	bool m_open_existing, m_create_new;
+	Ui::ProjectDialog *ui = nullptr;
+	bool m_open_existing = false;
+	bool m_create_new = false;
 
 	void addCreateWidget() const;
 
 public:
 	explicit ProjectDialog(QDialog *parent = nullptr);
 	~ProjectDialog() = default;
+
+	ProjectDialog(ProjectDialog const &) = default;
+	ProjectDialog &operator=(ProjectDialog const &) = default;
 
 	bool openExisting() const;
 	bool createNew() const;

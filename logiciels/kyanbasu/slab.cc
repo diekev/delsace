@@ -28,9 +28,10 @@
 #include <cassert>
 #include <cmath>
 
-#include <ego/bufferobject.h>
-#include <ego/program.h>
-#include <ego/utils.h>
+#include "biblinternes/ego/outils.h"
+#include "biblinternes/ego/programme.h"
+#include "biblinternes/ego/tampon_objet.h"
+#include "biblinternes/outils/fichier.hh"
 
 Slab create_slab(GLsizei width, GLsizei height, int numComponents, int &unit)
 {
@@ -56,32 +57,32 @@ Surface::Surface(GLsizei width, GLsizei height, int numComponents, int unit)
 
 	int size[] = { width, height };
 
-	framebuffer = numero7::ego::FrameBuffer::create();
-	framebuffer->bind();
+	framebuffer = dls::ego::TamponFrame::cree_unique();
+	framebuffer->attache();
 
-	texture = numero7::ego::Texture2D::create(unit);
-	texture->bind();
-	texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	texture->setWrapping(GL_CLAMP_TO_EDGE);
-	texture->setType(GL_FLOAT, format, internal_format);
-	texture->fill(nullptr, size);
+	texture = dls::ego::Texture2D::cree_unique(static_cast<unsigned>(unit));
+	texture->attache();
+	texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+	texture->enveloppe(GL_CLAMP_TO_EDGE);
+	texture->type(GL_FLOAT, format, static_cast<int>(internal_format));
+	texture->remplie(nullptr, size);
 
-	numero7::ego::util::GPU_check_errors("Unable to create normals texture");
+	dls::ego::util::GPU_check_errors("Unable to create normals texture");
 
-	renderbuffer = numero7::ego::RenderBuffer::create();
-	renderbuffer->bind();
+	renderbuffer = dls::ego::TamponRendu::cree();
+	renderbuffer->lie();
 
-	framebuffer->attach(*texture, GL_COLOR_ATTACHMENT0);
+	framebuffer->attache(*texture, GL_COLOR_ATTACHMENT0);
 
-	numero7::ego::util::GPU_check_errors("Unable to attach color buffer");
-	numero7::ego::util::GPU_check_framebuffer("Unable to create FBO");
+	dls::ego::util::GPU_check_errors("Unable to attach color buffer");
+	dls::ego::util::GPU_check_framebuffer("Unable to create FBO");
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	renderbuffer->unbind();
-	texture->unbind();
-	framebuffer->unbind();
+	renderbuffer->delie();
+	texture->detache();
+	framebuffer->detache();
 }
 
 void swap_surfaces(Slab *slab)
@@ -91,27 +92,27 @@ void swap_surfaces(Slab *slab)
 
 void clear_surface(const Surface &s, float v)
 {
-	s.framebuffer->bind();
+	s.framebuffer->attache();
 	glClearColor(v, v, v, v);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void create_obstacles(Surface &dest, int width, int height)
 {
-	dest.framebuffer->bind();
+	dest.framebuffer->attache();
     glViewport(0, 0, width, height);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-	numero7::ego::BufferObject buffer;
+	dls::ego::TamponObjet buffer;
 
-	numero7::ego::Program program;
-	program.load(numero7::ego::VERTEX_SHADER, numero7::ego::util::str_from_file("shaders/simple.vert"));
-	program.load(numero7::ego::FRAGMENT_SHADER, numero7::ego::util::str_from_file("shaders/render.frag"));
-	program.createAndLinkProgram();
+	dls::ego::Programme program;
+	program.charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("shaders/simple.vert"));
+	program.charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("shaders/render.frag"));
+	program.cree_et_lie_programme();
 
-	program.enable();
-	program.addAttribute("vertex");
+	program.active();
+	program.ajoute_attribut("vertex");
 
     const bool draw_border = true;
     if (draw_border) {
@@ -121,18 +122,18 @@ void create_obstacles(Surface &dest, int width, int height)
 
 		const GLushort indices[6] = { 0, 1, 2, 0, 2, 3 };
 
-		buffer.bind();
-		buffer.generateVertexBuffer(positions, sizeof(float) * 8);
-		buffer.generateIndexBuffer(&indices[0], sizeof(GLushort) * 6);
-		buffer.attribPointer(program["vertex"], 2);
+		buffer.attache();
+		buffer.genere_tampon_sommet(positions, sizeof(float) * 8);
+		buffer.genere_tampon_index(&indices[0], sizeof(GLushort) * 6);
+		buffer.pointeur_attribut(static_cast<unsigned>(program["vertex"]), 2);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-		buffer.unbind();
+		buffer.detache();
     }
 
-	numero7::ego::util::GPU_check_framebuffer("");
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_framebuffer("");
+	dls::ego::util::GPU_check_errors("");
 
     const bool draw_circle = true;
     if (draw_circle) {
@@ -140,33 +141,33 @@ void create_obstacles(Surface &dest, int width, int height)
         float positions[slices * 2 * 3];
         const float twopi = 8 * std::atan(1.0f);
         float theta = 0;
-        const float dtheta = twopi / (float) (slices - 1);
+		const float dtheta = twopi / static_cast<float>(slices - 1);
         float *pPositions = &positions[0];
 
         for (int i = 0; i < slices; i++) {
             *pPositions++ = 0;
             *pPositions++ = 0;
 
-            *pPositions++ = 0.25f * std::cos(theta) * height / width;
+			*pPositions++ = 0.25f * std::cos(theta) * static_cast<float>(height) / static_cast<float>(width);
             *pPositions++ = 0.25f * std::sin(theta);
             theta += dtheta;
 
-            *pPositions++ = 0.25f * std::cos(theta) * height / width;
+			*pPositions++ = 0.25f * std::cos(theta) * static_cast<float>(height) / static_cast<float>(width);
             *pPositions++ = 0.25f * std::sin(theta);
         }
 
         GLsizeiptr size = sizeof(positions);
 
-		buffer.bind();
-		buffer.generateVertexBuffer(positions, size);
-		buffer.attribPointer(program["vertex"], 2);
+		buffer.attache();
+		buffer.genere_tampon_sommet(positions, size);
+		buffer.pointeur_attribut(static_cast<unsigned>(program["vertex"]), 2);
 
 		glDrawArrays(GL_TRIANGLES, 0, slices * 3);
 
-		buffer.unbind();
+		buffer.detache();
     }
 
-	numero7::ego::util::GPU_check_errors("");
+	dls::ego::util::GPU_check_errors("");
 
-	program.disable();
+	program.desactive();
 }
