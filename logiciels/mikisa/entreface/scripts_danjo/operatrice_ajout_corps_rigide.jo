@@ -1,7 +1,7 @@
 disposition "operatrice_ajout_corps_rigide" {
 	ligne {
 		étiquette(valeur="Nom Objet")
-		chaine(valeur=""; attache=nom_objet)
+		liste(valeur=""; attache=nom_objet)
 	}
     ligne {
 	    étiquette(valeur="Masse")

@@ -200,9 +200,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_groupe") {
 			entree(0)->obtiens_liste_groupes_points(chaines);
 		}
@@ -552,9 +554,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "groupe_origine") {
 			auto origine = evalue_enum("origine");
 
@@ -1030,9 +1034,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_groupe") {
 			entree(0)->obtiens_liste_groupes_prims(chaines);
 		}
@@ -1562,9 +1568,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_attribut") {
 			entree(0)->obtiens_liste_attributs(chaines);
 		}

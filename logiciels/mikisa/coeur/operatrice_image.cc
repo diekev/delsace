@@ -517,8 +517,14 @@ Manipulatrice3D *OperatriceImage::manipulatrice_3d(int /*type*/)
 void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*temps*/)
 {}
 
-void OperatriceImage::obtiens_liste(dls::chaine const &/*attache*/, dls::tableau<dls::chaine> &chaines)
+void OperatriceImage::obtiens_liste(
+		ContexteEvaluation const &contexte,
+		dls::chaine const &attache,
+		dls::tableau<dls::chaine> &chaines)
 {
+	INUTILISE(contexte);
+	INUTILISE(attache);
+
 	if (entrees() == 0) {
 		chaines.efface();
 		return;

@@ -1,6 +1,6 @@
 disposition "operatrice_import_objet" {
     ligne {
 	    étiquette(valeur="Nom Objet")
-		chaine(valeur=""; attache=nom_objet)
+		liste(valeur=""; attache=nom_objet)
 	}
 }

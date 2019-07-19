@@ -426,6 +426,18 @@ public:
 
 		return corps_rigide;
 	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_objet") {
+			for (auto &objet : contexte.bdd->objets()) {
+				liste.pousse(objet->nom);
+			}
+		}
+	}
 };
 
 /* ************************************************************************** */

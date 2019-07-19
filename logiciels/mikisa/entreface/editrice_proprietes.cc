@@ -42,6 +42,7 @@
 #include "coeur/evaluation/evaluation.hh"
 
 #include "coeur/composite.h"
+#include "coeur/contexte_evaluation.hh"
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
@@ -210,5 +211,7 @@ void EditriceProprietes::obtiens_liste(
 	}
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-	operatrice->obtiens_liste(attache, chaines);
+	auto contexte = cree_contexte_evaluation(m_mikisa);
+
+	operatrice->obtiens_liste(contexte, attache, chaines);
 }

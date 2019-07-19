@@ -365,7 +365,10 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
-	void obtiens_liste(dls::chaine const &raison, dls::tableau<dls::chaine> &liste) override;
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override;
 
 	bool depend_sur_temps() const override;
 };
@@ -505,9 +508,11 @@ int OpImportAlembic::execute(
 }
 
 void OpImportAlembic::obtiens_liste(
+		ContexteEvaluation const &contexte,
 		dls::chaine const &raison,
 		dls::tableau<dls::chaine> &liste)
 {
+	INUTILISE(contexte);
 	liste.efface();
 
 	if (!m_archive.valid()) {

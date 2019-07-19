@@ -380,6 +380,7 @@ public:
 	 * spécifiée.
 	 */
 	virtual void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines);
 
