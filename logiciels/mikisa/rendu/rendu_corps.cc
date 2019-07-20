@@ -228,7 +228,7 @@ void compile_sources_nuanceur(Maillage *maillage)
 
 static TamponRendu *cree_tampon_surface(bool possede_uvs)
 {
-	auto tampon = new TamponRendu;
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
@@ -388,7 +388,7 @@ void ajoute_polygone_segment(
 
 static TamponRendu *cree_tampon_segments()
 {
-	auto tampon = new TamponRendu;
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
@@ -525,7 +525,7 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 {
 	auto grille = volume->grille;
 
-	auto tampon = new TamponRendu;
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
@@ -600,10 +600,10 @@ RenduCorps::RenduCorps(Corps const *corps)
 
 RenduCorps::~RenduCorps()
 {
-	delete m_tampon_points;
-	delete m_tampon_polygones;
-	delete m_tampon_segments;
-	delete m_tampon_volume;
+	memoire::deloge("TamponRendu", m_tampon_points);
+	memoire::deloge("TamponRendu", m_tampon_polygones);
+	memoire::deloge("TamponRendu", m_tampon_segments);
+	memoire::deloge("TamponRendu", m_tampon_volume);
 }
 
 void RenduCorps::initialise(ContexteRendu const &contexte)

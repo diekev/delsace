@@ -88,7 +88,7 @@ void BaseDeDonnees::enleve_objet(Objet *objet)
 {
 	auto iter = std::find(m_objets.debut(), m_objets.fin(), objet);
 	m_objets.erase(iter);
-	delete objet;
+	memoire::deloge("objet", objet);
 }
 
 const dls::tableau<Objet *> &BaseDeDonnees::objets() const

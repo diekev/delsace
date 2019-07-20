@@ -147,7 +147,7 @@ public:
 	~SimMesh()
 	{
 		for (auto tet : sim_tets) {
-			delete tet;
+			memoire::deloge("tet_t", tet);
 		}
 	}
 
@@ -344,8 +344,6 @@ void Joint::Render()
 
 //	glDrawArrays(GL_LINES, 0, 4);
 
-//	delete ms_mult;
-
 	auto pi = constantes<float>::PI;
 	for (auto i = 0l; i < muscleList.taille(); i++){
 		auto k1 = l1 * (1.0f - muscleOrigins[i]);
@@ -373,13 +371,12 @@ void Joint::Render()
 	}
 }
 
-dls::math::mat4x4f* multiply_stack(dls::tableau<dls::math::mat4x4f> matStack)
+dls::math::mat4x4f multiply_stack(dls::tableau<dls::math::mat4x4f> matStack)
 {
-	dls::math::mat4x4f* mult;
-	mult = new dls::math::mat4x4f(1.0f);
+	auto mult = dls::math::mat4x4f(1.0f);
 
 	for (auto i=0l; i < matStack.taille();i++){
-		*mult = (*mult) * matStack[i];
+		mult *= matStack[i];
 	}
 
 	return mult;
@@ -521,7 +518,7 @@ void SimMesh::ReadTetgenMesh(dls::chaine mesh_name){
 
 	// initialize sim tets
 	for (auto i = 0l; i < tets.taille(); i++){
-		auto temp = new tet_t;
+		auto temp = memoire::loge<tet_t>("tet_t");
 		temp->vertices = tets[i];
 		sim_tets.pousse(temp);
 
@@ -959,9 +956,9 @@ public:
 
 	~OpSimMuscles() override
 	{
-		delete mesh1;
-		delete mesh2;
-		delete joint1;
+		memoire::deloge("SimMesh", mesh1);
+		memoire::deloge("SimMesh", mesh2);
+		memoire::deloge("Joint", joint1);
 	}
 
 	OpSimMuscles(OpSimMuscles const &) = default;
@@ -989,16 +986,16 @@ public:
 		m_corps.reinitialise();
 
 		if (contexte.temps_courant == 1) {
-			delete mesh1;
-			delete mesh2;
-			delete joint1;
+			memoire::deloge("SimMesh", mesh1);
+			memoire::deloge("SimMesh", mesh2);
+			memoire::deloge("Joint", joint1);
 
-			mesh1 = new SimMesh();
-			mesh2 = new SimMesh();
+			mesh1 = memoire::loge<SimMesh>("SimMesh");
+			mesh2 = memoire::loge<SimMesh>("SimMesh");
 			mesh1->ReadTetgenMesh("/opt/bin/mikisa/test/muscle1.2");
 			mesh2->ReadTetgenMesh("/opt/bin/mikisa/test/muscle1.2");
 
-			joint1 = new Joint(90.0f, 1.0f, 1.0f);
+			joint1 = memoire::loge<Joint>("Joint", 90.0f, 1.0f, 1.0f);
 			joint1->AddMuscle(mesh1, 0.1f, 0.2f, 1000, dls::math::vec3f(0.4f));
 			joint1->AddMuscle(mesh2, 0.8f, 0.8f, 500, dls::math::vec3f(0.4f));
 
