@@ -611,6 +611,28 @@ public:
 #endif
 
 template <typename T>
+auto operator==(tableau<T> const &t1, tableau<T> const &t2)
+{
+	if (t1.taille() != t2.taille()) {
+		return false;
+	}
+
+	for (auto i = 0l; i < t1.taille(); ++i) {
+		if (t1[i] != t2[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+template <typename T>
+auto operator!=(tableau<T> const &t1, tableau<T> const &t2)
+{
+	return !(t1 == t2);
+}
+
+template <typename T>
 auto begin(tableau<T> &tabl)
 {
 	return tabl.debut();
