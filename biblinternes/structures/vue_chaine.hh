@@ -35,6 +35,12 @@ private:
 	long m_taille = 0;
 
 public:
+	template <unsigned long N>
+	vue_chaine(char const (&c)[N])
+		: m_ptr(&c[0])
+		, m_taille(N)
+	{}
+
 	vue_chaine() = default;
 
 	vue_chaine(char const *ptr);
