@@ -85,24 +85,32 @@ def construit_structures():
 def construit_tableaux():
 	tableaux = u''
 
-	tableaux += u'static dls::dico<dls::vue_chaine, int> paires_mots_cles = {\n'
+	tableaux += u'static auto paires_mots_cles = dls::cree_dico(\n'
+
+	virgule = ''
 
 	for mot in mot_cles:
+		tableaux += virgule
 		m = enleve_accent(mot)
 		m = m.upper()
-		tableaux += u'\t{{ "{}", ID_{} }},\n'.format(mot, m)
+		tableaux += u'\tdls::paire{{ dls::vue_chaine("{}"), ID_{} }}'.format(mot, m)
+		virgule = ',\n'
 
-	tableaux += u'};\n\n'
+	tableaux += u'\n);\n\n'
 
-	tableaux += u'static dls::dico<char, int> paires_caracteres_speciaux = {\n'
+	tableaux += u'static auto paires_caracteres_speciaux = dls::cree_dico(\n'
+
+	virgule = ''
 
 	for c in caracteres_simple:
+		tableaux += virgule
 		if c[0] == "'":
 			c[0] = "\\'"
 
-		tableaux += u"\t{{ '{}', ID_{} }},\n".format(c[0], c[1])
+		tableaux += u"\tdls::paire{{ '{}', ID_{} }}".format(c[0], c[1])
+		virgule = ',\n'
 
-	tableaux += u'};\n\n'
+	tableaux += u'\n);\n\n'
 
 	return tableaux
 
@@ -191,13 +199,23 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[i] = -1;
 	}
 
-	for (const auto &iter : paires_caracteres_speciaux) {
-		tables_caracteres[int(iter.first)] = true;
-		tables_identifiants[int(iter.first)] = iter.second;
+    {
+	    auto plg = paires_caracteres_speciaux.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres[int(plg.front().premier)] = true;
+		    tables_identifiants[int(plg.front().premier)] = plg.front().second;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_mots_cles) {
-		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
+    {
+	    auto plg = paires_mots_cles.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 }
 
@@ -217,10 +235,10 @@ int id_chaine(const dls::vue_chaine &chaine)
 		return ID_CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.trouve(chaine);
+	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
-	if (iterateur != paires_mots_cles.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return ID_CHAINE_CARACTERE;
@@ -249,7 +267,7 @@ with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
 with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.hh"\n\n')
-	source.write(u'#include "biblinternes/structures/dico.hh"\n\n')
+	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')
 	source.write(tableaux)
 	source.write(fonction)
 	source.write(fonctions)

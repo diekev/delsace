@@ -155,31 +155,43 @@ def construit_structures():
 def construit_tableaux():
 	tableaux = u''
 
-	tableaux += u'static dls::dico<dls::vue_chaine, id_morceau> paires_mots_cles = {\n'
+	tableaux += u'static auto paires_mots_cles = dls::cree_dico(\n'
+
+	virgule = ''
 
 	for mot in mot_cles:
+		tableaux += virgule
 		m = enleve_accent(mot)
 		m = m.upper()
-		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(mot, m)
+		tableaux += u'\tdls::paire{{ dls::vue_chaine("{}"), id_morceau::{} }}'.format(mot, m)
+		virgule = ',\n'
 
-	tableaux += u'};\n\n'
+	tableaux += u'\n);\n\n'
 
-	tableaux += u'static dls::dico<dls::vue_chaine, id_morceau> paires_caracteres_double = {\n'
+	tableaux += u'static auto paires_caracteres_double = dls::cree_dico(\n'
+
+	virgule = ''
 
 	for c in caracteres_double:
-		tableaux += u'\t{{ "{}", id_morceau::{} }},\n'.format(c[0], c[1])
+		tableaux += virgule
+		tableaux += u'\tdls::paire{{ dls::vue_chaine("{}"), id_morceau::{} }}'.format(c[0], c[1])
+		virgule = ',\n'
 
-	tableaux += u'};\n\n'
+	tableaux += u'\n);\n\n'
 
-	tableaux += u'static dls::dico<char, id_morceau> paires_caracteres_speciaux = {\n'
+	tableaux += u'static auto paires_caracteres_speciaux = dls::cree_dico(\n'
+
+	virgule = ''
 
 	for c in caracteres_simple:
+		tableaux += virgule
 		if c[0] == "'":
 			c[0] = "\\'"
 
-		tableaux += u"\t{{ '{}', id_morceau::{} }},\n".format(c[0], c[1])
+		tableaux += u"\tdls::paire{{ '{}', id_morceau::{} }}".format(c[0], c[1])
+		virgule = ',\n'
 
-	tableaux += u'};\n\n'
+	tableaux += u'\n);\n\n'
 
 	return tableaux
 
@@ -277,17 +289,32 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
-	for (const auto &iter : paires_caracteres_speciaux) {
-		tables_caracteres[int(iter.first)] = true;
-		tables_identifiants[int(iter.first)] = iter.second;
+    {
+	    auto plg = paires_caracteres_speciaux.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres[int(plg.front().premier)] = true;
+		    tables_identifiants[int(plg.front().premier)] = plg.front().second;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_caracteres_double) {
-		tables_caracteres_double[int(iter.first[0])] = true;
+    {
+	    auto plg = paires_caracteres_double.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres_double[int(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_mots_cles) {
-		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
+    {
+	    auto plg = paires_mots_cles.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 }
 
@@ -307,10 +334,10 @@ id_morceau id_caractere_double(const dls::vue_chaine &chaine)
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_caracteres_double.trouve(chaine);
+	auto iterateur = paires_caracteres_double.trouve_binaire(chaine);
 
-	if (iterateur != paires_caracteres_double.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::INCONNU;
@@ -326,10 +353,10 @@ id_morceau id_chaine(const dls::vue_chaine &chaine)
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.trouve(chaine);
+	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
-	if (iterateur != paires_mots_cles.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::CHAINE_CARACTERE;
@@ -390,7 +417,7 @@ with io.open(u"../coeur/danjo/compilation/morceaux.h", u'w') as entete:
 with io.open(u'../coeur/danjo/compilation/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.h"\n\n')
-	source.write(u'#include "biblinternes/structures/dico.hh"\n\n')
+	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')
 	source.write(u'namespace danjo {\n\n')
 	source.write(tableaux)
 	source.write(fonction)
