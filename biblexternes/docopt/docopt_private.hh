@@ -33,6 +33,7 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "docopt_util.hh"
 #include "docopt_value.hh"
 
 namespace dls {
@@ -216,7 +217,7 @@ public:
 			}
 
 			// then we try to add it to the list
-			auto insereed = patterns.insere(child);
+			auto insereed = patterns.insert(child);
 
 			if (!insereed.second) {
 				// already there? then reuse the existing shared_ptr for that thing
@@ -509,11 +510,10 @@ inline std::pair<size_t, std::shared_ptr<LeafPattern>> Argument::single_match(Pa
 {
 	std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
 
-	for (size_t i = 0, size = left.taille(); i < size; ++i)
-	{
+	for (auto i = 0l, size = left.taille(); i < size; ++i) {
 		auto arg = dynamic_cast<Argument const*>(left[i].get());
 		if (arg) {
-			ret.first = i;
+			ret.first = static_cast<size_t>(i);
 			ret.second = std::make_shared<Argument>(name(), arg->getValue());
 			break;
 		}
@@ -526,12 +526,11 @@ inline std::pair<size_t, std::shared_ptr<LeafPattern>> Command::single_match(Pat
 {
 	std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
 
-	for (size_t i = 0, size = left.taille(); i < size; ++i)
-	{
+	for (auto i = 0l, size = left.taille(); i < size; ++i) {
 		auto arg = dynamic_cast<Argument const*>(left[i].get());
 		if (arg) {
 			if (value(name()) == arg->getValue()) {
-				ret.first = i;
+				ret.first = static_cast<size_t>(i);
 				ret.second = std::make_shared<Command>(name(), value{true});
 			}
 			break;
@@ -548,13 +547,15 @@ inline Option Option::parse(dls::chaine const& option_description)
 	value val { false };
 
 	auto double_space = option_description.trouve("  ");
-	auto options_end = option_description.fin();
+
+	auto std_option = std::string(option_description.c_str());
+	auto options_end = std_option.end();
 	if (double_space != dls::chaine::npos) {
-		options_end = option_description.debut() + static_cast<std::ptrdiff_t>(double_space);
+		options_end = std_option.begin() + double_space;
 	}
 
 	static const std::regex pattern {"(-{1,2})?(.*?)([,= ]|$)"};
-	for (std::sregex_iterator i {option_description.debut(), options_end, pattern, std::regex_constants::match_not_null},
+	for (std::sregex_iterator i {std_option.begin(), options_end, pattern, std::regex_constants::match_not_null},
 		e{};
 		i != e;
 		++i)
@@ -569,7 +570,7 @@ inline Option Option::parse(dls::chaine const& option_description)
 			}
 		}
 		else if (match[2].length() > 0) { // [2] always matches.
-			dls::chaine m = match[2];
+			//auto m = match[2];
 			argcount = 1;
 		}
 		else {
@@ -586,7 +587,7 @@ inline Option Option::parse(dls::chaine const& option_description)
 
 	if (argcount) {
 		std::smatch match;
-		if (std::regex_search(options_end, option_description.fin(),
+		if (std::regex_search(options_end.begin(), std_option.end(),
 							  match,
 							  std::regex{"\\[default: (.*)\\]", std::regex::icase}))
 		{

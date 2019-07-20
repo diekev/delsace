@@ -76,6 +76,12 @@ public:
 
 	void efface();
 
+	void efface(iteratrice iter);
+
+	void efface(iteratrice iter1, iteratrice iter2);
+
+	void efface(long pos, long n = npos);
+
 	void reserve(long combien);
 
 	void redimensionne(long combien);
@@ -92,7 +98,7 @@ public:
 
 	long capacite() const;
 
-	dls::chaine sous_chaine(long pos, long combien) const;
+	dls::chaine sous_chaine(long pos, long combien = npos) const;
 
 	long trouve(char c, long pos = 0) const;
 
@@ -100,9 +106,11 @@ public:
 
 	long trouve_premier_de(char c) const;
 
-	long trouve_premier_non_de(char c) const;
+	long trouve_premier_de(chaine const &c, long pos = 0) const;
 
-	long trouve_premier_non_de(chaine const &c) const;
+	long trouve_premier_non_de(char c, long pos = 0) const;
+
+	long trouve_premier_non_de(chaine const &c, long pos = 0) const;
 
 	long trouve_dernier_de(char c) const;
 

@@ -51,6 +51,21 @@ void chaine::efface()
 	m_chaine.clear();
 }
 
+void chaine::efface(chaine::iteratrice iter)
+{
+	m_chaine.erase(iter);
+}
+
+void chaine::efface(chaine::iteratrice iter1, chaine::iteratrice iter2)
+{
+	m_chaine.erase(iter1, iter2);
+}
+
+void chaine::efface(long pos, long n)
+{
+	m_chaine.erase(static_cast<size_t>(pos), static_cast<size_t>(n));
+}
+
 void chaine::reserve(long combien)
 {
 	m_chaine.reserve(static_cast<size_t>(combien));
@@ -112,14 +127,19 @@ long chaine::trouve_premier_de(char c) const
 	return static_cast<long>(m_chaine.find_first_of(c));
 }
 
-long chaine::trouve_premier_non_de(char c) const
+long chaine::trouve_premier_de(const chaine &c, long pos) const
 {
-	return static_cast<long>(m_chaine.find_first_not_of(c));
+	return static_cast<long>(m_chaine.find_first_of(c.c_str(), static_cast<size_t>(pos)));
 }
 
-long chaine::trouve_premier_non_de(chaine const &c) const
+long chaine::trouve_premier_non_de(char c, long pos) const
 {
-	return static_cast<long>(m_chaine.find_first_not_of(c.c_str()));
+	return static_cast<long>(m_chaine.find_first_not_of(c, static_cast<size_t>(pos)));
+}
+
+long chaine::trouve_premier_non_de(chaine const &c, long pos) const
+{
+	return static_cast<long>(m_chaine.find_first_not_of(c.c_str(), static_cast<size_t>(pos)));
 }
 
 long chaine::trouve_dernier_de(char c) const

@@ -110,7 +110,8 @@ public:
 		// and we dont have anything like that.
 
 		dls::tableau<dls::chaine> tokens;
-		std::for_each(std::sregex_iterator{ source.debut(), source.fin(), re_separators },
+		auto std_source = std::string(source.c_str());
+		std::for_each(std::sregex_iterator{ std_source.begin(), std_source.end(), re_separators },
 					  std::sregex_iterator{},
 					  [&](std::smatch const& match)
 		{
@@ -178,7 +179,10 @@ dls::tableau<T*> flat_filter(Pattern& pattern) {
 	return ret;
 }
 
-static dls::tableau<dls::chaine> parse_section(dls::chaine const& name, dls::chaine const& source) {
+static dls::tableau<dls::chaine> parse_section(dls::chaine const& name, dls::chaine const& source)
+{
+	auto std_name = std::string(name.c_str());
+	auto std_source = std::string(source.c_str());
 	// ECMAScript regex only has "?=" for a non-matching lookahead. In order to make sure we always have
 	// a newline to anchor our matching, we have to avoid matching the final newline of each grouping.
 	// Therefore, our regex is adjusted from the docopt Python one to use ?= to match the newlines before
@@ -186,14 +190,14 @@ static dls::tableau<dls::chaine> parse_section(dls::chaine const& name, dls::cha
 	std::regex const re_section_pattern {
 		"(?:^|\\n)"  // anchored at a linebreak (or start of string)
 		"("
-		"[^\\n]*" + name + "[^\\n]*(?=\\n?)" // a line that contains the name
+		"[^\\n]*" + std_name + "[^\\n]*(?=\\n?)" // a line that contains the name
 				"(?:\\n[ \\t].*?(?=\\n|$))*"         // followed by any number of lines that are indented
 				")",
 				std::regex::icase
 	};
 
 	dls::tableau<dls::chaine> ret;
-	std::for_each(std::sregex_iterator(source.debut(), source.fin(), re_section_pattern),
+	std::for_each(std::sregex_iterator(std_source.begin(), std_source.end(), re_section_pattern),
 				  std::sregex_iterator(),
 				  [&](std::smatch const& match)
 	{
@@ -246,9 +250,9 @@ static PatternList parse_long(Tokens& tokens, dls::tableau<Option>& options)
 	}
 
 	// maybe allow similar options that match by prefix
-	if (tokens.isParsingArgv() && similar.empty()) {
+	if (tokens.isParsingArgv() && similar.est_vide()) {
 		for(auto const& option : options) {
-			if (option.longOption().empty())
+			if (option.longOption().est_vide())
 				continue;
 			if (starts_with(option.longOption(), longOpt))
 				similar.pousse(&option);
@@ -323,7 +327,7 @@ static PatternList parse_short(Tokens& tokens, dls::tableau<Option>& options)
 		if (similar.taille() > 1) {
 			auto error = shortOpt + " is specified ambiguously "
 					+ std::to_string(similar.taille()) + " times";
-			throw Tokens::OptionError(std::move(error));
+			throw Tokens::OptionError(std::move(error.c_str()));
 		} else if (similar.est_vide()) {
 			options.emplace_back(shortOpt, "", 0);
 
@@ -490,7 +494,7 @@ static dls::chaine formal_usage(dls::chaine const& section)
 
 	auto i = section.trouve(':')+1;  // skip past "usage:"
 	auto parts = split(section, i);
-	for(size_t ii = 1; ii < parts.taille(); ++ii) {
+	for(auto ii = 1l; ii < parts.taille(); ++ii) {
 		if (parts[ii] == parts[0]) {
 			ret += " ) | (";
 		} else {
@@ -555,7 +559,7 @@ dls::tableau<Option> parse_defaults(dls::chaine const& doc)
 
 	dls::tableau<Option> defaults;
 	for (auto s : parse_section("options:", doc)) {
-		s.efface(s.debut(), s.debut() + static_cast<std::ptrdiff_t>(s.find(':')) + 1); // get rid of "options:"
+		s.efface(s.debut(), s.debut() + s.trouve(':') + 1); // get rid of "options:"
 
 		for (const auto& opt : regex_split(s, re_delimiter)) {
 			if (starts_with(opt, "-")) {

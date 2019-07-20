@@ -43,34 +43,34 @@ bool starts_with(const dls::chaine &str, const dls::chaine &prefix)
 
 dls::chaine trim(dls::chaine &&str, const dls::chaine &whitespace = " \t\n")
 {
-	const auto fin_string = str.find_last_not_of(whitespace);
+	const auto fin_string = str.trouve_dernier_non_de(whitespace);
 
 	if (fin_string == dls::chaine::npos) {
 		return {};
 	}
 
-	str.erase(fin_string + 1);
+	str.efface(fin_string + 1);
 
-	const auto debut_string = str.find_first_not_of(whitespace);
-	str.erase(0, debut_string);
+	const auto debut_string = str.trouve_premier_non_de(whitespace);
+	str.efface(0, debut_string);
 
 	return std::move(str);
 }
 
-dls::tableau<dls::chaine> split(const dls::chaine &str, size_t pos = 0)
+dls::tableau<dls::chaine> split(const dls::chaine &str, long pos = 0)
 {
 	const char * const anySpace = " \t\r\n\v\f";
 
 	dls::tableau<dls::chaine> ret;
 
 	while (pos != dls::chaine::npos) {
-		auto start = str.find_first_not_of(anySpace, pos);
+		auto start = str.trouve_premier_non_de(anySpace, pos);
 
 		if (start == dls::chaine::npos) {
 			break;
 		}
 
-		auto end = str.find_first_of(anySpace, start);
+		auto end = str.trouve_premier_de(anySpace, start);
 		auto size = (end == dls::chaine::npos) ? end : end-start;
 
 		ret.emplace_back(str.sous_chaine(start, size));
@@ -91,7 +91,7 @@ std::tuple<dls::chaine, dls::chaine, dls::chaine> partition(dls::chaine str, con
 		// no match: string goes in 0th spot only
 	}
 	else {
-		std::get<2>(ret) = str.sous_chaine(i + point.chaine());
+		std::get<2>(ret) = str.sous_chaine(i + point.taille());
 		std::get<1>(ret) = point;
 		str.redimensionne(i);
 	}
@@ -120,7 +120,8 @@ dls::chaine join(I iter, I end, const dls::chaine &delim)
 
 dls::tableau<dls::chaine> regex_split(const dls::chaine &text, const std::regex &re)
 {
-	auto it = std::sregex_token_iterator(text.debut(), text.fin(), re, -1);
+	auto std_text = std::string(text.c_str());
+	auto it = std::sregex_token_iterator(std_text.begin(), std_text.end(), re, -1);
 	auto end = std::sregex_token_iterator();
 
 	dls::tableau<dls::chaine> ret;
