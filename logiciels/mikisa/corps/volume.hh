@@ -214,7 +214,21 @@ public:
 #endif
 	}
 
-	T &valeur(size_t index) const
+	T &valeur(long index)
+	{
+		if (index >= m_nombre_voxels) {
+			return m_arriere_plan;
+		}
+
+#ifdef UTILISE_TUILES
+		assert(false);
+		return m_arriere_plan;
+#else
+		return m_donnees[index];
+#endif
+	}
+
+	T const &valeur(long index) const
 	{
 		if (index >= m_nombre_voxels) {
 			return m_arriere_plan;
@@ -287,7 +301,7 @@ public:
 #endif
 	}
 
-	void valeur(size_t index, T v)
+	void valeur(long index, T v)
 	{
 		if (index >= m_nombre_voxels) {
 			return;
@@ -391,11 +405,11 @@ public:
 	void echange(Grille<T> &autre)
 	{
 #ifdef UTILISE_TUILES
-		m_tuiles.swap(autre.m_tuiles);
-		m_tuiles.swap(autre.m_tuiles);
+		m_tuiles.echange(autre.m_tuiles);
+		m_tuiles.echange(autre.m_tuiles);
 		std::swap(m_tuile, autre.m_tuile);
 #else
-		m_donnees.swap(autre.m_donnees);
+		m_donnees.echange(autre.m_donnees);
 #endif
 
 		std::swap(m_arriere_plan, autre.m_arriere_plan);
@@ -406,6 +420,10 @@ public:
 
 class GrilleMAC : public Grille<dls::math::vec3f> {
 public:
+	GrilleMAC(limites3f const &etendu, limites3f const &fenetre_donnees, float taille_voxel)
+		: Grille<dls::math::vec3f>(etendu, fenetre_donnees, taille_voxel)
+	{}
+
 	dls::math::vec3f valeur_centree(dls::math::vec3i const &pos)
 	{
 		return valeur_centree(pos.x, pos.y, pos.z);
@@ -413,6 +431,10 @@ public:
 
 	dls::math::vec3f valeur_centree(int i, int j, int k)
 	{
+		if (hors_des_limites(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k))) {
+			return m_arriere_plan;
+		}
+
 		auto idx = calcul_index(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k));
 
 		return dls::math::vec3f(
@@ -538,17 +560,17 @@ public:
 
 		for (int i = 0; i < 2; ++i) {
 			int cur_x = c[0] + i;
-			poids[0] = 1.0f - std::abs(p[0] - cur_x);
+			poids[0] = 1.0f - std::abs(p[0] - static_cast<float>(cur_x));
 
 			for (int j = 0; j < 2; ++j) {
 				int cur_y = c[1] + j;
-				poids[1] = 1.0f - std::abs(p[1] - cur_y);
+				poids[1] = 1.0f - std::abs(p[1] - static_cast<float>(cur_y));
 
 				for (int k = 0; k < 2; ++k) {
 					int cur_z = c[2] + k;
-					poids[2] = 1.0f - std::abs(p[2] - cur_z);
+					poids[2] = 1.0f - std::abs(p[2] - static_cast<float>(cur_z));
 
-					valeur += poids[0] * poids[1] * poids[2] * m_grille.valeur(cur_x, cur_y, cur_z);
+					valeur += poids[0] * poids[1] * poids[2] * m_grille.valeur(static_cast<size_t>(cur_x), static_cast<size_t>(cur_y), static_cast<size_t>(cur_z));
 				}
 			}
 		}

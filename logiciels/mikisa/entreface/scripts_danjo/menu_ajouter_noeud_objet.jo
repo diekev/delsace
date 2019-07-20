@@ -65,6 +65,8 @@ menu "Noeud Objet" {
 		action(valeur="Déformation Kelvinlet"; attache=ajouter_noeud; métadonnée="Déformation Kelvinlet")
 		action(valeur="Évaluation Kelvinlet"; attache=ajouter_noeud; métadonnée="Évaluation Kelvinlet")
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
+		action(valeur="Entrée Gaz"; attache=ajouter_noeud; métadonnée="Entrée Gaz")
+		action(valeur="Simulation Gaz"; attache=ajouter_noeud; métadonnée="Simulation Gaz")
 		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
 		action(valeur="Simulation Muscles"; attache=ajouter_noeud; métadonnée="Simulation Muscles")
 		action(valeur="Stable Neo Hookean"; attache=ajouter_noeud; métadonnée="Stable Neo Hookean")

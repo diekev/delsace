@@ -24,15 +24,22 @@
 
 #include "operatrices_poseidon.hh"
 
+#include "biblinternes/memoire/logeuse_memoire.hh"
+
 #include "corps/volume.hh"
 
+#include "evaluation/reseau.hh"
+
+#include "base_de_donnees.hh"
 #include "contexte_evaluation.hh"
+#include "donnees_aval.hh"
+#include "objet.h"
 #include "operatrice_corps.h"
 #include "usine_operatrice.h"
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "limites_corps.hh"
 
-#undef AVEC_POSEIDON
+#define AVEC_POSEIDON
 
 #ifdef AVEC_POSEIDON
 
@@ -195,6 +202,25 @@ static auto init_domain(Grille<int> *flags)
 	}
 }
 
+template <typename T>
+static auto fill_grid(Grille<T> *flags, T valeur)
+{
+	std::cerr << __func__ << '\n';
+
+	auto res = flags->resolution();
+	auto limites = limites3i{};
+	limites.min = dls::math::vec3i(0);
+	limites.max = res;
+	auto iter = IteratricePosition(limites);
+
+	while (!iter.fini()) {
+		auto pos = iter.suivante();
+		auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
+
+		flags->valeur(idx) = valeur;
+	}
+}
+
 static auto fill_grid(Grille<int> *flags, int type)
 {
 	auto res = flags->resolution();
@@ -205,7 +231,7 @@ static auto fill_grid(Grille<int> *flags, int type)
 
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
-		auto idx = static_cast<size_t>(pos.x + (pos.y + pos.z * res.y) * res.x);
+		auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
 		auto val = flags->valeur(idx);
 
 		if ((val & TypeObstacle) == 0 && (val & TypeInflow) == 0 && (val & TypeOutflow) == 0 && (val & TypeOpen) == 0) {
@@ -243,7 +269,7 @@ static auto densityInflow(
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
 
-		auto idx = static_cast<size_t>(pos.x + (pos.y + pos.z * res.y) * res.x);
+		auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
 		auto val = flags->valeur(idx);
 
 		if (val != TypeFluid) {
@@ -459,9 +485,9 @@ inline static auto thetaHelper(float inside, float outside)
 }
 
 // calculate ghost fluid factor, cell at idx should be a fluid cell
-inline static auto ghostFluidHelper(size_t idx, int offset, const Grille<float> &phi, float gfClamp)
+inline static auto ghostFluidHelper(long idx, int offset, const Grille<float> &phi, float gfClamp)
 {
-	auto alpha = thetaHelper(phi.valeur(idx), phi.valeur(idx + static_cast<size_t>(offset)));
+	auto alpha = thetaHelper(phi.valeur(idx), phi.valeur(idx + offset));
 
 	if (alpha < gfClamp) {
 		return alpha = gfClamp;
@@ -470,9 +496,9 @@ inline static auto ghostFluidHelper(size_t idx, int offset, const Grille<float> 
 	return (1.0f - (1.0f / alpha));
 }
 
-inline static auto surfTensHelper(const size_t idx, const int offset, const Grille<float> &phi, const Grille<float> &curv, const float surfTens, const float gfClamp)
+inline static auto surfTensHelper(const long idx, const int offset, const Grille<float> &phi, const Grille<float> &curv, const float surfTens, const float gfClamp)
 {
-	return surfTens*(curv.valeur(idx + static_cast<size_t>(offset)) - ghostFluidHelper(idx, offset, phi, gfClamp) * curv.valeur(idx));
+	return surfTens*(curv.valeur(idx + offset) - ghostFluidHelper(idx, offset, phi, gfClamp) * curv.valeur(idx));
 }
 
 //! Compute rhs for pressure solve
@@ -537,7 +563,7 @@ static auto computePressureRhs(
 
 		// compute surface tension effect (optional)
 		if (phi && curv) {
-			auto const idx = i + (j + k * static_cast<size_t>(res.y)) * static_cast<size_t>(res.x);
+			auto const idx = static_cast<long>(i + (j + k * static_cast<unsigned>(res.y)) * static_cast<unsigned>(res.x));
 			auto const X = stride_x, Y = stride_y, Z = stride_z;
 
 			if(flags.valeur(i-1,j,k) == TypeVide) {
@@ -586,11 +612,11 @@ static auto compte_cellules_vides(Grille<int> const &drapeaux)
 {
 	auto res = drapeaux.resolution();
 
-	auto nombre_voxels = static_cast<size_t>(res.x * res.y * res.z);
+	auto nombre_voxels = static_cast<long>(res.x * res.y * res.z);
 
 	auto compte = 0;
 
-	for (auto i = 0ul; i < nombre_voxels; ++i) {
+	for (auto i = 0l; i < nombre_voxels; ++i) {
 		if (drapeaux.valeur(i) == TypeVide) {
 			compte++;
 		}
@@ -608,12 +634,12 @@ static auto fixPressure(
 		Grille<float>& Aj,
 		Grille<float>& Ak)
 {
-	auto fix_p_idx = static_cast<size_t>(fixPidx);
+	auto fix_p_idx = static_cast<long>(fixPidx);
 
 	auto res = rhs.resolution();
-	auto stride_x = 1ul;
-	auto stride_y = static_cast<size_t>(res.x);
-	auto stride_z = static_cast<size_t>(res.x * res.y);
+	auto stride_x = 1l;
+	auto stride_y = static_cast<long>(res.x);
+	auto stride_z = static_cast<long>(res.x * res.y);
 
 	// Bring to rhs at neighbors
 	rhs.valeur(fix_p_idx + stride_x) -= Ai.valeur(fix_p_idx) * value;
@@ -721,6 +747,7 @@ static auto MakeLaplaceMatrix(
 
 }
 
+#if 0
 static auto solvePressureSystem(
 		Grille<float>& rhs,
 		GrilleMAC& vel,
@@ -933,8 +960,208 @@ static auto solvePressure(
 //		retRhs->copyFrom( rhs );
 //	}
 }
+#endif
 
 /* ************************************************************************** */
+
+struct PoseidonGaz {
+	Grille<int> *drapeaux = nullptr;
+	Grille<float> *densite = nullptr;
+	GrilleMAC *velocite = nullptr;
+};
+
+class OpEntreeGaz : public OperatriceCorps {
+	dls::chaine m_nom_objet = "";
+	Objet *m_objet = nullptr;
+
+public:
+	static constexpr auto NOM = "Entrée Gaz";
+	static constexpr auto AIDE = "";
+
+	explicit OpEntreeGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(2);
+	}
+
+	OpEntreeGaz(OpEntreeGaz const &) = default;
+	OpEntreeGaz &operator=(OpEntreeGaz const &) = default;
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_entree_gaz.jo";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	Objet *trouve_objet(ContexteEvaluation const &contexte)
+	{
+		auto nom_objet = evalue_chaine("nom_objet");
+
+		if (nom_objet.est_vide()) {
+			return nullptr;
+		}
+
+		if (nom_objet != m_nom_objet || m_objet == nullptr) {
+			m_nom_objet = nom_objet;
+			m_objet = contexte.bdd->objet(nom_objet);
+		}
+
+		return m_objet;
+	}
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
+	{
+		if (m_objet == nullptr) {
+			m_objet = trouve_objet(contexte);
+
+			if (m_objet == nullptr) {
+				return;
+			}
+		}
+
+		compilatrice.ajoute_dependance(noeud, m_objet);
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_objet") {
+			for (auto &objet : contexte.bdd->objets()) {
+				liste.pousse(objet->nom);
+			}
+		}
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("poseidon_gaz")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		/* passe à notre exécution */
+
+		m_objet = trouve_objet(contexte);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Aucun objet sélectionné");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto poseidon_gaz = std::any_cast<PoseidonGaz *>(donnees_aval->table["poseidon_gaz"]);
+		auto grille = poseidon_gaz->densite;
+
+		if (grille == nullptr) {
+			this->ajoute_avertissement("La simulation n'est pas encore commencée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* copie par convénience */
+		m_objet->corps.accede_lecture([this](Corps const &_corps_)
+		{
+			_corps_.copie_vers(&m_corps);
+		});
+
+		/* À FAIRE : considère la surface des maillages. */
+		std::cerr << "résolution grille " << grille->resolution() << '\n';
+		auto res = grille->resolution();
+		auto lim = calcule_limites_mondiales_corps(m_corps);
+		auto min_idx = grille->monde_vers_unit(lim.min);
+		auto max_idx = grille->monde_vers_unit(lim.max);
+
+		auto limites = limites3i{};
+		limites.min.x = static_cast<int>(static_cast<float>(res.x) * min_idx.x);
+		limites.min.y = static_cast<int>(static_cast<float>(res.y) * min_idx.y);
+		limites.min.z = static_cast<int>(static_cast<float>(res.z) * min_idx.z);
+		limites.max.x = static_cast<int>(static_cast<float>(res.x) * max_idx.x);
+		limites.max.y = static_cast<int>(static_cast<float>(res.y) * max_idx.y);
+		limites.max.z = static_cast<int>(static_cast<float>(res.z) * max_idx.z);
+		auto iter = IteratricePosition(limites);
+
+		while (!iter.fini()) {
+			auto pos = iter.suivante();
+			auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
+
+			grille->valeur(idx) = 1.0f;
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+static void dessine_boite(
+		Corps &corps,
+		dls::math::vec3f const &min,
+		dls::math::vec3f const &max,
+		Attribut *attr_C)
+{
+	dls::math::vec3f sommets[8] = {
+		dls::math::vec3f(min.x, min.y, min.z),
+		dls::math::vec3f(min.x, min.y, max.z),
+		dls::math::vec3f(max.x, min.y, max.z),
+		dls::math::vec3f(max.x, min.y, min.z),
+		dls::math::vec3f(min.x, max.y, min.z),
+		dls::math::vec3f(min.x, max.y, max.z),
+		dls::math::vec3f(max.x, max.y, max.z),
+		dls::math::vec3f(max.x, max.y, min.z),
+	};
+
+	long cotes[12][2] = {
+		{ 0, 1 },
+		{ 1, 2 },
+		{ 2, 3 },
+		{ 3, 0 },
+		{ 0, 4 },
+		{ 1, 5 },
+		{ 2, 6 },
+		{ 3, 7 },
+		{ 4, 5 },
+		{ 5, 6 },
+		{ 6, 7 },
+		{ 7, 4 },
+	};
+
+	auto decalage = corps.points()->taille();
+
+	for (int i = 0; i < 8; ++i) {
+		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
+		attr_C->pousse(dls::math::vec3f(0.0f, 1.0f, 0.0f));
+	}
+
+	for (int i = 0; i < 12; ++i) {
+		auto poly = Polygone::construit(&corps, type_polygone::OUVERT, 2);
+		poly->ajoute_sommet(decalage + cotes[i][0]);
+		poly->ajoute_sommet(decalage + cotes[i][1]);
+	}
+}
 
 class OpSimulationGaz : public OperatriceCorps {
 public:
@@ -974,8 +1201,50 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		m_corps.reinitialise();
+		INUTILISE(donnees_aval);
 
+		m_corps.reinitialise();
+#if 1
+		/* init domaine */
+		auto poseidon_gaz = PoseidonGaz{};
+		auto res = 64;
+
+		auto etendu = limites3f{};
+		etendu.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
+		etendu.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
+		auto fenetre_donnees = etendu;
+		auto taille_voxel = 10.0f / static_cast<float>(res);
+
+		poseidon_gaz.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
+		poseidon_gaz.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
+		poseidon_gaz.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
+
+		fill_grid(poseidon_gaz.drapeaux, TypeFluid);
+
+		/* init simulation */
+
+		auto da = DonneesAval{};
+		da.table.insere({ "poseidon_gaz", &poseidon_gaz });
+
+		entree(0)->requiers_corps(contexte, &da);
+
+		/* sauve données (INCLURE VELOCITÉ !) */
+
+		auto volume = memoire::loge<Volume>("Volume");
+		volume->grille = poseidon_gaz.densite;
+
+		std::cerr << "Fin exécution algorithme\n";
+
+		/* visualise domaine */
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		dessine_boite(m_corps, etendu.min, etendu.max, attr_C);
+		dessine_boite(m_corps, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), attr_C);
+
+		memoire::deloge("grilles", poseidon_gaz.drapeaux);
+		memoire::deloge("grilles", poseidon_gaz.velocite);
+
+		m_corps.ajoute_primitive(volume);
+#else
 		/* paramètres solver */
 		auto res = 64;
 		auto gs = dls::math::vec3i(res, res * 3 / 2, res);
@@ -985,15 +1254,17 @@ public:
 		auto flags    = cree_grille(s, TYPE_GRILLE_FLAG);
 		auto vel      = cree_grille(s, TYPE_GRILLE_MAC);
 		auto density  = cree_grille(s, TYPE_GRILLE_REEL);
-		auto pressure = cree_grille(s, TYPE_GRILLE_REEL);
+	//	auto pressure = cree_grille(s, TYPE_GRILLE_REEL);
 
 		/* noise field */
 
 		/* À FAIRE : réinitialisation. */
 		if (contexte.temps_courant == 1) {
 			init_domain(dynamic_cast<Grille<int> *>(flags));
-			fill_grid(dynamic_cast<Grille<int> *>(flags), TypeFluid);
+		//	fill_grid(dynamic_cast<Grille<int> *>(flags), TypeFluid);
 		}
+
+		fill_grid(dynamic_cast<Grille<int> *>(flags), TypeFluid);
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, nullptr);
 
@@ -1001,32 +1272,44 @@ public:
 			densityInflow(dynamic_cast<Grille<int> *>(flags), dynamic_cast<Grille<float> *>(density), nullptr, corps_entree, 1.0f, 0.5f);
 		}
 
-		advectSemiLagrange(
-					dynamic_cast<Grille<int> *>(flags),
-					dynamic_cast<GrilleMAC *>(vel),
-					dynamic_cast<Grille<float> *>(density),
-					1);
+		fill_grid(dynamic_cast<Grille<float> *>(density), 1.0f);
 
-		advectSemiLagrange(
-					dynamic_cast<Grille<int> *>(flags),
-					dynamic_cast<GrilleMAC *>(vel),
-					dynamic_cast<GrilleMAC *>(vel),
-					1);
+//		advectSemiLagrange(
+//					dynamic_cast<Grille<int> *>(flags),
+//					dynamic_cast<GrilleMAC *>(vel),
+//					dynamic_cast<Grille<float> *>(density),
+//					1);
 
-		/* À FAIRE : plus de paramètres, voir MF. */
-		setWallBcs(dynamic_cast<Grille<int> *>(flags), dynamic_cast<GrilleMAC *>(vel));
+//		advectSemiLagrange(
+//					dynamic_cast<Grille<int> *>(flags),
+//					dynamic_cast<GrilleMAC *>(vel),
+//					dynamic_cast<GrilleMAC *>(vel),
+//					1);
 
-		addBuoyancy(
-					dynamic_cast<Grille<float> *>(density),
-					dynamic_cast<GrilleMAC *>(vel),
-					dls::math::vec3f(0,-6e-4,0),
-					dynamic_cast<Grille<int> *>(flags));
+//		/* À FAIRE : plus de paramètres, voir MF. */
+//		setWallBcs(dynamic_cast<Grille<int> *>(flags), dynamic_cast<GrilleMAC *>(vel));
 
-		solvePressure(
-					*dynamic_cast<GrilleMAC *>(vel),
-					*dynamic_cast<Grille<float> *>(pressure),
-					*dynamic_cast<Grille<int> *>(flags));
+//		addBuoyancy(
+//					dynamic_cast<Grille<float> *>(density),
+//					dynamic_cast<GrilleMAC *>(vel),
+//					dls::math::vec3f(0.0f, -6e-4f, 0.0f),
+//					dynamic_cast<Grille<int> *>(flags));
 
+
+
+//		solvePressure(
+//					*dynamic_cast<GrilleMAC *>(vel),
+//					*dynamic_cast<Grille<float> *>(pressure),
+//					*dynamic_cast<Grille<int> *>(flags));
+
+		auto volume = memoire::loge<Volume>("Volume");
+		volume->grille = density;
+
+		m_corps.ajoute_primitive(volume);
+
+		memoire::deloge("grilles", flags);
+		memoire::deloge("grilles", vel);
+#endif
 		return EXECUTION_REUSSIE;
 	}
 };
@@ -1038,6 +1321,7 @@ public:
 void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
 #ifdef AVEC_POSEIDON
+	usine.enregistre_type(cree_desc<OpEntreeGaz>());
 	usine.enregistre_type(cree_desc<OpSimulationGaz>());
 #endif
 }
