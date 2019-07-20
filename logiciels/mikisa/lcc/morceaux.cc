@@ -327,7 +327,7 @@ id_morceau id_caractere_double(const dls::vue_chaine &chaine)
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_caracteres_double.trouve(chaine);
+	auto iterateur = paires_caracteres_double.trouve_binaire(chaine);
 
 	if (!iterateur.est_finie()) {
 		return iterateur.front().second;
@@ -346,7 +346,7 @@ id_morceau id_chaine(const dls::vue_chaine &chaine)
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.trouve(chaine);
+	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
 	if (!iterateur.est_finie()) {
 		return iterateur.front().second;

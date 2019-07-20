@@ -89,6 +89,31 @@ public:
 		return plg;
 	}
 
+	plage_valeur trouve_binaire(C const &v)
+	{
+		auto plg = this->plage();
+
+		while (!plg.est_finie()) {
+			auto m = plg.deuxieme_moitie();
+
+			/* À FAIRE : double comparaison. */
+			if (m.front().premier == v) {
+				plg = m;
+				break;
+			}
+
+			if (m.front().premier < v) {
+				m.effronte();
+				plg = m;
+			}
+			else {
+				plg = plg.premiere_moitie();
+			}
+		}
+
+		return plg;
+	}
+
 	plage_valeur plage()
 	{
 		return plage_valeur(&m_donnees[0], &m_donnees[N]);
