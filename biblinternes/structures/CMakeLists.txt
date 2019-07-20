@@ -69,3 +69,5 @@ add_library(${NOM_CIBLE} STATIC
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+
+add_executable(test_structs main.cc)

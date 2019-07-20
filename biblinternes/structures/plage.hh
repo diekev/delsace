@@ -63,6 +63,16 @@ public:
 	{
 		return *m_debut;
 	}
+
+	plage_continue premiere_moitie() const
+	{
+		return plage_continue(m_debut, m_debut + (m_fin - m_debut) / 2);
+	}
+
+	plage_continue deuxieme_moitie() const
+	{
+		return plage_continue(m_debut + (m_fin - m_debut) / 2, m_fin);
+	}
 };
 
 }  /* namespace dls */
