@@ -36,6 +36,7 @@ add_library(${NOM_CIBLE} STATIC
 	chaine_utf8.cc
 	dico.cc
 	dico_desordonne.cc
+	dico_fixe.cc
 	ensemble.cc
 	file.cc
 	flux_chaine.cc
@@ -52,6 +53,7 @@ add_library(${NOM_CIBLE} STATIC
 	chaine_utf8.hh
 	dico.hh
 	dico_desordonne.hh
+	dico_fixe.hh
 	ensemble.hh
 	file.hh
 	flux_chaine.hh
