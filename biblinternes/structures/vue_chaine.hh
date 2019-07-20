@@ -56,6 +56,18 @@ bool operator<(vue_chaine const &c1, vue_chaine const &c2);
 
 bool operator>(vue_chaine const &c1, vue_chaine const &c2);
 
+bool operator==(vue_chaine const &vc1, vue_chaine const &vc2);
+
+bool operator==(vue_chaine const &vc1, char const *vc2);
+
+bool operator==(char const *vc1, vue_chaine const &vc2);
+
+bool operator!=(vue_chaine const &vc1, vue_chaine const &vc2);
+
+bool operator!=(vue_chaine const &vc1, char const *vc2);
+
+bool operator!=(char const *vc1, vue_chaine const &vc2);
+
 std::ostream &operator<<(std::ostream &os, vue_chaine const &vc);
 
 }  /* namespace dls */

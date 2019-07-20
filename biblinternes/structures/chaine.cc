@@ -245,7 +245,47 @@ bool operator==(const chaine &c1, const chaine &c2)
 	return std::strcmp(c1.c_str(), c2.c_str()) == 0;
 }
 
+bool operator==(chaine const &c1, vue_chaine const &c2)
+{
+	return vue_chaine(c1) == c2;
+}
+
+bool operator==(vue_chaine const &c1, chaine const &c2)
+{
+	return vue_chaine(c2) == c1;
+}
+
+bool operator==(chaine const &c1, char const *c2)
+{
+	return std::strcmp(c1.c_str(), c2) == 0;
+}
+
+bool operator==(char const *c1, chaine const &c2)
+{
+	return std::strcmp(c1, c2.c_str()) == 0;
+}
+
 bool operator!=(const chaine &c1, const chaine &c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(chaine const &c1, vue_chaine const &c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(vue_chaine const &c1, chaine const &c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(chaine const &c1, char const *c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(char const *c1, chaine const &c2)
 {
 	return !(c1 == c2);
 }

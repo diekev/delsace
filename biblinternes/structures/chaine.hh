@@ -153,7 +153,23 @@ std::istream &operator>>(std::istream &os, chaine &c);
 
 bool operator==(chaine const &c1, chaine const &c2);
 
+bool operator==(chaine const &c1, vue_chaine const &c2);
+
+bool operator==(vue_chaine const &c1, chaine const &c2);
+
+bool operator==(chaine const &c1, char const *c2);
+
+bool operator==(char const *c1, chaine const &c2);
+
 bool operator!=(chaine const &c1, chaine const &c2);
+
+bool operator!=(chaine const &c1, vue_chaine const &c2);
+
+bool operator!=(vue_chaine const &c1, chaine const &c2);
+
+bool operator!=(chaine const &c1, char const *c2);
+
+bool operator!=(char const *c1, chaine const &c2);
 
 bool operator<(chaine const &c1, chaine const &c2);
 
