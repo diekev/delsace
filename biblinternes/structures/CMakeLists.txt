@@ -44,6 +44,7 @@ add_library(${NOM_CIBLE} STATIC
 	hachage_spatiale.cc
 	liste.cc
 	pile.cc
+	plage.cc
 	tableau.cc
 	vue_chaine.cc
 
@@ -61,6 +62,7 @@ add_library(${NOM_CIBLE} STATIC
 	hachage_spatiale.hh
 	liste.hh
 	pile.hh
+	plage.hh
 	tableau.hh
 	vue_chaine.hh
 )

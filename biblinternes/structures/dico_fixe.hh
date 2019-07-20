@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <initializer_list>
+#include "plage.hh"
 
 namespace dls {
 
@@ -56,7 +56,7 @@ private:
 	type_valeur m_donnees[N];
 
 	template <typename PV, typename... PVs>
-	void construit_index(std::size_t &i, PV const &pv)
+	void construit_index(unsigned long &i, PV const &pv)
 	{
 		m_donnees[i++] = pv;
 	}
@@ -67,42 +67,12 @@ public:
 	{
 		static_assert(sizeof...(pvs) + 1 == N, "La taille de la liste n'est pas celle attendue");
 
-		std::size_t i = 0;
+		unsigned long i = 0;
 		construit_index(i, pv);
 		(construit_index(i, pvs), ...);
 	}
 
-	struct plage_valeur {
-	private:
-		type_pointeur m_debut = nullptr;
-		type_pointeur m_fin   = nullptr;
-
-	public:
-		plage_valeur(type_pointeur debut, type_pointeur fin)
-			: m_debut(debut)
-			, m_fin(fin)
-		{}
-
-		bool est_finie() const
-		{
-			return m_debut >= m_fin;
-		}
-
-		type_reference front()
-		{
-			return *m_debut;
-		}
-
-		type_reference_const front() const
-		{
-			return *m_debut;
-		}
-
-		void effronte()
-		{
-			++m_debut;
-		}
-	};
+	using plage_valeur = plage_continue<type_valeur>;
 
 	plage_valeur trouve(C const &v)
 	{
