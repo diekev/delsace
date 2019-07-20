@@ -198,17 +198,6 @@ inline auto max(const nombre &a, const nombre &b, const nombres &... c) -> const
 	return max(a, max(b, c...));
 }
 
-/**
- * Retourne la valeur du premier paramètre serrée entre min et max.
- */
-template <ConceptNombre nombre>
-inline auto clamp(const nombre &x, const nombre &min = nombre(0), const nombre &max = nombre(1)) -> const nombre&
-{
-	if      (x < min) return min;
-	else if (x > max) return max;
-	return x;
-}
-
 template <ConceptNombre nombre>
 inline auto radian_vers_degre(nombre radian)
 {

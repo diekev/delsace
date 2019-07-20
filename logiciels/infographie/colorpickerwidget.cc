@@ -29,18 +29,14 @@
 #include <QPainter>
 #include <QVBoxLayout>
 
+#include "biblinternes/math/outils.hh"
+
 enum {
 	COLOR_R = 0,
 	COLOR_G = 1,
 	COLOR_B = 2,
 	COLOR_A = 3,
 };
-
-template <typename T>
-inline T clamp(const T x, const T min, const T max)
-{
-	return (x < min) ? min : (x > max) ? max : x;
-}
 
 ColorWidget::ColorWidget(QWidget *parent)
     : QWidget(parent)
@@ -191,8 +187,8 @@ void ColorWidget::mouseMoveEvent(QMouseEvent *e)
 		auto x = static_cast<float>(e->pos().x()) / static_cast<float>(this->size().width());
 		auto y = static_cast<float>(e->pos().y()) / static_cast<float>(this->size().height());
 
-		x = clamp(x, 0.0f, 1.0f);
-		y = clamp(y, 0.0f, 1.0f);
+		x = dls::math::restreint(x, 0.0f, 1.0f);
+		y = dls::math::restreint(y, 0.0f, 1.0f);
 
 		*m_cur_point = { static_cast<double>(x), static_cast<double>(y) };
 		repaint();
